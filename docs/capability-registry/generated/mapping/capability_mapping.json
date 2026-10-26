@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6399,
+    "files_scanned": 6386,
     "files_by_kind": {
-      "backend": 1260,
+      "backend": 1259,
       "database": 289,
       "governance": 86,
       "mobile": 91,
-      "other": 2124,
-      "tests": 2070,
+      "other": 2127,
+      "tests": 2055,
       "web": 479
     },
-    "unmapped_artifacts": 2444,
-    "ambiguous_artifacts": 475
+    "unmapped_artifacts": 2435,
+    "ambiguous_artifacts": 474
   },
   "capabilities": [
     {
@@ -318,14 +318,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_guardrails.py",
-          "score": 10,
-          "signals": [
-            "content:Human approval",
-            "content:approval workflow"
-          ]
-        },
-        {
           "path": "tests_v9/test_guardrails_evaluate_http_contract.py",
           "score": 8,
           "signals": [
@@ -356,7 +348,7 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 4,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 1
       },
@@ -775,7 +767,7 @@
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1607",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1606",
           "score": 12
         },
         {
@@ -791,7 +783,7 @@
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1606",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1605",
           "score": 12
         },
         {
@@ -906,14 +898,6 @@
         },
         {
           "path": "services/actuator-service/test_dispatch_bridge.py",
-          "score": 12,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        },
-        {
-          "path": "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
           "score": 12,
           "signals": [
             "content:Execution request",
@@ -1211,7 +1195,7 @@
         "events": 32,
         "web": 0,
         "mobile": 0,
-        "tests": 21,
+        "tests": 20,
         "governance": 0,
         "other_evidence": 18
       },
@@ -1440,11 +1424,11 @@
           "score": 28
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1607",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1606",
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1606",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1605",
           "score": 12
         },
         {
@@ -1498,14 +1482,6 @@
         {
           "path": "services/decision-service/tests/test_wx10_12_execution_outcome.py",
           "score": 12,
-          "signals": [
-            "content:Dispatch authorization",
-            "content:dispatch authorization"
-          ]
-        },
-        {
-          "path": "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
-          "score": 10,
           "signals": [
             "content:Dispatch authorization",
             "content:dispatch authorization"
@@ -1602,7 +1578,7 @@
         "events": 9,
         "web": 0,
         "mobile": 0,
-        "tests": 7,
+        "tests": 6,
         "governance": 0,
         "other_evidence": 6
       },
@@ -2773,11 +2749,11 @@
           "score": 28
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1607",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1606",
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1606",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1605",
           "score": 12
         },
         {
@@ -3639,11 +3615,11 @@
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1607",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1606",
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1606",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1605",
           "score": 12
         },
         {
@@ -3666,14 +3642,6 @@
       "web": [],
       "mobile": [],
       "tests": [
-        {
-          "path": "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
-          "score": 14,
-          "signals": [
-            "path:model promotion",
-            "content:model promotion"
-          ]
-        },
         {
           "path": "services/decision-service/tests/test_wx11_3_model_promotion_decision.py",
           "score": 14,
@@ -3810,7 +3778,7 @@
         "events": 7,
         "web": 0,
         "mobile": 0,
-        "tests": 7,
+        "tests": 6,
         "governance": 0,
         "other_evidence": 9
       },
@@ -5500,7 +5468,7 @@
       ],
       "events": [
         {
-          "value": "v214_field_irrigation_source_assignments.sql @ services/sahool-platform/tests/test_simple_farm_book.py:169",
+          "value": "v214_field_irrigation_source_assignments.sql @ services/sahool-platform/tests/test_simple_farm_book.py:168",
           "score": 14
         },
         {
@@ -9191,7 +9159,7 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:751",
+          "value": "/health @ services/mcp_servers/market_server.py:715",
           "score": 12
         },
         {
@@ -9199,7 +9167,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:750",
+          "value": "/healthz @ services/mcp_servers/market_server.py:714",
           "score": 12
         },
         {
@@ -9211,51 +9179,51 @@
           "score": 12
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:764",
+          "value": "/readyz @ services/mcp_servers/market_server.py:728",
           "score": 12
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:744",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:708",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:592",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:558",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:629",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:595",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:593",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:559",
           "score": 12
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:737",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:701",
           "score": 12
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:699",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:666",
           "score": 12
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:707",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:672",
           "score": 12
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:682",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:649",
           "score": 12
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:714",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:679",
           "score": 12
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:720",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:684",
           "score": 12
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:694",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:661",
           "score": 12
         },
         {
@@ -9989,59 +9957,59 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:751",
+          "value": "/health @ services/mcp_servers/market_server.py:715",
           "score": 10
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:750",
+          "value": "/healthz @ services/mcp_servers/market_server.py:714",
           "score": 10
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:764",
+          "value": "/readyz @ services/mcp_servers/market_server.py:728",
           "score": 10
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:744",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:708",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:592",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:558",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:629",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:595",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:593",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:559",
           "score": 10
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:737",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:701",
           "score": 10
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:699",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:666",
           "score": 10
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:707",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:672",
           "score": 10
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:682",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:649",
           "score": 10
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:714",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:679",
           "score": 10
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:720",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:684",
           "score": 10
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:694",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:661",
           "score": 10
         },
         {
@@ -12405,27 +12373,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:859",
+          "value": "/health @ agents/notification/agent.py:840",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:860",
+          "value": "/healthz @ agents/notification/agent.py:841",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:912",
+          "value": "/metrics @ agents/notification/agent.py:891",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:925",
+          "value": "/notification/test @ agents/notification/agent.py:904",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:845",
+          "value": "/notifications/test @ agents/notification/agent.py:826",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:867",
+          "value": "/readyz @ agents/notification/agent.py:846",
           "score": 12
         },
         {
@@ -12785,14 +12753,6 @@
           "score": 14
         },
         {
-          "value": "field.created @ tests_v9/test_notification_delivery_reliability.py:103",
-          "score": 12
-        },
-        {
-          "value": "field.created @ tests_v9/test_notification_delivery_reliability.py:139",
-          "score": 12
-        },
-        {
           "value": "irrigation.execution.completed @ services/sahool-platform/workers/canonical_execution_learning_worker.py:227",
           "score": 12
         },
@@ -12801,7 +12761,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:633",
+          "value": "sahool.> @ agents/notification/agent.py:617",
           "score": 12
         },
         {
@@ -12865,15 +12825,23 @@
           "score": 12
         },
         {
-          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:565",
-          "score": 12
-        },
-        {
-          "value": "sahool.notification.dead_letter @ tests_v9/test_notification_delivery_reliability.py:143",
+          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:549",
           "score": 12
         },
         {
           "value": "sahool.notification.dead_letter @ tests_v9/test_notification_queue_rollout.py:386",
+          "score": 12
+        },
+        {
+          "value": "sahool.pest.alert @ event_publish_contracts.yaml:36",
+          "score": 12
+        },
+        {
+          "value": "sahool.task.assigned @ event_publish_contracts.yaml:52",
+          "score": 12
+        },
+        {
+          "value": "sahool.tenant.*.satellite.*.computed @ event_publish_contracts.yaml:15",
           "score": 12
         }
       ],
@@ -12966,14 +12934,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_notification_delivery_reliability.py",
-          "score": 12,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
           "path": "tests_v9/test_notification_queue_rollout.py",
           "score": 12,
           "signals": [
@@ -12986,6 +12946,14 @@
           "score": 12,
           "signals": [
             "content:event bus",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "tests_v9/test_notification_delivery_reliability.py",
+          "score": 11,
+          "signals": [
+            "content:jetstream",
             "content:nats"
           ]
         },
@@ -13322,7 +13290,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 32
+        "events": 30
       },
       "evidence_counts": {
         "backend": 6,
@@ -16831,6 +16799,14 @@
           ]
         },
         {
+          "path": "docs/architecture/railway_deploy_measurements.json",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "docs/audits/branch_archive_20261012/deletion_manifest_20261012.md",
           "score": 12,
           "signals": [
@@ -16884,7 +16860,7 @@
         "mobile": 14,
         "tests": 22,
         "governance": 1,
-        "other_evidence": 10
+        "other_evidence": 11
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -17462,10 +17438,6 @@
       ],
       "events": [
         {
-          "value": "canonical_field_state.v1 @ tests_v9/test_productivity_zones_grid_bounds.py:183",
-          "score": 14
-        },
-        {
           "value": "fields.geoparquet @ services/sahool-platform/api/routers/gis_cloud_native.py:701",
           "score": 12
         }
@@ -17501,14 +17473,6 @@
         },
         {
           "path": "tests_v9/test_productivity_zones_clustering_v60_1.py",
-          "score": 14,
-          "signals": [
-            "path:productivity zone",
-            "content:productivity zone"
-          ]
-        },
-        {
-          "path": "tests_v9/test_productivity_zones_grid_bounds.py",
           "score": 14,
           "signals": [
             "path:productivity zone",
@@ -17609,10 +17573,10 @@
         "backend": 9,
         "routes": 34,
         "database": 8,
-        "events": 2,
+        "events": 1,
         "web": 0,
         "mobile": 0,
-        "tests": 8,
+        "tests": 7,
         "governance": 0,
         "other_evidence": 7
       },
@@ -18522,11 +18486,11 @@
           "score": 18
         },
         {
-          "value": "/health @ services/mcp_servers/sentinel_hub_server.py:509",
+          "value": "/health @ services/mcp_servers/sentinel_hub_server.py:487",
           "score": 17
         },
         {
-          "value": "/healthz @ services/mcp_servers/sentinel_hub_server.py:508",
+          "value": "/healthz @ services/mcp_servers/sentinel_hub_server.py:486",
           "score": 17
         },
         {
@@ -18538,7 +18502,7 @@
           "score": 17
         },
         {
-          "value": "/readyz @ services/mcp_servers/sentinel_hub_server.py:514",
+          "value": "/readyz @ services/mcp_servers/sentinel_hub_server.py:492",
           "score": 17
         },
         {
@@ -18566,11 +18530,11 @@
           "score": 17
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/sentinel_hub_server.py:225",
+          "value": "/v1/mcp/tools @ services/mcp_servers/sentinel_hub_server.py:198",
           "score": 17
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/sentinel_hub_server.py:318",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/sentinel_hub_server.py:285",
           "score": 17
         },
         {
@@ -19255,14 +19219,6 @@
         },
         {
           "path": "services/raster-service/test_landsat_thermal_unique_contract.py",
-          "score": 12,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
           "score": 12,
           "signals": [
             "content:sentinel",
@@ -20204,7 +20160,7 @@
         "events": 49,
         "web": 5,
         "mobile": 0,
-        "tests": 59,
+        "tests": 58,
         "governance": 0,
         "other_evidence": 92
       },
@@ -20331,6 +20287,14 @@
         },
         {
           "path": "services/agriai-engine/main.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "services/ai_agronomist/ai_evidence_runtime.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -21104,14 +21068,6 @@
             "content:NDVI",
             "content:ndvi"
           ]
-        },
-        {
-          "path": "services/decision-service/eligibility_policy.py",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
         }
       ],
       "routes": [
@@ -21292,19 +21248,19 @@
           "score": 12
         },
         {
-          "value": "/v1/plan @ services/agriai-engine/main.py:351",
+          "value": "/v1/plan @ services/agriai-engine/main.py:336",
           "score": 12
         },
         {
-          "value": "/v1/recommend @ services/agriai-engine/main.py:273",
+          "value": "/v1/recommend @ services/agriai-engine/main.py:245",
           "score": 12
         },
         {
-          "value": "/v1/replay/verify @ services/agriai-engine/main.py:367",
+          "value": "/v1/replay/verify @ services/agriai-engine/main.py:352",
           "score": 12
         },
         {
-          "value": "/v1/simulate @ services/agriai-engine/main.py:338",
+          "value": "/v1/simulate @ services/agriai-engine/main.py:309",
           "score": 12
         },
         {
@@ -21404,7 +21360,7 @@
           "score": 8
         },
         {
-          "value": "/healthz @ services/mcp_servers/generic_context_server.py:149",
+          "value": "/healthz @ services/mcp_servers/generic_context_server.py:143",
           "score": 8
         },
         {
@@ -21428,7 +21384,7 @@
           "score": 8
         },
         {
-          "value": "/readyz @ services/mcp_servers/generic_context_server.py:154",
+          "value": "/readyz @ services/mcp_servers/generic_context_server.py:148",
           "score": 8
         },
         {
@@ -21464,11 +21420,11 @@
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:161",
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:155",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:178",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:172",
           "score": 8
         },
         {
@@ -21706,11 +21662,15 @@
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ services/sahool-platform/core/field_digital_twin.py:69",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:120",
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ tests_v9/test_productivity_zones_grid_bounds.py:183",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:217",
+          "score": 12
+        },
+        {
+          "value": "canonical_field_state.v1 @ services/sahool-platform/core/field_digital_twin.py:69",
           "score": 12
         },
         {
@@ -22071,10 +22031,6 @@
         },
         {
           "value": "operation.irrigation @ services/sahool-platform/tests/test_yield_heuristics.py:184",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation @ services/sahool-platform/tests/test_yield_heuristics.py:185",
           "score": 12
         }
       ],
@@ -24169,9 +24125,9 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "backend": 25,
-        "events": 59,
-        "tests": 87,
+        "backend": 26,
+        "events": 61,
+        "tests": 85,
         "other_evidence": 2
       },
       "evidence_counts": {
@@ -24380,19 +24336,19 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/generic_context_server.py:149",
+          "value": "/healthz @ services/mcp_servers/generic_context_server.py:143",
           "score": 8
         },
         {
-          "value": "/readyz @ services/mcp_servers/generic_context_server.py:154",
+          "value": "/readyz @ services/mcp_servers/generic_context_server.py:148",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:161",
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:155",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:178",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:172",
           "score": 8
         }
       ],
@@ -24425,10 +24381,6 @@
       "events": [
         {
           "value": "canonical_field_state.v1 @ services/sahool-platform/core/field_digital_twin.py:69",
-          "score": 12
-        },
-        {
-          "value": "canonical_field_state.v1 @ tests_v9/test_productivity_zones_grid_bounds.py:183",
           "score": 12
         },
         {
@@ -24645,14 +24597,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_productivity_zones_grid_bounds.py",
-          "score": 12,
-          "signals": [
-            "content:NDMI",
-            "content:ndmi"
-          ]
-        },
-        {
           "path": "tests_v9/test_sahool_brain_forensic.py",
           "score": 12,
           "signals": [
@@ -24784,10 +24728,10 @@
         "backend": 20,
         "routes": 10,
         "database": 5,
-        "events": 16,
+        "events": 15,
         "web": 7,
         "mobile": 0,
-        "tests": 24,
+        "tests": 23,
         "governance": 0,
         "other_evidence": 4
       },
@@ -26658,59 +26602,59 @@
           "score": 9
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:751",
+          "value": "/health @ services/mcp_servers/market_server.py:715",
           "score": 9
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:750",
+          "value": "/healthz @ services/mcp_servers/market_server.py:714",
           "score": 9
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:764",
+          "value": "/readyz @ services/mcp_servers/market_server.py:728",
           "score": 9
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:744",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:708",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:592",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:558",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:629",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:595",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:593",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:559",
           "score": 9
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:737",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:701",
           "score": 9
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:699",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:666",
           "score": 9
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:707",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:672",
           "score": 9
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:682",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:649",
           "score": 9
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:714",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:679",
           "score": 9
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:720",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:684",
           "score": 9
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:694",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:661",
           "score": 9
         },
         {
@@ -31951,7 +31895,7 @@
           ]
         },
         {
-          "path": "services/ai_agronomist/ai_evidence_runtime.py",
+          "path": "services/raster-service/routers/soil_tiles.py",
           "score": 16,
           "signals": [
             "content:Soil sampling",
@@ -31960,8 +31904,8 @@
           ]
         },
         {
-          "path": "services/raster-service/routers/soil_tiles.py",
-          "score": 16,
+          "path": "services/ai_agronomist/ai_evidence_runtime.py",
+          "score": 15,
           "signals": [
             "content:Soil sampling",
             "content:sampling plan",
@@ -32207,19 +32151,19 @@
       ],
       "events": [
         {
+          "value": "SoilSamplingPlannerPanel.tsx @ frontend/src/components/maphub/SoilSamplingPlannerPanel.static.test.ts:8",
+          "score": 15
+        },
+        {
           "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:120",
-          "score": 16
+          "score": 15
         },
         {
           "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:217",
-          "score": 16
+          "score": 15
         },
         {
           "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:817",
-          "score": 16
-        },
-        {
-          "value": "SoilSamplingPlannerPanel.tsx @ frontend/src/components/maphub/SoilSamplingPlannerPanel.static.test.ts:8",
           "score": 15
         },
         {
@@ -33466,11 +33410,11 @@
           "score": 14
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:106",
+          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:101",
           "score": 14
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:169",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:164",
           "score": 14
         },
         {
@@ -33772,7 +33716,7 @@
           "score": 14
         },
         {
-          "value": "weather_server.py @ tests_v9/test_mcp_auth_first_contract.py:476",
+          "value": "weather_server.py @ tests_v9/test_mcp_auth_first_contract.py:474",
           "score": 14
         },
         {
@@ -34503,6 +34447,14 @@
             "content:historical weather",
             "content:weather history"
           ]
+        },
+        {
+          "path": "services/ai_agronomist/ai_evidence_runtime.py",
+          "score": 12,
+          "signals": [
+            "content:Weather history",
+            "content:weather history"
+          ]
         }
       ],
       "routes": [
@@ -34555,6 +34507,18 @@
       ],
       "events": [
         {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:120",
+          "score": 12
+        },
+        {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:217",
+          "score": 12
+        },
+        {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:817",
+          "score": 12
+        },
+        {
           "value": "sahool.field_bootstrap.v1 @ shared/field_bootstrap.py:22",
           "score": 10
         }
@@ -34564,14 +34528,6 @@
       "tests": [
         {
           "path": "tests_v9/test_ai_policy_envelope_v52.py",
-          "score": 12,
-          "signals": [
-            "content:Weather history",
-            "content:weather history"
-          ]
-        },
-        {
-          "path": "tests_v9/test_ai_tool_result_redaction.py",
           "score": 12,
           "signals": [
             "content:Weather history",
@@ -34653,13 +34609,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 3,
+        "backend": 4,
         "routes": 6,
         "database": 4,
-        "events": 1,
+        "events": 4,
         "web": 0,
         "mobile": 0,
-        "tests": 6,
+        "tests": 5,
         "governance": 0,
         "other_evidence": 4
       },
@@ -35291,11 +35247,11 @@
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:106",
+          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:101",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:169",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:164",
           "score": 12
         },
         {
@@ -35311,23 +35267,23 @@
           "score": 10
         },
         {
-          "value": "/health @ services/mcp_servers/wofost_server.py:255",
+          "value": "/health @ services/mcp_servers/wofost_server.py:318",
           "score": 10
         },
         {
-          "value": "/healthz @ services/mcp_servers/wofost_server.py:254",
+          "value": "/healthz @ services/mcp_servers/wofost_server.py:317",
           "score": 10
         },
         {
-          "value": "/readyz @ services/mcp_servers/wofost_server.py:260",
+          "value": "/readyz @ services/mcp_servers/wofost_server.py:323",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/wofost_server.py:61",
+          "value": "/v1/mcp/tools @ services/mcp_servers/wofost_server.py:57",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/wofost_server.py:124",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/wofost_server.py:120",
           "score": 10
         },
         {
@@ -35343,19 +35299,19 @@
           "score": 8
         },
         {
-          "value": "/healthz @ services/mcp_servers/generic_context_server.py:149",
+          "value": "/healthz @ services/mcp_servers/generic_context_server.py:143",
           "score": 8
         },
         {
-          "value": "/readyz @ services/mcp_servers/generic_context_server.py:154",
+          "value": "/readyz @ services/mcp_servers/generic_context_server.py:148",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:161",
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:155",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:178",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:172",
           "score": 8
         }
       ],
@@ -37868,7 +37824,7 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/wofost_server.py:255",
+          "value": "/health @ services/mcp_servers/wofost_server.py:318",
           "score": 12
         },
         {
@@ -37876,7 +37832,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/wofost_server.py:254",
+          "value": "/healthz @ services/mcp_servers/wofost_server.py:317",
           "score": 12
         },
         {
@@ -37884,7 +37840,7 @@
           "score": 12
         },
         {
-          "value": "/readyz @ services/mcp_servers/wofost_server.py:260",
+          "value": "/readyz @ services/mcp_servers/wofost_server.py:323",
           "score": 12
         },
         {
@@ -37900,11 +37856,11 @@
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/wofost_server.py:61",
+          "value": "/v1/mcp/tools @ services/mcp_servers/wofost_server.py:57",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/wofost_server.py:124",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/wofost_server.py:120",
           "score": 12
         },
         {
@@ -38977,6 +38933,14 @@
       "title": "Operation windows",
       "backend": [
         {
+          "path": "services/ai_agronomist/ai_evidence_runtime.py",
+          "score": 12,
+          "signals": [
+            "content:Operation windows",
+            "content:operation window"
+          ]
+        },
+        {
           "path": "services/ai_agronomist/provider_tooling.py",
           "score": 12,
           "signals": [
@@ -39013,6 +38977,18 @@
       ],
       "database": [],
       "events": [
+        {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:120",
+          "score": 12
+        },
+        {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:217",
+          "score": 12
+        },
+        {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:817",
+          "score": 12
+        },
         {
           "value": "field_workspace_imagery.py @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:13",
           "score": 10
@@ -39064,10 +39040,10 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 1,
+        "backend": 2,
         "routes": 6,
         "database": 0,
-        "events": 1,
+        "events": 4,
         "web": 0,
         "mobile": 0,
         "tests": 2,
@@ -42367,10 +42343,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/edge-inference/models/image_decode.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/edge-inference/models/pest_detector.py",
       "kind": "backend"
     },
@@ -42944,10 +42916,6 @@
     },
     {
       "path": "services/realtime-agent/tests/test_context.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/realtime-agent/tests/test_origin_transport.py",
       "kind": "tests"
     },
     {
@@ -45199,10 +45167,6 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/sahool-platform/tests/test_emit_event_names.py",
       "kind": "tests"
     },
@@ -45949,6 +45913,10 @@
     {
       "path": "services/sam2-inference/main.py",
       "kind": "backend"
+    },
+    {
+      "path": "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
+      "kind": "tests"
     },
     {
       "path": "services/scout-ingest-service/tests/test_projection_live.py",
@@ -46715,10 +46683,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_ai_generation_opt_out_envelope.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_ai_generation_status_label_v58.py",
       "kind": "tests"
     },
@@ -47303,19 +47267,11 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_edge_inference_image_pixel_cap.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_edge_model_artifact_integrity.py",
       "kind": "tests"
     },
     {
       "path": "tests_v9/test_edge_model_digest_contract.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_edge_pest_detector_nms.py",
       "kind": "tests"
     },
     {
@@ -47583,6 +47539,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_guardrails.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_guardrails_crypto_dependency.py",
       "kind": "tests"
     },
@@ -47751,10 +47711,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_kg_edge_upsert_conflict.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_knowledge_provenance_guard.py",
       "kind": "tests"
     },
@@ -47792,10 +47748,6 @@
     },
     {
       "path": "tests_v9/test_local_ai_rag_init_retry.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_local_ai_rag_sources_and_upload_cleanup.py",
       "kind": "tests"
     },
     {
@@ -47852,10 +47804,6 @@
     },
     {
       "path": "tests_v9/test_mcp_test_double_isolation_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_mcp_tool_hardening.py",
       "kind": "tests"
     },
     {
@@ -48191,10 +48139,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_rag_bm25_search_cost.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_rag_complete_reindex_manifest.py",
       "kind": "tests"
     },
@@ -48263,10 +48207,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_rag_retrieval_event_loop.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_rag_served_ranking_decomposition.py",
       "kind": "tests"
     },
@@ -48284,6 +48224,10 @@
     },
     {
       "path": "tests_v9/test_rag_weighted_rrf_fusion.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_railway_deploy_impact.py",
       "kind": "tests"
     },
     {
@@ -48976,10 +48920,6 @@
     },
     {
       "path": "tests_v9/test_video_processor_features_20260702.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_video_stream_inference_field_binding.py",
       "kind": "tests"
     },
     {
@@ -54327,6 +54267,45 @@
       ]
     },
     {
+      "path": "services/ai_agronomist/ai_evidence_runtime.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "SOIL-002",
+          "score": 15,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
+          "capability_id": "WX-008",
+          "score": 12,
+          "signals": [
+            "content:Operation windows",
+            "content:operation window"
+          ]
+        },
+        {
+          "capability_id": "WX-003",
+          "score": 12,
+          "signals": [
+            "content:Weather history",
+            "content:weather history"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
       "path": "services/ai_agronomist/provider_tooling.py",
       "kind": "backend",
       "candidates": [
@@ -54623,28 +54602,6 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "DEC-004",
-          "score": 12,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        },
-        {
-          "capability_id": "DEC-005",
-          "score": 10,
-          "signals": [
-            "content:Dispatch authorization",
-            "content:dispatch authorization"
           ]
         }
       ]
@@ -60557,36 +60514,6 @@
           "signals": [
             "path:productivity zone",
             "content:productivity zone"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "tests_v9/test_productivity_zones_grid_bounds.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "PA-001",
-          "score": 14,
-          "signals": [
-            "path:productivity zone",
-            "content:productivity zone"
-          ]
-        },
-        {
-          "capability_id": "SAT-004",
-          "score": 12,
-          "signals": [
-            "content:NDMI",
-            "content:ndmi"
           ]
         },
         {
