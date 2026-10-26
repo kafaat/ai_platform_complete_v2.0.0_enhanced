@@ -4,6 +4,8 @@ import 'package:sahool_app/core/network/api_client.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
 import 'package:sahool_app/core/network/response_shape.dart';
 
+import 'inventory_models.dart';
+
 class InventoryApi {
   InventoryApi([ApiClient? client]) : _client = client ?? ApiClient.instance;
   static final InventoryApi instance = InventoryApi();
@@ -40,4 +42,17 @@ class InventoryApi {
       idempotencyKey: idempotencyKey,
     ),
   );
+
+  // ── نسخ مُنمَّطة (إضافيّة؛ الدوالّ أعلاه باقية لمستهلكيها) ──────────────
+
+  /// العناصر مع الكمّيّة الكلّيّة وعلَم «منخفض» المحسوبَين خادميّاً.
+  Future<List<InventoryItem>> listItems() async =>
+      (await getInventoryItems()).map(InventoryItem.fromJson).toList();
+
+  /// دفعات كمّيّتها > 0 تنتهي خلال [days] يوماً (والمنتهية فعلاً)، الأقرب أوّلاً.
+  /// الخادم يقيّد [days] بـ1..3650.
+  Future<List<ExpiringBatch>> listExpiring({int days = 30}) async =>
+      (await getExpiringBatches(
+        days: days,
+      )).map(ExpiringBatch.fromJson).toList();
 }

@@ -1,343 +1,343 @@
-// SAHOOL — lib/screens/devices_screen.dart
-// أجهزة IoT: سجلّ الأجهزة بمؤشّر اتصال online/offline (مُحتسَب خادميّاً من
-// last_seen_at) + قياسات حيّة، عبر /api/v1/devices/*. مُقيَّد بالدور (device:view
-// عرض، device:manage تسجيل، observation:record رفع قياس). لا قياسات مُلفَّقة —
-// تُعرَض القياسات الحقيقيّة فقط. تطابق DevicesPage في الويب.
+// SAHOOL — features/devices/presentation/devices_screen.dart
+// أجهزة IoT: السجلّ بحالة الاتّصال (محسوبة خادميّاً من last_seen_at) وعمر آخر
+// ظهور، صحّة الأسطول (الأجهزة الصامتة مرتّبة بالخطورة)، والحقل المرتبط، وفتح
+// قراءات كلّ جهاز. عبر /api/v1/devices/* (device:view للعرض، device:manage —
+// المالك/المدير — للتسجيل). مراقبة فقط: لا أوامر تشغيل للمشغّلات من التطبيق.
+// لا قراءات مُلفَّقة. تقابل DevicesPage في الويب.
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/core/widgets/form_kit.dart';
-import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/core/utils/formatters.dart';
+import 'package:sahool_app/core/widgets/state_views.dart' show showSnack;
+import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/devices/data/devices_api.dart';
+import 'package:sahool_app/features/devices/data/devices_models.dart';
+import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_refresh_banner.dart';
+import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_tile.dart';
 
-class DevicesScreen extends StatefulWidget {
-  const DevicesScreen({super.key});
-  @override
-  State<DevicesScreen> createState() => _DevicesScreenState();
+import 'device_detail_screen.dart';
+import 'devices_cubit.dart';
+import 'register_device_sheet.dart';
+
+IconData deviceTypeIcon(String type) => switch (type) {
+  'soil_moisture' => Icons.water_drop_outlined,
+  'weather_station' => Icons.thermostat_outlined,
+  'water_meter' => Icons.speed_outlined,
+  'camera' => Icons.videocam_outlined,
+  'actuator' => Icons.settings_input_component_outlined,
+  _ => Icons.sensors,
+};
+
+/// حالة الاتّصال كرقاقة (لون + أيقونة + نصّ).
+StatusChip deviceConnectionChip(Device d) {
+  if (d.online) {
+    return const StatusChip(
+      label: 'متّصل',
+      tone: StatusTone.success,
+      icon: Icons.wifi_rounded,
+    );
+  }
+  if (d.neverSeen) {
+    return const StatusChip(
+      label: 'لم يتّصل قطّ',
+      tone: StatusTone.neutral,
+      icon: Icons.portable_wifi_off_rounded,
+    );
+  }
+  return const StatusChip(
+    label: 'غير متّصل',
+    tone: StatusTone.warning,
+    icon: Icons.wifi_off_rounded,
+  );
 }
 
-class _DevicesScreenState extends State<DevicesScreen> {
-  bool _loading = true;
-  String? _error;
-  List<Map<String, dynamic>> _devices = const [];
+String lastSeenText(Device d, DateTime now) => d.lastSeenAt == null
+    ? 'لم يُرسل أيّ قراءة بعد'
+    : 'آخر ظهور ${fmtAge(d.lastSeenAt, now: now)}';
 
-  static const _typeLabels = {
-    'soil_moisture': 'رطوبة التربة',
-    'weather_station': 'محطّة طقس',
-    'water_meter': 'عدّاد ماء',
-    'camera': 'كاميرا',
-    'actuator': 'مُشغِّل',
-    'other': 'أخرى',
-  };
+class DevicesScreen extends StatelessWidget {
+  const DevicesScreen({
+    super.key,
+    this.api,
+    this.role,
+    this.fields,
+    this.clock,
+  });
+
+  final DevicesApi? api;
+  final AppRole? role;
+  final FieldsLoader? fields;
+  final DateTime Function()? clock;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
+  Widget build(BuildContext context) {
+    final a = api ?? DevicesApi.instance;
+    return BlocProvider(
+      create: (_) => DevicesCubit(a, fields: fields, clock: clock)..load(),
+      child: _DevicesView(
+        api: a,
+        role: role ?? normalizeRole(currentRole()),
+        fields: fields,
+        clock: clock ?? DateTime.now,
+      ),
+    );
+  }
+}
+
+class _DevicesView extends StatelessWidget {
+  const _DevicesView({
+    required this.api,
+    required this.role,
+    required this.fields,
+    required this.clock,
+  });
+
+  final DevicesApi api;
+  final AppRole role;
+  final FieldsLoader? fields;
+  final DateTime Function() clock;
+
+  // device:manage للمالك/المدير فقط (core/authorization.py).
+  bool get _canManage => canManage(role.name);
+
+  Future<void> _register(BuildContext context) async {
+    final cubit = context.read<DevicesCubit>();
+    final ok = await showAppBottomSheet<bool>(
+      context,
+      builder: (_) => RegisterDeviceSheet(api: api, fields: fields),
+    );
+    if (!context.mounted || ok != true) return;
+    showSnack(context, 'سُجّل الجهاز');
+    await cubit.load();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final data = await DevicesApi.instance.listDevices();
-      if (!mounted) return;
-      setState(() {
-        _devices = data;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = apiErrorMessage(e);
-        _loading = false;
-      });
-    }
+  void _open(BuildContext context, Device d, DevicesLoaded s) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: '/devices/detail'),
+        builder: (_) => DeviceDetailScreen(
+          deviceId: d.id,
+          device: d,
+          fieldName: d.fieldId == null ? null : s.fieldNames?[d.fieldId],
+          silent: s.fleet?.silentFor(d.id),
+          api: api,
+          clock: clock,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final mutable = canMutate(currentRole());
-    return Scaffold(
-      backgroundColor: kBg,
-      appBar: AppBar(
-        backgroundColor: kSurface,
-        title: const Text('أجهزة IoT'),
-        actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
-        ],
-      ),
-      floatingActionButton: mutable
-          ? FloatingActionButton.extended(
-              backgroundColor: kPrimary,
-              onPressed: _openRegister,
-              icon: const Icon(Icons.add),
-              label: const Text('تسجيل جهاز'),
+    final cubit = context.watch<DevicesCubit>();
+    final state = cubit.state;
+    return AppScaffold(
+      title: 'أجهزة الاستشعار',
+      actions: [
+        AppIconButton(
+          icon: Icons.refresh_rounded,
+          tooltip: 'تحديث',
+          onPressed: state is DevicesLoading ? null : cubit.load,
+        ),
+      ],
+      floatingActionButton: _canManage && state is DevicesLoaded
+          ? AppFab(
+              heroKey: '/devices',
+              label: 'تسجيل جهاز',
+              icon: Icons.add_rounded,
+              onPressed: () => _register(context),
             )
           : null,
-      body: _loading
-          ? const LoadingView()
-          : _error != null
-          ? ErrorView(message: _error!, onRetry: _load)
-          : _devices.isEmpty
-          ? const EmptyView(message: 'لا أجهزة مسجّلة بعد')
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: _devices.length,
-                itemBuilder: (_, i) => _tile(_devices[i]),
-              ),
-            ),
-    );
-  }
-
-  Widget _tile(Map<String, dynamic> d) {
-    final online = d['online'] == true;
-    final type = (d['type'] ?? '').toString();
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: kSurface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => _TelemetryScreen(device: d)),
+      body: switch (state) {
+        DevicesLoading() => const LoadingState(message: 'جارٍ تحميل الأجهزة…'),
+        DevicesFailed(:final error) => ErrorState(
+          error: error,
+          onRetry: cubit.load,
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: online ? kPrimary : Colors.grey,
-                shape: BoxShape.circle,
-                boxShadow: online
-                    ? [
-                        BoxShadow(
-                          color: kPrimary.withValues(alpha: 0.6),
-                          blurRadius: 6,
-                        ),
-                      ]
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${d['name'] ?? '—'}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${_typeLabels[type] ?? type} · ${online ? 'متصل' : 'غير متصل'}',
-                    style: TextStyle(
-                      color: online ? kPrimary : Colors.grey,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_left, color: Colors.grey),
-          ],
+        DevicesLoaded() => RefreshIndicator(
+          onRefresh: cubit.load,
+          child: _loaded(context, state),
         ),
-      ),
+      },
     );
   }
 
-  void _openRegister() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: kSurface,
-      isScrollControlled: true,
-      builder: (_) => _RegisterDeviceSheet(onDone: _load),
-    );
-  }
-}
-
-class _RegisterDeviceSheet extends StatefulWidget {
-  final Future<void> Function() onDone;
-  const _RegisterDeviceSheet({required this.onDone});
-  @override
-  State<_RegisterDeviceSheet> createState() => _RegisterDeviceSheetState();
-}
-
-class _RegisterDeviceSheetState extends State<_RegisterDeviceSheet> {
-  final _name = TextEditingController();
-  final _firmware = TextEditingController();
-  String _type = 'soil_moisture';
-  bool _saving = false;
-
-  static const _types = {
-    'soil_moisture': 'رطوبة التربة',
-    'weather_station': 'محطّة طقس',
-    'water_meter': 'عدّاد ماء',
-    'camera': 'كاميرا',
-    'actuator': 'مُشغِّل',
-    'other': 'أخرى',
-  };
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _firmware.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (_name.text.trim().isEmpty) {
-      showSnack(context, 'الاسم مطلوب', error: true);
-      return;
+  Widget _loaded(BuildContext context, DevicesLoaded s) {
+    final now = clock();
+    final banner = s.refreshError == null
+        ? null
+        : OpsRefreshBanner(
+            error: s.refreshError!,
+            fetchedAt: s.fetchedAt,
+            now: now,
+          );
+    if (s.devices.isEmpty) {
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          if (banner != null) SliverToBoxAdapter(child: banner),
+          SliverFillRemaining(
+            child: EmptyState(
+              icon: Icons.sensors_off_outlined,
+              title: 'لا أجهزة مسجّلة بعد',
+              message: _canManage
+                  ? 'سجّل حسّاسات الرطوبة ومحطّات الطقس وعدّادات الماء لترى '
+                        'قراءاتها هنا.'
+                  : 'لم يسجّل المالك أو المدير أيّ جهاز بعد.',
+              actionLabel: _canManage ? 'سجّل أوّل جهاز' : null,
+              onAction: _canManage ? () => _register(context) : null,
+            ),
+          ),
+        ],
+      );
     }
-    setState(() => _saving = true);
-    try {
-      await DevicesApi.instance.registerDevice({
-        'name': _name.text.trim(),
-        'type': _type,
-        if (_firmware.text.trim().isNotEmpty)
-          'firmware_version': _firmware.text.trim(),
-      });
-      if (!mounted) return;
-      Navigator.pop(context);
-      await widget.onDone();
-    } catch (e) {
-      if (mounted) {
-        setState(() => _saving = false);
-        showSnack(context, apiErrorMessage(e), error: true);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SheetScaffold(
-      title: 'تسجيل جهاز',
-      saving: _saving,
-      onSubmit: _submit,
+    final fleet = s.fleet;
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsetsDirectional.only(bottom: 96),
       children: [
-        DropdownButtonFormField<String>(
-          value: _type,
-          dropdownColor: kSurface,
-          decoration: kDec('النوع'),
-          style: const TextStyle(color: Colors.white),
-          items: _types.entries
-              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-              .toList(),
-          onChanged: (v) => setState(() => _type = v ?? 'other'),
+        if (banner != null) banner,
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            SahoolSpacing.md,
+            SahoolSpacing.md,
+            SahoolSpacing.md,
+            0,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: MetricTile(
+                  label: 'الأجهزة',
+                  value: s.devices.length,
+                  decimals: 0,
+                  icon: Icons.sensors,
+                ),
+              ),
+              Expanded(
+                child: MetricTile(
+                  label: 'متّصلة الآن',
+                  value: s.onlineCount,
+                  decimals: 0,
+                  icon: Icons.wifi_rounded,
+                ),
+              ),
+              Expanded(
+                child: MetricTile(
+                  label: 'صامتة',
+                  value: fleet?.silent,
+                  decimals: 0,
+                  icon: Icons.notifications_paused_outlined,
+                  caption: fleet == null ? 'تعذّر حساب صحّة الأسطول' : null,
+                ),
+              ),
+            ],
+          ),
         ),
-        kField(_name, 'الاسم'),
-        kField(_firmware, 'إصدار البرنامج الثابت (اختياري)'),
+        if (fleet != null && (fleet.criticalSilent ?? 0) > 0)
+          _CriticalCard(fleet: fleet),
+        const ListSectionHeader('الأجهزة'),
+        for (final d in s.devices)
+          Card(
+            margin: const EdgeInsetsDirectional.symmetric(
+              horizontal: SahoolSpacing.lg,
+              vertical: SahoolSpacing.xs,
+            ),
+            child: OpsTile(
+              key: ValueKey('device:${d.id}'),
+              title: d.name.isEmpty ? '—' : d.name,
+              subtitle: [
+                d.typeLabel,
+                lastSeenText(d, now),
+                if (d.fieldId != null)
+                  'الحقل: ${s.fieldNames?[d.fieldId] ?? 'مرتبط بحقل'}',
+              ].join(' · '),
+              icon: deviceTypeIcon(d.type),
+              iconColor: d.online
+                  ? context.tokens.success
+                  : context.tokens.muted,
+              chips: [
+                deviceConnectionChip(d),
+                if (fleet?.silentFor(d.id)?.isCritical ?? false)
+                  const StatusChip(
+                    label: 'صامت — حرج',
+                    tone: StatusTone.danger,
+                    icon: Icons.priority_high_rounded,
+                  ),
+              ],
+              onTap: () => _open(context, d, s),
+            ),
+          ),
+        const SizedBox(height: SahoolSpacing.md),
+        Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: SahoolSpacing.lg,
+          ),
+          child: Text(
+            'مراقبة فقط: لا تُرسَل أوامر تشغيل إلى الأجهزة من التطبيق.',
+            style: context.textStyles.bodySmall?.copyWith(
+              color: context.tokens.muted,
+            ),
+          ),
+        ),
       ],
     );
   }
 }
 
-class _TelemetryScreen extends StatefulWidget {
-  final Map<String, dynamic> device;
-  const _TelemetryScreen({required this.device});
-  @override
-  State<_TelemetryScreen> createState() => _TelemetryScreenState();
-}
-
-class _TelemetryScreenState extends State<_TelemetryScreen> {
-  bool _loading = true;
-  String? _error;
-  List<Map<String, dynamic>> _points = const [];
-
-  String get _deviceId => widget.device['device_id'].toString();
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final data = await DevicesApi.instance.getDeviceTelemetry(_deviceId);
-      if (!mounted) return;
-      setState(() {
-        _points = data;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = apiErrorMessage(e);
-        _loading = false;
-      });
-    }
-  }
+class _CriticalCard extends StatelessWidget {
+  const _CriticalCard({required this.fleet});
+  final FleetHealth fleet;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kBg,
-      appBar: AppBar(
-        backgroundColor: kSurface,
-        title: Text('قياسات ${widget.device['name'] ?? ''}'),
-        actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
-        ],
+    final t = context.tokens;
+    final critical = fleet.silentDevices.where((d) => d.isCritical).toList();
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        SahoolSpacing.lg,
+        SahoolSpacing.md,
+        SahoolSpacing.lg,
+        0,
       ),
-      body: _loading
-          ? const LoadingView()
-          : _error != null
-          ? ErrorView(message: _error!, onRetry: _load)
-          : _points.isEmpty
-          ? const EmptyView(
-              message: 'لا قياسات حديثة لهذا الجهاز',
-              icon: Icons.sensors_off,
-            )
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: _points.length,
-                itemBuilder: (_, i) {
-                  final p = _points[i];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: kSurface,
-                      borderRadius: BorderRadius.circular(10),
+      child: Semantics(
+        liveRegion: true,
+        child: Container(
+          padding: const EdgeInsets.all(SahoolSpacing.md),
+          decoration: BoxDecoration(
+            color: t.danger.withValues(alpha: 0.10),
+            borderRadius: SahoolRadius.mdAll,
+            border: Border.all(color: t.danger.withValues(alpha: 0.45)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.report_rounded, color: t.danger),
+                  const SizedBox(width: SahoolSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      '${fleet.criticalSilent} جهاز حرج صامت — يحتاج تدخّلاً',
+                      style: context.textStyles.titleSmall,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${p['sensor_type'] ?? '—'}',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        Text(
-                          '${p['value'] ?? ''} ${p['unit'] ?? ''}',
-                          style: const TextStyle(
-                            color: kSecondary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                  ),
+                ],
               ),
-            ),
+              for (final d in critical) ...[
+                const SizedBox(height: SahoolSpacing.xs),
+                Text(
+                  '• ${d.name}: ${d.detailAr}',
+                  style: context.textStyles.bodySmall,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

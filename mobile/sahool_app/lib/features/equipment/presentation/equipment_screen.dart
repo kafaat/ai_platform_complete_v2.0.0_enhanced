@@ -1,507 +1,282 @@
-// SAHOOL — lib/screens/equipment_screen.dart
-// المعدّات: الأسطول + سجلّ الصيانة، عبر /api/v1/equipment/*. مُقيَّد بالدور
-// (equipment:view عرض، equipment:manage إضافة/صيانة). لا بيانات مُلفَّقة —
-// حالة المعدّة وتكلفة الصيانة قرارات تشغيليّة، فالخطأ يُعلَن. تطابق EquipmentPage.
+// SAHOOL — features/equipment/presentation/equipment_screen.dart
+// المعدّات: الأسطول بحالته (تعمل / في الصيانة / معطّلة / خارج الخدمة) وساعات
+// تشغيله، تصفية بالحالة، وفتح تفاصيل المعدّة وسجلّ صيانتها. عبر
+// /api/v1/equipment/* (equipment:view للعرض، equipment:manage — المالك/المدير —
+// للإضافة والصيانة). لا بيانات مُلفَّقة. تقابل EquipmentPage في الويب.
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/core/widgets/form_kit.dart';
-import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/core/utils/formatters.dart';
+import 'package:sahool_app/core/widgets/state_views.dart' show showSnack;
+import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/equipment/data/equipment_api.dart';
+import 'package:sahool_app/features/equipment/data/equipment_models.dart';
+import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
+import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_refresh_banner.dart';
+import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_tile.dart';
 
-class EquipmentScreen extends StatefulWidget {
-  const EquipmentScreen({super.key});
+import 'equipment_cubit.dart';
+import 'equipment_detail_screen.dart';
+import 'equipment_sheets.dart';
+
+StatusTone equipmentStatusTone(String status) => switch (status) {
+  'operational' => StatusTone.success,
+  'maintenance' => StatusTone.warning,
+  'broken' => StatusTone.danger,
+  _ => StatusTone.neutral,
+};
+
+IconData equipmentStatusIcon(String status) => switch (status) {
+  'operational' => Icons.check_circle_outline_rounded,
+  'maintenance' => Icons.build_circle_outlined,
+  'broken' => Icons.report_problem_outlined,
+  'retired' => Icons.do_not_disturb_on_outlined,
+  _ => Icons.help_outline_rounded,
+};
+
+IconData equipmentTypeIcon(String type) => switch (type) {
+  'tractor' => Icons.agriculture_outlined,
+  'pump' => Icons.water_outlined,
+  'harvester' => Icons.grass_outlined,
+  'sprayer' => Icons.shower_outlined,
+  _ => Icons.precision_manufacturing_outlined,
+};
+
+StatusChip equipmentStatusChip(Equipment e) => StatusChip(
+  label: e.statusLabel,
+  tone: equipmentStatusTone(e.status),
+  icon: equipmentStatusIcon(e.status),
+);
+
+String fmtHours(num? hours) =>
+    hours == null ? kNotMeasured : '${fmtNumber(hours, decimals: 1)} ساعة';
+
+class EquipmentScreen extends StatelessWidget {
+  const EquipmentScreen({
+    super.key,
+    this.api,
+    this.role,
+    this.outbox,
+    this.clock,
+  });
+
+  final EquipmentApi? api;
+  final AppRole? role;
+  final OfflineOutbox? outbox;
+  final DateTime Function()? clock;
+
   @override
-  State<EquipmentScreen> createState() => _EquipmentScreenState();
+  Widget build(BuildContext context) {
+    final a = api ?? EquipmentApi.instance;
+    return BlocProvider(
+      create: (_) => EquipmentCubit(a, clock: clock)..load(),
+      child: _EquipmentView(
+        api: a,
+        role: role ?? normalizeRole(currentRole()),
+        outbox: outbox,
+        clock: clock ?? DateTime.now,
+      ),
+    );
+  }
 }
 
-class _EquipmentScreenState extends State<EquipmentScreen> {
-  bool _loading = true;
-  String? _error;
-  List<Map<String, dynamic>> _equipment = const [];
+class _EquipmentView extends StatelessWidget {
+  const _EquipmentView({
+    required this.api,
+    required this.role,
+    required this.outbox,
+    required this.clock,
+  });
 
-  static const _typeLabels = {
-    'tractor': 'جرّار',
-    'pump': 'مضخّة',
-    'harvester': 'حصّادة',
-    'sprayer': 'رشّاشة',
-    'other': 'أخرى',
-  };
+  final EquipmentApi api;
+  final AppRole role;
+  final OfflineOutbox? outbox;
+  final DateTime Function() clock;
 
-  @override
-  void initState() {
-    super.initState();
-    _load();
+  // equipment:manage للمالك/المدير فقط (core/authorization.py).
+  bool get _canManage => canManage(role.name);
+
+  Future<void> _add(BuildContext context) async {
+    final cubit = context.read<EquipmentCubit>();
+    final result = await showAppBottomSheet<EquipmentWriteResult>(
+      context,
+      builder: (_) => AddEquipmentSheet(api: api, today: clock()),
+    );
+    if (!context.mounted || result == null) return;
+    showSnack(context, equipmentResultMessage(result, 'سُجّلت المعدّة'));
+    await cubit.load();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final data = await EquipmentApi.instance.getEquipment();
-      if (!mounted) return;
-      setState(() {
-        _equipment = data;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = apiErrorMessage(e);
-        _loading = false;
-      });
-    }
-  }
-
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'active':
-        return kPrimary;
-      case 'maintenance':
-        return kWarn;
-      case 'broken':
-        return Colors.redAccent;
-      default:
-        return Colors.grey;
-    }
+  Future<void> _open(BuildContext context, Equipment e) async {
+    final cubit = context.read<EquipmentCubit>();
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: '/equipment/detail'),
+        builder: (_) => EquipmentDetailScreen(
+          equipmentId: e.id,
+          initial: e,
+          api: api,
+          role: role,
+          outbox: outbox,
+          clock: clock,
+        ),
+      ),
+    );
+    if (changed == true) await cubit.load();
   }
 
   @override
   Widget build(BuildContext context) {
-    final mutable = canMutate(currentRole());
-    return Scaffold(
-      backgroundColor: kBg,
-      appBar: AppBar(
-        backgroundColor: kSurface,
-        title: const Text('المعدّات'),
-        actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
-        ],
-      ),
-      floatingActionButton: mutable
-          ? FloatingActionButton.extended(
-              backgroundColor: kPrimary,
-              onPressed: _openAdd,
-              icon: const Icon(Icons.add),
-              label: const Text('معدّة جديدة'),
+    final cubit = context.watch<EquipmentCubit>();
+    final state = cubit.state;
+    return AppScaffold(
+      title: 'المعدّات',
+      actions: [
+        AppIconButton(
+          icon: Icons.refresh_rounded,
+          tooltip: 'تحديث',
+          onPressed: state is EquipmentLoading ? null : cubit.load,
+        ),
+      ],
+      floatingActionButton: _canManage && state is EquipmentLoaded
+          ? AppFab(
+              heroKey: '/equipment',
+              label: 'معدّة جديدة',
+              icon: Icons.add_rounded,
+              onPressed: () => _add(context),
             )
           : null,
-      body: _loading
-          ? const LoadingView()
-          : _error != null
-          ? ErrorView(message: _error!, onRetry: _load)
-          : _equipment.isEmpty
-          ? const EmptyView(message: 'لا توجد معدّات مسجّلة بعد')
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: _equipment.length,
-                itemBuilder: (_, i) => _tile(_equipment[i], mutable),
-              ),
-            ),
+      body: switch (state) {
+        EquipmentLoading() => const LoadingState(
+          message: 'جارٍ تحميل المعدّات…',
+        ),
+        EquipmentFailed(:final error) => ErrorState(
+          error: error,
+          onRetry: cubit.load,
+        ),
+        EquipmentLoaded() => RefreshIndicator(
+          onRefresh: cubit.load,
+          child: _loaded(context, cubit, state),
+        ),
+      },
     );
   }
 
-  Widget _tile(Map<String, dynamic> eq, bool mutable) {
-    final status = (eq['status'] ?? 'unknown').toString();
-    final type = (eq['type'] ?? '').toString();
-    final hours = eq['operating_hours'];
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: kSurface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: _statusColor(status),
-              shape: BoxShape.circle,
+  Widget _loaded(
+    BuildContext context,
+    EquipmentCubit cubit,
+    EquipmentLoaded s,
+  ) {
+    final banner = s.refreshError == null
+        ? null
+        : OpsRefreshBanner(
+            error: s.refreshError!,
+            fetchedAt: s.fetchedAt,
+            now: clock(),
+          );
+    if (s.equipment.isEmpty) {
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          if (banner != null) SliverToBoxAdapter(child: banner),
+          SliverFillRemaining(
+            child: EmptyState(
+              icon: Icons.precision_manufacturing_outlined,
+              title: 'لا توجد معدّات مسجّلة بعد',
+              message: _canManage
+                  ? 'سجّل الجرّارات والمضخّات والرشّاشات لتتبّع حالتها وصيانتها.'
+                  : 'لم يسجّل المالك أو المدير أيّ معدّة بعد.',
+              actionLabel: _canManage ? 'سجّل أوّل معدّة' : null,
+              onAction: _canManage ? () => _add(context) : null,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${eq['name'] ?? '—'}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+        ],
+      );
+    }
+    final visible = s.visible;
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsetsDirectional.only(bottom: 96),
+      children: [
+        if (banner != null) banner,
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            SahoolSpacing.md,
+            SahoolSpacing.md,
+            SahoolSpacing.md,
+            0,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final st in const ['operational', 'maintenance', 'broken'])
+                Expanded(
+                  child: MetricTile(
+                    label: kEquipmentStatuses[st]!,
+                    value: s.count(st),
+                    decimals: 0,
+                    icon: equipmentStatusIcon(st),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${_typeLabels[type] ?? type} · ${hours ?? 0} ساعة تشغيل',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: SahoolSizes.minTouchTarget + SahoolSpacing.md,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: SahoolSpacing.lg,
+              vertical: SahoolSpacing.xs,
+            ),
+            children: [
+              ChoiceChip(
+                label: const Text('الكلّ'),
+                selected: s.status == null,
+                onSelected: (_) => cubit.setStatus(null),
+              ),
+              for (final e in kEquipmentStatuses.entries) ...[
+                const SizedBox(width: SahoolSpacing.sm),
+                ChoiceChip(
+                  label: Text(e.value),
+                  selected: s.status == e.key,
+                  onSelected: (sel) => cubit.setStatus(sel ? e.key : null),
                 ),
               ],
-            ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.build_outlined, color: kSecondary),
-            tooltip: 'الصيانة',
-            onPressed: () => _openMaintenance(eq, mutable),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _openAdd() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: kSurface,
-      isScrollControlled: true,
-      builder: (_) => _AddEquipmentSheet(onDone: _load),
-    );
-  }
-
-  void _openMaintenance(Map<String, dynamic> eq, bool mutable) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => _MaintenanceScreen(equipment: eq, canLog: mutable),
-      ),
-    );
-  }
-}
-
-class _AddEquipmentSheet extends StatefulWidget {
-  final Future<void> Function() onDone;
-  const _AddEquipmentSheet({required this.onDone});
-  @override
-  State<_AddEquipmentSheet> createState() => _AddEquipmentSheetState();
-}
-
-class _AddEquipmentSheetState extends State<_AddEquipmentSheet> {
-  final _name = TextEditingController();
-  final _hours = TextEditingController();
-  String _type = 'tractor';
-  bool _saving = false;
-
-  static const _types = {
-    'tractor': 'جرّار',
-    'pump': 'مضخّة',
-    'harvester': 'حصّادة',
-    'sprayer': 'رشّاشة',
-    'other': 'أخرى',
-  };
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _hours.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (_name.text.trim().isEmpty) {
-      showSnack(context, 'الاسم مطلوب', error: true);
-      return;
-    }
-    // صدق البيانات: ساعات تشغيل غير رقميّة تُرفض صراحةً بدل إرسال 0 صامتاً.
-    final hoursText = _hours.text.trim();
-    double? hours;
-    if (hoursText.isNotEmpty) {
-      hours = double.tryParse(hoursText);
-      if (hours == null) {
-        showSnack(context, 'ساعات التشغيل يجب أن تكون رقماً', error: true);
-        return;
-      }
-    }
-    setState(() => _saving = true);
-    try {
-      await EquipmentApi.instance.createEquipment({
-        'name': _name.text.trim(),
-        'type': _type,
-        if (hours != null) 'operating_hours': hours,
-      });
-      if (!mounted) return;
-      Navigator.pop(context);
-      await widget.onDone();
-    } catch (e) {
-      if (mounted) {
-        setState(() => _saving = false);
-        showSnack(context, apiErrorMessage(e), error: true);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SheetScaffold(
-      title: 'معدّة جديدة',
-      saving: _saving,
-      onSubmit: _submit,
-      children: [
-        DropdownButtonFormField<String>(
-          value: _type,
-          dropdownColor: kSurface,
-          decoration: kDec('النوع'),
-          style: const TextStyle(color: Colors.white),
-          items: _types.entries
-              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-              .toList(),
-          onChanged: (v) => setState(() => _type = v ?? 'other'),
         ),
-        kField(_name, 'الاسم'),
-        kField(_hours, 'ساعات التشغيل', number: true),
-      ],
-    );
-  }
-}
-
-class _MaintenanceScreen extends StatefulWidget {
-  final Map<String, dynamic> equipment;
-  final bool canLog;
-  const _MaintenanceScreen({required this.equipment, required this.canLog});
-  @override
-  State<_MaintenanceScreen> createState() => _MaintenanceScreenState();
-}
-
-class _MaintenanceScreenState extends State<_MaintenanceScreen> {
-  bool _loading = true;
-  String? _error;
-  List<Map<String, dynamic>> _records = const [];
-
-  String get _equipmentId => widget.equipment['equipment_id'].toString();
-
-  static const _kindLabels = {
-    'scheduled': 'دوريّة',
-    'repair': 'إصلاح',
-    'breakdown': 'عطل',
-    'inspection': 'فحص',
-  };
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final data = await EquipmentApi.instance.getMaintenance(_equipmentId);
-      if (!mounted) return;
-      setState(() {
-        _records = data;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = apiErrorMessage(e);
-        _loading = false;
-      });
-    }
-  }
-
-  void _openLog() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: kSurface,
-      isScrollControlled: true,
-      builder: (_) =>
-          _LogMaintenanceSheet(equipmentId: _equipmentId, onDone: _load),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kBg,
-      appBar: AppBar(
-        backgroundColor: kSurface,
-        title: Text('صيانة ${widget.equipment['name'] ?? ''}'),
-      ),
-      floatingActionButton: widget.canLog
-          ? FloatingActionButton.extended(
-              backgroundColor: kPrimary,
-              onPressed: _openLog,
-              icon: const Icon(Icons.add),
-              label: const Text('تسجيل صيانة'),
-            )
-          : null,
-      body: _loading
-          ? const LoadingView()
-          : _error != null
-          ? ErrorView(message: _error!, onRetry: _load)
-          : _records.isEmpty
-          ? const EmptyView(message: 'لا سجلّات صيانة')
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: _records.length,
-                itemBuilder: (_, i) {
-                  final r = _records[i];
-                  final kind = (r['kind'] ?? '').toString();
-                  final cost = r['cost_usd'];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: kSurface,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _kindLabels[kind] ?? kind,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              '${r['status'] ?? ''}',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          [
-                            if (r['performed_date'] != null)
-                              'نُفّذت: ${r['performed_date']}',
-                            if (r['scheduled_date'] != null)
-                              'مجدولة: ${r['scheduled_date']}',
-                            if (cost != null) 'التكلفة: \$$cost',
-                          ].join(' · '),
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                        if ((r['notes'] ?? '').toString().isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            '${r['notes']}',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  );
-                },
+        if (visible.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(SahoolSpacing.xl),
+            child: Text(
+              'لا معدّات بهذه الحالة.',
+              textAlign: TextAlign.center,
+              style: context.textStyles.bodyLarge?.copyWith(
+                color: context.tokens.muted,
               ),
             ),
-    );
-  }
-}
-
-class _LogMaintenanceSheet extends StatefulWidget {
-  final String equipmentId;
-  final Future<void> Function() onDone;
-  const _LogMaintenanceSheet({required this.equipmentId, required this.onDone});
-  @override
-  State<_LogMaintenanceSheet> createState() => _LogMaintenanceSheetState();
-}
-
-class _LogMaintenanceSheetState extends State<_LogMaintenanceSheet> {
-  final _cost = TextEditingController();
-  final _notes = TextEditingController();
-  final _performed = TextEditingController();
-  String _kind = 'scheduled';
-  String _status = 'done';
-  bool _saving = false;
-
-  static const _kinds = {
-    'scheduled': 'دوريّة',
-    'repair': 'إصلاح',
-    'breakdown': 'عطل',
-    'inspection': 'فحص',
-  };
-  static const _statuses = {
-    'planned': 'مخطّطة',
-    'done': 'مُنجَزة',
-    'cancelled': 'ملغاة',
-  };
-
-  @override
-  void dispose() {
-    _cost.dispose();
-    _notes.dispose();
-    _performed.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    setState(() => _saving = true);
-    try {
-      await EquipmentApi.instance.logMaintenance(widget.equipmentId, {
-        'kind': _kind,
-        'status': _status,
-        if (_performed.text.trim().isNotEmpty)
-          'performed_date': _performed.text.trim(),
-        if (_cost.text.trim().isNotEmpty)
-          'cost_usd': double.tryParse(_cost.text.trim()),
-        if (_notes.text.trim().isNotEmpty) 'notes': _notes.text.trim(),
-      });
-      if (!mounted) return;
-      Navigator.pop(context);
-      await widget.onDone();
-    } catch (e) {
-      if (mounted) {
-        setState(() => _saving = false);
-        showSnack(context, apiErrorMessage(e), error: true);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SheetScaffold(
-      title: 'تسجيل صيانة',
-      saving: _saving,
-      onSubmit: _submit,
-      children: [
-        DropdownButtonFormField<String>(
-          value: _kind,
-          dropdownColor: kSurface,
-          decoration: kDec('النوع'),
-          style: const TextStyle(color: Colors.white),
-          items: _kinds.entries
-              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-              .toList(),
-          onChanged: (v) => setState(() => _kind = v ?? 'scheduled'),
-        ),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          value: _status,
-          dropdownColor: kSurface,
-          decoration: kDec('الحالة'),
-          style: const TextStyle(color: Colors.white),
-          items: _statuses.entries
-              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-              .toList(),
-          onChanged: (v) => setState(() => _status = v ?? 'done'),
-        ),
-        kField(_performed, 'تاريخ التنفيذ YYYY-MM-DD (اختياري)'),
-        kField(_cost, 'التكلفة \$ (اختياري)', number: true),
-        kField(_notes, 'ملاحظات (اختياري)'),
+          )
+        else
+          for (final e in visible)
+            Card(
+              margin: const EdgeInsetsDirectional.symmetric(
+                horizontal: SahoolSpacing.lg,
+                vertical: SahoolSpacing.xs,
+              ),
+              child: OpsTile(
+                key: ValueKey('equipment:${e.id}'),
+                title: e.name.isEmpty ? '—' : e.name,
+                subtitle:
+                    '${e.typeLabel} · ساعات التشغيل: ${fmtHours(e.operatingHours)}',
+                icon: equipmentTypeIcon(e.type),
+                iconColor: context.colors.primary,
+                chips: [equipmentStatusChip(e)],
+                onTap: () => _open(context, e),
+              ),
+            ),
       ],
     );
   }
