@@ -2370,6 +2370,7 @@
           "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py",
           "services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py",
           "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
+          "services/sahool-platform/tests/test_task_update_idempotency.py",
           "services/sahool-platform/tests/test_thermal_stress_facade_guard.py",
           "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
           "services/sahool-platform/tests/test_ui28_ui30_workspace_route_cleanup_guard.py",
