@@ -1,10 +1,12 @@
 // SAHOOL — features/maps/maps_routes.dart
 // مسارات ميزة الخرائط: «خريطة حقولي» وإدارة «خرائط بلا اتّصال». يملكها وكيل
 // الخرائط. المكوّنات المشتركة (SahoolMap، الطبقات، محوّل GeoJSON) تحت
-// presentation/ و geo/ تستوردها الميزات الأخرى.
+// presentation/ و geo/ تستوردها الميزات الأخرى. مسارات الاستيراد/التصدير/مشي
+// GPS/الدمج/التقسيم في io/maps_io_routes.dart وتُضمّ هنا.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/routing/app_route.dart';
 
+import 'io/maps_io_routes.dart';
 import 'presentation/farm_map_screen.dart';
 import 'presentation/offline_packs_screen.dart';
 
@@ -30,5 +32,6 @@ final FeatureModule mapsFeature = FeatureModule(
       menu: const MenuEntry(MenuSection.farm, order: 90),
       builder: (_, _) => const OfflinePacksScreen(),
     ),
+    ...mapsIoRoutes,
   ],
 );

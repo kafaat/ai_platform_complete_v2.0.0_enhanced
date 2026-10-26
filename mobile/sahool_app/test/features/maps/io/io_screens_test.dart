@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/routing/app_route.dart';
+import 'package:sahool_app/core/routing/app_router.dart';
 import 'package:sahool_app/core/theme/app_theme.dart';
 import 'package:sahool_app/features/maps/io/data/maps_io_api.dart';
 import 'package:sahool_app/features/maps/io/geo/boundary_writer.dart';
@@ -424,5 +425,16 @@ void main() {
       expect(r(p).allowedRoles, RouteRoles.management, reason: p);
     }
     expect(r(MapsIoRoutes.export).allowedRoles, isNull);
+  });
+
+  test('io routes are registered in the app router under the maps feature', () {
+    for (final route in mapsIoRoutes) {
+      expect(
+        AppRouter.instance.match(route.path),
+        same(route),
+        reason: route.path,
+      );
+      expect(AppRouter.instance.ownerOf(route.path), 'maps');
+    }
   });
 }
