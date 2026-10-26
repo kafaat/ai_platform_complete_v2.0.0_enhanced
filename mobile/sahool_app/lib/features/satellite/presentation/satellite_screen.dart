@@ -95,10 +95,10 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
       final msg = queued
           ? 'تم إطلاق تحديث صور Sentinel-2 — قد يستغرق دقائق'
           : (note.isNotEmpty
-              ? note
-              : (status.isNotEmpty
-                  ? 'حالة التحديث: $status'
-                  : 'لا مشهد جديد متاح بعد لهذا الحقل'));
+                ? note
+                : (status.isNotEmpty
+                      ? 'حالة التحديث: $status'
+                      : 'لا مشهد جديد متاح بعد لهذا الحقل'));
       showSnack(context, msg);
     } catch (e) {
       if (mounted) showSnack(context, apiErrorMessage(e), error: true);
@@ -121,12 +121,14 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
       indices.forEach((k, v) {
         if (v is! Map) return;
         final inner = v.cast<String, dynamic>();
-        out.add(_Indicator(
-          name: k.toString().toUpperCase(),
-          value: _fmt(inner['value']),
-          unit: (inner['unit'] ?? '').toString(),
-          status: statusAr,
-        ));
+        out.add(
+          _Indicator(
+            name: k.toString().toUpperCase(),
+            value: _fmt(inner['value']),
+            unit: (inner['unit'] ?? '').toString(),
+            status: statusAr,
+          ),
+        );
       });
       if (out.isNotEmpty) return out;
     }
@@ -160,8 +162,10 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
   Widget build(BuildContext context) {
     if (_loadingFields) {
       return const SafeArea(
-          child: Center(
-              child: CircularProgressIndicator(color: Color(0xFF10B981))));
+        child: Center(
+          child: CircularProgressIndicator(color: Color(0xFF10B981)),
+        ),
+      );
     }
     return SafeArea(
       child: Padding(
@@ -172,11 +176,14 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
             Row(
               children: [
                 const Expanded(
-                  child: Text('مؤشّرات الأقمار الصناعيّة',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold)),
+                  child: Text(
+                    'مؤشّرات الأقمار الصناعيّة',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 // تحديث صور Sentinel-2 الحقيقيّة للحقل المُختار — مُعطَّل بلا حقل
                 // أو أثناء طلب جارٍ. مؤشّر دوّار أثناء الطلب بدل الأيقونة.
@@ -190,7 +197,9 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
                           height: 18,
                           width: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Color(0xFF10B981)),
+                            strokeWidth: 2,
+                            color: Color(0xFF10B981),
+                          ),
                         )
                       : const Icon(Icons.satellite_alt, color: Colors.white),
                 ),
@@ -204,14 +213,21 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 40,
+                      ),
                       const SizedBox(height: 10),
-                      const Text('تعذّر تحميل الحقول',
-                          style: TextStyle(color: Colors.white)),
+                      const Text(
+                        'تعذّر تحميل الحقول',
+                        style: TextStyle(color: Colors.white),
+                      ),
                       const SizedBox(height: 10),
                       ElevatedButton(
-                          onPressed: _loadFields,
-                          child: const Text('إعادة المحاولة')),
+                        onPressed: _loadFields,
+                        child: const Text('إعادة المحاولة'),
+                      ),
                     ],
                   ),
                 ),
@@ -219,8 +235,11 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
             else if (_fields.isEmpty)
               const Expanded(
                 child: Center(
-                    child: Text('لا توجد حقول لعرض مؤشّراتها',
-                        style: TextStyle(color: Colors.grey))),
+                  child: Text(
+                    'لا توجد حقول لعرض مؤشّراتها',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
               )
             else ...[
               Container(
@@ -235,12 +254,14 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
                     dropdownColor: const Color(0xFF1A1D29),
                     value: _selectedId,
                     style: const TextStyle(color: Colors.white),
-                    hint: const Text('اختر حقلاً',
-                        style: TextStyle(color: Colors.grey)),
+                    hint: const Text(
+                      'اختر حقلاً',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                     items: _fields.map((f) {
                       final id = (f['field_id'] ?? f['id'] ?? '').toString();
-                      final name =
-                          (f['field_name'] ?? f['name'] ?? id).toString();
+                      final name = (f['field_name'] ?? f['name'] ?? id)
+                          .toString();
                       return DropdownMenuItem(value: id, child: Text(name));
                     }).toList(),
                     onChanged: (v) {
@@ -261,7 +282,8 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
   Widget _body() {
     if (_loadingIndicators) {
       return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF10B981)));
+        child: CircularProgressIndicator(color: Color(0xFF10B981)),
+      );
     }
     if (_error != null) {
       return Center(
@@ -270,11 +292,15 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 40),
             const SizedBox(height: 10),
-            const Text('تعذّر تحميل المؤشّرات',
-                style: TextStyle(color: Colors.white)),
+            const Text(
+              'تعذّر تحميل المؤشّرات',
+              style: TextStyle(color: Colors.white),
+            ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: _selectedId != null ? () => _select(_selectedId!) : null,
+              onPressed: _selectedId != null
+                  ? () => _select(_selectedId!)
+                  : null,
               child: const Text('إعادة المحاولة'),
             ),
           ],
@@ -283,8 +309,11 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
     }
     if (_indicators.isEmpty) {
       return const Center(
-          child: Text('لا مؤشّرات متاحة لهذا الحقل',
-              style: TextStyle(color: Colors.grey)));
+        child: Text(
+          'لا مؤشّرات متاحة لهذا الحقل',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
     }
     return GridView.count(
       crossAxisCount: 2,
@@ -302,31 +331,41 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(ind.name,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Text(
+                ind.name,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
               const SizedBox(height: 6),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Text(ind.value,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold)),
+                  Text(
+                    ind.value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   if (ind.unit.isNotEmpty) ...[
                     const SizedBox(width: 4),
-                    Text(ind.unit,
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text(
+                      ind.unit,
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
                   ],
                 ],
               ),
               if (ind.status.isNotEmpty) ...[
                 const SizedBox(height: 4),
-                Text(ind.status,
-                    style: const TextStyle(
-                        color: Color(0xFF10B981), fontSize: 11)),
+                Text(
+                  ind.status,
+                  style: const TextStyle(
+                    color: Color(0xFF10B981),
+                    fontSize: 11,
+                  ),
+                ),
               ],
             ],
           ),

@@ -45,15 +45,15 @@ class DownloadedFormPackage {
   }
 
   Map<String, Object?> toJson() => {
-        'assignment_id': assignmentId,
-        'revision': revision,
-        'form_version_id': formVersionId,
-        'version_number': versionNumber,
-        'schema_json': schemaJson,
-        'logic_json': logicJson,
-        'schema_hash': schemaHash,
-        'definition_sync_token': definitionSyncToken,
-      };
+    'assignment_id': assignmentId,
+    'revision': revision,
+    'form_version_id': formVersionId,
+    'version_number': versionNumber,
+    'schema_json': schemaJson,
+    'logic_json': logicJson,
+    'schema_hash': schemaHash,
+    'definition_sync_token': definitionSyncToken,
+  };
 }
 
 /// نتيجة التنزيل: field_id + قائمة الحزم.
@@ -117,8 +117,11 @@ class FieldFormsApi {
     return FieldFormsDownload(
       fieldId: data['field_id'] as String? ?? fieldId,
       forms: rawForms
-          .map((f) => DownloadedFormPackage.fromJson(
-              Map<String, Object?>.from(f as Map)))
+          .map(
+            (f) => DownloadedFormPackage.fromJson(
+              Map<String, Object?>.from(f as Map),
+            ),
+          )
           .toList(),
     );
   }
@@ -134,6 +137,7 @@ class FieldFormsApi {
       options: Options(headers: {'X-Device-Id': deviceId}),
     );
     return SubmissionResult.fromJson(
-        response.data ?? const <String, Object?>{});
+      response.data ?? const <String, Object?>{},
+    );
   }
 }

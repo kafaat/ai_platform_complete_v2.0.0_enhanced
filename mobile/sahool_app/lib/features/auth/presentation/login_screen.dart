@@ -75,18 +75,22 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      await AuthApi.instance
-          .login(_email.text.trim(), _password.text, mfaCode: code);
+      await AuthApi.instance.login(
+        _email.text.trim(),
+        _password.text,
+        mfaCode: code,
+      );
       _onLoginSuccess();
     } on MfaRequiredException {
       // الخادم ما زال يطلب الرمز (سباق نادر) ⇒ أبقِ الحقل واطلب إعادة الإدخال.
       if (mounted) setState(() => _error = 'رمز MFA غير صحيح');
     } catch (e) {
       if (mounted) {
-        setState(() => _error =
-            ApiException.from(e).statusCode == 401
-                ? 'رمز MFA غير صحيح'
-                : _humanize(e));
+        setState(
+          () => _error = ApiException.from(e).statusCode == 401
+              ? 'رمز MFA غير صحيح'
+              : _humanize(e),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -126,25 +130,36 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('🌿', style: TextStyle(fontSize: 56),
-                      textAlign: TextAlign.center),
+                  const Text(
+                    '🌿',
+                    style: TextStyle(fontSize: 56),
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 12),
-                  const Text('سهول',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold)),
+                  const Text(
+                    'سهول',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  const Text('المنصّة الزراعيّة الذكيّة',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  const Text(
+                    'المنصّة الزراعيّة الذكيّة',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _dec('البريد الإلكترونيّ', Icons.email_outlined),
+                    decoration: _dec(
+                      'البريد الإلكترونيّ',
+                      Icons.email_outlined,
+                    ),
                     validator: (v) => (v == null || !v.contains('@'))
                         ? 'أدخل بريداً صحيحاً'
                         : null,
@@ -154,14 +169,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _password,
                     obscureText: _obscure,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _dec('كلمة المرور', Icons.lock_outline).copyWith(
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                            _obscure ? Icons.visibility_off : Icons.visibility,
-                            color: Colors.grey),
-                        onPressed: () => setState(() => _obscure = !_obscure),
-                      ),
-                    ),
+                    decoration: _dec('كلمة المرور', Icons.lock_outline)
+                        .copyWith(
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscure
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.grey,
+                            ),
+                            onPressed: () =>
+                                setState(() => _obscure = !_obscure),
+                          ),
+                        ),
                     validator: (v) => (v == null || v.length < 6)
                         ? 'كلمة المرور قصيرة جدّاً'
                         : null,
@@ -170,9 +190,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   // لوحة أرقام، يُرسَل بزرّ «تحقّق» (onSubmitted) أو الزرّ الرئيسيّ.
                   if (_mfaRequired) ...[
                     const SizedBox(height: 14),
-                    const Text('أدخل رمز المصادقة الثنائيّة (MFA)',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey, fontSize: 13)),
+                    const Text(
+                      'أدخل رمز المصادقة الثنائيّة (MFA)',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _mfaCode,
@@ -185,11 +207,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         LocalizedDigitsFormatter(digitsOnly: true),
                       ],
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          letterSpacing: 8),
-                      decoration: _dec('______', Icons.shield_outlined)
-                          .copyWith(counterText: ''),
+                        color: Colors.white,
+                        fontSize: 22,
+                        letterSpacing: 8,
+                      ),
+                      decoration: _dec(
+                        '______',
+                        Icons.shield_outlined,
+                      ).copyWith(counterText: ''),
                       onSubmitted: (_) {
                         if (!_loading) _verifyMfa();
                       },
@@ -197,10 +222,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                   if (_error != null) ...[
                     const SizedBox(height: 14),
-                    Text(_error!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            color: Color(0xFFF87171), fontSize: 13)),
+                    Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFFF87171),
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                   const SizedBox(height: 24),
                   ElevatedButton(
@@ -209,19 +238,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       backgroundColor: green,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: _loading
                         ? const SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white))
-                        : Text(_mfaRequired ? 'تحقّق' : 'تسجيل الدخول',
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            _mfaRequired ? 'تحقّق' : 'تسجيل الدخول',
                             style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold)),
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -233,22 +269,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   InputDecoration _dec(String label, IconData icon) => InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.grey),
-        prefixIcon: Icon(icon, color: Colors.grey),
-        filled: true,
-        fillColor: const Color(0xFF1A1D29),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF334155)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF10B981)),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFF87171)),
-        ),
-      );
+    labelText: label,
+    labelStyle: const TextStyle(color: Colors.grey),
+    prefixIcon: Icon(icon, color: Colors.grey),
+    filled: true,
+    fillColor: const Color(0xFF1A1D29),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFF334155)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFF10B981)),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFF87171)),
+    ),
+  );
 }

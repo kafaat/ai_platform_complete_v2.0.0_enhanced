@@ -62,7 +62,9 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
   Future<void> _setState(Map<String, dynamic> valve, String status) async {
     try {
       await IrrigationApi.instance.setValveState(
-          valve['valve_id'].toString(), status);
+        valve['valve_id'].toString(),
+        status,
+      );
       if (mounted) {
         showSnack(context, 'سُجّلت النيّة — بانتظار موافقة بشريّة (HIL)');
       }
@@ -95,7 +97,10 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
         bottom: TabBar(
           controller: _tabs,
           indicatorColor: kPrimary,
-          tabs: const [Tab(text: 'الصمّامات'), Tab(text: 'الجداول')],
+          tabs: const [
+            Tab(text: 'الصمّامات'),
+            Tab(text: 'الجداول'),
+          ],
         ),
       ),
       // FAB يتبع التبويب الحاليّ: AnimatedBuilder على TabController يعيد بناءه
@@ -115,24 +120,21 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
       body: _loading
           ? const LoadingView()
           : _error != null
-              ? ErrorView(message: _error!, onRetry: _load)
-              : Column(
-                  children: [
-                    const InfoBanner(
-                      text:
-                          'تغيير حالة الصمّام يسجّل النيّة فقط — التشغيل الفعليّ يتطلّب موافقة بشريّة (HIL).',
-                    ),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabs,
-                        children: [
-                          _valvesTab(mutable),
-                          _schedulesTab(mutable),
-                        ],
-                      ),
-                    ),
-                  ],
+          ? ErrorView(message: _error!, onRetry: _load)
+          : Column(
+              children: [
+                const InfoBanner(
+                  text:
+                      'تغيير حالة الصمّام يسجّل النيّة فقط — التشغيل الفعليّ يتطلّب موافقة بشريّة (HIL).',
                 ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabs,
+                    children: [_valvesTab(mutable), _schedulesTab(mutable)],
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -158,23 +160,32 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
             ),
             child: Row(
               children: [
-                Icon(Icons.water_drop,
-                    color: open ? kSecondary : Colors.grey, size: 22),
+                Icon(
+                  Icons.water_drop,
+                  color: open ? kSecondary : Colors.grey,
+                  size: 22,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${v['name'] ?? '—'}',
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+                      Text(
+                        '${v['name'] ?? '—'}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
-                        open ? 'مفتوح' : (status == 'closed' ? 'مغلق' : 'غير معروف'),
+                        open
+                            ? 'مفتوح'
+                            : (status == 'closed' ? 'مغلق' : 'غير معروف'),
                         style: TextStyle(
-                            color: open ? kSecondary : Colors.grey,
-                            fontSize: 12),
+                          color: open ? kSecondary : Colors.grey,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
@@ -183,8 +194,7 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
                   Switch(
                     value: open,
                     activeColor: kSecondary,
-                    onChanged: (val) =>
-                        _setState(v, val ? 'open' : 'closed'),
+                    onChanged: (val) => _setState(v, val ? 'open' : 'closed'),
                   ),
               ],
             ),
@@ -215,30 +225,40 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
             ),
             child: Row(
               children: [
-                Icon(Icons.schedule,
-                    color: enabled ? kPrimary : Colors.grey, size: 22),
+                Icon(
+                  Icons.schedule,
+                  color: enabled ? kPrimary : Colors.grey,
+                  size: 22,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${s['name'] ?? '—'}',
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+                      Text(
+                        '${s['name'] ?? '—'}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         '${s['start_time'] ?? ''} · ${s['duration_min'] ?? 0} دقيقة',
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 if (mutable)
                   IconButton(
-                    icon: const Icon(Icons.delete_outline,
-                        color: Colors.redAccent),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.redAccent,
+                    ),
                     onPressed: () => _confirmDelete(s),
                   ),
               ],
@@ -255,12 +275,15 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
       builder: (ctx) => AlertDialog(
         backgroundColor: kSurface,
         title: const Text('حذف الجدول', style: TextStyle(color: Colors.white)),
-        content: Text('حذف "${s['name'] ?? ''}"؟',
-            style: const TextStyle(color: Colors.white70)),
+        content: Text(
+          'حذف "${s['name'] ?? ''}"؟',
+          style: const TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('إلغاء')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);

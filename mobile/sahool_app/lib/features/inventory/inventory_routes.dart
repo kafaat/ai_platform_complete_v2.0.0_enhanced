@@ -17,7 +17,7 @@ final FeatureModule inventoryFeature = FeatureModule(
       path: InventoryRoutes.inventory,
       titleAr: 'المخزون',
       icon: Icons.inventory_2_outlined,
-      
+
       menu: const MenuEntry(MenuSection.operations, order: 40),
       builder: (_, _) => const InventoryScreen(),
     ),

@@ -13,24 +13,33 @@
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
 import 'package:sahool_app/core/session/session_scope.dart';
+import 'package:sahool_app/features/activities/activities_routes.dart';
 import 'package:sahool_app/features/advisor/advisor_routes.dart';
+import 'package:sahool_app/features/alerts/alerts_routes.dart';
 import 'package:sahool_app/features/auth/auth_routes.dart';
+import 'package:sahool_app/features/crop_season/crop_season_routes.dart';
 import 'package:sahool_app/features/dashboard/dashboard_routes.dart';
 import 'package:sahool_app/features/devices/devices_routes.dart';
 import 'package:sahool_app/features/documents/documents_routes.dart';
 import 'package:sahool_app/features/equipment/equipment_routes.dart';
+import 'package:sahool_app/features/farm_book/farm_book_routes.dart';
 import 'package:sahool_app/features/farms/farms_routes.dart';
 import 'package:sahool_app/features/field_forms/field_forms_routes.dart';
 import 'package:sahool_app/features/fields/fields_routes.dart';
 import 'package:sahool_app/features/inventory/inventory_routes.dart';
 import 'package:sahool_app/features/irrigation/irrigation_routes.dart';
+import 'package:sahool_app/features/lab_sampling/lab_sampling_routes.dart';
+import 'package:sahool_app/features/maps/maps_routes.dart';
 import 'package:sahool_app/features/master_data/master_data_routes.dart';
 import 'package:sahool_app/features/more/more_routes.dart';
+import 'package:sahool_app/features/offline_sync/offline_sync_routes.dart';
 import 'package:sahool_app/features/operations_hub/operations_hub_routes.dart';
 import 'package:sahool_app/features/profile/profile_routes.dart';
 import 'package:sahool_app/features/realtime/realtime_routes.dart';
 import 'package:sahool_app/features/satellite/satellite_routes.dart';
+import 'package:sahool_app/features/scouting/scouting_routes.dart';
 import 'package:sahool_app/features/tasks/tasks_routes.dart';
+import 'package:sahool_app/features/weather/weather_routes.dart';
 
 import 'app_route.dart';
 import 'route_pages.dart';
@@ -55,14 +64,21 @@ final List<FeatureModule> allFeatures = [
   moreFeature,
   fieldFormsFeature,
   realtimeFeature,
+  offlineSyncFeature,
+  scoutingFeature,
+  alertsFeature,
+  weatherFeature,
+  activitiesFeature,
+  mapsFeature,
+  cropSeasonFeature,
+  labSamplingFeature,
+  farmBookFeature,
 ];
 
 class AppRouter {
-  AppRouter({
-    required List<FeatureModule> features,
-    AppRole Function()? role,
-  })  : features = List.unmodifiable(features),
-        _role = role ?? (() => normalizeRole(currentRole())) {
+  AppRouter({required List<FeatureModule> features, AppRole Function()? role})
+    : features = List.unmodifiable(features),
+      _role = role ?? (() => normalizeRole(currentRole())) {
     for (final f in features) {
       for (final r in f.routes) {
         for (final name in [r.path, ...r.aliases]) {
@@ -70,8 +86,9 @@ class AppRouter {
           final existing = _table[key];
           if (existing != null) {
             throw StateError(
-                'Route "$key" is declared twice (feature "${f.id}" and '
-                '"${_owner[key]}"). Each path belongs to one feature.');
+              'Route "$key" is declared twice (feature "${f.id}" and '
+              '"${_owner[key]}"). Each path belongs to one feature.',
+            );
           }
           _table[key] = r;
           _owner[key] = f.id;
@@ -107,8 +124,11 @@ class AppRouter {
   String? ownerOf(String name) => _owner[_normalize(name)];
 
   /// بناء صفحة مسار مباشرةً (لتبويبات الغلاف). يحترم الأدوار.
-  Widget buildPage(BuildContext context, String path,
-      {RouteArgs args = RouteArgs.empty}) {
+  Widget buildPage(
+    BuildContext context,
+    String path, {
+    RouteArgs args = RouteArgs.empty,
+  }) {
     final route = match(path);
     if (route == null) return RouteNotFoundPage(name: path);
     if (!route.allows(role)) return AccessDeniedPage(title: route.titleAr);
@@ -119,7 +139,9 @@ class AppRouter {
     final name = settings.name;
     final route = match(name);
     if (route == null) return null; // ⇒ onUnknownRoute
-    final query = name == null ? const <String, String>{} : Uri.parse(name).queryParameters;
+    final query = name == null
+        ? const <String, String>{}
+        : Uri.parse(name).queryParameters;
     final args = RouteArgs(query: query, extra: settings.arguments);
     final allowed = route.public || route.allows(role);
     return MaterialPageRoute<dynamic>(
@@ -138,15 +160,18 @@ class AppRouter {
       );
 
   /// مداخل «المزيد» المسموحة للدور، مجمّعة بالقسم ومرتّبة.
-  Map<MenuSection, List<AppRoute>> menuFor(AppRole role,
-      {Set<MenuSection>? sections}) {
+  Map<MenuSection, List<AppRoute>> menuFor(
+    AppRole role, {
+    Set<MenuSection>? sections,
+  }) {
     final out = <MenuSection, List<AppRoute>>{};
     for (final section in MenuSection.values) {
       if (sections != null && !sections.contains(section)) continue;
-      final items = routes
-          .where((r) => r.menu?.section == section && r.allows(role))
-          .toList()
-        ..sort((a, b) => a.menu!.order.compareTo(b.menu!.order));
+      final items =
+          routes
+              .where((r) => r.menu?.section == section && r.allows(role))
+              .toList()
+            ..sort((a, b) => a.menu!.order.compareTo(b.menu!.order));
       if (items.isNotEmpty) out[section] = items;
     }
     return out;

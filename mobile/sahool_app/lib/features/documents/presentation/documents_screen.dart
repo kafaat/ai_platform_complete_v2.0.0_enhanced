@@ -110,10 +110,14 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
               style: const TextStyle(color: Colors.white),
               items: [
                 const DropdownMenuItem<String?>(
-                    value: null, child: Text('الكلّ')),
+                  value: null,
+                  child: Text('الكلّ'),
+                ),
                 ...kDocCategories.entries.map(
                   (e) => DropdownMenuItem<String?>(
-                      value: e.key, child: Text(e.value)),
+                    value: e.key,
+                    child: Text(e.value),
+                  ),
                 ),
               ],
               onChanged: (v) {
@@ -126,55 +130,56 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             child: _loading
                 ? const LoadingView()
                 : _error != null
-                    ? ErrorView(message: _error!, onRetry: _load)
-                    : _docs.isEmpty
-                        ? const EmptyView(message: 'لا وثائق مسجّلة')
-                        : RefreshIndicator(
-                            onRefresh: _load,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.all(12),
-                              itemCount: _docs.length,
-                              itemBuilder: (_, i) {
-                                final d = _docs[i];
-                                final cat = (d['category'] ?? 'other').toString();
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: kSurface,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(_icon(cat),
-                                          color: kSecondary, size: 22),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text('${d['title'] ?? '—'}',
-                                                style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              '${kDocCategories[cat] ?? cat} · إصدار ${d['version'] ?? 1}',
-                                              style: const TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 12),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
+                ? ErrorView(message: _error!, onRetry: _load)
+                : _docs.isEmpty
+                ? const EmptyView(message: 'لا وثائق مسجّلة')
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: _docs.length,
+                      itemBuilder: (_, i) {
+                        final d = _docs[i];
+                        final cat = (d['category'] ?? 'other').toString();
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: kSurface,
+                            borderRadius: BorderRadius.circular(10),
                           ),
+                          child: Row(
+                            children: [
+                              Icon(_icon(cat), color: kSecondary, size: 22),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${d['title'] ?? '—'}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${kDocCategories[cat] ?? cat} · إصدار ${d['version'] ?? 1}',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),

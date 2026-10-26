@@ -47,9 +47,9 @@ class RealtimeController extends ChangeNotifier {
     required RealtimeSessionApi api,
     required RealtimeTransport transport,
     DateTime Function()? now,
-  })  : _api = api,
-        _transport = transport,
-        _now = now ?? DateTime.now {
+  }) : _api = api,
+       _transport = transport,
+       _now = now ?? DateTime.now {
     _transport.onConnectionInterrupted = () {
       unawaited(phase == RealtimePhase.joining ? leave() : mute());
     };
@@ -70,14 +70,29 @@ class RealtimeController extends ChangeNotifier {
   bool _enabling = false;
   bool _joining = false;
 
-  bool get canEnable => phase == RealtimePhase.muted && !_enabling && _foreground &&
-      _grant != null && _now().isBefore(_grant!.expiresAt);
-  void _notify() { if (!_disposed) notifyListeners(); }
-  Future<void> _disconnectQuietly() async {
-    try { await _transport.disconnect(); } catch (_) { /* Capture is stopped first. */ }
+  bool get canEnable =>
+      phase == RealtimePhase.muted &&
+      !_enabling &&
+      _foreground &&
+      _grant != null &&
+      _now().isBefore(_grant!.expiresAt);
+  void _notify() {
+    if (!_disposed) notifyListeners();
   }
-  bool _current(int generation) => !_disposed && _foreground &&
-      generation == _generation && _grant != null &&
+
+  Future<void> _disconnectQuietly() async {
+    try {
+      await _transport.disconnect();
+    } catch (_) {
+      /* Capture is stopped first. */
+    }
+  }
+
+  bool _current(int generation) =>
+      !_disposed &&
+      _foreground &&
+      generation == _generation &&
+      _grant != null &&
       _now().isBefore(_grant!.expiresAt);
 
   Future<void> join({required bool consent}) async {
@@ -112,7 +127,11 @@ class RealtimeController extends ChangeNotifier {
       _grant = null;
       await _disconnectQuietly();
       if (created != null) {
-        try { await _api.close(created.id); } catch (_) { /* Server lease is bounded. */ }
+        try {
+          await _api.close(created.id);
+        } catch (_) {
+          /* Server lease is bounded. */
+        }
       }
       if (!_disposed && generation == _generation) {
         phase = RealtimePhase.failed;
@@ -130,7 +149,8 @@ class RealtimeController extends ChangeNotifier {
     _enabling = true;
     RealtimeCapture? capture;
     try {
-      if (!await _transport.requestMicrophone() || !_current(generation)) return;
+      if (!await _transport.requestMicrophone() || !_current(generation))
+        return;
       capture = await _transport.createMicrophone();
       if (!_current(generation)) {
         await capture.stop();
@@ -184,11 +204,17 @@ class RealtimeController extends ChangeNotifier {
     try {
       if (capture != null) await capture.stop();
     } finally {
-      try { await _transport.disconnect(); } catch (_) {
+      try {
+        await _transport.disconnect();
+      } catch (_) {
         // Capture was already stopped; cleanup still reaches the server.
       } finally {
         if (grant != null) {
-          try { await _api.close(grant.id); } catch (_) { /* Server reconciles expiry. */ }
+          try {
+            await _api.close(grant.id);
+          } catch (_) {
+            /* Server reconciles expiry. */
+          }
         }
       }
     }

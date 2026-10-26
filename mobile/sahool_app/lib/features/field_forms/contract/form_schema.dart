@@ -70,7 +70,12 @@ class FormValidationRules {
   final int? minLength;
   final int? maxLength;
 
-  const FormValidationRules({this.min, this.max, this.minLength, this.maxLength});
+  const FormValidationRules({
+    this.min,
+    this.max,
+    this.minLength,
+    this.maxLength,
+  });
 
   factory FormValidationRules.fromJson(Object? json) {
     if (json == null) return const FormValidationRules();
@@ -137,7 +142,9 @@ class FormFieldDef {
     if (rawType is! String) {
       throw const FormSchemaException('field_type_missing');
     }
-    final type = _parseType(rawType); // unknown ⇒ UnsupportedFormSchemaException
+    final type = _parseType(
+      rawType,
+    ); // unknown ⇒ UnsupportedFormSchemaException
     final required = json['required'] == true;
 
     final options = <String>[];
@@ -235,7 +242,8 @@ String? validateFieldValue(FormFieldDef def, Object? value) {
       return null;
     case FormFieldType.integer:
       // integer يبقى int — 3.5 مرفوض و"3" مرفوض.
-      if (value is! int || value is bool) return 'القيمة يجب أن تكون عددًا صحيحًا';
+      if (value is! int || value is bool)
+        return 'القيمة يجب أن تكون عددًا صحيحًا';
       final v = value;
       if (def.rules.min != null && v < def.rules.min!) {
         return 'القيمة أقلّ من الحدّ الأدنى (${def.rules.min})';
@@ -246,7 +254,8 @@ String? validateFieldValue(FormFieldDef def, Object? value) {
       return null;
     case FormFieldType.select:
       if (value is! String) return 'القيمة يجب أن تكون نصًّا من الخيارات';
-      if (!def.options.contains(value)) return 'القيمة ليست من الخيارات المعتمدة';
+      if (!def.options.contains(value))
+        return 'القيمة ليست من الخيارات المعتمدة';
       return null;
     case FormFieldType.multiSelect:
       if (value is! List) return 'القيمة يجب أن تكون قائمة نصوص';

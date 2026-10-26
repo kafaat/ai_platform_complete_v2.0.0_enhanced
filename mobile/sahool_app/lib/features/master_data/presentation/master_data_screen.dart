@@ -89,8 +89,9 @@ class _MasterDataScreenState extends State<MasterDataScreen> {
               decoration: kDec('الفئة'),
               style: const TextStyle(color: Colors.white),
               items: kMasterCategories.entries
-                  .map((e) =>
-                      DropdownMenuItem(value: e.key, child: Text(e.value)))
+                  .map(
+                    (e) => DropdownMenuItem(value: e.key, child: Text(e.value)),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) {
@@ -104,54 +105,62 @@ class _MasterDataScreenState extends State<MasterDataScreen> {
             child: _loading
                 ? const LoadingView()
                 : _error != null
-                    ? ErrorView(message: _error!, onRetry: _load)
-                    : _entries.isEmpty
-                        ? const EmptyView(message: 'لا إدخالات في هذه الفئة')
-                        : RefreshIndicator(
-                            onRefresh: _load,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.all(12),
-                              itemCount: _entries.length,
-                              itemBuilder: (_, i) {
-                                final e = _entries[i];
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: kSurface,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text('${e['name_ar'] ?? '—'}',
-                                                style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                            if ((e['name_en'] ?? '')
-                                                .toString()
-                                                .isNotEmpty)
-                                              Text('${e['name_en']}',
-                                                  style: const TextStyle(
-                                                      color: Colors.grey,
-                                                      fontSize: 12)),
-                                          ],
+                ? ErrorView(message: _error!, onRetry: _load)
+                : _entries.isEmpty
+                ? const EmptyView(message: 'لا إدخالات في هذه الفئة')
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: _entries.length,
+                      itemBuilder: (_, i) {
+                        final e = _entries[i];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: kSurface,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${e['name_ar'] ?? '—'}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if ((e['name_en'] ?? '')
+                                        .toString()
+                                        .isNotEmpty)
+                                      Text(
+                                        '${e['name_en']}',
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 12,
                                         ),
                                       ),
-                                      Text('${e['code'] ?? ''}',
-                                          style: const TextStyle(
-                                              color: kSecondary, fontSize: 12)),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                '${e['code'] ?? ''}',
+                                style: const TextStyle(
+                                  color: kSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -163,8 +172,7 @@ class _MasterDataScreenState extends State<MasterDataScreen> {
       context: context,
       backgroundColor: kSurface,
       isScrollControlled: true,
-      builder: (_) =>
-          _AddEntrySheet(category: _category, onDone: _load),
+      builder: (_) => _AddEntrySheet(category: _category, onDone: _load),
     );
   }
 }

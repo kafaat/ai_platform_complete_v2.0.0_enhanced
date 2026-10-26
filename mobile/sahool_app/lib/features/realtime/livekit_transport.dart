@@ -19,15 +19,23 @@ class LiveKitTransport implements RealtimeTransport {
     final room = Room(roomOptions: const RoomOptions(adaptiveStream: true));
     _room = room;
     _events = room.createListener()
-      ..on<RoomReconnectingEvent>((_) { _interrupted?.call(); })
-      ..on<RoomReconnectedEvent>((_) { _interrupted?.call(); })
-      ..on<RoomDisconnectedEvent>((_) { _interrupted?.call(); })
+      ..on<RoomReconnectingEvent>((_) {
+        _interrupted?.call();
+      })
+      ..on<RoomReconnectedEvent>((_) {
+        _interrupted?.call();
+      })
+      ..on<RoomDisconnectedEvent>((_) {
+        _interrupted?.call();
+      })
       ..on<TrackPublishedEvent>((event) {
         if (event.publication.kind == TrackType.AUDIO) {
           unawaited(event.publication.subscribe());
         }
       });
-    await room.connect(grant.url, grant.token,
+    await room.connect(
+      grant.url,
+      grant.token,
       connectOptions: const ConnectOptions(autoSubscribe: false),
     );
     for (final participant in room.remoteParticipants.values) {
@@ -39,7 +47,8 @@ class LiveKitTransport implements RealtimeTransport {
   }
 
   @override
-  Future<bool> requestMicrophone() async => (await Permission.microphone.request()).isGranted;
+  Future<bool> requestMicrophone() async =>
+      (await Permission.microphone.request()).isGranted;
 
   @override
   Future<RealtimeCapture> createMicrophone() async {
@@ -75,7 +84,11 @@ class LiveKitTransport implements RealtimeTransport {
     await _events?.dispose();
     _events = null;
     if (room != null) {
-      try { await room.disconnect(); } finally { await room.dispose(); }
+      try {
+        await room.disconnect();
+      } finally {
+        await room.dispose();
+      }
     }
   }
 }
@@ -96,7 +109,13 @@ class _LiveCapture implements RealtimeCapture {
     publicationId = null;
     // removePublishedTrack removes the publication map entry synchronously,
     // before it awaits track.stop. Reconnect cannot republish that entry.
-    final unpublish = id == null ? null : room.localParticipant?.removePublishedTrack(id);
-    try { await track.stop(); } finally { await unpublish; }
+    final unpublish = id == null
+        ? null
+        : room.localParticipant?.removePublishedTrack(id);
+    try {
+      await track.stop();
+    } finally {
+      await unpublish;
+    }
   }
 }

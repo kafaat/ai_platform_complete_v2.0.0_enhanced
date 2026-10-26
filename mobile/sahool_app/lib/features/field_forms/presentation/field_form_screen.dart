@@ -66,30 +66,29 @@ class FieldFormState extends Equatable {
     String? versionResolutionStatus,
     String? formValidationStatus,
     String? message,
-  }) =>
-      FieldFormState(
-        status: status ?? this.status,
-        schema: schema ?? this.schema,
-        logicJson: logicJson ?? this.logicJson,
-        answers: answers ?? this.answers,
-        fieldErrors: fieldErrors ?? this.fieldErrors,
-        versionResolutionStatus:
-            versionResolutionStatus ?? this.versionResolutionStatus,
-        formValidationStatus: formValidationStatus ?? this.formValidationStatus,
-        message: message ?? this.message,
-      );
+  }) => FieldFormState(
+    status: status ?? this.status,
+    schema: schema ?? this.schema,
+    logicJson: logicJson ?? this.logicJson,
+    answers: answers ?? this.answers,
+    fieldErrors: fieldErrors ?? this.fieldErrors,
+    versionResolutionStatus:
+        versionResolutionStatus ?? this.versionResolutionStatus,
+    formValidationStatus: formValidationStatus ?? this.formValidationStatus,
+    message: message ?? this.message,
+  );
 
   @override
   List<Object?> get props => [
-        status,
-        schema,
-        logicJson,
-        answers,
-        fieldErrors,
-        versionResolutionStatus,
-        formValidationStatus,
-        message,
-      ];
+    status,
+    schema,
+    logicJson,
+    answers,
+    fieldErrors,
+    versionResolutionStatus,
+    formValidationStatus,
+    message,
+  ];
 }
 
 class FieldFormCubit extends Cubit<FieldFormState> {
@@ -132,27 +131,29 @@ class FieldFormCubit extends Cubit<FieldFormState> {
         formVersionId: package.formVersionId,
         schemaHash: package.schemaHash,
       );
-      emit(FieldFormState(
-        status: FieldFormStatus.ready,
-        schema: schema,
-        logicJson: logic,
-        answers: draft?.answers ?? const {},
-      ));
+      emit(
+        FieldFormState(
+          status: FieldFormStatus.ready,
+          schema: schema,
+          logicJson: logic,
+          answers: draft?.answers ?? const {},
+        ),
+      );
     } on UnsupportedFormSchemaException catch (e) {
-      emit(FieldFormState(
-        status: FieldFormStatus.unsupportedSchema,
-        message: e.toString(),
-      ));
+      emit(
+        FieldFormState(
+          status: FieldFormStatus.unsupportedSchema,
+          message: e.toString(),
+        ),
+      );
     } on ConditionException catch (e) {
-      emit(FieldFormState(
-        status: FieldFormStatus.invalid,
-        message: e.toString(),
-      ));
+      emit(
+        FieldFormState(status: FieldFormStatus.invalid, message: e.toString()),
+      );
     } on FormSchemaException catch (e) {
-      emit(FieldFormState(
-        status: FieldFormStatus.invalid,
-        message: e.toString(),
-      ));
+      emit(
+        FieldFormState(status: FieldFormStatus.invalid, message: e.toString()),
+      );
     }
   }
 
@@ -163,17 +164,19 @@ class FieldFormCubit extends Cubit<FieldFormState> {
 
   /// حفظ مسودّة محليًّا بالمفتاح الخماسيّ — بلا اتصال.
   Future<void> saveDraft() async {
-    await draftStore.save(FormDraft(
-      tenantId: tenantId,
-      fieldId: fieldId,
-      assignmentId: package.assignmentId,
-      revision: package.revision,
-      formVersionId: package.formVersionId,
-      schemaHash: package.schemaHash,
-      definitionSyncToken: package.definitionSyncToken,
-      answers: state.answers,
-      savedAt: DateTime.now().toUtc(),
-    ));
+    await draftStore.save(
+      FormDraft(
+        tenantId: tenantId,
+        fieldId: fieldId,
+        assignmentId: package.assignmentId,
+        revision: package.revision,
+        formVersionId: package.formVersionId,
+        schemaHash: package.schemaHash,
+        definitionSyncToken: package.definitionSyncToken,
+        answers: state.answers,
+        savedAt: DateTime.now().toUtc(),
+      ),
+    );
     emit(state.copyWith(status: FieldFormStatus.savedLocally));
   }
 
@@ -202,35 +205,38 @@ class FieldFormCubit extends Cubit<FieldFormState> {
       // §9.2: هويّة الجهاز الثابتة تدخل ترويسة X-Device-Id (يحقنها الخادم في إثبات المزامنة).
       final deviceId = await DeviceIdService.instance.deviceId();
       final result = await currentApi.submit(
-        item.buildEnvelope(
-          provider: provider,
-          server: server,
-        ),
+        item.buildEnvelope(provider: provider, server: server),
         deviceId: deviceId,
       );
       if (result.status == 'accepted' &&
           result.formValidationStatus != 'invalid') {
         await submissionQueue.remove(item.instanceId);
-        emit(state.copyWith(
-          status: FieldFormStatus.accepted,
-          versionResolutionStatus: result.versionResolutionStatus,
-          formValidationStatus: result.formValidationStatus,
-        ));
+        emit(
+          state.copyWith(
+            status: FieldFormStatus.accepted,
+            versionResolutionStatus: result.versionResolutionStatus,
+            formValidationStatus: result.formValidationStatus,
+          ),
+        );
       } else if (result.formValidationStatus == 'invalid') {
         await submissionQueue.remove(item.instanceId);
-        emit(state.copyWith(
-          status: FieldFormStatus.invalid,
-          versionResolutionStatus: result.versionResolutionStatus,
-          formValidationStatus: result.formValidationStatus,
-        ));
+        emit(
+          state.copyWith(
+            status: FieldFormStatus.invalid,
+            versionResolutionStatus: result.versionResolutionStatus,
+            formValidationStatus: result.formValidationStatus,
+          ),
+        );
       } else {
         // quarantined — تُعرض حجرًا كما هي (stale_proven وغيرها بحالاتها).
         await submissionQueue.remove(item.instanceId);
-        emit(state.copyWith(
-          status: FieldFormStatus.quarantined,
-          versionResolutionStatus: result.versionResolutionStatus,
-          formValidationStatus: result.formValidationStatus,
-        ));
+        emit(
+          state.copyWith(
+            status: FieldFormStatus.quarantined,
+            versionResolutionStatus: result.versionResolutionStatus,
+            formValidationStatus: result.formValidationStatus,
+          ),
+        );
       }
     } catch (_) {
       await submissionQueue.markRetry(item); // instance_id ثابت
@@ -293,8 +299,7 @@ class FieldFormScreen extends StatelessWidget {
                 child: Text(
                   'unsupported form schema',
                   key: const ValueKey('unsupported_schema_message'),
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.error),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               );
               break;

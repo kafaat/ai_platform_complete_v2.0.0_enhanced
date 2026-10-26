@@ -32,14 +32,18 @@ class _TasksScreenState extends State<TasksScreen> {
       await TasksApi.instance.updateTaskStatus(taskId, status);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(status == 'completed' ? 'تم إنجاز المهمة' : 'تم بدء المهمة')),
+        SnackBar(
+          content: Text(
+            status == 'completed' ? 'تم إنجاز المهمة' : 'تم بدء المهمة',
+          ),
+        ),
       );
       _retry();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(apiErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(apiErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _busyTaskId = null);
     }
@@ -63,10 +67,14 @@ class _TasksScreenState extends State<TasksScreen> {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'completed': return kPrimary;
-      case 'in_progress': return kSecondary;
-      case 'pending': return kWarn;
-      default: return Colors.grey;
+      case 'completed':
+        return kPrimary;
+      case 'in_progress':
+        return kSecondary;
+      case 'pending':
+        return kWarn;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -90,14 +98,25 @@ class _TasksScreenState extends State<TasksScreen> {
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _future,
         builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) return const LoadingView();
+          if (snap.connectionState != ConnectionState.done)
+            return const LoadingView();
           if (snap.hasError) {
-            return ErrorView(message: apiErrorMessage(snap.error!), onRetry: _retry);
+            return ErrorView(
+              message: apiErrorMessage(snap.error!),
+              onRetry: _retry,
+            );
           }
           final all = snap.data ?? const <Map<String, dynamic>>[];
-          final tasks = all.where((t) => _filter == 'all' || _text(t['status'], '') == _filter).toList();
+          final tasks = all
+              .where(
+                (t) => _filter == 'all' || _text(t['status'], '') == _filter,
+              )
+              .toList();
           if (all.isEmpty) {
-            return const EmptyView(message: 'لا توجد مهام موزّعة حالياً.', icon: Icons.task_alt);
+            return const EmptyView(
+              message: 'لا توجد مهام موزّعة حالياً.',
+              icon: Icons.task_alt,
+            );
           }
           return Column(
             children: [
@@ -106,10 +125,30 @@ class _TasksScreenState extends State<TasksScreen> {
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    _FilterChip('الكل', 'all', _filter, (v) => setState(() => _filter = v)),
-                    _FilterChip('بانتظار', 'pending', _filter, (v) => setState(() => _filter = v)),
-                    _FilterChip('قيد التنفيذ', 'in_progress', _filter, (v) => setState(() => _filter = v)),
-                    _FilterChip('مُنجزة', 'completed', _filter, (v) => setState(() => _filter = v)),
+                    _FilterChip(
+                      'الكل',
+                      'all',
+                      _filter,
+                      (v) => setState(() => _filter = v),
+                    ),
+                    _FilterChip(
+                      'بانتظار',
+                      'pending',
+                      _filter,
+                      (v) => setState(() => _filter = v),
+                    ),
+                    _FilterChip(
+                      'قيد التنفيذ',
+                      'in_progress',
+                      _filter,
+                      (v) => setState(() => _filter = v),
+                    ),
+                    _FilterChip(
+                      'مُنجزة',
+                      'completed',
+                      _filter,
+                      (v) => setState(() => _filter = v),
+                    ),
                   ],
                 ),
               ),
@@ -136,52 +175,98 @@ class _TasksScreenState extends State<TasksScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.assignment_outlined, color: _statusColor(status)),
+                              Icon(
+                                Icons.assignment_outlined,
+                                color: _statusColor(status),
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: Text(_typeAr[type] ?? type,
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text(
+                                  _typeAr[type] ?? type,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                              _StatusPill(_statusAr[status] ?? status, _statusColor(status)),
+                              _StatusPill(
+                                _statusAr[status] ?? status,
+                                _statusColor(status),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 8),
-                          Text(_text(t['field_name'] ?? t['field_id']),
-                              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                          Text(
+                            _text(t['field_name'] ?? t['field_id']),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
                           if (_text(t['notes'], '').isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 6),
-                              child: Text(_text(t['notes'], ''),
-                                  style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                              child: Text(
+                                _text(t['notes'], ''),
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 12,
                             runSpacing: 6,
                             children: [
-                              _Meta(Icons.calendar_today, _text(t['recommended_date'])),
-                              _Meta(Icons.timer_outlined, '${_text(t['estimated_duration_min'], '—')} دقيقة'),
-                              _Meta(Icons.attach_money, _text(t['estimated_cost_usd'])),
+                              _Meta(
+                                Icons.calendar_today,
+                                _text(t['recommended_date']),
+                              ),
+                              _Meta(
+                                Icons.timer_outlined,
+                                '${_text(t['estimated_duration_min'], '—')} دقيقة',
+                              ),
+                              _Meta(
+                                Icons.attach_money,
+                                _text(t['estimated_cost_usd']),
+                              ),
                             ],
                           ),
-                          if (mutable && id.isNotEmpty && status != 'completed' && status != 'cancelled') ...[
+                          if (mutable &&
+                              id.isNotEmpty &&
+                              status != 'completed' &&
+                              status != 'cancelled') ...[
                             const SizedBox(height: 12),
                             Row(
                               children: [
                                 if (status == 'pending')
                                   Expanded(
                                     child: OutlinedButton(
-                                      onPressed: busy ? null : () => _setStatus(id, 'in_progress'),
+                                      onPressed: busy
+                                          ? null
+                                          : () => _setStatus(id, 'in_progress'),
                                       child: const Text('بدء'),
                                     ),
                                   ),
-                                if (status == 'pending') const SizedBox(width: 8),
+                                if (status == 'pending')
+                                  const SizedBox(width: 8),
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: busy ? null : () => _setStatus(id, 'completed'),
-                                    style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+                                    onPressed: busy
+                                        ? null
+                                        : () => _setStatus(id, 'completed'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: kPrimary,
+                                    ),
                                     child: busy
-                                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
                                         : const Text('إنجاز'),
                                   ),
                                 ),
@@ -237,7 +322,10 @@ class _StatusPill extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
       border: Border.all(color: color.withValues(alpha: 0.4)),
     ),
-    child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+    child: Text(
+      label,
+      style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+    ),
   );
 }
 

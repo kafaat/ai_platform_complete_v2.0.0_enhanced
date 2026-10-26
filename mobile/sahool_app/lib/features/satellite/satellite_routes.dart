@@ -17,7 +17,7 @@ final FeatureModule satelliteFeature = FeatureModule(
       path: SatelliteRoutes.satellite,
       titleAr: 'الأقمار الصناعيّة',
       icon: Icons.satellite_alt_outlined,
-      
+
       menu: const MenuEntry(MenuSection.cropHealth, order: 10),
       builder: (_, _) => const SatelliteScreen(),
     ),

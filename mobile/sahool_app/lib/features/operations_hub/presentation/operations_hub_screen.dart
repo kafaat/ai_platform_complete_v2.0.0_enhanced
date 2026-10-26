@@ -22,11 +22,14 @@ class OperationsHubScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = router ?? AppRouter.instance;
-    final modules = (r.menuFor(role ?? normalizeRole(currentRole()),
-                sections: {MenuSection.operations})[MenuSection.operations] ??
-            const <AppRoute>[])
-        .where((m) => m.path != OperationsHubRoutes.hub)
-        .toList();
+    final modules =
+        (r.menuFor(
+                  role ?? normalizeRole(currentRole()),
+                  sections: {MenuSection.operations},
+                )[MenuSection.operations] ??
+                const <AppRoute>[])
+            .where((m) => m.path != OperationsHubRoutes.hub)
+            .toList();
     return Scaffold(
       appBar: AppBar(title: const Text('مركز العمليّات')),
       body: modules.isEmpty
@@ -51,13 +54,17 @@ class OperationsHubScreen extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(m.icon,
-                              size: SahoolSizes.iconLg,
-                              color: context.tokens.colors.primary),
+                          Icon(
+                            m.icon,
+                            size: SahoolSizes.iconLg,
+                            color: context.tokens.colors.primary,
+                          ),
                           const SizedBox(height: SahoolSpacing.md),
-                          Text(m.titleAr,
-                              textAlign: TextAlign.center,
-                              style: context.textStyles.titleSmall),
+                          Text(
+                            m.titleAr,
+                            textAlign: TextAlign.center,
+                            style: context.textStyles.titleSmall,
+                          ),
                         ],
                       ),
                     ),

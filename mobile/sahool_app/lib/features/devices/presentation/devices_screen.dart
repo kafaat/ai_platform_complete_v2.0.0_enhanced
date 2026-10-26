@@ -79,17 +79,17 @@ class _DevicesScreenState extends State<DevicesScreen> {
       body: _loading
           ? const LoadingView()
           : _error != null
-              ? ErrorView(message: _error!, onRetry: _load)
-              : _devices.isEmpty
-                  ? const EmptyView(message: 'لا أجهزة مسجّلة بعد')
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: _devices.length,
-                        itemBuilder: (_, i) => _tile(_devices[i]),
-                      ),
-                    ),
+          ? ErrorView(message: _error!, onRetry: _load)
+          : _devices.isEmpty
+          ? const EmptyView(message: 'لا أجهزة مسجّلة بعد')
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: _devices.length,
+                itemBuilder: (_, i) => _tile(_devices[i]),
+              ),
+            ),
     );
   }
 
@@ -117,7 +117,12 @@ class _DevicesScreenState extends State<DevicesScreen> {
                 color: online ? kPrimary : Colors.grey,
                 shape: BoxShape.circle,
                 boxShadow: online
-                    ? [BoxShadow(color: kPrimary.withValues(alpha: 0.6), blurRadius: 6)]
+                    ? [
+                        BoxShadow(
+                          color: kPrimary.withValues(alpha: 0.6),
+                          blurRadius: 6,
+                        ),
+                      ]
                     : null,
               ),
             ),
@@ -126,14 +131,20 @@ class _DevicesScreenState extends State<DevicesScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${d['name'] ?? '—'}',
-                      style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
+                  Text(
+                    '${d['name'] ?? '—'}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     '${_typeLabels[type] ?? type} · ${online ? 'متصل' : 'غير متصل'}',
                     style: TextStyle(
-                        color: online ? kPrimary : Colors.grey, fontSize: 12),
+                      color: online ? kPrimary : Colors.grey,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -287,42 +298,46 @@ class _TelemetryScreenState extends State<_TelemetryScreen> {
       body: _loading
           ? const LoadingView()
           : _error != null
-              ? ErrorView(message: _error!, onRetry: _load)
-              : _points.isEmpty
-                  ? const EmptyView(
-                      message: 'لا قياسات حديثة لهذا الجهاز',
-                      icon: Icons.sensors_off)
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: _points.length,
-                        itemBuilder: (_, i) {
-                          final p = _points[i];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: kSurface,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('${p['sensor_type'] ?? '—'}',
-                                    style: const TextStyle(color: Colors.white)),
-                                Text(
-                                  '${p['value'] ?? ''} ${p['unit'] ?? ''}',
-                                  style: const TextStyle(
-                                      color: kSecondary,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+          ? ErrorView(message: _error!, onRetry: _load)
+          : _points.isEmpty
+          ? const EmptyView(
+              message: 'لا قياسات حديثة لهذا الجهاز',
+              icon: Icons.sensors_off,
+            )
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: _points.length,
+                itemBuilder: (_, i) {
+                  final p = _points[i];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: kSurface,
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${p['sensor_type'] ?? '—'}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        Text(
+                          '${p['value'] ?? ''} ${p['unit'] ?? ''}',
+                          style: const TextStyle(
+                            color: kSecondary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }

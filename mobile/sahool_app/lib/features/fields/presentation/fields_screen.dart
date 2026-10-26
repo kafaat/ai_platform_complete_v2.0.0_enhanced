@@ -80,11 +80,13 @@ class _FieldsScreenState extends State<FieldsScreen> {
   String _fieldId(Map<String, dynamic> f, int i) =>
       (f['field_id'] ?? f['id'] ?? f['fieldId'] ?? '$i').toString();
 
-    double? _num(dynamic v) => v is num ? v.toDouble() : double.tryParse('$v');
+  double? _num(dynamic v) => v is num ? v.toDouble() : double.tryParse('$v');
 
   LatLng? _centroidOf(Map<String, dynamic> f) {
     final lat = _num(f['lat'] ?? f['latitude'] ?? f['centroid_lat']);
-    final lon = _num(f['lon'] ?? f['lng'] ?? f['longitude'] ?? f['centroid_lon']);
+    final lon = _num(
+      f['lon'] ?? f['lng'] ?? f['longitude'] ?? f['centroid_lon'],
+    );
     return (lat != null && lon != null) ? LatLng(lat, lon) : null;
   }
 
@@ -113,12 +115,14 @@ class _FieldsScreenState extends State<FieldsScreen> {
     for (final f in _fields) {
       final pts = _polyPoints(f['geometry']);
       if (pts.length >= 3) {
-        polys.add(Polygon(
-          points: pts,
-          color: const Color(0x3310B981),
-          borderColor: const Color(0xFF10B981),
-          borderStrokeWidth: 2,
-        ));
+        polys.add(
+          Polygon(
+            points: pts,
+            color: const Color(0x3310B981),
+            borderColor: const Color(0xFF10B981),
+            borderStrokeWidth: 2,
+          ),
+        );
       }
     }
     return polys;
@@ -174,7 +178,8 @@ class _FieldsScreenState extends State<FieldsScreen> {
   Widget _body() {
     if (_loading) {
       return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF10B981)));
+        child: CircularProgressIndicator(color: Color(0xFF10B981)),
+      );
     }
     if (_error != null) {
       return Center(
@@ -183,11 +188,15 @@ class _FieldsScreenState extends State<FieldsScreen> {
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 44),
             const SizedBox(height: 12),
-            const Text('تعذّر تحميل الحقول',
-                style: TextStyle(color: Colors.white)),
+            const Text(
+              'تعذّر تحميل الحقول',
+              style: TextStyle(color: Colors.white),
+            ),
             const SizedBox(height: 12),
             ElevatedButton(
-                onPressed: _load, child: const Text('إعادة المحاولة')),
+              onPressed: _load,
+              child: const Text('إعادة المحاولة'),
+            ),
           ],
         ),
       );
@@ -199,15 +208,17 @@ class _FieldsScreenState extends State<FieldsScreen> {
         // خريطة الحقول (offline-أوّلاً) — مُؤطَّرة على حقول المستخدم وتَرسمها.
         SizedBox(
           height: 220,
-          child: Builder(builder: (_) {
-            final v = _mapView();
-            return OfflineFieldMap(
-              center: v.center,
-              zoom: v.zoom,
-              bounds: v.bounds,
-              fieldPolygons: _fieldPolygons(),
-            );
-          }),
+          child: Builder(
+            builder: (_) {
+              final v = _mapView();
+              return OfflineFieldMap(
+                center: v.center,
+                zoom: v.zoom,
+                bounds: v.bounds,
+                fieldPolygons: _fieldPolygons(),
+              );
+            },
+          ),
         ),
         Expanded(
           child: _fields.isEmpty
@@ -225,9 +236,11 @@ class _FieldsScreenState extends State<FieldsScreen> {
     );
   }
 
-
   Widget _header() {
-    final totalArea = _fields.fold<double>(0, (sum, f) => sum + (_num(f['area_ha'] ?? f['area']) ?? 0));
+    final totalArea = _fields.fold<double>(
+      0,
+      (sum, f) => sum + (_num(f['area_ha'] ?? f['area']) ?? 0),
+    );
     final crops = _fields
         .map((f) => (f['crop'] ?? f['crop_ar'] ?? '').toString().trim())
         .where((c) => c.isNotEmpty)
@@ -245,8 +258,14 @@ class _FieldsScreenState extends State<FieldsScreen> {
               const Icon(Icons.layers_outlined, color: Color(0xFF10B981)),
               const SizedBox(width: 8),
               const Expanded(
-                child: Text('حقولي',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'حقولي',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               IconButton(
                 tooltip: 'تحديث',
@@ -271,23 +290,29 @@ class _FieldsScreenState extends State<FieldsScreen> {
   }
 
   Widget _statChip(String label, String value) => Expanded(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1D29),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0x2234D399)),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1D29),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0x2234D399)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-              const SizedBox(height: 2),
-              Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
 
   // حالة فارغة قابلة للفعل: أيقونة + نصّ + زرّ يفتح المعالج (بدل نصّ خامل).
   Widget _emptyState() {
@@ -299,12 +324,16 @@ class _FieldsScreenState extends State<FieldsScreen> {
           children: [
             const Icon(Icons.terrain, color: Colors.grey, size: 56),
             const SizedBox(height: 14),
-            const Text('لا توجد حقول مسجّلة بعد',
-                style: TextStyle(color: Colors.white, fontSize: 16)),
+            const Text(
+              'لا توجد حقول مسجّلة بعد',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
             const SizedBox(height: 6),
-            const Text('أنشئ حقلك الأوّل بالرسم على الخريطة أو استيراد حدوده.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 13)),
+            const Text(
+              'أنشئ حقلك الأوّل بالرسم على الخريطة أو استيراد حدوده.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 13),
+            ),
             const SizedBox(height: 18),
             ElevatedButton.icon(
               onPressed: _openCreateWizard,
@@ -312,8 +341,10 @@ class _FieldsScreenState extends State<FieldsScreen> {
               label: const Text('إنشاء حقل'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF10B981),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
             ),
           ],
@@ -354,8 +385,9 @@ class _FieldsScreenState extends State<FieldsScreen> {
                     child: Text(
                       ndvi != null ? ndvi.toStringAsFixed(2) : '—',
                       style: TextStyle(
-                          color: _ndviColor(ndvi),
-                          fontWeight: FontWeight.bold),
+                        color: _ndviColor(ndvi),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -364,10 +396,13 @@ class _FieldsScreenState extends State<FieldsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(name,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         [
@@ -375,7 +410,9 @@ class _FieldsScreenState extends State<FieldsScreen> {
                           if (area != null) '${area.toStringAsFixed(1)} هـ',
                         ].join(' · '),
                         style: const TextStyle(
-                            color: Colors.grey, fontSize: 12),
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),

@@ -90,17 +90,17 @@ class _EquipmentScreenState extends State<EquipmentScreen> {
       body: _loading
           ? const LoadingView()
           : _error != null
-              ? ErrorView(message: _error!, onRetry: _load)
-              : _equipment.isEmpty
-                  ? const EmptyView(message: 'لا توجد معدّات مسجّلة بعد')
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: _equipment.length,
-                        itemBuilder: (_, i) => _tile(_equipment[i], mutable),
-                      ),
-                    ),
+          ? ErrorView(message: _error!, onRetry: _load)
+          : _equipment.isEmpty
+          ? const EmptyView(message: 'لا توجد معدّات مسجّلة بعد')
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: _equipment.length,
+                itemBuilder: (_, i) => _tile(_equipment[i], mutable),
+              ),
+            ),
     );
   }
 
@@ -121,16 +121,22 @@ class _EquipmentScreenState extends State<EquipmentScreen> {
             width: 10,
             height: 10,
             decoration: BoxDecoration(
-                color: _statusColor(status), shape: BoxShape.circle),
+              color: _statusColor(status),
+              shape: BoxShape.circle,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${eq['name'] ?? '—'}',
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(
+                  '${eq['name'] ?? '—'}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   '${_typeLabels[type] ?? type} · ${hours ?? 0} ساعة تشغيل',
@@ -307,7 +313,8 @@ class _MaintenanceScreenState extends State<_MaintenanceScreen> {
       context: context,
       backgroundColor: kSurface,
       isScrollControlled: true,
-      builder: (_) => _LogMaintenanceSheet(equipmentId: _equipmentId, onDone: _load),
+      builder: (_) =>
+          _LogMaintenanceSheet(equipmentId: _equipmentId, onDone: _load),
     );
   }
 
@@ -330,65 +337,77 @@ class _MaintenanceScreenState extends State<_MaintenanceScreen> {
       body: _loading
           ? const LoadingView()
           : _error != null
-              ? ErrorView(message: _error!, onRetry: _load)
-              : _records.isEmpty
-                  ? const EmptyView(message: 'لا سجلّات صيانة')
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: _records.length,
-                        itemBuilder: (_, i) {
-                          final r = _records[i];
-                          final kind = (r['kind'] ?? '').toString();
-                          final cost = r['cost_usd'];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: kSurface,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(_kindLabels[kind] ?? kind,
-                                        style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold)),
-                                    Text('${r['status'] ?? ''}',
-                                        style: const TextStyle(
-                                            color: Colors.grey, fontSize: 12)),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  [
-                                    if (r['performed_date'] != null)
-                                      'نُفّذت: ${r['performed_date']}',
-                                    if (r['scheduled_date'] != null)
-                                      'مجدولة: ${r['scheduled_date']}',
-                                    if (cost != null) 'التكلفة: \$$cost',
-                                  ].join(' · '),
-                                  style: const TextStyle(
-                                      color: Colors.grey, fontSize: 12),
-                                ),
-                                if ((r['notes'] ?? '').toString().isNotEmpty) ...[
-                                  const SizedBox(height: 4),
-                                  Text('${r['notes']}',
-                                      style: const TextStyle(
-                                          color: Colors.white70, fontSize: 12)),
-                                ],
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+          ? ErrorView(message: _error!, onRetry: _load)
+          : _records.isEmpty
+          ? const EmptyView(message: 'لا سجلّات صيانة')
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: _records.length,
+                itemBuilder: (_, i) {
+                  final r = _records[i];
+                  final kind = (r['kind'] ?? '').toString();
+                  final cost = r['cost_usd'];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: kSurface,
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _kindLabels[kind] ?? kind,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '${r['status'] ?? ''}',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          [
+                            if (r['performed_date'] != null)
+                              'نُفّذت: ${r['performed_date']}',
+                            if (r['scheduled_date'] != null)
+                              'مجدولة: ${r['scheduled_date']}',
+                            if (cost != null) 'التكلفة: \$$cost',
+                          ].join(' · '),
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
+                        if ((r['notes'] ?? '').toString().isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            '${r['notes']}',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }

@@ -43,7 +43,8 @@ final FeatureModule fieldsFeature = FeatureModule(
       aliases: const [FieldWorkspaceScreen.routeName],
       // معرّف الرابط العميق إن وُجد؛ وإلّا تقرأ الشاشة arguments بنفسها
       // (String معرّف، Map كائن الحقل، أو FieldWorkspaceArgs).
-      builder: (_, args) => FieldWorkspaceScreen(fieldId: args.query['field_id']),
+      builder: (_, args) =>
+          FieldWorkspaceScreen(fieldId: args.query['field_id']),
     ),
   ],
 );

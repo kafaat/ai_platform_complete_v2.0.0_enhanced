@@ -32,28 +32,28 @@ class FormDraft {
   });
 
   Map<String, Object?> toJson() => {
-        'tenant_id': tenantId,
-        'field_id': fieldId,
-        'assignment_id': assignmentId,
-        'revision': revision,
-        'form_version_id': formVersionId,
-        'schema_hash': schemaHash,
-        'definition_sync_token': definitionSyncToken,
-        'answers': answers,
-        'saved_at': savedAt.toUtc().toIso8601String(),
-      };
+    'tenant_id': tenantId,
+    'field_id': fieldId,
+    'assignment_id': assignmentId,
+    'revision': revision,
+    'form_version_id': formVersionId,
+    'schema_hash': schemaHash,
+    'definition_sync_token': definitionSyncToken,
+    'answers': answers,
+    'saved_at': savedAt.toUtc().toIso8601String(),
+  };
 
   factory FormDraft.fromJson(Map<String, Object?> json) => FormDraft(
-        tenantId: json['tenant_id'] as String,
-        fieldId: json['field_id'] as String,
-        assignmentId: json['assignment_id'] as String,
-        revision: (json['revision'] as num).toInt(),
-        formVersionId: json['form_version_id'] as String,
-        schemaHash: json['schema_hash'] as String,
-        definitionSyncToken: json['definition_sync_token'] as String?,
-        answers: Map<String, Object?>.from(json['answers'] as Map? ?? {}),
-        savedAt: DateTime.parse(json['saved_at'] as String),
-      );
+    tenantId: json['tenant_id'] as String,
+    fieldId: json['field_id'] as String,
+    assignmentId: json['assignment_id'] as String,
+    revision: (json['revision'] as num).toInt(),
+    formVersionId: json['form_version_id'] as String,
+    schemaHash: json['schema_hash'] as String,
+    definitionSyncToken: json['definition_sync_token'] as String?,
+    answers: Map<String, Object?>.from(json['answers'] as Map? ?? {}),
+    savedAt: DateTime.parse(json['saved_at'] as String),
+  );
 }
 
 class DraftStore {
@@ -73,16 +73,15 @@ class DraftStore {
     required String assignmentId,
     required String formVersionId,
     required String schemaHash,
-  }) =>
-      '$tenantId|$fieldId|$assignmentId|$formVersionId|$schemaHash';
+  }) => '$tenantId|$fieldId|$assignmentId|$formVersionId|$schemaHash';
 
   String keyOf(FormDraft draft) => draftKey(
-        tenantId: draft.tenantId,
-        fieldId: draft.fieldId,
-        assignmentId: draft.assignmentId,
-        formVersionId: draft.formVersionId,
-        schemaHash: draft.schemaHash,
-      );
+    tenantId: draft.tenantId,
+    fieldId: draft.fieldId,
+    assignmentId: draft.assignmentId,
+    formVersionId: draft.formVersionId,
+    schemaHash: draft.schemaHash,
+  );
 
   Future<void> save(FormDraft draft) async {
     await _box.put(keyOf(draft), draft.toJson());
@@ -96,13 +95,15 @@ class DraftStore {
     required String formVersionId,
     required String schemaHash,
   }) {
-    final raw = _box.get(draftKey(
-      tenantId: tenantId,
-      fieldId: fieldId,
-      assignmentId: assignmentId,
-      formVersionId: formVersionId,
-      schemaHash: schemaHash,
-    ));
+    final raw = _box.get(
+      draftKey(
+        tenantId: tenantId,
+        fieldId: fieldId,
+        assignmentId: assignmentId,
+        formVersionId: formVersionId,
+        schemaHash: schemaHash,
+      ),
+    );
     if (raw is! Map) return null;
     return FormDraft.fromJson(Map<String, Object?>.from(raw));
   }

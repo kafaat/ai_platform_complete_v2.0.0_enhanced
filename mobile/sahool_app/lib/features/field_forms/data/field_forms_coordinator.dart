@@ -23,11 +23,11 @@ class FieldFormsCoordinator {
     SubmissionQueue? queue,
     FieldFormsApi? api,
     String? Function()? currentTenantId,
-  })  : _packages = packages,
-        _queue = queue,
-        _api = api,
-        _currentTenantId =
-            currentTenantId ?? (() => AuthService.instance.tenantId);
+  }) : _packages = packages,
+       _queue = queue,
+       _api = api,
+       _currentTenantId =
+           currentTenantId ?? (() => AuthService.instance.tenantId);
 
   /// مصدر المستأجِر الحاليّ (الجلسة افتراضيّاً؛ قابل للحقن في الاختبارات).
   final String? Function() _currentTenantId;
@@ -54,8 +54,9 @@ class FieldFormsCoordinator {
       unawaited(drain());
 
       await _connectivitySubscription?.cancel();
-      _connectivitySubscription =
-          Connectivity().onConnectivityChanged.listen((results) {
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+        results,
+      ) {
         if (results.any((result) => result != ConnectivityResult.none)) {
           unawaited(drain());
         }

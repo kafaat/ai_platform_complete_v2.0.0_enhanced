@@ -17,7 +17,7 @@ final FeatureModule irrigationFeature = FeatureModule(
       path: IrrigationRoutes.ops,
       titleAr: 'الريّ التشغيليّ',
       icon: Icons.water_drop_outlined,
-      
+
       menu: const MenuEntry(MenuSection.operations, order: 30),
       builder: (_, _) => const IrrigationOpsScreen(),
     ),

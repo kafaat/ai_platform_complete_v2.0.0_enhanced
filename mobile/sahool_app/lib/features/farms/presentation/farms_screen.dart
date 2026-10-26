@@ -81,22 +81,22 @@ class _FarmsScreenState extends State<FarmsScreen> {
       body: _loading
           ? const LoadingView()
           : _error != null
-              ? ErrorView(message: _error!, onRetry: _load)
-              : _farms.isEmpty
-                  ? EmptyView(
-                      message: 'لا مزارع بعد — أنشئ مزرعتك الأولى',
-                      icon: Icons.agriculture_outlined,
-                      actionLabel: mutable ? 'إنشاء مزرعة' : null,
-                      onAction: mutable ? _openCreate : null,
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
-                        itemCount: _farms.length,
-                        itemBuilder: (_, i) => _farmCard(_farms[i]),
-                      ),
-                    ),
+          ? ErrorView(message: _error!, onRetry: _load)
+          : _farms.isEmpty
+          ? EmptyView(
+              message: 'لا مزارع بعد — أنشئ مزرعتك الأولى',
+              icon: Icons.agriculture_outlined,
+              actionLabel: mutable ? 'إنشاء مزرعة' : null,
+              onAction: mutable ? _openCreate : null,
+            )
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
+                itemCount: _farms.length,
+                itemBuilder: (_, i) => _farmCard(_farms[i]),
+              ),
+            ),
     );
   }
 
@@ -131,14 +131,19 @@ class _FarmsScreenState extends State<FarmsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name,
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 if (subtitle.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(subtitle,
-                      style:
-                          const TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ],
               ],
             ),

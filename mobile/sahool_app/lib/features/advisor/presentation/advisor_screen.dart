@@ -25,7 +25,7 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
   @override
   void initState() {
     super.initState();
-    _chatBox = Hive.box('chat_history');  // F07: Hive storage
+    _chatBox = Hive.box('chat_history'); // F07: Hive storage
   }
 
   Future<void> _send(String text) async {
@@ -36,22 +36,27 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
 
     // F07: Save user message
     await _chatBox.add({
-      'role': 'user', 'text': text,
+      'role': 'user',
+      'text': text,
       'timestamp': DateTime.now().toIso8601String(),
     });
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
     _scrollToBottom();
 
     try {
       // F06: Real API call
       final response = await AdvisorApi.instance.askAgent(text);
-      final answer = response['response_ar']
-          ?? response['response']
-          ?? 'لم أتمكن من معالجة السؤال.';
+      final answer =
+          response['response_ar'] ??
+          response['response'] ??
+          'لم أتمكن من معالجة السؤال.';
 
       // F07: Save assistant response
       await _chatBox.add({
-        'role': 'assistant', 'text': answer,
+        'role': 'assistant',
+        'text': answer,
         'timestamp': DateTime.now().toIso8601String(),
         'sources': response['sources'] ?? [],
       });
@@ -63,7 +68,10 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
         'isError': true,
       });
     } finally {
-      if (mounted) setState(() { _isLoading = false; });
+      if (mounted)
+        setState(() {
+          _isLoading = false;
+        });
       _scrollToBottom();
     }
   }
@@ -88,8 +96,9 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
     _scrollToBottom();
 
     try {
-      final result =
-          await AdvisorApi.instance.analyzePestImage(File(image.path));
+      final result = await AdvisorApi.instance.analyzePestImage(
+        File(image.path),
+      );
       await _chatBox.add({
         'role': 'assistant',
         'text': _formatPestResult(result),
@@ -170,11 +179,19 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
         backgroundColor: const Color(0xFF0F1117),
         appBar: AppBar(
           backgroundColor: const Color(0xFF1A1D29),
-          title: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('المستشار الزراعي', style: TextStyle(color: Colors.white, fontSize: 16)),
-            Text('مدعوم بالذكاء الاصطناعي',
-                style: TextStyle(color: Color(0xFF10B981), fontSize: 12)),
-          ]),
+          title: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'المستشار الزراعي',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              Text(
+                'مدعوم بالذكاء الاصطناعي',
+                style: TextStyle(color: Color(0xFF10B981), fontSize: 12),
+              ),
+            ],
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.grey),
@@ -183,76 +200,123 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
                 context: context,
                 builder: (_) => AlertDialog(
                   backgroundColor: const Color(0xFF1A1D29),
-                  title: const Text('مسح المحادثة؟', style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'مسح المحادثة؟',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(context),
-                        child: const Text('إلغاء')),
-                    TextButton(onPressed: () { Navigator.pop(context); _clearHistory(); },
-                        child: const Text('مسح', style: TextStyle(color: Colors.red))),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('إلغاء'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _clearHistory();
+                      },
+                      child: const Text(
+                        'مسح',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
           ],
         ),
-        body: Column(children: [
-          // Messages
-          Expanded(
-            child: ValueListenableBuilder(
-              valueListenable: _chatBox.listenable(),
-              builder: (_, box, _) {
-                if (box.isEmpty) return _buildWelcome();
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: box.length,
-                  itemBuilder: (_, i) => _buildMessage(
-                      Map<String, dynamic>.from(box.getAt(i) as Map)),
-                );
-              },
-            ),
-          ),
-
-          // Loading
-          if (_isLoading)
-            Container(
-              padding: const EdgeInsets.all(12),
-              child: Row(children: [
-                const SizedBox(width: 12,height: 12,
-                    child: CircularProgressIndicator(strokeWidth: 2,
-                        color: Color(0xFF10B981))),
-                const SizedBox(width: 8),
-                Text('المستشار يُحلّل...',
-                    style: TextStyle(color: Colors.grey[400], fontSize: 12)),
-              ]),
+        body: Column(
+          children: [
+            // Messages
+            Expanded(
+              child: ValueListenableBuilder(
+                valueListenable: _chatBox.listenable(),
+                builder: (_, box, _) {
+                  if (box.isEmpty) return _buildWelcome();
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: box.length,
+                    itemBuilder: (_, i) => _buildMessage(
+                      Map<String, dynamic>.from(box.getAt(i) as Map),
+                    ),
+                  );
+                },
+              ),
             ),
 
-          // Input
-          _buildInput(),
-        ]),
+            // Loading
+            if (_isLoading)
+              Container(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFF10B981),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'المستشار يُحلّل...',
+                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Input
+            _buildInput(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildWelcome() => Center(
-    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      const Text('🌿', style: TextStyle(fontSize: 64)),
-      const SizedBox(height: 16),
-      const Text('المستشار الزراعي الذكي',
-          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      Text('اسأل عن المحاصيل، الآفات، الري، والتسميد',
-          style: TextStyle(color: Colors.grey[400])),
-      const SizedBox(height: 24),
-      Wrap(spacing: 8, runSpacing: 8, children: [
-        for (final q in ['كيف أُقاوم حشرة المن؟', 'متى أروي القمح؟', 'ما أعراض نقص النيتروجين؟'])
-          ActionChip(
-            label: Text(q, style: const TextStyle(color: Colors.white, fontSize: 11)),
-            backgroundColor: const Color(0xFF1A1D29),
-            onPressed: () => _send(q),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text('🌿', style: TextStyle(fontSize: 64)),
+        const SizedBox(height: 16),
+        const Text(
+          'المستشار الزراعي الذكي',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
-      ]),
-    ]),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'اسأل عن المحاصيل، الآفات، الري، والتسميد',
+          style: TextStyle(color: Colors.grey[400]),
+        ),
+        const SizedBox(height: 24),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final q in [
+              'كيف أُقاوم حشرة المن؟',
+              'متى أروي القمح؟',
+              'ما أعراض نقص النيتروجين؟',
+            ])
+              ActionChip(
+                label: Text(
+                  q,
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
+                ),
+                backgroundColor: const Color(0xFF1A1D29),
+                onPressed: () => _send(q),
+              ),
+          ],
+        ),
+      ],
+    ),
   );
 
   Widget _buildMessage(Map<String, dynamic> msg) {
@@ -261,31 +325,39 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) ...[
-            CircleAvatar(radius: 16,
-                backgroundColor: const Color(0xFF10B981),
-                child: const Text('🌿', style: TextStyle(fontSize: 14))),
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: const Color(0xFF10B981),
+              child: const Text('🌿', style: TextStyle(fontSize: 14)),
+            ),
             const SizedBox(width: 8),
           ],
           Flexible(
             child: GestureDetector(
               onLongPress: () {
                 Clipboard.setData(ClipboardData(text: msg['text'] as String));
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم النسخ')));
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('تم النسخ')));
               },
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isUser
                       ? const Color(0xFF10B981)
-                      : isError ? const Color(0xFF7F1D1D) : const Color(0xFF1A1D29),
+                      : isError
+                      ? const Color(0xFF7F1D1D)
+                      : const Color(0xFF1A1D29),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: SelectableText(   // H07: Selectable text
+                child: SelectableText(
+                  // H07: Selectable text
                   msg['text'] as String,
                   style: const TextStyle(color: Colors.white, height: 1.5),
                 ),
@@ -301,40 +373,47 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
   Widget _buildInput() => Container(
     padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
     color: const Color(0xFF1A1D29),
-    child: Row(children: [
-      // H06: Camera button for pest detection
-      IconButton(
-        icon: const Icon(Icons.camera_alt_outlined, color: Color(0xFF10B981)),
-        tooltip: 'تشخيص الآفات بالصورة',
-        onPressed: _sendImage,
-      ),
-      Expanded(
-        child: TextField(
-          controller: _controller,
-          focusNode: _focusNode,
-          maxLines: 3, minLines: 1,
-          style: const TextStyle(color: Colors.white),
-          textDirection: TextDirection.rtl,
-          decoration: InputDecoration(
-            hintText: 'اسأل عن مزرعتك...',
-            hintStyle: TextStyle(color: Colors.grey[600]),
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none),
-            filled: true,
-            fillColor: const Color(0xFF0F1117),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          ),
-          onSubmitted: _send,
+    child: Row(
+      children: [
+        // H06: Camera button for pest detection
+        IconButton(
+          icon: const Icon(Icons.camera_alt_outlined, color: Color(0xFF10B981)),
+          tooltip: 'تشخيص الآفات بالصورة',
+          onPressed: _sendImage,
         ),
-      ),
-      const SizedBox(width: 8),
-      FloatingActionButton.small(
-        onPressed: _isLoading ? null : () => _send(_controller.text),
-        backgroundColor: const Color(0xFF10B981),
-        child: const Icon(Icons.send, color: Colors.white, size: 18),
-      ),
-    ]),
+        Expanded(
+          child: TextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            maxLines: 3,
+            minLines: 1,
+            style: const TextStyle(color: Colors.white),
+            textDirection: TextDirection.rtl,
+            decoration: InputDecoration(
+              hintText: 'اسأل عن مزرعتك...',
+              hintStyle: TextStyle(color: Colors.grey[600]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: const Color(0xFF0F1117),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+            ),
+            onSubmitted: _send,
+          ),
+        ),
+        const SizedBox(width: 8),
+        FloatingActionButton.small(
+          onPressed: _isLoading ? null : () => _send(_controller.text),
+          backgroundColor: const Color(0xFF10B981),
+          child: const Icon(Icons.send, color: Colors.white, size: 18),
+        ),
+      ],
+    ),
   );
 
   @override

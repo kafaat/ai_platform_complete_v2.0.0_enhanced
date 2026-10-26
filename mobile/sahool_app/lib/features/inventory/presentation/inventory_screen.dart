@@ -74,28 +74,28 @@ class _InventoryScreenState extends State<InventoryScreen> {
       body: _loading
           ? const LoadingView()
           : _error != null
-              ? ErrorView(message: _error!, onRetry: _load)
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView(
-                    padding: const EdgeInsets.all(12),
-                    children: [
-                      if (_expiring.isNotEmpty) ...[
-                        const SectionTitle('دفعات قاربت الانتهاء'),
-                        ..._expiring.map(_expiringTile),
-                        const SizedBox(height: 12),
-                      ],
-                      const SectionTitle('العناصر'),
-                      if (_items.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 40),
-                          child: EmptyView(message: 'لا توجد عناصر مخزون بعد'),
-                        )
-                      else
-                        ..._items.map((it) => _itemTile(it, mutable)),
-                    ],
-                  ),
-                ),
+          ? ErrorView(message: _error!, onRetry: _load)
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView(
+                padding: const EdgeInsets.all(12),
+                children: [
+                  if (_expiring.isNotEmpty) ...[
+                    const SectionTitle('دفعات قاربت الانتهاء'),
+                    ..._expiring.map(_expiringTile),
+                    const SizedBox(height: 12),
+                  ],
+                  const SectionTitle('العناصر'),
+                  if (_items.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: EmptyView(message: 'لا توجد عناصر مخزون بعد'),
+                    )
+                  else
+                    ..._items.map((it) => _itemTile(it, mutable)),
+                ],
+              ),
+            ),
     );
   }
 
@@ -113,11 +113,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
           const Icon(Icons.warning_amber_rounded, color: kWarn, size: 20),
           const SizedBox(width: 10),
           Expanded(
-            child: Text('${b['name'] ?? '—'}',
-                style: const TextStyle(color: Colors.white)),
+            child: Text(
+              '${b['name'] ?? '—'}',
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
-          Text('${b['expiry_date'] ?? ''}',
-              style: const TextStyle(color: kWarn, fontSize: 12)),
+          Text(
+            '${b['expiry_date'] ?? ''}',
+            style: const TextStyle(color: kWarn, fontSize: 12),
+          ),
         ],
       ),
     );
@@ -143,23 +147,32 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 Row(
                   children: [
                     Flexible(
-                      child: Text('${it['name'] ?? '—'}',
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+                      child: Text(
+                        '${it['name'] ?? '—'}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     if (low) ...[
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.red.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text('مخزون منخفض',
-                            style:
-                                TextStyle(color: Colors.redAccent, fontSize: 10)),
+                        child: const Text(
+                          'مخزون منخفض',
+                          style: TextStyle(
+                            color: Colors.redAccent,
+                            fontSize: 10,
+                          ),
+                        ),
                       ),
                     ],
                   ],
@@ -272,8 +285,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
           decoration: kDec('الفئة'),
           style: const TextStyle(color: Colors.white),
           items: _categories.entries
-              .map((e) =>
-                  DropdownMenuItem(value: e.key, child: Text(e.value)))
+              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
               .toList(),
           onChanged: (v) => setState(() => _category = v ?? 'other'),
         ),
@@ -317,17 +329,15 @@ class _AddBatchSheetState extends State<_AddBatchSheet> {
     }
     setState(() => _saving = true);
     try {
-      await InventoryApi.instance.addInventoryBatch(
-        widget.item['item_id'].toString(),
-        {
-          'quantity': qty,
-          if (_code.text.trim().isNotEmpty) 'batch_code': _code.text.trim(),
-          if (_expiry.text.trim().isNotEmpty)
-            'expiry_date': _expiry.text.trim(),
-          if (_supplier.text.trim().isNotEmpty)
-            'supplier': _supplier.text.trim(),
-        },
-      );
+      await InventoryApi.instance
+          .addInventoryBatch(widget.item['item_id'].toString(), {
+            'quantity': qty,
+            if (_code.text.trim().isNotEmpty) 'batch_code': _code.text.trim(),
+            if (_expiry.text.trim().isNotEmpty)
+              'expiry_date': _expiry.text.trim(),
+            if (_supplier.text.trim().isNotEmpty)
+              'supplier': _supplier.text.trim(),
+          });
       if (!mounted) return;
       Navigator.pop(context);
       await widget.onDone();

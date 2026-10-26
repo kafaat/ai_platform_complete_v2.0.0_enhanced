@@ -17,7 +17,7 @@ final FeatureModule farmsFeature = FeatureModule(
       path: FarmsRoutes.farms,
       titleAr: 'المزارع',
       icon: Icons.agriculture_outlined,
-      
+
       menu: const MenuEntry(MenuSection.farm, order: 10),
       builder: (_, _) => const FarmsScreen(),
     ),

@@ -32,31 +32,34 @@ class WSectionCard extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: kSurface,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: kSurface,
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Icon(icon, color: kPrimary, size: 18),
-                const SizedBox(width: 8),
-                Text(title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold)),
-              ],
+            Icon(icon, color: kPrimary, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 12),
-            child,
           ],
         ),
-      );
+        const SizedBox(height: 12),
+        child,
+      ],
+    ),
+  );
 }
 
 /// صفّ معلومة (مفتاح/قيمة) موحّد.
@@ -66,23 +69,26 @@ class WInfoRow extends StatelessWidget {
   const WInfoRow(this.label, this.value, {super.key});
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-            const SizedBox(width: 12),
-            Flexible(
-              child: Text(value,
-                  textAlign: TextAlign.left,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600)),
+    padding: const EdgeInsets.symmetric(vertical: 5),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.left,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
-          ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }
 
 /// قسم «غير متاح بعد» — صادق حين لا تتوفّر واجهة برمجيّة لهذه البيانات.
@@ -98,32 +104,37 @@ class WUnavailableSection extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) => ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          WSectionCard(
-            title: title,
-            icon: icon,
-            child: Column(
-              children: [
-                const SizedBox(height: 8),
-                const Icon(Icons.hourglass_empty, color: Colors.grey, size: 36),
-                const SizedBox(height: 10),
-                const Text('غير متاح بعد',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
-                Text(note,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                const SizedBox(height: 8),
-              ],
+    padding: const EdgeInsets.all(16),
+    children: [
+      WSectionCard(
+        title: title,
+        icon: icon,
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            const Icon(Icons.hourglass_empty, color: Colors.grey, size: 36),
+            const SizedBox(height: 10),
+            const Text(
+              'غير متاح بعد',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
-      );
+            const SizedBox(height: 6),
+            Text(
+              note,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    ],
+  );
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -145,15 +156,17 @@ class WOverviewSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = wText(field['field_name'] ?? field['name'], 'حقل');
     final crop = wText(field['crop_ar'] ?? field['crop']);
-    final stage = wText(field['stage_ar'] ?? field['stage'] ?? field['phenology']);
+    final stage = wText(
+      field['stage_ar'] ?? field['stage'] ?? field['phenology'],
+    );
     final ndvi = wNum(field['ndvi']);
     final area = wNum(field['area_ha'] ?? field['area']);
-    final days = _daysSince(field['sowing_date'] ??
-        field['planting_date'] ??
-        field['sown_at']);
-    final alerts = wNum(field['active_alerts'] ??
-        field['alerts_count'] ??
-        field['alert_count']);
+    final days = _daysSince(
+      field['sowing_date'] ?? field['planting_date'] ?? field['sown_at'],
+    );
+    final alerts = wNum(
+      field['active_alerts'] ?? field['alerts_count'] ?? field['alert_count'],
+    );
     final fieldId = wText(field['field_id'] ?? field['id'], '');
 
     return ListView(
@@ -166,13 +179,16 @@ class WOverviewSection extends StatelessWidget {
             children: [
               WInfoRow('المحصول', crop),
               WInfoRow('المرحلة', stage),
+              WInfoRow('أيّام منذ الزراعة', days != null ? '$days يوم' : '—'),
               WInfoRow(
-                  'أيّام منذ الزراعة', days != null ? '$days يوم' : '—'),
-              WInfoRow('المساحة',
-                  area != null ? '${area.toStringAsFixed(1)} هـ' : '—'),
+                'المساحة',
+                area != null ? '${area.toStringAsFixed(1)} هـ' : '—',
+              ),
               WInfoRow('NDVI', ndvi != null ? ndvi.toStringAsFixed(2) : '—'),
-              WInfoRow('تنبيهات نشطة',
-                  alerts != null ? alerts.toInt().toString() : '0'),
+              WInfoRow(
+                'تنبيهات نشطة',
+                alerts != null ? alerts.toInt().toString() : '0',
+              ),
             ],
           ),
         ),
@@ -249,11 +265,15 @@ class _WFieldStateSectionState extends State<WFieldStateSection> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(apiErrorMessage(snap.error!),
-                    style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                Text(
+                  apiErrorMessage(snap.error!),
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
                 const SizedBox(height: 8),
                 TextButton(
-                    onPressed: _retry, child: const Text('إعادة المحاولة')),
+                  onPressed: _retry,
+                  child: const Text('إعادة المحاولة'),
+                ),
               ],
             ),
           );
@@ -264,9 +284,8 @@ class _WFieldStateSectionState extends State<WFieldStateSection> {
         final agronomic = s['agronomic'];
         final truths =
             (agronomic is Map && agronomic['operational_truths'] is Map)
-                ? (agronomic['operational_truths'] as Map)
-                    .cast<String, dynamic>()
-                : const <String, dynamic>{};
+            ? (agronomic['operational_truths'] as Map).cast<String, dynamic>()
+            : const <String, dynamic>{};
         final vigor = truths['crop_vigor'];
         final sal = wText(truths['salinity_class'], '');
         final reasons = (s['reasons_ar'] is List)
@@ -283,20 +302,24 @@ class _WFieldStateSectionState extends State<WFieldStateSection> {
               WInfoRow('نمط التنفيذ', _execAr[exec] ?? exec),
               if (vigor != null)
                 WInfoRow(
-                    'حيويّة المحصول',
-                    vigor is num
-                        ? vigor.toStringAsFixed(2)
-                        : wText(vigor)),
-              if (sal.isNotEmpty)
-                WInfoRow('ملوحة التربة', _salAr[sal] ?? sal),
+                  'حيويّة المحصول',
+                  vigor is num ? vigor.toStringAsFixed(2) : wText(vigor),
+                ),
+              if (sal.isNotEmpty) WInfoRow('ملوحة التربة', _salAr[sal] ?? sal),
               if (reasons.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                ...reasons.map((r) => Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text('• $r',
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 12)),
-                    )),
+                ...reasons.map(
+                  (r) => Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '• $r',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ],
           ),
@@ -350,8 +373,12 @@ class _WSatelliteSectionState extends State<WSatelliteSection> {
         final vStr = value is num
             ? value.toStringAsFixed(value.abs() < 1 ? 3 : 2)
             : wText(value);
-        out.add(MapEntry(
-            k.toString().toUpperCase(), unit.isEmpty ? vStr : '$vStr $unit'));
+        out.add(
+          MapEntry(
+            k.toString().toUpperCase(),
+            unit.isEmpty ? vStr : '$vStr $unit',
+          ),
+        );
       });
       if (out.isNotEmpty) return out;
     }
@@ -371,8 +398,9 @@ class _WSatelliteSectionState extends State<WSatelliteSection> {
     }
     data.forEach((k, v) {
       if (v is num) {
-        out.add(MapEntry(k.toUpperCase(),
-            v.toStringAsFixed(v.abs() < 1 ? 3 : 2)));
+        out.add(
+          MapEntry(k.toUpperCase(), v.toStringAsFixed(v.abs() < 1 ? 3 : 2)),
+        );
       }
     });
     return out;
@@ -388,13 +416,16 @@ class _WSatelliteSectionState extends State<WSatelliteSection> {
         }
         if (snap.hasError) {
           return ErrorView(
-              message: apiErrorMessage(snap.error!), onRetry: _retry);
+            message: apiErrorMessage(snap.error!),
+            onRetry: _retry,
+          );
         }
         final indicators = _parse(snap.data ?? const {});
         if (indicators.isEmpty) {
           return const EmptyView(
-              message: 'لا مؤشّرات أقمار متاحة لهذا الحقل',
-              icon: Icons.satellite_alt);
+            message: 'لا مؤشّرات أقمار متاحة لهذا الحقل',
+            icon: Icons.satellite_alt,
+          );
         }
         return ListView(
           padding: const EdgeInsets.all(16),
@@ -447,9 +478,9 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
       SatelliteApi.instance.getFieldNdviTimeseries(widget.fieldId);
 
   void _retry() => setState(() {
-        _selected = -1;
-        _future = _load();
-      });
+    _selected = -1;
+    _future = _load();
+  });
 
   // مقياس لون NDVI بسيط أحمر→أصفر→أخضر (لا اعتماد خارجيّ).
   Color _ndviColor(double? v) {
@@ -457,12 +488,18 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
     final t = v.clamp(0.0, 1.0);
     if (t < 0.5) {
       // أحمر → أصفر
-      return Color.lerp(const Color(0xFFD64545), const Color(0xFFE0B341),
-          (t / 0.5).clamp(0.0, 1.0))!;
+      return Color.lerp(
+        const Color(0xFFD64545),
+        const Color(0xFFE0B341),
+        (t / 0.5).clamp(0.0, 1.0),
+      )!;
     }
     // أصفر → أخضر (kPrimary)
-    return Color.lerp(const Color(0xFFE0B341), kPrimary,
-        ((t - 0.5) / 0.5).clamp(0.0, 1.0))!;
+    return Color.lerp(
+      const Color(0xFFE0B341),
+      kPrimary,
+      ((t - 0.5) / 0.5).clamp(0.0, 1.0),
+    )!;
   }
 
   // تاريخ مختصر YYYY-MM-DD ⇒ MM-DD (يتسامح مع صيغ أخرى).
@@ -503,9 +540,11 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
             icon: Icons.timeline,
             child: Column(
               children: [
-                Text(apiErrorMessage(snap.error!),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                Text(
+                  apiErrorMessage(snap.error!),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
                 const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: _retry,
@@ -528,13 +567,17 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
                 SizedBox(height: 8),
                 Icon(Icons.hourglass_empty, color: Colors.grey, size: 32),
                 SizedBox(height: 10),
-                Text('لا سلسلة NDVI زمنيّة متاحة لهذا الحقل بعد',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white70, fontSize: 13)),
+                Text(
+                  'لا سلسلة NDVI زمنيّة متاحة لهذا الحقل بعد',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                ),
                 SizedBox(height: 4),
-                Text('تظهر البطاقات تلقائيّاً عند توفّر مشاهد مقصوصة للحقل.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey, fontSize: 11)),
+                Text(
+                  'تظهر البطاقات تلقائيّاً عند توفّر مشاهد مقصوصة للحقل.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey, fontSize: 11),
+                ),
                 SizedBox(height: 8),
               ],
             ),
@@ -569,9 +612,7 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
               // ملخّص التاريخ المختار (يتحدّث عند اللمس) — لا تراكب خريطة.
               WInfoRow(
                 'التاريخ المختار',
-                selected != null
-                    ? wText(selected['datetime'])
-                    : '—',
+                selected != null ? wText(selected['datetime']) : '—',
               ),
               WInfoRow(
                 'متوسّط NDVI',
@@ -582,8 +623,10 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
               Row(
                 children: [
                   const Expanded(
-                    child: Text('إخفاء الأيّام الغائمة',
-                        style: TextStyle(color: Colors.grey, fontSize: 13)),
+                    child: Text(
+                      'إخفاء الأيّام الغائمة',
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
                   ),
                   Switch(
                     value: _hideCloudy && hasCloud,
@@ -597,16 +640,20 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
               if (!hasCloud)
                 const Padding(
                   padding: EdgeInsets.only(bottom: 4),
-                  child: Text('نسبة الغيوم غير متوفّرة في هذه البيانات.',
-                      style: TextStyle(color: Colors.grey, fontSize: 11)),
+                  child: Text(
+                    'نسبة الغيوم غير متوفّرة في هذه البيانات.',
+                    style: TextStyle(color: Colors.grey, fontSize: 11),
+                  ),
                 ),
               const SizedBox(height: 8),
               if (points.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text('كلّ الأيّام المتاحة غائمة — أوقف الفلتر لعرضها.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  child: Text(
+                    'كلّ الأيّام المتاحة غائمة — أوقف الفلتر لعرضها.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 )
               else
                 SizedBox(
@@ -624,7 +671,9 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
                           width: 72,
                           margin: const EdgeInsets.only(left: 8),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 8),
+                            horizontal: 6,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: kBg,
                             borderRadius: BorderRadius.circular(10),
@@ -636,9 +685,13 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(_shortDate(p['datetime']),
-                                  style: const TextStyle(
-                                      color: Colors.white70, fontSize: 11)),
+                              Text(
+                                _shortDate(p['datetime']),
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 11,
+                                ),
+                              ),
                               const SizedBox(height: 6),
                               Container(
                                 width: 28,
@@ -652,9 +705,10 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
                               Text(
                                 mean != null ? mean.toStringAsFixed(2) : '—',
                                 style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600),
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
                           ),
@@ -678,8 +732,11 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
 class WIrrigationSection extends StatefulWidget {
   final String fieldId;
   final Map<String, dynamic> field;
-  const WIrrigationSection(
-      {super.key, required this.fieldId, required this.field});
+  const WIrrigationSection({
+    super.key,
+    required this.fieldId,
+    required this.field,
+  });
   @override
   State<WIrrigationSection> createState() => _WIrrigationSectionState();
 }
@@ -701,9 +758,11 @@ class _WIrrigationSectionState extends State<WIrrigationSection> {
   @override
   Widget build(BuildContext context) {
     final type = wText(
-        widget.field['irrigation_type_ar'] ?? widget.field['irrigation_type']);
+      widget.field['irrigation_type_ar'] ?? widget.field['irrigation_type'],
+    );
     final water = wText(
-        widget.field['water_source_ar'] ?? widget.field['water_source']);
+      widget.field['water_source_ar'] ?? widget.field['water_source'],
+    );
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: _future,
       builder: (context, snap) {
@@ -740,15 +799,20 @@ class _WIrrigationSectionState extends State<WIrrigationSection> {
                   if (snap.hasError) {
                     return Column(
                       children: [
-                        Text(apiErrorMessage(snap.error!),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 12)),
+                        Text(
+                          apiErrorMessage(snap.error!),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
                         const SizedBox(height: 10),
                         ElevatedButton(
                           onPressed: _retry,
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: kPrimary),
+                            backgroundColor: kPrimary,
+                          ),
                           child: const Text('إعادة المحاولة'),
                         ),
                       ],
@@ -758,9 +822,11 @@ class _WIrrigationSectionState extends State<WIrrigationSection> {
                   if (schedules.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Text('لا جداول ريّ مرتبطة بهذا الحقل',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      child: Text(
+                        'لا جداول ريّ مرتبطة بهذا الحقل',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
                     );
                   }
                   return Column(
@@ -770,19 +836,27 @@ class _WIrrigationSectionState extends State<WIrrigationSection> {
                         padding: const EdgeInsets.symmetric(vertical: 6),
                         child: Row(
                           children: [
-                            Icon(Icons.schedule,
-                                color: enabled ? kPrimary : Colors.grey,
-                                size: 18),
+                            Icon(
+                              Icons.schedule,
+                              color: enabled ? kPrimary : Colors.grey,
+                              size: 18,
+                            ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Text(wText(s['name']),
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 13)),
+                              child: Text(
+                                wText(s['name']),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ),
                             Text(
                               '${wText(s['start_time'], '')} · ${s['duration_min'] ?? 0} د',
                               style: const TextStyle(
-                                  color: Colors.grey, fontSize: 12),
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -820,7 +894,8 @@ class WSoilSection extends StatelessWidget {
 
     final chem = <Widget>[
       if (ph != null) WInfoRow('درجة الحموضة (pH)', ph.toStringAsFixed(1)),
-      if (ec != null) WInfoRow('التوصيل الكهربائيّ (EC)', ec.toStringAsFixed(2)),
+      if (ec != null)
+        WInfoRow('التوصيل الكهربائيّ (EC)', ec.toStringAsFixed(2)),
       if (om != null) WInfoRow('المادّة العضويّة', '${om.toStringAsFixed(1)}%'),
       if (n != null) WInfoRow('النيتروجين (N)', n.toStringAsFixed(1)),
       if (p != null) WInfoRow('الفوسفور (P)', p.toStringAsFixed(1)),
@@ -833,9 +908,7 @@ class WSoilSection extends StatelessWidget {
         WSectionCard(
           title: 'التربة',
           icon: Icons.landscape,
-          child: Column(
-            children: [WInfoRow('نوع التربة', soilType)],
-          ),
+          child: Column(children: [WInfoRow('نوع التربة', soilType)]),
         ),
         WSectionCard(
           title: 'الكيمياء المتقدّمة',
@@ -843,9 +916,11 @@ class WSoilSection extends StatelessWidget {
           child: chem.isEmpty
               ? const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Text('غير متاح بعد — لم تُرسَل بيانات كيمياء التربة.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  child: Text(
+                    'غير متاح بعد — لم تُرسَل بيانات كيمياء التربة.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 )
               : Column(children: chem),
         ),
@@ -862,16 +937,17 @@ class WBadge extends StatelessWidget {
   const WBadge(this.label, this.color, {super.key});
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withValues(alpha: 0.5)),
-        ),
-        child: Text(label,
-            style: TextStyle(
-                color: color, fontSize: 11, fontWeight: FontWeight.w700)),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.16),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: color.withValues(alpha: 0.5)),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
+    ),
+  );
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -921,13 +997,16 @@ class _WSeasonSectionState extends State<WSeasonSection> {
         }
         if (snap.hasError) {
           return ErrorView(
-              message: apiErrorMessage(snap.error!), onRetry: _retry);
+            message: apiErrorMessage(snap.error!),
+            onRetry: _retry,
+          );
         }
         final seasons = snap.data ?? const <Map<String, dynamic>>[];
         if (seasons.isEmpty) {
           return const EmptyView(
-              message: 'لا مواسم لهذا الحقل بعد',
-              icon: Icons.calendar_month);
+            message: 'لا مواسم لهذا الحقل بعد',
+            icon: Icons.calendar_month,
+          );
         }
         return ListView(
           padding: const EdgeInsets.all(16),
@@ -960,9 +1039,7 @@ class _WSeasonSectionState extends State<WSeasonSection> {
                   WInfoRow('نهاية الموسم', wText(s['season_end'])),
                   WInfoRow(
                     'الإنتاجيّة المستهدفة',
-                    target != null
-                        ? '${target.toStringAsFixed(0)} كغ/هـ'
-                        : '—',
+                    target != null ? '${target.toStringAsFixed(0)} كغ/هـ' : '—',
                   ),
                 ],
               ),
@@ -980,12 +1057,15 @@ class _WSeasonSectionState extends State<WSeasonSection> {
 // التاريخ المُنفَّذ/المُجدوَل. صدق: لا أنشطة ⇒ EmptyView بلا اختلاق.
 // ════════════════════════════════════════════════════════════════════
 
-
 // نموذج إدخال سجلّ يومي من الموبايل — POST /api/v1/fields/{id}/activities.
 class WAddActivityForm extends StatefulWidget {
   final String fieldId;
   final VoidCallback onSaved;
-  const WAddActivityForm({super.key, required this.fieldId, required this.onSaved});
+  const WAddActivityForm({
+    super.key,
+    required this.fieldId,
+    required this.onSaved,
+  });
   @override
   State<WAddActivityForm> createState() => _WAddActivityFormState();
 }
@@ -1031,13 +1111,18 @@ class _WAddActivityFormState extends State<WAddActivityForm> {
 
   Future<void> _save() async {
     if (_saving) return;
-    setState(() { _saving = true; _error = null; });
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
     try {
       await FieldsApi.instance.createFieldActivity(
         widget.fieldId,
         activityType: _type,
         titleAr: _title.text,
-        performedOn: _performedOn == null ? _date(DateTime.now()) : _date(_performedOn!),
+        performedOn: _performedOn == null
+            ? _date(DateTime.now())
+            : _date(_performedOn!),
         notes: _notes.text,
       );
       if (!mounted) return;
@@ -1069,14 +1154,18 @@ class _WAddActivityFormState extends State<WAddActivityForm> {
             dropdownColor: kSurface,
             decoration: const InputDecoration(labelText: 'نوع العملية'),
             items: _types.entries
-                .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                .map(
+                  (e) => DropdownMenuItem(value: e.key, child: Text(e.value)),
+                )
                 .toList(),
             onChanged: (v) => setState(() => _type = v ?? _type),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _title,
-            decoration: const InputDecoration(labelText: 'العنوان / الوصف المختصر'),
+            decoration: const InputDecoration(
+              labelText: 'العنوان / الوصف المختصر',
+            ),
           ),
           const SizedBox(height: 10),
           TextField(
@@ -1088,18 +1177,29 @@ class _WAddActivityFormState extends State<WAddActivityForm> {
           OutlinedButton.icon(
             onPressed: _pickDate,
             icon: const Icon(Icons.calendar_today),
-            label: Text(_performedOn == null ? 'تاريخ التنفيذ: اليوم' : 'تاريخ التنفيذ: ${_date(_performedOn!)}'),
+            label: Text(
+              _performedOn == null
+                  ? 'تاريخ التنفيذ: اليوم'
+                  : 'تاريخ التنفيذ: ${_date(_performedOn!)}',
+            ),
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
-            Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+            Text(
+              _error!,
+              style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+            ),
           ],
           const SizedBox(height: 10),
           ElevatedButton.icon(
             onPressed: _saving ? null : _save,
             style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
             icon: _saving
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Icons.check),
             label: Text(_saving ? 'جارٍ الحفظ…' : 'حفظ في السجل'),
           ),
@@ -1163,7 +1263,9 @@ class _WActivitiesSectionState extends State<WActivitiesSection> {
         }
         if (snap.hasError) {
           return ErrorView(
-              message: apiErrorMessage(snap.error!), onRetry: _retry);
+            message: apiErrorMessage(snap.error!),
+            onRetry: _retry,
+          );
         }
         final activities = snap.data ?? const <Map<String, dynamic>>[];
         if (activities.isEmpty) {
@@ -1174,7 +1276,9 @@ class _WActivitiesSectionState extends State<WActivitiesSection> {
                 WAddActivityForm(fieldId: widget.fieldId, onSaved: _retry),
               const SizedBox(height: 16),
               const EmptyView(
-                  message: 'لا أنشطة مسجّلة بعد', icon: Icons.assignment),
+                message: 'لا أنشطة مسجّلة بعد',
+                icon: Icons.assignment,
+              ),
             ],
           );
         }
@@ -1192,7 +1296,9 @@ class _WActivitiesSectionState extends State<WActivitiesSection> {
                   final type = wText(a['activity_type'], '');
                   final status = wText(a['status'], '');
                   final when = wText(
-                      a['performed_on'] ?? a['scheduled_for'], '');
+                    a['performed_on'] ?? a['scheduled_for'],
+                    '',
+                  );
                   final typeAr = _typeAr[type] ?? type;
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6),
@@ -1204,26 +1310,37 @@ class _WActivitiesSectionState extends State<WActivitiesSection> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                wText(a['title_ar'],
-                                    typeAr.isEmpty ? 'نشاط' : typeAr),
+                                wText(
+                                  a['title_ar'],
+                                  typeAr.isEmpty ? 'نشاط' : typeAr,
+                                ),
                                 style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600),
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                               if (typeAr.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 2),
-                                  child: Text(typeAr,
-                                      style: const TextStyle(
-                                          color: Colors.grey, fontSize: 11)),
+                                  child: Text(
+                                    typeAr,
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 11,
+                                    ),
+                                  ),
                                 ),
                               if (when.isNotEmpty && when != '—')
                                 Padding(
                                   padding: const EdgeInsets.only(top: 2),
-                                  child: Text(when,
-                                      style: const TextStyle(
-                                          color: Colors.grey, fontSize: 11)),
+                                  child: Text(
+                                    when,
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 11,
+                                    ),
+                                  ),
                                 ),
                             ],
                           ),
@@ -1276,8 +1393,7 @@ class _WWeatherSectionState extends State<WWeatherSection> {
   Future<Map<String, dynamic>> _loadDisease() =>
       FieldsApi.instance.fetchDiseaseRisk(widget.fieldId);
 
-  void _retryIrrigation() =>
-      setState(() => _irrigation = _loadIrrigation());
+  void _retryIrrigation() => setState(() => _irrigation = _loadIrrigation());
   void _retryDisease() => setState(() => _disease = _loadDisease());
 
   static const _urgencyAr = {
@@ -1304,14 +1420,16 @@ class _WWeatherSectionState extends State<WWeatherSection> {
   };
 
   Widget _subError(String message, VoidCallback onRetry) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(message,
-              style: const TextStyle(color: Colors.white70, fontSize: 13)),
-          const SizedBox(height: 8),
-          TextButton(onPressed: onRetry, child: const Text('إعادة المحاولة')),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Text(
+        message,
+        style: const TextStyle(color: Colors.white70, fontSize: 13),
+      ),
+      const SizedBox(height: 8),
+      TextButton(onPressed: onRetry, child: const Text('إعادة المحاولة')),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -1335,7 +1453,9 @@ class _WWeatherSectionState extends State<WWeatherSection> {
                   }
                   if (snap.hasError) {
                     return _subError(
-                        apiErrorMessage(snap.error!), _retryIrrigation);
+                      apiErrorMessage(snap.error!),
+                      _retryIrrigation,
+                    );
                   }
                   final d = snap.data ?? const <String, dynamic>{};
                   final urgency = wText(d['urgency'], '');
@@ -1365,9 +1485,13 @@ class _WWeatherSectionState extends State<WWeatherSection> {
                       WInfoRow('التوقيت', timing),
                       if (rationale.isNotEmpty && rationale != '—') ...[
                         const SizedBox(height: 8),
-                        Text(rationale,
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 12)),
+                        Text(
+                          rationale,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ],
                   );
@@ -1393,7 +1517,9 @@ class _WWeatherSectionState extends State<WWeatherSection> {
                   }
                   if (snap.hasError) {
                     return _subError(
-                        apiErrorMessage(snap.error!), _retryDisease);
+                      apiErrorMessage(snap.error!),
+                      _retryDisease,
+                    );
                   }
                   final d = snap.data ?? const <String, dynamic>{};
                   final risk = wText(d['risk_level'], '');
@@ -1418,27 +1544,40 @@ class _WWeatherSectionState extends State<WWeatherSection> {
                             ),
                           ),
                         ),
-                      WInfoRow('الحرارة',
-                          temp != null ? '${temp.toStringAsFixed(1)}°م' : '—'),
                       WInfoRow(
-                          'الرطوبة',
-                          humidity != null
-                              ? '${humidity.toStringAsFixed(0)}٪'
-                              : '—'),
+                        'الحرارة',
+                        temp != null ? '${temp.toStringAsFixed(1)}°م' : '—',
+                      ),
+                      WInfoRow(
+                        'الرطوبة',
+                        humidity != null
+                            ? '${humidity.toStringAsFixed(0)}٪'
+                            : '—',
+                      ),
                       if (diseases.isNotEmpty) ...[
                         const SizedBox(height: 8),
-                        ...diseases.map((r) => Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text('• $r',
-                                  style: const TextStyle(
-                                      color: Colors.white70, fontSize: 12)),
-                            )),
+                        ...diseases.map(
+                          (r) => Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              '• $r',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                       if (advice.isNotEmpty && advice != '—') ...[
                         const SizedBox(height: 8),
-                        Text(advice,
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 12)),
+                        Text(
+                          advice,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ],
                   );
@@ -1516,13 +1655,17 @@ class _WTimelineSectionState extends State<WTimelineSection> {
         }
         if (snap.hasError) {
           return ErrorView(
-              message: apiErrorMessage(snap.error!), onRetry: _retry);
+            message: apiErrorMessage(snap.error!),
+            onRetry: _retry,
+          );
         }
         final data = snap.data ?? const <String, dynamic>{};
         final eventsRaw = data['events'];
         final events = eventsRaw is List
-            ? eventsRaw.whereType<Map>().map((e) => e.cast<String, dynamic>())
-                .toList()
+            ? eventsRaw
+                  .whereType<Map>()
+                  .map((e) => e.cast<String, dynamic>())
+                  .toList()
             : const <Map<String, dynamic>>[];
         // تدهور رشيق صادق: القاعدة معطّلة ⇒ note_ar/error بدل اختلاق تاريخ.
         final note = wText(data['note_ar'] ?? data['error'], '');
@@ -1535,16 +1678,16 @@ class _WTimelineSectionState extends State<WTimelineSection> {
                 WSectionCard(
                   title: 'الخطّ الزمنيّ',
                   icon: Icons.timeline,
-                  child: Text(note,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          color: Colors.white70, fontSize: 13)),
+                  child: Text(
+                    note,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
                 ),
               ],
             );
           }
-          return const EmptyView(
-              message: 'لا أحداث بعد', icon: Icons.timeline);
+          return const EmptyView(message: 'لا أحداث بعد', icon: Icons.timeline);
         }
 
         return ListView(
@@ -1572,16 +1715,24 @@ class _WTimelineSectionState extends State<WTimelineSection> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                wText(e['summary_ar'],
-                                    wText(e['event_type'], 'حدث')),
+                                wText(
+                                  e['summary_ar'],
+                                  wText(e['event_type'], 'حدث'),
+                                ),
                                 style: const TextStyle(
-                                    color: Colors.white, fontSize: 13),
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                ),
                               ),
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
-                                child: Text(_fmt(e['timestamp']),
-                                    style: const TextStyle(
-                                        color: Colors.grey, fontSize: 11)),
+                                child: Text(
+                                  _fmt(e['timestamp']),
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 11,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -1615,7 +1766,8 @@ class WSeasonWorkspaceSection extends StatefulWidget {
   const WSeasonWorkspaceSection({super.key, required this.fieldId});
 
   @override
-  State<WSeasonWorkspaceSection> createState() => _WSeasonWorkspaceSectionState();
+  State<WSeasonWorkspaceSection> createState() =>
+      _WSeasonWorkspaceSectionState();
 }
 
 class _WSeasonWorkspaceSectionState extends State<WSeasonWorkspaceSection> {
@@ -1645,7 +1797,10 @@ class _WSeasonWorkspaceSectionState extends State<WSeasonWorkspaceSection> {
           return const LoadingView();
         }
         if (snap.hasError) {
-          return ErrorView(message: apiErrorMessage(snap.error!), onRetry: _retry);
+          return ErrorView(
+            message: apiErrorMessage(snap.error!),
+            onRetry: _retry,
+          );
         }
         final data = snap.data ?? const <String, dynamic>{};
         final readiness = (data['readiness'] is Map)
@@ -1655,9 +1810,11 @@ class _WSeasonWorkspaceSectionState extends State<WSeasonWorkspaceSection> {
             ? (data['active_season'] as Map).cast<String, dynamic>()
             : const <String, dynamic>{};
         final actions = _list(data['next_actions']);
-        final recs = _list((data['recommendations'] is Map)
-            ? (data['recommendations'] as Map)['recommendations']
-            : const []);
+        final recs = _list(
+          (data['recommendations'] is Map)
+              ? (data['recommendations'] as Map)['recommendations']
+              : const [],
+        );
         final gaps = _list(data['gaps']);
 
         return RefreshIndicator(
@@ -1675,26 +1832,53 @@ class _WSeasonWorkspaceSectionState extends State<WSeasonWorkspaceSection> {
                       children: [
                         Expanded(
                           child: LinearProgressIndicator(
-                            value: (((wNum(readiness['score']) ?? 0) / 100).clamp(0, 1)).toDouble(),
+                            value:
+                                (((wNum(readiness['score']) ?? 0) / 100).clamp(
+                                  0,
+                                  1,
+                                )).toDouble(),
                             color: kPrimary,
                             backgroundColor: Colors.white12,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Text('${(wNum(readiness['score']) ?? 0).round()}%',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        Text(
+                          '${(wNum(readiness['score']) ?? 0).round()}%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Text(wText(readiness['label_ar'], 'جاهزية غير معروفة'),
-                        style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                    Text(
+                      wText(readiness['label_ar'], 'جاهزية غير معروفة'),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    WInfoRow('الموسم', season.isEmpty ? 'لا يوجد موسم' : wText(season['status'], '—')),
-                    WInfoRow('المحاصيل', (season['crops'] is List) ? (season['crops'] as List).join('، ') : '—'),
+                    WInfoRow(
+                      'الموسم',
+                      season.isEmpty
+                          ? 'لا يوجد موسم'
+                          : wText(season['status'], '—'),
+                    ),
+                    WInfoRow(
+                      'المحاصيل',
+                      (season['crops'] is List)
+                          ? (season['crops'] as List).join('، ')
+                          : '—',
+                    ),
                     WInfoRow('تاريخ الزراعة', wText(season['sowing_date'])),
-                    WInfoRow('هدف الإنتاج', wNum(season['target_yield_kg_ha']) != null
-                        ? '${wNum(season['target_yield_kg_ha'])!.toStringAsFixed(0)} كجم/هـ'
-                        : '—'),
+                    WInfoRow(
+                      'هدف الإنتاج',
+                      wNum(season['target_yield_kg_ha']) != null
+                          ? '${wNum(season['target_yield_kg_ha'])!.toStringAsFixed(0)} كجم/هـ'
+                          : '—',
+                    ),
                   ],
                 ),
               ),
@@ -1702,27 +1886,40 @@ class _WSeasonWorkspaceSectionState extends State<WSeasonWorkspaceSection> {
                 title: 'ما يجب فعله الآن',
                 icon: Icons.playlist_add_check,
                 child: actions.isEmpty
-                    ? const Text('لا توجد إجراءات فورية. استكمل البيانات أو حدّث التوصيات.',
-                        style: TextStyle(color: Colors.white70, fontSize: 13))
+                    ? const Text(
+                        'لا توجد إجراءات فورية. استكمل البيانات أو حدّث التوصيات.',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      )
                     : Column(children: actions.map(_actionTile).toList()),
               ),
               WSectionCard(
                 title: 'التوصيات',
                 icon: Icons.recommend,
                 child: recs.isEmpty
-                    ? const Text('لا توجد توصيات قابلة للعرض حالياً.',
-                        style: TextStyle(color: Colors.white70, fontSize: 13))
-                    : Column(children: recs.take(5).map(_recommendationTile).toList()),
+                    ? const Text(
+                        'لا توجد توصيات قابلة للعرض حالياً.',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      )
+                    : Column(
+                        children: recs
+                            .take(5)
+                            .map(_recommendationTile)
+                            .toList(),
+                      ),
               ),
               if (gaps.isNotEmpty)
                 WSectionCard(
                   title: 'مصادر غير مكتملة',
                   icon: Icons.info_outline,
                   child: Column(
-                    children: gaps.map((g) => WInfoRow(
-                      wText(g['source'], 'مصدر'),
-                      wText(g['message_ar'] ?? g['message'], 'غير متاح'),
-                    )).toList(),
+                    children: gaps
+                        .map(
+                          (g) => WInfoRow(
+                            wText(g['source'], 'مصدر'),
+                            wText(g['message_ar'] ?? g['message'], 'غير متاح'),
+                          ),
+                        )
+                        .toList(),
                   ),
                 ),
             ],
@@ -1733,48 +1930,64 @@ class _WSeasonWorkspaceSectionState extends State<WSeasonWorkspaceSection> {
   }
 
   Widget _actionTile(Map<String, dynamic> a) => Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(10),
+    margin: const EdgeInsets.only(bottom: 8),
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.04),
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          a['type'] == 'data_gap'
+              ? Icons.warning_amber
+              : Icons.check_circle_outline,
+          color: a['type'] == 'data_gap' ? Colors.amber : kPrimary,
+          size: 18,
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              a['type'] == 'data_gap' ? Icons.warning_amber : Icons.check_circle_outline,
-              color: a['type'] == 'data_gap' ? Colors.amber : kPrimary,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(wText(a['title_ar'], 'إجراء'),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 3),
-                  Text(wText(a['action_ar'], ''),
-                      style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                wText(a['title_ar'], 'إجراء'),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                wText(a['action_ar'], ''),
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 
   Widget _recommendationTile(Map<String, dynamic> r) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(wText(r['title_ar'] ?? r['title'] ?? r['kind'], 'توصية'),
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 3),
-            Text(wText(r['rationale_ar'] ?? r['action_ar'] ?? r['message_ar'], '—'),
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
-          ],
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          wText(r['title_ar'] ?? r['title'] ?? r['kind'], 'توصية'),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      );
+        const SizedBox(height: 3),
+        Text(
+          wText(r['rationale_ar'] ?? r['action_ar'] ?? r['message_ar'], '—'),
+          style: const TextStyle(color: Colors.grey, fontSize: 12),
+        ),
+      ],
+    ),
+  );
 }

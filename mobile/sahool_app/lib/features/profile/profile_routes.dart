@@ -17,7 +17,7 @@ final FeatureModule profileFeature = FeatureModule(
       path: ProfileRoutes.profile,
       titleAr: 'الحساب والإعدادات',
       icon: Icons.person_outline,
-      
+
       menu: const MenuEntry(MenuSection.account, order: 10),
       builder: (_, _) => const ProfileScreen(),
     ),

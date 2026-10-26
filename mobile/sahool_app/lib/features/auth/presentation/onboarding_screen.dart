@@ -18,12 +18,21 @@ class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key, required this.onStart});
 
   static const List<_Step> _steps = [
-    _Step(Icons.home_work_outlined, 'أنشئ مزرعتك',
-        'ابدأ بإضافة مزرعتك الأولى لتجميع حقولك تحتها.'),
-    _Step(Icons.draw_outlined, 'ارسم حدود الحقل',
-        'حدّد حدود الحقل على الخريطة أو أدخل مساحته وموقعه.'),
-    _Step(Icons.eco_outlined, 'اختر المحصول والموسم',
-        'اربط الحقل بمحصوله وموسمه لتبدأ المؤشّرات والتنبيهات.'),
+    _Step(
+      Icons.home_work_outlined,
+      'أنشئ مزرعتك',
+      'ابدأ بإضافة مزرعتك الأولى لتجميع حقولك تحتها.',
+    ),
+    _Step(
+      Icons.draw_outlined,
+      'ارسم حدود الحقل',
+      'حدّد حدود الحقل على الخريطة أو أدخل مساحته وموقعه.',
+    ),
+    _Step(
+      Icons.eco_outlined,
+      'اختر المحصول والموسم',
+      'اربط الحقل بمحصوله وموسمه لتبدأ المؤشّرات والتنبيهات.',
+    ),
   ];
 
   @override
@@ -41,9 +50,10 @@ class OnboardingScreen extends StatelessWidget {
               child: Text(
                 'أهلاً بك في سهول',
                 style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -60,23 +70,30 @@ class OnboardingScreen extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: onStart,
-              icon: const Icon(Icons.add_location_alt_outlined,
-                  color: Colors.white),
-              label: const Text('إنشاء أوّل حقل',
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
+              icon: const Icon(
+                Icons.add_location_alt_outlined,
+                color: Colors.white,
+              ),
+              label: const Text(
+                'إنشاء أوّل حقل',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF10B981),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 12),
             Center(
               child: TextButton(
                 onPressed: onStart,
-                child: const Text('تخطّي إلى الحقول',
-                    style: TextStyle(color: Colors.grey)),
+                child: const Text(
+                  'تخطّي إلى الحقول',
+                  style: TextStyle(color: Colors.grey),
+                ),
               ),
             ),
           ],
@@ -112,11 +129,14 @@ class _StepTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
-              child: Text('$index',
-                  style: const TextStyle(
-                      color: Color(0xFF10B981),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18)),
+              child: Text(
+                '$index',
+                style: const TextStyle(
+                  color: Color(0xFF10B981),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 14),
@@ -126,20 +146,24 @@ class _StepTile extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(step.icon,
-                        color: const Color(0xFF10B981), size: 18),
+                    Icon(step.icon, color: const Color(0xFF10B981), size: 18),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(step.title,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+                      child: Text(
+                        step.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(step.body,
-                    style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                Text(
+                  step.body,
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                ),
               ],
             ),
           ),

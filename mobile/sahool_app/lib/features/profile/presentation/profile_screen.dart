@@ -28,18 +28,26 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1A1D29),
-        title: const Text('تسجيل الخروج',
-            style: TextStyle(color: Colors.white)),
-        content: const Text('هل تريد تسجيل الخروج من حسابك؟',
-            style: TextStyle(color: Colors.grey)),
+        title: const Text(
+          'تسجيل الخروج',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'هل تريد تسجيل الخروج من حسابك؟',
+          style: TextStyle(color: Colors.grey),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('إلغاء')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('إلغاء'),
+          ),
           TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('خروج',
-                  style: TextStyle(color: Color(0xFFF87171)))),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'خروج',
+              style: TextStyle(color: Color(0xFFF87171)),
+            ),
+          ),
         ],
       ),
     );
@@ -71,32 +79,36 @@ class ProfileScreen extends StatelessWidget {
               child: Text(
                 name.isNotEmpty ? name.substring(0, 1) : '؟',
                 style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
           const SizedBox(height: 12),
           Center(
-            child: Text(name,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold)),
+            child: Text(
+              name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           const SizedBox(height: 4),
           Center(
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: const Color(0xFF10B981).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(roleAr,
-                  style: const TextStyle(
-                      color: Color(0xFF10B981), fontSize: 13)),
+              child: Text(
+                roleAr,
+                style: const TextStyle(color: Color(0xFF10B981), fontSize: 13),
+              ),
             ),
           ),
           const SizedBox(height: 28),
@@ -116,13 +128,16 @@ class ProfileScreen extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: () => _logout(context),
             icon: const Icon(Icons.logout, color: Colors.white),
-            label: const Text('تسجيل الخروج',
-                style: TextStyle(color: Colors.white)),
+            label: const Text(
+              'تسجيل الخروج',
+              style: TextStyle(color: Colors.white),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFB91C1C),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ],
@@ -131,25 +146,27 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _tile(IconData icon, String label, String value) => Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1D29),
-          borderRadius: BorderRadius.circular(12),
+    margin: const EdgeInsets.only(bottom: 10),
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: const Color(0xFF1A1D29),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      children: [
+        Icon(icon, color: const Color(0xFF10B981), size: 20),
+        const SizedBox(width: 12),
+        Text(label, style: const TextStyle(color: Colors.grey)),
+        const Spacer(),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.left,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: Colors.white),
+          ),
         ),
-        child: Row(
-          children: [
-            Icon(icon, color: const Color(0xFF10B981), size: 20),
-            const SizedBox(width: 12),
-            Text(label, style: const TextStyle(color: Colors.grey)),
-            const Spacer(),
-            Flexible(
-              child: Text(value,
-                  textAlign: TextAlign.left,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 }

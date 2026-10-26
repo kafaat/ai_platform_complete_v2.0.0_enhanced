@@ -35,8 +35,7 @@ const Set<String> _allowedOps = {'var', 'in', ..._comparisons, ..._logic};
 
 bool _isNumber(Object? v) => v is num && v is! bool;
 
-bool _isNonFinite(Object? v) =>
-    v is double && (v.isNaN || v.isInfinite);
+bool _isNonFinite(Object? v) => v is double && (v.isNaN || v.isInfinite);
 
 void _checkScalar(Object? v) {
   if (v == null || v is bool) return;

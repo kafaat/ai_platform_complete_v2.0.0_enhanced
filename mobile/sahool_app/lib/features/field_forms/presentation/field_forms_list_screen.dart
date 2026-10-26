@@ -37,9 +37,12 @@ class FieldFormsEntryButton extends StatelessWidget {
       icon: const Icon(Icons.fact_check_outlined),
       tooltip: 'النماذج الميدانيّة',
       onPressed: () {
-        Navigator.of(context).push<void>(MaterialPageRoute(
-          builder: listBuilder ?? (_) => FieldFormsListScreen(fieldId: fieldId),
-        ));
+        Navigator.of(context).push<void>(
+          MaterialPageRoute(
+            builder:
+                listBuilder ?? (_) => FieldFormsListScreen(fieldId: fieldId),
+          ),
+        );
       },
     );
   }
@@ -92,8 +95,7 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
     if (_opening || queue == null || tenantId == null) return;
     setState(() => _opening = true);
     try {
-      final draftStore =
-          await (widget.openDraftStore ?? DraftStore.open)();
+      final draftStore = await (widget.openDraftStore ?? DraftStore.open)();
       final cubit = FieldFormCubit(
         tenantId: tenantId,
         fieldId: widget.fieldId,
@@ -108,9 +110,9 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
         await cubit.close();
         return;
       }
-      await Navigator.of(context).push<void>(MaterialPageRoute(
-        builder: (_) => FieldFormScreen(cubit: cubit),
-      ));
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(builder: (_) => FieldFormScreen(cubit: cubit)),
+      );
       await cubit.close();
     } finally {
       if (mounted) setState(() => _opening = false);
@@ -118,11 +120,11 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
   }
 
   Widget _message(String text, {Key? key}) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(text, key: key, textAlign: TextAlign.center),
-        ),
-      );
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Text(text, key: key, textAlign: TextAlign.center),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -130,18 +132,25 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
     final tenantId = packages == null || _queue == null ? null : _tenantId;
     Widget body;
     if (packages == null || _queue == null) {
-      body = _message('مخزن النماذج المحليّ غير جاهز بعد.',
-          key: const ValueKey('field_forms_store_unavailable'));
+      body = _message(
+        'مخزن النماذج المحليّ غير جاهز بعد.',
+        key: const ValueKey('field_forms_store_unavailable'),
+      );
     } else if (tenantId == null) {
-      body = _message('سجّل الدخول لعرض نماذج الحقل.',
-          key: const ValueKey('field_forms_no_tenant'));
+      body = _message(
+        'سجّل الدخول لعرض نماذج الحقل.',
+        key: const ValueKey('field_forms_no_tenant'),
+      );
     } else {
-      final items =
-          packages.packagesForField(tenantId: tenantId, fieldId: widget.fieldId);
+      final items = packages.packagesForField(
+        tenantId: tenantId,
+        fieldId: widget.fieldId,
+      );
       if (items.isEmpty) {
         body = _message(
-            'لا نماذج منزَّلة لهذا الحقل بعد. تُنزَّل عند فتح الحقل مع الاتصال.',
-            key: const ValueKey('field_forms_empty'));
+          'لا نماذج منزَّلة لهذا الحقل بعد. تُنزَّل عند فتح الحقل مع الاتصال.',
+          key: const ValueKey('field_forms_empty'),
+        );
       } else {
         body = ListView.separated(
           itemCount: items.length,

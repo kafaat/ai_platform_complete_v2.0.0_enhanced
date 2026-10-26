@@ -10,9 +10,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 String _newInstanceId() {
   final rand = Random.secure();
-  final suffix = List.generate(16, (_) => rand.nextInt(256))
-      .map((b) => b.toRadixString(16).padLeft(2, '0'))
-      .join();
+  final suffix = List.generate(
+    16,
+    (_) => rand.nextInt(256),
+  ).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   return 'ff-${DateTime.now().toUtc().microsecondsSinceEpoch}-$suffix';
 }
 
@@ -45,32 +46,32 @@ class QueuedSubmission {
   });
 
   QueuedSubmission copyWithAttempts(int attempts) => QueuedSubmission(
-        instanceId: instanceId, // لا يتغيّر أبدًا
-        tenantId: tenantId,
-        fieldId: fieldId,
-        assignmentId: assignmentId,
-        assignmentRevision: assignmentRevision,
-        formVersionId: formVersionId,
-        schemaHash: schemaHash,
-        definitionSyncToken: definitionSyncToken,
-        answers: answers,
-        localCreatedAt: localCreatedAt,
-        attempts: attempts,
-      );
+    instanceId: instanceId, // لا يتغيّر أبدًا
+    tenantId: tenantId,
+    fieldId: fieldId,
+    assignmentId: assignmentId,
+    assignmentRevision: assignmentRevision,
+    formVersionId: formVersionId,
+    schemaHash: schemaHash,
+    definitionSyncToken: definitionSyncToken,
+    answers: answers,
+    localCreatedAt: localCreatedAt,
+    attempts: attempts,
+  );
 
   Map<String, Object?> toJson() => {
-        'instance_id': instanceId,
-        'tenant_id': tenantId,
-        'field_id': fieldId,
-        'assignment_id': assignmentId,
-        'assignment_revision': assignmentRevision,
-        'form_version_id': formVersionId,
-        'schema_hash': schemaHash,
-        'definition_sync_token': definitionSyncToken,
-        'answers': answers,
-        'local_created_at': localCreatedAt.toUtc().toIso8601String(),
-        'attempts': attempts,
-      };
+    'instance_id': instanceId,
+    'tenant_id': tenantId,
+    'field_id': fieldId,
+    'assignment_id': assignmentId,
+    'assignment_revision': assignmentRevision,
+    'form_version_id': formVersionId,
+    'schema_hash': schemaHash,
+    'definition_sync_token': definitionSyncToken,
+    'answers': answers,
+    'local_created_at': localCreatedAt.toUtc().toIso8601String(),
+    'attempts': attempts,
+  };
 
   factory QueuedSubmission.fromJson(Map<String, Object?> json) =>
       QueuedSubmission(
@@ -92,21 +93,19 @@ class QueuedSubmission {
     required String provider,
     required String server,
     DateTime? submittedAt,
-  }) =>
-      {
-        'provider': provider,
-        'server': server,
-        'instance_id': instanceId,
-        'submitted_at':
-            (submittedAt ?? DateTime.now().toUtc()).toIso8601String(),
-        'local_created_at': localCreatedAt.toUtc().toIso8601String(),
-        'field_id': fieldId,
-        'form_version_id': formVersionId,
-        'schema_hash': schemaHash,
-        'assignment_revision': assignmentRevision,
-        'definition_sync_token': definitionSyncToken,
-        'answers': answers,
-      };
+  }) => {
+    'provider': provider,
+    'server': server,
+    'instance_id': instanceId,
+    'submitted_at': (submittedAt ?? DateTime.now().toUtc()).toIso8601String(),
+    'local_created_at': localCreatedAt.toUtc().toIso8601String(),
+    'field_id': fieldId,
+    'form_version_id': formVersionId,
+    'schema_hash': schemaHash,
+    'assignment_revision': assignmentRevision,
+    'definition_sync_token': definitionSyncToken,
+    'answers': answers,
+  };
 }
 
 class SubmissionQueue {
@@ -163,8 +162,7 @@ class SubmissionQueue {
     for (final key in _box.keys) {
       final raw = _box.get(key);
       if (raw is Map) {
-        final item =
-            QueuedSubmission.fromJson(Map<String, Object?>.from(raw));
+        final item = QueuedSubmission.fromJson(Map<String, Object?>.from(raw));
         if (tenantId == null || item.tenantId == tenantId) result.add(item);
       }
     }

@@ -17,7 +17,7 @@ final FeatureModule devicesFeature = FeatureModule(
       path: DevicesRoutes.devices,
       titleAr: 'أجهزة الاستشعار (IoT)',
       icon: Icons.sensors,
-      
+
       menu: const MenuEntry(MenuSection.operations, order: 60),
       builder: (_, _) => const DevicesScreen(),
     ),

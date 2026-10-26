@@ -8,7 +8,16 @@ class SoilWorkspaceModel {
   final int historyCount;
   final int pendingApprovals;
 
-  const SoilWorkspaceModel({required this.profileHash, required this.evidenceLevel, required this.completenessPct, required this.conflicts, required this.allowedUse, required this.blockedUse, required this.historyCount, required this.pendingApprovals});
+  const SoilWorkspaceModel({
+    required this.profileHash,
+    required this.evidenceLevel,
+    required this.completenessPct,
+    required this.conflicts,
+    required this.allowedUse,
+    required this.blockedUse,
+    required this.historyCount,
+    required this.pendingApprovals,
+  });
 
   /// تحليل مُنمَّط: نوع غير متوقّع لحقلٍ ما يسقط إلى قيمته الافتراضيّة بدل أن
   /// ينهار التحويل الضمنيّ من dynamic (كانت 8 تحويلات ضمنيّة هنا).

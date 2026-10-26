@@ -32,7 +32,8 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
   // setupData != null ⇒ بدأ الاقتران (نعرض السرّ + QR) بانتظار التفعيل.
   String? _secret;
   String? _provisioningUri;
-  bool _activated = false; // فُعِّل MFA في هذه الجلسة ⇒ نخفي السرّ ونعرض نجاحاً.
+  bool _activated =
+      false; // فُعِّل MFA في هذه الجلسة ⇒ نخفي السرّ ونعرض نجاحاً.
   bool _disabledOk = false;
 
   final _activateCode = TextEditingController();
@@ -75,7 +76,8 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
     } catch (e) {
       if (mounted) {
         setState(
-            () => _error = _humanize(e, 'تعذّر بدء اقتران المصادقة الثنائيّة'));
+          () => _error = _humanize(e, 'تعذّر بدء اقتران المصادقة الثنائيّة'),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -85,7 +87,9 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
   Future<void> _activate() async {
     final code = _activateCode.text.trim();
     if (code.length != 6) {
-      setState(() => _error = 'أدخل الرمز المكوّن من 6 أرقام من تطبيق المصادقة');
+      setState(
+        () => _error = 'أدخل الرمز المكوّن من 6 أرقام من تطبيق المصادقة',
+      );
       return;
     }
     setState(() {
@@ -105,8 +109,9 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() =>
-            _error = _humanize(e, 'رمز غير صحيح — تأكّد من تطبيق المصادقة'));
+        setState(
+          () => _error = _humanize(e, 'رمز غير صحيح — تأكّد من تطبيق المصادقة'),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -117,7 +122,8 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
     final code = _disableCode.text.trim();
     if (code.length != 6) {
       setState(
-          () => _disableError = 'أدخل الرمز الحاليّ (6 أرقام) لتأكيد التعطيل');
+        () => _disableError = 'أدخل الرمز الحاليّ (6 أرقام) لتأكيد التعطيل',
+      );
       return;
     }
     setState(() {
@@ -135,8 +141,9 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() =>
-            _disableError = _humanize(e, 'تعذّر تعطيل المصادقة الثنائيّة'));
+        setState(
+          () => _disableError = _humanize(e, 'تعذّر تعطيل المصادقة الثنائيّة'),
+        );
       }
     } finally {
       if (mounted) setState(() => _disableBusy = false);
@@ -154,9 +161,9 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
     if (s == null) return;
     await Clipboard.setData(ClipboardData(text: s));
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('نُسخ السرّ')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('نُسخ السرّ')));
     }
   }
 
@@ -193,7 +200,10 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
                           height: 18,
                           width: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Icon(Icons.shield_outlined),
                   label: const Text('بدء تفعيل المصادقة الثنائيّة'),
                   style: _btnStyle(kPrimary),
@@ -203,8 +213,10 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
               if (_secret != null) ...[
                 _setupCard(),
                 const SizedBox(height: 16),
-                const Text('رمز التأكيد (من تطبيق المصادقة)',
-                    style: TextStyle(color: Colors.white, fontSize: 13)),
+                const Text(
+                  'رمز التأكيد (من تطبيق المصادقة)',
+                  style: TextStyle(color: Colors.white, fontSize: 13),
+                ),
                 const SizedBox(height: 8),
                 _codeField(
                   controller: _activateCode,
@@ -220,7 +232,10 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
                           height: 18,
                           width: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Icon(Icons.check_circle_outline),
                   label: const Text('تفعيل'),
                   style: _btnStyle(kPrimary),
@@ -229,8 +244,10 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
 
               if (_error != null) ...[
                 const SizedBox(height: 14),
-                Text(_error!,
-                    style: const TextStyle(color: _kDanger, fontSize: 13)),
+                Text(
+                  _error!,
+                  style: const TextStyle(color: _kDanger, fontSize: 13),
+                ),
               ],
 
               // ── تعطيل MFA ────────────────────────────────────────
@@ -253,8 +270,10 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
                   ),
                 )
               else ...[
-                const Text('أدخل رمزاً صحيحاً حاليّاً لتأكيد التعطيل.',
-                    style: TextStyle(color: _kMuted, fontSize: 13)),
+                const Text(
+                  'أدخل رمزاً صحيحاً حاليّاً لتأكيد التعطيل.',
+                  style: TextStyle(color: _kMuted, fontSize: 13),
+                ),
                 const SizedBox(height: 10),
                 _codeField(
                   controller: _disableCode,
@@ -274,7 +293,10 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
                                 height: 18,
                                 width: 18,
                                 child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white))
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
                             : const Text('تعطيل'),
                       ),
                     ),
@@ -283,15 +305,19 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
                       onPressed: _disableBusy
                           ? null
                           : () => setState(() => _showDisable = false),
-                      child: const Text('إلغاء',
-                          style: TextStyle(color: _kMuted)),
+                      child: const Text(
+                        'إلغاء',
+                        style: TextStyle(color: _kMuted),
+                      ),
                     ),
                   ],
                 ),
                 if (_disableError != null) ...[
                   const SizedBox(height: 12),
-                  Text(_disableError!,
-                      style: const TextStyle(color: _kDanger, fontSize: 13)),
+                  Text(
+                    _disableError!,
+                    style: const TextStyle(color: _kDanger, fontSize: 13),
+                  ),
                 ],
               ],
             ],
@@ -334,8 +360,10 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('السرّ (للإدخال اليدويّ):',
-              style: TextStyle(color: _kMuted, fontSize: 12)),
+          const Text(
+            'السرّ (للإدخال اليدويّ):',
+            style: TextStyle(color: _kMuted, fontSize: 12),
+          ),
           const SizedBox(height: 6),
           Row(
             children: [
@@ -376,7 +404,10 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
       textDirection: TextDirection.ltr,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       style: const TextStyle(
-          color: Colors.white, fontSize: 22, letterSpacing: 8),
+        color: Colors.white,
+        fontSize: 22,
+        letterSpacing: 8,
+      ),
       onSubmitted: (_) => onSubmitted(),
       decoration: InputDecoration(
         counterText: '',
@@ -398,30 +429,31 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
   }
 
   Widget _okBox(String msg) => Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: kPrimary.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: kPrimary),
+    margin: const EdgeInsets.only(bottom: 16),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: kPrimary.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: kPrimary),
+    ),
+    child: Row(
+      children: [
+        const Icon(Icons.check_circle_outline, color: kPrimary, size: 20),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            msg,
+            style: const TextStyle(color: kPrimary, fontSize: 13),
+          ),
         ),
-        child: Row(
-          children: [
-            const Icon(Icons.check_circle_outline, color: kPrimary, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(msg,
-                  style: const TextStyle(color: kPrimary, fontSize: 13)),
-            ),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 
   ButtonStyle _btnStyle(Color bg) => ElevatedButton.styleFrom(
-        backgroundColor: bg,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12)),
-      );
+    backgroundColor: bg,
+    foregroundColor: Colors.white,
+    padding: const EdgeInsets.symmetric(vertical: 14),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  );
 }

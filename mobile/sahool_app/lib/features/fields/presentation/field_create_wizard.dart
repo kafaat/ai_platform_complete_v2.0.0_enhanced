@@ -88,7 +88,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   String? _seasonCrop;
   String? _seasonIrrigation;
   DateTime? _landLevelingDate; // تسوية الأرض
-  DateTime? _plowingDate;      // حراثة الأرض
+  DateTime? _plowingDate; // حراثة الأرض
   DateTime? _sowingDate;
   DateTime? _seasonEnd; // تاريخ نهاية الموسم/الحصاد
   String? _tillageType; // نوع الحراثة
@@ -201,10 +201,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   }
 
   void _clearPoints() => setState(() {
-        _points.clear();
-        _circleCenter = null;
-        _circleRadiusM = null;
-      });
+    _points.clear();
+    _circleCenter = null;
+    _circleRadiusM = null;
+  });
 
   // مضلّع صالح للرسم = ≥3 رؤوس (نُغلقه آليّاً عند الإرسال).
   bool get _hasDrawnPolygon => _points.length >= 3;
@@ -231,13 +231,16 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   double _areaHa(List<LatLng> pts) {
     if (pts.length < 3) return 0;
     const earthR = 6378137.0; // نصف قطر الأرض (م)
-    final lat0 = pts.map((p) => p.latitude).reduce((a, b) => a + b) / pts.length;
+    final lat0 =
+        pts.map((p) => p.latitude).reduce((a, b) => a + b) / pts.length;
     final cosLat0 = math.cos(lat0 * math.pi / 180.0);
     final xy = pts
-        .map((p) => [
-              earthR * (p.longitude * math.pi / 180.0) * cosLat0,
-              earthR * (p.latitude * math.pi / 180.0),
-            ])
+        .map(
+          (p) => [
+            earthR * (p.longitude * math.pi / 180.0) * cosLat0,
+            earthR * (p.latitude * math.pi / 180.0),
+          ],
+        )
         .toList();
     var sum = 0.0;
     for (var i = 0; i < xy.length; i++) {
@@ -258,7 +261,8 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     double seg(LatLng a, LatLng b) {
       final dLat = rad(b.latitude - a.latitude);
       final dLon = rad(b.longitude - a.longitude);
-      final s = math.sin(dLat / 2) * math.sin(dLat / 2) +
+      final s =
+          math.sin(dLat / 2) * math.sin(dLat / 2) +
           math.cos(rad(a.latitude)) *
               math.cos(rad(b.latitude)) *
               math.sin(dLon / 2) *
@@ -295,13 +299,16 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   // حوار إدخال نصف القطر بالأمتار (م). يُرجِع null عند الإلغاء أو إدخال غير صالح.
   Future<double?> _askRadiusMeters({double? initial}) async {
     final ctrl = TextEditingController(
-        text: initial != null ? initial.toStringAsFixed(0) : '');
+      text: initial != null ? initial.toStringAsFixed(0) : '',
+    );
     final result = await showDialog<double>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: kSurface,
-        title: const Text('نصف قطر الدائرة',
-            style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'نصف قطر الدائرة',
+          style: TextStyle(color: Colors.white),
+        ),
         content: TextField(
           controller: ctrl,
           autofocus: true,
@@ -349,7 +356,11 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       if (perm == LocationPermission.denied ||
           perm == LocationPermission.deniedForever) {
         if (!mounted) return;
-        showSnack(context, 'إذن الموقع مرفوض — تعذّر تسجيل النقطة', error: true);
+        showSnack(
+          context,
+          'إذن الموقع مرفوض — تعذّر تسجيل النقطة',
+          error: true,
+        );
         return;
       }
       final pos = await Geolocator.getCurrentPosition(
@@ -450,14 +461,19 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     }
     if (!_boundaryReady) {
       setState(() => _step = 1);
-      showSnack(context, 'حدّد حدّ الحقل أوّلاً (ارسم مضلّعاً مغلقاً أو استورد)',
-          error: true);
+      showSnack(
+        context,
+        'حدّد حدّ الحقل أوّلاً (ارسم مضلّعاً مغلقاً أو استورد)',
+        error: true,
+      );
       return;
     }
     setState(() => _saving = true);
     try {
       Map<String, dynamic> created;
-      final manager = _manager.text.trim().isEmpty ? null : _manager.text.trim();
+      final manager = _manager.text.trim().isEmpty
+          ? null
+          : _manager.text.trim();
       if (_method == 'geojson') {
         created = await FieldsApi.instance.importFieldGeoJson(
           _geojsonText.text.trim(),
@@ -491,16 +507,19 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       final fieldId = created['field_id']?.toString();
       if (_irrigationType != null && fieldId != null && fieldId.isNotEmpty) {
         try {
-          await FieldsApi.instance
-              .updateField(fieldId, {'irrigation_type': _irrigationType});
+          await FieldsApi.instance.updateField(fieldId, {
+            'irrigation_type': _irrigationType,
+          });
         } catch (e) {
           // عدم حفظ نوع الريّ لا يبطل إنشاء الحقل — نُكمل بنجاح جزئيّ، لكن لا
           // نبتلع الفشل صامتاً: نسجّله للتشخيص ونُلمِّح للمستخدم (غير معطِّل).
           debugPrint('تعذّر حفظ نوع الريّ عبر PATCH للحقل $fieldId: $e');
           if (mounted) {
-            showSnack(context,
-                'تعذّر حفظ نوع الريّ — يمكنك ضبطه لاحقاً من مساحة العمل',
-                error: true);
+            showSnack(
+              context,
+              'تعذّر حفظ نوع الريّ — يمكنك ضبطه لاحقاً من مساحة العمل',
+              error: true,
+            );
           }
         }
       }
@@ -541,30 +560,30 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   // كلّ خطوة تعرّف: العنوان، الجسم، هل هي قابلة للتخطّي، ودالّة الإرسال (تُعيد
   // true عند النجاح كي يتقدّم التنقّل). لإضافة خطوة لاحقاً: ألحِق _PostStep جديداً.
   List<_PostStep> get _postSteps => [
-        _PostStep(
-          title: 'الموسم',
-          builder: _stepSeason,
-          skippable: false, // الموسم أساس الإعداد (لكنّه يتطلّب محصولاً فقط)
-          submit: _submitSeason,
-          canSubmit: () => _seasonCrop != null,
-        ),
-        _PostStep(
-          title: 'فحوص التربة (اختياريّ)',
-          builder: _stepSoilTests,
-          skippable: true,
-          submit: _submitSoilTest,
-          // إرسال فقط إن أُدخلت قيمة واحدة على الأقلّ، وإلّا فالأفضل التخطّي.
-          canSubmit: () =>
-              _hasNum(_soilPh) || _hasNum(_soilOm) || _hasNum(_soilCec),
-        ),
-        _PostStep(
-          title: 'تقدير الإنتاجيّة (اختياريّ)',
-          builder: _stepYield,
-          skippable: true,
-          submit: _submitYield,
-          canSubmit: () => _seasonCrop != null, // التقدير يحتاج محصولاً
-        ),
-      ];
+    _PostStep(
+      title: 'الموسم',
+      builder: _stepSeason,
+      skippable: false, // الموسم أساس الإعداد (لكنّه يتطلّب محصولاً فقط)
+      submit: _submitSeason,
+      canSubmit: () => _seasonCrop != null,
+    ),
+    _PostStep(
+      title: 'فحوص التربة (اختياريّ)',
+      builder: _stepSoilTests,
+      skippable: true,
+      submit: _submitSoilTest,
+      // إرسال فقط إن أُدخلت قيمة واحدة على الأقلّ، وإلّا فالأفضل التخطّي.
+      canSubmit: () =>
+          _hasNum(_soilPh) || _hasNum(_soilOm) || _hasNum(_soilCec),
+    ),
+    _PostStep(
+      title: 'تقدير الإنتاجيّة (اختياريّ)',
+      builder: _stepYield,
+      skippable: true,
+      submit: _submitYield,
+      canSubmit: () => _seasonCrop != null, // التقدير يحتاج محصولاً
+    ),
+  ];
 
   bool _hasNum(TextEditingController c) => _parseNum(c.text) != null;
 
@@ -590,11 +609,11 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       '${d.day.toString().padLeft(2, '0')}';
 
   Future<DateTime?> _pickDate(DateTime? initial) => showDatePicker(
-        context: context,
-        initialDate: initial ?? DateTime.now(),
-        firstDate: DateTime(2015),
-        lastDate: DateTime(2100),
-      );
+    context: context,
+    initialDate: initial ?? DateTime.now(),
+    firstDate: DateTime(2015),
+    lastDate: DateTime(2100),
+  );
 
   // إنشاء الموسم على نقطة فعليّة. يتطلّب محصولاً (يُرسَل ضمن crops).
   Future<bool> _submitSeason() async {
@@ -607,7 +626,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       crop: crop,
       cultivar: _cultivar.text.trim().isEmpty ? null : _cultivar.text.trim(),
       irrigationType: _seasonIrrigation,
-      landLevelingDate: _landLevelingDate != null ? _ymd(_landLevelingDate!) : null,
+      landLevelingDate: _landLevelingDate != null
+          ? _ymd(_landLevelingDate!)
+          : null,
       plowingDate: _plowingDate != null ? _ymd(_plowingDate!) : null,
       sowingDate: _sowingDate != null ? _ymd(_sowingDate!) : null,
       seasonEnd: _seasonEnd != null ? _ymd(_seasonEnd!) : null,
@@ -615,7 +636,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       seedRateKgHa: _parseNonNegNum(_seedRate.text),
       plantDensity: _parseNonNegNum(_plantDensity.text),
       rowSpacingCm: _parseNonNegNum(_rowSpacing.text),
-      seedVarietySource: _seedVarietySource.text.trim().isEmpty ? null : _seedVarietySource.text.trim(),
+      seedVarietySource: _seedVarietySource.text.trim().isEmpty
+          ? null
+          : _seedVarietySource.text.trim(),
       tillageType: _tillageType,
       maturity: _maturity,
       actualYieldKgHa: _parseNonNegNum(_actualYield.text),
@@ -630,8 +653,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     if (fid == null) return false;
     await FieldsApi.instance.submitSoilLabTest(
       fid,
-      labName:
-          _soilLabName.text.trim().isEmpty ? null : _soilLabName.text.trim(),
+      labName: _soilLabName.text.trim().isEmpty
+          ? null
+          : _soilLabName.text.trim(),
       sampledOn: _sampledOn != null ? _ymd(_sampledOn!) : null,
       ph: _parseNum(_soilPh.text),
       organicMatter: _parseNum(_soilOm.text),
@@ -745,10 +769,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     final isLast = _step == _stepTitles.length - 1;
     return Scaffold(
       backgroundColor: kBg,
-      appBar: AppBar(
-        backgroundColor: kSurface,
-        title: const Text('حقل جديد'),
-      ),
+      appBar: AppBar(backgroundColor: kSurface, title: const Text('حقل جديد')),
       body: SafeArea(
         child: Column(
           children: [
@@ -760,7 +781,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                 child: Text(
                   'الخطوة ${_step + 1} من ${_stepTitles.length} · ${_stepTitles[_step]}',
                   style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -797,7 +820,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                 child: Text(
                   'الخطوة ${_postStep + 1} من ${steps.length} · ${step.title}',
                   style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -824,8 +849,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.white24),
                 ),
-                child: const Text('رجوع',
-                    style: TextStyle(color: Colors.white)),
+                child: const Text(
+                  'رجوع',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           if (_postStep > 0) const SizedBox(width: 12),
@@ -836,8 +863,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.white24),
                 ),
-                child: const Text('تخطّي',
-                    style: TextStyle(color: Colors.white)),
+                child: const Text(
+                  'تخطّي',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           if (step.skippable) const SizedBox(width: 12),
@@ -852,7 +881,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                       height: 18,
                       width: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : Text(isLast ? 'إلى مساحة العمل' : 'التالي'),
             ),
@@ -914,8 +945,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text('اسم واضح يسهّل تمييز الحقل لاحقاً.',
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
+        const Text(
+          'اسم واضح يسهّل تمييز الحقل لاحقاً.',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+        ),
       ],
     );
   }
@@ -949,8 +982,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
               Text(label),
             ],
           ),
-          labelStyle:
-              TextStyle(color: sel ? Colors.white : Colors.grey, fontSize: 12),
+          labelStyle: TextStyle(
+            color: sel ? Colors.white : Colors.grey,
+            fontSize: 12,
+          ),
           selectedColor: kPrimary,
           backgroundColor: kSurface,
           // عند تبديل طريقة الحدود نُصفّر معاينة الهندسة المستوردة كي لا تُستعمَل
@@ -987,8 +1022,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
         selected: sel,
         avatar: Icon(icon, size: 16, color: sel ? Colors.white : Colors.grey),
         label: Text(label),
-        labelStyle:
-            TextStyle(color: sel ? Colors.white : Colors.grey, fontSize: 12),
+        labelStyle: TextStyle(
+          color: sel ? Colors.white : Colors.grey,
+          fontSize: 12,
+        ),
         selectedColor: kPrimary,
         backgroundColor: kBg,
         // تبديل الوضع لا يمسح ما رُسِم (إضافيّ): فقط يغيّر سلوك النقرة التالية.
@@ -1022,8 +1059,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
           width: double.infinity,
           color: kSurface,
           padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-          child: Text(hint,
-              style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          child: Text(
+            hint,
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
+          ),
         ),
         Expanded(
           child: OfflineFieldMap(
@@ -1032,8 +1071,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
             drawMode: _drawMode,
             instruction: hint,
             drawingPoints: _points,
-            onPolygonChanged:
-                isCircle ? null : _onPolygonChanged, // الدائرة لا تضيف رؤوساً بالنقر
+            onPolygonChanged: isCircle
+                ? null
+                : _onPolygonChanged, // الدائرة لا تضيف رؤوساً بالنقر
             onCenterTap: isCircle ? _onCircleCenterTap : null,
             circlePreviewCenter: isCircle ? _circleCenter : null,
             circlePreviewRadiusMeters: isCircle ? _circleRadiusM : null,
@@ -1057,13 +1097,14 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                     Text(
                       _hasDrawnPolygon
                           ? 'المساحة: ${area.toStringAsFixed(2)} هكتار · '
-                              'المحيط: ${perimeter.toStringAsFixed(0)} م'
+                                'المحيط: ${perimeter.toStringAsFixed(0)} م'
                           : (isCircle
-                              ? 'حدّد مركزاً وأدخِل نصف القطر بالمتر'
-                              : 'أضف 3 نقاط على الأقلّ لإغلاق المضلّع'),
+                                ? 'حدّد مركزاً وأدخِل نصف القطر بالمتر'
+                                : 'أضف 3 نقاط على الأقلّ لإغلاق المضلّع'),
                       style: TextStyle(
-                          color: _hasDrawnPolygon ? kPrimary : Colors.grey,
-                          fontSize: 12),
+                        color: _hasDrawnPolygon ? kPrimary : Colors.grey,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -1111,17 +1152,23 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
             _tryPreviewImportArea();
             setState(() {});
           },
-          decoration: kDec(isKml
-              ? '<Polygon><outerBoundaryIs>…'
-              : '{"type":"Polygon","coordinates":[[[lon,lat],…]]}'),
+          decoration: kDec(
+            isKml
+                ? '<Polygon><outerBoundaryIs>…'
+                : '{"type":"Polygon","coordinates":[[[lon,lat],…]]}',
+          ),
         ),
         const SizedBox(height: 10),
         if (!isKml && _importedGeometry != null && area > 0)
-          Text('المساحة ≈ ${area.toStringAsFixed(2)} هـ',
-              style: const TextStyle(color: kPrimary, fontSize: 12))
+          Text(
+            'المساحة ≈ ${area.toStringAsFixed(2)} هـ',
+            style: const TextStyle(color: kPrimary, fontSize: 12),
+          )
         else if (_geojsonText.text.trim().isNotEmpty)
-          const Text('سيتحقّق الخادم من الهندسة عند الحفظ.',
-              style: TextStyle(color: Colors.grey, fontSize: 12)),
+          const Text(
+            'سيتحقّق الخادم من الهندسة عند الحفظ.',
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
       ],
     );
   }
@@ -1174,16 +1221,19 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('${_points.length} نقطة',
-                            style: const TextStyle(color: Colors.white)),
+                        Text(
+                          '${_points.length} نقطة',
+                          style: const TextStyle(color: Colors.white),
+                        ),
                         Text(
                           _hasDrawnPolygon
                               ? 'المساحة: ${area.toStringAsFixed(2)} هكتار · '
-                                  'المحيط: ${perimeter.toStringAsFixed(0)} م'
+                                    'المحيط: ${perimeter.toStringAsFixed(0)} م'
                               : 'سجّل 3 نقاط على الأقلّ لإغلاق المضلّع',
                           style: TextStyle(
-                              color: _hasDrawnPolygon ? kPrimary : Colors.grey,
-                              fontSize: 12),
+                            color: _hasDrawnPolygon ? kPrimary : Colors.grey,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
@@ -1196,8 +1246,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                   IconButton(
                     tooltip: 'مسح',
                     onPressed: _points.isEmpty ? null : _clearPoints,
-                    icon: const Icon(Icons.delete_outline,
-                        color: Colors.redAccent),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.redAccent,
+                    ),
                   ),
                 ],
               ),
@@ -1212,7 +1264,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                           height: 16,
                           width: 16,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Icon(Icons.my_location, size: 18),
                   label: const Text('إضافة موقعي الحاليّ'),
@@ -1242,12 +1296,20 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       padding: const EdgeInsets.all(16),
       children: [
         const SectionTitle('مصدر المياه (اختياريّ)'),
-        _dropdown(_waterSources, _waterSource, 'المصدر',
-            (v) => setState(() => _waterSource = v)),
+        _dropdown(
+          _waterSources,
+          _waterSource,
+          'المصدر',
+          (v) => setState(() => _waterSource = v),
+        ),
         const SizedBox(height: 12),
         const SectionTitle('نوع الريّ (اختياريّ)'),
-        _dropdown(_irrigationTypes, _irrigationType, 'نوع الريّ',
-            (v) => setState(() => _irrigationType = v)),
+        _dropdown(
+          _irrigationTypes,
+          _irrigationType,
+          'نوع الريّ',
+          (v) => setState(() => _irrigationType = v),
+        ),
       ],
     );
   }
@@ -1259,8 +1321,12 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       padding: const EdgeInsets.all(16),
       children: [
         const SectionTitle('تفاصيل إضافيّة (اختياريّ)'),
-        _dropdown(_soilTypes, _soilType, 'نوع التربة',
-            (v) => setState(() => _soilType = v)),
+        _dropdown(
+          _soilTypes,
+          _soilType,
+          'نوع التربة',
+          (v) => setState(() => _soilType = v),
+        ),
         kField(_manager, 'المسؤول عن الحقل'),
         const SizedBox(height: 16),
         Container(
@@ -1274,20 +1340,27 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
             children: [
               _summaryRow('الاسم', _name.text.trim()),
               _summaryRow(
-                  'الحدّ',
-                  (_method == 'draw' || _method == 'gps')
-                      ? '${_points.length} نقطة'
-                      : (_method == 'geojson'
+                'الحدّ',
+                (_method == 'draw' || _method == 'gps')
+                    ? '${_points.length} نقطة'
+                    : (_method == 'geojson'
                           ? 'GeoJSON مستورَد'
-                          : (_method == 'kml' ? 'KML مستورَد' : '—'))),
+                          : (_method == 'kml' ? 'KML مستورَد' : '—')),
+              ),
               if (area > 0)
                 _summaryRow('المساحة ≈', '${area.toStringAsFixed(2)} هـ'),
-              if (_crop != null) _summaryRow('المحصول', _crops[_crop] ?? _crop!),
+              if (_crop != null)
+                _summaryRow('المحصول', _crops[_crop] ?? _crop!),
               if (_waterSource != null)
-                _summaryRow('المياه', _waterSources[_waterSource] ?? _waterSource!),
+                _summaryRow(
+                  'المياه',
+                  _waterSources[_waterSource] ?? _waterSource!,
+                ),
               if (_irrigationType != null)
                 _summaryRow(
-                    'الريّ', _irrigationTypes[_irrigationType] ?? _irrigationType!),
+                  'الريّ',
+                  _irrigationTypes[_irrigationType] ?? _irrigationType!,
+                ),
             ],
           ),
         ),
@@ -1296,21 +1369,26 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   }
 
   Widget _summaryRow(String k, String v) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(
-          children: [
-            Text('$k: ',
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
-            Expanded(
-              child: Text(v,
-                  style: const TextStyle(color: Colors.white, fontSize: 12)),
-            ),
-          ],
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      children: [
+        Text('$k: ', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        Expanded(
+          child: Text(
+            v,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
         ),
-      );
+      ],
+    ),
+  );
 
-  Widget _dropdown(Map<String, String> options, String? value, String label,
-      ValueChanged<String?> onChanged) {
+  Widget _dropdown(
+    Map<String, String> options,
+    String? value,
+    String label,
+    ValueChanged<String?> onChanged,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: DropdownButtonFormField<String>(
@@ -1346,9 +1424,13 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('تمّ إنشاء «${_name.text.trim()}»',
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(
+                  'تمّ إنشاء «${_name.text.trim()}»',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 Text(
                   area != null
                       ? 'المساحة ≈ ${area.toStringAsFixed(2)} هـ'
@@ -1364,7 +1446,11 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   }
 
   // مُحدِّد تاريخ موحّد (يعرض القيمة المختارة أو نائباً، ويفتح منتقي التاريخ).
-  Widget _dateField(String label, DateTime? value, ValueChanged<DateTime> onPick) {
+  Widget _dateField(
+    String label,
+    DateTime? value,
+    ValueChanged<DateTime> onPick,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: InkWell(
@@ -1376,8 +1462,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
           decoration: kDec(label),
           child: Text(
             value != null ? _ymd(value) : 'اختر تاريخاً',
-            style: TextStyle(
-                color: value != null ? Colors.white : Colors.grey),
+            style: TextStyle(color: value != null ? Colors.white : Colors.grey),
           ),
         ),
       ),
@@ -1391,35 +1476,70 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       children: [
         _createdFieldBanner(),
         const SectionTitle('موسم الحقل'),
-        const Text('عرّف ما يُزرَع هذا الموسم — أساس التوصيات لاحقاً.',
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
-        _dropdown(_crops, _seasonCrop, 'المحصول (مطلوب)',
-            (v) => setState(() => _seasonCrop = v)),
-        _dropdown(_irrigationTypes, _seasonIrrigation, 'نوع الريّ (اختياريّ)',
-            (v) => setState(() => _seasonIrrigation = v)),
+        const Text(
+          'عرّف ما يُزرَع هذا الموسم — أساس التوصيات لاحقاً.',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+        ),
+        _dropdown(
+          _crops,
+          _seasonCrop,
+          'المحصول (مطلوب)',
+          (v) => setState(() => _seasonCrop = v),
+        ),
+        _dropdown(
+          _irrigationTypes,
+          _seasonIrrigation,
+          'نوع الريّ (اختياريّ)',
+          (v) => setState(() => _seasonIrrigation = v),
+        ),
         kField(_cultivar, 'الصنف/الهجين (اختياريّ)'),
         kField(_seedRate, 'كمية البذور (كجم/هـ)', number: true),
         kField(_seedVarietySource, 'مصدر البذور / الصنف (اختياريّ)'),
-        _dateField('تسوية الأرض (اختياريّ)', _landLevelingDate,
-            (d) => setState(() => _landLevelingDate = d)),
-        _dateField('حراثة الأرض (اختياريّ)', _plowingDate,
-            (d) => setState(() => _plowingDate = d)),
-        _dateField('تاريخ البذر (اختياريّ)', _sowingDate,
-            (d) => setState(() => _sowingDate = d)),
-        _dateField('تاريخ نهاية الموسم/الحصاد (اختياريّ)', _seasonEnd,
-            (d) => setState(() => _seasonEnd = d)),
-        _dropdown(_tillageTypes, _tillageType, 'نوع الحراثة (اختياريّ)',
-            (v) => setState(() => _tillageType = v)),
-        _dropdown(_maturityStages, _maturity, 'مرحلة النضج (اختياريّ)',
-            (v) => setState(() => _maturity = v)),
-        kField(_targetYield, 'الإنتاجيّة المستهدفة كغ/هـ (اختياريّ)',
-            number: true),
+        _dateField(
+          'تسوية الأرض (اختياريّ)',
+          _landLevelingDate,
+          (d) => setState(() => _landLevelingDate = d),
+        ),
+        _dateField(
+          'حراثة الأرض (اختياريّ)',
+          _plowingDate,
+          (d) => setState(() => _plowingDate = d),
+        ),
+        _dateField(
+          'تاريخ البذر (اختياريّ)',
+          _sowingDate,
+          (d) => setState(() => _sowingDate = d),
+        ),
+        _dateField(
+          'تاريخ نهاية الموسم/الحصاد (اختياريّ)',
+          _seasonEnd,
+          (d) => setState(() => _seasonEnd = d),
+        ),
+        _dropdown(
+          _tillageTypes,
+          _tillageType,
+          'نوع الحراثة (اختياريّ)',
+          (v) => setState(() => _tillageType = v),
+        ),
+        _dropdown(
+          _maturityStages,
+          _maturity,
+          'مرحلة النضج (اختياريّ)',
+          (v) => setState(() => _maturity = v),
+        ),
+        kField(
+          _targetYield,
+          'الإنتاجيّة المستهدفة كغ/هـ (اختياريّ)',
+          number: true,
+        ),
         kField(_plantDensity, 'كثافة النبات نبات/م² (اختياريّ)', number: true),
         kField(_rowSpacing, 'تباعد الصفوف سم (اختياريّ)', number: true),
         const SizedBox(height: 16),
         const SectionTitle('بعد الحصاد (اختياريّ)'),
-        const Text('تُملأ لاحقاً بعد جني المحصول — اتركها فارغة الآن إن لم تتوفّر.',
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
+        const Text(
+          'تُملأ لاحقاً بعد جني المحصول — اتركها فارغة الآن إن لم تتوفّر.',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+        ),
         kField(_actualYield, 'الغلّة الفعليّة (كجم/هـ)', number: true),
         _multilineField(_seasonNotes, 'ملاحظات'),
       ],
@@ -1450,14 +1570,18 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
         _createdFieldBanner(),
         const SectionTitle('فحوص التربة (اختياريّ)'),
         const Text(
-            'أدخِل نتائج فحص مخبريّ إن توفّرت، أو تخطَّ هذه الخطوة وأضِفها لاحقاً.',
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
+          'أدخِل نتائج فحص مخبريّ إن توفّرت، أو تخطَّ هذه الخطوة وأضِفها لاحقاً.',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+        ),
         kField(_soilPh, 'الحموضة pH', number: true),
         kField(_soilOm, 'المادّة العضويّة % (organic matter)', number: true),
         kField(_soilCec, 'السعة التبادليّة CEC', number: true),
         kField(_soilLabName, 'اسم المختبر (اختياريّ)'),
-        _dateField('تاريخ أخذ العيّنة (اختياريّ)', _sampledOn,
-            (d) => setState(() => _sampledOn = d)),
+        _dateField(
+          'تاريخ أخذ العيّنة (اختياريّ)',
+          _sampledOn,
+          (d) => setState(() => _sampledOn = d),
+        ),
       ],
     );
   }
@@ -1471,8 +1595,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
         _createdFieldBanner(),
         const SectionTitle('تقدير الإنتاجيّة (اختياريّ)'),
         const Text(
-            'تقدير مبدئيّ للإنتاجيّة بناءً على المحصول وعمر النموّ ومؤشّر NDVI.',
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
+          'تقدير مبدئيّ للإنتاجيّة بناءً على المحصول وعمر النموّ ومؤشّر NDVI.',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+        ),
         kField(_daysInGrowing, 'أيّام النموّ (اختياريّ)', number: true),
         kField(_avgNdvi, 'متوسّط NDVI (اختياريّ)', number: true),
         if (res != null) ...[
@@ -1486,12 +1611,18 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('نتيجة التقدير',
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
+                const Text(
+                  'نتيجة التقدير',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 6),
-                Text(_yieldSummary(res),
-                    style: const TextStyle(color: kPrimary, fontSize: 13)),
+                Text(
+                  _yieldSummary(res),
+                  style: const TextStyle(color: kPrimary, fontSize: 13),
+                ),
               ],
             ),
           ),
@@ -1502,9 +1633,8 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
 
   // ملخّص نتيجة الإنتاجيّة بحارس شكل (مفاتيح قد تختلف؛ نقرأ المتوقَّع دفاعيّاً).
   String _yieldSummary(Map<String, dynamic> res) {
-    final est = res['estimated_yield_kg_ha'] ??
-        res['yield_kg_ha'] ??
-        res['estimate'];
+    final est =
+        res['estimated_yield_kg_ha'] ?? res['yield_kg_ha'] ?? res['estimate'];
     if (est is num) {
       return 'الإنتاجيّة المقدَّرة ≈ ${est.toStringAsFixed(0)} كغ/هـ';
     }
@@ -1526,8 +1656,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.white24),
                 ),
-                child: const Text('السابق',
-                    style: TextStyle(color: Colors.white)),
+                child: const Text(
+                  'السابق',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           if (_step > 0) const SizedBox(width: 12),
@@ -1536,15 +1668,17 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
               onPressed: _saving
                   ? null
                   : (isLast
-                      ? (_boundaryReady ? _save : null)
-                      : (_canAdvance ? _next : null)),
+                        ? (_boundaryReady ? _save : null)
+                        : (_canAdvance ? _next : null)),
               style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
               child: _saving
                   ? const SizedBox(
                       height: 18,
                       width: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : Text(isLast ? 'حفظ الحقل' : 'التالي'),
             ),

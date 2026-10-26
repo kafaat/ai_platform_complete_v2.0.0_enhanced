@@ -11,13 +11,14 @@ import '../contract/form_schema.dart';
 /// سياق تمرير القيمة من الـrenderer إلى بنّاء الحقل.
 typedef FieldChanged = void Function(Object? value);
 
-typedef FieldWidgetBuilder = Widget Function(
-  BuildContext context,
-  FormFieldDef def,
-  Object? value,
-  String? errorText,
-  FieldChanged onChanged,
-);
+typedef FieldWidgetBuilder =
+    Widget Function(
+      BuildContext context,
+      FormFieldDef def,
+      Object? value,
+      String? errorText,
+      FieldChanged onChanged,
+    );
 
 /// مُلتقط صور قابل للحقن (الافتراضيّ image_picker في الشاشة) —
 /// يعيد مرجع ملفّ (path) لا Base64.
@@ -52,8 +53,13 @@ class FieldWidgetRegistry {
     }
   }
 
-  Widget _buildText(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildText(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     return TextFormField(
       key: ValueKey('field_${def.key}'),
       initialValue: value is String ? value : '',
@@ -62,8 +68,13 @@ class FieldWidgetRegistry {
     );
   }
 
-  Widget _buildNumber(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildNumber(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     return TextFormField(
       key: ValueKey('field_${def.key}'),
       initialValue: value is num ? value.toString() : '',
@@ -79,8 +90,13 @@ class FieldWidgetRegistry {
     );
   }
 
-  Widget _buildInteger(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildInteger(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     return TextFormField(
       key: ValueKey('field_${def.key}'),
       initialValue: value is int ? value.toString() : '',
@@ -95,8 +111,13 @@ class FieldWidgetRegistry {
     );
   }
 
-  Widget _buildSelect(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildSelect(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     final current = value is String && def.options.contains(value)
         ? value
         : null;
@@ -111,8 +132,13 @@ class FieldWidgetRegistry {
     );
   }
 
-  Widget _buildMultiSelect(BuildContext context, FormFieldDef def,
-      Object? value, String? errorText, FieldChanged onChanged) {
+  Widget _buildMultiSelect(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     final selected = <String>{
       if (value is List)
         ...value.whereType<String>().where(def.options.contains),
@@ -123,8 +149,10 @@ class FieldWidgetRegistry {
       children: [
         Text(def.key, style: Theme.of(context).textTheme.bodyLarge),
         if (errorText != null)
-          Text(errorText,
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          Text(
+            errorText,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         for (final option in def.options)
           CheckboxListTile(
             key: ValueKey('field_${def.key}_opt_$option'),
@@ -138,9 +166,10 @@ class FieldWidgetRegistry {
                 next.remove(option);
               }
               // الترتيب حسب ترتيب options للاستقرار.
-              next.sort((a, b) => def.options
-                  .indexOf(a)
-                  .compareTo(def.options.indexOf(b)));
+              next.sort(
+                (a, b) =>
+                    def.options.indexOf(a).compareTo(def.options.indexOf(b)),
+              );
               onChanged(next.isEmpty ? null : next);
             },
           ),
@@ -148,10 +177,16 @@ class FieldWidgetRegistry {
     );
   }
 
-  Widget _buildDate(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildDate(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     final controller = TextEditingController(
-        text: value is String ? value : '');
+      text: value is String ? value : '',
+    );
     return TextFormField(
       key: ValueKey('field_${def.key}'),
       controller: controller,
@@ -180,14 +215,28 @@ class FieldWidgetRegistry {
     );
   }
 
-  Widget _buildGps(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
-    return _GpsField(def: def, value: value, errorText: errorText,
-        onChanged: onChanged);
+  Widget _buildGps(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
+    return _GpsField(
+      def: def,
+      value: value,
+      errorText: errorText,
+      onChanged: onChanged,
+    );
   }
 
-  Widget _buildPhoto(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildPhoto(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     final reference = value is String && value.isNotEmpty ? value : null;
     return Column(
       key: ValueKey('field_${def.key}'),
@@ -208,12 +257,16 @@ class FieldWidgetRegistry {
                 },
         ),
         if (reference != null)
-          Text(reference,
-              key: ValueKey('field_${def.key}_ref'),
-              style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            reference,
+            key: ValueKey('field_${def.key}_ref'),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
         if (errorText != null)
-          Text(errorText,
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          Text(
+            errorText,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
       ],
     );
   }
@@ -226,8 +279,12 @@ class _GpsField extends StatefulWidget {
   final String? errorText;
   final FieldChanged onChanged;
 
-  const _GpsField({required this.def, this.value, this.errorText,
-      required this.onChanged});
+  const _GpsField({
+    required this.def,
+    this.value,
+    this.errorText,
+    required this.onChanged,
+  });
 
   @override
   State<_GpsField> createState() => _GpsFieldState();
@@ -266,13 +323,17 @@ class _GpsFieldState extends State<_GpsField> {
       children: [
         Text(def.key, style: Theme.of(context).textTheme.bodyLarge),
         if (widget.errorText != null)
-          Text(widget.errorText!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          Text(
+            widget.errorText!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         TextFormField(
           key: ValueKey('field_${def.key}_lat'),
           initialValue: _lat?.toString() ?? '',
           keyboardType: const TextInputType.numberWithOptions(
-              decimal: true, signed: true),
+            decimal: true,
+            signed: true,
+          ),
           decoration: const InputDecoration(labelText: 'lat'),
           onChanged: (v) {
             _lat = double.tryParse(v);
@@ -283,7 +344,9 @@ class _GpsFieldState extends State<_GpsField> {
           key: ValueKey('field_${def.key}_lng'),
           initialValue: _lng?.toString() ?? '',
           keyboardType: const TextInputType.numberWithOptions(
-              decimal: true, signed: true),
+            decimal: true,
+            signed: true,
+          ),
           decoration: const InputDecoration(labelText: 'lng'),
           onChanged: (v) {
             _lng = double.tryParse(v);
