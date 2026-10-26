@@ -38,7 +38,7 @@ high,sahool-platform,function,_patch_engine_gdd,services/sahool-platform/tests/t
 high,sahool-platform,function,_reset_breaker,services/sahool-platform/tests/test_openmeteo_circuit.py,21,0,review_before_delete,False
 high,sahool-platform,function,_patch_engine_gdd,services/sahool-platform/tests/test_profit_aware_decision_endpoint.py,25,0,review_before_delete,False
 high,sam2-inference,function,_startup,services/sam2-inference/main.py,19,0,review_before_delete,False
-high,soil-service,function,_tenant_context_mw,services/soil-service/main.py,121,0,review_before_delete,False
+high,soil-service,function,_tenant_context_mw,services/soil-service/main.py,120,0,review_before_delete,False
 high,weather-service,function,_reset_breaker,services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py,41,0,review_before_delete,False
 high,shared,function,_normalize_feature_vector,shared/precision_agriculture/phase6_intelligence.py,223,0,review_before_delete,False
 medium,agriai-engine,function,salt_engine_applies,services/agriai-engine/aquacrop_adapter.py,56,0,review_before_delete,False
@@ -62,7 +62,7 @@ medium,ai-agronomist,function,tool_allowed,services/ai_agronomist/policy_envelop
 medium,ai-agronomist,function,build_provider_tools,services/ai_agronomist/provider_tooling.py,153,0,review_before_delete,False
 medium,ai-agronomist,function,extract_tool_calls,services/ai_agronomist/provider_tooling.py,182,0,review_before_delete,False
 medium,ai-agronomist,function,trace_decision,services/ai_agronomist/runtime_tracing.py,1,0,review_before_delete,False
-medium,auth,function,tenant_header_middleware,services/auth/main.py,419,0,review_before_delete,False
+medium,auth,function,tenant_header_middleware,services/auth/main.py,418,0,review_before_delete,False
 medium,auth,function,verify_recovery_code,services/auth/mfa_crypto.py,209,0,review_before_delete,False
 medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_before_delete,False
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,44,0,review_before_delete,False

@@ -27,7 +27,7 @@ ai_agronomist,services/ai_agronomist/main.py,477,POST,/v1/query,query
 ai_agronomist,services/ai_agronomist/main.py,488,POST,/v1/chat,chat
 ai_agronomist,services/ai_agronomist/main.py,499,POST,/v1/explain,explain
 ai_agronomist,services/ai_agronomist/main.py,510,POST,/v1/recommend,recommend
-auth,services/auth/main.py,402,GET,/runtime-identity,runtime_identity
+auth,services/auth/main.py,401,GET,/runtime-identity,runtime_identity
 auth,services/auth/routers/email_verify.py,23,POST,/v1/auth/verify/request,verify_request
 auth,services/auth/routers/email_verify.py,56,POST,/v1/auth/verify/confirm,verify_confirm
 auth,services/auth/routers/email_verify.py,98,GET,/v1/auth/verify,verify
@@ -992,7 +992,7 @@ scout-ingest-service,services/scout-ingest-service/season_api.py,522,POST,/inter
 scout-ingest-service,services/scout-ingest-service/season_api.py,583,POST,/internal/seasons/{season_id}/harvest,set_season_harvest
 scout-ingest-service,services/scout-ingest-service/season_api.py,624,POST,/internal/seasons/{season_id}/costs,add_season_cost
 scout-ingest-service,services/scout-ingest-service/season_api.py,668,GET,/internal/seasons/{season_id}/detail,season_detail
-soil-service,services/soil-service/main.py,222,GET,/runtime-identity,runtime_evidence_identity
+soil-service,services/soil-service/main.py,221,GET,/runtime-identity,runtime_evidence_identity
 soil-service,services/soil-service/routers/canonical.py,22,POST,/v1/soil/observations,create_observation
 soil-service,services/soil-service/routers/canonical.py,43,GET,/v1/fields/{field_id}/soil/observations,observations
 soil-service,services/soil-service/routers/canonical.py,60,POST,/v1/fields/{field_id}/soil/profile/rebuild,rebuild_profile

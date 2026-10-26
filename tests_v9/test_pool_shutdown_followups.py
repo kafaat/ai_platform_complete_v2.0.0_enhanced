@@ -8,7 +8,10 @@
   * auth and soil-service: ``close()`` without a bound, so a held connection hung shutdown;
   * market MCP: the same unbounded close, plus the same unowned lazy ``get_pool()`` fallback;
   * ``shared/helpers.py``: ``init_db`` (and the ``get_pool``/``service_lifespan``/
-    ``create_app`` chain above it) had no caller anywhere, so it is gone.
+    ``create_app`` chain above it) had no caller anywhere, so it is gone;
+  * the other shutdown awaits: soil's projection worker was awaited without a bound (and a
+    worker that had failed raised there, skipping the pool close), auth's redis ``close()``
+    too.
 
 Each lifespan runs in its own process, laid out as its Dockerfile's ``COPY`` lines build
 ``/app`` (so the image really carries ``shared/pool_shutdown.py``), with a fake pool that
@@ -399,3 +402,50 @@ def test_shared_helpers_has_no_unowned_lazy_pool():
         if isinstance(node, ast.Attribute) and node.attr == "create_pool"
     ]
     assert not calls, "shared/helpers.py opens an asyncpg pool again"
+
+
+# ── the other shutdown awaits: soil's projection worker, auth's redis client ──
+
+SOIL_WORKER = (SOIL[0], SOIL[1], {**SOIL[2], "SOIL_PROJECTION_WORKER_ENABLED": "true"})
+_SOIL_STUCK_WORKER = """
+import projection_jobs
+projection_jobs.worker_loop = hold_forever  # never looks at the stop event
+"""
+_SOIL_FAILED_WORKER = """
+import projection_jobs
+async def _dies(*args, **kwargs):
+    raise RuntimeError("worker died earlier")
+projection_jobs.worker_loop = _dies
+"""
+_AUTH_STUCK_REDIS = (
+    _AUTH_SETUP
+    + """
+import redis.asyncio as _aioredis
+class _StuckRedis:
+    async def ping(self):
+        return True
+    async def close(self):
+        await asyncio.Event().wait()
+_aioredis.from_url = lambda *args, **kwargs: _StuckRedis()
+"""
+)
+
+
+def test_soil_worker_that_ignores_stop_is_cancelled_within_the_bound(image_root):
+    result = _case(SOIL_WORKER, image_root, setup=_SOIL_STUCK_WORKER, bound=0.05)
+    assert result["outcome"] == "returned", f"shutdown hung on the projection worker: {result}"
+    assert result["background"] == 1 and result["cancelled"] == 1, result
+    assert result["running_at_close"] == [0] and result["closed"] == [True], result
+    assert not result["pool_left"], result
+
+
+def test_soil_worker_that_failed_does_not_skip_the_pool_close(image_root):
+    result = _case(SOIL_WORKER, image_root, setup=_SOIL_FAILED_WORKER, bound=0.05)
+    assert result["outcome"] == "returned", f"a failed worker broke shutdown: {result}"
+    assert result["closed"] == [True] and not result["pool_left"], result
+
+
+def test_auth_redis_close_is_bounded(image_root):
+    result = _case(AUTH, image_root, setup=_AUTH_STUCK_REDIS, bound=0.05)
+    assert result["outcome"] == "returned", f"shutdown hung on redis close(): {result}"
+    assert result["closed"] == [True] and not result["pool_left"], result
