@@ -8,11 +8,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
 import 'package:sahool_app/core/session/session_scope.dart';
+import 'package:sahool_app/features/activities/data/activities_api.dart';
+import 'package:sahool_app/features/activities/data/activity_writer.dart';
+import 'package:sahool_app/features/irrigation/data/irrigation_api.dart';
+import 'package:sahool_app/features/irrigation/presentation/ledger/water_ledger_cubit.dart';
+import 'package:sahool_app/features/lab_sampling/data/lab_sampling_api.dart';
 import 'package:sahool_app/features/offline_sync/data/durable_offline_outbox.dart';
 import 'package:sahool_app/features/offline_sync/data/offline_sync_api.dart';
 import 'package:sahool_app/features/offline_sync/data/outbox_record.dart';
 import 'package:sahool_app/features/offline_sync/data/outbox_store.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
+import 'package:sahool_app/features/scouting/data/scouting_api.dart';
+import 'package:sahool_app/features/tasks/data/tasks_api.dart';
 
 import '../../core/fake_http.dart';
 import 'outbox_test_support.dart';
@@ -123,6 +130,104 @@ void main() {
       expect(h.adapter.to('/api/v1/sync'), isEmpty);
       expect(h.store.records, isEmpty, reason: '2xx ⇒ removed');
     });
+
+    test(
+      'every producer kind replays generically over its own method, '
+      'path and body; unknown kinds too; nothing goes to /api/v1/sync',
+      () async {
+        final h = Harness();
+        // كلّ نوع يُودِعه منتِج حقيقيّ في التطبيق، بمساره من مساعد ميزته.
+        final ops = [
+          op(
+            scoutingPinCreatePath('f1'),
+            method: 'POST',
+            kind: 'observation_create',
+            body: {'pin_id': 'p1', 'lat': 15.3, 'lon': 44.2},
+          ),
+          op(TasksApi.taskPath('t1'), kind: 'task_update'),
+          op(
+            ActivitiesApi.activitiesPath('f1'),
+            method: 'POST',
+            kind: ActivityWriter.outboxKind({'performed_on': '2026-10-26'}),
+            body: {'activity_type': 'irrigation', 'performed_on': '2026-10-26'},
+          ),
+          op(
+            ActivitiesApi.activitiesPath('f2'),
+            method: 'POST',
+            kind: ActivityWriter.outboxKind({'activity_type': 'sowing'}),
+            body: {'activity_type': 'sowing'},
+          ),
+          op(
+            IrrigationApi.waterLedgerPath('f1'),
+            method: 'POST',
+            kind: kWaterAppliedKind,
+            body: {'water_applied_mm': 12.5},
+          ),
+          op(
+            '/api/v1/inventory/items/i1/batches',
+            method: 'POST',
+            kind: 'inventory_batch_add',
+            body: {'quantity': 3},
+          ),
+          op(
+            '/api/v1/equipment/e1/maintenance',
+            method: 'POST',
+            kind: 'equipment_maintenance_log',
+            body: {'note': 'زيت'},
+          ),
+          op(
+            LabSamplingApi.samplesPath,
+            method: 'POST',
+            kind: 'lab_sample_create',
+            body: {'field_id': 'f1'},
+          ),
+          op(
+            '/api/v1/farm-book/entries',
+            method: 'POST',
+            kind: 'farm_book_entry',
+            body: {'amount': 1000},
+          ),
+          op(
+            '/api/v1/some/new/endpoint',
+            method: 'PUT',
+            kind: 'a_kind_added_after_this_build',
+            body: {'x': 1},
+          ),
+        ];
+        expect(ops.map((o) => o.kind).toSet(), {
+          'observation_create',
+          'task_update',
+          'activity_complete',
+          'activity_create',
+          'water_applied',
+          'inventory_batch_add',
+          'equipment_maintenance_log',
+          'lab_sample_create',
+          'farm_book_entry',
+          'a_kind_added_after_this_build',
+        });
+        for (final o in ops) {
+          expect(validateOutboxOp(o), isNull, reason: o.kind);
+          expect((await h.outbox.enqueue(o)).queued, isTrue, reason: o.kind);
+        }
+        h.connectivity.value = true;
+        await h.settle();
+
+        expect(h.adapter.requests, hasLength(ops.length));
+        for (var i = 0; i < ops.length; i++) {
+          final r = h.adapter.requests[i];
+          expect(r.path, ops[i].path, reason: ops[i].kind);
+          expect(r.method, ops[i].method, reason: ops[i].kind);
+          expect(r.data, ops[i].body, reason: ops[i].kind);
+          expect(r.headers[kIdempotencyHeader], ops[i].idempotencyKey);
+        }
+        expect(
+          h.adapter.requests.where((r) => r.path.startsWith('/api/v1/sync')),
+          isEmpty,
+        );
+        expect(h.store.records, isEmpty, reason: '2xx ⇒ removed');
+      },
+    );
 
     test(
       'the same Idempotency-Key is reused on every retry of one op',

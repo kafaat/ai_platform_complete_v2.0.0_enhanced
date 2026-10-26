@@ -75,6 +75,24 @@ void main() {
     await tester.pump();
   }
 
+  test('every kind an app producer enqueues has an Arabic label', () {
+    for (final kind in [
+      'observation_create',
+      'task_update',
+      'activity_complete',
+      'activity_create',
+      'water_applied',
+      'inventory_batch_add',
+      'equipment_maintenance_log',
+      'lab_sample_create',
+      'farm_book_entry',
+    ]) {
+      expect(outboxKindLabelAr(kind), isNot(kind), reason: kind);
+    }
+    // نوع لا يعرفه هذا الإصدار يُعرض باسمه، لا يُخفى ولا يُرفض.
+    expect(outboxKindLabelAr('new_kind'), 'new_kind');
+  });
+
   testWidgets('loading while the encrypted box opens', (tester) async {
     final never = Completer<OutboxStore>();
     final outbox = DurableOfflineOutbox(
