@@ -4,6 +4,8 @@ import 'package:sahool_app/core/network/api_client.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
 import 'package:sahool_app/core/network/response_shape.dart';
 
+import 'equipment_models.dart';
+
 class EquipmentApi {
   EquipmentApi([ApiClient? client]) : _client = client ?? ApiClient.instance;
   static final EquipmentApi instance = EquipmentApi();
@@ -39,4 +41,15 @@ class EquipmentApi {
       idempotencyKey: idempotencyKey,
     ),
   );
+
+  // ── نسخ مُنمَّطة (إضافيّة؛ الدوالّ أعلاه باقية لمستهلكيها) ──────────────
+
+  Future<List<Equipment>> listEquipment() async =>
+      (await getEquipment()).map(Equipment.fromJson).toList();
+
+  /// الأحدث أوّلاً (COALESCE(performed, scheduled) DESC على الخادم).
+  Future<List<MaintenanceRecord>> listMaintenance(String equipmentId) async =>
+      (await getMaintenance(
+        equipmentId,
+      )).map(MaintenanceRecord.fromJson).toList();
 }
