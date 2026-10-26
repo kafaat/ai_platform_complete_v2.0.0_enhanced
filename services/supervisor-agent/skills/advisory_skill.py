@@ -74,6 +74,17 @@ async def _query_local_rag(question: str, token: str | None) -> dict[str, Any] |
     return data
 
 
+def _source_labels(sources: Any) -> list[str]:
+    """RAG sources are dicts ({source, page, snippet}); the API exposes string labels."""
+    labels: list[str] = []
+    for item in sources if isinstance(sources, list) else []:
+        if isinstance(item, dict):
+            item = item.get("title") or item.get("source_uri") or item.get("source")
+        if isinstance(item, str) and item.strip() and item.strip() not in labels:
+            labels.append(item.strip())
+    return labels
+
+
 class AdvisorySkill:
     """
     Domain skill for agricultural advisory and pest/disease identification.
@@ -207,20 +218,21 @@ class AdvisorySkill:
             source = advisory_source(LOCAL_AI_RAG_URL or None, rag_ok)
 
             if source == "llm-rag":
-                # وسم دقيق: إجابة LLM حقيقيّة من قاعدة المعرفة المُؤرَّضة.
-                rag_sources = rag_data.get("sources") or []
+                # Model output grounded on retrieved documents, but neither calibrated
+                # nor validated: labelled as such for the caller.
                 return {
                     "type": "general_advice",
                     "response": rag_data.get("answer", ""),
                     "source": "llm-rag",
-                    "calibrated": True,
+                    "calibrated": False,
+                    "ai_generated": True,
                     "model": rag_data.get("model"),
-                    "sources": rag_sources,
+                    "sources": _source_labels(rag_data.get("sources")),
                 }
 
             # ── ارتداد القوالب (المصدر الافتراضيّ الصادق) ──────────────────────────
             advice_templates = {
-                "زراعة قمح": "🌾 **زراعة القمح في اليمن:**\n1. التوقيت: نوفمبر–ديسمبر\n2. الصنف: الحمداني أو البيضاني\n3. التسميد: 80kg N/ha عند الزراعة + 40kg عند التفرعات\n4. الري: 3–4 مرات حسب الأمطار\n5. الحصاد: مايو–يونيو",
+                "زراعة قمح": "🌾 **زراعة القمح في اليمن:**\n1. التوقيت: نوفمبر–ديسمبر\n2. الصنف: الحمداني أو البيضاني\n3. التسميد: حسب تحليل تربة معتمد ووصفة تسميد مراجعة للحقل (لا جرعة عامة)\n4. الري: 3–4 مرات حسب الأمطار\n5. الحصاد: مايو–يونيو",
                 "ري ذكي": "💧 **الري الذكي:**\n1. استخدم مقياس رطوبة التربة\n2. ري عند 30% رطوبة\n3. الري بالتنقيط يوفر 40% مياه\n4. ري صباحاً لتقليل التبخر\n5. تجنب الري عند توقع أمطار",
                 "تسميد": "🧪 **التسميد المتوازن:**\n1. حلل التربة أولاً\n2. NPK حسب المحصول والمرحلة\n3. لا تفرط في النيتروجين — يؤخر النضج\n4. استخدم السماد العضوي مع الكيميائي\n5. التسميد الجوري أفضل من البث",
                 "حصاد": "🚜 **نصائح الحصاد:**\n1. راقب رطوبة الحبوب (13–14%)\n2. حصاد في الصباح الباكر\n3. تجفيف فوري إذا كانت الرطوبة >15%\n4. تخزين في صوامع نظيفة\n5. راقب درجة الحرارة في المخزن",

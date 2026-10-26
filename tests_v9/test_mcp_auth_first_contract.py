@@ -185,7 +185,9 @@ def test_mcp_http200_tool_error_is_failure(live_mcp_contract):
         ]
         import circuit_breaker
 
-        assert circuit_breaker.mcp_breakers.get("market").status()["failures"] == 1
+        # A tool's isError reply is the server answering (often about the caller's own
+        # arguments): it must not count toward opening the breaker shared by all tenants.
+        assert circuit_breaker.mcp_breakers.get("market").status()["failures"] == 0
         await client.close()
 
     asyncio.run(scenario())
