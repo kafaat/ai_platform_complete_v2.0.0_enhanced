@@ -241,3 +241,41 @@ def test_free_suffix_refusal_is_openrouter_only(monkeypatch):
     cfg = resolve_ai_provider()
     assert cfg.available is True
     assert cfg.model == "my-farm-model:free"
+
+
+_OPENROUTER_CATALOG = "deepseek/deepseek-chat|DeepSeek,google/gemini-3-pro|Gemini 3 Pro"
+
+
+def test_leftover_openrouter_catalog_does_not_override_anthropic_model(monkeypatch):
+    """`AI_MODELS` is global: switching to Anthropic with an OpenRouter catalog still set
+    must resolve ANTHROPIC_MODEL, never send `deepseek/deepseek-chat` to Anthropic."""
+    _clear(monkeypatch)
+    monkeypatch.setenv("AI_PROVIDER", "anthropic")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    monkeypatch.setenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
+    monkeypatch.setenv("AI_MODELS", _OPENROUTER_CATALOG)
+    cfg = resolve_ai_provider()
+    assert cfg.model == "claude-sonnet-4-6"
+    assert cfg.models == []
+    # A UI request for a leftover catalog id is not an allowlisted Anthropic model.
+    assert resolve_ai_provider("deepseek/deepseek-chat").model == "claude-sonnet-4-6"
+
+
+def test_leftover_catalog_without_anthropic_model_fails_closed(monkeypatch):
+    _clear(monkeypatch)
+    monkeypatch.setenv("AI_PROVIDER", "anthropic")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    monkeypatch.setenv("AI_MODELS", _OPENROUTER_CATALOG)
+    cfg = resolve_ai_provider()
+    assert cfg.model == ""
+    assert cfg.available is False
+
+
+def test_openrouter_catalog_drops_ids_from_another_provider(monkeypatch):
+    _clear(monkeypatch)
+    monkeypatch.setenv("AI_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
+    monkeypatch.setenv("AI_MODELS", "claude-sonnet-4-6|Claude," + _OPENROUTER_CATALOG)
+    cfg = resolve_ai_provider()
+    assert cfg.model == "deepseek/deepseek-chat"
+    assert [m["id"] for m in cfg.models] == ["deepseek/deepseek-chat", "google/gemini-3-pro"]
