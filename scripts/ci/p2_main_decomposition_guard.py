@@ -21,6 +21,22 @@ def _loc(rel: str) -> int:
     return len(_text(rel).splitlines())
 
 
+def _imports_module(source: str, module: str) -> bool:
+    """Does ``source`` really import ``module`` (``import m`` / ``import m as x`` / ``from m import ...``)?
+
+    Decided on the AST, not on text: the actuator ``main.py`` docstring names
+    ``from actuator_runtime import *`` while the code does ``import actuator_runtime as
+    _runtime``, so a substring check was satisfied by a comment and would have stayed
+    green with the real import gone.
+    """
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import) and any(a.name == module for a in node.names):
+            return True
+        if isinstance(node, ast.ImportFrom) and node.module == module and not node.level:
+            return True
+    return False
+
+
 def _function_names(rel: str) -> set[str]:
     tree = ast.parse(_text(rel), filename=rel)
     return {
@@ -52,7 +68,7 @@ def main() -> int:
     _assert_file(actuator_runtime)
     if _loc(actuator_main) > 80:
         raise SystemExit(f"actuator main.py regression: LOC {_loc(actuator_main)} > 80")
-    if "from actuator_runtime import *" not in _text(actuator_main):
+    if not _imports_module(_text(actuator_main), "actuator_runtime"):
         raise SystemExit("actuator main.py no longer delegates to actuator_runtime")
     _assert_heavy_extracted(
         "actuator",
@@ -74,7 +90,7 @@ def main() -> int:
     _assert_file(sam2_runtime)
     if _loc(sam2_main) > 170:
         raise SystemExit(f"sam2 main.py regression: LOC {_loc(sam2_main)} > 170")
-    if "import sam2_runtime as rt" not in _text(sam2_main):
+    if not _imports_module(_text(sam2_main), "sam2_runtime"):
         raise SystemExit("sam2 main.py no longer delegates to sam2_runtime")
     _assert_heavy_extracted(
         "sam2",
@@ -95,7 +111,7 @@ def main() -> int:
     _assert_file(weather_runtime)
     if _loc(weather_main) > 80:
         raise SystemExit(f"weather main.py regression: LOC {_loc(weather_main)} > 80")
-    if "import weather_runtime as rt" not in _text(weather_main):
+    if not _imports_module(_text(weather_main), "weather_runtime"):
         raise SystemExit("weather main.py no longer delegates to weather_runtime")
     _assert_heavy_extracted(
         "weather",
