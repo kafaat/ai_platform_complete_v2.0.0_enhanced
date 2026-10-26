@@ -76,6 +76,23 @@ STAC_LOOKBACK_DAYS = int(os.getenv("STAC_LOOKBACK_DAYS", "120").strip() or "120"
 STAC_MAX_CLOUD = float(os.getenv("STAC_MAX_CLOUD", "20").strip() or "20")
 HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "30").strip() or "30")
 
+# image_ref يصل من المستدعي ثمّ يُفتَح بـGDAL؛ فأيّ رابط/مسار يُقبَل هنا قراءةٌ باسم الخدمة:
+# http إلى عنوان البيانات الوصفيّة للسحابة، مسار محلّيّ (/etc/passwd)، أو سائق /vsi*
+# (/vsizip · /vsicurl …). لذا نقبل https فقط وإلى مضيفي COG معروفين: أصول visual التي
+# يُرجِعها Element84 Earth Search لـsentinel-2-l2a مستضافة في دلو sentinel-cogs العامّ.
+# قابلة للتجاوز بقائمة مضيفين مفصولة بفواصل (مطابقة تامّة للمضيف، بلا أنماط).
+_DEFAULT_IMAGE_HOSTS = "sentinel-cogs.s3.us-west-2.amazonaws.com,sentinel-cogs.s3.amazonaws.com"
+IMAGE_HOST_ALLOWLIST = frozenset(
+    h.strip().lower()
+    for h in (os.getenv("SAM2_IMAGE_HOST_ALLOWLIST", _DEFAULT_IMAGE_HOSTS) or "").split(",")
+    if h.strip()
+)
+
+# مهلات GDAL الشبكيّة: بلا ضبطٍ صريح ينتظر /vsicurl/ بلا حدّ، فيعلّق COG بطيءٌ عاملَ
+# الاستدلال الوحيد. تُضبط في بيئة العمليّة قبل أوّل استيراد لـrasterio ما لم يضبطها المشغّل.
+os.environ.setdefault("GDAL_HTTP_TIMEOUT", "30")
+os.environ.setdefault("GDAL_HTTP_CONNECTTIMEOUT", "10")
+
 # سقف أبعاد القراءة من الصورة (بكسل) — يمنع استهلاك ذاكرة GPU/CPU مفرطاً.
 MAX_IMAGE_DIM = int(os.getenv("MAX_IMAGE_DIM", "1024").strip() or "1024")
 
@@ -218,11 +235,51 @@ def _coerce_user_ring(user_polygon) -> list[list[float]] | None:
 
 
 # ─── جلب صورة Sentinel-2 RGB للـbbox ──────────────────────────────────────
+def _image_ref_rejection(ref: str) -> HTTPException:
+    return HTTPException(
+        status_code=422,
+        detail={
+            "error": "image_ref_not_allowed",
+            "note_ar": "image_ref يجب أن يكون رابط https إلى مضيف COG مسموح؛ "
+            "المسارات المحلّيّة وبادئات /vsi* ومخطّطات أخرى مرفوضة",
+        },
+    )
+
+
+def _looks_like_location(ref: str) -> bool:
+    """هل المرجع رابطٌ/مسارٌ (يُقرأ مباشرة) لا معرّف مشهد (يسقط إلى STAC)؟"""
+    lowered = ref.lower()
+    return "://" in ref or ref.startswith(("/", "\\")) or lowered.startswith("vsi")
+
+
+def _validate_image_url(ref: str) -> str:
+    """يُرجِع الرابط إن كان https إلى مضيف مسموح، وإلّا يرفع 422. لا يلمس الشبكة."""
+    from urllib.parse import urlsplit
+
+    try:
+        parts = urlsplit(ref)
+        port = parts.port
+    except ValueError:
+        raise _image_ref_rejection(ref) from None
+    host = (parts.hostname or "").lower()
+    if (
+        parts.scheme.lower() != "https"
+        or not host
+        or host not in IMAGE_HOST_ALLOWLIST
+        or parts.username is not None
+        or parts.password is not None
+        or port not in (None, 443)
+    ):
+        raise _image_ref_rejection(ref)
+    return ref
+
+
 def _resolve_image_url(image_ref: str | None, field_bbox: list[float] | None) -> str:
     """يحدّد رابط COG قابلاً للقراءة عبر /vsicurl/.
 
     الأولويّة:
-      ١. image_ref إن كان رابط http(s)/s3/مسار محلّيّ → استخدمه مباشرة.
+      ١. image_ref إن كان رابط https إلى مضيف COG مسموح → استخدمه مباشرة؛ وأيّ
+         رابط/مسار آخر (http · s3 · مسار محلّيّ · /vsi*) → 422 (لا يبلغ GDAL).
       ٢. وإلّا (لا image_ref صالح) استعلم Element84 STAC عن أحدث صورة Sentinel-2
          صافية للـbbox، واستخدم أصل visual (RGB) لها.
       ٣. تعذّر الجلب ⇒ يرفع HTTPException 503/422 صادقاً (لا اختراع صورة).
@@ -230,8 +287,8 @@ def _resolve_image_url(image_ref: str | None, field_bbox: list[float] | None) ->
     # ١. image_ref رابط جاهز.
     if image_ref:
         ref = image_ref.strip()
-        if ref.startswith(("http://", "https://", "/vsicurl/", "s3://", "/")):
-            return ref
+        if _looks_like_location(ref):
+            return _validate_image_url(ref)
         # مرجع مشهد غير قابل للقراءة مباشرة — نسقط للـSTAC أدناه.
 
     # ٢. لا رابط صالح — نحتاج bbox للبحث في STAC.
@@ -305,10 +362,9 @@ def _read_rgb(image_url: str, bbox: list[float] | None):
     from rasterio.warp import transform_bounds
     from rasterio.windows import from_bounds
 
-    # توحيد البادئة لـGDAL: روابط http(s) تُقرأ عبر /vsicurl/.
-    src_path = image_url
-    if image_url.startswith(("http://", "https://")):
-        src_path = f"/vsicurl/{image_url}"
+    # الحارس عند المصبّ أيضاً: رابط STAC أو أيّ مستدعٍ آخر يمرّ بنفس القائمة قبل GDAL.
+    # روابط https المسموحة تُقرأ عبر /vsicurl/؛ لا مسار آخر يبلغ rasterio.open.
+    src_path = f"/vsicurl/{_validate_image_url(image_url)}"
 
     try:
         with rasterio.open(src_path) as src:
