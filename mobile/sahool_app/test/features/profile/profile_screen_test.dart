@@ -114,6 +114,9 @@ void main() {
       find.byKey(const ValueKey('profile_theme')),
       200,
     );
+    await tester.tap(find.text('داكن'));
+    await tester.pumpAndSettle();
+    expect(theme.value, ThemeMode.dark);
     await tester.tap(find.text('فاتح'));
     await tester.pumpAndSettle();
     expect(theme.value, ThemeMode.light);

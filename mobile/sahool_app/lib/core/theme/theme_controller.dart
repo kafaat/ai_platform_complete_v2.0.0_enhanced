@@ -1,18 +1,16 @@
 // SAHOOL — lib/core/theme/theme_controller.dart
 // وضع السمة (فاتح/داكن/النظام) قابلاً للتبديل والحفظ في صندوق Hive 'settings'.
 //
-// الافتراضيّ اليوم داكن، عن قصد ومؤقّتاً: معظم الشاشات المنقولة ما زالت تثبّت
-// خلفيّات داكنة ونصّاً أبيض (kBg/kSurface في state_views)، فتحت سمة فاتحة تصير
-// حقول الإدخال نصّاً أبيض على تعبئة فاتحة لا يُقرأ. حين تنتقل الشاشات إلى
-// Theme.of(context)/context.tokens (موجة 2) يُبدَّل [defaultMode] إلى light — وهو
-// المطلوب للقراءة تحت الشمس. التبديل اليدويّ متاح من الآن (شاشة الحساب).
+// الافتراضيّ فاتح: أقرأ تحت الشمس. كانت داكنة مؤقّتاً حين ثبّتت الشاشات المنقولة
+// خلفيّات داكنة ونصّاً أبيض؛ بعد موجة 2 تقرأ الشاشات Theme.of(context)/
+// context.tokens. المستخدم يغيّرها من شاشة الحساب، ويُحفَظ اختياره.
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class ThemeController extends ValueNotifier<ThemeMode> {
   ThemeController([super.value = defaultMode]);
 
-  static const ThemeMode defaultMode = ThemeMode.dark;
+  static const ThemeMode defaultMode = ThemeMode.light;
   static const String _boxName = 'settings';
   static const String _key = 'theme_mode';
 

@@ -4,6 +4,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sahool_app/core/theme/app_theme.dart';
+import 'package:sahool_app/core/theme/theme_controller.dart';
 import 'package:sahool_app/main.dart';
 
 void main() {
@@ -19,6 +21,17 @@ void main() {
     expect(MaterialLocalizations.of(ctx), isNotNull);
     await t.enterText(find.byKey(const ValueKey('probe')), 'حقل');
     expect(find.text('حقل'), findsOneWidget);
+  });
+
+  testWidgets('the default theme is light (readable in sunlight)', (t) async {
+    expect(ThemeController.defaultMode, ThemeMode.light);
+    expect(ThemeController().value, ThemeMode.light);
+    await t.pumpWidget(const SAHOOLApp(home: Scaffold(body: Text('root'))));
+    await t.pumpAndSettle();
+    final ctx = t.element(find.text('root'));
+    expect(Theme.of(ctx).brightness, Brightness.light);
+    expect(Theme.of(ctx).scaffoldBackgroundColor,
+        AppTheme.light.scaffoldBackgroundColor);
   });
 
   testWidgets('unknown deep link shows a page, not a crash', (t) async {

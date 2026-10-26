@@ -226,13 +226,13 @@ AppRoute(
   `fmtMm`, `fmtTempC`, `fmtPct`, `fmtYieldKgHa`, `fmtYer`, `fmtDate` and
   `fmtDateTime`. These use Western digits, matching the web, and Arabic units
   هـ, مم, °م, كجم/هـ, ٪ and ر.ي. Dates are converted with `toLocal()`.
-- **Theme mode**: light and dark both exist. The default is dark for now
-  (`ThemeController.defaultMode`), because the moved screens still hard-code
-  dark surfaces (`kBg`, `kSurface` and white text). Under the light theme,
-  their inputs would show white text on a light fill. When you migrate a
-  screen, replace `kBg`/`kSurface`/`kPrimary`/`Colors.white*` with theme
-  reads. Once every screen has migrated, the coordinator flips the default to
-  `ThemeMode.light`, which reads better in sunlight.
+  `fmtM3`, `fmtM3PerHa`, `fmtMinutes`, `fmtClock`, `fmtKmh`, `fmtHoursShort`
+  and `fmtDayName` are there too.
+- **Theme mode**: light and dark both exist. The default is light
+  (`ThemeController.defaultMode`), which reads better in sunlight; the user
+  can switch in the account screen. Read colours from `Theme.of(context)` and
+  `context.tokens`; do not use the legacy `kBg`/`kSurface`/`kPrimary`
+  constants or `Colors.white*` for text, which only read on dark surfaces.
 - **Font**: the system Arabic font for now (`SahoolType.fontFamily = null`).
   Cairo is OFL licensed but its `.ttf` files are not in the repo. Bundling it
   is a coordinator change (assets and pubspec).
