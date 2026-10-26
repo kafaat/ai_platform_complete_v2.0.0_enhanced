@@ -3,6 +3,11 @@
 // ولا تعرف تنفيذه؛ يملكه وكيل offline_sync وحده ويستبدل [OfflineOutbox.instance]
 // بتنفيذٍ دائم (Hive، مقيَّد بالمستخدم والمستأجر، يُفرَّغ عند عودة الاتّصال بمفتاح
 // Idempotency-Key ثابت). التنفيذ الافتراضيّ صادق: لا يدّعي الحفظ.
+//
+// [OfflineOutbox.instance] صار التنفيذ الدائم (data/durable_offline_outbox.dart)،
+// يُنشأ كسولاً عند أوّل وصول ولا يفتح شيئاً قبل أوّل استعمال. إن تعذّر فتح
+// الصندوق المشفّر أو لا جلسة، يُعيد enqueue «notQueued» بسببٍ صريح كما كان.
+import 'data/durable_offline_outbox.dart';
 
 /// عمليّة كتابة مؤجَّلة.
 class OutboxOp {
@@ -43,8 +48,11 @@ class OutboxReceipt {
 }
 
 abstract class OfflineOutbox {
-  /// يستبدله وكيل offline_sync بالتنفيذ الدائم.
-  static OfflineOutbox instance = const _UnavailableOutbox();
+  /// التنفيذ الدائم (كسول). قابل للاستبدال في الاختبارات.
+  static OfflineOutbox instance = DurableOfflineOutbox.shared;
+
+  /// تنفيذ لا يحفظ شيئاً ويقول ذلك — لاختبارات الميزات الأخرى.
+  static const OfflineOutbox unavailable = _UnavailableOutbox();
 
   Future<OutboxReceipt> enqueue(OutboxOp op);
 
