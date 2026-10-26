@@ -55,7 +55,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7da2bc85053c7aa55bab098c026f49a8ef1314092b154d92ecd9cdb6267412e7"
+          "content": "c6c43fd22a503410ee79fce551b2f1f9e0125d124c2cec0adde589117e58e6db"
         }
       ],
       "name": "docker-compose.rag-kg-mcp.yml",
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ead86723a0b4131dd042b55fd9eb8e19cfd08f6b584cc2b6423bc1a99bc9a5a"
+          "content": "7b57b414267217f2b51cf0f5d91d1815951c93a1a415966c9021f98cb8414811"
         }
       ],
       "name": "docker-compose.v9.gpu.yml",
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "65e20f4e147c4ac5905a91e6ef1ab73b06cd9892933c9453741dfe716a81d6a3"
+          "content": "9c7cd2175a3d37a677cea2b2bb8ef92805b0dcde1990acf43c99ef7d7faeb05c"
         }
       ],
       "name": "docker-compose.v9.yml",
