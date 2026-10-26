@@ -1,0 +1,409 @@
+{
+  "schema_version": 1,
+  "purpose": "Railway build watch patterns per service, so a PR's deploy effect is derived (scripts/ci/railway_deploy_impact.py), not written by hand. PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01.",
+  "captured_at": "2026-10-26T09:39:58Z",
+  "project": {
+    "id": "33c50993-1110-43eb-8e92-04c15edae51e",
+    "name": "sahool-staging"
+  },
+  "source": "Railway MCP describe-environment + get-service-config, read-only (0 mutations, no variable values or names). Staging soil, weather and ai-agronomist read with get-service-config directly: describe-environment returns source null for them although they deploy from main.",
+  "semantics": "Railway watch paths are gitignore-style and relative to the repository root even when a root directory is set; a push whose changed files match no pattern of a service skips that service. https://docs.railway.com/builds/build-configuration#configure-watch-paths",
+  "refresh": "Re-capture read-only and run `python3 scripts/ci/railway_deploy_impact.py --compare <new.json>`; any difference means this file is stale.",
+  "services": [
+    {
+      "environment": "production",
+      "service": "sahool-auth",
+      "service_id": "f37b4995-25cc-4f9b-a5f9-14d6759ccd1a",
+      "branch": "deploy/sahool-staging-fa92a1f7",
+      "dockerfile_path": "services/auth/Dockerfile",
+      "watch_patterns": [
+        "/services/auth/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-auth-main",
+      "service_id": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+      "branch": "main",
+      "dockerfile_path": "services/auth/Dockerfile",
+      "watch_patterns": [
+        "/services/auth/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-decision-service",
+      "service_id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+      "branch": "main",
+      "dockerfile_path": "services/decision-service/Dockerfile",
+      "watch_patterns": [
+        "/services/decision-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-field-management-service",
+      "service_id": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+      "branch": "main",
+      "dockerfile_path": "services/field-management-service/Dockerfile",
+      "watch_patterns": [
+        "/services/field-management-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-frontend",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "branch": "main",
+      "dockerfile_path": "deploy/railway/Dockerfile.frontend",
+      "watch_patterns": [
+        "/frontend/**",
+        "/deploy/railway/Dockerfile.frontend",
+        "/deploy/railway/render_frontend.py"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-guardrails-engine",
+      "service_id": "65cee1c0-8473-4219-b246-1b4015190938",
+      "branch": "main",
+      "dockerfile_path": "services/guardrails-engine/Dockerfile",
+      "watch_patterns": [
+        "/services/guardrails-engine/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-migrate-main",
+      "service_id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+      "branch": "main",
+      "dockerfile_path": "deploy/railway/Dockerfile.migrate",
+      "watch_patterns": [
+        "/migrations/**",
+        "/deploy/railway/Dockerfile.migrate"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-notification-agent",
+      "service_id": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+      "branch": "main",
+      "dockerfile_path": "agents/notification/Dockerfile",
+      "watch_patterns": [
+        "/agents/notification/**",
+        "/agents/base_agent.py",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-platform",
+      "service_id": "fa8afb01-d0c4-468f-852d-8a75ea97a6c3",
+      "branch": "deploy/sahool-staging-fa92a1f7",
+      "dockerfile_path": "services/sahool-platform/Dockerfile",
+      "watch_patterns": [
+        "/services/sahool-platform/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-raster-main-candidate",
+      "service_id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+      "branch": "main",
+      "dockerfile_path": "services/raster-service/Dockerfile",
+      "watch_patterns": [
+        "/services/raster-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-raster-service",
+      "service_id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+      "branch": "main",
+      "dockerfile_path": "services/raster-service/Dockerfile",
+      "watch_patterns": [
+        "/services/raster-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-tts-service",
+      "service_id": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+      "branch": "main",
+      "dockerfile_path": "services/tts-service/Dockerfile",
+      "watch_patterns": [
+        "/services/tts-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "production",
+      "service": "sahool-vegetation-analysis",
+      "service_id": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+      "branch": "main",
+      "dockerfile_path": "services/vegetation-analysis-service/Dockerfile",
+      "watch_patterns": [
+        "/services/vegetation-analysis-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-ai-agronomist",
+      "service_id": "671188de-2a64-4233-8be5-1ac1718b38f0",
+      "branch": "main",
+      "dockerfile_path": "services/ai_agronomist/Dockerfile",
+      "watch_patterns": [
+        "/services/ai_agronomist/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-auth-main",
+      "service_id": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+      "branch": "main",
+      "dockerfile_path": "services/auth/Dockerfile",
+      "watch_patterns": [
+        "/services/auth/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-decision-service",
+      "service_id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+      "branch": "main",
+      "dockerfile_path": "services/decision-service/Dockerfile",
+      "watch_patterns": [
+        "/services/decision-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-field-management-service",
+      "service_id": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+      "branch": "main",
+      "dockerfile_path": "services/field-management-service/Dockerfile",
+      "watch_patterns": [
+        "/services/field-management-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-frontend",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "branch": "main",
+      "dockerfile_path": "deploy/railway/Dockerfile.frontend",
+      "watch_patterns": [
+        "/frontend/**",
+        "/deploy/railway/Dockerfile.frontend",
+        "/deploy/railway/render_frontend.py"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-guardrails-engine",
+      "service_id": "65cee1c0-8473-4219-b246-1b4015190938",
+      "branch": "main",
+      "dockerfile_path": "services/guardrails-engine/Dockerfile",
+      "watch_patterns": [
+        "/services/guardrails-engine/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-migrate-main",
+      "service_id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+      "branch": "main",
+      "dockerfile_path": "deploy/railway/Dockerfile.migrate",
+      "watch_patterns": [
+        "/migrations/**",
+        "/deploy/railway/Dockerfile.migrate"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-notification-agent",
+      "service_id": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+      "branch": "main",
+      "dockerfile_path": "agents/notification/Dockerfile",
+      "watch_patterns": [
+        "/agents/notification/**",
+        "/agents/base_agent.py",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-platform",
+      "service_id": "fa8afb01-d0c4-468f-852d-8a75ea97a6c3",
+      "branch": "deploy/sahool-platform-db-ready-eb6da9df",
+      "dockerfile_path": "services/sahool-platform/Dockerfile",
+      "watch_patterns": [
+        "/services/sahool-platform/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-raster-main-candidate",
+      "service_id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+      "branch": "main",
+      "dockerfile_path": "services/raster-service/Dockerfile",
+      "watch_patterns": [
+        "/services/raster-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-raster-service",
+      "service_id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+      "branch": "main",
+      "dockerfile_path": "services/raster-service/Dockerfile",
+      "watch_patterns": [
+        "/services/raster-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-soil-service",
+      "service_id": "b92d960f-c267-47d7-a730-5c542d41c791",
+      "branch": "main",
+      "dockerfile_path": "services/soil-service/Dockerfile",
+      "watch_patterns": [
+        "/services/soil-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-tts-service",
+      "service_id": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+      "branch": "main",
+      "dockerfile_path": "services/tts-service/Dockerfile",
+      "watch_patterns": [
+        "/services/tts-service/**",
+        "/shared/**"
+      ],
+      "pinned_commit": "d301c13628ec400eaef6ad53f315373ac65692bf"
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-vegetation-analysis",
+      "service_id": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+      "branch": "main",
+      "dockerfile_path": "services/vegetation-analysis-service/Dockerfile",
+      "watch_patterns": [
+        "/services/vegetation-analysis-service/**",
+        "/shared/**"
+      ]
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-weather-service",
+      "service_id": "08b2cb3a-e22e-4f72-95e7-498635550de4",
+      "branch": "main",
+      "dockerfile_path": "services/weather-service/Dockerfile",
+      "watch_patterns": [
+        "/services/weather-service/**",
+        "/shared/**"
+      ]
+    }
+  ],
+  "not_repo_sourced": [
+    {
+      "environment": "production",
+      "service": "sahool-migrate",
+      "image": null
+    },
+    {
+      "environment": "production",
+      "service": "sahool-nats",
+      "image": "nats:2-alpine"
+    },
+    {
+      "environment": "production",
+      "service": "sahool-postgres",
+      "image": "postgis/postgis:15-3.4"
+    },
+    {
+      "environment": "production",
+      "service": "sahool-redis",
+      "image": "redis:7-alpine"
+    },
+    {
+      "environment": "production",
+      "service": "sahool-redis-state",
+      "image": "redis:7-alpine"
+    },
+    {
+      "environment": "production",
+      "service": "sahool-redis-state-0zaK",
+      "image": "redis:7-alpine"
+    },
+    {
+      "environment": "production",
+      "service": "wc005-postgres-live-proof",
+      "image": "postgres:16-alpine"
+    },
+    {
+      "environment": "staging",
+      "service": "platform-db-proof-20260927",
+      "image": "python@sha256:a36c24f9cbdf4fd0f52d67f0823eeac19c2028c637cecc392d97f980d4fec56b"
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-migrate",
+      "image": null
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-nats",
+      "image": "nats:2-alpine"
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-postgres",
+      "image": "postgis/postgis:15-3.4"
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-redis",
+      "image": "redis:7-alpine"
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-redis-state",
+      "image": "redis:7-alpine"
+    },
+    {
+      "environment": "staging",
+      "service": "sahool-redis-state-0zaK",
+      "image": "redis:7-alpine"
+    },
+    {
+      "environment": "staging",
+      "service": "tts-staging-acceptance-probe-20261023",
+      "image": "ghcr.io/railwayapp/function-bun:1.4.4"
+    },
+    {
+      "environment": "staging",
+      "service": "wc005-postgres-live-proof",
+      "image": "postgres:16-alpine"
+    }
+  ]
+}

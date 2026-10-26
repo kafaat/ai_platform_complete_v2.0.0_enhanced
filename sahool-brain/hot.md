@@ -1,3 +1,5 @@
+> 2026-10-26 — أثرُ النشر صار مشتقّاً: `scripts/ci/railway_deploy_impact.py` من لقطة أنماط مراقبة Railway، ويساوي ما بناه Railway في خمسة دمجات؛ و`sahool-tts-service` في staging مثبَّتٌ على `d301c136` لا يتبع `main` ([`log.md`](log.md)).
+
 > 2026-10-26 — #1285 مدموج ⇒ `73355f509`؛ أعاد نشرَ الواجهة وauth-main وsoil وvegetation (اختباراتٌ في مجلّداتها تطابق أنماط المراقبة) لا البوّابة وحدها كما قال وصفُه، فسُجّلت PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01؛ المهاجر لم يُطلَق ([`log.md`](log.md)).
 
 > 2026-10-26 — أسطولٌ من 26 وكيلاً على الفجوات المفتوحة: أُصلِح 6 (واحدٌ واجهةٌ ممسوكٌ للمالك)، تقدّمٌ جزئيّ في 8، وخمسة عشر قراراً للمالك في [`reports/owner_decisions_20261026.md`](reports/owner_decisions_20261026.md) ([`log.md`](log.md)).
