@@ -396,3 +396,97 @@ async def test_logical_event_receipts_isolate_tenant_user_and_channel(agent, mon
     await agent._deliver_channel({**event, "event_id": "logical-2"}, "email", sender)
     assert sender.await_count == 5
     assert len(conn.statuses) == 5
+
+
+@pytest.mark.asyncio
+async def test_nats_client_reconnects_forever_and_healthz_reports_closed_client(
+    agent, keys, monkeypatch
+):
+    """nats-py defaults to 60 reconnects then closes for good; /healthz must not hide that."""
+    connects = []
+
+    class FakeNATS:
+        is_closed = False
+        is_connected = True
+
+        async def connect(self, *args, **kwargs):
+            connects.append((args, kwargs))
+
+        def jetstream(self):
+            return _rejecting_js(RuntimeError("offline"))
+
+        async def close(self):
+            self.is_closed = True
+
+    monkeypatch.setattr(agent, "NATS", FakeNATS)
+    async with agent.lifespan(agent.app):
+        assert connects and connects[0][1].get("max_reconnect_attempts") == -1
+        assert (await agent.health())["status"] == "ok"
+        agent._nc.is_closed = True
+        with pytest.raises(agent.HTTPException) as exc:
+            await agent.health()
+        assert exc.value.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_concurrent_get_pool_creates_a_single_pool(agent, monkeypatch):
+    import asyncio
+
+    created = []
+
+    async def create_pool(*args, **kwargs):
+        await asyncio.sleep(0.01)
+        pool = object()
+        created.append(pool)
+        return pool
+
+    monkeypatch.setattr(agent, "DB_URL", "postgresql://db.invalid/sahool")
+    monkeypatch.setattr(agent, "_pool", None)
+    monkeypatch.setattr(agent.asyncpg, "create_pool", create_pool)
+    pools = await asyncio.gather(*(agent.get_pool() for _ in range(9)))
+    assert len(created) == 1
+    assert all(pool is created[0] for pool in pools)
+
+
+def test_email_html_escapes_event_supplied_text(agent):
+    page = agent.make_html("<script>t()</script>", "a<b>&", {"<k>": "<img src=x>"})
+    assert "<script>" not in page and "<img" not in page and "<k>" not in page
+    assert "&lt;script&gt;t()&lt;/script&gt;" in page
+    assert "a&lt;b&gt;&amp;" in page
+
+
+@pytest.mark.asyncio
+async def test_telegram_html_escapes_event_supplied_text(agent, monkeypatch):
+    conn = Connection()
+    monkeypatch.setattr(
+        agent, "get_pool", AsyncMock(return_value=SimpleNamespace(acquire=lambda: conn))
+    )
+    monkeypatch.setattr(agent.manager, "send_to_user", AsyncMock())
+    monkeypatch.setattr(
+        agent,
+        "get_prefs",
+        AsyncMock(
+            return_value={
+                "event_types": ["task.assigned"],
+                "telegram_enabled": True,
+                "telegram_chat_id": "42",
+            }
+        ),
+    )
+    telegram = AsyncMock(return_value=True)
+    monkeypatch.setattr(agent, "send_telegram", telegram)
+    await agent.dispatch(
+        {
+            "tenant_id": TENANT,
+            "user_id": "7",
+            "event_type": "task.assigned",
+            "event_id": "e-html",
+            "title": "<a href='x'>t</a>",
+            "message": "1 < 2 & 3 > 2",
+            "data": {"<i>k</i>": "<b>v</b>"},
+        }
+    )
+    text = telegram.call_args.args[1]
+    assert text.startswith("<b>&lt;a href='x'&gt;t&lt;/a&gt;</b>\n")
+    assert "1 &lt; 2 &amp; 3 &gt; 2" in text
+    assert "• &lt;i&gt;k&lt;/i&gt;: &lt;b&gt;v&lt;/b&gt;" in text
