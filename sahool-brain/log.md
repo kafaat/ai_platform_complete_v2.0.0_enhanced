@@ -10069,3 +10069,12 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **المقيس:** خمسة دمجات قُرئ ما بناه Railway لكلٍّ منها ([`docs/architecture/railway_deploy_measurements.json`](../docs/architecture/railway_deploy_measurements.json))، والمشتقّ يساويه في البيئتين. القياسُ كشف أنّ `sahool-tts-service` في staging مثبَّتٌ على `d301c136` ولم يُبنَ منذ 2026-10-17، فصُحّحت الأداة لئلّا تعدّ الخدمةَ المثبَّتة متأثّرة.
 - **التكذيب:** افتراضُ «ملفّات الاختبار لا تُطلق نشراً» يُسقط 3 اختبارات منها إعادةُ #1285، وعدُّ المثبَّتة متأثّرةً يُسقط #1277 و#1281.
 - **ترقياتٌ في هذا الـPR:** PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01 إلى `fixed`، ومعها MOBILE-FIELD-FORM-SCREEN-UNREACHABLE-FROM-NAVIGATION-01 وSERVICE-LOCAL-TESTS-UNRUN-BY-CI-01 اللتان أصلحهما #1285 ولم يرقِّ صفّيهما؛ شواهدُهما مقيسةٌ على `main` (انظر [`decisions/ledger.md`](decisions/ledger.md)).
+
+### 2026-10-26 — إعادة بناء تطبيق الهاتف
+
+بطلب المالك إعادةَ بناء تطبيق الهاتف كاملاً «ب 20 وكيل ذكاء». أربعة تدقيقات قراءةٍ فقط على `4da295f10`، ثمّ أساسٌ معماريّ (`lib/core` وموجِّهٌ يجمع وحدات الميزات وصندوق إرسالٍ دون اتّصال)، ثمّ خمسة عشر وكيلاً متوازياً لكلٍّ ميزتُه في شجرة عملٍ معزولة، ثمّ تمريرةُ تكاملٍ عابرة للميزات. الفرع `claude/mobile-overhaul-20261026`.
+
+- **المقيس:** `flutter test` 966 ناجحة و0 فاشلة (كانت 120+5)؛ `flutter analyze` 0 أخطاء و0 تحذيرات. 27 وحدة ميزة، 49 مساراً مسمّى، 87 قالب نداء `/api/v1` ([`docs/WEB_MOBILE_PARITY.md`](../docs/WEB_MOBILE_PARITY.md)).
+- **السجلّ:** 12 صفّاً `fixed` (بادئة `MOBILE-`) و16 `open` لِما ينقص الخادم (بادئة `PLATFORM-` و`RASTER-`)؛ التطبيق يعرض لكلٍّ منها «غير متاح بعد» صادقة بدل اختلاقها.
+- **أثر النشر:** لا خدمة Railway تراقب `mobile/**` ⇒ `Deploy-Effect: NONE`.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](reports/mobile_overhaul_20261026.md).

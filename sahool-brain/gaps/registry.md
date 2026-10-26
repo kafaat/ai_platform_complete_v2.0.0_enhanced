@@ -7743,3 +7743,187 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** وصفُ #1285 قال إنّ الدمج يُعيد نشر البوّابة الإنتاجيّة وحدها، وإنّ باقي تغييرات `services/**` في خدماتٍ ليست على Railway «plus test files». والمقيس بعد الدمج (Railway `list-deployments`، قراءةٌ فقط): أُعيد نشرُ `sahool-frontend` و`sahool-auth-main` و`sahool-vegetation-analysis` في production، و`sahool-soil-service` و`sahool-frontend` و`sahool-vegetation-analysis` في staging (نجحت كلّها؛ `sahool-auth-main` في staging آخرُها، 03:11Z)، والمهاجر لم يُطلَق. السبب: ملفّاتُ اختبارٍ تحت `services/auth/` و`services/soil-service/` و`services/vegetation-analysis-service/` تطابق أنماطَ المراقبة لتلك الخدمات، فتغييرُ اختبارٍ وحده يُطلق نشراً.
 - **الأثر:** لم يقع ضرر (الصور مبنيّةٌ من شجرةٍ مختبَرة، ولم يتغيّر غير الاختبارات في الخدمات الثلاث)، لكنّ تقدير «ما الذي سيُنشَر» هو ما يقرّر عليه المالك الدمجَ تحت التجميد، وكان ناقصاً. وأنماطُ المراقبة تعيش في إعداد Railway لا في المستودع، ولقطتُها الوحيدة المحفوظة [`certification/evidence/gap_reconciliation_20261014/current_pr_deployment_impact.json`](../../certification/evidence/gap_reconciliation_20261014/current_pr_deployment_impact.json) قياسٌ لمرّةٍ واحدة لا أداة.
 - **شرط الإغلاق:** أداةٌ تقابل المسارات المعدَّلة في الـPR بلقطةٍ ملتزَمة من أنماط المراقبة لكلّ خدمةٍ موصولةٍ بـ`main`، يُشتقّ منها سطرُ أثر النشر في الوصف، مع فحصٍ يكشف انجرافَ اللقطة عن Railway (قراءةً فقط).
+
+## MOBILE-PEST-DETECT-OMITS-FIELD-ID-01 — كشف الآفات يُرسَل بلا `field_id`
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): `ScoutingApi.detectPest` يرسل `field_id` ومحصول الحقل ونوع `image/*`. الاختبار: [`test/features/scouting/scouting_api_test.dart`](../../mobile/sahool_app/test/features/scouting/scouting_api_test.dart).
+- **المصدر:** `mobile/sahool_app/lib/services` (قبل الهيكلة) — الطلب متعدّد الأجزاء بلا `field_id` وبنوع `octet-stream` فترفضه خدمة الحافّة 415.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-WATER-LEDGER-POST-ERASES-DAY-ROW-01 — تسجيل الماء المضاف يمحو صفّ اليوم
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): العميل يقرأ صفّ اليوم ويعيد إرساله مغيّراً `irrigation_mm` وحده. الاختبار: [`test/features/irrigation/water_ledger_test.dart`](../../mobile/sahool_app/test/features/irrigation/water_ledger_test.dart).
+- **المصدر:** `services/sahool-platform/api/routers/water_ledger.py:77` يستبدل كلّ أعمدة اليوم؛ إرسال `irrigation_mm` وحده كان يمحو ET₀ والاستنزاف فتسقط التوصية إلى `insufficient_data`.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-VALVE-SWITCH-OPTIMISTIC-AND-REPEATABLE-01 — مفتاح الصمّام يتحرّك قبل ردّ الخادم ويُرسَل مكرّراً
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): حالة الخادم وحدها، تأكيد، طلب واحد لكلّ نيّة بمفتاح idempotency ثابت، والأدوار من `irrigation:manage`. لا مسار أوامر جديد (GATE-01). الاختبار: [`test/features/irrigation/irrigation_ops_test.dart`](../../mobile/sahool_app/test/features/irrigation/irrigation_ops_test.dart).
+- **المصدر:** شاشة الريّ التشغيليّ القديمة — المفتاح يتبدّل محلّيّاً، بلا تأكيد ولا قفل أثناء الطلب، ويظهر للعامل الذي يرفضه الخادم.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-FIELD-FORM-ACCEPTED-SHOWN-QUARANTINED-01 — نموذج حقليّ مقبول يُعرض محجوراً وإعادته تُحجَر
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): `SubmissionResult` يقرأ `trust_status` و`field_submission_id`؛ جسمُ المحاولة ثابتٌ بايتاً ببايت؛ مُرسِلٌ واحد؛ المرفوض لا يُحذف صامتاً. الاختبار: [`test/features/field_forms/submission_contract_test.dart`](../../mobile/sahool_app/test/features/field_forms/submission_contract_test.dart).
+- **المصدر:** عقد الإرسال كان يقرأ مفاتيح لا يرسلها الخادم، و`submitted_at` يُعاد توليده في كلّ محاولة فيصير التكرار حجراً بدل إزالة تكرار.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-FIELD-BOUNDARY-BOWTIE-AND-AREA-DRIFT-01 — رسم الحدود يقبل مضلّعاً متقاطعاً ومساحته تخالف الخادم
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): منفذ مطابق لصيغة الخادم (R=6371008.8، تقريب 7 خانات)، رفض التقاطع وحدود المساحة واليمن، ودائرة على نصف القطر تماماً. الاختبار: [`test/features/maps/draw/boundary_validation_test.dart`](../../mobile/sahool_app/test/features/maps/draw/boundary_validation_test.dart).
+- **المصدر:** معالج إنشاء الحقل القديم — لا فحص تقاطع ذاتيّ، ومساحةٌ بصيغة مختلفة (فرق 0.224٪)، ودائرةٌ بنصف قطر 399.55 م لطلب 400.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-FIELD-CREATE-RETRY-DUPLICATES-01 — إعادة إنشاء الحقل بعد مهلة تُرجع 409 تكرار اسم
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): مفتاح idempotency ثابت لكلّ معالج، و`irrigation_type` و`pivot` في الطلب نفسه. الاختبار: [`test/features/maps/draw/field_save_cubit_test.dart`](../../mobile/sahool_app/test/features/maps/draw/field_save_cubit_test.dart).
+- **المصدر:** المعالج القديم يولّد مفتاحاً جديداً لكلّ محاولة ويُرسل نوع الريّ في PATCH ثانٍ.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-SATELLITE-STALE-RESPONSE-AND-CLOUD-KEY-01 — استجابة قديمة تكتب فوق حقلٍ آخر ومرشّح السحب لا يعمل
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): حارس طلبٍ أخير ومفتاح `cloud_pct`. الاختبار: [`test/features/satellite/field_indicators_cubit_test.dart`](../../mobile/sahool_app/test/features/satellite/field_indicators_cubit_test.dart).
+- **المصدر:** شاشة الأقمار القديمة — لا حارس سباق، ومرشّح السحب يقرأ `cloudy_pct` والخادم يرسل `cloud_pct`.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-ADVISOR-CHAT-HISTORY-PLAINTEXT-01 — سجلّ دردشة المستشار مخزَّن نصّاً صريحاً
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): لا يُفتح، ويُحذف من القرص عند الإقلاع وعند فتح المستشار. الاختبار: [`test/features/advisor/chat_history_store_test.dart`](../../mobile/sahool_app/test/features/advisor/chat_history_store_test.dart).
+- **المصدر:** `mobile/sahool_app/lib/main.dart` كان يفتح صندوق Hive `chat_history` غير مشفّر.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-MULTIPART-RETRY-AFTER-REFRESH-CONSUMED-01 — إعادة رفع متعدّد الأجزاء بعد تجديد الرمز تُرسل جسماً مستهلَكاً
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): `FormData.clone()` عند الإعادة. الاختبار: [`test/core/api_client_test.dart`](../../mobile/sahool_app/test/core/api_client_test.dart).
+- **المصدر:** `mobile/sahool_app/lib/core/network/api_client.dart` — إعادة الطلب بعد 401 تمرّر `FormData` نفسه.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-EQUIPMENT-STATUS-NEVER-MATCHES-01 — حالة المعدّة لا تطابق أبداً
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): تسميات الحالة من قيد CHECK في قاعدة البيانات. الاختبار: [`test/features/equipment/equipment_test.dart`](../../mobile/sahool_app/test/features/equipment/equipment_test.dart).
+- **المصدر:** شاشة المعدّات القديمة تقارن بـ`'active'` الذي لا يرسله الخادم (`services/sahool-platform/api/routers/equipment.py:93`).
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-WORKSPACE-LINKS-TO-UNREGISTERED-ROUTES-01 — روابط مساحة الحقل إلى مسارات غير مسجَّلة
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): ثوابت المسارات تُحلّ عبر الموجِّه الحقيقيّ، وكلّ شاشة هدف تقرأ `field_id`. الاختبار: [`test/features/fields/cross_feature_routes_test.dart`](../../mobile/sahool_app/test/features/fields/cross_feature_routes_test.dart).
+- **المصدر:** روابط الإجراءات السريعة كانت إلى `/scouting/new` و`/crop-season` و`/lab-sampling` وغيرها غير الموجودة.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## MOBILE-REALTIME-EVENT-TYPE-KEY-01 — أحداث التنبيه الحيّة تُقرأ بمفتاح خاطئ
+
+- **الحالة:** fixed (2026-10-26) — إعادة بناء تطبيق الهاتف (فرع `claude/mobile-overhaul-20261026`): `event_type` أوّلاً ثمّ `type` ثمّ `event`. الاختبار: [`test/core/ws_event_test.dart`](../../mobile/sahool_app/test/core/ws_event_test.dart).
+- **المصدر:** `WsEvent.fromJson` كان يقرأ `type` بينما وكيل الإشعارات وناقل الأحداث يرسلان `event_type`.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-NO-PHOTO-BLOB-STORAGE-FOR-FIELD-RECORDS-01 — لا تخزين لملفّات الصور في المنصّة
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/scouting.py:77` و`tasks.py:86` — `photo_uri`/`photo_url` نصوص فقط؛ لا نقطة ترفع ملفّاً.
+- **شرط الإغلاق:** نقطة رفع للمستأجر مع ربطها بالمشاهدة أو المهمّة أو النموذج الحقليّ، والتطبيق يرفع الصور المحفوظة على الجهاز.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-NO-MANUAL-TASK-CREATE-ENDPOINT-01 — لا إنشاء يدويّ للمهامّ
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/tasks.py:36,86` — GET وPATCH فقط؛ لا `POST /api/v1/tasks` ولا GET لمهمّة واحدة.
+- **شرط الإغلاق:** `POST /api/v1/tasks` بمفتاح idempotency و`GET /api/v1/tasks/{id}`.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-TASK-PATCH-IGNORES-IDEMPOTENCY-KEY-01 — تحديث المهمّة لا يقرأ مفتاح idempotency
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/tasks.py:86` — آمن اليوم لأنّه يضبط قيماً، لكنّه لا يضمن ذلك لأيّ حقل تراكميّ لاحق.
+- **شرط الإغلاق:** قراءة `Idempotency-Key` وإعادة الردّ الأوّل.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-LAB-SAMPLE-CREATE-IGNORES-IDEMPOTENCY-KEY-01 — إنشاء عيّنة المختبر يتجاهل مفتاح idempotency
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/soil_sampling.py:168` — إعادة الطلب من صندوق الإرسال دون اتّصال تُنشئ عيّنة مكرّرة.
+- **شرط الإغلاق:** إزالة تكرار على `Idempotency-Key` لكلّ مستأجر.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-WATER-LEDGER-NO-PARTIAL-APPLIED-WATER-WRITE-01 — لا كتابة جزئيّة للماء المضاف
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/water_ledger.py:77` — الإدخال يستبدل الصفّ كلّه، فالقيد اليدويّ يُبقي التوصية حدّاً أعلى.
+- **شرط الإغلاق:** تحديث COALESCE أو كتابة في `irrigation_runs` تعيد حساب الاستنزاف.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-ALERT-WRITES-REQUIRE-FIELD-EDIT-01 — إقرار التنبيه وتفضيلاته تتطلّب FIELD_EDIT
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/alerts.py:101,207` — المهندس الزراعيّ والعامل لا يستطيعان إقرار تنبيه ولا حفظ تفضيلاته.
+- **شرط الإغلاق:** قرار المالك: صلاحيّة `alert:ack` للأدوار الميدانيّة أو إبقاء القيد مع تعليله.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-ALERTS-NO-SINGLE-GET-OR-FIELD-FILTER-01 — لا GET لتنبيه واحد ولا مرشّح حقل
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/alerts.py:50` — قائمة فقط.
+- **شرط الإغلاق:** `GET /api/v1/alerts/{id}` و`?field_id=`.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-FARM-UPDATE-ENDPOINT-MISSING-01 — لا تعديل للمزرعة
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/farms.py:35,104,139` — إنشاء وقراءة فقط.
+- **شرط الإغلاق:** `PATCH /api/v1/farms/{id}` بصلاحيّة المالك/المدير.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-FIELDS-LIST-NO-HEALTH-SIGNAL-01 — قائمة الحقول بلا NDVI ولا صحّة
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `GET /api/v1/fields` يرسل `health_summary_ar` = "—" دائماً ولا NDVI؛ فالتطبيق يلوّن بدرجة الجودة وحدها.
+- **شرط الإغلاق:** آخر قيمة مقيسة لكلّ حقل مع تاريخها أو حذف الحقل الصوريّ.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-FIELD-AREA-IGNORES-HOLES-01 — مساحة الحقل تتجاهل الثقوب
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/gis_geometry_guard.py:191` (`_combined_area_bbox`) — الحلقات الخارجيّة وحدها؛ التطبيق يحسب الصافي فيختلف الرقمان.
+- **شرط الإغلاق:** طرح الثقوب في الخادم أو تسمية الرقم «إجماليّ».
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## RASTER-OFFLINE-PACKS-REQUIRE-SERVICE-TOKEN-01 — حزم الخرائط دون اتّصال تتطلّب رمز خدمة
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/raster-service/routers/storage.py:86,114` — `X-Agent-Token` لا جلسة مستخدم، فلا يُنزّلها التطبيق.
+- **شرط الإغلاق:** مسار مستخدم بصلاحيّة قراءة ونطاق مستأجر.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-INVENTORY-NO-STOCK-OUT-OR-SAFETY-FIELDS-01 — المخزون بلا صرف ولا بيانات سلامة المبيدات
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/inventory.py:39,89,120,183` — لا صرف بسبب وحقل، ولا GET لصنف، ولا كلّ الدفعات، ولا PHI/REI/مادّة فعّالة.
+- **شرط الإغلاق:** نقطة صرف وحقول السلامة.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-EQUIPMENT-STATUS-NOT-RESET-AFTER-REPAIR-01 — حالة المعدّة لا تعود بعد الإصلاح
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/equipment.py:137` — تسجيل عطل يضبط «معطّلة» ولا شيء يعيدها «عاملة».
+- **شرط الإغلاق:** انتقال حالة صريح أو نوع صيانة «إصلاح» يعيدها.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-DEVICE-AND-EQUIPMENT-NO-SINGLE-GET-01 — لا GET لجهاز أو معدّة واحدة
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/devices.py:97` و`equipment.py:93` — قوائم فقط؛ الرابط العميق يحمّل القائمة كلّها.
+- **شرط الإغلاق:** `GET` لكلّ مورد بمعرّفه.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-PROFILE-UPDATE-ENDPOINT-MISSING-01 — لا تعديل للملفّ الشخصيّ
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `services/sahool-platform/api/routers/me.py:28` — GET فقط.
+- **شرط الإغلاق:** `PATCH /api/v1/me` للاسم واللغة.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+
+## PLATFORM-SYNC-TREATS-OUTBOX-OPS-AS-MEASUREMENTS-01 — مسار المزامنة يقرأ عمليّات الصندوق قياسات
+
+- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **المصدر:** `/api/v1/sync` يعامل `observation_create` و`water_applied` كقياس (`observable_id/value`)؛ التطبيق يعيد العمليّات عبر HTTP بطريقتها ومسارها (اختبار `durable_offline_outbox_test.dart`).
+- **شرط الإغلاق:** توثيق أنّ `/sync` للقياسات وحدها أو دعم أنواع العمليّات صراحةً.
+- **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
