@@ -1,6 +1,5 @@
 // شاشة المكالمة: نصّ الموافقة الطويل كان في عمود غير قابل للتمرير فيفيض على
 // الهواتف الصغيرة أو مع تكبير الخطّ، فتختفي الموافقة وزرّ الاتصال.
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/features/realtime/realtime_controller.dart';
