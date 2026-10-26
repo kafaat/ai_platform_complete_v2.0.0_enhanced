@@ -23,7 +23,7 @@ import asyncio
 import inspect
 import logging
 import math
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterable, Mapping
 from typing import Any
 
 _log = logging.getLogger("local-ai-rag")
@@ -74,6 +74,24 @@ def assert_legacy_encoder_collection(
             f"RAG_REINDEX_PROFILE_MANIFEST is set for collection {collection_name!r}; the legacy "
             "OllamaEmbeddings reader does not apply serving profiles",
         )
+
+
+def assert_legacy_encoder_hits(metadatas: Iterable[Any], collection_name: str) -> None:
+    """العقدُ نفسُه على **النتائج**: نتيجةٌ مُبادَأة ⇒ رفض، مهما كان اسمُ المجموعة (REPORT3-RAG-06-01).
+
+    حارسُ الاسم يرى ``sahool_rag_reindex_*`` وحدَه؛ ومجموعةٌ متّجهاتُها ``search_document:`` تحت
+    اسمٍ آخر (اسمٌ مستعار أو نسخةٌ أُعيدت تسميتُها) كانت تمرّ فيُجيب النموذجُ من متّجهاتٍ غيرِ
+    متكافئة. القاعدةُ مرآةُ المسترجِع القانونيّ لكلّ نتيجة (``production_qdrant.py``: «prefixed
+    collection cannot use the legacy query encoder»)، لا اختراعٌ ثانٍ.
+    """
+    for meta in metadatas:
+        prefix = meta.get("document_embedding_prefix") if isinstance(meta, Mapping) else None
+        if prefix:
+            raise InitNotReady(
+                "encoding_profile_unsupported",
+                f"collection {collection_name!r} returned a chunk encoded with document prefix "
+                f"{prefix!r}; the legacy raw-query OllamaEmbeddings reader cannot rank it",
+            )
 
 
 def new_state() -> dict[str, Any]:

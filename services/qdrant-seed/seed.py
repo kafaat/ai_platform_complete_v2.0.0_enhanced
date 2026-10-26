@@ -260,7 +260,40 @@ async def _embed(text: str, http: httpx.AsyncClient) -> list[float]:
     return vec
 
 
+#: بادئةُ مجموعات إعادة الفهرسة ذات الـprofile؛ المسترجِعُ القانونيّ يرفض عندها المُرمِّزَ القديم
+#: (``services/sahool-platform/core/rag/production_qdrant.py`` ``HybridQdrantRetriever``).
+REINDEX_COLLECTION_PREFIX = "sahool_rag_reindex_"
+#: صفحةُ عيّنةٍ واحدة من payloads المجموعة القائمة؛ مجموعاتُ إعادة الفهرسة متجانسةُ الترميز.
+ENCODING_PROBE_LIMIT = 64
+
+
+def _refuse_profiled_target(collection: str, payloads=()) -> None:
+    """توافقُ البُعد ليس توافقَ الفضاء (REPORT3-RAG-05-01): لا متّجهاتٌ خامٌ في مجموعةٍ مُبادَأة.
+
+    هذا البذرُ يُضمِّن النصَّ **خاماً** بلا ``search_document: `` ولا digest نموذج. مجموعةُ إعادة
+    فهرسةٍ Nomic بُعدُها 768 كالمُرمِّز القديم، ففحصُ ``live_dim != dim`` وحدَه كان يُمرِّر خلطَ
+    متّجهاتٍ غيرِ متكافئة فيها — ويكسر بصمةَ جردها المُصدَّرة. الرفضُ بالاسم أو بـpayload مُبادَأ.
+    """
+    if collection.startswith(REINDEX_COLLECTION_PREFIX):
+        raise RuntimeError(
+            "QDRANT_ENCODING_PROFILE_MISMATCH: "
+            f"collection={collection} is a versioned reindex collection; the legacy raw-text "
+            "seed encoder must not write into it"
+        )
+    for payload in payloads:
+        meta = payload.get("metadata") if isinstance(payload, dict) else None
+        prefix = meta.get("document_embedding_prefix") if isinstance(meta, dict) else None
+        if prefix:
+            raise RuntimeError(
+                "QDRANT_ENCODING_PROFILE_MISMATCH: "
+                f"collection={collection} holds chunks encoded with document prefix {prefix!r}; "
+                "matching dimensions do not make raw seed vectors comparable — no writes performed"
+            )
+
+
 async def seed():
+    # قبل أيّ تضمينٍ أو اتّصال: الاسمُ وحدَه يكفي لرفض مجموعة إعادة فهرسة.
+    _refuse_profiled_target(COLLECTION)
     provenance = _load_provenance_manifest()
     excluded = _load_excluded_chunk_ids()
     # الاستثناء قبل التضمين وقبل فحص الـprovenance: الوثيقة المستثناة خارج هذا
@@ -343,6 +376,14 @@ async def seed():
             "migration/reindex required — refusing destructive auto-recreation"
         )
     logger.info("✅ Collection '%s' vector schema matches embedding dim=%s", COLLECTION, dim)
+    # والبُعدُ المطابق لا يُثبت الفضاء: عيّنةُ payloads القائمة تكشف مجموعةً مُبادَأة تحت اسمٍ آخر.
+    sample, _next = await client.scroll(
+        collection_name=COLLECTION,
+        limit=ENCODING_PROBE_LIMIT,
+        with_payload=True,
+        with_vectors=False,
+    )
+    _refuse_profiled_target(COLLECTION, [getattr(row, "payload", None) for row in sample])
 
     points = []
     for i, doc in enumerate(knowledge):
