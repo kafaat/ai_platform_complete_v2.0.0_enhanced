@@ -119,11 +119,14 @@ class EvidenceItemIn(BaseModel):
 
 
 class CandidateIn(BaseModel):
-    """مرشّح محصول: بارامترات المحصول + سعر + بنود كلفة."""
+    """مرشّح محصول: بارامترات المحصول + سعر + بنود كلفة.
+
+    السعر والكلفة بلا افتراض صفريّ: غيابهما يجعل المرشّح «غير كافٍ» في المُخطِّط لا رابحاً.
+    """
 
     name: str
     crop: dict[str, Any] = Field(default_factory=dict)
-    price_per_kg: float = 0.0
+    price_per_kg: float | None = Field(default=None, allow_inf_nan=False)
     costs: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -220,20 +223,45 @@ def _build_bundle(
     )
 
 
+def _run_simulation(
+    crop: dict[str, Any],
+    weather: dict[str, Any],
+    soil: dict[str, Any],
+    agromanagement: dict[str, Any],
+) -> dict[str, Any]:
+    """يشغّل المُحوِّل مع ترجمة إخفاقاته المُصنَّفة إلى 422/503 (مشتركة بين كلّ النقاط)."""
+    try:
+        return wa.simulate(crop=crop, weather=weather, soil=soil, agromanagement=agromanagement)
+    except wa.SimulationInputError as exc:
+        # بُناة PCSE (``pcse_inputs``) يرفضون النقص باسمه: يومٌ بلا ضغط بخار، موقعٌ بلا ارتفاع،
+        # موسمٌ لا يغطّيه الطقس... خطأُ المُنادي لا عطلُ المحرّك ⇒ 422 برمزه، لا 503 ولا رقمٌ مُختلَق.
+        raise HTTPException(
+            422,
+            {"error": "simulation_inputs_invalid", "reason": exc.code, "detail": exc.detail},
+        ) from exc
+    except RuntimeError as exc:
+        # المُحوِّل يفشل مُغلَقاً برموز مُصنَّفة (إنتاج بلا محرّك · راية مشعلة بلا pcse/مدخلات ·
+        # محصول خارج السجلّ · فشل PCSE). كانت تتسرّب 500 عارية بلا سبب، فلا يميّز المُنادي
+        # (supervisor) «المحرّك غير متاح» من عطل عابر. الرمز المُصنَّف وحده يُعاد (ثوابت المُحوِّل
+        # + اسم المحصول المُرسَل)؛ استثناء PCSE الداخليّ يبقى في ``__cause__`` لا في الجسم.
+        raise HTTPException(503, {"error": "simulation_unavailable", "reason": str(exc)}) from exc
+
+
 def _candidates_to_plan(
     candidates: list[CandidateIn],
     weather: dict[str, Any],
     soil: dict[str, Any],
     agromanagement: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    """يشغّل المُحوِّل لكلّ مرشّح ويبني مدخلات المُخطِّط (اسم/غلّة/سعر/كلفة)."""
+    """يشغّل المُحوِّل لكلّ مرشّح ويبني مدخلات المُخطِّط (اسم/غلّة/نطاقها/سعر/كلفة)."""
     plan_inputs: list[dict[str, Any]] = []
     for c in candidates:
-        sim = wa.simulate(crop=c.crop, weather=weather, soil=soil, agromanagement=agromanagement)
+        sim = _run_simulation(c.crop, weather, soil, agromanagement)
         plan_inputs.append(
             {
                 "name": c.name,
                 "yield_kg_ha": sim["yield_kg_ha"],
+                "yield_interval": sim["yield_interval"],
                 "price_per_kg": c.price_per_kg,
                 "costs": c.costs,
                 "provenance": sim["provenance"],
@@ -261,8 +289,9 @@ async def recommend(req: RecommendRequest, x_agent_token: str = Header(None)):
     evidence_hash = eb.bundle_hash(bundle)
     confidence = eb.compose_confidence(bundle["items"])
 
-    # مرشّحون صريحون أو مرشّح واحد افتراضيّ من req.crop (fail-closed: نُصرّح بالكفاية).
-    candidates = req.candidates or [CandidateIn(name=req.crop, crop={}, price_per_kg=0.0, costs={})]
+    # مرشّحون صريحون أو مرشّح واحد افتراضيّ من req.crop يُحاكى باسمه. بلا سعر ولا كلفة فهو
+    # «غير كافٍ» في المُخطِّط (fail-closed) لا ربحٌ من أصفار مُفترَضة.
+    candidates = req.candidates or [CandidateIn(name=req.crop, crop={"name": req.crop})]
     plan_inputs = _candidates_to_plan(candidates, weather_input, soil_input, management_input)
     plan = pp.plan_profit(plan_inputs, evidence_hash=evidence_hash)
 
@@ -314,21 +343,7 @@ async def simulate(req: SimulateRequest, x_agent_token: str = Header(None)):
     crop, weather, soil, management = _context_inputs(
         req.agronomic_context, req.crop, req.weather, req.soil, req.agromanagement
     )
-    try:
-        result = wa.simulate(crop=crop, weather=weather, soil=soil, agromanagement=management)
-    except wa.SimulationInputError as exc:
-        # بُناة PCSE (``pcse_inputs``) يرفضون النقص باسمه: يومٌ بلا ضغط بخار، موقعٌ بلا ارتفاع،
-        # موسمٌ لا يغطّيه الطقس... خطأُ المُنادي لا عطلُ المحرّك ⇒ 422 برمزه، لا 503 ولا رقمٌ مُختلَق.
-        raise HTTPException(
-            422,
-            {"error": "simulation_inputs_invalid", "reason": exc.code, "detail": exc.detail},
-        ) from exc
-    except RuntimeError as exc:
-        # المُحوِّل يفشل مُغلَقاً برموز مُصنَّفة (إنتاج بلا محرّك · راية مشعلة بلا pcse/مدخلات ·
-        # محصول خارج السجلّ · فشل PCSE). كانت تتسرّب 500 عارية بلا سبب، فلا يميّز المُنادي
-        # (supervisor) «المحرّك غير متاح» من عطل عابر. الرمز المُصنَّف وحده يُعاد (ثوابت المُحوِّل
-        # + اسم المحصول المُرسَل)؛ استثناء PCSE الداخليّ يبقى في ``__cause__`` لا في الجسم.
-        raise HTTPException(503, {"error": "simulation_unavailable", "reason": str(exc)}) from exc
+    result = _run_simulation(crop, weather, soil, management)
     result["agronomic_context_validation"] = context_validation
     return result
 

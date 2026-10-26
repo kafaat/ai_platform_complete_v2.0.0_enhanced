@@ -304,3 +304,115 @@ def test_endpoint_token_unset_returns_503(monkeypatch):
     main.AGENT_TOKEN = ""  # محاكاة غياب التوكن ⇒ معطّل بأمان
     client = TestClient(main.app)
     assert client.post("/v1/simulate", json={"crop": {}}).status_code == 503
+
+
+# ── /v1/plan و/v1/recommend: مرشّح بلا سعر/كلفة لا يُكلَّف صفراً، والمحاكاة تفشل مُسمّاة ──
+
+_SIM_INPUTS = {
+    "weather": {"gdd": 1500.0, "total_rain_mm": 300.0},
+    "soil": {"available_water_mm": 100.0},
+    "agromanagement": {"irrigation_mm": 100.0},
+}
+_HDR = {"x-agent-token": "testtoken"}
+
+
+def _client(monkeypatch):
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    main = _load_main(monkeypatch)
+    return main, TestClient(main.app)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("path", ["/v1/plan", "/v1/recommend"])
+def test_uncosted_candidates_never_outrank_costed_and_profit_band_is_returned(monkeypatch, path):
+    _, client = _client(monkeypatch)
+    body = {
+        **_SIM_INPUTS,
+        "candidates": [
+            {"name": "wheat", "price_per_kg": 0.5, "costs": {"seed": 300}},
+            {"name": "no_costs", "price_per_kg": 0.5, "costs": {}},
+            {"name": "no_price", "costs": {"seed": 1}},
+            {"name": "bad_cost", "price_per_kg": 0.5, "costs": {"seed": "n/a"}},
+        ],
+    }
+    r = client.post(path, json=body, headers=_HDR)
+    assert r.status_code == 200, r.text
+    plan = r.json() if path == "/v1/plan" else r.json()["plan"]
+    assert plan["best"] == "wheat"
+    assert [c["name"] for c in plan["ranked"]] == ["wheat"]
+    best = plan["ranked"][0]
+    # مدى الربح من yield_interval يصل إلى المُخرَج (لا رقم واحد يوهم يقيناً).
+    assert best["expected_profit_low"] <= best["expected_profit"] <= best["expected_profit_high"]
+    assert best["yield_confidence"] in {"high", "medium", "low"}
+    insufficient = {c["name"]: c for c in plan["insufficient"]}
+    assert set(insufficient) == {"no_costs", "no_price", "bad_cost"}
+    assert "costs" in insufficient["no_costs"]["missing_inputs"]
+    assert "price_per_kg" in insufficient["no_price"]["missing_inputs"]
+    assert "costs.seed" in insufficient["bad_cost"]["missing_inputs"]
+    for c in insufficient.values():
+        assert c["status"] == "insufficient"
+        assert c["expected_profit"] is None
+        assert "expected_profit_low" not in c
+
+
+@pytest.mark.unit
+def test_plan_with_only_uncosted_candidates_has_no_best(monkeypatch):
+    _, client = _client(monkeypatch)
+    body = {**_SIM_INPUTS, "candidates": [{"name": "wheat"}]}
+    plan = client.post("/v1/plan", json=body, headers=_HDR).json()
+    assert plan["best"] is None and plan["best_expected_profit"] is None
+    assert plan["ranked"] == []
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("path", ["/v1/plan", "/v1/recommend"])
+def test_plan_paths_map_production_simulation_failure_to_503(monkeypatch, path):
+    _, client = _client(monkeypatch)
+    monkeypatch.delenv("SIM_PCSE_ENABLED", raising=False)
+    monkeypatch.setenv("AGRIAI_PRODUCTION_MODE", "1")  # إنتاج بلا محرّك ⇒ RuntimeError مُصنَّف
+    body = {**_SIM_INPUTS, "candidates": [{"name": "wheat", "price_per_kg": 0.5}]}
+    r = client.post(path, json=body, headers=_HDR)
+    assert r.status_code == 503, r.text
+    detail = r.json()["detail"]
+    assert detail["error"] == "simulation_unavailable"
+    assert detail["reason"] == "agriai_production_simulation_unavailable:sim_pcse_disabled"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("path", ["/v1/plan", "/v1/recommend"])
+def test_plan_paths_map_simulation_input_error_to_422(monkeypatch, path):
+    main, client = _client(monkeypatch)
+
+    def _reject(**_kw):
+        raise main.wa.SimulationInputError("weather_day_missing", "vapour_pressure")
+
+    monkeypatch.setattr(main.wa, "simulate", _reject)
+    body = {**_SIM_INPUTS, "candidates": [{"name": "wheat", "price_per_kg": 0.5}]}
+    r = client.post(path, json=body, headers=_HDR)
+    assert r.status_code == 422, r.text
+    detail = r.json()["detail"]
+    assert detail["error"] == "simulation_inputs_invalid"
+    assert detail["reason"] == "weather_day_missing"
+
+
+@pytest.mark.unit
+def test_recommend_default_candidate_simulates_the_requested_crop(monkeypatch):
+    main, client = _client(monkeypatch)
+    seen: list = []
+    real = main.wa.simulate
+
+    def _spy(**kw):
+        seen.append(kw["crop"])
+        return real(**kw)
+
+    monkeypatch.setattr(main.wa, "simulate", _spy)
+    r = client.post("/v1/recommend", json={"crop": "barley", **_SIM_INPUTS}, headers=_HDR)
+    assert r.status_code == 200, r.text
+    assert len(seen) == 1
+    assert main.wa._crop_name(seen[0]) == "barley"
+    # المرشّح الافتراضيّ بلا سعر/كلفة ⇒ غير كافٍ لا «ربح» مُختلَق من أصفار.
+    plan = r.json()["plan"]
+    assert plan["best"] is None
+    assert [c["name"] for c in plan["insufficient"]] == ["barley"]
