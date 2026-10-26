@@ -8,7 +8,13 @@
 // (GeoJSON Polygon في EPSG:4326 + area_ha + bbox). نلتزم بمفاتيح bbox الحرفيّة
 // min_lng/max_lng (لا lon) لمطابقة الخلفيّة صدقاً.
 //
-// نموذج فقط (fromJson/toJson) — لا تغيير في السلوك.
+// نموذج (fromJson/toJson) + جسر إلى محوّل الخرائط الوحيد
+// (features/maps/geo/geo_json.dart): [CanonicalFieldGeometry.parsed] للقراءة،
+// و[CanonicalFieldGeometry.fromPolygon] للبناء بمساحة الخادم وصيغته. العقد في
+// Python يقبل Polygon وحده، فالبناء يرفض MultiPolygon بدل أن يخالفه بصمت.
+
+import 'package:sahool_app/features/maps/geo/geo_json.dart';
+import 'package:sahool_app/features/maps/geo/geo_measure.dart';
 
 /// الحدود الصندوقيّة بالدرجات (EPSG:4326) — مفاتيح مطابقة لحارس الـGIS.
 class BBox {
@@ -25,18 +31,18 @@ class BBox {
   final double maxLat;
 
   factory BBox.fromJson(Map<String, dynamic> json) => BBox(
-        minLng: (json['min_lng'] as num).toDouble(),
-        minLat: (json['min_lat'] as num).toDouble(),
-        maxLng: (json['max_lng'] as num).toDouble(),
-        maxLat: (json['max_lat'] as num).toDouble(),
-      );
+    minLng: (json['min_lng'] as num).toDouble(),
+    minLat: (json['min_lat'] as num).toDouble(),
+    maxLng: (json['max_lng'] as num).toDouble(),
+    maxLat: (json['max_lat'] as num).toDouble(),
+  );
 
   Map<String, dynamic> toJson() => {
-        'min_lng': minLng,
-        'min_lat': minLat,
-        'max_lng': maxLng,
-        'max_lat': maxLat,
-      };
+    'min_lng': minLng,
+    'min_lat': minLat,
+    'max_lng': maxLng,
+    'max_lat': maxLat,
+  };
 }
 
 /// الشكل الكنسيّ الموحَّد لهندسة الحقل عبر المنصّات.
@@ -64,6 +70,46 @@ class CanonicalFieldGeometry {
   /// مصدر الهندسة (مثل "gis-guard-v1" أو "mobile-draw").
   final String source;
 
+  /// من مضلّع واحد: حلقات مغلقة CCW بتقريب 7 منازل، والمساحة والإطار بطريقة
+  /// الخادم (geo_measure.dart). يرمي [ArgumentError] لهندسة فارغة أو متعدّدة.
+  factory CanonicalFieldGeometry.fromPolygon(
+    FieldGeometry g, {
+    String source = 'mobile-draw',
+    int? revision,
+  }) {
+    if (g.isEmpty || g.isMulti) {
+      throw ArgumentError.value(
+        g.polygons.length,
+        'polygons',
+        'العقد الكنسيّ يقبل Polygon واحداً',
+      );
+    }
+    final outer = serverNormalizedRing(g.polygons.single.outer);
+    var minLng = outer.first.longitude, maxLng = minLng;
+    var minLat = outer.first.latitude, maxLat = minLat;
+    for (final p in outer) {
+      if (p.longitude < minLng) minLng = p.longitude;
+      if (p.longitude > maxLng) maxLng = p.longitude;
+      if (p.latitude < minLat) minLat = p.latitude;
+      if (p.latitude > maxLat) maxLat = p.latitude;
+    }
+    return CanonicalFieldGeometry(
+      geometry: g.toGeoJson(decimals: kServerCoordinatePrecision),
+      areaHa: serverAreaHa(g),
+      bbox: BBox(
+        minLng: minLng,
+        minLat: minLat,
+        maxLng: maxLng,
+        maxLat: maxLat,
+      ),
+      revision: revision,
+      source: source,
+    );
+  }
+
+  /// الهندسة مقروءةً بالمحوّل الموحّد؛ null إن تعذّرت قراءتها.
+  FieldGeometry? get parsed => FieldGeometry.tryParse(geometry);
+
   factory CanonicalFieldGeometry.fromJson(Map<String, dynamic> json) =>
       CanonicalFieldGeometry(
         geometry: Map<String, dynamic>.from(json['geometry'] as Map),
@@ -74,10 +120,10 @@ class CanonicalFieldGeometry {
       );
 
   Map<String, dynamic> toJson() => {
-        'geometry': geometry,
-        'area_ha': areaHa,
-        'bbox': bbox.toJson(),
-        'revision': revision,
-        'source': source,
-      };
+    'geometry': geometry,
+    'area_ha': areaHa,
+    'bbox': bbox.toJson(),
+    'revision': revision,
+    'source': source,
+  };
 }
