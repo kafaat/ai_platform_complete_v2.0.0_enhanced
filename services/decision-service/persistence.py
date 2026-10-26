@@ -2177,7 +2177,8 @@ async def verify_execution_outcome(
             source = await conn.fetchrow(
                 """SELECT r.execution_request_id,r.execution_plan_id,r.dispatch_authorization_id,
                           r.decision_id,r.status,r.receipt_id,r.receipt_status,
-                          a.receipt_id AS attempt_receipt_id
+                          a.receipt_id AS attempt_receipt_id,
+                          a.receipt_status AS attempt_receipt_status
                      FROM decision_execution_requests r
                      JOIN decision_execution_delivery_attempts a
                        ON a.tenant_id=r.tenant_id AND a.execution_request_id=r.execution_request_id
@@ -2203,6 +2204,15 @@ async def verify_execution_outcome(
             for reason, ok in checks.items():
                 if not ok:
                     return {"status": "conflict", "reason": reason}
+            # A verified success becomes success=True, which learning attribution and model
+            # evaluation consume as ground truth. It is only admissible when the actuator itself
+            # reported the command accepted — on both the request and its delivery attempt.
+            if payload.verification_state == "verified_success" and not (
+                source["status"] == "accepted"
+                and source["receipt_status"] == "accepted"
+                and source["attempt_receipt_status"] == "accepted"
+            ):
+                return {"status": "conflict", "reason": "receipt_not_accepted"}
             outcome_id = (
                 "out_"
                 + hashlib.sha256(
