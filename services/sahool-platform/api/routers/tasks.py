@@ -13,11 +13,15 @@ _TASK_STATUSES/_row_to_task/_emit_domain_event …) تبقى مُعرَّفة ف
 
 from __future__ import annotations
 
+import hashlib
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.main import (
     _TASK_COLS,
     _TASK_STATUSES,
+    CommandStore,
     Permission,
     TaskListResponse,
     TaskSummary,
@@ -25,7 +29,10 @@ from api.main import (
     UserSchema,
     _db_unavailable,
     _emit_domain_event,
+    _idem_key,
+    _idempotent,
     _row_to_task,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -87,10 +94,15 @@ async def list_tasks(
 async def update_task(
     task_id: str,
     req: TaskUpdateRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
     """تحديث مهمّة (الحالة/صورة/ملاحظة) — مُرشَّح بالمستأجِر (RLS). 404 لو ليست
-    للمستأجِر؛ 422 على حالة غير معروفة أو لا حقول للتحديث."""
+    للمستأجِر؛ 422 على حالة غير معروفة أو لا حقول للتحديث.
+
+    idempotent عند وجود Idempotency-Key (UUID): إعادة صندوق الإرسال دون اتّصال تُعيد
+    النتيجة الأولى بلا تحديثٍ ثانٍ ولا حدثِ تحديثٍ مكرَّر؛ والمفتاح نفسه بحمولة
+    مختلفة ⇒ 409."""
     if req.status is not None and req.status not in _TASK_STATUSES:
         raise HTTPException(status_code=422, detail="حالة مهمّة غير معروفة")
     sets: list[str] = []
@@ -116,24 +128,45 @@ async def update_task(
     )
     try:
         async with tenant_connection(user) as conn:
-            row = await conn.fetchrow(query, *vals)
-            # حدث تحديث المهمّة (تفاعليّ): يبثّه وكيل الإشعارات للواجهة حيّاً. داخل
-            # المعاملة وفقط عند وجود الصفّ (مرشَّح بالمستأجِر عبر RLS).
-            if row is not None:
-                await _emit_domain_event(
-                    conn,
-                    user,
-                    "TASK_UPDATED",
-                    "task",
-                    task_id,
-                    # القيم الفعليّة من الصفّ المُحدَّث (RETURNING) لا من req — req.status
-                    # قد تكون None عند تحديث photo/notes فقط (ملاحظة Copilot).
-                    {"status": row.get("status"), "field_id": row.get("field_id")},
+
+            async def _work():
+                row = await conn.fetchrow(query, *vals)
+                # حدث تحديث المهمّة (تفاعليّ): يبثّه وكيل الإشعارات للواجهة حيّاً. داخل
+                # المعاملة وفقط عند وجود الصفّ (مرشَّح بالمستأجِر عبر RLS).
+                if row is not None:
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "TASK_UPDATED",
+                        "task",
+                        task_id,
+                        # القيم الفعليّة من الصفّ المُحدَّث (RETURNING) لا من req — req.status
+                        # قد تكون None عند تحديث photo/notes فقط (ملاحظة Copilot).
+                        {"status": row.get("status"), "field_id": row.get("field_id")},
+                    )
+                    return _row_to_task(row).model_dump(mode="json")
+                # داخل المعاملة ⇒ لا يُسجَّل أمرٌ لمهمّةٍ غير موجودة.
+                raise HTTPException(status_code=404, detail="المهمّة غير موجودة ضمن هذا المستأجِر")
+
+            if idem:
+                digest = hashlib.sha256(
+                    json.dumps(
+                        {"task_id": task_id, **req.model_dump(mode="json")},
+                        sort_keys=True,
+                        ensure_ascii=False,
+                    ).encode("utf-8")
+                ).hexdigest()
+                return await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="task.update",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"task_id": task_id, "request_digest": digest},
                 )
+            return await _work()
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحديث المهمّة", e) from e
-    if row is None:
-        raise HTTPException(status_code=404, detail="المهمّة غير موجودة ضمن هذا المستأجِر")
-    return _row_to_task(row)

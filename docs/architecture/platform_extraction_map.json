@@ -5423,7 +5423,7 @@
       "function": "field_lab_context",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/lab-context",
-      "line": 395,
+      "line": 427,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/fields/{field_id}/lab-context::field_lab_context"
@@ -5433,7 +5433,7 @@
       "function": "list_lab_samples",
       "method": "GET",
       "path": "/api/v1/lab/samples",
-      "line": 159,
+      "line": 165,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/lab/samples::list_lab_samples"
@@ -5443,7 +5443,7 @@
       "function": "soil_depth_endpoint",
       "method": "GET",
       "path": "/api/v1/soil-sampling/depth",
-      "line": 52,
+      "line": 58,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/soil-sampling/depth::soil_depth_endpoint"
@@ -5453,7 +5453,7 @@
       "function": "soil_protocol_endpoint",
       "method": "GET",
       "path": "/api/v1/soil-sampling/protocol",
-      "line": 58,
+      "line": 64,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/soil-sampling/protocol::soil_protocol_endpoint"
@@ -5463,7 +5463,7 @@
       "function": "soil_subsamples_endpoint",
       "method": "GET",
       "path": "/api/v1/soil-sampling/subsamples",
-      "line": 46,
+      "line": 52,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/soil-sampling/subsamples::soil_subsamples_endpoint"
@@ -5473,7 +5473,7 @@
       "function": "transition_lab_sample",
       "method": "POST",
       "path": "/api/v1/lab/samples/{sample_id}/transition",
-      "line": 293,
+      "line": 325,
       "target_owner": "sahool-platform",
       "owner_type": "platform-lab-intake",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/samples/{sample_id}/transition::transition_lab_sample",
@@ -5484,7 +5484,7 @@
       "function": "create_lab_sample",
       "method": "POST",
       "path": "/api/v1/lab/samples",
-      "line": 168,
+      "line": 180,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/samples::create_lab_sample"
@@ -5494,7 +5494,7 @@
       "function": "submit_soil_lab_result",
       "method": "POST",
       "path": "/api/v1/lab/soil-results",
-      "line": 189,
+      "line": 221,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/soil-results::submit_soil_lab_result"
@@ -5504,7 +5504,7 @@
       "function": "submit_water_lab_result",
       "method": "POST",
       "path": "/api/v1/lab/water-results",
-      "line": 261,
+      "line": 293,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/water-results::submit_water_lab_result"
@@ -5544,7 +5544,7 @@
       "function": "list_tasks",
       "method": "GET",
       "path": "/api/v1/tasks",
-      "line": 36,
+      "line": 43,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/tasks.py::GET /api/v1/tasks::list_tasks"
@@ -5554,7 +5554,7 @@
       "function": "update_task",
       "method": "PATCH",
       "path": "/api/v1/tasks/{task_id}",
-      "line": 86,
+      "line": 93,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/tasks.py::PATCH /api/v1/tasks/{task_id}::update_task"

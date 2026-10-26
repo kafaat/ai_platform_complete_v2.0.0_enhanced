@@ -4475,7 +4475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7b2357c613798a70257662604f01178f8cdae7c037dea04ac9aea6a268e20a7"
+          "content": "4936ebb7835cb93fa19befd3b25af36ef9f5877ff5ee0fab9151c1c78b61ac09"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -25215,7 +25215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d1d0cedac80fcb166d39d8272357f2aecbd23ac8376a3e23acdb0831f2a380f"
+          "content": "89ebeb78861ccd1ef7cec4ee07a465761f39895d4072f4a548d9ab2af1e2d7ac"
         }
       ],
       "name": "services/sahool-platform/api/routers/soil_sampling.py",
@@ -25235,7 +25235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01e58f31cb09dbc9fa87c361f24abdbf0c8dd1d59f7d896bae355aacf7b1009d"
+          "content": "d513c1265e189a3e76181e4c6185e6610acbbb901e2c8f648d07ebd92a4c1c04"
         }
       ],
       "name": "services/sahool-platform/api/routers/tasks.py",
@@ -32285,7 +32285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "062aae774d9b6301bc423fc8777e4175492cc0caef7f4abb89058f4188bfec50"
+          "content": "522af11db19bd6d1323d09254e678ad3529fab9aa6a03f89a5307131f1f968ca"
         }
       ],
       "name": "services/sahool-platform/tests/test_lab_sampling_router.py",
@@ -33799,6 +33799,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_sync_delta.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "19da027e92830e2d2aad3f662a1ada68d52fd31f71af6d68d46735dce2c6d0be"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_task_update_idempotency.py",
       "type": "file"
     },
     {

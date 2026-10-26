@@ -7832,14 +7832,14 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## PLATFORM-TASK-PATCH-IGNORES-IDEMPOTENCY-KEY-01 — تحديث المهمّة لا يقرأ مفتاح idempotency
 
-- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **الحالة:** fixed (2026-10-26) — فرع `claude/platform-idempotency-20261026`: `PATCH /api/v1/tasks/{id}` يقرأ `Idempotency-Key` مع بصمة (المهمّة + الحمولة)؛ الإعادة تُعيد الردّ الأوّل بلا UPDATE ثانٍ ولا حدث `TASK_UPDATED` مكرَّر، والمفتاح نفسه بحمولة مختلفة ⇒ 409، والمهمّة الغائبة ⇒ 404 بلا تسجيل أمر. الاختبار: [`services/sahool-platform/tests/test_task_update_idempotency.py`](../../services/sahool-platform/tests/test_task_update_idempotency.py) — على الكود القديم نُفِّذ التحديث مرّتين.
 - **المصدر:** `services/sahool-platform/api/routers/tasks.py:86` — آمن اليوم لأنّه يضبط قيماً، لكنّه لا يضمن ذلك لأيّ حقل تراكميّ لاحق.
 - **شرط الإغلاق:** قراءة `Idempotency-Key` وإعادة الردّ الأوّل.
 - **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
 
 ## PLATFORM-LAB-SAMPLE-CREATE-IGNORES-IDEMPOTENCY-KEY-01 — إنشاء عيّنة المختبر يتجاهل مفتاح idempotency
 
-- **الحالة:** open (2026-10-26) — وجدتها إعادة بناء تطبيق الهاتف؛ التطبيق يعرض حالة «غير متاح بعد» صادقة بدل اختلاقها.
+- **الحالة:** fixed (2026-10-26) — فرع `claude/platform-idempotency-20261026`: `POST /api/v1/lab/samples` يقرأ `Idempotency-Key` (UUID) عبر `_idem_key`/`_idempotent` مع بصمة الحمولة؛ الإعادة الصادقة تُعيد العيّنة الأولى، والمفتاح نفسه بحمولة مختلفة ⇒ 409، والمفتاح المشوَّه ⇒ 400. الاختبار: [`services/sahool-platform/tests/test_lab_sampling_router.py`](../../services/sahool-platform/tests/test_lab_sampling_router.py) — على الكود القديم أنشأت الإعادةُ عيّنتين.
 - **المصدر:** `services/sahool-platform/api/routers/soil_sampling.py:168` — إعادة الطلب من صندوق الإرسال دون اتّصال تُنشئ عيّنة مكرّرة.
 - **شرط الإغلاق:** إزالة تكرار على `Idempotency-Key` لكلّ مستأجر.
 - **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
@@ -8411,3 +8411,9 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `services/supervisor-agent/skills/advisory_skill.py` — «ري عند 30% رطوبة»، «توفير 40%»، «3–4 ريّات».
 - **شرط الإغلاق:** إزالتها أو توجيهها عبر الحوكمة.
 - **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01 — مشروع Railway غير مُهيَّأ يُسقِط حالة كلّ التزام على main
+
+- **الحالة:** open (2026-10-26) — يحتاج إجراء المالك في Railway (التجميد: Railway قراءةٌ فقط للوكيل).
+- **المصدر:** مشروع Railway `resourceful-commitment` (أُنشئ 2026-10-22) بخدمةٍ واحدة `ai_platform_complete_v2.0.0_enhanced` مربوطة بفرع `main` بلا Dockerfile ولا مجلّد جذر ولا أنماط مراقبة ولا متغيّرات (`get-service-config`، قراءةً). يحاول Railpack بناء جذر المستودع فيفشل (`railpack process exited with an error`، سجلّ البناء للنشر `08e0751a`)، فتُعلَّم كلّ التزامات main بحالة `failure` في GitHub رغم نجاح الحالات الأربع عشرة الأخرى وكلّ تشغيلات Actions (مقيس على آخر 25 التزاماً حتى `84f29f2fa`). لا نطاق ولا خدمة تعتمد عليه.
+- **شرط الإغلاق:** حذف المشروع، أو فصل مصدره، أو تهيئته ببناءٍ حقيقيّ لخدمة واحدة — ثمّ التزامٌ على main بحالةٍ مجمَّعة `success`.

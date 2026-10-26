@@ -10101,3 +10101,14 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **التغيير:** `build.args.PIP_INDEX_URL` بافتراض Alibaba في 56 بناءً؛ `.env.example`؛ قسمٌ في دليل المرآة.
 - **الحارس:** `test_every_compose_pip_build_forwards_the_alibaba_default_index` — يفشل على `main` بـ56 مخالفاً ويمرّ بعد التغيير.
 - **أثر النشر:** لا شيء؛ CI وRailway يبنيان الـDockerfiles مباشرةً وهي باقية على PyPI.
+### 2026-10-26 — مفتاح idempotency لعيّنات المختبر وتحديث المهامّ
+
+فجوتان وجدتهما إعادة بناء الموبايل (#1291) تُغلَقان بلا مسار جديد (ميزانية المسارات لا تتغيّر): `POST /api/v1/lab/samples` و`PATCH /api/v1/tasks/{id}` يقرآن `Idempotency-Key` بنمط `create_farm` القائم (`_idem_key`/`_idempotent` + بصمة الحمولة). صندوق الإرسال في الموبايل يرسل المفتاح أصلاً.
+
+- **التكذيب:** على الكود القديم أنشأت إعادةُ العيّنة عيّنتين، ونُفِّذ تحديث المهمّة مرّتين، ولا 409 لإعادة استعمال المفتاح.
+- **أثر النشر:** `sahool-platform` يُنشر من فرع نشره لا من `main` ⇒ لا خدمة تُعاد بالدمج؛ يصل الإصلاح الإنتاجَ مع ترقية فرع النشر (قرار المالك).
+- **#1291 بعد الدمج (Railway `list-deployments` قراءةً):** 24 سجلّاً لـ`84f29f2fa` كلّها SKIPPED، والمهاجر SKIPPED في البيئتين — يطابق `Deploy-Effect: NONE`.
+
+### 2026-10-26 — سبب علامة الفشل الحمراء على كلّ التزامات main
+
+سأل المالك عن ✗ الأحمر بجوار كلّ التزام. المقيس: الحالة المجمَّعة `failure` على آخر 25 التزاماً، وسببها حالةٌ واحدة من 15 — `resourceful-commitment - ai_platform_complete_v2.0.0_enhanced: Deployment failed`؛ وكلّ تشغيلات GitHub Actions على main ناجحة. مشروع Railway غير مُهيَّأ أُنشئ 2026-10-22 ويبني جذر المستودع بـRailpack فيفشل. سُجّل RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01؛ الإصلاح إجراء المالك في Railway.
