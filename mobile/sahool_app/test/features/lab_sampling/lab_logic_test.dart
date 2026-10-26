@@ -269,10 +269,10 @@ void main() {
       'unavailable outbox: honest not-saved message and the form stays',
       () async {
         final a = FakeAdapter((o) async => const FakeReply(200, savedRow));
-        // التنفيذ الافتراضيّ في الأساس (قبل وكيل offline_sync).
+        // تنفيذ «غير متاح» الصريح؛ الافتراضيّ صار الصندوق الدائم.
         final c = SampleCreateCubit(
           apiFor(a),
-          outbox: OfflineOutbox.instance,
+          outbox: OfflineOutbox.unavailable,
           isOnline: () => false,
         );
         await c.submit(validSoil);
