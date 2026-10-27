@@ -34,6 +34,7 @@ import {
   type ScrubberPoint, type ScoutPin, type PinCategory,
   type PinPersistence, type PinSeverity,
 } from '../components/fieldhealth';
+import { timelineRecordByDay } from '../components/fieldhealth/timelineByDay';
 import { useScoutingPins, useCreateScoutingPin, useCropScoutingIssues } from '../hooks/useScouting';
 import type { ScoutingPinRecord } from '../hooks/useScouting';
 import { useLocation } from 'react-router';
@@ -245,13 +246,9 @@ export default function SatellitePage() {
   const imageryTimelineMonths = useMemo(() => Math.max(1, Math.ceil(days / 31)), [days]);
   const { data: imageryTimeline } = useFieldImageryTimeline(fieldId, imageryTimelineMonths);
   const timelineItems = Array.isArray(imageryTimeline?.items) ? imageryTimeline.items : [];
-  const timelineThumbByDate = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const item of timelineItems) {
-      if (item?.date && item.thumbnail_url) m.set(String(item.date).slice(0, 10), item.thumbnail_url);
-    }
-    return m;
-  }, [timelineItems]);
+  // T2: سجلّ واحد لكلّ يوم — المصغّرة ووقت الالتقاط والمنتَج من المشهد نفسه. كان رابط
+  // المصغّرة من آخر سجلّ لليوم (Map.set) ووقته من أوّل سجلّ (find) ⇒ صورة مشهد بوقت آخر.
+  const timelineByDay = useMemo(() => timelineRecordByDay(timelineItems), [timelineItems]);
   // تواريخ COG الحقيقيّة المتاحة (لاختيار تاريخَي كشف التغيّر).
   const availableDates = useMemo(
     () => rasterPoints.map((p) => p.datetime).filter(Boolean),
@@ -292,19 +289,24 @@ export default function SatellitePage() {
   // التاريخ الأسبق — لبطاقات السجلّ الزمنيّ (تاريخ · صورة · متوسّط + تغيّر).
   const stripPoints: ScrubberPoint[] = useMemo(() => {
     const base: ScrubberPoint[] = (Array.isArray(rasterPoints) && rasterPoints.length)
-      ? rasterPoints.map((p) => ({
-          date: p.datetime,
-          value: p.mean,
-          cloud: p.cloudy_pct ?? null,
-          thumbUrl: timelineThumbByDate.get(String(p.datetime).slice(0, 10)) ?? null,
-          acquisitionDatetime: (timelineItems.find((item) => String(item.date).slice(0, 10) === String(p.datetime).slice(0, 10))?.acquisition_datetime ?? null),
-        }))
+      ? rasterPoints.map((p) => {
+          const rec = timelineByDay.get(String(p.datetime).slice(0, 10));
+          return {
+            date: p.datetime,
+            value: p.mean,
+            cloud: p.cloudy_pct ?? null,
+            thumbUrl: rec?.thumbnail_url ?? null,
+            thumbProduct: rec?.thumbnail_url ? (rec.thumbnail_index ?? null) : null,
+            acquisitionDatetime: rec?.acquisition_datetime ?? null,
+          };
+        })
       : (timelineItems.length
           ? timelineItems.map((item) => ({
               date: item.date,
               value: null,
               cloud: typeof item.cloud_pct === 'number' ? item.cloud_pct : null,
               thumbUrl: item.thumbnail_url,
+              thumbProduct: item.thumbnail_index ?? null,
               acquisitionDatetime: item.acquisition_datetime ?? null,
             }))
           : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null })));
@@ -320,14 +322,18 @@ export default function SatellitePage() {
       }
     }
     const geom = (field?.geometry ?? null) as { type?: string; coordinates?: unknown } | null;
-    return base.map((p) => ({
-      ...p,
-      delta: p.date && deltaByDate.has(p.date) ? (deltaByDate.get(p.date) as number) : null,
-      thumbUrl: p.thumbUrl ?? (fieldId && p.date
+    return base.map((p) => {
+      const fallbackUrl = !p.thumbUrl && fieldId && p.date
         ? fieldCdseThumbnailUrl(fieldId, 'truecolor', p.date.slice(0, 10), null, geom, null, 160)
-        : null),
-    }));
-  }, [rasterPoints, timelineItems, timelineThumbByDate, ts, fieldId, gridIndex, field?.geometry]);
+        : null;
+      return {
+        ...p,
+        delta: p.date && deltaByDate.has(p.date) ? (deltaByDate.get(p.date) as number) : null,
+        thumbUrl: p.thumbUrl ?? fallbackUrl,
+        thumbProduct: fallbackUrl ? 'truecolor' : (p.thumbProduct ?? null),
+      };
+    });
+  }, [rasterPoints, timelineItems, timelineByDay, ts, fieldId, gridIndex, field?.geometry]);
 
   // هل يوفّر المصدر نسبة غيوم؟ (raster نعم، vegetation لا) — يضبط إتاحة المُبدِّل.
   const hasCloudData = stripPoints.some((p) => typeof p.cloud === 'number');
