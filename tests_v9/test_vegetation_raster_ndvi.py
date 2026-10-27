@@ -362,7 +362,9 @@ async def test_canonical_decimals_reach_the_analysis_as_numbers(veg, monkeypatch
 # المُنتِجُ هنا **مسارُ المالك الحقيقيّ كاملاً** في عمليّةٍ مستقلّة (``routers`` و``db_persist``
 # أسماءٌ تتنازعها الخدمات في جلسة pytest واحدة): ``_run_cdse_processing`` ⇒ المعالجةُ ⇒ الطبقة ⇒
 # ``field_timeseries`` و``field_indicator_observation_bundle``. المستبدَلُ حدُّ الشبكة وحدَه:
-# عميلُ CDSE يُعيد GeoTIFF حقيقيّاً لكلّ مؤشّر. بلا قاعدة (وضعٌ مُعلَن في ``field_owner_tenant``).
+# عميلُ CDSE يُعيد GeoTIFF حقيقيّاً لكلّ مؤشّر. بلا قاعدة (وضعٌ مُعلَن في ``field_owner_tenant``)،
+# فيُستبدَل كذلك قبولُ القاعدة لكتابة الأصل وحدَه: منذ بوّابة النشر (P2-PUB-1) لا تُخدَم طبقةٌ
+# من الذاكرة ما لم تُدَم، فمُنتِجٌ بلا قاعدةٍ أصلاً لا يُنشِر شيئاً.
 
 _SCENE = "S2B_MSIL2A_20260925T073609_N0511_R092_T38PNA"
 _RASTER_PRODUCER = r"""
@@ -399,6 +401,23 @@ class CdseNetworkBoundary:
         return geotiff(VALUES[index])
 
 
+import db_persist
+
+PERSISTED = []
+
+
+async def accepted_by_database(**row):
+    # حدُّ القاعدة: بوّابةُ النشر (P2-PUB-1) لا تُسجِّل طبقةً في الذاكرة إلّا بعد إدامتها،
+    # والعمليّةُ بلا DATABASE_URL. المستبدَلُ قبولُ القاعدة للكتابة وحدَه — مُحوِّلُ الإدامة
+    # الحقيقيّ يجري كما هو، وقُرّاءُ القاعدة يبقون بلا اتّصال فيقرؤون ما سُجِّل في الذاكرة.
+    PERSISTED.append(row.get("cog_uri") or row.get("cog_url"))
+    return True
+
+
+db_persist.insert_raster_asset = accepted_by_database
+db_persist.insert_raster_registry_entry = accepted_by_database
+db_persist.set_raster_asset_status = accepted_by_database
+
 import cdse_client
 cdse_client.get_client = lambda: CdseNetworkBoundary()
 cdse_client.supported_indices = lambda: set(VALUES)
@@ -417,7 +436,7 @@ async def produce():
     bundle = await fields.field_indicator_observation_bundle(
         field, indices="ndvi,moisture,msi", date="latest", grid=16,
         x_agent_token=os.environ["SAHOOL_AGENT_TOKEN"])
-    return {"timeseries": timeseries, "bundle": bundle}
+    return {"timeseries": timeseries, "bundle": bundle, "persisted": PERSISTED}
 
 
 print("PRODUCED " + json.dumps(asyncio.run(produce()), default=str))
@@ -449,6 +468,7 @@ def _raster_owner_output(tmp_path, *, tenant: str, field: str, native_qa=False) 
     produced = [ln for ln in run.stdout.splitlines() if ln.startswith("PRODUCED ")]
     assert produced, f"مُنتِجُ الراستر لم يُنتِج (rc={run.returncode}):\n{run.stderr[-3000:]}"
     output = json.loads(produced[-1][len("PRODUCED ") :])
+    assert output["persisted"], "المالكُ لم يُدِم أصلاً — بلا إدامةٍ لا نشر (P2-PUB-1)"
     assert output["timeseries"].get("points"), (
         "المالكُ لم يُنتِج رصداً — الشاهدُ لا يقيس شيئاً:\n"
         f"{json.dumps(output['timeseries'], ensure_ascii=False)[:800]}\n{run.stdout[-3000:]}"
