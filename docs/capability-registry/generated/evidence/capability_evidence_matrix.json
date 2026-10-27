@@ -2794,6 +2794,7 @@
         "services/sahool-platform/tests/test_dem_enrichment.py",
         "services/sahool-platform/tests/test_field_intelligence_card.py",
         "services/sahool-platform/tests/test_field_workspace.py",
+        "services/sahool-platform/tests/test_task_update_idempotency.py",
         "services/sahool-platform/tests/test_ui6_maphub_clutter_control_guard.py",
         "services/soil-service/test_soil_p2_products.py",
         "services/soil-service/test_soil_p3_products.py",

@@ -291,7 +291,7 @@
         "GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:998",
         "GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87",
         "GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3080",
-        "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396",
+        "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:428",
         "GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159",
         "GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:333",
         "GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377",
@@ -2514,19 +2514,19 @@
         "services/soil-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396",
-        "GET /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:160",
-        "GET /api/v1/soil-sampling/depth @ services/sahool-platform/api/routers/soil_sampling.py:53",
-        "GET /api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:59",
-        "GET /api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:47",
+        "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:428",
+        "GET /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:166",
+        "GET /api/v1/soil-sampling/depth @ services/sahool-platform/api/routers/soil_sampling.py:59",
+        "GET /api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:65",
+        "GET /api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:53",
         "GET /v1/fields/{field_id}/soil/sampling-plan @ services/raster-service/routers/soil_tiles.py:193",
         "GET /v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:154",
         "GET /v1/fields/{field_id}/soil/sampling-zones.geojson @ services/raster-service/routers/soil_tiles.py:166",
         "POST /api/v1/fields/{field_id}/zone-sampling-plan @ services/sahool-platform/api/routers/productivity.py:84",
-        "POST /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:169",
-        "POST /api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:294",
-        "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:190",
-        "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:262",
+        "POST /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:181",
+        "POST /api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:326",
+        "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:222",
+        "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:294",
         "POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:83",
         "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100"
       ],
@@ -2587,8 +2587,8 @@
         "services/soil-service/main.py"
       ],
       "apis": [
-        "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:190",
-        "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:262"
+        "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:222",
+        "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:294"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -3678,8 +3678,8 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:37",
-        "PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:87",
+        "GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:44",
+        "PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:94",
         "POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2821"
       ],
       "ui_consumers": [],
@@ -3687,6 +3687,7 @@
         "mobile/sahool_app/lib/screens/tasks_screen.dart"
       ],
       "tests": [
+        "services/sahool-platform/tests/test_task_update_idempotency.py",
         "tests_v9/test_tasks_endpoints.py"
       ],
       "runtime": {
@@ -3701,7 +3702,7 @@
           "path": "services/sahool-platform/api/routers/tasks.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=1, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=2, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

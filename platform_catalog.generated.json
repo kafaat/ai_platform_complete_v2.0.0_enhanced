@@ -9900,7 +9900,7 @@
         "GET /api/v1/lab/samples",
         "POST /api/v1/lab/samples"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -12638,7 +12638,7 @@
       "entrypoints": [
         "PATCH /api/v1/tasks/{task_id}"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -17549,7 +17549,7 @@
     "capabilities": 830,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 94,
-    "capabilities_idempotent": 48,
+    "capabilities_idempotent": 50,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 477,
     "components": 36,
@@ -17819,7 +17819,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "d0f8fd16dfad4cf1029e97a826c7c0e9025bdbe56a03b59fda32c9553b0d2b65",
+  "fingerprint": "3c12523072781f59ad37796c397a02f850156463cf5a27c0011693399901b032",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

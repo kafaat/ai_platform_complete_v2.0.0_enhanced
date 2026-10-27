@@ -417,7 +417,7 @@ FM-003,api,GET /api/v1/fields/{field_id}/history @ services/sahool-platform/api/
 FM-003,api,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:998,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3080,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:428,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:333,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377,4,applied
@@ -1216,11 +1216,12 @@ IRR-009,test,tests_v9/test_sar_rvi.py,3,applied
 IRR-010,api,GET /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-service/routers/p3_products.py:180,2,applied
 IRR-010,api,POST /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-service/routers/p3_products.py:94,2,applied
 IRR-010,service,services/sahool-platform/api/main.py,10,applied
-OPS-001,api,GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:37,3,applied
-OPS-001,api,PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:87,5,applied
+OPS-001,api,GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:44,3,applied
+OPS-001,api,PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:94,5,applied
 OPS-001,api,POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2821,5,applied
 OPS-001,mobile,mobile/sahool_app/lib/screens/tasks_screen.dart,2,applied
 OPS-001,service,services/sahool-platform/api/main.py,10,applied
+OPS-001,test,services/sahool-platform/tests/test_task_update_idempotency.py,3,applied
 OPS-001,test,tests_v9/test_tasks_endpoints.py,3,applied
 OPS-002,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:350,5,applied
 OPS-002,service,services/sahool-platform/api/main.py,10,applied
@@ -1863,26 +1864,26 @@ SOIL-001,api,POST /v1/soil/suitability @ services/soil-service/routers/soil_prof
 SOIL-001,service,services/soil-service/main.py,10,applied
 SOIL-001,test,services/decision-service/tests/test_soil_profile_context_gate.py,5,applied
 SOIL-001,test,services/soil-service/test_canonical_soil_profile.py,5,applied
-SOIL-002,api,GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396,4,applied
-SOIL-002,api,GET /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:160,4,applied
-SOIL-002,api,GET /api/v1/soil-sampling/depth @ services/sahool-platform/api/routers/soil_sampling.py:53,4,applied
-SOIL-002,api,GET /api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:59,4,applied
-SOIL-002,api,GET /api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:47,4,applied
+SOIL-002,api,GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:428,4,applied
+SOIL-002,api,GET /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:166,4,applied
+SOIL-002,api,GET /api/v1/soil-sampling/depth @ services/sahool-platform/api/routers/soil_sampling.py:59,4,applied
+SOIL-002,api,GET /api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:65,4,applied
+SOIL-002,api,GET /api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:53,4,applied
 SOIL-002,api,GET /v1/fields/{field_id}/soil/sampling-plan @ services/raster-service/routers/soil_tiles.py:193,6,applied
 SOIL-002,api,GET /v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:154,3,applied
 SOIL-002,api,GET /v1/fields/{field_id}/soil/sampling-zones.geojson @ services/raster-service/routers/soil_tiles.py:166,4,applied
 SOIL-002,api,POST /api/v1/fields/{field_id}/zone-sampling-plan @ services/sahool-platform/api/routers/productivity.py:84,2,applied
-SOIL-002,api,POST /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:169,4,applied
-SOIL-002,api,POST /api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:294,4,applied
-SOIL-002,api,POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:190,4,applied
-SOIL-002,api,POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:262,4,applied
+SOIL-002,api,POST /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:181,4,applied
+SOIL-002,api,POST /api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:326,4,applied
+SOIL-002,api,POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:222,4,applied
+SOIL-002,api,POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:294,4,applied
 SOIL-002,api,POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:83,3,applied
 SOIL-002,api,POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100,3,applied
 SOIL-002,service,services/soil-service/main.py,10,applied
 SOIL-002,test,tests_v9/test_soil_sampling_planner_v61.py,7,applied
 SOIL-002,test,tests_v9/test_soil_sampling_strategies_v61_1.py,5,applied
-SOIL-003,api,POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:190,4,applied
-SOIL-003,api,POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:262,4,applied
+SOIL-003,api,POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:222,4,applied
+SOIL-003,api,POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:294,4,applied
 SOIL-003,service,services/soil-service/main.py,10,applied
 SOIL-004,api,POST /api/v1/nutrients/4r-plan @ services/sahool-platform/api/routers/nutrients.py:31,2,applied
 SOIL-004,service,services/soil-service/main.py,10,applied

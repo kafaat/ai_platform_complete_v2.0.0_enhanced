@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5427,
+    "files_scanned": 5429,
     "files_by_kind": {
-      "backend": 1211,
+      "backend": 1212,
       "database": 280,
       "governance": 64,
       "mobile": 55,
       "other": 1519,
-      "tests": 1840,
+      "tests": 1841,
       "web": 458
     },
     "unmapped_artifacts": 2202,
@@ -9638,6 +9638,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/idempotency.py",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
           "score": 12,
           "signals": [
@@ -10672,6 +10680,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_task_update_idempotency.py",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "services/soil-service/test_soil_p2_products.py",
           "score": 14,
           "signals": [
@@ -11172,13 +11188,13 @@
         "routes": 20
       },
       "evidence_counts": {
-        "backend": 28,
+        "backend": 29,
         "routes": 100,
         "database": 10,
         "events": 51,
         "web": 12,
         "mobile": 0,
-        "tests": 38,
+        "tests": 39,
         "governance": 0,
         "other_evidence": 34
       },
@@ -29023,39 +29039,39 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:395",
+          "value": "/api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:427",
           "score": 31
         },
         {
-          "value": "/api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:159",
+          "value": "/api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:165",
           "score": 31
         },
         {
-          "value": "/api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:168",
+          "value": "/api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:180",
           "score": 31
         },
         {
-          "value": "/api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:293",
+          "value": "/api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:325",
           "score": 31
         },
         {
-          "value": "/api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:189",
+          "value": "/api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:221",
           "score": 31
         },
         {
-          "value": "/api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:261",
+          "value": "/api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:293",
           "score": 31
         },
         {
-          "value": "/api/v1/soil-sampling/depth @ services/sahool-platform/api/routers/soil_sampling.py:52",
+          "value": "/api/v1/soil-sampling/depth @ services/sahool-platform/api/routers/soil_sampling.py:58",
           "score": 31
         },
         {
-          "value": "/api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:58",
+          "value": "/api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:64",
           "score": 31
         },
         {
-          "value": "/api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:46",
+          "value": "/api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:52",
           "score": 31
         },
         {

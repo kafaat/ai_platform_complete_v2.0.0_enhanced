@@ -1900,7 +1900,7 @@
     },
     {
       "kind": "router",
-      "line": 43,
+      "line": 49,
       "module": "services.sahool-platform.api.routers.soil_sampling",
       "node_id": "services.sahool-platform.api.routers.soil_sampling:router",
       "route_count": 9,
@@ -1918,7 +1918,7 @@
     },
     {
       "kind": "router",
-      "line": 33,
+      "line": 40,
       "module": "services.sahool-platform.api.routers.tasks",
       "node_id": "services.sahool-platform.api.routers.tasks:router",
       "route_count": 2,
@@ -2367,7 +2367,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 30,
+  "include_edge_count": 32,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2524,6 +2524,15 @@
     },
     {
       "expression": "mod.router",
+      "line": 264,
+      "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_lab_sampling_router:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
       "line": 58,
       "module": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
       "prefix": null,
@@ -2574,6 +2583,15 @@
       "prefix": null,
       "resolved": false,
       "source": "services.sahool-platform.tests.test_phase9_autonomous_farm_os_api:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
+      "line": 86,
+      "module": "services/sahool-platform/tests/test_task_update_idempotency.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_task_update_idempotency:<dynamic-source>",
       "target": null
     },
     {
@@ -2640,7 +2658,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "44da6178f59054505b5aa081c2bc373f06fc9b2b561ec7b7ebe7349f873ec6ee",
+  "inventory_sha256": "13dc3f720f46a6379c9fcbd752b5d58389fe2ca494439c2eb7b9fde6d32ee309",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -4506,7 +4524,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 43,
+      "line": 49,
       "module": "services.sahool-platform.api.routers.soil_sampling",
       "node_id": "services.sahool-platform.api.routers.soil_sampling:router",
       "route_count": 9,
@@ -4526,7 +4544,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 33,
+      "line": 40,
       "module": "services.sahool-platform.api.routers.tasks",
       "node_id": "services.sahool-platform.api.routers.tasks:router",
       "route_count": 2,
@@ -4921,7 +4939,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 28,
+  "unresolved_include_count": 30,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5061,6 +5079,14 @@
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
+      "line": 264,
+      "module": "services.sahool-platform.tests.test_lab_sampling_router",
+      "source": null,
+      "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
       "line": 58,
       "module": "services.sahool-platform.tests.test_me_ai_policy_envelope",
@@ -5106,6 +5132,14 @@
       "module": "services.sahool-platform.tests.test_phase9_autonomous_farm_os_api",
       "source": null,
       "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_task_update_idempotency.py",
+      "line": 86,
+      "module": "services.sahool-platform.tests.test_task_update_idempotency",
+      "source": null,
+      "target_expression": "mod.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",
