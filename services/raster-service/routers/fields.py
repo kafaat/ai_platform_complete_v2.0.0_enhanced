@@ -1183,6 +1183,7 @@ async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: st
     يبني شبكتي المؤشّر الحقيقيّتين (من COG المقصوص لكلّ تاريخ، نفس مسار
     indicator-grid) ويُمرّرهما لـdetect_change. صدق: إن لم تتوفّر شبكة حقيقيّة
     لأحد التاريخين (لا COG / لا rasterio) يُرجِع real_data=False بلا تغيّر مُفبرَك.
+    وشبكتان غير متحاذيتين أو مرفوضتا الجودة ⇒ status=not_assessable (field_change_refusal).
     """
     _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
     grid_a = await _real_field_grid(field_id, req.index, req.date_a, req.grid)
@@ -1202,14 +1203,11 @@ async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: st
             "(لا تغيّر مُفبرَك من بيانات غير متوفّرة)",
         }
 
-    if grid_a["rows"] != grid_b["rows"] or grid_a["cols"] != grid_b["cols"]:
-        raise HTTPException(
-            status_code=409,
-            detail=(
-                f"أبعاد شبكتي التاريخين مختلفة: "
-                f"{grid_a['rows']}×{grid_a['cols']} مقابل {grid_b['rows']}×{grid_b['cols']}"
-            ),
-        )
+    from layer_lookup import field_change_refusal  # S2-a/S2-b: عقد /v1/change/detect + الجودة
+
+    refusal, identity = field_change_refusal(grid_a, grid_b, date_a=req.date_a, date_b=req.date_b)
+    if refusal is not None:
+        return {"field_id": field_id, "index": req.index, **refusal}
 
     import change_detection as cd
 
@@ -1228,6 +1226,8 @@ async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: st
             "bbox": grid_b.get("bbox") or grid_a.get("bbox"),
             "real_data": True,
             "available": True,
+            "status": "assessed",
+            "grid_identity": identity,
         }
     )
     return result
