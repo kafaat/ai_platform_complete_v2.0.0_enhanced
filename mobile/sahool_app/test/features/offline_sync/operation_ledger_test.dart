@@ -315,6 +315,39 @@ void main() {
     expect(server.creates[1].body!['name'], 'آخر');
   });
 
+  test('a submit before restore completes (or from a second screen instance) '
+      'uses the open operation on disk — no second record, no new key', () async {
+    final disk = <String, String>{};
+    server.plan.add(const CommitThenDrop());
+    final first = _op(
+      ledgerFor(tokens, MemoryOperationStore(disk), client: client),
+      client,
+    );
+    expect(await first.submit(Map.of(_payload)), isA<CreateUnconfirmed>());
+    final key = server.creates.single.key;
+
+    // نسخة جديدة لم تستدعِ restore بعد: الحمولة المعدّلة مسودّة فقط.
+    final second = _op(
+      ledgerFor(tokens, MemoryOperationStore(disk), client: client),
+      client,
+    );
+    final edited = await second.submit({..._payload, 'name': 'ريّ الضحى'});
+    expect(edited, isA<CreateUnconfirmed>());
+    expect(second.record!.operationId, key);
+    expect(server.creates, hasLength(1), reason: 'لا طلب بالمسودّة');
+    expect(disk, hasLength(1), reason: 'لا سجلّ ثانٍ');
+    expect(await second.restore(), isNull, reason: 'لا كتابة فوق الأحدث');
+
+    // والحمولة نفسها ⇒ استعادة بالمفتاح نفسه.
+    final third = _op(
+      ledgerFor(tokens, MemoryOperationStore(disk), client: client),
+      client,
+    );
+    expect(await third.submit(Map.of(_payload)), isA<CreateConfirmed>());
+    expect(server.creates.map((c) => c.key).toSet(), {key});
+    expect(server.resources, hasLength(1));
+  });
+
   test('digest is canonical: key order does not matter', () {
     expect(
       payloadDigest({'a': 1, 'b': {'y': 2, 'x': 1}}),

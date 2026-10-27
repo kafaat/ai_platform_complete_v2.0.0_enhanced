@@ -658,7 +658,8 @@ class CreateOperation {
   /// saved_locally يُستعاد صامتاً (لم يُنفَّذ — مفتاحه يُعاد للإرسال التالي).
   Future<CreateOutcome?> restore() async {
     final r = await ledger.openFor(kind, scope: scope);
-    if (r == null) return null;
+    // إرسالٌ سبق اكتمال الاستعادة حمّل العمليّة بنفسه: لا نكتب فوق حالته الأحدث.
+    if (r == null || _record != null) return null;
     _record = r;
     if (r.state == OperationState.savedLocally) return null;
     if (r.state == OperationState.pending) {
@@ -680,7 +681,10 @@ class CreateOperation {
     try {
       final owner = ledger.currentOwner();
       if (owner == null) return const CreateNotSaved(kOperationNoSessionAr);
-      final current = _record;
+      // عمليّة مفتوحة على القرص لم تُحمَّل بعد (إرسال قبل اكتمال restore، أو نسخة
+      // أخرى من الشاشة) تُستعمَل هي — لا سجلّ ثانٍ بمفتاح جديد بجانبها.
+      final current = _record ?? await ledger.openFor(kind, scope: scope);
+      _record = current;
       if (current != null && current.owner != owner) {
         return const CreateNotSaved(kOperationNoSessionAr);
       }
