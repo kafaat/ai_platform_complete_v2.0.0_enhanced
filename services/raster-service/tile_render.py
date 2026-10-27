@@ -770,26 +770,109 @@ def raster_content_observation(cog_path: str) -> dict:
         return unavailable
 
 
-def apply_polygon_mask(cog_path: str, geom_4326: dict) -> None:
-    """يطبّق قناع مضلّع **بكسليّ دقيق** على COG في مكانه: خارج المضلّع → NaN.
+def _raster_metadata(src) -> dict:
+    """يلتقط من راستر مفتوح ما **لا** يحمله ``src.profile`` (G-CLIP-1).
+
+    إعادة الكتابة من الـprofile وحده كانت تُسقِط scale/offset (فتتغيّر القيم الفيزيائيّة
+    المُفسَّرة)، والوسوم وأوصاف النطاقات والوحدات وتفسير الألوان، والأهرامات وتخطيط COG.
+    """
+    return {
+        "tags": src.tags(),
+        "band_tags": [src.tags(i) for i in src.indexes],
+        "descriptions": src.descriptions,
+        "scales": src.scales,
+        "offsets": src.offsets,
+        "units": src.units,
+        "colorinterp": src.colorinterp,
+        "overviews": src.overviews(1),
+        "overview_tags": src.tags(ns="rio_overview"),
+        "cog_layout": src.tags(ns="IMAGE_STRUCTURE").get("LAYOUT") == "COG",
+    }
+
+
+def _rewrite_preserving_metadata(cog_path: str, data, profile: dict, meta: dict) -> None:
+    """يكتب ``data`` مكان ``cog_path`` ويُعيد ما التقطه ``_raster_metadata``.
+
+    الأهرامات **تُعاد بناؤها** من البيانات المقصوصة (بمستوياتها وبإعادة العيّنة المُعلَنة
+    في ``rio_overview``؛ وإلّا nearest الذي لا يمزج nodata بالقيم). وإن كان المصدر بتخطيط
+    COG كُتب عبر مشغّل COG (ترويسة IFD قبل البيانات) لا GTiff عاديّ يحمل الاسم فقط.
+    """
+    import os
+
+    import rasterio
+    import rasterio.shutil
+    from rasterio.enums import Resampling
+
+    target = f"{cog_path}.mask.tif" if meta["cog_layout"] else cog_path
+    try:
+        with rasterio.open(target, "w", **profile) as dst:
+            dst.write(data)
+            dst.update_tags(**meta["tags"])
+            for band, tags in zip(dst.indexes, meta["band_tags"], strict=True):
+                dst.update_tags(band, **tags)
+                if meta["descriptions"][band - 1]:
+                    dst.set_band_description(band, meta["descriptions"][band - 1])
+            dst.scales = meta["scales"]
+            dst.offsets = meta["offsets"]
+            dst.units = tuple(u or "" for u in meta["units"])
+            dst.colorinterp = meta["colorinterp"]
+            if meta["overviews"]:
+                resampling = meta["overview_tags"].get("resampling", "nearest")
+                dst.build_overviews(meta["overviews"], Resampling[resampling])
+                dst.update_tags(ns="rio_overview", resampling=resampling)
+        if target != cog_path:
+            options = {"COMPRESS": str(profile.get("compress") or "NONE").upper()}
+            if profile.get("blockxsize"):
+                options["BLOCKSIZE"] = profile["blockxsize"]
+            rasterio.shutil.copy(target, cog_path, driver="COG", **options)
+    finally:
+        if target != cog_path and os.path.exists(target):
+            os.unlink(target)
+
+
+def apply_polygon_mask(cog_path: str, geom_4326: dict) -> int:
+    """يطبّق قناع مضلّع **بكسليّ دقيق** على COG في مكانه: خارج المضلّع → nodata.
 
     ``geom_4326``: GeoJSON (Polygon/MultiPolygon) بـEPSG:4326. يُعاد إسقاطه إلى CRS
-    الراستر ثمّ ``rasterio.mask`` يملأ الخارج بـNaN (nodata) — قصّ مستقلّ عن قصّ
+    الراستر ثمّ يُملأ الخارج (ومعه nodata المصدر داخله) بـnodata — قصّ مستقلّ عن قصّ
     المزوّد (Sentinel Hub) ومطابق لحافّة الحقل (مصدر الحقيقة للقصّ). يُعيد الكتابة في
-    نفس الملفّ. يرفع عند الفشل (لا rasterio/هندسة لا تتقاطع) فيعالجه المُستدعي.
+    نفس الملفّ **محافظاً** على scale/offset/الوسوم/الأوصاف ومُعيداً بناء الأهرامات
+    وتخطيط COG (G-CLIP-1).
+
+    nodata (G-CLIP-2): العائم ⇒ NaN؛ الصحيح ⇒ nodata المُعلَن في المصدر (NaN لا يُخزَّن
+    فيه)؛ صحيح بلا nodata مُعلَن ⇒ ``ValueError`` **قبل** أيّ كتابة (لا نخترع قيمة
+    حارسة قد تصطدم بقياس حقيقيّ).
+
+    يُعيد عدد البكسلات داخل المضلّع؛ ``0`` = لا تقاطع (الراستر كلّه nodata). عدم التقاطع
+    **لا** يرفع عمداً: رفض المنتج الفارغ سلطةُ فحص المحتوى عند المُستدعي، وعليه يُبنى
+    إسناد ``polygon_mask_removed_observations``. يرفع عند الفشل (لا rasterio/نوع صحيح
+    بلا nodata/كتابة فاشلة) فيعالجه المُستدعي fail-closed.
 
     (إعادة دمج توحيد main↔cert: ميزة قصّ CDSE poly من main فوق tile_render الخاصّ بـcert.)"""
+    import numpy as np
     import rasterio
-    from rasterio.mask import mask as _rio_mask
+    from rasterio.mask import raster_geometry_mask
     from rasterio.warp import transform_geom
 
     with rasterio.open(cog_path) as src:
+        if np.issubdtype(np.dtype(src.dtypes[0]), np.floating):
+            nodata = float("nan")
+        elif src.nodata is not None:
+            nodata = src.nodata
+        else:
+            raise ValueError(
+                f"apply_polygon_mask: نوع صحيح ({src.dtypes[0]}) بلا nodata مُعلَن — "
+                "لا قيمة تمثّل «خارج الحقل»"
+            )
         geom_src = transform_geom("EPSG:4326", src.crs, geom_4326)
-        out_img, _ = _rio_mask(src, [geom_src], crop=False, nodata=float("nan"), filled=True)
+        outside, _, _ = raster_geometry_mask(src, [geom_src], crop=False)  # True خارج المضلّع
+        data = src.read(masked=True)
+        out_img = np.ma.array(data, mask=np.ma.getmaskarray(data) | outside).filled(nodata)
         profile = src.profile.copy()
-    profile.update(nodata=float("nan"))
-    with rasterio.open(cog_path, "w", **profile) as dst:
-        dst.write(out_img)
+        meta = _raster_metadata(src)
+    profile.update(nodata=nodata)
+    _rewrite_preserving_metadata(cog_path, out_img, profile, meta)
+    return int(np.count_nonzero(~outside))
 
 
 def apply_polygon_mask_rgba(cog_path: str, geom_4326: dict) -> None:
@@ -799,6 +882,7 @@ def apply_polygon_mask_rgba(cog_path: str, geom_4326: dict) -> None:
     نظير ``apply_polygon_mask`` لكن لأنواع UINT8 (لا يمكن تخزين NaN فيها): بدل ملء
     القيم بـNaN نُصفِّر قناة **ألفا** (النطاق الرابع) خارج الحقل — قصّ محلّيّ مستقلّ عن
     قصّ المزوّد، مطابق لحافّة الحقل (fail-closed). يرفع عند الفشل فيعالجه المُستدعي.
+    يحافظ على تفسير ألفا والوسوم ويُعيد بناء الأهرامات كنظيره (G-CLIP-1).
     """
     import raster_security_context
     import raster_settings
@@ -814,6 +898,7 @@ def apply_polygon_mask_rgba(cog_path: str, geom_4326: dict) -> None:
         )
         data = src.read()  # (bands, H, W) uint8
         profile = src.profile.copy()
+        meta = _raster_metadata(src)  # ألفا/الأهرامات/الوسوم لا يحملها الـprofile (G-CLIP-1)
         geom_src = transform_geom("EPSG:4326", src.crs, geom_4326)
         inside = geometry_mask(
             [geom_src],
@@ -825,5 +910,4 @@ def apply_polygon_mask_rgba(cog_path: str, geom_4326: dict) -> None:
         alpha = data[3]
         alpha[~inside] = 0  # خارج الحقل ⇒ شفّاف
         data[3] = alpha
-    with rasterio.open(cog_path, "w", **profile) as dst:
-        dst.write(data)
+    _rewrite_preserving_metadata(cog_path, data, profile, meta)
