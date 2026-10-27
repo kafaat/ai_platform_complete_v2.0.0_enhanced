@@ -11,12 +11,21 @@ cog_writer.py — كتابة Cloud-Optimized GeoTIFF محسّنة (تحسين ت
   - بلاطات داخليّة 512×512
   - أهرامات (overviews) داخل الملفّ (2,4,8,16) بإعادة عيّنة average
 
+تخطيط COG (ST-01): البلاطات والأهرامات وحدها لا تصنع COG. بناء الأهرامات في الموضع
+على GTiff مفتوح يُلحِق IFDs الأهرامات وبياناتها بذيل الملفّ ويُزيح IFD الرئيسيّ بعيداً
+عن الرأس ⇒ الملفّ يُقرأ لكنّ قارئ HTTP-range يحتاج جولات إضافيّة لبلوغ الفهرس. لذا
+تُكتب كلّ التعديلات (بكسلات · قناع · أهرامات · وسوم) في ملفّ وسيط، ثمّ نسخة نهائيّة
+واحدة بـ``COPY_SRC_OVERVIEWS=YES`` تضع كلّ IFDs في الرأس والأهرامات الأصغر أوّلاً
+والدقّة الكاملة آخِراً، وتُنشَر بإعادة تسمية ذرّيّة. ``validate_cog`` يفحص هذا التخطيط
+من مواضع IFD/الكتل (GDAL فقط، بلا rio-cogeo) لا مجرّد «مبلّط + أهرامات».
+
 ⚠ يتطلّب rasterio في بيئة التشغيل. عند غيابه، يُبلّغ بصدق.
 """
 
 from __future__ import annotations
 
 import os
+import tempfile
 
 # إعدادات COG محسّنة (وفق أفضل الممارسات)
 COG_PROFILE = {
@@ -34,6 +43,35 @@ OVERVIEW_LEVELS = [2, 4, 8, 16]
 
 
 DEFAULT_NODATA = -9999.0
+
+# مفاتيح البروفايل التي تصف المصفوفة لا خيارات الإنشاء — تُورَث من الملفّ الوسيط في
+# النسخة النهائيّة، والباقي (ضغط · تنبّؤ · بلاطات · BIGTIFF · photometric/alpha) يُعاد تمريره.
+_DATASET_KEYS = {"driver", "dtype", "height", "width", "count", "crs", "transform", "nodata"}
+
+# حدّ موضع IFD الرئيسيّ: بعد ترويسة TIFF ومنطقة GDAL الشبحيّة (~200 بايت). نفس عتبة
+# مدقّق rio-cogeo/GDAL المستقلّ («The offset of the main IFD should be < 300»).
+_MAX_MAIN_IFD_OFFSET = 300
+
+
+def _finalize_cog(write_intermediate, output_path: str, profile: dict) -> None:
+    """يكتب ملفّاً وسيطاً ثمّ ينسخه نسخة COG نهائيّة وينشرها ذرّيّاً على ``output_path``.
+
+    ``write_intermediate(path)`` يكتب كلّ شيء (بكسلات · قناع · أهرامات · وسوم) في ملفّ
+    وسيط؛ ``COPY_SRC_OVERVIEWS=YES`` يعيد ترتيب البايتات تخطيطَ COG (IFDs في الرأس،
+    الأهرام الأصغر أوّلاً) بلا إعادة حساب الأهرامات. لا تعديل بعد النسخة النهائيّة: أيّ
+    كتابة في الموضع بعدها تُفسد الترتيب. الوسيط في مجلّد الناتج (نفس نظام الملفّات ⇒
+    ``os.replace`` ذرّيّ، فلا يرى قارئ متزامن ملفّاً نصف مكتوب) ويُحذَف دائماً."""
+    from rasterio.shutil import copy as rio_copy
+
+    out_dir = os.path.dirname(output_path) or "."
+    os.makedirs(out_dir, exist_ok=True)
+    creation = {k: v for k, v in profile.items() if k not in _DATASET_KEYS}
+    with tempfile.TemporaryDirectory(prefix=".cog-", dir=out_dir) as tmp:
+        intermediate = os.path.join(tmp, "intermediate.tif")
+        final = os.path.join(tmp, "final.tif")
+        write_intermediate(intermediate)
+        rio_copy(intermediate, final, driver="GTiff", copy_src_overviews=True, **creation)
+        os.replace(final, output_path)
 
 
 def write_cog(
@@ -83,13 +121,17 @@ def write_cog(
         "nodata": nodata,
     }
 
-    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
-    with rasterio.open(output_path, "w", **profile) as dst:
-        dst.write(write_array, 1)
-        dst.write_mask(valid_mask.astype("uint8") * 255)
-        # أهرامات داخليّة (overviews) — قراءة سريعة عند التكبير/التصغير
-        dst.build_overviews(OVERVIEW_LEVELS, Resampling.average)
-        dst.update_tags(ns="rio_overview", resampling="average")
+    def _write(path: str) -> None:
+        with rasterio.open(path, "w", **profile) as dst:
+            dst.write(write_array, 1)
+            dst.write_mask(valid_mask.astype("uint8") * 255)
+            # أهرامات داخليّة (overviews) — قراءة سريعة عند التكبير/التصغير.
+            # average للمؤشّر المتّصل؛ القناع يُهرَّم معها داخليّاً.
+            dst.build_overviews(OVERVIEW_LEVELS, Resampling.average)
+            # وسم المجال الافتراضيّ (اصطلاح rio-cogeo) — يُنسَخ مع البيانات إلى الناتج.
+            dst.update_tags(OVR_RESAMPLING_ALG="AVERAGE")
+
+    _finalize_cog(_write, output_path, profile)
 
     size = os.path.getsize(output_path)
     return {
@@ -162,16 +204,20 @@ def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -
     profile["photometric"] = "RGB"
     if bands >= 4:
         profile["alpha"] = "YES"
-    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
-    with rasterio.open(output_path, "w", **profile) as dst:
-        for i in range(bands):
-            dst.write(arr[i], i + 1)
-        interps = [ColorInterp.red, ColorInterp.green, ColorInterp.blue]
-        if bands >= 4:
-            interps.append(ColorInterp.alpha)  # النطاق الرابع = ألفا (قناع الخارج/الغيوم)
-        dst.colorinterp = interps
-        dst.build_overviews(OVERVIEW_LEVELS, Resampling.nearest)
-        dst.update_tags(ns="rio_overview", resampling="nearest")
+
+    def _write(path: str) -> None:
+        with rasterio.open(path, "w", **profile) as dst:
+            for i in range(bands):
+                dst.write(arr[i], i + 1)
+            interps = [ColorInterp.red, ColorInterp.green, ColorInterp.blue]
+            if bands >= 4:
+                interps.append(ColorInterp.alpha)  # النطاق الرابع = ألفا (قناع الخارج/الغيوم)
+            dst.colorinterp = interps
+            # nearest لمنتج العرض 8-بت: لا يخلط ألفا 0/255 ولا يخترع ألواناً.
+            dst.build_overviews(OVERVIEW_LEVELS, Resampling.nearest)
+            dst.update_tags(OVR_RESAMPLING_ALG="NEAREST")
+
+    _finalize_cog(_write, output_path, profile)
 
     size = os.path.getsize(output_path)
     return {
@@ -187,8 +233,51 @@ def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -
     }
 
 
+def _tiff_offset(src, item: str, ovr: int | None = None) -> int | None:
+    """موضع بايت من مجال TIFF في GDAL (``IFD_OFFSET``/``BLOCK_OFFSET_0_0``)؛ None إن غاب."""
+    value = src.get_tag_item(item, "TIFF", bidx=1, ovr=ovr)
+    try:
+        return int(value) if value not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _cog_layout_errors(src) -> list[str]:
+    """قواعد تخطيط COG من مواضع IFD/الكتل كما يقيسها GDAL — نفس قواعد مدقّق GDAL
+    ``validate_cloud_optimized_geotiff`` وrio-cogeo strict، بلا تبعيّة جديدة:
+    IFD الرئيسيّ في الرأس، IFDs الأهرامات بعده تصاعديّاً، وبيانات الأهرامات قبل
+    بيانات الدقّة الكاملة من الأصغر إلى الأكبر."""
+    if src.driver != "GTiff":
+        return [f"المشغّل {src.driver} ليس GTiff"]
+    main_ifd = _tiff_offset(src, "IFD_OFFSET")
+    if main_ifd is None:
+        return ["تعذّر قراءة مواضع IFD من GDAL"]
+    errors: list[str] = []
+    if main_ifd >= _MAX_MAIN_IFD_OFFSET:
+        errors.append(f"IFD الرئيسيّ عند البايت {main_ifd} لا في الرأس (< {_MAX_MAIN_IFD_OFFSET})")
+    levels = range(len(src.overviews(1)))
+    prev_ifd = main_ifd
+    for i in levels:
+        ifd = _tiff_offset(src, "IFD_OFFSET", ovr=i)
+        if ifd is None or ifd <= prev_ifd:
+            errors.append(f"IFD الهرم {i} عند {ifd} ليس بعد IFD السابق عند {prev_ifd}")
+        prev_ifd = ifd if ifd is not None else prev_ifd
+    # الكتلة الأولى لكلّ مستوى: الأصغر أوّلاً في الملفّ، والدقّة الكاملة آخِراً.
+    # 0/None = كتلة فارغة (sparse) ⇒ لا مقارنة.
+    blocks = [_tiff_offset(src, "BLOCK_OFFSET_0_0")]
+    blocks += [_tiff_offset(src, "BLOCK_OFFSET_0_0", ovr=i) for i in levels]
+    names = ["الدقّة الكاملة"] + [f"الهرم {i}" for i in levels]
+    for larger in range(len(blocks) - 1):
+        a, b = blocks[larger], blocks[larger + 1]
+        if a and b and a < b:
+            errors.append(f"بيانات {names[larger]} ({a}) قبل بيانات {names[larger + 1]} ({b})")
+    return errors
+
+
 def validate_cog(path: str) -> dict:
-    """يتحقّق أنّ ملفّاً COG صالح (مبلّط + له أهرامات). للتدقيق بعد الكتابة."""
+    """يتحقّق أنّ ملفّاً COG صالح: مبلّط + أهرامات داخليّة + **تخطيط COG** (IFDs في الرأس،
+    الأهرامات قبل الدقّة الكاملة). «مبلّط + أهرامات» وحدهما كانا يشهدان valid لملفّ
+    يرفضه مدقّق COG المستقلّ (ST-01). للتدقيق بعد الكتابة."""
     try:
         import rasterio
     except ImportError:
@@ -198,10 +287,13 @@ def validate_cog(path: str) -> dict:
     with rasterio.open(path) as src:
         is_tiled = src.profile.get("tiled", False)
         has_overviews = len(src.overviews(1)) > 0
+        errors = _cog_layout_errors(src)
         return {
-            "valid": bool(is_tiled and has_overviews),
+            "valid": bool(is_tiled and has_overviews and not errors),
             "tiled": is_tiled,
             "overviews": src.overviews(1),
             "compression": str(src.profile.get("compress", "none")),
-            "note": "COG جيّد = مبلّط + أهرامات داخليّة (قراءة جزئيّة سريعة)",
+            "layout": src.tags(ns="IMAGE_STRUCTURE").get("LAYOUT"),
+            "errors": errors,
+            "note": "COG جيّد = مبلّط + أهرامات داخليّة + IFDs في الرأس والأهرامات قبل الدقّة الكاملة",
         }
