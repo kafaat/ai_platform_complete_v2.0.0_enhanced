@@ -464,6 +464,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/maphub/HubMap.pinMode.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/HubMapGL.test.tsx",
     "kind": "web"
   },
@@ -1336,6 +1340,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/taskTypeLabels.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/waterHarvesting.test.ts",
     "kind": "tests"
   },
@@ -1508,6 +1516,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/FieldManagementPage.saveRetry.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/FieldTasksCabin.tsx",
     "kind": "web"
   },
@@ -1528,6 +1540,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/FieldWorkspacePanels.behavior.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/FieldWorkspacePriorityPanel.tsx",
     "kind": "web"
   },
@@ -1545,6 +1561,10 @@
   },
   {
     "path": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceStaleNote.tsx",
     "kind": "web"
   },
   {
@@ -1757,6 +1777,10 @@
   },
   {
     "path": "frontend/src/sections/fieldWorkspaceContract.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/fieldWorkspaceStaleData.ts",
     "kind": "web"
   },
   {

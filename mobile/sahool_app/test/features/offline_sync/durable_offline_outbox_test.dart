@@ -416,6 +416,42 @@ void main() {
       },
     );
 
+    test(
+      'D4 409 reasons: in_progress keeps the op; payload_mismatch is rejected '
+      'with the server text',
+      () async {
+        const mismatch =
+            'هذه العملية أُرسلت سابقاً بنفس المعرّف. استعِد نتيجة المحاولة '
+            'السابقة أولاً، ولا تُنشئ سجلاً جديداً.';
+        final h = Harness(
+          handler: (o) async => switch (o.path) {
+            '/b' => const FakeReply(409, {
+              'detail': {
+                'code': 'idempotency_conflict',
+                'reason': 'in_progress',
+                'message_ar':
+                    'المحاولة السابقة بنفس المعرّف ما زالت قيد المعالجة',
+              },
+            }),
+            _ => const FakeReply(409, {
+              'detail': {
+                'code': 'idempotency_conflict',
+                'reason': 'payload_mismatch',
+                'message_ar': mismatch,
+              },
+            }),
+          },
+        );
+        await h.outbox.enqueue(op('/b', method: 'POST', fieldId: 'x'));
+        await h.outbox.enqueue(op('/c', method: 'POST'));
+        await h.outbox.drain();
+        final s = h.outbox.snapshot();
+        expect(s.pending.map((r) => r.op.path), ['/b']);
+        expect(s.rejected.map((r) => r.op.path), ['/c']);
+        expect(s.rejected.single.rejectedMessageAr, mismatch);
+      },
+    );
+
     test('network failure keeps the op and stops the drain', () async {
       final h = Harness(
         handler: (_) async =>

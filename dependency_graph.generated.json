@@ -1,5 +1,5 @@
 {
-  "edge_count": 881,
+  "edge_count": 890,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -2762,6 +2762,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/irrigation.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/irrigation_mpc.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -2913,6 +2923,26 @@
     },
     {
       "evidence": "services/sahool-platform/tests/test_field_aggregate_ports.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -3402,6 +3432,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://irrigation_schedules",
+      "to": "db://irrigation_schedules",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_operations_summary_endpoint.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -3433,6 +3473,26 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/operations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://irrigation_valves",
+      "to": "db://irrigation_valves",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://irrigation_valves",
+      "to": "db://irrigation_valves",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -7592,6 +7652,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://irrigation_schedules",
+      "to": "db://irrigation_schedules",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://irrigation_schedules",
+      "to": "db://irrigation_schedules",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/irrigation_recommendation.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -8222,6 +8302,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/settings.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -8830,9 +8920,9 @@
     "CALLS": 47,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 450,
+    "READS": 456,
     "ROUTES_TO": 72,
-    "WRITES": 308
+    "WRITES": 311
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8847,8 +8937,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 759,
-      "resolved": 758,
+      "observed": 768,
+      "resolved": 767,
       "unresolved_component_paths": 0
     }
   }

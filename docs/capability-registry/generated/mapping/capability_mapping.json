@@ -15,18 +15,18 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6820,
+    "files_scanned": 6838,
     "files_by_kind": {
-      "backend": 1260,
+      "backend": 1261,
       "database": 289,
       "governance": 86,
       "mobile": 407,
       "other": 2127,
-      "tests": 2172,
-      "web": 479
+      "tests": 2180,
+      "web": 488
     },
-    "unmapped_artifacts": 2703,
-    "ambiguous_artifacts": 485
+    "unmapped_artifacts": 2709,
+    "ambiguous_artifacts": 486
   },
   "capabilities": [
     {
@@ -5524,7 +5524,7 @@
           "score": 11
         },
         {
-          "value": "SAHOOL_Application_Summary.csv @ frontend/src/sections/ReportsPage.tsx:716",
+          "value": "SAHOOL_Application_Summary.csv @ frontend/src/sections/ReportsPage.tsx:727",
           "score": 11
         },
         {
@@ -5536,11 +5536,11 @@
           "score": 11
         },
         {
-          "value": "SAHOOL_Harvest_Summary.csv @ frontend/src/sections/ReportsPage.tsx:641",
+          "value": "SAHOOL_Harvest_Summary.csv @ frontend/src/sections/ReportsPage.tsx:652",
           "score": 11
         },
         {
-          "value": "SAHOOL_Planting_Summary.csv @ frontend/src/sections/ReportsPage.tsx:559",
+          "value": "SAHOOL_Planting_Summary.csv @ frontend/src/sections/ReportsPage.tsx:570",
           "score": 11
         },
         {
@@ -8499,15 +8499,15 @@
           "score": 11
         },
         {
-          "value": "field_create_api.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:14",
+          "value": "field_create_api.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:17",
           "score": 10
         },
         {
-          "value": "field_create_errors.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:15",
+          "value": "field_create_errors.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:18",
           "score": 10
         },
         {
-          "value": "field_created_events.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:16",
+          "value": "field_created_events.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:19",
           "score": 10
         },
         {
@@ -8715,6 +8715,22 @@
         },
         {
           "path": "frontend/src/lib/seasonDraftStorage.ts",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "frontend/src/sections/FieldWorkspaceIrrigationPanel.season.test.tsx",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "frontend/src/sections/SeasonRecordEntryPage.behavior.test.tsx",
           "score": 14,
           "signals": [
             "path:season",
@@ -9344,7 +9360,7 @@
         "routes": 82,
         "database": 84,
         "events": 61,
-        "web": 13,
+        "web": 15,
         "mobile": 15,
         "tests": 37,
         "governance": 0,
@@ -11116,6 +11132,14 @@
             "content:Map layers",
             "content:map layer"
           ]
+        },
+        {
+          "path": "frontend/src/components/maphub/HubMapGL.basemap.test.tsx",
+          "score": 8,
+          "signals": [
+            "content:Map layers",
+            "content:map layer"
+          ]
         }
       ],
       "mobile": [],
@@ -11157,7 +11181,7 @@
         "routes": 4,
         "database": 0,
         "events": 0,
-        "web": 2,
+        "web": 3,
         "mobile": 0,
         "tests": 2,
         "governance": 0,
@@ -11337,6 +11361,14 @@
             "content:dem",
             "content:slope",
             "content:terrain"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/idempotency.py",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
           ]
         },
         {
@@ -12050,6 +12082,34 @@
           "score": 15
         },
         {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:101",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:114",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:128",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:141",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:153",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:167",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:75",
+          "score": 14
+        },
+        {
           "value": "field.create @ tests_v9/test_idempotency_mobile.py:241",
           "score": 14
         },
@@ -12426,6 +12486,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_task_update_idempotency.py",
           "score": 14,
           "signals": [
@@ -12470,6 +12538,14 @@
         {
           "path": "tests_v9/test_idempotency_mobile.py",
           "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/core/idempotency_test.dart",
+          "score": 13,
           "signals": [
             "path:dem",
             "content:dem"
@@ -12950,13 +13026,13 @@
         "routes": 20
       },
       "evidence_counts": {
-        "backend": 28,
+        "backend": 29,
         "routes": 100,
         "database": 10,
-        "events": 53,
+        "events": 60,
         "web": 12,
         "mobile": 4,
-        "tests": 41,
+        "tests": 43,
         "governance": 0,
         "other_evidence": 35
       },
@@ -15387,14 +15463,34 @@
         {
           "value": "irrigation.py @ tests_v9/test_irrigation_schedule_conflict_v29_5_op.py:86",
           "score": 14
+        },
+        {
+          "value": "irrigation_test_helpers.dart @ mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart:15",
+          "score": 11
         }
       ],
       "web": [],
       "mobile": [],
       "tests": [
         {
+          "path": "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
+          "score": 14,
+          "signals": [
+            "path:irrigation schedule",
+            "content:irrigation schedule"
+          ]
+        },
+        {
           "path": "tests_v9/test_irrigation_schedule_conflict_v29_5_op.py",
           "score": 14,
+          "signals": [
+            "path:irrigation schedule",
+            "content:irrigation schedule"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart",
+          "score": 11,
           "signals": [
             "path:irrigation schedule",
             "content:irrigation schedule"
@@ -15411,10 +15507,10 @@
         "backend": 0,
         "routes": 0,
         "database": 0,
-        "events": 2,
+        "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 0
       },
@@ -16702,6 +16798,14 @@
           ]
         },
         {
+          "path": "frontend/src/sections/TasksPage.tsx",
+          "score": 10,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
           "path": "frontend/src/sections/maphub/MapActionPalette.tsx",
           "score": 10,
           "signals": [
@@ -16735,14 +16839,6 @@
         },
         {
           "path": "frontend/src/sections/ActivitiesPage.tsx",
-          "score": 8,
-          "signals": [
-            "content:Scouting",
-            "content:scouting"
-          ]
-        },
-        {
-          "path": "frontend/src/sections/TasksPage.tsx",
           "score": 8,
           "signals": [
             "content:Scouting",
@@ -17116,6 +17212,14 @@
           ]
         },
         {
+          "path": "frontend/src/sections/MapHubPalettePinMode.static.test.ts",
+          "score": 10,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
           "path": "services/raster-service/test_final_field_imagery_runtime_contract_static_20260626.py",
           "score": 10,
           "signals": [
@@ -17322,7 +17426,7 @@
         "events": 49,
         "web": 22,
         "mobile": 22,
-        "tests": 28,
+        "tests": 29,
         "governance": 0,
         "other_evidence": 12
       },
@@ -17509,7 +17613,7 @@
           "score": 25
         },
         {
-          "value": "field_forms_api.dart @ mobile/sahool_app/lib/features/field_forms/data/field_forms_coordinator.dart:15",
+          "value": "field_forms_api.dart @ mobile/sahool_app/lib/features/field_forms/data/field_forms_coordinator.dart:20",
           "score": 22
         },
         {
@@ -17729,6 +17833,16 @@
       "tests": [
         {
           "path": "mobile/sahool_app/test/features/field_forms/field_form_screen_test.dart",
+          "score": 28,
+          "signals": [
+            "path:Field forms",
+            "content:Field forms",
+            "path:field form",
+            "content:field form"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/field_forms/field_forms_sync_safety_test.dart",
           "score": 28,
           "signals": [
             "path:Field forms",
@@ -17958,6 +18072,14 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/test/core/auth_gate_startup_test.dart",
+          "score": 8,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "tests_v9/test_ci_suite_invocation_budget.py",
           "score": 8,
           "signals": [
@@ -18080,7 +18202,7 @@
         "events": 12,
         "web": 0,
         "mobile": 21,
-        "tests": 24,
+        "tests": 26,
         "governance": 1,
         "other_evidence": 11
       },
@@ -28378,6 +28500,10 @@
           "score": 18
         },
         {
+          "value": "commands @ tests_v9/test_d4d5_idempotency_irrigation_live_pg.py:112",
+          "score": 18
+        },
+        {
           "value": "digital_twin_scenarios @ migrations/v116_enterprise_gis_phase7.sql:105",
           "score": 18
         },
@@ -28414,6 +28540,10 @@
           "score": 18
         },
         {
+          "value": "fields @ tests_v9/test_d4d5_idempotency_irrigation_live_pg.py:103",
+          "score": 18
+        },
+        {
           "value": "gis_collaboration_events @ migrations/v116_enterprise_gis_phase7.sql:102",
           "score": 18
         },
@@ -28435,6 +28565,10 @@
         },
         {
           "value": "gis_collaboration_sessions @ migrations/v116_enterprise_gis_phase7.sql:94",
+          "score": 18
+        },
+        {
+          "value": "iot_devices @ tests_v9/test_d4d5_idempotency_irrigation_live_pg.py:104",
           "score": 18
         },
         {
@@ -28573,18 +28707,6 @@
         {
           "value": "field_state @ migrations/v104_fields_create_contract.sql:53",
           "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:54",
-          "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:55",
-          "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:56",
-          "score": 17
         }
       ],
       "events": [
@@ -28603,6 +28725,10 @@
         {
           "value": "soil-profile.v1 @ migrations/v155_soil_observations_profiles.sql:35",
           "score": 20
+        },
+        {
+          "value": "v25_irrigation.sql @ tests_v9/test_d4d5_idempotency_irrigation_live_pg.py:113",
+          "score": 18
         },
         {
           "value": "field.create @ docs/PRODUCTION_CERTIFICATION_v05_2026-06-17.md:106",
@@ -28958,6 +29084,16 @@
           "score": 19,
           "signals": [
             "path:rls",
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "tests_v9/test_d4d5_idempotency_irrigation_live_pg.py",
+          "score": 18,
+          "signals": [
+            "content:Tenant RLS",
             "content:rls",
             "content:row level security",
             "content:tenant isolation"
@@ -30259,16 +30395,16 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 802
+        "database": 805
       },
       "evidence_counts": {
         "backend": 14,
         "routes": 31,
         "database": 100,
-        "events": 65,
+        "events": 66,
         "web": 0,
         "mobile": 0,
-        "tests": 76,
+        "tests": 77,
         "governance": 0,
         "other_evidence": 87
       },
@@ -33697,6 +33833,14 @@
             "content:sampling plan",
             "content:soil sampling"
           ]
+        },
+        {
+          "path": "frontend/src/sections/TasksPage.tsx",
+          "score": 8,
+          "signals": [
+            "content:Soil sampling",
+            "content:soil sampling"
+          ]
         }
       ],
       "mobile": [
@@ -34053,7 +34197,7 @@
         "routes": 35,
         "database": 11,
         "events": 9,
-        "web": 5,
+        "web": 6,
         "mobile": 2,
         "tests": 14,
         "governance": 0,
@@ -41346,6 +41490,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/maphub/HubMap.pinMode.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/maphub/HubMapGL.test.tsx",
       "kind": "web"
     },
@@ -42218,6 +42366,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/lib/taskTypeLabels.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/lib/waterHarvesting.test.ts",
       "kind": "tests"
     },
@@ -42390,6 +42542,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/FieldManagementPage.saveRetry.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/FieldTasksCabin.tsx",
       "kind": "web"
     },
@@ -42410,6 +42566,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/FieldWorkspacePanels.behavior.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/FieldWorkspacePriorityPanel.tsx",
       "kind": "web"
     },
@@ -42427,6 +42587,10 @@
     },
     {
       "path": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/FieldWorkspaceStaleNote.tsx",
       "kind": "web"
     },
     {
@@ -42639,6 +42803,10 @@
     },
     {
       "path": "frontend/src/sections/fieldWorkspaceContract.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/fieldWorkspaceStaleData.ts",
       "kind": "web"
     },
     {
@@ -55566,6 +55734,28 @@
           "signals": [
             "content:sentinel",
             "content:stac"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "frontend/src/sections/TasksPage.tsx",
+      "kind": "web",
+      "candidates": [
+        {
+          "capability_id": "OPS-003",
+          "score": 10,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
+          "capability_id": "SOIL-002",
+          "score": 8,
+          "signals": [
+            "content:Soil sampling",
+            "content:soil sampling"
           ]
         }
       ]

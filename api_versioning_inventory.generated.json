@@ -6518,7 +6518,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation.py",
-    "line": 100,
+    "line": 101,
     "method": "POST",
     "path": "/api/v1/irrigation/valves",
     "handler": "register_valve",
@@ -6527,7 +6527,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation.py",
-    "line": 157,
+    "line": 158,
     "method": "GET",
     "path": "/api/v1/irrigation/valves",
     "handler": "list_valves",
@@ -6536,7 +6536,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation.py",
-    "line": 179,
+    "line": 180,
     "method": "POST",
     "path": "/api/v1/irrigation/valves/{valve_id}/state",
     "handler": "set_valve_state",
@@ -6545,7 +6545,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation.py",
-    "line": 236,
+    "line": 293,
     "method": "POST",
     "path": "/api/v1/irrigation/schedules",
     "handler": "create_schedule",
@@ -6554,7 +6554,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation.py",
-    "line": 307,
+    "line": 386,
     "method": "GET",
     "path": "/api/v1/irrigation/schedules",
     "handler": "list_schedules",
@@ -6563,7 +6563,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation.py",
-    "line": 357,
+    "line": 436,
     "method": "DELETE",
     "path": "/api/v1/irrigation/schedules/{schedule_id}",
     "handler": "delete_schedule",
@@ -6572,7 +6572,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation.py",
-    "line": 372,
+    "line": 451,
     "method": "GET",
     "path": "/api/v1/irrigation/soil-types",
     "handler": "irrigation_soil_types_endpoint",
@@ -6581,7 +6581,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation.py",
-    "line": 378,
+    "line": 457,
     "method": "GET",
     "path": "/api/v1/irrigation/moisture-decision",
     "handler": "irrigation_moisture_decision_endpoint",
@@ -6590,7 +6590,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation.py",
-    "line": 397,
+    "line": 476,
     "method": "POST",
     "path": "/api/v1/irrigation/water-analysis",
     "handler": "irrigation_water_analysis",

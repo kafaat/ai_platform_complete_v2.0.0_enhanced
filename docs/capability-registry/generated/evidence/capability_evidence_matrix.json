@@ -2814,6 +2814,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "services/sahool-platform/tests/test_idempotency_server_contract.py",
         "tests_v9/test_canonical_root_zone_to_sprinkler_contract.py"
       ],
       "learning_linked": false,
@@ -2824,6 +2825,7 @@
       "runtime_verified": false,
       "title": "Terrain and DEM",
       "unit_test_paths": [
+        "mobile/sahool_app/test/core/idempotency_test.dart",
         "mobile/sahool_app/test/features/maps/sahool_map_test.dart",
         "services/decision-service/tests/test_ac1_agronomic_context.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
@@ -4147,10 +4149,11 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -4182,7 +4185,7 @@
         "database": false,
         "documentation": true,
         "events": true,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": false,
         "production": false,
         "runtime": false,
@@ -4217,7 +4220,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -4252,22 +4255,25 @@
           "type": "web"
         }
       ],
-      "evidence_score": 4,
+      "evidence_score": 5,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py"
+      ],
       "learning_linked": false,
-      "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Irrigation scheduling",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart",
         "tests_v9/test_irrigation_schedule_conflict_v29_5_op.py"
       ]
     },
@@ -5301,7 +5307,9 @@
       "runtime_verified": false,
       "title": "Field forms",
       "unit_test_paths": [
+        "mobile/sahool_app/test/core/auth_gate_startup_test.dart",
         "mobile/sahool_app/test/features/field_forms/field_form_screen_test.dart",
+        "mobile/sahool_app/test/features/field_forms/field_forms_sync_safety_test.dart",
         "mobile/sahool_app/test/field_forms/condition_v1_test.dart",
         "mobile/sahool_app/test/field_forms/draft_store_test.dart",
         "mobile/sahool_app/test/field_forms/field_forms_api_test.dart",
@@ -7953,6 +7961,7 @@
         "tests_v9/test_chaos_resilience.py",
         "tests_v9/test_compose_rls_bypass_guard.py",
         "tests_v9/test_d1_raster_queue_rls_live_pg.py",
+        "tests_v9/test_d4d5_idempotency_irrigation_live_pg.py",
         "tests_v9/test_database_migrations.py",
         "tests_v9/test_decision_record_migrations.py",
         "tests_v9/test_evidence_graph_nodes_migration_v149.py",
@@ -10995,10 +11004,10 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 29,
-    "average_assessed_maturity": 2.07,
+    "aligned": 30,
+    "average_assessed_maturity": 2.09,
     "capability_count": 81,
-    "declared_above_evidence": 49,
+    "declared_above_evidence": 48,
     "evidence_above_declared": 3,
     "production_certified": 0,
     "promotion_preconditions_satisfied": 0,

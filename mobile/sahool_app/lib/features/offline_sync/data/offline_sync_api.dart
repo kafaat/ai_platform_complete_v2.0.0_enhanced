@@ -104,12 +104,15 @@ bool isIdempotentReplay(ApiException e) {
   return false;
 }
 
-/// 409 «الأمر قيد المعالجة — أعد المحاولة لاحقاً» (api/main.py:_idempotent):
-/// الطلب الأصليّ لم يكتمل بعد؛ ليس رفضاً.
-bool isCommandInProgress(ApiException e) =>
-    e.statusCode == 409 &&
-    e.detail is String &&
-    (e.detail as String).contains('قيد المعالجة');
+/// 409 «الأمر قيد المعالجة — أعد المحاولة لاحقاً» (api/idempotency.py:_idempotent):
+/// الطلب الأصليّ لم يكتمل بعد؛ ليس رفضاً. العقد الحاليّ (D4) سببٌ ثابت في
+/// `detail.reason == 'in_progress'`؛ والنصّ القديم مقبولٌ لخادمٍ لم يُرقَّ بعد.
+bool isCommandInProgress(ApiException e) {
+  if (e.statusCode != 409) return false;
+  final d = e.detail;
+  if (d is Map) return d['reason'] == 'in_progress';
+  return d is String && d.contains('قيد المعالجة');
+}
 
 OutboxOutcome classifyOutboxFailure(ApiException e) {
   if (e.isCancelled) return const OutboxOutcome(OutboxOutcomeKind.aborted);

@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "60ce45df8535706e845dea8db5bfd5d54e95de5f",
+  "measured_on": "92cc7f5bbb040818f784d6f24d59e8c63791ee5e",
   "fake_connection_tests": [
     "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
     "services/decision-service/tests/test_migration_runner_readonly.py",
@@ -27,11 +27,13 @@
     "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
     "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
     "services/sahool-platform/tests/test_governance_modules.py",
+    "services/sahool-platform/tests/test_idempotency_server_contract.py",
     "services/sahool-platform/tests/test_indicator_observations_route.py",
     "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
     "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
     "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
     "services/sahool-platform/tests/test_irrigation_scenario_value.py",
+    "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
     "services/sahool-platform/tests/test_lab_sampling_router.py",
     "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
     "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
@@ -449,6 +451,26 @@
         "services/sahool-platform/tests/test_task_update_idempotency.py"
       ],
       "justification": "PATCH /api/v1/tasks/{id} now honours Idempotency-Key. The test needs the update to run against something that records how many times the UPDATE ran and returns the updated row, so the replay can be shown to run it once; a fake connection that answers only that one fetchrow pins the idempotency path without a database. The command store is an in-memory stand-in for the same reason. The lab-sample test in the same change uses the file's existing admitted harness."
+    },
+    {
+      "kind": "ui_mobile_irrigation_20261027_schedule_create_contract",
+      "date": "2026-10-27",
+      "before": 111,
+      "after": 112,
+      "sites": [
+        "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py"
+      ],
+      "justification": "Arrived with the integration head 7e3d72565 (branch ui-mobile-irrigation, UI-M1/UI-M2) without an admission, so the ratchet failed on that head before any D4/D5 change. The fake answers only the valve lookup, the tenant field check and the schedule insert, so the field derivation, the 422 conflict and the replay of the first result can be pinned without a database. It claims no PostgreSQL enforcement. The same behaviours are proven against PostgreSQL 16 under the restricted role in tests_v9/test_d4d5_idempotency_irrigation_live_pg.py, which the Live PG Proofs job runs."
+    },
+    {
+      "kind": "platform_idempotency_20261027_d4d5_server_contract",
+      "date": "2026-10-27",
+      "before": 112,
+      "after": 113,
+      "sites": [
+        "services/sahool-platform/tests/test_idempotency_server_contract.py"
+      ],
+      "justification": "D4/D5 unit contract. The irrigation, field-create and season-create routes run against fakes that answer only the rows each route reads: the valve and field lookups honour a tenant parameter when the query passes one, and otherwise act like a role that bypasses RLS. This pins the 409 reason bodies, the operation-type binding, retention, the canonical digest and the foreign-valve 404 without a database. The command store is an in-memory stand-in. No PostgreSQL enforcement is claimed here: concurrency, rollback, retention and R14/R15 are proven live in tests_v9/test_d4d5_idempotency_irrigation_live_pg.py."
     }
   ]
 }

@@ -521,7 +521,7 @@ async def _persist_field(
                     command_type="field.create",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"field_id": field_id, "name": req.name},
+                    payload={"request_digest": api_main.model_digest(req)},  # D4
                 )
             else:
                 result = await _work()
@@ -2245,7 +2245,7 @@ async def create_season(
                     command_type="season.create",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"field_id": field_id, "season_id": season_id},
+                    payload={"request_digest": api_main.model_digest(req, field_id)},  # D4
                 )
             else:
                 result = await _work()

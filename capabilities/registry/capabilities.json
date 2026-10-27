@@ -72,6 +72,7 @@
       "tests": [
         "docs/testing/decision_transport_auth_repairs_20260909.md",
         "mobile/sahool_app/test/auth_service_test.dart",
+        "mobile/sahool_app/test/core/auth_gate_startup_test.dart",
         "mobile/sahool_app/test/features/auth/auth_test_app.dart",
         "mobile/sahool_app/test/features/auth/login_screen_test.dart",
         "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
@@ -93,8 +94,7 @@
         "tests_v9/test_auth_acquire_admin_context_guard.py",
         "tests_v9/test_auth_admin_stepup_mfa.py",
         "tests_v9/test_auth_client_ip_rate_key.py",
-        "tests_v9/test_auth_e2e.py",
-        "tests_v9/test_auth_main_decomposition_guard.py"
+        "tests_v9/test_auth_e2e.py"
       ],
       "runtime": {
         "metrics": [
@@ -137,7 +137,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 35
+        "tests": 36
       }
     },
     {
@@ -369,6 +369,7 @@
         "docs/testing/FIELD_WORKSPACE_PRODUCTION_CLOSURE.md",
         "mobile/sahool_app/test/features/field_forms/ff_fixtures.dart",
         "mobile/sahool_app/test/features/field_forms/field_form_screen_test.dart",
+        "mobile/sahool_app/test/features/field_forms/field_forms_sync_safety_test.dart",
         "mobile/sahool_app/test/features/field_forms/submission_contract_test.dart",
         "mobile/sahool_app/test/features/fields/cross_feature_routes_test.dart",
         "mobile/sahool_app/test/features/fields/field_list_query_test.dart",
@@ -377,6 +378,7 @@
         "mobile/sahool_app/test/features/fields/fields_screen_test.dart",
         "mobile/sahool_app/test/features/fields/harness.dart",
         "mobile/sahool_app/test/features/fields/wizard/field_create_wizard_test.dart",
+        "mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart",
         "mobile/sahool_app/test/features/maps/draw/boundary_import_test.dart",
         "mobile/sahool_app/test/features/maps/draw/boundary_validation_test.dart",
         "mobile/sahool_app/test/features/maps/draw/field_save_cubit_test.dart",
@@ -388,9 +390,7 @@
         "mobile/sahool_app/test/field_forms/draft_store_test.dart",
         "mobile/sahool_app/test/field_forms/field_forms_api_test.dart",
         "mobile/sahool_app/test/field_forms/field_forms_coordinator_test.dart",
-        "mobile/sahool_app/test/field_forms/field_forms_navigation_test.dart",
-        "mobile/sahool_app/test/field_forms/no_coercion_test.dart",
-        "mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart"
+        "mobile/sahool_app/test/field_forms/field_forms_navigation_test.dart"
       ],
       "runtime": {
         "metrics": [],
@@ -430,7 +430,7 @@
       },
       "evidence_truncated": {
         "apis": 205,
-        "tests": 125,
+        "tests": 127,
         "mobile_consumers": 44
       }
     },
@@ -481,6 +481,7 @@
         "POST /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:306"
       ],
       "ui_consumers": [
+        "frontend/src/sections/FieldWorkspaceIrrigationPanel.season.test.tsx",
         "frontend/src/services/api/season.ts"
       ],
       "mobile_consumers": [
@@ -554,7 +555,7 @@
           "path": "migrations/v207_historical_season_simulation_bridge.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=1, mobile=12. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=2, mobile=12. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -3203,14 +3204,16 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:357",
-        "POST /api/v1/irrigation/schedules @ services/sahool-platform/api/routers/irrigation.py:236",
+        "DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:436",
+        "POST /api/v1/irrigation/schedules @ services/sahool-platform/api/routers/irrigation.py:293",
         "POST /v1/fields/{field_id}/post-execution-observations @ services/vegetation-analysis-service/routers/outcomes.py:43",
         "POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2807"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart",
+        "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "tests_v9/test_irrigation_schedule_conflict_v29_5_op.py"
       ],
       "runtime": {
@@ -3220,7 +3223,7 @@
         "audit_events": []
       },
       "evidence": [],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=1, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=3, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -3256,8 +3259,8 @@
         "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229",
         "GET /v1/commands @ services/actuator-service/routers/commands.py:74",
         "GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18",
-        "POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:100",
-        "POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:179",
+        "POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:101",
+        "POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:180",
         "POST /api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:828",
         "POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:865",
         "POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:897",
@@ -4118,6 +4121,7 @@
       "tests": [
         "mobile/sahool_app/test/features/field_forms/ff_fixtures.dart",
         "mobile/sahool_app/test/features/field_forms/field_form_screen_test.dart",
+        "mobile/sahool_app/test/features/field_forms/field_forms_sync_safety_test.dart",
         "mobile/sahool_app/test/features/field_forms/submission_contract_test.dart",
         "mobile/sahool_app/test/field_forms/condition_corpus_data.dart",
         "mobile/sahool_app/test/field_forms/condition_v1_test.dart",
@@ -4139,8 +4143,7 @@
         "tests_v9/test_field_forms_schema.py",
         "tests_v9/test_field_forms_slice3_static.py",
         "tests_v9/test_field_forms_sync_binding_p02.py",
-        "tests_v9/test_field_forms_sync_token.py",
-        "tests_v9/test_v204_field_forms_static.py"
+        "tests_v9/test_field_forms_sync_token.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4177,6 +4180,9 @@
         "GeoPard": null,
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "tests": 1
       }
     },
     {

@@ -1351,7 +1351,7 @@
     },
     {
       "kind": "router",
-      "line": 50,
+      "line": 51,
       "module": "services.sahool-platform.api.routers.irrigation",
       "node_id": "services.sahool-platform.api.routers.irrigation:router",
       "route_count": 9,
@@ -2385,7 +2385,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 40,
+  "include_edge_count": 43,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2569,6 +2569,24 @@
     },
     {
       "expression": "mod.router",
+      "line": 239,
+      "module": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_idempotency_server_contract:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
+      "line": 379,
+      "module": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_idempotency_server_contract:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
       "line": 77,
       "module": "services/sahool-platform/tests/test_indicator_observations_route.py",
       "prefix": null,
@@ -2583,6 +2601,15 @@
       "prefix": null,
       "resolved": false,
       "source": "services.sahool-platform.tests.test_irrigation_runtime_orchestrator:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
+      "line": 114,
+      "module": "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_irrigation_schedule_create_contract:<dynamic-source>",
       "target": null
     },
     {
@@ -2605,7 +2632,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 263,
+      "line": 264,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "prefix": null,
       "resolved": false,
@@ -2677,7 +2704,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 85,
+      "line": 86,
       "module": "services/sahool-platform/tests/test_task_update_idempotency.py",
       "prefix": null,
       "resolved": false,
@@ -2748,7 +2775,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "a4743da3eb15497ad021c3763feb3166e9b8a2b4fc0ec5cbea59021b6b16969e",
+  "inventory_sha256": "0788641a47e9a72cdbe9d9a44ee8dff6fd07e195d7152f7a2bd3d3d45af3ab0c",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -4004,7 +4031,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 50,
+      "line": 51,
       "module": "services.sahool-platform.api.routers.irrigation",
       "node_id": "services.sahool-platform.api.routers.irrigation:router",
       "route_count": 9,
@@ -5049,7 +5076,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 38,
+  "unresolved_include_count": 41,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5213,6 +5240,22 @@
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "line": 239,
+      "module": "services.sahool-platform.tests.test_idempotency_server_contract",
+      "source": null,
+      "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "line": 379,
+      "module": "services.sahool-platform.tests.test_idempotency_server_contract",
+      "source": null,
+      "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_indicator_observations_route.py",
       "line": 77,
       "module": "services.sahool-platform.tests.test_indicator_observations_route",
@@ -5226,6 +5269,14 @@
       "module": "services.sahool-platform.tests.test_irrigation_runtime_orchestrator",
       "source": null,
       "target_expression": "route.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
+      "line": 114,
+      "module": "services.sahool-platform.tests.test_irrigation_schedule_create_contract",
+      "source": null,
+      "target_expression": "mod.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5246,7 +5297,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
-      "line": 263,
+      "line": 264,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
       "source": null,
       "target_expression": "mod.router"
@@ -5310,7 +5361,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_task_update_idempotency.py",
-      "line": 85,
+      "line": 86,
       "module": "services.sahool-platform.tests.test_task_update_idempotency",
       "source": null,
       "target_expression": "mod.router"
