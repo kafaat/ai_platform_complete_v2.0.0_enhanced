@@ -8417,3 +8417,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الحالة:** open (2026-10-26) — يحتاج إجراء المالك في Railway (التجميد: Railway قراءةٌ فقط للوكيل).
 - **المصدر:** مشروع Railway `resourceful-commitment` (أُنشئ 2026-10-22) بخدمةٍ واحدة `ai_platform_complete_v2.0.0_enhanced` مربوطة بفرع `main` بلا Dockerfile ولا مجلّد جذر ولا أنماط مراقبة ولا متغيّرات (`get-service-config`، قراءةً). يحاول Railpack بناء جذر المستودع فيفشل (`railpack process exited with an error`، سجلّ البناء للنشر `08e0751a`)، فتُعلَّم كلّ التزامات main بحالة `failure` في GitHub رغم نجاح الحالات الأربع عشرة الأخرى وكلّ تشغيلات Actions (مقيس على آخر 25 التزاماً حتى `84f29f2fa`). لا نطاق ولا خدمة تعتمد عليه.
 - **شرط الإغلاق:** حذف المشروع، أو فصل مصدره، أو تهيئته ببناءٍ حقيقيّ لخدمة واحدة — ثمّ التزامٌ على main بحالةٍ مجمَّعة `success`.
+
+## MIGRATION-DOWN-SCRIPTS-UNTESTED-POSSIBLY-STALE-01 — ملفّا تراجعٍ غير مختبرين، مع احتمال تقادم
+
+- **الحالة:** open (2026-10-27).
+- **المصدر:** `migrations/v9_append_only_enforcement.down.sql` و`migrations/v9_rls_tenant_isolation.down.sql`. مستثنيان من MANIFEST صراحةً بلاحقة `.down.sql` (`scripts/ci/database_contract_graph.py:77` و`migrations/validate_migrations.py:95-97` و`tests_v9/test_manifest_completeness.py`)، فـ236 ملفّ SQL = 234 هجرةً أماميّة + هذان.
+  - **لا يشغّلهما شيء:** لا workflow، ولا سكربت، ولا اختبار.
+  - `v9_rls_tenant_isolation.sql` عُدِّل مرّتين بعد آخر تعديلٍ لملفّ تراجعه (`6dce82bab` 2026-06-09، والأماميّ `e28d7bab6` 2026-06-17). **وذلك مؤشّرٌ يستدعي الفحص، لا إثباتٌ لخلل.**
+- **الحدّ (قرار المالك 2026-10-27):** ليسا شرطاً لترقية v234–v236، ما لم تعتمد خطة الاستعادة عليهما، وهي لا تعتمد ([`reports/migration_batch_v234_v236_prerequisites_20261027.md`](../reports/migration_batch_v234_v236_prerequisites_20261027.md) §٢.٤). وتشغيلهما قد يمسّ حماية RLS وappend-only، ولا يعكسان الدفعة الجديدة.
+- **شرط الإغلاق:** إمّا (أ) تشغيلهما على نسخةٍ مستعادة مع مقارنة الأثر بعكس الأماميّ الحاليّ، وتسجيل النتيجة، أو (ب) قرارٌ موثَّق بأنّهما خارج أيّ إجراء استعادة، يُصرَّح به في رأسيهما.
