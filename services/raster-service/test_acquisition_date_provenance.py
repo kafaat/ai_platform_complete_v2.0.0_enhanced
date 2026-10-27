@@ -307,3 +307,163 @@ def test_t3_latest_aliases_still_select_latest(monkeypatch, cdse_tiles, value):
         cdse_tiles.field_cdse_thumbnail("F", index="ndvi", date=value, size=160, source="persisted")
     )
     assert seen["date"] is None
+
+
+# ─── مراجعة الإصلاح (must_fix): لا انحدار في نَسَب المشهد الواحد ولا انشقاق اليوم ─────
+
+
+def test_t1_same_scene_contributors_merge_instead_of_dropping_aoi_and_time():
+    """الطبقة في الذاكرة وصفّ القاعدة للأصل **نفسه** مشهدٌ واحد: يُكمِل أحدُهما الآخر.
+
+    شاهد المراجعة: كان التعادل (أو مقارنة سحابة AOI بسحابة مشهد) يُبقي الطبقة في الذاكرة
+    (بلا AOI ولا وقت) فيسقط سحابة الحقل 40 ووقت STAC ويرتفع الوسم إلى «high».
+    """
+    memory = dict(has_cog=True, idx="ndvi", cloud_pct=10, scene_id="S")
+    stored = dict(
+        has_cog=True,
+        idx="ndvi",
+        cloud_pct=10,
+        aoi_cloud_pct=40,
+        scene_id="S",
+        acquisition_datetime="2026-10-15T07:30:00Z",
+    )
+    for contributors in ((memory, stored), (stored, memory)):
+        by_date, add = _accumulator()
+        for kwargs in contributors:
+            add("2026-10-15", **kwargs)
+        rec = by_date["2026-10-15"]
+        assert (
+            rec["scene_id"],
+            rec["scene_cloud_pct"],
+            rec["aoi_cloud_pct"],
+            rec["clear_pct"],
+            rec["quality_label"],
+            rec["acquisition_datetime"],
+        ) == ("S", 10, 40, 60, "medium", "2026-10-15T07:30:00Z")
+        assert rec["contributors"] == 2
+
+
+def test_t1_merged_scene_is_reranked_against_other_scenes():
+    """دمج مشهد يرفع سحابة حقله ⇒ يُعاد ترتيبه؛ لا يبقى ممثِّلاً بقيمة أبطلها مشهده نفسه."""
+    by_date, add = _accumulator()
+    add("2026-10-16", has_cog=False, scene_id="S", cloud_pct=10)
+    add("2026-10-16", has_cog=False, scene_id="T", cloud_pct=20)
+    add(
+        "2026-10-16",
+        has_cog=False,
+        scene_id="S",
+        aoi_cloud_pct=40,
+        acquisition_datetime="2026-10-16T07:30:00Z",
+    )
+    rec = by_date["2026-10-16"]
+    assert (rec["scene_id"], rec["clear_pct"], rec["acquisition_datetime"]) == ("T", 80, None)
+    assert rec["contributors"] == 3
+
+
+def test_t1_tie_goes_to_the_contributor_with_more_provenance():
+    by_date, add = _accumulator()
+    add("2026-10-17", has_cog=True, cloud_pct=30)
+    add("2026-10-17", has_cog=True, cloud_pct=30, aoi_cloud_pct=30, scene_id="S")
+    rec = by_date["2026-10-17"]
+    assert (rec["scene_id"], rec["aoi_cloud_pct"]) == ("S", 30)
+
+
+def test_t1_route_merges_memory_layer_with_db_row_of_the_same_scene(monkeypatch):
+    from types import SimpleNamespace
+
+    import db_persist
+    from routers import fields
+
+    async def authorize(field_id, *, hide_existence):
+        return None
+
+    async def stored(field_id, *, tenant_id, indices, limit):
+        return [
+            {
+                "date": "2026-10-15",
+                "index_name": "ndvi",
+                "cloud_pct": 10,
+                "aoi_cloud_pct": 40,
+                "scene_id": "S",
+                "acquisition_datetime": "2026-10-15T07:30:00Z",
+                "has_cog": True,
+            }
+        ]
+
+    layers = {
+        "mem": {
+            "cog_url": "file:///mem.tif",
+            "index": "ndvi",
+            "acquisition_date": "2026-10-15",
+            "cloud_pct": 10,
+            "provenance": {"scene_id": "S"},
+        }
+    }
+    monkeypatch.setattr(fields, "_require_field_tenant", authorize)
+    monkeypatch.setattr(fields, "_REQ_TENANT", SimpleNamespace(get=lambda: "t"))
+    monkeypatch.setattr(fields, "_layers", layers)
+    monkeypatch.setattr(fields, "_field_layers", {"F": ["mem"]})
+    monkeypatch.setattr(db_persist, "list_available_asset_dates", stored)
+    result = asyncio.run(
+        fields.field_available_dates("F", index="ndvi", limit=100, include_provider=False, months=1)
+    )
+    (day,) = result["dates"]
+    assert (day["aoi_cloud_pct"], day["quality_label"], day["acquisition_datetime"]) == (
+        40,
+        "medium",
+        "2026-10-15T07:30:00Z",
+    )
+    assert day["scene_id"] == "S" and day["contributors"] == 2
+
+
+def test_t4_in_memory_layer_lookup_matches_the_listed_utc_day():
+    """اليوم المعروض في available-dates يجب أن يجد الطبقة في الذاكرة نفسها (بلا قاعدة)."""
+    from layer_lookup import find_field_layer
+
+    layers = {"L": {"cog_url": "file:///l.tif", "index": "ndvi", "acquisition_date": OFFSET_TS}}
+    field_layers = {"F": ["L"]}
+    by_date, add = _accumulator()
+    add(layers["L"]["acquisition_date"], idx="ndvi", has_cog=True)
+    (listed,) = list(by_date)
+    assert find_field_layer(layers, field_layers, "F", "ndvi", listed) is layers["L"]
+    assert find_field_layer(layers, field_layers, "F", "ndvi", "2026-10-01") is None
+    assert find_field_layer(layers, field_layers, "F", "ndvi", "not-a-date") is None
+
+
+def test_t4_registry_product_date_is_the_same_utc_day_as_the_asset(monkeypatch):
+    import db_persist
+
+    seen = []
+
+    class Conn:
+        async def execute(self, *_args):
+            return None
+
+        async def fetchrow(self, _sql, *args):
+            seen.append(args)
+            return {"id": "r", "bbox": None, "bands": "{}", "metadata": "{}"}
+
+        async def close(self):
+            return None
+
+    async def connect():
+        return Conn()
+
+    monkeypatch.setattr(db_persist, "_connect", connect)
+    kwargs = dict(
+        tenant_id="00000000-0000-4000-8000-000000000001",
+        field_id="F",
+        scene_id="S",
+        index_type="ndvi",
+        cog_url="https://cdn.example/x.tif",
+        cloud_pct=None,
+        quality_score=None,
+    )
+    assert asyncio.run(db_persist.insert_raster_registry_entry(product_date=OFFSET_TS, **kwargs))
+    # raster_assets.acquisition_date و raster_registry.product_date يومٌ واحد للأصل نفسه.
+    assert seen[-1][3] == db_persist._iso_date_or_none(OFFSET_TS).isoformat() == "2026-09-30"
+    seen.clear()
+    assert not asyncio.run(
+        db_persist.insert_raster_registry_entry(product_date="2026-13-45", **kwargs)
+    )
+    assert seen == [], "تاريخ منتَج غير صالح لا يُكتب مقصوصاً"

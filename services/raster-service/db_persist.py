@@ -381,6 +381,11 @@ async def upsert_raster_registry_entry(
         return None
     if not product_date or not cog_url:
         return None
+    # T4 (acq-provenance): يوم UTC نفسه الذي يُكتب في raster_assets.acquisition_date للأصل
+    # ذاته (لا أوّل 10 محارف من طابع بإزاحة)؛ تاريخ غير صالح ⇒ لا كتابة.
+    product_day = _iso_date_or_none(product_date)
+    if product_day is None:
+        return None
     conn = await _connect()
     if conn is None:
         return None
@@ -418,7 +423,7 @@ async def upsert_raster_registry_entry(
             str(tenant_id),
             field_id,
             scene_id,
-            product_date[:10] if isinstance(product_date, str) else product_date,
+            product_day.isoformat(),
             index_type,
             cog_url,
             cloud_pct,
