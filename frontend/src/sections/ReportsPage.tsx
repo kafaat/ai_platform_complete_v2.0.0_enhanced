@@ -478,6 +478,13 @@ function useAllFieldsReportData() {
   const fieldsError = fieldsQuery.isError;
   const partialError =
     seasonQueries.some((q) => q.isError) || activityQueries.some((q) => q.isError);
+  // UI-W5: إعادة محاولة الجزء الفاشل فعلاً — retry:false يمنع الإعادة التلقائيّة، وrefetch
+  // قائمة الحقول وحده لا يمسّ استعلامات التفاصيل ذات المفاتيح الثابتة.
+  const retryPartial = () => {
+    for (const q of [...seasonQueries, ...activityQueries]) {
+      if (q.isError) void q.refetch();
+    }
+  };
 
   return {
     fields: fieldsQuery.options,
@@ -486,6 +493,7 @@ function useAllFieldsReportData() {
     isLoading,
     fieldsError,
     partialError,
+    retryPartial,
     refetch: () => fieldsQuery.refetch(),
     fieldsErrorObj: fieldsQuery.error,
   };
@@ -499,18 +507,21 @@ function honestDetail(err: unknown): string {
   return 'تعذّر الاتصال بالخدمة.';
 }
 
-// ملاحظة نزاهة عند فشل جلب بعض الحقول (لا نُخفي نقصاً).
-function PartialNote() {
+// ملاحظة نزاهة عند فشل جلب بعض الحقول (لا نُخفي نقصاً) + إعادة جلب الجزء الفاشل وحده.
+function PartialNote({ onRetry }: { onRetry: () => void }) {
   return (
     <p className="text-[11px] text-amber-400/90 mt-2" dir="rtl">
-      تنبيه نزاهة: تعذّر جلب بيانات بعض الحقول — الملخّص أدناه مبنيّ على ما تَوفّر فقط.
+      تنبيه نزاهة: تعذّر جلب بيانات بعض الحقول — الملخّص أدناه مبنيّ على ما تَوفّر فقط.{' '}
+      <button type="button" onClick={onRetry} className="underline hover:text-amber-200 print:hidden">
+        أعد جلب البيانات الناقصة
+      </button>
     </p>
   );
 }
 
 // ── ملخّص الزراعة ────────────────────────────────────────────────
 function PlantingSummary() {
-  const { fields, seasons, isLoading, fieldsError, partialError, refetch, fieldsErrorObj } =
+  const { fields, seasons, isLoading, fieldsError, partialError, retryPartial, refetch, fieldsErrorObj } =
     useAllFieldsReportData();
 
   if (isLoading) return <LoadingState message="جارٍ تجميع ملخّص الزراعة…" />;
@@ -522,7 +533,7 @@ function PlantingSummary() {
   if (rows.length === 0) {
     return (
       <>
-        {partialError && <PartialNote />}
+        {partialError && <PartialNote onRetry={retryPartial} />}
         <EmptyState
           icon={<Sprout className="w-8 h-8" />}
           title="لا مواسم مُسجَّلة بعد"
@@ -562,7 +573,7 @@ function PlantingSummary() {
           </button>
         }
       />
-      {partialError && <PartialNote />}
+      {partialError && <PartialNote onRetry={retryPartial} />}
       <div className="mt-2">
         <DataTable
           rows={rows as (PlantingRow & Record<string, unknown>)[]}
@@ -577,7 +588,7 @@ function PlantingSummary() {
 
 // ── ملخّص الحصاد ─────────────────────────────────────────────────
 function HarvestSummary() {
-  const { fields, seasons, isLoading, fieldsError, partialError, refetch, fieldsErrorObj } =
+  const { fields, seasons, isLoading, fieldsError, partialError, retryPartial, refetch, fieldsErrorObj } =
     useAllFieldsReportData();
 
   if (isLoading) return <LoadingState message="جارٍ تجميع ملخّص الحصاد…" />;
@@ -589,7 +600,7 @@ function HarvestSummary() {
   if (rows.length === 0) {
     return (
       <>
-        {partialError && <PartialNote />}
+        {partialError && <PartialNote onRetry={retryPartial} />}
         <EmptyState
           icon={<Wheat className="w-8 h-8" />}
           title="لا مواسم مُسجَّلة بعد"
@@ -644,7 +655,7 @@ function HarvestSummary() {
             </button>
           }
         />
-        {partialError && <PartialNote />}
+        {partialError && <PartialNote onRetry={retryPartial} />}
         <div className="mt-2">
           <DataTable
             rows={rows as (HarvestRow & Record<string, unknown>)[]}
@@ -661,7 +672,7 @@ function HarvestSummary() {
 
 // ── ملخّص التطبيق/العمليّات ───────────────────────────────────────
 function ApplicationSummary() {
-  const { activities, isLoading, fieldsError, partialError, refetch, fieldsErrorObj } =
+  const { activities, isLoading, fieldsError, partialError, retryPartial, refetch, fieldsErrorObj } =
     useAllFieldsReportData();
 
   if (isLoading) return <LoadingState message="جارٍ تجميع ملخّص العمليّات…" />;
@@ -673,7 +684,7 @@ function ApplicationSummary() {
   if (summary.total === 0) {
     return (
       <>
-        {partialError && <PartialNote />}
+        {partialError && <PartialNote onRetry={retryPartial} />}
         <EmptyState
           icon={<ClipboardList className="w-8 h-8" />}
           title="لا عمليّات مُسجَّلة بعد"
@@ -696,7 +707,7 @@ function ApplicationSummary() {
 
   return (
     <div className="space-y-4">
-      {partialError && <PartialNote />}
+      {partialError && <PartialNote onRetry={retryPartial} />}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <KpiCard label="إجماليّ العمليّات" value={num(summary.total)}                       icon={ClipboardList} color="#14b8a6" />
         <KpiCard label="أنواع العمليّات"   value={num(Object.keys(summary.by_type).length)}  icon={Layers}        color="#38bdf8" />
