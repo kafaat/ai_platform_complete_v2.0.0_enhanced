@@ -6,6 +6,7 @@
 library;
 
 import 'package:dio/dio.dart';
+import 'package:sahool_app/core/network/api_client.dart' show kOwnerGuardExtra;
 
 /// حزمة نموذج واحدة كما نزّلها الخادم (تُحفظ كما هي).
 class DownloadedFormPackage {
@@ -182,11 +183,18 @@ class FieldFormsApi {
   Future<SubmissionResult> submit(
     Map<String, Object?> envelope, {
     required String deviceId,
+    CancelToken? cancelToken,
+    bool Function(String? token)? ownerGuard,
   }) async {
     final response = await _dio.post<Map<String, Object?>>(
       '/api/field-forms/submissions',
       data: envelope,
-      options: Options(headers: {'X-Device-Id': deviceId}),
+      options: Options(
+        headers: {'X-Device-Id': deviceId},
+        // يُفحَص داخل ApiClient بعد أيّ تجديد وقبل الإرسال مباشرةً.
+        extra: {kOwnerGuardExtra: ?ownerGuard},
+      ),
+      cancelToken: cancelToken,
     );
     return SubmissionResult.fromJson(
       response.data ?? const <String, Object?>{},

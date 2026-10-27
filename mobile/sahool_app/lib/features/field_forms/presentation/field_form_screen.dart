@@ -361,6 +361,16 @@ class FieldFormCubit extends Cubit<FieldFormState> {
                 'تجده في قائمة النماذج تحت «لم يُقبل».',
           ),
         );
+      case SendOutcomeKind.fenced:
+        _lastItem = outcome.item ?? item;
+        emit(
+          state.withStatus(
+            FieldFormStatus.syncFailure,
+            message:
+                'تغيّرت الجلسة قبل تأكيد الإرسال. الإجابات محفوظة على الجهاز '
+                'وتُطابَق حين يعود صاحبها.',
+          ),
+        );
     }
   }
 }
