@@ -121,8 +121,12 @@ def test_gdal_gate_stderr_carries_the_hint_and_no_input():
         check=False,
     )
     assert result.returncode == 78, result.stderr
-    assert "plaintext_internal_requires_opt_in" in result.stderr
-    assert "S3_ALLOW_PLAINTEXT_INTERNAL=true" in result.stderr
+    lines = result.stderr.splitlines()
+    # run_s3_titiler_gate_live.sh and run_s3_compose_slice_acceptance.sh match this line whole.
+    assert "unsafe S3 endpoint configuration: plaintext_internal_requires_opt_in" in lines
+    assert any(
+        line.startswith("hint: ") and "S3_ALLOW_PLAINTEXT_INTERNAL=true" in line for line in lines
+    )
     assert "ran" not in result.stdout
     # The hint is static: the configured endpoint is never echoed back.
     assert "sahool-minio:9000" not in result.stderr

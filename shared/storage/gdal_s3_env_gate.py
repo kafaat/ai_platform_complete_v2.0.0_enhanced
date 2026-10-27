@@ -77,7 +77,12 @@ def main(argv: list[str]) -> int:
     try:
         apply_gdal_env(os.environ)
     except EndpointPolicyError as exc:
-        print(f"unsafe S3 endpoint configuration: {exc}{_policy.hint_for(exc)}", file=sys.stderr)
+        # The first line is a contract: the TiTiler gate and the Compose slice acceptance
+        # match it whole (grep -x). The hint goes on its own line after it.
+        print(f"unsafe S3 endpoint configuration: {exc}", file=sys.stderr)
+        hint = _policy.ENDPOINT_ERROR_HINTS.get(str(exc))
+        if hint:
+            print(f"hint: {hint}", file=sys.stderr)
         return EX_CONFIG
     os.execvp(argv[0], argv)
     return 127  # execvp does not return
