@@ -108,6 +108,28 @@ def _topographic_qa_for_indicator(
         )
 
 
+def _admit_min_raw_quality(ctx, req, pixel_qa: dict) -> None:
+    """بوّابة قبول QA واحدة لكلّ فرع (scalar · precomputed · truecolor) قبل أيّ كتابة COG.
+
+    ``raw_qa_required`` مع ``min_raw_quality_score`` يرفضان المنتَج بـ422 إن قلّت درجته
+    المحسوبة عن الحدّ المطلوب؛ لا فرع يتجاوز الحدّ بصمت (P2-CDSE-1).
+    """
+    min_raw_quality_score = float(getattr(req, "min_raw_quality_score", 0.0) or 0.0)
+    if (
+        bool(getattr(req, "raw_qa_required", True))
+        and pixel_qa["quality_score"] < min_raw_quality_score
+    ):
+        raise ctx.HTTPException(
+            422,
+            {
+                "code": "raw_raster_quality_below_threshold",
+                "quality_score": pixel_qa["quality_score"],
+                "min_raw_quality_score": min_raw_quality_score,
+                "warnings": pixel_qa.get("warnings", []),
+            },
+        )
+
+
 def process_precomputed_pixels(ctx, req, layer_id: str):
     """مسار CDSE: المؤشّر محسوب خادميّاً (evalscript) فالراستر نطاق-واحد جاهز.
 
@@ -165,20 +187,7 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
         qa_layer_present=observed is not None,
     )
-    min_raw_quality_score = float(getattr(req, "min_raw_quality_score", 0.0) or 0.0)
-    if (
-        bool(getattr(req, "raw_qa_required", True))
-        and pixel_qa["quality_score"] < min_raw_quality_score
-    ):
-        raise ctx.HTTPException(
-            422,
-            {
-                "code": "raw_raster_quality_below_threshold",
-                "quality_score": pixel_qa["quality_score"],
-                "min_raw_quality_score": min_raw_quality_score,
-                "warnings": pixel_qa.get("warnings", []),
-            },
-        )
+    _admit_min_raw_quality(ctx, req, pixel_qa)
     stats = {
         "min": float(np.min(vals)) if vals.size else 0.0,
         "max": float(np.max(vals)) if vals.size else 0.0,
@@ -307,6 +316,7 @@ def process_precomputed_truecolor(ctx, req):
         topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
         qa_layer_present=arr.shape[0] >= 4,
     )
+    _admit_min_raw_quality(ctx, req, pixel_qa)
     stats = {
         "min": 0.0,
         "max": 255.0,
@@ -915,20 +925,7 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             saturation_mask_applied=bool(saturation_pct is not None),
             qa_layer_present=qa_layer_present,
         )
-        min_raw_quality_score = float(getattr(req, "min_raw_quality_score", 0.0) or 0.0)
-        if (
-            bool(getattr(req, "raw_qa_required", True))
-            and pixel_qa["quality_score"] < min_raw_quality_score
-        ):
-            raise ctx.HTTPException(
-                422,
-                {
-                    "code": "raw_raster_quality_below_threshold",
-                    "quality_score": pixel_qa["quality_score"],
-                    "min_raw_quality_score": min_raw_quality_score,
-                    "warnings": pixel_qa.get("warnings", []),
-                },
-            )
+        _admit_min_raw_quality(ctx, req, pixel_qa)
         quality = ctx._quality_from_cloud_pct(cloud_pct, masked=bool(cloud_pct is not None))
         stats = {
             "min": float(np.min(vals)) if vals.size else 0.0,
