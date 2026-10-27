@@ -16,7 +16,8 @@ change_detection.py — كشف التغيير المكاني بين تاريخي
 from __future__ import annotations
 
 # المؤشّرات حيث القيمة الأعلى = أسوأ (تدهور): الملوحة. الباقي (ندوة/رطوبة/مياه):
-# القيمة الأدنى = أسوأ. يطابق _HIGH_IS_SEVERE في indicator_grid (مصدر واحد للدلالة).
+# القيمة الأدنى = أسوأ. اتّجاه شدّة indicator_grid صار يُشتقّ من tile_render._INDEX_DOMAIN
+# (invert)؛ هذه المجموعة تطابقه لـsalinity/ndsi فقط (msi/bsi المعكوسة غير مُدرَجة هنا بعد).
 _HIGHER_IS_WORSE = {"salinity", "ndsi"}
 
 # تغطية صالحة دونها تُعتبر النتيجة جزئيّة (غيوم/فجوات) ويُرفع تحذير.
