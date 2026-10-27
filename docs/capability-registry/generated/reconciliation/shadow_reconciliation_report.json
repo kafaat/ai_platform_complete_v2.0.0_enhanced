@@ -147,14 +147,6 @@
       "ratchet_identity": "IRR-005:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 2,
-      "capability_id": "IRR-006",
-      "declared_maturity": 3,
-      "finding_id": "IRR-006:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "IRR-006:declared_above_evidence:evidence-maturity"
-    },
-    {
       "assessed_maturity": 1,
       "capability_id": "IRR-007",
       "declared_maturity": 3,
@@ -475,9 +467,9 @@
     "baseline_source": "docs/capability-registry/reconciliation_drift_baseline.json",
     "classes": {
       "evidence_maturity": {
-        "baseline_count": 52,
+        "baseline_count": 51,
         "new": [],
-        "observed_count": 52,
+        "observed_count": 51,
         "stale": []
       },
       "registry_reconciliation": {

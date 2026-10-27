@@ -10112,3 +10112,10 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ### 2026-10-26 — سبب علامة الفشل الحمراء على كلّ التزامات main
 
 سأل المالك عن ✗ الأحمر بجوار كلّ التزام. المقيس: الحالة المجمَّعة `failure` على آخر 25 التزاماً، وسببها حالةٌ واحدة من 15 — `resourceful-commitment - ai_platform_complete_v2.0.0_enhanced: Deployment failed`؛ وكلّ تشغيلات GitHub Actions على main ناجحة. مشروع Railway غير مُهيَّأ أُنشئ 2026-10-22 ويبني جذر المستودع بـRailpack فيفشل. سُجّل RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01؛ الإصلاح إجراء المالك في Railway.
+
+### 2026-10-27 — عقد الخادم لمفتاح idempotency (D4) ومنتقي حقل جدول الريّ (D5)
+
+على الرأس المجمَّع `7e3d72565`، فرع `claude/uirec-d4d5-server-contract-20261027` (بلا دفع). نُقل كودُ شرط المستأجر من `a6de45b80` (#1295) دون خطّته، ثمّ في `api/idempotency.py`: المفتاح مربوطٌ بنوع العمليّة أيضاً؛ 409 يحمل `detail.reason` ثابتاً (`payload_mismatch` / `in_progress` / `retention_expired`) ونصّاً لا يدفع إلى مفتاحٍ جديد (OD-2)؛ مدّة الاحتفاظ `SAHOOL_IDEMPOTENCY_RETENTION_DAYS` (30 يوماً) وبعدها مصالحةٌ لا تنفيذ ثانٍ. إنشاء الحقل والموسم صارا يقارنان بصمة الحمولة المؤثّرة؛ بصمة جدول الريّ تتجاهل ترتيب المفاتيح وصيغة الوقت؛ صمّام/حقل مستأجرٍ آخر 404 مطابقٌ لغير الموجود حتى تحت دورٍ يتجاوز RLS. الموبايل: منتقي حقلٍ اختياريّ وتسمية «جدول غير مرتبط بحقل» (OD-1)، والحقل لا يُفرَض.
+
+- **الأدلّة:** `tests_v9/test_d4d5_idempotency_irrigation_live_pg.py` على PG16 حيّة (R05/R06/R07/R13/R14/R15) و`services/sahool-platform/tests/test_idempotency_server_contract.py` واختبارات Flutter؛ أُعيدت ملفّات المصدر إلى `7e3d72565` فاحمرّت الاختبارات الجديدة، ثمّ اخضرّت على الالتزام.
+- **حدّ صدق:** واجهة OD-2 في ورقة الريّ (الاستعادة بلا إعادة إنشاء) خارج هذه الشريحة (D1)؛ وصفوفُ أوامر الحقل/الموسم المخزَّنة قبل البصمة تُردّ `payload_mismatch` (U06) ولا تُعاد.

@@ -9923,7 +9923,7 @@
         "GET /api/v1/irrigation/schedules",
         "POST /api/v1/irrigation/schedules"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -17763,7 +17763,7 @@
     "capabilities": 839,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 96,
-    "capabilities_idempotent": 64,
+    "capabilities_idempotent": 65,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 482,
     "components": 37,
@@ -18035,7 +18035,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "1d3f11ad635e5df06fc50bd24a2fc990245dc414c81a5f774b172ab25eff7710",
+  "fingerprint": "f5fef4a48311ac65c5831d60507bda2e87e69f2baf1d8de16082405b12d0551c",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18085,16 +18085,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 881,
+      "edge_count": 890,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 47,
         "CONSUMES": 3,
         "EMITS": 1,
-        "READS": 450,
+        "READS": 456,
         "ROUTES_TO": 72,
-        "WRITES": 308
+        "WRITES": 311
       }
     },
     "u3_wiring_ownership": {

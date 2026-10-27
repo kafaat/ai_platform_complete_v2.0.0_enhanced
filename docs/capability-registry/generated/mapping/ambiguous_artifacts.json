@@ -3875,6 +3875,28 @@
     ]
   },
   {
+    "path": "frontend/src/sections/TasksPage.tsx",
+    "kind": "web",
+    "candidates": [
+      {
+        "capability_id": "OPS-003",
+        "score": 10,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
+        ]
+      },
+      {
+        "capability_id": "SOIL-002",
+        "score": 8,
+        "signals": [
+          "content:Soil sampling",
+          "content:soil sampling"
+        ]
+      }
+    ]
+  },
+  {
     "path": "frontend/src/services/api.test.ts",
     "kind": "tests",
     "candidates": [
