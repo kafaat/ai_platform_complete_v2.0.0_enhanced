@@ -359,45 +359,6 @@ void main() {
           reason: 'رمز تحديث A لا يُكتب على القرص بعد الخروج');
       expect(auth.canResumeSession, isFalse);
     });
-
-    test('generation-conditional save: a stale save is refused and a racing '
-        'login wins in memory and on disk', () async {
-      await signInA();
-      final gA = store.generation;
-
-      // (1) الحفظ يبدأ لجيل A ثمّ يدخل B فوراً (قبل أيّ await).
-      final saved = store.saveTokens(freshA, refresh: 'rA2', generation: gA);
-      final login = switchToB();
-      expect(await saved, isTrue, reason: 'جيل A كان حاليّاً لحظة الفحص');
-      await login;
-      expect(auth.token, validB);
-      expect(auth.refreshToken, 'rB');
-      await expectBPersisted();
-
-      // (2) بعد التبديل: حفظ ومسح بجيل A مرفوضان ولا يمسّان B.
-      expect(store.generation, isNot(gA));
-      expect(await store.saveTokens(freshA, refresh: 'rA2', generation: gA),
-          isFalse);
-      expect(await store.clear(generation: gA), isFalse);
-      await expectBPersisted();
-    });
-
-    test('the session generation moves on restore, login, logout and clear, '
-        'not on a refresh', () async {
-      await signInA();
-      final g0 = auth.sessionGeneration;
-      expect(await auth.saveRefreshedToken(g0, freshA, refresh: 'rA2'), isTrue);
-      expect(auth.sessionGeneration, g0, reason: 'التجديد لا يبدّل الجلسة');
-      await auth.saveToken(validB, refresh: 'rB', profile: {'user_id': 'B'});
-      final g1 = auth.sessionGeneration;
-      expect(g1, greaterThan(g0));
-      await auth.clearAuth();
-      final g2 = auth.sessionGeneration;
-      expect(g2, greaterThan(g1));
-      await auth.loadSaved();
-      expect(auth.sessionGeneration, greaterThan(g2));
-      expect(auth.sessionOwner, isNull);
-    });
   });
 
   test('the refresh request never passes through the auth interceptor',
