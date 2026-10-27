@@ -270,9 +270,22 @@ async def _indicators_service_response(field_id: str, season_id: str, *, measure
         )
 
     indicators.fetch_canonical_observations = _canonical
-    body = await indicators.field_observations(
-        field_id, season_id=season_id, indicators="ndvi", x_tenant_id=_TENANT
-    )
+    # الخدمةُ تشترط الآن هويّةً موثَّقة على القفزة (OI-01): المُستدعي الداخليّ يُثبت توكن الخدمة.
+    previous = os.environ.get("SAHOOL_AGENT_TOKEN")
+    os.environ["SAHOOL_AGENT_TOKEN"] = "indicators-mesh-token"
+    try:
+        body = await indicators.field_observations(
+            field_id,
+            x_tenant_id=_TENANT,
+            season_id=season_id,
+            indicators="ndvi",
+            x_agent_token="indicators-mesh-token",
+        )
+    finally:
+        if previous is None:
+            os.environ.pop("SAHOOL_AGENT_TOKEN", None)
+        else:
+            os.environ["SAHOOL_AGENT_TOKEN"] = previous
     assert body["observations"], "المُنتِجُ لم يُصدِر رصداً — الشاهدُ أعمى"
     return body
 
@@ -293,6 +306,9 @@ class _IndicatorsClient:
 
     async def get(self, url, params=None, headers=None):
         assert url.endswith("/observations"), url
+        # OI-01: indicators-service no longer trusts a bare X-Tenant-Id — the mesh caller
+        # proves the service token on the same hop that names the tenant.
+        assert headers and "X-Agent-Token" in headers and headers.get("X-Tenant-Id"), headers
         body = type(self).body
 
         class _Response:
