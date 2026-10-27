@@ -1,4 +1,5 @@
 """SAHOOL -> Unified Local Lab contract candidate tests, synthetic only."""
+
 from __future__ import annotations
 
 import json
@@ -18,11 +19,18 @@ def at(day):
 
 def manifest():
     return {
-        "schema_version": "ml-quality/v1", "dataset_id": "fixture-dataset", "tenant_id": "tenant-a",
-        "model_id": "fixture-model", "model_artifact_sha256": "a"*64,
-        "source_bundle_sha256": "b"*64, "dataset_freeze_at": at(30),
-        "evaluation_policy": {"min_independent_groups_per_split": 2,
-                              "min_relative_mae_improvement": 0.05, "temporal_embargo_hours": 24},
+        "schema_version": "ml-quality/v1",
+        "dataset_id": "fixture-dataset",
+        "tenant_id": "tenant-a",
+        "model_id": "fixture-model",
+        "model_artifact_sha256": "a" * 64,
+        "source_bundle_sha256": "b" * 64,
+        "dataset_freeze_at": at(30),
+        "evaluation_policy": {
+            "min_independent_groups_per_split": 2,
+            "min_relative_mae_improvement": 0.05,
+            "temporal_embargo_hours": 24,
+        },
     }
 
 
@@ -30,15 +38,25 @@ def records():
     result = []
     for i, split in enumerate(["train", "train", "validation", "validation", "test", "test"]):
         day = [1, 2, 8, 9, 15, 16][i]
-        result.append({
-            "case_id": f"case-{i}", "tenant_id": "tenant-a", "field_id": f"field-{i}",
-            "season_id": "season-2026", "split": split,
-            "prediction_at": at(day), "feature_event_at": at(day-1),
-            "feature_available_at": at(day-1), "label_measured_at": at(day+1),
-            "label_available_at": at(day+2), "measurement_origin": "soil_sensor",
-            "measurement_receipt_sha256": "c"*64, "target_mm": 5.0,
-            "prediction_mm": 5.1, "baseline_mm": 6.0,
-        })
+        result.append(
+            {
+                "case_id": f"case-{i}",
+                "tenant_id": "tenant-a",
+                "field_id": f"field-{i}",
+                "season_id": "season-2026",
+                "split": split,
+                "prediction_at": at(day),
+                "feature_event_at": at(day - 1),
+                "feature_available_at": at(day - 1),
+                "label_measured_at": at(day + 1),
+                "label_available_at": at(day + 2),
+                "measurement_origin": "soil_sensor",
+                "measurement_receipt_sha256": "c" * 64,
+                "target_mm": 5.0,
+                "prediction_mm": 5.1,
+                "baseline_mm": 6.0,
+            }
+        )
     return result
 
 
@@ -47,9 +65,11 @@ def good(*args):
 
 
 def screen(rows=None, evidence=good, m=None):
-    return export_ml_quality_candidate(manifest() if m is None else m,
-                                        records() if rows is None else rows,
-                                        receipt_verifier=evidence)
+    return export_ml_quality_candidate(
+        manifest() if m is None else m,
+        records() if rows is None else rows,
+        receipt_verifier=evidence,
+    )
 
 
 def test_candidate_remains_not_evaluated_and_no_operational_authority():
@@ -65,14 +85,31 @@ def test_candidate_remains_not_evaluated_and_no_operational_authority():
 def test_exact_lab_contract_shapes_and_hashes():
     r = screen()
     assert set(r["manifest"]) == {
-        "schema_version", "dataset_id", "tenant_id", "model_id", "model_artifact_sha256",
-        "source_bundle_sha256", "evaluation_policy", "dataset_freeze_at"
+        "schema_version",
+        "dataset_id",
+        "tenant_id",
+        "model_id",
+        "model_artifact_sha256",
+        "source_bundle_sha256",
+        "evaluation_policy",
+        "dataset_freeze_at",
     }
     assert len(r["rows"]) == 6
     assert set(r["rows"][0]) == {
-        "case_id", "tenant_id", "field_id", "season_id", "split", "prediction_at",
-        "feature_event_at", "feature_available_at", "label_measured_at", "label_available_at",
-        "label_source", "target_mm", "prediction_mm", "baseline_mm"
+        "case_id",
+        "tenant_id",
+        "field_id",
+        "season_id",
+        "split",
+        "prediction_at",
+        "feature_event_at",
+        "feature_available_at",
+        "label_measured_at",
+        "label_available_at",
+        "label_source",
+        "target_mm",
+        "prediction_mm",
+        "baseline_mm",
     }
     assert r["rows"][0]["label_source"] == "soil_sensor_verified"
     assert len(r["candidate_rows_sha256"]) == 64
@@ -118,16 +155,19 @@ def test_failing_verifier_denies_a_sensor():
 def test_verifier_exception_denies_a_sensor():
     def fail(*args):
         raise OSError("database unavailable")
+
     assert screen(evidence=fail)["status"] == "BLOCKED"
 
 
 def test_receipt_verified_with_exact_tenant_field_season_and_source():
     seen = []
+
     def verifier(*args):
         seen.append(args)
-        return args == ("tenant-a", "field-0", "season-2026", "soil_sensor", "c"*64)
+        return args == ("tenant-a", "field-0", "season-2026", "soil_sensor", "c" * 64)
+
     r = screen(evidence=verifier)
-    assert seen[0] == ("tenant-a", "field-0", "season-2026", "soil_sensor", "c"*64)
+    assert seen[0] == ("tenant-a", "field-0", "season-2026", "soil_sensor", "c" * 64)
     assert r["rows"][0]["label_source"] == "soil_sensor_verified"
     assert r["status"] == "BLOCKED"  # the other 5 rows lack accepted receipts
 
@@ -197,7 +237,7 @@ def test_nonfinite_and_negative_predictions_block():
 
 
 def test_invalid_and_missing_receipt_rejected():
-    for value in (None, "bad", "A"*64):
+    for value in (None, "bad", "A" * 64):
         rows = records()
         rows[0]["measurement_receipt_sha256"] = value
         assert "case-0:MEASUREMENT_RECEIPT_INVALID" in screen(rows)["blocking_reasons"]
@@ -256,7 +296,7 @@ def test_invalid_source_dict_is_blocked_not_exception():
 def test_expected_schema_does_not_contain_receipt_evidence_as_label():
     r = screen()
     assert "measurement_receipt_sha256" not in r["rows"][0]
-    assert r["claimed_verified_receipt_sha256s"] == ["c"*64]
+    assert r["claimed_verified_receipt_sha256s"] == ["c" * 64]
 
 
 def test_huge_integer_never_causes_overflow():
