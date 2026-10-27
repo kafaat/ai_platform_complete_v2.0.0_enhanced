@@ -1488,7 +1488,7 @@ async def field_available_dates(
                     )
                     for item in search.get("items", []):
                         _add(
-                            (item.get("datetime") or "")[:10],
+                            item.get("datetime"),  # يومه بـUTC في المُجمِّع، لا أوّل 10 محارف
                             has_cog=False,
                             cloud_pct=item.get("cloud_cover_pct"),
                             scene_id=item.get("item_id"),

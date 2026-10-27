@@ -11,8 +11,9 @@ import db_persist as _db
 import layer_lookup
 import raster_cdse_tile_runtime as _cdse_rt
 import raster_date_geo
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
+from raster_available_dates import utc_day
 from raster_runtime_state import FIELD_LAYERS, LAYERS
 from raster_security_context import REQ_TENANT, require_field_tenant
 from raster_settings import TRANSPARENT_PNG
@@ -58,7 +59,13 @@ async def _persisted_thumbnail(field_id: str, index: str, date: str, size: int) 
     فالبطاقة إمّا تعرض أصلها المُعلَن أو تُعلن أنّها لا تملكه.
     """
     internal = layer_lookup.GRID_INDEX_ALIASES.get(index, index)
-    requested = date if date not in (None, "", "latest", "today") else None
+    requested = None
+    if date not in (None, "", "latest", "today"):
+        # T3/T4 (acq-provenance): تاريخ صريح غير صالح كان يصير NULL في فلتر SQL ⇒ «الأحدث»
+        # تحت تاريخ مطلوب. نرفضه 422، ونطبّع الطابع الزمنيّ إلى يوم UTC (لا أوّل 10 محارف).
+        requested = utc_day(date)
+        if requested is None:
+            raise HTTPException(422, "date يجب أن يكون YYYY-MM-DD أو طابعاً ISO8601 صالحاً")
     tenant_id = REQ_TENANT.get()
     try:
         asset = await _db.fetch_latest_asset(field_id, internal, requested, tenant_id=tenant_id)
