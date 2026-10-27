@@ -310,34 +310,114 @@ def _has_per_dataset_mask(src) -> bool:
         return False
 
 
-def _reproject_dataset_mask(src, *, dst_transform, dst_crs: str, out_shape: tuple[int, int]):
+def _bounded_read_window(src, dst_bounds, dst_crs: str, *, max_dim: int | None = None):
+    """نافذة المصدر التي تغطّي حدود الخرج ``dst_bounds`` (في ``dst_crs``) + أبعاد قراءة مسقوفة.
+
+    ``P2-REN-2``: القناع والقيم كانا يُقرآن للمجموعة كلّها (``read_masks(1)``/``read(1)``)
+    لبلاطة 256×256 تغطّي جزءاً صغيراً من المصدر. تُعاد ``(window, read_shape, read_transform)``
+    كي يقرأ المُستدعي **القناع والقيم عبر النافذة نفسها** بالشكل نفسه:
+
+    - النافذة = حدود الخرج مُعاداً إسقاطها (مُكثَّفة الحوافّ) إلى ``src.crs``، مقرَّبة للخارج
+      مع هامش بكسلين لنواة إعادة العيّنة، ومقصوصة على المجموعة.
+    - ``read_shape`` مسقوف بـ``MAX_READ_DIM`` لكلّ محور (تخفيض عند القراءة، نفس سقف
+      ``read_field_window``)؛ ``read_transform`` أفين المصفوفة المقروءة.
+    - تعذّر حساب النافذة (CRS بلا رمز/دوران/حدود غير منتهية) ⇒ المجموعة كلّها **لكن
+      بالسقف نفسه** — لا قراءة غير محدودة في أيّ فرع.
+
+    يُرجِع ``None`` حين لا تتقاطع حدود الخرج مع المصدر (لا بكسل يُقرأ).
+    """
+    import rasterio
+    from rasterio.warp import transform_bounds
+    from rasterio.windows import Window, from_bounds
+
+    cap = max(1, int(max_dim if max_dim is not None else MAX_READ_DIM))
+    pad = 2
+    window = Window(0, 0, src.width, src.height)
+    try:
+        left, bottom, right, top = transform_bounds(dst_crs, src.crs, *dst_bounds, densify_pts=21)
+        win = from_bounds(left, bottom, right, top, transform=src.transform)
+        col0 = max(0, math.floor(win.col_off) - pad)
+        row0 = max(0, math.floor(win.row_off) - pad)
+        col1 = min(src.width, math.ceil(win.col_off + win.width) + pad)
+        row1 = min(src.height, math.ceil(win.row_off + win.height) + pad)
+        if col1 <= col0 or row1 <= row0:
+            return None  # لا تقاطع
+        window = Window(col0, row0, col1 - col0, row1 - row0)
+    except Exception:  # noqa: BLE001 — تعذّر الحساب ⇒ المجموعة كلّها بالسقف أدناه
+        pass
+    scale = max(window.width / cap, window.height / cap, 1.0)
+    out_h = max(1, int(math.ceil(window.height / scale)))
+    out_w = max(1, int(math.ceil(window.width / scale)))
+    read_transform = src.window_transform(window) @ rasterio.Affine.scale(
+        window.width / out_w, window.height / out_h
+    )
+    return window, (out_h, out_w), read_transform
+
+
+def _alpha_valid_extent(src, band: int = 4):
+    """حدود البكسلات ذات ألفا>0 ``(row_min, row_max, col_min, col_max)`` (max حصريّ) أو ``None``.
+
+    يمسح النطاق بقطع ``MAX_READ_DIM×MAX_READ_DIM`` بدل ``src.read(band)`` للمجموعة كلّها:
+    ذاكرة محدودة مع إطار **دقيق** (تخفيض العيّنة قد يُسقط حقلاً صغيراً من حبيبة كاملة).
+    """
+    import numpy as np
+    from rasterio.windows import Window
+
+    step = max(1, int(MAX_READ_DIM))
+    row_min = col_min = None
+    row_max = col_max = 0
+    for r0 in range(0, src.height, step):
+        h = min(step, src.height - r0)
+        for c0 in range(0, src.width, step):
+            w = min(step, src.width - c0)
+            valid = src.read(band, window=Window(c0, r0, w, h)) > 0
+            rows = np.where(valid.any(axis=1))[0]
+            if rows.size == 0:
+                continue
+            cols = np.where(valid.any(axis=0))[0]
+            row_min = r0 + int(rows[0]) if row_min is None else min(row_min, r0 + int(rows[0]))
+            col_min = c0 + int(cols[0]) if col_min is None else min(col_min, c0 + int(cols[0]))
+            row_max = max(row_max, r0 + int(rows[-1]) + 1)
+            col_max = max(col_max, c0 + int(cols[-1]) + 1)
+    if row_min is None:
+        return None
+    return row_min, row_max, col_min, col_max
+
+
+def _reproject_dataset_mask(src, *, dst_transform, dst_crs: str, out_shape: tuple[int, int], read):
     """Reproject GDAL internal/per-dataset mask to the render grid.
 
     Some GeoTIFFs contain finite values outside the AOI (for example 0.0) plus a
     valid mask band. Passing only ``src_nodata`` to ``reproject`` can make GDAL
     ignore the mask band, producing opaque dark stripes in tiles/thumbnails.
     Reproject the mask explicitly and apply it after the value warp.
-    """
-    try:
-        import numpy as np
-        from rasterio.warp import Resampling, reproject
 
-        src_mask = src.read_masks(1)
-        dst_mask = np.zeros(out_shape, dtype="uint8")
-        reproject(
-            source=src_mask,
-            destination=dst_mask,
-            src_transform=src.transform,
-            src_crs=src.crs,
-            dst_transform=dst_transform,
-            dst_crs=dst_crs,
-            resampling=Resampling.nearest,
-            src_nodata=0,
-            dst_nodata=0,
-        )
-        return dst_mask
-    except Exception:  # noqa: BLE001 — mask absence/warp issue must not break rendering
-        return None
+    ``read`` is the ``_bounded_read_window`` result: the mask is read through the
+    same bounded window/shape as the values, never the whole dataset (P2-REN-2).
+
+    Fail-closed (P2-REN-1): a mask read/warp failure **propagates**. It used to be
+    swallowed into ``None`` — and a 3-band RGB source, whose only validity signal is
+    this mask, then kept its fabricated ``alpha=255`` everywhere (black opaque pixels
+    outside the source). Undeterminable validity ⇒ the caller renders nothing.
+    """
+    import numpy as np
+    from rasterio.warp import Resampling, reproject
+
+    window, read_shape, read_transform = read
+    src_mask = src.read_masks(1, window=window, out_shape=read_shape)
+    dst_mask = np.zeros(out_shape, dtype="uint8")
+    reproject(
+        source=src_mask,
+        destination=dst_mask,
+        src_transform=read_transform,
+        src_crs=src.crs,
+        dst_transform=dst_transform,
+        dst_crs=dst_crs,
+        resampling=Resampling.nearest,
+        src_nodata=0,
+        dst_nodata=0,
+    )
+    return dst_mask
 
 
 # ─── تصيير الصورة الخام (True Color): COG متعدّد النطاقات RGBA → بلاطة PNG ─────
@@ -370,6 +450,9 @@ def render_truecolor_tile_png(cog_path: str, z: int, x: int, y: int) -> bytes | 
                     return None  # لا تقاطع → شفّاف
             except Exception:  # noqa: BLE001 — تعذّر الفحص → تابع
                 pass
+            read = _bounded_read_window(src, (minx, miny, maxx, maxy), dst_crs)
+            if read is None:
+                return None  # لا بكسل مصدر داخل البلاطة → شفّاف
 
             rgba = np.zeros((TILE_SIZE, TILE_SIZE, 4), dtype="uint8")
             for bi in range(3):  # R,G,B من النطاقات 1..3
@@ -403,14 +486,15 @@ def render_truecolor_tile_png(cog_path: str, z: int, x: int, y: int) -> bytes | 
                 alpha = np.full((TILE_SIZE, TILE_SIZE), 255, dtype="uint8")
 
             # قناع مجموعة البيانات (per-dataset mask): يمنع حواف مُعاد إسقاطها معتمة.
+            # فشله يرفع ⇒ None (fail-closed): لـRGB ثلاثيّ هو إشارة الصلاحيّة الوحيدة.
             dst_mask = _reproject_dataset_mask(
                 src,
                 dst_transform=dst_transform,
                 dst_crs=dst_crs,
                 out_shape=(TILE_SIZE, TILE_SIZE),
+                read=read,
             )
-            if dst_mask is not None:
-                alpha = np.where(dst_mask == 0, 0, alpha).astype("uint8")
+            alpha = np.where(dst_mask == 0, 0, alpha).astype("uint8")
             rgba[..., 3] = alpha
     except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → fallback شفّاف
         return None
@@ -478,14 +562,23 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
             # DatasetBand مباشرةً إلى reproject لأن GDAL قد يستنتج nodata من dataset
             # حتى عند src_nodata=None ثم يُطلق تحذير تعارض القناع/nodata. لذلك نحوّل
             # القناع إلى NaN في مصفوفة المصدر ونُسقط المصفوفة بلا src_nodata صريح.
+            # القيم والقناع يُقرآن عبر **النافذة نفسها** المسقوفة (P2-REN-2) لا المجموعة كلّها.
+            read = _bounded_read_window(src, (minx, miny, maxx, maxy), dst_crs)
+            if read is None:
+                return None  # لا بكسل مصدر داخل البلاطة → شفّاف
+            window, read_shape, read_transform = read
             has_dataset_mask = _has_per_dataset_mask(src)
             dst = np.full((TILE_SIZE, TILE_SIZE), np.nan, dtype="float32")
             if has_dataset_mask:
-                source = src.read(1, masked=True).filled(np.nan).astype("float32")
+                source = (
+                    src.read(1, window=window, out_shape=read_shape, masked=True)
+                    .filled(np.nan)
+                    .astype("float32")
+                )
                 reproject(
                     source=source,
                     destination=dst,
-                    src_transform=src.transform,
+                    src_transform=read_transform,
                     src_crs=src_crs,
                     dst_transform=dst_transform,
                     dst_crs=dst_crs,
@@ -509,9 +602,9 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
                 dst_transform=dst_transform,
                 dst_crs=dst_crs,
                 out_shape=(TILE_SIZE, TILE_SIZE),
+                read=read,
             )
-            if dst_mask is not None:
-                dst[dst_mask == 0] = np.nan
+            dst[dst_mask == 0] = np.nan
     except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → fallback شفّاف
         return None
 
@@ -552,15 +645,11 @@ def render_truecolor_thumbnail_png(cog_path: str, max_px: int = 160) -> bytes | 
             # causes all field pixels to collapse to zero pixels in a 160-px thumbnail,
             # yielding an all-transparent result and an HTTP 404 for every card.
             if src.count >= 4:
-                alpha_full = src.read(4)
-                valid_rows = np.where((alpha_full > 0).any(axis=1))[0]
-                valid_cols = np.where((alpha_full > 0).any(axis=0))[0]
-                if len(valid_rows) == 0 or len(valid_cols) == 0:
+                # Scanned in bounded chunks (P2-REN-2), not one full-band ``read(4)``.
+                extent = _alpha_valid_extent(src, 4)
+                if extent is None:
                     return None  # genuinely empty — no field pixels in this COG
-                row_min = int(valid_rows[0])
-                row_max = int(valid_rows[-1]) + 1  # exclusive
-                col_min = int(valid_cols[0])
-                col_max = int(valid_cols[-1]) + 1  # exclusive
+                row_min, row_max, col_min, col_max = extent  # max exclusive
                 # transform * (col, row) → (x, y) in src CRS
                 px_left, px_top = src.transform * (col_min, row_min)
                 px_right, px_bottom = src.transform * (col_max, row_max)
@@ -580,6 +669,9 @@ def render_truecolor_thumbnail_png(cog_path: str, max_px: int = 160) -> bytes | 
                 out_h = max_px
                 out_w = max(16, int(round(max_px * span_x / span_y)))
             dst_transform = from_bounds(minx, miny, maxx, maxy, out_w, out_h)
+            read = _bounded_read_window(src, (minx, miny, maxx, maxy), "EPSG:3857")
+            if read is None:
+                return None
             rgba = np.zeros((out_h, out_w, 4), dtype="uint8")
             for bi in range(3):
                 band = np.zeros((out_h, out_w), dtype="uint8")
@@ -609,11 +701,15 @@ def render_truecolor_thumbnail_png(cog_path: str, max_px: int = 160) -> bytes | 
                 )
             else:
                 alpha = np.full((out_h, out_w), 255, dtype="uint8")
+            # فشل القناع يرفع ⇒ None (fail-closed، P2-REN-1) لا ألفا 255 مُصنَّعة.
             dst_mask = _reproject_dataset_mask(
-                src, dst_transform=dst_transform, dst_crs="EPSG:3857", out_shape=(out_h, out_w)
+                src,
+                dst_transform=dst_transform,
+                dst_crs="EPSG:3857",
+                out_shape=(out_h, out_w),
+                read=read,
             )
-            if dst_mask is not None:
-                alpha = np.where(dst_mask == 0, 0, alpha).astype("uint8")
+            alpha = np.where(dst_mask == 0, 0, alpha).astype("uint8")
             rgba[..., 3] = alpha
     except Exception:  # noqa: BLE001
         return None
@@ -668,14 +764,23 @@ def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> by
                 out_h = max_px
                 out_w = max(16, int(round(max_px * span_x / span_y)))
             dst_transform = from_bounds(minx, miny, maxx, maxy, out_w, out_h)
+            # المصغّرة تغطّي المصدر كلّه: النافذة ≈ المجموعة لكن القراءة مسقوفة بـMAX_READ_DIM.
+            read = _bounded_read_window(src, (minx, miny, maxx, maxy), "EPSG:3857")
+            if read is None:
+                return None
+            window, read_shape, read_transform = read
             has_dataset_mask = _has_per_dataset_mask(src)
             dst = np.full((out_h, out_w), np.nan, dtype="float32")
             if has_dataset_mask:
-                source = src.read(1, masked=True).filled(np.nan).astype("float32")
+                source = (
+                    src.read(1, window=window, out_shape=read_shape, masked=True)
+                    .filled(np.nan)
+                    .astype("float32")
+                )
                 reproject(
                     source=source,
                     destination=dst,
-                    src_transform=src.transform,
+                    src_transform=read_transform,
                     src_crs=src.crs,
                     dst_transform=dst_transform,
                     dst_crs="EPSG:3857",
@@ -699,9 +804,9 @@ def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> by
                 dst_transform=dst_transform,
                 dst_crs="EPSG:3857",
                 out_shape=(out_h, out_w),
+                read=read,
             )
-            if dst_mask is not None:
-                dst[dst_mask == 0] = np.nan
+            dst[dst_mask == 0] = np.nan
     except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → لا مُصغَّرة
         return None
 
@@ -858,11 +963,20 @@ def apply_polygon_mask(cog_path: str, geom_4326: dict) -> int:
 
     (إعادة دمج توحيد main↔cert: ميزة قصّ CDSE poly من main فوق tile_render الخاصّ بـcert.)"""
     import numpy as np
+    import raster_security_context
+    import raster_settings
     import rasterio
     from rasterio.mask import raster_geometry_mask
     from rasterio.warp import transform_geom
 
     with rasterio.open(cog_path) as src:
+        # نفس سقف نظيره ``apply_polygon_mask_rgba`` (EXTRA-10): ``rasterio.mask`` بلا قصّ
+        # يخصّص المجموعة كاملةً float — يُرفَض المصدر الضخم **قبل** التخصيص (413 مُعلَن).
+        raster_security_context.assert_readable_size(
+            src,
+            what="scalar polygon mask",
+            ceiling=raster_settings.RASTER_MAX_READ_BAND_PIXELS,
+        )
         if np.issubdtype(np.dtype(src.dtypes[0]), np.floating):
             nodata = float("nan")
         elif src.nodata is not None:

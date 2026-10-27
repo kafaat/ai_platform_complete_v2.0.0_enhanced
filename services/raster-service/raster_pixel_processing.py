@@ -260,6 +260,14 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
             bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
         else:
             bounds = list(src.bounds)
+        # الحجم يُفحَص **قبل** التخصيص كنظيره truecolor أدناه (EXTRA-10): الرابط حرّ عبر
+        # `safe_raster_source`، والفرعان يقرآن المجموعة كاملةً — الإرث نطاقه الأوّل
+        # (`read(1, masked=True)` + float32)، والأصليّ نطاقاته الأربعة.
+        raster_security_context.assert_readable_size(
+            src,
+            what="scalar precomputed",
+            ceiling=raster_settings.RASTER_MAX_READ_BAND_PIXELS,
+        )
         if isinstance(native, cdse_native_product.NativeProduct):
             arr, observed = cdse_native_product.measured_pixels(src, native, req.raster_url)
             # Only actual returned contributors can replace catalogue/request guesses.

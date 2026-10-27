@@ -154,7 +154,9 @@ def test_rgba_mask_preserves_alpha_interpretation_and_overviews(tmp_path):
     rgba = np.full((4, 32, 32), 200, dtype="uint8")
     rgba[3] = 255
     assert cog_writer.write_rgba_cog(rgba, path, from_bounds(44, 14, 45, 15, 32, 32))["written"]
-    with rasterio.open(path, "r+") as dst:
+    # write_rgba_cog writes a real COG layout (ST-01), and GDAL refuses an in-place
+    # update of a COG unless told the layout may break. Only this fixture tag is written.
+    with rasterio.open(path, "r+", IGNORE_COG_LAYOUT_BREAK="YES") as dst:
         dst.update_tags(scene="S2A_TEST_SCENE")
     with rasterio.open(path) as src:
         overviews = src.overviews(1)
