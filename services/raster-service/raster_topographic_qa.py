@@ -20,6 +20,25 @@ def _clamp_pct(value: float | int | None) -> float | None:
     return max(0.0, min(100.0, float(value)))
 
 
+def _supported_pct(risk_mask, supported_mask) -> float | None:
+    """Percent of *supported* pixels that are at risk.
+
+    The denominator is count(supported), never the full grid: nodata (and
+    pixels whose metric cannot be computed) must not dilute the ratio, so a
+    nodata frame around the same terrain leaves the percentage unchanged.
+    Returns ``None`` when nothing is supported (unknown, not 0% risk).
+    """
+
+    import numpy as np
+
+    supported = np.asarray(supported_mask, dtype=bool)
+    n_supported = int(np.count_nonzero(supported))
+    if n_supported == 0:
+        return None
+    n_risk = int(np.count_nonzero(np.asarray(risk_mask, dtype=bool) & supported))
+    return 100.0 * n_risk / n_supported
+
+
 def compute_cast_shadow_mask_from_dem(
     dem,
     *,
@@ -111,7 +130,7 @@ def compute_cast_shadow_mask_from_dem(
         step_shadow = np.isfinite(blocker) & valid & (blocker > required_blocker_height)
         shadow |= step_shadow
 
-    cast_shadow_risk_pct = float(np.mean(shadow & valid) * 100.0)
+    cast_shadow_risk_pct = _supported_pct(shadow, valid)
     warnings: list[str] = []
     if max_steps < 32:
         warnings.append("cast_shadow_horizon_limited")
@@ -140,10 +159,14 @@ def compute_topographic_risk_from_dem(
     """Compute conservative topographic risk percentages from a DEM array.
 
     This is a local-terrain QA metric, not a full cast-shadow ray tracing model.
-    It estimates:
-    - ``slope_risk_pct``: valid DEM pixels with slope >= threshold.
-    - ``terrain_shadow_risk_pct``: valid DEM pixels whose hillshade is below a
+    It estimates, over *supported* pixels only (valid DEM with a finite
+    gradient; nodata and nodata-adjacent pixels are excluded from both
+    numerator and denominator):
+    - ``slope_risk_pct``: supported pixels with slope >= threshold.
+    - ``terrain_shadow_risk_pct``: supported pixels whose hillshade is below a
       low illumination threshold, only when sun azimuth/altitude are supplied.
+    When no pixel is supported the percentage is ``None`` with the
+    ``dem_gradient_support_insufficient`` warning, never a fabricated 0%.
 
     ``pixel_size_m``/``pixel_size_y_m`` are ground spacings in metres along
     columns/rows (``None`` y means square pixels); slope is rise over ground run,
@@ -175,8 +198,11 @@ def compute_topographic_risk_from_dem(
     dzdy = np.gradient(arr, py, axis=0)
     grad = np.sqrt(dzdx**2 + dzdy**2)
     slope_pct = 100.0 * grad
-    slope_risk_pct = float(
-        np.nanmean((slope_pct >= float(slope_risk_threshold_pct)) & valid) * 100.0
+    # np.gradient propagates NaN into the neighbours of nodata, so a valid DEM
+    # pixel only supports slope/hillshade where its gradient is finite.
+    gradient_supported = valid & np.isfinite(grad)
+    slope_risk_pct = _supported_pct(
+        slope_pct >= float(slope_risk_threshold_pct), gradient_supported
     )
 
     sun_ok = (
@@ -187,6 +213,8 @@ def compute_topographic_risk_from_dem(
     terrain_shadow_risk_pct: float | None = None
     hillshade_available = False
     warnings: list[str] = []
+    if slope_risk_pct is None:
+        warnings.append("dem_gradient_support_insufficient")
     if sun_ok:
         slope_rad = np.arctan(grad)
         aspect = np.arctan2(dzdy, -dzdx)
@@ -196,10 +224,12 @@ def compute_topographic_risk_from_dem(
             slope_rad
         ) * np.cos(az_math - aspect)
         hillshade = np.clip(hillshade, 0.0, 1.0)
-        terrain_shadow_risk_pct = float(
-            np.nanmean((hillshade <= float(shadow_hillshade_threshold)) & valid) * 100.0
+        terrain_shadow_risk_pct = _supported_pct(
+            hillshade <= float(shadow_hillshade_threshold), gradient_supported
         )
-        hillshade_available = True
+        # Hillshade is only available where it had gradient support; read it
+        # before the cast-shadow max below can overwrite the percentage.
+        hillshade_available = terrain_shadow_risk_pct is not None
     else:
         warnings.append("sun_geometry_unavailable_for_terrain_shadow_model")
 
