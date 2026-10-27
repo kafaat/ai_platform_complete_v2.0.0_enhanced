@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import sys
 import uuid
@@ -408,6 +409,263 @@ def test_cache_invalidation_worker_marks_stale_and_processed():
         finally:
             await conn.close()
         await _cleanup(tenant_id, field_id)
+
+    asyncio.run(_run())
+
+
+# ─── C1: صفٌّ مُطالَبٌ لا يعلق في processing بعد موت العامل (إجارةٌ + استعادة) ──────────
+#
+# كانت المطالبةُ تلتزم ``status='processing'`` قبل العمل، والاستطلاعُ يختار ``pending`` وحده:
+# عاملٌ مات بين الالتزام والإبطال يترك الصفَّ خارج كلّ دورةٍ لاحقة إلى الأبد — فلا يُحذف كاشُ
+# الحقل ولا تُوسَم أصولُه. الشاهدُ هنا على القاعدة الحقيقيّة (``FOR UPDATE SKIP LOCKED``
+# وصبُّ ``jsonb`` المحروسُ بالنوع كما ينفّذهما PG فعلاً، لا وهميّ).
+
+
+def _load_invalidation_worker(name: str):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(name, _RASTER / "cache_invalidation_worker.py")
+    worker = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(worker)
+    return worker
+
+
+async def _worker_pool(tenant_id: str):
+    import asyncpg
+
+    async def _setup(c):
+        await c.execute("SELECT set_config('app.current_tenant', $1, false)", tenant_id)
+
+    return await asyncpg.create_pool(
+        dsn=_TEST_DB, min_size=1, max_size=2, statement_cache_size=0, setup=_setup
+    )
+
+
+async def _queue_row(
+    tenant_id: str, field_id: str, metadata: str = "{}", status: str = "pending"
+) -> int:
+    """``metadata`` نصُّ JSON يُصَبّ في القاعدة — كي يحمل ما لا يُنتجه ``json.dumps`` (1e400)."""
+    conn = await _connect(tenant_id)
+    try:
+        return await conn.fetchval(
+            "INSERT INTO raster_cache_invalidations (tenant_id, field_id, reason, metadata, status) "
+            "VALUES ($1::uuid, $2, 'geometry.updated', $3::jsonb, $4) RETURNING id",
+            tenant_id,
+            field_id,
+            metadata,
+            status,
+        )
+    finally:
+        await conn.close()
+
+
+async def _queue_state(tenant_id: str, rid: int):
+    conn = await _connect(tenant_id)
+    try:
+        row = await conn.fetchrow(
+            "SELECT status, processed_at, metadata::text AS metadata, "
+            "CASE WHEN jsonb_typeof(metadata->'retry_after') = 'number' "
+            "THEN (metadata->>'retry_after')::numeric > extract(epoch from now()) "
+            "END AS backoff_live "
+            "FROM raster_cache_invalidations WHERE id=$1",
+            rid,
+        )
+        return row["status"], row["processed_at"], json.loads(row["metadata"]), row["backoff_live"]
+    finally:
+        await conn.close()
+
+
+async def _drop_queue_rows(tenant_id: str, field_id: str) -> None:
+    conn = await _connect(tenant_id)
+    try:
+        await conn.execute(
+            "DELETE FROM raster_cache_invalidations WHERE tenant_id=$1::uuid AND field_id=$2",
+            tenant_id,
+            field_id,
+        )
+    finally:
+        await conn.close()
+
+
+class _WorkerDied(BaseException):
+    """موتُ العمليّة بعد التزام المطالبة: ``BaseException`` يتجاوز ``except Exception``."""
+
+
+def test_cache_invalidation_claim_is_reclaimed_after_the_worker_dies(monkeypatch):
+    if not _db_available():
+        pytest.skip("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    worker = _load_invalidation_worker("cache_invalidation_worker_c1_it")
+    tenant_id = str(uuid.uuid4())
+    field_id = f"fld_c1_{uuid.uuid4().hex[:8]}"
+
+    def _die_on_our_field(tenant, field):
+        if field == field_id:
+            raise _WorkerDied()
+        return 0
+
+    async def _run():
+        rid = await _queue_row(tenant_id, field_id)
+        try:
+            monkeypatch.setattr(
+                worker.tile_cache_maint, "invalidate_field_tile_cache", _die_on_our_field
+            )
+            pool = await _worker_pool(tenant_id)
+            try:
+                with pytest.raises(_WorkerDied):
+                    await worker.run_once(pool)
+            finally:
+                pool.terminate()
+            status, processed_at, meta, _ = await _queue_state(tenant_id, rid)
+            assert status == "processing" and processed_at is None, (status, processed_at)
+
+            # الإجارةُ حيّة ⇒ لا يسرقها عاملٌ آخر (لعلّ صاحبها ما زال يعمل).
+            monkeypatch.setattr(
+                worker.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: 0
+            )
+            pool = await _worker_pool(tenant_id)
+            try:
+                await worker.run_once(pool)
+            finally:
+                await pool.close()
+            status, _, _, _ = await _queue_state(tenant_id, rid)
+            assert status == "processing", f"إجارةٌ حيّة سُرقت (={status})"
+
+            # انقضت الإجارة (صاحبُها مات) ⇒ الصفُّ يُستعاد ويُنجَز، لا يعلق إلى الأبد.
+            conn = await _connect(tenant_id)
+            try:
+                await conn.execute(
+                    "UPDATE raster_cache_invalidations SET metadata = metadata || "
+                    "jsonb_build_object('lease_until', extract(epoch from now()) - 1) WHERE id=$1",
+                    rid,
+                )
+            finally:
+                await conn.close()
+            pool = await _worker_pool(tenant_id)
+            try:
+                processed = await worker.run_once(pool)
+            finally:
+                await pool.close()
+            status, processed_at, meta, _ = await _queue_state(tenant_id, rid)
+            assert status == "processed" and processed_at is not None, (
+                f"صفٌّ ماتت مطالبتُه لم يُستعَد (={status}) — عالقٌ في processing إلى الأبد"
+            )
+            assert processed >= 1
+            assert meta.get("claim_attempts") == 2, meta
+            assert "lease_until" not in meta, meta
+        finally:
+            await _drop_queue_rows(tenant_id, field_id)
+
+    asyncio.run(_run())
+
+
+# ─── P3-INV: إخلاءُ الذاكرة الذي لم يُسلَّم لا يُعَدّ نجاحاً — يُعاد ثمّ يُسجَّل ─────────────
+
+
+def test_cache_invalidation_undelivered_layer_evict_is_retried_not_counted(monkeypatch):
+    if not _db_available():
+        pytest.skip("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+    # Redis مُهيّأ لكنّه لا يُبلَغ: المنفذ 1 يرفض الاتّصال فوراً.
+    monkeypatch.setenv("REDIS_URL", "redis://127.0.0.1:1/0")
+    worker = _load_invalidation_worker("cache_invalidation_worker_p3inv_it")
+    monkeypatch.setattr(worker.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: 0)
+    tenant_id = str(uuid.uuid4())
+    field_id = f"fld_p3_{uuid.uuid4().hex[:8]}"
+
+    async def _once() -> int:
+        pool = await _worker_pool(tenant_id)
+        try:
+            return await worker.run_once(pool)
+        finally:
+            await pool.close()
+
+    async def _run():
+        rid = await _queue_row(tenant_id, field_id)
+        try:
+            await _once()
+            status, processed_at, meta, backoff_live = await _queue_state(tenant_id, rid)
+            assert status == "pending" and processed_at is None, (
+                f"إبطالٌ لم يُسلَّم إخلاؤه عُدَّ منجَزاً (={status}) — عمليّةُ الخدمة تُبقي الطبقة القديمة"
+            )
+            assert meta.get("layer_evict") == "not_delivered", meta
+            assert backoff_live is True, meta
+
+            # المهلةُ حيّة ⇒ لا إعادةَ فوريّة تُحرق المحاولات.
+            await _once()
+            status, _, _, _ = await _queue_state(tenant_id, rid)
+            assert status == "pending"
+
+            # انقضت المهلة وعاد Redis ⇒ يُعاد الإبطالُ ويُسلَّم ويُنجَز.
+            conn = await _connect(tenant_id)
+            try:
+                await conn.execute(
+                    "UPDATE raster_cache_invalidations SET metadata = metadata || "
+                    "jsonb_build_object('retry_after', extract(epoch from now()) - 1) WHERE id=$1",
+                    rid,
+                )
+            finally:
+                await conn.close()
+
+            class _Pub:
+                async def publish(self, channel, message):
+                    return 1
+
+            worker._redis_pub = _Pub()
+            await _once()
+            status, processed_at, meta, _ = await _queue_state(tenant_id, rid)
+            assert status == "processed" and processed_at is not None, status
+            assert meta.get("layer_evict") == "delivered", meta
+            assert meta.get("claim_attempts") == 2, meta
+        finally:
+            await _drop_queue_rows(tenant_id, field_id)
+
+    asyncio.run(_run())
+
+
+# ─── C1 (مراجعة): قيمةٌ مُدخَلة غيرُ صالحة في مفاتيح العامل لا توقف الطابور للجميع ──────
+#
+# ``metadata`` يملؤه المُستدعي، وعبارةُ المطالبة دفعيّةٌ لكلّ المستأجِرين. كان الصبُّ
+# ``(metadata->>'retry_after')::timestamptz`` و``(metadata->>'claim_attempts')::int`` يرمي على
+# ``'x'``/``2.5`` فتُلغى المطالبةُ كلَّ دورة: لا صفَّ يُبطَل لأحد، والنبضةُ ``failed`` فتُعاد الحاوية
+# بلا نهاية. الإدراجُ صار يُسقط هذه المفاتيح، لكنّ صفّاً قائماً (أو كاتباً آخر) يبقى ممكناً —
+# فالشاهدُ يُدرج مباشرةً متجاوزاً الإدراج.
+
+
+def test_cache_invalidation_malformed_worker_keys_do_not_poison_the_claim(monkeypatch):
+    if not _db_available():
+        pytest.skip("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    worker = _load_invalidation_worker("cache_invalidation_worker_c1_poison_it")
+    monkeypatch.setattr(worker.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: 0)
+    tenant_id = str(uuid.uuid4())
+    field_id = f"fld_c1p_{uuid.uuid4().hex[:8]}"
+    queued = [
+        ('{"claim_attempts": 2.5, "retry_after": "x"}', "pending"),
+        ('{"claim_attempts": 1e400, "retry_after": "2999-13-45"}', "pending"),
+        ('{"claim_attempts": "3", "lease_until": "not-a-time"}', "processing"),
+        ('{"geometry_revision": 1}', "pending"),
+    ]
+
+    async def _run():
+        ids = [await _queue_row(tenant_id, field_id, m, s) for m, s in queued]
+        try:
+            pool = await _worker_pool(tenant_id)
+            try:
+                processed = await worker.run_once(pool, batch_size=1000)
+            finally:
+                await pool.close()
+            assert processed >= len(ids), processed
+            for rid in ids:
+                status, processed_at, meta, _ = await _queue_state(tenant_id, rid)
+                assert status == "processed" and processed_at is not None, (
+                    f"صفٌّ بقيمٍ مُدخَلة غيرِ صالحة لم يُعالَج (={status}) — {meta}"
+                )
+                # القيمةُ غيرُ الصالحة تُقرأ غائبةً في بايثون وSQL معاً ⇒ المحاولةُ الأولى.
+                assert meta.get("claim_attempts") == 1, meta
+                assert "retry_after" not in meta and "lease_until" not in meta, meta
+        finally:
+            await _drop_queue_rows(tenant_id, field_id)
 
     asyncio.run(_run())
 
