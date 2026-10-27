@@ -76,6 +76,12 @@ def request_digest(effective_payload) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def model_digest(model, scope=None) -> str:
+    """بصمة نموذج الطلب بعد التحقّق؛ و``scope`` (مثل حقل المسار) جزءٌ من الحمولة المؤثّرة."""
+    effective = model.model_dump(mode="json")
+    return request_digest(effective if scope is None else {"scope": scope, "request": effective})
+
+
 def _conflict(reason: str, message_ar: str, **extra) -> HTTPException:
     detail = {"code": "idempotency_conflict", "reason": reason, "message_ar": message_ar}
     detail.update(extra)

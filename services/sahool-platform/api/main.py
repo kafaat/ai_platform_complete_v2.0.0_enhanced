@@ -733,7 +733,7 @@ async def _emit_domain_event(
 
 # idempotency لنقاط الموبايل: _idem_key و_idempotent في api/idempotency.py، ويُعاد
 # تصديرهما هنا لأنّ الراوترات تستوردهما من api.main.
-from api.idempotency import _idem_key, _idempotent  # noqa: E402,F401
+from api.idempotency import _idem_key, _idempotent, model_digest  # noqa: E402,F401
 
 # المتغيّر: SAHOOL_CORS_ORIGINS = "https://app.sahool.ye,https://www.sahool.ye"
 # للتطوير: SAHOOL_CORS_ORIGINS = "http://localhost:3000,http://10.0.2.2:8000"
