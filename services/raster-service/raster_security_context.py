@@ -170,12 +170,20 @@ async def require_layer_tenant_authorized(
 def job_owner_tenant(body_tenant: str | None) -> str | None:
     """The tenant a newly created job is bound to (P3-AUTH).
 
-    The trusted request context (gateway ``X-Tenant-Id``) wins — it is what job reads are
-    compared against; the request body is the fallback for a caller without that header.
-    ``None`` leaves the job unowned (no tenant context at all), i.e. service-token-only.
+    The trusted request context (gateway ``X-Tenant-Id``) is what job reads are compared
+    against; the request body is the fallback for a caller without that header. When both are
+    present they must agree — the job is processed, persisted and batch-deduplicated under the
+    body tenant (``indicator_batch_claim.batch_claim_key``), so binding it to a different header
+    tenant would split owner from data and let a mismatched request take over another tenant's
+    claim key. Mismatch ⇒ ``403`` (same contract as ``routers/fields._authenticated_tenant``).
+    Call it before any claim or job write. ``None`` leaves the job unowned (no tenant context
+    at all), i.e. service-token-only.
     """
-    owner = REQ_TENANT.get() or (str(body_tenant).strip() if body_tenant else "")
-    return owner or None
+    context = REQ_TENANT.get() or ""
+    body = str(body_tenant).strip() if body_tenant else ""
+    if context and body and body != context:
+        raise HTTPException(403, "tenant_id في الجسم لا يطابق المستأجِر المُصادَق للطلب")
+    return context or body or None
 
 
 def require_job_tenant(job: dict) -> None:

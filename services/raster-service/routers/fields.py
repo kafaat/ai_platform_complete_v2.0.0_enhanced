@@ -862,11 +862,12 @@ async def process_cdse(
         raise HTTPException(400, "bbox مطلوب [west,south,east,north] (EPSG:4326).")
     if not req.indicators:
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
+    # P3-AUTH: ربط المهمّة بمستأجِرها (تُفرَض على /v1/jobs/{id}[/result])؛ رأس≠جسم ⇒ 403.
+    owner = raster_security_context.job_owner_tenant(req.tenant_id)
     job_id = f"cdse_{uuid.uuid4().hex[:12]}"
     job_record = {
         "job_id": job_id,
-        # P3-AUTH: ربط المهمّة بمستأجِرها (تُفرَض على /v1/jobs/{id}[/result]).
-        "tenant_id": raster_security_context.job_owner_tenant(req.tenant_id),
+        "tenant_id": owner,
         "status": JobStatus.pending,
         "progress_pct": 0,
         "created_at": datetime.now(UTC).isoformat(),
