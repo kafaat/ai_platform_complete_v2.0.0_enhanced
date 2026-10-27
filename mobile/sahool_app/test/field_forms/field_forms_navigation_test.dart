@@ -123,6 +123,28 @@ void main() {
     expect(find.byKey(const ValueKey('field_forms_empty')), findsOneWidget);
   });
 
+  testWidgets('صفّ طابور لا يُفكّ يُعرَض عدداً ولا تنهار القائمة (UI-S2)', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => Hive.box<dynamic>(
+        SubmissionQueue.boxName,
+      ).put('broken', {'instance_id': 'x'}),
+    );
+    addTearDown(
+      () => tester.runAsync(
+        () => Hive.box<dynamic>(SubmissionQueue.boxName).delete('broken'),
+      ),
+    );
+    await tester.pumpWidget(MaterialApp(home: listScreen()));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('field_forms_unreadable')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('field_forms_empty')), findsOneWidget);
+  });
+
   testWidgets('المخازن غير مهيّأة ⇒ «غير جاهز» بلا انهيار', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: FieldFormsListScreen(fieldId: _field)),

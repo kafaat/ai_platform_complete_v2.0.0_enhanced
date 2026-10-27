@@ -243,21 +243,33 @@ class SubmissionQueue {
   List<QueuedSubmission> _all({String? tenantId, String? actorId}) {
     final result = <QueuedSubmission>[];
     for (final key in _box.keys) {
-      final raw = _box.get(key);
-      if (raw is Map) {
-        final item = QueuedSubmission.fromJson(Map<String, Object?>.from(raw));
-        if (tenantId != null && item.tenantId != tenantId) continue;
-        if (actorId != null &&
-            item.actorId != null &&
-            item.actorId != actorId) {
-          continue;
-        }
-        result.add(item);
+      final item = _decode(_box.get(key));
+      // صفّ لا يُفكّ لا يُسقط القائمة كلّها؛ يبقى على القرص ويُعَدّ في
+      // [unreadableCount] فلا يختفي من العرض كأنّه أُرسل.
+      if (item == null) continue;
+      if (tenantId != null && item.tenantId != tenantId) continue;
+      if (actorId != null && item.actorId != null && item.actorId != actorId) {
+        continue;
       }
+      result.add(item);
     }
     result.sort((a, b) => a.localCreatedAt.compareTo(b.localCreatedAt));
     return result;
   }
+
+  static QueuedSubmission? _decode(Object? raw) {
+    if (raw is! Map) return null;
+    try {
+      return QueuedSubmission.fromJson(Map<String, Object?>.from(raw));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// صفوف محفوظة تعذّر فكّها (تالفة أو من إصدار أحدث). لا تُحذف ولا تُرسَل؛
+  /// تُعرض عدداً كي لا يُقال «لا شيء بانتظار الإرسال» وهي على الجهاز.
+  int unreadableCount() =>
+      _box.keys.where((key) => _decode(_box.get(key)) == null).length;
 
   /// العناصر المعلّقة القابلة للتصريف، الأقدم أوّلاً (بلا الفاشلة).
   List<QueuedSubmission> pending({String? tenantId, String? actorId}) => _all(

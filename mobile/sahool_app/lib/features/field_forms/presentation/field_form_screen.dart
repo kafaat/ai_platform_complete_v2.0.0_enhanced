@@ -178,6 +178,7 @@ class FieldFormCubit extends Cubit<FieldFormState> {
       final schema = FormSchema.fromJson(package.schemaJson);
       final draft = draftStore.load(
         tenantId: tenantId,
+        actorId: actorId,
         fieldId: fieldId,
         assignmentId: package.assignmentId,
         formVersionId: package.formVersionId,
@@ -217,6 +218,7 @@ class FieldFormCubit extends Cubit<FieldFormState> {
 
   FormDraft _draft(Map<String, Object?> answers) => FormDraft(
     tenantId: tenantId,
+    actorId: actorId,
     fieldId: fieldId,
     assignmentId: package.assignmentId,
     revision: package.revision,
