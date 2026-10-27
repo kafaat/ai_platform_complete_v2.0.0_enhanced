@@ -232,6 +232,11 @@ def timeseries_point_to_vegetation_row(
     predates quality capture, so the composer's ``cloud_pct_required<=30`` rule drops
     it exactly as an unqualified observation — no fabricated cloud value. The per-date
     ``datetime`` doubles as a stable ``id`` for deterministic sort ordering.
+
+    Source identity (S4-a) passes through verbatim: ``scene_id``, the field
+    ``geometry_revision`` the COG was clipped to and the ``source_uri`` of the asset read.
+    The composer hashes the whole row, so the same numbers from a different scene or a
+    re-clipped boundary yield a different ``input_digest``. Absent ⇒ ``None``.
     """
     acquisition_date = point.get("datetime")
     return {
@@ -242,6 +247,9 @@ def timeseries_point_to_vegetation_row(
         "cloud_pct": point.get("cloud_pct"),
         "valid_pixel_ratio": point.get("valid_pixel_ratio"),
         "coverage_ratio": point.get("coverage_ratio"),
+        "scene_id": point.get("scene_id"),
+        "geometry_revision": point.get("geometry_revision"),
+        "source_uri": point.get("source_uri"),
         "satellite": None,
         "source": "raster-service:/v1/fields/{id}/timeseries",
     }

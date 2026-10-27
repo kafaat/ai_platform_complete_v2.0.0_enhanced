@@ -1292,6 +1292,10 @@ async def field_timeseries(
                 "coverage_ratio": real.get("coverage_ratio"),
                 "cloud_pct": real.get("cloud_pct"),
                 "scene_id": provenance.get("scene_id"),
+                # S4-a: هويّة الأصل لا الرقم وحده — المشهد نفسه على حدٍّ أحدث للحقل أصلٌ آخر.
+                # مراجعة الهندسة من هويّة الشبكة والأصل المقروء من نَسَب المنتج؛ None حين يغيب.
+                "geometry_revision": (real.get("grid_identity") or {}).get("geometry_revision"),
+                "source_uri": provenance.get("source_uri"),
             }
         )
 
