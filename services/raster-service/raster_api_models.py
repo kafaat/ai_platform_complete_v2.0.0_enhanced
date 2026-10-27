@@ -318,18 +318,35 @@ class ChangeDetectRequest(BaseModel):
             return self
         if before is None or after is None:
             raise ValueError("change_grid_identity_pair_required")
-        if before != after:
-            raise ValueError("change_grid_spatial_identity_mismatch")
-        a, b, _, d, e, _ = before.transform
-        if a * e - b * d == 0:
-            raise ValueError("change_grid_singular_transform")
-        for grid in (self.grid_before, self.grid_after):
-            if len(grid) != before.rows or any(len(row) != before.cols for row in grid):
-                raise ValueError("change_grid_dimensions_mismatch")
+        if error := change_grid_alignment_error(before, after, self.grid_before, self.grid_after):
+            raise ValueError(error)
         return self
 
     slight_threshold: float = 0.1
     severe_threshold: float = 0.2
+
+
+def change_grid_alignment_error(
+    before: ChangeGridIdentity,
+    after: ChangeGridIdentity,
+    grid_before: list[list[float | None]],
+    grid_after: list[list[float | None]],
+) -> str | None:
+    """عقد المحاذاة المشترك لطرح شبكتين — يُرجِع رمز الرفض أو None عند التطابق.
+
+    مصدر واحد لـ``/v1/change/detect`` و``/v1/fields/{field_id}/change``: الهويّة كاملةً
+    (CRS + affine + geometry_revision + rows/cols) متطابقة حرفيّاً، affine غير منفرد،
+    والأبعاد الفعليّة تطابق المُعلَنة. لا إعادة إسقاط/اعتيان صامتة — يُرفض عدم التطابق.
+    """
+    if before != after:
+        return "change_grid_spatial_identity_mismatch"
+    a, b, _, d, e, _ = before.transform
+    if a * e - b * d == 0:
+        return "change_grid_singular_transform"
+    for grid in (grid_before, grid_after):
+        if len(grid) != before.rows or any(len(row) != before.cols for row in grid):
+            return "change_grid_dimensions_mismatch"
+    return None
 
 
 class FvcComputeRequest(BaseModel):
