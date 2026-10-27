@@ -61,7 +61,17 @@ def find_field_layer(
     if not candidates:
         return None
     if date and date != "latest":
-        dated = [c for c in candidates if (c.get("acquisition_date") or "").startswith(date)]
+        # T4 (acq-provenance): الطبقة في الذاكرة تحمل طابع الالتقاط الخام (قد يحمل إزاحة
+        # منطقة)، و available-dates يعرض يومه بـUTC — نقارن يوم UTC للطرفين لا بادئة النصّ،
+        # وإلّا لم يجد اليومُ المعروض طبقتَه. تاريخ غير صالح ⇒ لا تطابق (صارم).
+        from raster_available_dates import utc_day
+
+        wanted = utc_day(date)
+        dated = [
+            c
+            for c in candidates
+            if wanted is not None and utc_day(c.get("acquisition_date")) == wanted
+        ]
         if not dated:
             return None
         candidates = dated

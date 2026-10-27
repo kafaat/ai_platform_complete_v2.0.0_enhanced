@@ -15,7 +15,9 @@ import logging
 import os
 import re
 import uuid
+from datetime import UTC as _UTC
 from datetime import date as _date
+from datetime import datetime as _datetime
 
 logger = logging.getLogger("raster-service.db")
 
@@ -29,16 +31,31 @@ def _iso_date_or_none(value: object) -> _date | None:
     مُعامل مُستنتَج كـ``date`` (مثل ``$3::date``) يُفشل الترميز بـ«'str' object has no
     attribute 'toordinal'» ويُبتلَع كتحذير ⇒ لا صفوف. نطبّع هنا: نصّ ISO (أوّل 10
     محارف) ⇒ ``date``؛ ``date`` كما هو؛ فارغ/None/غير صالح (بما فيه "latest") ⇒ None.
+
+    T4 (acq-provenance): الطابع الزمنيّ يُطبَّع إلى يوم UTC قبل أخذ التاريخ — قصّ أوّل 10
+    محارف كان يُخزِّن ``2026-10-01T00:30:00+03:00`` تحت 1 أكتوبر ويومه بـUTC 30 سبتمبر.
+    المنطق نفسه في ``raster_available_dates.utc_day`` (هذه الوحدة تُحمَّل منفردةً في
+    اختبارات تُحمّلها بمسار الملفّ، فلا تستورد وحدات محلّيّة)؛ اختبار تكافؤ يحرس التطابق.
     """
     if value is None or value == "":
         return None
+    if isinstance(value, _datetime):
+        if value.tzinfo is not None:
+            value = value.astimezone(_UTC)
+        return value.date()
     if isinstance(value, _date):
         return value
     if isinstance(value, str):
+        text = value.strip()
         try:
-            return _date.fromisoformat(value[:10])
+            if len(text) == 10:
+                return _date.fromisoformat(text)
+            instant = _datetime.fromisoformat(text)
         except ValueError:
             return None
+        if instant.tzinfo is not None:
+            instant = instant.astimezone(_UTC)
+        return instant.date()
     return None
 
 
@@ -405,6 +422,11 @@ async def upsert_raster_registry_entry(
         return None
     if not product_date or not cog_url:
         return None
+    # T4 (acq-provenance): يوم UTC نفسه الذي يُكتب في raster_assets.acquisition_date للأصل
+    # ذاته (لا أوّل 10 محارف من طابع بإزاحة)؛ تاريخ غير صالح ⇒ لا كتابة.
+    product_day = _iso_date_or_none(product_date)
+    if product_day is None:
+        return None
     conn = await _connect()
     if conn is None:
         return None
@@ -442,7 +464,7 @@ async def upsert_raster_registry_entry(
             str(tenant_id),
             field_id,
             scene_id,
-            product_date[:10] if isinstance(product_date, str) else product_date,
+            product_day.isoformat(),
             index_type,
             cog_url,
             cloud_pct,
@@ -1012,6 +1034,15 @@ async def fetch_latest_asset(
 
     يُرجِع dict {cog_url, index, acquisition_date, srid, bounds_4326} أو None.
     """
+    # asyncpg يستنتج نوع $3 كـdate من `$3::date` ⇒ يجب تمرير datetime.date لا نصّ
+    # (نصّ ⇒ 'str' object has no attribute 'toordinal' ⇒ يُبتلَع ⇒ لا صفوف لتاريخ
+    # تاريخيّ محدَّد ⇒ بلاطة شفّافة). 'latest'/فارغ ⇒ None (لا فلتر تاريخ ⇒ الأحدث).
+    d = None if (date in (None, "", "latest")) else _iso_date_or_none(date)
+    if d is None and date not in (None, "", "latest"):
+        # T3 (acq-provenance): تاريخ صريح غير صالح كان يصير NULL في `$3::date IS NULL`
+        # ⇒ يُختار **الأحدث** بدل التاريخ المطلوب. التاريخ الصريح صارم: لا أصل.
+        logger.warning("raster_assets fetch: malformed explicit date rejected: %r", date)
+        return None
     conn = await _connect()
     if conn is None:
         return None
@@ -1050,10 +1081,6 @@ async def fetch_latest_asset(
         ) s
     """
     try:
-        # asyncpg يستنتج نوع $3 كـdate من `$3::date` ⇒ يجب تمرير datetime.date لا نصّ
-        # (نصّ ⇒ 'str' object has no attribute 'toordinal' ⇒ يُبتلَع ⇒ لا صفوف لتاريخ
-        # تاريخيّ محدَّد ⇒ بلاطة شفّافة). 'latest'/فارغ ⇒ None (لا فلتر تاريخ ⇒ الأحدث).
-        d = None if (date in (None, "", "latest")) else _iso_date_or_none(date)
         await conn.execute(
             "SELECT set_config('app.current_tenant', $1, false)",
             str(tenant_id) if tenant_id else "",
