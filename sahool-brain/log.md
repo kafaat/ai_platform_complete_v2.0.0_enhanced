@@ -10112,3 +10112,13 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ### 2026-10-26 — سبب علامة الفشل الحمراء على كلّ التزامات main
 
 سأل المالك عن ✗ الأحمر بجوار كلّ التزام. المقيس: الحالة المجمَّعة `failure` على آخر 25 التزاماً، وسببها حالةٌ واحدة من 15 — `resourceful-commitment - ai_platform_complete_v2.0.0_enhanced: Deployment failed`؛ وكلّ تشغيلات GitHub Actions على main ناجحة. مشروع Railway غير مُهيَّأ أُنشئ 2026-10-22 ويبني جذر المستودع بـRailpack فيفشل. سُجّل RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01؛ الإصلاح إجراء المالك في Railway.
+
+### 2026-10-27 — runbook للهجرات المحجوبة خلف البوّابات المجمّدة
+
+طلب المالك runbook لكلّ الهجرات التي تحتاج فتح البوّابة المجمّدة. الجرد من المصدر على `5c7e1cb83` بمواضعه: [`docs/runbooks/MIGRATION_FREEZE_GATES_RUNBOOK_20261027.md`](../docs/runbooks/MIGRATION_FREEZE_GATES_RUNBOOK_20261027.md).
+
+- **ثلاث طبقات لا اثنتان:** GATE-01 يحجب *تسجيل* الهجرة (MANIFEST و`run_migrations.sql` و`db_ownership.yml` مسارات مجمّدة، وكلّ التفويضات الأربعة عشر `CONSUMED`)؛ `SAHOOL_MIGRATE_APPLY` يحجب *تطبيقها*؛ وتجميد حادثة 2026-10-12 يحجب أيّ مسٍّ للبيئة الحيّة.
+- **الجرد:** A = v234 (غائبة حيّاً منذ 2026-10-16) وv235 وv236 (حالتهما حيّاً UNKNOWN)؛ B = عشر فجوات تحتاج هجرةً لم تدخل MANIFEST؛ C = هجرات خدمة القرار بمشغّلها المنفصل.
+- **تعارضٌ للمالك:** `REMAINING_RUNTIME_ACCEPTANCE_20261016.md` يأمر بتطبيق الملفّ وحده بلا المُهاجر، والمُهاجر يعيد 234 ملفّاً والأدوار. الدليل يتبنّى المسار الأوّل ويُبقي القرار للمالك.
+- **تحذيرٌ بنيويّ:** المُهاجر موصول بـ`main` بنمط `/migrations/**` في البيئتين، فأيّ دمجٍ يمسّ `migrations/` يُطلِقه.
+- **لا تفويض صدر، ولا هجرة طُبّقت، ولا بوّابة فُتحت.**
