@@ -147,10 +147,11 @@ async def insert_raster_asset(
 
     # An all-masked COG is a retained processing artifact, not an observation.
     # Keep the asset/provenance for diagnosis, but never publish it as ready.
+    # ``pending`` too: a staged row must not be promotable to ready later.
     if valid_pixel_ratio is not None and valid_pixel_ratio <= 0:
         index_quality_flags = list(dict.fromkeys([*(index_quality_flags or []), "no_valid_pixels"]))
         quality_score = 0.0
-        if asset_status == "ready":
+        if asset_status in ("ready", "pending"):
             asset_status = "failed"
 
     conn = await _connect()
@@ -266,6 +267,46 @@ async def insert_raster_asset(
         return True
     except Exception as e:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة
         logger.warning("raster_assets insert skipped: %s", e)
+        return False
+    finally:
+        await conn.close()
+
+
+async def set_raster_asset_status(
+    *,
+    tenant_id: str | None,
+    product_identity_key: str,
+    cog_uri: str,
+    status: str,
+) -> bool:
+    """ينقل صفّ أصلٍ مُرحَّل (``pending``) إلى ``ready`` أو ``failed`` — خطوة بوّابة النشر.
+
+    ``persist_raster_asset`` يُدرج الأصل ``pending`` (غير مرئيّ لكلّ قارئ يطلب
+    ``asset_status = 'ready'``) ثمّ يسجّله في كتالوج ``raster_registry``، ولا يُرقّيه إلى
+    ``ready`` إلّا بعد نجاح الكتالوج (P2-PUB-3). الشرط على ``cog_uri`` و``pending`` يمنع
+    ترقية صفٍّ كتبه منتِجٌ آخر بعدنا أو صفٍّ خُفِّض إلى ``failed`` (كلّه مقنَّع). يُرجِع True
+    فقط إن تغيّر صفّ فعلاً؛ أيّ خطأ يُبتلع ويُرجِع False (لا يرمي).
+    """
+    if status not in ("ready", "failed") or not product_identity_key or not cog_uri:
+        return False
+    conn = await _connect()
+    if conn is None:
+        return False
+    try:
+        await conn.execute(
+            "SELECT set_config('app.current_tenant', $1, false)",
+            str(tenant_id) if tenant_id else "",
+        )
+        result = await conn.execute(
+            "UPDATE raster_assets SET asset_status = $1 "
+            "WHERE product_identity_key = $2 AND cog_uri = $3 AND asset_status = 'pending'",
+            status,
+            product_identity_key,
+            cog_uri,
+        )
+        return str(result or "").rsplit(" ", 1)[-1] not in ("", "0")
+    except Exception as e:  # noqa: BLE001 — صدق: الفشل يُبلَّغ False لا يرمي
+        logger.warning("raster_assets status %s skipped: %s", status, e)
         return False
     finally:
         await conn.close()

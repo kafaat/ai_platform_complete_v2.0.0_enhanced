@@ -147,8 +147,14 @@ def test_caller_passes_quality_values_from_stats(
         captured["registry"] = kwargs
         return True
 
+    async def set_status(**kwargs):
+        # بوّابة النشر (P2-PUB-3): الأصل يُدرَج pending ويُرقّى ready بعد الكتالوج.
+        captured["status"] = kwargs["status"]
+        return True
+
     monkeypatch.setattr(db_persist, "insert_raster_asset", insert)
     monkeypatch.setattr(db_persist, "insert_raster_registry_entry", registry)
+    monkeypatch.setattr(db_persist, "set_raster_asset_status", set_status)
     req = SimpleNamespace(
         field_id="fld_quality",
         tenant_id="00000000-0000-4000-8000-000000000001",

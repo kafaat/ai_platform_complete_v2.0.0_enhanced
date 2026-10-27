@@ -183,7 +183,11 @@ def run_processing(ctx, job_id: str, req):
             cloud_pct=stats.get("cloud_pct"),
         )
         _cloud_pct = stats.get("cloud_pct")
-        ctx._layers[layer_id] = {
+        # بوّابة النشر (P2-PUB-1): تُبنى الطبقة هنا لكنّها لا تُسجَّل في ``ctx._layers``/
+        # ``ctx._field_layers`` إلّا بعد نجاح الإدامة (asset + كتالوج). كان التسجيل يسبق
+        # الحفظ فتبقى طبقة مهمّةٍ ``failed``/غير مؤهَّلة للنشر قابلةً للحلّ عبر المُحلِّل
+        # وشبكة المؤشّر والبلاطات (مقيسٌ 2026-10-27: شبكة متوسّطها 0.5 بعد asset=False).
+        layer = {
             "layer_id": layer_id,
             "field_id": req.field_id,
             "tenant_id": req.tenant_id,
@@ -230,25 +234,30 @@ def run_processing(ctx, job_id: str, req):
             "data_available_at": now,
             "provenance": provenance,
         }
-        # فهرس حقل→طبقات (للبحث عن أحدث COG لحقل+مؤشّر في شبكة المؤشّر). يُستخدَم
-        # ``ctx._field_layers`` (فهرس field_id→[layer_id]) لا ``ctx._layers`` (مخزن
-        # layer_id→dict): كتب التفكيك اسماً غير مُعرَّف ومخزناً خاطئاً هنا فكان NameError
-        # على كلّ معالجة لحقل. الأصل main.py:2036 قبل التفكيك: _field_layers.setdefault.
-        if req.field_id:
-            ctx._field_layers.setdefault(req.field_id, []).append(layer_id)
-        # (٦) حفظ في raster_assets (best-effort — غياب القاعدة لا يُفشل المعالجة)
+        # (٦) حفظ في raster_assets (+ كتالوج raster_registry) — آخر بوّابة قبل النشر.
         # v5-audit F1: نلتقط persisted كي يُميّز «completed» بين الحفظ في DB والذاكرة فقط.
         persisted = (
             ctx._persist_raster_asset(req, cog_url, meta, bounds, stats, job_id=job_id)
             if cog_url
             else False
         )
+        if persisted:
+            ctx._layers[layer_id] = layer
+            # فهرس حقل→طبقات (للبحث عن أحدث COG لحقل+مؤشّر في شبكة المؤشّر). يُستخدَم
+            # ``ctx._field_layers`` (فهرس field_id→[layer_id]) لا ``ctx._layers`` (مخزن
+            # layer_id→dict): كتب التفكيك اسماً غير مُعرَّف ومخزناً خاطئاً هنا فكان NameError
+            # على كلّ معالجة لحقل. الأصل main.py:2036 قبل التفكيك: _field_layers.setdefault.
+            if req.field_id:
+                ctx._field_layers.setdefault(req.field_id, []).append(layer_id)
         job["result"] = {
             "job_id": job_id,
             "layer_id": layer_id,
             "indicator": req.indicator.value,
             "stats": stats,
-            "tile_url_template": f"/v1/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png",
+            # لا نُعلن نقطة بلاطات لطبقة لم تُنشَر (لا يخدمها /v1/tiles).
+            "tile_url_template": (
+                f"/v1/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png" if persisted else None
+            ),
             "bounds_4326": bounds,
             "zoom_min": req.zoom_min,
             "zoom_max": req.zoom_max,

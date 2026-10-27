@@ -20,6 +20,17 @@ import raster_validated_product
 import raw_data_processing
 
 
+def _cog_publishable(cog_info: dict) -> bool:
+    """بوّابة الرفع (P2-PUB-2): COG يُرفَع فقط إن كُتِب **و**اجتاز تدقيق البنية.
+
+    ``validation.valid`` كان معلوماتيّاً فحسب: يُرفَع COG غير صالح ويُحفَظ ويُنشَر لأنّ
+    الشرط كان ``written`` وحده. ``valid`` غير ``True`` (False/None/غائب) ⇒ لا رفع، فلا
+    ``cog_url`` ولا إدامة، وتنتهي المهمّة غير مؤهَّلة للنشر مع بقاء الحكم ظاهراً في
+    ``stats["cog"]["validation"]`` للتشخيص.
+    """
+    return bool(cog_info.get("written")) and (cog_info.get("validation") or {}).get("valid") is True
+
+
 def _topographic_qa_for_indicator(
     ctx,
     *,
@@ -240,7 +251,7 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         cog_path = os.path.join(ctx.UPLOAD_DIR, f"{req.indicator.value}_{cog_uid}.tif")
         cog_info = cog_writer.write_cog(arr, cog_path, transform, crs=cog_crs, nodata=RASTER_NODATA)
         stats["cog"] = cog_info
-        if cog_info.get("written"):
+        if _cog_publishable(cog_info):
             cog_url = ctx.object_store.upload_cog(
                 cog_path, f"{req.field_id or 'nofield'}/{req.indicator.value}_{cog_uid}.tif"
             )
@@ -355,7 +366,7 @@ def process_precomputed_truecolor(ctx, req):
         cog_path = os.path.join(ctx.UPLOAD_DIR, f"truecolor_{cog_uid}.tif")
         cog_info = cog_writer.write_rgba_cog(arr, cog_path, transform, crs=cog_crs)
         stats["cog"] = cog_info
-        if cog_info.get("written"):
+        if _cog_publishable(cog_info):
             cog_url = ctx.object_store.upload_cog(
                 cog_path, f"{req.field_id or 'nofield'}/truecolor_{cog_uid}.tif"
             )
@@ -517,7 +528,7 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         cog_path = os.path.join(ctx.UPLOAD_DIR, f"truecolor_{cog_uid}.tif")
         cog_info = cog_writer.write_rgba_cog(rgba, cog_path, transform, crs=cog_crs)
         stats["cog"] = cog_info
-        if cog_info.get("written"):
+        if _cog_publishable(cog_info):
             cog_url = ctx.object_store.upload_cog(
                 cog_path, f"{req.field_id or 'nofield'}/truecolor_{cog_uid}.tif"
             )
@@ -1013,7 +1024,7 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
                 arr, cog_path, _out["transform"], crs=cog_crs, nodata=RASTER_NODATA
             )
             stats["cog"] = cog_info
-            if cog_info.get("written"):
+            if _cog_publishable(cog_info):
                 # (٤) خزّن مسار COG كـURI كي يجده tilejson + شبكة المؤشّر.
                 # عند ضبط S3 يُرفع الـCOG ويُخزَّن s3://؛ وإلّا يبقى file:// كما هو.
                 cog_url = ctx.object_store.upload_cog(
