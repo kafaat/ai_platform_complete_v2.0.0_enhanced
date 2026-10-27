@@ -12,6 +12,8 @@
 // D5/OD-1: ورقة الجدول تحمل منتقي حقلٍ **اختياريّاً**. الصمّام المرتبط بحقل يحدّد الحقل
 // (الخادم يتحقّق ويرفض التعارض)، وتركُ الحقل فارغاً بلا صمّام يحفظ «جدول غير مرتبط بحقل»
 // ويُعرَض كذلك في القائمة. الحقل لا يُفرَض أبداً.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
@@ -26,6 +28,8 @@ import 'package:sahool_app/features/irrigation/data/irrigation_models.dart';
 import 'package:sahool_app/features/irrigation/presentation/irrigation_fields_cubit.dart';
 import 'package:sahool_app/features/irrigation/presentation/irrigation_format.dart';
 import 'package:sahool_app/features/irrigation/presentation/irrigation_ops_cubit.dart';
+import 'package:sahool_app/features/offline_sync/data/operation_ledger.dart';
+import 'package:sahool_app/features/offline_sync/presentation/pending_operation_panel.dart';
 
 /// تسمية الجدول بلا حقل (OD-1) — في خيار المنتقي الفارغ وفي بطاقة القائمة.
 const String kUnlinkedScheduleLabel = 'جدول غير مرتبط بحقل';
@@ -43,9 +47,12 @@ const String kValveIntentBanner =
     'يتطلّب موافقة بشريّة (HIL)، وقد يرفض الخادم الطلب.';
 
 class IrrigationOpsScreen extends StatelessWidget {
-  const IrrigationOpsScreen({super.key, this.api, this.role});
+  const IrrigationOpsScreen({super.key, this.api, this.role, this.ledger});
 
   final IrrigationApi? api;
+
+  /// سجلّ عمليّات الإنشاء المعلّقة (للاختبار)؛ null ⇒ السجلّ المشترك.
+  final OperationLedger? ledger;
 
   /// للاختبار؛ null ⇒ دور الجلسة.
   final String? role;
@@ -63,14 +70,18 @@ class IrrigationOpsScreen extends StatelessWidget {
           create: (_) => IrrigationFieldsCubit(loader: a.listFields)..load(),
         ),
       ],
-      child: _OpsView(canManage: canManageIrrigation(role ?? currentRole())),
+      child: _OpsView(
+        canManage: canManageIrrigation(role ?? currentRole()),
+        ledger: ledger ?? OperationLedger.shared,
+      ),
     );
   }
 }
 
 class _OpsView extends StatefulWidget {
-  const _OpsView({required this.canManage});
+  const _OpsView({required this.canManage, required this.ledger});
   final bool canManage;
+  final OperationLedger ledger;
 
   @override
   State<_OpsView> createState() => _OpsViewState();
@@ -148,6 +159,7 @@ class _OpsViewState extends State<_OpsView>
               fields: fieldsState is IrrigationFieldsLoaded
                   ? fieldsState.fields
                   : const [],
+              ledger: widget.ledger,
             ),
     );
     if (created == true && mounted) {
@@ -586,14 +598,34 @@ class _AddValveSheetState extends State<_AddValveSheet> {
   );
 }
 
+/// نوع عمليّة إنشاء جدول الريّ في سجلّ العمليّات المعلّقة.
+const String kScheduleCreateKind = 'irrigation_schedule.create';
+
+/// أسماء مفاتيح الحمولة في فروق المسودّة.
+const Map<String, String> kScheduleFieldLabelsAr = {
+  'name': 'الاسم',
+  'start_time': 'وقت البدء',
+  'duration_min': 'المدّة (دقيقة)',
+  'valve_id': 'الصمّام',
+  'field_id': 'الحقل',
+  'water_target_mm': 'هدف الماء (مم)',
+  'enabled': 'مفعَّل',
+};
+
+// إنشاء الجدول عمليّةٌ مسجَّلة (operation_ledger.dart): المفتاح والحمولة الأصليّة
+// يُحفظان على القرص قبل الشبكة ولا يتغيّران بمهلة/5xx/إغلاق الورقة. النتيجة المجهولة
+// أو 409 تعرض «استعادة نتيجة المحاولة السابقة» (نفس المفتاح ونفس الحمولة) ولا تعرض
+// زرّ إنشاء — والتعديل بعدها مسودّة تُعرَض فروقها ولا تُرسَل.
 class _AddScheduleSheet extends StatefulWidget {
   const _AddScheduleSheet({
     required this.api,
     required this.valves,
+    required this.ledger,
     this.fields = const [],
   });
   final IrrigationApi api;
   final List<Valve> valves;
+  final OperationLedger ledger;
 
   /// حقول المستأجر للمنتقي الاختياريّ؛ فارغة ⇒ لا منتقي (والجدول بلا صمّام غير مرتبط).
   final List<IrrigationField> fields;
@@ -607,13 +639,29 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
   final _start = TextEditingController();
   final _duration = TextEditingController();
   final _target = TextEditingController();
-  late final IdempotencyKey _key = IdempotencyKey.generate();
+  late final CreateOperation _op = CreateOperation(
+    ledger: widget.ledger,
+    kind: kScheduleCreateKind,
+    method: 'POST',
+    path: '/api/v1/irrigation/schedules',
+    send: (payload, key) =>
+        widget.api.createSchedule(payload, idempotencyKey: key),
+  );
   String? _valveId;
 
   /// الحقل الذي اختاره المستخدم بلا صمّام؛ null ⇒ «جدول غير مرتبط بحقل».
   String? _pickedFieldId;
   bool _saving = false;
   String? _error;
+
+  /// سجلّ العمليّات المعلّقة لا يُقرأ (مفتاحه مفقود): لوحة حذفه بعد تأكيد.
+  bool _storeUnreadable = false;
+
+  /// عمليّة سابقة لم تُحسَم (من هذه الورقة أو من جلسة/تشغيل سابق للمالك نفسه).
+  CreateUnconfirmed? _unconfirmed;
+
+  /// استُعيدت النتيجة وبقيت تعديلات لم تُرسَل.
+  CreateConfirmed? _recovered;
 
   static final _clock = RegExp(r'^([01]?\d|2[0-3]):([0-5]\d)$');
 
@@ -629,7 +677,37 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
   String? get _resolvedFieldId => _valveField ?? _pickedFieldId;
 
   @override
+  void initState() {
+    super.initState();
+    _restore();
+  }
+
+  Future<void> _restore() async {
+    final o = await _op.restore();
+    if (!mounted) return;
+    if (o is CreateUnconfirmed) setState(() => _unconfirmed = o);
+    // صندوقٌ لا يُقرأ يُسمّى فور فتح الورقة، لا بعد ملء النموذج.
+    if (o is CreateNotSaved && o.storeUnreadable && !_saving) {
+      setState(() => _storeUnreadable = true);
+    }
+  }
+
+  /// يحذف سجلّ العمليّات غير المقروء بعد تأكيد المستخدم، ثمّ يعود الإنشاء ممكناً.
+  Future<void> _resetStore() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    final ok = await widget.ledger.resetUnreadableStore();
+    if (!mounted) return;
+    setState(() {
+      _saving = false;
+      if (ok) _storeUnreadable = false;
+    });
+  }
+
+  @override
   void dispose() {
+    // إغلاق الورقة بعد نتيجة مجهولة لا يُضيّع التعديلات: تُحفَظ مسودّةً (لا تُرسَل).
+    if (_unconfirmed != null) unawaited(_op.saveDraft(_payload(report: false)));
     _name.dispose();
     _start.dispose();
     _duration.dispose();
@@ -637,8 +715,8 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (_saving) return;
+  /// الحمولة من المُدخَل، أو null مع رسالة تحقّق.
+  Map<String, dynamic>? _payload({bool report = true}) {
     final name = _name.text.trim();
     final start = normalizeDigits(_start.text.trim());
     final duration = parseLocalizedInt(_duration.text);
@@ -655,79 +733,168 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
       error = 'هدف الماء رقم موجب أو اتركه فارغاً';
     }
     if (error != null) {
-      setState(() => _error = error);
-      return;
+      if (report) setState(() => _error = error);
+      return null;
     }
+    // حقل الصمّام المختار (UI-M1) أو الحقل المختار يدويّاً (D5)؛ الخادم يشتقّه من الصمّام
+    // ويرفض التعارض أيضاً. بلا صمّام ولا اختيار ⇒ لا field_id: جدول غير مرتبط (OD-1).
+    final fieldId = _resolvedFieldId;
+    return {
+      'name': name,
+      'start_time': start,
+      'duration_min': duration,
+      'valve_id': ?_valveId,
+      'field_id': ?fieldId,
+      'water_target_mm': ?target,
+      'enabled': true,
+    };
+  }
+
+  Future<void> _submit() async {
+    if (_saving) return;
+    final payload = _payload();
+    if (payload == null) return;
     setState(() {
       _saving = true;
       _error = null;
     });
-    // حقل الصمّام المختار (UI-M1) أو الحقل المختار يدويّاً (D5)؛ الخادم يشتقّه من الصمّام
-    // ويرفض التعارض أيضاً. بلا صمّام ولا اختيار ⇒ لا field_id: جدول غير مرتبط (OD-1).
-    final fieldId = _resolvedFieldId;
-    try {
-      await widget.api.createSchedule({
-        'name': name,
-        'start_time': start,
-        'duration_min': duration,
-        'valve_id': ?_valveId,
-        'field_id': ?fieldId,
-        'water_target_mm': ?target,
-        'enabled': true,
-      }, idempotencyKey: _key);
-      if (mounted) Navigator.of(context).pop(true);
-    } catch (e) {
-      if (mounted) {
+    _apply(await _op.submit(payload));
+  }
+
+  /// نفس المفتاح ونفس الحمولة الأصليّة؛ المُدخَل الحاليّ يُحفَظ مسودّةً فقط.
+  Future<void> _recover() async {
+    if (_saving) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    _apply(await _op.recover(draft: _payload(report: false)));
+  }
+
+  Future<void> _dismiss() async {
+    if (await _op.dismiss() && mounted) {
+      setState(() => _unconfirmed = null);
+    }
+  }
+
+  void _apply(CreateOutcome? o) {
+    if (!mounted) return;
+    switch (o) {
+      case CreateConfirmed(:final pendingEdits):
+        if (pendingEdits.isEmpty) {
+          Navigator.of(context).pop(true);
+          return;
+        }
         setState(() {
           _saving = false;
-          _error = ApiException.from(e).messageAr;
+          _unconfirmed = null;
+          _recovered = o;
         });
-      }
+      case CreateUnconfirmed():
+        setState(() {
+          _saving = false;
+          _unconfirmed = o;
+        });
+      case CreateRejected(:final error):
+        setState(() {
+          _saving = false;
+          _unconfirmed = null;
+          _error = error.messageAr;
+        });
+      case CreateNotSaved(:final messageAr, :final storeUnreadable):
+        setState(() {
+          _saving = false;
+          _storeUnreadable = storeUnreadable;
+          // اللوحة تسمّي العطل وتعرض الحذف؛ لا نكرّر النصّ في سطر الخطأ.
+          _error = storeUnreadable ? null : messageAr;
+        });
+      case CreateBusy():
+      case null:
+        setState(() => _saving = false);
     }
   }
 
   @override
-  Widget build(BuildContext context) => AppSheet(
-    title: 'جدول ريّ جديد',
-    submitLabel: 'إنشاء الجدول',
-    onSubmit: _submit,
-    submitting: _saving,
-    errorText: _error,
-    children: [
-      AppTextField(label: 'الاسم', controller: _name, enabled: !_saving),
-      AppTextField(
-        label: 'وقت البدء (HH:MM)',
-        controller: _start,
-        hint: '06:30',
-        keyboardType: TextInputType.datetime,
-        inputFormatters: const [LocalizedDigitsFormatter()],
-        enabled: !_saving,
-      ),
-      AppNumberField(
-        label: 'المدّة',
-        controller: _duration,
-        unit: 'دقيقة',
-        decimal: false,
-        required: true,
-        min: 1,
-        max: 1440,
-      ),
-      AppNumberField(
-        label: 'هدف الماء (اختياريّ)',
-        controller: _target,
-        unit: 'مم',
-      ),
-      if (widget.valves.isNotEmpty)
-        AppDropdown<String>(
-          key: const ValueKey('schedule-valve-picker'),
-          label: 'الصمّام (اختياريّ — يفحص الخادم التعارض)',
-          items: {for (final v in widget.valves) v.id: v.name},
-          value: _valveId,
-          onChanged: (v) => setState(() => _valveId = v),
+  Widget build(BuildContext context) {
+    final recovered = _recovered;
+    if (recovered != null) {
+      return AppSheet(
+        title: 'أُنشئ جدول الريّ',
+        submitLabel: 'تمّ',
+        onSubmit: () => Navigator.of(context).pop(true),
+        children: [
+          const SizedBox(height: SahoolSpacing.sm),
+          Text(
+            'استُعيدت نتيجة المحاولة السابقة: أُنشئ الجدول بالقيم المرسلة أوّلاً. '
+            'تعديلاتك التالية لم تُرسَل؛ راجع الجدول في القائمة قبل أيّ تغيير:',
+            key: const ValueKey('pending-op-recovered'),
+            style: context.textStyles.bodyLarge,
+          ),
+          PayloadChangesList(
+            changes: recovered.pendingEdits,
+            labels: kScheduleFieldLabelsAr,
+          ),
+        ],
+      );
+    }
+    final unconfirmed = _unconfirmed;
+    return AppSheet(
+      title: 'جدول ريّ جديد',
+      submitLabel: 'إنشاء الجدول',
+      // عمليّة سابقة غير محسومة ⇒ لا زرّ إنشاء؛ الاستعادة وحدها (OD-2).
+      onSubmit: unconfirmed == null ? _submit : null,
+      submitting: _saving,
+      errorText: _error,
+      children: [
+        if (_storeUnreadable) ...[
+          const SizedBox(height: SahoolSpacing.sm),
+          UnreadableOperationStorePanel(busy: _saving, onReset: _resetStore),
+        ],
+        if (unconfirmed != null) ...[
+          const SizedBox(height: SahoolSpacing.sm),
+          PendingOperationPanel(
+            outcome: unconfirmed,
+            busy: _saving,
+            labels: kScheduleFieldLabelsAr,
+            onRecover: _recover,
+            onDismiss: _dismiss,
+          ),
+        ],
+        AppTextField(label: 'الاسم', controller: _name, enabled: !_saving),
+        AppTextField(
+          label: 'وقت البدء (HH:MM)',
+          controller: _start,
+          hint: '06:30',
+          keyboardType: TextInputType.datetime,
+          inputFormatters: const [LocalizedDigitsFormatter()],
+          enabled: !_saving,
         ),
-      if (widget.fields.isNotEmpty) _fieldPicker(),
-    ],
-  );
+        AppNumberField(
+          label: 'المدّة',
+          controller: _duration,
+          unit: 'دقيقة',
+          decimal: false,
+          required: true,
+          min: 1,
+          max: 1440,
+        ),
+        AppNumberField(
+          label: 'هدف الماء (اختياريّ)',
+          controller: _target,
+          unit: 'مم',
+        ),
+        if (widget.valves.isNotEmpty)
+          AppDropdown<String>(
+            key: const ValueKey('schedule-valve-picker'),
+            label: 'الصمّام (اختياريّ — يفحص الخادم التعارض)',
+            items: {for (final v in widget.valves) v.id: v.name},
+            value: _valveId,
+            onChanged: (v) => setState(() => _valveId = v),
+          ),
+        if (widget.fields.isNotEmpty) _fieldPicker(),
+      ],
+    );
+  }
 
   /// منتقي الحقل الاختياريّ (D5/OD-1). صمّامٌ مرتبط بحقل يُقفله على حقله؛ وخياره الفارغ
   /// «جدول غير مرتبط بحقل». المفتاح يتبع حقل الصمّام كي يُعاد بناء القيمة عند تبدّله.
