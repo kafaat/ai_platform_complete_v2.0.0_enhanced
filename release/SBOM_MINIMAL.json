@@ -4475,7 +4475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4936ebb7835cb93fa19befd3b25af36ef9f5877ff5ee0fab9151c1c78b61ac09"
+          "content": "2163593433e6663295115965533bd2a3b2c3c4fa8ae6902a4cbbb9a2698094a9"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -4749,6 +4749,26 @@
         }
       ],
       "name": "frontend/src/lib/sqlHistory.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4b5b433d5c6b0b532b7c6b967337ab4438ec4c084888db76d4729564a2f6cf0b"
+        }
+      ],
+      "name": "frontend/src/lib/taskIrrigationObservation.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d58617f5fb6fe0de4546420e966d852a4728c8eee1e4999de8c1eeb19ef276a1"
+        }
+      ],
+      "name": "frontend/src/lib/taskIrrigationObservation.ts",
       "type": "file"
     },
     {
@@ -6365,7 +6385,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e30c32c91e96d9fa056242ec5ba1884268897ac8c09a7205b08e1916eaa1cf8d"
+          "content": "015bafa6c1e1303aaf6831919ac9fbbadb662c1d40fda853eab6f28ad711bca2"
+        }
+      ],
+      "name": "frontend/src/sections/TaskIrrigationObservationPanel.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01cd9f1b170fec3f914d7af09b963f0676d32731220ae7467b794fa8c8c3231a"
+        }
+      ],
+      "name": "frontend/src/sections/TaskIrrigationObservationPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f3daa965d745cfbd5d4195b2a829485b951d66598c413f787f8d09e1919f899"
         }
       ],
       "name": "frontend/src/sections/TasksPage.tsx",
@@ -6819,6 +6859,26 @@
         }
       ],
       "name": "frontend/src/services/api/season.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "819b3aa9f6f44969c639c9f063e9fdea3302bc6232162d6406127a63f0cbbdaa"
+        }
+      ],
+      "name": "frontend/src/services/api/taskIrrigationObservations.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c0d96baa47244bc55165ab92015a3a09d7b6847d4e0a3add95f369cd791672ae"
+        }
+      ],
+      "name": "frontend/src/services/api/taskIrrigationObservations.ts",
       "type": "file"
     },
     {
@@ -13285,6 +13345,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8fc4d573be915da4fac897829eab6151aa3ce0edf4a13fef76232b1ecab8bc84"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/tasks/data/irrigation_observations_api.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "85e322a9d71fad1dff36136b59c8c9ab8e9b529230da340edc57abb2d5001676"
         }
       ],
@@ -13325,6 +13395,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "600c68a0f72e812d1b0d2bb69b0aa9805394347a9383ab4feb3ea559404a1a4f"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/tasks/presentation/irrigation_observations_screen.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4dcf122c8b77b506b595e2a3a9ef14cf0283db0dd0d94965a52e5501ca0b1fc9"
         }
       ],
@@ -13335,7 +13415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92e84750189c0960093bb8100cc8816bb1f0726e1840f89dfddbd2729af87a16"
+          "content": "6c0e49e2b6d919cd46bcdbde2b0ca3f4ce6cd65426fb8fc7608ee92089b7670e"
         }
       ],
       "name": "mobile/sahool_app/lib/features/tasks/presentation/task_detail_screen.dart",
@@ -15259,6 +15339,16 @@
         }
       ],
       "name": "mobile/sahool_app/test/features/scouting/scouting_screen_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "85b3528a002c80af9be8bb3200b0adeea5d91889e842f4fae647e09e07a3bda1"
+        }
+      ],
+      "name": "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
       "type": "file"
     },
     {
@@ -21745,7 +21835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e6ed0b7ea1115269e3fa72b23b3df91b3bfad8dc057a69835b9a51deb79c19f7"
+          "content": "d0bad0fa130155568973a16d50ddc3241e1a16fc3e0189830bae68510c8d722c"
         }
       ],
       "name": "services/sahool-platform/api/api_models.py",
@@ -23199,6 +23289,16 @@
         }
       ],
       "name": "services/sahool-platform/api/irrigation_network.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d9325b25b80255636e0283b82fa0cfd456de43cf60f597aab51061f95ce93a0a"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_observations.py",
       "type": "file"
     },
     {
@@ -24805,7 +24905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2d09cf5286affc57526a34804884804680c16fdad4a70e7e32223b1ecfd43b0d"
+          "content": "85e9e7e615a64cb57810636a432d5573f1646afb1c908e0540aaa6e0cf84934c"
         }
       ],
       "name": "services/sahool-platform/api/routers/observations.py",
@@ -25235,7 +25335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d513c1265e189a3e76181e4c6185e6610acbbb901e2c8f648d07ebd92a4c1c04"
+          "content": "f50ecb6427bb7d86423fb2eb5c33b3403a57926345ebdc2d55c46ce20dd38441"
         }
       ],
       "name": "services/sahool-platform/api/routers/tasks.py",
@@ -25629,6 +25729,16 @@
         }
       ],
       "name": "services/sahool-platform/api/sync_delta.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "176e8554f61de0e72d4fa28e82060d759f419cad048318af8fb8c6b67bba67c5"
+        }
+      ],
+      "name": "services/sahool-platform/api/task_irrigation_observations.py",
       "type": "file"
     },
     {
@@ -33799,6 +33909,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_sync_delta.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "850192cd0bc94c68ad7c3ddd258f6f100298651cd7c0a3111dafff2145c39673"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_task_irrigation_observations.py",
       "type": "file"
     },
     {

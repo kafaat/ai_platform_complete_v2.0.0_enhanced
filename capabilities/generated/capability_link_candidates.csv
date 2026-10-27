@@ -1437,14 +1437,16 @@ IRR-009,test,tests_v9/test_sar_rvi.py,3,applied
 IRR-010,api,GET /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-service/routers/p3_products.py:180,2,applied
 IRR-010,api,POST /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-service/routers/p3_products.py:94,2,applied
 IRR-010,service,services/sahool-platform/api/main.py,10,applied
-OPS-001,api,GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:44,3,applied
-OPS-001,api,PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:94,5,applied
+OPS-001,api,GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:45,3,applied
+OPS-001,api,PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:105,5,applied
 OPS-001,api,POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2821,5,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/field_task.dart,4,applied
+OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/irrigation_observations_api.dart,2,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/offline_write.dart,2,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/task_photo_store.dart,4,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/tasks_api.dart,2,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/complete_task_sheet.dart,4,applied
+OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/irrigation_observations_screen.dart,2,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/task_card.dart,4,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/task_detail_screen.dart,4,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/task_grouping.dart,4,applied
@@ -1455,11 +1457,13 @@ OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/tasks_state.dar
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/tasks_routes.dart,2,applied
 OPS-001,mobile,mobile/sahool_app/lib/screens/tasks_screen.dart,2,applied
 OPS-001,service,services/sahool-platform/api/main.py,10,applied
+OPS-001,test,mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart,3,applied
 OPS-001,test,mobile/sahool_app/test/features/tasks/task_detail_test.dart,5,applied
 OPS-001,test,mobile/sahool_app/test/features/tasks/task_grouping_test.dart,5,applied
 OPS-001,test,mobile/sahool_app/test/features/tasks/tasks_cubit_test.dart,3,applied
 OPS-001,test,mobile/sahool_app/test/features/tasks/tasks_fakes.dart,3,applied
 OPS-001,test,mobile/sahool_app/test/features/tasks/tasks_screen_test.dart,3,applied
+OPS-001,test,services/sahool-platform/tests/test_task_irrigation_observations.py,3,applied
 OPS-001,test,services/sahool-platform/tests/test_task_update_idempotency.py,3,applied
 OPS-001,test,tests_v9/test_tasks_endpoints.py,3,applied
 OPS-002,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:350,5,applied

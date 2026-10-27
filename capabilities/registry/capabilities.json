@@ -3845,17 +3845,19 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:44",
-        "PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:94",
+        "GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:45",
+        "PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:105",
         "POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2821"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
         "mobile/sahool_app/lib/features/tasks/data/field_task.dart",
+        "mobile/sahool_app/lib/features/tasks/data/irrigation_observations_api.dart",
         "mobile/sahool_app/lib/features/tasks/data/offline_write.dart",
         "mobile/sahool_app/lib/features/tasks/data/task_photo_store.dart",
         "mobile/sahool_app/lib/features/tasks/data/tasks_api.dart",
         "mobile/sahool_app/lib/features/tasks/presentation/complete_task_sheet.dart",
+        "mobile/sahool_app/lib/features/tasks/presentation/irrigation_observations_screen.dart",
         "mobile/sahool_app/lib/features/tasks/presentation/task_card.dart",
         "mobile/sahool_app/lib/features/tasks/presentation/task_detail_screen.dart",
         "mobile/sahool_app/lib/features/tasks/presentation/task_grouping.dart",
@@ -3867,11 +3869,13 @@
         "mobile/sahool_app/lib/screens/tasks_screen.dart"
       ],
       "tests": [
+        "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
         "mobile/sahool_app/test/features/tasks/task_detail_test.dart",
         "mobile/sahool_app/test/features/tasks/task_grouping_test.dart",
         "mobile/sahool_app/test/features/tasks/tasks_cubit_test.dart",
         "mobile/sahool_app/test/features/tasks/tasks_fakes.dart",
         "mobile/sahool_app/test/features/tasks/tasks_screen_test.dart",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py",
         "services/sahool-platform/tests/test_task_update_idempotency.py",
         "tests_v9/test_tasks_endpoints.py"
       ],
@@ -3885,9 +3889,13 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/api/routers/tasks.py"
+        },
+        {
+          "type": "repository",
+          "path": "services/sahool-platform/api/task_irrigation_observations.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=7, ui=0, mobile=14. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=9, ui=0, mobile=16. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

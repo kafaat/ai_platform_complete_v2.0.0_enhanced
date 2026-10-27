@@ -745,7 +745,7 @@ sahool-platform,PUT,/api/v1/notifications/preferences,update_notification_prefer
 sahool-platform,POST,/api/v1/notifications/delivery,upsert_notification_delivery,services/sahool-platform/api/routers/notifications.py,179
 sahool-platform,WEBSOCKET,/api/v1/notifications/ws,notifications_ws,services/sahool-platform/api/routers/notifications.py,331
 sahool-platform,POST,/api/v1/nutrients/4r-plan,nutrient_4r_plan,services/sahool-platform/api/routers/nutrients.py,31
-sahool-platform,POST,/api/v1/observations,observations,services/sahool-platform/api/routers/observations.py,34
+sahool-platform,POST,/api/v1/observations,observations,services/sahool-platform/api/routers/observations.py,55
 sahool-platform,GET,/api/v1/onboarding/questionnaire,onboarding_questionnaire,services/sahool-platform/api/routers/onboarding.py,35
 sahool-platform,POST,/api/v1/onboarding/responses,submit_onboarding,services/sahool-platform/api/routers/onboarding.py,46
 sahool-platform,GET,/api/v1/onboarding/responses,list_onboarding,services/sahool-platform/api/routers/onboarding.py,97
@@ -867,8 +867,8 @@ sahool-platform,GET,/api/v1/fields/{field_id}/lab-context,field_lab_context,serv
 sahool-platform,GET,/api/v1/sync/manifest,sync_manifest,services/sahool-platform/api/routers/sync.py,60
 sahool-platform,GET,/api/v1/sync/status,sync_status,services/sahool-platform/api/routers/sync.py,70
 sahool-platform,POST,/api/v1/sync,sync,services/sahool-platform/api/routers/sync.py,92
-sahool-platform,GET,/api/v1/tasks,list_tasks,services/sahool-platform/api/routers/tasks.py,44
-sahool-platform,PATCH,/api/v1/tasks/{task_id},update_task,services/sahool-platform/api/routers/tasks.py,94
+sahool-platform,GET,/api/v1/tasks,list_tasks,services/sahool-platform/api/routers/tasks.py,45
+sahool-platform,PATCH,/api/v1/tasks/{task_id},update_task,services/sahool-platform/api/routers/tasks.py,105
 sahool-platform,POST,/api/v1/temporal/check,temporal_check,services/sahool-platform/api/routers/temporal.py,34
 sahool-platform,POST,/api/v1/temporal/coherence,temporal_coherence,services/sahool-platform/api/routers/temporal.py,60
 sahool-platform,GET,/api/v1/tenant/config,get_tenant_config,services/sahool-platform/api/routers/tenant.py,29

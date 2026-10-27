@@ -6274,7 +6274,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/observations.py",
-    "line": 34,
+    "line": 55,
     "method": "POST",
     "path": "/api/v1/observations",
     "function": "observations"
@@ -7250,7 +7250,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/tasks.py",
-    "line": 44,
+    "line": 45,
     "method": "GET",
     "path": "/api/v1/tasks",
     "function": "list_tasks"
@@ -7258,7 +7258,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/tasks.py",
-    "line": 94,
+    "line": 105,
     "method": "PATCH",
     "path": "/api/v1/tasks/{task_id}",
     "function": "update_task"
