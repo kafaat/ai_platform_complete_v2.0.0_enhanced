@@ -35,7 +35,8 @@ import 'package:sahool_app/core/utils/jwt.dart';
 import 'package:sahool_app/services/auth_service.dart';
 
 /// extra: `bool Function(String? token)` يُستدعى بالرمز الذي سيُرسَل؛ false ⇒ لا
-/// يُرسَل الطلب ويُرمى إلغاءٌ سببه [kOwnerChangedBeforeSend].
+/// يُرسَل الطلب ويُرمى إلغاءٌ سببه [kOwnerChangedBeforeSend]. null ⇒ لا رمز صالح
+/// (تعذّر التجديد): الطلب سيخرج بلا ترويسة مصادقة — ليس هويّةً أخرى.
 const String kOwnerGuardExtra = 'owner_guard';
 
 /// سبب الإلغاء حين يرفض [kOwnerGuardExtra] الرمز — الطلب لم يغادر الجهاز.
@@ -222,7 +223,8 @@ class ApiClient {
       }
       // حارس المالك (صندوق الإرسال): يُفحَص بعد آخر await وقبل الإرسال مباشرةً،
       // على الرمز الذي سيُرسَل فعلاً — لا يخرج طلبُ مالكٍ برمز جلسةٍ أخرى.
-      if (!_ownerGuardAllows(options, token)) {
+      // رمزٌ غير صالح لا يُرسَل ⇒ يُمرَّر null: «بلا هويّة»، لا «مالك آخر».
+      if (!_ownerGuardAllows(options, _isUsable(token) ? token : null)) {
         return handler.reject(_ownerChanged(options));
       }
       if (_isUsable(token)) {

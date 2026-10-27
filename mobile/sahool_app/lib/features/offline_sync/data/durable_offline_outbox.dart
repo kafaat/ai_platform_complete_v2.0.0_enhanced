@@ -58,6 +58,10 @@ enum _DrainMode {
 }
 
 /// يُعرَض على عمليّة وصل ردّها بعد تبدّل الجلسة أو أُلغي طلبها أثناءه.
+const _notSentAr =
+    'تعذّر التحقّق من هويّة الجلسة قبل الإرسال؛ لم تُرسَل وستُعاد المحاولة '
+    'لاحقاً.';
+
 const _heldForOwnerAr =
     'تبدّلت الجلسة أو أُلغي الطلب قبل تأكيد النتيجة؛ لم تُحذف وستُطابَق بنفس '
     'المفتاح حين يعود صاحبها.';
@@ -592,8 +596,14 @@ class DurableOfflineOutbox implements OfflineOutbox {
         r.op,
         cancelToken: token,
         // يُفحَص على الرمز الذي سيُرسَل فعلاً، بعد أيّ تجديد داخل ApiClient.
-        ownerGuard: (access) =>
-            epoch == _epoch && OutboxOwner.fromAccessToken(access) == r.owner,
+        ownerGuard: (access) {
+          if (epoch != _epoch) return false;
+          // لا رمز صالح (تعذّر التجديد بشبكة/5xx — هاتفٌ بلا اتّصال ليلةً):
+          // الطلب يخرج بلا هويّة، فليس «مالكاً آخر». ما دامت الجلسة لمالكه
+          // يُرسَل فيُصنَّف (انقطاع/401) بموعدٍ محفوظ — لا رفض يعيد كلّ ثانية.
+          if (access == null) return _currentOwner() == r.owner;
+          return OutboxOwner.fromAccessToken(access) == r.owner;
+        },
       );
       return const OutboxOutcome(OutboxOutcomeKind.sent);
     } catch (e) {
@@ -613,7 +623,8 @@ class DurableOfflineOutbox implements OfflineOutbox {
     OutboxOutcome outcome, {
     required bool fenced,
   }) async {
-    if (outcome.kind == OutboxOutcomeKind.notSent) return true;
+    // الحارس أوقفه لأنّ الجلسة تبدّلت فعلاً ⇒ لا يُمسّ سجلّ مالكه.
+    if (outcome.kind == OutboxOutcomeKind.notSent && fenced) return true;
     // أُعيدت قراءته بعد await: تجاهله المستخدم أثناء الطلب ⇒ لا نُحييه.
     final current = store.byId(r.id);
     if (current == null) return false;
@@ -669,6 +680,19 @@ class DurableOfflineOutbox implements OfflineOutbox {
         );
         return outcome.kind != OutboxOutcomeKind.retryLater;
       case OutboxOutcomeKind.notSent:
+        // رفضه الحارس والجلسة ما زالت لمالكه (رمزٌ لا يُعرَف صاحبه): لم يغادر
+        // الجهاز، لكنّ الموعد يُحفَظ بـbackoff — وإلّا بقي next_attempt_at
+        // ماضياً وأعاد المؤقّت المحاولة (والتجديد) كلّ ثانية بلا نهاية.
+        final attempts = current.attempts + 1;
+        await store.put(
+          current.copyWith(
+            attempts: attempts,
+            lastAttemptAt: now,
+            nextAttemptAt: now.add(backoffFor(attempts)),
+            lastOutcome: kind,
+            lastErrorAr: _notSentAr,
+          ),
+        );
         return true;
     }
   }

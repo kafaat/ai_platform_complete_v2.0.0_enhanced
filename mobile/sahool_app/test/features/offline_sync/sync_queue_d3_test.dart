@@ -9,6 +9,8 @@
 //     ولا إعادة فوريّة: لا عند فتح الصندوق، ولا عند عودة الشبكة، ولا يدويّاً.
 //   • 503 + Retry-After لا يُعاد ثلاث مرّات فوراً داخل ApiClient.
 //   • 409: payload_mismatch ⇒ تحتاج تدخّلاً بلا إعادة عمياء؛ in_progress ⇒ لاحقاً.
+//   • تعذّر التجديد (شبكة/5xx) ليس تبدّل مالك: backoff أُسّيّ محفوظ، لا حلقة
+//     إعادة/تجديد كلّ ثانية؛ ورفض الحارس بلا تبدّل جلسة يحفظ موعده كذلك.
 //
 // لا TestWidgetsFlutterBinding هنا: الربط يستبدل HttpClient بعميلٍ يردّ 400 دائماً.
 import 'dart:async';
@@ -151,9 +153,11 @@ void main() {
     DateTime Function()? clock,
     List<RecordedTimer>? timers,
     bool drainOnOpen = false,
+    OutboxOwner? Function()? currentOwner,
   }) => DurableOfflineOutbox(
     openStore: HiveOutboxStore.openEncrypted,
-    currentOwner: () => OutboxOwner.fromAccessToken(tokens.accessToken),
+    currentOwner:
+        currentOwner ?? () => OutboxOwner.fromAccessToken(tokens.accessToken),
     api: OfflineSyncApi(client),
     connectivity: connectivity,
     drainOnOpen: drainOnOpen,
@@ -505,5 +509,192 @@ void main() {
         );
       },
     );
+  });
+
+  group('تعذّر التجديد ليس تبدّل مالك — لا حلقة كلّ ثانية', () {
+    /// يُطلق المؤقّت النشط ويصرّف؛ يُعيد مهلته. الساعة تتقدّم بقدرها.
+    Future<Duration> fireNext(
+      DurableOfflineOutbox outbox,
+      List<RecordedTimer> timers,
+      void Function(Duration) advance,
+    ) async {
+      final active = timers.where((t) => t.isActive).toList();
+      expect(active, hasLength(1), reason: 'مؤقّت واحد على أقرب موعد محفوظ');
+      final t = active.single;
+      advance(t.delay);
+      t.fire();
+      await outbox.drain();
+      return t.delay;
+    }
+
+    /// السيناريو المقيس في المراجعة: أوّل إرسال 503، ثمّ ينتهي رمز الوصول
+    /// و[failRefresh] يُفشل التجديد. يُثبت: backoff أُسّيّ محفوظ (المهلة تنمو،
+    /// المحاولات تُعَدّ)، ولا يخرج طلب بهويّة أحد غير alice، والموعد يبقى بعد
+    /// إعادة فتح التخزين.
+    Future<void> expiredTokenRefreshFails(
+      Future<void> Function() failRefresh, {
+      required String expectedOutcome,
+    }) async {
+      var now = DateTime.utc(2026, 10, 27, 9);
+      final timers = <RecordedTimer>[];
+      var refreshes = 0;
+      server.handler = (req, seen) async {
+        if (seen.path == '/auth/refresh') {
+          refreshes++;
+          await _Server.reply(req, 503, body: {'detail': 'auth down'});
+          return;
+        }
+        if (seen.auth == null) {
+          await _Server.reply(req, 401, body: {'detail': 'no auth'});
+          return;
+        }
+        await _Server.reply(req, 503, body: {'detail': 'maintenance'});
+      };
+      final outbox = outboxOver(
+        connectivity: ValueNotifier<bool>(false),
+        clock: () => now,
+        timers: timers,
+      );
+      final o = op('/api/v1/tasks/1');
+      await outbox.enqueue(o);
+      await outbox.drain();
+      final id = outbox.snapshot().pending.single.id;
+      expect(rawRow(id)['attempts'], 1);
+
+      // الليل: رمز الوصول انتهى، والتجديد يتعذّر (لا رفض صريح للجلسة).
+      tokens.accessToken = jwtFor('alice', ttl: const Duration(hours: -1));
+      tokens.refreshToken = 'refresh-alice';
+      await failRefresh();
+
+      final delays = <Duration>[];
+      for (var i = 0; i < 4; i++) {
+        delays.add(await fireNext(outbox, timers, (d) => now = now.add(d)));
+        final row = rawRow(id);
+        expect(
+          row['attempts'],
+          2 + i,
+          reason: 'كلّ إطلاق محاولةٌ محسوبة بموعدها — لا رفض بلا أثر',
+        );
+        expect(row['last_outcome'], expectedOutcome);
+        expect(
+          DateTime.parse(row['next_attempt_at'] as String).isAfter(now),
+          isTrue,
+          reason: 'next_attempt_at محفوظ في المستقبل لا في الماضي',
+        );
+      }
+      final next = timers.where((t) => t.isActive).single.delay;
+      delays.add(next);
+      for (final d in delays) {
+        expect(
+          d,
+          greaterThanOrEqualTo(const Duration(seconds: 15)),
+          reason: 'لا مؤقّت ثانيةٍ واحدة: $delays',
+        );
+      }
+      for (var i = 1; i < delays.length; i++) {
+        expect(
+          delays[i] > delays[i - 1],
+          isTrue,
+          reason: 'backoff أُسّيّ: $delays',
+        );
+      }
+      // التجديد محدود بالمحاولات (≤ مرّتين لكلّ محاولة: قبل الإرسال وبعد 401).
+      expect(refreshes, lessThanOrEqualTo(2 * 4));
+      // لا طلب يخرج بهويّة غير alice.
+      expect(
+        server
+            .to('/api/v1/tasks/1')
+            .every((r) => r.sub == null || r.sub == 'alice'),
+        isTrue,
+      );
+      expect(server.committed, isEmpty);
+
+      // إعادة تشغيل التطبيق: الموعد محفوظ، والفتح لا يعيد فوراً.
+      final sentBefore = server.seen.length;
+      await Hive.close();
+      final reopened = outboxOver(
+        connectivity: ValueNotifier<bool>(false),
+        clock: () => now,
+        timers: <RecordedTimer>[],
+        drainOnOpen: true,
+      );
+      await reopened.ensureOpen();
+      await reopened.drain();
+      expect(
+        server.seen.length,
+        sentBefore,
+        reason: 'لا إعادة فوريّة بعد الإقلاع',
+      );
+      final kept = reopened.snapshot().pending.single;
+      expect(kept.attempts, 5);
+      expect(kept.op.idempotencyKey, o.idempotencyKey);
+      expect(kept.nextAttemptAt!.isAfter(now), isTrue);
+    }
+
+    test('تجديدٌ يردّ 5xx: الطلب يخرج بلا هويّة ويُصنَّف 401 بـbackoff أُسّيّ '
+        '(لا رفض «تبدّل مالك» يعيد التجديد كلّ ثانية)', () async {
+      await expiredTokenRefreshFails(
+        () async {},
+        expectedOutcome: OutboxOutcomeKind.sessionProblem.name,
+      );
+    });
+
+    test('هاتف بلا اتّصال ليلاً: التجديد والإرسال يفشلان بالشبكة ⇒ «انقطاع» '
+        'بـbackoff أُسّيّ محفوظ', () async {
+      await expiredTokenRefreshFails(
+        // الخادم يُغلَق: كلّ اتّصال (التجديد والعمليّة) يُرفض على الجهاز.
+        () => server.close(),
+        expectedOutcome: OutboxOutcomeKind.offline.name,
+      );
+    });
+
+    test('رفض الحارس والجلسة لم تتبدّل (رمز لا يُعرَف صاحبه): لم يُرسَل شيء، '
+        'لكنّ الموعد يُحفَظ بـbackoff ولا يُعاد كلّ ثانية', () async {
+      var now = DateTime.utc(2026, 10, 27, 9);
+      final timers = <RecordedTimer>[];
+      final alice = OutboxOwner.fromAccessToken(jwtFor('alice'));
+      server.handler = (req, seen) =>
+          _Server.reply(req, 503, body: {'detail': 'maintenance'});
+      final outbox = outboxOver(
+        connectivity: ValueNotifier<bool>(false),
+        clock: () => now,
+        timers: timers,
+        // الجلسة المحفوظة ما زالت لـalice…
+        currentOwner: () => alice,
+      );
+      await outbox.enqueue(op('/api/v1/tasks/1'));
+      await outbox.drain();
+      final id = outbox.snapshot().pending.single.id;
+      expect(server.seen, hasLength(1));
+
+      // …لكنّ رمز الوصول الصالح لا يحمل `sub`: الحارس لا يُرسل به.
+      String b64(Map<String, Object> m) =>
+          base64Url.encode(utf8.encode(jsonEncode(m))).replaceAll('=', '');
+      final exp =
+          DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch ~/
+          1000;
+      tokens.accessToken = '${b64({'alg': 'none'})}.${b64({'exp': exp})}.sig';
+
+      final delays = <Duration>[];
+      for (var i = 0; i < 3; i++) {
+        delays.add(await fireNext(outbox, timers, (d) => now = now.add(d)));
+        final row = rawRow(id);
+        expect(row['attempts'], 2 + i);
+        expect(row['last_outcome'], OutboxOutcomeKind.notSent.name);
+        expect(
+          DateTime.parse(row['next_attempt_at'] as String).isAfter(now),
+          isTrue,
+        );
+      }
+      delays.add(timers.where((t) => t.isActive).single.delay);
+      expect(server.seen, hasLength(1), reason: 'الحارس لم يُخرج أيّ طلب');
+      for (var i = 0; i < delays.length; i++) {
+        expect(delays[i], greaterThanOrEqualTo(const Duration(seconds: 15)));
+        if (i > 0) expect(delays[i] > delays[i - 1], isTrue, reason: '$delays');
+      }
+      final row = rawRow(id);
+      expect(row['state'], 'pending');
+      expect(row['outcome_unknown'], isFalse);
+    });
   });
 }
