@@ -593,7 +593,8 @@ async def _canonical_observation_bundle_from_indicators(
             response = await client.get(
                 f"{INDICATORS_SERVICE_URL}/v1/fields/{field_id}/observations",
                 params={"season_id": season_id, "indicators": ",".join(raster_indices)},
-                headers={"X-Tenant-Id": str(tenant_id)},
+                # OI-01: indicators-service binds the tenant only to a verified caller.
+                headers={"X-Tenant-Id": str(tenant_id), "X-Agent-Token": RASTER_SERVICE_TOKEN},
             )
         if response.status_code != 200:
             return None
