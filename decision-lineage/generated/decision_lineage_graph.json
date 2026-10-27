@@ -695,7 +695,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 532,
+      "evidence_count": 533,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1235,6 +1235,7 @@
         "shared/enterprise_gis/phase7_enterprise.py",
         "shared/enterprise_gis/phase8_global_scale.py",
         "shared/enterprise_gis/test_phase7_enterprise.py",
+        "shared/feature_store/ml_quality_bridge.py",
         "shared/feature_store/practice_review.py",
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py",
@@ -1850,7 +1851,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 163,
+      "evidence_count": 164,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2036,6 +2037,7 @@
         "services/video-processor/main.py",
         "shared/ai/tool_audit.py",
         "shared/fcm.py",
+        "shared/feature_store/ml_quality_bridge.py",
         "shared/governance/chemical_lineage.py",
         "shared/iot_execution_runtime.py",
         "shared/security/cors_policy.py",
@@ -2693,7 +2695,7 @@
         "services/sahool-platform/api/routers/evidence_map.py"
       ],
       "source_evidence_count": 649,
-      "target_evidence_count": 532,
+      "target_evidence_count": 533,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2804,7 +2806,7 @@
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py"
       ],
-      "source_evidence_count": 532,
+      "source_evidence_count": 533,
       "target_evidence_count": 187,
       "static_supported": true,
       "runtime_verified": false
@@ -2972,7 +2974,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 44,
-      "target_evidence_count": 163,
+      "target_evidence_count": 164,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3007,7 +3009,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 163,
+      "source_evidence_count": 164,
       "target_evidence_count": 38,
       "static_supported": true,
       "runtime_verified": false
@@ -3114,5 +3116,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "ff14774e4e373b1a7aec72c72216a6324fad5e8d9e29c1789f2bd45dd9e0c675"
+  "content_sha256": "c3aab2463bb44f8c67ff25a48abd3e70a443b105808852eedba921b26908ca12"
 }
