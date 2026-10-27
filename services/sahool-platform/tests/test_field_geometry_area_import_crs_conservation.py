@@ -114,6 +114,21 @@ def test_guard_spherical_area_within_documented_tolerance_of_wgs84():
     assert abs(got * 10_000 - ref) / ref < 0.005
 
 
+# مساحة WGS84 الجيوديسيّة المرجعيّة للحالة نفسها (م²)، مُقاسةً مرّةً بـ
+# pyproj 3.7.2 ``Geod(ellps="WGS84").polygon_area_perimeter``: الخارجيّة 1184399.56 −
+# الثقب 426383.84. مُثبَّتةٌ رقماً لأنّ pyproj ليس تبعيّةً للمنصّة ولا لـCI، فالاختبار
+# أعلاه يُتخطّى هناك دائماً ويبقى السماح الموثَّق (< 0.5٪) بلا حارس حاجب.
+_WGS84_NET_AREA_M2 = 758015.72
+
+
+def test_guard_spherical_area_tolerance_pinned_without_pyproj():
+    """السماح الموثَّق مُثبَّت في CI بلا pyproj (مرجعٌ مُقاسٌ لا يمرّ بالشيفرة المُختبَرة)."""
+    from api.gis_geometry_guard import guard_field_geometry
+
+    got = guard_field_geometry({"type": "Polygon", "coordinates": [_OUTER, _HOLE]}).area_ha
+    assert abs(got * 10_000 - _WGS84_NET_AREA_M2) / _WGS84_NET_AREA_M2 < 0.005
+
+
 # ─── G-AREA-2: خطّ التاريخ ────────────────────────────────────────────────
 
 
@@ -218,6 +233,41 @@ def test_import_kml_rejects_multiple_polygons_instead_of_taking_first():
         parse_kml(kml)
 
 
+def _kml_ring(ring) -> str:
+    pts = " ".join(f"{x},{y}" for x, y in ring)
+    return f"<LinearRing><coordinates>{pts}</coordinates></LinearRing>"
+
+
+_HOLE_2 = _rect(44.0085, 16.0085, 44.0095, 16.0095)
+
+
+def test_import_kml_keeps_every_ring_in_one_inner_boundary():
+    """كتّابٌ يضعون عدّة <LinearRing> في <innerBoundaryIs> واحد (خارج مخطّط KML 2.2
+    لكنّه شائع)؛ أخذ الأوّل يُسقط الثقوب التالية بصمت فتتضخّم المساحة."""
+    from api.geo_import import parse_kml
+
+    kml = (
+        "<kml><Placemark><Polygon>"
+        f"<outerBoundaryIs>{_kml_ring(_OUTER)}</outerBoundaryIs>"
+        f"<innerBoundaryIs>{_kml_ring(_HOLE)}{_kml_ring(_HOLE_2)}</innerBoundaryIs>"
+        "</Polygon></Placemark></kml>"
+    )
+    assert parse_kml(kml) == {"type": "Polygon", "coordinates": [_OUTER, _HOLE, _HOLE_2]}
+
+
+def test_import_kml_rejects_several_rings_in_outer_boundary():
+    """حدٌّ خارجيّ بأكثر من حلقة غامض (أيّها الحقل؟) فيُرفض لا يُؤخذ أوّلها بصمت."""
+    from api.geo_import import parse_kml
+
+    kml = (
+        "<kml><Placemark><Polygon>"
+        f"<outerBoundaryIs>{_kml_ring(_OUTER)}{_kml_ring(_OTHER)}</outerBoundaryIs>"
+        "</Polygon></Placemark></kml>"
+    )
+    with pytest.raises(ValueError, match="outerBoundaryIs"):
+        parse_kml(kml)
+
+
 # ─── G-CRS-1: CRS المُضمَّن يُحترَم أو يُرفض ───────────────────────────────────
 
 _EPSG_3857 = {"type": "name", "properties": {"name": "EPSG:3857"}}
@@ -262,6 +312,51 @@ def test_guard_accepts_embedded_wgs84_crs_forms():
     for crs in (_CRS84, {"type": "name", "properties": {"name": "EPSG:4326"}}):
         guarded = guard_field_geometry({"type": "Polygon", "coordinates": [_OUTER], "crs": crs})
         assert "crs" not in guarded.geometry  # الناتج القانونيّ بلا crs (4326 ضمنيّاً)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "WGS84 / UTM zone 38N",
+        "WGS84 / Pseudo-Mercator",
+        "EPSG:43260",
+        "urn:ogc:def:crs:EPSG::32638 (WGS84)",
+    ],
+)
+def test_guard_rejects_embedded_crs_name_that_merely_contains_a_wgs84_token(name):
+    """crs المُضمَّن يُطابَق بالشكل الكامل لا بالاحتواء: «WGS84 / UTM zone 38N» إسقاطٌ
+    لا 4326 ولو احتوى الرمز «WGS84»."""
+    from api.gis_geometry_guard import guard_field_geometry
+
+    crs = {"type": "name", "properties": {"name": name}}
+    with pytest.raises(ValueError) as caught:
+        guard_field_geometry({"type": "Polygon", "coordinates": [_OUTER], "crs": crs})
+    assert "invalid_crs" in str(caught.value).split(",")
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "EPSG:4326",
+        "epsg:4326",
+        "urn:ogc:def:crs:EPSG::4326",
+        "urn:ogc:def:crs:EPSG:6.6:4326",
+        "http://www.opengis.net/def/crs/EPSG/0/4326",
+        "urn:ogc:def:crs:OGC:1.3:CRS84",
+        "urn:ogc:def:crs:OGC::CRS84",
+        "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+        "CRS:84",
+        "OGC:CRS84",
+        "WGS84",
+        "WGS 84",
+    ],
+)
+def test_guard_accepts_canonical_embedded_wgs84_names(name):
+    from api.gis_geometry_guard import guard_field_geometry
+
+    crs = {"type": "name", "properties": {"name": name}}
+    guarded = guard_field_geometry({"type": "Polygon", "coordinates": [_OUTER], "crs": crs})
+    assert "crs" not in guarded.geometry
 
 
 def test_guard_rejects_embedded_crs_even_when_declared_crs_is_wgs84():

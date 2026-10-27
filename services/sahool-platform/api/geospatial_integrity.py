@@ -30,6 +30,7 @@ services/sahool-platform/api/geospatial_integrity.py — Geospatial Integrity La
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -278,6 +279,10 @@ def validate_crs(crs_string: str | None) -> ValidationIssue | None:
         if form in cs:
             return None
 
+    return _invalid_crs_issue(crs_string)
+
+
+def _invalid_crs_issue(crs_string: str) -> ValidationIssue:
     return ValidationIssue(
         severity=ValidationSeverity.ERROR,
         code="invalid_crs",
@@ -287,8 +292,32 @@ def validate_crs(crs_string: str | None) -> ValidationIssue | None:
     )
 
 
+# أسماء WGS84 الجغرافيّ (4326/CRS84) القانونيّة كما تكتبها الأدوات في عضو crs، مطابَقةً
+# بالشكل الكامل: الاحتواء يقبل «WGS84 / UTM zone 38N» (إسقاط) لمجرّد احتوائه «WGS84».
+_EMBEDDED_WGS84_NAME = re.compile(
+    r"EPSG[:/]4326"
+    r"|WGS[ :-]?84"
+    r"|URN:OGC:DEF:CRS:EPSG:[0-9.]*:4326"
+    r"|HTTPS?://WWW\.OPENGIS\.NET/DEF/CRS/EPSG/[0-9.]+/4326"
+    r"|(?:OGC:)?CRS:?84"
+    r"|URN:OGC:DEF:CRS:OGC:[0-9.]*:CRS84"
+    r"|HTTPS?://WWW\.OPENGIS\.NET/DEF/CRS/OGC/[0-9.]+/CRS84"
+)
+
+
+def validate_embedded_crs(crs_name: str) -> ValidationIssue | None:
+    """اسم crs مُضمَّن في GeoJSON (من ``embedded_crs_names``) → None إن كان WGS84 جغرافيّاً.
+
+    أصرم من ``validate_crs`` (مطابقة كاملة لا احتواء) لأنّ هذا الاسم يكتبه الملفّ المرفوع
+    لا المُستدعي، والقبول الخاطئ يجعل أرقاماً مُسقَطةً تُقرأ درجاتٍ.
+    """
+    if _EMBEDDED_WGS84_NAME.fullmatch(" ".join(crs_name.upper().split())):
+        return None
+    return _invalid_crs_issue(crs_name)
+
+
 def _crs_member_name(crs: Any) -> str:
-    """عضو crs (GeoJSON 2008) → اسم نصّيّ يفحصه validate_crs.
+    """عضو crs (GeoJSON 2008) → اسم نصّيّ يفحصه validate_embedded_crs.
 
     {"type":"name","properties":{"name":X}} ⇒ X · {"type":"EPSG","properties":{"code":N}}
     ⇒ "EPSG:N" · غير ذلك (link/شكل مجهول) ⇒ وسم لا يطابق 4326 فيُرفض لا يُفترَض.
@@ -454,7 +483,9 @@ def validate_field_geometry(
     if crs_issue:
         issues.append(crs_issue)
     # ١ب. crs المُضمَّن في GeoJSON نفسه (لا يُسقَط بصمت؛ نفس سياسة guard_field_geometry).
-    embedded_issues = [i for i in (validate_crs(name) for name in embedded_crs_names(geojson)) if i]
+    embedded_issues = [
+        i for i in (validate_embedded_crs(name) for name in embedded_crs_names(geojson)) if i
+    ]
     issues.extend(embedded_issues)
 
     # MultiPolygon: validate every polygon part and keep the full disconnected field,

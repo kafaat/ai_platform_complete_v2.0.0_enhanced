@@ -174,14 +174,6 @@ def _strip_ns(tag: str) -> str:
     return tag.rsplit("}", 1)[-1] if "}" in tag else tag
 
 
-def _find_first_local(root: _Element, name: str) -> _Element | None:
-    """أوّل عنصر باسم محليّ مطابق (يتجاهل namespace الـKML)."""
-    for el in root.iter():
-        if _strip_ns(el.tag) == name:
-            return el
-    return None
-
-
 def _find_all_local(root: _Element, name: str) -> list[_Element]:
     """كلّ العناصر باسم محليّ مطابق (يتجاهل namespace الـKML)."""
     return [el for el in root.iter() if _strip_ns(el.tag) == name]
@@ -230,19 +222,32 @@ def parse_kml(text: str) -> dict:
     if len(polygons) > 1:
         raise _multiple_polygons_error(len(polygons), "ملفّ KML")
     polygon = polygons[0]
-    outer = _find_first_local(polygon, "outerBoundaryIs")
-    ring_src = outer if outer is not None else polygon
-    coords_el = _find_first_local(ring_src, "coordinates")
+    outers = _find_all_local(polygon, "outerBoundaryIs")
+    if len(outers) > 1:
+        raise ValueError(f"Polygon في KML يحوي {len(outers)} <outerBoundaryIs>؛ المتوقَّع واحد.")
+    ring_src = outers[0] if outers else polygon
+    outer_coords = _find_all_local(ring_src, "coordinates")
+    if outers and len(outer_coords) > 1:
+        # حلقةٌ خارجيّة واحدة لكلّ Polygon؛ أخذ الأولى يُسقط الباقي بصمت.
+        raise ValueError(
+            f"<outerBoundaryIs> في KML يحوي {len(outer_coords)} حلقات؛ المتوقَّع حلقة واحدة."
+        )
+    coords_el = outer_coords[0] if outer_coords else None
     if coords_el is None or not (coords_el.text and coords_el.text.strip()):
         raise ValueError("لا يوجد <coordinates> داخل Polygon في KML.")
 
     ring = _parse_kml_coords(coords_el.text)
     holes: list[list[list[float]]] = []
     for inner in _find_all_local(polygon, "innerBoundaryIs"):
-        hole_el = _find_first_local(inner, "coordinates")
-        if hole_el is None or not (hole_el.text and hole_el.text.strip()):
+        # بعض الكتّاب يضعون عدّة <LinearRing> في <innerBoundaryIs> واحد (خارج مخطّط
+        # KML 2.2)؛ كلّها ثقوب، فأخذ الأولى وحدها يُضخّم المساحة بصمت.
+        hole_els = _find_all_local(inner, "coordinates")
+        if not hole_els:
             raise ValueError("<innerBoundaryIs> بلا <coordinates> في KML.")
-        holes.append(_parse_kml_coords(hole_el.text))
+        for hole_el in hole_els:
+            if not (hole_el.text and hole_el.text.strip()):
+                raise ValueError("<innerBoundaryIs> بـ<coordinates> فارغ في KML.")
+            holes.append(_parse_kml_coords(hole_el.text))
     return _polygon(ring, holes)
 
 

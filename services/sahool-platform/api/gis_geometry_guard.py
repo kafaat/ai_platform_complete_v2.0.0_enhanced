@@ -15,7 +15,7 @@ from api.geospatial_integrity import (
     compute_bbox,
     embedded_crs_names,
     polygon_net_area_ha,
-    validate_crs,
+    validate_embedded_crs,
     validate_field_geometry,
 )
 
@@ -254,7 +254,7 @@ def guard_field_geometry(
     than WGS84 lon/lat is rejected as ``invalid_crs`` instead of being dropped by
     normalization, even when ``declared_crs`` says EPSG:4326.
     """
-    if any(validate_crs(name) for name in embedded_crs_names(geojson)):
+    if any(validate_embedded_crs(name) for name in embedded_crs_names(geojson)):
         raise ValueError("invalid_crs")
     normalized = normalize_geojson_polygonal(geojson)
     if repair:
