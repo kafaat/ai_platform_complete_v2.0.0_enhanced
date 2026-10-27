@@ -47,6 +47,7 @@ final _router = AppRouter(
       ],
     ),
   ],
+  isAuthenticated: () => true,
 );
 
 Widget _app(AppRole role) => MaterialApp(

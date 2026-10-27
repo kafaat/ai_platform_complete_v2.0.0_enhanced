@@ -86,6 +86,7 @@ void main() {
     final router = AppRouter(
       features: [FeatureModule(id: 'f', routes: [page('/fields/workspace')])],
       role: () => AppRole.viewer,
+      isAuthenticated: () => true,
     );
     await t.pumpWidget(MaterialApp(
       onGenerateRoute: router.onGenerateRoute,
@@ -105,6 +106,7 @@ void main() {
         ]),
       ],
       role: () => AppRole.worker,
+      isAuthenticated: () => true,
     );
     await t.pumpWidget(MaterialApp(
       onGenerateRoute: router.onGenerateRoute,
@@ -113,6 +115,44 @@ void main() {
     await t.pumpAndSettle();
     expect(find.byType(AccessDeniedPage), findsOneWidget);
     expect(find.textContaining('page:'), findsNothing);
+  });
+
+  // UI-C3: الدور وحده لا يكفي — بلا جلسة يُطبَّع الدور إلى viewer فيُسمح بكلّ
+  // مسار بلا allowedRoles. المسار غير العامّ يتطلّب جلسة مصادَقة؛ العامّ يبقى مفتوحاً.
+  testWidgets('a private deep link without a session asks to sign in',
+      (t) async {
+    final router = AppRouter(
+      features: [
+        FeatureModule(id: 's', routes: [
+          page('/seasons'),
+          AppRoute(
+            path: '/login',
+            titleAr: 'login',
+            public: true,
+            builder: (_, _) => const Text('page:/login'),
+          ),
+        ]),
+      ],
+      role: () => AppRole.viewer,
+      isAuthenticated: () => false,
+    );
+    await t.pumpWidget(MaterialApp(
+      onGenerateRoute: router.onGenerateRoute,
+      home: const Text('root'),
+    ));
+    final nav = t.state<NavigatorState>(find.byType(Navigator));
+    unawaited(nav.pushNamed('/seasons'));
+    await t.pumpAndSettle();
+    expect(find.byType(SignInRequiredPage), findsOneWidget);
+    expect(find.textContaining('page:/seasons'), findsNothing);
+    // الإجراء يعيد إلى الجذر (AuthGate ⇒ شاشة الدخول).
+    await t.tap(find.text('تسجيل الدخول'));
+    await t.pumpAndSettle();
+    expect(find.text('root'), findsOneWidget);
+    // المسار العامّ يُفتح بلا جلسة.
+    unawaited(nav.pushNamed('/login'));
+    await t.pumpAndSettle();
+    expect(find.text('page:/login'), findsOneWidget);
   });
 
   testWidgets('unknown routes show a not-found page, not a blank screen',

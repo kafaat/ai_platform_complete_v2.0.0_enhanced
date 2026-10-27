@@ -318,7 +318,9 @@ class SahoolMapState extends State<SahoolMap> {
                   ? null
                   : (v) async {
                       await setTerrain(v);
-                      setSheet(() {});
+                      // قد يُغلَق اللوح أثناء الانتظار: mounted الخريطة لا يُثبت
+                      // حياة StatefulBuilder اللوح ⇒ نفحص سياقه هو.
+                      if (ctx.mounted) setSheet(() {});
                     },
             ),
           ],

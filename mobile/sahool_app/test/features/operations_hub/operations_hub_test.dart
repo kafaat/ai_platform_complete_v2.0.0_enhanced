@@ -26,6 +26,7 @@ AppRoute page(
 
 AppRouter fakeRouter(AppRole role) => AppRouter(
   role: () => role,
+  isAuthenticated: () => true,
   features: [
     operationsHubFeature,
     FeatureModule(

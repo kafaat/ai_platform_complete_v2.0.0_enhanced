@@ -144,7 +144,9 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _startSession() async {
-    await WebSocketService.instance.connect();
+    // الـWS نقل لحظيّ اختياريّ: لا يحجب الغلاف (REST يعمل). مصافحة بطيئة/معلّقة
+    // كانت تُبقي شاشة التحميل بلا مهلة؛ إعادة المحاولة يتولّاها الخدمة نفسها.
+    unawaited(WebSocketService.instance.connect().catchError((Object _) {}));
     // الدفع (FCM) غير حاجب ودفاعيّ بالكامل (يبقى no-op بلا google-services).
     unawaited(PushService.instance.init().catchError((Object _) {}));
     unawaited(
