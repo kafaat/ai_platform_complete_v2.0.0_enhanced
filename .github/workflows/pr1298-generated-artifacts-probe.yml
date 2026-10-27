@@ -1,0 +1,56 @@
+name: PR1298 isolated generated-artifact refresh (temporary branch)
+on:
+  push:
+    branches:
+      - codex/pr1298-regenerated-artifacts-20261028
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Native regeneration from PR source without retaining probe workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/codex/pr1298-regenerated-artifacts-20261028"
+          mkdir -p "$RUNNER_TEMP/regen"
+          git rev-parse HEAD > "$RUNNER_TEMP/regen/input-commit.txt"
+          git rm .github/workflows/pr1298-generated-artifacts-probe.yml
+          python scripts/ci/decision_lineage_graph.py --check
+          python scripts/ci/execution_dependency_audit.py --generate
+          python scripts/ci/static_governance_closure.py --generate
+          python scripts/release/build_release_bundle.py --root . --release-dir release
+          python scripts/ci/execution_dependency_audit.py --check
+          python scripts/ci/static_governance_closure.py --check
+          git add -A
+          git diff --cached --check
+          git diff --cached --name-only | tee "$RUNNER_TEMP/regen/changed-paths.txt"
+          while IFS= read -r p; do
+            case "$p" in
+              .github/workflows/pr1298-generated-artifacts-probe.yml|execution-audit/generated/*|governance/generated/STATIC_GOVERNANCE_*|release/FILE_CHECKSUMS.sha256|release/SAHOOL_RELEASE_MANIFEST_20260626.json|release/SBOM_MINIMAL.json) ;;
+              *) printf 'UNEXPECTED_GENERATION_PATH: %s\n' "$p" >&2; exit 3 ;;
+            esac
+          done < "$RUNNER_TEMP/regen/changed-paths.txt"
+          git config user.name "SAHOOL Source-Scoped Regen"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "build: regenerate execution audit and derived governance artifacts"
+          git rev-parse HEAD > "$RUNNER_TEMP/regen/output-commit.txt"
+          git push origin HEAD:refs/heads/codex/pr1298-regenerated-artifacts-20261028
+      - name: Preserve isolated regeneration logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pr1298-regen-probe
+          path: ${{ runner.temp }}/regen
+          if-no-files-found: warn
+          retention-days: 7
