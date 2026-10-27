@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6820,
+    "files_scanned": 6823,
     "files_by_kind": {
       "backend": 1260,
       "database": 289,
       "governance": 86,
       "mobile": 407,
-      "other": 2127,
-      "tests": 2172,
+      "other": 2128,
+      "tests": 2174,
       "web": 479
     },
-    "unmapped_artifacts": 2703,
+    "unmapped_artifacts": 2705,
     "ambiguous_artifacts": 485
   },
   "capabilities": [
@@ -49578,6 +49578,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_check_local_env_drift.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_ci_check_name_identity.py",
       "kind": "tests"
     },
@@ -51107,6 +51111,10 @@
     },
     {
       "path": "tests_v9/test_s3_compose_slice_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_s3_endpoint_error_hints.py",
       "kind": "tests"
     },
     {
