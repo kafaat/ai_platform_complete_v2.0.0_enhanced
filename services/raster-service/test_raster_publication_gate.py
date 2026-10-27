@@ -328,7 +328,7 @@ def _patch_db(monkeypatch, *, asset=True, registry=True, promote=True):
     return calls
 
 
-def _persist(cog_url="s3://bucket/fld_pubgate/ndvi_x.tif"):
+def _persist(cog_url="s3://bucket/fld_pubgate/ndvi_x.tif", stats=None):
     from raster_asset_persistence import persist_raster_asset
 
     return persist_raster_asset(
@@ -336,7 +336,7 @@ def _persist(cog_url="s3://bucket/fld_pubgate/ndvi_x.tif"):
         cog_url,
         {"data_available_at": "2026-09-03T08:30:00+00:00"},
         [44, 15, 45, 16],
-        {"valid_pixels": 4, "nodata_pixels": 0},
+        stats or {"valid_pixels": 4, "nodata_pixels": 0},
         job_id="job_1",
     )
 
@@ -388,31 +388,57 @@ def test_db_runtime_error_is_not_retried_as_event_loop_conflict(monkeypatch):
     ]
 
 
-def test_set_raster_asset_status_is_tenant_scoped_and_guarded(monkeypatch):
-    executed: list = []
+def test_all_masked_product_is_never_catalogued_or_published(monkeypatch):
+    """An all-masked COG is kept as a ``failed`` diagnostic row, never an observation.
 
-    class Conn:
-        async def execute(self, sql, *args):
-            executed.append((sql, args))
-            return "UPDATE 1"
+    ``insert_raster_asset`` forces such a row ``failed``; cataloguing it anyway left a
+    ``raster_registry`` entry that the GIS catalogue serves for a product that was never
+    published (and, for file:// COGs, ``persisted=True`` registered it in memory).
+    """
+    masked = {"valid_pixels": 0, "nodata_pixels": 4}
+    calls = _patch_db(monkeypatch)
+    assert _persist(stats=masked) is False
+    assert [c for c in calls if c[0] == "registry"] == []
+    assert ("status", "ready") not in calls
 
-        async def close(self):
-            pass
+    calls = _patch_db(monkeypatch)
+    assert _persist("file:///data/uploads/ndvi_x.tif", stats=masked) is False
+    assert calls == [("asset", "ready")]
 
-    async def connect():
-        return Conn()
 
-    monkeypatch.setattr(db_persist, "_connect", connect)
-    ok = asyncio.run(
-        db_persist.set_raster_asset_status(
-            tenant_id=TENANT,
-            product_identity_key="pik",
-            cog_uri="s3://bucket/x.tif",
-            status="ready",
-        )
+def test_set_raster_asset_status_refuses_without_a_target(monkeypatch):
+    """Guards that hold before any connection: no DB, unknown status, missing identity."""
+    monkeypatch.setattr(db_persist, "DATABASE_URL", None)
+
+    def status(**overrides):
+        kwargs = {
+            "tenant_id": TENANT,
+            "product_identity_key": "pik",
+            "cog_uri": "s3://bucket/x.tif",
+            "status": "ready",
+        } | overrides
+        return asyncio.run(db_persist.set_raster_asset_status(**kwargs))
+
+    assert status() is False  # no database: nothing promoted, nothing raised
+    assert status(status="pending") is False
+    assert status(status="stale") is False
+    assert status(product_identity_key="") is False
+    assert status(cog_uri="") is False
+
+
+def test_set_raster_asset_status_sql_is_tenant_scoped_and_guarded():
+    """The promotion SQL is pinned by source; its DB semantics are not simulated here.
+
+    A stand-in connection would assert only what it was told (FAKE-CONNECTION-ENFORCES-
+    NOTHING-01), so the statement itself is pinned: session-scoped tenant GUC on the
+    same connection, and an UPDATE that can only move this product's own pending row.
+    """
+    import inspect
+
+    src = inspect.getsource(db_persist.set_raster_asset_status)
+    assert "SELECT set_config('app.current_tenant', $1, false)" in src
+    assert src.index("set_config") < src.index("UPDATE raster_assets")
+    assert '"UPDATE raster_assets SET asset_status = $1 "' in src
+    assert (
+        "\"WHERE product_identity_key = $2 AND cog_uri = $3 AND asset_status = 'pending'\"" in src
     )
-    assert ok is True
-    assert executed[0] == ("SELECT set_config('app.current_tenant', $1, false)", (TENANT,))
-    sql, args = executed[1]
-    assert "asset_status = 'pending'" in sql
-    assert args == ("ready", "pik", "s3://bucket/x.tif")

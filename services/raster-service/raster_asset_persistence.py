@@ -139,6 +139,10 @@ def persist_raster_asset(
         # مؤهَّلة للنشر رغم كتالوج GIS فارغ. file:// (تطوير محلّيّ) لا يُفهرَس في الكتالوج أصلاً
         # فالأصل نفسه هو النشر (سلوك FINDING-008 كما هو).
         _catalogued = bool(cog_url) and not str(cog_url).startswith("file://")
+        # يطابق شرط insert_raster_asset الذي يفرض الحالة ``failed`` (valid_pixel_ratio <= 0).
+        _all_masked = (
+            _quality["valid_pixel_ratio"] is not None and _quality["valid_pixel_ratio"] <= 0
+        )
 
         async def _do():
             ok = await db_persist.insert_raster_asset(
@@ -207,6 +211,11 @@ def persist_raster_asset(
             )
             # FINDING-008: جسر الكتالوج — عند نجاح الأصل نكتب صفّاً مُقابِلاً في
             # raster_registry (كان يملؤه فقط مسار REST يدويّ) كي لا يبقى الكتالوج فارغاً.
+            # منتَج مُقنَّع كلّه: insert_raster_asset يُبقيه صفّ تشخيص ``failed`` لا رصداً، فلا
+            # كتالوج ولا نشر (كان يُكتَب له صفّ raster_registry يخدمه كتالوج GIS، ومع file://
+            # يعود True فتُسجَّل طبقته في الذاكرة).
+            if ok and _all_masked:
+                return False
             if not (ok and _catalogued):
                 return ok
             try:
