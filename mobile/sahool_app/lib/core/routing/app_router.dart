@@ -9,6 +9,8 @@
 //     (ويحرسه test/core/app_router_test.dart).
 //   • روابط عميقة: '/fields/workspace?field_id=f1' ⇒ RouteArgs.query.
 //   • أدوار: مسار بـallowedRoles لا يُفتح لغير أهله (صفحة «لا صلاحيّة» صادقة).
+//   • جلسة: مسار غير عامّ لا يُبنى بلا جلسة مصادَقة (رابط عميق قبل الدخول ⇒
+//     صفحة «سجّل الدخول»)؛ الدور وحده لا يكفي لأنّ غياب الجلسة يُطبَّع إلى viewer.
 //   • «المزيد»: [menuFor] يبني القائمة من MenuEntry في ملفّات المسارات.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
@@ -40,6 +42,7 @@ import 'package:sahool_app/features/satellite/satellite_routes.dart';
 import 'package:sahool_app/features/scouting/scouting_routes.dart';
 import 'package:sahool_app/features/tasks/tasks_routes.dart';
 import 'package:sahool_app/features/weather/weather_routes.dart';
+import 'package:sahool_app/services/auth_service.dart';
 
 import 'app_route.dart';
 import 'route_pages.dart';
@@ -76,9 +79,18 @@ final List<FeatureModule> allFeatures = [
 ];
 
 class AppRouter {
-  AppRouter({required List<FeatureModule> features, AppRole Function()? role})
-    : features = List.unmodifiable(features),
-      _role = role ?? (() => normalizeRole(currentRole())) {
+  AppRouter({
+    required List<FeatureModule> features,
+    AppRole Function()? role,
+    bool Function()? isAuthenticated,
+  }) : features = List.unmodifiable(features),
+       _role = role ?? (() => normalizeRole(currentRole())),
+       // الجلسة القابلة للاستئناف لا صلاحية رمز الوصول: الرمز (60 دقيقة) يُجدَّد
+       // عند أوّل نداء REST لا بمؤقّت، فبعد خمول ساعة يكون منتهياً والجلسة حيّة
+       // برمز التحديث. البوّابة هنا تمنع رابطاً عميقاً بلا جلسة؛ رفض التحديث يمرّ
+       // عبر ApiClient.onSessionExpired ⇒ AuthGate ⇒ شاشة الدخول.
+       _isAuthenticated =
+           isAuthenticated ?? (() => AuthService.instance.canResumeSession) {
     for (final f in features) {
       for (final r in f.routes) {
         for (final name in [r.path, ...r.aliases]) {
@@ -101,6 +113,7 @@ class AppRouter {
 
   final List<FeatureModule> features;
   final AppRole Function() _role;
+  final bool Function() _isAuthenticated;
   final Map<String, AppRoute> _table = {};
   final Map<String, String> _owner = {};
 
@@ -143,11 +156,15 @@ class AppRouter {
         ? const <String, String>{}
         : Uri.parse(name).queryParameters;
     final args = RouteArgs(query: query, extra: settings.arguments);
+    // غير العامّ يتطلّب جلسة أوّلاً (رابط عميق قبل الدخول)، ثمّ الدور.
+    final signedIn = route.public || _isAuthenticated();
     final allowed = route.public || route.allows(role);
     return MaterialPageRoute<dynamic>(
       settings: settings,
       fullscreenDialog: route.fullscreenDialog,
-      builder: (context) => allowed
+      builder: (context) => !signedIn
+          ? SignInRequiredPage(title: route.titleAr)
+          : allowed
           ? route.builder(context, args)
           : AccessDeniedPage(title: route.titleAr),
     );
