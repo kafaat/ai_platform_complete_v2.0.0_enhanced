@@ -23,8 +23,10 @@ function IrrigationState({ title, error, onRetry }: { title: string; error: unkn
 }
 
 export default function FieldWorkspaceIrrigationPanel({ fieldId, seasonId }: { fieldId: string; seasonId?: string | null }) {
+  // UI-I1: الخادم يحسب النصيحة للموسم النشط الحاليّ للحقل وتوقّع اليوم (لا season_id في
+  // الطلب)، فلا نضع موسم الرابط في المفتاح كي لا تُنسَب النصيحة لموسم تاريخيّ لم تُحسَب له.
   const adviceQ = useQuery({
-    queryKey: ['field-workspace', fieldId, seasonId, 'irrigation-advice'],
+    queryKey: ['field-workspace', fieldId, 'irrigation-advice'],
     queryFn: () => getFieldIrrigationAdvice(fieldId),
     enabled: Boolean(fieldId && seasonId),
     staleTime: 60_000,
@@ -49,6 +51,7 @@ export default function FieldWorkspaceIrrigationPanel({ fieldId, seasonId }: { f
       <div className="grid gap-4 xl:grid-cols-2">
       <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
         <div className="mb-4 flex items-center gap-2"><Droplets className="h-5 w-5 text-emerald-300" /><h2 className="text-base font-bold text-slate-100">نصيحة الري</h2></div>
+        <p className="mb-3 text-xs text-slate-500">محسوبة للموسم النشط الحاليّ للحقل وتوقّع الطقس الآن — لا للموسم المختار في الرابط.</p>
         {adviceQ.isLoading && <LoadingState message="جارٍ تحميل نصيحة الري…" />}
         {adviceQ.isError && <IrrigationState title="نصيحة الري" error={adviceQ.error} onRetry={() => adviceQ.refetch()} />}
         {adviceQ.data && adviceView !== 'hidden' && <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
