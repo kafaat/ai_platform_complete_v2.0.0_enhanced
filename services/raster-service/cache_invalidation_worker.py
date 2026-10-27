@@ -55,6 +55,17 @@ MAX_CLAIM_ATTEMPTS = int(os.getenv("CACHE_INVALIDATION_MAX_ATTEMPTS", "5"))
 # P3-INV: مهلةُ إعادة المحاولة بعد نشر إخلاءٍ فاشل (× رقم المحاولة — تراجعٌ خطّيّ).
 RETRY_BACKOFF_SECONDS = float(os.getenv("CACHE_INVALIDATION_RETRY_BACKOFF_SECONDS", "30"))
 
+# مفاتيحُ حالة العامل في ``metadata`` — يكتبها العامل وحده. ``metadata`` نفسُه يملؤه المُستدعي
+# (``CacheInvalidationCommand.metadata``)، فيُسقطها الإدراجُ من مُدخَله
+# (``db_persist.CACHE_INVALIDATION_WORKER_KEYS`` — نسخةٌ يقارنها اختبار)، والعاملُ يقرؤها
+# بصبٍّ محروسٍ بالنوع: قيمةٌ غيرُ صالحة تُقرأ غائبةً لا تُسقط مطالبةَ الدفعة لكلّ المستأجِرين.
+# ``lease_until``/``retry_after`` عددُ ثوانٍ منذ الحقبة (لا نصُّ لحظة): صبُّ عددِ JSON إلى
+# ``numeric`` لا يفشل، وصبُّ نصٍّ إلى ``timestamptz`` يفشل على 'x' (و``pg_input_is_valid``
+# من PG16 والمكدّس يحمل PG15 أيضاً).
+WORKER_METADATA_KEYS = frozenset(
+    {"claim_attempts", "lease_until", "retry_after", "layer_evict", "last_error"}
+)
+
 # نتيجةُ نشر الإخلاء كما تُسجَّل على الصفّ (``metadata.layer_evict``).
 LAYER_EVICT_DELIVERED = "delivered"
 LAYER_EVICT_NOT_CONFIGURED = "not_configured"
@@ -158,22 +169,31 @@ def invalidation_scope(row: Any) -> tuple[int | None, datetime | None]:
 
 
 def claim_attempts(row: Any) -> int:
-    """عددُ المطالبات السابقة للصفّ (``metadata.claim_attempts``)؛ غيرُ العدد ⇒ صفر."""
+    """عددُ المطالبات السابقة للصفّ (``metadata.claim_attempts``)؛ غيرُ الصالح ⇒ صفر.
+
+    مرآةُ حارس الزيادة في عبارة المطالبة حرفيّاً (عددٌ صحيح من ١ إلى ٩ أرقام): رقمُ المحاولة
+    هنا هو سياجُ الإجارة في SQL، فاختلافُهما يُفشل إنهاءَ صفٍّ سليم."""
     n = _json_object(row.get("metadata")).get("claim_attempts")
-    return n if isinstance(n, int) and not isinstance(n, bool) and n > 0 else 0
+    ok = isinstance(n, int) and not isinstance(n, bool) and 0 < n <= 999_999_999
+    return n if ok else 0
 
 
 # C1: المطالَبُ = المعلّقُ الذي انقضت مهلةُ إعادته + الـ``processing`` الذي انقضت إجارتُه
 # (أو بلا إجارة: صفٌّ طالبه إصدارٌ سابق بلا إجارات فعلق). الإجارةُ الحيّة لا تُسرَق.
+# وصبُّ ``metadata`` محروسٌ بالنوع داخل ``CASE`` (الترتيبُ فيه مضمون، بخلاف ``AND``/``OR``):
+# صفٌّ واحد بقيمةٍ غير صالحة كان يُلغي معاملةَ المطالبة كلَّ دورة ⇒ طابورٌ واقف للجميع.
+# غيرُ الصالح يُقرأ غائباً: مهلةٌ ⇒ مستحقّة، إجارةٌ ⇒ منقضية (الإعادةُ idempotent).
 _CLAIM_SQL = """
     SELECT id, tenant_id, field_id, reason, metadata, created_at
     FROM raster_cache_invalidations
     WHERE (status = 'pending'
-           AND (metadata->>'retry_after' IS NULL
-                OR (metadata->>'retry_after')::timestamptz <= now()))
+           AND CASE WHEN jsonb_typeof(metadata->'retry_after') = 'number'
+                    THEN (metadata->>'retry_after')::numeric <= extract(epoch from now())
+                    ELSE true END)
        OR (status = 'processing'
-           AND (metadata->>'lease_until' IS NULL
-                OR (metadata->>'lease_until')::timestamptz <= now()))
+           AND CASE WHEN jsonb_typeof(metadata->'lease_until') = 'number'
+                    THEN (metadata->>'lease_until')::numeric <= extract(epoch from now())
+                    ELSE true END)
     ORDER BY created_at
     LIMIT $1
     FOR UPDATE SKIP LOCKED
@@ -208,9 +228,10 @@ async def run_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
                 await conn.execute(
                     "UPDATE raster_cache_invalidations SET status='processing', "
                     "metadata = (metadata - 'retry_after') || jsonb_build_object("
-                    "'lease_until', now() + make_interval(secs => $2), "
+                    "'lease_until', extract(epoch from now() + make_interval(secs => $2)), "
                     "'claim_attempts', CASE WHEN jsonb_typeof(metadata->'claim_attempts') = "
-                    "'number' THEN (metadata->>'claim_attempts')::int ELSE 0 END + 1) "
+                    "'number' AND metadata->>'claim_attempts' ~ '^[0-9]{1,9}$' "
+                    "THEN (metadata->>'claim_attempts')::int ELSE 0 END + 1) "
                     "WHERE id = ANY($1::bigint[])",
                     [r["id"] for r in rows],
                     CLAIM_LEASE_SECONDS,
@@ -265,7 +286,7 @@ async def run_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
                         "UPDATE raster_cache_invalidations SET status='pending', "
                         "metadata = (metadata - 'lease_until') || jsonb_build_object("
                         "'layer_evict', 'not_delivered', "
-                        "'retry_after', now() + make_interval(secs => $3)) "
+                        "'retry_after', extract(epoch from now() + make_interval(secs => $3))) "
                         "WHERE id=$1 AND status='processing' "
                         "AND metadata->'claim_attempts' = to_jsonb($2::int)",
                         rid,

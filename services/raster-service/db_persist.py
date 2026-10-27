@@ -427,6 +427,14 @@ async def upsert_raster_registry_entry(
 # مفتاحُ طلب الإبطال: محارفُ آمنة بطول محدود (يُخزَّن في metadata->>'request_id').
 _REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 
+# مفاتيحُ حالة ``cache_invalidation_worker`` في ``metadata`` نفسِه (إجارة/محاولات/مهلة/نتيجة):
+# يكتبها العامل وحده. مُستدعٍ يكتبها يُفشل الصفَّ بلا عمل (محاولاتٌ مستنفَدة) أو يُخفيه
+# (مهلةٌ بعيدة) أو يُزيّف سجلَّه — فتُسقَط من مُدخَله هنا. نسخةُ ``WORKER_METADATA_KEYS``
+# (لا استيراد: العاملُ يجرّ asyncpg وكاشَ البلاطات إلى مسار الطلب)، ويقارنهما اختبار.
+CACHE_INVALIDATION_WORKER_KEYS = frozenset(
+    {"claim_attempts", "lease_until", "retry_after", "layer_evict", "last_error"}
+)
+
 
 def _valid_request_id_text(value: str | None) -> bool:
     return bool(value) and bool(_REQUEST_ID_RE.fullmatch(str(value)))
@@ -463,6 +471,15 @@ async def enqueue_cache_invalidation(
     if not _valid_request_id_text(request_id) or not str(reason or "").strip():
         return None
     meta = dict(metadata or {})
+    reserved = sorted(CACHE_INVALIDATION_WORKER_KEYS.intersection(meta))
+    if reserved:
+        logger.warning(
+            "cache invalidation enqueue dropped worker-owned metadata keys (field=%s): %s",
+            field_id,
+            reserved,
+        )
+        for key in reserved:
+            del meta[key]
     meta["request_id"] = str(request_id)
     lookup = """
         SELECT id, status, created_at::text AS created_at

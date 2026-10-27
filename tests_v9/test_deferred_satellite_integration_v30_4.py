@@ -418,7 +418,7 @@ def test_cache_invalidation_worker_marks_stale_and_processed():
 # كانت المطالبةُ تلتزم ``status='processing'`` قبل العمل، والاستطلاعُ يختار ``pending`` وحده:
 # عاملٌ مات بين الالتزام والإبطال يترك الصفَّ خارج كلّ دورةٍ لاحقة إلى الأبد — فلا يُحذف كاشُ
 # الحقل ولا تُوسَم أصولُه. الشاهدُ هنا على القاعدة الحقيقيّة (``FOR UPDATE SKIP LOCKED``
-# وصبُّ ``jsonb`` إلى ``timestamptz`` كما ينفّذهما PG فعلاً، لا وهميّ).
+# وصبُّ ``jsonb`` المحروسُ بالنوع كما ينفّذهما PG فعلاً، لا وهميّ).
 
 
 def _load_invalidation_worker(name: str):
@@ -442,14 +442,19 @@ async def _worker_pool(tenant_id: str):
     )
 
 
-async def _queue_row(tenant_id: str, field_id: str) -> int:
+async def _queue_row(
+    tenant_id: str, field_id: str, metadata: str = "{}", status: str = "pending"
+) -> int:
+    """``metadata`` نصُّ JSON يُصَبّ في القاعدة — كي يحمل ما لا يُنتجه ``json.dumps`` (1e400)."""
     conn = await _connect(tenant_id)
     try:
         return await conn.fetchval(
-            "INSERT INTO raster_cache_invalidations (tenant_id, field_id, reason) "
-            "VALUES ($1::uuid, $2, 'geometry.updated') RETURNING id",
+            "INSERT INTO raster_cache_invalidations (tenant_id, field_id, reason, metadata, status) "
+            "VALUES ($1::uuid, $2, 'geometry.updated', $3::jsonb, $4) RETURNING id",
             tenant_id,
             field_id,
+            metadata,
+            status,
         )
     finally:
         await conn.close()
@@ -460,7 +465,9 @@ async def _queue_state(tenant_id: str, rid: int):
     try:
         row = await conn.fetchrow(
             "SELECT status, processed_at, metadata::text AS metadata, "
-            "(metadata->>'retry_after')::timestamptz > now() AS backoff_live "
+            "CASE WHEN jsonb_typeof(metadata->'retry_after') = 'number' "
+            "THEN (metadata->>'retry_after')::numeric > extract(epoch from now()) "
+            "END AS backoff_live "
             "FROM raster_cache_invalidations WHERE id=$1",
             rid,
         )
@@ -530,7 +537,7 @@ def test_cache_invalidation_claim_is_reclaimed_after_the_worker_dies(monkeypatch
             try:
                 await conn.execute(
                     "UPDATE raster_cache_invalidations SET metadata = metadata || "
-                    "jsonb_build_object('lease_until', now() - interval '1 second') WHERE id=$1",
+                    "jsonb_build_object('lease_until', extract(epoch from now()) - 1) WHERE id=$1",
                     rid,
                 )
             finally:
@@ -594,7 +601,7 @@ def test_cache_invalidation_undelivered_layer_evict_is_retried_not_counted(monke
             try:
                 await conn.execute(
                     "UPDATE raster_cache_invalidations SET metadata = metadata || "
-                    "jsonb_build_object('retry_after', now() - interval '1 second') WHERE id=$1",
+                    "jsonb_build_object('retry_after', extract(epoch from now()) - 1) WHERE id=$1",
                     rid,
                 )
             finally:
@@ -610,6 +617,53 @@ def test_cache_invalidation_undelivered_layer_evict_is_retried_not_counted(monke
             assert status == "processed" and processed_at is not None, status
             assert meta.get("layer_evict") == "delivered", meta
             assert meta.get("claim_attempts") == 2, meta
+        finally:
+            await _drop_queue_rows(tenant_id, field_id)
+
+    asyncio.run(_run())
+
+
+# ─── C1 (مراجعة): قيمةٌ مُدخَلة غيرُ صالحة في مفاتيح العامل لا توقف الطابور للجميع ──────
+#
+# ``metadata`` يملؤه المُستدعي، وعبارةُ المطالبة دفعيّةٌ لكلّ المستأجِرين. كان الصبُّ
+# ``(metadata->>'retry_after')::timestamptz`` و``(metadata->>'claim_attempts')::int`` يرمي على
+# ``'x'``/``2.5`` فتُلغى المطالبةُ كلَّ دورة: لا صفَّ يُبطَل لأحد، والنبضةُ ``failed`` فتُعاد الحاوية
+# بلا نهاية. الإدراجُ صار يُسقط هذه المفاتيح، لكنّ صفّاً قائماً (أو كاتباً آخر) يبقى ممكناً —
+# فالشاهدُ يُدرج مباشرةً متجاوزاً الإدراج.
+
+
+def test_cache_invalidation_malformed_worker_keys_do_not_poison_the_claim(monkeypatch):
+    if not _db_available():
+        pytest.skip("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    worker = _load_invalidation_worker("cache_invalidation_worker_c1_poison_it")
+    monkeypatch.setattr(worker.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: 0)
+    tenant_id = str(uuid.uuid4())
+    field_id = f"fld_c1p_{uuid.uuid4().hex[:8]}"
+    queued = [
+        ('{"claim_attempts": 2.5, "retry_after": "x"}', "pending"),
+        ('{"claim_attempts": 1e400, "retry_after": "2999-13-45"}', "pending"),
+        ('{"claim_attempts": "3", "lease_until": "not-a-time"}', "processing"),
+        ('{"geometry_revision": 1}', "pending"),
+    ]
+
+    async def _run():
+        ids = [await _queue_row(tenant_id, field_id, m, s) for m, s in queued]
+        try:
+            pool = await _worker_pool(tenant_id)
+            try:
+                processed = await worker.run_once(pool, batch_size=1000)
+            finally:
+                await pool.close()
+            assert processed >= len(ids), processed
+            for rid in ids:
+                status, processed_at, meta, _ = await _queue_state(tenant_id, rid)
+                assert status == "processed" and processed_at is not None, (
+                    f"صفٌّ بقيمٍ مُدخَلة غيرِ صالحة لم يُعالَج (={status}) — {meta}"
+                )
+                # القيمةُ غيرُ الصالحة تُقرأ غائبةً في بايثون وSQL معاً ⇒ المحاولةُ الأولى.
+                assert meta.get("claim_attempts") == 1, meta
+                assert "retry_after" not in meta and "lease_until" not in meta, meta
         finally:
             await _drop_queue_rows(tenant_id, field_id)
 
