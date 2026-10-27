@@ -27,6 +27,13 @@
 //  • بعد مدّة الاحتفاظ الموثَّقة لا يُعاد الطلب آليّاً: not_found ⇒
 //    needs_reconciliation (R13) — مراجعة بشريّة، لا إنشاء بمفتاح آخر.
 //  • إعادة التشغيل تستعيد العمليّات المفتوحة لنفس المالك فقط.
+//  • المالك يُعاد فحصه **متزامناً قبل كلّ إرسال** (بعد آخر await): تبديل الجلسة أثناء
+//    الاستعلام أو الكتابة المحلّيّة لا يُخرج حمولة مالكٍ برمز مالكٍ آخر (كتابة عابرة
+//    للمستأجرين). لا يُكتب شيء جديد في سجلّه؛ يبقى لمالكه.
+//  • صندوقٌ موجود فقد مفتاحه (استعادة نسخة احتياطيّة للجهاز: الملفّات تعود والمفتاح لا)
+//    لا يُفتح بمفتاح جديد ولا يُرسَل شيء (R04)، لكنّه لا يحبس الإنشاء إلى الأبد: الرسالة
+//    تسمّي العطل، وحذفه قرارٌ صريح من المستخدم ([OperationLedger.resetUnreadableStore])
+//    كما في صندوق الإرسال (HiveOutboxStore.deleteUnreadable).
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -68,6 +75,21 @@ const String kOperationReconcileAr =
 /// زرّ الاستعادة (نفس المفتاح ونفس الحمولة الأصليّة).
 const String kRecoverActionAr = 'استعادة نتيجة المحاولة السابقة';
 const String kCheckAgainActionAr = 'تحقّق مرّة أخرى';
+
+/// صندوق العمليّات المعلّقة موجود ومفتاح تشفيره مفقود (keyMissingForExistingBox).
+const String kOperationStoreUnreadableAr =
+    'سجلّ العمليّات المعلّقة على هذا الجهاز مشفّر بمفتاح لم يعد موجوداً (يحدث مثلاً '
+    'بعد استعادة نسخة احتياطيّة للجهاز)، فلا يمكن قراءته، ولم يُرسَل شيء. احذف هذا '
+    'السجلّ غير المقروء لتتمكّن من الحفظ؛ ما فيه لا يمكن استعادته، فراجع قوائمك قبل '
+    'إعادة إنشاء ما كان معلّقاً.';
+
+/// زرّ حذف صندوق العمليّات غير المقروء (بعد تأكيد).
+const String kResetUnreadableStoreAr = 'حذف سجلّ العمليّات غير المقروء';
+const String kResetUnreadableStoreConfirmTitleAr =
+    'حذف سجلّ العمليّات المعلّقة؟';
+const String kResetUnreadableStoreConfirmAr =
+    'محتواه مشفّر بمفتاح مفقود ولا يمكن قراءته أو إرساله. سيُحذف نهائيّاً من هذا '
+    'الجهاز؛ راجع قوائمك قبل إعادة إنشاء ما كان معلّقاً.';
 
 /// زرّ إغلاق عمليّة بعد مراجعة بشريّة (needs_reconciliation) أو لم تُنفَّذ قطعاً.
 const String kDismissReconciledAr = 'راجعتُ القائمة — أغلق هذه العمليّة';
@@ -439,9 +461,15 @@ class OperationLedger {
     this.lookup,
     DateTime Function()? clock,
     this.retention = kServerIdempotencyRetention,
+    Future<void> Function()? deleteUnreadableBox,
   }) : _openStore = openStore,
        _currentOwner = currentOwner,
-       _clock = clock ?? DateTime.now;
+       _clock = clock ?? DateTime.now,
+       _deleteUnreadableBox =
+           deleteUnreadableBox ??
+           (() => HiveOutboxStore.deleteUnreadable(
+             name: HiveOperationStore.boxName,
+           ));
 
   /// الإنتاج: صندوق Hive مشفّر، والمالك من مطالبات رمز الوصول (sub/tenant_id).
   static final OperationLedger shared = OperationLedger(
@@ -455,9 +483,19 @@ class OperationLedger {
   final CommandLookup? lookup;
   final DateTime Function() _clock;
   final Duration retention;
+  final Future<void> Function() _deleteUnreadableBox;
 
   OperationStore? _store;
   Future<OperationStore>? _opening;
+  OutboxStoreException? _failure;
+
+  /// سبب آخر تعذّر لفتح الصندوق (null ⇒ مفتوح أو لم يُجرَّب).
+  OutboxStoreException? get storeFailure => _failure;
+
+  /// الصندوق موجود ومفتاحه مفقود: لا يُقرأ، ولا يُرسَل شيء حتّى يقرّر المستخدم حذفه.
+  bool get storeUnreadable =>
+      _store == null &&
+      _failure?.failure == OutboxStoreFailure.keyMissingForExistingBox;
 
   DateTime now() => _clock().toUtc();
   OutboxOwner? currentOwner() => _currentOwner();
@@ -469,12 +507,36 @@ class OperationLedger {
       try {
         final opened = await _openStore();
         _store = opened;
+        _failure = null;
         return opened;
       } catch (e) {
+        _failure = e is OutboxStoreException
+            ? e
+            : OutboxStoreException(OutboxStoreFailure.openFailed, e);
         _opening = null; // الاستعمال التالي يعيد المحاولة
         throw OperationStoreUnavailable(e);
       }
     }();
+  }
+
+  /// يحذف صندوقاً مفتاحه مفقود ثمّ يفتح صندوقاً جديداً. قرار صريح من المستخدم بعد
+  /// تأكيد، وفقط لعطل keyMissingForExistingBox (لا لقرص ممتلئ أو تخزين آمن مقفل).
+  /// true ⇒ الصندوق الجديد مفتوح ويمكن الحفظ.
+  Future<bool> resetUnreadableStore() async {
+    if (!storeUnreadable || _opening != null) return false;
+    try {
+      await _deleteUnreadableBox();
+    } catch (e) {
+      debugPrint('operation ledger: deleting the unreadable box failed ($e)');
+      return false;
+    }
+    _failure = null;
+    try {
+      await _ensure();
+      return true;
+    } on OperationStoreUnavailable {
+      return false;
+    }
   }
 
   /// آخر عمليّة مفتوحة للمالك الحاليّ بهذا النوع والنطاق. لا جلسة ⇒ null.
@@ -555,7 +617,8 @@ class CreateUnconfirmed extends CreateOutcome {
     _ => kOperationUnknownAr,
   };
 
-  String get actionLabelAr => inProgress ? kCheckAgainActionAr : kRecoverActionAr;
+  String get actionLabelAr =>
+      inProgress ? kCheckAgainActionAr : kRecoverActionAr;
 
   /// إغلاق يدويّ متاح فقط بعد انقضاء الاحتفاظ (مراجعة بشريّة).
   bool get canDismiss => record.state == OperationState.needsReconciliation;
@@ -570,9 +633,18 @@ class CreateRejected extends CreateOutcome {
 
 /// لم يُحفظ شيء محلّيّاً ⇒ لم يُرسَل شيء.
 class CreateNotSaved extends CreateOutcome {
-  const CreateNotSaved(this.messageAr);
+  const CreateNotSaved(this.messageAr, {this.storeUnreadable = false});
   final String messageAr;
+
+  /// السبب صندوقٌ مفتاحه مفقود: الواجهة تعرض حذفه بعد تأكيد
+  /// ([OperationLedger.resetUnreadableStore]) بدل «أعد المحاولة».
+  final bool storeUnreadable;
 }
+
+/// فشل الكتابة المحلّيّة قبل الإرسال: صندوقٌ لا يُقرأ يُسمّى باسمه، والباقي عامّ.
+CreateNotSaved _notSaved(OperationLedger ledger) => ledger.storeUnreadable
+    ? const CreateNotSaved(kOperationStoreUnreadableAr, storeUnreadable: true)
+    : const CreateNotSaved(kOperationNotSavedAr);
 
 /// نداء أثناء نداء جارٍ — تجاهل.
 class CreateBusy extends CreateOutcome {
@@ -656,15 +728,21 @@ class CreateOperation {
 
   /// يستعيد عمليّة مفتوحة للمالك الحاليّ (بعد إعادة التشغيل أو إعادة فتح الشاشة).
   /// saved_locally يُستعاد صامتاً (لم يُنفَّذ — مفتاحه يُعاد للإرسال التالي).
+  /// صندوقٌ لا يُقرأ يُعاد [CreateNotSaved] كي تُسمّيه الشاشة قبل أيّ إدخال.
   Future<CreateOutcome?> restore() async {
     final r = await ledger.openFor(kind, scope: scope);
+    if (r == null && _record == null && ledger.storeUnreadable) {
+      return _notSaved(ledger);
+    }
     // إرسالٌ سبق اكتمال الاستعادة حمّل العمليّة بنفسه: لا نكتب فوق حالته الأحدث.
     if (r == null || _record != null) return null;
     _record = r;
     if (r.state == OperationState.savedLocally) return null;
     if (r.state == OperationState.pending) {
       // كُتبت قبل الإرسال ولم يُحفظ ردّ: مجهولة.
-      _record = await _persist(r.copyWith(state: OperationState.outcomeUnknown));
+      _record = await _persist(
+        r.copyWith(state: OperationState.outcomeUnknown),
+      );
     }
     return CreateUnconfirmed(_record!);
   }
@@ -708,7 +786,7 @@ class CreateOperation {
         try {
           _record = await ledger.put(fresh);
         } on OperationStoreUnavailable {
-          return const CreateNotSaved(kOperationNotSavedAr); // R04
+          return _notSaved(ledger); // R04
         }
         return _send();
       }
@@ -727,7 +805,7 @@ class CreateOperation {
             ),
           );
         } on OperationStoreUnavailable {
-          return const CreateNotSaved(kOperationNotSavedAr);
+          return _notSaved(ledger);
         }
         return _send();
       }
@@ -808,6 +886,11 @@ class CreateOperation {
       } catch (_) {
         found = null;
       }
+      // تبدّلت الجلسة أثناء الاستعلام: نتيجته ليست لهذا المالك (RLS المستأجِر)، فلا
+      // تُكتب في سجلّه ولا يُبنى عليها إرسال.
+      if (ledger.currentOwner() != r.owner) {
+        return const CreateNotSaved(kOperationNoSessionAr);
+      }
     }
     if (expired && found != true) {
       // R13: بعد مدّة الاحتفاظ not_found ليس دليلاً على عدم التنفيذ.
@@ -825,8 +908,16 @@ class CreateOperation {
 
   /// [commandAbsent]: الاستعلام المصادَق قال لا أمر مُلتزَماً بهذا المفتاح، فأيّ 409
   /// بلا سبب مفتاح هو رفض أعمال لهذا التنفيذ لا تعارض مفتاح.
+  ///
+  /// المالك يُفحص هنا **متزامناً** بلا await بينه وبين [send]: كلّ ما سبق (الاستعلام،
+  /// الكتابة المحلّيّة، فتح الصندوق) نقاطُ انتظار قد تتبدّل الجلسة أثناءها، وApiClient
+  /// يرسل برمز اللحظة الحاضرة. مالكٌ آخر ⇒ لا إرسال ولا كتابة جديدة؛ السجلّ يبقى لمالكه
+  /// على حاله ليستعيده في جلسته.
   Future<CreateOutcome> _send({bool commandAbsent = false}) async {
     final r = _record!;
+    if (ledger.currentOwner() != r.owner) {
+      return const CreateNotSaved(kOperationNoSessionAr);
+    }
     final attempts = r.attempts + 1;
     try {
       final result = await send(r.payload, r.key);
@@ -861,9 +952,7 @@ class CreateOperation {
         return CreateUnconfirmed(_record!);
       }
       if (reason == ConflictReason.payloadMismatch ||
-          (e.statusCode == 409 &&
-              !_isBusinessConflict(e) &&
-              !commandAbsent)) {
+          (e.statusCode == 409 && !_isBusinessConflict(e) && !commandAbsent)) {
         _record = await _persist(
           r.copyWith(
             state: OperationState.needsAttention,

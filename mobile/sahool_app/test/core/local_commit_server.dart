@@ -82,6 +82,10 @@ class LocalCommitServer {
   /// ردود PATCH ثابتة (تحديثٌ مستقلّ بعد الاستعادة).
   final Map<String, Object> patchResponses = {};
 
+  /// يُنفَّذ بعد تسجيل الطلب وقبل أيّ ردّ (الطلب «في الطريق»): لتبديل الجلسة أثناء
+  /// استعلامٍ أو إنشاءٍ جارٍ.
+  Future<void> Function(ServedRequest r)? onArrive;
+
   final _hung = <HttpRequest>[];
   final _arrived = StreamController<ServedRequest>.broadcast();
 
@@ -110,6 +114,7 @@ class LocalCommitServer {
     );
     requests.add(served);
     _arrived.add(served);
+    await onArrive?.call(served);
     final cmd = RegExp(r'^/api/v1/commands/(.+)$').firstMatch(req.uri.path);
     if (req.method == 'GET' && cmd != null) {
       final id = Uri.decodeComponent(cmd.group(1)!);

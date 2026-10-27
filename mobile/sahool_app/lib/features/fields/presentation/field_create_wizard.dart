@@ -337,9 +337,8 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   }
 
   /// «استعادة نتيجة المحاولة السابقة»: المسودّة الحاليّة تُحفَظ لعرض فروقها فقط.
-  Future<void> _recover() => _save.recover(
-    draft: (_nameOk && _boundaryOk) ? _draft() : null,
-  );
+  Future<void> _recover() =>
+      _save.recover(draft: (_nameOk && _boundaryOk) ? _draft() : null);
 
   void _onSaveState(BuildContext context, FieldSaveState s) {
     if (s is FieldSaveDone &&
@@ -399,6 +398,15 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                 child: Column(
                   children: [
                     _progress(context),
+                    if (s is FieldSaveFailed && s.storeUnreadable)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SahoolSpacing.lg,
+                        ),
+                        child: UnreadableOperationStorePanel(
+                          onReset: _save.resetUnreadableStore,
+                        ),
+                      ),
                     if (s is FieldSaveUnconfirmed)
                       ConstrainedBox(
                         constraints: BoxConstraints(
@@ -694,7 +702,8 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
           icon: Icons.square_foot,
           child: BoundarySummary(validation: v, perimeterM: _draw.perimeter),
         ),
-        if (s is FieldSaveFailed) ...[
+        // صندوقٌ لا يُقرأ يُعرَض في أعلى المعالج (كلّ الخطوات)، لا هنا مرّتين.
+        if (s is FieldSaveFailed && !s.storeUnreadable) ...[
           const SizedBox(height: SahoolSpacing.md),
           SectionCard(
             title: 'لم يُحفَظ الحقل',

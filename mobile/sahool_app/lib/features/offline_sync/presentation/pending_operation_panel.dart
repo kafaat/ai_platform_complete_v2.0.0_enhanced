@@ -118,3 +118,63 @@ class PendingOperationPanel extends StatelessWidget {
     );
   }
 }
+
+/// صندوق العمليّات المعلّقة لا يُقرأ (مفتاحه مفقود): الرسالة تسمّي العطل، وحذفه بعد
+/// تأكيد صريح هو المخرج ([OperationLedger.resetUnreadableStore]) — لا «أعد المحاولة»
+/// تتكرّر بلا نهاية، ولا فتح بمفتاح جديد فوق الملفّات.
+class UnreadableOperationStorePanel extends StatelessWidget {
+  const UnreadableOperationStorePanel({
+    super.key,
+    required this.onReset,
+    this.busy = false,
+  });
+
+  /// يُستدعى بعد تأكيد المستخدم فقط.
+  final Future<void> Function() onReset;
+  final bool busy;
+
+  Future<void> _confirm(BuildContext context) async {
+    final ok = await showConfirmDialog(
+      context,
+      title: kResetUnreadableStoreConfirmTitleAr,
+      message: kResetUnreadableStoreConfirmAr,
+      confirmLabel: 'حذف',
+      destructive: true,
+    );
+    if (ok) await onReset();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Container(
+      key: const ValueKey('op-store-unreadable'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(SahoolSpacing.md),
+      decoration: BoxDecoration(
+        color: t.danger.withValues(alpha: 0.08),
+        borderRadius: SahoolRadius.mdAll,
+        border: Border.all(color: t.danger.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              kOperationStoreUnreadableAr,
+              style: context.textStyles.bodyLarge,
+            ),
+          ),
+          const SizedBox(height: SahoolSpacing.md),
+          SecondaryButton(
+            key: const ValueKey('op-store-reset'),
+            label: kResetUnreadableStoreAr,
+            icon: Icons.delete_forever_outlined,
+            onPressed: busy ? null : () => _confirm(context),
+          ),
+        ],
+      ),
+    );
+  }
+}

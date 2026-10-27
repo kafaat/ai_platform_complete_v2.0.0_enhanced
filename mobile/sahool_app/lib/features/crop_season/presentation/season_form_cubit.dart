@@ -28,9 +28,17 @@ sealed class SeasonFormState {
 }
 
 class SeasonFormEditing extends SeasonFormState {
-  const SeasonFormEditing({this.errors = const {}, this.submitError});
+  const SeasonFormEditing({
+    this.errors = const {},
+    this.submitError,
+    this.storeUnreadable = false,
+  });
   final Map<String, String> errors;
   final String? submitError;
+
+  /// سجلّ العمليّات المعلّقة لا يُقرأ (مفتاحه مفقود): المخرج حذفه بعد تأكيد
+  /// ([SeasonFormCubit.resetUnreadableStore])، لا إعادة المحاولة.
+  final bool storeUnreadable;
 }
 
 class SeasonFormSubmitting extends SeasonFormState {
@@ -91,8 +99,9 @@ class SeasonFormCubit extends Cubit<SeasonFormState> {
   );
 
   /// مفتاح العمليّة: مفتاح الإنشاء المسجَّل، أو مفتاح التعديل.
-  IdempotencyKey get idempotencyKey =>
-      original != null ? _editKey.current : (_create.record?.key ?? _editKey.current);
+  IdempotencyKey get idempotencyKey => original != null
+      ? _editKey.current
+      : (_create.record?.key ?? _editKey.current);
 
   /// سجلّ عمليّة الإنشاء الحاليّة (للاختبار والتشخيص).
   OperationRecord? get operation => _create.record;
@@ -104,7 +113,17 @@ class SeasonFormCubit extends Cubit<SeasonFormState> {
     if (isEdit) return;
     final o = await _create.restore();
     if (isClosed || o == null) return;
+    // صندوقٌ لا يُقرأ يُسمّى فور فتح الشاشة؛ لا يُكتب فوق إرسالٍ بدأ قبل الاستعادة.
+    if (o is CreateNotSaved && state is! SeasonFormEditing) return;
     _emitOutcome(o);
+  }
+
+  /// يحذف سجلّ العمليّات غير المقروء بعد تأكيد المستخدم، ثمّ يعود الحفظ ممكناً.
+  Future<void> resetUnreadableStore() async {
+    final s = state;
+    if (s is! SeasonFormEditing || !s.storeUnreadable) return;
+    final ok = await _ledger.resetUnreadableStore();
+    if (ok && !isClosed) emit(const SeasonFormEditing());
   }
 
   Future<void> submit(SeasonFormInput input) async {
@@ -211,8 +230,13 @@ class SeasonFormCubit extends Cubit<SeasonFormState> {
         emit(SeasonFormUnconfirmed(o));
       case CreateRejected(:final error):
         emit(SeasonFormEditing(submitError: seasonWriteError(error)));
-      case CreateNotSaved(:final messageAr):
-        emit(SeasonFormEditing(submitError: messageAr));
+      case CreateNotSaved(:final messageAr, :final storeUnreadable):
+        emit(
+          SeasonFormEditing(
+            submitError: messageAr,
+            storeUnreadable: storeUnreadable,
+          ),
+        );
       case CreateBusy():
         break;
     }
@@ -237,7 +261,9 @@ class SeasonFormCubit extends Cubit<SeasonFormState> {
     } catch (e) {
       if (!isClosed) {
         emit(
-          SeasonFormEditing(submitError: seasonWriteError(ApiException.from(e))),
+          SeasonFormEditing(
+            submitError: seasonWriteError(ApiException.from(e)),
+          ),
         );
       }
     }

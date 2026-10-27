@@ -607,6 +607,9 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
   bool _saving = false;
   String? _error;
 
+  /// سجلّ العمليّات المعلّقة لا يُقرأ (مفتاحه مفقود): لوحة حذفه بعد تأكيد.
+  bool _storeUnreadable = false;
+
   /// عمليّة سابقة لم تُحسَم (من هذه الورقة أو من جلسة/تشغيل سابق للمالك نفسه).
   CreateUnconfirmed? _unconfirmed;
 
@@ -623,8 +626,24 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
 
   Future<void> _restore() async {
     final o = await _op.restore();
-    if (!mounted || o is! CreateUnconfirmed) return;
-    setState(() => _unconfirmed = o);
+    if (!mounted) return;
+    if (o is CreateUnconfirmed) setState(() => _unconfirmed = o);
+    // صندوقٌ لا يُقرأ يُسمّى فور فتح الورقة، لا بعد ملء النموذج.
+    if (o is CreateNotSaved && o.storeUnreadable && !_saving) {
+      setState(() => _storeUnreadable = true);
+    }
+  }
+
+  /// يحذف سجلّ العمليّات غير المقروء بعد تأكيد المستخدم، ثمّ يعود الإنشاء ممكناً.
+  Future<void> _resetStore() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    final ok = await widget.ledger.resetUnreadableStore();
+    if (!mounted) return;
+    setState(() {
+      _saving = false;
+      if (ok) _storeUnreadable = false;
+    });
   }
 
   @override
@@ -727,10 +746,12 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
           _unconfirmed = null;
           _error = error.messageAr;
         });
-      case CreateNotSaved(:final messageAr):
+      case CreateNotSaved(:final messageAr, :final storeUnreadable):
         setState(() {
           _saving = false;
-          _error = messageAr;
+          _storeUnreadable = storeUnreadable;
+          // اللوحة تسمّي العطل وتعرض الحذف؛ لا نكرّر النصّ في سطر الخطأ.
+          _error = storeUnreadable ? null : messageAr;
         });
       case CreateBusy():
       case null:
@@ -770,6 +791,10 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
       submitting: _saving,
       errorText: _error,
       children: [
+        if (_storeUnreadable) ...[
+          const SizedBox(height: SahoolSpacing.sm),
+          UnreadableOperationStorePanel(busy: _saving, onReset: _resetStore),
+        ],
         if (unconfirmed != null) ...[
           const SizedBox(height: SahoolSpacing.sm),
           PendingOperationPanel(

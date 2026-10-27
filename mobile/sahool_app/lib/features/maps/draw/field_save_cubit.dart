@@ -40,9 +40,13 @@ class FieldSaveInProgress extends FieldSaveState {
 }
 
 class FieldSaveFailed extends FieldSaveState {
-  const FieldSaveFailed(this.error, this.view);
+  const FieldSaveFailed(this.error, this.view, {this.storeUnreadable = false});
   final ApiException error;
   final CreateErrorView view;
+
+  /// سجلّ العمليّات المعلّقة لا يُقرأ (مفتاحه مفقود): المخرج حذفه بعد تأكيد
+  /// ([FieldSaveCubit.resetUnreadableStore])، لا إعادة المحاولة.
+  final bool storeUnreadable;
 }
 
 /// إنشاءٌ سابق لم تُحسَم نتيجته — لا حفظ جديد، الاستعادة فقط.
@@ -118,10 +122,22 @@ class FieldSaveCubit extends Cubit<FieldSaveState> {
       (state is FieldSaveUnconfirmed && (state as FieldSaveUnconfirmed).busy);
 
   /// يستعيد إنشاءً معلّقاً لنفس المالك (إعادة فتح المعالج أو التطبيق).
+  /// صندوقٌ لا يُقرأ يُسمّى فور فتح المعالج، لا بعد ملء النموذج.
   Future<void> restore() async {
     final o = await _op.restore();
-    if (isClosed || o is! CreateUnconfirmed) return;
-    emit(FieldSaveUnconfirmed(o));
+    if (isClosed) return;
+    if (o is CreateUnconfirmed) emit(FieldSaveUnconfirmed(o));
+    if (o is CreateNotSaved && o.storeUnreadable && state is FieldSaveIdle) {
+      _onCreateOutcome(o);
+    }
+  }
+
+  /// يحذف سجلّ العمليّات غير المقروء بعد تأكيد المستخدم، ثمّ يعود الحفظ ممكناً.
+  Future<void> resetUnreadableStore() async {
+    final s = state;
+    if (s is! FieldSaveFailed || !s.storeUnreadable) return;
+    final ok = await _ledger.resetUnreadableStore();
+    if (ok && !isClosed) emit(const FieldSaveIdle());
   }
 
   Future<void> save(
@@ -201,9 +217,18 @@ class FieldSaveCubit extends Cubit<FieldSaveState> {
         emit(FieldSaveUnconfirmed(o));
       case CreateRejected(:final error):
         emit(FieldSaveFailed(error, describeCreateError(error)));
-      case CreateNotSaved(:final messageAr):
-        final e = ApiException(kind: ApiErrorKind.unknown, messageAr: messageAr);
-        emit(FieldSaveFailed(e, CreateErrorView(messageAr, FixStep.none)));
+      case CreateNotSaved(:final messageAr, :final storeUnreadable):
+        final e = ApiException(
+          kind: ApiErrorKind.unknown,
+          messageAr: messageAr,
+        );
+        emit(
+          FieldSaveFailed(
+            e,
+            CreateErrorView(messageAr, FixStep.none),
+            storeUnreadable: storeUnreadable,
+          ),
+        );
       case CreateBusy():
         break;
     }
@@ -226,7 +251,8 @@ class FieldSaveCubit extends Cubit<FieldSaveState> {
         await _fields.createSeason(
           fieldId,
           crop: seasonCrop,
-          irrigationType: field['irrigation_type']?.toString() ?? irrigationType,
+          irrigationType:
+              field['irrigation_type']?.toString() ?? irrigationType,
           sowingDate: sowingDate,
           idempotencyKey: seasonKey,
         );

@@ -182,7 +182,10 @@ class _SeasonFormState extends State<_SeasonForm> {
         final errors = state is SeasonFormEditing
             ? state.errors
             : const <String, String>{};
-        final submitError = state is SeasonFormEditing
+        final storeUnreadable =
+            state is SeasonFormEditing && state.storeUnreadable;
+        // صندوقٌ لا يُقرأ تعرضه لوحته في الأعلى؛ لا تكرار للنصّ تحت الزرّ.
+        final submitError = state is SeasonFormEditing && !storeUnreadable
             ? state.submitError
             : null;
         final unconfirmed = state is SeasonFormUnconfirmed ? state : null;
@@ -201,6 +204,17 @@ class _SeasonFormState extends State<_SeasonForm> {
           body: ListView(
             padding: const EdgeInsetsDirectional.only(bottom: SahoolSpacing.xl),
             children: [
+              if (storeUnreadable)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(
+                    top: SahoolSpacing.md,
+                  ),
+                  child: UnreadableOperationStorePanel(
+                    onReset: context
+                        .read<SeasonFormCubit>()
+                        .resetUnreadableStore,
+                  ),
+                ),
               if (unconfirmed != null)
                 Padding(
                   padding: const EdgeInsetsDirectional.only(
