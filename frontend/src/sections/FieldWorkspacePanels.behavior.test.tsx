@@ -1,5 +1,6 @@
 // اختبارات سلوكيّة للوحات مساحة عمل الحقل (QueryClient حقيقيّ، دوال الجلب وحدها مُثبَّتة):
-//   UI-W6: بيانات مخبّأة بعد فشل إعادة جلب: تُخفى عند 401/403 وتُوسَم «قديمة» عند 503.
+//   UI-W6: بيانات مخبّأة بعد فشل إعادة جلب: تُخفى عند 401/403 وتُوسَم «قديمة» عند 503
+//          (الري · المهامّ · خط الحقل الزمني).
 //   UI-W7: تبويبا التقارير/التوصيات غير المربوطين يقولان «غير مربوط» لا «لا يوجد» (فراغ غير مقيس).
 //   UI-W8: عنوان المهمّة يُشتقّ من task_type الذي يعيده الخادم بترجمة صفحة المهام نفسها.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9,23 +10,27 @@ import type { ReactNode } from 'react';
 
 const irrigation = vi.hoisted(() => ({ advice: vi.fn(), schedules: vi.fn() }));
 const tasks = vi.hoisted(() => ({ get: vi.fn() }));
+const timeline = vi.hoisted(() => ({ get: vi.fn() }));
 
 vi.mock('../services/api/fieldIrrigation', () => ({
   getFieldIrrigationAdvice: irrigation.advice,
   getFieldIrrigationSchedules: irrigation.schedules,
 }));
 vi.mock('../services/api/fieldTasks', () => ({ getFieldTasks: tasks.get }));
+vi.mock('../services/api/fieldTimeline', () => ({ getFieldUnifiedTimeline: timeline.get }));
 vi.mock('./IrrigationManualOperationsPanel', () => ({ default: () => null }));
 vi.mock('./IrrigationEngineeringCalculator', () => ({ default: () => null }));
 vi.mock('./ReservoirBoosterNetworkCalculator', () => ({ default: () => null }));
 
 import FieldWorkspaceIrrigationPanel from './FieldWorkspaceIrrigationPanel';
 import FieldWorkspaceTasksPanel from './FieldWorkspaceTasksPanel';
+import FieldWorkspaceTimelinePanel from './FieldWorkspaceTimelinePanel';
 import FieldWorkspaceReportsPanel from './FieldWorkspaceReportsPanel';
 import FieldWorkspaceRecommendationsPanel from './FieldWorkspaceRecommendationsPanel';
 
 const ADVICE_KEY = ['field-workspace', 'f-1', 's-1', 'irrigation-advice'];
 const TASKS_KEY = ['field-workspace', 'f-1', 'tasks'];
+const TIMELINE_KEY = ['field-workspace', 'f-1', 's-1', 'unified-timeline'];
 
 function httpError(status: number) {
   return Object.assign(new Error(`HTTP ${status}`), { response: { status } });
@@ -43,6 +48,7 @@ beforeEach(() => {
   irrigation.advice.mockReset();
   irrigation.schedules.mockReset().mockResolvedValue([]);
   tasks.get.mockReset();
+  timeline.get.mockReset();
 });
 
 describe('UI-W6: cached advice after a failed refetch', () => {
@@ -77,6 +83,33 @@ describe('UI-W6: cached advice after a failed refetch', () => {
       <FieldWorkspaceTasksPanel fieldId="f-1" />);
     expect(await screen.findByText('لا تملك صلاحية عرض مهام الحقل')).toBeInTheDocument();
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
+  });
+});
+
+describe('UI-W6: cached timeline events after a failed refetch', () => {
+  const CACHED = { events: [{ event_id: 'e1', event_type: 'irrigation', title_ar: 'ريّ مُسجَّل قديم', occurred_at: '2026-10-01' }] };
+
+  it('hides cached timeline events when the refetch is 403', async () => {
+    timeline.get.mockRejectedValue(httpError(403));
+    withClient([[TIMELINE_KEY, CACHED]], <FieldWorkspaceTimelinePanel fieldId="f-1" seasonId="s-1" />);
+    expect(await screen.findByText('لا تملك صلاحية عرض خط الحقل الزمني')).toBeInTheDocument();
+    expect(screen.queryByText('ريّ مُسجَّل قديم')).not.toBeInTheDocument();
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+  });
+
+  it('marks cached timeline events as stale when the refetch is 503', async () => {
+    timeline.get.mockRejectedValue(httpError(503));
+    withClient([[TIMELINE_KEY, CACHED]], <FieldWorkspaceTimelinePanel fieldId="f-1" seasonId="s-1" />);
+    expect(await screen.findByText('خط الحقل الزمني يعمل في وضع متدهور')).toBeInTheDocument();
+    expect(screen.getByText('ريّ مُسجَّل قديم')).toBeInTheDocument();
+    expect(screen.getByText(/بيانات قديمة غير محدَّثة/)).toBeInTheDocument();
+  });
+
+  it('fresh timeline events carry no stale mark', async () => {
+    timeline.get.mockResolvedValue(CACHED);
+    withClient([], <FieldWorkspaceTimelinePanel fieldId="f-1" seasonId="s-1" />);
+    expect(await screen.findByText('ريّ مُسجَّل قديم')).toBeInTheDocument();
+    expect(screen.queryByText(/بيانات قديمة غير محدَّثة/)).not.toBeInTheDocument();
   });
 });
 
