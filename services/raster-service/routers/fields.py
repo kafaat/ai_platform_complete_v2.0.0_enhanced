@@ -71,6 +71,7 @@ from raster_field_runtime import (
     logger,
     object_store,
 )
+from raster_http_policy import TENANT_PRIVATE_IMAGE_HEADERS, requested_dates, validate_xyz
 from raster_indicator_product import eligible_observation_product
 
 router = APIRouter()
@@ -1249,8 +1250,9 @@ async def field_timeseries(
     await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (DB مصدر الحقيقة + ذاكرة)
     out_index = _display_index(index)
     index = _normalize_index(index)
-    requested_dates = [d.strip() for d in dates.split(",") if d.strip()]
-    if not requested_dates:
+    # فريدة ومحدودة العدد (كلّ تاريخ قراءة شبكة COG) — تجاوز السقف 422 قبل أيّ قراءة.
+    dates_list = requested_dates(dates)
+    if not dates_list:
         # كلّ تواريخ الطبقات الحقيقيّة المتاحة للحقل+المؤشّر. نبدأ بالذاكرة، ثم
         # نقرأ raster_assets عند إعادة التشغيل/worker آخر؛ وإلّا يصبح الـtimeline
         # فارغاً رغم وجود COGs مخزّنة. لا نُنشئ نقاطاً، فقط نكتشف التواريخ.
@@ -1274,10 +1276,10 @@ async def field_timeseries(
                 )
             except Exception as e:  # noqa: BLE001 — لا نكسر السلسلة الزمنية عند غياب DB
                 logger.warning("raster_assets dates rehydrate skipped (%s): %s", field_id, e)
-        requested_dates = sorted(seen)
+        dates_list = sorted(seen)
 
     points: list[dict] = []
-    for date in requested_dates:
+    for date in dates_list:
         real = await _real_field_grid(field_id, index, date, grid)
         if real is None:
             continue
@@ -1302,7 +1304,7 @@ async def field_timeseries(
             "available": False,
             "real_data": False,
             "points": [],
-            "requested_dates": requested_dates,
+            "requested_dates": dates_list,
             "note": "لا COG مقصوص للحقل في التواريخ المطلوبة — شغّل /process (لا قيم مؤشّر مخترعة)",
         }
 
@@ -1338,6 +1340,7 @@ async def field_tile(
     صدق + لا 500: عند غياب COG/rasterio/تقاطع البيانات → بلاطة شفّافة (الخريطة
     لا تُظهر شيئاً فوق الحقل) بدل خطأ خادم.
     """
+    validate_xyz(z, x, y)  # 422 قبل التفويض/الذاكرة المؤقّتة/التصيير
     await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (DB مصدر الحقيقة + ذاكرة)
     index = _normalize_index(index)
     _obs_inc("tile_requests_total", index)
@@ -1350,7 +1353,7 @@ async def field_tile(
             content=cached_png,
             media_type="image/png",
             headers={
-                "Cache-Control": "public, max-age=3600",
+                **TENANT_PRIVATE_IMAGE_HEADERS,
                 "X-Sahool-Tile-Cache": "hit",
                 "X-Sahool-Tile-Date": date,
                 "X-Sahool-Tile-Version": v or "default",
@@ -1371,7 +1374,7 @@ async def field_tile(
                     content=png,
                     media_type="image/png",
                     headers={
-                        "Cache-Control": "public, max-age=3600",
+                        **TENANT_PRIVATE_IMAGE_HEADERS,
                         "X-Sahool-Tile-Cache": "miss",
                         "X-Sahool-Tile-Date": date,
                         "X-Sahool-Tile-Version": v or "default",

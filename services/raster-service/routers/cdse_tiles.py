@@ -13,6 +13,7 @@ import raster_cdse_tile_runtime as _cdse_rt
 import raster_date_geo
 from fastapi import APIRouter, Query
 from fastapi.responses import Response
+from raster_http_policy import TENANT_PRIVATE_IMAGE_HEADERS, validate_xyz
 from raster_runtime_state import FIELD_LAYERS, LAYERS
 from raster_security_context import REQ_TENANT, require_field_tenant
 from raster_settings import TRANSPARENT_PNG
@@ -96,7 +97,7 @@ async def _persisted_thumbnail(field_id: str, index: str, date: str, size: int) 
             "unavailable", **({"X-Acquisition-Date": acquired} if acquired else {})
         )
 
-    headers = {"Cache-Control": "public, max-age=3600"}
+    headers = dict(TENANT_PRIVATE_IMAGE_HEADERS)
     if acquired:
         headers["X-Acquisition-Date"] = acquired
     return _state_response("ready", body=png, **headers)
@@ -127,6 +128,7 @@ async def field_cdse_tile(
     poly: str | None = Query(None),
 ):
     """بلاطة Sentinel Hub حيّة: تجلب COG مقصوص للحقل وتصيّر بلاطة XYZ."""
+    validate_xyz(z, x, y)  # 422 قبل التفويض وأيّ اكتشاف/جلب CDSE
     await _require_field(field_id)
 
     params = await _normalize_cdse_request(
@@ -171,7 +173,7 @@ async def field_cdse_tile(
             return Response(
                 content=png,
                 media_type="image/png",
-                headers={"Cache-Control": "public, max-age=3600"},
+                headers=TENANT_PRIVATE_IMAGE_HEADERS,
             )
         logger.info(
             "cdse-tile شفّاف: لا بيانات صالحة في البلاطة (%s/%s z%s/%s/%s)",
@@ -243,7 +245,7 @@ async def field_cdse_thumbnail(
             return Response(
                 content=png,
                 media_type="image/png",
-                headers={"Cache-Control": "public, max-age=3600"},
+                headers=TENANT_PRIVATE_IMAGE_HEADERS,
             )
     except Exception as e:  # noqa: BLE001
         logger.warning("CDSE thumbnail render failed (%s): %s", field_id, e)
