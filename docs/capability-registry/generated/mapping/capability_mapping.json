@@ -15,9 +15,9 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6820,
+    "files_scanned": 6821,
     "files_by_kind": {
-      "backend": 1260,
+      "backend": 1261,
       "database": 289,
       "governance": 86,
       "mobile": 407,
@@ -11340,6 +11340,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/idempotency.py",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
           "score": 12,
           "signals": [
@@ -12950,7 +12958,7 @@
         "routes": 20
       },
       "evidence_counts": {
-        "backend": 28,
+        "backend": 29,
         "routes": 100,
         "database": 10,
         "events": 53,

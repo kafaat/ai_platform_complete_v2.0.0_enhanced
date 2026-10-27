@@ -8417,3 +8417,18 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الحالة:** open (2026-10-26) — يحتاج إجراء المالك في Railway (التجميد: Railway قراءةٌ فقط للوكيل).
 - **المصدر:** مشروع Railway `resourceful-commitment` (أُنشئ 2026-10-22) بخدمةٍ واحدة `ai_platform_complete_v2.0.0_enhanced` مربوطة بفرع `main` بلا Dockerfile ولا مجلّد جذر ولا أنماط مراقبة ولا متغيّرات (`get-service-config`، قراءةً). يحاول Railpack بناء جذر المستودع فيفشل (`railpack process exited with an error`، سجلّ البناء للنشر `08e0751a`)، فتُعلَّم كلّ التزامات main بحالة `failure` في GitHub رغم نجاح الحالات الأربع عشرة الأخرى وكلّ تشغيلات Actions (مقيس على آخر 25 التزاماً حتى `84f29f2fa`). لا نطاق ولا خدمة تعتمد عليه.
 - **شرط الإغلاق:** حذف المشروع، أو فصل مصدره، أو تهيئته ببناءٍ حقيقيّ لخدمة واحدة — ثمّ التزامٌ على main بحالةٍ مجمَّعة `success`.
+
+## PLATFORM-IDEMPOTENCY-STORE-NOT-TENANT-BOUND-01 — مخزن أوامر idempotency لا يقيّد الناتج المُعاد بمستأجر الطالب
+
+- **الحالة:** open (2026-10-27).
+  - **في الكود المرشّح:** أُصلحت على فرع `claude/platform-promotion-plan-20261026`.
+  - **في التشغيل:** لم يصل الإصلاح؛ الإنتاج `fa92a1f7e` وstaging `d6ddf38ce` بلا الإصلاح.
+  - **عزل المستأجرين في البيئات المنشورة:** NOT_RUN، والعائق وصول (لا اتّصال بقاعدتي التشغيل).
+  - لا تُغلق قبل قراءة دور المنصّة الفعليّ (الخطوة 0‑ب) واختبارات القبول على staging.
+- **المصدر:** `services/sahool-platform/api/command_store.py` (`ON CONFLICT (command_id) DO NOTHING`، و`get` بـ`command_id` وحده) و`_idempotent` (نُقل إلى `services/sahool-platform/api/idempotency.py`). المفتاح فريدٌ عبر كلّ المستأجرين، والعزل كان على سياسة RLS `commands_tenant_isolation` (`migrations/v10_command_store_lifecycle.sql:43-49`) وحدها.
+  - مقيسٌ محلّيّاً على PG16: تحت المالك superuser أُعيد ناتج المستأجر الأوّل إلى الثاني بالمفتاح والجسم نفسيهما.
+  - وتحت الدور المقيّد وبلا بصمة كان الردّ «أعد المحاولة لاحقاً» لمفتاحٍ لن يصير للطالب.
+- **إصلاح الكود المرشّح:** صفٌّ مخزَّن لمستأجرٍ آخر، أو صفٌّ متعارضٌ تخفيه RLS ⇒ 409 بلا ناتج، وبرسالة تعارض الحمولة.
+- **الاختبار:** `tests_v9/test_live_pg_fake_connection_debt.py`: 10 اختبارات جديدة معدّة لوظيفة CI «Live PG Proofs»، نجحت محلّيّاً، ونجاحها في CI مطلوب. منها طلبٌ متزامن من المستأجر نفسه يلتزم أو يتراجع: لا 409. و`tests_v9/test_idempotency_mobile.py`: 3 اختبارات، تفشل الثلاثة ضدّ الكود الأصليّ. التقرير: [`reports/platform_api_promotion_plan_20261026.md`](../reports/platform_api_promotion_plan_20261026.md) §٣.
+- **شرط الإغلاق:** (1) نجاح «Live PG Proofs» في CI على رأس الدمج، (2) الخطوة 0‑ب على staging: الدور ليس superuser ولا BYPASSRLS ولا مالكاً لـ`commands`، والعزل `read committed`، (3) حالتا القبول 7 و8 على staging، ثمّ الأمر نفسه في الإنتاج بعد الموافقة.
+- **ما يبقى بعد الإغلاق:** المفتاح محجوزٌ عالمياً (409 لمستأجرٍ آخر يصادف المفتاح نفسه).

@@ -2605,7 +2605,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 263,
+      "line": 264,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "prefix": null,
       "resolved": false,
@@ -2677,7 +2677,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 85,
+      "line": 86,
       "module": "services/sahool-platform/tests/test_task_update_idempotency.py",
       "prefix": null,
       "resolved": false,
@@ -2748,7 +2748,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "a4743da3eb15497ad021c3763feb3166e9b8a2b4fc0ec5cbea59021b6b16969e",
+  "inventory_sha256": "6effe708ab4c049acb555988eceedbb783350d899597d0ec78a30ebba78bceb1",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -5246,7 +5246,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
-      "line": 263,
+      "line": 264,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
       "source": null,
       "target_expression": "mod.router"
@@ -5310,7 +5310,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_task_update_idempotency.py",
-      "line": 85,
+      "line": 86,
       "module": "services.sahool-platform.tests.test_task_update_idempotency",
       "source": null,
       "target_expression": "mod.router"

@@ -334,3 +334,120 @@ def test_farm_ledger_operation_create_is_idempotent_by_contract():
         "_assert_farm_in_tenant(",
     ):
         assert src.index(guard) > persist_at, f"{guard} يسبق _persist — 404 قبل 409"
+
+
+_OTHER_TID = "33333333-3333-3333-3333-333333333333"
+
+
+async def _stored_success(store, tenant_id, payload, result):
+    from api.command_store import Command, CommandStatus
+
+    row = Command.new("lab_sample.create", "u-a", tenant_id, payload, command_id=_CID)
+    row.status = CommandStatus.SUCCEEDED
+    row.result = result
+    store.rows[_CID] = row
+
+
+async def test_a_key_stored_for_another_tenant_never_returns_its_result(m):
+    """تحت دورٍ يتجاوز RLS يصل صفُّ مستأجرٍ آخر إلى `get`؛ والبصمة متطابقة لأنّ الجسم واحد.
+
+    قبل شرط المستأجر كان هذا يُعيد ناتج الأوّل كاملاً (PLATFORM-IDEMPOTENCY-STORE-NOT-TENANT-BOUND-01).
+    """
+    from fastapi import HTTPException
+
+    store = _FakeStore()
+    payload = {"request_digest": "d" * 64}
+    await _stored_success(store, _TID, payload, {"sample_id": "secret-of-tenant-a"})
+    calls = {"n": 0}
+
+    async def work():
+        calls["n"] += 1
+        return {"sample_id": "b"}
+
+    with pytest.raises(HTTPException) as e:
+        await m._idempotent(
+            store,
+            _CID,
+            work,
+            command_type="lab_sample.create",
+            actor_id="u-b",
+            tenant_id=_OTHER_TID,
+            payload=payload,
+        )
+    assert e.value.status_code == 409
+    assert "secret-of-tenant-a" not in str(e.value.detail)
+    assert calls["n"] == 0
+
+
+async def test_the_foreign_tenant_refusal_reads_like_a_payload_conflict(m):
+    """الرفض لا يكشف أنّ المفتاح لمستأجرٍ آخر: الرسالة نفسها التي يحملها تعارض الحمولة."""
+    from fastapi import HTTPException
+
+    store = _FakeStore()
+    await _stored_success(store, _TID, {"request_digest": "a" * 64}, {"x": 1})
+
+    async def work():
+        return {"x": 2}
+
+    kw = dict(command_type="lab_sample.create", actor_id="u")
+    with pytest.raises(HTTPException) as foreign:
+        await m._idempotent(
+            store, _CID, work, tenant_id=_OTHER_TID, payload={"request_digest": "a" * 64}, **kw
+        )
+    with pytest.raises(HTTPException) as mismatch:
+        await m._idempotent(
+            store, _CID, work, tenant_id=_TID, payload={"request_digest": "b" * 64}, **kw
+        )
+    assert foreign.value.detail == mismatch.value.detail
+
+
+async def test_the_same_tenant_in_another_spelling_is_still_a_replay(m):
+    """`tenant_id` يصل من القاعدة UUID ومن الطلب نصّاً؛ المقارنة بالقيمة لا بالحروف."""
+    store = _FakeStore()
+    payload = {"request_digest": "c" * 64}
+    await _stored_success(store, _TID, payload, {"sample_id": "s-1"})
+
+    async def work():
+        raise AssertionError("أُعيد التنفيذ")
+
+    again = await m._idempotent(
+        store,
+        _CID,
+        work,
+        command_type="lab_sample.create",
+        actor_id="u",
+        tenant_id=_TID.upper(),
+        payload=payload,
+    )
+    assert again == {"sample_id": "s-1"}
+
+
+async def test_a_conflicting_key_whose_row_is_invisible_is_not_a_retry_later(m):
+    """`insert` يتعارض و`get` لا يرى الصفّ ⇒ الصفّ لمستأجرٍ آخر خلف RLS (مقيس على PG16).
+
+    كان الردّ «قيد المعالجة — أعد المحاولة لاحقاً»: إعادةٌ لن تنجح أبداً. والآن تعارضٌ نهائيّ.
+    """
+    from fastapi import HTTPException
+
+    class _HiddenRowStore(_FakeStore):
+        async def insert(self, cmd) -> bool:
+            return False  # المفتاح محجوزٌ عالمياً
+
+        async def get(self, command_id):
+            return None  # والصفّ غير مرئيّ لهذا المستأجر
+
+    async def work():
+        raise AssertionError("نُفِّذ العمل لمفتاحٍ ليس لهذا المستأجر")
+
+    with pytest.raises(HTTPException) as refused:
+        await m._idempotent(
+            _HiddenRowStore(),
+            _CID,
+            work,
+            command_type="activity.create",
+            actor_id="u",
+            tenant_id=_OTHER_TID,
+            payload={},
+        )
+    assert refused.value.status_code == 409
+    assert "أعد المحاولة" not in refused.value.detail
