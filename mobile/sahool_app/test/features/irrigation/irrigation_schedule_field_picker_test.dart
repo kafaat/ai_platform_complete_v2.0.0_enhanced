@@ -12,6 +12,7 @@ import 'package:sahool_app/core/network/idempotency.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/irrigation/presentation/irrigation_ops_screen.dart';
 
+import '../offline_sync/operation_test_support.dart';
 import 'irrigation_test_helpers.dart';
 
 const _schedPath = '/api/v1/irrigation/schedules';
@@ -86,7 +87,16 @@ class _ScheduleServer {
 
 Future<IrrigationHarness> _open(WidgetTester t, _ScheduleServer srv) async {
   final h = IrrigationHarness(srv.handle);
-  await t.pumpWidget(host(IrrigationOpsScreen(api: h.api, role: 'owner')));
+  // إنشاء الجدول عمليّةٌ مسجَّلة (D1): سجلّ عمليّات في الذاكرة لمالك جلسة الاختبار.
+  await t.pumpWidget(
+    host(
+      IrrigationOpsScreen(
+        api: h.api,
+        role: 'owner',
+        ledger: ledgerFor(h.tokens, MemoryOperationStore()),
+      ),
+    ),
+  );
   await t.pumpAndSettle();
   await t.tap(find.text('الجداول'));
   await t.pumpAndSettle();

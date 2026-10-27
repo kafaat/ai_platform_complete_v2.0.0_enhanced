@@ -221,4 +221,73 @@ void main() {
       await t.runAsync(server.close);
     }
   });
+
+  // تكامل D1 × D5: الحقل المختار في المنتقي الاختياريّ جزءٌ من الحمولة الأصليّة المسجَّلة.
+  // بعد التزامٍ وإسقاط الردّ، تغييرُ المنتقي مسودّةٌ لا تُرسَل: الاستعادة بالمفتاح نفسه
+  // وبحقل المحاولة الأولى، وجدولٌ واحد على الخادم.
+  testWidgets('D1×D5 schedule: a picked field survives a dropped response; '
+      'changing the picker afterwards is a draft, recovery sends the original '
+      'field_id with the same key', (t) async {
+    final server = await _server(t);
+    try {
+      server.getResponses['/api/v1/fields'] = [
+        {'field_id': 'f1', 'name': 'حقل الشمال', 'area_ha': 2.5},
+        {'field_id': 'f2', 'name': 'حقل الجنوب', 'area_ha': 1.0},
+      ];
+      final tokens = MemoryTokenStore(accessToken: jwtFor('alice'));
+      final client = realClient(server, tokens);
+      final disk = <String, String>{};
+      server.plan.add(const CommitThenDrop());
+      await t.pumpWidget(
+        host(
+          IrrigationOpsScreen(
+            api: IrrigationApi(client),
+            role: 'owner',
+            ledger: ledgerFor(tokens, MemoryOperationStore(disk), client: client),
+          ),
+        ),
+      );
+      await _settle(t);
+      await _openSheet(t);
+      await _fill(t, 'ريّ الفجر');
+      Future<void> pick(String label) async {
+        final picker = find.byKey(const ValueKey('schedule-field-picker:'));
+        await t.ensureVisible(picker);
+        await t.tap(picker);
+        await _settle(t);
+        await t.tap(find.text(label).last);
+        await _settle(t);
+      }
+
+      await pick('حقل الجنوب');
+      await t.tap(find.text('إنشاء الجدول'));
+      await _settle(t);
+
+      expect(server.resources, hasLength(1), reason: 'الخادم التزم');
+      expect(server.creates.single.body!['field_id'], 'f2');
+      expect(find.text(kRecoverActionAr), findsOneWidget);
+      expect(find.text('إنشاء الجدول'), findsNothing, reason: 'لا إعادة إنشاء');
+      final key = server.creates.single.key;
+      expect(MemoryOperationStore(disk).records.single.payload['field_id'], 'f2');
+
+      // المستخدم يغيّر المنتقي إلى «غير مرتبط» ثمّ يستعيد.
+      await pick('جدول غير مرتبط بحقل');
+      await t.tap(find.text(kRecoverActionAr));
+      await _settle(t);
+
+      expect(find.byKey(const ValueKey('pending-op-recovered')), findsOneWidget);
+      expect(server.resources, hasLength(1), reason: 'جدول واحد');
+      expect(server.creates, hasLength(2));
+      expect(server.creates.map((c) => c.key).toSet(), {key});
+      expect(
+        server.creates.every((c) => c.body!['field_id'] == 'f2'),
+        isTrue,
+        reason: 'الحمولة الأصليّة وحدها تُرسَل؛ تغيير المنتقي مسودّة',
+      );
+    } finally {
+      await t.pumpWidget(const SizedBox());
+      await t.pump(const Duration(seconds: 31));
+      await t.runAsync(server.close);
+    }
+  });
 }
