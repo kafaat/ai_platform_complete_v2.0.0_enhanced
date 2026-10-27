@@ -133,6 +133,8 @@ def grid_from_cog(
                 }
             if src.nodata is not None:
                 arr = np.where(arr == src.nodata, np.nan, arr)
+            # إحصاء الحقل من بكسلات المصدر الصالحة، لا من خلايا العرض المُصغَّرة (T8).
+            field_stats = ig.source_pixel_stats(src)
             if src.crs is not None:
                 bbox = list(transform_bounds(src.crs, "EPSG:4326", *src.bounds))
             else:
@@ -142,7 +144,7 @@ def grid_from_cog(
 
     if not np.isfinite(arr).any():
         return None  # a historical all-nodata COG is not an observation
-    part = ig.grid_from_array(arr, index, grid)
+    part = ig.grid_from_array(arr, index, grid, field_stats=field_stats)
     result = {
         "field_id": layer.get("field_id") or "",
         "index": index,
@@ -153,7 +155,10 @@ def grid_from_cog(
         "grid": part["grid"],
         "grid_identity": grid_identity,
         "stats": part["stats"],
+        "stats_basis": part["stats_basis"],
+        "grid_stats": part["grid_stats"],
         "zones": part["zones"],
+        "severity_supported": part["severity_supported"],
         "source": layer.get("source_format") or "raster",
         "real_data": True,
         "cloud_pct": layer.get("cloud_pct"),

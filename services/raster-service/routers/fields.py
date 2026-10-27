@@ -1046,6 +1046,7 @@ async def field_pixel_value(
     try:
         import math as _math
 
+        import numpy as _np
         import rasterio
         from rasterio.warp import transform
     except Exception as e:  # noqa: BLE001
@@ -1061,9 +1062,15 @@ async def field_pixel_value(
             row, col = src.index(xs[0], ys[0])
             if row < 0 or col < 0 or row >= src.height or col >= src.width:
                 raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة")
-            value = next(src.sample([(xs[0], ys[0])]))[0]
+            # masked=True: القناع الداخليّ للبيانات (internal dataset mask) يُبطل البكسل
+            # كما يُبطله nodata — بدونه تُرجَع قيمة بكسل مخفيّ كأنّها صالحة (T10).
+            value = next(src.sample([(xs[0], ys[0])], masked=True))[0]
             nodata = src.nodata
-            if (nodata is not None and value == nodata) or not _math.isfinite(float(value)):
+            if (
+                value is _np.ma.masked
+                or (nodata is not None and value == nodata)
+                or not _math.isfinite(float(value))
+            ):
                 return {
                     "field_id": field_id,
                     "index": out_index,
