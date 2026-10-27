@@ -210,7 +210,9 @@ def compute_topographic_risk_from_dem(
         terrain_shadow_risk_pct = _supported_pct(
             hillshade <= float(shadow_hillshade_threshold), gradient_supported
         )
-        hillshade_available = True
+        # Hillshade is only available where it had gradient support; read it
+        # before the cast-shadow max below can overwrite the percentage.
+        hillshade_available = terrain_shadow_risk_pct is not None
     else:
         warnings.append("sun_geometry_unavailable_for_terrain_shadow_model")
 

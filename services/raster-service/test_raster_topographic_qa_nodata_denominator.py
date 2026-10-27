@@ -74,3 +74,24 @@ def test_slope_risk_without_gradient_support_is_unavailable_not_zero():
     risk = tq.compute_topographic_risk_from_dem(dem, pixel_size_m=1.0)
     assert risk["slope_risk_pct"] is None
     assert "dem_gradient_support_insufficient" in risk["warnings"]
+
+    # With sun geometry the hillshade part is equally unsupported, so it must
+    # not be advertised as available even though the sun model ran.
+    risk = tq.compute_topographic_risk_from_dem(
+        dem,
+        pixel_size_m=1.0,
+        sun_azimuth_deg=90.0,
+        sun_altitude_deg=30.0,
+        cast_shadow_enabled=False,
+    )
+    assert risk["sun_geometry_available"] is True
+    assert risk["terrain_shadow_risk_pct"] is None
+    assert risk["hillshade_available"] is False
+
+    # Cast shadow still runs here; the envelope must not claim hillshade
+    # support just because sun geometry was present.
+    qa = tq.build_topographic_qa_from_dem_array(
+        dem, pixel_size_m=1.0, sun_azimuth_deg=90.0, sun_altitude_deg=30.0
+    )
+    assert qa["slope_risk_pct"] is None
+    assert qa["hillshade_available"] is False
