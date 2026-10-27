@@ -598,12 +598,19 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
       _saving = true;
       _error = null;
     });
+    // حقل الصمّام المختار (UI-M1): بلا field_id كان الجدول يُحفظ غير مربوط فلا يظهر
+    // في جداول الحقل. الخادم يشتقّه من الصمّام ويرفض التعارض أيضاً؛ بلا صمّام لا حقل.
+    String? fieldId;
+    for (final v in widget.valves) {
+      if (v.id == _valveId) fieldId = v.fieldId;
+    }
     try {
       await widget.api.createSchedule({
         'name': name,
         'start_time': start,
         'duration_min': duration,
         'valve_id': ?_valveId,
+        'field_id': ?fieldId,
         'water_target_mm': ?target,
         'enabled': true,
       }, idempotencyKey: _key);
