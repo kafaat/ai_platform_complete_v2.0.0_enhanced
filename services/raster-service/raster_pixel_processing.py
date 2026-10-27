@@ -444,19 +444,32 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         read_context = _pixel_read_context(src, clip_geom_src)
 
         def _read_uint8(idx):
+            """يُرجِع (لون uint8، قناع صلاحيّة) للنطاق؛ نطاق غائب ⇒ (أصفار، None).
+
+            الصلاحيّة (nodata المُعلَن + القناع الداخليّ + خارج المضلّع) تُحمَل منفصلةً
+            عن اللون **قبل** التكميم: البكسل الصالح الأسود/الخافت (انعكاس < 1/255) يبقى
+            صالحاً وإن صار RGB 0 (P2-COL-1)، والقناع الداخليّ يُحترَم بلا مضلّع (P2-COL-2).
+            """
             if not idx:
                 shape = _clip_out.get("shape") or src.shape
-                return np.zeros(shape, dtype=np.uint8)
+                return np.zeros(shape, dtype=np.uint8), None
             _sc = req.reflectance_scale
             _of = req.reflectance_offset
+            # Preserve the existing truecolor-only Sentinel-2 fallback, but only for
+            # undeclared calibration: an explicit request scale (even the identity 1)
+            # always wins, so calibrated reflectance is not scaled twice (P2-COL-3).
+            # A raster scale of 1.0 is GDAL's "undeclared" default, not an attestation.
             if _sc is None and src.scales:
                 _sc = src.scales[idx - 1]
+                if (
+                    _sc is not None
+                    and float(_sc) == 1.0
+                    and req.source_format == ctx.SourceFormat.sentinel2_l2a
+                ):
+                    _sc = None
             if _of is None and src.offsets:
                 _of = src.offsets[idx - 1]
-            # Preserve the existing truecolor-only Sentinel-2 fallback.
-            if (
-                _sc is None or float(_sc) == 1.0
-            ) and req.source_format == ctx.SourceFormat.sentinel2_l2a:
+            if _sc is None and req.source_format == ctx.SourceFormat.sentinel2_l2a:
                 _sc = 0.0001
             cache_key = (
                 "truecolor_uint8",
@@ -465,9 +478,9 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
                 _reflectance_cache_params(_sc, _of),
             )
             if shared_cache is not None and cache_key in shared_cache:
-                out, transform = shared_cache[cache_key]
+                out, valid, transform = shared_cache[cache_key]
                 _clip_out.update(transform=transform, shape=out.shape)
-                return out
+                return out, valid
             if clip_geom_src is not None:
                 # filled=False → masked array؛ يُجنِّب OverflowError حين nodata خارج uint16
                 arr_b, t = _rio_mask(
@@ -481,22 +494,28 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
                 _clip_out["shape"] = arr_b.shape[1:]  # (H, W) of clipped window
                 raw = np.ma.filled(arr_b[0].astype("float32"), fill_value=np.nan)
             else:
-                raw = src.read(idx).astype("float32")
+                # masked=True يحمل nodata والقناع الداخليّ كما في مسار المؤشّرات.
+                raw = np.ma.filled(src.read(idx, masked=True).astype("float32"), np.nan)
             if src.nodata is not None:
                 raw = np.where(raw == src.nodata, np.nan, raw)
             raw = ctx.band_math.to_reflectance(raw, _sc, _of, np)
+            valid = np.isfinite(raw)
             raw = np.nan_to_num(np.clip(raw, 0.0, 1.0), nan=0.0)
             out = (raw * 255).astype(np.uint8)
             if shared_cache is not None:
-                shared_cache[cache_key] = (out, _clip_out.get("transform", src.transform))
-            return out
+                shared_cache[cache_key] = (out, valid, _clip_out.get("transform", src.transform))
+            return out, valid
 
-        r = _read_uint8(b.red)
-        g = _read_uint8(b.green)
-        bl = _read_uint8(b.blue)
+        r, r_valid = _read_uint8(b.red)
+        g, g_valid = _read_uint8(b.green)
+        bl, bl_valid = _read_uint8(b.blue)
         transform = _clip_out.get("transform") or src.transform
 
-    alpha = np.where((r > 0) | (g > 0) | (bl > 0), np.uint8(255), np.uint8(0))
+    # ألفا = صلاحيّة المصدر لا سطوع اللون المُكمَّم: البكسل صالح إن صلح في كلّ نطاق
+    # حاضر؛ بلا أيّ نطاق لا شيء صالح.
+    present = [v for v in (r_valid, g_valid, bl_valid) if v is not None]
+    valid_px = np.logical_and.reduce(present) if present else np.zeros(r.shape, dtype=bool)
+    alpha = np.where(valid_px, np.uint8(255), np.uint8(0))
     rgba = np.stack([r, g, bl, alpha], axis=0)  # (4, H, W) uint8
     valid_count = int((alpha > 0).sum())
     total = int(alpha.size)
