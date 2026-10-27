@@ -116,6 +116,7 @@ def test_gdal_gate_stderr_carries_the_hint_and_no_input():
         env=env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=60,
         check=False,
     )
