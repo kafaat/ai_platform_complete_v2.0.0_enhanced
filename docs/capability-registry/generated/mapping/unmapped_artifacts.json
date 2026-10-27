@@ -2296,6 +2296,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/core/network/retry_schedule.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/core/permissions/permissions.dart",
     "kind": "mobile"
   },
@@ -3336,6 +3340,22 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/test/core/local_commit_server.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/session_refresh_route_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/session_settle_route_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/session_store_generation_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/test/core/ws_event_test.dart",
     "kind": "tests"
   },
@@ -3473,6 +3493,10 @@
   },
   {
     "path": "mobile/sahool_app/test/features/maps/draw/field_save_cubit_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/draw/field_save_reconcile_test.dart",
     "kind": "tests"
   },
   {

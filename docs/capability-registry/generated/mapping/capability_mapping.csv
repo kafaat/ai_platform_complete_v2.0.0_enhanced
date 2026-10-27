@@ -10,16 +10,16 @@ DEC-008,decision,Learning attribution,True,5,5,96,14,4,0,0,4,1
 DEC-009,decision,Model calibration,True,1,0,0,2,0,0,0,0,0
 DEC-010,decision,Model lifecycle and activation,True,5,4,91,49,7,0,0,7,0
 FM-001,farm_management,Tenant and organization management,True,6,16,2,26,9,1,0,30,0
-FM-002,farm_management,Farm registry,True,7,34,44,98,23,15,35,43,0
+FM-002,farm_management,Farm registry,True,7,34,44,98,23,15,35,46,0
 FM-003,farm_management,Field registry and boundaries,True,7,13,56,5,61,2,2,14,1
-FM-004,farm_management,Season lifecycle,True,7,30,82,84,61,15,15,38,0
+FM-004,farm_management,Season lifecycle,True,7,30,82,84,64,15,15,43,0
 FM-005,farm_management,Crop and cultivar catalog,True,5,8,0,0,6,3,1,6,0
 FM-006,farm_management,Farm economics,True,4,2,3,0,0,2,0,1,0
 FM-007,farm_management,Inventory and procurement,True,7,8,26,26,14,1,8,14,4
 FM-008,farm_management,ERP integration,True,5,10,25,5,1,0,0,10,0
 GIS-001,gis,Field geometry validation,True,2,0,0,1,0,1,0,0,0
 GIS-002,gis,Map layers,True,4,2,4,0,0,3,0,2,0
-GIS-003,gis,Terrain and DEM,True,7,28,100,10,53,12,4,44,0
+GIS-003,gis,Terrain and DEM,True,7,29,100,10,60,12,4,45,0
 GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
 INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
 INT-002,farm_management,Event bus integration,True,5,6,15,2,100,0,0,20,2
@@ -30,7 +30,7 @@ IRR-002,irrigation,Water quality samples,True,5,2,6,8,1,0,0,1,0
 IRR-003,irrigation,Field water-source binding,True,3,1,0,4,0,0,0,2,1
 IRR-004,irrigation,Water balance,True,7,9,2,3,6,2,1,9,0
 IRR-005,irrigation,Irrigation recommendation,True,6,3,2,0,19,3,2,10,0
-IRR-006,irrigation,Irrigation scheduling,True,2,0,0,0,2,0,0,2,0
+IRR-006,irrigation,Irrigation scheduling,True,2,0,0,0,4,0,0,4,0
 IRR-007,irrigation,Pump and valve control,False,0,0,0,0,0,0,0,0,0
 IRR-008,irrigation,Execution verification,True,1,0,0,17,0,0,0,0,0
 IRR-009,irrigation,Water suitability multi-hazard,True,6,8,1,7,9,1,0,10,0
@@ -38,8 +38,8 @@ IRR-010,irrigation,Leaching and drainage safety,False,0,0,0,0,0,0,0,0,0
 OPS-001,operations,Task management,True,1,0,0,0,0,0,1,0,0
 OPS-002,operations,Work orders,True,6,3,7,6,3,1,0,6,0
 OPS-003,operations,Scouting,True,7,10,7,7,49,22,22,29,0
-OPS-004,operations,Field forms,True,6,3,12,14,12,0,21,26,1
-OPS-005,operations,Offline mobile,True,7,2,2,9,6,1,10,4,0
+OPS-004,operations,Field forms,True,6,3,12,14,12,0,21,29,1
+OPS-005,operations,Offline mobile,True,7,2,2,9,13,1,13,10,0
 OPS-006,operations,Equipment registry,True,1,1,0,0,0,0,0,0,0
 OPS-007,operations,Maintenance,True,4,0,0,3,1,0,1,2,0
 OPS-008,operations,Workforce and worker identity,False,0,0,0,0,0,0,0,0,0
@@ -57,7 +57,7 @@ SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
 SAT-007,satellite,Change detection,True,3,2,1,0,0,0,0,4,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,6,0
 SAT-009,satellite,COG persistence and tiling,True,6,14,70,0,17,2,1,28,0
-SEC-001,security,Tenant RLS,True,5,14,31,100,65,0,0,76,0
+SEC-001,security,Tenant RLS,True,5,14,31,100,66,0,0,77,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,2,0
 SEC-003,security,Worker identity binding,True,2,1,0,0,0,0,0,1,0
 SEC-004,security,MFA,True,7,8,24,23,4,7,7,22,0

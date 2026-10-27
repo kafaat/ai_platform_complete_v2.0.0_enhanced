@@ -15,18 +15,18 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6890,
+    "files_scanned": 6918,
     "files_by_kind": {
-      "backend": 1263,
+      "backend": 1264,
       "database": 289,
       "governance": 86,
-      "mobile": 409,
+      "mobile": 414,
       "other": 2130,
-      "tests": 2213,
+      "tests": 2235,
       "web": 500
     },
-    "unmapped_artifacts": 2736,
-    "ambiguous_artifacts": 493
+    "unmapped_artifacts": 2742,
+    "ambiguous_artifacts": 495
   },
   "capabilities": [
     {
@@ -6229,7 +6229,23 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/test/features/fields/wizard/field_create_reconcile_wizard_test.dart",
+          "score": 12,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/test/features/fields/wizard/field_create_wizard_test.dart",
+          "score": 12,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_screens_test.dart",
           "score": 12,
           "signals": [
             "content:farm",
@@ -6335,6 +6351,14 @@
         {
           "path": "tests_v9/test_writeops_events_emitted.py",
           "score": 9,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/core/session_generation_test.dart",
+          "score": 8,
           "signals": [
             "content:farm",
             "content:farms"
@@ -6507,7 +6531,7 @@
         "events": 23,
         "web": 15,
         "mobile": 35,
-        "tests": 43,
+        "tests": 46,
         "governance": 0,
         "other_evidence": 15
       },
@@ -8507,24 +8531,36 @@
           "score": 14
         },
         {
+          "value": "field.create @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:25",
+          "score": 12
+        },
+        {
+          "value": "field_create_api.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:20",
+          "score": 12
+        },
+        {
+          "value": "field_create_errors.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:21",
+          "score": 12
+        },
+        {
+          "value": "field_created_events.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:22",
+          "score": 12
+        },
+        {
+          "value": "irrigation_schedule.create @ mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart:223",
+          "score": 12
+        },
+        {
+          "value": "irrigation_schedule.create @ mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart:97",
+          "score": 12
+        },
+        {
           "value": "crop_card.thermal.flowering_safe_max_c @ services/sahool-platform/core/season_stage_risk.py:172",
           "score": 11
         },
         {
           "value": "crop_card.thermal.flowering_safe_max_c @ services/sahool-platform/tests/test_season_stage_risk.py:136",
           "score": 11
-        },
-        {
-          "value": "field_create_api.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:17",
-          "score": 10
-        },
-        {
-          "value": "field_create_errors.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:18",
-          "score": 10
-        },
-        {
-          "value": "field_created_events.dart @ mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart:19",
-          "score": 10
         },
         {
           "value": "crop_rotation.added @ services/sahool-platform/api/event_replay.py:257",
@@ -8893,7 +8929,7 @@
         },
         {
           "path": "mobile/sahool_app/lib/features/maps/draw/field_save_cubit.dart",
-          "score": 10,
+          "score": 12,
           "signals": [
             "content:crop season",
             "content:season"
@@ -8955,6 +8991,16 @@
         },
         {
           "path": "mobile/sahool_app/test/features/crop_season/crop_season_screen_test.dart",
+          "score": 28,
+          "signals": [
+            "path:crop season",
+            "content:crop season",
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/crop_season/season_create_reconcile_test.dart",
           "score": 28,
           "signals": [
             "path:crop season",
@@ -9181,8 +9227,40 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_reconcile_default_ledger_test.dart",
+          "score": 12,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_store_failure_test.dart",
+          "score": 12,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart",
+          "score": 12,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_crop_rotation_intelligence.py",
           "score": 12,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_screens_test.dart",
+          "score": 11,
           "signals": [
             "content:crop season",
             "content:season"
@@ -9383,10 +9461,10 @@
         "backend": 30,
         "routes": 82,
         "database": 84,
-        "events": 61,
+        "events": 64,
         "web": 15,
         "mobile": 15,
-        "tests": 38,
+        "tests": 43,
         "governance": 0,
         "other_evidence": 16
       },
@@ -11388,6 +11466,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/idempotency.py",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
           "score": 12,
           "signals": [
@@ -12098,6 +12184,34 @@
           "score": 15
         },
         {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:101",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:114",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:128",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:141",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:153",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:167",
+          "score": 14
+        },
+        {
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:75",
+          "score": 14
+        },
+        {
           "value": "field.create @ tests_v9/test_idempotency_mobile.py:241",
           "score": 14
         },
@@ -12490,6 +12604,14 @@
             "content:contour",
             "content:dem",
             "content:terrain"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
           ]
         },
         {
@@ -13025,13 +13147,13 @@
         "routes": 20
       },
       "evidence_counts": {
-        "backend": 28,
+        "backend": 29,
         "routes": 100,
         "database": 10,
-        "events": 53,
+        "events": 60,
         "web": 12,
         "mobile": 4,
-        "tests": 44,
+        "tests": 45,
         "governance": 0,
         "other_evidence": 35
       },
@@ -15477,6 +15599,14 @@
         {
           "value": "irrigation.py @ tests_v9/test_irrigation_schedule_conflict_v29_5_op.py:86",
           "score": 14
+        },
+        {
+          "value": "irrigation_test_helpers.dart @ mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart:16",
+          "score": 11
+        },
+        {
+          "value": "irrigation_test_helpers.dart @ mobile/sahool_app/test/features/irrigation/schedule_create_reconcile_test.dart:16",
+          "score": 11
         }
       ],
       "web": [],
@@ -15497,6 +15627,22 @@
             "path:irrigation schedule",
             "content:irrigation schedule"
           ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart",
+          "score": 11,
+          "signals": [
+            "path:irrigation schedule",
+            "content:irrigation schedule"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/irrigation/schedule_create_reconcile_test.dart",
+          "score": 11,
+          "signals": [
+            "path:irrigation schedule",
+            "content:irrigation schedule"
+          ]
         }
       ],
       "governance": [],
@@ -15509,10 +15655,10 @@
         "backend": 0,
         "routes": 0,
         "database": 0,
-        "events": 2,
+        "events": 4,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 4,
         "governance": 0,
         "other_evidence": 0
       },
@@ -17615,11 +17761,11 @@
           "score": 25
         },
         {
-          "value": "field_forms_api.dart @ mobile/sahool_app/lib/features/field_forms/data/field_forms_coordinator.dart:20",
-          "score": 22
+          "value": "field_forms_api.dart @ mobile/sahool_app/lib/features/field_forms/data/submission_sender.dart:22",
+          "score": 24
         },
         {
-          "value": "field_forms_api.dart @ mobile/sahool_app/lib/features/field_forms/data/submission_sender.dart:11",
+          "value": "field_forms_api.dart @ mobile/sahool_app/lib/features/field_forms/data/field_forms_coordinator.dart:28",
           "score": 22
         },
         {
@@ -17704,6 +17850,16 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/lib/features/field_forms/data/submission_sender.dart",
+          "score": 24,
+          "signals": [
+            "path:Field forms",
+            "content:Field forms",
+            "path:field form",
+            "content:field form"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/lib/features/field_forms/contract/condition_v1.dart",
           "score": 22,
           "signals": [
@@ -17725,16 +17881,6 @@
         },
         {
           "path": "mobile/sahool_app/lib/features/field_forms/data/field_forms_coordinator.dart",
-          "score": 22,
-          "signals": [
-            "path:Field forms",
-            "content:Field forms",
-            "path:field form",
-            "content:field form"
-          ]
-        },
-        {
-          "path": "mobile/sahool_app/lib/features/field_forms/data/submission_sender.dart",
           "score": 22,
           "signals": [
             "path:Field forms",
@@ -17835,6 +17981,26 @@
       "tests": [
         {
           "path": "mobile/sahool_app/test/features/field_forms/field_form_screen_test.dart",
+          "score": 28,
+          "signals": [
+            "path:Field forms",
+            "content:Field forms",
+            "path:field form",
+            "content:field form"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/field_forms/field_forms_reconnect_d3_test.dart",
+          "score": 28,
+          "signals": [
+            "path:Field forms",
+            "content:Field forms",
+            "path:field form",
+            "content:field form"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/field_forms/field_forms_sync_d3_test.dart",
           "score": 28,
           "signals": [
             "path:Field forms",
@@ -18074,6 +18240,14 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/test/core/auth_gate_refresh_unknown_test.dart",
+          "score": 8,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/test/core/auth_gate_startup_test.dart",
           "score": 8,
           "signals": [
@@ -18204,7 +18378,7 @@
         "events": 12,
         "web": 0,
         "mobile": 21,
-        "tests": 26,
+        "tests": 29,
         "governance": 1,
         "other_evidence": 11
       },
@@ -18309,6 +18483,34 @@
           "score": 13
         },
         {
+          "value": "irrigation_schedule.create @ mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_message_test.dart:55",
+          "score": 13
+        },
+        {
+          "value": "irrigation_schedule.create @ mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart:223",
+          "score": 13
+        },
+        {
+          "value": "irrigation_schedule.create @ mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart:97",
+          "score": 13
+        },
+        {
+          "value": "irrigation_schedule.create @ mobile/sahool_app/test/features/offline_sync/operation_ledger_test.dart:18",
+          "score": 12
+        },
+        {
+          "value": "irrigation_schedule.create @ mobile/sahool_app/test/features/offline_sync/operation_owner_switch_test.dart:23",
+          "score": 12
+        },
+        {
+          "value": "field.create @ mobile/sahool_app/lib/features/offline_sync/data/operation_ledger.dart:168",
+          "score": 11
+        },
+        {
+          "value": "irrigation_schedule.create @ mobile/sahool_app/lib/features/offline_sync/data/operation_ledger.dart:168",
+          "score": 11
+        },
+        {
           "value": "sahool.drawing.offline.drafts.v1 @ frontend/src/components/maphub/drawing/drawingOfflineSync.ts:6",
           "score": 8
         },
@@ -18385,6 +18587,14 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_test_support.dart",
+          "score": 13,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/lib/features/offline_sync/data/outbox_record.dart",
           "score": 12,
           "signals": [
@@ -18401,6 +18611,22 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/lib/features/offline_sync/presentation/pending_operation_panel.dart",
+          "score": 12,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/lib/features/offline_sync/data/operation_ledger.dart",
+          "score": 11,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/lib/features/offline_sync/data/outbox_store.dart",
           "score": 11,
           "signals": [
@@ -18410,6 +18636,15 @@
         }
       ],
       "tests": [
+        {
+          "path": "mobile/sahool_app/test/features/offline_sync/sync_queue_d3_test.dart",
+          "score": 22,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync",
+            "path:sync queue"
+          ]
+        },
         {
           "path": "mobile/sahool_app/test/features/offline_sync/durable_offline_outbox_test.dart",
           "score": 14,
@@ -18427,6 +18662,30 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_message_test.dart",
+          "score": 13,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_screens_test.dart",
+          "score": 13,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart",
+          "score": 13,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/test/features/offline_sync/outbox_store_test.dart",
           "score": 13,
           "signals": [
@@ -18437,6 +18696,22 @@
         {
           "path": "tests/mobile/test_phase11_mobile_offline_sync_runtime.py",
           "score": 13,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_ledger_test.dart",
+          "score": 12,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/offline_sync/operation_owner_switch_test.dart",
+          "score": 12,
           "signals": [
             "path:offline sync",
             "content:offline sync"
@@ -18470,10 +18745,10 @@
         "backend": 2,
         "routes": 2,
         "database": 9,
-        "events": 6,
+        "events": 13,
         "web": 1,
-        "mobile": 10,
-        "tests": 4,
+        "mobile": 13,
+        "tests": 10,
         "governance": 0,
         "other_evidence": 2
       },
@@ -23301,7 +23576,7 @@
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_cache_invalidation_worker_v30_0.py:197",
+          "value": "field.created @ tests_v9/test_cache_invalidation_worker_v30_0.py:200",
           "score": 12
         },
         {
@@ -28632,6 +28907,10 @@
           "score": 18
         },
         {
+          "value": "commands @ tests_v9/test_d4d5_idempotency_irrigation_live_pg.py:112",
+          "score": 18
+        },
+        {
           "value": "digital_twin_scenarios @ migrations/v116_enterprise_gis_phase7.sql:105",
           "score": 18
         },
@@ -28668,6 +28947,10 @@
           "score": 18
         },
         {
+          "value": "fields @ tests_v9/test_d4d5_idempotency_irrigation_live_pg.py:103",
+          "score": 18
+        },
+        {
           "value": "gis_collaboration_events @ migrations/v116_enterprise_gis_phase7.sql:102",
           "score": 18
         },
@@ -28689,6 +28972,10 @@
         },
         {
           "value": "gis_collaboration_sessions @ migrations/v116_enterprise_gis_phase7.sql:94",
+          "score": 18
+        },
+        {
+          "value": "iot_devices @ tests_v9/test_d4d5_idempotency_irrigation_live_pg.py:104",
           "score": 18
         },
         {
@@ -28827,18 +29114,6 @@
         {
           "value": "field_state @ migrations/v104_fields_create_contract.sql:53",
           "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:54",
-          "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:55",
-          "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:56",
-          "score": 17
         }
       ],
       "events": [
@@ -28857,6 +29132,10 @@
         {
           "value": "soil-profile.v1 @ migrations/v155_soil_observations_profiles.sql:35",
           "score": 20
+        },
+        {
+          "value": "v25_irrigation.sql @ tests_v9/test_d4d5_idempotency_irrigation_live_pg.py:113",
+          "score": 18
         },
         {
           "value": "field.create @ docs/PRODUCTION_CERTIFICATION_v05_2026-06-17.md:106",
@@ -29212,6 +29491,16 @@
           "score": 19,
           "signals": [
             "path:rls",
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "tests_v9/test_d4d5_idempotency_irrigation_live_pg.py",
+          "score": 18,
+          "signals": [
+            "content:Tenant RLS",
             "content:rls",
             "content:row level security",
             "content:tenant isolation"
@@ -30513,16 +30802,16 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 802
+        "database": 805
       },
       "evidence_counts": {
         "backend": 14,
         "routes": 31,
         "database": 100,
-        "events": 65,
+        "events": 66,
         "web": 0,
         "mobile": 0,
-        "tests": 76,
+        "tests": 77,
         "governance": 0,
         "other_evidence": 87
       },
@@ -43464,6 +43753,10 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/lib/core/network/retry_schedule.dart",
+      "kind": "mobile"
+    },
+    {
       "path": "mobile/sahool_app/lib/core/permissions/permissions.dart",
       "kind": "mobile"
     },
@@ -44504,6 +44797,22 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/test/core/local_commit_server.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/test/core/session_refresh_route_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/core/session_settle_route_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/core/session_store_generation_test.dart",
+      "kind": "tests"
+    },
+    {
       "path": "mobile/sahool_app/test/core/ws_event_test.dart",
       "kind": "tests"
     },
@@ -44641,6 +44950,10 @@
     },
     {
       "path": "mobile/sahool_app/test/features/maps/draw/field_save_cubit_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/features/maps/draw/field_save_reconcile_test.dart",
       "kind": "tests"
     },
     {
@@ -57091,6 +57404,58 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_screens_test.dart",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "OPS-005",
+          "score": 13,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
+        },
+        {
+          "capability_id": "FM-002",
+          "score": 12,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "capability_id": "FM-004",
+          "score": 11,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "OPS-005",
+          "score": 13,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
+        },
+        {
+          "capability_id": "FM-004",
+          "score": 12,
+          "signals": [
+            "content:crop season",
+            "content:season"
           ]
         }
       ]

@@ -3737,6 +3737,7 @@
         "services/sahool-platform/api/routers/harvest_traceability.py",
         "services/sahool-platform/api/routers/indicators.py",
         "services/sahool-platform/api/routers/internal_service.py",
+        "services/sahool-platform/api/routers/irrigation.py",
         "services/sahool-platform/api/routers/irrigation_mpc.py",
         "services/sahool-platform/api/routers/learning_summary.py",
         "services/sahool-platform/api/routers/market.py",
@@ -3754,6 +3755,7 @@
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
+        "services/sahool-platform/tests/test_idempotency_server_contract.py",
         "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_nl_sql_policy.py",
@@ -4691,6 +4693,7 @@
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/irrigation.py",
+        "services/sahool-platform/tests/test_idempotency_server_contract.py",
         "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py"
       ],
       "created_in": "v25_irrigation.sql",
@@ -4764,6 +4767,7 @@
       "code_readers": [
         "services/sahool-platform/api/routers/irrigation.py",
         "services/sahool-platform/api/routers/operations.py",
+        "services/sahool-platform/tests/test_idempotency_server_contract.py",
         "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "services/sahool-platform/tests/test_operations_summary_endpoint.py"
       ],
@@ -6240,7 +6244,8 @@
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/fields.py",
-        "services/sahool-platform/api/routers/seasons.py"
+        "services/sahool-platform/api/routers/seasons.py",
+        "services/sahool-platform/tests/test_idempotency_server_contract.py"
       ],
       "created_in": "v32_seasons.sql",
       "has_tenant_id": true,

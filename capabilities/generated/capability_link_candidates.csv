@@ -298,6 +298,7 @@ FM-001,service,services/auth/main.py,10,applied
 FM-001,service,services/field-management-service/main.py,10,applied
 FM-001,test,docs/testing/decision_transport_auth_repairs_20260909.md,3,applied
 FM-001,test,mobile/sahool_app/test/auth_service_test.dart,3,applied
+FM-001,test,mobile/sahool_app/test/core/auth_gate_refresh_unknown_test.dart,3,applied
 FM-001,test,mobile/sahool_app/test/core/auth_gate_startup_test.dart,3,applied
 FM-001,test,mobile/sahool_app/test/features/auth/auth_test_app.dart,3,applied
 FM-001,test,mobile/sahool_app/test/features/auth/login_screen_test.dart,3,applied
@@ -750,6 +751,8 @@ FM-003,service,services/field-management-service/main.py,10,applied
 FM-003,test,docs/testing/FIELD_WORKSPACE_PRODUCTION_CLOSURE.md,3,applied
 FM-003,test,mobile/sahool_app/test/features/field_forms/ff_fixtures.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/field_forms/field_form_screen_test.dart,3,applied
+FM-003,test,mobile/sahool_app/test/features/field_forms/field_forms_reconnect_d3_test.dart,3,applied
+FM-003,test,mobile/sahool_app/test/features/field_forms/field_forms_sync_d3_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/field_forms/field_forms_sync_safety_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/field_forms/submission_contract_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/fields/cross_feature_routes_test.dart,3,applied
@@ -758,10 +761,13 @@ FM-003,test,mobile/sahool_app/test/features/fields/field_workspace_test.dart,5,a
 FM-003,test,mobile/sahool_app/test/features/fields/fields_list_refresh_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/fields/fields_screen_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/fields/harness.dart,3,applied
+FM-003,test,mobile/sahool_app/test/features/fields/wizard/field_create_reconcile_wizard_test.dart,5,applied
 FM-003,test,mobile/sahool_app/test/features/fields/wizard/field_create_wizard_test.dart,5,applied
+FM-003,test,mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/maps/draw/boundary_import_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/maps/draw/boundary_validation_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/maps/draw/field_save_cubit_test.dart,3,applied
+FM-003,test,mobile/sahool_app/test/features/maps/draw/field_save_reconcile_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/maps/io/boundary_parsers_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/maps/offline_field_map_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/satellite/field_indicators_cubit_test.dart,3,applied
@@ -945,6 +951,7 @@ FM-004,mobile,mobile/sahool_app/lib/features/crop_season/presentation/seasons_sc
 FM-004,mobile,mobile/sahool_app/lib/features/fields/presentation/workspace/season_section.dart,2,applied
 FM-004,service,services/field-management-service/main.py,10,applied
 FM-004,test,mobile/sahool_app/test/features/crop_season/crop_season_screen_test.dart,5,applied
+FM-004,test,mobile/sahool_app/test/features/crop_season/season_create_reconcile_test.dart,5,applied
 FM-004,test,mobile/sahool_app/test/features/crop_season/season_form_logic_test.dart,5,applied
 FM-004,test,scripts/simulation/test_export_season_runs_for_golden.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_farm_full_season_forensic.py,3,applied
@@ -1012,6 +1019,7 @@ FM-005,mobile,mobile/sahool_app/lib/features/crop_season/presentation/season_sta
 FM-005,mobile,mobile/sahool_app/lib/features/crop_season/presentation/seasons_cubit.dart,2,applied
 FM-005,mobile,mobile/sahool_app/lib/features/crop_season/presentation/seasons_screen.dart,2,applied
 FM-005,test,mobile/sahool_app/test/features/crop_season/crop_season_screen_test.dart,3,applied
+FM-005,test,mobile/sahool_app/test/features/crop_season/season_create_reconcile_test.dart,3,applied
 FM-005,test,mobile/sahool_app/test/features/crop_season/season_form_logic_test.dart,3,applied
 FM-005,test,services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py,3,applied
 FM-005,test,services/sahool-platform/tests/test_crop_cards.py,3,applied
@@ -1379,11 +1387,14 @@ IRR-005,test,tests_v9/test_recommendation_runtime_wiring.py,3,applied
 IRR-005,test,tests_v9/test_recommendation_wiring_preconditions.py,3,applied
 IRR-005,test,tests_v9/test_recommendation_work_order_idempotency.py,3,applied
 IRR-005,test,tests_v9/test_v152_recommendation_feedback_deprecation_static.py,3,applied
-IRR-006,api,DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:420,3,applied
-IRR-006,api,POST /api/v1/irrigation/schedules @ services/sahool-platform/api/routers/irrigation.py:277,3,applied
+IRR-006,api,DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:436,3,applied
+IRR-006,api,POST /api/v1/irrigation/schedules @ services/sahool-platform/api/routers/irrigation.py:293,3,applied
 IRR-006,api,POST /v1/fields/{field_id}/post-execution-observations @ services/vegetation-analysis-service/routers/outcomes.py:43,2,applied
 IRR-006,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2807,2,applied
+IRR-006,mobile,mobile/sahool_app/lib/core/network/retry_schedule.dart,2,applied
 IRR-006,service,services/sahool-platform/api/main.py,10,applied
+IRR-006,test,mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart,7,applied
+IRR-006,test,mobile/sahool_app/test/features/irrigation/schedule_create_reconcile_test.dart,3,applied
 IRR-006,test,services/sahool-platform/tests/test_irrigation_schedule_create_contract.py,7,applied
 IRR-006,test,tests_v9/test_irrigation_schedule_conflict_v29_5_op.py,7,applied
 IRR-007,api,GET /api/v1/commands/{command_id} @ services/sahool-platform/api/routers/commands.py:31,3,applied
@@ -1393,8 +1404,8 @@ IRR-007,api,GET /readyz @ services/actuator-service/routers/health.py:32,3,appli
 IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229,2,applied
 IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:74,3,applied
 IRR-007,api,GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
-IRR-007,api,POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:102,3,applied
-IRR-007,api,POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:181,3,applied
+IRR-007,api,POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:101,3,applied
+IRR-007,api,POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:180,3,applied
 IRR-007,api,POST /api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:828,3,applied
 IRR-007,api,POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:865,3,applied
 IRR-007,api,POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:897,3,applied
@@ -1566,6 +1577,8 @@ OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/presentation/schema_fo
 OPS-004,service,services/field-management-service/main.py,10,applied
 OPS-004,test,mobile/sahool_app/test/features/field_forms/ff_fixtures.dart,7,applied
 OPS-004,test,mobile/sahool_app/test/features/field_forms/field_form_screen_test.dart,7,applied
+OPS-004,test,mobile/sahool_app/test/features/field_forms/field_forms_reconnect_d3_test.dart,7,applied
+OPS-004,test,mobile/sahool_app/test/features/field_forms/field_forms_sync_d3_test.dart,7,applied
 OPS-004,test,mobile/sahool_app/test/features/field_forms/field_forms_sync_safety_test.dart,7,applied
 OPS-004,test,mobile/sahool_app/test/features/field_forms/submission_contract_test.dart,7,applied
 OPS-004,test,mobile/sahool_app/test/field_forms/condition_corpus_data.dart,7,applied
@@ -1602,10 +1615,12 @@ OPS-005,mobile,mobile/sahool_app/lib/features/maps/presentation/offline_packs_cu
 OPS-005,mobile,mobile/sahool_app/lib/features/maps/presentation/offline_packs_screen.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/data/durable_offline_outbox.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/data/offline_sync_api.dart,2,applied
+OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/data/operation_ledger.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/data/outbox_record.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/data/outbox_store.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/offline_outbox.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/offline_sync_routes.dart,2,applied
+OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/presentation/pending_operation_panel.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/presentation/pending_sync_badge.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/presentation/sync_status_cubit.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/presentation/sync_status_screen.dart,2,applied
@@ -1614,8 +1629,17 @@ OPS-005,mobile,mobile/sahool_app/lib/widgets/offline_field_map.dart,2,applied
 OPS-005,test,mobile/sahool_app/test/features/maps/offline_field_map_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/maps/offline_packs_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/offline_sync/durable_offline_outbox_test.dart,3,applied
+OPS-005,test,mobile/sahool_app/test/features/offline_sync/operation_ledger_test.dart,3,applied
+OPS-005,test,mobile/sahool_app/test/features/offline_sync/operation_owner_switch_test.dart,3,applied
+OPS-005,test,mobile/sahool_app/test/features/offline_sync/operation_reconcile_default_ledger_test.dart,3,applied
+OPS-005,test,mobile/sahool_app/test/features/offline_sync/operation_store_failure_test.dart,3,applied
+OPS-005,test,mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_message_test.dart,3,applied
+OPS-005,test,mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_screens_test.dart,3,applied
+OPS-005,test,mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart,3,applied
+OPS-005,test,mobile/sahool_app/test/features/offline_sync/operation_test_support.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/offline_sync/outbox_store_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/offline_sync/outbox_test_support.dart,3,applied
+OPS-005,test,mobile/sahool_app/test/features/offline_sync/sync_queue_d3_test.dart,7,applied
 OPS-005,test,mobile/sahool_app/test/features/offline_sync/sync_status_screen_test.dart,3,applied
 OPS-005,test,services/local-ai-rag/test_rag_offline_guards.py,3,applied
 OPS-005,test,services/sahool-platform/tests/test_offline_first.py,3,applied

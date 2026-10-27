@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "4bcf1fee00eb3b205bf89ef968d5a89bc1274c370968e965262e1da7d8ea0545",
+  "inventory_sha256": "9190b766e1a8d9bffda1c6e2ac84ea040eff853bb470bc3ec9d753bbe4dfbfc5",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "c315dfa87adcf1a4571393dd941f8fc76ad52a5d15a738a60298dc33b3bcf59e"
+    "policy_sha256": "dc66248dd73dc7cc597126c1d2abdb879ac676462db005cc9c12394aa8871d5a"
   },
   "routes": [
     {
@@ -66,7 +66,7 @@
     {
       "classification": "domain",
       "function": "delete_schedule",
-      "line": 419,
+      "line": 435,
       "method": "DELETE",
       "path": "/api/v1/irrigation/schedules/{schedule_id}",
       "source": "api/routers/irrigation.py"
@@ -1626,7 +1626,7 @@
     {
       "classification": "domain",
       "function": "irrigation_moisture_decision_endpoint",
-      "line": 440,
+      "line": 456,
       "method": "GET",
       "path": "/api/v1/irrigation/moisture-decision",
       "source": "api/routers/irrigation.py"
@@ -1642,7 +1642,7 @@
     {
       "classification": "domain",
       "function": "list_schedules",
-      "line": 369,
+      "line": 385,
       "method": "GET",
       "path": "/api/v1/irrigation/schedules",
       "source": "api/routers/irrigation.py"
@@ -1650,7 +1650,7 @@
     {
       "classification": "domain",
       "function": "irrigation_soil_types_endpoint",
-      "line": 434,
+      "line": 450,
       "method": "GET",
       "path": "/api/v1/irrigation/soil-types",
       "source": "api/routers/irrigation.py"
@@ -1658,7 +1658,7 @@
     {
       "classification": "domain",
       "function": "list_valves",
-      "line": 158,
+      "line": 157,
       "method": "GET",
       "path": "/api/v1/irrigation/valves",
       "source": "api/routers/irrigation.py"
@@ -3946,7 +3946,7 @@
     {
       "classification": "domain",
       "function": "create_schedule",
-      "line": 276,
+      "line": 292,
       "method": "POST",
       "path": "/api/v1/irrigation/schedules",
       "source": "api/routers/irrigation.py"
@@ -3954,7 +3954,7 @@
     {
       "classification": "domain",
       "function": "register_valve",
-      "line": 101,
+      "line": 100,
       "method": "POST",
       "path": "/api/v1/irrigation/valves",
       "source": "api/routers/irrigation.py"
@@ -3962,7 +3962,7 @@
     {
       "classification": "domain",
       "function": "set_valve_state",
-      "line": 180,
+      "line": 179,
       "method": "POST",
       "path": "/api/v1/irrigation/valves/{valve_id}/state",
       "source": "api/routers/irrigation.py"
@@ -3970,7 +3970,7 @@
     {
       "classification": "domain",
       "function": "irrigation_water_analysis",
-      "line": 459,
+      "line": 475,
       "method": "POST",
       "path": "/api/v1/irrigation/water-analysis",
       "source": "api/routers/irrigation.py"

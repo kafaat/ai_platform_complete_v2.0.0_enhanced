@@ -4982,6 +4982,58 @@
     ]
   },
   {
+    "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_screens_test.dart",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "OPS-005",
+        "score": 13,
+        "signals": [
+          "path:offline sync",
+          "content:offline sync"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 12,
+        "signals": [
+          "content:farm",
+          "content:farms"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 11,
+        "signals": [
+          "content:crop season",
+          "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "OPS-005",
+        "score": 13,
+        "signals": [
+          "path:offline sync",
+          "content:offline sync"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 12,
+        "signals": [
+          "content:crop season",
+          "content:season"
+        ]
+      }
+    ]
+  },
+  {
     "path": "runtime-verification/functional_probes/weather-service.json",
     "kind": "other",
     "candidates": [
