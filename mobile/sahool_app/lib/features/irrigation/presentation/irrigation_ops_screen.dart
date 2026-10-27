@@ -8,6 +8,10 @@
 // يعرض حالة الخادم لا تمنّي المستخدم: لا يتحرّك قبل ردّ الخادم، يُعطَّل أثناء
 // الطلب، يطلب تأكيداً، ويحمل مفتاح Idempotency-Key ثابتاً للنيّة. رفض الخادم
 // يُعرَض بنصّه. لا fallback وهميّ. تطابق IrrigationOpsPage في الويب.
+//
+// D5/OD-1: ورقة الجدول تحمل منتقي حقلٍ **اختياريّاً**. الصمّام المرتبط بحقل يحدّد الحقل
+// (الخادم يتحقّق ويرفض التعارض)، وتركُ الحقل فارغاً بلا صمّام يحفظ «جدول غير مرتبط بحقل»
+// ويُعرَض كذلك في القائمة. الحقل لا يُفرَض أبداً.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
@@ -19,8 +23,20 @@ import 'package:sahool_app/core/utils/formatters.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/irrigation/data/irrigation_api.dart';
 import 'package:sahool_app/features/irrigation/data/irrigation_models.dart';
+import 'package:sahool_app/features/irrigation/presentation/irrigation_fields_cubit.dart';
 import 'package:sahool_app/features/irrigation/presentation/irrigation_format.dart';
 import 'package:sahool_app/features/irrigation/presentation/irrigation_ops_cubit.dart';
+
+/// تسمية الجدول بلا حقل (OD-1) — في خيار المنتقي الفارغ وفي بطاقة القائمة.
+const String kUnlinkedScheduleLabel = 'جدول غير مرتبط بحقل';
+
+/// سطر الحقل في بطاقة الجدول: اسم الحقل إن عُرف، وإلّا معرّفه؛ وبلا حقل التسمية الصريحة.
+String scheduleFieldLabel(IrrigationSchedule s, IrrigationFieldsState fields) {
+  final id = s.fieldId;
+  if (id == null || id.isEmpty) return kUnlinkedScheduleLabel;
+  final known = fields is IrrigationFieldsLoaded ? fields.byId(id) : null;
+  return 'الحقل: ${known?.name ?? id}';
+}
 
 const String kValveIntentBanner =
     'طلب فتح/إغلاق الصمّام يُسجَّل على الخادم كنيّة فقط — التشغيل الفعليّ للعتاد '
@@ -35,10 +51,21 @@ class IrrigationOpsScreen extends StatelessWidget {
   final String? role;
 
   @override
-  Widget build(BuildContext context) => BlocProvider(
-    create: (_) => IrrigationOpsCubit(api ?? IrrigationApi.instance)..load(),
-    child: _OpsView(canManage: canManageIrrigation(role ?? currentRole())),
-  );
+  Widget build(BuildContext context) {
+    final a = api ?? IrrigationApi.instance;
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => IrrigationOpsCubit(a)..load()),
+        // حقول المستأجر لمنتقي الحقل ولتسمية البطاقة (قراءة فقط بالعميل نفسه). غير
+        // كسول: يُحمَّل مع الشاشة فتجده الورقة جاهزاً عند فتحها.
+        BlocProvider(
+          lazy: false,
+          create: (_) => IrrigationFieldsCubit(loader: a.listFields)..load(),
+        ),
+      ],
+      child: _OpsView(canManage: canManageIrrigation(role ?? currentRole())),
+    );
+  }
 }
 
 class _OpsView extends StatefulWidget {
@@ -109,12 +136,19 @@ class _OpsViewState extends State<_OpsView>
 
   Future<void> _add() async {
     final cubit = context.read<IrrigationOpsCubit>();
+    final fieldsState = context.read<IrrigationFieldsCubit>().state;
     final valveTab = _tabs.index == 0;
     final created = await showAppBottomSheet<bool>(
       context,
       builder: (_) => valveTab
           ? _AddValveSheet(api: cubit.api)
-          : _AddScheduleSheet(api: cubit.api, valves: cubit.state.valves),
+          : _AddScheduleSheet(
+              api: cubit.api,
+              valves: cubit.state.valves,
+              fields: fieldsState is IrrigationFieldsLoaded
+                  ? fieldsState.fields
+                  : const [],
+            ),
     );
     if (created == true && mounted) {
       _snack(valveTab ? 'سُجّل الصمّام.' : 'أُنشئ جدول الريّ.');
@@ -223,30 +257,33 @@ class _OpsViewState extends State<_OpsView>
     }
     return RefreshIndicator(
       onRefresh: cubit.refresh,
-      child: ListView.builder(
-        padding: const EdgeInsetsDirectional.fromSTEB(
-          SahoolSpacing.page,
-          SahoolSpacing.sm,
-          SahoolSpacing.page,
-          SahoolSpacing.xxl * 3,
+      child: BlocBuilder<IrrigationFieldsCubit, IrrigationFieldsState>(
+        builder: (context, fields) => ListView.builder(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            SahoolSpacing.page,
+            SahoolSpacing.sm,
+            SahoolSpacing.page,
+            SahoolSpacing.xxl * 3,
+          ),
+          itemCount: s.schedules.length,
+          itemBuilder: (_, i) {
+            final sc = s.schedules[i];
+            final pending = s.pendingSchedules.contains(sc.id);
+            return _ScheduleCard(
+              schedule: sc,
+              fieldLabel: scheduleFieldLabel(sc, fields),
+              trailing: !widget.canManage
+                  ? null
+                  : pending
+                  ? const _Spinner()
+                  : AppIconButton(
+                      icon: Icons.delete_outline_rounded,
+                      tooltip: 'حذف الجدول',
+                      onPressed: () => _deleteSchedule(sc),
+                    ),
+            );
+          },
         ),
-        itemCount: s.schedules.length,
-        itemBuilder: (_, i) {
-          final sc = s.schedules[i];
-          final pending = s.pendingSchedules.contains(sc.id);
-          return _ScheduleCard(
-            schedule: sc,
-            trailing: !widget.canManage
-                ? null
-                : pending
-                ? const _Spinner()
-                : AppIconButton(
-                    icon: Icons.delete_outline_rounded,
-                    tooltip: 'حذف الجدول',
-                    onPressed: () => _deleteSchedule(sc),
-                  ),
-          );
-        },
       ),
     );
   }
@@ -393,8 +430,13 @@ class _ValveCard extends StatelessWidget {
 }
 
 class _ScheduleCard extends StatelessWidget {
-  const _ScheduleCard({required this.schedule, this.trailing});
+  const _ScheduleCard({
+    required this.schedule,
+    required this.fieldLabel,
+    this.trailing,
+  });
   final IrrigationSchedule schedule;
+  final String fieldLabel;
   final Widget? trailing;
 
   @override
@@ -439,6 +481,7 @@ class _ScheduleCard extends StatelessWidget {
                     '${fmtClock(s.startTime)} · ${fmtMinutes(s.durationMin)} · $days',
                     style: context.textStyles.bodyMedium,
                   ),
+                  Text(fieldLabel, style: context.textStyles.bodySmall),
                   if (s.waterTargetMm != null)
                     Text(
                       'الهدف: ${fmtMm(s.waterTargetMm)}',
@@ -544,9 +587,16 @@ class _AddValveSheetState extends State<_AddValveSheet> {
 }
 
 class _AddScheduleSheet extends StatefulWidget {
-  const _AddScheduleSheet({required this.api, required this.valves});
+  const _AddScheduleSheet({
+    required this.api,
+    required this.valves,
+    this.fields = const [],
+  });
   final IrrigationApi api;
   final List<Valve> valves;
+
+  /// حقول المستأجر للمنتقي الاختياريّ؛ فارغة ⇒ لا منتقي (والجدول بلا صمّام غير مرتبط).
+  final List<IrrigationField> fields;
 
   @override
   State<_AddScheduleSheet> createState() => _AddScheduleSheetState();
@@ -559,10 +609,24 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
   final _target = TextEditingController();
   late final IdempotencyKey _key = IdempotencyKey.generate();
   String? _valveId;
+
+  /// الحقل الذي اختاره المستخدم بلا صمّام؛ null ⇒ «جدول غير مرتبط بحقل».
+  String? _pickedFieldId;
   bool _saving = false;
   String? _error;
 
   static final _clock = RegExp(r'^([01]?\d|2[0-3]):([0-5]\d)$');
+
+  /// حقل الصمّام المختار — يحدّد حقل الجدول ويُقفل المنتقي (الخادم يرفض التعارض).
+  String? get _valveField {
+    for (final v in widget.valves) {
+      if (v.id == _valveId) return v.fieldId;
+    }
+    return null;
+  }
+
+  /// الحقل المُرسَل: حقل الصمّام أوّلاً، وإلّا اختيار المستخدم، وإلّا لا حقل (OD-1).
+  String? get _resolvedFieldId => _valveField ?? _pickedFieldId;
 
   @override
   void dispose() {
@@ -598,12 +662,9 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
       _saving = true;
       _error = null;
     });
-    // حقل الصمّام المختار (UI-M1): بلا field_id كان الجدول يُحفظ غير مربوط فلا يظهر
-    // في جداول الحقل. الخادم يشتقّه من الصمّام ويرفض التعارض أيضاً؛ بلا صمّام لا حقل.
-    String? fieldId;
-    for (final v in widget.valves) {
-      if (v.id == _valveId) fieldId = v.fieldId;
-    }
+    // حقل الصمّام المختار (UI-M1) أو الحقل المختار يدويّاً (D5)؛ الخادم يشتقّه من الصمّام
+    // ويرفض التعارض أيضاً. بلا صمّام ولا اختيار ⇒ لا field_id: جدول غير مرتبط (OD-1).
+    final fieldId = _resolvedFieldId;
     try {
       await widget.api.createSchedule({
         'name': name,
@@ -658,11 +719,38 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
       ),
       if (widget.valves.isNotEmpty)
         AppDropdown<String>(
+          key: const ValueKey('schedule-valve-picker'),
           label: 'الصمّام (اختياريّ — يفحص الخادم التعارض)',
           items: {for (final v in widget.valves) v.id: v.name},
           value: _valveId,
           onChanged: (v) => setState(() => _valveId = v),
         ),
+      if (widget.fields.isNotEmpty) _fieldPicker(),
     ],
   );
+
+  /// منتقي الحقل الاختياريّ (D5/OD-1). صمّامٌ مرتبط بحقل يُقفله على حقله؛ وخياره الفارغ
+  /// «جدول غير مرتبط بحقل». المفتاح يتبع حقل الصمّام كي يُعاد بناء القيمة عند تبدّله.
+  Widget _fieldPicker() {
+    final locked = _valveField;
+    final items = <String, String>{
+      '': kUnlinkedScheduleLabel,
+      for (final f in widget.fields) f.id: f.name,
+      if (locked != null && !widget.fields.any((f) => f.id == locked))
+        locked: locked,
+    };
+    return AppDropdown<String>(
+      key: ValueKey('schedule-field-picker:${locked ?? ''}'),
+      label: locked != null
+          ? 'الحقل (يحدّده الصمّام المختار)'
+          : 'الحقل (اختياريّ)',
+      items: items,
+      value: locked ?? _pickedFieldId ?? '',
+      onChanged: locked != null || _saving
+          ? null
+          : (v) => setState(
+              () => _pickedFieldId = (v == null || v.isEmpty) ? null : v,
+            ),
+    );
+  }
 }
