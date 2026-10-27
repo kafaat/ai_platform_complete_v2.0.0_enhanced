@@ -25,6 +25,8 @@ const mockState = vi.hoisted(() => ({
   mapInstances: [] as unknown[],
   // حين false يُحاكي jsdom (لا سياق webgl) فيسلك المكوّن المسار الاحتياطيّ الأمين.
   webglOk: true,
+  // مصادر addSource المسجَّلة (id + spec) — لِتأكيد رابط بلاطات المؤشّر الفعليّ.
+  sources: [] as Array<{ id: string; spec: { tiles?: string[] } }>,
 }));
 const { markerInstances, mapInstances } = mockState;
 
@@ -50,7 +52,10 @@ vi.mock('maplibre-gl', () => {
       return this;
     }
     addControl() { return this; }
-    addSource() { return this; }
+    addSource(id: string, spec: { tiles?: string[] }) {
+      mockState.sources.push({ id, spec });
+      return this;
+    }
     addLayer() { return this; }
     getSource() { return { setData() {} }; }
     getLayer() { return undefined; }
@@ -142,6 +147,7 @@ beforeEach(() => {
   mockState.webglOk = true;
   markerInstances.length = 0;
   mapInstances.length = 0;
+  mockState.sources.length = 0;
 });
 
 describe('HubMapGL — تظليل MapLibre GL (تغطية أسلاك/منطق)', () => {
@@ -213,5 +219,21 @@ describe('HubMapGL — تظليل MapLibre GL (تغطية أسلاك/منطق)',
       const td = mapInstances.length > 0; // الخريطة بُنيت
       expect(td).toBe(true);
     });
+  });
+
+  // (6) EXTRA-4: تبديل preferPersistedCog وحده (نفس الحقل/المؤشّر/التاريخ) يجب أن يُعيد
+  //     بناء مصدر المؤشّر على /tiles. كان التأثير يُغفِل preferPersistedCog من تبعيّاته،
+  //     فحين تصل تواريخ has_cog بعد التصيير الأوّل يبقى المصدر عالقاً على /cdse-tiles.
+  it('يُعيد بناء مصدر المؤشّر حين يتغيّر preferPersistedCog وحده', () => {
+    const indicatorTiles = () =>
+      mockState.sources.filter((s) => s.id === 'sahool-indicator').map((s) => s.spec.tiles?.[0] ?? '');
+    const lastTile = () => indicatorTiles().slice(-1)[0] ?? '';
+    const props = { ...BASE_PROPS, indicatorId: 'ndvi', imageryDate: '2026-05-07' };
+    const { rerender } = render(<HubMapGL {...props} preferPersistedCog={false} />);
+    expect(lastTile()).toContain('/cdse-tiles/');
+    rerender(<HubMapGL {...props} preferPersistedCog />);
+    const last = lastTile();
+    expect(last).toContain('/v1/fields/f1/tiles/');
+    expect(last).not.toContain('cdse-tiles');
   });
 });

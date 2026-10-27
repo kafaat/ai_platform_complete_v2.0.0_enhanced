@@ -114,6 +114,7 @@ import { useAuthStore, UNAUTH_TENANT_KEY } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
 import { buildSoilWorkspaceSummary, type SoilWorkspaceSummary } from '../lib/soilWorkspace';
 import { unwrapList } from '../lib/paginated';
+import type { GridIdentity } from '../lib/indicatorGridGeo';
 
 // ── Query Keys ─────────────────────────────────────────────────
 export const QK = {
@@ -143,7 +144,9 @@ export const QK = {
   fieldRecs:        (tid: string, fid: string) => ['field-recommendations', tid, fid],
   alerts:           (tid: string)        => ['alerts', tid],
   notifPrefs:       (tid: string)        => ['notifications', 'preferences', tid],
-  indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
+  // grid آخِراً: كلّ معامل طلب في المفتاح، والبادئة (fid, index, date) تبقى صالحة للإبطال.
+  indicatorGrid:    (fid: string, index: string, date: string, grid?: number) =>
+                       grid == null ? ['indicator-grid', fid, index, date] : ['indicator-grid', fid, index, date, grid],
   fieldChange:      (fid: string, index: string, dateA: string, dateB: string) =>
                        ['field-change', fid, index, dateA, dateB],
   fieldTimeseries:  (fid: string, index: string, dates: string) =>
@@ -226,6 +229,9 @@ export interface IndicatorGridResponse {
   rows: number;
   cols: number;
   grid: (number | null)[][]; // rows x cols; null = nodata/outside field
+  // هويّة الشبكة بنظام CRS المصدر: transform [a,b,c,d,e,f] يربط (col,row) بالإحداثيّات
+  // الأصليّة (bbox غلاف مُحوَّل فقط). null حين يجهل الخادم CRS/مراجعة الهندسة.
+  grid_identity?: GridIdentity | null;
   stats: { min: number; max: number; mean: number };
   zones: IndicatorGridZone[];
   source: string;
@@ -385,7 +391,7 @@ export function useIndicatorGrid(
   grid = 32,
 ) {
   return useQuery<IndicatorGridResponse>({
-    queryKey: QK.indicatorGrid(fieldId, index, date),
+    queryKey: QK.indicatorGrid(fieldId, index, date, grid),
     queryFn:  () => rasterApi
       .get(`/v1/fields/${fieldId}/indicator-grid`, { params: { index, date, grid } })
       .then(r => r.data),
