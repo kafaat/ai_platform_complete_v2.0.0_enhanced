@@ -471,6 +471,9 @@ export default function HubMap({
           const poly = geomToPolygon(f.geometry);
           const isSel = f.id === selectedId;
           const label = `${f.name}${f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}`;
+          // UI-G3: في وضع الدبابيس تنتشر نقرة الحقل إلى الخريطة فتُضيف الدبّوس؛ لا نُغيّر
+          // الاختيار معها (وإلّا تتحرّك الكاميرا عبر FitToFields) — مطابقةً لحارس HubMapGL.
+          const selectField = () => { if (!pinMode) onSelect(f.id); };
           if (poly && poly.length >= 3) {
             return (
               <Polygon
@@ -481,7 +484,7 @@ export default function HubMap({
                   weight: isSel ? 3 : 1.5,
                   fillOpacity: isSel ? 0.25 : 0.12,
                 }}
-                eventHandlers={{ click: () => onSelect(f.id) }}
+                eventHandlers={{ click: selectField }}
               >
                 <Tooltip>{label}</Tooltip>
               </Polygon>
@@ -499,7 +502,7 @@ export default function HubMap({
                 fillColor: isSel ? SELECTED_COLOR : FIELD_COLOR,
                 fillOpacity: 0.8, weight: isSel ? 3 : 1.5,
               }}
-              eventHandlers={{ click: () => onSelect(f.id) }}
+              eventHandlers={{ click: selectField }}
             >
               <Tooltip>{label}</Tooltip>
             </CircleMarker>

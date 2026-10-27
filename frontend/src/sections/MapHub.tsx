@@ -2157,7 +2157,9 @@ function MapHubCore() {
           hasActiveSeason={Boolean(activeSeasonId)}
           hasAlerts={alertMarkers.length > 0}
           hasTasks={operationalMarkers.length > 0}
-          onPinScouting={() => { setPinMode(true); setDrawTools(false); }}
+          // UI-G2: CompareMap و3D لا يقبلان الدبابيس؛ الدخول من اللوحة يعود إلى الخريطة
+          // التفاعليّة ثنائيّة الأبعاد ويُطفئ الأوضاع المتنافسة — كزرّ «دبابيس» في الشريط.
+          onPinScouting={() => { setMode('2d'); setCompare(false); setPinMode(true); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }}
           onOpenTimeline={() => setShowImageryTimeline(true)}
           onOpenAlerts={() => setShowAlerts(true)}
           onAddField={() => setShowAddField(true)}

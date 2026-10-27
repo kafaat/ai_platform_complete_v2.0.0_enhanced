@@ -54,6 +54,7 @@ vi.mock('maplibre-gl', () => {
     addLayer() { return this; }
     getSource() { return { setData() {} }; }
     getLayer() { return undefined; }
+    getStyle() { return { layers: [] as Array<{ id: string }> }; }
     removeLayer() { return this; }
     removeSource() { return this; }
     setFilter() { return this; }
