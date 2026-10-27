@@ -24,6 +24,7 @@ def compute_cast_shadow_mask_from_dem(
     dem,
     *,
     pixel_size_m: float,
+    pixel_size_y_m: float | None = None,
     sun_azimuth_deg: float,
     sun_altitude_deg: float,
     max_steps: int = 64,
@@ -37,6 +38,10 @@ def compute_cast_shadow_mask_from_dem(
     risk. It is intentionally bounded (``max_steps`` and ``step_pixels``) so it
     is safe for indicator preprocessing and CI tests. It is a QA risk mask, not
     a photogrammetric replacement for a full radiative transfer model.
+
+    ``pixel_size_m`` is the ground spacing along columns (x) and
+    ``pixel_size_y_m`` along rows (y); ``None`` means square pixels. Geographic
+    grids are not square on the ground (x shrinks with cos(latitude)).
     """
 
     import numpy as np
@@ -59,14 +64,20 @@ def compute_cast_shadow_mask_from_dem(
         }
 
     px = max(float(pixel_size_m or 0.0), 1e-6)
+    py = px if pixel_size_y_m is None else max(float(pixel_size_y_m or 0.0), 1e-6)
     max_steps = max(1, min(int(max_steps), 512))
     step_pixels = max(1, min(int(step_pixels), 16))
     altitude_tan = math.tan(math.radians(float(sun_altitude_deg)))
     # Azimuth is degrees clockwise from north. In image coordinates: row grows
     # south/down, col grows east/right. Up-sun direction points toward the sun.
+    # The ground direction is converted to pixel space per axis (non-square
+    # pixels bend it), then normalised to one pixel per step.
     az = math.radians(float(sun_azimuth_deg))
-    row_unit = -math.cos(az)
-    col_unit = math.sin(az)
+    row_dir = -math.cos(az) / py
+    col_dir = math.sin(az) / px
+    _norm = math.hypot(row_dir, col_dir)
+    row_unit = row_dir / _norm
+    col_unit = col_dir / _norm
 
     h, w = arr.shape
     shadow = np.zeros((h, w), dtype=bool)
@@ -93,7 +104,7 @@ def compute_cast_shadow_mask_from_dem(
             continue
         seen_offsets.add((dr, dc))
         blocker = shifted_up_sun(arr, dr, dc)
-        distance_m = math.hypot(dr, dc) * px
+        distance_m = math.hypot(dr * py, dc * px)
         if distance_m <= 0:
             continue
         required_blocker_height = arr + altitude_tan * distance_m
@@ -118,6 +129,7 @@ def compute_topographic_risk_from_dem(
     dem,
     *,
     pixel_size_m: float,
+    pixel_size_y_m: float | None = None,
     sun_azimuth_deg: float | None = None,
     sun_altitude_deg: float | None = None,
     slope_risk_threshold_pct: float = 12.0,
@@ -132,6 +144,10 @@ def compute_topographic_risk_from_dem(
     - ``slope_risk_pct``: valid DEM pixels with slope >= threshold.
     - ``terrain_shadow_risk_pct``: valid DEM pixels whose hillshade is below a
       low illumination threshold, only when sun azimuth/altitude are supplied.
+
+    ``pixel_size_m``/``pixel_size_y_m`` are ground spacings in metres along
+    columns/rows (``None`` y means square pixels); slope is rise over ground run,
+    so callers must never pass CRS units such as degrees here.
 
     The function is intentionally pure and deterministic so it can be tested
     without a live raster service.
@@ -154,8 +170,9 @@ def compute_topographic_risk_from_dem(
         }
 
     px = max(float(pixel_size_m or 0.0), 1e-6)
+    py = px if pixel_size_y_m is None else max(float(pixel_size_y_m or 0.0), 1e-6)
     dzdx = np.gradient(arr, px, axis=1)
-    dzdy = np.gradient(arr, px, axis=0)
+    dzdy = np.gradient(arr, py, axis=0)
     grad = np.sqrt(dzdx**2 + dzdy**2)
     slope_pct = 100.0 * grad
     slope_risk_pct = float(
@@ -193,6 +210,7 @@ def compute_topographic_risk_from_dem(
         cast = compute_cast_shadow_mask_from_dem(
             arr,
             pixel_size_m=px,
+            pixel_size_y_m=py,
             sun_azimuth_deg=sun_azimuth_deg,
             sun_altitude_deg=sun_altitude_deg,
             max_steps=cast_shadow_max_steps,
@@ -301,6 +319,7 @@ def build_topographic_qa_from_dem_array(
     dem,
     *,
     pixel_size_m: float,
+    pixel_size_y_m: float | None = None,
     sun_azimuth_deg: float | None = None,
     sun_altitude_deg: float | None = None,
     sources: list[str] | None = None,
@@ -310,6 +329,7 @@ def build_topographic_qa_from_dem_array(
     risk = compute_topographic_risk_from_dem(
         dem,
         pixel_size_m=pixel_size_m,
+        pixel_size_y_m=pixel_size_y_m,
         sun_azimuth_deg=sun_azimuth_deg,
         sun_altitude_deg=sun_altitude_deg,
     )
