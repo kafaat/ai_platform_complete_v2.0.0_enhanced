@@ -15,6 +15,14 @@
 //   3) لا يُمسَح رمز التحديث لمجرّد انتهاء رمز الوصول. يُمسَح فقط حين يرفضه الخادم
 //      صراحةً (400/401/403 من /auth/refresh) — لا عند انقطاع الشبكة.
 //
+// جيل الجلسة (D2، R08/R09): الـCompleter نفسه مربوط بجيل الجلسة ومالكها
+// ([TokenStore.generation])، وكلّ طلب مُصادَق يحمل الجيل الذي أُرسل فيه.
+//   • ردّ تجديد لجيل سابق (تبديل حساب/خروج أثناء الطلب) لا يحفظ رموزاً ولا
+//     يمسح الجلسة الأحدث: الحفظ والمسح مشروطان بالجيل داخل المخزن نفسه.
+//   • طلب من جيل سابق لا يُرسَل (ولا يُعاد) برموز الجلسة الأحدث، و401 المتأخّرة له
+//     لا تُجدِّد ولا تمسح شيئاً.
+//   • 401 متأخّرة لرمز أقدم من الجلسة نفسها تُعاد بالرمز الأحدث بلا تجديد إضافيّ.
+//
 // إعادة المحاولة: 502/503/504 فقط، بحدّ 3 وbackoff أُسّيّ + jitter. القراءات
 // (GET/HEAD/OPTIONS) تُعاد دائماً؛ الكتابات **فقط** إن حملت Idempotency-Key
 // (انظر idempotency.dart). multipart (FormData) لا يُعاد لأنّ جسمه يُستهلَك؛
@@ -39,10 +47,21 @@ import 'package:sahool_app/services/auth_service.dart';
 abstract class TokenStore {
   String? get accessToken;
   String? get refreshToken;
-  Future<void> saveTokens(String access, {String? refresh});
 
-  /// يمسح الجلسة (رفض الخادم لرمز التحديث).
-  Future<void> clear();
+  /// جيل الجلسة: يتغيّر بالاستعادة والدخول وتبديل الحساب والخروج والمسح، لا
+  /// بتجديد رمز الوصول. التجديد والطلب يُربطان به.
+  int get generation;
+
+  /// هويّة مالك الجلسة (للتشخيص وربط التجديد بمالكه)، أو null بلا جلسة.
+  String? get owner;
+
+  /// يحفظ رمزين مُجدَّدين. مع [generation]: الحفظ مشروط ذرّيّاً داخل المخزن
+  /// (الفحص والكتابة بلا await بينهما) ويُعيد false إن تغيّرت الجلسة.
+  Future<bool> saveTokens(String access, {String? refresh, int? generation});
+
+  /// يمسح الجلسة (رفض الخادم لرمز التحديث). مع [generation]: مشروط ذرّيّاً،
+  /// فرفض متأخّر لجلسة سابقة لا يمسح جلسة أحدث (false).
+  Future<bool> clear({int? generation});
 }
 
 class AuthServiceTokenStore implements TokenStore {
@@ -52,10 +71,28 @@ class AuthServiceTokenStore implements TokenStore {
   @override
   String? get refreshToken => AuthService.instance.refreshToken;
   @override
-  Future<void> saveTokens(String access, {String? refresh}) =>
-      AuthService.instance.saveToken(access, refresh: refresh);
+  int get generation => AuthService.instance.sessionGeneration;
   @override
-  Future<void> clear() => AuthService.instance.clearAuth();
+  String? get owner => AuthService.instance.sessionOwner;
+  @override
+  Future<bool> saveTokens(String access,
+      {String? refresh, int? generation}) async {
+    if (generation != null) {
+      return AuthService.instance
+          .saveRefreshedToken(generation, access, refresh: refresh);
+    }
+    await AuthService.instance.saveToken(access, refresh: refresh);
+    return true;
+  }
+
+  @override
+  Future<bool> clear({int? generation}) async {
+    if (generation != null) {
+      return AuthService.instance.clearIfGeneration(generation);
+    }
+    await AuthService.instance.clearAuth();
+    return true;
+  }
 }
 
 class ApiClient {
@@ -159,19 +196,53 @@ class ApiClient {
 
   Completer<String?>? _refreshCompleter;
 
-  /// تحديث موحّد: نداءات متزامنة تتشارك طلب /auth/refresh واحداً.
+  /// جيل الجلسة ومالكها اللذان بدأ فيهما [_refreshCompleter] الجاري.
+  int? _refreshGeneration;
+  String? _refreshOwner;
+
+  /// تجديد جارٍ للجلسة الحاليّة (لا لجلسة سابقة)، أو null. المسارات الخاصّة
+  /// تنتظره قبل الحكم على الجلسة.
+  Future<void>? get pendingRefresh {
+    final current = _refreshCompleter;
+    if (current == null || _refreshGeneration != _tokens.generation) {
+      return null;
+    }
+    return current.future;
+  }
+
+  /// تحديث موحّد: نداءات متزامنة **للجلسة نفسها** تتشارك طلب /auth/refresh
+  /// واحداً. تجديدٌ بدأ لجيل سابق لا يُشارَك: نتيجته تخصّ جلسةً انتهت.
   Future<String?> refreshAccessToken() {
+    final generation = _tokens.generation;
+    final owner = _tokens.owner;
     final existing = _refreshCompleter;
-    if (existing != null) return existing.future;
+    if (existing != null &&
+        _refreshGeneration == generation &&
+        _refreshOwner == owner) {
+      return existing.future;
+    }
+    // تجديد جيل سابق (إن وُجد) يُترك ليُحسَم وحده؛ المخزن يرفض نتيجته.
     final completer = Completer<String?>();
     _refreshCompleter = completer;
-    _performRefresh()
+    _refreshGeneration = generation;
+    _refreshOwner = owner;
+    _performRefresh(generation, owner)
         .then(completer.complete, onError: (Object _) => completer.complete(null))
-        .whenComplete(() => _refreshCompleter = null); // حرّر القفل دائماً
+        .whenComplete(() {
+      // حرّر القفل دائماً — ما لم يحلّ محلّه تجديد جيل أحدث.
+      if (identical(_refreshCompleter, completer)) {
+        _refreshCompleter = null;
+        _refreshGeneration = null;
+        _refreshOwner = null;
+      }
+    });
     return completer.future;
   }
 
-  Future<String?> _performRefresh() async {
+  bool _isCurrent(int generation, String? owner) =>
+      _tokens.generation == generation && _tokens.owner == owner;
+
+  Future<String?> _performRefresh(int generation, String? owner) async {
     final refresh = _tokens.refreshToken;
     if (refresh == null) return null;
     try {
@@ -183,32 +254,56 @@ class ApiClient {
       final data = r.data;
       final access = data is Map ? data['access_token'] as String? : null;
       if (access == null) return null;
-      await _tokens.saveTokens(access,
-          refresh: data is Map ? data['refresh_token'] as String? : null);
-      return access;
+      // ردّ متأخّر بعد تبديل الحساب/الخروج ⇒ لا يُحفَظ. الفحص هنا اختصار؛
+      // الضمان في المخزن (حفظ مشروط بالجيل بلا await بين الفحص والكتابة).
+      if (!_isCurrent(generation, owner)) return null;
+      final saved = await _tokens.saveTokens(access,
+          refresh: data is Map ? data['refresh_token'] as String? : null,
+          generation: generation);
+      return saved ? access : null;
     } on DioException catch (e) {
       final code = e.response?.statusCode;
       if (code == 400 || code == 401 || code == 403) {
-        // الخادم رفض رمز التحديث صراحةً ⇒ الجلسة انتهت فعلاً.
-        await _expireSession();
+        // الخادم رفض رمز التحديث صراحةً ⇒ جلسة **ذلك الجيل** انتهت فعلاً.
+        await _expireSession(generation);
       }
       // شبكة/5xx ⇒ نُبقي الجلسة؛ المحاولة التالية قد تنجح.
       return null;
     }
   }
 
-  Future<void> _expireSession() async {
-    await _tokens.clear();
-    if (!_sessionExpired.isClosed) _sessionExpired.add(null);
+  /// يمسح جلسة [generation] ويعلن انتهاءها — لا شيء إن حلّت محلّها جلسة أحدث.
+  Future<void> _expireSession(int generation) async {
+    final cleared = await _tokens.clear(generation: generation);
+    if (cleared && !_sessionExpired.isClosed) _sessionExpired.add(null);
   }
+
+  /// مفتاح extra: جيل الجلسة الذي أُرسل فيه الطلب أوّل مرّة.
+  static const _kSessionGeneration = 'session_generation';
+
+  DioException _sessionChanged(RequestOptions options) => DioException(
+        requestOptions: options,
+        type: DioExceptionType.cancel,
+        error: 'session changed',
+      );
 
   Future<void> _onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
     options.headers['X-Request-ID'] = generateRequestId();
     if (options.extra['skip_auth'] != true) {
+      final generation = _tokens.generation;
+      final bound = options.extra[_kSessionGeneration];
+      // إعادة (بعد 401 أو 5xx) لطلب جلسة سابقة: لا يُرسَل برموز الجلسة الأحدث.
+      if (bound is int && bound != generation) {
+        return handler.reject(_sessionChanged(options));
+      }
+      options.extra[_kSessionGeneration] = generation;
       var token = _tokens.accessToken;
       if (!_isUsable(token) && _tokens.refreshToken != null) {
         token = await refreshAccessToken();
+        if (_tokens.generation != generation) {
+          return handler.reject(_sessionChanged(options));
+        }
       }
       if (_isUsable(token)) {
         options.headers['Authorization'] = 'Bearer $token';
@@ -227,12 +322,28 @@ class ApiClient {
     if (error.response?.statusCode == 401 &&
         options.extra['skip_auth'] != true &&
         options.extra['auth_retried'] != true) {
-      if (_tokens.refreshToken == null) {
-        // لا رمز تحديث ⇒ رمز الوصول وحده رُفض: الجلسة منتهية.
-        if (_tokens.accessToken != null) await _expireSession();
+      final generation = _tokens.generation;
+      final bound = options.extra[_kSessionGeneration];
+      if (bound is int && bound != generation) {
+        // 401 لطلب من جلسة سابقة: لا تجديد برمز الجلسة الأحدث، لا إعادة
+        // برموزها، ولا مسح لها.
         return handler.next(error);
       }
-      final token = await refreshAccessToken();
+      final sent = options.headers['Authorization'];
+      final current = _tokens.accessToken;
+      String? token;
+      if (_isUsable(current) && sent != 'Bearer $current') {
+        // 401 متأخّرة لرمز أقدم من الجلسة نفسها: جُدِّد بعد إرسال الطلب ⇒ أعِد
+        // بالرمز الأحدث بلا تجديد إضافيّ (رمز التحديث أحاديّ الاستعمال).
+        token = current;
+      } else if (_tokens.refreshToken == null) {
+        // لا رمز تحديث ⇒ رمز الوصول وحده رُفض: الجلسة منتهية.
+        if (current != null) await _expireSession(generation);
+        return handler.next(error);
+      } else {
+        token = await refreshAccessToken();
+        if (_tokens.generation != generation) return handler.next(error);
+      }
       if (token != null) {
         options.extra['auth_retried'] = true;
         options.headers['Authorization'] = 'Bearer $token';
