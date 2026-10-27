@@ -535,22 +535,40 @@ def _recommendations_ar(indices: dict, health: dict, crop: str) -> list[str]:
 
 _nc = None
 
+# هويّةُ المشهد المرصود وحدها — مستقلّةٌ عن الموسم وعن تشغيل المعالجة.
+_SATELLITE_EVENT_PROVENANCE_FIELDS = (
+    "scene_id",
+    "acquisition_datetime",
+    "algorithm_version",
+    "qa_mask_version",
+    "asset_ref",
+)
+
 
 def _satellite_event_id(
     field_id: str, tenant_id: str, acquisition_date: str | None, index_contract: dict
 ) -> str:
     """هويّة حتميّة لحدث «صورة جديدة» مشتقّة من المنتج المقبول وحده.
 
-    تُبنى من المستأجر والحقل وتاريخ الالتقاط ومنتجات المؤشّرات الموثوقة (القيمة + الجودة +
-    provenance المشهد + data_available_at) — لا من وقت الطلب ولا من الموسم المطلوب. فإعادة
+    تُبنى من المستأجر والحقل وتاريخ الالتقاط ومنتجات المؤشّرات الموثوقة (القيمة + هويّة المشهد
+    والخوارزميّة + data_available_at) — لا من وقت الطلب ولا من الموسم المطلوب. فإعادة
     قراءة التحليل نفسه تُنتج الهويّة نفسها: ``Nats-Msg-Id`` يُسقِط التكرار داخل نافذة JetStream،
     و``event_id`` يجعل إيصالات notification-agent تتعرّف عليه بعدها (``_delivery_key``).
+
+    حقولُ provenance مُدرَجةٌ بالاسم لا كاملةً: ``canonical_observation_ref`` يشتقّه
+    indicators-service من season_id (``observation_runtime.py``)، والموسم الافتراضيّ
+    ``unscoped-<date_to>``؛ فإدخالُه يمنح المشهدَ نفسه هويّةً جديدة كلّ يوم وكلّ موسم.
     """
-    authoritative = {
-        k: v
-        for k, v in index_contract.items()
-        if v.get("source") == "raster-service" and v.get("estimated") is False
-    }
+    authoritative = {}
+    for k, v in index_contract.items():
+        if v.get("source") != "raster-service" or v.get("estimated") is not False:
+            continue
+        provenance = v.get("provenance") or {}
+        authoritative[k] = {
+            "value": v.get("value"),
+            "data_available_at": v.get("data_available_at"),
+            **{f: provenance.get(f) for f in _SATELLITE_EVENT_PROVENANCE_FIELDS},
+        }
     digest = canonical_hash(
         {
             "event": "vegetation.satellite.computed.v1",

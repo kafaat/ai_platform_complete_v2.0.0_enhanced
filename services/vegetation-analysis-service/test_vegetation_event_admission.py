@@ -10,6 +10,7 @@ EXTRA-6: الحدث بلا هويّة ثابتة (كلّ ``GET /v1/analyze`` ي�
 
 from __future__ import annotations
 
+import copy
 import json
 import sys
 from pathlib import Path
@@ -78,8 +79,20 @@ def _install(monkeypatch, bundle: dict, *, fail: bool = False) -> _JetStream:
     async def _field(field_id, tenant_id):
         return {"name": "حقل", "crop": "wheat", "area_ha": 3.0}
 
-    async def _canonical(*args, **kwargs):
-        return bundle
+    async def _canonical(field_id, tenant_id, season_id, names):
+        # كما في indicators-service (observation_runtime.py): ``observation_ref`` يُشتقّ من
+        # season_id — والموسم الافتراضيّ ``unscoped-<date_to>`` — بينما ``asset_ref``
+        # و``processing_run_ref`` من المشهد وحده. فالمحاكاة تحمل هذا الاعتماد لا تُهمله.
+        scoped = copy.deepcopy(bundle)
+        for code, item in scoped["observations"].items():
+            provenance = item["indicator_product"]["provenance"]
+            scene = provenance["scene_id"]
+            provenance["asset_ref"] = f"urn:sahool:raster-asset:{scene}:{code}"
+            provenance["processing_run_ref"] = f"urn:sahool:processing-run:{scene}"
+            provenance["canonical_observation_ref"] = (
+                f"urn:sahool:observation:{tenant_id}:{field_id}:{season_id}:{scene}:{code}"
+            )
+        return scoped
 
     nc = _Nats(fail)
     monkeypatch.setattr(vr, "load_field", _field)
@@ -114,19 +127,28 @@ async def test_admitted_product_event_identity_is_deterministic(monkeypatch):
     before = _success_count()
 
     first = await vr.run_analysis(FIELD, TENANT, "2026-10-01", "2026-10-27")
-    # إعادة قراءة التحليل نفسه (تحديث الواجهة) — موسمٌ مختلف لا يغيّر هويّة الرصد.
+    # إعادة قراءة التحليل نفسه في اليوم التالي — الموسم الافتراضيّ ``unscoped-<date_to>``
+    # يتغيّر معه ``canonical_observation_ref``، والمشهد هو نفسه.
+    next_day = await vr.run_analysis(FIELD, TENANT, "2026-10-01", "2026-10-28")
+    # وموسمٌ صريح مختلف لا يغيّر هويّة الرصد كذلك.
     again = await vr.run_analysis(FIELD, TENANT, "2026-09-01", "2026-10-27", season_id="s-2026")
 
     assert first["quality_gate"]["executable"] is True
-    assert _success_count() == before + 2
-    assert len(js.calls) == 2
+    refs = {
+        r["indices"]["ndvi"]["provenance"]["canonical_observation_ref"]
+        for r in (first, next_day, again)
+    }
+    assert len(refs) == 3, "the mock no longer exercises the season-dependent observation ref"
+    assert _success_count() == before + 3
+    assert len(js.calls) == 3
     ids = [c["payload"].get("event_id") for c in js.calls]
-    assert ids[0] and ids[0] == ids[1], "re-reading one observation produced two event identities"
+    assert ids[0] and ids[0] == ids[1], "the same scene read on another day got a new event id"
+    assert ids[0] == ids[2], "the same scene read under another season got a new event id"
     for call in js.calls:
         assert call["headers"] == {"Nats-Msg-Id": ids[0]}, "no JetStream de-duplication id"
         assert call["payload"]["acquisition_date"] == "2026-10-20"
         assert call["payload"]["scene_id"] == "S2B_20261020_T38PNB"
-    assert first["event_publish"] == again["event_publish"]
+    assert first["event_publish"] == next_day["event_publish"] == again["event_publish"]
     assert first["event_publish"]["published"] is True
     assert first["event_publish"]["event_id"] == ids[0]
 
