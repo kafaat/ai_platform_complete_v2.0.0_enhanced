@@ -4003,7 +4003,7 @@
       "function": "delete_schedule",
       "method": "DELETE",
       "path": "/api/v1/irrigation/schedules/{schedule_id}",
-      "line": 356,
+      "line": 419,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation.py::DELETE /api/v1/irrigation/schedules/{schedule_id}::delete_schedule"
@@ -4013,7 +4013,7 @@
       "function": "irrigation_moisture_decision_endpoint",
       "method": "GET",
       "path": "/api/v1/irrigation/moisture-decision",
-      "line": 377,
+      "line": 440,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation.py::GET /api/v1/irrigation/moisture-decision::irrigation_moisture_decision_endpoint"
@@ -4023,7 +4023,7 @@
       "function": "list_schedules",
       "method": "GET",
       "path": "/api/v1/irrigation/schedules",
-      "line": 306,
+      "line": 369,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation.py::GET /api/v1/irrigation/schedules::list_schedules"
@@ -4033,7 +4033,7 @@
       "function": "irrigation_soil_types_endpoint",
       "method": "GET",
       "path": "/api/v1/irrigation/soil-types",
-      "line": 371,
+      "line": 434,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/irrigation.py::GET /api/v1/irrigation/soil-types::irrigation_soil_types_endpoint"
@@ -4043,7 +4043,7 @@
       "function": "list_valves",
       "method": "GET",
       "path": "/api/v1/irrigation/valves",
-      "line": 156,
+      "line": 158,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation.py::GET /api/v1/irrigation/valves::list_valves"
@@ -4053,7 +4053,7 @@
       "function": "create_schedule",
       "method": "POST",
       "path": "/api/v1/irrigation/schedules",
-      "line": 235,
+      "line": 276,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation.py::POST /api/v1/irrigation/schedules::create_schedule"
@@ -4063,7 +4063,7 @@
       "function": "set_valve_state",
       "method": "POST",
       "path": "/api/v1/irrigation/valves/{valve_id}/state",
-      "line": 178,
+      "line": 180,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation.py::POST /api/v1/irrigation/valves/{valve_id}/state::set_valve_state"
@@ -4073,7 +4073,7 @@
       "function": "register_valve",
       "method": "POST",
       "path": "/api/v1/irrigation/valves",
-      "line": 99,
+      "line": 101,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/irrigation.py::POST /api/v1/irrigation/valves::register_valve"
@@ -4083,7 +4083,7 @@
       "function": "irrigation_water_analysis",
       "method": "POST",
       "path": "/api/v1/irrigation/water-analysis",
-      "line": 396,
+      "line": 459,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation.py::POST /api/v1/irrigation/water-analysis::irrigation_water_analysis"
