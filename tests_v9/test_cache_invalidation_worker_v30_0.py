@@ -114,7 +114,8 @@ class _FakeConn:
 
         return _Txn()
 
-    async def fetch(self, _sql, *_a):
+    async def fetch(self, sql, *args):
+        self.calls.append((sql, args))
         return self._rows
 
     async def execute(self, sql, *args):
@@ -256,3 +257,125 @@ def test_worker_uses_skip_locked_and_flag_and_compose() -> None:
         "خدمة العامل غير موصولة في compose"
     )
     assert "cache_invalidation_worker" in compose, "أمر تشغيل العامل غائب"
+
+
+# ─── C1: المطالبةُ إجارةٌ تنقضي، والمنقضيةُ تُستعاد (لا processing عالقٌ إلى الأبد) ──────
+# الشاهدُ السلوكيّ على قاعدةٍ حيّة (موتُ العامل بعد الالتزام ثمّ الاستعادة) في
+# ``test_deferred_satellite_integration_v30_4.py``؛ وهنا ما يصل العبارةَ بلا قاعدة.
+
+
+def _claim_sql(conn) -> str:
+    claims = [sql for sql, _ in conn.calls if "FOR UPDATE SKIP LOCKED" in sql]
+    assert len(claims) == 1, "المطالبة لم تُنفَّذ مرّةً واحدة"
+    return claims[0]
+
+
+def test_claim_reclaims_processing_rows_whose_lease_expired(monkeypatch) -> None:
+    mod = _load_worker()
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    monkeypatch.setattr(mod.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: 0)
+    conn = _FakeConn([])
+    assert asyncio.run(mod.run_once(_FakePool(conn))) == 0
+    sql = _claim_sql(conn)
+    assert "status = 'processing'" in sql, "المطالبة لا تُعيد صفّاً processing ماتت إجارتُه"
+    assert "(metadata->>'lease_until')::timestamptz <= now()" in sql, (
+        "الاستعادة يجب أن تُقيَّد بانقضاء الإجارة — لا سرقةَ إجارةٍ حيّة"
+    )
+
+
+def test_claim_writes_a_lease_and_counts_the_attempt(monkeypatch) -> None:
+    mod = _load_worker()
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    monkeypatch.setattr(mod.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: 0)
+    conn = _FakeConn([_queued_row({"geometry_revision": 1})])
+    assert asyncio.run(mod.run_once(_FakePool(conn))) == 1
+    claims = [(sql, a) for sql, a in conn.calls if "SET status='processing'" in sql]
+    assert len(claims) == 1, "وسمُ processing غائب"
+    sql, args = claims[0]
+    assert "'lease_until', now() + make_interval(secs => $2)" in sql, "المطالبة بلا إجارة"
+    assert "'claim_attempts'" in sql, "المطالبة لا تعدّ المحاولة"
+    assert args == ([7], float(mod.CLAIM_LEASE_SECONDS))
+
+
+def test_exhausted_claims_are_failed_not_reprocessed(monkeypatch) -> None:
+    mod = _load_worker()
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    touched: list = []
+    monkeypatch.setattr(
+        mod.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: touched.append(f) or 0
+    )
+    row = _queued_row({"geometry_revision": 1, "claim_attempts": mod.MAX_CLAIM_ATTEMPTS})
+    conn = _FakeConn([row])
+    assert asyncio.run(mod.run_once(_FakePool(conn))) == 0
+    assert touched == [], "صفٌّ استنفد محاولاته أُعيدت معالجتُه (حلقةُ موتٍ بلا حدّ)"
+    failed = [(sql, a) for sql, a in conn.calls if "SET status='failed'" in sql]
+    assert failed and failed[0][1][0] == [7], "الصفّ المستنفَد لم يُنهَ failed"
+    assert not any("SET status='processing'" in sql for sql, _ in conn.calls)
+
+
+# ─── P3-INV: نشرُ الإخلاء الفاشل لا يُعَدّ نجاحاً ──────────────────────────────────────
+
+
+class _Publisher:
+    def __init__(self, fail: bool):
+        self.fail = fail
+        self.sent: list = []
+
+    async def publish(self, channel, message):
+        if self.fail:
+            raise ConnectionError("redis down")
+        self.sent.append((channel, message))
+        return 1
+
+
+def test_failed_layer_evict_publish_is_not_counted_and_is_released_for_retry(monkeypatch) -> None:
+    mod = _load_worker()
+    monkeypatch.setenv("REDIS_URL", "redis://redis.invalid:6379/0")
+    monkeypatch.setattr(mod.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: 0)
+    monkeypatch.setattr(mod, "_redis_pub", _Publisher(fail=True))
+    conn = _FakeConn([_queued_row({"geometry_revision": 1})])
+    assert asyncio.run(mod.run_once(_FakePool(conn))) == 0, "نشرٌ فاشل عُدَّ إبطالاً منجَزاً"
+    joined = " ".join(sql for sql, _ in conn.calls)
+    assert "status='processed'" not in joined, "الصفّ أُنهي processed والإخلاء لم يُسلَّم"
+    released = [(sql, a) for sql, a in conn.calls if "SET status='pending'" in sql]
+    assert len(released) == 1, "الصفّ لم يُحرَّر لإعادة المحاولة"
+    sql, args = released[0]
+    assert "'layer_evict', 'not_delivered'" in sql and "'retry_after'" in sql
+    assert args[0] == 7
+
+
+def test_delivered_and_unconfigured_layer_evict_are_recorded_on_the_row(monkeypatch) -> None:
+    mod = _load_worker()
+    monkeypatch.setattr(mod.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: 0)
+    monkeypatch.setenv("REDIS_URL", "redis://redis.invalid:6379/0")
+    pub = _Publisher(fail=False)
+    monkeypatch.setattr(mod, "_redis_pub", pub)
+    conn = _FakeConn([_queued_row({"geometry_revision": 1})])
+    assert asyncio.run(mod.run_once(_FakePool(conn))) == 1
+    assert pub.sent == [(mod.LAYER_EVICT_CHANNEL, "fld_new")]
+    done = [a for sql, a in conn.calls if "SET status='processed'" in sql]
+    assert len(done) == 1 and done[0][2] == "delivered", done
+
+    # بلا REDIS_URL لا قناةَ إخلاءٍ أصلاً: يُنجَز ويُسجَّل «غير مُهيّأ» لا «سُلِّم».
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    conn = _FakeConn([_queued_row({"geometry_revision": 1})])
+    assert asyncio.run(mod.run_once(_FakePool(conn))) == 1
+    done = [a for sql, a in conn.calls if "SET status='processed'" in sql]
+    assert len(done) == 1 and done[0][2] == "not_configured", done
+
+
+def test_a_completion_whose_lease_was_reclaimed_is_not_counted(monkeypatch) -> None:
+    """عاملٌ بطيءٌ استُعيدت مطالبتُه: إنهاؤه المشروط بالإجارة يمسّ صفراً فلا يُعَدّ."""
+    mod = _load_worker()
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    monkeypatch.setattr(mod.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: 0)
+
+    class _LostLease(_FakeConn):
+        async def execute(self, sql, *args):
+            await super().execute(sql, *args)
+            return "UPDATE 0" if "SET status='processed'" in sql else "UPDATE 1"
+
+    conn = _LostLease([_queued_row({"geometry_revision": 1})])
+    assert asyncio.run(mod.run_once(_FakePool(conn))) == 0
+    done = [sql for sql, _ in conn.calls if "SET status='processed'" in sql]
+    assert len(done) == 1 and "metadata->'claim_attempts' = to_jsonb($2::int)" in done[0]
