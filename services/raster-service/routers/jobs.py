@@ -10,7 +10,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Header, HTTPException
 from raster_api_models import JobStatus
 from raster_runtime_state import JOBS
-from raster_security_context import require_service_token
+from raster_security_context import require_job_tenant, require_service_token
 
 router = APIRouter()
 
@@ -22,6 +22,8 @@ async def job_status(job_id: str, x_agent_token: str = Header(None)):
     j = JOBS.get(job_id)
     if not j:
         raise HTTPException(404, "مهمّة غير موجودة")
+    # P3-AUTH: التوكن المشترك يُثبت أنّ المستدعي خدمة، لا لأيّ مستأجِر يعمل.
+    require_job_tenant(j)
     return {
         "job_id": job_id,
         "status": j["status"],
@@ -40,6 +42,7 @@ async def job_result(job_id: str, x_agent_token: str = Header(None)):
     j = JOBS.get(job_id)
     if not j:
         raise HTTPException(404, "مهمّة غير موجودة")
+    require_job_tenant(j)
     if j["status"] != JobStatus.completed:
         raise HTTPException(409, f"المهمّة غير مكتملة (الحالة: {j['status']})")
     return j["result"]

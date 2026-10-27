@@ -498,6 +498,8 @@ def run_batch_processing(ctx, job_id: str, req):
             sub_job_id,
             {
                 "job_id": sub_job_id,
+                # P3-AUTH: الفرعيّة تُقرأ بمعرّفها عبر /v1/jobs/{id}/result — ترث مالك الأمّ.
+                "tenant_id": job.get("tenant_id"),
                 "status": ctx.JobStatus.pending,
                 "progress_pct": 0,
                 "created_at": datetime.now(UTC).isoformat(),

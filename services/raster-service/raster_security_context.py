@@ -167,6 +167,42 @@ async def require_layer_tenant_authorized(
         raise HTTPException(403, "مستأجر الطلب مطلوب لقراءة الطبقة")
 
 
+def job_owner_tenant(body_tenant: str | None) -> str | None:
+    """The tenant a newly created job is bound to (P3-AUTH).
+
+    The trusted request context (gateway ``X-Tenant-Id``) is what job reads are compared
+    against; the request body is the fallback for a caller without that header. When both are
+    present they must agree — the job is processed, persisted and batch-deduplicated under the
+    body tenant (``indicator_batch_claim.batch_claim_key``), so binding it to a different header
+    tenant would split owner from data and let a mismatched request take over another tenant's
+    claim key. Mismatch ⇒ ``403`` (same contract as ``routers/fields._authenticated_tenant``).
+    Call it before any claim or job write. ``None`` leaves the job unowned (no tenant context
+    at all), i.e. service-token-only.
+    """
+    context = REQ_TENANT.get() or ""
+    body = str(body_tenant).strip() if body_tenant else ""
+    if context and body and body != context:
+        raise HTTPException(403, "tenant_id في الجسم لا يطابق المستأجِر المُصادَق للطلب")
+    return context or body or None
+
+
+def require_job_tenant(job: dict) -> None:
+    """Authorize a job status/result read against the job's bound tenant (P3-AUTH).
+
+    The shared service token proves the caller is a SAHOOL service, not which tenant it
+    acts for: without this check a job created for tenant A was readable with
+    ``X-Tenant-Id: B``. A foreign or absent request tenant gets the same ``404`` as an
+    unknown job, so job ids of another tenant cannot be probed. Jobs with no owner (created
+    without any tenant context, or stored before owners were recorded) keep the previous
+    service-token-only contract.
+    """
+    owner = str(job.get("tenant_id") or "").strip()
+    if not owner:
+        return
+    if REQ_TENANT.get() != owner:
+        raise HTTPException(404, "مهمّة غير موجودة")
+
+
 def public_cog_url(cog_url: str | None) -> str | None:
     """Return cog_url only when a tile can actually be served from it.
 
