@@ -31,6 +31,11 @@ function gapHex(gap: number | null): string {
   return '#9ca3af';
 }
 
+// وسم هويّة الموسم (المحصول · تاريخ البذار) — مشترك بين منتقي الموسم وصفوف الرسم.
+function seasonLabel(r: YieldPlantingHarvestRow): string {
+  return `${r.crop || 'موسم'}${r.sowing_date ? ` · ${r.sowing_date}` : ''}`;
+}
+
 export default function YieldAnalysisPage() {
   const {
     fieldId, options, isLoading: fieldsLoading, isError: fieldsError, setFieldId,
@@ -41,31 +46,41 @@ export default function YieldAnalysisPage() {
 
   const query = useYieldAnalysis(fieldId || undefined, season || undefined);
   const data = query.data;
+  // مخزون المواسم غير المُرشَّح بالموسم (نطاق الحقل فقط) — مصدر خيارات المنتقي، كي لا
+  // تختفي المواسم البديلة بعد اختيار موسم (الردّ المُرشَّح يحوي الموسم المختار وحده).
+  // حين season='' يتطابق المفتاح مع الاستعلام الرئيس ⇒ طلب واحد لا طلبان.
+  const inventory = useYieldAnalysis(fieldId || undefined);
 
   // 403/404 (RBAC أو الميزة) — رسالة ودودة لا حالة خطأ صاخبة.
   const forbidden = query.isError && asApiError(query.error).response?.status === 403;
 
-  // قائمة المواسم لمنتقي الموسم — من الزراعة↔الحصاد (season_id + المحصول للتمييز).
+  // قائمة المواسم لمنتقي الموسم — من المخزون غير المُرشَّح (season_id + المحصول للتمييز)؛
+  // ريثما يصل المخزون نعود إلى الردّ الحاليّ.
+  const seasonSource = inventory.data ?? data;
   const seasonOptions = useMemo(() => {
-    const rows = data?.planting_vs_harvest ?? [];
+    const rows = seasonSource?.planting_vs_harvest ?? [];
     return rows
       .filter((r): r is YieldPlantingHarvestRow & { season_id: string } => !!r.season_id)
-      .map((r) => ({
-        id: r.season_id,
-        label: `${r.crop || 'موسم'}${r.sowing_date ? ` · ${r.sowing_date}` : ''}`,
-      }));
-  }, [data]);
+      .map((r) => ({ id: r.season_id, label: seasonLabel(r) }));
+  }, [seasonSource]);
 
   // بيانات الرسم الشريطيّ: مقارنة المستهدف↔الفعليّ لكلّ موسم (الفعليّ فقط حين توفّر).
+  // الوسم = الحقل + هويّة الموسم (المحصول · تاريخ البذار)، فموسمان للحقل نفسه لا يحملان
+  // وسماً واحداً؛ وإن تطابق الوسمان رغم ذلك يُلحَق season_id. الصفّ يحمل season_id صراحةً.
   const chartData = useMemo(() => {
-    const rows = data?.planting_vs_harvest ?? [];
-    return rows
+    const rows = (data?.planting_vs_harvest ?? [])
       .filter((r) => r.actual_yield_t_ha != null || r.target_yield_t_ha != null)
       .map((r) => ({
-        name: r.field_name || r.field_id || r.season_id || '—',
+        season_id: r.season_id,
+        name: `${r.field_name || r.field_id || '—'} · ${seasonLabel(r)}`,
         target: r.target_yield_t_ha,
         actual: r.actual_yield_t_ha,
       }));
+    const counts = new Map<string, number>();
+    rows.forEach((r) => counts.set(r.name, (counts.get(r.name) ?? 0) + 1));
+    return rows.map((r) =>
+      (counts.get(r.name) ?? 0) > 1 && r.season_id ? { ...r, name: `${r.name} (${r.season_id})` } : r,
+    );
   }, [data]);
 
   const phRows: (YieldPlantingHarvestRow & Record<string, unknown>)[] =
