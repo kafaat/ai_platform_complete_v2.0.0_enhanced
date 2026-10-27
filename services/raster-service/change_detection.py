@@ -19,6 +19,45 @@ from __future__ import annotations
 # القيمة الأدنى = أسوأ. يطابق _HIGH_IS_SEVERE في indicator_grid (مصدر واحد للدلالة).
 _HIGHER_IS_WORSE = {"salinity", "ndsi"}
 
+# القائمة المعروفة باتّجاه صريح (S3-b): كلّ مؤشّر قياسيّ في IndicatorKind + الاسم
+# العامّ salinity. اسم خارجها يُرفض (ValueError ⇒ 422 على الحدود) بدل أن يسقط
+# صامتاً على «الأدنى أسوأ» فيقلب التدهور تحسّناً. truecolor/et_inputs ليست مؤشّراً
+# قياسيّاً بقيمة واحدة فلا اتّجاه لها.
+# تنبيه: بقيّة المؤشّرات تحمل الافتراض الموروث «الأدنى أسوأ»، ومنها مؤشّرات إجهاد/تربة
+# عارية (msi/cwsi/tvdi/lst/bsi/bi/bi2/dbsi/ndti/sipi) قد يكون اتّجاهها معكوساً —
+# تصحيحها قرار علميّ مفتوح، لا يُخمَّن هنا.
+# نسخة الحدود raster_api_models.canonical_change_index تطابق canonical_index (مفروض
+# باختبار) — الوحدتان ورقتان تُحمَّلان بمساريهما فلا تستورد إحداهما الأخرى.
+_LOWER_IS_WORSE = {
+    "ndvi", "evi", "savi", "ndwi", "ndmi", "gndvi", "fapar", "vari", "gli", "tgi",
+    "ndre", "reci", "gci", "arvi", "sipi", "nbr", "ccci", "msi", "msavi", "moisture",
+    "bsi", "bi", "bi2", "ndti", "dbsi", "satvi", "lst", "cwsi", "tvdi", "tci", "vhi",
+}  # fmt: skip
+_INDEX_ALIASES = {
+    "salt": "salinity",
+    "soil_salinity": "salinity",
+    "ndvu": "ndvi",
+    "vegetation": "ndvi",
+}
+
+
+def canonical_index(index: str | None) -> str:
+    """يطبّع اسم المؤشّر (حالة الأحرف/مسافات/شرطات/أسماء بديلة) ويتحقّق منه.
+
+    يرفع ValueError («unknown_change_index») لاسم خارج القائمة المعروفة.
+    """
+    key = str(index or "").strip().lower().replace(" ", "_").replace("-", "_")
+    key = _INDEX_ALIASES.get(key, key)
+    if key not in _HIGHER_IS_WORSE and key not in _LOWER_IS_WORSE:
+        raise ValueError(f"unknown_change_index: {index!r}")
+    return key
+
+
+def index_direction(index: str) -> str:
+    """اتّجاه المؤشّر الصريح بعد التطبيع: higher_is_worse | lower_is_worse."""
+    return "higher_is_worse" if canonical_index(index) in _HIGHER_IS_WORSE else "lower_is_worse"
+
+
 # تغطية صالحة دونها تُعتبر النتيجة جزئيّة (غيوم/فجوات) ويُرفع تحذير.
 _COVERAGE_WARN_BELOW = 0.6
 
@@ -160,6 +199,7 @@ def detect_change(
     if b.ndim != 2:
         raise ValueError("الشبكتان يجب أن تكونا ثنائيّتي الأبعاد (rows×cols)")
 
+    index = canonical_index(index)
     rows, cols = (int(b.shape[0]), int(b.shape[1])) if b.size else (0, 0)
     total = rows * cols
     higher_is_worse = index in _HIGHER_IS_WORSE
@@ -214,31 +254,38 @@ def detect_change(
     improved_pct = _pct(counts[CODE_IMPROVEMENT])
     stable_pct = _pct(counts[CODE_STABLE])
     cloud_warning = coverage < _COVERAGE_WARN_BELOW
+    # S3-a: بلا خليّة صالحة مشتركة لا مقارنة أصلاً ⇒ not_assessable ومقاييس null
+    # (لا mean_delta=0 ولا نسب 0% تُقرأ «استقراراً مرصوداً»). الشبكتان تبقيان null.
+    assessable = valid > 0
 
     return {
         "index": index,
         "direction": "higher_is_worse" if higher_is_worse else "lower_is_worse",
+        "status": "assessed" if assessable else "not_assessable",
+        "reason_codes": [] if assessable else ["no_common_valid_pixels"],
         "rows": rows,
         "cols": cols,
         "delta_grid": delta_grid,  # after - before (None للفجوات)
         "change_grid": code_grid,  # -2/-1/0/1 (None للفجوات) للموبايل
         # مفاتيح مختصرة على المستوى الأعلى (يستهلكها العميل/الموبايل مباشرة)
-        "mean_delta": mean_delta,
-        "improved_pct": improved_pct,
-        "degraded_pct": degraded_pct,
-        "stable_pct": stable_pct,
-        "stats": stats,
+        "mean_delta": mean_delta if assessable else None,
+        "improved_pct": improved_pct if assessable else None,
+        "degraded_pct": degraded_pct if assessable else None,
+        "stable_pct": stable_pct if assessable else None,
+        "stats": stats if assessable else None,
         "coverage_pct": round(coverage * 100, 2),
         "valid_pixels": valid,
         "percentage_denominator": "common_valid_pixels",
-        "degraded_grid_pct": round(degraded_pct * coverage, 2),
+        "degraded_grid_pct": round(degraded_pct * coverage, 2) if assessable else None,
         "total_pixels": total,
         "areas": {
             "severe_degraded_pct": severe_pct,
             "degraded_pct": degraded_pct,
             "improved_pct": improved_pct,
             "stable_pct": stable_pct,
-        },
+        }
+        if assessable
+        else None,
         "zones": _zones_from_codes(code_grid, delta_grid, rows, cols),
         "thresholds": {"slight": slight, "severe": severe},
         "cloud_warning": cloud_warning,

@@ -8,7 +8,15 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field, FiniteFloat, PrivateAttr, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    FiniteFloat,
+    PrivateAttr,
+    field_validator,
+    model_validator,
+)
 
 
 class IndicatorKind(StrEnum):
@@ -46,6 +54,27 @@ class IndicatorKind(StrEnum):
     vhi = "vhi"
     et_inputs = "et_inputs"
     truecolor = "truecolor"
+
+
+# S3-b: اسم مؤشّر كشف التغيّر على الحدود — مطابق لـchange_detection.canonical_index
+# (التطابق مفروض باختبار). لا يُستورَد منها: هذه الوحدة ورقة (stdlib + pydantic)
+# تحمّلها اختبارات بمسارها بلا مجلّد الخدمة على sys.path.
+_CHANGE_INDEX_ALIASES = {
+    "salt": "salinity",
+    "soil_salinity": "salinity",
+    "ndvu": "ndvi",
+    "vegetation": "ndvi",
+}
+_CHANGE_INDEXES = {k.value for k in IndicatorKind} - {"truecolor", "et_inputs"} | {"salinity"}
+
+
+def canonical_change_index(index: str | None) -> str:
+    """يطبّع اسم المؤشّر ويرفع ValueError («unknown_change_index») للمجهول."""
+    key = str(index or "").strip().lower().replace(" ", "_").replace("-", "_")
+    key = _CHANGE_INDEX_ALIASES.get(key, key)
+    if key not in _CHANGE_INDEXES:
+        raise ValueError(f"unknown_change_index: {index!r}")
+    return key
 
 
 class SourceFormat(StrEnum):
@@ -313,6 +342,12 @@ class ChangeDetectRequest(BaseModel):
     grid_before_identity: ChangeGridIdentity | None = None
     grid_after_identity: ChangeGridIdentity | None = None
 
+    # S3-b: اسم مُطبَّع من القائمة المعروفة (SALINITY ≡ salinity)؛ المجهول ⇒ 422.
+    @field_validator("index")
+    @classmethod
+    def known_index(cls, value: str) -> str:
+        return canonical_change_index(value)
+
     @model_validator(mode="after")
     def aligned_spatial_support(self):
         before, after = self.grid_before_identity, self.grid_after_identity
@@ -396,6 +431,11 @@ class FieldChangeRequest(BaseModel):
     grid: int = Field(32, ge=2, le=256)
     slight_threshold: float = 0.1
     severe_threshold: float = 0.2
+
+    @field_validator("index")
+    @classmethod
+    def known_index(cls, value: str) -> str:
+        return canonical_change_index(value)
 
 
 class SalinityClassifyRequest(BaseModel):
