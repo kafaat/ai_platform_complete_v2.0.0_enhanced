@@ -13,6 +13,7 @@ import os
 import uuid
 from datetime import UTC, datetime
 
+import raster_security_context
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
 from fastapi.responses import Response
 from radiometry_containment import single_scene_detail as _radiometry_single_scene_detail
@@ -864,6 +865,8 @@ async def process_cdse(
     job_id = f"cdse_{uuid.uuid4().hex[:12]}"
     job_record = {
         "job_id": job_id,
+        # P3-AUTH: ربط المهمّة بمستأجِرها (تُفرَض على /v1/jobs/{id}[/result]).
+        "tenant_id": raster_security_context.job_owner_tenant(req.tenant_id),
         "status": JobStatus.pending,
         "progress_pct": 0,
         "created_at": datetime.now(UTC).isoformat(),

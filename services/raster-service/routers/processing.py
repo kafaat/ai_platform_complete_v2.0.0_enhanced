@@ -37,6 +37,8 @@ async def process_raster(
     job_id = f"job_{uuid.uuid4().hex[:12]}"
     j = {
         "job_id": job_id,
+        # P3-AUTH: المهمّة تُربط بمستأجِرها فتُفرَض الملكيّة على قراءة الحالة/النتيجة.
+        "tenant_id": raster_security_context.job_owner_tenant(req.tenant_id),
         "status": api_models.JobStatus.pending,
         "progress_pct": 0,
         "created_at": datetime.now(UTC).isoformat(),
@@ -142,6 +144,7 @@ async def process_batch(
         job_id,
         {
             "job_id": job_id,
+            "tenant_id": raster_security_context.job_owner_tenant(req.tenant_id),
             "status": api_models.JobStatus.pending,
             "progress_pct": 0,
             "created_at": datetime.now(UTC).isoformat(),

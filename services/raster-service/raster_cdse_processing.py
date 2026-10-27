@@ -152,6 +152,8 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
             )
             preq._cdse_native_product = native_product
             sub_job_id = f"{job_id}_{ind}"
+            # P3-AUTH: الفرعيّة تُقرأ بمعرّفها عبر /v1/jobs/{id}[/result] — ترث مالك الأمّ.
+            ctx._jobs.set(sub_job_id, {"job_id": sub_job_id, "tenant_id": job.get("tenant_id")})
             ctx._run_processing(sub_job_id, preq)
             sj = ctx._jobs.get(sub_job_id) or {}
             if sj.get("status") == ctx.JobStatus.completed:
