@@ -15,13 +15,13 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6820,
+    "files_scanned": 6821,
     "files_by_kind": {
       "backend": 1260,
       "database": 289,
       "governance": 86,
       "mobile": 407,
-      "other": 2127,
+      "other": 2128,
       "tests": 2172,
       "web": 479
     },
@@ -14378,6 +14378,13 @@
           ]
         },
         {
+          "path": "docs/runbooks/MIGRATION_FREEZE_GATES_RUNBOOK_20261027.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "scripts/ci/brain_commit_claim_guard.py",
           "score": 20,
           "signals": [
@@ -14405,7 +14412,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 10
+        "other_evidence": 11
       },
       "coverage_dimensions": 5,
       "mapped": true

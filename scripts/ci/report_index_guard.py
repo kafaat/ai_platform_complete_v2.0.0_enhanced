@@ -41,6 +41,7 @@ SECTIONS = {
     "Operational runbooks": [
         "docs/runbooks/ALIBABA_PYPI_MIRROR.md",
         "docs/runbooks/EDGE_MODEL_PROVISIONING_CHECKLIST.md",
+        "docs/runbooks/MIGRATION_FREEZE_GATES_RUNBOOK_20261027.md",
         "docs/runbooks/WEATHER_REDIS_INTEGRATION.md",
     ],
 }
