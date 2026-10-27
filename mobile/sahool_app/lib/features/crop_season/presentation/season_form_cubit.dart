@@ -1,7 +1,9 @@
 // SAHOOL — features/crop_season/presentation/season_form_cubit.dart
-// إرسال نموذج الموسم (إنشاء/تعديل). مفتاح Idempotency واحد لكلّ فتح للنموذج
-// يُعاد في كلّ محاولة حفظ — فإعادة الضغط بعد انقطاع لا تُنشئ موسماً ثانياً
-// (الخادم يحترم المفتاح على POST seasons).
+// إرسال نموذج الموسم (إنشاء/تعديل). مفتاح Idempotency واحد لكلّ نيّة يُعاد في
+// كلّ محاولة حفظ بالجسم نفسه — فإعادة الضغط بعد انقطاع لا تُنشئ موسماً ثانياً
+// (الخادم يحترم المفتاح على POST seasons). وإن عُدِّل النموذج بعد فشلٍ مجهول
+// النتيجة تجدّد المفتاح (UI-M3): الخادم لا يقارن الجسم على season.create فكان
+// سيعيد الموسم القديم (محصولاً/تاريخاً سابقاً) نجاحاً للنيّة المعدّلة.
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
 
@@ -36,8 +38,9 @@ class SeasonFormCubit extends Cubit<SeasonFormState> {
   final String fieldId;
   final Season? original;
 
-  /// ثابت طوال عمر النموذج (نيّة كتابة واحدة).
-  final IdempotencyKey idempotencyKey = IdempotencyKey.generate();
+  /// ثابت ما دام الجسم نفسه؛ يتجدّد إن عُدِّل النموذج قبل إعادة الحفظ.
+  final PayloadIdempotencyKey _key = PayloadIdempotencyKey();
+  IdempotencyKey get idempotencyKey => _key.current;
 
   bool get isEdit => original != null;
 
@@ -58,6 +61,7 @@ class SeasonFormCubit extends Cubit<SeasonFormState> {
     } else {
       body = buildCreateBody(input);
     }
+    final key = _key.forPayload(body);
     emit(const SeasonFormSubmitting());
     try {
       final saved = original != null
@@ -65,12 +69,12 @@ class SeasonFormCubit extends Cubit<SeasonFormState> {
               fieldId,
               original!.seasonId,
               body,
-              idempotencyKey: idempotencyKey,
+              idempotencyKey: key,
             )
           : await _api.createSeason(
               fieldId,
               body,
-              idempotencyKey: idempotencyKey,
+              idempotencyKey: key,
             );
       if (!isClosed) emit(SeasonFormSaved(saved));
     } catch (e) {
