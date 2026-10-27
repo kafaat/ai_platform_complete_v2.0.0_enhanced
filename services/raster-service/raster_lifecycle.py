@@ -25,6 +25,12 @@ RETENTION = {
     # النواتج الدائمة (offline_packs، COG أصليّة) لا تُحذَف تلقائيّاً
 }
 PROTECTED_DIRS = {"offline_packs"}  # لا تُمَسّ أبداً
+# ST-02: GeoTIFF في جذر التخزين أصلٌ دائم لا كاش — الأصل المرفوع (ras_*/drone_*) وCOG
+# المؤشّر الذي قد يشير إليه raster_assets.cog_uri (file:// في وضع التخزين المحلّيّ). حذفه
+# بالعمر وحده يترك صفّاً قائماً بلا ملفّ (layer_lookup ⇒ «لا طبقة»). هذا التنظيف العامّ
+# لا يملك مطابقة مراجع القاعدة، فلا يحذفه أبداً؛ احتفاظ الأصول سياسةٌ صريحة منفصلة.
+# .tif و.tiff صنف واحد (لا لاتماثل امتداد).
+DURABLE_RASTER_EXTS = (".tif", ".tiff")
 
 
 def _age_days(path: str) -> float:
@@ -51,6 +57,8 @@ def scan_storage(upload_dir: str) -> dict:
             total_bytes += sz
             file_count += 1
             ext = fn.rsplit(".", 1)[-1].lower() if "." in fn else "other"
+            if ext == "tiff":
+                ext = "tif"  # ST-02: صنف واحد مع .tif
             by_type[ext if ext in by_type else "other"] += sz
     return {
         "total_mb": round(total_bytes / 1e6, 1),
@@ -63,27 +71,40 @@ def cleanup(upload_dir: str, dry_run: bool = True) -> dict:
     """ينظّف النواتج المنتهية حسب سياسة الاحتفاظ.
 
     dry_run=True (افتراضي): يُبلّغ بما سيُحذَف دون حذف فعلي (آمن). مرّر
-    dry_run=False للحذف الفعلي. النواتج المحميّة (offline_packs) لا تُمَسّ.
+    dry_run=False للحذف الفعلي. النواتج المحميّة (offline_packs) لا تُمَسّ، وGeoTIFF
+    (.tif/.tiff) أصول دائمة/مُشار إليها تُحصى في ``retained_durable`` ولا تُحذَف (ST-02).
     """
     if not os.path.isdir(upload_dir):
-        return {"scanned": 0, "removed": 0, "freed_mb": 0, "dry_run": dry_run}
+        return {
+            "scanned": 0,
+            "removed": 0,
+            "retained_durable": 0,
+            "freed_mb": 0,
+            "dry_run": dry_run,
+        }
 
     removed: list[str] = []
     freed_bytes = 0
     scanned = 0
+    retained_durable = 0
 
     for entry in os.listdir(upload_dir):
         full = os.path.join(upload_dir, entry)
-        # تخطّى المجلّدات المحميّة
-        if entry in PROTECTED_DIRS:
+        # تخطّى المجلّدات المحميّة؛ والحذف للملفّات فقط — مجلّدٌ لا يُعَدّ «محذوفاً» لم يُحذَف
+        if entry in PROTECTED_DIRS or not os.path.isfile(full):
             continue
-        # صنّف النوع حسب الاسم/الامتداد
-        if entry.endswith(".tmp") or entry.startswith("tmp_"):
+        lower = entry.lower()
+        # ST-02: الأصول الدائمة أوّلاً — قبل أيّ تصنيف كاش بالاسم ("thumb"/"tmp_" في اسم GeoTIFF)
+        if lower.endswith(DURABLE_RASTER_EXTS):
+            retained_durable += 1
+            continue
+        # صنّف الكاش حسب الاسم/الامتداد
+        if lower.endswith(".tmp") or lower.startswith("tmp_"):
             kind = "temp"
-        elif "thumb" in entry.lower() or entry.endswith("_thumb.png"):
+        elif lower.endswith(".png") and "thumb" in lower:
             kind = "thumbnail"
-        elif entry.endswith((".png", ".tif")):
-            kind = "derived"
+        elif lower.endswith(".png"):
+            kind = "derived"  # PNG عرض مُصيَّر — يُعاد توليده من COG
         else:
             continue  # غير معروف → لا تلمسه (محافظ)
 
@@ -91,10 +112,9 @@ def cleanup(upload_dir: str, dry_run: bool = True) -> dict:
         max_age = RETENTION.get(kind, 90)
         if _age_days(full) > max_age:
             try:
-                sz = os.path.getsize(full) if os.path.isfile(full) else 0
+                sz = os.path.getsize(full)
                 if not dry_run:
-                    if os.path.isfile(full):
-                        os.remove(full)
+                    os.remove(full)
                 removed.append(entry)
                 freed_bytes += sz
             except OSError as e:
@@ -104,7 +124,11 @@ def cleanup(upload_dir: str, dry_run: bool = True) -> dict:
         "scanned": scanned,
         "removed": len(removed),
         "removed_sample": removed[:10],
+        "retained_durable": retained_durable,
         "freed_mb": round(freed_bytes / 1e6, 1),
         "dry_run": dry_run,
-        "note": "النواتج المحميّة (offline_packs) لا تُحذَف؛ dry_run افتراضي للأمان",
+        "note": (
+            "النواتج المحميّة (offline_packs) لا تُحذَف؛ GeoTIFF (.tif/.tiff) أصول دائمة "
+            "لا يحذفها هذا التنظيف (retained_durable)؛ dry_run افتراضي للأمان"
+        ),
     }
