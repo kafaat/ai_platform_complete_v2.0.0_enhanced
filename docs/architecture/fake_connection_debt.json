@@ -29,6 +29,7 @@
     "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
     "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
     "services/sahool-platform/tests/test_governance_modules.py",
+    "services/sahool-platform/tests/test_idempotency_server_contract.py",
     "services/sahool-platform/tests/test_indicator_observations_route.py",
     "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
     "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
@@ -472,14 +473,33 @@
       "kind": "audit_fix_wave_20261027",
       "date": "2026-10-27",
       "before": 112,
-      "after": 116,
+      "after": 115,
       "sites": [
         "services/raster-service/test_acquisition_date_provenance.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
-        "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py"
       ],
-      "justification": "Regression witnesses from the 2026-10-27 audit fix branches (thumbs-acq-provenance 3fbf70237, rs-platform-geometry 55a4cf993, ui-mobile-irrigation f569c82d5, season-season-provenance 8404b1b7b). Each uses a SQL double to measure what the code sends or reads: the same-scene day representative and UTC day in the raster date accumulator; net area with holes and CRS conservation on field merge/split; the valve-derived field_id and Idempotency-Key replay on POST /api/v1/irrigation/schedules; asset identity carried into season NDVI rows. They do NOT establish PostgreSQL RLS, constraints, locking or concurrent recovery. No proven_live exemption is added; live PostgreSQL acceptance remains required before rollout."
+      "justification": "Regression witnesses from the 2026-10-27 audit fix branches (thumbs-acq-provenance 3fbf70237, rs-platform-geometry 55a4cf993, season-season-provenance 8404b1b7b). Each uses a SQL double to measure what the code sends or reads: the same-scene day representative and UTC day in the raster date accumulator; net area with holes and CRS conservation on field merge/split; asset identity carried into season NDVI rows. They do NOT establish PostgreSQL RLS, constraints, locking or concurrent recovery. No proven_live exemption is added; live PostgreSQL acceptance remains required before rollout."
+    },
+    {
+      "kind": "ui_mobile_irrigation_20261027_schedule_create_contract",
+      "date": "2026-10-27",
+      "before": 115,
+      "after": 116,
+      "sites": [
+        "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py"
+      ],
+      "justification": "Arrived with the integration head 7e3d72565 (branch ui-mobile-irrigation, UI-M1/UI-M2) without an admission, so the ratchet failed on that head before any D4/D5 change. The fake answers only the valve lookup, the tenant field check and the schedule insert, so the field derivation, the 422 conflict and the replay of the first result can be pinned without a database. It claims no PostgreSQL enforcement. The same behaviours are proven against PostgreSQL 16 under the restricted role in tests_v9/test_d4d5_idempotency_irrigation_live_pg.py, which the Live PG Proofs job runs."
+    },
+    {
+      "kind": "platform_idempotency_20261027_d4d5_server_contract",
+      "date": "2026-10-27",
+      "before": 116,
+      "after": 117,
+      "sites": [
+        "services/sahool-platform/tests/test_idempotency_server_contract.py"
+      ],
+      "justification": "D4/D5 unit contract. The irrigation, field-create and season-create routes run against fakes that answer only the rows each route reads: the valve and field lookups honour a tenant parameter when the query passes one, and otherwise act like a role that bypasses RLS. This pins the 409 reason bodies, the operation-type binding, retention, the canonical digest and the foreign-valve 404 without a database. The command store is an in-memory stand-in. No PostgreSQL enforcement is claimed here: concurrency, rollback, retention and R14/R15 are proven live in tests_v9/test_d4d5_idempotency_irrigation_live_pg.py."
     }
   ]
 }

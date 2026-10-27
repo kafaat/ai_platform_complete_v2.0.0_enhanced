@@ -59,6 +59,10 @@ class IrrigationApi {
     ),
   );
 
+  /// حقول المستأجر لمنتقي حقل الجدول (D5) — GET /api/v1/fields بالعميل نفسه، قراءة فقط.
+  Future<List<Map<String, dynamic>>> listFields() async =>
+      asJsonList(await _client.get('/api/v1/fields'));
+
   Future<void> deleteSchedule(
     String scheduleId, {
     IdempotencyKey? idempotencyKey,

@@ -264,6 +264,7 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
             _QueueNote(
               key: const ValueKey('field_forms_pending'),
               count: pending.length,
+              outcomeUnknown: pending.where((i) => i.outcomeUnknown).length,
             ),
           if (failed.isNotEmpty) ...[
             const ListSectionHeader('لم يُقبل'),
@@ -320,8 +321,11 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
 
 /// تنبيه بعدد الإرسالات المحفوظة على الجهاز بانتظار الاتصال.
 class _QueueNote extends StatelessWidget {
-  const _QueueNote({super.key, required this.count});
+  const _QueueNote({super.key, required this.count, this.outcomeUnknown = 0});
   final int count;
+
+  /// منها ما ربّما وصل الخادم ولم يصل تأكيده — لا يُقال عنه «بانتظار الاتصال» فقط.
+  final int outcomeUnknown;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -332,11 +336,25 @@ class _QueueNote extends StatelessWidget {
           Icon(Icons.cloud_upload_outlined, color: context.tokens.warning),
           const SizedBox(width: SahoolSpacing.md),
           Expanded(
-            child: Text(
-              count == 1
-                  ? 'إرسال واحد محفوظ على الجهاز بانتظار الاتصال.'
-                  : '$count إرسالات محفوظة على الجهاز بانتظار الاتصال.',
-              style: context.textStyles.bodyMedium,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  count == 1
+                      ? 'إرسال واحد محفوظ على الجهاز بانتظار الاتصال.'
+                      : '$count إرسالات محفوظة على الجهاز بانتظار الاتصال.',
+                  style: context.textStyles.bodyMedium,
+                ),
+                if (outcomeUnknown > 0)
+                  Text(
+                    'نتيجة $outcomeUnknown منها غير مؤكَّدة: ربّما وصلت ولم '
+                    'يصل تأكيدها، وتُطابَق تلقائيّاً بالمعرّف نفسه.',
+                    key: const ValueKey('field_forms_outcome_unknown'),
+                    style: context.textStyles.bodySmall?.copyWith(
+                      color: context.tokens.warning,
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

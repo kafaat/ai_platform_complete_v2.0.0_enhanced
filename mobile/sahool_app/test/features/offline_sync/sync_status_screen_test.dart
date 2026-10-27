@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:sahool_app/core/theme/app_theme.dart';
 import 'package:sahool_app/features/offline_sync/data/durable_offline_outbox.dart';
+import 'package:sahool_app/features/offline_sync/data/offline_sync_api.dart';
 import 'package:sahool_app/features/offline_sync/data/outbox_record.dart';
 import 'package:sahool_app/features/offline_sync/data/outbox_store.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
@@ -217,6 +218,199 @@ void main() {
     await tester.pump();
     expect(find.textContaining('وصل إلى الخادم'), findsNothing);
     expect(find.byKey(const ValueKey('sync-unreadable')), findsOneWidget);
+  });
+
+  testWidgets('R12 — one corrupt row while every other row reaches the server: '
+      'a clear needs-attention counter and no global success message, across '
+      'a storage reopen and a fresh screen', (tester) async {
+    final dir = Directory.systemTemp.createTempSync('sync_r12');
+    late OutboxStore store;
+    final h = Harness(online: true);
+    final rows = [
+      _rec('a', 1, label: 'مهمّة أ'),
+      _rec('b', 2, label: 'مهمّة ب'),
+    ];
+    await tester.runAsync(() async {
+      Hive.init(dir.path);
+      FlutterSecureStorage.setMockInitialValues({});
+      final first = await HiveOutboxStore.openEncrypted();
+      for (final r in rows) {
+        await first.put(r);
+      }
+      // صفّ تالف بين صفّين سليمين.
+      await Hive.box<String>(HiveOutboxStore.boxName).put('corrupt', '{"v":1,');
+      await first.close();
+      store = await HiveOutboxStore.openEncrypted();
+    });
+    addTearDown(() async {
+      await tester.runAsync(() async {
+        await Hive.close();
+        dir.deleteSync(recursive: true);
+      });
+    });
+    DurableOfflineOutbox outboxOn(OutboxStore s) => DurableOfflineOutbox(
+      openStore: () async => s,
+      currentOwner: () => OutboxOwner.fromAccessToken(h.tokens.accessToken),
+      api: OfflineSyncApi(testClient(h.adapter, h.tokens)),
+      connectivity: h.connectivity,
+      clock: () => h.now,
+      timer: (d, cb) => RecordedTimer(d, cb),
+    );
+    tester.view.physicalSize = const Size(1080, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final outbox = outboxOn(store);
+    await tester.pumpWidget(
+      _app(
+        SyncStatusScreen(
+          outbox: outbox,
+          connectivity: h.connectivity,
+          now: () => h.now,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.runAsync(() async {
+      await outbox.drain();
+      for (var i = 0; i < 50 && store.records.isNotEmpty; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+      }
+    });
+    await tester.pump();
+    await tester.pump();
+
+    void expectHonest() {
+      expect(find.textContaining('وصل إلى الخادم'), findsNothing);
+      expect(find.textContaining('لا عمليّات بانتظار المزامنة'), findsNothing);
+      expect(find.text('بانتظار الإرسال: 0'), findsOneWidget);
+      final chip = find.byKey(const ValueKey('sync-attention-count'));
+      expect(chip, findsOneWidget);
+      expect(
+        find.descendant(of: chip, matching: find.text('تحتاج تدخّلاً: 1')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('sync-unreadable')), findsOneWidget);
+    }
+
+    expect(h.adapter.requests.map((r) => r.path), [
+      '/api/v1/tasks/a',
+      '/api/v1/tasks/b',
+    ]);
+    expectHonest();
+
+    // الشاشة تُغلق، التخزين يُعاد فتحه (إعادة تشغيل)، والشاشة تُفتح من جديد.
+    await tester.pumpWidget(const SizedBox());
+    late OutboxStore reopened;
+    await tester.runAsync(() async {
+      await (store as HiveOutboxStore).close();
+      reopened = await HiveOutboxStore.openEncrypted();
+    });
+    await tester.pumpWidget(
+      _app(
+        SyncStatusScreen(
+          outbox: outboxOn(reopened),
+          connectivity: h.connectivity,
+          now: () => h.now,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(reopened.records, isEmpty);
+    expect(reopened.unreadableCount, 1);
+    expectHonest();
+  });
+
+  testWidgets('each op shows its delivery state: saved locally, pending retry, '
+      'outcome unknown, needs attention; a payload-mismatch conflict offers '
+      'no blind retry; a server Retry-After is shown and blocks "send now"', (
+    tester,
+  ) async {
+    OutboxRecord fromJson(Map<String, dynamic> extra, String id, int seq) {
+      final base = _rec(id, seq, label: 'عمليّة $id').toJson();
+      return OutboxRecord.fromJson({...base, ...extra});
+    }
+
+    final h = await seeded(tester, [
+      fromJson({}, 'saved', 1),
+      fromJson(
+        {
+          'attempts': 1,
+          'last_outcome': 'retryLater',
+          'next_attempt_at': '2026-10-26T08:10:00.000Z',
+          'not_before': '2026-10-26T08:10:00.000Z',
+        },
+        'waiting',
+        2,
+      ),
+      fromJson(
+        {'attempts': 1, 'outcome_unknown': true, 'last_outcome': 'offline'},
+        'unknown',
+        3,
+      ),
+      fromJson(
+        {
+          'state': 'rejected',
+          'attempts': 1,
+          'rejected_status': 409,
+          'rejected_message_ar': 'المفتاح مستعمَل لحمولة أخرى.',
+          'conflict_reason': 'payload_mismatch',
+        },
+        'mismatch',
+        4,
+      ),
+    ], online: true);
+    await pumpScreen(tester, h);
+
+    String stateOf(String id) {
+      final chip = find.byKey(ValueKey('sync-op-state-$id'));
+      expect(chip, findsOneWidget, reason: id);
+      return tester
+          .widgetList<Text>(
+            find.descendant(of: chip, matching: find.byType(Text)),
+          )
+          .map((t) => t.data)
+          .join();
+    }
+
+    expect(stateOf('saved'), 'محفوظة على الجهاز');
+    expect(stateOf('waiting'), 'بانتظار إعادة المحاولة');
+    expect(stateOf('unknown'), 'النتيجة غير مؤكَّدة');
+    expect(stateOf('mismatch'), 'تحتاج تدخّلاً');
+    expect(find.text('نتيجتها غير مؤكَّدة: 1'), findsOneWidget);
+    expect(find.text('تحتاج تدخّلاً: 1'), findsOneWidget);
+
+    // تعارض الحمولة: شرحٌ ولا زرّ إعادة؛ التجاهل وحده متاح.
+    final mismatchCard = find.byKey(const ValueKey('sync-op-mismatch'));
+    expect(
+      find.byKey(const ValueKey('sync-op-mismatch-mismatch')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: mismatchCard, matching: find.text('إعادة المحاولة')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: mismatchCard, matching: find.text('تجاهل')),
+      findsOneWidget,
+    );
+
+    // Retry-After ظاهر، و«إرسال الآن» على بطاقته معطَّل.
+    expect(
+      find.byKey(const ValueKey('sync-op-not-before-waiting')),
+      findsOneWidget,
+    );
+    final waitingCard = find.byKey(const ValueKey('sync-op-waiting'));
+    final sendOnWaiting = tester.widget<ButtonStyleButton>(
+      find
+          .descendant(
+            of: waitingCard,
+            matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+          )
+          .first,
+    );
+    expect(sendOnWaiting.onPressed, isNull);
   });
 
   testWidgets('lists rejected (with server message) and pending ops with '

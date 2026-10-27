@@ -201,14 +201,18 @@ void main() {
         (_) async =>
             const FakeReply(400, {'detail': 'X-Tenant-Id must be a UUID'}),
       );
+      // الموعد محفوظ في الصفّ (backoff)؛ الساعة تتقدّم بين التصريفات كي يحين.
+      var now = DateTime.now();
       final coordinator = FieldFormsCoordinator(
         queue: queue,
         api: FieldFormsApi(_dio(adapter)),
         currentTenantId: () => 't',
         currentActorId: () => null,
+        clock: () => now,
       );
       for (var i = 0; i < SubmissionSender.maxRejectedAttempts; i++) {
         await coordinator.drain();
+        now = now.add(const Duration(hours: 1));
       }
       expect(
         queue.pending(),

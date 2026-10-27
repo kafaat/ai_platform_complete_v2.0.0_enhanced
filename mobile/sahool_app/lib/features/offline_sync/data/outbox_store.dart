@@ -112,6 +112,14 @@ class HiveOutboxStore implements OutboxStore {
   static Future<HiveOutboxStore> openEncrypted({
     OutboxKeyStore keys = const SecureOutboxKeyStore(),
     String name = boxName,
+  }) async => HiveOutboxStore._(await openEncryptedBox(keys: keys, name: name));
+
+  /// يفتح صندوق نصوص JSON مشفّراً بالآليّة نفسها (مفتاح 256 بت في التخزين الآمن،
+  /// لا فتح لصندوق قائم بمفتاح جديد). يستعمله سجلّ العمليّات المعلّقة
+  /// (operation_ledger.dart) بصندوقه ومفتاحه — لا طبقة تخزين ثالثة.
+  static Future<Box<String>> openEncryptedBox({
+    required OutboxKeyStore keys,
+    required String name,
   }) async {
     final List<int> key;
     try {
@@ -122,11 +130,10 @@ class HiveOutboxStore implements OutboxStore {
       throw OutboxStoreException(OutboxStoreFailure.keyStorage, e);
     }
     try {
-      final box = await Hive.openBox<String>(
+      return await Hive.openBox<String>(
         name,
         encryptionCipher: HiveAesCipher(key),
       );
-      return HiveOutboxStore._(box);
     } catch (e) {
       throw OutboxStoreException(OutboxStoreFailure.openFailed, e);
     }

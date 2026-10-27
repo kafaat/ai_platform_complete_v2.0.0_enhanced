@@ -2817,6 +2817,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "services/sahool-platform/tests/test_idempotency_server_contract.py",
         "tests_v9/test_canonical_root_zone_to_sprinkler_contract.py"
       ],
       "learning_linked": false,
@@ -4278,6 +4279,7 @@
       "runtime_verified": false,
       "title": "Irrigation scheduling",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart",
         "tests_v9/test_irrigation_schedule_conflict_v29_5_op.py"
       ]
     },
@@ -7973,6 +7975,7 @@
         "tests_v9/test_chaos_resilience.py",
         "tests_v9/test_compose_rls_bypass_guard.py",
         "tests_v9/test_d1_raster_queue_rls_live_pg.py",
+        "tests_v9/test_d4d5_idempotency_irrigation_live_pg.py",
         "tests_v9/test_database_migrations.py",
         "tests_v9/test_decision_record_migrations.py",
         "tests_v9/test_evidence_graph_nodes_migration_v149.py",

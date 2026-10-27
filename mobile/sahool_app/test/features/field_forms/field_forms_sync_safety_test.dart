@@ -83,7 +83,7 @@ void main() {
   group('UI-S1 — حدّ الجلسة', () {
     test('انتهاء الجلسة أثناء إرسالٍ جارٍ يوقف الحلقة قبل العنصر التالي '
         'فلا يُرسَل عنصر الجلسة السابقة تحت الجلسة الجديدة', () async {
-      await enqueue('alice', 'a1');
+      final first = await enqueue('alice', 'a1');
       final second = await enqueue('alice', 'a2');
       final gate = Completer<void>();
       final adapter = FakeAdapter((_) async {
@@ -109,9 +109,15 @@ void main() {
         hasLength(1),
         reason: 'العنصر الثاني التقطته جلسة alice — لا يُرسَل بعد انتهائها',
       );
+      // D3: الطلب الجاري أُلغي بنهاية الجلسة — الإلغاء لا يثبت أنّ الخادم لم
+      // ينفّذه، فلا يُحذف: يبقى «نتيجته غير مؤكَّدة» ويُطابَق حين تعود alice.
       expect(queue.pending(tenantId: 't').map((i) => i.instanceId), [
+        first.instanceId,
         second.instanceId,
       ]);
+      final rows = queue.pending(tenantId: 't').map((i) => i.toJson()).toList();
+      expect(rows.first['outcome_unknown'], isTrue);
+      expect(rows.last['outcome_unknown'], isFalse);
     });
 
     test(
@@ -225,11 +231,13 @@ void main() {
         return const FakeReply(201, kAccepted);
       });
       final timers = <_Timer>[];
+      var now = DateTime.utc(2026, 10, 27, 9);
       final c = FieldFormsCoordinator(
         queue: queue,
         api: FieldFormsApi(_dio(adapter)),
         currentTenantId: () => 't',
         currentActorId: () => 'alice',
+        clock: () => now,
         timer: (d, cb) {
           final t = _Timer(d, cb);
           timers.add(t);
@@ -244,6 +252,8 @@ void main() {
         scheduled.single.delay,
         greaterThanOrEqualTo(const Duration(seconds: 120)),
       );
+      // المؤقّت يُطلَق حين يحين الموعد المحفوظ.
+      now = now.add(scheduled.single.delay);
       scheduled.single.fire();
       await until(() => queue.pending(tenantId: 't').isEmpty);
       expect(calls, 2);

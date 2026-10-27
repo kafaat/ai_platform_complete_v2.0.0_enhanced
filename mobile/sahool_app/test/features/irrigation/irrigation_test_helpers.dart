@@ -15,15 +15,13 @@ export '../../core/fake_http.dart';
 
 class IrrigationHarness {
   IrrigationHarness(FakeHandler handler) : adapter = FakeAdapter(handler) {
-    api = IrrigationApi(
-      testClient(
-        adapter,
-        MemoryTokenStore(accessToken: fakeJwt(const Duration(hours: 1))),
-      ),
-    );
+    api = IrrigationApi(testClient(adapter, tokens));
   }
 
   final FakeAdapter adapter;
+  final MemoryTokenStore tokens = MemoryTokenStore(
+    accessToken: fakeJwt(const Duration(hours: 1)),
+  );
   late final IrrigationApi api;
 
   List<RecordedRequest> posts(String path) => adapter.requests

@@ -68,24 +68,52 @@ class FakeAdapter implements HttpClientAdapter {
 }
 
 class MemoryTokenStore implements TokenStore {
-  MemoryTokenStore({this.accessToken, this.refreshToken});
+  MemoryTokenStore({this.accessToken, this.refreshToken, this.owner});
   @override
   String? accessToken;
   @override
   String? refreshToken;
+  @override
+  String? owner;
+  @override
+  int generation = 0;
   int clears = 0;
 
-  @override
-  Future<void> saveTokens(String access, {String? refresh}) async {
+  /// الحفظ/المسح المرفوضان لأنّ جيلهما سابق (ردود متأخّرة لجلسة انتهت).
+  int staleSaves = 0;
+  int staleClears = 0;
+
+  /// تبديل الحساب (خروج ثمّ دخول آخر): جيل جديد ورموز المالك الجديد.
+  void switchOwner(String? newOwner, {String? access, String? refresh}) {
+    generation++;
+    owner = newOwner;
     accessToken = access;
-    if (refresh != null) refreshToken = refresh;
+    refreshToken = refresh;
   }
 
   @override
-  Future<void> clear() async {
+  Future<bool> saveTokens(String access,
+      {String? refresh, int? generation}) async {
+    if (generation != null && generation != this.generation) {
+      staleSaves++;
+      return false;
+    }
+    accessToken = access;
+    if (refresh != null) refreshToken = refresh;
+    return true;
+  }
+
+  @override
+  Future<bool> clear({int? generation}) async {
+    if (generation != null && generation != this.generation) {
+      staleClears++;
+      return false;
+    }
     clears++;
+    this.generation++;
     accessToken = null;
     refreshToken = null;
+    return true;
   }
 }
 

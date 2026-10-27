@@ -1,5 +1,17 @@
 // SAHOOL v9.1.0 — lib/services/auth_service.dart
 // Fixes: F12(SecureStorage), F13(expiry check), M02(biometric hint)
+//
+// جيل الجلسة (D2): كلّ تغيير لهويّة الجلسة — استعادة من القرص، دخول (أو تبديل
+// حساب)، خروج، مسح — يرفع [sessionGeneration]. تجديد الرمز يحمل الجيل الذي بدأ
+// فيه، والحفظ/المسح المشروطان ([saveRefreshedToken]/[clearIfGeneration])
+// يرفضانه إن تغيّر الجيل: ردّ متأخّر لجلسة سابقة لا يحفظ رموزاً ولا يمسح جلسة
+// أحدث.
+//
+// سباق الفحص ثمّ الحفظ: الفحص وتعديل الحالة في الذاكرة يجريان في خطوة متزامنة
+// واحدة (بلا await بينهما)، ثمّ تُكتَب القيم الملتقَطة إلى التخزين الآمن عبر
+// سلسلة واحدة بترتيب الاستدعاء ([_serialized]). كان الحفظ يكتب الرمزين على
+// خطوتين بينهما await، فيُكتَب رمز تحديث جلسة سابقة فوق رمز الجلسة الجديدة.
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show PlatformException;
@@ -30,15 +42,69 @@ class AuthService {
   String? get userId => _userId;
   Map<String, dynamic>? get userProfile => _userProfile;
 
+  int _generation = 0;
+
+  /// جيل الجلسة: يرتفع عند الاستعادة والدخول وتبديل الحساب والخروج والمسح، ولا
+  /// يتغيّر بتجديد رمز الوصول داخل الجلسة نفسها.
+  int get sessionGeneration => _generation;
+
+  /// هويّة مالك الجلسة (المستأجر/المستخدم) كما حفظها الدخول.
+  String? get sessionOwner =>
+      _userId == null ? null : '${tenantId ?? ''}/$_userId';
+
+  /// آخر عمليّة تخزين معلّقة، أو null إن لم يبقَ شيء (لا يُحتفَظ بـFuture
+  /// مكتمل: Future.value يُكمِل في Zone إنشائه، فلا يُحمَل بين Zones).
+  Future<void>? _tail;
+
+  /// يُسلسل كتابات التخزين الآمن بترتيب الاستدعاء (لا تتداخل كتابتان).
+  Future<T> _serialized<T>(Future<T> Function() body) {
+    final previous = _tail;
+    final run = previous == null ? body() : previous.then((_) => body());
+    final tail = run.then<void>((_) {}, onError: (Object _) {});
+    _tail = tail;
+    tail.whenComplete(() {
+      if (identical(_tail, tail)) _tail = null;
+    });
+    return run;
+  }
+
+  Completer<void>? _restore;
+
+  /// يعلن أنّ استعادة الجلسة من القرص قادمة (main قبل runApp): رابط عميق يُبنى
+  /// قبل أن تبدأ AuthGate [loadSaved] ينتظرها بدل أن يحكم على جلسة لم تُقرأ.
+  void expectRestore() {
+    final current = _restore;
+    if (current == null || current.isCompleted) _restore = Completer<void>();
+  }
+
+  /// غير null ما دامت استعادة مُعلَنة أو جارية لم تنتهِ؛ المسارات الخاصّة
+  /// تنتظره. null ⇒ لا استعادة معلّقة (الحكم بالحالة الحاليّة).
+  Future<void>? get pendingRestore {
+    final current = _restore;
+    return current == null || current.isCompleted ? null : current.future;
+  }
+
   Future<void> loadSaved() async {
+    expectRestore();
+    final restore = _restore!;
+    final generation = ++_generation;
+    var clear = false;
     try {
-      _token        = await _storage.read(key: 'access_token');
-      _refreshToken = await _storage.read(key: 'refresh_token');
-      _userId       = await _storage.read(key: 'user_id');
-      final profile = await _storage.read(key: 'user_profile');
-      if (profile != null) {
-        _userProfile = json.decode(profile) as Map<String, dynamic>;
-      }
+      await _serialized(() async {
+        final token = await _storage.read(key: 'access_token');
+        final refresh = await _storage.read(key: 'refresh_token');
+        final userId = await _storage.read(key: 'user_id');
+        final profile = await _storage.read(key: 'user_profile');
+        final decoded = profile == null
+            ? null
+            : json.decode(profile) as Map<String, dynamic>;
+        // دخول/خروج وقع أثناء القراءة ⇒ حالته أحدث ممّا قُرئ.
+        if (_generation != generation) return;
+        _token = token;
+        _refreshToken = refresh;
+        _userId = userId;
+        _userProfile = decoded;
+      });
 
       // F13: Validate token expiry on load. رمز وصول منتهٍ (عمره 60 دقيقة) لا
       // يُنهي الجلسة ما دام رمز التحديث (30 يوماً) محفوظاً: AuthGate يجدّده عبر
@@ -46,39 +112,78 @@ class AuthService {
       // المستخدم على الدخول كلّ ساعة. نمسح فقط حين لا يبقى ما يُجدِّد الجلسة.
       if (_token != null && _isTokenExpired(_token!) && _refreshToken == null) {
         debugPrint('Token expired on load and no refresh token — clearing auth');
-        await clearAuth();
+        clear = true;
       }
     } catch (e) {
       debugPrint('Error loading auth: $e');
-      await clearAuth();
+      clear = true;
+    }
+    try {
+      if (clear && _generation == generation) await clearAuth();
+    } finally {
+      if (!restore.isCompleted) restore.complete();
     }
   }
 
-  Future<void> saveToken(String token, {String? refresh, Map<String, dynamic>? profile}) async {
+  /// يبدأ جلسة (دخول أو تبديل حساب): جيل جديد، فيُرفَض أيّ تجديد بدأ قبله.
+  Future<void> saveToken(String token, {String? refresh, Map<String, dynamic>? profile}) {
+    _generation++;
+    return _write(token, refresh: refresh, profile: profile);
+  }
+
+  /// يحفظ رمزاً مُجدَّداً **فقط** إن بقيت الجلسة هي [generation]. الفحص وتعديل
+  /// الذاكرة متزامنان؛ الكتابة تُسلسَل خلف كلّ تغيير سبقها. false ⇒ الردّ لجلسة
+  /// سابقة ولم يُحفَظ شيء.
+  Future<bool> saveRefreshedToken(int generation, String token,
+      {String? refresh}) async {
+    if (generation != _generation) return false;
+    await _write(token, refresh: refresh);
+    return true;
+  }
+
+  Future<void> _write(String token,
+      {String? refresh, Map<String, dynamic>? profile}) {
     _token = token;
-    await _storage.write(key: 'access_token', value: token);
-    if (refresh != null) {
-      _refreshToken = refresh;
-      await _storage.write(key: 'refresh_token', value: refresh);
-    }
+    if (refresh != null) _refreshToken = refresh;
+    String? userId;
     if (profile != null) {
       _userProfile = profile;
-      _userId = profile['user_id']?.toString() ?? profile['sub']?.toString();
-      await _storage.write(key: 'user_id', value: _userId);
-      await _storage.write(key: 'user_profile', value: json.encode(profile));  // F12: jsonEncode
+      _userId = userId =
+          profile['user_id']?.toString() ?? profile['sub']?.toString();
     }
+    return _serialized(() async {
+      await _storage.write(key: 'access_token', value: token);
+      if (refresh != null) {
+        await _storage.write(key: 'refresh_token', value: refresh);
+      }
+      if (profile != null) {
+        await _storage.write(key: 'user_id', value: userId);
+        await _storage.write(key: 'user_profile', value: json.encode(profile));  // F12: jsonEncode
+      }
+    });
   }
 
-  Future<void> clearAuth() async {
+  Future<void> clearAuth() {
+    _generation++;
     _token = _refreshToken = _userId = _userProfile = null;
     // احذف مفاتيح الجلسة فقط؛ هويّة جهاز النماذج يجب أن تبقى ثابتة
     // عبر تسجيل الخروج، وكذلك تفضيل البصمة المستقل عن الجلسة.
-    await Future.wait([
-      _storage.delete(key: 'access_token'),
-      _storage.delete(key: 'refresh_token'),
-      _storage.delete(key: 'user_id'),
-      _storage.delete(key: 'user_profile'),
-    ]);
+    return _serialized(() async {
+      await Future.wait([
+        _storage.delete(key: 'access_token'),
+        _storage.delete(key: 'refresh_token'),
+        _storage.delete(key: 'user_id'),
+        _storage.delete(key: 'user_profile'),
+      ]);
+    });
+  }
+
+  /// يمسح الجلسة **فقط** إن بقيت [generation] (رفض الخادم لرمز تحديثها). رفض
+  /// متأخّر لجلسة سابقة لا يمسح جلسة أحدث. false ⇒ لم يُمسَح شيء.
+  Future<bool> clearIfGeneration(int generation) async {
+    if (generation != _generation) return false;
+    await clearAuth();
+    return true;
   }
 
   // F13: Check JWT expiry — مصدر واحد للحقيقة (utils/jwt.dart) يفشل-مغلقاً.

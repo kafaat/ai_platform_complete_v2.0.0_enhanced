@@ -15,6 +15,8 @@
 //     محفوظة يطلب تأكيداً.
 //   • بعد الإنشاء تُبطَل ذاكرة الاستجابات ويُبلَّغ المستمعون (قائمة الحقول).
 //   • خطوة تقدير الإنتاجيّة تظهر فقط إن ردّ الخادم تقديراً رقميّاً.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
@@ -33,6 +35,8 @@ import 'package:sahool_app/features/maps/draw/field_create_api.dart';
 import 'package:sahool_app/features/maps/draw/field_create_errors.dart'
     show FixStep;
 import 'package:sahool_app/features/maps/draw/field_save_cubit.dart';
+import 'package:sahool_app/features/offline_sync/data/operation_ledger.dart';
+import 'package:sahool_app/features/offline_sync/presentation/pending_operation_panel.dart';
 
 /// اسم مسار مساحة العمل البديل (يربطه fields_routes).
 const String _workspaceRouteName = 'field_workspace';
@@ -47,6 +51,7 @@ class FieldCreateWizard extends StatefulWidget {
     this.showBasemap = true,
     this.readPosition,
     this.canCreate,
+    this.ledger,
   });
 
   /// مزرعة مختارة مسبقاً (وإلّا تُقرأ `farm_id` من وسائط المسار إن وُجدت).
@@ -61,6 +66,9 @@ class FieldCreateWizard extends StatefulWidget {
 
   /// يتجاوز فحص الدور من الجلسة (للاختبارات).
   final bool? canCreate;
+
+  /// سجلّ عمليّات الإنشاء المعلّقة (للاختبار)؛ null ⇒ السجلّ المشترك.
+  final OperationLedger? ledger;
 
   @override
   State<FieldCreateWizard> createState() => _FieldCreateWizardState();
@@ -120,7 +128,20 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   late final FieldSaveCubit _save = FieldSaveCubit(
     createApi: widget.createApi,
     fieldsApi: _fieldsApi,
+    ledger: widget.ledger,
   );
+
+  static const _payloadLabels = {
+    'name': 'الاسم',
+    'geometry': 'الحدّ',
+    'farm_id': 'المزرعة',
+    'crop': 'المحصول',
+    'soil_type': 'التربة',
+    'water_source': 'المياه',
+    'irrigation_type': 'الريّ',
+    'pivot': 'المحور',
+    'boundary_metadata': 'مصدر الحدّ',
+  };
 
   final _draw = DrawController();
   final _name = TextEditingController();
@@ -150,6 +171,8 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     _draw.addListener(_onDrawChanged);
     _loadFarms();
     _loadExisting();
+    // إنشاءٌ سابق لم تُحسَم نتيجته لنفس المالك يظهر قبل أيّ إنشاء آخر.
+    _save.restore();
   }
 
   @override
@@ -171,6 +194,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
 
   @override
   void dispose() {
+    // إغلاق المعالج بعد نتيجة مجهولة لا يُضيّع التعديلات: تُحفَظ مسودّةً (لا تُرسَل).
+    if (_save.state is FieldSaveUnconfirmed && _nameOk && _boundaryOk) {
+      unawaited(_save.rememberDraft(_draft()));
+    }
     _name.dispose();
     _draw.removeListener(_onDrawChanged);
     _draw.dispose();
@@ -309,10 +336,15 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     );
   }
 
+  /// «استعادة نتيجة المحاولة السابقة»: المسودّة الحاليّة تُحفَظ لعرض فروقها فقط.
+  Future<void> _recover() =>
+      _save.recover(draft: (_nameOk && _boundaryOk) ? _draft() : null);
+
   void _onSaveState(BuildContext context, FieldSaveState s) {
     if (s is FieldSaveDone &&
         s.yieldEstimate == null &&
-        s.seasonWarning == null) {
+        s.seasonWarning == null &&
+        s.pendingEdits.isEmpty) {
       _goToWorkspace(s.fieldId);
     }
   }
@@ -349,7 +381,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
         listener: _onSaveState,
         builder: (context, s) {
           if (s is FieldSaveDone &&
-              (s.yieldEstimate != null || s.seasonWarning != null)) {
+              (s.yieldEstimate != null ||
+                  s.seasonWarning != null ||
+                  s.pendingEdits.isNotEmpty)) {
             return _doneView(context, s);
           }
           return PopScope(
@@ -364,6 +398,33 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                 child: Column(
                   children: [
                     _progress(context),
+                    if (s is FieldSaveFailed && s.storeUnreadable)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SahoolSpacing.lg,
+                        ),
+                        child: UnreadableOperationStorePanel(
+                          onReset: _save.resetUnreadableStore,
+                        ),
+                      ),
+                    if (s is FieldSaveUnconfirmed)
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.sizeOf(context).height * 0.45,
+                        ),
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: SahoolSpacing.lg,
+                          ),
+                          child: PendingOperationPanel(
+                            outcome: s.outcome,
+                            busy: s.busy,
+                            labels: _payloadLabels,
+                            onRecover: _recover,
+                            onDismiss: _save.dismissReconciled,
+                          ),
+                        ),
+                      ),
                     Expanded(child: _body(context, s)),
                     _navBar(context, s),
                   ],
@@ -641,7 +702,8 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
           icon: Icons.square_foot,
           child: BoundarySummary(validation: v, perimeterM: _draw.perimeter),
         ),
-        if (s is FieldSaveFailed) ...[
+        // صندوقٌ لا يُقرأ يُعرَض في أعلى المعالج (كلّ الخطوات)، لا هنا مرّتين.
+        if (s is FieldSaveFailed && !s.storeUnreadable) ...[
           const SizedBox(height: SahoolSpacing.md),
           SectionCard(
             title: 'لم يُحفَظ الحقل',
@@ -680,7 +742,8 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   }
 
   Widget _navBar(BuildContext context, FieldSaveState s) {
-    final busy = s is FieldSaveInProgress;
+    final busy =
+        s is FieldSaveInProgress || (s is FieldSaveUnconfirmed && s.busy);
     final isLast = _step == _titles.length - 1;
     final stageLabel = s is FieldSaveInProgress
         ? switch (s.stage) {
@@ -725,7 +788,10 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                 ],
                 Expanded(
                   flex: 2,
-                  child: isLast
+                  // إنشاءٌ سابق غير محسوم ⇒ لا زرّ حفظ؛ الاستعادة من اللوحة (OD-2).
+                  child: isLast && s is FieldSaveUnconfirmed
+                      ? const SizedBox.shrink()
+                      : isLast
                       ? PrimaryButton(
                           key: const ValueKey('save-field'),
                           label: s is FieldSaveFailed && s.view.retrySafe
@@ -774,6 +840,29 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                 style: context.textStyles.bodyLarge,
               ),
             ),
+            if (s.pendingEdits.isNotEmpty) ...[
+              const SizedBox(height: SahoolSpacing.md),
+              SectionCard(
+                title: 'تعديلات لم تُرسَل',
+                icon: Icons.history_rounded,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'استُعيدت نتيجة المحاولة السابقة: أُنشئ الحقل بالقيم '
+                      'المرسلة أوّلاً. تعديلاتك التالية لم تُرسَل؛ طبّقها من '
+                      'مساحة عمل الحقل إن أردت:',
+                      key: const ValueKey('pending-op-recovered'),
+                      style: context.textStyles.bodyLarge,
+                    ),
+                    PayloadChangesList(
+                      changes: s.pendingEdits,
+                      labels: _payloadLabels,
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (s.seasonWarning != null) ...[
               const SizedBox(height: SahoolSpacing.md),
               Text(
