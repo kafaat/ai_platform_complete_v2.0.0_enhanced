@@ -116,6 +116,13 @@ def test_the_truecolor_path_checks_before_it_allocates():
     )
 
 
+def test_the_scalar_precomputed_path_checks_before_it_allocates():
+    """EXTRA-10: النظير العدديّ لمسار truecolor يقرأ النطاق كاملاً على الرابط الحرّ نفسه."""
+    assert _calls_guard_before_read(PIXEL, "process_precomputed_pixels"), (
+        "الفحص لا يسبق القراءة في المسار العدديّ — حارسٌ بعد التخصيص لا يمنع شيئاً"
+    )
+
+
 def test_the_uint8_polygon_mask_checks_before_it_allocates():
     names = [
         node.name
