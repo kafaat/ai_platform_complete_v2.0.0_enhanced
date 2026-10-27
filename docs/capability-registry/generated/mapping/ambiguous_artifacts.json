@@ -1592,6 +1592,14 @@
         ]
       },
       {
+        "capability_id": "SAT-003",
+        "score": 10,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
         "capability_id": "FM-007",
         "score": 9,
         "signals": [

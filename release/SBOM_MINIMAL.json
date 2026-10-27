@@ -20095,7 +20095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "53ba1e9921b89d94d287a51387ac32e6a79e4d8cac9aebd4da282011451a8d14"
+          "content": "2c1de0423c4b648c032447683687788c93a8baf7866b0fcaf6ae064513a09d65"
         }
       ],
       "name": "services/raster-service/raster_field_runtime.py",
@@ -20235,7 +20235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a3d236a7308deb82e0a82bec890b6ae3e0eed3854869e1112278cccce13c66bb"
+          "content": "3570f2aaa0163a570864f62ebeffb1989bcf6e109d346c051a2f30be0cac7a99"
         }
       ],
       "name": "services/raster-service/raster_security_context.py",
@@ -20355,7 +20355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a12581c7052484650f840c031a15d894fb121be999588cea10b6f7ac304a4d9"
+          "content": "d2f39ae5291f78768933b9fcd753063f768c49adcb8cc8658a0e2c185d2ef993"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -23225,7 +23225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "36ef84be972e34df127c2c43035c718aa944230a0629f349844bf1b2962fc150"
+          "content": "3828c0bc0a23bf0684d266b56edcf29376fc420afb723a2ee143a78b8e4baafe"
         }
       ],
       "name": "services/sahool-platform/api/field_models.py",
@@ -25025,7 +25025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "949228c1f0577bd2868f94e9a506de29fcd45e136a87bc0051f658485abfbb1c"
+          "content": "3b0bd714c4f9bb7a16155175723480bfa0c792d0d180439b3f6b6ba4a4d04e94"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -34505,7 +34505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c06a9b725844dce819c9ceec2df7b191c1f7da093a09559c7b6e529acd8bb107"
+          "content": "3568a665e2c0b1e614750884a0a6803fc912b5cad41f08f35bf232e116240bae"
         }
       ],
       "name": "services/sahool-platform/tests/test_ui11_ui13_map_workspace_progress_guard.py",
