@@ -81,6 +81,9 @@ abstract final class IdempotencyConflict {
 
   /// الأمر الأصليّ ما زال قيد المعالجة ⇒ يُعاد لاحقاً بنفس المفتاح.
   static const inProgress = 'in_progress';
+
+  /// الخادم لم يعد يحفظ نتيجة المفتاح ⇒ ربّما نُفِّذ؛ يحتاج تدخّلاً لا إعادة عمياء.
+  static const retentionExpired = 'retention_expired';
 }
 
 class OutboxOutcome {
@@ -155,6 +158,7 @@ String? idempotencyConflictReason(ApiException e) {
   const known = {
     IdempotencyConflict.payloadMismatch,
     IdempotencyConflict.inProgress,
+    IdempotencyConflict.retentionExpired,
   };
   for (final m in [_responseBody(e), e.detail]) {
     if (m is! Map) continue;
@@ -262,6 +266,16 @@ OutboxOutcome classifyOutboxFailure(ApiException e, {DateTime? now}) {
           statusCode: code,
           messageAr: serverMessageOf(e),
           conflictReason: IdempotencyConflict.payloadMismatch,
+        );
+      case IdempotencyConflict.retentionExpired:
+        // انقضت مدّة احتفاظ الخادم بالنتيجة: ربّما طُبِّق — لا إعادة بالمفتاح نفسه
+        // (الجواب لن يتغيّر) ولا حذف؛ يبقى ظاهراً لتدخّل المستخدم.
+        return OutboxOutcome(
+          OutboxOutcomeKind.rejected,
+          statusCode: code,
+          messageAr: serverMessageOf(e),
+          maybeCommitted: true,
+          conflictReason: IdempotencyConflict.retentionExpired,
         );
     }
   }

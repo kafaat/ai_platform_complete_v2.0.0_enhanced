@@ -46,19 +46,39 @@ void main() {
       kind: 'irrigation_schedule.create',
       method: 'POST',
       path: _path,
-      send: (p, k) => IrrigationApi(client).createSchedule(p, idempotencyKey: k),
+      send: (p, k) =>
+          IrrigationApi(client).createSchedule(p, idempotencyKey: k),
     );
 
     expect(await op.submit(Map.of(_payload)), isA<CreateUnconfirmed>());
     expect(server.resources, hasLength(1), reason: 'the server committed');
 
     final outcome = await op.recover();
-    expect(outcome, isNot(isA<CreateRejected>()),
-        reason: 'retention_expired is not a refusal before execution');
-    expect(op.record!.mayHaveExecuted, isTrue,
-        reason: 'saved_locally would allow a payload change / dismiss and a '
-            'second create under a new key');
-    expect(await op.dismiss(), op.record?.state == OperationState.needsReconciliation,
-        reason: 'only needs_reconciliation may be closed by the user');
+    expect(
+      outcome,
+      isNot(isA<CreateRejected>()),
+      reason: 'retention_expired is not a refusal before execution',
+    );
+    expect(
+      op.record!.mayHaveExecuted,
+      isTrue,
+      reason:
+          'saved_locally would allow a payload change / dismiss and a '
+          'second create under a new key',
+    );
+    // R13 / D1.8: an expired retention window is reconciliation, not a refusal.
+    expect(op.record?.state, OperationState.needsReconciliation);
+    expect(op.record?.conflictReason, ConflictReason.retentionExpired);
+    expect(
+      server.resources,
+      hasLength(1),
+      reason: 'no second create, no new key',
+    );
+    // Read the state before dismissing: dismiss() clears the record.
+    expect(
+      await op.dismiss(),
+      isTrue,
+      reason: 'only needs_reconciliation may be closed by the user',
+    );
   });
 }

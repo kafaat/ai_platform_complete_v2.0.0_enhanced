@@ -94,9 +94,11 @@ const String kResetUnreadableStoreConfirmAr =
 /// زرّ إغلاق عمليّة بعد مراجعة بشريّة (needs_reconciliation) أو لم تُنفَّذ قطعاً.
 const String kDismissReconciledAr = 'راجعتُ القائمة — أغلق هذه العمليّة';
 
-/// مدّة احتفاظ الخادم بنتيجة المفتاح كما يفترضها العميل. الخادم اليوم لا يحذف صفوف
-/// `commands` (لا مهمّة تنظيف — command_store.py)، فأيّ قيمة آمنة؛ إن وثّق الخادم
-/// مدّةً (D4) وجب أن تكون هذه أقصر منها أو مساوية.
+/// مدّة احتفاظ الخادم بنتيجة المفتاح كما يفترضها العميل. الخادم يوثّقها ويفرضها الآن
+/// (D4: `SAHOOL_IDEMPOTENCY_RETENTION_DAYS`، الافتراضيّ 30 يوماً والأدنى يومٌ واحد —
+/// api/idempotency.py)، ويُجيب بعدها 409 `retention_expired`. يجب ألّا تزيد هذه على
+/// أقصر مدّةٍ يسمح بها الخادم، فبقاؤها 24 ساعة (= الأدنى) يمنع الثقة بـnot_found بعد
+/// حذف الخادم للنتيجة.
 const Duration kServerIdempotencyRetention = Duration(hours: 24);
 
 // ── الحالات والسجلّ ─────────────────────────────────────────────────
@@ -136,6 +138,10 @@ enum OperationState {
 abstract final class ConflictReason {
   static const payloadMismatch = 'payload_mismatch';
   static const inProgress = 'in_progress';
+
+  /// الخادم لم يعد يحفظ نتيجة المفتاح (D4: SAHOOL_IDEMPOTENCY_RETENTION_DAYS) — ربّما
+  /// نُفِّذ الأمر ⇒ مصالحة بشريّة (D1.8/R13)، لا رفضٌ قبل التنفيذ ولا إنشاءٌ بمفتاح آخر.
+  static const retentionExpired = 'retention_expired';
 }
 
 @immutable
@@ -669,7 +675,8 @@ String? idempotencyConflictReason(ApiException e) {
     if (body is Map) reason = (body['reason'] ?? body['code'])?.toString();
   }
   if (reason == ConflictReason.payloadMismatch ||
-      reason == ConflictReason.inProgress) {
+      reason == ConflictReason.inProgress ||
+      reason == ConflictReason.retentionExpired) {
     return reason;
   }
   if (reason != null && reason.contains('idempot')) {
@@ -690,6 +697,7 @@ bool _isBusinessConflict(ApiException e) {
   return e.statusCode == 409 &&
       d is Map &&
       d['code'] is String &&
+      d['code'] != 'idempotency_conflict' &&
       idempotencyConflictReason(e) == null;
 }
 
@@ -945,6 +953,19 @@ class CreateOperation {
             state: OperationState.outcomeUnknown,
             attempts: attempts,
             lastErrorAr: kOperationInProgressAr,
+            lastStatus: e.statusCode,
+            conflictReason: reason,
+          ),
+        );
+        return CreateUnconfirmed(_record!);
+      }
+      if (reason == ConflictReason.retentionExpired) {
+        // ربّما نُفِّذ ولم يعد الخادم يعرف — لا رفض ولا إعادة بمفتاح آخر (R13).
+        _record = await _persist(
+          r.copyWith(
+            state: OperationState.needsReconciliation,
+            attempts: attempts,
+            lastErrorAr: kOperationReconcileAr,
             lastStatus: e.statusCode,
             conflictReason: reason,
           ),
