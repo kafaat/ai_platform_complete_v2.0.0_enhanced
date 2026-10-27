@@ -19575,7 +19575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "90c70bb2b2baf8d9e829ba4b0e239ceb5a5665bfa8291184d8287b218ba4321d"
+          "content": "048c06f4d54daca855587cb86a07667eaac5c1c6e5f9ccd1d5be981b9a01f6bb"
         }
       ],
       "name": "services/raster-service/object_store.py",
@@ -38355,7 +38355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59ec1b4c54aa75d6a09255343a0404b52746fe5106fc89a1b76c46bcd2a34b45"
+          "content": "ff5e636632fb64a6aec5ecdcea6570b2fed12c3c709111b6ff19d0ddba7f7801"
         }
       ],
       "name": "shared/storage/blob_store.py",
@@ -38365,7 +38365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4f86f37f486e559939fe7f624017eb0e66623585ef233c1d898c93563a032e2e"
+          "content": "07c0af625013cfd663b517d0ed3ee2b8f093eccb0e83b2ab4bd734c7a58c331f"
         }
       ],
       "name": "shared/storage/gdal_s3_env_gate.py",
@@ -38375,7 +38375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e6342f6641993b93487e54be8331bae65e54516f539ace8d9320cb871cb4838"
+          "content": "f6ee0f7a8fde8b685e5ab6ede8aa989bab5301e63565bcabe8864839b1607acb"
         }
       ],
       "name": "shared/storage/s3_endpoint_security.py",

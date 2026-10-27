@@ -8696,6 +8696,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_check_local_env_drift.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ci_check_name_identity.py",
     "kind": "tests"
   },
@@ -10225,6 +10229,10 @@
   },
   {
     "path": "tests_v9/test_s3_compose_slice_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_s3_endpoint_error_hints.py",
     "kind": "tests"
   },
   {

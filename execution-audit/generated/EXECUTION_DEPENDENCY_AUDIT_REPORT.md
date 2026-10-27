@@ -6,7 +6,7 @@
 
 - Python files parsed: **2012**
 - FastAPI-style route handlers: **1062**
-- Static function-call edges: **90244**
+- Static function-call edges: **90250**
 - Dead-code candidates: **658**
 - Duplicate function groups: **58**
 - Automatic deletions: **0**
@@ -18,7 +18,7 @@
 | `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 61 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 157 |
-| `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 66 |
+| `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 69 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |
 | `raster-service` | `_evict_field_layers` | function | `services/raster-service/raster_main_runtime.py` | 46 |

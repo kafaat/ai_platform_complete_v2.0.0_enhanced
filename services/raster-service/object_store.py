@@ -19,6 +19,7 @@ import os
 
 from shared.storage.s3_endpoint_security import (
     EndpointPolicyError,
+    hint_for,
     require_path_style_service_root,
     resolve_configured_s3_endpoint,
 )
@@ -56,7 +57,9 @@ def _s3_endpoint_decision():
         require_path_style_service_root(decision, S3_BUCKET)
         return decision
     except EndpointPolicyError as exc:
-        raise ObjectStoreUploadError(f"unsafe S3 endpoint configuration: {exc}") from exc
+        raise ObjectStoreUploadError(
+            f"unsafe S3 endpoint configuration: {exc}{hint_for(exc)}"
+        ) from exc
 
 
 def _use_ssl() -> bool:

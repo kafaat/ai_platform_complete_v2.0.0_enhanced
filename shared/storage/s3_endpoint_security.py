@@ -153,6 +153,36 @@ def require_path_style_service_root(decision: EndpointDecision, bucket: str) -> 
 # Railway currently has no MinIO service; these are local Compose identities only.
 TRUSTED_S3_SERVICE_HOSTS = frozenset({"sahool-minio", "sahool-minio.railway.internal"})
 
+# What fixes each refusal, for operators reading a startup log. The error text itself
+# stays the bare code; callers append ``hint_for(code)`` where they report it. Static
+# ASCII only: never built from the input, and legacy Windows consoles decode stderr
+# with a code page that breaks on anything else.
+ENDPOINT_ERROR_HINTS: dict[str, str] = {
+    "plaintext_internal_requires_opt_in": (
+        "set S3_ALLOW_PLAINTEXT_INTERNAL=true for local Compose MinIO "
+        "(sahool-minio only; see .env.example)"
+    ),
+    "plaintext_loopback_requires_opt_in": (
+        "set S3_ALLOW_PLAINTEXT_LOOPBACK=true for a loopback test store only"
+    ),
+    "plaintext_external_forbidden": "an external S3 endpoint must use https://",
+    "scheme_flag_conflict": (
+        "S3_USE_SSL contradicts the endpoint scheme; leave S3_USE_SSL empty or match it"
+    ),
+    "invalid_ssl_flag": "S3_USE_SSL must be true, false or empty",
+    "empty_endpoint": "set S3_ENDPOINT, e.g. http://sahool-minio:9000 under local Compose",
+    "endpoint_must_be_host_only": "S3_ENDPOINT must be scheme://host[:port], no path or query",
+    "bucket_prefixed_endpoint_forbidden_in_path_style": (
+        "remove the bucket from the S3_ENDPOINT host; set it in S3_BUCKET"
+    ),
+}
+
+
+def hint_for(code: object) -> str:
+    """`` (hint)`` for a known refusal code, else an empty string."""
+    hint = ENDPOINT_ERROR_HINTS.get(str(code)) if code is not None else None
+    return f" ({hint})" if hint else ""
+
 
 def resolve_configured_s3_endpoint(
     endpoint: str,
