@@ -55,17 +55,25 @@ def _date_str(v: Any) -> str | None:
     return iso() if callable(iso) else None
 
 
-def _hybrid_label(row: dict[str, Any]) -> str | None:
-    """تسمية الهجين/الصنف للمقارنة — cultivar إن وُجد، وإلّا seed_variety_source.
+def _clean_str(v: Any) -> str | None:
+    """نصّ مُشذَّب غير فارغ، أو None."""
+    return v.strip() if isinstance(v, str) and v.strip() else None
 
-    لا اختراع: إن غاب كلاهما ⇒ None (الصفّ لا يدخل مقارنة أداء الهجن، لكنّه يبقى
+
+def _canon(label: str) -> str:
+    """مفتاح قانونيّ للتجميع: تطبيع المسافات وحالة الأحرف («Pioneer-X» ≡ «pioneer-x »)."""
+    return " ".join(label.split()).casefold()
+
+
+def _hybrid_label(row: dict[str, Any]) -> str | None:
+    """تسمية الهجين/الصنف للمقارنة — ``cultivar`` فقط.
+
+    ``seed_variety_source`` مصدر/منشأ البذور (شركة/جهة) لا هويّة صنف: لا يحلّ محلّ
+    الصنف (وإلّا جُمِعت أصناف مختلفة من نفس المورّد في «هجين» واحد) ويُعرَض منفصلاً.
+    لا اختراع: إن غاب الصنف ⇒ None (الصفّ لا يدخل مقارنة أداء الهجن، لكنّه يبقى
     في مقارنة الزراعة↔الحصاد للحقل/الموسم).
     """
-    for key in ("cultivar", "seed_variety_source"):
-        v = row.get(key)
-        if isinstance(v, str) and v.strip():
-            return v.strip()
-    return None
+    return _clean_str(row.get("cultivar"))
 
 
 def build_planting_vs_harvest(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -87,6 +95,7 @@ def build_planting_vs_harvest(rows: list[dict[str, Any]]) -> list[dict[str, Any]
                 "field_name": r.get("field_name") or r.get("name"),
                 "crop": _primary_crop(r.get("crops")),
                 "hybrid": _hybrid_label(r),
+                "seed_variety_source": _clean_str(r.get("seed_variety_source")),
                 "maturity": maturity if isinstance(maturity, str) else None,
                 "sowing_date": _date_str(r.get("sowing_date")),
                 "season_end": _date_str(r.get("season_end")),
@@ -106,26 +115,31 @@ def build_planting_vs_harvest(rows: list[dict[str, Any]]) -> list[dict[str, Any]
 
 
 def build_hybrid_performance(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """متوسّط الغلّة الفعليّة لكلّ هجين/صنف عبر الحقول/المواسم (مقارنة أداء).
+    """متوسّط الغلّة الفعليّة لكلّ (محصول + صنف قانونيّ) عبر الحقول/المواسم (مقارنة أداء).
 
-    يدخل المقارنة **فقط** صفّ له هجين معروف **و** غلّة فعليّة مُسجَّلة (حصاد حقيقيّ).
-    الصفوف بلا هجين أو بلا حصاد تُستبعَد بصدق (لا تُحتسَب صفراً، لا تُختلَق). تُرتَّب
-    تنازليّاً بمتوسّط الغلّة (الأعلى أداءً أوّلاً). فارغة تماماً حين لا حصاد مُسجَّل.
+    يدخل المقارنة **فقط** صفّ له صنف معروف **و** غلّة فعليّة مُسجَّلة (حصاد حقيقيّ).
+    الصفوف بلا صنف أو بلا حصاد تُستبعَد بصدق (لا تُحتسَب صفراً، لا تُختلَق).
+
+    المفتاح (المحصول، الصنف القانونيّ) لا التسمية وحدها: قمح 4 وطماطم 40 تحت تسمية
+    مشتركة ليسا «هجيناً» متوسّطه 22 ط/هـ. مصادر البذور تُجمَع منفصلةً (``seed_sources``).
+    المتوسّط حسابيّ غير مُرجَّح بالمساحة (متوسّط أداء المواسم لا غلّة كلّيّة/مساحة).
+    التّرتيب داخل كلّ محصول تنازليّاً بالمتوسّط (``rank_in_crop``) — لا ترتيب عبر محاصيل.
     """
-    agg: dict[str, dict[str, Any]] = {}
+    agg: dict[tuple[str, str], dict[str, Any]] = {}
     for r in rows:
         hybrid = _hybrid_label(r)
         actual_t = _kg_ha_to_t_ha(r.get("actual_yield_kg_ha"))
         if hybrid is None or actual_t is None:
             continue
+        crop = _primary_crop(r.get("crops"))
         bucket = agg.setdefault(
-            hybrid,
-            {"hybrid": hybrid, "yields": [], "crops": set(), "fields": set()},
+            (_canon(crop) if crop else "", _canon(hybrid)),
+            {"hybrid": hybrid, "crop": crop, "yields": [], "seeds": set(), "fields": set()},
         )
         bucket["yields"].append(actual_t)
-        crop = _primary_crop(r.get("crops"))
-        if crop:
-            bucket["crops"].add(crop)
+        seed = _clean_str(r.get("seed_variety_source"))
+        if seed:
+            bucket["seeds"].add(seed)
         fid = r.get("field_id")
         if fid:
             bucket["fields"].add(fid)
@@ -137,7 +151,9 @@ def build_hybrid_performance(rows: list[dict[str, Any]]) -> list[dict[str, Any]]
         out.append(
             {
                 "hybrid": b["hybrid"],
-                "crops": sorted(b["crops"]),
+                "crop": b["crop"],
+                "crops": [b["crop"]] if b["crop"] else [],
+                "seed_sources": sorted(b["seeds"]),
                 "season_count": n,
                 "field_count": len(b["fields"]),
                 "avg_yield_t_ha": round(sum(ys) / n, 3),
@@ -145,7 +161,19 @@ def build_hybrid_performance(rows: list[dict[str, Any]]) -> list[dict[str, Any]]
                 "max_yield_t_ha": round(max(ys), 3),
             }
         )
-    out.sort(key=lambda x: x["avg_yield_t_ha"], reverse=True)
+
+    # مجموعات المحصول (بلا محصول آخِراً)، وداخل كلّ محصول الأعلى أداءً أوّلاً.
+    def _crop_group(h: dict[str, Any]) -> tuple[bool, str]:
+        return (h["crop"] is None, _canon(h["crop"] or ""))
+
+    out.sort(key=lambda h: (*_crop_group(h), -h["avg_yield_t_ha"]))
+    prev_group: tuple[bool, str] | None = None
+    rank = 0
+    for h in out:
+        group = _crop_group(h)
+        rank = rank + 1 if group == prev_group else 1
+        prev_group = group
+        h["rank_in_crop"] = rank
     return out
 
 

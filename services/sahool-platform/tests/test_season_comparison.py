@@ -99,3 +99,74 @@ def test_verdict_inconclusive_when_no_judging_metrics():
     cur, prev = _seasons(current={"et0_total_mm": 1200.0}, previous={"et0_total_mm": 1100.0})
     verdict = compare_seasons(cur, prev)["verdict_ar"]
     assert verdict.startswith("غير حاسم")
+
+
+# ── S1-a: محصولان مختلفان ⇒ نتيجة «غير قابلة للمقارنة» (لا حكم أداء) ──
+
+
+def test_different_crops_not_comparable_no_improvement_verdict():
+    """طماطم 40 ط/هـ مقابل قمح 4 ط/هـ ليس «+900% تحسّن»: غير قابل للمقارنة، بلا مقاييس/حكم."""
+    current = SeasonMetrics(season_id="2026", crop_id="tomato", yield_t_ha=40.0)
+    previous = SeasonMetrics(season_id="2025", crop_id="wheat", yield_t_ha=4.0)
+    result = compare_seasons(current, previous)
+    assert result["comparable"] is False
+    assert result["not_comparable_reason"] == "crop_mismatch"
+    assert result["crop_id"] == "tomato"
+    assert result["previous_crop_id"] == "wheat"
+    assert result["metrics"] == {}  # لا نسبة +900% ولا better=True عبر محصولين
+    assert result["verdict_ar"].startswith("غير قابل للمقارنة")
+
+
+def test_same_crop_case_and_whitespace_insensitive_is_comparable():
+    """نفس المحصول بحالة أحرف/مسافات مختلفة يبقى قابلاً للمقارنة (لا رفض زائف)."""
+    current = SeasonMetrics(season_id="2026", crop_id=" Wheat ", yield_t_ha=6.0)
+    previous = SeasonMetrics(season_id="2025", crop_id="wheat", yield_t_ha=5.0)
+    result = compare_seasons(current, previous)
+    assert result["comparable"] is True
+    assert result["not_comparable_reason"] is None
+    assert result["metrics"]["yield_t_ha"]["better"] is True
+
+
+# ── S1-b: الماء الكلّيّ (م³) بلا مساحة لا يُحكَم به؛ يُطبَّع إلى م³/هـ حين تتوفّر المساحة ──
+
+
+def test_double_total_water_without_area_is_descriptive_not_declined():
+    """غلّة ثابتة + ماء كلّيّ مضاعف بلا مساحة ⇒ وصف الفرق فقط، لا «تراجع»."""
+    cur, prev = _seasons(
+        current={"yield_t_ha": 4.0, "water_used_m3": 2000.0},
+        previous={"yield_t_ha": 4.0, "water_used_m3": 1000.0},
+    )
+    result = compare_seasons(cur, prev)
+    w = result["metrics"]["water_used_m3"]
+    assert w["direction"] == "up"  # الفرق يُوصَف
+    assert w["better"] is None  # لكن بلا حكم أداء (لا مساحة)
+    assert "water_m3_per_ha" in result["skipped_metrics"]
+    assert not result["verdict_ar"].startswith("تراجع")
+
+
+def test_double_water_on_double_area_is_flat_per_hectare():
+    """ماء مضاعف على مساحة مضاعفة ⇒ م³/هـ ثابت (500→500)، لا «تراجع»."""
+    cur, prev = _seasons(
+        current={"yield_t_ha": 4.0, "water_used_m3": 2000.0, "area_ha": 4.0},
+        previous={"yield_t_ha": 4.0, "water_used_m3": 1000.0, "area_ha": 2.0},
+    )
+    result = compare_seasons(cur, prev)
+    wha = result["metrics"]["water_m3_per_ha"]
+    assert wha["current"] == 500.0
+    assert wha["previous"] == 500.0
+    assert wha["direction"] == "flat"
+    assert result["metrics"]["water_used_m3"]["better"] is None
+    assert not result["verdict_ar"].startswith("تراجع")
+
+
+def test_more_water_per_hectare_same_yield_is_declined():
+    """م³/هـ أعلى لنفس الغلّة (مساحة ثابتة) ⇒ تراجع مُسوَّغ بالمعيار المُطبَّع."""
+    cur, prev = _seasons(
+        current={"yield_t_ha": 4.0, "water_used_m3": 2000.0, "area_ha": 2.0},
+        previous={"yield_t_ha": 4.0, "water_used_m3": 1000.0, "area_ha": 2.0},
+    )
+    result = compare_seasons(cur, prev)
+    wha = result["metrics"]["water_m3_per_ha"]
+    assert wha["direction"] == "up"
+    assert wha["better"] is False
+    assert result["verdict_ar"].startswith("تراجع")

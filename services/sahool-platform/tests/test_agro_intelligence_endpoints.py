@@ -136,6 +136,31 @@ def test_season_comparison_endpoint_returns_metrics():
     assert out["metrics"]["yield_t_ha"]["better"] is True
 
 
+def test_season_comparison_endpoint_crop_mismatch_and_area_contract():
+    """S1-a/S1-b عبر العقد: محصولان مختلفان ⇒ غير قابل للمقارنة؛ area_ha يُطبِّع الماء."""
+    out = season_comparison_endpoint(
+        SeasonComparisonRequest(
+            current=SeasonMetricsRequest(season_id="2026", crop_id="tomato", yield_t_ha=40.0),
+            previous=SeasonMetricsRequest(season_id="2025", crop_id="wheat", yield_t_ha=4.0),
+        ),
+        user=_USER,
+    )
+    assert out["comparable"] is False
+    assert out["metrics"] == {}
+    out2 = season_comparison_endpoint(
+        SeasonComparisonRequest(
+            current=SeasonMetricsRequest(
+                season_id="2026", crop_id="wheat", water_used_m3=2000.0, area_ha=4.0
+            ),
+            previous=SeasonMetricsRequest(
+                season_id="2025", crop_id="wheat", water_used_m3=1000.0, area_ha=2.0
+            ),
+        ),
+        user=_USER,
+    )
+    assert out2["metrics"]["water_m3_per_ha"]["direction"] == "flat"
+
+
 def test_decision_playbook_endpoint_frost_dominates():
     out = decision_playbook_endpoint(
         DecisionPlaybookRequest(
