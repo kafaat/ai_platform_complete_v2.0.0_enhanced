@@ -26,7 +26,12 @@ from prometheus_client import (
     Histogram,
     generate_latest,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
 )
-from vegetation_contracts import build_snapshot, derive_lai_from_ndvi, quality_gate
+from vegetation_contracts import (
+    build_snapshot,
+    canonical_hash,
+    derive_lai_from_ndvi,
+    quality_gate,
+)
 
 from shared.contracts.remote_sensing import CanonicalObservationV1
 from shared.security.access_tokens import decode_access_token
@@ -222,6 +227,13 @@ ANALYSIS_COUNT = _safe_metric(
     "sahool_vegetation_analysis_total",
     "Vegetation analysis requests",
     ["source", "status"],
+)
+# نتيجة نشر حدث «صورة جديدة» منفصلةٌ عن نجاح التحليل: فشلُ النشر لا يُعَدّ تسليماً.
+SATELLITE_EVENT_PUBLISH = _safe_metric(
+    Counter,
+    "sahool_vegetation_satellite_event_publish_total",
+    "Satellite-image event publish outcomes (JetStream PubAck)",
+    ["status"],
 )
 ANALYSIS_LATENCY = _safe_metric(
     Histogram,
@@ -523,9 +535,68 @@ def _recommendations_ar(indices: dict, health: dict, crop: str) -> list[str]:
 
 _nc = None
 
+# هويّةُ المشهد المرصود وحدها — مستقلّةٌ عن الموسم وعن تشغيل المعالجة.
+_SATELLITE_EVENT_PROVENANCE_FIELDS = (
+    "scene_id",
+    "acquisition_datetime",
+    "algorithm_version",
+    "qa_mask_version",
+    "asset_ref",
+)
 
-async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source: str):
+
+def _satellite_event_id(
+    field_id: str, tenant_id: str, acquisition_date: str | None, index_contract: dict
+) -> str:
+    """هويّة حتميّة لحدث «صورة جديدة» مشتقّة من المنتج المقبول وحده.
+
+    تُبنى من المستأجر والحقل وتاريخ الالتقاط ومنتجات المؤشّرات الموثوقة (القيمة + هويّة المشهد
+    والخوارزميّة + data_available_at) — لا من وقت الطلب ولا من الموسم المطلوب. فإعادة
+    قراءة التحليل نفسه تُنتج الهويّة نفسها: ``Nats-Msg-Id`` يُسقِط التكرار داخل نافذة JetStream،
+    و``event_id`` يجعل إيصالات notification-agent تتعرّف عليه بعدها (``_delivery_key``).
+
+    حقولُ provenance مُدرَجةٌ بالاسم لا كاملةً: ``canonical_observation_ref`` يشتقّه
+    indicators-service من season_id (``observation_runtime.py``)، والموسم الافتراضيّ
+    ``unscoped-<date_to>``؛ فإدخالُه يمنح المشهدَ نفسه هويّةً جديدة كلّ يوم وكلّ موسم.
+    """
+    authoritative = {}
+    for k, v in index_contract.items():
+        if v.get("source") != "raster-service" or v.get("estimated") is not False:
+            continue
+        provenance = v.get("provenance") or {}
+        authoritative[k] = {
+            "value": v.get("value"),
+            "data_available_at": v.get("data_available_at"),
+            **{f: provenance.get(f) for f in _SATELLITE_EVENT_PROVENANCE_FIELDS},
+        }
+    digest = canonical_hash(
+        {
+            "event": "vegetation.satellite.computed.v1",
+            "tenant_id": tenant_id,
+            "field_id": field_id,
+            "acquisition_date": acquisition_date,
+            "products": authoritative,
+        }
+    )
+    return f"vegetation-satellite:{digest}"
+
+
+async def _publish_analysis(
+    field_id: str,
+    tenant_id: str,
+    indices: dict,
+    source: str,
+    *,
+    event_id: str,
+    acquisition_date: str | None = None,
+    scene_id: str | None = None,
+) -> dict:
+    """ينشر حدث المنتج المقبول ويُعيد نتيجة النشر صراحةً — لا يبتلع الفشل كأنّه تسليم.
+
+    نشرٌ مباشر بلا outbox: فشلُ الوسيط لا يُعاد تلقائيّاً، لكنّه يُعلَن في الردّ والمقياس.
+    """
     global _nc
+    subject = f"sahool.tenant.{tenant_id}.satellite.{field_id}.computed"
     try:
         if _nc is None:
             import nats
@@ -533,7 +604,6 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
             # صندوقُ الردّ بهويّة الخدمة في nats/nats.conf: `_INBOX.>` محجوبٌ عنها، فبدونه
             # لا يصل PubAck ويفشل كلُّ نشرٍ بمهلة.
             _nc = await nats.connect(NATS_URL, inbox_prefix="_INBOX_sahool-vegetation-analysis")
-        subject = f"sahool.tenant.{tenant_id}.satellite.{field_id}.computed"
         payload = json.dumps(
             {
                 "field_id": field_id,
@@ -541,6 +611,9 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
                 "source": source,
                 "timestamp": datetime.now(UTC).isoformat(),
                 "event_type": "satellite",
+                "event_id": event_id,
+                "acquisition_date": acquisition_date,
+                "scene_id": scene_id,
                 # عنوان عرضيّ فقط — يبقى على اسم السجلّ التركيبيّ (لا حِمل قراءة
                 # قاعدة إضافيّ على مسار النشر؛ غير حسّاس وموثَّق).
                 "title": f"🛰️ صورة جديدة — {field_id}",
@@ -550,10 +623,19 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
             ensure_ascii=False,
         ).encode()
         js = _nc.jetstream()
-        await js.publish(subject, payload)
-        logger.info(f"NATS published: {subject}")
-    except Exception as e:
+        ack = await js.publish(subject, payload, headers={"Nats-Msg-Id": event_id})
+    except Exception as e:  # noqa: BLE001 - التحليل لا يُكسَر، لكنّ الفشل يُعلَن لا يُبتلَع
         logger.warning(f"NATS publish failed: {e}")
+        SATELLITE_EVENT_PUBLISH.labels(status="failed").inc()
+        return {
+            "published": False,
+            "event_id": event_id,
+            "reason": f"unreachable:{type(e).__name__}",
+        }
+    duplicate = bool(getattr(ack, "duplicate", False))
+    SATELLITE_EVENT_PUBLISH.labels(status="duplicate" if duplicate else "published").inc()
+    logger.info(f"NATS published: {subject}")
+    return {"published": True, "event_id": event_id, "duplicate": duplicate}
 
 
 def _canonical_number(value) -> float | None:
@@ -857,8 +939,6 @@ async def run_analysis(
         }
         health = _health_classification(indices["ndvi"], indices["water_stress"])
         recs = _recommendations_ar(indices, health, field.get("crop") or "wheat")
-    await _publish_analysis(field_id, tenant_id, indices, source)
-    ANALYSIS_COUNT.labels(source=source, status="success").inc()
     # وسم مصدر كلّ مؤشّر بصدق من index_sources: الحقيقيّ (raster) عند توفّره، وإلّا تقدير.
     index_contract = {
         k: {
@@ -885,8 +965,25 @@ async def run_analysis(
         for k, v in indices.items()
     }
     gate = quality_gate(index_contract, min_quality=VEGETATION_MIN_QUALITY)
-    if VEGETATION_REAL_ONLY and not gate["executable"]:
-        raise HTTPException(424, "validated real NDVI is required in production vegetation mode")
+    # OI-02: القبول قبل أيّ أثر نجاح — منتجٌ مرفوض الجودة لا يُعلَن «صورة جديدة» ولا يُعَدّ نجاحاً.
+    if not gate["executable"]:
+        ANALYSIS_COUNT.labels(source=source, status="quality_rejected").inc()
+        if VEGETATION_REAL_ONLY:
+            raise HTTPException(
+                424, "validated real NDVI is required in production vegetation mode"
+            )
+        event_publish = {"published": False, "event_id": None, "reason": "not_admitted"}
+    else:
+        event_publish = await _publish_analysis(
+            field_id,
+            tenant_id,
+            indices,
+            source,
+            event_id=_satellite_event_id(field_id, tenant_id, acq_date, index_contract),
+            acquisition_date=acq_date,
+            scene_id=((index_quality.get("ndvi") or {}).get("provenance") or {}).get("scene_id"),
+        )
+        ANALYSIS_COUNT.labels(source=source, status="success").inc()
     snapshot = build_snapshot(
         field_id=field_id,
         tenant_id=tenant_id,
@@ -927,6 +1024,8 @@ async def run_analysis(
         "quality_gate": gate,
         "vegetation_snapshot": snapshot,
         "evidence_push": evidence_push,
+        # EXTRA-6: نتيجة نشر الحدث صريحة (نُشِر/فشل/غير مقبول) بهويّته الحتميّة.
+        "event_publish": event_publish,
         "raw_bands": None,
         "health": health,
         "recommendations_ar": recs,
