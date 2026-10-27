@@ -467,6 +467,19 @@
         "services/sahool-platform/tests/test_task_irrigation_observations.py"
       ],
       "justification": "HTTP boundary tests for append-only task irrigation observations use a SQL double to measure tenant/field predicates, immutable retry identity, worker/viewer permissions and absence of task or ledger mutations. They explicitly do not establish PostgreSQL RLS, locking, constraints or concurrent recovery. No proven_live exemption is added; live PostgreSQL acceptance remains required before rollout."
+    },
+    {
+      "kind": "audit_fix_wave_20261027",
+      "date": "2026-10-27",
+      "before": 112,
+      "after": 116,
+      "sites": [
+        "services/raster-service/test_acquisition_date_provenance.py",
+        "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
+        "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
+        "services/sahool-platform/tests/test_season_spatial_provenance.py"
+      ],
+      "justification": "Regression witnesses from the 2026-10-27 audit fix branches (thumbs-acq-provenance 3fbf70237, rs-platform-geometry 55a4cf993, ui-mobile-irrigation f569c82d5, season-season-provenance 8404b1b7b). Each uses a SQL double to measure what the code sends or reads: the same-scene day representative and UTC day in the raster date accumulator; net area with holes and CRS conservation on field merge/split; the valve-derived field_id and Idempotency-Key replay on POST /api/v1/irrigation/schedules; asset identity carried into season NDVI rows. They do NOT establish PostgreSQL RLS, constraints, locking or concurrent recovery. No proven_live exemption is added; live PostgreSQL acceptance remains required before rollout."
     }
   ]
 }

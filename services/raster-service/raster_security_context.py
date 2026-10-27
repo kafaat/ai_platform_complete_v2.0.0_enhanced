@@ -167,6 +167,20 @@ async def require_layer_tenant_authorized(
         raise HTTPException(403, "مستأجر الطلب مطلوب لقراءة الطبقة")
 
 
+def authenticated_tenant(body_tenant: str | None) -> str | None:
+    """المستأجِر المُصادَق من سياق الطلب (رأس البوّابة الموثوق) — جسم الطلب لا يتجاوزه أبداً.
+
+    عزل صارم fail-closed (مراجعة P0-1): بنية «الهويّة الموثوقة بالبوّابة» (SEC-3) تجعل المستأجِر
+    يُشتقّ حصراً من السياق المُصادَق (نفس ما تحقّق منه _require_field_tenant). ``body_tenant``
+    مطابق ⇒ يُقبَل؛ مختلف ⇒ 403 — لا إنشاء run/item ولا تصدير تحليلات تحت مستأجِر يخالف
+    المُصادَق عليه (النمط القديم «body-or-context» كان يسمح للجسم بتجاوز السياق المُصادَق).
+    """
+    context_tenant = REQ_TENANT.get()
+    if body_tenant is not None and str(body_tenant) != str(context_tenant):
+        raise HTTPException(403, "tenant_id في الجسم لا يطابق المستأجِر المُصادَق للطلب")
+    return context_tenant
+
+
 def job_owner_tenant(body_tenant: str | None) -> str | None:
     """The tenant a newly created job is bound to (P3-AUTH).
 
@@ -175,7 +189,7 @@ def job_owner_tenant(body_tenant: str | None) -> str | None:
     present they must agree — the job is processed, persisted and batch-deduplicated under the
     body tenant (``indicator_batch_claim.batch_claim_key``), so binding it to a different header
     tenant would split owner from data and let a mismatched request take over another tenant's
-    claim key. Mismatch ⇒ ``403`` (same contract as ``routers/fields._authenticated_tenant``).
+    claim key. Mismatch ⇒ ``403`` (same contract as ``authenticated_tenant``).
     Call it before any claim or job write. ``None`` leaves the job unowned (no tenant context
     at all), i.e. service-token-only.
     """

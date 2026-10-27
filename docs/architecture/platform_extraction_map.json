@@ -656,7 +656,7 @@
       "function": "crop_risk_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/crop-risk",
-      "line": 163,
+      "line": 165,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/crop-risk::crop_risk_endpoint"
@@ -666,7 +666,7 @@
       "function": "crop_rotation_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/crop-rotation",
-      "line": 198,
+      "line": 200,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/crop-rotation::crop_rotation_endpoint"
@@ -676,7 +676,7 @@
       "function": "decision_playbook_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/decision-playbook",
-      "line": 223,
+      "line": 225,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/decision-playbook::decision_playbook_endpoint"
@@ -686,7 +686,7 @@
       "function": "plant_soil_feedback_trend_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/plant-soil-feedback/trend",
-      "line": 184,
+      "line": 186,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/plant-soil-feedback/trend::plant_soil_feedback_trend_endpoint"
@@ -696,7 +696,7 @@
       "function": "plant_soil_feedback_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/plant-soil-feedback",
-      "line": 176,
+      "line": 178,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/plant-soil-feedback::plant_soil_feedback_endpoint"
@@ -706,7 +706,7 @@
       "function": "season_comparison_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/season-comparison",
-      "line": 215,
+      "line": 217,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/season-comparison::season_comparison_endpoint"
@@ -716,7 +716,7 @@
       "function": "work_order_from_recommendation_endpoint",
       "method": "POST",
       "path": "/api/v1/work-orders/from-recommendation",
-      "line": 349,
+      "line": 351,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/work-orders/from-recommendation::work_order_from_recommendation_endpoint"
@@ -5243,7 +5243,7 @@
       "function": "field_season_state_endpoint",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
-      "line": 511,
+      "line": 548,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/seasons.py::GET /api/v1/fields/{field_id}/seasons/{season_id}/state::field_season_state_endpoint"
@@ -5253,7 +5253,7 @@
       "function": "simulate_season_endpoint",
       "method": "POST",
       "path": "/api/v1/seasons/{season_id}/simulate",
-      "line": 131,
+      "line": 151,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/seasons.py::POST /api/v1/seasons/{season_id}/simulate::simulate_season_endpoint"

@@ -63,6 +63,7 @@ from raster_field_runtime import (
     _run_cdse_processing,
     _run_processing,
     _safe_raster_source,
+    _sample_index_pixel,
     _select_backfill_scenes_by_policy,
     _stac_search,
     _stac_search_landsat_unique,
@@ -78,18 +79,8 @@ from raster_indicator_product import eligible_observation_product
 router = APIRouter()
 
 
-def _authenticated_tenant(body_tenant: str | None) -> str | None:
-    """المستأجِر المُصادَق من سياق الطلب (رأس البوّابة الموثوق) — جسم الطلب لا يتجاوزه أبداً.
-
-    عزل صارم fail-closed (مراجعة P0-1): بنية «الهويّة الموثوقة بالبوّابة» (SEC-3) تجعل المستأجِر
-    يُشتقّ حصراً من السياق المُصادَق (نفس ما تحقّق منه _require_field_tenant). ``body_tenant``
-    مطابق ⇒ يُقبَل؛ مختلف ⇒ 403 — لا إنشاء run/item ولا تصدير تحليلات تحت مستأجِر يخالف
-    المُصادَق عليه (النمط القديم «body-or-context» كان يسمح للجسم بتجاوز السياق المُصادَق).
-    """
-    context_tenant = _REQ_TENANT.get()
-    if body_tenant is not None and str(body_tenant) != str(context_tenant):
-        raise HTTPException(403, "tenant_id في الجسم لا يطابق المستأجِر المُصادَق للطلب")
-    return context_tenant
+# يبقى الاسم هنا: الاستدعاءات تحلّه من هذه الوحدة (واختبارات monkeypatch تستبدله فيها).
+_authenticated_tenant = raster_security_context.authenticated_tenant
 
 
 @router.get("/v1/gis/admin-boundaries")
@@ -1044,11 +1035,7 @@ async def field_pixel_value(
         if not (minx <= lon <= maxx and miny <= lat <= maxy):
             raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة")
     try:
-        import math as _math
-
-        import numpy as _np
         import rasterio
-        from rasterio.warp import transform
     except Exception as e:  # noqa: BLE001
         raise HTTPException(503, "rasterio غير متوفر لقراءة قيمة البكسل") from e
     path = object_store.to_gdal_path(layer.get("cog_url") or layer.get("raster_url") or "")
@@ -1056,21 +1043,11 @@ async def field_pixel_value(
         raise HTTPException(404, "مصدر COG غير موجود")
     try:
         with rasterio.open(path) as src:
-            xs, ys = [lon], [lat]
-            if src.crs and str(src.crs).upper() not in ("EPSG:4326", "OGC:CRS84"):
-                xs, ys = transform("EPSG:4326", src.crs, xs, ys)
-            row, col = src.index(xs[0], ys[0])
-            if row < 0 or col < 0 or row >= src.height or col >= src.width:
-                raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة")
-            # masked=True: القناع الداخليّ للبيانات (internal dataset mask) يُبطل البكسل
-            # كما يُبطله nodata — بدونه تُرجَع قيمة بكسل مخفيّ كأنّها صالحة (T10).
-            value = next(src.sample([(xs[0], ys[0])], masked=True))[0]
-            nodata = src.nodata
-            if (
-                value is _np.ma.masked
-                or (nodata is not None and value == nodata)
-                or not _math.isfinite(float(value))
-            ):
+            try:
+                value = _sample_index_pixel(src, lon, lat)  # None = nodata/مقنَّع/غير منتهٍ
+            except IndexError as exc:
+                raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة") from exc
+            if value is None:
                 return {
                     "field_id": field_id,
                     "index": out_index,
