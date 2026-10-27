@@ -37,14 +37,22 @@ class CropSeasonApi {
     String fieldId,
     Map<String, dynamic> body, {
     required IdempotencyKey idempotencyKey,
-  }) async {
-    final r = await _client.post(
+  }) async => Season.fromJson(
+    await createSeasonRaw(fieldId, body, idempotencyKey: idempotencyKey),
+  );
+
+  /// كـ[createSeason] لكن بالردّ كما هو (سجلّ العمليّات المعلّقة يحفظ النتيجة).
+  Future<Map<String, dynamic>> createSeasonRaw(
+    String fieldId,
+    Map<String, dynamic> body, {
+    required IdempotencyKey idempotencyKey,
+  }) async => asJsonMap(
+    await _client.post(
       '${_f(fieldId)}/seasons',
       data: body,
       idempotencyKey: idempotencyKey,
-    );
-    return Season.fromJson(asJsonMap(r));
-  }
+    ),
+  );
 
   /// تحديث جزئيّ (الحقول الممرَّرة فقط) أو انتقال حالة (`status`).
   /// الخادم لا يقرأ Idempotency-Key هنا؛ نمرّره ليُعاد الطلب بأمان على 502/503/504

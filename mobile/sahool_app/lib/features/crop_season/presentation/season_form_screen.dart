@@ -2,12 +2,16 @@
 // إنشاء/تعديل موسم: المحصول من الفهرس (بلا كتابة)، الصنف، الريّ، تاريخ الزراعة،
 // الحصاد المتوقّع، الإنتاجيّة المستهدفة، ملاحظات. التواريخ تُعرَض بأسماء الأشهر
 // العربيّة (fmtDate) وتُرسَل «YYYY-MM-DD». الأخطاء سطريّة تحت الحقل.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/theme/sahool_tokens.dart';
 import 'package:sahool_app/core/theme/tokens.dart';
 import 'package:sahool_app/core/utils/formatters.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
+import 'package:sahool_app/features/offline_sync/data/operation_ledger.dart';
+import 'package:sahool_app/features/offline_sync/presentation/pending_operation_panel.dart';
 
 import '../data/crop_season_api.dart';
 import '../data/season_models.dart';
@@ -23,6 +27,7 @@ class SeasonFormScreen extends StatelessWidget {
     this.hasActiveSeason = false,
     this.api,
     this.today,
+    this.ledger,
   });
 
   final String fieldId;
@@ -36,13 +41,18 @@ class SeasonFormScreen extends StatelessWidget {
   /// قابل للحقن في الاختبارات.
   final DateTime? today;
 
+  /// سجلّ عمليّات الإنشاء المعلّقة (للاختبار)؛ null ⇒ السجلّ المشترك.
+  final OperationLedger? ledger;
+
   @override
   Widget build(BuildContext context) => BlocProvider(
+    // restore: إنشاءٌ سابق لم تُحسَم نتيجته لنفس المالك والحقل يظهر قبل أيّ إنشاء.
     create: (_) => SeasonFormCubit(
       api ?? CropSeasonApi.instance,
       fieldId: fieldId,
       original: original,
-    ),
+      ledger: ledger,
+    )..restore(),
     child: _SeasonForm(
       original: original,
       catalog: catalog,
@@ -100,8 +110,21 @@ class _SeasonFormState extends State<_SeasonForm> {
     _end = o?.seasonEndDay;
   }
 
+  // يُقرأ هنا لا في dispose (لا بحث عن السلف عند التفكيك).
+  late SeasonFormCubit _cubit;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _cubit = context.read<SeasonFormCubit>();
+  }
+
   @override
   void dispose() {
+    // إغلاق الشاشة بعد نتيجة مجهولة لا يُضيّع التعديلات: تُحفَظ مسودّةً (لا تُرسَل).
+    if (_cubit.state is SeasonFormUnconfirmed) {
+      unawaited(_cubit.rememberDraft(_input()));
+    }
     _cultivar.dispose();
     _cropText.dispose();
     _yield.dispose();
@@ -162,7 +185,10 @@ class _SeasonFormState extends State<_SeasonForm> {
         final submitError = state is SeasonFormEditing
             ? state.submitError
             : null;
-        final submitting = state is SeasonFormSubmitting;
+        final unconfirmed = state is SeasonFormUnconfirmed ? state : null;
+        final recovered = state is SeasonFormRecovered ? state : null;
+        final submitting =
+            state is SeasonFormSubmitting || (unconfirmed?.busy ?? false);
         final cropItems = <String, String>{
           for (final c in widget.catalog) c.cropId: c.label,
           // محصول مُخزَّن خارج الفهرس يبقى قابلاً للاختيار كما هو.
@@ -175,6 +201,24 @@ class _SeasonFormState extends State<_SeasonForm> {
           body: ListView(
             padding: const EdgeInsetsDirectional.only(bottom: SahoolSpacing.xl),
             children: [
+              if (unconfirmed != null)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(
+                    top: SahoolSpacing.md,
+                  ),
+                  child: PendingOperationPanel(
+                    outcome: unconfirmed.outcome,
+                    busy: unconfirmed.busy,
+                    labels: kSeasonFieldLabelsAr,
+                    onRecover: () => context.read<SeasonFormCubit>().recover(
+                      draft: _input(),
+                    ),
+                    onDismiss: context
+                        .read<SeasonFormCubit>()
+                        .dismissReconciled,
+                  ),
+                ),
+              if (recovered != null) _recoveredCard(context, recovered),
               if (!_isEdit && widget.hasActiveSeason)
                 Padding(
                   padding: const EdgeInsetsDirectional.only(
@@ -269,19 +313,73 @@ class _SeasonFormState extends State<_SeasonForm> {
               ),
               if (submitError != null) _InlineError(submitError),
               const SizedBox(height: SahoolSpacing.lg),
-              PrimaryButton(
-                key: const ValueKey('season_submit'),
-                label: _isEdit ? 'حفظ التعديلات' : 'حفظ الموسم',
-                icon: Icons.save_outlined,
-                loading: submitting,
-                onPressed: submitting ? null : _submit,
-              ),
+              // إنشاءٌ غير محسوم ⇒ لا زرّ إنشاء؛ الاستعادة من اللوحة وحدها (OD-2).
+              if (unconfirmed == null && recovered == null)
+                PrimaryButton(
+                  key: const ValueKey('season_submit'),
+                  label: _isEdit ? 'حفظ التعديلات' : 'حفظ الموسم',
+                  icon: Icons.save_outlined,
+                  loading: submitting,
+                  onPressed: submitting ? null : _submit,
+                ),
             ],
           ),
         );
       },
     );
   }
+}
+
+/// أسماء مفاتيح حمولة الموسم في فروق المسودّة.
+const Map<String, String> kSeasonFieldLabelsAr = {
+  'crops': 'المحصول',
+  'cultivar': 'الصنف',
+  'irrigation_type': 'نوع الريّ',
+  'sowing_date': 'تاريخ الزراعة',
+  'season_end': 'الحصاد المتوقّع',
+  'target_yield_kg_ha': 'الإنتاجيّة المستهدفة',
+  'notes_ar': 'ملاحظات',
+};
+
+Widget _recoveredCard(BuildContext context, SeasonFormRecovered s) {
+  final cubit = context.read<SeasonFormCubit>();
+  return Padding(
+    padding: const EdgeInsetsDirectional.only(top: SahoolSpacing.md),
+    child: SectionCard(
+      title: 'استُعيد الموسم المُنشأ',
+      icon: Icons.history_rounded,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'أُنشئ الموسم بالقيم المرسلة أوّلاً. تعديلاتك التالية لم تُرسَل؛ '
+            'تطبيقها تحديثٌ منفصل للموسم نفسه:',
+            key: const ValueKey('pending-op-recovered'),
+            style: context.textStyles.bodyLarge,
+          ),
+          PayloadChangesList(
+            changes: s.pendingEdits,
+            labels: kSeasonFieldLabelsAr,
+          ),
+          if (s.applyError != null) _InlineError(s.applyError!),
+          const SizedBox(height: SahoolSpacing.md),
+          PrimaryButton(
+            key: const ValueKey('season_apply_edits'),
+            label: 'تطبيق التعديلات على الموسم',
+            icon: Icons.edit_outlined,
+            loading: s.busy,
+            onPressed: s.busy ? null : cubit.applyPendingEdits,
+          ),
+          const SizedBox(height: SahoolSpacing.sm),
+          SecondaryButton(
+            key: const ValueKey('season_keep_recovered'),
+            label: 'الإبقاء على الموسم كما أُنشئ',
+            onPressed: s.busy ? null : cubit.keepRecovered,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _InlineError extends StatelessWidget {

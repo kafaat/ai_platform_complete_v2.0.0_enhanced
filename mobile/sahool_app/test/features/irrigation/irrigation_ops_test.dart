@@ -10,6 +10,7 @@ import 'package:sahool_app/core/network/idempotency.dart';
 import 'package:sahool_app/features/irrigation/presentation/irrigation_ops_cubit.dart';
 import 'package:sahool_app/features/irrigation/presentation/irrigation_ops_screen.dart';
 
+import '../offline_sync/operation_test_support.dart';
 import 'irrigation_test_helpers.dart';
 
 const valvePath = '/api/v1/irrigation/valves';
@@ -285,7 +286,15 @@ void main() {
         }
         return srv.handle(o);
       });
-      await t.pumpWidget(host(IrrigationOpsScreen(api: h.api, role: 'owner')));
+      await t.pumpWidget(
+        host(
+          IrrigationOpsScreen(
+            api: h.api,
+            role: 'owner',
+            ledger: ledgerFor(h.tokens, MemoryOperationStore()),
+          ),
+        ),
+      );
       await t.pumpAndSettle();
       await t.tap(find.text('الجداول'));
       await t.pumpAndSettle();

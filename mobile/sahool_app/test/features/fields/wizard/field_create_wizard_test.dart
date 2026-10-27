@@ -13,6 +13,7 @@ import 'package:sahool_app/features/fields/presentation/field_create_wizard.dart
 import 'package:sahool_app/features/maps/draw/field_create_api.dart';
 
 import '../../../core/fake_http.dart';
+import '../../offline_sync/operation_test_support.dart';
 
 // حقل قائم صغير يتمركز عنده الرسم (تكبير 15)، بعيد عن نقرات الاختبار.
 const _existing = {
@@ -52,14 +53,14 @@ class _Harness {
       }
       return const FakeReply(404, {'detail': 'غير موجود'});
     });
-    client = testClient(
-      adapter,
-      MemoryTokenStore(accessToken: fakeJwt(const Duration(hours: 1))),
-    );
+    client = testClient(adapter, tokens);
   }
 
   late final FakeAdapter adapter;
   late final ApiClient client;
+  final tokens = MemoryTokenStore(
+    accessToken: fakeJwt(const Duration(hours: 1)),
+  );
   bool? result;
   Object? workspaceArg;
 
@@ -90,6 +91,7 @@ class _Harness {
                     createApi: FieldCreateApi(client),
                     showBasemap: false,
                     canCreate: true,
+                    ledger: ledgerFor(tokens, MemoryOperationStore()),
                   ),
                 ),
               );
