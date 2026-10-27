@@ -20,6 +20,7 @@ import { Card, Button, Pill } from '../components/ds/atoms';
 import { Select } from '../components/ds/forms';
 import { T, RADIUS, toneColors } from '../components/ds/tokens';
 import { taskStatusAr, taskStatusTone } from '../components/ds/status';
+import { TASK_TYPE_LABELS_AR as L } from '../lib/taskTypeLabels';
 
 interface Task {
   task_id:               string;
@@ -37,13 +38,14 @@ interface Task {
   tenant_id:             string;
 }
 
+// التسميات من مصدر مشترك مع لوحة مهامّ مساحة عمل الحقل (lib/taskTypeLabels).
 const TASK_CONFIG: Record<string, { icon: typeof Wrench; label: string; color: string }> = {
-  irrigation:    { icon: Droplets, label: 'ري',              color: '#3b82f6' },
-  fertilization: { icon: Sprout,   label: 'تسميد',           color: '#16a34a' },
-  spraying:      { icon: Bug,      label: 'رش مبيدات',       color: '#f97316' },
-  harvest:       { icon: Wheat,    label: 'حصاد',            color: '#f59e0b' },
-  scouting:      { icon: Wrench,   label: 'استكشاف',         color: '#8b5cf6' },
-  soil_sampling: { icon: Wrench,   label: 'أخذ عينات تربة',  color: '#92400e' },
+  irrigation:    { icon: Droplets, label: L.irrigation,    color: '#3b82f6' },
+  fertilization: { icon: Sprout,   label: L.fertilization, color: '#16a34a' },
+  spraying:      { icon: Bug,      label: L.spraying,      color: '#f97316' },
+  harvest:       { icon: Wheat,    label: L.harvest,       color: '#f59e0b' },
+  scouting:      { icon: Wrench,   label: L.scouting,      color: '#8b5cf6' },
+  soil_sampling: { icon: Wrench,   label: L.soil_sampling, color: '#92400e' },
 };
 
 // حالات المهام (تسمية + نغمة) موحّدة عبر DS (status.ts/tokens.ts) بدل

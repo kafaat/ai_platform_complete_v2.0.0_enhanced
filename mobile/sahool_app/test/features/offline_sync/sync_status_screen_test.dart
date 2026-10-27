@@ -1,10 +1,13 @@
 // صفحة حالة المزامنة وشارة العدد: تحميل، صندوق غير متاح، فارغ، قوائم المعلّق
 // والمرفوض برسالة الخادم، عدم الاتّصال، تأكيد التجاهل، إعادة المحاولة، والشارة.
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:sahool_app/core/theme/app_theme.dart';
 import 'package:sahool_app/features/offline_sync/data/durable_offline_outbox.dart';
 import 'package:sahool_app/features/offline_sync/data/outbox_record.dart';
@@ -171,6 +174,49 @@ void main() {
     await pumpScreen(tester, h);
     expect(find.textContaining('لا عمليّات بانتظار المزامنة'), findsOneWidget);
     expect(find.text('إرسال الآن'), findsNothing);
+  });
+
+  testWidgets('an undecodable stored row is not reported as "everything '
+      'reached the server" (UI-S2)', (tester) async {
+    final dir = Directory.systemTemp.createTempSync('sync_unreadable');
+    late OutboxStore store;
+    await tester.runAsync(() async {
+      Hive.init(dir.path);
+      FlutterSecureStorage.setMockInitialValues({});
+      final first = await HiveOutboxStore.openEncrypted();
+      // سجلّ من إصدار أحدث/تالف: يبقى على القرص ولا يُفكّ.
+      await Hive.box<String>(HiveOutboxStore.boxName).put('future', '{"v":9');
+      await first.close();
+      store = await HiveOutboxStore.openEncrypted();
+    });
+    addTearDown(() async {
+      await tester.runAsync(() async {
+        await Hive.close();
+        dir.deleteSync(recursive: true);
+      });
+    });
+    final h = Harness();
+    final outbox = DurableOfflineOutbox(
+      openStore: () async => store,
+      currentOwner: () => OutboxOwner.fromAccessToken(h.tokens.accessToken),
+      connectivity: h.connectivity,
+    );
+    tester.view.physicalSize = const Size(1080, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _app(
+        SyncStatusScreen(
+          outbox: outbox,
+          connectivity: h.connectivity,
+          now: () => h.now,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('وصل إلى الخادم'), findsNothing);
+    expect(find.byKey(const ValueKey('sync-unreadable')), findsOneWidget);
   });
 
   testWidgets('lists rejected (with server message) and pending ops with '

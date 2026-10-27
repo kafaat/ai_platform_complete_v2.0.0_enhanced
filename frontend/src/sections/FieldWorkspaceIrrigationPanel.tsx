@@ -7,6 +7,8 @@ import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 import IrrigationManualOperationsPanel from './IrrigationManualOperationsPanel';
 import IrrigationEngineeringCalculator from './IrrigationEngineeringCalculator';
 import ReservoirBoosterNetworkCalculator from './ReservoirBoosterNetworkCalculator';
+import FieldWorkspaceStaleNote from './FieldWorkspaceStaleNote';
+import { cachedDataView } from './fieldWorkspaceStaleData';
 
 function apiStatus(error: unknown): number | undefined {
   return (error as { response?: { status?: number } } | null | undefined)?.response?.status;
@@ -21,8 +23,10 @@ function IrrigationState({ title, error, onRetry }: { title: string; error: unkn
 }
 
 export default function FieldWorkspaceIrrigationPanel({ fieldId, seasonId }: { fieldId: string; seasonId?: string | null }) {
+  // UI-I1: الخادم يحسب النصيحة للموسم النشط الحاليّ للحقل وتوقّع اليوم (لا season_id في
+  // الطلب)، فلا نضع موسم الرابط في المفتاح كي لا تُنسَب النصيحة لموسم تاريخيّ لم تُحسَب له.
   const adviceQ = useQuery({
-    queryKey: ['field-workspace', fieldId, seasonId, 'irrigation-advice'],
+    queryKey: ['field-workspace', fieldId, 'irrigation-advice'],
     queryFn: () => getFieldIrrigationAdvice(fieldId),
     enabled: Boolean(fieldId && seasonId),
     staleTime: 60_000,
@@ -34,6 +38,10 @@ export default function FieldWorkspaceIrrigationPanel({ fieldId, seasonId }: { f
     staleTime: 60_000,
   });
 
+  // UI-W6: لا تُعرض نصيحة/جداول مخبّأة بجوار خطأ كأنّها حاليّة — تُخفى عند 401/403 وتُوسَم قديمة غير ذلك.
+  const adviceView = cachedDataView(adviceQ);
+  const schedulesView = cachedDataView(schedulesQ);
+
   if (!seasonId) {
     return <EmptyState title="لا يوجد موسم نشط للري" hint="تبويب الري لا يحسب توصيات خارج سياق crop stage/season_id." />;
   }
@@ -43,9 +51,11 @@ export default function FieldWorkspaceIrrigationPanel({ fieldId, seasonId }: { f
       <div className="grid gap-4 xl:grid-cols-2">
       <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
         <div className="mb-4 flex items-center gap-2"><Droplets className="h-5 w-5 text-emerald-300" /><h2 className="text-base font-bold text-slate-100">نصيحة الري</h2></div>
+        <p className="mb-3 text-xs text-slate-500">محسوبة للموسم النشط الحاليّ للحقل وتوقّع الطقس الآن — لا للموسم المختار في الرابط.</p>
         {adviceQ.isLoading && <LoadingState message="جارٍ تحميل نصيحة الري…" />}
         {adviceQ.isError && <IrrigationState title="نصيحة الري" error={adviceQ.error} onRetry={() => adviceQ.refetch()} />}
-        {adviceQ.data && <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+        {adviceQ.data && adviceView !== 'hidden' && <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+          {adviceView === 'stale' && <FieldWorkspaceStaleNote updatedAt={adviceQ.dataUpdatedAt} />}
           <div className="flex flex-wrap items-end gap-3"><p className="text-3xl font-bold text-slate-100">{typeof adviceQ.data.recommended_mm === 'number' ? adviceQ.data.recommended_mm : '—'}</p><span className="mb-1 text-xs text-slate-500">mm</span>{adviceQ.data.urgency && <span className="mb-1 rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">{adviceQ.data.urgency}</span>}</div>
           <p className="mt-2 text-sm text-slate-300">{adviceQ.data.timing_ar ?? 'لا يوجد توقيت محفوظ من الخادم.'}</p>
           <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">{typeof adviceQ.data.et0 === 'number' && <span>ET0: {adviceQ.data.et0}</span>}{typeof adviceQ.data.kc === 'number' && <span>Kc: {adviceQ.data.kc}</span>}{adviceQ.data.stage && <span>stage: {adviceQ.data.stage}</span>}</div>
@@ -59,7 +69,8 @@ export default function FieldWorkspaceIrrigationPanel({ fieldId, seasonId }: { f
         <div className="mb-4 flex items-center gap-2"><Timer className="h-5 w-5 text-emerald-300" /><h2 className="text-base font-bold text-slate-100">جداول الري المحفوظة</h2></div>
         {schedulesQ.isLoading && <LoadingState message="جارٍ تحميل جداول الري…" />}
         {schedulesQ.isError && <IrrigationState title="جداول الري" error={schedulesQ.error} onRetry={() => schedulesQ.refetch()} />}
-        {schedulesQ.data && (schedulesQ.data.length ? <ol className="space-y-2">{schedulesQ.data.map(s => <li key={s.schedule_id} className="rounded-xl border border-slate-800 bg-slate-950/50 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-100">{s.name}</p><span className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">{s.enabled ? 'enabled' : 'disabled'}</span></div><p className="mt-1 text-xs text-slate-500">{s.start_time} · {s.duration_min} دقيقة{typeof s.water_target_mm === 'number' ? ` · ${s.water_target_mm}mm` : ''}</p></li>)}</ol> : <EmptyState title="لا توجد جداول ري محفوظة" hint="لا يتم توليد جدول ري من الواجهة." />)}
+        {schedulesQ.data && schedulesView === 'stale' && <FieldWorkspaceStaleNote updatedAt={schedulesQ.dataUpdatedAt} />}
+        {schedulesQ.data && schedulesView !== 'hidden' && (schedulesQ.data.length ? <ol className="space-y-2">{schedulesQ.data.map(s => <li key={s.schedule_id} className="rounded-xl border border-slate-800 bg-slate-950/50 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-100">{s.name}</p><span className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">{s.enabled ? 'enabled' : 'disabled'}</span></div><p className="mt-1 text-xs text-slate-500">{s.start_time} · {s.duration_min} دقيقة{typeof s.water_target_mm === 'number' ? ` · ${s.water_target_mm}mm` : ''}</p></li>)}</ol> : <EmptyState title="لا توجد جداول ري محفوظة" hint="لا يتم توليد جدول ري من الواجهة." />)}
       </div>
       </div>
       <IrrigationEngineeringCalculator fieldId={fieldId} seasonId={seasonId} />

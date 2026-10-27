@@ -85,6 +85,40 @@ void main() {
       expect(outbox.snapshot().failure?.failure, OutboxStoreFailure.keyStorage);
     });
 
+    test('same key with a different payload is refused, not reported queued '
+        '(UI-S4)', () async {
+      final h = Harness();
+      final o = op('/api/v1/tasks/1', body: {'status': 'done'});
+      expect((await h.outbox.enqueue(o)).queued, isTrue);
+      final changed = op(
+        '/api/v1/tasks/1',
+        body: {'status': 'blocked'},
+        key: o.idempotencyKey,
+      );
+      final r = await h.outbox.enqueue(changed);
+      expect(r.queued, isFalse);
+      expect(h.store.records.single.op.body, {'status': 'done'});
+      final otherPath = op('/api/v1/tasks/2', key: o.idempotencyKey);
+      expect((await h.outbox.enqueue(otherPath)).queued, isFalse);
+    });
+
+    test('same key of a rejected op is not reported queued (UI-S4)', () async {
+      final h = Harness();
+      final o = op('/api/v1/tasks/1');
+      await h.outbox.enqueue(o);
+      final r0 = h.store.records.single;
+      await h.store.put(
+        r0.copyWith(
+          state: OutboxRecordState.rejected,
+          rejectedStatus: 422,
+          rejectedMessageAr: 'm',
+        ),
+      );
+      final r = await h.outbox.enqueue(o);
+      expect(r.queued, isFalse);
+      expect(h.store.records.single.isRejected, isTrue);
+    });
+
     test('same idempotency key for the same owner is stored once', () async {
       final h = Harness();
       final o = op('/api/v1/tasks/1');

@@ -1,5 +1,6 @@
 // شاشة المواسم ضدّ ApiClient حقيقيّ بمحوّل مزيّف: المسارات الحقيقيّة، Idempotency-Key
 // ثابت لنيّة الحفظ، إجراءات الطور من الخادم فقط، والأزرار حسب الدور.
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -291,6 +292,57 @@ void main() {
         'crops': ['wheat'],
         'sowing_date': '2026-03-05',
       });
+      await cubit.close();
+    },
+  );
+
+  test(
+    'UI-M3: an edited season after an unknown outcome mints a new key; '
+    'the same input keeps it',
+    () async {
+      // دلالة season.create الحاليّة: مفتاح معروف ⇒ النتيجة المخزّنة بلا مقارنة جسم.
+      final committed = <String, Map<String, dynamic>>{};
+      var calls = 0;
+      final a = FakeAdapter((o) async {
+        calls++;
+        final key = o.headers['Idempotency-Key'] as String;
+        final body = o.data as Map;
+        final result = committed.putIfAbsent(
+          key,
+          () => {
+            'season_id': 'ssn_$calls',
+            'field_id': 'f1',
+            'crops': body['crops'],
+            'status': 'active',
+            'stages': [],
+          },
+        );
+        return calls <= 2
+            ? const FakeReply.fail(DioExceptionType.receiveTimeout)
+            : FakeReply(201, result);
+      });
+      final cubit = SeasonFormCubit(apiFor(a), fieldId: 'f1');
+      await cubit.submit(
+        SeasonFormInput(crop: 'wheat', sowingDate: DateTime(2026, 3, 5)),
+      );
+      expect(cubit.state, isA<SeasonFormEditing>());
+      await cubit.submit(
+        SeasonFormInput(crop: 'wheat', sowingDate: DateTime(2026, 3, 5)),
+      );
+      expect(cubit.state, isA<SeasonFormEditing>());
+      await cubit.submit(
+        SeasonFormInput(crop: 'maize', sowingDate: DateTime(2026, 3, 5)),
+      );
+
+      final keys = a
+          .to('/api/v1/fields/f1/seasons')
+          .map((r) => r.headers['Idempotency-Key'])
+          .toList();
+      expect(keys, hasLength(3));
+      expect(keys[1], keys[0], reason: 'نفس الحمولة ⇒ نفس المفتاح');
+      expect(keys[2], isNot(keys[0]), reason: 'حمولة معدّلة ⇒ مفتاح جديد');
+      final saved = (cubit.state as SeasonFormSaved).season;
+      expect(saved.crops, ['maize']);
       await cubit.close();
     },
   );

@@ -2,9 +2,12 @@
 // حفظ الحقل من المعالج: إنشاء ← (موسم إن اختير محصول) ← (تقدير إنتاجيّة يُعرَض
 // فقط إن ردّ الخادم رقماً).
 //
-// مفاتيح منع التكرار تُولَّد **مرّة لكلّ معالج** وتُعاد في كلّ محاولة: إعادةٌ بعد
-// انقطاع تُرجع الحقل نفسه من مخزن الأوامر في الخادم بدل 409 «اسم مكرّر» (كانت
-// علّة: لا مفتاح على الإطلاق). وإن نجح الإنشاء وفشل الموسم لا يُعاد الإنشاء.
+// مفاتيح منع التكرار تُولَّد **مرّة لكلّ نيّة** وتُعاد في كلّ محاولة بالحمولة
+// نفسها: إعادةٌ بعد انقطاع تُرجع الحقل نفسه من مخزن الأوامر في الخادم بدل 409
+// «اسم مكرّر» (كانت علّة: لا مفتاح على الإطلاق). وإن عدّل المستخدم المسودّة بعد
+// فشلٍ مجهول النتيجة صار المفتاح جديداً (UI-M3): الخادم لا يقارن الجسم على
+// field.create فكان سيعيد الحقل القديم نجاحاً للمسودّة المعدّلة. وإن نجح الإنشاء
+// وفشل الموسم لا يُعاد الإنشاء.
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
@@ -72,8 +75,10 @@ class FieldSaveCubit extends Cubit<FieldSaveState> {
   final ResponseCache _cache;
   final FieldCreatedEvents _events;
 
-  /// مفتاح نيّة «أنشئ هذا الحقل» — ثابت طوال عمر المعالج.
-  final IdempotencyKey createKey = IdempotencyKey.generate();
+  /// مفتاح نيّة «أنشئ هذا الحقل» — ثابت ما دامت المسودّة نفسها، ويتجدّد إن
+  /// عُدِّلت قبل إعادة الحفظ (UI-M3).
+  final PayloadIdempotencyKey _createKey = PayloadIdempotencyKey();
+  IdempotencyKey get createKey => _createKey.current;
   final IdempotencyKey seasonKey = IdempotencyKey.generate();
 
   Map<String, dynamic>? _created;
@@ -91,7 +96,10 @@ class FieldSaveCubit extends Cubit<FieldSaveState> {
     if (field == null) {
       emit(const FieldSaveInProgress(SaveStage.creating));
       try {
-        field = await _create.createField(draft, idempotencyKey: createKey);
+        field = await _create.createField(
+          draft,
+          idempotencyKey: _createKey.forPayload(draft.toJson()),
+        );
       } catch (e) {
         if (isClosed) return;
         emit(FieldSaveFailed(ApiException.from(e), describeCreateError(e)));
@@ -141,7 +149,7 @@ class FieldSaveCubit extends Cubit<FieldSaveState> {
     );
   }
 
-  /// يعيد الحالة إلى الخمول بعد عرض الخطأ (المفتاح يبقى كما هو).
+  /// يعيد الحالة إلى الخمول بعد عرض الخطأ (المفتاح يبقى ما لم تتغيّر المسودّة).
   void acknowledgeError() {
     if (state is FieldSaveFailed) emit(const FieldSaveIdle());
   }

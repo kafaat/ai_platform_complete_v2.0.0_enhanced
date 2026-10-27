@@ -13,6 +13,7 @@
 //  • الخروج: لا يحذف شيئاً. يُلغي الطلب الجاري ويوقف التصريف؛ السجلّات تبقى مقفلة
 //    على مالكها ولا تُرسَل أبداً برمز مستخدم آخر.
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
@@ -45,6 +46,12 @@ abstract final class OutboxRefusal {
   static const syncEndpoint = 'sync_endpoint_not_supported';
   static const badKey = 'invalid_idempotency_key';
   static const badBody = 'body_not_json';
+
+  /// المفتاح محفوظ لعمليّة مختلفة (طريقة/مسار/جسم) — لا يُستبدَل ولا يُدّعى حفظ.
+  static const keyReused = 'idempotency_key_reused';
+
+  /// المفتاح لعمليّة رفضها الخادم — تُعاد من صفحة المزامنة صراحةً لا بإيداعٍ ثانٍ.
+  static const keyRejected = 'idempotency_key_rejected';
 }
 
 final _uuid = RegExp(
@@ -93,6 +100,7 @@ class OutboxSnapshot {
     required this.draining,
     this.failure,
     this.opened = true,
+    this.unreadable = 0,
   });
 
   const OutboxSnapshot.opening()
@@ -102,7 +110,8 @@ class OutboxSnapshot {
       heldForOtherAccounts = 0,
       draining = false,
       failure = null,
-      opened = false;
+      opened = false,
+      unreadable = 0;
 
   const OutboxSnapshot.unavailable(OutboxStoreException this.failure)
     : owner = null,
@@ -110,7 +119,8 @@ class OutboxSnapshot {
       rejected = const [],
       heldForOtherAccounts = 0,
       draining = false,
-      opened = false;
+      opened = false,
+      unreadable = 0;
 
   final OutboxOwner? owner;
   final List<OutboxRecord> pending;
@@ -118,6 +128,9 @@ class OutboxSnapshot {
 
   /// عمليّات محفوظة لحسابات أخرى على هذا الجهاز (عددها فقط — لا محتواها).
   final int heldForOtherAccounts;
+
+  /// سجلّات على الجهاز تعذّر فكّها — مالكها غير معروف فتُعرض عدداً فقط.
+  final int unreadable;
   final bool draining;
   final OutboxStoreException? failure;
   final bool opened;
@@ -302,11 +315,21 @@ class DurableOfflineOutbox implements OfflineOutbox {
     if (store == null) {
       return const OutboxReceipt.notQueued(OutboxRefusal.storeUnavailable);
     }
-    // نفس المفتاح لنفس المالك محفوظ ⇒ نفس النيّة؛ لا سجلّ ثانٍ.
-    final dup = store.records.any(
-      (r) => r.owner == owner && r.op.idempotencyKey == op.idempotencyKey,
-    );
-    if (dup) return const OutboxReceipt.queued();
+    // نفس المفتاح لنفس المالك محفوظ ⇒ لا سجلّ ثانٍ. «queued» فقط إن كانت العمليّة
+    // نفسها (طريقة/مسار/جسم) وما زالت بانتظار الإرسال؛ مفتاحٌ أُعيد لجسمٍ آخر أو
+    // لعمليّة مرفوضة لا يُقال عنه «حُفظ».
+    for (final r in store.records) {
+      if (r.owner != owner || r.op.idempotencyKey != op.idempotencyKey) {
+        continue;
+      }
+      if (!_sameOp(r.op, op)) {
+        return const OutboxReceipt.notQueued(OutboxRefusal.keyReused);
+      }
+      if (!r.isPending) {
+        return const OutboxReceipt.notQueued(OutboxRefusal.keyRejected);
+      }
+      return const OutboxReceipt.queued();
+    }
     final record = OutboxRecord(
       id: generateRequestId(),
       seq: store.nextSeq(),
@@ -331,6 +354,11 @@ class DurableOfflineOutbox implements OfflineOutbox {
     if (!_isOffline) unawaited(drain());
     return const OutboxReceipt.queued();
   }
+
+  static bool _sameOp(OutboxOp a, OutboxOp b) =>
+      a.method.toUpperCase() == b.method.toUpperCase() &&
+      a.path == b.path &&
+      jsonEncode(a.body) == jsonEncode(b.body);
 
   @override
   Stream<int> get pendingCount => watch()
@@ -371,6 +399,7 @@ class DurableOfflineOutbox implements OfflineOutbox {
       rejected: mine.where((r) => r.isRejected).toList(),
       heldForOtherAccounts: all.length - mine.length,
       draining: _draining,
+      unreadable: store.unreadableCount,
     );
   }
 

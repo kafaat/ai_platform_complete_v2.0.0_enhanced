@@ -15,7 +15,7 @@ enum SendOutcomeKind {
   /// ردّ الخادم 201 (مقبول أو محجور) — العنصر أُزيل من الطابور.
   settled,
 
-  /// فشل مؤقّت (شبكة/5xx/ردّ غير مفهوم) — العنصر باقٍ وزاد عدّاده.
+  /// فشل مؤقّت (شبكة/5xx/408/425/429/ردّ غير مفهوم) — العنصر باقٍ وزاد عدّاده.
   retryLater,
 
   /// 401/403 — الجلسة لا تسمح الآن؛ أوقف التصريف.
@@ -26,9 +26,18 @@ enum SendOutcomeKind {
 }
 
 class SendOutcome {
-  const SendOutcome(this.kind, {this.result, this.error, this.item});
+  const SendOutcome(
+    this.kind, {
+    this.result,
+    this.error,
+    this.item,
+    this.retryAfter,
+  });
 
   final SendOutcomeKind kind;
+
+  /// مهلة ترويسة Retry-After (بالثواني) إن أرسلها الخادم مع فشلٍ مؤقّت.
+  final Duration? retryAfter;
 
   /// ردّ الخادم عند [SendOutcomeKind.settled].
   final SubmissionResult? result;
@@ -43,6 +52,10 @@ class SubmissionSender {
 
   /// بعد هذا العدد من رفض 4xx يتوقّف التصريف التلقائيّ للعنصر.
   static const int maxRejectedAttempts = 10;
+
+  /// 4xx مؤقّتة بطبيعتها (مهلة/مبكّر جدّاً/تحديد معدّل): الخادم لم يحكم على
+  /// الإرسال، فلا تصير «لم يُقبل» مهما تكرّرت — تُعاد لاحقاً كالـ5xx.
+  static const Set<int> transientStatuses = {408, 425, 429};
 
   static final Map<String, Future<SendOutcome>> _inFlight = {};
 
@@ -91,6 +104,7 @@ class SubmissionSender {
       }
       if (status >= 400 &&
           status < 500 &&
+          !transientStatuses.contains(status) &&
           updated.attempts >= maxRejectedAttempts) {
         final failed = await queue.markFailed(updated, _reasonOf(error));
         return SendOutcome(SendOutcomeKind.failed, error: error, item: failed);
@@ -99,6 +113,7 @@ class SubmissionSender {
         SendOutcomeKind.retryLater,
         error: error,
         item: updated,
+        retryAfter: _retryAfterOf(error),
       );
     } catch (error) {
       final updated = await queue.markRetry(item);
@@ -108,6 +123,13 @@ class SubmissionSender {
         item: updated,
       );
     }
+  }
+
+  /// Retry-After بصيغة الثواني فقط؛ صيغة التاريخ تُترك لـbackoff المنسّق.
+  static Duration? _retryAfterOf(DioException error) {
+    final raw = error.response?.headers.value('retry-after');
+    final seconds = raw == null ? null : int.tryParse(raw.trim());
+    return seconds == null || seconds < 0 ? null : Duration(seconds: seconds);
   }
 
   static String _reasonOf(DioException error) {

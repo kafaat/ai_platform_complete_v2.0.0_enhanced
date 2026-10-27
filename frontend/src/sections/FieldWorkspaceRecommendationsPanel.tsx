@@ -26,7 +26,11 @@ export default function FieldWorkspaceRecommendationsPanel({ fieldId, seasonId }
           </p>
         </div>
       </div>
-      <EmptyState title="لا توجد توصيات موثقة" hint="سيتم عرض التوصيات بعد ربط endpoint يعيد recommendation_id + evidence + confidence." />
+      {/* UI-W7: لا استعلام خادميّ هنا بعد، فلا نُعلن «لا توجد توصيات موثقة» (فراغ غير مقيس). */}
+      <EmptyState
+        title="التوصيات غير مربوطة بهذه الواجهة بعد"
+        hint="لم يُستعلَم الخادم — لن تُعرَض «لا توجد توصيات موثقة» قبل ربط endpoint يعيد recommendation_id + evidence + confidence."
+      />
     </section>
   );
 }

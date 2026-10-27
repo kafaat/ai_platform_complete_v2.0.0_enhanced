@@ -69,21 +69,43 @@ void main() {
     await dir.delete(recursive: true);
   });
 
-  FieldFormCubit cubitWith(FakeAdapter? adapter) => FieldFormCubit(
-    tenantId: 't',
-    fieldId: 'f',
-    package: _package,
-    draftStore: drafts,
-    submissionQueue: queue,
-    api: adapter == null
-        ? null
-        : FieldFormsApi(
-            Dio(BaseOptions(baseUrl: 'https://api.example.test'))
-              ..httpClientAdapter = adapter,
-          ),
-    server: 'https://api.example.test',
-    actorId: 'u1',
-    deviceId: () async => 'dev-test',
+  FieldFormCubit cubitWith(FakeAdapter? adapter, {String actor = 'u1'}) =>
+      FieldFormCubit(
+        tenantId: 't',
+        fieldId: 'f',
+        package: _package,
+        draftStore: drafts,
+        submissionQueue: queue,
+        api: adapter == null
+            ? null
+            : FieldFormsApi(
+                Dio(BaseOptions(baseUrl: 'https://api.example.test'))
+                  ..httpClientAdapter = adapter,
+              ),
+        server: 'https://api.example.test',
+        actorId: actor,
+        deviceId: () async => 'dev-test',
+      );
+
+  test(
+    'مسودّة مستخدمٍ لا تُفتح لمستخدمٍ آخر في المستأجِر نفسه (UI-S5)',
+    () async {
+      final a = cubitWith(null);
+      await a.open();
+      a.answersChanged(const {'pest_name': 'aphid'});
+      await a.saveDraft();
+      await a.close();
+
+      final b = cubitWith(null, actor: 'u2');
+      await b.open();
+      expect(b.state.answers, isEmpty, reason: 'إجابات u1 لا تُعرض لـu2');
+      await b.close();
+
+      final again = cubitWith(null);
+      await again.open();
+      expect(again.state.answers, const {'pest_name': 'aphid'});
+      await again.close();
+    },
   );
 
   test('ردّ قبول حقيقيّ ⇒ الحالة accepted لا quarantined', () async {

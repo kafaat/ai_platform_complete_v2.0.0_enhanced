@@ -1,5 +1,7 @@
 // الخريطة المشتركة: نسبة ظاهرة، كاميرا تتبع الحالة، تدوير معطّل افتراضيّاً،
 // أدوات بمواضع اتّجاهيّة، منتقي خريطة الأساس، «موقعي».
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -231,6 +233,37 @@ void main() {
       'https://api.test.invalid/api/raster/v1/elevation/hillshade/{z}/{x}/{y}.png',
     );
     expect(layer.tileProvider.headers['Authorization'], startsWith('Bearer '));
+  });
+
+  // UI-C4: إغلاق اللوح أثناء انتظار التضاريس ⇒ لا setState على StatefulBuilder
+  // اللوح بعد إتلافه (الخريطة الأمّ باقية، فـmounted الخريطة لا يُثبت حياة اللوح).
+  testWidgets('dismissing the layers sheet mid terrain lookup does not throw', (
+    t,
+  ) async {
+    final pending = Completer<FakeReply>();
+    final a = FakeAdapter((_) => pending.future);
+    final api = MapsApi(
+      testClient(
+        a,
+        MemoryTokenStore(accessToken: fakeJwt(const Duration(hours: 1))),
+      ),
+    );
+    await t.pumpWidget(map(api: api));
+    await settle(t);
+    await t.tap(find.byKey(const ValueKey('map-layers')));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const ValueKey('terrain-toggle')));
+    await t.pump();
+    // أغلق اللوح والطلب معلّق.
+    Navigator.of(
+      t.element(find.byKey(const ValueKey('terrain-toggle'))),
+    ).pop();
+    await t.pumpAndSettle();
+    expect(find.byKey(const ValueKey('terrain-toggle')), findsNothing);
+    pending.complete(const FakeReply(200, {'available': true}));
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
+    expect(find.byKey(const ValueKey('terrain-hillshade')), findsOneWidget);
   });
 
   testWidgets('locate-me moves the camera and draws the accuracy circle', (

@@ -170,6 +170,9 @@ export default function FieldManagementPage() {
       const msg = (detail && (detail.message_ar || detail)) ||
         'تعذّر حفظ الحقل — تحقّق من القاعدة/الصلاحيّة أو صحّة الحدود.';
       toastStore.add('error', '⚠️ فشل حفظ الحقل', typeof msg === 'string' ? msg : 'خطأ غير متوقّع');
+      // UI-W2: نُعيد رمي الخطأ الأصليّ كي يراه AddFieldWithMap فشلاً فيُبقي مفتاح التكرار
+      // الثابت لإعادة المحاولة (مهلة بعد التزام الخادم ⇒ إعادة تشغيل نفس الأمر لا نسخة جديدة).
+      throw e;
     }
   };
 

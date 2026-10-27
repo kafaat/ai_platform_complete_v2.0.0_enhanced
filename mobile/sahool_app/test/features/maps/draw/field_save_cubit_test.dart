@@ -88,6 +88,76 @@ void main() {
   );
 
   test(
+    'UI-M3: same draft keeps the key; an edited draft after an unknown outcome '
+    'mints a new key so the server does not replay the old field',
+    () async {
+      // خادم مزيّف بدلالة `_idempotent` الحاليّة لـfield.create (بلا بصمة طلب):
+      // مفتاحٌ معروف يُعيد النتيجة المخزّنة أيّاً كان الجسم الجديد.
+      final committed = <String, Map<String, dynamic>>{};
+      var calls = 0;
+      final adapter = FakeAdapter((o) async {
+        if (o.path != '/api/v1/fields') {
+          return const FakeReply(404, {'detail': 'x'});
+        }
+        calls++;
+        final key = o.headers['Idempotency-Key'] as String;
+        final body = o.data as Map;
+        final result = committed.putIfAbsent(
+          key,
+          () => {'field_id': 'fld_$calls', 'name_ar': body['name']},
+        );
+        // أوّل محاولتين: التزم الخادم لكن ضاع الردّ (نتيجة مجهولة).
+        return calls <= 2
+            ? const FakeReply.fail(DioExceptionType.receiveTimeout)
+            : FakeReply(201, result);
+      });
+      final cubit = _cubit(adapter);
+
+      await cubit.save(_draft);
+      expect(cubit.state, isA<FieldSaveFailed>());
+      cubit.acknowledgeError();
+      // الحمولة نفسها (نسخة جديدة بالمحتوى ذاته) ⇒ المفتاح نفسه.
+      await cubit.save(
+        FieldCreateDraft(
+          name: 'الحقل الشرقيّ',
+          geometry: Map<String, dynamic>.from(_geometry),
+          farmId: 'farm_1',
+          crop: 'wheat',
+          irrigationType: 'drip',
+          boundarySource: 'manual',
+        ),
+      );
+      expect(cubit.state, isA<FieldSaveFailed>());
+      cubit.acknowledgeError();
+      // عدّل المستخدم الاسم ثمّ أعاد الحفظ ⇒ نيّة جديدة ⇒ مفتاح جديد.
+      const edited = FieldCreateDraft(
+        name: 'الحقل الغربيّ',
+        geometry: _geometry,
+        farmId: 'farm_1',
+        crop: 'wheat',
+        irrigationType: 'drip',
+        boundarySource: 'manual',
+      );
+      await cubit.save(edited);
+
+      final keys = adapter
+          .to('/api/v1/fields')
+          .map((r) => r.headers['Idempotency-Key'])
+          .toList();
+      expect(keys, hasLength(3));
+      expect(keys[1], keys[0], reason: 'نفس الحمولة ⇒ نفس المفتاح');
+      expect(keys[2], isNot(keys[0]), reason: 'حمولة معدّلة ⇒ مفتاح جديد');
+      final done = cubit.state as FieldSaveDone;
+      expect(
+        done.field['name_ar'],
+        'الحقل الغربيّ',
+        reason: 'لا يُعرَض الحقل القديم نجاحاً للنيّة المعدّلة',
+      );
+      await cubit.close();
+    },
+  );
+
+  test(
     'create body carries farm_id, irrigation_type and boundary metadata',
     () async {
       final adapter = FakeAdapter(

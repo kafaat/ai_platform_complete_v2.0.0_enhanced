@@ -64,7 +64,8 @@ Map<String, String> validateSeasonForm(SeasonFormInput i, {Season? original}) {
   final yt = i.targetYieldText.trim();
   if (yt.isNotEmpty) {
     final v = parseLocalizedNum(yt);
-    if (v == null) {
+    // NaN/Infinity (و1e309) يقبلها double.tryParse ولا يرمّزها JSON ⇒ نرفضها سطريّاً.
+    if (v == null || !v.isFinite) {
       e[SeasonFormField.targetYield] = 'أدخل رقماً صحيحاً';
     } else if (v < 0) {
       e[SeasonFormField.targetYield] = 'لا تكون الإنتاجيّة سالبة';

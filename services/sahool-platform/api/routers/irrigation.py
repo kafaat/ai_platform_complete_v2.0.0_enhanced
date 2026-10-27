@@ -15,6 +15,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -232,11 +234,55 @@ async def set_valve_state(
     return result
 
 
+def _schedule_request_digest(req: ScheduleRequest) -> str:
+    """بصمة الحمولة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
+    canonical = json.dumps(req.model_dump(mode="json"), sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+async def _resolve_schedule_field(conn, req: ScheduleRequest) -> str | None:
+    """يحسم حقل الجدول (UI-M1): الصمّام المرتبط بحقل يفرض حقله.
+
+    كان req.field_id يُدرَج كما هو، فجدولٌ على صمّام الحقل A بلا field_id (نموذج الموبايل)
+    يُحفظ بلا حقل ولا يظهر في ``GET ?field_id=A``. الآن: صمّام غير موجود ضمن المستأجِر ⇒
+    404؛ حقلٌ مُرسَل يخالف حقل الصمّام ⇒ 422 (لا ربط متناقض)؛ وإلّا يُشتقّ من الصمّام. والحقل
+    المحسوم يُتحقَّق أنّه يخصّ المستأجِر (قيد FK لا يمرّ عبر RLS). جدول بلا صمّام ولا حقل
+    يبقى غير مربوط كما كان (الويب يجعل الحقل اختياريّاً).
+    """
+    field_id = req.field_id
+    if req.valve_id is not None:
+        valve = await conn.fetchrow(
+            "SELECT valve_id, field_id FROM irrigation_valves WHERE valve_id = $1",
+            req.valve_id,
+        )
+        if not valve:
+            raise HTTPException(status_code=404, detail="الصمّام غير موجود")
+        valve_field = valve["field_id"]
+        if valve_field is not None:
+            if field_id is not None and field_id != valve_field:
+                raise HTTPException(
+                    status_code=422,
+                    detail=(
+                        f"الصمّام {req.valve_id} مرتبط بالحقل {valve_field} لا بالحقل "
+                        f"{field_id} — اختر صمّام هذا الحقل أو أغفِل field_id"
+                    ),
+                )
+            field_id = valve_field
+    if field_id is not None:
+        await _assert_field_in_tenant(conn, field_id)
+    return field_id
+
+
 @router.post("/api/v1/irrigation/schedules", status_code=201)
 async def create_schedule(
     req: ScheduleRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
 ):
+    """ينشئ جدول ريّ. idempotent عند وجود Idempotency-Key (UUID) — UI-M2: الموبايل يُعيد
+    POST نفسه بعد ضياع الردّ، وبلا استهلاك المفتاح كانت الإعادة تُنشئ جدولاً ثانياً (بلا
+    صمّام) أو تصطدم بالجدول الأوّل فتردّ 409 تعارضاً كاذباً رغم نجاح الحفظ. الإعادة الصادقة
+    تُعيد النتيجة الأولى؛ والمفتاح نفسه بحمولة مختلفة ⇒ 409."""
     import uuid as _uuid
 
     schedule_id = "sch_" + _uuid.uuid4().hex[:12]
@@ -245,62 +291,79 @@ async def create_schedule(
     if dows is not None and any(d < 0 or d > 6 for d in dows):
         raise HTTPException(status_code=400, detail="days_of_week يجب أن تكون 0..6")
     async with tenant_connection(user) as conn:
-        # حارس تعارُض (v29.5-op-3): جدولان فعّالان على نفس الصمّام يتداخلان زمنيّاً ⇒
-        # خطر فتح مزدوج للصمّام. جداول الريّ متكرّرة (TIME + مدّة + أيّام)، فالكشف على
-        # مستوى التطبيق (لا EXCLUDE مفردة). يُتخطّى إن كان الجديد مُعطّلاً أو بلا صمّام
-        # (لا فتح ⇒ لا تعارُض)؛ RLS يحصر الاستعلام في المستأجِر. إضافيّ بحت: جداول غير
-        # متداخلة تسلك تماماً كما قبل.
-        if req.valve_id is not None and req.enabled:
-            existing = await conn.fetch(
-                """SELECT schedule_id, start_time, duration_min, days_of_week
-                     FROM irrigation_schedules
-                    WHERE valve_id = $1 AND enabled = TRUE""",
-                req.valve_id,
-            )
-            for row in existing:
-                other_days = list(row["days_of_week"]) if row["days_of_week"] is not None else None
-                if schedules_overlap(
-                    start,
-                    req.duration_min,
-                    dows,
-                    row["start_time"],
-                    row["duration_min"],
-                    other_days,
-                ):
-                    raise HTTPException(
-                        status_code=409,
-                        detail=(
-                            "يتعارض جدول الريّ مع جدول قائم على نفس الصمّام "
-                            f"({row['schedule_id']}) — عدّل الوقت/المدّة/الأيّام أو الصمّام"
-                        ),
+
+        async def _work():
+            field_id = await _resolve_schedule_field(conn, req)
+            # حارس تعارُض (v29.5-op-3): جدولان فعّالان على نفس الصمّام يتداخلان زمنيّاً ⇒
+            # خطر فتح مزدوج للصمّام. جداول الريّ متكرّرة (TIME + مدّة + أيّام)، فالكشف على
+            # مستوى التطبيق (لا EXCLUDE مفردة). يُتخطّى إن كان الجديد مُعطّلاً أو بلا صمّام
+            # (لا فتح ⇒ لا تعارُض)؛ RLS يحصر الاستعلام في المستأجِر. داخل _work كي لا تصطدم
+            # الإعادةُ الصادقة بالجدول الذي أنشأه طلبها الأوّل.
+            if req.valve_id is not None and req.enabled:
+                existing = await conn.fetch(
+                    """SELECT schedule_id, start_time, duration_min, days_of_week
+                         FROM irrigation_schedules
+                        WHERE valve_id = $1 AND enabled = TRUE""",
+                    req.valve_id,
+                )
+                for row in existing:
+                    other_days = (
+                        list(row["days_of_week"]) if row["days_of_week"] is not None else None
                     )
-        await conn.execute(
-            """INSERT INTO irrigation_schedules
-                (schedule_id, tenant_id, field_id, valve_id, name, start_time,
-                 duration_min, days_of_week, water_target_mm, enabled)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
-            schedule_id,
-            str(user.tenant_id),
-            req.field_id,
-            req.valve_id,
-            req.name,
-            start,
-            req.duration_min,
-            dows,
-            req.water_target_mm,
-            req.enabled,
-        )
-        # حدث إنشاء جدول الريّ (تفاعليّ): يبثّه وكيل الإشعارات. نفس المعاملة (outbox)؛
-        # _emit_domain_event آمن (يبتلع أخطاءه) فلا يكسر النقطة.
-        await _emit_domain_event(
-            conn,
-            user,
-            "IRRIGATION_SCHEDULE_CREATED",
-            "irrigation_schedule",
-            schedule_id,
-            {"field_id": req.field_id, "valve_id": req.valve_id},
-        )
-    return {"schedule_id": schedule_id, "name": req.name, "message_ar": "أُنشئ جدول الريّ"}
+                    if schedules_overlap(
+                        start,
+                        req.duration_min,
+                        dows,
+                        row["start_time"],
+                        row["duration_min"],
+                        other_days,
+                    ):
+                        raise HTTPException(
+                            status_code=409,
+                            detail=(
+                                "يتعارض جدول الريّ مع جدول قائم على نفس الصمّام "
+                                f"({row['schedule_id']}) — عدّل الوقت/المدّة/الأيّام أو الصمّام"
+                            ),
+                        )
+            await conn.execute(
+                """INSERT INTO irrigation_schedules
+                    (schedule_id, tenant_id, field_id, valve_id, name, start_time,
+                     duration_min, days_of_week, water_target_mm, enabled)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
+                schedule_id,
+                str(user.tenant_id),
+                field_id,
+                req.valve_id,
+                req.name,
+                start,
+                req.duration_min,
+                dows,
+                req.water_target_mm,
+                req.enabled,
+            )
+            # حدث إنشاء جدول الريّ (تفاعليّ): يبثّه وكيل الإشعارات. نفس المعاملة (outbox)؛
+            # _emit_domain_event آمن (يبتلع أخطاءه) فلا يكسر النقطة.
+            await _emit_domain_event(
+                conn,
+                user,
+                "IRRIGATION_SCHEDULE_CREATED",
+                "irrigation_schedule",
+                schedule_id,
+                {"field_id": field_id, "valve_id": req.valve_id},
+            )
+            return {"schedule_id": schedule_id, "name": req.name, "message_ar": "أُنشئ جدول الريّ"}
+
+        if idem:
+            return await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="irrigation_schedule.create",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"request_digest": _schedule_request_digest(req)},
+            )
+        return await _work()
 
 
 @router.get("/api/v1/irrigation/schedules")
