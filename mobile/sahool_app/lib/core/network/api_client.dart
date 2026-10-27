@@ -34,6 +34,16 @@ import 'package:sahool_app/core/utils/ids.dart';
 import 'package:sahool_app/core/utils/jwt.dart';
 import 'package:sahool_app/services/auth_service.dart';
 
+/// extra: `bool Function(String? token)` يُستدعى بالرمز الذي سيُرسَل؛ false ⇒ لا
+/// يُرسَل الطلب ويُرمى إلغاءٌ سببه [kOwnerChangedBeforeSend].
+const String kOwnerGuardExtra = 'owner_guard';
+
+/// سبب الإلغاء حين يرفض [kOwnerGuardExtra] الرمز — الطلب لم يغادر الجهاز.
+const String kOwnerChangedBeforeSend = 'owner_changed_before_send';
+
+/// extra: true ⇒ لا إعادة فوريّة لـ502/503/504؛ للمستدعي جدولة دائمة خاصّة.
+const String kDurableRetryExtra = 'durable_retry';
+
 /// مصدر التوكنات للعميل. الافتراضيّ يقرأ AuthService (تخزين آمن)؛ الاختبارات
 /// تمرّر مخزناً في الذاكرة.
 abstract class TokenStore {
@@ -210,6 +220,11 @@ class ApiClient {
       if (!_isUsable(token) && _tokens.refreshToken != null) {
         token = await refreshAccessToken();
       }
+      // حارس المالك (صندوق الإرسال): يُفحَص بعد آخر await وقبل الإرسال مباشرةً،
+      // على الرمز الذي سيُرسَل فعلاً — لا يخرج طلبُ مالكٍ برمز جلسةٍ أخرى.
+      if (!_ownerGuardAllows(options, token)) {
+        return handler.reject(_ownerChanged(options));
+      }
       if (_isUsable(token)) {
         options.headers['Authorization'] = 'Bearer $token';
       } else {
@@ -234,6 +249,11 @@ class ApiClient {
       }
       final token = await refreshAccessToken();
       if (token != null) {
+        // التجديد قد يحمل رمز جلسةٍ أحدث (تبدّل المستخدم أثناء الطلب): لا يُعاد
+        // طلب المالك القديم بهويّة غيره.
+        if (!_ownerGuardAllows(options, token)) {
+          return handler.next(_ownerChanged(options));
+        }
         options.extra['auth_retried'] = true;
         options.headers['Authorization'] = 'Bearer $token';
         // جسم multipart يُستهلَك عند الإرسال الأوّل؛ الإعادة بعد 401 تحتاج نسخة.
@@ -275,11 +295,25 @@ class ApiClient {
     final code = error.response?.statusCode;
     if (code == null || ![502, 503, 504].contains(code)) return false;
     final options = error.requestOptions;
+    // طلبٌ له جدولة دائمة (صندوق الإرسال) يُعاد هناك بموعدٍ محفوظ يحترم
+    // Retry-After — لا ثلاث إعادات فوريّة هنا تتجاهله.
+    if (options.extra[kDurableRetryExtra] == true) return false;
     if (options.data is FormData) return false; // جسم مُستهلَك لا يُعاد إرساله
     if (_safeMethods.contains(options.method.toUpperCase())) return true;
     final key = options.headers[kIdempotencyHeader];
     return key is String && key.isNotEmpty;
   }
+
+  static bool _ownerGuardAllows(RequestOptions options, String? token) {
+    final guard = options.extra[kOwnerGuardExtra];
+    return guard is! bool Function(String?) || guard(token);
+  }
+
+  static DioException _ownerChanged(RequestOptions options) => DioException(
+        requestOptions: options,
+        type: DioExceptionType.cancel,
+        error: kOwnerChangedBeforeSend,
+      );
 
   // ── نداءات مُنمَّطة (ترمي ApiException) ─────────────────────────────
 
@@ -300,6 +334,7 @@ class ApiClient {
     CancelToken? cancelToken,
     String? contentType,
     bool authenticated = true,
+    Map<String, Object?>? extra,
   }) async {
     try {
       final r = await _dio.request<dynamic>(
@@ -316,7 +351,10 @@ class ApiClient {
           receiveTimeout: receiveTimeout,
           sendTimeout: sendTimeout,
           contentType: contentType,
-          extra: authenticated ? null : const {'skip_auth': true},
+          extra: {
+            ...?extra,
+            if (!authenticated) 'skip_auth': true,
+          },
         ),
       );
       return r.data;

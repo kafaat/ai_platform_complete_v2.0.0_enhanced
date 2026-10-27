@@ -145,6 +145,35 @@ void main() {
     expect(find.byKey(const ValueKey('field_forms_empty')), findsOneWidget);
   });
 
+  testWidgets('إرسال نتيجته غير مؤكَّدة يُعرَض كذلك لا «بانتظار الاتصال» فقط '
+      '(D3)', (tester) async {
+    late String id;
+    await tester.runAsync(() async {
+      final item = await queue.enqueue(
+        tenantId: _tenant,
+        fieldId: _field,
+        assignmentId: 'as-1',
+        assignmentRevision: 1,
+        formVersionId: 'v1',
+        schemaHash: 'h',
+        answers: const {'a': 1},
+      );
+      id = item.instanceId;
+      // صفّ محفوظ بعد محاولة قُطع ردّها (كما يكتبه SubmissionSender).
+      await Hive.box<dynamic>(
+        SubmissionQueue.boxName,
+      ).put(id, {...item.toJson(), 'attempts': 1, 'outcome_unknown': true});
+    });
+    addTearDown(() => tester.runAsync(() => queue.remove(id)));
+    await tester.pumpWidget(MaterialApp(home: listScreen()));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('field_forms_pending')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('field_forms_outcome_unknown')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('المخازن غير مهيّأة ⇒ «غير جاهز» بلا انهيار', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: FieldFormsListScreen(fieldId: _field)),
