@@ -47,6 +47,13 @@ _SQUARE_B = {
         [[44.003, 15.0], [44.006, 15.0], [44.006, 15.003], [44.003, 15.003], [44.003, 15.0]]
     ],
 }
+# اتّحاد المربّعين — الدمج/الانقسام يُتحقَّق من حفظ مساحته (G-SPLIT-1): المدموج =
+# اتّحاد المصادر، والأطفال يُعيدون بناء المصدر بلا تداخل.
+_SQUARE_AB = {
+    "type": "Polygon",
+    "coordinates": [[[44.0, 15.0], [44.006, 15.0], [44.006, 15.003], [44.0, 15.003], [44.0, 15.0]]],
+}
+_SOURCE_GEOMETRY = {"a": _SQUARE, "b": _SQUARE_B, "src": _SQUARE_AB}
 
 
 class _FakeUser:
@@ -181,7 +188,12 @@ async def test_merge_happy_path_inserts_then_deletes(fields_mod, monkeypatch):
     def _fetchrow(sql, *a):  # noqa: ANN001
         # تحميل المصدر (ملكيّة) أو قراءته قبل الحذف ⇒ صفّ موجود.
         if "FROM fields" in sql:
-            return {"field_id": a[0], "name": f"src-{a[0]}", "crop": "قمح"}
+            return {
+                "field_id": a[0],
+                "name": f"src-{a[0]}",
+                "crop": "قمح",
+                "geometry": _SOURCE_GEOMETRY.get(a[0]),
+            }
         return None
 
     conn = _FakeConn(fetchrow=_fetchrow, fetchval=lambda sql, *a: 0)
@@ -198,7 +210,7 @@ async def test_merge_happy_path_inserts_then_deletes(fields_mod, monkeypatch):
 
     bg = _BG()
     req = fields_mod.FieldMergeRequest(
-        source_field_ids=["a", "b"], name="المدموج", crop="قمح", geometry=_SQUARE
+        source_field_ids=["a", "b"], name="المدموج", crop="قمح", geometry=_SQUARE_AB
     )
     out = await fields_mod.merge_fields(req=req, background_tasks=bg, user=user, idem=None)
 
@@ -239,7 +251,12 @@ async def test_merge_source_delete_failure_propagates(fields_mod, monkeypatch):
 
     def _fetchrow(sql, *a):  # noqa: ANN001
         if "FROM fields" in sql:
-            return {"field_id": a[0], "name": f"src-{a[0]}", "crop": "قمح"}
+            return {
+                "field_id": a[0],
+                "name": f"src-{a[0]}",
+                "crop": "قمح",
+                "geometry": _SOURCE_GEOMETRY.get(a[0]),
+            }
         return None
 
     # الحذف يفشل على المصدر الثاني («b») — بعد نجاح INSERT وحذف «a».
@@ -253,7 +270,7 @@ async def test_merge_source_delete_failure_propagates(fields_mod, monkeypatch):
             raise AssertionError("لا يجوز جدولة مهمّة خلفيّة عند فشل المعاملة")
 
     req = fields_mod.FieldMergeRequest(
-        source_field_ids=["a", "b"], name="المدموج", geometry=_SQUARE
+        source_field_ids=["a", "b"], name="المدموج", geometry=_SQUARE_AB
     )
     # خطأ DB غير HTTPException ⇒ يُغلَّف 503 (المعاملة تراجعت، لا يتيم مُلتزَم).
     from fastapi import HTTPException
@@ -273,7 +290,12 @@ async def test_merge_active_season_rejected_409_no_writes(fields_mod, monkeypatc
 
     def _fetchrow(sql, *a):  # noqa: ANN001
         if "FROM fields" in sql:
-            return {"field_id": a[0], "name": f"src-{a[0]}", "crop": "قمح"}
+            return {
+                "field_id": a[0],
+                "name": f"src-{a[0]}",
+                "crop": "قمح",
+                "geometry": _SOURCE_GEOMETRY.get(a[0]),
+            }
         return None
 
     # موسم نشط (count>0) على أيّ مصدر.
@@ -378,7 +400,12 @@ async def test_split_happy_path_inserts_children_then_deletes_source(fields_mod,
 
     def _fetchrow(sql, *a):  # noqa: ANN001
         if "FROM fields" in sql:
-            return {"field_id": a[0], "name": "الأصل", "crop": "قمح"}
+            return {
+                "field_id": a[0],
+                "name": "الأصل",
+                "crop": "قمح",
+                "geometry": _SOURCE_GEOMETRY.get(a[0]),
+            }
         return None
 
     conn = _FakeConn(fetchrow=_fetchrow, fetchval=lambda sql, *a: 0)
@@ -426,7 +453,12 @@ async def test_split_active_season_rejected_409(fields_mod, monkeypatch):
 
     def _fetchrow(sql, *a):  # noqa: ANN001
         if "FROM fields" in sql:
-            return {"field_id": a[0], "name": "الأصل", "crop": "قمح"}
+            return {
+                "field_id": a[0],
+                "name": "الأصل",
+                "crop": "قمح",
+                "geometry": _SOURCE_GEOMETRY.get(a[0]),
+            }
         return None
 
     conn = _FakeConn(fetchrow=_fetchrow, fetchval=lambda sql, *a: 1)  # موسم نشط
