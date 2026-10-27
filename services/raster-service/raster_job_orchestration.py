@@ -87,6 +87,21 @@ class _LeaseHeartbeat:
     def lost(self) -> bool:
         return self.lost_event.is_set()
 
+    def confirm_owned(self) -> bool:
+        """Re-prove ownership now, right before a publish/persist side effect.
+
+        The periodic beat may be up to ``interval`` stale, so a takeover during a
+        long indicator would go unseen until after publication. A fresh successful
+        beat both proves the token is current and extends the lease by its full
+        duration, so the row cannot be taken over while the publication runs.
+        """
+        if self.lost:
+            return False
+        if not self._beat():
+            self.lost_event.set()
+            return False
+        return True
+
     def stop(self) -> None:
         self.stop_event.set()
         if self.thread is not None:
@@ -183,6 +198,19 @@ def run_processing(ctx, job_id: str, req):
             cloud_pct=stats.get("cloud_pct"),
         )
         _cloud_pct = stats.get("cloud_pct")
+        # تسييج الإيجار قبل أيّ أثر نشر/حفظ: مؤشّر ضمن دفعة فقدت إيجارها الدائم أثناء
+        # الحساب لا يسجّل طبقة في الذاكرة ولا يبلغ حدّ الحفظ — النشر لمالك الإيجار الحاليّ.
+        # يُعاد إثبات الملكيّة الآن (نبضة حاضرة)، لا الاكتفاء بآخر نبضة دوريّة قد تتأخّر
+        # حتى ثلث مدّة الإيجار. خارج الدفعة لا سياج (``_publication_fence`` غائب).
+        _fence = getattr(ctx, "_publication_fence", None)
+        if _fence is not None and not _fence():
+            job["status"] = ctx.JobStatus.failed
+            job["error_message"] = "durable_lease_lost"
+            job["finished_at"] = now
+            job["publication_eligible"] = False
+            ctx._jobs.set(job_id, job)
+            ctx.logger.warning("job %s fenced before publication: durable lease lost", job_id)
+            return
         ctx._layers[layer_id] = {
             "layer_id": layer_id,
             "field_id": req.field_id,
@@ -432,6 +460,11 @@ def run_batch_processing(ctx, job_id: str, req):
         )
         return
 
+    # كلّ مؤشّر فرعيّ يُعيد إثبات ملكيّة الإيجار قبل نشر طبقته/حفظ أصله (P3-DUR-3):
+    # فحص الفقد قبل المؤشّر وبعده وحده يترك المؤشّر الجاري ينشر بعد استيلاء مالك آخر.
+    original_publication_fence = getattr(ctx, "_publication_fence", None)
+    if lease_heartbeat is not None:
+        ctx._publication_fence = lease_heartbeat.confirm_owned
     for i, ind in enumerate(unique_indicators):
         if lease_heartbeat is not None and lease_heartbeat.lost:
             failed["__batch__"] = "durable_lease_lost"
@@ -493,6 +526,7 @@ def run_batch_processing(ctx, job_id: str, req):
         lease_heartbeat.stop()
     if original_process_pixels is not None:
         ctx._process_pixels = original_process_pixels
+    ctx._publication_fence = original_publication_fence
     if shared_src is not None:
         shared_src.close()
     job["shared_band_cache_entries"] = len(shared_cache)
@@ -534,24 +568,29 @@ def run_batch_processing(ctx, job_id: str, req):
         and durable_tenant_id
         and job.get("claim_backend") == "postgres"
     ):
+        finish_acknowledged = False
         try:
             import raster_batch_job_store
 
-            raster_batch_job_store.finish_sync(
-                claim_key=durable_claim_key,
-                tenant_id=durable_tenant_id,
-                lease_token=durable_lease_token,
-                status=str(
-                    job["status"].value if hasattr(job["status"], "value") else job["status"]
-                ),
-                result_payload={
-                    "batch_results": results,
-                    "batch_failed": failed,
-                    "single_open_certified": bool(job.get("single_open_certified")),
-                    "shared_band_cache_entries": job.get("shared_band_cache_entries", 0),
-                },
-                error_code=job.get("error_code"),
+            finish_acknowledged = bool(
+                raster_batch_job_store.finish_sync(
+                    claim_key=durable_claim_key,
+                    tenant_id=durable_tenant_id,
+                    lease_token=durable_lease_token,
+                    status=str(
+                        job["status"].value if hasattr(job["status"], "value") else job["status"]
+                    ),
+                    result_payload={
+                        "batch_results": results,
+                        "batch_failed": failed,
+                        "single_open_certified": bool(job.get("single_open_certified")),
+                        "shared_band_cache_entries": job.get("shared_band_cache_entries", 0),
+                    },
+                    error_code=job.get("error_code"),
+                )
             )
+            if not finish_acknowledged:
+                ctx.logger.warning("batch %s durable terminal write not acknowledged", job_id)
         except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
             ctx.logger.warning("batch %s durable terminal write failed", job_id)
         finally:
@@ -561,6 +600,14 @@ def run_batch_processing(ctx, job_id: str, req):
                 raster_batch_runtime_leases.pop_token(job_id)
             except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
                 pass
+        # finish_sync يُرجِع False حين لا يُطابق الصفّ (رمز مُدوَّر/قاعدة غائبة) دون استثناء.
+        # الحالة المحلّيّة ضُبطت قبله؛ فإن لم يُقَرّ الإنهاء الدائم يبقى الصفّ ``processing``
+        # وقد يُستعاد ويُعاد تشغيله — فلا يجوز أن تدّعي الحالة المحلّيّة «completed» (P3-DUR-4).
+        if not finish_acknowledged and job["status"] == ctx.JobStatus.completed:
+            job["status"] = ctx.JobStatus.failed
+            job["error_code"] = "durable_terminal_write_failed"
+            job["publication_eligible"] = False
+            ctx._jobs.set(job_id, job)
     ctx.logger.info(
         "batch %s: %d نجح، %d فشل io_strategy=%s",
         job_id,
