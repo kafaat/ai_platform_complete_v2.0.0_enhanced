@@ -155,6 +155,9 @@ def _load_worker():
 
 
 def test_worker_claims_and_marks_processed(monkeypatch) -> None:
+    # بلا قناة إخلاء: اختبارٌ آخر يضبط REDIS_URL عند الاستيراد (test_auth_e2e) فيصير
+    # النشرُ «غير مُسلَّم» ولا يُعَدّ الصفّ — النتيجة لا تتبع ترتيب الجناح.
+    monkeypatch.delenv("REDIS_URL", raising=False)
     mod = _load_worker()
     # لا نلمس القرص: نُبدّل الإبطال بعدّاد.
     monkeypatch.setattr(
@@ -231,6 +234,9 @@ def test_scope_falls_back_to_the_queue_time_and_never_guesses() -> None:
 
 
 def test_the_stale_statement_receives_the_scope_of_the_named_change(monkeypatch) -> None:
+    # بلا قناة إخلاء: اختبارٌ آخر يضبط REDIS_URL عند الاستيراد (test_auth_e2e) فيصير
+    # النشرُ «غير مُسلَّم» ولا يُعَدّ الصفّ — النتيجة لا تتبع ترتيب الجناح.
+    monkeypatch.delenv("REDIS_URL", raising=False)
     from datetime import datetime
 
     mod = _load_worker()
