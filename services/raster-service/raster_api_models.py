@@ -8,7 +8,16 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field, FiniteFloat, PrivateAttr, model_validator
+from change_detection import canonical_index
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    FiniteFloat,
+    PrivateAttr,
+    field_validator,
+    model_validator,
+)
 
 
 class IndicatorKind(StrEnum):
@@ -311,6 +320,12 @@ class ChangeDetectRequest(BaseModel):
     grid_before_identity: ChangeGridIdentity | None = None
     grid_after_identity: ChangeGridIdentity | None = None
 
+    # S3-b: اسم مُطبَّع من القائمة المعروفة (SALINITY ≡ salinity)؛ المجهول ⇒ 422.
+    @field_validator("index")
+    @classmethod
+    def known_index(cls, value: str) -> str:
+        return canonical_index(value)
+
     @model_validator(mode="after")
     def aligned_spatial_support(self):
         before, after = self.grid_before_identity, self.grid_after_identity
@@ -394,6 +409,11 @@ class FieldChangeRequest(BaseModel):
     grid: int = Field(32, ge=2, le=256)
     slight_threshold: float = 0.1
     severe_threshold: float = 0.2
+
+    @field_validator("index")
+    @classmethod
+    def known_index(cls, value: str) -> str:
+        return canonical_index(value)
 
 
 class SalinityClassifyRequest(BaseModel):
