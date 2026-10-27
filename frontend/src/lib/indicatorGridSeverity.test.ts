@@ -6,7 +6,7 @@ import { GRID_SEVERITY_COLOR, gridSeverityColor } from './indicatorGridSeverity'
 // P3-CON-1 — دلالة شدّة مناطق indicator-grid: `severity` في استجابة raster-service هي
 // **شدّة المشكلة** لا كمّيّة المؤشّر (indicator_grid.classify_zones: لـNDMI القيمة < 0
 // ⇒ high، و≥ 0.3 ⇒ low). كانت AnalyticsPage تلوّن low بالأحمر وhigh بالأخضر فتعكس
-// دلالة الخطر: NDMI ‎-0.2 (جفاف شديد) يظهر أخضر و‎+0.6 (رطب) يظهر أحمر.
+// دلالة الخطر: NDMI -0.2 (جفاف شديد) يظهر أخضر و+0.6 (رطب) يظهر أحمر.
 const RED = '#dc2626';
 const GREEN = '#16a34a';
 

@@ -153,7 +153,7 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
             preq._cdse_native_product = native_product
             sub_job_id = f"{job_id}_{ind}"
             # P3-AUTH: الفرعيّة تُقرأ بمعرّفها عبر /v1/jobs/{id}[/result] — ترث مالك الأمّ.
-            # ``status`` كي لا تُرجِع قراءةٌ قبل بدء run_processing ‏500 (KeyError).
+            # ``status`` كي لا تُرجِع قراءةٌ قبل بدء run_processing 500 (KeyError).
             ctx._jobs.set(
                 sub_job_id,
                 {

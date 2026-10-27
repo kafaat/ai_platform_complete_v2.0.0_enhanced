@@ -69,7 +69,7 @@ describe('utmToLonLat — WGS84 transverse Mercator inverse (reference: pyproj 3
   ])('EPSG:%i (%f, %f)', (epsg, e, n, lon, lat) => {
     const p = utmToLonLat(epsg, e, n);
     expect(p).not.toBeNull();
-    // ‎1e-7° ≈ 1 سم — أدقّ بكثير من خلية 10م.
+    // 1e-7° ≈ 1 سم — أدقّ بكثير من خلية 10م.
     expect(Math.abs(p![0] - lon)).toBeLessThan(1e-7);
     expect(Math.abs(p![1] - lat)).toBeLessThan(1e-7);
   });
