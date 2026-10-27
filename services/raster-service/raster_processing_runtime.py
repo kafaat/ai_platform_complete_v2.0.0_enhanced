@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 from types import SimpleNamespace
+from urllib.parse import urlsplit, urlunsplit
 
 import band_math
 import object_store
@@ -72,32 +73,66 @@ def make_processing_context(*, upload_dir: str | None = None) -> SimpleNamespace
     return ctx
 
 
+def _artifact_ref(url) -> str:
+    """Identity of a source/output for a stage receipt, without credentials.
+
+    Receipts are logged; a presigned URL carries its signature in the query string
+    and userinfo may carry a password, so only scheme/host/path are kept.
+    """
+    if not url:
+        return ""
+    parts = urlsplit(str(url))
+    netloc = parts.netloc.rsplit("@", 1)[-1]
+    return urlunsplit((parts.scheme, netloc, parts.path, "", ""))
+
+
 def run_processing(
     job_id: str, req: api_models.ProcessRequest, *, upload_dir: str | None = None
 ) -> None:
-    """Run a single raster processing job and emit a structured stage receipt."""
+    """Run a single raster processing job and emit a structured stage receipt.
+
+    The orchestration records failures as job state instead of raising, so a
+    normal return is not success: the receipt follows the persisted job outcome.
+    Only ``completed`` (durably persisted) closes it as completed; ``failed`` and
+    ``processed_unpublished`` close it as failed with the job's stable code.
+    """
     req_payload = req.model_dump(mode="json") if hasattr(req, "model_dump") else vars(req)
     receipt = raster_stage_receipt.begin_stage(
         stage_id="raster.process",
         stage_version="v1",
         run_id=str(job_id),
         config=req_payload,
-        input_refs=[str(req_payload.get("source") or req_payload.get("source_url") or "")],
+        input_refs=[_artifact_ref(req_payload.get("raster_url"))],
     )
+    ctx = make_processing_context(upload_dir=upload_dir)
     try:
-        raster_job_orchestration.run_processing(
-            make_processing_context(upload_dir=upload_dir), job_id, req
-        )
+        raster_job_orchestration.run_processing(ctx, job_id, req)
     except Exception as exc:
         logger.info(
             "raster_stage_receipt=%s",
             json.dumps(raster_stage_receipt.fail_stage(receipt, exc), sort_keys=True),
         )
         raise
-    logger.info(
-        "raster_stage_receipt=%s",
-        json.dumps(raster_stage_receipt.finish_stage(receipt), sort_keys=True),
-    )
+    job = ctx._jobs.get(job_id) or {}
+    status = job.get("status")
+    status = str(getattr(status, "value", status) or "")
+    if status == api_models.JobStatus.completed.value:
+        layer_id = (job.get("result") or {}).get("layer_id")
+        cog_url = (ctx._layers.get(layer_id) or {}).get("cog_url") if layer_id else None
+        closed = raster_stage_receipt.finish_stage(
+            receipt,
+            output_refs=[f"layer:{layer_id}" if layer_id else "", _artifact_ref(cog_url)],
+        )
+    else:
+        closed = raster_stage_receipt.fail_stage(
+            receipt,
+            str(
+                job.get("error_code")
+                or job.get("error_message")
+                or f"job_not_completed:{status or 'unknown'}"
+            ),
+        )
+    logger.info("raster_stage_receipt=%s", json.dumps(closed, sort_keys=True))
 
 
 def run_batch_processing(

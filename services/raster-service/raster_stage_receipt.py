@@ -225,7 +225,12 @@ def finish_stage(
     return out
 
 
-def fail_stage(receipt: dict[str, Any], exc: BaseException) -> dict[str, Any]:
+def fail_stage(receipt: dict[str, Any], exc: BaseException | str) -> dict[str, Any]:
+    """Close a running receipt as failed.
+
+    ``exc`` is either the raised exception or, when the worker records the failure
+    as job state instead of raising, that job's stable error code.
+    """
     if receipt.get("status") != "running":
         raise ValueError("only running stage receipts can fail")
     out = dict(receipt)
@@ -233,7 +238,7 @@ def fail_stage(receipt: dict[str, Any], exc: BaseException) -> dict[str, Any]:
         {
             "status": "failed",
             "finished_at": _now(),
-            "error_class": type(exc).__name__,
+            "error_class": exc if isinstance(exc, str) else type(exc).__name__,
             "output_refs": [],
             "output_set_digest": _digest([]),
         }
