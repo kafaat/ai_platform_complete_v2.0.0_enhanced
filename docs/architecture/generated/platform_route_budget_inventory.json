@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "180166b5b839ead9907cb7345d6918384f0917a176ecfb69f8b78c3d72aad484",
+  "inventory_sha256": "3106caa1123b2aaae505dc6977f90e14129d43b5c1e7969c01fe620bec94234e",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "e902aca094d35954b364f56c961b06c44fd111bf0a9bae8c497912f068bb3c1c"
+    "policy_sha256": "5156633a65c3bce2edd0995c60e4ee6bd0c9c1048084b7e1b6180a5fd69203d7"
   },
   "routes": [
     {
@@ -2234,7 +2234,7 @@
     {
       "classification": "domain",
       "function": "list_tasks",
-      "line": 43,
+      "line": 44,
       "method": "GET",
       "path": "/api/v1/tasks",
       "source": "api/routers/tasks.py"
@@ -2850,7 +2850,7 @@
     {
       "classification": "domain",
       "function": "update_task",
-      "line": 93,
+      "line": 104,
       "method": "PATCH",
       "path": "/api/v1/tasks/{task_id}",
       "source": "api/routers/tasks.py"
@@ -4130,7 +4130,7 @@
     {
       "classification": "domain",
       "function": "observations",
-      "line": 33,
+      "line": 54,
       "method": "POST",
       "path": "/api/v1/observations",
       "source": "api/routers/observations.py"

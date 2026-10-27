@@ -118,7 +118,7 @@ field_lifecycle_transitions,v10_command_store_lifecycle.sql,12,False,True,True,1
 field_state,v104_fields_create_contract.sql,109,True,True,True,2,True,False,3,2
 field_state_snapshots,v60_event_snapshots.sql,65,True,False,False,0,False,True,1,1
 field_submissions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
-field_tasks,v9_new_tables.sql,3,True,False,False,0,False,True,5,2
+field_tasks,v9_new_tables.sql,3,True,False,False,0,False,True,7,2
 field_weather_overlay,v74_weather_intelligence.sql,79,True,False,False,0,False,True,1,0
 fields,v9_foundation.sql,1,True,False,False,0,False,True,53,5
 geometry_editing_sessions,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
@@ -168,9 +168,9 @@ irrigation_learning_proposals,v181_irrigation_closed_loop_learning_production_ce
 irrigation_machine_spans,v172_irrigation_machine_capability.sql,177,True,False,False,0,False,True,0,0
 irrigation_machines,v168_irrigation_engineering_foundation.sql,173,True,False,False,0,False,True,0,0
 irrigation_mainlines,v168_irrigation_engineering_foundation.sql,173,True,False,False,0,False,True,0,0
-irrigation_manual_execution_events,v187_irrx1_manual_execution_lifecycle.sql,192,True,True,True,1,True,False,1,1
+irrigation_manual_execution_events,v187_irrx1_manual_execution_lifecycle.sql,192,True,True,True,1,True,False,3,3
 irrigation_manual_execution_sources,v190_irrx1_authoritative_recommendation_provenance_lock.sql,195,True,True,True,1,True,False,1,1
-irrigation_manual_executions,v187_irrx1_manual_execution_lifecycle.sql,192,True,True,True,1,True,False,2,1
+irrigation_manual_executions,v187_irrx1_manual_execution_lifecycle.sql,192,True,True,True,1,True,False,4,1
 irrigation_manual_ledger_reconciliations,v188_irrx1_verified_manual_as_applied_ledger_bridge.sql,193,True,True,True,1,True,False,2,1
 irrigation_outcome_evidence,v181_irrigation_closed_loop_learning_production_certification.sql,186,True,False,False,0,False,True,0,1
 irrigation_production_certifications,v181_irrigation_closed_loop_learning_production_certification.sql,186,True,False,False,0,False,True,0,0

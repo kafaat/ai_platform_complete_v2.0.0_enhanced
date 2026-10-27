@@ -1336,6 +1336,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/taskIrrigationObservation.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/taskIrrigationObservation.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/waterHarvesting.test.ts",
     "kind": "tests"
   },
@@ -1732,6 +1740,14 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/sections/TaskIrrigationObservationPanel.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/TaskIrrigationObservationPanel.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/UnifiedCabin.tsx",
     "kind": "web"
   },
@@ -1861,6 +1877,14 @@
   },
   {
     "path": "frontend/src/services/api/remoteSensingWorkspace.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/taskIrrigationObservations.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/api/taskIrrigationObservations.ts",
     "kind": "web"
   },
   {
@@ -2960,6 +2984,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/features/tasks/data/irrigation_observations_api.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/features/tasks/data/offline_write.dart",
     "kind": "mobile"
   },
@@ -2973,6 +3001,10 @@
   },
   {
     "path": "mobile/sahool_app/lib/features/tasks/presentation/complete_task_sheet.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/irrigation_observations_screen.dart",
     "kind": "mobile"
   },
   {
@@ -3457,6 +3489,10 @@
   },
   {
     "path": "mobile/sahool_app/test/features/realtime/realtime_screen_layout_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
     "kind": "tests"
   },
   {
@@ -5064,6 +5100,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/api/irrigation_observations.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/api/irrigation_path_query.py",
     "kind": "backend"
   },
@@ -5637,6 +5677,10 @@
   },
   {
     "path": "services/sahool-platform/api/sync_delta.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/task_irrigation_observations.py",
     "kind": "backend"
   },
   {
@@ -7449,6 +7493,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_sync_delta.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_task_irrigation_observations.py",
     "kind": "tests"
   },
   {
@@ -9369,6 +9417,10 @@
   },
   {
     "path": "tests_v9/test_irrigation_network_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrigation_observations.py",
     "kind": "tests"
   },
   {

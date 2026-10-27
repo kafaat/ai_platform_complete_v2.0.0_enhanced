@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 649,
+      "evidence_count": 653,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -293,6 +293,7 @@
         "services/sahool-platform/api/irrigation_manual_execution.py",
         "services/sahool-platform/api/irrigation_manual_ledger_bridge.py",
         "services/sahool-platform/api/irrigation_models.py",
+        "services/sahool-platform/api/irrigation_observations.py",
         "services/sahool-platform/api/irrigation_recommendation_policy.py",
         "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
         "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
@@ -340,11 +341,13 @@
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/service_proxy.py",
         "services/sahool-platform/api/routers/soil_sampling.py",
+        "services/sahool-platform/api/routers/tasks.py",
         "services/sahool-platform/api/routers/trials.py",
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/soil_evidence_bridge.py",
         "services/sahool-platform/api/soil_telemetry.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
         "services/sahool-platform/api/temporal_arbitration.py",
         "services/sahool-platform/api/trial_engine.py",
         "services/sahool-platform/api/trial_models.py",
@@ -538,6 +541,7 @@
         "services/sahool-platform/tests/test_soil_proxy_authorization.py",
         "services/sahool-platform/tests/test_source_of_truth.py",
         "services/sahool-platform/tests/test_sync_delta.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py",
         "services/sahool-platform/tests/test_thermal_stress_facade_guard.py",
         "services/sahool-platform/tests/test_ui21_ui23_workspace_operations_reports_guard.py",
         "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
@@ -1850,7 +1854,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 163,
+      "evidence_count": 165,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1964,6 +1968,7 @@
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
         "services/sahool-platform/api/irrigation_commissioning_runtime.py",
         "services/sahool-platform/api/irrigation_manual_execution.py",
+        "services/sahool-platform/api/irrigation_observations.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/raster_service_client.py",
         "services/sahool-platform/api/routers/auth.py",
@@ -2009,6 +2014,7 @@
         "services/sahool-platform/tests/test_recommendation_bridge.py",
         "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py",
         "services/sahool-platform/tests/test_soil_proxy_authorization.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py",
         "services/sahool-platform/tests/test_tenant_audit.py",
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
@@ -2244,7 +2250,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 313,
+      "evidence_count": 315,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2378,6 +2384,7 @@
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
         "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
         "services/sahool-platform/api/irrigation_execution_request_port.py",
+        "services/sahool-platform/api/irrigation_observations.py",
         "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py",
@@ -2537,6 +2544,7 @@
         "services/sahool-platform/tests/test_skills_registry.py",
         "services/sahool-platform/tests/test_soil_proxy_authorization.py",
         "services/sahool-platform/tests/test_sync_delta.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py",
         "services/sahool-platform/tests/test_task_update_idempotency.py",
         "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
         "services/sahool-platform/tests/test_workflow_engine.py",
@@ -2692,7 +2700,7 @@
         "services/sahool-platform/api/routers/evidence.py",
         "services/sahool-platform/api/routers/evidence_map.py"
       ],
-      "source_evidence_count": 649,
+      "source_evidence_count": 653,
       "target_evidence_count": 532,
       "static_supported": true,
       "runtime_verified": false
@@ -2972,7 +2980,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 44,
-      "target_evidence_count": 163,
+      "target_evidence_count": 165,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3007,7 +3015,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 163,
+      "source_evidence_count": 165,
       "target_evidence_count": 38,
       "static_supported": true,
       "runtime_verified": false
@@ -3104,7 +3112,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 54,
-      "target_evidence_count": 313,
+      "target_evidence_count": 315,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3114,5 +3122,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "ff14774e4e373b1a7aec72c72216a6324fad5e8d9e29c1789f2bd45dd9e0c675"
+  "content_sha256": "872fc7e162f38740c10d8bce7d0cda2da760efc633b029a3a891cffbb142897f"
 }

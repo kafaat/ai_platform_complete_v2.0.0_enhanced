@@ -3672,7 +3672,9 @@
         "services/sahool-platform/api/routers/field_priority_queue.py",
         "services/sahool-platform/api/routers/season_workspace.py",
         "services/sahool-platform/api/routers/seasons.py",
-        "services/sahool-platform/api/routers/tasks.py"
+        "services/sahool-platform/api/routers/tasks.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/tasks.py",
@@ -4467,10 +4469,14 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/irrigation_engineering.py"
+        "services/sahool-platform/api/routers/irrigation_engineering.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/irrigation_engineering.py"
+        "services/sahool-platform/api/routers/irrigation_engineering.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py"
       ],
       "created_in": "v187_irrx1_manual_execution_lifecycle.sql",
       "has_tenant_id": true,
@@ -4502,7 +4508,9 @@
     {
       "code_readers": [
         "services/sahool-platform/api/routers/irrigation_engineering.py",
-        "services/sahool-platform/api/routers/outcome.py"
+        "services/sahool-platform/api/routers/outcome.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/irrigation_engineering.py"

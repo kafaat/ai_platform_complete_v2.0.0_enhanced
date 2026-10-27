@@ -1,5 +1,5 @@
 {
-  "edge_count": 881,
+  "edge_count": 889,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -2512,6 +2512,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/task_irrigation_observations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_task_irrigation_observations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/canonical_water_state.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -3252,6 +3272,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/task_irrigation_observations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://irrigation_manual_execution_events",
+      "to": "db://irrigation_manual_execution_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_task_irrigation_observations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://irrigation_manual_execution_events",
+      "to": "db://irrigation_manual_execution_events",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/irrigation_engineering.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -3273,6 +3313,26 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/outcome.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://irrigation_manual_executions",
+      "to": "db://irrigation_manual_executions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/task_irrigation_observations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://irrigation_manual_executions",
+      "to": "db://irrigation_manual_executions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_task_irrigation_observations.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -7512,6 +7572,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/task_irrigation_observations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://irrigation_manual_execution_events",
+      "to": "db://irrigation_manual_execution_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_task_irrigation_observations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://irrigation_manual_execution_events",
+      "to": "db://irrigation_manual_execution_events",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/decision_review.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -8830,9 +8910,9 @@
     "CALLS": 47,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 450,
+    "READS": 456,
     "ROUTES_TO": 72,
-    "WRITES": 308
+    "WRITES": 310
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8847,8 +8927,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 759,
-      "resolved": 758,
+      "observed": 767,
+      "resolved": 766,
       "unresolved_component_paths": 0
     }
   }
