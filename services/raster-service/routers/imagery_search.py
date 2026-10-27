@@ -12,6 +12,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import httpx
+import scene_policy
 from fastapi import APIRouter, Header, HTTPException, Query
 from raster_api_models import SearchRequest
 from raster_security_context import require_service_token
@@ -103,7 +104,9 @@ async def imagery_best_scene(
     # درجة: كلّما قلّ الغيوم زادت؛ مع مكافأة بسيطة للحداثة (الأحدث أوّلاً أصلاً).
     def score(idx_item):
         idx, it = idx_item
-        cloud = it.get("cloud_cover_pct", 100)
+        # المجهول يُعامَل غائماً كلّيّاً (لا ٠٪ مختلَق، ولا ``100 - None``) — RS-01.
+        cloud = scene_policy.scene_cloud_pct(it)
+        cloud = 100.0 if cloud is None else cloud
         recency_bonus = (len(items) - idx) / len(items) * 10  # 0-10
         return (100 - cloud) + recency_bonus
 

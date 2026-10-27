@@ -14,6 +14,7 @@ from typing import Any
 
 import httpx
 from fastapi import HTTPException
+from scene_policy import parse_cloud_cover_pct
 
 _stac: Any = None
 _logger: Any = None
@@ -262,13 +263,16 @@ async def stac_search_cdse(
     items = []
     for feat in features:
         props = feat.get("properties", {}) or {}
+        cloud = parse_cloud_cover_pct(props.get("eo:cloud_cover"))
         items.append(
             {
                 "item_id": feat.get("id", ""),
                 "collection": feat.get("collection") or _cdse._COLLECTION,
                 "datetime": props.get("datetime", ""),
-                "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
-                "cloud_cover_known": props.get("eo:cloud_cover") is not None,
+                # غياب/تلف ``eo:cloud_cover`` = مجهول (None)، لا صفر مختلَق يقرؤه الانتقاء
+                # «صافياً ١٠٠٪» (RS-01). نسبة مئويّة [0, 100]؛ غير المنتهي وخارج المدى مجهول.
+                "cloud_cover_pct": cloud,
+                "cloud_cover_known": cloud is not None,
                 "bbox": feat.get("bbox"),
                 "bands_urls": {},
                 "thumbnail_url": None,
@@ -305,13 +309,16 @@ async def stac_search_element84(
     for feat in data.get("features", []):
         props = feat.get("properties", {})
         assets = feat.get("assets", {})
+        cloud = parse_cloud_cover_pct(props.get("eo:cloud_cover"))
         items.append(
             {
                 "item_id": feat.get("id", ""),
                 "collection": feat.get("collection"),
                 "datetime": props.get("datetime", ""),
-                "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
-                "cloud_cover_known": props.get("eo:cloud_cover") is not None,
+                # غياب/تلف ``eo:cloud_cover`` = مجهول (None)، لا صفر مختلَق يقرؤه الانتقاء
+                # «صافياً ١٠٠٪» (RS-01). نسبة مئويّة [0, 100]؛ غير المنتهي وخارج المدى مجهول.
+                "cloud_cover_pct": cloud,
+                "cloud_cover_known": cloud is not None,
                 "bbox": feat.get("bbox"),
                 "bands_urls": band_urls_from_assets(assets),
                 "radiometry_context": radiometry_context_from_item(feat),
@@ -399,10 +406,12 @@ def landsat_unique_payload(feat: dict) -> dict | None:
     if not thermal_href:
         return None
     platform = props.get("platform", "landsat")
+    cloud = parse_cloud_cover_pct(props.get("eo:cloud_cover"))
     return {
         "item_id": feat.get("id", ""),
         "datetime": props.get("datetime", ""),
-        "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
+        "cloud_cover_pct": cloud,
+        "cloud_cover_known": cloud is not None,
         "bbox": feat.get("bbox"),
         "platform": platform,
         "thumbnail_url": (assets.get("thumbnail") or {}).get("href"),

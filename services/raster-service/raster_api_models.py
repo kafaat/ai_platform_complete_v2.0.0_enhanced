@@ -247,6 +247,8 @@ class SceneCandidate(BaseModel):
     item_id: str | None = None
     datetime: str | None = None
     cloud_cover_pct: float | None = None
+    # ``False`` صراحةً ⇒ ``cloud_cover_pct`` غير مقيس ولو حمل قيمة (RS-01).
+    cloud_cover_known: bool | None = None
     aoi_cloud_pct: float | None = None
     coverage_pct: float | None = None
     view_angle: float | None = None

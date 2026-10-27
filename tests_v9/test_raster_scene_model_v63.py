@@ -93,9 +93,11 @@ def test_normalize_search_result_propagates_source():
 def test_normalize_search_result_handles_malformed():
     assert M.normalize_search_result(None) == []
     assert M.normalize_search_result({"items": "nope"}) == []
-    # عنصر ناقص الحقول ⇒ افتراضات آمنة لا استثناء
+    # عنصر ناقص الحقول ⇒ افتراضات آمنة لا استثناء. والغيوم الغائبة **مجهولة** لا ٠٪:
+    # الصفر المختلَق كان يجعل المشهد «صافياً ١٠٠٪» (RS-01).
     s = M.normalize_scene({}, source="x")
-    assert s.scene_id == "" and s.cog_ready is False and s.cloud_cover == 0.0
+    assert s.scene_id == "" and s.cog_ready is False
+    assert s.cloud_cover is None and s.cloud_cover_known is False
 
 
 def test_provider_registry_is_honest_about_active():
