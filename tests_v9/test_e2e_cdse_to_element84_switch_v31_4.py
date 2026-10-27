@@ -122,15 +122,36 @@ class TestStaticProviderConfig:
         assert "status_code=503" in body, "الفشل المُغلَق يجب أن يُعيد 503"
 
     def test_element84_search_returns_provider_element84_tag(self):
-        src = _read(_RASTER / "stac_search.py")
-        idx = src.find("async def stac_search_element84(")
-        body = src[idx : idx + 2000]
-        assert '"provider": "element84"' in body, (
-            "stac_search_element84 يجب أن يُعلِّم المشاهد بـprovider=element84"
-        )
-        assert '"source": "element84-earth-search"' in body, (
+        # EXTRA-3: الهويّة تُشتقّ من مغلَّف provenance لعميل STAC (لا نصّ ثابت)، فيُفحَص
+        # السلوك: نتيجة الأساس تُعلَّم element84، ونتيجة الاحتياطي لا تُنسَب إليه زوراً.
+        import stac_search as ss
+
+        feature = {"id": "S2_demo", "properties": {"datetime": "2026-07-01T08:00:00Z"}}
+        primary = {"features": [feature], "_provenance": {"role": "primary"}}
+        fallback = {
+            "features": [feature],
+            "_provenance": {
+                "role": "fallback",
+                "endpoint": "https://planetarycomputer.microsoft.com/api/stac/v1",
+            },
+        }
+
+        def run(data):
+            stac = mock.Mock()
+            stac.search = mock.AsyncMock(return_value=data)
+            with mock.patch.object(ss, "_stac", stac):
+                return asyncio.run(ss.stac_search_element84([0, 0, 1, 1], "a", "b", 20, 5))
+
+        out = run(primary)
+        assert out["source"] == "element84-earth-search", (
             "المصدر يجب أن يكون element84-earth-search"
         )
+        assert [i["provider"] for i in out["items"]] == ["element84"], (
+            "stac_search_element84 يجب أن يُعلِّم مشاهد الأساس بـprovider=element84"
+        )
+        out = run(fallback)
+        assert out["source"] != "element84-earth-search"
+        assert [i["provider"] for i in out["items"]] == ["planetary-computer"]
 
     def test_cdse_search_returns_provider_cdse_tag(self):
         src = _read(_RASTER / "stac_search.py")
