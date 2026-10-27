@@ -80,3 +80,12 @@ See the `constraints` list in `state.json`. In short:
 - Gaps by triage category: 30 need an owner decision, 22 blocked by the freeze, 14 need a live environment.
 - Local environment fix: the OTel family for python3.11 is aligned to 1.45.1/0.66b1. The earlier failures came from pip installing into python3.13.
 - Lesson: never use `pgrep -f NAME` inside a command line that itself contains NAME (it matches itself). Run jobs sequentially instead.
+
+## Resume point 2026-10-27T02:55Z
+- main = 5c7e1cb83 (#1292). Earlier: #1293 pip mirror → bc764f760.
+- Open, green, NOT to be merged without the owner's explicit approval of each final head:
+  - #1294 claude/migration-batch-prereqs-20261027 @ 9034bdbdd: migration batch v234–v236 prerequisites + gap MIGRATION-DOWN-SCRIPTS-UNTESTED-POSSIBLY-STALE-01. All checks green (conditional skips only), clean, 0 threads. Deploy-Effect NONE.
+  - #1295 claude/platform-promotion-plan-20261026 @ 1f29b9943: idempotency tenant guard (api/idempotency.py) + 10 live PG tests + staging-first plan. CI green; Live PG Proofs run 40438785129: 40/40 executed, 10 new PASSED, schema contract ok. Clean, 0 threads. Deploy-Effect NONE. Body updated with CI evidence.
+- Next after #1295 is reviewed: build staging candidate branch from d6ddf38ce with the reviewed patch (rollback point 9204b717/d6ddf38ce); do NOT push to any deploy/* branch without owner approval.
+- Staging DB step 0-a/0-b NOT_RUN (no access). Gap PLATFORM-IDEMPOTENCY-STORE-NOT-TENANT-BOUND-01 stays open.
+- Constraints unchanged: no migrations, no SAHOOL_MIGRATE_APPLY, no Railway writes/railway-agent/list-variables, no deletes of deployments/volumes/backups.
