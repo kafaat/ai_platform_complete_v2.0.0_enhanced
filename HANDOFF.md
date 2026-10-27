@@ -89,3 +89,11 @@ See the `constraints` list in `state.json`. In short:
 - Next after #1295 is reviewed: build staging candidate branch from d6ddf38ce with the reviewed patch (rollback point 9204b717/d6ddf38ce); do NOT push to any deploy/* branch without owner approval.
 - Staging DB step 0-a/0-b NOT_RUN (no access). Gap PLATFORM-IDEMPOTENCY-STORE-NOT-TENANT-BOUND-01 stays open.
 - Constraints unchanged: no migrations, no SAHOOL_MIGRATE_APPLY, no Railway writes/railway-agent/list-variables, no deletes of deployments/volumes/backups.
+
+## Resume point 2026-10-27T09:10Z — staging candidate built (step 1 of the staging plan)
+- Branch claude/staging-backport-idempotency-20261027 @ 977cc8e56 (tree aaff4b13), on d6ddf38ce (= deploy/sahool-platform-db-ready-eb6da9df, unchanged; rollback point).
+- Commits: a2fffefec backport (idempotency.py/routers/tests byte-identical to #1295 head 1f29b9943; module baseline 680->681), e1e6e2d92 regen, f4b5205b2 extraction-map anchors (11, from ast), 977cc8e56 regen.
+- Evidence on 977cc8e56: regen --fix tree unchanged; preflight default 0 failures / 0 skipped (logs/bench-stg2.*); platform 4446/4446; live PG 11/11 (local, restricted role); unit 28/28; p1 guard ok; pinned ruff 0.15.8 clean.
+- Pre-existing on deployed SHAs (not from the patch): pip-audit opentelemetry-sdk 1.44.0 CVE-2026-114603 (fixed on main by #1254). Not added to the narrow backport — owner decision.
+- NOT pushed to any deploy/* branch. Step 2 (push to deploy branch) needs the owner's approval of 977cc8e56 AND step 0-b PASS.
+- Step 0-b probe script (read-only, tested locally: restricted role PASS 8/8, superuser FAIL 4): scratchpad staging_isolation_probe_0b.sh. #1254's workflow cannot do 0-a/0-b (no DB access by design).

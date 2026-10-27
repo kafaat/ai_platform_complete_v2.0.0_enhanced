@@ -81,15 +81,15 @@
  "backup": {
   "status": "DONE_VERIFIED",
   "branch": "claude/backup-work-state-20261019",
-  "commit": "cefbfb3eaca3a818ab712d2a771c269130861022",
-  "tree": "8a68f7cb68acac0345cf12d9dca9c5d18c1f9a2c",
+  "commit": "3840e2859287e9391bc1c8e351b0a8695d0a6f72",
+  "tree": "ddcd6610af7d0abf38567d04e1768973c6d2fcbd",
   "contents": [
    "state.json",
    "HANDOFF.md"
   ],
   "verified": "remote ref == pushed commit"
  },
- "updated": "2026-10-27T01:17:59Z",
+ "updated": "2026-10-27T02:50:28Z",
  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
  "protocol": {
   "version": "v2",
