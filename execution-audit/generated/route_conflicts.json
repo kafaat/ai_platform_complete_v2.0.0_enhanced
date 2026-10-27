@@ -17,7 +17,7 @@
         },
         {
           "function": "root",
-          "line": 167,
+          "line": 171,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/",
@@ -40,7 +40,7 @@
         },
         {
           "function": "capabilities",
-          "line": 114,
+          "line": 118,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/capabilities",
@@ -71,7 +71,7 @@
         },
         {
           "function": "contract",
-          "line": 137,
+          "line": 141,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/contract",
@@ -134,7 +134,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 69,
+          "line": 73,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/health",
@@ -317,7 +317,7 @@
         },
         {
           "function": "healthz",
-          "line": 64,
+          "line": 68,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/healthz",
@@ -532,7 +532,7 @@
         },
         {
           "function": "metrics",
-          "line": 74,
+          "line": 78,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/metrics",
@@ -691,7 +691,7 @@
         },
         {
           "function": "ready",
-          "line": 85,
+          "line": 89,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/readyz",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1117,
-  "route_inventory_sha256": "6befa4950d697d5f221dfc80e004afbb4c73661e375b0802ee83abb1e057e006",
+  "route_inventory_sha256": "a766d9a1e9419fe2a7bd07af4b9670f7b22f6b86be8f26f7905c0860e6bf10f5",
   "runtime_verified": false,
   "schema_version": 1
 }

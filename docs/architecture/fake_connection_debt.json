@@ -1,11 +1,12 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "5c7e1cb83d236dcf21f6d352faae2dc5d3fc1471",
+  "measured_on": "82679949b8822b6ca600d376325a5a0a44011081",
   "fake_connection_tests": [
     "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
     "services/decision-service/tests/test_migration_runner_readonly.py",
     "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
     "services/decision-service/tests/test_wx10_8_review_queue.py",
+    "services/raster-service/test_acquisition_date_provenance.py",
     "services/raster-service/test_backfill_processing_version_preflight.py",
     "services/raster-service/test_backfill_worker_schema_drift_visibility.py",
     "services/raster-service/test_element84_vrt_containment_runtime.py",
@@ -24,6 +25,7 @@
     "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
     "services/sahool-platform/tests/test_farm_operations_ledger.py",
     "services/sahool-platform/tests/test_field_aggregate_ports.py",
+    "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
     "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
     "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
     "services/sahool-platform/tests/test_governance_modules.py",
@@ -32,6 +34,7 @@
     "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
     "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
     "services/sahool-platform/tests/test_irrigation_scenario_value.py",
+    "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
     "services/sahool-platform/tests/test_lab_sampling_router.py",
     "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
     "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
@@ -41,6 +44,7 @@
     "services/sahool-platform/tests/test_prescriptions_router.py",
     "services/sahool-platform/tests/test_readyz_db_probe.py",
     "services/sahool-platform/tests/test_scheduler_cluster_singleton.py",
+    "services/sahool-platform/tests/test_season_spatial_provenance.py",
     "services/sahool-platform/tests/test_task_irrigation_observations.py",
     "services/sahool-platform/tests/test_task_update_idempotency.py",
     "services/sahool-platform/tests/test_yield_analysis.py",
@@ -127,6 +131,9 @@
     ],
     "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py": [
       "TRIGGER"
+    ],
+    "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py": [
+      "jsonb"
     ],
     "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py": [
       "jsonb"

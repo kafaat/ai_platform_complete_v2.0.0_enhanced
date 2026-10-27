@@ -104,6 +104,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/AddFieldWithMap.shapefileImport.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/AddFieldWithMap.tsx",
     "kind": "web"
   },
@@ -282,6 +286,14 @@
   {
     "path": "frontend/src/components/fieldhealth/DateScrubber.grouping.test.ts",
     "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/fieldhealth/timelineByDay.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/fieldhealth/timelineByDay.ts",
+    "kind": "web"
   },
   {
     "path": "frontend/src/components/fieldsetup/FieldSetupWizard.tsx",
@@ -464,6 +476,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/maphub/HubMap.pinMode.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/HubMapGL.test.tsx",
     "kind": "web"
   },
@@ -478,10 +494,6 @@
   {
     "path": "frontend/src/components/maphub/ImageryDateWiring.static.test.ts",
     "kind": "tests"
-  },
-  {
-    "path": "frontend/src/components/maphub/ImageryTimelineThumb.test.tsx",
-    "kind": "web"
   },
   {
     "path": "frontend/src/components/maphub/ImageryTimelineThumb.tsx",
@@ -549,6 +561,10 @@
   },
   {
     "path": "frontend/src/components/maphub/drawing/DrawingCore.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/DrawingGeometryRegression.test.ts",
     "kind": "tests"
   },
   {
@@ -1176,6 +1192,18 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/indicatorGridGeo.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/indicatorGridGeo.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/indicatorGridSeverity.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/irrigationEngineering.test.ts",
     "kind": "tests"
   },
@@ -1341,6 +1369,10 @@
   },
   {
     "path": "frontend/src/lib/taskIrrigationObservation.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/taskTypeLabels.ts",
     "kind": "web"
   },
   {
@@ -1516,6 +1548,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/FieldManagementPage.editArea.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldManagementPage.saveRetry.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/FieldTasksCabin.tsx",
     "kind": "web"
   },
@@ -1536,6 +1576,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/FieldWorkspacePanels.behavior.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/FieldWorkspacePriorityPanel.tsx",
     "kind": "web"
   },
@@ -1553,6 +1597,10 @@
   },
   {
     "path": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceStaleNote.tsx",
     "kind": "web"
   },
   {
@@ -1748,6 +1796,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/ThumbnailRecordBinding.static.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/sections/UnifiedCabin.tsx",
     "kind": "web"
   },
@@ -1773,6 +1825,10 @@
   },
   {
     "path": "frontend/src/sections/fieldWorkspaceContract.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/fieldWorkspaceStaleData.ts",
     "kind": "web"
   },
   {
@@ -4228,10 +4284,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/indicators-service/tests/test_indicators_service_honest_boundary.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/indicators-service/tests/test_indicators_service_static_route_smoke.py",
     "kind": "tests"
   },
@@ -4424,6 +4476,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/raster_http_policy.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/raster_indicator_product.py",
     "kind": "backend"
   },
@@ -4512,6 +4568,14 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_container_healthcheck_status.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_field_change_alignment.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_imagery_source_gate.py",
     "kind": "tests"
   },
@@ -4521,6 +4585,10 @@
   },
   {
     "path": "services/raster-service/test_object_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_precomputed_scalar_read_size_guard.py",
     "kind": "tests"
   },
   {
@@ -4581,6 +4649,10 @@
   },
   {
     "path": "services/raster-service/test_soil_render.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_storage_lifecycle_upload.py",
     "kind": "tests"
   },
   {

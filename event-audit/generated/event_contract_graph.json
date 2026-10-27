@@ -256,7 +256,7 @@
           "dynamic_expr": null,
           "file": "services/vegetation-analysis-service/vegetation_runtime.py",
           "kind": "producer",
-          "line": 553,
+          "line": 626,
           "queue": null,
           "resolution": "local_token_template",
           "subject": "sahool.tenant.*.satellite.*.computed"
@@ -270,7 +270,7 @@
     "consumer_only_subjects": 3,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 14,
-    "files_scanned": 1260,
+    "files_scanned": 1261,
     "matched_subjects": 0,
     "producer_only_subjects": 1,
     "production_certified": false,

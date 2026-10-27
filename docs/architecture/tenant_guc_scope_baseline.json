@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "6f503ed25cfd3a5c00d34f93504835fca6a3b4fd",
+  "measured_on": "82679949b8822b6ca600d376325a5a0a44011081",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "c8d196e9ef257ccd3ab0c288c70516db90a0a49509b7e7a8c503a661fecf9190",
+  "measurement_input_digest": "3efbacc7a734173428a2ff3f47125317d454bca7b6134abe25d40ec686a72900",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "eac3c826cff210aae703f2dfe05e797a4fe8eb9b3e444e0c7267ed667bfd3f5b",
+  "measurement_basis_digest": "08f5a1901a9d13223df93bd67bae16a3780005ae73be8666decfec62fef88686",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -84,15 +84,15 @@
     },
     {
       "path": "services/raster-service/backfill_scan_worker.py",
-      "sha256": "2601a5038ea87246ad6c8f63102816c6733616802de18170f05a7eae6954aa74"
+      "sha256": "b7a7474adb3b3b3c5bb05ca51ad6ca78dde9ea4bb737ada2e3d206a6db8099dc"
     },
     {
       "path": "services/raster-service/cache_invalidation_worker.py",
-      "sha256": "c81676ee2861ba561b931dfe7e36dca218037c12010890eaa3f97c40780063b3"
+      "sha256": "8ac5bf447d7df5c1b5871491d2a4c45460984f3aa5db51f8c925262dc94aa76f"
     },
     {
       "path": "services/raster-service/db_persist.py",
-      "sha256": "de5ecc161fca5eb4e9e08b0419cfb2a20ccf9f34af849b10d63f784bc9057be1"
+      "sha256": "e7d92c730d80733018dd0f9fd088af200ba3464b1e6068b804f49d7b40fbbb5f"
     },
     {
       "path": "services/raster-service/follow_up_store.py",
@@ -195,7 +195,7 @@
   "offenders": [
     "services/auth/main.py:993",
     "services/raster-service/backfill_scan_worker.py:170",
-    "services/raster-service/cache_invalidation_worker.py:90",
+    "services/raster-service/cache_invalidation_worker.py:126",
     "services/sahool-platform/api/imagery_automation.py:185",
     "services/sahool-platform/api/phase_runtime_store.py:98",
     "services/sahool-platform/api/phase_runtime_store.py:99",

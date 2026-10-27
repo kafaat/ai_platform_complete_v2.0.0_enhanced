@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **52**
-- Files scanned: **6821**
-- Ambiguous artifacts queued: **485**
-- Unmapped artifacts queued: **2703**
+- Files scanned: **6890**
+- Ambiguous artifacts queued: **493**
+- Unmapped artifacts queued: **2736**
 
 ## Capability coverage
 
@@ -30,20 +30,20 @@
 | DEC-008 | decision | 5 | 96 | 14 | 4 | 0 | 0 | 4 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 91 | 49 | 7 | 0 | 0 | 7 | 5 |
-| FM-001 | farm_management | 16 | 2 | 26 | 9 | 1 | 0 | 29 | 6 |
+| FM-001 | farm_management | 16 | 2 | 26 | 9 | 1 | 0 | 30 | 6 |
 | FM-002 | farm_management | 34 | 44 | 98 | 23 | 15 | 35 | 43 | 7 |
-| FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 13 | 7 |
-| FM-004 | farm_management | 30 | 82 | 84 | 61 | 13 | 15 | 37 | 7 |
+| FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 14 | 7 |
+| FM-004 | farm_management | 30 | 82 | 84 | 61 | 15 | 15 | 38 | 7 |
 | FM-005 | farm_management | 8 | 0 | 0 | 6 | 3 | 1 | 6 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
 | FM-007 | farm_management | 8 | 26 | 26 | 14 | 1 | 8 | 14 | 7 |
 | FM-008 | farm_management | 10 | 25 | 5 | 1 | 0 | 0 | 10 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
-| GIS-002 | gis | 2 | 4 | 0 | 0 | 2 | 0 | 2 | 4 |
-| GIS-003 | gis | 28 | 100 | 10 | 53 | 12 | 4 | 41 | 7 |
+| GIS-002 | gis | 2 | 4 | 0 | 0 | 3 | 0 | 2 | 4 |
+| GIS-003 | gis | 28 | 100 | 10 | 53 | 12 | 4 | 44 | 7 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| INT-002 | farm_management | 6 | 15 | 2 | 100 | 0 | 0 | 19 | 5 |
+| INT-002 | farm_management | 6 | 15 | 2 | 100 | 0 | 0 | 20 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
@@ -51,15 +51,15 @@
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 2 | 3 |
 | IRR-004 | irrigation | 9 | 2 | 3 | 6 | 2 | 1 | 9 | 7 |
 | IRR-005 | irrigation | 3 | 2 | 0 | 19 | 3 | 2 | 10 | 6 |
-| IRR-006 | irrigation | 0 | 0 | 0 | 2 | 0 | 0 | 1 | 2 |
+| IRR-006 | irrigation | 0 | 0 | 0 | 2 | 0 | 0 | 2 | 2 |
 | IRR-007 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | IRR-008 | irrigation | 0 | 0 | 17 | 0 | 0 | 0 | 0 | 1 |
 | IRR-009 | irrigation | 8 | 1 | 7 | 9 | 1 | 0 | 10 | 6 |
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-001 | operations | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
 | OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 6 | 6 |
-| OPS-003 | operations | 10 | 7 | 7 | 49 | 22 | 22 | 28 | 7 |
-| OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 24 | 6 |
+| OPS-003 | operations | 10 | 7 | 7 | 49 | 22 | 22 | 29 | 7 |
+| OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 26 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 6 | 1 | 10 | 4 | 7 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | OPS-007 | operations | 0 | 0 | 3 | 1 | 0 | 1 | 2 | 4 |
@@ -69,15 +69,15 @@
 | PA-003 | precision | 4 | 4 | 9 | 2 | 0 | 0 | 4 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| SAT-001 | satellite | 39 | 65 | 5 | 49 | 5 | 0 | 59 | 6 |
-| SAT-002 | satellite | 1 | 1 | 0 | 1 | 0 | 0 | 3 | 4 |
-| SAT-003 | satellite | 100 | 92 | 44 | 100 | 49 | 9 | 100 | 7 |
-| SAT-004 | satellite | 20 | 10 | 5 | 16 | 7 | 1 | 24 | 7 |
-| SAT-005 | satellite | 8 | 6 | 0 | 1 | 0 | 0 | 13 | 4 |
+| SAT-001 | satellite | 39 | 65 | 5 | 49 | 5 | 0 | 62 | 6 |
+| SAT-002 | satellite | 1 | 1 | 0 | 1 | 0 | 0 | 4 | 4 |
+| SAT-003 | satellite | 100 | 92 | 44 | 100 | 51 | 9 | 100 | 7 |
+| SAT-004 | satellite | 20 | 10 | 5 | 16 | 8 | 1 | 26 | 7 |
+| SAT-005 | satellite | 8 | 6 | 0 | 1 | 0 | 0 | 15 | 4 |
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 3 | 3 |
-| SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
+| SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 4 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
-| SAT-009 | satellite | 14 | 70 | 0 | 18 | 1 | 1 | 25 | 6 |
+| SAT-009 | satellite | 14 | 70 | 0 | 17 | 2 | 1 | 28 | 6 |
 | SEC-001 | security | 14 | 31 | 100 | 65 | 0 | 0 | 76 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
@@ -85,18 +85,18 @@
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
 | SEC-006 | security | 2 | 7 | 0 | 3 | 0 | 0 | 11 | 4 |
 | SEC-007 | security | 2 | 0 | 7 | 52 | 0 | 0 | 10 | 4 |
-| SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 7 | 3 |
+| SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 8 | 3 |
 | SOIL-001 | soil | 13 | 97 | 14 | 45 | 1 | 0 | 21 | 6 |
-| SOIL-002 | soil | 13 | 35 | 11 | 9 | 5 | 2 | 14 | 7 |
+| SOIL-002 | soil | 13 | 35 | 11 | 9 | 6 | 2 | 14 | 7 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 1 | 0 | 3 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
 | SOIL-005 | soil | 6 | 0 | 0 | 20 | 0 | 0 | 3 | 3 |
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 2 | 4 |
 | WX-002 | weather | 21 | 63 | 12 | 66 | 9 | 1 | 32 | 7 |
 | WX-003 | weather | 3 | 6 | 4 | 1 | 0 | 0 | 6 | 5 |
-| WX-004 | weather | 61 | 48 | 0 | 96 | 18 | 3 | 68 | 6 |
+| WX-004 | weather | 61 | 48 | 0 | 96 | 18 | 3 | 69 | 6 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 1 | 6 | 6 |
-| WX-006 | weather | 84 | 26 | 33 | 29 | 17 | 0 | 49 | 6 |
+| WX-006 | weather | 84 | 26 | 33 | 29 | 17 | 0 | 50 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | WX-008 | weather | 1 | 6 | 0 | 1 | 0 | 0 | 2 | 4 |
 | WX-009 | weather | 2 | 29 | 0 | 0 | 2 | 0 | 1 | 4 |
