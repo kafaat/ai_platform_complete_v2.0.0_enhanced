@@ -3,14 +3,19 @@
 دوالّ نقيّة offline (بلا I/O، بلا تبعيّات جديدة — xml.etree من المكتبة القياسيّة
 فقط) لاستيراد حدّ حقل بدل رسمه يدويّاً:
 
-* parse_geojson — يستخرج أوّل حلقة Polygon من نصّ GeoJSON (Polygon/Feature/
-  FeatureCollection/MultiPolygon) ويُعيد {"type":"Polygon","coordinates":[ring]}.
-* parse_kml — يستخرج <Polygon><outerBoundaryIs><LinearRing><coordinates>
+* parse_geojson — يستخرج المضلّع الوحيد من نصّ GeoJSON (Polygon/Feature/
+  FeatureCollection/MultiPolygon بجزء واحد) بكلّ حلقاته: الخارجيّة **والثقوب**،
+  ويحمل عضو ``crs`` المُضمَّن (إن وُجد) إلى الحارس ليرفض غير WGS84.
+* parse_kml — يستخرج <Polygon> الوحيد: outerBoundaryIs + كلّ innerBoundaryIs
   ("lon,lat[,alt] ..." مفصولة بمسافات/أسطر) إلى GeoJSON Polygon.
 * points_to_polygon — يحوّل مسار GPS [[lon,lat],...] إلى حلقة مُغلقة.
 
+لا اختيار صامت: ملفّ بعدّة مضلّعات (MultiPolygon بأجزاء، عدّة Features، عدّة
+<Polygon>) يُرفض برسالة تذكر العدد بدل أخذ الأوّل وإسقاط الباقي — حفظ الحقل
+(validate_boundary_for_save) يقبل Polygon واحداً فقط.
+
 كلّها ترفع ValueError برسالة واضحة عند مدخل تالف. الناتج يدخل نفس مسار التحقّق
-(validate_field_geometry) كالرسم اليدويّ — لا تساهل في صحّة الهندسة هنا، فقط
+(guard_field_geometry) كالرسم اليدويّ — لا تساهل في صحّة الهندسة هنا، فقط
 الاستخراج والإغلاق.
 """
 
@@ -61,28 +66,51 @@ def _close_ring(ring: list[list[float]]) -> list[list[float]]:
     return ring
 
 
-def _polygon(ring: list[list[float]]) -> dict:
-    """يبني GeoJSON Polygon من حلقة خارجيّة (يُغلقها أولاً)."""
-    return {"type": "Polygon", "coordinates": [_close_ring(ring)]}
+def _polygon(ring: list[list[float]], holes: list[list[list[float]]] | None = None) -> dict:
+    """يبني GeoJSON Polygon من حلقة خارجيّة + ثقوب (يُغلق كلّ حلقة أولاً)."""
+    return {
+        "type": "Polygon",
+        "coordinates": [_close_ring(ring), *[_close_ring(h) for h in holes or []]],
+    }
 
 
-def _extract_first_polygon_ring(geom: dict) -> list[list[float]]:
-    """يستخرج أوّل حلقة خارجيّة من geometry (Polygon أو MultiPolygon)."""
+def _multiple_polygons_error(count: int, where: str) -> ValueError:
+    return ValueError(
+        f"{where} يحوي {count} مضلّعات منفصلة — حفظ الحقل يقبل مضلّعاً واحداً. "
+        "صدِّر كلّ حقل في ملفّ مستقلّ (أو ادمجها في مضلّع واحد) ثمّ أعد الاستيراد."
+    )
+
+
+def _extract_polygon_rings(geom: dict) -> list[list[list[float]]]:
+    """يستخرج حلقات المضلّع الوحيد (الخارجيّة ثمّ الثقوب) من Polygon أو MultiPolygon.
+
+    MultiPolygon بأكثر من جزء يُرفض صراحةً (لا يُؤخذ الجزء الأوّل بصمت).
+    """
     gtype = geom.get("type")
     coords = geom.get("coordinates")
     if gtype == "Polygon":
         if not isinstance(coords, list) or not coords:
             raise ValueError("Polygon بلا coordinates صالحة.")
-        outer = coords[0]
+        rings = coords
     elif gtype == "MultiPolygon":
         if not isinstance(coords, list) or not coords or not coords[0]:
             raise ValueError("MultiPolygon بلا coordinates صالحة.")
-        outer = coords[0][0]
+        if len(coords) > 1:
+            raise _multiple_polygons_error(len(coords), "MultiPolygon")
+        rings = coords[0]
     else:
         raise ValueError(f"نوع هندسة غير مدعوم للاستيراد: {gtype!r} (المتوقَّع Polygon).")
-    if not isinstance(outer, list):
+    if not isinstance(rings, list) or not all(isinstance(r, list) for r in rings):
         raise ValueError("حلقة المضلّع الخارجيّة غير صالحة.")
-    return [_coerce_point(p) for p in outer]
+    return [[_coerce_point(p) for p in ring] for ring in rings]
+
+
+def _polygon_from_rings(rings: list[list[list[float]]], crs: object = None) -> dict:
+    out = _polygon(rings[0], rings[1:])
+    if crs is not None:
+        # يُحمَل كما هو ليقرّر guard_field_geometry (مصدر واحد لسياسة CRS) — لا يُسقَط.
+        out["crs"] = crs
+    return out
 
 
 def _reject_constant(token: str) -> float:
@@ -109,22 +137,35 @@ def parse_geojson(text: str) -> dict:
         raise ValueError("GeoJSON غير صالح — المتوقَّع كائن JSON.")
 
     dtype = data.get("type")
+    # crs الأخصّ يغلب (geometry ← Feature ← الجذر) كما في GeoJSON 2008.
+    root_crs = data.get("crs")
     if dtype in ("Polygon", "MultiPolygon"):
-        return _polygon(_extract_first_polygon_ring(data))
+        return _polygon_from_rings(_extract_polygon_rings(data), root_crs)
     if dtype == "Feature":
         geom = data.get("geometry")
         if not isinstance(geom, dict):
             raise ValueError("Feature بلا geometry صالحة.")
-        return _polygon(_extract_first_polygon_ring(geom))
+        crs = geom.get("crs", root_crs)
+        return _polygon_from_rings(_extract_polygon_rings(geom), crs)
     if dtype == "FeatureCollection":
         features = data.get("features")
         if not isinstance(features, list) or not features:
             raise ValueError("FeatureCollection بلا features.")
-        for feat in features:
-            geom = feat.get("geometry") if isinstance(feat, dict) else None
-            if isinstance(geom, dict) and geom.get("type") in ("Polygon", "MultiPolygon"):
-                return _polygon(_extract_first_polygon_ring(geom))
-        raise ValueError("لا يوجد Polygon في FeatureCollection.")
+        polygonal = [
+            feat
+            for feat in features
+            if isinstance(feat, dict)
+            and isinstance(feat.get("geometry"), dict)
+            and feat["geometry"].get("type") in ("Polygon", "MultiPolygon")
+        ]
+        if not polygonal:
+            raise ValueError("لا يوجد Polygon في FeatureCollection.")
+        if len(polygonal) > 1:
+            raise _multiple_polygons_error(len(polygonal), "FeatureCollection")
+        feat = polygonal[0]
+        geom = feat["geometry"]
+        crs = geom.get("crs", feat.get("crs", root_crs))
+        return _polygon_from_rings(_extract_polygon_rings(geom), crs)
     raise ValueError(f"نوع GeoJSON غير مدعوم: {dtype!r}.")
 
 
@@ -139,6 +180,11 @@ def _find_first_local(root: _Element, name: str) -> _Element | None:
         if _strip_ns(el.tag) == name:
             return el
     return None
+
+
+def _find_all_local(root: _Element, name: str) -> list[_Element]:
+    """كلّ العناصر باسم محليّ مطابق (يتجاهل namespace الـKML)."""
+    return [el for el in root.iter() if _strip_ns(el.tag) == name]
 
 
 def _parse_kml_coords(text: str) -> list[list[float]]:
@@ -161,10 +207,11 @@ def _parse_kml_coords(text: str) -> list[list[float]]:
 
 
 def parse_kml(text: str) -> dict:
-    """نصّ KML → GeoJSON Polygon (أوّل <Polygon> خارجيّ).
+    """نصّ KML → GeoJSON Polygon (الـ<Polygon> الوحيد بحدّه الخارجيّ وثقوبه).
 
-    يستخرج Polygon/outerBoundaryIs/LinearRing/coordinates. xml.etree فقط
-    (بلا تبعيّات). يرفع ValueError عند XML تالف أو غياب Polygon/coordinates.
+    يستخرج Polygon/outerBoundaryIs + كلّ innerBoundaryIs/LinearRing/coordinates.
+    KML بإحداثيّات WGS84 lon,lat بالمواصفة فلا CRS يُقرأ. يرفع ValueError عند XML
+    تالف أو غياب Polygon/coordinates أو تعدّد <Polygon> (لا يُؤخذ الأوّل بصمت).
     """
     if not text or not text.strip():
         raise ValueError("محتوى KML فارغ.")
@@ -177,9 +224,12 @@ def parse_kml(text: str) -> dict:
     except _XMLParseError as e:
         raise ValueError(f"KML غير صالح (XML تالف): {e}") from e
 
-    polygon = _find_first_local(root, "Polygon")
-    if polygon is None:
+    polygons = _find_all_local(root, "Polygon")
+    if not polygons:
         raise ValueError("لا يوجد <Polygon> في ملفّ KML.")
+    if len(polygons) > 1:
+        raise _multiple_polygons_error(len(polygons), "ملفّ KML")
+    polygon = polygons[0]
     outer = _find_first_local(polygon, "outerBoundaryIs")
     ring_src = outer if outer is not None else polygon
     coords_el = _find_first_local(ring_src, "coordinates")
@@ -187,7 +237,13 @@ def parse_kml(text: str) -> dict:
         raise ValueError("لا يوجد <coordinates> داخل Polygon في KML.")
 
     ring = _parse_kml_coords(coords_el.text)
-    return _polygon(ring)
+    holes: list[list[list[float]]] = []
+    for inner in _find_all_local(polygon, "innerBoundaryIs"):
+        hole_el = _find_first_local(inner, "coordinates")
+        if hole_el is None or not (hole_el.text and hole_el.text.strip()):
+            raise ValueError("<innerBoundaryIs> بلا <coordinates> في KML.")
+        holes.append(_parse_kml_coords(hole_el.text))
+    return _polygon(ring, holes)
 
 
 def points_to_polygon(points: list[list[float]]) -> dict:

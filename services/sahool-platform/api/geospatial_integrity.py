@@ -126,15 +126,83 @@ def polygon_area_m2(coords: list[tuple[float, float]]) -> float:
     for i in range(len(coords) - 1):
         lng1, lat1 = coords[i]
         lng2, lat2 = coords[i + 1]
-        total += math.radians(lng2 - lng1) * (
+        total += math.radians(_wrapped_dlon(lng1, lng2)) * (
             2 + math.sin(math.radians(lat1)) + math.sin(math.radians(lat2))
         )
     area = abs(total * R * R / 2)
     return area
 
 
+def _wrapped_dlon(lng1: float, lng2: float) -> float:
+    """فرق خطّ الطول مُطبَّعاً إلى [-180, 180) — الضلع العابر لخطّ التاريخ
+    (179.99 → -179.99) فرقُه 0.02° لا -359.98° (الطرح الخام يُضخّم المساحة ~10⁴×)."""
+    return (lng2 - lng1 + 180.0) % 360.0 - 180.0
+
+
+def crosses_antimeridian(coords: list[tuple[float, float]]) -> bool:
+    """هل في الحلقة ضلعٌ يقفز أكثر من 180° طولاً (أي يعبر خطّ التاريخ)؟"""
+    return any(abs(coords[i + 1][0] - coords[i][0]) > 180.0 for i in range(len(coords) - 1))
+
+
 def polygon_area_ha(coords: list[tuple[float, float]]) -> float:
     return polygon_area_m2(coords) / 10_000.0
+
+
+def polygon_net_area_ha(rings: list[list[tuple[float, float]]]) -> float:
+    """المساحة الصافية لمضلّع GeoJSON واحد: |الحلقة الخارجيّة| − Σ|الثقوب|.
+
+    كلّ حلقة تُقاس بقيمتها المطلقة فلا يتأثّر الناتج باتّجاه اللفّ (RFC 7946 يوصي
+    بالخارجيّة عكس عقارب الساعة والثقوب معها، لكنّ المدخلات لا تلتزم دائماً).
+    النموذج كرويّ (R = 6371008.8 م، نصف القطر المتوسّط لـWGS84) لا إهليلجيّ: انحرافه
+    عن مساحة Geod(WGS84) عند عروض اليمن (12°–19°) نحو +0.35٪ (مقيس عند 16°N).
+    """
+    if not rings:
+        return 0.0
+    outer = polygon_area_ha(rings[0])
+    holes = sum(polygon_area_ha(r) for r in rings[1:] if len(r) >= 3)
+    return max(outer - holes, 0.0)
+
+
+def _rings_as_tuples(poly: Any) -> list[list[tuple[float, float]]]:
+    rings: list[list[tuple[float, float]]] = []
+    if not isinstance(poly, list):
+        return rings
+    for ring in poly:
+        if not isinstance(ring, list):
+            continue
+        try:
+            rings.append(
+                [
+                    (float(p[0]), float(p[1]))
+                    for p in ring
+                    if isinstance(p, (list, tuple)) and len(p) >= 2
+                ]
+            )
+        except (TypeError, ValueError):
+            continue
+    return rings
+
+
+def polygonal_hole_area_ha(geojson: Any) -> float:
+    """مجموع مساحات الثقوب (الحلقات الداخليّة) في Polygon/MultiPolygon/Feature/FeatureCollection."""
+    if not isinstance(geojson, dict):
+        return 0.0
+    gtype = geojson.get("type")
+    if gtype == "Feature":
+        return polygonal_hole_area_ha(geojson.get("geometry") or {})
+    if gtype == "FeatureCollection":
+        return sum(polygonal_hole_area_ha(f) for f in geojson.get("features") or [])
+    if gtype == "Polygon":
+        polys = [geojson.get("coordinates")]
+    elif gtype == "MultiPolygon":
+        polys = geojson.get("coordinates") or []
+    else:
+        return 0.0
+    total = 0.0
+    for poly in polys:
+        rings = _rings_as_tuples(poly)
+        total += sum(polygon_area_ha(r) for r in rings[1:] if len(r) >= 3)
+    return total
 
 
 def compute_bbox(coords: list[tuple[float, float]]) -> dict[str, float]:
@@ -201,6 +269,9 @@ def validate_crs(crs_string: str | None) -> ValidationIssue | None:
         "URN:OGC:DEF:CRS:EPSG::4326",
         "HTTP://WWW.OPENGIS.NET/DEF/CRS/EPSG/0/4326",
         "CRS:84",  # GeoJSON-style
+        # OGC CRS84 (urn:ogc:def:crs:OGC:1.3:CRS84) — WGS84 بترتيب lon/lat، وهو ما
+        # تكتبه QGIS/ogr2ogr في حقل crs لـGeoJSON؛ لازمٌ منذ صار crs المُضمَّن يُقرأ.
+        "CRS84",
     }
 
     for form in valid_forms:
@@ -214,6 +285,46 @@ def validate_crs(crs_string: str | None) -> ValidationIssue | None:
         message_en=f"Unsupported CRS: {crs_string}. System uses EPSG:4326 only.",
         hint="استخدم pyproj أو ogr2ogr لإعادة الإسقاط إلى 4326 قبل الإرسال.",
     )
+
+
+def _crs_member_name(crs: Any) -> str:
+    """عضو crs (GeoJSON 2008) → اسم نصّيّ يفحصه validate_crs.
+
+    {"type":"name","properties":{"name":X}} ⇒ X · {"type":"EPSG","properties":{"code":N}}
+    ⇒ "EPSG:N" · غير ذلك (link/شكل مجهول) ⇒ وسم لا يطابق 4326 فيُرفض لا يُفترَض.
+    """
+    if isinstance(crs, str):
+        return crs
+    if isinstance(crs, dict):
+        props = crs.get("properties") if isinstance(crs.get("properties"), dict) else {}
+        ctype = str(crs.get("type") or "").lower()
+        if ctype == "name" and isinstance(props.get("name"), str):
+            return props["name"]
+        if ctype == "epsg" and props.get("code") is not None:
+            return f"EPSG:{props['code']}"
+        return f"unsupported_crs_object:{ctype or 'unknown'}"
+    return "unsupported_crs_object"
+
+
+def embedded_crs_names(geojson: Any) -> list[str]:
+    """أسماء كلّ CRS مُضمَّن في GeoJSON (الجذر، geometry الـFeature، كلّ feature).
+
+    RFC 7946 أسقط عضو crs (الإحداثيّات lon/lat WGS84 ضمنيّاً)، لكنّ ملفّات GeoJSON 2008
+    ما تزال تحمله؛ إسقاطه بصمت يجعل أرقام EPSG:3857 الصغيرة تُقرأ درجاتٍ. ``crs: null``
+    يعني «بلا CRS» فيُتجاهَل.
+    """
+    names: list[str] = []
+    if not isinstance(geojson, dict):
+        return names
+    if geojson.get("crs") is not None:
+        names.append(_crs_member_name(geojson.get("crs")))
+    gtype = geojson.get("type")
+    if gtype == "Feature":
+        names.extend(embedded_crs_names(geojson.get("geometry")))
+    elif gtype == "FeatureCollection":
+        for feature in geojson.get("features") or []:
+            names.extend(embedded_crs_names(feature))
+    return names
 
 
 # ─── Main validation ────────────────────────────────────────────
@@ -257,7 +368,9 @@ def _extract_polygon_outer_rings(geojson: dict[str, Any]) -> list[list[tuple[flo
 
 
 def _validate_multipolygon_geometry(
-    rings: list[list[tuple[float, float]]], declared_crs: str | None
+    rings: list[list[tuple[float, float]]],
+    declared_crs: str | None,
+    holes_area_ha: float = 0.0,
 ) -> GeometryValidation:
     issues: list[ValidationIssue] = []
     crs_issue = validate_crs(declared_crs)
@@ -293,7 +406,7 @@ def _validate_multipolygon_geometry(
             areas.append(validation.computed_area_ha)
         if validation.computed_bbox is not None:
             bboxes.append(validation.computed_bbox)
-    area_ha = sum(areas)
+    area_ha = sum(areas) - holes_area_ha
     if area_ha > MAX_FIELD_AREA_HA:
         issues.append(
             ValidationIssue(
@@ -340,6 +453,9 @@ def validate_field_geometry(
     crs_issue = validate_crs(declared_crs)
     if crs_issue:
         issues.append(crs_issue)
+    # ١ب. crs المُضمَّن في GeoJSON نفسه (لا يُسقَط بصمت؛ نفس سياسة guard_field_geometry).
+    embedded_issues = [i for i in (validate_crs(name) for name in embedded_crs_names(geojson)) if i]
+    issues.extend(embedded_issues)
 
     # MultiPolygon: validate every polygon part and keep the full disconnected field,
     # never collapse it to a single largest polygon.
@@ -349,7 +465,12 @@ def validate_field_geometry(
         if gtype == "Feature":
             gtype = (geojson.get("geometry") or {}).get("type")
         if gtype in {"MultiPolygon", "FeatureCollection"} and rings and len(rings) > 1:
-            return _validate_multipolygon_geometry(rings, declared_crs)
+            multi = _validate_multipolygon_geometry(
+                rings, declared_crs, polygonal_hole_area_ha(geojson)
+            )
+            if embedded_issues:
+                return GeometryValidation(valid=False, issues=[*embedded_issues, *multi.issues])
+            return multi
 
     # ٢. استخرج coordinates من GeoJSON shapes مختلفة
     coords = _extract_polygon_coords(geojson)
@@ -445,8 +566,22 @@ def validate_field_geometry(
             )
         )
 
-    # ٨. حساب المساحة + تحقّق
-    area_ha = polygon_area_ha(coords)
+    # ٧ب. عبور خطّ التاريخ: الـbbox والمركز (منتصف الـbbox) وفحص التقاطع المستوي كلّها
+    # تفترض عدم الالتفاف — نرفض بسببٍ مُسمّى بدل «مساحة كبيرة» مُضلِّلة أو مركز عند lon≈0.
+    if crosses_antimeridian(coords):
+        issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.ERROR,
+                code="antimeridian_crossing",
+                message_ar="الـpolygon يعبر خطّ التاريخ (±180°) — غير مدعوم لحدود الحقول.",
+                message_en="Polygon crosses the antimeridian (±180°); unsupported for fields.",
+                hint="قسّم الحدّ عند خطّ الطول 180° أو تحقّق من ترتيب الإحداثيّات.",
+            )
+        )
+
+    # ٨. حساب المساحة + تحقّق — صافية: الخارجيّة ناقص الثقوب (مساحة الحقل المزروعة
+    # لا تشمل البِرك/المباني المستثناة بحلقات داخليّة).
+    area_ha = max(polygon_area_ha(coords) - polygonal_hole_area_ha(geojson), 0.0)
     if area_ha < MIN_FIELD_AREA_HA:
         issues.append(
             ValidationIssue(

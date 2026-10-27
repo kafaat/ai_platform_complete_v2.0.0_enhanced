@@ -56,6 +56,7 @@ from api.field_models import (
 from api.field_timeline import assemble_timeline
 from api.geospatial_integrity import validate_field_geometry
 from api.gis_geometry_guard import (
+    area_conservation_issues,
     field_geometry_error_detail,
     geometry_metadata,
     guard_field_geometry,
@@ -1796,6 +1797,39 @@ def _guard_merge_split_geometry(
     return guarded.geometry, round(guarded.area_ha, 2), guarded.centroid
 
 
+def _stored_geometry(raw: object) -> dict | None:
+    """هندسة JSONB كما يعيدها asyncpg (نصّ بلا codec أو dict) → dict أو None."""
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except ValueError:
+            return None
+    return raw if isinstance(raw, dict) else None
+
+
+def _assert_area_conserved(sources: list[dict | None], results: list[dict]) -> None:
+    """حفظ المساحة في الدمج/الانقسام — 422 قبل أيّ كتابة إن لم يُطابق الناتجُ المصدرَ.
+
+    الذرّيّة (معاملة واحدة) تضمن «الكلّ أو لا شيء» لا صحّة الشكل: هندسة صالحة لكن
+    غير ذات صلة كانت تمرّ تحقّق كلّ شكل منفرداً ثمّ يُحذف المصدر. هنا: اتّحاد الأطفال
+    = المصدر بلا تداخل (انقسام)، والمدموج = اتّحاد المصادر (دمج)، ضمن
+    AREA_CONSERVATION_REL_TOL.
+    """
+    issues = area_conservation_issues(sources, results)
+    if issues:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message_ar": (
+                    "الحدود الناتجة لا تحفظ مساحة الحقل المصدر (فقدٌ أو زيادة أو تداخل) — "
+                    "أعد الدمج/الانقسام من حدود الحقول الحاليّة."
+                ),
+                "code": "field_area_not_conserved",
+                "issues": issues,
+            },
+        )
+
+
 @router.post("/api/v1/fields/merge", status_code=201, response_model=FieldSummary)
 async def merge_fields(
     req: FieldMergeRequest,
@@ -1826,9 +1860,10 @@ async def merge_fields(
 
             async def _work():
                 # 1) ملكيّة كلّ مصدر (404) + رفض الموسم النشط (409) — قبل أيّ كتابة.
+                source_geometries: list[dict | None] = []
                 for src_id in req.source_field_ids:
                     src = await conn.fetchrow(
-                        "SELECT field_id, name, crop FROM fields "
+                        "SELECT field_id, name, crop, geometry FROM fields "
                         "WHERE field_id = $1 AND tenant_id = $2::uuid",
                         src_id,
                         str(user.tenant_id),
@@ -1847,6 +1882,9 @@ async def merge_fields(
                             status_code=409,
                             detail="لا يمكن الدمج: موسم نشط على حقل مصدر",
                         )
+                    source_geometries.append(_stored_geometry(src["geometry"]))
+                # 1ب) المدموج = اتّحاد المصادر (422 قبل أيّ كتابة).
+                _assert_area_conserved(source_geometries, [geometry])
                 # 2) أنشئ المدموج أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
                 result = await _insert_field_within_tx(
                     conn,
@@ -1961,7 +1999,7 @@ async def split_field(
             async def _work():
                 # 1) ملكيّة المصدر (404) + رفض الموسم النشط (409) — قبل أيّ كتابة.
                 src = await conn.fetchrow(
-                    "SELECT field_id, name, crop FROM fields "
+                    "SELECT field_id, name, crop, geometry FROM fields "
                     "WHERE field_id = $1 AND tenant_id = $2::uuid",
                     req.source_field_id,
                     str(user.tenant_id),
@@ -1980,6 +2018,10 @@ async def split_field(
                         status_code=409,
                         detail="لا يمكن الانقسام: موسم نشط على الحقل المصدر",
                     )
+                # 1ب) اتّحاد الأطفال = المصدر بلا تداخل (422 قبل أيّ كتابة).
+                _assert_area_conserved(
+                    [_stored_geometry(src["geometry"])], [p["geometry"] for p in prepared]
+                )
                 # 2) أنشئ كلّ وليد أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
                 children_out: list[dict] = []
                 for p in prepared:
