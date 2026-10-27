@@ -775,10 +775,17 @@ def _raster_metadata(src) -> dict:
 
     إعادة الكتابة من الـprofile وحده كانت تُسقِط scale/offset (فتتغيّر القيم الفيزيائيّة
     المُفسَّرة)، والوسوم وأوصاف النطاقات والوحدات وتفسير الألوان، والأهرامات وتخطيط COG.
+
+    وسوم النطاق ``STATISTICS_*`` (MINIMUM/MAXIMUM/MEAN/STDDEV/VALID_PERCENT/APPROXIMATE)
+    **مُشتقّة من البيانات** لا وصفٌ لها: بعد القناع تصير كاذبة (متوسّط ونسبة صالح قبل
+    القصّ) وQGIS/GDAL يمدّان العرض بها ⇒ لا تُنقل، ويُعيد GDAL حسابها عند الطلب.
     """
     return {
         "tags": src.tags(),
-        "band_tags": [src.tags(i) for i in src.indexes],
+        "band_tags": [
+            {k: v for k, v in src.tags(i).items() if not k.startswith("STATISTICS_")}
+            for i in src.indexes
+        ],
         "descriptions": src.descriptions,
         "scales": src.scales,
         "offsets": src.offsets,
@@ -817,7 +824,8 @@ def _rewrite_preserving_metadata(cog_path: str, data, profile: dict, meta: dict)
             dst.units = tuple(u or "" for u in meta["units"])
             dst.colorinterp = meta["colorinterp"]
             if meta["overviews"]:
-                resampling = meta["overview_tags"].get("resampling", "nearest")
+                # GDAL يكتبها بأيّ حالة أحرف («AVERAGE»)؛ أعضاء Resampling بالصغيرة.
+                resampling = meta["overview_tags"].get("resampling", "nearest").lower()
                 dst.build_overviews(meta["overviews"], Resampling[resampling])
                 dst.update_tags(ns="rio_overview", resampling=resampling)
         if target != cog_path:

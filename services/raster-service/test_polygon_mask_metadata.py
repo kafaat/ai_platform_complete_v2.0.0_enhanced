@@ -169,3 +169,36 @@ def test_rgba_mask_preserves_alpha_interpretation_and_overviews(tmp_path):
         assert src.overviews(1) == overviews
         assert src.tags()["scene"] == "S2A_TEST_SCENE"
         assert src.tags(ns="rio_overview")["resampling"] == "nearest"
+
+
+def test_band_statistics_from_before_the_mask_are_not_carried_over(tmp_path):
+    # وسوم STATISTICS_* مُشتقّة من البيانات: بعد قصّ نصف الراستر تصير كاذبة (المتوسّط
+    # ونسبة الصالح)، وQGIS/GDAL يمدّان العرض بها. لا تُنسخ؛ وسوم النطاق الوصفيّة تبقى.
+    path = _scalar(tmp_path / "stats.tif", value=50)
+    with rasterio.open(path, "r+") as dst:
+        dst.update_tags(
+            1,
+            STATISTICS_MINIMUM="50",
+            STATISTICS_MAXIMUM="50",
+            STATISTICS_MEAN="50",
+            STATISTICS_STDDEV="0",
+            STATISTICS_VALID_PERCENT="100",
+        )
+    _mask(path, WEST_HALF)
+    with rasterio.open(path) as src:
+        band_tags = src.tags(1)
+        stale = sorted(k for k in band_tags if k.startswith("STATISTICS_"))
+        assert stale == [], f"إحصاءات ما قبل القناع بقيت: {stale}"
+        assert band_tags["band_role"] == "ndvi"
+
+
+def test_overview_resampling_tag_is_case_insensitive(tmp_path):
+    # GDAL يقبل «AVERAGE» و«average»؛ Resampling[...] حسّاس لحالة الأحرف فكان KeyError
+    # يُسقط البلاطة fail-closed بلا سبب.
+    path = _scalar(tmp_path / "upper.tif")
+    with rasterio.open(path, "r+") as dst:
+        dst.update_tags(ns="rio_overview", resampling="AVERAGE")
+    assert _mask(path, WEST_HALF) == 32
+    with rasterio.open(path) as src:
+        assert src.overviews(1) == [2, 4]
+        assert src.tags(ns="rio_overview")["resampling"] == "average"
