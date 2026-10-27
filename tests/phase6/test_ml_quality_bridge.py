@@ -1,15 +1,15 @@
 """SAHOOL -> Unified Local Lab contract candidate tests, synthetic only."""
 from __future__ import annotations
 
-from copy import deepcopy
-from datetime import datetime, timedelta, timezone
 import json
+from copy import deepcopy
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from shared.feature_store.ml_quality_bridge import export_ml_quality_candidate
 
-T0 = datetime(2026, 9, 1, tzinfo=timezone.utc)
+T0 = datetime(2026, 9, 1, tzinfo=UTC)
 
 
 def at(day):
@@ -87,20 +87,23 @@ def test_missing_verifier_blocks_all_observations():
 
 
 def test_derived_water_ledger_never_masquerades_as_sensor():
-    rows = records(); rows[0]["measurement_origin"] = "derived_ledger_balance"
+    rows = records()
+    rows[0]["measurement_origin"] = "derived_ledger_balance"
     r = screen(rows)
     assert "case-0:NOT_INDEPENDENT_MEASUREMENT" in r["blocking_reasons"]
     assert r["rows"][0]["label_source"] == "unverified_claim"
 
 
 def test_manual_estimate_never_becomes_verified():
-    rows = records(); rows[0]["measurement_origin"] = "manual_estimate"
+    rows = records()
+    rows[0]["measurement_origin"] = "manual_estimate"
     assert "case-0:NOT_INDEPENDENT_MEASUREMENT" in screen(rows)["blocking_reasons"]
 
 
 def test_callback_cannot_be_used_to_verify_derived_value():
     seen = []
-    rows = records(); rows[0]["measurement_origin"] = "derived_ledger_balance"
+    rows = records()
+    rows[0]["measurement_origin"] = "derived_ledger_balance"
     r = screen(rows, evidence=lambda *parts: seen.append(parts) or True)
     assert r["status"] == "BLOCKED"
     assert len(seen) == 5
@@ -130,7 +133,8 @@ def test_receipt_verified_with_exact_tenant_field_season_and_source():
 
 
 def test_tenant_isolation_before_verifier_invocation():
-    rows = records(); rows[0]["tenant_id"] = "other"
+    rows = records()
+    rows[0]["tenant_id"] = "other"
     seen = []
     r = screen(rows, evidence=lambda *a: seen.append(a) or True)
     assert "case-0:TENANT_SCOPE_MISMATCH" in r["blocking_reasons"]
@@ -138,65 +142,77 @@ def test_tenant_isolation_before_verifier_invocation():
 
 
 def test_feature_arrived_too_late_blocks():
-    rows = records(); rows[0]["feature_available_at"] = at(18)
+    rows = records()
+    rows[0]["feature_available_at"] = at(18)
     assert "case-0:FUTURE_OR_LATE_FEATURE" in screen(rows)["blocking_reasons"]
 
 
 def test_feature_event_time_after_availability_blocks():
-    rows = records(); rows[0]["feature_event_at"] = at(2)
+    rows = records()
+    rows[0]["feature_event_at"] = at(2)
     assert "case-0:FUTURE_OR_LATE_FEATURE" in screen(rows)["blocking_reasons"]
 
 
 def test_target_before_prediction_blocks():
-    rows = records(); rows[0]["label_measured_at"] = rows[0]["prediction_at"]
+    rows = records()
+    rows[0]["label_measured_at"] = rows[0]["prediction_at"]
     assert "case-0:LABEL_MATURITY_INVALID" in screen(rows)["blocking_reasons"]
 
 
 def test_label_not_available_before_freeze_blocks():
-    rows = records(); rows[0]["label_available_at"] = at(31)
+    rows = records()
+    rows[0]["label_available_at"] = at(31)
     assert "case-0:LABEL_MATURITY_INVALID" in screen(rows)["blocking_reasons"]
 
 
 def test_naive_timestamp_blocks():
-    rows = records(); rows[0]["prediction_at"] = "2026-09-02T00:00:00"
+    rows = records()
+    rows[0]["prediction_at"] = "2026-09-02T00:00:00"
     assert "case-0:TIMESTAMP_INVALID" in screen(rows)["blocking_reasons"]
 
 
 def test_duplicate_case_refused():
-    rows = records(); rows[1]["case_id"] = rows[0]["case_id"]
+    rows = records()
+    rows[1]["case_id"] = rows[0]["case_id"]
     assert any("CASE_ID_INVALID_OR_DUPLICATE" in x for x in screen(rows)["blocking_reasons"])
 
 
 def test_wrong_row_schema_never_becomes_ready():
-    rows = records(); rows[1]["debug"] = "unexpected"
+    rows = records()
+    rows[1]["debug"] = "unexpected"
     assert screen(rows)["status"] == "BLOCKED"
 
 
 def test_boolean_measurement_not_numeric():
-    rows = records(); rows[0]["target_mm"] = True
+    rows = records()
+    rows[0]["target_mm"] = True
     assert "case-0:DEPTH_INVALID" in screen(rows)["blocking_reasons"]
 
 
 def test_nonfinite_and_negative_predictions_block():
     for value in (float("nan"), float("inf"), -1, 1e308):
-        rows = records(); rows[0]["prediction_mm"] = value
+        rows = records()
+        rows[0]["prediction_mm"] = value
         assert "case-0:DEPTH_INVALID" in screen(rows)["blocking_reasons"]
 
 
 def test_invalid_and_missing_receipt_rejected():
     for value in (None, "bad", "A"*64):
-        rows = records(); rows[0]["measurement_receipt_sha256"] = value
+        rows = records()
+        rows[0]["measurement_receipt_sha256"] = value
         assert "case-0:MEASUREMENT_RECEIPT_INVALID" in screen(rows)["blocking_reasons"]
 
 
 def test_invalid_manifest_artifact_hash_rejected():
-    m = manifest(); m["model_artifact_sha256"] = "placeholder"
+    m = manifest()
+    m["model_artifact_sha256"] = "placeholder"
     with pytest.raises(ValueError, match="MANIFEST_DIGEST_INVALID"):
         screen(m=m)
 
 
 def test_invalid_manifest_policy_rejected():
-    m = manifest(); m["evaluation_policy"]["min_relative_mae_improvement"] = float("nan")
+    m = manifest()
+    m["evaluation_policy"]["min_relative_mae_improvement"] = float("nan")
     with pytest.raises(ValueError, match="MANIFEST_POLICY_INVALID"):
         screen(m=m)
 
@@ -206,8 +222,11 @@ def test_empty_dataset_explicitly_blocked():
 
 
 def test_unchanged_source_objects_and_deterministic_digests():
-    src = records(); m = manifest(); before = deepcopy((src, m))
-    a = screen(src, m=m); b = screen(deepcopy(src), m=deepcopy(m))
+    src = records()
+    m = manifest()
+    before = deepcopy((src, m))
+    a = screen(src, m=m)
+    b = screen(deepcopy(src), m=deepcopy(m))
     assert a == b
     assert before == (src, m)
 
@@ -218,7 +237,8 @@ def test_replay_of_well_formed_candidate_requires_no_other_services():
 
 
 def test_whitelisted_field_measurement_maps_only_after_callback_approval():
-    rows = records(); rows[0]["measurement_origin"] = "field_measurement"
+    rows = records()
+    rows[0]["measurement_origin"] = "field_measurement"
     assert screen(rows)["rows"][0]["label_source"] == "field_measurement_verified"
 
 
@@ -228,7 +248,8 @@ def test_unconfigured_verifier_callback_is_rejected():
 
 
 def test_invalid_source_dict_is_blocked_not_exception():
-    rows = records(); rows[0]["measurement_origin"] = {}
+    rows = records()
+    rows[0]["measurement_origin"] = {}
     assert "case-0:NOT_INDEPENDENT_MEASUREMENT" in screen(rows)["blocking_reasons"]
 
 
@@ -239,11 +260,13 @@ def test_expected_schema_does_not_contain_receipt_evidence_as_label():
 
 
 def test_huge_integer_never_causes_overflow():
-    rows = records(); rows[0]["target_mm"] = 10**1000
+    rows = records()
+    rows[0]["target_mm"] = 10**1000
     assert "case-0:DEPTH_INVALID" in screen(rows)["blocking_reasons"]
 
 
 def test_huge_integer_policy_never_causes_overflow():
-    m = manifest(); m["evaluation_policy"]["min_relative_mae_improvement"] = 10**1000
+    m = manifest()
+    m["evaluation_policy"]["min_relative_mae_improvement"] = 10**1000
     with pytest.raises(ValueError, match="MANIFEST_POLICY_INVALID"):
         screen(m=m)

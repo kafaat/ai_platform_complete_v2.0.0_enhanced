@@ -8,12 +8,13 @@ not a proven physical measurement or a passed scientific screen.
 """
 from __future__ import annotations
 
-from datetime import datetime
 import hashlib
 import json
 import math
 import re
-from typing import Any, Callable
+from collections.abc import Callable
+from datetime import datetime
+from typing import Any
 
 CONTRACT_VERSION = "ml-quality/v1"
 ADAPTER_VERSION = "sahool-ml-export/v1"
