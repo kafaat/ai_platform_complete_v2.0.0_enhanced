@@ -23,6 +23,32 @@ import time
 
 logger = logging.getLogger("sahool.stac_client")
 
+# EXTRA-3: نسخة مخطّط المغلَّف المخزَّن (تدخل مفتاح الـcache فتعزل المُدخَلات القديمة).
+_CACHE_SCHEMA = 2
+_FALLBACK_WARNING = "المصدر الأساس متعذّر — نتيجة من مصدر احتياطي"
+
+
+def _page_complete(data: dict) -> bool:
+    """هل الصفحة المُعادة هي كلّ ما طابق البحث؟ (رابط next أو matched>returned ⇒ لا)."""
+    links = data.get("links") or []
+    if any(isinstance(link, dict) and link.get("rel") == "next" for link in links):
+        return False
+    matched = data.get("numberMatched")
+    returned = data.get("numberReturned")
+    if isinstance(matched, int) and isinstance(returned, int) and matched > returned:
+        return False
+    return True
+
+
+class _Flight:
+    """رحلة single-flight مشتركة: مهمّة حلّ واحدة + عدد المنتظِرين عليها."""
+
+    __slots__ = ("task", "waiters")
+
+    def __init__(self, task: asyncio.Task):
+        self.task = task
+        self.waiters = 0
+
 
 class _CacheEntry:
     __slots__ = ("data", "fetched_at")
@@ -70,7 +96,7 @@ class ResilientStacClient:
         self._redis_tried = False
         # v6-F6: single-flight — طلبات miss متطابقة متزامنة تتشارك POST واحداً بدل
         # قصف المصدر العامّ (Earth Search). خريطة مفتاح→Future (داخل العمليّة).
-        self._inflight: dict[str, asyncio.Future] = {}
+        self._inflight: dict[str, _Flight] = {}
         # عدّادات صحّة المصدر (للمراقبة /metrics)
         self.stats = {
             "requests": 0,
@@ -102,10 +128,22 @@ class ResilientStacClient:
             self._redis = None
         return self._redis
 
-    @staticmethod
-    def _key(payload: dict) -> str:
-        """مفتاح cache مستقرّ من محتوى البحث (نفس البحث = نفس المفتاح)."""
-        norm = json.dumps(payload, sort_keys=True)
+    def _key(self, payload: dict) -> str:
+        """مفتاح cache مستقرّ من محتوى البحث + إعداد المزوّدين.
+
+        EXTRA-3: Redis مشترك عبر النسخ؛ نسخة مضبوطة على كتالوج/سلسلة احتياطي مختلفة
+        لا يجوز أن تقرأ نتيجة مزوّد آخر. ``_CACHE_SCHEMA`` يعزل المُدخَلات القديمة الخام
+        (بلا مغلَّف provenance) فلا تُقدَّم بعد الترقية بلا هويّة مصدرها.
+        """
+        norm = json.dumps(
+            {
+                "schema": _CACHE_SCHEMA,
+                "primary": self.base_url,
+                "fallbacks": self.fallback_urls,
+                "payload": payload,
+            },
+            sort_keys=True,
+        )
         return hashlib.sha256(norm.encode()).hexdigest()[:24]
 
     async def _cache_get(self, key: str) -> _CacheEntry | None:
@@ -152,26 +190,38 @@ class ResilientStacClient:
 
         # v6-F6: single-flight — إن كان طلب متطابق قيد التنفيذ، انتظر نتيجته بدل POST
         # ثانٍ على المصدر العامّ (تفادي stampede عند backfill متزامن لنفس الحقل/النافذة).
-        inflight = self._inflight.get(key)
-        if inflight is not None:
+        # EXTRA-2: الحلّ يجري في مهمّة مشتركة مستقلّة عن أيّ طالب، وكلّ طالب (قائداً
+        # أو تابعاً) ينتظرها عبر ``shield``: إلغاء القائد لا يترك التابعين على Future
+        # لم يُحسَم (كان ``except Exception`` لا يلتقط CancelledError)، وإلغاء تابعٍ لا
+        # يُلغي العمل المشترك على البقيّة. تُلغى المهمّة فقط حين يغادر آخر منتظِر.
+        flight = self._inflight.get(key)
+        coalesced = flight is not None
+        if flight is None:
+            flight = _Flight(asyncio.ensure_future(self._resolve_uncached(key, payload, entry)))
+            self._inflight[key] = flight
+            flight.task.add_done_callback(lambda task, k=key, f=flight: self._flight_done(k, f))
+        else:
             self.stats["coalesced"] += 1
-            data = await inflight  # يشارك نجاح/فشل القائد
-            return {**data, "_cache": "coalesced"}
-
-        loop = asyncio.get_event_loop()
-        fut: asyncio.Future = loop.create_future()
-        self._inflight[key] = fut
+        flight.waiters += 1
         try:
-            data = await self._resolve_uncached(key, payload, entry)
-            if not fut.done():
-                fut.set_result(data)
-            return data
-        except Exception as exc:
-            if not fut.done():
-                fut.set_exception(exc)
-            raise
+            data = await asyncio.shield(flight.task)  # يشارك نجاح/فشل الرحلة
         finally:
-            self._inflight.pop(key, None)
+            flight.waiters -= 1
+            if flight.waiters == 0 and not flight.task.done():
+                # لا منتظِر باقٍ: لا عمل يتيم، ولا يرث طلبٌ لاحق رحلةً تُلغى.
+                self._forget_flight(key, flight)
+                flight.task.cancel()
+        return {**data, "_cache": "coalesced"} if coalesced else data
+
+    def _forget_flight(self, key: str, flight: _Flight) -> None:
+        if self._inflight.get(key) is flight:
+            del self._inflight[key]
+
+    def _flight_done(self, key: str, flight: _Flight) -> None:
+        """تنظيف الرحلة عند حسمها بأيّ نتيجة (نجاح/فشل/إلغاء)."""
+        self._forget_flight(key, flight)
+        if not flight.task.cancelled():
+            flight.task.exception()  # يُعَدّ مُستلَماً حتّى إن غادر كلّ المنتظِرين
 
     async def _resolve_uncached(self, key: str, payload: dict, entry: _CacheEntry | None) -> dict:
         """يحلّ نتيجة STAC عند غياب cache طازج (الأساس→احتياطي→stale→فشل). يُلَفّ بـ
@@ -179,6 +229,9 @@ class ResilientStacClient:
         # ٢. طلب بإعادة محاولة + backoff أُسّي (يحتاج httpx)
         import httpx
 
+        # EXTRA-3: المغلَّف المخزَّن يحمل هويّة المصدر الفعليّ (أساس/احتياطي، المحاولات،
+        # الاكتمال) قبل الكتابة في الـcache، فتعود الهويّة نفسها على miss/fresh/stale.
+        attempts: list[dict] = []
         last_err: Exception | None = None
         for attempt in range(self.max_retries):
             try:
@@ -186,11 +239,14 @@ class ResilientStacClient:
                     resp = await client.post(f"{self.base_url}/search", json=payload)
                     resp.raise_for_status()
                     data = resp.json()
+                attempts.append({"endpoint": self.base_url, "role": "primary", "ok": True})
                 # نجح → خزّن في cache (Redis + ذاكرة)
-                await self._cache_set(key, data)
-                return {**data, "_cache": "miss"}
+                envelope = self._envelope(data, self.base_url, "primary", attempts)
+                await self._cache_set(key, envelope)
+                return {**envelope, "_cache": "miss"}
             except Exception as e:  # noqa: BLE001 — نلتقط لإعادة المحاولة
                 last_err = e
+                attempts.append({"endpoint": self.base_url, "role": "primary", "ok": False})
                 if attempt < self.max_retries - 1:
                     self.stats["retries"] += 1
                     # backoff أُسّي: 1s, 2s, 4s ... (مع سقف)
@@ -205,17 +261,14 @@ class ResilientStacClient:
                     resp = await client.post(f"{fb_url}/search", json=payload)
                     resp.raise_for_status()
                     data = resp.json()
+                attempts.append({"endpoint": fb_url, "role": "fallback", "ok": True})
                 self.stats["fallback_served"] += 1
-                await self._cache_set(key, data)
+                envelope = self._envelope(data, fb_url, "fallback", attempts)
+                await self._cache_set(key, envelope)
                 logger.warning("STAC الأساس فشل — قُدّم من احتياطي: %s", fb_url)
-                return {
-                    **data,
-                    "_cache": "miss",
-                    "_source": "fallback",
-                    "_fallback_url": fb_url,
-                    "_warning": "المصدر الأساس متعذّر — نتيجة من مصدر احتياطي",
-                }
+                return {**envelope, "_cache": "miss"}
             except Exception as e:  # noqa: BLE001 — هذا الاحتياطي فشل، جرّب التالي
+                attempts.append({"endpoint": fb_url, "role": "fallback", "ok": False})
                 logger.warning("احتياطي فشل (%s): %s", fb_url, e)
 
         # ٤. الكلّ فشل — قدّم cache منتهياً إن وُجد (stale-if-error)
@@ -231,6 +284,24 @@ class ResilientStacClient:
         # ٥. لا cache + فشل تامّ — أبلِغ بصدق (لا تخترع)
         self.stats["failures"] += 1
         raise RuntimeError(f"STAC غير متاح بعد {self.max_retries} محاولات ولا cache: {last_err}")
+
+    def _envelope(self, data: dict, endpoint: str, role: str, attempts: list[dict]) -> dict:
+        """يغلّف استجابة STAC بهويّة مصدرها قبل التخزين (EXTRA-3)."""
+        envelope = {
+            **data,
+            "_source": role,
+            "_provenance": {
+                "role": role,
+                "endpoint": endpoint,
+                "primary_endpoint": self.base_url,
+                "attempts": [dict(a) for a in attempts],
+                "complete": _page_complete(data),
+            },
+        }
+        if role == "fallback":
+            envelope["_fallback_url"] = endpoint
+            envelope["_warning"] = _FALLBACK_WARNING
+        return envelope
 
     def health(self) -> dict:
         """صحّة المصدر للمراقبة (يُضاف لـ/metrics)."""
