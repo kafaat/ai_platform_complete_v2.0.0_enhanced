@@ -60,6 +60,7 @@ from api.gis_geometry_guard import (
     geometry_metadata,
     guard_field_geometry,
 )
+from api.idempotency import request_digest
 from api.imagery_automation import _kick_imagery_processing
 
 # بقيّة التبعيّات/النماذج/المساعِدات المشتركة تبقى في api.main وتُستورَد من هناك.
@@ -521,7 +522,12 @@ async def _persist_field(
                     command_type="field.create",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"field_id": field_id, "name": req.name},
+                    # D4: بصمة الطلب المؤثّر — المفتاح نفسه بحقلٍ آخر ⇒ 409 payload_mismatch.
+                    payload={
+                        "field_id": field_id,
+                        "name": req.name,
+                        "request_digest": request_digest(req.model_dump(mode="json")),
+                    },
                 )
             else:
                 result = await _work()
@@ -2245,7 +2251,14 @@ async def create_season(
                     command_type="season.create",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"field_id": field_id, "season_id": season_id},
+                    # D4: الحقل (من المسار) والطلب معاً هما الحمولة المؤثّرة.
+                    payload={
+                        "field_id": field_id,
+                        "season_id": season_id,
+                        "request_digest": request_digest(
+                            {"field_id": field_id, "season": req.model_dump(mode="json")}
+                        ),
+                    },
                 )
             else:
                 result = await _work()

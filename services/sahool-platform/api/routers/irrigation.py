@@ -15,12 +15,11 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.idempotency import request_digest
 from api.irrigation_models import (
     ScheduleRequest,
     ValveRequest,
@@ -235,12 +234,17 @@ async def set_valve_state(
 
 
 def _schedule_request_digest(req: ScheduleRequest) -> str:
-    """بصمة الحمولة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
-    canonical = json.dumps(req.model_dump(mode="json"), sort_keys=True, ensure_ascii=False)
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    """بصمة الحمولة المؤثّرة (D4) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح.
+
+    النموذج بعد التحقّق (القيم الافتراضيّة مُطبَّقة) بمفاتيح مرتّبة، ووقت البدء بصيغته
+    المحلَّلة: «06:30» و«06:30:00» وترتيب مفاتيح JSON لا تصنع تعارضاً.
+    """
+    effective = req.model_dump(mode="json")
+    effective["start_time"] = _parse_time(req.start_time).isoformat()
+    return request_digest(effective)
 
 
-async def _resolve_schedule_field(conn, req: ScheduleRequest) -> str | None:
+async def _resolve_schedule_field(conn, req: ScheduleRequest, tenant_id) -> str | None:
     """يحسم حقل الجدول (UI-M1): الصمّام المرتبط بحقل يفرض حقله.
 
     كان req.field_id يُدرَج كما هو، فجدولٌ على صمّام الحقل A بلا field_id (نموذج الموبايل)
@@ -251,9 +255,13 @@ async def _resolve_schedule_field(conn, req: ScheduleRequest) -> str | None:
     """
     field_id = req.field_id
     if req.valve_id is not None:
+        # المستأجر صراحةً إلى جانب RLS (R14): صمّام مستأجرٍ آخر يُردّ 404 نفسه لصمّامٍ غير
+        # موجود حتى تحت دورٍ يتجاوز RLS، فلا يُشتقّ منه حقل ولا يُكشف وجوده.
         valve = await conn.fetchrow(
-            "SELECT valve_id, field_id FROM irrigation_valves WHERE valve_id = $1",
+            "SELECT valve_id, field_id FROM irrigation_valves "
+            "WHERE valve_id = $1 AND tenant_id = $2::uuid",
             req.valve_id,
+            str(tenant_id),
         )
         if not valve:
             raise HTTPException(status_code=404, detail="الصمّام غير موجود")
@@ -269,7 +277,15 @@ async def _resolve_schedule_field(conn, req: ScheduleRequest) -> str | None:
                 )
             field_id = valve_field
     if field_id is not None:
-        await _assert_field_in_tenant(conn, field_id)
+        # كـ_assert_field_in_tenant مع شرط المستأجر صراحةً (R14): حقلُ غيرك 404 كحقلٍ غائب.
+        owned = await conn.fetchval(
+            "SELECT 1 FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+            field_id,
+            str(tenant_id),
+        )
+        if not owned:
+            raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+    # لا صمّام ولا حقل ⇒ None: «جدول غير مرتبط بحقل» (OD-1) — الحقل اختياريّ ولا يُفرَض.
     return field_id
 
 
@@ -293,7 +309,7 @@ async def create_schedule(
     async with tenant_connection(user) as conn:
 
         async def _work():
-            field_id = await _resolve_schedule_field(conn, req)
+            field_id = await _resolve_schedule_field(conn, req, user.tenant_id)
             # حارس تعارُض (v29.5-op-3): جدولان فعّالان على نفس الصمّام يتداخلان زمنيّاً ⇒
             # خطر فتح مزدوج للصمّام. جداول الريّ متكرّرة (TIME + مدّة + أيّام)، فالكشف على
             # مستوى التطبيق (لا EXCLUDE مفردة). يُتخطّى إن كان الجديد مُعطّلاً أو بلا صمّام

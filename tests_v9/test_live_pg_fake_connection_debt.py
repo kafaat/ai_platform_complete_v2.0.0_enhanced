@@ -971,4 +971,5 @@ def test_a_foreign_key_without_a_digest_is_a_final_conflict_not_a_retry_later():
     with pytest.raises(HTTPException) as refused:
         asyncio.run(run(TENANT_B))
     assert refused.value.status_code == 409
-    assert "أعد المحاولة" not in refused.value.detail, refused.value.detail
+    assert "أعد المحاولة" not in str(refused.value.detail), refused.value.detail
+    assert refused.value.detail["reason"] == "payload_mismatch", refused.value.detail

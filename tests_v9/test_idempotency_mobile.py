@@ -263,7 +263,8 @@ async def test_same_key_with_a_different_payload_is_a_conflict_not_a_replay(m):
             store, _CID, work, payload={"operation_id": "oplog_c", "request_digest": "d2"}, **kw
         )
     assert e.value.status_code == 409
-    assert "مختلفة" in str(e.value.detail)
+    # D4: السبب ثابتٌ يقرؤه المستهلك، لا نصّ الرسالة.
+    assert e.value.detail["reason"] == "payload_mismatch"
 
 
 async def test_legacy_row_without_a_digest_conflicts_with_a_digest_bearing_replay(m):
