@@ -61,6 +61,9 @@ DEAFRICA_STAC_URL = os.getenv("DEAFRICA_STAC_URL", "https://explorer.digitaleart
 CLOUD_PCT_WARN_THRESHOLD = float(os.getenv("CLOUD_PCT_WARN_THRESHOLD", "20"))
 UPLOAD_DIR = os.getenv("RASTER_UPLOAD_DIR", "/tmp/sahool_rasters")
 OFFLINE_PACKS_DIR = os.path.join(UPLOAD_DIR, "offline_packs")
+# ST-03: سقف بايتات الرفع على مستوى الخدمة (القراءة متدفّقة؛ البوّابة تحدّ 50–100M لكنّ
+# المسار الداخليّ المباشر لا يمرّ بها). يُرفَع بمتغيّر بيئة لأورثوموزاييك درون أكبر.
+RASTER_UPLOAD_MAX_BYTES = int(os.getenv("RASTER_UPLOAD_MAX_BYTES", str(512 * 1024 * 1024)))
 SSRF_BLOCKED_HOSTS = {"169.254.169.254", "metadata.google.internal", "metadata"}
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 LAYER_EVICT_CHANNEL = "sahool:raster:layer-evict"
