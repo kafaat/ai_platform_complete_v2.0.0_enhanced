@@ -77,7 +77,7 @@ def main(argv: list[str]) -> int:
     try:
         apply_gdal_env(os.environ)
     except EndpointPolicyError as exc:
-        print(f"unsafe S3 endpoint configuration: {exc}", file=sys.stderr)
+        print(f"unsafe S3 endpoint configuration: {exc}{_policy.hint_for(exc)}", file=sys.stderr)
         return EX_CONFIG
     os.execvp(argv[0], argv)
     return 127  # execvp does not return
