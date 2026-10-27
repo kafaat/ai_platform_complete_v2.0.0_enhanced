@@ -693,3 +693,282 @@ def test_prescription_zones_reject_invalid_json(field_id):
         _insert_prescription(f"rx3-{field_id}", "bad", zones="{not json"), role=_OWNER_ROLE
     )
     assert state == "22P02", f"قُبِل jsonb غير صالح أو رُفِض بسببٍ آخر: {state}"
+
+
+# ═══ services/sahool-platform/api/idempotency.py — جدول commands ═══
+#
+# الوهميّ (`FakeCommandStore`) يُخزّن بقاموسٍ مفتاحه `command_id` ولا يعرف RLS أصلاً،
+# فلا يقيس ثلاثة أشياء يقوم عليها إصلاح #1292: أنّ المفتاح فريدٌ **عبر المستأجرين**،
+# وأنّ العزل يأتي من RLS وحدها وتُبطِلها هويّةُ الدور، وأنّ الإعادتين المتزامنتين لا
+# تُنفّذان العمل مرّتين. الثلاثة تُقاس هنا على الكود الحقيقيّ واتّصال asyncpg حقيقيّ.
+
+_PLATFORM_ROOT = os.path.join(os.path.dirname(__file__), "..", "services", "sahool-platform")
+
+
+def _command_store_code():
+    """`_idempotent` و`CommandStore` الحقيقيّان — لا نسخة منهما."""
+    pytest.importorskip("asyncpg", reason="المُشغِّل غير مثبَّت — لا يُقاس هنا")
+    pytest.importorskip("fastapi", reason="fastapi غير مثبَّت — لا يُقاس هنا")
+    import sys
+
+    if _PLATFORM_ROOT not in sys.path:
+        sys.path.insert(0, _PLATFORM_ROOT)
+    from api.command_store import CommandStore
+    from api.idempotency import _idempotent
+
+    return CommandStore, _idempotent
+
+
+async def _idempotent_as(role, tenant, key, digest, work, *, start_after=0.0, isolation=None):
+    """طلبٌ واحد كما يجري على مسار المنصّة: معاملة، ثمّ سياق المستأجر داخلها، ثمّ المخزن.
+
+    `tenant_connection` يفتح `conn.transaction()` بلا مستوى عزل صريح، فيرث افتراضيّ
+    الخادم. `isolation`، إن مُرِّر، يضع في السجلّ المستوى الذي جرى عليه الطلب فعلاً.
+    """
+    import asyncio
+
+    import asyncpg
+
+    command_store_cls, idempotent = _command_store_code()
+    await asyncio.sleep(start_after)
+    conn = await asyncpg.connect(host=_HOST, port=int(_PORT), user=role, database=_DB)
+    try:
+        async with conn.transaction():
+            if isolation is not None:
+                isolation.append(await conn.fetchval("show transaction_isolation"))
+            await conn.execute("select set_config('app.current_tenant', $1, true)", tenant)
+            return await idempotent(
+                command_store_cls(None, conn=conn),
+                key,
+                work,
+                command_type="live.proof",
+                actor_id="u-live",
+                tenant_id=tenant,
+                payload={"request_digest": digest},
+            )
+    finally:
+        await conn.close()
+
+
+def _insert_command(key: str, tenant: str, *, conflict: bool) -> str:
+    clause = " on conflict (command_id) do nothing" if conflict else ""
+    return as_tenant(
+        tenant,
+        "insert into commands (command_id, command_type, actor_id, tenant_id, payload, source) "
+        f"values ('{key}', 'live.proof', 'u-live', '{tenant}', '{{}}'::jsonb, 'mobile'){clause}",
+    )
+
+
+def test_commands_rls_is_enabled_and_forced_and_the_owner_is_measured():
+    """**كتالوجيّ، وحدُّه مُعلَن:** `FORCE` لا يمسّ superuser، والمالك هنا superuser.
+
+    فالعزل لا يأتي من الكتالوج بل من أنّ دور التطبيق **ليس المالك ولا superuser** —
+    وهو ما تقيسه الأدلّة التالية تحت الدورين.
+    """
+    rc, out, _ = psql(
+        "select relrowsecurity::text||'/'||relforcerowsecurity::text||'/'||"
+        "pg_get_userbyid(relowner) from pg_class where oid='public.commands'::regclass",
+        role=_OWNER_ROLE,
+    )
+    assert rc == 0
+    assert out == f"true/true/{_OWNER_ROLE}", f"enabled/forced/owner = {out}"
+
+
+def test_a_command_is_invisible_to_another_tenant_under_the_restricted_role():
+    key = str(uuid.uuid4())
+    rc, _, err = psql(_insert_command(key, TENANT_A, conflict=False), role=_APP_ROLE)
+    assert rc == 0, err
+    for tenant, expected in ((TENANT_A, "1"), (TENANT_B, "0")):
+        rc, out, _ = psql(
+            as_tenant(tenant, f"select count(*) from commands where command_id='{key}'"),
+            role=_APP_ROLE,
+        )
+        assert rc == 0 and out.splitlines()[-1] == expected, f"{tenant} ⇒ {out}"
+
+
+def test_reusing_another_tenants_key_is_a_silent_conflict_not_a_second_row_accept():
+    """المفتاح فريدٌ **عالمياً**: المستأجر الثاني لا يُنشئ صفّاً ولا يرى صفّ الأوّل.
+
+    هذا ما يجعل `CommandStore.insert` يُعيد False لمفتاحٍ لم يرسله هذا المستأجر قطّ،
+    فيصل `_idempotent` إلى `get` فيجد `None` تحت RLS ⇒ 409.
+    """
+    key = str(uuid.uuid4())
+    assert psql(_insert_command(key, TENANT_A, conflict=False), role=_APP_ROLE)[0] == 0
+    rc, out, err = psql(_insert_command(key, TENANT_B, conflict=True), role=_APP_ROLE)
+    assert rc == 0, err
+    assert out.splitlines()[-1] == "INSERT 0 0", f"أُدرِج صفٌّ ثانٍ للمفتاح نفسه: {out}"
+    rc, out, _ = psql(f"select count(*) from commands where command_id='{key}'", role=_OWNER_ROLE)
+    assert out == "1"
+
+
+def test_reusing_another_tenants_key_without_a_conflict_clause_is_refused_reject():
+    """الرفض هنا `unique_violation` — أي أنّ وجود المفتاح لدى غيرك **يُرصَد** من الخطأ.
+
+    `CommandStore.insert` يكتم ذلك بـ`ON CONFLICT DO NOTHING`، والردّ 409 نفسه
+    الذي يحمله تعارض الحمولة (`api/idempotency.py`)، فلا يُميَّز المستأجر الآخر.
+    """
+    key = str(uuid.uuid4())
+    assert psql(_insert_command(key, TENANT_A, conflict=False), role=_APP_ROLE)[0] == 0
+    state = sqlstate(_insert_command(key, TENANT_B, conflict=False), role=_APP_ROLE)
+    assert state == "23505", f"لم يُرفض بـunique_violation: SQLSTATE={state}"
+
+
+def test_the_owner_role_reads_every_tenant_so_the_runtime_role_decides_isolation():
+    """المالك superuser يرى صفّ مستأجرٍ آخر رغم `FORCE` وسياق المستأجر.
+
+    فلو اتّصلت المنصّة بهذا الدور لبطل العزل كلّه في `commands`؛ لذلك شرطُ النقل
+    قراءةُ دور المنصّة الفعليّ، لا وجودُ السياسة في الكتالوج.
+    """
+    key = str(uuid.uuid4())
+    assert psql(_insert_command(key, TENANT_A, conflict=False), role=_APP_ROLE)[0] == 0
+    rc, out, _ = psql(
+        as_tenant(TENANT_B, f"select count(*) from commands where command_id='{key}'"),
+        role=_OWNER_ROLE,
+    )
+    assert rc == 0 and out.splitlines()[-1] == "1", f"المالك لم يرَ الصفّ: {out}"
+
+
+@pytest.mark.parametrize("second_role", ["app", "owner"])
+def test_idempotent_never_returns_another_tenants_result(second_role):
+    """المستأجر الثاني بالمفتاح **والبصمة** نفسيهما ⇒ 409 تحت الدورين، ولا تنفيذ له.
+
+    تحت الدور المقيَّد يأتي الرفض من RLS؛ وتحت المالك من شرط المستأجر في
+    `_idempotent`. حذفُ ذلك الشرط يُسقِط حالة `owner` وحدها: يُعاد ناتج A إلى B.
+    """
+    import asyncio
+
+    from fastapi import HTTPException
+
+    key, digest = str(uuid.uuid4()), "f" * 64
+    calls = {"a": 0, "b": 0}
+
+    async def work_a():
+        calls["a"] += 1
+        return {"sample_id": "only-tenant-a"}
+
+    async def work_b():
+        calls["b"] += 1
+        return {"sample_id": "tenant-b"}
+
+    role = _APP_ROLE if second_role == "app" else _OWNER_ROLE
+    first = asyncio.run(_idempotent_as(_APP_ROLE, TENANT_A, key, digest, work_a))
+    assert first == {"sample_id": "only-tenant-a"}
+    with pytest.raises(HTTPException) as refused:
+        asyncio.run(_idempotent_as(role, TENANT_B, key, digest, work_b))
+    assert refused.value.status_code == 409
+    assert "only-tenant-a" not in str(refused.value.detail)
+    assert calls == {"a": 1, "b": 0}
+    replay = asyncio.run(_idempotent_as(_APP_ROLE, TENANT_A, key, digest, work_a))
+    assert replay == {"sample_id": "only-tenant-a"} and calls["a"] == 1
+
+
+def test_a_concurrent_same_tenant_replay_waits_and_returns_the_committed_result():
+    """الطلب الثاني من المستأجر نفسه ينتظر قفل المفتاح الفريد حتى يلتزم الأوّل.
+
+    ثمّ يرى الصفّ الملتزم (READ COMMITTED: لقطةٌ جديدة لكلّ عبارة) فيُعيد الناتج الأصليّ.
+    **لا 409 هنا أبداً:** 409 «تعارض نهائيّ» محجوزٌ لصفٍّ لا يراه الطالب، وهذا صفُّه.
+    """
+    import asyncio
+
+    key, digest = str(uuid.uuid4()), "e" * 64
+    calls = {"first": 0, "second": 0}
+    isolation: list[str] = []
+
+    async def first_work():
+        calls["first"] += 1
+        await asyncio.sleep(0.5)  # يُبقي معاملة الأوّل مفتوحةً حين يصل الثاني
+        return {"sample_id": "original"}
+
+    async def second_work():
+        calls["second"] += 1
+        return {"sample_id": "must-not-run"}
+
+    async def both():
+        return await asyncio.gather(
+            _idempotent_as(_APP_ROLE, TENANT_A, key, digest, first_work, isolation=isolation),
+            _idempotent_as(
+                _APP_ROLE, TENANT_A, key, digest, second_work, start_after=0.15, isolation=isolation
+            ),
+        )
+
+    first, second = asyncio.run(both())
+    assert isolation == ["read committed", "read committed"], isolation
+    assert first == second == {"sample_id": "original"}, (first, second)
+    assert calls == {"first": 1, "second": 0}
+
+
+def test_a_concurrent_same_tenant_request_runs_itself_when_the_first_rolls_back():
+    """الأوّل يفشل فترتدّ معاملته ومعها صفّ الأمر ⇒ الثاني يُدرِج وينفّذ، لا 409.
+
+    هذا ما يجعل `get` الذي يعيد `None` بعد تعارض الإدراج دليلاً على مستأجرٍ آخر:
+    المعاملة المرتدّة لا تُبقي تعارضاً، فلا يبلغ الطالبُ ذلك الفرع.
+    """
+    import asyncio
+
+    key, digest = str(uuid.uuid4()), "d" * 64
+    calls = {"first": 0, "second": 0}
+
+    async def first_work():
+        calls["first"] += 1
+        await asyncio.sleep(0.5)
+        raise RuntimeError("فشل العمل الأوّل بعد إدراج الأمر")
+
+    async def second_work():
+        calls["second"] += 1
+        return {"sample_id": "second"}
+
+    async def both():
+        return await asyncio.gather(
+            _idempotent_as(_APP_ROLE, TENANT_A, key, digest, first_work),
+            _idempotent_as(_APP_ROLE, TENANT_A, key, digest, second_work, start_after=0.15),
+            return_exceptions=True,
+        )
+
+    first, second = asyncio.run(both())
+    assert isinstance(first, RuntimeError), first
+    assert second == {"sample_id": "second"}, second
+    assert calls == {"first": 1, "second": 1}
+    rc, out, _ = psql(f"select status from commands where command_id='{key}'", role=_OWNER_ROLE)
+    assert rc == 0 and out == "succeeded", f"صفّ الأمر بعد الإعادة: {out}"
+
+
+def test_a_foreign_key_without_a_digest_is_a_final_conflict_not_a_retry_later():
+    """طلبٌ بلا بصمة يعيد مفتاح مستأجرٍ آخر تحت الدور المقيَّد: `get` يُعيد `None`.
+
+    مقيس قبل الإصلاح: «الأمر قيد المعالجة — أعد المحاولة لاحقاً»، وهي إعادةٌ لن تنجح
+    أبداً لأنّ المفتاح محجوزٌ عالمياً لغيره. الآن تعارضٌ نهائيّ برسالة تعارض الحمولة.
+    """
+    import asyncio
+
+    from fastapi import HTTPException
+
+    key = str(uuid.uuid4())
+
+    async def work():
+        return {"ok": 1}
+
+    async def run(tenant):
+        import asyncpg
+
+        command_store_cls, idempotent = _command_store_code()
+        conn = await asyncpg.connect(host=_HOST, port=int(_PORT), user=_APP_ROLE, database=_DB)
+        try:
+            async with conn.transaction():
+                await conn.execute("select set_config('app.current_tenant', $1, true)", tenant)
+                return await idempotent(
+                    command_store_cls(None, conn=conn),
+                    key,
+                    work,
+                    command_type="live.proof",
+                    actor_id="u-live",
+                    tenant_id=tenant,
+                    payload={},
+                )
+        finally:
+            await conn.close()
+
+    assert asyncio.run(run(TENANT_A)) == {"ok": 1}
+    with pytest.raises(HTTPException) as refused:
+        asyncio.run(run(TENANT_B))
+    assert refused.value.status_code == 409
+    assert "أعد المحاولة" not in refused.value.detail, refused.value.detail
