@@ -122,7 +122,7 @@ import HubMap, {
 } from '../components/maphub/HubMap';
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
 import ImageryTimelineThumb from '../components/maphub/ImageryTimelineThumb';
-import { captureTime } from '../components/maphub/captureTime';
+import { captureLabel, captureTime } from '../components/maphub/captureTime';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 import SceneProvenanceCard from '../components/maphub/SceneProvenanceCard';
 import type { DrawFeature } from '../components/maphub/drawing';
@@ -1056,15 +1056,13 @@ function MapHubCore() {
       ? availableImageryDates.find((d) => d.date === selectedImageryDate) ?? null
       : (dateSelectorDates.find((d) => d.has_cog) ?? dateSelectorDates[0] ?? null);
   // تاريخ الالتقاط بصدق: وقت المشهد الحقيقيّ (STAC) إن توفّر، وإلّا التاريخ وحده (بلا
-  // اختلاق ساعة). لا يظهر شيء إن لم نعرف مشهداً.
+  // اختلاق ساعة). لا يظهر شيء إن لم نعرف مشهداً. T5: سياسة البطاقات نفسها (captureTime) —
+  // `HH:MM UTC` موسومة لطابع UTC صريح فقط؛ كان `Intl.DateTimeFormat` بلا `timeZone` يعرضه
+  // بتوقيت المتصفّح بلا منطقة ظاهرة فوق بطاقات بـUTC.
   const acquisitionLabel = (() => {
     if (!selectedScene) return null;
-    const iso = selectedScene.acquisition_datetime;
-    if (iso) {
-      const dt = new Date(iso);
-      if (!Number.isNaN(dt.getTime())) {
-        return new Intl.DateTimeFormat('ar', { dateStyle: 'medium', timeStyle: 'short' }).format(dt);
-      }
+    if (selectedScene.acquisition_datetime) {
+      return captureLabel(selectedScene.acquisition_datetime, selectedScene.date);
     }
     return selectedScene.date;
   })();
@@ -2553,13 +2551,16 @@ function MapHubCore() {
                                   مؤشّر محفوظ — فلا مصغّرة truecolor فارغة لتاريخ له مؤشّر
                                   تحليليّ فقط. تاريخ المزوّد المعلّق (has_cog=false) لم يعد
                                   يختفي: يعرض حالة «قيد المعالجة» بدل مساحة فارغة. */}
-                              {selected && (
+                              {selected && (() => {
+                                // T7: المنتَج نفسه يبني الرابط ويُوسَم على المصغّرة.
+                                const thumbIndex = d.indices?.includes('truecolor') ? 'truecolor' : (d.indices?.[0] ?? activeIndicator ?? 'ndvi');
+                                return (
                                 <ImageryTimelineThumb
                                   src={
                                     d.has_cog
                                       ? fieldCdseThumbnailUrl(
                                           selected.id,
-                                          d.indices?.includes('truecolor') ? 'truecolor' : (d.indices?.[0] ?? activeIndicator ?? 'ndvi'),
+                                          thumbIndex,
                                           d.date,
                                           tenantId ?? null,
                                           selected.geometry ?? null,
@@ -2571,8 +2572,10 @@ function MapHubCore() {
                                   date={d.date}
                                   borderColor={active ? '#22c55e66' : '#334155'}
                                   processing={historicalBackfillBusy}
+                                  product={thumbIndex}
                                 />
-                              )}
+                                );
+                              })()}
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-xs font-bold">{d.date}</span>
                                 {/* الساعة موسومة UTC صراحةً: التاريخ أعلاه مشتقّ من الطابع
