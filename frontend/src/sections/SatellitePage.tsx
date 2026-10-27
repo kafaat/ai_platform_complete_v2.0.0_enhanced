@@ -235,10 +235,6 @@ export default function SatellitePage() {
   }, [analyzeMsg]);
   const { mutateAsync: refreshImagery, isPending: refreshingImagery } = useRefreshFieldImagery();
 
-  // شبكة المؤشّر الحقيقيّة — لوسم مصدر البيانات بصدق (حقيقيّة / لا توجد بعد).
-  const { data: gridResp } = useIndicatorGrid(fieldId, gridIndex, 'latest');
-  const hasGrid = !!gridResp && gridResp.real_data && Array.isArray(gridResp.grid) && gridResp.grid.length > 0;
-
   // السلسلة الزمنيّة الحقيقيّة من raster-service (متوسّط المؤشّر لكلّ تاريخ COG).
   // صدق: لا COG ⇒ available=false (لا قيم مخترعة) — نُظهر حالة فارغة لا رسماً وهميّاً.
   const { data: rasterTs, isLoading: rasterTsLoading, isError: rasterTsError } =
@@ -384,6 +380,12 @@ export default function SatellitePage() {
   // طبقة الخريطة: التاريخ المختار إن وُجِد، وإلّا "latest" (سلوك سابق).
   const mapDate = selectedDate || 'latest';
 
+  // شبكة المؤشّر الحقيقيّة — لوسم مصدر البيانات بصدق (حقيقيّة / لا توجد بعد) ولشارة
+  // الحداثة. تُطلَب لنفس تاريخ البلاطات (mapDate) لا 'latest': وإلّا تصف الشارة شبكةً
+  // أخرى فتُحذّر زوراً على مشهد تاريخيّ صحيح، ولا تشهد شبكةُ الأحدث بتوفّر التاريخ المختار.
+  const { data: gridResp, isLoading: gridLoading } = useIndicatorGrid(fieldId, gridIndex, mapDate);
+  const hasGrid = !!gridResp && gridResp.real_data && Array.isArray(gridResp.grid) && gridResp.grid.length > 0;
+
   // مضلّع الحقل + إطار احتياطيّ للخريطة من هندسة/مركز الحقل الحقيقيّ.
   const fieldPolygon = field ? geomToPolygon(field.geometry) : undefined;
   const fallbackBounds: [number, number, number, number] | undefined =
@@ -483,7 +485,7 @@ export default function SatellitePage() {
         {/* Map column */}
         <div className="lg:col-span-3 space-y-3">
           {/* شريط مصدر البيانات: بلاطات حقيقيّة أم لا توجد بعد (صدق المصدر) */}
-          {mode !== 'truecolor' && (
+          {mode !== 'truecolor' && !gridLoading && (
             <div className="flex items-center gap-2 text-[11px] px-3 py-2 rounded-lg border"
               style={hasGrid
                 ? { background:'#13301f', borderColor:'#2d6a3e', color:'#9fe6b4' }

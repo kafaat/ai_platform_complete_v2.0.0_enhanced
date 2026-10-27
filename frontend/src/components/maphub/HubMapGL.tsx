@@ -502,12 +502,14 @@ export default function HubMapGL({
   }, [basemapId]);
 
   // ── طبقة المؤشّر تتفاعل مع indicatorId/selectedId/opacity ────────────
+  // preferPersistedCog يغيّر مسار البلاطات (/tiles ↔ /cdse-tiles) وحده دون تغيّر التاريخ
+  // (تصل تواريخ has_cog بعد التصيير الأوّل) — فهو تبعيّة كبقيّة مُدخَلات indicatorTileUrl.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !loadedRef.current) return;
     syncIndicator(map);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [indicatorId, selectedId, indicatorOpacity, fields, tenantId, imageryTs, imageryDate]);
+  }, [indicatorId, selectedId, indicatorOpacity, fields, tenantId, imageryTs, imageryDate, preferPersistedCog]);
 
   // ── طبقات التضاريس/التربة (تكافؤ Leaflet): بلاطات hillshade/slope/soil + كنتور +
   // نقاط عيّنات 🧪. يعتمد على basemapId كي يُعاد بناؤها بعد إعادة تحميل الأساس (لا تختفي).

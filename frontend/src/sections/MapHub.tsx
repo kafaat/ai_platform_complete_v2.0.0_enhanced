@@ -123,6 +123,7 @@ import HubMap, {
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
 import ImageryTimelineThumb from '../components/maphub/ImageryTimelineThumb';
 import { captureTime } from '../components/maphub/captureTime';
+import { dateHasPersistedCog } from '../components/maphub/persistedCog';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 import SceneProvenanceCard from '../components/maphub/SceneProvenanceCard';
 import type { DrawFeature } from '../components/maphub/drawing';
@@ -1028,27 +1029,10 @@ function MapHubCore() {
   const indicatorActive = mode === '2d' && !compare ? activeIndicator : null;
 
   // إصلاح «الطبقة الورديّة»: حين يكون للتاريخ المختار COG محفوظ للمؤشّر النشط نقرأ الطبقة
-  // المحفوظة من raster_assets عبر /tiles بدل تصيير CDSE الحيّ /cdse-tiles. نشترط إدراج
-  // المؤشّر صراحةً في indices (لا ارتداد «indices فارغة ⇒ نعم»): عند الشكّ نبقى على المسار
-  // الحيّ الذي يُصيّر دائماً. TrueColor يُحفَظ الآن كـCOG RGBA مثل المؤشرات؛ وsalinity
-  // تُحفَظ باسم NDSI. لا تبديل بلا مؤشّر نشط.
-  const _persistNeedle = indicatorActive
-    ? indicatorActive === 'salinity'
-      ? 'NDSI'
-      : indicatorActive.toUpperCase()
-    : null;
-  const _dateHasIndicatorCog = (d: { has_cog?: boolean; indices?: string[] }) =>
-    !!d.has_cog &&
-    !!_persistNeedle &&
-    Array.isArray(d.indices) &&
-    d.indices.some((i) => String(i).toUpperCase() === _persistNeedle);
-  const selectedDateHasCog = !_persistNeedle
-    ? false
-    : selectedImageryDate !== 'latest'
-      ? availableImageryDates.some(
-          (d) => d.date === selectedImageryDate && _dateHasIndicatorCog(d),
-        )
-      : availableImageryDates.some(_dateHasIndicatorCog);
+  // المحفوظة من raster_assets عبر /tiles بدل تصيير CDSE الحيّ /cdse-tiles. القاعدة (إدراج
+  // صريح في indices، salinity⇐NDSI، 'latest'⇐أيّ تاريخ محفوظ) في persistedCog.ts — نفس
+  // الدالّة تُشتقّ بها لوحتا المقارنة لكلّ (مؤشّر، تاريخ) فلا يتبدّل المصدر بين العرضين.
+  const selectedDateHasCog = dateHasPersistedCog(indicatorActive, selectedImageryDate, availableImageryDates);
 
   // المشهد المختار (لعرض تاريخ الالتقاط الحقيقيّ). عند 'latest' نعرض أحدث مشهد جاهز.
   const selectedScene =
@@ -2977,8 +2961,8 @@ function MapHubCore() {
                           ))}
                         </select>
                       }
-                      left={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} tenantId={tenantId} />}
-                      right={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={compareRightDate === 'latest' ? null : compareRightDate} tenantId={tenantId} />}
+                      left={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} preferPersistedCog={dateHasPersistedCog(leftLayer, selectedImageryDate, availableImageryDates)} tenantId={tenantId} />}
+                      right={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={compareRightDate === 'latest' ? null : compareRightDate} preferPersistedCog={dateHasPersistedCog(leftLayer, compareRightDate, availableImageryDates)} tenantId={tenantId} />}
                     />
                     <div className="text-[11px] mt-2" style={{ color: T.muted }}>
                       نفس المؤشّر ({LAYER_LEGEND[leftLayer]?.short ?? leftLayer}) بين تاريخَين مخزَّنَين — مقارنة زمنيّة حقيقيّة (للعرض فقط).
@@ -2989,8 +2973,8 @@ function MapHubCore() {
                     <SideBySide
                       leftLabel={<LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={leftLayer} onChange={setLeftLayer} />}
                       rightLabel={<LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={rightLayer} onChange={setRightLayer} />}
-                      left={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} tenantId={tenantId} />}
-                      right={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={rightLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} tenantId={tenantId} />}
+                      left={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} preferPersistedCog={dateHasPersistedCog(leftLayer, selectedImageryDate, availableImageryDates)} tenantId={tenantId} />}
+                      right={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={rightLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} preferPersistedCog={dateHasPersistedCog(rightLayer, selectedImageryDate, availableImageryDates)} tenantId={tenantId} />}
                     />
                     <div className="text-[11px] mt-2" style={{ color: T.muted }}>
                       طبقتان حقيقيّتان لنفس الحقل والتاريخ المختار — للموازنة البصريّة.
@@ -3198,11 +3182,14 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
   );
 }
 
+// preferPersistedCog: نفس قاعدة العرض المفرد (persistedCog.ts) مُشتقّةً لهذه اللوحة من
+// (مؤشّرها، تاريخها) — لوحة تاريخ له COG تقرأ /tiles المحفوظ لا CDSE الحيّ.
 function CompareMap({
-  fields, selectedId, basemapId, indicatorId, opacity, imageryTs, imageryDate, tenantId,
+  fields, selectedId, basemapId, indicatorId, opacity, imageryTs, imageryDate, tenantId, preferPersistedCog,
 }: {
   fields: ReturnType<typeof useSelectedField>['options'];
   selectedId: string; basemapId: string; indicatorId: string; opacity: number; imageryTs?: number; imageryDate?: string | null; tenantId?: string | null;
+  preferPersistedCog?: boolean;
 }) {
   const legend = indicatorId === RAW_IMAGERY_INDEX_ID ? undefined : LAYER_LEGEND[indicatorId];
   const cmap = INDICATOR_LAYERS.find((l) => l.id === indicatorId)?.cmap ?? 'ndvi';
@@ -3222,6 +3209,7 @@ function CompareMap({
         height={260}
         imageryTs={imageryTs ?? 0}
         imageryDate={imageryDate ?? null}
+        preferPersistedCog={preferPersistedCog ?? false}
         tenantId={tenantId ?? null}
       />
       {legend && (
