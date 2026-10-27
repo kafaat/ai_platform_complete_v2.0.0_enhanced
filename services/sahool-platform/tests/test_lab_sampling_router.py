@@ -210,3 +210,101 @@ def test_published_sample_correction_is_accepted_for_republication(monkeypatch):
         assert captured["correction_reason"] == "instrument recalibration"
     finally:
         app.dependency_overrides.clear()
+
+
+def _idempotency_harness(monkeypatch):
+    """Lab-sample router with a fake sample store and an in-memory command store."""
+    created = []
+    commands = {}
+
+    @asynccontextmanager
+    async def fake_tenant_connection(user):
+        yield object()
+
+    async def create_sample(conn, *, tenant_id, created_by, payload):
+        row = dict(payload)
+        row.update(
+            sample_id=f"s-{len(created) + 1}",
+            tenant_id=tenant_id,
+            created_by=created_by,
+            created_at=datetime(2026, 10, 26, tzinfo=UTC),
+        )
+        created.append(row)
+        return row
+
+    async def add_custody_event(*args, **kwargs):
+        return {"event_id": "e1"}
+
+    class FakeCommandStore:
+        def __init__(self, pool, conn=None):
+            pass
+
+        async def insert(self, cmd):
+            if cmd.command_id in commands:
+                return False
+            commands[cmd.command_id] = cmd
+            return True
+
+        async def get(self, command_id):
+            return commands.get(command_id)
+
+        async def mark_succeeded(self, command_id, result):
+            from api.command_store import CommandStatus
+
+            commands[command_id].status = CommandStatus.SUCCEEDED
+            commands[command_id].result = result
+
+    monkeypatch.setattr(mod, "tenant_connection", fake_tenant_connection)
+    # raising=False: على كودٍ لا يستورد الاسمين يُقاس السلوك (تنفيذٌ مكرَّر) لا خطأ التجهيز.
+    monkeypatch.setattr(mod, "CommandStore", FakeCommandStore, raising=False)
+    monkeypatch.setattr(mod, "get_pool", lambda: None, raising=False)
+    monkeypatch.setattr(mod.lab_store, "create_sample", create_sample)
+    monkeypatch.setattr(mod.lab_store, "add_custody_event", add_custody_event)
+    app = FastAPI()
+    app.include_router(mod.router)
+    app.dependency_overrides[get_current_user] = _user
+    return TestClient(app), created
+
+
+_SAMPLE = {
+    "field_id": "field-a",
+    "kind": "soil",
+    "latitude": 15.12,
+    "longitude": 44.22,
+    "depth_cm_from": 0,
+    "depth_cm_to": 30,
+    "status": "collected",
+}
+_REPLAY_ID = "6f1c2a6e-3c4b-4d9e-9a51-2a7b0c1d2e3f"
+
+
+def test_replayed_sample_with_the_same_key_creates_one_sample(monkeypatch):
+    c, created = _idempotency_harness(monkeypatch)
+    first = c.post("/api/v1/lab/samples", json=_SAMPLE, headers={"Idempotency-Key": _REPLAY_ID})
+    again = c.post("/api/v1/lab/samples", json=_SAMPLE, headers={"Idempotency-Key": _REPLAY_ID})
+    assert first.status_code == 200 and again.status_code == 200
+    assert len(created) == 1
+    assert again.json()["sample_id"] == first.json()["sample_id"] == "s-1"
+
+
+def test_same_key_with_a_different_sample_is_rejected(monkeypatch):
+    c, created = _idempotency_harness(monkeypatch)
+    c.post("/api/v1/lab/samples", json=_SAMPLE, headers={"Idempotency-Key": _REPLAY_ID})
+    other = dict(_SAMPLE, latitude=15.5)
+    resp = c.post("/api/v1/lab/samples", json=other, headers={"Idempotency-Key": _REPLAY_ID})
+    assert resp.status_code == 409
+    assert len(created) == 1
+
+
+def test_without_a_key_each_post_creates_a_sample(monkeypatch):
+    c, created = _idempotency_harness(monkeypatch)
+    c.post("/api/v1/lab/samples", json=_SAMPLE)
+    c.post("/api/v1/lab/samples", json=_SAMPLE)
+    assert len(created) == 2
+
+
+def test_a_malformed_key_is_rejected(monkeypatch):
+    c, created = _idempotency_harness(monkeypatch)
+    resp = c.post("/api/v1/lab/samples", json=_SAMPLE, headers={"Idempotency-Key": "not-a-uuid"})
+    assert resp.status_code == 400
+    assert created == []
