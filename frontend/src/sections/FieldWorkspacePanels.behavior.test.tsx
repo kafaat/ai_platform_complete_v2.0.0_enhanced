@@ -28,7 +28,10 @@ import FieldWorkspaceTimelinePanel from './FieldWorkspaceTimelinePanel';
 import FieldWorkspaceReportsPanel from './FieldWorkspaceReportsPanel';
 import FieldWorkspaceRecommendationsPanel from './FieldWorkspaceRecommendationsPanel';
 
-const ADVICE_KEY = ['field-workspace', 'f-1', 's-1', 'irrigation-advice'];
+// مفتاح النصيحة بلا موسم (UI-I1، df29e3407): المفتاح القديم بالموسم كان يبذر مدخلاً لا تقرؤه
+// اللوحة، فيسقط اختبار 503 ويمرّ اختبار 403 فراغاً.
+const ADVICE_KEY = ['field-workspace', 'f-1', 'irrigation-advice'];
+const SCHEDULES_KEY = ['field-workspace', 'f-1', 'irrigation-schedules'];
 const TASKS_KEY = ['field-workspace', 'f-1', 'tasks'];
 const TIMELINE_KEY = ['field-workspace', 'f-1', 's-1', 'unified-timeline'];
 
@@ -110,6 +113,61 @@ describe('UI-W6: cached timeline events after a failed refetch', () => {
     withClient([], <FieldWorkspaceTimelinePanel fieldId="f-1" seasonId="s-1" />);
     expect(await screen.findByText('ريّ مُسجَّل قديم')).toBeInTheDocument();
     expect(screen.queryByText(/بيانات قديمة غير محدَّثة/)).not.toBeInTheDocument();
+  });
+});
+
+describe('UI-W6: 401 and the panels the first cases left out', () => {
+  const ADVICE = { recommended_mm: 12.5, timing_ar: 'صباح الغد' };
+  const SCHEDULES = [{ schedule_id: 'sc1', name: 'جدول الفجر المخبّأ', start_time: '06:00', duration_min: 30, enabled: true }];
+  const AT = Date.UTC(2026, 9, 1, 6, 30);
+
+  function seededAt(seed: Array<[unknown[], unknown]>, ui: ReactNode) {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    for (const [key, data] of seed) client.setQueryData(key, data, { updatedAt: AT });
+    return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+  }
+
+  it('hides cached advice and schedules when the refetch is 401', async () => {
+    irrigation.advice.mockRejectedValue(httpError(401));
+    irrigation.schedules.mockReset().mockRejectedValue(httpError(401));
+    seededAt([[ADVICE_KEY, ADVICE], [SCHEDULES_KEY, SCHEDULES]], <FieldWorkspaceIrrigationPanel fieldId="f-1" seasonId="s-1" />);
+    expect(await screen.findAllByText('لا تملك صلاحية عرض بيانات الري')).toHaveLength(2);
+    expect(screen.queryByText('12.5')).not.toBeInTheDocument();
+    expect(screen.queryByText('جدول الفجر المخبّأ')).not.toBeInTheDocument();
+    expect(screen.queryByText(/بيانات قديمة غير محدَّثة/)).not.toBeInTheDocument();
+  });
+
+  it('marks cached schedules as stale on 503 with the time of the last successful fetch', async () => {
+    irrigation.advice.mockResolvedValue(ADVICE);
+    irrigation.schedules.mockReset().mockRejectedValue(httpError(503));
+    seededAt([[SCHEDULES_KEY, SCHEDULES]], <FieldWorkspaceIrrigationPanel fieldId="f-1" seasonId="s-1" />);
+    expect(await screen.findByText('جداول الري يعمل في وضع متدهور')).toBeInTheDocument();
+    expect(screen.getByText('جدول الفجر المخبّأ')).toBeInTheDocument();
+    const notes = screen.getAllByText(/بيانات قديمة غير محدَّثة/);
+    expect(notes).toHaveLength(1);
+    expect(notes[0].textContent).toContain(new Date(AT).toLocaleString('ar'));
+  });
+
+  it('marks cached tasks as stale on 503 and hides them on 401', async () => {
+    const CACHED = { tasks: [{ task_id: 't1', task_type: 'harvest', status: 'pending' }] };
+    tasks.get.mockRejectedValue(httpError(503));
+    seededAt([[TASKS_KEY, CACHED]], <FieldWorkspaceTasksPanel fieldId="f-1" />);
+    expect(await screen.findByText('مهام الحقل تعمل في وضع متدهور')).toBeInTheDocument();
+    expect(screen.getByRole('list')).toBeInTheDocument();
+    expect(screen.getByText(/بيانات قديمة غير محدَّثة/).textContent).toContain(new Date(AT).toLocaleString('ar'));
+    cleanup();
+    tasks.get.mockReset().mockRejectedValue(httpError(401));
+    seededAt([[TASKS_KEY, CACHED]], <FieldWorkspaceTasksPanel fieldId="f-1" />);
+    expect(await screen.findByText('لا تملك صلاحية عرض مهام الحقل')).toBeInTheDocument();
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+  });
+
+  it('hides cached timeline events when the refetch is 401', async () => {
+    timeline.get.mockRejectedValue(httpError(401));
+    seededAt([[TIMELINE_KEY, { events: [{ event_id: 'e1', event_type: 'irrigation', title_ar: 'حدث مخبّأ', occurred_at: '2026-10-01' }] }]],
+      <FieldWorkspaceTimelinePanel fieldId="f-1" seasonId="s-1" />);
+    expect(await screen.findByText('لا تملك صلاحية عرض خط الحقل الزمني')).toBeInTheDocument();
+    expect(screen.queryByText('حدث مخبّأ')).not.toBeInTheDocument();
   });
 });
 
