@@ -26,6 +26,8 @@ _HIGHER_IS_WORSE = {"salinity", "ndsi"}
 # تنبيه: بقيّة المؤشّرات تحمل الافتراض الموروث «الأدنى أسوأ»، ومنها مؤشّرات إجهاد/تربة
 # عارية (msi/cwsi/tvdi/lst/bsi/bi/bi2/dbsi/ndti/sipi) قد يكون اتّجاهها معكوساً —
 # تصحيحها قرار علميّ مفتوح، لا يُخمَّن هنا.
+# نسخة الحدود raster_api_models.canonical_change_index تطابق canonical_index (مفروض
+# باختبار) — الوحدتان ورقتان تُحمَّلان بمساريهما فلا تستورد إحداهما الأخرى.
 _LOWER_IS_WORSE = {
     "ndvi", "evi", "savi", "ndwi", "ndmi", "gndvi", "fapar", "vari", "gli", "tgi",
     "ndre", "reci", "gci", "arvi", "sipi", "nbr", "ccci", "msi", "msavi", "moisture",

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from change_detection import canonical_index
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -55,6 +54,27 @@ class IndicatorKind(StrEnum):
     vhi = "vhi"
     et_inputs = "et_inputs"
     truecolor = "truecolor"
+
+
+# S3-b: اسم مؤشّر كشف التغيّر على الحدود — مطابق لـchange_detection.canonical_index
+# (التطابق مفروض باختبار). لا يُستورَد منها: هذه الوحدة ورقة (stdlib + pydantic)
+# تحمّلها اختبارات بمسارها بلا مجلّد الخدمة على sys.path.
+_CHANGE_INDEX_ALIASES = {
+    "salt": "salinity",
+    "soil_salinity": "salinity",
+    "ndvu": "ndvi",
+    "vegetation": "ndvi",
+}
+_CHANGE_INDEXES = {k.value for k in IndicatorKind} - {"truecolor", "et_inputs"} | {"salinity"}
+
+
+def canonical_change_index(index: str | None) -> str:
+    """يطبّع اسم المؤشّر ويرفع ValueError («unknown_change_index») للمجهول."""
+    key = str(index or "").strip().lower().replace(" ", "_").replace("-", "_")
+    key = _CHANGE_INDEX_ALIASES.get(key, key)
+    if key not in _CHANGE_INDEXES:
+        raise ValueError(f"unknown_change_index: {index!r}")
+    return key
 
 
 class SourceFormat(StrEnum):
@@ -324,7 +344,7 @@ class ChangeDetectRequest(BaseModel):
     @field_validator("index")
     @classmethod
     def known_index(cls, value: str) -> str:
-        return canonical_index(value)
+        return canonical_change_index(value)
 
     @model_validator(mode="after")
     def aligned_spatial_support(self):
@@ -413,7 +433,7 @@ class FieldChangeRequest(BaseModel):
     @field_validator("index")
     @classmethod
     def known_index(cls, value: str) -> str:
-        return canonical_index(value)
+        return canonical_change_index(value)
 
 
 class SalinityClassifyRequest(BaseModel):

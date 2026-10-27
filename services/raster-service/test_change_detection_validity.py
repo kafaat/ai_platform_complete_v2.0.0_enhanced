@@ -157,3 +157,66 @@ def test_route_unknown_index_is_422_and_upper_case_salinity_degrades(monkeypatch
     assert ok.status_code == 200, ok.text
     assert ok.json()["degraded_pct"] == 100.0
     assert ok.json()["improved_pct"] == 0.0
+
+
+# ── raster_api_models تبقى وحدة ورقيّة (stdlib + pydantic) تُحمَّل بمسارها ──
+# tests_v9 تحمّلها بـspec_from_file_location بلا مجلّد الخدمة على sys.path؛ استيراد
+# change_detection منها جعل نجاحها رهن ترتيب الاختبارات على العامل نفسه.
+
+_LEAF_PROBE = """
+import importlib.util, sys
+from pydantic import ValidationError
+spec = importlib.util.spec_from_file_location("probe_models", sys.argv[1])
+m = importlib.util.module_from_spec(spec)
+sys.modules["probe_models"] = m
+spec.loader.exec_module(m)
+ident = {"crs": "EPSG:32638", "transform": [10, 0, 0, 0, -10, 0], "geometry_revision": 1,
+         "rows": 1, "cols": 1}
+req = m.ChangeDetectRequest(field_id="f", date_before="a", date_after="b", index="SALINITY",
+                            grid_before=[[0.1]], grid_after=[[0.5]],
+                            grid_before_identity=ident, grid_after_identity=ident)
+assert req.index == "salinity", req.index
+assert m.FieldChangeRequest(index=" NDVI ", date_a="a", date_b="b").index == "ndvi"
+try:
+    m.FieldChangeRequest(index="foo", date_a="a", date_b="b")
+except ValidationError as exc:
+    assert "unknown_change_index" in str(exc)
+else:
+    raise SystemExit("unknown index accepted")
+print("leaf-ok")
+"""
+
+
+def test_api_models_load_by_path_without_service_dir_on_sys_path(tmp_path):
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    models = Path(__file__).resolve().with_name("raster_api_models.py")
+    proc = subprocess.run(
+        [sys.executable, "-I", "-c", _LEAF_PROBE, str(models)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "leaf-ok" in proc.stdout
+
+
+@pytest.mark.parametrize(
+    "name",
+    sorted({k.value for k in IndicatorKind} | {"salinity", "salt", "soil_salinity", "ndvu"})
+    + ["vegetation", "SALINITY", " Ndsi ", "soil-salinity", "soil salinity", "foo", "", None],
+)
+def test_boundary_and_engine_canonicalise_identically(name):
+    import raster_api_models
+
+    def outcome(fn):
+        try:
+            return fn(name)
+        except ValueError as exc:
+            assert "unknown_change_index" in str(exc)
+            return "rejected"
+
+    assert outcome(raster_api_models.canonical_change_index) == outcome(cd.canonical_index)
