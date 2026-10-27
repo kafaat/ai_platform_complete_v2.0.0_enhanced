@@ -229,6 +229,9 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
         queue.pending(tenantId: tenantId, actorId: _actorId),
       );
       final failed = mine(queue.failed(tenantId: tenantId, actorId: _actorId));
+      // صفوف على الجهاز تعذّرت قراءتها: لا تُنسَب لحقل ولا تُرسَل، لكنّها ليست
+      // «لا شيء بانتظار الإرسال» — تُعرض عدداً.
+      final unreadable = queue.unreadableCount();
       body = ListView(
         padding: const EdgeInsetsDirectional.only(bottom: SahoolSpacing.xl),
         children: [
@@ -238,6 +241,20 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
               child: Text(
                 _openError!,
                 key: const ValueKey('field_forms_open_error'),
+                style: context.textStyles.bodyMedium?.copyWith(
+                  color: context.tokens.danger,
+                ),
+              ),
+            ),
+          if (unreadable > 0)
+            Padding(
+              padding: const EdgeInsets.all(SahoolSpacing.lg),
+              child: Text(
+                unreadable == 1
+                    ? 'إرسال محفوظ على الجهاز تعذّرت قراءته؛ لم يُرسَل ولم يُحذف.'
+                    : '$unreadable إرسالات محفوظة على الجهاز تعذّرت قراءتها؛ '
+                          'لم تُرسَل ولم تُحذف.',
+                key: const ValueKey('field_forms_unreadable'),
                 style: context.textStyles.bodyMedium?.copyWith(
                   color: context.tokens.danger,
                 ),

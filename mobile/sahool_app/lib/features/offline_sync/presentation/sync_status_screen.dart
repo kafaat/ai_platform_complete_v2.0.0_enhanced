@@ -157,6 +157,26 @@ class _Loaded extends StatelessWidget {
           ),
         ),
     ];
+    if (s.unreadable > 0) {
+      children.add(
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            SahoolSpacing.lg,
+            SahoolSpacing.sm,
+            SahoolSpacing.lg,
+            0,
+          ),
+          child: Text(
+            '${s.unreadable} عمليّة محفوظة على هذا الجهاز تعذّرت قراءتها '
+            '(تالفة أو من إصدار أحدث للتطبيق)؛ لم تُرسَل ولم تُحذف.',
+            key: const ValueKey('sync-unreadable'),
+            style: context.textStyles.bodySmall?.copyWith(
+              color: context.tokens.danger,
+            ),
+          ),
+        ),
+      );
+    }
     if (state.isEmpty) {
       children.add(
         const Padding(

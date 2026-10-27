@@ -85,6 +85,24 @@ void main() {
     },
   );
 
+  test('an undecodable row stays on disk and is counted, never hidden '
+      '(UI-S2)', () async {
+    var store = await HiveOutboxStore.openEncrypted();
+    await store.put(_record(1));
+    await Hive.box<String>(HiveOutboxStore.boxName).put('future', '{"v":9');
+    await store.close();
+    store = await HiveOutboxStore.openEncrypted();
+    expect(store.records.map((r) => r.id), ['r1']);
+    expect(store.unreadableCount, 1);
+    expect(Hive.box<String>(HiveOutboxStore.boxName).get('future'), '{"v":9');
+    final outbox = DurableOfflineOutbox(
+      openStore: () async => store,
+      currentOwner: () => const OutboxOwner(userId: 'alice', tenantId: 't1'),
+    );
+    await outbox.ensureOpen();
+    expect(outbox.snapshot().unreadable, 1);
+  });
+
   test(
     'lost key with an existing box ⇒ explicit failure, box untouched',
     () async {
