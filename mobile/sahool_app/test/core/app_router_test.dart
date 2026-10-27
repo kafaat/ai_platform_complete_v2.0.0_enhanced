@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
 import 'package:sahool_app/core/routing/app_route.dart';
@@ -13,6 +14,9 @@ import 'package:sahool_app/core/routing/route_pages.dart';
 import 'package:sahool_app/core/routing/shell_destinations.dart';
 import 'package:sahool_app/core/session/session_scope.dart';
 import 'package:sahool_app/features/more/presentation/more_screen.dart';
+import 'package:sahool_app/services/auth_service.dart';
+
+import 'fake_http.dart';
 
 AppRoute page(String path, {Set<AppRole>? roles, MenuEntry? menu}) => AppRoute(
       path: path,
@@ -153,6 +157,49 @@ void main() {
     unawaited(nav.pushNamed('/login'));
     await t.pumpAndSettle();
     expect(find.text('page:/login'), findsOneWidget);
+  });
+
+  // UI-C3 (مراجعة): الافتراضيّ يحكم بالجلسة القابلة للاستئناف لا بصلاحية رمز
+  // الوصول. رمز الوصول (60 دقيقة) لا يُجدَّد بمؤقّت بل عند أوّل نداء REST، فبعد
+  // ساعة خمول تكون الجلسة حيّة برمز التحديث بينما isAuthenticated = false؛ كان كلّ
+  // مسار خاصّ يعرض «سجّل الدخول» وإجراؤه يعيد إلى AuthGate التي تُبقي الغلاف.
+  group('default session check (AuthService)', () {
+    tearDown(() => AuthService.instance.clearAuth());
+
+    Future<void> pushSeasons(WidgetTester t) async {
+      final router = AppRouter(
+        features: [FeatureModule(id: 's', routes: [page('/seasons')])],
+        role: () => AppRole.viewer,
+      );
+      await t.pumpWidget(MaterialApp(
+        onGenerateRoute: router.onGenerateRoute,
+        home: const Text('root'),
+      ));
+      unawaited(
+          t.state<NavigatorState>(find.byType(Navigator)).pushNamed('/seasons'));
+      await t.pumpAndSettle();
+    }
+
+    testWidgets('an expired access token with a refresh token keeps the page',
+        (t) async {
+      FlutterSecureStorage.setMockInitialValues({
+        'access_token': fakeJwt(const Duration(minutes: -5)),
+        'refresh_token': 'r-1',
+      });
+      await AuthService.instance.loadSaved();
+      expect(AuthService.instance.isAuthenticated, isFalse);
+      await pushSeasons(t);
+      expect(find.byType(SignInRequiredPage), findsNothing);
+      expect(find.text('page:/seasons:'), findsOneWidget);
+    });
+
+    testWidgets('no saved tokens still fails closed', (t) async {
+      FlutterSecureStorage.setMockInitialValues({});
+      await AuthService.instance.loadSaved();
+      await pushSeasons(t);
+      expect(find.byType(SignInRequiredPage), findsOneWidget);
+      expect(find.textContaining('page:'), findsNothing);
+    });
   });
 
   testWidgets('unknown routes show a not-found page, not a blank screen',

@@ -85,8 +85,12 @@ class AppRouter {
     bool Function()? isAuthenticated,
   }) : features = List.unmodifiable(features),
        _role = role ?? (() => normalizeRole(currentRole())),
+       // الجلسة القابلة للاستئناف لا صلاحية رمز الوصول: الرمز (60 دقيقة) يُجدَّد
+       // عند أوّل نداء REST لا بمؤقّت، فبعد خمول ساعة يكون منتهياً والجلسة حيّة
+       // برمز التحديث. البوّابة هنا تمنع رابطاً عميقاً بلا جلسة؛ رفض التحديث يمرّ
+       // عبر ApiClient.onSessionExpired ⇒ AuthGate ⇒ شاشة الدخول.
        _isAuthenticated =
-           isAuthenticated ?? (() => AuthService.instance.isAuthenticated) {
+           isAuthenticated ?? (() => AuthService.instance.canResumeSession) {
     for (final f in features) {
       for (final r in f.routes) {
         for (final name in [r.path, ...r.aliases]) {
