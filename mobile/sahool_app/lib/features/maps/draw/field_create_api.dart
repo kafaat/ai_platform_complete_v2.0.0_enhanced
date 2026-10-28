@@ -69,10 +69,17 @@ class FieldCreateApi {
   Future<Map<String, dynamic>> createField(
     FieldCreateDraft draft, {
     required IdempotencyKey idempotencyKey,
+  }) => createFieldPayload(draft.toJson(), idempotencyKey: idempotencyKey);
+
+  /// الإرسال بحمولة محفوظة كما هي (سجلّ العمليّات المعلّقة يعيد الحمولة الأصليّة
+  /// نفسها، لا مسودّة النموذج الحاليّة).
+  Future<Map<String, dynamic>> createFieldPayload(
+    Map<String, dynamic> payload, {
+    required IdempotencyKey idempotencyKey,
   }) async => asJsonMap(
     await _client.post(
       '/api/v1/fields',
-      data: draft.toJson(),
+      data: payload,
       idempotencyKey: idempotencyKey,
     ),
   );

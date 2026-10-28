@@ -61,7 +61,17 @@ def find_field_layer(
     if not candidates:
         return None
     if date and date != "latest":
-        dated = [c for c in candidates if (c.get("acquisition_date") or "").startswith(date)]
+        # T4 (acq-provenance): الطبقة في الذاكرة تحمل طابع الالتقاط الخام (قد يحمل إزاحة
+        # منطقة)، و available-dates يعرض يومه بـUTC — نقارن يوم UTC للطرفين لا بادئة النصّ،
+        # وإلّا لم يجد اليومُ المعروض طبقتَه. تاريخ غير صالح ⇒ لا تطابق (صارم).
+        from raster_available_dates import utc_day
+
+        wanted = utc_day(date)
+        dated = [
+            c
+            for c in candidates
+            if wanted is not None and utc_day(c.get("acquisition_date")) == wanted
+        ]
         if not dated:
             return None
         candidates = dated
@@ -123,6 +133,8 @@ def grid_from_cog(
                 }
             if src.nodata is not None:
                 arr = np.where(arr == src.nodata, np.nan, arr)
+            # إحصاء الحقل من بكسلات المصدر الصالحة، لا من خلايا العرض المُصغَّرة (T8).
+            field_stats = ig.source_pixel_stats(src)
             if src.crs is not None:
                 bbox = list(transform_bounds(src.crs, "EPSG:4326", *src.bounds))
             else:
@@ -132,7 +144,7 @@ def grid_from_cog(
 
     if not np.isfinite(arr).any():
         return None  # a historical all-nodata COG is not an observation
-    part = ig.grid_from_array(arr, index, grid)
+    part = ig.grid_from_array(arr, index, grid, field_stats=field_stats)
     result = {
         "field_id": layer.get("field_id") or "",
         "index": index,
@@ -143,7 +155,10 @@ def grid_from_cog(
         "grid": part["grid"],
         "grid_identity": grid_identity,
         "stats": part["stats"],
+        "stats_basis": part["stats_basis"],
+        "grid_stats": part["grid_stats"],
         "zones": part["zones"],
+        "severity_supported": part["severity_supported"],
         "source": layer.get("source_format") or "raster",
         "real_data": True,
         "cloud_pct": layer.get("cloud_pct"),
@@ -379,3 +394,50 @@ async def real_field_grid(
     if layer is None:
         return None
     return grid_from_cog(layer, index, date, grid, object_store_module)
+
+
+def field_change_refusal(
+    grid_a: dict[str, Any], grid_b: dict[str, Any], *, date_a: str, date_b: str
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    """بوّابة قابليّة المقارنة لشبكتي ``/v1/fields/{field_id}/change`` قبل أيّ طرح.
+
+    تساوي rows/cols لا يُثبت أنّ الخلايا تقابل الأرض نفسها، ولا يُطرح رصدٌ رفضته بوّابة
+    جودته. يُعاد استعمال عقد ``/v1/change/detect`` (``ChangeGridIdentity`` +
+    ``change_grid_alignment_error``: CRS + affine + geometry_revision + الأبعاد) وتُفحص بوّابة
+    كلّ جانب (``eligible_observation_product``). يُرجِع ``(refusal, None)`` بحمولة
+    ``not_assessable`` بلا أرقام تغيّر، أو ``(None, identity)`` بالهويّة المشتركة.
+    """
+    from pydantic import ValidationError
+    from raster_api_models import ChangeGridIdentity, change_grid_alignment_error
+    from raster_indicator_product import eligible_observation_product
+
+    sides = ((date_a, grid_a), (date_b, grid_b))
+    quality_failed = [d for d, g in sides if eligible_observation_product(g) is None]
+    reasons = ["change_grid_quality_gate_failed"] if quality_failed else []
+    identities: list[ChangeGridIdentity] = []
+    for _, g in sides:
+        if g.get("grid_identity") is None:
+            reasons.append("change_grid_spatial_identity_required")
+            break
+        try:
+            identities.append(ChangeGridIdentity.model_validate(g["grid_identity"]))
+        except ValidationError:
+            reasons.append("change_grid_spatial_identity_invalid")
+            break
+    else:
+        error = change_grid_alignment_error(*identities, grid_a["grid"], grid_b["grid"])
+        if error:
+            reasons.append(error)
+    if not reasons:
+        return None, identities[0].model_dump(mode="json")
+    return {
+        "date_a": grid_a.get("date", date_a),
+        "date_b": grid_b.get("date", date_b),
+        "real_data": False,
+        "available": False,
+        "status": "not_assessable",
+        "reason_codes": reasons,
+        "quality_failed_dates": quality_failed,
+        "note": "شبكتا التاريخين غير قابلتين للمقارنة (محاذاة مكانيّة/نسخة هندسة غير مُثبَتة "
+        "أو بوّابة جودة مرفوضة) — لا تغيّر مُفبرَك",
+    }, None

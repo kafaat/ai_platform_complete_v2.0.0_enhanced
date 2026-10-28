@@ -9,6 +9,14 @@
 أيّ جانب بأمان (لا انهيار). الحُكم الإجماليّ (verdict_ar) يُشتقّ حتميّاً من الغلّة وكفاءة
 استخدام الماء (غلّة أعلى = أفضل؛ كفاءة ماء أعلى = أفضل).
 
+حدود قابليّة المقارنة (صدق علميّ):
+  • محصولان مختلفان (طماطم 40 ط/هـ مقابل قمح 4 ط/هـ) ليسا «+900% تحسّن» ⇒ نتيجة
+    ``comparable=False`` بلا مقاييس ولا حكم أداء. التطابق بعد تطبيع حالة الأحرف/المسافات
+    فقط (بلا جدول مرادفات — «قمح» و«wheat» يُعامَلان مختلفَين: رفضٌ محافظ لا تخمين).
+  • الغلّة بالطنّ/هكتار لكنّ ``water_used_m3`` حجم كلّيّ: مضاعفته قد تعني مضاعفة المساحة
+    لا هدراً. لذا يُوصَف الماء الكلّيّ بلا حكم (better=None)، ولا يدخل الحكم إلّا
+    ``water_m3_per_ha`` المُطبَّع حين تتوفّر ``area_ha`` على الجانبين.
+
 نقيّ تماماً: لا I/O، لا عشوائيّة، stdlib + dataclasses فقط (بلا numpy).
 """
 
@@ -21,11 +29,17 @@ from dataclasses import dataclass, fields
 _HIGHER_IS_BETTER = {
     "kc_mid": None,  # محايد (وصفيّ، لا يُحكَم به)
     "yield_t_ha": True,  # غلّة أعلى أفضل
-    "water_used_m3": False,  # ماء أكثر أسوأ (لنفس الغلّة)
+    # حجم كلّيّ (م³) يتبع المساحة المزروعة ⇒ وصفيّ لا يُحكَم به (انظر water_m3_per_ha).
+    "water_used_m3": None,
     "ndvi_peak": True,  # خضرة ذروة أعلى أفضل
     "et0_total_mm": None,  # محايد (طقس، خارج التحكّم)
     "water_use_efficiency": True,  # كفاءة ماء أعلى أفضل
+    # مُشتقّ: الماء للهكتار (م³/هـ) — يُحسَب فقط حين تتوفّر area_ha على الجانبين.
+    "water_m3_per_ha": False,  # ماء أكثر للهكتار أسوأ (لنفس الغلّة)
 }
+
+# حقول ليست مقاييس تُقارَن مباشرةً (هويّة الموسم + المساحة المُستعمَلة للتطبيع).
+_NON_METRIC_FIELDS = ("season_id", "crop_id", "area_ha")
 
 # عتبة اعتبار التغيّر «ثابتاً» (flat) — تجنّب ضجيج الفاصلة العائمة.
 _FLAT_EPS = 1e-9
@@ -43,6 +57,19 @@ class SeasonMetrics:
     ndvi_peak: float | None = None
     et0_total_mm: float | None = None
     water_use_efficiency: float | None = None
+    area_ha: float | None = None  # المساحة المزروعة (هـ) — لتطبيع الماء الكلّيّ إلى م³/هـ
+
+
+def _crop_key(crop_id: str | None) -> str:
+    """مفتاح مقارنة المحصول: تطبيع المسافات وحالة الأحرف فقط (لا مرادفات مُخمَّنة)."""
+    return " ".join(str(crop_id or "").split()).casefold()
+
+
+def _water_per_ha(m: SeasonMetrics) -> float | None:
+    """الماء للهكتار (م³/هـ) إن توفّر الماء الكلّيّ ومساحة موجبة؛ وإلّا None (لا تلفيق)."""
+    if m.water_used_m3 is None or m.area_ha is None or m.area_ha <= 0:
+        return None
+    return round(float(m.water_used_m3) / float(m.area_ha), 6)
 
 
 def _direction(delta: float) -> str:
@@ -100,11 +127,12 @@ def _verdict(metrics: dict) -> str:
             score -= 1
             signals.append("كفاءة ماء أسوأ")
 
-    # ماء أكثر إشارة تراجع فقط إن لم تتحسّن الغلّة (أكثر ماء لنفس/أقلّ غلّة).
-    w = metrics.get("water_used_m3")
+    # ماء أكثر **للهكتار** إشارة تراجع فقط إن لم تتحسّن الغلّة (أكثر ماء لنفس/أقلّ غلّة).
+    # الحجم الكلّيّ (water_used_m3) لا يُحكَم به: مضاعفته قد تعكس مضاعفة المساحة فقط.
+    w = metrics.get("water_m3_per_ha")
     if w is not None and w["direction"] == "up" and (y is None or y["direction"] != "up"):
         score -= 1
-        signals.append("استهلاك ماء أعلى دون زيادة غلّة")
+        signals.append("استهلاك ماء أعلى للهكتار دون زيادة غلّة")
 
     if not signals:
         return "غير حاسم: لا تتوفّر مقاييس كافية للحكم (الغلّة/الكفاءة)."
@@ -123,16 +151,41 @@ def compare_seasons(current: SeasonMetrics, previous: SeasonMetrics) -> dict:
     لكلّ مقياس عدديّ متوفّر على **الجانبين**: القيمتان والفرق المطلق ونسبة التغيّر
     (None إن كان السابق None/صفر) والاتّجاه (up/down/flat). تُتجاهَل المقاييس الناقصة
     على أيّ جانب بأمان. الحكم (verdict_ar) يُشتقّ حتميّاً من الغلّة + كفاءة استخدام الماء.
+
+    محصولان مختلفان ⇒ ``comparable=False`` (reason=crop_mismatch) بلا مقاييس ولا حكم أداء.
     """
+    base = {
+        "current_season_id": current.season_id,
+        "previous_season_id": previous.season_id,
+        "crop_id": current.crop_id,
+        "previous_crop_id": previous.crop_id,
+    }
+    if _crop_key(current.crop_id) != _crop_key(previous.crop_id):
+        return {
+            **base,
+            "comparable": False,
+            "not_comparable_reason": "crop_mismatch",
+            "metrics": {},
+            "skipped_metrics": list(_HIGHER_IS_BETTER),
+            "verdict_ar": (
+                f"غير قابل للمقارنة: محصولان مختلفان ({current.crop_id} مقابل "
+                f"{previous.crop_id}) — الغلّة والماء لا يُقارَنان عبر محاصيل مختلفة؛ "
+                "قارن موسمين لنفس المحصول."
+            ),
+        }
+
     metrics: dict = {}
     skipped: list[str] = []
 
-    for f in fields(SeasonMetrics):
-        name = f.name
-        if name in ("season_id", "crop_id"):
-            continue
-        cur = getattr(current, name)
-        prev = getattr(previous, name)
+    # القيم الخام (كما وُرِدت) + المُشتقّ المُطبَّع بالمساحة (م³/هـ) حين يتوفّر.
+    pairs: list[tuple[str, float | None, float | None]] = [
+        (f.name, getattr(current, f.name), getattr(previous, f.name))
+        for f in fields(SeasonMetrics)
+        if f.name not in _NON_METRIC_FIELDS
+    ]
+    pairs.append(("water_m3_per_ha", _water_per_ha(current), _water_per_ha(previous)))
+
+    for name, cur, prev in pairs:
         if cur is None or prev is None:
             skipped.append(name)
             continue
@@ -148,9 +201,9 @@ def compare_seasons(current: SeasonMetrics, previous: SeasonMetrics) -> dict:
         metrics[name] = entry
 
     return {
-        "current_season_id": current.season_id,
-        "previous_season_id": previous.season_id,
-        "crop_id": current.crop_id,
+        **base,
+        "comparable": True,
+        "not_comparable_reason": None,
         "metrics": metrics,
         "skipped_metrics": skipped,
         "verdict_ar": _verdict(metrics),

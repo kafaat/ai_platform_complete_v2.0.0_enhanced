@@ -22,6 +22,7 @@ import {
 import { useSelectedField } from '../hooks/useSelectedField';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { LineChartCard, BarChartCard, ChartShell } from '../components/ds';
+import { gridSeverityColor } from '../lib/indicatorGridSeverity';
 
 const PRIORITY_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
   high:   { bg: '#3f1d1d', fg: '#f87171', label: 'عالية' },
@@ -62,13 +63,13 @@ export default function AnalyticsPage() {
   [seasQ.data]);
 
   // ── الرطوبة: متوسّط NDMI لكلّ منطقة شدّة من الشبكة البكسليّة الحقيقيّة ──
+  // severity = شدّة المشكلة (NDMI منخفض ⇒ high) لا كمّيّة الرطوبة: high أحمر، low أخضر.
   const moistureData = useMemo(() => {
     const zones = moistQ.data?.zones ?? [];
-    const sevColor: Record<string, string> = { low: '#dc2626', medium: '#ca8a04', high: '#16a34a' };
     return zones.map((z, i) => ({
       zone: `منطقة ${i + 1}`,
       value: +(z.mean ?? 0).toFixed(3),
-      color: sevColor[z.severity] ?? '#65a30d',
+      color: gridSeverityColor(z.severity),
     }));
   }, [moistQ.data]);
 

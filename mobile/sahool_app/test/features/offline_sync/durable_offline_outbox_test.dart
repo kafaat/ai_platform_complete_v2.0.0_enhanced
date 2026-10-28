@@ -85,6 +85,40 @@ void main() {
       expect(outbox.snapshot().failure?.failure, OutboxStoreFailure.keyStorage);
     });
 
+    test('same key with a different payload is refused, not reported queued '
+        '(UI-S4)', () async {
+      final h = Harness();
+      final o = op('/api/v1/tasks/1', body: {'status': 'done'});
+      expect((await h.outbox.enqueue(o)).queued, isTrue);
+      final changed = op(
+        '/api/v1/tasks/1',
+        body: {'status': 'blocked'},
+        key: o.idempotencyKey,
+      );
+      final r = await h.outbox.enqueue(changed);
+      expect(r.queued, isFalse);
+      expect(h.store.records.single.op.body, {'status': 'done'});
+      final otherPath = op('/api/v1/tasks/2', key: o.idempotencyKey);
+      expect((await h.outbox.enqueue(otherPath)).queued, isFalse);
+    });
+
+    test('same key of a rejected op is not reported queued (UI-S4)', () async {
+      final h = Harness();
+      final o = op('/api/v1/tasks/1');
+      await h.outbox.enqueue(o);
+      final r0 = h.store.records.single;
+      await h.store.put(
+        r0.copyWith(
+          state: OutboxRecordState.rejected,
+          rejectedStatus: 422,
+          rejectedMessageAr: 'm',
+        ),
+      );
+      final r = await h.outbox.enqueue(o);
+      expect(r.queued, isFalse);
+      expect(h.store.records.single.isRejected, isTrue);
+    });
+
     test('same idempotency key for the same owner is stored once', () async {
       final h = Harness();
       final o = op('/api/v1/tasks/1');
@@ -379,6 +413,42 @@ void main() {
         expect(s.pending.map((r) => r.op.path), ['/b']);
         expect(s.rejected.map((r) => r.op.path), ['/c']);
         expect(s.rejected.single.rejectedMessageAr, 'يوجد حقل بالاسم نفسه.');
+      },
+    );
+
+    test(
+      'D4 409 reasons: in_progress keeps the op; payload_mismatch is rejected '
+      'with the server text',
+      () async {
+        const mismatch =
+            'هذه العملية أُرسلت سابقاً بنفس المعرّف. استعِد نتيجة المحاولة '
+            'السابقة أولاً، ولا تُنشئ سجلاً جديداً.';
+        final h = Harness(
+          handler: (o) async => switch (o.path) {
+            '/b' => const FakeReply(409, {
+              'detail': {
+                'code': 'idempotency_conflict',
+                'reason': 'in_progress',
+                'message_ar':
+                    'المحاولة السابقة بنفس المعرّف ما زالت قيد المعالجة',
+              },
+            }),
+            _ => const FakeReply(409, {
+              'detail': {
+                'code': 'idempotency_conflict',
+                'reason': 'payload_mismatch',
+                'message_ar': mismatch,
+              },
+            }),
+          },
+        );
+        await h.outbox.enqueue(op('/b', method: 'POST', fieldId: 'x'));
+        await h.outbox.enqueue(op('/c', method: 'POST'));
+        await h.outbox.drain();
+        final s = h.outbox.snapshot();
+        expect(s.pending.map((r) => r.op.path), ['/b']);
+        expect(s.rejected.map((r) => r.op.path), ['/c']);
+        expect(s.rejected.single.rejectedMessageAr, mismatch);
       },
     );
 

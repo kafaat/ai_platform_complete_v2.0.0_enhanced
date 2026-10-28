@@ -59,6 +59,13 @@ set -a; source "$ENV_FILE"; set +a 2>/dev/null || true
     log "JWT_SECRET ✓"
 }
 
+check_env_drift() {
+    # استشاريّ: مفاتيح في .env.example غائبة عن .env (أسماءٌ فقط، بلا قيم) — لا يوقف الإقلاع.
+    command -v python3 &>/dev/null || return 0
+    python3 "$PROD_DIR/scripts/check_local_env_drift.py" \
+        --env "$ENV_FILE" --example "$PROD_DIR/.env.example" || true
+}
+
 wait_for() {
     local url=$1 name=$2 max=${3:-80}
     echo -n "  ⏳ $name"
@@ -165,6 +172,7 @@ case "${1:-start}" in
     start|*)
         [[ -f "$ENV_FILE" ]] || { warn ".env غير موجود"; setup; }
         check_jwt
+        check_env_drift
         start_backend
         start_frontend_dev
         print_summary

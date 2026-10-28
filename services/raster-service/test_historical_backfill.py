@@ -349,5 +349,8 @@ def test_available_dates_merges_aoi_quality_and_applies_one_timeline_window(monk
     assert first["aoi_cloud_pct"] == 5 and first["clear_pct"] == 95
     assert first["quality_label"] == "high" and first["has_cog"] is True
     assert first["scene_id"] == "stored-scene"
-    assert first["acquisition_datetime"] == "2026-10-15T07:30:00Z"
+    # T1 (acq-provenance): وقت عنصر الكتالوج "provider" لا يُلصَق بمشهد "stored-scene"؛
+    # الأصل المُدَام بلا وقت التقاط مُسجَّل ⇒ None صادقة، والمساهمان معدودان.
+    assert first["acquisition_datetime"] is None
+    assert first["contributors"] == 2
     assert second["has_cog"] is False and second["aoi_cloud_pct"] is None

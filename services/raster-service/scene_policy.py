@@ -7,6 +7,7 @@ module. ``main.py`` re-exports the public helpers for backwards compatibility.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
@@ -66,16 +67,48 @@ NDVI_PULL_MIN_SPACING_DAYS = 3.0
 NDVI_PULL_TARGET_SPACING_DAYS = 5.0
 
 
-def scene_cloud_pct(scene: dict | Any) -> float | None:
-    d = scene_to_dict(scene)
-    props = d.get("properties") or {}
-    value = d.get("aoi_cloud_pct")
-    if value is None:
-        value = d.get("cloud_cover_pct", props.get("eo:cloud_cover", props.get("cloud_cover")))
-    try:
-        return max(0.0, min(100.0, float(value))) if value is not None else None
-    except Exception:  # noqa: BLE001
+def parse_cloud_cover_pct(value: Any) -> float | None:
+    """يحلّل نسبة غيوم **مئويّة** [0, 100] (``eo:cloud_cover`` في امتداد STAC eo).
+
+    لا تحويل وحدات ضمنيّ: القيمة نسبة مئويّة لا كسر [0, 1]. وما ليس عدداً منتهياً داخل
+    المدى (غياب · نصّ تالف · ``NaN`` · ``±Infinity`` · سالب · فوق ١٠٠ · ``bool``) يُرجِع
+    ``None`` = **مجهول** — لا يُقصّ إلى حدّ ولا يصير صفراً (RS-01 · EXTRA-1).
+    """
+    if value is None or isinstance(value, bool):
         return None
+    try:
+        pct = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(pct) or not 0.0 <= pct <= 100.0:
+        return None
+    return pct
+
+
+def _scene_cloud(d: dict) -> tuple[float | None, str]:
+    """(نسبة الغيوم، مصدرها): ``aoi_cloud_pct`` · ``scene_cloud_pct`` · ``unknown`` · ``invalid``.
+
+    قياس AOI مستقلّ عن بيانات المشهد الوصفيّة فيُقدَّم إن صحّ. و``cloud_cover_known=False``
+    يُحترَم: سجلّات قديمة/مُدامة حملت ``cloud_cover_pct=0.0`` بجانبه، وذلك الصفر مختلَق
+    لا مقيس — فلا يُقرأ «صافياً ١٠٠٪» (RS-01). و``invalid`` (قيمة حاضرة تالفة) غير
+    ``unknown`` (غائبة): مرآة ``cdse_client._apply_cloud_filter`` الصارم — الغائب يُقبَل
+    مجهولاً، والتالف يُرفَض من الأهليّة.
+    """
+    aoi = parse_cloud_cover_pct(d.get("aoi_cloud_pct"))
+    if aoi is not None:
+        return aoi, "aoi_cloud_pct"
+    if d.get("cloud_cover_known") is False:
+        return None, "unknown"
+    props = d.get("properties") or {}
+    for raw in (d.get("cloud_cover_pct"), props.get("eo:cloud_cover"), props.get("cloud_cover")):
+        if raw is not None:
+            pct = parse_cloud_cover_pct(raw)
+            return (pct, "scene_cloud_pct") if pct is not None else (None, "invalid")
+    return None, "unknown"
+
+
+def scene_cloud_pct(scene: dict | Any) -> float | None:
+    return _scene_cloud(scene_to_dict(scene))[0]
 
 
 def scene_clear_pct(scene: dict | Any) -> float | None:
@@ -109,17 +142,12 @@ def scene_quality_score(
     """Rank satellite scenes using production-safe, explainable weights."""
     d = scene_to_dict(scene)
     props = d.get("properties") or {}
-    cloud = d.get("aoi_cloud_pct")
-    cloud_source = "aoi_cloud_pct"
-    if cloud is None:
-        cloud = d.get("cloud_cover_pct", props.get("eo:cloud_cover", props.get("cloud_cover")))
-        cloud_source = "scene_cloud_pct"
-    try:
-        cloud = float(cloud) if cloud is not None else 100.0
-    except Exception:
-        cloud = 100.0
-    cloud = max(0.0, min(100.0, cloud))
-    cloud_score = max(0.0, 1.0 - (cloud / max(float(max_cloud_pct), 1.0)))
+    cloud, cloud_source = _scene_cloud(d)
+    # المجهول يُرتَّب تشاؤميّاً (كغيوم ١٠٠٪) ولا يُعلَن رقماً: ``cloud_pct=None`` و
+    # ``cloud_known=False`` — فلا يسبق مشهداً مقيساً مقبولاً ولا يُوسَم صافياً.
+    cloud_score = (
+        max(0.0, 1.0 - (cloud / max(float(max_cloud_pct), 1.0))) if cloud is not None else 0.0
+    )
 
     now = now or datetime.now(UTC)
     dt = scene_datetime(scene)
@@ -160,7 +188,8 @@ def scene_quality_score(
     score = max(0.0, min(1.0, score))
     return {
         "score": round(score, 4),
-        "cloud_pct": round(cloud, 3),
+        "cloud_pct": round(cloud, 3) if cloud is not None else None,
+        "cloud_known": cloud is not None,
         "cloud_source": cloud_source,
         "age_days": round(age_days, 2) if age_days is not None else None,
         "coverage_score": round(coverage_score, 4),
@@ -292,10 +321,10 @@ def select_scene(
         if dt is None:
             # تاريخ اكتساب غير صالح ⇒ لا يفوز أبداً. «الأحدث» بلا زمنٍ موثوق لا معنى له.
             continue
-        cloud = scene_cloud_pct(scene)
-        if cloud is not None and cloud > float(max_cloud_pct):
-            continue
         d = scene_to_dict(scene)
+        cloud, cloud_source = _scene_cloud(d)
+        if cloud_source == "invalid" or (cloud is not None and cloud > float(max_cloud_pct)):
+            continue
         # كسرُ التعادل حتميّ ومُعلَن: الأنظف أوّلاً، ثمّ المعرّف نصّيّاً. بدونه يقرّر
         # ترتيبُ المزوّد — وهو غير موثَّق ولا مضمون الثبات بين طلبين.
         eligible.append((dt, cloud if cloud is not None else 101.0, _scene_identity(d) or "", d))
@@ -310,15 +339,8 @@ def _to_selected(scene: dict | Any, policy: SceneSelectionPolicy) -> SelectedSce
     dt = scene_datetime(scene)
     if dt is None:
         return None
-    cloud = scene_cloud_pct(scene)
     d = scene_to_dict(scene)
-    props = d.get("properties") or {}
-    if d.get("aoi_cloud_pct") is not None:
-        cloud_source = "aoi_cloud_pct"
-    elif d.get("cloud_cover_pct") is not None or props.get("eo:cloud_cover") is not None:
-        cloud_source = "scene_cloud_pct"
-    else:
-        cloud_source = "unknown"
+    cloud, cloud_source = _scene_cloud(d)
     iso = dt.isoformat().replace("+00:00", "Z")
     return SelectedScene(
         scene_id=_scene_identity(d),
@@ -351,8 +373,8 @@ def select_backfill_scenes_by_policy(
 
     eligible: list[dict] = []
     for item in ranked:
-        cloud = scene_cloud_pct(item)
-        if cloud is not None and cloud > effective_max_cloud:
+        cloud, cloud_source = _scene_cloud(item)
+        if cloud_source == "invalid" or (cloud is not None and cloud > effective_max_cloud):
             continue
         clear = scene_clear_pct(item)
         item["clear_pct"] = round(clear, 3) if clear is not None else None

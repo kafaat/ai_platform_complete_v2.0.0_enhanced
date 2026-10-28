@@ -32,11 +32,15 @@ async def process_raster(
 ):
     raster_security_context.require_service_token(x_agent_token)
     """يبدأ معالجة مؤشّر (خلفيّة — لا يحجب الطلب). يُرجع job_id للاستعلام."""
+    # P3-AUTH: مالك المهمّة (رأس≠جسم ⇒ 403) يُحسَم قبل أيّ كتابة.
+    owner = raster_security_context.job_owner_tenant(req.tenant_id)
     if not req.raster_url:
         raise HTTPException(400, "raster_url مطلوب (ارفع الراستر أوّلاً).")
     job_id = f"job_{uuid.uuid4().hex[:12]}"
     j = {
         "job_id": job_id,
+        # P3-AUTH: المهمّة تُربط بمستأجِرها فتُفرَض الملكيّة على قراءة الحالة/النتيجة.
+        "tenant_id": owner,
         "status": api_models.JobStatus.pending,
         "progress_pct": 0,
         "created_at": datetime.now(UTC).isoformat(),
@@ -90,6 +94,9 @@ async def process_batch(
         raise HTTPException(400, "raster_url مطلوب (ارفع الراستر أوّلاً).")
     if not req.indicators:
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
+    # P3-AUTH: قبل الحجز — مفتاح الدفعة يُبنى من tenant_id الجسم، فرأسٌ مخالف كان يحجز
+    # مفتاح مستأجِر آخر لمهمّةٍ لا يقرؤها (404) حتّى انقضاء الحجز.
+    owner = raster_security_context.job_owner_tenant(req.tenant_id)
     claim_key = indicator_batch_claim.batch_claim_key(req)
     proposed_job_id = f"batch_{claim_key[4:16]}"
     durable = await raster_batch_job_store.claim_or_recover(
@@ -142,6 +149,7 @@ async def process_batch(
         job_id,
         {
             "job_id": job_id,
+            "tenant_id": owner,
             "status": api_models.JobStatus.pending,
             "progress_pct": 0,
             "created_at": datetime.now(UTC).isoformat(),

@@ -103,7 +103,9 @@ def _calls_guard_before_read(path: Path, func_name: str) -> bool:
             rendered = ast.unparse(node.func)
             if rendered.endswith("assert_readable_size") and guard_line is None:
                 guard_line = node.lineno
-            if rendered.endswith(".read") and read_line is None:
+            # ``rasterio.mask.mask`` (المستورَد ``_rio_mask``) يقرأ المجموعة كاملةً أيضاً.
+            allocates = rendered.endswith(".read") or rendered == "_rio_mask"
+            if allocates and read_line is None:
                 read_line = node.lineno
     return guard_line is not None and read_line is not None and guard_line < read_line
 
@@ -114,13 +116,23 @@ def test_the_truecolor_path_checks_before_it_allocates():
     )
 
 
+def test_the_scalar_precomputed_path_checks_before_it_allocates():
+    """EXTRA-10: النظير العدديّ لمسار truecolor يقرأ النطاق كاملاً على الرابط الحرّ نفسه."""
+    assert _calls_guard_before_read(PIXEL, "process_precomputed_pixels"), (
+        "الفحص لا يسبق القراءة في المسار العدديّ — حارسٌ بعد التخصيص لا يمنع شيئاً"
+    )
+
+
 def test_the_uint8_polygon_mask_checks_before_it_allocates():
-    name = next(
+    names = [
         node.name
         for node in ast.walk(ast.parse(TILE.read_text(encoding="utf-8")))
         if isinstance(node, ast.FunctionDef) and "assert_readable_size" in ast.unparse(node)
-    )
-    assert _calls_guard_before_read(TILE, name)
+    ]
+    # الحارس على نظيرَي القناع كليهما (uint8 وEXTRA-10: العدديّ float)، وكلٌّ قبل قراءته.
+    assert {"apply_polygon_mask_rgba", "apply_polygon_mask"} <= set(names), names
+    for name in names:
+        assert _calls_guard_before_read(TILE, name), name
 
 
 def test_the_ceiling_is_declared_data_not_a_literal_at_the_call_site():

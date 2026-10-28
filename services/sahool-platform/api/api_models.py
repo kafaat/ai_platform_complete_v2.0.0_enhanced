@@ -109,6 +109,7 @@ class TaskListResponse(BaseModel):
     """
 
     tasks: list[TaskSummary]
+    irrigation_observations: list[dict] | None = None
     total: int | None = None
     limit: int | None = None
     next_cursor: str | None = None

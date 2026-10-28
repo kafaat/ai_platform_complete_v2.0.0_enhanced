@@ -229,6 +229,9 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
         queue.pending(tenantId: tenantId, actorId: _actorId),
       );
       final failed = mine(queue.failed(tenantId: tenantId, actorId: _actorId));
+      // صفوف على الجهاز تعذّرت قراءتها: لا تُنسَب لحقل ولا تُرسَل، لكنّها ليست
+      // «لا شيء بانتظار الإرسال» — تُعرض عدداً.
+      final unreadable = queue.unreadableCount();
       body = ListView(
         padding: const EdgeInsetsDirectional.only(bottom: SahoolSpacing.xl),
         children: [
@@ -243,10 +246,25 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
                 ),
               ),
             ),
+          if (unreadable > 0)
+            Padding(
+              padding: const EdgeInsets.all(SahoolSpacing.lg),
+              child: Text(
+                unreadable == 1
+                    ? 'إرسال محفوظ على الجهاز تعذّرت قراءته؛ لم يُرسَل ولم يُحذف.'
+                    : '$unreadable إرسالات محفوظة على الجهاز تعذّرت قراءتها؛ '
+                          'لم تُرسَل ولم تُحذف.',
+                key: const ValueKey('field_forms_unreadable'),
+                style: context.textStyles.bodyMedium?.copyWith(
+                  color: context.tokens.danger,
+                ),
+              ),
+            ),
           if (pending.isNotEmpty)
             _QueueNote(
               key: const ValueKey('field_forms_pending'),
               count: pending.length,
+              outcomeUnknown: pending.where((i) => i.outcomeUnknown).length,
             ),
           if (failed.isNotEmpty) ...[
             const ListSectionHeader('لم يُقبل'),
@@ -303,8 +321,11 @@ class _FieldFormsListScreenState extends State<FieldFormsListScreen> {
 
 /// تنبيه بعدد الإرسالات المحفوظة على الجهاز بانتظار الاتصال.
 class _QueueNote extends StatelessWidget {
-  const _QueueNote({super.key, required this.count});
+  const _QueueNote({super.key, required this.count, this.outcomeUnknown = 0});
   final int count;
+
+  /// منها ما ربّما وصل الخادم ولم يصل تأكيده — لا يُقال عنه «بانتظار الاتصال» فقط.
+  final int outcomeUnknown;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -315,11 +336,25 @@ class _QueueNote extends StatelessWidget {
           Icon(Icons.cloud_upload_outlined, color: context.tokens.warning),
           const SizedBox(width: SahoolSpacing.md),
           Expanded(
-            child: Text(
-              count == 1
-                  ? 'إرسال واحد محفوظ على الجهاز بانتظار الاتصال.'
-                  : '$count إرسالات محفوظة على الجهاز بانتظار الاتصال.',
-              style: context.textStyles.bodyMedium,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  count == 1
+                      ? 'إرسال واحد محفوظ على الجهاز بانتظار الاتصال.'
+                      : '$count إرسالات محفوظة على الجهاز بانتظار الاتصال.',
+                  style: context.textStyles.bodyMedium,
+                ),
+                if (outcomeUnknown > 0)
+                  Text(
+                    'نتيجة $outcomeUnknown منها غير مؤكَّدة: ربّما وصلت ولم '
+                    'يصل تأكيدها، وتُطابَق تلقائيّاً بالمعرّف نفسه.',
+                    key: const ValueKey('field_forms_outcome_unknown'),
+                    style: context.textStyles.bodySmall?.copyWith(
+                      color: context.tokens.warning,
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

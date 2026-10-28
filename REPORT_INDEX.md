@@ -38,6 +38,7 @@ This index identifies the current release-candidate evidence and separates it fr
 
 - `docs/runbooks/ALIBABA_PYPI_MIRROR.md` — present
 - `docs/runbooks/EDGE_MODEL_PROVISIONING_CHECKLIST.md` — present
+- `docs/runbooks/MIGRATION_FREEZE_GATES_RUNBOOK_20261027.md` — present
 - `docs/runbooks/WEATHER_REDIS_INTEGRATION.md` — present
 
 ## Historical reports

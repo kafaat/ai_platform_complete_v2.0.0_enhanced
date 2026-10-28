@@ -104,6 +104,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/AddFieldWithMap.shapefileImport.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/AddFieldWithMap.tsx",
     "kind": "web"
   },
@@ -282,6 +286,14 @@
   {
     "path": "frontend/src/components/fieldhealth/DateScrubber.grouping.test.ts",
     "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/fieldhealth/timelineByDay.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/fieldhealth/timelineByDay.ts",
+    "kind": "web"
   },
   {
     "path": "frontend/src/components/fieldsetup/FieldSetupWizard.tsx",
@@ -464,6 +476,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/maphub/HubMap.pinMode.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/HubMapGL.test.tsx",
     "kind": "web"
   },
@@ -478,10 +494,6 @@
   {
     "path": "frontend/src/components/maphub/ImageryDateWiring.static.test.ts",
     "kind": "tests"
-  },
-  {
-    "path": "frontend/src/components/maphub/ImageryTimelineThumb.test.tsx",
-    "kind": "web"
   },
   {
     "path": "frontend/src/components/maphub/ImageryTimelineThumb.tsx",
@@ -549,6 +561,10 @@
   },
   {
     "path": "frontend/src/components/maphub/drawing/DrawingCore.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/DrawingGeometryRegression.test.ts",
     "kind": "tests"
   },
   {
@@ -1176,6 +1192,18 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/indicatorGridGeo.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/indicatorGridGeo.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/indicatorGridSeverity.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/irrigationEngineering.test.ts",
     "kind": "tests"
   },
@@ -1333,6 +1361,18 @@
   },
   {
     "path": "frontend/src/lib/sqlHistory.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/taskIrrigationObservation.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/taskIrrigationObservation.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/taskTypeLabels.ts",
     "kind": "web"
   },
   {
@@ -1508,6 +1548,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/FieldManagementPage.editArea.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldManagementPage.saveRetry.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/FieldTasksCabin.tsx",
     "kind": "web"
   },
@@ -1528,6 +1576,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/FieldWorkspacePanels.behavior.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/FieldWorkspacePriorityPanel.tsx",
     "kind": "web"
   },
@@ -1545,6 +1597,10 @@
   },
   {
     "path": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceStaleNote.tsx",
     "kind": "web"
   },
   {
@@ -1732,6 +1788,18 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/sections/TaskIrrigationObservationPanel.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/TaskIrrigationObservationPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/ThumbnailRecordBinding.static.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/sections/UnifiedCabin.tsx",
     "kind": "web"
   },
@@ -1757,6 +1825,10 @@
   },
   {
     "path": "frontend/src/sections/fieldWorkspaceContract.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/fieldWorkspaceStaleData.ts",
     "kind": "web"
   },
   {
@@ -1861,6 +1933,14 @@
   },
   {
     "path": "frontend/src/services/api/remoteSensingWorkspace.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/taskIrrigationObservations.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/api/taskIrrigationObservations.ts",
     "kind": "web"
   },
   {
@@ -2213,6 +2293,10 @@
   },
   {
     "path": "mobile/sahool_app/lib/core/network/response_shape.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/network/retry_schedule.dart",
     "kind": "mobile"
   },
   {
@@ -2960,6 +3044,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/features/tasks/data/irrigation_observations_api.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/features/tasks/data/offline_write.dart",
     "kind": "mobile"
   },
@@ -2973,6 +3061,10 @@
   },
   {
     "path": "mobile/sahool_app/lib/features/tasks/presentation/complete_task_sheet.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/irrigation_observations_screen.dart",
     "kind": "mobile"
   },
   {
@@ -3248,6 +3340,22 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/test/core/local_commit_server.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/session_refresh_route_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/session_settle_route_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/session_store_generation_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/test/core/ws_event_test.dart",
     "kind": "tests"
   },
@@ -3388,6 +3496,10 @@
     "kind": "tests"
   },
   {
+    "path": "mobile/sahool_app/test/features/maps/draw/field_save_reconcile_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/test/features/maps/draw/geo_measure_test.dart",
     "kind": "tests"
   },
@@ -3457,6 +3569,10 @@
   },
   {
     "path": "mobile/sahool_app/test/features/realtime/realtime_screen_layout_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
     "kind": "tests"
   },
   {
@@ -4192,10 +4308,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/indicators-service/tests/test_indicators_service_honest_boundary.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/indicators-service/tests/test_indicators_service_static_route_smoke.py",
     "kind": "tests"
   },
@@ -4388,6 +4500,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/raster_http_policy.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/raster_indicator_product.py",
     "kind": "backend"
   },
@@ -4476,6 +4592,14 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_container_healthcheck_status.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_field_change_alignment.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_imagery_source_gate.py",
     "kind": "tests"
   },
@@ -4485,6 +4609,10 @@
   },
   {
     "path": "services/raster-service/test_object_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_precomputed_scalar_read_size_guard.py",
     "kind": "tests"
   },
   {
@@ -4545,6 +4673,10 @@
   },
   {
     "path": "services/raster-service/test_soil_render.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_storage_lifecycle_upload.py",
     "kind": "tests"
   },
   {
@@ -5061,6 +5193,10 @@
   },
   {
     "path": "services/sahool-platform/api/irrigation_network.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_observations.py",
     "kind": "backend"
   },
   {
@@ -5637,6 +5773,10 @@
   },
   {
     "path": "services/sahool-platform/api/sync_delta.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/task_irrigation_observations.py",
     "kind": "backend"
   },
   {
@@ -7452,6 +7592,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_task_irrigation_observations.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_terroir_index.py",
     "kind": "tests"
   },
@@ -8696,6 +8840,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_check_local_env_drift.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ci_check_name_identity.py",
     "kind": "tests"
   },
@@ -9365,6 +9513,10 @@
   },
   {
     "path": "tests_v9/test_irrigation_network_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrigation_observations.py",
     "kind": "tests"
   },
   {
@@ -10225,6 +10377,10 @@
   },
   {
     "path": "tests_v9/test_s3_compose_slice_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_s3_endpoint_error_hints.py",
     "kind": "tests"
   },
   {

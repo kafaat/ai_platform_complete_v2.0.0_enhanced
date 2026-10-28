@@ -9,8 +9,14 @@
 //     (ويحرسه test/core/app_router_test.dart).
 //   • روابط عميقة: '/fields/workspace?field_id=f1' ⇒ RouteArgs.query.
 //   • أدوار: مسار بـallowedRoles لا يُفتح لغير أهله (صفحة «لا صلاحيّة» صادقة).
+//   • جلسة: مسار غير عامّ لا يُبنى بلا جلسة مصادَقة (رابط عميق قبل الدخول ⇒
+//     صفحة «سجّل الدخول»)؛ الدور وحده لا يكفي لأنّ غياب الجلسة يُطبَّع إلى viewer.
+//     يُحكم بعد حسم الجلسة (استعادة القرص + تجديد جارٍ) لا قبله، وفشل الشبكة
+//     أثناء التجديد «غير معروف» لا رفض: رمز التحديث يبقى فتبقى الجلسة قابلة
+//     للاستئناف حتّى يرفضها الخادم صراحةً.
 //   • «المزيد»: [menuFor] يبني القائمة من MenuEntry في ملفّات المسارات.
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/network/api_client.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
 import 'package:sahool_app/core/session/session_scope.dart';
 import 'package:sahool_app/features/activities/activities_routes.dart';
@@ -40,6 +46,7 @@ import 'package:sahool_app/features/satellite/satellite_routes.dart';
 import 'package:sahool_app/features/scouting/scouting_routes.dart';
 import 'package:sahool_app/features/tasks/tasks_routes.dart';
 import 'package:sahool_app/features/weather/weather_routes.dart';
+import 'package:sahool_app/services/auth_service.dart';
 
 import 'app_route.dart';
 import 'route_pages.dart';
@@ -76,9 +83,25 @@ final List<FeatureModule> allFeatures = [
 ];
 
 class AppRouter {
-  AppRouter({required List<FeatureModule> features, AppRole Function()? role})
-    : features = List.unmodifiable(features),
-      _role = role ?? (() => normalizeRole(currentRole())) {
+  AppRouter({
+    required List<FeatureModule> features,
+    AppRole Function()? role,
+    bool Function()? isAuthenticated,
+    Future<void>? Function()? sessionPending,
+  }) : features = List.unmodifiable(features),
+       // حسم الجلسة: استعادتها من القرص ثمّ أيّ تجديد جارٍ لها. مسار خاصّ يُفتح
+       // قبل الحسم ينتظره ولا يحكم على جلسة لم تُقرأ. الحاقن لـisAuthenticated
+       // (الاختبارات) يملك الحكم كاملاً فلا انتظار افتراضيّ له.
+       _sessionPending =
+           sessionPending ??
+           (isAuthenticated == null ? _defaultSessionPending : _settled),
+       _role = role ?? (() => normalizeRole(currentRole())),
+       // الجلسة القابلة للاستئناف لا صلاحية رمز الوصول: الرمز (60 دقيقة) يُجدَّد
+       // عند أوّل نداء REST لا بمؤقّت، فبعد خمول ساعة يكون منتهياً والجلسة حيّة
+       // برمز التحديث. البوّابة هنا تمنع رابطاً عميقاً بلا جلسة؛ رفض التحديث يمرّ
+       // عبر ApiClient.onSessionExpired ⇒ AuthGate ⇒ شاشة الدخول.
+       _isAuthenticated =
+           isAuthenticated ?? (() => AuthService.instance.canResumeSession) {
     for (final f in features) {
       for (final r in f.routes) {
         for (final name in [r.path, ...r.aliases]) {
@@ -101,7 +124,14 @@ class AppRouter {
 
   final List<FeatureModule> features;
   final AppRole Function() _role;
+  final bool Function() _isAuthenticated;
+  final Future<void>? Function() _sessionPending;
   final Map<String, AppRoute> _table = {};
+
+  static Future<void>? _settled() => null;
+
+  static Future<void>? _defaultSessionPending() =>
+      AuthService.instance.pendingRestore ?? ApiClient.instance.pendingRefresh;
   final Map<String, String> _owner = {};
 
   AppRole get role => _role();
@@ -143,13 +173,28 @@ class AppRouter {
         ? const <String, String>{}
         : Uri.parse(name).queryParameters;
     final args = RouteArgs(query: query, extra: settings.arguments);
-    final allowed = route.public || route.allows(role);
+    // غير العامّ يتطلّب جلسة أوّلاً (رابط عميق قبل الدخول)، ثمّ الدور.
+    WidgetBuilder decide() {
+      final signedIn = route.public || _isAuthenticated();
+      final allowed = route.public || route.allows(role);
+      return (context) => !signedIn
+          ? SignInRequiredPage(title: route.titleAr)
+          : allowed
+          ? route.builder(context, args)
+          : AccessDeniedPage(title: route.titleAr);
+    }
+
+    final pending = route.public ? null : _sessionPending();
     return MaterialPageRoute<dynamic>(
       settings: settings,
       fullscreenDialog: route.fullscreenDialog,
-      builder: (context) => allowed
-          ? route.builder(context, args)
-          : AccessDeniedPage(title: route.titleAr),
+      builder: pending == null
+          ? decide()
+          : (context) => SessionPendingPage(
+              title: route.titleAr,
+              pending: pending,
+              resolve: decide,
+            ),
     );
   }
 

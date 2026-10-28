@@ -173,6 +173,29 @@ async def _real_field_grid(field_id: str, index: str, date: str, grid: int) -> d
 
 
 # Tile cache helpers.
+def _sample_index_pixel(src, lon: float, lat: float) -> float | None:
+    """قيمة بكسل المؤشّر عند (lon, lat) بـEPSG:4326 من راستر مفتوح، أو None إن لم تصلح.
+
+    ``IndexError`` إن وقعت النقطة خارج الراستر. ``masked=True``: القناع الداخليّ للبيانات
+    يُبطل البكسل كما يُبطله nodata — بدونه تُرجَع قيمة بكسل مخفيّ كأنّها صالحة (T10).
+    """
+    import math
+
+    import numpy as np
+    from rasterio.warp import transform
+
+    xs, ys = [lon], [lat]
+    if src.crs and str(src.crs).upper() not in ("EPSG:4326", "OGC:CRS84"):
+        xs, ys = transform("EPSG:4326", src.crs, xs, ys)
+    row, col = src.index(xs[0], ys[0])
+    if row < 0 or col < 0 or row >= src.height or col >= src.width:
+        raise IndexError("point outside raster")
+    value = next(src.sample([(xs[0], ys[0])], masked=True))[0]
+    if value is np.ma.masked or (src.nodata is not None and value == src.nodata):
+        return None
+    return float(value) if math.isfinite(float(value)) else None
+
+
 def _tile_cache_enabled() -> bool:
     return os.getenv("TILE_CACHE_ENABLED", "true").lower() == "true"
 

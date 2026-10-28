@@ -7,8 +7,10 @@ import 'package:sahool_app/features/maps/draw/field_create_api.dart';
 import 'package:sahool_app/features/maps/draw/field_create_errors.dart';
 import 'package:sahool_app/features/maps/draw/field_created_events.dart';
 import 'package:sahool_app/features/maps/draw/field_save_cubit.dart';
+import 'package:sahool_app/features/offline_sync/data/operation_ledger.dart';
 
 import '../../../core/fake_http.dart';
+import '../../offline_sync/operation_test_support.dart';
 
 const _geometry = {
   'type': 'Polygon',
@@ -30,14 +32,13 @@ const _created = {
 };
 
 FieldSaveCubit _cubit(FakeAdapter adapter, {ResponseCache? cache}) {
-  final client = testClient(
-    adapter,
-    MemoryTokenStore(accessToken: fakeJwt(const Duration(hours: 1))),
-  );
+  final tokens = MemoryTokenStore(accessToken: jwtFor('alice'));
+  final client = testClient(adapter, tokens);
   return FieldSaveCubit(
     createApi: FieldCreateApi(client),
     fieldsApi: FieldsApi(client),
     cache: cache ?? ResponseCache(),
+    ledger: ledgerFor(tokens, MemoryOperationStore(), client: client),
   );
 }
 
@@ -52,7 +53,8 @@ const _draft = FieldCreateDraft(
 
 void main() {
   test(
-    'retry after a timeout reuses the same Idempotency-Key and succeeds',
+    'a timeout leaves the outcome unknown; saving the same draft recovers '
+    'with the same Idempotency-Key',
     () async {
       var calls = 0;
       final adapter = FakeAdapter((o) async {
@@ -67,10 +69,8 @@ void main() {
       final cubit = _cubit(adapter);
 
       await cubit.save(_draft);
-      expect(cubit.state, isA<FieldSaveFailed>());
-      final failed = cubit.state as FieldSaveFailed;
-      expect(failed.view.retrySafe, isTrue);
-      expect(failed.view.messageAr, contains('لن يُنشأ الحقل مرّتين'));
+      final u = cubit.state as FieldSaveUnconfirmed;
+      expect(u.outcome.messageAr, kOperationUnknownAr);
 
       await cubit.save(_draft);
       expect(cubit.state, isA<FieldSaveDone>());
@@ -83,6 +83,62 @@ void main() {
       expect(k1, isA<String>());
       expect(k1, isNotEmpty);
       expect(k2, k1, reason: 'المفتاح ثابت للنيّة كي يعيد الخادم الحقل نفسه');
+      await cubit.close();
+    },
+  );
+
+  test(
+    'UI-M3 (D1): an edited draft after an unknown outcome is NOT sent and '
+    'does NOT mint a new key; recovery returns the committed field and '
+    'shows the edit',
+    () async {
+      // دلالة `_idempotent` لـfield.create: مفتاح معروف ⇒ النتيجة المخزّنة.
+      final committed = <String, Map<String, dynamic>>{};
+      var calls = 0;
+      final adapter = FakeAdapter((o) async {
+        if (o.path != '/api/v1/fields') {
+          return const FakeReply(404, {'detail': 'x'});
+        }
+        calls++;
+        final key = o.headers['Idempotency-Key'] as String;
+        final body = o.data as Map;
+        final result = committed.putIfAbsent(
+          key,
+          () => {'field_id': 'fld_${committed.length + 1}', 'name_ar': body['name']},
+        );
+        // أوّل محاولة: التزم الخادم لكن ضاع الردّ (نتيجة مجهولة).
+        return calls == 1
+            ? const FakeReply.fail(DioExceptionType.receiveTimeout)
+            : FakeReply(201, result);
+      });
+      final cubit = _cubit(adapter);
+
+      await cubit.save(_draft);
+      expect(cubit.state, isA<FieldSaveUnconfirmed>());
+      // عدّل المستخدم الاسم ثمّ أعاد الحفظ ⇒ مسودّة فقط، لا طلب، لا مفتاح جديد.
+      const edited = FieldCreateDraft(
+        name: 'الحقل الغربيّ',
+        geometry: _geometry,
+        farmId: 'farm_1',
+        crop: 'wheat',
+        irrigationType: 'drip',
+        boundarySource: 'manual',
+      );
+      await cubit.save(edited);
+      expect(adapter.to('/api/v1/fields'), hasLength(1));
+      expect(cubit.state, isA<FieldSaveUnconfirmed>());
+
+      await cubit.recover(draft: edited);
+      final keys = adapter
+          .to('/api/v1/fields')
+          .map((r) => r.headers['Idempotency-Key'])
+          .toSet();
+      expect(keys, hasLength(1), reason: 'لا مفتاح جديد');
+      expect(committed, hasLength(1), reason: 'حقل واحد على الخادم');
+      final done = cubit.state as FieldSaveDone;
+      expect(done.field['name_ar'], 'الحقل الشرقيّ');
+      expect(done.pendingEdits.single.key, 'name');
+      expect(done.pendingEdits.single.after, 'الحقل الغربيّ');
       await cubit.close();
     },
   );

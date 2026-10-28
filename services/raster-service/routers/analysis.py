@@ -87,7 +87,7 @@ async def change_detect(req: ChangeDetectRequest, x_agent_token: str = Header(No
             "field_id": req.field_id,
             "date_before": req.date_before,
             "date_after": req.date_after,
-            "status": "assessed",
+            # status من detect_change: not_assessable إن لم تبقَ خليّة صالحة مشتركة (S3-a).
             "grid_identity": req.grid_before_identity.model_dump(mode="json"),
         }
     )

@@ -9,24 +9,29 @@ const root = process.cwd();
 const mapHub = readFileSync(join(root, 'src/sections/MapHub.tsx'), 'utf8');
 const hubMap = readFileSync(join(root, 'src/components/maphub/HubMap.tsx'), 'utf8');
 const hubMapGL = readFileSync(join(root, 'src/components/maphub/HubMapGL.tsx'), 'utf8');
+// القاعدة نفسها انتقلت إلى وحدة نقيّة مشتركة بين العرض المفرد ولوحتَي المقارنة (P2-FE-1).
+const persistedCog = readFileSync(join(root, 'src/components/maphub/persistedCog.ts'), 'utf8');
 
 describe('MapHub uses persisted COG tiles when the selected date has a COG', () => {
   it('MapHub derives selectedDateHasCog and passes preferPersistedCog to both engines', () => {
     expect(mapHub).toContain('selectedDateHasCog');
     expect(mapHub).toContain('preferPersistedCog={selectedDateHasCog}');
     // القرار يعتمد has_cog من التواريخ المتاحة (لا تخمين).
-    expect(mapHub).toContain('availableImageryDates.some');
-    expect(mapHub).toContain('d.has_cog');
+    expect(mapHub).toContain(
+      'dateHasPersistedCog(indicatorActive, selectedImageryDate, availableImageryDates)',
+    );
+    expect(persistedCog).toContain('dates.some');
+    expect(persistedCog).toContain('d.has_cog');
   });
 
   it('requires explicit indicator COG in indices (keeps TrueColor + unpersisted indices on live path)', () => {
     // نشترط إدراج المؤشّر صراحةً في indices — لا ارتداد «indices فارغة ⇒ نعم». TrueColor
     // لا يُحفَظ كـCOG فلن يُدرَج ⇒ يبقى على /cdse-tiles الحيّ (تبديله ⇒ بلاطة شفّافة).
-    expect(mapHub).toContain('_dateHasIndicatorCog');
-    expect(mapHub).toContain('String(i).toUpperCase() === _persistNeedle');
+    expect(persistedCog).toContain('hasIndicatorCog');
+    expect(persistedCog).toContain('String(i).toUpperCase() === needle');
     // salinity محفوظ باسم NDSI (تعيين المؤشّر النشط → اسم COG المخزَّن).
-    expect(mapHub).toContain("indicatorActive === 'salinity'");
-    expect(mapHub).toContain("'NDSI'");
+    expect(persistedCog).toContain("indicatorId === 'salinity'");
+    expect(persistedCog).toContain("'NDSI'");
   });
 
   it('both map engines switch endpoint by preferPersistedCog (/tiles vs /cdse-tiles)', () => {

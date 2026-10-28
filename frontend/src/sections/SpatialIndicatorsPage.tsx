@@ -6,6 +6,7 @@ import {
 import FieldIndicatorMap from "../components/FieldIndicatorMap";
 import { GradientScale, SegmentedScale, type ScaleBand } from "../components/insights/ScaleLegend";
 import FieldSelector from "../components/FieldSelector";
+import { zoneSamplePoint } from "../lib/indicatorGridGeo";
 import { useSelectedField } from "../hooks/useSelectedField";
 
 // ════════════════════════════════════════════════════════════
@@ -46,6 +47,7 @@ type Zone = {
   id: string;
   lon: string; lat: string; pixels: number; meanVal: string;
   fieldMean: string; severity: keyof typeof SEV_AR; comp: number[][];
+  approx?: boolean; // الإحداثيّة من استيفاء bbox (لا تحويل شبكة) ⇒ تُوسَم «≈»
 };
 
 // ── محاكاة احتياطيّة (تُستخدم فقط عند تعذّر البيانات الحقيقيّة) ─────────────
@@ -125,20 +127,18 @@ function detectZones(grid: Grid, indexKey: IndexKey, rows: number, cols: number,
   }).sort((a, b) => b.pixels - a.pixels);
 }
 
-// تحويل zones القادمة من الـ backend إلى الشكل المعروض
+// تحويل zones القادمة من الـ backend إلى الشكل المعروض.
+// نقطة العيّنة (📍) = مركز خليّة **صالحة** من خلايا المنطقة نفسها (الأقرب لمتوسّط مواضعها)،
+// محسوبة بتحويل الشبكة grid_identity لا باستيفاء bbox — متوسّط خلايا متفرّقة قد يقع في
+// خليّة بلا بيانات، وbbox غلاف مُحوَّل لا يعكس شبكة مُدارة/مُسقَطة. بلا هويّة ⇒ تقريبيّ (≈).
 function mapApiZones(resp: IndicatorGridResponse): Zone[] {
-  const { rows, cols } = resp;
-  const [minLon, minLat, maxLon, maxLat] = resp.bbox;
   const fieldMean = resp.stats.mean;
   return resp.zones.map((z, zi) => {
-    const rs = z.cells.map(p => p[0]), cs = z.cells.map(p => p[1]);
-    const cr = rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : 0;
-    const cc = cs.length ? cs.reduce((a, b) => a + b, 0) / cs.length : 0;
-    const lon = minLon + (cc + 0.5) / cols * (maxLon - minLon);
-    const lat = maxLat - (cr + 0.5) / rows * (maxLat - minLat);
+    const pt = zoneSamplePoint(resp, z.cells);
     return {
       id: z.id || `api-${zi}`,
-      lon: lon.toFixed(5), lat: lat.toFixed(5),
+      lon: pt ? pt.lon.toFixed(5) : "—", lat: pt ? pt.lat.toFixed(5) : "—",
+      approx: !pt || pt.method !== "affine",
       pixels: z.cells.length, meanVal: z.mean.toFixed(3), fieldMean: fieldMean.toFixed(3),
       severity: z.severity, comp: z.cells.map(([r, c]) => [r, c]),
     };
@@ -568,7 +568,7 @@ export default function SpatialView() {
                 fontSize: 12, color: "#5cbf6e", fontFamily: "monospace",
                 background: "#0d1611", borderRadius: 6, padding: "6px 10px", marginBottom: 8,
               }}>
-                📍 {z.lat}°N, {z.lon}°E
+                📍 {z.approx ? "≈ " : ""}{z.lat}°N, {z.lon}°E
               </div>
               {selectedZone?.id === z.id && (
                 <div style={{ fontSize: 12, color: "#cdddd2", lineHeight: 1.7, marginTop: 8 }}>

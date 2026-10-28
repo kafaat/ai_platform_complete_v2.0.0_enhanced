@@ -255,8 +255,9 @@ def _idempotency_harness(monkeypatch):
             commands[command_id].result = result
 
     monkeypatch.setattr(mod, "tenant_connection", fake_tenant_connection)
-    monkeypatch.setattr(mod, "CommandStore", FakeCommandStore)
-    monkeypatch.setattr(mod, "get_pool", lambda: None)
+    # raising=False: على كودٍ لا يستورد الاسمين يُقاس السلوك (تنفيذٌ مكرَّر) لا خطأ التجهيز.
+    monkeypatch.setattr(mod, "CommandStore", FakeCommandStore, raising=False)
+    monkeypatch.setattr(mod, "get_pool", lambda: None, raising=False)
     monkeypatch.setattr(mod.lab_store, "create_sample", create_sample)
     monkeypatch.setattr(mod.lab_store, "add_custody_event", add_custody_event)
     app = FastAPI()

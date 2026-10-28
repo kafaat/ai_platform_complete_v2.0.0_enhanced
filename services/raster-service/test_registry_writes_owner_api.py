@@ -326,6 +326,47 @@ def test_enqueue_sets_the_tenant_guc_and_predicates_the_tenant_explicitly(monkey
     assert conn.closed
 
 
+def test_enqueue_strips_the_worker_owned_metadata_keys(monkeypatch):
+    """C1 (مراجعة): ``claim_attempts``/``lease_until``/``retry_after``/``layer_evict``/
+    ``last_error`` حالةُ العامل في ``metadata`` نفسِه. مُستدعٍ يكتبها يُفشل الصفَّ بلا عمل
+    (محاولاتٌ مستنفَدة) أو يُخفيه (مهلةٌ بعيدة) أو يُزيّف سجلَّه — فتُسقَط عند الإدراج
+    والباقي يُحفَظ كما هو."""
+    conn = _RecordingConn([None, {"id": 4, "status": "pending", "created_at": "t"}])
+    _install(monkeypatch, conn)
+    out = _run(
+        db_persist.enqueue_cache_invalidation(
+            tenant_id=TENANT,
+            field_id=FIELD,
+            reason="geometry.updated",
+            request_id="req-reserved",
+            metadata={
+                "geometry_revision": 2,
+                "claim_attempts": 99,
+                "lease_until": "x",
+                "retry_after": "2999-01-01T00:00:00+00:00",
+                "layer_evict": "delivered",
+                "last_error": "forged",
+            },
+        )
+    )
+    assert out is not None and out["deduplicated"] is False
+    stored_meta = json.loads(conn.fetched[1][1][3])
+    assert stored_meta == {"geometry_revision": 2, "request_id": "req-reserved"}, stored_meta
+
+
+def test_enqueue_reserved_keys_are_exactly_the_worker_state_keys():
+    """القائمتان في ملفّين (الإدراجُ لا يستورد العاملَ وتبعيّاته) — فتُقارَنان هنا."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "cache_invalidation_worker_keys", _HERE / "cache_invalidation_worker.py"
+    )
+    worker = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(worker)
+    assert db_persist.CACHE_INVALIDATION_WORKER_KEYS == worker.WORKER_METADATA_KEYS
+
+
 def test_enqueue_returns_the_existing_row_and_does_not_insert_twice(monkeypatch):
     conn = _RecordingConn([{"id": 3, "status": "processed", "created_at": "t"}])
     _install(monkeypatch, conn)

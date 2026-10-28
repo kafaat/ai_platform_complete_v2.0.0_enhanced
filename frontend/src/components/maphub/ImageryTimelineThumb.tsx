@@ -28,11 +28,22 @@ export interface ImageryTimelineThumbProps {
    * `false` (الافتراض) → «لا صورة متاحة»: الـCOG غير مجدوَل لهذا التاريخ.
    */
   processing?: boolean;
+  /**
+   * المنتَج المعروض في المصغّرة (`truecolor` أو اسم المؤشّر). T7: المصغّرة truecolor إن
+   * حُفِظ، وإلّا أوّل مؤشّر محفوظ — فقد تكون خريطة مؤشّر ملوّنة لا صورة طبيعيّة؛ تُوسَم.
+   */
+  product?: string | null;
+}
+
+/** وسم المنتَج: «لون حقيقيّ» لـtruecolor، وإلّا اسم المؤشّر بأحرف كبيرة. */
+export function thumbProductLabel(product: string | null | undefined): string | null {
+  if (!product) return null;
+  return product.toLowerCase() === 'truecolor' ? 'لون حقيقيّ' : product.toUpperCase();
 }
 
 const BOX = 'relative mb-2 h-16 w-full overflow-hidden rounded-lg border';
 
-export function ImageryTimelineThumb({ src, date, borderColor, processing = false }: ImageryTimelineThumbProps) {
+export function ImageryTimelineThumb({ src, date, borderColor, processing = false, product = null }: ImageryTimelineThumbProps) {
   const [state, setState] = useState<ThumbState>(src ? 'loading' : 'pending');
 
   // تبدّل الرابط (تغيّر المؤشّر/المستأجِر) يعيد الحالة — وإلّا بقي `failed` لصورة أخرى.
@@ -44,6 +55,7 @@ export function ImageryTimelineThumb({ src, date, borderColor, processing = fals
     state === 'pending'
       ? (processing ? 'قيد المعالجة' : 'لا صورة متاحة')
       : state === 'failed' ? 'تعذّر العرض' : null;
+  const productLabel = src && state !== 'failed' ? thumbProductLabel(product) : null;
 
   return (
     <div className={BOX} style={{ borderColor, background: '#020617' }} data-testid="imagery-thumb">
@@ -79,6 +91,14 @@ export function ImageryTimelineThumb({ src, date, borderColor, processing = fals
         >
           {label}
         </div>
+      )}
+      {productLabel && (
+        <span
+          className="absolute bottom-0.5 start-0.5 rounded bg-black/60 px-1 text-[9px] leading-tight text-slate-100"
+          data-testid="imagery-thumb-product"
+        >
+          {productLabel}
+        </span>
       )}
     </div>
   );
