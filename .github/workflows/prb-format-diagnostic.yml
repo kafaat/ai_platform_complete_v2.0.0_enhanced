@@ -5,6 +5,15 @@ on:
       - 'shared/feature_store/ml_quality_bridge.py'
       - 'tests/phase6/test_ml_quality_bridge.py'
       - '.github/workflows/prb-format-diagnostic.yml'
+# A newer PR run may supersede only an older run of the same workflow and PR.
+# Non-PR runs use a unique run_id and are never cancelled by later runs.
+concurrency:
+  group: >-
+    ${{ github.event_name == 'pull_request'
+        && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number)
+        || format('{0}-run-{1}', github.workflow, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 jobs:
