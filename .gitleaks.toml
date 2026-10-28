@@ -50,6 +50,16 @@ regexes = [
   # conftest, but that commit is immutable on a shared branch. Same reason as above:
   # a self-describing test value, never a deployed secret. Narrow and literal.
   '''test_secret_min_32_chars_for_sahool_v9''',
+  # Fixed Idempotency-Key fixtures in the irrigation-schedule and server idempotency
+  # contract tests (UI-M2 / D4, unified #1299). A request key is a client-chosen UUID,
+  # not a credential; the PR-range history scan reads them through the `_KEY =` /
+  # `Idempotency-Key` keyword. Immutable in branch history, so allowlisted literally.
+  '''6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b''',
+  '''7a2b3c4d-5e6f-4a1b-8c2d-3e4f5a6b7c8d''',
+  # Local storage key *names* (D1 operation-ledger encryption-key slot, web season
+  # draft slot), matched via `storageKey =` / `KEY =`. Names of slots, not their values.
+  '''sahool_pending_operations_key_v1''',
+  '''sahool-season-draft-v1''',
 ]
 
 # Preserve reviewed evidence across squash/rebase: each exception requires BOTH
