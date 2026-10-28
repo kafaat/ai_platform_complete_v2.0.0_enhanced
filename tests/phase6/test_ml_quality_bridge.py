@@ -185,6 +185,7 @@ def test_receipt_verified_with_exact_tenant_field_season_and_source():
     assert r["rows"][0]["label_source"] == "soil_sensor_verified"
     assert r["status"] == "BLOCKED"  # the other 5 rows lack accepted receipts
 
+
 def test_tenant_isolation_before_verifier_invocation():
     rows = records()
     rows[0]["tenant_id"] = "other"
@@ -323,6 +324,7 @@ def test_huge_integer_policy_never_causes_overflow():
     m["evaluation_policy"]["min_relative_mae_improvement"] = 10**1000
     with pytest.raises(ValueError, match="MANIFEST_POLICY_INVALID"):
         screen(m=m)
+
 
 def test_receipt_reuse_fails_closed_even_with_permissive_callback():
     data = records()
