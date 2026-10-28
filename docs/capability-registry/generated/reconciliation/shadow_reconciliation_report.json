@@ -459,12 +459,10 @@
     "baseline_source": "docs/capability-registry/reconciliation_drift_baseline.json",
     "classes": {
       "evidence_maturity": {
-        "baseline_count": 51,
+        "baseline_count": 50,
         "new": [],
         "observed_count": 50,
-        "stale": [
-          "OPS-005:declared_above_evidence:evidence-maturity"
-        ]
+        "stale": []
       },
       "registry_reconciliation": {
         "baseline_count": 0,
@@ -473,7 +471,7 @@
         "stale": []
       }
     },
-    "decision": "BLOCK",
+    "decision": "PASS",
     "mode": "identity-exact-ratchet"
   },
   "schema": "sahool.capability-shadow-reconciliation/v1",

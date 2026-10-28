@@ -8,4 +8,4 @@
 - Fields compared raw: id, domain, dependencies, maturity, evidence_level, owner, lifecycle
 - Fields excluded (no raw normalization yet): title, apis, tests, runtime, evidence, rationale, status, confidence, competitive
 - Evidence-maturity debt identities: **50**
-- Identity ratchet: **BLOCK**
+- Identity ratchet: **PASS**
