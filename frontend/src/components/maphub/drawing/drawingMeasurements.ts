@@ -23,7 +23,7 @@ function ringLengthM(ring: Position[]): number {
   return total;
 }
 
-function polygonAreaM2(ring: Position[]): number {
+function ringAreaM2(ring: Position[]): number {
   // Spherical trapezoid approximation, sufficient for UI preview. Backend PostGIS remains authoritative.
   if (ring.length < 4) return 0;
   let sum = 0;
@@ -39,18 +39,38 @@ function isPosition(value: unknown): value is Position {
   return Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number';
 }
 
+function isRing(value: unknown): value is Position[] {
+  return Array.isArray(value) && value.every(isPosition);
+}
+
+// GeoJSON Polygon = [outer, ...holes]. Net area subtracts every interior ring with the same
+// spherical formula (orientation-independent via abs), matching ST_Area / Turf semantics;
+// perimeter sums all rings like ST_Perimeter. Returns null when the outer ring is invalid.
+function measurePolygonRings(rings: unknown): { areaM2: number; perimeterM: number } | null {
+  if (!Array.isArray(rings) || !isRing(rings[0])) return null;
+  const outer = rings[0];
+  let areaM2 = ringAreaM2(outer);
+  let perimeterM = ringLengthM(outer);
+  for (const hole of rings.slice(1)) {
+    if (!isRing(hole)) continue;
+    areaM2 -= ringAreaM2(hole);
+    perimeterM += ringLengthM(hole);
+  }
+  return { areaM2: Math.max(0, areaM2), perimeterM };
+}
+
 export function measureDrawFeature(feature: DrawFeature): DrawMeasurements {
   const geom = feature.geometry;
   if (geom.type === 'LineString' && Array.isArray(geom.coordinates) && geom.coordinates.every(isPosition)) {
     return { lengthM: ringLengthM(geom.coordinates) };
   }
 
-  if (geom.type === 'Polygon' && Array.isArray(geom.coordinates)) {
-    const outer = geom.coordinates[0];
-    if (Array.isArray(outer) && outer.every(isPosition)) {
+  if (geom.type === 'Polygon') {
+    const measured = measurePolygonRings(geom.coordinates);
+    if (measured) {
       return {
-        areaHa: polygonAreaM2(outer) / 10000,
-        perimeterM: ringLengthM(outer),
+        areaHa: measured.areaM2 / 10000,
+        perimeterM: measured.perimeterM,
       };
     }
   }
@@ -59,10 +79,10 @@ export function measureDrawFeature(feature: DrawFeature): DrawMeasurements {
     let areaHa = 0;
     let perimeterM = 0;
     for (const polygon of geom.coordinates) {
-      const outer = Array.isArray(polygon) ? polygon[0] : undefined;
-      if (Array.isArray(outer) && outer.every(isPosition)) {
-        areaHa += polygonAreaM2(outer) / 10000;
-        perimeterM += ringLengthM(outer);
+      const measured = measurePolygonRings(polygon);
+      if (measured) {
+        areaHa += measured.areaM2 / 10000;
+        perimeterM += measured.perimeterM;
       }
     }
     return { areaHa, perimeterM };

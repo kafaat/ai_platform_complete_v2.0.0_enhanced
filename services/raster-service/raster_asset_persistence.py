@@ -132,6 +132,18 @@ def persist_raster_asset(
             provider=_provider,
         )
 
+        # P2-PUB-3 (بوّابة النشر): asset → كتالوج → ready. COG بعيد (غير file://) يُدرَج أصله
+        # ``pending`` — غير مرئيّ لكلّ قارئ ``asset_status='ready'`` — ولا يُرقّى إلّا بعد نجاح
+        # تسجيله في raster_registry؛ فشل الكتالوج (False/استثناء) يُخفِّضه ``failed`` ويُرجِع
+        # False. كان الأصل يُكتَب ``ready`` وتُتجاهَل نتيجة الكتالوج فتنتهي المهمّة completed/
+        # مؤهَّلة للنشر رغم كتالوج GIS فارغ. file:// (تطوير محلّيّ) لا يُفهرَس في الكتالوج أصلاً
+        # فالأصل نفسه هو النشر (سلوك FINDING-008 كما هو).
+        _catalogued = bool(cog_url) and not str(cog_url).startswith("file://")
+        # يطابق شرط insert_raster_asset الذي يفرض الحالة ``failed`` (valid_pixel_ratio <= 0).
+        _all_masked = (
+            _quality["valid_pixel_ratio"] is not None and _quality["valid_pixel_ratio"] <= 0
+        )
+
         async def _do():
             ok = await db_persist.insert_raster_asset(
                 field_id=req.field_id,
@@ -158,6 +170,7 @@ def persist_raster_asset(
                 cloud_mask_sources=stats.get("cloud_mask_sources"),
                 # v143 (FINDING-004): مراجعة الهندسة السارية وقت المعالجة (None إن لم تُمرَّر).
                 geometry_revision=getattr(req, "geometry_revision", None),
+                asset_status="pending" if _catalogued else "ready",
                 product_identity_key=_product_identity.key(),
                 # dual-read: البصمة القديمة (بلا provider) لترحيل صفٍّ واحد forward-repair.
                 legacy_product_identity_key=_product_identity.legacy_key(),
@@ -198,8 +211,15 @@ def persist_raster_asset(
             )
             # FINDING-008: جسر الكتالوج — عند نجاح الأصل نكتب صفّاً مُقابِلاً في
             # raster_registry (كان يملؤه فقط مسار REST يدويّ) كي لا يبقى الكتالوج فارغاً.
-            if ok and cog_url and not str(cog_url).startswith("file://"):
-                await db_persist.insert_raster_registry_entry(
+            # منتَج مُقنَّع كلّه: insert_raster_asset يُبقيه صفّ تشخيص ``failed`` لا رصداً، فلا
+            # كتالوج ولا نشر (كان يُكتَب له صفّ raster_registry يخدمه كتالوج GIS، ومع file://
+            # يعود True فتُسجَّل طبقته في الذاكرة).
+            if ok and _all_masked:
+                return False
+            if not (ok and _catalogued):
+                return ok
+            try:
+                registered = await db_persist.insert_raster_registry_entry(
                     tenant_id=req.tenant_id,
                     field_id=req.field_id,
                     scene_id=req.scene_id,
@@ -219,15 +239,42 @@ def persist_raster_asset(
                         "geometry_revision": getattr(req, "geometry_revision", None),
                     },
                 )
-            return ok
+            except Exception as _rge:  # noqa: BLE001 — فشل الكتالوج = لا نشر (لا يُعاد المسار)
+                logger.warning("raster_registry bridge raised: %s", _rge)
+                registered = False
+            if not registered:
+                await db_persist.set_raster_asset_status(
+                    tenant_id=req.tenant_id,
+                    product_identity_key=_product_identity.key(),
+                    cog_uri=cog_url,
+                    status="failed",
+                )
+                logger.warning(
+                    "raster_registry not written field_id=%s index=%s — الأصل خُفِّض failed "
+                    "(لا نشر بلا كتالوج)",
+                    req.field_id,
+                    req.indicator.value,
+                )
+                return False
+            return await db_persist.set_raster_asset_status(
+                tenant_id=req.tenant_id,
+                product_identity_key=_product_identity.key(),
+                cog_uri=cog_url,
+                status="ready",
+            )
 
         # v5-audit F1: نلتقط نتيجة الحفظ ونُصدِر سطراً منظَّماً — «job completed» وحده
         # كان لا يُميّز «حُفِظ في DB» عن «في الذاكرة فقط والإدراج عاد False بصمت»، فبعد
         # إعادة التشغيل قد يفشل الترطيب رغم «completed». الآن persisted صريح في السجلّ والمهمّة.
         _holder = {"ok": False}
         try:
-            _holder["ok"] = bool(asyncio.run(_do()))
+            asyncio.get_running_loop()
         except RuntimeError:
+            # لا حلقة أحداث في هذا الخيط (المعتاد: threadpool). نفحص الحلقة **قبل** التشغيل
+            # لا بالتقاط RuntimeError من asyncio.run: ذاك كان يبتلع RuntimeError صادراً من
+            # مسار القاعدة نفسه فيُعيد _do() كاملاً في خيط (إدراج أصل + كتالوج مرّتين).
+            _holder["ok"] = bool(asyncio.run(_do()))
+        else:
             # حلقة أحداث قائمة بالفعل (نادر هنا) — شغّلها في خيط مستقلّ
             import threading
 

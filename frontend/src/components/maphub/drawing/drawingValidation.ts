@@ -20,14 +20,48 @@ function samePosition(a: Position, b: Position): boolean {
   return Math.abs(a[0] - b[0]) < 1e-12 && Math.abs(a[1] - b[1]) < 1e-12;
 }
 
+function orientation(a: Position, b: Position, c: Position): number {
+  return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+}
+
+function onSegment(a: Position, b: Position, p: Position): boolean {
+  return Math.min(a[0], b[0]) <= p[0] && p[0] <= Math.max(a[0], b[0])
+    && Math.min(a[1], b[1]) <= p[1] && p[1] <= Math.max(a[1], b[1]);
+}
+
+// Closed-segment intersection: proper crossings plus touching/collinear overlap
+// (a vertex resting on a non-adjacent edge is also invalid under OGC simple-feature rules).
+function segmentsIntersect(a: Position, b: Position, c: Position, d: Position): boolean {
+  const o1 = orientation(a, b, c);
+  const o2 = orientation(a, b, d);
+  const o3 = orientation(c, d, a);
+  const o4 = orientation(c, d, b);
+  if (((o1 > 0 && o2 < 0) || (o1 < 0 && o2 > 0)) && ((o3 > 0 && o4 < 0) || (o3 < 0 && o4 > 0))) return true;
+  return (o1 === 0 && onSegment(a, b, c))
+    || (o2 === 0 && onSegment(a, b, d))
+    || (o3 === 0 && onSegment(c, d, a))
+    || (o4 === 0 && onSegment(c, d, b));
+}
+
 function ringSelfIntersectionRisk(ring: Position[]): boolean {
-  // Lightweight guard: duplicate non-adjacent vertices often indicate accidental crossing.
+  // (1) duplicate non-adjacent vertices (e.g. SAM2 pixel-stair rings collapsing after reprojection).
   const seen = new Map<string, number>();
   for (let i = 0; i < ring.length - 1; i += 1) {
     const key = `${ring[i][0].toFixed(7)},${ring[i][1].toFixed(7)}`;
     const prev = seen.get(key);
     if (prev !== undefined && Math.abs(prev - i) > 1) return true;
     seen.set(key, i);
+  }
+  // (2) any two non-adjacent edges intersect (a bowtie has four distinct vertices, so (1) misses it).
+  // Same pairwise rule as backend geospatial_integrity.has_self_intersection; PostGIS stays authoritative.
+  // Consecutive repeats (double-click finish) are zero-length edges, not crossings: drop them first.
+  const pts = ring.filter((p, i) => i === 0 || !samePosition(p, ring[i - 1]));
+  const n = pts.length - 1; // edges of the closed ring: (i, i+1) for i in [0, n)
+  for (let i = 0; i < n; i += 1) {
+    for (let j = i + 2; j < n; j += 1) {
+      if (i === 0 && j === n - 1) continue; // first and closing edge share the start vertex
+      if (segmentsIntersect(pts[i], pts[i + 1], pts[j], pts[j + 1])) return true;
+    }
   }
   return false;
 }

@@ -28,6 +28,7 @@ void main() {
     final viewerRouter = AppRouter(
       features: [farmBookFeature],
       role: () => AppRole.viewer,
+      isAuthenticated: () => true,
     );
     await t.pumpWidget(
       MaterialApp(

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router';
 import { ArrowRight } from 'lucide-react';
 import FieldWorkspaceMapCard from './FieldWorkspaceMapCard';
@@ -25,12 +25,13 @@ export default function FieldWorkspaceRouteShell() {
   const selected = useSelectedField({ routeFieldId: params.fieldId ?? null });
   const fieldId = params.fieldId ?? selected.fieldId ?? '';
   const seasonId = searchParams.get('season_id') ?? searchParams.get('seasonId');
-  const [activeTab, setActiveTab] = useState<FieldWorkspaceTab>(() => normalizeWorkspaceTab(searchParams.get('tab')));
+  // UI-W1: التبويب النشط مُشتقّ من الرابط في كلّ تصيير (لا حالة محلّيّة تُقرأ مرّة عند التركيب)،
+  // فتغيير ?tab خارجيّاً (رابط/رجوع/تقدّم) يغيّر المحتوى لا العنوان وحده.
+  const activeTab: FieldWorkspaceTab = normalizeWorkspaceTab(searchParams.get('tab'));
 
   const contextSource = useMemo(() => (params.fieldId ? 'route' : fieldId ? 'selected-field' : 'unknown'), [params.fieldId, fieldId]);
 
   function setTab(tab: FieldWorkspaceTab) {
-    setActiveTab(tab);
     const next = new URLSearchParams(searchParams);
     next.set('tab', tab);
     setSearchParams(next, { replace: true });

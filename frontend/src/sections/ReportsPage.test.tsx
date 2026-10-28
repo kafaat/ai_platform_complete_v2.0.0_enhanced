@@ -47,8 +47,9 @@ vi.mock('../hooks/useSelectedField', () => ({
 // useQueries يُستدعى مرّتين لكلّ تصيير (المواسم أوّلاً ثمّ العمليّات). نُميّز
 // النداءين بمحتوى queries.queryKey[0] ('seasons' | 'activities') لا بترتيب طابور
 // (التصيير قد يتكرّر) — حتميّ ومستقرّ عبر إعادات التصيير.
-let seasonsResult: { data: unknown; isLoading: boolean; isError: boolean }[] = [];
-let activitiesResult: { data: unknown; isLoading: boolean; isError: boolean }[] = [];
+type QueryStub = { data: unknown; isLoading: boolean; isError: boolean; refetch?: () => unknown };
+let seasonsResult: QueryStub[] = [];
+let activitiesResult: QueryStub[] = [];
 vi.mock('@tanstack/react-query', () => ({
   useQueries: ({ queries }: { queries: { queryKey: unknown[] }[] }) => {
     const kind = (queries[0]?.queryKey?.[0] as string) ?? '';
@@ -144,5 +145,21 @@ describe('ReportsPage — ملخّصات FieldView', () => {
     setQueries([], []);
     render(<ReportsPage />);
     expect(screen.getByText('تعذّر تحميل ملخّص الزراعة')).toBeInTheDocument();
+  });
+});
+
+// UI-W5: الفشل الجزئيّ (مواسم/عمليّات حقلٍ مفرد) يُعرَض بنزاهة **ومعه** إعادة محاولة تعيد
+// جلب الاستعلامات الفاشلة نفسها — لا refetch لقائمة الحقول وحدها (لا يمسّ استعلامات التفاصيل).
+describe('UI-W5: partial report offers a retry of the failed detail queries', () => {
+  it('retry refetches only the failed season/activity queries', () => {
+    const failedSeasons = vi.fn();
+    const okActivities = vi.fn();
+    seasonsResult = [{ data: undefined, isLoading: false, isError: true, refetch: failedSeasons }];
+    activitiesResult = [{ data: [ACT], isLoading: false, isError: false, refetch: okActivities }];
+    render(<ReportsPage />);
+    expect(screen.getByText(/تنبيه نزاهة/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'أعد جلب البيانات الناقصة' }));
+    expect(failedSeasons).toHaveBeenCalledTimes(1);
+    expect(okActivities).not.toHaveBeenCalled();
   });
 });

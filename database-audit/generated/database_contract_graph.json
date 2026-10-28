@@ -3513,7 +3513,8 @@
     {
       "code_readers": [
         "services/raster-service/follow_up_runtime.py",
-        "services/sahool-platform/api/routers/fields.py"
+        "services/sahool-platform/api/routers/fields.py",
+        "services/sahool-platform/api/routers/seasons.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/spatial_sync.py"
@@ -3672,7 +3673,9 @@
         "services/sahool-platform/api/routers/field_priority_queue.py",
         "services/sahool-platform/api/routers/season_workspace.py",
         "services/sahool-platform/api/routers/seasons.py",
-        "services/sahool-platform/api/routers/tasks.py"
+        "services/sahool-platform/api/routers/tasks.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/tasks.py",
@@ -3734,6 +3737,7 @@
         "services/sahool-platform/api/routers/harvest_traceability.py",
         "services/sahool-platform/api/routers/indicators.py",
         "services/sahool-platform/api/routers/internal_service.py",
+        "services/sahool-platform/api/routers/irrigation.py",
         "services/sahool-platform/api/routers/irrigation_mpc.py",
         "services/sahool-platform/api/routers/learning_summary.py",
         "services/sahool-platform/api/routers/market.py",
@@ -3750,10 +3754,14 @@
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
+        "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
+        "services/sahool-platform/tests/test_idempotency_server_contract.py",
+        "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_nl_sql_policy.py",
         "services/sahool-platform/tests/test_operations_summary_endpoint.py",
         "services/sahool-platform/tests/test_p2_5_raster_direct_wiring_final_sweep.py",
+        "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
         "services/scout-ingest-service/main.py",
@@ -4467,10 +4475,14 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/irrigation_engineering.py"
+        "services/sahool-platform/api/routers/irrigation_engineering.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/irrigation_engineering.py"
+        "services/sahool-platform/api/routers/irrigation_engineering.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py"
       ],
       "created_in": "v187_irrx1_manual_execution_lifecycle.sql",
       "has_tenant_id": true,
@@ -4502,7 +4514,9 @@
     {
       "code_readers": [
         "services/sahool-platform/api/routers/irrigation_engineering.py",
-        "services/sahool-platform/api/routers/outcome.py"
+        "services/sahool-platform/api/routers/outcome.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/irrigation_engineering.py"
@@ -4674,10 +4688,13 @@
         "services/sahool-platform/api/routers/irrigation.py",
         "services/sahool-platform/api/routers/nl_gis.py",
         "services/sahool-platform/api/routers/operations.py",
+        "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "services/sahool-platform/tests/test_operations_summary_endpoint.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/irrigation.py"
+        "services/sahool-platform/api/routers/irrigation.py",
+        "services/sahool-platform/tests/test_idempotency_server_contract.py",
+        "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py"
       ],
       "created_in": "v25_irrigation.sql",
       "has_tenant_id": true,
@@ -4750,6 +4767,8 @@
       "code_readers": [
         "services/sahool-platform/api/routers/irrigation.py",
         "services/sahool-platform/api/routers/operations.py",
+        "services/sahool-platform/tests/test_idempotency_server_contract.py",
+        "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "services/sahool-platform/tests/test_operations_summary_endpoint.py"
       ],
       "code_writers": [
@@ -5810,7 +5829,8 @@
         "services/decision-service/tests/test_element84_inventory_pg16.py",
         "services/raster-service/cache_invalidation_worker.py",
         "services/raster-service/db_persist.py",
-        "services/raster-service/test_backfill_processing_version_preflight.py"
+        "services/raster-service/test_backfill_processing_version_preflight.py",
+        "services/raster-service/test_raster_publication_gate.py"
       ],
       "created_in": "v14_imagery_storage.sql",
       "has_tenant_id": true,
@@ -6184,7 +6204,8 @@
         "services/sahool-platform/api/routers/agronomic_replay.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/seasons.py"
+        "services/sahool-platform/api/routers/seasons.py",
+        "services/sahool-platform/tests/test_season_spatial_provenance.py"
       ],
       "created_in": "v207_historical_season_simulation_bridge.sql",
       "has_tenant_id": true,
@@ -6218,11 +6239,13 @@
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+        "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/fields.py",
-        "services/sahool-platform/api/routers/seasons.py"
+        "services/sahool-platform/api/routers/seasons.py",
+        "services/sahool-platform/tests/test_idempotency_server_contract.py"
       ],
       "created_in": "v32_seasons.sql",
       "has_tenant_id": true,

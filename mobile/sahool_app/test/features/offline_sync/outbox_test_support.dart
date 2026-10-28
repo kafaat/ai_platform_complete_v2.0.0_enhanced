@@ -26,6 +26,9 @@ class MemoryOutboxStore implements OutboxStore {
   OutboxRecord? byId(String id) => _m[id];
 
   @override
+  int unreadableCount = 0;
+
+  @override
   int nextSeq() => ++_seq;
 
   @override

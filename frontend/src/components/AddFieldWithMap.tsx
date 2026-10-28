@@ -108,6 +108,12 @@ interface PivotPayload {
   vertices?: number;
 }
 
+// لقطة تاريخ تراجع/إعادة: الحلقة ([lat,lng]) مع نموذج pivot الذي أنتجها (أو null).
+interface BoundarySnapshot {
+  ring: number[][];
+  pivot: { center: [number, number]; radiusM: number } | null;
+}
+
 // يُصدَّر لأنّ `FieldSetupWizard` يمرّر هذا العقد بعينه إلى `onSaveField`.
 // وكان يستقبله `any`: نسخةٌ ثانية من العقد تنحرف بصمت عن أصلها عند أوّل
 // تغييرٍ هنا. والتصدير يجعل الانحراف **خطأ ترجمة** بدل أن يكون مفاجأة تشغيل.
@@ -455,10 +461,12 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   }, []);
 
   // ── تاريخ تراجع/إعادة (Undo/Redo) لحدّ الحقل ───────────────────────────────
-  // كلّ لقطة = حلقة رؤوس كأزواج [lat,lng] أرقام صرفة (غير قابلة للتغيّر ورخيصة، لا L.LatLng).
+  // كلّ لقطة = حلقة رؤوس كأزواج [lat,lng] أرقام صرفة (غير قابلة للتغيّر ورخيصة، لا L.LatLng)
+  // + نموذج pivot المرافق لها (مركز + نصف قطر، أو null للمضلّع/المستطيل). الحلقة وحدها لا
+  // تكفي: إعادة حلقة أقدم مع pivot من تحرير لاحق تُرسِل هندسة ومعاملات متناقضة (G-PIVOT-1).
   // history: قائمة لقطات؛ pointer: مؤشّر اللقطة الحاليّة. الحدّ الحاليّ = history[pointer].
   // الدفع يقتطع أيّ «مستقبل» بعد pointer ثمّ يُلحِق ويُقدّم المؤشّر (دلالات Undo/Redo القياسيّة).
-  const [history, setHistory] = useState<number[][][]>([]);
+  const [history, setHistory] = useState<BoundarySnapshot[]>([]);
   const [pointer, setPointer] = useState(-1);
   // علم حارس: حين نُعيد تطبيق لقطة (Undo/Redo)، لا يجوز لمسار الدفع أن يُعيد الدخول.
   const applyingRef = useRef(false);
@@ -507,14 +515,20 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   // يدفع لقطة حلقة (أزواج [lat,lng]) إلى التاريخ: يقتطع أيّ «مستقبل» بعد المؤشّر
   // الحاليّ ثمّ يُلحِق ويُقدّم المؤشّر. يُتجاهَل أثناء إعادة تطبيق لقطة (حارس applyingRef)
   // أو إن كانت الحلقة أقصر من مثلّث. يقرأ المؤشّر من pointerRef (مرآة محدّثة فوراً)
-  // كي يعمل بأمان من مستمع Leaflet طويل العمر بلا إغلاق قديم على pointer.
+  // كي يعمل بأمان من مستمع Leaflet طويل العمر بلا إغلاق قديم على pointer. نموذج pivot
+  // يُقرأ من pivotEditRef لحظة الدفع، فيجب تحديثه قبل استدعاء pushSnapshot.
   const pushSnapshot = useCallback((pts: L.LatLng[]) => {
     if (applyingRef.current) return;
     if (!Array.isArray(pts) || pts.length < 3) return;
     const ring: number[][] = pts.map(p => [p.lat, p.lng]);
+    const pv = pivotEditRef.current;
+    const snap: BoundarySnapshot = {
+      ring,
+      pivot: pv ? { center: [pv.center.lat, pv.center.lng], radiusM: pv.radiusM } : null,
+    };
     setHistory(prev => {
       const trimmed = prev.slice(0, pointerRef.current + 1);
-      trimmed.push(ring);
+      trimmed.push(snap);
       pointerRef.current = trimmed.length - 1;
       setPointer(pointerRef.current);
       return trimmed;
@@ -573,8 +587,11 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
       // الحالة الحيّة المشتركة بين المقبضَين (تُحدَّث بالسحب). للدائرة المحوريّة فقط
       // نُظهِر مقبض نصف القطر؛ نصف القطر ≈ المسافة من المركز لأوّل رأس (الرأس الشماليّ
       // من circleToPolygon — دائرة منتظمة فكلّها متساوية).
-      let center = ringCentroid(pts);
-      let radiusM = isPivot && pts.length > 0 ? center.distanceTo(pts[0]) : 0;
+      // للدائرة المحوريّة نبدأ من نموذجها القانونيّ (pivotEditRef) لا من تقريب الحلقة، كي
+      // يبقى المركز/نصف القطر المُرسَلان مطابقَين للّقطة المُعادة بعد تراجع/إعادة.
+      const pivotModel = pivotEditRef.current;
+      let center = pivotModel ? pivotModel.center : ringCentroid(pts);
+      let radiusM = pivotModel ? pivotModel.radiusM : 0;
 
       const handle = L.marker(center, {
         draggable: true,
@@ -636,12 +653,13 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         });
         rHandle.on('dragend', () => {
           const ring = (poly.getLatLngs()[0] as L.LatLng[]) ?? [];
-          if (ring.length >= 3) pushSnapshot(ring);
+          // حدّث النموذج قبل الدفع كي تلتقط اللقطة نصف القطر الجديد مع حلقته.
           if (pivotEditRef.current) {
             pivotEditRef.current.radiusM = radiusM;
             pivotEditRef.current.center = center;
             setPivotPayload(makePivotPayload(center, radiusM));
           }
+          if (ring.length >= 3) pushSnapshot(ring);
         });
         rHandle.addTo(map);
         radiusHandleRef.current = rHandle;
@@ -688,13 +706,24 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
       .catch(() => { /* الكشف التلقائي اختياري — لا يُفشل الإضافة */ });
   }, [maybeSnap, buildEditablePolygon]);
 
-  // يُعيد تطبيق لقطة عند مؤشّر هدف: يُعيد بناء المضلّع القابل للتحرير ويعيد حساب
-  // القياسات بلا دفع لقطة جديدة (حارس applyingRef) وبلا كشف عكسي (إبقاء سريع).
+  // يُعيد تطبيق لقطة عند مؤشّر هدف: يُعيد نموذج pivot المرافق (أو يُصفّره) ثمّ يُعيد بناء
+  // المضلّع القابل للتحرير ويعيد حساب القياسات بلا دفع لقطة جديدة (حارس applyingRef)
+  // وبلا كشف عكسي (إبقاء سريع). الحلقة وpivotPayload يتحرّكان معاً دائماً (G-PIVOT-1).
   const applySnapshot = useCallback((targetPtr: number) => {
-    const ring = history[targetPtr];
+    const snap = history[targetPtr];
+    const ring = snap?.ring;
     if (!Array.isArray(ring) || ring.length < 3) return;
     applyingRef.current = true;
     try {
+      if (snap.pivot) {
+        const center = L.latLng(snap.pivot.center[0], snap.pivot.center[1]);
+        pivotEditRef.current = { center, radiusM: snap.pivot.radiusM };
+        setPivotPayload(makePivotPayload(center, snap.pivot.radiusM));
+        setRadiusInput(String(Math.round(snap.pivot.radiusM)));
+      } else {
+        pivotEditRef.current = null;
+        setPivotPayload(null);
+      }
       const pts = ring.map(([lat, lng]) => L.latLng(lat, lng));
       buildEditablePolygon(pts, false);
       pointerRef.current = targetPtr;
@@ -702,7 +731,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     } finally {
       applyingRef.current = false;
     }
-  }, [history, buildEditablePolygon]);
+  }, [history, buildEditablePolygon, makePivotPayload]);
 
   const handleUndo = useCallback(() => {
     if (pointer <= 0) return;
@@ -882,6 +911,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
       }
       // نُحمّل الاقتراح في طبقة التحرير (الالتقاط يبقى مُحترَماً عبر handlePolygonDone).
       setPivotPayload(null);
+      pivotEditRef.current = null; // اقتراح التقطيع مضلّع عاديّ ⇒ لا نموذج pivot في لقطته.
       const pts = ring.map(([lat, lng]) => L.latLng(lat, lng));
       handlePolygonDone(pts);
       const metadata = (res?.metadata && typeof res.metadata === 'object') ? res.metadata : {};
@@ -1030,6 +1060,14 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   ): { feature: GeoJSON.Feature<GeoJSON.Polygon>; discardedParts: number } => {
     // shpjs قد يُرجع مجموعة واحدة أو مصفوفة مجموعات (إذا حوى الـ.zip عدّة طبقات).
     const collections = Array.isArray(fc) ? fc : [fc];
+    // الاستيراد يُنشئ حقلاً واحداً: ملفّ بعدّة معالم مضلّعة (في طبقة أو عبر طبقات) يُرفَض
+    // صراحةً بعددها بدل أخذ الأوّل وإسقاط البقيّة صامتاً بـdiscardedParts=0 (G-IMP-2).
+    const polygonFeatures = collections
+      .flatMap((coll) => coll?.features ?? [])
+      .filter((feat) => feat?.geometry?.type === 'Polygon' || feat?.geometry?.type === 'MultiPolygon');
+    if (polygonFeatures.length > 1) {
+      throw new Error(`ملفّ Shapefile يحوي ${polygonFeatures.length} معالم مضلّعة، والاستيراد يُنشئ حقلاً واحداً — صدِّر حدّ الحقل المطلوب وحده (معلم واحد) ثمّ أعِد الاستيراد.`);
+    }
     for (const coll of collections) {
       const feats = coll?.features ?? [];
       for (const feat of feats) {

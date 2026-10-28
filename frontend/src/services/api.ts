@@ -3081,6 +3081,9 @@ export interface ImageryTimelineItem {
   indices: string[];
   scene_id?: string | null;
   acquisition_datetime?: string | null;
+  // المنتَج الذي تعرضه thumbnail_url (truecolor إن حُفِظ، وإلّا أوّل مؤشّر محفوظ) — يُوسَم
+  // على المصغّرة كي لا تُقرأ خريطة مؤشّر ملوّنة صورةً طبيعيّة.
+  thumbnail_index?: string | null;
   thumbnail_url: string;
 }
 export interface ImageryTimeline {

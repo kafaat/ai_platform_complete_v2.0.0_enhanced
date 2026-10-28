@@ -29,6 +29,24 @@ String outboxKindLabelAr(String kind) => switch (kind) {
   _ => kind,
 };
 
+/// حالة العمليّة بكلمات المستخدم (saved_locally/pending/outcome_unknown/
+/// needs_attention؛ confirmed لا تبقى في الصندوق).
+String outboxDeliveryLabelAr(OutboxDeliveryState s) => switch (s) {
+  OutboxDeliveryState.savedLocally => 'محفوظة على الجهاز',
+  OutboxDeliveryState.pending => 'بانتظار إعادة المحاولة',
+  OutboxDeliveryState.outcomeUnknown => 'النتيجة غير مؤكَّدة',
+  OutboxDeliveryState.confirmed => 'وصلت إلى الخادم',
+  OutboxDeliveryState.needsAttention => 'تحتاج تدخّلاً',
+};
+
+StatusTone _deliveryTone(OutboxDeliveryState s) => switch (s) {
+  OutboxDeliveryState.savedLocally => StatusTone.info,
+  OutboxDeliveryState.pending => StatusTone.warning,
+  OutboxDeliveryState.outcomeUnknown => StatusTone.warning,
+  OutboxDeliveryState.confirmed => StatusTone.success,
+  OutboxDeliveryState.needsAttention => StatusTone.danger,
+};
+
 String outboxTitleAr(OutboxRecord r) {
   final label = r.op.labelAr;
   return (label != null && label.trim().isNotEmpty)
@@ -157,6 +175,26 @@ class _Loaded extends StatelessWidget {
           ),
         ),
     ];
+    if (s.unreadable > 0) {
+      children.add(
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            SahoolSpacing.lg,
+            SahoolSpacing.sm,
+            SahoolSpacing.lg,
+            0,
+          ),
+          child: Text(
+            '${s.unreadable} عمليّة محفوظة على هذا الجهاز تعذّرت قراءتها '
+            '(تالفة أو من إصدار أحدث للتطبيق)؛ لم تُرسَل ولم تُحذف.',
+            key: const ValueKey('sync-unreadable'),
+            style: context.textStyles.bodySmall?.copyWith(
+              color: context.tokens.danger,
+            ),
+          ),
+        ),
+      );
+    }
     if (state.isEmpty) {
       children.add(
         const Padding(
@@ -213,6 +251,9 @@ class _Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     final pending = snapshot.pending.length;
     final rejected = snapshot.rejected.length;
+    // مرفوضة + تالفة: ما دام شيءٌ منها على الجهاز فلا لون «تمّ».
+    final attention = snapshot.needsAttention;
+    final unknown = snapshot.outcomeUnknown;
     return Padding(
       padding: const EdgeInsets.all(SahoolSpacing.lg),
       child: SectionCard(
@@ -228,7 +269,11 @@ class _Summary extends StatelessWidget {
                 StatusChip(
                   key: const ValueKey('sync-pending-count'),
                   label: 'بانتظار الإرسال: $pending',
-                  tone: pending > 0 ? StatusTone.info : StatusTone.success,
+                  tone: pending > 0
+                      ? StatusTone.info
+                      : (attention > 0
+                            ? StatusTone.neutral
+                            : StatusTone.success),
                   icon: Icons.cloud_upload_outlined,
                 ),
                 StatusChip(
@@ -236,6 +281,19 @@ class _Summary extends StatelessWidget {
                   label: 'مرفوضة: $rejected',
                   tone: rejected > 0 ? StatusTone.danger : StatusTone.neutral,
                 ),
+                if (attention > 0)
+                  StatusChip(
+                    key: const ValueKey('sync-attention-count'),
+                    label: 'تحتاج تدخّلاً: $attention',
+                    tone: StatusTone.danger,
+                    icon: Icons.report_problem_outlined,
+                  ),
+                if (unknown > 0)
+                  StatusChip(
+                    key: const ValueKey('sync-unknown-count'),
+                    label: 'نتيجتها غير مؤكَّدة: $unknown',
+                    tone: StatusTone.warning,
+                  ),
               ],
             ),
             if (!online) ...[
@@ -298,7 +356,18 @@ class _OpCard extends StatelessWidget {
     final styles = context.textStyles;
     final r = record;
     final field = r.op.fieldId;
+    final delivery = r.deliveryState;
+    final notBefore = r.notBefore;
     final lines = <Widget>[
+      Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: StatusChip(
+          key: ValueKey('sync-op-state-${r.id}'),
+          label: outboxDeliveryLabelAr(delivery),
+          tone: _deliveryTone(delivery),
+        ),
+      ),
+      const SizedBox(height: SahoolSpacing.xs),
       Text(
         outboxKindLabelAr(r.op.kind) == outboxTitleAr(r)
             ? '${r.op.method} ${r.op.path}'
@@ -328,6 +397,13 @@ class _OpCard extends StatelessWidget {
           r.rejectedMessageAr ?? 'لم يُرسل الخادم سبباً.',
           style: styles.bodyMedium?.copyWith(color: t.danger),
         ),
+        if (r.isPayloadMismatch)
+          Text(
+            'هذا المعرّف مستعمَل على الخادم لمحتوى مختلف، فلن يُعاد إرساله '
+            'تلقائيّاً. راجع العمليّة أو تجاهلها.',
+            key: ValueKey('sync-op-mismatch-${r.id}'),
+            style: styles.bodySmall?.copyWith(color: t.danger),
+          ),
       ]);
     } else if (r.attempts > 0) {
       final next = r.nextAttemptAt;
@@ -338,13 +414,22 @@ class _OpCard extends StatelessWidget {
           '${r.lastErrorAr != null ? ' — ${r.lastErrorAr}' : ''}',
           style: styles.bodySmall?.copyWith(color: t.warning),
         ),
-        if (next != null && next.isAfter(now))
+        if (notBefore != null && notBefore.isAfter(now))
+          Text(
+            'طلب الخادم الانتظار حتى ${fmtDateTime(notBefore.toLocal())}',
+            key: ValueKey('sync-op-not-before-${r.id}'),
+            style: styles.bodySmall?.copyWith(color: t.muted),
+          )
+        else if (next != null && next.isAfter(now))
           Text(
             'المحاولة التالية تلقائيّاً: ${fmtDateTime(next)}',
             style: styles.bodySmall?.copyWith(color: t.muted),
           ),
       ]);
     }
+    // Retry-After: لا إرسال قبله ولو يدويّاً. تعارض الحمولة: لا إعادة عمياء.
+    final waitServer = notBefore != null && notBefore.isAfter(now);
+    final canRetry = !r.isPayloadMismatch && !waitServer;
     return Padding(
       padding: const EdgeInsetsDirectional.symmetric(
         horizontal: SahoolSpacing.lg,
@@ -355,7 +440,9 @@ class _OpCard extends StatelessWidget {
         title: outboxTitleAr(r),
         icon: r.isRejected
             ? Icons.error_outline_rounded
-            : Icons.schedule_rounded,
+            : (r.outcomeUnknown
+                  ? Icons.help_outline_rounded
+                  : Icons.schedule_rounded),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -363,17 +450,19 @@ class _OpCard extends StatelessWidget {
             const SizedBox(height: SahoolSpacing.md),
             Row(
               children: [
-                Expanded(
-                  child: PrimaryButton(
-                    label: r.isRejected ? 'إعادة المحاولة' : 'إرسال الآن',
-                    icon: Icons.refresh_rounded,
-                    loading: busy,
-                    onPressed: online && !busy
-                        ? () => context.read<SyncStatusCubit>().retry(r.id)
-                        : null,
+                if (!r.isPayloadMismatch) ...[
+                  Expanded(
+                    child: PrimaryButton(
+                      label: r.isRejected ? 'إعادة المحاولة' : 'إرسال الآن',
+                      icon: Icons.refresh_rounded,
+                      loading: busy,
+                      onPressed: online && !busy && canRetry
+                          ? () => context.read<SyncStatusCubit>().retry(r.id)
+                          : null,
+                    ),
                   ),
-                ),
-                const SizedBox(width: SahoolSpacing.sm),
+                  const SizedBox(width: SahoolSpacing.sm),
+                ],
                 Expanded(
                   child: SecondaryButton(
                     label: 'تجاهل',

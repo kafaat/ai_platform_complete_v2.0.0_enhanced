@@ -12,7 +12,9 @@ from __future__ import annotations
 import json
 import os
 import sys
+from datetime import date, datetime
 from pathlib import Path
+from typing import Annotated
 from uuid import UUID
 
 import httpx
@@ -23,6 +25,8 @@ if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
 from observation_runtime import fetch_canonical_observations  # noqa: E402
 from observation_timeline import TimelineSourceError, fetch_canonical_timeline  # noqa: E402
+
+from shared.security.trusted_tenant import service_token_ok  # noqa: E402
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-contract-boundary")
 
@@ -173,17 +177,132 @@ async def root():
     }
 
 
+# ── OI-01: the tenant on the internal hop comes from a verified identity ───────────────
+#
+# ``/observations`` forwards the caller's tenant to raster-service together with this
+# service's own SAHOOL_AGENT_TOKEN. A bare X-Tenant-Id is therefore never trusted: it is
+# accepted only from a mesh caller that proves the same service token (the trust
+# raster-service itself applies to it), or from a bearer whose identity — resolved by the
+# platform, the session/RBAC owner — carries that tenant and field:view. Same pattern as
+# ``remote-sensing-workspace-bff`` ``_workspace_identity``. (``/observation-timeline`` is
+# already bound: its bearer must resolve the field's season through the platform's
+# tenant-scoped ``/seasons`` before raster-service is called.)
+_IDENTITY_TIMEOUT_S = 10.0
+_OBSERVATION_PERMISSION = "field:view"
+
+
+def _parse_tenant(x_tenant_id: str) -> UUID:
+    try:
+        return UUID(x_tenant_id)
+    except ValueError as exc:
+        raise HTTPException(400, "invalid X-Tenant-Id") from exc
+
+
+async def _bearer_identity(authorization: str) -> tuple[str, list[str]]:
+    """Resolve (tenant_id, permissions) of a bearer via the platform's ``/api/v1/auth/me``."""
+    platform = os.getenv("PLATFORM_API_URL", "http://sahool-platform:8000").rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=_IDENTITY_TIMEOUT_S, trust_env=False) as client:
+            response = await client.get(
+                f"{platform}/api/v1/auth/me", headers={"Authorization": authorization}
+            )
+        if response.status_code in {401, 403}:
+            raise HTTPException(response.status_code, "observation_access_denied")
+        response.raise_for_status()
+        user = response.json()["user"]
+        tenant, permissions = user["tenant_id"], user["permissions"]
+        if not isinstance(tenant, str) or not isinstance(permissions, list):
+            raise ValueError("invalid identity projection")
+    except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
+        raise HTTPException(503, "observation_identity_unavailable") from exc
+    return tenant, [p for p in permissions if isinstance(p, str)]
+
+
+async def _bind_bearer_tenant(tenant_id: UUID, authorization: str) -> UUID:
+    verified_tenant, permissions = await _bearer_identity(authorization)
+    try:
+        same_tenant = UUID(verified_tenant) == tenant_id
+    except ValueError:
+        same_tenant = False
+    if not same_tenant or _OBSERVATION_PERMISSION not in permissions:
+        raise HTTPException(403, "observation_access_denied")
+    return tenant_id
+
+
+async def _bind_observation_tenant(
+    x_tenant_id: str, x_agent_token: str | None, authorization: str | None
+) -> UUID:
+    tenant_id = _parse_tenant(x_tenant_id)
+    if x_agent_token is not None:
+        expected = os.getenv("SAHOOL_AGENT_TOKEN", "")
+        if not expected:
+            raise HTTPException(503, "SAHOOL_AGENT_TOKEN is not configured")
+        if not service_token_ok(x_agent_token, expected):
+            raise HTTPException(401, "invalid service token")
+        return tenant_id
+    if authorization and authorization.startswith("Bearer "):
+        return await _bind_bearer_tenant(tenant_id, authorization)
+    raise HTTPException(401, "observations require a service token or bearer authorization")
+
+
+# ── EXTRA-7: requested vs actual temporal extent ─────────────────────────────────────
+#
+# raster-service serves the latest bundle only. When the caller names a window, the
+# actual acquisition is checked against it and a mismatch is refused — an October
+# observation is never relabelled as the answer to a January request. Both extents are
+# returned so the consumer can persist what it asked for next to what it received.
+def _parse_window_date(name: str, value: str | None) -> date | None:
+    if value is None:
+        return None
+    try:
+        return date.fromisoformat(value.strip()[:10])
+    except ValueError as exc:
+        raise HTTPException(422, f"invalid {name}: expected YYYY-MM-DD") from exc
+
+
+def _requested_extent(date_from: str | None, date_to: str | None) -> dict | None:
+    start = _parse_window_date("date_from", date_from)
+    end = _parse_window_date("date_to", date_to)
+    if start and end and start > end:
+        raise HTTPException(422, "date_from must not be after date_to")
+    if start is None and end is None:
+        return None
+    return {
+        "date_from": start.isoformat() if start else None,
+        "date_to": end.isoformat() if end else None,
+    }
+
+
+def _actual_extent(acquired: list[datetime]) -> dict | None:
+    if not acquired:
+        return None
+    return {"start": min(acquired).isoformat(), "end": max(acquired).isoformat()}
+
+
+def _outside_requested(requested: dict | None, acquired: list[datetime]) -> bool:
+    if requested is None:
+        return False
+    start, end = requested["date_from"], requested["date_to"]
+    return any(
+        (start is not None and item.date().isoformat() < start)
+        or (end is not None and item.date().isoformat() > end)
+        for item in acquired
+    )
+
+
 @app.get("/v1/fields/{field_id}/observations")
 async def field_observations(
     field_id: str,
-    season_id: str = Query(..., min_length=1),
-    indicators: str = Query("ndvi"),
-    x_tenant_id: str = Header(..., alias="X-Tenant-Id"),
+    x_tenant_id: Annotated[str, Header(alias="X-Tenant-Id")],
+    season_id: Annotated[str, Query(min_length=1)],
+    indicators: Annotated[str, Query()] = "ndvi",
+    date_from: Annotated[str | None, Query()] = None,
+    date_to: Annotated[str | None, Query()] = None,
+    x_agent_token: Annotated[str | None, Header(alias="X-Agent-Token")] = None,
+    authorization: Annotated[str | None, Header(alias="Authorization")] = None,
 ):
-    try:
-        tenant_id = UUID(x_tenant_id)
-    except ValueError as exc:
-        raise HTTPException(400, "invalid X-Tenant-Id") from exc
+    requested_extent = _requested_extent(date_from, date_to)
+    tenant_id = await _bind_observation_tenant(x_tenant_id, x_agent_token, authorization)
     requested = [v.strip().lower() for v in indicators.split(",") if v.strip()]
     try:
         observations = await fetch_canonical_observations(
@@ -195,11 +314,26 @@ async def field_observations(
         raise HTTPException(424, "canonical raster observation unavailable") from exc
     if not observations:
         raise HTTPException(424, "no consistent real canonical observation available")
+    acquired = [item.acquired_at for item in observations]
+    actual_extent = _actual_extent(acquired)
+    if _outside_requested(requested_extent, acquired):
+        raise HTTPException(
+            424,
+            {
+                "code": "observation_outside_requested_window",
+                "temporal_selection": "latest",
+                "requested_temporal_extent": requested_extent,
+                "actual_temporal_extent": actual_extent,
+            },
+        )
     return {
         "field_id": field_id,
         "season_id": season_id,
         "source": "indicators-service",
         "canonical": True,
+        "temporal_selection": "latest",
+        "requested_temporal_extent": requested_extent,
+        "actual_temporal_extent": actual_extent,
         "observations": [item.model_dump(mode="json") for item in observations],
     }
 

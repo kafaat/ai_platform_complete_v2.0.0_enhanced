@@ -286,3 +286,134 @@ def test_native_receipt_binds_exact_process_payload(monkeypatch):
     )
     changed = dict(scene, datetime="2026-10-02T07:30:00Z")
     assert cdse_client.backfill_request_identity(changed, "ndvi", None)[0] != expected_sha
+
+
+def _native_grid_tiff(*, crs, transform, size=16):
+    array = np.ones((4, size, size), dtype="float32")
+    array[0] = 0.5
+    array[1] = 4
+    with rasterio.MemoryFile() as mem:
+        with mem.open(
+            driver="GTiff",
+            height=size,
+            width=size,
+            count=4,
+            dtype="float32",
+            crs=crs,
+            transform=transform,
+        ) as dst:
+            dst.write(array)
+        return mem.read()
+
+
+def _native_grid_payload(bbox):
+    return cdse_client.build_process_payload(
+        index="ndvi",
+        bbox=bbox,
+        time_from="2026-10-01T00:00:00Z",
+        time_to="2026-10-01T23:59:59Z",
+        with_native_qa=True,
+    )
+
+
+def _measure_against_request(tmp_path, tiff, payload):
+    product = native.decode_response(archive_bytes(tiff), "script", request_payload=payload)
+    path = tmp_path / "grid.tif"
+    path.write_bytes(tiff)
+    with rasterio.open(path) as src:
+        return native.measured_pixels(src, product, str(path))
+
+
+@pytest.mark.parametrize(
+    "crs,transform",
+    [
+        # P2-CDSE-2 witness: requested dimensions, EPSG:3857 near origin, not the bbox.
+        ("EPSG:3857", from_origin(100, 100, 10, 10)),
+        # Requested CRS and pixel size, displaced by one degree: another place.
+        ("EPSG:4326", from_origin(45, 16.001, 0.001 / 16, 0.001 / 16)),
+        # Requested CRS and origin, doubled pixel size: footprint does not close.
+        ("EPSG:4326", from_origin(44, 15.001, 0.002 / 16, 0.002 / 16)),
+    ],
+)
+def test_native_decoded_grid_must_match_requested_grid(tmp_path, crs, transform):
+    payload = _native_grid_payload([44, 15, 44.001, 15.001])
+    assert (payload["output"]["width"], payload["output"]["height"]) == (16, 16)
+    tiff = _native_grid_tiff(crs=crs, transform=transform)
+    with pytest.raises(ValueError, match="cdse_native_grid_does_not_match_request"):
+        _measure_against_request(tmp_path, tiff, payload)
+
+
+def test_native_decoded_grid_on_requested_bbox_is_accepted(tmp_path):
+    from rasterio.transform import from_bounds
+
+    bbox = [44, 15, 44.001, 15.001]
+    payload = _native_grid_payload(bbox)
+    assert (payload["output"]["width"], payload["output"]["height"]) == (16, 16)
+    tiff = _native_grid_tiff(crs="EPSG:4326", transform=from_bounds(*bbox, 16, 16))
+    pixels, receipt = _measure_against_request(tmp_path, tiff, payload)
+    assert np.isfinite(pixels).sum() == 256
+    assert receipt["native_valid_pixels"] == 256
+
+
+def _truecolor_request(tmp_path, *, min_score, raw_qa_required=True):
+    arr = np.full((4, 16, 16), 20, dtype="uint8")
+    arr[3] = 255
+    arr[:3, :8, :8] = 0  # opaque valid black
+    arr[:3, :8, 8:] = 1  # opaque valid dim
+    arr[3, 8:, 8:] = 0  # transparent: invalid
+    path = tmp_path / "rgba.tif"
+    with rasterio.open(
+        path,
+        "w",
+        driver="GTiff",
+        width=16,
+        height=16,
+        count=4,
+        dtype="uint8",
+        crs="EPSG:4326",
+        transform=from_origin(44, 15, 0.01, 0.01),
+    ) as dst:
+        dst.write(arr)
+    return ProcessRequest(
+        tenant_id="t",
+        field_id="f",
+        raster_url=str(path),
+        indicator="truecolor",
+        source_format="sentinel2_l2a",
+        bands={},
+        provider="cdse",
+        precomputed_index=True,
+        raw_qa_required=raw_qa_required,
+        min_raw_quality_score=min_score,
+    )
+
+
+def test_precomputed_truecolor_enforces_requested_min_quality(tmp_path, monkeypatch):
+    """P2-CDSE-1: TrueColor admits by the same requested QA threshold as scalar."""
+    import object_store
+    from fastapi import HTTPException
+    from raster_processing_runtime import process_precomputed_truecolor
+
+    uploads = []
+    monkeypatch.setattr(object_store, "upload_cog", lambda p, k: uploads.append(k) or "file://x")
+    req = _truecolor_request(tmp_path, min_score=1.0)
+    with pytest.raises(HTTPException) as exc:
+        process_precomputed_truecolor(req, upload_dir=str(tmp_path))
+    assert exc.value.status_code == 422
+    assert exc.value.detail["code"] == "raw_raster_quality_below_threshold"
+    assert exc.value.detail["quality_score"] < 1.0
+    assert exc.value.detail["min_raw_quality_score"] == 1.0
+    assert uploads == []
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["rgba.tif"]
+
+
+def test_precomputed_truecolor_threshold_respects_opt_out_and_passing_score(tmp_path):
+    from raster_processing_runtime import process_precomputed_truecolor
+
+    opted_out = _truecolor_request(tmp_path, min_score=1.0, raw_qa_required=False)
+    stats, _, _, _ = process_precomputed_truecolor(opted_out, upload_dir=str(tmp_path))
+    assert stats["valid_pixels"] == 192
+    passing = _truecolor_request(tmp_path, min_score=stats["raw_quality_score"])
+    stats, _, _, meta = process_precomputed_truecolor(passing, upload_dir=str(tmp_path))
+    assert "validated_raster_product" in stats
+    assert meta["raw_qa_required"] is True

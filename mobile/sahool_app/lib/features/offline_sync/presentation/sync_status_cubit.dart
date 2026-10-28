@@ -29,7 +29,11 @@ class SyncStatusLoaded extends SyncStatusState {
   /// عمليّات يجري عليها فعلٌ الآن (منع الضغط المزدوج).
   final Set<String> busy;
 
-  bool get isEmpty => snapshot.pending.isEmpty && snapshot.rejected.isEmpty;
+  /// لا شيء ينتظر — ولا سجلّات غير مقروءة على الجهاز (تلك لم تصل الخادم).
+  bool get isEmpty =>
+      snapshot.pending.isEmpty &&
+      snapshot.rejected.isEmpty &&
+      snapshot.unreadable == 0;
 }
 
 class SyncStatusCubit extends Cubit<SyncStatusState> {

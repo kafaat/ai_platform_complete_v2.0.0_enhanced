@@ -9923,7 +9923,7 @@
         "GET /api/v1/irrigation/schedules",
         "POST /api/v1/irrigation/schedules"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -16649,7 +16649,7 @@
           "sahool-raster-cache-invalidation-worker",
           "sahool-raster-service"
         ],
-        "healthcheck": "CMD python -c import httpx; httpx.get('http://localhost:8001/healthz')",
+        "healthcheck": "CMD python -c import httpx; httpx.get('http://localhost:8001/healthz', timeout=4).raise_for_status()",
         "mount_status": "direct_routes",
         "published_ports": []
       },
@@ -17763,7 +17763,7 @@
     "capabilities": 839,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 96,
-    "capabilities_idempotent": 64,
+    "capabilities_idempotent": 65,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 482,
     "components": 37,
@@ -18035,7 +18035,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "1d3f11ad635e5df06fc50bd24a2fc990245dc414c81a5f774b172ab25eff7710",
+  "fingerprint": "f640ad2efd052eefebda31d8ef21fe7877016a1dad0f0ffa0429b565683b0e3b",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18085,16 +18085,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 881,
+      "edge_count": 903,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 47,
+        "CALLS": 46,
         "CONSUMES": 3,
         "EMITS": 1,
-        "READS": 450,
+        "READS": 466,
         "ROUTES_TO": 72,
-        "WRITES": 308
+        "WRITES": 315
       }
     },
     "u3_wiring_ownership": {

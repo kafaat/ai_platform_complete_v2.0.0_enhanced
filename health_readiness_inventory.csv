@@ -11,8 +11,8 @@ services/field-management-service/main.py,healthz,/healthz,211,True,True,True,ok
 services/field-management-service/main.py,readyz,/readyz,221,True,True,True,ok
 services/field-segmentation/main.py,healthz,/healthz,375,True,True,True,ok
 services/field-segmentation/main.py,readyz,/readyz,385,True,True,True,ok
-services/indicators-service/main.py,healthz,/healthz,64,True,True,True,ok
-services/indicators-service/main.py,ready,/readyz,85,True,True,True,ok
+services/indicators-service/main.py,healthz,/healthz,68,True,True,True,ok
+services/indicators-service/main.py,ready,/readyz,89,True,True,True,ok
 services/knowledge-graph/main.py,healthz,/healthz,117,True,True,True,ok
 services/knowledge-graph/main.py,readyz,/readyz,139,True,True,True,ok
 services/local-ai-rag/main.py,healthz,/healthz,750,True,True,True,ok

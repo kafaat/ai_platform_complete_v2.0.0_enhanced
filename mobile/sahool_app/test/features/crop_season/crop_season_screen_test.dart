@@ -1,5 +1,6 @@
 // شاشة المواسم ضدّ ApiClient حقيقيّ بمحوّل مزيّف: المسارات الحقيقيّة، Idempotency-Key
 // ثابت لنيّة الحفظ، إجراءات الطور من الخادم فقط، والأزرار حسب الدور.
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,8 +12,10 @@ import 'package:sahool_app/features/crop_season/presentation/phenology_cards.dar
 import 'package:sahool_app/features/crop_season/presentation/season_form_cubit.dart';
 import 'package:sahool_app/features/crop_season/presentation/season_form_logic.dart';
 import 'package:sahool_app/features/crop_season/presentation/seasons_screen.dart';
+import 'package:sahool_app/features/offline_sync/data/operation_ledger.dart';
 
 import '../../core/fake_http.dart';
+import '../offline_sync/operation_test_support.dart';
 
 Widget host(Widget child) => MaterialApp(
   theme: AppTheme.light,
@@ -90,6 +93,17 @@ FakeAdapter fieldAdapter({
   }
   return const FakeReply(404, {'detail': 'not found'});
 });
+
+/// Cubit النموذج بسجلّ عمليّات في الذاكرة ومالكٍ من رمز الجلسة نفسه.
+SeasonFormCubit formCubit(FakeAdapter a) {
+  final tokens = MemoryTokenStore(accessToken: jwtFor('alice'));
+  final client = testClient(a, tokens);
+  return SeasonFormCubit(
+    CropSeasonApi(client),
+    fieldId: 'f1',
+    ledger: ledgerFor(tokens, MemoryOperationStore(), client: client),
+  );
+}
 
 CropSeasonApi apiFor(FakeAdapter a) => CropSeasonApi(
   testClient(
@@ -267,7 +281,7 @@ void main() {
           },
         });
       });
-      final cubit = SeasonFormCubit(apiFor(a), fieldId: 'f1');
+      final cubit = formCubit(a);
       final input = SeasonFormInput(
         crop: 'wheat',
         sowingDate: DateTime(2026, 3, 5),
@@ -291,6 +305,62 @@ void main() {
         'crops': ['wheat'],
         'sowing_date': '2026-03-05',
       });
+      await cubit.close();
+    },
+  );
+
+  test(
+    'UI-M3 (D1): an edited season after an unknown outcome is not sent and '
+    'keeps the key; recovery returns the committed season with the edit '
+    'pending',
+    () async {
+      // دلالة season.create: مفتاح معروف ⇒ النتيجة المخزّنة بلا مقارنة جسم.
+      final committed = <String, Map<String, dynamic>>{};
+      var calls = 0;
+      final a = FakeAdapter((o) async {
+        if (o.path != '/api/v1/fields/f1/seasons') {
+          return const FakeReply(404, {'detail': 'x'});
+        }
+        calls++;
+        final key = o.headers['Idempotency-Key'] as String;
+        final body = o.data as Map;
+        final result = committed.putIfAbsent(
+          key,
+          () => {
+            'season_id': 'ssn_${committed.length + 1}',
+            'field_id': 'f1',
+            'crops': body['crops'],
+            'status': 'active',
+            'stages': [],
+          },
+        );
+        return calls == 1
+            ? const FakeReply.fail(DioExceptionType.receiveTimeout)
+            : FakeReply(201, result);
+      });
+      final cubit = formCubit(a);
+      await cubit.submit(
+        SeasonFormInput(crop: 'wheat', sowingDate: DateTime(2026, 3, 5)),
+      );
+      expect(
+        (cubit.state as SeasonFormUnconfirmed).outcome.messageAr,
+        kOperationUnknownAr,
+      );
+      await cubit.submit(
+        SeasonFormInput(crop: 'maize', sowingDate: DateTime(2026, 3, 5)),
+      );
+      expect(a.to('/api/v1/fields/f1/seasons'), hasLength(1));
+      await cubit.recover();
+
+      final keys = a
+          .to('/api/v1/fields/f1/seasons')
+          .map((r) => r.headers['Idempotency-Key'])
+          .toSet();
+      expect(keys, hasLength(1), reason: 'لا مفتاح جديد');
+      expect(committed, hasLength(1), reason: 'موسم واحد');
+      final rec = cubit.state as SeasonFormRecovered;
+      expect(rec.season.crops, ['wheat']);
+      expect(rec.pendingEdits.single.after, ['maize']);
       await cubit.close();
     },
   );

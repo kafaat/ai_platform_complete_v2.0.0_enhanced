@@ -68,6 +68,7 @@ _endpoint_policy = _load_endpoint_policy()
 EndpointPolicyError = _endpoint_policy.EndpointPolicyError
 resolve_configured_s3_endpoint = _endpoint_policy.resolve_configured_s3_endpoint
 require_path_style_service_root = _endpoint_policy.require_path_style_service_root
+hint_for = _endpoint_policy.hint_for
 
 logger = logging.getLogger("shared.storage.blob_store")
 
@@ -112,7 +113,7 @@ def _s3_endpoint_decision():
         require_path_style_service_root(decision, S3_BUCKET)
         return decision
     except EndpointPolicyError as exc:
-        raise BlobStoreError(f"unsafe S3 endpoint configuration: {exc}") from exc
+        raise BlobStoreError(f"unsafe S3 endpoint configuration: {exc}{hint_for(exc)}") from exc
 
 
 # Suffixes that only resolve inside a private network (Railway private networking,
@@ -170,7 +171,9 @@ def _public_endpoint_decision():
         )
         require_path_style_service_root(decision, S3_BUCKET)
     except EndpointPolicyError as exc:
-        raise BlobStoreError(f"unsafe S3_PUBLIC_ENDPOINT configuration: {exc}") from exc
+        raise BlobStoreError(
+            f"unsafe S3_PUBLIC_ENDPOINT configuration: {exc}{hint_for(exc)}"
+        ) from exc
     if _browser_unreachable_host(decision.host):
         raise BlobStoreError(
             "S3_PUBLIC_ENDPOINT names an internal-only host; it must be a name clients resolve"

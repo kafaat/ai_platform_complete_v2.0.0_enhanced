@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router';
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router';
 
 const selected = vi.hoisted(() => ({ fieldId: '' }));
 vi.mock('../hooks/useSelectedField', () => ({ useSelectedField: () => selected }));
@@ -28,6 +28,21 @@ function mount(url: string) {
   render(<MemoryRouter initialEntries={[url]}><Routes>
     <Route path="/fields/:fieldId?" element={<FieldWorkspaceRouteShell />} />
   </Routes></MemoryRouter>);
+}
+
+// تنقّل خارجيّ (رابط/سجلّ/موجِّه) إلى نفس المسار باستعلام مختلف — المكوّن نفسه يبقى مركَّباً.
+function ExternalNav({ to }: { to: string }) {
+  const navigate = useNavigate();
+  return <button type="button" onClick={() => navigate(to)}>external-nav</button>;
+}
+
+function mountWithNav(url: string, to: string) {
+  render(<MemoryRouter initialEntries={[url]}>
+    <ExternalNav to={to} />
+    <Routes>
+      <Route path="/fields/:fieldId?" element={<FieldWorkspaceRouteShell />} />
+    </Routes>
+  </MemoryRouter>);
 }
 
 beforeEach(() => { cleanup(); selected.fieldId = ''; });
@@ -58,5 +73,22 @@ describe('TEXT-GUARD: live workspace map binding', () => {
     expect(screen.queryByRole('region', { name: 'rendered field map' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'الخريطة' }));
     expect(screen.getByRole('region', { name: 'rendered field map' })).toHaveAttribute('data-field', 'yemen-field');
+  });
+});
+
+// UI-W1: التبويب النشط يُشتقّ من الرابط — تغيير ?tab بعد التركيب يغيّر المحتوى لا العنوان وحده.
+describe('UI-W1: workspace tab follows the URL after mount', () => {
+  it('switches content when ?tab changes externally on the mounted route', () => {
+    mountWithNav('/fields/yemen-field?tab=weather', '/fields/yemen-field?tab=map');
+    expect(screen.queryByRole('region', { name: 'rendered field map' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'external-nav' }));
+    expect(screen.getByRole('region', { name: 'rendered field map' })).toHaveAttribute('data-field', 'yemen-field');
+    expect(screen.getByRole('button', { name: 'الخريطة' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('back to a URL without tab falls back to overview (no stale local tab)', () => {
+    mountWithNav('/fields/yemen-field?tab=map', '/fields/yemen-field');
+    fireEvent.click(screen.getByRole('button', { name: 'external-nav' }));
+    expect(screen.getByRole('button', { name: 'نظرة عامة' })).toHaveAttribute('aria-current', 'page');
   });
 });

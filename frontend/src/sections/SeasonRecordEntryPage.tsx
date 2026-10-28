@@ -34,9 +34,11 @@ import {
   addSeasonCost,
   addSeasonEvent,
   createSeasonDraft,
+  getSeasonDetail,
   listSeasons,
   setSeasonHarvest,
   uploadSeasonLogbook,
+  type SeasonDetail,
   type SeasonEventType,
   type SeasonListRow,
   type SowingPrecision,
@@ -162,8 +164,40 @@ export default function SeasonRecordEntryPage() {
     ],
   );
 
+  // UI-W4: اللقطة المحلّيّة تحمل المعرّفات والمرحلة فقط؛ ما حُفِظ خادميّاً (حصاد/أحداث/تكاليف/
+  // دقّة البذار) يُستعاد من تجميعة الموسم القانونيّة لا من منطقيّ محلّيّ — فلا تبدو بيانات
+  // محفوظة غائبةً في المراجعة، ولا تُدّعى أهليّة معايرة بدقّة بذار افتراضيّة.
+  const hydrateFromDetail = useCallback((d: SeasonDetail) => {
+    const crop = d.crop ?? {};
+    if (typeof crop.sowing_precision === 'string') setSowingPrecision(crop.sowing_precision as SowingPrecision);
+    if (crop.seed_rate_kg_ha != null) setSeedRate(String(crop.seed_rate_kg_ha));
+    setAddedEvents(
+      (d.events ?? []).map((e) => ({
+        type: EVENT_TYPES.find((t) => t.value === e.event_type)?.label ?? String(e.event_type ?? ''),
+        date: String(e.event_date ?? '').slice(0, 10),
+        lowConf: Boolean(e.low_confidence),
+      })),
+    );
+    if (d.harvest) {
+      setHarvestDate(String(d.harvest.harvest_date ?? '').slice(0, 10));
+      if (typeof d.harvest.harvest_precision === 'string') {
+        setHarvestPrecision(d.harvest.harvest_precision as SowingPrecision);
+      }
+      setHarvestYield(d.harvest.yield_kg_ha != null ? String(d.harvest.yield_kg_ha) : '');
+      setHarvestSaved(true);
+    }
+    setAddedCosts(
+      (d.costs ?? []).map((c) => ({
+        label: String(c.item_label ?? ''),
+        amount: String(c.amount ?? ''),
+        currency: String(c.currency ?? ''),
+      })),
+    );
+  }, []);
+
   // استعادة أيّ مسودّة محفوظة عند أوّل تحميل (استئناف بعد إعادة تحميل الصفحة).
   useEffect(() => {
+    let cancelled = false;
     const snap = loadSeasonDraft();
     if (snap && snap.phase !== 'list' && snap.phase !== 'done') {
       setDraftKey(snap.draftKey);
@@ -176,8 +210,26 @@ export default function SeasonRecordEntryPage() {
       setVarietyName(snap.varietyName ?? '');
       setSowingDate(snap.sowingDate ?? '');
       setPhase(snap.phase as Phase);
+      if (snap.seasonId) {
+        getSeasonDetail(snap.seasonId)
+          .then((d) => {
+            if (!cancelled) hydrateFromDetail(d);
+          })
+          .catch((e: unknown) => {
+            // لا نعرض التفاصيل غائبةً بصمت: قد تكون محفوظة خادميّاً ولم تُجلَب.
+            if (!cancelled) {
+              setError(
+                'تعذّر استعادة ما حُفِظ سابقاً لهذا الموسم (أحداث/حصاد/تكاليف) — قد يكون محفوظاً في الخادم؛ ' +
+                  `أعد التحميل قبل المتابعة. (${apiErrorMessage(e, 'الخدمة غير متاحة')})`,
+              );
+            }
+          });
+      }
     }
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrateFromDetail]);
 
   const refreshList = useCallback(async () => {
     setLoadingList(true);
@@ -237,8 +289,13 @@ export default function SeasonRecordEntryPage() {
       geometry: data.geometry,
       boundary_metadata: data.boundary_metadata ?? undefined,
     };
+    // UI-W3: مفتاح التكرار الثابت الذي أنتجه AddFieldWithMap يُرسَل ترويسةً (كمسار الحقول العامّ)،
+    // فإعادة محاولة بعد مهلة غامضة تُعيد نفس أمر الإنشاء لا حقلاً مكرّراً. draft_key لا يغطّي هذا الطلب.
+    const config = data.idempotency_key
+      ? { headers: { 'Idempotency-Key': data.idempotency_key } }
+      : undefined;
     // الخطأ يُرمى ليعرضه AddFieldWithMap (لا ابتلاع). النجاح ⇒ التقاط المعرّف والتقدّم.
-    const r = await kongApi.post('/api/v1/fields', payload);
+    const r = await kongApi.post('/api/v1/fields', payload, config);
     const rec = r.data as Record<string, unknown>;
     const newId = String(rec.field_id ?? rec.id ?? '');
     if (!newId) throw new Error('لم تُعِد الخدمة معرّف الحقل — تعذّر متابعة الترقيم.');

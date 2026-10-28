@@ -36,6 +36,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.task_irrigation_observations import list_observations
 
 router = APIRouter()
 
@@ -45,6 +46,7 @@ async def list_tasks(
     field_id: str | None = None,
     limit: int | None = None,
     offset: int = 0,
+    irrigation_task_id: str | None = None,
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """مهامّ المستأجِر (مُرشَّحة بـRLS، واختياريّاً بحقل). الأعلى أولويّةً ثمّ الأقرب موعداً.
@@ -52,8 +54,17 @@ async def list_tasks(
     ترقيم اختياريّ متوافق للخلف (F5-06): بلا ``limit`` يُرجِع كلّ الصفوف كما كان
     (total/next_cursor = None). بتمرير ``limit`` (يُقصَر إلى 1..500) يُرجِع صفحةً مع
     ``total`` و``next_cursor`` (الإزاحة التالية) فتُميّز الواجهة «كلّ السجلّات» عن «أوّل
-    صفحة». يُرجِع {tasks:[...]} دائماً (عقد الواجهة). 503 عند تعذّر القاعدة.
+    صفحة». irrigation_task_id يعيد آخر 200 إفادة في irrigation_observations وtasks فارغة.
     """
+    if irrigation_task_id is not None:
+        try:
+            async with tenant_connection(user) as conn:
+                result = await list_observations(conn, user, irrigation_task_id)
+                return TaskListResponse(tasks=[], irrigation_observations=result["observations"])
+        except HTTPException:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            raise _db_unavailable("قراءة ملاحظات الري", exc) from exc
     order = "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC"
     where = "WHERE field_id = $1 " if field_id else ""
     base_args: list[object] = [field_id] if field_id else []

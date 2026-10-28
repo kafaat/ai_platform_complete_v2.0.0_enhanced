@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **2013**
+- Python files parsed: **2042**
 - FastAPI-style route handlers: **1062**
-- Static function-call edges: **90252**
-- Dead-code candidates: **658**
+- Static function-call edges: **93531**
+- Dead-code candidates: **660**
 - Duplicate function groups: **58**
 - Automatic deletions: **0**
 
@@ -18,7 +18,7 @@
 | `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 61 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 157 |
-| `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 66 |
+| `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 69 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |
 | `raster-service` | `_evict_field_layers` | function | `services/raster-service/raster_main_runtime.py` | 46 |
@@ -26,8 +26,9 @@
 | `raster-service` | `_require_layer_tenant_authorized` | function | `services/raster-service/raster_main_runtime.py` | 93 |
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_c7_latest_cache_provenance.py` | 40 |
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_cdse_empty_raster_not_cached.py` | 70 |
+| `raster-service` | `_clean_runtime_state` | function | `services/raster-service/test_job_truth_receipts_and_fencing.py` | 77 |
 | `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 60 |
-| `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1203 |
+| `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1207 |
 | `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 190 |
 | `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 208 |
 | `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 425 |
@@ -64,7 +65,7 @@
 |---|---:|
 | `01e55555d0073910` | 2 |
 | `0791c0d18167f804` | 5 |
-| `1259184f437d28e1` | 2 |
+| `1259184f437d28e1` | 3 |
 | `1652c685e5ed27fa` | 4 |
 | `18a46eb263382a99` | 2 |
 | `27213e0b8be4077c` | 4 |
@@ -72,7 +73,7 @@
 | `2ed8e51be38a65b6` | 9 |
 | `32d2f14c2fac8b6a` | 2 |
 | `342931e6449b397f` | 2 |
-| `3565ba6cb7cbd2dd` | 2 |
+| `3565ba6cb7cbd2dd` | 3 |
 | `3634c7c73fa8d02f` | 9 |
 | `38f3e26a90604c6a` | 3 |
 | `3bdaa4de02900ca1` | 2 |
