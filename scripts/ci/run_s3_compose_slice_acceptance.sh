@@ -100,6 +100,14 @@ open(path, "w", encoding="utf-8").write("\n".join(lines) + "\n")
 PY
 }
 
+# The slice builds its images through Compose, which forwards
+# ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/} since #1293 (the owner's default for
+# local Compose). Unset here, CI pulled from that mirror: this build took 1m44s-1m52s before #1293,
+# 2m11s and 6m07s after, then sat silent until the 30-minute job timeout (run 40657966716). CI
+# builds from the official index, as every Dockerfile defaults to; an explicit value still wins.
+export PIP_INDEX_URL="${PIP_INDEX_URL:-https://pypi.org/simple}"
+BUILD_TIMEOUT="${S3_SLICE_BUILD_TIMEOUT:-900}"
+
 dc config --quiet
 echo "compose config valid for the slice at ${TESTED_SHA}"
 
@@ -110,7 +118,17 @@ grep -qx 'legacy TiTiler: read-only account on sahool-rasters' "$EVIDENCE" ||
   fail 'S3_SLICE_TITILER_ACCOUNT_NOT_PROVISIONED' "$(cat "$EVIDENCE")"
 echo 'minio-init provisioned buckets and per-service users, including the read-only TiTiler account'
 
-dc build -q sahool-raster-service sahool-scout-ingest >>"$EVIDENCE" 2>&1 || fail 'S3_SLICE_BUILD_FAILED' "$(tail -40 "$EVIDENCE")"
+# Bounded, so a stalled index fails here by name instead of consuming the job's timeout.
+# `timeout` cannot run the dc function, so this one call spells it out.
+echo "building raster-service and scout-ingest (index ${PIP_INDEX_URL}, limit ${BUILD_TIMEOUT}s)"
+build_rc=0
+timeout --kill-after=30 "$BUILD_TIMEOUT" \
+  docker compose -p "$PROJECT" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" \
+  build -q sahool-raster-service sahool-scout-ingest >>"$EVIDENCE" 2>&1 || build_rc=$?
+if [[ $build_rc -eq 124 || $build_rc -eq 137 ]]; then
+  fail "S3_SLICE_BUILD_TIMEOUT: image build exceeded ${BUILD_TIMEOUT}s (index ${PIP_INDEX_URL})" "$(tail -40 "$EVIDENCE")"
+fi
+[[ $build_rc -eq 0 ]] || fail 'S3_SLICE_BUILD_FAILED' "$(tail -40 "$EVIDENCE")"
 
 # 2) The approved compatibility break: no opt-in, raster-service refuses at startup.
 set_env S3_ALLOW_PLAINTEXT_INTERNAL ""

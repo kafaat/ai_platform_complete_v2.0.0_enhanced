@@ -156,3 +156,18 @@ def test_ci_runs_the_slice_acceptance():
     job, step = steps[0]
     assert str(job["runs-on"]).startswith("ubuntu-")
     assert "continue-on-error" not in job and "continue-on-error" not in step
+
+
+def test_ci_build_uses_the_official_index_and_is_bounded():
+    """Run 40657966716: the slice build pulled from Compose's Alibaba default and stalled until
+    the job timeout. The runner must default the index before any Compose call, keep an explicit
+    value, and bound the build with a named failure."""
+    text = _text()
+    export = 'export PIP_INDEX_URL="${PIP_INDEX_URL:-https://pypi.org/simple}"'
+    assert export in text
+    assert text.index(export) < text.index("dc config --quiet")
+    build = _step(text, "build_rc=0", "S3_SLICE_BUILD_FAILED")
+    assert 'timeout --kill-after=30 "$BUILD_TIMEOUT"' in build
+    assert "build -q sahool-raster-service sahool-scout-ingest" in build
+    assert "S3_SLICE_BUILD_TIMEOUT" in build
+    assert "dc build" not in text
