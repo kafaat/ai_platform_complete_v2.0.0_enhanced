@@ -8418,6 +8418,28 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** مشروع Railway `resourceful-commitment` (أُنشئ 2026-10-22) بخدمةٍ واحدة `ai_platform_complete_v2.0.0_enhanced` مربوطة بفرع `main` بلا Dockerfile ولا مجلّد جذر ولا أنماط مراقبة ولا متغيّرات (`get-service-config`، قراءةً). يحاول Railpack بناء جذر المستودع فيفشل (`railpack process exited with an error`، سجلّ البناء للنشر `08e0751a`)، فتُعلَّم كلّ التزامات main بحالة `failure` في GitHub رغم نجاح الحالات الأربع عشرة الأخرى وكلّ تشغيلات Actions (مقيس على آخر 25 التزاماً حتى `84f29f2fa`). لا نطاق ولا خدمة تعتمد عليه.
 - **شرط الإغلاق:** حذف المشروع، أو فصل مصدره، أو تهيئته ببناءٍ حقيقيّ لخدمة واحدة — ثمّ التزامٌ على main بحالةٍ مجمَّعة `success`.
 
+## PLATFORM-IDEMPOTENCY-STORE-NOT-TENANT-BOUND-01 — مخزن أوامر idempotency لا يقيّد الناتج المُعاد بمستأجر الطالب
+
+- **الحالة:** open (2026-10-27).
+  - **في الكود المرشّح:** أُصلحت على فرع `claude/platform-promotion-plan-20261026`.
+  - **في التشغيل:** لم يصل الإصلاح؛ الإنتاج `fa92a1f7e` وstaging `d6ddf38ce` بلا الإصلاح.
+  - **عزل المستأجرين في البيئات المنشورة:** NOT_RUN، والعائق وصول (لا اتّصال بقاعدتي التشغيل).
+  - لا تُغلق قبل قراءة دور المنصّة الفعليّ (الخطوة 0‑ب) واختبارات القبول على staging.
+- **المصدر:** `services/sahool-platform/api/command_store.py` (`ON CONFLICT (command_id) DO NOTHING`، و`get` بـ`command_id` وحده) و`_idempotent` (نُقل إلى `services/sahool-platform/api/idempotency.py`). المفتاح فريدٌ عبر كلّ المستأجرين، والعزل كان على سياسة RLS `commands_tenant_isolation` (`migrations/v10_command_store_lifecycle.sql:43-49`) وحدها.
+  - مقيسٌ محلّيّاً على PG16: تحت المالك superuser أُعيد ناتج المستأجر الأوّل إلى الثاني بالمفتاح والجسم نفسيهما.
+  - وتحت الدور المقيّد وبلا بصمة كان الردّ «أعد المحاولة لاحقاً» لمفتاحٍ لن يصير للطالب.
+- **إصلاح الكود المرشّح:** صفٌّ مخزَّن لمستأجرٍ آخر، أو صفٌّ متعارضٌ تخفيه RLS ⇒ 409 بلا ناتج، وبرسالة تعارض الحمولة.
+- **الاختبار:** `tests_v9/test_live_pg_fake_connection_debt.py`: 10 اختبارات جديدة معدّة لوظيفة CI «Live PG Proofs»، نجحت محلّيّاً، ونجاحها في CI مطلوب. منها طلبٌ متزامن من المستأجر نفسه يلتزم أو يتراجع: لا 409. و`tests_v9/test_idempotency_mobile.py`: 3 اختبارات، تفشل الثلاثة ضدّ الكود الأصليّ. التقرير: [`reports/platform_api_promotion_plan_20261026.md`](../reports/platform_api_promotion_plan_20261026.md) §٣.
+- **شرط الإغلاق:** (1) نجاح «Live PG Proofs» في CI على رأس الدمج، (2) الخطوة 0‑ب على staging: الدور ليس superuser ولا BYPASSRLS ولا مالكاً لـ`commands`، والعزل `read committed`، (3) حالتا القبول 7 و8 على staging، ثمّ الأمر نفسه في الإنتاج بعد الموافقة.
+- **ما يبقى بعد الإغلاق:** المفتاح محجوزٌ عالمياً (409 لمستأجرٍ آخر يصادف المفتاح نفسه).
+## MIGRATION-DOWN-SCRIPTS-UNTESTED-POSSIBLY-STALE-01 — ملفّا تراجعٍ غير مختبرين، مع احتمال تقادم
+
+- **الحالة:** open (2026-10-27).
+- **المصدر:** `migrations/v9_append_only_enforcement.down.sql` و`migrations/v9_rls_tenant_isolation.down.sql`. مستثنيان من MANIFEST صراحةً بلاحقة `.down.sql` (`scripts/ci/database_contract_graph.py:77` و`migrations/validate_migrations.py:95-97` و`tests_v9/test_manifest_completeness.py`)، فـ236 ملفّ SQL = 234 هجرةً أماميّة + هذان.
+  - **لا يشغّلهما شيء:** لا workflow، ولا سكربت، ولا اختبار.
+  - `v9_rls_tenant_isolation.sql` عُدِّل مرّتين بعد آخر تعديلٍ لملفّ تراجعه (`6dce82bab` 2026-06-09، والأماميّ `e28d7bab6` 2026-06-17). **وذلك مؤشّرٌ يستدعي الفحص، لا إثباتٌ لخلل.**
+- **الحدّ (قرار المالك 2026-10-27):** ليسا شرطاً لترقية v234–v236، ما لم تعتمد خطة الاستعادة عليهما، وهي لا تعتمد ([`reports/migration_batch_v234_v236_prerequisites_20261027.md`](../reports/migration_batch_v234_v236_prerequisites_20261027.md) §٢.٤). وتشغيلهما قد يمسّ حماية RLS وappend-only، ولا يعكسان الدفعة الجديدة.
+- **شرط الإغلاق:** إمّا (أ) تشغيلهما على نسخةٍ مستعادة مع مقارنة الأثر بعكس الأماميّ الحاليّ، وتسجيل النتيجة، أو (ب) قرارٌ موثَّق بأنّهما خارج أيّ إجراء استعادة، يُصرَّح به في رأسيهما.
 ## حزمة مراجعة الاستشعار عن بعد 2026-10-27 — معرّفات الالتزامات (RS audit)
 
 سجلٌّ لمعرّفات الملاحظات التي تذكرها التزامات فروع `claude/rs-*-20261027` (سير العمل `wf_dc775cab-3eb`: إصلاح ← مراجعٌ مستقلّ يُكذِّب على `5c7e1cb83` ← ترميم). كلّها **fixed** على فروعها ومُدمَجة في الفرع الموحَّد `claude/unified-20261027` محلّيّاً؛ **غير مدموجة في main وغير منشورة** — فلا `verified`. **تحديث 2026-10-28:** دُمجت كلّها في main بـ#1299 ⇒ `20f0b3b97` (شجرة الدمج `5e7567b5` = الشجرة المختبَرة `fddbd2168`)، ونشرُ Railway لهذا الالتزام SUCCESS في production (10 خدمات) وstaging (12)، و`sahool-migrate-main` SKIPPED في البيئتين؛ تبقى **fixed** حتى قبولٍ حيّ. الملخّص بلغة تقرير المُصلِح (إنجليزيّة) كما سُجِّل في سجلّ سير العمل.
@@ -8452,3 +8474,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 | P3-CON-2 | New frontend/src/lib/indicatorGridGeo.ts. | frontend · maps | `claude/rs-frontend-maps-20261027` @ `14f099c12` · `frontend/src/components/maphub/HubMapGL.test.tsx` · `frontend/src/components/maphub/PersistedCogTiles.static.test.ts` · `frontend/src/components/maphub/persistedCog.test.ts` | **fixed** (2026-10-27) — مراجعٌ مستقلّ: الاختبار أحمر على `5c7e1cb83` وأخضر على الفرع؛ مدموج في main `20f0b3b97` (#1299، 2026-10-28) ونشرُ Railway لهذا الدمج SUCCESS بلا مهاجر؛ لا قبولَ حيّاً بعد |
 | P3-DUR-3 | Added _LeaseHeartbeat.confirm_owned(). It returns False if the lease is already marked lost; | raster-service | `claude/rs-job-truth-20261027` @ `339355eb3` · `services/raster-service/test_job_truth_receipts_and_fencing.py` | **fixed** (2026-10-27) — مراجعٌ مستقلّ: الاختبار أحمر على `5c7e1cb83` وأخضر على الفرع؛ مدموج في main `20f0b3b97` (#1299، 2026-10-28) ونشرُ Railway لهذا الدمج SUCCESS بلا مهاجر؛ لا قبولَ حيّاً بعد |
 | P3-DUR-4 | The finish_sync result is now captured as finish_acknowledged; | raster-service | `claude/rs-job-truth-20261027` @ `339355eb3` · `services/raster-service/test_job_truth_receipts_and_fencing.py` | **fixed** (2026-10-27) — مراجعٌ مستقلّ: الاختبار أحمر على `5c7e1cb83` وأخضر على الفرع؛ مدموج في main `20f0b3b97` (#1299، 2026-10-28) ونشرُ Railway لهذا الدمج SUCCESS بلا مهاجر؛ لا قبولَ حيّاً بعد |
+
+## CI-COMPOSE-SLICE-BUILD-USES-LOCAL-MIRROR-DEFAULT-01 — بناء شريحة S3 في CI يرث مرآة Compose المحلّيّة فيتعطّل
+
+- **الحالة:** **fixed** (2026-10-28) على فرع `claude/ci-compose-slice-pypi-20261028`؛ غير مدموج.
+- **المصدر:** `scripts/ci/run_s3_compose_slice_acceptance.sh` يبني `sahool-raster-service` و`sahool-scout-ingest` عبر `docker compose build`، و`docker-compose.v9.yml` يمرّر `${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}` منذ #1293. فقرار 2026-10-26 («لا workflow يبني عبر compose»، `decisions/ledger.md`) لا يصحّ لهذه الخطوة: CI كان يسحب من المرآة.
+- **المقيس:** مدّة خطوة «S3 Compose slice acceptance» على دفعات `main`: 1د44ث و1د52ث قبل #1293؛ 2د11ث و6د07ث بعده؛ ثمّ صمتٌ 28 دقيقة بعد تجهيز MinIO حتى مهلة الوظيفة (30 دقيقة) في التشغيل `40657966716` على `fc7f8cac5`، فأُلغيت «Raster Service Tests» ورفض `certify-run.yml` (التشغيل `40661695219`) تشغيلاً ملغى. البناء يعمل بـ`-q` إلى ملفّ دليلٍ لم يُطبع، فالمرآة **السببُ الأرجح لا المُثبت**.
+- **الإصلاح:** السكربت يصدّر `PIP_INDEX_URL` = `https://pypi.org/simple` ما لم يُضبط صراحةً (كافتراضيّ الـDockerfiles)، ويحدّ البناء بـ`timeout` (900ث افتراضيّاً) مع فشلٍ مسمّى `S3_SLICE_BUILD_TIMEOUT` يذكر الفهرس.
+- **الاختبار:** `tests_v9/test_s3_compose_slice_contract.py::test_ci_build_uses_the_official_index_and_is_bounded` — أحمر على سكربت `fc7f8cac5`، أخضر على الإصلاح.
+- **شرط التحقّق:** خطوة الشريحة خضراء على دفعة `main` بعد الدمج، بمدّة بناء من رتبة ما قبل #1293.
