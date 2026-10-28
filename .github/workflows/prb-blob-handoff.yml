@@ -63,7 +63,24 @@ jobs:
               "X-GitHub-Api-Version": "2022-11-28",
           }
           url = f"https://api.github.com/repos/{repo}/actions/artifacts/{artifact_id}/zip"
-          with urlopen(Request(url, headers=headers), timeout=90) as response:
+          # GitHub's API redirects to a time-limited Azure storage URL.
+          # NEVER forward the GitHub bearer token to the storage host.
+          from urllib.request import HTTPRedirectHandler, build_opener
+
+          class StripCrossHostAuth(HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, redirect_headers, newurl):
+                  redirected = super().redirect_request(
+                      req, fp, code, msg, redirect_headers, newurl
+                  )
+                  if redirected is not None:
+                      for headers_dict in (redirected.headers, redirected.unredirected_hdrs):
+                          for key in list(headers_dict):
+                              if key.lower() == "authorization":
+                                  del headers_dict[key]
+                  return redirected
+
+          opener = build_opener(StripCrossHostAuth())
+          with opener.open(Request(url, headers=headers), timeout=90) as response:
               outer_bytes = response.read()
           with zipfile.ZipFile(io.BytesIO(outer_bytes)) as outer:
               if outer.read("source-sha.txt").decode().strip() != expected_source:
