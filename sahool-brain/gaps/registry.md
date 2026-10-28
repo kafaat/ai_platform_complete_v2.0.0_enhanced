@@ -8432,6 +8432,14 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الاختبار:** `tests_v9/test_live_pg_fake_connection_debt.py`: 10 اختبارات جديدة معدّة لوظيفة CI «Live PG Proofs»، نجحت محلّيّاً، ونجاحها في CI مطلوب. منها طلبٌ متزامن من المستأجر نفسه يلتزم أو يتراجع: لا 409. و`tests_v9/test_idempotency_mobile.py`: 3 اختبارات، تفشل الثلاثة ضدّ الكود الأصليّ. التقرير: [`reports/platform_api_promotion_plan_20261026.md`](../reports/platform_api_promotion_plan_20261026.md) §٣.
 - **شرط الإغلاق:** (1) نجاح «Live PG Proofs» في CI على رأس الدمج، (2) الخطوة 0‑ب على staging: الدور ليس superuser ولا BYPASSRLS ولا مالكاً لـ`commands`، والعزل `read committed`، (3) حالتا القبول 7 و8 على staging، ثمّ الأمر نفسه في الإنتاج بعد الموافقة.
 - **ما يبقى بعد الإغلاق:** المفتاح محجوزٌ عالمياً (409 لمستأجرٍ آخر يصادف المفتاح نفسه).
+## MIGRATION-DOWN-SCRIPTS-UNTESTED-POSSIBLY-STALE-01 — ملفّا تراجعٍ غير مختبرين، مع احتمال تقادم
+
+- **الحالة:** open (2026-10-27).
+- **المصدر:** `migrations/v9_append_only_enforcement.down.sql` و`migrations/v9_rls_tenant_isolation.down.sql`. مستثنيان من MANIFEST صراحةً بلاحقة `.down.sql` (`scripts/ci/database_contract_graph.py:77` و`migrations/validate_migrations.py:95-97` و`tests_v9/test_manifest_completeness.py`)، فـ236 ملفّ SQL = 234 هجرةً أماميّة + هذان.
+  - **لا يشغّلهما شيء:** لا workflow، ولا سكربت، ولا اختبار.
+  - `v9_rls_tenant_isolation.sql` عُدِّل مرّتين بعد آخر تعديلٍ لملفّ تراجعه (`6dce82bab` 2026-06-09، والأماميّ `e28d7bab6` 2026-06-17). **وذلك مؤشّرٌ يستدعي الفحص، لا إثباتٌ لخلل.**
+- **الحدّ (قرار المالك 2026-10-27):** ليسا شرطاً لترقية v234–v236، ما لم تعتمد خطة الاستعادة عليهما، وهي لا تعتمد ([`reports/migration_batch_v234_v236_prerequisites_20261027.md`](../reports/migration_batch_v234_v236_prerequisites_20261027.md) §٢.٤). وتشغيلهما قد يمسّ حماية RLS وappend-only، ولا يعكسان الدفعة الجديدة.
+- **شرط الإغلاق:** إمّا (أ) تشغيلهما على نسخةٍ مستعادة مع مقارنة الأثر بعكس الأماميّ الحاليّ، وتسجيل النتيجة، أو (ب) قرارٌ موثَّق بأنّهما خارج أيّ إجراء استعادة، يُصرَّح به في رأسيهما.
 ## حزمة مراجعة الاستشعار عن بعد 2026-10-27 — معرّفات الالتزامات (RS audit)
 
 سجلٌّ لمعرّفات الملاحظات التي تذكرها التزامات فروع `claude/rs-*-20261027` (سير العمل `wf_dc775cab-3eb`: إصلاح ← مراجعٌ مستقلّ يُكذِّب على `5c7e1cb83` ← ترميم). كلّها **fixed** على فروعها ومُدمَجة في الفرع الموحَّد `claude/unified-20261027` محلّيّاً؛ **غير مدموجة في main وغير منشورة** — فلا `verified`. **تحديث 2026-10-28:** دُمجت كلّها في main بـ#1299 ⇒ `20f0b3b97` (شجرة الدمج `5e7567b5` = الشجرة المختبَرة `fddbd2168`)، ونشرُ Railway لهذا الالتزام SUCCESS في production (10 خدمات) وstaging (12)، و`sahool-migrate-main` SKIPPED في البيئتين؛ تبقى **fixed** حتى قبولٍ حيّ. الملخّص بلغة تقرير المُصلِح (إنجليزيّة) كما سُجِّل في سجلّ سير العمل.
