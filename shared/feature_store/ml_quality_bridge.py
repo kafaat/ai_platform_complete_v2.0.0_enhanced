@@ -59,7 +59,7 @@ MANIFEST_FIELDS = frozenset(
     }
 )
 # The callback MUST be supplied by a trusted SAHOOL owner, not from a request payload.
-ReceiptVerifier = Callable[[str, str, str, str, str], bool]
+ReceiptVerifier = Callable[[str, str, str, str, str, str, str, float], bool]
 
 
 def _hash(value: Any) -> str:
@@ -154,6 +154,7 @@ def export_ml_quality_candidate(
     result_rows: list[dict[str, Any]] = []
     reasons: list[str] = []
     receipt_sha256s: set[str] = set()
+    seen_receipts: set[str] = set()
     ids: set[str] = set()
     for i, record in enumerate(records):
         prefix = f"row_{i}"
@@ -210,27 +211,35 @@ def export_ml_quality_candidate(
             receipt = record["measurement_receipt_sha256"]
             if not _is_sha(receipt):
                 reasons.append(cid + ":MEASUREMENT_RECEIPT_INVALID")
-            elif receipt_verifier is None:
-                reasons.append(cid + ":MEASUREMENT_VERIFIER_NOT_CONFIGURED")
+            elif receipt in seen_receipts:
+                reasons.append(cid + ":MEASUREMENT_RECEIPT_REUSED")
             else:
-                try:
-                    verified = (
-                        receipt_verifier(
-                            record["tenant_id"],
-                            record["field_id"],
-                            record["season_id"],
-                            source,
-                            receipt,
-                        )
-                        is True
-                    )
-                except Exception:  # noqa: BLE001 - unknown verifier failures never confer trust
-                    verified = False
-                if not verified:
-                    reasons.append(cid + ":MEASUREMENT_VERIFICATION_FAILED")
+                # Exactly one evaluation row per receipt, even when verification fails.
+                seen_receipts.add(receipt)
+                if receipt_verifier is None:
+                    reasons.append(cid + ":MEASUREMENT_VERIFIER_NOT_CONFIGURED")
                 else:
-                    accepted_source = ALLOWED_SOURCES[source]
-                    receipt_sha256s.add(receipt)
+                    try:
+                        verified = (
+                            receipt_verifier(
+                                record["tenant_id"],
+                                record["field_id"],
+                                record["season_id"],
+                                source,
+                                receipt,
+                                cid,
+                                label_measured.isoformat(),
+                                float(record["target_mm"]),
+                            )
+                            is True
+                        )
+                    except Exception:  # noqa: BLE001 - unknown verifier failures never confer trust
+                        verified = False
+                    if not verified:
+                        reasons.append(cid + ":MEASUREMENT_VERIFICATION_FAILED")
+                    else:
+                        accepted_source = ALLOWED_SOURCES[source]
+                        receipt_sha256s.add(receipt)
         result_rows.append(
             {
                 key: record[key]

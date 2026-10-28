@@ -34,6 +34,10 @@ def manifest():
     }
 
 
+def receipt(index):
+    return f"{index + 1:064x}"
+
+
 def records():
     result = []
     for i, split in enumerate(["train", "train", "validation", "validation", "test", "test"]):
@@ -51,7 +55,7 @@ def records():
                 "label_measured_at": at(day + 1),
                 "label_available_at": at(day + 2),
                 "measurement_origin": "soil_sensor",
-                "measurement_receipt_sha256": "c" * 64,
+                "measurement_receipt_sha256": receipt(i),
                 "target_mm": 5.0,
                 "prediction_mm": 5.1,
                 "baseline_mm": 6.0,
@@ -161,16 +165,25 @@ def test_verifier_exception_denies_a_sensor():
 
 def test_receipt_verified_with_exact_tenant_field_season_and_source():
     seen = []
+    expected = (
+        "tenant-a",
+        "field-0",
+        "season-2026",
+        "soil_sensor",
+        receipt(0),
+        "case-0",
+        at(2),
+        5.0,
+    )
 
     def verifier(*args):
         seen.append(args)
-        return args == ("tenant-a", "field-0", "season-2026", "soil_sensor", "c" * 64)
+        return args == expected
 
     r = screen(evidence=verifier)
-    assert seen[0] == ("tenant-a", "field-0", "season-2026", "soil_sensor", "c" * 64)
+    assert seen[0] == expected
     assert r["rows"][0]["label_source"] == "soil_sensor_verified"
     assert r["status"] == "BLOCKED"  # the other 5 rows lack accepted receipts
-
 
 def test_tenant_isolation_before_verifier_invocation():
     rows = records()
@@ -296,7 +309,7 @@ def test_invalid_source_dict_is_blocked_not_exception():
 def test_expected_schema_does_not_contain_receipt_evidence_as_label():
     r = screen()
     assert "measurement_receipt_sha256" not in r["rows"][0]
-    assert r["claimed_verified_receipt_sha256s"] == ["c" * 64]
+    assert r["claimed_verified_receipt_sha256s"] == sorted(receipt(i) for i in range(6))
 
 
 def test_huge_integer_never_causes_overflow():
@@ -310,3 +323,58 @@ def test_huge_integer_policy_never_causes_overflow():
     m["evaluation_policy"]["min_relative_mae_improvement"] = 10**1000
     with pytest.raises(ValueError, match="MANIFEST_POLICY_INVALID"):
         screen(m=m)
+
+def test_receipt_reuse_fails_closed_even_with_permissive_callback():
+    data = records()
+    data[1]["measurement_receipt_sha256"] = data[0]["measurement_receipt_sha256"]
+    calls = []
+    report = screen(data, evidence=lambda *parts: calls.append(parts) or True)
+    assert report["status"] == "BLOCKED"
+    assert "case-1:MEASUREMENT_RECEIPT_REUSED" in report["blocking_reasons"]
+    assert report["rows"][1]["label_source"] == "unverified_claim"
+    assert len(calls) == 5  # no second invocation with a reused receipt
+
+
+@pytest.mark.parametrize(
+    ("change", "value"),
+    [
+        ("case_id", "case-renamed"),
+        ("label_measured_at", at(3)),
+        ("target_mm", 5.9),
+    ],
+)
+def test_receipt_cannot_verify_changed_outcome(change, value):
+    data = records()
+    data[0][change] = value
+    expected = (
+        "tenant-a",
+        "field-0",
+        "season-2026",
+        "soil_sensor",
+        receipt(0),
+        "case-0",
+        at(2),
+        5.0,
+    )
+    observed = []
+
+    def exact(*parts):
+        observed.append(parts)
+        return parts == expected
+
+    report = screen(data, evidence=exact)
+    cid = "case-renamed" if change == "case_id" else "case-0"
+    assert report["status"] == "BLOCKED"
+    assert f"{cid}:MEASUREMENT_VERIFICATION_FAILED" in report["blocking_reasons"]
+    assert report["rows"][0]["label_source"] == "unverified_claim"
+    assert len(observed) == 6
+
+
+def test_receipt_reuse_in_same_field_cannot_change_target():
+    data = records()
+    data[1]["field_id"] = data[0]["field_id"]
+    data[1]["target_mm"] = 8.0
+    data[1]["measurement_receipt_sha256"] = data[0]["measurement_receipt_sha256"]
+    report = screen(data)
+    assert report["status"] == "BLOCKED"
+    assert "case-1:MEASUREMENT_RECEIPT_REUSED" in report["blocking_reasons"]
