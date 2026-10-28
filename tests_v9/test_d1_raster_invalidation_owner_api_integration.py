@@ -182,6 +182,9 @@ def test_owner_side_enqueue_is_idempotent_tenant_scoped_and_consumed_by_the_work
 
     monkeypatch.setattr(db_persist, "DATABASE_URL", _TEST_DB)
     monkeypatch.setenv("DATABASE_URL", _TEST_DB)
+    # يضبط غيرُه ``REDIS_URL`` عند الاستيراد (localhost:6379 بلا خادم)؛ هذا الاختبار لا يقيس
+    # نشرَ الإخلاء، ونشرٌ فاشل يُبقي الصفَّ ``pending`` منذ P3-INV.
+    monkeypatch.delenv("REDIS_URL", raising=False)
     monkeypatch.setenv("RASTER_CACHE_INVALIDATION_ENABLED", "true")
     tenant_id = str(uuid.uuid4())
     other_tenant = str(uuid.uuid4())
@@ -432,6 +435,9 @@ def test_field_created_invalidation_keeps_imagery_produced_after_creation_served
 
     monkeypatch.setattr(db_persist, "DATABASE_URL", _TEST_DB)
     monkeypatch.setenv("DATABASE_URL", _TEST_DB)
+    # يضبط غيرُه ``REDIS_URL`` عند الاستيراد (localhost:6379 بلا خادم)؛ هذا الاختبار لا يقيس
+    # نشرَ الإخلاء، ونشرٌ فاشل يُبقي الصفَّ ``pending`` منذ P3-INV.
+    monkeypatch.delenv("REDIS_URL", raising=False)
     tenant_id = str(uuid.uuid4())
     field_id = f"fld_{uuid.uuid4().hex[:12]}"
     cog = _write_ndvi_cog(tmp_path / "ndvi_after_creation.tif")
@@ -502,6 +508,9 @@ def test_geometry_change_invalidation_stales_only_assets_that_predate_it(monkeyp
 
     monkeypatch.setattr(db_persist, "DATABASE_URL", _TEST_DB)
     monkeypatch.setenv("DATABASE_URL", _TEST_DB)
+    # يضبط غيرُه ``REDIS_URL`` عند الاستيراد (localhost:6379 بلا خادم)؛ هذا الاختبار لا يقيس
+    # نشرَ الإخلاء، ونشرٌ فاشل يُبقي الصفَّ ``pending`` منذ P3-INV.
+    monkeypatch.delenv("REDIS_URL", raising=False)
     tenant_id = str(uuid.uuid4())
     field_id = f"fld_{uuid.uuid4().hex[:12]}"
     cog = _write_ndvi_cog(tmp_path / "ndvi.tif")

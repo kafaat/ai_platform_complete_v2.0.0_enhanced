@@ -20,10 +20,30 @@ def _clamp_pct(value: float | int | None) -> float | None:
     return max(0.0, min(100.0, float(value)))
 
 
+def _supported_pct(risk_mask, supported_mask) -> float | None:
+    """Percent of *supported* pixels that are at risk.
+
+    The denominator is count(supported), never the full grid: nodata (and
+    pixels whose metric cannot be computed) must not dilute the ratio, so a
+    nodata frame around the same terrain leaves the percentage unchanged.
+    Returns ``None`` when nothing is supported (unknown, not 0% risk).
+    """
+
+    import numpy as np
+
+    supported = np.asarray(supported_mask, dtype=bool)
+    n_supported = int(np.count_nonzero(supported))
+    if n_supported == 0:
+        return None
+    n_risk = int(np.count_nonzero(np.asarray(risk_mask, dtype=bool) & supported))
+    return 100.0 * n_risk / n_supported
+
+
 def compute_cast_shadow_mask_from_dem(
     dem,
     *,
     pixel_size_m: float,
+    pixel_size_y_m: float | None = None,
     sun_azimuth_deg: float,
     sun_altitude_deg: float,
     max_steps: int = 64,
@@ -37,6 +57,10 @@ def compute_cast_shadow_mask_from_dem(
     risk. It is intentionally bounded (``max_steps`` and ``step_pixels``) so it
     is safe for indicator preprocessing and CI tests. It is a QA risk mask, not
     a photogrammetric replacement for a full radiative transfer model.
+
+    ``pixel_size_m`` is the ground spacing along columns (x) and
+    ``pixel_size_y_m`` along rows (y); ``None`` means square pixels. Geographic
+    grids are not square on the ground (x shrinks with cos(latitude)).
     """
 
     import numpy as np
@@ -59,14 +83,20 @@ def compute_cast_shadow_mask_from_dem(
         }
 
     px = max(float(pixel_size_m or 0.0), 1e-6)
+    py = px if pixel_size_y_m is None else max(float(pixel_size_y_m or 0.0), 1e-6)
     max_steps = max(1, min(int(max_steps), 512))
     step_pixels = max(1, min(int(step_pixels), 16))
     altitude_tan = math.tan(math.radians(float(sun_altitude_deg)))
     # Azimuth is degrees clockwise from north. In image coordinates: row grows
     # south/down, col grows east/right. Up-sun direction points toward the sun.
+    # The ground direction is converted to pixel space per axis (non-square
+    # pixels bend it), then normalised to one pixel per step.
     az = math.radians(float(sun_azimuth_deg))
-    row_unit = -math.cos(az)
-    col_unit = math.sin(az)
+    row_dir = -math.cos(az) / py
+    col_dir = math.sin(az) / px
+    _norm = math.hypot(row_dir, col_dir)
+    row_unit = row_dir / _norm
+    col_unit = col_dir / _norm
 
     h, w = arr.shape
     shadow = np.zeros((h, w), dtype=bool)
@@ -93,14 +123,14 @@ def compute_cast_shadow_mask_from_dem(
             continue
         seen_offsets.add((dr, dc))
         blocker = shifted_up_sun(arr, dr, dc)
-        distance_m = math.hypot(dr, dc) * px
+        distance_m = math.hypot(dr * py, dc * px)
         if distance_m <= 0:
             continue
         required_blocker_height = arr + altitude_tan * distance_m
         step_shadow = np.isfinite(blocker) & valid & (blocker > required_blocker_height)
         shadow |= step_shadow
 
-    cast_shadow_risk_pct = float(np.mean(shadow & valid) * 100.0)
+    cast_shadow_risk_pct = _supported_pct(shadow, valid)
     warnings: list[str] = []
     if max_steps < 32:
         warnings.append("cast_shadow_horizon_limited")
@@ -118,6 +148,7 @@ def compute_topographic_risk_from_dem(
     dem,
     *,
     pixel_size_m: float,
+    pixel_size_y_m: float | None = None,
     sun_azimuth_deg: float | None = None,
     sun_altitude_deg: float | None = None,
     slope_risk_threshold_pct: float = 12.0,
@@ -128,10 +159,18 @@ def compute_topographic_risk_from_dem(
     """Compute conservative topographic risk percentages from a DEM array.
 
     This is a local-terrain QA metric, not a full cast-shadow ray tracing model.
-    It estimates:
-    - ``slope_risk_pct``: valid DEM pixels with slope >= threshold.
-    - ``terrain_shadow_risk_pct``: valid DEM pixels whose hillshade is below a
+    It estimates, over *supported* pixels only (valid DEM with a finite
+    gradient; nodata and nodata-adjacent pixels are excluded from both
+    numerator and denominator):
+    - ``slope_risk_pct``: supported pixels with slope >= threshold.
+    - ``terrain_shadow_risk_pct``: supported pixels whose hillshade is below a
       low illumination threshold, only when sun azimuth/altitude are supplied.
+    When no pixel is supported the percentage is ``None`` with the
+    ``dem_gradient_support_insufficient`` warning, never a fabricated 0%.
+
+    ``pixel_size_m``/``pixel_size_y_m`` are ground spacings in metres along
+    columns/rows (``None`` y means square pixels); slope is rise over ground run,
+    so callers must never pass CRS units such as degrees here.
 
     The function is intentionally pure and deterministic so it can be tested
     without a live raster service.
@@ -154,12 +193,16 @@ def compute_topographic_risk_from_dem(
         }
 
     px = max(float(pixel_size_m or 0.0), 1e-6)
+    py = px if pixel_size_y_m is None else max(float(pixel_size_y_m or 0.0), 1e-6)
     dzdx = np.gradient(arr, px, axis=1)
-    dzdy = np.gradient(arr, px, axis=0)
+    dzdy = np.gradient(arr, py, axis=0)
     grad = np.sqrt(dzdx**2 + dzdy**2)
     slope_pct = 100.0 * grad
-    slope_risk_pct = float(
-        np.nanmean((slope_pct >= float(slope_risk_threshold_pct)) & valid) * 100.0
+    # np.gradient propagates NaN into the neighbours of nodata, so a valid DEM
+    # pixel only supports slope/hillshade where its gradient is finite.
+    gradient_supported = valid & np.isfinite(grad)
+    slope_risk_pct = _supported_pct(
+        slope_pct >= float(slope_risk_threshold_pct), gradient_supported
     )
 
     sun_ok = (
@@ -170,6 +213,8 @@ def compute_topographic_risk_from_dem(
     terrain_shadow_risk_pct: float | None = None
     hillshade_available = False
     warnings: list[str] = []
+    if slope_risk_pct is None:
+        warnings.append("dem_gradient_support_insufficient")
     if sun_ok:
         slope_rad = np.arctan(grad)
         aspect = np.arctan2(dzdy, -dzdx)
@@ -179,10 +224,12 @@ def compute_topographic_risk_from_dem(
             slope_rad
         ) * np.cos(az_math - aspect)
         hillshade = np.clip(hillshade, 0.0, 1.0)
-        terrain_shadow_risk_pct = float(
-            np.nanmean((hillshade <= float(shadow_hillshade_threshold)) & valid) * 100.0
+        terrain_shadow_risk_pct = _supported_pct(
+            hillshade <= float(shadow_hillshade_threshold), gradient_supported
         )
-        hillshade_available = True
+        # Hillshade is only available where it had gradient support; read it
+        # before the cast-shadow max below can overwrite the percentage.
+        hillshade_available = terrain_shadow_risk_pct is not None
     else:
         warnings.append("sun_geometry_unavailable_for_terrain_shadow_model")
 
@@ -193,6 +240,7 @@ def compute_topographic_risk_from_dem(
         cast = compute_cast_shadow_mask_from_dem(
             arr,
             pixel_size_m=px,
+            pixel_size_y_m=py,
             sun_azimuth_deg=sun_azimuth_deg,
             sun_altitude_deg=sun_altitude_deg,
             max_steps=cast_shadow_max_steps,
@@ -301,6 +349,7 @@ def build_topographic_qa_from_dem_array(
     dem,
     *,
     pixel_size_m: float,
+    pixel_size_y_m: float | None = None,
     sun_azimuth_deg: float | None = None,
     sun_altitude_deg: float | None = None,
     sources: list[str] | None = None,
@@ -310,6 +359,7 @@ def build_topographic_qa_from_dem_array(
     risk = compute_topographic_risk_from_dem(
         dem,
         pixel_size_m=pixel_size_m,
+        pixel_size_y_m=pixel_size_y_m,
         sun_azimuth_deg=sun_azimuth_deg,
         sun_altitude_deg=sun_altitude_deg,
     )

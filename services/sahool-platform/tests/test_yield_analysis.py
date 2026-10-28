@@ -128,6 +128,74 @@ class TestAssembleHonesty:
         assert out["provenance"]["note_ar"] is None
 
 
+# ── S1-c: تجميع الهجن بالمحصول + الصنف القانونيّ؛ مصدر البذور ليس هويّة صنف ──
+
+
+class TestHybridGroupingByCropAndCultivar:
+    def test_shared_label_across_crops_not_averaged_together(self):
+        """قمح 4 + طماطم 40 تحت تسمية مشتركة لا يُعطيان متوسّطاً 22 ط/هـ."""
+        rows = [
+            _season(
+                season_id="s1",
+                field_id="f1",
+                crops=["wheat"],
+                cultivar="shared-label",
+                actual_yield_kg_ha=4000,
+            ),
+            _season(
+                season_id="s2",
+                field_id="f2",
+                crops=["tomato"],
+                cultivar="shared-label",
+                actual_yield_kg_ha=40000,
+            ),
+        ]
+        out = build_hybrid_performance(rows)
+        assert len(out) == 2
+        assert all(h["avg_yield_t_ha"] != 22.0 for h in out)
+        by_crop = {h["crop"]: h for h in out}
+        assert by_crop["wheat"]["avg_yield_t_ha"] == 4.0
+        assert by_crop["tomato"]["avg_yield_t_ha"] == 40.0
+        assert by_crop["wheat"]["crops"] == ["wheat"]
+        # لا ترتيب عبر المحاصيل: كلٌّ الأوّل في محصوله.
+        assert by_crop["wheat"]["rank_in_crop"] == 1
+        assert by_crop["tomato"]["rank_in_crop"] == 1
+
+    def test_cultivar_label_canonicalised_within_crop(self):
+        """«Pioneer-X» و«pioneer-x » لنفس المحصول صنف واحد (تسمية قانونيّة)."""
+        rows = [
+            _season(season_id="s1", field_id="f1", cultivar="Pioneer-X", actual_yield_kg_ha=6000),
+            _season(season_id="s2", field_id="f2", cultivar="pioneer-x ", actual_yield_kg_ha=4000),
+        ]
+        out = build_hybrid_performance(rows)
+        assert len(out) == 1
+        assert out[0]["season_count"] == 2
+        assert out[0]["avg_yield_t_ha"] == 5.0
+
+    def test_seed_source_is_not_cultivar_identity(self):
+        """مصدر البذور (شركة/جهة) لا يُعامَل كصنف: لا يُكوِّن مجموعة أداء ويُعرَض منفصلاً."""
+        rows = [
+            _season(
+                season_id="s1",
+                cultivar=None,
+                seed_variety_source="dealer-A",
+                actual_yield_kg_ha=5000,
+            ),
+            _season(
+                season_id="s2",
+                cultivar="A",
+                seed_variety_source="dealer-B",
+                actual_yield_kg_ha=6000,
+            ),
+        ]
+        out = build_hybrid_performance(rows)
+        assert [h["hybrid"] for h in out] == ["A"]
+        assert out[0]["seed_sources"] == ["dealer-B"]
+        ph = build_planting_vs_harvest(rows)
+        assert ph[0]["hybrid"] is None
+        assert ph[0]["seed_variety_source"] == "dealer-A"
+
+
 # ── (ب) المعالِج (اتّصال مُحاكى) ────────────────────────────────
 
 

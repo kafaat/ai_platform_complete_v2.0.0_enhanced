@@ -99,11 +99,15 @@ def test_mismatched_shapes_raise():
 
 
 def test_all_gaps_zero_coverage():
-    """تغطية صفر (كلّ البكسلات فجوات) ⇒ لا تغيّر، coverage=0، تحذير سحاب."""
+    """تغطية صفر (كلّ البكسلات فجوات) ⇒ not_assessable، coverage=0، تحذير سحاب.
+
+    mean_delta=None لا 0.0: لا مقارنة بلا خليّة مشتركة (S3-a) — الصفر يُقرأ استقراراً.
+    """
     before = [[None, None], [None, None]]
     after = [[0.5, 0.5], [0.5, 0.5]]
     res = cd.detect_change(before, after, index="ndvi")
     assert res["valid_pixels"] == 0
     assert res["coverage_pct"] == 0.0
     assert res["cloud_warning"] is True
-    assert res["mean_delta"] == 0.0
+    assert res["status"] == "not_assessable"
+    assert res["mean_delta"] is None

@@ -30,6 +30,7 @@ void main() {
   FormDraft makeDraft({String version = 'v1', String hash = 'hash-v1'}) =>
       FormDraft(
         tenantId: 'tenant-1',
+        actorId: 'user-1',
         fieldId: 'field-9',
         assignmentId: 'assign-7',
         revision: 3,
@@ -50,6 +51,7 @@ void main() {
     await store.save(makeDraft());
     final loaded = store.load(
       tenantId: 'tenant-1',
+      actorId: 'user-1',
       fieldId: 'field-9',
       assignmentId: 'assign-7',
       formVersionId: 'v1',
@@ -63,12 +65,52 @@ void main() {
     expect(loaded.revision, 3);
     expect(loaded.definitionSyncToken, 'sync-token-abc');
     expect(loaded.savedAt, DateTime.utc(2025, 1, 15, 10, 30));
+    expect(loaded.actorId, 'user-1');
+  });
+
+  test('المستخدم جزء من المفتاح: مستخدم آخر في المستأجِر نفسه لا يرى المسودّة '
+      '(UI-S5)', () async {
+    await store.save(makeDraft());
+    for (final other in ['user-2', null]) {
+      expect(
+        store.load(
+          tenantId: 'tenant-1',
+          actorId: other,
+          fieldId: 'field-9',
+          assignmentId: 'assign-7',
+          formVersionId: 'v1',
+          schemaHash: 'hash-v1',
+        ),
+        isNull,
+      );
+    }
+  });
+
+  test('مسودّة قديمة بلا مستخدم (المفتاح الخماسيّ) لا تُفتح لأيّ مستخدم ولا '
+      'تُحذف', () async {
+    const legacyKey = 'tenant-1|field-9|assign-7|v1|hash-v1';
+    final box = Hive.box<dynamic>(DraftStore.boxName);
+    final legacy = makeDraft().toJson()..remove('actor_id');
+    await box.put(legacyKey, legacy);
+    expect(
+      store.load(
+        tenantId: 'tenant-1',
+        actorId: 'user-1',
+        fieldId: 'field-9',
+        assignmentId: 'assign-7',
+        formVersionId: 'v1',
+        schemaHash: 'hash-v1',
+      ),
+      isNull,
+    );
+    expect(box.containsKey(legacyKey), isTrue);
   });
 
   test('لا ترحيل بين نسختين: v2 بـhash جديد لا ترى مسودّة v1', () async {
     await store.save(makeDraft());
     final migrated = store.load(
       tenantId: 'tenant-1',
+      actorId: 'user-1',
       fieldId: 'field-9',
       assignmentId: 'assign-7',
       formVersionId: 'v2',
@@ -83,6 +125,7 @@ void main() {
     final reopened = await DraftStore.open();
     final loaded = reopened.load(
       tenantId: 'tenant-1',
+      actorId: 'user-1',
       fieldId: 'field-9',
       assignmentId: 'assign-7',
       formVersionId: 'v1',

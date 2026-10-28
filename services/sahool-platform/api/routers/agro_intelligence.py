@@ -120,13 +120,15 @@ class SeasonMetricsRequest(BaseModel):
     ndvi_peak: float | None = None
     et0_total_mm: float | None = None
     water_use_efficiency: float | None = None
+    # المساحة المزروعة (هـ): بدونها يُوصَف الماء الكلّيّ (م³) بلا حكم؛ معها يُطبَّع إلى م³/هـ.
+    area_ha: float | None = Field(default=None, gt=0)
 
     def to_core(self) -> SeasonMetrics:
         return SeasonMetrics(**self.model_dump())
 
 
 class SeasonComparisonRequest(BaseModel):
-    """موسمان للمقارنة (الحاليّ مقابل السابق)."""
+    """موسمان للمقارنة (الحاليّ مقابل السابق) — لنفس المحصول؛ المختلفان ⇒ comparable=False."""
 
     current: SeasonMetricsRequest
     previous: SeasonMetricsRequest

@@ -19,6 +19,13 @@ SCHEMA = "sahool.cdse_native_product/1"
 MASK_VERSION = "cdse-native-scl-datamask/2"
 MAX_RESPONSE_BYTES = 128 * 1024 * 1024
 MAX_METADATA_BYTES = 65536
+# Process API default when ``input.bounds.properties.crs`` is omitted.
+DEFAULT_REQUEST_CRS = "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+# Each returned edge may sit at most this fraction of one requested output pixel
+# from the requested bbox edge. Below half a pixel every returned pixel centre
+# still falls in the requested cell, so pixel-to-ground assignment is unchanged;
+# anything larger is a different grid (another place, CRS or pixel size).
+GRID_EDGE_TOLERANCE_PX = 0.5
 
 
 class CdseNoContributingScene(ValueError):
@@ -41,12 +48,57 @@ class NativeProduct:
     request_sha256: str | None = None
     expected_width: int | None = None
     expected_height: int | None = None
+    expected_epsg: int | None = None
+    expected_bbox: tuple[float, float, float, float] | None = None
 
 
 def request_digest(payload: dict) -> str:
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
     ).hexdigest()
+
+
+def _requested_grid(payload: dict) -> tuple[int, tuple[float, float, float, float]]:
+    """EPSG and bbox the Process API was asked to render; the output grid is derived from both."""
+    bounds = payload["input"]["bounds"]
+    crs = str((bounds.get("properties") or {}).get("crs") or DEFAULT_REQUEST_CRS)
+    authority, _, code = crs.rpartition("/")
+    bbox = bounds.get("bbox")
+    if crs == DEFAULT_REQUEST_CRS:
+        epsg = 4326  # CRS84 is EPSG:4326 in lon/lat order, which is how bbox is written.
+    elif authority.endswith("/EPSG/0") and code.isdigit():
+        epsg = int(code)
+    else:
+        raise ValueError("cdse_native_request_grid_invalid")
+    if not isinstance(bbox, list) or len(bbox) != 4:
+        raise ValueError("cdse_native_request_grid_invalid")
+    return epsg, tuple(float(v) for v in bbox)
+
+
+def _assert_requested_grid(src, product: NativeProduct) -> None:
+    """Returned CRS/bounds/transform/shape must be the grid the request bound."""
+    from rasterio.crs import CRS
+
+    if product.expected_epsg is None:
+        return
+    west, south, east, north = product.expected_bbox
+    tol_x = GRID_EDGE_TOLERANCE_PX * (east - west) / product.expected_width
+    tol_y = GRID_EDGE_TOLERANCE_PX * (north - south) / product.expected_height
+    transform = src.transform
+    returned = src.bounds
+    if (
+        CRS.from_user_input(src.crs).to_epsg() != product.expected_epsg
+        # North-up, unrotated grid: rotated/flipped transforms are another grid.
+        or transform.b != 0
+        or transform.d != 0
+        or transform.a <= 0
+        or transform.e >= 0
+        or abs(returned.left - west) > tol_x
+        or abs(returned.right - east) > tol_x
+        or abs(returned.bottom - south) > tol_y
+        or abs(returned.top - north) > tol_y
+    ):
+        raise ValueError("cdse_native_grid_does_not_match_request")
 
 
 def build_evalscript(index: str, expressions: dict) -> str:
@@ -125,6 +177,9 @@ def decode_response(
         if date.tzinfo is None:
             raise ValueError("cdse_native_acquisition_timezone_missing")
         normalized.append((f"cdse:sh:{scene}", date.astimezone(UTC).isoformat()))
+    expected_epsg, expected_bbox = (
+        _requested_grid(request_payload) if request_payload else (None, None)
+    )
     return NativeProduct(
         tiff=parts["default.tif"],
         tiff_sha256=hashlib.sha256(parts["default.tif"]).hexdigest(),
@@ -133,6 +188,8 @@ def decode_response(
         request_sha256=request_digest(request_payload) if request_payload else None,
         expected_width=request_payload["output"]["width"] if request_payload else None,
         expected_height=request_payload["output"]["height"] if request_payload else None,
+        expected_epsg=expected_epsg,
+        expected_bbox=expected_bbox,
     )
 
 
@@ -155,6 +212,8 @@ def measured_pixels(src, product: NativeProduct, source_path: str):
         product.expected_height,
     ):
         raise ValueError("cdse_native_dimensions_do_not_match_request")
+    # Request hash proves what was asked, not where the pixels are: bind the grid too.
+    _assert_requested_grid(src, product)
     value, scl, data_mask, contributor = src.read().astype("float32")
     value = np.where(src.read_masks(1) > 0, value, np.nan)
     present = data_mask == 1

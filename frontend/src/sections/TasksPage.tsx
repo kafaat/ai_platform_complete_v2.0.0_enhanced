@@ -5,6 +5,7 @@
 // محكومة بالدور (RBAC: المُشاهِد لا يُعدّل). لا تلفيق.
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
+import TaskIrrigationObservationPanel from './TaskIrrigationObservationPanel';
 import {
   Loader2, Check, Camera, Clock, AlertTriangle,
   Wrench, Droplets, Sprout, Bug, Wheat, RefreshCw,
@@ -20,6 +21,7 @@ import { Card, Button, Pill } from '../components/ds/atoms';
 import { Select } from '../components/ds/forms';
 import { T, RADIUS, toneColors } from '../components/ds/tokens';
 import { taskStatusAr, taskStatusTone } from '../components/ds/status';
+import { TASK_TYPE_LABELS_AR as L } from '../lib/taskTypeLabels';
 
 interface Task {
   task_id:               string;
@@ -37,13 +39,14 @@ interface Task {
   tenant_id:             string;
 }
 
+// التسميات من مصدر مشترك مع لوحة مهامّ مساحة عمل الحقل (lib/taskTypeLabels).
 const TASK_CONFIG: Record<string, { icon: typeof Wrench; label: string; color: string }> = {
-  irrigation:    { icon: Droplets, label: 'ري',              color: '#3b82f6' },
-  fertilization: { icon: Sprout,   label: 'تسميد',           color: '#16a34a' },
-  spraying:      { icon: Bug,      label: 'رش مبيدات',       color: '#f97316' },
-  harvest:       { icon: Wheat,    label: 'حصاد',            color: '#f59e0b' },
-  scouting:      { icon: Wrench,   label: 'استكشاف',         color: '#8b5cf6' },
-  soil_sampling: { icon: Wrench,   label: 'أخذ عينات تربة',  color: '#92400e' },
+  irrigation:    { icon: Droplets, label: L.irrigation,    color: '#3b82f6' },
+  fertilization: { icon: Sprout,   label: L.fertilization, color: '#16a34a' },
+  spraying:      { icon: Bug,      label: L.spraying,      color: '#f97316' },
+  harvest:       { icon: Wheat,    label: L.harvest,       color: '#f59e0b' },
+  scouting:      { icon: Wrench,   label: L.scouting,      color: '#8b5cf6' },
+  soil_sampling: { icon: Wrench,   label: L.soil_sampling, color: '#92400e' },
 };
 
 // حالات المهام (تسمية + نغمة) موحّدة عبر DS (status.ts/tokens.ts) بدل
@@ -52,11 +55,12 @@ const TASK_CONFIG: Record<string, { icon: typeof Wrench; label: string; color: s
 const PRIORITY_MAP: Record<number, string> = { 1: 'حرج', 2: 'عالٍ', 3: 'متوسط', 4: 'منخفض', 5: 'روتيني' };
 
 export default function TasksPage() {
-  const { user } = useAuthStore();
+  const { user, tenantId } = useAuthStore();
   const mutateAllowed = canMutate(user?.role);
   const { data, isLoading, isError, refetch, isFetching } = useTasks();
   const completeMut = useCompleteTask();
 
+  const [observationTask, setObservationTask] = useState<Task | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [completing, setCompleting] = useState<string | null>(null);
@@ -148,6 +152,7 @@ export default function TasksPage() {
               {isOld && <span className="text-[10px] flex items-center gap-0.5" style={{ color: T.danger }}><AlertTriangle className="w-3 h-3" /> متأخرة</span>}
             </div>
             <div className="text-xs mb-1" style={{ color: T.muted }}>{task.field_name || task.field_id}</div>
+            {task.field_id && <button type="button" onClick={() => setObservationTask(task)} className="my-2 rounded border px-3 py-1 text-sm">مشاهدات الري والفحص</button>}
             {task.notes && <p className="text-xs leading-relaxed mb-2" style={{ color: T.brownSoft }}>{task.notes}</p>}
             <div className="flex flex-wrap items-center gap-3 text-[11px]" style={{ color: T.faint }}>
               {task.recommended_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{task.recommended_date}</span>}
@@ -234,6 +239,7 @@ export default function TasksPage() {
         </div>
       </div>
 
+      {observationTask && <TaskIrrigationObservationPanel key={`${tenantId}:${user?.id ?? user?.email}:${observationTask.task_id}`} taskId={observationTask.task_id} fieldId={observationTask.field_id} onClose={() => setObservationTask(null)} />}
       <div className="space-y-3">
         {filtered.map(t => <TaskCard key={t.task_id} task={t} />)}
         {filtered.length === 0 && (

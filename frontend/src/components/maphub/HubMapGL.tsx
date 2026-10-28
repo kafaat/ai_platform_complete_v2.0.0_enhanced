@@ -481,7 +481,9 @@ export default function HubMapGL({
     // لا نستخدم إعادة ضبط tiles على المصدر القائم: في MapLibre قد تبقى بلاطات قديمة في الذاكرة
     // أو تختلط مع المصدر الجديد عند تبديل الأساس/التاريخ. إعادة إنشاء المصدر
     // تغلق سبباً جنائياً محتملاً لـ stale raster tiles.
-    const dependentLayers = [LYR_INDICATOR, LYR_FILL, LYR_LINE, LYR_SELECTED];
+    // UI-G1: MapLibre يرفض إزالة مصدر ما دامت طبقة تستعمله (يُطلق error ويُبقيه)، ثمّ
+    // يرمي addSource لمعرّف قائم — فتُزال كلّ طبقة تابعة، ومنها طبقة الأساس نفسها، قبل مصدرها.
+    const dependentLayers = [LYR_INDICATOR, LYR_FILL, LYR_LINE, LYR_SELECTED, LYR_BASEMAP];
     const hadIndicator = Boolean(map.getLayer(LYR_INDICATOR));
     for (const layerId of dependentLayers) {
       if (map.getLayer(layerId)) map.removeLayer(layerId);
@@ -495,19 +497,23 @@ export default function HubMapGL({
       tileSize: 256,
       attribution,
     });
-    map.addLayer({ id: LYR_BASEMAP, type: 'raster', source: SRC_BASEMAP });
+    // الأساس يعود أسفل كلّ ما بقي (تضاريس/تربة/رسم) لا فوقها.
+    const bottomLayerId = map.getStyle()?.layers?.[0]?.id;
+    map.addLayer({ id: LYR_BASEMAP, type: 'raster', source: SRC_BASEMAP }, bottomLayerId);
     syncFieldsLayers(map);
     if (hadIndicator) syncIndicator(map);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [basemapId]);
 
   // ── طبقة المؤشّر تتفاعل مع indicatorId/selectedId/opacity ────────────
+  // preferPersistedCog يغيّر مسار البلاطات (/tiles ↔ /cdse-tiles) وحده دون تغيّر التاريخ
+  // (تصل تواريخ has_cog بعد التصيير الأوّل) — فهو تبعيّة كبقيّة مُدخَلات indicatorTileUrl.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !loadedRef.current) return;
     syncIndicator(map);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [indicatorId, selectedId, indicatorOpacity, fields, tenantId, imageryTs, imageryDate]);
+  }, [indicatorId, selectedId, indicatorOpacity, fields, tenantId, imageryTs, imageryDate, preferPersistedCog]);
 
   // ── طبقات التضاريس/التربة (تكافؤ Leaflet): بلاطات hillshade/slope/soil + كنتور +
   // نقاط عيّنات 🧪. يعتمد على basemapId كي يُعاد بناؤها بعد إعادة تحميل الأساس (لا تختفي).

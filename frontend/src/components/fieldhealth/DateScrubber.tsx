@@ -11,17 +11,21 @@
 // التمرير يبثّ التاريخ المختار للأعلى (onSelect) فيقود طبقة الخريطة.
 // RTL · framer-motion لانتقال السهم.
 // ═══════════════════════════════════════════════════════════════
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, CloudSun } from 'lucide-react';
 import { T, RADIUS } from '../ds';
+import { captureTime } from '../maphub/captureTime';
+import { thumbProductLabel } from '../maphub/ImageryTimelineThumb';
 
 export interface ScrubberPoint {
   date: string;
   value?: number | null;
   cloud: number | null;
-  // رابط مُصغَّرة صورة الحقل لهذا التاريخ (cdse-thumbnail) — اختياريّ (يسقط لتدرّج لونيّ).
+  // رابط مُصغَّرة صورة الحقل لهذا التاريخ (cdse-thumbnail) — اختياريّ (غيابه/فشله حالة صريحة).
   thumbUrl?: string | null;
+  // المنتَج المعروض في المصغّرة (truecolor أو اسم المؤشّر) — يُوسَم عليها (T7).
+  thumbProduct?: string | null;
   // وقت الالتقاط الحقيقيّ من STAC/CDSE إن توفر. لا نستخدم وقت تنفيذ التحليل.
   acquisitionDatetime?: string | null;
   // فرق المؤشّر عن التاريخ الأسبق (لشارة التغيّر) — اختياريّ.
@@ -39,15 +43,74 @@ function formatArabicDate(iso: string): string {
   }
 }
 
+// T5: سياسة MapHub نفسها (captureTime) — ساعة `HH:MM UTC` لطابع UTC صريح فقط. كان
+// `new Date(iso)` يفسّر طابعاً بلا منطقة بتوقيت المتصفّح ثمّ يُعرَض موسوماً «UTC»، فتُقدَّم
+// ساعة مفترضة كأنّها مقيسة (10:37 بلا منطقة في الرياض ⇒ «07:37 UTC»).
 function formatAcquisitionTime(iso: string | null | undefined): string | null {
-  if (!iso) return null;
-  try {
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return null;
-    return d.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
-  } catch {
-    return null;
-  }
+  return captureTime(iso).label;
+}
+
+// T6: مصغّرة البطاقة بحالة مرئيّة. كان `onError` يُخفي الصورة ويترك تدرّجاً بلون القيمة
+// قد يُقرأ صورة حقيقيّة؛ الآن الفشل «تعذّر العرض» والغياب «لا صورة» على خلفيّة محايدة،
+// ولون القيمة يبقى على الإطار فقط. T7: المنتَج المعروض موسوم على الصورة.
+function ScrubberThumb({ src, product, borderColor, cloudy }: {
+  src?: string | null;
+  product?: string | null;
+  borderColor: string;
+  cloudy: boolean;
+}) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { setFailed(false); }, [src]);
+  const showImg = !!src && !failed;
+  const productLabel = showImg ? thumbProductLabel(product) : null;
+  return (
+    <div
+      data-testid="scrubber-thumb"
+      style={{
+        height: 56,
+        borderRadius: RADIUS.sm,
+        marginBottom: 6,
+        border: `1px solid ${borderColor}`,
+        background: '#020617',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {showImg ? (
+        <img
+          src={src as string}
+          alt=""
+          loading="lazy"
+          data-testid="scrubber-thumb-img"
+          onError={() => setFailed(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+        />
+      ) : (
+        <div
+          className="flex items-center justify-center"
+          style={{ height: '100%', fontSize: 10, color: failed ? '#fca5a5' : '#94a3b8' }}
+        >
+          {failed ? 'تعذّر العرض' : 'لا صورة'}
+        </div>
+      )}
+      {productLabel && (
+        <span
+          data-testid="scrubber-thumb-product"
+          style={{
+            position: 'absolute', bottom: 2, insetInlineEnd: 2, fontSize: 9, lineHeight: 1.2,
+            padding: '0 3px', borderRadius: 3, background: 'rgba(0,0,0,.6)', color: '#f1f5f9',
+          }}
+        >
+          {productLabel}
+        </span>
+      )}
+      {cloudy && (
+        <CloudSun
+          style={{ position: 'absolute', top: 3, insetInlineStart: 3, width: 12, height: 12, color: '#fde68a' }}
+        />
+      )}
+    </div>
+  );
 }
 
 export interface DateScrubberProps {
@@ -272,33 +335,13 @@ export default function DateScrubber({
                     </div>
                   )}
 
-                  {/* صورة الحقل لهذا التاريخ (تسقط لتدرّج لونيّ عند تعذّرها) */}
-                  <div
-                    style={{
-                      height: 56,
-                      borderRadius: RADIUS.sm,
-                      marginBottom: 6,
-                      border: `1px solid ${isSel ? c : T.line}`,
-                      background: `linear-gradient(135deg,${c}33,${c}77,${c}33)`,
-                      position: 'relative',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {p.thumbUrl && (
-                      <img
-                        src={p.thumbUrl}
-                        alt=""
-                        loading="lazy"
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                        style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                      />
-                    )}
-                    {cloudy && (
-                      <CloudSun
-                        style={{ position: 'absolute', top: 3, insetInlineStart: 3, width: 12, height: 12, color: '#fde68a' }}
-                      />
-                    )}
-                  </div>
+                  {/* صورة الحقل لهذا التاريخ (فشلها/غيابها حالة صريحة لا تدرّج لونيّ) */}
+                  <ScrubberThumb
+                    src={p.thumbUrl}
+                    product={p.thumbProduct}
+                    borderColor={isSel ? c : T.line}
+                    cloudy={cloudy}
+                  />
 
                   {/* المتوسّط + شارة التغيّر */}
                   <div className="flex items-center justify-center gap-1">

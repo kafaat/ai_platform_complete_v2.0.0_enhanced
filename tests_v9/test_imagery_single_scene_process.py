@@ -91,10 +91,16 @@ def test_p0_tenant_is_authenticated_context_not_body() -> None:
         "no raster field route may let the body tenant_id override the authenticated context"
     )
     # A single fail-closed helper derives the tenant from context and rejects a mismatched body.
-    assert "def _authenticated_tenant(" in src, "the authenticated-tenant helper must exist"
-    assert "context_tenant = _REQ_TENANT.get()" in src, "helper derives tenant from request context"
-    assert "str(body_tenant) != str(context_tenant)" in src, "helper rejects body/context mismatch"
-    assert "403" in src, "a mismatched body tenant must be rejected with 403"
+    # It lives in raster_security_context (moved out of the router to keep it under its size
+    # ratchet); the router binds the same name, so every call site still goes through it.
+    assert "_authenticated_tenant = raster_security_context.authenticated_tenant" in src, (
+        "the router must route tenants through the authenticated-tenant helper"
+    )
+    helper = (ROUTE.parents[1] / "raster_security_context.py").read_text(encoding="utf-8")
+    assert "def authenticated_tenant(" in helper, "the authenticated-tenant helper must exist"
+    assert "context_tenant = REQ_TENANT.get()" in helper, "helper derives tenant from context"
+    assert "str(body_tenant) != str(context_tenant)" in helper, "helper rejects a mismatch"
+    assert "403" in helper, "a mismatched body tenant must be rejected with 403"
     # The process-date handler routes its tenant through the helper.
     assert "tenant = _authenticated_tenant(req.tenant_id)" in src
 

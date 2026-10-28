@@ -22,7 +22,11 @@ export default function FieldWorkspaceReportsPanel({ fieldId, seasonId }: FieldW
           </p>
         </div>
       </div>
-      <EmptyState title="لا توجد تقارير محفوظة" hint="اربط endpoint تقارير يعيد report_id/status/download_url قبل إظهار أزرار تحميل." />
+      {/* UI-W7: لا استعلام خادميّ هنا بعد، فلا نُعلن «لا توجد تقارير محفوظة» (فراغ غير مقيس). */}
+      <EmptyState
+        title="التقارير غير مربوطة بهذه الواجهة بعد"
+        hint="لم يُستعلَم الخادم — قد توجد تقارير محفوظة لا تظهر هنا. لن تُعرَض «لا توجد تقارير محفوظة» ولا أزرار تحميل قبل ربط endpoint يعيد report_id/status/download_url."
+      />
     </section>
   );
 }

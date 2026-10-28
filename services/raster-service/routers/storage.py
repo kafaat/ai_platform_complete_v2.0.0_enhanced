@@ -9,6 +9,7 @@ the extracted modules directly. ``register_routers(app)`` يضمّ هذا الر
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import uuid
@@ -16,10 +17,60 @@ import uuid
 from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from raster_security_context import require_service_token
-from raster_settings import OFFLINE_PACKS_DIR, UPLOAD_DIR
+from raster_settings import OFFLINE_PACKS_DIR, RASTER_UPLOAD_MAX_BYTES, UPLOAD_DIR
 
 router = APIRouter()
 logger = logging.getLogger("raster-service")
+
+# ST-03: الرفع يُقرأ بقطع محدودة (لا ``await file.read()`` للجسم كاملاً في الذاكرة) إلى ملفّ
+# ``tmp_*`` (صنف «مؤقّت» في raster_lifecycle لو بقي يتيماً)، ثمّ يُتحقَّق منه كراستر قبل
+# إعادة تسميته ذرّيّاً إلى ``.tif`` النهائيّ — فلا ``raster_url`` لبايتات ليست GeoTIFF.
+_UPLOAD_CHUNK_BYTES = 1024 * 1024
+# TIFF كلاسيكيّ وBigTIFF، بترتيبَي البايت.
+_TIFF_MAGIC = (b"II*\x00", b"MM\x00*", b"II+\x00", b"MM\x00+")
+
+
+def _check_georaster(path: str, label: str) -> None:
+    """يفتح الملفّ بـrasterio فعلاً: GeoTIFF قابل للقراءة بنطاق واحد على الأقلّ وCRS مُعلَن."""
+    import rasterio
+    from rasterio.errors import RasterioError
+
+    try:
+        with rasterio.open(path) as ds:
+            if ds.driver != "GTiff" or ds.count < 1 or ds.width < 1 or ds.height < 1:
+                raise HTTPException(422, f"{label}_not_a_raster")
+            if ds.crs is None:
+                raise HTTPException(422, f"{label}_missing_crs")
+    except RasterioError as e:
+        raise HTTPException(422, f"{label}_not_a_raster") from e
+
+
+async def _receive_georaster(file: UploadFile, raster_id: str, label: str) -> tuple[str, int]:
+    """يستقبل الرفع متدفّقاً بسقف بايتات، يتحقّق منه كراستر، ثمّ يثبّته ذرّيّاً. يُرجِع (المسار، الحجم)."""
+    path = os.path.join(UPLOAD_DIR, f"{raster_id}.tif")
+    part = os.path.join(UPLOAD_DIR, f"tmp_{raster_id}.part")
+    size = 0
+    try:
+        try:
+            with open(part, "wb") as fh:
+                while chunk := await file.read(_UPLOAD_CHUNK_BYTES):
+                    if size == 0 and not chunk.startswith(_TIFF_MAGIC):
+                        raise HTTPException(415, f"{label}_not_tiff")
+                    size += len(chunk)
+                    if size > RASTER_UPLOAD_MAX_BYTES:
+                        raise HTTPException(413, f"{label}_too_large")
+                    fh.write(chunk)
+        except OSError as e:
+            logger.warning("%s save failed: %s", label, type(e).__name__)
+            raise HTTPException(500, f"{label}_save_failed") from e
+        if size == 0:
+            raise HTTPException(415, f"{label}_not_tiff")
+        await asyncio.to_thread(_check_georaster, part, label)
+        os.replace(part, path)
+    finally:
+        if os.path.exists(part):
+            os.remove(part)
+    return path, size
 
 
 @router.post("/v1/upload/raster")
@@ -27,15 +78,8 @@ async def upload_raster(file: UploadFile = File(...), x_agent_token: str = Heade
     """يرفع ملفّ راستر (GeoTIFF) ويُرجع raster_url داخليّاً."""
     require_service_token(x_agent_token)
     raster_id = f"ras_{uuid.uuid4().hex[:12]}"
-    path = os.path.join(UPLOAD_DIR, f"{raster_id}.tif")
-    try:
-        content = await file.read()
-        with open(path, "wb") as fh:
-            fh.write(content)
-    except OSError as e:
-        logger.warning("raster upload save failed: %s", type(e).__name__)
-        raise HTTPException(500, "raster_upload_save_failed") from e
-    logger.info(f"raster uploaded: {raster_id} ({len(content)} bytes)")
+    path, size = await _receive_georaster(file, raster_id, "raster_upload")
+    logger.info(f"raster uploaded: {raster_id} ({size} bytes)")
     return {"raster_url": f"file://{path}"}
 
 
@@ -49,14 +93,7 @@ async def upload_drone(
     """يرفع أورثوموزاييك درون (RGB عادةً — مؤشّرات VARI/GLI/TGI)."""
     require_service_token(x_agent_token)
     raster_id = f"drone_{uuid.uuid4().hex[:12]}"
-    path = os.path.join(UPLOAD_DIR, f"{raster_id}.tif")
-    try:
-        content = await file.read()
-        with open(path, "wb") as fh:
-            fh.write(content)
-    except OSError as e:
-        logger.warning("drone upload save failed: %s", type(e).__name__)
-        raise HTTPException(500, "drone_upload_save_failed") from e
+    path, _size = await _receive_georaster(file, raster_id, "drone_upload")
     logger.info(f"drone uploaded: {raster_id} tenant={tenant_id}")
     return {"raster_url": f"file://{path}"}
 

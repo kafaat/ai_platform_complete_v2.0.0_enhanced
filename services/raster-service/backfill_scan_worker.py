@@ -754,6 +754,12 @@ def _process_scene_index(
     الموروث أو المتناقض يبقى ``radiometry_unresolved`` قبل المعالجة والحفظ."""
 
     try:
+        # P3-AUTH: المهمّة تُقرأ بمعرّفها عبر /v1/jobs/{id}[/result] — تُسجَّل بمالكها قبل
+        # المعالجة (لكلّ المسارات الثلاثة)، وإلّا أنشأها run_processing بلا مالك فتُقرأ من
+        # أيّ مستأجِر بتوكن الخدمة. run_processing يُكمل السجلّ نفسه ولا يستبدله.
+        raster_runtime_state.JOBS.set(
+            jid, {"job_id": jid, "tenant_id": tenant, "status": api_models.JobStatus.pending}
+        )
         if (scene.get("provider") or "").startswith("landsat") or scene.get("thermal_urls"):
             if index != "lst":
                 raise RuntimeError("landsat_derived_index_requires_lst_weather_ndvi")

@@ -48,6 +48,10 @@
     "prescriptions": {
       "primary_key": "PRIMARY KEY (prescription_id)",
       "column": "zones jsonb"
+    },
+    "commands": {
+      "primary_key": "PRIMARY KEY (command_id)",
+      "rls_enabled_forced": "true/true"
     }
   }
 }

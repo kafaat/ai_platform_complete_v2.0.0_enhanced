@@ -6,10 +6,13 @@
 // كلّ عمليّة تذهب إلى مسارها (PATCH /api/v1/tasks/{id}، POST …/activities، …)
 // بترويسة Idempotency-Key الثابتة نفسها في كلّ محاولة، والخادم يعيد النتيجة
 // المخزّنة عند الإعادة (api/main.py:_idempotent).
+import 'dart:io' show SocketException;
+
 import 'package:dio/dio.dart';
 import 'package:sahool_app/core/network/api_client.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
+import 'package:sahool_app/core/network/retry_schedule.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
 
 class OfflineSyncApi {
@@ -22,7 +25,15 @@ class OfflineSyncApi {
 
   /// يرسل [op] كما هي: الطريقة والمسار والجسم والمفتاح الثابت. يرمي
   /// [ApiException] عند الفشل.
-  Future<dynamic> sendOp(OutboxOp op, {CancelToken? cancelToken}) {
+  ///
+  /// [ownerGuard] يُفحَص داخل ApiClient على الرمز الذي سيُرسَل فعلاً (بعد أيّ
+  /// تجديد)، فلا يخرج الطلب بهويّة غير مالكه. لا إعادات فوريّة لـ5xx هنا:
+  /// الصندوق يعيد بموعدٍ محفوظ يحترم Retry-After.
+  Future<dynamic> sendOp(
+    OutboxOp op, {
+    CancelToken? cancelToken,
+    bool Function(String? token)? ownerGuard,
+  }) {
     final method = op.method.toUpperCase();
     return _c.send(
       method,
@@ -30,6 +41,7 @@ class OfflineSyncApi {
       data: (method == 'DELETE' && op.body.isEmpty) ? null : op.body,
       idempotencyKey: IdempotencyKey(op.idempotencyKey),
       cancelToken: cancelToken,
+      extra: {kOwnerGuardExtra: ?ownerGuard, kDurableRetryExtra: true},
     );
   }
 }
@@ -54,15 +66,48 @@ enum OutboxOutcomeKind {
   /// 401 بعد فشل التجديد ⇒ تبقى (ليس ذنب العمليّة) ويتوقّف التصريف.
   sessionProblem,
 
-  /// أُلغي الطلب (انتهت الجلسة أثناءه) ⇒ تبقى كما هي.
+  /// أُلغي الطلب (انتهت الجلسة أثناءه) ⇒ تبقى، ونتيجتها غير مؤكَّدة: الإلغاء
+  /// على الجهاز لا يوقف ما وصل الخادم.
   aborted,
+
+  /// لم يغادر الطلب الجهاز: تبدّل صاحب الجلسة قبل الإرسال ⇒ لا تغيير على السجلّ.
+  notSent,
+}
+
+/// سبب 409 تعارض المفتاح كما يميّزه الخادم (D4). null ⇒ 409 من نوع آخر.
+abstract final class IdempotencyConflict {
+  /// المفتاح محجوز لحمولة أخرى ⇒ تحتاج تدخّلاً، لا إعادة عمياء.
+  static const payloadMismatch = 'payload_mismatch';
+
+  /// الأمر الأصليّ ما زال قيد المعالجة ⇒ يُعاد لاحقاً بنفس المفتاح.
+  static const inProgress = 'in_progress';
+
+  /// الخادم لم يعد يحفظ نتيجة المفتاح ⇒ ربّما نُفِّذ؛ يحتاج تدخّلاً لا إعادة عمياء.
+  static const retentionExpired = 'retention_expired';
 }
 
 class OutboxOutcome {
-  const OutboxOutcome(this.kind, {this.statusCode, this.messageAr});
+  const OutboxOutcome(
+    this.kind, {
+    this.statusCode,
+    this.messageAr,
+    this.retryAfter,
+    this.maybeCommitted = false,
+    this.conflictReason,
+  });
   final OutboxOutcomeKind kind;
   final int? statusCode;
   final String? messageAr;
+
+  /// مهلة Retry-After من الخادم (ثوانٍ أو تاريخ HTTP) إن أرسلها.
+  final Duration? retryAfter;
+
+  /// قد يكون الخادم نفّذ الطلب ولم يصلنا تأكيده (مهلة استقبال، قطع بعد الإرسال،
+  /// 5xx من بوّابة، 409 قيد المعالجة، إلغاء أثناء الطلب).
+  final bool maybeCommitted;
+
+  /// [IdempotencyConflict] عند 409 تعارض المفتاح.
+  final String? conflictReason;
 }
 
 /// رسالة الخادم كما هي إن وُجدت: `detail` نصّاً، أو `{message_ar|message|code}`،
@@ -104,22 +149,91 @@ bool isIdempotentReplay(ApiException e) {
   return false;
 }
 
-/// 409 «الأمر قيد المعالجة — أعد المحاولة لاحقاً» (api/main.py:_idempotent):
-/// الطلب الأصليّ لم يكتمل بعد؛ ليس رفضاً.
-bool isCommandInProgress(ApiException e) =>
-    e.statusCode == 409 &&
-    e.detail is String &&
-    (e.detail as String).contains('قيد المعالجة');
+/// سبب 409 تعارض المفتاح: رمز `reason`/`code` الثابت من الخادم أوّلاً (في الجسم
+/// أو في `detail`؛ عقد D4: `detail.reason` من api/idempotency.py:_conflict)، ثمّ
+/// — لخادمٍ لم يُرقَّ بعد ويرسل نصّاً فقط — نصّ الرسالتين المعروفتين.
+/// null ⇒ 409 آخر.
+String? idempotencyConflictReason(ApiException e) {
+  if (e.statusCode != 409) return null;
+  const known = {
+    IdempotencyConflict.payloadMismatch,
+    IdempotencyConflict.inProgress,
+    IdempotencyConflict.retentionExpired,
+  };
+  for (final m in [_responseBody(e), e.detail]) {
+    if (m is! Map) continue;
+    for (final k in const ['reason', 'code']) {
+      final v = m[k];
+      if (v is String && known.contains(v)) return v;
+    }
+    final inner = m['detail'];
+    if (inner is Map) {
+      for (final k in const ['reason', 'code']) {
+        final v = inner[k];
+        if (v is String && known.contains(v)) return v;
+      }
+    }
+  }
+  final text = e.detail is String ? e.detail as String : '';
+  if (text.contains('قيد المعالجة')) return IdempotencyConflict.inProgress;
+  if (text.contains('بحمولةٍ مختلفة') || text.contains('بحمولة مختلفة')) {
+    return IdempotencyConflict.payloadMismatch;
+  }
+  return null;
+}
 
-OutboxOutcome classifyOutboxFailure(ApiException e) {
-  if (e.isCancelled) return const OutboxOutcome(OutboxOutcomeKind.aborted);
+/// 409 «الأمر قيد المعالجة — أعد المحاولة لاحقاً» (api/idempotency.py:_idempotent):
+/// الطلب الأصليّ لم يكتمل بعد؛ ليس رفضاً. العقد الحاليّ (D4) سببٌ ثابت في
+/// `detail.reason == 'in_progress'`؛ والنصّ القديم مقبولٌ لخادمٍ لم يُرقَّ بعد.
+bool isCommandInProgress(ApiException e) =>
+    idempotencyConflictReason(e) == IdempotencyConflict.inProgress;
+
+/// مهلة Retry-After من ترويسة الاستجابة (ثوانٍ أو تاريخ HTTP).
+Duration? retryAfterOf(ApiException e, {DateTime? now}) {
+  final c = e.cause;
+  if (c is! DioException) return null;
+  return parseRetryAfter(
+    c.response?.headers.value('retry-after'),
+    now: now ?? DateTime.now(),
+  );
+}
+
+/// فشل اتّصال لم يغادر فيه الطلب الجهاز (تعذّر فتح الاتّصال)؟ غير ذلك (مهلة
+/// استقبال/إرسال، إغلاق الاتّصال بعد الإرسال) قد يكون الخادم نفّذ الطلب.
+bool _neverLeftDevice(ApiException e) {
+  final c = e.cause;
+  if (c is! DioException) return false;
+  if (c.type == DioExceptionType.connectionTimeout) return true;
+  if (c.type == DioExceptionType.connectionError) {
+    return c.error is SocketException;
+  }
+  return false;
+}
+
+OutboxOutcome classifyOutboxFailure(ApiException e, {DateTime? now}) {
+  if (e.isCancelled) {
+    final c = e.cause;
+    if (c is DioException && c.error == kOwnerChangedBeforeSend) {
+      return const OutboxOutcome(OutboxOutcomeKind.notSent);
+    }
+    return const OutboxOutcome(OutboxOutcomeKind.aborted, maybeCommitted: true);
+  }
   if (e.isConnectivity) {
-    return OutboxOutcome(OutboxOutcomeKind.offline, messageAr: e.messageAr);
+    return OutboxOutcome(
+      OutboxOutcomeKind.offline,
+      messageAr: e.messageAr,
+      maybeCommitted: !_neverLeftDevice(e),
+    );
   }
   final code = e.statusCode;
   if (code == null) {
-    return OutboxOutcome(OutboxOutcomeKind.retryLater, messageAr: e.messageAr);
+    return OutboxOutcome(
+      OutboxOutcomeKind.retryLater,
+      messageAr: e.messageAr,
+      maybeCommitted: true,
+    );
   }
+  final retryAfter = retryAfterOf(e, now: now);
   if (code == 401) {
     return OutboxOutcome(
       OutboxOutcomeKind.sessionProblem,
@@ -134,19 +248,54 @@ OutboxOutcome classifyOutboxFailure(ApiException e) {
         statusCode: 409,
       );
     }
-    if (isCommandInProgress(e)) {
-      return OutboxOutcome(
-        OutboxOutcomeKind.retryLater,
-        statusCode: code,
-        messageAr: serverMessageOf(e),
-      );
+    switch (idempotencyConflictReason(e)) {
+      case IdempotencyConflict.inProgress:
+        // الأصل ما زال يُعالَج: نتيجته غير معروفة بعد ⇒ نفس المفتاح لاحقاً.
+        return OutboxOutcome(
+          OutboxOutcomeKind.retryLater,
+          statusCode: code,
+          messageAr: serverMessageOf(e),
+          retryAfter: retryAfter,
+          maybeCommitted: true,
+          conflictReason: IdempotencyConflict.inProgress,
+        );
+      case IdempotencyConflict.payloadMismatch:
+        // المفتاح محجوز لحمولة أخرى: إعادة الحمولة نفسها لن تُغيّر الجواب.
+        return OutboxOutcome(
+          OutboxOutcomeKind.rejected,
+          statusCode: code,
+          messageAr: serverMessageOf(e),
+          conflictReason: IdempotencyConflict.payloadMismatch,
+        );
+      case IdempotencyConflict.retentionExpired:
+        // انقضت مدّة احتفاظ الخادم بالنتيجة: ربّما طُبِّق — لا إعادة بالمفتاح نفسه
+        // (الجواب لن يتغيّر) ولا حذف؛ يبقى ظاهراً لتدخّل المستخدم.
+        return OutboxOutcome(
+          OutboxOutcomeKind.rejected,
+          statusCode: code,
+          messageAr: serverMessageOf(e),
+          maybeCommitted: true,
+          conflictReason: IdempotencyConflict.retentionExpired,
+        );
     }
   }
-  if (code == 408 || code == 425 || code == 429 || code >= 500) {
+  // 408/425/429/503: الخادم لم ينفّذ (تحديد معدّل/غير متاح) ⇒ إعادة بنفس المفتاح
+  // بعد Retry-After. بقيّة 5xx: قد يكون نفّذ ⇒ النتيجة غير مؤكَّدة.
+  if (code == 408 || code == 425 || code == 429 || code == 503) {
     return OutboxOutcome(
       OutboxOutcomeKind.retryLater,
       statusCode: code,
       messageAr: e.messageAr,
+      retryAfter: retryAfter,
+    );
+  }
+  if (code >= 500) {
+    return OutboxOutcome(
+      OutboxOutcomeKind.retryLater,
+      statusCode: code,
+      messageAr: e.messageAr,
+      retryAfter: retryAfter,
+      maybeCommitted: true,
     );
   }
   if (code >= 400) {

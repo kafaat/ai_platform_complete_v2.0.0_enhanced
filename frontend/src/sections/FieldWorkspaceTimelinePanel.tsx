@@ -3,6 +3,8 @@ import { Clock3 } from 'lucide-react';
 import { getFieldUnifiedTimeline } from '../services/api/fieldTimeline';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { DegradedState } from '../components/product/DegradedState';
+import FieldWorkspaceStaleNote from './FieldWorkspaceStaleNote';
+import { cachedDataView } from './fieldWorkspaceStaleData';
 
 function apiStatus(error: unknown): number | undefined {
   return (error as { response?: { status?: number } } | null | undefined)?.response?.status;
@@ -32,6 +34,8 @@ export default function FieldWorkspaceTimelinePanel({ fieldId, seasonId }: { fie
     enabled: Boolean(fieldId),
     staleTime: 60_000,
   });
+  // UI-W6: أحداث مخبّأة بعد فشل إعادة الجلب تُخفى عند 401/403 وتُوسَم قديمة غير ذلك.
+  const dataView = cachedDataView(query);
 
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5" dir="rtl" aria-label="خط الحقل الزمني">
@@ -45,8 +49,9 @@ export default function FieldWorkspaceTimelinePanel({ fieldId, seasonId }: { fie
 
       {query.isLoading && <LoadingState message="جارٍ تحميل خط الحقل الزمني…" />}
       {query.isError && <TimelineState error={query.error} onRetry={() => query.refetch()} />}
-      {query.data && (
+      {query.data && dataView !== 'hidden' && (
         <div className="space-y-3">
+          {dataView === 'stale' && <FieldWorkspaceStaleNote updatedAt={query.dataUpdatedAt} />}
           {!seasonId && <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-100">لا يوجد season_id في الرابط؛ تُعرض أحداث الحقل العامة فقط عند توفرها.</p>}
           {query.data.events?.length ? (
             <ol className="space-y-2">

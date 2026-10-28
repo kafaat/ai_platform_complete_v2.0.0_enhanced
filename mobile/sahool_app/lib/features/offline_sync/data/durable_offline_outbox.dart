@@ -8,11 +8,20 @@
 //    عودة الاتّصال، وعند استئناف التطبيق، وعند الدخول، وبعد الإيداع، وبمؤقّت
 //    backoff.
 //  • التصنيف (offline_sync_api.dart): 2xx أو 409-إعادة ⇒ حذف · 4xx ⇒ «مرفوضة»
-//    برسالة الخادم · 5xx/مهلة/انقطاع ⇒ تبقى مع backoff. فشلٌ مؤقّت لعمليّة حقلٍ
-//    يُوقف ما بعدها لنفس الحقل فقط (لا تسبق عمليّةٌ لاحقة سابقتَها).
+//    برسالة الخادم · 409 تعارض حمولة ⇒ «تحتاج تدخّلاً» بلا إعادة عمياء ·
+//    429/503/5xx/مهلة/انقطاع ⇒ تبقى مع backoff. فشلٌ مؤقّت لعمليّة حقلٍ يُوقف ما
+//    بعدها لنفس الحقل فقط (لا تسبق عمليّةٌ لاحقة سابقتَها).
+//  • الموعد دائم: عدد المحاولات وnext_attempt_at وnot_before (Retry-After بصيغتيه)
+//    في السجلّ نفسه. لا يمحوه فتح الصندوق بعد إعادة التشغيل ولا الاستئناف ولا
+//    الدخول ولا عودة الشبكة؛ عودة الشبكة تتخطّى فقط انتظاراً سببه انقطاعها هي.
+//    «إرسال الآن» اليدويّ يتخطّى backoff لكن لا يتخطّى Retry-After.
+//  • المالك والجيل يُفحَصان قبل كلّ إرسال (وداخل ApiClient على الرمز الذي سيُرسَل
+//    فعلاً) وبعد كلّ await. ردٌّ يصل بعد تبدّل الجلسة لا يحذف عمليّة المالك القديم:
+//    تبقى «نتيجتها غير مؤكَّدة» وتُطابَق بنفس المفتاح حين يعود صاحبها.
 //  • الخروج: لا يحذف شيئاً. يُلغي الطلب الجاري ويوقف التصريف؛ السجلّات تبقى مقفلة
 //    على مالكها ولا تُرسَل أبداً برمز مستخدم آخر.
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
@@ -20,6 +29,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/network/connectivity_status.dart';
+import 'package:sahool_app/core/network/retry_schedule.dart';
 import 'package:sahool_app/core/session/auth_state.dart';
 import 'package:sahool_app/core/session/session_scope.dart';
 import 'package:sahool_app/core/utils/ids.dart';
@@ -35,6 +45,27 @@ typedef OutboxOwnerReader = OutboxOwner? Function();
 typedef OutboxTimerFactory =
     Timer Function(Duration delay, void Function() callback);
 
+/// ما يطلق التصريف — يحدّد أيّ انتظار يُحترَم.
+enum _DrainMode {
+  /// مؤقّت، إيداع، فتح الصندوق (إعادة التشغيل)، استئناف، دخول ⇒ كلّ موعد محترم.
+  scheduled,
+
+  /// عودة الشبكة ⇒ يتخطّى فقط انتظاراً سببه انقطاعها (لا Retry-After ولا 5xx).
+  connectivity,
+
+  /// طلب المستخدم ⇒ يتخطّى backoff، لا Retry-After.
+  manual,
+}
+
+/// يُعرَض على عمليّة وصل ردّها بعد تبدّل الجلسة أو أُلغي طلبها أثناءه.
+const _notSentAr =
+    'تعذّر التحقّق من هويّة الجلسة قبل الإرسال؛ لم تُرسَل وستُعاد المحاولة '
+    'لاحقاً.';
+
+const _heldForOwnerAr =
+    'تبدّلت الجلسة أو أُلغي الطلب قبل تأكيد النتيجة؛ لم تُحذف وستُطابَق بنفس '
+    'المفتاح حين يعود صاحبها.';
+
 /// أسباب عدم الإيداع (OutboxReceipt.notQueued).
 abstract final class OutboxRefusal {
   static const noSession = 'no_session';
@@ -45,6 +76,12 @@ abstract final class OutboxRefusal {
   static const syncEndpoint = 'sync_endpoint_not_supported';
   static const badKey = 'invalid_idempotency_key';
   static const badBody = 'body_not_json';
+
+  /// المفتاح محفوظ لعمليّة مختلفة (طريقة/مسار/جسم) — لا يُستبدَل ولا يُدّعى حفظ.
+  static const keyReused = 'idempotency_key_reused';
+
+  /// المفتاح لعمليّة رفضها الخادم — تُعاد من صفحة المزامنة صراحةً لا بإيداعٍ ثانٍ.
+  static const keyRejected = 'idempotency_key_rejected';
 }
 
 final _uuid = RegExp(
@@ -93,6 +130,7 @@ class OutboxSnapshot {
     required this.draining,
     this.failure,
     this.opened = true,
+    this.unreadable = 0,
   });
 
   const OutboxSnapshot.opening()
@@ -102,7 +140,8 @@ class OutboxSnapshot {
       heldForOtherAccounts = 0,
       draining = false,
       failure = null,
-      opened = false;
+      opened = false,
+      unreadable = 0;
 
   const OutboxSnapshot.unavailable(OutboxStoreException this.failure)
     : owner = null,
@@ -110,7 +149,8 @@ class OutboxSnapshot {
       rejected = const [],
       heldForOtherAccounts = 0,
       draining = false,
-      opened = false;
+      opened = false,
+      unreadable = 0;
 
   final OutboxOwner? owner;
   final List<OutboxRecord> pending;
@@ -118,11 +158,20 @@ class OutboxSnapshot {
 
   /// عمليّات محفوظة لحسابات أخرى على هذا الجهاز (عددها فقط — لا محتواها).
   final int heldForOtherAccounts;
+
+  /// سجلّات على الجهاز تعذّر فكّها — مالكها غير معروف فتُعرض عدداً فقط.
+  final int unreadable;
   final bool draining;
   final OutboxStoreException? failure;
   final bool opened;
 
   bool get isUnavailable => failure != null;
+
+  /// ما يحتاج قرار المستخدم: المرفوضة + السجلّات التي تعذّر فكّها.
+  int get needsAttention => rejected.length + unreadable;
+
+  /// معلّقة ربّما نفّذها الخادم ولم يصل تأكيدها.
+  int get outcomeUnknown => pending.where((r) => r.outcomeUnknown).length;
 }
 
 class DurableOfflineOutbox implements OfflineOutbox {
@@ -191,7 +240,7 @@ class DurableOfflineOutbox implements OfflineOutbox {
 
   Future<void>? _drainRun;
   bool _rerun = false;
-  bool _rerunIgnoreBackoff = false;
+  _DrainMode _rerunMode = _DrainMode.scheduled;
   bool _draining = false;
   int _epoch = 0;
   CancelToken? _inflight;
@@ -216,7 +265,8 @@ class DurableOfflineOutbox implements OfflineOutbox {
       _failure = null;
       _attachTriggers();
       _emit();
-      if (_drainOnOpen) unawaited(drain(ignoreBackoff: true));
+      // إعادة التشغيل لا تمحو موعداً محفوظاً (Retry-After/backoff).
+      if (_drainOnOpen) unawaited(drain());
       return s;
     } catch (e) {
       _failure = e is OutboxStoreException
@@ -255,9 +305,7 @@ class DurableOfflineOutbox implements OfflineOutbox {
     _authState?.addListener(_onAuth);
     if (_observeLifecycle) {
       try {
-        _lifecycle = AppLifecycleListener(
-          onResume: () => unawaited(drain(ignoreBackoff: true)),
-        );
+        _lifecycle = AppLifecycleListener(onResume: () => unawaited(drain()));
       } catch (_) {
         // بلا WidgetsBinding (اختبار منطق صرف) — بقيّة المحفّزات تكفي.
       }
@@ -268,7 +316,8 @@ class DurableOfflineOutbox implements OfflineOutbox {
     final online = _connectivity!.value;
     final cameBack = online && !_lastOnline;
     _lastOnline = online;
-    if (cameBack) unawaited(drain(ignoreBackoff: true));
+    // وجود الشبكة لا يلغي موعداً فرضه الخادم أو backoff فشلٍ لم يكن انقطاعاً.
+    if (cameBack) unawaited(_drain(_DrainMode.connectivity));
   }
 
   void _onAuth() {
@@ -276,7 +325,7 @@ class DurableOfflineOutbox implements OfflineOutbox {
       case AuthChange.signedIn:
         _ownerPolls = 0;
         _emit();
-        unawaited(drain(ignoreBackoff: true));
+        unawaited(drain());
       case AuthChange.signedOut:
       case AuthChange.expired:
         _abort();
@@ -302,11 +351,21 @@ class DurableOfflineOutbox implements OfflineOutbox {
     if (store == null) {
       return const OutboxReceipt.notQueued(OutboxRefusal.storeUnavailable);
     }
-    // نفس المفتاح لنفس المالك محفوظ ⇒ نفس النيّة؛ لا سجلّ ثانٍ.
-    final dup = store.records.any(
-      (r) => r.owner == owner && r.op.idempotencyKey == op.idempotencyKey,
-    );
-    if (dup) return const OutboxReceipt.queued();
+    // نفس المفتاح لنفس المالك محفوظ ⇒ لا سجلّ ثانٍ. «queued» فقط إن كانت العمليّة
+    // نفسها (طريقة/مسار/جسم) وما زالت بانتظار الإرسال؛ مفتاحٌ أُعيد لجسمٍ آخر أو
+    // لعمليّة مرفوضة لا يُقال عنه «حُفظ».
+    for (final r in store.records) {
+      if (r.owner != owner || r.op.idempotencyKey != op.idempotencyKey) {
+        continue;
+      }
+      if (!_sameOp(r.op, op)) {
+        return const OutboxReceipt.notQueued(OutboxRefusal.keyReused);
+      }
+      if (!r.isPending) {
+        return const OutboxReceipt.notQueued(OutboxRefusal.keyRejected);
+      }
+      return const OutboxReceipt.queued();
+    }
     final record = OutboxRecord(
       id: generateRequestId(),
       seq: store.nextSeq(),
@@ -331,6 +390,11 @@ class DurableOfflineOutbox implements OfflineOutbox {
     if (!_isOffline) unawaited(drain());
     return const OutboxReceipt.queued();
   }
+
+  static bool _sameOp(OutboxOp a, OutboxOp b) =>
+      a.method.toUpperCase() == b.method.toUpperCase() &&
+      a.path == b.path &&
+      jsonEncode(a.body) == jsonEncode(b.body);
 
   @override
   Stream<int> get pendingCount => watch()
@@ -371,6 +435,7 @@ class DurableOfflineOutbox implements OfflineOutbox {
       rejected: mine.where((r) => r.isRejected).toList(),
       heldForOtherAccounts: all.length - mine.length,
       draining: _draining,
+      unreadable: store.unreadableCount,
     );
   }
 
@@ -381,10 +446,13 @@ class DurableOfflineOutbox implements OfflineOutbox {
   // ── أفعال المستخدم ───────────────────────────────────────────────────
 
   /// يعيد عمليّة (معلّقة أو مرفوضة) إلى الطابور ويرسل الآن بنفس المفتاح.
+  /// لا يتخطّى Retry-After. تعارض حمولة (409 payload_mismatch) لا يُعاد: نفس
+  /// الحمولة بنفس المفتاح ستلقى الجواب نفسه — قرارها للمستخدم (تجاهل/مراجعة).
   Future<void> retry(String id) async {
     final store = await ensureOpen();
     final r = store?.byId(id);
     if (store == null || r == null || r.owner != _currentOwner()) return;
+    if (r.isPayloadMismatch) return;
     await store.put(
       r.copyWith(
         state: OutboxRecordState.pending,
@@ -429,25 +497,28 @@ class DurableOfflineOutbox implements OfflineOutbox {
 
   // ── التصريف ─────────────────────────────────────────────────────────
 
-  /// يصرّف عمليّات المستخدم الحاليّ بالترتيب. [ignoreBackoff] لعودة الاتّصال
-  /// والاستئناف والطلب اليدويّ. نداء أثناء تصريفٍ جارٍ يُضمّ إليه.
-  Future<void> drain({bool ignoreBackoff = false}) {
+  /// يصرّف عمليّات المستخدم الحاليّ بالترتيب. [ignoreBackoff] للطلب اليدويّ
+  /// (يتخطّى backoff لا Retry-After). نداء أثناء تصريفٍ جارٍ يُضمّ إليه.
+  Future<void> drain({bool ignoreBackoff = false}) =>
+      _drain(ignoreBackoff ? _DrainMode.manual : _DrainMode.scheduled);
+
+  Future<void> _drain(_DrainMode mode) {
     final running = _drainRun;
     if (running != null) {
       _rerun = true;
-      _rerunIgnoreBackoff |= ignoreBackoff;
+      if (mode.index > _rerunMode.index) _rerunMode = mode;
       return running;
     }
     final done = Completer<void>();
     _drainRun = done.future;
     () async {
-      var ignore = ignoreBackoff;
+      var m = mode;
       try {
         do {
           _rerun = false;
-          await _drainOnce(ignore);
-          ignore = _rerunIgnoreBackoff;
-          _rerunIgnoreBackoff = false;
+          await _drainOnce(m);
+          m = _rerunMode;
+          _rerunMode = _DrainMode.scheduled;
         } while (_rerun);
       } catch (e) {
         debugPrint('offline outbox drain failed: $e');
@@ -461,7 +532,21 @@ class DurableOfflineOutbox implements OfflineOutbox {
     return done.future;
   }
 
-  Future<void> _drainOnce(bool ignoreBackoff) async {
+  /// مستحقّة الآن في هذا الوضع؟ not_before (Retry-After) لا يتخطّاه شيء.
+  bool _isDue(OutboxRecord r, _DrainMode mode, DateTime now) {
+    final notBefore = r.notBefore;
+    if (notBefore != null && notBefore.isAfter(now)) return false;
+    final next = r.nextAttemptAt;
+    if (next == null || !next.isAfter(now)) return true;
+    return switch (mode) {
+      _DrainMode.manual => true,
+      _DrainMode.connectivity =>
+        r.lastOutcome == OutboxOutcomeKind.offline.name,
+      _DrainMode.scheduled => false,
+    };
+  }
+
+  Future<void> _drainOnce(_DrainMode mode) async {
     final store = await ensureOpen();
     if (store == null) return;
     final owner = _currentOwner();
@@ -484,20 +569,17 @@ class DurableOfflineOutbox implements OfflineOutbox {
         if (blocked.contains(group)) continue;
         final r = store.byId(queued.id);
         if (r == null || !r.isPending) continue;
-        final now = _clock();
-        if (!ignoreBackoff &&
-            r.nextAttemptAt != null &&
-            r.nextAttemptAt!.isAfter(now)) {
+        if (!_isDue(r, mode, _clock())) {
           blocked.add(group);
           continue;
         }
-        final outcome = await _attempt(r);
-        if (epoch != _epoch && outcome.kind == OutboxOutcomeKind.aborted) {
-          return;
-        }
-        final stop = await _apply(store, r, outcome);
+        final outcome = await _attempt(r, epoch);
+        // بعد await: الجيل والمالك من جديد. إيقاف الاشتراك/المؤقّت لا يوقف ردّاً
+        // كان في الطريق؛ ردّ وصل لجلسةٍ تبدّلت لا يحذف عمليّة مالكها.
+        final fenced = epoch != _epoch || _currentOwner() != r.owner;
+        final stop = await _apply(store, r, outcome, fenced: fenced);
         _emit();
-        if (stop) return;
+        if (stop || fenced) return;
         if (outcome.kind == OutboxOutcomeKind.retryLater) blocked.add(group);
       }
     } finally {
@@ -506,71 +588,140 @@ class DurableOfflineOutbox implements OfflineOutbox {
     }
   }
 
-  Future<OutboxOutcome> _attempt(OutboxRecord r) async {
+  Future<OutboxOutcome> _attempt(OutboxRecord r, int epoch) async {
     final token = CancelToken();
     _inflight = token;
     try {
-      await _api.sendOp(r.op, cancelToken: token);
+      await _api.sendOp(
+        r.op,
+        cancelToken: token,
+        // يُفحَص على الرمز الذي سيُرسَل فعلاً، بعد أيّ تجديد داخل ApiClient.
+        ownerGuard: (access) {
+          if (epoch != _epoch) return false;
+          // لا رمز صالح (تعذّر التجديد بشبكة/5xx — هاتفٌ بلا اتّصال ليلةً):
+          // الطلب يخرج بلا هويّة، فليس «مالكاً آخر». ما دامت الجلسة لمالكه
+          // يُرسَل فيُصنَّف (انقطاع/401) بموعدٍ محفوظ — لا رفض يعيد كلّ ثانية.
+          if (access == null) return _currentOwner() == r.owner;
+          return OutboxOwner.fromAccessToken(access) == r.owner;
+        },
+      );
       return const OutboxOutcome(OutboxOutcomeKind.sent);
     } catch (e) {
-      return classifyOutboxFailure(ApiException.from(e));
+      return classifyOutboxFailure(ApiException.from(e), now: _clock());
     } finally {
       if (identical(_inflight, token)) _inflight = null;
     }
   }
 
   /// يطبّق النتيجة على السجلّ. يُعيد true إن وجب إيقاف التصريف.
+  ///
+  /// [fenced]: تبدّل الجيل أو المالك أثناء الطلب. عندها لا يُحذف شيء: تأكيدٌ
+  /// وصل لجلسةٍ أخرى يبقى «نتيجته غير مؤكَّدة» ويُطابَق في سياق مالكه.
   Future<bool> _apply(
     OutboxStore store,
     OutboxRecord r,
-    OutboxOutcome outcome,
-  ) async {
+    OutboxOutcome outcome, {
+    required bool fenced,
+  }) async {
+    // الحارس أوقفه لأنّ الجلسة تبدّلت فعلاً ⇒ لا يُمسّ سجلّ مالكه.
+    if (outcome.kind == OutboxOutcomeKind.notSent && fenced) return true;
+    // أُعيدت قراءته بعد await: تجاهله المستخدم أثناء الطلب ⇒ لا نُحييه.
+    final current = store.byId(r.id);
+    if (current == null) return false;
     final now = _clock().toUtc();
+    final kind = outcome.kind.name;
     switch (outcome.kind) {
       case OutboxOutcomeKind.sent:
       case OutboxOutcomeKind.alreadyApplied:
-        await store.remove(r.id);
-        return false;
+        if (!fenced) {
+          await store.remove(r.id);
+          return false;
+        }
+        await _holdForOwner(store, current, now, kind);
+        return true;
+      case OutboxOutcomeKind.aborted:
+        await _holdForOwner(store, current, now, kind);
+        return true;
       case OutboxOutcomeKind.rejected:
         await store.put(
-          r.copyWith(
+          current.copyWith(
             state: OutboxRecordState.rejected,
-            attempts: r.attempts + 1,
+            attempts: current.attempts + 1,
             lastAttemptAt: now,
             clearNextAttempt: true,
             clearLastError: true,
             rejectedStatus: outcome.statusCode,
             rejectedMessageAr: outcome.messageAr,
             rejectedAt: now,
+            lastOutcome: kind,
+            conflictReason: outcome.conflictReason,
           ),
         );
         return false;
       case OutboxOutcomeKind.retryLater:
       case OutboxOutcomeKind.offline:
       case OutboxOutcomeKind.sessionProblem:
-        final attempts = r.attempts + 1;
+        final attempts = current.attempts + 1;
+        final retryAfter = outcome.retryAfter;
+        var wait = backoffFor(attempts);
+        if (retryAfter != null && retryAfter > wait) wait = retryAfter;
         await store.put(
-          r.copyWith(
+          current.copyWith(
             attempts: attempts,
             lastAttemptAt: now,
-            nextAttemptAt: now.add(backoffFor(attempts)),
+            nextAttemptAt: now.add(wait),
+            notBefore: retryAfter == null ? null : now.add(retryAfter),
+            clearNotBefore: retryAfter == null,
+            // محاولة سابقة غير مؤكَّدة تبقى كذلك حتى يؤكّدها الخادم.
+            outcomeUnknown: current.outcomeUnknown || outcome.maybeCommitted,
+            lastOutcome: kind,
             lastErrorAr: outcome.messageAr,
           ),
         );
         return outcome.kind != OutboxOutcomeKind.retryLater;
-      case OutboxOutcomeKind.aborted:
+      case OutboxOutcomeKind.notSent:
+        // رفضه الحارس والجلسة ما زالت لمالكه (رمزٌ لا يُعرَف صاحبه): لم يغادر
+        // الجهاز، لكنّ الموعد يُحفَظ بـbackoff — وإلّا بقي next_attempt_at
+        // ماضياً وأعاد المؤقّت المحاولة (والتجديد) كلّ ثانية بلا نهاية.
+        final attempts = current.attempts + 1;
+        await store.put(
+          current.copyWith(
+            attempts: attempts,
+            lastAttemptAt: now,
+            nextAttemptAt: now.add(backoffFor(attempts)),
+            lastOutcome: kind,
+            lastErrorAr: _notSentAr,
+          ),
+        );
         return true;
     }
   }
 
+  /// ربّما نُفّذت ولم يُؤكَّد ذلك لهذه الجلسة: تبقى بنفس المفتاح والحمولة، جاهزةً
+  /// للمطابقة فور عودة مالكها (لا backoff)، ولا يُمسّ Retry-After.
+  Future<void> _holdForOwner(
+    OutboxStore store,
+    OutboxRecord current,
+    DateTime now,
+    String kind,
+  ) => store.put(
+    current.copyWith(
+      attempts: current.attempts + 1,
+      lastAttemptAt: now,
+      clearNextAttempt: true,
+      outcomeUnknown: true,
+      lastOutcome: kind,
+      lastErrorAr: _heldForOwnerAr,
+    ),
+  );
+
   /// backoff أُسّيّ: الأساس × 2^(n-1) حتى الحدّ + jitter حتى 20٪.
-  Duration backoffFor(int attempts) {
-    final exp = attempts <= 1 ? 0 : min(attempts - 1, 20);
-    final raw = backoffBase.inMilliseconds * (1 << exp);
-    final capped = min(raw, backoffMax.inMilliseconds);
-    final jitter = (capped * 0.2 * _random.nextDouble()).round();
-    return Duration(milliseconds: capped + jitter);
-  }
+  Duration backoffFor(int attempts) => retryBackoff(
+    attempts,
+    base: backoffBase,
+    max: backoffMax,
+    random: _random,
+  );
 
   void _scheduleNext() {
     _retryTimer?.cancel();
@@ -591,13 +742,12 @@ class DurableOfflineOutbox implements OfflineOutbox {
     DateTime? earliest;
     for (final r in store.records) {
       if (r.owner != owner || !r.isPending) continue;
-      final at = r.nextAttemptAt;
+      final at = r.dueAt;
       if (at == null) continue;
       if (earliest == null || at.isBefore(earliest)) earliest = at;
     }
     if (earliest == null) return;
-    var delay = earliest.difference(_clock());
-    if (delay < const Duration(seconds: 1)) delay = const Duration(seconds: 1);
+    final delay = ceilToSecond(earliest.difference(_clock()));
     _retryTimer = _timer(delay, () => unawaited(drain()));
   }
 

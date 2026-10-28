@@ -1592,6 +1592,14 @@
         ]
       },
       {
+        "capability_id": "SAT-003",
+        "score": 10,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
         "capability_id": "FM-007",
         "score": 9,
         "signals": [
@@ -3034,6 +3042,36 @@
     ]
   },
   {
+    "path": "frontend/src/components/maphub/persistedCog.test.ts",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 14,
+        "signals": [
+          "path:cog",
+          "content:cog"
+        ]
+      },
+      {
+        "capability_id": "SAT-004",
+        "score": 12,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
     "kind": "web",
     "candidates": [
@@ -3870,6 +3908,28 @@
         "signals": [
           "content:sentinel",
           "content:stac"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "frontend/src/sections/TasksPage.tsx",
+    "kind": "web",
+    "candidates": [
+      {
+        "capability_id": "OPS-003",
+        "score": 10,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
+        ]
+      },
+      {
+        "capability_id": "SOIL-002",
+        "score": 8,
+        "signals": [
+          "content:Soil sampling",
+          "content:soil sampling"
         ]
       }
     ]
@@ -4917,6 +4977,58 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_screens_test.dart",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "OPS-005",
+        "score": 13,
+        "signals": [
+          "path:offline sync",
+          "content:offline sync"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 12,
+        "signals": [
+          "content:farm",
+          "content:farms"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 11,
+        "signals": [
+          "content:crop season",
+          "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "OPS-005",
+        "score": 13,
+        "signals": [
+          "path:offline sync",
+          "content:offline sync"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 12,
+        "signals": [
+          "content:crop season",
+          "content:season"
         ]
       }
     ]
@@ -6162,19 +6274,19 @@
     "kind": "backend",
     "candidates": [
       {
-        "capability_id": "SAT-004",
-        "score": 12,
-        "signals": [
-          "content:NDMI",
-          "content:ndmi"
-        ]
-      },
-      {
         "capability_id": "SAT-003",
-        "score": 10,
+        "score": 12,
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-004",
+        "score": 10,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
         ]
       }
     ]
@@ -6424,6 +6536,16 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "SAT-001",
+        "score": 15,
+        "signals": [
+          "content:cdse",
+          "content:satellite scene",
+          "content:sentinel",
+          "content:stac"
+        ]
+      },
+      {
         "capability_id": "SAT-005",
         "score": 12,
         "signals": [
@@ -6438,14 +6560,35 @@
           "content:NDVI",
           "content:ndvi"
         ]
+      }
+    ]
+  },
+  {
+    "path": "services/raster-service/test_acquisition_date_provenance.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-005",
+        "score": 10,
+        "signals": [
+          "content:aoi cloud",
+          "content:scene cloud"
+        ]
       },
       {
         "capability_id": "SAT-001",
-        "score": 11,
+        "score": 10,
         "signals": [
           "content:cdse",
-          "content:satellite scene",
-          "content:sentinel"
+          "content:stac"
         ]
       }
     ]
@@ -6712,6 +6855,29 @@
     ]
   },
   {
+    "path": "services/raster-service/test_job_tenant_binding.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-001",
+        "score": 16,
+        "signals": [
+          "content:cdse",
+          "content:sentinel",
+          "content:stac"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/raster-service/test_landsat_thermal_unique_contract.py",
     "kind": "tests",
     "candidates": [
@@ -6750,6 +6916,28 @@
         "score": 8,
         "signals": [
           "path:fail closed"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/raster-service/test_raster_publication_gate.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 9,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
         ]
       }
     ]
@@ -6796,6 +6984,28 @@
           "content:Soil sampling",
           "content:sampling plan",
           "content:soil sampling"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/raster-service/test_tile_render_mask_fail_closed_bounded_reads.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-008",
+        "score": 11,
+        "signals": [
+          "path:fail closed",
+          "content:fail closed"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
         ]
       }
     ]
@@ -9856,6 +10066,44 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_season_spatial_provenance.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 14,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
     "kind": "tests",
     "candidates": [
@@ -10101,6 +10349,28 @@
     ]
   },
   {
+    "path": "services/vegetation-analysis-service/test_vegetation_event_admission.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 12,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/vegetation-analysis-service/test_vegetation_logic.py",
     "kind": "tests",
     "candidates": [
@@ -10143,19 +10413,19 @@
         ]
       },
       {
+        "capability_id": "INT-002",
+        "score": 11,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
         "capability_id": "SAT-001",
         "score": 9,
         "signals": [
           "content:sentinel",
           "content:stac"
-        ]
-      },
-      {
-        "capability_id": "INT-002",
-        "score": 9,
-        "signals": [
-          "content:jetstream",
-          "content:nats"
         ]
       }
     ]

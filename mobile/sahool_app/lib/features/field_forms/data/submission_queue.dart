@@ -51,6 +51,22 @@ class QueuedSubmission {
   /// ولا يُحذف بصمت: يُعرض للمستخدم ليعيد المحاولة أو يتخلّص منه صراحةً.
   final String? failedReason;
 
+  /// لا تصريف تلقائيّ قبله (backoff + jitter). محفوظ في الصفّ فلا تمحوه إعادة
+  /// التشغيل ولا عودة الشبكة.
+  final DateTime? nextAttemptAt;
+
+  /// موعد فرضه الخادم (Retry-After بثوانٍ أو بتاريخ HTTP) — لا إرسال قبله
+  /// إطلاقاً، ولا من الشاشة.
+  final DateTime? notBefore;
+
+  /// محاولة ربّما نفّذها الخادم ولم يصل تأكيدها (مهلة استقبال، قطع بعد الإرسال،
+  /// 5xx، تبدّل الجلسة أثناء الطلب). يبقى حتى يؤكّده الخادم بإعادة نفس الجسم.
+  final bool outcomeUnknown;
+
+  /// آخر فشل كان تعذّر الوصول إلى الخادم أصلاً — عودة الشبكة تتخطّى backoff هذا
+  /// وحده (لا Retry-After ولا backoff سببه ردّ الخادم).
+  final bool lastUnreachable;
+
   const QueuedSubmission({
     required this.instanceId,
     required this.tenantId,
@@ -68,14 +84,42 @@ class QueuedSubmission {
     this.server,
     this.actorId,
     this.failedReason,
+    this.nextAttemptAt,
+    this.notBefore,
+    this.outcomeUnknown = false,
+    this.lastUnreachable = false,
   });
 
   bool get isFailed => failedReason != null;
+
+  /// مستحقّ للتصريف التلقائيّ الآن؟ [afterReconnect]: عودة الشبكة تتخطّى backoff
+  /// فشلٍ كان انقطاعاً فقط. Retry-After لا يتخطّاه شيء.
+  bool isDue(DateTime now, {bool afterReconnect = false}) {
+    final nb = notBefore;
+    if (nb != null && nb.isAfter(now)) return false;
+    final next = nextAttemptAt;
+    if (next == null || !next.isAfter(now)) return true;
+    return afterReconnect && lastUnreachable;
+  }
+
+  /// أقرب موعد تلقائيّ (الأبعد بين backoff وRetry-After).
+  DateTime? get dueAt {
+    final a = nextAttemptAt;
+    final b = notBefore;
+    if (a == null) return b;
+    if (b == null) return a;
+    return a.isAfter(b) ? a : b;
+  }
 
   QueuedSubmission _copy({
     int? attempts,
     String? failedReason,
     bool clearFailure = false,
+    DateTime? nextAttemptAt,
+    DateTime? notBefore,
+    bool clearSchedule = false,
+    bool? outcomeUnknown,
+    bool? lastUnreachable,
   }) => QueuedSubmission(
     instanceId: instanceId, // لا يتغيّر أبدًا
     tenantId: tenantId,
@@ -93,6 +137,12 @@ class QueuedSubmission {
     server: server,
     actorId: actorId,
     failedReason: clearFailure ? null : (failedReason ?? this.failedReason),
+    nextAttemptAt: clearSchedule
+        ? nextAttemptAt
+        : (nextAttemptAt ?? this.nextAttemptAt),
+    notBefore: clearSchedule ? notBefore : (notBefore ?? this.notBefore),
+    outcomeUnknown: outcomeUnknown ?? this.outcomeUnknown,
+    lastUnreachable: lastUnreachable ?? this.lastUnreachable,
   );
 
   QueuedSubmission copyWithAttempts(int attempts) => _copy(attempts: attempts);
@@ -114,6 +164,10 @@ class QueuedSubmission {
     'server': server,
     'actor_id': actorId,
     'failed_reason': failedReason,
+    'next_attempt_at': nextAttemptAt?.toUtc().toIso8601String(),
+    'not_before': notBefore?.toUtc().toIso8601String(),
+    'outcome_unknown': outcomeUnknown,
+    'last_unreachable': lastUnreachable,
   };
 
   factory QueuedSubmission.fromJson(Map<String, Object?> json) {
@@ -135,8 +189,15 @@ class QueuedSubmission {
       server: json['server'] as String?,
       actorId: json['actor_id'] as String?,
       failedReason: json['failed_reason'] as String?,
+      nextAttemptAt: _date(json['next_attempt_at']),
+      notBefore: _date(json['not_before']),
+      outcomeUnknown: json['outcome_unknown'] == true,
+      lastUnreachable: json['last_unreachable'] == true,
     );
   }
+
+  static DateTime? _date(Object? v) =>
+      v is String ? DateTime.tryParse(v) : null;
 
   /// envelope الإرسال الكامل (§8/دفعة العقود) — هويّة النسخة تُعاد كما هي.
   ///
@@ -209,12 +270,44 @@ class SubmissionQueue {
     return item;
   }
 
-  /// تسجيل محاولة فاشلة: يزيد العدّاد ولا يمسّ instance_id ولا الجسم.
-  Future<QueuedSubmission> markRetry(QueuedSubmission item) async {
-    final updated = item.copyWithAttempts(item.attempts + 1);
+  /// تسجيل محاولة فاشلة: يزيد العدّاد ولا يمسّ instance_id ولا الجسم، ويحفظ
+  /// موعد المحاولة التالية (و[notBefore] من Retry-After) في الصفّ نفسه.
+  /// [outcomeUnknown] يُضاف ولا يُمحى: محاولة سابقة غير مؤكَّدة تبقى كذلك.
+  Future<QueuedSubmission> markRetry(
+    QueuedSubmission item, {
+    DateTime? nextAttemptAt,
+    DateTime? notBefore,
+    bool outcomeUnknown = false,
+    bool unreachable = false,
+  }) async {
+    final updated = item._copy(
+      attempts: item.attempts + 1,
+      clearSchedule: true,
+      nextAttemptAt: nextAttemptAt,
+      notBefore: notBefore,
+      outcomeUnknown: item.outcomeUnknown || outcomeUnknown,
+      lastUnreachable: unreachable,
+    );
     await _box.put(updated.instanceId, updated.toJson());
     return updated;
   }
+
+  /// ردٌّ وصل (أو أُلغي الطلب) بعد تبدّل الجلسة: لا حذف — يبقى بجسمه ومعرّفه
+  /// «نتيجته غير مؤكَّدة» ويُطابَق حين يعود صاحبه (الخادم يعيد نتيجته المخزّنة).
+  Future<QueuedSubmission> markOutcomeUnknown(QueuedSubmission item) async {
+    final updated = item._copy(
+      attempts: item.attempts + 1,
+      clearSchedule: true,
+      notBefore: item.notBefore,
+      outcomeUnknown: true,
+      lastUnreachable: false,
+    );
+    await _box.put(updated.instanceId, updated.toJson());
+    return updated;
+  }
+
+  /// العنصر كما هو محفوظ الآن (null ⇒ أُزيل أو تعذّر فكّه).
+  QueuedSubmission? byId(String instanceId) => _decode(_box.get(instanceId));
 
   /// يوقف التصريف التلقائيّ لعنصر رفضه الخادم مراراً — يبقى محفوظاً ومرئيّاً.
   Future<QueuedSubmission> markFailed(
@@ -227,8 +320,14 @@ class SubmissionQueue {
   }
 
   /// يعيد عنصراً فاشلاً إلى الطابور (بطلب صريح من المستخدم) بالجسم نفسه.
+  /// يمحو backoff لا Retry-After.
   Future<QueuedSubmission> requeue(QueuedSubmission item) async {
-    final updated = item._copy(attempts: 0, clearFailure: true);
+    final updated = item._copy(
+      attempts: 0,
+      clearFailure: true,
+      clearSchedule: true,
+      notBefore: item.notBefore,
+    );
     await _box.put(updated.instanceId, updated.toJson());
     return updated;
   }
@@ -243,21 +342,33 @@ class SubmissionQueue {
   List<QueuedSubmission> _all({String? tenantId, String? actorId}) {
     final result = <QueuedSubmission>[];
     for (final key in _box.keys) {
-      final raw = _box.get(key);
-      if (raw is Map) {
-        final item = QueuedSubmission.fromJson(Map<String, Object?>.from(raw));
-        if (tenantId != null && item.tenantId != tenantId) continue;
-        if (actorId != null &&
-            item.actorId != null &&
-            item.actorId != actorId) {
-          continue;
-        }
-        result.add(item);
+      final item = _decode(_box.get(key));
+      // صفّ لا يُفكّ لا يُسقط القائمة كلّها؛ يبقى على القرص ويُعَدّ في
+      // [unreadableCount] فلا يختفي من العرض كأنّه أُرسل.
+      if (item == null) continue;
+      if (tenantId != null && item.tenantId != tenantId) continue;
+      if (actorId != null && item.actorId != null && item.actorId != actorId) {
+        continue;
       }
+      result.add(item);
     }
     result.sort((a, b) => a.localCreatedAt.compareTo(b.localCreatedAt));
     return result;
   }
+
+  static QueuedSubmission? _decode(Object? raw) {
+    if (raw is! Map) return null;
+    try {
+      return QueuedSubmission.fromJson(Map<String, Object?>.from(raw));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// صفوف محفوظة تعذّر فكّها (تالفة أو من إصدار أحدث). لا تُحذف ولا تُرسَل؛
+  /// تُعرض عدداً كي لا يُقال «لا شيء بانتظار الإرسال» وهي على الجهاز.
+  int unreadableCount() =>
+      _box.keys.where((key) => _decode(_box.get(key)) == null).length;
 
   /// العناصر المعلّقة القابلة للتصريف، الأقدم أوّلاً (بلا الفاشلة).
   List<QueuedSubmission> pending({String? tenantId, String? actorId}) => _all(

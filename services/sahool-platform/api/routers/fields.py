@@ -24,7 +24,7 @@ from datetime import date
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import Response
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 from api import main as api_main
 
@@ -39,9 +39,12 @@ from api.field_models import (
     _FIELD_DETAIL_SELECT,
     _FIELD_QUALITY_SELECT,
     _MIN_FIELD_OVERLAP_M2,
+    ChildField,
     FieldCreateRequest,
     FieldDetail,
     FieldImportRequest,
+    FieldMergeRequest,
+    FieldSplitRequest,
     FieldSummary,
     FieldUpdateRequest,
     _build_field_update,
@@ -56,6 +59,7 @@ from api.field_models import (
 from api.field_timeline import assemble_timeline
 from api.geospatial_integrity import validate_field_geometry
 from api.gis_geometry_guard import (
+    area_conservation_issues,
     field_geometry_error_detail,
     geometry_metadata,
     guard_field_geometry,
@@ -521,7 +525,7 @@ async def _persist_field(
                     command_type="field.create",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"field_id": field_id, "name": req.name},
+                    payload={"request_digest": api_main.model_digest(req)},  # D4
                 )
             else:
                 result = await _work()
@@ -1730,55 +1734,6 @@ async def delete_field(
 # الهندسة client-computed (@turf) ويتحقّق منها الخادم عبر guard_field_geometry (لا ثقة).
 
 
-class FieldMergeRequest(BaseModel):
-    """طلب دمج عدّة حقول مصدر في حقل واحد (الهندسة المدموجة محسوبة @turf في الواجهة)."""
-
-    source_field_ids: list[str] = Field(min_length=2, max_length=50)
-    name: str = Field(min_length=1, max_length=100)
-    geometry: dict  # GeoJSON Polygon المدموج (اتّحاد @turf) — يتحقّق منه الخادم
-    crop: str | None = None
-    soil_type: str | None = None
-    manager: str | None = Field(default=None, max_length=100)
-    farm_id: str | None = None
-    field_code: str | None = Field(default=None, max_length=50)
-    description: str | None = None
-    water_source: str | None = Field(default=None, max_length=20)
-    irrigation_type: str | None = Field(default=None, max_length=20)
-    ownership_type: str | None = Field(default=None, max_length=20)
-    gov: str | None = None
-    country: str | None = Field(default=None, max_length=60)
-    region: str | None = Field(default=None, max_length=80)
-
-    @field_validator("source_field_ids")
-    @classmethod
-    def _dedupe_sources(cls, v: list[str]) -> list[str]:
-        if len(set(v)) != len(v):
-            raise ValueError("معرّفات الحقول المصدر مكرّرة")
-        return v
-
-
-class ChildField(BaseModel):
-    """حقل وليد ناتج عن انقسام (اسم + هندسة @turf؛ المحصول اختياريّ يُورَّث/يُحدَّد)."""
-
-    name: str = Field(min_length=1, max_length=100)
-    geometry: dict  # GeoJSON Polygon للجزء (محسوب @turf) — يتحقّق منه الخادم
-    crop: str | None = None
-    soil_type: str | None = None
-    manager: str | None = Field(default=None, max_length=100)
-    field_code: str | None = Field(default=None, max_length=50)
-    description: str | None = None
-    water_source: str | None = Field(default=None, max_length=20)
-    irrigation_type: str | None = Field(default=None, max_length=20)
-    ownership_type: str | None = Field(default=None, max_length=20)
-
-
-class FieldSplitRequest(BaseModel):
-    """طلب انقسام حقل واحد إلى عدّة حقول وليدة (٢..١٠؛ كلّ وليد بهندسته @turf)."""
-
-    source_field_id: str
-    children: list[ChildField] = Field(min_length=2, max_length=10)
-
-
 def _guard_merge_split_geometry(
     raw_geometry: object,
 ) -> tuple[dict, float, tuple[float | None, float | None]]:
@@ -1794,6 +1749,39 @@ def _guard_merge_split_geometry(
             detail=field_geometry_error_detail(exc),
         ) from exc
     return guarded.geometry, round(guarded.area_ha, 2), guarded.centroid
+
+
+def _stored_geometry(raw: object) -> dict | None:
+    """هندسة JSONB كما يعيدها asyncpg (نصّ بلا codec أو dict) → dict أو None."""
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except ValueError:
+            return None
+    return raw if isinstance(raw, dict) else None
+
+
+def _assert_area_conserved(sources: list[dict | None], results: list[dict]) -> None:
+    """حفظ المساحة في الدمج/الانقسام — 422 قبل أيّ كتابة إن لم يُطابق الناتجُ المصدرَ.
+
+    الذرّيّة (معاملة واحدة) تضمن «الكلّ أو لا شيء» لا صحّة الشكل: هندسة صالحة لكن
+    غير ذات صلة كانت تمرّ تحقّق كلّ شكل منفرداً ثمّ يُحذف المصدر. هنا: اتّحاد الأطفال
+    = المصدر بلا تداخل (انقسام)، والمدموج = اتّحاد المصادر (دمج)، ضمن
+    AREA_CONSERVATION_REL_TOL.
+    """
+    issues = area_conservation_issues(sources, results)
+    if issues:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message_ar": (
+                    "الحدود الناتجة لا تحفظ مساحة الحقل المصدر (فقدٌ أو زيادة أو تداخل) — "
+                    "أعد الدمج/الانقسام من حدود الحقول الحاليّة."
+                ),
+                "code": "field_area_not_conserved",
+                "issues": issues,
+            },
+        )
 
 
 @router.post("/api/v1/fields/merge", status_code=201, response_model=FieldSummary)
@@ -1826,9 +1814,10 @@ async def merge_fields(
 
             async def _work():
                 # 1) ملكيّة كلّ مصدر (404) + رفض الموسم النشط (409) — قبل أيّ كتابة.
+                source_geometries: list[dict | None] = []
                 for src_id in req.source_field_ids:
                     src = await conn.fetchrow(
-                        "SELECT field_id, name, crop FROM fields "
+                        "SELECT field_id, name, crop, geometry FROM fields "
                         "WHERE field_id = $1 AND tenant_id = $2::uuid",
                         src_id,
                         str(user.tenant_id),
@@ -1847,6 +1836,9 @@ async def merge_fields(
                             status_code=409,
                             detail="لا يمكن الدمج: موسم نشط على حقل مصدر",
                         )
+                    source_geometries.append(_stored_geometry(src["geometry"]))
+                # 1ب) المدموج = اتّحاد المصادر (422 قبل أيّ كتابة).
+                _assert_area_conserved(source_geometries, [geometry])
                 # 2) أنشئ المدموج أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
                 result = await _insert_field_within_tx(
                     conn,
@@ -1961,7 +1953,7 @@ async def split_field(
             async def _work():
                 # 1) ملكيّة المصدر (404) + رفض الموسم النشط (409) — قبل أيّ كتابة.
                 src = await conn.fetchrow(
-                    "SELECT field_id, name, crop FROM fields "
+                    "SELECT field_id, name, crop, geometry FROM fields "
                     "WHERE field_id = $1 AND tenant_id = $2::uuid",
                     req.source_field_id,
                     str(user.tenant_id),
@@ -1980,6 +1972,10 @@ async def split_field(
                         status_code=409,
                         detail="لا يمكن الانقسام: موسم نشط على الحقل المصدر",
                     )
+                # 1ب) اتّحاد الأطفال = المصدر بلا تداخل (422 قبل أيّ كتابة).
+                _assert_area_conserved(
+                    [_stored_geometry(src["geometry"])], [p["geometry"] for p in prepared]
+                )
                 # 2) أنشئ كلّ وليد أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
                 children_out: list[dict] = []
                 for p in prepared:
@@ -2245,7 +2241,7 @@ async def create_season(
                     command_type="season.create",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"field_id": field_id, "season_id": season_id},
+                    payload={"request_digest": api_main.model_digest(req, field_id)},  # D4
                 )
             else:
                 result = await _work()

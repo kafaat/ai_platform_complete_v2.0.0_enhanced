@@ -56,4 +56,18 @@ export function captureTime(
   };
 }
 
+/**
+ * سطر «تاريخ الالتقاط» بالسياسة نفسها: `YYYY-MM-DD HH:MM UTC` لطابع UTC صريح، وإلّا
+ * التاريخ وحده. لا `Intl.DateTimeFormat` بلا `timeZone` (توقيت المتصفّح بلا منطقة ظاهرة)
+ * ولا ساعة مفترضة لطابع بلا منطقة.
+ */
+export function captureLabel(
+  acquisition: string | null | undefined,
+  cardDate?: string | null,
+): string | null {
+  const t = captureTime(acquisition, cardDate);
+  if (t.label && t.isoDate) return `${t.isoDate} ${t.label}`;
+  return cardDate ?? null;
+}
+
 export default captureTime;

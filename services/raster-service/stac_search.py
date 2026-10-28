@@ -11,9 +11,11 @@ from __future__ import annotations
 
 from copy import deepcopy
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 from fastapi import HTTPException
+from scene_policy import parse_cloud_cover_pct
 
 _stac: Any = None
 _logger: Any = None
@@ -83,6 +85,28 @@ def configure(
     LANDSAT_DERIVED_INDICES = landsat_derived_indices
     LANDSAT_DUPLICATE_SENTINEL_INDICES = landsat_duplicate_sentinel_indices
     LANDSAT_THERMAL_ASSET_CANDIDATES = landsat_thermal_asset_candidates
+
+
+# EXTRA-3: هويّة الكتالوج تُشتقّ من مغلَّف provenance الذي يحمله عميل STAC (نفسه على
+# miss/fresh/stale)، لا من افتراض أنّ كلّ نتيجة جاءت من Element84.
+_FALLBACK_CATALOG_HOSTS = {
+    "planetarycomputer.microsoft.com": "planetary-computer",
+    "explorer.digitalearth.africa": "deafrica",
+}
+
+
+def catalog_identity(data: dict) -> tuple[str, str]:
+    """يُرجِع (provider, source) للكتالوج الذي خدم النتيجة فعلاً.
+
+    الأساس (أو غياب المغلَّف — توافقاً) → Element84؛ الاحتياطي → هويّة مضيفه، فلا تُعلَن
+    نتيجة Planetary Computer/DE Africa على أنّها Element84.
+    """
+    prov = data.get("_provenance") if isinstance(data, dict) else None
+    if not isinstance(prov, dict) or prov.get("role") != "fallback":
+        return "element84", "element84-earth-search"
+    host = (urlparse(str(prov.get("endpoint") or "")).hostname or "").lower()
+    provider = _FALLBACK_CATALOG_HOSTS.get(host, "stac-fallback")
+    return provider, f"{provider}-stac-fallback"
 
 
 def stac_health() -> dict:
@@ -262,13 +286,16 @@ async def stac_search_cdse(
     items = []
     for feat in features:
         props = feat.get("properties", {}) or {}
+        cloud = parse_cloud_cover_pct(props.get("eo:cloud_cover"))
         items.append(
             {
                 "item_id": feat.get("id", ""),
                 "collection": feat.get("collection") or _cdse._COLLECTION,
                 "datetime": props.get("datetime", ""),
-                "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
-                "cloud_cover_known": props.get("eo:cloud_cover") is not None,
+                # غياب/تلف ``eo:cloud_cover`` = مجهول (None)، لا صفر مختلَق يقرؤه الانتقاء
+                # «صافياً ١٠٠٪» (RS-01). نسبة مئويّة [0, 100]؛ غير المنتهي وخارج المدى مجهول.
+                "cloud_cover_pct": cloud,
+                "cloud_cover_known": cloud is not None,
                 "bbox": feat.get("bbox"),
                 "bands_urls": {},
                 "thumbnail_url": None,
@@ -300,32 +327,37 @@ async def stac_search_element84(
         "sortby": [{"field": "properties.datetime", "direction": "desc"}],
     }
     data = await stac_query(payload)
+    provider, source = catalog_identity(data)
 
     items = []
     for feat in data.get("features", []):
         props = feat.get("properties", {})
         assets = feat.get("assets", {})
+        cloud = parse_cloud_cover_pct(props.get("eo:cloud_cover"))
         items.append(
             {
                 "item_id": feat.get("id", ""),
                 "collection": feat.get("collection"),
                 "datetime": props.get("datetime", ""),
-                "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
-                "cloud_cover_known": props.get("eo:cloud_cover") is not None,
+                # غياب/تلف ``eo:cloud_cover`` = مجهول (None)، لا صفر مختلَق يقرؤه الانتقاء
+                # «صافياً ١٠٠٪» (RS-01). نسبة مئويّة [0, 100]؛ غير المنتهي وخارج المدى مجهول.
+                "cloud_cover_pct": cloud,
+                "cloud_cover_known": cloud is not None,
                 "bbox": feat.get("bbox"),
                 "bands_urls": band_urls_from_assets(assets),
                 "radiometry_context": radiometry_context_from_item(feat),
                 "thumbnail_url": (assets.get("thumbnail") or {}).get("href"),
                 "preview_url": (assets.get("visual") or {}).get("href"),
                 "platform": props.get("platform", "sentinel-2"),
-                "provider": "element84",
+                "provider": provider,
             }
         )
     return {
         "count": len(items),
-        "source": "element84-earth-search",
+        "source": source,
         "cache": data.get("_cache", "miss"),
         "warning": data.get("_warning"),
+        "provenance": data.get("_provenance"),
         "items": items,
     }
 
@@ -392,21 +424,23 @@ def landsat_thermal_href(assets: dict) -> str | None:
     return None
 
 
-def landsat_unique_payload(feat: dict) -> dict | None:
+def landsat_unique_payload(feat: dict, provider: str = "element84") -> dict | None:
     props = feat.get("properties", {}) or {}
     assets = feat.get("assets", {}) or {}
     thermal_href = landsat_thermal_href(assets)
     if not thermal_href:
         return None
     platform = props.get("platform", "landsat")
+    cloud = parse_cloud_cover_pct(props.get("eo:cloud_cover"))
     return {
         "item_id": feat.get("id", ""),
         "datetime": props.get("datetime", ""),
-        "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
+        "cloud_cover_pct": cloud,
+        "cloud_cover_known": cloud is not None,
         "bbox": feat.get("bbox"),
         "platform": platform,
         "thumbnail_url": (assets.get("thumbnail") or {}).get("href"),
-        "provider": "landsat-element84",
+        "provider": f"landsat-{provider}",
         "data_type": "thermal_unique",
         "thermal_urls": {"lst": thermal_href},
         "direct_indices": sorted(LANDSAT_DIRECT_RASTER_INDICES),
@@ -439,17 +473,20 @@ async def stac_search_landsat_unique(
         "sortby": [{"field": "properties.datetime", "direction": "desc"}],
     }
     data = await stac_query(payload)
+    provider, source = catalog_identity(data)
     items = []
     for feat in data.get("features", []):
-        item = landsat_unique_payload(feat)
+        item = landsat_unique_payload(feat, provider)
         if item is not None:
             items.append(item)
     return {
         "count": len(items),
-        "source": "element84-earth-search",
+        "source": source,
         "collection": LANDSAT_COLLECTION,
         "provider_role": "landsat_thermal_unique_only",
         "cache": data.get("_cache"),
+        "warning": data.get("_warning"),
+        "provenance": data.get("_provenance"),
         "unique_indices": sorted(LANDSAT_UNIQUE_INDICES),
         "direct_raster_indices": sorted(LANDSAT_DIRECT_RASTER_INDICES),
         "derived_indices_require": {
@@ -473,6 +510,7 @@ async def stac_search_dem(bbox: list[float]) -> dict:
         "limit": 20,
     }
     data = await stac_query(payload)
+    _provider, source = catalog_identity(data)
     items = []
     for feat in data.get("features", []):
         assets = feat.get("assets", {})
@@ -488,8 +526,10 @@ async def stac_search_dem(bbox: list[float]) -> dict:
         )
     return {
         "count": len(items),
-        "source": "element84-earth-search",
+        "source": source,
         "collection": DEM_COLLECTION,
         "cache": data.get("_cache"),
+        "warning": data.get("_warning"),
+        "provenance": data.get("_provenance"),
         "items": items,
     }

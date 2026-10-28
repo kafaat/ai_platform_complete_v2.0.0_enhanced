@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { captureTime } from './captureTime';
+import { captureLabel, captureTime } from './captureTime';
 
 describe('captureTime — وقت الالتقاط لا يُحوَّل ولا يُختلَق', () => {
   it('طابع UTC ⇒ ساعة موسومة صراحةً بـUTC', () => {
@@ -55,5 +55,24 @@ describe('captureTime — وقت الالتقاط لا يُحوَّل ولا ي�
     const t = captureTime('2026-08-04T13:37:00+03:00', '2026-08-04');
     expect(t.label).toBeNull();
     expect(t.isoDate).toBe('2026-08-04');
+  });
+});
+
+// T5 (thumb-web): عنوان «تاريخ الالتقاط» في MapHub كان يُنسَّق بـ`Intl.DateTimeFormat`
+// بلا `timeZone` — أي بتوقيت المتصفّح وبلا منطقة ظاهرة — بينما البطاقات تحته بـUTC.
+// سياسة واحدة: نصّ الطابع نفسه + «UTC» صراحةً، وإلّا التاريخ وحده.
+describe('captureLabel — سطر تاريخ الالتقاط بسياسة البطاقات نفسها', () => {
+  it('طابع UTC ⇒ التاريخ + الساعة موسومة UTC', () => {
+    expect(captureLabel('2026-08-04T23:40:00Z', '2026-08-04')).toBe('2026-08-04 23:40 UTC');
+  });
+
+  it('طابع بلا منطقة أو بإزاحة غير صفريّة ⇒ التاريخ وحده بلا ساعة مفترضة', () => {
+    expect(captureLabel('2026-08-04T10:37:21', '2026-08-04')).toBe('2026-08-04');
+    expect(captureLabel('2026-08-04T13:37:00+03:00', '2026-08-04')).toBe('2026-08-04');
+  });
+
+  it('غياب الطابع ⇒ تاريخ البطاقة؛ لا شيء ⇒ null', () => {
+    expect(captureLabel(null, '2026-08-04')).toBe('2026-08-04');
+    expect(captureLabel(null, null)).toBeNull();
   });
 });
