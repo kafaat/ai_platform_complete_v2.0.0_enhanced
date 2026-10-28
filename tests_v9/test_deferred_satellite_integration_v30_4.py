@@ -325,9 +325,11 @@ def test_stac_item_persistence_round_trip():
 # ─── FINDING-005: invalidation worker consumes the queue ──────────────────────
 
 
-def test_cache_invalidation_worker_marks_stale_and_processed():
+def test_cache_invalidation_worker_marks_stale_and_processed(monkeypatch):
     if not _db_available():
         pytest.skip("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+    # كما في اختبار المطالبة أدناه: ``REDIS_URL`` المُسرَّب من وحداتٍ أخرى لا خادمَ خلفه.
+    monkeypatch.delenv("REDIS_URL", raising=False)
     import importlib.util
 
     import asyncpg
