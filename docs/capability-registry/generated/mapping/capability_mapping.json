@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6922,
+    "files_scanned": 6920,
     "files_by_kind": {
       "backend": 1264,
       "database": 289,
       "governance": 86,
       "mobile": 414,
-      "other": 2132,
-      "tests": 2237,
+      "other": 2131,
+      "tests": 2236,
       "web": 500
     },
-    "unmapped_artifacts": 2743,
+    "unmapped_artifacts": 2742,
     "ambiguous_artifacts": 495
   },
   "capabilities": [
@@ -14590,6 +14590,13 @@
           ]
         },
         {
+          "path": "docs/runbooks/MIGRATION_UNFREEZE_RUNBOOK_20261028.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "scripts/ci/brain_commit_claim_guard.py",
           "score": 20,
           "signals": [
@@ -14617,7 +14624,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 11
+        "other_evidence": 12
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -49802,10 +49809,6 @@
     },
     {
       "path": "tests/observability/test_phase13_observability_assets.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/phase6/test_ml_quality_bridge.py",
       "kind": "tests"
     },
     {
