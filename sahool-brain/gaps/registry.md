@@ -8422,6 +8422,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 - **الحالة:** open (2026-10-27).
   - **في الكود المرشّح:** أُصلحت على فرع `claude/platform-promotion-plan-20261026`.
+  - **في main (2026-10-28):** الإصلاح بلغ `main` عبر #1299 (D4، `20f0b3b97`)، ودُمجت الخطة بـ#1295 (`e16bbffa5`). `sahool-platform` يُنشر من فرعَي نشر لا من `main`، فلم يصل التشغيل.
   - **في التشغيل:** لم يصل الإصلاح؛ الإنتاج `fa92a1f7e` وstaging `d6ddf38ce` بلا الإصلاح.
   - **عزل المستأجرين في البيئات المنشورة:** NOT_RUN، والعائق وصول (لا اتّصال بقاعدتي التشغيل).
   - لا تُغلق قبل قراءة دور المنصّة الفعليّ (الخطوة 0‑ب) واختبارات القبول على staging.
@@ -8477,7 +8478,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## CI-COMPOSE-SLICE-BUILD-USES-LOCAL-MIRROR-DEFAULT-01 — بناء شريحة S3 في CI يرث مرآة Compose المحلّيّة فيتعطّل
 
-- **الحالة:** **fixed** (2026-10-28) على فرع `claude/ci-compose-slice-pypi-20261028`؛ غير مدموج.
+- **الحالة:** **fixed** (2026-10-28)؛ مدموج في `main` بـ#1295 (`e16bbffa5`). وعلى رأس #1295 (`5bd47c2e3`) نجحت «Raster Service Tests» في 3د29ث شاملةً خطوة الشريحة، بعد ثلاثة تعطّلات متتالية بلا الإصلاح.
 - **المصدر:** `scripts/ci/run_s3_compose_slice_acceptance.sh` يبني `sahool-raster-service` و`sahool-scout-ingest` عبر `docker compose build`، و`docker-compose.v9.yml` يمرّر `${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}` منذ #1293. فقرار 2026-10-26 («لا workflow يبني عبر compose»، `decisions/ledger.md`) لا يصحّ لهذه الخطوة: CI كان يسحب من المرآة.
 - **المقيس:** مدّة خطوة «S3 Compose slice acceptance» على دفعات `main`: 1د44ث و1د52ث قبل #1293؛ 2د11ث و6د07ث بعده؛ ثمّ صمتٌ 28 دقيقة بعد تجهيز MinIO حتى مهلة الوظيفة (30 دقيقة) في التشغيل `40657966716` على `fc7f8cac5`، فأُلغيت «Raster Service Tests» ورفض `certify-run.yml` (التشغيل `40661695219`) تشغيلاً ملغى. البناء يعمل بـ`-q` إلى ملفّ دليلٍ لم يُطبع، فالمرآة **السببُ الأرجح لا المُثبت**.
 - **الإصلاح:** السكربت يصدّر `PIP_INDEX_URL` = `https://pypi.org/simple` ما لم يُضبط صراحةً (كافتراضيّ الـDockerfiles)، ويحدّ البناء بـ`timeout` (900ث افتراضيّاً) مع فشلٍ مسمّى `S3_SLICE_BUILD_TIMEOUT` يذكر الفهرس.
