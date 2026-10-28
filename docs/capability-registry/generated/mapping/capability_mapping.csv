@@ -39,7 +39,7 @@ OPS-001,operations,Task management,True,1,0,0,0,0,0,1,0,0
 OPS-002,operations,Work orders,True,6,3,7,6,3,1,0,6,0
 OPS-003,operations,Scouting,True,7,10,7,7,49,22,22,29,0
 OPS-004,operations,Field forms,True,6,3,12,14,12,0,21,29,1
-OPS-005,operations,Offline mobile,True,7,2,2,9,13,1,13,10,0
+OPS-005,operations,Offline mobile,True,7,2,2,9,14,1,13,11,0
 OPS-006,operations,Equipment registry,True,1,1,0,0,0,0,0,0,0
 OPS-007,operations,Maintenance,True,4,0,0,3,1,0,1,2,0
 OPS-008,operations,Workforce and worker identity,False,0,0,0,0,0,0,0,0,0

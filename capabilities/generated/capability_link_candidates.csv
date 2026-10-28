@@ -1628,6 +1628,7 @@ OPS-005,mobile,mobile/sahool_app/lib/features/tasks/data/offline_write.dart,2,ap
 OPS-005,mobile,mobile/sahool_app/lib/widgets/offline_field_map.dart,2,applied
 OPS-005,test,mobile/sahool_app/test/features/maps/offline_field_map_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/maps/offline_packs_test.dart,3,applied
+OPS-005,test,mobile/sahool_app/test/features/offline_sync/acceptance_retention_expired_probe_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/offline_sync/durable_offline_outbox_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/offline_sync/operation_ledger_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/offline_sync/operation_owner_switch_test.dart,3,applied

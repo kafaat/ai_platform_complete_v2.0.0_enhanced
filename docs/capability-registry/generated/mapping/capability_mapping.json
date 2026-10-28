@@ -15,14 +15,14 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6918,
+    "files_scanned": 6919,
     "files_by_kind": {
       "backend": 1264,
       "database": 289,
       "governance": 86,
       "mobile": 414,
       "other": 2130,
-      "tests": 2235,
+      "tests": 2236,
       "web": 500
     },
     "unmapped_artifacts": 2742,
@@ -18503,11 +18503,15 @@
           "score": 12
         },
         {
-          "value": "field.create @ mobile/sahool_app/lib/features/offline_sync/data/operation_ledger.dart:168",
+          "value": "field.create @ mobile/sahool_app/lib/features/offline_sync/data/operation_ledger.dart:174",
           "score": 11
         },
         {
-          "value": "irrigation_schedule.create @ mobile/sahool_app/lib/features/offline_sync/data/operation_ledger.dart:168",
+          "value": "irrigation_schedule.create @ mobile/sahool_app/lib/features/offline_sync/data/operation_ledger.dart:174",
+          "score": 11
+        },
+        {
+          "value": "irrigation_schedule.create @ mobile/sahool_app/test/features/offline_sync/acceptance_retention_expired_probe_test.dart:46",
           "score": 11
         },
         {
@@ -18716,6 +18720,14 @@
             "path:offline sync",
             "content:offline sync"
           ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/offline_sync/acceptance_retention_expired_probe_test.dart",
+          "score": 11,
+          "signals": [
+            "path:offline sync",
+            "content:offline sync"
+          ]
         }
       ],
       "governance": [],
@@ -18745,10 +18757,10 @@
         "backend": 2,
         "routes": 2,
         "database": 9,
-        "events": 13,
+        "events": 14,
         "web": 1,
         "mobile": 13,
-        "tests": 10,
+        "tests": 11,
         "governance": 0,
         "other_evidence": 2
       },

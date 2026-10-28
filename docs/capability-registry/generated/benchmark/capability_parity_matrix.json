@@ -2070,10 +2070,10 @@
         "OneSoil": []
       },
       "domain": "operations",
-      "gap_to_best": 2,
+      "gap_to_best": 1,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 3,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Offline mobile"

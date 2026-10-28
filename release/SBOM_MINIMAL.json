@@ -5745,7 +5745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e34d089d57812b71470767d4dfdaba43564424cd5c9bfdc6381e3bf08f093d2f"
+          "content": "0300e8135ca2a4ae9ad83df79b3b3612046ef79f6baabd6ef08d4c92e1d3382c"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspacePanels.behavior.test.tsx",
@@ -13185,7 +13185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b598cd267899ae0d31476dcd561b8a14eba454c816cc95da767b1105ff52df53"
+          "content": "b95e9d34268ac8a268bcafa7654727372646abc66862c837a859dbc69e02bba3"
         }
       ],
       "name": "mobile/sahool_app/lib/features/offline_sync/data/offline_sync_api.dart",
@@ -13195,7 +13195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fdf7d3fb929acd8f63f1302e82fb857fd5dc13ee02615ef9cbb9d165da497465"
+          "content": "68e60941f02a9d77394d236e38328f3cd8aa3915d80bea60c69fba19fdd3137a"
         }
       ],
       "name": "mobile/sahool_app/lib/features/offline_sync/data/operation_ledger.dart",
@@ -15605,6 +15605,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3d92d9817e9cdb58106a466ca716efdd26060cefc53910c0c9d8288e2876fd0b"
+        }
+      ],
+      "name": "mobile/sahool_app/test/features/offline_sync/acceptance_retention_expired_probe_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "929d2ffe359e55ee6a57f92ec4f554f4473f60c0a31fcc65f572e7cde84ae560"
         }
       ],
@@ -15715,7 +15725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dbe569a63f88092b040977c318078577b849174aa0183f425175e62e16e37f7c"
+          "content": "96a2453585937576540fcf420b1b324a7d7265aadc178fa8779beeca16dff419"
         }
       ],
       "name": "mobile/sahool_app/test/features/offline_sync/sync_queue_d3_test.dart",
