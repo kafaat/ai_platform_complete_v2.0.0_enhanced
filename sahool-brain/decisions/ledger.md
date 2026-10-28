@@ -4478,3 +4478,9 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 **القرار:** كلّ بناء compose يُشغّل `pip install` (56 بناءً في `docker-compose.v9.yml` و`docker-compose.rag-kg-mcp.yml` و`docker-compose.v9.gpu.yml`) يُمرّر `PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}`، و`.env.example` على القيمة نفسها. الـDockerfiles تبقى على `ARG PIP_INDEX_URL=https://pypi.org/simple`.
 **السبب:** طلب المالك إضافة مرآة Alibaba للحاويات، واختار «Default in compose only» من ثلاثة خيارات. القياس: كلّ Dockerfile يُشغّل pip كان يُعلن الـARG أصلاً، لكنّ compose لا يُمرّر إلّا الـARG المذكور في `build.args`، فكان 54 من 56 بناءً يتجاهل `PIP_INDEX_URL` حتى لو ضُبط. وبناءات CI وRailway تبني الـDockerfiles مباشرةً (لا workflow يبني عبر compose)، فلا يتغيّر مصدر حزمها.
 **المرجع:** فرع `claude/pip-mirror-20261026`؛ [`docs/runbooks/ALIBABA_PYPI_MIRROR.md`](../../docs/runbooks/ALIBABA_PYPI_MIRROR.md).
+
+### 2026-10-28 — دمج #1299 بتفويض المالك، وإصلاحا CI بلا توسيع نطاق
+
+**القرار:** دُمج الـPR الموحَّد #1299 (squash ⇒ `20f0b3b97`) دون موافقةٍ مستقلّة على الرأس، بعد أن اكتملت شروط التفويض على `fddbd2168`. وأُصلح أحمرا الجولة الأولى بأضيق تغيير: قيمُ اختبارٍ حرفيّة في `[allowlist] regexes` في `.gitleaks.toml` (لا مسارات ولا أنماط)، ومسحُ `REDIS_URL` المُسرَّب داخل أربعة اختبارات تكامل (لا تغييرَ في العامل ولا في ترتيب الاختبارات).
+**السبب:** المالك فوّض الدمج لهذا الـPR وحده (2026-10-28: «قوم بعمل ما هو صحيح و الدمج دون موافقتي»)؛ وقاعدة الموافقة المستقلّة باقيةٌ لكلّ دمجٍ غيره. القيم المُدرجة ثابتةٌ في تاريخ الفرع فلا يُزيلها تعديل الشجرة. والعامل سلوكه صحيح (إخلاءٌ لم يُسلَّم لا يُحسب منجَزاً)؛ الخلل في عزل الاختبارات.
+**المرجع:** #1299؛ `fbc1c25d3`، `018780efb`، `20f0b3b97`.
