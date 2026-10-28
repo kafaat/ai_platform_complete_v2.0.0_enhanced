@@ -57,6 +57,8 @@ void main() async {
 
   // تنظيفات الميزات عند الخروج (FeatureModule.onSessionEnd).
   AppRouter.instance.registerSessionCleanups(SessionScope.instance);
+  // AuthGate تستعيد الجلسة بعد أوّل بناء؛ رابط عميق يُولَّد قبلها ينتظرها.
+  AuthService.instance.expectRestore();
   unawaited(ConnectivityStatus.instance.start());
 
   FlutterError.onError = (details) {
@@ -139,12 +141,17 @@ class _AuthGateState extends State<AuthGate> {
         AuthService.instance.refreshToken != null) {
       await ApiClient.instance.validAccessToken();
     }
-    if (AuthService.instance.isAuthenticated) await _startSession();
+    // فشل الشبكة أثناء التجديد «غير معروف» لا رفض للهويّة: رمز التحديث باقٍ
+    // فالجلسة قابلة للاستئناف (الغلاف يعمل دون اتّصال ويجدّد عند أوّل نداء). رفض
+    // الخادم الصريح يمسح الجلسة فيعيدها onSessionExpired إلى الدخول.
+    if (AuthService.instance.canResumeSession) await _startSession();
     if (mounted) setState(() => _isReady = true);
   }
 
   Future<void> _startSession() async {
-    await WebSocketService.instance.connect();
+    // الـWS نقل لحظيّ اختياريّ: لا يحجب الغلاف (REST يعمل). مصافحة بطيئة/معلّقة
+    // كانت تُبقي شاشة التحميل بلا مهلة؛ إعادة المحاولة يتولّاها الخدمة نفسها.
+    unawaited(WebSocketService.instance.connect().catchError((Object _) {}));
     // الدفع (FCM) غير حاجب ودفاعيّ بالكامل (يبقى no-op بلا google-services).
     unawaited(PushService.instance.init().catchError((Object _) {}));
     unawaited(
@@ -190,7 +197,10 @@ class _AuthGateState extends State<AuthGate> {
     }
 
     if (!AuthService.instance.isAuthenticated) {
-      return const LoginScreen();
+      // رمز وصول منتهٍ ورمز تحديث باقٍ (تجديد فشل على الشبكة) ⇒ الحكم «غير
+      // معروف» لا رفض: الغلاف يبقى ويُجدَّد عند أوّل نداء. الدخول فقط بلا جلسة
+      // قابلة للاستئناف (لا رموز، أو رفض الخادم الصريح الذي يمسحها).
+      if (!AuthService.instance.canResumeSession) return const LoginScreen();
     }
 
     // الغلاف يُعاد إنشاؤه لكلّ مستخدم (المفتاح) فتُحسَب وجهات الدور من جديد.

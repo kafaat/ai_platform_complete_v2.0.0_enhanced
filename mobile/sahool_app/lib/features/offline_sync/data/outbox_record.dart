@@ -52,6 +52,26 @@ class OutboxOwner {
   String toString() => 'OutboxOwner($key)';
 }
 
+/// حالة العمليّة كما تُعرَض للمستخدم (مشتقّة من السجلّ المحفوظ، لا تخمين):
+enum OutboxDeliveryState {
+  /// محفوظة على الجهاز ولم تُرسَل بعد.
+  savedLocally,
+
+  /// أُرسلت وأجاب الخادم بأنّه لم ينفّذها بعد (429/503/…) أو تعذّر الاتّصال قبل
+  /// خروج الطلب ⇒ بانتظار المحاولة التالية بنفس المفتاح.
+  pending,
+
+  /// ربّما نفّذها الخادم ولم يصلنا تأكيده (مهلة، قطع بعد الإرسال، 5xx، تبدّل
+  /// الجلسة أثناء الطلب) ⇒ تُطابَق بإعادة نفس المفتاح والحمولة في سياق مالكها.
+  outcomeUnknown,
+
+  /// أكّدها الخادم (2xx أو إعادة idempotent) ⇒ تُحذف من الصندوق.
+  confirmed,
+
+  /// تحتاج قرار المستخدم: رفضها الخادم، أو تعارض مفتاحها مع حمولة أخرى.
+  needsAttention,
+}
+
 enum OutboxRecordState {
   /// بانتظار الإرسال (أو بانتظار انقضاء مهلة إعادة المحاولة).
   pending,
@@ -76,6 +96,10 @@ class OutboxRecord {
     this.rejectedStatus,
     this.rejectedMessageAr,
     this.rejectedAt,
+    this.notBefore,
+    this.outcomeUnknown = false,
+    this.lastOutcome,
+    this.conflictReason,
   });
 
   /// معرّف محلّيّ (UUIDv7) — مفتاح السجلّ في الصندوق.
@@ -99,8 +123,40 @@ class OutboxRecord {
   final String? rejectedMessageAr;
   final DateTime? rejectedAt;
 
+  /// موعد فرضه الخادم (Retry-After): لا إرسال قبله، لا تلقائيّاً ولا يدويّاً ولا
+  /// عند عودة الشبكة. [nextAttemptAt] ≥ هذا دائماً.
+  final DateTime? notBefore;
+
+  /// محاولة سابقة ربّما نُفّذت ولم يصل تأكيدها — تبقى حتى يؤكّدها الخادم.
+  final bool outcomeUnknown;
+
+  /// اسم [OutboxOutcomeKind] لآخر محاولة (offline/retryLater/…).
+  final String? lastOutcome;
+
+  /// سبب 409 تعارض المفتاح (payload_mismatch) لعمليّة تحتاج تدخّلاً.
+  final String? conflictReason;
+
   bool get isPending => state == OutboxRecordState.pending;
   bool get isRejected => state == OutboxRecordState.rejected;
+
+  /// المفتاح محجوز على الخادم لحمولة أخرى — إعادة الحمولة نفسها عمياء.
+  bool get isPayloadMismatch => conflictReason == 'payload_mismatch';
+
+  OutboxDeliveryState get deliveryState {
+    if (isRejected) return OutboxDeliveryState.needsAttention;
+    if (outcomeUnknown) return OutboxDeliveryState.outcomeUnknown;
+    if (attempts == 0) return OutboxDeliveryState.savedLocally;
+    return OutboxDeliveryState.pending;
+  }
+
+  /// أقرب موعد تلقائيّ (الأبعد بين backoff وRetry-After). null ⇒ الآن.
+  DateTime? get dueAt {
+    final a = nextAttemptAt;
+    final b = notBefore;
+    if (a == null) return b;
+    if (b == null) return a;
+    return a.isAfter(b) ? a : b;
+  }
 
   OutboxRecord copyWith({
     OutboxRecordState? state,
@@ -114,6 +170,11 @@ class OutboxRecord {
     String? rejectedMessageAr,
     DateTime? rejectedAt,
     bool clearRejection = false,
+    DateTime? notBefore,
+    bool clearNotBefore = false,
+    bool? outcomeUnknown,
+    String? lastOutcome,
+    String? conflictReason,
   }) => OutboxRecord(
     id: id,
     seq: seq,
@@ -134,6 +195,12 @@ class OutboxRecord {
         ? null
         : (rejectedMessageAr ?? this.rejectedMessageAr),
     rejectedAt: clearRejection ? null : (rejectedAt ?? this.rejectedAt),
+    notBefore: clearNotBefore ? null : (notBefore ?? this.notBefore),
+    outcomeUnknown: outcomeUnknown ?? this.outcomeUnknown,
+    lastOutcome: lastOutcome ?? this.lastOutcome,
+    conflictReason: clearRejection
+        ? null
+        : (conflictReason ?? this.conflictReason),
   );
 
   Map<String, dynamic> toJson() => {
@@ -158,6 +225,10 @@ class OutboxRecord {
     'rejected_status': rejectedStatus,
     'rejected_message_ar': rejectedMessageAr,
     'rejected_at': rejectedAt?.toUtc().toIso8601String(),
+    'not_before': notBefore?.toUtc().toIso8601String(),
+    'outcome_unknown': outcomeUnknown,
+    'last_outcome': lastOutcome,
+    'conflict_reason': conflictReason,
   };
 
   static DateTime? _date(Object? v) =>
@@ -192,6 +263,10 @@ class OutboxRecord {
       rejectedStatus: (j['rejected_status'] as num?)?.toInt(),
       rejectedMessageAr: j['rejected_message_ar'] as String?,
       rejectedAt: _date(j['rejected_at']),
+      notBefore: _date(j['not_before']),
+      outcomeUnknown: j['outcome_unknown'] == true,
+      lastOutcome: j['last_outcome'] as String?,
+      conflictReason: j['conflict_reason'] as String?,
     );
   }
 

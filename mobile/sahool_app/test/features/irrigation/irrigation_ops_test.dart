@@ -10,6 +10,7 @@ import 'package:sahool_app/core/network/idempotency.dart';
 import 'package:sahool_app/features/irrigation/presentation/irrigation_ops_cubit.dart';
 import 'package:sahool_app/features/irrigation/presentation/irrigation_ops_screen.dart';
 
+import '../offline_sync/operation_test_support.dart';
 import 'irrigation_test_helpers.dart';
 
 const valvePath = '/api/v1/irrigation/valves';
@@ -267,5 +268,68 @@ void main() {
         expect(find.text('الهدف: 12.5 مم'), findsOneWidget);
       },
     );
+
+    // UI-M1: جدول على صمّام حقلٍ كان يُرسَل بلا field_id فيُحفظ غير مربوط ولا يظهر
+    // في قائمة جداول الحقل. الورقة ترسل الآن حقل الصمّام المختار (والخادم يتحقّق).
+    Future<Map<String, dynamic>> submitSchedule(
+      WidgetTester t, {
+      required bool pickValve,
+    }) async {
+      final srv = ValveServer();
+      final h = IrrigationHarness((o) async {
+        if (o.method == 'POST' && o.path == '/api/v1/irrigation/schedules') {
+          return const FakeReply(201, {
+            'schedule_id': 'sch_1',
+            'name': 'ريّ الفجر',
+            'message_ar': 'أُنشئ جدول الريّ',
+          });
+        }
+        return srv.handle(o);
+      });
+      await t.pumpWidget(
+        host(
+          IrrigationOpsScreen(
+            api: h.api,
+            role: 'owner',
+            ledger: ledgerFor(h.tokens, MemoryOperationStore()),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      await t.tap(find.text('الجداول'));
+      await t.pumpAndSettle();
+      await t.tap(find.byType(FloatingActionButton));
+      await t.pumpAndSettle();
+      final inputs = find.byType(TextField);
+      await t.enterText(inputs.at(0), 'ريّ الفجر');
+      await t.enterText(inputs.at(1), '06:30');
+      await t.enterText(inputs.at(2), '30');
+      if (pickValve) {
+        await t.tap(find.byType(DropdownButtonFormField<String>));
+        await t.pumpAndSettle();
+        await t.tap(find.text('صمّام الشمال').last);
+        await t.pumpAndSettle();
+      }
+      await t.tap(find.text('إنشاء الجدول'));
+      await t.pumpAndSettle();
+      final sent = h.posts('/api/v1/irrigation/schedules');
+      expect(sent, hasLength(1));
+      expect(sent.single.headers[kIdempotencyHeader], isNotNull);
+      return bodyOf(sent.single);
+    }
+
+    testWidgets('a schedule on a field valve carries that field_id', (t) async {
+      final body = await submitSchedule(t, pickValve: true);
+      expect(body['valve_id'], 'v1');
+      expect(body['field_id'], 'f1');
+    });
+
+    testWidgets('a schedule without a valve sends no invented field_id', (
+      t,
+    ) async {
+      final body = await submitSchedule(t, pickValve: false);
+      expect(body.containsKey('valve_id'), isFalse);
+      expect(body.containsKey('field_id'), isFalse);
+    });
   });
 }

@@ -170,6 +170,9 @@ export default function FieldManagementPage() {
       const msg = (detail && (detail.message_ar || detail)) ||
         'تعذّر حفظ الحقل — تحقّق من القاعدة/الصلاحيّة أو صحّة الحدود.';
       toastStore.add('error', '⚠️ فشل حفظ الحقل', typeof msg === 'string' ? msg : 'خطأ غير متوقّع');
+      // UI-W2: نُعيد رمي الخطأ الأصليّ كي يراه AddFieldWithMap فشلاً فيُبقي مفتاح التكرار
+      // الثابت لإعادة المحاولة (مهلة بعد التزام الخادم ⇒ إعادة تشغيل نفس الأمر لا نسخة جديدة).
+      throw e;
     }
   };
 
@@ -769,9 +772,11 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 }
 
 // ── Quick edit modal ──────────────────────────────────────────
-function EditFieldModal({ field, onSave, onCancel }: { field: Field; onSave: (d:any)=>void; onCancel:()=>void }) {
+// المساحة للعرض فقط: تُشتقّ من الهندسة في الخادم وPATCH لا يقبل area_ha، فحقل رقميّ
+// قابل للتحرير كان يوهم بحفظ قيمة تُهمَل بصمت (G-AREA-3). تعديلها = تعديل الحدود.
+// مُصدَّر لاختبار السلوك (FieldManagementPage.editArea.test).
+export function EditFieldModal({ field, onSave, onCancel }: { field: Field; onSave: (d:any)=>void; onCancel:()=>void }) {
   const [name,    setName]    = useState(field.name);
-  const [area,    setArea]    = useState(String(field.area_ha));
   const [crop,    setCrop]    = useState(field.crop);
   const CROPS = ['قمح صلب','شعير','ذرة صفراء','طماطم','بطاطس','خضروات','برسيم'];
   return (
@@ -782,14 +787,20 @@ function EditFieldModal({ field, onSave, onCancel }: { field: Field; onSave: (d:
           <button onClick={onCancel} className="p-1 rounded-sm hover:bg-slate-700 text-slate-400"><X className="w-4 h-4" /></button>
         </div>
         <div className="space-y-4" dir="rtl">
-          {[{l:'الاسم',v:name,s:setName,t:'text'},{l:'المساحة (هـ)',v:area,s:setArea,t:'number'}].map(f=>(
-            <div key={f.l}>
-              <label className="block text-sm text-slate-400 mb-1">{f.l}</label>
-              <input type={f.t} value={f.v} onChange={e=>f.s(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-sm"
-                style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
+          <div>
+            <label className="block text-sm text-slate-400 mb-1">الاسم</label>
+            <input type="text" value={name} onChange={e=>setName(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm"
+              style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
+          </div>
+          <div>
+            <span className="block text-sm text-slate-400 mb-1">المساحة (هـ)</span>
+            <div className="w-full px-3 py-2 rounded-lg text-sm"
+              style={{ background:'#0f111780', border:'1px dashed #334155', color:'#94a3b8' }}>
+              {Number.isFinite(field.area_ha) ? field.area_ha.toFixed(2) : '—'}
             </div>
-          ))}
+            <p className="text-[11px] text-slate-500 mt-1">تُحسَب المساحة من حدود الحقل تلقائيّاً — لتغييرها عدّل الحدود على الخريطة.</p>
+          </div>
           <div>
             <label className="block text-sm text-slate-400 mb-1">المحصول</label>
             <select value={crop} onChange={e=>setCrop(e.target.value)}
@@ -799,7 +810,7 @@ function EditFieldModal({ field, onSave, onCancel }: { field: Field; onSave: (d:
             </select>
           </div>
           <div className="flex gap-3 pt-2">
-            <button onClick={() => onSave({ name, area_ha:+area, crop })}
+            <button onClick={() => onSave({ name, crop })}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold text-white"
               style={{ background:'#16a34a' }}>
               <Check className="w-4 h-4" /> حفظ

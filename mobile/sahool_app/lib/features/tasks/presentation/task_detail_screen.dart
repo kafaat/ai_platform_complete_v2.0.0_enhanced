@@ -18,6 +18,7 @@ import 'package:sahool_app/features/tasks/data/offline_write.dart';
 import 'package:sahool_app/features/tasks/data/task_photo_store.dart';
 
 import 'complete_task_sheet.dart';
+import 'irrigation_observations_screen.dart';
 import 'task_grouping.dart';
 import 'task_labels.dart';
 import 'tasks_cubit.dart';
@@ -304,6 +305,20 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             ],
           ),
         ),
+        if (task.fieldId.isNotEmpty) ...[
+          const SizedBox(height: SahoolSpacing.md),
+          SecondaryButton(
+            label: 'إفادات الريّ والكشف الميداني',
+            icon: Icons.water_drop_outlined,
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute(builder: (_) => IrrigationObservationsScreen(
+                taskId: task.id,
+                fieldId: task.fieldId,
+                canEdit: widget.canEdit,
+              )),
+            ),
+          ),
+        ],
         if (widget.canEdit) ...[
           const SizedBox(height: SahoolSpacing.lg),
           if (task.status == TaskStatus.pending) ...[

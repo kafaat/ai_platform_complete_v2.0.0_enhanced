@@ -51,7 +51,11 @@ def test_ui12_action_from_map_palette_exists_and_does_not_fake_writes():
     maphub = read("sections/MapHub.tsx")
     assert "import { MapActionPalette } from './maphub/MapActionPalette';" in maphub
     assert "<MapActionPalette" in maphub
-    assert "onPinScouting={() => { setPinMode(true); setDrawTools(false); }}" in maphub
+    # The palette's pin action must open a surface that accepts pins: compare/3D maps do not,
+    # so it also returns to the 2D single map (UI audit, MapHub palette pin finding).
+    pin_line = next(line for line in maphub.splitlines() if "onPinScouting={() =>" in line)
+    for call in ("setPinMode(true)", "setDrawTools(false)", "setMode('2d')", "setCompare(false)"):
+        assert call in pin_line, call
     assert "onOpenTimeline={() => setShowImageryTimeline(true)}" in maphub
     assert "onOpenAlerts={() => setShowAlerts(true)}" in maphub
     assert "onAddField={() => setShowAddField(true)}" in maphub

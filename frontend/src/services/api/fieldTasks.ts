@@ -8,6 +8,7 @@ export interface FieldTaskSummary {
   field_id?: string;
   title_ar?: string;
   title?: string;
+  task_type?: string; // ما يعيده الخادم فعلاً (TaskSummary) — مصدر التسمية في مساحة العمل
   description_ar?: string;
   status?: FieldTaskStatus;
   priority?: number | string;

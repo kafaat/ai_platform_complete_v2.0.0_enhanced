@@ -128,6 +128,26 @@ async def _load_linked_historical_inputs(
     return record, crop, events, harvest, vegetation
 
 
+async def _boundary_revisions_since(conn, field_id: str, since) -> list[int]:
+    """S4-b: مراجعات حدّ الحقل المسجّلة منذ بداية الموسم (قراءة فقط، بلا مخطّط).
+
+    الموسم لا يُثبّت مراجعة هندسة (قرار مخطّط معلّق)، والمحاكاة تقرأ إحداثيّات الحقل
+    وسلسلة NDVI على الحدّ **الحاليّ**. المراجعة الأولى رسمُ الحقل لا تعديلُه، فلا تُعدّ
+    ولو سُجِّلت بعد بدء موسمٍ أُدخِل لاحقاً؛ وتعديلٌ قبل البداية لا يمسّ حدّ الموسم.
+    """
+    rows = await conn.fetch(
+        "SELECT revision, changed_at FROM field_geometry_history "
+        "WHERE field_id = $1 ORDER BY revision",
+        field_id,
+    )
+    cutoff = datetime.combine(since, datetime.min.time(), tzinfo=UTC)
+    return [
+        int(r["revision"])
+        for r in rows[1:]
+        if r["changed_at"] is not None and r["changed_at"] >= cutoff
+    ]
+
+
 @router.post("/api/v1/seasons/{season_id}/simulate", response_model=SeasonSimResponse)
 async def simulate_season_endpoint(
     season_id: str,
@@ -219,6 +239,21 @@ async def simulate_season_endpoint(
             )
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("قراءة سياق الموسم التاريخي", e) from e
+
+    # ٢-ج) S4-b: حدّ الحقل عُدِّل منذ بداية الموسم ⇒ تحذير صريح (يُحفَظ مع التشغيل). معاملة
+    # مستقلّة: تعذّر السجلّ (v96 غير مطبَّق) لا يُسقط المحاكاة، ولا يُدّعى معه ثبات الحدّ.
+    spatial_warnings: list[str] = []
+    try:
+        async with tenant_connection(user) as conn:
+            changed_revisions = await _boundary_revisions_since(conn, str(srow["field_id"]), start)
+    except Exception:  # noqa: BLE001 — أفضل-جهد: تحذير، لا بوّابة
+        changed_revisions = []
+    if changed_revisions:
+        spatial_warnings.append(
+            f"حدّ الحقل عُدِّل منذ بداية الموسم ({start.isoformat()}) — المراجعات "
+            f"{'، '.join(str(r) for r in changed_revisions)}. المحاكاة تقرأ إحداثيّات الحقل "
+            "وسلسلة NDVI على الحدّ الحاليّ لا حدّ الموسم؛ الموسم لا يُثبّت مراجعة هندسة."
+        )
 
     # ٣) الطقس التاريخي (ERA5) من Open-Meteo — تعذّره ⇒ 503 صريح.
     try:
@@ -395,7 +430,7 @@ async def simulate_season_endpoint(
                     _json.dumps(result_payload, ensure_ascii=False, default=str),
                     result.confidence,
                     _json.dumps(result.assumptions_ar, ensure_ascii=False),
-                    _json.dumps(result.warnings_ar, ensure_ascii=False),
+                    _json.dumps([*spatial_warnings, *result.warnings_ar], ensure_ascii=False),
                 )
                 await conn.execute(
                     "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
@@ -488,9 +523,11 @@ async def simulate_season_endpoint(
         confidence=result.confidence,
         rationale_ar=result.rationale_ar,
         assumptions_ar=result.assumptions_ar,
-        warnings_ar=(
-            [multi_crop_warning, *result.warnings_ar] if multi_crop_warning else result.warnings_ar
-        ),
+        warnings_ar=[
+            *([multi_crop_warning] if multi_crop_warning else []),
+            *spatial_warnings,
+            *result.warnings_ar,
+        ],
         sim_ran_at=ran_at.isoformat(),
         gdd_provenance=gdd_provenance,
         et0_provenance=et0_provenance,

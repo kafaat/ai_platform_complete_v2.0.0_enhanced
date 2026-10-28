@@ -151,6 +151,7 @@ void main() {
           ],
         ),
       ],
+      isAuthenticated: () => true,
     );
     await tester.pumpWidget(
       MaterialApp(

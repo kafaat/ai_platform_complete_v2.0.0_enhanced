@@ -79,8 +79,9 @@ def _harness(monkeypatch, *, row_exists=True):
 
     monkeypatch.setattr(mod, "tenant_connection", fake_tenant_connection)
     monkeypatch.setattr(mod, "_emit_domain_event", emit)
-    monkeypatch.setattr(mod, "CommandStore", FakeCommandStore)
-    monkeypatch.setattr(mod, "get_pool", lambda: None)
+    # raising=False: على كودٍ لا يستورد الاسمين يُقاس السلوك (تنفيذٌ مكرَّر) لا خطأ التجهيز.
+    monkeypatch.setattr(mod, "CommandStore", FakeCommandStore, raising=False)
+    monkeypatch.setattr(mod, "get_pool", lambda: None, raising=False)
     app = FastAPI()
     app.include_router(mod.router)
     app.dependency_overrides[get_current_user] = _user

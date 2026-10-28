@@ -244,8 +244,12 @@ def _apply_cloud_filter(features: list[dict], cloud: float) -> tuple[list[dict],
             continue
 
         try:
-            value = float(raw)
+            value = math.nan if isinstance(raw, bool) else float(raw)
         except (TypeError, ValueError):
+            value = math.nan
+        # ``float()`` يقبل "NaN" و"-Infinity" والسالب، وفحص الحدّ الأعلى وحده يُمرّرها
+        # (EXTRA-1). ``eo:cloud_cover`` نسبة مئويّة [0, 100]: ما خرج عنها تالف لا «صافٍ».
+        if not math.isfinite(value) or not 0.0 <= value <= 100.0:
             accepted_flag = policy == _ALLOW_UNKNOWN
             diagnostics.append(
                 {

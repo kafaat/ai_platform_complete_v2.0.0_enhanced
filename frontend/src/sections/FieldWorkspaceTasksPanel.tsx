@@ -3,6 +3,9 @@ import { ClipboardList } from 'lucide-react';
 import { getFieldTasks, type FieldTaskSummary } from '../services/api/fieldTasks';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { DegradedState } from '../components/product/DegradedState';
+import { taskTypeLabel } from '../lib/taskTypeLabels';
+import FieldWorkspaceStaleNote from './FieldWorkspaceStaleNote';
+import { cachedDataView } from './fieldWorkspaceStaleData';
 
 function apiStatus(error: unknown): number | undefined {
   return (error as { response?: { status?: number } } | null | undefined)?.response?.status;
@@ -22,8 +25,10 @@ function taskKey(task: FieldTaskSummary, index: number) {
   return String(task.task_id ?? task.id ?? `${task.field_id ?? 'field'}-${index}`);
 }
 
+// UI-W8: الخادم (TaskSummary) يعيد task_type لا title/title_ar — فالتسمية تُشتقّ منه بترجمة
+// صفحة المهامّ نفسها؛ عنوان صريح من الخادم (إن وُجد) يبقى أوّلاً.
 function taskTitle(task: FieldTaskSummary) {
-  return String(task.title_ar ?? task.title ?? 'مهمة بدون عنوان محفوظ');
+  return String(task.title_ar ?? task.title ?? taskTypeLabel(task.task_type) ?? 'مهمة بدون عنوان محفوظ');
 }
 
 export default function FieldWorkspaceTasksPanel({ fieldId }: { fieldId: string }) {
@@ -33,6 +38,8 @@ export default function FieldWorkspaceTasksPanel({ fieldId }: { fieldId: string 
     enabled: Boolean(fieldId),
     staleTime: 60_000,
   });
+  // UI-W6: مهامّ مخبّأة بعد فشل إعادة الجلب تُخفى عند 401/403 وتُوسَم قديمة غير ذلك.
+  const dataView = cachedDataView(query);
 
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5" dir="rtl" aria-label="مهام الحقل">
@@ -43,8 +50,9 @@ export default function FieldWorkspaceTasksPanel({ fieldId }: { fieldId: string 
 
       {query.isLoading && <LoadingState message="جارٍ تحميل مهام الحقل…" />}
       {query.isError && <TaskState error={query.error} onRetry={() => query.refetch()} />}
-      {query.data && (
+      {query.data && dataView !== 'hidden' && (
         <div className="space-y-3">
+          {dataView === 'stale' && <FieldWorkspaceStaleNote updatedAt={query.dataUpdatedAt} />}
           {query.data.degraded && <DegradedState title="مهام الحقل متدهورة" detail={query.data.warning_ar ?? 'الخادم أعاد حالة متدهورة.'} />}
           {query.data.tasks?.length ? (
             <ol className="space-y-2">

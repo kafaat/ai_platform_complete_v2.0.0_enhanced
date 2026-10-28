@@ -9,6 +9,7 @@ runtime state and private helpers.
 from __future__ import annotations
 
 import json
+import math
 import os
 import uuid
 
@@ -18,6 +19,96 @@ import raster_settings
 import raster_topographic_qa
 import raster_validated_product
 import raw_data_processing
+
+# WGS84 ellipsoid (EPSG:7030) for metres-per-degree on geographic grids.
+_WGS84_A_M = 6378137.0
+_WGS84_E2 = 0.0066943799901413165
+
+
+def _ground_pixel_size_m(crs, transform, shape) -> tuple[float, float] | None:
+    """Ground spacing ``(x_m, y_m)`` of one pixel of a grid, or ``None`` if unknown.
+
+    Derived from the final output grid (CRS + affine transform + shape), per
+    axis, so a geographic grid is never read as metres:
+
+    - projected CRS: column/row step x the CRS linear unit (metre, US foot, ...);
+    - geographic CRS: column/row step in degrees x the WGS84 meridional and
+      prime-vertical radii at the grid-centre latitude (x shrinks with cos(lat));
+    - missing CRS, engineering CRS or a degenerate transform: ``None`` — callers
+      must not publish a metric number they cannot attest.
+    """
+
+    if crs is None or transform is None or not shape:
+        return None
+    try:
+        from rasterio.crs import CRS
+
+        crs_obj = CRS.from_user_input(crs)
+        # Column step (a, d) and row step (b, e) in CRS units; rotation-safe.
+        col_step = (float(transform.a), float(transform.d))
+        row_step = (float(transform.b), float(transform.e))
+        if crs_obj.is_projected:
+            _unit, factor = crs_obj.linear_units_factor
+            x_m = math.hypot(*col_step) * float(factor)
+            y_m = math.hypot(*row_step) * float(factor)
+        elif crs_obj.is_geographic:
+            _unit, radians_per_unit = crs_obj.units_factor
+            deg_per_unit = math.degrees(float(radians_per_unit))
+            h, w = int(shape[-2]), int(shape[-1])
+            _lon_c, lat_c = transform * (w / 2.0, h / 2.0)
+            phi = math.radians(float(lat_c) * deg_per_unit)
+            s2 = math.sin(phi) ** 2
+            prime_vertical = _WGS84_A_M / math.sqrt(1.0 - _WGS84_E2 * s2)
+            meridional = _WGS84_A_M * (1.0 - _WGS84_E2) / (1.0 - _WGS84_E2 * s2) ** 1.5
+            m_per_deg_lon = math.radians(1.0) * prime_vertical * math.cos(phi)
+            m_per_deg_lat = math.radians(1.0) * meridional
+            x_m = math.hypot(
+                col_step[0] * deg_per_unit * m_per_deg_lon,
+                col_step[1] * deg_per_unit * m_per_deg_lat,
+            )
+            y_m = math.hypot(
+                row_step[0] * deg_per_unit * m_per_deg_lon,
+                row_step[1] * deg_per_unit * m_per_deg_lat,
+            )
+        else:
+            return None
+    except Exception:  # noqa: BLE001 — unknown units ⇒ no metric spacing (fail closed)
+        return None
+    if not (math.isfinite(x_m) and math.isfinite(y_m) and x_m > 0 and y_m > 0):
+        return None
+    return x_m, y_m
+
+
+def _grid_bounds_4326(crs, transform, shape) -> list[float]:
+    """WGS84 bounds of the final output grid (after any crop), not of the source.
+
+    Same convention as the previous ``src.bounds`` path: a CRS-less grid keeps its
+    native coordinates.
+    """
+    from rasterio.transform import array_bounds
+    from rasterio.warp import transform_bounds
+
+    west, south, east, north = array_bounds(int(shape[-2]), int(shape[-1]), transform)
+    if crs is None:
+        return [west, south, east, north]
+    return list(transform_bounds(crs, "EPSG:4326", west, south, east, north))
+
+
+def _ground_resolution_m(crs, transform, shape) -> float | None:
+    """Published ``resolution_m``: ground x-spacing in metres, ``None`` if unknown."""
+    spacing = _ground_pixel_size_m(crs, transform, shape)
+    return spacing[0] if spacing is not None else None
+
+
+def _cog_publishable(cog_info: dict) -> bool:
+    """بوّابة الرفع (P2-PUB-2): COG يُرفَع فقط إن كُتِب **و**اجتاز تدقيق البنية.
+
+    ``validation.valid`` كان معلوماتيّاً فحسب: يُرفَع COG غير صالح ويُحفَظ ويُنشَر لأنّ
+    الشرط كان ``written`` وحده. ``valid`` غير ``True`` (False/None/غائب) ⇒ لا رفع، فلا
+    ``cog_url`` ولا إدامة، وتنتهي المهمّة غير مؤهَّلة للنشر مع بقاء الحكم ظاهراً في
+    ``stats["cog"]["validation"]`` للتشخيص.
+    """
+    return bool(cog_info.get("written")) and (cog_info.get("validation") or {}).get("valid") is True
 
 
 def _topographic_qa_for_indicator(
@@ -81,13 +172,24 @@ def _topographic_qa_for_indicator(
                 dst_nodata=np.nan,
                 resampling=Resampling.bilinear,
             )
-        # Use approximate x pixel size in raster CRS units. For UTM/metre CRS this
-        # is direct; for degree CRS this remains conservative provenance, and the
-        # QA warnings make DEM/grid alignment explicit.
-        pixel_size_m = abs(float(getattr(raster_transform, "a", 0.0) or 0.0)) or 1.0
+        # Slope is rise over *ground* run: per-axis metres of the indicator grid,
+        # never its CRS units (a 0.00027° grid is ~29 m, not 0.00027 m).
+        spacing_m = _ground_pixel_size_m(raster_crs, raster_transform, raster_shape)
+        if spacing_m is None:
+            return raster_topographic_qa.build_topographic_qa(
+                dem_configured=True,
+                dem_aligned=True,
+                hillshade_available=False,
+                sun_geometry_available=bool(
+                    sun_azimuth_deg is not None and sun_altitude_deg is not None
+                ),
+                sources=sources + ["indicator_grid_dem_alignment"],
+                extra_warnings=["raster_grid_ground_spacing_unknown"],
+            )
         out = raster_topographic_qa.build_topographic_qa_from_dem_array(
             dst,
-            pixel_size_m=pixel_size_m,
+            pixel_size_m=spacing_m[0],
+            pixel_size_y_m=spacing_m[1],
             sun_azimuth_deg=sun_azimuth_deg,
             sun_altitude_deg=sun_altitude_deg,
             sources=sources + ["indicator_grid_dem_alignment"],
@@ -105,6 +207,28 @@ def _topographic_qa_for_indicator(
             ),
             sources=sources,
             extra_warnings=["dem_topographic_qa_failed", str(_e)[:160]],
+        )
+
+
+def _admit_min_raw_quality(ctx, req, pixel_qa: dict) -> None:
+    """بوّابة قبول QA واحدة لكلّ فرع (scalar · precomputed · truecolor) قبل أيّ كتابة COG.
+
+    ``raw_qa_required`` مع ``min_raw_quality_score`` يرفضان المنتَج بـ422 إن قلّت درجته
+    المحسوبة عن الحدّ المطلوب؛ لا فرع يتجاوز الحدّ بصمت (P2-CDSE-1).
+    """
+    min_raw_quality_score = float(getattr(req, "min_raw_quality_score", 0.0) or 0.0)
+    if (
+        bool(getattr(req, "raw_qa_required", True))
+        and pixel_qa["quality_score"] < min_raw_quality_score
+    ):
+        raise ctx.HTTPException(
+            422,
+            {
+                "code": "raw_raster_quality_below_threshold",
+                "quality_score": pixel_qa["quality_score"],
+                "min_raw_quality_score": min_raw_quality_score,
+                "warnings": pixel_qa.get("warnings", []),
+            },
         )
 
 
@@ -129,12 +253,21 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
     native = getattr(req, "_cdse_native_product", None)
     observed = None
     with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
-        res_m = abs(src.res[0])
+        # دقّة أرضيّة بالأمتار (CDSE يُسلِّم EPSG:4326 بالدرجات) — لا وحدات CRS كأمتار.
+        res_m = _ground_resolution_m(src.crs, src.transform, src.shape)
         src_crs = src.crs
         if src_crs is not None:
             bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
         else:
             bounds = list(src.bounds)
+        # الحجم يُفحَص **قبل** التخصيص كنظيره truecolor أدناه (EXTRA-10): الرابط حرّ عبر
+        # `safe_raster_source`، والفرعان يقرآن المجموعة كاملةً — الإرث نطاقه الأوّل
+        # (`read(1, masked=True)` + float32)، والأصليّ نطاقاته الأربعة.
+        raster_security_context.assert_readable_size(
+            src,
+            what="scalar precomputed",
+            ceiling=raster_settings.RASTER_MAX_READ_BAND_PIXELS,
+        )
         if isinstance(native, cdse_native_product.NativeProduct):
             arr, observed = cdse_native_product.measured_pixels(src, native, req.raster_url)
             # Only actual returned contributors can replace catalogue/request guesses.
@@ -165,20 +298,7 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
         qa_layer_present=observed is not None,
     )
-    min_raw_quality_score = float(getattr(req, "min_raw_quality_score", 0.0) or 0.0)
-    if (
-        bool(getattr(req, "raw_qa_required", True))
-        and pixel_qa["quality_score"] < min_raw_quality_score
-    ):
-        raise ctx.HTTPException(
-            422,
-            {
-                "code": "raw_raster_quality_below_threshold",
-                "quality_score": pixel_qa["quality_score"],
-                "min_raw_quality_score": min_raw_quality_score,
-                "warnings": pixel_qa.get("warnings", []),
-            },
-        )
+    _admit_min_raw_quality(ctx, req, pixel_qa)
     stats = {
         "min": float(np.min(vals)) if vals.size else 0.0,
         "max": float(np.max(vals)) if vals.size else 0.0,
@@ -240,7 +360,7 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         cog_path = os.path.join(ctx.UPLOAD_DIR, f"{req.indicator.value}_{cog_uid}.tif")
         cog_info = cog_writer.write_cog(arr, cog_path, transform, crs=cog_crs, nodata=RASTER_NODATA)
         stats["cog"] = cog_info
-        if cog_info.get("written"):
+        if _cog_publishable(cog_info):
             cog_url = ctx.object_store.upload_cog(
                 cog_path, f"{req.field_id or 'nofield'}/{req.indicator.value}_{cog_uid}.tif"
             )
@@ -250,6 +370,7 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         "cog_url": cog_url,
         "cog_crs": cog_crs,
         "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
+        "resolution_m": res_m,  # كي لا يسقط السجلّ إلى 10 م افتراضيّاً
         "nodata": RASTER_NODATA,
         "pixel_qa": pixel_qa,
         "topographic_qa": topographic_qa,
@@ -269,7 +390,8 @@ def process_precomputed_truecolor(ctx, req):
     from rasterio.warp import transform_bounds
 
     with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
-        res_m = abs(src.res[0])
+        # دقّة أرضيّة بالأمتار (CDSE يُسلِّم EPSG:4326 بالدرجات) — لا وحدات CRS كأمتار.
+        res_m = _ground_resolution_m(src.crs, src.transform, src.shape)
         src_crs = src.crs
         if src_crs is not None:
             bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
@@ -307,6 +429,7 @@ def process_precomputed_truecolor(ctx, req):
         topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
         qa_layer_present=arr.shape[0] >= 4,
     )
+    _admit_min_raw_quality(ctx, req, pixel_qa)
     stats = {
         "min": 0.0,
         "max": 255.0,
@@ -355,7 +478,7 @@ def process_precomputed_truecolor(ctx, req):
         cog_path = os.path.join(ctx.UPLOAD_DIR, f"truecolor_{cog_uid}.tif")
         cog_info = cog_writer.write_rgba_cog(arr, cog_path, transform, crs=cog_crs)
         stats["cog"] = cog_info
-        if cog_info.get("written"):
+        if _cog_publishable(cog_info):
             cog_url = ctx.object_store.upload_cog(
                 cog_path, f"{req.field_id or 'nofield'}/truecolor_{cog_uid}.tif"
             )
@@ -365,6 +488,7 @@ def process_precomputed_truecolor(ctx, req):
         "cog_url": cog_url,
         "cog_crs": cog_crs,
         "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
+        "resolution_m": res_m,  # كي لا يسقط السجلّ إلى 10 م افتراضيّاً
         "nodata": None,  # RGBA يستخدم قناة ألفا لا قيمة nodata
         "pixel_qa": pixel_qa,
         "topographic_qa": topographic_qa,
@@ -405,7 +529,6 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
     import numpy as np
     import rasterio
     from rasterio.mask import mask as _rio_mask
-    from rasterio.warp import transform_bounds
 
     _src_cm = (
         nullcontext(shared_src)
@@ -413,13 +536,7 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         else rasterio.open(ctx._safe_raster_source(req.raster_url))
     )
     with _src_cm as src:
-        res_m = abs(src.res[0])
         src_crs = src.crs
-        bounds = (
-            list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
-            if src_crs is not None
-            else list(src.bounds)
-        )
         b = req.bands
 
         # ── Fix 1: قصّ على حدود الحقل قبل قراءة البكسلات (windowed read) ──
@@ -444,19 +561,32 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         read_context = _pixel_read_context(src, clip_geom_src)
 
         def _read_uint8(idx):
+            """يُرجِع (لون uint8، قناع صلاحيّة) للنطاق؛ نطاق غائب ⇒ (أصفار، None).
+
+            الصلاحيّة (nodata المُعلَن + القناع الداخليّ + خارج المضلّع) تُحمَل منفصلةً
+            عن اللون **قبل** التكميم: البكسل الصالح الأسود/الخافت (انعكاس < 1/255) يبقى
+            صالحاً وإن صار RGB 0 (P2-COL-1)، والقناع الداخليّ يُحترَم بلا مضلّع (P2-COL-2).
+            """
             if not idx:
                 shape = _clip_out.get("shape") or src.shape
-                return np.zeros(shape, dtype=np.uint8)
+                return np.zeros(shape, dtype=np.uint8), None
             _sc = req.reflectance_scale
             _of = req.reflectance_offset
+            # Preserve the existing truecolor-only Sentinel-2 fallback, but only for
+            # undeclared calibration: an explicit request scale (even the identity 1)
+            # always wins, so calibrated reflectance is not scaled twice (P2-COL-3).
+            # A raster scale of 1.0 is GDAL's "undeclared" default, not an attestation.
             if _sc is None and src.scales:
                 _sc = src.scales[idx - 1]
+                if (
+                    _sc is not None
+                    and float(_sc) == 1.0
+                    and req.source_format == ctx.SourceFormat.sentinel2_l2a
+                ):
+                    _sc = None
             if _of is None and src.offsets:
                 _of = src.offsets[idx - 1]
-            # Preserve the existing truecolor-only Sentinel-2 fallback.
-            if (
-                _sc is None or float(_sc) == 1.0
-            ) and req.source_format == ctx.SourceFormat.sentinel2_l2a:
+            if _sc is None and req.source_format == ctx.SourceFormat.sentinel2_l2a:
                 _sc = 0.0001
             cache_key = (
                 "truecolor_uint8",
@@ -465,9 +595,9 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
                 _reflectance_cache_params(_sc, _of),
             )
             if shared_cache is not None and cache_key in shared_cache:
-                out, transform = shared_cache[cache_key]
+                out, valid, transform = shared_cache[cache_key]
                 _clip_out.update(transform=transform, shape=out.shape)
-                return out
+                return out, valid
             if clip_geom_src is not None:
                 # filled=False → masked array؛ يُجنِّب OverflowError حين nodata خارج uint16
                 arr_b, t = _rio_mask(
@@ -481,22 +611,31 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
                 _clip_out["shape"] = arr_b.shape[1:]  # (H, W) of clipped window
                 raw = np.ma.filled(arr_b[0].astype("float32"), fill_value=np.nan)
             else:
-                raw = src.read(idx).astype("float32")
+                # masked=True يحمل nodata والقناع الداخليّ كما في مسار المؤشّرات.
+                raw = np.ma.filled(src.read(idx, masked=True).astype("float32"), np.nan)
             if src.nodata is not None:
                 raw = np.where(raw == src.nodata, np.nan, raw)
             raw = ctx.band_math.to_reflectance(raw, _sc, _of, np)
+            valid = np.isfinite(raw)
             raw = np.nan_to_num(np.clip(raw, 0.0, 1.0), nan=0.0)
             out = (raw * 255).astype(np.uint8)
             if shared_cache is not None:
-                shared_cache[cache_key] = (out, _clip_out.get("transform", src.transform))
-            return out
+                shared_cache[cache_key] = (out, valid, _clip_out.get("transform", src.transform))
+            return out, valid
 
-        r = _read_uint8(b.red)
-        g = _read_uint8(b.green)
-        bl = _read_uint8(b.blue)
+        r, r_valid = _read_uint8(b.red)
+        g, g_valid = _read_uint8(b.green)
+        bl, bl_valid = _read_uint8(b.blue)
         transform = _clip_out.get("transform") or src.transform
 
-    alpha = np.where((r > 0) | (g > 0) | (bl > 0), np.uint8(255), np.uint8(0))
+    # الحدود والدقّة من شبكة المُخرَج النهائيّة (بعد القصّ) لا من المشهد المصدر.
+    bounds = _grid_bounds_4326(src_crs, transform, r.shape)
+    res_m = _ground_resolution_m(src_crs, transform, r.shape)
+    # ألفا = صلاحيّة المصدر لا سطوع اللون المُكمَّم: البكسل صالح إن صلح في كلّ نطاق
+    # حاضر؛ بلا أيّ نطاق لا شيء صالح.
+    present = [v for v in (r_valid, g_valid, bl_valid) if v is not None]
+    valid_px = np.logical_and.reduce(present) if present else np.zeros(r.shape, dtype=bool)
+    alpha = np.where(valid_px, np.uint8(255), np.uint8(0))
     rgba = np.stack([r, g, bl, alpha], axis=0)  # (4, H, W) uint8
     valid_count = int((alpha > 0).sum())
     total = int(alpha.size)
@@ -517,7 +656,7 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         cog_path = os.path.join(ctx.UPLOAD_DIR, f"truecolor_{cog_uid}.tif")
         cog_info = cog_writer.write_rgba_cog(rgba, cog_path, transform, crs=cog_crs)
         stats["cog"] = cog_info
-        if cog_info.get("written"):
+        if _cog_publishable(cog_info):
             cog_url = ctx.object_store.upload_cog(
                 cog_path, f"{req.field_id or 'nofield'}/truecolor_{cog_uid}.tif"
             )
@@ -527,6 +666,7 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         "cog_url": cog_url,
         "cog_crs": cog_crs,
         "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
+        "resolution_m": res_m,  # كي لا يسقط السجلّ إلى 10 م افتراضيّاً
         "nodata": None,
     }
     return stats, bounds, res_m, meta
@@ -557,19 +697,10 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
         else rasterio.open(ctx._safe_raster_source(req.raster_url))
     )
     with _src_cm as src:
-        res_m = abs(src.res[0])
         b = req.bands
-
-        # ── (٣) إعادة إسقاط الحدود إلى WGS84 الحقيقي ──────────────────
-        # المصدر غالباً UTM (Sentinel-2 L2A). نحوّل حدوده الفعليّة من CRS
-        # المصدر إلى EPSG:4326 بدل تمرير إحداثيّات UTM كأنّها درجات.
-        from rasterio.warp import transform_bounds
-
+        # الحدود (WGS84) والدقّة (أمتار) تُشتقّ لاحقاً من شبكة المُخرَج النهائيّة
+        # (transform + شكل المصفوفة بعد القصّ) — انظر (٣) أدناه.
         src_crs = src.crs
-        if src_crs is not None:
-            bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
-        else:
-            bounds = list(src.bounds)
 
         # ── (١) قصّ على حدود الحقل (clip-to-field) ────────────────────
         # عند توفّر مضلّع الحقل (GeoJSON بـEPSG:4326) نعيد إسقاطه إلى CRS
@@ -891,11 +1022,17 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             or aerosol_mask_sources
             or saturation_mask_sources
         )
+        # ── (٣) شبكة المُخرَج النهائيّة مصدرٌ وحيد للهندسة المنشورة ──────────
+        # المصدر غالباً UTM (Sentinel-2 L2A). نحوّل حدود **الشبكة المقصوصة** (لا
+        # حدود المشهد كاملاً) إلى EPSG:4326، والدقّة إلى أمتار أرضيّة (لا درجات).
+        out_transform = _out["transform"]
+        bounds = _grid_bounds_4326(src_crs, out_transform, arr.shape)
+        res_m = _ground_resolution_m(src_crs, out_transform, arr.shape)
         topographic_qa = _topographic_qa_for_indicator(
             ctx,
             req=req,
             raster_crs=src_crs,
-            raster_transform=_out["transform"],
+            raster_transform=out_transform,
             raster_shape=arr.shape,
         )
         pixel_qa = raw_data_processing.compute_quality_score(
@@ -915,20 +1052,7 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             saturation_mask_applied=bool(saturation_pct is not None),
             qa_layer_present=qa_layer_present,
         )
-        min_raw_quality_score = float(getattr(req, "min_raw_quality_score", 0.0) or 0.0)
-        if (
-            bool(getattr(req, "raw_qa_required", True))
-            and pixel_qa["quality_score"] < min_raw_quality_score
-        ):
-            raise ctx.HTTPException(
-                422,
-                {
-                    "code": "raw_raster_quality_below_threshold",
-                    "quality_score": pixel_qa["quality_score"],
-                    "min_raw_quality_score": min_raw_quality_score,
-                    "warnings": pixel_qa.get("warnings", []),
-                },
-            )
+        _admit_min_raw_quality(ctx, req, pixel_qa)
         quality = ctx._quality_from_cloud_pct(cloud_pct, masked=bool(cloud_pct is not None))
         stats = {
             "min": float(np.min(vals)) if vals.size else 0.0,
@@ -1010,10 +1134,10 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             cog_uid = uuid.uuid4().hex[:8]
             cog_path = os.path.join(ctx.UPLOAD_DIR, f"{req.indicator.value}_{cog_uid}.tif")
             cog_info = cog_writer.write_cog(
-                arr, cog_path, _out["transform"], crs=cog_crs, nodata=RASTER_NODATA
+                arr, cog_path, out_transform, crs=cog_crs, nodata=RASTER_NODATA
             )
             stats["cog"] = cog_info
-            if cog_info.get("written"):
+            if _cog_publishable(cog_info):
                 # (٤) خزّن مسار COG كـURI كي يجده tilejson + شبكة المؤشّر.
                 # عند ضبط S3 يُرفع الـCOG ويُخزَّن s3://؛ وإلّا يبقى file:// كما هو.
                 cog_url = ctx.object_store.upload_cog(
@@ -1027,6 +1151,7 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             "cog_url": cog_url,
             "cog_crs": cog_crs,
             "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
+            "resolution_m": res_m,  # كي لا يسقط السجلّ إلى 10 م افتراضيّاً
             "nodata": RASTER_NODATA,
             "pixel_qa": pixel_qa,
             "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),

@@ -87,3 +87,23 @@ describe('ImageryTimelineThumb — حالات مرئيّة بدل إخفاء ص�
     expect(screen.getByText('قيد المعالجة')).toBeInTheDocument();
   });
 });
+
+// T7 (thumb-web): المصغّرة truecolor إن حُفِظ، وإلّا أوّل مؤشّر محفوظ — فقد تكون خريطة
+// مؤشّر ملوّنة لا صورة طبيعيّة. تُوسَم بالمنتَج المعروض كي لا تُقرأ صورة حقيقيّة.
+describe('ImageryTimelineThumb — وسم المنتَج (T7)', () => {
+  it('مؤشّر ⇒ اسمه ظاهر على المصغّرة', () => {
+    render(<ImageryTimelineThumb src="/thumb.png" date="2026-06-18" borderColor={BORDER} product="ndvi" />);
+    expect(screen.getByTestId('imagery-thumb-product')).toHaveTextContent('NDVI');
+  });
+
+  it('truecolor ⇒ «لون حقيقيّ»', () => {
+    render(<ImageryTimelineThumb src="/thumb.png" date="2026-06-18" borderColor={BORDER} product="truecolor" />);
+    expect(screen.getByTestId('imagery-thumb-product')).toHaveTextContent('لون حقيقيّ');
+  });
+
+  it('الفشل يبقى «تعذّر العرض» بلا وسم منتَج لا صورة له', () => {
+    render(<ImageryTimelineThumb src="/thumb.png" date="2026-06-18" borderColor={BORDER} product="ndvi" />);
+    fireEvent.error(screen.getByTestId('imagery-thumb-img'));
+    expect(screen.queryByTestId('imagery-thumb-product')).not.toBeInTheDocument();
+  });
+});

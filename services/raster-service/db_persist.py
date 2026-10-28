@@ -15,7 +15,9 @@ import logging
 import os
 import re
 import uuid
+from datetime import UTC as _UTC
 from datetime import date as _date
+from datetime import datetime as _datetime
 
 logger = logging.getLogger("raster-service.db")
 
@@ -29,16 +31,31 @@ def _iso_date_or_none(value: object) -> _date | None:
     مُعامل مُستنتَج كـ``date`` (مثل ``$3::date``) يُفشل الترميز بـ«'str' object has no
     attribute 'toordinal'» ويُبتلَع كتحذير ⇒ لا صفوف. نطبّع هنا: نصّ ISO (أوّل 10
     محارف) ⇒ ``date``؛ ``date`` كما هو؛ فارغ/None/غير صالح (بما فيه "latest") ⇒ None.
+
+    T4 (acq-provenance): الطابع الزمنيّ يُطبَّع إلى يوم UTC قبل أخذ التاريخ — قصّ أوّل 10
+    محارف كان يُخزِّن ``2026-10-01T00:30:00+03:00`` تحت 1 أكتوبر ويومه بـUTC 30 سبتمبر.
+    المنطق نفسه في ``raster_available_dates.utc_day`` (هذه الوحدة تُحمَّل منفردةً في
+    اختبارات تُحمّلها بمسار الملفّ، فلا تستورد وحدات محلّيّة)؛ اختبار تكافؤ يحرس التطابق.
     """
     if value is None or value == "":
         return None
+    if isinstance(value, _datetime):
+        if value.tzinfo is not None:
+            value = value.astimezone(_UTC)
+        return value.date()
     if isinstance(value, _date):
         return value
     if isinstance(value, str):
+        text = value.strip()
         try:
-            return _date.fromisoformat(value[:10])
+            if len(text) == 10:
+                return _date.fromisoformat(text)
+            instant = _datetime.fromisoformat(text)
         except ValueError:
             return None
+        if instant.tzinfo is not None:
+            instant = instant.astimezone(_UTC)
+        return instant.date()
     return None
 
 
@@ -147,10 +164,11 @@ async def insert_raster_asset(
 
     # An all-masked COG is a retained processing artifact, not an observation.
     # Keep the asset/provenance for diagnosis, but never publish it as ready.
+    # ``pending`` too: a staged row must not be promotable to ready later.
     if valid_pixel_ratio is not None and valid_pixel_ratio <= 0:
         index_quality_flags = list(dict.fromkeys([*(index_quality_flags or []), "no_valid_pixels"]))
         quality_score = 0.0
-        if asset_status == "ready":
+        if asset_status in ("ready", "pending"):
             asset_status = "failed"
 
     conn = await _connect()
@@ -271,6 +289,46 @@ async def insert_raster_asset(
         await conn.close()
 
 
+async def set_raster_asset_status(
+    *,
+    tenant_id: str | None,
+    product_identity_key: str,
+    cog_uri: str,
+    status: str,
+) -> bool:
+    """ينقل صفّ أصلٍ مُرحَّل (``pending``) إلى ``ready`` أو ``failed`` — خطوة بوّابة النشر.
+
+    ``persist_raster_asset`` يُدرج الأصل ``pending`` (غير مرئيّ لكلّ قارئ يطلب
+    ``asset_status = 'ready'``) ثمّ يسجّله في كتالوج ``raster_registry``، ولا يُرقّيه إلى
+    ``ready`` إلّا بعد نجاح الكتالوج (P2-PUB-3). الشرط على ``cog_uri`` و``pending`` يمنع
+    ترقية صفٍّ كتبه منتِجٌ آخر بعدنا أو صفٍّ خُفِّض إلى ``failed`` (كلّه مقنَّع). يُرجِع True
+    فقط إن تغيّر صفّ فعلاً؛ أيّ خطأ يُبتلع ويُرجِع False (لا يرمي).
+    """
+    if status not in ("ready", "failed") or not product_identity_key or not cog_uri:
+        return False
+    conn = await _connect()
+    if conn is None:
+        return False
+    try:
+        await conn.execute(
+            "SELECT set_config('app.current_tenant', $1, false)",
+            str(tenant_id) if tenant_id else "",
+        )
+        result = await conn.execute(
+            "UPDATE raster_assets SET asset_status = $1 "
+            "WHERE product_identity_key = $2 AND cog_uri = $3 AND asset_status = 'pending'",
+            status,
+            product_identity_key,
+            cog_uri,
+        )
+        return str(result or "").rsplit(" ", 1)[-1] not in ("", "0")
+    except Exception as e:  # noqa: BLE001 — صدق: الفشل يُبلَّغ False لا يرمي
+        logger.warning("raster_assets status %s skipped: %s", status, e)
+        return False
+    finally:
+        await conn.close()
+
+
 def _clamp_score_0_100(value) -> int | None:
     """يحوّل درجة جودة إلى int في [0,100] (قيد raster_registry/stac_item_registry).
     يقبل 0..1 (يضربها 100) أو 0..100 كما هي. None/غير رقميّ ⇒ None (لا اختراع)."""
@@ -364,6 +422,11 @@ async def upsert_raster_registry_entry(
         return None
     if not product_date or not cog_url:
         return None
+    # T4 (acq-provenance): يوم UTC نفسه الذي يُكتب في raster_assets.acquisition_date للأصل
+    # ذاته (لا أوّل 10 محارف من طابع بإزاحة)؛ تاريخ غير صالح ⇒ لا كتابة.
+    product_day = _iso_date_or_none(product_date)
+    if product_day is None:
+        return None
     conn = await _connect()
     if conn is None:
         return None
@@ -401,7 +464,7 @@ async def upsert_raster_registry_entry(
             str(tenant_id),
             field_id,
             scene_id,
-            product_date[:10] if isinstance(product_date, str) else product_date,
+            product_day.isoformat(),
             index_type,
             cog_url,
             cloud_pct,
@@ -426,6 +489,14 @@ async def upsert_raster_registry_entry(
 
 # مفتاحُ طلب الإبطال: محارفُ آمنة بطول محدود (يُخزَّن في metadata->>'request_id').
 _REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
+
+# مفاتيحُ حالة ``cache_invalidation_worker`` في ``metadata`` نفسِه (إجارة/محاولات/مهلة/نتيجة):
+# يكتبها العامل وحده. مُستدعٍ يكتبها يُفشل الصفَّ بلا عمل (محاولاتٌ مستنفَدة) أو يُخفيه
+# (مهلةٌ بعيدة) أو يُزيّف سجلَّه — فتُسقَط من مُدخَله هنا. نسخةُ ``WORKER_METADATA_KEYS``
+# (لا استيراد: العاملُ يجرّ asyncpg وكاشَ البلاطات إلى مسار الطلب)، ويقارنهما اختبار.
+CACHE_INVALIDATION_WORKER_KEYS = frozenset(
+    {"claim_attempts", "lease_until", "retry_after", "layer_evict", "last_error"}
+)
 
 
 def _valid_request_id_text(value: str | None) -> bool:
@@ -463,6 +534,15 @@ async def enqueue_cache_invalidation(
     if not _valid_request_id_text(request_id) or not str(reason or "").strip():
         return None
     meta = dict(metadata or {})
+    reserved = sorted(CACHE_INVALIDATION_WORKER_KEYS.intersection(meta))
+    if reserved:
+        logger.warning(
+            "cache invalidation enqueue dropped worker-owned metadata keys (field=%s): %s",
+            field_id,
+            reserved,
+        )
+        for key in reserved:
+            del meta[key]
     meta["request_id"] = str(request_id)
     lookup = """
         SELECT id, status, created_at::text AS created_at
@@ -954,6 +1034,15 @@ async def fetch_latest_asset(
 
     يُرجِع dict {cog_url, index, acquisition_date, srid, bounds_4326} أو None.
     """
+    # asyncpg يستنتج نوع $3 كـdate من `$3::date` ⇒ يجب تمرير datetime.date لا نصّ
+    # (نصّ ⇒ 'str' object has no attribute 'toordinal' ⇒ يُبتلَع ⇒ لا صفوف لتاريخ
+    # تاريخيّ محدَّد ⇒ بلاطة شفّافة). 'latest'/فارغ ⇒ None (لا فلتر تاريخ ⇒ الأحدث).
+    d = None if (date in (None, "", "latest")) else _iso_date_or_none(date)
+    if d is None and date not in (None, "", "latest"):
+        # T3 (acq-provenance): تاريخ صريح غير صالح كان يصير NULL في `$3::date IS NULL`
+        # ⇒ يُختار **الأحدث** بدل التاريخ المطلوب. التاريخ الصريح صارم: لا أصل.
+        logger.warning("raster_assets fetch: malformed explicit date rejected: %r", date)
+        return None
     conn = await _connect()
     if conn is None:
         return None
@@ -992,10 +1081,6 @@ async def fetch_latest_asset(
         ) s
     """
     try:
-        # asyncpg يستنتج نوع $3 كـdate من `$3::date` ⇒ يجب تمرير datetime.date لا نصّ
-        # (نصّ ⇒ 'str' object has no attribute 'toordinal' ⇒ يُبتلَع ⇒ لا صفوف لتاريخ
-        # تاريخيّ محدَّد ⇒ بلاطة شفّافة). 'latest'/فارغ ⇒ None (لا فلتر تاريخ ⇒ الأحدث).
-        d = None if (date in (None, "", "latest")) else _iso_date_or_none(date)
         await conn.execute(
             "SELECT set_config('app.current_tenant', $1, false)",
             str(tenant_id) if tenant_id else "",

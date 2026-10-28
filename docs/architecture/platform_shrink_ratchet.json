@@ -456,6 +456,20 @@
       "owner": "C3-precision-execution",
       "reason": "وحدة C3 مقصودة ملاصقة لحالة الحقل القانونيّة؛ الخروج إلى خدمة مالكة يتبع مسار S5-EXEC بدليل مستهلكين، لا إعفاء عدّ.",
       "target_close_by": "2026-11-30"
+    },
+    {
+      "category": "platform_domain_compute",
+      "identity": "services/sahool-platform/api/irrigation_observations.py",
+      "owner": "TASK-IRRIGATION-OBSERVATIONS",
+      "reason": "إفادةُ ريٍّ ميدانيّة مرتبطة بمهمّة (رقعة المالك SAHOOL_Task_Irrigation_Observations، 2026-10-27): تُلحِق المشاهدةَ حدثاً غيرَ انتقاليّ (from_state = to_state) بجدول المنصّة القائم irrigation_manual_execution_events (v187) عبر المسارين القائمين POST /api/v1/observations وGET /api/v1/tasks — بلا مسارٍ جديد ولا هجرة. لا تعتمد ريّاً ولا تؤكّد تنفيذاً ولا تكتب water_ledger. موضعُها المنصّة لأنّ الجدول الذي تكتبه مملوكٌ للمنصّة؛ الإغلاق بانتقالها مع دورة حياة التنفيذ اليدويّ للريّ إلى خدمتها المالكة، لا بإعفاء عدّ.",
+      "target_close_by": "2026-12-31"
+    },
+    {
+      "category": "platform_domain_compute",
+      "identity": "services/sahool-platform/api/task_irrigation_observations.py",
+      "owner": "TASK-IRRIGATION-OBSERVATIONS",
+      "reason": "إفادةُ ريٍّ ميدانيّة مرتبطة بمهمّة (رقعة المالك SAHOOL_Task_Irrigation_Observations، 2026-10-27): تُلحِق المشاهدةَ حدثاً غيرَ انتقاليّ (from_state = to_state) بجدول المنصّة القائم irrigation_manual_execution_events (v187) عبر المسارين القائمين POST /api/v1/observations وGET /api/v1/tasks — بلا مسارٍ جديد ولا هجرة. لا تعتمد ريّاً ولا تؤكّد تنفيذاً ولا تكتب water_ledger. موضعُها المنصّة لأنّ الجدول الذي تكتبه مملوكٌ للمنصّة؛ الإغلاق بانتقالها مع دورة حياة التنفيذ اليدويّ للريّ إلى خدمتها المالكة، لا بإعفاء عدّ.",
+      "target_close_by": "2026-12-31"
     }
   ],
   "exception_contract": {

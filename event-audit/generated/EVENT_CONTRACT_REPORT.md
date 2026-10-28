@@ -8,7 +8,7 @@ Conservative static inventory of literal NATS/JetStream subjects (a name argumen
 
 | Metric | Value |
 |---|---:|
-| Python files scanned | 1259 |
+| Python files scanned | 1262 |
 | Resolved literal contracts | 4 |
 | Dynamic contracts | 14 |
 | Unique literal subjects | 4 |

@@ -80,6 +80,24 @@ void main() {
       },
     );
 
+    // UI-C2: double.tryParse يقبل NaN/Infinity و1e309 (⇒ Infinity)؛ ليست سالبة
+    // فكانت تمرّ التحقّق ثمّ يفشل ترميز JSON بدل خطأ سطريّ.
+    test('target yield rejects non-finite input inline', () {
+      SeasonFormInput withYield(String y) => SeasonFormInput(
+        crop: 'wheat',
+        sowingDate: DateTime(2026, 3, 5),
+        targetYieldText: y,
+      );
+      for (final y in ['NaN', 'Infinity', '-Infinity', '1e309']) {
+        expect(
+          validateSeasonForm(withYield(y))[SeasonFormField.targetYield],
+          'أدخل رقماً صحيحاً',
+          reason: y,
+        );
+      }
+      expect(validateSeasonForm(withYield('٠')), isEmpty);
+    });
+
     test('cultivar over 100 chars mirrors the server max_length', () {
       final e = validateSeasonForm(
         SeasonFormInput(

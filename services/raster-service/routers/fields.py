@@ -13,6 +13,7 @@ import os
 import uuid
 from datetime import UTC, datetime
 
+import raster_security_context
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
 from fastapi.responses import Response
 from radiometry_containment import single_scene_detail as _radiometry_single_scene_detail
@@ -62,6 +63,7 @@ from raster_field_runtime import (
     _run_cdse_processing,
     _run_processing,
     _safe_raster_source,
+    _sample_index_pixel,
     _select_backfill_scenes_by_policy,
     _stac_search,
     _stac_search_landsat_unique,
@@ -71,23 +73,14 @@ from raster_field_runtime import (
     logger,
     object_store,
 )
+from raster_http_policy import TENANT_PRIVATE_IMAGE_HEADERS, requested_dates, validate_xyz
 from raster_indicator_product import eligible_observation_product
 
 router = APIRouter()
 
 
-def _authenticated_tenant(body_tenant: str | None) -> str | None:
-    """المستأجِر المُصادَق من سياق الطلب (رأس البوّابة الموثوق) — جسم الطلب لا يتجاوزه أبداً.
-
-    عزل صارم fail-closed (مراجعة P0-1): بنية «الهويّة الموثوقة بالبوّابة» (SEC-3) تجعل المستأجِر
-    يُشتقّ حصراً من السياق المُصادَق (نفس ما تحقّق منه _require_field_tenant). ``body_tenant``
-    مطابق ⇒ يُقبَل؛ مختلف ⇒ 403 — لا إنشاء run/item ولا تصدير تحليلات تحت مستأجِر يخالف
-    المُصادَق عليه (النمط القديم «body-or-context» كان يسمح للجسم بتجاوز السياق المُصادَق).
-    """
-    context_tenant = _REQ_TENANT.get()
-    if body_tenant is not None and str(body_tenant) != str(context_tenant):
-        raise HTTPException(403, "tenant_id في الجسم لا يطابق المستأجِر المُصادَق للطلب")
-    return context_tenant
+# يبقى الاسم هنا: الاستدعاءات تحلّه من هذه الوحدة (واختبارات monkeypatch تستبدله فيها).
+_authenticated_tenant = raster_security_context.authenticated_tenant
 
 
 @router.get("/v1/gis/admin-boundaries")
@@ -861,9 +854,12 @@ async def process_cdse(
         raise HTTPException(400, "bbox مطلوب [west,south,east,north] (EPSG:4326).")
     if not req.indicators:
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
+    # P3-AUTH: ربط المهمّة بمستأجِرها (تُفرَض على /v1/jobs/{id}[/result])؛ رأس≠جسم ⇒ 403.
+    owner = raster_security_context.job_owner_tenant(req.tenant_id)
     job_id = f"cdse_{uuid.uuid4().hex[:12]}"
     job_record = {
         "job_id": job_id,
+        "tenant_id": owner,
         "status": JobStatus.pending,
         "progress_pct": 0,
         "created_at": datetime.now(UTC).isoformat(),
@@ -1039,10 +1035,7 @@ async def field_pixel_value(
         if not (minx <= lon <= maxx and miny <= lat <= maxy):
             raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة")
     try:
-        import math as _math
-
         import rasterio
-        from rasterio.warp import transform
     except Exception as e:  # noqa: BLE001
         raise HTTPException(503, "rasterio غير متوفر لقراءة قيمة البكسل") from e
     path = object_store.to_gdal_path(layer.get("cog_url") or layer.get("raster_url") or "")
@@ -1050,15 +1043,11 @@ async def field_pixel_value(
         raise HTTPException(404, "مصدر COG غير موجود")
     try:
         with rasterio.open(path) as src:
-            xs, ys = [lon], [lat]
-            if src.crs and str(src.crs).upper() not in ("EPSG:4326", "OGC:CRS84"):
-                xs, ys = transform("EPSG:4326", src.crs, xs, ys)
-            row, col = src.index(xs[0], ys[0])
-            if row < 0 or col < 0 or row >= src.height or col >= src.width:
-                raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة")
-            value = next(src.sample([(xs[0], ys[0])]))[0]
-            nodata = src.nodata
-            if (nodata is not None and value == nodata) or not _math.isfinite(float(value)):
+            try:
+                value = _sample_index_pixel(src, lon, lat)  # None = nodata/مقنَّع/غير منتهٍ
+            except IndexError as exc:
+                raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة") from exc
+            if value is None:
                 return {
                     "field_id": field_id,
                     "index": out_index,
@@ -1178,6 +1167,7 @@ async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: st
     يبني شبكتي المؤشّر الحقيقيّتين (من COG المقصوص لكلّ تاريخ، نفس مسار
     indicator-grid) ويُمرّرهما لـdetect_change. صدق: إن لم تتوفّر شبكة حقيقيّة
     لأحد التاريخين (لا COG / لا rasterio) يُرجِع real_data=False بلا تغيّر مُفبرَك.
+    وشبكتان غير متحاذيتين أو مرفوضتا الجودة ⇒ status=not_assessable (field_change_refusal).
     """
     _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
     grid_a = await _real_field_grid(field_id, req.index, req.date_a, req.grid)
@@ -1197,14 +1187,11 @@ async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: st
             "(لا تغيّر مُفبرَك من بيانات غير متوفّرة)",
         }
 
-    if grid_a["rows"] != grid_b["rows"] or grid_a["cols"] != grid_b["cols"]:
-        raise HTTPException(
-            status_code=409,
-            detail=(
-                f"أبعاد شبكتي التاريخين مختلفة: "
-                f"{grid_a['rows']}×{grid_a['cols']} مقابل {grid_b['rows']}×{grid_b['cols']}"
-            ),
-        )
+    from layer_lookup import field_change_refusal  # S2-a/S2-b: عقد /v1/change/detect + الجودة
+
+    refusal, identity = field_change_refusal(grid_a, grid_b, date_a=req.date_a, date_b=req.date_b)
+    if refusal is not None:
+        return {"field_id": field_id, "index": req.index, **refusal}
 
     import change_detection as cd
 
@@ -1223,6 +1210,8 @@ async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: st
             "bbox": grid_b.get("bbox") or grid_a.get("bbox"),
             "real_data": True,
             "available": True,
+            "status": "assessed",
+            "grid_identity": identity,
         }
     )
     return result
@@ -1249,8 +1238,9 @@ async def field_timeseries(
     await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (DB مصدر الحقيقة + ذاكرة)
     out_index = _display_index(index)
     index = _normalize_index(index)
-    requested_dates = [d.strip() for d in dates.split(",") if d.strip()]
-    if not requested_dates:
+    # فريدة ومحدودة العدد (كلّ تاريخ قراءة شبكة COG) — تجاوز السقف 422 قبل أيّ قراءة.
+    dates_list = requested_dates(dates)
+    if not dates_list:
         # كلّ تواريخ الطبقات الحقيقيّة المتاحة للحقل+المؤشّر. نبدأ بالذاكرة، ثم
         # نقرأ raster_assets عند إعادة التشغيل/worker آخر؛ وإلّا يصبح الـtimeline
         # فارغاً رغم وجود COGs مخزّنة. لا نُنشئ نقاطاً، فقط نكتشف التواريخ.
@@ -1274,10 +1264,10 @@ async def field_timeseries(
                 )
             except Exception as e:  # noqa: BLE001 — لا نكسر السلسلة الزمنية عند غياب DB
                 logger.warning("raster_assets dates rehydrate skipped (%s): %s", field_id, e)
-        requested_dates = sorted(seen)
+        dates_list = sorted(seen)
 
     points: list[dict] = []
-    for date in requested_dates:
+    for date in dates_list:
         real = await _real_field_grid(field_id, index, date, grid)
         if real is None:
             continue
@@ -1292,6 +1282,10 @@ async def field_timeseries(
                 "coverage_ratio": real.get("coverage_ratio"),
                 "cloud_pct": real.get("cloud_pct"),
                 "scene_id": provenance.get("scene_id"),
+                # S4-a: هويّة الأصل لا الرقم وحده — المشهد نفسه على حدٍّ أحدث للحقل أصلٌ آخر.
+                # مراجعة الهندسة من هويّة الشبكة والأصل المقروء من نَسَب المنتج؛ None حين يغيب.
+                "geometry_revision": (real.get("grid_identity") or {}).get("geometry_revision"),
+                "source_uri": provenance.get("source_uri"),
             }
         )
 
@@ -1302,7 +1296,7 @@ async def field_timeseries(
             "available": False,
             "real_data": False,
             "points": [],
-            "requested_dates": requested_dates,
+            "requested_dates": dates_list,
             "note": "لا COG مقصوص للحقل في التواريخ المطلوبة — شغّل /process (لا قيم مؤشّر مخترعة)",
         }
 
@@ -1338,6 +1332,7 @@ async def field_tile(
     صدق + لا 500: عند غياب COG/rasterio/تقاطع البيانات → بلاطة شفّافة (الخريطة
     لا تُظهر شيئاً فوق الحقل) بدل خطأ خادم.
     """
+    validate_xyz(z, x, y)  # 422 قبل التفويض/الذاكرة المؤقّتة/التصيير
     await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (DB مصدر الحقيقة + ذاكرة)
     index = _normalize_index(index)
     _obs_inc("tile_requests_total", index)
@@ -1350,7 +1345,7 @@ async def field_tile(
             content=cached_png,
             media_type="image/png",
             headers={
-                "Cache-Control": "public, max-age=3600",
+                **TENANT_PRIVATE_IMAGE_HEADERS,
                 "X-Sahool-Tile-Cache": "hit",
                 "X-Sahool-Tile-Date": date,
                 "X-Sahool-Tile-Version": v or "default",
@@ -1371,7 +1366,7 @@ async def field_tile(
                     content=png,
                     media_type="image/png",
                     headers={
-                        "Cache-Control": "public, max-age=3600",
+                        **TENANT_PRIVATE_IMAGE_HEADERS,
                         "X-Sahool-Tile-Cache": "miss",
                         "X-Sahool-Tile-Date": date,
                         "X-Sahool-Tile-Version": v or "default",
@@ -1488,7 +1483,7 @@ async def field_available_dates(
                     )
                     for item in search.get("items", []):
                         _add(
-                            (item.get("datetime") or "")[:10],
+                            item.get("datetime"),  # يومه بـUTC في المُجمِّع، لا أوّل 10 محارف
                             has_cog=False,
                             cloud_pct=item.get("cloud_cover_pct"),
                             scene_id=item.get("item_id"),

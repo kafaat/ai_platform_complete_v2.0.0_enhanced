@@ -48,6 +48,10 @@ abstract class OutboxStore {
   List<OutboxRecord> get records;
   OutboxRecord? byId(String id);
 
+  /// سجلّات محفوظة تعذّر فكّها (إصدار أحدث/تلف). تبقى على القرص ولا تُرسَل،
+  /// لكنّها تُعَدّ كي لا تقول الواجهة «كلّ شيء وصل» وهي على الجهاز.
+  int get unreadableCount;
+
   /// رقم الترتيب التالي (يزيد دائماً).
   int nextSeq();
   Future<void> put(OutboxRecord record);
@@ -89,7 +93,9 @@ class HiveOutboxStore implements OutboxStore {
         _records[r.id] = r;
         if (r.seq > _seq) _seq = r.seq;
       } catch (_) {
-        // سجلّ لا يُفكّ (إصدار أحدث؟) يبقى في الصندوق كما هو ولا يُحذف.
+        // سجلّ لا يُفكّ (إصدار أحدث؟) يبقى في الصندوق كما هو ولا يُحذف،
+        // ويُعَدّ في [unreadableCount] فلا يختفي من الواجهة.
+        _unreadable.add(key);
       }
     }
   }
@@ -98,6 +104,7 @@ class HiveOutboxStore implements OutboxStore {
 
   final Box<String> _box;
   final Map<String, OutboxRecord> _records = {};
+  final Set<Object?> _unreadable = {};
   int _seq = 0;
 
   /// يفتح الصندوق المشفّر. يرمي [OutboxStoreException] عند التعذّر.
@@ -105,6 +112,14 @@ class HiveOutboxStore implements OutboxStore {
   static Future<HiveOutboxStore> openEncrypted({
     OutboxKeyStore keys = const SecureOutboxKeyStore(),
     String name = boxName,
+  }) async => HiveOutboxStore._(await openEncryptedBox(keys: keys, name: name));
+
+  /// يفتح صندوق نصوص JSON مشفّراً بالآليّة نفسها (مفتاح 256 بت في التخزين الآمن،
+  /// لا فتح لصندوق قائم بمفتاح جديد). يستعمله سجلّ العمليّات المعلّقة
+  /// (operation_ledger.dart) بصندوقه ومفتاحه — لا طبقة تخزين ثالثة.
+  static Future<Box<String>> openEncryptedBox({
+    required OutboxKeyStore keys,
+    required String name,
   }) async {
     final List<int> key;
     try {
@@ -115,11 +130,10 @@ class HiveOutboxStore implements OutboxStore {
       throw OutboxStoreException(OutboxStoreFailure.keyStorage, e);
     }
     try {
-      final box = await Hive.openBox<String>(
+      return await Hive.openBox<String>(
         name,
         encryptionCipher: HiveAesCipher(key),
       );
-      return HiveOutboxStore._(box);
     } catch (e) {
       throw OutboxStoreException(OutboxStoreFailure.openFailed, e);
     }
@@ -165,11 +179,15 @@ class HiveOutboxStore implements OutboxStore {
   OutboxRecord? byId(String id) => _records[id];
 
   @override
+  int get unreadableCount => _unreadable.length;
+
+  @override
   int nextSeq() => ++_seq;
 
   @override
   Future<void> put(OutboxRecord record) async {
     await _box.put(record.id, record.encode());
+    _unreadable.remove(record.id);
     _records[record.id] = record;
     if (record.seq > _seq) _seq = record.seq;
   }
@@ -177,6 +195,7 @@ class HiveOutboxStore implements OutboxStore {
   @override
   Future<void> remove(String id) async {
     await _box.delete(id);
+    _unreadable.remove(id);
     _records.remove(id);
   }
 

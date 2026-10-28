@@ -22,6 +22,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from scene_policy import scene_cloud_pct
+
 # ── تعيين المصدر (source string من stac_search) → هويّة المزوّد المعياريّة ──────────
 _SOURCE_TO_PROVIDER: dict[str, str] = {
     "element84-earth-search": "element84",
@@ -42,7 +44,7 @@ class NormalizedScene:
     collection: str
     sensor: str
     acquisition_date: str  # وقت الالتقاط من STAC (لا وقت المعالجة)
-    cloud_cover: float
+    cloud_cover: float | None  # نسبة مئويّة [0, 100]؛ None = مجهول (لا صفر مختلَق)
     bbox: list[float] | None
     bands: dict[str, str]  # اسم النطاق → رابط COG (فارغ لمشاهد المعالجة الخادميّة)
     bands_available: list[str]
@@ -53,6 +55,10 @@ class NormalizedScene:
     preview_url: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def cloud_cover_known(self) -> bool:
+        return self.cloud_cover is not None
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "scene_id": self.scene_id,
@@ -61,6 +67,7 @@ class NormalizedScene:
             "sensor": self.sensor,
             "acquisition_date": self.acquisition_date,
             "cloud_cover": self.cloud_cover,
+            "cloud_cover_known": self.cloud_cover_known,
             "bbox": self.bbox,
             "bands_available": self.bands_available,
             "cog_ready": self.cog_ready,
@@ -93,11 +100,8 @@ def normalize_scene(
     bands = _clean_bands(item.get("bands_urls"))
     platform = str(item.get("platform") or "sentinel-2")
     sensor = "MSI" if platform.startswith("sentinel-2") else platform
-    cloud = item.get("cloud_cover_pct", 0.0)
-    try:
-        cloud_f = float(cloud)
-    except (TypeError, ValueError):
-        cloud_f = 0.0
+    # غياب/تلف الغيوم مجهول لا ٠٪ (RS-01) — المحلّل نفسه الذي يستهلكه الانتقاء.
+    cloud_f = scene_cloud_pct(item)
     return NormalizedScene(
         scene_id=str(item.get("item_id") or ""),
         provider=str(provider),
