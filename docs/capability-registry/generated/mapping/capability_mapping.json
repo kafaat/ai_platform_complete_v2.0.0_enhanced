@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6920,
+    "files_scanned": 6923,
     "files_by_kind": {
       "backend": 1264,
       "database": 289,
       "governance": 86,
       "mobile": 414,
       "other": 2131,
-      "tests": 2236,
+      "tests": 2239,
       "web": 500
     },
-    "unmapped_artifacts": 2742,
+    "unmapped_artifacts": 2745,
     "ambiguous_artifacts": 495
   },
   "capabilities": [
@@ -44816,8 +44816,20 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/test/core/in_flight_test.dart",
+      "kind": "tests"
+    },
+    {
       "path": "mobile/sahool_app/test/core/local_commit_server.dart",
       "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/test/core/response_shape_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/core/retry_schedule_test.dart",
+      "kind": "tests"
     },
     {
       "path": "mobile/sahool_app/test/core/session_refresh_route_test.dart",
