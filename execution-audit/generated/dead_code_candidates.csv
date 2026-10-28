@@ -612,6 +612,7 @@ medium,shared,class,ObservationRejectedEventV1,shared/contracts/remote_sensing/e
 medium,shared,class,RasterAssetPersistedEventV1,shared/contracts/remote_sensing/events/raster_events_v1.py,15,0,review_before_delete,False
 medium,shared,class,RasterAssetFailedEventV1,shared/contracts/remote_sensing/events/raster_events_v1.py,32,0,review_before_delete,False
 medium,shared,function,is_canonical_field_geometry,shared/domain/field_geometry.py,92,0,review_before_delete,False
+medium,shared,function,export_ml_quality_candidate,shared/feature_store/ml_quality_bridge.py,113,0,review_before_delete,False
 medium,shared,function,build_feature_lineage_manifest,shared/feature_store/runtime.py,255,0,review_before_delete,False
 medium,shared,function,new_journal,shared/field_bootstrap.py,80,0,review_before_delete,False
 medium,shared,function,transform_to_map_projection,shared/gis/crs_service.py,164,0,review_before_delete,False
