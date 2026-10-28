@@ -82,7 +82,7 @@ jobs:
           if hashlib.sha256(content).hexdigest() != expected_sha256:
               raise SystemExit("content SHA256 mismatch")
           git_hash = hashlib.sha1(
-              b"blob " + str(len(content)).encode() + b"\\0" + content
+              b"blob " + str(len(content)).encode() + b"\0" + content
           ).hexdigest()
           if git_hash != expected_git_sha1:
               raise SystemExit("Git blob SHA1 mismatch")
@@ -111,7 +111,7 @@ jobs:
               "production_authorized": False,
           }
           Path(os.environ["RECEIPT_DIR"], "receipt.json").write_text(
-              json.dumps(receipt, indent=2, sort_keys=True) + "\\n",
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
               encoding="utf-8",
           )
           print("CREATE_BLOB_ONLY verified", expected_git_sha1, "bytes", len(content))
