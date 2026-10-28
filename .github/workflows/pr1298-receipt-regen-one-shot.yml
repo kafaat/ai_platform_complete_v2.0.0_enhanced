@@ -1,0 +1,148 @@
+name: PR1298 isolated receipt-regeneration probe - blobs only
+on:
+  push:
+    branches:
+      - codex/pr1298-receipt-regen-20261028
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  regenerate-verify-upload-blobs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      EXPECTED_SOURCE: 525956c9b69fb2e6836d6e7715c0b68473aacaec
+      HANDOFF_PATH: .github/workflows/pr1298-receipt-regen-one-shot.yml
+    steps:
+      - name: Checkout exact one-shot branch
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify parent SHA and exclude temporary workflow from source inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_SOURCE"
+          test "$(git diff-tree --no-commit-id --name-only -r HEAD)" = "$HANDOFF_PATH"
+          git rm -q --cached "$HANDOFF_PATH"
+          rm -f "$HANDOFF_PATH"
+          test ! -e "$HANDOFF_PATH"
+          test "$(git hash-object shared/feature_store/ml_quality_bridge.py)" = "8c2b1b677b8c3789258f50654348a461240af6f4"
+      - name: Python toolchain
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Format, test, regenerate and validate (no credentials)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install -c constraints-ci-tools.txt ruff pytest PyYAML
+          ruff --version
+          ruff check shared/feature_store/ml_quality_bridge.py tests/phase6/test_ml_quality_bridge.py
+          ruff format tests/phase6/test_ml_quality_bridge.py
+          ruff format --check shared/feature_store/ml_quality_bridge.py tests/phase6/test_ml_quality_bridge.py
+          PYTHONPATH=. python -m pytest -q -p no:cacheprovider tests/phase6/test_ml_quality_bridge.py
+          python -B scripts/ci/verify_all_generated.py --fix
+          python -B scripts/ci/verify_all_generated.py --check
+          python -B scripts/release/validate_release_package.py --root .
+          git diff --check
+          test "$(git hash-object shared/feature_store/ml_quality_bridge.py)" = "8c2b1b677b8c3789258f50654348a461240af6f4"
+      - name: Store exact changed-file Git blobs, never refs or commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          RECEIPT_DIR: ${{ runner.temp }}/pr1298-receipt-regen
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RECEIPT_DIR"
+          python -I -S - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          from urllib.request import Request, urlopen
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          assert repo == "kafaat/ai_platform_complete_v2.0.0_enhanced"
+          root = Path.cwd()
+          workflow = os.environ["HANDOFF_PATH"]
+          expected_source = os.environ["EXPECTED_SOURCE"]
+          diff = subprocess.check_output(["git", "diff", "--name-only", "-z", "HEAD"]).split(b"\0")
+          others = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "-z"]).split(b"\0")
+          paths = sorted(set(os.fsdecode(x) for x in (diff + others) if x))
+          assert workflow in paths, "expected temporary workflow deletion"
+          paths.remove(workflow)
+          assert paths, "no regeneration or formatting changes"
+          assert len(paths) <= 100, "unexpected number of output changes"
+          allowed_prefixes = (
+              "decision-lineage/generated/",
+              "docs/capability-registry/generated/",
+              "docs/architecture/generated/",
+              "event-audit/generated/",
+              "execution-audit/generated/",
+              "governance/generated/",
+              "governance/path2-generated/",
+              "capabilities/generated/",
+              "release/",
+          )
+          allowed_exact = {"tests/phase6/test_ml_quality_bridge.py"}
+          if any(p not in allowed_exact and not p.startswith(allowed_prefixes) for p in paths):
+              raise SystemExit("non-generated source change found; no upload")
+          token = os.environ["GH_TOKEN"]
+          api = f"https://api.github.com/repos/{repo}/git/blobs"
+          headers = {
+              "Authorization": "Bearer " + token,
+              "Accept": "application/vnd.github+json",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "Content-Type": "application/json",
+          }
+          blobs = []
+          for name in paths:
+              file = root / name
+              if file.is_symlink() or not file.is_file() or file.stat().st_size > 24_000_000:
+                  raise SystemExit(f"invalid output file {name}")
+              raw = file.read_bytes()
+              git_sha1 = hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
+              payload = json.dumps({
+                  "content": base64.b64encode(raw).decode("ascii"),
+                  "encoding": "base64",
+              }).encode()
+              with urlopen(Request(api, data=payload, method="POST", headers=headers), timeout=180) as response:
+                  posted = json.load(response)
+              if posted.get("sha") != git_sha1:
+                  raise SystemExit(f"Git blob mismatch on {name}")
+              blobs.append({"path": name, "sha": git_sha1, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)})
+          receipt = {
+              "mode": "CREATE_BLOBS_ONLY_NO_REFS_NO_COMMITS",
+              "source_head": expected_source,
+              "temporary_workflow_excluded": True,
+              "changed_files": blobs,
+              "wrote_ref": False,
+              "production_authorized": False,
+          }
+          path = Path(os.environ["RECEIPT_DIR"]) / "receipt.json"
+          path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print("BEGIN_PR1298_BLOB_RECEIPT")
+          print(json.dumps(receipt, separators=(",", ":"), sort_keys=True))
+          print("END_PR1298_BLOB_RECEIPT")
+          PY
+      - name: Preserve read-only provenance receipt
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pr1298-receipt-regeneration-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/pr1298-receipt-regen
+          if-no-files-found: warn
+          retention-days: 7
