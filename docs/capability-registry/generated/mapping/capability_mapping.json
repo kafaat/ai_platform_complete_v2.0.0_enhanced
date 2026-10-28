@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6820,
+    "files_scanned": 6824,
     "files_by_kind": {
       "backend": 1260,
       "database": 289,
-      "governance": 86,
+      "governance": 87,
       "mobile": 407,
-      "other": 2127,
-      "tests": 2172,
+      "other": 2129,
+      "tests": 2173,
       "web": 479
     },
-    "unmapped_artifacts": 2703,
+    "unmapped_artifacts": 2704,
     "ambiguous_artifacts": 485
   },
   "capabilities": [
@@ -49071,6 +49071,10 @@
     },
     {
       "path": "tests/observability/test_phase13_observability_assets.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/phase6/test_ml_quality_bridge.py",
       "kind": "tests"
     },
     {
