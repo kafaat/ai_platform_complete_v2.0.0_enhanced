@@ -20562,7 +20562,7 @@
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:449",
+          "value": "field.created @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:455",
           "score": 10
         },
         {
@@ -20578,19 +20578,19 @@
           "score": 10
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:195",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:198",
           "score": 10
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:204",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:207",
           "score": 10
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:227",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:230",
           "score": 10
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:534",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:543",
           "score": 10
         },
         {
@@ -23592,7 +23592,7 @@
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:449",
+          "value": "field.created @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:455",
           "score": 12
         },
         {
@@ -23640,19 +23640,19 @@
           "score": 12
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:195",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:198",
           "score": 12
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:204",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:207",
           "score": 12
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:227",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:230",
           "score": 12
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:534",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:543",
           "score": 12
         },
         {
