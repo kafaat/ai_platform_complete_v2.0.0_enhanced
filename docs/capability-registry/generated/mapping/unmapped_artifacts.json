@@ -8336,6 +8336,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/phase6/test_ml_quality_bridge.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/release/test_phase14_release_packaging_contracts.py",
     "kind": "tests"
   },
