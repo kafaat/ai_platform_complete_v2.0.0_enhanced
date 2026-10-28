@@ -1,0 +1,126 @@
+name: PR-B one-shot verified generated blob handoff
+on:
+  pull_request:
+    types: [synchronize]
+    paths:
+      - '.github/workflows/prb-blob-handoff.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number) || format('{0}-{1}', github.workflow, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  upload-single-generated-blob:
+    if: ${{ github.event.pull_request.number == 1298 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/ml-quality-readonly-bridge-20261028' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout trusted main tooling, not PR code
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: e16bbffa5b0031daccea1357b1091dbd5c877959
+          persist-credentials: false
+      - name: Verify exact read-only regeneration receipt and upload one Git blob (never a branch)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RECEIPT_DIR: ${{ runner.temp }}/prb-blob-handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RECEIPT_DIR"
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import io
+          import json
+          import os
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          import zipfile
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          assert repo == "kafaat/ai_platform_complete_v2.0.0_enhanced"
+          head = os.environ["GITHUB_HEAD_SHA"]
+          expected_source = "502211869b0565bc0febe6601c70f08efe87b8b8"
+          if head == expected_source:
+              raise SystemExit("handoff must be a new PR head, not the generator head")
+          artifact_id = 12812025759
+          path = "execution-audit/generated/execution_dependency_audit.json"
+          expected_sha256 = "19676790871995d8c0f35880d84bdba5eea4769b6a77a738bf65b5a6b301a738"
+          expected_git_sha1 = "b341bfc18aad25fdfdbb05182eb76b4a1d24c7d2"
+          token = os.environ["GITHUB_TOKEN"]
+          headers = {
+              "Authorization": "Bearer " + token,
+              "Accept": "application/vnd.github+json",
+              "X-GitHub-Api-Version": "2022-11-28",
+          }
+          url = f"https://api.github.com/repos/{repo}/actions/artifacts/{artifact_id}/zip"
+          with urlopen(Request(url, headers=headers), timeout=90) as response:
+              outer_bytes = response.read()
+          with zipfile.ZipFile(io.BytesIO(outer_bytes)) as outer:
+              if outer.read("source-sha.txt").decode().strip() != expected_source:
+                  raise SystemExit("source head mismatch")
+              manifest = json.loads(outer.read("manifest.json"))
+              if (manifest.get("source_sha") != expected_source
+                      or manifest.get("regeneration_exit_code") != 0
+                      or manifest.get("deleted") != [".github/workflows/prb-generated-evidence.yml"]):
+                  raise SystemExit("regeneration provenance or convergence mismatch")
+              if manifest.get("added_or_modified", {}).get(path) != expected_sha256:
+                  raise SystemExit("artifact file digest not in verified manifest")
+              with zipfile.ZipFile(io.BytesIO(outer.read("regenerated-files.zip"))) as inner:
+                  if json.loads(inner.read("manifest.json")) != manifest:
+                      raise SystemExit("nested manifest mismatch")
+                  content = inner.read("files/" + path)
+          if hashlib.sha256(content).hexdigest() != expected_sha256:
+              raise SystemExit("content SHA256 mismatch")
+          git_hash = hashlib.sha1(
+              b"blob " + str(len(content)).encode() + b"\\0" + content
+          ).hexdigest()
+          if git_hash != expected_git_sha1:
+              raise SystemExit("Git blob SHA1 mismatch")
+          payload = json.dumps({
+              "encoding": "base64",
+              "content": base64.b64encode(content).decode("ascii"),
+          }).encode("utf-8")
+          api = f"https://api.github.com/repos/{repo}/git/blobs"
+          with urlopen(Request(
+              api, headers={**headers, "Content-Type": "application/json"},
+              data=payload, method="POST",
+          ), timeout=180) as response:
+              result = json.loads(response.read())
+          if result.get("sha") != expected_git_sha1:
+              raise SystemExit("server returned a different Git blob SHA")
+          receipt = {
+              "mode": "CREATE_BLOB_ONLY_NO_REFS_NO_COMMITS",
+              "source_sha": expected_source,
+              "pr_head_at_start": head,
+              "artifact_id": artifact_id,
+              "path": path,
+              "sha256": expected_sha256,
+              "git_blob_sha1": expected_git_sha1,
+              "bytes": len(content),
+              "wrote_ref": False,
+              "production_authorized": False,
+          }
+          Path(os.environ["RECEIPT_DIR"], "receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\\n",
+              encoding="utf-8",
+          )
+          print("CREATE_BLOB_ONLY verified", expected_git_sha1, "bytes", len(content))
+          PY
+      - name: Preserve verified handoff receipt
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: prb-blob-handoff-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/prb-blob-handoff/
+          if-no-files-found: warn
+          retention-days: 7
