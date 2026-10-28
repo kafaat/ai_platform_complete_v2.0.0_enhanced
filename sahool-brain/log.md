@@ -10195,3 +10195,11 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **Railway (قراءة):** كلّ النشر لـ`e16bbffa5` في البيئتين `SKIPPED`، ومنه `sahool-migrate-main`.
 - **Runbook:** [`docs/runbooks/MIGRATION_UNFREEZE_RUNBOOK_20261028.md`](../docs/runbooks/MIGRATION_UNFREEZE_RUNBOOK_20261028.md) يحلّ محلّ `MIGRATION_FREEZE_GATES_RUNBOOK_20261027.md` ومسوّدة المالك المحلّيّة. كلّ موضعٍ فيه أُعيد قياسه على `e16bbffa5` (68 فحصاً، صفر إخفاق)؛ والاستشهاد المكسور في المسوّدة صار مسجّلاً بدمج #1294، و`S4-b` صار له مصدرٌ في `routers/seasons.py`.
 - **مشروع Railway الشارد:** لصق المالك رابط نشرٍ فاشل في `resourceful-commitment`؛ هو `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01` (open)، يفشل على كلّ التزامٍ ولا يمسّ `sahool-staging`. إصلاحه بيد المالك في Railway (فصل المصدر مقترحاً).
+
+### 2026-10-28 — #1302: ترقية `qs` في الواجهة بدل Dependabot #1300
+
+#1300 غيّر `frontend/package-lock.json` وحده، ففشل في ستّ وظائف بسطرٍ واحد: `checksum mismatch: frontend/package-lock.json`؛ لأنّ `release/FILE_CHECKSUMS.sha256` يثبّت بصمة القفل وDependabot لا يُعيد توليدها. #1302 حمل التزامَ Dependabot نفسه (`qs` 6.16.0 → 6.17.0، اعتماديّة عبوريّة) فوق `e16bbffa5` مع المصنوعات مُعادةَ التوليد.
+
+- **التحقّق:** `npm audit --package-lock-only` صفر ثغرات؛ preflight المحلّيّ 0 إخفاقات · 0 متخطّاة؛ CI: 68 فحصاً ناجحة عدا `runtime-stack-e2e-chaos` المشروطة (متخطّاة)؛ `mergeable_state = clean`؛ 0 محادثات.
+- **الدمج:** بأمر المالك «قوم بدمج المتبقي وعمل اللازم» (وكان #1300 مفتوحاً حينها). squash ⇒ `8c77a1692`؛ شجرته `6517c5bd` = شجرة الرأس المختبَر `f83dad301`. #1300 أُغلق بإحالة.
+- **Railway (قراءة):** `sahool-frontend` SUCCESS في production (11:56:43Z) وstaging (11:56:47Z) كما قال `Deploy-Effect` المشتقّ؛ كلّ ما عداه `SKIPPED`، ومنه `sahool-migrate-main`.
