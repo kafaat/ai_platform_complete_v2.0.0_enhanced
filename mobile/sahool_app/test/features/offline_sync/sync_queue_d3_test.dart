@@ -454,6 +454,35 @@ void main() {
   });
 
   group('409 تعارض المفتاح', () {
+    test('retention_expired ⇒ تبقى ظاهرة «تحتاج تدخّلاً» ولا تُحذف ولا تُعاد '
+        '(ربّما طُبِّقت ولم يعد الخادم يعرف)', () async {
+      server.handler = (req, seen) => _Server.reply(
+        req,
+        409,
+        body: {
+          'detail': {
+            'code': 'idempotency_conflict',
+            'reason': 'retention_expired',
+            'message_ar': 'انقضت مدّة الاحتفاظ بنتيجة هذه العملية على الخادم.',
+          },
+        },
+      );
+      final outbox = outboxOver(connectivity: ValueNotifier<bool>(false));
+      await outbox.enqueue(op('/r', method: 'POST'));
+      await outbox.drain();
+      final s = outbox.snapshot();
+      expect(s.pending, isEmpty, reason: 'no blind retry with the same key');
+      expect(
+        s.rejected.map((r) => r.op.path),
+        ['/r'],
+        reason: 'kept visible, not deleted as delivered',
+      );
+      expect(
+        s.rejected.single.toJson()['conflict_reason'],
+        'retention_expired',
+      );
+    });
+
     test(
       'payload_mismatch (رمز الخادم أو نصّه الحاليّ) ⇒ تحتاج تدخّلاً، ولا '
       'تُعاد — ولا حتى بطلب «إعادة المحاولة»؛ in_progress ⇒ تبقى لاحقاً',
