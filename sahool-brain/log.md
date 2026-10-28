@@ -10203,3 +10203,20 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **التحقّق:** `npm audit --package-lock-only` صفر ثغرات؛ preflight المحلّيّ 0 إخفاقات · 0 متخطّاة؛ CI: 68 فحصاً ناجحة عدا `runtime-stack-e2e-chaos` المشروطة (متخطّاة)؛ `mergeable_state = clean`؛ 0 محادثات.
 - **الدمج:** بأمر المالك «قوم بدمج المتبقي وعمل اللازم» (وكان #1300 مفتوحاً حينها). squash ⇒ `8c77a1692`؛ شجرته `6517c5bd` = شجرة الرأس المختبَر `f83dad301`. #1300 أُغلق بإحالة.
 - **Railway (قراءة):** `sahool-frontend` SUCCESS في production (11:56:43Z) وstaging (11:56:47Z) كما قال `Deploy-Effect` المشتقّ؛ كلّ ما عداه `SKIPPED`، ومنه `sahool-migrate-main`.
+
+### 2026-10-28 — #1298: جسر `ml-quality/v1` للقراءة فقط، بعد ربط الإيصال بالقياس
+
+- **المراجعة:** تعليقٌ على #1298 ([6470518758](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1298#issuecomment-6470518758)) وجد أنّ `ReceiptVerifier` لا يتلقّى `case_id` ولا `label_measured_at` ولا `target_mm`، وأنّ الإيصال نفسه يُعاد على صفوفٍ متعدّدة (الـfixture كان يستعمل `"c"*64` لكلّ الصفوف). فإيصالٌ حقيقيٌّ واحد كان يرفع قيماً مختلَقة إلى `*_verified`.
+- **الإصلاح:** `525956c9b` (المالك) مرّر الحالة وزمن القياس والقيمة إلى الـverifier ورفض التكرار بـ`MEASUREMENT_RECEIPT_REUSED`؛ ثمّ `d3ca00427` أعاد توليد المشتقّات وطبّق `ruff format`، لأنّ `525956c9b` أسقط أربع وظائف (انجراف execution audit، وبصمة `docs/contracts/ML-QUALITY-BRIDGE-v1.md`، والتنسيق).
+- **التحقّق:** على `d3ca00427` 77 فحصاً = 76 ناجحاً + `runtime-stack-e2e-chaos` المشروطة متخطّاة؛ `mergeable_state = clean`.
+- **الدمج:** بأمر المالك «ادمج 1298». squash ⇒ `030996911`؛ شجرته `9d48f856e` = شجرة الرأس المختبَر `d3ca00427`.
+- **Railway (قراءة):** `railway_deploy_impact.py` اشتقّ تسع خدمات إنتاج وإحدى عشرة staging من مسار `shared/feature_store/ml_quality_bridge.py`، والنشر الفعليّ طابقه: كلّها SUCCESS (15:11Z)، و`sahool-frontend` و`sahool-migrate-main` SKIPPED. لا خدمة تستورد الجسر (`git grep` يجده في الاختبار والمصنوعات المولَّدة فقط)، فإعادة النشر لم تغيّر سلوكاً.
+- **ما لم يُثبَت:** الـverifier ما زال callback يُمرَّر من المالك؛ لا مصادقة قياسٍ حقيقيّ، ولا تشغيل نموذج، ولا ربط بمسار API.
+
+### 2026-10-28 — #1304: اختبارات وحدة لثلاث وحدات شبكة في الهاتف
+
+- **الفجوة:** `lib/core/network/retry_schedule.dart` و`in_flight.dart` و`response_shape.dart` بلا اختبار مباشر، وعليها يعتمد صفّا المزامنة وتسعة عملاء API.
+- **الإضافة:** 28 حالة في `mobile/sahool_app/test/core/`؛ لا تغيير في كود Dart الإنتاجيّ.
+- **التحقّق:** محلّيّاً على Flutter 3.38.9 (تثبيت CI): 28/28 و`flutter analyze` نظيف. ستّ طفراتٍ محقونة في المصدر أسقطت الاختبارات كلٌّ على حدة: حذف سقف Retry-After، وقبول الثواني السالبة، وjitter 30٪، وحذف سقف الأس، وعدم تفريغ مفاتيح `InFlight`، والثقة بغلافٍ غير قائمة.
+- **الدمج:** بأمر المالك «قوم بعمل ماتراه مناسب و الدمج»، بعد دمج `main` (`030996911`) في الفرع وإعادة توليد المشتقّات. squash ⇒ `909b54ec6`؛ شجرته `06fbf6e65` = شجرة الرأس المختبَر `b69d1ac7a`.
+- **Railway (قراءة):** `Deploy-Effect: NONE` مشتقّاً، وكلّ نشر `909b54ec6` في البيئتين SKIPPED.
