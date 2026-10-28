@@ -14615,10 +14615,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7bf25bdd47c07418824f0553d0883f27bd4dd192d7b64ffe224715cf610644bb"
+        }
+      ],
+      "name": "mobile/sahool_app/test/core/in_flight_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1e12296120b425026bc6638eaf146afc52bf8e45b4d16c53ae7f8c8debdd6d34"
         }
       ],
       "name": "mobile/sahool_app/test/core/local_commit_server.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "36b5a4f7b9069c817aebcaa5b4894c6dc2a66ef11ebee29ae79cd2c7a9e99ca2"
+        }
+      ],
+      "name": "mobile/sahool_app/test/core/response_shape_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5df7960e0ac9f9a7c03f6cfbdfd4327c36cf933f5c5230c586c7166dc4e987fb"
+        }
+      ],
+      "name": "mobile/sahool_app/test/core/retry_schedule_test.dart",
       "type": "file"
     },
     {

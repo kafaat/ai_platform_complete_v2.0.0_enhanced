@@ -3340,8 +3340,20 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/test/core/in_flight_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/test/core/local_commit_server.dart",
     "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/response_shape_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/retry_schedule_test.dart",
+    "kind": "tests"
   },
   {
     "path": "mobile/sahool_app/test/core/session_refresh_route_test.dart",

@@ -1393,6 +1393,7 @@ IRR-006,api,POST /v1/fields/{field_id}/post-execution-observations @ services/ve
 IRR-006,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2807,2,applied
 IRR-006,mobile,mobile/sahool_app/lib/core/network/retry_schedule.dart,2,applied
 IRR-006,service,services/sahool-platform/api/main.py,10,applied
+IRR-006,test,mobile/sahool_app/test/core/retry_schedule_test.dart,3,applied
 IRR-006,test,mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart,7,applied
 IRR-006,test,mobile/sahool_app/test/features/irrigation/schedule_create_reconcile_test.dart,3,applied
 IRR-006,test,services/sahool-platform/tests/test_irrigation_schedule_create_contract.py,7,applied
