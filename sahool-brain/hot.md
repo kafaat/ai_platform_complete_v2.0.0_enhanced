@@ -1,3 +1,5 @@
+> 2026-10-28 — #1304 مدموج ⇒ `909b54ec6` (28 اختبار وحدة لثلاث وحدات شبكة في الهاتف بلا اختبار مباشر: `retry_schedule` و`in_flight` و`response_shape`)؛ Railway: كلّ النشر SKIPPED. و#1298 (جسر ML للقراءة فقط، الإيصال صار مربوطاً بالقياس الذي شهده) مدموج ⇒ `030996911`، فأعاد نشر تسع خدمات إنتاج وإحدى عشرة staging كلّها SUCCESS لأنّه يمسّ `shared/**`، والمهاجر SKIPPED ([`log.md`](log.md)).
+
 > 2026-10-28 — #1302 مدموج ⇒ `8c77a1692` (ترقية `qs` إلى 6.17.0 بدل Dependabot #1300 الذي أسقطته بصمة القفل في `release/FILE_CHECKSUMS.sha256`)؛ Railway: الواجهة وحدها نُشرت في البيئتين والمهاجر SKIPPED ([`log.md`](log.md)).
 
 > 2026-10-28 — #1295 مدموج ⇒ `e16bbffa5` حاملاً #1294 وإصلاح شريحة S3 في CI (بناءٌ من PyPI الرسميّ بعد ثلاثة تعطّلات على مرآة Compose)؛ Railway: كلّ النشر SKIPPED والمهاجر لم يُطلَق. Runbook فكّ تجميد الهجرات الجديد [`MIGRATION_UNFREEZE_RUNBOOK_20261028.md`](../docs/runbooks/MIGRATION_UNFREEZE_RUNBOOK_20261028.md) يحلّ محلّ نسخة 2026-10-27 ومسوّدة المالك ([`log.md`](log.md)).
