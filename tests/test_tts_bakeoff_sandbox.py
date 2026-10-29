@@ -14,6 +14,7 @@ import os
 import platform
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -487,8 +488,16 @@ def test_closure_from_refuses_an_unclean_foreign_or_stale_inventory(tmp_path):
     assert run.load_closure(d2, "fake", interp, msha)[1] == "closure_stale"
 
 
-def test_the_inventory_trace_becomes_a_closure_of_files_links_and_loaders(tmp_path):
+@pytest.fixture
+def sandbox_tmpfs_path():
+    """Place this fixture under the sandbox tmpfs, independent of host TMPDIR."""
+    with tempfile.TemporaryDirectory(prefix="tts-closure-", dir=run.SANDBOX_TMPFS) as directory:
+        yield Path(directory)
+
+
+def test_the_inventory_trace_becomes_a_closure_of_files_links_and_loaders(sandbox_tmpfs_path):
     """سجلُّ ``strace -ff -y`` داخل الصندوق ⇒ ملفّاتٌ ببصماتها، وروابطُ عُبرت، ومُحمِّلُ التنفيذيّ (لا يظهر في strace)."""
+    tmp_path = sandbox_tmpfs_path
     real_dir = tmp_path / "lib"
     real_dir.mkdir()
     target = real_dir / "libvoice.so.1.2"

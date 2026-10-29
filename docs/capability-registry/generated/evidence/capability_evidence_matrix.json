@@ -6915,8 +6915,7 @@
       "integration_test_paths": [
         "services/gis-workflow-service/tests/test_bulletin_figure.py",
         "services/gis-workflow-service/tests/test_run_bundle.py",
-        "services/raster-service/test_landsat_thermal_unique_contract.py",
-        "services/vegetation-analysis-service/test_vegetation_production_contract.py"
+        "services/raster-service/test_landsat_thermal_unique_contract.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -6965,6 +6964,8 @@
         "services/sahool-platform/tests/test_data_quality.py",
         "services/sahool-platform/tests/test_day_zero.py",
         "services/sahool-platform/tests/test_engines.py",
+        "services/sahool-platform/tests/test_eo_crop_consumer.py",
+        "services/sahool-platform/tests/test_eo_lineage_resolver.py",
         "services/sahool-platform/tests/test_eo_stage_mismatch.py",
         "services/sahool-platform/tests/test_event_replay.py",
         "services/sahool-platform/tests/test_evidence_class.py",
@@ -7004,7 +7005,6 @@
         "services/vegetation-analysis-service/test_production_truth_closure.py",
         "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
         "services/vegetation-analysis-service/test_vegetation_event_admission.py",
-        "services/vegetation-analysis-service/test_vegetation_logic.py",
         "tests_v9/test_etc_dual_fresh_ndvi.py",
         "tests_v9/test_field_state_ndvi_enrichment.py",
         "tests_v9/test_kc_from_ndvi.py",
@@ -7017,10 +7017,11 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -7052,7 +7053,7 @@
         "database": true,
         "documentation": true,
         "events": true,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": true,
         "production": false,
         "runtime": false,
@@ -7087,7 +7088,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -7122,17 +7123,19 @@
           "type": "web"
         }
       ],
-      "evidence_score": 8,
+      "evidence_score": 9,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "tests_v9/test_eo_operational_quality_contract.py"
+      ],
       "learning_linked": false,
-      "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
@@ -7146,6 +7149,11 @@
         "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
         "services/sahool-platform/tests/test_crop_intelligence_spectral_state.py",
         "services/sahool-platform/tests/test_crop_twin_compose_endpoint.py",
+        "services/sahool-platform/tests/test_crop_twin_server_spectral.py",
+        "services/sahool-platform/tests/test_eo_crop_consumer.py",
+        "services/sahool-platform/tests/test_eo_numeric_hardening.py",
+        "services/sahool-platform/tests/test_eo_quality_gating.py",
+        "services/sahool-platform/tests/test_eo_shared_quality.py",
         "services/sahool-platform/tests/test_eo_stage_mismatch.py",
         "services/sahool-platform/tests/test_spectral_stress_bridge.py",
         "services/vegetation-analysis-service/test_vegetation_logic.py",
@@ -7816,6 +7824,7 @@
         "mobile/sahool_app/test/features/maps/maps_api_test.dart",
         "services/raster-service/test_cdse_tilejson_availability.py",
         "services/raster-service/test_cloud_native_catalog.py",
+        "services/raster-service/test_cog_windowed_processing.py",
         "services/raster-service/test_cog_writer_cog_layout.py",
         "services/raster-service/test_cog_writer_internal_mask.py",
         "services/raster-service/test_db_rehydrate.py",
@@ -10148,7 +10157,8 @@
         "services/sahool-platform/tests/test_irrigation_workflow_handlers.py",
         "tests/test_decision_contract_runtime_adapter.py",
         "tests_v9/test_advice_facade_contract.py",
-        "tests_v9/test_consumer_contract_gate.py"
+        "tests_v9/test_consumer_contract_gate.py",
+        "tests_v9/test_eo_operational_quality_contract.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -10495,6 +10505,7 @@
         "services/sahool-platform/tests/test_crop_twin_compose_endpoint.py",
         "services/sahool-platform/tests/test_crop_twin_server_spectral.py",
         "services/sahool-platform/tests/test_decision_lineage_endpoints.py",
+        "services/sahool-platform/tests/test_eo_crop_consumer.py",
         "services/sahool-platform/tests/test_field_season_projection.py",
         "services/sahool-platform/tests/test_gdd_phenology.py",
         "services/sahool-platform/tests/test_gdd_shadow.py",
@@ -11042,10 +11053,10 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 31,
-    "average_assessed_maturity": 2.1,
+    "aligned": 32,
+    "average_assessed_maturity": 2.11,
     "capability_count": 81,
-    "declared_above_evidence": 47,
+    "declared_above_evidence": 46,
     "evidence_above_declared": 3,
     "production_certified": 0,
     "promotion_preconditions_satisfied": 0,

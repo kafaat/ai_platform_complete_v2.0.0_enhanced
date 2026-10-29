@@ -26,8 +26,13 @@ from datetime import date
 
 from .boundary_confidence import CONFIDENCE_REVIEW_THRESHOLD
 from .canonical_boundary import canonical_boundary
+from .canonical_spectral_state import resolve_canonical_spectral_state
 from .canonical_water import canonical_water
-from .canonical_water_stress import canonical_water_stress
+from .canonical_water_stress import (
+    SPECTRAL_MAX_AGE_DAYS,
+    canonical_water_stress,
+    water_stress_spectral_inputs,
+)
 from .feature_registry import is_enabled
 from .field_operational_state import resolve_field_state
 from .field_readiness import compute_field_readiness
@@ -533,12 +538,13 @@ async def recompute_field_state(conn, field_id: str) -> dict:
     نمط التنفيذ عن المحفوظ سابقاً (أو لا صفّ سابق). يُستدعى ضمن tenant_connection.
     صدق: غياب tenant_id للحقل (غير موجود) ⇒ لا حفظ، تُعاد الحالة المحسوبة فقط.
     """
+    evaluation_date = date.today()
     fresh = await gather_field_freshness(conn, field_id)
     inputs = build_state_inputs(
         last_image_date=fresh["last_image_date"],
         latest_soil_sampled_on=fresh["latest_soil_sampled_on"],
         weather_age_hours=fresh["weather_age_hours"],
-        today=date.today(),
+        today=evaluation_date,
     )
     state = resolve_field_state(field_id, **inputs).to_dict()
     state["inputs"] = inputs  # شفافيّة التدقيق: المصادر التي دخلت القرار
@@ -709,6 +715,13 @@ async def recompute_field_state(conn, field_id: str) -> dict:
             # TAW من النسيج (افتراضيّ احتياطيّ) × عمق جذور افتراضيّ موسوم — موسومة
             # calibrated=False صدقاً (معايرة يمنيّة فجوة موثّقة، لا اختلاق دقّة).
             sw = soil_water_params(texture=None)
+            spectral_product = None
+            try:
+                spectral_product = await resolve_canonical_spectral_state(
+                    field_id=field_id, tenant_id=str(tenant_id)
+                )
+            except Exception:  # noqa: BLE001 -- missing QA never suppresses physical stress
+                logger.warning("Spectral product unavailable for field %s", field_id)
             stress = canonical_water_stress(
                 {
                     "depletion_mm": lrow["depletion_mm"],
@@ -716,13 +729,10 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                     "raw_fraction": sw["raw_fraction"],
                     "depletion_confidence": lrow["confidence"],
                     "soil_moisture_pct": lrow["soil_moisture_pct"],
-                    # D2b: تأكيد طيفيّ (NDMI+MSI) من imagery_automation_fields (v99)
-                    # + تاريخاهما لسياسة التوافق الزمنيّ (لا دمج مؤشّرَين متباعدَي التاريخ).
-                    "ndmi": fresh.get("ndmi_mean"),
-                    "msi": fresh.get("msi_mean"),
-                    "ndmi_date": fresh.get("ndmi_date"),
-                    "msi_date": fresh.get("msi_date"),
-                }
+                    **water_stress_spectral_inputs(spectral_product),
+                },
+                as_of=evaluation_date,
+                max_spectral_age_days=SPECTRAL_MAX_AGE_DAYS,
             )
             if stress is not None:
                 state["water_stress"] = stress

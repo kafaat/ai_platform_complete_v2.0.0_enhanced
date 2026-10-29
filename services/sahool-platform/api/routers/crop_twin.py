@@ -50,7 +50,7 @@ router = APIRouter()
 # `_resolve_server_spectral` انتقل إلى `api/canonical_spectral_state.py` بلا تغيير سلوك:
 # كان يعيش هنا وحده، فبقي `routers/internal_service.py` يُمرّر `spectral=None` رغم توفّر
 # مُحلِّل عامل (P0-2). يُستورَد بالاسم كي يبقى ترقيعه في الاختبارات على هذه الوحدة عاملاً.
-from api.canonical_spectral_state import _resolve_server_spectral  # noqa: E402
+from api.canonical_spectral_state import resolve_canonical_spectral_state  # noqa: E402
 
 
 def compose_server_authoritative_spectral_enabled() -> bool:
@@ -131,23 +131,17 @@ async def _compose_state(req: CropTwinComposeRequest, *, tenant_id: str | None =
     spec_product_ids = req.spectral_product_ids
     spec_quality = req.spectral_quality_status
     spec_temporal_compat = req.spectral_temporal_compatible
+    spectral_state = None
     server_spectral_attempted = False
     if compose_server_authoritative_spectral_enabled() and req.field_id:
         server_spectral_attempted = True
-        server_spec = await _resolve_server_spectral(req.field_id, tenant_id)
-        if server_spec is not None:
+        spectral_state = await resolve_canonical_spectral_state(
+            field_id=req.field_id, tenant_id=tenant_id
+        )
+        if spectral_state is not None:
             spectral_provenance = "raster-service"
-            spec_ndvi = server_spec["ndvi"]
-            spec_ndre, spec_ndmi, spec_msi = (
-                server_spec["ndre"],
-                server_spec["ndmi"],
-                server_spec["msi"],
-            )
-            spec_acq_date = server_spec.get("acquisition_date")
-            spec_product_ids = [server_spec["scene_id"]] if server_spec.get("scene_id") else []
-            spec_quality = "raster_service_authoritative"
-            # الطيف الخادميّ لا يحمل توافقاً زمنيّاً مُدّعى من العميل.
-            spec_temporal_compat = None
+            spec_ndvi = spectral_state["indices"]["ndvi"]
+            spec_product_ids = spectral_state["evidence_ids"]
 
     # Kc ديناميكيّ من NDVI (تطعيم fAPAR بين البدئيّ والذروة) أو ثابت للمرحلة.
     kc_map, _ = kc_map_for_crop(req.crop)
@@ -169,16 +163,17 @@ async def _compose_state(req: CropTwinComposeRequest, *, tenant_id: str | None =
         for d in req.forecast
     ]
 
-    spectral_state = build_canonical_spectral_state(
-        ndvi=spec_ndvi,
-        ndre=spec_ndre,
-        ndmi=spec_ndmi,
-        msi=spec_msi,
-        acquisition_date=spec_acq_date,
-        product_ids=spec_product_ids,
-        quality_status=spec_quality,
-        temporal_compatible=spec_temporal_compat,
-    )
+    if spectral_state is None:
+        spectral_state = build_canonical_spectral_state(
+            ndvi=spec_ndvi,
+            ndre=spec_ndre,
+            ndmi=spec_ndmi,
+            msi=spec_msi,
+            acquisition_date=spec_acq_date,
+            product_ids=spec_product_ids,
+            quality_status=spec_quality,
+            temporal_compatible=spec_temporal_compat,
+        )
 
     # نواة GDD من محرّك الطقس (method="modified"، نفس عتبات النموذج) — لا gdd_day محلّيّ.
     # تعذّر المحرّك ⇒ 503 fail-closed. عتبات المحصول من crop_gdd_policy (سياسة Season).

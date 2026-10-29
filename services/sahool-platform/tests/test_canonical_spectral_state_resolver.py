@@ -16,13 +16,14 @@ from core.canonical_field_state import compose_canonical_field_state
 pytestmark = pytest.mark.unit
 
 
-def _grid(mean, *, real=True, source="cdse", date="2026-06-10", scene="S2_ABC"):
+def _grid(mean, *, real=True, source="cdse", date="2026-06-10", scene="S2_ABC", quality=None):
     return {
         "real_data": real,
         "source": source,
         "date": date,
         "scene_id": scene,
         "stats": {"mean": mean},
+        **({"quality_status": quality} if quality is not None else {}),
     }
 
 
@@ -110,12 +111,21 @@ async def test_temporal_compatibility_is_declared_unverified_not_assumed(monkeyp
 
 
 @pytest.mark.asyncio
-async def test_partial_indices_are_named_missing_not_dropped(monkeypatch):
-    mod, _ = _patch_grid(monkeypatch, {"ndvi": _grid(0.62)})
+@pytest.mark.parametrize("quality, status", [(None, "degraded"), ("validated", "available")])
+async def test_partial_indices_are_named_missing_not_dropped(monkeypatch, quality, status):
+    # A real provider observation is not evidence that its scientific quality was validated.
+    mod, _ = _patch_grid(monkeypatch, {"ndvi": _grid(0.62, quality=quality)})
     product = await mod.resolve_canonical_spectral_state(tenant_id="t1", field_id="f1")
     assert product["indices"]["ndvi"] == 0.62
     assert sorted(product["missing_indices"]) == ["msi", "ndmi", "ndre"]
-    assert product["status"] == "available"
+    assert product["status"] == status
+    assert product["quality_status"] == (quality or "unknown")
+    assert product["index_provenance"]["ndvi"]["quality_status"] == (quality or "unknown")
+    assert product["source_authority"] == "raster-service"
+    assert product["water_stress"]["confirmation_available"] is False
+    assert ("spectral_quality_not_eligible_for_confirmation" in product["limitations"]) is (
+        quality != "validated"
+    )
 
 
 @pytest.mark.asyncio

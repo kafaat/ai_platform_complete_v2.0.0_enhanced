@@ -58,9 +58,26 @@ MSI_THRESHOLDS = {
 }
 
 
+def _valid_index(value, *, normalized: bool) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    try:
+        number = float(value)
+    except (OverflowError, TypeError, ValueError):
+        return None
+    if not math.isfinite(number):
+        return None
+    if normalized and not -1.0 <= number <= 1.0:
+        return None
+    if not normalized and number < 0.0:
+        return None
+    return number
+
+
 def assess_water_stress_ndmi(ndmi: float | None) -> dict:
     """يحوّل NDMI إلى إشارة إجهاد مائي (حتمي، من الأدبيّات)."""
-    if ndmi is None or not math.isfinite(ndmi):
+    ndmi = _valid_index(ndmi, normalized=True)
+    if ndmi is None:
         # غياب بيانات أو ناتج غير رقمي (NaN/±inf من قسمة/nodata) ⇒ unknown لا severe.
         return {
             "signal": StressSignal.UNKNOWN.value,
@@ -85,7 +102,8 @@ def assess_water_stress_ndmi(ndmi: float | None) -> dict:
 
 def assess_water_stress_msi(msi: float | None) -> dict:
     """يحوّل MSI إلى إشارة إجهاد مائي (عكس NDMI، Hunt & Rock 1989)."""
-    if msi is None or not math.isfinite(msi):
+    msi = _valid_index(msi, normalized=False)
+    if msi is None:
         # غياب بيانات أو ناتج غير رقمي (NaN/±inf من قسمة SWIR/NIR/nodata) ⇒ unknown.
         return {
             "signal": StressSignal.UNKNOWN.value,
@@ -115,7 +133,8 @@ def _severity_rank(sig: str) -> int:
 def fuse_water_stress(ndmi: float | None = None, msi: float | None = None) -> dict:
     """يدمج إشارات الرطوبة الطيفيّة (NDMI + MSI) في حكم واحد متّسق.
 
-    لو اتّفقا → ثقة أعلى. لو اختلفا → يُعلَن (قد يكون أحدهما متأثّراً بضوضاء).
+    الاتفاق لا يرفع الثقة: المؤشّران تحويلان لنسبة NIR/SWIR1 نفسها.
+    الاختلاف قد ينتج من العتبات؛ لا يثبت ضوضاء أحد القياسين.
     صدق: لو كلاهما غير متاح → unknown (لا اختراع إجهاد).
     """
     a = assess_water_stress_ndmi(ndmi)
@@ -126,6 +145,8 @@ def fuse_water_stress(ndmi: float | None = None, msi: float | None = None) -> di
         return {
             "fused_signal": StressSignal.UNKNOWN.value,
             "confidence": "none",
+            "independent_evidence_count": 0,
+            "dependency_groups": [],
             "sources": [a, b],
             "note_ar": "لا مؤشّر رطوبة متاح — لا حكم على الإجهاد المائي (صدق).",
         }
@@ -137,11 +158,13 @@ def fuse_water_stress(ndmi: float | None = None, msi: float | None = None) -> di
     agree = len(set(ranks)) == 1 and len(avail) == 2
 
     if len(avail) == 2:
-        conf = "high" if agree else "moderate"
+        # Same-band transforms are not independent corroboration. This changes
+        # evidence strength only, not the existing categorical stress thresholds.
+        conf = "moderate"
         note = (
-            "المؤشّران متّفقان — ثقة عالية."
+            "المؤشّران متّفقان لكنهما غير مستقلين — ثقة استرشادية متوسطة."
             if agree
-            else "المؤشّران مختلفان قليلاً — أُخذ الأشدّ احترازاً؛ راجع الميدان."
+            else "تصنيفا المؤشّرين مختلفان؛ قد يكون السبب العتبات — راجع المعايرة والميدان."
         )
     else:
         conf = "moderate"
@@ -150,6 +173,9 @@ def fuse_water_stress(ndmi: float | None = None, msi: float | None = None) -> di
     return {
         "fused_signal": fused,
         "confidence": conf,
+        "confidence_basis": "single_spectral_dependency_group",
+        "independent_evidence_count": 1,
+        "dependency_groups": ["nir_swir1_ratio"],
         "agreement": agree,
         "sources": [a, b],
         "note_ar": note,
@@ -189,3 +215,14 @@ def index_coverage_report() -> dict:
             "ومربوطان بقرار الإجهاد المائي (كلاهما عبر band_math)."
         ),
     }
+
+
+def spectral_confirmation_eligible(ndmi, msi, *, quality_status, temporal_compatible):
+    """Shared scientific eligibility; source authority alone cannot validate QA."""
+    return (
+        isinstance(quality_status, str)
+        and quality_status == "validated"
+        and temporal_compatible is True
+        and _valid_index(ndmi, normalized=True) is not None
+        and _valid_index(msi, normalized=False) is not None
+    )

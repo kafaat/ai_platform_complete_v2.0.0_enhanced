@@ -108,10 +108,10 @@ def _compute_master_seed(config: RandomizationConfig) -> int:
 def generate_block_assignments(config: RandomizationConfig) -> RandomizationResult:
     """يولّد توزيعاً حتميّاً قابلاً للتحقّق للكتل.
 
-    يحتاج ≥4 كتل (معيار الصحّة الإحصائيّة — SARE).
+    يحتاج ≥4 كتل وفق سياسة هذا المولّد؛ هذا ليس ضماناً للقوة الإحصائية.
     """
     if config.num_blocks < 4:
-        raise ValueError("الحدّ الأدنى ٤ كتل للصحّة الإحصائيّة (تقسيم الحقل لنصفَين غير صالح)")
+        raise ValueError("سياسة هذا المولّد تتطلب ٤ كتل على الأقل")
 
     master_seed = _compute_master_seed(config)
     master_seed_hash = hashlib.sha256(str(master_seed).encode()).hexdigest()
@@ -148,7 +148,22 @@ def generate_block_assignments(config: RandomizationConfig) -> RandomizationResu
 
 
 def verify_assignment(block: BlockAssignment) -> bool:
-    """يتحقّق أنّ كتلة لم تُلاعَب (يعيد حساب الـhash)."""
+    """Check complementary positions and the existing assignment checksum.
+
+    The checksum detects inconsistent edits; it is not an authenticated signature.
+    """
+    if not isinstance(block.treatment_position, str) or block.treatment_position not in {
+        "north",
+        "south",
+    }:
+        return False
+    if not isinstance(block.control_position, str) or block.control_position not in {
+        "north",
+        "south",
+    }:
+        return False
+    if block.treatment_position == block.control_position:
+        return False
     treatment_is_north = block.treatment_position == "north"
     expected = hashlib.sha256(
         f"{block.block_seed}:{block.block_number}:{treatment_is_north}".encode()

@@ -289,7 +289,8 @@ export interface TrialVerdictResult extends Disableable {
   treatment_mean?: number;
   control_mean?: number;
   mean_difference?: number;
-  t_statistic?: number;
+  t_statistic?: number | null;
+  statistic_status?: 'ok' | 'zero_variance_equal' | 'zero_variance_difference';
   df?: number;
   p_value?: number;
   confidence_level?: number;
@@ -297,9 +298,25 @@ export interface TrialVerdictResult extends Disableable {
   is_significant?: boolean;
   ci_lower?: number;
   ci_upper?: number;
-  percent_change?: number;
+  percent_change?: number | null;
+  percent_change_status?: 'ok' | 'zero_control';
+  inferential_valid?: boolean;
+  requires_review?: boolean;
   verdict_ar?: string;
   recommendation_ar?: string;
+}
+
+/** حالة التباين الصفري تُعرض كما أعلنها الخادم، دون تحويلها إلى حكم تفوّق عادي. */
+export function trialConclusion(r: TrialVerdictResult | undefined): { label: string; isSignificant: boolean } {
+  if (r?.statistic_status === 'zero_variance_difference' || r?.statistic_status === 'zero_variance_equal') {
+    return { label: 'فروق متطابقة — راجع القياسات', isSignificant: false };
+  }
+  if (r?.requires_review || r?.inferential_valid === false) {
+    return { label: 'نتيجة تحتاج مراجعة', isSignificant: false };
+  }
+  return r?.is_significant
+    ? { label: 'فرق دالّ إحصائيّاً', isSignificant: true }
+    : { label: 'الفرق غير دالّ', isSignificant: false };
 }
 
 /** حقائق حكم التجربة (متوسّطات/فرق/p/LSD/تغيّر ٪) — أرقام الخادم كما هي. */

@@ -77,6 +77,7 @@ def test_spatial_rcbd_assignment_is_deterministic_and_balanced():
 
     outcomes = {
         r["plot_id"]: {
+            "layout_id": r["layout_id"],
             "outcome_refs": [f"yield:{r['plot_id']}"],
             "measurements": {"yield_t_ha": 3.2},
         }
@@ -85,6 +86,7 @@ def test_spatial_rcbd_assignment_is_deterministic_and_balanced():
     bound = m.bind_plot_outcomes(a, outcomes)
     assert len(bound) == 9
     assert all(row["outcome_refs"] for row in bound)
+    assert all(row["layout_id"] == a[0]["layout_id"] for row in bound)
 
 
 def test_dataset_pedigree_requires_content_identity_and_builds_cross_domain_profile():

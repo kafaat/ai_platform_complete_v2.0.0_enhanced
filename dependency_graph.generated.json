@@ -1,5 +1,5 @@
 {
-  "edge_count": 903,
+  "edge_count": 902,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -3133,16 +3133,6 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/field_completeness.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://imagery_automation_fields",
-      "to": "db://imagery_automation_fields",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/irrigation_recommendation.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9050,7 +9040,7 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 466,
+    "READS": 465,
     "ROUTES_TO": 72,
     "WRITES": 315
   },
@@ -9067,8 +9057,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 782,
-      "resolved": 781,
+      "observed": 781,
+      "resolved": 780,
       "unresolved_component_paths": 0
     }
   }

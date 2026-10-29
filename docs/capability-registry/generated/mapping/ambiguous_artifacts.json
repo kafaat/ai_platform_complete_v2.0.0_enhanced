@@ -1600,11 +1600,11 @@
         ]
       },
       {
-        "capability_id": "FM-007",
-        "score": 9,
+        "capability_id": "IRR-005",
+        "score": 10,
         "signals": [
-          "content:inventory",
-          "content:procurement"
+          "content:Irrigation recommendation",
+          "content:irrigation recommendation"
         ]
       }
     ]
@@ -2569,6 +2569,36 @@
           "content:cdse",
           "content:sentinel",
           "content:stac"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/reviews/eo_trial_consolidation_20261029.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 9,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "IRR-005",
+        "score": 8,
+        "signals": [
+          "content:Irrigation recommendation",
+          "content:irrigation recommendation"
+        ]
+      },
+      {
+        "capability_id": "DEC-006",
+        "score": 8,
+        "signals": [
+          "content:Execution receipt",
+          "content:execution receipt"
         ]
       }
     ]
@@ -7178,19 +7208,19 @@
     "kind": "backend",
     "candidates": [
       {
-        "capability_id": "SAT-004",
-        "score": 12,
-        "signals": [
-          "content:NDMI",
-          "content:ndmi"
-        ]
-      },
-      {
         "capability_id": "SAT-003",
         "score": 12,
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-004",
+        "score": 10,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
         ]
       }
     ]
@@ -8534,7 +8564,7 @@
       },
       {
         "capability_id": "SAT-003",
-        "score": 10,
+        "score": 12,
         "signals": [
           "content:NDVI",
           "content:ndvi"
@@ -9573,6 +9603,14 @@
           "content:NDVI",
           "content:ndvi"
         ]
+      },
+      {
+        "capability_id": "SAT-004",
+        "score": 10,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
       }
     ]
   },
@@ -9594,6 +9632,36 @@
         "signals": [
           "content:Execution request",
           "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_eo_crop_consumer.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 12,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "WX-006",
+        "score": 10,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
         ]
       }
     ]
@@ -11443,6 +11511,28 @@
           "content:Weather forecast",
           "content:forecast",
           "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_eo_operational_quality_contract.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 12,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 10,
+        "signals": [
+          "content:ET0",
+          "content:et0"
         ]
       }
     ]

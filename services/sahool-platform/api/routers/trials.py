@@ -15,6 +15,9 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
 
 from api.main import (
     UserSchema,
@@ -30,7 +33,39 @@ from api.trial_engine import (
 from api.trial_models import TrialAnalysisRequest
 from shared.precision_agriculture.trial_spatial import design_spatial_rcbd
 
-router = APIRouter()
+
+class _TrialValidationRoute(APIRoute):
+    """Keep rejected raw input out of the bounded validation error response.
+
+    Pydantic errors can retain arbitrary nested NaN/Infinity in input or context.
+    Returning only diagnostic fields preserves 422 without leaking that payload.
+    This boundary applies only to trial routes, including isolated consumers.
+    """
+
+    def get_route_handler(self):
+        original = super().get_route_handler()
+
+        async def handler(request):
+            try:
+                return await original(request)
+            except RequestValidationError as exc:
+                details = [
+                    {
+                        "type": str(error.get("type", "validation_error"))[:120],
+                        "loc": [
+                            part if type(part) is int else str(part)[:120]
+                            for part in error.get("loc", ())[:20]
+                        ],
+                        "msg": str(error.get("msg", "Invalid trial input"))[:512],
+                    }
+                    for error in exc.errors()[:50]
+                ]
+                return JSONResponse(status_code=422, content={"detail": details})
+
+        return handler
+
+
+router = APIRouter(route_class=_TrialValidationRoute)
 
 
 @router.post("/api/v1/trials/analyze")
@@ -52,7 +87,7 @@ def analyze_trial(
             out["spatial_trial"] = {
                 "authority": "trial_design_only",
                 "plots": design_spatial_rcbd(
-                    trial_id=req.trial_id or "unbound-trial",
+                    trial_id=req.trial_id,
                     treatments=spatial.treatments,
                     n_blocks=spatial.n_blocks,
                     field_geometry=spatial.field_geometry,

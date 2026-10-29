@@ -1,7 +1,7 @@
 """اختبارات جسر الإجهاد المائي الطيفي (offline) — NDMI/MSI → قرار، والصدق.
 
 يتحقّق من: تحويل NDMI/MSI إلى إشارة إجهاد بعتباتها العلميّة، دمج المؤشّرين
-(اتّفاق→ثقة عالية، تضارب→الأشدّ احترازاً)، الصدق عند غياب المؤشّر (unknown، لا
+(اتّفاق بلا رفع الثقة لمؤشرين تابعين، تضارب→الأشدّ احترازاً)، الصدق عند غياب المؤشّر (unknown، لا
 اختراع)، وتقرير شفافيّة الربط. لا قاعدة/شبكة.
 """
 
@@ -54,12 +54,13 @@ def test_fuse_both_missing_is_unknown():
     assert out["confidence"] == "none"  # صدق: لا حكم بلا مؤشّر
 
 
-def test_fuse_agreement_is_high_confidence():
-    # NDMI رطب (none) + MSI صحّي (none) ⇒ اتّفاق ⇒ ثقة عالية
+def test_fuse_agreement_does_not_imply_independent_evidence():
+    # الاتفاق بين تحويلين للنسبة الطيفية لا يمثل قياسين مستقلين.
     out = fuse_water_stress(ndmi=0.5, msi=0.8)
     assert out["fused_signal"] == "none"
     assert out["agreement"] is True
-    assert out["confidence"] == "high"
+    assert out["confidence"] == "moderate"
+    assert out["independent_evidence_count"] == 1
 
 
 def test_fuse_conflict_takes_worst_cautiously():

@@ -12,7 +12,7 @@ import {
 import {
   bufferFacts, coherenceFacts, parseJsonObject, replayFacts, severityColor,
   splitFacts, stageCheckHazards, temporalCheckFacts, temporalCheckIssues,
-  trialFacts, unionFacts, validateFacts, whatIfFacts, type OpFact,
+  trialConclusion, trialFacts, unionFacts, validateFacts, whatIfFacts, type OpFact,
 } from '../../lib/gisTemporalOps';
 import { T } from '../ds';
 
@@ -204,12 +204,27 @@ export default function GisTemporalOpsCard({ fieldId, cropLabel, enabled = true 
   const [tbTreat, setTbTreat] = useState('');
   const [tbCtrl, setTbCtrl] = useState('');
   const [tLabel, setTLabel] = useState('');
+  const [trialInputError, setTrialInputError] = useState<string | null>(null);
   const trialMut = useTrialAnalyze();
+  const trialSummary = trialConclusion(trialMut.data);
   const addBlock = () => {
     const n = Number(tbNum), tr = Number(tbTreat), ct = Number(tbCtrl);
-    if (!Number.isFinite(n) || !Number.isFinite(tr) || !Number.isFinite(ct) || tbNum.trim() === '' || tbTreat.trim() === '' || tbCtrl.trim() === '') return;
+    if (tbNum.trim() === '' || !Number.isSafeInteger(n) || n < 1) {
+      setTrialInputError('رقم الكتلة يجب أن يكون عددًا صحيحًا موجبًا.');
+      return;
+    }
+    if (tbTreat.trim() === '' || tbCtrl.trim() === '' || !Number.isFinite(tr) || !Number.isFinite(ct)) {
+      setTrialInputError('أدخِل قيم غلّة رقمية صالحة للمعالجة والشاهد.');
+      return;
+    }
+    if (blocks.some((block) => block.block_number === n)) {
+      setTrialInputError(`الكتلة رقم ${n} موجودة بالفعل. لا تُدخل قياسات القطعة نفسها كمكررات مستقلة.`);
+      return;
+    }
     setBlocks((prev) => [...prev, { block_number: n, treatment_yield: tr, control_yield: ct }]);
     setTbNum(''); setTbTreat(''); setTbCtrl('');
+    setTrialInputError(null);
+    trialMut.reset();
   };
 
   if (!enabled) return null;
@@ -494,28 +509,29 @@ export default function GisTemporalOpsCard({ fieldId, cropLabel, enabled = true 
           <SectionHeader icon={<Beaker className="w-4 h-4 text-sky-300" aria-hidden="true" />} title="تحليل تجربة مقترنة (t-test مزدوج + LSD)" open={isOpen('trial')} onToggle={() => toggle('trial')} />
           {isOpen('trial') && (
             <div className="flex flex-col gap-2 rounded-xl border p-2" style={{ borderColor: T.line, background: CARD_BG }}>
-              <div className="text-[10px]" style={{ color: T.faint }}>أدخِل كتلاً مقترنة (معالجة مقابل شاهد). معيار SARE: ٤ كتل على الأقلّ للصحّة الإحصائيّة (الخادم يحكم).</div>
+              <div className="text-[10px]" style={{ color: T.faint }}>تتطلب هذه المقارنة ٤ كتل مستقلة على الأقلّ، بقيمة غلّة للمعالجة وأخرى للشاهد في كل كتلة. العينات المتعددة من القطعة نفسها لا تزيد عدد المكررات.</div>
               <div className="flex flex-wrap items-center gap-2">
                 <LabeledInput id="tr-num" label="رقم الكتلة" value={tbNum} onChange={setTbNum} type="number" width="w-14" />
                 <LabeledInput id="tr-treat" label="غلّة المعالجة" value={tbTreat} onChange={setTbTreat} type="number" width="w-16" />
                 <LabeledInput id="tr-ctrl" label="غلّة الشاهد" value={tbCtrl} onChange={setTbCtrl} type="number" width="w-16" />
                 <button type="button" onClick={addBlock} className="text-[11px] px-2 py-0.5 rounded-lg font-semibold" style={{ border: `1px solid ${T.line}`, color: '#86efac', background: SUB_BG }}>+ أضِف كتلة</button>
               </div>
+              {trialInputError && <div role="alert" className="text-[11px]" style={{ color: '#fca5a5' }}>{trialInputError}</div>}
               {blocks.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  {blocks.map((b, i) => <span key={i} className="text-[10px] px-2 py-0.5 rounded-full" style={{ border: `1px solid ${T.line}`, color: T.muted }}>#{b.block_number}: {b.treatment_yield} / {b.control_yield}</span>)}
-                  <button type="button" onClick={() => setBlocks([])} className="text-[10px] px-2 py-0.5 rounded-full" style={{ border: `1px solid ${T.line}`, color: '#fca5a5' }}>مسح</button>
+                  {blocks.map((b) => <span key={b.block_number} className="text-[10px] px-2 py-0.5 rounded-full" style={{ border: `1px solid ${T.line}`, color: T.muted }}>#{b.block_number}: {b.treatment_yield} / {b.control_yield}</span>)}
+                  <button type="button" onClick={() => { setBlocks([]); setTrialInputError(null); trialMut.reset(); }} className="text-[10px] px-2 py-0.5 rounded-full" style={{ border: `1px solid ${T.line}`, color: '#fca5a5' }}>مسح</button>
                 </div>
               )}
               <div className="flex flex-wrap items-center gap-2">
                 <LabeledInput id="tr-label" label="تسمية المعالجة" value={tLabel} onChange={setTLabel} placeholder="المعالجة الجديدة" width="w-32" />
-                <RunButton pending={trialMut.isPending} disabled={blocks.length === 0} onClick={() => trialMut.mutate({ blocks, treatment_label_ar: tLabel.trim() || undefined })} label="حلّل" />
+                <RunButton pending={trialMut.isPending} disabled={blocks.length < 4} onClick={() => trialMut.mutate({ blocks, treatment_label_ar: tLabel.trim() || undefined })} label="حلّل" />
               </div>
-              {blocks.length === 0 && <div className="text-[11px]" style={{ color: T.faint }}>أضِف كتلة واحدة على الأقلّ (الخادم يرفض ما دون ٤ كتل بحكم صادق).</div>}
+              {blocks.length < 4 && <div className="text-[11px]" style={{ color: T.faint }}>أضِف {4 - blocks.length} كتل مستقلة أخرى لإتاحة التحليل.</div>}
               {trialMut.isError && <div className="text-[11px]" style={{ color: '#fca5a5' }}>{errText(trialMut.error)}</div>}
               {trialMut.data?.disabled ? disabledMsg : trialMut.data && !trialMut.data.disabled ? (
                 <div className="flex flex-col gap-1 rounded-lg border p-1.5" style={{ borderColor: T.line, background: SUB_BG }}>
-                  <div className="flex items-center gap-2 text-[11px]"><span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style={{ color: trialMut.data.is_significant ? '#86efac' : '#fdba74', border: `1px solid ${T.line}` }}>{trialMut.data.is_significant ? 'فرق دالّ إحصائيّاً' : 'الفرق غير دالّ'}</span></div>
+                  <div className="flex items-center gap-2 text-[11px]"><span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style={{ color: trialSummary.isSignificant ? '#86efac' : '#fdba74', border: `1px solid ${T.line}` }}>{trialSummary.label}</span></div>
                   <FactPills facts={trialFacts(trialMut.data)} />
                   {trialMut.data.verdict_ar && <div className="text-[11px]" style={{ color: T.muted }}>{trialMut.data.verdict_ar}</div>}
                   {trialMut.data.recommendation_ar && <div className="text-[11px]" style={{ color: T.muted }}>{trialMut.data.recommendation_ar}</div>}

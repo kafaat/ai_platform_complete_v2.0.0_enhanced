@@ -4394,7 +4394,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 250,
+    "line": 245,
     "method": "POST",
     "path": "/api/v1/crop-twin/compose",
     "handler": "compose_crop_twin",
@@ -4403,7 +4403,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 302,
+    "line": 297,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision-candidate",
     "handler": "crop_decision_candidate_endpoint",
@@ -4412,7 +4412,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 409,
+    "line": 404,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision",
     "handler": "crop_decision_endpoint",
@@ -4421,7 +4421,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 535,
+    "line": 530,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision/profit-aware",
     "handler": "profit_aware_decision_endpoint",
@@ -6806,7 +6806,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 106,
+    "line": 111,
     "method": "POST",
     "path": "/api/v1/irrigation-recommendation",
     "handler": "irrigation_recommendation",
@@ -6815,7 +6815,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 184,
+    "line": 189,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
     "handler": "field_irrigation_recommendation",
@@ -8138,7 +8138,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/trials.py",
-    "line": 37,
+    "line": 72,
     "method": "POST",
     "path": "/api/v1/trials/analyze",
     "handler": "analyze_trial",

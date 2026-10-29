@@ -11,7 +11,7 @@ sahool_core.field_trial_design
 (Fisher، Rothamsted، قرن من التطبيق)، لا A/B الرقمي:
   • المعاملات (treatments): ما نختبره (أصناف، أسمدة، مواعيد).
   • الكتل (blocks): قطع متجانسة تعزل تفاوت التربة (مبدأ blocking).
-  • التكرار (replication): 3-5 تكرارات لكل معاملة (موثوقية).
+  • التكرار (replication): سياسة المنتج تقبل 3 كحد أدنى وتوصي بـ4 كتل.
   • العشوائية (randomization): توزيع المعاملات عشوائياً داخل كل كتلة.
 
 التمييز عن A/B الرقمي: لا hash/طبقات/تدفّق ضخم. عيّنة صغيرة (قطع
@@ -23,12 +23,17 @@ sahool_core.field_trial_design
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
+from numbers import Integral
+from statistics import fmean, stdev
 
-# الحدود العملية للتجارب الحقلية (Nebraska Extension on-farm trials)
+# سياسة المنتج: 3 كتل حد أدنى للتصميم، و4 موصى بها للفحص الوصفي.
+# هذه الحدود ليست ضماناً عاماً للقوة أو الصلاحية الإحصائية.
 MIN_REPLICATIONS = 3
 MAX_TREATMENTS = 5  # تجارب المزرعة: لا أكثر من 5 معاملات عملياً
 RECOMMENDED_REPLICATIONS = 4
+_CONTROL_ALIASES = {"control", "شاهد"}
 
 
 @dataclass
@@ -55,6 +60,38 @@ class TrialAnalysis:
     warnings_ar: list[str] = field(default_factory=list)
 
 
+def _treatment_identity(label: str) -> str:
+    normalized = label.strip().casefold()
+    return "control" if normalized in _CONTROL_ALIASES else normalized
+
+
+def _treatment_labels(labels: list[str]) -> list[str]:
+    """Keep display names, but reject ambiguous or empty treatment identities."""
+    normalized = []
+    seen = set()
+    for label in labels:
+        if not isinstance(label, str) or not label.strip():
+            raise ValueError("اسم المعاملة يجب أن يكون نصاً غير فارغ")
+        identity = _treatment_identity(label)
+        if identity in seen:
+            raise ValueError(f"اسم معاملة مكرر: {label.strip()}")
+        seen.add(identity)
+        normalized.append(label.strip())
+    return normalized
+
+
+def _finite_number(value: float, *, name: str) -> float:
+    try:
+        if isinstance(value, bool):
+            raise ValueError
+        number = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(f"{name}: يلزم عدد محدود") from exc
+    if not math.isfinite(number):
+        raise ValueError(f"{name}: يلزم عدد محدود")
+    return number
+
+
 def design_rcbd(
     *,
     treatments: list[str],
@@ -63,11 +100,15 @@ def design_rcbd(
 ) -> TrialDesign:
     """يصمّم تجربة RCBD. الكتل تعزل تفاوت التربة؛ التكرار = عدد الكتل.
 
-    قاعدة: لا أكثر من 5 معاملات، 3+ تكرارات (كتل). الشاهد (control)
-    إلزامي — لا حكم على معاملة دون مرجع (قانون المقارنة المضادة)."""
+    سياسة المنتج: 3 كتل على الأقل و4 موصى بها، وليست ضماناً للقوة الإحصائية.
+    يضاف الشاهد افتراضياً إن لم يوجد بالعربية أو الإنجليزية؛ تعطيل إضافته
+    لا يتيح تحليل أثر المعاملة دون مرجع."""
+    if isinstance(n_blocks, bool) or not isinstance(n_blocks, Integral) or n_blocks < 1:
+        raise ValueError("n_blocks must be a positive integer")
+    n_blocks = int(n_blocks)
     warnings: list[str] = []
-    trts = list(treatments)
-    if include_control and "control" not in [t.lower() for t in trts]:
+    trts = _treatment_labels(treatments)
+    if include_control and not any(_treatment_identity(t) == "control" for t in trts):
         trts = ["شاهد"] + trts
 
     valid = True
@@ -83,7 +124,7 @@ def design_rcbd(
         valid = False
         warnings.append(
             f"الكتل ({n_blocks}) أقلّ من الحدّ الأدنى ({MIN_REPLICATIONS}) — "
-            "التكرار غير كافٍ لتمييز الأثر من الضوضاء"
+            "لا يحقق سياسة الحد الأدنى للتصميم"
         )
     elif n_blocks < RECOMMENDED_REPLICATIONS:
         warnings.append(f"يُفضّل {RECOMMENDED_REPLICATIONS} كتل لموثوقية أعلى")
@@ -103,28 +144,45 @@ def design_rcbd(
     )
 
 
-def _variance(values: list[float]) -> float:
-    if len(values) < 2:
-        return 0.0
-    m = sum(values) / len(values)
-    return sum((v - m) ** 2 for v in values) / (len(values) - 1)
-
-
 def analyze_trial(
     *,
     treatment_results: dict,  # {treatment: [قيم التكرارات]}
     control_key: str = "شاهد",
     mde_pct: float = 10.0,  # الحد الأدنى للمغزى العملي (% فرق)
 ) -> TrialAnalysis:
-    """يحلّل نتائج التجربة بمنطق صغير-العيّنة (لا p-value أعمى).
+    """فحص وصفي لنتائج مقياس تكون قيمته الأعلى أفضل، مثل المحصول.
 
-    المبادئ: (١) الأهمية العملية (MDE) لا الإحصائية وحدها — فرق <MDE
-    عديم المغزى زراعياً مهما كان 'دالّاً'. (٢) الثقة فئوية لا نسبة
-    (عيّنة صغيرة). (٣) لا حكم دون شاهد. (٤) التباين العالي يمنع الترقية."""
+    كل قيمة تمثل قطعة تجريبية مستقلة؛ يجب أن تتطابق قوائم المعاملة والشاهد
+    بالكتلة وبالترتيب، ولا تُعد القياسات الزمنية أو العينات الفرعية تكرارات.
+    اختلاف طول القوائم يسمح بوصف المتوسطات فقط ويمنع الترقية.
+
+    سياسة الفحص: تحسن موجب يبلغ MDE، وأربع أزواج على الأقل، ونسبة الانحراف
+    المعياري لفروق الأزواج إلى مقدار متوسطها <=1. النسبة بلا وحدة وتشمل
+    تباين الشاهد بعد حجب أثر الكتلة المشترك. هذه قاعدة منتج وصفية، وليست
+    اختبار دلالة أو ضماناً للقوة الإحصائية؛ سقف الثقة في تجربة واحدة medium.
+    """
+    mde_pct = _finite_number(mde_pct, name="mde_pct")
+    if mde_pct <= 0:
+        raise ValueError("mde_pct يجب أن يكون موجباً")
+    labels = _treatment_labels(list(treatment_results))
+    control_key = _treatment_labels([control_key])[0]
+    results = {
+        label: [_finite_number(value, name=label) for value in values]
+        for label, values in zip(labels, treatment_results.values(), strict=True)
+    }
     warnings: list[str] = []
-    means = {t: round(sum(v) / len(v), 3) for t, v in treatment_results.items() if v}
+    try:
+        raw_means = {t: _finite_number(fmean(v), name=t) for t, v in results.items() if v}
+    except OverflowError as exc:
+        raise ValueError("Trial magnitudes exceed the finite analysis range") from exc
+    # Round only presentation values, never the screening decision.
+    means = {t: round(mean, 3) for t, mean in raw_means.items()}
+    control_label = next(
+        (t for t in raw_means if _treatment_identity(t) == _treatment_identity(control_key)),
+        None,
+    )
 
-    if control_key not in means:
+    if control_label is None:
         return TrialAnalysis(
             treatment_means=means,
             best_treatment=None,
@@ -136,9 +194,9 @@ def analyze_trial(
             note_ar="لا شاهد (control) — لا حكم ممكن (قانون المقارنة المضادة)",
         )
 
-    control_mean = means[control_key]
+    control_mean = raw_means[control_label]
     # أفضل معاملة (عدا الشاهد)
-    others = {t: m for t, m in means.items() if t != control_key}
+    others = {t: m for t, m in raw_means.items() if t != control_label}
     if not others:
         return TrialAnalysis(
             treatment_means=means,
@@ -153,41 +211,64 @@ def analyze_trial(
 
     best = max(others, key=others.get)
     best_mean = others[best]
-    effect = best_mean - control_mean
-    effect_pct = (effect / control_mean * 100) if control_mean else 0.0
-    meets_mde = abs(effect_pct) >= mde_pct
+    control_values = results[control_label]
+    best_values = results[best]
+    paired = len(best_values) == len(control_values)
+    effect = _finite_number(best_mean - control_mean, name="effect")
+    differences = (
+        [
+            _finite_number(t - c, name="difference")
+            for t, c in zip(best_values, control_values, strict=True)
+        ]
+        if paired
+        else []
+    )
+    try:
+        if differences:
+            effect = _finite_number(fmean(differences), name="effect")
+        spread = _finite_number(stdev(differences), name="spread") if len(differences) > 1 else 0.0
+    except OverflowError as exc:
+        raise ValueError("Trial magnitudes exceed the finite analysis range") from exc
+    effect_pct = _finite_number(
+        (effect / control_mean * 100) if control_mean > 0 else 0.0, name="effect_pct"
+    )
+    meets_mde = effect > 0 and control_mean > 0 and effect_pct >= mde_pct
 
-    # فحص التباين: تكرارات قليلة + تباين عالٍ → ثقة منخفضة
-    n_reps = len(treatment_results.get(best, []))
-    best_var = _variance(treatment_results.get(best, []))
-    high_variance = best_var > best_mean if best_mean > 0 else True
-
-    # الثقة الفئوية (عيّنة صغيرة، لا CLT)
-    if n_reps < MIN_REPLICATIONS:
-        confidence = "low"
-        warnings.append("تكرارات قليلة — ثقة منخفضة")
+    # sd(diff) / abs(mean(diff)) > 1, expressed without division at zero.
+    high_variance = len(differences) > 1 and spread > abs(effect)
+    n_pairs = len(differences)
+    confidence = "low"
+    if not paired:
+        warnings.append("تكرارات المعاملة والشاهد غير متساوية — لا مقارنة مقترنة ولا ترقية")
+    elif n_pairs < MIN_REPLICATIONS:
+        warnings.append("تكرارات مقترنة قليلة — ثقة منخفضة")
     elif high_variance:
-        confidence = "low"
-        warnings.append("تباين عالٍ بين التكرارات — النتيجة غير مستقرّة")
-    elif meets_mde and n_reps >= RECOMMENDED_REPLICATIONS:
+        warnings.append("تباين عالٍ في فروق المعاملة والشاهد بين الكتل — النتيجة غير مستقرّة")
+    elif meets_mde and n_pairs >= RECOMMENDED_REPLICATIONS:
         confidence = "medium"  # سقف التجربة الحقلية الواحدة (لا high دون تكرار مواسم)
-    else:
-        confidence = "low"
+    elif n_pairs < RECOMMENDED_REPLICATIONS:
+        warnings.append(f"سياسة الفحص الوصفي تتطلب {RECOMMENDED_REPLICATIONS} أزواج لإشارة الترقية")
+    if control_mean <= 0:
+        warnings.append("متوسط الشاهد غير موجب — التحسن النسبي غير قابل للتقييم")
 
     # الأهمية العملية: يتجاوز MDE + ثقة معقولة
     practical = meets_mde and confidence == "medium"
     # إشارة الترقية: عملي + ليس تبايناً عالياً (يربط practice_promotion)
     promotion = practical and not high_variance
 
-    if not meets_mde:
+    if control_mean <= 0:
+        note = "لا يمكن تقييم عتبة التحسن النسبي مع متوسط شاهد غير موجب — لا إشارة ترقية"
+    elif effect <= 0:
+        note = f"معاملة «{best}» لا تتفوّق على الشاهد (الفرق {effect_pct:+.1f}%) — لا إشارة ترقية"
+    elif not meets_mde:
         note = (
-            f"الفرق ({effect_pct:+.1f}%) دون الحد الأدنى للمغزى ({mde_pct}%) — "
-            "عديم القيمة العملية مهما كان 'دالّاً' إحصائياً"
+            f"الزيادة ({effect_pct:+.1f}%) دون عتبة التحسن العملي المختارة ({mde_pct}%) — "
+            "لا إشارة ترقية وفق سياسة الفحص"
         )
     elif promotion:
         note = (
             f"معاملة «{best}» تتفوّق على الشاهد بـ{effect_pct:+.1f}% "
-            "(ذو مغزى عملي) — إشارة ترقية للممارسة، تحتاج تكرار مواسم للتثبيت"
+            "وفق الفحص الوصفي — إشارة ترقية للمراجعة، تحتاج تكرار مواسم للتثبيت"
         )
     else:
         note = (
@@ -195,6 +276,7 @@ def analyze_trial(
             "أعد التجربة موسماً آخر قبل الترقية"
         )
     warnings.append("سقف التجربة الواحدة MEDIUM — التثبيت يحتاج تكرار مواسم (practice_promotion)")
+    warnings.append("هذا فحص وصفي وفق سياسة المنتج، وليس اختبار دلالة إحصائية")
 
     return TrialAnalysis(
         treatment_means=means,

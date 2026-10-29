@@ -61,6 +61,7 @@ def _finalize_cog(write_intermediate, output_path: str, profile: dict) -> None:
     الأهرام الأصغر أوّلاً) بلا إعادة حساب الأهرامات. لا تعديل بعد النسخة النهائيّة: أيّ
     كتابة في الموضع بعدها تُفسد الترتيب. الوسيط في مجلّد الناتج (نفس نظام الملفّات ⇒
     ``os.replace`` ذرّيّ، فلا يرى قارئ متزامن ملفّاً نصف مكتوب) ويُحذَف دائماً."""
+    from rasterio import Env
     from rasterio.shutil import copy as rio_copy
 
     out_dir = os.path.dirname(output_path) or "."
@@ -69,8 +70,10 @@ def _finalize_cog(write_intermediate, output_path: str, profile: dict) -> None:
     with tempfile.TemporaryDirectory(prefix=".cog-", dir=out_dir) as tmp:
         intermediate = os.path.join(tmp, "intermediate.tif")
         final = os.path.join(tmp, "final.tif")
-        write_intermediate(intermediate)
-        rio_copy(intermediate, final, driver="GTiff", copy_src_overviews=True, **creation)
+        # The atomic artifact must include its mask, even under an external-mask environment.
+        with Env(GDAL_TIFF_INTERNAL_MASK=True):
+            write_intermediate(intermediate)
+            rio_copy(intermediate, final, driver="GTiff", copy_src_overviews=True, **creation)
         os.replace(final, output_path)
 
 
@@ -103,14 +106,9 @@ def write_cog(
         return {"written": False, "reason": "مصفوفة غير صالحة (متوقَّع مصفوفة ثنائيّة الأبعاد)"}
 
     h, w = array.shape
-    # وحّد التخزين مع nodata: بعض قرّاء WarpedVRT يقدّمون القيمة المعلنة على
-    # القناع الداخلي. NaN/Inf مع tag رقمي كان يُصيَّر معتماً في TiTiler 0.22.4.
-    # القيم العلمية الصالحة ومصفوفة المستدعي لا تتغير؛ التبديل للقيم المفقودة فقط.
-    write_array = np.asarray(array, dtype="float32")
+    # Convert only one tile at a time; retain masks on caller-owned arrays.
     if not np.isfinite(nodata):
         nodata = DEFAULT_NODATA
-    valid_mask = np.isfinite(write_array) & (write_array != nodata)
-    write_array = np.where(valid_mask, write_array, nodata).astype("float32")
     profile = {
         **COG_PROFILE,
         "height": h,
@@ -123,8 +121,13 @@ def write_cog(
 
     def _write(path: str) -> None:
         with rasterio.open(path, "w", **profile) as dst:
-            dst.write(write_array, 1)
-            dst.write_mask(valid_mask.astype("uint8") * 255)
+            for window in write_windows(h, w):
+                rows, cols = window.toslices()
+                tile = np.ma.asarray(array[rows, cols], dtype="float32")
+                values = np.ma.getdata(tile)
+                valid = ~np.ma.getmaskarray(tile) & np.isfinite(values) & (values != nodata)
+                dst.write(np.where(valid, values, nodata).astype("float32"), 1, window=window)
+                dst.write_mask(valid.astype("uint8") * 255, window=window)
             # أهرامات داخليّة (overviews) — قراءة سريعة عند التكبير/التصغير.
             # average للمؤشّر المتّصل؛ القناع يُهرَّم معها داخليّاً.
             dst.build_overviews(OVERVIEW_LEVELS, Resampling.average)
@@ -180,13 +183,12 @@ def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -
 
     if array is None or not hasattr(array, "shape"):
         return {"written": False, "reason": "مصفوفة غير صالحة"}
-    arr = np.asarray(array)
+    arr = np.ma.asarray(array)
     # (H,W,C) ⇒ (C,H,W).
     if arr.ndim == 3 and arr.shape[2] in (3, 4) and arr.shape[0] not in (3, 4):
         arr = np.transpose(arr, (2, 0, 1))
     if arr.ndim != 3 or arr.shape[0] not in (3, 4):
         return {"written": False, "reason": "متوقَّع RGB/RGBA (3 أو 4 نطاقات)"}
-    arr = arr.astype("uint8")
     bands, h, w = arr.shape[0], arr.shape[1], arr.shape[2]
     profile = {
         **RGBA_COG_PROFILE,
@@ -207,8 +209,16 @@ def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -
 
     def _write(path: str) -> None:
         with rasterio.open(path, "w", **profile) as dst:
-            for i in range(bands):
-                dst.write(arr[i], i + 1)
+            for window in write_windows(h, w):
+                rows, cols = window.toslices()
+                tile = arr[:, rows, cols]
+                values = np.ma.filled(tile, 0).astype("uint8")
+                valid = ~np.ma.getmaskarray(tile).any(axis=0)
+                if bands == 4:
+                    valid &= values[3] > 0
+                    values[3] = np.where(valid, values[3], 0)
+                dst.write(values, window=window)
+                dst.write_mask(valid.astype("uint8") * 255, window=window)
             interps = [ColorInterp.red, ColorInterp.green, ColorInterp.blue]
             if bands >= 4:
                 interps.append(ColorInterp.alpha)  # النطاق الرابع = ألفا (قناع الخارج/الغيوم)
@@ -229,6 +239,79 @@ def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -
         "overviews": OVERVIEW_LEVELS,
         "block_size": "512x512",
         "bands": bands,
+        "validation": validate_cog(output_path),
+    }
+
+
+def write_windows(height: int, width: int):
+    """Bound Python pixel buffers to the output COG tile size, including edge tiles."""
+    from rasterio.windows import Window
+
+    for row in range(0, height, 512):
+        for col in range(0, width, 512):
+            yield Window(col, row, min(512, width - col), min(512, height - row))
+
+
+def source_valid_mask(src, window):
+    """Dataset validity and alpha jointly define valid display pixels."""
+    valid = src.dataset_mask(window=window) > 0
+    if src.count == 4:
+        valid &= src.read(4, window=window) > 0
+    return valid
+
+
+def write_rgba_cog_source(src, output_path: str) -> dict:
+    """Copy an open RGB/RGBA uint8 raster with bounded pixel buffers.
+
+    The caller owns the source handle and admission budget. GDAL block/cache and
+    overview allocations remain separate from these Python window buffers.
+    """
+    import numpy as np
+    import rasterio
+    from rasterio.enums import ColorInterp, Resampling
+
+    if src.count not in (3, 4) or any(dtype != "uint8" for dtype in src.dtypes):
+        raise ValueError("truecolor source requires 3 or 4 uint8 bands")
+    if src.crs is None:
+        raise ValueError("truecolor source requires a CRS")
+    profile = {
+        **RGBA_COG_PROFILE,
+        "height": src.height,
+        "width": src.width,
+        "count": src.count,
+        "crs": src.crs,
+        "transform": src.transform,
+        "photometric": "RGB",
+    }
+    if src.count == 4:
+        profile["alpha"] = "YES"
+
+    def _write(path):
+        with rasterio.open(path, "w", **profile) as dst:
+            for window in write_windows(src.height, src.width):
+                values = src.read(window=window)
+                valid = source_valid_mask(src, window)
+                if src.count == 4:
+                    values[3] = np.where(valid, values[3], 0)
+                dst.write(values, window=window)
+                dst.write_mask(valid.astype("uint8") * 255, window=window)
+            dst.colorinterp = (ColorInterp.red, ColorInterp.green, ColorInterp.blue) + (
+                (ColorInterp.alpha,) if src.count == 4 else ()
+            )
+            dst.build_overviews(OVERVIEW_LEVELS, Resampling.nearest)
+            dst.update_tags(OVR_RESAMPLING_ALG="NEAREST")
+
+    _finalize_cog(_write, output_path, profile)
+    size = os.path.getsize(output_path)
+    return {
+        "written": True,
+        "path": output_path,
+        "size_bytes": size,
+        "size_mb": round(size / 1e6, 2),
+        "compression": "DEFLATE+predictor2",
+        "overviews": OVERVIEW_LEVELS,
+        "block_size": "512x512",
+        "bands": src.count,
         "validation": validate_cog(output_path),
     }
 

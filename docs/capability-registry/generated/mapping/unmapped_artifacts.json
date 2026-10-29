@@ -376,6 +376,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/fieldview/GisTemporalOpsCard.trial.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/fieldview/HarvestTraceabilityCard.tsx",
     "kind": "web"
   },
@@ -6620,6 +6624,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/docs/FIELD_TRIAL_REPLICATION_CONTRACT.md",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/docs/FREETODO_ASSESSMENT.md",
     "kind": "backend"
   },
@@ -10689,6 +10697,26 @@
   },
   {
     "path": "tests_v9/test_tls_policy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_trial_analysis_regressions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_trial_randomization_integrity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_trial_review_guards.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_trial_spatial_identity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_trial_spatial_review_guards.py",
     "kind": "tests"
   },
   {

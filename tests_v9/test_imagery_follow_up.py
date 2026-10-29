@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import httpx
 import jwt
@@ -472,3 +472,96 @@ async def test_ready_handoff_requires_canonical_queue_reference(monkeypatch, mod
         result = await modules.runtime.process(claim, store)
         assert result["jobs"][0]["item_id"] == item_id
         assert result["jobs"][0]["status"] == "already_ready"
+
+
+@pytest.fixture
+def startup_database(monkeypatch, modules):
+    # Only test credential validation before the transaction boundary. No database
+    # rows or enforcement are simulated here; those belong to the PG16 suite.
+    transaction = Mock(side_effect=RuntimeError("database_boundary_reached"))
+    monkeypatch.setattr(modules.runtime, "store", SimpleNamespace(transaction=transaction))
+    for key in (
+        "DECISION_SERVICE_AUTH_TOKEN",
+        "DECISION_SERVICE_TOKEN",
+        "JWT_SECRET",
+        "JWT_PUBLIC_KEY",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+    ):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    return transaction
+
+
+@pytest.mark.asyncio
+async def test_disabled_follow_up_needs_no_credentials_or_database(modules, startup_database):
+    await modules.runtime.startup_check(())
+    startup_database.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_follow_up_requires_canonical_receipt_token_before_database(
+    monkeypatch, modules, startup_database
+):
+    monkeypatch.setenv("DECISION_SERVICE_TOKEN", "activation-only-token")
+    with pytest.raises(RuntimeError, match="receipt_source_unconfigured"):
+        await modules.runtime.startup_check((TENANT,))
+    startup_database.assert_not_called()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("production_secret", [False, True])
+async def test_follow_up_requires_shared_jwt_policy_before_database(
+    monkeypatch, modules, startup_database, production_secret
+):
+    monkeypatch.setenv("DECISION_SERVICE_AUTH_TOKEN", "receipt-test-token")
+    if production_secret:
+        monkeypatch.setenv("JWT_SECRET", secrets.token_urlsafe(48))
+    with pytest.raises(RuntimeError, match="access_token_verification_unconfigured"):
+        await modules.runtime.startup_check((TENANT,))
+    startup_database.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_follow_up_configured_auth_reaches_database_boundary(
+    monkeypatch, modules, startup_database
+):
+    monkeypatch.setenv("DECISION_SERVICE_AUTH_TOKEN", "receipt-test-token")
+    monkeypatch.setenv("JWT_SECRET", secrets.token_urlsafe(48))
+    monkeypatch.setenv("SAHOOL_ENV", "development")
+    with pytest.raises(RuntimeError, match="database_boundary_reached"):
+        await modules.runtime.startup_check((TENANT,))
+    startup_database.assert_called_once_with(TENANT)
+
+
+def test_compose_wires_follow_up_auth_and_keeps_activation_token():
+    import yaml
+
+    document = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
+    env = document["services"]["sahool-raster-service"]["environment"]
+    assert env["DECISION_SERVICE_AUTH_TOKEN"] == "${DECISION_SERVICE_AUTH_TOKEN:-}"
+    assert env["DECISION_SERVICE_TOKEN"] == "${DECISION_SERVICE_AUTH_TOKEN:-}"
+    assert env["RASTER_FOLLOWUP_TENANTS"] == "${RASTER_FOLLOWUP_TENANTS:-}"
+    assert env["JWT_PUBLIC_KEY"] == "${JWT_PUBLIC_KEY:-}"
+    assert env["JWT_SECRET"] == "${JWT_SECRET:-}"
+    assert env["SAHOOL_ENV"] == "${SAHOOL_ENV:-production}"
+    assert env["SAHOOL_ALLOW_HS256_IN_PROD"] == "${SAHOOL_ALLOW_HS256_IN_PROD:-false}"
+
+
+@pytest.mark.asyncio
+async def test_follow_up_accepts_production_rsa_without_hmac_migration(
+    monkeypatch, modules, startup_database
+):
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    public_key = rsa.generate_private_key(public_exponent=65537, key_size=2048).public_key()
+    monkeypatch.setenv(
+        "JWT_PUBLIC_KEY",
+        public_key.public_bytes(
+            serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode(),
+    )
+    monkeypatch.setenv("DECISION_SERVICE_AUTH_TOKEN", "receipt-test-token")
+    with pytest.raises(RuntimeError, match="database_boundary_reached"):
+        await modules.runtime.startup_check((TENANT,))
+    startup_database.assert_called_once_with(TENANT)

@@ -11,6 +11,7 @@ import {
   splitFacts,
   stageCheckHazards,
   temporalCheckIssues,
+  trialConclusion,
   trialFacts,
   validateFacts,
   whatIfFacts,
@@ -113,5 +114,26 @@ describe('fact extractors — server values as-is, missing skipped', () => {
     const tf = trialFacts({ n_blocks: 4, p_value: 0.012, is_significant: true });
     expect(tf[0]).toEqual({ label: 'الكتل', value: '4' });
     expect(tf.find((x) => x.label === 'p')?.value).toBe('0.01200');
+  });
+  it('does not present zero-variance results as ordinary significant evidence', () => {
+    expect(trialConclusion({ statistic_status: 'zero_variance_difference', t_statistic: null, is_significant: true }))
+      .toEqual({ label: 'فروق متطابقة — راجع القياسات', isSignificant: false });
+    expect(trialConclusion({ statistic_status: 'zero_variance_equal', is_significant: false }).label)
+      .toBe('فروق متطابقة — راجع القياسات');
+    expect(trialConclusion({ statistic_status: 'ok', is_significant: true }).isSignificant).toBe(true);
+    expect(trialConclusion({ is_significant: false }).isSignificant).toBe(false);
+  });
+});
+
+
+describe('trial review contract', () => {
+  it('omits undefined relative change while preserving the absolute difference', () => {
+    const facts = trialFacts({ percent_change: null, percent_change_status: 'zero_control', mean_difference: 11.5 });
+    expect(facts.some((fact) => fact.label === 'التغيّر ٪')).toBe(false);
+    expect(facts.some((fact) => fact.label === 'الفرق')).toBe(true);
+  });
+  it('blocks ordinary significance for explicit invalid inference regardless of the boolean', () => {
+    expect(trialConclusion({ statistic_status: 'ok', inferential_valid: false, is_significant: true }).isSignificant).toBe(false);
+    expect(trialConclusion({ requires_review: true, is_significant: true }).isSignificant).toBe(false);
   });
 });

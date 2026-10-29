@@ -50,6 +50,7 @@ def test_crop_state_consumes_spectral_product_without_recomputing_indices():
         msi=2.3,
         temporal_compatible=True,
         product_ids=["ndmi-product", "msi-product"],
+        quality_status="validated",  # Positive fixture must declare quality explicitly.
     )
     out = build_crop_intelligence_state(
         CropIntelligenceInput(

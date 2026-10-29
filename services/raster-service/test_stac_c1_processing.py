@@ -22,6 +22,107 @@ from rasterio.warp import transform_bounds
 pytestmark = pytest.mark.unit
 
 
+@pytest.mark.parametrize("coefficient", ["scale", "offset"])
+def test_oversized_calibration_is_contained(scene, coefficient):
+    data, _, _ = scene
+    data["radiometry_context"]["assets"]["red"]["raster:bands"][0][coefficient] = 10**400
+    with pytest.raises(rc.RadiometryUnresolved):
+        c1.validate_c1_scene(data, entry_point="test")
+
+
+@pytest.mark.parametrize("coefficient", ["scale", "offset"])
+def test_vrt_oversized_calibration_is_an_input_error(scene, tmp_path, coefficient):
+    data, _, _ = scene
+    data["radiometry_context"]["assets"]["red"]["raster:bands"][0][coefficient] = 10**400
+    with pytest.raises(ValueError, match="finite explicit"):
+        stac_vrt.build_band_vrt(
+            data["bands_urls"], str(tmp_path), stac_item=data["radiometry_context"]
+        )
+    assert not list(tmp_path.glob("stac_stack_*"))
+
+
+def test_nonintersecting_clip_is_contained_and_no_processing_runs(scene, tmp_path):
+    data, _, _ = scene
+    clip = {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]}
+    with pytest.raises(rc.RadiometryUnresolved):
+        c1.process_c1_scene(
+            data,
+            "ndvi",
+            "field",
+            "tenant",
+            None,
+            clip,
+            True,
+            "job",
+            run_processing=lambda *_: pytest.fail("nonintersecting scene was processed"),
+            out_dir=str(tmp_path),
+            entry_point="test",
+        )
+    assert not list(tmp_path.glob("stac_c1_*"))
+
+
+def test_multiresolution_vrt_matches_analytic_nearest_samples_and_calibration(tmp_path):
+    """Independent array oracle: 20 m pixels repeat 2x2 on the fixed 10 m grid."""
+    arrays = {
+        "red": np.arange(16, dtype="uint16").reshape(4, 4) * 100 + 2000,
+        "nir": np.array([[4000, 6000], [8000, 10000]], dtype="uint16"),
+        "scl": np.array([[4, 9], [6, 11]], dtype="uint16"),
+    }
+    arrays["red"][0, 0] = 0
+    paths = {}
+    for name, data in arrays.items():
+        path = tmp_path / f"analytic-{name}.tif"
+        resolution = 10 if name == "red" else 20
+        with (
+            rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True),
+            rasterio.open(
+                path,
+                "w",
+                driver="GTiff",
+                width=data.shape[1],
+                height=data.shape[0],
+                count=1,
+                dtype="uint16",
+                crs="EPSG:32638",
+                nodata=0,
+                transform=from_origin(500000, 1800000, resolution, resolution),
+            ) as dst,
+        ):
+            dst.write(data, 1)
+            dst.scales, dst.offsets = ((1,), (0,)) if name == "scl" else ((0.0001,), (-0.1,))
+            if name == "nir":
+                dst.write_mask(np.array([[255, 255], [0, 255]], dtype="uint8"))
+        paths[name] = str(path)
+    path, mapping = stac_vrt.build_band_vrt(paths, str(tmp_path))
+    expected_nir = arrays["nir"].repeat(2, axis=0).repeat(2, axis=1) * 0.0001 - 0.1
+    expected_red = arrays["red"] * 0.0001 - 0.1
+    expected_valid = np.ones((4, 4), dtype=bool)
+    expected_valid[0, 0] = False
+    expected_valid[2:, :2] = False
+    with rasterio.open(path) as src:
+        assert (src.width, src.height) == (4, 4)
+        assert src.transform == from_origin(500000, 1800000, 10, 10)
+        red = (
+            src.read(mapping["red"], masked=True) * src.scales[mapping["red"] - 1]
+            + src.offsets[mapping["red"] - 1]
+        )
+        nir = (
+            src.read(mapping["nir"], masked=True) * src.scales[mapping["nir"] - 1]
+            + src.offsets[mapping["nir"] - 1]
+        )
+        ndvi = (nir - red) / (nir + red)
+        np.testing.assert_array_equal(~np.ma.getmaskarray(ndvi), expected_valid)
+        np.testing.assert_allclose(
+            ndvi.compressed(),
+            ((expected_nir - expected_red) / (expected_nir + expected_red))[expected_valid],
+            rtol=1e-6,
+            atol=1e-7,
+        )
+        np.testing.assert_array_equal(
+            src.read(mapping["scl"]), arrays["scl"].repeat(2, axis=0).repeat(2, axis=1)
+        )
+
+
 @pytest.fixture
 def scene(tmp_path, monkeypatch):
     identity = "S2A_T38QND_20261015T073428_L2A"

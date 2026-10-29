@@ -204,3 +204,183 @@ def test_overview_resampling_tag_is_case_insensitive(tmp_path):
     with rasterio.open(path) as src:
         assert src.overviews(1) == [2, 4]
         assert src.tags(ns="rio_overview")["resampling"] == "average"
+
+
+def _bounded_source(monkeypatch, path, *, fail_after=None):
+    """Observe production reads without substituting pixels or the destination."""
+    original_open = rasterio.open
+    reads = []
+
+    class Reader:
+        def __init__(self, source):
+            self.source = source
+
+        def __getattr__(self, name):
+            return getattr(self.source, name)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            self.source.close()
+
+        def read(self, *args, **kwargs):
+            window = kwargs.get("window")
+            assert window is not None, "full raster read"
+            assert window.height <= 3 and window.width <= 3
+            reads.append(window)
+            if fail_after is not None and len(reads) > fail_after:
+                raise OSError("injected late window failure")
+            return self.source.read(*args, **kwargs)
+
+    def opened(filename, *args, **kwargs):
+        source = original_open(filename, *args, **kwargs)
+        if str(filename) == str(path) and not args and kwargs.get("mode", "r") == "r":
+            return Reader(source)
+        return source
+
+    monkeypatch.setattr(tile_render, "MAX_READ_DIM", 3)
+    monkeypatch.setattr(rasterio, "open", opened)
+    return reads
+
+
+def test_content_observation_counts_masked_integer_exactly_in_bounded_windows(
+    tmp_path, monkeypatch
+):
+    path = _scalar(tmp_path / "integer.tif", dtype="uint16", nodata=0)
+    with rasterio.open(path, "r+") as dst:
+        values = dst.read(1)
+        values[0, 0] = 0
+        dst.write(values, 1)
+    reads = _bounded_source(monkeypatch, path)
+    assert tile_render.raster_content_observation(path) == {
+        "readable": True,
+        "observable_pixels": 63,
+        "field_shape_eligible": True,
+    }
+    assert len(reads) == 9
+
+
+def test_content_observation_discards_partial_counts_on_late_failure(tmp_path, monkeypatch):
+    path = _scalar(tmp_path / "failure.tif")
+    _bounded_source(monkeypatch, path, fail_after=1)
+    assert tile_render.raster_content_observation(path) == {
+        "readable": False,
+        "observable_pixels": None,
+    }
+
+
+def test_polygon_reads_are_bounded_and_preserve_mode(tmp_path, monkeypatch):
+    path = _scalar(tmp_path / "windows.tif")
+    import os
+    import stat
+
+    os.chmod(path, 0o640)
+    with monkeypatch.context() as scoped:
+        reads = _bounded_source(scoped, path)
+        assert _mask(path, WEST_HALF) == 32
+        assert len(reads) == 9
+    with rasterio.open(path) as src:
+        assert src.read(1, masked=True).count() == 32
+    assert stat.S_IMODE(os.stat(path).st_mode) == 0o640
+    assert not list(tmp_path.glob(".polygon-mask-*"))
+
+
+def test_late_polygon_read_failure_preserves_original_bytes(tmp_path, monkeypatch):
+    path = _scalar(tmp_path / "failure.tif")
+    before = open(path, "rb").read()
+    _bounded_source(monkeypatch, path, fail_after=1)
+    with pytest.raises(OSError, match="late window"):
+        _mask(path, WEST_HALF)
+    assert open(path, "rb").read() == before
+    assert not list(tmp_path.glob(".polygon-mask-*"))
+
+
+def test_cog_conversion_failure_preserves_original_bytes(tmp_path, monkeypatch):
+    plain = _scalar(tmp_path / "plain.tif")
+    path = str(tmp_path / "cog.tif")
+    rasterio.shutil.copy(plain, path, driver="COG", BLOCKSIZE=256)
+    before = open(path, "rb").read()
+
+    def failed(*args, **kwargs):
+        raise OSError("injected COG conversion failure")
+
+    monkeypatch.setattr(rasterio.shutil, "copy", failed)
+    with pytest.raises(OSError, match="COG conversion"):
+        _mask(path, WEST_HALF)
+    assert open(path, "rb").read() == before
+    assert not list(tmp_path.glob(".polygon-mask-*"))
+
+
+def test_existing_internal_mask_survives_forced_external_mask_environment(tmp_path):
+    path = _scalar(tmp_path / "masked.tif")
+    with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True), rasterio.open(path, "r+") as dst:
+        valid = np.full((8, 8), 255, dtype="uint8")
+        valid[1, 1] = 0
+        dst.write_mask(valid)
+    with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=False):
+        assert _mask(path, WEST_HALF) == 32
+    with rasterio.open(path) as src:
+        assert src.read(1, masked=True).count() == 31
+    assert not (tmp_path / "masked.tif.msk").exists()
+
+
+def test_rgba_polygon_reads_are_bounded_and_keep_source_mask(tmp_path, monkeypatch):
+    path = str(tmp_path / "rgba.tif")
+    with (
+        rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True),
+        rasterio.open(
+            path,
+            "w",
+            driver="GTiff",
+            width=8,
+            height=8,
+            count=4,
+            dtype="uint8",
+            crs="EPSG:4326",
+            transform=TRANSFORM,
+        ) as dst,
+    ):
+        values = np.full((4, 8, 8), 255, dtype="uint8")
+        values[3, 0, 0] = 0
+        dst.write(values)
+        dst.colorinterp = (ColorInterp.red, ColorInterp.green, ColorInterp.blue, ColorInterp.alpha)
+        valid = np.full((8, 8), 255, dtype="uint8")
+        valid[1, 1] = 0
+        dst.write_mask(valid)
+    with monkeypatch.context() as scoped:
+        reads = _bounded_source(scoped, path)
+        tile_render.apply_polygon_mask_rgba(path, WEST_HALF)
+        assert len(reads) == 9
+    with rasterio.open(path) as src:
+        assert np.count_nonzero(src.read(4)) == 30
+        assert np.count_nonzero(src.dataset_mask()) == 30
+
+
+def test_existing_external_mask_does_not_override_new_polygon_validity(tmp_path):
+    path = _scalar(tmp_path / "external.tif", dtype="uint16", nodata=0)
+    with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=False), rasterio.open(path, "r+") as dst:
+        valid = np.full((8, 8), 255, dtype="uint8")
+        valid[1, 1] = 0
+        dst.write_mask(valid)
+    assert (tmp_path / "external.tif.msk").exists()
+    _mask(path, WEST_HALF)
+    with rasterio.open(path) as src:
+        assert src.read(1, masked=True).count() == 31
+
+
+def test_metadata_failure_after_pixels_preserves_original_bytes(tmp_path, monkeypatch):
+    path = _scalar(tmp_path / "metadata-failure.tif")
+    before = open(path, "rb").read()
+    original = tile_render._raster_metadata
+
+    def invalid_overview(source):
+        metadata = original(source)
+        metadata["overview_tags"] = {"resampling": "invalid-resampling"}
+        return metadata
+
+    monkeypatch.setattr(tile_render, "_raster_metadata", invalid_overview)
+    with pytest.raises(KeyError, match="invalid-resampling"):
+        _mask(path, WEST_HALF)
+    assert open(path, "rb").read() == before
+    assert not list(tmp_path.glob(".polygon-mask-*"))

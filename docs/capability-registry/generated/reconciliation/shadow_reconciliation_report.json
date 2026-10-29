@@ -260,14 +260,6 @@
     },
     {
       "assessed_maturity": 2,
-      "capability_id": "SAT-004",
-      "declared_maturity": 3,
-      "finding_id": "SAT-004:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "SAT-004:declared_above_evidence:evidence-maturity"
-    },
-    {
-      "assessed_maturity": 2,
       "capability_id": "SAT-007",
       "declared_maturity": 3,
       "finding_id": "SAT-007:declared_above_evidence",
@@ -459,9 +451,9 @@
     "baseline_source": "docs/capability-registry/reconciliation_drift_baseline.json",
     "classes": {
       "evidence_maturity": {
-        "baseline_count": 50,
+        "baseline_count": 49,
         "new": [],
-        "observed_count": 50,
+        "observed_count": 49,
         "stale": []
       },
       "registry_reconciliation": {

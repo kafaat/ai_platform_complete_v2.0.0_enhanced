@@ -96,7 +96,7 @@ def validate_c1_scene(scene: dict, *, entry_point: str) -> dict:
             ):
                 raise ValueError("contradictory_boa")
         return context
-    except (ValueError, TypeError, KeyError, AttributeError):
+    except (ValueError, TypeError, KeyError, AttributeError, OverflowError):
         radiometry_containment.reject_element84_vrt(hrefs, entry_point=entry_point)
 
 

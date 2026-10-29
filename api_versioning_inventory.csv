@@ -487,10 +487,10 @@ sahool-platform,services/sahool-platform/api/routers/crop_cards.py,96,GET,/api/v
 sahool-platform,services/sahool-platform/api/routers/crop_cards.py,113,GET,/api/v1/crop-cards/variety/{variety_id}/disease-watch,variety_disease_watch_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/crop_operations.py,24,GET,/api/v1/crops/{crop_id}/operations-calendar,crop_operations_calendar_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/crop_suitability.py,31,POST,/api/v1/crop-suitability,crop_suitability,versioned
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,250,POST,/api/v1/crop-twin/compose,compose_crop_twin,versioned
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,302,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,409,POST,/api/v1/crop-twin/decision,crop_decision_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,535,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,245,POST,/api/v1/crop-twin/compose,compose_crop_twin,versioned
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,297,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,404,POST,/api/v1/crop-twin/decision,crop_decision_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,530,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/crops.py,26,GET,/api/v1/crops/drought-resilience,crop_drought_resilience,versioned
 sahool-platform,services/sahool-platform/api/routers/crops.py,47,GET,/api/v1/crops/compare-drought-resilience,compare_drought_resilience,versioned
 sahool-platform,services/sahool-platform/api/routers/cultural_calendar.py,24,GET,/api/v1/cultural-calendar,cultural_calendar,versioned
@@ -755,8 +755,8 @@ sahool-platform,services/sahool-platform/api/routers/irrigation_mpc.py,542,POST,
 sahool-platform,services/sahool-platform/api/routers/irrigation_mpc.py,583,POST,/api/v1/irrigation/executions/reconcile,reconcile_irrigation_execution,versioned
 sahool-platform,services/sahool-platform/api/routers/irrigation_network.py,55,POST,/api/v1/irrigation/network/feasibility,network_feasibility_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/irrigation_plan.py,111,POST,/api/v1/irrigation-plan,irrigation_plan_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,106,POST,/api/v1/irrigation-recommendation,irrigation_recommendation,versioned
-sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,184,POST,/api/v1/fields/{field_id}/irrigation-recommendation,field_irrigation_recommendation,versioned
+sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,111,POST,/api/v1/irrigation-recommendation,irrigation_recommendation,versioned
+sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,189,POST,/api/v1/fields/{field_id}/irrigation-recommendation,field_irrigation_recommendation,versioned
 sahool-platform,services/sahool-platform/api/routers/kc_timeseries.py,87,POST,/api/v1/agro/kc-timeseries,persist_kc,versioned
 sahool-platform,services/sahool-platform/api/routers/kc_timeseries.py,140,GET,/api/v1/agro/kc-timeseries/{field_id},list_kc,versioned
 sahool-platform,services/sahool-platform/api/routers/kc_timeseries.py,156,GET,/api/v1/agro/kc-timeseries/{field_id}/compare,compare_kc,versioned
@@ -903,7 +903,7 @@ sahool-platform,services/sahool-platform/api/routers/tasks.py,105,PATCH,/api/v1/
 sahool-platform,services/sahool-platform/api/routers/temporal.py,34,POST,/api/v1/temporal/check,temporal_check,versioned
 sahool-platform,services/sahool-platform/api/routers/temporal.py,60,POST,/api/v1/temporal/coherence,temporal_coherence,versioned
 sahool-platform,services/sahool-platform/api/routers/tenant.py,29,GET,/api/v1/tenant/config,get_tenant_config,versioned
-sahool-platform,services/sahool-platform/api/routers/trials.py,37,POST,/api/v1/trials/analyze,analyze_trial,versioned
+sahool-platform,services/sahool-platform/api/routers/trials.py,72,POST,/api/v1/trials/analyze,analyze_trial,versioned
 sahool-platform,services/sahool-platform/api/routers/varieties.py,27,GET,/api/v1/varieties/food-grains,food_grain_varieties_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/varieties.py,47,GET,/api/v1/varieties/food-grains/{variety_id},food_grain_variety_detail_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/water_balance.py,66,POST,/api/v1/water-balance,compute_water_balance,versioned

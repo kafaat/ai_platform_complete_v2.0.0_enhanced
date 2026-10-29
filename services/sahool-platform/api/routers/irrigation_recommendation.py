@@ -19,7 +19,12 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.canonical_water_stress import canonical_water_stress
+from api.canonical_spectral_state import resolve_canonical_spectral_state
+from api.canonical_water_stress import (
+    SPECTRAL_MAX_AGE_DAYS,
+    canonical_water_stress,
+    water_stress_spectral_inputs,
+)
 
 # مرحلةُ المرشَّح تُستورَد ولا تُكرَّر: سلسلةٌ ثانيةٌ باسم `"candidate"` هنا كانت ستُطابِق
 # اليوم وتنحرف غداً، وشرطُ الإثبات يقارنها بما يُعيده المُسجِّل.
@@ -269,19 +274,6 @@ async def field_irrigation_recommendation(
             "AND sampled_on IS NOT NULL ORDER BY sampled_on DESC LIMIT 1",
             field_id,
         )
-        # WS-D.3: التأكيد الطيفيّ (NDMI+MSI) — يصل فعلاً إلى مرشَّح الريّ. قرار المستخدم:
-        # كلا المؤشّرين مطلوبان بتوافق زمنيّ، وإلّا لا تصعيد. v99 قد لا تكون مطبّقة ⇒
-        # تخطٍّ آمن (لا يحجب التوصية — التأكيد best-effort).
-        spectral_row = None
-        try:
-            async with conn.transaction():  # SAVEPOINT — v99 غير مطبّقة ⇒ لا يُفسِد الاتّصال
-                spectral_row = await conn.fetchrow(
-                    "SELECT last_ndmi_mean, last_msi_mean, last_ndmi_date, last_msi_date "
-                    "FROM imagery_automation_fields WHERE field_id = $1",
-                    field_id,
-                )
-        except Exception:  # noqa: BLE001 — جدول الأتمتة غير مطبّق ⇒ لا تأكيد طيفيّ
-            spectral_row = None
 
     depletion_mm = lrow["depletion_mm"] if lrow else None
     dep_conf = lrow["confidence"] if lrow else None
@@ -406,20 +398,28 @@ async def field_irrigation_recommendation(
     # الإجهاد المائيّ الكنسيّ (للطبقة/الإلحاح) — best-effort، لا يحجب. WS-D.3: يُمرَّر
     # التأكيد الطيفيّ (NDMI+MSI + تاريخاهما) فيصل MSI فعلاً إلى المرشَّح؛ التوافق الزمنيّ
     # وغياب أحد الدليلين يُقرّران التصعيد داخل canonical_water_stress (لا هنا).
+    spectral_product = None
+    try:
+        spectral_product = await resolve_canonical_spectral_state(
+            field_id=field_id, tenant_id=str(user.tenant_id)
+        )
+    except Exception:  # noqa: BLE001 -- missing QA is not a physical-water failure
+        _LOG.warning("Spectral product unavailable for field %s", field_id)
     stress = canonical_water_stress(
         {
             "depletion_mm": depletion_mm,
             "taw_mm": taw_mm,
             "raw_fraction": sw["raw_fraction"],
-            "ndmi": spectral_row["last_ndmi_mean"] if spectral_row else None,
-            "msi": spectral_row["last_msi_mean"] if spectral_row else None,
-            "ndmi_date": spectral_row["last_ndmi_date"] if spectral_row else None,
-            "msi_date": spectral_row["last_msi_date"] if spectral_row else None,
-        }
+            "depletion_confidence": dep_conf,
+            **water_stress_spectral_inputs(spectral_product),
+        },
+        as_of=date.today(),
+        max_spectral_age_days=SPECTRAL_MAX_AGE_DAYS,
     )
     water_stress_class = stress["water_stress_class"] if stress else None
     # WS-D.3: نَسَب التأكيد الطيفيّ في الأدلّة (يُثبِت أنّ MSI وصل المرشَّح).
     if stress and stress.get("spectral_confirmation_available"):
+        evidence_ids.extend(stress.get("spectral_evidence_ids", []))
         evidence_ids.append(
             f"spectral-confirmation:ndmi+msi:{'detected' if stress.get('spectral_stress_detected') else 'no-stress'}"
         )

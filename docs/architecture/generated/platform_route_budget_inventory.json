@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "9190b766e1a8d9bffda1c6e2ac84ea040eff853bb470bc3ec9d753bbe4dfbfc5",
+  "inventory_sha256": "8ad860309012a985286dfae19d9f8d95d4f1be5bd141d1b039e6088b01ac2e49",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "dc66248dd73dc7cc597126c1d2abdb879ac676462db005cc9c12394aa8871d5a"
+    "policy_sha256": "39a428a114bfe353e8fafb68a6e2f46eb0771611e6f561d649bc1f6021ae8bbd"
   },
   "routes": [
     {
@@ -3146,7 +3146,7 @@
     {
       "classification": "domain",
       "function": "compose_crop_twin",
-      "line": 249,
+      "line": 244,
       "method": "POST",
       "path": "/api/v1/crop-twin/compose",
       "source": "api/routers/crop_twin.py"
@@ -3154,7 +3154,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_endpoint",
-      "line": 408,
+      "line": 403,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
       "source": "api/routers/crop_twin.py"
@@ -3162,7 +3162,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_candidate_endpoint",
-      "line": 301,
+      "line": 296,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
       "source": "api/routers/crop_twin.py"
@@ -3170,7 +3170,7 @@
     {
       "classification": "domain",
       "function": "profit_aware_decision_endpoint",
-      "line": 534,
+      "line": 529,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
       "source": "api/routers/crop_twin.py"
@@ -3626,7 +3626,7 @@
     {
       "classification": "domain",
       "function": "field_irrigation_recommendation",
-      "line": 183,
+      "line": 188,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
       "source": "api/routers/irrigation_recommendation.py"
@@ -3906,7 +3906,7 @@
     {
       "classification": "domain",
       "function": "irrigation_recommendation",
-      "line": 105,
+      "line": 110,
       "method": "POST",
       "path": "/api/v1/irrigation-recommendation",
       "source": "api/routers/irrigation_recommendation.py"
@@ -4362,7 +4362,7 @@
     {
       "classification": "domain",
       "function": "analyze_trial",
-      "line": 36,
+      "line": 71,
       "method": "POST",
       "path": "/api/v1/trials/analyze",
       "source": "api/routers/trials.py"

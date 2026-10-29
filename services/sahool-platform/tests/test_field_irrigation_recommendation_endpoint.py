@@ -209,12 +209,37 @@ async def test_msi_reaches_irrigation_candidate(monkeypatch):
             spectral={
                 "ndmi": 0.05,
                 "msi": 1.6,
-                "ndmi_date": date(2026, 7, 8),
-                "msi_date": date(2026, 7, 8),
+                "ndmi_date": date.today(),
+                "msi_date": date.today(),
             },
         ),
     )
-    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    from types import SimpleNamespace
+
+    from core.crop_intelligence.spectral import build_canonical_spectral_state
+
+    async def server_product(**kwargs):
+        return build_canonical_spectral_state(
+            ndvi=0.4,
+            ndmi=0.05,
+            msi=1.4,
+            quality_status="validated",
+            source_authority="raster-service",
+            index_provenance={
+                name: {
+                    "value": value,
+                    "quality_status": "validated",
+                    "acquisition_date": date.today().isoformat(),
+                    "product_id": "qa:" + name,
+                }
+                for name, value in (("ndmi", 0.05), ("msi", 1.4))
+            },
+        )
+
+    monkeypatch.setattr(mod, "resolve_canonical_spectral_state", server_product)
+    out = await field_irrigation_recommendation(
+        "fld_1", _REQ, user=SimpleNamespace(tenant_id="tenant-1")
+    )
     assert out["spectral_confirmation"]["available"] is True
     assert any(e.startswith("spectral-confirmation:ndmi+msi") for e in out["evidence_ids"])
 
