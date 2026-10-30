@@ -17,7 +17,6 @@ MAIN = (
     )
 )
 CDSE = (ROOT / "cdse_client.py").read_text(encoding="utf-8")
-COG = (ROOT / "cog_writer.py").read_text(encoding="utf-8")
 TILE = (ROOT / "tile_render.py").read_text(encoding="utf-8")
 
 
@@ -34,12 +33,8 @@ def test_cdse_bbox_and_geometry_are_validated_before_provider_calls():
     assert 'payload["intersects"] = geom' in CDSE
 
 
-def test_generated_cogs_use_finite_nodata_not_nan_nodata():
-    assert "DEFAULT_NODATA = -9999.0" in COG
-    assert "valid_mask = np.isfinite(write_array)" in COG
-    assert "write_mask(" in COG and 'valid_mask.astype("uint8") * 255' in " ".join(
-        COG.split()
-    )  # paren-robust (cert/main)
+def test_raster_callers_declare_shared_nodata():
+    # Writer pixel/mask semantics are exercised by test_cog_finite_nodata_runtime.py.
     assert "nodata=RASTER_NODATA" in MAIN
     assert '"nodata": RASTER_NODATA' in MAIN
 
