@@ -21165,6 +21165,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "474e14583bd25c1de2fea6364f5a76ef8de4e9c2ee616f61d4f626dded55cc8c"
+        }
+      ],
+      "name": "services/raster-service/test_cog_finite_nodata_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "916ab3f7d807d854d1e33a123151e62af7be9eb3bd806439c5e2085b4073236b"
         }
       ],
@@ -21585,7 +21595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92377655c8047de20e4015c80855e5910271224ca952cc32689c290cabb626f9"
+          "content": "d9919c77d732ec886f0890a8c0296a53f6d5f37c13f5dd3e454776777abc8dec"
         }
       ],
       "name": "services/raster-service/test_raster_map_deep_hardening_static.py",
