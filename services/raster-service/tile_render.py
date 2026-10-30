@@ -840,6 +840,16 @@ def raster_has_observable_content(cog_path: str) -> bool:
     return observation.get("field_shape_eligible", False) and bool(observation["observable_pixels"])
 
 
+def _content_windows(src):
+    """Exact bounded scans; storage blocks may be larger than these windows."""
+    from rasterio.windows import Window
+
+    step = max(1, min(512, int(MAX_READ_DIM)))
+    for row in range(0, src.height, step):
+        for col in range(0, src.width, step):
+            yield Window(col, row, min(step, src.width - col), min(step, src.height - row))
+
+
 def raster_content_observation(cog_path: str) -> dict:
     """Measure content without equating an unreadable raster with empty pixels.
 
@@ -858,19 +868,15 @@ def raster_content_observation(cog_path: str) -> dict:
             # Shape policy is separate from the measured pixel count: a 1x1
             # raster may contain a valid pixel while remaining cache-ineligible.
             shape = {"field_shape_eligible": src.width > 1 and src.height > 1}
-            if src.count >= 4 and str(src.dtypes[0]) == "uint8":
-                # RGBA: قناة ألفا هي سلطة الصلاحيّة (خارج القناع = 0).
-                count = int(np.count_nonzero(src.read(4) > 0))
-                return {"readable": True, "observable_pixels": count, **shape}
-            band = src.read(1, masked=True)
-            if band.mask is not np.ma.nomask and bool(band.mask.all()):
-                return {"readable": True, "observable_pixels": 0, **shape}
-            values = band.filled(np.nan).astype("float64")
-            return {
-                "readable": True,
-                "observable_pixels": int(np.count_nonzero(np.isfinite(values))),
-                **shape,
-            }
+            count = 0
+            for window in _content_windows(src):
+                if src.count >= 4 and str(src.dtypes[0]) == "uint8":
+                    valid = (src.read(4, window=window) > 0) & (src.dataset_mask(window=window) > 0)
+                else:
+                    band = src.read(1, window=window, masked=True)
+                    valid = ~np.ma.getmaskarray(band) & np.isfinite(band.data)
+                count += int(np.count_nonzero(valid))
+            return {"readable": True, "observable_pixels": count, **shape}
     except Exception:  # noqa: BLE001 — تالف/غير مقروء ⇒ لا يُخزَّن
         return unavailable
 
@@ -902,45 +908,51 @@ def _raster_metadata(src) -> dict:
     }
 
 
-def _rewrite_preserving_metadata(cog_path: str, data, profile: dict, meta: dict) -> None:
-    """يكتب ``data`` مكان ``cog_path`` ويُعيد ما التقطه ``_raster_metadata``.
+def _rewrite_preserving_metadata(cog_path: str, write_pixels, profile: dict, meta: dict) -> None:
+    """Write windows and rebuild overviews before atomically publishing one TIFF.
 
-    الأهرامات **تُعاد بناؤها** من البيانات المقصوصة (بمستوياتها وبإعادة العيّنة المُعلَنة
-    في ``rio_overview``؛ وإلّا nearest الذي لا يمزج nodata بالقيم). وإن كان المصدر بتخطيط
-    COG كُتب عبر مشغّل COG (ترويسة IFD قبل البيانات) لا GTiff عاديّ يحمل الاسم فقط.
+    Keep the source untouched on read/write/COG conversion failure. The private
+    sibling directory keeps intermediate files on the destination filesystem.
     """
     import os
+    import stat
+    import tempfile
+    from pathlib import Path
 
     import rasterio
     import rasterio.shutil
     from rasterio.enums import Resampling
 
-    target = f"{cog_path}.mask.tif" if meta["cog_layout"] else cog_path
-    try:
-        with rasterio.open(target, "w", **profile) as dst:
-            dst.write(data)
-            dst.update_tags(**meta["tags"])
-            for band, tags in zip(dst.indexes, meta["band_tags"], strict=True):
-                dst.update_tags(band, **tags)
-                if meta["descriptions"][band - 1]:
-                    dst.set_band_description(band, meta["descriptions"][band - 1])
-            dst.scales = meta["scales"]
-            dst.offsets = meta["offsets"]
-            dst.units = tuple(u or "" for u in meta["units"])
-            dst.colorinterp = meta["colorinterp"]
-            if meta["overviews"]:
-                # GDAL يكتبها بأيّ حالة أحرف («AVERAGE»)؛ أعضاء Resampling بالصغيرة.
-                resampling = meta["overview_tags"].get("resampling", "nearest").lower()
-                dst.build_overviews(meta["overviews"], Resampling[resampling])
-                dst.update_tags(ns="rio_overview", resampling=resampling)
-        if target != cog_path:
-            options = {"COMPRESS": str(profile.get("compress") or "NONE").upper()}
-            if profile.get("blockxsize"):
-                options["BLOCKSIZE"] = profile["blockxsize"]
-            rasterio.shutil.copy(target, cog_path, driver="COG", **options)
-    finally:
-        if target != cog_path and os.path.exists(target):
-            os.unlink(target)
+    destination = Path(cog_path)
+    mode = stat.S_IMODE(destination.stat().st_mode)
+    with tempfile.TemporaryDirectory(prefix=".polygon-mask-", dir=destination.parent) as directory:
+        target = str(Path(directory) / "masked.tif")
+        with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True):
+            with rasterio.open(target, "w", **profile) as dst:
+                write_pixels(dst)
+                dst.update_tags(**meta["tags"])
+                for band, tags in zip(dst.indexes, meta["band_tags"], strict=True):
+                    dst.update_tags(band, **tags)
+                    if meta["descriptions"][band - 1]:
+                        dst.set_band_description(band, meta["descriptions"][band - 1])
+                dst.scales = meta["scales"]
+                dst.offsets = meta["offsets"]
+                dst.units = tuple(u or "" for u in meta["units"])
+                dst.colorinterp = meta["colorinterp"]
+                if meta["overviews"]:
+                    # GDAL يكتبها بأيّ حالة أحرف («AVERAGE»)؛ أعضاء Resampling بالصغيرة.
+                    resampling = meta["overview_tags"].get("resampling", "nearest").lower()
+                    dst.build_overviews(meta["overviews"], Resampling[resampling])
+                    dst.update_tags(ns="rio_overview", resampling=resampling)
+            if meta["cog_layout"]:
+                cog = str(Path(directory) / "cog.tif")
+                options = {"COMPRESS": str(profile.get("compress") or "NONE").upper()}
+                if profile.get("blockxsize"):
+                    options["BLOCKSIZE"] = profile["blockxsize"]
+                rasterio.shutil.copy(target, cog, driver="COG", **options)
+                target = cog
+        os.chmod(target, mode)
+        os.replace(target, destination)
 
 
 def apply_polygon_mask(cog_path: str, geom_4326: dict) -> int:
@@ -966,12 +978,11 @@ def apply_polygon_mask(cog_path: str, geom_4326: dict) -> int:
     import raster_security_context
     import raster_settings
     import rasterio
-    from rasterio.mask import raster_geometry_mask
+    from rasterio.features import geometry_mask
     from rasterio.warp import transform_geom
 
     with rasterio.open(cog_path) as src:
-        # نفس سقف نظيره ``apply_polygon_mask_rgba`` (EXTRA-10): ``rasterio.mask`` بلا قصّ
-        # يخصّص المجموعة كاملةً float — يُرفَض المصدر الضخم **قبل** التخصيص (413 مُعلَن).
+        # Keep the total work admission limit even though pixel reads are windowed.
         raster_security_context.assert_readable_size(
             src,
             what="scalar polygon mask",
@@ -987,14 +998,28 @@ def apply_polygon_mask(cog_path: str, geom_4326: dict) -> int:
                 "لا قيمة تمثّل «خارج الحقل»"
             )
         geom_src = transform_geom("EPSG:4326", src.crs, geom_4326)
-        outside, _, _ = raster_geometry_mask(src, [geom_src], crop=False)  # True خارج المضلّع
-        data = src.read(masked=True)
-        out_img = np.ma.array(data, mask=np.ma.getmaskarray(data) | outside).filled(nodata)
         profile = src.profile.copy()
+        profile.update(nodata=nodata)
         meta = _raster_metadata(src)
-    profile.update(nodata=nodata)
-    _rewrite_preserving_metadata(cog_path, out_img, profile, meta)
-    return int(np.count_nonzero(~outside))
+        inside_count = 0
+
+        def write_pixels(dst):
+            nonlocal inside_count
+            for window in _content_windows(src):
+                outside = geometry_mask(
+                    [geom_src],
+                    out_shape=(int(window.height), int(window.width)),
+                    transform=src.window_transform(window),
+                    invert=False,
+                )
+                data = src.read(window=window, masked=True)
+                invalid = np.ma.getmaskarray(data) | outside
+                dst.write(np.ma.array(data, mask=invalid).filled(nodata), window=window)
+                dst.write_mask((~invalid).any(axis=0).astype("uint8") * 255, window=window)
+                inside_count += int(np.count_nonzero(~outside))
+
+        _rewrite_preserving_metadata(cog_path, write_pixels, profile, meta)
+    return inside_count
 
 
 def apply_polygon_mask_rgba(cog_path: str, geom_4326: dict) -> None:
@@ -1018,18 +1043,24 @@ def apply_polygon_mask_rgba(cog_path: str, geom_4326: dict) -> None:
             what="uint8 polygon mask",
             ceiling=raster_settings.RASTER_MAX_READ_BAND_PIXELS,
         )
-        data = src.read()  # (bands, H, W) uint8
+        if src.count != 4 or any(dtype != "uint8" for dtype in src.dtypes):
+            raise ValueError("apply_polygon_mask_rgba requires four uint8 bands")
         profile = src.profile.copy()
-        meta = _raster_metadata(src)  # ألفا/الأهرامات/الوسوم لا يحملها الـprofile (G-CLIP-1)
+        meta = _raster_metadata(src)
         geom_src = transform_geom("EPSG:4326", src.crs, geom_4326)
-        inside = geometry_mask(
-            [geom_src],
-            out_shape=(src.height, src.width),
-            transform=src.transform,
-            invert=True,  # True داخل المضلّع
-        )
-    if data.shape[0] >= 4:
-        alpha = data[3]
-        alpha[~inside] = 0  # خارج الحقل ⇒ شفّاف
-        data[3] = alpha
-    _rewrite_preserving_metadata(cog_path, data, profile, meta)
+
+        def write_pixels(dst):
+            for window in _content_windows(src):
+                inside = geometry_mask(
+                    [geom_src],
+                    out_shape=(int(window.height), int(window.width)),
+                    transform=src.window_transform(window),
+                    invert=True,
+                )
+                data = src.read(window=window)
+                valid = inside & (src.dataset_mask(window=window) > 0)
+                data[3][~valid] = 0
+                dst.write(data, window=window)
+                dst.write_mask((data[3] > 0).astype("uint8") * 255, window=window)
+
+        _rewrite_preserving_metadata(cog_path, write_pixels, profile, meta)

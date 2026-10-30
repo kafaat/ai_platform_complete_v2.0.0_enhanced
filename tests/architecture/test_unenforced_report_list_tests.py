@@ -45,7 +45,8 @@ SEARCH_ROOTS = ("tests_v9", "tests", "services")
 #: الأساسُ المُجمَّد — مقيسٌ على `2649dcf9`+ بعد إصلاح `test_erp_provider_switch`.
 #: كلُّ مدخلٍ دَينٌ مُعلَن، والقيمةُ سقفٌ لذلك الملفّ. **تُخفَّض عند الإصلاح ولا تُرفَع.**
 FROZEN_DEBT: dict[str, int] = {
-    "tests_v9/test_roadmap_phase23.py": 129,
+    # The trial report is now checked by test_legacy_trial_report_asserts_all_conditions.
+    "tests_v9/test_roadmap_phase23.py": 128,
     "tests_v9/test_roadmap_phase1.py": 15,
     "tests_v9/test_wired_endpoints.py": 9,
     "tests_v9/test_trueup_endpoint.py": 6,

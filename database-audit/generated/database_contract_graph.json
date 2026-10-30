@@ -4011,7 +4011,6 @@
         "services/sahool-platform/api/imagery_automation.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/routers/field_completeness.py",
-        "services/sahool-platform/api/routers/irrigation_recommendation.py",
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py"
       ],

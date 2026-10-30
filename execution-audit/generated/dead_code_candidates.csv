@@ -383,8 +383,8 @@ medium,sahool-platform,class,TestFullProjection,services/sahool-platform/tests/t
 medium,sahool-platform,class,TestHonestyMissingData,services/sahool-platform/tests/test_field_season_projection.py,62,0,review_before_delete,False
 medium,sahool-platform,class,TestCriticalWindowInTheUnifiedTruth,services/sahool-platform/tests/test_field_season_projection.py,93,0,review_before_delete,False
 medium,sahool-platform,class,TestFieldState,services/sahool-platform/tests/test_field_state.py,17,0,review_before_delete,False
-medium,sahool-platform,class,TestDesign,services/sahool-platform/tests/test_field_trial_design.py,7,0,review_before_delete,False
-medium,sahool-platform,class,TestAnalysis,services/sahool-platform/tests/test_field_trial_design.py,27,0,review_before_delete,False
+medium,sahool-platform,class,TestDesign,services/sahool-platform/tests/test_field_trial_design.py,10,0,review_before_delete,False
+medium,sahool-platform,class,TestAnalysis,services/sahool-platform/tests/test_field_trial_design.py,56,0,review_before_delete,False
 medium,sahool-platform,class,TestCatalogShape,services/sahool-platform/tests/test_field_type_catalog.py,21,0,review_before_delete,False
 medium,sahool-platform,class,TestActivitiesGrounded,services/sahool-platform/tests/test_field_type_catalog.py,41,0,review_before_delete,False
 medium,sahool-platform,class,TestLookups,services/sahool-platform/tests/test_field_type_catalog.py,58,0,review_before_delete,False
@@ -651,7 +651,7 @@ medium,shared,function,p2o5_from_p,shared/precision_agriculture/nutrient_units.p
 medium,shared,function,k2o_from_k,shared/precision_agriculture/nutrient_units.py,24,0,review_before_delete,False
 medium,shared,function,project_observation,shared/precision_agriculture/pail_om_edge.py,31,0,review_before_delete,False
 medium,shared,function,import_observation_projection,shared/precision_agriculture/pail_om_edge.py,110,0,review_before_delete,False
-medium,shared,function,bind_plot_outcomes,shared/precision_agriculture/trial_spatial.py,264,0,review_before_delete,False
+medium,shared,function,bind_plot_outcomes,shared/precision_agriculture/trial_spatial.py,455,0,review_before_delete,False
 medium,shared,function,would_reject_counts,shared/security/access_tokens.py,118,0,review_before_delete,False
 medium,shared,function,reset_would_reject_counts,shared/security/access_tokens.py,127,0,review_before_delete,False
 medium,shared,function,wildcard_with_credentials,shared/security/cors_policy.py,90,0,review_before_delete,False

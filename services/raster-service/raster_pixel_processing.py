@@ -382,10 +382,10 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
 def process_precomputed_truecolor(ctx, req):
     """مسار CDSE للصورة الخام (truecolor): الراستر RGBA (4 نطاقات UINT8) جاهز خادميّاً.
 
-    يقرأ النطاقات كلّها، يحسب إحصاء توفّر بسيطاً من قناة ألفا (لا min/max/mean لمؤشّر —
-    RGB بلا معنًى إحصائيّ)، ويكتب COG RGBA محسّناً (``write_rgba_cog``) ثمّ يرفعه. يُرجِع
+    يقرأ نوافذ محدودة ويحسب التوفّر من قناع المصدر وألفا (لا min/max/mean لمؤشّر —
+    RGB بلا معنًى إحصائيّ)، ويكتب COG RGBA محسّناً (``write_rgba_cog_source``) ثمّ يرفعه. يُرجِع
     ``(stats, bounds_4326, resolution_m, meta)`` بنفس تعاقُد :func:`_process_precomputed_pixels`."""
-    import numpy as np
+    import cog_writer
     import rasterio
     from rasterio.warp import transform_bounds
 
@@ -404,97 +404,102 @@ def process_precomputed_truecolor(ctx, req):
             what="truecolor precomputed",
             ceiling=raster_settings.RASTER_MAX_READ_BAND_PIXELS,
         )
-        arr = src.read()  # (bands, H, W) uint8
+        if (
+            src.crs is None
+            or src.count not in (3, 4)
+            or any(dtype != "uint8" for dtype in src.dtypes)
+        ):
+            raise ctx.HTTPException(422, {"code": "invalid_truecolor_source"})
         transform = src.transform
+        total_px = src.height * src.width
+        valid_pixels = 0
+        for window in cog_writer.write_windows(src.height, src.width):
+            valid = src.dataset_mask(window=window) > 0
+            if src.count == 4:
+                valid &= src.read(4, window=window) > 0
+            valid_pixels += int(valid.sum())
 
-    # صدق الإحصاء: البكسل «صالح» = ألفا>0 (النطاق الرابع) إن وُجد، وإلّا كلّه صالح.
-    if arr.shape[0] >= 4:
-        valid = arr[3] > 0
-    else:
-        valid = np.ones(arr.shape[1:], dtype=bool)
-    total_px = int(valid.size) if hasattr(valid, "size") else 0
-    valid_ratio = (float(valid.sum()) / float(total_px)) if total_px else 0.0
-    if not valid.any():
-        raise ctx.HTTPException(422, {"code": "raw_raster_no_valid_pixels", "valid_pixels": 0})
-    topographic_qa = _topographic_qa_for_indicator(
-        ctx, req=req, raster_crs=src_crs, raster_transform=transform, raster_shape=valid.shape
-    )
-    pixel_qa = raw_data_processing.compute_quality_score(
-        valid_pixel_ratio=valid_ratio,
-        cloud_pct=None,
-        cloud_mask_applied=False,
-        terrain_shadow_risk_pct=topographic_qa.get("terrain_shadow_risk_pct"),
-        cast_shadow_risk_pct=topographic_qa.get("cast_shadow_risk_pct"),
-        slope_risk_pct=topographic_qa.get("slope_risk_pct"),
-        topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
-        qa_layer_present=arr.shape[0] >= 4,
-    )
-    _admit_min_raw_quality(ctx, req, pixel_qa)
-    stats = {
-        "min": 0.0,
-        "max": 255.0,
-        "mean": 0.0,
-        "std": 0.0,
-        "valid_pixels": int(valid.sum()),
-        "nodata_pixels": int((~valid).sum()),
-        "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
-        "raw_quality_score": pixel_qa["quality_score"],
-        "pixel_qa": pixel_qa,
-        "topographic_qa": topographic_qa,
-        "quality_flags": raw_data_processing.build_quality_flags(
-            nodata_mask_applied=True,
-            qa_layer_present=arr.shape[0] >= 4,
+        valid_ratio = float(valid_pixels) / total_px if total_px else 0.0
+        if not valid_pixels:
+            raise ctx.HTTPException(422, {"code": "raw_raster_no_valid_pixels", "valid_pixels": 0})
+        topographic_qa = _topographic_qa_for_indicator(
+            ctx, req=req, raster_crs=src_crs, raster_transform=transform, raster_shape=src.shape
+        )
+        pixel_qa = raw_data_processing.compute_quality_score(
+            valid_pixel_ratio=valid_ratio,
+            cloud_pct=None,
             cloud_mask_applied=False,
-            saturation_mask_applied=False,
+            terrain_shadow_risk_pct=topographic_qa.get("terrain_shadow_risk_pct"),
+            cast_shadow_risk_pct=topographic_qa.get("cast_shadow_risk_pct"),
+            slope_risk_pct=topographic_qa.get("slope_risk_pct"),
             topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
-            terrain_shadow_risk_applied=topographic_qa.get("terrain_shadow_risk_pct") is not None,
-            cast_shadow_risk_applied=topographic_qa.get("cast_shadow_risk_pct") is not None,
-            slope_risk_applied=topographic_qa.get("slope_risk_pct") is not None,
-            topographic_qa_sources=topographic_qa.get("sources", []),
-            cloud_mask_sources=["alpha"] if arr.shape[0] >= 4 else [],
-            source_native_qa_policy="rgba_alpha_mask",
-        ),
-    }
-    cog_url = None
-    cog_crs = str(src_crs or "EPSG:4326")
+            qa_layer_present=src.count == 4,
+        )
+        _admit_min_raw_quality(ctx, req, pixel_qa)
+        stats = {
+            "min": 0.0,
+            "max": 255.0,
+            "mean": 0.0,
+            "std": 0.0,
+            "valid_pixels": valid_pixels,
+            "nodata_pixels": total_px - valid_pixels,
+            "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
+            "raw_quality_score": pixel_qa["quality_score"],
+            "pixel_qa": pixel_qa,
+            "topographic_qa": topographic_qa,
+            "quality_flags": raw_data_processing.build_quality_flags(
+                nodata_mask_applied=True,
+                qa_layer_present=src.count == 4,
+                cloud_mask_applied=False,
+                saturation_mask_applied=False,
+                topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
+                terrain_shadow_risk_applied=topographic_qa.get("terrain_shadow_risk_pct")
+                is not None,
+                cast_shadow_risk_applied=topographic_qa.get("cast_shadow_risk_pct") is not None,
+                slope_risk_applied=topographic_qa.get("slope_risk_pct") is not None,
+                topographic_qa_sources=topographic_qa.get("sources", []),
+                cloud_mask_sources=["alpha"] if src.count == 4 else [],
+                source_native_qa_policy="rgba_alpha_mask",
+            ),
+        }
+        cog_url = None
+        cog_crs = str(src_crs or "EPSG:4326")
 
-    validated_product = raster_validated_product.build_validated_raster_product(
-        req=req,
-        pixel_qa=pixel_qa,
-        quality_flags=stats["quality_flags"],
-        spatial_crs=cog_crs,
-        bounds_4326=bounds,
-        topographic_qa=topographic_qa,
-        cloud_mask_strategy="rgba_alpha_mask",
-        reflectance_normalized=False,
-        source_uri=getattr(req, "raster_url", None),
-    )
-    raster_validated_product.assert_indicator_accepts_validated_product(validated_product)
-    stats["validated_raster_product"] = validated_product.model_dump(mode="json")
-    try:
-        import cog_writer
-
-        cog_uid = uuid.uuid4().hex[:8]
-        cog_path = os.path.join(ctx.UPLOAD_DIR, f"truecolor_{cog_uid}.tif")
-        cog_info = cog_writer.write_rgba_cog(arr, cog_path, transform, crs=cog_crs)
-        stats["cog"] = cog_info
-        if _cog_publishable(cog_info):
-            cog_url = ctx.object_store.upload_cog(
-                cog_path, f"{req.field_id or 'nofield'}/truecolor_{cog_uid}.tif"
-            )
-    except Exception as _e:  # noqa: BLE001 — حفظ COG اختياري لا يُفشل المعالجة
-        stats["cog"] = {"written": False, "reason": str(_e)}
-    meta = {
-        "cog_url": cog_url,
-        "cog_crs": cog_crs,
-        "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
-        "resolution_m": res_m,  # كي لا يسقط السجلّ إلى 10 م افتراضيّاً
-        "nodata": None,  # RGBA يستخدم قناة ألفا لا قيمة nodata
-        "pixel_qa": pixel_qa,
-        "topographic_qa": topographic_qa,
-        "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
-    }
-    return stats, bounds, res_m, meta
+        validated_product = raster_validated_product.build_validated_raster_product(
+            req=req,
+            pixel_qa=pixel_qa,
+            quality_flags=stats["quality_flags"],
+            spatial_crs=cog_crs,
+            bounds_4326=bounds,
+            topographic_qa=topographic_qa,
+            cloud_mask_strategy="rgba_alpha_mask",
+            reflectance_normalized=False,
+            source_uri=getattr(req, "raster_url", None),
+        )
+        raster_validated_product.assert_indicator_accepts_validated_product(validated_product)
+        stats["validated_raster_product"] = validated_product.model_dump(mode="json")
+        try:
+            cog_uid = uuid.uuid4().hex[:8]
+            cog_path = os.path.join(ctx.UPLOAD_DIR, f"truecolor_{cog_uid}.tif")
+            cog_info = cog_writer.write_rgba_cog_source(src, cog_path)
+            stats["cog"] = cog_info
+            if _cog_publishable(cog_info):
+                cog_url = ctx.object_store.upload_cog(
+                    cog_path, f"{req.field_id or 'nofield'}/truecolor_{cog_uid}.tif"
+                )
+        except Exception as _e:  # noqa: BLE001 — حفظ COG اختياري لا يُفشل المعالجة
+            stats["cog"] = {"written": False, "reason": str(_e)}
+        meta = {
+            "cog_url": cog_url,
+            "cog_crs": cog_crs,
+            "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
+            "resolution_m": res_m,  # كي لا يسقط السجلّ إلى 10 م افتراضيّاً
+            "nodata": None,  # RGBA يستخدم قناة ألفا لا قيمة nodata
+            "pixel_qa": pixel_qa,
+            "topographic_qa": topographic_qa,
+            "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
+        }
+        return stats, bounds, res_m, meta
 
 
 def _pixel_read_context(src, clip_geom_src):

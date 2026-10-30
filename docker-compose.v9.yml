@@ -1524,6 +1524,13 @@ services:
       # قبل اختيار CDSE، ويسقط مُغلَقاً إلى element84 عند أيّ تعذُّر. environment_id يطابق جانب البوّابة.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      # Follow-up receipt reads use the canonical token; activation retains its alias.
+      DECISION_SERVICE_AUTH_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      RASTER_FOLLOWUP_TENANTS: ${RASTER_FOLLOWUP_TENANTS:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-false}
       RASTER_ACTIVATION_GATE_ENFORCE: ${RASTER_ACTIVATION_GATE_ENFORCE:-0}
       ACTIVATION_ENVIRONMENT_ID: ${ACTIVATION_ENVIRONMENT_ID:-default}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}

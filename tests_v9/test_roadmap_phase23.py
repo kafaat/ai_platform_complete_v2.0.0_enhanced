@@ -9,7 +9,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../services/sahool-platform"))
 
 
-def test_trial_engine():
+def _report_trial_engine():
     from api.trial_engine import BlockResult, analyze_paired_trial
 
     r = []
@@ -20,14 +20,16 @@ def test_trial_engine():
         )
     ]
     v = analyze_paired_trial(blocks)
-    if v.is_significant and v.mean_difference > 0:
-        r.append(("✓", "فرق واضح → مؤكّد إحصائيّاً"))
+    r.append(
+        ("✓" if v.is_significant and v.mean_difference > 0 else "✗", "فرق واضح → مؤكّد إحصائيّاً")
+    )
     blocks2 = [
         BlockResult(i + 1, t, c)
         for i, (t, c) in enumerate([(6.0, 6.1), (5.8, 5.6), (6.2, 6.3), (5.9, 5.7)])
     ]
-    if not analyze_paired_trial(blocks2).is_significant:
-        r.append(("✓", "تداخل → لا فرق مؤكّد"))
+    r.append(
+        ("✓" if not analyze_paired_trial(blocks2).is_significant else "✗", "تداخل → لا فرق مؤكّد")
+    )
     try:
         analyze_paired_trial([BlockResult(1, 6, 5), BlockResult(2, 6, 5)])
         r.append(("✗", "لم يرفض <4"))
@@ -6489,7 +6491,7 @@ def run_all():
         ("correlation_wiring", test_correlation_wiring),
         ("pest_escalation", test_pest_escalation),
         ("indices_water", test_indices_water),
-        ("trial(11)", test_trial_engine),
+        ("trial(11)", _report_trial_engine),
         ("water(12)", test_water_balance),
         ("4R(13)", test_nutrient_4r),
         ("zones(14)", test_zones),

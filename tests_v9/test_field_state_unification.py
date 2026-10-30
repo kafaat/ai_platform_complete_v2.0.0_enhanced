@@ -226,6 +226,32 @@ async def test_readiness_block_present_and_informational(core_on_path):
     assert st["execution_mode"] == "auto"
 
 
+def _validated_raster_observations(monkeypatch, conn):
+    """Replace only Raster transport; exercise the real QA resolver and projection."""
+    import api.raster_service_client as transport
+
+    async def grid(field_id, **kwargs):
+        assert field_id == "fld_1" and kwargs["tenant_id"] == "t1"
+        index = kwargs["index"]
+        return {
+            "field_id": field_id,
+            "tenant_id": kwargs["tenant_id"],
+            "real_data": True,
+            "source": "sentinel-2",
+            "quality_status": "validated",
+            "date": conn._today.isoformat(),
+            "stats": {
+                "mean": {"ndvi": conn._ndvi, "ndre": 0.2, "ndmi": conn._ndmi, "msi": conn._msi}[
+                    index
+                ]
+            },
+            "product_id": "product:" + index,
+            "scene_id": "scene-fixture",
+        }
+
+    monkeypatch.setattr(transport, "get_indicator_grid", grid)
+
+
 # ── D2b: تصعيد الإجهاد المائيّ خلف feature flag (NDMI+MSI) ──
 # إجهاد طيفيّ شديد: NDMI=-0.1 (<0.0 severe) + MSI=2.5 (≥2.0 severe) ⇒ fused severe ⇒ detected.
 _SPECTRAL_STRESS = {"ndmi": -0.1, "msi": 2.5}
@@ -241,6 +267,7 @@ async def test_d2b_flag_off_eligible_but_not_triggered(core_on_path, monkeypatch
     conn = _Conn(
         ndvi_mean=0.7, ec=1.0, depletion_mm=81.0, depletion_confidence=0.9, **_SPECTRAL_STRESS
     )
+    _validated_raster_observations(monkeypatch, conn)
     st = (await recompute_field_state(conn, "fld_1"))["state"]
     ws = st["water_stress"]
     assert ws["escalation_eligible"] is True
@@ -259,6 +286,7 @@ async def test_d2b_flag_on_escalates(core_on_path, monkeypatch):
     conn = _Conn(
         ndvi_mean=0.7, ec=1.0, depletion_mm=81.0, depletion_confidence=0.9, **_SPECTRAL_STRESS
     )
+    _validated_raster_observations(monkeypatch, conn)
     st = (await recompute_field_state(conn, "fld_1"))["state"]
     ws = st["water_stress"]
     assert ws["escalation_triggered"] is True
@@ -277,6 +305,7 @@ async def test_d2b_flag_on_no_spectral_no_escalation(core_on_path, monkeypatch):
     conn = _Conn(
         ndvi_mean=0.7, ec=1.0, depletion_mm=81.0, depletion_confidence=0.9, ndmi=-0.1, msi=None
     )
+    _validated_raster_observations(monkeypatch, conn)
     st = (await recompute_field_state(conn, "fld_1"))["state"]
     ws = st["water_stress"]
     assert ws["spectral_confirmation_available"] is False
@@ -294,6 +323,7 @@ async def test_d2b_flag_on_low_confidence_no_escalation(core_on_path, monkeypatc
     conn = _Conn(
         ndvi_mean=0.7, ec=1.0, depletion_mm=81.0, depletion_confidence=0.7, **_SPECTRAL_STRESS
     )
+    _validated_raster_observations(monkeypatch, conn)
     st = (await recompute_field_state(conn, "fld_1"))["state"]
     assert st["water_stress"]["escalation_eligible"] is False
     assert st["execution_mode"] == "auto"

@@ -83,7 +83,10 @@ def test_water_stress_escalation_requires_physics_and_spectral_observation() -> 
             "msi": 2.15,
             "ndmi_date": "2026-08-10",
             "msi_date": "2026-08-10",
-        }
+            "quality_status": "validated",
+        },
+        as_of="2026-08-10",
+        max_spectral_age_days=12,
     )
     assert full_gate is not None
     assert full_gate["water_stress_class"] == "critical"

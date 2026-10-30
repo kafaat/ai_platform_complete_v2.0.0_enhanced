@@ -7,5 +7,5 @@
 - Findings: **0** (identity 0 · field drift 0)
 - Fields compared raw: id, domain, dependencies, maturity, evidence_level, owner, lifecycle
 - Fields excluded (no raw normalization yet): title, apis, tests, runtime, evidence, rationale, status, confidence, competitive
-- Evidence-maturity debt identities: **50**
+- Evidence-maturity debt identities: **49**
 - Identity ratchet: **PASS**

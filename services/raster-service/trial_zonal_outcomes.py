@@ -4,7 +4,8 @@ This module converts authoritative trial polygons into exact raster zonal
 measurements and produces the outcome payload consumed by
 ``shared.precision_agriculture.bind_plot_outcomes``. It performs no agronomic
 interpretation and cannot promote a treatment; it only binds measured evidence to
-stable plot IDs.
+stable plot and layout IDs. Legacy assignments without layout identity must be
+regenerated from their verified layout before evidence extraction.
 """
 
 from __future__ import annotations
@@ -53,9 +54,18 @@ def extract_plot_zonal_outcomes(
     plot_ids = [str(row.get("plot_id") or "") for row in assignments]
     if any(not pid for pid in plot_ids) or len(plot_ids) != len(set(plot_ids)):
         raise ValueError("trial assignments require unique plot_id values")
+    layout_ids = [row.get("layout_id") for row in assignments]
+    if (
+        any(not isinstance(value, str) or not value.strip() for value in layout_ids)
+        or len(set(layout_ids)) != 1
+    ):
+        raise ValueError(
+            "trial assignments require a single layout_id; regenerate legacy assignments"
+        )
+    layout_id = layout_ids[0]
 
     outcomes: dict[str, dict[str, Any]] = {
-        pid: {"outcome_refs": [], "measurements": {}} for pid in plot_ids
+        pid: {"layout_id": layout_id, "outcome_refs": [], "measurements": {}} for pid in plot_ids
     }
     for layer in raster_layers:
         name = str(layer.get("name") or "").strip()

@@ -1626,7 +1626,7 @@
       "function": "compose_crop_twin",
       "method": "POST",
       "path": "/api/v1/crop-twin/compose",
-      "line": 249,
+      "line": 244,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/compose::compose_crop_twin"
@@ -1636,7 +1636,7 @@
       "function": "crop_decision_candidate_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
-      "line": 301,
+      "line": 296,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision-candidate::crop_decision_candidate_endpoint",
@@ -1647,7 +1647,7 @@
       "function": "profit_aware_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
-      "line": 534,
+      "line": 529,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision/profit-aware::profit_aware_decision_endpoint"
@@ -1657,7 +1657,7 @@
       "function": "crop_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
-      "line": 408,
+      "line": 403,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision::crop_decision_endpoint"
@@ -4203,7 +4203,7 @@
       "function": "field_irrigation_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
-      "line": 183,
+      "line": 188,
       "target_owner": "sahool-platform",
       "owner_type": "bff-decision-candidate",
       "route_key": "api/routers/irrigation_recommendation.py::POST /api/v1/fields/{field_id}/irrigation-recommendation::field_irrigation_recommendation"
@@ -4213,7 +4213,7 @@
       "function": "irrigation_recommendation",
       "method": "POST",
       "path": "/api/v1/irrigation-recommendation",
-      "line": 105,
+      "line": 110,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/irrigation_recommendation.py::POST /api/v1/irrigation-recommendation::irrigation_recommendation"
@@ -5594,7 +5594,7 @@
       "function": "analyze_trial",
       "method": "POST",
       "path": "/api/v1/trials/analyze",
-      "line": 36,
+      "line": 71,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/trials.py::POST /api/v1/trials/analyze::analyze_trial"

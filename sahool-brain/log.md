@@ -10204,6 +10204,18 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **الدمج:** بأمر المالك «قوم بدمج المتبقي وعمل اللازم» (وكان #1300 مفتوحاً حينها). squash ⇒ `8c77a1692`؛ شجرته `6517c5bd` = شجرة الرأس المختبَر `f83dad301`. #1300 أُغلق بإحالة.
 - **Railway (قراءة):** `sahool-frontend` SUCCESS في production (11:56:43Z) وstaging (11:56:47Z) كما قال `Deploy-Effect` المشتقّ؛ كلّ ما عداه `SKIPPED`، ومنه `sahool-migrate-main`.
 
+### 2026-10-28 — إصلاح سلامة مكررات التجارب الزراعية
+
+- **المصدر:** `1ba202b5b0ff48a7a7e8129f2eb084a54b56c2f8` (التزام محلي؛ لم يُنشأ PR)، فرع `fix/agricultural-trial-replication-integrity`؛ الهوية القانونية `AGRI-TRIAL-REPLICATION-INTEGRITY-01` في [سجل الفجوات](gaps/registry.md).
+- **التغيير:** رفض تكرار هوية الكتلة والمكرر المصرح به، والتحقق من المدخلات العددية، وإخراج JSON صالح مع حالة صريحة للفروق عديمة التباين؛ وربط القياسات بهوية المخطط والقطعة، وتصحيح الفحص الوصفي والتحقق من مواضع العشوائية. توضح [وثيقة العقد](../services/sahool-platform/docs/FIELD_TRIAL_REPLICATION_CONTRACT.md) أثر ذلك على المستهلكين والتخطيطات القديمة.
+- **الدليل:** نجحت اختبارات الانحدار المركزة في [التحليل والمسار](../tests_v9/test_trial_analysis_regressions.py)، و[هوية المخطط](../tests_v9/test_trial_spatial_identity.py)، و[العشوائية](../tests_v9/test_trial_randomization_integrity.py)، و[تصميم التجربة](../services/sahool-platform/tests/test_field_trial_design.py). وتتحقق [اختبارات الواجهة](../frontend/src/components/fieldview/GisTemporalOpsCard.trial.test.tsx) من منع التكرار وعرض الحالة الخاصة. هذه شواهد إصلاح برمجي، وليست قياساً تشغيلياً حياً أو إثباتاً حقلياً.
+- **الحالة:** fixed عند المصدر المذكور؛ لا انتقال إلى verified.
+- **التسليم:** الفرع محلي وغير مرفوع وغير مدموج. لم يُنشأ PR: طلب رفع الملف المولَّد `execution-audit/generated/execution_dependency_audit.json` تجاوز حد النقل البالغ 16 MiB في موصل GitHub، ولا توجد بيانات اعتماد للدفع عبر Git في هذه البيئة. بقي الملف المطلوب ضمن الإصلاح؛ لم تُحذف المصنوعة ولم تُخفَّض بوابات المستودع.
+
+
+### 2026-10-29 — استعادة وتثبيت إصلاحات EO والتجارب
+
+الأساس `909b54ec65a9fd0e5644d630f847ca7ce39af45e`. استعيدت الرقعة المحفوظة وطابقت شجرة `64f7b9632c8df815b0372f2ef6aa999674435f41` قبل التعديلات الجديدة. سبب القرار: إصلاح المدخلات والهوية والمعالجة المحدودة مع الاحتفاظ بحدود الدليل العلمي. المصدر: `docs/reviews/eo_trial_consolidation_20261029.md` و`services/raster-service/cog_writer.py` و`shared/precision_agriculture/trial_spatial.py`. لا ترقية لفجوة إلى verified ولا ادعاء تشغيل حي؛ لم يحدث دمج أو نشر. الرفع وPR ينتظران إتمام البوابات ونقل المصدر الكامل.
 ### 2026-10-28 — #1298: جسر `ml-quality/v1` للقراءة فقط، بعد ربط الإيصال بالقياس
 
 - **المراجعة:** تعليقٌ على #1298 ([6470518758](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1298#issuecomment-6470518758)) وجد أنّ `ReceiptVerifier` لا يتلقّى `case_id` ولا `label_measured_at` ولا `target_mm`، وأنّ الإيصال نفسه يُعاد على صفوفٍ متعدّدة (الـfixture كان يستعمل `"c"*64` لكلّ الصفوف). فإيصالٌ حقيقيٌّ واحد كان يرفع قيماً مختلَقة إلى `*_verified`.

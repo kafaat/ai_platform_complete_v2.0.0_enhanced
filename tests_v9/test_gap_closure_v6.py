@@ -205,9 +205,20 @@ def test_trial_raster_zonal_outcomes_bind_real_pixels(tmp_path):
     )
     bound = spatial.bind_plot_outcomes(assignments, outcomes)
     assert len(bound) == len(assignments)
+    assert all(row["layout_id"] == assignments[0]["layout_id"] for row in outcomes.values())
+    assert all(row["layout_id"] == assignments[0]["layout_id"] for row in bound)
     assert all(row["outcome_refs"] == ("raster:yield:v1",) for row in bound)
     assert all(row["measurements"]["yield_count"] > 0 for row in bound)
     assert all(np.isfinite(row["measurements"]["yield_mean"]) for row in bound)
+    for invalid in (
+        [{k: v for k, v in row.items() if k != "layout_id"} for row in assignments],
+        [dict(assignments[0], layout_id="other-layout"), *assignments[1:]],
+    ):
+        with pytest.raises(ValueError, match="layout_id"):
+            zonal.extract_plot_zonal_outcomes(
+                invalid,
+                [{"name": "yield", "path": str(path), "evidence_ref": "raster:yield:v1"}],
+            )
 
 
 def test_pail_projection_roundtrip_rejects_digest_or_authority_tamper():

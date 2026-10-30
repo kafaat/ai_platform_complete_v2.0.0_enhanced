@@ -73,6 +73,14 @@ cancel API or recall of downstream jobs is promised.
    bearer configuration (`DECISION_SERVICE_AUTH_TOKEN` on both services), and
    `DECISION_SERVICE_URL`. Service bearer grants read access to receipt context;
    treat it as a secret. Receipt reads are tenant-qualified across all joins.
+   Compose passes this canonical token to raster separately from the activation
+   client's `DECISION_SERVICE_TOKEN` alias. Enabled follow-up startup rejects a
+   missing canonical token before checking database readiness.
+   Configure the existing shared JWT verifier (`JWT_PUBLIC_KEY` in production;
+   `JWT_SECRET` only under its existing development/explicit migration policy).
+   Startup uses that same policy and rejects missing or disallowed verification
+   keys; it does not add a fallback or enable HS256 in production. The Compose
+   defaults are production and `SAHOOL_ALLOW_HS256_IN_PROD=false`.
 4. Confirm the existing STAC provider, pixel worker and versioned field geometry.
    Configure `RASTER_FOLLOWUP_TENANTS` as an explicit comma-separated UUID allowlist
    on each intended raster worker instance. Empty/unset leaves submission disabled

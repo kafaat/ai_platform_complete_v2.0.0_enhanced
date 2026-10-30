@@ -47,25 +47,43 @@ async def test_flag_off_uses_client_spectral(monkeypatch):
     assert st["spectral_unverified"] is False
 
 
-async def test_flag_on_server_overrides_client(monkeypatch):
+@pytest.mark.parametrize("quality, status", [("validated", "available"), ("unknown", "degraded")])
+async def test_flag_on_server_overrides_client(monkeypatch, quality, status):
     monkeypatch.setattr(ct, "compose_server_authoritative_spectral_enabled", lambda: True)
 
-    async def _fake_resolve(field_id, tenant_id):
-        assert field_id == "fld_1" and tenant_id == "t1"  # tenant-scoped, correct field
+    calls = []
+
+    async def _fake_grid(field_id, *, tenant_id, index, date, timeout_s):
+        calls.append((field_id, tenant_id, index, date, timeout_s))
+        if index != "ndvi":
+            raise RuntimeError("no product for this index")
         return {
-            "ndvi": 0.72,
-            "ndre": None,
-            "ndmi": None,
-            "msi": None,
-            "acquisition_date": "2026-05-01",
+            "field_id": "fld_1",
+            "tenant_id": "t1",
+            "real_data": True,
+            "source": "cdse",
+            "stats": {"mean": 0.72},
+            "quality_status": quality,
+            "date": "2026-05-01",
             "scene_id": "S2_ABC",
         }
 
-    monkeypatch.setattr(ct, "_resolve_server_spectral", _fake_resolve)
+    # Exercise the canonical resolver and composer; replace only the external transport.
+    monkeypatch.setattr("api.raster_service_client.get_indicator_grid", _fake_grid)
     # client sent 0.30; server authoritative 0.72 must win.
     st = await _compose_state(_req(ndvi=0.30), tenant_id="t1")
     assert st["spectral_provenance"] == "raster-service"
     assert st["spectral_unverified"] is False
+    assert sorted(calls) == [
+        ("fld_1", "t1", index, "latest", 20.0) for index in ("msi", "ndmi", "ndre", "ndvi")
+    ]
+    spectral = st["twin"]["crop_intelligence"]["spectral"]
+    assert spectral["indices"] == {"ndvi": 0.72, "ndre": None, "ndmi": None, "msi": None}
+    assert spectral["evidence_ids"] == ["S2_ABC"]
+    assert spectral["source_authority"] == "raster-service"
+    assert spectral["quality_status"] == quality
+    assert spectral["status"] == status
+    assert spectral["water_stress"]["confirmation_available"] is False
     # الطيف الخادميّ يقود Kc الديناميكيّ (قيمة أعلى من 0.30 ⇒ Kc أعلى).
     st_client = None
     monkeypatch.setattr(ct, "compose_server_authoritative_spectral_enabled", lambda: False)
@@ -76,13 +94,24 @@ async def test_flag_on_server_overrides_client(monkeypatch):
 async def test_flag_on_fetch_fails_marks_client_unverified(monkeypatch):
     monkeypatch.setattr(ct, "compose_server_authoritative_spectral_enabled", lambda: True)
 
-    async def _fail_resolve(field_id, tenant_id):
-        return None  # لا سلطة خادميّة (فشل جلب / لا بيانات)
+    calls = []
 
-    monkeypatch.setattr(ct, "_resolve_server_spectral", _fail_resolve)
+    async def _fail_grid(field_id, *, tenant_id, index, date, timeout_s):
+        calls.append((field_id, tenant_id, index))
+        raise TimeoutError("raster unavailable")
+
+    monkeypatch.setattr("api.raster_service_client.get_indicator_grid", _fail_grid)
     st = await _compose_state(_req(ndvi=0.30), tenant_id="t1")
     assert st["spectral_provenance"] == "client"
     assert st["spectral_unverified"] is True
+    assert sorted(calls) == [("fld_1", "t1", index) for index in ("msi", "ndmi", "ndre", "ndvi")]
+    spectral = st["twin"]["crop_intelligence"]["spectral"]
+    assert spectral["indices"]["ndvi"] == 0.30
+    assert spectral["evidence_ids"] == []
+    assert spectral["source_authority"] is None
+    assert spectral["quality_status"] == "unknown"
+    assert spectral["status"] == "degraded"
+    assert spectral["water_stress"]["confirmation_available"] is False
 
 
 async def test_flag_on_no_field_id_keeps_client(monkeypatch):

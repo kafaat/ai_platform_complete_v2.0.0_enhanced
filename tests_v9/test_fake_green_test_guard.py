@@ -86,6 +86,8 @@ def test_the_measured_example_is_still_recorded():
     """المثال الذي كشف العلّة يبقى موثَّقاً حتى يُصلَح (لا يختفي بصمت)."""
     frozen = set(json.loads(BASELINE.read_text(encoding="utf-8"))["entries"])
     phase23 = {e for e in frozen if e.startswith("tests_v9/test_roadmap_phase23.py::")}
-    assert len(phase23) >= 140, (
+    # The trial-engine report now has a real asserted unit regression; regenerating
+    # the native baseline removed exactly that one entry (140 -> 139).
+    assert len(phase23) >= 139, (
         f"عدد دوالّ phase23 المرصودة انخفض إلى {len(phase23)} — إن أُصلِحت فحدّث الأساس"
     )

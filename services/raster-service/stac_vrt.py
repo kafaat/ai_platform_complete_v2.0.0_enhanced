@@ -18,6 +18,7 @@ from xml.sax.saxutils import escape
 
 import rasterio
 from rasterio.enums import Resampling
+from rasterio.errors import WindowError
 from rasterio.features import geometry_window
 from rasterio.shutil import copy as copy_raster
 from rasterio.vrt import WarpedVRT
@@ -70,11 +71,15 @@ def _stac_calibration(
     calibration = []
     for key in ("scale", "offset"):
         value = bands[0].get(key)
-        if (
-            isinstance(value, bool)
-            or not isinstance(value, (float, int))
-            or not math.isfinite(value)
-        ):
+        try:
+            finite = (
+                not isinstance(value, bool)
+                and isinstance(value, (float, int))
+                and math.isfinite(value)
+            )
+        except OverflowError:
+            finite = False
+        if not finite:
             raise ValueError(f"STAC calibration requires finite explicit {key}")
         calibration.append(float(value))
     scale, offset = calibration
@@ -138,7 +143,10 @@ def build_band_vrt(
             )
             if not geometry or geometry.get("type") not in {"Polygon", "MultiPolygon"}:
                 raise ValueError("STAC processing requires a polygon clip")
-            window = geometry_window(first, [transform_geom("EPSG:4326", crs, geometry)])
+            try:
+                window = geometry_window(first, [transform_geom("EPSG:4326", crs, geometry)])
+            except WindowError as exc:
+                raise ValueError("STAC processing clip does not intersect the target band") from exc
             w, h, gt = int(window.width), int(window.height), first.window_transform(window)
         if max_pixels is not None and w * h > max_pixels:
             raise ValueError("STAC processing clip exceeds pixel budget")

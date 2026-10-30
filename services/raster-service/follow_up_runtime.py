@@ -232,6 +232,14 @@ async def process(row: dict, lease_store: FollowUpStore) -> dict:
 async def startup_check(tenants: tuple[str, ...]):
     if not tenants:
         return
+    if not os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip():
+        raise RuntimeError("follow_up_receipt_source_unconfigured")
+    from shared.security.access_tokens import access_token_verification_key
+
+    try:
+        access_token_verification_key()
+    except ValueError as exc:
+        raise RuntimeError("follow_up_access_token_verification_unconfigured") from exc
     async with store.transaction(tenants[0]) as conn:
         role = await conn.fetchrow(
             "SELECT rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user"

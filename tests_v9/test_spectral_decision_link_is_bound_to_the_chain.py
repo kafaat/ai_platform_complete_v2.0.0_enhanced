@@ -8,9 +8,10 @@
 
 هذا الملفّ يربط الوسم بالمسار الفعليّ الذي يجعله صادقاً:
 
-    imagery_automation يكتب last_ndmi_mean/last_msi_mean   (الكاتب — أُصلِح في #749)
-      ⇒ field_state_projection يقرأ العمودين
-        ⇒ canonical_water_stress يدمجهما عبر fuse_water_stress
+    raster-service يعيد قيمة وجودة ومصدر كل مؤشر
+      ⇒ canonical_spectral_state يتحقق من الجودة وهوية النطاق
+        ⇒ field_state_projection يمرر المنتج إلى canonical_water_stress
+          ⇒ fuse_water_stress يدمج المؤشرين بعد سياسة العمر
           ⇒ spectral_confirmation_available/spectral_stress_detected في الحالة القانونيّة
 
 وحدّ الصدق مكتوب في الاختبارات نفسها: هذه تُثبِت أنّ **الوصل قائم ومشروط**، لا أنّ
@@ -51,16 +52,17 @@ def _row(**over):
         "msi": 1.9,
         "ndmi_date": "2026-06-10",
         "msi_date": "2026-06-10",
+        "quality_status": "validated",
     }
     base.update(over)
     return base
 
 
 def test_both_indices_together_produce_a_confirmation(core_on_path):
-    """المؤشّران معاً ⇒ تأكيد فعليّ — لا وسم في قاموس بل قيمة في المخرَج."""
+    """زوج موثوق ضمن سياسة عمر صريحة ⇒ تأكيد فعليّ، لا مجرد وجود قيمتين."""
     from api.canonical_water_stress import canonical_water_stress
 
-    out = canonical_water_stress(_row())
+    out = canonical_water_stress(_row(), as_of="2026-06-10", max_spectral_age_days=12)
     assert out["spectral_confirmation_available"] is True
     assert out["spectral_stress_detected"] is not None
     assert out["spectral_confidence"] is not None
@@ -71,7 +73,9 @@ def test_either_index_missing_kills_the_confirmation(core_on_path, missing):
     """كلاهما مطلوب: غياب أيّهما ⇒ لا تأكيد ولا كشف — «فيزياء + رصد» بلا تصعيد بلا رصد."""
     from api.canonical_water_stress import canonical_water_stress
 
-    out = canonical_water_stress(_row(**{missing: None}))
+    out = canonical_water_stress(
+        _row(**{missing: None}), as_of="2026-06-10", max_spectral_age_days=12
+    )
     assert out["spectral_confirmation_available"] is False
     assert out["spectral_stress_detected"] is None
 
@@ -83,7 +87,9 @@ def test_incompatible_acquisition_dates_kill_the_confirmation(core_on_path):
         canonical_water_stress,
     )
 
-    out = canonical_water_stress(_row(msi_date="2026-05-01"))
+    out = canonical_water_stress(
+        _row(msi_date="2026-05-01"), as_of="2026-06-10", max_spectral_age_days=12
+    )
     assert out["spectral_date_gap_days"] > SPECTRAL_MAX_DATE_GAP_DAYS
     assert out["spectral_confirmation_available"] is False
     assert out["spectral_temporal_compatible"] is False
@@ -118,19 +124,13 @@ class _NoopTx:
 
 
 class _Conn:
-    """conn وهميّ يُجيب **فقط** الاستعلام الذي يطلب العمودين الطيفيّين.
-
-    هذا هو جوهر الربط: لو توقّف الإسقاط عن اختيار ``last_ndmi_mean``/``last_msi_mean``
-    فلن يُطابق هذا الشرط، فيعود ``None`` وتسقط سلسلة التأكيد — يفشل الاختبار **سلوكيّاً**
-    لا نصّيّاً. (الصيغة النصّيّة وحدها تمرّ ما دام الاسم مذكوراً في أيّ مكان من الملفّ،
-    وقد اكتشفتُ ذلك بتكذيب هذا الاختبار نفسه قبل شحنه.)
-    """
+    """Legacy cached columns remain present but cannot substitute Raster QA."""
 
     def __init__(self, *, ndmi, msi, same_date=True):
         from datetime import date, timedelta
 
         self._ndmi, self._msi = ndmi, msi
-        self._d1 = date(2026, 6, 10)
+        self._d1 = date.today()
         self._d2 = self._d1 if same_date else self._d1 - timedelta(days=40)
         self.spectral_query_seen = False
 
@@ -162,32 +162,94 @@ class _Conn:
         return None
 
 
-@pytest.mark.asyncio
-async def test_the_projection_actually_feeds_the_columns_into_the_fusion(core_on_path):
-    """الحلقة التي كانت مقطوعة، مفحوصة **سلوكيّاً**: من العمودين إلى التأكيد.
+def _raster_transport(monkeypatch, conn, *, quality="validated", age_days=0):
+    from datetime import timedelta
 
-    القيمتان لا تصلان الدمج إلّا إذا اختار الإسقاط العمودين فعلاً. ولذلك يُجيب الـconn
-    الوهميّ ذلك الاستعلام وحده: انقطاع الاختيار ⇒ لا صفّ ⇒ لا تأكيد ⇒ فشل مسموع.
-    """
+    import api.raster_service_client as transport
+
+    calls = []
+
+    async def grid(field_id, **kwargs):
+        assert field_id == "fld_1" and kwargs["tenant_id"] == "t1"
+        index = kwargs["index"]
+        calls.append(index)
+        day = conn._d2 if index == "msi" else conn._d1
+        return {
+            "field_id": field_id,
+            "tenant_id": kwargs["tenant_id"],
+            "real_data": True,
+            "source": "sentinel-2",
+            "quality_status": quality,
+            "date": (day - timedelta(days=age_days)).isoformat(),
+            "stats": {
+                "mean": {"ndvi": 0.5, "ndre": 0.2, "ndmi": conn._ndmi, "msi": conn._msi}[index]
+            },
+            "product_id": "product:" + index,
+            "scene_id": "scene-fixture",
+        }
+
+    monkeypatch.setattr(transport, "get_indicator_grid", grid)
+    return calls
+
+
+@pytest.mark.asyncio
+async def test_the_projection_feeds_validated_products_into_the_fusion(core_on_path, monkeypatch):
+    """Real resolver and projection; only provider transport and DB are doubled."""
     from api.field_state_projection import recompute_field_state
 
     conn = _Conn(ndmi=0.05, msi=1.9)
+    calls = _raster_transport(monkeypatch, conn)
     result = await recompute_field_state(conn, "fld_1")
-    assert conn.spectral_query_seen, "الإسقاط لم يعد يستعلم عن العمودين الطيفيّين"
     water = result["state"].get("water_stress") or {}
-    assert water.get("spectral_confirmation_available") is True, (
-        "العمودان يصلان الاستعلام ولا يصلان الدمج — الوسم decision_linked صار ادّعاءً"
-    )
+    assert set(calls) == {"ndvi", "ndre", "ndmi", "msi"}
+    assert len(calls) == 4
+    assert water.get("spectral_confirmation_available") is True
+    assert water["spectral_quality_status"] == "validated"
+    assert {"product:ndmi", "product:msi"} <= set(water["spectral_evidence_ids"])
+    assert water["spectral_freshness"]["verified"] is True
 
 
 @pytest.mark.asyncio
-async def test_the_projection_chain_dies_when_one_column_is_empty(core_on_path):
-    """نفس المسار بقيمة ناقصة ⇒ لا تأكيد. يُثبِت أنّ النجاح أعلاه ليس ثابتاً محفوراً."""
+async def test_the_projection_chain_dies_when_one_column_is_empty(core_on_path, monkeypatch):
+    """Same path with a missing Raster index must not confirm."""
     from api.field_state_projection import recompute_field_state
 
-    result = await recompute_field_state(_Conn(ndmi=0.05, msi=None), "fld_1")
+    conn = _Conn(ndmi=0.05, msi=None)
+    _raster_transport(monkeypatch, conn)
+    result = await recompute_field_state(conn, "fld_1")
     water = result["state"].get("water_stress") or {}
     assert water.get("spectral_confirmation_available") is False
+
+
+@pytest.mark.asyncio
+async def test_legacy_columns_without_raster_evidence_cannot_confirm(core_on_path, monkeypatch):
+    import api.raster_service_client as transport
+    from api.field_state_projection import recompute_field_state
+
+    async def absent(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(transport, "get_indicator_grid", absent)
+    conn = _Conn(ndmi=0.05, msi=1.9)
+    result = await recompute_field_state(conn, "fld_1")
+    assert conn.spectral_query_seen
+    water = result["state"]["water_stress"]
+    assert water["spectral_confirmation_available"] is False
+    assert water["escalation_eligible"] is False
+
+
+@pytest.mark.parametrize("quality,age_days", [("unknown", 0), ("validated", 13)])
+@pytest.mark.asyncio
+async def test_projection_rejects_unqualified_or_stale_products(
+    core_on_path, monkeypatch, quality, age_days
+):
+    from api.field_state_projection import recompute_field_state
+
+    conn = _Conn(ndmi=0.05, msi=1.9)
+    _raster_transport(monkeypatch, conn, quality=quality, age_days=age_days)
+    water = (await recompute_field_state(conn, "fld_1"))["state"]["water_stress"]
+    assert water["spectral_confirmation_available"] is False
+    assert water["escalation_eligible"] is False
 
 
 def test_the_bridge_label_and_the_chain_agree(core_on_path):
@@ -197,9 +259,7 @@ def test_the_bridge_label_and_the_chain_agree(core_on_path):
     linked = index_coverage_report()["decision_linked"]
     assert "ndmi" in linked and "msi" in linked
     source = PROJECTION.read_text(encoding="utf-8")
-    assert "last_ndmi_mean" in source and "last_msi_mean" in source, (
-        "الوسم يدّعي ربطاً بقرار بينما الإسقاط لا يقرأ المؤشّرين — ادّعاء بلا مسار"
-    )
+    assert "resolve_canonical_spectral_state" in source and "water_stress_spectral_inputs" in source
 
 
 def test_the_writer_still_waits_before_it_reads(core_on_path):

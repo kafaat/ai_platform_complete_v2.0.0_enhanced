@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "82679949b8822b6ca600d376325a5a0a44011081",
+  "measured_on": "909b54ec65a9fd0e5644d630f847ca7ce39af45e",
   "fake_connection_tests": [
     "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
     "services/decision-service/tests/test_migration_runner_readonly.py",
@@ -73,6 +73,7 @@
     "tests_v9/test_db_role_guard_shared.py",
     "tests_v9/test_decision_record_mandatory_persist.py",
     "tests_v9/test_element84_legacy_inventory.py",
+    "tests_v9/test_eo_operational_quality_contract.py",
     "tests_v9/test_erp_sync_recovery.py",
     "tests_v9/test_field_forms_api_integration.py",
     "tests_v9/test_field_forms_sync_binding_p02.py",
@@ -500,6 +501,16 @@
         "services/sahool-platform/tests/test_idempotency_server_contract.py"
       ],
       "justification": "D4/D5 unit contract. The irrigation, field-create and season-create routes run against fakes that answer only the rows each route reads: the valve and field lookups honour a tenant parameter when the query passes one, and otherwise act like a role that bypasses RLS. This pins the 409 reason bodies, the operation-type binding, retention, the canonical digest and the foreign-valve 404 without a database. The command store is an in-memory stand-in. No PostgreSQL enforcement is claimed here: concurrency, rollback, retention and R14/R15 are proven live in tests_v9/test_d4d5_idempotency_irrigation_live_pg.py."
+    },
+    {
+      "kind": "eo_operational_quality_20261028_unit_consumer_contract",
+      "date": "2026-10-28",
+      "before": 117,
+      "after": 118,
+      "sites": [
+        "tests_v9/test_eo_operational_quality_contract.py"
+      ],
+      "justification": "Explicit one-file admission for unit contracts exercising the real field-state projection and irrigation-recommendation consumers with the existing canonical spectral resolver. The connection double supplies fixed field, season and water-ledger rows and records no live database evidence; weather and raster transports are also controlled fixtures. These tests establish propagation of declared per-index quality, acquisition dates, freshness policy and evidence identifiers, including rejection of stale, future and unknown-quality spectral evidence. They do not establish live PostgreSQL behavior, RLS, tenant authorization enforcement, SQL constraints, transactions, concurrency or production readiness. No proven_live exemption is added; any such database or operational claim requires separate live evidence."
     }
   ]
 }

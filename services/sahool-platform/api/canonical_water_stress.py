@@ -27,9 +27,10 @@
 
 from __future__ import annotations
 
+import math
 from datetime import date, datetime
 
-from core.engines.spectral_stress_bridge import fuse_water_stress
+from core.engines.spectral_stress_bridge import fuse_water_stress, spectral_confirmation_eligible
 
 from api.soil_water import available_water_fraction
 
@@ -46,6 +47,9 @@ _SPECTRAL_STRESS_SIGNALS = frozenset({"moderate", "severe"})
 # لا يُدمَج مؤشّران من تاريخَي اكتساب متباعدَين (مثلاً NDMI 5 يوليو + MSI 20 يونيو).
 SPECTRAL_MAX_DATE_GAP_DAYS = 12
 
+# Operational consumer policy; not a crop-calibrated scientific threshold.
+SPECTRAL_MAX_AGE_DAYS = 12
+
 
 def _to_date(value) -> date | None:
     """تحويل آمن لتاريخ (ISO str/date/datetime) ⇒ date، أو None عند التعذّر (لا رمي)."""
@@ -55,9 +59,13 @@ def _to_date(value) -> date | None:
         return value.date()
     if isinstance(value, date):
         return value
+    if not isinstance(value, str):
+        return None
     try:
-        return date.fromisoformat(str(value)[:10])
-    except (ValueError, TypeError):
+        if len(value) == 10:
+            return date.fromisoformat(value)
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).date()
+    except (ValueError, TypeError, OverflowError):
         return None
 
 
@@ -74,12 +82,98 @@ def _coerce_float(value) -> float | None:
     if value is None or isinstance(value, bool):
         return None
     try:
-        return float(value)
-    except (TypeError, ValueError):
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
         return None
+    return number if math.isfinite(number) else None
 
 
-def canonical_water_stress(row: dict | None) -> dict | None:
+def _spectral_freshness(ndmi_date, msi_date, as_of, max_age) -> dict:
+    """Require an explicit, replayable age policy before spectral confirmation."""
+    result = {
+        "policy_applied": False,
+        "verified": False,
+        "eligible": False,
+        "as_of": None,
+        "max_age_days": None,
+        "reason": "freshness_policy_not_configured",
+    }
+    if as_of is None and max_age is None:
+        return result
+    ref = _to_date(as_of)
+    if ref is None or type(max_age) is not int or not 0 <= max_age <= 3660:
+        return {
+            **result,
+            "policy_applied": True,
+            "eligible": False,
+            "reason": "invalid_freshness_policy",
+        }
+    result.update(policy_applied=True, as_of=ref.isoformat(), max_age_days=max_age)
+    dates = [_to_date(ndmi_date), _to_date(msi_date)]
+    if any(day is None for day in dates):
+        return {**result, "eligible": False, "reason": "acquisition_date_missing"}
+    ages = [(ref - day).days for day in dates]
+    if min(ages) < 0:
+        return {**result, "eligible": False, "reason": "future_acquisition"}
+    if max(ages) > max_age:
+        return {**result, "eligible": False, "reason": "stale_acquisition"}
+    return {**result, "verified": True, "eligible": True, "reason": "within_explicit_age_policy"}
+
+
+def water_stress_spectral_inputs(product: dict | None) -> dict:
+    """Adapt the existing server spectral product; never upgrade legacy means to QA.
+
+    Each index must carry its own quality and acquisition date. Product IDs are
+    retained for audit; this adapter does not independently authenticate metadata.
+    The water consumer checks the dates and its explicit age policy separately.
+    """
+    empty = {
+        "ndmi": None,
+        "msi": None,
+        "ndmi_date": None,
+        "msi_date": None,
+        "quality_status": "unknown",
+        "spectral_evidence_ids": [],
+    }
+    if not isinstance(product, dict) or product.get("schema") != "canonical_spectral_state.v1":
+        return empty
+    if product.get("source_authority") != "raster-service":
+        return empty
+    indices = product.get("indices")
+    records = product.get("index_provenance")
+    if not isinstance(indices, dict) or not isinstance(records, dict):
+        return empty
+    result = dict(empty)
+    eligible = product.get("quality_status") == "validated"
+    evidence = []
+    for index in ("ndmi", "msi"):
+        record = records.get(index)
+        if not isinstance(record, dict):
+            eligible = False
+            continue
+        value = _coerce_float(indices.get(index))
+        source_value = _coerce_float(record.get("value"))
+        if value is None or value != source_value:
+            eligible = False
+            continue
+        result[index] = value
+        result[index + "_date"] = record.get("acquisition_date")
+        eligible = eligible and record.get("quality_status") == "validated"
+        for key in ("product_id", "scene_id", "asset_id"):
+            item = record.get(key)
+            if isinstance(item, str) and item and len(item) <= 4096 and item not in evidence:
+                evidence.append(item)
+    result["quality_status"] = "validated" if eligible else "unknown"
+    result["spectral_evidence_ids"] = evidence
+    return result
+
+
+def canonical_water_stress(
+    row: dict | None,
+    *,
+    as_of: date | datetime | str | None = None,
+    max_spectral_age_days: int | None = None,
+) -> dict | None:
     """يطبّع استنزاف/TAW إلى كتلة إجهاد مائيّ كنسيّة، أو ``None`` عند غياب الأساس.
 
     المُدخل ``row`` — dict (أو None):
@@ -103,13 +197,14 @@ def canonical_water_stress(row: dict | None) -> dict | None:
         return None
     dr = _coerce_float(row.get("depletion_mm"))
     taw = _coerce_float(row.get("taw_mm"))
-    if dr is None or taw is None or taw <= 0:
+    if dr is None or taw is None or dr < 0 or taw <= 0:
         return None
 
     p = _coerce_float(row.get("raw_fraction"))
-    if p is None:
+    if row.get("raw_fraction") is None:
         p = 0.5
-    p = max(0.0, min(1.0, p))
+    elif p is None or not 0.0 <= p <= 1.0:
+        return None  # An invalid supplied parameter is not a default or a clamp.
 
     awf = available_water_fraction(dr, taw)
     if awf <= WATER_STRESS_CRITICAL_AWF:
@@ -120,6 +215,8 @@ def canonical_water_stress(row: dict | None) -> dict | None:
         cls = "normal"
 
     dep_conf = _coerce_float(row.get("depletion_confidence"))
+    if dep_conf is not None and not 0.0 <= dep_conf <= 1.0:
+        dep_conf = None  # Never clamp invalid confidence into authorization.
 
     # D2b: تأكيد طيفيّ (NDMI + MSI) — قرار المستخدم: كلا المؤشّرين مطلوبان للتأكيد؛
     # غياب أيّهما ⇒ confirmation_available=False و detected=None ⇒ لا تصعيد (صدق:
@@ -130,12 +227,29 @@ def canonical_water_stress(row: dict | None) -> dict | None:
     # أو فجوة أكبر ⇒ لا تأكيد طيفيّ (fail-closed، لا تصعيد على دمج زمنيّ غير متحقَّق).
     ndmi = _coerce_float(row.get("ndmi"))
     msi = _coerce_float(row.get("msi"))
+    if ndmi is not None and not -1.0 <= ndmi <= 1.0:
+        ndmi = None
+    if msi is not None and msi < 0.0:
+        msi = None
     both_present = ndmi is not None and msi is not None
     spectral_date_gap_days = _date_gap_days(row.get("ndmi_date"), row.get("msi_date"))
     spectral_temporal_ok = (
         spectral_date_gap_days is not None and spectral_date_gap_days <= SPECTRAL_MAX_DATE_GAP_DAYS
     )
-    spectral_available = both_present and spectral_temporal_ok
+    # Age policy is explicit and replayable: never read the wall clock here.
+    # Both policy inputs are required. Matching acquisition dates alone do not prove freshness.
+    freshness = _spectral_freshness(
+        row.get("ndmi_date"), row.get("msi_date"), as_of, max_spectral_age_days
+    )
+    spectral_available = (
+        spectral_confirmation_eligible(
+            ndmi,
+            msi,
+            quality_status=row.get("quality_status"),
+            temporal_compatible=spectral_temporal_ok,
+        )
+        and freshness["eligible"]
+    )
     spectral_detected: bool | None = None
     spectral_confidence: str | None = None
     if spectral_available:
@@ -164,10 +278,23 @@ def canonical_water_stress(row: dict | None) -> dict | None:
         "ndmi": ndmi,
         "msi": msi,
         "spectral_confirmation_available": spectral_available,
+        "spectral_quality_status": (
+            row.get("quality_status") if isinstance(row.get("quality_status"), str) else "unknown"
+        ),
         "spectral_stress_detected": spectral_detected,
         "spectral_confidence": spectral_confidence,
         # سياسة التوافق الزمنيّ (شفافيّة): الفجوة بين تاريخَي NDMI/MSI + هل هي مقبولة.
         "spectral_date_gap_days": spectral_date_gap_days,
+        "spectral_freshness": freshness,
+        "spectral_evidence_ids": [
+            item
+            for item in (
+                row.get("spectral_evidence_ids")
+                if isinstance(row.get("spectral_evidence_ids"), list)
+                else []
+            )
+            if isinstance(item, str)
+        ][:64],
         "spectral_temporal_compatible": (spectral_temporal_ok if both_present else None),
         "escalation_eligible": escalation_eligible,
         "calibrated": False,  # TAW/p غير معايَرين يمنيّاً (صدق)
