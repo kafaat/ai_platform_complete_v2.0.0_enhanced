@@ -2060,7 +2060,7 @@
         "services/raster-service/test_cloud_mask_strategies.py",
         "services/raster-service/test_cloud_masking.py",
         "services/raster-service/test_cloud_native_catalog.py",
-        "services/raster-service/test_cog_windowed_processing.py"
+        "services/raster-service/test_cog_finite_nodata_runtime.py"
       ],
       "runtime": {
         "metrics": [],
@@ -2104,7 +2104,7 @@
       },
       "evidence_truncated": {
         "apis": 63,
-        "tests": 134
+        "tests": 135
       }
     },
     {

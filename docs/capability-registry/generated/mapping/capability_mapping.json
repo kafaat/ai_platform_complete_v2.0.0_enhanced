@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6942,
+    "files_scanned": 6943,
     "files_by_kind": {
       "backend": 1265,
       "database": 289,
       "governance": 86,
       "mobile": 414,
       "other": 2135,
-      "tests": 2252,
+      "tests": 2253,
       "web": 501
     },
-    "unmapped_artifacts": 2753,
+    "unmapped_artifacts": 2754,
     "ambiguous_artifacts": 498
   },
   "capabilities": [
@@ -27904,6 +27904,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_cog_finite_nodata_runtime.py",
+          "score": 14,
+          "signals": [
+            "path:cog",
+            "content:cog"
+          ]
+        },
+        {
           "path": "services/raster-service/test_cog_windowed_processing.py",
           "score": 14,
           "signals": [
@@ -28054,14 +28062,6 @@
           "signals": [
             "content:cog",
             "content:raster tile"
-          ]
-        },
-        {
-          "path": "services/raster-service/test_raster_map_deep_hardening_static.py",
-          "score": 9,
-          "signals": [
-            "content:cog",
-            "content:tilejson"
           ]
         },
         {
@@ -46229,6 +46229,10 @@
     },
     {
       "path": "services/raster-service/test_raster_import_graph_static.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/raster-service/test_raster_map_deep_hardening_static.py",
       "kind": "tests"
     },
     {

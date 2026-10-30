@@ -2047,6 +2047,7 @@ SAT-009,test,services/raster-service/test_clip_grid.py,3,applied
 SAT-009,test,services/raster-service/test_cloud_mask_strategies.py,3,applied
 SAT-009,test,services/raster-service/test_cloud_masking.py,3,applied
 SAT-009,test,services/raster-service/test_cloud_native_catalog.py,3,applied
+SAT-009,test,services/raster-service/test_cog_finite_nodata_runtime.py,5,applied
 SAT-009,test,services/raster-service/test_cog_windowed_processing.py,5,applied
 SAT-009,test,services/raster-service/test_cog_writer_cog_layout.py,5,applied
 SAT-009,test,services/raster-service/test_cog_writer_internal_mask.py,5,applied

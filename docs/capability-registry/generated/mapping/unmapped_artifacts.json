@@ -4660,6 +4660,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_raster_map_deep_hardening_static.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_raster_observable_content.py",
     "kind": "tests"
   },
