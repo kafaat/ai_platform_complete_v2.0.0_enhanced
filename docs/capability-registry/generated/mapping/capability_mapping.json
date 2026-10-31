@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6945,
+    "files_scanned": 6947,
     "files_by_kind": {
       "backend": 1265,
       "database": 289,
-      "governance": 86,
+      "governance": 87,
       "mobile": 414,
       "other": 2135,
-      "tests": 2255,
+      "tests": 2256,
       "web": 501
     },
-    "unmapped_artifacts": 2754,
+    "unmapped_artifacts": 2755,
     "ambiguous_artifacts": 498
   },
   "capabilities": [
@@ -41652,6 +41652,10 @@
     },
     {
       "path": "frontend/e2e/ui-chrome.visual.spec.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/e2e/ui-quality-field-accessibility.spec.ts",
       "kind": "tests"
     },
     {

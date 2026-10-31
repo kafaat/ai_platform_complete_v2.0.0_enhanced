@@ -910,6 +910,7 @@ FM-003,test,tests_v9/test_weather_solar_fields.py,3,applied
 FM-003,test,tests_v9/test_yield_field_state_feed.py,3,applied
 FM-003,ui,frontend/e2e/field-context-flows.spec.ts,2,applied
 FM-003,ui,frontend/e2e/fixtures/fields.ts,2,applied
+FM-003,ui,frontend/e2e/ui-quality-field-accessibility.spec.ts,2,applied
 FM-003,ui,frontend/src/lib/fields.fieldview.test.ts,2,applied
 FM-003,ui,frontend/src/lib/fields.test.ts,2,applied
 FM-003,ui,frontend/src/lib/fields.ts,2,applied

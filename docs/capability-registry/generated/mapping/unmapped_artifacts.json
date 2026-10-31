@@ -72,6 +72,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/e2e/ui-quality-field-accessibility.spec.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/e2e/weather-maphub-smoke.spec.ts",
     "kind": "tests"
   },
