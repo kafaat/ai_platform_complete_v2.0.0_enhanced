@@ -119,10 +119,17 @@ jobs:
           print('MAPPING_DELTA_REGENERATED',len(manifest),'files',flush=True)
           PY
           git diff --name-only -- docs/capability-registry/generated/mapping/
-      - name: Preserve generated mapping for independent review (no commit)
+      - name: Regenerate official CI guard catalogue for drift reconciliation
+        run: |
+          python scripts/ci/guard_catalogue.py
+          test -s docs/runbooks/GUARD_CATALOGUE.md
+          git diff --name-only -- docs/runbooks/GUARD_CATALOGUE.md
+      - name: Preserve generated mapping and guard catalogue for independent review (no commit)
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: sahool-capability-mapping-delta-review
-          path: docs/capability-registry/generated/mapping/
+          name: sahool-governance-generated-delta-review
+          path: |
+            docs/capability-registry/generated/mapping/
+            docs/runbooks/GUARD_CATALOGUE.md
           retention-days: 7
           if-no-files-found: error
