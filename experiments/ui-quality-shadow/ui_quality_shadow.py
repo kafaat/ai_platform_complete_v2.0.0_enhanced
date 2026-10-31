@@ -4,6 +4,7 @@ The detector is run only by a separate, networkless, nonroot CI container.
 This module validates report bytes and source provenance; it DOES NOT prove
 WCAG, functional correctness, UX quality or acceptance for production.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -33,8 +34,9 @@ class ShadowBlocked(ValueError):
 
 
 def canonical(value: object) -> bytes:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"),
-                      ensure_ascii=False, allow_nan=False).encode("utf-8")
+    return json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    ).encode("utf-8")
 
 
 def _read_regular(path: Path, limit: int) -> bytes:
@@ -73,10 +75,14 @@ def _source_bytes(root: Path, rel: str) -> bytes:
                 break
             data.extend(chunk)
         after = os.fstat(leaf)
-        if (len(data) > MAX_SOURCE or len(data) != before.st_size
-                or before.st_dev != after.st_dev or before.st_ino != after.st_ino
-                or before.st_mtime_ns != after.st_mtime_ns
-                or before.st_ctime_ns != after.st_ctime_ns):
+        if (
+            len(data) > MAX_SOURCE
+            or len(data) != before.st_size
+            or before.st_dev != after.st_dev
+            or before.st_ino != after.st_ino
+            or before.st_mtime_ns != after.st_mtime_ns
+            or before.st_ctime_ns != after.st_ctime_ns
+        ):
             raise ShadowBlocked("SOURCE_CHANGED_DURING_READ")
         return bytes(data)
     except OSError as exc:
@@ -89,14 +95,21 @@ def _source_bytes(root: Path, rel: str) -> bytes:
 
 
 def _git(root: Path, *args: str) -> bytes:
-    env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"),
-           "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null",
-           "GIT_NO_REPLACE_OBJECTS": "1", "GIT_OPTIONAL_LOCKS": "0"}
+    env = {
+        "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_NO_REPLACE_OBJECTS": "1",
+        "GIT_OPTIONAL_LOCKS": "0",
+    }
     try:
         result = subprocess.run(
             ["git", "-c", "core.fsmonitor=false", "-C", str(root), *args],
-            env=env, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            timeout=15, check=True,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=15,
+            check=True,
         )
         return result.stdout
     except (OSError, subprocess.SubprocessError) as exc:
@@ -129,10 +142,13 @@ def parse_json(raw: bytes) -> object:
                 raise ShadowBlocked("DUPLICATE_JSON_KEY")
             doc[k] = v
         return doc
+
     try:
-        return json.loads(raw.decode("utf-8", "strict"), object_pairs_hook=unique,
-                          parse_constant=lambda _: (_ for _ in ()).throw(
-                              ShadowBlocked("NONFINITE_JSON")))
+        return json.loads(
+            raw.decode("utf-8", "strict"),
+            object_pairs_hook=unique,
+            parse_constant=lambda _: (_ for _ in ()).throw(ShadowBlocked("NONFINITE_JSON")),
+        )
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise ShadowBlocked("INVALID_JSON") from exc
 
@@ -183,12 +199,17 @@ def evaluate(root: str | Path, reports: str | Path, image: str) -> dict:
         count = findings_count(parse_json(report_raw))
         if (code == "0" and count != 0) or (code == "2" and count == 0):
             raise ShadowBlocked("DETECTOR_EXIT_MISMATCH:" + area)
-        targets.append({
-            "area": area, "path": relative, "git_blob": blob_sha,
-            "source_sha256": hashlib.sha256(raw).hexdigest(),
-            "detector_report_sha256": hashlib.sha256(report_raw).hexdigest(),
-            "findings_advisory": count, "detector_exit": int(code),
-        })
+        targets.append(
+            {
+                "area": area,
+                "path": relative,
+                "git_blob": blob_sha,
+                "source_sha256": hashlib.sha256(raw).hexdigest(),
+                "detector_report_sha256": hashlib.sha256(report_raw).hexdigest(),
+                "findings_advisory": count,
+                "detector_exit": int(code),
+            }
+        )
     # A zero-finding result is not meaningful unless the same source scanner
     # also detects an intentionally bad TSX fixture under identical flags.
     control_source = _source_bytes(root, POSITIVE_CONTROL)
@@ -201,18 +222,23 @@ def evaluate(root: str | Path, reports: str | Path, image: str) -> dict:
     if control_count < 1:
         raise ShadowBlocked("POSITIVE_CONTROL_NO_FINDINGS")
     positive_control = {
-        "path": POSITIVE_CONTROL, "git_blob": control_blob,
+        "path": POSITIVE_CONTROL,
+        "git_blob": control_blob,
         "source_sha256": hashlib.sha256(control_source).hexdigest(),
         "detector_report_sha256": hashlib.sha256(control_report).hexdigest(),
-        "findings_detected": control_count, "detector_exit": 2,
+        "findings_detected": control_count,
+        "detector_exit": 2,
         "verified": True,
     }
     return {
         "format": "sahool.ui-quality-shadow.v1",
         "source_sha": head,
-        "detector": "impeccable", "detector_version": "4.8.0",
-        "image_id": image, "status": "REVIEW_ONLY",
-        "target_count": len(targets), "targets": targets,
+        "detector": "impeccable",
+        "detector_version": "4.8.0",
+        "image_id": image,
+        "status": "REVIEW_ONLY",
+        "target_count": len(targets),
+        "targets": targets,
         "positive_control": positive_control,
         "style_findings_block_release": False,
         "wcag_conformance_proven": False,
@@ -242,10 +268,18 @@ def main() -> int:
         print(payload.decode("utf-8").strip())
         return 0
     except (ShadowBlocked, OSError, UnicodeError, ValueError) as exc:
-        print(json.dumps({"status": "BLOCKED",
-                          "reason": str(exc) if isinstance(exc, ShadowBlocked)
-                          else "INPUT_OR_EXECUTION_UNAVAILABLE",
-                          "production_accepted": False}, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "status": "BLOCKED",
+                    "reason": str(exc)
+                    if isinstance(exc, ShadowBlocked)
+                    else "INPUT_OR_EXECUTION_UNAVAILABLE",
+                    "production_accepted": False,
+                },
+                sort_keys=True,
+            )
+        )
         return 2
 
 
