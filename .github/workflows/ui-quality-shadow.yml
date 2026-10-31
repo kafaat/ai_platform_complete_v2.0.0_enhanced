@@ -1,0 +1,137 @@
+name: SAHOOL UI quality shadow review
+on:
+  pull_request:
+    paths:
+      - 'experiments/ui-quality-shadow/**'
+      - '.github/workflows/ui-quality-shadow.yml'
+      - 'frontend/src/sections/FieldWorkspaceRouteShell.tsx'
+      - 'frontend/src/sections/MapHub.tsx'
+      - 'frontend/src/sections/IrrigationManualOperationsPanel.tsx'
+      - 'frontend/src/sections/FieldWorkspaceImageryPanel.tsx'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - run: python experiments/ui-quality-shadow/test_ui_quality_shadow.py -v
+  readonly-impeccable-survey:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Build reviewed source detector without npm scripts
+        run: |
+          docker build --pull --tag sahool-ui-shadow:4.8.0 \
+            -f experiments/ui-quality-shadow/Dockerfile \
+            experiments/ui-quality-shadow
+      - name: Scan only four reviewed TSX files, with no network
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/sahool-ui-shadow"
+          declare -A targets=(
+            [field-management]="frontend/src/sections/FieldWorkspaceRouteShell.tsx"
+            [maphub]="frontend/src/sections/MapHub.tsx"
+            [irrigation]="frontend/src/sections/IrrigationManualOperationsPanel.tsx"
+            [remote-sensing]="frontend/src/sections/FieldWorkspaceImageryPanel.tsx"
+            [positive-control]="experiments/ui-quality-shadow/fixtures/source-positive-control.tsx"
+          )
+          for area in field-management maphub irrigation remote-sensing positive-control; do
+            rel="${targets[$area]}"
+            file="${rel##*/}"
+            name="sahool-ui-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${area}"
+            trap 'docker rm -f "$name" >/dev/null 2>&1 || :' EXIT
+            set +e
+            timeout -k 10s 110s docker run --rm --pull=never --name "$name" \
+              --network=none --read-only --cap-drop=ALL \
+              --security-opt=no-new-privileges --pids-limit=64 \
+              --memory=768m --cpus=1 --user=65534:65534 \
+              --tmpfs=/tmp:rw,nosuid,nodev,size=64m --env=HOME=/tmp \
+              --mount "type=bind,source=$PWD/$rel,target=/scan/$file,readonly" \
+              sahool-ui-shadow:4.8.0 detect --json --no-config --no-advisory "/scan/$file" \
+              > "$RUNNER_TEMP/sahool-ui-shadow/$area.json" \
+              2> "$RUNNER_TEMP/sahool-ui-shadow/$area.stderr"
+            status=$?
+            set -e
+            echo "$status" > "$RUNNER_TEMP/sahool-ui-shadow/$area.exit"
+            if [ "$status" -ne 0 ] && [ "$status" -ne 2 ]; then
+              echo "Detector failed on $area with exit $status; showing bounded diagnostic:"
+              head -c 500 "$RUNNER_TEMP/sahool-ui-shadow/$area.stderr"
+              head -c 500 "$RUNNER_TEMP/sahool-ui-shadow/$area.json"
+              exit 1
+            fi
+          done
+          IMAGE_ID=$(docker image inspect --format '{{.Id}}' sahool-ui-shadow:4.8.0)
+          python experiments/ui-quality-shadow/ui_quality_shadow.py \
+            --root . --reports "$RUNNER_TEMP/sahool-ui-shadow" \
+            --image-id "$IMAGE_ID" \
+            --out "$RUNNER_TEMP/sahool-ui-shadow/review.json"
+      - name: Store review-only observation for manual inspection
+        if: success()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sahool-ui-quality-shadow-review
+          path: |
+            ${{ runner.temp }}/sahool-ui-shadow/*.json
+            ${{ runner.temp }}/sahool-ui-shadow/*.exit
+          retention-days: 7
+          if-no-files-found: error
+
+  capability-mapping-delta:
+    # Recompute official scanner artifacts without editing the repository.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Generate official mapping delta on the PR head
+        run: |
+          python scripts/ci/capability_mapping_engine.py --generate
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root=Path('docs/capability-registry/generated/mapping')
+          manifest=json.loads((root/'mapping_manifest.json').read_text())
+          for filename,digest in manifest.items():
+              actual=hashlib.sha256((root/filename).read_bytes()).hexdigest()
+              assert actual == digest, filename
+          print('MAPPING_DELTA_REGENERATED',len(manifest),'files',flush=True)
+          PY
+          git diff --name-only -- docs/capability-registry/generated/mapping/
+      - name: Install pinned YAML parser required by the official guard catalogue generator
+        run: python -m pip install --disable-pip-version-check --no-input 'PyYAML==6.0.3'
+      - name: Regenerate official CI guard catalogue for drift reconciliation
+        run: |
+          python scripts/ci/guard_catalogue.py
+          test -s docs/runbooks/GUARD_CATALOGUE.md
+          git diff --name-only -- docs/runbooks/GUARD_CATALOGUE.md
+      - name: Preserve generated mapping and guard catalogue for independent review (no commit)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sahool-governance-generated-delta-review
+          path: |
+            docs/capability-registry/generated/mapping/
+            docs/runbooks/GUARD_CATALOGUE.md
+          retention-days: 7
+          if-no-files-found: error

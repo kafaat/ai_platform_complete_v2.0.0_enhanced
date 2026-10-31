@@ -1135,7 +1135,7 @@
 | `capability_evidence_maturity_engine.py` | Generate a fail-closed evidence matrix and evidence-derived maturity baseline. | `capability-registry` |
 | `capability_linker.py` | Conservatively link SAHOOL capabilities to repository services, APIs, tests and consumers. | `capability-registry` |
 | `capability_management_engine.py` | Generate the unified SAHOOL Capability Management Layer. | `capability-registry` |
-| `capability_mapping_engine.py` | Build a deterministic repository-to-capability evidence map for SAHOOL. | `capability-registry` |
+| `capability_mapping_engine.py` | Build a deterministic repository-to-capability evidence map for SAHOOL. | `capability-registry` · `capability-mapping-delta` |
 | `capability_parity_investment_engine.py` | Generate fail-closed capability parity and investment artifacts. | `capability-registry` |
 | `capability_projection_sync.py` | يجعل الإسقاط التوافقيّ صادقاً: الحقول canonical-owned تُكتَب من مالكها وحده. | `capability-registry` |
 | `capability_registry_guard.py` | Validate the canonical SAHOOL capability registry and generate governance outputs. | `capability-registry` |
@@ -1191,7 +1191,7 @@
 | `generate_service_inventory.py` | Generate Sahool service and route inventory from source code. | `structural-lint` · `drift` |
 | `generated_write_targets.py` | أهدافُ الكتابة المولَّدة — `CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01`. | `structural-lint` |
 | `github_actions_policy_guard.py` | Enforce immutable third-party Actions and reject privileged workflow patterns. | `supply-chain-static-scan` |
-| `guard_catalogue.py` | What every guard enforces, what it catches, and where it runs — derived, never listed. | `structural-lint` |
+| `guard_catalogue.py` | What every guard enforces, what it catches, and where it runs — derived, never listed. | `structural-lint` · `capability-mapping-delta` |
 | `health_readiness_schema_guard.py` | Guard canonical health/readiness response envelopes. | `health-readiness-schema` |
 | `indicators_container_contract_guard.py` | Guard the indicators-service canonical-observation-adapter container boundary. | `indicators-container-contract` |
 | `indicators_registry_gate.py` | Guard: config/indicators_registry.json is the single source of truth for indicators. | `structural-lint` |
