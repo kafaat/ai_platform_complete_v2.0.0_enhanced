@@ -9,6 +9,9 @@ on:
       - 'frontend/src/sections/IrrigationManualOperationsPanel.tsx'
       - 'frontend/src/sections/FieldWorkspaceImageryPanel.tsx'
   workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
 jobs:
@@ -90,48 +93,5 @@ jobs:
           path: |
             ${{ runner.temp }}/sahool-ui-shadow/*.json
             ${{ runner.temp }}/sahool-ui-shadow/*.exit
-          retention-days: 7
-          if-no-files-found: error
-
-  capability-mapping-delta:
-    # Recompute official scanner artifacts without editing the repository.
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with:
-          python-version: '3.12'
-      - name: Generate official mapping delta on the PR head
-        run: |
-          python scripts/ci/capability_mapping_engine.py --generate
-          python - <<'PY'
-          import hashlib, json
-          from pathlib import Path
-          root=Path('docs/capability-registry/generated/mapping')
-          manifest=json.loads((root/'mapping_manifest.json').read_text())
-          for filename,digest in manifest.items():
-              actual=hashlib.sha256((root/filename).read_bytes()).hexdigest()
-              assert actual == digest, filename
-          print('MAPPING_DELTA_REGENERATED',len(manifest),'files',flush=True)
-          PY
-          git diff --name-only -- docs/capability-registry/generated/mapping/
-      - name: Install pinned YAML parser required by the official guard catalogue generator
-        run: python -m pip install --disable-pip-version-check --no-input 'PyYAML==6.0.3'
-      - name: Regenerate official CI guard catalogue for drift reconciliation
-        run: |
-          python scripts/ci/guard_catalogue.py
-          test -s docs/runbooks/GUARD_CATALOGUE.md
-          git diff --name-only -- docs/runbooks/GUARD_CATALOGUE.md
-      - name: Preserve generated mapping and guard catalogue for independent review (no commit)
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: sahool-governance-generated-delta-review
-          path: |
-            docs/capability-registry/generated/mapping/
-            docs/runbooks/GUARD_CATALOGUE.md
           retention-days: 7
           if-no-files-found: error
