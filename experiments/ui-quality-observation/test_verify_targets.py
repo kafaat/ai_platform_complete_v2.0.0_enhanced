@@ -5,8 +5,8 @@ import unittest
 from pathlib import Path
 
 from verify_targets import (
-    ObservationBlocked,
     TARGETS,
+    ObservationBlocked,
     bounded,
     observe,
     primary_count,
