@@ -1,0 +1,54 @@
+name: Temporary source-pinned UI dual generated diff
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ui-dual-generator-diff.yml'
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+permissions:
+  contents: read
+jobs:
+  offline-generated-delta:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: 7f7bae58d9b53b6345843aa55759b89901a1b536
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install pinned YAML parser
+        run: python -m pip install --disable-pip-version-check --no-input 'PyYAML==6.0.3'
+      - name: Generate official mapping, management and impact on exact integrated SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = '7f7bae58d9b53b6345843aa55759b89901a1b536'
+          echo "SOURCE_SHA=$actual"
+          python scripts/ci/capability_mapping_engine.py --generate
+          python scripts/ci/capability_management_engine.py --generate
+          python scripts/ci/pr_capability_impact_gate.py --generate-index
+          python scripts/ci/guard_catalogue.py
+          git diff --unified=2 -- docs/capability-registry/generated/mapping/ docs/capability-registry/generated/management/ docs/capability-registry/generated/impact/ docs/runbooks/GUARD_CATALOGUE.md > "$RUNNER_TEMP/generated.patch"
+          wc -c "$RUNNER_TEMP/generated.patch"
+          echo BEGIN_SOURCE_PINNED_GENERATED_DIFF
+          sed -n '1,1200p' "$RUNNER_TEMP/generated.patch"
+          echo END_SOURCE_PINNED_GENERATED_DIFF
+          cp "$RUNNER_TEMP/generated.patch" "$RUNNER_TEMP/ci-generated.diff"
+      - name: Preserve exact checked-in candidate and diff (no commit)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: exact-pr1314-canonical-generated-candidate
+          path: |
+            docs/capability-registry/generated/mapping/
+            docs/capability-registry/generated/management/
+            docs/capability-registry/generated/impact/
+            docs/runbooks/GUARD_CATALOGUE.md
+            ${{ runner.temp }}/ci-generated.diff
+          retention-days: 5
+          if-no-files-found: error
