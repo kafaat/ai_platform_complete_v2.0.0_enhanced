@@ -36,6 +36,10 @@ class UIQualityShadowContracts(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("export default function Component() { return null; }\n", encoding="utf-8")
             self.files[key] = path
+        # Test fixture has the same path contract as the real positive control.
+        control = self.root / "experiments/ui-quality-shadow/fixtures/source-positive-control.tsx"
+        control.parent.mkdir(parents=True, exist_ok=True)
+        control.write_text('export function Broken() { return <h1 className="text-purple-700">Bad</h1>; }\n')
         git(self.root, "add", ".")
         git(self.root, "commit", "-qm", "reviewed UI fixture")
         self.head = git(self.root, "rev-parse", "HEAD")
@@ -48,6 +52,9 @@ class UIQualityShadowContracts(unittest.TestCase):
             (self.reports / (key + ".exit")).write_text(
                 "2\n" if key == "maphub" else "0\n", encoding="ascii")
 
+        (self.reports / "positive-control.json").write_text('{"findings":[{"id":"known-pattern"}]}')
+        (self.reports / "positive-control.exit").write_text("2\\n")
+
     def check(self):
         return evaluate(self.root, self.reports, IMAGE)
 
@@ -55,6 +62,8 @@ class UIQualityShadowContracts(unittest.TestCase):
         result = self.check()
         self.assertEqual(result["source_sha"], self.head)
         self.assertEqual(result["target_count"], 4)
+        self.assertTrue(result["positive_control"]["verified"])
+        self.assertGreater(result["positive_control"]["findings_detected"], 0)
         self.assertEqual(sum(x["findings_advisory"] for x in result["targets"]), 1)
         self.assertEqual(result["status"], "REVIEW_ONLY")
         self.assertFalse(result["style_findings_block_release"])
@@ -87,6 +96,21 @@ class UIQualityShadowContracts(unittest.TestCase):
     def test_nonfinite_detector_json_rejected(self):
         (self.reports / "maphub.json").write_text('{"findings":NaN}')
         with self.assertRaisesRegex(ShadowBlocked, "NONFINITE_JSON"):
+            self.check()
+
+    def test_positive_control_zero_findings_is_blocked(self):
+        (self.reports / "positive-control.json").write_text('{"findings":[]}')
+        with self.assertRaisesRegex(ShadowBlocked, "POSITIVE_CONTROL_NO_FINDINGS"):
+            self.check()
+
+    def test_positive_control_detector_not_active_is_blocked(self):
+        (self.reports / "positive-control.exit").write_text("0\\n")
+        with self.assertRaisesRegex(ShadowBlocked, "POSITIVE_CONTROL_DETECTOR_NOT_ACTIVE"):
+            self.check()
+
+    def test_positive_control_missing_is_blocked(self):
+        (self.reports / "positive-control.json").unlink()
+        with self.assertRaises((ShadowBlocked, OSError)):
             self.check()
 
     def test_missing_report_rejected(self):
