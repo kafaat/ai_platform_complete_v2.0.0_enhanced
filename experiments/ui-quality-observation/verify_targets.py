@@ -3,6 +3,7 @@
 The Docker detector and its version-pinned npm package are executed only in CI.
 No product code, routes, forms, user data or production services are changed.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -48,10 +49,13 @@ def strict_json(raw: bytes):
                 raise ObservationBlocked("DUPLICATE_JSON")
             value[key] = entry
         return value
+
     try:
-        return json.loads(raw.decode("utf-8", "strict"), object_pairs_hook=unique,
-                          parse_constant=lambda _: (_ for _ in ()).throw(
-                              ObservationBlocked("NONFINITE_JSON")))
+        return json.loads(
+            raw.decode("utf-8", "strict"),
+            object_pairs_hook=unique,
+            parse_constant=lambda _: (_ for _ in ()).throw(ObservationBlocked("NONFINITE_JSON")),
+        )
     except (ValueError, UnicodeError) as exc:
         if isinstance(exc, ObservationBlocked):
             raise
@@ -78,8 +82,12 @@ def primary_count(doc: object) -> int:
 
 
 def observe(root: Path, reports: Path, source_sha: str, image_sha256: str) -> dict:
-    if (not isinstance(source_sha, str) or not SHA.fullmatch(source_sha)
-            or not isinstance(image_sha256, str) or not IMAGE.fullmatch(image_sha256)):
+    if (
+        not isinstance(source_sha, str)
+        or not SHA.fullmatch(source_sha)
+        or not isinstance(image_sha256, str)
+        or not IMAGE.fullmatch(image_sha256)
+    ):
         raise ObservationBlocked("INVALID_SOURCE_OR_IMAGE_IDENTITY")
     items = []
     for short, relative in TARGETS.items():
@@ -92,17 +100,18 @@ def observe(root: Path, reports: Path, source_sha: str, image_sha256: str) -> di
             code = int(code_raw.strip())
         except ValueError as exc:
             raise ObservationBlocked("INVALID_EXIT_CODE") from exc
-        if (code not in (0, 2) or (code == 0 and findings != 0)
-                or (code == 2 and findings == 0)):
+        if code not in (0, 2) or (code == 0 and findings != 0) or (code == 2 and findings == 0):
             raise ObservationBlocked("DETECTOR_EXIT_OR_FINDINGS_MISMATCH")
-        items.append({
-            "surface": short,
-            "file": relative,
-            "source_sha256": hashlib.sha256(source).hexdigest(),
-            "detector_json_sha256": hashlib.sha256(analysis).hexdigest(),
-            "primary_findings": findings,
-            "detector_exit": code,
-        })
+        items.append(
+            {
+                "surface": short,
+                "file": relative,
+                "source_sha256": hashlib.sha256(source).hexdigest(),
+                "detector_json_sha256": hashlib.sha256(analysis).hexdigest(),
+                "primary_findings": findings,
+                "detector_exit": code,
+            }
+        )
     return {
         "schema": "sahool.ui-static-observation.v1",
         "status": "OBSERVED_FOR_REVIEW",
@@ -129,19 +138,34 @@ def main():
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
     try:
-        result = observe(Path(args.root), Path(args.reports),
-                         args.source_sha, args.image_sha256)
+        result = observe(Path(args.root), Path(args.reports), args.source_sha, args.image_sha256)
         with Path(args.out).open("xb") as stream:
             stream.write((json.dumps(result, sort_keys=True) + "\n").encode())
-        print(json.dumps({"status": result["status"], "source_sha": result["source_sha"],
-                          "surfaces_checked": result["surfaces_checked"],
-                          "primary_findings": result["total_primary_findings"],
-                          "production_accepted": False}, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "status": result["status"],
+                    "source_sha": result["source_sha"],
+                    "surfaces_checked": result["surfaces_checked"],
+                    "primary_findings": result["total_primary_findings"],
+                    "production_accepted": False,
+                },
+                sort_keys=True,
+            )
+        )
         return 0
     except (ObservationBlocked, OSError) as exc:
-        print(json.dumps({"status": "BLOCKED", "reason": str(exc) if
-                          isinstance(exc, ObservationBlocked) else "INPUT_UNAVAILABLE",
-                          "production_accepted": False}))
+        print(
+            json.dumps(
+                {
+                    "status": "BLOCKED",
+                    "reason": str(exc)
+                    if isinstance(exc, ObservationBlocked)
+                    else "INPUT_UNAVAILABLE",
+                    "production_accepted": False,
+                }
+            )
+        )
         return 2
 
 
