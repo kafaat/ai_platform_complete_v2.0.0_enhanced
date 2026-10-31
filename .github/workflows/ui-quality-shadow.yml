@@ -48,8 +48,9 @@ jobs:
             [maphub]="frontend/src/sections/MapHub.tsx"
             [irrigation]="frontend/src/sections/IrrigationManualOperationsPanel.tsx"
             [remote-sensing]="frontend/src/sections/FieldWorkspaceImageryPanel.tsx"
+            [positive-control]="experiments/ui-quality-shadow/fixtures/source-positive-control.tsx"
           )
-          for area in field-management maphub irrigation remote-sensing; do
+          for area in field-management maphub irrigation remote-sensing positive-control; do
             rel="${targets[$area]}"
             file="${rel##*/}"
             name="sahool-ui-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${area}"
