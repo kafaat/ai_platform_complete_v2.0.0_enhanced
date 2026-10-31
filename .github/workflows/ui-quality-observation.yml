@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Synthetic parser and evidence rejection tests
-        run: python -m unittest discover -s experiments/ui-quality-observation -p 'test_*.py' -v
+        run: python experiments/ui-quality-observation/test_verify_targets.py -v
       - name: Install exact non-executing UI detector in disposable Docker
         run: |
           docker build --pull --tag sahool-ui-observer:4.8.0 \
