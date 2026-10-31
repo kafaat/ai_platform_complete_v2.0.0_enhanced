@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6945,
+    "files_scanned": 6949,
     "files_by_kind": {
       "backend": 1265,
       "database": 289,
-      "governance": 86,
+      "governance": 87,
       "mobile": 414,
-      "other": 2135,
-      "tests": 2255,
+      "other": 2137,
+      "tests": 2256,
       "web": 501
     },
-    "unmapped_artifacts": 2754,
+    "unmapped_artifacts": 2755,
     "ambiguous_artifacts": 498
   },
   "capabilities": [
@@ -41613,6 +41613,10 @@
     {
       "path": "docs/runbooks/runtime_acceptance_20261016/catalog_snapshot.sql",
       "kind": "database"
+    },
+    {
+      "path": "experiments/ui-quality-observation/test_verify_targets.py",
+      "kind": "tests"
     },
     {
       "path": "frontend/.github/workflows/structural-lint.yml",
