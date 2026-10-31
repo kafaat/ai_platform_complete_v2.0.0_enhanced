@@ -1,0 +1,44 @@
+name: Generate PR-scoped impact index candidate (read-only)
+on:
+  pull_request:
+    branches:
+      - test/ui-quality-accessibility-e2e-20261031
+    paths:
+      - '.github/workflows/impact-index-preview.yml'
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  index-candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install only the official generator dependency
+        run: python -m pip install --disable-pip-version-check --no-input 'PyYAML==6.0.3'
+      - name: Generate and emit exact impact index JSON (no write to GitHub)
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'INDEX_SOURCE_SHA=%s\n' "$(git rev-parse HEAD)"
+          python scripts/ci/pr_capability_impact_gate.py --generate-index
+          python scripts/ci/pr_capability_impact_gate.py --check-index
+          echo 'BEGIN_EXACT_IMPACT_SUMMARY'
+          cat docs/capability-registry/generated/impact/impact_index_summary.json
+          echo 'END_EXACT_IMPACT_SUMMARY'
+      - name: Preserve candidate for offline review
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: impact-index-generated-candidate
+          path: docs/capability-registry/generated/impact/impact_index_summary.json
+          retention-days: 5
+          if-no-files-found: error
