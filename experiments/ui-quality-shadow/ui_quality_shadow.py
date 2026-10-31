@@ -21,6 +21,7 @@ TARGETS = {
     "irrigation": "frontend/src/sections/IrrigationManualOperationsPanel.tsx",
     "remote-sensing": "frontend/src/sections/FieldWorkspaceImageryPanel.tsx",
 }
+POSITIVE_CONTROL = "experiments/ui-quality-shadow/fixtures/source-positive-control.tsx"
 MAX_REPORT = 4 * 1024 * 1024
 MAX_SOURCE = 1024 * 1024
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
@@ -188,12 +189,31 @@ def evaluate(root: str | Path, reports: str | Path, image: str) -> dict:
             "detector_report_sha256": hashlib.sha256(report_raw).hexdigest(),
             "findings_advisory": count, "detector_exit": int(code),
         })
+    # A zero-finding result is not meaningful unless the same source scanner
+    # also detects an intentionally bad TSX fixture under identical flags.
+    control_source = _source_bytes(root, POSITIVE_CONTROL)
+    control_blob = git_source_identity(root, POSITIVE_CONTROL, control_source)
+    control_report = _read_regular(reports / "positive-control.json", MAX_REPORT)
+    control_exit = _read_regular(reports / "positive-control.exit", 12)
+    if control_exit.decode("ascii", "strict").strip() != "2":
+        raise ShadowBlocked("POSITIVE_CONTROL_DETECTOR_NOT_ACTIVE")
+    control_count = findings_count(parse_json(control_report))
+    if control_count < 1:
+        raise ShadowBlocked("POSITIVE_CONTROL_NO_FINDINGS")
+    positive_control = {
+        "path": POSITIVE_CONTROL, "git_blob": control_blob,
+        "source_sha256": hashlib.sha256(control_source).hexdigest(),
+        "detector_report_sha256": hashlib.sha256(control_report).hexdigest(),
+        "findings_detected": control_count, "detector_exit": 2,
+        "verified": True,
+    }
     return {
         "format": "sahool.ui-quality-shadow.v1",
         "source_sha": head,
         "detector": "impeccable", "detector_version": "4.8.0",
         "image_id": image, "status": "REVIEW_ONLY",
         "target_count": len(targets), "targets": targets,
+        "positive_control": positive_control,
         "style_findings_block_release": False,
         "wcag_conformance_proven": False,
         "browser_behavior_tested": False,
