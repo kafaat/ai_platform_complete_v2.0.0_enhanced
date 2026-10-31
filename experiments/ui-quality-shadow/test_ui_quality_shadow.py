@@ -3,14 +3,20 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
-from ui_quality_shadow import (ShadowBlocked, TARGETS, MAX_REPORT,
-                               evaluate, parse_json, findings_count)
+from ui_quality_shadow import (
+    MAX_REPORT,
+    TARGETS,
+    ShadowBlocked,
+    evaluate,
+    findings_count,
+    parse_json,
+)
 
 IMAGE = "sha256:" + "a" * 64
 
