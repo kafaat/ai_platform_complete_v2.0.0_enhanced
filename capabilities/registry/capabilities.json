@@ -1430,14 +1430,14 @@
         "services/raster-service/test_scene_cloud_unknown_never_clear.py",
         "services/raster-service/test_single_scene_concurrent_pg.py",
         "services/raster-service/test_stac_c1_processing.py",
+        "services/raster-service/test_stac_projection_contract.py",
         "services/raster-service/test_stac_singleflight_provenance.py",
         "services/raster-service/test_stac_vrt.py",
         "tests_v9/test_backfill_scene_job_threadpool_v30_3.py",
         "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
         "tests_v9/test_cdse_catalog_hardening_20260626.py",
-        "tests_v9/test_cdse_cloud_filter_policy.py",
-        "tests_v9/test_cdse_evalscript.py"
+        "tests_v9/test_cdse_cloud_filter_policy.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1480,7 +1480,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 11
+        "tests": 12
       }
     },
     {
@@ -1550,6 +1550,7 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "services/raster-service/test_ndvi_numeric_contract.py",
         "services/sahool-platform/tests/test_ndvi_analysis.py",
         "tests_v9/test_etc_dual_fresh_ndvi.py",
         "tests_v9/test_field_state_ndvi_enrichment.py",
@@ -1581,7 +1582,7 @@
           "path": "services/sahool-platform/core/ndvi_analysis.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=3, tests=10, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=3, tests=11, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "3",
         "CropX": "3",
@@ -2104,7 +2105,7 @@
       },
       "evidence_truncated": {
         "apis": 63,
-        "tests": 135
+        "tests": 137
       }
     },
     {
