@@ -17,6 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
@@ -32,6 +33,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          EXPECTED_SOURCE_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          ACTUAL_SOURCE_SHA="$(git rev-parse HEAD)"
+          if [ "$ACTUAL_SOURCE_SHA" != "$EXPECTED_SOURCE_SHA" ]; then
+            echo "Observed SHA differs from PR head; refusing to scan wrong source" >&2
+            exit 1
+          fi
+          echo "SOURCE_SHA=$ACTUAL_SOURCE_SHA"
           mkdir -p "$RUNNER_TEMP/sahool-ui"
           name="sahool-observer-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           trap 'docker rm -f "$name" >/dev/null 2>&1 || :' EXIT
