@@ -339,6 +339,7 @@
       "ui_consumers": [
         "frontend/e2e/field-context-flows.spec.ts",
         "frontend/e2e/fixtures/fields.ts",
+        "frontend/e2e/ui-quality-field-accessibility.spec.ts",
         "frontend/src/lib/fields.fieldview.test.ts",
         "frontend/src/lib/fields.test.ts",
         "frontend/src/lib/fields.ts"
@@ -420,7 +421,7 @@
           "path": "migrations/v139_field_geometry_history_append_only.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=5, mobile=20. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=6, mobile=20. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
