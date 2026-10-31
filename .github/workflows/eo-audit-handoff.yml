@@ -1,0 +1,50 @@
+name: EO audit artifact transfer
+on:
+  push:
+    branches: [transport/eo-audit-20261031]
+    paths: ['.github/workflows/eo-audit-handoff.yml']
+permissions:
+  contents: write
+concurrency:
+  group: eo-audit-transfer-20261031
+  cancel-in-progress: false
+jobs:
+  transfer:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced' && github.ref == 'refs/heads/transport/eo-audit-20261031'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 2
+          ref: ${{ github.sha }}
+          persist-credentials: true
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Reconstruct exact locally verified artifact and remove transfer files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = 'refs/heads/transport/eo-audit-20261031'
+          test "$(git rev-parse HEAD^)" = 'c17499e2f2b7bf3ead78bbd65e0650320758d967'
+          test "$(git ls-remote origin "$GITHUB_REF" | cut -f1)" = "$GITHUB_SHA"
+          python - <<'PY'
+          from pathlib import Path
+          import base64, gzip, hashlib
+          target = Path('execution-audit/generated/execution_dependency_audit.json')
+          payload = Path('.github/eo-audit-handoff.b64')
+          data = gzip.decompress(base64.b64decode(payload.read_bytes(), validate=False))
+          assert len(data) == 15932804
+          assert hashlib.sha256(data).hexdigest() == '235fcf1c2fad30637a3c30be95d573e59c0fa69ab79da2c42b1b1b46ff26fd5f'
+          target.write_bytes(data)
+          payload.unlink()
+          Path('.github/workflows/eo-audit-handoff.yml').unlink()
+          PY
+          test "$(git hash-object execution-audit/generated/execution_dependency_audit.json)" = '1fcc8ed4e2434ed1321a32f1943658f7071d8ec7'
+          git add -- execution-audit/generated/execution_dependency_audit.json .github/eo-audit-handoff.b64 .github/workflows/eo-audit-handoff.yml
+          test "$(git write-tree)" = '931cdd0efa33e294b6e0cb6e7faf555f1ee26ebf'
+          python scripts/release/validate_release_package.py --root .
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'chore(governance): complete verified EO artifact transfer'
+          git push origin HEAD:'refs/heads/transport/eo-audit-20261031'

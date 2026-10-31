@@ -15,14 +15,14 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6943,
+    "files_scanned": 6945,
     "files_by_kind": {
       "backend": 1265,
       "database": 289,
       "governance": 86,
       "mobile": 414,
       "other": 2135,
-      "tests": 2253,
+      "tests": 2255,
       "web": 501
     },
     "unmapped_artifacts": 2754,
@@ -20820,6 +20820,15 @@
           ]
         },
         {
+          "path": "services/raster-service/test_stac_projection_contract.py",
+          "score": 17,
+          "signals": [
+            "content:sentinel",
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "services/raster-service/test_stac_vrt.py",
           "score": 17,
           "signals": [
@@ -21977,7 +21986,7 @@
         "events": 49,
         "web": 5,
         "mobile": 0,
-        "tests": 62,
+        "tests": 63,
         "governance": 0,
         "other_evidence": 92
       },
@@ -22144,6 +22153,14 @@
         },
         {
           "path": "services/gis-workflow-service/svg_print_map.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "services/raster-service/band_math.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -22768,14 +22785,6 @@
         },
         {
           "path": "services/indicators-service/observation_timeline.py",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "services/raster-service/band_math.py",
           "score": 10,
           "signals": [
             "content:NDVI",
@@ -24351,6 +24360,16 @@
       ],
       "tests": [
         {
+          "path": "services/raster-service/test_ndvi_numeric_contract.py",
+          "score": 28,
+          "signals": [
+            "path:NDVI",
+            "content:NDVI",
+            "path:ndvi",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_ndvi_analysis.py",
           "score": 28,
           "signals": [
@@ -25156,14 +25175,6 @@
         },
         {
           "path": "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "services/vegetation-analysis-service/test_vegetation_event_admission.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -25992,7 +26003,7 @@
       "evidence_truncated": {
         "backend": 25,
         "events": 58,
-        "tests": 106,
+        "tests": 107,
         "other_evidence": 3
       },
       "evidence_counts": {
@@ -58828,19 +58839,19 @@
       "kind": "backend",
       "candidates": [
         {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "capability_id": "SAT-004",
           "score": 10,
           "signals": [
             "content:NDMI",
             "content:ndmi"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
           ]
         }
       ]
