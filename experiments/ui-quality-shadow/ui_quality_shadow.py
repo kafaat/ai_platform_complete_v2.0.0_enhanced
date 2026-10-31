@@ -14,7 +14,14 @@ import os
 import re
 import stat
 import subprocess
+import sys
 from pathlib import Path
+
+# CI blocks non-UTF-8 diagnostics even under LC_ALL=C.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 
 TARGETS = {
     "field-management": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
