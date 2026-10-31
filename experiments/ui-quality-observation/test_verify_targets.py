@@ -1,4 +1,5 @@
 """Synthetic contract tests; never inspect user data or start a SAHOOL backend."""
+
 import json
 import tempfile
 import unittest
@@ -71,8 +72,7 @@ class ReadOnlyUIObservationTests(unittest.TestCase):
             self.reviewed()
 
     def test_duplicate_nonfinite_and_invalid_json_rejected(self):
-        for content in (b'{"findings":[],"findings":[]}',
-                        b'{"findings":NaN}', b'{bad'):
+        for content in (b'{"findings":[],"findings":[]}', b'{"findings":NaN}', b"{bad"):
             with self.subTest(content=content):
                 with self.assertRaises(ObservationBlocked):
                     strict_json(content)
@@ -85,8 +85,9 @@ class ReadOnlyUIObservationTests(unittest.TestCase):
             self.reviewed()
 
     def test_nested_collections_are_supported(self):
-        self.assertEqual(primary_count({"files": [{"findings": [{"id": "x"}]},
-                                                   {"findings": []}]}), 1)
+        self.assertEqual(
+            primary_count({"files": [{"findings": [{"id": "x"}]}, {"findings": []}]}), 1
+        )
         with self.assertRaisesRegex(ObservationBlocked, "UNSUPPORTED_DETECTOR_RESULT"):
             primary_count({"success": True})
 
