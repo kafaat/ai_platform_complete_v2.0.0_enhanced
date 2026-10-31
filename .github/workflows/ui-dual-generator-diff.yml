@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          ref: 3eefd1e2622f60c5bc02fcb484031f0821a95794
+          ref: 7f7bae58d9b53b6345843aa55759b89901a1b536
           persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
-          test "$actual" = '3eefd1e2622f60c5bc02fcb484031f0821a95794'
+          test "$actual" = '7f7bae58d9b53b6345843aa55759b89901a1b536'
           echo "SOURCE_SHA=$actual"
           python scripts/ci/capability_mapping_engine.py --generate
           python scripts/ci/capability_management_engine.py --generate
