@@ -32,6 +32,10 @@
     "kind": "database"
   },
   {
+    "path": "experiments/ui-quality-observation/test_verify_targets.py",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/.github/workflows/structural-lint.yml",
     "kind": "web"
   },
