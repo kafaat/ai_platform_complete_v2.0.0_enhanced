@@ -30,6 +30,42 @@ logger = logging.getLogger("raster-service.stac_vrt")
 _BAND_ORDER = ["red", "nir", "green", "blue", "swir1", "swir2", "rededge", "scl"]
 
 
+def _validate_declared_crs(item: dict, asset: dict, src) -> None:
+    """Check each effective STAC projection declaration against the actual TIFF.
+
+    Asset properties override item properties. Missing/null declarations do not
+    invent a CRS; the existing TIFF CRS requirement still applies. Reprojection
+    remains supported when a source truthfully declares a different target CRS.
+    """
+    properties = item.get("properties", {})
+    for key in ("proj:epsg", "proj:code", "proj:wkt2", "proj:projjson"):
+        # epsg is the legacy spelling of code. An asset declaration using
+        # either spelling supersedes the item's authority-code declaration.
+        authority_override = key in {"proj:epsg", "proj:code"} and any(
+            name in asset for name in ("proj:epsg", "proj:code")
+        )
+        value = asset.get(key) if authority_override else asset.get(key, properties.get(key))
+        if value is None:
+            continue
+        try:
+            if key == "proj:epsg":
+                if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                    raise ValueError("invalid EPSG declaration")
+                declared = rasterio.crs.CRS.from_epsg(value)
+            elif key == "proj:projjson":
+                if not isinstance(value, dict):
+                    raise ValueError("invalid PROJJSON declaration")
+                declared = rasterio.crs.CRS.from_dict(value)
+            else:
+                if not isinstance(value, str) or not value.strip():
+                    raise ValueError("invalid CRS declaration")
+                declared = rasterio.crs.CRS.from_user_input(value)
+        except (ValueError, TypeError, OverflowError, rasterio.errors.CRSError) as exc:
+            raise ValueError(f"Invalid STAC {key} declaration") from exc
+        if declared != src.crs:
+            raise ValueError(f"STAC {key} conflicts with TIFF CRS")
+
+
 def _as_gdal_source(href: str) -> str:
     """يحوّل href إلى مصدر يقرؤه GDAL: http(s) → /vsicurl/؛ s3:// → /vsis3/."""
     if href.startswith(("http://", "https://")):
@@ -57,6 +93,7 @@ def _stac_calibration(
     matches = [asset for asset in item.get("assets", {}).values() if asset.get("href") == href]
     if len(matches) != 1 or src.count != 1:
         raise ValueError("STAC calibration requires one matching single-band asset")
+    _validate_declared_crs(item, matches[0], src)
     bands = matches[0].get("raster:bands")
     if not isinstance(bands, list) or len(bands) != 1 or not isinstance(bands[0], dict):
         raise ValueError("STAC calibration requires one raster:bands declaration")
@@ -147,7 +184,11 @@ def build_band_vrt(
                 window = geometry_window(first, [transform_geom("EPSG:4326", crs, geometry)])
             except WindowError as exc:
                 raise ValueError("STAC processing clip does not intersect the target band") from exc
-            w, h, gt = int(window.width), int(window.height), first.window_transform(window)
+            w, h, gt = (
+                int(window.width),
+                int(window.height),
+                first.window_transform(window),
+            )
         if max_pixels is not None and w * h > max_pixels:
             raise ValueError("STAC processing clip exceeds pixel budget")
         wkt = crs.to_wkt()

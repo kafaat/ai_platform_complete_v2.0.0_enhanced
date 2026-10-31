@@ -166,14 +166,35 @@ def radiometry_context_from_item(item: dict) -> dict:
         "properties": {
             key: deepcopy(value)
             for key, value in item.get("properties", {}).items()
-            if key in {"earthsearch:boa_offset_applied", "s2:processing_baseline", "datetime"}
+            if key
+            in {
+                "earthsearch:boa_offset_applied",
+                "s2:processing_baseline",
+                "datetime",
+                "proj:epsg",
+                "proj:code",
+                "proj:wkt2",
+                "proj:projjson",
+            }
         },
         "assets": {
             key: {
                 field: deepcopy(value)
                 for field, value in asset.items()
                 if field
-                in {"href", "raster:bands", "bands", "eo:bands", "type", "roles", "file:checksum"}
+                in {
+                    "href",
+                    "raster:bands",
+                    "bands",
+                    "eo:bands",
+                    "type",
+                    "roles",
+                    "file:checksum",
+                    "proj:epsg",
+                    "proj:code",
+                    "proj:wkt2",
+                    "proj:projjson",
+                }
             }
             for key, asset in assets.items()
             if asset.get("href") in selected
@@ -278,7 +299,11 @@ async def stac_search_cdse(
             upstream_status = None
         if _logger is not None:
             _logger.warning("CDSE catalog search failed: reason=%s", reason)
-        detail = {"code": "cdse_catalog_unavailable", "provider": "cdse", "reason": reason}
+        detail = {
+            "code": "cdse_catalog_unavailable",
+            "provider": "cdse",
+            "reason": reason,
+        }
         if upstream_status is not None:
             detail["upstream_status"] = upstream_status
         raise HTTPException(status_code=503, detail=detail) from exc
@@ -490,7 +515,12 @@ async def stac_search_landsat_unique(
         "unique_indices": sorted(LANDSAT_UNIQUE_INDICES),
         "direct_raster_indices": sorted(LANDSAT_DIRECT_RASTER_INDICES),
         "derived_indices_require": {
-            "cwsi": ["lst", "air_temperature", "relative_humidity_or_vpd", "wet_dry_reference"],
+            "cwsi": [
+                "lst",
+                "air_temperature",
+                "relative_humidity_or_vpd",
+                "wet_dry_reference",
+            ],
             "tvdi": ["lst", "ndvi"],
             "tci": ["lst", "historical_lst_min_max"],
             "vhi": ["tci", "vci_from_ndvi_history"],
