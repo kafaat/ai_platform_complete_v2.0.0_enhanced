@@ -5,6 +5,9 @@ on:
       - 'frontend/e2e/ui-quality-field-accessibility.spec.ts'
       - '.github/workflows/field-ui-quality-e2e.yml'
   workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
 jobs:
