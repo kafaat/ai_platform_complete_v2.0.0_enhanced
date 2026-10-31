@@ -53,7 +53,7 @@ class UIQualityShadowContracts(unittest.TestCase):
                 "2\n" if key == "maphub" else "0\n", encoding="ascii")
 
         (self.reports / "positive-control.json").write_text('{"findings":[{"id":"known-pattern"}]}')
-        (self.reports / "positive-control.exit").write_text("2\\n")
+        (self.reports / "positive-control.exit").write_text("2\n")
 
     def check(self):
         return evaluate(self.root, self.reports, IMAGE)
@@ -104,7 +104,7 @@ class UIQualityShadowContracts(unittest.TestCase):
             self.check()
 
     def test_positive_control_detector_not_active_is_blocked(self):
-        (self.reports / "positive-control.exit").write_text("0\\n")
+        (self.reports / "positive-control.exit").write_text("0\n")
         with self.assertRaisesRegex(ShadowBlocked, "POSITIVE_CONTROL_DETECTOR_NOT_ACTIVE"):
             self.check()
 
