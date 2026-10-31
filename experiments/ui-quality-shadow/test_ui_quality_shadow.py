@@ -19,6 +19,11 @@ from ui_quality_shadow import (
     parse_json,
 )
 
+# CI invokes this script under an explicit C locale: keep diagnostics UTF-8.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 IMAGE = "sha256:" + "a" * 64
 
 
