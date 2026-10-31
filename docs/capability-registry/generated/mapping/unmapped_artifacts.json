@@ -32,6 +32,10 @@
     "kind": "database"
   },
   {
+    "path": "experiments/ui-quality-shadow/test_ui_quality_shadow.py",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/.github/workflows/structural-lint.yml",
     "kind": "web"
   },
