@@ -29,3 +29,5 @@ jobs:
       - name: Run three actual browser accessibility workflows
         working-directory: frontend
         run: npx playwright test e2e/ui-quality-field-accessibility.spec.ts --project=chromium --workers=1
+
+# Browser gate is hermetic: it never calls SAHOOL production APIs.
