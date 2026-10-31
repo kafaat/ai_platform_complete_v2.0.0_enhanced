@@ -10,10 +10,10 @@ import argparse
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
 import stat
 import subprocess
+from pathlib import Path
 
 TARGETS = {
     "field-management": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
