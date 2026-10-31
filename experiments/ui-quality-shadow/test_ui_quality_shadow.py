@@ -1,4 +1,5 @@
 """Deterministic regressions for the source-bound SAHOOL UI shadow gate."""
+
 from __future__ import annotations
 
 import hashlib
@@ -22,8 +23,9 @@ IMAGE = "sha256:" + "a" * 64
 
 
 def git(root: Path, *args: str) -> str:
-    return subprocess.check_output(["git", "-C", str(root), *args],
-                                   text=True, stderr=subprocess.DEVNULL).strip()
+    return subprocess.check_output(
+        ["git", "-C", str(root), *args], text=True, stderr=subprocess.DEVNULL
+    ).strip()
 
 
 class UIQualityShadowContracts(unittest.TestCase):
@@ -40,12 +42,16 @@ class UIQualityShadowContracts(unittest.TestCase):
         for key, relative in TARGETS.items():
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("export default function Component() { return null; }\n", encoding="utf-8")
+            path.write_text(
+                "export default function Component() { return null; }\n", encoding="utf-8"
+            )
             self.files[key] = path
         # Test fixture has the same path contract as the real positive control.
         control = self.root / "experiments/ui-quality-shadow/fixtures/source-positive-control.tsx"
         control.parent.mkdir(parents=True, exist_ok=True)
-        control.write_text('export function Broken() { return <h1 className="text-purple-700">Bad</h1>; }\n')
+        control.write_text(
+            'export function Broken() { return <h1 className="text-purple-700">Bad</h1>; }\n'
+        )
         git(self.root, "add", ".")
         git(self.root, "commit", "-qm", "reviewed UI fixture")
         self.head = git(self.root, "rev-parse", "HEAD")
@@ -53,10 +59,12 @@ class UIQualityShadowContracts(unittest.TestCase):
         self.reports.mkdir()
         for key in TARGETS:
             (self.reports / (key + ".json")).write_text(
-                '{"findings":[{"id":"advisory"}]}' if key == "maphub"
-                else '{"findings":[]}', encoding="utf-8")
+                '{"findings":[{"id":"advisory"}]}' if key == "maphub" else '{"findings":[]}',
+                encoding="utf-8",
+            )
             (self.reports / (key + ".exit")).write_text(
-                "2\n" if key == "maphub" else "0\n", encoding="ascii")
+                "2\n" if key == "maphub" else "0\n", encoding="ascii"
+            )
 
         (self.reports / "positive-control.json").write_text('{"findings":[{"id":"known-pattern"}]}')
         (self.reports / "positive-control.exit").write_text("2\n")
@@ -80,7 +88,9 @@ class UIQualityShadowContracts(unittest.TestCase):
             path = self.root / target["path"]
             data = path.read_bytes()
             self.assertEqual(target["source_sha256"], hashlib.sha256(data).hexdigest())
-            self.assertEqual(target["git_blob"], git(self.root, "rev-parse", "HEAD:" + target["path"]))
+            self.assertEqual(
+                target["git_blob"], git(self.root, "rev-parse", "HEAD:" + target["path"])
+            )
 
     def test_changed_worktree_rejected_even_if_detector_json_passes(self):
         self.files["irrigation"].write_text("unauthorized local source change")
@@ -158,11 +168,18 @@ class UIQualityShadowContracts(unittest.TestCase):
             evaluate(self.root, self.reports, "node:24")
 
     def test_cli_output_within_source_rejected_before_write(self):
-        command = [sys.executable,
-                   str(Path(__file__).with_name("ui_quality_shadow.py")),
-                   "--root", str(self.root), "--reports", str(self.reports),
-                   "--image-id", IMAGE,
-                   "--out", str(self.root / "shadow.json")]
+        command = [
+            sys.executable,
+            str(Path(__file__).with_name("ui_quality_shadow.py")),
+            "--root",
+            str(self.root),
+            "--reports",
+            str(self.reports),
+            "--image-id",
+            IMAGE,
+            "--out",
+            str(self.root / "shadow.json"),
+        ]
         p = subprocess.run(command, capture_output=True, text=True, timeout=15)
         self.assertEqual(p.returncode, 2)
         self.assertEqual(json.loads(p.stdout)["reason"], "OUTPUT_WITHIN_SOURCE")
@@ -170,11 +187,23 @@ class UIQualityShadowContracts(unittest.TestCase):
 
     def test_cli_writes_review_only_receipt(self):
         out = self.folder / "review.json"
-        p = subprocess.run([sys.executable,
-                            str(Path(__file__).with_name("ui_quality_shadow.py")),
-                            "--root", str(self.root), "--reports", str(self.reports),
-                            "--image-id", IMAGE, "--out", str(out)],
-                           capture_output=True, text=True, timeout=15)
+        p = subprocess.run(
+            [
+                sys.executable,
+                str(Path(__file__).with_name("ui_quality_shadow.py")),
+                "--root",
+                str(self.root),
+                "--reports",
+                str(self.reports),
+                "--image-id",
+                IMAGE,
+                "--out",
+                str(out),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
         self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
         payload = json.loads(out.read_text())
         self.assertEqual(payload["source_sha"], self.head)
