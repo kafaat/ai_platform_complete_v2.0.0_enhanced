@@ -1764,6 +1764,7 @@ SAT-001,test,services/raster-service/test_cdse_tilejson_availability.py,3,applie
 SAT-001,test,services/raster-service/test_scene_cloud_unknown_never_clear.py,3,applied
 SAT-001,test,services/raster-service/test_single_scene_concurrent_pg.py,3,applied
 SAT-001,test,services/raster-service/test_stac_c1_processing.py,3,applied
+SAT-001,test,services/raster-service/test_stac_projection_contract.py,3,applied
 SAT-001,test,services/raster-service/test_stac_singleflight_provenance.py,3,applied
 SAT-001,test,services/raster-service/test_stac_vrt.py,3,applied
 SAT-001,test,tests_v9/test_backfill_scene_job_threadpool_v30_3.py,3,applied
@@ -1791,6 +1792,7 @@ SAT-003,api,POST /api/v1/confidence/ndvi @ services/sahool-platform/api/routers/
 SAT-003,api,POST /api/v1/fields/{field_id}/ndvi-analysis @ services/sahool-platform/api/routers/ndvi_analysis.py:35,2,applied
 SAT-003,service,services/raster-service/main.py,10,applied
 SAT-003,service,services/vegetation-analysis-service/main.py,10,applied
+SAT-003,test,services/raster-service/test_ndvi_numeric_contract.py,3,applied
 SAT-003,test,services/sahool-platform/tests/test_ndvi_analysis.py,3,applied
 SAT-003,test,tests_v9/test_etc_dual_fresh_ndvi.py,3,applied
 SAT-003,test,tests_v9/test_field_state_ndvi_enrichment.py,3,applied
@@ -2072,6 +2074,7 @@ SAT-009,test,services/raster-service/test_indicator_values_integrity.py,3,applie
 SAT-009,test,services/raster-service/test_job_tenant_binding.py,3,applied
 SAT-009,test,services/raster-service/test_job_truth_receipts_and_fencing.py,3,applied
 SAT-009,test,services/raster-service/test_landsat_thermal_unique_contract.py,3,applied
+SAT-009,test,services/raster-service/test_ndvi_numeric_contract.py,3,applied
 SAT-009,test,services/raster-service/test_object_store.py,3,applied
 SAT-009,test,services/raster-service/test_p2_tile_observability_static.py,5,applied
 SAT-009,test,services/raster-service/test_persisted_thumbnail_path.py,3,applied
@@ -2112,6 +2115,7 @@ SAT-009,test,services/raster-service/test_single_scene_concurrent_pg.py,3,applie
 SAT-009,test,services/raster-service/test_soil_render.py,3,applied
 SAT-009,test,services/raster-service/test_soil_zones.py,3,applied
 SAT-009,test,services/raster-service/test_stac_c1_processing.py,3,applied
+SAT-009,test,services/raster-service/test_stac_projection_contract.py,3,applied
 SAT-009,test,services/raster-service/test_stac_singleflight_provenance.py,3,applied
 SAT-009,test,services/raster-service/test_stac_vrt.py,3,applied
 SAT-009,test,services/raster-service/test_storage_lifecycle_upload.py,3,applied

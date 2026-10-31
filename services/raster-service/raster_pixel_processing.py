@@ -848,8 +848,7 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
                 np,
             )
         elif ind == "ndvi":
-            _d = nir + red
-            arr = (nir - red) / np.where(_d == 0, 1e-10, _d)  # حماية القسمة (اتّساقاً مع vari/gli)
+            arr = ctx.band_math.ndvi(red, nir, np)
         elif ind == "gndvi":
             _d = nir + green
             arr = (nir - green) / np.where(_d == 0, 1e-10, _d)
@@ -873,9 +872,8 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             if rededge is None:
                 raise ctx.HTTPException(400, "مؤشّر CCCI يحتاج نطاق الحافّة الحمراء B05")
             ndre_d = nir + rededge
-            ndvi_d = nir + red
             ndre_v = (nir - rededge) / np.where(ndre_d == 0, 1e-10, ndre_d)
-            ndvi_v = (nir - red) / np.where(ndvi_d == 0, 1e-10, ndvi_d)
+            ndvi_v = ctx.band_math.ndvi(red, nir, np)
             arr = ndre_v / np.where(ndvi_v == 0, 1e-10, ndvi_v)
         # msi (SWIR1/NIR) يُحسَب الآن عبر band_math.NEW_INDEX_BANDS (المصدر الأوحد)
         # في الفرع الأعلى؛ أُزيل الفرع السطريّ المكرَّر (سلوك محفوظ: نفس _eps للمقام).
@@ -911,20 +909,16 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             elif ind == "ndti":
                 arr = si.compute_ndti(swir1, swir2, np)
             elif ind == "dbsi":
-                _d = nir + red
-                _ndvi = (nir - red) / np.where(
-                    _d == 0, 1e-10, _d
-                )  # حماية القسمة (اتّساقاً مع المؤشّرات أعلاه)
+                _ndvi = ctx.band_math.ndvi(red, nir, np)
                 arr = si.compute_dbsi(green, swir1, _ndvi, np)
             elif ind == "ndsi":
                 arr = si.compute_ndsi(swir1, swir2, np)
             else:  # satvi
                 arr = si.compute_satvi(red, swir1, swir2, np)
         else:  # fapar تقريب من ndvi
-            _d = nir + red
             # حماية القسمة: بكسل أسود/ماء عميق (nir+red=0) كان يعطي nan/inf، وclip
             # كان يحوّل inf→fapar=1 خاطئة فيفسد المتوسّط بصمت. الآن →0 (لا غطاء).
-            ndvi = (nir - red) / np.where(_d == 0, 1e-10, _d)
+            ndvi = ctx.band_math.ndvi(red, nir, np)
             arr = np.clip(1.24 * ndvi - 0.168, 0, 1)
 
         # ── (٢) أقنعة جودة البكسل: source-native strategy + saturation proxy ─────────

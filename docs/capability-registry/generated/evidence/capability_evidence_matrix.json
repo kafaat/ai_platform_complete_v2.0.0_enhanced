@@ -6603,6 +6603,7 @@
         "services/gis-workflow-service/tests/test_map_layout.py",
         "services/raster-service/test_cdse_poly_contract.py",
         "services/raster-service/test_landsat_thermal_unique_contract.py",
+        "services/raster-service/test_stac_projection_contract.py",
         "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
         "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
         "tests_v9/test_deferred_satellite_integration_v30_4.py",
@@ -6915,7 +6916,8 @@
       "integration_test_paths": [
         "services/gis-workflow-service/tests/test_bulletin_figure.py",
         "services/gis-workflow-service/tests/test_run_bundle.py",
-        "services/raster-service/test_landsat_thermal_unique_contract.py"
+        "services/raster-service/test_landsat_thermal_unique_contract.py",
+        "services/raster-service/test_ndvi_numeric_contract.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -7004,7 +7006,6 @@
         "services/vegetation-analysis-service/test_indicator_registry.py",
         "services/vegetation-analysis-service/test_production_truth_closure.py",
         "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
-        "services/vegetation-analysis-service/test_vegetation_event_admission.py",
         "tests_v9/test_etc_dual_fresh_ndvi.py",
         "tests_v9/test_field_state_ndvi_enrichment.py",
         "tests_v9/test_kc_from_ndvi.py",

@@ -19975,7 +19975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea305895d1003f4fd587f423b8d1924d56c91658d0ae5fe87ebf3e351081f254"
+          "content": "8e8bfbefeecd244c6f7e80b21b5315eceee1e45d3eb5caad1a15f7e3bf00a4a0"
         }
       ],
       "name": "services/raster-service/band_math.py",
@@ -20475,7 +20475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5cdf4060e2204a6fe92b4283830c88e202ce4e6ed25dc04ed603a4111353ca55"
+          "content": "2b97373a208f03bae5fc8d424397e2f77d3cea391a60b2a0752cd07bba10ea3c"
         }
       ],
       "name": "services/raster-service/raster_pixel_processing.py",
@@ -20875,7 +20875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb2fd75030c3885eb8da55aeb991c6993381f5d94a53593e8b914cb6135779f6"
+          "content": "ac6798b23d2e748951069220946ebb1aaddc92798699bed7f488787ae91fc092"
         }
       ],
       "name": "services/raster-service/stac_search.py",
@@ -20885,7 +20885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "38c2ff4ebe0009d7330a5ca59dd36fbc85256468b9d4b379e154813019c5b4fe"
+          "content": "5e78dbea9233f5c485c02800c45c1f66c247ed250694fae91703c3ba12a07f4f"
         }
       ],
       "name": "services/raster-service/stac_vrt.py",
@@ -21415,6 +21415,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e142e15a2e2258520aa2ca80817d773eb8923fd422a7b7d1874a475eea119773"
+        }
+      ],
+      "name": "services/raster-service/test_ndvi_numeric_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d084845000014780d73bc71f4f1940f7a9f02110e4e9dc4b42cae411c5f6ad7b"
         }
       ],
@@ -21809,6 +21819,16 @@
         }
       ],
       "name": "services/raster-service/test_stac_c1_processing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "712f0f80b4a95a27976a88352f22a0139c2a23824cf7ce5f9f8ca798d7e7ec67"
+        }
+      ],
+      "name": "services/raster-service/test_stac_projection_contract.py",
       "type": "file"
     },
     {

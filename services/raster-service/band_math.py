@@ -40,8 +40,31 @@ def to_reflectance(arr, scale, offset, _np):
 
 
 def ndvi(red, nir, _np):
-    """NDVI = (NIR - RED) / (NIR + RED) — الغطاء النباتي."""
-    return (nir - red) / _eps(nir + red, _np)
+    """NDVI with promoted arithmetic; nonfinite intermediates remain NoData.
+
+    Promote before addition/subtraction to avoid integer wrap and float32
+    overflow. Unrepresentable float64 intermediates are invalid, never a
+    plausible zero produced by dividing a finite difference by infinity.
+    Results must also fit the float32 COG output range: exclude overflow before
+    statistics or derived-index clipping can make invalid NDVI look plausible.
+    Keep float64 precision for representable results. The legacy
+    zero-denominator epsilon policy is otherwise preserved.
+    """
+    red = _np.asarray(red, dtype="float64")
+    nir = _np.asarray(nir, dtype="float64")
+    with _np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+        numerator = nir - red
+        denominator = nir + red
+        result = numerator / _eps(denominator, _np)
+    valid = (
+        _np.isfinite(red)
+        & _np.isfinite(nir)
+        & _np.isfinite(numerator)
+        & _np.isfinite(denominator)
+        & _np.isfinite(result)
+        & (_np.abs(result) <= _np.finfo("float32").max)
+    )
+    return _np.where(valid, result, _np.nan)
 
 
 def ndre(nir, rededge, _np):
