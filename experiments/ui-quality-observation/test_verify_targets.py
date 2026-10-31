@@ -1,11 +1,17 @@
 """Synthetic contract tests; never inspect user data or start a SAHOOL backend."""
 import json
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 
-from verify_targets import (TARGETS, ObservationBlocked, bounded,
-                            strict_json, primary_count, observe)
+from verify_targets import (
+    ObservationBlocked,
+    TARGETS,
+    bounded,
+    observe,
+    primary_count,
+    strict_json,
+)
 
 SHA = "a" * 40
 IMAGE = "sha256:" + "b" * 64
