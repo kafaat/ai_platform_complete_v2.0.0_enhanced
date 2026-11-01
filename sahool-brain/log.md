@@ -10245,3 +10245,8 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **الفحص:** شُغِّلت الحرّاس المؤرَّخة على main: `waiver_expiry_guard` ok، وفحصُ الكتالوج ok في CI، و`claims.json` بلا مستهلك. فالحارسان أعلاه وحدهما الحاجبان.
 - **الإجراء:** تجديد الستّة إلى 2026-11-30 دون تغيير `reason` أو المالك ([`decisions/ledger.md`](decisions/ledger.md)).
 - **عائقٌ ثانٍ على #1320:** `no-report-only-change` صنّف التجديدَ «report-only». سُجِّل وأُصلِح في الشريحة نفسها: `EXPIRED-AUTHORITY-EXCEPTION-RENEWAL-UNLANDABLE-01` ([`gaps/registry.md`](gaps/registry.md)).
+
+### 2026-11-01 — إغلاقُ `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01`
+
+- **القياس (قراءة، GitHub `commits/{sha}/status`):** `cc0d2e295` ⇒ `failure` (15 حالة، الفاشلةُ الوحيدة `resourceful-commitment - ai_platform_complete_v2.0.0_enhanced`). `aaa1b7f0a` (#1320، أوّلُ التزامٍ على main بعد الحذف) ⇒ `success` (14 حالة كلّها ناجحة، ولا حالةَ للمشروع الشارد).
+- **الحالة:** **fixed** ([`gaps/registry.md`](gaps/registry.md)). وما زال المشروعُ الفارغ في مهلة الـ48 ساعة لدى Railway.

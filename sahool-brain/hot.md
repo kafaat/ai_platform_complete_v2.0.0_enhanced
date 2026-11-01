@@ -1,3 +1,5 @@
+> 2026-11-01 — `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01` **fixed**: أوّلُ التزامٍ على main بعد حذف الخدمة (`aaa1b7f0a`) حالتُه المجمَّعة `success` (14/14)، وسابقُه `cc0d2e295` كان `failure` بحالة `resourceful-commitment` وحدها ([`gaps/registry.md`](gaps/registry.md)).
+
 > 2026-11-01 — حذف المالك خدمةَ مشروع Railway الشارد `resourceful-commitment` الوحيدة، ثمّ جدولَ المشروعَ نفسَه للحذف (مهلة 48 ساعة). `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01` تبقى **open** حتّى يُرى التزامٌ على main بحالةٍ مجمَّعة `success` ([`gaps/registry.md`](gaps/registry.md) · [`log.md`](log.md)).
 
 > 2026-11-01 — ستّةُ استثناءاتِ سلطةٍ انتهت في 2026-10-31 فأحمرت main وكلَّ PR (`direct_qdrant_exception` وخمسُ مرايا `decision-service-cutover`): جُدِّدت إلى **2026-11-30** لأنّ `SAHOOL-AI-RAG-LIVE-001` و`DECISION-SOR-CUTOVER-WIRING-01` ما زالتا مفتوحتين. **الموعدُ القادم 2026-11-30**: يُغلَق التحويلان أو يُتَّخذ قرارٌ جديد. وأُصلِح حارسُ «report-only» الذي كان يمنع هبوطَ التجديد ([`decisions/ledger.md`](decisions/ledger.md) · [`log.md`](log.md)).
