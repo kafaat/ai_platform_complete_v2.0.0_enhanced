@@ -16,8 +16,10 @@ from __future__ import annotations
 
 import logging
 import os
+import uuid
 from datetime import UTC, datetime
 
+from core.authorization import Permission, has_permission
 from core.offline_first import (
     OperationKind,
     SyncStatus,
@@ -45,6 +47,37 @@ from api.sync_delta import filter_since, newest_cursor
 router = APIRouter()
 
 _TRUTHY = {"1", "true", "yes", "on"}
+
+# صلاحية كلّ نوع عمليّة = صلاحية المسار المباشر الأقلّ امتيازاً الذي يُنفّذها؛ فلا تمنح
+# المزامنة أكثر ممّا يمنحه المسار نفسه. None = المسار مفتوح لأيّ مستخدم مُصادَق.
+# كان ‎field.update‎ يُطبَّق لأيّ دور (VIEWER/WORKER) متجاوزاً ‎FIELD_EDIT‎ (تدقيق T5).
+# نوعٌ غائب عن الجدول يُرفَض (fail-closed) — ويحرس اكتمالَه اختبار الوحدة.
+SYNC_KIND_PERMISSIONS: dict[str, Permission | None] = {
+    FIELD_UPDATE_KIND: Permission.FIELD_EDIT,  # PATCH /api/v1/fields/{id}
+    OperationKind.OBSERVATION_CREATE.value: Permission.OBSERVATION_RECORD,
+    OperationKind.ACTIVITY_COMPLETE.value: Permission.ACTIVITY_EXECUTE,
+    OperationKind.ACTIVITY_SKIP.value: Permission.ACTIVITY_SKIP,
+    OperationKind.RECOMMENDATION_REQUEST.value: Permission.RECOMMENDATION_REQUEST,
+    OperationKind.CALIBRATION_RECORD.value: None,  # POST /calibration/{region}/evidence
+    OperationKind.TASK_UPDATE.value: Permission.FIELD_EDIT,  # PATCH /api/v1/tasks/{id}
+    OperationKind.DECISION_RECORD.value: Permission.RECOMMENDATION_REQUEST,
+    OperationKind.OUTCOME_RECORD.value: None,  # POST /api/v1/outcome/measure
+    OperationKind.IRRIGATION_PLAN.value: None,  # POST /api/v1/irrigation-plan
+    OperationKind.HARVEST_LOT_CREATE.value: Permission.FIELD_EDIT,
+    OperationKind.RECOMMENDATION_OUTCOME.value: Permission.RECOMMENDATION_REQUEST,
+    OperationKind.SOIL_LAB_TEST.value: Permission.FIELD_EDIT,  # POST /api/v1/lab/soil-results
+    OperationKind.PHOTO_UPLOAD.value: Permission.OBSERVATION_RECORD,
+}
+
+_DENIED = object()
+
+
+def sync_op_allowed(user: UserSchema, kind: str) -> bool:
+    """هل يملك المستخدم صلاحية تطبيق/تدوين هذا النوع عبر المزامنة؟ (نقيّة، fail-closed)."""
+    required = SYNC_KIND_PERMISSIONS.get(kind, _DENIED)
+    if required is _DENIED:
+        return False
+    return required is None or has_permission(user, required)
 
 
 def _delta_sync_enabled() -> bool:
@@ -134,6 +167,9 @@ async def sync(
     #    التوزيع (dispatch_decision) في خطوة الإثبات. PendingOperation/persist يقرآن
     #    op.kind نصّاً بأمان (hasattr(.,"value")) فلا كسر بنمرير سلسلة.
     op_ids = []
+    # عمليّات رُفضت لنقص الصلاحية: لا تدخل الطابور أصلاً (فلا تُطبَّق لاحقاً تحت طلب
+    # مستخدمٍ آخر)، وتُعلَن لكلّ عمليّة في op_status بدل رفض الدفعة كلّها.
+    forbidden_status: dict[str, str] = {}
     for raw_op in incoming_ops:
         try:
             normalized = normalize_offline_operation(raw_op)
@@ -141,6 +177,20 @@ async def sync(
             raise HTTPException(status_code=400, detail=str(exc)) from None
 
         raw_kind = normalized["kind"]
+        if not sync_op_allowed(user, raw_kind):
+            denied_id = normalized.get("op_id") or str(uuid.uuid4())
+            from core.tenant_audit import AUDIT
+
+            AUDIT.record(
+                "permission",
+                user_id=str(user.user_id),
+                tenant_id=str(tenant_id),
+                action=f"sync:{raw_kind}",
+                reason_ar=f"الدور '{user.role.value}' لا يملك صلاحية عمليّة المزامنة '{raw_kind}'",
+            )
+            forbidden_status[denied_id] = "forbidden"
+            op_ids.append(denied_id)
+            continue
         if raw_kind == FIELD_UPDATE_KIND:
             kind = FIELD_UPDATE_KIND  # سلسلة منقّطة — تُوزَّع لمسار التطبيق الفعليّ
         else:
@@ -166,7 +216,8 @@ async def sync(
     # ٣) نأخذ الدفعة الفعليّة من رأس الـqueue (FIFO، QUEUED فقط) — نفس ما كان
     #     sync_cycle سيعالجه — لنُثبّت بالضبط ما نعالج (إصلاح: كانت الكتابة تخصّ
     #     عمليّات هذا الطلب فقط بينما الـqueue قد يحوي أقدم، فتُعلَّم FAILED بلا رجعة).
-    batch = _OFFLINE_QUEUE.peek_pending(tenant_id, limit=max(len(incoming_ops), 1))
+    accepted_count = len(incoming_ops) - len(forbidden_status)
+    batch = _OFFLINE_QUEUE.peek_pending(tenant_id, limit=max(accepted_count, 1))
 
     # ٤) نُثبّت كلّ عمليّة في الدفعة بمتانة ضمن سياق RLS. الناجح ⇒ SYNCED؛ الفاشل
     #    يبقى QUEUED (لا FAILED) ليُعاد في الدورة التالية (peek_pending يُرجع QUEUED
@@ -178,7 +229,8 @@ async def sync(
     conflicted = 0
     # حالة لكلّ عمليّة (op_id → applied/conflict/synced/queued) لتعرفها الواجهة وتحسم
     # تعارض field.update (409) محلّياً بدل تخمين عامّ من العدّادات الكلّيّة.
-    op_status: dict[str, str] = {}
+    op_status: dict[str, str] = dict(forbidden_status)
+    forbidden = len(forbidden_status)
     if api_main._DB_POOL is not None:
         from api.offline_pending_db import (
             claim_pending,
@@ -271,14 +323,18 @@ async def sync(
         )
 
     duration_ms = round((datetime.now(UTC) - started).total_seconds() * 1000, 2)
-    if not batch:
+    if not batch and not forbidden:
         reason = "✅ لا عمليّات معلّقة للـsync"
+    elif not batch:
+        reason = f"⛔ {forbidden} عمليّة مرفوضة لنقص الصلاحية"
     elif pending_retry == 0 and conflicted == 0:
         reason = f"✅ {synced} عمليّة sync بنجاح"
     else:
         reason = f"⚠️ {synced} sync، {pending_retry} معلّقة لإعادة المحاولة"
         if conflicted:
             reason += f"، {conflicted} تعارض (409) بانتظار حسم العميل"
+    if forbidden and batch:
+        reason += f"، {forbidden} مرفوضة لنقص الصلاحية (403)"
     if superseded:
         reason += f" (+{superseded} مُلغاة بـsupersession)"
 
@@ -293,11 +349,13 @@ async def sync(
         "conflicted": conflicted,
         # طُبِّق فعليّاً على fields (شريحة field.update). بقيّة الأنواع سجلّ فقط ضمن synced.
         "applied": applied,
+        # رُفضت لنقص صلاحية الدور (لم تُدوَّن ولم تُطبَّق) — op_status = "forbidden".
+        "forbidden": forbidden,
         "superseded": superseded,
         "duration_ms": duration_ms,
         "reason_ar": reason,
         "op_ids": op_ids,
-        # حالة لكلّ عمليّة (applied/conflict/synced/queued) — حقل إضافيّ، لا يكسر العقد.
+        # حالة لكلّ عمليّة (applied/conflict/synced/queued/forbidden) — حقل إضافيّ.
         "op_status": op_status,
     }
 

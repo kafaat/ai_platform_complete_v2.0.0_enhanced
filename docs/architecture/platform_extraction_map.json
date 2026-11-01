@@ -5514,7 +5514,7 @@
       "function": "sync_manifest",
       "method": "GET",
       "path": "/api/v1/sync/manifest",
-      "line": 59,
+      "line": 92,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/sync.py::GET /api/v1/sync/manifest::sync_manifest"
@@ -5524,7 +5524,7 @@
       "function": "sync_status",
       "method": "GET",
       "path": "/api/v1/sync/status",
-      "line": 69,
+      "line": 102,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/sync.py::GET /api/v1/sync/status::sync_status"
@@ -5534,7 +5534,7 @@
       "function": "sync",
       "method": "POST",
       "path": "/api/v1/sync",
-      "line": 91,
+      "line": 124,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/sync.py::POST /api/v1/sync::sync"
