@@ -1,0 +1,148 @@
+{
+  "schema": "sahool.railway_stray_project_closure/v1",
+  "observed_at": "2026-11-01",
+  "gap_id": "RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01",
+  "source": "GitHub REST commits/{sha}/status (unauthenticated read, public repository)",
+  "railway": {
+    "project_id": "53063514-c4f0-4701-a8f6-ec5fba3ac201",
+    "project_name": "resourceful-commitment",
+    "deleted_service_id": "cf2c59d0-198d-4c85-a3ad-4d6fa0d491b9",
+    "list_services_after_deletion": [],
+    "project_deletion": "scheduled by owner 2026-11-01 (48h grace)"
+  },
+  "before": {
+    "sha": "cc0d2e2954ba3b29e1233442422aaf187bf101b2",
+    "combined_state": "failure",
+    "total_count": 15,
+    "contexts": [
+      {
+        "context": "resourceful-commitment - ai_platform_complete_v2.0.0_enhanced",
+        "state": "failure"
+      },
+      {
+        "context": "sahool-staging - sahool-ai-agronomist",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-auth-main",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-decision-service",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-field-management-service",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-frontend",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-guardrails-engine",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-migrate-main",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-notification-agent",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-raster-main-candidate",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-raster-service",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-soil-service",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-tts-service",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-vegetation-analysis",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-weather-service",
+        "state": "success"
+      }
+    ]
+  },
+  "after_first_main_commit": {
+    "sha": "aaa1b7f0a37609d0626ef62370d122e242a25a75",
+    "combined_state": "success",
+    "total_count": 14,
+    "contexts": [
+      {
+        "context": "sahool-staging - sahool-ai-agronomist",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-auth-main",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-decision-service",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-field-management-service",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-frontend",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-guardrails-engine",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-migrate-main",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-notification-agent",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-raster-main-candidate",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-raster-service",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-soil-service",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-tts-service",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-vegetation-analysis",
+        "state": "success"
+      },
+      {
+        "context": "sahool-staging - sahool-weather-service",
+        "state": "success"
+      }
+    ]
+  },
+  "verdict": "STRAY_STATUS_ABSENT_AND_COMBINED_SUCCESS",
+  "scope_limits": [
+    "Observes commit statuses only; says nothing about Actions check runs, which are reported separately.",
+    "One post-deletion commit observed."
+  ]
+}
