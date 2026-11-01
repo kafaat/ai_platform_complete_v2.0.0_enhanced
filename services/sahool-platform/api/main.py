@@ -313,6 +313,7 @@ async def _start_scheduler():
     from api.agronomic_consistency import check_decision_freshness, compute_data_ages
     from api.imagery_automation import bind_recovery_pool, imagery_automation
     from api.scheduler import cluster_singleton, register_default_tasks, scheduler
+    from api.sweep_tenants import list_sweep_tenant_ids
     from api.weather_automation import weather_automation
 
     # أفضل ممارسة: مسبح تنسيق النسخ (BYPASSRLS إن توفّر، وإلّا مسبح التطبيق) —
@@ -349,11 +350,8 @@ async def _start_scheduler():
 
         from core.canonical_schemas import UserRole, UserSchema
 
-        try:
-            async with _DB_POOL.acquire() as conn:
-                trows = await conn.fetch(
-                    "SELECT DISTINCT tenant_id FROM fields WHERE tenant_id IS NOT NULL"
-                )
+        try:  # R1: السرد عبر مسبح المهامّ — مسبح التطبيق بلا سياق يُرجِع صفراً (FORCE RLS)
+            tids = await list_sweep_tenant_ids(_scheduler_pool(), sweep="فحص النضارة")
         except Exception as e:  # noqa: BLE001 — تعذّر سرد المستأجرين ⇒ تخطٍّ صامت
             logging.warning("فحص النضارة: تعذّر سرد المستأجرين: %s", type(e).__name__)
             return
@@ -362,8 +360,7 @@ async def _start_scheduler():
 
         # مرحلة الجمع: اجمع (مستخدم النظام، حقل) عبر المستأجِرين — مع عزل كلّ مستأجِر.
         pairs: list[tuple[UserSchema, str]] = []
-        for tr in trows:
-            tid = str(tr["tenant_id"])
+        for tid in tids:
             sys_user = UserSchema(
                 user_id="system-scheduler",
                 tenant_id=tid,
@@ -466,11 +463,8 @@ async def _start_scheduler():
             return
         from core.canonical_schemas import UserRole, UserSchema
 
-        try:
-            async with _DB_POOL.acquire() as conn:
-                trows = await conn.fetch(
-                    "SELECT DISTINCT tenant_id FROM fields WHERE tenant_id IS NOT NULL"
-                )
+        try:  # R1: السرد عبر مسبح المهامّ — مسبح التطبيق بلا سياق يُرجِع صفراً (FORCE RLS)
+            tids = await list_sweep_tenant_ids(_scheduler_pool(), sweep="أتمتة التنبيهات")
         except Exception as e:  # noqa: BLE001 — تعذّر سرد المستأجرين ⇒ تخطٍّ صامت
             logging.warning("أتمتة التنبيهات: تعذّر سرد المستأجرين: %s", type(e).__name__)
             return
@@ -480,8 +474,7 @@ async def _start_scheduler():
         # مرحلة الجمع: اجمع (مستخدم النظام، حقل) عبر المستأجِرين أوّلاً — لمعرفة
         # إجماليّ الحقول المُخطَّط تقييمها (سجلّ التشغيل)، مع عزل خطأ كلّ مستأجِر.
         pairs: list[tuple[UserSchema, str]] = []
-        for tr in trows:
-            tid = str(tr["tenant_id"])
+        for tid in tids:
             sys_user = UserSchema(
                 user_id="system-scheduler",
                 tenant_id=tid,
