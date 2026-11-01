@@ -40,6 +40,7 @@ from tiers.environmental_tier import EnvironmentalSafetyTier
 
 from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import parse_cors_origins
+from shared.security.token_revocation import build_revocation_store, token_is_revoked
 
 # CRITICAL findings that reject an action outright (no human approval path).
 # BANNED_CHEMICALS also lists merely restricted substances under the same rule at
@@ -414,6 +415,9 @@ _GR_JWT_SECRET = _GR_JWT_PUBLIC if _GR_JWT_PUBLIC else os.getenv("JWT_SECRET", "
 _GR_JWT_ALG = "RS256" if _GR_JWT_PUBLIC else "HS256"
 # المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
 _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+# S5: إبطال auth (jti الخروج + أرضيّة «إبطال كلّ الجلسات» عند تغيير الدور) كالمنصّة حرفيّاً —
+# وإلّا وافق خبيرٌ خُفِّض دوره على HIL حتّى انقضاء توكنه. الإنتاج بلا Redis ⇒ رفض الإقلاع.
+_REVOCATION = build_revocation_store()
 
 # تحصين الإنتاج (fail-closed، تماثُل مع auth/المنصّة): RS256 إلزاميّ — HS256 سرّ متماثل
 # مشترَك لا يُنهي shared trust domain (أيّ خدمة تحمله تُزوّر توكناً). في الإنتاج بلا
@@ -476,6 +480,8 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(401, "مُصدِر التوكن غير مسموح")
+    if token_is_revoked(_REVOCATION, payload):
+        raise HTTPException(401, "التوكن مُبطَل — سجّل الدخول من جديد")
     # Authenticated specialist roles must match the workflow role at mutation time.
     # The issued role is mapped to the specialist authority it carries (expert→agronomist).
     if approver_authority(payload.get("role")) not in APPROVER_ROLES:
@@ -514,6 +520,8 @@ def _gr_authn(authorization: str = _Header(None)) -> dict:
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(401, "مُصدِر التوكن غير مسموح")
+    if token_is_revoked(_REVOCATION, payload):
+        raise HTTPException(401, "التوكن مُبطَل — سجّل الدخول من جديد")
     if not payload.get("sub"):
         raise HTTPException(401, "توكن ناقص الهويّة")
     try:

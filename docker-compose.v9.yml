@@ -439,7 +439,9 @@ services:
       --user sahool-redis-admin on ">${REDIS_PASSWORD:?REDIS_PASSWORD required}" ~* "&*" +@all
       --user sahool-auth on ">${REDIS_AUTH_PASSWORD:?REDIS_AUTH_PASSWORD required}" resetkeys resetchannels -@all +ping +get +getdel +setex +del +exists +expire +ttl +incr +sadd +smembers ~sahool:refresh:* ~sahool:user:refreshset:* ~sahool:user:token_floor:* ~sahool:jti:revoked:* ~sahool:lockout:* ~sahool:attempts:* ~sahool:ip_rate:* ~sahool:otp_rate:* ~sahool:otp:* ~sahool:reset:*
       --user sahool-platform-denylist on ">${REDIS_PLATFORM_DENYLIST_PASSWORD:?REDIS_PLATFORM_DENYLIST_PASSWORD required}" resetkeys resetchannels -@all +ping +exists +setex ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
-      --user sahool-guardrails-engine on ">${REDIS_GUARDRAILS_PASSWORD:?REDIS_GUARDRAILS_PASSWORD required}" resetkeys resetchannels -@all +ping
+      --user sahool-guardrails-engine on ">${REDIS_GUARDRAILS_PASSWORD:?REDIS_GUARDRAILS_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
+      --user sahool-supervisor-agent on ">${REDIS_SUPERVISOR_PASSWORD:?REDIS_SUPERVISOR_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
+      --user sahool-notification-agent-denylist on ">${REDIS_NOTIFICATION_DENYLIST_PASSWORD:?REDIS_NOTIFICATION_DENYLIST_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
     volumes:
     - redis-state-data:/data
     networks:
@@ -1045,8 +1047,12 @@ services:
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       SAHOOL_ENV: ${SAHOOL_ENV:-development}
       SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
+      # S5: إبطال JWT من auth (jti + token_floor) على خادم الحالة — قراءةٌ فقط.
+      DENYLIST_REDIS_URL: redis://sahool-supervisor-agent:${REDIS_SUPERVISOR_PASSWORD:?REDIS_SUPERVISOR_PASSWORD required}@sahool-redis-state:6379/0
     depends_on:
       sahool-auth:
+        condition: service_healthy
+      sahool-redis-state:
         condition: service_healthy
     volumes:
     - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
@@ -2488,6 +2494,8 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://sahool-otel-collector:4318}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://sahool-notification-agent:${REDIS_NOTIFICATION_PASSWORD:?REDIS_NOTIFICATION_PASSWORD required}@sahool-redis:6379/0
+      # S5: إبطال JWT من auth (jti + token_floor) على خادم الحالة — مستخدمٌ ثانٍ، قراءةٌ فقط.
+      DENYLIST_REDIS_URL: redis://sahool-notification-agent-denylist:${REDIS_NOTIFICATION_DENYLIST_PASSWORD:?REDIS_NOTIFICATION_DENYLIST_PASSWORD required}@sahool-redis-state:6379/0
       NATS_URL: tls://sahool-notification-agent:${NATS_NOTIFICATION_PASSWORD:?NATS_NOTIFICATION_PASSWORD مطلوب — هويّة sahool-notification-agent في nats/nats.conf}@sahool-nats:4222
       SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       SMTP_HOST: ${SMTP_HOST}
@@ -2512,6 +2520,8 @@ services:
       sahool-postgres:
         condition: service_healthy
       sahool-redis:
+        condition: service_healthy
+      sahool-redis-state:
         condition: service_healthy
       sahool-nats:
         condition: service_healthy
