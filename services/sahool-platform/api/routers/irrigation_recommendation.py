@@ -17,6 +17,7 @@ import hashlib
 import json
 import logging
 
+from core.season_phenology import resolve_crop_id, stage_kc
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.canonical_spectral_state import resolve_canonical_spectral_state
@@ -216,7 +217,9 @@ async def field_irrigation_recommendation(
 
     async with tenant_connection(user) as conn:
         # سياق الحقل + الموسم النشط (يرفع 404 إن غاب الحقل).
-        field_lat, field_lon, crop, stage, _days = await _field_weather_context(conn, field_id)
+        field_lat, field_lon, crop, stage, days_since_sowing = await _field_weather_context(
+            conn, field_id
+        )
         season = await conn.fetchrow(
             "SELECT season_id FROM seasons WHERE field_id = $1 AND status = 'active' "
             "ORDER BY created_at DESC LIMIT 1",
@@ -570,6 +573,8 @@ async def field_irrigation_recommendation(
         et0_mm=et0_mm,
         crop=crop,
         stage=stage,
+        # G1: Kc اليوميّ (FAO-56) من عمر المحصول — لا قيمة المرحلة الواحدة لكامل المرحلة.
+        kc_override=stage_kc(resolve_crop_id(crop), days_since_sowing),
         rain_recent_mm=wx["rain_recent_mm"],
         forecast_rain_mm=wx["forecast_rain_mm"],
         depletion_mm=depletion_mm,

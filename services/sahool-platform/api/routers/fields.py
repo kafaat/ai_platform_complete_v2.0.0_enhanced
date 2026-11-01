@@ -2498,6 +2498,8 @@ async def field_irrigation_advice(
     والمطر من Open-Meteo (نفس مصدر /api/v1/weather). 404 إن غاب الحقل، 503 إن
     تعذّر الطقس (لا بيانات وهميّة).
     """
+    from core.season_phenology import resolve_crop_id, stage_kc
+
     from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.weather_advice import (
         complete_rain_total,
@@ -2507,7 +2509,7 @@ async def field_irrigation_advice(
 
     try:
         async with tenant_connection(user) as conn:
-            lat, lon, crop, stage, _days = await _field_weather_context(conn, field_id)
+            lat, lon, crop, stage, days_since_sowing = await _field_weather_context(conn, field_id)
             # رطوبة تربة حيّة من telemetry الأجهزة (إن وُجدت) — تُغذّي إلحاح التوصية.
             soil_reading = await _latest_soil_moisture(conn, field_id)
     except HTTPException:
@@ -2562,6 +2564,8 @@ async def field_irrigation_advice(
         rain_recent_mm=current_rain,
         forecast_rain_mm=forecast_rain,
         soil_moisture_pct=soil_pct,
+        # G1: Kc اليوميّ (FAO-56) من عمر المحصول — لا قيمة المرحلة الواحدة لكامل المرحلة.
+        kc_override=stage_kc(resolve_crop_id(crop), days_since_sowing),
     )
     advice.update(
         {
