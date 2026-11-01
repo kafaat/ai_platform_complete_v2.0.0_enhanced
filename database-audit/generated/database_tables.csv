@@ -186,7 +186,7 @@ irrigation_sprinkler_packages,v173_sprinkler_runoff_capability.sql,178,True,Fals
 irrigation_sprinkler_zones,v173_sprinkler_runoff_capability.sql,178,True,False,False,0,False,True,0,0
 irrigation_system_specifications,v185_vendor_neutral_irrigation_engineering_workspace.sql,190,True,True,True,1,True,False,0,2
 irrigation_target_bindings,v196_irrigation_target_binding.sql,201,True,True,True,1,True,False,1,0
-irrigation_valves,v25_irrigation.sql,29,True,False,False,0,False,True,5,1
+irrigation_valves,v25_irrigation.sql,29,True,False,False,0,False,True,5,2
 irrigation_water_allocations,v170_water_source_well_digital_twin.sql,175,True,False,False,0,False,True,0,0
 irrigation_water_ledger_reconciliations,v184_irrigation_closed_loop_runtime_reconciliation.sql,189,True,True,True,1,True,False,1,1
 irrigation_water_profiles,v161_soil_p1_products.sql,166,True,False,False,0,False,True,0,1

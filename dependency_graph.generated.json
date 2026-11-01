@@ -1,5 +1,5 @@
 {
-  "edge_count": 902,
+  "edge_count": 903,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -82,7 +82,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/hooks/useManagerConsole.ts:274",
+      "evidence": "frontend/src/hooks/useAuth.ts:127",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -7812,6 +7812,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://irrigation_valves",
+      "to": "db://irrigation_valves",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -9042,7 +9052,7 @@
     "EMITS": 1,
     "READS": 465,
     "ROUTES_TO": 72,
-    "WRITES": 315
+    "WRITES": 316
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -9057,8 +9067,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 781,
-      "resolved": 780,
+      "observed": 782,
+      "resolved": 781,
       "unresolved_component_paths": 0
     }
   }

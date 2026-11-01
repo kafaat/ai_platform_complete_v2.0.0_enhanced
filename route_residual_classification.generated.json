@@ -98,7 +98,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 221,
+      "line": 231,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -107,7 +107,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 226,
+      "line": 236,
       "method": "GET",
       "path": "/healthz/ai-provider",
       "function": "ai_provider_snapshot",
@@ -116,7 +116,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 234,
+      "line": 244,
       "method": "GET",
       "path": "/v1/approvals/pending",
       "function": "list_pending_approvals",
@@ -125,7 +125,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 254,
+      "line": 264,
       "method": "POST",
       "path": "/v1/approvals/approve",
       "function": "approve_tool_request",
@@ -134,7 +134,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 306,
+      "line": 317,
       "method": "POST",
       "path": "/v1/approvals/deny",
       "function": "deny_tool_request",
@@ -143,7 +143,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 352,
+      "line": 364,
       "method": "POST",
       "path": "/v1/approvals/resume",
       "function": "resume_approved_tool",
@@ -152,7 +152,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 398,
+      "line": 410,
       "method": "POST",
       "path": "/v1/prescription/export-preview",
       "function": "prescription_export_preview",
@@ -161,7 +161,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 414,
+      "line": 426,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -170,7 +170,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 433,
+      "line": 445,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -179,7 +179,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 477,
+      "line": 489,
       "method": "POST",
       "path": "/v1/query",
       "function": "query",
@@ -188,7 +188,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 488,
+      "line": 500,
       "method": "POST",
       "path": "/v1/chat",
       "function": "chat",
@@ -197,7 +197,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 499,
+      "line": 511,
       "method": "POST",
       "path": "/v1/explain",
       "function": "explain",
@@ -206,7 +206,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 510,
+      "line": 522,
       "method": "POST",
       "path": "/v1/recommend",
       "function": "recommend",
@@ -1205,7 +1205,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 685,
+      "line": 745,
       "method": "POST",
       "path": "/v1/query",
       "function": "query_endpoint",
@@ -1214,7 +1214,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 695,
+      "line": 755,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest_endpoint",
@@ -1223,7 +1223,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 750,
+      "line": 810,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1232,7 +1232,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 768,
+      "line": 828,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -1241,7 +1241,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 773,
+      "line": 833,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1250,7 +1250,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 203,
+      "line": 217,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1259,7 +1259,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 208,
+      "line": 222,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -1268,7 +1268,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 258,
+      "line": 272,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1277,7 +1277,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 292,
+      "line": 306,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest",
@@ -1286,7 +1286,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 373,
+      "line": 393,
       "method": "POST",
       "path": "/v1/search",
       "function": "search",

@@ -4771,7 +4771,8 @@
         "services/sahool-platform/tests/test_operations_summary_endpoint.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/irrigation.py"
+        "services/sahool-platform/api/routers/irrigation.py",
+        "services/sahool-platform/tests/test_idempotency_server_contract.py"
       ],
       "created_in": "v25_irrigation.sql",
       "has_tenant_id": true,
