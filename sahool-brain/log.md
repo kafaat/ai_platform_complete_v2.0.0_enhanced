@@ -10233,6 +10233,12 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **الدمج:** بأمر المالك «قوم بعمل ماتراه مناسب و الدمج»، بعد دمج `main` (`030996911`) في الفرع وإعادة توليد المشتقّات. squash ⇒ `909b54ec6`؛ شجرته `06fbf6e65` = شجرة الرأس المختبَر `b69d1ac7a`.
 - **Railway (قراءة):** `Deploy-Effect: NONE` مشتقّاً، وكلّ نشر `909b54ec6` في البيئتين SKIPPED.
 
+### 2026-11-01 — حذف خدمة مشروع Railway الشارد `resourceful-commitment`
+
+- **الإجراء:** بأمر المالك «احذف مشروع resourceful-commitment» حاول الوكيل `delete-service` ثلاث مرّات، فانتهت كلٌّ منها بعد 60 ثانية لأنّ سؤال التأكيد لم يبلغ المالك في الجلسة السحابيّة. فحذف المالك الخدمة من اللوحة، بعد التحقّق من أنّ الاسم `ai_platform_complete_v2.0.0_enhanced` لا يوجد إلّا في `resourceful-commitment`.
+- **التحقّق (قراءة):** `list-services` يُعيد `services: []`، والمشروع نفسه ما زال قائماً فارغاً.
+- **المشروع:** حذفه المالك بعد ذلك من اللوحة (2026-11-01)، وRailway يُبقيه 48 ساعة قابلاً للإلغاء قبل الحذف النهائيّ، فما زال `list-projects` يُدرجه.
+- **الحالة:** `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01` تبقى **open** حتّى يظهر التزامٌ على main بحالةٍ مجمَّعة `success` ([`gaps/registry.md`](gaps/registry.md)).
 ### 2026-11-01 — تجديدُ ستّة استثناءات سلطةٍ منتهية أحمرت main
 
 - **العَرَض:** على #1319 فشلت «Repository Structural Lint» بـ`rag_authority_convergence_fail direct Qdrant exception expired`، وعلى `cc0d2e295` (main) نفسِه يفشل أيضاً `platform_shrink_ratchet_guard` بخمس مرايا `decision-service` منتهية. كلُّها `target_close_by: 2026-10-31`.
@@ -10250,3 +10256,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **G10/G14/G15:** `rate_multiplier: 0` يبقى 0؛ الغسيل `/(1−LR)`؛ الكفاءة كسرٌ في (0,1] ويوم السنة من التاريخ الفعليّ.
 - **R1/R2:** مسحا التنبيهات والحداثة يعدّدان المستأجرين عبر مجمّع jobs؛ اتّصال NATS الأوّل محدود زمنيّاً.
 - **R3 (جزئيّ)/R4:** رمز تسليم حتميّ وعزل العناصر؛ ERP يعلن `erp_schema_missing` بدل «queued». DDL المتابعة خارج هذا الفرع.
+### 2026-11-01 — إغلاقُ `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01`
+
+- **القياس (قراءة، GitHub `commits/{sha}/status`):** `cc0d2e295` ⇒ `failure` (15 حالة، الفاشلةُ الوحيدة `resourceful-commitment - ai_platform_complete_v2.0.0_enhanced`). `aaa1b7f0a` (#1320، أوّلُ التزامٍ على main بعد الحذف) ⇒ `success` (14 حالة كلّها ناجحة، ولا حالةَ للمشروع الشارد).
+- **الحالة:** **fixed** ([`gaps/registry.md`](gaps/registry.md)). وما زال المشروعُ الفارغ في مهلة الـ48 ساعة لدى Railway.
