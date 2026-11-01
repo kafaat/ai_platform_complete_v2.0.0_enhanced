@@ -536,12 +536,12 @@ async def _start_scheduler():
 _OUTBOX_WORKER = None  # OutboxWorker | None
 _OUTBOX_TASK = None  # asyncio.Task | None
 _NATS_CONN = None  # nats client | None
+from api.nats_relay_startup import NATS_RELAY, start_relay  # noqa: E402 — R2: اتّصال أوّل محدود
 
 
 async def _start_outbox_worker():
     """يبدأ relay الأحداث (outbox → NATS). تدهور رشيق: لو غاب NATS/القاعدة، نتخطّى
     بتحذير دون إسقاط الإقلاع — الأحداث تبقى في outbox لتُنشَر عند توفّر NATS لاحقاً."""
-    global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
     # H2 (feature flag، default OFF): يُحرَس تشغيل الناشر. OFF ⇒ الأحداث تبقى في outbox
     # (record_decision_only) ويُعلَن السبب صراحةً؛ ON ⇒ يُشغَّل الناشر (publish_event).
     from api.event_bus import NATS_PUBLISHERS_FLAG, nats_publishers_enabled
@@ -563,23 +563,29 @@ async def _start_outbox_worker():
 
         nats_url = os.getenv("NATS_URL", "nats://sahool-nats:4222")
         inbox = "_INBOX_sahool-platform"  # صندوقُ ردٍّ بهويّتها في nats.conf — لا يقرؤه غيرُها
-        _NATS_CONN = await nats.connect(nats_url, max_reconnect_attempts=-1, inbox_prefix=inbox)
 
-        # عقدُ النشر يسكن مع عاملِه لا هنا — حجّتُه في `event_bus` بفجوتها.
-        _publish = make_jetstream_publisher(_NATS_CONN)
+        async def _connect():  # R2: start_relay يحدّ الاتّصال الأوّل بمهلة؛ الأبديّ بعده فقط
+            return await nats.connect(nats_url, max_reconnect_attempts=-1, inbox_prefix=inbox)
 
-        # المرسِل يقرأ event_outbox عابراً للمستأجرين ⇒ يستعمل مسبح الوظائف
-        # (sahool_jobs/BYPASSRLS). تحت RLS الجديدة (v72) لا يصلح مسبح التطبيق هنا.
-        _OUTBOX_WORKER = OutboxWorker(_JOBS_POOL or _DB_POOL, _publish)
-        _OUTBOX_TASK = asyncio.create_task(_OUTBOX_WORKER.run())
-        # `NATS_URL` يحمل الاعتماد (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01): يُطبَع مُنقّى.
-        logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", redact_broker_url(nats_url))
+        async def _on_connected(conn):
+            global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
+            _NATS_CONN = conn
+            # عقدُ النشر يسكن مع عاملِه لا هنا — حجّتُه في `event_bus` بفجوتها.
+            _publish = make_jetstream_publisher(_NATS_CONN)
+            # المرسِل عابر للمستأجرين ⇒ مسبح الوظائف (sahool_jobs/BYPASSRLS، RLS v72).
+            _OUTBOX_WORKER = OutboxWorker(_JOBS_POOL or _DB_POOL, _publish)
+            _OUTBOX_TASK = asyncio.create_task(_OUTBOX_WORKER.run())
+            # `NATS_URL` يحمل الاعتماد (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01): يُطبَع مُنقّى.
+            logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", redact_broker_url(nats_url))
+
+        await start_relay(_connect, _on_connected, label=redact_broker_url(nats_url))
     except Exception as e:  # noqa: BLE001 — غياب NATS لا يُسقط المنصّة
         logging.warning("OutboxWorker معطّل (NATS؟): %s — الأحداث تبقى في outbox", e)
 
 
 async def _stop_outbox_worker():
     global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
+    await NATS_RELAY.reset()  # R2: أوقف إعادة الاتّصال الخلفيّة قبل العامل
     if _OUTBOX_WORKER is not None:
         _OUTBOX_WORKER.stop()
     if _OUTBOX_TASK is not None:
