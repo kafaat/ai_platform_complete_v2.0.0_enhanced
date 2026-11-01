@@ -392,6 +392,53 @@ def test_every_raster_endpoint_is_correctly_protected_for_its_class():
     )
 
 
+# T10 (تدقيق 2026-11-01): توكن الخدمة يُثبت أنّ المُنادي خدمة SAHOOL لا أيّ مستأجر يعمل له،
+# فإدراج نقطة في FIELD_SCOPED_SERVICE_ONLY لا يُعفيها من إثبات ملكيّة الحقل. كانت
+# process-cdse/prescription/change تُدرَج هنا فتمرّ بلا _require_field_tenant ⇒ مستأجر B يقرأ
+# طبقات حقل A أو يعالج باسمه. مكافئ صريح مُسمّى مقبول فقط لنقطة تُثبت الملكيّة بدالّتها.
+FIELD_OWNERSHIP_EQUIVALENTS: dict[str, str] = {
+    # D1: يطابق الحقل بمستأجِره صارماً (404/403/503) — registry_writes._require_field_owned_by.
+    "/v1/fields/{field_id}/cache-invalidations": "_require_field_owned_by",
+}
+
+
+def _route_call_names(path: str) -> set[str]:
+    import glob
+
+    sources = [RASTER_MAIN] + sorted(glob.glob(os.path.join(RASTER_ROUTERS_DIR, "*.py")))
+    names: set[str] = set()
+    for src_path in sources:
+        if not os.path.isfile(src_path):
+            continue
+        with open(src_path, encoding="utf-8") as f:
+            tree = ast.parse(f.read(), filename=src_path)
+        for route_path, node in _iter_app_routes(tree):
+            if route_path == path:
+                names |= {
+                    n
+                    for sub in ast.walk(node)
+                    if isinstance(sub, ast.Call)
+                    if (n := _call_name(sub))
+                }
+    return names
+
+
+def test_service_only_field_routes_also_prove_field_ownership():
+    """كلّ نقطة field-scoped خدميّة تُثبت ملكيّة الحقل أيضاً (لا التوكن وحده) — T10."""
+    guards_by_path = {path: guards for path, guards, _h in _collect_routes()}
+    missing: list[str] = []
+    for path in sorted(FIELD_SCOPED_SERVICE_ONLY):
+        if FIELD_GUARD in guards_by_path.get(path, set()):
+            continue
+        equivalent = FIELD_OWNERSHIP_EQUIVALENTS.get(path)
+        if equivalent and equivalent in _route_call_names(path):
+            continue
+        missing.append(path)
+    assert missing == [], (
+        f"نقاط field-scoped خدميّة بلا {FIELD_GUARD} (التوكن لا يُثبت المستأجر): {missing}"
+    )
+
+
 def test_allowlists_have_no_stale_entries():
     """لا إدخالات ميتة: كلّ مُدرَج في القوائم الصريحة لا يزال نقطةً حيّة فعلاً (نظافة)."""
     live_paths = {path for path, _g, _h in _collect_routes()}

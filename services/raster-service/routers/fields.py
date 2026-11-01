@@ -812,6 +812,31 @@ async def export_field_analytics_geoparquet(
         }
 
 
+async def _stored_cdse_geometry(
+    field_id: str, req: ProcessCdseRequest
+) -> tuple[dict | None, list[float]]:
+    """هندسة process-cdse من جدول ``fields`` (مصدر الحقيقة) لا من جسم الطلب (T10).
+
+    هندسة الجسم كانت تُقصّ بها الطبقات وتُحفَظ باسم الحقل، فيُعالَج أيّ مضلّع تحت معرّف
+    حقل. مع قاعدة: الهندسة المخزّنة تحكم (وbbox يُشتقّ منها) والجسم يُتجاهَل؛ غيابها ⇒ 400.
+    بلا قاعدة (وضع مقصود، كفحص الملكيّة بالذاكرة) لا سجلّ نقارن به فتبقى هندسة الجسم.
+    """
+    import db_persist as _dbp
+
+    if not _dbp.DATABASE_URL:
+        return req.geometry, list(req.bbox)
+    try:
+        stored = await _dbp.fetch_field_geometry(field_id, _REQ_TENANT.get())
+    except Exception as e:  # noqa: BLE001 — تعذّر جلب الهندسة ⇒ 503 صادق
+        raise HTTPException(503, "تعذّر جلب هندسة الحقل المخزّنة") from e
+    bbox = _bbox_from_geojson(stored)
+    if stored is None or bbox is None:
+        raise HTTPException(400, "هندسة الحقل المخزّنة غير متاحة لمعالجة CDSE")
+    if req.geometry is not None and req.geometry != stored:
+        logger.warning("process-cdse field=%s: body geometry ignored (stored wins)", field_id)
+    return stored, bbox
+
+
 @router.post("/v1/fields/{field_id}/process-cdse")
 async def process_cdse(
     field_id: str,
@@ -825,6 +850,7 @@ async def process_cdse(
     ``available=false`` (200، لا خطأ) كي يسقط المنسّق إلى Element84 بصمت — لا توقّف ولا تلفيق.
     """
     _require_service_token(x_agent_token)
+    await _require_field_tenant(field_id)  # T10: ملكيّة الحقل قبل أيّ معالجة باسمه
     import cdse_client
     import imagery_source_gate
 
@@ -856,6 +882,9 @@ async def process_cdse(
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
     # P3-AUTH: ربط المهمّة بمستأجِرها (تُفرَض على /v1/jobs/{id}[/result])؛ رأس≠جسم ⇒ 403.
     owner = raster_security_context.job_owner_tenant(req.tenant_id)
+    # T10: الهندسة/المستأجر من سجلّ الحقل المخزّن لا من الجسم — تُقصّ الطبقات وتُنسَب لمالكها.
+    geometry, bbox = await _stored_cdse_geometry(field_id, req)
+    req = req.model_copy(update={"geometry": geometry, "bbox": bbox, "tenant_id": owner})
     job_id = f"cdse_{uuid.uuid4().hex[:12]}"
     job_record = {
         "job_id": job_id,
@@ -1096,6 +1125,7 @@ async def field_prescription(
     وتمر لاحقاً عبر Decision-Service قبل أي أثر تشغيلي.
     """
     _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
+    await _require_field_tenant(field_id)  # T10: التوكن يُثبت الخدمة لا المستأجر
     import management_zones as mz
 
     layer = await _resolve_field_layer(field_id, req.index, req.date)
@@ -1170,6 +1200,7 @@ async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: st
     وشبكتان غير متحاذيتين أو مرفوضتا الجودة ⇒ status=not_assessable (field_change_refusal).
     """
     _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
+    await _require_field_tenant(field_id)  # T10: التوكن يُثبت الخدمة لا المستأجر
     grid_a = await _real_field_grid(field_id, req.index, req.date_a, req.grid)
     grid_b = await _real_field_grid(field_id, req.index, req.date_b, req.grid)
 
