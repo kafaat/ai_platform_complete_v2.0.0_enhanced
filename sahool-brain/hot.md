@@ -1,3 +1,7 @@
+> 2026-11-01 — حذف المالك خدمةَ مشروع Railway الشارد `resourceful-commitment` الوحيدة، ثمّ جدولَ المشروعَ نفسَه للحذف (مهلة 48 ساعة). `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01` تبقى **open** حتّى يُرى التزامٌ على main بحالةٍ مجمَّعة `success` ([`gaps/registry.md`](gaps/registry.md) · [`log.md`](log.md)).
+
+> 2026-11-01 — ستّةُ استثناءاتِ سلطةٍ انتهت في 2026-10-31 فأحمرت main وكلَّ PR (`direct_qdrant_exception` وخمسُ مرايا `decision-service-cutover`): جُدِّدت إلى **2026-11-30** لأنّ `SAHOOL-AI-RAG-LIVE-001` و`DECISION-SOR-CUTOVER-WIRING-01` ما زالتا مفتوحتين. **الموعدُ القادم 2026-11-30**: يُغلَق التحويلان أو يُتَّخذ قرارٌ جديد. وأُصلِح حارسُ «report-only» الذي كان يمنع هبوطَ التجديد ([`decisions/ledger.md`](decisions/ledger.md) · [`log.md`](log.md)).
+
 
 > 2026-10-29 — استعادة إصلاحات EO والتجارب من حزمة محفوظة فوق `909b54ec65a9fd0e5644d630f847ca7ce39af45e`، ثم إصلاح قياسات القطع وتحقق JWT والمعايرة وكتابة/قص الراستر بالنوافذ. مصدر النطاق والحدود: [`docs/reviews/eo_trial_consolidation_20261029.md`](../docs/reviews/eo_trial_consolidation_20261029.md). نتائج محلية فقط؛ لا تحقق حقلي أو تشغيل حاويات أو دمج أو نشر.
 > 2026-10-28 — AGRI-TRIAL-REPLICATION-INTEGRITY-01: **fixed** محلياً عند `1ba202b5b0ff48a7a7e8129f2eb084a54b56c2f8` على `fix/agricultural-trial-replication-integrity`؛ ضبط هويات المكررات والنتائج وربط القياسات بالمخطط بشواهد انحدار محلية. الفرع غير مرفوع وغير مدموج؛ لم يُنشأ PR بسبب حد نقل موصل GitHub، ولا تحقق تشغيلي حي ([السجل](gaps/registry.md)، [الجلسة](log.md)).
