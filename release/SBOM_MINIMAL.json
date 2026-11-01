@@ -315,6 +315,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3f6d4aa7a8b5fd273fff84b1a52999a0214539af6d58a3d7fd2366668913a60f"
+        }
+      ],
+      "name": "frontend/e2e/ui-quality-field-accessibility.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "beb4fb21be0a8e2bcb2b3473e671ed1fcfe5c6779bb81e14b8e3dcab069801ce"
         }
       ],
@@ -645,7 +655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7eded2fd90e5ff7acaaef13dd925ac308d9a568e85ab0941d2ae70028a8c2b16"
+          "content": "edd32fe9ce11634af869f32fa7e43e391afc098bb9fcd2d464281d5e22c2e940"
         }
       ],
       "name": "frontend/src/components/FieldSelector.tsx",

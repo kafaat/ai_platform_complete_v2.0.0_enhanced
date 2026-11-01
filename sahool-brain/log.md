@@ -10232,3 +10232,10 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **التحقّق:** محلّيّاً على Flutter 3.38.9 (تثبيت CI): 28/28 و`flutter analyze` نظيف. ستّ طفراتٍ محقونة في المصدر أسقطت الاختبارات كلٌّ على حدة: حذف سقف Retry-After، وقبول الثواني السالبة، وjitter 30٪، وحذف سقف الأس، وعدم تفريغ مفاتيح `InFlight`، والثقة بغلافٍ غير قائمة.
 - **الدمج:** بأمر المالك «قوم بعمل ماتراه مناسب و الدمج»، بعد دمج `main` (`030996911`) في الفرع وإعادة توليد المشتقّات. squash ⇒ `909b54ec6`؛ شجرته `06fbf6e65` = شجرة الرأس المختبَر `b69d1ac7a`.
 - **Railway (قراءة):** `Deploy-Effect: NONE` مشتقّاً، وكلّ نشر `909b54ec6` في البيئتين SKIPPED.
+
+### 2026-11-01 — تجديدُ ستّة استثناءات سلطةٍ منتهية أحمرت main
+
+- **العَرَض:** على #1319 فشلت «Repository Structural Lint» بـ`rag_authority_convergence_fail direct Qdrant exception expired`، وعلى `cc0d2e295` (main) نفسِه يفشل أيضاً `platform_shrink_ratchet_guard` بخمس مرايا `decision-service` منتهية. كلُّها `target_close_by: 2026-10-31`.
+- **الفحص:** شُغِّلت الحرّاس المؤرَّخة على main: `waiver_expiry_guard` ok، وفحصُ الكتالوج ok في CI، و`claims.json` بلا مستهلك. فالحارسان أعلاه وحدهما الحاجبان.
+- **الإجراء:** تجديد الستّة إلى 2026-11-30 دون تغيير `reason` أو المالك ([`decisions/ledger.md`](decisions/ledger.md)).
+- **عائقٌ ثانٍ على #1320:** `no-report-only-change` صنّف التجديدَ «report-only». سُجِّل وأُصلِح في الشريحة نفسها: `EXPIRED-AUTHORITY-EXCEPTION-RENEWAL-UNLANDABLE-01` ([`gaps/registry.md`](gaps/registry.md)).

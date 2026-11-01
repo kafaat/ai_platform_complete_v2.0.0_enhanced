@@ -495,27 +495,27 @@
     "decision_record:mirror:decision-service": {
       "owner": "decision-service-cutover",
       "reason": "interim Decision SoR mirror for decision_record; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
-      "target_close_by": "2026-10-31"
+      "target_close_by": "2026-11-30"
     },
     "dispatch_decisions:mirror:decision-service": {
       "owner": "decision-service-cutover",
       "reason": "interim Decision SoR mirror for dispatch_decisions; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
-      "target_close_by": "2026-10-31"
+      "target_close_by": "2026-11-30"
     },
     "online_learning_updates:mirror:decision-service": {
       "owner": "decision-service-cutover",
       "reason": "interim Decision SoR mirror for online_learning_updates; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
-      "target_close_by": "2026-10-31"
+      "target_close_by": "2026-11-30"
     },
     "outcome_record:mirror:decision-service": {
       "owner": "decision-service-cutover",
       "reason": "interim Decision SoR mirror for outcome_record; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
-      "target_close_by": "2026-10-31"
+      "target_close_by": "2026-11-30"
     },
     "recommendation_outcomes:mirror:decision-service": {
       "owner": "decision-service-cutover",
       "reason": "interim Decision SoR mirror for recommendation_outcomes; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
-      "target_close_by": "2026-10-31"
+      "target_close_by": "2026-11-30"
     }
   }
 }
