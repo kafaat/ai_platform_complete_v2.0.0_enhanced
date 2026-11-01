@@ -2248,7 +2248,22 @@ jobs:
       # غير موجود فكان || true يبتلعه دائماً وتبقى تبعيّات وقت التشغيل ناقصة.
       - run: pip install -r requirements_real.txt
         continue-on-error: true
-      - run: pytest -v -m security tests_v9/test_security.py tests_v9/test_auth_service.py -k "security"
+      # تدقيق 2026-11-01 (Q1): كانت هذه الخطوة تفكّ توكن مساعِد الاختبار بـPyJWT (تختبر المكتبة)،
+      # واختباراتها الخمسة عبر HTTP تنادي خدماتٍ حيّة على 127.0.0.1 فتتخطّى **دائماً** هنا. الآن
+      # تمرّ عبر main.py الحقيقيّ لـauth/local-ai-rag/tts (tests_v9/real_app_probe.py) بـTestClient
+      # ومزيّفات في الذاكرة — وأيُّ تخطٍّ يُفشِل الخطوة، فالأخضرُ لا يعود شهادةً على ما لم يُقَس.
+      # تبعيّات auth صراحةً: تثبيتُ requirements_real أعلاه continue-on-error.
+      - name: Security tests against the real auth/RAG/TTS apps (skips fail the step)
+        run: |
+          set -o pipefail
+          pip install -r services/auth/requirements.txt
+          log="$RUNNER_TEMP/security-tests.log"
+          pytest -v -rs -p no:cacheprovider -m security \
+            tests_v9/test_security.py tests_v9/test_auth_service.py \
+            tests_v9/test_rag.py tests_v9/test_tts.py 2>&1 | tee "$log"
+          if tail -n 1 "$log" | grep -q 'skipped'; then
+            echo "::error::security tests skipped — a skip here is an unmeasured control"; exit 1
+          fi
       # بوّابة مسار الكتابة في RLS (المرحلة 22): تحرس أنّ كلّ سياسة كتابة tenant
       # تحمل WITH CHECK، وتمنع أيّ ترحيل لاحق (>v122) من إعادة إدخال سياسة كتابة
       # tenant بـUSING-only أو باستخدام app.tenant_id دون app.current_tenant القانونيّ.
