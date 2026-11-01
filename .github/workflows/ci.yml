@@ -978,7 +978,7 @@ jobs:
       # `sahool-platform/smoke_e2e_test.py` (سكربتٌ حيّ لا اختبار).
       - name: Service-local tests outside tests_v9 (one process per service, skips fail)
         run: |
-          pip install "aiomqtt>=2.0.0" "edge-tts>=6.1.12"
+          pip install "edge-tts>=6.1.12"  # aiomqtt صارت في tests_v9/requirements-test.txt (Q3)
           run_group() {
             out=$(python -m pytest -q -rs -p no:cacheprovider "$@" 2>&1); rc=$?
             printf '%s\n' "$out"
