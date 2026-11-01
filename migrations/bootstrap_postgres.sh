@@ -135,6 +135,19 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"app_role";
 
+-- T3 (تدقيق 2026-11-01): المنح الشامل أعلاه يُعيد EXECUTE على دوالّ DEFINER لمستوى تحكّم الإدخال
+-- (يملكها sahool_ingest_resolver ذو BYPASSRLS) التي سحبتها v198/v199 من PUBLIC — مقيس: sahool_app
+-- قرأ normalized_payload لمستأجر آخر عبر claim_submissions_for_projection. مستدعيها الوحيد sahool_ingest
+-- (منحٌ صريح في ٥.٢). يُسحَب هنا **بعد** المنح الشامل (idempotent؛ to_regprocedure للغياب).
+SELECT format('REVOKE EXECUTE ON FUNCTION %s FROM %I', f.sig, :'app_role')
+FROM (VALUES
+        ('public.claim_submissions_for_projection(integer,integer)'),
+        ('public.complete_submission_projection(bigint,text,text)'),
+        ('public.resolve_ingest_source(text)')
+     ) AS f(sig)
+WHERE to_regprocedure(f.sig) IS NOT NULL
+\gexec
+
 -- A7 (مرجع مشترك admin_boundaries): قراءة-عامّة/كتابة-محمِّل. sahool_app **SELECT فقط** —
 -- تُنزَع الكتابة (طبقة مرجعيّة تتغيّر بلا provenance = انجراف صامت؛ الكتابة عبر المُحمِّل الإداريّ الموثّق).
 -- (الهجرات قبل bootstrap فالجدولان موجودان.)
@@ -196,9 +209,8 @@ BEGIN
   END IF;
 END $$;
 SQL
-# EXECUTE لـ$APP_ROLE مُغطّى بـ"GRANT EXECUTE ON ALL FUNCTIONS ... TO app_role" في الخطوة ٥ (تسبق هنا،
-# والدالّة موجودة إذ تُطبَّق الهجرات قبل bootstrap) — يُبطِل REVOKE FROM PUBLIC (v198) دون 500.
-echo "  ✓ sahool_ingest_resolver جاهز (يملك resolve_ingest_source؛ EXECUTE لـ$APP_ROLE عبر الخطوة ٥)"
+# EXECUTE على دوالّ الإدخال الثلاث لـsahool_ingest وحده (٥.٢)؛ مسحوبٌ صراحةً من $APP_ROLE في الخطوة ٥ (T3).
+echo "  ✓ sahool_ingest_resolver جاهز (يملك resolve_ingest_source؛ EXECUTE لـsahool_ingest فقط)"
 
 # ─ ٥.٢ دور خدمة الإدخال sahool_ingest (SCOUT-INGEST-01 B1.2b — scout-ingest-service) ─
 # أقلّ منح: SELECT+INSERT على external_submissions + EXECUTE على resolve_ingest_source.
