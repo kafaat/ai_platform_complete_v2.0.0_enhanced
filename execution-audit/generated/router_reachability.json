@@ -397,7 +397,7 @@
     },
     {
       "kind": "router",
-      "line": 79,
+      "line": 81,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -1216,7 +1216,7 @@
     },
     {
       "kind": "router",
-      "line": 153,
+      "line": 154,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -2811,7 +2811,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "9c24d92a20b960fc260e3394fca5e0c1ed68d04d575066960cdb52900c39cbab",
+  "inventory_sha256": "21d4e298d3adabe408295d660ad99906f358ddb92c8a06ac8521c316100ff50f",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -3027,7 +3027,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 79,
+      "line": 81,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -3917,7 +3917,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 153,
+      "line": 154,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
