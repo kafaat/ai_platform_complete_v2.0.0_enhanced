@@ -87,7 +87,8 @@ async def healthz():
 async def readyz():
     """جاهزية أداء الوظيفة — DB داخلي + ERP المختار.
 
-    1) DB الداخلي (SELECT 1) إن ضُبط DATABASE_URL؛ تعذّره ⇒ 503.
+    1) DB الداخلي (SELECT 1) إن ضُبط DATABASE_URL؛ تعذّره ⇒ 503. وجداول المزامنة موجودة فعلاً
+       (to_regclass)؛ غيابها ⇒ 503 بـreason=erp_schema_missing (R4 — كان schema_ready ثابتاً).
     2) ERP المختار مهيّأ ومستجيب (probe بمهلة _READYZ_ERP_PROBE_TIMEOUT)؛ غير مهيّأ أو غير
        مستجيب ⇒ 503 — «خدمةٌ لا تعمل بلا تبعيّتها لا تُعلن الجاهزيّة بلاها» (قرار المالك §3.4).
     الحياة (/healthz) مستقلّة عن هذا كلّه ويضربها healthcheck في Compose — فغياب ERP يُخرج
@@ -108,7 +109,16 @@ async def readyz():
                     "database": {"reachable": False, "reason": str(e)[:200]},
                 },
             ) from e
-        database = {"reachable": True, "schema_ready": True}
+        # R4: schema_ready كان ثابتاً True بلا فحص بينما جداول المزامنة لا تُنشئها أيّ هجرة.
+        schema = await _erp_rt.erp_sync_schema_status()
+        database = {"reachable": True, "schema_ready": bool(schema["ready"])}
+        if not schema["ready"]:
+            database.update(
+                reason=schema.get("reason", "erp_schema_missing"),
+                missing_tables=schema["missing_tables"],
+            )
+            main.logger.error("readyz: erp_schema_missing — %s", schema["missing_tables"])
+            raise HTTPException(503, {"status": "not_ready", "database": database})
     # لا DATABASE_URL مضبوطة — وضع متدرّج معلَن (DB ليس شرطاً)، أمّا ERP فشرط.
     erp_ready, erp = await _erp_readiness()
     if not erp_ready:
