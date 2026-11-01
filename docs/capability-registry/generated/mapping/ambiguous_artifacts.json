@@ -8236,6 +8236,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/api/scheduler.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 9,
+        "signals": [
+          "content:event bus",
+          "content:nats"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/api/season_models.py",
     "kind": "backend",
     "candidates": [

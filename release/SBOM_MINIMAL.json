@@ -4635,7 +4635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6b8f1c9e40d9d9272179287740d75cd4ca569437313f6f3b9a8d720e996da41e"
+          "content": "b0f98b0e0cae5162b0855c40b555543aea3198c9409fd8b21dd2496edbd9e1cb"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -19715,7 +19715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f967c0f4935362a35e6b8c7329d2df7e554ebe499044dc0109f6925e60cecd74"
+          "content": "564aeb4cb84ab555c95fdd1ad33d88b1564a4c8d93e3d67c66608fd6eda43cc3"
         }
       ],
       "name": "services/odoo-bridge/erp_runtime.py",
@@ -19775,7 +19775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f79b4d1aad41bdf1536fb2191f1b572afe439450547b5c1b4c32809f80d6928f"
+          "content": "3641a3fe2d20c12a73a5f69616c590707451d292b369cb5768ceeae9a4599f98"
         }
       ],
       "name": "services/odoo-bridge/routers/health.py",
@@ -23595,7 +23595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3828c0bc0a23bf0684d266b56edcf29376fc420afb723a2ee143a78b8e4baafe"
+          "content": "76e9f1a25dc49a923f06a46d7e1822345f1798c3f2c1eee542b399d1325c61c0"
         }
       ],
       "name": "services/sahool-platform/api/field_models.py",
@@ -24125,7 +24125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "798abcafaf9bb3b03426b017cad2a6279b67645b881647fc3616a744b5d15e84"
+          "content": "847c9a9f1561e4628e815a90751f9b5a51acf64b3ee3f7ac1395c6604a38152f"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_models.py",
@@ -24315,7 +24315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "23358a49829698d2f259fdc806c9e48707b677170250b7609b57f7c6ff16aab8"
+          "content": "77defef6df4e5ee1cf6cb35bb13a0c41d1b102d88ee060d7f25bcaa21fa7ab2d"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -24339,16 +24339,6 @@
         }
       ],
       "name": "services/sahool-platform/api/master_data_models.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "4437040c48342c3c0fcd0224d2831ca03f93a2d5394a9d3c252810bd85857a7d"
-        }
-      ],
-      "name": "services/sahool-platform/api/nats_relay_startup.py",
       "type": "file"
     },
     {
@@ -25415,7 +25405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a272d12a672ca47baadd5586b8f9e02abc1ab372054f9d2f4fde10b13ac4185c"
+          "content": "000d4da6ecf0ac39dcd37a32054a502ac055c7f032c6936ba4c0dd38ce41c496"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -25625,7 +25615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "50ebfe81604360d94a4afe62b961fc8c79f79b0f336ac3748cb5a5800ed01b90"
+          "content": "08fb7b903cac6ea0e9120b75cd976a329552e95902b368d34b9435399eb7345a"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -26385,7 +26375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f3c3f4c4c220c346929b02cd958ae6a6c193f7e781ea5e845a5e5cbab42adf3"
+          "content": "9412967d15765596718c5ee1a4d27c568942cebb2b1f87d688de8950632edf11"
         }
       ],
       "name": "services/sahool-platform/api/scheduler.py",
@@ -26589,16 +26579,6 @@
         }
       ],
       "name": "services/sahool-platform/api/spatial_sync.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "b1881871a87950383fb0a2185be85805b837acb52f36eadbbeeafb910f814907"
-        }
-      ],
-      "name": "services/sahool-platform/api/sweep_tenants.py",
       "type": "file"
     },
     {
@@ -33565,7 +33545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7041977e22bacaaa0a16cf5fbd80995ed4eaa4a1cb51553064cad07f08aec997"
+          "content": "b4b3177b8afeada7ca22dff2c72c92bd0adef9eebd2b7d83caaa6ef9cbc35394"
         }
       ],
       "name": "services/sahool-platform/tests/test_nats_relay_bounded_startup.py",
@@ -34905,7 +34885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "491f2c528d64885033a9476fa3f12204cb36eb5fa2b3c63edd1a2285b30a198b"
+          "content": "3fd5c9d14bba50bec28984acc6a463243f128e1cd39109f5afe0d223b52c3f54"
         }
       ],
       "name": "services/sahool-platform/tests/test_sweep_tenant_enumeration.py",
@@ -38105,7 +38085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b1b1991cffa7a0653b0b990b5bbce1269650b9dbf8ce1a625aba98016485c935"
+          "content": "14a01855ea5c8fe8fd216476cf2599d6ead8c14d04a061e37cdb7cdc4d9892bb"
         }
       ],
       "name": "shared/broker_url.py",
