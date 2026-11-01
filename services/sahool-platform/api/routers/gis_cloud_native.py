@@ -770,11 +770,15 @@ async def phase6_profitability_map(
     req: ProfitabilityMapRequest,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
-    return compute_profitability_map(
-        req.zones,
-        market_price_per_t=req.market_price_per_t,
-        variable_costs_per_ha=req.variable_costs_per_ha,
-    )
+    try:
+        return compute_profitability_map(
+            req.zones,
+            market_price_per_t=req.market_price_per_t,
+            variable_costs_per_ha=req.variable_costs_per_ha,
+        )
+    except ValueError as exc:
+        # وحدة إنتاجيّة مجهولة/متعارضة أو قيمة سالبة ⇒ 422 مُسمّى لا 500.
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/phase6/digital-twin/snapshot")

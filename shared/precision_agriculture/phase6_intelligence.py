@@ -69,11 +69,13 @@ class YieldStabilityClass:
 class ProfitabilityFeature:
     id: str
     zone: int
-    gross_revenue_per_ha: float
+    gross_revenue_per_ha: float | None
     total_cost_per_ha: float
-    profit_per_ha: float
-    roi: float
+    profit_per_ha: float | None
+    roi: float | None
     label: str
+    # "ok" | "missing_yield": إنتاجيّة غائبة لا تُخترَع (كانت 3 ط/هـ صامتة).
+    data_status: str = "ok"
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -220,13 +222,80 @@ def extract_boundary(
     return {"field_id": field_id, "imagery_id": imagery_id, **asdict(result)}
 
 
-def _normalize_feature_vector(row: dict[str, Any], keys: list[str]) -> list[float]:
-    return [float(row.get(k, 0.0) or 0.0) for k in keys]
+def _finite_or_none(v: Any) -> float | None:
+    """رقم منتهٍ أو None — الغياب يبقى غياباً (لا يصير 0 ولا قيمة افتراضيّة)."""
+    if v is None or isinstance(v, bool):
+        return None
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return f if math.isfinite(f) else None
 
 
-def _weighted_score(row: dict[str, Any], keys: list[str], weights: dict[str, float]) -> float:
-    total_w = sum(abs(weights.get(k, 1.0)) for k in keys) or 1.0
-    return sum(_safe_float(row.get(k)) * weights.get(k, 1.0) for k in keys) / total_w
+def _require_nonnegative(v: Any, name: str) -> float:
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0:
+        raise ValueError(f"{name} must be finite and nonnegative; got {v!r}")
+    return float(v)
+
+
+def _zone_rate_multiplier(z: dict[str, Any]) -> Any:
+    """المُضاعِف الصريح (حتّى 0 = منطقة استثناء) وإلّا 1.0 — فحص ``is None`` لا ``or``."""
+    raw = z.get("rate_multiplier")
+    if raw is None:
+        raw = (z.get("properties") or {}).get("rate_multiplier")
+    return 1.0 if raw is None else raw
+
+
+def _check_feature_units(samples: list[dict[str, Any]], keys: list[str]) -> dict[str, str | None]:
+    """وحدة كلّ خاصّيّة من ``<key>_unit``؛ خلط وحدتين في خاصّيّة واحدة ⇒ ValueError."""
+    units: dict[str, str | None] = {}
+    for k in keys:
+        seen = {str(s[f"{k}_unit"]) for s in samples if s.get(f"{k}_unit") is not None}
+        if len(seen) > 1:
+            raise ValueError(
+                f"feature '{k}' mixes units {sorted(seen)}; convert to one unit before zoning"
+            )
+        units[k] = next(iter(seen)) if seen else None
+    return units
+
+
+def _feature_stats(
+    samples: list[dict[str, Any]], keys: list[str]
+) -> dict[str, tuple[float, float]]:
+    stats: dict[str, tuple[float, float]] = {}
+    for k in keys:
+        vals = [v for v in (_finite_or_none(s.get(k)) for s in samples) if v is not None]
+        if vals:
+            stats[k] = (mean(vals), pstdev(vals))
+    return stats
+
+
+def _weighted_score(
+    row: dict[str, Any],
+    keys: list[str],
+    weights: dict[str, float],
+    stats: dict[str, tuple[float, float]],
+) -> float | None:
+    """درجة موزونة على قيم **مُطبَّعة** (z لكلّ خاصّيّة) — بلا تطبيع كان الارتفاع
+    بالأمتار يطغى على NDVI (0..1). الخاصّيّة الغائبة تُستبعَد من البسط والمقام معاً؛
+    عيّنة بلا أيّ خاصّيّة ⇒ None (غير مُصنَّفة، لا صفر مُختلَق)."""
+    num = 0.0
+    den = 0.0
+    present = False
+    for k in keys:
+        v = _finite_or_none(row.get(k))
+        if v is None or k not in stats:
+            continue
+        present = True
+        mu, sd = stats[k]
+        z = (v - mu) / sd if sd > 0 else 0.0
+        w = weights.get(k, 1.0)
+        num += z * w
+        den += abs(w)
+    if not present:
+        return None
+    return num / den if den else 0.0
 
 
 def _safe_float(v: Any) -> float:
@@ -276,9 +345,23 @@ def generate_management_zones(
         "elevation": 0.2,
         "value": 1.0,
     }
-    scored: list[tuple[dict[str, Any], float]] = [
-        (s, _weighted_score(s, feature_keys, weights)) for s in samples
-    ]
+    feature_units = _check_feature_units(samples, feature_keys)
+    stats = _feature_stats(samples, feature_keys)
+    scored: list[tuple[dict[str, Any], float]] = []
+    unscored_ids: list[str] = []
+    for s in samples:
+        score = _weighted_score(s, feature_keys, weights, stats)
+        if score is None:
+            unscored_ids.append(str(s.get("id") or _stable_id(s, "zone")))
+        else:
+            scored.append((s, score))
+    if not scored:
+        return {
+            "zones": [],
+            "features": [],
+            "error": "no_scorable_samples",
+            "unscored_sample_ids": unscored_ids,
+        }
     cuts = _quantile_cuts([score for _, score in scored], n_zones)
     labels3 = {0: "stress", 1: "medium", 2: "high_potential"}
     zone_features: list[ZoneFeature] = []
@@ -308,15 +391,18 @@ def generate_management_zones(
                 "zone": i + 1,
                 "label": label,
                 "sample_count": counts[i],
-                "pct": round(100 * counts[i] / len(samples), 1),
+                "pct": round(100 * counts[i] / len(scored), 1),
                 "mean_score": round(sums[i] / counts[i], 4) if counts[i] else None,
                 "rate_multiplier": round(0.75 + (i / max(1, n_zones - 1)) * 0.5, 2),
             }
         )
     return {
         "algorithm": "weighted_quantile_fallback",
+        "normalization": "per_feature_zscore",
         "n_zones": n_zones,
         "feature_keys": feature_keys,
+        "feature_units": feature_units,
+        "unscored_sample_ids": unscored_ids,
         "zones": zones,
         "features": [asdict(z) for z in zone_features],
     }
@@ -371,16 +457,12 @@ def generate_prescription_map(
     for z in zone_features:
         if prescription_type in {"nitrogen", "phosphorus", "potassium"}:
             # Preserve an explicit zero and reject invalid quantities at the recipe boundary.
-            raw_multiplier = z.get("rate_multiplier")
-            if raw_multiplier is None:
-                raw_multiplier = z.get("properties", {}).get("rate_multiplier")
-            raw_multiplier = 1.0 if raw_multiplier is None else raw_multiplier
+            raw_multiplier = _zone_rate_multiplier(z)
             recipe_elemental_input(raw_multiplier, unit)
             mult = float(raw_multiplier)
         else:
-            mult = _safe_float(
-                z.get("rate_multiplier") or z.get("properties", {}).get("rate_multiplier") or 1.0
-            )
+            # G10: 0 صريح (منطقة استثناء) يبقى 0 — كان ``or 1.0`` يمنحها الجرعة كاملة.
+            mult = _require_nonnegative(_zone_rate_multiplier(z), "rate_multiplier")
         zone = int(z.get("zone", 1))
         label = str(z.get("label", f"zone_{zone}"))
         # Stress zones receive more water/fertilizer but lower seed density.
@@ -435,12 +517,16 @@ def _linear_trend(values: list[float]) -> float:
 def compute_yield_stability(
     history: dict[str, list[float]] | list[dict[str, Any]],
 ) -> dict[str, Any]:
+    skipped_missing_yield = 0
     if isinstance(history, list):
         grouped: dict[str, list[float]] = {}
         for row in history:
-            grouped.setdefault(str(row.get("zone", "field")), []).append(
-                _safe_float(row.get("yield"))
-            )
+            # إنتاجيّة غائبة تُستبعَد وتُعَدّ — كانت تدخل صفراً فتُخفِض المتوسّط.
+            value = _finite_or_none(row.get("yield"))
+            if value is None:
+                skipped_missing_yield += 1
+                continue
+            grouped.setdefault(str(row.get("zone", "field")), []).append(value)
     else:
         grouped = {str(k): [float(x) for x in v] for k, v in history.items()}
     classes: list[YieldStabilityClass] = []
@@ -473,7 +559,37 @@ def compute_yield_stability(
                 years=len(vals),
             )
         )
-    return {"classes": [asdict(c) for c in classes], "count": len(classes)}
+    return {
+        "classes": [asdict(c) for c in classes],
+        "count": len(classes),
+        "skipped_missing_yield": skipped_missing_yield,
+    }
+
+
+# الأساس الموحَّد للإنتاجيّة في هذه الوحدة: طن/هكتار. تحويل صريح فقط لما يُعرَف.
+_YIELD_UNIT_TO_T_HA = {"t/ha": 1.0, "kg/ha": 0.001}
+
+
+def _zone_yield_t_ha(z: dict[str, Any]) -> float | None:
+    """إنتاجيّة المنطقة بـ t/ha أو None إن غابت — لا 3 ط/هـ مُختلَقة ولا ``score``.
+
+    ``score`` درجةُ تقسيم بلا وحدة لا إنتاجيّة. ``mean_yield`` يتبع ``yield_unit``
+    (غيابها ⇒ t/ha، أساس ``compute_yield_stability``). وحدة مجهولة أو متعارضة مع
+    ``expected_yield_t_ha`` ⇒ ValueError صريح.
+    """
+    unit = z.get("yield_unit")
+    if unit is not None and unit not in _YIELD_UNIT_TO_T_HA:
+        raise ValueError(
+            f"unsupported yield_unit {unit!r}; expected one of {sorted(_YIELD_UNIT_TO_T_HA)}"
+        )
+    if z.get("expected_yield_t_ha") is not None:
+        if unit not in (None, "t/ha"):
+            raise ValueError(f"expected_yield_t_ha is in t/ha but yield_unit={unit!r}")
+        return _require_nonnegative(z["expected_yield_t_ha"], "expected_yield_t_ha")
+    if z.get("mean_yield") is not None:
+        value = _require_nonnegative(z["mean_yield"], "mean_yield")
+        return value * _YIELD_UNIT_TO_T_HA[unit or "t/ha"]
+    return None
 
 
 def compute_profitability_map(
@@ -485,38 +601,52 @@ def compute_profitability_map(
     variable_costs_per_ha = variable_costs_per_ha or {}
     base_cost = sum(_safe_float(v) for v in variable_costs_per_ha.values())
     features: list[ProfitabilityFeature] = []
+    missing_yield: list[str] = []
     for z in zones:
         zone_no = int(z.get("zone", 1))
-        expected_yield = _safe_float(
-            z.get("expected_yield_t_ha") or z.get("mean_yield") or z.get("score") or 3.0
-        )
-        cost_adjustment = _safe_float(z.get("cost_adjustment") or z.get("rate_multiplier") or 1.0)
+        feature_id = str(z.get("id") or _stable_id(z, "profit"))
+        expected_yield = _zone_yield_t_ha(z)
+        raw_adjustment = z.get("cost_adjustment")
+        if raw_adjustment is None:
+            raw_adjustment = _zone_rate_multiplier(z)
+        cost_adjustment = _require_nonnegative(raw_adjustment, "cost_adjustment")
         total_cost = round(base_cost * max(0.2, cost_adjustment), 2)
-        revenue = round(expected_yield * market_price_per_t, 2)
-        profit = round(revenue - total_cost, 2)
-        roi = round(profit / total_cost, 3) if total_cost else 0.0
-        label = (
-            "high_profit"
-            if profit > total_cost * 0.5
-            else "medium_profit"
-            if profit >= 0
-            else "loss_area"
-        )
+        if expected_yield is None:
+            # بلا إنتاجيّة لا إيراد ولا ربح يُحسَب — المنطقة تُعلَن ناقصة البيانات.
+            missing_yield.append(feature_id)
+            revenue = profit = roi = None
+            label = "insufficient_data"
+            status = "missing_yield"
+        else:
+            revenue = round(expected_yield * market_price_per_t, 2)
+            profit = round(revenue - total_cost, 2)
+            roi = round(profit / total_cost, 3) if total_cost else 0.0
+            label = (
+                "high_profit"
+                if profit > total_cost * 0.5
+                else "medium_profit"
+                if profit >= 0
+                else "loss_area"
+            )
+            status = "ok"
         features.append(
             ProfitabilityFeature(
-                id=str(z.get("id") or _stable_id(z, "profit")),
+                id=feature_id,
                 zone=zone_no,
                 gross_revenue_per_ha=revenue,
                 total_cost_per_ha=total_cost,
                 profit_per_ha=profit,
                 roi=roi,
                 label=label,
+                data_status=status,
             )
         )
     return {
         "features": [asdict(f) for f in features],
         "currency": "configured_market_currency",
         "basis": "per_ha",
+        "yield_unit": "t/ha",
+        "zones_missing_yield": missing_yield,
     }
 
 
