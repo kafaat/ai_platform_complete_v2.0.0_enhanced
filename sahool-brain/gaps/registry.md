@@ -8417,6 +8417,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الحالة:** open (2026-10-26) — يحتاج إجراء المالك في Railway (التجميد: Railway قراءةٌ فقط للوكيل).
 - **المصدر:** مشروع Railway `resourceful-commitment` (أُنشئ 2026-10-22) بخدمةٍ واحدة `ai_platform_complete_v2.0.0_enhanced` مربوطة بفرع `main` بلا Dockerfile ولا مجلّد جذر ولا أنماط مراقبة ولا متغيّرات (`get-service-config`، قراءةً). يحاول Railpack بناء جذر المستودع فيفشل (`railpack process exited with an error`، سجلّ البناء للنشر `08e0751a`)، فتُعلَّم كلّ التزامات main بحالة `failure` في GitHub رغم نجاح الحالات الأربع عشرة الأخرى وكلّ تشغيلات Actions (مقيس على آخر 25 التزاماً حتى `84f29f2fa`). لا نطاق ولا خدمة تعتمد عليه.
 - **شرط الإغلاق:** حذف المشروع، أو فصل مصدره، أو تهيئته ببناءٍ حقيقيّ لخدمة واحدة — ثمّ التزامٌ على main بحالةٍ مجمَّعة `success`.
+  - **2026-11-01:** حذف المالك الخدمة الوحيدة `ai_platform_complete_v2.0.0_enhanced` من لوحة Railway، فصار `list-services` للمشروع يُعيد `services: []` (قراءة). الشقّ الأوّل من الشرط تحقّق؛ والثاني ينتظر أوّل التزامٍ على main بعد الحذف، وآخر نشرٍ فاشل قبله كان `5c9f9c92` على `909b54ec6`.
 
 ## PLATFORM-IDEMPOTENCY-STORE-NOT-TENANT-BOUND-01 — مخزن أوامر idempotency لا يقيّد الناتج المُعاد بمستأجر الطالب
 
