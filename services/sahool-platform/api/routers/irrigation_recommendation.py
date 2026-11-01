@@ -38,7 +38,11 @@ from api.irrigation_engineering_workspace import (
     manual_canonical_snapshot,
     validate_manual_weather_date,
 )
-from api.irrigation_models import FieldIrrigationRequest, IrrigationRecommendationRequest
+from api.irrigation_models import (
+    FieldIrrigationRequest,
+    IrrigationRecommendationRequest,
+    resolve_day_of_year,
+)
 from api.irrigation_recommendation_policy import recommend_irrigation
 from api.irrigation_state_guard import assess_irrigation_state
 from api.main import (
@@ -137,6 +141,8 @@ async def irrigation_recommendation(
             ),
         )
 
+    # G15: يوم السنة المُرسَل أو تاريخ الخادم الفعليّ — لا ثابت 100 (مُعلَن المصدر).
+    day_of_year, day_of_year_source = resolve_day_of_year(req.day_of_year)
     try:
         et0_prod = await _engine_et0(
             t_min_c=req.t_min_c,
@@ -144,7 +150,7 @@ async def irrigation_recommendation(
             solar_rad_mj_m2=req.solar_rad_mj_m2,
             rh_mean_pct=req.rh_mean_pct,
             wind_2m_ms=req.wind_2m_ms,
-            day_of_year=req.day_of_year,
+            day_of_year=day_of_year,
             latitude_deg=req.latitude_deg,
             elevation_m=req.elevation_m,
             tenant_id=getattr(user, "tenant_id", None),
@@ -183,7 +189,14 @@ async def irrigation_recommendation(
         water_price_per_m3=req.water_price_per_m3,
         yield_value_per_ha=req.yield_value_per_ha,
     )
-    return {**recommendation, "et0": _et0_provenance(et0_prod)}
+    return {
+        **recommendation,
+        "et0": {
+            **_et0_provenance(et0_prod),
+            "day_of_year": day_of_year,
+            "day_of_year_source": day_of_year_source,
+        },
+    }
 
 
 @router.post("/api/v1/fields/{field_id}/irrigation-recommendation")
@@ -446,7 +459,7 @@ async def field_irrigation_recommendation(
                 "solar_rad_mj_m2": req.solar_rad_mj_m2,
                 "rh_mean_pct": req.rh_mean_pct,
                 "wind_2m_ms": req.wind_2m_ms,
-                "day_of_year": req.day_of_year if req.day_of_year is not None else 100,
+                "day_of_year": req.day_of_year,
                 # التجاوزُ اليدويّ يحمل مطرَه أيضاً. وإلّا كان «تجاوزُ حرارة» يُسقِط
                 # المطرَ ضمناً إلى صفر — فيصير المسارُ الاحتياطيّ أكثرَ إذناً بالريّ
                 # من الأساسيّ، وهو عكسُ ما يُنتظَر من تجاوزٍ يدويّ.
@@ -527,6 +540,8 @@ async def field_irrigation_recommendation(
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
 
+    # G15: يوم المحرّك/التجاوز، وإلّا تاريخ الخادم الفعليّ — لا ثابت 100 (مُعلَن المصدر).
+    wx_doy, wx_doy_source = resolve_day_of_year(wx.get("day_of_year"))
     # ET0 from the weather engine; legacy nonmanual elevation remains unchanged.
     try:
         et0_prod = await _engine_et0(
@@ -535,7 +550,7 @@ async def field_irrigation_recommendation(
             solar_rad_mj_m2=wx.get("solar_rad_mj_m2"),
             rh_mean_pct=wx.get("rh_mean_pct"),
             wind_2m_ms=wx.get("wind_2m_ms"),
-            day_of_year=wx.get("day_of_year") or 100,
+            day_of_year=wx_doy,
             latitude_deg=field_lat,
             elevation_m=_elev_default_m,
             valid_time=wx.get("valid_time"),
@@ -766,7 +781,8 @@ async def field_irrigation_recommendation(
         "weather": {
             "source": wx["source"],
             "valid_time": wx.get("valid_time"),
-            "day_of_year": wx.get("day_of_year"),
+            "day_of_year": wx_doy,
+            "day_of_year_source": wx_doy_source,
         },
         # WS-D.3: تأكيد طيفيّ (NDMI+MSI) — يُثبِت أنّ MSI وصل المرشَّح؛ غياب أحد الدليلين
         # أو تباعد تاريخيهما ⇒ available=False و detected=None (لا تصعيد مُختلَق).

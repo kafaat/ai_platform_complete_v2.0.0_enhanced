@@ -8,8 +8,10 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import HTTPException
-from pydantic import BaseModel, Field, StrictFloat, StrictInt
+from pydantic import BaseModel, Field, StrictFloat, StrictInt, field_validator
 
 # منطق نقيّ (v29.5-op-2/3) مُستخرَج إلى وحدة بلا fastapi كي يُختبَر في طبقة الوحدة؛
 # يُعاد تصديره هنا فيبقى api.routers.irrigation يستورده من irrigation_models كما هو.
@@ -18,6 +20,7 @@ from api.irrigation_logic import (  # noqa: F401  (re-export)
     plan_run_ledger_action,
     schedules_overlap,
 )
+from api.irrigation_recommendation_policy import validate_irrigation_efficiency
 from shared.weather_input_contract import Et0WeatherInput
 
 
@@ -77,7 +80,9 @@ class IrrigationRecommendationRequest(Et0WeatherInput):
     wind_2m_ms: StrictFloat | None = None
     latitude_deg: StrictFloat = 15.5
     elevation_m: StrictFloat = 2000.0
-    day_of_year: StrictInt = 100
+    # G15: لا يوم سنة افتراضيّاً ثابتاً (كان 100 = أوائل أبريل لكلّ طلب). الغياب ⇒ يُشتَقّ
+    # من تاريخ الخادم الفعليّ عبر ``resolve_day_of_year`` ويُعلَن مصدره في المخرَج.
+    day_of_year: StrictInt | None = None
     # ── مدخلات الملوحة (فحص مخبريّ) ──
     soil_ece: float | None = None  # ECe من soil_lab_tests
     soil_ec_age_days: int | None = None  # عُمر الفحص (للموثوقيّة)
@@ -86,7 +91,7 @@ class IrrigationRecommendationRequest(Et0WeatherInput):
     # ── مدخلات الغسل (مشروطة) ──
     water_ec: float | None = None  # ECw ماء الريّ
     drainage: str | None = None  # fast|medium|slow
-    irrigation_efficiency: float | None = None
+    irrigation_efficiency: float | None = None  # كسر (0, 1] — لا نسبة مئويّة
     # ── مدخلات الإجهاد المائيّ (استنزاف منطقة الجذور) — تقود قرار الإطلاق ──
     depletion_mm: float | None = None  # Dr من water_ledger عبر الحالة الكنسيّة
     taw_mm: float | None = None  # TAW من soil_water_params
@@ -95,6 +100,19 @@ class IrrigationRecommendationRequest(Et0WeatherInput):
     policy: str | None = None  # water_saving|yield_max|profit_max|sustainability|risk_averse
     water_price_per_m3: float | None = None  # لـ profit_max
     yield_value_per_ha: float | None = None  # لـ profit_max
+
+    @field_validator("irrigation_efficiency", mode="before")
+    @classmethod
+    def _efficiency_is_a_fraction(cls, value):
+        # 85 بدل 0.85 كانت تُعطي ≈1% من الاحتياج؛ تُرفَض برسالة تسمّي الخلط (422).
+        return validate_irrigation_efficiency(value)
+
+
+def resolve_day_of_year(day_of_year: int | None, today: date | None = None) -> tuple[int, str]:
+    """(يوم السنة، مصدره): المُرسَل كما هو، وإلّا من التاريخ الفعليّ — لا ثابت 100."""
+    if day_of_year is not None:
+        return day_of_year, "supplied"
+    return (today or date.today()).timetuple().tm_yday, "server_date"
 
 
 class FieldIrrigationRequest(Et0WeatherInput):
