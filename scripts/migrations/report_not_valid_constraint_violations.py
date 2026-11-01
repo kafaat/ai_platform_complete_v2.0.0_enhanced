@@ -120,6 +120,49 @@ CONSTRAINTS: list[NotValidConstraint] = [
     ),
 ]
 
+# v237 (T9): every public table whose tenant_id is text gets
+# ``chk_<table>_tenant_nonempty CHECK (btrim(tenant_id) <> '') NOT VALID`` — an empty tenant
+# was a shared bucket under policies comparing to a bare current_setting(). Table list =
+# the text-typed tenant_id tables measured on a PG16 built from MANIFEST (v237 adds the
+# constraint to whatever matches at apply time; v237's own assertion A5 enforces coverage).
+_V237_TEXT_TENANT_TABLES = (
+    "irrigation_water_profiles",
+    "irrigation_water_samples",
+    "recommendation_feedback",
+    "recommendation_reviews",
+    "review_decisions",
+    "soil_analog_products",
+    "soil_bare_composites",
+    "soil_drainage_assessments",
+    "soil_execution_records",
+    "soil_field_validations",
+    "soil_hydraulic_profiles",
+    "soil_learning_attributions",
+    "soil_learning_datasets",
+    "soil_outcome_records",
+    "soil_production_certifications",
+    "soil_reclamation_assessments",
+    "soil_reclamation_economics",
+    "soil_regional_calibrations",
+    "soil_salinity_products",
+    "soil_sampling_plans",
+    "soil_spatial_products",
+    "soil_terrain_products",
+    "soil_texture_products",
+    "soil_verification_records",
+    "soil_visual_observations",
+)
+CONSTRAINTS += [
+    NotValidConstraint(
+        migration="v237_tenant_isolation_hardening.sql",
+        table=table,
+        name=f"chk_{table}_tenant_nonempty",
+        check_predicate="btrim(tenant_id) <> ''",
+        note="empty tenant_id is not a tenant (RLS shared-bucket leak, T9)",
+    )
+    for table in _V237_TEXT_TENANT_TABLES
+]
+
 
 @dataclass
 class ConstraintResult:
