@@ -335,7 +335,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 21,
+    "line": 47,
     "method": "POST",
     "path": "/v1/auth/mfa/setup",
     "handler": "mfa_setup",
@@ -344,7 +344,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 74,
+    "line": 100,
     "method": "POST",
     "path": "/v1/auth/mfa/activate",
     "handler": "mfa_activate",
@@ -353,7 +353,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 144,
+    "line": 173,
     "method": "POST",
     "path": "/v1/auth/mfa/disable",
     "handler": "mfa_disable",

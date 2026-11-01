@@ -36,9 +36,9 @@ auth,services/auth/routers/invitations.py,26,POST,/v1/auth/invitations,create_in
 auth,services/auth/routers/invitations.py,85,GET,/v1/auth/invitations,list_invitations,versioned
 auth,services/auth/routers/invitations.py,116,POST,/v1/auth/invitations/accept,accept_invitation,versioned
 auth,services/auth/routers/invitations.py,196,DELETE,/v1/auth/invitations/{invitation_id},revoke_invitation,versioned
-auth,services/auth/routers/mfa.py,21,POST,/v1/auth/mfa/setup,mfa_setup,versioned
-auth,services/auth/routers/mfa.py,74,POST,/v1/auth/mfa/activate,mfa_activate,versioned
-auth,services/auth/routers/mfa.py,144,POST,/v1/auth/mfa/disable,mfa_disable,versioned
+auth,services/auth/routers/mfa.py,47,POST,/v1/auth/mfa/setup,mfa_setup,versioned
+auth,services/auth/routers/mfa.py,100,POST,/v1/auth/mfa/activate,mfa_activate,versioned
+auth,services/auth/routers/mfa.py,173,POST,/v1/auth/mfa/disable,mfa_disable,versioned
 auth,services/auth/routers/ops.py,21,GET,/metrics,metrics,infra
 auth,services/auth/routers/ops.py,27,GET,/healthz,health,infra
 auth,services/auth/routers/ops.py,27,GET,/health,health,infra
