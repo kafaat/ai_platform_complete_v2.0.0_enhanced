@@ -8494,3 +8494,10 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **حدود الإصلاح:** المعرفات لا تثبت الاستقلال البيولوجي وحدها؛ بيانات MET بلا معرف مكرر تبقى وصفية، وقوائم المساعد الوصفي يلزم أن تتطابق بالكتلة والترتيب. ربط الدليل يطابق مجموعة القطع المقدمة، ولا يثبت وحده اكتمال المخطط الأصلي أو منشأ القياس. يشرح [عقد النتائج والهوية](../../services/sahool-platform/docs/FIELD_TRIAL_REPLICATION_CONTRACT.md) القيم الحدية وانعكاسات التوافق.
 - **شرط التحقق التشغيلي:** قياس مستقل على خدمة منشورة بإصدار معلوم يثبت رفض الهويات المكررة، واستجابة JSON للحالات العادية وعديمة التباين، ورفض دليل مخطط قديم. لا تكفي اختبارات الوحدة أو CI للنقل إلى verified.
 - **وصول الإصلاح:** فرع محلي غير مرفوع وغير مدموج؛ لم يُنشأ PR بسبب حد حجم النقل في موصل GitHub. لا يصف هذا الصف حالة `main` أو أي إصدار منشور.
+
+## EXPIRED-AUTHORITY-EXCEPTION-RENEWAL-UNLANDABLE-01 — `fixed` (2026-11-01)
+
+- **الحالة:** **fixed** (2026-11-01) على فرع `claude/renew-expired-exceptions-20261101` (#1320).
+- **المصدر:** `scripts/ci/no_report_only_change_guard.py` (`check_changed_files`). على #1320 فشل `no-report-only-change` بـ«report-only change detected»، لأنّ التغيير لم يمسّ إلّا `docs/architecture/rag_authority_convergence.json` و`docs/architecture/platform_shrink_ratchet.json` + الدماغ + مصنوعات الإصدار. فالملفّان ليسا جوهريّين ولا وثيقةً تحت `docs/` بالتصنيف، فوقعا في `outside_docs_only` مع مصنوعٍ ⇒ حاجز.
+- **الخاصّيّة المنتهَكة:** السجلّان أداتا تفويض يقرؤهما حارسان ليقرّرا PASS/FAIL؛ وانتهاءُ `target_close_by` يُحمِّر main وكلَّ PR، فتجديدُهما أو إغلاقُهما خطوةٌ واجبة لا تقرير. «بوّابةٌ لا تُغلَق بعملٍ صحيح»، صنفُ `gates/` و`CODEOWNERS` و`config/` في الملفّ نفسه.
+- **الإصلاح:** الاسمان الكاملان في `SUBSTANTIVE_EXACT` (لا بادئة `docs/architecture/`)، مع اختبارين في `tests_v9/test_no_report_only_change_guard.py`: قائمةُ #1320 بعينها تمرّ، وسجلٌّ آخر تحت `docs/architecture/` مع مصنوعٍ يبقى محجوباً. مُكذَّب: على نسخة الحارس في `main` يسقط الاختبارُ الأوّل وحده (1 failed, 36 passed).
