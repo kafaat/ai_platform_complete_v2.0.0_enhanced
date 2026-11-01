@@ -19,7 +19,7 @@ redis>=5.0.0
 # test_tts/test_auth_service تستوردان pydantic؛ auth يستخدم bcrypt وEmailStr؛
 # الخدمات تستورد prometheus_client.
 pydantic[email]>=2.8.0
-bcrypt>=4.1.0
+bcrypt==5.0.0  # كـservices/auth/requirements.txt (S8)
 prometheus-client>=0.20.0
 PyJWT[crypto]==2.15.0  # بديلُ python-jose (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01)؛ ==2.15.0 كالمنصّة (CVE-2026-101918)
 # test_otp يُحمّل services/auth/main.py الذي يستورد pyotp (MFA/TOTP، تبعيّة

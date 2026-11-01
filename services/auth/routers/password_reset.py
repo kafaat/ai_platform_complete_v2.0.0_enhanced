@@ -49,9 +49,7 @@ async def confirm_password_reset(req: main.PasswordResetConfirm):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صالح أو منتهي")
 
     user_id = int(user_id_str)
-    hashed = main.bcrypt.hashpw(
-        req.new_password.encode(), main.bcrypt.gensalt(main.BCRYPT_ROUNDS)
-    ).decode()
+    hashed = main.hash_password(req.new_password, main.BCRYPT_ROUNDS)
 
     async with main._acquire() as conn:
         await conn.execute(

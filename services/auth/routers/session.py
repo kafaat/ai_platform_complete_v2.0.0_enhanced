@@ -41,12 +41,8 @@ async def login(req: main.LoginRequest, request: Request, response: Response):
     if (
         not row
         or not row["active"]
-        or not main.bcrypt.checkpw(
-            req.password.encode(),
-            row["password_hash"]
-            if isinstance(row["password_hash"], bytes)
-            else row["password_hash"].encode(),
-        )
+        # > ٧٢ بايت أو تجزئة تالفة ⇒ False ⇒ 401 (لا 500 من bcrypt ٥) — S8.
+        or not main.verify_password(req.password, row["password_hash"])
     ):
         await main.record_failed_login(
             req.email
