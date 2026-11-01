@@ -1778,7 +1778,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 121,
+    "line": 131,
     "method": "GET",
     "path": "/v1/readyz/capabilities",
     "function": "readyz_capabilities"
@@ -1786,7 +1786,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/sync.py",
-    "line": 79,
+    "line": 112,
     "method": "POST",
     "path": "/v1/sync",
     "function": "trigger_sync"
@@ -1794,7 +1794,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/webhooks.py",
-    "line": 21,
+    "line": 23,
     "method": "POST",
     "path": "/v1/webhook/odoo",
     "function": "odoo_webhook"
@@ -2250,7 +2250,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 189,
+    "line": 197,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -2258,7 +2258,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 233,
+    "line": 241,
     "method": "GET",
     "path": "/v1/tile-cache/stats",
     "function": "tile_cache_stats"
@@ -2266,7 +2266,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 267,
+    "line": 275,
     "method": "GET",
     "path": "/v1/info/{layer_id}",
     "function": "raster_info"
@@ -2274,7 +2274,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 277,
+    "line": 285,
     "method": "GET",
     "path": "/v1/providers/status",
     "function": "providers_status"
@@ -2282,7 +2282,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 307,
+    "line": 315,
     "method": "GET",
     "path": "/v1/indices",
     "function": "field_indices"
@@ -2458,7 +2458,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 73,
+    "line": 82,
     "method": "GET",
     "path": "/v1/elevation/hillshade/{z}/{x}/{y}.png",
     "function": "hillshade_tile"
@@ -2466,7 +2466,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 87,
+    "line": 96,
     "method": "GET",
     "path": "/v1/slope/{z}/{x}/{y}.png",
     "function": "slope_tile"
@@ -2474,7 +2474,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 101,
+    "line": 110,
     "method": "GET",
     "path": "/v1/terrain/tilejson",
     "function": "terrain_tilejson"
@@ -2482,7 +2482,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 156,
+    "line": 165,
     "method": "GET",
     "path": "/v1/fields/{field_id}/contours.geojson",
     "function": "field_contours"
@@ -4906,7 +4906,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 406,
+    "line": 410,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/disease-risk",
     "function": "field_disease_risk_facade"
@@ -5082,7 +5082,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2650,
+    "line": 2654,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/wind/prevailing",
     "function": "field_wind_prevailing"
@@ -5090,7 +5090,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2725,
+    "line": 2729,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/wind/drift-risk",
     "function": "field_wind_drift_risk"
@@ -5098,7 +5098,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2804,
+    "line": 2808,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/recommendations",
     "function": "field_recommendations"
@@ -5106,7 +5106,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2906,
+    "line": 2910,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/activities",
     "function": "create_activity"
@@ -5114,7 +5114,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3040,
+    "line": 3044,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/activities",
     "function": "list_field_activities"
@@ -5122,7 +5122,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3069,
+    "line": 3073,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/input-traceability",
     "function": "field_input_traceability"
@@ -5130,7 +5130,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3174,
+    "line": 3178,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/growth-narrative",
     "function": "field_growth_narrative"
@@ -5138,7 +5138,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3218,
+    "line": 3222,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/soil-lab-tests",
     "function": "create_soil_lab_test"
@@ -5146,7 +5146,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3275,
+    "line": 3279,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/soil-lab-tests",
     "function": "list_soil_lab_tests"
@@ -5154,7 +5154,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3299,
+    "line": 3303,
     "method": "PATCH",
     "path": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
     "function": "update_soil_lab_test"
@@ -5162,7 +5162,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3426,
+    "line": 3430,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/alerts/evaluate",
     "function": "evaluate_field_alerts_endpoint"
@@ -5170,7 +5170,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3442,
+    "line": 3446,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/rotations",
     "function": "add_crop_rotation"
@@ -5178,7 +5178,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3484,
+    "line": 3488,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/rotations",
     "function": "list_crop_rotations"
@@ -5186,7 +5186,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3511,
+    "line": 3515,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/trueup",
     "function": "apply_trueup"
@@ -5194,7 +5194,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3570,
+    "line": 3574,
     "method": "POST",
     "path": "/api/v1/fields/validate-geometry",
     "function": "validate_geometry"
@@ -5202,7 +5202,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3603,
+    "line": 3607,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
     "function": "prescribe_nitrogen"
@@ -5210,7 +5210,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3632,
+    "line": 3636,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/yield-estimate",
     "function": "estimate_field_yield"
@@ -5218,7 +5218,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3705,
+    "line": 3709,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/timeline",
     "function": "field_timeline"
@@ -5226,7 +5226,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3725,
+    "line": 3729,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/history",
     "function": "field_history"
@@ -5234,7 +5234,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3842,
+    "line": 3846,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/pins",
     "function": "create_pin"
@@ -5242,7 +5242,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3925,
+    "line": 3929,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan",
     "function": "field_walk_plan"
@@ -5250,7 +5250,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3935,
+    "line": 3939,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
     "function": "field_walk_plan_pdf"
@@ -5258,7 +5258,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3954,
+    "line": 3958,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/zones",
     "function": "field_zones"
@@ -5266,7 +5266,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3968,
+    "line": 3972,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/water-stress-spectral",
     "function": "field_water_stress_spectral"
@@ -5274,7 +5274,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 4000,
+    "line": 4004,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state",
     "function": "field_canonical_state"
@@ -5282,7 +5282,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 4028,
+    "line": 4032,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/alerts/derived",
     "function": "field_alerts_derived"
@@ -5290,7 +5290,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 4054,
+    "line": 4058,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state/full",
     "function": "field_state_full"
@@ -5578,7 +5578,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 781,
+    "line": 785,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/phase6/digital-twin/snapshot",
     "function": "phase6_digital_twin_snapshot"
@@ -6066,7 +6066,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 111,
+    "line": 116,
     "method": "POST",
     "path": "/api/v1/irrigation-recommendation",
     "function": "irrigation_recommendation"
@@ -6074,7 +6074,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 189,
+    "line": 203,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
     "function": "field_irrigation_recommendation"
@@ -6426,7 +6426,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 24,
+    "line": 25,
     "method": "GET",
     "path": "/runtime-identity",
     "function": "runtime_evidence_identity"
@@ -6434,7 +6434,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 31,
+    "line": 32,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -6442,7 +6442,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 38,
+    "line": 39,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -6450,7 +6450,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 59,
+    "line": 60,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -7146,7 +7146,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simulate.py",
-    "line": 76,
+    "line": 86,
     "method": "POST",
     "path": "/api/v1/simulate/what-if",
     "function": "simulate_what_if"

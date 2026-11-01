@@ -4,9 +4,9 @@
 
 ## Summary
 
-- Python files parsed: **2052**
+- Python files parsed: **2059**
 - FastAPI-style route handlers: **1062**
-- Static function-call edges: **94751**
+- Static function-call edges: **95345**
 - Dead-code candidates: **661**
 - Duplicate function groups: **58**
 - Automatic deletions: **0**
@@ -57,7 +57,6 @@
 | `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 19 |
 | `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 120 |
 | `weather-service` | `_reset_breaker` | function | `services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py` | 41 |
-| `shared` | `_normalize_feature_vector` | function | `shared/precision_agriculture/phase6_intelligence.py` | 223 |
 
 ## Duplicate implementation groups
 
