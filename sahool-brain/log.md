@@ -10233,9 +10233,20 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **الدمج:** بأمر المالك «قوم بعمل ماتراه مناسب و الدمج»، بعد دمج `main` (`030996911`) في الفرع وإعادة توليد المشتقّات. squash ⇒ `909b54ec6`؛ شجرته `06fbf6e65` = شجرة الرأس المختبَر `b69d1ac7a`.
 - **Railway (قراءة):** `Deploy-Effect: NONE` مشتقّاً، وكلّ نشر `909b54ec6` في البيئتين SKIPPED.
 
+### 2026-11-01 — حذف خدمة مشروع Railway الشارد `resourceful-commitment`
+
+- **الإجراء:** بأمر المالك «احذف مشروع resourceful-commitment» حاول الوكيل `delete-service` ثلاث مرّات، فانتهت كلٌّ منها بعد 60 ثانية لأنّ سؤال التأكيد لم يبلغ المالك في الجلسة السحابيّة. فحذف المالك الخدمة من اللوحة، بعد التحقّق من أنّ الاسم `ai_platform_complete_v2.0.0_enhanced` لا يوجد إلّا في `resourceful-commitment`.
+- **التحقّق (قراءة):** `list-services` يُعيد `services: []`، والمشروع نفسه ما زال قائماً فارغاً.
+- **المشروع:** حذفه المالك بعد ذلك من اللوحة (2026-11-01)، وRailway يُبقيه 48 ساعة قابلاً للإلغاء قبل الحذف النهائيّ، فما زال `list-projects` يُدرجه.
+- **الحالة:** `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01` تبقى **open** حتّى يظهر التزامٌ على main بحالةٍ مجمَّعة `success` ([`gaps/registry.md`](gaps/registry.md)).
 ### 2026-11-01 — تجديدُ ستّة استثناءات سلطةٍ منتهية أحمرت main
 
 - **العَرَض:** على #1319 فشلت «Repository Structural Lint» بـ`rag_authority_convergence_fail direct Qdrant exception expired`، وعلى `cc0d2e295` (main) نفسِه يفشل أيضاً `platform_shrink_ratchet_guard` بخمس مرايا `decision-service` منتهية. كلُّها `target_close_by: 2026-10-31`.
 - **الفحص:** شُغِّلت الحرّاس المؤرَّخة على main: `waiver_expiry_guard` ok، وفحصُ الكتالوج ok في CI، و`claims.json` بلا مستهلك. فالحارسان أعلاه وحدهما الحاجبان.
 - **الإجراء:** تجديد الستّة إلى 2026-11-30 دون تغيير `reason` أو المالك ([`decisions/ledger.md`](decisions/ledger.md)).
 - **عائقٌ ثانٍ على #1320:** `no-report-only-change` صنّف التجديدَ «report-only». سُجِّل وأُصلِح في الشريحة نفسها: `EXPIRED-AUTHORITY-EXCEPTION-RENEWAL-UNLANDABLE-01` ([`gaps/registry.md`](gaps/registry.md)).
+
+### 2026-11-01 — إغلاقُ `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01`
+
+- **القياس (قراءة، GitHub `commits/{sha}/status`):** `cc0d2e295` ⇒ `failure` (15 حالة، الفاشلةُ الوحيدة `resourceful-commitment - ai_platform_complete_v2.0.0_enhanced`). `aaa1b7f0a` (#1320، أوّلُ التزامٍ على main بعد الحذف) ⇒ `success` (14 حالة كلّها ناجحة، ولا حالةَ للمشروع الشارد).
+- **الحالة:** **fixed** ([`gaps/registry.md`](gaps/registry.md)). وما زال المشروعُ الفارغ في مهلة الـ48 ساعة لدى Railway.
