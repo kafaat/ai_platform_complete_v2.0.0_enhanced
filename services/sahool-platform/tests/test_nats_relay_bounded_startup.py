@@ -71,7 +71,7 @@ def relay_env(monkeypatch):
 
 async def test_startup_completes_when_nats_is_unreachable(relay_env):
     main, calls, _ = relay_env
-    from api.nats_relay_startup import NATS_RELAY
+    from shared.broker_url import NATS_RELAY
 
     try:
         await asyncio.wait_for(main._start_outbox_worker(), timeout=3)
@@ -85,7 +85,7 @@ async def test_startup_completes_when_nats_is_unreachable(relay_env):
 
 async def test_background_retry_starts_the_relay_once_nats_appears(relay_env):
     main, calls, behaviour = relay_env
-    from api.nats_relay_startup import NATS_RELAY
+    from shared.broker_url import NATS_RELAY
 
     try:
         await asyncio.wait_for(main._start_outbox_worker(), timeout=3)
@@ -104,7 +104,7 @@ async def test_background_retry_starts_the_relay_once_nats_appears(relay_env):
 
 async def test_reachable_nats_starts_relay_immediately(relay_env):
     main, _, behaviour = relay_env
-    from api.nats_relay_startup import NATS_RELAY
+    from shared.broker_url import NATS_RELAY
 
     behaviour["reachable"] = True
     try:
@@ -117,8 +117,9 @@ async def test_reachable_nats_starts_relay_immediately(relay_env):
 
 def test_readyz_reports_nats_relay_state(monkeypatch):
     from api import main
-    from api.nats_relay_startup import NATS_RELAY
     from fastapi.testclient import TestClient
+
+    from shared.broker_url import NATS_RELAY
 
     monkeypatch.setenv("SAHOOL_ENV", "development")
     monkeypatch.setenv("DATABASE_URL", "")

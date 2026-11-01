@@ -98,8 +98,7 @@ async def readyz():
     pool = _erp_rt._pool
     if pool is not None:
         try:
-            async with pool.acquire() as conn:
-                await conn.fetchval("SELECT 1")
+            await _erp_rt.ping_database(pool)
         except Exception as e:
             main.logger.warning("readyz: قاعدة البيانات غير جاهزة — %s", e)
             raise HTTPException(

@@ -449,25 +449,11 @@ async def field_irrigation_recommendation(
 
     # WS-D.2c: الطقس يُجلَب آليّاً من محرّك الطقس (المسار الأساسيّ). حرارة الطلب تجاوز
     # يدويّ فقط. تعذّر جلب الطقس ⇒ dependency_unavailable (لا توصية على طقس مفقود).
-    manual_weather = req.t_min_c is not None and req.t_max_c is not None
+    manual_wx = req.manual_weather_override()
     weather_limitation: str | None = None
     try:
-        if manual_weather:
-            wx = {
-                "t_min_c": req.t_min_c,
-                "t_max_c": req.t_max_c,
-                "solar_rad_mj_m2": req.solar_rad_mj_m2,
-                "rh_mean_pct": req.rh_mean_pct,
-                "wind_2m_ms": req.wind_2m_ms,
-                "day_of_year": req.day_of_year,
-                # التجاوزُ اليدويّ يحمل مطرَه أيضاً. وإلّا كان «تجاوزُ حرارة» يُسقِط
-                # المطرَ ضمناً إلى صفر — فيصير المسارُ الاحتياطيّ أكثرَ إذناً بالريّ
-                # من الأساسيّ، وهو عكسُ ما يُنتظَر من تجاوزٍ يدويّ.
-                "rain_recent_mm": req.rain_recent_mm,
-                "forecast_rain_mm": req.forecast_rain_mm,
-                "valid_time": None,
-                "source": "manual_override",
-            }
+        if manual_wx is not None:
+            wx = manual_wx
             weather_limitation = "manual weather override (not auto-fetched from weather-engine)"
         else:
             wx = await _field_weather_snapshot(field_lat, field_lon)

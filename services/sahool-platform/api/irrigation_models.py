@@ -153,3 +153,26 @@ class FieldIrrigationRequest(Et0WeatherInput):
                 "day_of_year",
             )
         )
+
+    def manual_weather_override(self) -> dict | None:
+        """لقطة طقس التجاوز اليدويّ بشكل لقطة المحرّك — أو ``None`` (المسار الأساسيّ: جلب آليّ).
+
+        التجاوز يُفعَّل بالحرارتين معاً فقط. ويحمل مطرَه أيضاً: وإلّا كان «تجاوزُ حرارة»
+        يُسقِط المطرَ ضمناً إلى صفر — فيصير المسارُ الاحتياطيّ أكثرَ إذناً بالريّ من
+        الأساسيّ، وهو عكسُ ما يُنتظَر من تجاوزٍ يدويّ. ``day_of_year`` يبقى كما أُرسِل
+        (``None`` ⇒ يُشتقّ لاحقاً عبر ``resolve_day_of_year`` بمصدرٍ مُعلَن، G15).
+        """
+        if self.t_min_c is None or self.t_max_c is None:
+            return None
+        return {
+            "t_min_c": self.t_min_c,
+            "t_max_c": self.t_max_c,
+            "solar_rad_mj_m2": self.solar_rad_mj_m2,
+            "rh_mean_pct": self.rh_mean_pct,
+            "wind_2m_ms": self.wind_2m_ms,
+            "day_of_year": self.day_of_year,
+            "rain_recent_mm": self.rain_recent_mm,
+            "forecast_rain_mm": self.forecast_rain_mm,
+            "valid_time": None,
+            "source": "manual_override",
+        }

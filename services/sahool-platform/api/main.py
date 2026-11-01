@@ -312,8 +312,12 @@ async def _start_scheduler():
     """
     from api.agronomic_consistency import check_decision_freshness, compute_data_ages
     from api.imagery_automation import bind_recovery_pool, imagery_automation
-    from api.scheduler import cluster_singleton, register_default_tasks, scheduler
-    from api.sweep_tenants import list_sweep_tenant_ids
+    from api.scheduler import (
+        cluster_singleton,
+        list_sweep_tenant_ids,
+        register_default_tasks,
+        scheduler,
+    )
     from api.weather_automation import weather_automation
 
     # أفضل ممارسة: مسبح تنسيق النسخ (BYPASSRLS إن توفّر، وإلّا مسبح التطبيق) —
@@ -536,7 +540,7 @@ async def _start_scheduler():
 _OUTBOX_WORKER = None  # OutboxWorker | None
 _OUTBOX_TASK = None  # asyncio.Task | None
 _NATS_CONN = None  # nats client | None
-from api.nats_relay_startup import NATS_RELAY, start_relay  # noqa: E402 — R2: اتّصال أوّل محدود
+from shared.broker_url import NATS_RELAY, start_relay  # noqa: E402 — R2: اتّصال أوّل محدود
 
 
 async def _start_outbox_worker():

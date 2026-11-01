@@ -11,7 +11,6 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
-from contextlib import asynccontextmanager
 
 import pytest
 
@@ -34,41 +33,33 @@ def core_on_path():
     pytest.importorskip("fastapi")
 
 
-class _FakeConn:
-    def __init__(self, db):
-        self._db = db
+class _Store:
+    """ما تحفظه طبقة الاستمرار — بلا اتّصال ولا مسبح (``FAKE-CONNECTION-ENFORCES-NOTHING-01``).
 
-    @asynccontextmanager
-    async def transaction(self):
-        yield
-
-    async def execute(self, sql, *args):
-        if sql.startswith("SELECT set_config"):
-            return
-        if "last_ndvi_mean = $2" in sql:
-            if self._db.fail_ndvi_writes > 0:
-                self._db.fail_ndvi_writes -= 1
-                raise ConnectionError("transient: connection reset during NDVI write")
-            self._db.row["last_ndvi_mean"] = args[1]
-            return
-        if sql.startswith("INSERT INTO imagery_automation_fields"):
-            # إدامة الحقل: last_image_id هو علامة «معالَج» الدائمة.
-            self._db.row["last_image_id"] = args[6]
-            self._db.persisted_image_ids.append(args[6])
-            return
-
-
-class _FakeDb:
-    """قاعدة مُقلَّدة: صفّ واحد، وفشل كتابة NDVI قابل للحقن."""
+    الدرزة المُرقَّعة هي طرائق الحفظ الثلاث على ``ImageryAutomation`` نفسها (درجةٌ فوق
+    الاستعلام): ``_persist_field`` يحمل ``last_image_id`` (علامة «معالَج» الدائمة)،
+    و``_persist_ndvi``/``_persist_spectral`` يُرجِعان هل التزمت الكتابة — وهو بالضبط عقدهما
+    حين يبتلعان عطل القاعدة. وفشل كتابة NDVI قابل للحقن.
+    """
 
     def __init__(self, *, fail_ndvi_writes: int):
         self.fail_ndvi_writes = fail_ndvi_writes
         self.row: dict = {"last_image_id": None, "last_ndvi_mean": None}
         self.persisted_image_ids: list = []
 
-    @asynccontextmanager
-    async def acquire(self):
-        yield _FakeConn(self)
+    async def persist_field(self, tf) -> None:
+        self.row["last_image_id"] = tf.last_image_id
+        self.persisted_image_ids.append(tf.last_image_id)
+
+    async def persist_ndvi(self, tf) -> bool:
+        if self.fail_ndvi_writes > 0:
+            self.fail_ndvi_writes -= 1
+            return False  # transient: connection reset during NDVI write
+        self.row["last_ndvi_mean"] = tf.last_ndvi_mean
+        return True
+
+    async def persist_spectral(self, tf) -> bool:
+        return True
 
 
 def _wire(monkeypatch, db):
@@ -88,7 +79,9 @@ def _wire(monkeypatch, db):
     monkeypatch.setattr(mod, "process_indicator_batch", batch)
     monkeypatch.setattr(mod, "get_job_result", result)
     ia = mod.ImageryAutomation()
-    ia.set_pool(db)
+    monkeypatch.setattr(ia, "_persist_field", db.persist_field)
+    monkeypatch.setattr(ia, "_persist_ndvi", db.persist_ndvi)
+    monkeypatch.setattr(ia, "_persist_spectral", db.persist_spectral)
     tf = mod.TrackedField(field_id="f1", bbox=[44.0, 15.0, 44.1, 15.1], tenant_id="t1")
     ia._fields["f1"] = tf
     return ia, tf
@@ -99,7 +92,7 @@ def _scan(ia, tf):
 
 
 def test_transient_ndvi_write_failure_does_not_mark_the_scene_processed(core_on_path, monkeypatch):
-    db = _FakeDb(fail_ndvi_writes=1)
+    db = _Store(fail_ndvi_writes=1)
     ia, tf = _wire(monkeypatch, db)
 
     first = _scan(ia, tf)
@@ -124,7 +117,7 @@ def test_transient_ndvi_write_failure_does_not_mark_the_scene_processed(core_on_
 def test_retries_are_bounded_then_the_scene_is_marked(core_on_path, monkeypatch):
     """مشهد معطوب دائماً لا يُعاد بلا نهاية: بعد السقف يُعلَّم معالَجاً بلا قيم."""
     monkeypatch.setenv("IMAGERY_SCENE_MAX_ATTEMPTS", "2")
-    db = _FakeDb(fail_ndvi_writes=99)
+    db = _Store(fail_ndvi_writes=99)
     ia, tf = _wire(monkeypatch, db)
 
     assert _scan(ia, tf) == (False, "IndicatorsNotPersisted")
@@ -141,7 +134,7 @@ def test_batch_timeout_leaves_the_scene_retryable(core_on_path, monkeypatch):
     """دفعة لم تكتمل ضمن الميزانيّة: التعليق يَعِد «تُعاد المحاولة في الدورة التالية»."""
     from api import imagery_automation as mod
 
-    db = _FakeDb(fail_ndvi_writes=0)
+    db = _Store(fail_ndvi_writes=0)
     ia, tf = _wire(monkeypatch, db)
 
     async def pending_batch(*, tenant_id, payload, **_kw):

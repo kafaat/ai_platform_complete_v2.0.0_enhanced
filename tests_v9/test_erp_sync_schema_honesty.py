@@ -11,8 +11,11 @@
   (ج) التشغيل المقبول يحمل ``run_id``؛ فشل أيّ خطوة يُسجَّل ERROR بـrun_id وفي odoo_sync_log،
       ولا يُسقط بقيّة الخطوات.
 
-الراوتران الحقيقيّان (routers/sync.py, routers/health.py)؛ المُستبدَل: مجمّع اتّصال مزيّف
-يُجيب ``to_regclass`` من مجموعة جداول معلومة، ومزوّد ERP سليم.
+الراوتران الحقيقيّان (routers/sync.py, routers/health.py) و``erp_sync_schema_status``/``run_sync_job``
+الحقيقيّة. بلا قاعدة مزيّفة (``FAKE-CONNECTION-ENFORCES-NOTHING-01``): المجمّع حارسٌ معتم
+(``object()``) لا يُجيب أيّ استعلام، والمُرقَّع درجةٌ فوق الاستعلام — ``absent_tables`` (سؤال
+``to_regclass``: يُقاس ما سُئل عنه ويُجاب من مجموعة جداول معلومة) و``ping_database`` و
+``log_sync_record`` (يُسجَّل ما كُتِب) — ومزوّد ERP سليم.
 """
 
 from __future__ import annotations
@@ -47,38 +50,42 @@ FULL_SCHEMA = MIGRATED_TODAY | {
 }
 
 
-class _Conn:
-    def __init__(self, tables: set[str], log: list):
-        self.tables = tables
-        self.log = log
+class _Schema:
+    """ما في القاعدة من جداول — يُجيب الدرزات فوق الاستعلام ويُسجِّل ما سُئل عنه وما كُتِب."""
 
-    async def fetch(self, sql, *args):
-        assert "to_regclass" in sql
-        return [{"table_name": t, "present": t in self.tables} for t in args[0]]
-
-    async def fetchval(self, sql, *args):
-        return 1
-
-    async def execute(self, sql, *args):
-        if "INSERT INTO odoo_sync_log" in sql:
-            if "odoo_sync_log" not in self.tables:
-                raise RuntimeError("relation odoo_sync_log does not exist")
-            self.log.append(args)
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *exc):
-        return False
-
-
-class _Pool:
     def __init__(self, tables: set[str]):
         self.tables = set(tables)
-        self.sync_log: list = []
+        self.asked: list[list[str]] = []
+        self.sync_log: list[tuple] = []
 
-    def acquire(self):
-        return _Conn(self.tables, self.sync_log)
+    async def absent_tables(self, pool, tables):
+        assert pool is DB, "the schema probe must run on the bridge's own pool"
+        self.asked.append(list(tables))
+        return sorted(t for t in tables if t not in self.tables)
+
+    async def ping_database(self, pool):
+        assert pool is DB
+
+    async def log_sync_record(self, *row):
+        if "odoo_sync_log" not in self.tables:
+            raise RuntimeError("relation odoo_sync_log does not exist")
+        self.sync_log.append(row)
+
+
+DB = object()  # مجمّع الجسر: مُعتِم — كلّ ما يصل القاعدة يمرّ بالدرزات أعلاه
+
+
+def _use(monkeypatch, rt, tables: set[str] | None) -> _Schema | None:
+    """يربط الجسر بقاعدة جداولُها ``tables`` — أو ``None``: لا قاعدة (لا DATABASE_URL)."""
+    if tables is None:
+        monkeypatch.setattr(rt, "_pool", None)
+        return None
+    schema = _Schema(tables)
+    monkeypatch.setattr(rt, "_pool", DB)
+    monkeypatch.setattr(rt, "absent_tables", schema.absent_tables)
+    monkeypatch.setattr(rt, "ping_database", schema.ping_database)
+    monkeypatch.setattr(rt, "log_sync_record", schema.log_sync_record)
+    return schema
 
 
 class _HealthyProvider:
@@ -136,10 +143,12 @@ def _record_calls(monkeypatch, main, rt, *, fail: set[str] = frozenset()):
 
 def test_sync_rejects_with_503_when_erp_tables_were_never_migrated(bridge, monkeypatch):
     main, rt, client = bridge
-    monkeypatch.setattr(rt, "_pool", _Pool(MIGRATED_TODAY))
+    schema = _use(monkeypatch, rt, MIGRATED_TODAY)
     calls = _record_calls(monkeypatch, main, rt)
 
     r = client.post("/v1/sync", json={"entity": "all"})
+    # السؤال يشمل كلّ جدول تكتبه المزامنة لا الأساسيّين وحدهما.
+    assert set(schema.asked[-1]) == FULL_SCHEMA
 
     assert r.status_code == 503, r.text
     detail = r.json()["detail"]
@@ -151,7 +160,7 @@ def test_sync_rejects_with_503_when_erp_tables_were_never_migrated(bridge, monke
 def test_sync_entity_scoped_schema_check(bridge, monkeypatch):
     """costs only needs field_cost_ledger (+ core): other missing tables don't block it."""
     main, rt, client = bridge
-    monkeypatch.setattr(rt, "_pool", _Pool(MIGRATED_TODAY | {"field_cost_ledger"}))
+    _use(monkeypatch, rt, MIGRATED_TODAY | {"field_cost_ledger"})
     _record_calls(monkeypatch, main, rt)
     assert client.post("/v1/sync", json={"entity": "costs"}).status_code == 200
     r = client.post("/v1/sync", json={"entity": "products"})
@@ -161,7 +170,7 @@ def test_sync_entity_scoped_schema_check(bridge, monkeypatch):
 
 def test_sync_without_database_is_not_queued(bridge, monkeypatch):
     main, rt, client = bridge
-    monkeypatch.setattr(rt, "_pool", None)
+    _use(monkeypatch, rt, None)
     r = client.post("/v1/sync", json={"entity": "products"})
     assert r.status_code == 503, r.text
     assert r.json()["detail"]["error"] == "erp_sync_database_unavailable"
@@ -169,8 +178,7 @@ def test_sync_without_database_is_not_queued(bridge, monkeypatch):
 
 def test_accepted_run_has_id_and_step_failures_are_recorded_not_silent(bridge, monkeypatch, caplog):
     main, rt, client = bridge
-    pool = _Pool(FULL_SCHEMA)
-    monkeypatch.setattr(rt, "_pool", pool)
+    schema = _use(monkeypatch, rt, FULL_SCHEMA)
     calls = _record_calls(monkeypatch, main, rt, fail={"sync_products"})
 
     with caplog.at_level(logging.ERROR):
@@ -189,12 +197,12 @@ def test_accepted_run_has_id_and_step_failures_are_recorded_not_silent(bridge, m
     ]
     errors = [rec.getMessage() for rec in caplog.records if rec.levelno >= logging.ERROR]
     assert any(run_id in m and "products" in m for m in errors), errors
-    assert any(run_id in str(row) and "failed" in row for row in pool.sync_log), pool.sync_log
+    assert any(run_id in str(row) and "failed" in row for row in schema.sync_log), schema.sync_log
 
 
 def test_readyz_reports_schema_missing_instead_of_constant_true(bridge, monkeypatch):
     _, rt, client = bridge
-    monkeypatch.setattr(rt, "_pool", _Pool(MIGRATED_TODAY))
+    _use(monkeypatch, rt, MIGRATED_TODAY)
     r = client.get("/readyz")
     assert r.status_code == 503, r.text
     db = r.json()["detail"]["database"]
@@ -206,7 +214,7 @@ def test_readyz_reports_schema_missing_instead_of_constant_true(bridge, monkeypa
 
 def test_readyz_ready_when_schema_present(bridge, monkeypatch):
     _, rt, client = bridge
-    monkeypatch.setattr(rt, "_pool", _Pool(FULL_SCHEMA))
+    _use(monkeypatch, rt, FULL_SCHEMA)
     r = client.get("/readyz")
     assert r.status_code == 200, r.text
     assert r.json()["database"]["schema_ready"] is True
@@ -214,7 +222,7 @@ def test_readyz_ready_when_schema_present(bridge, monkeypatch):
 
 def test_run_sync_job_isolates_steps_and_skips_missing_schema(bridge, monkeypatch):
     _, rt, _ = bridge
-    monkeypatch.setattr(rt, "_pool", _Pool(MIGRATED_TODAY | {"field_cost_ledger", "suppliers"}))
+    _use(monkeypatch, rt, MIGRATED_TODAY | {"field_cost_ledger", "suppliers"})
     ran: list[str] = []
 
     async def ok(name="x"):

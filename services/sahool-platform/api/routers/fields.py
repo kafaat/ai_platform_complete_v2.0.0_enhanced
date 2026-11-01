@@ -42,6 +42,8 @@ from api.field_models import (
     ChildField,
     FieldCreateRequest,
     FieldDetail,
+    FieldImageryProcessDateRequest,
+    FieldImageryRefreshRequest,
     FieldImportRequest,
     FieldMergeRequest,
     FieldSplitRequest,
@@ -648,24 +650,6 @@ async def import_field(
         reason="field.created",
     )
     return result
-
-
-class FieldImageryRefreshRequest(BaseModel):
-    date: str | None = None
-    # UI hotfix: قد تكون صفحة الأقمار تعرض حقلاً محمّلاً/مخزّناً محليّاً أو من
-    # raster timeline قبل أن يوجد الصفّ في جدول fields لنفس المستأجر. لا نلفّق
-    # هندسة؛ نقبل geometry صريحة من خيار الحقل المختار ونمرّرها إلى raster-service
-    # بدل إسقاط التحليل بـ404. إذا لم تصل هندسة، يبقى 404 صادقاً.
-    geometry: dict | None = None
-
-
-class FieldImageryProcessDateRequest(BaseModel):
-    """V8-05 PR2: طلب معالجة مشهد مفرد لتاريخٍ اختاره المستخدم (زرّ صريح، لا اختيار التاريخ)."""
-
-    date: str
-    index: str
-    scene_id: str
-    geometry: dict | None = None
 
 
 @router.post("/api/v1/fields/{field_id}/imagery/process-date")

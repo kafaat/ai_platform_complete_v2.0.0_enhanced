@@ -214,6 +214,23 @@ ERP_SYNC_ENTITY_TABLES: dict[str, tuple[str, ...]] = {
 }
 
 
+async def ping_database(pool) -> None:
+    """``SELECT 1`` على ``pool`` — يرفع إن تعذّرت القاعدة (فحص الحياة الداخليّ لـ``/readyz``)."""
+    async with pool.acquire() as conn:
+        await conn.fetchval("SELECT 1")
+
+
+async def absent_tables(pool, tables: list[str]) -> list[str]:
+    """أيّ ``tables`` لا وجود لها — ``to_regclass`` بلا امتياز على الجدول، بلا DDL. مُرتَّبة."""
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT t AS table_name, to_regclass(t) IS NOT NULL AS present "
+            "FROM unnest($1::text[]) AS t",
+            list(tables),
+        )
+    return sorted(r["table_name"] for r in rows if not r["present"])
+
+
 async def erp_sync_schema_status() -> dict[str, Any]:
     """أيّ جداول المزامنة غائبة؟ — ``to_regclass`` بلا امتياز على الجدول، بلا DDL.
 
@@ -230,13 +247,7 @@ async def erp_sync_schema_status() -> dict[str, Any]:
             "entities": {},
         }
     wanted = sorted(set(ERP_SYNC_CORE_TABLES).union(*ERP_SYNC_ENTITY_TABLES.values()))
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            "SELECT t AS table_name, to_regclass(t) IS NOT NULL AS present "
-            "FROM unnest($1::text[]) AS t",
-            wanted,
-        )
-    missing = sorted(r["table_name"] for r in rows if not r["present"])
+    missing = await absent_tables(pool, wanted)
     entities = {}
     for entity, tables in ERP_SYNC_ENTITY_TABLES.items():
         gone = [t for t in (*ERP_SYNC_CORE_TABLES, *tables) if t in missing]
