@@ -1706,7 +1706,7 @@
         },
         {
           "expect": "test_the_rules_path_consults_with_tenant_field_and_valve_scope",
-          "find": "                        ks_conn, tenant_id, field_id=field_id, valve_id=device\n                    )",
+          "find": "                        ks_conn, tenant_id, field_id=valve_field, valve_id=device\n                    )",
           "replace": "                        ks_conn, tenant_id  # mutated: نطاقُ المستأجِر وحده\n                    )",
           "test": "tests_v9/test_actuation_killswitch_behaviour.py",
           "why": "تضييقُ النطاق على مسار القواعد يُمرِّر مفتاحَ حقلٍ أو صمّام: الاستشارة تقع (فيمرّ الحارس الساكن) ولا تُطابِق — والقاعدة الآليّة تفتح الصمّام والمشغّل يظنّ الحقل موقوفاً. (والمرساة تشمل قوس الإغلاق: `valve_id=device` سلسلةٌ جزئيّة من `valve_id=device_id` في موضع الإرسال، فقصرُها كان يجعل الزرع غير محدَّد الموضع — أمسكه الحارس.)"
