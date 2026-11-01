@@ -2908,8 +2908,8 @@
       "mutations": [
         {
           "expect": "test_arabic_observed_intents_respect_word_boundaries_and_specificity",
-          "find": "    return re.search(r\"(?<!\\w)(?:\" + \"|\".join(alternatives) + r\")(?!\\w)\", query) is not None",
-          "replace": "    return re.search(\"|\".join(alternatives), query) is not None",
+          "find": "    regex = re.compile(r\"(?<!\\w)(?:\" + \"|\".join(plain) + r\")(?!\\w)\") if plain else None",
+          "replace": "    regex = re.compile(\"|\".join(plain)) if plain else None",
           "test": "services/supervisor-agent/test_router.py",
           "why": "Removing word boundaries makes ري inside الرياح and بق inside بقع win unrelated intents."
         }

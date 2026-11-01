@@ -133,6 +133,33 @@ class SecretRedactionFilter(logging.Filter):
         return True
 
 
+class _LibraryNoiseFilter(logging.Filter):
+    """مرشّح معالِج: يُسقط سجلّات httpx/httpcore دون عتبتها **في هذا المعالِج وحده**.
+
+    httpx يسجّل رابط كلّ طلب INFO (وhttpcore DEBUG) وقد يحمل الرابط سرّاً — S9. لا نخفض
+    مستوى المُسجِّلَين العامَّين (``setLevel``): ذلك حالةٌ عالميّة تُسكِت معالِجات أخرى في
+    العمليّة نفسها ومرشّحاتها (مثل تنقيح رابط بوت Telegram في الوكيل) — فالخفض هنا يخصّ
+    ما يكتبه معالِج ``setup_logging`` فقط.
+    """
+
+    _PREFIXES = ("httpx", "httpcore")
+
+    def __init__(self, threshold: int) -> None:
+        super().__init__()
+        self._threshold = threshold
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        name = record.name
+        noisy = any(name == p or name.startswith(p + ".") for p in self._PREFIXES)
+        return not noisy or record.levelno >= self._threshold
+
+
+def _level_from_env(var: str, default: int) -> int:
+    raw = os.getenv(var, "")
+    level = logging.getLevelName(raw.upper()) if raw else default
+    return level if isinstance(level, int) else default
+
+
 def setup_logging(service: str, level: str | None = None) -> logging.Logger:
     """يضبط تسجيل JSON موحّداً للخدمة، ويعيد logger الجذر للخدمة.
 
@@ -150,12 +177,12 @@ def setup_logging(service: str, level: str | None = None) -> logging.Logger:
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JSONFormatter(service))
     handler.addFilter(SecretRedactionFilter())
+    # httpx/httpcore يسجّلان رابط كلّ طلب INFO/DEBUG (قد يحمل أسراراً في الاستعلام) — S9.
+    # مرشّحٌ على هذا المعالِج لا ``setLevel`` عالميّ (انظر ``_LibraryNoiseFilter``).
+    handler.addFilter(_LibraryNoiseFilter(_level_from_env("HTTPX_LOG_LEVEL", logging.WARNING)))
     root.addHandler(handler)
 
-    # اخفض ضجيج مكتبات معروفة (uvicorn/httpx) إن لزم
+    # اخفض ضجيج مكتبات معروفة (uvicorn) إن لزم
     logging.getLogger("uvicorn.access").setLevel(os.getenv("UVICORN_ACCESS_LEVEL", "WARNING"))
-    # httpx/httpcore يسجّلان رابط كلّ طلب INFO/DEBUG (قد يحمل أسراراً في الاستعلام) — S9.
-    for noisy in ("httpx", "httpcore"):
-        logging.getLogger(noisy).setLevel(os.getenv("HTTPX_LOG_LEVEL", "WARNING"))
 
     return logging.getLogger(service)

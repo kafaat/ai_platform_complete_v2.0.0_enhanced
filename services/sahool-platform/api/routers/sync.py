@@ -50,7 +50,7 @@ _TRUTHY = {"1", "true", "yes", "on"}
 
 # صلاحية كلّ نوع عمليّة = صلاحية المسار المباشر الأقلّ امتيازاً الذي يُنفّذها؛ فلا تمنح
 # المزامنة أكثر ممّا يمنحه المسار نفسه. None = المسار مفتوح لأيّ مستخدم مُصادَق.
-# كان ‎field.update‎ يُطبَّق لأيّ دور (VIEWER/WORKER) متجاوزاً ‎FIELD_EDIT‎ (تدقيق T5).
+# كان field.update يُطبَّق لأيّ دور (VIEWER/WORKER) متجاوزاً FIELD_EDIT (تدقيق T5).
 # نوعٌ غائب عن الجدول يُرفَض (fail-closed) — ويحرس اكتمالَه اختبار الوحدة.
 SYNC_KIND_PERMISSIONS: dict[str, Permission | None] = {
     FIELD_UPDATE_KIND: Permission.FIELD_EDIT,  # PATCH /api/v1/fields/{id}

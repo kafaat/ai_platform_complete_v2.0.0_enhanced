@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from datetime import UTC, datetime
 
 import layer_lookup
 import object_store
@@ -27,7 +28,7 @@ import stac_search as stac_search_helpers
 import tile_cache_io
 import tile_cache_maint
 import tile_observability
-from fastapi import Header
+from fastapi import Header, HTTPException
 
 logger = logging.getLogger("raster-service")
 
@@ -96,6 +97,51 @@ async def _require_field_tenant(field_id: str, *, hide_existence: bool = False) 
         logger=logger,
         owner_lookup=owner_lookup,
     )
+
+
+async def _cdse_request_on_stored_field(
+    field_id: str, req: api_models.ProcessCdseRequest, owner: str
+) -> api_models.ProcessCdseRequest:
+    """هندسة process-cdse من جدول ``fields`` (مصدر الحقيقة) لا من جسم الطلب (T10).
+
+    هندسة الجسم كانت تُقصّ بها الطبقات وتُحفَظ باسم الحقل، فيُعالَج أيّ مضلّع تحت معرّف
+    حقل. مع قاعدة: الهندسة المخزّنة تحكم (وbbox يُشتقّ منها) والجسم يُتجاهَل؛ غيابها ⇒ 400.
+    بلا قاعدة (وضع مقصود، كفحص الملكيّة بالذاكرة) لا سجلّ نقارن به فتبقى هندسة الجسم.
+    والمستأجر ``owner`` (مستأجر السياق) يُثبَّت على الطلب فتُنسَب الطبقات لمالكها.
+    """
+    import db_persist as _dbp
+
+    geometry, bbox = req.geometry, list(req.bbox)
+    if _dbp.DATABASE_URL:
+        try:
+            stored = await _dbp.fetch_field_geometry(field_id, _REQ_TENANT.get())
+        except Exception as e:  # noqa: BLE001 — تعذّر جلب الهندسة ⇒ 503 صادق
+            raise HTTPException(503, "تعذّر جلب هندسة الحقل المخزّنة") from e
+        bbox = _bbox_from_geojson(stored)
+        if stored is None or bbox is None:
+            raise HTTPException(400, "هندسة الحقل المخزّنة غير متاحة لمعالجة CDSE")
+        if req.geometry is not None and req.geometry != stored:
+            logger.warning("process-cdse field=%s: body geometry ignored (stored wins)", field_id)
+        geometry = stored
+    return req.model_copy(update={"geometry": geometry, "bbox": bbox, "tenant_id": owner})
+
+
+def _cdse_job_record(job_id: str, owner: str, req, gate_decision) -> dict:
+    """سجلّ مهمّة process-cdse المعلَّقة، مربوطاً بمستأجِره وبقرار بوّابة satellite_cdse."""
+    job_record = {
+        "job_id": job_id,
+        "tenant_id": owner,
+        "status": JobStatus.pending,
+        "progress_pct": 0,
+        "created_at": datetime.now(UTC).isoformat(),
+        "indicators": list(req.indicators),
+        "provider": "cdse",
+    }
+    if gate_decision is not None:
+        # Bind the job to the exact activation generation it was authorized under (proof #4/#5):
+        # a later revoke/expiry bumps the generation, so the persisted evidence is non-repudiable.
+        job_record["gate"] = gate_decision.evidence()
+    return job_record
 
 
 def _safe_raster_source(url: str | None) -> str:

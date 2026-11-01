@@ -40,6 +40,7 @@ from api.field_models import (
     _FIELD_QUALITY_SELECT,
     _MIN_FIELD_OVERLAP_M2,
     ChildField,
+    DriftRiskRequest,
     FieldCreateRequest,
     FieldDetail,
     FieldImportRequest,
@@ -2706,24 +2707,6 @@ async def field_wind_prevailing(
         "wind_rose": rose["sectors"],
         "windbreak": windbreak,
     }
-
-
-class _SensitiveZone(BaseModel):
-    id: str | None = None
-    type: str | None = None
-    lat: float = Field(ge=-90, le=90)
-    lon: float = Field(ge=-180, le=180)
-
-
-class DriftRiskRequest(BaseModel):
-    """طلب تقييم انجراف الرشّ: مناطق حسّاسة يوفّرها العميل (لا تُخزَّن) + معاملات اختياريّة."""
-
-    sensitive_zones: list[_SensitiveZone] = Field(default_factory=list, max_length=200)
-    # تجاوز اتّجاه الريح (أرصاديّ)؛ None ⇒ يُشتقّ السائد من NASA POWER (تاريخ).
-    wind_from_deg: float | None = Field(default=None, ge=0, le=360)
-    years: int = Field(default=3, ge=1, le=10)
-    max_distance_m: float = Field(default=200.0, gt=0, le=5000)
-    half_angle_deg: float = Field(default=30.0, gt=0, le=90)
 
 
 @router.post("/api/v1/fields/{field_id}/wind/drift-risk")

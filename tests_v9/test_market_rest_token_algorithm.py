@@ -6,7 +6,11 @@ secret could then mint a token and create buy/sell orders in any tenant. The RES
 routes now share ``access_token_key``/issuer/tenant checks with ``require_scope``:
 RS256 configured ⇒ HS256 rejected; tenant comes from the verified token only.
 
-Drives the real FastAPI app in-process; only the DB connection is replaced.
+Drives the real FastAPI app in-process (real auth dependency, real routes). The seam is
+one level above the database: the ``tool_*`` functions the REST routes call are replaced by
+recorders of the tenant they receive, so no connection or pool stand-in is needed. The
+field-ownership check runs through the real ``tool_create_procurement`` (it refuses before
+any database access; without a pool a write would surface as 503, not 403).
 """
 
 from __future__ import annotations
@@ -14,7 +18,6 @@ from __future__ import annotations
 import importlib.util
 import sys
 import time
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 import pytest
@@ -53,18 +56,6 @@ def rsa_key():
     return key, public.decode()
 
 
-class _FakeConn:
-    def __init__(self):
-        self.statements: list[tuple] = []
-
-    async def fetchval(self, sql, *params):
-        self.statements.append((sql, params))
-        return "00000000-0000-0000-0000-0000000000aa"
-
-    async def execute(self, sql, *params):
-        self.statements.append((sql, params))
-
-
 @pytest.fixture
 def market(monkeypatch, rsa_key):
     """Container import layout, RS256 configured while JWT_SECRET is still present."""
@@ -82,12 +73,19 @@ def market(monkeypatch, rsa_key):
     module = _load("_s1_market_server", MCP / "market_server.py")
     tenants: list[str | None] = []
 
-    @asynccontextmanager
-    async def fake_tenant_connection(tenant_id):
-        tenants.append(tenant_id)
-        yield _FakeConn()
+    def recorder(result: dict):
+        async def tool(args: dict) -> dict:
+            tenants.append(args.get("tenant_id"))
+            return result
 
-    monkeypatch.setattr(module, "tenant_connection", fake_tenant_connection)
+        return tool
+
+    monkeypatch.setattr(
+        module, "_s1_real_procurement", module.tool_create_procurement, raising=False
+    )
+    monkeypatch.setattr(module, "tool_create_procurement", recorder({"order_id": "o-1"}))
+    monkeypatch.setattr(module, "tool_create_sales_listing", recorder({"listing_id": "l-1"}))
+    monkeypatch.setattr(module, "tool_search_products", recorder({"products": [], "count": 0}))
     return module, tenants
 
 
@@ -188,11 +186,13 @@ def test_cross_tenant_order_is_denied(market, rsa_key, monkeypatch):
     assert response.status_code == 200, response.text
     assert tenants == ["tenant-a"]
 
-    # A field owned by another tenant cannot be attached to the caller's order.
+    # A field owned by another tenant cannot be attached to the caller's order: the real
+    # tool refuses before opening any connection (a write attempt would be 503 here).
     async def owner_is_b(field_id):
         return "tenant-b"
 
     monkeypatch.setattr(module.market_db_authz, "field_owner_tenant", owner_is_b)
+    monkeypatch.setattr(module, "tool_create_procurement", module._s1_real_procurement)
     response = _post(module, "/v1/procurement", {**body, "field_id": "f-b"}, _rs256(rsa_key))
     assert response.status_code == 403, response.text
     assert tenants == ["tenant-a"]

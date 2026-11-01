@@ -463,3 +463,22 @@ class FieldSplitRequest(BaseModel):
 
     source_field_id: str
     children: list[ChildField] = Field(min_length=2, max_length=10)
+
+
+# طلب تقييم انجراف الرشّ — نُقِل من routers/fields.py (راتشِت حجم الراوترات) كبقيّة نماذجه.
+class _SensitiveZone(BaseModel):
+    id: str | None = None
+    type: str | None = None
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
+
+
+class DriftRiskRequest(BaseModel):
+    """طلب تقييم انجراف الرشّ: مناطق حسّاسة يوفّرها العميل (لا تُخزَّن) + معاملات اختياريّة."""
+
+    sensitive_zones: list[_SensitiveZone] = Field(default_factory=list, max_length=200)
+    # تجاوز اتّجاه الريح (أرصاديّ)؛ None ⇒ يُشتقّ السائد من NASA POWER (تاريخ).
+    wind_from_deg: float | None = Field(default=None, ge=0, le=360)
+    years: int = Field(default=3, ge=1, le=10)
+    max_distance_m: float = Field(default=200.0, gt=0, le=5000)
+    half_angle_deg: float = Field(default=30.0, gt=0, le=90)

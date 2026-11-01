@@ -3,7 +3,7 @@
 على origin/main cc0d2e295 كان ``check_video_dependencies`` يرسل ``secret`` في استعلام
 الرابط، وhttpx يسجّل رابط كلّ طلب INFO ⇒ السرّ في السجلّ عند كلّ فحص جاهزيّة (مقيس).
 الإصلاح: السرّ في جسم JSON (ZLMediaKit يدمجه مع وسائط الرابط) + httpx/httpcore إلى
-WARNING + مرشّح تنقيح ``secret=``… في ``shared/logging_config``.
+WARNING في معالِج ``setup_logging`` + مرشّح تنقيح ``secret=``… في ``shared/logging_config``.
 
 الفحص السلوكيّ يُشغَّل في عمليّة فرعيّة (cwd=services/video-processor) فيُلتقَط **كلّ**
 ما يكتبه معالِج السجلّ الحقيقيّ إلى stdout/stderr، بلا تصادم ``import main``.
@@ -145,21 +145,32 @@ def test_logging_config_redacts_secret_params_and_quiets_httpx():
     assert SECRET not in text, text
     assert "secret=***" in text and "token=***" in text and "app=live" in text
 
-    # setup_logging يخفض httpx/httpcore إلى WARNING (عمليّة فرعيّة: لا يمسّ جذر pytest).
+    # setup_logging يُسقط سجلّات httpx/httpcore دون WARNING **في معالِجه** دون أن يخفض
+    # مستوى المُسجِّلَين عالميّاً (خفضٌ عالميّ أسكت مرشّح تنقيح رابط بوت Telegram في
+    # agents/notification — test_tts_voice_delivery_receipt). عمليّة فرعيّة: لا يمسّ جذر pytest.
+    probe = (
+        "import logging; from shared.logging_config import setup_logging; "
+        "setup_logging('t'); "
+        f"u = 'http://zlm/index/api/getMediaList?app=live&secret={SECRET}'; "
+        "logging.getLogger('httpx').info('HTTP Request: GET %s', u + '&probe=info'); "
+        "logging.getLogger('httpcore.http11').debug('send %s', u + '&probe=debug'); "
+        "logging.getLogger('httpx').warning('HTTP Request: GET %s', u + '&probe=warning'); "
+        "logging.getLogger('t').info('app line kept'); "
+        "print('LEVELS', logging.getLogger('httpx').level, logging.getLogger('httpcore').level)"
+    )
     proc = subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            "import logging; from shared.logging_config import setup_logging; "
-            "setup_logging('t'); "
-            "print(logging.getLogger('httpx').getEffectiveLevel(), "
-            "logging.getLogger('httpcore').getEffectiveLevel())",
-        ],
+        [sys.executable, "-c", probe],
         cwd=ROOT,
-        env={**os.environ, "PYTHONPATH": str(ROOT), "LOG_LEVEL": "INFO"},
+        env={**os.environ, "PYTHONPATH": str(ROOT), "LOG_LEVEL": "DEBUG"},
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=30,
     )
     assert proc.returncode == 0, proc.stderr
-    assert proc.stdout.split() == [str(logging.WARNING)] * 2, proc.stdout
+    out = proc.stdout + proc.stderr
+    assert SECRET not in out, out
+    assert "probe=info" not in out and "probe=debug" not in out, out
+    assert "probe=warning" in out and "secret=***" in out, out
+    assert "app line kept" in out, out
+    assert "LEVELS 0 0" in out, out  # لا حالة عالميّة على المُسجِّلَين

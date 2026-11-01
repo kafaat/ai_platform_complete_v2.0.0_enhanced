@@ -44,6 +44,8 @@ from raster_field_runtime import (
     SourceFormat,
     _backfill_date_range,
     _bbox_from_geojson,
+    _cdse_job_record,
+    _cdse_request_on_stored_field,
     _display_index,
     _field_layers,
     _grid_from_cog,
@@ -812,31 +814,6 @@ async def export_field_analytics_geoparquet(
         }
 
 
-async def _stored_cdse_geometry(
-    field_id: str, req: ProcessCdseRequest
-) -> tuple[dict | None, list[float]]:
-    """هندسة process-cdse من جدول ``fields`` (مصدر الحقيقة) لا من جسم الطلب (T10).
-
-    هندسة الجسم كانت تُقصّ بها الطبقات وتُحفَظ باسم الحقل، فيُعالَج أيّ مضلّع تحت معرّف
-    حقل. مع قاعدة: الهندسة المخزّنة تحكم (وbbox يُشتقّ منها) والجسم يُتجاهَل؛ غيابها ⇒ 400.
-    بلا قاعدة (وضع مقصود، كفحص الملكيّة بالذاكرة) لا سجلّ نقارن به فتبقى هندسة الجسم.
-    """
-    import db_persist as _dbp
-
-    if not _dbp.DATABASE_URL:
-        return req.geometry, list(req.bbox)
-    try:
-        stored = await _dbp.fetch_field_geometry(field_id, _REQ_TENANT.get())
-    except Exception as e:  # noqa: BLE001 — تعذّر جلب الهندسة ⇒ 503 صادق
-        raise HTTPException(503, "تعذّر جلب هندسة الحقل المخزّنة") from e
-    bbox = _bbox_from_geojson(stored)
-    if stored is None or bbox is None:
-        raise HTTPException(400, "هندسة الحقل المخزّنة غير متاحة لمعالجة CDSE")
-    if req.geometry is not None and req.geometry != stored:
-        logger.warning("process-cdse field=%s: body geometry ignored (stored wins)", field_id)
-    return stored, bbox
-
-
 @router.post("/v1/fields/{field_id}/process-cdse")
 async def process_cdse(
     field_id: str,
@@ -883,23 +860,9 @@ async def process_cdse(
     # P3-AUTH: ربط المهمّة بمستأجِرها (تُفرَض على /v1/jobs/{id}[/result])؛ رأس≠جسم ⇒ 403.
     owner = raster_security_context.job_owner_tenant(req.tenant_id)
     # T10: الهندسة/المستأجر من سجلّ الحقل المخزّن لا من الجسم — تُقصّ الطبقات وتُنسَب لمالكها.
-    geometry, bbox = await _stored_cdse_geometry(field_id, req)
-    req = req.model_copy(update={"geometry": geometry, "bbox": bbox, "tenant_id": owner})
+    req = await _cdse_request_on_stored_field(field_id, req, owner)
     job_id = f"cdse_{uuid.uuid4().hex[:12]}"
-    job_record = {
-        "job_id": job_id,
-        "tenant_id": owner,
-        "status": JobStatus.pending,
-        "progress_pct": 0,
-        "created_at": datetime.now(UTC).isoformat(),
-        "indicators": list(req.indicators),
-        "provider": "cdse",
-    }
-    if gate_decision is not None:
-        # Bind the job to the exact activation generation it was authorized under (proof #4/#5):
-        # a later revoke/expiry bumps the generation, so the persisted evidence is non-repudiable.
-        job_record["gate"] = gate_decision.evidence()
-    _jobs.set(job_id, job_record)
+    _jobs.set(job_id, _cdse_job_record(job_id, owner, req, gate_decision))
     background_tasks.add_task(_run_cdse_processing, job_id, field_id, req)
     return {
         "provider": "cdse",
