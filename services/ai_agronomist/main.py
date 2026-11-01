@@ -14,6 +14,7 @@ from shared.security.gateway_deps import require_authenticated_user, require_tru
 from . import ai_generation, approval
 from .agent_stores import build_approval_store, build_audit_store
 from .ai_evidence_runtime import (
+    FIELD_ID_PATTERN,
     _ai_context_memory_lines,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
     _build_agent_tool_fetcher,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
     _confidence_from_payloads,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
@@ -179,7 +180,8 @@ class AdvisorQuery(BaseModel):
     voice_read_only: StrictBool = False
     question: str = Field(min_length=1, max_length=4000)
     tenant_id: str | None = None
-    field_id: str | None = None
+    # S2 — صيغة المعرّف القانونيّة عند الحدّ (422)، لا عند بناء المسار الداخليّ.
+    field_id: str | None = Field(default=None, pattern=FIELD_ID_PATTERN, max_length=50)
     crop: str | None = None
     region: str | None = None
     language: str = Field(default="ar", max_length=8)
