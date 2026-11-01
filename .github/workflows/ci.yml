@@ -1368,6 +1368,18 @@ jobs:
           RASTER_QUEUE_RLS_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_d1_raster_queue_rls_live_pg.py
 
+      # تدقيق 2026-11-01 (Q5): كان `test_mfa_end_to_end_via_app` موسوماً `xfail(strict=False)`
+      # باسم AUTH-E2E-UNDER-RESTRICTED-ROLE (مُغلَقة) فيُقرأ أخضرَ مهما فشل. في الجولة العامّة
+      # (superuser) يرفض حارسُ auth الإقلاعَ بحقّ فيتخطّى مُعلِناً؛ هنا يُشغَّل فعلاً بالدور
+      # المقيَّد، والعَلَمُ يجعل أيّ تخطٍّ (لا DB، لا fastapi، دورٌ يتجاوز RLS) فشلاً.
+      - name: MFA end-to-end via the real auth app (restricted role)
+        env:
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          TEST_REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          MFA_E2E_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_mfa_hardening_integration_v29_5.py
+
   decision-service-tests:
     permissions:
       contents: read
