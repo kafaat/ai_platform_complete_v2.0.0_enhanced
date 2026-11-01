@@ -17,6 +17,32 @@ from fastapi import APIRouter, Depends, HTTPException, status
 router = APIRouter()
 
 
+async def _load_mfa_row(user_id: int):
+    """حالة MFA للمستخدم (activate/disable) — تشمل mfa_locked_until لبوّابة القفل."""
+    async with main._acquire() as conn:
+        return await conn.fetchrow(
+            "SELECT mfa_secret, encrypted_mfa_secret, mfa_enabled, mfa_locked_until, tenant_id "
+            "FROM users WHERE id=$1",
+            user_id,
+        )
+
+
+async def _refuse_if_mfa_locked(row, user_id: int, *, locked_event: str) -> None:
+    """S3/S4 — يرفض أثناء قفل MFA **قبل** فحص الرمز (رمز صحيح أثناء القفل لا يمرّ).
+
+    نفس بوّابة القفل المُطبَّقة في الدخول وstep-up (mfa_runtime): 429 + تدقيق "blocked".
+    """
+    if mfa_crypto.is_locked(row["mfa_locked_until"]):
+        await main._emit_mfa_audit(
+            user_id=user_id, event=locked_event, outcome="blocked", tenant_id=row["tenant_id"]
+        )
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "تجاوزت محاولات MFA — الحساب مقفل مؤقّتاً، حاول لاحقاً",
+            headers={"X-MFA-Locked": "true"},
+        )
+
+
 @router.post("/v1/auth/mfa/setup")
 async def mfa_setup(user: dict = Depends(main.get_current_user)):
     """يبدأ اقتران MFA: يولّد سرّاً ويُعيد provisioning_uri (لتطبيق المصادقة).
@@ -74,14 +100,16 @@ async def mfa_setup(user: dict = Depends(main.get_current_user)):
 async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_current_user)):
     """يفعّل MFA بعد تأكيد أوّل رمز صحيح، ويُصدِر رموز استرداد (تُعرَض مرّة واحدة)."""
     user_id = int(user["sub"])
-    async with main._acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT mfa_secret, encrypted_mfa_secret, mfa_enabled, tenant_id "
-            "FROM users WHERE id=$1",
-            user_id,
-        )
+    row = await _load_mfa_row(user_id)
     if not row:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "المستخدم غير موجود")
+    # S3 — مفعّل سلفاً ⇒ رفض: لا تُعاد إصدار رموز استرداد بجلسة (مسروقة) بلا تعطيل
+    # مُوثَّق برمز صالح أوّلاً (/mfa/disable)، كما يرفض /mfa/setup.
+    if row["mfa_enabled"]:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "MFA مفعّل بالفعل — عطّله أولاً لإعادة الاقتران"
+        )
+    await _refuse_if_mfa_locked(row, user_id, locked_event="mfa_locked")
     try:
         secret = mfa_crypto.resolve_mfa_secret(row["encrypted_mfa_secret"], row["mfa_secret"])
     except (mfa_crypto.MfaKeyMissing, mfa_crypto.MfaSecretUndecryptable):
@@ -91,10 +119,11 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_c
     if not secret:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "ابدأ الاقتران أولاً عبر /auth/mfa/setup")
     if not await main._consume_totp_step(user_id, secret, req.code):  # V29.7 anti-replay
-        await main._emit_mfa_audit(
-            user_id=user_id,
+        # S3 — نفس عدّاد/قفل MFA (كان تدقيقاً فقط ⇒ تخمين بلا حدّ).
+        await main._register_mfa_failure(
+            user_id,
             event="mfa_activate_failed",
-            outcome="failed",
+            locked_event="mfa_locked",
             tenant_id=row["tenant_id"],
         )
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح — تأكّد من تطبيق المصادقة")
@@ -144,14 +173,11 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_c
 async def mfa_disable(req: main.MfaCodeRequest, user: dict = Depends(main.get_current_user)):
     """يعطّل MFA — يتطلّب رمزاً صحيحاً حاليّاً (لا يُعطّله مهاجم بتوكن مسروق بلا الجهاز)."""
     user_id = int(user["sub"])
-    async with main._acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT mfa_secret, encrypted_mfa_secret, mfa_enabled, tenant_id "
-            "FROM users WHERE id=$1",
-            user_id,
-        )
+    row = await _load_mfa_row(user_id)
     if not row or not row["mfa_enabled"]:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "MFA غير مفعّل")
+    # S4 — القفل يُفحَص قبل الرمز: كان يُعَدّ ولا يُطبَّق، فرمز صحيح أثناء القفل عطّل MFA.
+    await _refuse_if_mfa_locked(row, user_id, locked_event="mfa_locked")
     try:
         secret = mfa_crypto.resolve_mfa_secret(row["encrypted_mfa_secret"], row["mfa_secret"])
     except (mfa_crypto.MfaKeyMissing, mfa_crypto.MfaSecretUndecryptable):
