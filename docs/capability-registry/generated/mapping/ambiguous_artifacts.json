@@ -12,6 +12,14 @@
         ]
       },
       {
+        "capability_id": "SEC-004",
+        "score": 12,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      },
+      {
         "capability_id": "OPS-004",
         "score": 12,
         "signals": [
@@ -26,14 +34,6 @@
           "content:Field water-source binding",
           "content:field water source",
           "content:source binding"
-        ]
-      },
-      {
-        "capability_id": "DEC-008",
-        "score": 12,
-        "signals": [
-          "content:Learning attribution",
-          "content:learning attribution"
         ]
       }
     ]

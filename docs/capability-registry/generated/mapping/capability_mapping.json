@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6947,
+    "files_scanned": 6950,
     "files_by_kind": {
       "backend": 1265,
       "database": 289,
       "governance": 87,
       "mobile": 414,
-      "other": 2135,
-      "tests": 2256,
+      "other": 2136,
+      "tests": 2258,
       "web": 501
     },
-    "unmapped_artifacts": 2755,
+    "unmapped_artifacts": 2758,
     "ambiguous_artifacts": 498
   },
   "capabilities": [
@@ -2831,16 +2831,7 @@
           ]
         }
       ],
-      "governance": [
-        {
-          "path": ".github/workflows/ci.yml",
-          "score": 12,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution"
-          ]
-        }
-      ],
+      "governance": [],
       "other_evidence": [
         {
           "path": "scripts/ci/learning_attribution_boundary_gate.py",
@@ -2940,7 +2931,7 @@
         "web": 0,
         "mobile": 0,
         "tests": 4,
-        "governance": 1,
+        "governance": 0,
         "other_evidence": 10
       },
       "coverage_dimensions": 5,
@@ -26003,7 +25994,7 @@
       "evidence_truncated": {
         "backend": 25,
         "events": 58,
-        "tests": 107,
+        "tests": 106,
         "other_evidence": 3
       },
       "evidence_counts": {
@@ -31416,7 +31407,7 @@
           "score": 12
         },
         {
-          "value": "test_soil_field_tenant_authz.py @ tests_v9/test_unit_environment_completeness.py:88",
+          "value": "test_soil_field_tenant_authz.py @ tests_v9/test_unit_environment_completeness.py:90",
           "score": 10
         }
       ],
@@ -31561,7 +31552,7 @@
         },
         {
           "path": "tests_v9/test_mfa_hardening_integration_v29_5.py",
-          "score": 38,
+          "score": 40,
           "signals": [
             "path:MFA",
             "content:MFA",
@@ -31750,7 +31741,16 @@
           ]
         }
       ],
-      "governance": [],
+      "governance": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        }
+      ],
       "other_evidence": [
         {
           "path": "scripts/ci/capability_linker.py",
@@ -31896,6 +31896,14 @@
           ]
         },
         {
+          "path": "tests_v9/real_app_probe.py",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "docs/architecture/platform_shrink_ratchet.json",
           "score": 11,
           "signals": [
@@ -31981,8 +31989,8 @@
         "web": 7,
         "mobile": 7,
         "tests": 22,
-        "governance": 0,
-        "other_evidence": 25
+        "governance": 1,
+        "other_evidence": 26
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -50691,6 +50699,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_decision_service_tests_wired_to_ci.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_decision_service_url_contract_guard.py",
       "kind": "tests"
     },
@@ -51635,6 +51647,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_rag.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_rag_authority_convergence_guard.py",
       "kind": "tests"
     },
@@ -52068,6 +52084,10 @@
     },
     {
       "path": "tests_v9/test_security.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_security_marker_reaches_a_gate.py",
       "kind": "tests"
     },
     {
@@ -52617,6 +52637,14 @@
           ]
         },
         {
+          "capability_id": "SEC-004",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "capability_id": "OPS-004",
           "score": 12,
           "signals": [
@@ -52631,14 +52659,6 @@
             "content:Field water-source binding",
             "content:field water source",
             "content:source binding"
-          ]
-        },
-        {
-          "capability_id": "DEC-008",
-          "score": 12,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution"
           ]
         }
       ]
