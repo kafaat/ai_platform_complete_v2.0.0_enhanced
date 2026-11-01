@@ -116,6 +116,14 @@ _SERVER_OWNED_APPROVAL_FIELDS = frozenset(
         "approver",
         "decided_at",
         "created_at",
+        # T11 — هويّةُ التدقيق وأختامُ القرار خادميّةٌ أيضاً: ``user_id``/``session_id`` كانت
+        # تُدمَج من الجسم فتصل سجلَّ تدقيق الاستئناف بهويّةٍ يختارها المتّصل.
+        "user_id",
+        "session_id",
+        "decided_by",
+        "deny_reason",
+        "requested_at",
+        "result_summary",
     }
 )
 
@@ -284,6 +292,7 @@ async def approve_tool_request(
             "params": decided.get("params") if isinstance(decided.get("params"), dict) else {},
             "tenant_id": decided.get("tenant_id"),
             "actor": decided.get("actor"),
+            "user_id": user_id,  # T11 — من هويّة البوّابة لا من الجسم
             "outcome": "approved",
             "risk": decided.get("risk"),
             "capability": decided.get("capability"),
@@ -331,6 +340,7 @@ async def deny_tool_request(
             "params": decided.get("params") if isinstance(decided.get("params"), dict) else {},
             "tenant_id": decided.get("tenant_id"),
             "actor": decided.get("actor"),
+            "user_id": user_id,  # T11 — من هويّة البوّابة لا من الجسم
             "outcome": "denied",
             "risk": decided.get("risk"),
             "capability": decided.get("capability"),
@@ -354,7 +364,7 @@ class ApprovalResumeRequest(BaseModel):
 async def resume_approved_tool(
     req: ApprovalResumeRequest,
     tenant: str = Depends(require_trusted_tenant),
-    _user: str = Depends(require_authenticated_user),
+    user_id: str = Depends(require_authenticated_user),
 ) -> dict[str, Any]:
     """V58.2 — resume a human-APPROVED agent tool as a governed execution handoff.
 
@@ -376,7 +386,7 @@ async def resume_approved_tool(
             "tool": stored.get("tool"),
             "params": stored.get("params") if isinstance(stored.get("params"), dict) else {},
             "tenant_id": stored.get("tenant_id"),
-            "user_id": stored.get("user_id"),
+            "user_id": user_id,  # T11 — المُستأنِف المُوثَّق، لا حقلٌ محفوظ قابلٌ للحقن
             "session_id": stored.get("session_id"),
             "actor": stored.get("actor"),
             "outcome": "resumed_for_domain_execution",
