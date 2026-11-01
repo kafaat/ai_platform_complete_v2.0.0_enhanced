@@ -43,6 +43,9 @@ RUN chmod 0444 /app/.sahool-build-metadata.json
 
 COPY shared/ /app/shared/
 COPY services/raster-service/ /app/
+# I2: terrain_source_registry.py يقرأ config/terrain_sources.yml بجوار الوحدة في الصورة.
+# The terrain source registry must ship in the image (beside the module at /app/config/).
+COPY config/terrain_sources.yml /app/config/terrain_sources.yml
 # P1-3: مستخدم غير جذري (محاذاةً لباقي الخدمات الـ17)
 RUN useradd -m -u 10001 appuser \
     && mkdir -p /data/rasters \
