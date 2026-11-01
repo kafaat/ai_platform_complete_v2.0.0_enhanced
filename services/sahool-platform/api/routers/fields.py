@@ -525,7 +525,8 @@ async def _persist_field(
                     command_type="field.create",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"request_digest": api_main.model_digest(req)},  # D4
+                    payload={},
+                    request_digest=api_main.model_digest(req),  # D4
                 )
             else:
                 result = await _work()
@@ -1502,6 +1503,7 @@ async def update_field(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"field_id": field_id},
+                    request_digest=api_main.model_digest(req, field_id),
                 )
             else:
                 result = await _work()
@@ -1896,6 +1898,7 @@ async def merge_fields(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"source_ids": req.source_field_ids, "name": req.name},
+                    request_digest=api_main.model_digest(req),
                 )
             else:
                 result = await _work()
@@ -2034,6 +2037,7 @@ async def split_field(
                         "source_id": req.source_field_id,
                         "children": [c.name for c in req.children],
                     },
+                    request_digest=api_main.model_digest(req),
                 )
             else:
                 result = await _work()
@@ -2241,7 +2245,8 @@ async def create_season(
                     command_type="season.create",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"request_digest": api_main.model_digest(req, field_id)},  # D4
+                    payload={},
+                    request_digest=api_main.model_digest(req, field_id),  # D4
                 )
             else:
                 result = await _work()
@@ -3026,6 +3031,7 @@ async def create_activity(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"field_id": field_id, "activity_id": activity_id},
+                    request_digest=api_main.model_digest(req, field_id),
                 )
             else:
                 result = await _work()

@@ -304,10 +304,8 @@ async def create_operation_ledger_record(
                     command_type="farm_ledger.operation.create",
                     actor_id=str(user.user_id),
                     tenant_id=tenant_id,
-                    payload={
-                        "operation_id": operation_id,
-                        "request_digest": _request_digest(req),
-                    },
+                    payload={"operation_id": operation_id},
+                    request_digest=_request_digest(req),
                 )
             else:
                 result = await _persist()

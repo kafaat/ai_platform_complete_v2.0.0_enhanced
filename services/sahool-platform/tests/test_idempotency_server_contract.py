@@ -82,7 +82,8 @@ async def _call(store, work, *, command_type="field.create", tenant=_TENANT, dig
         command_type=command_type,
         actor_id="u1",
         tenant_id=tenant,
-        payload={"request_digest": digest},
+        payload={},
+        request_digest=digest,
     )
 
 
@@ -304,6 +305,80 @@ def test_neither_valve_nor_field_is_created_unlinked(monkeypatch):
     assert inserted == [
         {"schedule_id": resp.json()["schedule_id"], "field_id": None, "valve_id": None}
     ]
+
+
+# ── T6: كلّ نقطة idempotent تقارن البصمة (لا ناتج الأوّل لجسمٍ آخر) ──────────
+
+
+def _valve_state(monkeypatch):
+    """أمر حالة الصمّام بقاعدة وهميّة تُسجِّل كلّ تحديثٍ فعليّ (نظير نمط ``_irrigation``)."""
+    from api.routers import irrigation as mod
+
+    updates: list[str] = []
+    store = _Store()
+
+    class Conn:
+        async def fetchrow(self, query, *vals):
+            assert "UPDATE irrigation_valves" in query
+            updates.append(vals[0])
+            return {"valve_id": vals[1], "field_id": "field-a"}
+
+    @asynccontextmanager
+    async def fake_tenant_connection(user):
+        yield Conn()
+
+    async def noop(*a, **kw):
+        return True
+
+    monkeypatch.setattr(mod, "tenant_connection", fake_tenant_connection)
+    monkeypatch.setattr(mod, "_emit_domain_event", noop)
+    monkeypatch.setattr(mod, "_record_run_ledger", noop)
+    monkeypatch.setattr(mod, "CommandStore", store)
+    monkeypatch.setattr(mod, "get_pool", lambda: None)
+    app = FastAPI()
+    app.include_router(mod.router)
+    app.dependency_overrides[get_current_user] = _user
+    return TestClient(app), updates
+
+
+def test_valve_command_v2_with_v1_key_is_409_not_v1_result(monkeypatch):
+    """T6 (مقيس في التدقيق): «إغلاق» بمفتاح «فتح» أعاد ناتج الفتح بـ200 ولم يُنفَّذ."""
+    c, updates = _valve_state(monkeypatch)
+    h = {"Idempotency-Key": _KEY}
+    path = "/api/v1/irrigation/valves/vlv_a/state"
+    first = c.post(path, json={"status": "open"}, headers=h)
+    assert first.status_code == 200, first.text
+    again = c.post(path, json={"status": "open"}, headers=h)
+    assert again.status_code == 200 and again.json() == first.json()  # إعادة صادقة
+    other = c.post(path, json={"status": "closed"}, headers=h)
+    assert other.status_code == 409, other.text
+    assert other.json()["detail"]["reason"] == "payload_mismatch"
+    assert "open" not in other.text
+    # المسار جزءٌ من البصمة: المفتاح نفسه على صمّامٍ آخر ليس إعادةً لأمر الأوّل.
+    elsewhere = c.post("/api/v1/irrigation/valves/vlv_b/state", json={"status": "open"}, headers=h)
+    assert elsewhere.status_code == 409, elsewhere.text
+    assert updates == ["open"]
+
+
+def test_every_idempotent_call_site_passes_a_request_digest():
+    """حارس T6: لا موضع استدعاء بلا ``request_digest=`` (الغياب كان إعادةً عمياء)."""
+    import ast
+    from pathlib import Path
+
+    api_root = Path(__file__).resolve().parents[1] / "api"
+    sites, missing = 0, []
+    for path in sorted(api_root.rglob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Call):
+                continue
+            name = getattr(node.func, "id", None) or getattr(node.func, "attr", None)
+            if name != "_idempotent":
+                continue
+            sites += 1
+            if not any(k.arg == "request_digest" for k in node.keywords):
+                missing.append(f"{path.relative_to(api_root)}:{node.lineno}")
+    assert sites >= 20, sites  # الحارس يرى المواضع فعلاً (لا نجاح فارغ)
+    assert missing == [], missing
 
 
 # ── D4: إنشاء الحقل والموسم يقارنان البصمة ──────────────────────────────

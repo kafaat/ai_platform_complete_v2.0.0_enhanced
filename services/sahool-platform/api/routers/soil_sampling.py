@@ -213,7 +213,8 @@ async def create_lab_sample(
                 command_type="lab_sample.create",
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
-                payload={"request_digest": _sample_request_digest(payload)},
+                payload={},
+                request_digest=_sample_request_digest(payload),
             )
         return await _work()
 
