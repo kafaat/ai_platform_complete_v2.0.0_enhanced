@@ -359,7 +359,11 @@ async def field_irrigation_advice_facade(
     from core.season_phenology import resolve_crop_id, stage_kc
 
     from api.soil_telemetry import irrigation_soil_input
-    from api.weather_advice import irrigation_advice, irrigation_rain_window
+    from api.weather_advice import (
+        RAIN_RECENT_NOT_OBSERVED,
+        irrigation_advice,
+        irrigation_rain_window,
+    )
 
     lat, lon, crop, stage, days_since_sowing, soil_reading = await _irrigation_field_inputs(
         user, field_id
@@ -385,7 +389,7 @@ async def field_irrigation_advice_facade(
     et0 = _reading(days[0], "et0_mm") if days else None
     if et0 is None:
         raise HTTPException(status_code=503, detail="بيانات ET₀ غير متوفّرة حالياً.")
-    # G8: مطرُ يومِ ET₀ نفسِه (٢٤ ساعة) لا آخرُ ربع ساعة — تعريفٌ واحد مع مسار التوصية.
+    # G8 + مراجعة #1329: مجموعُ اليوم توقّعٌ لا رصد ⇒ لا يُخصَم؛ نافذةٌ واحدة مع مسار التوصية.
     recent_rain, forecast_rain, missing_rain = irrigation_rain_window(
         [_reading(day, "precipitation_mm") for day in days[:3]]
     )
@@ -414,6 +418,7 @@ async def field_irrigation_advice_facade(
             "crop": crop,
             "stage": stage,
             "source": "weather-service",
+            "rain_recent_source": RAIN_RECENT_NOT_OBSERVED,
             **soil,
         }
     )

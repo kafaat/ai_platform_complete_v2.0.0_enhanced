@@ -6,6 +6,10 @@
 صباحاً ثمّ صحا يُعطي ريّاً في مسارٍ ولا ريّ في الآخر. الآن تعريفٌ واحد:
 ``weather_advice.irrigation_rain_window``.
 
+**ومراجعة #1329:** ``days[0]`` هو ``precipitation_sum`` ليومٍ محلّيٍّ **كامل** من
+التوقّع — يضمّ مطرَ ما تبقّى من اليوم الذي لم يهطل بعد. فلا يُخصَم «أخيراً»: لا رصدَ
+مُنقضياً في هذا المسار ⇒ ``recent = 0.0`` بوسمٍ صريح، ومطرُ اليوم كلُّه في نافذة التوقّع.
+
 **G9:** كانت القراءةُ تُمرَّر ``value_pct`` عارية: ``25٪ VWC`` تُقرأ «ماءً متاحاً ٢٥٪»
 (< ٣٠ ⇒ ريٌّ عاجل ``high``)، وقراءةُ ساعاتٍ مضت تُعامَل قراءةَ الآن.
 
@@ -18,7 +22,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from api.soil_telemetry import SoilMoistureReading, irrigation_soil_input
-from api.weather_advice import irrigation_rain_window
+from api.weather_advice import RAIN_RECENT_NOT_OBSERVED, irrigation_rain_window
 
 pytestmark = pytest.mark.unit
 
@@ -26,13 +30,14 @@ _NOW = datetime(2026, 11, 2, 9, 0, tzinfo=UTC)
 
 
 # ── G8: التعريفُ الواحد ───────────────────────────────────────────────
-def test_the_recent_rain_window_is_the_et0_day_and_names_its_gaps():
-    assert irrigation_rain_window([3.0, 1.0, 2.0]) == (3.0, 3.0, [])
-    # الصفرُ المرصود رصدٌ لا غياب.
+def test_the_rain_window_never_deducts_forecast_rain_and_names_its_gaps():
+    # مطرُ اليوم توقّعٌ ليومٍ كامل لا رصد ⇒ لا يُخصَم؛ يدخل نافذةَ التوقّع مع اليومين التاليين.
+    # (كان ``(3.0, 3.0, [])`` — أي أنّ المتوقَّعَ لما تبقّى من اليوم يُخصَم «مطراً أخيراً».)
+    assert irrigation_rain_window([3.0, 1.0, 2.0]) == (0.0, 6.0, [])
     assert irrigation_rain_window([0.0, 0.0, 0.0]) == (0.0, 0.0, [])
     # الغيابُ يُسمّى بفهارس `precipitation_incomplete_detail` نفسِها — لا يُصفَّر.
-    assert irrigation_rain_window([None, 1.0, None]) == (None, None, [0, 2])
-    assert irrigation_rain_window([]) == (None, None, [0, 1, 2])
+    assert irrigation_rain_window([None, 1.0, None]) == (0.0, None, [0, 2])
+    assert irrigation_rain_window([]) == (0.0, None, [0, 1, 2])
 
 
 def _patch_workspace(monkeypatch, *, forecast_days, current_rain=0.0, soil=None):
@@ -58,11 +63,12 @@ def _patch_workspace(monkeypatch, *, forecast_days, current_rain=0.0, soil=None)
 
 
 @pytest.mark.asyncio
-async def test_workspace_deducts_the_et0_days_rain_not_the_last_quarter_hour(monkeypatch):
-    """صباحٌ ماطر (٣ مم اليوم) ثمّ صحو: آخرُ ربع ساعة ``0.0``.
+async def test_workspace_does_not_deduct_the_forecast_days_total_as_recent_rain(monkeypatch):
+    """يومٌ مجموعُ توقّعه ٣ مم: لا يُعرَف أهطل صباحاً أم يُنتظَر مساءً — فلا يُخصَم.
 
-    قبل الإصلاح: المطرُ المطروح ``0.0`` ⇒ ``recommended_mm = 5.8`` و``moderate``.
-    بعده: المطرُ الفعّال من ٣ مم = 3×(125−0.6)/125 = 2.99 ⇒ 5.75 − 2.99 = 2.8 ``low``.
+    كان هذا الاختبارُ يُثبِّت ``2.8`` و``low`` (خصمُ 2.99 مم من مجموع اليوم المتوقَّع) —
+    وهو العطلُ نفسُه الذي سمّته مراجعة #1329. الآن: ETc 5.75 ⇒ ``5.8`` و``moderate``،
+    و٣ مم في نافذة التوقّع (< ٥ ⇒ لا تأجيل).
     """
     forecast_days = [
         {"et0_mm": 5.0, "precipitation_mm": 3.0},
@@ -72,8 +78,9 @@ async def test_workspace_deducts_the_et0_days_rain_not_the_last_quarter_hour(mon
     wmod = _patch_workspace(monkeypatch, forecast_days=forecast_days, current_rain=0.0)
     out = await wmod.field_irrigation_advice_facade("fld_1", user=object())
     assert out["kc_used"] == pytest.approx(1.15)
-    assert out["recommended_mm"] == pytest.approx(2.8)
-    assert out["urgency"] == "low"
+    assert out["recommended_mm"] == pytest.approx(5.8)
+    assert out["urgency"] == "moderate"
+    assert out["rain_recent_source"] == RAIN_RECENT_NOT_OBSERVED
 
     # والمسارُ الآخر يقرأ المطرَ نفسَه من الحمولة نفسِها — لا توصيتان لحقلٍ واحد.
     from api.weather_service_client import field_irrigation_weather_snapshot
@@ -83,7 +90,35 @@ async def test_workspace_deducts_the_et0_days_rain_not_the_last_quarter_hour(mon
         return {"days": [dict(d, date="2026-11-02") for d in forecast_days]}
 
     snap = await field_irrigation_weather_snapshot(16.0, 44.9, forecast_loader=_loader)
-    assert (snap["rain_recent_mm"], snap["forecast_rain_mm"]) == (3.0, 0.0)
+    assert (snap["rain_recent_mm"], snap["forecast_rain_mm"]) == (0.0, 3.0)
+    assert snap["rain_recent_source"] == RAIN_RECENT_NOT_OBSERVED
+
+
+@pytest.mark.asyncio
+async def test_unfallen_rain_today_does_not_cancel_irrigation_on_critically_dry_soil(monkeypatch):
+    """مراجعة #1329 (HIGH): ١٢ مم متوقَّعة مساءً، وتربةٌ طازجة بماءٍ متاح ٢٠٪ (< ٣٠ حرج).
+
+    قبل الإصلاح: المطرُ الفعّال من مجموع اليوم 11.77 ≥ ETc 5.75 ⇒ ``recommended_mm=0.0``
+    و``urgency=none`` «لا حاجة للريّ» — والتربةُ حرجة. بعده: لا خصمَ لمطرٍ لم يهطل ⇒
+    ``5.8`` و``high``؛ والـ١٢ مم في نافذة التوقّع لا تؤجّل الحرِج.
+    """
+    forecast_days = [
+        {"et0_mm": 5.0, "precipitation_mm": 12.0},
+        {"et0_mm": 5.0, "precipitation_mm": 0.0},
+        {"et0_mm": 5.0, "precipitation_mm": 0.0},
+    ]
+    reading = SoilMoistureReading(
+        value_pct=20.0,
+        recorded_at=datetime.now(UTC) - timedelta(minutes=20),
+        unit="available_pct",
+        unit_kind="available_pct",
+    )
+    wmod = _patch_workspace(monkeypatch, forecast_days=forecast_days, soil=reading)
+    out = await wmod.field_irrigation_advice_facade("fld_1", user=object())
+    assert out["recommended_mm"] == pytest.approx(5.8)
+    assert out["urgency"] == "high"
+    assert out["soil_moisture_used"] is True
+    assert out["rain_recent_source"] == RAIN_RECENT_NOT_OBSERVED
 
 
 @pytest.mark.asyncio
@@ -180,12 +215,15 @@ async def test_workspace_irrigation_respects_soil_unit_and_age(
 
 
 def test_the_alert_path_reads_the_same_recent_rain_window():
-    """تنبيهُ `low_moisture` يحسب الاحتياجَ نفسَه — فمطرُه الأخير التعريفُ نفسُه لا `current`."""
+    """تنبيهُ `low_moisture` يحسب الاحتياجَ نفسَه — فمطرُه الأخير التعريفُ نفسُه لا `current`.
+
+    (كان ``(3.0, 3.0, 6.0)``: مجموعُ اليوم المتوقَّع يُخصَم «أخيراً» — عطلُ مراجعة #1329.)
+    """
     from types import SimpleNamespace
 
     from api.field_context import alert_rain_context
 
     forecast = [SimpleNamespace(precipitation_mm=mm) for mm in (3.0, 1.0, 2.0)]
-    assert alert_rain_context(forecast) == (3.0, 3.0, 6.0)
+    assert alert_rain_context(forecast) == (0.0, 6.0, 6.0)
     gap = [SimpleNamespace(precipitation_mm=mm) for mm in (None, 1.0, 2.0)]
-    assert alert_rain_context(gap) == (None, 3.0, None)
+    assert alert_rain_context(gap) == (0.0, None, None)

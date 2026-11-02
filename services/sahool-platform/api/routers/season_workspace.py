@@ -380,7 +380,7 @@ async def season_workspace(
                 today_fc = forecast[0] if forecast else None
                 ctx.et0_mm = today_fc.et0_mm if today_fc and today_fc.et0_mm is not None else None
                 # الغيابُ يمرّ `None` — والقواعدُ تصمت عليه بدل أن تُوصي على صفرٍ مُختلَق.
-                # G8: مطرُ يومِ ET₀ (٢٤ ساعة) لا آخرُ ربع ساعة — التعريفُ المشترك للريّ.
+                # G8 + #1329: التعريفُ المشترك للريّ — مجموعُ اليوم توقّعٌ لا يُخصَم «أخيراً».
                 ctx.rain_recent_mm, ctx.forecast_rain_mm, _ = irrigation_rain_window(
                     [f.precipitation_mm for f in forecast[:3]]
                 )
