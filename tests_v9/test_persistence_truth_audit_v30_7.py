@@ -153,7 +153,7 @@ def test_product_level_dedupe_excludes_cog_uri():
 def test_geometry_revision_flows_through_all_paths():
     raster_fields = _read(_RASTER / "routers" / "fields.py")
     # المسار المتزامن الاحتياطيّ في raster: المراجعة المخزّنة (لا مراجعة الجسم) تُمرَّر مع
-    # القصّ المخزّن — #1330: ‎_clip_on_stored_field يُعيد (clip, revision) ويرفض المراجعة القديمة.
+    # القصّ المخزّن — #1330: _clip_on_stored_field يُعيد (clip, revision) ويرفض المراجعة القديمة.
     assert raster_fields.count("geometry_revision=revision") >= 2
     assert "geometry_revision=getattr(req" not in raster_fields
     # المنصّة تستنتج المراجعة من field_geometry_history في مسار backfill proxy
