@@ -25,7 +25,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable
+import os
+import secrets
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -34,6 +37,96 @@ logger = logging.getLogger("sahool.scheduler")
 
 # نوع دالّة المهمّة: async بلا وسائط، تُرجع None
 TaskFn = Callable[[], Awaitable[None]]
+
+
+# R7: القفل الاستشاريّ يمنع **التداخل** فقط؛ نسخٌ بأطوارٍ مختلفة تُشغّل المهمّة N مرّة لكلّ
+# فترة متتابعةً. نحجز «الفترة» في Redis (SET NX PX) فتعمل مرّة واحدة عبر العنقود لكلّ فترة.
+# Redis مُلزَم للـdenylist في الإنتاج أصلاً (main._build_rate_redis)؛ بلا Redis أو عند عطله
+# ⇒ fail-open إلى سلوك القفل وحده (عمل مكرّر أهون من تخطّي سحب الطقس).
+_PERIOD_KEY_PREFIX = "sahool:scheduler:period:"
+_PERIOD_SLACK_MAX_SECONDS = 30.0
+# حذفٌ شرطيّ بالمالك: فشلُ نسختنا لا يمحو حجزاً أخذته نسخة أخرى بعد انقضاء TTL.
+_RELEASE_IF_OWNER = (
+    "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) end return 0"
+)
+_period_client: Any = None
+_period_client_url: str | None = None
+
+
+def _period_redis() -> Any:
+    """عميل Redis للحجز الدوريّ أو None (يُبنى كسولاً من REDIS_URL؛ لا اتّصال عند البناء)."""
+    global _period_client, _period_client_url
+    url = os.getenv("REDIS_URL", "")
+    if not url:
+        return None
+    if _period_client is None or _period_client_url != url:
+        import redis as _redis
+
+        _period_client = _redis.from_url(url, socket_connect_timeout=2, socket_timeout=2)
+        _period_client_url = url
+    return _period_client
+
+
+def _period_ttl_ms(period_seconds: float) -> int:
+    """TTL الحجز = الفترة ناقص هامش صغير (≤5%، ≤30ث).
+
+    التكّة التالية لنسخةٍ واحدة تأتي بعد ``period`` كاملة من نهاية التشغيل ⇒ الحجز قد
+    انقضى دائماً ⇒ سلوك النسخة الواحدة لا يتغيّر. الهامش يمتصّ انجراف الساعات/المؤقّتات.
+    """
+    slack = min(period_seconds * 0.05, _PERIOD_SLACK_MAX_SECONDS)
+    return max(1, int((period_seconds - slack) * 1000))
+
+
+async def _claim_period(task_name: str, period_seconds: float) -> str | bool:
+    """يحجز فترة هذه المهمّة عبر العنقود. يُرجِع رمز الحجز، أو False إن حجزتها نسخة
+    أخرى، أو True إن تعذّر Redis (fail-open: يُشغَّل كما قبل R7)."""
+    client = _period_redis()
+    if client is None:
+        return True
+    token = secrets.token_hex(8)
+    try:
+        claimed = await asyncio.to_thread(
+            client.set,
+            _PERIOD_KEY_PREFIX + task_name,
+            token,
+            nx=True,
+            px=_period_ttl_ms(period_seconds),
+        )
+    except Exception as e:  # noqa: BLE001 — عطل Redis لا يُجمّد المهامّ (fail-open)
+        logger.warning("مهمّة %s: تعذّر حجز الفترة في Redis (%s) — تشغيل بالقفل وحده", task_name, e)
+        return True
+    return token if claimed else False
+
+
+async def _settle_period(task_name: str, period_seconds: float, token: str, ok: bool) -> None:
+    """نجاح ⇒ تُعاد الفترة من **نهاية** التشغيل (التشغيل الطويل لا يُقصِّرها).
+    فشل ⇒ يُحرَّر الحجز ليُعاد المحاولة (backoff أو نسخة أخرى) — تُسجَّل الفترة الناجحة فقط."""
+    client = _period_redis()
+    if client is None:
+        return
+    key = _PERIOD_KEY_PREFIX + task_name
+    try:
+        if ok:
+            await asyncio.to_thread(client.set, key, token, px=_period_ttl_ms(period_seconds))
+        else:
+            await asyncio.to_thread(client.eval, _RELEASE_IF_OWNER, 1, key, token)
+    except Exception as e:  # noqa: BLE001 — أسوأ الحالات: تشغيل إضافيّ، لا تجميد
+        logger.warning("مهمّة %s: تعذّر تسوية حجز الفترة (%s)", task_name, e)
+
+
+@asynccontextmanager
+async def _advisory_session_lock(pool: Any, lock_key: str) -> AsyncIterator[bool]:
+    """قفل استشاريّ جلسيّ غير حاجب؛ يُعطي True إن مُلِك، ويُحرَّر على نفس الاتّصال."""
+    async with pool.acquire() as conn:
+        locked = await conn.fetchval("SELECT pg_try_advisory_lock(hashtext($1))", lock_key)
+        if not locked:
+            yield False
+            return
+        try:
+            yield True
+        finally:
+            # نفس الاتّصال ⇒ نفس الجلسة ⇒ تحرير صحيح (القفل جلسيّ لا معامليّ).
+            await conn.execute("SELECT pg_advisory_unlock(hashtext($1))", lock_key)
 
 
 def cluster_singleton(fn: TaskFn, *, task_name: str, pool_getter: Callable[[], Any]) -> TaskFn:
@@ -46,29 +139,52 @@ def cluster_singleton(fn: TaskFn, *, task_name: str, pool_getter: Callable[[], A
     تطول — لا نُبقي transaction مفتوحاً)؛ القفل يُحرَّر في ``finally``، ويُحرِّره Postgres
     تلقائيّاً إن ماتت الجلسة (انهيار النسخة لا يُجمِّد المهمّة أبداً).
 
+    والقفل وحده يمنع التداخل لا التكرار (R7): تحته يُحجَز «الفترة» عبر Redis فتعمل المهمّة
+    مرّة لكلّ فترة عبر العنقود. الفترة = فاصل التسجيل، يربطها ``Scheduler.register`` عبر
+    ``bind_period`` (مصدر واحد للحقيقة). بلا ربط ⇒ القفل وحده (السلوك السابق).
+
     بلا مسبح (تطوير/متدهور): تعمل المهمّة محليّاً — عمليّة واحدة أصلاً، لا تنازع.
     """
     lock_key = f"sahool-scheduler:{task_name}"
+    period: dict[str, float | None] = {"seconds": None}
+
+    async def _run_once_per_period() -> None:
+        seconds = period["seconds"]
+        if seconds is None:
+            await fn()
+            return
+        claim = await _claim_period(task_name, seconds)
+        if claim is False:
+            logger.info("مهمّة %s: تُخطّيت — نُفِّذت في هذه الفترة على نسخة أخرى", task_name)
+            return
+        if claim is True:  # Redis غير متاح ⇒ القفل وحده
+            await fn()
+            return
+        try:
+            await fn()
+        except BaseException:
+            await _settle_period(task_name, seconds, claim, ok=False)
+            raise
+        await _settle_period(task_name, seconds, claim, ok=True)
 
     async def _wrapped() -> None:
         pool = pool_getter()
         if pool is None:
             await fn()
             return
-        async with pool.acquire() as conn:
-            locked = await conn.fetchval("SELECT pg_try_advisory_lock(hashtext($1))", lock_key)
+        async with _advisory_session_lock(pool, lock_key) as locked:
             if not locked:
                 logger.info(
                     "مهمّة %s: تُخطّيت هذه التكّة — نسخة أخرى تحمل القفل الاستشاريّ",
                     task_name,
                 )
                 return
-            try:
-                await fn()
-            finally:
-                # نفس الاتّصال ⇒ نفس الجلسة ⇒ تحرير صحيح (القفل جلسيّ لا معامليّ).
-                await conn.execute("SELECT pg_advisory_unlock(hashtext($1))", lock_key)
+            await _run_once_per_period()
 
+    def _bind_period(seconds: float) -> None:
+        period["seconds"] = float(seconds)
+
+    _wrapped.bind_period = _bind_period  # type: ignore[attr-defined]
     return _wrapped
 
 
@@ -116,6 +232,10 @@ class Scheduler:
         """يسجّل مهمّة دوريّة. الاسم فريد — التسجيل المكرّر يستبدل."""
         if interval_seconds <= 0:
             raise ValueError(f"interval_seconds يجب أن يكون موجباً: {name}")
+        # R7: المهمّة الملفوفة بـcluster_singleton تأخذ فترتها من فاصل التسجيل نفسه.
+        bind_period = getattr(fn, "bind_period", None)
+        if callable(bind_period):
+            bind_period(interval_seconds)
         self._tasks[name] = ScheduledTask(name, interval_seconds, fn, enabled)
         logger.info(f"مهمّة مُسجّلة: {name} كلّ {interval_seconds}ث")
 

@@ -2148,6 +2148,7 @@
           "services/sahool-platform/api/routers/service_proxy.py",
           "services/sahool-platform/api/routers/sync.py",
           "services/sahool-platform/api/routers/weather.py",
+          "services/sahool-platform/api/scheduler.py",
           "services/sahool-platform/api/service_token_auth.py",
           "services/sahool-platform/api/soil_evidence_bridge.py",
           "services/sahool-platform/api/soil_hydraulic_client.py",

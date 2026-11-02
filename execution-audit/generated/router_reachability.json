@@ -91,7 +91,7 @@
     },
     {
       "kind": "app",
-      "line": 397,
+      "line": 403,
       "module": "services.auth.main",
       "node_id": "services.auth.main:app",
       "route_count": 1,
@@ -109,7 +109,7 @@
     },
     {
       "kind": "router",
-      "line": 22,
+      "line": 23,
       "module": "services.auth.routers.invitations",
       "node_id": "services.auth.routers.invitations:router",
       "route_count": 4,
@@ -136,7 +136,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 19,
       "module": "services.auth.routers.password_reset",
       "node_id": "services.auth.routers.password_reset:router",
       "route_count": 2,
@@ -163,7 +163,7 @@
     },
     {
       "kind": "router",
-      "line": 24,
+      "line": 26,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -685,7 +685,7 @@
     },
     {
       "kind": "router",
-      "line": 46,
+      "line": 53,
       "module": "services.sahool-platform.api.routers.break_glass",
       "node_id": "services.sahool-platform.api.routers.break_glass:router",
       "route_count": 3,
@@ -1027,7 +1027,7 @@
     },
     {
       "kind": "router",
-      "line": 50,
+      "line": 49,
       "module": "services.sahool-platform.api.routers.etc_dual",
       "node_id": "services.sahool-platform.api.routers.etc_dual:router",
       "route_count": 1,
@@ -1801,7 +1801,7 @@
     },
     {
       "kind": "router",
-      "line": 52,
+      "line": 51,
       "module": "services.sahool-platform.api.routers.scenario",
       "node_id": "services.sahool-platform.api.routers.scenario:router",
       "route_count": 5,
@@ -1972,7 +1972,7 @@
     },
     {
       "kind": "router",
-      "line": 28,
+      "line": 27,
       "module": "services.sahool-platform.api.routers.water_balance",
       "node_id": "services.sahool-platform.api.routers.water_balance:router",
       "route_count": 1,
@@ -2793,7 +2793,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "c7640e650975e937eb2c11c2d89a6259ac044b4d40616b76cee81c8451bb5ef6",
+  "inventory_sha256": "e907abc095c4380aab0cde6ca767ef653dfc2beb8f3653814eb6fbbdcddbffca",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -2839,7 +2839,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 22,
+      "line": 23,
       "module": "services.auth.routers.invitations",
       "node_id": "services.auth.routers.invitations:router",
       "route_count": 4,
@@ -2869,7 +2869,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 19,
       "module": "services.auth.routers.password_reset",
       "node_id": "services.auth.routers.password_reset:router",
       "route_count": 2,
@@ -2899,7 +2899,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 24,
+      "line": 26,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -3309,7 +3309,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 46,
+      "line": 53,
       "module": "services.sahool-platform.api.routers.break_glass",
       "node_id": "services.sahool-platform.api.routers.break_glass:router",
       "route_count": 3,
@@ -3689,7 +3689,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 50,
+      "line": 49,
       "module": "services.sahool-platform.api.routers.etc_dual",
       "node_id": "services.sahool-platform.api.routers.etc_dual:router",
       "route_count": 1,
@@ -4549,7 +4549,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 52,
+      "line": 51,
       "module": "services.sahool-platform.api.routers.scenario",
       "node_id": "services.sahool-platform.api.routers.scenario:router",
       "route_count": 5,
@@ -4739,7 +4739,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 28,
+      "line": 27,
       "module": "services.sahool-platform.api.routers.water_balance",
       "node_id": "services.sahool-platform.api.routers.water_balance:router",
       "route_count": 1,

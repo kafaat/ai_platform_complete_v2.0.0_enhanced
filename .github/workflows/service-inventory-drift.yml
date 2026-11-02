@@ -17,6 +17,10 @@ on:
       - 'route_inventory.generated.json'
       - 'scripts/ci/generate_service_inventory.py'
 
+# أقلّ صلاحيّة (I5): قراءة المستودع فقط؛ أيّ وظيفة تحتاج أكثر تُعلنه على مستواها.
+permissions:
+  contents: read
+
 # عبءُ أجهزة التشغيل: دفعٌ جديد إلى الـPR نفسه يلغي تشغيلَه الأقدم لهذا المسار (كـci.yml)؛ وأحداثُ
 # غير الـPR مجموعتُها فريدة (run_id) فلا تُلغى ولا تُسلسَل — كلُّ دمجٍ إلى main يُفحص كاملاً.
 concurrency:

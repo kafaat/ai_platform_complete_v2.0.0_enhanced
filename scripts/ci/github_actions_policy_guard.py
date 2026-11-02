@@ -21,6 +21,11 @@ def main() -> int:
             errors.append(f"{rel}: privileged pull_request_target is forbidden")
         if re.search(r"(?m)^permissions:\s*write-all\s*$", text):
             errors.append(f"{rel}: permissions write-all is forbidden")
+        # I5 (تدقيق 2026-11-01): بلا كتلة علويّة يرث GITHUB_TOKEN افتراضيّ المستودع (قد يكون كتابة).
+        if not re.search(r"(?m)^permissions:", text):
+            errors.append(
+                f"{rel}: top-level permissions block is required (least privilege: contents: read)"
+            )
         for line_no, line in enumerate(text.splitlines(), 1):
             match = USE_RE.search(line)
             if not match:

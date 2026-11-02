@@ -53,7 +53,6 @@ DECLARED_DORMANT: dict[str, str] = {
     ),
     "sklearn": "scikit-learn ~٣٠ ميغابايت لحالةٍ واحدة (`zones_kmeans`) — مُعلَنة في requirements_real",
     "pyarrow": "عجلةٌ ثقيلة لحالة parquet واحدة في `test_farm_memory`",
-    "aiomqtt": "عميلُ وسيطٍ يستورده مدخل actuator/video عند التحميل — مُعلَن في requirements الخدمتين",
     "edge_tts": "غير مُعلَنة في أيّ ملفّ متطلّبات في الشجرة — تبعيّةٌ اختياريّة لمزوّد TTS واحد",
     "api.irrigation_models": "وحدةٌ داخليّة لا حزمة: التخطّي يقع حين لا تكون شجرة المنصّة على المسار",
     "boto3": (
