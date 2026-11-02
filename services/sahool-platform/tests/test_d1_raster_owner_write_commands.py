@@ -88,6 +88,48 @@ def test_cog_registry_sends_a_write_command_and_builds_stac_from_the_persisted_r
 
 
 @pytest.mark.unit
+def test_cog_registry_without_cloud_pct_registers_unknown_cover_not_zero(monkeypatch):
+    """G11 end-to-end: an omitted cloud_pct is sent as None (unknown), never as 0% / grade A."""
+    seen: dict = {}
+
+    async def _register(*, tenant_id, payload, timeout_s=15.0):
+        seen["payload"] = payload
+        return {
+            "registered": True,
+            "entry": {
+                "id": "row-2",
+                "tenant_id": tenant_id,
+                "field_id": payload["field_id"],
+                "scene_id": payload["scene_id"],
+                "product_date": payload["product_date"],
+                "index_type": payload["index_type"],
+                "cog_url": payload["cog_url"],
+                "cloud_pct": payload["cloud_pct"],
+                "quality_score": payload["quality_score"],
+                "resolution_m": payload["resolution_m"],
+                "bbox": None,
+                "bands": "{}",
+                "metadata": "{}",
+            },
+        }
+
+    body_without_cloud = {k: v for k, v in _BODY.items() if k != "cloud_pct"}
+    with _client(monkeypatch, _register) as client:
+        response = client.post("/api/v1/gis/cloud-native/cog-registry", json=body_without_cloud)
+        out_of_range = client.post(
+            "/api/v1/gis/cloud-native/cog-registry", json={**_BODY, "cloud_pct": 140}
+        )
+    assert response.status_code == 200, response.text
+    assert seen["payload"]["cloud_pct"] is None
+    quality = response.json()["quality"]
+    assert quality["cloud_known"] is False and quality["score"] == 70 and quality["grade"] == "B"
+    assert "cloud_pct_unknown" in quality["limiting_factors"]
+    props = response.json()["stac_item"]["properties"]
+    assert "eo:cloud_cover" not in props and props["sahool:cloud_cover_known"] is False
+    assert out_of_range.status_code == 422
+
+
+@pytest.mark.unit
 def test_cog_registry_requires_a_field_id_because_the_owner_key_includes_it(monkeypatch):
     async def _never(**_kwargs):
         raise AssertionError("no command without a field_id")

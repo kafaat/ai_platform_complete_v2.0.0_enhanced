@@ -769,6 +769,7 @@ async def field_irrigation_recommendation(
             "valid_time": wx.get("valid_time"),
             "day_of_year": wx_doy,
             "day_of_year_source": wx_doy_source,
+            "rain_recent_source": wx.get("rain_recent_source"),
         },
         # WS-D.3: تأكيد طيفيّ (NDMI+MSI) — يُثبِت أنّ MSI وصل المرشَّح؛ غياب أحد الدليلين
         # أو تباعد تاريخيهما ⇒ available=False و detected=None (لا تصعيد مُختلَق).

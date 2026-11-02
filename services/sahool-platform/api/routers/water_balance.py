@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.irrigation_models import resolve_day_of_year
 from api.main import (
     UserSchema,
     get_current_user,
@@ -31,7 +32,7 @@ _ENGINE_DOWN_CODES = (502, 503, 504)
 
 
 async def _engine_et0_from_request(
-    req: WaterBalanceRequest, *, tenant_id: str | None = None
+    req: WaterBalanceRequest, *, day_of_year: int, tenant_id: str | None = None
 ) -> tuple[float, str]:
     """يجلب ET0 المرجعيّ من منتج محرّك الطقس (المصدر الوحيد) لمدخلات الطلب.
 
@@ -46,7 +47,7 @@ async def _engine_et0_from_request(
             wind_2m_ms=req.wind_2m_ms,
             lat_deg=req.latitude_deg,
             elevation_m=req.elevation_m,
-            day_of_year=req.day_of_year,
+            day_of_year=day_of_year,
             tenant_id=tenant_id,
         )
     except HTTPException as exc:
@@ -74,7 +75,11 @@ async def compute_water_balance(
     (``soil_ece``/``water_ecw`` + العمر + الثقة) — يقرّرها ``salinity_policy`` بصدق، ويُعرَض
     القرار في ``salinity_decision``. غياب التحليل ⇒ شكل الردّ كما كان تماماً (سلوك محفوظ).
     """
-    et0_mm, et0_method = await _engine_et0_from_request(req, tenant_id=user.tenant_id)
+    # يوم السنة من الطلب أو من التاريخ الفعليّ — لا 100 صامت؛ مصدره يُعلَن في المخرَج (G15).
+    day_of_year, day_of_year_source = resolve_day_of_year(req.day_of_year)
+    et0_mm, et0_method = await _engine_et0_from_request(
+        req, day_of_year=day_of_year, tenant_id=user.tenant_id
+    )
     w = WeatherInput(
         t_min_c=req.t_min_c,
         t_max_c=req.t_max_c,
@@ -83,8 +88,9 @@ async def compute_water_balance(
         wind_2m_ms=req.wind_2m_ms,
         latitude_deg=req.latitude_deg,
         elevation_m=req.elevation_m,
-        day_of_year=req.day_of_year,
+        day_of_year=day_of_year,
     )
+    doy_provenance = {"day_of_year": day_of_year, "day_of_year_source": day_of_year_source}
     # تحليل ملوحة مُمرَّر؟ ⇒ مسار التفعيل التلقائيّ (مع عرض القرار). وإلّا المسار القائم تماماً.
     has_salinity_analysis = (
         req.soil_ece is not None
@@ -116,8 +122,8 @@ async def compute_water_balance(
         )
         out = result.to_dict()
         out["salinity_decision"] = decision.to_dict()
-        return out
-    return water_balance(
+        return {**out, **doy_provenance}
+    out = water_balance(
         w,
         req.crop,
         req.stage,
@@ -130,3 +136,4 @@ async def compute_water_balance(
         et0_mm=et0_mm,
         et0_method=et0_method,
     ).to_dict()
+    return {**out, **doy_provenance}
