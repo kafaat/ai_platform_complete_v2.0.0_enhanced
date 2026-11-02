@@ -47,6 +47,7 @@ from raster_field_runtime import (
     _cdse_job_record,
     _cdse_request_on_stored_field,
     _clip_on_stored_field,
+    _clip_resolvable,
     _display_index,
     _field_layers,
     _grid_from_cog,
@@ -160,16 +161,15 @@ async def process_from_stac(
     # Caller-provided coefficients/URLs are never calibration authority. Resolve
     # exactly one C1 item from our configured catalogue before accepting any job.
     try:
+        if not req.scene_id or not _clip_resolvable(req) or not req.apply_cloud_mask:
+            radiometry_containment.reject_element84_vrt(
+                req.band_hrefs, entry_point="process_from_stac"
+            )
         await _require_field_tenant(field_id)
         tenant = _authenticated_tenant(req.tenant_id)
         if not tenant:
             raise HTTPException(403, "tenant context required")
-        # القصّ يُحلّ أوّلاً (T10: غياب الجسم ⇒ المخزّنة) ثمّ يُفحَص المحلول لا الجسم (#1330).
         clip, revision = await _clip_on_stored_field(field_id, req)
-        if not req.scene_id or not clip or not req.apply_cloud_mask:
-            radiometry_containment.reject_element84_vrt(
-                req.band_hrefs, entry_point="process_from_stac"
-            )
         data = await stac_query({"collections": [C1_COLLECTION], "ids": [req.scene_id], "limit": 2})
         features = data.get("features", [])
         if len(features) != 1:

@@ -188,6 +188,19 @@ async def _clip_on_stored_field(field_id: str, req) -> tuple[dict | None, int | 
     return body_clip, revision
 
 
+def _clip_resolvable(req) -> bool:
+    """هل سيُحلّ لهذا الطلب مضلّع قصّ؟ — لحارس process-from-stac الذي يسبق فحص المستأجر.
+
+    كان الحارس يفحص ``req.clip_polygon_geojson`` الخام، فيُرفَض 422 ``radiometry_unresolved``
+    طلبٌ بلا مضلّع قبل أن يُطبَّق افتراض T10 (الهندسة المخزّنة) — مراجعة #1330. مع قاعدة
+    يُرجِع ``_clip_on_stored_field`` دائماً مضلّعاً غير فارغ أو يرفع (400/409/503)، فالقصّ
+    محلولٌ حتماً؛ بلا قاعدة يبقى مضلّع الجسم وحده. فيُحكَم على الطلب الموروث مبكّراً بلا قراءة.
+    """
+    import db_persist as _dbp
+
+    return bool(req.clip_polygon_geojson) or bool(_dbp.DATABASE_URL)
+
+
 def _cdse_job_record(job_id: str, owner: str, req, gate_decision) -> dict:
     """سجلّ مهمّة process-cdse المعلَّقة، مربوطاً بمستأجِره وبقرار بوّابة satellite_cdse."""
     job_record = {
