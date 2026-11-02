@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-import contextlib
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -37,17 +36,14 @@ def test_the_recent_rain_window_is_the_et0_day_and_names_its_gaps():
 
 
 def _patch_workspace(monkeypatch, *, forecast_days, current_rain=0.0, soil=None):
+    """يُبدِّل فاصلَ مُدخلات القاعدة (سياقُ الحقل + آخرُ قراءة رطوبة) لا مُورِّدَ الاتّصال.
+
+    القرارُ المُختبَر كلُّه بعد هذا الفاصل؛ فلا اتّصالَ وهميّاً يدّعي ما تفرضه القاعدة.
+    """
     import api.routers.field_workspace_weather as wmod
 
-    @contextlib.asynccontextmanager
-    async def _tc(_user):
-        yield object()
-
-    async def _ctx(_conn, _field_id):
-        return (16.0, 44.9, "wheat", "mid", 80)
-
-    async def _soil(_conn, _field_id):
-        return soil
+    async def _inputs(_user, _field_id):
+        return (16.0, 44.9, "wheat", "mid", 80, soil)
 
     async def _forecast(_lat, _lon, days=3):
         return {"days": forecast_days}
@@ -55,9 +51,7 @@ def _patch_workspace(monkeypatch, *, forecast_days, current_rain=0.0, soil=None)
     async def _current(_lat, _lon):
         return {"precipitation_mm": current_rain}
 
-    monkeypatch.setattr(wmod, "tenant_connection", _tc)
-    monkeypatch.setattr(wmod, "_field_weather_context", _ctx)
-    monkeypatch.setattr(wmod, "_latest_soil_moisture", _soil)
+    monkeypatch.setattr(wmod, "_irrigation_field_inputs", _inputs)
     monkeypatch.setattr(wmod, "get_weather_forecast", _forecast)
     monkeypatch.setattr(wmod, "get_current_weather", _current)
     return wmod

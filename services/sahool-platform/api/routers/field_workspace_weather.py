@@ -331,6 +331,25 @@ async def field_weather_operation_windows(
     }
 
 
+async def _irrigation_field_inputs(
+    user: UserSchema, field_id: str
+) -> tuple[float, float, str | None, str | None, int | None, Any]:
+    """مُدخلاتُ القاعدة لتوصية الريّ: سياقُ الحقل وآخرُ قراءة رطوبة — في اتّصالٍ مستأجرٍ واحد.
+
+    ``(lat, lon, crop, stage, days_since_sowing, soil_reading)``. فاصلٌ بين القراءة من
+    القاعدة وما يُبنى عليها: فاختبارُ القرار يُبدِّل هذا الفاصل لا مُورِّدَ الاتّصال.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, stage, days_since_sowing = await _field_weather_context(conn, field_id)
+            soil_reading = await _latest_soil_moisture(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_unavailable("قراءة سياق الحقل", exc) from exc
+    return lat, lon, crop, stage, days_since_sowing, soil_reading
+
+
 @router.get("/api/v1/fields/{field_id}/weather/irrigation-advice")
 async def field_irrigation_advice_facade(
     field_id: str,
@@ -342,14 +361,9 @@ async def field_irrigation_advice_facade(
     from api.soil_telemetry import irrigation_soil_input
     from api.weather_advice import irrigation_advice, irrigation_rain_window
 
-    try:
-        async with tenant_connection(user) as conn:
-            lat, lon, crop, stage, days_since_sowing = await _field_weather_context(conn, field_id)
-            soil_reading = await _latest_soil_moisture(conn, field_id)
-    except HTTPException:
-        raise
-    except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable("قراءة سياق الحقل", exc) from exc
+    lat, lon, crop, stage, days_since_sowing, soil_reading = await _irrigation_field_inputs(
+        user, field_id
+    )
 
     if stage is None:
         raise HTTPException(
