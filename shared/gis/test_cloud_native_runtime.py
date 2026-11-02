@@ -92,3 +92,30 @@ def test_known_registry_cloud_cover_including_real_zero_is_kept():
     assert cloudy.quality_score == 84  # round(100 - 12.5 * 1.25) = round(84.375)
     props = stac_item_from_record(cloudy)["properties"]
     assert props["eo:cloud_cover"] == 12.5 and props["sahool:cloud_cover_known"] is True
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("raw", [None, "", "n/a", float("nan"), -1, 101])
+def test_unknown_cloud_cover_caps_a_persisted_quality_score(raw):
+    """A persisted score cannot outrank the unknown-cloud cap (review on #1329).
+
+    Before: a row with unknown cover and a persisted ``quality_score=100`` kept 100, so
+    it passed a STAC ``min_quality=85`` filter that the same row without a persisted
+    score (capped at 70) fails. The cap now applies to the persisted value too.
+    """
+    from shared.gis.phase5_runtime import filter_records_for_stac
+
+    rec = record_from_db_row(_row(cloud_pct=raw, quality_score=100))
+    assert rec.cloud_pct is None
+    assert rec.quality_score == 70
+    assert filter_records_for_stac([rec], min_quality=85) == []
+    assert stac_item_from_record(rec)["properties"]["sahool:quality_score"] == 70
+
+
+@pytest.mark.unit
+def test_unknown_cloud_cover_keeps_a_lower_persisted_score_and_known_cover_keeps_its_own():
+    # A lower persisted score (e.g. shadow/no-data penalties) is kept, not raised to the cap.
+    assert record_from_db_row(_row(cloud_pct=None, quality_score=40)).quality_score == 40
+    assert record_from_db_row(_row(cloud_pct=None, quality_score="55")).quality_score == 55
+    # Known cover: the persisted score is the registry's own judgement and stays as stored.
+    assert record_from_db_row(_row(cloud_pct=12, quality_score=100)).quality_score == 100

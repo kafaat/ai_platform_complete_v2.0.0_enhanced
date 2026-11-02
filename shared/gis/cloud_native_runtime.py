@@ -76,6 +76,9 @@ def record_from_db_row(row: Any) -> RasterRegistryRecord:
     quality_score = get("quality_score")
     if quality_score is None:
         quality_score = score_scene_quality(cloud_pct=cloud).score
+    elif cloud is None:
+        # درجةٌ مخزَّنة لا تتخطّى سقفَ المجهول (٧٠) وإلّا عبرت min_quality=85؛ والأدنى يبقى.
+        quality_score = min(int(quality_score), score_scene_quality(cloud_pct=None).score)
     return RasterRegistryRecord(
         id=str(get("id")),
         tenant_id=str(get("tenant_id")),
