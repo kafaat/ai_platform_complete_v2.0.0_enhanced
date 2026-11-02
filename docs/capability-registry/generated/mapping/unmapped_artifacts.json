@@ -9144,6 +9144,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_decision_service_tests_wired_to_ci.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_decision_service_url_contract_guard.py",
     "kind": "tests"
   },
@@ -10096,6 +10100,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_authority_convergence_guard.py",
     "kind": "tests"
   },
@@ -10529,6 +10537,10 @@
   },
   {
     "path": "tests_v9/test_security.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_security_marker_reaches_a_gate.py",
     "kind": "tests"
   },
   {

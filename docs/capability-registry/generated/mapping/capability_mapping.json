@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6972,
+    "files_scanned": 6962,
     "files_by_kind": {
       "backend": 1265,
       "database": 289,
       "governance": 87,
       "mobile": 414,
-      "other": 2136,
-      "tests": 2278,
-      "web": 503
+      "other": 2137,
+      "tests": 2269,
+      "web": 501
     },
-    "unmapped_artifacts": 2768,
+    "unmapped_artifacts": 2760,
     "ambiguous_artifacts": 502
   },
   "capabilities": [
@@ -2831,16 +2831,7 @@
           ]
         }
       ],
-      "governance": [
-        {
-          "path": ".github/workflows/ci.yml",
-          "score": 12,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution"
-          ]
-        }
-      ],
+      "governance": [],
       "other_evidence": [
         {
           "path": "scripts/ci/learning_attribution_boundary_gate.py",
@@ -2940,7 +2931,7 @@
         "web": 0,
         "mobile": 0,
         "tests": 4,
-        "governance": 1,
+        "governance": 0,
         "other_evidence": 10
       },
       "coverage_dimensions": 5,
@@ -4286,14 +4277,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_notification_tenant_fanout.py",
-          "score": 14,
-          "signals": [
-            "path:tenant",
-            "content:tenant"
-          ]
-        },
-        {
           "path": "tests_v9/test_notification_tenant_isolation.py",
           "score": 14,
           "signals": [
@@ -4624,7 +4607,7 @@
         "events": 11,
         "web": 1,
         "mobile": 0,
-        "tests": 32,
+        "tests": 31,
         "governance": 0,
         "other_evidence": 24
       },
@@ -13396,27 +13379,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:920",
+          "value": "/health @ agents/notification/agent.py:859",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:921",
+          "value": "/healthz @ agents/notification/agent.py:860",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:973",
+          "value": "/metrics @ agents/notification/agent.py:912",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:986",
+          "value": "/notification/test @ agents/notification/agent.py:925",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:906",
+          "value": "/notifications/test @ agents/notification/agent.py:845",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:928",
+          "value": "/readyz @ agents/notification/agent.py:867",
           "score": 12
         },
         {
@@ -13792,7 +13775,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:694",
+          "value": "sahool.> @ agents/notification/agent.py:633",
           "score": 12
         },
         {
@@ -13856,7 +13839,7 @@
           "score": 12
         },
         {
-          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:626",
+          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:565",
           "score": 12
         },
         {
@@ -16426,11 +16409,11 @@
           "score": 12
         },
         {
-          "value": "sahool.telegram @ bots/telegram/main.py:49",
+          "value": "sahool.telegram @ bots/telegram/main.py:45",
           "score": 9
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:285",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:239",
           "score": 9
         }
       ],
@@ -18597,11 +18580,11 @@
           "score": 11
         },
         {
-          "value": "sahool.drawing.offline.drafts.v1 @ frontend/src/components/maphub/drawing/drawingOfflineSync.ts:10",
+          "value": "sahool.drawing.offline.drafts.v1 @ frontend/src/components/maphub/drawing/drawingOfflineSync.ts:6",
           "score": 8
         },
         {
-          "value": "sahool.drawing.offline.syncQueue.v1 @ frontend/src/components/maphub/drawing/drawingOfflineSync.ts:11",
+          "value": "sahool.drawing.offline.syncQueue.v1 @ frontend/src/components/maphub/drawing/drawingOfflineSync.ts:7",
           "score": 8
         }
       ],
@@ -20652,7 +20635,7 @@
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:550",
+          "value": "field.created @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:455",
           "score": 10
         },
         {
@@ -20668,19 +20651,19 @@
           "score": 10
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:293",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:198",
           "score": 10
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:302",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:207",
           "score": 10
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:325",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:230",
           "score": 10
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:638",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:543",
           "score": 10
         },
         {
@@ -23699,7 +23682,7 @@
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:550",
+          "value": "field.created @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:455",
           "score": 12
         },
         {
@@ -23747,19 +23730,19 @@
           "score": 12
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:293",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:198",
           "score": 12
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:302",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:207",
           "score": 12
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:325",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:230",
           "score": 12
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:638",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:543",
           "score": 12
         },
         {
@@ -26078,7 +26061,7 @@
       "evidence_truncated": {
         "backend": 25,
         "events": 58,
-        "tests": 110,
+        "tests": 109,
         "other_evidence": 3
       },
       "evidence_counts": {
@@ -29495,7 +29478,7 @@
           "score": 10
         },
         {
-          "value": "sahool.scheduler @ services/sahool-platform/api/scheduler.py:36",
+          "value": "sahool.scheduler @ services/sahool-platform/api/scheduler.py:33",
           "score": 10
         },
         {
@@ -31280,19 +31263,19 @@
           "score": 24
         },
         {
-          "value": "/runtime-identity @ services/auth/main.py:406",
+          "value": "/runtime-identity @ services/auth/main.py:400",
           "score": 22
         },
         {
-          "value": "/api/v1/admin/break-glass @ services/sahool-platform/api/routers/break_glass.py:167",
+          "value": "/api/v1/admin/break-glass @ services/sahool-platform/api/routers/break_glass.py:140",
           "score": 17
         },
         {
-          "value": "/api/v1/admin/break-glass/{grant_id} @ services/sahool-platform/api/routers/break_glass.py:394",
+          "value": "/api/v1/admin/break-glass/{grant_id} @ services/sahool-platform/api/routers/break_glass.py:357",
           "score": 17
         },
         {
-          "value": "/api/v1/admin/break-glass/{token}/fields @ services/sahool-platform/api/routers/break_glass.py:354",
+          "value": "/api/v1/admin/break-glass/{token}/fields @ services/sahool-platform/api/routers/break_glass.py:317",
           "score": 17
         },
         {
@@ -31336,19 +31319,19 @@
           "score": 12
         },
         {
-          "value": "/v1/auth/login @ services/auth/routers/session.py:45",
+          "value": "/v1/auth/login @ services/auth/routers/session.py:27",
           "score": 12
         },
         {
-          "value": "/v1/auth/logout @ services/auth/routers/session.py:195",
+          "value": "/v1/auth/logout @ services/auth/routers/session.py:184",
           "score": 12
         },
         {
-          "value": "/v1/auth/me @ services/auth/routers/session.py:240",
+          "value": "/v1/auth/me @ services/auth/routers/session.py:229",
           "score": 12
         },
         {
-          "value": "/v1/auth/refresh @ services/auth/routers/session.py:139",
+          "value": "/v1/auth/refresh @ services/auth/routers/session.py:128",
           "score": 12
         },
         {
@@ -31491,7 +31474,7 @@
       ],
       "events": [
         {
-          "value": "sahool.break_glass @ services/sahool-platform/api/routers/break_glass.py:51",
+          "value": "sahool.break_glass @ services/sahool-platform/api/routers/break_glass.py:44",
           "score": 17
         },
         {
@@ -31503,7 +31486,7 @@
           "score": 12
         },
         {
-          "value": "test_soil_field_tenant_authz.py @ tests_v9/test_unit_environment_completeness.py:88",
+          "value": "test_soil_field_tenant_authz.py @ tests_v9/test_unit_environment_completeness.py:90",
           "score": 10
         }
       ],
@@ -31648,7 +31631,7 @@
         },
         {
           "path": "tests_v9/test_mfa_hardening_integration_v29_5.py",
-          "score": 38,
+          "score": 40,
           "signals": [
             "path:MFA",
             "content:MFA",
@@ -31724,7 +31707,7 @@
         },
         {
           "path": "services/sahool-platform/tests/test_break_glass.py",
-          "score": 18,
+          "score": 17,
           "signals": [
             "content:MFA",
             "content:mfa",
@@ -31766,14 +31749,6 @@
         },
         {
           "path": "tests_v9/test_api_versioning_policy_guard.py",
-          "score": 12,
-          "signals": [
-            "content:MFA",
-            "content:mfa"
-          ]
-        },
-        {
-          "path": "tests_v9/test_auth_s16_hardening.py",
           "score": 12,
           "signals": [
             "content:MFA",
@@ -31845,7 +31820,16 @@
           ]
         }
       ],
-      "governance": [],
+      "governance": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        }
+      ],
       "other_evidence": [
         {
           "path": "scripts/ci/capability_linker.py",
@@ -31991,6 +31975,14 @@
           ]
         },
         {
+          "path": "tests_v9/real_app_probe.py",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "docs/architecture/platform_shrink_ratchet.json",
           "score": 11,
           "signals": [
@@ -32075,9 +32067,9 @@
         "events": 4,
         "web": 7,
         "mobile": 7,
-        "tests": 23,
-        "governance": 0,
-        "other_evidence": 25
+        "tests": 22,
+        "governance": 1,
+        "other_evidence": 26
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -36062,7 +36054,7 @@
           "score": 12
         },
         {
-          "value": "sahool.telegram @ bots/telegram/main.py:49",
+          "value": "sahool.telegram @ bots/telegram/main.py:45",
           "score": 12
         },
         {
@@ -36070,7 +36062,7 @@
           "score": 12
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:285",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:239",
           "score": 12
         },
         {
@@ -42234,10 +42226,6 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/maphub/OverlayMarkers.xss.test.tsx",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/components/maphub/ProductivityZonesPanel.test.tsx",
       "kind": "web"
     },
@@ -42287,10 +42275,6 @@
     },
     {
       "path": "frontend/src/components/maphub/drawing/DrawingOfflineSync.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/DrawingOfflineSyncDrain.test.ts",
       "kind": "tests"
     },
     {
@@ -42411,10 +42395,6 @@
     },
     {
       "path": "frontend/src/components/maphub/weather/WeatherProbePopup.errorText.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/weather/WeatherProbePopup.xss.test.ts",
       "kind": "tests"
     },
     {
@@ -42703,10 +42683,6 @@
     },
     {
       "path": "frontend/src/lib/enterpriseGisPhase7.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/lib/escapeHtml.ts",
       "kind": "web"
     },
     {
@@ -49290,10 +49266,6 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_scheduler_once_per_period.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/sahool-platform/tests/test_security_v91.py",
       "kind": "tests"
     },
@@ -50398,10 +50370,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_audit_r5_r6_reclaim_and_weather_resync.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_auth_acquire_admin_context_guard.py",
       "kind": "tests"
     },
@@ -50431,10 +50399,6 @@
     },
     {
       "path": "tests_v9/test_auth_signup_owner.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_auth_tile_cookie_secure_s6.py",
       "kind": "tests"
     },
     {
@@ -50846,6 +50810,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_decision_service_tests_wired_to_ci.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_decision_service_url_contract_guard.py",
       "kind": "tests"
     },
@@ -51082,10 +51050,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_frontend_nginx_csp_contract.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_frontend_nginx_service_proxy_guard.py",
       "kind": "tests"
     },
@@ -51207,10 +51171,6 @@
     },
     {
       "path": "tests_v9/test_helm_migration_command_valid_20260705.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_helm_migration_job_runs_real_migrator.py",
       "kind": "tests"
     },
     {
@@ -51798,6 +51758,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_rag.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_rag_authority_convergence_guard.py",
       "kind": "tests"
     },
@@ -52234,6 +52198,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_security_marker_reaches_a_gate.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_segmentation_boundary_metadata_contract_20260703.py",
       "kind": "tests"
     },
@@ -52407,10 +52375,6 @@
     },
     {
       "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_telegram_markdown_and_link_privacy.py",
       "kind": "tests"
     },
     {
@@ -52722,10 +52686,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_workflow_top_level_permissions.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_wx10_9_execution_plan_contract.py",
       "kind": "tests"
     },
@@ -52788,6 +52748,14 @@
           ]
         },
         {
+          "capability_id": "SEC-004",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "capability_id": "OPS-004",
           "score": 12,
           "signals": [
@@ -52802,14 +52770,6 @@
             "content:Field water-source binding",
             "content:field water source",
             "content:source binding"
-          ]
-        },
-        {
-          "capability_id": "DEC-008",
-          "score": 12,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution"
           ]
         }
       ]

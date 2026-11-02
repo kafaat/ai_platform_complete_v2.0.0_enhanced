@@ -17,6 +17,7 @@ import asyncio
 import importlib.util
 import os
 import sys
+import time
 import uuid
 
 import pytest
@@ -142,33 +143,72 @@ def test_mfa_migrations_applied_on_real_postgres():
 
 # ── full app flow (TestClient) — runs where fastapi+DB exist; skips transparently otherwise ──
 def _load_auth_main():
-    sys.path.insert(0, os.path.join(ROOT, "services/auth"))
+    from tests_v9.service_module import purge_generic_modules
+
+    auth_dir = os.path.join(ROOT, "services/auth")
+    for p in (ROOT, auth_dir):
+        while p in sys.path:
+            sys.path.remove(p)
     sys.path.insert(0, ROOT)
+    sys.path.insert(0, auth_dir)  # auth أوّلاً: routers/router_registry تُحلّ من الخدمة نفسها
+    purge_generic_modules()
     spec = importlib.util.spec_from_file_location(
         "auth_main_mfa", os.path.join(ROOT, "services/auth/main.py")
     )
     m = importlib.util.module_from_spec(spec)
     sys.modules["auth_main_mfa"] = m
+    # تدقيق 2026-11-01 (Q5): الراوترات تستورد ``main`` باسمه؛ بلا هذا الربط تُحمَّل نسخةٌ
+    # ثانية ``_pool`` فيها None ⇒ register=500 — العطلُ نفسُه الذي أُصلِح في test_auth_e2e
+    # (9a3ce99). كان ``xfail(strict=False)`` يبتلعه حتى تحت الدور المقيَّد.
+    sys.modules["main"] = m
     spec.loader.exec_module(m)
     return m
 
 
+# MFA_E2E_CERTIFICATION_REQUIRED=1 (خطوة CI المخصَّصة بالدور المقيَّد): كلّ تخطٍّ فشلٌ.
+_CERTIFICATION_REQUIRED = os.getenv("MFA_E2E_CERTIFICATION_REQUIRED") == "1"
+
+
+def _skip_or_fail(message: str) -> None:
+    if _CERTIFICATION_REQUIRED:
+        pytest.fail(message)
+    pytest.skip(message)
+
+
+def _role_bypasses_rls() -> bool:
+    """دورُ الاتّصال superuser أو BYPASSRLS؟ — حارس auth يرفض الإقلاع عليه بحقّ."""
+    import asyncpg
+
+    async def _q():
+        conn = await asyncpg.connect(_TEST_DB, statement_cache_size=0)
+        try:
+            return await conn.fetchval(
+                "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
+            )
+        finally:
+            await conn.close()
+
+    return bool(asyncio.run(_q()))
+
+
+# كان هنا ``xfail(strict=False)`` باسم AUTH-E2E-UNDER-RESTRICTED-ROLE (مُغلَقة 2026-07-18):
+# تحت الدور المقيَّد كان الاختبار يفشل بعطل المُحمِّل أعلاه، فيُقرأ «xfailed» أخضر — أيّ
+# انحدارٍ حقيقيّ في MFA كان سيُقرأ كذلك. صار يُشغَّل فعلاً في خطوة CI مخصَّصة بالدور
+# المقيَّد ``sahool_app_test``؛ وفي الجولة العامّة (superuser) يتخطّى مُعلِناً لأنّ حارس
+# auth يرفض الإقلاع على دورٍ يتجاوز RLS — وهو السلوك الصحيح لا العيب.
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=False,
-    reason=(
-        "AUTH-E2E-UNDER-RESTRICTED-ROLE (فرع CI): خدمة auth ترفض الإقلاع لأنّ قاعدة اختبار "
-        "CI تتّصل بـsahool_test وهو superuser، وحارس تجاوز RLS يفشل مغلقاً — وهو السلوك "
-        "الصحيح. ci.yml:601 يُنشئ القاعدة بهذا الدور. الإصلاح دور مقيَّد "
-        "(NOSUPERUSER NOBYPASSRLS) لقاعدة الاختبار، **لا** SAHOOL_ALLOW_RLS_BYPASS_ROLE=1 "
-        "الذي يُعطّل الحارس في CI. UNIT-TEST-DORMANCY-01 أيقظ الاختبار؛ الوسم يُبقيه "
-        "ظاهراً بفشله المُسمّى بدل إعادته إلى skip صامت، ويُرفع عند إنشاء الدور."
-    ),
-)
 def test_mfa_end_to_end_via_app():
-    pytest.importorskip("fastapi")  # DB-only CI job has no fastapi ⇒ skip transparently there
+    try:
+        import fastapi  # noqa: F401
+    except ImportError:
+        _skip_or_fail("fastapi غير مثبّتة — تطبيق auth لا يُبنى هنا")
     if not _db_available():
-        pytest.skip("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+        _skip_or_fail("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+    if _role_bypasses_rls():
+        _skip_or_fail(
+            "دور TEST_DATABASE_URL يتجاوز RLS (superuser/BYPASSRLS) ⇒ حارس auth يرفض الإقلاع "
+            "بحقّ. شغّله بدورٍ مقيَّد (خطوة CI: MFA end-to-end, restricted role)."
+        )
     import asyncpg
     import pyotp
     from fastapi.testclient import TestClient
@@ -204,10 +244,20 @@ def test_mfa_end_to_end_via_app():
         )
         assert row["encrypted_mfa_secret"] and str(row["encrypted_mfa_secret"]).startswith("v1:")
         assert row["mfa_secret"] is None  # never new plaintext
-        r = c.post("/v1/auth/mfa/activate", headers=auth, json={"code": pyotp.TOTP(secret).now()})
+        totp = pyotp.TOTP(secret)
+        activation_code = totp.now()
+        r = c.post("/v1/auth/mfa/activate", headers=auth, json={"code": activation_code})
         assert r.status_code == 200 and len(r.json()["recovery_codes"]) == 10
+        # V29.7 anti-replay: رمزُ التفعيل استُهلِكت خطوتُه ⇒ إعادتُه للدخول مرفوضة. كان الاختبار
+        # يدخل بـ``now()`` نفسه فيُرفَض بحقّ — وذلك ما ابتلعه ``xfail(strict=False)``.
         r = c.post(
             "/v1/auth/login",
-            json={"email": email, "password": pw, "mfa_code": pyotp.TOTP(secret).now()},
+            json={"email": email, "password": pw, "mfa_code": activation_code},
+        )
+        assert r.status_code == 401, r.text[:160]
+        # الخطوة التالية داخل نافذة ±1 ولم تُستهلَك بعد ⇒ دخولٌ ناجح.
+        r = c.post(
+            "/v1/auth/login",
+            json={"email": email, "password": pw, "mfa_code": totp.at(int(time.time()) + 30)},
         )
         assert r.status_code == 200, r.text[:160]

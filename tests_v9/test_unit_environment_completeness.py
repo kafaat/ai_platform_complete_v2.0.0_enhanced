@@ -25,6 +25,8 @@ _REQUIRED = {
     ),
     "scipy": "core.spatial (مثبَّتة أصلاً في api/requirements.txt:20)",
     "PIL": "تصيير الصور في اختبارات raster/bivariate",
+    # تدقيق 2026-11-01 (Q3): مدخلا video-processor/actuator يستوردانها عند التحميل.
+    "aiomqtt": "اختبارات عزل المستأجرين لبثّ الفيديو ومفتاح إيقاف actuator",
 }
 
 
