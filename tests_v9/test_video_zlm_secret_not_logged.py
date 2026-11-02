@@ -174,3 +174,26 @@ def test_logging_config_redacts_secret_params_and_quiets_httpx():
     assert "probe=warning" in out and "secret=***" in out, out
     assert "app line kept" in out, out
     assert "LEVELS 0 0" in out, out  # لا حالة عالميّة على المُسجِّلَين
+
+
+# المراجعة (PR #1324): صنف قيمة المعامِل كان يقف عند ``,`` و``;`` و``)`` (وكذلك ``<``/``>``)
+# فيُقنَّع ما قبلها وحده ويُكتَب باقي السرّ: ``password=prefix;CANARY&app=live`` ⇒
+# ``password=***;CANARY``. القيمة كلّها حتّى ``&`` أو مسافة أو علامة اقتباس أو النهاية سرّ.
+@pytest.mark.parametrize("sep", [";", ",", ")", "(", "<", ">", ":", "/", "#", "|", "!"])
+@pytest.mark.parametrize("name", ["password", "secret", "token", "api_key", "signature"])
+def test_redaction_masks_the_whole_value_through_punctuation(name, sep):
+    lc = _load("logging_config_s9_punct", ROOT / "shared" / "logging_config.py")
+    line = f"GET http://svc/x?{name}=p{sep}{SECRET}{sep}z&app=live done"
+    out = lc.redact_secrets(line)
+    assert SECRET not in out, out
+    assert f"{name}={lc.REDACTED}&app=live done" in out, out
+
+
+@pytest.mark.parametrize(
+    ("tail", "kept"),
+    [("", ""), (" next", " next"), ('" next', '" next'), ("' next", "' next")],
+)
+def test_redaction_value_ends_at_amp_whitespace_quote_or_end(tail, kept):
+    lc = _load("logging_config_s9_end", ROOT / "shared" / "logging_config.py")
+    out = lc.redact_secrets(f"u=?app=live&secret=a;{SECRET}{tail}")
+    assert out == f"u=?app=live&secret={lc.REDACTED}{kept}", out
