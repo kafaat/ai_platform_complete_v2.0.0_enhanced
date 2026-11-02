@@ -102,6 +102,20 @@ async def _require_field_tenant(field_id: str, *, hide_existence: bool = False) 
     )
 
 
+def _reject_stale_revision(requested: int | None, current: int | None) -> None:
+    """مراجعةٌ في الجسم تخالف المراجعة المخزّنة ⇒ 409 ``stale_geometry_revision`` (عقد T10 واحد)."""
+    if requested is not None and requested != current:
+        raise HTTPException(
+            409,
+            {
+                "code": "stale_geometry_revision",
+                "requested_revision": requested,
+                "current_revision": current,
+                "message_ar": "مراجعة هندسة الحقل في الطلب ليست المراجعة المخزّنة الحاليّة.",
+            },
+        )
+
+
 async def _cdse_request_on_stored_field(
     field_id: str, req: api_models.ProcessCdseRequest, owner: str
 ) -> api_models.ProcessCdseRequest:
@@ -128,16 +142,7 @@ async def _cdse_request_on_stored_field(
         if geometry is None or bbox is None:
             raise HTTPException(400, "هندسة الحقل المخزّنة غير متاحة لمعالجة CDSE")
         revision = stored.get("revision")
-        if req.geometry_revision is not None and req.geometry_revision != revision:
-            raise HTTPException(
-                409,
-                {
-                    "code": "stale_geometry_revision",
-                    "requested_revision": req.geometry_revision,
-                    "current_revision": revision,
-                    "message_ar": "مراجعة هندسة الحقل في الطلب ليست المراجعة المخزّنة الحاليّة.",
-                },
-            )
+        _reject_stale_revision(req.geometry_revision, revision)
         if req.geometry is not None and req.geometry != geometry:
             logger.warning("process-cdse field=%s: body geometry ignored (stored wins)", field_id)
     return req.model_copy(
@@ -150,28 +155,37 @@ async def _cdse_request_on_stored_field(
     )
 
 
-async def _clip_on_stored_field(field_id: str, body_clip: dict | None) -> dict | None:
-    """مضلّع القصّ لـprocess-date/backfill/process-from-stac من جدول ``fields`` (قاعدة T10).
+async def _clip_on_stored_field(field_id: str, req) -> tuple[dict | None, int | None]:
+    """مضلّع القصّ **ومراجعته** لـprocess-date/backfill/process-from-stac من ``fields`` (قاعدة T10).
+
+    ``req`` أيّ طلب يحمل ``clip_polygon_geojson`` و``geometry_revision`` (الثلاثة تحملهما).
 
     مع قاعدة: غياب مضلّع الجسم ⇒ الهندسة المخزّنة؛ مضلّع جسمٍ يُقبَل فقط إن احتوته الهندسة
     المخزّنة (وإلّا 400) — فلا يُقصّ ويُحفَظ باسم الحقل مضلّعٌ يختاره المُنادي؛ غياب المخزّنة ⇒ 400.
-    بلا قاعدة (وضع مقصود) لا سجلّ نقارن به فيبقى مضلّع الجسم كما كان (قد يكون None).
+    والمراجعة تُقرأ مع الهندسة في جملة واحدة وتُرجَع معها: كانت المراجعة N من الجسم تُجدوَل
+    مع هندسة N+1 المخزّنة فيُختَم أصلٌ بنَسَبٍ خاطئ ويُعاد استعمال أصلٍ بمفتاح مراجعةٍ خاطئ
+    (مراجعة PR #1330). مراجعة جسمٍ تخالف المخزّنة ⇒ 409 كـprocess-cdse.
+    بلا قاعدة (وضع مقصود) لا سجلّ نقارن به فيبقى مضلّع الجسم ومراجعته كما كانا (قد يكونان None).
     """
     import db_persist as _dbp
 
+    body_clip, requested_revision = req.clip_polygon_geojson, req.geometry_revision
     if not _dbp.DATABASE_URL:
-        return body_clip
+        return body_clip, requested_revision
     try:
-        stored = await _dbp.fetch_field_geometry(field_id, _REQ_TENANT.get())
+        stored = await _dbp.fetch_field_geometry_with_revision(field_id, _REQ_TENANT.get())
     except Exception as e:  # noqa: BLE001 — تعذّر جلب الهندسة ⇒ 503 صادق
         raise HTTPException(503, "تعذّر جلب هندسة الحقل المخزّنة") from e
-    if stored is None or _bbox_from_geojson(stored) is None:
+    geometry = (stored or {}).get("geometry")
+    if geometry is None or _bbox_from_geojson(geometry) is None:
         raise HTTPException(400, "هندسة الحقل المخزّنة غير متاحة لاشتقاق bbox وقصّ الصور")
+    revision = stored.get("revision")
+    _reject_stale_revision(requested_revision, revision)
     if not body_clip:
-        return stored
-    if not raster_date_geo.clip_within_field(body_clip, stored):
+        return geometry, revision
+    if not raster_date_geo.clip_within_field(body_clip, geometry):
         raise HTTPException(400, "clip_polygon_geojson يقع خارج هندسة الحقل المخزّنة")
-    return body_clip
+    return body_clip, revision
 
 
 def _cdse_job_record(job_id: str, owner: str, req, gate_decision) -> dict:

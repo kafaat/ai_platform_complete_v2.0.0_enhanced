@@ -160,16 +160,16 @@ async def process_from_stac(
     # Caller-provided coefficients/URLs are never calibration authority. Resolve
     # exactly one C1 item from our configured catalogue before accepting any job.
     try:
-        if not req.scene_id or not req.clip_polygon_geojson or not req.apply_cloud_mask:
-            radiometry_containment.reject_element84_vrt(
-                req.band_hrefs, entry_point="process_from_stac"
-            )
         await _require_field_tenant(field_id)
         tenant = _authenticated_tenant(req.tenant_id)
         if not tenant:
             raise HTTPException(403, "tenant context required")
-        # مضلّع الجسم مقبول فقط داخل هندسة الحقل المخزّنة (قاعدة T10).
-        clip = await _clip_on_stored_field(field_id, req.clip_polygon_geojson)
+        # القصّ يُحلّ أوّلاً (T10: غياب الجسم ⇒ المخزّنة) ثمّ يُفحَص المحلول لا الجسم (#1330).
+        clip, revision = await _clip_on_stored_field(field_id, req)
+        if not req.scene_id or not clip or not req.apply_cloud_mask:
+            radiometry_containment.reject_element84_vrt(
+                req.band_hrefs, entry_point="process_from_stac"
+            )
         data = await stac_query({"collections": [C1_COLLECTION], "ids": [req.scene_id], "limit": 2})
         features = data.get("features", [])
         if len(features) != 1:
@@ -213,7 +213,7 @@ async def process_from_stac(
                 req.indicator.value,
                 field_id,
                 tenant,
-                req.geometry_revision,
+                revision,
                 clip,
                 True,
                 job_id,
@@ -343,7 +343,7 @@ async def field_historical_backfill(
             raise HTTPException(400, f"مؤشّرات غير مناسبة للـbackfill البصري: {unsupported}")
 
     # قاعدة T10: الهندسة المخزّنة عند غياب الجسم؛ مضلّع الجسم فقط إن احتوته (وإلّا 400).
-    clip = await _clip_on_stored_field(field_id, req.clip_polygon_geojson)
+    clip, revision = await _clip_on_stored_field(field_id, req)
     bbox = _bbox_from_geojson(clip)
     if bbox is None:
         raise HTTPException(400, "clip_polygon_geojson مطلوب لاشتقاق bbox وقصّ الصور على حدود الحقل")
@@ -367,7 +367,7 @@ async def field_historical_backfill(
             months=months,
             indices=[i.value for i in req.indices],
             max_cloud_pct=req.max_cloud_pct,
-            geometry_revision=getattr(req, "geometry_revision", None),
+            geometry_revision=revision,
             clip_polygon_geojson=clip,
             apply_cloud_mask=req.apply_cloud_mask,
             limit_per_month=req.limit_per_month,
@@ -520,7 +520,7 @@ async def field_historical_backfill(
                             scene_id=sc.get("item_id"),
                             capture_datetime=sc.get("datetime"),
                             provider="landsat-element84",
-                            geometry_revision=getattr(req, "geometry_revision", None),
+                            geometry_revision=revision,
                         )
                         _run_processing(jid, preq)
                         return
@@ -534,7 +534,7 @@ async def field_historical_backfill(
                             field_id,
                             tenant_id,
                             clip,
-                            getattr(req, "geometry_revision", None),
+                            revision,
                             jid,
                         )
                         return
@@ -548,7 +548,7 @@ async def field_historical_backfill(
                         ind_value,
                         field_id,
                         tenant_id,
-                        getattr(req, "geometry_revision", None),
+                        revision,
                         clip,
                         req.apply_cloud_mask,
                         jid,
@@ -686,7 +686,7 @@ async def field_process_date(
     await _require_field_tenant(field_id)
 
     # قاعدة T10: الهندسة المخزّنة عند غياب الجسم؛ مضلّع الجسم فقط إن احتوته (وإلّا 400).
-    clip = await _clip_on_stored_field(field_id, req.clip_polygon_geojson)
+    clip, revision = await _clip_on_stored_field(field_id, req)
     if clip is None:  # بلا قاعدة: المسار القديم كما هو
         try:
             import db_persist as _dbp_geo
@@ -706,7 +706,7 @@ async def field_process_date(
         acquisition_date=req.date,
         index_name=req.index.value,
         scene_id=req.scene_id,
-        geometry_revision=req.geometry_revision,
+        geometry_revision=revision,
         clip_polygon_geojson=clip,
         max_cloud_pct=req.max_cloud_pct,
         apply_cloud_mask=req.apply_cloud_mask,

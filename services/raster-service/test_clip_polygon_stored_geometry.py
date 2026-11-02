@@ -262,3 +262,156 @@ async def test_process_date_malformed_feature_collection_is_400(owned_field, mon
         await fields.field_process_date(FIELD, _date_req(bad), x_agent_token="ok")
     assert exc.value.status_code == 400
     assert seen == []
+
+
+# ── مراجعة الهندسة: تُختَم مع القصّ لا من الجسم (مراجعة PR #1330) ─────────────
+#
+# العطل: ``_clip_on_stored_field`` كان يُرجِع الهندسة المخزّنة الحاليّة (N+1) بينما تُجدوِل
+# النقاط الثلاث مراجعة الجسم (N) — فيُختَم أصلٌ قُصّ بـN+1 نَسَباً N، ويُعاد استعمال أصلٍ
+# جاهزٍ بمفتاح المراجعة الخاطئة. العقد (كـprocess-cdse): مراجعة مخالِفة ⇒ 409
+# ``stale_geometry_revision`` بلا جدولة؛ غيابها ⇒ تُختَم المراجعة المخزّنة.
+
+
+def _assert_stale_409(exc: pytest.ExceptionInfo) -> None:
+    assert exc.value.status_code == 409
+    assert exc.value.detail["code"] == "stale_geometry_revision"
+    assert exc.value.detail["requested_revision"] == STORED_REVISION - 1
+    assert exc.value.detail["current_revision"] == STORED_REVISION
+
+
+def _stac_req(clip: dict | None, revision: int | None = None) -> ProcessFromStacRequest:
+    return ProcessFromStacRequest(
+        band_hrefs={"B04": "https://x/B04.tif"},
+        scene_id="S2A_X",
+        clip_polygon_geojson=clip,
+        geometry_revision=revision,
+    )
+
+
+def _c1_pipeline(monkeypatch) -> list[tuple]:
+    """كتالوج C1 يُرجِع المشهد المطلوب بالضبط؛ ``process_c1_scene`` يُلتقَط بلا GDAL."""
+    import stac_c1_processing
+    import stac_search
+
+    async def stac_query(body):
+        return {"features": [{"id": "S2A_X", "properties": {"datetime": None}, "assets": {}}]}
+
+    monkeypatch.setattr(stac_search, "stac_query", stac_query)
+    monkeypatch.setattr(
+        stac_search, "band_urls_from_assets", lambda _a: {"B04": "https://x/B04.tif"}
+    )
+    monkeypatch.setattr(stac_search, "radiometry_context_from_item", lambda _i: {})
+    monkeypatch.setattr(stac_c1_processing, "validate_c1_scene", lambda *_a, **_k: {})
+    seen: list[tuple] = []
+    monkeypatch.setattr(stac_c1_processing, "process_c1_scene", lambda *a, **_k: seen.append(a))
+    return seen
+
+
+@pytest.mark.asyncio
+async def test_stale_body_revision_is_409_on_all_three_without_scheduling(owned_field, monkeypatch):
+    owned_field(TENANT_A)
+    stale = STORED_REVISION - 1
+    dates = _capture_process_date(monkeypatch)
+    for clip in (None, INSIDE):
+        req = ProcessDateRequest(
+            date="2026-10-01",
+            index="ndvi",
+            scene_id="S2A_X",
+            clip_polygon_geojson=clip,
+            geometry_revision=stale,
+        )
+        with pytest.raises(HTTPException) as exc:
+            await fields.field_process_date(FIELD, req, x_agent_token="ok")
+        _assert_stale_409(exc)
+    assert dates == []
+
+    runs = _capture_backfill_run(monkeypatch)
+    req = HistoricalBackfillRequest(indices=["ndvi"], geometry_revision=stale)
+    with pytest.raises(HTTPException) as exc:
+        await fields.field_historical_backfill(FIELD, req, BackgroundTasks(), x_agent_token="ok")
+    _assert_stale_409(exc)
+    assert runs == []
+
+    c1 = _c1_pipeline(monkeypatch)
+    tasks = BackgroundTasks()
+    with pytest.raises(HTTPException) as exc:
+        await fields.process_from_stac(FIELD, _stac_req(None, stale), tasks, x_agent_token="ok")
+    _assert_stale_409(exc)
+    await tasks()
+    assert c1 == []
+
+
+@pytest.mark.asyncio
+async def test_stored_revision_is_stamped_with_the_stored_clip(owned_field, monkeypatch):
+    """بلا مراجعة في الجسم (أو بالمطابقة) تُختَم المراجعة المخزّنة التي قُصّ بها، لا None."""
+    owned_field(TENANT_A)
+    dates = _capture_process_date(monkeypatch)
+    for revision in (None, STORED_REVISION):
+        req = ProcessDateRequest(
+            date="2026-10-01", index="ndvi", scene_id="S2A_X", geometry_revision=revision
+        )
+        await fields.field_process_date(FIELD, req, x_agent_token="ok")
+        assert dates[-1]["geometry_revision"] == STORED_REVISION
+        assert dates[-1]["clip_polygon_geojson"] == STORED
+
+    runs = _capture_backfill_run(monkeypatch)
+    req = HistoricalBackfillRequest(indices=["ndvi"])
+    await fields.field_historical_backfill(FIELD, req, BackgroundTasks(), x_agent_token="ok")
+    assert runs[-1]["geometry_revision"] == STORED_REVISION
+
+
+@pytest.mark.asyncio
+async def test_sync_backfill_scene_jobs_carry_the_stored_revision(owned_field, monkeypatch):
+    owned_field(TENANT_A)
+    c1 = _c1_pipeline(monkeypatch)
+    scene = {"item_id": "S2A_X", "datetime": None, "bands_urls": {"B04": "https://x/B04.tif"}}
+
+    async def stac_search(*_a, **_k):
+        return {"items": [scene], "count": 1}
+
+    async def no_persist(*_a, **_k):
+        return None
+
+    monkeypatch.setattr(fields, "_async_backfill_enabled", lambda: False)
+    monkeypatch.setattr(fields, "_stac_search", stac_search)
+    monkeypatch.setattr(fields, "_select_backfill_scenes_by_policy", lambda items, **_k: items)
+    monkeypatch.setattr(fields, "_persist_selected_stac_scenes", no_persist)
+    tasks = BackgroundTasks()
+    req = HistoricalBackfillRequest(
+        indices=["ndvi"], preset="custom", from_date="2026-09-01", to_date="2026-09-20"
+    )
+    await fields.field_historical_backfill(FIELD, req, tasks, x_agent_token="ok")
+    await tasks()
+    assert c1, "scene job did not reach the C1 core"
+    _scene, _index, _field, _tenant, revision, clip = c1[-1][:6]
+    assert (revision, clip) == (STORED_REVISION, STORED)
+
+
+@pytest.mark.asyncio
+async def test_process_from_stac_without_body_polygon_uses_stored_geometry(
+    owned_field, monkeypatch
+):
+    """غياب ``clip_polygon_geojson`` ⇒ الهندسة المخزّنة (قاعدة T10) — لا 422 radiometry_unresolved
+    من حارسٍ يسبق حلّ القصّ."""
+    owned_field(TENANT_A)
+    c1 = _c1_pipeline(monkeypatch)
+    tasks = BackgroundTasks()
+    out = await fields.process_from_stac(FIELD, _stac_req(None), tasks, x_agent_token="ok")
+    assert out["status"] == "pending"
+    await tasks()
+    _scene, _index, _field, tenant, revision, clip = c1[-1][:6]
+    assert (tenant, revision, clip) == (TENANT_A, STORED_REVISION, STORED)
+
+
+@pytest.mark.asyncio
+async def test_process_from_stac_db_less_without_polygon_stays_contained(owned_field, monkeypatch):
+    """بلا قاعدة لا هندسة مخزّنة تُحلّ: القصّ يبقى غائباً فيبقى الرفض 422 كما كان."""
+    owned_field(TENANT_A)
+    c1 = _c1_pipeline(monkeypatch)
+    monkeypatch.setattr(db_persist, "DATABASE_URL", "")
+    with pytest.raises(HTTPException) as exc:
+        await fields.process_from_stac(
+            FIELD, _stac_req(None), BackgroundTasks(), x_agent_token="ok"
+        )
+    assert exc.value.status_code == 422
+    assert c1 == []
