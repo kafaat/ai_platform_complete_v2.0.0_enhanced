@@ -4,15 +4,17 @@ import pytest
 
 
 class TestRAGAuth:
+    # تدقيق 2026-11-01 (Q1/Q2): كان ينادي «/query» (المسار الحقيقيّ «/v1/query») على خدمة
+    # حيّة فيتخطّى دائماً، ولا تُشغّله أيّ وظيفة. الآن عبر main.py الحقيقيّ (real_app_probe).
+    @pytest.mark.unit
     @pytest.mark.security
-    async def test_query_requires_auth(self, http_client):
-        """RAG /query must reject unauthenticated requests."""
-        from conftest import service_urls
+    def test_query_requires_auth(self):
+        """RAG /v1/query must reject unauthenticated requests."""
+        from real_app_probe import probe_rag
 
-        resp = await http_client.post(
-            f"{service_urls['rag']}/query", json={"question": "What is NDVI?"}
-        )
-        assert resp.status_code == 401
+        probe = probe_rag()
+        assert probe["query_no_token"] == 401
+        assert probe["query_valid_token"] == 503  # شاهدٌ موجب: الحارس يُمرّر التوكن الصالح
 
     @pytest.mark.integration
     async def test_query_with_valid_auth(self, http_client, auth_headers):
