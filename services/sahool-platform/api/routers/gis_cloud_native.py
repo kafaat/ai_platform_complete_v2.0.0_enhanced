@@ -109,7 +109,8 @@ class CogRegistryRequest(BaseModel):
     product_date: str
     index_type: str = Field(min_length=1)
     cog_url: str = Field(min_length=1)
-    cloud_pct: float = 0
+    # غياب القيمة = مجهول، لا 0% (G11). / Absent = unknown cover, not a clear sky.
+    cloud_pct: float | None = Field(default=None, ge=0, le=100)
     shadow_pct: float = 0
     nodata_pct: float = 0
     haze_pct: float = 0

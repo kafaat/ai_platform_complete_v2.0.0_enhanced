@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from shared.gis.cloud_native_runtime import (
     export_records_to_geoparquet,
     mosaicjson_from_records,
@@ -65,3 +67,28 @@ def test_geoparquet_export_has_deterministic_fallback(tmp_path: Path):
     assert result["rows"] == 1
     assert Path(result["path"]).exists()
     assert result["format"] in {"geoparquet", "jsonl-fallback"}
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("raw", [None, "", "n/a", float("nan"), -1, 101])
+def test_unknown_registry_cloud_cover_stays_unknown_not_zero(raw):
+    """G11 end-to-end: NULL/invalid DB cloud_pct is unknown (None), never a fabricated 0%."""
+    rec = record_from_db_row(_row(cloud_pct=raw))
+    assert rec.cloud_pct is None
+    # 0% would score 100 (grade A); unknown is capped at 70 by score_scene_quality.
+    assert rec.quality_score == 70
+    props = stac_item_from_record(rec)["properties"]
+    assert "eo:cloud_cover" not in props  # STAC eo:cloud_cover is a number; omit, not 0
+    assert props["sahool:cloud_cover_known"] is False
+
+
+@pytest.mark.unit
+def test_known_registry_cloud_cover_including_real_zero_is_kept():
+    clear = record_from_db_row(_row(cloud_pct=0))
+    assert clear.cloud_pct == 0.0 and clear.quality_score == 100
+    assert stac_item_from_record(clear)["properties"]["eo:cloud_cover"] == 0.0
+    cloudy = record_from_db_row(_row(cloud_pct="12.5"))
+    assert cloudy.cloud_pct == 12.5
+    assert cloudy.quality_score == 84  # round(100 - 12.5 * 1.25) = round(84.375)
+    props = stac_item_from_record(cloudy)["properties"]
+    assert props["eo:cloud_cover"] == 12.5 and props["sahool:cloud_cover_known"] is True
