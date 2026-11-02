@@ -477,7 +477,7 @@ class DriftRiskRequest(BaseModel):
     """طلب تقييم انجراف الرشّ: مناطق حسّاسة يوفّرها العميل (لا تُخزَّن) + معاملات اختياريّة."""
 
     sensitive_zones: list[_SensitiveZone] = Field(default_factory=list, max_length=200)
-    # تجاوز اتّجاه الريح (أرصاديّ)؛ None ⇒ يُشتقّ السائد من NASA POWER (تاريخ).
+    # تجاوز اتّجاه الريح (أرصاديّ)؛ None ⇒ يُشتقّ الاتّجاه السائد من السجلّ التاريخيّ في المسار.
     wind_from_deg: float | None = Field(default=None, ge=0, le=360)
     years: int = Field(default=3, ge=1, le=10)
     max_distance_m: float = Field(default=200.0, gt=0, le=5000)
