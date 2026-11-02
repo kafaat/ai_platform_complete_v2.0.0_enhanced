@@ -10265,3 +10265,16 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **لم يُكذَّب أيّ بندٍ كاملاً.** صُحِّحت أربعة تشخيصات جزئيّاً: مسار S1، وسطر R3، وشقّ المنصّة في A7، وادّعاء إعادة النشر في A6.
 - **روابط بدل تكرار:** ملاحظة HMAC تُحال إلى `SUP-08-DEVICE-COMMAND-SIGNATURE-UNBOUND-TO-DEVICE-01`. وتسمّي الصفوف الفجواتِ القائمة القريبة في عمود المصدر.
 - **لماذا لا `fixed`:** لم يُدمج أيّ إصلاحٍ في `main`، وهذا التغيير دماغيٌّ فقط. ينتقل كلّ صفّ في PR إصلاحه (#1136).
+
+### 2026-11-02 — ربطُ صفوف تدقيق 2026-11-01 بـPRs المعالجة، وثماني فجواتٍ جديدة
+
+- **المصدر:** حالة الـPRs ورؤوسها وقواعدها من `GET /repos/…/pulls/{n}`، و`check-runs` على كلّ رأس (قراءة، 2026-11-02)، و`git log <القاعدة>..<الفرع>` لنسبة كلّ التزامٍ إلى بنده. وتحقّقتُ أنّ كلّ SHA مذكورٍ سلفاً في صفوف #1322 و#1323 و#1324 سلفٌ لرأس فرعه.
+- **ما تغيّر في [`gaps/registry.md`](gaps/registry.md):** بندٌ جديد «مواضع الإصلاحات (2026-11-02)» في رأس القسم، وتحديث عمود الحالة في 65 صفّاً، كلّها باقيةٌ `open` لأنّ أيّ PR لم يُدمج:
+  - #1324 (16 صفّاً) و#1323 (5): «على فرع الأمن/الاختبارات» صارت «في PR #… غير المدموج»، ومعها إصلاحات Copilot الثلاثة (`529ad6a66` · `420ecba7c` · `7134b747a`)، وخيط `compat_gateway` المتروك للمالك.
+  - #1327: 14 صفّاً منها T8 ومتابعتاه، وI5 جزئيّ (صور الأساس لم تُلمس).
+  - #1328 و#1329 و#1330: 11 صفّاً كانت بلا معالجة (أو دَيناً معلَناً)، وأربعة صفوف أمٍّ في #1322 (G4، G11، G14، G15) تشير الآن إلى متابعاتها.
+  - المحجوزة (15 صفّاً): صفوف v237 (T1، T2، T7، T9) وT3 والمشغّلات A1–A8 تسمّي فروعها على `main`، وS5 فرعَه الجديد. ومتابعة MCP (`MCP-SERVERS-DO-NOT-CHECK-TOKEN-REVOCATION-01`) صار إصلاحها على فرع S5 المحجوز نفسه (`9f9b86c2e`).
+  - صفوف #1322 الأخرى (G1، G3، G5، G10، G12، G13، I2، R1–R4) كانت تسمّي PR #1322 أصلاً، فلم تُلمس.
+- **ثماني فجواتٍ جديدة `open`، لكلٍّ مصدرٌ `path:line`:** `DRAWING-FEATURES-UPSERT-CONFLICT-TARGET-WITHOUT-TENANT-01`، `CDSE-EVALSCRIPT-INDEX-EXPRESSIONS-UNGUARDED-01`، `RASTER-ALGORITHM-VERSION-NOT-BUMPED-AFTER-FORMULA-CHANGES-01` (قرار مالك)، `PLATFORM-BREAK-GLASS-MFA-READS-PLAINTEXT-SECRET-ONLY-01`، `RASTER-TRUSTS-X-TENANT-ID-HEADER-FROM-ANY-CALLER-01`، `RAILWAY-GATEWAY-HSTS-INCLUDESUBDOMAINS-UNDECIDED-01` (قرار مالك)، `RAILWAY-GATEWAY-CSP-NEVER-EXERCISED-IN-A-BROWSER-01`، `NGINX-FIXED-RASTER-ROUTE-WITHOUT-AUTH-REQUEST-01`.
+- **قبل تسجيل الأخيرة:** بحثتُ في السجلّ عن `nginx.fixed.conf` و`auth_request`. الصنف القريب `NGINX-NON-CANONICAL-BUNDLES-PIN-UPSTREAM-DNS-AT-BOOT-01` يخصّ DNS المنبع لا المصادقة، فلا تكرار. وعرضاً: حقل `line` في `gateway_reachability.json` يقول 46 والسطر الفعليّ 76 (`scripts/ci/gateway_reachability_guard.py:117`).
+- **القرار:** متابعات الموجة الثانية تُكدَّس فوق PRs آبائها (#1328/#1329/#1330) بدل توسيعها ([`decisions/ledger.md`](decisions/ledger.md)).
