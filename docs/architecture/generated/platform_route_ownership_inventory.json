@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "e9638c1339022b081af919f467c1e61e93bdf7a969f88b42482c5b60a0537a1d",
+  "inventory_sha256": "9563a8146657cce51c10049bd8845d68ce4dcdb37d10dc15295dbc62580c9037",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "d2b44c5f6d1e764130adfd85f08d2041c333ccac714b2959655b434658f721cb",
+  "map_sha256": "6eccaf7871594bc7626996b101328a3212ca2eccac8aea477fd85fa5668b211c",
   "routes": [
     {
       "classification": null,
@@ -2423,7 +2423,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/field_workspace_weather.py",
       "function": "field_disease_risk_facade",
-      "line": 423,
+      "line": 428,
       "method": "GET",
       "owner": "weather-service",
       "owner_type": "bff-facade-to-weather",

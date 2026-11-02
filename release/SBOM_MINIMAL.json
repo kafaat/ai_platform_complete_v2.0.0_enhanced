@@ -23575,7 +23575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac78670b8682b19fe5d1ac4869e0a47e3729edc87500c69738848be964bc13ae"
+          "content": "b4f6b60c238d5e24737f66d4ddf1436903a0352f0798a77ce7c97195f5d3a051"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -25405,7 +25405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c575b1721ecb6d502730d03bfd0ec99804d856c692266d64a02627b512611ef"
+          "content": "d777f043380be249dfec8bee785ef1a41265de5706a069461ceecbb492c6dd98"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_weather.py",
@@ -25415,7 +25415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eb6c2c9623400307784048bb8834e57602788f6c1c0bd2f6ffdc9e56731b4fd8"
+          "content": "0f045551efbeba17b565b3740b618912b573dfceba40d96ee37d8b0352030687"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -25625,7 +25625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08fb7b903cac6ea0e9120b75cd976a329552e95902b368d34b9435399eb7345a"
+          "content": "b0691dd06403a6bced1e818de65b6683c67d0d80f611ce7cfddf9731a7bbfed7"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -26085,7 +26085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec7a1246a59f7e9739cb335b13cbad46b3cdc30157373b9ad2e1aa0cd2d72565"
+          "content": "88c28b04a4f92248d98b07c0505d75fdaa89794c6cc6773c39836291cae07776"
         }
       ],
       "name": "services/sahool-platform/api/routers/season_workspace.py",
@@ -26815,7 +26815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "48cf99acd1653d2f122159f7fd17bf4753f80ee841b81dafd4bdf3642f1d8420"
+          "content": "f162cf70058f0eb2e556abde6f680d009d80d83159458e0eeed5a0930de3595b"
         }
       ],
       "name": "services/sahool-platform/api/weather_advice.py",
@@ -26855,7 +26855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "519d5bfe594a91efca4e7f259697f4cd344fd908a0fc9f1be04976088d9a43b4"
+          "content": "cc104b91474c9c5d269d0bfdde407c100112db8bb126e1efa4b9529306fbff79"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -33225,7 +33225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "11472fa75139ae84c1b45b992b4081e9c849cccaa04822264f55ae460764e70d"
+          "content": "c7ec97cb00faa8255ce220fa27de061055abebb82781f653c63ee04c043209f8"
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_recent_rain_and_soil_input_g8_g9.py",
@@ -38915,7 +38915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "531c9817bcce88bd8e94fb3a9ef01eb8c992b497be6059a0048836e84c5bb823"
+          "content": "658842caac7ecbc2258d40999c29d17d70d5e6664c10cb85c1e6770a18b027fd"
         }
       ],
       "name": "shared/gis/cloud_native_runtime.py",
@@ -38975,7 +38975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "66b1358aa20b2889668b948034e9f28a966ed1daa0a66abcb37fac47541305dc"
+          "content": "8b9e9c2fbe26dd5e4c7963520f1f0bdbbf2bc3f5904e9d1a4d9e9c007efaf077"
         }
       ],
       "name": "shared/gis/test_cloud_native_runtime.py",

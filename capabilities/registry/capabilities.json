@@ -2512,7 +2512,7 @@
       ],
       "apis": [
         "GET /api/v1/crop-cards/variety/{variety_id}/disease-watch @ services/sahool-platform/api/routers/crop_cards.py:113",
-        "GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:424"
+        "GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:429"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

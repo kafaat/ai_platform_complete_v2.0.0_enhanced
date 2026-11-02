@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "d39ac397b10ad2bcc9f0a9a22018121119a9ce7912c20c79b9df5686efde62f6",
+  "inventory_sha256": "ce91d641de7216c05cf6ec01871f12d3a4b515eb47d7397b770b0823f3739b8e",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "d2b44c5f6d1e764130adfd85f08d2041c333ccac714b2959655b434658f721cb"
+    "policy_sha256": "6eccaf7871594bc7626996b101328a3212ca2eccac8aea477fd85fa5668b211c"
   },
   "routes": [
     {
@@ -1386,7 +1386,7 @@
     {
       "classification": "domain",
       "function": "field_disease_risk_facade",
-      "line": 423,
+      "line": 428,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/disease-risk",
       "source": "api/routers/field_workspace_weather.py"

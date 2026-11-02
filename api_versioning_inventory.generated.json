@@ -5501,7 +5501,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 424,
+    "line": 429,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/disease-risk",
     "handler": "field_disease_risk_facade",
