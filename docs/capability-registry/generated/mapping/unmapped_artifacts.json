@@ -10672,10 +10672,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_t3_ingest_definer_execute_revoked_static.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_tasks_endpoints.py",
     "kind": "tests"
   },

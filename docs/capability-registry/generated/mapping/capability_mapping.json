@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6962,
+    "files_scanned": 6961,
     "files_by_kind": {
       "backend": 1266,
       "database": 289,
       "governance": 87,
       "mobile": 414,
       "other": 2136,
-      "tests": 2269,
+      "tests": 2268,
       "web": 501
     },
-    "unmapped_artifacts": 2763,
+    "unmapped_artifacts": 2762,
     "ambiguous_artifacts": 500
   },
   "capabilities": [
@@ -52336,10 +52336,6 @@
     },
     {
       "path": "tests_v9/test_supervisor_skill_canonical_location_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_t3_ingest_definer_execute_revoked_static.py",
       "kind": "tests"
     },
     {
