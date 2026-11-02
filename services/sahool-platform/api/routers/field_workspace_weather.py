@@ -339,7 +339,8 @@ async def field_irrigation_advice_facade(
     """توصية ريّ خادمية من ET0/Kc/المطر ورطوبة التربة إن توفرت."""
     from core.season_phenology import resolve_crop_id, stage_kc
 
-    from api.weather_advice import irrigation_advice
+    from api.soil_telemetry import irrigation_soil_input
+    from api.weather_advice import irrigation_advice, irrigation_rain_window
 
     try:
         async with tenant_connection(user) as conn:
@@ -361,7 +362,6 @@ async def field_irrigation_advice_facade(
 
     try:
         forecast = await get_weather_forecast(lat, lon, days=3)
-        current = await get_current_weather(lat, lon)
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
@@ -371,23 +371,26 @@ async def field_irrigation_advice_facade(
     et0 = _reading(days[0], "et0_mm") if days else None
     if et0 is None:
         raise HTTPException(status_code=503, detail="بيانات ET₀ غير متوفّرة حالياً.")
-    current_rain = _reading(current, "precipitation_mm")
-    forecast_rain, missing_forecast = _complete_precipitation_total(days[1:3], expected_count=2)
-    missing_rain = ([0] if current_rain is None else []) + [index + 1 for index in missing_forecast]
+    # G8: مطرُ يومِ ET₀ نفسِه (٢٤ ساعة) لا آخرُ ربع ساعة — تعريفٌ واحد مع مسار التوصية.
+    recent_rain, forecast_rain, missing_rain = irrigation_rain_window(
+        [_reading(day, "precipitation_mm") for day in days[:3]]
+    )
     if missing_rain:
         raise _precipitation_incomplete(
             context="irrigation_advice",
             missing_intervals=missing_rain,
         )
-    assert current_rain is not None and forecast_rain is not None
-    soil_pct = soil_reading.value_pct if soil_reading is not None else None
+    assert recent_rain is not None and forecast_rain is not None
+    # G9: الوحدةُ والعمرُ يُمرَّران — القديمةُ لا تبلغ المُقرِّر، وVWC لا تُقرأ «ماءً متاحاً».
+    soil = irrigation_soil_input(soil_reading)
     advice = irrigation_advice(
         et0_mm=et0,
         crop=crop,
         stage=stage,
-        rain_recent_mm=current_rain,
+        rain_recent_mm=recent_rain,
         forecast_rain_mm=forecast_rain,
-        soil_moisture_pct=soil_pct,
+        soil_moisture_pct=soil.pop("usable_pct"),
+        soil_moisture_unit_kind=soil["soil_moisture_unit_kind"] or "available_pct",
         # G1: Kc اليوميّ (FAO-56) من عمر المحصول — لا قيمة المرحلة الواحدة لكامل المرحلة.
         kc_override=stage_kc(resolve_crop_id(crop), days_since_sowing),
     )
@@ -397,10 +400,7 @@ async def field_irrigation_advice_facade(
             "crop": crop,
             "stage": stage,
             "source": "weather-service",
-            "soil_moisture_pct": soil_pct,
-            "soil_moisture_at": soil_reading.recorded_at.isoformat()
-            if soil_reading is not None
-            else None,
+            **soil,
         }
     )
     return advice

@@ -770,7 +770,7 @@ async def field_irrigation_weather_snapshot(
 
     from fastapi import HTTPException
 
-    from api.weather_advice import complete_rain_total
+    from api.weather_advice import irrigation_rain_window
 
     # ثلاثةُ أيّامٍ لا يوم: المطرُ جزءٌ من المدخَل لا زينة — يومُ اليوم لـ``rain_recent_mm``
     # واليومان التاليان لـ``forecast_rain_mm``، وهي **نفسُ قسمة** ``routers/fields.py``
@@ -790,10 +790,10 @@ async def field_irrigation_weather_snapshot(
         doy = _date.fromisoformat(valid_time).timetuple().tm_yday if valid_time else None
     except (TypeError, ValueError):
         doy = None
-    # مطرُ اليوم + مجموعُ اليومين التاليين. ``complete_rain_total`` هو المصدرُ الواحد
-    # لقاعدة «لا يُجمَع نصفُ سلسلةٍ ويُقدَّم مجموعاً كاملاً» — فترةٌ ناقصةٌ ⇒ ``None``.
-    forecast_rain, _missing = complete_rain_total(
-        [d.get("precipitation_mm") for d in days[1:3]], expected_count=2
+    # مطرُ اليوم + مجموعُ اليومين التاليين — G8: ``irrigation_rain_window`` هو التعريفُ
+    # الواحد الذي يسأله مسارُ مساحة العمل أيضاً؛ فترةٌ ناقصةٌ ⇒ ``None`` لا صفر.
+    rain_recent, forecast_rain, _missing = irrigation_rain_window(
+        [d.get("precipitation_mm") for d in days[:3]]
     )
     return {
         "t_min_c": d0.get("temp_min_c"),
@@ -803,7 +803,7 @@ async def field_irrigation_weather_snapshot(
         "wind_2m_ms": None,
         "solar_rad_mj_m2": d0.get("solar_radiation_mj_m2"),
         "rh_mean_pct": None,  # غير متوفّر في التوقّع اليوميّ
-        "rain_recent_mm": d0.get("precipitation_mm"),
+        "rain_recent_mm": rain_recent,
         "forecast_rain_mm": forecast_rain,
         "day_of_year": doy,
         "valid_time": valid_time,

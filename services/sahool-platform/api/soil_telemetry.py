@@ -167,3 +167,58 @@ def pick_latest_soil_moisture(rows: list[dict[str, Any]]) -> SoilMoistureReading
                 depth_to_cm=_opt_float(row.get("depth_to_cm")),
             )
     return best
+
+
+def irrigation_soil_input(
+    reading: SoilMoistureReading | None, *, now: datetime | None = None
+) -> dict[str, Any]:
+    """G9 — ما يدخل توصية الريّ من قراءة التربة: **الوحدةُ والعمرُ يُمرَّران لا يُسقَطان**.
+
+    كان المسارُ يمرّر ``value_pct`` عارياً فتُقرأ ``25٪ VWC`` «ماءً متاحاً ٢٥٪» (حرجة ⇒
+    ريٌّ عاجل) وقراءةُ أسبوعٍ مضى قراءةَ اليوم. الآن: ``usable_pct`` يُعطى للمُقرِّر
+    **فقط** حين تكون القراءةُ طازجةً (سقفُ ``soil_moisture_sensor.max_reading_age_s``
+    عبر ``water_twin_seed.sensor_freshness`` نفسها) ووحدتُها قابلةً للمقارنة بعتبات الماء
+    المتاح؛ والحجميّةُ بلا θFC/θWP تُعلَن غيرَ قابلة للمقارنة (لا تُحوَّل تخميناً).
+    والقراءةُ الخام تبقى معروضةً بوحدتها وعمرها.
+    """
+    from datetime import UTC
+
+    from api.device_registry import get_device_type
+    from api.water_twin_seed import _FRESHNESS_LIMITATION, sensor_freshness
+
+    if reading is None:
+        return {
+            "usable_pct": None,
+            "soil_moisture_pct": None,
+            "soil_moisture_at": None,
+            "soil_moisture_unit": None,
+            "soil_moisture_unit_kind": None,
+            "soil_moisture_age_s": None,
+            "soil_moisture_freshness": None,
+            "soil_moisture_used": False,
+            "soil_moisture_limitations": [],
+        }
+    observed = reading.recorded_at
+    if observed.tzinfo is None:  # timestamptz يصل واعياً؛ الساذجُ يُعامَل UTC صراحةً
+        observed = observed.replace(tzinfo=UTC)
+    age_s = ((now or datetime.now(UTC)) - observed).total_seconds()
+    max_age_s = (get_device_type("soil_moisture_sensor") or {}).get("max_reading_age_s")
+    freshness = sensor_freshness(age_s, max_age_s)
+    limitations = [_FRESHNESS_LIMITATION[freshness]] if freshness != "fresh" else []
+    if reading.unit_kind == UNIT_VWC_PCT:
+        limitations.append("soil_moisture_vwc_not_comparable_to_available_water")
+    elif reading.unit_kind == UNIT_UNDECLARED:
+        limitations.append("soil_moisture_sensor_unit_undeclared")
+    used = freshness == "fresh" and reading.unit_kind != UNIT_VWC_PCT
+    return {
+        # الطازجُ وحدَه يبلغ المُقرِّر؛ والحجميّةُ تبلغه ليُعلِنها هو غيرَ مُستعمَلة.
+        "usable_pct": reading.value_pct if freshness == "fresh" else None,
+        "soil_moisture_pct": reading.value_pct,
+        "soil_moisture_at": reading.recorded_at.isoformat(),
+        "soil_moisture_unit": reading.unit,
+        "soil_moisture_unit_kind": reading.unit_kind,
+        "soil_moisture_age_s": round(age_s, 1),
+        "soil_moisture_freshness": freshness,
+        "soil_moisture_used": used,
+        "soil_moisture_limitations": limitations,
+    }
