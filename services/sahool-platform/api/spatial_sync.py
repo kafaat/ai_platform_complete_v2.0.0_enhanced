@@ -203,9 +203,13 @@ def _rows_touched(result: Any) -> int:
 async def claim_due(conn: Any, *, limit: int = 25) -> list[dict[str, Any]]:
     """يُطالِب دفعةً من النيّات المستحقّة ويُؤجّرها — عبارةٌ واحدة، ``FOR UPDATE SKIP LOCKED``.
 
-    مستحقّة = ``pending`` بلا إجارةٍ حيّة وبلا ``next_attempt_at`` في المستقبل. تُوسَم
-    ``running`` بإجارةٍ ذات رمزٍ ومهلة؛ الإنهاءُ لاحقاً CAS على الرمز، فلا يكتب عاملٌ
-    انتهت إجارتُه فوق عمل من أعاد المطالبة.
+    مستحقّة = ``pending`` بلا إجارةٍ حيّة وبلا ``next_attempt_at`` في المستقبل، **أو**
+    ``running`` انتهت إجارتُه (R5: عاملٌ مات بين المطالبة والإنهاء — كانت تبقى ``running``
+    للأبد فلا يُسلَّم الإبطال). ``running`` بلا إجارةٍ تُعدّ منتهيةً بعد ``LEASE_SECONDS``
+    من ``updated_at``. الاستعادةُ تَعُدّ المحاولةَ الضائعة (``attempts``+1، ``reclaimed``)
+    فتبقى المحاولاتُ محدودة و``deliver`` يُنهي المستنفَدةَ ``failed``. تُوسَم ``running``
+    بإجارةٍ ذات رمزٍ ومهلة؛ الإنهاءُ لاحقاً CAS على الرمز، فلا يكتب عاملٌ انتهت إجارتُه
+    فوق عمل من أعاد المطالبة.
 
     المطالبةُ عابرةٌ للمستأجرين بالتصميم (كعامل outbox): تعمل على مسبح الوظائف
     (``JOBS_DATABASE_URL``، دورٌ يتجاوز عزلَ الصفوف). على مسبح التطبيق بلا سياق مستأجِر
@@ -216,11 +220,17 @@ async def claim_due(conn: Any, *, limit: int = 25) -> list[dict[str, Any]]:
         """
         WITH due AS (
             SELECT id FROM processing_jobs
-            WHERE job_type = $1 AND status = 'pending'
-              AND (result->'lease' IS NULL OR result->'lease' = 'null'::jsonb
-                   OR (result->'lease'->>'expires_at')::timestamptz <= clock_timestamp())
-              AND (result->>'next_attempt_at' IS NULL
-                   OR (result->>'next_attempt_at')::timestamptz <= clock_timestamp())
+            WHERE job_type = $1
+              AND ((status = 'pending'
+                    AND (result->'lease' IS NULL OR result->'lease' = 'null'::jsonb
+                         OR (result->'lease'->>'expires_at')::timestamptz <= clock_timestamp())
+                    AND (result->>'next_attempt_at' IS NULL
+                         OR (result->>'next_attempt_at')::timestamptz <= clock_timestamp()))
+                OR (status = 'running'
+                    AND COALESCE((result->'lease'->>'expires_at')::timestamptz,
+                                 COALESCE(updated_at, started_at, created_at)
+                                     + make_interval(secs => $3),
+                                 '-infinity'::timestamptz) <= clock_timestamp()))
             ORDER BY priority, id
             LIMIT $2
             FOR UPDATE SKIP LOCKED
@@ -232,7 +242,11 @@ async def claim_due(conn: Any, *, limit: int = 25) -> list[dict[str, Any]]:
             result = COALESCE(j.result, '{}'::jsonb) || jsonb_build_object(
                 'lease', jsonb_build_object(
                     'token', gen_random_uuid()::text,
-                    'expires_at', (clock_timestamp() + make_interval(secs => $3))::text))
+                    'expires_at', (clock_timestamp() + make_interval(secs => $3))::text),
+                -- j.status هنا القيمةُ السابقة: running ⇒ استعادةٌ تَعُدّ المحاولةَ الضائعة.
+                'reclaimed', j.status = 'running',
+                'attempts', COALESCE((j.result->>'attempts')::int, 0)
+                            + CASE WHEN j.status = 'running' THEN 1 ELSE 0 END)
         FROM due
         WHERE j.id = due.id
         RETURNING j.id, j.tenant_id::text AS tenant_id, j.field_id,
@@ -256,6 +270,16 @@ async def deliver(conn: Any, job: dict[str, Any], *, send: SendFn) -> str:
     result = _jsonish(job.get("result")) or {}
     token = (result.get("lease") or {}).get("token") if isinstance(result, dict) else None
     attempts = int(result.get("attempts") or 0) if isinstance(result, dict) else 0
+    if attempts >= MAX_ATTEMPTS:
+        # R5: استعادةٌ بعد إجاراتٍ منتهية استنفدت المحاولات (العاملُ يموت أثناءها) ⇒ نهائيّة.
+        return await _finish(
+            conn,
+            job,
+            token,
+            status="failed",
+            attempts=attempts,
+            error="attempts exhausted: lease expired mid-delivery (worker lost)",
+        )
     request_id = params.get("request_id")
     if not request_id:
         return await _finish(
@@ -350,12 +374,21 @@ async def run_once(
         from api.raster_service_client import enqueue_raster_cache_invalidation
 
         send = enqueue_raster_cache_invalidation
-    counts = {"claimed": 0, "delivered": 0, "retry": 0, "failed": 0, "lease_lost": 0}
+    counts = {
+        "claimed": 0,
+        "reclaimed": 0,
+        "delivered": 0,
+        "retry": 0,
+        "failed": 0,
+        "lease_lost": 0,
+    }
     async with pool.acquire() as conn:
         async with conn.transaction():
             jobs = await claim_due(conn, limit=batch_size)
         for job in jobs:
             counts["claimed"] += 1
+            if (_jsonish(job.get("result")) or {}).get("reclaimed"):
+                counts["reclaimed"] += 1
             outcome = await deliver(conn, job, send=send)
             counts[outcome] = counts.get(outcome, 0) + 1
     return counts
