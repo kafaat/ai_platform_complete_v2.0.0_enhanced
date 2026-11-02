@@ -1,3 +1,5 @@
+> 2026-11-01 — سُجِّل تدقيق الكود المصدريّ (على `cc0d2e295`) في [`gaps/registry.md`](gaps/registry.md): 92 صفّاً كلّها `open`، منها 71 بنداً و21 متابعة. لم يُدمج أيّ إصلاح بعد. مواضع الإصلاح: 15 في PR #1322، و17 على فرع الأمن و5 على فرع الاختبارات (PRان معلَّقان)، و13 في مسوّدتَي GATE-01 تنتظران حكم المالك، وS5 محجوزٌ حتّى يُضبط `DENYLIST_REDIS_URL` على Railway. وبقي 41 صفّاً بلا معالجة، منها G2/G6/G7 في مسارٍ مجمَّد. وتنتهي سبعة استثناءات معاً في 2026-11-30 (`AUTHORITY-EXCEPTIONS-CO-EXPIRE-ON-2026-11-30-01`).
+
 > 2026-11-01 — `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01` **fixed**: أوّلُ التزامٍ على main بعد حذف الخدمة (`aaa1b7f0a`) حالتُه المجمَّعة `success` (14/14)، وسابقُه `cc0d2e295` كان `failure` بحالة `resourceful-commitment` وحدها ([`gaps/registry.md`](gaps/registry.md)).
 
 > 2026-11-01 — حذف المالك خدمةَ مشروع Railway الشارد `resourceful-commitment` الوحيدة، ثمّ جدولَ المشروعَ نفسَه للحذف (مهلة 48 ساعة). `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01` تبقى **open** حتّى يُرى التزامٌ على main بحالةٍ مجمَّعة `success` ([`gaps/registry.md`](gaps/registry.md) · [`log.md`](log.md)).
