@@ -10345,3 +10345,10 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **ما تغيّر في [`gaps/registry.md`](gaps/registry.md):** صفوف متابعات G4 وG8/G9 وG11 وG14 وG15 تقول «مدموجٌ في `main` (`b14ad171f`، #1329)»، وسطر #1329 في «مواضع الإصلاحات» يسجّل الإصلاحين والدمج.
 - **تغيّر سلوكٍ قبل النشر:** نصيحة الريّ والتوصية لم تعودا تخصمان مطر اليوم المتوقَّع كأنّه هطل (`rain_recent_source="not_observed_not_deducted"`)، فقد ترتفع الكمّيّات في أيّام التوقّع الماطر مقارنةً بشيفرة G8 السابقة.
 - **لماذا لا `fixed`:** السبب نفسه المسجَّل لـ#1322.
+
+### 2026-11-02 — دمجُ #1324 و#1330: الأمن والعزل وraster يسمّيان `191767323` و`37c6770ef` ويبقيان `open`
+
+- **القياس (قراءة):** #1324 دُمج فيه `main` بعد #1322 و#1327، وحُلّت التعارضات في `services/auth/` (S8 مع S16: `password_hashing` و`import bcrypt` الذي يصل إليه `routers/session.py`) و`field_models.py` (مجموعتا النماذج المنقولة معاً)، وأُعيد اشتقاق مراسي `platform_extraction_map.json` (§٣.١٥). أُضيف DEC-010 إلى `Capability-Impact` وأُعيد تشغيل الوظيفة. دُمج squash ⇒ `191767323`، وشجرته `1ceedc2a…` = شجرة الرأس المختبَر. ثمّ أُعيد توجيه #1330 إلى `main`، وأُصلحت ملاحظات Copilot (4 بشيفرةٍ واختبار، و1 بلا تغيير لسببٍ أمنيّ)، وصُحّح تأكيد `test_geometry_revision_flows_through_all_paths` للنمط الجديد، وأُضيف SEC-005 إلى `Capability-Impact`. دُمج squash بعد حلّ الخيوط الخمسة واخضرار CI ⇒ `37c6770ef`، و`git rev-parse 37c6770ef^{tree}` = `git rev-parse e6a4e2fb6^{tree}` = `71114eaf…`.
+- **ما تغيّر في [`gaps/registry.md`](gaps/registry.md):** ستّة عشر صفّاً لـ#1324 وثلاثة لـ#1330 تقول «مدموجٌ في `main` (sha، #PR)»، وسطرا #1324 و#1330 في «مواضع الإصلاحات» يسجّلان الدمج والشجرة، وسطر #1326 يسجّل دمجه `33913f863`.
+- **لماذا لا `fixed`:** السبب نفسه المسجَّل لـ#1322 (`brain_state_transition_guard` يرفض `fixed` في PR دماغيٍّ فقط).
+- **ما يبقى محجوزاً:** مسوّدتا GATE-01 (v237+T3، وA1–A8)، وS5 حتّى يُضبط `DENYLIST_REDIS_URL` على Railway.
