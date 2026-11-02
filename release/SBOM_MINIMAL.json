@@ -6505,7 +6505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eb8baef1bf4517793294136b50db02654f284a251f3a9420b4fb128a6ca90df5"
+          "content": "bb82bbd35d0f9f3d42dceb221fa704d8a8412c5889513e975a19d136a67778b3"
         }
       ],
       "name": "frontend/src/sections/SatellitePageFieldGeometryRefresh.static.test.ts",
