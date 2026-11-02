@@ -238,9 +238,17 @@ def _salinity_hook(
     net_adj = max(0.0, etc_adj - (etc - net))
     if water_ec is not None:
         lr = _fao56_leaching_requirement(water_ec, profile.salt_tolerance_ece)
+        # LR كسرٌ من الماء المُطبَّق: 1 ⇒ قسمة على صفر، وخارج [0,1) لا معنى فيزيائيّاً له.
+        if not 0.0 <= lr < 1.0:
+            raise ValueError(f"leaching requirement must be in [0, 1); got {lr!r}")
         if lr > 0.0 and net_adj > 0.0:
-            net_adj = net_adj * (1.0 + lr)
-            note_parts.append(f"غسيل الأملاح: +{lr * 100:.0f}% فوق الصافي (ECw={water_ec}).")
+            # FAO-29: الإجماليّ = الصافي / (1 − LR)، لا الصافي × (1 + LR) الذي يُنقِص الماء
+            # (LR=0.5 ⇒ ×1.5 بدل ×2). LR كسرٌ من المُطبَّق لا من الصافي.
+            net_adj = net_adj / (1.0 - lr)
+            note_parts.append(
+                f"غسيل الأملاح: LR={lr * 100:.0f}% ⇒ +{lr / (1.0 - lr) * 100:.0f}% "
+                f"فوق الصافي (ECw={water_ec})."
+            )
     return etc_adj, net_adj, True, " ".join(note_parts)
 
 

@@ -1261,6 +1261,8 @@
         "MODEL_REGISTRY_URL",
         "PORT",
         "REGISTRY_ADAPTER_ID",
+        "RUNTIME_ITEM_MAX_ATTEMPTS",
+        "RUNTIME_ITEM_PARK_SECONDS",
         "RUNTIME_POLL_INTERVAL_SECONDS",
         "RUNTIME_TENANT_ID",
         "RUNTIME_TENANT_IDS",
@@ -1304,7 +1306,8 @@
       },
       "secrets": [
         "DECISION_SERVICE_TOKEN",
-        "MODEL_REGISTRY_TOKEN"
+        "MODEL_REGISTRY_TOKEN",
+        "REGISTRY_DELIVERY_TOKEN_SECRET"
       ],
       "service": "model-registry-adapter",
       "source_service": "model-registry-adapter",
@@ -1980,6 +1983,7 @@
         "IMAGERY_BATCH_POLL_INTERVAL_S",
         "IMAGERY_BATCH_WAIT_BUDGET_S",
         "IMAGERY_SCAN_CONCURRENCY",
+        "IMAGERY_SCENE_MAX_ATTEMPTS",
         "INDICATORS_SERVICE_URL",
         "IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS",
         "IRR_F01_RESERVATION_ENFORCE_ACTIVATION",
@@ -2363,6 +2367,7 @@
           "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
           "services/sahool-platform/tests/test_lab_sampling_router.py",
           "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+          "services/sahool-platform/tests/test_nats_relay_bounded_startup.py",
           "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
           "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
           "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",

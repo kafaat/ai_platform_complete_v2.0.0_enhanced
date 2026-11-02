@@ -4,11 +4,11 @@
 
 ## Summary
 
-- Python files parsed: **2053**
+- Python files parsed: **2057**
 - FastAPI-style route handlers: **1062**
-- Static function-call edges: **95037**
+- Static function-call edges: **95339**
 - Dead-code candidates: **661**
-- Duplicate function groups: **57**
+- Duplicate function groups: **58**
 - Automatic deletions: **0**
 
 ## Highest-confidence dead-code candidates
@@ -28,7 +28,7 @@
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_cdse_empty_raster_not_cached.py` | 70 |
 | `raster-service` | `_clean_runtime_state` | function | `services/raster-service/test_job_truth_receipts_and_fencing.py` | 77 |
 | `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 60 |
-| `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1207 |
+| `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1191 |
 | `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 190 |
 | `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 208 |
 | `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 425 |
@@ -57,7 +57,6 @@
 | `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 19 |
 | `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 120 |
 | `weather-service` | `_reset_breaker` | function | `services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py` | 41 |
-| `shared` | `_normalize_feature_vector` | function | `shared/precision_agriculture/phase6_intelligence.py` | 223 |
 
 ## Duplicate implementation groups
 
@@ -88,6 +87,7 @@
 | `5c83798b883cda7e` | 2 |
 | `62a08c439a5d8220` | 2 |
 | `69e415224b4d3b71` | 4 |
+| `6a2cef3bc2a2519d` | 2 |
 | `6dcb6ad9fc0cd5a9` | 2 |
 | `6f642e211a717584` | 2 |
 | `732840534ed80cbd` | 5 |
@@ -112,7 +112,6 @@
 | `c830f52a910d32a5` | 2 |
 | `c92554a020167fed` | 2 |
 | `daa44aded5a16e85` | 2 |
-| `dbaed230242c5876` | 2 |
 
 ## Interpretation
 

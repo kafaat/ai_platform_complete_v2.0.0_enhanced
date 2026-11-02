@@ -964,3 +964,53 @@ async def test_engine_rejected_field_weather_fails_closed_with_named_inputs(monk
     assert "t_max_c rejected: t_max_c < t_min_c" in out["limitations"]
     assert any("fail-closed" in lim for lim in out["limitations"])
     assert not any(e.startswith("weather-engine-et0:") for e in out["evidence_ids"])
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_g1_late_stage_uses_daily_fao56_kc_not_kc_end(monkeypatch):
+    # G1: قمح يوم 92 (أوّل late). كان Kc = Kc_end (0.40) لكامل المرحلة ⇒ 5.1×0.40 = 2.0 مم؛
+    # منحنى FAO-56 (Eq.66) يهبط خطّيّاً من Kc_mid ⇒ Kc(92) = 1.10 ⇒ 5.1×1.10 = 5.6 مم.
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), stage="late")
+
+    async def _ctx_day92(_conn, _field_id):
+        return (16.0, 44.9, "wheat", "late", 92)
+
+    monkeypatch.setattr(mod, "_field_weather_context", _ctx_day92)
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["status"] == "recommendation_ready"
+    assert out["recommendation"]["net_irrigation_mm"] == pytest.approx(5.6, abs=0.05)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_g1_workspace_irrigation_advice_wheat_day_92(monkeypatch):
+    # G1 على واجهة مساحة الحقل (ما يراه المزارع): قمح يوم 92، ET₀=6، بلا مطر.
+    # كان 2.4 مم «low» (Kc_end لكامل late)؛ منحنى FAO-56 ⇒ Kc 1.10 ⇒ 6.6 مم «moderate».
+    import api.routers.field_workspace_weather as wmod
+
+    @contextlib.asynccontextmanager
+    async def _tc(_user):
+        yield object()
+
+    async def _ctx(_conn, _field_id):
+        return (16.0, 44.9, "wheat", "late", 92)
+
+    async def _no_soil(_conn, _field_id):
+        return None
+
+    async def _forecast(_lat, _lon, days=3):
+        return {"days": [{"et0_mm": 6.0, "precipitation_mm": 0.0}] * 3}
+
+    async def _current(_lat, _lon):
+        return {"precipitation_mm": 0.0}
+
+    monkeypatch.setattr(wmod, "tenant_connection", _tc)
+    monkeypatch.setattr(wmod, "_field_weather_context", _ctx)
+    monkeypatch.setattr(wmod, "_latest_soil_moisture", _no_soil)
+    monkeypatch.setattr(wmod, "get_weather_forecast", _forecast)
+    monkeypatch.setattr(wmod, "get_current_weather", _current)
+    out = await wmod.field_irrigation_advice_facade("fld_1", user=object())
+    assert out["kc_used"] == pytest.approx(1.10, abs=0.005)
+    assert out["recommended_mm"] == pytest.approx(6.6)
+    assert out["urgency"] == "moderate"

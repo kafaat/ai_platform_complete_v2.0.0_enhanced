@@ -8,7 +8,7 @@ DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571,2,applied
 DEC-001,api,GET /runtime-identity @ services/agriai-engine/main.py:100,2,applied
 DEC-001,api,GET /runtime-identity @ services/raster-service/main.py:64,2,applied
-DEC-001,api,GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:24,2,applied
+DEC-001,api,GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:25,2,applied
 DEC-001,api,GET /runtime-identity @ services/soil-service/main.py:221,2,applied
 DEC-001,api,GET /runtime-identity @ services/weather-service/main.py:56,2,applied
 DEC-001,api,GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1153,3,applied
@@ -318,6 +318,7 @@ FM-001,test,services/raster-service/test_tile_tenant_query.py,3,applied
 FM-001,test,services/sahool-platform/tests/test_farm_fields_tenant_ownership.py,3,applied
 FM-001,test,services/sahool-platform/tests/test_fields_tenant_arg_completeness_guard.py,3,applied
 FM-001,test,services/sahool-platform/tests/test_route_auth_matrix_guard.py,3,applied
+FM-001,test,services/sahool-platform/tests/test_sweep_tenant_enumeration.py,3,applied
 FM-001,test,services/sahool-platform/tests/test_tenant_audit.py,3,applied
 FM-001,test,services/sahool-platform/tests/test_tenant_config.py,3,applied
 FM-001,test,tests_v9/auth_route_source.py,2,applied
@@ -444,7 +445,7 @@ FM-002,test,services/sahool-platform/tests/test_simple_farm_book.py,3,applied
 FM-002,test,shared/test_autonomous_farm_os_phase9.py,3,applied
 FM-002,test,tests_v9/test_farm_memory.py,3,applied
 FM-003,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278,2,applied
-FM-003,api,DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1682,4,applied
+FM-003,api,DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1666,4,applied
 FM-003,api,DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:666,2,applied
 FM-003,api,GET / @ services/field-management-service/main.py:273,3,applied
 FM-003,api,GET /api/v1/admin/break-glass/{token}/fields @ services/sahool-platform/api/routers/break_glass.py:355,2,applied
@@ -458,12 +459,12 @@ FM-003,api,GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform
 FM-003,api,GET /api/v1/field-intelligence/analyze/jobs/{job_id} @ services/sahool-platform/api/routers/field_intelligence.py:516,2,applied
 FM-003,api,GET /api/v1/field/operational-state @ services/sahool-platform/api/routers/field_single.py:23,2,applied
 FM-003,api,GET /api/v1/field/{field_id}/lineage @ services/sahool-platform/api/routers/decision_record.py:677,2,applied
-FM-003,api,GET /api/v1/fields @ services/sahool-platform/api/routers/fields.py:543,2,applied
-FM-003,api,GET /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1037,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:3040,4,applied
+FM-003,api,GET /api/v1/fields @ services/sahool-platform/api/routers/fields.py:545,2,applied
+FM-003,api,GET /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1021,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:3028,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/agronomic-replay @ services/sahool-platform/api/routers/agronomic_replay.py:58,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:652,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4028,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4016,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/available-dates @ services/sahool-platform/api/routers/field_workspace_imagery.py:51,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265,6,applied
 FM-003,api,GET /api/v1/fields/{field_id}/data-completeness @ services/sahool-platform/api/routers/field_completeness.py:56,4,applied
@@ -472,42 +473,42 @@ FM-003,api,GET /api/v1/fields/{field_id}/drawing-features @ services/sahool-plat
 FM-003,api,GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1526,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3725,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:1003,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1510,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3713,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:987,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:171,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3069,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3057,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:428,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:333,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:117,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/readiness @ services/sahool-platform/api/routers/field_readiness.py:56,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/recommendations @ services/sahool-platform/api/routers/fields.py:2804,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3484,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/recommendations @ services/sahool-platform/api/routers/fields.py:2792,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3472,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:272,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2268,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2252,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:549,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3275,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/soil-moisture @ services/sahool-platform/api/routers/fields.py:2464,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3263,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/soil-moisture @ services/sahool-platform/api/routers/fields.py:2448,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/stage-actions @ services/sahool-platform/api/routers/phenology.py:181,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:4000,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4054,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:3988,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4042,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/sustainability @ services/sahool-platform/api/routers/reports.py:207,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1062,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1046,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/twin @ services/sahool-platform/api/routers/field_twin.py:39,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:32,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/water-efficiency @ services/sahool-platform/api/routers/water_ledger.py:197,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/water-ledger @ services/sahool-platform/api/routers/water_ledger.py:145,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3968,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3956,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:217,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:406,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:410,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/api/routers/field_workspace_weather.py:335,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:284,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:182,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/wind/prevailing @ services/sahool-platform/api/routers/fields.py:2650,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/workspace @ services/sahool-platform/api/routers/fields.py:1153,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/wind/prevailing @ services/sahool-platform/api/routers/fields.py:2638,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/workspace @ services/sahool-platform/api/routers/fields.py:1137,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:290,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:256,4,applied
 FM-003,api,GET /api/v1/geo-locate/field @ services/sahool-platform/api/routers/geo_locate.py:24,2,applied
@@ -533,7 +534,7 @@ FM-003,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/r
 FM-003,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:200,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:264,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:124,4,applied
-FM-003,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156,4,applied
+FM-003,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:165,4,applied
 FM-003,api,GET /v1/fields/{field_id}/imagery-ingestion-requests/{request_id} @ services/raster-service/routers/follow_up.py:144,4,applied
 FM-003,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:646,4,applied
 FM-003,api,GET /v1/fields/{field_id}/indicator-grid @ services/raster-service/routers/fields.py:887,4,applied
@@ -568,61 +569,61 @@ FM-003,api,GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/
 FM-003,api,GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1317,4,applied
 FM-003,api,GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1221,4,applied
 FM-003,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:87,2,applied
-FM-003,api,GET /v1/indices @ services/raster-service/routers/observability.py:307,2,applied
+FM-003,api,GET /v1/indices @ services/raster-service/routers/observability.py:315,2,applied
 FM-003,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2453,2,applied
 FM-003,api,GET /v1/ndvi/current/{field_id} @ services/vegetation-analysis-service/routers/analysis.py:91,2,applied
 FM-003,api,GET /v1/soil/readings/{field_id} @ services/soil-service/routers/readings.py:28,2,applied
 FM-003,api,GET /v1/timeseries/{field_id} @ services/vegetation-analysis-service/routers/analysis.py:46,2,applied
-FM-003,api,PATCH /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1242,4,applied
+FM-003,api,PATCH /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1226,4,applied
 FM-003,api,PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36,6,applied
-FM-003,api,PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2295,4,applied
-FM-003,api,PATCH /api/v1/fields/{field_id}/soil-lab-tests/{test_id} @ services/sahool-platform/api/routers/fields.py:3299,4,applied
+FM-003,api,PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2279,4,applied
+FM-003,api,PATCH /api/v1/fields/{field_id}/soil-lab-tests/{test_id} @ services/sahool-platform/api/routers/fields.py:3287,4,applied
 FM-003,api,POST /api/v1/automation/imagery/register-field @ services/sahool-platform/api/routers/automation.py:126,2,applied
 FM-003,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:457,2,applied
 FM-003,api,POST /api/v1/field-intelligence/analyze @ services/sahool-platform/api/routers/field_intelligence.py:469,2,applied
 FM-003,api,POST /api/v1/field-intelligence/analyze/jobs/{job_id}/cancel @ services/sahool-platform/api/routers/field_intelligence.py:526,2,applied
 FM-003,api,POST /api/v1/field-portfolio/allocate @ services/sahool-platform/api/routers/field_portfolio.py:76,2,applied
 FM-003,api,POST /api/v1/field-portfolio/optimize @ services/sahool-platform/api/routers/field_portfolio.py:35,2,applied
-FM-003,api,POST /api/v1/fields @ services/sahool-platform/api/routers/fields.py:566,4,applied
+FM-003,api,POST /api/v1/fields @ services/sahool-platform/api/routers/fields.py:568,4,applied
 FM-003,api,POST /api/v1/fields/boundary-graph/rebuild @ services/sahool-platform/api/routers/boundaries.py:244,4,applied
-FM-003,api,POST /api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:590,4,applied
-FM-003,api,POST /api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1788,2,applied
-FM-003,api,POST /api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1917,4,applied
-FM-003,api,POST /api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3570,2,applied
-FM-003,api,POST /api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:2906,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/alerts/evaluate @ services/sahool-platform/api/routers/fields.py:3426,4,applied
+FM-003,api,POST /api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:592,4,applied
+FM-003,api,POST /api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1772,2,applied
+FM-003,api,POST /api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1901,4,applied
+FM-003,api,POST /api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3558,2,applied
+FM-003,api,POST /api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:2894,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/alerts/evaluate @ services/sahool-platform/api/routers/fields.py:3414,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/boundary/clean @ services/sahool-platform/api/routers/boundaries.py:181,6,applied
 FM-003,api,POST /api/v1/fields/{field_id}/boundary/score @ services/sahool-platform/api/routers/boundaries.py:79,6,applied
 FM-003,api,POST /api/v1/fields/{field_id}/daily-ai-brief @ services/sahool-platform/api/routers/productivity.py:107,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/etc-dual @ services/sahool-platform/api/routers/etc_dual.py:247,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1573,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/growth-narrative @ services/sahool-platform/api/routers/fields.py:3174,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:931,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/imagery/process-date @ services/sahool-platform/api/routers/fields.py:672,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/imagery/refresh @ services/sahool-platform/api/routers/fields.py:728,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:189,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1557,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/growth-narrative @ services/sahool-platform/api/routers/fields.py:3162,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:915,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/imagery/process-date @ services/sahool-platform/api/routers/fields.py:656,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/imagery/refresh @ services/sahool-platform/api/routers/fields.py:712,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:203,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:542,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/ndvi-analysis @ services/sahool-platform/api/routers/ndvi_analysis.py:35,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/pins @ services/sahool-platform/api/routers/fields.py:3842,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/pins @ services/sahool-platform/api/routers/fields.py:3830,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/prescriptions/nitrogen @ services/sahool-platform/api/routers/fields.py:3603,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/prescriptions/nitrogen @ services/sahool-platform/api/routers/fields.py:3591,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/productivity-zones @ services/sahool-platform/api/routers/productivity.py:65,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3442,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2061,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3218,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3705,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/trueup @ services/sahool-platform/api/routers/fields.py:3511,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3925,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3935,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3430,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2045,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3206,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3693,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/trueup @ services/sahool-platform/api/routers/fields.py:3499,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3913,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3923,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/water-ledger @ services/sahool-platform/api/routers/water_ledger.py:78,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/water-twin @ services/sahool-platform/api/routers/water_twin.py:197,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/wind/drift-risk @ services/sahool-platform/api/routers/fields.py:2725,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/yield-estimate @ services/sahool-platform/api/routers/fields.py:3632,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/wind/drift-risk @ services/sahool-platform/api/routers/fields.py:2713,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/yield-estimate @ services/sahool-platform/api/routers/fields.py:3620,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/yield-interval @ services/sahool-platform/api/routers/yield_interval.py:49,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:85,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/zone-sampling-plan @ services/sahool-platform/api/routers/productivity.py:84,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3954,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3942,4,applied
 FM-003,api,POST /api/v1/gis/cloud-native/ai-boundary/plan @ services/sahool-platform/api/routers/gis_cloud_native.py:346,2,applied
 FM-003,api,POST /api/v1/gis/cloud-native/phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:710,2,applied
 FM-003,api,POST /api/v1/introduction/field-fit @ services/sahool-platform/api/routers/introduction.py:41,2,applied
@@ -687,7 +688,7 @@ FM-003,api,POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/
 FM-003,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2807,2,applied
 FM-003,api,POST /v1/reports/weekly-field-insights @ services/vegetation-analysis-service/routers/insights.py:45,2,applied
 FM-003,api,POST /v1/segment @ services/field-segmentation/main.py:431,2,applied
-FM-003,api,PUT /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1242,4,applied
+FM-003,api,PUT /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1226,4,applied
 FM-003,mobile,mobile/sahool_app/lib/core/widgets/form_fields.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/core/widgets/ops_date_field.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/activities/data/field_activity.dart,2,applied
@@ -931,11 +932,11 @@ FM-004,api,GET /internal/seasons/{season_id}/detail @ services/scout-ingest-serv
 FM-004,api,GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368,2,applied
 FM-004,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41,2,applied
 FM-004,api,GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:44,2,applied
-FM-004,api,PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2295,2,applied
+FM-004,api,PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2279,2,applied
 FM-004,api,PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264,2,applied
 FM-004,api,POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:218,2,applied
 FM-004,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:498,2,applied
-FM-004,api,POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2061,2,applied
+FM-004,api,POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2045,2,applied
 FM-004,api,POST /api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:152,2,applied
 FM-004,api,POST /internal/seasons @ services/scout-ingest-service/season_api.py:205,2,applied
 FM-004,api,POST /internal/seasons/{season_id}/accept @ services/scout-ingest-service/season_api.py:406,2,applied
@@ -996,7 +997,7 @@ FM-005,api,GET /api/v1/crop-cards/variety/{variety_id}/expected-harvest @ servic
 FM-005,api,GET /api/v1/crop-cards/variety/{variety_id}/salinity-suitability @ services/sahool-platform/api/routers/crop_cards.py:83,4,applied
 FM-005,api,GET /api/v1/crops/drought-resilience @ services/sahool-platform/api/routers/crops.py:26,2,applied
 FM-005,api,GET /api/v1/crops/{crop_id}/operations-calendar @ services/sahool-platform/api/routers/crop_operations.py:24,2,applied
-FM-005,api,GET /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3484,2,applied
+FM-005,api,GET /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3472,2,applied
 FM-005,api,GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:217,2,applied
 FM-005,api,GET /api/v1/ipm/crop-pests @ services/sahool-platform/api/routers/ipm.py:37,2,applied
 FM-005,api,GET /api/v1/market/crop-classification-readiness @ services/sahool-platform/api/routers/market.py:101,2,applied
@@ -1011,7 +1012,7 @@ FM-005,api,POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers
 FM-005,api,POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:404,2,applied
 FM-005,api,POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:297,2,applied
 FM-005,api,POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:530,2,applied
-FM-005,api,POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3442,2,applied
+FM-005,api,POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3430,2,applied
 FM-005,api,POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:461,2,applied
 FM-005,mobile,mobile/sahool_app/lib/features/crop_season/crop_season_routes.dart,2,applied
 FM-005,mobile,mobile/sahool_app/lib/features/crop_season/data/crop_season_api.dart,2,applied
@@ -1131,11 +1132,11 @@ FM-008,api,GET /v1/config @ services/odoo-bridge/routers/catalog.py:33,3,applied
 FM-008,api,GET /v1/erp/provider @ services/odoo-bridge/routers/catalog.py:17,5,applied
 FM-008,api,GET /v1/logs @ services/odoo-bridge/routers/catalog.py:50,3,applied
 FM-008,api,GET /v1/products @ services/odoo-bridge/routers/catalog.py:71,5,applied
-FM-008,api,GET /v1/readyz/capabilities @ services/odoo-bridge/routers/health.py:121,3,applied
+FM-008,api,GET /v1/readyz/capabilities @ services/odoo-bridge/routers/health.py:130,3,applied
 FM-008,api,GET /v1/suppliers @ services/odoo-bridge/routers/catalog.py:78,5,applied
 FM-008,api,POST /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:222,2,applied
-FM-008,api,POST /v1/sync @ services/odoo-bridge/routers/sync.py:79,3,applied
-FM-008,api,POST /v1/webhook/odoo @ services/odoo-bridge/routers/webhooks.py:21,3,applied
+FM-008,api,POST /v1/sync @ services/odoo-bridge/routers/sync.py:112,3,applied
+FM-008,api,POST /v1/webhook/odoo @ services/odoo-bridge/routers/webhooks.py:23,3,applied
 FM-008,service,services/odoo-bridge/main.py,10,applied
 FM-008,test,services/odoo-bridge/test_erp_readiness_granular.py,5,applied
 FM-008,test,services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py,3,applied
@@ -1147,21 +1148,22 @@ FM-008,test,tests_v9/test_erp_bridge_fail_closed.py,3,applied
 FM-008,test,tests_v9/test_erp_bridge_healthcheck_guard.py,3,applied
 FM-008,test,tests_v9/test_erp_bridge_requires_erp.py,3,applied
 FM-008,test,tests_v9/test_erp_sync_recovery.py,3,applied
+FM-008,test,tests_v9/test_erp_sync_schema_honesty.py,3,applied
 FM-008,test,tests_v9/test_odoo_bridge_tenant_honesty.py,3,applied
 FM-008,test,tests_v9/test_v9_odoo_rls_hardening_static.py,3,applied
 GIS-001,api,DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:666,2,applied
 GIS-001,api,GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:83,2,applied
 GIS-001,api,GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265,2,applied
-GIS-001,api,GET /api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1526,2,applied
+GIS-001,api,GET /api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1510,2,applied
 GIS-001,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:576,2,applied
 GIS-001,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2453,2,applied
 GIS-001,api,PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36,2,applied
 GIS-001,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:457,2,applied
 GIS-001,api,POST /api/v1/fields/boundary-graph/rebuild @ services/sahool-platform/api/routers/boundaries.py:244,2,applied
-GIS-001,api,POST /api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3570,2,applied
+GIS-001,api,POST /api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3558,2,applied
 GIS-001,api,POST /api/v1/fields/{field_id}/boundary/clean @ services/sahool-platform/api/routers/boundaries.py:181,2,applied
 GIS-001,api,POST /api/v1/fields/{field_id}/boundary/score @ services/sahool-platform/api/routers/boundaries.py:79,2,applied
-GIS-001,api,POST /api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1573,2,applied
+GIS-001,api,POST /api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1557,2,applied
 GIS-001,api,POST /api/v1/gis/cloud-native/ai-boundary/plan @ services/sahool-platform/api/routers/gis_cloud_native.py:346,2,applied
 GIS-001,api,POST /api/v1/gis/cloud-native/locks @ services/sahool-platform/api/routers/gis_cloud_native.py:630,2,applied
 GIS-001,api,POST /api/v1/gis/cloud-native/phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:710,2,applied
@@ -1201,6 +1203,7 @@ GIS-001,test,services/decision-service/tests/test_tenant_boundary_migration_stat
 GIS-001,test,services/decision-service/tests/test_wx11_6_registry_activation_boundary.py,3,applied
 GIS-001,test,services/indicators-service/tests/test_indicators_service_honest_boundary.py,3,applied
 GIS-001,test,services/raster-service/test_change_detection_validity.py,3,applied
+GIS-001,test,services/raster-service/test_normalized_difference_validity.py,3,applied
 GIS-001,test,services/raster-service/test_polygon_mask_metadata.py,3,applied
 GIS-001,test,services/raster-service/test_raster_pixel_geometry.py,3,applied
 GIS-001,test,services/raster-service/test_truecolor_validity_alpha.py,3,applied
@@ -1247,7 +1250,7 @@ GIS-002,api,GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-pl
 GIS-002,api,GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:256,2,applied
 GIS-002,api,GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:53,4,applied
 GIS-002,api,GET /api/v1/weather/layers @ services/sahool-platform/api/routers/weather.py:2109,2,applied
-GIS-002,api,GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:267,3,applied
+GIS-002,api,GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:275,3,applied
 GIS-002,api,GET /v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:59,5,applied
 GIS-002,api,GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:27,3,applied
 GIS-002,api,POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:85,2,applied
@@ -1291,15 +1294,15 @@ GIS-002,test,tests_v9/test_service_map_image_pin_parity.py,3,applied
 GIS-002,test,tests_v9/test_soil_layer_v31_7.py,3,applied
 GIS-002,test,tests_v9/test_terrain_layers_v31_6.py,3,applied
 GIS-002,test,tests_v9/test_v215_yield_map_ingestion_static.py,3,applied
-GIS-003,api,GET /api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1062,2,applied
-GIS-003,api,GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73,5,applied
-GIS-003,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156,3,applied
+GIS-003,api,GET /api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1046,2,applied
+GIS-003,api,GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:82,5,applied
+GIS-003,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:165,3,applied
 GIS-003,api,GET /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:146,2,applied
 GIS-003,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1505,3,applied
 GIS-003,api,GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:189,3,applied
-GIS-003,api,GET /v1/slope/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:87,5,applied
+GIS-003,api,GET /v1/slope/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:96,5,applied
 GIS-003,api,GET /v1/terrain/status @ services/raster-service/routers/terrain_tiles.py:45,3,applied
-GIS-003,api,GET /v1/terrain/tilejson @ services/raster-service/routers/terrain_tiles.py:101,3,applied
+GIS-003,api,GET /v1/terrain/tilejson @ services/raster-service/routers/terrain_tiles.py:110,3,applied
 GIS-003,api,POST /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:69,2,applied
 GIS-003,api,POST /v1/terrain/slope @ services/raster-service/routers/analysis.py:148,5,applied
 GIS-003,service,services/raster-service/main.py,10,applied
@@ -1323,6 +1326,7 @@ GIS-004,test,tests_v9/test_trial_spatial_review_guards.py,3,applied
 INT-001,api,GET /v1/ecosystem/sdk/manifest @ services/sahool-platform/api/phase12_marketplace_ecosystem.py:185,3,applied
 INT-001,service,services/sahool-platform/api/main.py,10,applied
 INT-002,service,services/sahool-platform/api/main.py,10,applied
+INT-002,test,services/sahool-platform/tests/test_nats_relay_bounded_startup.py,3,applied
 INT-002,test,tests/architecture/test_nats_compose_acceptance.py,3,applied
 INT-002,test,tests_v9/test_event_bus_invariants.py,5,applied
 INT-002,test,tests_v9/test_h2_nats_publishers_flag.py,3,applied
@@ -1362,10 +1366,10 @@ IRR-004,test,tests_v9/test_h5_water_balance_auto.py,5,applied
 IRR-005,api,GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:388,3,applied
 IRR-005,api,GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:648,3,applied
 IRR-005,api,GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2593,3,applied
-IRR-005,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:189,7,applied
+IRR-005,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:203,7,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:542,3,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329,3,applied
-IRR-005,api,POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:111,7,applied
+IRR-005,api,POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:116,7,applied
 IRR-005,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:526,3,applied
 IRR-005,api,POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922,3,applied
 IRR-005,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:352,3,applied
@@ -1784,6 +1788,7 @@ SAT-001,test,tests_v9/test_cdse_process_throttle_retry_guard.py,3,applied
 SAT-001,test,tests_v9/test_deferred_satellite_integration_v30_4.py,3,applied
 SAT-001,test,tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py,3,applied
 SAT-001,test,tests_v9/test_historical_search_cdse_v30_8.py,3,applied
+SAT-001,test,tests_v9/test_imagery_scene_marked_after_persist.py,3,applied
 SAT-001,test,tests_v9/test_imagery_single_scene_process.py,3,applied
 SAT-001,test,tests_v9/test_normalized_scene_wiring_v63_2.py,3,applied
 SAT-001,test,tests_v9/test_raster_scene_model_v63.py,3,applied
@@ -1834,7 +1839,7 @@ SAT-005,api,POST /api/v1/gis/cloud-native/geoparquet/export @ services/sahool-pl
 SAT-005,api,POST /api/v1/gis/cloud-native/locks @ services/sahool-platform/api/routers/gis_cloud_native.py:630,2,applied
 SAT-005,api,POST /api/v1/gis/cloud-native/management-zones/summary @ services/sahool-platform/api/routers/gis_cloud_native.py:356,2,applied
 SAT-005,api,POST /api/v1/gis/cloud-native/phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:710,2,applied
-SAT-005,api,POST /api/v1/gis/cloud-native/phase6/digital-twin/snapshot @ services/sahool-platform/api/routers/gis_cloud_native.py:781,2,applied
+SAT-005,api,POST /api/v1/gis/cloud-native/phase6/digital-twin/snapshot @ services/sahool-platform/api/routers/gis_cloud_native.py:785,2,applied
 SAT-005,api,POST /api/v1/gis/cloud-native/phase6/management-zones/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:729,2,applied
 SAT-005,api,POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:745,2,applied
 SAT-005,api,POST /api/v1/gis/cloud-native/phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:769,2,applied
@@ -1851,7 +1856,7 @@ SAT-005,test,tests_v9/test_cdse_cloud_filter_policy.py,3,applied
 SAT-005,test,tests_v9/test_field_intelligence_cloud.py,3,applied
 SAT-005,test,tests_v9/test_imagery_aoi_cloud_contract.py,3,applied
 SAT-006,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571,2,applied
-SAT-006,api,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:1003,2,applied
+SAT-006,api,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:987,2,applied
 SAT-006,api,GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87,2,applied
 SAT-006,api,GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:32,2,applied
 SAT-006,api,GET /api/v1/weather/historical @ services/sahool-platform/api/routers/weather.py:2098,2,applied
@@ -1862,8 +1867,8 @@ SAT-006,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raste
 SAT-006,api,GET /v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:342,2,applied
 SAT-006,api,GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22,5,applied
 SAT-006,api,GET /v1/weather/historical @ services/weather-service/main.py:32,2,applied
-SAT-006,api,POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:931,2,applied
-SAT-006,api,POST /api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3705,2,applied
+SAT-006,api,POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:915,2,applied
+SAT-006,api,POST /api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3693,2,applied
 SAT-006,api,POST /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:96,2,applied
 SAT-006,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:260,5,applied
 SAT-006,service,services/raster-service/main.py,10,applied
@@ -1903,7 +1908,7 @@ SAT-007,test,services/raster-service/test_change_detection_validity.py,7,applied
 SAT-007,test,services/raster-service/test_field_change_alignment.py,3,applied
 SAT-007,test,tests_v9/test_change_detection.py,7,applied
 SAT-007,test,tests_v9/test_field_change_summary.py,3,applied
-SAT-008,api,GET /api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3968,2,applied
+SAT-008,api,GET /api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3956,2,applied
 SAT-008,api,GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:217,2,applied
 SAT-008,api,GET /api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:182,2,applied
 SAT-008,api,GET /v1/weather/thermal-stress @ services/weather-service/main.py:35,2,applied
@@ -1931,16 +1936,16 @@ SAT-009,api,GET /api/v1/weather/tile-series/{z}/{x}/{y} @ services/sahool-platfo
 SAT-009,api,GET /healthz @ services/raster-service/routers/observability.py:34,3,applied
 SAT-009,api,GET /metrics @ services/raster-service/routers/observability.py:39,3,applied
 SAT-009,api,GET /metrics @ services/raster-tiler-service/main.py:16,2,applied
-SAT-009,api,GET /readyz @ services/raster-service/routers/observability.py:189,3,applied
+SAT-009,api,GET /readyz @ services/raster-service/routers/observability.py:197,3,applied
 SAT-009,api,GET /runtime-identity @ services/raster-service/main.py:64,3,applied
 SAT-009,api,GET /runtime-identity @ services/raster-tiler-service/main.py:11,2,applied
 SAT-009,api,GET /v1/cog/validate @ services/raster-service/routers/analysis.py:166,5,applied
-SAT-009,api,GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73,5,applied
+SAT-009,api,GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:82,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1392,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:200,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:264,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:124,5,applied
-SAT-009,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156,3,applied
+SAT-009,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:165,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/imagery-ingestion-requests/{request_id} @ services/raster-service/routers/follow_up.py:144,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:646,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/indicator-grid @ services/raster-service/routers/fields.py:887,3,applied
@@ -1964,15 +1969,15 @@ SAT-009,api,GET /v1/imagery/search/radar @ services/raster-service/routers/image
 SAT-009,api,GET /v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:25,3,applied
 SAT-009,api,GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:44,3,applied
 SAT-009,api,GET /v1/imagery/timeseries @ services/raster-service/routers/timeseries_routes.py:24,3,applied
-SAT-009,api,GET /v1/indices @ services/raster-service/routers/observability.py:307,3,applied
-SAT-009,api,GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:267,3,applied
+SAT-009,api,GET /v1/indices @ services/raster-service/routers/observability.py:315,3,applied
+SAT-009,api,GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:275,3,applied
 SAT-009,api,GET /v1/jobs/{job_id} @ services/raster-service/routers/jobs.py:19,3,applied
 SAT-009,api,GET /v1/jobs/{job_id}/result @ services/raster-service/routers/jobs.py:39,3,applied
 SAT-009,api,GET /v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:59,5,applied
 SAT-009,api,GET /v1/offline/packs @ services/raster-service/routers/storage.py:124,3,applied
 SAT-009,api,GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:152,3,applied
-SAT-009,api,GET /v1/providers/status @ services/raster-service/routers/observability.py:277,3,applied
-SAT-009,api,GET /v1/slope/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:87,5,applied
+SAT-009,api,GET /v1/providers/status @ services/raster-service/routers/observability.py:285,3,applied
+SAT-009,api,GET /v1/slope/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:96,5,applied
 SAT-009,api,GET /v1/soil/properties @ services/raster-service/routers/soil_tiles.py:100,3,applied
 SAT-009,api,GET /v1/soil/tilejson @ services/raster-service/routers/soil_tiles.py:52,5,applied
 SAT-009,api,GET /v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png @ services/raster-service/routers/soil_tiles.py:37,5,applied
@@ -1980,8 +1985,8 @@ SAT-009,api,GET /v1/stac @ services/raster-service/routers/stac.py:17,3,applied
 SAT-009,api,GET /v1/stac/collections @ services/raster-service/routers/stac.py:25,3,applied
 SAT-009,api,GET /v1/storage/stats @ services/raster-service/routers/storage.py:102,3,applied
 SAT-009,api,GET /v1/terrain/status @ services/raster-service/routers/terrain_tiles.py:45,3,applied
-SAT-009,api,GET /v1/terrain/tilejson @ services/raster-service/routers/terrain_tiles.py:101,5,applied
-SAT-009,api,GET /v1/tile-cache/stats @ services/raster-service/routers/observability.py:233,5,applied
+SAT-009,api,GET /v1/terrain/tilejson @ services/raster-service/routers/terrain_tiles.py:110,5,applied
+SAT-009,api,GET /v1/tile-cache/stats @ services/raster-service/routers/observability.py:241,5,applied
 SAT-009,api,GET /v1/tiles/observability @ services/raster-service/routers/observability.py:148,5,applied
 SAT-009,api,GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:27,5,applied
 SAT-009,api,GET /v1/weather/cache-stats @ services/weather-service/main.py:50,2,applied
@@ -2079,6 +2084,7 @@ SAT-009,test,services/raster-service/test_job_tenant_binding.py,3,applied
 SAT-009,test,services/raster-service/test_job_truth_receipts_and_fencing.py,3,applied
 SAT-009,test,services/raster-service/test_landsat_thermal_unique_contract.py,3,applied
 SAT-009,test,services/raster-service/test_ndvi_numeric_contract.py,3,applied
+SAT-009,test,services/raster-service/test_normalized_difference_validity.py,3,applied
 SAT-009,test,services/raster-service/test_object_store.py,3,applied
 SAT-009,test,services/raster-service/test_p2_tile_observability_static.py,5,applied
 SAT-009,test,services/raster-service/test_persisted_thumbnail_path.py,3,applied
@@ -2373,7 +2379,7 @@ WX-008,api,GET /api/v1/weather/operation-window @ services/sahool-platform/api/r
 WX-008,api,GET /v1/weather/operation-window @ services/weather-service/main.py:33,5,applied
 WX-008,service,services/weather-service/main.py,10,applied
 WX-009,api,GET /api/v1/crop-cards/variety/{variety_id}/disease-watch @ services/sahool-platform/api/routers/crop_cards.py:113,2,applied
-WX-009,api,GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:406,2,applied
+WX-009,api,GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:410,2,applied
 WX-009,service,services/weather-service/main.py,10,applied
 WX-009,test,services/sahool-platform/tests/test_weather_engine_disease_window_layers.py,3,applied
 WX-009,test,tests_v9/test_disease_field_state_feed.py,3,applied
@@ -2390,3 +2396,4 @@ WX-010,test,tests_v9/test_field_state_recompute_provenance_v57_5.py,3,applied
 WX-010,test,tests_v9/test_irrx1_authoritative_provenance_lock.py,3,applied
 WX-010,test,tests_v9/test_knowledge_provenance_guard.py,3,applied
 WX-010,test,tests_v9/test_sot_provenance_guard.py,3,applied
+WX-010,test,tests_v9/test_wofost_weather_provenance.py,3,applied

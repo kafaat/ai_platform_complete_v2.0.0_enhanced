@@ -40,6 +40,10 @@ RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.t
 # الكود: api/ + core/ + knowledge/ + data/ (main.py يستورد من core/)
 COPY shared/ /app/shared/
 COPY services/sahool-platform/ /app/
+# G3: shared/knowledge/source_registry.py يقرأ السجلّ من <جذر shared>/docs/architecture/؛
+# بدونه تُحجَب كلّ توصية ريّ ساعيّة (knowledge_context_unsatisfied). ملفٌّ واحد لا شجرة docs/
+# (مُستثنى بعينه في .dockerignore). The MPC knowledge registry must ship in the image.
+COPY docs/architecture/knowledge_source_registry.json /app/docs/architecture/knowledge_source_registry.json
 
 # المنطق في api/main.py → app
 ENV PYTHONPATH=/app:/app/api

@@ -4408,6 +4408,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/model-registry-adapter/tests/test_claim_recovery.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/model-registry-adapter/tests/test_runtime.py",
     "kind": "tests"
   },
@@ -7533,6 +7537,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_readyz_db_probe.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_readyz_knowledge_registry.py",
     "kind": "tests"
   },
   {

@@ -39,37 +39,47 @@ def to_reflectance(arr, scale, offset, _np):
     return arr * s + o
 
 
-def ndvi(red, nir, _np):
-    """NDVI with promoted arithmetic; nonfinite intermediates remain NoData.
+def normalized_difference(a, b, _np):
+    """(A − B) / (A + B) — the shared normalized-difference kernel (NDVI/NDRE/NDWI…).
 
-    Promote before addition/subtraction to avoid integer wrap and float32
-    overflow. Unrepresentable float64 intermediates are invalid, never a
-    plausible zero produced by dividing a finite difference by infinity.
-    Results must also fit the float32 COG output range: exclude overflow before
-    statistics or derived-index clipping can make invalid NDVI look plausible.
-    Keep float64 precision for representable results. The legacy
-    zero-denominator epsilon policy is otherwise preserved.
+    Promote before arithmetic (no integer wrap / float32 overflow). Invalid
+    pixels become NaN (NoData) and so leave every downstream statistic:
+      * nonfinite input or intermediate;
+      * **negative input reflectance** — Sentinel-2 L2A baseline ≥04.00 applies
+        BOA_ADD_OFFSET −1000 (−0.1), so dark/water pixels go below zero; with
+        mixed signs A + B → 0 and the epsilon guard used to emit ±6e7 (G4);
+      * result outside [-1, 1] (impossible for valid non-negative inputs).
+    For non-negative inputs the denominator is 0 only when both bands are 0;
+    that pixel keeps the legacy epsilon contract (→ 0, numerator is also 0).
+    سالب الانعكاس أو ناتج خارج [-1،1] ⇒ NaN (لا قيمة مختلَقة تُفسد المتوسّط).
     """
-    red = _np.asarray(red, dtype="float64")
-    nir = _np.asarray(nir, dtype="float64")
+    a = _np.asarray(a, dtype="float64")
+    b = _np.asarray(b, dtype="float64")
     with _np.errstate(over="ignore", invalid="ignore", divide="ignore"):
-        numerator = nir - red
-        denominator = nir + red
+        numerator = a - b
+        denominator = a + b
         result = numerator / _eps(denominator, _np)
-    valid = (
-        _np.isfinite(red)
-        & _np.isfinite(nir)
-        & _np.isfinite(numerator)
-        & _np.isfinite(denominator)
-        & _np.isfinite(result)
-        & (_np.abs(result) <= _np.finfo("float32").max)
-    )
+        valid = (
+            _np.isfinite(a)
+            & _np.isfinite(b)
+            & (a >= 0)
+            & (b >= 0)
+            & _np.isfinite(numerator)
+            & _np.isfinite(denominator)
+            & _np.isfinite(result)
+            & (_np.abs(result) <= 1.0)
+        )
     return _np.where(valid, result, _np.nan)
+
+
+def ndvi(red, nir, _np):
+    """NDVI = (NIR - RED) / (NIR + RED) — الغطاء النباتي (normalized_difference)."""
+    return normalized_difference(nir, red, _np)
 
 
 def ndre(nir, rededge, _np):
     """NDRE = (NIR - REDEDGE) / (NIR + REDEDGE) — النيتروجين/الكلوروفيل."""
-    return (nir - rededge) / _eps(nir + rededge, _np)
+    return normalized_difference(nir, rededge, _np)
 
 
 def evi(blue, red, nir, _np):
@@ -97,7 +107,7 @@ def moisture(nir, swir1, _np):
     اسم الواجهة "moisture"؛ رياضيّاً = NDMI (رطوبة محتوى النبات/التربة). قيمة
     عالية = رطوبة أعلى (عكس MSI الذي تعلو قيمته مع الإجهاد).
     """
-    return (nir - swir1) / _eps(nir + swir1, _np)
+    return normalized_difference(nir, swir1, _np)
 
 
 def msi(nir, swir1, _np):

@@ -18,11 +18,39 @@ TERRAIN (قرار المالك): أساسٌ عالميّ مجانيّ 30م (Cope
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
+
+_CONFIG_RELATIVE = Path("config") / "terrain_sources.yml"
+
+
+def config_candidates(module_file: str | os.PathLike[str] | None = None) -> tuple[Path, ...]:
+    """مواضع السجلّ المرشّحة لوحدةٍ تسكن ``module_file``، بالترتيب.
+
+    I2: كان الافتراضيّ ``parents[2]`` وحده — صحيحٌ في المستودع
+    (``services/raster-service/`` ⇒ الجذر) ومستحيلٌ في الصورة: الوحدة في ``/app``
+    فلـ``parents`` عنصران فقط، فكان الاستيراد نفسه يرفع ``IndexError`` ويسقط مسارا
+    التضاريس بـ500. الصورة تضع السجلّ **بجوار الوحدة** (``/app/config/``) والمستودع في جذره.
+    Image layout first (beside the module), then the repo root layout.
+    """
+    anchor = Path(module_file) if module_file is not None else Path(__file__).resolve()
+    candidates = [anchor.parent / _CONFIG_RELATIVE]
+    if len(anchor.parents) > 2:
+        candidates.append(anchor.parents[2] / _CONFIG_RELATIVE)
+    return tuple(candidates)
+
+
+def default_config_path(module_file: str | os.PathLike[str] | None = None) -> Path:
+    """أوّل مرشّحٍ موجود؛ وإلّا موضعُ الصورة (فتُسمّي رسالةُ الغياب المسارَ المتوقَّع)."""
+    candidates = config_candidates(module_file)
+    return next((c for c in candidates if c.is_file()), candidates[0])
+
+
 # مسار السجل الافتراضيّ (قابل للتجاوز عبر env للاختبار/النشر).
-_DEFAULT_CONFIG = Path(__file__).resolve().parents[2] / "config" / "terrain_sources.yml"
+_DEFAULT_CONFIG = default_config_path()
 
 # الحالات التي تُعتبر «قابلة للاستعمال» عند الحلّ (active=الأساس المعتمد · validated=مصدر مزوّد مُتحقَّق).
 _USABLE_STATUSES = ("active", "validated")
@@ -32,6 +60,12 @@ def _config_path() -> Path:
     # افتراضيّ داخليّ: عند غياب/فراغ المتغيّر نستعمل السجلّ المُحزَّم (لا متغيّر تشغيل إلزاميّ).
     override = os.getenv("TERRAIN_SOURCES_CONFIG", "").strip()
     return Path(override) if override else _DEFAULT_CONFIG
+
+
+def registry_readable(config_path: str | os.PathLike[str] | None = None) -> bool:
+    """هل السجلّ موجودٌ مقروء؟ — يُكشَف في ``/readyz`` و``/v1/terrain/status`` (I2)."""
+    path = Path(config_path) if config_path else _config_path()
+    return path.is_file()
 
 
 def effective_resolution_m(native_resolution_m: float, storage_pixel_size_m: float | None) -> float:
@@ -66,9 +100,12 @@ def load_terrain_sources(
         for s in raw.get("sources", []) or []:
             if isinstance(s, dict) and s.get("id"):
                 sources.append(dict(s))
-    except (FileNotFoundError, OSError):
+    except (FileNotFoundError, OSError) as exc:
+        # I2: غيابُ السجلّ عيبُ بناءٍ لا «لا مصدر مُزوَّد» — يُسجَّل خطأً لا يُبتلَع صامتاً.
+        logger.error("terrain source registry unreadable at %s: %s", path, exc)
         sources = []
-    except Exception:  # noqa: BLE001 — سجلّ تالف لا يُسقط الخدمة؛ يُدهور إلى fail-closed
+    except Exception as exc:  # noqa: BLE001 — سجلّ تالف لا يُسقط الخدمة؛ يُدهور إلى fail-closed
+        logger.error("terrain source registry invalid at %s: %s", path, exc)
         sources = []
 
     # توافق للخلف: ملفّ FIELD_DEM_PATH موجود ⇒ يُزوِّد الأساس العالميّ (GLO-30) تلقائيّاً.

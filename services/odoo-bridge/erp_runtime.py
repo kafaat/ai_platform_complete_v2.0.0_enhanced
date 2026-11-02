@@ -12,6 +12,7 @@ import hashlib
 import logging
 import os
 import sys
+import uuid
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
@@ -197,15 +198,90 @@ async def get_pool() -> asyncpg.Pool | None:
     return _pool
 
 
+# ── مخطّط المزامنة المطلوب (ERP-SYNC-SCHEMA-HONESTY) ──────────────────────────
+# كلّ خطوة مزامنة تكتب/تقرأ جداول بعينها. odoo_sync_state/odoo_sync_log تُنشئهما
+# migrations/v9_odoo_bridge.sql؛ أمّا جداول البيانات أدناه فلا تُنشئها أيّ هجرة في
+# المستودع (تدقيق R4) — فكانت كلّ مزامنة تفشل بـUndefinedTableError بينما /v1/sync يردّ
+# «queued». نتحقّق من وجودها صراحةً ونرفض/نُعلن بدل أن نفشل بصمت.
+ERP_SYNC_CORE_TABLES: tuple[str, ...] = ("odoo_sync_state", "odoo_sync_log")
+ERP_SYNC_ENTITY_TABLES: dict[str, tuple[str, ...]] = {
+    "products": ("inventory_stock",),
+    "suppliers": ("suppliers",),
+    "warehouses": ("inventory_locations",),
+    "procurement": ("procurement_orders", "procurement_order_items"),
+    "procurement_inbound": ("procurement_orders",),
+    "costs": ("field_cost_ledger",),
+}
+
+
+async def ping_database(pool) -> None:
+    """``SELECT 1`` على ``pool`` — يرفع إن تعذّرت القاعدة (فحص الحياة الداخليّ لـ``/readyz``)."""
+    async with pool.acquire() as conn:
+        await conn.fetchval("SELECT 1")
+
+
+async def absent_tables(pool, tables: list[str]) -> list[str]:
+    """أيّ ``tables`` لا وجود لها — ``to_regclass`` بلا امتياز على الجدول، بلا DDL. مُرتَّبة."""
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT t AS table_name, to_regclass(t) IS NOT NULL AS present "
+            "FROM unnest($1::text[]) AS t",
+            list(tables),
+        )
+    return sorted(r["table_name"] for r in rows if not r["present"])
+
+
+async def erp_sync_schema_status() -> dict[str, Any]:
+    """أيّ جداول المزامنة غائبة؟ — ``to_regclass`` بلا امتياز على الجدول، بلا DDL.
+
+    يُرجع ``ready`` عامّاً و``entities[e].missing_tables`` لكلّ خطوة (تشمل الجداول الأساسيّة)،
+    فيُرفض/يُتخطّى ما ينقصه مخطّطه فقط. بلا مجمّع اتّصال ⇒ ``checked=False`` (لا ادّعاء جاهزيّة).
+    """
+    pool = await get_pool()
+    if pool is None:
+        return {
+            "checked": False,
+            "ready": False,
+            "reason": "erp_sync_database_unavailable",
+            "missing_tables": [],
+            "entities": {},
+        }
+    wanted = sorted(set(ERP_SYNC_CORE_TABLES).union(*ERP_SYNC_ENTITY_TABLES.values()))
+    missing = await absent_tables(pool, wanted)
+    entities = {}
+    for entity, tables in ERP_SYNC_ENTITY_TABLES.items():
+        gone = [t for t in (*ERP_SYNC_CORE_TABLES, *tables) if t in missing]
+        entities[entity] = {"ready": not gone, "missing_tables": gone}
+    status: dict[str, Any] = {
+        "checked": True,
+        "ready": not missing,
+        "missing_tables": missing,
+        "entities": entities,
+    }
+    if missing:
+        status["reason"] = "erp_schema_missing"
+    return status
+
+
 async def _run_migrations():
-    """لا-عمليّة — الجداول تُنشأ بواسطة sahool-migrate (migrations/v9_odoo_bridge.sql).
+    """لا DDL هنا — الجداول تُنشأ بواسطة sahool-migrate؛ نتحقّق فقط ونُعلن الغائب.
 
     ERR-BRIDGE-001: كانت تُنشئ odoo_sync_state هنا (CREATE TABLE) لكنّ sahool_app
     يفتقر إلى امتياز CREATE على schema public (مُزال بـREVOKE في apply_in_compose.sh)،
     فكان lifespan ينهار قبل أن يبدأ uvicorn تلقّي الطلبات ⇒ healthcheck يفشل دائماً.
     الإصلاح: DDL في ملفّ هجرة (sahool_user مُمتاز) لا في وقت تشغيل الخدمة.
+    R4: كانت تُسجّل «tables pre-created» دون تحقّق؛ الآن تُسجّل ERROR بالجداول الغائبة
+    (بلا رفع — الحياة مستقلّة؛ /readyz و/v1/sync يرفضان بـerp_schema_missing).
     """
-    logger.info("DB migrations: tables pre-created by sahool-migrate (v9_odoo_bridge.sql)")
+    status = await erp_sync_schema_status()
+    if status["checked"] and not status["ready"]:
+        logger.error(
+            "erp_schema_missing: ERP sync tables absent %s — /readyz=503 and /v1/sync is "
+            "rejected until a migration creates them",
+            status["missing_tables"],
+        )
+    elif status["checked"]:
+        logger.info("DB schema: ERP sync tables present")
 
 
 async def get_last_sync(entity: str, direction: str, *, connection=None) -> datetime | None:
@@ -854,6 +930,69 @@ async def sync_field_costs_to_odoo():
 
 
 # ══════════════════════════════════════════════════════════════
+# Sync run wrapper — كلّ تشغيل له run_id، وفشل كلّ خطوة مُسجَّل لا صامت (R4)
+# ══════════════════════════════════════════════════════════════
+def new_sync_run_id() -> str:
+    return uuid.uuid4().hex
+
+
+async def run_sync_job(
+    run_id: str, steps: list[tuple[str, Any]], *, trigger: str = "manual"
+) -> dict[str, Any]:
+    """نفّذ خطوات مزامنة ``(entity, async_callable)`` معزولةً، وأعِد نتيجة كلّ خطوة.
+
+    خطوة ينقصها مخطّطها لا تُنفَّذ (``erp_schema_missing``)؛ فشل خطوة لا يُسقط ما بعدها.
+    كلّ فشل يُسجَّل ERROR مع run_id ويُكتب في odoo_sync_log (مرئيّ عبر GET /v1/logs).
+    نصّ الاستثناء الخامّ لا يُسجَّل (قد يحمل عناوين/ردود ERP) — صنفه فقط.
+    """
+    schema = await erp_sync_schema_status()
+    results: dict[str, dict[str, Any]] = {}
+    for entity, fn in steps:
+        gone = schema["entities"].get(entity, {}).get("missing_tables", [])
+        if not schema["checked"]:
+            outcome: dict[str, Any] = {"status": "failed", "error": schema["reason"]}
+        elif gone:
+            outcome = {"status": "failed", "error": "erp_schema_missing", "missing_tables": gone}
+        else:
+            try:
+                await fn()
+                outcome = {"status": "succeeded"}
+            except Exception as e:  # noqa: BLE001 — يُسجَّل بصنفه ويستمرّ التشغيل
+                outcome = {"status": "failed", "error": type(e).__name__}
+        results[entity] = outcome
+        if outcome["status"] != "failed":
+            continue
+        logger.error(
+            "ERP sync run %s (%s) step %s failed: %s %s",
+            run_id,
+            trigger,
+            entity,
+            outcome["error"],
+            outcome.get("missing_tables", ""),
+        )
+        try:
+            await log_sync_record(
+                "erp_sync_run",
+                entity,
+                None,
+                run_id,
+                "failed",
+                f"run_id={run_id} trigger={trigger} error={outcome['error']}",
+            )
+        except Exception as e:  # noqa: BLE001 — سجلّ قاعدة غائب لا يُخفي سطر ERROR أعلاه
+            logger.error(
+                "ERP sync run %s: odoo_sync_log write failed: %s", run_id, type(e).__name__
+            )
+    failed = sum(1 for r in results.values() if r["status"] == "failed")
+    status = "succeeded" if not failed else ("failed" if failed == len(results) else "partial")
+    if failed:
+        logger.error("ERP sync run %s (%s) finished %s: %s", run_id, trigger, status, results)
+    else:
+        logger.info("ERP sync run %s (%s) succeeded: %s", run_id, trigger, sorted(results))
+    return {"run_id": run_id, "trigger": trigger, "status": status, "steps": results}
+
+
+# ══════════════════════════════════════════════════════════════
 # Background Sync Scheduler
 # ══════════════════════════════════════════════════════════════
 async def periodic_sync():
@@ -865,16 +1004,19 @@ async def periodic_sync():
             continue
         try:
             logger.info("Starting periodic ERP sync via %s...", provider.name)
-            await sync_products()
-            await sync_suppliers()
-            await sync_warehouses()
+            steps: list[tuple[str, Any]] = [
+                ("products", sync_products),
+                ("suppliers", sync_suppliers),
+                ("warehouses", sync_warehouses),
+            ]
             # Procurement order push/pull is still Odoo-specific until the shared
             # ERPProvider interface grows a procurement contract. Do not construct
             # or require Odoo unless explicitly selected.
             if provider.name == "odoo":
-                await sync_procurement_orders_to_odoo()
-            await sync_field_costs_to_odoo()
-            logger.info("Periodic ERP sync complete via %s.", provider.name)
+                steps.append(("procurement", sync_procurement_orders_to_odoo))
+            steps.append(("costs", sync_field_costs_to_odoo))
+            # R4: خطوات معزولة — غياب جدول/فشل خطوة لا يُسقط البقيّة ويُسجَّل بـrun_id.
+            await run_sync_job(new_sync_run_id(), steps, trigger="periodic")
         except Exception as e:  # noqa: BLE001
             logger.error("Periodic ERP sync error: %s", type(e).__name__)
         await asyncio.sleep(SYNC_INTERVAL_SEC)

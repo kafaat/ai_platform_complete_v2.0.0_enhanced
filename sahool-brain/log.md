@@ -10246,6 +10246,16 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **الإجراء:** تجديد الستّة إلى 2026-11-30 دون تغيير `reason` أو المالك ([`decisions/ledger.md`](decisions/ledger.md)).
 - **عائقٌ ثانٍ على #1320:** `no-report-only-change` صنّف التجديدَ «report-only». سُجِّل وأُصلِح في الشريحة نفسها: `EXPIRED-AUTHORITY-EXCEPTION-RENEWAL-UNLANDABLE-01` ([`gaps/registry.md`](gaps/registry.md)).
 
+### 2026-11-01 — معالجة التدقيق: دقّة التوصية الزراعيّة والاعتماديّة (فرق 11–17)
+
+- **المصدر:** تدقيق الكود المصدريّ لـ`main@cc0d2e295` (20 مراجِعاً)، ثمّ 20 فريق إصلاح متوازياً؛ هذا الفرع يجمع فرق 11–17 بـcherry-pick على `main@aaa1b7f0a`.
+- **G1** `core/season_phenology.py`: Kc مرحلة late = متوسّط (Kc_mid+Kc_end) في الخريطة، والمسارات التي تعرف عمر المحصول تمرّر `stage_kc` اليوميّ (قمح يوم 92: 2.4 ⇐ 6.6 ملم).
+- **G3/I2:** `knowledge_source_registry.json` و`config/terrain_sources.yml` صارا داخل صورتَي المنصّة وraster (كان MPC محجوباً دائماً، وterrain يرمي IndexError عند الاستيراد)؛ `/readyz` يكشف غيابهما.
+- **G4/G11/G12:** NDVI وأخواته تُقنَّع عند انعكاسيّة سالبة أو |ND|>1؛ غطاء سحاب مجهول ≠ 0%؛ SCL 0/1 مستبعَدان.
+- **G5/G13:** WOFOST لا يختلق طقساً (استيفاء موسوم أو رفض `WEATHER_GAPS_EXCEEDED`)؛ المشهد لا يُعلَّم معالَجاً قبل حفظ المؤشّرات.
+- **G10/G14/G15:** `rate_multiplier: 0` يبقى 0؛ الغسيل `/(1−LR)`؛ الكفاءة كسرٌ في (0,1] ويوم السنة من التاريخ الفعليّ.
+- **R1/R2:** مسحا التنبيهات والحداثة يعدّدان المستأجرين عبر مجمّع jobs؛ اتّصال NATS الأوّل محدود زمنيّاً.
+- **R3 (جزئيّ)/R4:** رمز تسليم حتميّ وعزل العناصر؛ ERP يعلن `erp_schema_missing` بدل «queued». DDL المتابعة خارج هذا الفرع.
 ### 2026-11-01 — إغلاقُ `RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01`
 
 - **القياس (قراءة، GitHub `commits/{sha}/status`):** `cc0d2e295` ⇒ `failure` (15 حالة، الفاشلةُ الوحيدة `resourceful-commitment - ai_platform_complete_v2.0.0_enhanced`). `aaa1b7f0a` (#1320، أوّلُ التزامٍ على main بعد الحذف) ⇒ `success` (14 حالة كلّها ناجحة، ولا حالةَ للمشروع الشارد).
