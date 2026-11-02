@@ -2278,6 +2278,9 @@ jobs:
         run: |
           set -o pipefail
           pip install -r services/auth/requirements.txt
+          # python-multipart: مسارات local-ai-rag (File/Form) تحتاجه عند الاستيراد؛ مصدره الوحيد
+          # requirements_real أعلاه وهو continue-on-error. نسحب السطر نفسه من requirements-test.
+          grep -E '^python-multipart==' tests_v9/requirements-test.txt | pip install -r /dev/stdin
           log="$RUNNER_TEMP/security-tests.log"
           pytest -v -rs -p no:cacheprovider -m security \
             tests_v9/test_security.py tests_v9/test_auth_service.py \

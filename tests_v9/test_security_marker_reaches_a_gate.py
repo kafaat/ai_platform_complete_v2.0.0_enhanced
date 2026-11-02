@@ -57,6 +57,12 @@ def _ungated_security_tests(source: str, name: str) -> list[str]:
         for node in body:
             if isinstance(node, ast.ClassDef) and node.name.startswith("Test"):
                 cls = inherited | {m for d in node.decorator_list for m in _marks(d)}
+                # `pytestmark = ...` في جسم الصنف يُورَّث لدوالّه كمُزخرِف الصنف.
+                for stmt in node.body:
+                    if isinstance(stmt, ast.Assign) and any(
+                        isinstance(t, ast.Name) and t.id == "pytestmark" for t in stmt.targets
+                    ):
+                        cls |= _marks(stmt.value)
                 visit(node.body, cls, f"{prefix}{node.name}::")
             elif isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef) and node.name.startswith(
                 "test_"
@@ -82,12 +88,23 @@ def test_the_scanner_sees_all_three_marker_sites():
         "    @pytest.mark.integration\n"
         "    async def test_c(self): pass\n"
         "    def test_d(self): pass\n"
+        "class TestE:\n"
+        "    pytestmark = pytest.mark.unit\n"
+        "    def test_e(self): pass\n"
     )
     assert _module_marks(ast.parse(src)) == {"security"}
     assert _ungated_security_tests(src, "probe.py") == [
         "probe.py::test_a",
         "probe.py::TestC::test_d",
     ]
+    # صنفٌ يُعلِن `pytestmark = security` في جسمه ودالّتُه بلا علامة بوّابة ⇒ يُرى.
+    body_src = (
+        "import pytest\n"
+        "class TestAuth:\n"
+        "    pytestmark = pytest.mark.security\n"
+        "    def test_x(self): pass\n"
+    )
+    assert _ungated_security_tests(body_src, "body.py") == ["body.py::TestAuth::test_x"]
 
 
 def test_every_security_test_is_selected_by_a_gating_job():
