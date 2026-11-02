@@ -221,15 +221,12 @@ def test_weather_map_layer_puts_open_meteo_credit_in_the_map_attribution() -> No
     )
 
 
-@pytest.mark.parametrize(
-    "rel",
-    ["frontend/big-screen/index.html", "frontend/big-screen/keep_bigscreen/index.html"],
-)
-def test_big_screen_weather_panel_links_open_meteo_and_licence(rel: str) -> None:
-    src = _read(ROOT / rel)
-    assert f'href="{OPEN_METEO_URL}"' in src
-    assert OPEN_METEO_TEXT in src
-    assert f'href="{CC_BY_4_URL}"' in src
+def test_the_random_value_big_screen_stays_deleted() -> None:
+    """``frontend/big-screen`` حُذفت (2026-11-02): أرقامها من ``Math.random()`` كلّ 5 ثوانٍ،
+    ونقاط الخريطة عشوائيّة، وتستطلع ``/indicators/v1/overview`` غير الموجود. شاشةٌ تعرض
+    مؤشّراتٍ زراعيّة مُلفَّقة لا تُصلَح بإسناد Open-Meteo؛ لوحات الحقل الحقيقيّة في
+    ``frontend/src/components/fieldview``."""
+    assert not (ROOT / "frontend/big-screen").exists()
 
 
 def test_every_module_that_fetches_weather_data_credits_open_meteo() -> None:

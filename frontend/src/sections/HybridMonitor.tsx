@@ -51,6 +51,28 @@ function sensorIcon(s?: string) {
 // وقت القراءة (يعيد استخدام مُنسّق التواريخ الموحّد بخيار الساعة/الدقيقة).
 const fmtTime = (s?: string) => fmtDateAr(s, { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
 
+/** عمر القراءة بصيغةٍ مقروءة — من ``age_sec`` الذي يحسبه الخادم (لا ساعة المتصفّح). */
+export const fmtAge = (sec?: number | null): string => {
+  if (sec == null) return 'وقت غير معروف';
+  if (sec < 3600) return `منذ ${Math.max(1, Math.round(sec / 60))} د`;
+  if (sec < 86400) return `منذ ${Math.round(sec / 3600)} س`;
+  return `منذ ${Math.round(sec / 86400)} يوم`;
+};
+
+/** شارة «قديمة» حين يعلّمها الخادم كذلك — فلا تُعرَض قراءةٌ قديمة كأنّها حيّة. */
+function StaleBadge({ p }: { p: TelemetryPoint }) {
+  if (!p.stale) return null;
+  return (
+    <span
+      data-testid="telemetry-stale-badge"
+      title="تجاوز عمر القراءة نافذة الاتّصال (15 دقيقة) — ليست قراءةً حيّة"
+      style={{ fontSize: 10, color: T.warn, border: `1px solid ${T.warn}`, borderRadius: 6, padding: '0 4px' }}
+    >
+      قديمة · {fmtAge(p.age_sec)}
+    </span>
+  );
+}
+
 export default function HybridMonitor() {
   // «الحقل النشط» المشترك (useSelectedField) — يتبع المستخدم عبر الشاشات.
   const fieldsQ = useSelectedField();
@@ -92,11 +114,11 @@ export default function HybridMonitor() {
     <FieldCabin
       eyebrow="المراقبة الهجينة"
       title="حقل + آلة"
-      subtitle="قراءات الحسّاسات الحيّة + حالة الأسطول — لوحٌ واحد"
+      subtitle="آخر قراءات الحسّاسات + حالة الأسطول — لوحٌ واحد"
       headerRight={<Pill tone="info" icon={<Activity style={{ width: 12, height: 12 }} />}>{fieldDevices.length} جهاز</Pill>}
       note={
         <>
-          المراقبة الهجينة الموحّدة — قراءات <code>/devices/&#123;id&#125;/telemetry</code> الحيّة +
+          المراقبة الهجينة الموحّدة — آخر قراءات <code>/devices/&#123;id&#125;/telemetry</code> (القديمة مُعلَّمة) +
           ساعات <code>/equipment</code>. لا عدّادات وقود/DEF للآلة (فجوة موثّقة ⛔) — تُعرَض «غير
           متاح» لا حلقة مضلّلة. الحالات صادقة.
         </>
@@ -173,12 +195,14 @@ export default function HybridMonitor() {
                   {latestBySensor
                     .filter(isPercentGauge)
                     .map((p) => (
-                      <RadialGauge
-                        key={p.sensor_type}
-                        pct={Math.round(p.value)}
-                        label={sensorAr(p.sensor_type)}
-                        color={T.info}
-                      />
+                      <div key={p.sensor_type} className="flex flex-col items-center" style={{ gap: 4 }}>
+                        <RadialGauge
+                          pct={Math.round(p.value)}
+                          label={sensorAr(p.sensor_type)}
+                          color={p.stale ? T.faint : T.info}
+                        />
+                        <StaleBadge p={p} />
+                      </div>
                     ))}
                 </div>
                 {/* بقيّة القراءات كصفوف (بوحدتها الخام — لا افتراض مقياس) */}
@@ -193,6 +217,7 @@ export default function HybridMonitor() {
                         <span className="inline-flex items-center gap-2">
                           <b style={{ color: T.ink }}>{p.value}{p.unit ? ` ${p.unit}` : ''}</b>
                           <span style={{ fontSize: 10, color: T.faint }}>{fmtTime(p.recorded_at)}</span>
+                          <StaleBadge p={p} />
                         </span>
                       }
                     />

@@ -139,7 +139,7 @@ export default function DiagnosticsCard({ fieldId, cropLabel, enabled = true }: 
                       {categoryLabelAr(c.category)}
                     </span>
                     <span className="font-bold" style={{ color: T.ink }}>{c.name_ar}</span>
-                    <span style={{ color: T.faint }}>ثقة {confidencePct(c.confidence)}</span>
+                    <span style={{ color: T.faint }} title="نسبة تطابق الأعراض مع قاعدة التشخيص — ليست احتمالاً معايَراً لصحّة التشخيص">تطابق القواعد {confidencePct(c.confidence)}</span>
                     <span className="text-[10px]" style={{ color: T.faint }}>{c.matched_ar}</span>
                   </div>
                 );
