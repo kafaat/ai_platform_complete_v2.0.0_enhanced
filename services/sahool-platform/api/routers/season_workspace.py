@@ -31,7 +31,7 @@ from api.main import (
     tenant_connection,
 )
 from api.season_models import _SEASON_SELECT_COLS, _row_to_season
-from api.weather_advice import complete_rain_total
+from api.weather_advice import complete_rain_total, irrigation_rain_window
 
 router = APIRouter()
 
@@ -380,9 +380,9 @@ async def season_workspace(
                 today_fc = forecast[0] if forecast else None
                 ctx.et0_mm = today_fc.et0_mm if today_fc and today_fc.et0_mm is not None else None
                 # الغيابُ يمرّ `None` — والقواعدُ تصمت عليه بدل أن تُوصي على صفرٍ مُختلَق.
-                ctx.rain_recent_mm = current.precipitation_mm
-                ctx.forecast_rain_mm, _ = complete_rain_total(
-                    [f.precipitation_mm for f in forecast[1:3]], expected_count=2
+                # G8 + #1329: التعريفُ المشترك للريّ — مجموعُ اليوم توقّعٌ لا يُخصَم «أخيراً».
+                ctx.rain_recent_mm, ctx.forecast_rain_mm, _ = irrigation_rain_window(
+                    [f.precipitation_mm for f in forecast[:3]]
                 )
                 ctx.temp_c = current.temperature_c
                 ctx.humidity_pct = current.humidity_pct

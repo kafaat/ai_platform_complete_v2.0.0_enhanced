@@ -1027,7 +1027,7 @@
     },
     {
       "kind": "router",
-      "line": 49,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.etc_dual",
       "node_id": "services.sahool-platform.api.routers.etc_dual:router",
       "route_count": 1,
@@ -1801,7 +1801,7 @@
     },
     {
       "kind": "router",
-      "line": 51,
+      "line": 52,
       "module": "services.sahool-platform.api.routers.scenario",
       "node_id": "services.sahool-platform.api.routers.scenario:router",
       "route_count": 5,
@@ -1972,7 +1972,7 @@
     },
     {
       "kind": "router",
-      "line": 27,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.water_balance",
       "node_id": "services.sahool-platform.api.routers.water_balance:router",
       "route_count": 1,
@@ -2793,7 +2793,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "e907abc095c4380aab0cde6ca767ef653dfc2beb8f3653814eb6fbbdcddbffca",
+  "inventory_sha256": "e5f7fabbe4c79a5fdd15b397a59570e39019a3c75f740139852f9092da13d82e",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -3689,7 +3689,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 49,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.etc_dual",
       "node_id": "services.sahool-platform.api.routers.etc_dual:router",
       "route_count": 1,
@@ -4549,7 +4549,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 51,
+      "line": 52,
       "module": "services.sahool-platform.api.routers.scenario",
       "node_id": "services.sahool-platform.api.routers.scenario:router",
       "route_count": 5,
@@ -4739,7 +4739,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 27,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.water_balance",
       "node_id": "services.sahool-platform.api.routers.water_balance:router",
       "route_count": 1,

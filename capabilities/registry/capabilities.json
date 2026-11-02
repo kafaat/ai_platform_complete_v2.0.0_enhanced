@@ -297,7 +297,7 @@
       "apis": [
         "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278",
         "DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1666",
-        "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:666",
+        "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:667",
         "GET / @ services/field-management-service/main.py:273",
         "GET /api/v1/admin/break-glass/{token}/fields @ services/sahool-platform/api/routers/break_glass.py:355",
         "GET /api/v1/agro/kc-timeseries/{field_id} @ services/sahool-platform/api/routers/kc_timeseries.py:140",
@@ -729,7 +729,7 @@
         "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:530",
         "POST /api/v1/economics/feasibility @ services/sahool-platform/api/routers/economics.py:32",
         "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:498",
-        "POST /api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:144",
+        "POST /api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:145",
         "POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624",
         "POST /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:134"
       ],
@@ -973,7 +973,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:666",
+        "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:667",
         "GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:83",
         "GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265",
         "GET /api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1510",
@@ -986,9 +986,9 @@
         "POST /api/v1/fields/{field_id}/boundary/clean @ services/sahool-platform/api/routers/boundaries.py:181",
         "POST /api/v1/fields/{field_id}/boundary/score @ services/sahool-platform/api/routers/boundaries.py:79",
         "POST /api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1557",
-        "POST /api/v1/gis/cloud-native/ai-boundary/plan @ services/sahool-platform/api/routers/gis_cloud_native.py:346",
-        "POST /api/v1/gis/cloud-native/locks @ services/sahool-platform/api/routers/gis_cloud_native.py:630",
-        "POST /api/v1/gis/cloud-native/phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:710",
+        "POST /api/v1/gis/cloud-native/ai-boundary/plan @ services/sahool-platform/api/routers/gis_cloud_native.py:347",
+        "POST /api/v1/gis/cloud-native/locks @ services/sahool-platform/api/routers/gis_cloud_native.py:631",
+        "POST /api/v1/gis/cloud-native/phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:711",
         "POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:726",
         "POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:774",
         "POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:630",
@@ -1031,6 +1031,7 @@
         "services/raster-service/test_change_detection_validity.py",
         "services/raster-service/test_normalized_difference_validity.py",
         "services/raster-service/test_polygon_mask_metadata.py",
+        "services/raster-service/test_quotient_index_validity.py",
         "services/raster-service/test_raster_pixel_geometry.py",
         "services/raster-service/test_truecolor_validity_alpha.py",
         "services/sahool-platform/tests/test_agri_polygon_area.py",
@@ -1043,8 +1044,7 @@
         "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
         "services/sahool-platform/tests/test_p1_raster_boundary_guard.py",
-        "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
-        "services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py"
+        "services/sahool-platform/tests/test_p1_weather_boundary_guard.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1093,7 +1093,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 26
+        "tests": 27
       }
     },
     {
@@ -1123,8 +1123,8 @@
         "GET /v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:59",
         "GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:27",
         "POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:85",
-        "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:745",
-        "POST /api/v1/gis/cloud-native/phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:769"
+        "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:746",
+        "POST /api/v1/gis/cloud-native/phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:770"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -1377,14 +1377,14 @@
         "services/raster-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/gis/cloud-native/scene-processing-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:266",
-        "GET /api/v1/gis/cloud-native/scene-ranking @ services/sahool-platform/api/routers/gis_cloud_native.py:249",
-        "GET /api/v1/gis/cloud-native/stac @ services/sahool-platform/api/routers/gis_cloud_native.py:183",
-        "GET /api/v1/gis/cloud-native/stac/collections @ services/sahool-platform/api/routers/gis_cloud_native.py:204",
-        "GET /api/v1/gis/cloud-native/stac/collections/{collection_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:500",
-        "GET /api/v1/gis/cloud-native/stac/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:190",
-        "GET /api/v1/gis/cloud-native/stac/queryables @ services/sahool-platform/api/routers/gis_cloud_native.py:197",
-        "GET /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:479",
+        "GET /api/v1/gis/cloud-native/scene-processing-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:267",
+        "GET /api/v1/gis/cloud-native/scene-ranking @ services/sahool-platform/api/routers/gis_cloud_native.py:250",
+        "GET /api/v1/gis/cloud-native/stac @ services/sahool-platform/api/routers/gis_cloud_native.py:184",
+        "GET /api/v1/gis/cloud-native/stac/collections @ services/sahool-platform/api/routers/gis_cloud_native.py:205",
+        "GET /api/v1/gis/cloud-native/stac/collections/{collection_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:501",
+        "GET /api/v1/gis/cloud-native/stac/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:191",
+        "GET /api/v1/gis/cloud-native/stac/queryables @ services/sahool-platform/api/routers/gis_cloud_native.py:198",
+        "GET /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:480",
         "GET /v1/activation/satellite_cdse @ services/decision-service/main.py:1750",
         "GET /v1/activation/satellite_cdse/probe @ services/decision-service/main.py:1766",
         "GET /v1/activation/satellite_cdse/source @ services/decision-service/main.py:1757",
@@ -1394,7 +1394,7 @@
         "GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:66",
         "GET /v1/stac @ services/raster-service/routers/stac.py:17",
         "GET /v1/stac/collections @ services/raster-service/routers/stac.py:25",
-        "POST /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:219",
+        "POST /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:220",
         "POST /v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1690",
         "POST /v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1703",
         "POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1737",
@@ -1650,37 +1650,37 @@
         "services/raster-service/main.py"
       ],
       "apis": [
-        "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:666",
-        "GET /api/v1/gis/cloud-native/mosaicjson @ services/sahool-platform/api/routers/gis_cloud_native.py:516",
-        "GET /api/v1/gis/cloud-native/ogc @ services/sahool-platform/api/routers/gis_cloud_native.py:299",
-        "GET /api/v1/gis/cloud-native/ogc/collections @ services/sahool-platform/api/routers/gis_cloud_native.py:313",
-        "GET /api/v1/gis/cloud-native/ogc/collections/fields/items @ services/sahool-platform/api/routers/gis_cloud_native.py:320",
-        "GET /api/v1/gis/cloud-native/ogc/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:306",
-        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json @ services/sahool-platform/api/routers/gis_cloud_native.py:535",
-        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tiles/{z}/{x}/{y}.png @ services/sahool-platform/api/routers/gis_cloud_native.py:561",
-        "GET /api/v1/gis/cloud-native/scene-processing-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:266",
-        "GET /api/v1/gis/cloud-native/scene-ranking @ services/sahool-platform/api/routers/gis_cloud_native.py:249",
-        "GET /api/v1/gis/cloud-native/stac @ services/sahool-platform/api/routers/gis_cloud_native.py:183",
-        "GET /api/v1/gis/cloud-native/stac/collections @ services/sahool-platform/api/routers/gis_cloud_native.py:204",
-        "GET /api/v1/gis/cloud-native/stac/collections/{collection_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:500",
-        "GET /api/v1/gis/cloud-native/stac/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:190",
-        "GET /api/v1/gis/cloud-native/stac/queryables @ services/sahool-platform/api/routers/gis_cloud_native.py:197",
-        "GET /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:479",
-        "GET /api/v1/gis/cloud-native/tile-cache-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:283",
-        "POST /api/v1/gis/cloud-native/ai-boundary/plan @ services/sahool-platform/api/routers/gis_cloud_native.py:346",
-        "POST /api/v1/gis/cloud-native/cog-registry @ services/sahool-platform/api/routers/gis_cloud_native.py:424",
-        "POST /api/v1/gis/cloud-native/editing-sessions @ services/sahool-platform/api/routers/gis_cloud_native.py:595",
-        "POST /api/v1/gis/cloud-native/editing-sessions/undo-redo @ services/sahool-platform/api/routers/gis_cloud_native.py:364",
-        "POST /api/v1/gis/cloud-native/geoparquet/export @ services/sahool-platform/api/routers/gis_cloud_native.py:684",
-        "POST /api/v1/gis/cloud-native/locks @ services/sahool-platform/api/routers/gis_cloud_native.py:630",
-        "POST /api/v1/gis/cloud-native/management-zones/summary @ services/sahool-platform/api/routers/gis_cloud_native.py:356",
-        "POST /api/v1/gis/cloud-native/phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:710",
-        "POST /api/v1/gis/cloud-native/phase6/digital-twin/snapshot @ services/sahool-platform/api/routers/gis_cloud_native.py:785",
-        "POST /api/v1/gis/cloud-native/phase6/management-zones/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:729",
-        "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:745",
-        "POST /api/v1/gis/cloud-native/phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:769",
-        "POST /api/v1/gis/cloud-native/phase6/yield-stability @ services/sahool-platform/api/routers/gis_cloud_native.py:761",
-        "POST /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:219"
+        "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:667",
+        "GET /api/v1/gis/cloud-native/mosaicjson @ services/sahool-platform/api/routers/gis_cloud_native.py:517",
+        "GET /api/v1/gis/cloud-native/ogc @ services/sahool-platform/api/routers/gis_cloud_native.py:300",
+        "GET /api/v1/gis/cloud-native/ogc/collections @ services/sahool-platform/api/routers/gis_cloud_native.py:314",
+        "GET /api/v1/gis/cloud-native/ogc/collections/fields/items @ services/sahool-platform/api/routers/gis_cloud_native.py:321",
+        "GET /api/v1/gis/cloud-native/ogc/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:307",
+        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json @ services/sahool-platform/api/routers/gis_cloud_native.py:536",
+        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tiles/{z}/{x}/{y}.png @ services/sahool-platform/api/routers/gis_cloud_native.py:562",
+        "GET /api/v1/gis/cloud-native/scene-processing-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:267",
+        "GET /api/v1/gis/cloud-native/scene-ranking @ services/sahool-platform/api/routers/gis_cloud_native.py:250",
+        "GET /api/v1/gis/cloud-native/stac @ services/sahool-platform/api/routers/gis_cloud_native.py:184",
+        "GET /api/v1/gis/cloud-native/stac/collections @ services/sahool-platform/api/routers/gis_cloud_native.py:205",
+        "GET /api/v1/gis/cloud-native/stac/collections/{collection_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:501",
+        "GET /api/v1/gis/cloud-native/stac/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:191",
+        "GET /api/v1/gis/cloud-native/stac/queryables @ services/sahool-platform/api/routers/gis_cloud_native.py:198",
+        "GET /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:480",
+        "GET /api/v1/gis/cloud-native/tile-cache-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:284",
+        "POST /api/v1/gis/cloud-native/ai-boundary/plan @ services/sahool-platform/api/routers/gis_cloud_native.py:347",
+        "POST /api/v1/gis/cloud-native/cog-registry @ services/sahool-platform/api/routers/gis_cloud_native.py:425",
+        "POST /api/v1/gis/cloud-native/editing-sessions @ services/sahool-platform/api/routers/gis_cloud_native.py:596",
+        "POST /api/v1/gis/cloud-native/editing-sessions/undo-redo @ services/sahool-platform/api/routers/gis_cloud_native.py:365",
+        "POST /api/v1/gis/cloud-native/geoparquet/export @ services/sahool-platform/api/routers/gis_cloud_native.py:685",
+        "POST /api/v1/gis/cloud-native/locks @ services/sahool-platform/api/routers/gis_cloud_native.py:631",
+        "POST /api/v1/gis/cloud-native/management-zones/summary @ services/sahool-platform/api/routers/gis_cloud_native.py:357",
+        "POST /api/v1/gis/cloud-native/phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:711",
+        "POST /api/v1/gis/cloud-native/phase6/digital-twin/snapshot @ services/sahool-platform/api/routers/gis_cloud_native.py:786",
+        "POST /api/v1/gis/cloud-native/phase6/management-zones/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:730",
+        "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:746",
+        "POST /api/v1/gis/cloud-native/phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:770",
+        "POST /api/v1/gis/cloud-native/phase6/yield-stability @ services/sahool-platform/api/routers/gis_cloud_native.py:762",
+        "POST /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:220"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -1989,9 +1989,9 @@
       ],
       "apis": [
         "GET /api/raster/{path:path} @ services/sahool-platform/api/routers/compat_gateway.py:114",
-        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json @ services/sahool-platform/api/routers/gis_cloud_native.py:535",
-        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tiles/{z}/{x}/{y}.png @ services/sahool-platform/api/routers/gis_cloud_native.py:561",
-        "GET /api/v1/gis/cloud-native/tile-cache-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:283",
+        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json @ services/sahool-platform/api/routers/gis_cloud_native.py:536",
+        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tiles/{z}/{x}/{y}.png @ services/sahool-platform/api/routers/gis_cloud_native.py:562",
+        "GET /api/v1/gis/cloud-native/tile-cache-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:284",
         "GET /api/v1/weather/operation-tile-data/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2456",
         "GET /api/v1/weather/tile-cache/backend @ services/sahool-platform/api/routers/weather.py:2288",
         "GET /api/v1/weather/tile-cache/stats @ services/sahool-platform/api/routers/weather.py:2302",
@@ -2107,7 +2107,7 @@
       },
       "evidence_truncated": {
         "apis": 63,
-        "tests": 139
+        "tests": 140
       }
     },
     {
@@ -2512,7 +2512,7 @@
       ],
       "apis": [
         "GET /api/v1/crop-cards/variety/{variety_id}/disease-watch @ services/sahool-platform/api/routers/crop_cards.py:113",
-        "GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:410"
+        "GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:429"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -3058,7 +3058,7 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "POST /api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:66"
+        "POST /api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:67"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -3561,8 +3561,8 @@
       ],
       "apis": [
         "POST /api/v1/fields/{field_id}/productivity-zones @ services/sahool-platform/api/routers/productivity.py:65",
-        "POST /api/v1/gis/cloud-native/management-zones/summary @ services/sahool-platform/api/routers/gis_cloud_native.py:356",
-        "POST /api/v1/gis/cloud-native/phase6/management-zones/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:729"
+        "POST /api/v1/gis/cloud-native/management-zones/summary @ services/sahool-platform/api/routers/gis_cloud_native.py:357",
+        "POST /api/v1/gis/cloud-native/phase6/management-zones/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:730"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -3631,7 +3631,7 @@
       "apis": [
         "GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377",
         "POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216",
-        "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:745",
+        "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:746",
         "POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1085",
         "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:398"
       ],

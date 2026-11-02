@@ -1690,7 +1690,7 @@ async def _evaluate_field_alerts_persist(
     today = forecast[0] if forecast else None
     # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
     irrigation_need_mm: float | None = None
-    recent_rain, fc_rain_48h, rain_fc_3d = alert_rain_context(current, forecast)
+    recent_rain, fc_rain_48h, rain_fc_3d = alert_rain_context(forecast)
     if today is not None and today.et0_mm is not None and None not in (recent_rain, fc_rain_48h):
         from core.season_phenology import resolve_crop_id, stage_kc
 

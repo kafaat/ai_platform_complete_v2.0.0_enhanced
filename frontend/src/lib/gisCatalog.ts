@@ -67,7 +67,9 @@ export interface StacItemProperties {
   'sahool:field_id': string | null;
   'sahool:raster_id': string;
   'sahool:index_type': string;
-  'eo:cloud_cover': number;
+  /** يُحذف حين يكون الغطاء مجهولاً (لا 0 مختلَقة) — انظر sahool:cloud_cover_known. */
+  'eo:cloud_cover'?: number;
+  'sahool:cloud_cover_known'?: boolean;
   'sahool:quality_score': number | null;
   gsd: number;
 }

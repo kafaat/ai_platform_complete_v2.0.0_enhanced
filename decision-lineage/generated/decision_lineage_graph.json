@@ -1496,7 +1496,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 291,
+      "evidence_count": 292,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1799,6 +1799,7 @@
         "shared/feature_store/practice_review.py",
         "shared/federated_agent_runtime.py",
         "shared/gis/phase5_runtime.py",
+        "shared/gis/test_cloud_native_runtime.py",
         "shared/governance/chemical_lineage.py",
         "shared/marketplace_ecosystem_phase12.py",
         "shared/marketplace_plugin_runtime.py",
@@ -2935,7 +2936,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 187,
-      "target_evidence_count": 291,
+      "target_evidence_count": 292,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2975,7 +2976,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 291,
+      "source_evidence_count": 292,
       "target_evidence_count": 44,
       "static_supported": true,
       "runtime_verified": false
@@ -3162,5 +3163,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "58eb2eab6461ae091e611b42a30745eaafcc45d05c4baa7035e65a32b680d5ca"
+  "content_sha256": "fda194f0bf8dfb3980a25bb25f5ad97ff6eeba7b7a466fcb2be3cff4a680ce40"
 }

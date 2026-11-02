@@ -50,8 +50,12 @@ def test_every_band_math_normalized_difference_masks_invalid_inputs(fn):
     assert (np.abs(finite) <= 1.0).all()
 
 
-def _run_process_pixels(tmp_path, indicator, band_attrs, band1, band2):
-    """Execute the real process_pixels on a 2-band float32 GeoTIFF (no services)."""
+def _run_process_pixels(tmp_path, indicator, band_attrs, *band_values):
+    """Execute the real process_pixels on an N-band float32 GeoTIFF (no services).
+
+    ``band_attrs[i]`` is read from file band i+1, whose first row starts with
+    ``band_values[i]``; every other pixel is nodata.
+    """
     import rasterio
     from rasterio.transform import from_origin
 
@@ -89,8 +93,8 @@ def _run_process_pixels(tmp_path, indicator, band_attrs, band1, band2):
         },
     )
     bands = dict.fromkeys(("red", "nir", "green", "blue", "swir1", "rededge", "swir2"), None)
-    bands[band_attrs[0]] = 1
-    bands[band_attrs[1]] = 2
+    for file_band, attr in enumerate(band_attrs, start=1):
+        bands[attr] = file_band
     req = SimpleNamespace(
         indicator=SimpleNamespace(value=indicator),
         bands=SimpleNamespace(**bands),
@@ -102,9 +106,9 @@ def _run_process_pixels(tmp_path, indicator, band_attrs, band1, band2):
         raster_url="fixture.tif",
         field_id=None,
     )
-    data = np.full((2, 16, 16), -9999.0, dtype="float32")
-    data[0, 0, :2] = band1
-    data[1, 0, :2] = band2
+    data = np.full((len(band_values), 16, 16), -9999.0, dtype="float32")
+    for i, values in enumerate(band_values):
+        data[i, 0, : len(values)] = values
     path = tmp_path / "fixture.tif"
     with rasterio.open(
         path,
@@ -112,7 +116,7 @@ def _run_process_pixels(tmp_path, indicator, band_attrs, band1, band2):
         driver="GTiff",
         width=16,
         height=16,
-        count=2,
+        count=len(band_values),
         dtype="float32",
         nodata=-9999,
         crs="EPSG:32638",

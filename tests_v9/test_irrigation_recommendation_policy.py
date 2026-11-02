@@ -127,3 +127,37 @@ def test_missing_rain_raises_instead_of_being_read_as_no_rain():
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))
+
+
+_FULL_LEACH = dict(
+    soil_ece=_SALINE,
+    crop_salt_tolerance_ece=_WHEAT_THRESHOLD,
+    drainage="medium",
+)
+
+
+def test_leaching_follows_fao29_net_over_one_minus_lr():
+    """FAO-29: applied = net/(1−LR) ⇒ leaching = net×LR/(1−LR), not net×LR (G14 parity).
+
+    ECw=8, threshold=4 ⇒ FAO-56 LR = 8/(20−8) capped at 0.5 ⇒ applied = 2×net.
+    The old ``net×LR`` gave 3.0 mm leaching / 8.9 mm gross — a third less water.
+    """
+    r = recommend_irrigation(**_BASE, **_FULL_LEACH, water_ec=8.0, irrigation_efficiency=1.0)
+    assert r["policy"] == "salinity_with_leaching"
+    assert r["net_irrigation_mm"] == 5.9
+    assert r["salinity_leaching_mm"] == 5.9  # 5.9 × 0.5 / (1 − 0.5)
+    assert r["gross_irrigation_mm"] == 11.8  # (5.9 + 5.9) / 1.0 = net / (1 − LR)
+
+    # ECw=2 ⇒ LR = 2/18 = 1/9 ⇒ leaching = 5.9 × (1/9)/(8/9) = 5.9/8 = 0.7375 ⇒ 0.7.
+    r2 = recommend_irrigation(**_BASE, **_FULL_LEACH, water_ec=2.0, irrigation_efficiency=0.5)
+    assert r2["salinity_leaching_mm"] == 0.7
+    assert r2["gross_irrigation_mm"] == 13.2  # (5.9 + 0.7) / 0.5
+
+
+def test_leaching_requirement_outside_unit_interval_is_rejected(monkeypatch):
+    """LR ≥ 1 would divide by zero (or go negative): reject, never emit nonsense water."""
+    import api.irrigation_recommendation_policy as policy_mod
+
+    monkeypatch.setattr(policy_mod, "leaching_requirement", lambda *_a: 1.0)
+    with pytest.raises(ValueError, match=r"leaching requirement must be in \[0, 1\)"):
+        recommend_irrigation(**_BASE, **_FULL_LEACH, water_ec=8.0, irrigation_efficiency=1.0)
