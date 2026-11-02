@@ -57,6 +57,7 @@ from raster_field_runtime import (
     _pixel_quality,
     _process_backfill_scene_cdse,
     _public_cog_url,
+    _read_index_pixel,
     _read_tile_cache,
     _real_field_grid,
     _require_field_tenant,
@@ -65,7 +66,6 @@ from raster_field_runtime import (
     _run_cdse_processing,
     _run_processing,
     _safe_raster_source,
-    _sample_index_pixel,
     _select_backfill_scenes_by_policy,
     _stac_search,
     _stac_search_landsat_unique,
@@ -74,6 +74,7 @@ from raster_field_runtime import (
     _write_tile_cache,
     logger,
     object_store,
+    run_raster_io,
 )
 from raster_http_policy import TENANT_PRIVATE_IMAGE_HEADERS, requested_dates, validate_xyz
 from raster_indicator_product import eligible_observation_product
@@ -895,7 +896,7 @@ async def field_indicator_grid(
 
     layer = await _resolve_field_layer(field_id, index, date)
     if layer is not None:
-        real = _grid_from_cog(layer, out_index, date, grid)
+        real = await run_raster_io(_grid_from_cog, layer, out_index, date, grid)  # R9
         if real is not None:
             return real
 
@@ -951,7 +952,7 @@ async def field_indicator_observation_bundle(
         if layer is None:
             unavailable[public_name] = "product_unavailable"
             continue
-        result = _grid_from_cog(layer, _display_index(public_name), date, grid)
+        result = await run_raster_io(_grid_from_cog, layer, _display_index(public_name), date, grid)
         if (product := eligible_observation_product(result)) is None:
             unavailable[public_name] = "product_quality_unavailable"
             continue
@@ -1027,50 +1028,40 @@ async def field_pixel_value(
         if not (minx <= lon <= maxx and miny <= lat <= maxy):
             raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة")
     try:
-        import rasterio
+        import rasterio  # noqa: F401 — توفّره شرط القراءة (503 صادق)
     except Exception as e:  # noqa: BLE001
         raise HTTPException(503, "rasterio غير متوفر لقراءة قيمة البكسل") from e
     path = object_store.to_gdal_path(layer.get("cog_url") or layer.get("raster_url") or "")
     if not path:
         raise HTTPException(404, "مصدر COG غير موجود")
     try:
-        with rasterio.open(path) as src:
-            try:
-                value = _sample_index_pixel(src, lon, lat)  # None = nodata/مقنَّع/غير منتهٍ
-            except IndexError as exc:
-                raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة") from exc
-            if value is None:
-                return {
-                    "field_id": field_id,
-                    "index": out_index,
-                    "date": layer.get("acquisition_date") or date,
-                    "lat": lat,
-                    "lon": lon,
-                    "value": None,
-                    "valid": False,
-                    "reason": "nodata_or_masked",
-                    "confidence": 0.0,
-                    "quality": "nodata",
-                }
-            quality = _pixel_quality(layer, float(value))
-            return {
-                "field_id": field_id,
-                "index": out_index,
-                "date": layer.get("acquisition_date") or date,
-                "lat": lat,
-                "lon": lon,
-                "value": float(value),
-                "valid": True,
-                "source": layer.get("source_format") or "raster",
-                "confidence": quality["confidence"],
-                "quality": quality["quality"],
-                "quality_reason": quality["reason"],
-                "cloud_pct": quality.get("cloud_pct"),
-            }
-    except HTTPException:
-        raise
+        value = await run_raster_io(_read_index_pixel, path, lon, lat)  # R9؛ None = nodata/مقنَّع
+    except IndexError as exc:
+        raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة") from exc
     except Exception as e:  # noqa: BLE001
         raise HTTPException(500, "تعذّرت قراءة قيمة البكسل") from e
+    acquired = layer.get("acquisition_date") or date
+    base = {"field_id": field_id, "index": out_index, "date": acquired, "lat": lat, "lon": lon}
+    if value is None:
+        return {
+            **base,
+            "value": None,
+            "valid": False,
+            "reason": "nodata_or_masked",
+            "confidence": 0.0,
+            "quality": "nodata",
+        }
+    quality = _pixel_quality(layer, float(value))
+    return {
+        **base,
+        "value": float(value),
+        "valid": True,
+        "source": layer.get("source_format") or "raster",
+        "confidence": quality["confidence"],
+        "quality": quality["quality"],
+        "quality_reason": quality["reason"],
+        "cloud_pct": quality.get("cloud_pct"),
+    }
 
 
 @router.post("/v1/fields/{field_id}/prescription")
@@ -1103,7 +1094,7 @@ async def field_prescription(
                 "date": req.date,
             },
         )
-    grid_resp = _grid_from_cog(layer, req.index, req.date, req.grid)
+    grid_resp = await run_raster_io(_grid_from_cog, layer, req.index, req.date, req.grid)
     if grid_resp is None:
         raise HTTPException(
             424,
@@ -1352,7 +1343,8 @@ async def field_tile(
 
             cog_path = object_store.to_gdal_path(layer["cog_url"])
             internal = _normalize_index(index)
-            png = tile_render.render_tile_png(cog_path, z, x, y, internal)
+            # R9: تصيير COG (ربما بعيد) خارج حلقة الأحداث — بلاطة بطيئة لا تُجمّد الخدمة.
+            png = await run_raster_io(tile_render.render_tile_png, cog_path, z, x, y, internal)
             if png:
                 _obs_inc("tile_cache_misses_total", index)
                 _write_tile_cache(cache_path, png)
@@ -1543,7 +1535,9 @@ async def field_terrain(
     )
     dem_path = resolved.get("dem_path")
     pixel_size = float(resolved.get("native_resolution_m") or 30.0)
-    result = ta.compute_field_terrain(dem_path, parsed_bbox, pixel_size_m=pixel_size, poly=poly)
+    result = await run_raster_io(
+        ta.compute_field_terrain, dem_path, parsed_bbox, pixel_size_m=pixel_size, poly=poly
+    )  # R9: قراءة DEM خارج حلقة الأحداث
     if result.get("computed") and (result.get("slope_deg") or {}).get("mean") is not None:
         result["water_harvesting"] = ta.classify_water_harvesting(result["slope_deg"]["mean"])
         # ربط الانحدار بقرارات زراعيّة (خطر تعرية/سيولة/إجراءات) — إرشاديّ، بلا تلفيق.

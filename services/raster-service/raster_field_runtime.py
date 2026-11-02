@@ -7,6 +7,7 @@ names that its endpoint code still expects.
 
 from __future__ import annotations
 
+import functools
 import logging
 import os
 import sys
@@ -28,6 +29,8 @@ import stac_search as stac_search_helpers
 import tile_cache_io
 import tile_cache_maint
 import tile_observability
+from anyio import CapacityLimiter, to_thread
+from anyio.lowlevel import RunVar
 from fastapi import Header, HTTPException
 
 logger = logging.getLogger("raster-service")
@@ -226,17 +229,48 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
 
 
 async def _real_field_grid(field_id: str, index: str, date: str, grid: int) -> dict | None:
-    return await layer_lookup.real_field_grid(
-        field_id,
-        index,
-        date,
-        grid,
-        layers=_layers,
-        field_layers=_field_layers,
-        tenant_getter=_REQ_TENANT.get,
-        logger=logger,
-        object_store_module=object_store,
-    )
+    # Same contract as layer_lookup.real_field_grid, but the COG read runs off the loop (R9).
+    layer = await _resolve_field_layer(field_id, index, date)
+    if layer is None:
+        return None
+    return await run_raster_io(_grid_from_cog, layer, index, date, grid)
+
+
+# R9: Blocking raster I/O off the event loop, bounded.
+# قراءة GDAL/rasterio متزامنة داخل معالج async على عامل uvicorn واحد كانت تُجمّد الخدمة كلّها
+# خلف COG بعيد بطيء. تُنفَّذ في خيط بحدّ تزامن (RASTER_IO_CONCURRENCY) كي لا تستهلك الخيوط
+# كلّها؛ والمحدِّد لكلّ حلقة أحداث (RunVar) كمحدِّد anyio الافتراضيّ نفسه.
+_RASTER_IO_LIMITER: RunVar[CapacityLimiter] = RunVar("raster_io_limiter")
+
+
+def raster_io_concurrency() -> int:
+    try:
+        return max(1, int(os.getenv("RASTER_IO_CONCURRENCY", "8")))
+    except ValueError:
+        return 8
+
+
+def _raster_io_limiter() -> CapacityLimiter:
+    try:
+        return _RASTER_IO_LIMITER.get()
+    except LookupError:
+        limiter = CapacityLimiter(raster_io_concurrency())
+        _RASTER_IO_LIMITER.set(limiter)
+        return limiter
+
+
+async def run_raster_io(func, /, *args, **kwargs):
+    """Run a blocking GDAL/rasterio call in a worker thread under the raster I/O limiter."""
+    call = functools.partial(func, *args, **kwargs)
+    return await to_thread.run_sync(call, limiter=_raster_io_limiter())
+
+
+def _read_index_pixel(path: str, lon: float, lat: float) -> float | None:
+    """Open ``path`` and sample the index pixel (blocking; call via ``run_raster_io``)."""
+    import rasterio
+
+    with rasterio.open(path) as src:
+        return _sample_index_pixel(src, lon, lat)
 
 
 # Tile cache helpers.
