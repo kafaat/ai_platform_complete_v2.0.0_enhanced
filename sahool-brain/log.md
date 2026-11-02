@@ -10258,3 +10258,4 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 
 - **القياس (قراءة، GitHub `commits/{sha}/status`):** `cc0d2e295` ⇒ `failure` (15 حالة، الفاشلةُ الوحيدة `resourceful-commitment - ai_platform_complete_v2.0.0_enhanced`). `aaa1b7f0a` (#1320، أوّلُ التزامٍ على main بعد الحذف) ⇒ `success` (14 حالة كلّها ناجحة، ولا حالةَ للمشروع الشارد).
 - **الحالة:** **fixed** ([`gaps/registry.md`](gaps/registry.md)). وما زال المشروعُ الفارغ في مهلة الـ48 ساعة لدى Railway.
+- **تصحيح (2026-11-02):** أُخرِج **T3** (REVOKE بعد المنح الشامل في `migrations/apply_in_compose.sh`) من هذا الفرع إلى مسودّة العزل `claude/audit-draft-isolation-migrations-on-main-20261101`: السكربت يراقبه المهاجر على Railway، فدمجُه هنا كان سيعيد نشر المهاجر وتشغيله، ولم يأذن المالك. ولا أثر حيّ لـT3 إلّا مع v237.
