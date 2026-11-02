@@ -20345,7 +20345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "85af4c7b0c31652b8a5287b25d8dcb28e903f7fdcb5cb32999eb0fbeadc1b4ce"
+          "content": "670143f8142e5593535aa10c883b3062a64ec4a957370f84fc261d34ca8872da"
         }
       ],
       "name": "services/raster-service/raster_app_factory.py",
@@ -20455,7 +20455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4a52fdf732c2cf6718790e9bad7c5abad96024fcda3449fec3a178638f2aa58"
+          "content": "fbabfcb97e9a065402ee58edb9cfdcc88b609cb4d4066fcce74907caaa503c0d"
         }
       ],
       "name": "services/raster-service/raster_date_geo.py",
@@ -20465,7 +20465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0cfdba6f8c60576872354edefe2b434419acd1832e098bf160b71835874e59c"
+          "content": "d0ca590f33787d41aa7d5fc7179623e37afc542d9e768150c581df9e5dd08e51"
         }
       ],
       "name": "services/raster-service/raster_field_runtime.py",
@@ -20725,7 +20725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cfbb057acd37fafaaca138df8c89dd5b3edb1837e9b957999426d7dd2149689d"
+          "content": "af8a6eda58fa5bbb075a1b104acbf4cb9843b436bf6d44317b377d06fb8e9225"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -21205,7 +21205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15bf6a644861386d4b2db07c1d7ec1c2306569677c0a692ea1db208625f39496"
+          "content": "3c1b406dfa0df2f77b7a3101013540c23870707bba30505c253973ae39a963dc"
         }
       ],
       "name": "services/raster-service/test_clip_polygon_stored_geometry.py",
@@ -21289,6 +21289,16 @@
         }
       ],
       "name": "services/raster-service/test_container_healthcheck_status.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c8f55733fe2c6e1484e446574da4346cf7bf558c61b5a3e10175fd4171e78c4f"
+        }
+      ],
+      "name": "services/raster-service/test_cors_preflight_tenant_order.py",
       "type": "file"
     },
     {

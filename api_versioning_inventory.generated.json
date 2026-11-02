@@ -2171,7 +2171,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 91,
+    "line": 92,
     "method": "GET",
     "path": "/v1/gis/admin-boundaries",
     "handler": "gis_admin_boundaries",
@@ -2180,7 +2180,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 140,
+    "line": 141,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-from-stac",
     "handler": "process_from_stac",

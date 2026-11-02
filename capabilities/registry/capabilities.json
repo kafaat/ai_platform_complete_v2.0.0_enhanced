@@ -82,6 +82,7 @@
         "services/auth/tests/__init__.py",
         "services/auth/tests/test_router_decomposition_guard.py",
         "services/decision-service/tests/test_tenant_boundary_migration_static.py",
+        "services/raster-service/test_cors_preflight_tenant_order.py",
         "services/raster-service/test_field_tenant_isolation_t10.py",
         "services/raster-service/test_job_tenant_binding.py",
         "services/raster-service/test_process_date_tenant_isolation.py",
@@ -93,8 +94,7 @@
         "services/sahool-platform/tests/test_route_auth_matrix_guard.py",
         "services/sahool-platform/tests/test_sweep_tenant_enumeration.py",
         "services/sahool-platform/tests/test_t4_raster_compat_proxy_auth.py",
-        "services/sahool-platform/tests/test_tenant_audit.py",
-        "services/sahool-platform/tests/test_tenant_config.py"
+        "services/sahool-platform/tests/test_tenant_audit.py"
       ],
       "runtime": {
         "metrics": [
@@ -137,7 +137,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 46
+        "tests": 47
       }
     },
     {
@@ -1400,7 +1400,7 @@
         "POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1737",
         "POST /v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1722",
         "POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:824",
-        "POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:140",
+        "POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:141",
         "POST /v1/scenes/quality-score @ services/raster-service/routers/imagery.py:114",
         "POST /v1/stac/mosaicjson @ services/raster-service/routers/stac.py:33"
       ],
@@ -2022,7 +2022,7 @@
         "GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1558",
         "GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1301",
         "GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1205",
-        "GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:91",
+        "GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:92",
         "GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22",
         "GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:66",
         "GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:189",
@@ -2107,7 +2107,7 @@
       },
       "evidence_truncated": {
         "apis": 63,
-        "tests": 144
+        "tests": 145
       }
     },
     {

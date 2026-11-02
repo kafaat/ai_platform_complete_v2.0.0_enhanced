@@ -397,7 +397,7 @@
     },
     {
       "kind": "router",
-      "line": 83,
+      "line": 84,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -2811,7 +2811,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "8128813f5021345bcee0f23f5b983c3cf63033871d087e44a64078b50a08b43d",
+  "inventory_sha256": "e698f997389b78561bb3e174220a8df20ec65bfb0a20b814c01524cb8e48061a",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -3027,7 +3027,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 83,
+      "line": 84,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,

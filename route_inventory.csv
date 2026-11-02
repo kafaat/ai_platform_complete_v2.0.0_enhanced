@@ -241,8 +241,8 @@ raster-service,services/raster-service/routers/analysis.py,188,POST,/v1/salinity
 raster-service,services/raster-service/routers/cdse_tiles.py,125,GET,/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png,field_cdse_tile
 raster-service,services/raster-service/routers/cdse_tiles.py,202,GET,/v1/fields/{field_id}/cdse-thumbnail.png,field_cdse_thumbnail
 raster-service,services/raster-service/routers/cdse_tiles.py,267,GET,/v1/fields/{field_id}/cdse-tilejson,field_cdse_tilejson
-raster-service,services/raster-service/routers/fields.py,91,GET,/v1/gis/admin-boundaries,gis_admin_boundaries
-raster-service,services/raster-service/routers/fields.py,140,POST,/v1/fields/{field_id}/process-from-stac,process_from_stac
+raster-service,services/raster-service/routers/fields.py,92,GET,/v1/gis/admin-boundaries,gis_admin_boundaries
+raster-service,services/raster-service/routers/fields.py,141,POST,/v1/fields/{field_id}/process-from-stac,process_from_stac
 raster-service,services/raster-service/routers/fields.py,266,POST,/v1/fields/{field_id}/imagery/backfill,field_historical_backfill
 raster-service,services/raster-service/routers/fields.py,653,GET,/v1/fields/{field_id}/imagery/backfill/{run_id},field_backfill_run_status
 raster-service,services/raster-service/routers/fields.py,671,POST,/v1/fields/{field_id}/imagery/process-date,field_process_date
