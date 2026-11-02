@@ -23595,7 +23595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4fedbcde42fd3c91f071d3be9c586f9267ebc0c0e3bdf210195bc60b88a30a67"
+          "content": "e53482852e44bd18391dd16fad997f0a001fa71f394a13cf80d92e1e2497f564"
         }
       ],
       "name": "services/sahool-platform/api/field_models.py",
