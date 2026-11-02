@@ -7,8 +7,9 @@
 
 العقد بعد الإصلاح:
   * الثلاثة تستدعي ``_require_field_tenant`` ⇒ حقل مستأجر آخر = 403 قبل أيّ قراءة/جدولة.
-  * ``process-cdse`` مع قاعدة: الهندسة وbbox من جدول ``fields``، والمستأجر من السياق؛
-    هندسة الجسم تُتجاهَل، وغياب الهندسة المخزّنة ⇒ 400 بلا مهمّة.
+  * ``process-cdse`` مع قاعدة: الهندسة وbbox **ومراجعتها** من جدول ``fields``/سجلّ
+    ``field_geometry_history``، والمستأجر من السياق؛ هندسة الجسم تُتجاهَل، وغياب الهندسة
+    المخزّنة ⇒ 400 بلا مهمّة، ومراجعة الجسم المخالفة للمخزّنة ⇒ 409 بلا مهمّة.
   * ``resolve_field_layer`` لا يُرجِع طبقة ذاكرة مالكها غير مستأجر الطلب.
 """
 
@@ -116,9 +117,9 @@ async def test_process_cdse_uses_stored_geometry_not_body(as_tenant, monkeypatch
 
     async def stored_geometry(field_id, tenant_id=None):
         seen.append((field_id, tenant_id))
-        return STORED
+        return {"geometry": STORED, "revision": 4}
 
-    monkeypatch.setattr(db_persist, "fetch_field_geometry", stored_geometry)
+    monkeypatch.setattr(db_persist, "fetch_field_geometry_with_revision", stored_geometry)
     tasks = BackgroundTasks()
     req = ProcessCdseRequest(bbox=[10.0, 50.0, 10.5, 50.5], geometry=FOREIGN, indicators=["ndvi"])
     out = await fields.process_cdse(FIELD, req, tasks, x_agent_token="ok")
@@ -141,13 +142,74 @@ async def test_process_cdse_without_stored_geometry_queues_nothing(as_tenant, mo
     async def no_geometry(field_id, tenant_id=None):
         return None
 
-    monkeypatch.setattr(db_persist, "fetch_field_geometry", no_geometry)
+    monkeypatch.setattr(db_persist, "fetch_field_geometry_with_revision", no_geometry)
     tasks = BackgroundTasks()
     req = ProcessCdseRequest(bbox=[10.0, 50.0, 10.5, 50.5], geometry=FOREIGN, indicators=["ndvi"])
     with pytest.raises(HTTPException) as exc:
         await fields.process_cdse(FIELD, req, tasks, x_agent_token="ok")
     assert exc.value.status_code == 400
     assert tasks.tasks == []
+
+
+# ── مراجعة PR #1324: نَسَب الهندسة يُقرأ مع الهندسة نفسها ─────────────────────
+# كانت الهندسة تُستبدَل بالمخزّنة الحاليّة ويبقى ``geometry_revision`` من الجسم، فتُحفَظ
+# المراجعة N نَسَباً (raster_cdse_processing → raster_asset_persistence) لأصلٍ قُصّ بهندسة
+# N+1. العقد: الهندسة ومراجعتها من القاعدة معاً؛ مراجعةٌ في الجسم تخالف المخزّنة ⇒ 409 بلا
+# مهمّة؛ مطابقةٌ أو غائبة ⇒ تُختَم المراجعة المخزّنة.
+
+
+def _stored_revision(monkeypatch, revision):
+    monkeypatch.setattr(db_persist, "DATABASE_URL", "postgresql://t10.invalid/db")
+
+    async def stored(field_id, tenant_id=None):
+        return {"geometry": STORED, "revision": revision}
+
+    monkeypatch.setattr(db_persist, "fetch_field_geometry_with_revision", stored)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("stored_rev", "body_rev"), [(5, 4), (4, 5), (None, 4)])
+async def test_process_cdse_stale_geometry_revision_is_409_and_queues_nothing(
+    as_tenant, monkeypatch, stored_rev, body_rev
+):
+    as_tenant(TENANT_A)
+    _cdse_ready(monkeypatch)
+    _stored_revision(monkeypatch, stored_rev)
+    tasks = BackgroundTasks()
+    monkeypatch.setattr(fields._jobs, "set", _fail_if_read)  # لا سجلّ مهمّة قبل الرفض
+    req = ProcessCdseRequest(
+        bbox=[44.0, 15.0, 44.02, 15.03], indicators=["ndvi"], geometry_revision=body_rev
+    )
+    with pytest.raises(HTTPException) as exc:
+        await fields.process_cdse(FIELD, req, tasks, x_agent_token="ok")
+    assert exc.value.status_code == 409
+    assert exc.value.detail["code"] == "stale_geometry_revision"
+    assert exc.value.detail["requested_revision"] == body_rev
+    assert exc.value.detail["current_revision"] == stored_rev
+    assert tasks.tasks == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("stored_rev", "body_rev"), [(5, 5), (5, None), (None, None)])
+async def test_process_cdse_stamps_the_stored_geometry_revision(
+    as_tenant, monkeypatch, stored_rev, body_rev
+):
+    as_tenant(TENANT_A)
+    _cdse_ready(monkeypatch)
+    _stored_revision(monkeypatch, stored_rev)
+    tasks = BackgroundTasks()
+    req = ProcessCdseRequest(
+        bbox=[10.0, 50.0, 10.5, 50.5],
+        geometry=FOREIGN,
+        indicators=["ndvi"],
+        geometry_revision=body_rev,
+    )
+    out = await fields.process_cdse(FIELD, req, tasks, x_agent_token="ok")
+    assert out["queued"] is True
+    (task,) = tasks.tasks
+    queued_req = task.args[2]
+    assert queued_req.geometry == STORED
+    assert queued_req.geometry_revision == stored_rev
 
 
 def _layer(layer_id: str, tenant: str, acquired: str) -> dict:

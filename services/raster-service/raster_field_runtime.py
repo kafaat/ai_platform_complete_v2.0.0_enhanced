@@ -102,28 +102,49 @@ async def _require_field_tenant(field_id: str, *, hide_existence: bool = False) 
 async def _cdse_request_on_stored_field(
     field_id: str, req: api_models.ProcessCdseRequest, owner: str
 ) -> api_models.ProcessCdseRequest:
-    """هندسة process-cdse من جدول ``fields`` (مصدر الحقيقة) لا من جسم الطلب (T10).
+    """هندسة process-cdse ومراجعتها من جدول ``fields`` (مصدر الحقيقة) لا من جسم الطلب (T10).
 
     هندسة الجسم كانت تُقصّ بها الطبقات وتُحفَظ باسم الحقل، فيُعالَج أيّ مضلّع تحت معرّف
     حقل. مع قاعدة: الهندسة المخزّنة تحكم (وbbox يُشتقّ منها) والجسم يُتجاهَل؛ غيابها ⇒ 400.
+    ومراجعتها (``geometry_revision``) تُقرأ معها في جملة واحدة وتُختَم على الطلب: مراجعةُ
+    الجسم كانت تبقى فتُحفَظ N نَسَباً لأصلٍ قُصّ بهندسة N+1 (مراجعة PR #1324). مراجعةٌ في
+    الجسم تخالف المخزّنة ⇒ 409 ``stale_geometry_revision`` بلا مهمّة، لا خلط نَسَب.
     بلا قاعدة (وضع مقصود، كفحص الملكيّة بالذاكرة) لا سجلّ نقارن به فتبقى هندسة الجسم.
     والمستأجر ``owner`` (مستأجر السياق) يُثبَّت على الطلب فتُنسَب الطبقات لمالكها.
     """
     import db_persist as _dbp
 
-    geometry, bbox = req.geometry, list(req.bbox)
+    geometry, bbox, revision = req.geometry, list(req.bbox), req.geometry_revision
     if _dbp.DATABASE_URL:
         try:
-            stored = await _dbp.fetch_field_geometry(field_id, _REQ_TENANT.get())
+            stored = await _dbp.fetch_field_geometry_with_revision(field_id, _REQ_TENANT.get())
         except Exception as e:  # noqa: BLE001 — تعذّر جلب الهندسة ⇒ 503 صادق
             raise HTTPException(503, "تعذّر جلب هندسة الحقل المخزّنة") from e
-        bbox = _bbox_from_geojson(stored)
-        if stored is None or bbox is None:
+        geometry = (stored or {}).get("geometry")
+        bbox = _bbox_from_geojson(geometry)
+        if geometry is None or bbox is None:
             raise HTTPException(400, "هندسة الحقل المخزّنة غير متاحة لمعالجة CDSE")
-        if req.geometry is not None and req.geometry != stored:
+        revision = stored.get("revision")
+        if req.geometry_revision is not None and req.geometry_revision != revision:
+            raise HTTPException(
+                409,
+                {
+                    "code": "stale_geometry_revision",
+                    "requested_revision": req.geometry_revision,
+                    "current_revision": revision,
+                    "message_ar": "مراجعة هندسة الحقل في الطلب ليست المراجعة المخزّنة الحاليّة.",
+                },
+            )
+        if req.geometry is not None and req.geometry != geometry:
             logger.warning("process-cdse field=%s: body geometry ignored (stored wins)", field_id)
-        geometry = stored
-    return req.model_copy(update={"geometry": geometry, "bbox": bbox, "tenant_id": owner})
+    return req.model_copy(
+        update={
+            "geometry": geometry,
+            "bbox": bbox,
+            "geometry_revision": revision,
+            "tenant_id": owner,
+        }
+    )
 
 
 def _cdse_job_record(job_id: str, owner: str, req, gate_decision) -> dict:
