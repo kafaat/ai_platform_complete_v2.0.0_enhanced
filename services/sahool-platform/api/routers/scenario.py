@@ -23,6 +23,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from api.gdd_tracker import GDD_CROP_PARAMS, stage_result_from_cumulative
+from api.irrigation_models import resolve_day_of_year
 from api.main import (
     UserSchema,
     WhatIfPlantingRequest,
@@ -200,28 +201,29 @@ async def scenario_temperature(
     WS-C.1b Zero-Legacy: ET0 للأساس وللحرارة المُزاحة محقونان من محرّك الطقس (المصدر
     الوحيد؛ temp-only ⇒ Hargreaves). تعذّر المحرّك ⇒ 503 fail-closed (لا نواة محلّيّة).
     """
+    day_of_year, day_of_year_source = resolve_day_of_year(req.day_of_year)
     w = _WInput(
         t_min_c=req.t_min_c,
         t_max_c=req.t_max_c,
         latitude_deg=req.latitude_deg,
         elevation_m=req.elevation_m,
-        day_of_year=req.day_of_year,
+        day_of_year=day_of_year,
     )
     base_et0, method = await _engine_et0(
         t_min_c=req.t_min_c,
         t_max_c=req.t_max_c,
         lat_deg=req.latitude_deg,
         elevation_m=req.elevation_m,
-        day_of_year=req.day_of_year,
+        day_of_year=day_of_year,
     )
     scen_et0, _ = await _engine_et0(
         t_min_c=req.t_min_c + req.temp_shift_c,
         t_max_c=req.t_max_c + req.temp_shift_c,
         lat_deg=req.latitude_deg,
         elevation_m=req.elevation_m,
-        day_of_year=req.day_of_year,
+        day_of_year=day_of_year,
     )
-    return whatif_temperature_shift(
+    out = whatif_temperature_shift(
         w,
         req.crop,
         req.stage,
@@ -231,6 +233,7 @@ async def scenario_temperature(
         scen_et0_mm=scen_et0,
         et0_method=method,
     )
+    return {**out, "day_of_year": day_of_year, "day_of_year_source": day_of_year_source}
 
 
 @router.post("/api/v1/scenario/planting-date")
@@ -293,21 +296,22 @@ async def scenario_rainfall(
     WS-C.1b Zero-Legacy: ET0 واحد محقون من محرّك الطقس (نفس الطقس للأساس والبديل) —
     تعذّر المحرّك ⇒ 503 fail-closed (لا نواة ET0 محلّيّة).
     """
+    day_of_year, day_of_year_source = resolve_day_of_year(req.day_of_year)
     w = _WInput(
         t_min_c=req.t_min_c,
         t_max_c=req.t_max_c,
         latitude_deg=req.latitude_deg,
         elevation_m=req.elevation_m,
-        day_of_year=req.day_of_year,
+        day_of_year=day_of_year,
     )
     et0_mm, method = await _engine_et0(
         t_min_c=req.t_min_c,
         t_max_c=req.t_max_c,
         lat_deg=req.latitude_deg,
         elevation_m=req.elevation_m,
-        day_of_year=req.day_of_year,
+        day_of_year=day_of_year,
     )
-    return whatif_rainfall_change(
+    out = whatif_rainfall_change(
         w,
         req.crop,
         req.stage,
@@ -316,3 +320,4 @@ async def scenario_rainfall(
         et0_mm=et0_mm,
         et0_method=method,
     )
+    return {**out, "day_of_year": day_of_year, "day_of_year_source": day_of_year_source}

@@ -110,3 +110,11 @@ aiogram==3.31.0
 opentelemetry-sdk==1.45.1
 opentelemetry-exporter-otlp-proto-http==1.45.1
 opentelemetry-instrumentation-fastapi==0.66b1
+
+# تدقيق 2026-11-01 (Q3): مدخلا actuator وvideo-processor يستوردان `aiomqtt` عند التحميل،
+# وكانت تُثبَّت **بعد** خطوة الوحدات (خطوة الاختبارات المحلّيّة للخدمات) ⇒ ١٥ حالة
+# `-m unit` تتخطّى دائماً، منها ١١ اختبار عزل مستأجرين لبثّ الفيديو (مقيس: 84+15s ⇒ 99 نجاح).
+aiomqtt>=2.0.0  # = services/video-processor/requirements.txt:8 · actuator-service/requirements.txt:7
+# real_app_probe (Q1) يستورد main.py الحقيقيّ لـlocal-ai-rag، ومسار /v1/ingest فيه يعلن File/Form
+# فيتطلّب python-multipart عند تسجيل المسارات — قبل أيّ فحص مصادقة. = services/local-ai-rag/requirements.txt
+python-multipart==0.0.31

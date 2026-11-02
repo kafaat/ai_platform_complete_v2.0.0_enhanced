@@ -52,6 +52,10 @@ def _load(path, name):
     spec = importlib.util.spec_from_file_location(name, os.path.join(ROOT, path))
     m = importlib.util.module_from_spec(spec)
     sys.modules[name] = m
+    # تدقيق 2026-11-02: الراوترات تستورد ``main`` باسمه؛ بلا هذا الربط تُحمَّل نسخةٌ ثانية
+    # لها ``_REQ_TENANT`` و``_pool`` خاصّان بها، فلا ترى ما ضبطه وسيطُ هذه النسخة ⇒
+    # ``X-Tenant-Id required`` رغم إرسال الترويسة. العطلُ نفسُه الذي أُصلِح في Q5 (#1323).
+    sys.modules["main"] = m
     spec.loader.exec_module(m)
     return m
 
@@ -69,7 +73,11 @@ def _run_checks():
     sys.path.insert(0, os.path.join(ROOT, "services/soil-service"))
     sys.path.insert(0, ROOT)
     soil = _load("services/soil-service/main.py", "soil_main")
-    TOK = {"x-agent-token": os.environ["SAHOOL_AGENT_TOKEN"]}
+    tenant = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+    # تدقيق 2026-11-02: الخدمة لا تأخذ المستأجِرَ من الجسم (قابلٌ للتزوير) بل من ترويسة
+    # ``X-Tenant-Id`` التي تحقنها البوّابة، والقراءةُ تطلب توكن الخدمة كالاستيعاب. كان
+    # الاختبار يُرسل الجسمَ وحده فيُرفَض بـ400/401 — فشلٌ ابتلعه ``xfail(strict=False)``.
+    TOK = {"x-agent-token": os.environ["SAHOOL_AGENT_TOKEN"], "X-Tenant-Id": tenant}
     with TestClient(soil.app) as c:
         payload = {
             "field_id": "rls_func_fieldH5",
@@ -81,7 +89,7 @@ def _run_checks():
             "n_ppm": 45.0,
             "p_ppm": 12.5,
             "k_ppm": 88.0,
-            "tenant_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+            "tenant_id": tenant,
         }
         r = c.post("/v1/soil/ingest", json=payload, headers=TOK)
         ck(
@@ -94,7 +102,7 @@ def _run_checks():
             r.json().get("status") == "ingested" if r.status_code == 200 else False,
         )
 
-        r = c.get("/v1/soil/readings/rls_func_fieldH5")
+        r = c.get("/v1/soil/readings/rls_func_fieldH5", headers=TOK)
         ck(
             "read القراءات = 200 (SELECT بالأعمدة الفعليّة) [H5]",
             r.status_code == 200,
@@ -143,23 +151,52 @@ def _run_checks():
     return P, F
 
 
+# SOIL_FUNCTIONAL_CERTIFICATION_REQUIRED=1 (خطوة CI المخصَّصة بالدور المقيَّد): كلّ تخطٍّ فشلٌ.
+_CERTIFICATION_REQUIRED = os.getenv("SOIL_FUNCTIONAL_CERTIFICATION_REQUIRED") == "1"
+
+
+def _skip_or_fail(message: str) -> None:
+    if _CERTIFICATION_REQUIRED:
+        pytest.fail(message)
+    pytest.skip(message)
+
+
+def _role_bypasses_rls() -> bool:
+    """دورُ الاتّصال superuser أو BYPASSRLS؟ — حارس soil-service يرفض الإقلاع عليه بحقّ."""
+    import asyncio
+
+    import asyncpg
+
+    async def _q():
+        conn = await asyncpg.connect(os.environ["DATABASE_URL"], statement_cache_size=0)
+        try:
+            return await conn.fetchval(
+                "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
+            )
+        finally:
+            await conn.close()
+
+    return bool(asyncio.run(_q()))
+
+
+# كان هنا ``xfail(strict=False)`` باسم AUTH-E2E-UNDER-RESTRICTED-ROLE (مُغلَقة): تحت الدور
+# المقيَّد كان الاختبار يفشل بعطلَي حزامٍ لا بالدور — ``sys.modules['main']`` غير مربوط
+# ونقصُ ترويسة ``X-Tenant-Id``/التوكن على القراءة — فيُقرأ «xfailed» أخضر. صار يُشغَّل فعلاً
+# في خطوة CI مخصَّصة بالدور المقيَّد ``sahool_app_test``؛ وعلى دورٍ يتجاوز RLS يتخطّى مُعلِناً
+# لأنّ ``assert_db_role_rls_safe`` يرفض الإقلاع — وهو السلوك الصحيح لا العيب.
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=False,
-    reason=(
-        "AUTH-E2E-UNDER-RESTRICTED-ROLE (فرع CI) — **الحالة الثالثة** لنفس العيب، وهذه في "
-        "soil-service لا auth: قاعدة اختبار CI تتّصل بـsahool_test وهو superuser، فيرفض "
-        "`assert_db_role_rls_safe` الإقلاع مغلقاً — وهو السلوك الصحيح، لا عطب في الخدمة. "
-        "الإصلاح دور مقيَّد (NOSUPERUSER NOBYPASSRLS) للتشغيلة المشتركة، **لا** "
-        "SAHOOL_ALLOW_RLS_BYPASS_ROLE=1 الذي يُعطّل الحارس في CI. ci.yml ينشئ دوراً مقيَّداً "
-        "لخطوات IRR-F01 وحدها عمداً، لأنّ اختبارات أخرى تعمل كـsuperuser بحقّ. "
-        "UNIT-TEST-DORMANCY-01 أيقظ الاختبار؛ الوسم يُبقيه ظاهراً بفشله المُسمّى بدل "
-        "إعادته إلى skip صامت، ويُرفع عند إنشاء الدور المقيَّد."
-    ),
-)
 def test_services_functional():
+    try:
+        import fastapi  # noqa: F401
+    except ImportError:
+        _skip_or_fail("fastapi غير مثبّتة — تطبيقا soil/guardrails لا يُبنيان هنا")
     if not _db_available():
-        pytest.skip("DATABASE_URL غير متاح — اختبار تكامل")
+        _skip_or_fail("DATABASE_URL غير متاح — اختبار تكامل")
+    if _role_bypasses_rls():
+        _skip_or_fail(
+            "دور DATABASE_URL يتجاوز RLS (superuser/BYPASSRLS) ⇒ حارس soil-service يرفض "
+            "الإقلاع بحقّ. شغّله بدورٍ مقيَّد (خطوة CI: soil-service functional, restricted role)."
+        )
     P, F = _run_checks()
     assert not F, f"فشل: {F}"
 

@@ -22,6 +22,10 @@ on:
     branches: [main]
   pull_request:
 
+# أقلّ صلاحيّة (I5): قراءة المستودع فقط؛ أيّ وظيفة تحتاج أكثر تُعلنه على مستواها.
+permissions:
+  contents: read
+
 # دفعةٌ فوق دفعةٍ على الـPR تُلغي الجولةَ البائتة — قياسُها لا يعني شيئاً بعد أن
 # تجاوزها الرأس. **وعلى main لا إلغاء**: لكلّ التزامٍ سجلُّه، لأنّ تشغيلات main هي
 # موضوعُ الاعتماد اللاحق (`certify-run` على `workflow_run: completed`) — جولةٌ
@@ -978,7 +982,7 @@ jobs:
       # `sahool-platform/smoke_e2e_test.py` (سكربتٌ حيّ لا اختبار).
       - name: Service-local tests outside tests_v9 (one process per service, skips fail)
         run: |
-          pip install "aiomqtt>=2.0.0" "edge-tts>=6.1.12"
+          pip install "edge-tts>=6.1.12"  # aiomqtt صارت في tests_v9/requirements-test.txt (Q3)
           run_group() {
             out=$(python -m pytest -q -rs -p no:cacheprovider "$@" 2>&1); rc=$?
             printf '%s\n' "$out"
@@ -1368,6 +1372,29 @@ jobs:
           RASTER_QUEUE_RLS_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_d1_raster_queue_rls_live_pg.py
 
+      # تدقيق 2026-11-01 (Q5): كان `test_mfa_end_to_end_via_app` موسوماً `xfail(strict=False)`
+      # باسم AUTH-E2E-UNDER-RESTRICTED-ROLE (مُغلَقة) فيُقرأ أخضرَ مهما فشل. في الجولة العامّة
+      # (superuser) يرفض حارسُ auth الإقلاعَ بحقّ فيتخطّى مُعلِناً؛ هنا يُشغَّل فعلاً بالدور
+      # المقيَّد، والعَلَمُ يجعل أيّ تخطٍّ (لا DB، لا fastapi، دورٌ يتجاوز RLS) فشلاً.
+      - name: MFA end-to-end via the real auth app (restricted role)
+        env:
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          TEST_REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          MFA_E2E_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_mfa_hardening_integration_v29_5.py
+
+      # تدقيق 2026-11-02 (تابعُ Q5): `test_services_functional` (soil H5 + guardrails L5) حمل
+      # `xfail(strict=False)` بالفجوة المُغلَقة نفسِها، والجولةُ العامّة لا تضبط `DATABASE_URL`
+      # فيتخطّى. هنا يُشغَّل بالدور المقيَّد (حارسُ soil يرفض superuser بحقّ)، والعَلَمُ يجعل
+      # أيّ تخطٍّ فشلاً. `TEST_DATABASE_URL` بالقيمة نفسِها ليقرأ مُشغِّلُ المختبر أعلامَ الدور.
+      - name: soil-service functional H5 + guardrails L5 (restricted role)
+        env:
+          DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          SOIL_FUNCTIONAL_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_services_functional.py
+
   decision-service-tests:
     permissions:
       contents: read
@@ -1427,6 +1454,29 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
         run: python services/decision-service/migration_runner.py --check
+      # تدقيق 2026-11-02 (تابعُ #1323): الدليلُ الحيّ لـCANONICAL-SNAPSHOT-ELIGIBILITY-POLICY-01
+      # (RLS · إلحاقٌ فقط · تفرّد · CHECK · ذرّيّة) لم يُشغّله أيُّ workflow. جدولاه من هجرات هذه
+      # الخدمة (019/031) فقاعدةُ هذه الوظيفة تحملهما؛ والعزلُ لا يُقاس إلّا بدورٍ مقيَّد يُنشأ هنا
+      # (NOSUPERUSER NOBYPASSRLS). يعمل قبل خطوات الكتابة الأخرى، والعَلَمُ يجعل أيّ تخطٍّ فشلاً.
+      - name: eligibility assessment live proof (real Postgres, restricted role)
+        working-directory: services/decision-service
+        env:
+          PGHOST: localhost
+          PGPASSWORD: test_password
+          SAHOOL_TEST_PGPORT: "5434"
+          SAHOOL_TEST_PGDATABASE: decision_test
+          SAHOOL_TEST_PG_ADMIN_ROLE: decision_test
+          SAHOOL_TEST_PG_APP_ROLE: decision_app_test
+          ELIGIBILITY_CERTIFICATION_REQUIRED: "1"
+        run: |
+          set -euo pipefail
+          export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
+          psql -p 5434 -U decision_test -d decision_test -v ON_ERROR_STOP=1 \
+            -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'decision_app_test') THEN CREATE ROLE decision_app_test LOGIN PASSWORD 'test_password' NOSUPERUSER NOBYPASSRLS NOINHERIT; END IF; END \$\$;" \
+            -c "GRANT USAGE ON SCHEMA public TO decision_app_test" \
+            -c "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO decision_app_test" \
+            -c "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO decision_app_test"
+          pytest tests/test_eligibility_assessment_live_pg.py -v -rs -p no:cacheprovider
       # Mirror-mode contract (SoR OFF): the interim mirror sink must never claim persistence.
       # No DATABASE_URL / flag on this step ⇒ sor_enabled() is false ⇒ honest mirror behaviour.
       - name: Decision-service mirror-mode contract (SoR off)
@@ -1663,6 +1713,15 @@ jobs:
       - name: AC-6 evidence/lineage contract tests (no DB, mirror fail-closed)
         working-directory: services/decision-service
         run: pytest tests/test_agronomic_evidence_contract.py -q -p no:cacheprovider
+      # انحدارا فجوتين «مُصلَحتين» في #1289 لم يُشغّلهما أيُّ workflow (تدقيق 2026-11-01 Q4):
+      # «verified_success» على إيصالٍ فاشل، واتّجاهُ مقاييس الحماية في قرار الترقية.
+      # اتّصالٌ وهميّ في الذاكرة — بلا DATABASE_URL ولا SoR.
+      - name: execution-outcome receipt gate + promotion guardrail direction (no DB)
+        working-directory: services/decision-service
+        run: >-
+          pytest -q -p no:cacheprovider
+          tests/test_execution_outcome_receipt_gate.py
+          tests/test_model_promotion_guardrail_direction.py
       # AC-9→terminal lineage static contracts (pure token checks, no DB).
       - name: agronomic lineage chain static tests
         working-directory: services/decision-service
@@ -2248,7 +2307,25 @@ jobs:
       # غير موجود فكان || true يبتلعه دائماً وتبقى تبعيّات وقت التشغيل ناقصة.
       - run: pip install -r requirements_real.txt
         continue-on-error: true
-      - run: pytest -v -m security tests_v9/test_security.py tests_v9/test_auth_service.py -k "security"
+      # تدقيق 2026-11-01 (Q1): كانت هذه الخطوة تفكّ توكن مساعِد الاختبار بـPyJWT (تختبر المكتبة)،
+      # واختباراتها الخمسة عبر HTTP تنادي خدماتٍ حيّة على 127.0.0.1 فتتخطّى **دائماً** هنا. الآن
+      # تمرّ عبر main.py الحقيقيّ لـauth/local-ai-rag/tts (tests_v9/real_app_probe.py) بـTestClient
+      # ومزيّفات في الذاكرة — وأيُّ تخطٍّ يُفشِل الخطوة، فالأخضرُ لا يعود شهادةً على ما لم يُقَس.
+      # تبعيّات auth صراحةً: تثبيتُ requirements_real أعلاه continue-on-error.
+      - name: Security tests against the real auth/RAG/TTS apps (skips fail the step)
+        run: |
+          set -o pipefail
+          pip install -r services/auth/requirements.txt
+          # python-multipart: مسارات local-ai-rag (File/Form) تحتاجه عند الاستيراد؛ مصدره الوحيد
+          # requirements_real أعلاه وهو continue-on-error. نسحب السطر نفسه من requirements-test.
+          grep -E '^python-multipart==' tests_v9/requirements-test.txt | pip install -r /dev/stdin
+          log="$RUNNER_TEMP/security-tests.log"
+          pytest -v -rs -p no:cacheprovider -m security \
+            tests_v9/test_security.py tests_v9/test_auth_service.py \
+            tests_v9/test_rag.py tests_v9/test_tts.py 2>&1 | tee "$log"
+          if tail -n 1 "$log" | grep -q 'skipped'; then
+            echo "::error::security tests skipped — a skip here is an unmeasured control"; exit 1
+          fi
       # بوّابة مسار الكتابة في RLS (المرحلة 22): تحرس أنّ كلّ سياسة كتابة tenant
       # تحمل WITH CHECK، وتمنع أيّ ترحيل لاحق (>v122) من إعادة إدخال سياسة كتابة
       # tenant بـUSING-only أو باستخدام app.tenant_id دون app.current_tenant القانونيّ.

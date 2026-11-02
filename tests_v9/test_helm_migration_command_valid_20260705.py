@@ -27,13 +27,33 @@ def test_helm_migration_command_points_to_existing_runner():
     joined = " ".join(cmd)
     assert "api.migrations.run" not in joined, "أمر helm يشير لوحدة غير موجودة (api.migrations.run)"
     # يجب أن يشير إلى ملفّ/وحدة موجودة فعلاً في المستودع.
-    script_ref = next(
-        (c for c in cmd if c.endswith(".py") or c.startswith("api.") or c.startswith("scripts")),
-        None,
-    )
-    assert script_ref, f"أمر الترحيل بلا مرجع سكربت واضح: {cmd}"
-    if script_ref.endswith(".py"):
-        assert (REPO / script_ref).is_file(), f"سكربت الترحيل غير موجود: {script_ref}"
+    script_refs = [
+        c
+        for c in cmd
+        if c.endswith((".py", ".sh")) or c.startswith("api.") or c.startswith("scripts")
+    ]
+    assert script_refs, f"أمر الترحيل بلا مرجع سكربت واضح: {cmd}"
+    # تدقيق 2026-11-01 (I1): المهمّة تعمل الآن على صورة المهاجر (deploy/railway/Dockerfile.migrate)
+    # بمساراتٍ مطلقة داخل الصورة؛ كلٌّ منها يجب أن يُطابِق ملفّاً في المستودع: /migrations/* من
+    # migrations/ (COPY في Dockerfile.migrate)، و/opt/sahool-migrate/* من helm/sahool/files/
+    # (ConfigMap). المرجع الذي لا يُطابِق ملفّاً قائماً يبقى أمراً ميّتاً كما كان api.migrations.run.
+    image_roots = {"/migrations/": "migrations/", "/opt/sahool-migrate/": "helm/sahool/files/"}
+    for ref in script_refs:
+        if ref.endswith(".py") and not ref.startswith("/"):
+            assert (REPO / ref).is_file(), f"سكربت الترحيل غير موجود: {ref}"
+        elif ref.startswith("/"):
+            mapped = next(
+                (
+                    repo + ref[len(img) :]
+                    for img, repo in image_roots.items()
+                    if ref.startswith(img)
+                ),
+                None,
+            )
+            assert mapped, f"مسار مطلق خارج جذور الصورة المعروفة: {ref}"
+            assert (REPO / mapped).is_file(), (
+                f"مرجع الترحيل لا يطابق ملفّاً في المستودع: {ref} → {mapped}"
+            )
 
 
 def test_migrate_runner_accepts_jobs_database_url():

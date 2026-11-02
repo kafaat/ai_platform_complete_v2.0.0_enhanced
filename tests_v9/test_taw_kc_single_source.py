@@ -64,11 +64,19 @@ def _fao56_taw_per_m(texture: str) -> float:
 
 
 def _card_stage_kc(crop_id: str) -> dict[str, float]:
-    """الإسقاط القانونيّ من البطاقة: initial=Kc_ini · development=(ini+mid)/2 · mid · late=Kc_end."""
+    """الإسقاط القانونيّ من البطاقة: initial=Kc_ini · development=(ini+mid)/2 · mid · late=(mid+end)/2.
+
+    G1: late متوسّط الهبوط الخطّيّ FAO-56 (Eq.66)، لا Kc_end (قيمة يوم الحصاد) لكامل المرحلة.
+    """
     prof = crop_kc_profile(crop_id)
     assert prof is not None, f"{crop_id}: بطاقة بلا كتلة kc"
     ini, mid, end = prof.kc_initial, prof.kc_mid, prof.kc_end
-    return {"initial": ini, "development": round((ini + mid) / 2.0, 3), "mid": mid, "late": end}
+    return {
+        "initial": ini,
+        "development": round((ini + mid) / 2.0, 3),
+        "mid": mid,
+        "late": round((mid + end) / 2.0, 3),
+    }
 
 
 # ── (أ) TAW: كلّ مستهلك == FAO-56 لكلّ قوام، بالإملاءين ──────────────────────────────

@@ -468,6 +468,25 @@ class FieldSplitRequest(BaseModel):
     children: list[ChildField] = Field(min_length=2, max_length=10)
 
 
+# طلبا تحليل صور الحقل — نُقِلا من routers/fields.py (راتشِت حجم الراوترات) كبقيّة نماذجه.
+class FieldImageryRefreshRequest(BaseModel):
+    date: str | None = None
+    # UI hotfix: قد تكون صفحة الأقمار تعرض حقلاً محمّلاً/مخزّناً محليّاً أو من
+    # raster timeline قبل أن يوجد الصفّ في جدول fields لنفس المستأجر. لا نلفّق
+    # هندسة؛ نقبل geometry صريحة من خيار الحقل المختار ونمرّرها إلى raster-service
+    # بدل إسقاط التحليل بـ404. إذا لم تصل هندسة، يبقى 404 صادقاً.
+    geometry: dict | None = None
+
+
+class FieldImageryProcessDateRequest(BaseModel):
+    """V8-05 PR2: طلب معالجة مشهد مفرد لتاريخٍ اختاره المستخدم (زرّ صريح، لا اختيار التاريخ)."""
+
+    date: str
+    index: str
+    scene_id: str
+    geometry: dict | None = None
+
+
 # طلب تقييم انجراف الرشّ — نُقِل من routers/fields.py (راتشِت حجم الراوترات) كبقيّة نماذجه.
 class _SensitiveZone(BaseModel):
     id: str | None = None

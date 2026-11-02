@@ -33,6 +33,7 @@ from pydantic import BaseModel, Field
 
 from api import main as api_main
 from api.field_state_projection import gather_field_freshness
+from api.irrigation_models import resolve_day_of_year
 from api.main import (
     Permission,
     UserSchema,
@@ -86,10 +87,6 @@ class EtcDualRequest(BaseModel):
     days_after_planting: int | None = Field(
         default=None, ge=0, description="تجاوز العمر (وإلّا من تاريخ الزراعة)"
     )
-
-
-def _today_doy() -> int:
-    return date.today().timetuple().tm_yday
 
 
 def _pick_ndvi(
@@ -180,7 +177,7 @@ async def _resolve_weather(
                 solar_radiation_mj_m2=req.solar_radiation_mj_m2,
                 latitude_deg=lat,
                 elevation_m=(req.elevation_m if req.elevation_m is not None else 0.0),
-                day_of_year=(req.day_of_year or _today_doy()),
+                day_of_year=resolve_day_of_year(req.day_of_year)[0],
             ),
             "request",
         )
@@ -237,7 +234,7 @@ async def _resolve_weather(
             solar_radiation_mj_m2=today.solar_radiation_mj_m2,
             latitude_deg=field_lat,
             elevation_m=(req.elevation_m if req.elevation_m is not None else 0.0),
-            day_of_year=(req.day_of_year or _today_doy()),
+            day_of_year=resolve_day_of_year(req.day_of_year)[0],
         ),
         "open-meteo",
     )
@@ -385,5 +382,8 @@ async def field_etc_dual(
         "days_after_planting": das,
         "soil_ece": soil_ece,
         "soil_ece_source": soil_ece_source,
+        # يومُ السنة الذي حُسِب به ET0 ومصدرُه (مُرسَل أو تاريخ الخادم) — G15.
+        "day_of_year": weather.day_of_year,
+        "day_of_year_source": resolve_day_of_year(req.day_of_year)[1],
     }
     return payload

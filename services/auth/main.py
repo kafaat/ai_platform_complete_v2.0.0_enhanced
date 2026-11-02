@@ -26,10 +26,12 @@ from typing import Annotated, Literal
 from uuid import uuid4
 
 import asyncpg
+import bcrypt  # noqa: F401 — routers/session.py (S16 timing equaliser) يصل إليه عبر main.bcrypt
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from mfa_crypto import enforce_password_policy, resolve_sahool_env  # S16(a,d): سياسة/بيئة واحدة
 from password_hashing import NewPassword, hash_password, verify_password  # noqa: F401
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -80,25 +82,25 @@ REFRESH_EXPIRE_DAYS = int(os.getenv("REFRESH_EXPIRE_DAYS", "30"))  # 30 days
 # `access_token` query — تسريب محتمل عبر سجلّ المتصفّح/الـReferrer/التلمترة. الحلّ:
 # نضبط الكوكي HttpOnly عند الدخول/التجديد (نفس المصدر، فتُرسَل تلقائيّاً مع <img>)،
 # وبوّابة nginx تقرأها كمصدر توكن لـauth_request (تبقى query fallback للتطوير بلا بوّابة).
-# الكوكي HttpOnly ⇒ غير قابلة للقراءة من JS (لا يُوسِّع سطح XSS). Secure افتراضيّاً
-# (يُعطَّل صراحةً للتطوير http عبر AUTH_COOKIE_SECURE=0). Path=/ ليشمل /api/raster و/api/vegetation.
+# HttpOnly ⇒ لا تُقرأ من JS. Secure افتراضيّاً (يُعطَّل للتطوير http بـAUTH_COOKIE_SECURE=0). Path=/.
 AUTH_TILE_COOKIE_NAME = os.getenv("AUTH_TILE_COOKIE_NAME", "sahool_at")
 AUTH_COOKIE_SECURE_MODE = os.getenv("AUTH_COOKIE_SECURE", "auto").strip().lower()
 AUTH_COOKIE_SAMESITE = os.getenv("AUTH_COOKIE_SAMESITE", "lax")
 
 
 def _tile_cookie_secure(request) -> bool:
-    """Resolve Secure for the tile cookie without breaking local HTTP.
+    """Secure unless explicitly local dev (S6). ``1`` forces it; ``0`` is the dev opt-out.
 
-    ``AUTH_COOKIE_SECURE=1`` forces HTTPS-only, ``0`` forces local HTTP, and
-    ``auto`` (default) trusts the reverse proxy's X-Forwarded-Proto then the
-    request URL scheme. This keeps :3003 HTTP usable while production HTTPS
-    remains Secure without separate source builds.
+    ``auto`` (default; also empty) is Secure unless SAHOOL_ENV names local dev: Railway ends
+    TLS at its edge and the gateway forwards ``http``, so the scheme alone left the JWT cookie
+    non-Secure in prod. Only local dev lets the scheme relax it for plain-HTTP :3003.
     """
     if AUTH_COOKIE_SECURE_MODE in {"1", "true", "yes", "on"}:
         return True
-    if AUTH_COOKIE_SECURE_MODE in {"0", "false", "no", "off", ""}:
+    if AUTH_COOKIE_SECURE_MODE in {"0", "false", "no", "off"}:
         return False
+    if os.getenv("SAHOOL_ENV", "").strip().lower() not in {"development", "local", "test"}:
+        return True
     forwarded = request.headers.get("x-forwarded-proto", "") if request else ""
     scheme = forwarded.split(",", 1)[0].strip().lower()
     if not scheme and request is not None:
@@ -136,7 +138,12 @@ def clear_tile_auth_cookie(response, request=None) -> None:
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 REDIS_URL = os.getenv("REDIS_URL", "redis://sahool-redis:6379/0")
-CORS_ORIGINS = parse_cors_origins(os.getenv("CORS_ORIGINS"), allow_credentials=True)
+# S16(d): الإنتاج بالتطبيع نفسه — مشتقّ cors_policy يقبل "production" حرفيّاً فقط، فـprod كانت تفتح أصول التطوير.
+CORS_ORIGINS = parse_cors_origins(
+    os.getenv("CORS_ORIGINS"),
+    allow_credentials=True,
+    production=resolve_sahool_env(os.getenv("SAHOOL_ENV")) == "production",
+)
 SMTP_HOST = os.getenv("SMTP_HOST", "")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")
@@ -151,12 +158,12 @@ MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_MINUTES = 15
 
 
-# ── إشارة الإنتاج (SAHOOL_ENV) — اصطلاح موحّد عبر المنصّة ──────────
-# القيم: production / development (الافتراضيّ development). دالّة نقيّة (تقرأ
-# os.getenv عند الاستدعاء) كي تكون قابلة للاختبار وحدةً دون رفع الخدمة.
+# ── إشارة الإنتاج (SAHOOL_ENV) — التطبيع في mfa_crypto.resolve_sahool_env (S16d) ──
+# prod/production ⇒ إنتاج؛ قيمة مجهولة في سياق منشور ⇒ إنتاج (fail-closed). تقرأ
+# os.getenv عند الاستدعاء كي تكون قابلة للاختبار وحدةً دون رفع الخدمة.
 def _is_production() -> bool:
-    """True إن كانت SAHOOL_ENV=production (غير حسّاسة لحالة الأحرف)."""
-    return os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+    """True إن كانت SAHOOL_ENV إنتاجيّة بعد التطبيع (غير حسّاسة لحالة الأحرف)."""
+    return resolve_sahool_env(os.getenv("SAHOOL_ENV", "development")) == "production"
 
 
 # ── تحصين: RS256 إلزاميّ في الإنتاج (fail-closed) ───────────────────
@@ -186,7 +193,7 @@ REQUIRE_MFA_ROLES = _parse_required_mfa_roles(os.getenv("REQUIRE_MFA_ROLES"))
 # مفتاح رئيسيّ: الفرض مُفعَّل افتراضيّاً للأدوار الحسّاسة؛ عطّله صراحةً في CI/التطوير عبر ENFORCE_SENSITIVE_MFA=false عند الحاجة.
 # يبقى مفروضاً في الإنتاج عبر SAHOOL_ENV=production حتى لو نُسي الضبط.
 _ENFORCE_SENSITIVE_MFA = os.getenv("ENFORCE_SENSITIVE_MFA", "true").lower() == "true"
-_IS_PRODUCTION = os.getenv("SAHOOL_ENV", "").lower() == "production"
+_IS_PRODUCTION = _is_production()
 MFA_ENFORCEMENT_ENABLED = _ENFORCE_SENSITIVE_MFA or _IS_PRODUCTION
 
 
@@ -477,13 +484,7 @@ class RegisterRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def strong_password(cls, v: str) -> str:
-        if not any(c.isupper() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على حرف كبير")
-        if not any(c.isdigit() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على رقم")
-        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على رمز خاص")
-        return v
+        return enforce_password_policy(v)
 
 
 class LoginRequest(BaseModel):
@@ -511,16 +512,17 @@ class PasswordResetConfirm(BaseModel):
     @field_validator("new_password")
     @classmethod
     def strong_password(cls, v: str) -> str:
-        if not any(c.isupper() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على حرف كبير")
-        if not any(c.isdigit() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على رقم")
-        return v
+        return enforce_password_policy(v)
 
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: NewPassword
+
+    @field_validator("new_password")
+    @classmethod
+    def strong_password(cls, v: str) -> str:
+        return enforce_password_policy(v)
 
 
 # ── Invitation models ──────────────────────────────────────────
@@ -539,13 +541,7 @@ class InvitationAcceptRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def strong_password(cls, v: str) -> str:
-        if not any(c.isupper() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على حرف كبير")
-        if not any(c.isdigit() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على رقم")
-        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على رمز خاص")
-        return v
+        return enforce_password_policy(v)
 
 
 # ── Tenant provisioning model (تهيئة مستأجِر B2B بيد مدير المنصّة) ────

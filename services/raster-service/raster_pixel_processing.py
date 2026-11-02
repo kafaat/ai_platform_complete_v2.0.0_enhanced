@@ -850,50 +850,38 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
         elif ind == "ndvi":
             arr = ctx.band_math.ndvi(red, nir, np)
         elif ind == "gndvi":
-            _d = nir + green
-            arr = (nir - green) / np.where(_d == 0, 1e-10, _d)
+            # فروق مُطبَّعة عبر نواة band_math الواحدة: سالب الانعكاس/خارج [-1،1] ⇒ NaN (G4).
+            arr = ctx.band_math.normalized_difference(nir, green, np)
         elif ind == "reci":
             if rededge is None:
                 raise ctx.HTTPException(400, "مؤشّر RECI يحتاج نطاق الحافّة الحمراء B05")
-            arr = (nir / np.where(rededge == 0, 1e-10, rededge)) - 1.0
+            # مؤشّرات القسمة عبر نواة band_math.guarded_quotient: سالب/مقام ضئيل/خارج المدى ⇒ NaN (G4).
+            arr = ctx.band_math.chlorophyll_index(nir, rededge, np)
         elif ind == "gci":
-            arr = (nir / np.where(green == 0, 1e-10, green)) - 1.0
+            arr = ctx.band_math.chlorophyll_index(nir, green, np)
         elif ind == "arvi":
-            rb = 2 * red - blue
-            _d = nir + rb
-            arr = (nir - rb) / np.where(_d == 0, 1e-10, _d)
+            arr = ctx.band_math.arvi(blue, red, nir, np)
         elif ind == "sipi":
-            _d = nir - red
-            arr = (nir - blue) / np.where(_d == 0, 1e-10, _d)
+            arr = ctx.band_math.sipi(blue, red, nir, np)
         elif ind == "nbr":
-            _d = nir + swir2
-            arr = (nir - swir2) / np.where(_d == 0, 1e-10, _d)
+            arr = ctx.band_math.normalized_difference(nir, swir2, np)
         elif ind == "ccci":
             if rededge is None:
                 raise ctx.HTTPException(400, "مؤشّر CCCI يحتاج نطاق الحافّة الحمراء B05")
-            ndre_d = nir + rededge
-            ndre_v = (nir - rededge) / np.where(ndre_d == 0, 1e-10, ndre_d)
-            ndvi_v = ctx.band_math.ndvi(red, nir, np)
-            arr = ndre_v / np.where(ndvi_v == 0, 1e-10, ndvi_v)
+            arr = ctx.band_math.ccci(red, nir, rededge, np)
         # msi (SWIR1/NIR) يُحسَب الآن عبر band_math.NEW_INDEX_BANDS (المصدر الأوحد)
-        # في الفرع الأعلى؛ أُزيل الفرع السطريّ المكرَّر (سلوك محفوظ: نفس _eps للمقام).
+        # في الفرع الأعلى (band_math.msi عبر guarded_quotient).
         elif ind == "ndwi":
-            _d = green + nir
-            arr = (green - nir) / np.where(_d == 0, 1e-10, _d)
+            arr = ctx.band_math.normalized_difference(green, nir, np)
         elif ind == "ndmi":
-            _d = nir + swir1
-            arr = (nir - swir1) / np.where(_d == 0, 1e-10, _d)
+            arr = ctx.band_math.normalized_difference(nir, swir1, np)
         elif ind == "savi":
-            _denom = nir + red + 0.5
-            arr = 1.5 * (nir - red) / np.where(_denom == 0, 1e-10, _denom)
+            arr = ctx.band_math.savi(red, nir, np)
         elif ind == "vari":
-            # حماية القسمة: المقام قد يبلغ صفراً (green+red=blue) → epsilon
-            _denom = green + red - blue
-            arr = (green - red) / np.where(_denom == 0, 1e-10, _denom)
+            # المقام (green+red−blue) يعبر الصفر على الأسطح المزرقّة ⇒ NaN لا ±1e8 (G4).
+            arr = ctx.band_math.vari(blue, red, green, np)
         elif ind == "gli":
-            # حماية القسمة: المقام قد يبلغ صفراً (نادر) → epsilon
-            _denom = 2 * green + red + blue
-            arr = (2 * green - red - blue) / np.where(_denom == 0, 1e-10, _denom)
+            arr = ctx.band_math.gli(blue, red, green, np)
         elif ind == "tgi":
             arr = green - 0.39 * red - 0.61 * blue
         elif ind in ("bsi", "bi", "bi2", "ndti", "dbsi", "ndsi", "satvi"):

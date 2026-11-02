@@ -34,15 +34,20 @@ class TestTelegramSecurity:
                 if not token:
                     raise RuntimeError("TELEGRAM_BOT_TOKEN required")
 
+    # تدقيق 2026-11-01 (Q2): كان يطلب localhost:8124/health (لا وجود له؛ البوت بلا HTTP)
+    # ويقبل 404 نجاحاً، ولا تُشغّله أيّ وظيفة. العقد الحقيقيّ: البوت استطلاعيّ (polling)
+    # فلا سطح webhook وارد يُقبَل بلا سرّ. إن أُضيف webhook يحمرّ هنا حتى يُفرَض السرّ.
+    @pytest.mark.unit
     @pytest.mark.security
-    async def test_webhook_rejects_no_secret(self, http_client):
-        """Webhook must reject requests without secret token."""
-        from conftest import service_urls
+    def test_webhook_rejects_no_secret(self):
+        """No inbound webhook surface exists that could accept a request without the secret."""
+        import re
+        from pathlib import Path
 
-        # Telegram bot uses aiogram, health is on FastAPI port
-        # Test the bot's health endpoint
-        resp = await http_client.get(
-            "http://localhost:8124/health"  # Telegram bot port
+        bot_dir = Path(__file__).resolve().parents[1] / "bots" / "telegram"
+        src = "\n".join(p.read_text(encoding="utf-8") for p in sorted(bot_dir.glob("*.py")))
+        assert "start_polling(" in src, "البوت لم يعد استطلاعيّاً — راجع فرض سرّ الـwebhook"
+        inbound = re.findall(
+            r"set_webhook|SimpleRequestHandler|web\.Application|FastAPI\(|uvicorn\.run", src
         )
-        # Bot should be alive or refuse (not crash)
-        assert resp.status_code in [200, 404, 503]
+        assert not inbound, f"سطح webhook وارد بلا اختبار فرض السرّ: {inbound}"
