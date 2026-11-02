@@ -48,7 +48,8 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # _authenticated_tenant to raster_security_context while the audit fixes landed here.
     # 1668 → 1662 (audit security batch 2026-11-01): T10 stored-geometry binding and the CDSE
     # job record moved to raster_field_runtime while the T10 ownership checks landed here.
-    "services/raster-service/routers/fields.py": 1662,
+    # 1662 → 1656 (R9 2026-11-02): blocking COG/DEM reads offloaded via raster_field_runtime.
+    "services/raster-service/routers/fields.py": 1655,
     # 1029 → 1027 (audit security batch 2026-11-01): T6 request_digest consolidation.
     "services/sahool-platform/api/routers/farm_operations_ledger.py": 1027,
     "services/sahool-platform/api/routers/decision_review.py": 920,

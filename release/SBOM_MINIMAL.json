@@ -20305,7 +20305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "048c06f4d54daca855587cb86a07667eaac5c1c6e5f9ccd1d5be981b9a01f6bb"
+          "content": "6f395741fa27296e91215637e202b53495105bce4e27d74bd7da4e563fa0a3b9"
         }
       ],
       "name": "services/raster-service/object_store.py",
@@ -20345,7 +20345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ba8080d86455f3dfd3396d68bab92da6ddb03f430cb23e3369c79f8634e165cb"
+          "content": "670143f8142e5593535aa10c883b3062a64ec4a957370f84fc261d34ca8872da"
         }
       ],
       "name": "services/raster-service/raster_app_factory.py",
@@ -20455,7 +20455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa63d3efcafce833f4eda1e4321662d1e613fc23f42f6a23d07e0e5cf6f19b6f"
+          "content": "fbabfcb97e9a065402ee58edb9cfdcc88b609cb4d4066fcce74907caaa503c0d"
         }
       ],
       "name": "services/raster-service/raster_date_geo.py",
@@ -20465,7 +20465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a8072431af7a31f3b608c8d316a7baa1ac72165fbe5fe8d41e7712c7a0ab9c5f"
+          "content": "d0ca590f33787d41aa7d5fc7179623e37afc542d9e768150c581df9e5dd08e51"
         }
       ],
       "name": "services/raster-service/raster_field_runtime.py",
@@ -20605,7 +20605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3570f2aaa0163a570864f62ebeffb1989bcf6e109d346c051a2f30be0cac7a99"
+          "content": "cae4deb582d58ed066fcd443dfc851ad7cf6884328fee36f7befba6c8e71a9cb"
         }
       ],
       "name": "services/raster-service/raster_security_context.py",
@@ -20715,7 +20715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1109ff29bebb4470cfc1b69977b3faad0a461ea56b412b53a51a64ba97b613c6"
+          "content": "dd388dfcbe8ac94c1569caa1ea724c97970f3e88214a10875817628dd127b029"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -20725,7 +20725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4153fe33b9b077a517697a6ca99e4a0ff02d1fdf3e5c3e029d3d02d98e1633de"
+          "content": "af8a6eda58fa5bbb075a1b104acbf4cb9843b436bf6d44317b377d06fb8e9225"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -21205,6 +21205,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3c1b406dfa0df2f77b7a3101013540c23870707bba30505c253973ae39a963dc"
+        }
+      ],
+      "name": "services/raster-service/test_clip_polygon_stored_geometry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cb2bef498cfeb648951a661e932c2ee1b9f6c57db58c58318c6d227378438ea7"
         }
       ],
@@ -21279,6 +21289,16 @@
         }
       ],
       "name": "services/raster-service/test_container_healthcheck_status.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c8f55733fe2c6e1484e446574da4346cf7bf558c61b5a3e10175fd4171e78c4f"
+        }
+      ],
+      "name": "services/raster-service/test_cors_preflight_tenant_order.py",
       "type": "file"
     },
     {
@@ -21705,6 +21725,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8d5c32dba4757fd276042f994d9fb084c3985a3ea6190b98d807cc59c94b183e"
+        }
+      ],
+      "name": "services/raster-service/test_raster_io_offload_r9.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d9919c77d732ec886f0890a8c0296a53f6d5f37c13f5dd3e454776777abc8dec"
         }
       ],
@@ -22015,7 +22045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7132e4be03954608c26e84763c7758d5aad9cb5d49cffcd277a5cdd2486a40d0"
+          "content": "9e6d5076f76b223fae10fc2a1c5c36a1a0d593681d7aeff1d115678a885253f3"
         }
       ],
       "name": "services/raster-service/test_tile_tenant_query.py",

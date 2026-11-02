@@ -6712,6 +6712,28 @@
     ]
   },
   {
+    "path": "services/raster-service/test_clip_polygon_stored_geometry.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 10,
+        "signals": [
+          "content:cdse",
+          "content:stac"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/raster-service/test_cloud_native_catalog.py",
     "kind": "tests",
     "candidates": [
