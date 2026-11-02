@@ -25,7 +25,7 @@
       "tests": 2268,
       "web": 501
     },
-    "unmapped_artifacts": 2762,
+    "unmapped_artifacts": 2761,
     "ambiguous_artifacts": 500
   },
   "capabilities": [
@@ -11500,6 +11500,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/field_models.py",
+          "score": 11,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/routers/field_intelligence.py",
           "score": 11,
           "signals": [
@@ -12202,35 +12210,47 @@
           "score": 15
         },
         {
-          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:102",
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:103",
           "score": 14
         },
         {
-          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:115",
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:116",
           "score": 14
         },
         {
-          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:129",
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:130",
           "score": 14
         },
         {
-          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:142",
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:143",
           "score": 14
         },
         {
-          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:154",
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:155",
           "score": 14
         },
         {
-          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:168",
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:169",
           "score": 14
         },
         {
-          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:75",
+          "value": "field.create @ services/sahool-platform/tests/test_idempotency_server_contract.py:76",
           "score": 14
         },
         {
           "value": "field.create @ tests_v9/test_idempotency_mobile.py:256",
+          "score": 14
+        },
+        {
+          "value": "field.update @ services/sahool-platform/tests/test_idempotency_server_contract.py:537",
+          "score": 14
+        },
+        {
+          "value": "field.update @ services/sahool-platform/tests/test_idempotency_server_contract.py:538",
+          "score": 14
+        },
+        {
+          "value": "field.update @ services/sahool-platform/tests/test_idempotency_server_contract.py:541",
           "score": 14
         },
         {
@@ -13175,10 +13195,10 @@
         "routes": 27
       },
       "evidence_counts": {
-        "backend": 30,
+        "backend": 31,
         "routes": 100,
         "database": 10,
-        "events": 60,
+        "events": 63,
         "web": 12,
         "mobile": 4,
         "tests": 46,
@@ -46764,10 +46784,6 @@
     },
     {
       "path": "services/sahool-platform/api/field_lifecycle.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/field_models.py",
       "kind": "backend"
     },
     {

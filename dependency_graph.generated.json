@@ -1,5 +1,5 @@
 {
-  "edge_count": 903,
+  "edge_count": 904,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -1109,6 +1109,16 @@
       "relation": "READS",
       "resource": "db://backfill_runs",
       "to": "db://backfill_runs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/db_persist.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_geometry_history",
+      "to": "db://field_geometry_history",
       "to_kind": "resource"
     },
     {
@@ -9050,7 +9060,7 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 465,
+    "READS": 466,
     "ROUTES_TO": 72,
     "WRITES": 316
   },
@@ -9067,8 +9077,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 782,
-      "resolved": 781,
+      "observed": 783,
+      "resolved": 782,
       "unresolved_component_paths": 0
     }
   }

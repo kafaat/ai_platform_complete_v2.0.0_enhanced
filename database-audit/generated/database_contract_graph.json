@@ -3512,6 +3512,7 @@
     },
     {
       "code_readers": [
+        "services/raster-service/db_persist.py",
         "services/raster-service/follow_up_runtime.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/seasons.py"

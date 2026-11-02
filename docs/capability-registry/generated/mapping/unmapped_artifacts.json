@@ -5100,10 +5100,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/field_models.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/field_portfolio.py",
     "kind": "backend"
   },
