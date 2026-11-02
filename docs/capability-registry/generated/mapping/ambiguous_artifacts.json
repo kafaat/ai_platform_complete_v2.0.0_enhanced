@@ -11902,6 +11902,28 @@
     ]
   },
   {
+    "path": "tests_v9/test_lab_ci_certification_steps.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "SEC-004",
+        "score": 8,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_landsat_thermal_unique_v31_0.py",
     "kind": "tests",
     "candidates": [

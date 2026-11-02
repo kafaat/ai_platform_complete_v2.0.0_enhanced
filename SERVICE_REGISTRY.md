@@ -6,7 +6,7 @@
 ## Inventory summary
 
 - Services discovered: **33**
-- Python LOC discovered: **298,983**
+- Python LOC discovered: **298,378**
 - Routes discovered: **1134**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
@@ -19,7 +19,7 @@
 | `agriai-engine` | AI Advisor | 18 | 2670 | 5 | 9 | `services/agriai-engine/main.py` | `services/agriai-engine/Dockerfile` | `services/agriai-engine/requirements.txt` | `normal` |
 | `ai_agronomist` | AI Advisor | 46 | 6863 | 1 | 13 | `services/ai_agronomist/main.py` | `services/ai_agronomist/Dockerfile` | `services/ai_agronomist/requirements.txt` | `normal` |
 | `auth` | Identity & Access | 21 | 2619 | 2 | 29 | `services/auth/main.py` | `services/auth/Dockerfile` | `services/auth/requirements.txt` | `normal` |
-| `decision-service` | Decision SoR | 86 | 20188 | 64 | 72 | `services/decision-service/main.py` | `services/decision-service/Dockerfile` | `services/decision-service/requirements.txt` | `normal` |
+| `decision-service` | Decision SoR | 86 | 20203 | 64 | 72 | `services/decision-service/main.py` | `services/decision-service/Dockerfile` | `services/decision-service/requirements.txt` | `normal` |
 | `edge-inference` | Edge Inference | 12 | 1608 | 2 | 7 | `services/edge-inference/main.py` | `services/edge-inference/Dockerfile.arm64` | `services/edge-inference/requirements.txt` | `normal` |
 | `field-management-service` | Unclassified / Support | 3 | 527 | 2 | 7 | `services/field-management-service/main.py` | `services/field-management-service/Dockerfile` | `services/field-management-service/requirements.txt` | `normal` |
 | `field-segmentation` | Field Boundary AI | 5 | 1049 | 2 | 4 | `services/field-segmentation/main.py` | `services/field-segmentation/Dockerfile` | `services/field-segmentation/requirements.txt` | `normal` |
@@ -33,12 +33,12 @@
 | `odoo-bridge` | ERP Integration | 11 | 1963 | 2 | 11 | `services/odoo-bridge/main.py` | `services/odoo-bridge/Dockerfile` | `services/odoo-bridge/requirements.txt` | `normal` |
 | `qdrant-seed` | Unclassified / Support | 5 | 1174 | 1 | 0 | `-` | `services/qdrant-seed/Dockerfile` | `services/qdrant-seed/requirements.txt` | `medium-runtime-contract-gap` |
 | `rag-retrieval` | Knowledge Retrieval | 5 | 811 | 1 | 5 | `services/rag-retrieval/main.py` | `services/rag-retrieval/Dockerfile` | `services/rag-retrieval/requirements.txt` | `normal` |
-| `raster-service` | Imagery & Raster | 210 | 36585 | 107 | 86 | `services/raster-service/main.py` | `services/raster-service/Dockerfile` | `services/raster-service/requirements.txt` | `normal` |
+| `raster-service` | Imagery & Raster | 209 | 36264 | 106 | 86 | `services/raster-service/main.py` | `services/raster-service/Dockerfile` | `services/raster-service/requirements.txt` | `normal` |
 | `raster-tiler-service` | Imagery & Raster | 2 | 233 | 1 | 2 | `services/raster-tiler-service/main.py` | `services/raster-tiler-service/Dockerfile` | `services/raster-tiler-service/requirements.txt` | `normal` |
 | `realtime-agent` | Unclassified / Support | 16 | 1649 | 7 | 0 | `services/realtime-agent/main.py` | `services/realtime-agent/Dockerfile` | `services/realtime-agent/requirements.txt` | `medium-runtime-contract-gap` |
 | `realtime-session` | Unclassified / Support | 12 | 1306 | 1 | 7 | `services/realtime-session/main.py` | `services/realtime-session/Dockerfile` | `services/realtime-session/requirements.txt` | `normal` |
 | `remote-sensing-workspace-bff` | Unclassified / Support | 2 | 372 | 1 | 3 | `services/remote-sensing-workspace-bff/main.py` | `services/remote-sensing-workspace-bff/Dockerfile` | `services/remote-sensing-workspace-bff/requirements.txt` | `normal` |
-| `sahool-platform` | Core Field Platform | 1173 | 178640 | 489 | 639 | `services/sahool-platform/api/main.py` | `services/sahool-platform/Dockerfile` | `-` | `critical-core-concentration` |
+| `sahool-platform` | Core Field Platform | 1172 | 178341 | 488 | 639 | `services/sahool-platform/api/main.py` | `services/sahool-platform/Dockerfile` | `-` | `critical-core-concentration` |
 | `sam2-inference` | Field Boundary AI | 4 | 1133 | 1 | 4 | `services/sam2-inference/main.py` | `services/sam2-inference/Dockerfile` | `services/sam2-inference/requirements.txt` | `normal` |
 | `scout-ingest-service` | Unclassified / Support | 7 | 2464 | 3 | 22 | `services/scout-ingest-service/main.py` | `services/scout-ingest-service/Dockerfile` | `services/scout-ingest-service/requirements.txt` | `normal` |
 | `soil-service` | Soil Intelligence | 52 | 6042 | 17 | 60 | `services/soil-service/main.py` | `services/soil-service/Dockerfile` | `services/soil-service/requirements.txt` | `normal` |

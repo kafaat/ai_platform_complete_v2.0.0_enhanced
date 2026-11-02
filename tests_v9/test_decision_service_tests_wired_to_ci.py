@@ -21,12 +21,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SERVICE_TESTS = ROOT / "services" / "decision-service" / "tests"
 
 # دَينٌ مُعلَن لا إعفاء: كلّ مدخل بكلفته المكتوبة، والمدخل البائت يُحمِرّ.
-DECLARED_UNWIRED: dict[str, str] = {
-    "test_eligibility_assessment_live_pg.py": (
-        "دليلٌ حيّ على مكدّس المالك (psql بالدور sahool_user على قاعدة sahool + هجرات المنصّة)؛ "
-        "قاعدة الوظيفة decision_test لا تحمل جدول decision_eligibility_assessments"
-    ),
-}
+# فارغٌ منذ 2026-11-02: ``test_eligibility_assessment_live_pg.py`` كان مُدرَجاً بحجّة أنّ
+# decision_test لا تحمل الجدول — والقياسُ نقضها (هجرتا الخدمة 019/031 تُنشئانه)؛ صار
+# يُشغَّل بدورٍ مقيَّد في وظيفة Decision Service Tests.
+DECLARED_UNWIRED: dict[str, str] = {}
 
 
 def _workflow_text() -> str:

@@ -12,8 +12,8 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **52**
-- Files scanned: **6978**
-- Ambiguous artifacts queued: **505**
+- Files scanned: **6975**
+- Ambiguous artifacts queued: **503**
 - Unmapped artifacts queued: **2771**
 
 ## Capability coverage
@@ -49,7 +49,7 @@
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
 | IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 1 | 5 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 2 | 3 |
-| IRR-004 | irrigation | 9 | 2 | 3 | 6 | 2 | 1 | 10 | 7 |
+| IRR-004 | irrigation | 9 | 2 | 3 | 6 | 2 | 1 | 9 | 7 |
 | IRR-005 | irrigation | 3 | 2 | 0 | 19 | 3 | 2 | 11 | 6 |
 | IRR-006 | irrigation | 0 | 0 | 0 | 4 | 0 | 0 | 4 | 2 |
 | IRR-007 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
@@ -69,7 +69,7 @@
 | PA-003 | precision | 4 | 4 | 9 | 2 | 0 | 0 | 4 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| SAT-001 | satellite | 40 | 65 | 5 | 49 | 5 | 0 | 63 | 6 |
+| SAT-001 | satellite | 39 | 65 | 5 | 49 | 5 | 0 | 63 | 6 |
 | SAT-002 | satellite | 1 | 1 | 0 | 1 | 0 | 0 | 4 | 4 |
 | SAT-003 | satellite | 100 | 92 | 44 | 100 | 51 | 9 | 100 | 7 |
 | SAT-004 | satellite | 20 | 10 | 5 | 16 | 8 | 1 | 32 | 7 |
@@ -81,7 +81,7 @@
 | SEC-001 | security | 15 | 31 | 100 | 67 | 0 | 0 | 77 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
-| SEC-004 | security | 8 | 24 | 23 | 4 | 7 | 7 | 23 | 7 |
+| SEC-004 | security | 8 | 24 | 23 | 4 | 7 | 7 | 24 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
 | SEC-006 | security | 2 | 7 | 0 | 3 | 0 | 0 | 11 | 4 |
 | SEC-007 | security | 2 | 0 | 7 | 52 | 0 | 0 | 10 | 4 |
@@ -92,9 +92,9 @@
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
 | SOIL-005 | soil | 6 | 0 | 0 | 20 | 0 | 0 | 3 | 3 |
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 2 | 4 |
-| WX-002 | weather | 21 | 63 | 12 | 66 | 9 | 1 | 33 | 7 |
+| WX-002 | weather | 21 | 63 | 12 | 66 | 9 | 1 | 32 | 7 |
 | WX-003 | weather | 3 | 6 | 4 | 1 | 0 | 0 | 6 | 5 |
-| WX-004 | weather | 61 | 48 | 0 | 96 | 18 | 3 | 74 | 6 |
+| WX-004 | weather | 61 | 48 | 0 | 96 | 18 | 3 | 72 | 6 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 1 | 6 | 6 |
 | WX-006 | weather | 84 | 26 | 33 | 29 | 17 | 0 | 51 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
