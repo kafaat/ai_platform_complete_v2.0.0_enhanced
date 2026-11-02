@@ -126,19 +126,6 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"app_role";
 
--- T3 (تدقيق 2026-11-01): المنح الشامل أعلاه يُعيد EXECUTE على دوالّ DEFINER لمستوى تحكّم الإدخال
--- (يملكها sahool_ingest_resolver ذو BYPASSRLS) التي سحبتها v198/v199 من PUBLIC — مقيس: sahool_app
--- قرأ normalized_payload لمستأجر آخر عبر claim_submissions_for_projection. مستدعيها الوحيد sahool_ingest
--- (منحٌ صريح أدناه). يُسحَب هنا **بعد** المنح الشامل في كلّ تشغيل (idempotent؛ to_regprocedure للغياب).
-SELECT format('REVOKE EXECUTE ON FUNCTION %s FROM %I', f.sig, :'app_role')
-FROM (VALUES
-        ('public.claim_submissions_for_projection(integer,integer)'),
-        ('public.complete_submission_projection(bigint,text,text)'),
-        ('public.resolve_ingest_source(text)')
-     ) AS f(sig)
-WHERE to_regprocedure(f.sig) IS NOT NULL
-\gexec
-
 -- A7 (مرجع مشترك admin_boundaries): sahool_app **SELECT فقط** — تُنزَع الكتابة (الكتابة عبر المُحمِّل الموثّق).
 -- حاسم: :'app_role' متغيّر psql يُستبدَل **فقط خارج** كتل dollar-quoted (DO $$…$$).
 -- لذا نتجنّب DO ونولّد أوامر REVOKE بـformat() ثمّ ننفّذها بـ\gexec:
@@ -201,7 +188,7 @@ BEGIN
   END IF;
 END $$;
 SQL
-# EXECUTE على هذه الدوالّ الثلاث لـsahool_ingest وحده (أدناه)؛ مسحوبٌ صراحةً من app_role أعلاه (T3).
+# EXECUTE لـapp_role مُغطّى بـ"GRANT EXECUTE ON ALL FUNCTIONS ... TO app_role" أعلاه (الهجرات قبل bootstrap).
 
 # ─ دور خدمة الإدخال sahool_ingest (SCOUT-INGEST-01 B1.2b — scout-ingest-service) ─
 # أقلّ منح: SELECT+INSERT على external_submissions + EXECUTE resolver. NOBYPASSRLS · لا UPDATE/DELETE.
