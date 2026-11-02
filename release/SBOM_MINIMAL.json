@@ -20675,7 +20675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "617d7ea947437009458c24d6acc9dee6a4fad093e1f01c279cce68676c2a6e19"
+          "content": "cfbb057acd37fafaaca138df8c89dd5b3edb1837e9b957999426d7dd2149689d"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
