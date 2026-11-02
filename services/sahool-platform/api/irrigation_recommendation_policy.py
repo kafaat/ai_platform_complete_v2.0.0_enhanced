@@ -212,7 +212,12 @@ def recommend_irrigation(
     leaching_mm = 0.0
     if leaching_possible:
         lr = leaching_requirement(float(water_ec), float(crop_salt_tolerance_ece))
-        leaching_mm = round(net * lr, 1)
+        # LR كسرٌ من الماء المُطبَّق: 1 ⇒ قسمة على صفر، وخارج [0,1) لا معنى فيزيائيّاً له.
+        if not 0.0 <= lr < 1.0:
+            raise ValueError(f"leaching requirement must be in [0, 1); got {lr!r}")
+        # FAO-29: المُطبَّق = الصافي / (1 − LR) ⇒ الغسل = الصافي × LR/(1 − LR)، لا الصافي × LR
+        # الذي يُنقِص الماء (LR=0.5 ⇒ +50% بدل +100%) — كإصلاح water_balance (G14).
+        leaching_mm = round(net * lr / (1.0 - lr), 1)
 
     gross = round((net + leaching_mm) / eff, 1)
 
