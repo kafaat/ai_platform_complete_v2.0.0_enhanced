@@ -54,3 +54,53 @@ def test_no_untracked_relay_open():
     assert "digitalWrite(RELAY_PIN, HIGH)" not in _src(), (
         "فتح مباشر للصمّام بلا تتبّع وقت — يكسر الـfail-safe"
     )
+
+
+# ── عقد المنصّة↔البرنامج الثابت (تدقيق 2026-11-01: A4/A7) ──────────────────
+_PLATFORM = os.path.join(
+    os.path.dirname(__file__), "..", "services/actuator-service/actuator_runtime.py"
+)
+
+
+def _platform_wire_vocabulary() -> set[str]:
+    import ast
+
+    tree = ast.parse(open(_PLATFORM, encoding="utf-8").read())
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+            getattr(t, "id", None) == "_FIRMWARE_WIRE_COMMANDS" for t in node.targets
+        ):
+            return {v.value for v in node.value.values}
+    raise AssertionError("_FIRMWARE_WIRE_COMMANDS مفقودة في actuator_runtime.py")
+
+
+@pytest.mark.unit
+def test_every_platform_wire_command_is_understood_by_the_firmware():
+    """A4: ما تنشره المنصّة يجب أن يطابق ما يقارنه البرنامج الثابت بـstrcmp — وإلّا لا حركة."""
+    understood = set(re.findall(r'strcmp\(cmd,\s*"([A-Z]+)"\)', _src()))
+    wire = _platform_wire_vocabulary()
+    assert wire and wire <= understood, f"أوامر لا يفهمها البرنامج الثابت: {wire - understood}"
+
+
+@pytest.mark.unit
+def test_firmware_accepts_platform_sized_commands():
+    """A4: رسالة المنصّة تتجاوز حدّ PubSubClient الافتراضيّ (256) ومستند JSON بسعة 256."""
+    s = _src()
+    assert re.search(r"mqttClient\.setBufferSize\((\d+)\)", s), "حدّ حزمة MQTT الافتراضيّ 256"
+    doc = re.search(r"void mqttCallback\([\s\S]*?StaticJsonDocument<(\d+)> doc;", s)
+    assert doc and int(doc.group(1)) >= 512, "مستند أمر MQTT أصغر من رسالة المنصّة"
+
+
+@pytest.mark.unit
+def test_firmware_honours_requested_duration_and_does_not_renew_the_cap():
+    """A7: المدّة المطلوبة تُغلق الصمّام محلّيّاً، وOPEN متكرّر لا يجدّد سقف الأمان."""
+    s = _src()
+    assert 'doc["payload"]["duration_sec"]' in s
+    assert re.search(r"\(millis\(\)\s*-\s*valveOpenedAt\)\s*>=\s*valveRequestedMs", s)
+    assert "if (valveOpenedAt == 0) setRelay(true);" in s
+
+
+@pytest.mark.unit
+def test_firmware_subscribes_to_commands_at_qos1():
+    """A7: الاشتراك الافتراضيّ QoS 0 يُسقط الأمر بصمت."""
+    assert re.search(r"mqttClient\.subscribe\(cmdTopic\.c_str\(\),\s*1\)", _src())

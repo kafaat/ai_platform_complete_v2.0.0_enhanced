@@ -63,6 +63,8 @@ WiFiClient    wifiClient;
 
 // لحظة فتح الصمّام (millis). 0 = مغلق. تُستخدم للإغلاق التلقائي عند تجاوز المدّة.
 unsigned long valveOpenedAt = 0;
+// A7: مدّة الريّة المطلوبة (payload.duration_sec بالملّي ثانية)، 0 = لا مدّة (السقف وحده).
+unsigned long valveRequestedMs = 0;
 
 // تحكّم مركزيّ بالصمّام مع تتبّع وقت الفتح (مصدر واحد للحقيقة لمنطق الـfail-safe).
 void setRelay(bool on) {
@@ -109,7 +111,8 @@ boolean mqttReconnect() {
     // Subscribe to actuator commands for this device
     // FIX: كان الـtopic مشوّهاً (تكرار DEVICE_ID + /command) فلا يصل أيّ أمر
     String cmdTopic = String("sahool/actuator/") + String(DEVICE_ID) + String("/command");
-    mqttClient.subscribe(cmdTopic.c_str());
+    // A7: QoS 1 — الوسيط يعيد إرسال الأمر حتّى يُقَرّ (كان QoS 0 افتراضيّاً: يضيع بصمت).
+    mqttClient.subscribe(cmdTopic.c_str(), 1);
     Serial.println("MQTT connected");
   }
   return mqttClient.connected();
@@ -168,8 +171,8 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   for (unsigned int i = 0; i < length; i++) msg += (char)payload[i];
   Serial.println("MQTT cmd: " + String(topic) + " -> " + msg);
 
-  // Parse command
-  StaticJsonDocument<256> doc;
+  // Parse command — A4: رسالة المنصّة (cmd+payload+ts+sig+id) تتجاوز 256 بايتاً.
+  StaticJsonDocument<1024> doc;
   DeserializationError err = deserializeJson(doc, msg);
   if (err) return;
 
@@ -191,16 +194,23 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   rememberCmd(ts);
 
+  bool known = true;
   if (strcmp(cmd, "OPEN") == 0 || strcmp(cmd, "ON") == 0) {
-    setRelay(true);    // يفتح + يبدأ مؤقّت الإغلاق التلقائي (fail-safe)
+    // A7: المدّة المطلوبة تُحترَم (كانت تُتجاهَل)، ولا يُجدِّد OPEN متكرّرٌ مؤقّتَ السقف.
+    double reqSec = doc["payload"]["duration_sec"] | 0.0;
+    valveRequestedMs = reqSec > 0 ? (unsigned long)(reqSec * 1000.0) : 0UL;
+    if (valveOpenedAt == 0) setRelay(true);  // يفتح + يبدأ مؤقّت الإغلاق التلقائي (fail-safe)
   } else if (strcmp(cmd, "CLOSE") == 0 || strcmp(cmd, "OFF") == 0) {
     setRelay(false);   // يغلق + يلغي المؤقّت
+  } else {
+    known = false;     // A4: لا يُقَرّ أمرٌ مجهول كأنّه نُفِّذ
   }
 
   // Acknowledge via mesh
-  StaticJsonDocument<128> ack;
+  StaticJsonDocument<192> ack;
   ack["device"] = DEVICE_ID;
   ack["ack"] = cmd;
+  ack["result"] = known ? "applied" : "unknown_command";
   ack["status"] = digitalRead(RELAY_PIN) ? "ON" : "OFF";
   String ackStr;
   serializeJson(ack, ackStr);
@@ -263,6 +273,7 @@ void setup() {
   if (mesh.isRoot()) {
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+    mqttClient.setBufferSize(1024);  // A4: الافتراضيّ 256 يُسقط أوامر المنصّة بصمت
     mqttClient.setCallback(mqttCallback);
   }
 
@@ -286,6 +297,18 @@ void loop() {
     serializeJson(alert, alertStr);
     mesh.sendBroadcast(alertStr);
     Serial.println("VALVE FAIL-SAFE: أُغلق الصمّام تلقائيّاً (تجاوز المدّة القصوى)");
+  } else if (valveOpenedAt != 0 && valveRequestedMs != 0 &&
+             (millis() - valveOpenedAt) >= valveRequestedMs) {
+    // A7: انتهت الريّة المطلوبة — إغلاقٌ محلّيّ لا ينتظر CLOSE قد يضيع أثناء انقطاع الاتّصال.
+    setRelay(false);
+    StaticJsonDocument<160> done;
+    done["device"]       = DEVICE_ID;
+    done["alert"]        = "valve_auto_closed";
+    done["reason"]       = "requested_duration_elapsed";
+    done["requested_ms"] = valveRequestedMs;
+    String doneStr;
+    serializeJson(done, doneStr);
+    mesh.sendBroadcast(doneStr);
   }
 
   mesh.update();
