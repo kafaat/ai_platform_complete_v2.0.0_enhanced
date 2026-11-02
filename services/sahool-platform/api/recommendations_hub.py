@@ -28,6 +28,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
 
+from core.season_phenology import resolve_crop_id, stage_kc
+
 from api.crop_cycle import cycle_days_to_maturity
 from api.weather_advice import disease_risk, irrigation_advice
 
@@ -162,6 +164,12 @@ def _irrigation_rec(ctx: RecommendationContext) -> Recommendation | None:
         or ctx.forecast_rain_mm is None
     ):
         return None
+    # G1: Kc اليوميّ (FAO-56) من عمر المحصول — لا قيمة المرحلة الواحدة لكامل المرحلة.
+    days_since_sowing = (
+        ((ctx.today or date.today()) - ctx.sowing_date).days
+        if ctx.sowing_date is not None
+        else None
+    )
     advice = irrigation_advice(
         et0_mm=ctx.et0_mm,
         crop=ctx.crop,
@@ -169,6 +177,7 @@ def _irrigation_rec(ctx: RecommendationContext) -> Recommendation | None:
         rain_recent_mm=ctx.rain_recent_mm,
         forecast_rain_mm=ctx.forecast_rain_mm,
         soil_moisture_pct=ctx.soil_moisture_pct,
+        kc_override=stage_kc(resolve_crop_id(ctx.crop), days_since_sowing),
     )
     # تعيين urgency (none/low/moderate/high) → priority (low/medium/high).
     urgency = advice["urgency"]

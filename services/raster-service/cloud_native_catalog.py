@@ -13,6 +13,7 @@ try:
     from shared.gis.cloud_native_gis import (
         build_mosaicjson,
         normalize_stac_item,
+        parse_cloud_cover_pct,
         score_scene_quality,
     )
 except Exception:  # pragma: no cover - عند تشغيل الخدمة من مجلدها مباشرة
@@ -22,6 +23,7 @@ except Exception:  # pragma: no cover - عند تشغيل الخدمة من مج
     from shared.gis.cloud_native_gis import (
         build_mosaicjson,
         normalize_stac_item,
+        parse_cloud_cover_pct,
         score_scene_quality,
     )
 
@@ -86,7 +88,9 @@ def cog_registry_record(
     cloud_pct: float | None = None,
     resolution_m: float | None = 10,
 ) -> dict[str, Any]:
-    quality = score_scene_quality(cloud_pct=cloud_pct or 0, resolution_m=resolution_m)
+    # غيوم مجهولة تبقى None لا ٠٪ (G11) — لا تكسب درجة A.
+    cloud = parse_cloud_cover_pct(cloud_pct)
+    quality = score_scene_quality(cloud_pct=cloud, resolution_m=resolution_m)
     return {
         "tenant_id": tenant_id,
         "field_id": field_id,
@@ -94,7 +98,7 @@ def cog_registry_record(
         "index_type": index_type,
         "cog_url": cog_url,
         "scene_id": scene_id,
-        "cloud_pct": float(cloud_pct or 0),
+        "cloud_pct": cloud,
         "resolution_m": float(resolution_m or 10),
         "quality": quality.__dict__,
         # **معاينةٌ لا تملك هويّةَ سجلّ، فلا تملك مسارَ بلاطاتٍ مُصادَقاً عليه.** كان هذا
