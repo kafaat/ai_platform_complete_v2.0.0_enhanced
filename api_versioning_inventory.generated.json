@@ -254,7 +254,7 @@
   {
     "service": "auth",
     "file": "services/auth/main.py",
-    "line": 401,
+    "line": 407,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_identity",
@@ -299,7 +299,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 26,
+    "line": 45,
     "method": "POST",
     "path": "/v1/auth/invitations",
     "handler": "create_invitation",
@@ -308,7 +308,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 85,
+    "line": 104,
     "method": "GET",
     "path": "/v1/auth/invitations",
     "handler": "list_invitations",
@@ -317,7 +317,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 116,
+    "line": 137,
     "method": "POST",
     "path": "/v1/auth/invitations/accept",
     "handler": "accept_invitation",
@@ -326,7 +326,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 196,
+    "line": 220,
     "method": "DELETE",
     "path": "/v1/auth/invitations/{invitation_id}",
     "handler": "revoke_invitation",
@@ -398,7 +398,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/password_reset.py",
-    "line": 22,
+    "line": 43,
     "method": "POST",
     "path": "/v1/auth/password-reset/request",
     "handler": "request_password_reset",
@@ -407,7 +407,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/password_reset.py",
-    "line": 42,
+    "line": 62,
     "method": "POST",
     "path": "/v1/auth/password-reset/confirm",
     "handler": "confirm_password_reset",
@@ -443,7 +443,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 28,
+    "line": 46,
     "method": "POST",
     "path": "/v1/auth/login",
     "handler": "login",
@@ -452,7 +452,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 129,
+    "line": 140,
     "method": "POST",
     "path": "/v1/auth/refresh",
     "handler": "refresh_token",
@@ -461,7 +461,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 185,
+    "line": 196,
     "method": "POST",
     "path": "/v1/auth/logout",
     "handler": "logout",
@@ -470,7 +470,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 230,
+    "line": 241,
     "method": "GET",
     "path": "/v1/auth/me",
     "handler": "me",
@@ -3881,7 +3881,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/break_glass.py",
-    "line": 141,
+    "line": 168,
     "method": "POST",
     "path": "/api/v1/admin/break-glass",
     "handler": "request_break_glass",
@@ -3890,7 +3890,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/break_glass.py",
-    "line": 318,
+    "line": 355,
     "method": "GET",
     "path": "/api/v1/admin/break-glass/{token}/fields",
     "handler": "break_glass_read_fields",
@@ -3899,7 +3899,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/break_glass.py",
-    "line": 358,
+    "line": 395,
     "method": "DELETE",
     "path": "/api/v1/admin/break-glass/{grant_id}",
     "handler": "revoke_break_glass",

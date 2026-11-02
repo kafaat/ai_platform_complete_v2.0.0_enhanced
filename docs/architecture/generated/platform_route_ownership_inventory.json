@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "9f49dc028b25200b3e863658912132c7ccbfdbd274dade78d0d3e3311ca66e7b",
+  "inventory_sha256": "cf7f50ebae441e760fe14619c97af6e6d2d8802fe0b536fe35ae04ef73124548",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "39a428a114bfe353e8fafb68a6e2f46eb0771611e6f561d649bc1f6021ae8bbd",
+  "map_sha256": "f38215bb5eef43b6526c08bf8e0ee655f72541dd1ae7e5ad94ecd5851b85c71c",
   "routes": [
     {
       "classification": null,
@@ -15,7 +15,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/break_glass.py",
       "function": "revoke_break_glass",
-      "line": 357,
+      "line": 394,
       "method": "DELETE",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -183,7 +183,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/break_glass.py",
       "function": "break_glass_read_fields",
-      "line": 317,
+      "line": 354,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",
@@ -5055,7 +5055,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/break_glass.py",
       "function": "request_break_glass",
-      "line": 140,
+      "line": 167,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
