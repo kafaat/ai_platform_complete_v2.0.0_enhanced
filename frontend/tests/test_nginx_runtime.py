@@ -263,6 +263,11 @@ class RuntimeContract(unittest.TestCase):
                         document_headers.get("referrer-policy"), "strict-origin-when-cross-origin"
                     )
                     self.assertIn("no-store", document_headers.get("cache-control", ""))
+                    # S6: HSTS on the shell (the edge terminates TLS for this origin).
+                    self.assertEqual(
+                        document_headers.get("strict-transport-security"),
+                        "max-age=63072000; includeSubDomains",
+                    )
             for path in ("/runtime-identity", "/api/agent/health", "/auth/login"):
                 with self.subTest(missing_backend=path):
                     self.assertEqual(self.request(path)[0], 502)

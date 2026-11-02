@@ -385,7 +385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "db2464b669e79d2899c0fec1e90c8ac2ad542a9b046b96162450117a886cb82e"
+          "content": "be6c2efe52bbf0fcef48049baed21b34c5b87c8e7f489bf20565ac29a95cd8ca"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -535,7 +535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "89bd383d05c57b472faa810a7ae58f34b82c5247a388e0617891d04d66da1a87"
+          "content": "cf27cfbf6e6c2d4fbc0582a63a3bbe381495bcbccd94375b77a15357414ca013"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -2025,10 +2025,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c6aead62dc846ab49e945dfcc658a12493dc1e1ca88bb239d8b1ca6565be581f"
+          "content": "84fc76e5e8004061fe994f3d0ea4da7ede43f2532c61128c531e035dc0403542"
         }
       ],
       "name": "frontend/src/components/maphub/OverlayMarkers.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5d3885031af34ebb3cc190fc02b9c5a485ff4c48d6db189fc6ddde8eb6c16e30"
+        }
+      ],
+      "name": "frontend/src/components/maphub/OverlayMarkers.xss.test.tsx",
       "type": "file"
     },
     {
@@ -2225,6 +2235,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "140aad2394730e9ad27cd785b127f1fd744099fa2eb97efdef44551e2c93a23c"
+        }
+      ],
+      "name": "frontend/src/components/maphub/drawing/DrawingOfflineSyncDrain.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a9ebe0b08d996599b7504837299312cc6b8d5751f18a680d9a5030261f44bce0"
         }
       ],
@@ -2355,7 +2375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04e2767ed338da44c15d68b5f29ee5a1c35547fe52278bfea97c447edd83b54d"
+          "content": "56fd46ec4a3a9dc6778333c95069c6ff09faced800d882e2169c3cafeebc5153"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/drawingFeatureApi.ts",
@@ -2375,7 +2395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04a43e9e286bd3541b602a40af2e6a0734a264c9f3ad8cdea5d86bbe0503a0d3"
+          "content": "a16a371db08757a183abba0a06277020e1cab3d8d243bc413bfb9da8e55de2cc"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/drawingOfflineSync.ts",
@@ -2575,10 +2595,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "338aac494dfa891ea877564aa2bdce028edec331839099ac3b000fca41f90349"
+          "content": "0af92f5006589155fbf9b6fa1a6f113c05da5ffac48203eaafeab6f2a0796e8d"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "16f0a64ea2af74e2ac63885207c569be0ef62d3aab33fb153324fe8870aad813"
+        }
+      ],
+      "name": "frontend/src/components/maphub/weather/WeatherProbePopup.xss.test.ts",
       "type": "file"
     },
     {
@@ -3579,6 +3609,16 @@
         }
       ],
       "name": "frontend/src/lib/enterpriseGisPhase7.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "755bafc2f62baf578d17d7444a33e19527655e226277a47d16bef1bf67ad4368"
+        }
+      ],
+      "name": "frontend/src/lib/escapeHtml.ts",
       "type": "file"
     },
     {
@@ -4635,7 +4675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b0f98b0e0cae5162b0855c40b555543aea3198c9409fd8b21dd2496edbd9e1cb"
+          "content": "b2b0066638f668c354a8e152f8fd3fbda006759ba58a0880c0b45ec575b8c013"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6135,7 +6175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca4526dd8f86fc7f24d957f069c272916144c3d0bce157649a205747dc74aa88"
+          "content": "9e3c9cd8e96bfee016f95a14714461b80beffe1fe26d12a5e3fa284a8db1e05f"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -7285,7 +7325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d502a1003bcbaaa3eab6abd8af2f2a98b36b977b812e2c6f75be1f004687e86b"
+          "content": "9b27703e60cf31c4044e70a55ee1950215cfdb0fc71ca6f3384e5cf98c690ede"
         }
       ],
       "name": "frontend/tests/test_nginx_runtime.py",
@@ -17105,7 +17145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29153ab28ab0e03474fc2cd0b3fd9b4fb24c832ce0175e1abca2bb1523c55723"
+          "content": "39287a5d550f28263f02559908f3ebff62e1278bac1eea8136cdbe3bf7a370ac"
         }
       ],
       "name": "services/auth/main.py",
@@ -17115,7 +17155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6bd38f3eb34970bb0a34f01b52d9b2dd3e44c95471f61279e7224766298a1d0e"
+          "content": "bf693ca44919a7d5927db1902ed2e9423cb951dc7c2929e082f6b58c6f8b47e5"
         }
       ],
       "name": "services/auth/mfa_crypto.py",
@@ -17195,7 +17235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a6dd101cfebc09a5a937f718196f3e91d761c99aeec735d81ee1d413ed8dfe0d"
+          "content": "3fe0e71e17fb50fec1e2e6bebbf51a6cd2fb14b58d2e8b7a5f09389ca6616668"
         }
       ],
       "name": "services/auth/routers/invitations.py",
@@ -17225,7 +17265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a350d3478b5009cf940348e3ce470b20ec58719d37982431d5f6dfc72817238"
+          "content": "20f24afd20e3c0c5d71e830156a1e8604c290fc8fe22edd01a45e63921369bf4"
         }
       ],
       "name": "services/auth/routers/password_reset.py",
@@ -17255,7 +17295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "122f7c2ec45fc427971adf66b6fe9e1bcee8e2c6d0784179abdccacbeaa7c055"
+          "content": "fca48b7f63629d0f7a96527ad8ae15ab65644a4f8b07df83852532d0abfcb46c"
         }
       ],
       "name": "services/auth/routers/session.py",
@@ -17285,7 +17325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "befd01a389c842a3aab437d1697217bd868f0877261d3121b1a03dcbdf01474e"
+          "content": "0faaf156d16395bfc3aa0bf95857ebf297b2d9dd8e4c20b697a7c8d399f89488"
         }
       ],
       "name": "services/auth/session_tokens.py",
@@ -24815,7 +24855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "588106c2e6f3e68f66e93f136d349500eb6ad3749e450fb57d704bb34a5afe0a"
+          "content": "0d2b9a95f460f1af7e04c4ee438edbbeccdc7b1e8c4b0949986437a3dba5e660"
         }
       ],
       "name": "services/sahool-platform/api/routers/break_glass.py",
@@ -26375,7 +26415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9412967d15765596718c5ee1a4d27c568942cebb2b1f87d688de8950632edf11"
+          "content": "be6eafc7fd59935b7aa068734d84467397adc519837f401c0eb2585b31e8de84"
         }
       ],
       "name": "services/sahool-platform/api/scheduler.py",
@@ -26575,7 +26615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6b579167f94a69d1355b3f57c261859808ab17d9a6efd109455a8dbbe7e4d483"
+          "content": "09a0d9d83c8aa0cb44f4789fb8f6fe9730b5bb399e2eab0a4dffba7411fcbba6"
         }
       ],
       "name": "services/sahool-platform/api/spatial_sync.py",
@@ -26835,7 +26875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f29b47d87489cca2bc64b3b7f1b55fc5eb1433260c422a54472ab815032275d0"
+          "content": "be5e60c263c751da0fbae7f1985cb3ebc79919b36f35236da3f7fee1d4c41eeb"
         }
       ],
       "name": "services/sahool-platform/api/weather_automation.py",
@@ -31075,7 +31115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a188d93b4108774f1b416c7f825c22f77eed95c379236365a2e04dc713543d71"
+          "content": "676a8ca3e514e28821a5a733b88bc729e8a23a4bd2e14cbf16185edd21bba2cc"
         }
       ],
       "name": "services/sahool-platform/tests/test_break_glass.py",
@@ -34569,6 +34609,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_scheduler_cluster_singleton.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "732bf9c7041a97e7308bf56dfe0522daf4f25eabfb8da1ced8d1cf3402895cc5"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_scheduler_once_per_period.py",
       "type": "file"
     },
     {

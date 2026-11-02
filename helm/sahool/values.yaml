@@ -9,6 +9,10 @@ global:
   secretRefs:
     databaseUrl: sahool-database-url
     jobsDatabaseUrl: sahool-jobs-database-url
+    # كلمات مرور الأدوار التي يُنشئها المُهاجر — تُقرأ فقط حين jobs.migration.apply=true.
+    appDbPassword: sahool-app-db-password
+    jobsDbPassword: sahool-jobs-db-password
+    ingestDbPassword: sahool-ingest-db-password
     jwtPublicKey: sahool-jwt-public-key
     jwtPrivateKey: sahool-jwt-private-key
     agentToken: sahool-agent-token
@@ -138,13 +142,26 @@ workloads:
 jobs:
   migration:
     enabled: true
-    image: sahool/platform:2026.06.26-rc.15
-    # مُشغّل الهجرات الفعليّ backed by migrations/MANIFEST.txt. الأمر السابق
-    # (python -m api.migrations.run) وحدة غير موجودة — كان يُفشِل مهمّة الترحيل
-    # في k8s (تدقيق 2026-07-05). migrate.py يقرأ JOBS_DATABASE_URL أيضاً.
-    command: ["python", "scripts_v9/migrate.py", "up"]
+    # صورة المُهاجر نفسها التي يبنيها Railway: postgres-alpine + bash + psql + /migrations/
+    # (MANIFEST + apply_in_compose.sh). الأمر السابق (scripts_v9/migrate.py في صورة المنصّة) لا
+    # تحويه تلك الصورة ولا psql ⇒ كان كلّ helm install يفشل (تدقيق 2026-11-01 I1).
+    image: sahool/migrate:2026.06.26-rc.15
+    sourceDockerfile: deploy/railway/Dockerfile.migrate
+    # files/migration-dsn-env.sh يشتقّ PG* من JOBS_DATABASE_URL ثمّ يُسلِّم لمُشغّل Railway نفسه.
+    command: ["bash", "/opt/sahool-migrate/migration-dsn-env.sh", "/migrations/apply_in_compose.sh"]
+    # إذن التطبيق (SAHOOL_MIGRATE_APPLY في مسار Railway). false ⇒ قراءة فقط ولا هجرة تُطبَّق؛
+    # يُضبط true عند قرار الهجرة فقط (docs/runbooks/MIGRATION_UNFREEZE_RUNBOOK_20261028.md).
+    apply: false
+    # UID مستخدم postgres في صورة alpine (الصورة تعمل جذراً افتراضيّاً، وrunAsNonRoot مفروض).
+    runAsUser: 70
     secretEnv:
+      # الـDSN لمالك الهجرات (sahool_user) رغم الاسم — migrations/POSTGRES_SETUP.md.
       JOBS_DATABASE_URL: jobsDatabaseUrl
+    # تُشترط فقط حين apply=true: apply_in_compose.sh يرفض التطبيق بدونها قبل أيّ كتابة.
+    applySecretEnv:
+      APP_DB_PASSWORD: appDbPassword
+      JOBS_DB_PASSWORD: jobsDbPassword
+      INGEST_DB_PASSWORD: ingestDbPassword
 
 observability:
   prometheusScrape: true

@@ -4,7 +4,7 @@
   "production_certified": false,
   "runtime_verified": false,
   "schema_version": 1,
-  "source_plan_sha256": "0dffe4e6a1fce6f8d2d188b13db5f7614d2fdead80a31787db1e523a7f6ed73f",
+  "source_plan_sha256": "6eab6613e6ad29f113ca0735b37013b5cacbff08f0c68d4e6864159f331e1e44",
   "targets": [
     {
       "base_url": "http://sahool-actuator-service:8000",
@@ -544,5 +544,5 @@
       "source_service": "weather-service"
     }
   ],
-  "targets_sha256": "fd6c9cb2b7212db2450e1aed3304899132b91cdf0d37ebb24307d1cfcdfda96f"
+  "targets_sha256": "26a6afbeba08b7aeeb6e4834ee4c837568cb6c900f3d36be4642cd47aae19281"
 }
