@@ -4898,7 +4898,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 335,
+    "line": 354,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
     "function": "field_irrigation_advice_facade"
@@ -4906,7 +4906,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 410,
+    "line": 424,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/disease-risk",
     "function": "field_disease_risk_facade"

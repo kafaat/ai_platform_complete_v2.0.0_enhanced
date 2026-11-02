@@ -574,8 +574,8 @@ sahool-platform,GET,/api/v1/fields/{field_id}/unified-timeline,field_unified_tim
 sahool-platform,GET,/api/v1/fields/{field_id}/weather/thermal-stress,field_weather_thermal_stress,services/sahool-platform/api/routers/field_workspace_weather.py,182
 sahool-platform,GET,/api/v1/fields/{field_id}/weather/crop-stress,field_weather_crop_stress,services/sahool-platform/api/routers/field_workspace_weather.py,217
 sahool-platform,GET,/api/v1/fields/{field_id}/weather/operation-windows,field_weather_operation_windows,services/sahool-platform/api/routers/field_workspace_weather.py,284
-sahool-platform,GET,/api/v1/fields/{field_id}/weather/irrigation-advice,field_irrigation_advice_facade,services/sahool-platform/api/routers/field_workspace_weather.py,335
-sahool-platform,GET,/api/v1/fields/{field_id}/weather/disease-risk,field_disease_risk_facade,services/sahool-platform/api/routers/field_workspace_weather.py,410
+sahool-platform,GET,/api/v1/fields/{field_id}/weather/irrigation-advice,field_irrigation_advice_facade,services/sahool-platform/api/routers/field_workspace_weather.py,354
+sahool-platform,GET,/api/v1/fields/{field_id}/weather/disease-risk,field_disease_risk_facade,services/sahool-platform/api/routers/field_workspace_weather.py,424
 sahool-platform,GET,/api/v1/fields,list_fields,services/sahool-platform/api/routers/fields.py,545
 sahool-platform,POST,/api/v1/fields,create_field,services/sahool-platform/api/routers/fields.py,568
 sahool-platform,POST,/api/v1/fields/import,import_field,services/sahool-platform/api/routers/fields.py,592

@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "1775af86ccb54d1fa09baecfe509b4607a784500f4abda69f940f5d7f0f89a4b",
+  "inventory_sha256": "d39ac397b10ad2bcc9f0a9a22018121119a9ce7912c20c79b9df5686efde62f6",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "23272d0e70e981cd50cc72889d980d62a9f9cf328109c2ff61a9e1c55e027f4b"
+    "policy_sha256": "d2b44c5f6d1e764130adfd85f08d2041c333ccac714b2959655b434658f721cb"
   },
   "routes": [
     {
@@ -1386,7 +1386,7 @@
     {
       "classification": "domain",
       "function": "field_disease_risk_facade",
-      "line": 409,
+      "line": 423,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/disease-risk",
       "source": "api/routers/field_workspace_weather.py"
@@ -1394,7 +1394,7 @@
     {
       "classification": "domain",
       "function": "field_irrigation_advice_facade",
-      "line": 334,
+      "line": 353,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
       "source": "api/routers/field_workspace_weather.py"

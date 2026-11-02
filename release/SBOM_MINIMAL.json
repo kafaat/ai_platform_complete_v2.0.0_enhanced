@@ -25405,7 +25405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d0c578b85c1c030880f07aa8aa9507c2a4881e49d7f1351df522232db699842"
+          "content": "9c575b1721ecb6d502730d03bfd0ec99804d856c692266d64a02627b512611ef"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_weather.py",
@@ -33225,7 +33225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f70fa8f4b058d924d61641a2a590e0dcae31b120b537f812c6ca75e97a38bb6a"
+          "content": "11472fa75139ae84c1b45b992b4081e9c849cccaa04822264f55ae460764e70d"
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_recent_rain_and_soil_input_g8_g9.py",
