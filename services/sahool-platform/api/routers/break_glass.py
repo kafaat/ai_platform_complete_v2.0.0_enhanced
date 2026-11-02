@@ -14,6 +14,13 @@
 + AUDIT في-الذاكرة). الوصول العابر يمرّ حصراً عبر break_glass_connection (تبعيّة
 منفصلة صريحة) — لا نعدّل tenant_connection العاديّ كي لا نُسرّب سهواً.
 
+سياق القاعدة (BREAK-GLASS-RUNS-WITHOUT-TENANT-CONTEXT): كلّ وصول يجري داخل
+tenant_connection(المُنادي) — لا اتّصال بلا سياق (كان users يُرجِع صفراً تحت sahool_app
+فتعطّل MFA، وv237 يُغلق ذراع «بلا سياق» في audit_log/break_glass_grants). سجلّ المنح
+عابرٌ بطبيعته فيُلمَس حصراً عبر مسار الخدمة الصريح (app.current_role='admin' — الذراع
+الذي تُبقيه v87/v90/v237) داخل savepoint ضيّق (_grant_registry)، ومحصوراً بمنح مستأجِر
+المُنادي (مالكها مديرٌ من مستأجِره). سياق الهدف يُشتقّ من صفّ المنحة لا من الجسم.
+
 ⚠️ ثوابت الأمان:
   ١) لا وصول عابر بلا منحة صالحة (موجودة، غير منتهية، غير مُبطَلة، تخصّ هذا المدير،
      mfa_verified=TRUE).
@@ -37,8 +44,8 @@ from api.main import (
     Permission,
     UserSchema,
     _db_unavailable,
-    get_pool,
     require_permission,
+    tenant_connection,
 )
 
 logger = logging.getLogger("sahool.break_glass")
@@ -73,8 +80,8 @@ async def _verify_admin_mfa(conn, admin_user_id: str, mfa_code: str) -> tuple[bo
       • رمز خاطئ ⇒ (False, …).
     التحقّق بنافذة ±30s (valid_window=1) — مطابق لخدمة auth.
 
-    ملاحظة عزل: يُقرأ صفّ المدير بمعرّفه (users.id) في سياق إدارة المنصّة (بلا
-    app.current_tenant) — لا يكشف بيانات مستأجِر.
+    ملاحظة عزل: يُستدعى داخل tenant_connection(المدير) — سياسة user_self تسمح بصفّه عبر
+    app.current_user_id. بلا سياق كانت تُرشّح الصفّ تحت sahool_app ⇒ break-glass معطّل.
     """
     import pyotp
 
@@ -102,11 +109,12 @@ async def _verify_admin_mfa(conn, admin_user_id: str, mfa_code: str) -> tuple[bo
 
 
 # ─── تدقيق دائم (audit_log) + في-الذاكرة (AUDIT) ─────────────────────
-async def _audit_db(conn, action: str, *, admin_user_id: str, target_tenant_id: str, details: str):
+async def _audit_db(conn, action: str, *, admin_user_id: str, tenant_id: str, details: str):
     """يكتب حدث تدقيق في جدول audit_log الدائم (ضمن نفس المعاملة).
 
-    audit_log: (action, user_id, details, tenant_id). نضع tenant_id = المستأجِر
-    الهدف (موضوع الوصول العابر) كي يربط التحقيق الجنائيّ الحدثَ بالمستأجِر المُتأثّر.
+    audit_log: (action, user_id, details, tenant_id). tenant_id = **مستأجِر السياق الفعّال**
+    (WITH CHECK في v87 يرفض صفّاً لمستأجِر غير المضبوط): مستأجِر المُنادي لأحداث الطلب/
+    الإبطال، والهدفُ المُشتقّ من المنحة لحدث الاستخدام. الهدف يُذكَر في details دائماً.
     لا يرفع: فشل التدقيق لا يُفشِل العمليّة الأمنيّة الجارية (best-effort داخل savepoint).
     """
     try:
@@ -117,7 +125,7 @@ async def _audit_db(conn, action: str, *, admin_user_id: str, target_tenant_id: 
                 action,
                 int(admin_user_id) if str(admin_user_id).isdigit() else None,
                 details,
-                str(target_tenant_id),
+                str(tenant_id),
             )
     except Exception as e:  # noqa: BLE001 — التدقيق لا يكسر المسار (لكن نُسجّله بوضوح)
         logger.warning("audit_log كتابة %s تخطّي: %s", action, type(e).__name__)
@@ -134,6 +142,25 @@ def _audit_mem(kind_action: str, *, user_id: str, tenant_id: str, reason_ar: str
         action=kind_action,
         reason_ar=reason_ar,
     )
+
+
+def _role_of(user: UserSchema) -> str:
+    return user.role.value if hasattr(user.role, "value") else str(user.role)
+
+
+@asynccontextmanager
+async def _grant_registry(conn, user: UserSchema):
+    """مسار الخدمة الصريح لسجلّ المنح العابر (break_glass_grants) — لا سواه.
+
+    سياسة v90 تسمح بالجدول لسياق «بلا مستأجِر» أو app.current_role='admin'؛ وv237 تُبقي
+    الثاني وحده. فنرفع الدور داخل savepoint ضيّق ثمّ نُعيد دور المُنادي؛ أيّ استثناء يُرجِع
+    الـsavepoint فيعود الدور تلقائيّاً. لا تُنفَّذ هنا إلّا عبارات break_glass_grants (يحرسه
+    اختبار)، وكلّ استعمال مُدقَّق في audit_log.
+    """
+    async with conn.transaction():  # savepoint: الرفع لا يعبر هذه الكتلة
+        await conn.execute("SELECT set_config('app.current_role', 'admin', true)")
+        yield conn
+        await conn.execute("SELECT set_config('app.current_role', $1, true)", _role_of(user))
 
 
 # ─── ١) طلب منحة ────────────────────────────────────────────────────
@@ -156,55 +183,50 @@ async def request_break_glass(
 
     grant_token = secrets.token_urlsafe(32)
     now = datetime.now(UTC)
+    denied = False
     try:
-        pool = get_pool()
-        async with pool.acquire() as conn:
-            async with conn.transaction():
-                # سياق إدارة المنصّة: لا app.current_tenant (سياسة break_glass_grants
-                # تسمح بسياق بلا-مستأجِر). لا نضبط دور 'admin' (لا هروب خدمة عريض).
-                verified, admin_email = await _verify_admin_mfa(conn, user.user_id, req.mfa_code)
-                if not verified:
-                    # تدقيق محاولة فاشلة (لا تُنشأ منحة).
-                    await _audit_db(
-                        conn,
-                        "break_glass_denied",
-                        admin_user_id=user.user_id,
-                        target_tenant_id=req.target_tenant_id,
-                        details=f"MFA غير صحيح/غير مفعّل؛ السبب المطلوب: {req.reason[:200]}",
-                    )
-                    _audit_mem(
-                        "break_glass_denied",
-                        user_id=user.user_id,
-                        tenant_id=req.target_tenant_id,
-                        reason_ar="رفض منحة break-glass: MFA غير صحيح/غير مفعّل",
-                    )
-                    raise HTTPException(
-                        status_code=403,
-                        detail="تعذّر التحقّق من MFA — break-glass يتطلّب رمز MFA صحيحاً ومفعّلاً.",
-                    )
-
-                expires_at = now + timedelta(minutes=req.duration_minutes)
-                grant_id = await conn.fetchval(
-                    """INSERT INTO break_glass_grants
-                           (admin_user_id, admin_email, target_tenant_id, reason,
-                            mfa_verified, granted_at, expires_at, grant_token)
-                       VALUES ($1, $2, $3::uuid, $4, TRUE, $5, $6, $7)
-                       RETURNING id""",
-                    int(user.user_id) if str(user.user_id).isdigit() else None,
-                    admin_email,
-                    str(req.target_tenant_id),
-                    req.reason,
-                    now,
-                    expires_at,
-                    _hash_grant_token(grant_token),  # T8: لا يُخزَّن الرمز صريحاً
+        # سياق المُنادي (مستأجِره + معرّفه) — MFA يقرأ صفّه عبر user_self.
+        async with tenant_connection(user) as conn:
+            verified, admin_email = await _verify_admin_mfa(conn, user.user_id, req.mfa_code)
+            if not verified:
+                # تدقيق محاولة فاشلة (لا تُنشأ منحة) — يُرفَع 403 بعد الـcommit لا داخله
+                # (الرفع داخل المعاملة كان يُرجِع صفّ التدقيق نفسه).
+                denied = True
+                await _audit_db(
+                    conn,
+                    "break_glass_denied",
+                    admin_user_id=user.user_id,
+                    tenant_id=user.tenant_id,
+                    details=(
+                        f"MFA غير صحيح/غير مفعّل؛ الهدف المطلوب={req.target_tenant_id} "
+                        f"السبب المطلوب: {req.reason[:200]}"
+                    ),
                 )
+            else:
+                expires_at = now + timedelta(minutes=req.duration_minutes)
+                async with _grant_registry(conn, user):
+                    grant_id = await conn.fetchval(
+                        """INSERT INTO break_glass_grants
+                               (admin_user_id, admin_email, target_tenant_id, reason,
+                                mfa_verified, granted_at, expires_at, grant_token)
+                           VALUES ($1, $2, $3::uuid, $4, TRUE, $5, $6, $7)
+                           RETURNING id""",
+                        int(user.user_id) if str(user.user_id).isdigit() else None,
+                        admin_email,
+                        str(req.target_tenant_id),
+                        req.reason,
+                        now,
+                        expires_at,
+                        _hash_grant_token(grant_token),  # T8: لا يُخزَّن الرمز صريحاً
+                    )
                 await _audit_db(
                     conn,
                     "break_glass_granted",
                     admin_user_id=user.user_id,
-                    target_tenant_id=req.target_tenant_id,
+                    tenant_id=user.tenant_id,
                     details=(
-                        f"grant_id={grant_id} duration_min={req.duration_minutes} "
+                        f"grant_id={grant_id} target={req.target_tenant_id} "
+                        f"duration_min={req.duration_minutes} "
                         f"expires={expires_at.isoformat()} reason={req.reason[:300]}"
                     ),
                 )
@@ -213,6 +235,17 @@ async def request_break_glass(
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("إنشاء منحة break-glass", e) from e
 
+    if denied:
+        _audit_mem(
+            "break_glass_denied",
+            user_id=user.user_id,
+            tenant_id=req.target_tenant_id,
+            reason_ar="رفض منحة break-glass: MFA غير صحيح/غير مفعّل",
+        )
+        raise HTTPException(
+            status_code=403,
+            detail="تعذّر التحقّق من MFA — break-glass يتطلّب رمز MFA صحيحاً ومفعّلاً.",
+        )
     _audit_mem(
         "break_glass_granted",
         user_id=user.user_id,
@@ -246,28 +279,38 @@ async def break_glass_connection(grant_token: str, user: UserSchema):
       • غير منتهية (expires_at > NOW()).
       • mfa_verified = TRUE.
     أيّ إخفاق ⇒ 403 (لا يُضبط أيّ سياق مستأجِر). عند النجاح: يزيد access_count +
-    last_used_at، يُدقّق break_glass_access، ثمّ يضبط app.current_tenant = الهدف.
+    last_used_at، يضبط app.current_tenant = الهدف (من صفّ المنحة)، ثمّ يُدقّق
+    break_glass_access في سجلّ ذلك المستأجِر. قراءة المنحة عبر _grant_registry فقط.
 
     ملاحظة أمنيّة: السياق يُضبط على المستأجِر الهدف فقط (RLS تظلّ مفروضة على ذلك
     المستأجِر) — ليس هروباً عريضاً. لا نضبط app.current_role='admin'.
     """
-    pool = get_pool()
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            # سياق إدارة المنصّة (بلا مستأجِر) للقراءة/التحديث على break_glass_grants.
-            row = await conn.fetchrow(
-                """SELECT id, target_tenant_id, reason, admin_email, grant_token
-                   FROM break_glass_grants
-                   WHERE grant_token = $1
-                     AND admin_user_id = $2
-                     AND revoked = FALSE
-                     AND mfa_verified = TRUE
-                     AND expires_at > NOW()
-                   FOR UPDATE""",
-                _hash_grant_token(grant_token),  # البحث بالـhash (T8)
-                int(user.user_id) if str(user.user_id).isdigit() else -1,
-            )
-            if not row or not _grant_token_matches(row["grant_token"], grant_token):
+    uid = int(user.user_id) if str(user.user_id).isdigit() else -1
+    async with tenant_connection(user) as conn:  # سياق المُنادي أوّلاً — لا اتّصال بلا سياق
+        async with conn.transaction():  # savepoint يحمل سياق الهدف حتى نهاية الاستخدام
+            async with _grant_registry(conn, user):
+                row = await conn.fetchrow(
+                    """SELECT id, target_tenant_id, reason, admin_email, grant_token
+                       FROM break_glass_grants
+                       WHERE grant_token = $1
+                         AND admin_user_id = $2
+                         AND revoked = FALSE
+                         AND mfa_verified = TRUE
+                         AND expires_at > NOW()
+                       FOR UPDATE""",
+                    _hash_grant_token(grant_token),  # البحث بالـhash (T8)
+                    uid,
+                )
+                if row is not None and not _grant_token_matches(row["grant_token"], grant_token):
+                    row = None  # T8: صفّ قديم بنصّ صريح/عدم تطابق ⇒ fail-closed
+                if row:
+                    # عدّاد الاستخدام + آخر استخدام (داخل نفس المعاملة).
+                    await conn.execute(
+                        "UPDATE break_glass_grants SET access_count = access_count + 1, "
+                        "last_used_at = NOW() WHERE id = $1",
+                        row["id"],
+                    )
+            if not row:
                 # تدقيق محاولة استخدام فاشلة (منحة مفقودة/منتهية/مُبطَلة/لغير المالك).
                 _audit_mem(
                     "break_glass_access_denied",
@@ -279,22 +322,8 @@ async def break_glass_connection(grant_token: str, user: UserSchema):
                     status_code=403,
                     detail="منحة break-glass غير صالحة (غير موجودة/منتهية/مُبطَلة/لغير صاحبها).",
                 )
+            # الهدف من صفّ المنحة المُتحقَّق (لا من الجسم) — RLS تظلّ مفروضة عليه.
             target_tenant_id = str(row["target_tenant_id"])
-            # عدّاد الاستخدام + آخر استخدام (داخل نفس المعاملة).
-            await conn.execute(
-                "UPDATE break_glass_grants SET access_count = access_count + 1, "
-                "last_used_at = NOW() WHERE id = $1",
-                row["id"],
-            )
-            # تدقيق دائم على كلّ استخدام (قبل ضبط سياق المستأجِر — السياق الإداريّ ما زال فعّالاً).
-            await _audit_db(
-                conn,
-                "break_glass_access",
-                admin_user_id=user.user_id,
-                target_tenant_id=target_tenant_id,
-                details=f"grant_id={row['id']} reason={str(row['reason'])[:300]}",
-            )
-            # الآن اضبط سياق المستأجِر الهدف فقط (RLS تظلّ مفروضة عليه).
             await conn.execute(
                 "SELECT set_config('app.current_tenant', $1, true), "
                 "       set_config('app.current_user_id', $2, true), "
@@ -302,7 +331,15 @@ async def break_glass_connection(grant_token: str, user: UserSchema):
                 target_tenant_id,
                 str(user.user_id),
                 # دور المدير الفعليّ (platform_admin) — **ليس** 'admin' (لا هروب خدمة عريض).
-                user.role.value if hasattr(user.role, "value") else str(user.role),
+                _role_of(user),
+            )
+            # تدقيق دائم على كلّ استخدام — في سجلّ المستأجِر المُتأثّر (سياقه الآن).
+            await _audit_db(
+                conn,
+                "break_glass_access",
+                admin_user_id=user.user_id,
+                tenant_id=target_tenant_id,
+                details=f"grant_id={row['id']} reason={str(row['reason'])[:300]}",
             )
             _audit_mem(
                 "break_glass_access",
@@ -361,31 +398,34 @@ async def revoke_break_glass(
 ):
     """يُبطِل منحة break-glass (revoked=TRUE) + يُدقّق. بعدها أيّ استخدام يُرفَض.
 
-    أيّ مدير منصّة (PLATFORM_MANAGE) يستطيع إبطال أيّ منحة (حوكمة: قطع الوصول فوراً).
+    أيّ مدير منصّة في **مستأجِر المُنادي** يستطيع إبطال منح ذلك المستأجِر (حوكمة: قطع
+    الوصول فوراً). منحةٌ أصدرها مديرٌ من مستأجِر آخر ⇒ 404 (لا كشف وجودها).
     """
     try:
-        pool = get_pool()
-        async with pool.acquire() as conn:
-            async with conn.transaction():
+        async with tenant_connection(user) as conn:
+            async with _grant_registry(conn, user):
+                # مستأجِر المالك من المُنادي المُصادَق (لا من الجسم) — شرطٌ صريح لأنّ دور
+                # الخدمة يفتح users أيضاً.
                 row = await conn.fetchrow(
                     """UPDATE break_glass_grants
                        SET revoked = TRUE
                        WHERE id = $1 AND revoked = FALSE
+                         AND admin_user_id IN (
+                             SELECT u.id FROM users u WHERE u.tenant_id::text = $2)
                        RETURNING id, target_tenant_id, admin_user_id""",
                     grant_id,
+                    str(user.tenant_id),
                 )
-                if not row:
-                    raise HTTPException(
-                        status_code=404, detail="لا منحة بهذا المعرّف (أو مُبطَلة مسبقاً)."
-                    )
-                target_tenant_id = str(row["target_tenant_id"])
-                await _audit_db(
-                    conn,
-                    "break_glass_revoked",
-                    admin_user_id=user.user_id,
-                    target_tenant_id=target_tenant_id,
-                    details=f"grant_id={grant_id} revoked_by={user.user_id}",
-                )
+            if not row:
+                raise HTTPException(status_code=404, detail="لا منحة بهذا المعرّف (أو مُبطَلة مسبقاً).")
+            target_tenant_id = str(row["target_tenant_id"])
+            await _audit_db(
+                conn,
+                "break_glass_revoked",
+                admin_user_id=user.user_id,
+                tenant_id=user.tenant_id,
+                details=f"grant_id={grant_id} target={target_tenant_id} revoked_by={user.user_id}",
+            )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
