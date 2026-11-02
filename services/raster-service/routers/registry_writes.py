@@ -50,7 +50,7 @@ class CogRegistryCommand(BaseModel):
     product_date: str = Field(min_length=10, max_length=40)
     index_type: str = Field(min_length=1, max_length=64)
     cog_url: str = Field(min_length=1)
-    cloud_pct: float | None = 0
+    cloud_pct: float | None = None  # None = مجهول لا 0% (G11)
     quality_score: int | None = Field(default=None, ge=0, le=100)
     resolution_m: float = 10
     bbox: list[float] | dict[str, Any] | None = None

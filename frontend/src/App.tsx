@@ -11,7 +11,7 @@ import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
 import { useTenantConfig } from './hooks/useTenantConfig';
 import { useTheme } from './hooks/useTheme';
-import { wsService } from './services/websocket';
+import { toastStore, wsService } from './services/websocket';
 import ToastContainer from './components/ToastContainer';
 import { canAccess, canCreateFarm } from './lib/permissions';
 import { isPageEnabled } from './lib/featureFlags';
@@ -168,7 +168,7 @@ function Loader() {
 
 
 export default function App() {
-  const { isAuthenticated, user, isDemoMode, logout } = useAuthStore();
+  const { isAuthenticated, user, isDemoMode, logout, token } = useAuthStore();
   // سجلّ الميزات الحيّ من الخلفيّة (fail-open حتى التحميل) — يُغذّي حارس الصفحات المتقدّمة.
   const featureRegistry = useFeatureRegistry();
   // السمة (فاتح/داكن) على مستوى الجذر — تُطبَّق على <html> وتُحفظ في localStorage.
@@ -214,6 +214,22 @@ export default function App() {
     }
     return () => {};
   }, [isAuthenticated, user?.id]);
+
+  // R10: تفريغ طابور الرسوم المحفوظة دون اتّصال — عند البدء، وعند تجدّد الجلسة (تغيّر
+  // token يُعيد التشغيل)، وعند `online`، ودوريّاً بـbackoff. استيراد كسول لا يمسّ الحزمة الأولى.
+  useEffect(() => {
+    if (!isAuthenticated || isDemoMode || !token) return undefined;
+    let stop: (() => void) | null = null;
+    let cancelled = false;
+    void import('./components/maphub/drawing/drawingFeatureApi').then((m) => {
+      if (cancelled) return;
+      stop = m.startOfflineDrawingAutoSync({
+        onAuthRequired: (s) => toastStore.add('warning', 'سجّل الدخول لمزامنة الرسوم',
+          `${s.pending + s.authRequired} رسمة محفوظة محلياً بانتظار الرفع — لم تُفقَد.`),
+      });
+    }).catch(() => { /* تعذّر تحميل الوحدة: يبقى الطابور محفوظاً للمرّة القادمة */ });
+    return () => { cancelled = true; stop?.(); };
+  }, [isAuthenticated, isDemoMode, token]);
 
   // (إغلاق درج الموبايل عند تغيّر المسار انتقل إلى AppShell.)
 

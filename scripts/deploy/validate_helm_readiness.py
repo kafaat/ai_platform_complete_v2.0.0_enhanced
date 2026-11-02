@@ -69,6 +69,50 @@ def source_contract_errors(values: dict, root: Path = ROOT) -> list[str]:
     return errors
 
 
+def migration_job_errors(values: dict, root: Path = ROOT) -> list[str]:
+    """The migration Job must run what its image actually contains (I1, audit 2026-11-01).
+
+    It ran ``scripts_v9/migrate.py`` in the platform image, which ships neither that
+    script nor ``psql``, so every ``helm install`` failed in the pre-install hook.
+    Every absolute path in ``command`` must come from the image named by
+    ``sourceDockerfile`` (``/migrations/`` is ``COPY migrations/``) or from the chart's
+    ``files/`` ConfigMap mount; and the chart must never bake the apply permission.
+    """
+    job = values.get("jobs", {}).get("migration", {})
+    if not job.get("enabled"):
+        return []
+    errors = []
+    source = root / str(job.get("sourceDockerfile", ""))
+    if not job.get("sourceDockerfile") or not source.is_file():
+        return ["jobs.migration: sourceDockerfile is required"]
+    dockerfile = source.read_text(encoding="utf-8")
+    copies_migrations = re.search(r"^COPY\s+migrations/\s+/migrations/\s*$", dockerfile, re.M)
+    command = [str(arg) for arg in job.get("command", [])]
+    if not command:
+        errors.append("jobs.migration: command is required")
+    elif not re.search(rf"\b{re.escape(command[0])}\b", dockerfile):
+        errors.append(
+            f"jobs.migration: interpreter {command[0]!r} is not installed by {source.name}"
+        )
+    for arg in command[1:]:
+        if arg.startswith("/migrations/"):
+            if not copies_migrations or not (root / arg.lstrip("/")).is_file():
+                errors.append(f"jobs.migration: {arg} is not in the image built from {source.name}")
+        elif arg.startswith("/opt/sahool-migrate/"):
+            if not (CHART / "files" / arg.rsplit("/", 1)[-1]).is_file():
+                errors.append(f"jobs.migration: {arg} has no source under helm/sahool/files/")
+        elif "/" in arg or arg.endswith((".py", ".sh", ".sql")):
+            errors.append(f"jobs.migration: {arg} is not provided by the image or the chart")
+    if image_tag(str(job.get("image", ""))) in FORBIDDEN_IMAGE_TAGS:
+        errors.append(f"jobs.migration uses unsafe image tag: {job.get('image')}")
+    if job.get("apply") is not False:
+        errors.append(
+            "jobs.migration.apply must be false in chart values; "
+            "grant SAHOOL_MIGRATE_APPLY with --set only at the migration decision"
+        )
+    return errors
+
+
 def load_yaml(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         return yaml.safe_load(handle) or {}
@@ -110,6 +154,7 @@ def main() -> int:
     overlay = load_yaml(CHART / f"values-{args.env}.yaml")
     merged = deep_merge(values, overlay)
     failures.extend(source_contract_errors(merged))
+    failures.extend(migration_job_errors(merged))
 
     if args.env == "production" and merged.get("global", {}).get("environment") != "production":
         failures.append("production overlay must set global.environment=production")

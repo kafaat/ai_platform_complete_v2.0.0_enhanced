@@ -98,6 +98,31 @@ def precipitation_incomplete_detail(*, context: str, missing_intervals: list[int
     }
 
 
+#: G8 — نافذةُ مطر الريّ تعريفٌ **واحد** تسأله كلُّ المسارات (مساحة العمل، التوصية الموحَّدة،
+#: التنبيه، مركز التوصيات). ومراجعة #1329: ``days[0]`` هو ``precipitation_sum`` ليومٍ محلّيٍّ
+#: **كامل** من التوقّع (``weather-service/open_meteo.fetch_forecast``، بلا ``past_days``) —
+#: يضمّ مطرَ ما تبقّى من اليوم الذي **لم يهطل بعد**. خصمُه «أخيراً» يُسقط الريَّ إلى صفر
+#: وتربةٌ طازجةُ القراءة حرجة. ولا فصلَ بين المنقضي والمتبقّي في هذه الحمولة، فالفشلُ مغلق:
+#: ``recent = 0.0`` موسوماً ``RAIN_RECENT_NOT_OBSERVED`` (لم يُرصَد ⇒ لم يُخصَم — لا «لا مطر»)،
+#: ومطرُ اليوم كلُّه يبقى في نافذة التوقّع (يؤجّل غيرَ الحرِج ولا يُنقِص الكمّيّة). ولا
+#: ``current.precipitation_mm`` (آخرُ ربع ساعة) ولا ``_historical_rain_3d_mm`` (ERA5 متأخّر).
+RAIN_RECENT_NOT_OBSERVED = "not_observed_not_deducted"
+
+
+def irrigation_rain_window(
+    daily_precipitation_mm: list[float | None],
+) -> tuple[float, float | None, list[int]]:
+    """``(recent_mm, forecast_mm, missing_intervals)`` من مطر الأيّام اليوميّ للتوقّع.
+
+    ``recent_mm`` دائماً ``0.0`` (المصدر ``RAIN_RECENT_NOT_OBSERVED``): لا مطرَ مرصوداً في
+    توقّعٍ يوميّ. ``forecast_mm`` مجموعُ اليوم (ما تبقّى منه لا يُفصَل) واليومين التاليين.
+    الفهارسُ نفسُ مخطّط ``precipitation_incomplete_detail``: ``0`` اليوم و``1``/``2``
+    التاليان. والغيابُ ``None`` مُسمّى — **لا صفر** (سياسة ``complete_rain_total``).
+    """
+    forecast, missing = complete_rain_total(list(daily_precipitation_mm[:3]), expected_count=3)
+    return 0.0, forecast, missing
+
+
 def resolve_kc(crop: str | None, stage: str) -> tuple[float, bool, str]:
     """يُرجع (kc, crop_known, kc_source_ar) لمحصول/مرحلة.
 

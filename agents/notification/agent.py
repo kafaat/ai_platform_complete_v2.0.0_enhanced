@@ -20,6 +20,7 @@ import json
 import logging
 import os
 import re
+import uuid
 from collections import defaultdict
 from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager, suppress
@@ -442,6 +443,48 @@ def make_html(title: str, message: str, data: dict) -> str:
 </body></html>"""
 
 
+def _canonical_tenant(tenant_id: str) -> str | None:
+    """UUID قانونيّ للمستأجِر أو None: ``notification_preferences.tenant_id`` UUID، فمعرّفٌ
+    غيره لا يملك مشتركين (والتحويل ``::uuid`` كان سيفشل ويُعيد الحدث بلا نهاية)."""
+    try:
+        return str(uuid.UUID(str(tenant_id).strip()))
+    except (ValueError, AttributeError, TypeError):
+        return None
+
+
+async def _fetch_tenant_pref_rows(tenant_id: str) -> list[dict]:
+    """صفوف تفضيلات مستخدمي **هذا** المستأجِر فقط: سياق RLS مضبوط + شرط tenant صريح."""
+    async with _tenant_connection(tenant_id) as conn:
+        rows = await conn.fetch(
+            "SELECT * FROM notification_preferences "
+            "WHERE tenant_id=$1::uuid AND user_ref IS NOT NULL ORDER BY user_ref",
+            tenant_id,
+        )
+    return [dict(r) for r in rows]
+
+
+async def get_tenant_subscribers(tenant_id: str) -> list[tuple[str, dict]]:
+    """R8: مستلمو حدثٍ بلا ``user_id`` — مستخدمو مستأجِر الحدث ذوو صفّ تفضيلات.
+
+    أحداث المنصّة الحيّة (outbox ⇒ ``sahool.events.*``) تحمل tenant_id بلا user_id، فلم
+    يُرسَل لها بريد/تيليجرام/push قطّ. لا جدول عضويّة لكلّ حقل في المخطّط (الحقل ملك
+    المستأجِر)، فالمشتركون هم مستخدمو المستأجِر بحسب ``notification_preferences``؛ وترشيح
+    نوع الحدث والقنوات يتمّ لكلّ مستخدم في ``_deliver_to_recipient``. صفّ مستأجِرٍ آخر
+    (لو أخفق RLS) يُسقَط هنا — لا بثّ عابر للمستأجرين أبداً.
+    """
+    canonical = _canonical_tenant(tenant_id)
+    if canonical is None:
+        return []
+    out: list[tuple[str, dict]] = []
+    for row in await _fetch_tenant_pref_rows(canonical):
+        if _canonical_tenant(str(row.get("tenant_id", ""))) != canonical:
+            continue
+        user_ref = row.get("user_ref")
+        if user_ref:
+            out.append((str(user_ref), row))
+    return out
+
+
 async def dispatch(data: dict):
     et = data.get("event_type", "")
     user_id = data.get("user_id")
@@ -457,18 +500,37 @@ async def dispatch(data: dict):
     else:
         await manager.broadcast_tenant(tenant_id, data)
 
-    if not user_id:
-        return
+    if user_id:
+        prefs = await get_prefs(str(user_id), tenant_id)
+        # الحدث الموجَّه يحتفظ بمفتاح إيصاله كما هو (لا تكرار بعد النشر).
+        recipients = [(data, prefs)] if prefs else []
+    else:
+        # كلّ مستلم إيصالاته الخاصّة (user_id في مفتاح الإيصال وسياق RLS).
+        recipients = [
+            ({**data, "user_id": ref}, prefs)
+            for ref, prefs in await get_tenant_subscribers(tenant_id)
+        ]
 
-    prefs = await get_prefs(str(user_id), tenant_id)
-    if not prefs:
-        return
+    failed: list[str] = []
+    for recipient_data, prefs in recipients:
+        failed += await _deliver_to_recipient(recipient_data, prefs, et, title, message, extra)
+    if failed:
+        raise DeliveryUnavailable("channels_failed:" + ",".join(dict.fromkeys(failed)))
 
-    event_types = prefs.get("event_types", [])
+
+async def _deliver_to_recipient(
+    data: dict, prefs: dict, et: str, title: str, message: str, extra: dict
+) -> list[str]:
+    """قنوات مستلمٍ واحد بحسب تفضيلاته؛ يُرجِع القنوات الفاشلة (تُعاد بإعادة الحدث)."""
+    event_types = prefs.get("event_types") or []
     if isinstance(event_types, str):
-        event_types = json.loads(event_types)
-    if et not in event_types:
-        return
+        # صفّ تالف لمستخدم واحد لا يُسقِط الحدث (dead-letter) عن بقيّة المستلمين.
+        try:
+            event_types = json.loads(event_types)
+        except json.JSONDecodeError:
+            return []
+    if not isinstance(event_types, list) or et not in event_types:
+        return []
 
     html = make_html(title, message, extra)
 
@@ -542,8 +604,7 @@ async def dispatch(data: dict):
         except DeliveryUnavailable as exc:
             logger.warning("Channel retained for retry: %s (%s)", channel, exc)
             failed.append(channel)
-    if failed:
-        raise DeliveryUnavailable("channels_failed:" + ",".join(failed))
+    return failed
 
 
 # ── NATS subscriptions ────────────────────────────────────────

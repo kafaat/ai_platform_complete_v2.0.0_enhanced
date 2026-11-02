@@ -11,6 +11,7 @@ is_inviteable_role، INVITATION_EXPIRY_DAYS، مسبح DB، النماذج) تب
 
 from __future__ import annotations
 
+import hashlib
 import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
@@ -20,6 +21,24 @@ from client_address import client_ip
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 router = APIRouter()
+
+# T8: الرمز يُخزَّن مُجزّأً لا صريحاً — من يقرأ جدول invitations (أو audit/نسخة احتياطيّة)
+# لا يحصل على رمز قابل للاستعمال. token_urlsafe(32) = ٢٥٦ بتّاً عشوائيّة ⇒ SHA-256 بلا سرّ
+# كافٍ (لا قاموس يُعكَس) ويُبقي البحث بفهرس token الفريد القائم بلا هجرة ولا سرّ يُدار تدويره.
+# الصفوف القديمة (نصّ صريح بلا البادئة) لا تطابق أبداً ⇒ تُعامَل منتهية (≤٧ أيّام؛ تُعاد الدعوة).
+INVITATION_TOKEN_HASH_PREFIX = "sha256:"
+
+
+def hash_invitation_token(token: str) -> str:
+    """القيمة المخزَّنة في invitations.token لرمز دعوة (لا يُخزَّن الرمز نفسه أبداً)."""
+    return INVITATION_TOKEN_HASH_PREFIX + hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def invitation_token_matches(stored: str | None, token: str) -> bool:
+    """مقارنة بزمن ثابت؛ صفّ قديم بنصّ صريح (بلا البادئة) لا يطابق — fail-closed."""
+    if not stored or not stored.startswith(INVITATION_TOKEN_HASH_PREFIX):
+        return False
+    return secrets.compare_digest(stored, hash_invitation_token(token))
 
 
 @router.post("/v1/auth/invitations", status_code=201)
@@ -58,7 +77,7 @@ async def create_invitation(
             VALUES ($1, $2, $3, $4, $5, 'pending', $6)
             RETURNING id, email, role, tenant_id, expires_at, created_at
             """,
-            token,
+            hash_invitation_token(token),
             req.email,
             tenant_id,
             req.role,
@@ -92,7 +111,9 @@ async def list_invitations(user: Annotated[dict, Depends(main.get_current_user)]
     async with main._acquire() as conn:
         rows = await conn.fetch(
             """
-            SELECT id, email, role, status, expires_at, created_at
+            SELECT id, email, role, expires_at, created_at,
+                   -- دعوة قديمة بنصّ صريح لا تُقبَل بعد T8 ⇒ تظهر منتهية لا معلّقة.
+                   CASE WHEN token LIKE 'sha256:%' THEN status ELSE 'expired' END AS status
             FROM invitations
             WHERE tenant_id = $1 AND status = 'pending'
             ORDER BY created_at DESC
@@ -128,13 +149,16 @@ async def accept_invitation(
     async with main._acquire() as conn:
         inv = await conn.fetchrow(
             """
-            SELECT id, email, tenant_id, role, status, expires_at
+            SELECT id, token, email, tenant_id, role, status, expires_at
             FROM invitations
             WHERE token = $1
             """,
-            req.token,
+            hash_invitation_token(req.token),
         )
-        if not inv or inv["status"] != "pending":
+        # البحث بالـhash فقط؛ ثمّ تأكيد بزمن ثابت (صفّ قديم بنصّ صريح لا يطابق).
+        if not inv or not invitation_token_matches(inv["token"], req.token):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "دعوة غير صالحة أو مستهلَكة")
+        if inv["status"] != "pending":
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "دعوة غير صالحة أو مستهلَكة")
         if inv["expires_at"] and inv["expires_at"] <= now:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "انتهت صلاحيّة الدعوة")

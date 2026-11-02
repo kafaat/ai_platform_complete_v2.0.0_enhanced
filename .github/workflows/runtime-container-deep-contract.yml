@@ -19,6 +19,10 @@ on:
       - 'scripts/ci/runtime_container_deep_contract_guard.py'
       - 'tests_v9/test_runtime_container_deep_contract_guard.py'
 
+# أقلّ صلاحيّة (I5): قراءة المستودع فقط؛ أيّ وظيفة تحتاج أكثر تُعلنه على مستواها.
+permissions:
+  contents: read
+
 # عبءُ أجهزة التشغيل: دفعٌ جديد إلى الـPR نفسه يلغي تشغيلَه الأقدم لهذا المسار (كـci.yml)؛ وأحداثُ
 # غير الـPR مجموعتُها فريدة (run_id) فلا تُلغى ولا تُسلسَل — كلُّ دمجٍ إلى main يُفحص كاملاً.
 concurrency:

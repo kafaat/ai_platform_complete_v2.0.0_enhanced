@@ -142,10 +142,111 @@ SOIL_PARAMS = {
 
 
 # ══════════════════════════════════════════════════════════════
+# G5: نَسَب الطقس — لا يُسمّى المُستكمَل «مرصوداً»
+# ══════════════════════════════════════════════════════════════
+# كانت القيم المفقودة تُملأ بثوابت (Tmax 30 · Tmin 15 · إشعاع 15 · ET0 4) والمخرَج
+# يقول «حقيقي». الآن: الأيّام الأخيرة الناقصة (تأخّر أرشيف ERA5 ~5 أيّام) تُقَصّ لا
+# تُختلَق؛ الفجوات الداخليّة الصغيرة تُستوفى خطّيّاً بين الجارين المرصودين ويُوسَم اليوم
+# ``gap_filled``؛ والفجوة الكبيرة رفضٌ مُنمَّط ``WeatherGapError``.
+# الحدّان: ≤٣ أيّام متتالية — نظام طقس إجماليّ (موجة حرّ/منخفض) يدوم ٣–٥ أيّام، فاستيفاء
+# أطول يُخفي حدثاً كاملاً (أيّام إجهاد حراريّ)؛ و≤١٠٪ من الأيّام — يُبقي المساهمة
+# المُستكمَلة في GDD/الكتلة الحيويّة التراكميّة هامشيّة (يوم واحد على الأقلّ للسلاسل القصيرة).
+WEATHER_FIELDS = ("tmax", "tmin", "rain_mm", "rad_mj", "et0_mm")
+MAX_CONSECUTIVE_GAP_DAYS = 3
+MAX_GAP_FILLED_FRACTION = 0.10
+GAP_FILL_METHOD = "linear_interpolation"
+
+
+class WeatherGapError(ValueError):
+    """فجوات الطقس المرصود تتجاوز حدّ الاستكمال — لا محاكاة على بيانات مُختلَقة."""
+
+    error_code = "WEATHER_GAPS_EXCEEDED"
+
+    def __init__(self, *, total_days: int, gap_days: int, max_consecutive: int) -> None:
+        self.total_days = total_days
+        self.gap_days = gap_days
+        self.max_consecutive = max_consecutive
+        super().__init__(
+            f"weather gaps exceed threshold: {gap_days}/{total_days} days missing, "
+            f"longest run {max_consecutive} (limits: {MAX_GAP_FILLED_FRACTION:.0%}, "
+            f"{MAX_CONSECUTIVE_GAP_DAYS} consecutive)"
+        )
+
+    def as_dict(self) -> dict:
+        return {
+            "source": "insufficient",
+            "total_days": self.total_days,
+            "gap_days": self.gap_days,
+            "max_consecutive_gap_days": self.max_consecutive,
+            "thresholds": _gap_thresholds(),
+        }
+
+
+def _gap_thresholds() -> dict:
+    return {
+        "max_gap_fraction": MAX_GAP_FILLED_FRACTION,
+        "max_consecutive_gap_days": MAX_CONSECUTIVE_GAP_DAYS,
+    }
+
+
+def _is_missing(value) -> bool:
+    return not isinstance(value, (int, float)) or isinstance(value, bool) or math.isnan(value)
+
+
+def fill_weather_gaps(records: list[dict]) -> list[dict]:
+    """يستوفي الفجوات الصغيرة خطّيّاً ويَسِم كلّ يوم بمصدره؛ يرفض الفجوات الكبيرة.
+
+    يُرجِع نسخاً جديدة، لكلّ يوم ``weather_source`` (``observed`` | ``gap_filled``)
+    و``filled_fields``. مُتساوي القوّة (idempotent): يومٌ موسوم ``gap_filled`` يبقى كذلك.
+    """
+    days = [dict(r) for r in records]
+    missing = [{f for f in WEATHER_FIELDS if _is_missing(d.get(f))} for d in days]
+    # الذيل الناقص = بيانات لم تصدر بعد (تأخّر الأرشيف) لا فجوة: يُقَصّ ولا يُختلَق.
+    while days and missing[-1]:
+        days.pop()
+        missing.pop()
+    if not days:
+        return []
+
+    for f in WEATHER_FIELDS:
+        observed = [i for i, d in enumerate(days) if f not in missing[i]]
+        for i, d in enumerate(days):
+            if f not in missing[i]:
+                continue
+            prev = max((j for j in observed if j < i), default=None)
+            nxt = min((j for j in observed if j > i), default=None)
+            if prev is None:  # فجوة في الرأس: أقرب جار مرصود (لا جار سابق للاستيفاء)
+                d[f] = days[nxt][f]
+            else:
+                frac = (i - prev) / (nxt - prev)
+                d[f] = round(days[prev][f] + frac * (days[nxt][f] - days[prev][f]), 2)
+
+    run = longest = gap_days = 0
+    for d, miss in zip(days, missing, strict=True):
+        already = d.get("weather_source") == "gap_filled"
+        filled = sorted(miss | set(d.get("filled_fields") or ()))
+        d["filled_fields"] = filled
+        d["weather_source"] = "gap_filled" if (miss or already) else "observed"
+        if d["weather_source"] == "gap_filled":
+            gap_days += 1
+            run += 1
+            longest = max(longest, run)
+        else:
+            run = 0
+    allowed = max(1, int(MAX_GAP_FILLED_FRACTION * len(days)))
+    if gap_days > allowed or longest > MAX_CONSECUTIVE_GAP_DAYS:
+        raise WeatherGapError(total_days=len(days), gap_days=gap_days, max_consecutive=longest)
+    return days
+
+
+# ══════════════════════════════════════════════════════════════
 # OPEN-METEO: جلب بيانات طقس يومية حقيقية
 # ══════════════════════════════════════════════════════════════
 async def fetch_weather_real(lat: float, lon: float, start: date, end: date) -> list[dict]:
     """Open-Meteo ERA5 + Forecast — الواجهة المجانية بلا مفتاح، لغير التجاري فقط.
+
+    القيم المفقودة لا تُملأ بثوابت (G5): تمرّ على ``fill_weather_gaps`` فتُوسَم أو
+    تُرفَض بـ``WeatherGapError``.
 
     الاستخدام التجاري يحتاج اشتراكاً بمفتاح أو نسخة مستضافة ذاتياً؛ القرار معلق لدى المالك:
     docs/architecture/decisions_pending/OPEN-METEO-COMMERCIAL-TERMS-01.md
@@ -164,26 +265,27 @@ async def fetch_weather_real(lat: float, lon: float, start: date, end: date) -> 
     d = r.json().get("daily", {})
     result = []
 
-    def _at(key, i, default):
+    def _at(key, i):
         # H6 FIX: Open-Meteo قد يُرجع مصفوفات مُسنّنة/null (أرشيف ERA5 متأخّر
         # ~5 أيام). الوصول المباشر d[key][i] كان يرمي KeyError/IndexError.
+        # G5: المفقود None لا ثابتاً — يُستوفى ويُوسَم في fill_weather_gaps.
         lst = d.get(key)
-        if not isinstance(lst, list) or i >= len(lst) or lst[i] is None:
-            return default
+        if not isinstance(lst, list) or i >= len(lst):
+            return None
         return lst[i]
 
     for i, dt in enumerate(d.get("time", [])):
         result.append(
             {
                 "date": dt,
-                "tmax": _at("temperature_2m_max", i, 30.0),
-                "tmin": _at("temperature_2m_min", i, 15.0),
-                "rain_mm": _at("precipitation_sum", i, 0.0),
-                "rad_mj": _at("shortwave_radiation_sum", i, 15.0),
-                "et0_mm": _at("et0_fao_evapotranspiration", i, 4.0),
+                "tmax": _at("temperature_2m_max", i),
+                "tmin": _at("temperature_2m_min", i),
+                "rain_mm": _at("precipitation_sum", i),
+                "rad_mj": _at("shortwave_radiation_sum", i),
+                "et0_mm": _at("et0_fao_evapotranspiration", i),
             }
         )
-    return result
+    return fill_weather_gaps(result)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -311,9 +413,17 @@ async def simulate_wofost(
     end_date = planting_date + timedelta(days=min(total_season_days, 180))
     end_date = min(end_date, date.today())
 
-    # جلب الطقس الحقيقي
+    # جلب الطقس الحقيقي — ثمّ نَسَبه (G5). الاستيفاء مُتساوي القوّة، فيُعاد هنا ليغطّي
+    # أيّ مصدر طقس (محقون/مُستبدَل) لا يمرّ بـfetch_weather_real.
     try:
-        weather = await fetch_weather_real(lat, lon, planting_date, end_date)
+        weather = fill_weather_gaps(await fetch_weather_real(lat, lon, planting_date, end_date))
+    except WeatherGapError as e:
+        logger.warning("WOFOST weather gaps exceed threshold for %s: %s", field_id, e)
+        return {
+            "error": "فجوات بيانات الطقس المرصود تتجاوز حدّ الاستكمال — لا محاكاة",
+            "error_code": WeatherGapError.error_code,
+            "weather_provenance": e.as_dict(),
+        }
     except Exception as e:
         logger.warning(f"Open-Meteo failed: {e}")
         weather = []
@@ -415,6 +525,7 @@ async def simulate_wofost(
                 "tmin": tmin,
                 "heat_stress": tmax > cp["tmax_dev"],
                 "stage": stage,
+                "weather_source": day.get("weather_source", "observed"),
             }
         )
 
@@ -433,6 +544,24 @@ async def simulate_wofost(
     )
 
     water_productivity = yield_kg_ha / max(1, total_etc)  # kg/m³
+
+    # G5: نَسَب الأيّام المُحاكاة فعلاً — المُستكمَل يُعدّ ويُسمّى، لا يُدمَج في «حقيقي».
+    gap_dates = [d["date"] for d in daily_series if d["weather_source"] == "gap_filled"]
+    weather_provenance = {
+        "source": "observed+gap_filled" if gap_dates else "observed",
+        "observed_days": total_season - len(gap_dates),
+        "gap_filled_days": len(gap_dates),
+        "gap_filled_dates": gap_dates,
+        "fill_method": GAP_FILL_METHOD if gap_dates else None,
+        "last_weather_date": daily_series[-1]["date"] if daily_series else None,
+        "thresholds": _gap_thresholds(),
+    }
+    data_source = "Open-Meteo (حقيقي — الواجهة المجانية لغير التجاري فقط)"
+    if gap_dates:
+        data_source = (
+            f"Open-Meteo (مرصود + {len(gap_dates)} يوماً مُستكمَلاً بالاستيفاء الخطّيّ — "
+            "الواجهة المجانية لغير التجاري فقط)"
+        )
 
     return {
         "field_id": field_id,
@@ -484,5 +613,6 @@ async def simulate_wofost(
         "daily_series": daily_series,
         "model": "WOFOST-RUE + FAO-56 + Open-Meteo ERA5",
         # الواجهة المجانية لغير التجاري فقط — OPEN-METEO-COMMERCIAL-TERMS-01.
-        "data_source": "Open-Meteo (حقيقي — الواجهة المجانية لغير التجاري فقط)",
+        "data_source": data_source,
+        "weather_provenance": weather_provenance,
     }

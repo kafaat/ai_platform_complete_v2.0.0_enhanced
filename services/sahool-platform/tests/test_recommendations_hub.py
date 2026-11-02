@@ -7,6 +7,7 @@
 
 from datetime import date, timedelta
 
+import pytest
 from api.recommendations_hub import (
     CATEGORIES,
     PRIORITY_ORDER,
@@ -161,3 +162,23 @@ class TestYieldWindow:
         )
         rec = _by_cat(build_recommendations(ctx), "yield")
         assert rec.priority == "low"
+
+
+@pytest.mark.unit
+def test_g1_wheat_day_92_irrigation_uses_daily_fao56_kc():
+    # G1 (حالة التدقيق): قمح يوم 92، ET₀=6 مم، بلا مطر. كان Kc = Kc_end (0.40) لكامل
+    # مرحلة late ⇒ 2.4 مم «منخفض»؛ منحنى FAO-56 ⇒ Kc(92)=1.10 ⇒ 6.6 مم «متوسّط».
+    today = date(2026, 3, 1)
+    ctx = RecommendationContext(
+        field_id="field_g1",
+        crop="wheat",
+        stage="late",
+        today=today,
+        sowing_date=today - timedelta(days=92),
+        et0_mm=6.0,
+        rain_recent_mm=0.0,
+        forecast_rain_mm=0.0,
+    )
+    rec = _by_cat(build_recommendations(ctx), "irrigation")
+    assert "6.6" in rec.title_ar, rec.title_ar
+    assert rec.priority == "medium"

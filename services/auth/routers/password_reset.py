@@ -13,27 +13,47 @@ import secrets
 
 import main
 from client_address import client_ip
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
+from session_tokens import consume_reset_token
 
 router = APIRouter()
 
 
+async def _lookup_user_id(email: str) -> int | None:
+    async with main._acquire() as conn:
+        row = await conn.fetchrow("SELECT id FROM users WHERE email=$1", email)
+    return row["id"] if row else None
+
+
+async def _issue_reset_token(user_id: int, email: str, ip: str) -> None:
+    token = secrets.token_urlsafe(32)
+    await main._redis.setex(f"sahool:reset:{token}", 1800, str(user_id))  # 30 min
+    await main.send_reset_email(email, token)
+    await main.audit_log("password_reset_request", user_id, ip)
+
+
+async def _store_password_hash(user_id: int, hashed: str) -> None:
+    async with main._acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", hashed, user_id
+        )
+
+
 @router.post("/v1/auth/password-reset/request")
-async def request_password_reset(req: main.PasswordResetRequest, request: Request):
+async def request_password_reset(
+    req: main.PasswordResetRequest, request: Request, background: BackgroundTasks
+):
     """✅ NEW: Request password reset via email."""
     ip = client_ip(request)
     await main.check_ip_rate(ip)
     main.RESET_COUNTER.inc()
 
-    # Always return success (prevent email enumeration)
-    async with main._acquire() as conn:
-        row = await conn.fetchrow("SELECT id FROM users WHERE email=$1", req.email)
-
-    if row and main._redis:
-        token = secrets.token_urlsafe(32)
-        await main._redis.setex(f"sahool:reset:{token}", 1800, str(row["id"]))  # 30 min
-        await main.send_reset_email(req.email, token)
-        await main.audit_log("password_reset_request", row["id"], ip)
+    # Always return success (prevent email enumeration).
+    # S16(c): إصدار الرمز + SMTP + التدقيق تجري **بعد** الاستجابة (BackgroundTasks)، فزمن
+    # الاستجابة لا يكشف وجود البريد: المساران كلاهما = حدّ IP + استعلام واحد + الردّ نفسه.
+    user_id = await _lookup_user_id(req.email)
+    if user_id is not None and main._redis:
+        background.add_task(_issue_reset_token, user_id, req.email, ip)
 
     return {"message": "إذا كان البريد مسجلاً، ستصلك رسالة إعادة التعيين"}
 
@@ -44,19 +64,16 @@ async def confirm_password_reset(req: main.PasswordResetConfirm):
     if not main._redis:
         raise HTTPException(503, "Password reset requires Redis")
 
-    user_id_str = await main._redis.get(f"sahool:reset:{req.token}")
+    # S16(b): استهلاكٌ ذرّيّ (GETDEL) **قبل** أيّ عمل — كان GET ثمّ DELETE بعد التحديث،
+    # فطلبان متزامنان بالرمز نفسِه نجحا معاً. الآن الرمز لمرّة واحدة: الخاسر يرى None.
+    user_id_str = await consume_reset_token(main._redis, req.token)
     if not user_id_str:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صالح أو منتهي")
 
     user_id = int(user_id_str)
+    # S8: التجزئة عبر password_hashing (حدّ ٧٢ بايت صريح)؛ S16(b): التخزين بعد استهلاكٍ ذرّيّ.
     hashed = main.hash_password(req.new_password, main.BCRYPT_ROUNDS)
-
-    async with main._acquire() as conn:
-        await conn.execute(
-            "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", hashed, user_id
-        )
-
-    await main._redis.delete(f"sahool:reset:{req.token}")
+    await _store_password_hash(user_id, hashed)
     await main.revoke_all_user_sessions(user_id)  # إبطال كلّ الجلسات القائمة بعد إعادة التعيين
     await main.audit_log("password_reset_confirm", user_id, "system")
     return {"message": "تم تغيير كلمة المرور بنجاح"}

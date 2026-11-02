@@ -1970,7 +1970,8 @@
       "code_readers": [],
       "code_writers": [
         "services/auth/main.py",
-        "services/sahool-platform/api/routers/break_glass.py"
+        "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/tests/test_break_glass.py"
       ],
       "created_in": "v9_auth_improvements.sql",
       "has_tenant_id": false,
@@ -2103,10 +2104,12 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/break_glass.py"
+        "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/tests/test_break_glass.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/break_glass.py"
+        "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/tests/test_break_glass.py"
       ],
       "created_in": "v90_break_glass.sql",
       "has_tenant_id": false,
@@ -3753,6 +3756,7 @@
         "services/sahool-platform/api/routers/water_twin.py",
         "services/sahool-platform/api/routers/yield_analysis.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
+        "services/sahool-platform/api/scheduler.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
@@ -6868,6 +6872,7 @@
         "services/auth/routers/session.py",
         "services/auth/routers/users.py",
         "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/tests/test_break_glass.py",
         "services/sahool-platform/tests/test_gaps_v91.py"
       ],
       "code_writers": [

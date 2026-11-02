@@ -17,7 +17,7 @@ approval_workflows,v9_new_tables.sql,3,True,False,False,0,False,True,1,1
 as_applied_irrigation_observations,v178_canonical_as_applied_irrigation_truth.sql,183,True,True,True,1,True,False,1,0
 as_applied_irrigation_receipts,v178_canonical_as_applied_irrigation_truth.sql,183,True,True,True,1,True,False,1,1
 as_applied_irrigation_runs,v178_canonical_as_applied_irrigation_truth.sql,183,True,True,True,1,True,False,2,1
-audit_log,v9_auth_improvements.sql,2,False,True,True,2,True,False,0,2
+audit_log,v9_auth_improvements.sql,2,False,True,True,2,True,False,0,3
 automation_rules,v20_automation_tables.sql,24,True,False,False,0,False,True,1,1
 autonomous_event_store,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0
 autonomous_execution_plan,v118_phase9_autonomous_farm_os.sql,124,True,True,True,1,False,False,0,1
@@ -25,7 +25,7 @@ autonomous_recommendations,v116_enterprise_gis_phase7.sql,122,True,True,True,1,T
 backfill_run_items,v144_backfill_runs.sql,149,True,True,True,1,True,False,3,7
 backfill_runs,v144_backfill_runs.sql,149,True,True,True,1,True,False,3,5
 boundary_extraction_jobs,v115_precision_agriculture_phase6.sql,121,True,True,True,1,True,False,0,0
-break_glass_grants,v90_break_glass.sql,95,False,True,True,1,True,False,1,1
+break_glass_grants,v90_break_glass.sql,95,False,True,True,1,True,False,2,2
 calibration_audit,v84_calibration_audit.sql,89,True,True,True,1,True,False,1,1
 calibration_evidence,v86_calibration_evidence_trigger.sql,91,True,True,True,1,True,False,0,0
 calibration_override,v80_calibration_override.sql,85,True,True,True,1,True,False,1,1
@@ -120,7 +120,7 @@ field_state_snapshots,v60_event_snapshots.sql,65,True,False,False,0,False,True,1
 field_submissions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_tasks,v9_new_tables.sql,3,True,False,False,0,False,True,7,2
 field_weather_overlay,v74_weather_intelligence.sql,79,True,False,False,0,False,True,1,0
-fields,v9_foundation.sql,1,True,False,False,0,False,True,58,5
+fields,v9_foundation.sql,1,True,False,False,0,False,True,59,5
 geometry_editing_sessions,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 geometry_locks,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 gis_collaboration_events,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
@@ -316,7 +316,7 @@ tenant_ai_policies,v124_tenant_ai_policies.sql,130,True,True,True,1,True,False,1
 training_datasets,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
 trueup_calibrations,v12_trueup_sharing.sql,15,True,True,False,1,False,True,2,1
 usage_metering_records,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1
-users,v9_foundation.sql,1,True,True,False,2,True,True,9,10
+users,v9_foundation.sql,1,True,True,False,2,True,True,10,10
 vri_as_applied_variances,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_machine_translation_artifacts,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_prescription_zones,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0

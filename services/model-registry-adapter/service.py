@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -18,7 +19,34 @@ logging.basicConfig(
 )
 LOG = logging.getLogger("model-lifecycle-service")
 STOP = False
-STATE = {"ready": False, "last_success_at": None, "last_error": None, "iterations": 0}
+STATE = {
+    "ready": False,
+    "last_success_at": None,
+    "last_error": None,
+    "iterations": 0,
+    "item_failures": 0,
+    "parked_items": [],
+}
+
+# R3: per-item failure isolation. One poison/stuck item used to raise out of run_once, so every
+# later item and every other tenant (rollbacks included) was retried-and-blocked behind it forever.
+# Now each item fails alone; after ITEM_MAX_ATTEMPTS consecutive failures it is parked (skipped,
+# surfaced in /readyz body as a dead-letter) for ITEM_PARK_SECONDS, then retried once more.
+# عزل فشل العنصر: عنصر عالق لا يحجب بقيّة العناصر ولا المستأجرين؛ يُركَن بعد محاولات محدودة.
+ITEM_MAX_ATTEMPTS = max(1, int(os.getenv("RUNTIME_ITEM_MAX_ATTEMPTS", "5")))
+ITEM_PARK_SECONDS = max(1.0, float(os.getenv("RUNTIME_ITEM_PARK_SECONDS", "900")))
+_ITEM_KEY_FIELDS = (
+    "activation_command_id",
+    "rollback_command_id",
+    "work_claim_id",
+    "activation_receipt_id",
+    "rollout_plan_id",
+    "retraining_request_id",
+    "schedule_id",
+)
+_MAX_TRACKED_ITEMS = 5000
+_FAILURES: dict[tuple[str, str, str], int] = {}
+_PARKED: dict[tuple[str, str, str], dict] = {}
 
 
 def _signal(*_: object) -> None:
@@ -87,12 +115,36 @@ def resolve_tenants(runtime: LifecycleRuntime) -> list[str]:
 def run_once(runtime: LifecycleRuntime) -> int:
     """Consume one batch per assigned tenant from the decision-service work feed.
 
-    The feed is intentionally authoritative and lease-based. Unknown work types fail closed.
+    The feed is intentionally authoritative and lease-based. Unknown work types fail closed —
+    for that ITEM only (R3): a tenant whose feed cannot be read does not starve the others, and
+    the iteration fails (readiness 503) only when no assigned tenant's feed could be read.
     """
     processed = 0
-    for tenant in resolve_tenants(runtime):
-        processed += _run_once_for_tenant(runtime, tenant)
+    tenants = resolve_tenants(runtime)
+    feed_failures = 0
+    for tenant in tenants:
+        try:
+            processed += _run_once_for_tenant(runtime, tenant)
+        except Exception:
+            feed_failures += 1
+            LOG.exception("runtime work feed failed for tenant=%s", tenant)
+    if feed_failures and feed_failures == len(tenants):
+        raise RuntimeContractError("runtime work feed unavailable for every assigned tenant")
     return processed
+
+
+def _item_key(tenant: str, kind: str, payload: dict) -> tuple[str, str, str]:
+    for field in _ITEM_KEY_FIELDS:
+        if payload.get(field):
+            return (tenant, str(kind), f"{field}={payload[field]}")
+    digest = hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()
+    return (tenant, str(kind), f"payload_sha256={digest[:16]}")
+
+
+def _publish_parked() -> None:
+    STATE["parked_items"] = [
+        {"tenant_id": k[0], "work_type": k[1], "key": k[2], **v} for k, v in sorted(_PARKED.items())
+    ][:50]
 
 
 def _run_once_for_tenant(runtime: LifecycleRuntime, tenant: str) -> int:
@@ -106,26 +158,69 @@ def _run_once_for_tenant(runtime: LifecycleRuntime, tenant: str) -> int:
     for item in batch.get("items", []):
         kind = item.get("work_type")
         payload = item.get("payload") or {}
-        if kind == "post_activation_verification":
-            runtime.verify_activation(tenant, payload)
-        elif kind == "rollout_apply":
-            runtime.apply_rollout(tenant, payload)
-        elif kind == "monitoring_window":
-            runtime.record_monitoring(
-                tenant, payload["active_state"], payload["window_start"], payload["window_end"]
-            )
-        elif kind == "retraining_dispatch":
-            runtime.dispatch_retraining(tenant, payload)
-        elif kind == "activation_command":
-            execute_activation(payload, tenant)
-        elif kind == "rollback_command":
-            execute_rollback(payload, tenant)
-        elif kind == "active_state_reconcile":
-            runtime.reconcile_and_report(tenant, payload)
-        else:
-            raise RuntimeContractError(f"unsupported work_type={kind!r}")
+        key = _item_key(tenant, kind, payload)
+        parked = _PARKED.get(key)
+        if parked and time.time() < parked["retry_after"]:
+            continue  # dead-lettered for now: never blocks the rest of the batch
+        try:
+            _dispatch(runtime, tenant, kind, payload)
+        except Exception as exc:
+            attempts = _FAILURES.pop(key, 0) + 1
+            _FAILURES[key] = attempts  # re-insert: dict order = least recently failed first
+            while len(_FAILURES) > _MAX_TRACKED_ITEMS:  # bounded memory for vanished items
+                _FAILURES.pop(next(iter(_FAILURES)))
+            STATE["item_failures"] += 1
+            if attempts >= ITEM_MAX_ATTEMPTS:
+                _PARKED[key] = {
+                    "attempts": attempts,
+                    "last_error": str(exc)[:300],
+                    "retry_after": time.time() + ITEM_PARK_SECONDS,
+                }
+                _publish_parked()
+                LOG.error(
+                    "runtime item parked (dead-letter) after %d attempts: tenant=%s %s %s: %s",
+                    attempts,
+                    tenant,
+                    kind,
+                    key[2],
+                    exc,
+                )
+            else:
+                LOG.exception(
+                    "runtime item failed (attempt %d/%d): tenant=%s %s %s",
+                    attempts,
+                    ITEM_MAX_ATTEMPTS,
+                    tenant,
+                    kind,
+                    key[2],
+                )
+            continue
+        _FAILURES.pop(key, None)
+        if _PARKED.pop(key, None) is not None:
+            _publish_parked()
         processed += 1
     return processed
+
+
+def _dispatch(runtime: LifecycleRuntime, tenant: str, kind: str | None, payload: dict) -> None:
+    if kind == "post_activation_verification":
+        runtime.verify_activation(tenant, payload)
+    elif kind == "rollout_apply":
+        runtime.apply_rollout(tenant, payload)
+    elif kind == "monitoring_window":
+        runtime.record_monitoring(
+            tenant, payload["active_state"], payload["window_start"], payload["window_end"]
+        )
+    elif kind == "retraining_dispatch":
+        runtime.dispatch_retraining(tenant, payload)
+    elif kind == "activation_command":
+        execute_activation(payload, tenant)
+    elif kind == "rollback_command":
+        execute_rollback(payload, tenant)
+    elif kind == "active_state_reconcile":
+        runtime.reconcile_and_report(tenant, payload)
+    else:
+        raise RuntimeContractError(f"unsupported work_type={kind!r}")
 
 
 def main() -> None:

@@ -227,6 +227,7 @@ async def test_advisory_persist_failure_is_best_effort(monkeypatch):
 
 
 # ── (ج) عدم تطابق المستأجِر ⇒ 403 ────────────────────────────────────────────
+@pytest.mark.unit
 @pytest.mark.security
 async def test_tenant_mismatch_denied(captured_inserts, monkeypatch):
     """الحقل مملوك لمستأجِر آخر ⇒ 403، ولا إدراج إطلاقاً (حتى لقرار قابل للتنفيذ)."""
@@ -251,6 +252,7 @@ async def test_tenant_mismatch_denied(captured_inserts, monkeypatch):
     assert captured_inserts == []  # لم يُكتَب شيء على حقل الغير
 
 
+@pytest.mark.unit
 @pytest.mark.security
 async def test_field_not_found_denied(captured_inserts, monkeypatch):
     """الحقل غير موجود رغم القاعدة المُهيّأة ⇒ 404، لا إدراج."""
@@ -274,6 +276,7 @@ async def test_field_not_found_denied(captured_inserts, monkeypatch):
     assert captured_inserts == []
 
 
+@pytest.mark.unit
 @pytest.mark.security
 async def test_owner_match_allows_persist(captured_inserts, monkeypatch):
     """المالك = مستأجِر المنادي ⇒ يُسمح بالإدامة."""
@@ -297,6 +300,7 @@ async def test_owner_match_allows_persist(captured_inserts, monkeypatch):
 
 
 # ── (د) تعذّر إثبات الملكيّة ⇒ 503 (fail-closed) ─────────────────────────────
+@pytest.mark.unit
 @pytest.mark.security
 async def test_owner_lookup_unavailable_returns_503(captured_inserts, monkeypatch):
     monkeypatch.setattr(dr, "DATABASE_URL", "postgresql://x")

@@ -6048,7 +6048,7 @@
         "GET /api/v1/devices",
         "POST /api/v1/devices"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -6674,7 +6674,7 @@
         "GET /api/v1/equipment",
         "POST /api/v1/equipment"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -6694,7 +6694,7 @@
         "GET /api/v1/equipment/{equipment_id}/maintenance",
         "POST /api/v1/equipment/{equipment_id}/maintenance"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -9516,7 +9516,7 @@
         "GET /api/v1/inventory/items",
         "POST /api/v1/inventory/items"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -9535,7 +9535,7 @@
       "entrypoints": [
         "POST /api/v1/inventory/items/{item_id}/batches"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10440,7 +10440,7 @@
         "GET /api/v1/master-data",
         "POST /api/v1/master-data"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10670,7 +10670,7 @@
         "GET /api/v1/onboarding/responses",
         "POST /api/v1/onboarding/responses"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -17763,7 +17763,7 @@
     "capabilities": 839,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 96,
-    "capabilities_idempotent": 72,
+    "capabilities_idempotent": 65,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 482,
     "components": 37,
@@ -18035,7 +18035,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "c5c98563efe7c1f1c25df676aef731f12c6c69ef83b79d03801f562e2a8a8ab3",
+  "fingerprint": "0de97831464f6ad5dca0175c089ca050c058e712897f997d75f00eb9b249fc70",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18085,16 +18085,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 904,
+      "edge_count": 907,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 46,
         "CONSUMES": 3,
         "EMITS": 1,
-        "READS": 466,
+        "READS": 468,
         "ROUTES_TO": 72,
-        "WRITES": 316
+        "WRITES": 317
       }
     },
     "u3_wiring_ownership": {

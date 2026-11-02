@@ -142,7 +142,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 828,
+          "line": 768,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/health",
@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 780,
+          "line": 775,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 231,
+          "line": 221,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -333,7 +333,7 @@
         },
         {
           "function": "healthz",
-          "line": 810,
+          "line": 750,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/healthz",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 780,
+          "line": 775,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -389,7 +389,7 @@
         },
         {
           "function": "healthz",
-          "line": 217,
+          "line": 203,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/healthz",
@@ -421,7 +421,7 @@
         },
         {
           "function": "healthz",
-          "line": 31,
+          "line": 32,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/healthz",
@@ -500,7 +500,7 @@
         },
         {
           "function": "metrics",
-          "line": 426,
+          "line": 414,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -548,7 +548,7 @@
         },
         {
           "function": "metrics",
-          "line": 222,
+          "line": 208,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/metrics",
@@ -572,7 +572,7 @@
         },
         {
           "function": "metrics",
-          "line": 38,
+          "line": 39,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/metrics",
@@ -635,7 +635,7 @@
         },
         {
           "function": "readyz",
-          "line": 445,
+          "line": 433,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -707,7 +707,7 @@
         },
         {
           "function": "readyz",
-          "line": 833,
+          "line": 773,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/readyz",
@@ -723,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 793,
+          "line": 788,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -763,7 +763,7 @@
         },
         {
           "function": "readyz",
-          "line": 272,
+          "line": 258,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/readyz",
@@ -771,7 +771,7 @@
         },
         {
           "function": "readyz",
-          "line": 189,
+          "line": 197,
           "method": "GET",
           "module": "services/raster-service/routers/observability.py",
           "path": "/readyz",
@@ -795,7 +795,7 @@
         },
         {
           "function": "readyz",
-          "line": 59,
+          "line": 60,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/readyz",
@@ -874,7 +874,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 401,
+          "line": 407,
           "method": "GET",
           "module": "services/auth/main.py",
           "path": "/runtime-identity",
@@ -914,7 +914,7 @@
         },
         {
           "function": "runtime_evidence_identity",
-          "line": 24,
+          "line": 25,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/runtime-identity",
@@ -961,7 +961,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 626,
+          "line": 621,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -1000,7 +1000,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 711,
+          "line": 706,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1085,7 +1085,7 @@
       "registrations": [
         {
           "function": "ingest_endpoint",
-          "line": 755,
+          "line": 695,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/ingest",
@@ -1093,7 +1093,7 @@
         },
         {
           "function": "ingest",
-          "line": 306,
+          "line": 292,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1116,7 +1116,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 658,
+          "line": 653,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1155,7 +1155,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 489,
+          "line": 477,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1163,7 +1163,7 @@
         },
         {
           "function": "query_endpoint",
-          "line": 745,
+          "line": 685,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/query",
@@ -1186,7 +1186,7 @@
         },
         {
           "function": "recommend",
-          "line": 522,
+          "line": 510,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1117,
-  "route_inventory_sha256": "38ce2c5754f7ec281aff63476f3d6be21aaa697cefc7af517844b246bcc90626",
+  "route_inventory_sha256": "14d7be3912050c6406c46042656bde746fe4bf92c91fb8b4f609a88ca99261fa",
   "runtime_verified": false,
   "schema_version": 1
 }
