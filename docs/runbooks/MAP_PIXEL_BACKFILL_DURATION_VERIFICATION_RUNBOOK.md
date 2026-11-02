@@ -122,7 +122,7 @@ curl -sS "${AUTH[@]}" "$BASE/api/raster/v1/fields/$FIELD_ID/tilejson?index=ndvi"
 إن عاد `available: false` فالحقل بلا COG محفوظ بعد: نفّذ ٣.٤ أوّلاً.
 
 ```bash
-# بلاطة فوق مركز الحقل عند تكبير 17 (~1.2م/بكسل شاشة، أي أنّ بكسل Sentinel-2 ‏10م يظهر مربّعاً واضحاً)
+# بلاطة فوق مركز الحقل عند تكبير 17 (~1.2م/بكسل شاشة، أي أنّ بكسل Sentinel-2 10م يظهر مربّعاً واضحاً)
 read LON LAT < <(jq -r '[.coordinates[0][] ] | (map(.[0])|add/length|tostring) + " " + (map(.[1])|add/length|tostring)' /tmp/field_geom.json)
 read Z X Y < <(python3 - "$LON" "$LAT" <<'PY'
 import math, sys
