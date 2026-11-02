@@ -1883,7 +1883,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 174,
+      "evidence_count": 175,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1979,6 +1979,7 @@
         "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_imagery_source_gate_no_bypass_static.py",
         "services/raster-service/test_tile_http_policy.py",
+        "services/raster-service/test_tile_tenant_query.py",
         "services/realtime-agent/realtime_agent/context.py",
         "services/realtime-agent/realtime_agent/providers.py",
         "services/realtime-agent/realtime_agent/turns.py",
@@ -3023,7 +3024,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 44,
-      "target_evidence_count": 174,
+      "target_evidence_count": 175,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3058,7 +3059,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 174,
+      "source_evidence_count": 175,
       "target_evidence_count": 38,
       "static_supported": true,
       "runtime_verified": false
@@ -3165,5 +3166,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "4bf320f85bfc112dea775eda4c9fddf8d62b3296897129b542f3b39e4e43f794"
+  "content_sha256": "223d2709e6d1ceaf5b2e39a194a669c359df1119680c917402801bb587cc1220"
 }
