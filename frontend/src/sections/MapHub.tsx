@@ -127,7 +127,7 @@ import { dateHasPersistedCog } from '../components/maphub/persistedCog';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 import SceneProvenanceCard from '../components/maphub/SceneProvenanceCard';
 import type { DrawFeature } from '../components/maphub/drawing';
-import { buildPivotDrawFeature, summarizePivotDesign, createDrawingFeatureOfflineFirst as createDrawingFeature, listDrawingFeaturesWithOfflineQueue as listDrawingFeatures, buildAgriculturalZoneFeature, normalizeFieldGeometryForZone, type AgriculturalZoneKind, type PersistedDrawFeature } from '../components/maphub/drawing';
+import { buildPivotDrawFeature, summarizePivotDesign, createDrawingFeatureOfflineFirst as createDrawingFeature, listDrawingFeaturesWithOfflineQueue as listDrawingFeatures, isDrawingPendingSync, buildAgriculturalZoneFeature, normalizeFieldGeometryForZone, type AgriculturalZoneKind, type PersistedDrawFeature } from '../components/maphub/drawing';
 
 // العرض ثلاثيّ الأبعاد مقسوم بالكود — لا يُحمَّل إلا عند تفعيل وضع التضاريس،
 // فلا يُثقِل الحزمة الأساسيّة (يحوي مستقبلاً maplibre-gl الثقيل).
@@ -1503,7 +1503,13 @@ function MapHubCore() {
       });
       setPivotDrafts([]);
       setShowPivots(true);
-      toastStore.add('success', 'تم حفظ تصاميم Pivot', `${saved.length} تصميم محفوظ ومربوط بالحقل${selectedActiveSeasonId ? ' والموسم' : ''}.`);
+      // R10: المحفوظ محلياً ليس «محفوظاً» — نُظهر الحالة الحقيقيّة (بانتظار المزامنة).
+      const pendingSync = saved.filter(isDrawingPendingSync).length;
+      if (pendingSync > 0) {
+        toastStore.add('warning', 'حُفظت محلياً — بانتظار المزامنة', `${pendingSync} من ${saved.length} تصميم سيُرفع تلقائياً عند عودة الاتّصال.`);
+      } else {
+        toastStore.add('success', 'تم حفظ تصاميم Pivot', `${saved.length} تصميم محفوظ ومربوط بالحقل${selectedActiveSeasonId ? ' والموسم' : ''}.`);
+      }
     } catch (e) {
       toastStore.add('error', 'فشل حفظ Pivot', apiErrorMessage(e, 'تعذّر حفظ تصاميم Pivot في الخادم.'));
     } finally {
@@ -1539,7 +1545,11 @@ function MapHubCore() {
       const saved = await createDrawingFeature(feature);
       setZonePersisted((prev) => [saved, ...prev.filter((f) => f.id !== saved.id)]);
       setShowPivots(true);
-      toastStore.add('success', 'تم حفظ Zone', `${feature.properties.name} · ${(feature.measurements?.areaHa ?? 0).toFixed(2)} هـ`);
+      if (isDrawingPendingSync(saved)) {
+        toastStore.add('warning', 'حُفظت Zone محلياً — بانتظار المزامنة', `${feature.properties.name} ستُرفع تلقائياً عند عودة الاتّصال.`);
+      } else {
+        toastStore.add('success', 'تم حفظ Zone', `${feature.properties.name} · ${(feature.measurements?.areaHa ?? 0).toFixed(2)} هـ`);
+      }
     } catch (e) {
       toastStore.add('error', 'فشل حفظ Zone', apiErrorMessage(e, 'تعذّر حفظ منطقة الإدارة/الوصفة في الخادم.'));
     } finally {

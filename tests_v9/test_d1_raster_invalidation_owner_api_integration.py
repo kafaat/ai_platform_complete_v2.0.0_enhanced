@@ -173,6 +173,101 @@ def test_intent_is_transactional_and_delivered_only_after_commit_with_the_owner_
     asyncio.run(_run())
 
 
+def test_running_intent_is_reclaimed_only_after_its_lease_and_attempts_stay_bounded():
+    """R5: عاملٌ مات بين المطالبة والإنهاء كان يترك النيّةَ ``running`` للأبد.
+
+    منتهيةُ الإجارة (أو بلا إجارة و``updated_at`` أقدم من مدّتها) تُستعاد وتُعَدّ محاولتُها
+    الضائعة؛ الحيّةُ لا تُمَسّ؛ والمستنفَدةُ تنتهي ``failed`` بلا إرسال.
+    """
+    if not _db_available():
+        pytest.skip("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+    from api import spatial_sync
+
+    tenant_id = str(uuid.uuid4())
+    ids: list[int] = []
+
+    def _lease(token: str, offset: str) -> str:
+        return (
+            f"'lease', jsonb_build_object('token', '{token}', "
+            f"'expires_at', (clock_timestamp() {offset} interval '1 minute')::text)"
+        )
+
+    async def _insert(conn, field_id, *, result_sql, updated_ago_s=0):
+        job_id = await conn.fetchval(
+            "INSERT INTO processing_jobs (tenant_id, field_id, job_type, status, priority,"
+            " parameters, result, updated_at) VALUES ($1::uuid, $2::text, $3, 'running', 3,"
+            " jsonb_build_object('request_id', $2::text), " + result_sql + ","
+            " clock_timestamp() - make_interval(secs => $4)) RETURNING id",
+            tenant_id,
+            field_id,
+            spatial_sync.RASTER_INVALIDATION_JOB_TYPE,
+            float(updated_ago_s),
+        )
+        ids.append(job_id)
+        return job_id
+
+    async def _run():
+        conn = await _connect(tenant_id)
+        try:
+            stale = await _insert(
+                conn,
+                "fld_r5_stale",
+                result_sql=f"jsonb_build_object('attempts', 2, {_lease('dead', '-')})",
+            )
+            fresh = await _insert(
+                conn, "fld_r5_fresh", result_sql=f"jsonb_build_object({_lease('live', '+')})"
+            )
+            no_lease_old = await _insert(
+                conn, "fld_r5_nolease_old", result_sql="'{}'::jsonb", updated_ago_s=3600
+            )
+            await _insert(conn, "fld_r5_nolease_new", result_sql="'{}'::jsonb")
+
+            async with conn.transaction():
+                claimed = await spatial_sync.claim_due(conn, limit=1000)
+            mine = {j["id"]: spatial_sync._jsonish(j["result"]) for j in claimed if j["id"] in ids}
+            assert set(mine) == {stale, no_lease_old}, mine
+            assert mine[stale]["reclaimed"] is True and mine[stale]["attempts"] == 3
+            assert mine[stale]["lease"]["token"] != "dead"
+            assert mine[no_lease_old]["attempts"] == 1
+            token = await conn.fetchval(
+                "SELECT result->'lease'->>'token' FROM processing_jobs WHERE id=$1", fresh
+            )
+            assert token == "live", "إجارةٌ حيّة سُرقت"
+
+            # المستنفَدة: الاستعادةُ تبلغ MAX_ATTEMPTS ⇒ failed بلا إرسال.
+            exhausted = await _insert(
+                conn,
+                "fld_r5_exhausted",
+                result_sql=(
+                    f"jsonb_build_object('attempts', {spatial_sync.MAX_ATTEMPTS - 1}, "
+                    f"{_lease('dead', '-')})"
+                ),
+            )
+            sent: list[str] = []
+
+            async def _send(fid, *, tenant_id, reason, request_id, metadata=None, timeout_s=5.0):
+                sent.append(fid)
+                return {"accepted": True}
+
+            async with conn.transaction():
+                claimed = await spatial_sync.claim_due(conn, limit=1000)
+            job = next(j for j in claimed if j["id"] == exhausted)
+            assert await spatial_sync.deliver(conn, job, send=_send) == "failed"
+            assert sent == []
+            row = await conn.fetchrow(
+                "SELECT status, error_msg, result->'lease' AS lease FROM processing_jobs"
+                " WHERE id=$1",
+                exhausted,
+            )
+            assert row["status"] == "failed" and row["lease"] is None
+            assert "lease expired" in row["error_msg"]
+        finally:
+            await conn.execute("DELETE FROM processing_jobs WHERE id = ANY($1::int[])", ids)
+            await conn.close()
+
+    asyncio.run(_run())
+
+
 def test_owner_side_enqueue_is_idempotent_tenant_scoped_and_consumed_by_the_worker(monkeypatch):
     if not _db_available():
         pytest.skip("TEST_DATABASE_URL غير متاح — اختبار تكامل")

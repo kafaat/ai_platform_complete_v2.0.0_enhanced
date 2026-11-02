@@ -1,6 +1,21 @@
 import { kongApi } from '../../../services/api';
 import type { DrawFeature } from './drawingTypes';
-import { enqueueDrawingCreate, enqueueDrawingDelete, enqueueDrawingUpdate, isLikelyOfflineError, listQueuedDrawingFeatures, syncDrawingQueue } from './drawingOfflineSync';
+import {
+  DRAWING_SYNC_AUTH_REQUIRED_EVENT,
+  classifyDrawingSyncError,
+  compactSyncedDrawingQueue,
+  enqueueDrawingCreate,
+  enqueueDrawingDelete,
+  enqueueDrawingUpdate,
+  isLikelyOfflineError,
+  listQueuedDrawingFeatures,
+  nextDrawingSyncDueInMs,
+  summarizeDrawingSyncQueue,
+  syncDrawingQueue,
+  type DrawingOfflineSyncOptions,
+  type DrawingOfflineSyncRequestMeta,
+  type DrawingSyncQueueSummary,
+} from './drawingOfflineSync';
 
 export interface PersistedDrawFeature extends DrawFeature {
   tenantId?: string;
@@ -18,21 +33,25 @@ export function listDrawingFeatures(fieldId: string): Promise<PersistedDrawFeatu
     .then((r) => r.data.features ?? []);
 }
 
-export function createDrawingFeature(feature: DrawFeature): Promise<PersistedDrawFeature> {
+function idempotencyConfig(meta?: DrawingOfflineSyncRequestMeta) {
+  return meta?.idempotencyKey ? { headers: { 'Idempotency-Key': meta.idempotencyKey } } : undefined;
+}
+
+export function createDrawingFeature(feature: DrawFeature, meta?: DrawingOfflineSyncRequestMeta): Promise<PersistedDrawFeature> {
   return kongApi
-    .post<PersistedDrawFeature>('/api/v1/drawing-features', feature)
+    .post<PersistedDrawFeature>('/api/v1/drawing-features', feature, idempotencyConfig(meta))
     .then((r) => r.data);
 }
 
-export function updateDrawingFeature(featureId: string, patch: Partial<DrawFeature>): Promise<PersistedDrawFeature> {
+export function updateDrawingFeature(featureId: string, patch: Partial<DrawFeature>, meta?: DrawingOfflineSyncRequestMeta): Promise<PersistedDrawFeature> {
   return kongApi
-    .patch<PersistedDrawFeature>(`/api/v1/drawing-features/${featureId}`, patch)
+    .patch<PersistedDrawFeature>(`/api/v1/drawing-features/${featureId}`, patch, idempotencyConfig(meta))
     .then((r) => r.data);
 }
 
-export function deleteDrawingFeature(featureId: string): Promise<{ deleted: true; feature_id: string }> {
+export function deleteDrawingFeature(featureId: string, meta?: DrawingOfflineSyncRequestMeta): Promise<{ deleted: true; feature_id: string }> {
   return kongApi
-    .delete<{ deleted: true; feature_id: string }>(`/api/v1/drawing-features/${featureId}`)
+    .delete<{ deleted: true; feature_id: string }>(`/api/v1/drawing-features/${featureId}`, idempotencyConfig(meta))
     .then((r) => r.data);
 }
 
@@ -69,11 +88,16 @@ export async function listDrawingFeaturesWithOfflineQueue(fieldId: string): Prom
   }
 }
 
+// انقطاع أو جلسة منتهية (401/توكن منتهٍ) ⇒ نحفظ في الطابور بدل إسقاط الرسمة؛ 4xx دائم يُرمى.
+function shouldQueueOffline(error: unknown): boolean {
+  return isLikelyOfflineError(error) || classifyDrawingSyncError(error) === 'auth';
+}
+
 export async function createDrawingFeatureOfflineFirst(feature: DrawFeature): Promise<PersistedDrawFeature> {
   try {
     return await createDrawingFeature(feature);
   } catch (error) {
-    if (!isLikelyOfflineError(error)) throw error;
+    if (!shouldQueueOffline(error)) throw error;
     const queued = enqueueDrawingCreate(feature);
     return {
       ...(queued.feature as DrawFeature),
@@ -82,6 +106,7 @@ export async function createDrawingFeatureOfflineFirst(feature: DrawFeature): Pr
         ...(queued.feature?.properties ?? {}),
         offlinePending: true,
         offlineQueueId: queued.id,
+        offlineSyncState: classifyDrawingSyncError(error) === 'auth' ? 'auth_required' : 'pending',
       },
       savedBy: null,
       deletedAt: null,
@@ -93,13 +118,13 @@ export async function updateDrawingFeatureOfflineFirst(featureId: string, patch:
   try {
     return await updateDrawingFeature(featureId, patch);
   } catch (error) {
-    if (!isLikelyOfflineError(error)) throw error;
+    if (!shouldQueueOffline(error)) throw error;
     enqueueDrawingUpdate(featureId, patch, fieldId);
     return {
       id: featureId,
       kind: patch.kind ?? 'field',
       geometry: patch.geometry ?? { type: 'Polygon', coordinates: [] },
-      properties: { ...(patch.properties ?? {}), offlinePending: true },
+      properties: { ...(patch.properties ?? {}), offlinePending: true, offlineSyncState: 'pending' },
       measurements: patch.measurements,
       validation: patch.validation,
       version: patch.version ?? 1,
@@ -115,16 +140,78 @@ export async function deleteDrawingFeatureOfflineFirst(featureId: string, fieldI
   try {
     return await deleteDrawingFeature(featureId);
   } catch (error) {
-    if (!isLikelyOfflineError(error)) throw error;
+    if (!shouldQueueOffline(error)) throw error;
     enqueueDrawingDelete(featureId, fieldId);
     return { deleted: true, feature_id: featureId, offline: true };
   }
 }
 
-export function syncOfflineDrawingFeatures() {
+export function syncOfflineDrawingFeatures(options: DrawingOfflineSyncOptions = {}) {
   return syncDrawingQueue({
-    create: (feature) => createDrawingFeature(feature),
-    update: (featureId, patch) => updateDrawingFeature(featureId, patch),
-    delete: (featureId) => deleteDrawingFeature(featureId),
-  });
+    create: (feature, meta) => createDrawingFeature(feature, meta),
+    update: (featureId, patch, meta) => updateDrawingFeature(featureId, patch, meta),
+    delete: (featureId, meta) => deleteDrawingFeature(featureId, meta),
+  }, options);
+}
+
+/** هل الرسمة محفوظة في الخادم فعلاً، أم في الطابور المحليّ بانتظار المزامنة؟ */
+export function isDrawingPendingSync(feature: Pick<DrawFeature, 'properties'> | null | undefined): boolean {
+  return Boolean(feature?.properties?.offlinePending);
+}
+
+export interface OfflineDrawingAutoSyncOptions {
+  /** 401 أثناء التفريغ: العناصر باقية؛ الواجهة تطلب إعادة الدخول. */
+  onAuthRequired?: (summary: DrawingSyncQueueSummary) => void;
+  minDelayMs?: number;
+  idleDelayMs?: number;
+}
+
+/**
+ * R10: مُفرِّغ الطابور — عند البدء (فتح التطبيق/تجدّد الجلسة)، عند حدث `online`، ودوريّاً
+ * بـbackoff. يُعيد دالّة إيقاف. Drains on start, on reconnect, and on a backoff timer.
+ */
+export function startOfflineDrawingAutoSync(options: OfflineDrawingAutoSyncOptions = {}): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const minDelayMs = options.minDelayMs ?? 1_000;
+  const idleDelayMs = options.idleDelayMs ?? 60_000;
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
+
+  const schedule = () => {
+    if (stopped) return;
+    if (timer) clearTimeout(timer);
+    // دون اتّصال ننتظر حدث `online` (مع نبضة بطيئة احتياطاً) بدل الدوران كلّ ثانية.
+    const due = isOffline() ? null : nextDrawingSyncDueInMs();
+    const delay = due === null ? idleDelayMs : Math.max(minDelayMs, due);
+    timer = setTimeout(() => void run(false), delay);
+  };
+
+  const run = async (force: boolean) => {
+    if (stopped) return;
+    if (!isOffline()) {
+      try {
+        const result = await syncOfflineDrawingFeatures({ force });
+        if (result.synced > 0) compactSyncedDrawingQueue();
+      } catch {
+        // التفريغ لا يرمي عادةً؛ أيّ خطأ غير متوقّع لا يوقف المؤقّت.
+      }
+    }
+    schedule();
+  };
+
+  const onOnline = () => void run(true);
+  const onAuthRequired = () => options.onAuthRequired?.(summarizeDrawingSyncQueue());
+  window.addEventListener('online', onOnline);
+  window.addEventListener(DRAWING_SYNC_AUTH_REQUIRED_EVENT, onAuthRequired);
+  // البدء = فتح التطبيق أو جلسة جديدة/مُجدَّدة ⇒ نُعيد حتى عناصر authRequired.
+  void run(true);
+
+  return () => {
+    stopped = true;
+    if (timer) clearTimeout(timer);
+    window.removeEventListener('online', onOnline);
+    window.removeEventListener(DRAWING_SYNC_AUTH_REQUIRED_EVENT, onAuthRequired);
+  };
 }

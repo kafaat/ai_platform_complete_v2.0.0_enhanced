@@ -96,7 +96,7 @@ class MfaSecretUndecryptable(RuntimeError):
 
 # ── encryption ──────────────────────────────────────────────────────────────
 def _is_production() -> bool:
-    return os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+    return resolve_sahool_env(os.getenv("SAHOOL_ENV", "development")) == "production"
 
 
 def _coerce_fernet_key(raw: str) -> bytes:
@@ -228,3 +228,57 @@ def register_failure(
     if new_attempts >= max_failed_attempts():
         return new_attempts, ref + timedelta(minutes=lockout_minutes())
     return new_attempts, None
+
+
+# ── S16(d): تطبيع SAHOOL_ENV في موضعٍ واحد لخدمة auth كلّها ─────────────────────
+# كان كلّ موضع يقارن ``== "production"`` حرفيّاً، فـ``SAHOOL_ENV=prod`` (مقبولة في
+# shared/security/access_tokens.py وغيرها) **عطّلت تصليب auth بصمت**: RS256 وRedis
+# الإلزاميّان وstep-up MFA. وقيمةٌ مجهولة (خطأ إملائيّ) في سياقٍ منشور تُعامَل إنتاجاً.
+# النسخةُ هنا لأنّ الوحدة نقيّة ويستوردها main.py وmfa_runtime معاً (لا وحدة جديدة).
+PRODUCTION_ENV_NAMES = frozenset({"production", "prod"})
+NON_PRODUCTION_ENV_NAMES = frozenset(
+    {"development", "dev", "local", "test", "testing", "ci", "staging", "stage"}
+)
+# علاماتٌ تضعها منصّات النشر نفسها (Railway · Kubernetes/helm) — لا يضبطها مطوّرٌ محلّيّاً.
+DEPLOYED_CONTEXT_MARKERS = (
+    "RAILWAY_ENVIRONMENT_ID",
+    "RAILWAY_ENVIRONMENT",
+    "KUBERNETES_SERVICE_HOST",
+)
+
+
+def resolve_sahool_env(raw: str | None, environ: dict[str, str] | None = None) -> str:
+    """يُرجِع ``"production"`` أو ``"non-production"`` لقيمة SAHOOL_ENV (نقيّ).
+
+    فراغ/غياب ⇒ غير إنتاج (الاصطلاح القائم). قيمة مجهولة ⇒ إنتاج في سياق منشور
+    (fail-closed)، وغير إنتاج محلّيّاً كي لا ينكسر التطوير.
+    """
+    value = (raw or "").strip().lower()
+    if value in PRODUCTION_ENV_NAMES:
+        return "production"
+    if not value or value in NON_PRODUCTION_ENV_NAMES:
+        return "non-production"
+    env = os.environ if environ is None else environ
+    deployed = any((env.get(k) or "").strip() for k in DEPLOYED_CONTEXT_MARKERS)
+    return "production" if deployed else "non-production"
+
+
+# ── S16(a): سياسة كلمة مرور واحدة (تسجيل · استعادة · تغيير · قبول دعوة) ─────────
+# كانت ثلاث نسخ متباينة في main.py: الاستعادة بلا رمز خاصّ، والتغيير بلا أيّ فحص.
+# تُطبَّق مُتحقِّقاً pydantic في كلّ نموذج يضع كلمة مرور (main.py)؛ نقيّة فتُختبَر وحدةً.
+PASSWORD_MIN_LENGTH = 8
+PASSWORD_MAX_LENGTH = 128
+PASSWORD_SPECIALS = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+
+
+def enforce_password_policy(v: str) -> str:
+    """يُعيد ``v`` إن طابقت السياسة، وإلّا ``ValueError`` برسالة عربيّة للمستخدم."""
+    if not PASSWORD_MIN_LENGTH <= len(v) <= PASSWORD_MAX_LENGTH:
+        raise ValueError("كلمة المرور يجب أن تكون بين 8 و128 حرفاً")
+    if not any(c.isupper() for c in v):
+        raise ValueError("كلمة المرور يجب أن تحتوي على حرف كبير")
+    if not any(c.isdigit() for c in v):
+        raise ValueError("كلمة المرور يجب أن تحتوي على رقم")
+    if not any(c in PASSWORD_SPECIALS for c in v):
+        raise ValueError("كلمة المرور يجب أن تحتوي على رمز خاص")
+    return v

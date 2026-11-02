@@ -79,10 +79,10 @@ def auth(monkeypatch):
 
     def send(peer: str, *xff: str) -> int:
         """One reset request; 200 = passed the IP limit, 429 = limited."""
-        from fastapi import HTTPException
+        from fastapi import BackgroundTasks, HTTPException
 
         try:
-            asyncio.run(handler(body, _request(peer, *xff)))
+            asyncio.run(handler(body, _request(peer, *xff), BackgroundTasks()))
         except _PassedRateLimit:
             return 200
         except HTTPException as exc:

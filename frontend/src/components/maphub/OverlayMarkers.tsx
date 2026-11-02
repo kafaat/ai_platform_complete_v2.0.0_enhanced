@@ -7,6 +7,7 @@
 import { Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import { WeatherRasterOverlay } from './weather/WeatherRasterOverlay';
+import { escapeHtml } from '../../lib/escapeHtml';
 
 export interface AlertMarker {
   id: string;
@@ -80,7 +81,8 @@ function deviceIcon(online: boolean): L.DivIcon {
 
 function weatherIcon(tempC: number | null, conditionAr: string | null): L.DivIcon {
   const temp = tempC != null ? `${Math.round(tempC)}°م` : '—';
-  const cond = conditionAr ? ` · ${conditionAr}` : '';
+  // weather_ar نصّ خادم يدخل divIcon.html (innerHTML) ⇒ يُهرَّب (S10).
+  const cond = conditionAr ? ` · ${escapeHtml(conditionAr)}` : '';
   return L.divIcon({
     className: 'sahool-weather-marker',
     html: `<div dir="rtl" style="display:flex;align-items:center;gap:4px;white-space:nowrap;background:rgba(13,22,17,.92);border:1px solid #2d4a37;border-radius:8px;padding:3px 7px;color:#e2e8f0;font-size:12px;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.5)">☀️ ${temp}${cond}</div>`,
