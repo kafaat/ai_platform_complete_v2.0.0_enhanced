@@ -265,6 +265,7 @@ def test_break_glass_connection_valid_grant_sets_target_and_audits(monkeypatch):
             "target_tenant_id": target,
             "reason": "تحقيق دعم",
             "admin_email": "a@b.c",
+            "grant_token": bg._hash_grant_token("goodtoken"),  # T8: المخزَّن hash
         }
     )
     monkeypatch.setattr(bg, "get_pool", lambda: _FakePool(conn))
@@ -356,3 +357,158 @@ def test_request_requires_reason_and_mfa():
 # الشرط) يُرفَض، وهو السلوك ذاته لكلّ أسباب البطلان.
 def test_now_helper_uses_utc():
     assert datetime.now(UTC).tzinfo is not None
+
+
+# ════════════════════════════════════════════════════════════════════
+# ٦) T8: رمز المنحة مُجزّأ في القاعدة، يُبحث بالـhash، ولا يُسجَّل
+# ════════════════════════════════════════════════════════════════════
+_TARGET = "11111111-1111-1111-1111-111111111111"
+
+
+def _grant_request():
+    return bg.BreakGlassRequest(
+        target_tenant_id=_TARGET,
+        reason="تحقيق دعم فنّيّ عاجل",
+        duration_minutes=15,
+        mfa_code="123456",
+    )
+
+
+def _quiet_audits(monkeypatch):
+    """يلتقط نصوص التدقيق (الدائم + في-الذاكرة) لفحص خلوّها من الرمز."""
+    texts: list[str] = []
+
+    async def _db(conn, action, **kw):
+        texts.append(f"{action} {kw}")
+
+    def _mem(action, **kw):
+        texts.append(f"{action} {kw}")
+
+    monkeypatch.setattr(bg, "_audit_db", _db)
+    monkeypatch.setattr(bg, "_audit_mem", _mem)
+    return texts
+
+
+def test_grant_token_is_stored_hashed_not_plaintext(monkeypatch, caplog):
+    """INSERT يكتب sha256 للرمز لا الرمز؛ الاستجابة وحدها تحمله (مرّة عند الإنشاء)."""
+    conn = _FakeConn(fetchval_result=99)
+    inserted: list[tuple] = []
+
+    async def _capture_fetchval(*args):
+        inserted.append(args)
+        return 99
+
+    conn.fetchval = _capture_fetchval
+    monkeypatch.setattr(bg, "get_pool", lambda: _FakePool(conn))
+
+    async def _mfa_ok(conn, uid, code):
+        return True, "a@b.c"
+
+    monkeypatch.setattr(bg, "_verify_admin_mfa", _mfa_ok)
+    texts = _quiet_audits(monkeypatch)
+
+    with caplog.at_level("DEBUG"):
+        resp = _run(bg.request_break_glass(_grant_request(), user=_admin()))
+    token = resp["grant_token"]
+    assert len(token) >= 32
+    (args,) = [a for a in inserted if "INSERT INTO break_glass_grants" in a[0]]
+    assert token not in args, "grant_token خُزِّن صريحاً — من يقرأ الجدول يملك منحة صالحة"
+    assert args[-1] == bg._hash_grant_token(token)
+    assert args[-1].startswith("sha256:") and token not in args[-1]
+    # لا رمز في التدقيق ولا في السجلّات.
+    assert all(token not in t for t in texts)
+    assert token not in caplog.text
+
+
+def test_connection_looks_up_by_hash_and_never_logs_token(monkeypatch, caplog):
+    conn = _FakeConn()
+    seen: list[tuple] = []
+
+    async def _capture_fetchrow(*args):
+        seen.append(args)
+        return {
+            "id": 5,
+            "target_tenant_id": _TARGET,
+            "reason": "تحقيق",
+            "admin_email": "a@b.c",
+            "grant_token": bg._hash_grant_token("live-token-0123456789abcdef"),
+        }
+
+    conn.fetchrow = _capture_fetchrow
+    monkeypatch.setattr(bg, "get_pool", lambda: _FakePool(conn))
+    texts = _quiet_audits(monkeypatch)
+
+    async def _use():
+        async with bg.break_glass_connection("live-token-0123456789abcdef", _admin()) as (_, t):
+            return t
+
+    with caplog.at_level("DEBUG"):
+        assert _run(_use()) == _TARGET
+    (sql, bound, *_rest) = seen[0]
+    assert "WHERE grant_token = $1" in sql
+    assert bound == bg._hash_grant_token("live-token-0123456789abcdef")
+    assert all("live-token-0123456789abcdef" not in str(a) for a in seen)
+    assert all("live-token-0123456789abcdef" not in t for t in texts)
+    assert "live-token-0123456789abcdef" not in caplog.text
+
+
+def test_legacy_plaintext_grant_row_is_rejected(monkeypatch):
+    """صفّ ما قبل T8 (رمز صريح) لا يُقبَل حتى لو أعاده الاستعلام — fail-closed."""
+    from fastapi import HTTPException
+
+    conn = _FakeConn(
+        fetchrow_result={
+            "id": 6,
+            "target_tenant_id": _TARGET,
+            "reason": "قديم",
+            "admin_email": "a@b.c",
+            "grant_token": "legacy-plain-token",
+        }
+    )
+    monkeypatch.setattr(bg, "get_pool", lambda: _FakePool(conn))
+    _quiet_audits(monkeypatch)
+
+    async def _use():
+        async with bg.break_glass_connection("legacy-plain-token", _admin()):
+            pass
+
+    with pytest.raises(HTTPException) as ei:
+        _run(_use())
+    assert ei.value.status_code == 403
+    assert not [a for a in conn.executed if "current_tenant" in str(a[0])]
+
+
+def test_grant_token_match_helpers():
+    stored = bg._hash_grant_token("abc-0123456789")
+    assert bg._grant_token_matches(stored, "abc-0123456789") is True
+    assert bg._grant_token_matches(stored, "abc-0123456780") is False
+    assert bg._grant_token_matches(stored, stored) is False  # المخزَّن ليس رمزاً
+    assert bg._grant_token_matches("abc-0123456789", "abc-0123456789") is False
+    assert bg._grant_token_matches(None, "abc-0123456789") is False
+
+
+def test_access_log_redacts_token_in_usage_path(caplog):
+    """GET /break-glass/{token}/fields يحمل الرمز في المسار ⇒ سطر uvicorn.access محجوب."""
+    import logging
+
+    access = logging.getLogger("uvicorn.access")
+    with caplog.at_level(logging.INFO, logger="uvicorn.access"):
+        access.info(
+            '%s - "%s %s HTTP/%s" %d',
+            "10.0.0.1:5555",
+            "GET",
+            "/api/v1/admin/break-glass/SECRET-TOKEN-xyz/fields",
+            "1.1",
+            200,
+        )
+        access.info(
+            '%s - "%s %s HTTP/%s" %d',
+            "10.0.0.1:5555",
+            "DELETE",
+            "/api/v1/admin/break-glass/42",
+            "1.1",
+            200,
+        )
+    assert "SECRET-TOKEN-xyz" not in caplog.text
+    assert "/api/v1/admin/break-glass/[redacted]/fields" in caplog.text
+    assert "/api/v1/admin/break-glass/42" in caplog.text  # المعرّف ليس سرّاً

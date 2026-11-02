@@ -196,7 +196,7 @@ async def request_break_glass(
                     req.reason,
                     now,
                     expires_at,
-                    grant_token,
+                    _hash_grant_token(grant_token),  # T8: لا يُخزَّن الرمز صريحاً
                 )
                 await _audit_db(
                     conn,
@@ -256,7 +256,7 @@ async def break_glass_connection(grant_token: str, user: UserSchema):
         async with conn.transaction():
             # سياق إدارة المنصّة (بلا مستأجِر) للقراءة/التحديث على break_glass_grants.
             row = await conn.fetchrow(
-                """SELECT id, target_tenant_id, reason, admin_email
+                """SELECT id, target_tenant_id, reason, admin_email, grant_token
                    FROM break_glass_grants
                    WHERE grant_token = $1
                      AND admin_user_id = $2
@@ -264,10 +264,10 @@ async def break_glass_connection(grant_token: str, user: UserSchema):
                      AND mfa_verified = TRUE
                      AND expires_at > NOW()
                    FOR UPDATE""",
-                grant_token,
+                _hash_grant_token(grant_token),  # البحث بالـhash (T8)
                 int(user.user_id) if str(user.user_id).isdigit() else -1,
             )
-            if not row:
+            if not row or not _grant_token_matches(row["grant_token"], grant_token):
                 # تدقيق محاولة استخدام فاشلة (منحة مفقودة/منتهية/مُبطَلة/لغير المالك).
                 _audit_mem(
                     "break_glass_access_denied",
@@ -398,3 +398,47 @@ async def revoke_break_glass(
         reason_ar="إبطال منحة break-glass",
     )
     return {"grant_id": grant_id, "revoked": True, "target_tenant_id": target_tenant_id}
+
+
+# ─── T8: تخزين رمز المنحة مُجزّأً + حجبه من سجلّ الوصول ─────────────────
+# في ذيل الملفّ عمداً: مراسي أسطر المسارات في platform_extraction_map.json (§٣.١٥) لا تنزاح.
+# grant_token = token_urlsafe(32) (٢٥٦ بتّاً عشوائيّة) ⇒ SHA-256 بلا سرّ كافٍ، والبحث بالفهرس
+# الفريد القائم بلا هجرة. صفّ قديم بنصّ صريح (بلا البادئة) لا يطابق أبداً ⇒ يُرفَض (عمر المنحة
+# ≤٦٠ دقيقة؛ يُطلَب غيرها) — فمن قرأ الجدول قبل التغيير لا يملك رمزاً صالحاً بعده.
+_GRANT_TOKEN_HASH_PREFIX = "sha256:"
+
+
+def _hash_grant_token(grant_token: str) -> str:
+    """القيمة المخزَّنة في break_glass_grants.grant_token (لا الرمز نفسه)."""
+    import hashlib  # محلّيّ: استيراد في الرأس يُزيح المراسي
+
+    digest = hashlib.sha256(str(grant_token).encode("utf-8")).hexdigest()
+    return _GRANT_TOKEN_HASH_PREFIX + digest
+
+
+def _grant_token_matches(stored: str | None, grant_token: str) -> bool:
+    """مقارنة بزمن ثابت؛ صفّ قديم بنصّ صريح لا يطابق — fail-closed."""
+    if not stored or not str(stored).startswith(_GRANT_TOKEN_HASH_PREFIX):
+        return False
+    return secrets.compare_digest(str(stored), _hash_grant_token(grant_token))
+
+
+class _RedactGrantTokenAccessLog(logging.Filter):
+    """مسار الاستخدام يحمل الرمز ({token}/fields) ⇒ يُحجَب من سطر uvicorn.access."""
+
+    _PREFIX = "/api/v1/admin/break-glass/"
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        args = record.args
+        if isinstance(args, tuple) and len(args) >= 3 and isinstance(args[2], str):
+            path = args[2]
+            if path.startswith(self._PREFIX):
+                token, sep, tail = path[len(self._PREFIX) :].partition("/")
+                if token and sep:  # /{token}/fields فقط؛ DELETE /{grant_id} بلا ذيل يبقى
+                    path = f"{self._PREFIX}[redacted]/{tail}"
+                    record.args = (*args[:2], path, *args[3:])
+        return True
+
+
+_ACCESS_LOG_FILTER = _RedactGrantTokenAccessLog()
+logging.getLogger("uvicorn.access").addFilter(_ACCESS_LOG_FILTER)
