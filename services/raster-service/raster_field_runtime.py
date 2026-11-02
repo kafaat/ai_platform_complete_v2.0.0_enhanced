@@ -150,6 +150,30 @@ async def _cdse_request_on_stored_field(
     )
 
 
+async def _clip_on_stored_field(field_id: str, body_clip: dict | None) -> dict | None:
+    """مضلّع القصّ لـprocess-date/backfill/process-from-stac من جدول ``fields`` (قاعدة T10).
+
+    مع قاعدة: غياب مضلّع الجسم ⇒ الهندسة المخزّنة؛ مضلّع جسمٍ يُقبَل فقط إن احتوته الهندسة
+    المخزّنة (وإلّا 400) — فلا يُقصّ ويُحفَظ باسم الحقل مضلّعٌ يختاره المُنادي؛ غياب المخزّنة ⇒ 400.
+    بلا قاعدة (وضع مقصود) لا سجلّ نقارن به فيبقى مضلّع الجسم كما كان (قد يكون None).
+    """
+    import db_persist as _dbp
+
+    if not _dbp.DATABASE_URL:
+        return body_clip
+    try:
+        stored = await _dbp.fetch_field_geometry(field_id, _REQ_TENANT.get())
+    except Exception as e:  # noqa: BLE001 — تعذّر جلب الهندسة ⇒ 503 صادق
+        raise HTTPException(503, "تعذّر جلب هندسة الحقل المخزّنة") from e
+    if stored is None or _bbox_from_geojson(stored) is None:
+        raise HTTPException(400, "هندسة الحقل المخزّنة غير متاحة لاشتقاق bbox وقصّ الصور")
+    if not body_clip:
+        return stored
+    if not raster_date_geo.clip_within_field(body_clip, stored):
+        raise HTTPException(400, "clip_polygon_geojson يقع خارج هندسة الحقل المخزّنة")
+    return body_clip
+
+
 def _cdse_job_record(job_id: str, owner: str, req, gate_decision) -> dict:
     """سجلّ مهمّة process-cdse المعلَّقة، مربوطاً بمستأجِره وبقرار بوّابة satellite_cdse."""
     job_record = {

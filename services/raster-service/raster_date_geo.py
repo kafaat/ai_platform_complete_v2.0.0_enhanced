@@ -84,6 +84,51 @@ def bbox_from_geojson(geojson: dict | None) -> list[float] | None:
     return [min(xs), min(ys), max(xs), max(ys)]
 
 
+#: سماحيّة الاحتواء بالدرجات (~1 م): تمتصّ تقريب الإحداثيّات وإصلاح make_valid فقط.
+#: Containment slack for coordinate rounding only; it never admits land outside the field.
+CLIP_CONTAINMENT_TOLERANCE_DEG = 1e-5
+
+
+def _polygonal_shape(geojson: dict | None):  # noqa: ANN202 - Shapely type is optional
+    """GeoJSON (هندسة/Feature/FeatureCollection بعنصر واحد) ⇒ شكل shapely مضلّعيّ صالح، أو None."""
+    from shapely.geometry import shape
+    from shapely.validation import make_valid
+
+    if not isinstance(geojson, dict):
+        return None
+    if geojson.get("type") == "Feature":
+        geojson = geojson.get("geometry")
+    elif geojson.get("type") == "FeatureCollection":
+        feats = geojson.get("features") or []
+        geojson = feats[0].get("geometry") if len(feats) == 1 else None
+    if not isinstance(geojson, dict):
+        return None
+    try:
+        geom = shape(geojson)
+    except Exception:  # noqa: BLE001 — هندسة مشوّهة ⇒ ليست محتواة
+        return None
+    if not geom.is_valid:
+        geom = make_valid(geom)
+    if geom.is_empty or geom.area <= 0:
+        return None
+    return geom
+
+
+def clip_within_field(
+    clip: dict | None, field: dict | None, *, tolerance_deg: float = CLIP_CONTAINMENT_TOLERANCE_DEG
+) -> bool:
+    """هل مضلّع القصّ ``clip`` محتوى في هندسة الحقل المخزّنة ``field``؟ (fail-closed)
+
+    مضلّع الجسم يختاره المُنادي؛ لا يُقبَل إلّا داخل حدود الحقل كي لا يُعالَج ويُحفَظ باسم
+    الحقل أيُّ مضلّع آخر. هندسة غير مقروءة أو فارغة أو بلا مساحة ⇒ False.
+    """
+    inner = _polygonal_shape(clip)
+    outer = _polygonal_shape(field)
+    if inner is None or outer is None:
+        return False
+    return bool(outer.buffer(tolerance_deg).covers(inner))
+
+
 def month_windows(start: datetime, end: datetime) -> list[tuple[datetime, datetime]]:
     windows = []
     cur = datetime(start.year, start.month, 1, tzinfo=UTC)

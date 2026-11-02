@@ -46,6 +46,7 @@ from raster_field_runtime import (
     _bbox_from_geojson,
     _cdse_job_record,
     _cdse_request_on_stored_field,
+    _clip_on_stored_field,
     _display_index,
     _field_layers,
     _grid_from_cog,
@@ -167,6 +168,8 @@ async def process_from_stac(
         tenant = _authenticated_tenant(req.tenant_id)
         if not tenant:
             raise HTTPException(403, "tenant context required")
+        # مضلّع الجسم مقبول فقط داخل هندسة الحقل المخزّنة (قاعدة T10).
+        clip = await _clip_on_stored_field(field_id, req.clip_polygon_geojson)
         data = await stac_query({"collections": [C1_COLLECTION], "ids": [req.scene_id], "limit": 2})
         features = data.get("features", [])
         if len(features) != 1:
@@ -211,7 +214,7 @@ async def process_from_stac(
                 field_id,
                 tenant,
                 req.geometry_revision,
-                req.clip_polygon_geojson,
+                clip,
                 True,
                 job_id,
                 run_processing=_run_processing,
@@ -339,7 +342,8 @@ async def field_historical_backfill(
         if unsupported:
             raise HTTPException(400, f"مؤشّرات غير مناسبة للـbackfill البصري: {unsupported}")
 
-    clip = req.clip_polygon_geojson
+    # قاعدة T10: الهندسة المخزّنة عند غياب الجسم؛ مضلّع الجسم فقط إن احتوته (وإلّا 400).
+    clip = await _clip_on_stored_field(field_id, req.clip_polygon_geojson)
     bbox = _bbox_from_geojson(clip)
     if bbox is None:
         raise HTTPException(400, "clip_polygon_geojson مطلوب لاشتقاق bbox وقصّ الصور على حدود الحقل")
@@ -681,8 +685,9 @@ async def field_process_date(
     _require_service_token(x_agent_token)
     await _require_field_tenant(field_id)
 
-    clip = req.clip_polygon_geojson
-    if clip is None:
+    # قاعدة T10: الهندسة المخزّنة عند غياب الجسم؛ مضلّع الجسم فقط إن احتوته (وإلّا 400).
+    clip = await _clip_on_stored_field(field_id, req.clip_polygon_geojson)
+    if clip is None:  # بلا قاعدة: المسار القديم كما هو
         try:
             import db_persist as _dbp_geo
 
