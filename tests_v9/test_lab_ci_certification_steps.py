@@ -72,6 +72,33 @@ def test_restricted_role_is_the_ci_app_role() -> None:
     assert runner.restricted_roles(runner.certification_steps(WORKFLOW)) == ["sahool_app_test"]
 
 
+# Tests that once hid behind ``xfail(strict=False)`` naming the closed gap
+# AUTH-E2E-UNDER-RESTRICTED-ROLE (audit 2026-11-01 Q5 and its 2026-11-02 follow-up).
+# Under the restricted role each failed on a harness bug the marker swallowed; now each
+# must run in a certification step as ``sahool_app_test`` with its switch, and carry no xfail.
+FORMER_STRICT_FALSE_XFAILS = {
+    "tests_v9/test_mfa_hardening_integration_v29_5.py": "MFA_E2E_CERTIFICATION_REQUIRED",
+    "tests_v9/test_services_functional.py": "SOIL_FUNCTIONAL_CERTIFICATION_REQUIRED",
+}
+
+
+@pytest.mark.parametrize("test_file,switch", sorted(FORMER_STRICT_FALSE_XFAILS.items()))
+def test_former_xfail_runs_for_real_under_the_restricted_role(test_file: str, switch: str) -> None:
+    runner = _runner()
+    steps = [
+        s
+        for s in runner.certification_steps(WORKFLOW)
+        if any(test_file in call for call in runner.pytest_calls(s["run"]))
+    ]
+    assert steps, f"no certification step runs {test_file}"
+    for step in steps:
+        env = {str(k): str(v) for k, v in step["env"].items()}
+        assert env.get(switch) == "1", (step["name"], switch)
+        assert runner.restricted_roles([step]) == ["sahool_app_test"], step["name"]
+    source = (ROOT / test_file).read_text(encoding="utf-8")
+    assert "mark.xfail" not in source, f"{test_file} carries an xfail marker again"
+
+
 def test_readme_lists_every_ci_certification_step() -> None:
     readme = README.read_text(encoding="utf-8")
     missing = [

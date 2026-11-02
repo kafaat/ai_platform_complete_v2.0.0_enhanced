@@ -1384,6 +1384,17 @@ jobs:
           MFA_E2E_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_mfa_hardening_integration_v29_5.py
 
+      # تدقيق 2026-11-02 (تابعُ Q5): `test_services_functional` (soil H5 + guardrails L5) حمل
+      # `xfail(strict=False)` بالفجوة المُغلَقة نفسِها، والجولةُ العامّة لا تضبط `DATABASE_URL`
+      # فيتخطّى. هنا يُشغَّل بالدور المقيَّد (حارسُ soil يرفض superuser بحقّ)، والعَلَمُ يجعل
+      # أيّ تخطٍّ فشلاً. `TEST_DATABASE_URL` بالقيمة نفسِها ليقرأ مُشغِّلُ المختبر أعلامَ الدور.
+      - name: soil-service functional H5 + guardrails L5 (restricted role)
+        env:
+          DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          SOIL_FUNCTIONAL_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_services_functional.py
+
   decision-service-tests:
     permissions:
       contents: read
@@ -1443,6 +1454,29 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
         run: python services/decision-service/migration_runner.py --check
+      # تدقيق 2026-11-02 (تابعُ #1323): الدليلُ الحيّ لـCANONICAL-SNAPSHOT-ELIGIBILITY-POLICY-01
+      # (RLS · إلحاقٌ فقط · تفرّد · CHECK · ذرّيّة) لم يُشغّله أيُّ workflow. جدولاه من هجرات هذه
+      # الخدمة (019/031) فقاعدةُ هذه الوظيفة تحملهما؛ والعزلُ لا يُقاس إلّا بدورٍ مقيَّد يُنشأ هنا
+      # (NOSUPERUSER NOBYPASSRLS). يعمل قبل خطوات الكتابة الأخرى، والعَلَمُ يجعل أيّ تخطٍّ فشلاً.
+      - name: eligibility assessment live proof (real Postgres, restricted role)
+        working-directory: services/decision-service
+        env:
+          PGHOST: localhost
+          PGPASSWORD: test_password
+          SAHOOL_TEST_PGPORT: "5434"
+          SAHOOL_TEST_PGDATABASE: decision_test
+          SAHOOL_TEST_PG_ADMIN_ROLE: decision_test
+          SAHOOL_TEST_PG_APP_ROLE: decision_app_test
+          ELIGIBILITY_CERTIFICATION_REQUIRED: "1"
+        run: |
+          set -euo pipefail
+          export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
+          psql -p 5434 -U decision_test -d decision_test -v ON_ERROR_STOP=1 \
+            -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'decision_app_test') THEN CREATE ROLE decision_app_test LOGIN PASSWORD 'test_password' NOSUPERUSER NOBYPASSRLS NOINHERIT; END IF; END \$\$;" \
+            -c "GRANT USAGE ON SCHEMA public TO decision_app_test" \
+            -c "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO decision_app_test" \
+            -c "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO decision_app_test"
+          pytest tests/test_eligibility_assessment_live_pg.py -v -rs -p no:cacheprovider
       # Mirror-mode contract (SoR OFF): the interim mirror sink must never claim persistence.
       # No DATABASE_URL / flag on this step ⇒ sor_enabled() is false ⇒ honest mirror behaviour.
       - name: Decision-service mirror-mode contract (SoR off)

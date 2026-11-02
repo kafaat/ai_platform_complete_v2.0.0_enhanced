@@ -37,6 +37,15 @@ TENANT_A = "11111111-1111-1111-1111-111111111111"
 TENANT_B = "22222222-2222-2222-2222-222222222222"
 AS_OF = datetime(2026, 8, 7, 12, 0, tzinfo=UTC)
 
+# الافتراضيّ مكدّسُ المالك (قاعدة ``sahool``، الدوران ``sahool_user``/``sahool_app``)؛ وظيفةُ
+# *Decision Service Tests* تُشير بها إلى ``decision_test`` ودورٍ مقيَّد تُنشئه، لأنّ الجدولين
+# من هجرات هذه الخدمة نفسِها (019/031) لا من بيان المنصّة.
+_DB = os.environ.get("SAHOOL_TEST_PGDATABASE", "sahool")
+_ADMIN_ROLE = os.environ.get("SAHOOL_TEST_PG_ADMIN_ROLE", "sahool_user")
+_APP_ROLE = os.environ.get("SAHOOL_TEST_PG_APP_ROLE", "sahool_app")
+# ELIGIBILITY_CERTIFICATION_REQUIRED=1 (خطوة CI): غيابُ القاعدة فشلٌ لا تخطٍّ مُعلَن.
+_CERTIFICATION_REQUIRED = os.environ.get("ELIGIBILITY_CERTIFICATION_REQUIRED") == "1"
+
 
 def _load():
     spec = importlib.util.spec_from_file_location(
@@ -52,8 +61,9 @@ def _load():
 EP = _load()
 
 
-def _psql(sql: str, *, role: str, database: str = "sahool", port: str | None = None):
+def _psql(sql: str, *, role: str, database: str | None = None, port: str | None = None):
     """يُشغّل SQL ويُعيد (rc, stdout, stderr) — بلا ابتلاع، فالفشل جزء من القياس."""
+    database = database or _DB
     port = port or os.environ.get("SAHOOL_TEST_PGPORT", "5432")
     proc = subprocess.run(  # noqa: S603
         [
@@ -86,21 +96,33 @@ def _live() -> bool:
     if shutil.which("psql") is None:
         return False
     try:
-        rc, out, _ = _psql(f"select to_regclass('public.{_TABLE}')", role="sahool_user")
+        rc, out, _ = _psql(f"select to_regclass('public.{_TABLE}')", role=_ADMIN_ROLE)
     except OSError:
         return False
     return rc == 0 and out == _TABLE
 
 
+_LIVE = _live()
+
 pytestmark.append(
     pytest.mark.skipif(
-        not _live(),
+        not _LIVE and not _CERTIFICATION_REQUIRED,
         reason=(
             "لا عميل psql أو لا قاعدة حيّة تحمل الجدول — التخطّي مُعلَن ولا يُحسَب نجاحاً. "
             "طبّق services/decision-service/migrations/031_eligibility_assessment.sql"
         ),
     )
 )
+
+
+@pytest.fixture(autouse=True)
+def _require_live_when_certifying():
+    """تحت عَلَم الشهادة لا يُتخطّى شيء: غيابُ القاعدة أو الجدول فشلٌ يُسمّي نفسه."""
+    if not _LIVE:
+        pytest.fail(
+            f"ELIGIBILITY_CERTIFICATION_REQUIRED=1 ولا قاعدة حيّة تحمل {_TABLE} "
+            f"(db={_DB}, role={_ADMIN_ROLE}) — الشهادة لا تُقرأ تخطّياً"
+        )
 
 
 @pytest.fixture
@@ -123,7 +145,10 @@ def assessment():
         },
         "feature_manifest": {"spectral_bands": ["ndvi", "ndmi"]},
     }
+    # اللقطةُ نفسُها تحت RLS المستأجِر (019): إدخالُها بلا ``app.current_tenant`` يرفضه
+    # ``WITH CHECK`` بحقّ — فيُدخَل في سياق مستأجِرها كما يفعل الكاتب الحقيقيّ.
     rc, _, err = _psql(
+        f"set local app.current_tenant = '{TENANT_A}'; "
         "insert into decision_vegetation_snapshots (snapshot_id, tenant_id, field_id,"
         " season_id, contract_version, snapshot_hash, acquisition_at, data_available_at,"
         " quality_gate, feature_manifest, payload) values ("
@@ -132,7 +157,7 @@ def assessment():
         f" '{snap['acquisition_at']}', '{snap['data_available_at']}',"
         f" '{json.dumps(snap['quality_gate'])}'::jsonb,"
         f" '{json.dumps(snap['feature_manifest'])}'::jsonb, '{{}}'::jsonb)",
-        role="sahool_app",
+        role=_APP_ROLE,
     )
     assert rc == 0, f"تعذّر إدخال اللقطة المرجعيّة: {err}"
     return EP.assess(snapshot=snap, policy_version="v1", as_of=AS_OF, tenant_id=TENANT_A)
@@ -159,8 +184,8 @@ def test_the_restricted_role_really_is_restricted():
     """بلا هذا، كلّ ما تحته يقيس دوراً يتخطّى RLS فيمرّ مجّاناً."""
     rc, out, _ = _psql(
         "select rolsuper::text || '/' || rolbypassrls::text from pg_roles"
-        " where rolname = 'sahool_app'",
-        role="sahool_user",
+        f" where rolname = '{_APP_ROLE}'",
+        role=_ADMIN_ROLE,
     )
     assert rc == 0 and out == "false/false", f"الدور ليس مقيَّداً: {out}"
 
@@ -170,19 +195,19 @@ def test_rls_hides_another_tenants_assessment(assessment):
     aid = f"elg_{uuid.uuid4().hex}"
     rc, _, err = _psql(
         f"begin; {_as_tenant(TENANT_A, _insert_sql(assessment, tenant=TENANT_A, assessment_id=aid))}; commit;",
-        role="sahool_app",
+        role=_APP_ROLE,
     )
     assert rc == 0, err
 
     rc, out, _ = _psql(
         _as_tenant(TENANT_A, f"select count(*) from {_TABLE} where assessment_id='{aid}'"),
-        role="sahool_app",
+        role=_APP_ROLE,
     )
     assert rc == 0 and out.splitlines()[-1] == "1", "المالك لا يرى صفّه"
 
     rc, out, _ = _psql(
         _as_tenant(TENANT_B, f"select count(*) from {_TABLE} where assessment_id='{aid}'"),
-        role="sahool_app",
+        role=_APP_ROLE,
     )
     assert rc == 0 and out.splitlines()[-1] == "0", "مستأجِر آخر يرى تقييماً ليس له"
 
@@ -192,7 +217,7 @@ def test_writing_under_the_wrong_tenant_is_refused_by_the_database(assessment):
     aid = f"elg_{uuid.uuid4().hex}"
     rc, _, err = _psql(
         _as_tenant(TENANT_A, _insert_sql(assessment, tenant=TENANT_B, assessment_id=aid)),
-        role="sahool_app",
+        role=_APP_ROLE,
     )
     assert rc != 0, "القاعدة قبلت كتابة عبر المستأجِرين"
     assert "row-level security" in err.lower() or "policy" in err.lower(), err
@@ -203,14 +228,14 @@ def test_the_assessment_is_append_only(assessment):
     aid = f"elg_{uuid.uuid4().hex}"
     _psql(
         f"begin; {_as_tenant(TENANT_A, _insert_sql(assessment, tenant=TENANT_A, assessment_id=aid))}; commit;",
-        role="sahool_app",
+        role=_APP_ROLE,
     )
     rc, _, err = _psql(
         _as_tenant(
             TENANT_A,
             f"update {_TABLE} set policy_version='v2' where assessment_id='{aid}'",
         ),
-        role="sahool_app",
+        role=_APP_ROLE,
     )
     assert rc != 0, "التقييم قابل للتحرير — فتاريخُه لا يُصدَّق"
     assert "append" in err.lower() or "permission" in err.lower() or "immutab" in err.lower(), err
@@ -221,12 +246,12 @@ def test_a_replayed_assessment_does_not_duplicate(assessment):
     first, second = f"elg_{uuid.uuid4().hex}", f"elg_{uuid.uuid4().hex}"
     rc, _, err = _psql(
         f"begin; {_as_tenant(TENANT_A, _insert_sql(assessment, tenant=TENANT_A, assessment_id=first))}; commit;",
-        role="sahool_app",
+        role=_APP_ROLE,
     )
     assert rc == 0, err
     rc, _, err = _psql(
         _as_tenant(TENANT_A, _insert_sql(assessment, tenant=TENANT_A, assessment_id=second)),
-        role="sahool_app",
+        role=_APP_ROLE,
     )
     assert rc != 0 and "duplicate key" in err.lower(), err
 
@@ -237,7 +262,7 @@ def test_the_database_refuses_an_assessment_that_folds_the_stages(assessment):
     sql = _insert_sql(assessment, tenant=TENANT_A, assessment_id=aid).replace(
         json.dumps(assessment.as_row()["stages"]), json.dumps({"eligible": True})
     )
-    rc, _, err = _psql(_as_tenant(TENANT_A, sql), role="sahool_app")
+    rc, _, err = _psql(_as_tenant(TENANT_A, sql), role=_APP_ROLE)
     assert rc != 0 and "check constraint" in err.lower(), err
 
 
@@ -248,14 +273,14 @@ def test_a_failed_statement_leaves_no_half_assessment(assessment):
         f"begin; {_as_tenant(TENANT_A, _insert_sql(assessment, tenant=TENANT_A, assessment_id=good))};"
         f" {_insert_sql(assessment, tenant=TENANT_A, assessment_id=bad)}; commit;"
     )
-    rc, _, _ = _psql(sql, role="sahool_app")
+    rc, _, _ = _psql(sql, role=_APP_ROLE)
     assert rc != 0
 
     rc, out, _ = _psql(
         _as_tenant(
             TENANT_A, f"select count(*) from {_TABLE} where assessment_id in ('{good}','{bad}')"
         ),
-        role="sahool_app",
+        role=_APP_ROLE,
     )
     assert rc == 0 and out.splitlines()[-1] == "0", "المعاملة تركت نصف تقييم"
 
@@ -269,7 +294,7 @@ def test_the_snapshot_table_gained_no_eligibility_column():
     rc, out, _ = _psql(
         "select string_agg(column_name, ',' order by column_name) from information_schema.columns"
         " where table_name = 'decision_vegetation_snapshots'",
-        role="sahool_user",
+        role=_ADMIN_ROLE,
     )
     assert rc == 0
     columns = set(out.split(","))
