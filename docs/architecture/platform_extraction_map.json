@@ -2843,7 +2843,7 @@
       "function": "field_disease_risk_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/disease-risk",
-      "line": 423,
+      "line": 428,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/disease-risk::field_disease_risk_facade"
