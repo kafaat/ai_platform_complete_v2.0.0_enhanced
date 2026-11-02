@@ -62,18 +62,19 @@ class TestTTSEndpoints:
         except Exception:
             pytest.skip("TTS service not running")
 
+    # تدقيق 2026-11-01 (Q2): كان ينادي خدمةً حيّة ويبتلع أيّ استثناء تخطّياً، ولا تُشغّله أيّ
+    # وظيفة. الآن عبر main.py الحقيقيّ لـtts-service (real_app_probe) — بلا شبكة.
+    @pytest.mark.unit
     @pytest.mark.security
-    async def test_synthesize_requires_auth(self, http_client):
-        from conftest import service_urls
+    def test_synthesize_requires_auth(self):
+        from real_app_probe import probe_tts
 
-        url = service_urls.get("tts", "http://127.0.0.1:8210")
-        try:
-            resp = await http_client.post(
-                f"{url}/v1/tts/synthesize", json={"text": "test", "voice": "yemeni_male"}
-            )
-            assert resp.status_code == 401
-        except Exception:
-            pytest.skip("TTS service not running")
+        probe = probe_tts()
+        for path in ("/v1/tts/synthesize", "/v1/tts/stream"):
+            for case in ("no_token", "alg_none", "wrong_secret"):
+                assert probe[f"{path}:{case}"] == 401, (path, case, probe)
+        # شاهدٌ موجب: التوكن الصالح يعبر حارس المصادقة (قد يُرفَض لاحقاً بالسياسة لا بـ401).
+        assert probe["/v1/tts/synthesize:valid_token"] not in (401, 403), probe
 
     @pytest.mark.integration
     async def test_synthesize_with_auth(self, http_client, auth_headers):

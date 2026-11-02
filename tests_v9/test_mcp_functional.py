@@ -183,6 +183,7 @@ def test_market_healthz_ok():
     assert body.get("service") == "market-mcp"
 
 
+@pytest.mark.unit
 @pytest.mark.security
 @pytest.mark.mcp
 def test_market_mcp_call_endpoint_enforces_scope():
@@ -219,6 +220,7 @@ def test_market_mcp_call_endpoint_enforces_scope():
     )
 
 
+@pytest.mark.unit
 @pytest.mark.security
 @pytest.mark.mcp
 def test_market_rest_endpoint_requires_bearer():
@@ -247,6 +249,7 @@ def test_wofost_healthz_ok():
     assert resp.status_code == 200, resp.text
 
 
+@pytest.mark.unit
 @pytest.mark.security
 @pytest.mark.mcp
 def test_wofost_mcp_call_rejects_missing_token():
@@ -259,6 +262,7 @@ def test_wofost_mcp_call_rejects_missing_token():
     )
 
 
+@pytest.mark.unit
 @pytest.mark.security
 @pytest.mark.mcp
 def test_wofost_mcp_call_rejects_wrong_scope():
@@ -277,6 +281,7 @@ def test_wofost_mcp_call_rejects_wrong_scope():
     )
 
 
+@pytest.mark.unit
 @pytest.mark.security
 @pytest.mark.mcp
 def test_wofost_mcp_call_accepts_correct_scope():
