@@ -10352,3 +10352,14 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **ما تغيّر في [`gaps/registry.md`](gaps/registry.md):** ستّة عشر صفّاً لـ#1324 وثلاثة لـ#1330 تقول «مدموجٌ في `main` (sha، #PR)»، وسطرا #1324 و#1330 في «مواضع الإصلاحات» يسجّلان الدمج والشجرة، وسطر #1326 يسجّل دمجه `33913f863`.
 - **لماذا لا `fixed`:** السبب نفسه المسجَّل لـ#1322 (`brain_state_transition_guard` يرفض `fixed` في PR دماغيٍّ فقط).
 - **ما يبقى محجوزاً:** مسوّدتا GATE-01 (v237+T3، وA1–A8)، وS5 حتّى يُضبط `DENYLIST_REDIS_URL` على Railway.
+
+### 2026-11-02 — إصلاح: قراءة raster صحيح بـnodata في `raster-service` كانت تفشل بصمت
+
+- **كيف وُجد:** أثناء التحقّق من أنّ `raster-service` يقرأ نسخةً محلّيّة من SoilGrids (علاج `SOILGRIDS-REST-OFFICIALLY-PAUSED-NO-ALTERNATE-PATH-01`). ملفّات Homolosine Int16 بأسماء `{prop}_{depth}.tif` في `SOILGRIDS_DIR` أعادت `field-outside-source`.
+- **السبب (قِيس):** `src.read(..., masked=True).filled(np.nan)` على Int16 يرمي `TypeError: Cannot convert fill_value nan to dtype int16` (numpy 2.2.6)، ويبتلعه `except` في `read_field_window`.
+- **الإصلاح:** `.astype("float32").filled(np.nan)` في سبعة مواضع: `tile_render.py` ×4، و`soil_zones.py`، و`terrain_analysis.py`، و`terrain_render.py`. وهو مطابق النتيجة لمصادر float.
+- **الدليل:**
+  - ثلاثة اختبارات Int16 جديدة في `test_raster_crs_window.py`: حمراء قبل الإصلاح وخضراء بعده.
+  - جناح raster-service كاملاً: 1169 ناجحاً و2 متخطّيان.
+  - التحقّق نفسه بملفّات Homolosine المزيّفة يعيد ملخّصاً بثماني خصائص.
+- **ما تغيّر في [`gaps/registry.md`](gaps/registry.md):** صفّ `RASTER-INTEGER-RASTER-MASKED-FILL-NAN-SWALLOWED-01` بحالة `fixed`.
