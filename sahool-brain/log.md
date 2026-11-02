@@ -10278,3 +10278,10 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **ثماني فجواتٍ جديدة `open`، لكلٍّ مصدرٌ `path:line`:** `DRAWING-FEATURES-UPSERT-CONFLICT-TARGET-WITHOUT-TENANT-01`، `CDSE-EVALSCRIPT-INDEX-EXPRESSIONS-UNGUARDED-01`، `RASTER-ALGORITHM-VERSION-NOT-BUMPED-AFTER-FORMULA-CHANGES-01` (قرار مالك)، `PLATFORM-BREAK-GLASS-MFA-READS-PLAINTEXT-SECRET-ONLY-01`، `RASTER-TRUSTS-X-TENANT-ID-HEADER-FROM-ANY-CALLER-01`، `RAILWAY-GATEWAY-HSTS-INCLUDESUBDOMAINS-UNDECIDED-01` (قرار مالك)، `RAILWAY-GATEWAY-CSP-NEVER-EXERCISED-IN-A-BROWSER-01`، `NGINX-FIXED-RASTER-ROUTE-WITHOUT-AUTH-REQUEST-01`.
 - **قبل تسجيل الأخيرة:** بحثتُ في السجلّ عن `nginx.fixed.conf` و`auth_request`. الصنف القريب `NGINX-NON-CANONICAL-BUNDLES-PIN-UPSTREAM-DNS-AT-BOOT-01` يخصّ DNS المنبع لا المصادقة، فلا تكرار. وعرضاً: حقل `line` في `gateway_reachability.json` يقول 46 والسطر الفعليّ 76 (`scripts/ci/gateway_reachability_guard.py:117`).
 - **القرار:** متابعات الموجة الثانية تُكدَّس فوق PRs آبائها (#1328/#1329/#1330) بدل توسيعها ([`decisions/ledger.md`](decisions/ledger.md)).
+
+### 2026-11-02 — دمجُ #1322: صفوفه تسمّي `c996245a2` وتبقى `open`
+
+- **القياس (قراءة):** #1322 دُمج squash ⇒ `c996245a2` على `main`، والوالد `ee87b68f4`. و`git rev-parse c996245a2^{tree}` = `git rev-parse 150fa241d^{tree}` = `5b4e6cee…`، فالشجرة المدموجة هي المختبَرة نفسها.
+- **ما تغيّر في [`gaps/registry.md`](gaps/registry.md):** الصفوف الخمسة عشر (G1، G3، G4، G5، G10–G15، I2، R1–R4) تقول «مدموجٌ في `main` (`c996245a2`، #1322)» بدل «غير مدموج». والباقي مسمّى في كلّ صفٍّ جزئيّ: R3 (السرّ الثابت `REGISTRY_DELIVERY_TOKEN_SECRET`، والاستيلاء وdead-letter في المخطّط)، وR4 (الجداول نفسها وDDL للمالك)، وG11 (السجلّ، في #1329).
+- **لماذا لا `fixed`:** `scripts/ci/brain_state_transition_guard.py` (`check_fixed`) يرفض أيّ انتقالٍ إلى `fixed` في PR بلا دليلٍ تنفيذيّ خارج الدماغ، وهذا الـPR دماغيٌّ فقط. فالنقل يُترك لـPR يحمل شاهداً، والقرار وسببه في [`decisions/ledger.md`](decisions/ledger.md).
+- **الفرع:** صار خلف `main` بالتزامٍ واحد (`c996245a2`)، ولم يُدمج `main` فيه هنا.
