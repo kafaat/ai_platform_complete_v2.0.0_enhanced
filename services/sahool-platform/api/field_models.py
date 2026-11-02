@@ -16,7 +16,7 @@ god-module): نماذج Pydantic للحقل (ملخّص/تفاصيل/إنشاء/
 from __future__ import annotations
 
 import json as _json
-from typing import Literal
+from typing import ClassVar, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -144,6 +144,9 @@ class FieldUpdateRequest(BaseModel):
     تُحدَّث الأعمدة المُرسَلة فقط (الموجودة في الـpayload) — لا تُمسح غير المُرسَلة.
     التمييز بين «لم يُرسَل» و«أُرسِل null» عبر model_fields_set (انظر _build_field_update).
     """
+
+    # بصمة Idempotency-Key تُميّز «لم يُرسَل» عن «أُرسِل null» (api.idempotency.model_digest).
+    IDEMPOTENCY_DIGEST_PRESENCE: ClassVar[bool] = True
 
     # أساسيّة قابلة للتعديل (اسم/محصول الحقل) — تُمكّن زرّ «تعديل الحقل» من الحفظ.
     name: str | None = Field(default=None, min_length=1, max_length=100)

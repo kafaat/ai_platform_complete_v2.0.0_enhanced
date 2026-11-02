@@ -80,9 +80,33 @@ def request_digest(effective_payload) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def _explicit_defaults(model) -> list[str]:
+    """الحقول المُرسَلة صراحةً بقيمةٍ تساوي افتراضيّها — وحدها لا يُفرّقها ``model_dump`` عن الغائبة."""
+    fields = type(model).model_fields
+    explicit = []
+    for name in model.model_fields_set:
+        info = fields.get(name)
+        if info is None or info.is_required():
+            continue
+        if getattr(model, name) == info.get_default(call_default_factory=True):
+            explicit.append(name)
+    return sorted(explicit)
+
+
 def model_digest(model, scope=None) -> str:
-    """بصمة نموذج الطلب بعد التحقّق؛ و``scope`` (مثل حقل المسار) جزءٌ من الحمولة المؤثّرة."""
+    """بصمة نموذج الطلب بعد التحقّق؛ و``scope`` (مثل حقل المسار) جزءٌ من الحمولة المؤثّرة.
+
+    نموذجٌ دلالتُه جزئيّة (PATCH يكتب ``model_fields_set`` وحده) يُعلن
+    ``IDEMPOTENCY_DIGEST_PRESENCE = True``، فتدخل البصمةَ أسماءُ الحقول المُرسَلة صراحةً
+    بقيمتها الافتراضيّة: ``{"name":"x"}`` يُبقي ``soil_ph`` و``{"name":"x","soil_ph":null}``
+    يمسحه، و``model_dump()`` يُخرجهما متطابقَين (مراجعة PR #1324). تُضاف فقط حين توجد،
+    فجسمٌ بلا قيمةٍ افتراضيّة صريحة — ونماذج الإنشاء كلّها — تبقى ببصمتها المخزَّنة سابقاً.
+    """
     effective = model.model_dump(mode="json")
+    if getattr(type(model), "IDEMPOTENCY_DIGEST_PRESENCE", False):
+        explicit = _explicit_defaults(model)
+        if explicit:
+            effective = {"request": effective, "explicit_defaults": explicit}
     return request_digest(effective if scope is None else {"scope": scope, "request": effective})
 
 
