@@ -99,8 +99,11 @@ def _polygonal_shape(geojson: dict | None):  # noqa: ANN202 - Shapely type is op
     if geojson.get("type") == "Feature":
         geojson = geojson.get("geometry")
     elif geojson.get("type") == "FeatureCollection":
-        feats = geojson.get("features") or []
-        geojson = feats[0].get("geometry") if len(feats) == 1 else None
+        # شكل الجسم يختاره المُنادي: ``features`` قائمةُ عنصرٍ واحدٍ قاموسيّ وإلّا None (400) —
+        # ``[null]`` أو نصّ كان يُسقط ``.get`` بـAttributeError قبل أيّ تحقّق ⇒ 500 (مراجعة #1330).
+        feats = geojson.get("features")
+        one = feats[0] if isinstance(feats, list) and len(feats) == 1 else None
+        geojson = one.get("geometry") if isinstance(one, dict) else None
     if not isinstance(geojson, dict):
         return None
     try:

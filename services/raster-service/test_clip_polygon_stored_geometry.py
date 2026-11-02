@@ -48,6 +48,8 @@ FOREIGN = {
     "type": "Polygon",
     "coordinates": [[[10.0, 50.0], [10.5, 50.0], [10.5, 50.5], [10.0, 50.5], [10.0, 50.0]]],
 }
+#: مراجعة الهندسة المخزّنة الحاليّة (field_geometry_history) — تُقرأ مع الهندسة في جملة واحدة.
+STORED_REVISION = 7
 # يتجاوز الحقل قليلاً (~1 كم شرقاً): ليس «داخل» الحقل وإن تداخل معه.
 OVERLAPPING = {
     "type": "Polygon",
@@ -66,12 +68,17 @@ def owned_field(monkeypatch):
         assert (field_id, tenant_id) == (FIELD, TENANT_A)
         return STORED
 
+    async def stored_with_revision(field_id, tenant_id=None):
+        assert (field_id, tenant_id) == (FIELD, TENANT_A)
+        return {"geometry": STORED, "revision": STORED_REVISION}
+
     monkeypatch.setattr(raster_security_context, "field_owner", owner_is_a)
     if "main" in sys.modules:  # _require_field_tenant يفضّل main._field_owner إن وُجد
         monkeypatch.setattr(sys.modules["main"], "_field_owner", owner_is_a, raising=False)
     monkeypatch.setattr(fields, "_require_service_token", lambda token: None)
     monkeypatch.setattr(db_persist, "DATABASE_URL", "postgresql://clip.invalid/db")
     monkeypatch.setattr(db_persist, "fetch_field_geometry", stored_geometry)
+    monkeypatch.setattr(db_persist, "fetch_field_geometry_with_revision", stored_with_revision)
     return raster_security_context.REQ_TENANT.set
 
 
@@ -132,6 +139,7 @@ async def test_process_date_without_stored_geometry_rejects_body_polygon(owned_f
         return None
 
     monkeypatch.setattr(db_persist, "fetch_field_geometry", no_geometry)
+    monkeypatch.setattr(db_persist, "fetch_field_geometry_with_revision", no_geometry)
     with pytest.raises(HTTPException) as exc:
         await fields.field_process_date(FIELD, _date_req(INSIDE), x_agent_token="ok")
     assert exc.value.status_code == 400
@@ -234,3 +242,23 @@ def test_clip_within_field_predicate():
     )
     assert not raster_date_geo.clip_within_field({"type": "Polygon", "coordinates": "bad"}, STORED)
     assert not raster_date_geo.clip_within_field(INSIDE, None)
+
+
+def test_clip_within_field_fails_closed_on_malformed_feature_collection():
+    """``features`` ليس قائمة عنصرٍ واحدٍ قاموسيّ بهندسة قاموسيّة ⇒ False (400)، لا استثناء (500)."""
+    for features in ([None], ["x"], [{"geometry": None}], [{"geometry": "x"}], "a", {"k": 1}, 7):
+        bad = {"type": "FeatureCollection", "features": features}
+        assert not raster_date_geo.clip_within_field(bad, STORED), features
+    one = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": INSIDE}]}
+    assert raster_date_geo.clip_within_field(one, STORED)
+
+
+@pytest.mark.asyncio
+async def test_process_date_malformed_feature_collection_is_400(owned_field, monkeypatch):
+    owned_field(TENANT_A)
+    seen = _capture_process_date(monkeypatch)
+    bad = {"type": "FeatureCollection", "features": [None]}
+    with pytest.raises(HTTPException) as exc:
+        await fields.field_process_date(FIELD, _date_req(bad), x_agent_token="ok")
+    assert exc.value.status_code == 400
+    assert seen == []
