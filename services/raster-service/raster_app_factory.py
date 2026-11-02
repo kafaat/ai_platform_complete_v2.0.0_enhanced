@@ -11,8 +11,9 @@ from collections.abc import Iterable
 from typing import Any
 
 import raster_security_context
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from router_registry import register_routers
 
 
@@ -35,9 +36,12 @@ def create_raster_app(
 
     @app.middleware("http")
     async def tenant_context_middleware(request, call_next):
-        token = raster_security_context.REQ_TENANT.set(
-            raster_security_context.tenant_from_request(request)
-        )
+        # tid مخالف للمستأجر الموثَّق ⇒ 403 صريح لا 500 (الوسيط خارج معالجات FastAPI).
+        try:
+            tenant = raster_security_context.tenant_from_request(request)
+        except HTTPException as exc:
+            return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
+        token = raster_security_context.REQ_TENANT.set(tenant)
         try:
             return await call_next(request)
         finally:
