@@ -80,25 +80,25 @@ REFRESH_EXPIRE_DAYS = int(os.getenv("REFRESH_EXPIRE_DAYS", "30"))  # 30 days
 # `access_token` query — تسريب محتمل عبر سجلّ المتصفّح/الـReferrer/التلمترة. الحلّ:
 # نضبط الكوكي HttpOnly عند الدخول/التجديد (نفس المصدر، فتُرسَل تلقائيّاً مع <img>)،
 # وبوّابة nginx تقرأها كمصدر توكن لـauth_request (تبقى query fallback للتطوير بلا بوّابة).
-# الكوكي HttpOnly ⇒ غير قابلة للقراءة من JS (لا يُوسِّع سطح XSS). Secure افتراضيّاً
-# (يُعطَّل صراحةً للتطوير http عبر AUTH_COOKIE_SECURE=0). Path=/ ليشمل /api/raster و/api/vegetation.
+# HttpOnly ⇒ لا تُقرأ من JS. Secure افتراضيّاً (يُعطَّل للتطوير http بـAUTH_COOKIE_SECURE=0). Path=/.
 AUTH_TILE_COOKIE_NAME = os.getenv("AUTH_TILE_COOKIE_NAME", "sahool_at")
 AUTH_COOKIE_SECURE_MODE = os.getenv("AUTH_COOKIE_SECURE", "auto").strip().lower()
 AUTH_COOKIE_SAMESITE = os.getenv("AUTH_COOKIE_SAMESITE", "lax")
 
 
 def _tile_cookie_secure(request) -> bool:
-    """Resolve Secure for the tile cookie without breaking local HTTP.
+    """Secure unless explicitly local dev (S6). ``1`` forces it; ``0`` is the dev opt-out.
 
-    ``AUTH_COOKIE_SECURE=1`` forces HTTPS-only, ``0`` forces local HTTP, and
-    ``auto`` (default) trusts the reverse proxy's X-Forwarded-Proto then the
-    request URL scheme. This keeps :3003 HTTP usable while production HTTPS
-    remains Secure without separate source builds.
+    ``auto`` (default; also empty) is Secure unless SAHOOL_ENV names local dev: Railway ends
+    TLS at its edge and the gateway forwards ``http``, so the scheme alone left the JWT cookie
+    non-Secure in prod. Only local dev lets the scheme relax it for plain-HTTP :3003.
     """
     if AUTH_COOKIE_SECURE_MODE in {"1", "true", "yes", "on"}:
         return True
-    if AUTH_COOKIE_SECURE_MODE in {"0", "false", "no", "off", ""}:
+    if AUTH_COOKIE_SECURE_MODE in {"0", "false", "no", "off"}:
         return False
+    if os.getenv("SAHOOL_ENV", "").strip().lower() not in {"development", "local", "test"}:
+        return True
     forwarded = request.headers.get("x-forwarded-proto", "") if request else ""
     scheme = forwarded.split(",", 1)[0].strip().lower()
     if not scheme and request is not None:
