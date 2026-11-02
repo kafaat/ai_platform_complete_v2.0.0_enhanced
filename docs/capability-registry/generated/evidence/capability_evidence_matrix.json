@@ -1439,6 +1439,7 @@
         "services/raster-service/test_tenant_propagation.py",
         "services/raster-service/test_tile_tenant_query.py",
         "services/sahool-platform/tests/test_fields_tenant_arg_completeness_guard.py",
+        "services/sahool-platform/tests/test_sweep_tenant_enumeration.py",
         "services/sahool-platform/tests/test_tenant_audit.py",
         "services/sahool-platform/tests/test_tenant_config.py",
         "tests_v9/test_nginx_tenant_injection_guard.py",
@@ -2318,6 +2319,7 @@
         "services/sahool-platform/tests/test_data_inventory.py",
         "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_element84_legacy_inventory.py",
+        "tests_v9/test_erp_sync_schema_honesty.py",
         "tests_v9/test_inventory_edge_classification.py",
         "tests_v9/test_inventory_equipment.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
@@ -2826,7 +2828,8 @@
       },
       "integration_test_paths": [
         "services/sahool-platform/tests/test_idempotency_server_contract.py",
-        "tests_v9/test_canonical_root_zone_to_sprinkler_contract.py"
+        "tests_v9/test_canonical_root_zone_to_sprinkler_contract.py",
+        "tests_v9/test_image_data_file_contract.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -3246,6 +3249,7 @@
       "runtime_verified": false,
       "title": "Event bus integration",
       "unit_test_paths": [
+        "services/sahool-platform/tests/test_nats_relay_bounded_startup.py",
         "services/vegetation-analysis-service/test_vegetation_event_admission.py",
         "tests_v9/test_canonical_execution_learning_worker_subscriptions.py",
         "tests_v9/test_event_bus_invariants.py",
@@ -4157,6 +4161,7 @@
         "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
+        "tests_v9/test_irrigation_efficiency_doy_g15.py",
         "tests_v9/test_irrigation_recommendation_policy.py",
         "tests_v9/test_knowledge_context_resolver.py",
         "tests_v9/test_knowledge_providers_and_adoption.py"
@@ -5982,6 +5987,7 @@
         "shared/precision_agriculture/test_phase6_intelligence.py",
         "tests_v9/test_canonical_vri_prescription.py",
         "tests_v9/test_management_zone_count_v60_2.py",
+        "tests_v9/test_phase6_precision_integrity_g10.py",
         "tests_v9/test_productivity_zones_clustering_v60_1.py",
         "tests_v9/test_productivity_zones_grid_bounds.py",
         "tests_v9/test_productivity_zones_multiindex_v60_3.py",
@@ -6936,6 +6942,7 @@
         "services/raster-service/test_acquisition_date_provenance.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
         "services/raster-service/test_clip_grid.py",
+        "services/raster-service/test_cloud_native_catalog.py",
         "services/raster-service/test_db_rehydrate.py",
         "services/raster-service/test_element84_vrt_defect_witnesses.py",
         "services/raster-service/test_historical_backfill.py",
@@ -6945,6 +6952,7 @@
         "services/raster-service/test_indicator_product_identity.py",
         "services/raster-service/test_indicator_provenance_transport.py",
         "services/raster-service/test_indicator_values_integrity.py",
+        "services/raster-service/test_normalized_difference_validity.py",
         "services/raster-service/test_persisted_thumbnail_path.py",
         "services/raster-service/test_polygon_mask_metadata.py",
         "services/raster-service/test_raster_indicator_product.py",
@@ -7004,8 +7012,6 @@
         "services/supervisor-agent/test_router.py",
         "services/vegetation-analysis-service/test_anomaly_engine.py",
         "services/vegetation-analysis-service/test_indicator_registry.py",
-        "services/vegetation-analysis-service/test_production_truth_closure.py",
-        "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
         "tests_v9/test_etc_dual_fresh_ndvi.py",
         "tests_v9/test_field_state_ndvi_enrichment.py",
         "tests_v9/test_kc_from_ndvi.py",
@@ -10218,6 +10224,7 @@
         "tests_v9/test_fao56_dual_kc.py",
         "tests_v9/test_fieldstate_water_canon.py",
         "tests_v9/test_h5_api_salinity.py",
+        "tests_v9/test_irrigation_efficiency_doy_g15.py",
         "tests_v9/test_irrigation_mpc.py",
         "tests_v9/test_lexicographic_irrigation_mpc.py",
         "tests_v9/test_lexicographic_mpc_bridge.py",
@@ -10233,7 +10240,8 @@
         "tests_v9/test_weather_model_identity.py",
         "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py",
         "tests_v9/test_wired_endpoints.py",
-        "tests_v9/test_wofost_hargreaves_matches_canonical.py"
+        "tests_v9/test_wofost_hargreaves_matches_canonical.py",
+        "tests_v9/test_wofost_weather_provenance.py"
       ]
     },
     {
@@ -11035,7 +11043,8 @@
       "runtime_verified": false,
       "title": "Weather provenance and quality",
       "unit_test_paths": [
-        "services/weather-service/tests/test_canonical_weather_state.py"
+        "services/weather-service/tests/test_canonical_weather_state.py",
+        "tests_v9/test_wofost_weather_provenance.py"
       ]
     }
   ],

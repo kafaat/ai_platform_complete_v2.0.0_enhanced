@@ -121,3 +121,23 @@ def test_valid_mask_all_false_yields_none_not_fabricated_zero():
         valid_mask=valid,
     )
     assert result.cloud_pct is None  # لا اختلاق صفر عند غياب بكسل صالح
+
+
+def test_sentinel2_scl_masks_no_data_and_saturated_classes():
+    # G12: SCL 0 (NO_DATA) و1 (SATURATED_OR_DEFECTIVE) ليسا رصداً صالحاً — نفس
+    # مجموعة مسار CDSE الأصليّ (cdse_native_product: keep = 2,4,5,6,7).
+    scl = np.array([[0, 1, 4], [8, 3, 5]], dtype=np.uint8)
+    valid = np.ones((2, 3), dtype=bool)
+    result = Sentinel2SCLStrategy().apply(
+        np=np,
+        band_reader=_reader({1: scl}),
+        band_mapping=BandMapping(scl=1),
+        target_shape=(2, 3),
+        valid_mask=valid,
+    )
+    assert result.mask.tolist() == [[True, True, False], [True, True, False]]
+    # المقام = البكسلات المرصودة فقط (4,8,3,5): غيمة واحدة من أربعة، لا من ستّة.
+    assert result.cloud_pct == 25.0
+    assert result.shadow_pct == 25.0
+    # 0/1 لا يُحسبان غيماً ولا ظلّاً (التصنيف يبقى صادقاً).
+    assert result.mask[0, 0] and not result.shadow_mask[0, 0] and not result.snow_mask[0, 1]

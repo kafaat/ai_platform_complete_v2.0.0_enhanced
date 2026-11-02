@@ -6225,7 +6225,7 @@
       },
       {
         "capability_id": "FM-007",
-        "score": 10,
+        "score": 11,
         "signals": [
           "content:procurement",
           "content:warehouse"
@@ -6694,19 +6694,19 @@
     "kind": "tests",
     "candidates": [
       {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
         "capability_id": "SAT-009",
         "score": 10,
         "signals": [
           "content:cog",
           "content:tilejson"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 10,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
         ]
       },
       {
@@ -8231,6 +8231,28 @@
         "signals": [
           "content:Water balance",
           "content:water balance"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/api/scheduler.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 9,
+        "signals": [
+          "content:event bus",
+          "content:nats"
         ]
       }
     ]
@@ -10828,7 +10850,7 @@
     "candidates": [
       {
         "capability_id": "SAT-003",
-        "score": 8,
+        "score": 10,
         "signals": [
           "content:NDVI",
           "content:ndvi"
@@ -11791,23 +11813,23 @@
     ]
   },
   {
-    "path": "tests_v9/test_lab_ci_certification_steps.py",
+    "path": "tests_v9/test_irrigation_efficiency_doy_g15.py",
     "kind": "tests",
     "candidates": [
       {
-        "capability_id": "SEC-001",
-        "score": 9,
+        "capability_id": "WX-004",
+        "score": 12,
         "signals": [
-          "content:rls",
-          "content:tenant isolation"
+          "content:ET0",
+          "content:et0"
         ]
       },
       {
-        "capability_id": "SEC-004",
-        "score": 8,
+        "capability_id": "IRR-005",
+        "score": 10,
         "signals": [
-          "content:MFA",
-          "content:mfa"
+          "content:Irrigation recommendation",
+          "content:irrigation recommendation"
         ]
       }
     ]
@@ -12023,6 +12045,28 @@
         "score": 8,
         "signals": [
           "path:dem"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_phase6_precision_integrity_g10.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "PA-001",
+        "score": 12,
+        "signals": [
+          "content:Management zones",
+          "content:management zone"
         ]
       }
     ]
@@ -12530,6 +12574,28 @@
       {
         "capability_id": "WX-004",
         "score": 10,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_wofost_weather_provenance.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-010",
+        "score": 14,
+        "signals": [
+          "path:weather provenance",
+          "content:weather provenance"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 12,
         "signals": [
           "content:ET0",
           "content:et0"

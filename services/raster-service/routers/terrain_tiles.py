@@ -54,12 +54,21 @@ async def terrain_status():
     sources = tsr.load_terrain_sources()
     provisioned = [s for s in sources if s.get("provisioned")]
     configured = bool(provisioned)
+    registry_ok = tsr.registry_readable()
+    if configured:
+        reason = None
+    else:
+        # I2: سجلٌّ غائب عيبُ بناء لا «لم يُزوِّد المشغّل» — سببان مختلفان لا يُدمجان.
+        reason = (
+            "no_provisioned_terrain_source" if registry_ok else "terrain_source_registry_missing"
+        )
     return {
         "dem_configured": configured,
         "layers": ["hillshade", "slope", "contours"],
         "resolution_policy": tsr.resolution_policy(sources),
         "provisioned_source_count": len(provisioned),
-        "reason": None if configured else "no_provisioned_terrain_source",
+        "source_registry_readable": registry_ok,
+        "reason": reason,
         "user_message": None
         if configured
         else (

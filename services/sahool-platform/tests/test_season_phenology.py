@@ -6,12 +6,16 @@
 
 from datetime import date, timedelta
 
+import pytest
+from core.engines.fao56 import kc_for_age
 from core.season_phenology import (
+    crop_kc_profile,
     current_stage,
     is_reproductive_stage,
     resolve_crop_id,
     season_timeline,
     stage_kc,
+    stage_kc_map,
 )
 
 # ─── resolve_crop_id: اسم → crop_id ──────────────────────────────────────
@@ -105,3 +109,54 @@ def test_timeline_empty_when_unknown():
     assert season_timeline(None, date(2026, 1, 1)) == []
     assert season_timeline("common_bean", None) == []
     assert season_timeline("cranberry", date(2026, 1, 1)) == []  # cranberry بلا phenology
+
+
+# ─── G1: منحنى Kc الرباعيّ FAO-56 (Eq.66) — late يهبط خطّيّاً لا Kc_end لكامل المرحلة ───
+# القمح (البطاقة): Kc_ini 0.30 · Kc_mid 1.15 · Kc_end 0.40 · stage_days [15, 25, 50, 30]
+# ⇒ initial [0,15] · development (15,40] · mid (40,90] · late (90,120].
+
+
+@pytest.mark.unit
+def test_g1_wheat_stage_boundaries_follow_fao56_curve():
+    assert stage_kc("wheat", 0) == 0.30
+    assert stage_kc("wheat", 15) == 0.30  # نهاية initial
+    assert stage_kc("wheat", 40) == 1.15  # نهاية development = Kc_mid
+    assert stage_kc("wheat", 90) == 1.15  # نهاية mid = بداية late = Kc_mid (لا قفزة)
+    assert stage_kc("wheat", 120) == 0.40  # الحصاد = Kc_end
+
+
+@pytest.mark.unit
+def test_g1_late_stage_midpoint_is_mean_of_kc_mid_and_kc_end():
+    prof = crop_kc_profile("wheat")
+    kc_mid_late, _ = kc_for_age(prof, 105)  # منتصف late: 90 + 30/2
+    assert kc_mid_late == pytest.approx((prof.kc_mid + prof.kc_end) / 2.0)
+    assert stage_kc("wheat", 105) == pytest.approx(0.775, abs=0.006)
+    # منتصف development بالمثل = متوسّط Kc_ini وKc_mid.
+    kc_mid_dev, _ = kc_for_age(prof, 27.5)
+    assert kc_mid_dev == pytest.approx((prof.kc_initial + prof.kc_mid) / 2.0)
+
+
+@pytest.mark.unit
+def test_g1_wheat_day_92_audit_case():
+    # العطل المقيس: يوم 92 (أوّل late) أخذ Kc_end=0.40 ⇒ 2.4 مم «منخفض» بدل 6.6 مم «متوسّط».
+    assert stage_kc("wheat", 92) == pytest.approx(1.10, abs=0.005)
+    # الإسقاط المرحليّ (بلا عمر) = متوسّط الهبوط، لا Kc_end.
+    assert stage_kc_map("wheat")["late"] == pytest.approx(0.775)
+    assert stage_kc_map("wheat")["late"] != crop_kc_profile("wheat").kc_end
+
+
+@pytest.mark.unit
+def test_g1_curve_monotone_rise_then_fall():
+    prof = crop_kc_profile("wheat")
+    peak_end = sum(prof.stage_days[:3])
+    vals = [kc_for_age(prof, d)[0] for d in range(0, prof.total_season_days + 1)]
+    rise, fall = vals[: peak_end + 1], vals[peak_end:]
+    assert all(b >= a for a, b in zip(rise, rise[1:], strict=False))
+    assert all(b <= a for a, b in zip(fall, fall[1:], strict=False))
+    assert all(prof.kc_end <= v <= prof.kc_mid for v in fall)
+
+
+@pytest.mark.unit
+def test_g1_day_outside_season_is_clamped():
+    assert stage_kc("wheat", -5) == 0.30  # قبل البذار ⇒ Kc_ini
+    assert stage_kc("wheat", 500) == 0.40  # بعد الحصاد ⇒ Kc_end (لا استقراء)

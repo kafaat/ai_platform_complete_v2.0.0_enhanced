@@ -59,12 +59,17 @@ class CloudMaskStrategy(ABC):
 class Sentinel2SCLStrategy(CloudMaskStrategy):
     """Sentinel-2 QA strategy using SCL plus optional CLM/CLP bands.
 
-    SCL semantics: shadow=3, cloud/cirrus=8/9/10, snow=11.  CLM and CLP
-    are treated as source-native cloud supplements when present.  All-NaN CLP
-    rasters are handled as unavailable rather than raising via ``nanmax``.
+    SCL semantics: no-data=0, saturated/defective=1, shadow=3,
+    cloud/cirrus=8/9/10, snow=11.  SCL 0/1 are never observations: they are
+    masked out of the product and excluded from the percentage denominator
+    (same class set as the CDSE native path, ``cdse_native_product``).  CLM and
+    CLP are treated as source-native cloud supplements when present.  All-NaN
+    CLP rasters are handled as unavailable rather than raising via ``nanmax``.
     """
 
     name = "sentinel2_scl"
+    # SCL 0 NO_DATA و1 SATURATED_OR_DEFECTIVE لا يصلحان أبداً (G12).
+    SCL_INVALID_CLASSES = (0, 1)
 
     @staticmethod
     def _or_mask(np, left, right):
@@ -80,6 +85,7 @@ class Sentinel2SCLStrategy(CloudMaskStrategy):
         cloud = None
         shadow = None
         snow = None
+        invalid = None
 
         scl_idx = getattr(band_mapping, "scl", None)
         if scl_idx is not None:
@@ -89,6 +95,7 @@ class Sentinel2SCLStrategy(CloudMaskStrategy):
                 cloud = self._or_mask(np, cloud, scl_cloud)
                 shadow = self._or_mask(np, shadow, np.isin(scl, [3]))
                 snow = self._or_mask(np, snow, np.isin(scl, [11]))
+                invalid = np.isin(scl, self.SCL_INVALID_CLASSES)
                 sources.append("SCL")
             else:
                 warnings.append("sentinel2_scl_shape_mismatch_or_unreadable")
@@ -129,8 +136,11 @@ class Sentinel2SCLStrategy(CloudMaskStrategy):
             )
 
         combined = None
-        for part in (cloud, shadow, snow):
+        for part in (cloud, shadow, snow, invalid):
             combined = self._or_mask(np, combined, part)
+        if invalid is not None and valid_mask is not None:
+            # بكسل SCL 0/1 ليس رصداً: لا يُحسَب «صافياً» في مقام النِّسَب.
+            valid_mask = np.logical_and(valid_mask, np.logical_not(invalid))
 
         return MaskResult(
             strategy=self.name,

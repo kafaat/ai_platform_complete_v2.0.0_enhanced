@@ -390,6 +390,14 @@ def test_bff_weather_optional_unknowns_and_existing_defaults_are_preserved(model
         assert getattr(result, field) is None
     if model_name == "FieldIrrigationRequest":
         assert result.day_of_year is None
+    elif model_name == "IrrigationRecommendationRequest":
+        # G15: no fixed day-100 default; absence is resolved from the real date
+        # by the route (resolve_day_of_year) and its source is declared.
+        assert (result.latitude_deg, result.elevation_m, result.day_of_year) == (
+            15.5,
+            2000.0,
+            None,
+        )
     else:
         # Legacy site/altitude/day defaults are unchanged by this type-only fix.
         # This test does not claim those defaults are observations or calibrated.
