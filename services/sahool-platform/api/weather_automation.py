@@ -28,6 +28,10 @@ logger = logging.getLogger("sahool.weather_automation")
 # مدّة صلاحيّة الـcache (الطقس يوميّ، نحدّثه كلّ ساعة كحدّ أقصى)
 WEATHER_TTL_SECONDS = 3600.0
 
+# المواقع المتابَعة = صفوف هذا الجدول المُلتزَمة وحدها. لا يُقرأ ``fields`` هنا عمداً: المسبح
+# يتجاوز RLS ونطاقُه محصورٌ بجدولَي الطقس (tests_v9/test_elevated_context_scope.py).
+_TRACKED_LOCATIONS_SQL = "SELECT location_key, lat, lon, field_id FROM weather_automation_locations"
+
 
 @dataclass
 class CachedWeather:
@@ -93,20 +97,10 @@ class WeatherAutomation:
         """
         if self._pool is None:
             return 0
-        loaded = 0
+        synced = await self.sync_from_db()
+        loaded = synced["tracked"] if synced else 0
         try:
             async with self._pool.acquire() as conn:
-                rows = await conn.fetch(
-                    "SELECT location_key, lat, lon, field_id FROM weather_automation_locations"
-                )
-                for r in rows:
-                    k = self._key(r["lat"], r["lon"])
-                    self._locations[k] = {
-                        "lat": r["lat"],
-                        "lon": r["lon"],
-                        "field_id": r["field_id"],
-                    }
-                    loaded += 1
                 # حمّل آخر cache (إن وُجد)
                 crows = await conn.fetch(
                     "SELECT c.location_key, l.lat, l.lon, c.data_json, "
@@ -131,6 +125,40 @@ class WeatherAutomation:
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل تحميل أتمتة الطقس من القاعدة: %s", e)
         return loaded
+
+    async def _fetch_tracked_rows(self) -> list:
+        async with self._pool.acquire() as conn:
+            return list(await conn.fetch(_TRACKED_LOCATIONS_SQL))
+
+    async def sync_from_db(self) -> dict | None:
+        """يستبدل المواقع المتابَعة بالمُلتزَم في القاعدة: يُضيف الجديدَ ويُسقط ما حُذف صفُّه.
+
+        R6: كانت المجموعة تُبنى عند الإقلاع وحده، فالحقلُ المُنشَأ بعده (يُسجَّل في
+        معاملته عبر ``register_on_connection``) لا يُسحَب طقسُه حتّى إعادة التشغيل.
+        تُستدعى في كلّ تكّة من ``refresh_all``. المفتاحُ الخليّةُ المُقرَّبة، فلا ازدواج.
+        عابرٌ للمستأجرين كـ``load_from_db`` (مسبح المهامّ). قراءةٌ فاشلة ⇒ ``None``
+        وتبقى المجموعةُ كما هي (لا تُمحى الجدولةُ بعطلٍ عابر).
+        """
+        if self._pool is None:
+            return None
+        try:
+            rows = await self._fetch_tracked_rows()
+        except Exception as e:  # noqa: BLE001
+            logger.warning("فشل مزامنة مواقع الطقس من القاعدة: %s", e)
+            return None
+        fresh: dict[tuple[float, float], dict] = {}
+        for r in rows:
+            fresh[self._key(r["lat"], r["lon"])] = {
+                "lat": r["lat"],
+                "lon": r["lon"],
+                "field_id": r["field_id"],
+            }
+        added = len(fresh.keys() - self._locations.keys())
+        removed = self._locations.keys() - fresh.keys()
+        for k in removed:
+            self._cache.pop(k, None)
+        self._locations = fresh
+        return {"tracked": len(fresh), "added": added, "removed": len(removed)}
 
     async def _persist_location(self, lat: float, lon: float, field_id: str | None) -> None:
         if self._pool is None:
@@ -242,7 +270,9 @@ class WeatherAutomation:
 
         معزول: فشل إحداثيّة لا يوقف البقيّة. يُرجع ملخّص النجاح/الفشل.
         صدق: لو لا إحداثيّات مسجّلة، لا يفعل شيئاً (لا يضرب المصدر بلا داعٍ).
+        يبدأ بمزامنة المواقع من القاعدة (R6) — بلا pool تبقى الذاكرة وحدها.
         """
+        await self.sync_from_db()
         if not self._locations:
             return {"refreshed": 0, "failed": 0, "note": "لا إحداثيّات مسجّلة"}
 

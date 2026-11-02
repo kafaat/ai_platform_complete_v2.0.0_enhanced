@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
@@ -86,3 +87,89 @@ def test_claim_statement_reclaims_running_rows_and_counts_the_lost_attempt():
     assert "status = 'running'" in src, "R5: running منتهي الإجارة لا يُطالَب ⇒ عالقٌ للأبد"
     assert "'reclaimed', j.status = 'running'" in src
     assert "THEN 1 ELSE 0 END" in src, "الاستعادةُ بلا عَدٍّ للمحاولة ⇒ لا حدَّ لها"
+
+
+# ── R6: مزامنةُ مواقع الطقس من القاعدة عند كلّ تكّة ──────────────────────────
+
+
+def _row(lat: float, lon: float, field_id: str | None) -> dict:
+    return {"location_key": f"{lat},{lon}", "lat": lat, "lon": lon, "field_id": field_id}
+
+
+@pytest.fixture
+def weather(monkeypatch):
+    """أتمتةُ طقسٍ بمسبحٍ حارس (لا يُستعمَل) وحدودُ I/O مُرقَّعة: القراءة والحفظ والمزوّد."""
+    from api.weather_automation import WeatherAutomation
+
+    fetched: list[tuple[float, float]] = []
+
+    async def _fetch_current(lat, lon):
+        fetched.append((lat, lon))
+        return SimpleNamespace(
+            temperature_c=30.0,
+            humidity_pct=20.0,
+            wind_speed_ms=2.0,
+            precipitation_mm=0.0,
+            cloud_cover_pct=0.0,
+            weather_code=0,
+            timestamp="2026-11-02T00:00",
+        )
+
+    monkeypatch.setitem(
+        sys.modules,
+        "api.connectors.openmeteo",
+        SimpleNamespace(fetch_current=_fetch_current, describe_weather_ar=lambda c: "صحو"),
+    )
+    wa = WeatherAutomation()
+    wa.set_pool(object())
+    wa._fetch_tracked_rows = AsyncMock()
+    wa._persist_cache = AsyncMock()
+    return wa, fetched
+
+
+async def test_field_created_after_start_enters_the_schedule_on_the_next_tick(weather):
+    wa, fetched = weather
+    wa._fetch_tracked_rows.return_value = [_row(15.0, 44.0, "f1")]
+    await wa.load_from_db()
+    assert wa.registered_count() == 1
+
+    # حقلٌ أُنشئ بعد الإقلاع: صفُّه في القاعدة، وليس في الذاكرة.
+    wa._fetch_tracked_rows.return_value = [_row(15.0, 44.0, "f1"), _row(16.0, 45.0, "f2")]
+    result = await wa.refresh_all()
+
+    assert (16.0, 45.0) in fetched, "R6: الحقلُ الجديد لا يُسحَب طقسُه حتّى إعادة التشغيل"
+    assert result["refreshed"] == 2
+    assert wa.registered_count() == 2
+    assert wa.get_cached(16.0, 45.0) is not None
+
+
+async def test_location_deleted_from_the_db_leaves_the_schedule_and_its_cache(weather):
+    wa, fetched = weather
+    wa._fetch_tracked_rows.return_value = [_row(15.0, 44.0, "f1"), _row(16.0, 45.0, "f2")]
+    await wa.refresh_all()
+    assert wa.get_cached(15.0, 44.0) is not None
+
+    wa._fetch_tracked_rows.return_value = [_row(16.0, 45.0, "f2")]  # صفُّ f1 حُذف
+    fetched.clear()
+    result = await wa.refresh_all()
+
+    assert fetched == [(16.0, 45.0)], "موقعٌ محذوف ما زال يُسحَب طقسُه"
+    assert result["refreshed"] == 1
+    assert wa.registered_count() == 1
+    assert wa.get_cached(15.0, 44.0) is None
+
+
+async def test_resync_never_duplicates_and_a_failed_read_keeps_the_current_set(weather):
+    wa, fetched = weather
+    # الخليّةُ المُقرَّبة نفسُها مرّتين ⇒ موقعٌ واحد، وتكّتان ⇒ لا ازدواج.
+    wa._fetch_tracked_rows.return_value = [_row(15.0, 44.0, "f1"), _row(15.0001, 44.0001, "f9")]
+    await wa.refresh_all()
+    await wa.refresh_all()
+    assert wa.registered_count() == 1
+    assert len(fetched) == 2
+
+    wa._fetch_tracked_rows.side_effect = RuntimeError("db down")
+    fetched.clear()
+    result = await wa.refresh_all()
+    assert wa.registered_count() == 1, "قراءةٌ فاشلة لا تمحو الجدولة"
+    assert result["refreshed"] == 1
