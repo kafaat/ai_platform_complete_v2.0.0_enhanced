@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "e2db8e19f12ce685080dfdb46aba64aadc2b7a05955fafeacd7004bbdb18f6ac",
+  "inventory_sha256": "88ecc1279362862b274214c9a4af5568f72c3e1dcee48b190fed43614f4ec5d2",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,13 +28,13 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "23272d0e70e981cd50cc72889d980d62a9f9cf328109c2ff61a9e1c55e027f4b"
+    "policy_sha256": "e87381596184d1a9212cbea069f613a2a830e13bb10d2fd921478975abd3bddc"
   },
   "routes": [
     {
       "classification": "domain",
       "function": "revoke_break_glass",
-      "line": 357,
+      "line": 394,
       "method": "DELETE",
       "path": "/api/v1/admin/break-glass/{grant_id}",
       "source": "api/routers/break_glass.py"
@@ -106,7 +106,7 @@
     {
       "classification": "domain",
       "function": "break_glass_read_fields",
-      "line": 317,
+      "line": 354,
       "method": "GET",
       "path": "/api/v1/admin/break-glass/{token}/fields",
       "source": "api/routers/break_glass.py"
@@ -2882,7 +2882,7 @@
     {
       "classification": "domain",
       "function": "request_break_glass",
-      "line": 140,
+      "line": 167,
       "method": "POST",
       "path": "/api/v1/admin/break-glass",
       "source": "api/routers/break_glass.py"
