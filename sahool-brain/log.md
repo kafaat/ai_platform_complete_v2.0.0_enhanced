@@ -10260,3 +10260,10 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 
 - **القياس (قراءة، GitHub `commits/{sha}/status`):** `cc0d2e295` ⇒ `failure` (15 حالة، الفاشلةُ الوحيدة `resourceful-commitment - ai_platform_complete_v2.0.0_enhanced`). `aaa1b7f0a` (#1320، أوّلُ التزامٍ على main بعد الحذف) ⇒ `success` (14 حالة كلّها ناجحة، ولا حالةَ للمشروع الشارد).
 - **الحالة:** **fixed** ([`gaps/registry.md`](gaps/registry.md)). وما زال المشروعُ الفارغ في مهلة الـ48 ساعة لدى Railway.
+
+### 2026-11-02 — موجة الإصلاح الثانية: دقّة التوصية (فرق w2-10..12، مكدَّسة فوق #1322)
+
+- **G8** «المطر الأخير» صار مجموع اليوم (`days[0]`) لا آخر 15 دقيقة، بتعريف واحد لكلّ مسارات الريّ والتنبيهات والتوصيات؛ غياب المطر يبقى 503. **G9** رطوبة التربة تمرّ بوحدتها وعمرها؛ VWC أو قراءة أقدم من 4 ساعات لا تدخل القرار.
+- **G4 (البقيّة)** 13 مؤشّراً (EVI/SAVI/VARI/GLI/SIPI/ARVI/RECI/GCI/MSI/CCCI + مؤشّرات التربة) عبر نواة واحدة `guarded_quotient`: انعكاسيّة سالبة أو مقام < 0.005 أو خارج المدى ⇒ NaN.
+- **G11 حتى النهاية** `cloud_pct` صار `float | None` عبر السجلّ وSTAC؛ مرشِّح `max_cloud` يستبعد المجهول. **الغسيل** في `irrigation_recommendation_policy` بـ`/(1−LR)`. **يوم السنة** لا قيمة افتراضيّة صامتة 100 في water-balance والسيناريوهات وetc_dual.
+- **مفتوح:** تعبيرات CDSE evalscript بلا حماية؛ رفع `ALGORITHM_VERSION` قرار مالك.
