@@ -4548,7 +4548,7 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 **السبب في مسوّدتَي GATE-01:**
 - تمسّان مساراتٍ مجمّدة: `migrations/MANIFEST.txt` و`scripts_v9/run_migrations.sql` في الأولى، و`services/actuator-service/actuator_runtime.py` و`routers/commands.py` في الثانية. و`gate01_frozen_path_guard` يحجبهما ما لم يصدر حكمٌ ISSUED ببصمتيهما (`deefa0b0…` و`2c52a383…`).
-- v237 تكسر كتابات `phase_runtime_store` الثلاث ما لم تُلفّ في معاملة (`PHASE-RUNTIME-STORE-WRITES-DEPEND-ON-RLS-ESCAPE-ARM-01`). وإلغاء T3 فيها لا يثبت إلّا مع فرع الأمن.
+- v237 تكسر كتابات `phase_runtime_store` الثلاث ما لم تُلفّ في معاملة (`PHASE-RUNTIME-STORE-WRITES-DEPEND-ON-RLS-ESCAPE-ARM-01`). وT3 بجزأيه (سكربتا الإقلاع والإلغاء الحيّ) صار كلّه في هذه المسوّدة: أُخرِج سكربتا الإقلاع من #1324 لأنّ المهاجر يراقبهما.
 - مسوّدة المشغّلات تحتاج إعادة تفليش البرنامج الثابت، وتجعل الإرسال الآليّ يعيد إيصالاً فاشلاً بدل «accepted» كاذب (`WATER-DECISION-BRIDGE-IRRIGATE-WITHOUT-DURATION-01`).
 
 **المرجع:** `bd15ec238` · `850b18432` · `d0414862f`. الصفوف في [`gaps/registry.md`](../gaps/registry.md).
