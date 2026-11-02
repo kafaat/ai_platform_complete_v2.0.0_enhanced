@@ -26,6 +26,7 @@ from typing import Annotated, Literal
 from uuid import uuid4
 
 import asyncpg
+import bcrypt  # noqa: F401 — routers/session.py (S16 timing equaliser) يصل إليه عبر main.bcrypt
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
