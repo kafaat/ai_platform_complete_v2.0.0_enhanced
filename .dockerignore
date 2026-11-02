@@ -20,3 +20,5 @@ backups/
 htmlcov/
 .pytest_cache/
 docs/
+# G3: ملفٌّ واحد تقرؤه صورة المنصّة وقت التشغيل — لا تُفتَح شجرة docs/ (runtime data file only).
+!docs/architecture/knowledge_source_registry.json

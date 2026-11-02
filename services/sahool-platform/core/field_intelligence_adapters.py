@@ -302,6 +302,8 @@ def simulate_adapter(req, decision, state, *, authorization: str | None = None) 
         "action_yield_t_ha": with_action,
         "water_saved_mm": data.get("water_saved_mm"),
         "recommended_action_helps": helps,
+        # G5: القرار يرى إن كان الطقس تحت المحاكاة مرصوداً كلّه أم مُستكمَلاً جزئيّاً.
+        "weather_provenance": data.get("weather_provenance"),
     }
 
 

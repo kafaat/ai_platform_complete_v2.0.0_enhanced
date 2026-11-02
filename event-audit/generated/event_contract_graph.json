@@ -151,7 +151,7 @@
       "dynamic_expr": "subject",
       "file": "shared/broker_url.py",
       "kind": "producer",
-      "line": 72,
+      "line": 78,
       "queue": null,
       "resolution": "dynamic",
       "subject": null

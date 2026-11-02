@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 668,
+      "evidence_count": 669,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -215,6 +215,7 @@
         "services/raster-service/raster_asset_persistence.py",
         "services/raster-service/raster_cdse_processing.py",
         "services/raster-service/raster_cdse_tile_runtime.py",
+        "services/raster-service/raster_cloud_mask_strategies.py",
         "services/raster-service/raster_indicator_product.py",
         "services/raster-service/raster_processing_runtime.py",
         "services/raster-service/routers/fields.py",
@@ -714,7 +715,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 536,
+      "evidence_count": 537,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -856,6 +857,7 @@
         "services/knowledge-graph/main.py",
         "services/mcp_servers/generic_context_server.py",
         "services/model-registry-adapter/runtime.py",
+        "services/model-registry-adapter/tests/test_claim_recovery.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/model-registry-adapter/worker.py",
         "services/qdrant-seed/reindex.py",
@@ -2142,7 +2144,7 @@
       "kind": "lineage_stage",
       "stage": "receipt",
       "order": 8,
-      "evidence_count": 43,
+      "evidence_count": 45,
       "owners": [
         "actuator-service",
         "database",
@@ -2182,6 +2184,8 @@
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
         "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
         "services/model-registry-adapter/runtime.py",
+        "services/model-registry-adapter/service.py",
+        "services/model-registry-adapter/tests/test_claim_recovery.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/raster-service/cdse_diagnostics.py",
         "services/raster-service/follow_up_runtime.py",
@@ -2279,7 +2283,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 320,
+      "evidence_count": 322,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2374,8 +2378,10 @@
         "services/field-management-service/main.py",
         "services/field-management-service/tests/test_field_management_service_contract.py",
         "services/model-registry-adapter/runtime.py",
+        "services/model-registry-adapter/tests/test_claim_recovery.py",
         "services/model-registry-adapter/tests/test_runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
+        "services/model-registry-adapter/worker.py",
         "services/raster-service/raster_pixel_processing.py",
         "services/raster-service/routers/analysis.py",
         "services/raster-service/routers/fields.py",
@@ -2734,8 +2740,8 @@
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/routers/evidence.py"
       ],
-      "source_evidence_count": 668,
-      "target_evidence_count": 536,
+      "source_evidence_count": 669,
+      "target_evidence_count": 537,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2846,7 +2852,7 @@
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py"
       ],
-      "source_evidence_count": 536,
+      "source_evidence_count": 537,
       "target_evidence_count": 187,
       "static_supported": true,
       "runtime_verified": false
@@ -3082,7 +3088,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
       "source_evidence_count": 38,
-      "target_evidence_count": 43,
+      "target_evidence_count": 45,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3104,7 +3110,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 43,
+      "source_evidence_count": 45,
       "target_evidence_count": 54,
       "static_supported": true,
       "runtime_verified": false
@@ -3146,7 +3152,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 54,
-      "target_evidence_count": 320,
+      "target_evidence_count": 322,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3156,5 +3162,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "4827fa31ade423ed527bd14b4e2ecb481173c1b5796522394121fdf1e3ce9bd7"
+  "content_sha256": "58eb2eab6461ae091e611b42a30745eaafcc45d05c4baa7035e65a32b680d5ca"
 }

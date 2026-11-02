@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 
 from core.engines.fao56 import leaching_requirement
@@ -44,6 +45,27 @@ def salinity_policy_forced_off(env_value: str | None) -> bool:
     دالّة نقيّة — تُمرَّر قيمة ``SAHOOL_IRRIGATION_SALINITY_POLICY`` صراحةً (لا وصول env).
     """
     return (env_value or "").strip().lower() in _FORCE_NET_ONLY
+
+
+def validate_irrigation_efficiency(value: float | None) -> float | None:
+    """كفاءة الريّ كسرٌ في (0, 1] أو ``None`` — لا تخمين للنسبة المئويّة (G15).
+
+    85 بدل 0.85 كانت تُقسِّم الاحتياج على 85 (≈1% منه). لا نحوّلها ضمناً: حقل الحقل
+    ``irrigation_efficiency_pct`` بالمئة وهذا الحقل كسر، فالخلط خطأ مُدخَل يُرفَض صراحةً.
+    """
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError("irrigation_efficiency must be a number (fraction in (0, 1])")
+    eff = float(value)
+    if not math.isfinite(eff) or not 0.0 < eff <= 1.0:
+        hint = (
+            f" — looks like a percentage; send {eff / 100:g} (fraction), not {eff:g}"
+            if 1.0 < eff <= 100.0
+            else ""
+        )
+        raise ValueError(f"irrigation_efficiency must be a fraction in (0, 1]; got {eff!r}{hint}")
+    return eff
 
 
 def recommend_irrigation(
@@ -177,7 +199,8 @@ def recommend_irrigation(
     salinity_ks = float(base["salinity_ks"])
 
     # (3) شروط الغسل المشروط.
-    eff = float(irrigation_efficiency) if irrigation_efficiency else DEFAULT_IRRIGATION_EFFICIENCY
+    checked_eff = validate_irrigation_efficiency(irrigation_efficiency)
+    eff = DEFAULT_IRRIGATION_EFFICIENCY if checked_eff is None else checked_eff
     leaching_possible = (
         ec_reliable
         and crop_salt_tolerance_ece is not None

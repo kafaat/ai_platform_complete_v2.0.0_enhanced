@@ -165,6 +165,12 @@ def _terrain_soil_readiness() -> dict:
     dem = os.getenv("FIELD_DEM_PATH") or None
     dem_readable = bool(dem and os.path.isfile(dem))
     try:
+        import terrain_source_registry as _tsr
+
+        registry_readable = _tsr.registry_readable()
+    except Exception:  # noqa: BLE001
+        registry_readable = False
+    try:
         import soil_render as _soil
 
         readable_layers = _soil.readable_layer_count()
@@ -176,6 +182,8 @@ def _terrain_soil_readiness() -> dict:
             "enabled": dem_readable,
             "dem_path_set": bool(dem),
             "dem_readable": dem_readable,
+            # I2: سجلّ المصادر جزءٌ من الصورة؛ غيابه عيبُ بناءٍ يُكشَف لا يُخفى.
+            "source_registry_readable": registry_readable,
         },
         "soilgrids": {
             "enabled": readable_layers > 0,
