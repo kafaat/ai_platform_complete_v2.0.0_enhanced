@@ -850,8 +850,8 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
         elif ind == "ndvi":
             arr = ctx.band_math.ndvi(red, nir, np)
         elif ind == "gndvi":
-            _d = nir + green
-            arr = (nir - green) / np.where(_d == 0, 1e-10, _d)
+            # فروق مُطبَّعة عبر نواة band_math الواحدة: سالب الانعكاس/خارج [-1،1] ⇒ NaN (G4).
+            arr = ctx.band_math.normalized_difference(nir, green, np)
         elif ind == "reci":
             if rededge is None:
                 raise ctx.HTTPException(400, "مؤشّر RECI يحتاج نطاق الحافّة الحمراء B05")
@@ -866,23 +866,19 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             _d = nir - red
             arr = (nir - blue) / np.where(_d == 0, 1e-10, _d)
         elif ind == "nbr":
-            _d = nir + swir2
-            arr = (nir - swir2) / np.where(_d == 0, 1e-10, _d)
+            arr = ctx.band_math.normalized_difference(nir, swir2, np)
         elif ind == "ccci":
             if rededge is None:
                 raise ctx.HTTPException(400, "مؤشّر CCCI يحتاج نطاق الحافّة الحمراء B05")
-            ndre_d = nir + rededge
-            ndre_v = (nir - rededge) / np.where(ndre_d == 0, 1e-10, ndre_d)
+            ndre_v = ctx.band_math.ndre(nir, rededge, np)
             ndvi_v = ctx.band_math.ndvi(red, nir, np)
             arr = ndre_v / np.where(ndvi_v == 0, 1e-10, ndvi_v)
         # msi (SWIR1/NIR) يُحسَب الآن عبر band_math.NEW_INDEX_BANDS (المصدر الأوحد)
         # في الفرع الأعلى؛ أُزيل الفرع السطريّ المكرَّر (سلوك محفوظ: نفس _eps للمقام).
         elif ind == "ndwi":
-            _d = green + nir
-            arr = (green - nir) / np.where(_d == 0, 1e-10, _d)
+            arr = ctx.band_math.normalized_difference(green, nir, np)
         elif ind == "ndmi":
-            _d = nir + swir1
-            arr = (nir - swir1) / np.where(_d == 0, 1e-10, _d)
+            arr = ctx.band_math.normalized_difference(nir, swir1, np)
         elif ind == "savi":
             _denom = nir + red + 0.5
             arr = 1.5 * (nir - red) / np.where(_denom == 0, 1e-10, _denom)

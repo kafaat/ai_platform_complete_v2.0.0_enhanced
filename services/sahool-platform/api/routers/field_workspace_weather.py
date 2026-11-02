@@ -337,11 +337,13 @@ async def field_irrigation_advice_facade(
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """توصية ريّ خادمية من ET0/Kc/المطر ورطوبة التربة إن توفرت."""
+    from core.season_phenology import resolve_crop_id, stage_kc
+
     from api.weather_advice import irrigation_advice
 
     try:
         async with tenant_connection(user) as conn:
-            lat, lon, crop, stage, _days = await _field_weather_context(conn, field_id)
+            lat, lon, crop, stage, days_since_sowing = await _field_weather_context(conn, field_id)
             soil_reading = await _latest_soil_moisture(conn, field_id)
     except HTTPException:
         raise
@@ -386,6 +388,8 @@ async def field_irrigation_advice_facade(
         rain_recent_mm=current_rain,
         forecast_rain_mm=forecast_rain,
         soil_moisture_pct=soil_pct,
+        # G1: Kc اليوميّ (FAO-56) من عمر المحصول — لا قيمة المرحلة الواحدة لكامل المرحلة.
+        kc_override=stage_kc(resolve_crop_id(crop), days_since_sowing),
     )
     advice.update(
         {

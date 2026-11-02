@@ -38,7 +38,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # 4199 → 4191 (#1232): self-intersection explanation moved to gis_geometry_guard.
     # 4191 → 4187 (unified 2026-10-27): merge/split request models moved to api/field_models
     # while the area-conservation guard (G-AREA-1) landed in the router.
-    "services/sahool-platform/api/routers/fields.py": 4187,
+    # 4187 → 4175 (audit remediation 2026-11-01): imagery refresh/process-date request models
+    # moved to api/field_models while the G1 daily-Kc wiring landed in field_irrigation_advice.
+    "services/sahool-platform/api/routers/fields.py": 4175,
     "services/sahool-platform/api/routers/weather.py": 3022,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     # 1673 → 1668 (unified 2026-10-27): pixel sampling moved to raster_field_runtime and

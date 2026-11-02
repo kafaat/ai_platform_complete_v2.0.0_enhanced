@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
@@ -31,12 +32,35 @@ def _slug(value: Any) -> str:
     return text or "unknown"
 
 
+# غطاء غيوم مجهول لا يُقرأ ٠٪: الدرجة لا تتجاوز أدنى B (لا A)، والمشهد لا يسبق
+# مشهداً مقيساً أصفى منه. Unknown cloud cover is never "clear" (mirror of raster RS-01).
+_UNKNOWN_CLOUD_SCORE_CAP = 70
+
+
+def parse_cloud_cover_pct(value: Any) -> float | None:
+    """Cloud cover percent in [0, 100], or ``None`` = unknown (never a fabricated 0).
+
+    Mirror of raster-service ``scene_policy.parse_cloud_cover_pct``: absent, bool,
+    unparsable, non-finite or out-of-range values are unknown, not clamped to 0.
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        pct = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(pct) or not 0.0 <= pct <= 100.0:
+        return None
+    return pct
+
+
 @dataclass(frozen=True)
 class SceneQuality:
     score: int
     grade: str
     accepted: bool
     limiting_factors: tuple[str, ...]
+    cloud_known: bool = True
 
 
 def score_scene_quality(
@@ -54,14 +78,14 @@ def score_scene_quality(
     10م تخصم تدريجياً. accepted لا يعني أن الصورة مثالية؛ يعني صالحة للمعالجة
     التلقائية وفق سقف الغيوم.
     """
-    cloud = max(0.0, min(100.0, float(cloud_pct or 0)))
+    cloud = parse_cloud_cover_pct(cloud_pct)
     shadow = max(0.0, min(100.0, float(shadow_pct or 0)))
     nodata = max(0.0, min(100.0, float(nodata_pct or 0)))
     haze = max(0.0, min(100.0, float(haze_pct or 0)))
     res = max(1.0, float(resolution_m or 10))
 
     score = 100.0
-    score -= cloud * 1.25
+    score -= (cloud or 0.0) * 1.25
     score -= shadow * 0.75
     score -= nodata * 1.50
     score -= haze * 0.50
@@ -70,7 +94,11 @@ def score_scene_quality(
 
     final = int(round(max(0.0, min(100.0, score))))
     factors: list[str] = []
-    if cloud > max_cloud_pct:
+    if cloud is None:
+        # المجهول يبقى مجهولاً: لا خصم مختلَق ولا درجة A (G11).
+        final = min(final, _UNKNOWN_CLOUD_SCORE_CAP)
+        factors.append("cloud_pct_unknown")
+    elif cloud > max_cloud_pct:
         factors.append("cloud_pct")
     if shadow > 15:
         factors.append("shadow_pct")
@@ -84,8 +112,11 @@ def score_scene_quality(
     return SceneQuality(
         score=final,
         grade=grade,
-        accepted=(cloud <= max_cloud_pct and final >= 50),
+        # Unknown cover cannot be checked against the ceiling; platform policy
+        # (cdse_client._apply_cloud_filter) admits it as unknown, flagged above.
+        accepted=((cloud is None or cloud <= max_cloud_pct) and final >= 50),
         limiting_factors=tuple(factors),
+        cloud_known=cloud is not None,
     )
 
 
@@ -94,7 +125,10 @@ def normalize_stac_item(item: dict[str, Any]) -> dict[str, Any]:
     props = item.get("properties") or {}
     assets = item.get("assets") or {}
     bbox = item.get("bbox") or props.get("bbox")
-    cloud = props.get("eo:cloud_cover", props.get("cloud_cover", 0))
+    raw_cloud = props.get("eo:cloud_cover")
+    if raw_cloud is None:
+        raw_cloud = props.get("cloud_cover")
+    cloud = parse_cloud_cover_pct(raw_cloud)
     quality = score_scene_quality(cloud_pct=cloud)
     cog_assets = {
         name: asset.get("href")
@@ -111,7 +145,7 @@ def normalize_stac_item(item: dict[str, Any]) -> dict[str, Any]:
         "collection": item.get("collection"),
         "datetime": props.get("datetime") or props.get("start_datetime"),
         "bbox": bbox,
-        "cloud_pct": float(cloud or 0),
+        "cloud_pct": cloud,  # None = unknown, never a fabricated 0%
         "quality": asdict(quality),
         "cog_assets": cog_assets,
         "asset_count": len(assets),

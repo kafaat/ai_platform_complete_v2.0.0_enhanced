@@ -1,3 +1,5 @@
+import pytest
+
 from shared.gis.cloud_native_gis import (
     build_mosaicjson,
     geometry_revision_event,
@@ -78,3 +80,36 @@ def test_ogc_collection_descriptor_links_items():
     desc = ogc_collection_descriptor(collection_id="fields", title="Fields", item_type="feature")
     assert desc["id"] == "fields"
     assert any(link["rel"] == "items" for link in desc["links"])
+
+
+# ── G11: غطاء غيوم مجهول ≠ ٠٪ — لا يُختلَق صفر ولا درجة A ──
+@pytest.mark.unit
+@pytest.mark.parametrize("unknown", [None, float("nan"), "n/a", True, -5, 140])
+def test_unknown_cloud_cover_stays_unknown_and_cannot_earn_top_grade(unknown):
+    q = score_scene_quality(cloud_pct=unknown)
+    assert q.cloud_known is False
+    assert q.grade != "A"
+    assert "cloud_pct_unknown" in q.limiting_factors
+    # لا يسبق مشهداً مقيساً صافياً في الترتيب.
+    assert q.score < score_scene_quality(cloud_pct=2).score
+
+
+@pytest.mark.unit
+def test_measured_zero_cloud_still_earns_top_grade():
+    q = score_scene_quality(cloud_pct=0)
+    assert q.cloud_known is True
+    assert q.grade == "A" and q.accepted is True
+
+
+@pytest.mark.unit
+def test_normalize_stac_item_keeps_missing_cloud_cover_unknown():
+    out = normalize_stac_item(
+        {
+            "id": "S2_NOCC",
+            "properties": {"datetime": "2026-06-01T00:00:00Z"},
+            "assets": {"B04": {"href": "https://example/B04.tif", "type": "image/tiff"}},
+        }
+    )
+    assert out["cloud_pct"] is None
+    assert out["quality"]["cloud_known"] is False
+    assert out["quality"]["grade"] != "A"

@@ -2,6 +2,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -47,3 +49,18 @@ def test_cog_registry_preview_scores_quality_without_advertising_a_tile_path():
     assert rec["tilejson_unavailable_reason"] == "preview_record_has_no_registry_identity"
     # ولا يُعاد شكلُ TiTiler المباشر في أيّ حقلٍ من المعاينة.
     assert "WebMercatorQuad" not in json.dumps(rec)
+
+
+@pytest.mark.unit
+def test_cog_registry_preview_keeps_unknown_cloud_unknown():
+    # G11: غياب cloud_pct لا يصير ٠٪ ودرجة A في المعاينة.
+    rec = cnc.cog_registry_record(
+        tenant_id="tenant",
+        field_id="field",
+        date="2026-06-26",
+        index_type="ndvi",
+        cog_url="https://example.com/ndvi.tif",
+    )
+    assert rec["cloud_pct"] is None
+    assert rec["quality"]["cloud_known"] is False
+    assert rec["quality"]["grade"] != "A"
