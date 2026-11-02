@@ -55,13 +55,19 @@ connect).
 |---|---|---|---|---|---|---|
 | `sahool-auth` | `REDIS_AUTH_PASSWORD` | `REDIS_URL` · 0 | ping get getdel setex del exists expire ttl incr sadd smembers | `sahool:refresh:*` `sahool:user:refreshset:*` `sahool:user:token_floor:*` `sahool:jti:revoked:*` `sahool:lockout:*` `sahool:attempts:*` `sahool:ip_rate:*` `sahool:otp_rate:*` `sahool:otp:*` `sahool:reset:*` | — | `services/auth/main.py:375-971` · `otp.py:41` · `routers/password_reset.py:34` · `session_tokens.py:40` |
 | `sahool-platform-denylist` (service `sahool-platform`) | `REDIS_PLATFORM_DENYLIST_PASSWORD` | `DENYLIST_REDIS_URL` · 0 | ping exists setex · selector `(+get %R~sahool:user:token_floor:*)` | `sahool:jti:revoked:*` · read-only `sahool:user:token_floor:*` | — | `services/sahool-platform/core/jwt_denylist.py:42` (URL choice) · `api/main.py:1158,1164` (builder, PING) · `core/jwt_denylist.py:29,79,82` (key, SETEX, EXISTS) · `api/routers/auth.py:131` (the platform's own logout writes the list) · `core/jwt_denylist.py:32,97` and `api/main.py:1199` (floor key, GET, check) |
-| `sahool-guardrails-engine` | `REDIS_GUARDRAILS_PASSWORD` | `REDIS_URL` · 0 | ping | — | — | connection-only: `redis>=5.0.0` in `requirements.txt:7`, no Python file imports it |
+| `sahool-guardrails-engine` | `REDIS_GUARDRAILS_PASSWORD` | `REDIS_URL` · 0 | ping exists · selector `(+get %R~sahool:user:token_floor:*)` | `sahool:jti:revoked:*` · read-only `sahool:user:token_floor:*` | — | S5: `shared/security/token_revocation.py` (URL choice, PING, EXISTS, floor GET) · `services/guardrails-engine/main.py` `_REVOCATION` and `_gr_verify`/`_gr_authn` (HIL approval rejects a revoked token) |
+| `sahool-supervisor-agent` | `REDIS_SUPERVISOR_PASSWORD` | `DENYLIST_REDIS_URL` · 0 | ping exists · selector `(+get %R~sahool:user:token_floor:*)` | `sahool:jti:revoked:*` · read-only `sahool:user:token_floor:*` | — | S5: `shared/security/token_revocation.py` · `services/supervisor-agent/main.py` `_get_current_user` |
+| `sahool-notification-agent-denylist` (service `sahool-notification-agent`) | `REDIS_NOTIFICATION_DENYLIST_PASSWORD` | `DENYLIST_REDIS_URL` · 0 | ping exists · selector `(+get %R~sahool:user:token_floor:*)` | `sahool:jti:revoked:*` · read-only `sahool:user:token_floor:*` | — | S5: `shared/security/token_revocation.py` · `agents/notification/agent.py` `_validate_ws_token` |
+| `sahool-sentinel-hub-mcp` | `REDIS_SENTINEL_HUB_MCP_PASSWORD` | `DENYLIST_REDIS_URL` · 0 | ping exists · selector `(+get %R~sahool:user:token_floor:*)` | `sahool:jti:revoked:*` · read-only `sahool:user:token_floor:*` | — | S5 (MCP): `shared/security/token_revocation.py` · `services/mcp_servers/shared/oauth_middleware.py` `_REVOCATION` and `require_not_revoked` (via `_authenticate_token`, module `sentinel_hub_server`) |
+| `sahool-weather-mcp` | `REDIS_WEATHER_MCP_PASSWORD` | `DENYLIST_REDIS_URL` · 0 | ping exists · selector `(+get %R~sahool:user:token_floor:*)` | `sahool:jti:revoked:*` · read-only `sahool:user:token_floor:*` | — | S5 (MCP): `shared/security/token_revocation.py` · `services/mcp_servers/shared/oauth_middleware.py` `_REVOCATION` and `require_not_revoked` (via `_authenticate_token`, module `weather_server`) |
+| `sahool-wofost-mcp` | `REDIS_WOFOST_MCP_PASSWORD` | `DENYLIST_REDIS_URL` · 0 | ping exists · selector `(+get %R~sahool:user:token_floor:*)` | `sahool:jti:revoked:*` · read-only `sahool:user:token_floor:*` | — | S5 (MCP): `shared/security/token_revocation.py` · `services/mcp_servers/shared/oauth_middleware.py` `_REVOCATION` and `require_not_revoked` (via `_authenticate_token`, module `wofost_server`) |
+| `sahool-market-mcp` | `REDIS_MARKET_MCP_PASSWORD` | `DENYLIST_REDIS_URL` · 0 | ping exists · selector `(+get %R~sahool:user:token_floor:*)` | `sahool:jti:revoked:*` · read-only `sahool:user:token_floor:*` | — | S5 (MCP): `shared/security/token_revocation.py` · `services/mcp_servers/shared/oauth_middleware.py` `_REVOCATION` and `require_not_revoked` (via `_authenticate_token`, module `market_server`) · `services/mcp_servers/market_server.py` `_get_current_user` (REST routes) |
 
 ## Where precision stops (stated, not hidden)
 
 - **`SCAN` is not key-scoped in Redis ACL.** Raster's job listing needs it, so raster can list key
   *names* of every key in its database (it cannot read them). No narrower rule exists.
-- **Connection-only users** (video-processor, actuator, notification-agent, guardrails-engine):
+- **Connection-only users** (video-processor, actuator, notification-agent's cache user):
   their compose environment carries a Redis URL, but their code builds no client. They get `PING`
   (plus `SELECT` for a non-zero db) and nothing else. The test fails if one of them starts building
   a Redis client, so its rules are derived then. Removing the URL altogether is a further step that
@@ -212,7 +218,8 @@ that are still on the shared password work again, and clients already switched k
 | `sahool-weather-service` | memory cache per process (`cache.py:33`) | the same |
 | `sahool-raster-service` / backfill worker | job store, STAC cache and batch claims fall back to process memory (`job_store.py:69-71`); jobs are not shared between processes; the eviction subscriber retries every 5 s | the same |
 | `sahool-telegram-bot` | FSM storage is created lazily (`main.py:265-266`), so every stateful handler fails at use; readiness only reports `redis_ok=false` | the same |
-| video-processor · actuator · notification-agent · guardrails-engine | nothing (no Redis command is issued) | nothing |
+| video-processor · actuator · notification-agent (cache user) | nothing (no Redis command is issued) | nothing |
+| guardrails-engine · supervisor-agent · notification-agent (denylist user) · the four MCP servers | refuses to start (S5, `shared/security/token_revocation.py` `build_revocation_store`, as the platform) | revocation check off |
 
 ## Deploy impact
 

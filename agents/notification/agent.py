@@ -39,6 +39,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from shared.fcm import fcm_push_active, send_push
 from shared.notification_consumers import SUBSCRIPTIONS, queue_name, validate_queue
 from shared.security.access_tokens import access_token_verification_key, verify_access_token
+from shared.security.token_revocation import build_revocation_store, token_is_revoked
 from shared.security.trusted_tenant import service_token_ok
 from shared.tracing import configure_tracing
 
@@ -822,8 +823,15 @@ manager = ConnectionManager(max_per_user=5)
 
 
 # ── WebSocket JWT Validation ─────────────────────────────────────
+# S5: إبطال auth (jti الخروج + أرضيّة «إبطال كلّ الجلسات») كالمنصّة — الإنتاج بلا Redis ⇒ رفض الإقلاع.
+_REVOCATION = build_revocation_store()
+
+
 def _validate_ws_token(token: str) -> dict:
-    return verify_access_token(token)
+    payload = verify_access_token(token)
+    if token_is_revoked(_REVOCATION, payload):
+        raise ValueError("Token revoked")
+    return payload
 
 
 async def _ws_receive_loop(websocket, verified_user_id: str):
@@ -873,7 +881,7 @@ async def ws_notifications(websocket: WebSocket):
     # W01: Full JWT validation (بعد القبول، لكن قبل تقديم أيّ أحداث — نُبقي على
     # خاصيّة "تحقّق قبل خدمة الأحداث").
     try:
-        payload = _validate_ws_token(ws_token)
+        payload = await asyncio.to_thread(_validate_ws_token, ws_token)  # Redis متزامن
         verified_user_id = payload["sub"]
         tenant_id = payload.get("tenant_id", "")
     except ValueError as e:

@@ -12,6 +12,7 @@ from typing import Any, Optional
 from urllib.parse import quote
 
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from fastapi.security import HTTPBearer
 from mcp_client import MCPClient
 from pydantic import BaseModel, Field
@@ -27,6 +28,7 @@ from tool_contracts import (
 )
 
 from shared.security.access_tokens import decode_access_token
+from shared.security.token_revocation import build_revocation_store, token_is_revoked
 
 # تسجيل منظّم موحّد (JSON) — طبقة التنسيق الحرجة تستحقّ رؤية كاملة.
 try:
@@ -55,6 +57,8 @@ app = FastAPI(title="SAHOOL Supervisor Agent", version="2026.1", lifespan=lifesp
 security = HTTPBearer(auto_error=False)
 # المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
 _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+# S5: إبطال auth (jti الخروج + أرضيّة «إبطال كلّ الجلسات») كالمنصّة — الإنتاج بلا Redis ⇒ رفض الإقلاع.
+_REVOCATION = build_revocation_store()
 
 # تحصين الإنتاج (fail-closed، تماثُل مع auth/المنصّة): RS256 إلزاميّ — HS256 سرّ متماثل
 # مشترَك لا يُنهي shared trust domain (أيّ خدمة تحمله تُزوّر توكناً). في الإنتاج بلا
@@ -185,6 +189,11 @@ async def _get_current_user(credentials: Optional = Depends(security)):
         # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
         if payload.get("iss") not in _ALLOWED_ISS:
             raise ValueError("Invalid token issuer")
+        # Redis متزامن ⇒ خارج حلقة الأحداث.
+        if _REVOCATION is not None and await run_in_threadpool(
+            token_is_revoked, _REVOCATION, payload
+        ):
+            raise ValueError("Token revoked")
         payload["_mcp_bearer"] = credentials.credentials
         return payload
     except Exception as e:

@@ -14,11 +14,13 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from shared.security.access_tokens import decode_access_token
+from shared.security.token_revocation import build_revocation_store, token_is_revoked
 
 _TENANT_RE = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
 # المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ توكن sahool الداخليّ (تدقيق B).
@@ -27,6 +29,10 @@ _TENANT_RE = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
 _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 security = HTTPBearer(auto_error=False)
+# S5 (MCP): إبطال auth (jti الخروج + أرضيّة «إبطال كلّ الجلسات» عند تغيير الدور) كالمنصّة حرفيّاً،
+# وإلّا بقي توكن مستخدمٍ مُبطَل/مُخفَّض يعمل على خوادم MCP الخمسة حتّى انقضائه.
+# الإنتاج بلا Redis ⇒ رفض الإقلاع؛ خطأ المخزن لكلّ فحص ⇒ fail-open (shared/security/token_revocation.py).
+_REVOCATION = build_revocation_store()
 
 
 def _validate_tenant_id(tenant_id: str) -> str:
@@ -112,7 +118,17 @@ def _authenticate_token(token: str, required_scope: str) -> dict:
     if required_scope not in scopes and "admin" not in scopes:
         raise HTTPException(status.HTTP_403_FORBIDDEN, f"Scope '{required_scope}' required")
     require_tenant(payload)
+    require_not_revoked(payload)
     return payload
+
+
+def require_not_revoked(payload: dict) -> None:
+    """401 for a token auth revoked (logout jti, or issued before the user's floor).
+
+    Redis is synchronous: async callers run this (or ``_authenticate_token``) in a threadpool.
+    """
+    if token_is_revoked(_REVOCATION, payload):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
 
 
 def idempotency_key(user: dict, request_id: str | None, name: str, arguments: dict) -> str | None:
@@ -189,7 +205,8 @@ class MCPPreAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         try:
             token = _bearer_from_header(request.headers.get("authorization"))
-            _authenticate_token(token, required_scope)
+            # Redis متزامن (فحص الإبطال) ⇒ خارج حلقة الأحداث.
+            await run_in_threadpool(_authenticate_token, token, required_scope)
         except HTTPException as exc:
             return JSONResponse(
                 status_code=exc.status_code,
@@ -205,6 +222,6 @@ def require_scope(required_scope: str):
     async def _check(credentials: HTTPAuthorizationCredentials | None = Depends(security)) -> dict:
         if not credentials:
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing token")
-        return _authenticate_token(credentials.credentials, required_scope)
+        return await run_in_threadpool(_authenticate_token, credentials.credentials, required_scope)
 
     return _check
