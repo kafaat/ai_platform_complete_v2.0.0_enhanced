@@ -1048,14 +1048,8 @@ async def field_pixel_value(
     acquired = layer.get("acquisition_date") or date
     base = {"field_id": field_id, "index": out_index, "date": acquired, "lat": lat, "lon": lon}
     if value is None:
-        return {
-            **base,
-            "value": None,
-            "valid": False,
-            "reason": "nodata_or_masked",
-            "confidence": 0.0,
-            "quality": "nodata",
-        }
+        nodata = {"value": None, "valid": False, "reason": "nodata_or_masked"}
+        return {**base, **nodata, "confidence": 0.0, "quality": "nodata"}
     quality = _pixel_quality(layer, float(value))
     return {
         **base,
