@@ -2875,7 +2875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29adbd53adfecedf22e7af390f7ced56d5b872c572c8b095bb4f17ccb7e2dbc5"
+          "content": "5fe9854dbc58c4d14cbc85aa1efa3468b6039a6c2e6230334a1cb2c9b67c51fd"
         }
       ],
       "name": "frontend/src/hooks/useAuth.test.ts",
@@ -2885,7 +2885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a6c0c81f9187d200d1330af99a66b21c69c452b87f845cdad7fe34e0c8f58c8"
+          "content": "25e06b43eacd7bfcb515ddca39428f0e15b9a442af6361ea1670181ac5730595"
         }
       ],
       "name": "frontend/src/hooks/useAuth.ts",
@@ -4675,7 +4675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b2b0066638f668c354a8e152f8fd3fbda006759ba58a0880c0b45ec575b8c013"
+          "content": "1232d348588b132f8b1a8124d912ebc1d653fa523df507d709d579c6b06be3df"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6965,7 +6965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "27db343898acd6e4f55c9eaebdd7277e68f74e25641a63ef8b612f0425681137"
+          "content": "0ff8a5f47cbc3800c3d93b51c437203c4b05fe31f34ef254d57c20ffe6b8e742"
         }
       ],
       "name": "frontend/src/services/api/auth.ts",
@@ -7205,7 +7205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ef12a0f1ff4e1ced63fca8dacad9522bdb154d879afeab447105da8a4257d76"
+          "content": "6b0c71b481a739bb5f23eeb0bdc8e83cfb4e95a1d0f15fb5ff25d2deedd8d00b"
         }
       ],
       "name": "frontend/src/services/api.test.ts",
@@ -16675,7 +16675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b10cb70bb799c5aaf439b10b26d6973e385a928ab0885d587531d5f466c5994d"
+          "content": "d3db6da13a53b8348e84dad02cc7b7a6dba67e5f98cee31f21ddda8ada56cc49"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -16685,7 +16685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "040bdd07848347f0813bf120a6aa802be66318d5a03317be7eb902bfcb99dd08"
+          "content": "f05bc8e64bc70ca0e38e70a557191ceee26a57e6e5a0ee40bad35ec5acb5bc57"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -16845,7 +16845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "96cdc048be33e8907dd3dcb9f15ab277265d7f5f7fc3892b47a6a7ef2be15b10"
+          "content": "8a03214401473ceb4e1ec6c271eede24cc5ff96cd95d43b1e1a0333837563d0e"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -17115,7 +17115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ab19275d281eb7fc9b2c3dd5373573fba1904df318cda1ef2d64c9296cc2079d"
+          "content": "50beaa40f2504f67b1744e93e129f9c8065f09196f408336c9ab5d7e0db2ab91"
         }
       ],
       "name": "services/auth/Dockerfile",
@@ -17145,7 +17145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "39287a5d550f28263f02559908f3ebff62e1278bac1eea8136cdbe3bf7a370ac"
+          "content": "6d72d50bd22b7d5ebea84bd7be7e0194b3c0ddeb133dc51c37871fbeb2e7757b"
         }
       ],
       "name": "services/auth/main.py",
@@ -17185,6 +17185,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3505f09efa3251b363a30f9ebf13f46102f45eda336f4781fdb8005245f0c14a"
+        }
+      ],
+      "name": "services/auth/password_hashing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7314852fbd5a83161d4974e73a31d7b330e7ef00c972c7b73a8f8eb89bf77a10"
         }
       ],
@@ -17195,7 +17205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "314abf7bafd500f279ea51c37f7a8018cd4df6957842bd68f87b2e583f6bb7e1"
+          "content": "3a360c36b5e5d3b2c2b57bef46050280c203d84c1495323e4c27f6be30c9a5c9"
         }
       ],
       "name": "services/auth/requirements.txt",
@@ -17235,7 +17245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3fe0e71e17fb50fec1e2e6bebbf51a6cd2fb14b58d2e8b7a5f09389ca6616668"
+          "content": "95a4d335e60551a4375226e70d36e613f2119cd66802f80edeed2135c744434b"
         }
       ],
       "name": "services/auth/routers/invitations.py",
@@ -17245,7 +17255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "277ea3029d100d41e9598c6e447c58a03aeefa561195b89338d04c72bb32cbb0"
+          "content": "31910d5abc456d4a5642411999bddc359dad0b57907029369d65ed9be5dac1bd"
         }
       ],
       "name": "services/auth/routers/mfa.py",
@@ -17265,7 +17275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20f24afd20e3c0c5d71e830156a1e8604c290fc8fe22edd01a45e63921369bf4"
+          "content": "b6973fc93232a5f841f5227570b498ebedc9513cef9f8e75a04cd3460988e4c6"
         }
       ],
       "name": "services/auth/routers/password_reset.py",
@@ -17275,7 +17285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ff7d57ed2228f4b9e01ae34743001fbd79031d1f8a86869616576d3509d0ad2"
+          "content": "fdd68f67d888cdf80d9891c9ea388ff46da511f764f9a8cfa9354468bd627ca2"
         }
       ],
       "name": "services/auth/routers/registration.py",
@@ -17295,7 +17305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fca48b7f63629d0f7a96527ad8ae15ab65644a4f8b07df83852532d0abfcb46c"
+          "content": "6ea1e619287082c8ec1cdd09290734bbbaf6c2d97e608dd13da08d36a231b9ce"
         }
       ],
       "name": "services/auth/routers/session.py",
@@ -17305,7 +17315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5547a15dd076f10e49f842317e4f1f74861929ef27746e2ffa94396ed8a3cf11"
+          "content": "6a82815d413f5396e4d9e4c1e19c8a3dfc94ab021330e85cc619de4776ef8770"
         }
       ],
       "name": "services/auth/routers/tenants.py",
@@ -19465,7 +19475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "928babeb1364ad03d319092a08028100ab9f55b355aa97420256dddddcdf889c"
+          "content": "d9ae6d8c3eb00c74e1d9f15a9eb577cbd3669fb1fc90c1cc40b34d65ad8ab28c"
         }
       ],
       "name": "services/local-ai-rag/main.py",
@@ -19545,7 +19555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a11fb0107e9ce31a196d293015cd71bd85d065dc6240c7eb15c29711a2e3a3d4"
+          "content": "fed055b9daef217d494a1ef2dd0c786b56fffd6bc0f2199aba6d0c887e093711"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -19585,7 +19595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "276843ffaf237ae55e8ec8db52f70d27a8fe8ecd48636efa57e1604b74042c2b"
+          "content": "0388d714ffb7e07ec7abf6d912fea08f1160fdbb973f2b516d0247e0a4bc711b"
         }
       ],
       "name": "services/mcp_servers/shared/oauth_middleware.py",
@@ -19955,7 +19965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a665aa4f246fc088c7b689674d3e169f6bb779db1a113ed6c2d061f42e48f121"
+          "content": "bd92f7e274dd2aa3839e56ffef88616ee497e602bb5086bcfde88a797d4db0f5"
         }
       ],
       "name": "services/rag-retrieval/main.py",
@@ -20125,7 +20135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e7d92c730d80733018dd0f9fd088af200ba3464b1e6068b804f49d7b40fbbb5f"
+          "content": "5a14af5df82d0a2468b4c7493505257fdc3181a4dacf9f7ceaa90c38d14d24d8"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -20265,7 +20275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25d045dd5e9dfd12aadb6d3c68116b63d7edac357b06009dbfa84f3d12d0ce87"
+          "content": "02e2408bc28e66a2d6ec3f68609070544d58a98a3db96a7149a55669a27a288a"
         }
       ],
       "name": "services/raster-service/layer_lookup.py",
@@ -20455,7 +20465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c1de0423c4b648c032447683687788c93a8baf7866b0fcaf6ae064513a09d65"
+          "content": "a8072431af7a31f3b608c8d316a7baa1ac72165fbe5fe8d41e7712c7a0ab9c5f"
         }
       ],
       "name": "services/raster-service/raster_field_runtime.py",
@@ -20715,7 +20725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d2f39ae5291f78768933b9fcd753063f768c49adcb8cc8658a0e2c185d2ef993"
+          "content": "4153fe33b9b077a517697a6ca99e4a0ff02d1fdf3e5c3e029d3d02d98e1633de"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -21319,6 +21329,16 @@
         }
       ],
       "name": "services/raster-service/test_field_change_alignment.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d9baf76adf7fcc84535202b5e6984950ac15cfe900a42afc61b5c74c095e95ff"
+        }
+      ],
+      "name": "services/raster-service/test_field_tenant_isolation_t10.py",
       "type": "file"
     },
     {
@@ -23645,7 +23665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76e9f1a25dc49a923f06a46d7e1822345f1798c3f2c1eee542b399d1325c61c0"
+          "content": "ebaf58f4cac8fb120515dc20914cc221a04ff0a7d97fae4dd25953f2ffe8f36a"
         }
       ],
       "name": "services/sahool-platform/api/field_models.py",
@@ -23935,7 +23955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6902176b794df284cd9c8988dc599515f21a760feaff0e03a7facc4f125ca404"
+          "content": "391bc6447a2b53395232a9b7890752960e92f01e490f11f8b1c181eac055fd49"
         }
       ],
       "name": "services/sahool-platform/api/idempotency.py",
@@ -24655,7 +24675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "af2aa28807ec3c9e4551e202f512f5a7b1f03b7de069fb430979f821897c4ead"
+          "content": "a07dc18d590c90d11c187c4ad8e615be90463d5bb2e0e10f683d17a89ef00250"
         }
       ],
       "name": "services/sahool-platform/api/raster_service_client.py",
@@ -24755,7 +24775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cda461e9cc985ee474a8ca76e390acf335b67c22fcd72bcd7b16761d9cf6bc1b"
+          "content": "9f45c32b9b0ba6a497ac5d4b44540c7612d2cfaed735138f0687c70d913061c4"
         }
       ],
       "name": "services/sahool-platform/api/routers/agro_intelligence.py",
@@ -24795,7 +24815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e2a0a523d8b719a62cd2eb162e5e9ab813d61b7102a3c15e3f54a987cbb02ae"
+          "content": "210691d8a23ba662244c71b89d9766856d663192c2bb13033ac35b9387a6fbbf"
         }
       ],
       "name": "services/sahool-platform/api/routers/alerts.py",
@@ -24955,7 +24975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b243294d22289cab81bb2a6cae34d6f18c6a037ae41a914598af12dbd327742a"
+          "content": "1b7c6e49d5a116e9afd65a2f2db608543600af1b58c8ed272978a57f2041c140"
         }
       ],
       "name": "services/sahool-platform/api/routers/compat_gateway.py",
@@ -25155,7 +25175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a160699cf467e01fbf54a8aa3fca033b386dedaaebbd7d3d321a6be0d0dd3a93"
+          "content": "c4f27758e14f1adf0c68fb69c0b268195390dc2397c8032848528f366b397009"
         }
       ],
       "name": "services/sahool-platform/api/routers/devices.py",
@@ -25185,7 +25205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7b55c2ae27b73c7c1275c5ef02b72090f28c46ab4397035da5dea645207da26e"
+          "content": "3fb32dd85a3524fa7b9cb4d264d71d2a38f5b3ea81880ad28d12f2ca95678f6f"
         }
       ],
       "name": "services/sahool-platform/api/routers/documents.py",
@@ -25225,7 +25245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "895d81152cca0e689d4d15224d6aae28408e8266712f8d446b1ae21c36249712"
+          "content": "5f399a64a57a7886c5afbf2fe4808f64e5d6a4361def64a55a4ff2c5c54a0f2a"
         }
       ],
       "name": "services/sahool-platform/api/routers/equipment.py",
@@ -25315,7 +25335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "055b8389a163e8c0835c6c36b4287b46a9fffd2557e29c7d7b221d1f98f08733"
+          "content": "2271c7a881cc439404245a5fb6a31bb664367299b817bb6053f25ee5f5f16d09"
         }
       ],
       "name": "services/sahool-platform/api/routers/farm_operations_ledger.py",
@@ -25325,7 +25345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f491f5a611dd6fa6962dbb54ef9222ebf06c2e7ba12e39091bd32430a1d95443"
+          "content": "723ab4449809ab6a25c0dcc0fae27a6161d2cc527eaa6a9c595145f52f06f2ef"
         }
       ],
       "name": "services/sahool-platform/api/routers/farms.py",
@@ -25455,7 +25475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f045551efbeba17b565b3740b618912b573dfceba40d96ee37d8b0352030687"
+          "content": "47cd8c1acb0a38d7a28bb7d9dc97dd3f55c56559f8b9baaa756a90b185067230"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -25525,7 +25545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "52ae23b9ba71e25735d35605c25b58c9264e37342807f1d2868d77c8aa250c9a"
+          "content": "324b710d43b198b42d95408c90b5596720b9ca92dcc12875dd3f8cae09d13823"
         }
       ],
       "name": "services/sahool-platform/api/routers/harvest_traceability.py",
@@ -25585,7 +25605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a4e1fcdcda05b66ce84a498932bd571b1c8e0925cca6098f9f1c66607de4550"
+          "content": "93dbf2b2622b0792da91cbbc5514579c03eb5fbd94b067cdc6c6137ae4d5e3d3"
         }
       ],
       "name": "services/sahool-platform/api/routers/inventory.py",
@@ -25605,7 +25625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aee7ce91e9591e2c5472e219652939adde285737b00e70dbc2d725dd18f65c9e"
+          "content": "1d6f5a450aaaed600ccfac59e579072223e526fac2a82641f4dec897af1d99f2"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation.py",
@@ -25735,7 +25755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "22dcc20e24c2a22cb4368c20741195ece489bc33d89a6c8b73b87140bac60d8f"
+          "content": "ca6e9933b3d894375e41c4b3b7b95f1b26db84386ad58787fe7c81f163c2d045"
         }
       ],
       "name": "services/sahool-platform/api/routers/master_data.py",
@@ -25825,7 +25845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "39b8cc7f4a7be75e8e22c1dbf8538f51975fd23c097e93a9b3c3193b060e0c71"
+          "content": "6359682f4c74cefd76926321651ef7429f23e649e22dfe6d1a53a2e3c72e1918"
         }
       ],
       "name": "services/sahool-platform/api/routers/onboarding.py",
@@ -26015,7 +26035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9738cf90b641d7280bcd076144f8f6d6436ecce2e1e01d2d610aa75939794ce2"
+          "content": "14a4e1a2a2e3a8f697f54a95d35ec0234cee1923be22b374489d428cd93f112a"
         }
       ],
       "name": "services/sahool-platform/api/routers/recommendations.py",
@@ -26225,7 +26245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "89ebeb78861ccd1ef7cec4ee07a465761f39895d4072f4a548d9ab2af1e2d7ac"
+          "content": "8f685e9f6f0bca73626998ba7c9764c750efbca5ac2b57e3bbc9a60644966bbd"
         }
       ],
       "name": "services/sahool-platform/api/routers/soil_sampling.py",
@@ -26235,7 +26255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "141b8312efa1289fe6b675ad46d4532092c6a34efdc23f3c74109b7ce5697293"
+          "content": "df1e89977251649fc198c23f351f0fa61d3abb00d8e9ed372fb4cd98630f0303"
         }
       ],
       "name": "services/sahool-platform/api/routers/sync.py",
@@ -26245,7 +26265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f50ecb6427bb7d86423fb2eb5c33b3403a57926345ebdc2d55c46ce20dd38441"
+          "content": "cecc68d7e4c42f3ba7ad910c029f82d3006df469189a90c53ff963c11909c2ab"
         }
       ],
       "name": "services/sahool-platform/api/routers/tasks.py",
@@ -33025,7 +33045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69138314fe8da3c7595ae47664a70c4cf22564a35d381815213d340350cfc1aa"
+          "content": "55628e380aa77408a6c0eba238b407d95ccbbc7ae18f9138e25a41b09c7eee66"
         }
       ],
       "name": "services/sahool-platform/tests/test_idempotency_server_contract.py",
@@ -34975,6 +34995,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3c8b88a725368841ef80032ab5e8e852e170c427beada2ed8d1ae7e579709b36"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_sync_op_permissions.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1467b7da759cb337bd2a4ad4fb378ebf08cb17aa631de428b6473117af64c9d6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_t4_raster_compat_proxy_auth.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "850192cd0bc94c68ad7c3ddd258f6f100298651cd7c0a3111dafff2145c39673"
         }
       ],
@@ -36485,7 +36525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "05b6de37305bb200f117e2ed91c76ca0430fc7c07a5ece289f56c250d760e1bc"
+          "content": "72a4e70610adcf02b4468037c1f520126d1b33f98f5a8dd36fc2f916551098e0"
         }
       ],
       "name": "services/supervisor-agent/router.py",
@@ -36695,7 +36735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e87cc3c95c4fd9fd1f8646cbf681701fd0bdeabf291a5798e6debcbbfbe147b1"
+          "content": "d3b57ef89fd7e1687de1091e0450d8972cdc6eca977fa088d3b33e485cee2745"
         }
       ],
       "name": "services/tts-service/critical_speech.py",
@@ -37285,7 +37325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "84d37896d791ab468b9936ac7ee99f54453a3ff55ebbcac39ebed698d0594bd5"
+          "content": "ff78c09125c65a7406b138a36bb1c1553b36f4162ec91e96d5a41a6eb9b97a02"
         }
       ],
       "name": "services/video-processor/main.py",
@@ -37375,7 +37415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd3ad6d86a3dd03586732234169424c060be1759ce2e0d3defde5dd742b7b2a8"
+          "content": "6997373350ac04c5acaf2da7edc4e12df3512c55c7a980d7f61cb63a270656ca"
         }
       ],
       "name": "services/video-processor/zlmedia_client.py",
@@ -39155,7 +39195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a268c48e0b4e45065d18f98217bf0c58d50f2609397a121d67a6ed39bde029d2"
+          "content": "cb2f711b1b0cacb2bb9497789df2b3317f318696361b411eaa4cfb38c84be7d2"
         }
       ],
       "name": "shared/logging_config.py",

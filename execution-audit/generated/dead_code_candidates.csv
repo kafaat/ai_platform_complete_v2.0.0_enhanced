@@ -13,7 +13,7 @@ high,raster-service,function,_clean_cache,services/raster-service/test_c7_latest
 high,raster-service,function,_clean_cache,services/raster-service/test_cdse_empty_raster_not_cached.py,70,0,review_before_delete,False
 high,raster-service,function,_clean_runtime_state,services/raster-service/test_job_truth_receipts_and_fencing.py,77,0,review_before_delete,False
 high,sahool-platform,function,_record_to_json,services/sahool-platform/api/routers/field_ai_context.py,60,0,review_before_delete,False
-high,sahool-platform,function,_conflict_changed_fields,services/sahool-platform/api/routers/fields.py,1191,0,review_before_delete,False
+high,sahool-platform,function,_conflict_changed_fields,services/sahool-platform/api/routers/fields.py,1193,0,review_before_delete,False
 high,sahool-platform,function,_facts_snapshot_hash,services/sahool-platform/api/routers/irrigation_mpc.py,190,0,review_before_delete,False
 high,sahool-platform,function,_source_current_state,services/sahool-platform/api/routers/irrigation_mpc.py,208,0,review_before_delete,False
 high,sahool-platform,function,_weather_tile_interpolation_payload,services/sahool-platform/api/routers/weather.py,425,0,review_before_delete,False
@@ -51,7 +51,7 @@ medium,agriai-engine,function,simulation_capability_report,services/agriai-engin
 medium,agriai-engine,function,teardown_module,services/agriai-engine/tests/test_production_readiness_truth.py,60,0,review_before_delete,False
 medium,ai-agronomist,class,ABTestingRuntime,services/ai_agronomist/ab_testing.py,1,0,review_before_delete,False
 medium,ai-agronomist,function,store_backend_name,services/ai_agronomist/agent_stores.py,210,0,review_before_delete,False
-medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,750,0,review_before_delete,False
+medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,787,0,review_before_delete,False
 medium,ai-agronomist,class,ChaosRuntime,services/ai_agronomist/chaos_runtime.py,1,0,review_before_delete,False
 medium,ai-agronomist,class,ComplianceValidator,services/ai_agronomist/compliance_validator.py,1,0,review_before_delete,False
 medium,ai-agronomist,class,DecisionMetrics,services/ai_agronomist/decision_metrics.py,1,0,review_before_delete,False
@@ -63,7 +63,7 @@ medium,ai-agronomist,function,tool_allowed,services/ai_agronomist/policy_envelop
 medium,ai-agronomist,function,build_provider_tools,services/ai_agronomist/provider_tooling.py,153,0,review_before_delete,False
 medium,ai-agronomist,function,extract_tool_calls,services/ai_agronomist/provider_tooling.py,182,0,review_before_delete,False
 medium,ai-agronomist,function,trace_decision,services/ai_agronomist/runtime_tracing.py,1,0,review_before_delete,False
-medium,auth,function,tenant_header_middleware,services/auth/main.py,424,0,review_before_delete,False
+medium,auth,function,tenant_header_middleware,services/auth/main.py,425,0,review_before_delete,False
 medium,auth,function,verify_recovery_code,services/auth/mfa_crypto.py,209,0,review_before_delete,False
 medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_before_delete,False
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,44,0,review_before_delete,False
@@ -172,12 +172,12 @@ medium,sahool-platform,function,fetch_synced_operations,services/sahool-platform
 medium,sahool-platform,function,validate_response,services/sahool-platform/api/onboarding.py,244,0,review_before_delete,False
 medium,sahool-platform,function,run_field_bootstrap_once,services/sahool-platform/api/onboarding.py,490,0,review_before_delete,False
 medium,sahool-platform,function,prescription_to_csv,services/sahool-platform/api/prescriptions.py,360,0,review_before_delete,False
-medium,sahool-platform,function,get_field_terrain,services/sahool-platform/api/raster_service_client.py,355,0,review_before_delete,False
+medium,sahool-platform,function,get_field_terrain,services/sahool-platform/api/raster_service_client.py,365,0,review_before_delete,False
 medium,sahool-platform,function,field_to_pdf_bytes,services/sahool-platform/api/reports.py,237,0,review_before_delete,False
-medium,sahool-platform,function,field_imagery_available_dates,services/sahool-platform/api/routers/fields.py,785,0,review_before_delete,False
-medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,821,0,review_before_delete,False
-medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2475,0,review_before_delete,False
-medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3766,0,review_before_delete,False
+medium,sahool-platform,function,field_imagery_available_dates,services/sahool-platform/api/routers/fields.py,787,0,review_before_delete,False
+medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,823,0,review_before_delete,False
+medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2481,0,review_before_delete,False
+medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3755,0,review_before_delete,False
 medium,sahool-platform,function,send_to_subscriber,services/sahool-platform/api/routers/notifications.py,316,0,review_before_delete,False
 medium,sahool-platform,function,irrigation_due_by_soil,services/sahool-platform/api/soil_water.py,91,0,review_before_delete,False
 medium,sahool-platform,function,generate_block_assignments,services/sahool-platform/api/trial_randomization.py,108,0,review_before_delete,False
@@ -621,7 +621,6 @@ medium,shared,function,init_redis,shared/helpers.py,49,0,review_before_delete,Fa
 medium,shared,function,close_redis,shared/helpers.py,67,0,review_before_delete,False
 medium,shared,function,init_nats,shared/helpers.py,78,0,review_before_delete,False
 medium,shared,function,close_nats,shared/helpers.py,94,0,review_before_delete,False
-medium,shared,function,require_tenant,shared/helpers.py,136,0,review_before_delete,False
 medium,shared,function,query_with_tenant,shared/helpers.py,144,0,review_before_delete,False
 medium,shared,function,execute_with_tenant,shared/helpers.py,149,0,review_before_delete,False
 medium,shared,function,validate_role,shared/helpers.py,159,0,review_before_delete,False
