@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "88ecc1279362862b274214c9a4af5568f72c3e1dcee48b190fed43614f4ec5d2",
+  "inventory_sha256": "4e535c8da5105f4fe7db3a8aa9a1754d6c37aef5e4e40902e5476cdc143e9338",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "e87381596184d1a9212cbea069f613a2a830e13bb10d2fd921478975abd3bddc"
+    "policy_sha256": "841b454c936aebeee80563f099668c5134db61f1060b25b8125fd876b71b3f07"
   },
   "routes": [
     {
@@ -74,7 +74,7 @@
     {
       "classification": "domain",
       "function": "release_geometry_lock",
-      "line": 665,
+      "line": 666,
       "method": "DELETE",
       "path": "/locks/{field_id}",
       "source": "api/routers/gis_cloud_native.py"
@@ -1386,7 +1386,7 @@
     {
       "classification": "domain",
       "function": "field_disease_risk_facade",
-      "line": 409,
+      "line": 428,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/disease-risk",
       "source": "api/routers/field_workspace_weather.py"
@@ -1394,7 +1394,7 @@
     {
       "classification": "domain",
       "function": "field_irrigation_advice_facade",
-      "line": 334,
+      "line": 353,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
       "source": "api/routers/field_workspace_weather.py"
@@ -2650,7 +2650,7 @@
     {
       "classification": "domain",
       "function": "mosaicjson",
-      "line": 515,
+      "line": 516,
       "method": "GET",
       "path": "/mosaicjson",
       "source": "api/routers/gis_cloud_native.py"
@@ -2658,7 +2658,7 @@
     {
       "classification": "domain",
       "function": "ogc_root",
-      "line": 298,
+      "line": 299,
       "method": "GET",
       "path": "/ogc",
       "source": "api/routers/gis_cloud_native.py"
@@ -2666,7 +2666,7 @@
     {
       "classification": "domain",
       "function": "get_ogc_collections",
-      "line": 312,
+      "line": 313,
       "method": "GET",
       "path": "/ogc/collections",
       "source": "api/routers/gis_cloud_native.py"
@@ -2674,7 +2674,7 @@
     {
       "classification": "domain",
       "function": "ogc_field_items",
-      "line": 319,
+      "line": 320,
       "method": "GET",
       "path": "/ogc/collections/fields/items",
       "source": "api/routers/gis_cloud_native.py"
@@ -2682,7 +2682,7 @@
     {
       "classification": "domain",
       "function": "ogc_conformance",
-      "line": 305,
+      "line": 306,
       "method": "GET",
       "path": "/ogc/conformance",
       "source": "api/routers/gis_cloud_native.py"
@@ -2690,7 +2690,7 @@
     {
       "classification": "domain",
       "function": "raster_tilejson",
-      "line": 534,
+      "line": 535,
       "method": "GET",
       "path": "/rasters/{raster_id}/tilejson.json",
       "source": "api/routers/gis_cloud_native.py"
@@ -2698,7 +2698,7 @@
     {
       "classification": "domain",
       "function": "raster_cog_tile",
-      "line": 560,
+      "line": 561,
       "method": "GET",
       "path": "/rasters/{raster_id}/tiles/{z}/{x}/{y}.png",
       "source": "api/routers/gis_cloud_native.py"
@@ -2722,7 +2722,7 @@
     {
       "classification": "domain",
       "function": "scene_processing_plan",
-      "line": 265,
+      "line": 266,
       "method": "GET",
       "path": "/scene-processing-plan",
       "source": "api/routers/gis_cloud_native.py"
@@ -2730,7 +2730,7 @@
     {
       "classification": "domain",
       "function": "scene_ranking",
-      "line": 248,
+      "line": 249,
       "method": "GET",
       "path": "/scene-ranking",
       "source": "api/routers/gis_cloud_native.py"
@@ -2746,7 +2746,7 @@
     {
       "classification": "domain",
       "function": "stac_root",
-      "line": 182,
+      "line": 183,
       "method": "GET",
       "path": "/stac",
       "source": "api/routers/gis_cloud_native.py"
@@ -2754,7 +2754,7 @@
     {
       "classification": "domain",
       "function": "list_stac_collections",
-      "line": 203,
+      "line": 204,
       "method": "GET",
       "path": "/stac/collections",
       "source": "api/routers/gis_cloud_native.py"
@@ -2762,7 +2762,7 @@
     {
       "classification": "domain",
       "function": "get_collection",
-      "line": 499,
+      "line": 500,
       "method": "GET",
       "path": "/stac/collections/{collection_id}",
       "source": "api/routers/gis_cloud_native.py"
@@ -2770,7 +2770,7 @@
     {
       "classification": "domain",
       "function": "stac_conformance",
-      "line": 189,
+      "line": 190,
       "method": "GET",
       "path": "/stac/conformance",
       "source": "api/routers/gis_cloud_native.py"
@@ -2778,7 +2778,7 @@
     {
       "classification": "domain",
       "function": "get_stac_queryables",
-      "line": 196,
+      "line": 197,
       "method": "GET",
       "path": "/stac/queryables",
       "source": "api/routers/gis_cloud_native.py"
@@ -2786,7 +2786,7 @@
     {
       "classification": "domain",
       "function": "stac_search",
-      "line": 478,
+      "line": 479,
       "method": "GET",
       "path": "/stac/search",
       "source": "api/routers/gis_cloud_native.py"
@@ -2794,7 +2794,7 @@
     {
       "classification": "domain",
       "function": "get_tile_cache_plan",
-      "line": 282,
+      "line": 283,
       "method": "GET",
       "path": "/tile-cache-plan",
       "source": "api/routers/gis_cloud_native.py"
@@ -2866,7 +2866,7 @@
     {
       "classification": "domain",
       "function": "plan_ai_boundary_extraction",
-      "line": 345,
+      "line": 346,
       "method": "POST",
       "path": "/ai-boundary/plan",
       "source": "api/routers/gis_cloud_native.py"
@@ -3578,7 +3578,7 @@
     {
       "classification": "domain",
       "function": "field_etc_dual",
-      "line": 246,
+      "line": 243,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/etc-dual",
       "source": "api/routers/etc_dual.py"
@@ -4258,7 +4258,7 @@
     {
       "classification": "domain",
       "function": "scenario_economics",
-      "line": 143,
+      "line": 144,
       "method": "POST",
       "path": "/api/v1/scenario/economics",
       "source": "api/routers/scenario.py"
@@ -4266,7 +4266,7 @@
     {
       "classification": "domain",
       "function": "scenario_planting_date",
-      "line": 236,
+      "line": 239,
       "method": "POST",
       "path": "/api/v1/scenario/planting-date",
       "source": "api/routers/scenario.py"
@@ -4274,7 +4274,7 @@
     {
       "classification": "domain",
       "function": "scenario_rainfall",
-      "line": 286,
+      "line": 289,
       "method": "POST",
       "path": "/api/v1/scenario/rainfall",
       "source": "api/routers/scenario.py"
@@ -4282,7 +4282,7 @@
     {
       "classification": "domain",
       "function": "scenario_temperature",
-      "line": 193,
+      "line": 194,
       "method": "POST",
       "path": "/api/v1/scenario/temperature",
       "source": "api/routers/scenario.py"
@@ -4290,7 +4290,7 @@
     {
       "classification": "domain",
       "function": "scenario_water_twin",
-      "line": 164,
+      "line": 165,
       "method": "POST",
       "path": "/api/v1/scenario/water-twin",
       "source": "api/routers/scenario.py"
@@ -4370,7 +4370,7 @@
     {
       "classification": "domain",
       "function": "compute_water_balance",
-      "line": 65,
+      "line": 66,
       "method": "POST",
       "path": "/api/v1/water-balance",
       "source": "api/routers/water_balance.py"
@@ -4474,7 +4474,7 @@
     {
       "classification": "domain",
       "function": "register_cog",
-      "line": 423,
+      "line": 424,
       "method": "POST",
       "path": "/cog-registry",
       "source": "api/routers/gis_cloud_native.py"
@@ -4570,7 +4570,7 @@
     {
       "classification": "domain",
       "function": "upsert_editing_session",
-      "line": 594,
+      "line": 595,
       "method": "POST",
       "path": "/editing-sessions",
       "source": "api/routers/gis_cloud_native.py"
@@ -4578,7 +4578,7 @@
     {
       "classification": "domain",
       "function": "editing_session_undo_redo",
-      "line": 363,
+      "line": 364,
       "method": "POST",
       "path": "/editing-sessions/undo-redo",
       "source": "api/routers/gis_cloud_native.py"
@@ -4666,7 +4666,7 @@
     {
       "classification": "domain",
       "function": "export_geoparquet",
-      "line": 683,
+      "line": 684,
       "method": "POST",
       "path": "/geoparquet/export",
       "source": "api/routers/gis_cloud_native.py"
@@ -4714,7 +4714,7 @@
     {
       "classification": "domain",
       "function": "acquire_geometry_lock",
-      "line": 629,
+      "line": 630,
       "method": "POST",
       "path": "/locks",
       "source": "api/routers/gis_cloud_native.py"
@@ -4722,7 +4722,7 @@
     {
       "classification": "domain",
       "function": "summarize_management_zones",
-      "line": 355,
+      "line": 356,
       "method": "POST",
       "path": "/management-zones/summary",
       "source": "api/routers/gis_cloud_native.py"
@@ -4850,7 +4850,7 @@
     {
       "classification": "domain",
       "function": "phase6_extract_boundary",
-      "line": 709,
+      "line": 710,
       "method": "POST",
       "path": "/phase6/boundaries/extract",
       "source": "api/routers/gis_cloud_native.py"
@@ -4858,7 +4858,7 @@
     {
       "classification": "domain",
       "function": "phase6_digital_twin_snapshot",
-      "line": 784,
+      "line": 785,
       "method": "POST",
       "path": "/phase6/digital-twin/snapshot",
       "source": "api/routers/gis_cloud_native.py"
@@ -4866,7 +4866,7 @@
     {
       "classification": "domain",
       "function": "phase6_generate_management_zones",
-      "line": 728,
+      "line": 729,
       "method": "POST",
       "path": "/phase6/management-zones/generate",
       "source": "api/routers/gis_cloud_native.py"
@@ -4874,7 +4874,7 @@
     {
       "classification": "domain",
       "function": "phase6_generate_prescription_map",
-      "line": 744,
+      "line": 745,
       "method": "POST",
       "path": "/phase6/prescriptions/generate",
       "source": "api/routers/gis_cloud_native.py"
@@ -4882,7 +4882,7 @@
     {
       "classification": "domain",
       "function": "phase6_profitability_map",
-      "line": 768,
+      "line": 769,
       "method": "POST",
       "path": "/phase6/profitability-map",
       "source": "api/routers/gis_cloud_native.py"
@@ -4890,7 +4890,7 @@
     {
       "classification": "domain",
       "function": "phase6_yield_stability",
-      "line": 760,
+      "line": 761,
       "method": "POST",
       "path": "/phase6/yield-stability",
       "source": "api/routers/gis_cloud_native.py"
@@ -5018,7 +5018,7 @@
     {
       "classification": "domain",
       "function": "stac_search_post",
-      "line": 218,
+      "line": 219,
       "method": "POST",
       "path": "/stac/search",
       "source": "api/routers/gis_cloud_native.py"
