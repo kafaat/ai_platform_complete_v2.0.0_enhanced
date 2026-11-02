@@ -1,5 +1,5 @@
 {
-  "edge_count": 902,
+  "edge_count": 906,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -1423,6 +1423,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/break_glass.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://break_glass_grants",
+      "to": "db://break_glass_grants",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_break_glass.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -4522,6 +4532,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_break_glass.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_gaps_v91.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -6742,6 +6762,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_break_glass.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://audit_log",
+      "to": "db://audit_log",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/phase_runtime_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -6753,6 +6783,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/break_glass.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://break_glass_grants",
+      "to": "db://break_glass_grants",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_break_glass.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9040,9 +9080,9 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 465,
+    "READS": 467,
     "ROUTES_TO": 72,
-    "WRITES": 315
+    "WRITES": 317
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -9057,8 +9097,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 781,
-      "resolved": 780,
+      "observed": 785,
+      "resolved": 784,
       "unresolved_component_paths": 0
     }
   }
