@@ -17,10 +17,14 @@ from decimal import Decimal
 import asyncpg
 import market_db_authz  # FIX(أمان): تفويض ملكيّة field/batch (fail-closed)
 from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.security import HTTPBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel, Field
-from shared.oauth_middleware import require_scope  # FIX(أمان): حارس نطاق لنقاط MCP
+from shared.oauth_middleware import (  # FIX(أمان): حارس نطاق لنقاط MCP
+    require_not_revoked,
+    require_scope,
+)
 
 from shared.security.access_tokens import decode_access_token
 
@@ -156,7 +160,10 @@ async def _get_current_user(request: Request):
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         raise HTTPException(401, "Bearer token required")
-    return verify_token(auth[7:])
+    user = verify_token(auth[7:])
+    # S5 (MCP): مسارات REST لا تمرّ بـ_authenticate_token ⇒ إبطال auth هنا صراحةً (Redis متزامن).
+    await run_in_threadpool(require_not_revoked, user)
+    return user
 
 
 def _require_market_write(user: dict) -> None:

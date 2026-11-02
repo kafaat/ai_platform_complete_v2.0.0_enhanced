@@ -442,6 +442,10 @@ services:
       --user sahool-guardrails-engine on ">${REDIS_GUARDRAILS_PASSWORD:?REDIS_GUARDRAILS_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
       --user sahool-supervisor-agent on ">${REDIS_SUPERVISOR_PASSWORD:?REDIS_SUPERVISOR_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
       --user sahool-notification-agent-denylist on ">${REDIS_NOTIFICATION_DENYLIST_PASSWORD:?REDIS_NOTIFICATION_DENYLIST_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
+      --user sahool-sentinel-hub-mcp on ">${REDIS_SENTINEL_HUB_MCP_PASSWORD:?REDIS_SENTINEL_HUB_MCP_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
+      --user sahool-weather-mcp on ">${REDIS_WEATHER_MCP_PASSWORD:?REDIS_WEATHER_MCP_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
+      --user sahool-wofost-mcp on ">${REDIS_WOFOST_MCP_PASSWORD:?REDIS_WOFOST_MCP_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
+      --user sahool-market-mcp on ">${REDIS_MARKET_MCP_PASSWORD:?REDIS_MARKET_MCP_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
     volumes:
     - redis-state-data:/data
     networks:
@@ -1133,6 +1137,11 @@ services:
       SAHOOL_ENV: ${SAHOOL_ENV:-development}
       SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
       MCP_SERVER_MODULE: sentinel_hub_server
+      # S5 (MCP): إبطال JWT من auth (jti + token_floor) على خادم الحالة — قراءةٌ فقط.
+      DENYLIST_REDIS_URL: redis://sahool-sentinel-hub-mcp:${REDIS_SENTINEL_HUB_MCP_PASSWORD:?REDIS_SENTINEL_HUB_MCP_PASSWORD required}@sahool-redis-state:6379/0
+    depends_on:
+      sahool-redis-state:
+        condition: service_healthy
     networks:
     - sahool-internal
     healthcheck:
@@ -1162,8 +1171,13 @@ services:
       SAHOOL_ENV: ${SAHOOL_ENV:-development}
       SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
       MCP_SERVER_MODULE: weather_server
+      # S5 (MCP): إبطال JWT من auth (jti + token_floor) على خادم الحالة — قراءةٌ فقط.
+      DENYLIST_REDIS_URL: redis://sahool-weather-mcp:${REDIS_WEATHER_MCP_PASSWORD:?REDIS_WEATHER_MCP_PASSWORD required}@sahool-redis-state:6379/0
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+    depends_on:
+      sahool-redis-state:
+        condition: service_healthy
     networks:
     - sahool-internal
     healthcheck:
@@ -1193,6 +1207,11 @@ services:
       SAHOOL_ENV: ${SAHOOL_ENV:-development}
       SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
       MCP_SERVER_MODULE: wofost_server
+      # S5 (MCP): إبطال JWT من auth (jti + token_floor) على خادم الحالة — قراءةٌ فقط.
+      DENYLIST_REDIS_URL: redis://sahool-wofost-mcp:${REDIS_WOFOST_MCP_PASSWORD:?REDIS_WOFOST_MCP_PASSWORD required}@sahool-redis-state:6379/0
+    depends_on:
+      sahool-redis-state:
+        condition: service_healthy
     networks:
     - sahool-internal
     healthcheck:
@@ -1225,11 +1244,15 @@ services:
       SAHOOL_ENV: ${SAHOOL_ENV:-development}
       SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
       MCP_SERVER_MODULE: market_server
+      # S5 (MCP): إبطال JWT من auth (jti + token_floor) على خادم الحالة — قراءةٌ فقط.
+      DENYLIST_REDIS_URL: redis://sahool-market-mcp:${REDIS_MARKET_MCP_PASSWORD:?REDIS_MARKET_MCP_PASSWORD required}@sahool-redis-state:6379/0
       ERP_BRIDGE_URL: http://sahool-erp-bridge:8126
       ODOO_BRIDGE_URL: http://sahool-erp-bridge:8126
       SAHOOL_API_URL: http://sahool-auth:8000
     depends_on:
       sahool-postgres:
+        condition: service_healthy
+      sahool-redis-state:
         condition: service_healthy
     volumes:
     - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro

@@ -1168,6 +1168,312 @@
               ]
             }
           ]
+        },
+        "sahool-sentinel-hub-mcp": {
+          "password_env": "REDIS_SENTINEL_HUB_MCP_PASSWORD",
+          "client_env": "DENYLIST_REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "note": "S5 (MCP, audit 2026-11-01): the MCP image (services/mcp_servers, module sentinel_hub_server.py) reads auth's revocation keys on the security-state server and rejects a token whose jti was revoked or that was issued before the user's floor, as the platform does (shared/security/token_revocation.py via shared/oauth_middleware.py). Read-only: EXISTS on the revoked-jti keys and a Redis 7 selector granting GET on the floor keys read-only (%R~); it writes neither. One user per MCP compose service (the image is shared, the user is not).",
+          "commands": [
+            "ping",
+            "exists"
+          ],
+          "keys": [
+            "sahool:jti:revoked:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 58,
+              "needle": "return (env.get(\"DENYLIST_REDIS_URL\") or \"\").strip() or env.get(\"REDIS_URL\", \"\")",
+              "why": "client env: DENYLIST_REDIS_URL, falling back to REDIS_URL (the platform's rule)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 84,
+              "needle": "client.ping()",
+              "why": "PING at startup (build_revocation_store)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 31,
+              "needle": "JTI_REVOKED_KEY = \"sahool:jti:revoked:{jti}\"",
+              "why": "key denylist (sahool-auth's naming)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 48,
+              "needle": "return bool(self._r.exists(JTI_REVOKED_KEY.format(jti=jti)))",
+              "why": "EXISTS"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 32,
+              "needle": "TOKEN_FLOOR_KEY = \"sahool:user:token_floor:{sub}\"",
+              "why": "key token floor (sahool-auth's naming)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 51,
+              "needle": "raw = self._r.get(TOKEN_FLOOR_KEY.format(sub=sub))",
+              "why": "GET, read-only (selector %R~)"
+            },
+            {
+              "path": "services/mcp_servers/shared/oauth_middleware.py",
+              "line": 35,
+              "needle": "_REVOCATION = build_revocation_store()",
+              "why": "the store is built at startup (the shared MCP auth module, imported by every MCP server)"
+            },
+            {
+              "path": "services/mcp_servers/shared/oauth_middleware.py",
+              "line": 113,
+              "needle": "if token_is_revoked(_REVOCATION, payload):",
+              "why": "require_not_revoked, called by _authenticate_token (require_scope and MCPPreAuthMiddleware) rejects a revoked token"
+            }
+          ],
+          "selectors": [
+            {
+              "commands": [
+                "get"
+              ],
+              "read_keys": [
+                "sahool:user:token_floor:*"
+              ]
+            }
+          ]
+        },
+        "sahool-weather-mcp": {
+          "password_env": "REDIS_WEATHER_MCP_PASSWORD",
+          "client_env": "DENYLIST_REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "note": "S5 (MCP, audit 2026-11-01): the MCP image (services/mcp_servers, module weather_server.py) reads auth's revocation keys on the security-state server and rejects a token whose jti was revoked or that was issued before the user's floor, as the platform does (shared/security/token_revocation.py via shared/oauth_middleware.py). Read-only: EXISTS on the revoked-jti keys and a Redis 7 selector granting GET on the floor keys read-only (%R~); it writes neither. One user per MCP compose service (the image is shared, the user is not).",
+          "commands": [
+            "ping",
+            "exists"
+          ],
+          "keys": [
+            "sahool:jti:revoked:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 58,
+              "needle": "return (env.get(\"DENYLIST_REDIS_URL\") or \"\").strip() or env.get(\"REDIS_URL\", \"\")",
+              "why": "client env: DENYLIST_REDIS_URL, falling back to REDIS_URL (the platform's rule)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 84,
+              "needle": "client.ping()",
+              "why": "PING at startup (build_revocation_store)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 31,
+              "needle": "JTI_REVOKED_KEY = \"sahool:jti:revoked:{jti}\"",
+              "why": "key denylist (sahool-auth's naming)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 48,
+              "needle": "return bool(self._r.exists(JTI_REVOKED_KEY.format(jti=jti)))",
+              "why": "EXISTS"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 32,
+              "needle": "TOKEN_FLOOR_KEY = \"sahool:user:token_floor:{sub}\"",
+              "why": "key token floor (sahool-auth's naming)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 51,
+              "needle": "raw = self._r.get(TOKEN_FLOOR_KEY.format(sub=sub))",
+              "why": "GET, read-only (selector %R~)"
+            },
+            {
+              "path": "services/mcp_servers/shared/oauth_middleware.py",
+              "line": 35,
+              "needle": "_REVOCATION = build_revocation_store()",
+              "why": "the store is built at startup (the shared MCP auth module, imported by every MCP server)"
+            },
+            {
+              "path": "services/mcp_servers/shared/oauth_middleware.py",
+              "line": 113,
+              "needle": "if token_is_revoked(_REVOCATION, payload):",
+              "why": "require_not_revoked, called by _authenticate_token (require_scope and MCPPreAuthMiddleware) rejects a revoked token"
+            }
+          ],
+          "selectors": [
+            {
+              "commands": [
+                "get"
+              ],
+              "read_keys": [
+                "sahool:user:token_floor:*"
+              ]
+            }
+          ]
+        },
+        "sahool-wofost-mcp": {
+          "password_env": "REDIS_WOFOST_MCP_PASSWORD",
+          "client_env": "DENYLIST_REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "note": "S5 (MCP, audit 2026-11-01): the MCP image (services/mcp_servers, module wofost_server.py) reads auth's revocation keys on the security-state server and rejects a token whose jti was revoked or that was issued before the user's floor, as the platform does (shared/security/token_revocation.py via shared/oauth_middleware.py). Read-only: EXISTS on the revoked-jti keys and a Redis 7 selector granting GET on the floor keys read-only (%R~); it writes neither. One user per MCP compose service (the image is shared, the user is not).",
+          "commands": [
+            "ping",
+            "exists"
+          ],
+          "keys": [
+            "sahool:jti:revoked:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 58,
+              "needle": "return (env.get(\"DENYLIST_REDIS_URL\") or \"\").strip() or env.get(\"REDIS_URL\", \"\")",
+              "why": "client env: DENYLIST_REDIS_URL, falling back to REDIS_URL (the platform's rule)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 84,
+              "needle": "client.ping()",
+              "why": "PING at startup (build_revocation_store)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 31,
+              "needle": "JTI_REVOKED_KEY = \"sahool:jti:revoked:{jti}\"",
+              "why": "key denylist (sahool-auth's naming)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 48,
+              "needle": "return bool(self._r.exists(JTI_REVOKED_KEY.format(jti=jti)))",
+              "why": "EXISTS"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 32,
+              "needle": "TOKEN_FLOOR_KEY = \"sahool:user:token_floor:{sub}\"",
+              "why": "key token floor (sahool-auth's naming)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 51,
+              "needle": "raw = self._r.get(TOKEN_FLOOR_KEY.format(sub=sub))",
+              "why": "GET, read-only (selector %R~)"
+            },
+            {
+              "path": "services/mcp_servers/shared/oauth_middleware.py",
+              "line": 35,
+              "needle": "_REVOCATION = build_revocation_store()",
+              "why": "the store is built at startup (the shared MCP auth module, imported by every MCP server)"
+            },
+            {
+              "path": "services/mcp_servers/shared/oauth_middleware.py",
+              "line": 113,
+              "needle": "if token_is_revoked(_REVOCATION, payload):",
+              "why": "require_not_revoked, called by _authenticate_token (require_scope and MCPPreAuthMiddleware) rejects a revoked token"
+            }
+          ],
+          "selectors": [
+            {
+              "commands": [
+                "get"
+              ],
+              "read_keys": [
+                "sahool:user:token_floor:*"
+              ]
+            }
+          ]
+        },
+        "sahool-market-mcp": {
+          "password_env": "REDIS_MARKET_MCP_PASSWORD",
+          "client_env": "DENYLIST_REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "note": "S5 (MCP, audit 2026-11-01): the MCP image (services/mcp_servers, module market_server.py) reads auth's revocation keys on the security-state server and rejects a token whose jti was revoked or that was issued before the user's floor, as the platform does (shared/security/token_revocation.py via shared/oauth_middleware.py). Read-only: EXISTS on the revoked-jti keys and a Redis 7 selector granting GET on the floor keys read-only (%R~); it writes neither. One user per MCP compose service (the image is shared, the user is not).",
+          "commands": [
+            "ping",
+            "exists"
+          ],
+          "keys": [
+            "sahool:jti:revoked:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 58,
+              "needle": "return (env.get(\"DENYLIST_REDIS_URL\") or \"\").strip() or env.get(\"REDIS_URL\", \"\")",
+              "why": "client env: DENYLIST_REDIS_URL, falling back to REDIS_URL (the platform's rule)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 84,
+              "needle": "client.ping()",
+              "why": "PING at startup (build_revocation_store)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 31,
+              "needle": "JTI_REVOKED_KEY = \"sahool:jti:revoked:{jti}\"",
+              "why": "key denylist (sahool-auth's naming)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 48,
+              "needle": "return bool(self._r.exists(JTI_REVOKED_KEY.format(jti=jti)))",
+              "why": "EXISTS"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 32,
+              "needle": "TOKEN_FLOOR_KEY = \"sahool:user:token_floor:{sub}\"",
+              "why": "key token floor (sahool-auth's naming)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 51,
+              "needle": "raw = self._r.get(TOKEN_FLOOR_KEY.format(sub=sub))",
+              "why": "GET, read-only (selector %R~)"
+            },
+            {
+              "path": "services/mcp_servers/shared/oauth_middleware.py",
+              "line": 35,
+              "needle": "_REVOCATION = build_revocation_store()",
+              "why": "the store is built at startup (the shared MCP auth module, imported by every MCP server)"
+            },
+            {
+              "path": "services/mcp_servers/shared/oauth_middleware.py",
+              "line": 113,
+              "needle": "if token_is_revoked(_REVOCATION, payload):",
+              "why": "require_not_revoked, called by _authenticate_token (require_scope and MCPPreAuthMiddleware) rejects a revoked token"
+            },
+            {
+              "path": "services/mcp_servers/market_server.py",
+              "line": 165,
+              "needle": "await run_in_threadpool(require_not_revoked, user)",
+              "why": "market's REST routes (_get_current_user/verify_token) reject a revoked token"
+            }
+          ],
+          "selectors": [
+            {
+              "commands": [
+                "get"
+              ],
+              "read_keys": [
+                "sahool:user:token_floor:*"
+              ]
+            }
+          ]
         }
       }
     }
