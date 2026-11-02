@@ -1,7 +1,7 @@
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 asyncpg>=0.30.0,<0.32.0
-bcrypt>=4.1.0
+bcrypt==5.0.0  # S8: مُختبَر؛ الحدّ ٧٢ بايت يُفرَض في password_hashing.py (مستقلّ عن الإصدار)
 pyotp>=2.9.0  # TOTP (RFC 6238) للمصادقة الثنائيّة MFA
 cryptography>=44.0.0  # Fernet — تشفير سرّ MFA عند الراحة (V29.5)
 PyJWT[crypto]==2.15.0  # بديلُ python-jose (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01)؛ ==2.15.0 كالمنصّة (CVE-2026-101918)

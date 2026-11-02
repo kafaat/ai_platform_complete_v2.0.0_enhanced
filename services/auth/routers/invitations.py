@@ -166,9 +166,7 @@ async def accept_invitation(
         if not main.is_inviteable_role(inv["role"]):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "دور الدعوة غير مسموح")
 
-        hashed = main.bcrypt.hashpw(
-            req.password.encode(), main.bcrypt.gensalt(main.BCRYPT_ROUNDS)
-        ).decode()
+        hashed = main.hash_password(req.password, main.BCRYPT_ROUNDS)
         # المستخدِم الجديد ينضمّ لمستأجِر الداعي بدوره المدعوّ — كلاهما من صفّ الدعوة.
         try:
             new_user = await conn.fetchrow(

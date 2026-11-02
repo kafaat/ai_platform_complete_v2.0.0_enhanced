@@ -44,7 +44,9 @@ import {
   fetchHistoricalImageryBackfillStatus,
   isTerminalBackfillStatus,
   fieldCdseThumbnailUrl,
+  logout,
 } from './api';
+import { LOGOUT_TIMEOUT_MS } from './api/auth';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -241,5 +243,24 @@ describe('historical imagery backfill API', () => {
     expect(isTerminalBackfillStatus('completed_with_errors')).toBe(true);
     expect(isTerminalBackfillStatus('failed')).toBe(true);
     expect(isTerminalBackfillStatus('processing')).toBe(false);
+  });
+});
+
+// S7 — الخروج يُبطل الجلسة خادميّاً: التوكن صريحاً (التخزين يُمسَح قبل النداء)، والكوكي
+// مُرسَلاً (withCredentials) ليُمسَح، ومهلة قصيرة كي لا يُعلِّق الخروج.
+describe('logout (POST /auth/logout)', () => {
+  it('يُرسل التوكن صريحاً مع الكوكي وبمهلة قصيرة', async () => {
+    mockPost.mockResolvedValueOnce({ data: { message: 'ok' } });
+    await logout('tkn');
+    expect(mockPost).toHaveBeenCalledWith(
+      '/auth/logout',
+      {},
+      expect.objectContaining({
+        withCredentials: true,
+        timeout: LOGOUT_TIMEOUT_MS,
+        headers: { Authorization: 'Bearer tkn' },
+      }),
+    );
+    expect(LOGOUT_TIMEOUT_MS).toBeLessThan(15000); // أقصر من مهلة العميل الافتراضيّة
   });
 });

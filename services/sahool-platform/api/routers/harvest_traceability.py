@@ -27,6 +27,7 @@ from api.harvest_models import (
     _row_to_custody_event,
     _row_to_harvest_lot,
 )
+from api.idempotency import model_digest
 from api.main import (
     CommandStore,
     Permission,
@@ -127,6 +128,7 @@ async def create_harvest_lot(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"harvest_lot_id": lot_id},
+                    request_digest=model_digest(req),
                 )
             else:
                 result = await _work()
@@ -281,6 +283,7 @@ async def add_custody_event(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"harvest_lot_id": harvest_lot_id},
+                    request_digest=model_digest(req, harvest_lot_id),
                 )
             else:
                 result = await _work()

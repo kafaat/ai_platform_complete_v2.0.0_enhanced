@@ -16,7 +16,7 @@ god-module): نماذج Pydantic للحقل (ملخّص/تفاصيل/إنشاء/
 from __future__ import annotations
 
 import json as _json
-from typing import Literal
+from typing import ClassVar, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -144,6 +144,9 @@ class FieldUpdateRequest(BaseModel):
     تُحدَّث الأعمدة المُرسَلة فقط (الموجودة في الـpayload) — لا تُمسح غير المُرسَلة.
     التمييز بين «لم يُرسَل» و«أُرسِل null» عبر model_fields_set (انظر _build_field_update).
     """
+
+    # بصمة Idempotency-Key تُميّز «لم يُرسَل» عن «أُرسِل null» (api.idempotency.model_digest).
+    IDEMPOTENCY_DIGEST_PRESENCE: ClassVar[bool] = True
 
     # أساسيّة قابلة للتعديل (اسم/محصول الحقل) — تُمكّن زرّ «تعديل الحقل» من الحفظ.
     name: str | None = Field(default=None, min_length=1, max_length=100)
@@ -482,3 +485,22 @@ class FieldImageryProcessDateRequest(BaseModel):
     index: str
     scene_id: str
     geometry: dict | None = None
+
+
+# طلب تقييم انجراف الرشّ — نُقِل من routers/fields.py (راتشِت حجم الراوترات) كبقيّة نماذجه.
+class _SensitiveZone(BaseModel):
+    id: str | None = None
+    type: str | None = None
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
+
+
+class DriftRiskRequest(BaseModel):
+    """طلب تقييم انجراف الرشّ: مناطق حسّاسة يوفّرها العميل (لا تُخزَّن) + معاملات اختياريّة."""
+
+    sensitive_zones: list[_SensitiveZone] = Field(default_factory=list, max_length=200)
+    # تجاوز اتّجاه الريح (أرصاديّ)؛ None ⇒ يُشتقّ الاتّجاه السائد من السجلّ التاريخيّ في المسار.
+    wind_from_deg: float | None = Field(default=None, ge=0, le=360)
+    years: int = Field(default=3, ge=1, le=10)
+    max_distance_m: float = Field(default=200.0, gt=0, le=5000)
+    half_angle_deg: float = Field(default=30.0, gt=0, le=90)

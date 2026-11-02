@@ -26,12 +26,13 @@ from typing import Annotated, Literal
 from uuid import uuid4
 
 import asyncpg
-import bcrypt
+import bcrypt  # noqa: F401 — routers/session.py (S16 timing equaliser) يصل إليه عبر main.bcrypt
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from mfa_crypto import enforce_password_policy, resolve_sahool_env  # S16(a,d): سياسة/بيئة واحدة
+from password_hashing import NewPassword, hash_password, verify_password  # noqa: F401
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -474,7 +475,7 @@ def can_invite(role: str | None) -> bool:
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
+    password: NewPassword
     full_name: str = Field(min_length=2, max_length=100)
     # ملاحظة أمنيّة: لا حقل role هنا عمداً — العميل لا يختار دوره. التسجيل الذاتيّ
     # يُنشئ مستأجِراً معزولاً جديداً ويُسنِد 'owner' (مؤسِّس مستأجِره؛ انظر register).
@@ -506,7 +507,7 @@ class PasswordResetRequest(BaseModel):
 
 class PasswordResetConfirm(BaseModel):
     token: str
-    new_password: str = Field(min_length=8, max_length=128)
+    new_password: NewPassword
 
     @field_validator("new_password")
     @classmethod
@@ -516,7 +517,7 @@ class PasswordResetConfirm(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
-    new_password: str = Field(min_length=8, max_length=128)
+    new_password: NewPassword
 
     @field_validator("new_password")
     @classmethod
@@ -534,7 +535,7 @@ class InvitationCreateRequest(BaseModel):
 
 class InvitationAcceptRequest(BaseModel):
     token: str = Field(min_length=16, max_length=128)
-    password: str = Field(min_length=8, max_length=128)
+    password: NewPassword
     full_name: str = Field(min_length=2, max_length=100)
 
     @field_validator("password")
@@ -980,7 +981,7 @@ async def _ensure_admin_user():
     if not admin_pass:
         logger.warning("ADMIN_PASSWORD not set — admin login disabled")
         return
-    hashed = bcrypt.hashpw(admin_pass.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
+    hashed = hash_password(admin_pass, BCRYPT_ROUNDS)
     async with _acquire() as conn:
         # سياق admin مضبوط على مستوى المسبح (init) ⇒ WITH CHECK لسياسة user_self يمرّ.
         # حزام أمان: نُعيد ضبطه محليّاً للمعاملة أيضاً تحسّباً لأيّ RESET ALL على

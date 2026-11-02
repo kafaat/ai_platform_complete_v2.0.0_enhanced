@@ -32,6 +32,7 @@ from api.decision_sor_mode import (
     get_platform_decision_sor_mode,
 )
 from api.field_models import FieldRecommendationRequest
+from api.idempotency import model_digest
 from api.main import (
     CommandStore,
     OutcomeRecordRequest,
@@ -618,6 +619,7 @@ async def record_recommendation_outcome(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"field_id": req.field_id, "crop": req.crop},
+                    request_digest=model_digest(req),
                 )
             else:
                 result = await _work()

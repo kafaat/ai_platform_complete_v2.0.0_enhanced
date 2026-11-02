@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.idempotency import model_digest
 from api.main import (
     CommandStore,
     FarmCreateRequest,
@@ -91,6 +92,7 @@ async def create_farm(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"farm_id": farm_id, "name": req.name},
+                    request_digest=model_digest(req),
                 )
             else:
                 result = await _work()

@@ -52,13 +52,12 @@ async def login(req: main.LoginRequest, request: Request, response: Response):
 
     # S16(c): تحقّق bcrypt واحد **دائماً** — كان المستخدم المجهول/المعطَّل يتخطّاه فيُجيب
     # أسرع بـ~٢٥٠ms ويكشف وجود الحساب بالتوقيت. الآن تجزئة وهميّة بالكلفة نفسها والردّ نفسه.
+    # S8: verify_password يُعيد False (لا 500 من bcrypt ٥) لكلمة > ٧٢ بايت أو تجزئةٍ تالفة.
     stored = row["password_hash"] if row and row["active"] else None
-    if isinstance(stored, str):
-        stored = stored.encode()
-    password_ok = main.bcrypt.checkpw(
-        req.password.encode(), stored or _timing_equaliser_hash(main.BCRYPT_ROUNDS)
+    password_ok = main.verify_password(
+        req.password, stored or _timing_equaliser_hash(main.BCRYPT_ROUNDS)
     )
-    if not row or not row["active"] or not password_ok:
+    if not row or not row["active"] or not stored or not password_ok:
         await main.record_failed_login(
             req.email
         )  # ✅ track failed attempts (locks account internally)

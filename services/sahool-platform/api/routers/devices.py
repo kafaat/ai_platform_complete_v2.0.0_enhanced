@@ -23,6 +23,7 @@ from api.device_models import (
     DeviceRequest,
     TelemetryRequest,
 )
+from api.idempotency import model_digest
 from api.main import (
     CommandStore,
     Permission,
@@ -88,6 +89,7 @@ async def register_device(
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
                 payload={"device_id": device_id},
+                request_digest=model_digest(req),
             )
         else:
             result = await _work()

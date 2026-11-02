@@ -44,6 +44,8 @@ from raster_field_runtime import (
     SourceFormat,
     _backfill_date_range,
     _bbox_from_geojson,
+    _cdse_job_record,
+    _cdse_request_on_stored_field,
     _display_index,
     _field_layers,
     _grid_from_cog,
@@ -825,6 +827,7 @@ async def process_cdse(
     ``available=false`` (200، لا خطأ) كي يسقط المنسّق إلى Element84 بصمت — لا توقّف ولا تلفيق.
     """
     _require_service_token(x_agent_token)
+    await _require_field_tenant(field_id)  # T10: ملكيّة الحقل قبل أيّ معالجة باسمه
     import cdse_client
     import imagery_source_gate
 
@@ -856,21 +859,10 @@ async def process_cdse(
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
     # P3-AUTH: ربط المهمّة بمستأجِرها (تُفرَض على /v1/jobs/{id}[/result])؛ رأس≠جسم ⇒ 403.
     owner = raster_security_context.job_owner_tenant(req.tenant_id)
+    # T10: الهندسة/المستأجر من سجلّ الحقل المخزّن لا من الجسم — تُقصّ الطبقات وتُنسَب لمالكها.
+    req = await _cdse_request_on_stored_field(field_id, req, owner)
     job_id = f"cdse_{uuid.uuid4().hex[:12]}"
-    job_record = {
-        "job_id": job_id,
-        "tenant_id": owner,
-        "status": JobStatus.pending,
-        "progress_pct": 0,
-        "created_at": datetime.now(UTC).isoformat(),
-        "indicators": list(req.indicators),
-        "provider": "cdse",
-    }
-    if gate_decision is not None:
-        # Bind the job to the exact activation generation it was authorized under (proof #4/#5):
-        # a later revoke/expiry bumps the generation, so the persisted evidence is non-repudiable.
-        job_record["gate"] = gate_decision.evidence()
-    _jobs.set(job_id, job_record)
+    _jobs.set(job_id, _cdse_job_record(job_id, owner, req, gate_decision))
     background_tasks.add_task(_run_cdse_processing, job_id, field_id, req)
     return {
         "provider": "cdse",
@@ -1096,6 +1088,7 @@ async def field_prescription(
     وتمر لاحقاً عبر Decision-Service قبل أي أثر تشغيلي.
     """
     _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
+    await _require_field_tenant(field_id)  # T10: التوكن يُثبت الخدمة لا المستأجر
     import management_zones as mz
 
     layer = await _resolve_field_layer(field_id, req.index, req.date)
@@ -1170,6 +1163,7 @@ async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: st
     وشبكتان غير متحاذيتين أو مرفوضتا الجودة ⇒ status=not_assessable (field_change_refusal).
     """
     _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
+    await _require_field_tenant(field_id)  # T10: التوكن يُثبت الخدمة لا المستأجر
     grid_a = await _real_field_grid(field_id, req.index, req.date_a, req.grid)
     grid_b = await _real_field_grid(field_id, req.index, req.date_b, req.grid)
 

@@ -6794,6 +6794,28 @@
     ]
   },
   {
+    "path": "services/raster-service/test_field_tenant_isolation_t10.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/raster-service/test_historical_backfill.py",
     "kind": "tests",
     "candidates": [
@@ -7757,6 +7779,31 @@
         "signals": [
           "content:crop season",
           "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/api/routers/compat_gateway.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 12,
+        "signals": [
+          "content:contour",
+          "content:hillshade",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
+        "capability_id": "SOIL-002",
+        "score": 9,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
         ]
       }
     ]

@@ -3515,6 +3515,7 @@
     },
     {
       "code_readers": [
+        "services/raster-service/db_persist.py",
         "services/raster-service/follow_up_runtime.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/seasons.py"
@@ -4775,7 +4776,8 @@
         "services/sahool-platform/tests/test_operations_summary_endpoint.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/irrigation.py"
+        "services/sahool-platform/api/routers/irrigation.py",
+        "services/sahool-platform/tests/test_idempotency_server_contract.py"
       ],
       "created_in": "v25_irrigation.sql",
       "has_tenant_id": true,

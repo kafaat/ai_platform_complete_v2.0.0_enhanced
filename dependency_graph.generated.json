@@ -1,5 +1,5 @@
 {
-  "edge_count": 907,
+  "edge_count": 909,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -82,7 +82,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/hooks/useManagerConsole.ts:274",
+      "evidence": "frontend/src/hooks/useAuth.ts:127",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -1109,6 +1109,16 @@
       "relation": "READS",
       "resource": "db://backfill_runs",
       "to": "db://backfill_runs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/db_persist.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_geometry_history",
+      "to": "db://field_geometry_history",
       "to_kind": "resource"
     },
     {
@@ -7862,6 +7872,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://irrigation_valves",
+      "to": "db://irrigation_valves",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -9090,9 +9110,9 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 468,
+    "READS": 469,
     "ROUTES_TO": 72,
-    "WRITES": 317
+    "WRITES": 318
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -9107,8 +9127,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 786,
-      "resolved": 785,
+      "observed": 788,
+      "resolved": 787,
       "unresolved_component_paths": 0
     }
   }

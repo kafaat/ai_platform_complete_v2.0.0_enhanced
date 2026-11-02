@@ -142,7 +142,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 768,
+          "line": 828,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/health",
@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 775,
+          "line": 780,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 221,
+          "line": 231,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -333,7 +333,7 @@
         },
         {
           "function": "healthz",
-          "line": 750,
+          "line": 810,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/healthz",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 775,
+          "line": 780,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -389,7 +389,7 @@
         },
         {
           "function": "healthz",
-          "line": 203,
+          "line": 217,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/healthz",
@@ -500,7 +500,7 @@
         },
         {
           "function": "metrics",
-          "line": 414,
+          "line": 426,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -548,7 +548,7 @@
         },
         {
           "function": "metrics",
-          "line": 208,
+          "line": 222,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/metrics",
@@ -635,7 +635,7 @@
         },
         {
           "function": "readyz",
-          "line": 433,
+          "line": 445,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -707,7 +707,7 @@
         },
         {
           "function": "readyz",
-          "line": 773,
+          "line": 833,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/readyz",
@@ -723,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 788,
+          "line": 793,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -763,7 +763,7 @@
         },
         {
           "function": "readyz",
-          "line": 258,
+          "line": 272,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/readyz",
@@ -874,7 +874,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 407,
+          "line": 408,
           "method": "GET",
           "module": "services/auth/main.py",
           "path": "/runtime-identity",
@@ -961,7 +961,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 621,
+          "line": 626,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -1000,7 +1000,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 706,
+          "line": 711,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1085,7 +1085,7 @@
       "registrations": [
         {
           "function": "ingest_endpoint",
-          "line": 695,
+          "line": 755,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/ingest",
@@ -1093,7 +1093,7 @@
         },
         {
           "function": "ingest",
-          "line": 292,
+          "line": 306,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1116,7 +1116,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 653,
+          "line": 658,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1155,7 +1155,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 477,
+          "line": 489,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1163,7 +1163,7 @@
         },
         {
           "function": "query_endpoint",
-          "line": 685,
+          "line": 745,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/query",
@@ -1186,7 +1186,7 @@
         },
         {
           "function": "recommend",
-          "line": 510,
+          "line": 522,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1117,
-  "route_inventory_sha256": "14d7be3912050c6406c46042656bde746fe4bf92c91fb8b4f609a88ca99261fa",
+  "route_inventory_sha256": "14d64d12ae4d80eb297de136e3a5b11a445f32fb76c4ab2255c6438b055fc401",
   "runtime_verified": false,
   "schema_version": 1
 }

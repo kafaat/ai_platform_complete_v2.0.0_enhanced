@@ -3900,6 +3900,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/auth/password_hashing.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/auth/railway.json",
     "kind": "backend"
   },
@@ -5116,10 +5120,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/field_models.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/field_portfolio.py",
     "kind": "backend"
   },
@@ -5417,10 +5417,6 @@
   },
   {
     "path": "services/sahool-platform/api/routers/commands.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/routers/compat_gateway.py",
     "kind": "backend"
   },
   {
@@ -7648,6 +7644,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_sync_op_permissions.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_task_irrigation_observations.py",
     "kind": "tests"
   },
@@ -8572,7 +8572,19 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_agronomist_approval_identity_t11.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_agronomist_field_id_path_s2.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_agronomist_main_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_agronomist_question_redaction_s11.py",
     "kind": "tests"
   },
   {
@@ -9748,6 +9760,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_market_rest_token_algorithm.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_master_data.py",
     "kind": "tests"
   },
@@ -10141,6 +10157,10 @@
   },
   {
     "path": "tests_v9/test_rag_direct_qdrant_boundary_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_document_metadata_sanitization.py",
     "kind": "tests"
   },
   {
@@ -10937,6 +10957,10 @@
   },
   {
     "path": "tests_v9/test_video_stream_inference_field_binding.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_video_zlm_secret_not_logged.py",
     "kind": "tests"
   },
   {

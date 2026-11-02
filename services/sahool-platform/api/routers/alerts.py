@@ -29,6 +29,7 @@ from api.alert_models import (
 
 # CommandStore تُستورَد مباشرةً من وحدتها الحقيقيّة (نفس الرمز الذي كان main يستورده).
 from api.command_store import CommandStore
+from api.idempotency import model_digest
 from api.main import (
     Permission,
     UserSchema,
@@ -191,6 +192,7 @@ async def create_alert(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"field_id": req.field_id, "alert_id": alert_id},
+                    request_digest=model_digest(req),
                 )
             else:
                 result = await _work()

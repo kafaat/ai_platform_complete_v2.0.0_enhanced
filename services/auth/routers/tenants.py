@@ -54,10 +54,7 @@ async def provision_tenant(
 
     # كلمة مرور أوّليّة عشوائيّة غير قابلة للاستعمال: يُهشَّر سرّ عشوائيّ لا يُكشَف
     # لأحد ⇒ لا يمكن تسجيل الدخول بها؛ المالك يضبط كلمته عبر رمز إعادة التعيين.
-    unusable = main.bcrypt.hashpw(
-        secrets.token_urlsafe(48).encode(), main.bcrypt.gensalt(main.BCRYPT_ROUNDS)
-    )
-    hashed = unusable.decode()
+    hashed = main.hash_password(secrets.token_urlsafe(48), main.BCRYPT_ROUNDS)  # ٦٤ بايت < ٧٢
 
     async with main._acquire() as conn:
         try:

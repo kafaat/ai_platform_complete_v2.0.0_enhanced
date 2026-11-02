@@ -71,9 +71,8 @@ async def confirm_password_reset(req: main.PasswordResetConfirm):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صالح أو منتهي")
 
     user_id = int(user_id_str)
-    hashed = main.bcrypt.hashpw(
-        req.new_password.encode(), main.bcrypt.gensalt(main.BCRYPT_ROUNDS)
-    ).decode()
+    # S8: التجزئة عبر password_hashing (حدّ ٧٢ بايت صريح)؛ S16(b): التخزين بعد استهلاكٍ ذرّيّ.
+    hashed = main.hash_password(req.new_password, main.BCRYPT_ROUNDS)
     await _store_password_hash(user_id, hashed)
     await main.revoke_all_user_sessions(user_id)  # إبطال كلّ الجلسات القائمة بعد إعادة التعيين
     await main.audit_log("password_reset_confirm", user_id, "system")

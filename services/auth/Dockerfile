@@ -36,6 +36,9 @@ COPY services/auth/session_tokens.py /app/session_tokens.py
 # address (AUTH-IP-RATE-LIMIT-KEYS-ON-THE-GATEWAY-ADDRESS-01). Missing it => those routers
 # (login, register, password reset, ...) are silently skipped by router_registry.
 COPY services/auth/client_address.py /app/client_address.py
+# password_hashing.py is imported by main.py (bcrypt 72-byte boundary, S8). Missing it =>
+# ModuleNotFoundError at boot.
+COPY services/auth/password_hashing.py /app/password_hashing.py
 
 # Immutable source identity: generated at image build, never overridden at runtime.
 ARG SAHOOL_GIT_SHA

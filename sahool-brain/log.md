@@ -10246,6 +10246,14 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **الإجراء:** تجديد الستّة إلى 2026-11-30 دون تغيير `reason` أو المالك ([`decisions/ledger.md`](decisions/ledger.md)).
 - **عائقٌ ثانٍ على #1320:** `no-report-only-change` صنّف التجديدَ «report-only». سُجِّل وأُصلِح في الشريحة نفسها: `EXPIRED-AUTHORITY-EXCEPTION-RENEWAL-UNLANDABLE-01` ([`gaps/registry.md`](gaps/registry.md)).
 
+### 2026-11-01 — معالجة التدقيق: الأمن وعزل المستأجرين (فرق 02–08، 10، 19أ، وS15)
+
+- **المصدر:** تدقيق `main@cc0d2e295`؛ cherry-pick على `main@aaa1b7f0a`.
+- **T4** `/api/raster/{path}`: يتطلّب JWT، allowlist كاملة المطابقة لمسارات القراءة، ولا يُرفق رمز الخدمة. **T10** raster: `_require_field_tenant` على process-cdse/prescription/change، والهندسة من القاعدة، وطبقات الذاكرة مفلترة بالمستأجر.
+- **T5** `/api/v1/sync`: كلّ نوع عمليّة يتطلّب صلاحيّة مساره المباشر (field.update ⇐ FIELD_EDIT)؛ المرفوض لا يدخل الطابور. **T6** `_idempotent`: `request_digest` إلزاميّ عند كلّ 26 موضعاً؛ اختلاف الجسم ⇐ 409 `payload_mismatch`.
+- **T3** (سكربتا الإقلاع): REVOKE EXECUTE على دوالّ DEFINER الثلاث لـingest بعد المنح الشامل. **مسودّة v237** (T1/T2/T7/T8/T9) على فرع منفصل تنتظر تفويض GATE-01.
+- **S1** سوق MCP: RS256 فقط حين يُضبط المفتاح العامّ، ومستأجر إلزاميّ. **S2/T11/S11** المهندس الزراعيّ: `field_id` مُتحقَّق ومُرمَّز، هويّة التدقيق من الخادم، تنقيح السؤال. **S3/S4/S7** MFA وتسجيل الخروج. **S8** bcrypt==5.0.0 + رفض >72 بايت بـ422. **S9** سرّ ZLMediaKit خارج URL وفلتر تنقيح السجلّات. **S12/S14** TTS وبيانات PDF الوصفيّة. **S15** مطابقة نوايا خطّيّة.
+- **مؤجَّل بقرار:** S5 (إلغاء الرموز في guardrails/supervisor/notification) على فرع منفصل — يتطلّب `DENYLIST_REDIS_URL` على Railway قبل الدمج وإلّا ترفض الخدمات الإقلاع.
 ### 2026-11-01 — معالجة التدقيق: دقّة التوصية الزراعيّة والاعتماديّة (فرق 11–17)
 
 - **المصدر:** تدقيق الكود المصدريّ لـ`main@cc0d2e295` (20 مراجِعاً)، ثمّ 20 فريق إصلاح متوازياً؛ هذا الفرع يجمع فرق 11–17 بـcherry-pick على `main@aaa1b7f0a`.
@@ -10260,6 +10268,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 
 - **القياس (قراءة، GitHub `commits/{sha}/status`):** `cc0d2e295` ⇒ `failure` (15 حالة، الفاشلةُ الوحيدة `resourceful-commitment - ai_platform_complete_v2.0.0_enhanced`). `aaa1b7f0a` (#1320، أوّلُ التزامٍ على main بعد الحذف) ⇒ `success` (14 حالة كلّها ناجحة، ولا حالةَ للمشروع الشارد).
 - **الحالة:** **fixed** ([`gaps/registry.md`](gaps/registry.md)). وما زال المشروعُ الفارغ في مهلة الـ48 ساعة لدى Railway.
+- **تصحيح (2026-11-02):** أُخرِج **T3** (REVOKE بعد المنح الشامل في `migrations/apply_in_compose.sh`) من هذا الفرع إلى مسودّة العزل `claude/audit-draft-isolation-migrations-on-main-20261101`: السكربت يراقبه المهاجر على Railway، فدمجُه هنا كان سيعيد نشر المهاجر وتشغيله، ولم يأذن المالك. ولا أثر حيّ لـT3 إلّا مع v237.
 
 ### 2026-11-01 — تسجيلُ نتائج تدقيق الكود المصدريّ في سجلّ الفجوات
 

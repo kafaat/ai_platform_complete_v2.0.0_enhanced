@@ -19,6 +19,7 @@ from api.equipment_models import (
     EquipmentRequest,
     MaintenanceRequest,
 )
+from api.idempotency import model_digest
 from api.main import (
     CommandStore,
     Permission,
@@ -84,6 +85,7 @@ async def create_equipment(
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
                 payload={"equipment_id": equipment_id},
+                request_digest=model_digest(req),
             )
         else:
             result = await _work()
@@ -194,6 +196,7 @@ async def log_maintenance(
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
                 payload={"equipment_id": equipment_id, "maintenance_id": maintenance_id},
+                request_digest=model_digest(req, equipment_id),
             )
         else:
             result = await _work()
