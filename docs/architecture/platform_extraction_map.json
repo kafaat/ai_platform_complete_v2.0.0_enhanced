@@ -1056,7 +1056,7 @@
       "function": "revoke_break_glass",
       "method": "DELETE",
       "path": "/api/v1/admin/break-glass/{grant_id}",
-      "line": 357,
+      "line": 394,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/break_glass.py::DELETE /api/v1/admin/break-glass/{grant_id}::revoke_break_glass"
@@ -1066,7 +1066,7 @@
       "function": "break_glass_read_fields",
       "method": "GET",
       "path": "/api/v1/admin/break-glass/{token}/fields",
-      "line": 317,
+      "line": 354,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/break_glass.py::GET /api/v1/admin/break-glass/{token}/fields::break_glass_read_fields"
@@ -1076,7 +1076,7 @@
       "function": "request_break_glass",
       "method": "POST",
       "path": "/api/v1/admin/break-glass",
-      "line": 140,
+      "line": 167,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/break_glass.py::POST /api/v1/admin/break-glass::request_break_glass"

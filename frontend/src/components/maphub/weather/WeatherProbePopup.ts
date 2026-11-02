@@ -18,6 +18,7 @@ import {
   getWeatherOperationWindow,
   getWeatherProbe,
 } from '../../../services/api/weatherMap';
+import { escapeHtml } from '../../../lib/escapeHtml';
 
 // شكلُ صفٍّ واحدٍ في خطّة العمليات كما يقرؤه هذا العرضُ **فقط** — أضيقُ من الردّ
 // الكامل عمداً: نوعٌ يصف ما يُقرأ لا ما قد يصل، فلا يَعِد بحقلٍ لا يستعمله.
@@ -77,6 +78,53 @@ export function weatherActionErrorText(err: unknown, fallback: string): string |
   return detail || fallback;
 }
 
+// يبني HTML نافذة القراءة من أجوبة الخادم. Leaflet `setContent` يُسنِد إلى innerHTML،
+// فكلّ قيمة مُدرَجة تُهرَّب بـescapeHtml: نصّ الخادم (advice_ar/label_ar/alerts_ar/suitability…)
+// يُعرض نصّاً لا وسماً (S10). Every interpolated value is escaped — the sink is innerHTML.
+export function weatherProbeHtml(
+  data: WeatherProbeView,
+  windowData: WeatherWindowView | null,
+  planData: WeatherPlanView | null,
+  actionData: WeatherActionView | null,
+  selectedOperation: string,
+  fieldId?: string | null,
+): string {
+  const e = escapeHtml;
+  const s = data.sample || {};
+  const ops = data.operations || {};
+  const opLine = (name: string, ar: string) => {
+    const o = ops[name];
+    if (!o) return '';
+    return `<div><b>${ar}:</b> ${Math.round((o.score ?? 0) * 100)}% · ${e(o.suitability)}</div>`;
+  };
+  const best = windowData?.best;
+  const bestLine = best?.operation ? `<hr/><div><b>أفضل نافذة ${e(selectedOperation)}:</b> ${e(best.time)} · ${Math.round((best.operation.score ?? 0) * 100)}% · ${e(best.operation.suitability)}</div><div style="color:#475569">${e(windowData?.advice_ar ?? '')}</div>` : '';
+  // شكلُ صفٍّ واحدٍ في خطّة العمليات كما يقرؤه هذا العرضُ **فقط**. أضيقُ من الردّ
+  // الكامل عمداً، وكلُّ حقلٍ اختياريٌّ لأنّ العرضَ يقصّ كلَّ غيابٍ إلى «—» أصلاً.
+  const planOps: WeatherPlanOperation[] = Array.isArray(planData?.operations)
+    ? (planData.operations as WeatherPlanOperation[]).slice(0, 4)
+    : [];
+  const planLine = planOps.length ? `<hr/><div><b>خطة العمليات حسب الطقس</b></div>${planOps.map((item) => `<div style="display:flex;justify-content:space-between;gap:8px"><span>${e(item.label_ar ?? item.operation)}</span><b>${e(item.best?.time ?? '—')} · ${e(item.priority ?? 0)}%</b></div>`).join('')}${planData?.alerts_ar?.length ? `<div style="margin-top:5px;color:#b45309">${planData.alerts_ar.slice(0, 2).map(e).join(' · ')}</div>` : ''}` : '';
+  const draft = actionData?.task_draft;
+  const actionLine = draft ? `<hr/><div><b>تحويل القرار إلى مهمة</b></div><div style="font-size:12px;color:#475569">${e(draft.task_type)} · أولوية ${e(draft.priority)} · ${e(draft.recommended_date ?? '—')}</div><button type="button" data-create-weather-task="1" style="margin-top:7px;width:100%;border:0;border-radius:10px;background:#0f766e;color:white;font-weight:900;padding:8px 10px;cursor:pointer">إنشاء مهمة من أفضل نافذة</button><button type="button" data-save-weather-rec="1" style="margin-top:6px;width:100%;border:1px solid #94a3b8;border-radius:10px;background:white;color:#0f172a;font-weight:800;padding:7px 10px;cursor:pointer">حفظ كتوصية طقس</button>` : fieldId ? `<hr/><div style="color:#b45309">لا توجد مسودة مهمة موثوقة لهذه النقطة.</div>` : `<hr/><div style="color:#64748b">اختر حقلاً لتمكين إنشاء المهام من الطقس.</div>`;
+  return `<div dir="rtl" style="min-width:285px;font:13px/1.55 system-ui;color:#0f172a">
+    <b>قراءة طقس زراعية</b><br/>
+    الحرارة: <b>${e(s.temperature_2m_c ?? '—')}°م</b><br/>
+    الرياح: <b>${e(s.wind_speed_10m_kmh ?? '—')} كم/س</b> · اتجاه <b>${e(s.wind_direction_10m_deg ?? '—')}°</b><br/>
+    المطر: <b>${e(s.precipitation_mm ?? '—')} مم</b> · VPD: <b>${e(s.vapour_pressure_deficit_kpa ?? '—')} kPa</b><br/>
+    ET₀: <b>${e(s.et0_fao_evapotranspiration_mm ?? '—')} مم</b> · رطوبة التربة: <b>${e(s.soil_moisture_1_to_3cm_m3m3 ?? '—')}</b><hr/>
+    ${opLine('spraying', 'الرش')}
+    ${opLine('irrigation', 'الري')}
+    ${opLine('harvesting', 'الحصاد')}
+    ${opLine('sowing', 'البذار')}
+    ${bestLine}
+    ${planLine}
+    ${actionLine}
+    <hr/>
+    حالة البيانات: <b>${e(data.cache_state ?? 'live')}</b>${data.cache_age_s ? ` · عمرها ${e(data.cache_age_s)}ث` : ''}
+  </div>`;
+}
+
 export function registerWeatherProbePopup(
   map: L.Map,
   layer: WeatherLayerKey,
@@ -98,39 +146,7 @@ export function registerWeatherProbePopup(
       fieldId ? getWeatherActionRecommendation<WeatherActionView>(lat, lng, fieldId, model).catch(() => null) : Promise.resolve(null),
     ])
       .then(([data, windowData, planData, actionData]) => {
-        const s = data.sample || {};
-        const ops = data.operations || {};
-        const opLine = (name: string, ar: string) => {
-          const o = ops[name];
-          if (!o) return '';
-          return `<div><b>${ar}:</b> ${Math.round((o.score ?? 0) * 100)}% · ${o.suitability}</div>`;
-        };
-        const best = windowData?.best;
-        const bestLine = best?.operation ? `<hr/><div><b>أفضل نافذة ${selectedOperation}:</b> ${best.time} · ${Math.round((best.operation.score ?? 0) * 100)}% · ${best.operation.suitability}</div><div style="color:#475569">${windowData?.advice_ar ?? ''}</div>` : '';
-        // شكلُ صفٍّ واحدٍ في خطّة العمليات كما يقرؤه هذا العرضُ **فقط**. أضيقُ من الردّ
-        // الكامل عمداً، وكلُّ حقلٍ اختياريٌّ لأنّ العرضَ يقصّ كلَّ غيابٍ إلى «—» أصلاً.
-        const planOps: WeatherPlanOperation[] = Array.isArray(planData?.operations)
-          ? (planData.operations as WeatherPlanOperation[]).slice(0, 4)
-          : [];
-        const planLine = planOps.length ? `<hr/><div><b>خطة العمليات حسب الطقس</b></div>${planOps.map((item) => `<div style="display:flex;justify-content:space-between;gap:8px"><span>${item.label_ar ?? item.operation}</span><b>${item.best?.time ?? '—'} · ${item.priority ?? 0}%</b></div>`).join('')}${planData?.alerts_ar?.length ? `<div style="margin-top:5px;color:#b45309">${planData.alerts_ar.slice(0, 2).join(' · ')}</div>` : ''}` : '';
-        const draft = actionData?.task_draft;
-        const actionLine = draft ? `<hr/><div><b>تحويل القرار إلى مهمة</b></div><div style="font-size:12px;color:#475569">${draft.task_type} · أولوية ${draft.priority} · ${draft.recommended_date ?? '—'}</div><button type="button" data-create-weather-task="1" style="margin-top:7px;width:100%;border:0;border-radius:10px;background:#0f766e;color:white;font-weight:900;padding:8px 10px;cursor:pointer">إنشاء مهمة من أفضل نافذة</button><button type="button" data-save-weather-rec="1" style="margin-top:6px;width:100%;border:1px solid #94a3b8;border-radius:10px;background:white;color:#0f172a;font-weight:800;padding:7px 10px;cursor:pointer">حفظ كتوصية طقس</button>` : fieldId ? `<hr/><div style="color:#b45309">لا توجد مسودة مهمة موثوقة لهذه النقطة.</div>` : `<hr/><div style="color:#64748b">اختر حقلاً لتمكين إنشاء المهام من الطقس.</div>`;
-        popup.setContent(`<div dir="rtl" style="min-width:285px;font:13px/1.55 system-ui;color:#0f172a">
-          <b>قراءة طقس زراعية</b><br/>
-          الحرارة: <b>${s.temperature_2m_c ?? '—'}°م</b><br/>
-          الرياح: <b>${s.wind_speed_10m_kmh ?? '—'} كم/س</b> · اتجاه <b>${s.wind_direction_10m_deg ?? '—'}°</b><br/>
-          المطر: <b>${s.precipitation_mm ?? '—'} مم</b> · VPD: <b>${s.vapour_pressure_deficit_kpa ?? '—'} kPa</b><br/>
-          ET₀: <b>${s.et0_fao_evapotranspiration_mm ?? '—'} مم</b> · رطوبة التربة: <b>${s.soil_moisture_1_to_3cm_m3m3 ?? '—'}</b><hr/>
-          ${opLine('spraying', 'الرش')}
-          ${opLine('irrigation', 'الري')}
-          ${opLine('harvesting', 'الحصاد')}
-          ${opLine('sowing', 'البذار')}
-          ${bestLine}
-          ${planLine}
-          ${actionLine}
-          <hr/>
-          حالة البيانات: <b>${data.cache_state ?? 'live'}</b>${data.cache_age_s ? ` · عمرها ${data.cache_age_s}ث` : ''}
-        </div>`);
+        popup.setContent(weatherProbeHtml(data, windowData, planData, actionData, selectedOperation, fieldId));
         const el = popup.getElement();
         const createBtn = el?.querySelector<HTMLButtonElement>('button[data-create-weather-task]');
         const taskDraft = actionData?.task_draft;

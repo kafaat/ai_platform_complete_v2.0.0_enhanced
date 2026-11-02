@@ -19,18 +19,18 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "DELETE /v1/auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:196",
+        "DELETE /v1/auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:220",
         "GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:92",
         "GET /api/v1/tenant/config @ services/sahool-platform/api/routers/tenant.py:29",
         "GET /health @ services/auth/routers/ops.py:27",
         "GET /healthz @ services/auth/routers/ops.py:27",
         "GET /metrics @ services/auth/routers/ops.py:21",
         "GET /readyz @ services/auth/routers/ops.py:32",
-        "GET /runtime-identity @ services/auth/main.py:401",
+        "GET /runtime-identity @ services/auth/main.py:407",
         "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:768",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
-        "GET /v1/auth/invitations @ services/auth/routers/invitations.py:85",
-        "GET /v1/auth/me @ services/auth/routers/session.py:230",
+        "GET /v1/auth/invitations @ services/auth/routers/invitations.py:104",
+        "GET /v1/auth/me @ services/auth/routers/session.py:241",
         "GET /v1/auth/users @ services/auth/routers/users.py:23",
         "GET /v1/auth/verify @ services/auth/routers/email_verify.py:98",
         "GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:108",
@@ -40,16 +40,16 @@
         "POST /api/v1/auth/logout @ services/sahool-platform/api/routers/auth.py:106",
         "POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.py:138",
         "POST /v1/auth/change-password @ services/auth/routers/registration.py:75",
-        "POST /v1/auth/invitations @ services/auth/routers/invitations.py:26",
-        "POST /v1/auth/invitations/accept @ services/auth/routers/invitations.py:116",
-        "POST /v1/auth/login @ services/auth/routers/session.py:28",
-        "POST /v1/auth/logout @ services/auth/routers/session.py:185",
+        "POST /v1/auth/invitations @ services/auth/routers/invitations.py:45",
+        "POST /v1/auth/invitations/accept @ services/auth/routers/invitations.py:137",
+        "POST /v1/auth/login @ services/auth/routers/session.py:46",
+        "POST /v1/auth/logout @ services/auth/routers/session.py:196",
         "POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:74",
         "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:144",
         "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:21",
-        "POST /v1/auth/password-reset/confirm @ services/auth/routers/password_reset.py:42",
-        "POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:22",
-        "POST /v1/auth/refresh @ services/auth/routers/session.py:129",
+        "POST /v1/auth/password-reset/confirm @ services/auth/routers/password_reset.py:62",
+        "POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:43",
+        "POST /v1/auth/refresh @ services/auth/routers/session.py:140",
         "POST /v1/auth/register @ services/auth/routers/registration.py:20",
         "POST /v1/auth/tenants @ services/auth/routers/tenants.py:41",
         "POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:56",
@@ -98,9 +98,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:265",
-          "metric:sahool_auth_register_total@services/auth/main.py:266",
-          "metric:sahool_auth_resets_total@services/auth/main.py:267"
+          "metric:sahool_auth_logins_total@services/auth/main.py:271",
+          "metric:sahool_auth_register_total@services/auth/main.py:272",
+          "metric:sahool_auth_resets_total@services/auth/main.py:273"
         ],
         "traces": [],
         "receipts": [],
@@ -137,7 +137,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 39
+        "tests": 42
       }
     },
     {
@@ -299,7 +299,7 @@
         "DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1666",
         "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:666",
         "GET / @ services/field-management-service/main.py:273",
-        "GET /api/v1/admin/break-glass/{token}/fields @ services/sahool-platform/api/routers/break_glass.py:318",
+        "GET /api/v1/admin/break-glass/{token}/fields @ services/sahool-platform/api/routers/break_glass.py:355",
         "GET /api/v1/agro/kc-timeseries/{field_id} @ services/sahool-platform/api/routers/kc_timeseries.py:140",
         "GET /api/v1/agro/kc-timeseries/{field_id}/compare @ services/sahool-platform/api/routers/kc_timeseries.py:156",
         "GET /api/v1/analytics/costs/by-field @ services/sahool-platform/api/routers/analytics.py:57",
@@ -2107,7 +2107,7 @@
       },
       "evidence_truncated": {
         "apis": 63,
-        "tests": 138
+        "tests": 139
       }
     },
     {
@@ -4458,9 +4458,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:265",
-          "metric:sahool_auth_register_total@services/auth/main.py:266",
-          "metric:sahool_auth_resets_total@services/auth/main.py:267"
+          "metric:sahool_auth_logins_total@services/auth/main.py:271",
+          "metric:sahool_auth_register_total@services/auth/main.py:272",
+          "metric:sahool_auth_resets_total@services/auth/main.py:273"
         ],
         "traces": [],
         "receipts": [],
@@ -5472,9 +5472,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:265",
-          "metric:sahool_auth_register_total@services/auth/main.py:266",
-          "metric:sahool_auth_resets_total@services/auth/main.py:267"
+          "metric:sahool_auth_logins_total@services/auth/main.py:271",
+          "metric:sahool_auth_register_total@services/auth/main.py:272",
+          "metric:sahool_auth_resets_total@services/auth/main.py:273"
         ],
         "traces": [],
         "receipts": [],
@@ -5542,9 +5542,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:265",
-          "metric:sahool_auth_register_total@services/auth/main.py:266",
-          "metric:sahool_auth_resets_total@services/auth/main.py:267"
+          "metric:sahool_auth_logins_total@services/auth/main.py:271",
+          "metric:sahool_auth_register_total@services/auth/main.py:272",
+          "metric:sahool_auth_resets_total@services/auth/main.py:273"
         ],
         "traces": [],
         "receipts": [],
@@ -5611,6 +5611,7 @@
         "tests_v9/test_agent_audit_store_bounds.py",
         "tests_v9/test_ai_approval_audit_v55.py",
         "tests_v9/test_ai_provider_native_multiround_audit_v58.py",
+        "tests_v9/test_audit_r5_r6_reclaim_and_weather_resync.py",
         "tests_v9/test_calibration_audit_events.py",
         "tests_v9/test_calibration_audit_migration.py",
         "tests_v9/test_compose_security_audit.py",
@@ -5625,9 +5626,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:265",
-          "metric:sahool_auth_register_total@services/auth/main.py:266",
-          "metric:sahool_auth_resets_total@services/auth/main.py:267"
+          "metric:sahool_auth_logins_total@services/auth/main.py:271",
+          "metric:sahool_auth_register_total@services/auth/main.py:272",
+          "metric:sahool_auth_resets_total@services/auth/main.py:273"
         ],
         "traces": [],
         "receipts": [],
@@ -5655,7 +5656,7 @@
           "path": "services/sahool-platform/api/routers/security_audit.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=18, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=19, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5692,9 +5693,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:265",
-          "metric:sahool_auth_register_total@services/auth/main.py:266",
-          "metric:sahool_auth_resets_total@services/auth/main.py:267"
+          "metric:sahool_auth_logins_total@services/auth/main.py:271",
+          "metric:sahool_auth_register_total@services/auth/main.py:272",
+          "metric:sahool_auth_resets_total@services/auth/main.py:273"
         ],
         "traces": [],
         "receipts": [],
@@ -5823,9 +5824,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:265",
-          "metric:sahool_auth_register_total@services/auth/main.py:266",
-          "metric:sahool_auth_resets_total@services/auth/main.py:267"
+          "metric:sahool_auth_logins_total@services/auth/main.py:271",
+          "metric:sahool_auth_register_total@services/auth/main.py:272",
+          "metric:sahool_auth_resets_total@services/auth/main.py:273"
         ],
         "traces": [],
         "receipts": [],
