@@ -86,7 +86,7 @@ medium,raster-service,function,ai_models,services/raster-service/raster_scene_mo
 medium,raster-service,function,olmoearth_embedding_contract,services/raster-service/raster_scene_model.py,561,0,review_before_delete,False
 medium,raster-service,function,sources_by_type,services/raster-service/raster_scene_model.py,633,0,review_before_delete,False
 medium,raster-service,function,predict_ece,services/raster-service/salinity_calibration.py,114,0,review_before_delete,False
-medium,raster-service,function,classify_soil_texture,services/raster-service/soil_indices.py,95,0,review_before_delete,False
+medium,raster-service,function,classify_soil_texture,services/raster-service/soil_indices.py,120,0,review_before_delete,False
 medium,raster-service,function,encode_terrain_rgb,services/raster-service/terrain_source_registry.py,224,0,review_before_delete,False
 medium,raster-service,function,decode_terrain_rgb,services/raster-service/terrain_source_registry.py,234,0,review_before_delete,False
 medium,raster-service,function,terrain_rgb_metadata,services/raster-service/terrain_source_registry.py,239,0,review_before_delete,False
