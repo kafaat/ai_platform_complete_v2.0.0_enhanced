@@ -10359,3 +10359,8 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **القياس (قراءة):** `soilgrids_client.py:20-21` يثبّت REST مصدراً وحيداً، ولا WCS ولا نسخة محلّيّة في الخدمة. ودليل 2026-09-29 يثبت أنّ REST كان يجيب يومها، فالتعليق المعلن ليس انقطاعاً مقيساً. ومحاولة القياس من هذه الجلسة حُجبت بسياسة شبكتها (`403` على `CONNECT`)، فلم يُقَس WCS ولا REST اليوم.
 - **ما تغيّر:** صفٌّ جديد `SOILGRIDS-REST-OFFICIALLY-PAUSED-NO-ALTERNATE-PATH-01` (`open`، متوسّطة) في آخر [`gaps/registry.md`](gaps/registry.md)، يربط الفجوتين القائمتين عن المهلة وانعدام التغطية.
 - **ملاحظة توقيت (قِيست بالقراءة، لا فجوة):** يطلب موصّلا Open-Meteo `timezone=auto` (`connectors/openmeteo.py:319` و`weather-service/open_meteo.py:201`)، أي توقيت عدن (UTC+3). وNASA POWER اليوميّ بالتوقيت الشمسيّ المحلّيّ، وهو عند 44°ق نحو UTC+2:57. فحدود اليوم في المصدرين تتطابق تقريباً في اليمن. ويختلف الأمر لو طُلب Open-Meteo بتوقيت UTC.
+
+### 2026-11-02 — تصحيحٌ في صفّ `SOILGRIDS-REST-OFFICIALLY-PAUSED-NO-ALTERNATE-PATH-01` قبل دمجه
+
+- **الخطأ:** قال الصفّ إنّ WebDAV لا يصلح بديلاً لأنّه يحمل إصدار 2017 وحده. هذا خلطٌ بين خدمتين.
+- **الصحيح:** ISRIC توفّر خرائط SoilGrids 2.0 كاملةً بصيغة VRT في `files.isric.org/soilgrids/latest/data/`، مع ملفّ OVR ومجلّد بلاطات GeoTIFF، ونحو 5 غيغابايت للخريطة ([ISRIC — SoilGrids access](https://docs.isric.org/globaldata/soilgrids/SoilGrids_faqs_02.html)). أمّا خدمات إصدار 2017 فهي المتوقّفة. فمصدر النسخة المحلّيّة لنطاق اليمن متاح، وصار نصّ الصفّ يقول ذلك.
