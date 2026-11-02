@@ -26,7 +26,7 @@
       "web": 503
     },
     "unmapped_artifacts": 2771,
-    "ambiguous_artifacts": 502
+    "ambiguous_artifacts": 503
   },
   "capabilities": [
     {
@@ -31834,6 +31834,14 @@
             "content:MFA",
             "content:mfa"
           ]
+        },
+        {
+          "path": "tests_v9/test_lab_ci_certification_steps.py",
+          "score": 8,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
         }
       ],
       "governance": [
@@ -32083,7 +32091,7 @@
         "events": 4,
         "web": 7,
         "mobile": 7,
-        "tests": 23,
+        "tests": 24,
         "governance": 1,
         "other_evidence": 26
       },
@@ -64626,6 +64634,28 @@
           "signals": [
             "content:Irrigation recommendation",
             "content:irrigation recommendation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_lab_ci_certification_steps.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "capability_id": "SEC-004",
+          "score": 8,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
           ]
         }
       ]
