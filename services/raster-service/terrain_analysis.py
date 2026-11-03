@@ -65,7 +65,7 @@ def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
         with rasterio.open(dem_path) as src:
             # masked=True يحترم nodata من بيانات DEM الوصفيّة (مثل -32768/-9999): بدونه
             # يُعامَل الحارس كارتفاعٍ حقيقيّ (isfinite لا يمسكه) فيفسد الإحصاء ويخترع تدرّجاً.
-            dem = src.read(1, masked=True).filled(np.nan).astype("float32")
+            dem = src.read(1, masked=True).astype("float32").filled(np.nan)
     except rasterio.errors.RasterioIOError as e:
         return {"computed": False, "reason": f"تعذّر قراءة DEM: {type(e).__name__}"}
 
