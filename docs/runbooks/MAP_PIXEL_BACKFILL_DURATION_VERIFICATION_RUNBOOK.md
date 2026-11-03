@@ -123,7 +123,8 @@ curl -sS "${AUTH[@]}" "$BASE/api/raster/v1/fields/$FIELD_ID/tilejson?index=ndvi"
 
 ```bash
 # بلاطة فوق مركز الحقل عند تكبير 17 (~1.2م/بكسل شاشة، أي أنّ بكسل Sentinel-2 10م يظهر مربّعاً واضحاً)
-read LON LAT < <(jq -r '[.coordinates[0][] ] | (map(.[0])|add/length|tostring) + " " + (map(.[1])|add/length|tostring)' /tmp/field_geom.json)
+# الحلقة تكرّر رأسها الأوّل في آخرها (GeoJSON)، فيُستبعد الأخير حتّى لا يُحسَب مرّتين
+read LON LAT < <(jq -r '.coordinates[0][:-1] | (map(.[0])|add/length|tostring) + " " + (map(.[1])|add/length|tostring)' /tmp/field_geom.json)
 read Z X Y < <(python3 - "$LON" "$LAT" <<'PY'
 import math, sys
 lon, lat, z = float(sys.argv[1]), float(sys.argv[2]), 17
@@ -135,6 +136,7 @@ PY
 )
 curl -sS "${AUTH[@]}" -o /tmp/ndvi_tile.png -w "HTTP %{http_code} · %{content_type} · %{size_download} بايت\n" \
   "$BASE/api/raster/v1/fields/$FIELD_ID/tiles/$Z/$X/$Y.png?index=ndvi"
+# يحتاج Pillow: python3 -c 'import PIL' 2>/dev/null || python3 -m pip install --user pillow
 python3 - <<'PY'
 from PIL import Image
 im = Image.open("/tmp/ndvi_tile.png").convert("RGBA")

@@ -19,7 +19,9 @@ describe('MapHub historical imagery month buttons', () => {
   });
 
   it('disables the buttons only while busy or without a field geometry', () => {
-    const block = source.slice(source.indexOf('imagery-backfill-month-options'));
+    const at = source.indexOf('imagery-backfill-month-options');
+    expect(at).toBeGreaterThan(-1);
+    const block = source.slice(at);
     expect(block).toContain('disabled={historicalBackfillBusy || !selected?.geometry}');
   });
 
