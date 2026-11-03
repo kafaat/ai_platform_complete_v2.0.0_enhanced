@@ -29,7 +29,7 @@ RESULTS="$OUT/RESULTS.tsv"; : > "$RESULTS"
 fails=0
 
 q()  { psql -X -q -v ON_ERROR_STOP=1 -d "$1" "${@:2}"; }
-qa() { psql -X -At -v ON_ERROR_STOP=1 -d "$1" -c "$2"; }
+qa() { psql -X -q -At -v ON_ERROR_STOP=1 -d "$1" -c "$2"; }
 rec() {  # rec <id> <PASS|FAIL|INFO> <detail>
   printf '%s\t%s\t%s\n' "$1" "$2" "$3" | tee -a "$RESULTS"
   [ "$2" = FAIL ] && fails=$((fails + 1)); return 0
