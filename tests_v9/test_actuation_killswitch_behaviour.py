@@ -140,7 +140,8 @@ class _Trace:
         self.events.append(("killswitch", tenant_id, field_id, valve_id))
         return self.halts.get((field_id, valve_id), (False, None))
 
-    async def mqtt(self, device_id, command, payload):
+    async def mqtt(self, device_id, command, payload, **_wire):
+        # `_wire` = هويّة السلك (command_id، v238) — لا تمسّ ما يُقاس هنا (الترتيب والحجب).
         self.events.append(("mqtt", device_id, command))
         return True
 

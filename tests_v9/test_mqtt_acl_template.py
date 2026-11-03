@@ -75,6 +75,15 @@ def test_actuator_identity_covers_exactly_what_the_service_uses():
     assert not _allowed("sahool-actuator-service", "write", "sahool/t/f/telemetry/soil")
 
 
+def test_actuator_reads_device_acks_and_cannot_forge_them():
+    """v238: the ack listener's subscription is granted read-only; a forged ack needs write."""
+    src = (ROOT / "services/actuator-service/actuator_runtime.py").read_text(encoding="utf-8")
+    assert 'topic = "sahool/+/actuator/+/ack"' in src
+    assert _allowed("sahool-actuator-service", "read", "sahool/+/actuator/+/ack")
+    assert not _allowed("sahool-actuator-service", "write", "sahool/t/actuator/valve-1/ack")
+    assert not _allowed("sahool-video-processor", "write", "sahool/t/actuator/valve-1/ack")
+
+
 def test_video_identity_cannot_command_valves():
     assert _allowed("sahool-video-processor", "write", "sahool/tenant/t1/alerts/pest")
     assert _allowed("sahool-video-processor", "write", "sahool/video/stream/started")

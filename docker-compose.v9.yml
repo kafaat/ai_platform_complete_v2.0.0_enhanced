@@ -2018,6 +2018,8 @@ services:
       # وتوكن تسليم حتميّ (HMAC) يتيح إعادة إيصالٍ ضاع بعد إعادة تشغيل المستهلك.
       ACTUATOR_DEVICE_STALE_SECONDS: ${ACTUATOR_DEVICE_STALE_SECONDS:-900}
       ACTUATOR_DELIVERY_TOKEN_KEY: ${ACTUATOR_DELIVERY_TOKEN_KEY:-}
+      # v238: مهلة إقرار الجهاز (published ⇒ expired بعدها)، محصورة 5..3600 ثانية.
+      ACTUATOR_ACK_TIMEOUT_SECONDS: ${ACTUATOR_ACK_TIMEOUT_SECONDS:-120}
     depends_on:
       sahool-postgres:
         condition: service_healthy

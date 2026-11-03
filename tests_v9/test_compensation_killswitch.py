@@ -116,7 +116,7 @@ def wired(actuator, monkeypatch):
     sent: list[tuple[str, str]] = []
     logged: list[dict] = []
 
-    async def _send(device, command, payload):
+    async def _send(device, command, payload, **_wire):  # command_id (v238)
         sent.append((device, command))
         return True
 
