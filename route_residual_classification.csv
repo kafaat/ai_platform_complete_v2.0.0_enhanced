@@ -147,10 +147,10 @@ raster-tiler-service,services/raster-tiler-service/main.py,16,GET,/metrics,metri
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,39,GET,/healthz,healthz,health
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,44,GET,/readyz,readyz,readiness
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,109,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace,business_endpoint
-sam2-inference,services/sam2-inference/main.py,24,POST,/v1/predict,predict,business_endpoint
-sam2-inference,services/sam2-inference/main.py,106,GET,/healthz,healthz,health
-sam2-inference,services/sam2-inference/main.py,111,GET,/health,legacy_health,health
-sam2-inference,services/sam2-inference/main.py,116,GET,/readyz,readyz,readiness
+sam2-inference,services/sam2-inference/main.py,48,POST,/v1/predict,predict,business_endpoint
+sam2-inference,services/sam2-inference/main.py,125,GET,/healthz,healthz,health
+sam2-inference,services/sam2-inference/main.py,130,GET,/health,legacy_health,health
+sam2-inference,services/sam2-inference/main.py,135,GET,/readyz,readyz,readiness
 scout-ingest-service,services/scout-ingest-service/main.py,200,GET,/healthz,healthz,health
 scout-ingest-service,services/scout-ingest-service/main.py,205,GET,/readyz,readyz,readiness
 scout-ingest-service,services/scout-ingest-service/main.py,242,GET,/internal/scouting/external-observations,read_external_observations,internal_endpoint

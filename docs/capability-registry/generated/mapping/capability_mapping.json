@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6994,
+    "files_scanned": 6996,
     "files_by_kind": {
       "backend": 1266,
       "database": 289,
       "governance": 87,
       "mobile": 414,
       "other": 2137,
-      "tests": 2298,
+      "tests": 2300,
       "web": 503
     },
-    "unmapped_artifacts": 2777,
+    "unmapped_artifacts": 2779,
     "ambiguous_artifacts": 509
   },
   "capabilities": [
@@ -43535,6 +43535,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/HybridMonitor.staleTelemetry.test.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/src/sections/HybridMonitor.tsx",
       "kind": "web"
     },
@@ -52628,6 +52632,10 @@
     },
     {
       "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_telemetry_freshness.py",
       "kind": "tests"
     },
     {
