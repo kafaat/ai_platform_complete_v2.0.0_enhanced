@@ -10370,3 +10370,13 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
   - WaPOR v3: API بلا مفتاح، وAETI ليس ET0، والترخيص يُتحقَّق منه.
   - WorldCereal: يستبعد المحاصيل المعمّرة.
 - **ما لم يتغيّر:** حالة كلّ صفّ «مرشّح»، ما عدا NASA POWER المسجَّل أصلاً موصولاً للرياح في `core/weather_sources.py`.
+
+## 2026-11-03 — فتح GATE-01 على main بقرار المالك
+
+- **القرار:** المالك اختار «ارفع القيود وافتح الآن» (2026-11-03) بعد «لماذا لا تقوم بفتحها».
+- **الرقعة:** `claude/gate01-open-20261103` على `210f63827`: دمج `audit-draft-isolation-migrations-on-main-20261101` (`beeb9ff7a`) و`audit-draft-actuator-safety-on-main-20261101` (`690eeeb6f`) بلا تعارض، وانتقاء إصلاح ضبط سياق المستأجر داخل المعاملة.
+- **التفويض:** `GATE01-ADJ-2026-11-03-001` (ISSUED، أجله 2026-12-03، مرّةً واحدة) يربط بايتات ستّة مسارات مجمَّدة؛ `gate01_frozen_path_guard_ok` محلّيّاً.
+- **قراءة حيّة (قراءةً فقط، سجلّ نشر):** المُهاجر `cc732f4f`/`bdf9bd06` (2026-11-02): `apply_not_permitted` · `first_missing=v234` في البيئتين.
+- **الصفوف:** 13 `fixed` (5 عزل · 6 مشغّل · 2 سياق المستأجر)، و3 تبقى `open` بجزئها المتبقّي (`INVITATION-AUDIT-…` · `FIRMWARE-IGNORES-DURATION-…` · `MQTT-SHARED-ACCOUNT-…`).
+- **خارج الفتح:** S5 (خطر رفض الإقلاع في الإنتاج)، و`RLS-NULL-TENANT-ARM-POLICIES-OUTSIDE-V237-01`، وv228/claim-lease.
+
