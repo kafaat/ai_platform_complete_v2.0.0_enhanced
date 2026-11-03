@@ -615,5 +615,7 @@
 \i migrations/v237_tenant_isolation_hardening.sql
 \echo '═══ 235. v241_edge_idempotency_tenant_scoped.sql ═══'
 \i migrations/v241_edge_idempotency_tenant_scoped.sql
-\echo '═══ 236. v206_rls_final_hardening.sql ═══'
+\echo '═══ 236. v240_converge_first_pass_schema.sql ═══'
+\i migrations/v240_converge_first_pass_schema.sql
+\echo '═══ 237. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql
