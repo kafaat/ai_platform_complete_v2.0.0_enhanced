@@ -2098,6 +2098,7 @@ SAT-009,test,services/raster-service/test_indicator_values_integrity.py,3,applie
 SAT-009,test,services/raster-service/test_job_tenant_binding.py,3,applied
 SAT-009,test,services/raster-service/test_job_truth_receipts_and_fencing.py,3,applied
 SAT-009,test,services/raster-service/test_landsat_thermal_unique_contract.py,3,applied
+SAT-009,test,services/raster-service/test_masked_read_cast_before_fill.py,3,applied
 SAT-009,test,services/raster-service/test_ndvi_numeric_contract.py,3,applied
 SAT-009,test,services/raster-service/test_normalized_difference_validity.py,3,applied
 SAT-009,test,services/raster-service/test_object_store.py,3,applied

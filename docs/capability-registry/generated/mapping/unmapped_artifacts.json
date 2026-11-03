@@ -4660,6 +4660,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_masked_read_cast_before_fill.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_object_store.py",
     "kind": "tests"
   },

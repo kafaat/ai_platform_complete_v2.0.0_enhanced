@@ -6195,7 +6195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc9ad1843e1ba2475c59fc309a97e869a5f2c862b16cfa21f9845184e7ffd4bc"
+          "content": "f09df0e6fe751edc801c15ef3d93acf22320f1f322f042a6ac1ed5efd540c652"
         }
       ],
       "name": "frontend/src/sections/MapHubBackfillMonthButtons.static.test.ts",
@@ -21529,6 +21529,16 @@
         }
       ],
       "name": "services/raster-service/test_landsat_thermal_unique_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "14993f388e34f111595821f6a9deaa1a0351f1c7ee80718d0fa856fafafe00e1"
+        }
+      ],
+      "name": "services/raster-service/test_masked_read_cast_before_fill.py",
       "type": "file"
     },
     {
