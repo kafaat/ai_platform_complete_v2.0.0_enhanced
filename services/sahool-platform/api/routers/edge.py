@@ -14,7 +14,13 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.edge_models import EdgeSyncRequest
+from api.edge_models import (
+    PROVENANCE_RESULT_TYPES,
+    EdgeSyncRequest,
+    provenance_rows,
+    read_detection_provenance,
+    record_detection_provenance,
+)
 from api.main import UserSchema, _assert_field_in_tenant, get_current_user, tenant_connection
 
 router = APIRouter()
@@ -36,6 +42,13 @@ async def edge_sync_receive(
     يُعثَر عليه فيُرفَع 409 على حدثٍ صالح. v241 جعل الفهرسَ `(tenant_id, idempotency_key)`،
     والهدفُ هنا يطابقه — والإعادةُ المطابقة وحدها نجاحٌ idempotent."""
     import json as _json
+
+    # نسبُ الكشف (v239): يُتحقَّق منه **قبل** أيّ كتابة — كتلةُ نسبٍ مشوَّهة 422 لا صفٌّ نصفُ مُثبَت.
+    try:
+        provenance = provenance_rows(req.type, req.data)
+    except ValueError as exc:
+        raise HTTPException(422, f"detection_provenance_invalid:{exc}") from exc
+    stored_provenance: list[dict] | None = None
 
     async with tenant_connection(user) as conn:
         await _assert_field_in_tenant(conn, req.field_id)
@@ -75,9 +88,25 @@ async def edge_sync_receive(
                 or existing["occurred_at"] != req.occurred_at
             ):
                 raise HTTPException(409, "edge_idempotency_conflict")
-    # Only an identical, tenant-visible event counts as successful replay.
-    return {
+        else:
+            # المعاملةُ نفسُها: لا صفَّ كشفٍ مُخزَّناً بلا صفّ نسبه.
+            await record_detection_provenance(
+                conn,
+                tenant_id=str(user.tenant_id),
+                edge_result_id=row["id"],
+                rows=provenance,
+            )
+        if req.type in PROVENANCE_RESULT_TYPES:
+            stored_provenance = await read_detection_provenance(
+                conn, row["id"] if row else existing["id"]
+            )
+    receipt = {
         "status": "stored" if row else "duplicate_ignored",
         "id": row["id"] if row else existing["id"],
         "idempotency_key": req.idempotency_key,
     }
+    if stored_provenance is not None:
+        # قراءةُ النسب كما خُزِّن (RLS المستأجر)، في الإيصال وفي إعادة الإرسال المطابقة.
+        receipt["provenance"] = stored_provenance
+    # Only an identical, tenant-visible event counts as successful replay.
+    return receipt

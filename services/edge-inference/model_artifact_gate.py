@@ -85,6 +85,45 @@ def model_capability(
     }
 
 
+#: مخطّطُ سجلّ النسب الذي تقرؤه المنصّة (`services/sahool-platform/api/edge_models.py`). تغييرُ شكله
+#: يغيّر هذا الاسم لا معناه بصمت.
+DETECTION_PROVENANCE_SCHEMA = "sahool.detection-provenance/v1"
+
+
+def detection_provenance(
+    *,
+    model_id: str,
+    model_version: object,
+    capability: Mapping[str, object],
+    image_bytes: bytes,
+    threshold: float,
+) -> dict[str, object]:
+    """نسبُ الكشف: **أيُّ مصنوعةٍ وأيُّ صورةٍ وأيُّ عتبةٍ** أنتجت هذه النتيجة.
+
+    بصمةُ المصنوعة تُؤخَذ من **حكم البوّابة نفسه** (`actual_sha256` الذي طابق البصمةَ
+    المعتمدة) لا من متغيّر بيئة ولا من إعادة تجزئةٍ منفصلة — فما يُسجَّل هو ما فُحِص.
+    حكمٌ غيرُ مُتحقَّق يرفض هنا (لا نسبَ بلا هويّة). والمعايرةُ لا تُدّعى من الحافّة:
+    `calibrated` دائماً ``False``؛ المنصّة وحدها تقرّرها من سجلّ معايرة.
+    """
+    actual = capability.get("actual_sha256")
+    if not (
+        capability.get("active") is True
+        and capability.get("sha256_verified") is True
+        and isinstance(actual, str)
+        and _SHA256_HEX.match(actual)
+    ):
+        raise ValueError("model_artifact_not_verified")
+    return {
+        "schema": DETECTION_PROVENANCE_SCHEMA,
+        "model_id": model_id,
+        "model_version": str(model_version),
+        "artifact_sha256": actual,
+        "input_sha256": hashlib.sha256(image_bytes).hexdigest(),
+        "threshold": float(threshold),
+        "calibrated": False,
+    }
+
+
 def high_confidence_alert(detections: Sequence[Mapping[str, object]]) -> str | None:
     """تنبيهُ الكشف — **ملاحظةٌ لا علاج.**
 
