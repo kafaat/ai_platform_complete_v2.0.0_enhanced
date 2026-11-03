@@ -1660,6 +1660,14 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/sections/HybridMonitor.staleBadge.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/HybridMonitor.staleTelemetry.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/sections/HybridMonitor.tsx",
     "kind": "web"
   },
@@ -10761,6 +10769,10 @@
   },
   {
     "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_telemetry_freshness.py",
     "kind": "tests"
   },
   {

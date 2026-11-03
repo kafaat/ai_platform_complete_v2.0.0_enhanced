@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6998,
+    "files_scanned": 7001,
     "files_by_kind": {
       "backend": 1266,
       "database": 289,
       "governance": 87,
       "mobile": 414,
       "other": 2138,
-      "tests": 2301,
-      "web": 503
+      "tests": 2303,
+      "web": 504
     },
-    "unmapped_artifacts": 2780,
+    "unmapped_artifacts": 2783,
     "ambiguous_artifacts": 510
   },
   "capabilities": [
@@ -43547,6 +43547,14 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/sections/HybridMonitor.staleBadge.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/HybridMonitor.staleTelemetry.test.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/src/sections/HybridMonitor.tsx",
       "kind": "web"
     },
@@ -52648,6 +52656,10 @@
     },
     {
       "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_telemetry_freshness.py",
       "kind": "tests"
     },
     {

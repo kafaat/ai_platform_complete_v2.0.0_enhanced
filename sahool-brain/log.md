@@ -10380,6 +10380,24 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
   - WaPOR v3: API بلا مفتاح، وAETI ليس ET0، والترخيص يُتحقَّق منه.
   - WorldCereal: يستبعد المحاصيل المعمّرة.
 - **ما لم يتغيّر:** حالة كلّ صفّ «مرشّح»، ما عدا NASA POWER المسجَّل أصلاً موصولاً للرياح في `core/weather_sources.py`.
+
+### 2026-11-02 — تنفيذ أربعة بنود من مراجعة مشروع كشف أمراض المحاصيل الخارجيّ
+
+- **السياق:** بطلب المالك («قوم بتنفيذ البنود 3 و4 و5 و6 والدمج»). أربعة وكلاء متوازين طبّقوا أسئلة تحليلَين خارجيّين لمشروع `zhihui-nongye-plat` على كود سهول. كود المشروع نفسه لم يُبلَغ: شبكة الجلسة تحجب gitcc.com.
+- **ما تغيّر:** أربعة صفوف `fixed` في آخر [`gaps/registry.md`](gaps/registry.md):
+  - `TELEMETRY-READINGS-SHOWN-LIVE-WITHOUT-AGE-01`
+  - `MODEL-SCORE-LABELLED-CONFIDENCE-01`
+  - `BIG-SCREEN-SHOWS-RANDOM-AGRONOMIC-NUMBERS-01`
+  - `SAM2-PREDICT-BLOCKS-EVENT-LOOP-01`
+- **ما لم يُنفَّذ، ولماذا:**
+  - حالة تسليم المشغّلات وإقرار الجهاز (البند 1): `actuator_runtime.py` مسارٌ مجمَّد بـGATE-01، وتمسّه مسوّدات A1–A8 المحجوزة.
+  - تتبّع الكشوف بالموسم وبصمة الأوزان (البند 2): يحتاج هجرة.
+  - كلاهما لقرار المالك.
+- **الدليل:**
+  - جناح الواجهة كاملاً: 1667 ناجحاً، و`tsc` نظيف.
+  - `sam2-inference`: 80 ناجحاً.
+  - اختبارات الأجهزة والحافّة والإسناد: 61 + 65 ناجحاً.
+  - الاختباران الجديدان لـSAM2 يحمرّان على الكود القديم: الأوّل على `main`، والثاني بلا القفل.
 ### 2026-11-02 — تحقّق: المؤشّرات بالبكسل، والصور التاريخيّة قبل إنشاء الحقل، وأزرار المدد + دليل تحقّق قابل للنسخ
 
 - **بطلب المالك:** دليل تحقّق قابل للنسخ من الشاشة، والتحقّق من ثلاثة أمور. القياس قراءة كود واختبارات.
@@ -10399,3 +10417,10 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
   - هذه الثلاثة.
   - إصلاح Int16 (`RASTER-INTEGER-RASTER-MASKED-FILL-NAN-SWALLOWED-01`).
   - اقتطاع SoilGrids لليمن.
+
+## 2026-11-03 — PR #1334 merge-conflict resolution
+
+- Integrate `main` at `ba99b9ed` into branch head `13b2ea1`, preserving telemetry freshness, score wording, big-screen removal and threaded SAM2 inference alongside the raster and dashboard fixes from #1333.
+- Regenerate conflicted inventories, governance reports and release checksums from their combined inputs rather than choosing either stale generated version.
+- Telemetry and SAM2 regression tests: 86 passed. Gap statuses in [`gaps/registry.md`](gaps/registry.md) remain unchanged: integration is not live verification.
+- Source: PR #1334; base commit `ba99b9ed`; branch commit `13b2ea1`.

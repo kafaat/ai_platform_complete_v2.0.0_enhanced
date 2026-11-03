@@ -185,26 +185,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1fd890faf5abefe68152de6ef18de72e9e5a64cede8cf058d32eb74217a0201a"
-        }
-      ],
-      "name": "frontend/big-screen/index.html",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "1fd890faf5abefe68152de6ef18de72e9e5a64cede8cf058d32eb74217a0201a"
-        }
-      ],
-      "name": "frontend/big-screen/keep_bigscreen/index.html",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "93e6cdf8ec26244ffa7773786d3bdeced5420e68ec6fe0e2eeb37c4c9e0c513b"
         }
       ],
@@ -565,7 +545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6d9a7535348084238fb40e12e41da7de2004b860fb75d9a7a53baaecbe87cfe4"
+          "content": "d792f0d94fb34724f97c2084f8e3d5567b468b6fcebf8d4d40110100da1dca5a"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -1295,7 +1275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f22391e4d77673131c45fb6af19ef64dfef4e1105b4fadf0bf714dc921a775c7"
+          "content": "944ad01266a515f786a1caa661527774205a211b5faa071ec6ac20d352fc1c78"
         }
       ],
       "name": "frontend/src/components/fieldview/DiagnosticsCard.tsx",
@@ -5965,7 +5945,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "972cf3f87e31cfc1c2b58e43ed89149b8e896a18608ab6af4175efb17a116dcd"
+          "content": "ae1a99cde3ba49a1a3464e0d34c50523c5bf287e8e293cb31ba99964a712c599"
+        }
+      ],
+      "name": "frontend/src/sections/HybridMonitor.staleBadge.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2acf7870b4d3db048e9781c183eb56f5b4597fe921016906fbf21b76d82497a1"
+        }
+      ],
+      "name": "frontend/src/sections/HybridMonitor.staleTelemetry.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a16b7e5e3fd9d3e0210d65458899f2af5f0ae3c9fe6c14ce9ade3a7f0a791a4b"
         }
       ],
       "name": "frontend/src/sections/HybridMonitor.tsx",
@@ -7235,7 +7235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ec6f956b4e84c8fe9e93565b350dd1a73b032cb92f93c1c15f63ec6fb43423e"
+          "content": "a4c0d29601350e8716a8fbbe0436e242978ba8cb3037e6b2b2d763a487afd3ea"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -13605,7 +13605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c7f5a4df26ce55b601fcc9018f9548660e43236e31ecd62f0e28a98f5c966f6"
+          "content": "42059a541c41dd5a0386548da14edb2540409ddb9ea1f78fe55026101256532f"
         }
       ],
       "name": "mobile/sahool_app/lib/features/scouting/presentation/pest_detect_screen.dart",
@@ -15935,7 +15935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3345630d24a7e888198a7454f983b9dd9b6d9584a0875a3c67b86d6de9121bf1"
+          "content": "cf1fbfaeeda26e3427eaf549235e4fc6586c165a3de7b5261316f61ed4d076f2"
         }
       ],
       "name": "mobile/sahool_app/test/features/scouting/pest_detect_test.dart",
@@ -18685,7 +18685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f16021bd2397d9f370e84751d16d439d56cfb2b5399edd3ae9a368d031bcb398"
+          "content": "95ad878190f6079502f99f3c33c261baca10178484f1dc759b44afe5e424c13e"
         }
       ],
       "name": "services/edge-inference/model_artifact_gate.py",
@@ -23425,7 +23425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10bc30a47f2135ce3fe3be0bb0f5d3cca56318b7b14da39007026568600eb324"
+          "content": "fc90a457e77ba3dc8e03b84bf60dab5390d54650c78e9ad09118a1a55d6b773a"
         }
       ],
       "name": "services/sahool-platform/api/device_models.py",
@@ -25235,7 +25235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c4f27758e14f1adf0c68fb69c0b268195390dc2397c8032848528f366b397009"
+          "content": "90be284f454daa20e88ea0e394d3d31c1ebc4ffb5e2b0a349ec641a23c7b153d"
         }
       ],
       "name": "services/sahool-platform/api/routers/devices.py",
@@ -35845,7 +35845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "758cd72380257b034a9eaa843da264871d8d42b833923472f36eb7daeabb8615"
+          "content": "8502e20b320a3e343cc15cfb01ec4150254694fb6f0608e1290fe76166be59d7"
         }
       ],
       "name": "services/sam2-inference/main.py",
@@ -35875,7 +35875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f8de0bdc3d472515660edea8163f884ed87ed1042cd2fedadb10fff363e62a36"
+          "content": "8da07ecea53cebcd97a0c44aec6f766a1772a601bd590d798cabe8a4bef3624e"
         }
       ],
       "name": "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
