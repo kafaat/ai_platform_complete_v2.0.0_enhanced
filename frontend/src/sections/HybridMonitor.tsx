@@ -59,13 +59,19 @@ export const fmtAge = (sec?: number | null): string => {
   return `منذ ${Math.round(sec / 86400)} يوم`;
 };
 
+/** نصّ تلميح الشارة — النافذة من ``stale_after_sec`` الذي يعيده الخادم، لا رقمٌ مكتوب هنا. */
+export const staleTitle = (staleAfterSec?: number | null): string =>
+  staleAfterSec != null && staleAfterSec > 0
+    ? `تجاوز عمر القراءة نافذة الاتّصال (${Math.max(1, Math.round(staleAfterSec / 60))} دقيقة) — ليست قراءةً حيّة`
+    : 'تجاوز عمر القراءة نافذة الاتّصال — ليست قراءةً حيّة';
+
 /** شارة «قديمة» حين يعلّمها الخادم كذلك — فلا تُعرَض قراءةٌ قديمة كأنّها حيّة. */
-function StaleBadge({ p }: { p: TelemetryPoint }) {
+export function StaleBadge({ p }: { p: TelemetryPoint }) {
   if (!p.stale) return null;
   return (
     <span
       data-testid="telemetry-stale-badge"
-      title="تجاوز عمر القراءة نافذة الاتّصال (15 دقيقة) — ليست قراءةً حيّة"
+      title={staleTitle(p.stale_after_sec)}
       style={{ fontSize: 10, color: T.warn, border: `1px solid ${T.warn}`, borderRadius: 6, padding: '0 4px' }}
     >
       قديمة · {fmtAge(p.age_sec)}
