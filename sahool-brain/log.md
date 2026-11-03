@@ -10353,6 +10353,16 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **لماذا لا `fixed`:** السبب نفسه المسجَّل لـ#1322 (`brain_state_transition_guard` يرفض `fixed` في PR دماغيٍّ فقط).
 - **ما يبقى محجوزاً:** مسوّدتا GATE-01 (v237+T3، وA1–A8)، وS5 حتّى يُضبط `DENYLIST_REDIS_URL` على Railway.
 
+### 2026-11-02 — إصلاح: قراءة raster صحيح بـnodata في `raster-service` كانت تفشل بصمت
+
+- **كيف وُجد:** أثناء التحقّق من أنّ `raster-service` يقرأ نسخةً محلّيّة من SoilGrids (علاج `SOILGRIDS-REST-OFFICIALLY-PAUSED-NO-ALTERNATE-PATH-01`). ملفّات Homolosine Int16 بأسماء `{prop}_{depth}.tif` في `SOILGRIDS_DIR` أعادت `field-outside-source`.
+- **السبب (قِيس):** `src.read(..., masked=True).filled(np.nan)` على Int16 يرمي `TypeError: Cannot convert fill_value nan to dtype int16` (numpy 2.2.6)، ويبتلعه `except` في `read_field_window`.
+- **الإصلاح:** `.astype("float32").filled(np.nan)` في سبعة مواضع: `tile_render.py` ×4، و`soil_zones.py`، و`terrain_analysis.py`، و`terrain_render.py`. وهو مطابق النتيجة لمصادر float.
+- **الدليل:**
+  - ثلاثة اختبارات Int16 جديدة في `test_raster_crs_window.py`: حمراء قبل الإصلاح وخضراء بعده.
+  - جناح raster-service كاملاً: 1169 ناجحاً و2 متخطّيان.
+  - التحقّق نفسه بملفّات Homolosine المزيّفة يعيد ملخّصاً بثماني خصائص.
+- **ما تغيّر في [`gaps/registry.md`](gaps/registry.md):** صفّ `RASTER-INTEGER-RASTER-MASKED-FILL-NAN-SWALLOWED-01` بحالة `fixed`.
 ### 2026-11-02 — فجوةٌ جديدة: واجهة SoilGrids REST معلّقةٌ رسميّاً و`soil-service` بلا مسارٍ بديل
 
 - **المصدر:** مراجعة مقالات مصادر البيانات الزراعيّة، ومقارنة تحليلٍ خارجيٍّ لصقه المالك بالمستودع. صفحة الأسئلة عند ISRIC (آخر تحديث 2026-01-27) تعلن تعليق REST مؤقّتاً بلا موعد، وتوصي بـWCS للاقتطاع. وتوفّر كذلك خرائط SoilGrids 2.0 كاملةً بصيغة VRT عبر WebDAV في `files.isric.org/soilgrids/latest/data/` (ملفّ VRT وOVR ومجلّد بلاطات GeoTIFF، نحو 5 غيغابايت للخريطة؛ [دليل WebDAV](https://docs.isric.org/globaldata/soilgrids/WebDav.html))، فهي مصدرٌ مرشّح لنسخةٍ محلّيّة، وإصدارها وإتاحتها يُتحقَّق منهما عند التنزيل. والمتوقّفة هي خدمات إصدار 2017 وحدها.
@@ -10370,3 +10380,22 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
   - WaPOR v3: API بلا مفتاح، وAETI ليس ET0، والترخيص يُتحقَّق منه.
   - WorldCereal: يستبعد المحاصيل المعمّرة.
 - **ما لم يتغيّر:** حالة كلّ صفّ «مرشّح»، ما عدا NASA POWER المسجَّل أصلاً موصولاً للرياح في `core/weather_sources.py`.
+### 2026-11-02 — تحقّق: المؤشّرات بالبكسل، والصور التاريخيّة قبل إنشاء الحقل، وأزرار المدد + دليل تحقّق قابل للنسخ
+
+- **بطلب المالك:** دليل تحقّق قابل للنسخ من الشاشة، والتحقّق من ثلاثة أمور. القياس قراءة كود واختبارات.
+- **المؤشّرات بالبكسل — يعمل:**
+  - طبقة MapLibre تقرأ بلاطات `/v1/fields/{id}/tiles` (COG محفوظ) أو `/cdse-tiles` (حيّ مقصوص).
+  - الخادم يصيّرها بـ`Resampling.nearest` حتّى تكبير 20، فيبقى بكسل Sentinel-2 مربّعاً حادّاً.
+  - لكنّ قيمة البكسل لا تُعرَض بالنقر: `MAP-PIXEL-VALUE-ENDPOINT-NOT-EXPOSED-TO-UI-01` (`open`).
+- **الصور التاريخيّة قبل إنشاء الحقل — يعمل:**
+  - أزرار 3/6/12/24 شهراً ترسل `preset=custom` و`months`.
+  - النافذة تُحسب من اليوم للخلف (31×الأشهر) بلا قصٍّ عند `created_at` (`raster_date_geo.py:46-58`).
+  - اختبارٌ جديد يثبت أنّ 3 أشهر تبدأ قبل اليوم بنحو 93 يوماً.
+- **أزرار المدد:**
+  - في شاشة الأقمار: مفعّلة، وتُعطَّل فقط أثناء التجهيز أو لحقلٍ بلا هندسة، وثبّت ذلك اختبارٌ ساكن.
+  - مُحدِّد المدّة في لوحة المؤشّرات كان لا يغيّر شيئاً: `FRONTEND-HYBRID-INDEX-PERIOD-SELECTOR-INERT-01` (`fixed`).
+- **وتحقّقٌ جانبيّ:** كلّ مسارات raster التي تستدعيها الواجهة ضمن قائمة مسموحات البوّابة بعد #1324. فلا شاشة انكسرت بالقائمة.
+- **الدليل:** `docs/runbooks/MAP_PIXEL_BACKFILL_DURATION_VERIFICATION_RUNBOOK.md` يغطّي:
+  - هذه الثلاثة.
+  - إصلاح Int16 (`RASTER-INTEGER-RASTER-MASKED-FILL-NAN-SWALLOWED-01`).
+  - اقتطاع SoilGrids لليمن.

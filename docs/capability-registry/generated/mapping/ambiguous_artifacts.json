@@ -2627,6 +2627,28 @@
     ]
   },
   {
+    "path": "docs/runbooks/MAP_PIXEL_BACKFILL_DURATION_VERIFICATION_RUNBOOK.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 11,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md",
     "kind": "other",
     "candidates": [
