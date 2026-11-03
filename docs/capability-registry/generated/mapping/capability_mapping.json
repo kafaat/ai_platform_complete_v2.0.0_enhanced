@@ -15,7 +15,7 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6996,
+    "files_scanned": 6997,
     "files_by_kind": {
       "backend": 1266,
       "database": 289,
@@ -23,9 +23,9 @@
       "mobile": 414,
       "other": 2137,
       "tests": 2300,
-      "web": 503
+      "web": 504
     },
-    "unmapped_artifacts": 2779,
+    "unmapped_artifacts": 2780,
     "ambiguous_artifacts": 509
   },
   "capabilities": [
@@ -43532,6 +43532,10 @@
     },
     {
       "path": "frontend/src/sections/GovernancePage.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/HybridMonitor.staleBadge.test.tsx",
       "kind": "web"
     },
     {

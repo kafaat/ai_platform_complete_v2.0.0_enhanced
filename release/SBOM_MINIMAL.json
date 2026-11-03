@@ -5935,6 +5935,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ae1a99cde3ba49a1a3464e0d34c50523c5bf287e8e293cb31ba99964a712c599"
+        }
+      ],
+      "name": "frontend/src/sections/HybridMonitor.staleBadge.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2acf7870b4d3db048e9781c183eb56f5b4597fe921016906fbf21b76d82497a1"
         }
       ],
@@ -5945,7 +5955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "657df967e235f3373eb60aa88e4b165ed92d1ddc37b2f140e28513dad53bc061"
+          "content": "a16b7e5e3fd9d3e0210d65458899f2af5f0ae3c9fe6c14ce9ade3a7f0a791a4b"
         }
       ],
       "name": "frontend/src/sections/HybridMonitor.tsx",
@@ -7205,7 +7215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2051ceafe48885a9e681766c5222e7064427683a9a316dea18cad16e46686c7"
+          "content": "a4c0d29601350e8716a8fbbe0436e242978ba8cb3037e6b2b2d763a487afd3ea"
         }
       ],
       "name": "frontend/src/services/api.ts",

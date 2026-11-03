@@ -1656,6 +1656,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/HybridMonitor.staleBadge.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/HybridMonitor.staleTelemetry.test.ts",
     "kind": "tests"
   },
