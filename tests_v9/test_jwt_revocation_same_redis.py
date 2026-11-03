@@ -80,6 +80,17 @@ _RESOLVERS = {
     "services/sahool-platform": lambda env: _denylist_url_fn()(env),
 }
 
+#: أدلّةُ **مكتباتٍ** تذكر المفتاح ولا تُبنى منها صورةٌ في compose: لا خدمةَ تُحلِّل رابطها هنا،
+#: والعقدُ عند مستهلكيها. ``shared`` = ``shared/security/token_revocation.py`` (S5) يستوردها
+#: guardrails وsupervisor وnotification وخوادم MCP؛ عقدُ compose لكلٍّ منها في
+#: ``tests_v9/test_token_revocation_consumers.py`` و``tests_v9/test_mcp_token_revocation.py``.
+_LIBRARY_DIRS = {
+    "shared": (
+        "tests_v9/test_token_revocation_consumers.py",
+        "tests_v9/test_mcp_token_revocation.py",
+    ),
+}
+
 
 # ── ① البنّاء ────────────────────────────────────────────────────────────────────
 
@@ -248,6 +259,11 @@ def _redis_server_of(host: str) -> dict:
 def test_every_revocation_checker_is_classified():
     """فاحصٌ جديد (أو المفتاحُ في shared/) يحتاج أن يُقال كيف يختار رابطَه — لا أن يُفترَض."""
     dirs = _checker_dirs()
+    for lib, contracts in _LIBRARY_DIRS.items():
+        assert all((ROOT / c).is_file() for c in contracts), (
+            f"{lib}: عقدُ مستهلكيها غائب {contracts}"
+        )
+    dirs -= set(_LIBRARY_DIRS)
     assert dirs == set(_RESOLVERS), (
         f"أدلّةٌ تذكر {REVOKED_PREFIX}* {sorted(dirs)} ≠ المُصنَّفة {sorted(_RESOLVERS)} — "
         "أضِف لكلّ فاحصٍ جديد كيف يختار رابطَ قائمته في _RESOLVERS واحكم عقدَه أدناه."
