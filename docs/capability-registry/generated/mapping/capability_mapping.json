@@ -15,18 +15,18 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 6997,
+    "files_scanned": 7001,
     "files_by_kind": {
       "backend": 1266,
       "database": 289,
       "governance": 87,
       "mobile": 414,
-      "other": 2137,
-      "tests": 2300,
+      "other": 2138,
+      "tests": 2303,
       "web": 504
     },
-    "unmapped_artifacts": 2780,
-    "ambiguous_artifacts": 509
+    "unmapped_artifacts": 2783,
+    "ambiguous_artifacts": 510
   },
   "capabilities": [
     {
@@ -12588,6 +12588,15 @@
           ]
         },
         {
+          "path": "services/raster-service/test_raster_crs_window.py",
+          "score": 18,
+          "signals": [
+            "content:contour",
+            "content:dem",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "tests_v9/test_terrain_soil_compose_provisioning.py",
           "score": 18,
           "signals": [
@@ -12602,15 +12611,6 @@
           "signals": [
             "content:dem",
             "content:hillshade",
-            "content:terrain"
-          ]
-        },
-        {
-          "path": "services/raster-service/test_raster_crs_window.py",
-          "score": 17,
-          "signals": [
-            "content:contour",
-            "content:dem",
             "content:terrain"
           ]
         },
@@ -25694,6 +25694,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/MAP_PIXEL_BACKFILL_DURATION_VERIFICATION_RUNBOOK.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "random_forest/agb_model.py",
           "score": 12,
           "signals": [
@@ -26132,14 +26140,6 @@
             "content:NDVI",
             "content:ndvi"
           ]
-        },
-        {
-          "path": "scripts/ci/production_truth_readiness_gate.py",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
         }
       ],
       "ambiguous": [],
@@ -26150,7 +26150,7 @@
         "backend": 25,
         "events": 58,
         "tests": 114,
-        "other_evidence": 3
+        "other_evidence": 4
       },
       "evidence_counts": {
         "backend": 100,
@@ -28466,6 +28466,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/MAP_PIXEL_BACKFILL_DURATION_VERIFICATION_RUNBOOK.md",
+          "score": 11,
+          "signals": [
+            "content:cog",
+            "content:tilejson"
+          ]
+        },
+        {
           "path": "PHASE10_RELIABILITY_LOAD_CHAOS_RECOVERY_REPORT_20260626.md",
           "score": 10,
           "signals": [
@@ -28615,7 +28623,7 @@
         "mobile": 1,
         "tests": 29,
         "governance": 0,
-        "other_evidence": 42
+        "other_evidence": 43
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -43535,6 +43543,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/HybridIndexPage.noInertPeriod.static.test.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/src/sections/HybridMonitor.staleBadge.test.tsx",
       "kind": "web"
     },
@@ -43613,6 +43625,10 @@
     {
       "path": "frontend/src/sections/ManagerConsolePage.tsx",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/MapHubBackfillMonthButtons.static.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/sections/MapHubHistoricalTimeline.static.test.ts",
@@ -46536,6 +46552,10 @@
     },
     {
       "path": "services/raster-service/test_indicator_grid_provenance_static.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/raster-service/test_masked_read_cast_before_fill.py",
       "kind": "tests"
     },
     {
@@ -55623,6 +55643,28 @@
             "content:Tenant RLS",
             "content:rls",
             "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/runbooks/MAP_PIXEL_BACKFILL_DURATION_VERIFICATION_RUNBOOK.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "SAT-009",
+          "score": 11,
+          "signals": [
+            "content:cog",
+            "content:tilejson"
           ]
         }
       ]

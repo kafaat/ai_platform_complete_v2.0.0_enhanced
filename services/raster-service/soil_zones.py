@@ -81,7 +81,7 @@ def _cluster_field_soil(bbox, depth: str, n_zones: int, poly: list | None = None
 
                     b = transform_bounds("EPSG:4326", src.crs, *b)
                 window = win_from_bounds(*b, transform=src.transform)
-                arr = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
+                arr = src.read(1, window=window, masked=True).astype("float32").filled(np.nan)
                 if arr.size == 0:
                     continue
                 if poly:  # قصّ على مضلّع الحقل (لا مناطق/عيّنات خارج الحدّ)

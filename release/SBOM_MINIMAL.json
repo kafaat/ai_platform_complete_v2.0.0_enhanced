@@ -5925,7 +5925,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "effe9868a71617ff808ed2ca8e1d8c7e726d4827dbff0dfaaa555c092051d061"
+          "content": "64853563a32e97d0596297696039ce512ebaa19b0613a00867524c1b7004bda5"
+        }
+      ],
+      "name": "frontend/src/sections/HybridIndexPage.noInertPeriod.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "68b0f1c138c07771c43b536d1d89762894dcf95eb2b67b46a7b32884bb986e06"
         }
       ],
       "name": "frontend/src/sections/HybridIndexPage.tsx",
@@ -6179,6 +6189,16 @@
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f09df0e6fe751edc801c15ef3d93acf22320f1f322f042a6ac1ed5efd540c652"
+        }
+      ],
+      "name": "frontend/src/sections/MapHubBackfillMonthButtons.static.test.ts",
       "type": "file"
     },
     {
@@ -20915,7 +20935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2659f9ee945aac1e47d716433c2efaa8c7129f12a30e6b61affe34dd30ee552b"
+          "content": "9824e5dfe87e170f96fa9ad17e4479fc6a833b4e0b40ee73fffddd0531c020b8"
         }
       ],
       "name": "services/raster-service/soil_zones.py",
@@ -20965,7 +20985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "096251eb8684a1d221931ef6a57dbe80a5a676d275107dee80348c94fc81f54e"
+          "content": "d82568e3c69affc69145cd12cda67d5f82ad9f85d708a7ce8adc854dad508215"
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
@@ -20975,7 +20995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1814b07887fe528ed4f4052c4ab7c531d72fd61e34dbf752c3e6b50e0e1fe87e"
+          "content": "7acb0393d8ff1905ae4f024a04585dd3364e41261522fa10072704879489200c"
         }
       ],
       "name": "services/raster-service/terrain_render.py",
@@ -21385,7 +21405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f834598db9cec2c10faf8e56501625c0c47464cec3c2d56fc873828d2aada27c"
+          "content": "2f23dae9f77d0ccf170e429850edf41ecc974b5e64475b8924893ec0e03a4c32"
         }
       ],
       "name": "services/raster-service/test_historical_backfill.py",
@@ -21509,6 +21529,16 @@
         }
       ],
       "name": "services/raster-service/test_landsat_thermal_unique_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "14993f388e34f111595821f6a9deaa1a0351f1c7ee80718d0fa856fafafe00e1"
+        }
+      ],
+      "name": "services/raster-service/test_masked_read_cast_before_fill.py",
       "type": "file"
     },
     {
@@ -21665,7 +21695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a44bbc6bcbfdd7d0633be878b69d589d84ed4d77f7991b5d04843d744fecb5c"
+          "content": "50ef57da30c58711b846809cde48fca092c58e4468e229bb20f42dab1376d50b"
         }
       ],
       "name": "services/raster-service/test_raster_crs_window.py",
@@ -22135,7 +22165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aaa0e0b3854bd1f51a5c9423b9817b29b5e97253036308d11b7664935898a971"
+          "content": "21a1accf3ebdd83c3bd2358cdbca5a9abc6466777d9f698f57119dcc1bf82c97"
         }
       ],
       "name": "services/raster-service/tile_render.py",

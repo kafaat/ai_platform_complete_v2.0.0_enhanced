@@ -4593,3 +4593,10 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 - العلاج القانونيّ نسخةٌ محلّيّة يقرؤها `raster-service` أصلاً (`SOILGRIDS_DIR`، `soil_render.py:179`). يحتاج تنزيلاً من شبكةٍ تبلغ ISRIC (محجوبة في هذه الجلسة) وضبطاً في Railway، وتعديل Railway ممنوع على الوكيل بقرار المالك.
 - بديل WCS عند الطلب ممكنٌ برمجيّاً، لكنّ عقده الفعليّ (معرّفات التغطية والإسقاط وصيغة الردّ) لم يُقَس. وكتابة مسارٍ إنتاجيّ على عقدٍ غير مقيس تخالف قاعدة «لا ادّعاء بلا قياس».
 **المرجع:** PR #1332 · `SOILGRIDS-REST-OFFICIALLY-PAUSED-NO-ALTERNATE-PATH-01` في [`gaps/registry.md`](../gaps/registry.md).
+
+## 2026-11-03 — Regenerate merge-conflicted artifacts (#1334)
+
+- **Decision:** merge `main` (`ba99b9ed`) into `13b2ea1` and regenerate conflicted artifacts from the combined source tree.
+- **Reason:** choosing either branch's generated output would discard evidence for the other branch's changes; retain both source fixes and rebuild their inventories and release checksums.
+- **Gap status:** unchanged; no live closure evidence is introduced by this merge.
+- **Source:** PR #1334; commits `ba99b9ed` and `13b2ea1`; session evidence in [`../log.md`](../log.md).
