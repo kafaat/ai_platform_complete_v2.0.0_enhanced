@@ -4496,6 +4496,29 @@
     ]
   },
   {
+    "path": "migrations/v237_tenant_isolation_hardening.down.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 15,
+        "signals": [
+          "content:rls",
+          "path:tenant isolation",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
     "path": "migrations/v23_equipment.sql",
     "kind": "database",
     "candidates": [
@@ -5443,6 +5466,30 @@
           "content:Tenant RLS",
           "content:rls",
           "content:row level security"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "scripts/migrations/report_not_valid_constraint_violations.py",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "SOIL-002",
+        "score": 9,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
         ]
       }
     ]
@@ -11152,6 +11199,28 @@
     ]
   },
   {
+    "path": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "INT-002",
+        "score": 12,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests/test_real_data.py",
     "kind": "tests",
     "candidates": [
@@ -12639,6 +12708,36 @@
           "content:Weather forecast",
           "content:forecast",
           "content:weather forecast"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_v237_tenant_isolation_live_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 14,
+        "signals": [
+          "content:rls",
+          "path:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
         ]
       },
       {

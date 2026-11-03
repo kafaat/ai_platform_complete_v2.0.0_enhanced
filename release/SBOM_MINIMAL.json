@@ -7385,7 +7385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7582ca2f044df465e596d777f1241f06858e761f0fa333fcbdcccf2004e4506"
+          "content": "e303a37b2215a9835d769083081e6bd41c4ea2205931cb3c4a62b1369b946d9b"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7405,7 +7405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bfdb1af3cb57fd264788e048dddaaab289a2b1ab32d7c9563501a6246f8fd6fa"
+          "content": "a37fd7108cba66ccb91ce187cc41fbc4ccbc5168b7954dcb9056f262ab56f20b"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -7415,7 +7415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "11101db60041cdb3984c5a74d8df72c035a135ab4cf10111b5729cbbd19890f4"
+          "content": "a9dd7a2c357a4cf92f3e979cd1789e4124505efe0a9c3518873c136db9edd728"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
@@ -7445,7 +7445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42898a0d5b11738d5ae7f66d2899c58535e161e398317250cc8dfb864faf184d"
+          "content": "15d480dbd15aa4cd36a945439e1531e482c034f40a9a1a10d54af4efca30ed51"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -8859,6 +8859,26 @@
         }
       ],
       "name": "migrations/v236_raster_follow_up_requests.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9ce57b25b3d43e0505ba3e9c97152342b04b34740cc3135e91669418e5880d51"
+        }
+      ],
+      "name": "migrations/v237_tenant_isolation_hardening.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a09cc5cd4962336153dc0fcf5720e5b4120ddb3b032dbd1c53d5fceed9e4a612"
+        }
+      ],
+      "name": "migrations/v237_tenant_isolation_hardening.sql",
       "type": "file"
     },
     {
@@ -16215,7 +16235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2cb2613bab95632811d468f9086dee82cbb7145e7fb4d2c6a416c03d6c2130de"
+          "content": "8b24541f3ca1611f125a7f821323c40229cd57b710662cad52f694e238ca651b"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -16265,7 +16285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "385886b7a5c6099190700229186b31d248032f9e28232f584424053c92aa3117"
+          "content": "5ba1141aa422194adc747de5ae717f1b02d239eabc50d7231a8010b674385e52"
         }
       ],
       "name": "services/actuator-service/routers/commands.py",
@@ -16309,6 +16329,16 @@
         }
       ],
       "name": "services/actuator-service/test_actuator_safety.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3d1f004a7f065fafa14a588b71f62383845f061ee825b601fde0d0fdd1e6e48d"
+        }
+      ],
+      "name": "services/actuator-service/test_actuator_safety_audit_20261101.py",
       "type": "file"
     },
     {
@@ -24145,7 +24175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2d0d478f7c0951229dc68dda7a3b8ac9bc9a6c226adcec438fccb7388e563ad2"
+          "content": "2d9dfbf2630fd9f43a1dccefa36a93c037a2afb9f3dd182b3a11340d7becbf9f"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
@@ -24605,7 +24635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e62d10c7fd4df1e81b0cd88927551f551b0b9acebfd3e5a445e1aac286b7534"
+          "content": "29352959b4bb2b0364319bcfbfa9a8f398b8bb386336fccbed7b4b853de787cf"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_store.py",
@@ -24615,7 +24645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc92c063dbef2f7653007d58ffcbe4a10d7f3be684fbf14cd81cd33caf5ace2c"
+          "content": "5e012f301b6bb67f19ec0fd895a08d73762b82891afff18bb603895bcf592279"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",
