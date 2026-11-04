@@ -36,54 +36,36 @@ function Log-Err  { param($m) Write-Host "[ERROR] $m" -ForegroundColor Red }
 function Check-Deps {
     Log-Info 'Checking dependencies...'
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { Log-Err 'Docker not installed'; exit 1 }
-    # docker compose (v2) plugin
-    try { docker compose version | Out-Null } catch { Log-Err 'docker compose not installed'; exit 1 }
+    docker compose version | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Docker Compose v2 is unavailable.' }
     Log-Ok 'Docker + docker compose found'
 }
 
-# ─── Generate .env if missing ───
-function Generate-Env {
-    if (Test-Path $EnvFile) { Log-Ok '.env exists'; return }
-    Log-Warn '.env not found -- generating from template'
-    $tpl = @'
-# SAHOOL v9.0 -- Environment Configuration
-# !! CHANGE ALL SECRETS BEFORE PRODUCTION
+function Require-Env {
+    if (-not (Test-Path -LiteralPath $EnvFile -PathType Leaf)) {
+        throw 'Configure .env from .env.example as described in docs/runbooks/LOCAL_ENVIRONMENT_RUNBOOK.md'
+    }
+}
 
-# Database (compose يستخدم DB_PASSWORD — وُحّد الاسمان)
-POSTGRES_PASSWORD=<set-in-secret-manager>
-DB_PASSWORD=sahool_secure_db_2026_change_me
-
-# JWT
-JWT_SECRET=<set-in-secret-manager>
-
-# MinIO
-MINIO_ROOT_USER=sahool
-MINIO_ROOT_PASSWORD=<set-in-secret-manager>
-
-# Sentinel Hub (Copernicus Data Space)
-SH_CLIENT_ID=your_sentinel_hub_client_id
-SH_CLIENT_SECRET=<set-in-secret-manager>
-SH_INSTANCE_ID=your_instance_id
-
-# SAHOOL Agent
-SAHOOL_AGENT_TOKEN=<set-in-secret-manager>
-EDGE_SYNC_TOKEN=edge_sync_token_change_me_64chars
-
-# Telegram Bot
-TELEGRAM_BOT_TOKEN=<set-in-secret-manager>
-
-# Grafana
-GRAFANA_PASSWORD=<set-in-secret-manager>
-
-# Mapbox (optional, for fallback maps)
-MAPBOX_TOKEN=your_mapbox_token
-
-# Edge Device
-EDGE_DEVICE=rpi5
-OFFLINE_MODE=false
-'@
-    Set-Content -Path $EnvFile -Value $tpl -Encoding UTF8
-    Log-Warn 'Generated .env -- EDIT SECRETS BEFORE RUNNING!'
+# Compose interpolates build identity even for down, logs and reset.
+function Invoke-ProjectCompose {
+    param([string[]]$ComposeArgs)
+    $previousSha = $env:TESTED_SHA
+    $previousId = $env:SAHOOL_BUILD_ID
+    Push-Location $ProjectDir
+    try {
+        $env:TESTED_SHA = git rev-parse HEAD
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve Git commit.' }
+        if ([string]::IsNullOrWhiteSpace($previousId)) {
+            $env:SAHOOL_BUILD_ID = "local-$($env:TESTED_SHA.Substring(0,12))"
+        }
+        & docker compose -f $ComposeFile @ComposeArgs
+        if ($LASTEXITCODE -ne 0) { throw "Docker Compose failed (exit $LASTEXITCODE)." }
+    } finally {
+        $env:TESTED_SHA = $previousSha
+        $env:SAHOOL_BUILD_ID = $previousId
+        Pop-Location
+    }
 }
 
 # ─── Health Check ───
@@ -138,15 +120,15 @@ function Health-Check {
 
 # ─── Start Services ───
 function Cmd-Up {
-    Check-Deps
-    Generate-Env
+    Cmd-Build
     Log-Info 'Starting SAHOOL v9.0...'
-    Push-Location $ProjectDir
-    docker compose -f $ComposeFile --env-file $EnvFile up -d --build
-    Pop-Location
+    Invoke-ProjectCompose -ComposeArgs @('--env-file', $EnvFile, 'up', '-d', '--no-build')
     Log-Info 'Waiting for services to initialize (30s)...'
     Start-Sleep -Seconds 30
-    try { Health-Check | Out-Null } catch {}
+    if (-not (Health-Check)) {
+        Log-Warn 'Compose started the services; some host health probes did not pass.'
+        return
+    }
     Log-Ok 'SAHOOL v9.0 is running!'
     Write-Host ''
     Write-Host '  Dashboard:    http://localhost:3001 (Grafana)'
@@ -165,21 +147,17 @@ function Cmd-Up {
 # ─── Stop Services ───
 function Cmd-Down {
     Log-Info 'Stopping SAHOOL v9.0...'
-    Push-Location $ProjectDir
-    docker compose -f $ComposeFile down --remove-orphans
-    Pop-Location
+    Invoke-ProjectCompose -ComposeArgs @('down', '--remove-orphans')
     Log-Ok 'All services stopped'
 }
 
 # ─── View Logs ───
 function Cmd-Logs {
-    Push-Location $ProjectDir
     if ($Service) {
-        docker compose -f $ComposeFile logs -f $Service
+        Invoke-ProjectCompose -ComposeArgs @('logs', '-f', $Service)
     } else {
-        docker compose -f $ComposeFile logs -f --tail=100
+        Invoke-ProjectCompose -ComposeArgs @('logs', '-f', '--tail=100')
     }
-    Pop-Location
 }
 
 # ─── Run Tests ───
@@ -197,11 +175,10 @@ function Cmd-Test {
 
 # ─── Build Images ───
 function Cmd-Build {
+    Require-Env
+    Check-Deps
     Log-Info 'Building all Docker images...'
-    Push-Location $ProjectDir
-    docker compose -f $ComposeFile build --parallel
-    Pop-Location
-    Log-Ok 'Build complete'
+    & (Join-Path $ProjectDir 'scripts/build-immutable.ps1')
 }
 
 # ─── Reset (DANGER: destroys data) ───
@@ -209,10 +186,7 @@ function Cmd-Reset {
     Log-Warn 'This will DESTROY all data volumes!'
     $confirm = Read-Host "Are you sure? Type 'RESET' to confirm"
     if ($confirm -ne 'RESET') { Log-Info 'Reset cancelled'; exit 0 }
-    Push-Location $ProjectDir
-    docker compose -f $ComposeFile down -v --remove-orphans
-    docker volume prune -f
-    Pop-Location
+    Invoke-ProjectCompose -ComposeArgs @('down', '-v', '--remove-orphans')
     Log-Ok "All data reset. Run '.\run_all.ps1 up' to restart."
 }
 

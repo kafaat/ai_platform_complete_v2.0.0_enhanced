@@ -4600,3 +4600,7 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 - **Reason:** choosing either branch's generated output would discard evidence for the other branch's changes; retain both source fixes and rebuild their inventories and release checksums.
 - **Gap status:** unchanged; no live closure evidence is introduced by this merge.
 - **Source:** PR #1334; commits `ba99b9ed` and `13b2ea1`; session evidence in [`../log.md`](../log.md).
+
+## 2026-11-04 — Separate the Windows host check from GPU build acceptance
+
+On the `01d3402d` baseline, probing the server before a build gives the operator an actionable failure while respecting the configured Docker endpoint. Preserve the caller's context, leave host recovery to the Windows operator, and record device execution separately from Compose validation. See [the Windows build entrypoint](../../scripts/build-immutable.ps1) and [the acceptance record](../gaps/registry.md#windows-gpu-build-host-acceptance-01).

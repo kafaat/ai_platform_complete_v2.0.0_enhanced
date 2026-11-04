@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7b57b414267217f2b51cf0f5d91d1815951c93a1a415966c9021f98cb8414811"
+          "content": "0dde2800d5aa76a11b1229d9ca28b3a10845744743dc9765fbaad837ffffe244"
         }
       ],
       "name": "docker-compose.v9.gpu.yml",
@@ -18635,7 +18635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "91b8ffba0e14212e041b07aaacddf1498b787f28c3d7b00f899e136d4ad91596"
+          "content": "32de7ff123c852fe263901cc51a0c3720ddb6878b781eb75ef2563f5dddac73d"
         }
       ],
       "name": "services/edge-inference/Dockerfile.arm64",
@@ -18645,7 +18645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcf62616f997308c1d03dd9847a601aa00715b813011fcae99b90077d86fdc00"
+          "content": "fa24c6f1d58fa1f7dddad72c56a14557114a07d7e9f009b3caaa85c7e9198001"
         }
       ],
       "name": "services/edge-inference/MODEL_PROVISIONING.md",
@@ -18695,7 +18695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "facd86d04e573ca6555bbe5b0b9acddc7db7e46dc9bb6af187bf670aa415fbe0"
+          "content": "ccf0eb2d828d61380b67851d400f2b0c74908b84aae97f0cae89ad04dd982a3e"
         }
       ],
       "name": "services/edge-inference/models/__init__.py",
@@ -18725,7 +18725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "30654ed951b1fd072aa265618d395c4b5cd0eea26ffa9fe687378e9f5cb521c9"
+          "content": "2f11ad6ad9727631c6c999a36811bfc16e1f3c7025977b269374b57ce045ac3b"
         }
       ],
       "name": "services/edge-inference/models/pest_detector.py",
@@ -18735,7 +18735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b3765b0c48bcfadfa1b39c23285f27ff6ea65d23a2163ab6bef1479021e8732"
+          "content": "d439256b607b570b601c553d3ffa69a3ccec4cb6e6fca072d9f0b3d4f54d660a"
         }
       ],
       "name": "services/edge-inference/models/yield_estimator.py",
@@ -18755,7 +18755,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ab64265c21279b58f7444b22aae89e4602d0d20a407cb6b2b729c092ce9e186"
+          "content": "3c17acfaf998090efee563294c35accca811e749fa5b880d9809eb527da137b2"
+        }
+      ],
+      "name": "services/edge-inference/requirements-common.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2b30704aabe0308d420677a9a401694dc8f7149662154be1e26bc2c578f65d57"
+        }
+      ],
+      "name": "services/edge-inference/requirements-gpu.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a21d4b8797e1e5f6fbd44f6bb403f97d7b4a403295b3363041ebe7c7d5ec0778"
         }
       ],
       "name": "services/edge-inference/requirements.txt",
@@ -18775,7 +18795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f70e264b335dba0ae45c579a58b40301d8ca3cbd47d04ec8c2f78ce3add5b6d3"
+          "content": "91f088f371b76cbfb2112773446f76172caf302e147071834ad1f342a6e48c57"
         }
       ],
       "name": "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",

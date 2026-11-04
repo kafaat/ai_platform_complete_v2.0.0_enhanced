@@ -10424,3 +10424,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - Regenerate conflicted inventories, governance reports and release checksums from their combined inputs rather than choosing either stale generated version.
 - Telemetry and SAM2 regression tests: 86 passed. Gap statuses in [`gaps/registry.md`](gaps/registry.md) remain unchanged: integration is not live verification.
 - Source: PR #1334; base commit `ba99b9ed`; branch commit `13b2ea1`.
+
+## 2026-11-04 — Windows Docker engine and GPU build investigation
+
+The reported build at 0/43 could not open the Docker Desktop Linux engine endpoint. The PowerShell and Bash build wrappers now check the server OS and refuse an unreadable Git index. PowerShell restores the caller's build identity on exit. The wrapper regression exercises a recording Docker CLI. The merged Compose contract checks GPU device reservations. The affected machine's acceptance remains open in [the gap registry](gaps/registry.md#windows-gpu-build-host-acceptance-01).
