@@ -4604,3 +4604,9 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ## 2026-11-04 — Separate the Windows host check from GPU build acceptance
 
 On the `01d3402d` baseline, probing the server before a build gives the operator an actionable failure while respecting the configured Docker endpoint. Preserve the caller's context, leave host recovery to the Windows operator, and record device execution separately from Compose validation. See [the Windows build entrypoint](../../scripts/build-immutable.ps1) and [the acceptance record](../gaps/registry.md#windows-gpu-build-host-acceptance-01).
+
+## 2026-11-04 — Verify generated execution-audit bytes
+
+- **Decision:** treat the current generated files, their sidecar digest, and a fresh source-derived candidate as one `--check` invariant; regenerate the audit rather than changing the release checksum to bless stale contents.
+- **Reason:** the prior check could pass with a fresh sidecar/candidate while the committed JSON remained at 96,685 call edges instead of the source-derived 96,704. The corrected artifact matches the previously recorded SHA-256, with 20/20 closure checks and all 7,904 release checksums verified.
+- **Source:** PR #1335; checker fix `9c0058ca9e9814a6dc424f1dfeff22583c6f0f40`; artifact regeneration `186171fb148323c4b4d06e55b1d81521e7e728ee`; session evidence in [`../log.md`](../log.md).
