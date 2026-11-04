@@ -4,11 +4,15 @@
 Run on the GPU host after installing NVIDIA Container Toolkit:
   python scripts/e2e/gpu_runtime_smoke_gate.py
 
+After building the GPU profile, verify the edge image itself:
+  python scripts/e2e/gpu_runtime_smoke_gate.py --edge
+
 Set SAHOOL_SKIP_DOCKER_GPU_SMOKE=1 to only run host nvidia-smi.
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import shutil
 import subprocess
@@ -27,7 +31,54 @@ def run(cmd: list[str], timeout: int = 120) -> str:
     return p.stdout
 
 
+def check_edge_gpu() -> None:
+    # mul_1.onnx ships inside the ORT wheel. Disable CPU placement and run its sole Mul node.
+    code = """
+import numpy as np
+import onnxruntime as ort
+from onnxruntime.datasets import get_example
+
+options = ort.SessionOptions()
+options.add_session_config_entry("session.disable_cpu_ep_fallback", "1")
+session = ort.InferenceSession(get_example("mul_1.onnx"), options, providers=["CUDAExecutionProvider"])
+if "CUDAExecutionProvider" not in session.get_providers():
+    raise SystemExit("edge ONNX session did not load CUDAExecutionProvider")
+session.disable_fallback()
+result, = session.run(None, {"X": np.ones((3, 2), dtype=np.float32)})
+np.testing.assert_array_equal(result, np.arange(1, 7).reshape(3, 2))
+print("edge CUDA Mul passed", ort.__version__, session.get_providers())
+""".strip()
+    run(
+        [
+            "docker",
+            "compose",
+            "-f",
+            "docker-compose.v9.yml",
+            "-f",
+            "docker-compose.v9.gpu.yml",
+            "--profile",
+            "gpu",
+            "run",
+            "--rm",
+            "--no-deps",
+            "-T",
+            "sahool-edge",
+            "python",
+            "-c",
+            code,
+        ],
+        timeout=180,
+    )
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--edge", action="store_true", help="test the built edge image on CUDA")
+    args = parser.parse_args()
+    if args.edge:
+        check_edge_gpu()
+        return 0
+
     if not shutil.which("nvidia-smi"):
         print("gpu-runtime-smoke: FAIL: nvidia-smi not found", file=sys.stderr)
         return 1

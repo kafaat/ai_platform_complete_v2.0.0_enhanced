@@ -9,6 +9,7 @@ import logging
 import os
 
 import numpy as np
+from models import onnx_providers
 from models.errors import ModelNotProvisioned
 from models.image_decode import decode_rgb
 
@@ -21,8 +22,8 @@ logger = logging.getLogger(__name__)
 # dormant and falls back to the existing rule-based / simulation path, unchanged.
 PEST_MODEL_ENV = "PEST_MODEL_PATH"
 
-# Cache of loaded ONNX sessions keyed by resolved model path (one session per file).
-_ONNX_SESSION_CACHE: dict[str, object] = {}
+# Cache model sessions separately for CPU and CUDA device selection.
+_ONNX_SESSION_CACHE: dict[tuple[str, str], object] = {}
 
 # YOLOv8 heads emit one candidate per anchor; a single insect lights up many
 # neighbouring anchors. Overlapping boxes of the same class are collapsed to
@@ -91,7 +92,9 @@ def _load_onnx_session(model_path: str, device: str):
     onnxruntime is intentionally an OPTIONAL dependency: if the import fails the
     capability is treated as dormant and the caller falls back to the rule-based path.
     """
-    cached = _ONNX_SESSION_CACHE.get(model_path)
+    providers = onnx_providers(device)
+    key = model_path, providers[0]
+    cached = _ONNX_SESSION_CACHE.get(key)
     if cached is not None:
         return cached
     try:
@@ -102,9 +105,6 @@ def _load_onnx_session(model_path: str, device: str):
             "falling back to rule-based detection."
         )
         return None
-    providers = ["CPUExecutionProvider"]
-    if str(device).lower() in {"jetson_orin", "cuda", "gpu", "rtx5090", "blackwell"}:
-        providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
     # نموذج تالف / provider غير متاح ⇒ خامل بصدق (سقوط للمسار القاعديّ، لا كسر طلب)
     try:
         session = ort.InferenceSession(model_path, providers=providers)
@@ -115,7 +115,7 @@ def _load_onnx_session(model_path: str, device: str):
             e,
         )
         return None
-    _ONNX_SESSION_CACHE[model_path] = session
+    _ONNX_SESSION_CACHE[key] = session
     return session
 
 
@@ -197,17 +197,9 @@ class EdgePestDetector:
                 import onnxruntime as ort
 
                 # Use ARM64 optimized execution providers
-                providers = ["CPUExecutionProvider"]
-                if str(self.device).lower() in {
-                    "jetson_orin",
-                    "cuda",
-                    "gpu",
-                    "rtx5090",
-                    "blackwell",
-                }:
-                    providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
-
-                self.session = ort.InferenceSession(self.model_path, providers=providers)
+                self.session = ort.InferenceSession(
+                    self.model_path, providers=onnx_providers(self.device)
+                )
                 self.input_name = self.session.get_inputs()[0].name
             except ImportError:
                 self.session = None

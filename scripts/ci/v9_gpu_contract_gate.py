@@ -79,11 +79,19 @@ def main() -> int:
     if "sahool-tts-service" not in (services["sahool-notification-agent"].get("depends_on") or {}):
         fail("notification-agent must depend_on sahool-tts-service")
 
-    for name in ["sahool-edge", "sahool-sam2-inference", "sahool-video-processor"]:
-        if name not in gpu_services:
-            fail(f"docker-compose.v9.gpu.yml missing GPU override for {name}")
-        if "devices" not in str(gpu_services[name].get("deploy", {})):
-            fail(f"{name} GPU override must reserve NVIDIA device")
+    for name, count in {
+        "sahool-edge": "all",
+        "sahool-video-processor": "all",
+        "sahool-sam2-inference": 1,
+        "sahool-vllm-jais": 1,
+    }.items():
+        devices = []
+        for source in (services, gpu_services):
+            service = source.get(name, {})
+            reservations = service.get("deploy", {}).get("resources", {}).get("reservations", {})
+            devices.extend(reservations.get("devices", []))
+        if devices != [{"driver": "nvidia", "capabilities": ["gpu"], "count": count}]:
+            fail(f"{name} must have exactly one NVIDIA GPU reservation with count {count}")
 
     seg_env = env_of(gpu_services.get("sahool-field-segmentation", {}))
     if seg_env.get("SEGMENTATION_BACKEND") != "sam2":
@@ -95,11 +103,9 @@ def main() -> int:
     if "cuda12.8" not in sam2_dockerfile or "PYTORCH_CUDA_IMAGE" not in sam2_dockerfile:
         fail("sam2 Dockerfile must default to a CUDA 12.8 PyTorch image and be overridable")
 
-    pest_detector = (ROOT / "services/edge-inference/models/pest_detector.py").read_text(
-        encoding="utf-8"
-    )
-    if "rtx5090" not in pest_detector or "CUDAExecutionProvider" not in pest_detector:
-        fail("edge pest detector must recognize rtx5090/cuda device for CUDAExecutionProvider")
+    providers = (ROOT / "services/edge-inference/models/__init__.py").read_text(encoding="utf-8")
+    if "rtx5090" not in providers or "CUDAExecutionProvider" not in providers:
+        fail("edge models must recognize rtx5090 for CUDAExecutionProvider")
 
     for rel in [
         "scripts/e2e/gpu_runtime_smoke_gate.py",

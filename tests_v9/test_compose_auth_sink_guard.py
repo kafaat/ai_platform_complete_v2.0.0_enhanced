@@ -21,6 +21,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -76,6 +77,15 @@ needs_compose = pytest.mark.skipif(
 )
 
 
+def _compose_cli_env() -> dict[str, str]:
+    # Keep executable/plugin discovery, without inheriting project settings or secrets.
+    return {
+        key: os.environ[key]
+        for key in ("PATH", "HOME", "USERPROFILE", "SystemRoot", "DOCKER_CONFIG", "TEMP", "TMP")
+        if key in os.environ
+    }
+
+
 def _config(tmp_path: Path, value: str, env: dict[str, str]) -> int:
     """يكتب مِسباراً بقيمةٍ واحدة ويُرجِع رمزَ خروج `docker compose config`."""
     probe = tmp_path / "docker-compose.probe.yml"
@@ -83,14 +93,14 @@ def _config(tmp_path: Path, value: str, env: dict[str, str]) -> int:
         f"services:\n  q:\n    image: alpine\n    environment:\n      {SINK}: {value}\n",
         encoding="utf-8",
     )
-    environ = {k: v for k, v in os.environ.items() if k != "QDRANT_API_KEY"}
-    environ.update(env)
     return subprocess.run(
         ["docker", "compose", "-f", str(probe), "config"],
         capture_output=True,
         text=True,
         encoding="utf-8",
-        env=environ,
+        cwd=tmp_path,
+        env=_compose_cli_env() | env,
+        timeout=30,
     ).returncode
 
 
@@ -145,25 +155,50 @@ def test_the_question_mark_without_colon_lets_an_empty_value_through(tmp_path):
 
 
 @needs_compose
-def test_the_adopted_form_still_validates_the_real_v9_stack():
+@pytest.mark.parametrize("key", ["probe-key", "", None], ids=["nonempty", "empty", "unset"])
+def test_the_adopted_form_still_validates_the_real_v9_stack(tmp_path, key):
     """`:?` لا تكسر المكدّس الحقيقيّ — الخدمة ليست خلف profile.
 
     القياسُ الذي فرض `:-` الفارغة في مواضع أخرى (الاستيفاء يسبق ترشيح الـprofiles)
     لا ينطبق هنا، وهذا يُثبِته على الملفّ نفسه لا على مِسبار.
     """
-    env = dict(os.environ)
-    env["QDRANT_API_KEY"] = "probe-key"
+    compose_file = ROOT / "docker-compose.v9.yml"
+    # Supply synthetic values for other required and bare substitutions. Leave defaults
+    # intact and use an explicit env file so an operator's .env cannot affect the probe.
+    variables = set(
+        re.findall(r"(?<!\$)\$\{([A-Z0-9_]+)(?::?\?|\})", compose_file.read_text(encoding="utf-8"))
+    )
+    env_file = tmp_path / "probe.env"
+    env_file.write_text(
+        "".join(f"{name}=compose-probe\n" for name in sorted(variables - {"QDRANT_API_KEY"})),
+        encoding="utf-8",
+    )
+    env = _compose_cli_env()
+    if key is not None:
+        env["QDRANT_API_KEY"] = key
     result = subprocess.run(
-        ["docker", "compose", "-f", "docker-compose.v9.yml", "config", "--quiet"],
+        [
+            "docker",
+            "compose",
+            "--env-file",
+            str(env_file),
+            "-f",
+            str(compose_file),
+            "config",
+            "--quiet",
+        ],
         capture_output=True,
         text=True,
         encoding="utf-8",
-        cwd=ROOT,
+        cwd=tmp_path,
         env=env,
+        timeout=30,
     )
-    assert "QDRANT_API_KEY" not in (result.stderr or ""), (
-        f"مكدّس v9 يشكو من المفتاح رغم ضبطه: {result.stderr[:400]}"
-    )
+    if key:
+        assert result.returncode == 0, result.stderr
+    else:
+        assert result.returncode != 0
+        assert "QDRANT_API_KEY" in result.stderr, result.stderr
 
 
 # ── ما يجب أن يمسكه الحارس — كلُّ صيغةٍ على حدة ──────────────────────────────

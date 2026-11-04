@@ -169,33 +169,61 @@ Verified against a real host: `NVIDIA GeForce RTX 5090 Laptop`, 24 GB VRAM, Driv
 `592.00`, CUDA `13.1`, driver model **WDDM** (Windows). The base CPU stack
 (`docker-compose.v9.yml`) is unaffected; GPU behavior lives only in the overlay.
 
-### 0. Why WSL2 (the key constraint)
-The Compose GPU reservation (`deploy.resources.reservations.devices: [driver: nvidia]`)
-passes the GPU into Linux containers **only** through the WSL2 backend + the NVIDIA
-Container Toolkit. Native Windows containers cannot take this device. The NVIDIA
-**driver stays on Windows** (`592.00`) — do **not** install a driver inside WSL.
+### 1. Start the Linux engine
 
-### 1. One-time host setup
-1. Docker Desktop → Settings → General → **Use the WSL 2 based engine** (not Hyper-V).
-2. In a WSL2 distro (e.g. Ubuntu), install the NVIDIA Container Toolkit:
-   ```bash
-   curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-   curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-     sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-     sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-   sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
-   sudo nvidia-ctk runtime configure --runtime=docker && sudo systemctl restart docker
-   ```
+Open Docker Desktop on Windows, select Linux containers and enable **Use the WSL 2
+based engine** under Settings → General. Update WSL with `wsl --update` if needed.
+Install the WSL-compatible NVIDIA driver on Windows. Docker Desktop manages the
+engine in its own distribution. Running Docker commands from PowerShell does not
+require installing Ubuntu or configuring a separate Docker daemon inside it.
+[Docker Desktop WSL 2 setup](https://docs.docker.com/desktop/features/wsl/)
 
-### 2. Verify GPU passthrough (before the app stack)
-```bash
+```powershell
+docker context ls
+docker info --format '{{.OSType}}'
+```
+
+Continue when the second command succeeds and prints `linux`. A missing
+`dockerDesktopLinuxEngine` pipe indicates that the CLI could not reach its selected
+engine. Start Docker Desktop from the Start menu or run `docker desktop start`,
+wait for readiness and repeat the check. If the active context is unexpected, check
+the terminal's `DOCKER_CONTEXT` and `DOCKER_HOST` overrides.
+
+### 2. Verify GPU passthrough before running the services
+
+```powershell
 docker run --rm --gpus all nvidia/cuda:12.8.0-base-ubuntu22.04 nvidia-smi
 ```
-Expect the RTX 5090 in the table. If it errors, the toolkit/WSL2 step above is incomplete.
 
-### 3. Bring up the GPU stack
+The GPU should appear in the container output. A registry or image-pull failure
+must be resolved before the command can test the device.
+[Docker Desktop GPU requirements and validation](https://docs.docker.com/desktop/features/gpu/)
+
+### 3. Build and start the GPU stack
+
+Prepare the required local settings in `.env` and provision the checkpoint
+described in [the SAM2 setup instructions](../../sam2-models/README.md).
+From a clean Git checkout, use the following block in PowerShell. Compose needs
+the same build identifiers when it reads the files again for startup.
+
 ```powershell
-docker compose -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu up -d
+$previousSha = $env:TESTED_SHA
+$previousId = $env:SAHOOL_BUILD_ID
+try {
+    $env:TESTED_SHA = git rev-parse HEAD
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve Git commit.' }
+    if ([string]::IsNullOrWhiteSpace($previousId)) {
+        $env:SAHOOL_BUILD_ID = "local-$($env:TESTED_SHA.Substring(0,12))"
+    }
+    .\scripts\build-immutable.ps1 -Gpu
+    python scripts/e2e/gpu_runtime_smoke_gate.py --edge
+    if ($LASTEXITCODE -ne 0) { throw 'CUDA inference failed in the built edge image.' }
+    docker compose -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu up -d --no-build
+    if ($LASTEXITCODE -ne 0) { throw 'GPU stack startup failed.' }
+} finally {
+    $env:TESTED_SHA = $previousSha
+    $env:SAHOOL_BUILD_ID = $previousId
+}
 ```
 This activates SAM2 (`SEGMENTATION_BACKEND=sam2`), GPU reservations for
 `sahool-edge` / `sahool-sam2-inference` / `sahool-video-processor`, and strict
@@ -203,7 +231,7 @@ video readiness (`VIDEO_STRICT_READY=true`).
 
 ### 4. Prove it works (live gates — run on the GPU host, not in CI)
 ```bash
-python scripts/e2e/gpu_runtime_smoke_gate.py      # health of the GPU services
+python scripts/e2e/gpu_runtime_smoke_gate.py      # CUDA visibility and PyTorch GPU matmul
 python scripts/e2e/sam2_live_gpu_gate.py          # SAM2 field-segmentation end-to-end
 python scripts/e2e/video_zlmediakit_live_gate.py  # ZLMediaKit + video-processor /readyz
 ```

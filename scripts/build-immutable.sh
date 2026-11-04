@@ -8,7 +8,7 @@ Usage: scripts/build-immutable.sh [--gpu] [--no-cache]
 Builds SAHOOL images with immutable Git identity. The script:
   * requires a clean Git working tree;
   * resolves TESTED_SHA from the full 40-character HEAD;
-  * validates docker compose before building.
+  * checks the Linux engine and validates docker compose before building.
 USAGE
 }
 
@@ -30,7 +30,11 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || {
 }
 cd "$repo_root"
 
-if [[ -n "$(git status --porcelain)" ]]; then
+changes=$(git status --porcelain) || {
+  echo "Unable to verify the Git working tree." >&2
+  exit 1
+}
+if [[ -n "$changes" ]]; then
   echo "Working tree is dirty. Commit or stash changes before immutable build." >&2
   exit 1
 fi
@@ -43,6 +47,15 @@ fi
 
 export TESTED_SHA="$sha"
 export SAHOOL_BUILD_ID="${SAHOOL_BUILD_ID:-local-${sha:0:12}}"
+
+engine_os=$(docker info --format '{{.OSType}}') || {
+  echo "Docker Engine is unreachable. Check that it is running and inspect 'docker context ls', DOCKER_CONTEXT and DOCKER_HOST." >&2
+  exit 1
+}
+if [[ "$engine_os" != linux ]]; then
+  echo "SAHOOL requires a Linux Docker Engine. Select a Linux engine before building." >&2
+  exit 1
+fi
 
 compose=(-f docker-compose.v9.yml)
 if ((gpu)); then
