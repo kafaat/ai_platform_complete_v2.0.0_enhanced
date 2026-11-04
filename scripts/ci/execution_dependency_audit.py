@@ -418,36 +418,40 @@ def digest(out_dir: Path = OUT):
     return h.hexdigest()
 
 
+def check(out_dir: Path = OUT):
+    import shutil
+    import tempfile
+
+    before = (
+        (out_dir / ".audit.sha256").read_text(encoding="utf-8").strip()
+        if (out_dir / ".audit.sha256").exists()
+        else ""
+    )
+    committed = digest(out_dir)
+    with tempfile.TemporaryDirectory(prefix="sahool-execution-audit-check-") as tmp:
+        candidate = Path(tmp)
+        for existing in out_dir.iterdir():
+            if existing.name == ".audit.sha256":
+                continue
+            target = candidate / existing.name
+            if existing.is_dir():
+                shutil.copytree(existing, target)
+            else:
+                shutil.copy2(existing, target)
+        generate(candidate)
+        generated = digest(candidate)
+    if committed != before or before != generated:
+        raise SystemExit("execution dependency audit drift detected; run --generate")
+    print("execution dependency audit: PASS")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--generate", action="store_true")
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
     if a.check:
-        import tempfile
-
-        before = (
-            (OUT / ".audit.sha256").read_text(encoding="utf-8").strip()
-            if (OUT / ".audit.sha256").exists()
-            else ""
-        )
-        with tempfile.TemporaryDirectory(prefix="sahool-execution-audit-check-") as tmp:
-            import shutil
-
-            candidate = Path(tmp)
-            for existing in OUT.iterdir():
-                if existing.name == ".audit.sha256":
-                    continue
-                target = candidate / existing.name
-                if existing.is_dir():
-                    shutil.copytree(existing, target)
-                else:
-                    shutil.copy2(existing, target)
-            generate(candidate)
-            after = digest(candidate)
-        if before != after:
-            raise SystemExit("execution dependency audit drift detected; run --generate")
-        print("execution dependency audit: PASS")
+        check()
     else:
         generate()
         (OUT / ".audit.sha256").write_text(digest() + "\n")
