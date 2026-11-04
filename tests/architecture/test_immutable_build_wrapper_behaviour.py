@@ -209,6 +209,7 @@ def ps_build(tmp_path: Path):
             cwd=root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             env={**env, **overrides},
             timeout=30,
         )
@@ -245,7 +246,9 @@ def test_powershell_refuses_build_and_restores_caller_on_failure(
 
 def test_powershell_uses_the_new_head_for_each_build_in_the_same_shell(ps_build):
     root, log, run = ps_build
-    first = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+    first = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=root, text=True, encoding="utf-8"
+    ).strip()
     result = run(
         "$ErrorActionPreference='Stop'; $env:SAHOOL_BUILD_ID=''; "
         "$hadId = Test-Path Env:SAHOOL_BUILD_ID; & ./scripts/build-immutable.ps1 -Gpu -NoCache; "
@@ -255,7 +258,9 @@ def test_powershell_uses_the_new_head_for_each_build_in_the_same_shell(ps_build)
     )
     assert result.returncode == 0, result.stderr
     assert "restored=caller-value/\n" in result.stdout
-    second = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+    second = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=root, text=True, encoding="utf-8"
+    ).strip()
     assert first != second
     builds = [line for line in log.read_text(encoding="utf-8").splitlines() if " build" in line]
     assert builds == [
@@ -310,6 +315,7 @@ def test_legacy_bash_bootstrap_preserves_credentials_and_requires_compose(tmp_pa
             command,
             cwd=tmp_path,
             text=True,
+            encoding="utf-8",
             capture_output=True,
             env={
                 **os.environ,
@@ -326,14 +332,16 @@ def test_legacy_bash_bootstrap_preserves_credentials_and_requires_compose(tmp_pa
     env_file.write_bytes(b"VALUE=operator-private-test-value\n")
     missing_plugin = run(version_exit="8")
     assert missing_plugin.returncode != 0
-    assert [call.split(" ", 2)[2] for call in log.read_text().splitlines()] == ["compose version"]
+    assert [call.split(" ", 2)[2] for call in log.read_text(encoding="utf-8").splitlines()] == [
+        "compose version"
+    ]
     for _ in range(2):
         result = run()
         assert result.returncode == 0, result.stdout + result.stderr
         assert "operator-private-test-value" not in result.stdout + result.stderr
         assert env_file.read_bytes() == b"VALUE=operator-private-test-value\n"
-    assert log.read_text().count("config --quiet") == 2
-    assert log.read_text().count("docker-compose.v9.yml build") == 2
+    assert log.read_text(encoding="utf-8").count("config --quiet") == 2
+    assert log.read_text(encoding="utf-8").count("docker-compose.v9.yml build") == 2
     assert not (tmp_path / ".env").exists()
 
 
@@ -348,24 +356,26 @@ def test_powershell_legacy_bootstrap_preserves_credentials_and_requires_compose(
     env_file.write_bytes(b"VALUE=operator-private-test-value\r\n")
     missing_plugin = run(command, VERSION_EXIT="9")
     assert missing_plugin.returncode != 0 and "Compose v2 is unavailable" in missing_plugin.stderr
-    assert len(log.read_text().splitlines()) == 1
+    assert len(log.read_text(encoding="utf-8").splitlines()) == 1
     for _ in range(2):
         result = run(command)
         assert result.returncode == 0, result.stdout + result.stderr
         assert "operator-private-test-value" not in result.stdout + result.stderr
         assert env_file.read_bytes() == b"VALUE=operator-private-test-value\r\n"
-    assert log.read_text().count("docker-compose.v9.yml build") == 2
+    assert log.read_text(encoding="utf-8").count("docker-compose.v9.yml build") == 2
 
     up = run("& ./scripts_v9/run_all.ps1 up", UP_EXIT="7")
     assert up.returncode != 0 and "Compose failed" in up.stderr
     assert "is running!" not in up.stdout
-    assert "up -d --no-build" in log.read_text()
+    assert "up -d --no-build" in log.read_text(encoding="utf-8")
 
 
 def test_legacy_runtime_commands_preserve_identity_and_reset_only_the_project(tmp_path):
     root, bin_dir = _repo(tmp_path), _stub_docker(tmp_path)
     _install_legacy_scripts(root)
-    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+    head = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=root, text=True, encoding="utf-8"
+    ).strip()
     env = {
         **os.environ,
         "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
@@ -378,10 +388,11 @@ def test_legacy_runtime_commands_preserve_identity_and_reset_only_the_project(tm
             cwd=tmp_path,
             input="RESET\n",
             text=True,
+            encoding="utf-8",
             check=True,
             env=env,
         )
-    calls = (tmp_path / "docker.log").read_text().splitlines()
+    calls = (tmp_path / "docker.log").read_text(encoding="utf-8").splitlines()
     assert len(calls) == 3
     assert all(f"TESTED_SHA={head} BUILD_ID=operator-id compose -f" in c for c in calls)
     assert calls[0].endswith(" down --remove-orphans")
@@ -392,7 +403,9 @@ def test_legacy_runtime_commands_preserve_identity_and_reset_only_the_project(tm
 def test_powershell_legacy_runtime_commands_restore_identity_and_limit_reset_to_project(ps_build):
     root, log, run = ps_build
     _install_legacy_scripts(root)
-    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+    head = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=root, text=True, encoding="utf-8"
+    ).strip()
     result = run(
         "function Read-Host { 'RESET' }; & ./scripts_v9/run_all.ps1 down; "
         "& ./scripts_v9/run_all.ps1 logs sahool-edge; & ./scripts_v9/run_all.ps1 reset; "
@@ -401,7 +414,7 @@ def test_powershell_legacy_runtime_commands_restore_identity_and_limit_reset_to_
     )
     assert result.returncode == 0, result.stderr
     assert "restored=caller-value/operator-id" in result.stdout
-    calls = log.read_text().splitlines()
+    calls = log.read_text(encoding="utf-8").splitlines()
     assert len(calls) == 3 and all(c.startswith(f"{head} operator-id compose -f") for c in calls)
     assert calls[0].endswith(" down --remove-orphans")
     assert calls[1].endswith(" logs -f sahool-edge")
