@@ -6,6 +6,8 @@
 services:
   sahool-edge:
     build:
+      context: .
+      dockerfile: services/edge-inference/Dockerfile.arm64
       args:
         EDGE_REQUIREMENTS: requirements-gpu.txt
     environment:
