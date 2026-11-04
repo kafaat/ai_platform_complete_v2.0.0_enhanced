@@ -9,6 +9,7 @@ services:
       context: .
       dockerfile: services/edge-inference/Dockerfile.arm64
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         EDGE_REQUIREMENTS: requirements-gpu.txt
     environment:
       EDGE_DEVICE: ${EDGE_DEVICE:-rtx5090}

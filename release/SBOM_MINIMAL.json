@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c549db7a64fd05b4e86fc7478026bfcb893b6790f8924177c993c99a31fa7845"
+          "content": "5b9100277a4015dc15ca52743b54fa2c83286488dbcfb87fdcc262c7ab7cac66"
         }
       ],
       "name": "docker-compose.v9.gpu.yml",
