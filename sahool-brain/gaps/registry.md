@@ -6632,6 +6632,8 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - **وما لا يُدَّعى:** الحارسُ لم يتغيّر حرفاً في **ما يحجب**؛ المُصلَحُ هو ما يقوله عند الحجب. و#1036 عولِجت بإعادة تشكيل النافذة فعلاً (أربعةُ التزاماتٍ ⇒ ضمٌّ واحد بنفس الوالدَين، والشجرةُ مطابقةٌ بايتاً: `7a9bf54b` قبلَ وبعد).
 - **المصدر:** [`scripts/ci/brain_append_only_guard.py`](../../scripts/ci/brain_append_only_guard.py) · [`tests_v9/test_brain_append_only_guard.py`](../../tests_v9/test_brain_append_only_guard.py) · #1036
 
+- **متابعة 2026-11-06، على أساس `01d3402d`:** تكررت الحالة في #1335: `ebb838e6 → e26a7153` أنقص `registry.md` بمقدار 485 بايتاً، ثم أعاد `ea12a230` الفقرة الأصلية وأضاف الإغلاق؛ الحارس الأصلي ما زال يرفض التاريخ بحق. أضيفت أداة محلية مستقلة [`repair_brain_journal_history.py`](../../scripts/ci/repair_brain_journal_history.py) لتجميع نافذة خطية مستعادة في التزام يحفظ شجرة الرأس كاملة وينشئ فرعاً جديداً فقط بعد فحص الحارس والميزانية. التخطيط هو الافتراضي؛ لا تعديل لفرع #1335 ولا دفع تلقائي. شاهدها [`test_repair_brain_journal_history.py`](../../tests_v9/test_repair_brain_journal_history.py)، وطريقة استعمالها وحدودها في [دليل الإصلاح](../../docs/runbooks/BRAIN_JOURNAL_HISTORY_REPAIR.md). هذا إصلاح لمسار الصيانة؛ لا ادعاء بأن تاريخ #1335 عولج أو أن فحوصه نجحت.
+
 ## A-GAP-UNDER-A-DEEPER-HEADING-IS-INVISIBLE-TO-ITS-OWN-RATCHET-01
 
 - **الحالة:** **fixed** (2026-09-20) — أرضيّةُ صفرٍ حاجبة، والمدخلةُ المُصابة صُحِّحت.

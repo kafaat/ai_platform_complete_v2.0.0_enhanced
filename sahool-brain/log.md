@@ -10424,3 +10424,12 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - Regenerate conflicted inventories, governance reports and release checksums from their combined inputs rather than choosing either stale generated version.
 - Telemetry and SAM2 regression tests: 86 passed. Gap statuses in [`gaps/registry.md`](gaps/registry.md) remain unchanged: integration is not live verification.
 - Source: PR #1334; base commit `ba99b9ed`; branch commit `13b2ea1`.
+
+
+## 2026-11-06 — أداة مستقلة لإصلاح تاريخ السجل المستعاد
+
+- **النطاق:** طلب المالك فرعاً وPR جديدين لهذا الخطأ فقط، ثم اختار أداة إصلاح مستقلة واختباراتها مع بقاء #1335 دون تعديل؛ الأساس `01d3402d`.
+- **القياس:** الحارس الأصلي على `origin/main..ea12a230` أعاد `JOURNAL_SHRANK` في `ebb838e6 → e26a7153`، بنقص 485 بايتاً رغم استعادة النص في الرأس.
+- **التنفيذ:** [`repair_brain_journal_history.py`](../scripts/ci/repair_brain_journal_history.py) يخطط افتراضياً بكائن Git مؤقت، ويعيد استعمال الحارس والميزانية. `--apply` ينشئ فرعاً محلياً جديداً فقط بعد إثبات استعادة الأسطر وتطابق الشجرة؛ لا checkout أو push.
+- **شاهد السلوك:** [`test_repair_brain_journal_history.py`](../tests_v9/test_repair_brain_journal_history.py) يعيد إنتاج نقص 485 بايتاً بمستودعات مؤقتة ويختبر الحفظ والرفض؛ الدليل التشغيلي [`BRAIN_JOURNAL_HISTORY_REPAIR.md`](../docs/runbooks/BRAIN_JOURNAL_HISTORY_REPAIR.md).
+- **الحد:** PR الأداة لا يمحو تاريخ #1335، ولا يغيّر حالة تشغيل أو شهادة إنتاج. الفجوة المرجعية `A-HISTORICAL-DIP-IS-NOT-REPAIRABLE-BY-A-LATER-COMMIT-01`.

@@ -4600,3 +4600,10 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 - **Reason:** choosing either branch's generated output would discard evidence for the other branch's changes; retain both source fixes and rebuild their inventories and release checksums.
 - **Gap status:** unchanged; no live closure evidence is introduced by this merge.
 - **Source:** PR #1334; commits `ba99b9ed` and `13b2ea1`; session evidence in [`../log.md`](../log.md).
+
+
+## 2026-11-06 — فصل أداة إصلاح التاريخ عن فرع #1335
+
+- **القرار:** إنشاء شريحة مستقلة فوق `main@01d3402d` لأداة إصلاح التاريخ واختبارها ودليلها فقط، وفق اختيار المالك في الجلسة. يبقى الفرع `fix/windows-linux-engine-gpu-maintenance` عند `ea12a230` دون تحديث.
+- **السبب:** فشل `e26a7153` يقع في علاقة تاريخية؛ إضافة سجل على main لا تعالجه. الأداة تنشئ فرعاً جديداً وتحفظ الشجرة كاملة، وتترك نشره أو تحديث الفرع السابق لعمل مفوض لاحقاً.
+- **المرجع:** #1335؛ [`A-HISTORICAL-DIP-IS-NOT-REPAIRABLE-BY-A-LATER-COMMIT-01`](../gaps/registry.md)؛ [دليل الإصلاح](../../docs/runbooks/BRAIN_JOURNAL_HISTORY_REPAIR.md).

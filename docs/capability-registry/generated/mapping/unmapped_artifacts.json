@@ -10432,6 +10432,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_repair_brain_journal_history.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_report_index_guard.py",
     "kind": "tests"
   },
