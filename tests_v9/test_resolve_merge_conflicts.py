@@ -104,6 +104,124 @@ _LOG_FEATURE = _LOG_BASE + "- مدخل من الفرع\n"
 # ------------------------------------------------------------------ التصنيف
 
 
+@pytest.mark.parametrize("core_filemode", [False, True])
+@pytest.mark.parametrize("filesystem_mode", [0o644, 0o755])
+@pytest.mark.parametrize("index_mode", [None, "100644", "100755"])
+def test_archive_reader_mode_matches_what_git_add_records(
+    tmp_path: Path, core_filemode: bool, filesystem_mode: int, index_mode: str | None
+) -> None:
+    """Ignoring execute bits must not hide an archive or admit a tracked executable.
+
+    The oracle is Git's resulting index, not a duplicated mode calculation. This
+    also covers a new file on a filesystem where every file appears executable.
+    """
+    repo = _make_repo(tmp_path, {"seed": "seed\n"})
+    folder = rmc.ARCHIVES["sahool-brain/hot.md"]
+    relative = folder + "hot_mode.md"
+    _write(repo, relative, "archived entry\n")
+    archive = repo / relative
+    archive.chmod(0o644)
+    if index_mode:
+        _run(repo, "add", "--", relative)
+        _run(
+            repo,
+            "update-index",
+            "--chmod=" + ("+x" if index_mode == "100755" else "-x"),
+            "--",
+            relative,
+        )
+        _run(repo, "commit", "-m", "tracked archive")
+    _run(repo, "config", "core.filemode", str(core_filemode).lower())
+    archive.chmod(filesystem_mode)
+
+    index_before = (repo / ".git/index").read_bytes()
+    observed_mode = rmc.git_mode(archive)
+    observed_files = rmc.counted_archive_files(archive.parent, folder)
+    assert (repo / ".git/index").read_bytes() == index_before, "a reader must not alter the index"
+    assert archive.read_bytes() == b"archived entry\n"
+
+    _run(repo, "add", "--", relative)
+    recorded_mode = _run(repo, "ls-files", "--stage", "--", relative).stdout.split()[0]
+    assert observed_mode == recorded_mode
+    assert observed_files == ([archive] if recorded_mode == "100644" else [])
+
+
+@pytest.mark.parametrize("core_filemode", [False, True])
+@pytest.mark.parametrize("core_symlinks", [False, True])
+@pytest.mark.parametrize("content", ["target", "changed-target"])
+def test_archive_reader_respects_git_symlink_emulation(
+    tmp_path: Path, core_filemode: bool, core_symlinks: bool, content: str
+) -> None:
+    """A symlink checked out as regular text remains a link in Git when emulated."""
+    repo = _make_repo(tmp_path, {"seed": "seed\n"})
+    folder = rmc.ARCHIVES["sahool-brain/hot.md"]
+    relative = folder + "hot_link.md"
+    archive = repo / relative
+    archive.parent.mkdir(parents=True)
+    archive.symlink_to("target")
+    _run(repo, "add", "--", relative)
+    _run(repo, "commit", "-m", "symlink")
+    _run(repo, "config", "core.filemode", str(core_filemode).lower())
+    _run(repo, "config", "core.symlinks", str(core_symlinks).lower())
+    archive.unlink()
+    archive.write_text(content, encoding="utf-8")
+
+    observed_mode = rmc.git_mode(archive)
+    observed_files = rmc.counted_archive_files(archive.parent, folder)
+    _run(repo, "add", "--", relative)
+    recorded_mode = _run(repo, "ls-files", "--stage", "--", relative).stdout.split()[0]
+    assert observed_mode == recorded_mode
+    assert observed_files == ([archive] if recorded_mode == "100644" else [])
+
+
+def test_archive_reader_does_not_hide_an_index_read_failure(tmp_path: Path) -> None:
+    folder = rmc.ARCHIVES["sahool-brain/hot.md"]
+    relative = folder + "hot_mode.md"
+    repo = _make_repo(tmp_path, {relative: "archived entry\n"})
+    (repo / ".git/index").write_bytes(b"invalid index")
+    with pytest.raises(subprocess.CalledProcessError) as caught:
+        rmc.counted_archive_files(repo / folder, folder)
+    assert "ls-files" in caught.value.cmd
+    assert "index file" in caught.value.stderr
+
+
+def test_archive_reader_does_not_guess_an_unmerged_mode(tmp_path: Path) -> None:
+    folder = rmc.ARCHIVES["sahool-brain/hot.md"]
+    relative = folder + "hot_mode.md"
+    repo = _diverge(
+        tmp_path,
+        {relative: "prefix\n"},
+        {relative: "prefix\nmain\n"},
+        {relative: "prefix\nfeature\n"},
+    )
+    with pytest.raises(ValueError, match="Unmerged entry has no resolved Git mode"):
+        rmc.counted_archive_files(repo / folder, folder)
+    assert rmc.conflicted_paths(repo) == [relative]
+
+
+@pytest.mark.parametrize("linked_part", ["sahool-brain", "archive"])
+def test_archive_reader_does_not_follow_a_linked_folder(tmp_path: Path, linked_part: str) -> None:
+    repo = _make_repo(tmp_path, {"seed": "seed\n"})
+    folder = rmc.ARCHIVES["sahool-brain/hot.md"]
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    if linked_part == "sahool-brain":
+        external_archive = outside / "archive"
+        external_archive.mkdir()
+        (repo / "sahool-brain").symlink_to(outside, target_is_directory=True)
+    else:
+        external_archive = outside
+        (repo / "sahool-brain").mkdir()
+        (repo / folder).symlink_to(outside, target_is_directory=True)
+    external_file = external_archive / "hot_external.md"
+    external_file.write_text("external text\n", encoding="utf-8")
+    _run(repo, "add", "-A")
+    tree = _run(repo, "write-tree").stdout.strip()
+    assert _run(repo, "ls-tree", "-r", "--name-only", tree, "--", folder).stdout == ""
+    assert rmc.counted_archive_files(repo / folder, folder) == []
+    assert external_file.read_bytes() == b"external text\n"
+
+
 @pytest.mark.parametrize(
     "path,expected",
     [
@@ -498,6 +616,65 @@ def test_dry_run_writes_nothing(tmp_path: Path) -> None:
     assert rmc.resolve(root=repo, dry_run=True) == 0
     assert (repo / BRAIN_LOG).read_text(encoding="utf-8") == before
     assert rmc.conflicted_paths(repo) == [BRAIN_LOG]
+
+
+@pytest.mark.parametrize("dry_run", [False, True], ids=["apply", "dry-run"])
+@pytest.mark.parametrize(
+    "archive",
+    ["sahool-brain/archive/hot_2026-07-01_2026-07-03.md", "sahool-brain/archive/notes.txt"],
+)
+def test_divergent_archive_appends_stop_before_any_file_is_written_or_staged(
+    tmp_path: Path, capsys, archive: str, dry_run: bool
+) -> None:
+    """A successful concatenation is still ARCHIVE_REWRITTEN against one parent.
+
+    A different journal sorts before the archive, so validating inside the write
+    loop would already have modified and staged that journal before refusing.
+    """
+    journal = "docs/evidence/operational_evidence_log.md"
+    prefix = "original archived prefix\n"
+    repo = _diverge(
+        tmp_path,
+        {archive: prefix, journal: _LOG_BASE, GENERATED: '{"n": 0}\n'},
+        {archive: prefix + "main entry\n", journal: _LOG_MAIN, GENERATED: '{"n": 1}\n'},
+        {
+            archive: prefix + "feature entry\n",
+            journal: _LOG_FEATURE,
+            GENERATED: '{"n": 2}\n',
+        },
+    )
+    paths = rmc.conflicted_paths(repo)
+    assert paths.index(journal) < paths.index(archive)
+    worktree_before = {path: (repo / path).read_bytes() for path in paths}
+    index_before = _run(repo, "ls-files", "--stage", "-z").stdout
+
+    assert rmc.resolve(root=repo, dry_run=dry_run) == 1
+    assert "ARCHIVE_PREFIX_CONFLICT" in capsys.readouterr().err
+    assert {path: (repo / path).read_bytes() for path in paths} == worktree_before
+    assert _run(repo, "ls-files", "--stage", "-z").stdout == index_before
+    assert rmc.conflicted_paths(repo) == paths
+
+
+def test_archive_append_rebase_keeps_its_actual_parent_prefix(tmp_path: Path) -> None:
+    """Replaying an append has one new parent; it may append after main's suffix."""
+    archive = "sahool-brain/archive/hot_2026-07-01_2026-07-03.md"
+    prefix = "original archived prefix\n"
+    main = prefix + "main entry\n"
+    repo = _diverge(
+        tmp_path,
+        {archive: prefix},
+        {archive: main},
+        {archive: prefix + "feature entry\n"},
+        operation="rebase",
+    )
+    assert rmc.resolve(root=repo) == 0
+    merged = (repo / archive).read_bytes()
+    assert merged.startswith(main.encode("utf-8"))
+    assert b"feature entry\n" in merged
+    assert rmc.conflicted_paths(repo) == []
+    _run(repo, "-c", "core.editor=true", "rebase", "--continue")
+    assert _run(repo, "show", f"HEAD^:{archive}").stdout == main
+    assert (repo / archive).read_bytes() == merged
 
 
 def test_clean_tree_is_not_an_error(tmp_path: Path) -> None:

@@ -740,6 +740,7 @@
         "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
         "services/sahool-platform/tests/test_profit_aware_decision_endpoint.py",
         "tests/architecture/test_platform_route_budget_guard.py",
+        "tests_v9/test_brain_hot_budget_ci.py",
         "tests_v9/test_c4_economics_erp_payment_boundary_guard.py",
         "tests_v9/test_ci_suite_invocation_budget.py",
         "tests_v9/test_cost_analytics.py",
@@ -774,7 +775,7 @@
           "path": "services/sahool-platform/api/routers/economics.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=14, tests=9, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=14, tests=10, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
