@@ -1099,6 +1099,7 @@ FM-006,test,services/sahool-platform/tests/test_cost_governance.py,3,applied
 FM-006,test,services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py,3,applied
 FM-006,test,services/sahool-platform/tests/test_profit_aware_decision_endpoint.py,3,applied
 FM-006,test,tests/architecture/test_platform_route_budget_guard.py,3,applied
+FM-006,test,tests_v9/test_brain_hot_budget_ci.py,3,applied
 FM-006,test,tests_v9/test_c4_economics_erp_payment_boundary_guard.py,3,applied
 FM-006,test,tests_v9/test_ci_suite_invocation_budget.py,3,applied
 FM-006,test,tests_v9/test_cost_analytics.py,3,applied

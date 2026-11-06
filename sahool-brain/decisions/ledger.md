@@ -4600,3 +4600,11 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 - **Reason:** choosing either branch's generated output would discard evidence for the other branch's changes; retain both source fixes and rebuild their inventories and release checksums.
 - **Gap status:** unchanged; no live closure evidence is introduced by this merge.
 - **Source:** PR #1334; commits `ba99b9ed` and `13b2ea1`; session evidence in [`../log.md`](../log.md).
+
+
+## 2026-11-06 — إنفاذ ميزانية اللقطة وحفظ البايتات دون رفع السقف
+
+**القرار:** اعتماد التحقق الصارم من سياسة الميزانية وكائناتها، وتشغيل الحارس في `Repository Structural Lint` المطلوبة، ورفض حل تعارض أرشيف لا يحفظ بادئات والديه قبل أي كتابة، وتوحيد القراء مع أوضاع Git الفعلية.
+**السبب:** أمثلة مضادة نفذت على الأساس `01d3402d3e835682e414ff1e6bfbe8b493ecccff` أثبتت قبول سياسة غير صالحة وقياس غير الملف وإمكان إفلات رفع السقف من الفحوص المطلوبة، وحلاً ينجح ثم يفشل بحارس حفظ الأرشيف، واختفاء أرشيف من القارئ مع شجرة Git نظيفة. السقف 526815 بايتاً كافٍ في هذا الأساس؛ رفعه لا يعالج تلك الأسباب.
+**المصدر:** `f6252716a03d8fa66be1becd88c2b03dc70ce136`؛ `scripts/ci/brain_append_only_guard.py`، `scripts/ci/resolve_merge_conflicts.py`، `.github/workflows/ci.yml` واختباراتها المبينة في `docs/reviews/brain_hot_budget_audit_20261106.md`. نتائج المصدر: 506 اختبارات مركزة، و24 اختبار توافق، وسبع طفرات مستقلة مكشوفة.
+**حالة الفجوات:** الخمس الجديدة `fixed` في فرع الإصلاح بشواهد تنفيذية؛ لا تغيير لحالة فجوات تشغيلية أخرى ولا ادعاء بتحقق إنتاجي. أداة إصلاح التاريخ وتعليقها في #1336 لهما متابعة مستقلة.

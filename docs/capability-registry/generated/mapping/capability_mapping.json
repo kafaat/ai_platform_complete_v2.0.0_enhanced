@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7001,
+    "files_scanned": 7004,
     "files_by_kind": {
       "backend": 1266,
       "database": 289,
       "governance": 87,
       "mobile": 414,
-      "other": 2138,
-      "tests": 2303,
+      "other": 2140,
+      "tests": 2304,
       "web": 504
     },
-    "unmapped_artifacts": 2783,
+    "unmapped_artifacts": 2784,
     "ambiguous_artifacts": 510
   },
   "capabilities": [
@@ -50712,6 +50712,10 @@
     },
     {
       "path": "tests_v9/test_brain_duplicate_gap_identity_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_brain_hot_budget_ci.py",
       "kind": "tests"
     },
     {

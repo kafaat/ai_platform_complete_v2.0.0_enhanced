@@ -8828,6 +8828,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_brain_hot_budget_ci.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_brain_narrative_registry_consistency.py",
     "kind": "tests"
   },

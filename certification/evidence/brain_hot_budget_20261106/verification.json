@@ -1,0 +1,303 @@
+{
+  "schema": "sahool.brain-hot-budget-audit.v1",
+  "recorded_at_utc": "2026-11-06T14:14:35.727704+00:00",
+  "base_sha": "01d3402d3e835682e414ff1e6bfbe8b493ecccff",
+  "source_commit": "f6252716a03d8fa66be1becd88c2b03dc70ce136",
+  "source_tree": "361fd9848702e0776278938e191e638ccd1dae13",
+  "source_sha256": {
+    ".github/workflows/ci.yml": "2dbd136e0c122595c18a43c3aca8f80db251eaf1a2dda11c140810f89b9e5b81",
+    "docs/architecture/blocking_surface_additions.json": "7749933e462798dd9a98b1b47621d7a236b5772e40a44e3e2f958e39e06ebc8e",
+    "sahool-brain/README.md": "65793a171bae606a3deaf6a2af57b1e98db17e86b923e5eb42ebb7edb2801645",
+    "scripts/ci/brain_append_only_guard.py": "f56beede0ac55c15b5461ff38623de0a9ef01d13c3133e00eaa34351d4c15816",
+    "scripts/ci/resolve_merge_conflicts.py": "882bc90f6e56d543605940d6a26e27c4261e59f0fdbde4426264b903fdf8bd0f",
+    "tests/architecture/test_brain_deferral_registry_guard.py": "8496e2981ce6a82a2d8573ef3e2c129493e8bdbb8b00a5b546dd855b1d09f801",
+    "tests_v9/test_brain_append_only_guard.py": "c4c827149cc0f4ee8117db60fbd3c09b78a35eb57f3868552869049b86f35632",
+    "tests_v9/test_brain_hot_budget_ci.py": "68a5a64c4b857c3cd8fbbd36e6456d7322106b77b9f8338fe8f71237efde2fa2",
+    "tests_v9/test_resolve_merge_conflicts.py": "b73bf4cf93be6c122233cda171c67dfd5f60d6515f07e8b9e7ee21080813ccc4"
+  },
+  "findings": [
+    "BRAIN-HOT-BUDGET-ACCEPTS-INVALID-POLICY-01",
+    "BRAIN-HOT-BUDGET-MEASURES-NONFILE-OBJECTS-01",
+    "BRAIN-HOT-BUDGET-GUARD-RUNS-IN-A-NON-REQUIRED-CHECK-01",
+    "ARCHIVE-CONFLICT-RESOLVER-BREAKS-PARENT-PREFIX-01",
+    "ARCHIVE-READERS-DISAGREE-WITH-GIT-MODES-01"
+  ],
+  "baseline_budget": {
+    "path": "sahool-brain/hot.md",
+    "bytes": 170184,
+    "limit": 526815,
+    "remaining": 356631,
+    "sha256": "bda36097dd66e2ecb51647b17b79af538a2f38258b7d53cdaa00c56624f27b95"
+  },
+  "budget_policy_sha256": "80d17f1ac6d2b86fa91fe797c9f0cdb1ffacc24281f4f389eb2c91a5a3988388",
+  "focused_suite": {
+    "command": "python -m pytest -q -o addopts= tests_v9/test_brain_append_only_guard.py tests_v9/test_resolve_merge_conflicts.py tests_v9/test_brain_hot_budget_ci.py tests/architecture/test_brain_deferral_registry_guard.py tests_v9/test_brain_transition_guard_vocabulary.py tests_v9/test_brain_narrative_registry_consistency.py tests/architecture/test_brain_state_consistency.py",
+    "tests": 506,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junit_sha256": "659e04595f8bb2d60379b1a8a5e689fd0033eea3679b5b180e656703f1b87b7a",
+    "log_sha256": "4ca35e4af8d10d9493118b1a937033eef39c0f68deeeeff93ebb039f535e1ba7"
+  },
+  "unchanged_pr1336_compatibility": {
+    "head": "fb336191612be31910c72a975b0c728e8fc8fe59",
+    "source_files_imported_into_candidate": false,
+    "tests": 24,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "policy_red_witness": {
+    "command": "python -m pytest tests_v9/test_brain_append_only_guard.py -q -o addopts= -k budget",
+    "failed": 30,
+    "passed": 20,
+    "deselected": 146,
+    "log_sha256": "d77bf301beafb8184957adf083e5d8496766a4ac1e5ffd15bceddde6b28339af"
+  },
+  "archive_conflict_before": {
+    "git_merge_exit": 1,
+    "resolver_exit": 0,
+    "unmerged_paths": [],
+    "archive_changed": true,
+    "index_changed": true,
+    "guard_findings": [
+      {
+        "code": "ARCHIVE_REWRITTEN",
+        "path": "sahool-brain/archive/hot_2026-07-01_2026-07-03.md",
+        "detail": "أرشيفٌ إلحاقيٌّ صارم: 52 ← 72 بايت، ومحتوى الوالد لم يبقَ بادئةً — ما نُقِل إليه لا يُحرَّر ولا يُحذَف"
+      }
+    ]
+  },
+  "archive_conflict_after": {
+    "git_merge_exit": 1,
+    "resolver_exit": 1,
+    "unmerged_paths": [
+      "sahool-brain/archive/hot_2026-07-01_2026-07-03.md"
+    ],
+    "archive_changed": false,
+    "index_changed": false,
+    "guard_findings": []
+  },
+  "archive_reader_red_witnesses": {
+    "mode_and_consumer": {
+      "failed": 8,
+      "passed": 13
+    },
+    "linked_folder": {
+      "failed": 2,
+      "passed": 0
+    }
+  },
+  "isolated_mutations": {
+    "source_guard_sha256": "f56beede0ac55c15b5461ff38623de0a9ef01d13c3133e00eaa34351d4c15816",
+    "source_test_sha256": "c4c827149cc0f4ee8117db60fbd3c09b78a35eb57f3868552869049b86f35632",
+    "control": {
+      "label": "control",
+      "exit_code": 0,
+      "tests": 21,
+      "failures": [],
+      "errors": 0,
+      "skipped": 0,
+      "source_sha256": "f56beede0ac55c15b5461ff38623de0a9ef01d13c3133e00eaa34351d4c15816",
+      "log_sha256": "59edba11973d398939ac039adc9317a9dc400c24c4e6824aef416767f308c69a",
+      "junit_sha256": "6b2831fd99187376f4d7888461f4ff57baad33e173674d001bbeb985300cceff"
+    },
+    "mutations": [
+      {
+        "label": "accept-boolean-limit",
+        "exit_code": 1,
+        "tests": 1,
+        "failures": [
+          {
+            "name": "test_budget_limits_are_exact_nonnegative_integers[true]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_UNREADABLE']\n  \n  Right contains one more item: 'BUDGET_UNREADABLE'\n  Use -v to get more diff"
+          }
+        ],
+        "errors": 0,
+        "skipped": 0,
+        "source_sha256": "a520d079125a8b8823c4510ab711f9572dd5d64dfabad0b03b5baa0106b99d9f",
+        "killed_by_expected_test": true,
+        "log_sha256": "aff79c6875c5210538fff5ee09f6d6c277c91d7955ab66cc0722b0bc5748de4f",
+        "junit_sha256": "89df6c66dd7a86e83d8d4ff59c3b77d9b92a1d856b8d84cb335d8bb41ad35f17"
+      },
+      {
+        "label": "measure-symlink-bytes",
+        "exit_code": 1,
+        "tests": 1,
+        "failures": [
+          {
+            "name": "test_budget_measurement_does_not_accept_symlinks_as_regular_files[journal]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_TARGET_UNREADABLE']\n  \n  Right contains one more item: 'BUDGET_TARGET_UNREADABLE'\n  Use -v to get more diff"
+          }
+        ],
+        "errors": 0,
+        "skipped": 0,
+        "source_sha256": "1c7f8587c0321c1317b7c5695f94dbef9095ee521634a139f8598c86306d4b3e",
+        "killed_by_expected_test": true,
+        "log_sha256": "e72f9673cb50ad2e78b1ecfb98080402f97c178108c0d30fa4f14e493ceaea65",
+        "junit_sha256": "515e7a3cfb03d0369f997787edda7aa7989b312a2cb61632ff09956cb457e2c0"
+      },
+      {
+        "label": "allow-duplicate-policy-keys",
+        "exit_code": 1,
+        "tests": 6,
+        "failures": [
+          {
+            "name": "test_duplicate_budget_keys_fail_closed_at_either_end[root-base]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_UNREADABLE']\n  \n  Right contains one more item: 'BUDGET_UNREADABLE'\n  Use -v to get more diff"
+          },
+          {
+            "name": "test_duplicate_budget_keys_fail_closed_at_either_end[root-head]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_UNREADABLE']\n  \n  Right contains one more item: 'BUDGET_UNREADABLE'\n  Use -v to get more diff"
+          },
+          {
+            "name": "test_duplicate_budget_keys_fail_closed_at_either_end[journal-base]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_UNREADABLE']\n  \n  Right contains one more item: 'BUDGET_UNREADABLE'\n  Use -v to get more diff"
+          },
+          {
+            "name": "test_duplicate_budget_keys_fail_closed_at_either_end[journal-head]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_UNREADABLE']\n  \n  Right contains one more item: 'BUDGET_UNREADABLE'\n  Use -v to get more diff"
+          },
+          {
+            "name": "test_duplicate_budget_keys_fail_closed_at_either_end[limit-base]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_UNREADABLE']\n  \n  Right contains one more item: 'BUDGET_UNREADABLE'\n  Use -v to get more diff"
+          },
+          {
+            "name": "test_duplicate_budget_keys_fail_closed_at_either_end[limit-head]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_UNREADABLE']\n  \n  Right contains one more item: 'BUDGET_UNREADABLE'\n  Use -v to get more diff"
+          }
+        ],
+        "errors": 0,
+        "skipped": 0,
+        "source_sha256": "f2fc2184859694ccbf0aa5bd8e1444211fc8ae6397f3f93e83d313482f3f0bd7",
+        "killed_by_expected_test": true,
+        "log_sha256": "ac4a94cb71c226fefff10b98d2b9db0b6d2af973612ad053bf65cc3a25a95246",
+        "junit_sha256": "4330679264e50c7f8eda834fa72944a149119d88751237e6138dc214d6b4f117"
+      },
+      {
+        "label": "allow-unbudgeted-hot",
+        "exit_code": 1,
+        "tests": 2,
+        "failures": [
+          {
+            "name": "test_an_empty_policy_cannot_leave_hot_md_unbudgeted[None]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_REQU...ARGET_ABSENT']\n  \n  Right contains one more item: 'BUDGET_REQUIRED_TARGET_ABSENT'\n  Use -v to get more diff"
+          },
+          {
+            "name": "test_an_empty_policy_cannot_leave_hot_md_unbudgeted[{\"budgets\": {}}]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_REQU...ARGET_ABSENT']\n  \n  Right contains one more item: 'BUDGET_REQUIRED_TARGET_ABSENT'\n  Use -v to get more diff"
+          }
+        ],
+        "errors": 0,
+        "skipped": 0,
+        "source_sha256": "296e17b02101d2aacf93ea6e6fc5cd2ad1b1b2ab1f372b41f13357249149e362",
+        "killed_by_expected_test": true,
+        "log_sha256": "ad49afa65dec930178fd9939dfbc4e8470e09f3a7ed66a2f150296fa1a7f1858",
+        "junit_sha256": "3d0963efeafbac3fea712be4c80ae42aefae3ecbfa3053d3e9708d48d4e56297"
+      },
+      {
+        "label": "misclassify-failed-ref-as-absent",
+        "exit_code": 1,
+        "tests": 1,
+        "failures": [
+          {
+            "name": "test_an_unreadable_budget_ref_is_not_an_absent_policy[base]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_UNREADABLE']\n  \n  Right contains one more item: 'BUDGET_UNREADABLE'\n  Use -v to get more diff"
+          }
+        ],
+        "errors": 0,
+        "skipped": 0,
+        "source_sha256": "a67bd5de6708c58a23b0764f78aa7fdcae8bb9f32beeaac6aaca5854bfc8eb0b",
+        "killed_by_expected_test": true,
+        "log_sha256": "f07de0a113798ade27418930238dd504baee94c20b3cc164db2ab2d0231f0b3e",
+        "junit_sha256": "9d0acf328b8132dd6310fd0d11bd37ed3057a5414c8dfa05f27b6f42efd1a36c"
+      },
+      {
+        "label": "misclassify-failed-blob-as-empty",
+        "exit_code": 1,
+        "tests": 1,
+        "failures": [
+          {
+            "name": "test_an_unreadable_blob_is_not_a_missing_or_empty_budget_input[journal]",
+            "failure_type": null,
+            "message": "AssertionError: assert [] == ['BUDGET_TARGET_UNREADABLE']\n  \n  Right contains one more item: 'BUDGET_TARGET_UNREADABLE'\n  Use -v to get more diff"
+          }
+        ],
+        "errors": 0,
+        "skipped": 0,
+        "source_sha256": "11b124bf487a3c64252fe609c5fec1c45540004740c88edd2b42e8c97f55d8d5",
+        "killed_by_expected_test": true,
+        "log_sha256": "47dba6dbc2b8a31b968d6017c630be2d2812c626a17997df1b03c01c899c859f",
+        "junit_sha256": "3ff990b9a3fb720846c31b23235df122e6785c9dbf1c789e4aa55e7f71026e82"
+      },
+      {
+        "label": "remove-path-utf8-validation",
+        "exit_code": 1,
+        "tests": 9,
+        "failures": [
+          {
+            "name": "test_budget_targets_use_canonical_repository_paths[sahool-brain/\\ud800.md]",
+            "failure_type": null,
+            "message": "UnicodeEncodeError: 'utf-8' codec can't encode character '\\ud800' in position 13: surrogates not allowed"
+          },
+          {
+            "name": "test_budget_targets_use_canonical_repository_paths[sahool-brain/\\udfff.md]",
+            "failure_type": null,
+            "message": "UnicodeEncodeError: 'utf-8' codec can't encode character '\\udfff' in position 13: surrogates not allowed"
+          },
+          {
+            "name": "test_budget_targets_use_canonical_repository_paths[sahool-brain/\\udc80.md]",
+            "failure_type": null,
+            "message": "UnicodeEncodeError: 'utf-8' codec can't encode character '\\udc80' in position 13: surrogates not allowed"
+          }
+        ],
+        "errors": 0,
+        "skipped": 0,
+        "source_sha256": "4e86289bab5d5151a0f4b34a96ab9cbe8cd39387164f3814d28b17ea5d93de70",
+        "killed_by_expected_test": true,
+        "log_sha256": "844d1cf2725e5da02387c9564c3a3ffa451cb328926706f2db8d459cce138d8d",
+        "junit_sha256": "fba45ad1c5829fd91038aed3e0b3b544ca38f3921880330be86817e2723168e2"
+      }
+    ],
+    "all_killed": true,
+    "registered": false,
+    "reason": "Bounded independent review; no mutation-registry/headroom changes."
+  },
+  "registered_mutation_anchors_preserved": 26,
+  "lint": {
+    "ruff_check": "pass",
+    "ruff_format_check": "pass",
+    "actionlint_ci_yml": "pass",
+    "git_diff_check": "pass"
+  },
+  "remote_ruleset": {
+    "id": 20645828,
+    "name": "main-protection",
+    "enforcement": "active",
+    "required_context_count": 20,
+    "structural_lint_required": true,
+    "no_report_only_change_required": false,
+    "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/rulesets/20645828",
+    "observed_utc_date": "2026-11-06",
+    "modified": false
+  },
+  "limits": [
+    "Focused source verification, not a claim about later generated metadata or remote CI.",
+    "PR1336 compatibility refers only to the pinned historical head above; its review follow-up is separate.",
+    "Seven isolated mutants were not added to the periodic mutation registry.",
+    "No production or full-platform operational acceptance is claimed.",
+    "Retention of 14 recent days and archival pointer remain reviewed procedural obligations.",
+    "This receipt embeds outcomes and test names. Original local logs and JUnit files are not attached; their hashes identify the observed runs and are not file links."
+  ]
+}
