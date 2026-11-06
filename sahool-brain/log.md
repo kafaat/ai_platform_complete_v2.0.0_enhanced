@@ -10433,3 +10433,12 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **التنفيذ:** [`repair_brain_journal_history.py`](../scripts/ci/repair_brain_journal_history.py) يخطط افتراضياً بكائن Git مؤقت، ويعيد استعمال الحارس والميزانية. `--apply` ينشئ فرعاً محلياً جديداً فقط بعد إثبات استعادة الأسطر وتطابق الشجرة؛ لا checkout أو push.
 - **شاهد السلوك:** [`test_repair_brain_journal_history.py`](../tests_v9/test_repair_brain_journal_history.py) يعيد إنتاج نقص 485 بايتاً بمستودعات مؤقتة ويختبر الحفظ والرفض؛ الدليل التشغيلي [`BRAIN_JOURNAL_HISTORY_REPAIR.md`](../docs/runbooks/BRAIN_JOURNAL_HISTORY_REPAIR.md).
 - **الحد:** PR الأداة لا يمحو تاريخ #1335، ولا يغيّر حالة تشغيل أو شهادة إنتاج. الفجوة المرجعية `A-HISTORICAL-DIP-IS-NOT-REPAIRABLE-BY-A-LATER-COMMIT-01`.
+
+
+## 2026-11-06 — إصلاح تعليق حفظ الدفاتر في #1336
+
+- **المصدر:** [تعليق Copilot](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1336#discussion_r4493050216) على الرأس `fb336191612be31910c72a975b0c728e8fc8fe59`؛ إصلاح المصدر `669ec849bf02ff0eb8fd37299b1a178dad14f466`.
+- **الفجوة:** `BRAIN-JOURNAL-REPAIR-MISSES-CROSS-JOURNAL-CHECKPOINTS-01` (`fixed`)؛ كان دفتر آخر يفقد مدخلاً بين دورتَي تقلّص للـregistry دون أن تُفحص لقطته المتوسطة.
+- **التغيير:** حاصل ضرب جميع الآباء السابقين للتقلّص والأب الأول في كل الدفاتر المصنّفة من الحارس نفسه. يبقى التحقق من ترتيب الأسطر وتكرارها ومطابقة الشجرة كما هو.
+- **الشاهد:** المصدر الأصلي قبل خطة بها فقد مدخل log رغم نموه من83 إلى106 بايت، ورفضه المصدر الجديد بـ`UNRESTORED_JOURNAL`. ثماني حالات حمراء أصلية وأربع موجبة، ثم36 حالة خضراء بلا تخطٍّ؛ حماية الملفات والفهرس والمراجع مثبتة في اختبارات الرفض.
+- **النطاق:** متابعة مستقلة لأداة #1336؛ لم يُطبق إصلاح تاريخ على فرع #1335 ولم يُنقل عمل الميزانية إلى هذه الشجرة. المصدر والقياسات في `certification/evidence/brain_journal_repair_review_20261106/verification.json`؛ الاستخدام في `docs/runbooks/BRAIN_JOURNAL_HISTORY_REPAIR.md`. النتائج مركزة على المصدر، وCI البعيد يقاس بعد النشر.
