@@ -210,10 +210,12 @@ def _repair_history(
     if unsupported:
         raise RepairError("UNSUPPORTED_FAILURE: " + "\n".join(map(str, unsupported)))
 
-    # Preserve all original journals, and every additional pre-shrink snapshot.
-    # Use the guard's classification rather than a second journal allowlist.
-    checkpoints = {(parent_sha, path) for path in guard.append_only_files()}
-    checkpoints.update((finding.parent, finding.path) for finding in shrinks)
+    # Preserve every journal at the initial parent and every pre-shrink checkpoint.
+    # A different journal can lose intervening entries while growing in byte length,
+    # so the shrinking path alone does not describe the snapshots we must preserve.
+    journal_paths = guard.append_only_files()
+    checkpoint_refs = {parent_sha} | {finding.parent for finding in shrinks}
+    checkpoints = {(checkpoint, path) for checkpoint in checkpoint_refs for path in journal_paths}
     for checkpoint, path in sorted(checkpoints):
         before = _git(root, "show", f"{checkpoint}:{path}").stdout
         after = _git(root, "show", f"{head_sha}:{path}").stdout

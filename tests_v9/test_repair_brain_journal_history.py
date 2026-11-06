@@ -303,6 +303,101 @@ def test_missing_original_text_is_rejected_even_when_byte_length_is_restored(
     _assert_no_destination(incident.root)
 
 
+def _second_cycle_with_intermediate_entry(incident, other_journal, *, restore_entry):
+    """A second registry dip must also protect entries added to another journal."""
+    root = incident.root
+    original = _blob(root, incident.head, other_journal)
+    intermediate = original + b"Protected entry between the two registry repair cycles.\n"
+    checkpoint = _commit(
+        root, {other_journal: intermediate}, "append another journal between registry repairs"
+    )
+    shrink = _commit(
+        root,
+        {JOURNAL: RESTORED.replace(HISTORICAL_LINE, SHORTER_LINE)},
+        "second historical registry shrink",
+    )
+    final = (
+        intermediate + b"Additional evidence after preserving the intermediate entry.\n"
+        if restore_entry
+        else original
+        + b"A longer replacement loses the protected intermediate entry without shrinking.\n"
+    )
+    head = _commit(
+        root,
+        {JOURNAL: RESTORED, other_journal: final},
+        "restore registry and record the final other journal",
+    )
+    return checkpoint, shrink, head, intermediate
+
+
+@pytest.mark.parametrize(
+    "other_journal",
+    [
+        "sahool-brain/log.md",
+        "sahool-brain/decisions/ledger.md",
+        HOT,
+        "docs/evidence/operational_evidence_log.md",
+    ],
+)
+@pytest.mark.parametrize("apply", [False, True], ids=["plan", "apply"])
+def test_every_pre_shrink_checkpoint_preserves_every_classified_journal(
+    incident, guard, repair, other_journal, apply
+):
+    """Size-only checks miss replacing an intermediate entry with a longer line."""
+    assert other_journal in guard.append_only_files()
+    root = incident.root
+    checkpoint, shrink, head, intermediate = _second_cycle_with_intermediate_entry(
+        incident, other_journal, restore_entry=False
+    )
+    assert len(_blob(root, head, other_journal)) > len(intermediate)
+    blocking, _, _ = guard.check_range(incident.base, head, root=root)
+    assert {(finding.code, finding.path, finding.commit) for finding in blocking} == {
+        ("JOURNAL_SHRANK", JOURNAL, incident.shrink),
+        ("JOURNAL_SHRANK", JOURNAL, shrink),
+    }
+    refs, objects, files = _refs(root), _objects(root), _files(root)
+    index = (root / ".git/index").read_bytes()
+    with pytest.raises(repair.RepairError, match="UNRESTORED_JOURNAL") as caught:
+        repair.repair_history(**incident.args(apply=apply))
+    assert other_journal in str(caught.value)
+    assert checkpoint in str(caught.value)
+    assert _refs(root) == refs
+    assert _objects(root) == objects
+    assert _files(root) == files
+    assert (root / ".git/index").read_bytes() == index
+    _assert_no_destination(root)
+
+
+@pytest.mark.parametrize(
+    "other_journal",
+    [
+        "sahool-brain/log.md",
+        "sahool-brain/decisions/ledger.md",
+        HOT,
+        "docs/evidence/operational_evidence_log.md",
+    ],
+)
+def test_restoring_all_journals_after_multiple_shrink_cycles_is_accepted(
+    incident, guard, repair, other_journal
+):
+    root = incident.root
+    _, _, head, intermediate = _second_cycle_with_intermediate_entry(
+        incident, other_journal, restore_entry=True
+    )
+    refs, files = _refs(root), _files(root)
+    result = repair.repair_history(**incident.args(apply=True))
+    candidate = result["candidate"]
+    assert result["status"] == "created"
+    assert result["shrinks_repaired"] == 2
+    assert result["commits_squashed"] == 5
+    assert result["tree"] == _git(root, "rev-parse", f"{head}^{{tree}}")
+    assert _git(root, "diff", "--exit-code", head, candidate) == ""
+    assert _blob(root, candidate, other_journal).startswith(intermediate)
+    assert not guard.check_range(incident.base, candidate, root=root)[0]
+    assert _refs(root) == {**refs, "refs/heads/journal-repaired": candidate}
+    assert _files(root) == files
+
+
 def test_an_existing_destination_is_never_moved(incident, repair):
     _git(incident.root, "branch", "journal-repaired", incident.base)
     refs = _refs(incident.root)
