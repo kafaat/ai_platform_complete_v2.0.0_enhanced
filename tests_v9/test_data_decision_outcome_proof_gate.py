@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import importlib.util
-import contextlib
 import io
 import json
+import tempfile
+import unittest
+from pathlib import Path
 
 import pytest
 
 pytestmark = pytest.mark.unit
-import tempfile
-import unittest
-from pathlib import Path
 
 _SCRIPT = Path(__file__).resolve().parents[1] / "scripts/ci/data_decision_outcome_proof_gate.py"
 _spec = importlib.util.spec_from_file_location("data_decision_outcome_proof_gate", _SCRIPT)
