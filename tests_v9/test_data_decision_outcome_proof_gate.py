@@ -4,6 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import contextlib
+import io
+import json
+
+import pytest
+
+pytestmark = pytest.mark.unit
 import tempfile
 import unittest
 from pathlib import Path
@@ -93,6 +100,29 @@ class ProofGateTests(unittest.TestCase):
         self.assertTrue(result["manifest_valid"])
         self.assertTrue(result["e3_review_candidate"])
         self.assertFalse(result["complete_e3"])
+
+
+    def test_manifest_list_root_returns_structured_failure(self):
+        candidate = self.root / "root-array.json"
+        candidate.write_text("[]", encoding="utf-8")
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            code = _gate.main(["--root", str(self.root), "--manifest", str(candidate)])
+        parsed = json.loads(stdout.getvalue())
+        self.assertEqual(code, 1)
+        self.assertFalse(parsed["manifest_valid"])
+        self.assertIn("manifest_root_not_object", parsed["errors"])
+
+    def test_unhashable_state_and_environment_fail_structured(self):
+        self.plan["stages"][0]["e3_state"] = ["EVIDENCE_SUBMITTED"]
+        self.assertIn("invalid_e3_state", str(self.validate()["errors"]))
+        self.plan["stages"][0]["e3_state"] = "EVIDENCE_SUBMITTED"
+        self.plan["stages"][0]["receipt"] = {
+            "result": "PASS", "environment": ["staging"], "source_commit": "b" * 40,
+            "artifact_path": "certification/evidence/data_decision_outcome/missing.json",
+            "sha256": "a" * 64,
+        }
+        self.assertIn("invalid_environment", str(self.validate()["errors"]))
 
 
 if __name__ == "__main__":
