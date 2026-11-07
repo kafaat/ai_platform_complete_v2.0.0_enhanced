@@ -234,6 +234,7 @@
       "v234_learning_agronomic_review.sql",
       "v235_decision_chain_correlation.sql",
       "v236_raster_follow_up_requests.sql",
+      "v237_tenant_isolation_hardening.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -1657,14 +1658,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 234,
+    "manifest_entries": 235,
     "manifest_missing_count": 0,
     "policies": 202,
     "production_certified": false,
     "rls_enabled": 215,
     "rls_forced": 196,
     "runtime_verified": false,
-    "sql_files": 236,
+    "sql_files": 238,
     "tables": 342,
     "tenant_rls_gaps": 135,
     "tenant_tables": 322,
@@ -5644,7 +5645,8 @@
         "services/decision-service/persistence.py",
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
-        "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py"
+        "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
+        "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py"
       ],
       "created_in": "v119_phase10_continuous_learning.sql",
       "has_tenant_id": true,

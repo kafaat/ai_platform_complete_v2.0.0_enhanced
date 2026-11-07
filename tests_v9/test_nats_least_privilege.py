@@ -68,6 +68,9 @@ INBOX_CLIENTS = {
     / "services"
     / "vegetation-analysis-service"
     / "vegetation_runtime.py",
+    "sahool-reservation-dispatch-relay-worker": PLATFORM
+    / "api"
+    / "irrigation_dispatch_relay_worker.py",
 }
 
 #: عمّالُ phase-runtime: وضعُ الأمر في compose ⇒ الدالّةُ التي تنشر.
@@ -421,13 +424,30 @@ def test_the_actuator_subject_is_a_notice_not_a_command_and_nobody_may_consume_i
     ).lower().replace("natsu", "")
 
 
-@pytest.mark.unit
-def test_the_relay_subscribes_exactly_to_the_reservation_dispatch_subjects():
+def _relay_durables() -> list[str]:
     relay = _platform_import("irrigation_dispatch_relay")
-    expected = {f"sahool.events.{e}" for e in relay.SUPPORTED_DISPATCH_EVENTS}
+    worker = _platform_import("irrigation_dispatch_relay_worker")
+    return [
+        worker.durable_for_subject(f"sahool.events.{e}") for e in relay.SUPPORTED_DISPATCH_EVENTS
+    ]
+
+
+@pytest.mark.unit
+def test_the_relay_may_bind_only_its_own_durables():
+    """A6: المُرحِّل مستهلكٌ دائمٌ بإقرار (لا Core) — يُنشئ مستهلكيه بأسمائهم ويُقِرّ عليهم وحدهم."""
     user = _users()["sahool-reservation-dispatch-relay-worker"]
-    assert set(_allow(user, "subscribe")) == expected
-    assert user["permissions"]["publish"] == {"deny": [">"]}
+    expected = {"$JS.API.STREAM.NAMES"}
+    for d in _relay_durables():
+        expected |= {
+            f"$JS.API.CONSUMER.INFO.{STREAM}.{d}",
+            f"$JS.API.CONSUMER.DURABLE.CREATE.{STREAM}.{d}",
+            f"$JS.ACK.{STREAM}.{d}.>",
+        }
+    allowed = set(_allow(user, "publish"))
+    assert allowed == expected, (
+        f"ناقص: {sorted(expected - allowed)}\n زائد: {sorted(allowed - expected)}"
+    )
+    assert _allow(user, "subscribe") == ["_INBOX_sahool-reservation-dispatch-relay-worker.>"]
 
 
 @pytest.mark.unit
@@ -504,8 +524,6 @@ def _expected() -> dict[str, dict[str, set[str]]]:
     def dotted(t: str) -> str:
         return f"sahool.{t.replace('_', '.')}"
 
-    relay = _platform_import("irrigation_dispatch_relay")
-
     def inbox(name: str) -> set[str]:
         return {f"_INBOX_{name}.>"}
 
@@ -529,7 +547,7 @@ def _expected() -> dict[str, dict[str, set[str]]]:
         },
         "sahool-reservation-dispatch-relay-worker": {
             "publish": set(),
-            "subscribe": {f"sahool.events.{e}" for e in relay.SUPPORTED_DISPATCH_EVENTS},
+            "subscribe": inbox("sahool-reservation-dispatch-relay-worker"),
         },
         "sahool-canonical-execution-learning-worker": {
             "publish": set(),

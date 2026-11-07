@@ -14,11 +14,14 @@ Boundaries this worker MUST preserve (the delivery≠fulfillment contract locked
   * it is DEFAULT-OFF behind ``FEATURE_RESERVATION_DISPATCH_RELAY`` — with the flag unset the
     worker never runs, so events simply rest in the outbox (honest, no silent side effects).
 
-Durability of the NATS hop itself (core NATS fire-and-forward vs JetStream ack) is a live-cert
-decision made against a running NATS + decision-service stack; the outbox remains the durable
-producer and the inbox the idempotent sink, so a lost core-NATS message is re-published by the
-outbox and de-duplicated at the sink. The message→ingest→POST core here is pure and unit-tested so
-the contract holds without any infrastructure.
+Durability of the NATS hop (RELAY-CORE-NATS-LOSES-DISPATCH-INTENT-01, audit 2026-11-01 A6): the
+outbox publishes with ``js.publish`` and marks the row published on the PubAck, so it never
+re-publishes. A core-NATS subscription therefore lost the intent for good on a 503/502 or while the
+worker was down. The relay now binds one JetStream durable push consumer per subject with manual
+ack: ``ack`` only after the inbox settled the delivery, ``nak(delay)`` on a retryable failure (5xx,
+transport, handler exception) so JetStream redelivers, and ``term`` only for a permanent refusal
+(malformed/unmappable event, 4xx validation). The inbox dedups on ``source_event_id``, so
+redelivery stays a no-op. The message→ingest→POST core here is pure and unit-tested.
 """
 
 from __future__ import annotations
@@ -27,6 +30,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import time
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -53,6 +57,17 @@ INGEST_PATH = "/v1/reservation-dispatch-intents"
 # Subjects the outbox publishes reservation dispatch events on (sahool.events.<event_type>).
 DEFAULT_SUBJECTS = tuple(f"sahool.events.{e}" for e in sorted(SUPPORTED_DISPATCH_EVENTS))
 
+# JetStream durable consumers (one per subject — a durable binds exactly one subscription). The
+# names are pinned in nats/nats.conf for this identity; changing the base needs a matching grant.
+DURABLE_BASE = "reservation-dispatch-relay-v1"
+SUBJECT_PREFIX = "sahool.events."
+_DURABLE_UNSAFE = re.compile(r"[^A-Za-z0-9_-]+")
+# Reply inbox under this worker's own identity (nats/nats.conf denies the shared `_INBOX.>`).
+INBOX_PREFIX = "_INBOX_sahool-reservation-dispatch-relay-worker"
+NAK_DELAY_SECONDS = 15.0
+# Inbox refusals that a redelivery cannot fix (bad body / unknown route / conflicting duplicate).
+_PERMANENT_STATUSES = frozenset({400, 404, 409, 410, 422})
+
 # A POST result the sink treats as a settled delivery: 200 (recorded or duplicate) — the inbox is
 # idempotent, so a duplicate is success, not an error.
 _SETTLED_STATUSES = frozenset({200, 201})
@@ -63,6 +78,42 @@ PostFn = Callable[[str | None, dict[str, Any]], Awaitable[tuple[int, Any]]]
 def relay_enabled() -> bool:
     """Default-off: with the flag unset the relay never runs (events rest in the outbox)."""
     return os.getenv(RELAY_FLAG, "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def durable_for_subject(subject: str, base: str = DURABLE_BASE) -> str:
+    """This subject's own durable name (full-subject suffix, so no two subjects collide)."""
+    suffix = _DURABLE_UNSAFE.sub("-", subject.removeprefix(SUBJECT_PREFIX)).strip("-")
+    if not suffix:
+        raise ValueError(f"subject yields no durable suffix: {subject!r}")
+    return f"{base}-{suffix}"
+
+
+def settlement_for(result: dict[str, Any]) -> str:
+    """Pure: map a handler outcome to the JetStream settlement — ``ack`` | ``nak`` | ``term``.
+
+    Only a settled inbox POST (or a foreign event that is not ours to relay) is acked. A retryable
+    failure is nak'ed so JetStream redelivers it instead of the intent vanishing.
+    """
+    outcome = result.get("outcome")
+    if outcome == "delivered":
+        return "ack"
+    if outcome == "skipped":
+        return "ack" if result.get("reason") == "unsupported_event" else "term"
+    if outcome == "failed" and result.get("status") in _PERMANENT_STATUSES:
+        return "term"
+    return "nak"
+
+
+async def _settle(msg: Any, decision: str) -> None:
+    """Apply the settlement when the message is a JetStream delivery (core messages have none)."""
+    if not hasattr(msg, "ack"):
+        return
+    if decision == "ack":
+        await msg.ack()
+    elif decision == "term":
+        await msg.term()
+    else:
+        await msg.nak(delay=NAK_DELAY_SECONDS)
 
 
 def subscribed_subjects() -> tuple[str, ...]:
@@ -159,6 +210,7 @@ def make_message_handler(
         except Exception as exc:  # noqa: BLE001 — a single bad message must not kill the worker
             logger.warning("dispatch relay handler error: %s", exc)
             heartbeat.mark_error(f"{type(exc).__name__}: {exc}")
+            result = {"outcome": "error"}
         else:
             # The structured outcome IS the health signal — a handler that returns is not a
             # handler that delivered. Only `delivered` counts; a `failed` POST (503 mirror,
@@ -174,6 +226,10 @@ def make_message_handler(
             else:
                 _touch_alive(heartbeat)
         heartbeat.write()
+        try:
+            await _settle(msg, settlement_for(result))
+        except Exception as exc:  # noqa: BLE001 — unacked ⇒ JetStream redelivers after ack_wait
+            logger.warning("dispatch relay settlement error: %s", exc)
 
     return _on_message
 
@@ -224,15 +280,17 @@ async def run_relay(
     import nats  # type: ignore
     from shared.broker_url import redact_broker_url
 
-    nc = await nats.connect(nats_url, max_reconnect_attempts=-1)
+    nc = await nats.connect(nats_url, max_reconnect_attempts=-1, inbox_prefix=INBOX_PREFIX)
+    js = nc.jetstream()
     # `NATS_URL` صار يحمل الاعتماد — يُطبَع مُنقّى (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01).
     logger.info("reservation dispatch relay connected to NATS at %s", redact_broker_url(nats_url))
 
     on_message = make_message_handler(post, beat)
     try:
         for subject in subscribed_subjects():
-            await nc.subscribe(subject, cb=on_message)
-            logger.info("reservation dispatch relay subscribed to %s", subject)
+            durable = durable_for_subject(subject)
+            await js.subscribe(subject, durable=durable, cb=on_message, manual_ack=True)
+            logger.info("reservation dispatch relay bound %s as durable %s", subject, durable)
         await idle_with_heartbeat(beat, state="running")
     finally:
         await nc.drain()

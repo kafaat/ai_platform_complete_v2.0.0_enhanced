@@ -38,6 +38,13 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
                 "(فعّل FEATURE_MANUAL_ACTUATOR_COMMANDS)",
             },
         )
+    # A4: أمرٌ لا يفهمه البرنامج الثابت ⇒ 422 صريح قبل أيّ عمل، لا 200 بـsent=false.
+    wire_cmd, wire_reason = main._to_firmware_wire(req.command, req.payload)
+    if wire_cmd is None:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "unsupported_actuator_command", "reason": wire_reason},
+        )
     # حارس السلامة الفيزيائيّة + العزل: فحص الدور + ملكيّة الجهاز للمستأجِر (fail-closed).
     device_field_id = await main._authorize_device_control(claims, req.device_id)
     # مفتاح إيقاف طوارئ التشغيل (v133، fail-closed): استشِر قبل النشر. مفتاح مُشتبَك

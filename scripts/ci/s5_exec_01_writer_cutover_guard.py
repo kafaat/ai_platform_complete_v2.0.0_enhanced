@@ -91,12 +91,18 @@ def _review_only_u07_authorization(doc: dict, policy: dict) -> bool:
 # والتأجيل **يُقاس ولا يُدَّعى**: `_gate01_blocks()` تقرأ السياسة والتفويضات وقت
 # التشغيل، فإن فُتِحت البوّابة أو صدر تفويضٌ ISSUED غير رقعة U07 المحددة **سقط العذر فوراً**
 # وعاد فرضُ العلامات. أي أنّه شرطٌ ينقضي بنفسه لا استثناءٌ دائم.
-GATE01_DEFERRED: dict[tuple[str, str], str] = {
+#
+# **وانقضى التأجيلُ الوحيد بالآليّة نفسها (2026-11-07):** صدر GATE01-ADJ-2026-11-03-001
+# بمسّ `phase_runtime_store.py` (ربط GUC المستأجر داخل المعاملة)، فسقط عذرُ
+# `online_learning_updates` كما صُمِّم، ونُفِّذ عقدُ القطع في الملفّ نفسه. والقاموس يبقى
+# آليّةً فارغةً لا سجلّاً: أيُّ تأجيلٍ قادمٍ يُضاف هنا ويخضع للقياس نفسه.
+HISTORICAL_GATE01_DEFERRED: dict[tuple[str, str], str] = {
     (
         "services/sahool-platform/api/phase_runtime_store.py",
         "online_learning_updates",
     ): "GATE-01 CLOSED · لا إذن قطع؛ رقعة U07 المحددة بالبايتات لا تمنح إذن SoR",
 }
+GATE01_DEFERRED: dict[tuple[str, str], str] = {}
 
 
 def _gate01_blocks(writer: str) -> bool:

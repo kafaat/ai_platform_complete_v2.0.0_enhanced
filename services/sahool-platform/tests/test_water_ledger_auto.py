@@ -717,3 +717,43 @@ def test_the_ledger_chain_status_walks_back_to_an_anchor(rows, expected):
     from api.water_ledger_auto import ledger_chain_applied_water_status
 
     assert ledger_chain_applied_water_status(rows) == expected
+
+
+def test_water_ledger_network_calls_run_outside_any_transaction():
+    """Review of the GUC fix: one transaction per field held the ledger row lock across HTTP.
+
+    Weather, ET0 and the decision bridge are network calls. None of them may sit lexically
+    inside an ``async with conn.transaction()`` block in ``run_water_ledger_once``; the
+    tenant is re-bound at the start of each short transaction instead.
+    """
+    import ast
+
+    src = (Path(__file__).resolve().parents[1] / "api" / "phase_runtime_workers.py").read_text(
+        encoding="utf-8"
+    )
+    fn = next(
+        n
+        for n in ast.walk(ast.parse(src))
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == "run_water_ledger_once"
+    )
+    network = {"get_weather_forecast", "get_et0_product", "process_water_deficit"}
+    inside: list[str] = []
+    transactions = 0
+    for node in ast.walk(fn):
+        if isinstance(node, ast.AsyncWith) and any(
+            isinstance(i.context_expr, ast.Call)
+            and isinstance(i.context_expr.func, ast.Attribute)
+            and i.context_expr.func.attr == "transaction"
+            for i in node.items
+        ):
+            transactions += 1
+            body = ast.Module(body=node.body, type_ignores=[])
+            calls = [c for c in ast.walk(body) if isinstance(c, ast.Call)]
+            assert any(
+                isinstance(c.func, ast.Name) and c.func.id == "_set_tenant" for c in calls
+            ), "every water-ledger transaction must bind the tenant inside itself"
+            inside += [
+                c.func.id for c in calls if isinstance(c.func, ast.Name) and c.func.id in network
+            ]
+    assert transactions >= 2
+    assert inside == [], f"network call inside a transaction: {inside}"

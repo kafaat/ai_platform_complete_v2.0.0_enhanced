@@ -243,18 +243,38 @@ class _RulesConn(_Conn):
     async def fetchval(self, *_a, **_k):
         return None
 
+    def transaction(self):
+        class _Tx:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *_exc):
+                return False
+
+        return _Tx()
+
+
+#: صفّ السجلّ السلطويّ للصمّام: مُشغِّلٌ للمستأجِر في حقل المستشعر (A2 يشترطه).
+_VALVE_ROW = {
+    "device_id": "valve-a",
+    "tenant_id": TENANT,
+    "type": "actuator",
+    "field_id": "field-9",
+}
+
 
 class _RulesPool(_Pool):
-    def __init__(self, rules: list[dict]) -> None:
-        super().__init__(None)
+    def __init__(self, rules: list[dict], row: dict | None = _VALVE_ROW) -> None:
+        super().__init__(row)
         self._rules = rules
 
     def acquire(self):
         rules = self._rules
+        row = self._row
 
         class _Ctx:
             async def __aenter__(self):
-                return _RulesConn(None, rules)
+                return _RulesConn(row, rules)
 
             async def __aexit__(self, *_exc):
                 return False
@@ -288,6 +308,9 @@ def rules(actuator, monkeypatch) -> _Trace:
     main, _router = actuator
     trace = _Trace()
     monkeypatch.setattr(main, "_pool", _RulesPool([_always_firing_rule()]))
+    # A1: مسار القواعد خلف علمه الصريح — يُفعَّل هنا كي يُقاس ما بعده.
+    monkeypatch.setattr(main, "FEATURE_AUTOMATION_RULES_ACTUATION", "true")
+    main._trigger_since.clear()
     monkeypatch.setattr(main, "send_mqtt_command", trace.mqtt)
     monkeypatch.setattr(main, "log_command", trace.log)
     monkeypatch.setattr(main, "is_actuation_halted", trace.killswitch)

@@ -514,6 +514,7 @@
       "runtime_verified": false,
       "title": "Execution request",
       "unit_test_paths": [
+        "services/actuator-service/test_actuator_safety_audit_20261101.py",
         "services/actuator-service/test_dispatch_bridge.py",
         "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_execution_request_feed.py",
@@ -1460,6 +1461,7 @@
         "tests_v9/test_tenant_provisioning.py",
         "tests_v9/test_tenant_query_audit.py",
         "tests_v9/test_tts_tenant_policy_gate.py",
+        "tests_v9/test_v237_tenant_isolation_live_pg.py",
         "tests_v9/test_v87_audit_tenant.py",
         "tests_v9/test_video_stream_tenant_authz.py"
       ]
@@ -3255,6 +3257,7 @@
       "unit_test_paths": [
         "services/sahool-platform/tests/test_nats_relay_bounded_startup.py",
         "services/vegetation-analysis-service/test_vegetation_event_admission.py",
+        "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
         "tests_v9/test_canonical_execution_learning_worker_subscriptions.py",
         "tests_v9/test_event_bus_invariants.py",
         "tests_v9/test_h2_nats_publishers_flag.py",
@@ -3398,6 +3401,7 @@
       "runtime_verified": false,
       "title": "IoT and sensors",
       "unit_test_paths": [
+        "tests_v9/test_mqtt_acl_template.py",
         "tests_v9/test_mqtt_anonymous_off_guard.py"
       ]
     },
@@ -8056,6 +8060,8 @@
         "tests_v9/test_v197_external_submissions_static.py",
         "tests_v9/test_v198_external_ingest_sources_static.py",
         "tests_v9/test_v198_ingest_resolver_owner_live.py",
+        "tests_v9/test_v237_tenant_isolation_hardening_static.py",
+        "tests_v9/test_v237_tenant_isolation_live_pg.py",
         "tests_v9/test_v87_audit_tenant.py",
         "tests_v9/test_v9_odoo_rls_hardening_static.py",
         "tests_v9/test_weather_automation_rls.py",
@@ -9908,6 +9914,7 @@
         "services/sahool-platform/tests/test_p3_weather_service_realization_guard.py",
         "services/sahool-platform/tests/test_planting_window.py",
         "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
+        "services/sahool-platform/tests/test_water_ledger_auto.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
         "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",

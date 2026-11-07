@@ -1592,19 +1592,19 @@
         ]
       },
       {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
         "capability_id": "SAT-003",
         "score": 10,
         "signals": [
           "content:NDVI",
           "content:ndvi"
-        ]
-      },
-      {
-        "capability_id": "IRR-005",
-        "score": 10,
-        "signals": [
-          "content:Irrigation recommendation",
-          "content:irrigation recommendation"
         ]
       }
     ]
@@ -4513,6 +4513,29 @@
         "signals": [
           "content:row level security",
           "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "migrations/v237_tenant_isolation_hardening.down.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 15,
+        "signals": [
+          "content:rls",
+          "path:tenant isolation",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
         ]
       }
     ]
@@ -10397,6 +10420,29 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_water_ledger_auto.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 9,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_weather_tile_engine_v10.py",
     "kind": "tests",
     "candidates": [
@@ -11169,6 +11215,28 @@
         "signals": [
           "content:field boundary",
           "content:field workspace"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "INT-002",
+        "score": 12,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
         ]
       }
     ]
@@ -12661,6 +12729,36 @@
           "content:Weather forecast",
           "content:forecast",
           "content:weather forecast"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_v237_tenant_isolation_live_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 14,
+        "signals": [
+          "content:rls",
+          "path:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
         ]
       },
       {

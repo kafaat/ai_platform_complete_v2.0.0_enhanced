@@ -120,6 +120,49 @@ CONSTRAINTS: list[NotValidConstraint] = [
     ),
 ]
 
+# v237 (T9): every public table whose tenant_id is text gets
+# ``chk_<table>_tenant_nonempty CHECK (btrim(tenant_id) <> '') NOT VALID`` — an empty tenant
+# was a shared bucket under policies comparing to a bare current_setting(). Table list =
+# the text-typed tenant_id tables measured on a PG16 built from MANIFEST (v237 adds the
+# constraint to whatever matches at apply time; v237's own assertion A5 enforces coverage).
+_V237_TEXT_TENANT_TABLES = (
+    "irrigation_water_profiles",
+    "irrigation_water_samples",
+    "recommendation_feedback",
+    "recommendation_reviews",
+    "review_decisions",
+    "soil_analog_products",
+    "soil_bare_composites",
+    "soil_drainage_assessments",
+    "soil_execution_records",
+    "soil_field_validations",
+    "soil_hydraulic_profiles",
+    "soil_learning_attributions",
+    "soil_learning_datasets",
+    "soil_outcome_records",
+    "soil_production_certifications",
+    "soil_reclamation_assessments",
+    "soil_reclamation_economics",
+    "soil_regional_calibrations",
+    "soil_salinity_products",
+    "soil_sampling_plans",
+    "soil_spatial_products",
+    "soil_terrain_products",
+    "soil_texture_products",
+    "soil_verification_records",
+    "soil_visual_observations",
+)
+CONSTRAINTS += [
+    NotValidConstraint(
+        migration="v237_tenant_isolation_hardening.sql",
+        table=table,
+        name=f"chk_{table}_tenant_nonempty",
+        check_predicate="btrim(tenant_id) <> ''",
+        note="empty tenant_id is not a tenant (RLS shared-bucket leak, T9)",
+    )
+    for table in _V237_TEXT_TENANT_TABLES
+]
+
 
 @dataclass
 class ConstraintResult:
@@ -135,12 +178,33 @@ def dsn() -> str | None:
     return os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
 
 
+# A role subject to row-level security sees only the rows its policies admit. Since v237 an
+# empty tenant_id matches no tenant, so its count of empty-tenant rows is 0 by construction:
+# a clean report that proves nothing. The report therefore refuses to count under such a
+# role instead of printing that false OK.
+ROLE_SEES_EVERY_ROW_SQL = (
+    "SELECT r.rolsuper OR r.rolbypassrls FROM pg_roles r WHERE r.rolname = current_user"
+)
+EXIT_RLS_FILTERED_ROLE = 3
+
+
+class RlsFilteredRole(RuntimeError):
+    """The connected role is subject to RLS, so violation counts would be filtered."""
+
+
 async def gather_results(url: str) -> list[ConstraintResult]:
     import asyncpg
 
     conn = await asyncpg.connect(url, statement_cache_size=0)
     results: list[ConstraintResult] = []
     try:
+        if not await conn.fetchval(ROLE_SEES_EVERY_ROW_SQL):
+            role = await conn.fetchval("SELECT current_user")
+            raise RlsFilteredRole(
+                f"role {role!r} is neither superuser nor BYPASSRLS: row-level security would "
+                "hide violating rows (an empty tenant_id matches no tenant), so a 0 count "
+                "would be a false clean result. Re-run with an administrative role."
+            )
         for c in CONSTRAINTS:
             res = ConstraintResult(constraint=c)
             reg = await conn.fetchval("SELECT to_regclass($1)", c.table)
@@ -209,6 +273,9 @@ def main() -> int:
     except ModuleNotFoundError as exc:
         print(f"asyncpg not installed: {exc}. Nothing was checked.", file=sys.stderr)
         return 2
+    except RlsFilteredRole as exc:
+        print(f"refused: {exc} Nothing was counted.", file=sys.stderr)
+        return EXIT_RLS_FILTERED_ROLE
     except Exception as exc:  # noqa: BLE001 - connection failures are a no-DB case
         print(
             f"could not connect ({type(exc).__name__}: {exc}). Nothing was checked.",
