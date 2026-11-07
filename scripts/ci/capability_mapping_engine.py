@@ -91,6 +91,16 @@ META_GOVERNANCE_FILES = {
     # و`capability_linker` كان يستبعده سلفاً (`META_GOVERNANCE_PREFIXES`) — فالزوجُ
     # كان محروساً نصفَه: جردان لشاهدٍ واحد، أحدُهما يُعفيه والآخر يقرؤه دليلاً.
     "tests_v9/test_no_report_only_change_guard.py",
+
+    # Governance plan and its verifier are not implementation evidence. Scanning
+    # their prose and negative fixtures would self-certify DEC/IRR capabilities;
+    # the actual domain code remains discoverable through normal source paths.
+    # Exact-file scope avoids a broad docs/strategy or scripts/ci subtree ban.
+    "config/proof/data_decision_outcome_v1.json",
+    "docs/strategy/DATA_DECISION_OUTCOME_PROOF_20261107.md",
+    "scripts/ci/data_decision_outcome_proof_gate.py",
+    "tests_v9/test_data_decision_outcome_manifest_binding.py",
+    "tests_v9/test_data_decision_outcome_proof_gate.py",
 }
 # Extension point for whole witness classes (e.g. a future registries/ subdir). Empty today:
 # every measured witness is an individual file, and breadth must be argued per entry.
