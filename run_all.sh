@@ -61,8 +61,9 @@ set -a; source "$ENV_FILE"; set +a 2>/dev/null || true
 
 check_env_drift() {
     # استشاريّ: مفاتيح في .env.example غائبة عن .env (أسماءٌ فقط، بلا قيم) — لا يوقف الإقلاع.
-    command -v python3 &>/dev/null || return 0
-    python3 "$PROD_DIR/scripts/check_local_env_drift.py" \
+    command -v python3 &>/dev/null || command -v python &>/dev/null || return 0
+    local py=python3; command -v python3 &>/dev/null || py=python
+    "$py" "$PROD_DIR/scripts/check_local_env_drift.py" \
         --env "$ENV_FILE" --example "$PROD_DIR/.env.example" || true
 }
 

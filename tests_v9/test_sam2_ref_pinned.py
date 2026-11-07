@@ -1,7 +1,7 @@
 """SAM2-REF-FLOATS-ON-MAIN-AND-WEIGHTS-UNVERIFIED-01 — ثوابتُ ساكنة رخيصة.
 
 كان ``ARG SAM2_REF=main`` في ``services/sam2-inference/Dockerfile`` فرعاً عائماً: كلُّ بناءٍ
-قد يجلب شيفرةً مختلفة من ``git+https://github.com/facebookresearch/sam2.git@${SAM2_REF}``.
+قد يجلب شيفرةً مختلفة من المستودع الرسمي. الجلب الضحل الحالي يثبّت SHA ويتحقّق منه قبل التثبيت.
 قرارُ المالك (2026-09-30): يُثبَّت على SHA التزامٍ كامل، ويُنبَّه إلى تقادمه بـworkflow
 أسبوعيّ **غير حاجب**.
 
@@ -49,7 +49,9 @@ def test_sam2_ref_default_is_a_full_commit_sha_not_a_branch() -> None:
 
 def test_sam2_install_uses_the_pinned_ref() -> None:
     text = DOCKERFILE.read_text(encoding="utf-8")
-    assert "git+https://github.com/facebookresearch/sam2.git@${SAM2_REF}" in text
+    assert 'fetch --depth 1 origin "${SAM2_REF}"' in text
+    assert 'test "$(git -C /tmp/sam2 rev-parse HEAD)" = "${SAM2_REF}"' in text
+    assert "--no-build-isolation /tmp/sam2" in text
 
 
 def test_freshness_workflow_exists_and_is_scheduled() -> None:
