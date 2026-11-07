@@ -22,9 +22,7 @@ SPEC.loader.exec_module(GATE)
 
 def test_manifest_is_source_bound_but_cannot_certify_e3():
     manifest = json.loads(
-        (ROOT / "config/proof/data_decision_outcome_v1.json").read_text(
-            encoding="utf-8"
-        )
+        (ROOT / "config/proof/data_decision_outcome_v1.json").read_text(encoding="utf-8")
     )
     report = GATE.validate(manifest, ROOT)
     assert report["manifest_valid"], report["errors"]
