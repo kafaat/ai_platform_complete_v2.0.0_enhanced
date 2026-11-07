@@ -259,3 +259,98 @@ def test_worker_static_boundary_no_fulfillment():
     assert "create_execution_request" not in src
     # subscribes the reservation dispatch subjects.
     assert "sahool.events." in src and "SUPPORTED_DISPATCH_EVENTS" in src
+
+
+# ── A6 (تدقيق 2026-11-01): JetStream durable + إقرارٌ صريح بعد التسوية فقط ──────────────
+class _JsMsg(_Msg):
+    """رسالة JetStream: تُسجِّل التسوية التي طبّقها المُعالِج."""
+
+    def __init__(self, data: bytes):
+        super().__init__(data)
+        self.settled: list[tuple] = []
+
+    async def ack(self):
+        self.settled.append(("ack",))
+
+    async def nak(self, delay=None):
+        self.settled.append(("nak", delay))
+
+    async def term(self):
+        self.settled.append(("term",))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("status", "expected"),
+    [(200, "ack"), (503, "nak"), (502, "nak"), (500, "nak"), (422, "term")],
+)
+async def test_a6_inbox_outcome_decides_ack_nak_or_term(tmp_path, monkeypatch, status, expected):
+    """503 كان يُسقط النيّة نهائيّاً (Core بلا ack) — الآن nak فيُعيد JetStream تسليمها."""
+    hb, _read, _evaluate = _heartbeat_in(tmp_path, monkeypatch)
+    msg = _JsMsg(_envelope())
+    await worker.make_message_handler(_Recorder(status=status).post, hb)(msg)
+    assert [s[0] for s in msg.settled] == [expected]
+
+
+@pytest.mark.asyncio
+async def test_a6_handler_exception_is_redelivered_not_acked(tmp_path, monkeypatch):
+    hb, _read, _evaluate = _heartbeat_in(tmp_path, monkeypatch)
+
+    async def _boom(_tenant, _body):
+        raise RuntimeError("connection reset")
+
+    msg = _JsMsg(_envelope())
+    await worker.make_message_handler(_boom, hb)(msg)
+    assert msg.settled == [("nak", worker.NAK_DELAY_SECONDS)]
+
+
+@pytest.mark.asyncio
+async def test_a6_foreign_and_malformed_events_are_never_redelivered(tmp_path, monkeypatch):
+    hb, _read, _evaluate = _heartbeat_in(tmp_path, monkeypatch)
+    handler = worker.make_message_handler(_Recorder().post, hb)
+    foreign, broken = _JsMsg(_envelope(event_type="x.y")), _JsMsg(b"{not json")
+    await handler(foreign)
+    await handler(broken)
+    assert foreign.settled == [("ack",)] and broken.settled == [("term",)]
+
+
+@pytest.mark.asyncio
+async def test_a6_relay_binds_one_durable_manual_ack_consumer_per_subject(monkeypatch):
+    """لا اشتراك Core: كلّ موضوعٍ مستهلكٌ دائمٌ باسمه، manual_ack، وصندوق ردٍّ خاصّ بالهويّة."""
+    bound: list[tuple] = []
+    connect_kwargs: dict = {}
+
+    class _JS:
+        async def subscribe(self, subject, **kw):
+            bound.append((subject, kw["durable"], kw["manual_ack"]))
+
+    class _NC:
+        def jetstream(self):
+            return _JS()
+
+        async def subscribe(self, *_a, **_k):
+            raise AssertionError("اشتراك Core بلا إقرار — النيّة تضيع عند 503")
+
+        async def drain(self):
+            return None
+
+    async def _connect(_url, **kw):
+        connect_kwargs.update(kw)
+        return _NC()
+
+    async def _stop(*_a, **_k):
+        raise asyncio.CancelledError
+
+    fake_nats = type(sys)("nats")
+    fake_nats.connect = _connect
+    monkeypatch.setitem(sys.modules, "nats", fake_nats)
+    monkeypatch.setenv("FEATURE_RESERVATION_DISPATCH_RELAY", "1")
+    monkeypatch.setattr(worker, "idle_with_heartbeat", _stop)
+    with pytest.raises(asyncio.CancelledError):
+        await worker.run_relay(post_fn=_Recorder().post)
+
+    assert connect_kwargs["inbox_prefix"] == "_INBOX_sahool-reservation-dispatch-relay-worker"
+    assert sorted(bound) == sorted(
+        (s, worker.durable_for_subject(s), True) for s in worker.DEFAULT_SUBJECTS
+    )
+    assert len({d for _, d, _ in bound}) == len(bound)

@@ -611,5 +611,7 @@
 \i migrations/v235_decision_chain_correlation.sql
 \echo '═══ 233. v236_raster_follow_up_requests.sql ═══'
 \i migrations/v236_raster_follow_up_requests.sql
-\echo '═══ 234. v206_rls_final_hardening.sql ═══'
+\echo '═══ 234. v237_tenant_isolation_hardening.sql ═══'
+\i migrations/v237_tenant_isolation_hardening.sql
+\echo '═══ 235. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

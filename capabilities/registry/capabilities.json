@@ -126,6 +126,14 @@
         {
           "type": "repository",
           "path": "migrations/v9_rls_tenant_isolation.down.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v237_tenant_isolation_hardening.down.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v237_tenant_isolation_hardening.sql"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=36, tests=25, ui=1, mobile=8. Runtime and production certification remain manual evidence gates.",
@@ -137,7 +145,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 47
+        "tests": 49
       }
     },
     {
@@ -3276,7 +3284,7 @@
         "GET /healthz @ services/actuator-service/routers/health.py:20",
         "GET /readyz @ services/actuator-service/routers/health.py:32",
         "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229",
-        "GET /v1/commands @ services/actuator-service/routers/commands.py:74",
+        "GET /v1/commands @ services/actuator-service/routers/commands.py:81",
         "GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18",
         "POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:101",
         "POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:181",
@@ -3297,6 +3305,7 @@
       "tests": [
         "services/actuator-service/test_actuator_router_decomposition_guard.py",
         "services/actuator-service/test_actuator_safety.py",
+        "services/actuator-service/test_actuator_safety_audit_20261101.py",
         "services/actuator-service/test_dedup_compensation.py",
         "services/actuator-service/test_dispatch_bridge.py",
         "services/sahool-platform/tests/test_actuator_command.py",
@@ -3349,7 +3358,7 @@
           "path": "services/actuator-service/main.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=20, tests=19, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=20, tests=20, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5391,7 +5400,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 2
+        "tests": 4
       }
     },
     {
@@ -5608,6 +5617,7 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "services/actuator-service/test_actuator_safety_audit_20261101.py",
         "services/sahool-platform/tests/test_calibration_audit_endpoint.py",
         "services/sahool-platform/tests/test_tenant_audit.py",
         "tests/architecture/test_execution_dependency_audit.py",
@@ -5660,7 +5670,7 @@
           "path": "services/sahool-platform/api/routers/security_audit.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=19, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=20, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5982,6 +5992,7 @@
         "services/sahool-platform/tests/test_water_twin_sensor_join.py",
         "tests/runtime/test_phase9_iot_execution_runtime.py",
         "tests_v9/test_iot_devices.py",
+        "tests_v9/test_mqtt_acl_template.py",
         "tests_v9/test_mqtt_anonymous_off_guard.py",
         "tests_v9/test_sensor_confidence_shape.py",
         "tests_v9/test_sensor_telemetry_consumer_reachability.py"
@@ -6014,7 +6025,7 @@
           "path": "services/sahool-platform/sensor_health.yaml"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=7, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=8, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": "5",

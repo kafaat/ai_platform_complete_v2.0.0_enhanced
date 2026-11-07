@@ -1,5 +1,5 @@
 {
-  "edge_count": 909,
+  "edge_count": 910,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -8162,6 +8162,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://online_learning_updates",
+      "to": "db://online_learning_updates",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/event_bus.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -9112,7 +9122,7 @@
     "EMITS": 1,
     "READS": 469,
     "ROUTES_TO": 72,
-    "WRITES": 318
+    "WRITES": 319
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -9127,8 +9137,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 788,
-      "resolved": 787,
+      "observed": 789,
+      "resolved": 788,
       "unresolved_component_paths": 0
     }
   }

@@ -15983,7 +15983,7 @@
         "healthcheck": "CMD wget --quiet --tries=1 --spider http://localhost:8080/healthz",
         "mount_status": null,
         "published_ports": [
-          "127.0.0.1:${FRONTEND_HOST_PORT:-3003}:8080"
+          "127.0.0.1:3003:8080"
         ]
       },
       "source_path": "frontend",
@@ -16088,7 +16088,7 @@
         "healthcheck": "CMD curl -f http://localhost:8000/healthz",
         "mount_status": "delegated_routes",
         "published_ports": [
-          "127.0.0.1:${GUARDRAILS_ENGINE_HOST_PORT:-8097}:8000"
+          "127.0.0.1:8097:8000"
         ]
       },
       "source_path": "services/guardrails-engine",
@@ -16701,7 +16701,7 @@
         "healthcheck": "CMD python -c import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/healthz', timeout=3)",
         "mount_status": "direct_routes",
         "published_ports": [
-          "127.0.0.1:${RASTER_TILER_HOST_PORT:-8088}:8088"
+          "127.0.0.1:8088:8088"
         ]
       },
       "source_path": "services/raster-tiler-service",
@@ -17410,7 +17410,7 @@
         "healthcheck": "CMD curl -f http://localhost:8000/healthz",
         "mount_status": "delegated_routes",
         "published_ports": [
-          "127.0.0.1:${SUPERVISOR_AGENT_HOST_PORT:-8096}:8000"
+          "127.0.0.1:8096:8000"
         ]
       },
       "source_path": "services/supervisor-agent",
@@ -18035,7 +18035,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "b83dfb67bb139d77f752526e31d3c43462d25db384e8a0854c05a1e326442f24",
+  "fingerprint": "b1d001a98e108511a3664ecff7b79b9c70df2a16b5679b8224bca348026cc737",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18085,7 +18085,7 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 909,
+      "edge_count": 910,
       "failures": [],
       "passed": true,
       "relation_counts": {
@@ -18094,7 +18094,7 @@
         "EMITS": 1,
         "READS": 469,
         "ROUTES_TO": 72,
-        "WRITES": 318
+        "WRITES": 319
       }
     },
     "u3_wiring_ownership": {

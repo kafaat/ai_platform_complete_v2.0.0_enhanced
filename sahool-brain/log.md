@@ -10381,6 +10381,15 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
   - WorldCereal: يستبعد المحاصيل المعمّرة.
 - **ما لم يتغيّر:** حالة كلّ صفّ «مرشّح»، ما عدا NASA POWER المسجَّل أصلاً موصولاً للرياح في `core/weather_sources.py`.
 
+## 2026-11-03 — فتح GATE-01 على main بقرار المالك
+
+- **القرار:** المالك اختار «ارفع القيود وافتح الآن» (2026-11-03) بعد «لماذا لا تقوم بفتحها».
+- **الرقعة:** `claude/gate01-open-20261103` على `210f63827`: دمج `audit-draft-isolation-migrations-on-main-20261101` (`beeb9ff7a`) و`audit-draft-actuator-safety-on-main-20261101` (`690eeeb6f`) بلا تعارض، وانتقاء إصلاح ضبط سياق المستأجر داخل المعاملة.
+- **التفويض:** `GATE01-ADJ-2026-11-03-001` (ISSUED، أجله 2026-12-03، مرّةً واحدة) يربط بايتات ستّة مسارات مجمَّدة؛ `gate01_frozen_path_guard_ok` محلّيّاً.
+- **قراءة حيّة (قراءةً فقط، سجلّ نشر):** المُهاجر `cc732f4f`/`bdf9bd06` (2026-11-02): `apply_not_permitted` · `first_missing=v234` في البيئتين.
+- **الصفوف:** 13 `fixed` (5 عزل · 6 مشغّل · 2 سياق المستأجر)، و3 تبقى `open` بجزئها المتبقّي (`INVITATION-AUDIT-…` · `FIRMWARE-IGNORES-DURATION-…` · `MQTT-SHARED-ACCOUNT-…`).
+- **خارج الفتح:** S5 (خطر رفض الإقلاع في الإنتاج)، و`RLS-NULL-TENANT-ARM-POLICIES-OUTSIDE-V237-01`، وv228/claim-lease.
+
 ### 2026-11-02 — تنفيذ أربعة بنود من مراجعة مشروع كشف أمراض المحاصيل الخارجيّ
 
 - **السياق:** بطلب المالك («قوم بتنفيذ البنود 3 و4 و5 و6 والدمج»). أربعة وكلاء متوازين طبّقوا أسئلة تحليلَين خارجيّين لمشروع `zhihui-nongye-plat` على كود سهول. كود المشروع نفسه لم يُبلَغ: شبكة الجلسة تحجب gitcc.com.
@@ -10451,3 +10460,25 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **التغيير:** حاصل ضرب جميع الآباء السابقين للتقلّص والأب الأول في كل الدفاتر المصنّفة من الحارس نفسه. يبقى التحقق من ترتيب الأسطر وتكرارها ومطابقة الشجرة كما هو.
 - **الشاهد:** المصدر الأصلي قبل خطة بها فقد مدخل log رغم نموه من83 إلى106 بايت، ورفضه المصدر الجديد بـ`UNRESTORED_JOURNAL`. ثماني حالات حمراء أصلية وأربع موجبة، ثم36 حالة خضراء بلا تخطٍّ؛ حماية الملفات والفهرس والمراجع مثبتة في اختبارات الرفض.
 - **النطاق:** متابعة مستقلة لأداة #1336؛ لم يُطبق إصلاح تاريخ على فرع #1335 ولم يُنقل عمل الميزانية إلى هذه الشجرة. المصدر والقياسات في `certification/evidence/brain_journal_repair_review_20261106/verification.json`؛ الاستخدام في `docs/runbooks/BRAIN_JOURNAL_HISTORY_REPAIR.md`. النتائج مركزة على المصدر، وCI البعيد يقاس بعد النشر.
+
+## 2026-11-07 — مراجعة مستقلّة لحزمة فتح GATE-01 قبل الدمج
+
+- **المراجعة:** ثلاثة وكلاء (قاعدة البيانات · التطبيق · جرد الفجوات المحجوزة) على `claude/local-unfreeze-rehearsal-20261102`.
+- **أُصلح في الفرع (`ffdb932a5`):** ts فريد لكلّ أمر إرسال (أمران من معاملة واحدة كانا يتشاركانه فيُسقَط الثاني) · عكسُ المفردات الكنسيّة في التعويض · نداءات الشبكة خارج معاملة دفتر الماء (ثلاث معاملات قصيرة) مع اختبار بنيويّ أحمر على الجسم السابق.
+- **سُجِّل مفتوحاً (7 صفوف):** `V206-RESTORES-NULL-TENANT-WITH-CHECK-AFTER-V237-01` (مقيس على PG16) · `NOT-VALID-REPORT-READS-CLEAN-UNDER-RLS-ROLE-01` · `V237-T9-SCANS-UNDER-ACCESS-EXCLUSIVE-01` · `ACTUATOR-DISPATCH-RECOVERY-REPUBLISHES-WITHOUT-LIMIT-01` · `ACTUATOR-DISPATCH-KILLSWITCH-USES-PAYLOAD-FIELD-01` · `ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01` · `IRRIGATION-RELAY-JETSTREAM-REPLAYS-WHOLE-STREAM-ON-FIRST-BIND-01`.
+- **تنبيه تشغيليّ:** بعد A4 يُرفَض كلُّ إرسالٍ آليّ من جسر قرار الماء (`irrigate` بلا duration_sec) حتّى يُغلَق `WATER-DECISION-BRIDGE-IRRIGATE-WITHOUT-DURATION-01` — فشلٌ مغلق لا فتحٌ بلا مدّة.
+- **التفويض:** `GATE01-ADJ-2026-11-03-001` أُعيد ربطه بالبايتات المراجَعة (القرار والمسارات الستّة كما هي).
+
+- **2026-11-07 — preflight الكامل على فرع فتح GATE-01 (`ba70e998b`) أخرج أربعة أصناف، وأُصلِحت:**
+  (١) `fake_connection_debt_guard`: أُضيف قيد قبولٍ مبرَّر لـ`services/actuator-service/test_actuator_safety_audit_20261101.py` (118→119)، بلا ادّعاء فرضٍ من القاعدة.
+  (٢) `test_the_live_authorization_is_spent_and_no_longer_grants` كان يثبّت لقطةً تجعل كلّ طلب فتحٍ أحمرَ حتماً، فصار يقيس العلاقة: غير `ISSUED` لا يمنح، والمانح `ISSUED` يُسمّي المسارين.
+  (٣) حارس S5-EXEC-01 أسقط تأجيلَ قطع `online_learning_updates` كما صُمِّم، لأنّ التفويض يمسّ `phase_runtime_store.py`. فنُفِّذ فرعُ القطع الصارم الخامل بنمط `weather.py` (`api/phase_runtime_store.py`)، وأُفرِغ `GATE01_DEFERRED` مع حفظه في `HISTORICAL_GATE01_DEFERRED`. وصار صندوقُ الاختبار يُعامِل التفويضات اللاحقة لـU07 مُستهلَكةً، ويُزيل العلامات من نسخته وحدها.
+  (٤) `V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md`: صار «٢١٣ من ٢٣٥» بعد إدراج v237.
+  وأُعيد ربط `GATE01-ADJ-2026-11-03-001`، مع استثناءٍ معلَن من «ولا S5» في `reissue_note_ar`. ملاحظة بيئة: `test_repair_brain_journal_history.py::…[symbolic]` يفشل محلّيّاً على git 2.43 وعلى فرعٍ لا يحمل هذه التغييرات، فهو ليس منها.
+- **2026-11-07 — مراجعة Copilot على #1338 (ستّ ملاحظات، أُصلِحت خمسٌ في الفرع واحتُوِيت السادسة بفشلٍ مغلق):**
+  (١) **المدّة غير موقَّعة (أمنيّة):** صار التوقيع `cmd|ts|duration_ms` في `actuator_runtime.py::_build_wire_message` و`esp32_mesh_gateway.ino::verifyCmdHmac`، والجهاز يقرأ `duration_ms` الموقَّعة وحدها. والفجوة `SUP-08-…` صارت جزئيّة.
+  (٢) **المدّة دون الملّي ثانية تُعطِّل المؤقّت:** `_wire_duration_ms` تقرّب لأعلى بحدٍّ أدنى ١.
+  (٣) **v237 T9 يمسح الجداول تحت ACCESS EXCLUSIVE:** حُذِف العدّ من الهجرة. ⇒ `V237-T9-SCANS-UNDER-ACCESS-EXCLUSIVE-01` fixed.
+  (٤) **التقرير «نظيف» كاذباً تحت دورٍ خاضع لـRLS:** صار يرفض بالرمز 3. ⇒ `NOT-VALID-REPORT-READS-CLEAN-UNDER-RLS-ROLE-01` fixed.
+  (٥) و(٦) **الوضع الصارم يُسقِط حقول المراجعة، والخدمة تبتلع التعارض:** `_unproven_learning_update_fields` يرفض الطلب ما لم يُثبِت الردّ المستأجرَ والمعرّفَ و`write` وحكمَ المراجعة. فُتِحت الفجوة `DECISION-SERVICE-LEARNING-UPDATE-CONTRACT-INCOMPLETE-01`.
+  **التحقّق:** على PG16 مبنيّة من MANIFEST الفرع (235/235): اختبارا v237 وRLS الحيّان 19/19، والتقرير بدور التطبيق rc=3 وبالمالك 0 مخالفة/32. وأُعيد ربط `GATE01-ADJ-2026-11-03-001`.

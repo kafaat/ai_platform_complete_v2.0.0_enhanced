@@ -369,6 +369,8 @@ FM-001,test,tests_v9/test_tenant_query_audit.py,3,applied
 FM-001,test,tests_v9/test_tile_auth_cookie_guard.py,3,applied
 FM-001,test,tests_v9/test_tts_notification_service_auth.py,3,applied
 FM-001,test,tests_v9/test_tts_tenant_policy_gate.py,3,applied
+FM-001,test,tests_v9/test_v237_tenant_isolation_hardening_static.py,3,applied
+FM-001,test,tests_v9/test_v237_tenant_isolation_live_pg.py,3,applied
 FM-001,test,tests_v9/test_v87_audit_tenant.py,3,applied
 FM-001,test,tests_v9/test_video_stream_tenant_authz.py,3,applied
 FM-001,ui,frontend/src/services/api/auth.ts,2,applied
@@ -1359,6 +1361,7 @@ INT-003,test,services/sahool-platform/tests/test_sensor_intake.py,3,applied
 INT-003,test,services/sahool-platform/tests/test_water_twin_sensor_join.py,3,applied
 INT-003,test,tests/runtime/test_phase9_iot_execution_runtime.py,3,applied
 INT-003,test,tests_v9/test_iot_devices.py,3,applied
+INT-003,test,tests_v9/test_mqtt_acl_template.py,3,applied
 INT-003,test,tests_v9/test_mqtt_anonymous_off_guard.py,3,applied
 INT-003,test,tests_v9/test_sensor_confidence_shape.py,3,applied
 INT-003,test,tests_v9/test_sensor_telemetry_consumer_reachability.py,3,applied
@@ -1429,7 +1432,7 @@ IRR-007,api,GET /health @ services/actuator-service/routers/health.py:20,3,appli
 IRR-007,api,GET /healthz @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /readyz @ services/actuator-service/routers/health.py:32,3,applied
 IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229,2,applied
-IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:74,3,applied
+IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:81,3,applied
 IRR-007,api,GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:101,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:181,3,applied
@@ -1448,6 +1451,7 @@ IRR-007,service,services/actuator-service/main.py,10,applied
 IRR-007,service,services/sahool-platform/api/main.py,10,applied
 IRR-007,test,services/actuator-service/test_actuator_router_decomposition_guard.py,3,applied
 IRR-007,test,services/actuator-service/test_actuator_safety.py,3,applied
+IRR-007,test,services/actuator-service/test_actuator_safety_audit_20261101.py,3,applied
 IRR-007,test,services/actuator-service/test_dedup_compensation.py,3,applied
 IRR-007,test,services/actuator-service/test_dispatch_bridge.py,3,applied
 IRR-007,test,services/sahool-platform/tests/test_actuator_command.py,5,applied
@@ -2245,6 +2249,8 @@ SEC-001,test,tests_v9/test_rls_tenant_coverage.py,3,applied
 SEC-001,test,tests_v9/test_rls_tenant_isolation_live_pg.py,5,applied
 SEC-001,test,tests_v9/test_rls_write_isolation_integration.py,3,applied
 SEC-001,test,tests_v9/test_v197_external_submissions_rls_live.py,3,applied
+SEC-001,test,tests_v9/test_v237_tenant_isolation_hardening_static.py,3,applied
+SEC-001,test,tests_v9/test_v237_tenant_isolation_live_pg.py,3,applied
 SEC-001,test,tests_v9/test_v9_odoo_rls_hardening_static.py,3,applied
 SEC-001,test,tests_v9/test_weather_automation_rls.py,3,applied
 SEC-002,service,services/field-management-service/main.py,10,applied
@@ -2270,6 +2276,7 @@ SEC-005,api,GET /api/v1/admin/security/denials @ services/sahool-platform/api/ro
 SEC-005,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:636,2,applied
 SEC-005,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229,2,applied
 SEC-005,service,services/auth/main.py,10,applied
+SEC-005,test,services/actuator-service/test_actuator_safety_audit_20261101.py,3,applied
 SEC-005,test,services/sahool-platform/tests/test_calibration_audit_endpoint.py,3,applied
 SEC-005,test,services/sahool-platform/tests/test_tenant_audit.py,3,applied
 SEC-005,test,tests/architecture/test_execution_dependency_audit.py,3,applied

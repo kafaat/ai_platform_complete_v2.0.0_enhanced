@@ -84,6 +84,19 @@ def test_role_bootstrap_block_executes_and_sets_privileges():
             "CREATE TABLE season_records(id int); CREATE TABLE season_crop(id int); "
             "CREATE TABLE season_events(id int); CREATE TABLE season_harvest(id int); "
             "CREATE TABLE season_cost_items(id int);"
+            # T3: دوالّ DEFINER لمستوى تحكّم الإدخال (أجسام وهميّة؛ ما يهمّ التوقيع وACL).
+            " CREATE FUNCTION claim_submissions_for_projection(int, int) RETURNS int"
+            " LANGUAGE sql SECURITY DEFINER AS 'SELECT 1';"
+            " CREATE FUNCTION complete_submission_projection(bigint, text, text) RETURNS int"
+            " LANGUAGE sql SECURITY DEFINER AS 'SELECT 1';"
+            " CREATE FUNCTION resolve_ingest_source(text) RETURNS int"
+            " LANGUAGE sql SECURITY DEFINER AS 'SELECT 1';"
+            " CREATE FUNCTION t3_control_fn() RETURNS int LANGUAGE sql AS 'SELECT 1';"
+            # كما في v198/v199: مسحوبة من PUBLIC، فلا يبقى EXECUTE إلّا ما يمنحه السكربت.
+            " REVOKE ALL ON FUNCTION claim_submissions_for_projection(int, int) FROM PUBLIC;"
+            " REVOKE ALL ON FUNCTION complete_submission_projection(bigint, text, text) FROM PUBLIC;"
+            " REVOKE ALL ON FUNCTION resolve_ingest_source(text) FROM PUBLIC;"
+            " REVOKE ALL ON FUNCTION t3_control_fn() FROM PUBLIC;"
         )
         assert _psql(test_url, sql=setup).returncode == 0
 
@@ -117,5 +130,20 @@ def test_role_bootstrap_block_executes_and_sets_privileges():
                 and priv(t, "UPDATE") is True
             )
             assert priv(t, "DELETE") is False, f"{t} DELETE should be revoked (append-only)"
+
+        # T3: المنح الشامل يبقى للدوالّ العاديّة، ويُسحَب بعده EXECUTE على دوالّ تحكّم الإدخال.
+        def fexec(sig: str) -> bool:
+            out = _psql(
+                test_url, "-tA", sql=f"SELECT has_function_privilege('{role}','{sig}','EXECUTE')"
+            )
+            return out.stdout.strip() == "t"
+
+        assert fexec("t3_control_fn()") is True
+        for sig in (
+            "claim_submissions_for_projection(integer,integer)",
+            "complete_submission_projection(bigint,text,text)",
+            "resolve_ingest_source(text)",
+        ):
+            assert fexec(sig) is False, f"{sig} EXECUTE must be revoked from app role (T3)"
     finally:
         _psql(admin_pg, "-tA", sql=f"DROP DATABASE IF EXISTS {dbname} WITH (FORCE)")

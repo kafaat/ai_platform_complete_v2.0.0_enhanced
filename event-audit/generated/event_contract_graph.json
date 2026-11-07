@@ -7,19 +7,19 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 1087,
+      "line": 1418,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
     },
     {
-      "client_expr": "nc",
+      "client_expr": "js",
       "component": "sahool-platform",
       "durable": null,
       "dynamic_expr": "subject",
       "file": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
       "kind": "consumer",
-      "line": 234,
+      "line": 292,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -31,7 +31,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "producer",
-      "line": 607,
+      "line": 744,
       "queue": null,
       "resolution": "dynamic",
       "subject": null

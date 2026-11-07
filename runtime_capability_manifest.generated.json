@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "b83dfb67bb139d77f752526e31d3c43462d25db384e8a0854c05a1e326442f24",
+  "fingerprint": "b1d001a98e108511a3664ecff7b79b9c70df2a16b5679b8224bca348026cc737",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

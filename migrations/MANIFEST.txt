@@ -762,4 +762,8 @@ v234_learning_agronomic_review.sql
 v235_decision_chain_correlation.sql
 # v236: tenant-scoped durable imagery timers and fenced hand-offs; no physical execution.
 v236_raster_follow_up_requests.sql
+# v237 (تدقيق 2026-11-01، T1/T2/T3/T7/T8/T9 — مسودّة GATE-01): VIEWs بصلاحيّات القارئ، حذف ذراع
+#   «بلا سياق مستأجر ⇒ اسمح» بالشكل لا بالاسم، شروط v122 الصارمة، NULLIF + CHECK NOT VALID على
+#   tenant_id النصّيّ، وسحب EXECUTE دوالّ DEFINER للإدخال من sahool_app. يُدرَج قبل v206 كي يبقى آخِراً.
+v237_tenant_isolation_hardening.sql
 v206_rls_final_hardening.sql
