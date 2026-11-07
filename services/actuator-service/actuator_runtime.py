@@ -226,7 +226,14 @@ def _dispatch_wire_identity(item: dict, payload: dict, req_id: str) -> tuple[str
         key = raw.get("idempotency_key")
     command_id = str(key or req_id)
     requested_at = item.get("requested_at")
-    issued_at = str(requested_at) if requested_at else None
+    # البرنامج الثابت يكشف التكرار بـts وحده (حلقة 16 في الذاكرة). و``requested_at`` وحده
+    # يتشاركه أمران أُدرجا في معاملةٍ واحدة (now() = بداية المعاملة)، فيُسقَط الثاني — مثلاً
+    # CLOSE — مكرّراً بصمت. لاحقةٌ قصيرة مشتقّة من هويّة الأمر تجعله فريداً لكلّ أمر وثابتاً
+    # عبر إعادة النشر. والطول محسوب: رسالة HMAC في البرنامج الثابت ``char msg[96]``.
+    issued_at = None
+    if requested_at:
+        tag = hashlib.sha256(command_id.encode("utf-8")).hexdigest()[:12]
+        issued_at = f"{requested_at}~{tag}"
     return command_id, issued_at
 
 
@@ -815,6 +822,13 @@ _INVERSE_COMMANDS = {
     "off": "on",
     "start": "stop",
     "stop": "start",
+    # A4 جعل المفردات الكنسيّة تحرّك الصمّام فعلاً؛ بلا عكسٍ لها لا يستطيع التعويضُ إغلاقَ
+    # صمّامٍ فُتح بها إن فشل أمرٌ لاحق في التسلسل (يبقى مفتوحاً حتّى المدّة أو سقف 30 دقيقة).
+    "open_valve": "close_valve",
+    "close_valve": "open_valve",
+    "start_irrigation": "stop_irrigation",
+    "stop_irrigation": "start_irrigation",
+    "irrigate": "stop_irrigation",
 }
 
 

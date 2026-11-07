@@ -521,7 +521,8 @@ def test_a5_republished_command_keeps_its_original_ts_and_id(real_mqtt):
     first = act._dispatch_wire_identity(item, payload, "req-1")
     # الاسترداد بعد إعادة تشغيل: نفس الطلب يعود من feed الاسترداد.
     again = act._dispatch_wire_identity(dict(item, claimed_at="later"), payload, "req-1")
-    assert first == again == ("wtrcmd_1", "2026-11-01T08:00:00.123456+00:00")
+    tag = __import__("hashlib").sha256(b"wtrcmd_1").hexdigest()[:12]
+    assert first == again == ("wtrcmd_1", f"2026-11-01T08:00:00.123456+00:00~{tag}")
 
     for _ in range(2):
         asyncio.run(
@@ -590,4 +591,37 @@ def test_a5_dispatch_consumer_passes_the_stable_identity_to_the_publisher(act, m
     asyncio.run(act.run_dispatch_consumer_once(None, TENANT, allowlist={"low"}))
     asyncio.run(act.run_dispatch_consumer_once(None, TENANT, allowlist={"low"}))
 
-    assert captured == [{"command_id": "req-9", "issued_at": "2026-11-01T09:00:00+00:00"}] * 2
+    tag = __import__("hashlib").sha256(b"req-9").hexdigest()[:12]
+    assert (
+        captured == [{"command_id": "req-9", "issued_at": f"2026-11-01T09:00:00+00:00~{tag}"}] * 2
+    )
+
+
+def test_two_commands_from_one_transaction_get_distinct_firmware_ts(act):
+    """A5 review: requested_at is the transaction start, shared by every row of that transaction.
+
+    The firmware dedups on ts alone, so a CLOSE sharing the OPEN's ts was dropped as a
+    duplicate. The ts now carries a per-command suffix, stays stable across a republish and
+    fits the firmware's 96-byte HMAC buffer.
+    """
+    same_tx = "2026-11-01 09:00:00.123456+00:00"
+    open_item = {"requested_at": same_tx, "command_payload": {"idempotency_key": "k-open"}}
+    close_item = {"requested_at": same_tx, "command_payload": {"idempotency_key": "k-close"}}
+    _, ts_open = act._dispatch_wire_identity(open_item, {}, "req-a")
+    _, ts_close = act._dispatch_wire_identity(close_item, {}, "req-b")
+    assert ts_open != ts_close
+    assert act._dispatch_wire_identity(open_item, {}, "req-a")[1] == ts_open  # republish
+    assert len("CLOSE|" + ts_close) < 96
+
+
+def test_compensation_can_close_a_valve_opened_with_the_canonical_vocabulary(act):
+    """A4 review: open_valve/start_irrigation/irrigate actuate now, so the saga must invert them."""
+    for opened, wire in (
+        ("open_valve", "OPEN"),
+        ("start_irrigation", "OPEN"),
+        ("irrigate", "OPEN"),
+    ):
+        assert act._to_firmware_wire(opened, {"duration_sec": 60})[0] == wire
+        inverse = act._inverse_command(opened)
+        assert inverse is not None, opened
+        assert act._to_firmware_wire(inverse, {})[0] == "CLOSE", (opened, inverse)

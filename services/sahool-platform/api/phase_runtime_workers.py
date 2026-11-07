@@ -569,9 +569,10 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
             field_id = row["field_id"]
             try:
                 # WORKER-TENANT-GUC-SET-OUTSIDE-ANY-TRANSACTION-01: set_config(…, true) يعيش داخل
-                # معاملةٍ فقط؛ بلاها يزول قبل القراءة التالية (صفر صفوف تحت FORCE RLS). معاملةٌ لكلّ
-                # حقل: خطأُ حقلٍ يتراجع وحده ولا يُسقط الدفعة. القراءات لا تأخذ أقفال صفوف، والكتابةُ
-                # في آخر الجسم — فبقاءُ المعاملة مفتوحةً أثناء جلب الطقس لا يحبس صفّاً.
+                # معاملةٍ فقط؛ بلاها يزول قبل القراءة التالية (صفر صفوف تحت FORCE RLS). ثلاث معاملات
+                # قصيرة لكلّ حقل، كلٌّ يضبط المستأجر: القراءات · القيد · الحدث. الشبكة (الطقس وET0
+                # وجسر القرار) **خارج** أيّ معاملة: لا قفلَ صفٍّ ولا معاملةَ مفتوحة أثناء I/O، والقيد
+                # يُلتزَم قبل الجسر كما كان قبل الإصلاح (فشلُ الجسر لا يُرجِع قيدَ الدفتر).
                 async with conn.transaction():
                     await _set_tenant(conn, row["tenant_id"])
                     existing = await conn.fetchrow(
@@ -623,32 +624,33 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                         today,
                     )
 
-                    # مدخلات اليوم من خدمة الطقس؛ ET0 يُحسب في المحرّك حصراً (agro/et0) —
-                    # لا نستهلك et0 المزوّد الخام. فشل أيّهما ⇒ تخطٍّ صادق لهذا اليوم.
-                    forecast = await get_weather_forecast(
-                        float(row["lat"]), float(row["lon"]), days=1
-                    )
-                    day0 = (forecast.get("days") or [{}])[0]
-                    t_max, t_min = day0.get("temp_max_c"), day0.get("temp_min_c")
-                    # ميّز «هطول مقيس = 0» عن «هطول مفقود» — الأخير يُفترَض 0 بإعلان لا صامتاً.
-                    _precip = day0.get("precipitation_mm")
-                    rain_assumed_zero = _precip is None
-                    rain_mm = float(_precip or 0.0)
-                    if t_max is None or t_min is None:
-                        continue
-                    # الرطوبة ومتوسّط الريح (محوَّلاً إلى 2م، FAO-56 Eq. 47) — لا قصوى اليوم.
-                    et0 = await get_et0_product(
-                        t_max_c=float(t_max),
-                        t_min_c=float(t_min),
-                        **et0_weather_inputs(day0),
-                        lat_deg=float(row["lat"]),
-                        day_of_year=today.timetuple().tm_yday,
-                        tenant_id=str(row["tenant_id"]),
-                    )
-                    et0_mm = et0.get("et0_mm")
-                    if et0_mm is None:
-                        continue
+                # مدخلات اليوم من خدمة الطقس؛ ET0 يُحسب في المحرّك حصراً (agro/et0) —
+                # لا نستهلك et0 المزوّد الخام. فشل أيّهما ⇒ تخطٍّ صادق لهذا اليوم.
+                forecast = await get_weather_forecast(float(row["lat"]), float(row["lon"]), days=1)
+                day0 = (forecast.get("days") or [{}])[0]
+                t_max, t_min = day0.get("temp_max_c"), day0.get("temp_min_c")
+                # ميّز «هطول مقيس = 0» عن «هطول مفقود» — الأخير يُفترَض 0 بإعلان لا صامتاً.
+                _precip = day0.get("precipitation_mm")
+                rain_assumed_zero = _precip is None
+                rain_mm = float(_precip or 0.0)
+                if t_max is None or t_min is None:
+                    continue
+                # الرطوبة ومتوسّط الريح (محوَّلاً إلى 2م، FAO-56 Eq. 47) — لا قصوى اليوم.
+                et0 = await get_et0_product(
+                    t_max_c=float(t_max),
+                    t_min_c=float(t_min),
+                    **et0_weather_inputs(day0),
+                    lat_deg=float(row["lat"]),
+                    day_of_year=today.timetuple().tm_yday,
+                    tenant_id=str(row["tenant_id"]),
+                )
+                et0_mm = et0.get("et0_mm")
+                if et0_mm is None:
+                    continue
 
+                # المعاملة الثانية: سياق المستأجر من جديد (كان يزول بانتهاء الأولى)، ثمّ القيدُ وحده.
+                async with conn.transaction():
+                    await _set_tenant(conn, row["tenant_id"])
                     kc = crop_kc.kc
                     zone = await ledger_root_zone(
                         conn,
@@ -710,21 +712,23 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                         AUTO_CREATED_BY,
                     )
                     processed += 1
-                    # Governed bridge: candidate creation is deterministic and default-off.
-                    from api.water_decision_bridge import process_water_deficit
+                # Governed bridge: candidate creation is deterministic and default-off.
+                from api.water_decision_bridge import process_water_deficit
 
-                    bridge_result = await process_water_deficit(
-                        tenant_id=str(row["tenant_id"]),
-                        field_id=field_id,
-                        season_id=str(row["season_id"]) if row["season_id"] else None,
-                        ledger_date=today,
-                        entry={
-                            **entry,
-                            "taw_mm": zone["taw_mm"],
-                            "raw_mm": zone["raw_mm"],
-                        },
-                    )
-                    if bridge_result.get("status") not in {"disabled", "below_threshold"}:
+                bridge_result = await process_water_deficit(
+                    tenant_id=str(row["tenant_id"]),
+                    field_id=field_id,
+                    season_id=str(row["season_id"]) if row["season_id"] else None,
+                    ledger_date=today,
+                    entry={
+                        **entry,
+                        "taw_mm": zone["taw_mm"],
+                        "raw_mm": zone["raw_mm"],
+                    },
+                )
+                if bridge_result.get("status") not in {"disabled", "below_threshold"}:
+                    async with conn.transaction():
+                        await _set_tenant(conn, row["tenant_id"])
                         await conn.execute(
                             """INSERT INTO events
                                  (event_type, entity_type, entity_id, tenant_id, actor_id, payload,
