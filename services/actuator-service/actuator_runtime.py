@@ -33,6 +33,11 @@ from shared.actuator_idempotency import (
 )
 from shared.actuator_mode import resolve_actuator_mode
 from shared.security.access_tokens import decode_access_token
+from shared.security.token_revocation import (
+    RevocationUnavailable,
+    build_revocation_client,
+    revocation_reason,
+)
 from shared.startup_retry import retry_startup_connect
 
 # The pure delivery state machine lives next to this file; make the service directory
@@ -560,6 +565,50 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
 _DEVICE_CONTROL_ROLES = {"owner", "manager"}
 
 
+_revocation_client_cache: list = []
+
+
+def _revocation_client():
+    """Lazily built Redis client for auth's revocation keys; ``None`` when none is configured.
+
+    Built on first use, never at import: the service starts without the store (the reason S5
+    was held back), and only a physical action is refused while revocation cannot be checked.
+    """
+    if _revocation_client_cache:
+        return _revocation_client_cache[0]
+    client = build_revocation_client()
+    _revocation_client_cache.append(client)
+    return client
+
+
+async def _assert_token_may_act(claims: dict) -> None:
+    """S5 for the physical consumer: a revoked or floor-expired token cannot move a device.
+
+    ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01: a manager who logged out, or whose role was
+    lowered, kept opening valves until the token expired. Fail-closed in production: unknown
+    revocation state means 503, not a command. Outside production with no store configured
+    the check is skipped (local development has no auth Redis), and that is logged.
+    """
+    production = os.getenv("SAHOOL_ENV", "development").strip().lower() in {"production", "prod"}
+    try:
+        client = _revocation_client()
+        if client is None and not production:
+            logger.warning("token revocation not checked: no revocation store (non-production)")
+            return
+        # Blocking Redis round-trips (2 s timeouts) run off the event loop.
+        reason = await asyncio.to_thread(revocation_reason, client, claims)
+    except RevocationUnavailable as exc:
+        raise HTTPException(
+            503, "تعذّر التحقّق من إبطال التوكن — التحكّم بالأجهزة معطّل بأمان"
+        ) from exc
+    except Exception as exc:  # noqa: BLE001 - building the client failed: state unknown
+        raise HTTPException(
+            503, "تعذّر التحقّق من إبطال التوكن — التحكّم بالأجهزة معطّل بأمان"
+        ) from exc
+    if reason is not None:
+        raise HTTPException(401, "التوكن مُبطَل")
+
+
 async def _authorize_device_control(claims: dict, device_id: str) -> str | None:
     """يحرس التحكّم الفيزيائيّ: فحص الدور + ملكيّة الجهاز للمستأجر (fail-closed).
 
@@ -582,6 +631,7 @@ async def _authorize_device_control(claims: dict, device_id: str) -> str | None:
     role = str(claims.get("role", "")).strip().lower()
     if role not in _DEVICE_CONTROL_ROLES:
         raise HTTPException(403, "الدور لا يملك صلاحيّة التحكّم بالأجهزة (owner/manager فقط)")
+    await _assert_token_may_act(claims)
 
     tenant_id = str(claims["tenant_id"])
     if not _pool:

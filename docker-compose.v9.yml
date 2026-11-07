@@ -439,6 +439,7 @@ services:
       --user sahool-redis-admin on ">${REDIS_PASSWORD:?REDIS_PASSWORD required}" ~* "&*" +@all
       --user sahool-auth on ">${REDIS_AUTH_PASSWORD:?REDIS_AUTH_PASSWORD required}" resetkeys resetchannels -@all +ping +get +getdel +setex +del +exists +expire +ttl +incr +sadd +smembers ~sahool:refresh:* ~sahool:user:refreshset:* ~sahool:user:token_floor:* ~sahool:jti:revoked:* ~sahool:lockout:* ~sahool:attempts:* ~sahool:ip_rate:* ~sahool:otp_rate:* ~sahool:otp:* ~sahool:reset:*
       --user sahool-platform-denylist on ">${REDIS_PLATFORM_DENYLIST_PASSWORD:?REDIS_PLATFORM_DENYLIST_PASSWORD required}" resetkeys resetchannels -@all +ping +exists +setex ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
+      --user sahool-actuator-service-denylist on ">${REDIS_ACTUATOR_DENYLIST_PASSWORD:?REDIS_ACTUATOR_DENYLIST_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
       --user sahool-guardrails-engine on ">${REDIS_GUARDRAILS_PASSWORD:?REDIS_GUARDRAILS_PASSWORD required}" resetkeys resetchannels -@all +ping
     volumes:
     - redis-state-data:/data
@@ -2002,6 +2003,8 @@ services:
       CMD_HMAC_SECRET: ${CMD_HMAC_SECRET:-}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://sahool-actuator-service:${REDIS_ACTUATOR_PASSWORD:?REDIS_ACTUATOR_PASSWORD required}@sahool-redis:6379/0
+      # ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01 (S5): auth's revocation list, read-only, on the state server.
+      DENYLIST_REDIS_URL: redis://sahool-actuator-service-denylist:${REDIS_ACTUATOR_DENYLIST_PASSWORD:?REDIS_ACTUATOR_DENYLIST_PASSWORD required}@sahool-redis-state:6379/0
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
       MQTT_USERNAME: ${MQTT_USERNAME:?MQTT_USERNAME required — anonymous MQTT disabled (allow_anonymous false)}
       MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD required — anonymous MQTT disabled (allow_anonymous false)}
