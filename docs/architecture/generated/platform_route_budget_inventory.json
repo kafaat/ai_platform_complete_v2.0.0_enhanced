@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "7756bcf06edfe8640035572b4babb3392df09ac02cbd4121ac6cf25fa646b6f7",
+  "inventory_sha256": "86a2f8c12548e6d45584c6cdd753f48b0542643b363591fdf2eed9a0b3e17450",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -3330,7 +3330,7 @@
     {
       "classification": "domain",
       "function": "edge_sync_receive",
-      "line": 23,
+      "line": 29,
       "method": "POST",
       "path": "/api/v1/edge/sync",
       "source": "api/routers/edge.py"
@@ -5034,7 +5034,7 @@
     {
       "classification": "domain",
       "function": "edge_sync_receive",
-      "line": 24,
+      "line": 30,
       "method": "POST",
       "path": "/v1/edge/sync",
       "source": "api/routers/edge.py"

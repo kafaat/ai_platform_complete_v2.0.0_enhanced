@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0e81d1f7dd99bcfaaa16bd3724eb60aa30a603d2d974136b0997d290f2947c2"
+          "content": "e816d0cef7d8c98c8be4ffd2c7e1f73d182c11355dead5b60a5f82498a01b56b"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4655,7 +4655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c03bd9ef83c392e7ae3e58476cf44e1170781f0ea4409e54211756b237dc79fc"
+          "content": "aa89fa99dddbc632f4db405cfc2d15a8be5a540292701e0c0951884c9d95236e"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -7405,7 +7405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a44ca7182ebc87bcdb9b0e1553d8c9d44030a6ad40cafa1919ad2ffc845bcaba"
+          "content": "bc22cc83d2bbf69731861c31784104d25632cd0a1868b53f186707da1eabfb5e"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7465,7 +7465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b0392c51e6d92d977bc16df0a366393caac96ff55534a0a92c94d0c9b24a6c5"
+          "content": "05e15b354b78f18df3de1f3852db78b651002605f97ddb861faf7128c03b8fd3"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -8905,10 +8905,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2d0034950475337d49bea4122045d0b9097f075f6d8ee79d01c2a51ba498f70c"
+        }
+      ],
+      "name": "migrations/v238_actuator_delivery_state.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c66635a6228226d726fae5923755ab21d1b1a3f21fb597c6cfb7ac52e515727a"
+        }
+      ],
+      "name": "migrations/v239_detection_provenance.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a67699a6458451678954492a90abaf528959bc02d898fed46303ddaf7b883c8e"
         }
       ],
       "name": "migrations/v23_equipment.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "881b1259d683fc57c8166ca4f39ac0b20824aae6c5dba1752214c2eba84c1fce"
+        }
+      ],
+      "name": "migrations/v240_converge_first_pass_schema.sql",
       "type": "file"
     },
     {
@@ -16265,10 +16295,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "363d82621aa56908289e35a66cd4591e5028ff06d8097a616f91f9742dfc0a0d"
+          "content": "754036fba12a018f9314e9a6b2b0561d6abed7259869426e7be2a4c14d82cc14"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b18c152f871323af33d824003518079ad055b908363f0ec78dba2d519015e280"
+        }
+      ],
+      "name": "services/actuator-service/command_delivery.py",
       "type": "file"
     },
     {
@@ -16315,7 +16355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5ba1141aa422194adc747de5ae717f1b02d239eabc50d7231a8010b674385e52"
+          "content": "1cc8d71309f9b73c13c24577f800d42e9e27ef42a6ad2c3c507beca41d084e62"
         }
       ],
       "name": "services/actuator-service/routers/commands.py",
@@ -16339,6 +16379,16 @@
         }
       ],
       "name": "services/actuator-service/routers/metrics.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2d5971d859cdd1dbc796403e069fe3524ce6ded71d4b2083ad06ddc07dd8d8c1"
+        }
+      ],
+      "name": "services/actuator-service/test_actuator_delivery_state_20261103.py",
       "type": "file"
     },
     {
@@ -18715,7 +18765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6fc30a5d66ac38943f4de4870202a3503b010b440513c7c0df2e87e2d13b7bf"
+          "content": "949fc9f775858c237c8ee530f82a98ab122e9e335be9efb746e5bc5ac041dfb5"
         }
       ],
       "name": "services/edge-inference/main.py",
@@ -18725,7 +18775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95ad878190f6079502f99f3c33c261baca10178484f1dc759b44afe5e424c13e"
+          "content": "71e2b298cf7f817de01b9c98b0cd91d462064d4dc6f83c1e2522a6274f54e34e"
         }
       ],
       "name": "services/edge-inference/model_artifact_gate.py",
@@ -18825,7 +18875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8e71aa33fe362acbe13c9b71b952a34db2689b44db06b3a1a3b8f7c2ffa54fb1"
+          "content": "a7aef4f2cfab180aa25918a8d507284b73b95091c37fad94dbdbdada88659f2a"
         }
       ],
       "name": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
@@ -23515,7 +23565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d45a3f65349dd35ac9297f84ef1659f3b7403d96e7d3e5f43fe78544974813db"
+          "content": "e48f33331cc5cba886c3236902bc1a78dd2348d41cef9c109d054d725f472d53"
         }
       ],
       "name": "services/sahool-platform/api/edge_models.py",
@@ -25335,7 +25385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "30f6d6f3e2b095e18c3113c457654f4920d18d8509fa455f7c82625259eeb553"
+          "content": "b04713a014e5ef913f0c840c280227ef9c3c4732066d85482cffc18924e8617b"
         }
       ],
       "name": "services/sahool-platform/api/routers/edge.py",
@@ -32249,6 +32299,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32a3e4f459c25df4708f64c143ab45e33156a31bc356dc8e0afd2e786f3aafed"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
       "type": "file"
     },
     {
@@ -39565,7 +39625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1a01cdd493d3a45212934b4e227794e32958d96039fd2cfeafdbac150ec8cb78"
+          "content": "f5024942be9bf0ed38104f63ee298d09218349d928411ba42dc2fcb6261bab7c"
         }
       ],
       "name": "shared/security/access_tokens.py",
@@ -39659,6 +39719,16 @@
         }
       ],
       "name": "shared/security/tls_policy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "24958958894140367074d4c5c45448d53d14b3afab1beef5956d5a7ef371ffb6"
+        }
+      ],
+      "name": "shared/security/token_revocation.py",
       "type": "file"
     },
     {

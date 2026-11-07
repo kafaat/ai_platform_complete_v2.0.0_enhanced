@@ -1,7 +1,8 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "724c53d964db1f45a760558dace4cc741b1123ef",
+  "measured_on": "363d6d4b18eb06e696c47c448a70e912a4db43ce",
   "fake_connection_tests": [
+    "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
     "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
     "services/decision-service/tests/test_migration_runner_readonly.py",
@@ -23,6 +24,7 @@
     "services/sahool-platform/tests/test_decision_interim_bridge.py",
     "services/sahool-platform/tests/test_drawing_features_v38_static.py",
     "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
+    "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
     "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
     "services/sahool-platform/tests/test_farm_operations_ledger.py",
     "services/sahool-platform/tests/test_field_aggregate_ports.py",
@@ -58,6 +60,7 @@
     "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
     "tests_v9/test_actuation_killswitch_behaviour.py",
     "tests_v9/test_actuation_killswitch_v29_5_op.py",
+    "tests_v9/test_actuator_token_revocation.py",
     "tests_v9/test_ai_advice_persistence_and_grounding_honesty.py",
     "tests_v9/test_ai_runtime_readiness.py",
     "tests_v9/test_auth_admin_stepup_mfa.py",
@@ -123,6 +126,9 @@
     "tests_v9/test_workflow_store_hardening.py"
   ],
   "claiming_db_enforced": {
+    "services/actuator-service/test_actuator_delivery_state_20261103.py": [
+      "TRIGGER"
+    ],
     "services/raster-service/test_raster_durable_identity.py": [
       "UNIQUE"
     ],
@@ -160,6 +166,9 @@
     ],
     "services/soil-service/test_soil_projection_jobs.py": [
       "UNIQUE"
+    ],
+    "tests_v9/test_actuator_token_revocation.py": [
+      "CHECK"
     ],
     "tests_v9/test_canonical_event_emission_contracts.py": [
       "CHECK",

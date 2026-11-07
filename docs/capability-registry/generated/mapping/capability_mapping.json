@@ -15,18 +15,18 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7019,
+    "files_scanned": 7033,
     "files_by_kind": {
-      "backend": 1266,
-      "database": 292,
+      "backend": 1267,
+      "database": 295,
       "governance": 87,
       "mobile": 414,
-      "other": 2145,
-      "tests": 2311,
+      "other": 2147,
+      "tests": 2319,
       "web": 504
     },
-    "unmapped_artifacts": 2785,
-    "ambiguous_artifacts": 516
+    "unmapped_artifacts": 2790,
+    "ambiguous_artifacts": 518
   },
   "capabilities": [
     {
@@ -4140,7 +4140,7 @@
           "score": 14
         },
         {
-          "value": "sahool.ai_policy_envelope @ tests_v9/test_tts_tenant_policy_gate.py:101",
+          "value": "sahool.ai_policy_envelope @ tests_v9/test_tts_tenant_policy_gate.py:102",
           "score": 14
         },
         {
@@ -8436,11 +8436,19 @@
           "score": 9
         },
         {
+          "value": "agent_queries @ migrations/v240_converge_first_pass_schema.sql:44",
+          "score": 9
+        },
+        {
           "value": "farmer_knowledge @ services/sahool-platform/storage/lite_store.py:88",
           "score": 9
         },
         {
           "value": "field_state @ services/sahool-platform/storage/lite_store.py:121",
+          "score": 9
+        },
+        {
+          "value": "guardrails_log @ migrations/v240_converge_first_pass_schema.sql:51",
           "score": 9
         },
         {
@@ -8454,6 +8462,14 @@
         {
           "value": "lab_requests @ services/sahool-platform/storage/lite_store.py:162",
           "score": 9
+        },
+        {
+          "path": "migrations/v240_converge_first_pass_schema.sql",
+          "score": 9,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
         },
         {
           "value": "observations @ services/sahool-platform/storage/lite_store.py:28",
@@ -8727,6 +8743,14 @@
         },
         {
           "value": "operation.irrigation.started @ services/sahool-platform/api/event_replay.py:375",
+          "score": 9
+        },
+        {
+          "value": "public.field_tasks @ migrations/v240_converge_first_pass_schema.sql:56",
+          "score": 9
+        },
+        {
+          "value": "public.idx_market_listings_crop_status @ migrations/v240_converge_first_pass_schema.sql:71",
           "score": 9
         },
         {
@@ -9392,6 +9416,14 @@
             "content:crop season",
             "content:season"
           ]
+        },
+        {
+          "path": "tests_v9/test_v240_first_pass_convergence_static.py",
+          "score": 9,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
         }
       ],
       "governance": [],
@@ -9539,11 +9571,11 @@
       "evidence_counts": {
         "backend": 30,
         "routes": 82,
-        "database": 84,
-        "events": 64,
+        "database": 87,
+        "events": 66,
         "web": 15,
         "mobile": 15,
-        "tests": 43,
+        "tests": 44,
         "governance": 0,
         "other_evidence": 16
       },
@@ -28715,7 +28747,7 @@
           ]
         },
         {
-          "path": "services/sahool-platform/api/persisted_canonical_repositories.py",
+          "path": "services/actuator-service/actuator_runtime.py",
           "score": 11,
           "signals": [
             "content:Tenant RLS",
@@ -28723,8 +28755,8 @@
           ]
         },
         {
-          "path": "services/actuator-service/actuator_runtime.py",
-          "score": 10,
+          "path": "services/sahool-platform/api/persisted_canonical_repositories.py",
+          "score": 11,
           "signals": [
             "content:Tenant RLS",
             "content:rls"
@@ -30263,6 +30295,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_detection_provenance_contract.py",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
           "path": "tests_v9/test_e2e_findings_regressions.py",
           "score": 10,
           "signals": [
@@ -30301,6 +30341,22 @@
           "signals": [
             "content:rls",
             "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
+          "score": 10,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
+          ]
+        },
+        {
+          "path": "services/actuator-service/test_actuator_delivery_state_20261103.py",
+          "score": 9,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
           ]
         },
         {
@@ -31188,7 +31244,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 808
+        "database": 824
       },
       "evidence_counts": {
         "backend": 15,
@@ -31197,7 +31253,7 @@
         "events": 71,
         "web": 0,
         "mobile": 0,
-        "tests": 79,
+        "tests": 82,
         "governance": 0,
         "other_evidence": 88
       },
@@ -31658,6 +31714,23 @@
           ]
         },
         {
+          "value": "agent_queries @ migrations/v240_converge_first_pass_schema.sql:44",
+          "score": 11
+        },
+        {
+          "value": "guardrails_log @ migrations/v240_converge_first_pass_schema.sql:51",
+          "score": 11
+        },
+        {
+          "path": "migrations/v240_converge_first_pass_schema.sql",
+          "score": 11,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "value": "break_glass_grants @ migrations/v90_break_glass.sql:19",
           "score": 10
         },
@@ -31690,6 +31763,14 @@
         {
           "value": "v139_field_geometry_history_append_only.sql @ tests_v9/test_field_geometry_history_append_only_v39_5.py:26",
           "score": 12
+        },
+        {
+          "value": "public.field_tasks @ migrations/v240_converge_first_pass_schema.sql:56",
+          "score": 11
+        },
+        {
+          "value": "public.idx_market_listings_crop_status @ migrations/v240_converge_first_pass_schema.sql:71",
+          "score": 11
         },
         {
           "value": "test_soil_field_tenant_authz.py @ tests_v9/test_unit_environment_completeness.py:90",
@@ -32013,6 +32094,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_v240_first_pass_convergence_static.py",
+          "score": 11,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "path": "tests_v9/test_runtime_contract_indirect_env.py",
           "score": 10,
           "signals": [
@@ -32304,11 +32394,11 @@
       "evidence_counts": {
         "backend": 8,
         "routes": 24,
-        "database": 23,
-        "events": 4,
+        "database": 26,
+        "events": 6,
         "web": 7,
         "mobile": 7,
-        "tests": 26,
+        "tests": 27,
         "governance": 1,
         "other_evidence": 26
       },
@@ -45702,6 +45792,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/actuator-service/command_delivery.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/actuator-service/main.py",
       "kind": "backend"
     },
@@ -49086,6 +49180,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_emit_event_names.py",
       "kind": "tests"
     },
@@ -50563,6 +50661,10 @@
     },
     {
       "path": "tests_v9/test_actuator_mode.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_actuator_token_revocation.py",
       "kind": "tests"
     },
     {
@@ -52943,6 +53045,14 @@
     },
     {
       "path": "tests_v9/test_v208_runbook_role_matches_role_model.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_v239_detection_provenance_live_pg.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_v240_first_pass_convergence_live_pg.py",
       "kind": "tests"
     },
     {
@@ -57711,6 +57821,29 @@
       ]
     },
     {
+      "path": "migrations/v240_converge_first_pass_schema.sql",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "SEC-004",
+          "score": 11,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
+          "capability_id": "FM-004",
+          "score": 9,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
+        }
+      ]
+    },
+    {
       "path": "migrations/v241_edge_idempotency_tenant_scoped.sql",
       "kind": "database",
       "candidates": [
@@ -58721,7 +58854,7 @@
         },
         {
           "capability_id": "SEC-001",
-          "score": 10,
+          "score": 11,
           "signals": [
             "content:Tenant RLS",
             "content:rls"
@@ -65937,6 +66070,29 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_v240_first_pass_convergence_static.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SEC-004",
+          "score": 11,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
+          "capability_id": "FM-004",
+          "score": 9,
+          "signals": [
+            "content:crop season",
+            "content:season"
           ]
         }
       ]
