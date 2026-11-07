@@ -1,4 +1,5 @@
 """Bind the read-only proof manifest to actual repository paths in CI."""
+
 from __future__ import annotations
 
 import contextlib
@@ -20,7 +21,11 @@ SPEC.loader.exec_module(GATE)
 
 
 def test_manifest_is_source_bound_but_cannot_certify_e3():
-    manifest = json.loads((ROOT / "config/proof/data_decision_outcome_v1.json").read_text(encoding="utf-8"))
+    manifest = json.loads(
+        (ROOT / "config/proof/data_decision_outcome_v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
     report = GATE.validate(manifest, ROOT)
     assert report["manifest_valid"], report["errors"]
     assert len(report["stages"]) == len(GATE.EXPECTED_IDS) == 9
@@ -33,7 +38,9 @@ def test_manifest_is_source_bound_but_cannot_certify_e3():
 
 def test_meta_proof_files_are_excluded_from_capability_scanner():
     scanner_script = ROOT / "scripts/ci/capability_mapping_engine.py"
-    scanner_spec = importlib.util.spec_from_file_location("capability_mapping_proof_exclusion", scanner_script)
+    scanner_spec = importlib.util.spec_from_file_location(
+        "capability_mapping_proof_exclusion", scanner_script
+    )
     assert scanner_spec and scanner_spec.loader
     scanner = importlib.util.module_from_spec(scanner_spec)
     scanner_spec.loader.exec_module(scanner)
@@ -51,7 +58,9 @@ def test_meta_proof_files_are_excluded_from_capability_scanner():
 
 def test_proof_only_files_cannot_link_domain_capabilities():
     linker_script = ROOT / "scripts/ci/capability_linker.py"
-    linker_spec = importlib.util.spec_from_file_location("capability_linker_proof_exclusion", linker_script)
+    linker_spec = importlib.util.spec_from_file_location(
+        "capability_linker_proof_exclusion", linker_script
+    )
     assert linker_spec and linker_spec.loader
     linker = importlib.util.module_from_spec(linker_spec)
     linker_spec.loader.exec_module(linker)
