@@ -515,7 +515,6 @@
         "mobile/sahool_app/test/features/crop_season/crop_season_screen_test.dart",
         "mobile/sahool_app/test/features/crop_season/season_create_reconcile_test.dart",
         "mobile/sahool_app/test/features/crop_season/season_form_logic_test.dart",
-        "scripts/simulation/test_export_season_runs_for_golden.py",
         "services/sahool-platform/tests/test_farm_full_season_forensic.py",
         "services/sahool-platform/tests/test_field_season_projection.py",
         "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
@@ -531,6 +530,7 @@
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_season_stage_risk.py",
         "services/scout-ingest-service/tests/test_season_live.py",
+        "tests_v9/test_export_season_runs_for_golden.py",
         "tests_v9/test_fii_prescription_season_context_guard.py",
         "tests_v9/test_historical_season_bridge_static.py",
         "tests_v9/test_season_api_static.py",
@@ -2581,6 +2581,7 @@
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/weather-service/tests/test_canonical_weather_state.py",
         "tests/architecture/test_provenance_receipt_and_replay.py",
+        "tests_v9/test_agb_research_provenance.py",
         "tests_v9/test_field_state_recompute_provenance_v57_5.py",
         "tests_v9/test_irrx1_authoritative_provenance_lock.py",
         "tests_v9/test_knowledge_provenance_guard.py",
@@ -2617,7 +2618,7 @@
           "path": "services/sahool-platform/docs/INFORMATION_PROVENANCE.md"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=13, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=14, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

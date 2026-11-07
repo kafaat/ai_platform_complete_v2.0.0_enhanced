@@ -7,7 +7,7 @@
 | NDVI | `hash(field_id) % 100` | Sentinel Hub Process API |
 | ET0 | `random.gauss(4, 1)` | Open-Meteo ERA5 Reanalysis |
 | GDD | `hash(field_id) % 500` | Open-Meteo Tmax/Tmin حقيقي |
-| AGB | ثابت | Random Forest R²=0.89 (من الورقة) |
+| AGB | ثابت | تجربة Random Forest ببيانات اصطناعية؛ بلا دقة حقلية أو ثقة معايرة مثبتة |
 | Kc | ثابت 1.15 | FAO-56 Kc curve حسب يوم الموسم |
 | WOFOST | random yield | WOFOST-RUE كامل + Beer-Lambert LAI |
 | SMTP | `smtplib` blocking | `aiosmtplib` non-blocking |
@@ -47,13 +47,19 @@ https://services.sentinel-hub.com
 المخرجات: GDD, LAI, biomass, yield, ETc
 ```
 
-### ④ AGB Random Forest (من الورقة البحثية)
-```
-المرجع: Plant Methods 2023 (IMG_2330)
-R² = 0.89, RMSE = 9.1 t/ha
-الميزات: NDVI + EVI + GNDVI (Sentinel-2) + VV/VH (Sentinel-1)
-المعادلة: Equation 4, Table 3
-```
+### ④ AGB Random Forest (تجربة بحثية غير معايرة)
+
+التدريب الافتراضي في [`random_forest/agb_model.py`](random_forest/agb_model.py) يولّد
+بيانات اصطناعية محليًا. تُحسب مقاييس التدريب على العينات المستخدمة في الملاءمة نفسها؛
+وهي لا تقيس دقة التنبؤ في حقل جديد. تشمل المدخلات NDVI وEVI وGNDVI وVV وVH،
+وبدون نموذج مدرَّب يستخدم المثال معادلة تقديرية.
+
+تُوسم المخرجات `research_only` وتكشف منشأ التدريب. تبقى الثقة وحدود التنبؤ
+و`model_accuracy` بلا قيمة رقمية إلى أن يتوفر تحقق مستقل ومعايرة مناسبة.
+الأرقام السابقة المنسوبة إلى «Plant Methods 2023 / IMG_2330»
+(`R² = 0.89` و`RMSE = 9.1 t/ha`) مرجع موروث غير متحقق منه،
+وليست قياسًا لأداء هذا النموذج المحلي. تفاصيل العقد واختباراته في
+[`tests_v9/test_agb_research_provenance.py`](tests_v9/test_agb_research_provenance.py).
 
 ---
 

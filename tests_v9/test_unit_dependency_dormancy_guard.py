@@ -51,7 +51,6 @@ DECLARED_DORMANT: dict[str, str] = {
         "test_realtime_webhooks.py runs with mandatory SDK import in "
         ".github/workflows/realtime-session.yml isolated-service."
     ),
-    "sklearn": "scikit-learn ~٣٠ ميغابايت لحالةٍ واحدة (`zones_kmeans`) — مُعلَنة في requirements_real",
     "pyarrow": "عجلةٌ ثقيلة لحالة parquet واحدة في `test_farm_memory`",
     "edge_tts": "غير مُعلَنة في أيّ ملفّ متطلّبات في الشجرة — تبعيّةٌ اختياريّة لمزوّد TTS واحد",
     "api.irrigation_models": "وحدةٌ داخليّة لا حزمة: التخطّي يقع حين لا تكون شجرة المنصّة على المسار",
