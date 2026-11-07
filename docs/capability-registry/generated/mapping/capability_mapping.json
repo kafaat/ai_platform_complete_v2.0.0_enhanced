@@ -3642,7 +3642,7 @@
       ],
       "events": [
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:781",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:809",
           "score": 12
         },
         {
@@ -36240,7 +36240,7 @@
           "score": 15
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:781",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:809",
           "score": 14
         },
         {
@@ -36576,6 +36576,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_water_ledger_auto.py",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "services/weather-service/tests/test_p3_weather_service_runtime.py",
           "score": 12,
           "signals": [
@@ -36684,15 +36693,6 @@
         },
         {
           "path": "services/sahool-platform/tests/test_planting_window.py",
-          "score": 9,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/tests/test_water_ledger_auto.py",
           "score": 9,
           "signals": [
             "content:Weather forecast",
@@ -37923,7 +37923,7 @@
           "score": 12
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:781",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:809",
           "score": 12
         },
         {
@@ -63603,7 +63603,7 @@
         },
         {
           "capability_id": "WX-002",
-          "score": 9,
+          "score": 12,
           "signals": [
             "content:Weather forecast",
             "content:forecast",

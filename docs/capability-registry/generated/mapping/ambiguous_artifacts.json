@@ -10455,7 +10455,7 @@
       },
       {
         "capability_id": "WX-002",
-        "score": 9,
+        "score": 12,
         "signals": [
           "content:Weather forecast",
           "content:forecast",
