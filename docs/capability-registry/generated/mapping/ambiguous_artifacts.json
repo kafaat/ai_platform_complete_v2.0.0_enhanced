@@ -4563,6 +4563,28 @@
     ]
   },
   {
+    "path": "migrations/v241_edge_idempotency_tenant_scoped.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 14,
+        "signals": [
+          "path:dem",
+          "content:dem"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
     "path": "migrations/v39_season_simulation.sql",
     "kind": "database",
     "candidates": [
@@ -10433,7 +10455,7 @@
       },
       {
         "capability_id": "WX-002",
-        "score": 9,
+        "score": 12,
         "signals": [
           "content:Weather forecast",
           "content:forecast",
@@ -12767,6 +12789,28 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_v241_edge_idempotency_tenant_scoped.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 14,
+        "signals": [
+          "path:dem",
+          "content:dem"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
         ]
       }
     ]

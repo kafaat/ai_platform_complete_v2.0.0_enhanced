@@ -19,7 +19,9 @@
 
 from __future__ import annotations
 
+import datetime as _dt
 import math
+from collections.abc import Mapping, Sequence
 
 from api.water_balance import _effective_rain
 
@@ -68,6 +70,9 @@ _BIASING_ASSUMPTIONS = frozenset(
         "et0_reference_unavailable",
         "root_zone_texture_fallback",
         "irrigation_unknown_inherited",
+        "missing_days_consumption_estimated",
+        "missing_days_irrigation_unobserved",
+        "missing_days_irrigation_volume_untracked",
     }
 )
 
@@ -122,6 +127,12 @@ def applied_water_status(notes) -> str:
         return APPLIED_WATER_VOLUME_UNTRACKED
     if "irrigation_unknown_inherited" in notes:
         return APPLIED_WATER_INHERITED_UNKNOWN
+    # Copilot on #1342: a skipped day whose irrigation is unknown makes the carried balance
+    # uncertain even when today's irrigation is recorded, so the bridge must not auto-approve it.
+    if "missing_days_irrigation_unobserved" in notes:
+        return APPLIED_WATER_UNRECORDED
+    if "missing_days_irrigation_volume_untracked" in notes:
+        return APPLIED_WATER_VOLUME_UNTRACKED
     return APPLIED_WATER_RECORDED
 
 
@@ -250,6 +261,10 @@ def compute_daily_ledger_entry(
     root_zone_texture_fallback: bool = False,
     depletion_fraction_default: bool = False,
     prev_applied_water_status: str | None = None,
+    missing_prior_days: int = 0,
+    missing_days_irrigation_mm: float | Sequence[float] = 0.0,
+    missing_days_irrigation_unobserved: bool = False,
+    missing_days_irrigation_untracked: bool = False,
 ) -> dict:
     """قيد اليوم من قيد الأمس + مدخلات اليوم — نقيّ، مع افتراضات مُعلَنة لا صامتة.
 
@@ -293,6 +308,37 @@ def compute_daily_ledger_entry(
         if not math.isfinite(prev_depletion_mm):
             raise ValueError(f"prev_depletion_mm غيرُ منتهٍ ({prev_depletion_mm!r})")
 
+    if (
+        isinstance(missing_prior_days, bool)
+        or not isinstance(missing_prior_days, int)
+        or missing_prior_days < 0
+    ):
+        raise ValueError(
+            f"missing_prior_days يجب أن يكون عدداً صحيحاً ≥ 0 — وصل {missing_prior_days!r}"
+        )
+    # Per skipped day (oldest first), or one total whose day is unknown. A total is applied on
+    # the first skipped day: the earliest placement gives the highest carried depletion, so an
+    # unknown day never understates the deficit.
+    if isinstance(missing_days_irrigation_mm, (list, tuple)):
+        gap_irrigation = list(missing_days_irrigation_mm)
+        if len(gap_irrigation) != missing_prior_days:
+            raise ValueError(
+                "missing_days_irrigation_mm: قيمةٌ لكلّ يومٍ متخطّى — "
+                f"{len(gap_irrigation)} قيمة لـ{missing_prior_days} يوماً"
+            )
+    else:
+        gap_irrigation = [missing_days_irrigation_mm] + [0.0] * max(missing_prior_days - 1, 0)
+    for _mm in gap_irrigation:
+        if (
+            isinstance(_mm, bool)
+            or not isinstance(_mm, (int, float))
+            or not math.isfinite(_mm)
+            or _mm < 0
+        ):
+            raise ValueError(
+                f"missing_days_irrigation_mm يجب أن يكون عدداً منتهياً ≥ 0 — وصل {_mm!r}"
+            )
+
     if taw_mm <= 0:
         raise ValueError("TAW يجب أن يكون موجباً — لا يُحسب ميزان بلا سعة ماء متاح")
     if et0_mm < 0 or rain_mm < 0 or irrigation_mm < 0 or kc <= 0:
@@ -319,6 +365,21 @@ def compute_daily_ledger_entry(
             prev = min(max(prev, 0.0), taw_mm)
 
     etc_mm = round(kc * et0_mm, 2)
+    if not bootstrap and missing_prior_days:
+        # DAILY-WATER-LEDGER-SKIPPED-DAYS-DROP-CONSUMPTION-01: آخرُ قيدٍ أقدم من الأمس. كان
+        # الميزانُ يبني على ذلك القيد كأنّه الأمس، فيضيع استهلاكُ الأيّام الفائتة (ثلاثةُ أيّام
+        # ⇒ ~18 ملم) ويتأخّر الريّ. يُقدَّر استهلاكُها بـETc اليوم بلا مطرٍ (لا مطرَ مقيساً
+        # لها: تقديرٌ محافِظ نحو استنزافٍ أعلى)، ويُطرَح ريُّها المسجَّل — ويُعلَن ويُخفِّض الثقة.
+        # Daily recurrence, clamped after every day (Copilot on #1342): clamping once after the
+        # sum let excess irrigation on an early day cancel later days' consumption, which
+        # understated depletion and could delay irrigation.
+        for _mm in gap_irrigation[:missing_prior_days]:
+            prev = min(max(prev + etc_mm - float(_mm), 0.0), taw_mm)
+        notes.append("missing_days_consumption_estimated")
+        if missing_days_irrigation_unobserved:
+            notes.append("missing_days_irrigation_unobserved")
+        if missing_days_irrigation_untracked:
+            notes.append("missing_days_irrigation_volume_untracked")
     p_eff = _effective_rain(rain_mm)
     if irrigation_volume_untracked:
         notes.append("irrigation_volume_untracked")
@@ -372,6 +433,46 @@ def compute_daily_ledger_entry(
         ),
         "decision": ("auto:" + (";".join(notes) if notes else "daily_balance")),
     }
+
+
+def gap_irrigation_by_day(
+    rows: Sequence[Mapping], last_entry_date: _dt.date, ledger_date: _dt.date
+) -> tuple[list[float], bool, bool]:
+    """Per-day irrigation for the skipped days strictly between the last entry and today.
+
+    ``rows`` are completed-run aggregates per local date (``d``, ``mm``, ``untracked``,
+    ``runs``). Returns ``(mm_per_day, any_day_unobserved, any_volume_untracked)``: a skipped
+    day with no run row is "unobserved", not "zero irrigation", exactly as for today.
+    """
+    by_day = {r["d"]: r for r in rows}
+    mm: list[float] = []
+    unobserved = untracked = False
+    day = last_entry_date + _dt.timedelta(days=1)
+    while day < ledger_date:
+        r = by_day.get(day)
+        if r is None or not int(r["runs"] or 0):
+            unobserved = True
+            mm.append(0.0)
+        else:
+            untracked = untracked or bool(r["untracked"])
+            mm.append(float(r["mm"] or 0.0))
+        day += _dt.timedelta(days=1)
+    return mm, unobserved, untracked
+
+
+def forecast_day_for_ledger_date(forecast: Mapping, ledger_date: _dt.date) -> dict | None:
+    """The forecast day whose ``date`` is the ledger date, or ``None``.
+
+    Copilot on #1342: the provider labels days in the field's location timezone, which can
+    differ from ``WATER_LEDGER_TIMEZONE``; taking ``days[0]`` blindly can write tomorrow's
+    weather against today's entry. No matching day ⇒ the caller skips the field (no entry is
+    better than a misdated one).
+    """
+    wanted = ledger_date.isoformat()
+    for day in forecast.get("days") or []:
+        if isinstance(day, Mapping) and str(day.get("date") or "")[:10] == wanted:
+            return dict(day)
+    return None
 
 
 def manual_entry_takes_precedence(existing_created_by: str | None) -> bool:

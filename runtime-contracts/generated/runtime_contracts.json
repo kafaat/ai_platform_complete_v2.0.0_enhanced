@@ -2062,6 +2062,7 @@
         "WATER_DEFICIT_POLICY_ACTOR",
         "WATER_DEFICIT_POLICY_VERSION",
         "WATER_LEDGER_REQUIRE_IDENTITY",
+        "WATER_LEDGER_TIMEZONE",
         "WEATHER_CACHE_BACKEND",
         "WEATHER_LIVE_DISABLED",
         "WEATHER_RATE_LIMIT_BACKEND",
@@ -2177,6 +2178,7 @@
           "services/sahool-platform/tests/test_phase11_runtime_api.py",
           "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
           "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
+          "services/sahool-platform/tests/test_water_ledger_auto.py",
           "services/sahool-platform/workers/canonical_execution_learning_worker.py"
         ],
         "metrics": [

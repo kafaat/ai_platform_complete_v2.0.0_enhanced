@@ -37,14 +37,15 @@ CANONICAL = "shared/security/"
 SECRET = "unit-test-secret-0123456789-abcdefghijklmnopqrstuvwxyz-0123456789-ABCDEF"
 
 #: ما يبقى يفكّ بنفسه — مُعلَّلٌ لا مُعفى؛ الإغلاقُ يُفرِغ هذه القائمة.
-ALLOWED_DIRECT_DECODE = {
-    # GATE-01: frozen_paths في docs/architecture/gate01_policy.json — لا يُمسّ بلا تفويضٍ محكَّم.
-    "services/actuator-service/actuator_runtime.py": 1,
+ALLOWED_DIRECT_DECODE: dict[str, int] = {
+    # فرغت 2026-11-07: actuator_runtime.py انتقل إلى decode_access_token بتفويض
+    # GATE01-ADJ-2026-11-07-001 (الدفعة ٢).
 }
 
 #: الملفّ ← (دلالةُ المطالبات المحفوظة، عددُ النداءات). ``python-jose`` = الموضعُ كان على
 #: python-jose قبل إزالته (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01) فيُحفَظ حكمُه.
 MIGRATED = {
+    "services/actuator-service/actuator_runtime.py": ("pyjwt", 1),  # GATE-01 الدفعة ٢
     "services/mcp_servers/market_server.py": ("pyjwt", 1),
     "services/mcp_servers/shared/oauth_middleware.py": ("pyjwt", 1),
     "services/auth/main.py": ("python-jose", 1),  # `_decode_issued_token` (سقفُ أسطر main)

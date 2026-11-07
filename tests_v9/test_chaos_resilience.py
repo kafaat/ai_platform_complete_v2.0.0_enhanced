@@ -85,7 +85,9 @@ def test_edge_sync_handler_dedup():
             os.path.join(routers_dir, f) for f in os.listdir(routers_dir) if f.endswith(".py")
         ]
     src = "\n".join(open(p, encoding="utf-8").read() for p in sources if os.path.isfile(p))
-    if "ON CONFLICT (idempotency_key)" in src and "DO NOTHING" in src:
+    if (
+        "ON CONFLICT (idempotency_key)" in src or "ON CONFLICT (tenant_id, idempotency_key)" in src
+    ) and "DO NOTHING" in src:
         r.append(("✓", "edge/sync يستخدم ON CONFLICT DO NOTHING (dedup خادمي)"))
     if "duplicate_ignored" in src:
         r.append(("✓", "التكرار يُرجع نجاحاً idempotent (لا خطأ)"))

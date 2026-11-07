@@ -766,4 +766,6 @@ v236_raster_follow_up_requests.sql
 #   «بلا سياق مستأجر ⇒ اسمح» بالشكل لا بالاسم، شروط v122 الصارمة، NULLIF + CHECK NOT VALID على
 #   tenant_id النصّيّ، وسحب EXECUTE دوالّ DEFINER للإدخال من sahool_app. يُدرَج قبل v206 كي يبقى آخِراً.
 v237_tenant_isolation_hardening.sql
+# v241 (CP997-05، GATE-01 الدفعة ٢): فهرسُ idempotency لـedge_results مقيَّدٌ بالمستأجِر بدل العالميّ.
+v241_edge_idempotency_tenant_scoped.sql
 v206_rls_final_hardening.sql

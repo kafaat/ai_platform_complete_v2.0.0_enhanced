@@ -1,0 +1,61 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-11-07-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-11-07",
+  "expires_on": "2026-12-07",
+  "pr": null,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "migrations/MANIFEST.txt",
+    "scripts_v9/run_migrations.sql",
+    "services/actuator-service/actuator_runtime.py",
+    "services/sahool-platform/api/phase_runtime_workers.py"
+  ],
+  "allowed_gap_closures": [
+    "DAILY-WATER-LEDGER-UTC-DATE-VS-ADEN-FORECAST-DAY-01",
+    "DAILY-WATER-LEDGER-SKIPPED-DAYS-DROP-CONSUMPTION-01",
+    "DAILY-WATER-LEDGER-FIRST-50-FIELDS-ONLY-01",
+    "CP997-05-EDGE-IDEMPOTENCY-GLOBAL-UNIQUE-VS-TENANT-LOOKUP-01",
+    "JWT-DECODE-OUTSIDE-SHARED-SECURITY-01"
+  ],
+  "authorized_patch_sha256": "4d4c33da0459bab6f4f2d80d2ec37ebe74af03b777ef359ddfe99d99c0beec17",
+  "authorized_blobs": {
+    "migrations/MANIFEST.txt": "652e25c542131c2307176e04a3eaf45351455b92",
+    "scripts_v9/run_migrations.sql": "00027f75cd03af51c796ba4a895514d754de53d1",
+    "services/actuator-service/actuator_runtime.py": "6cfd517d2a6f8e9e0930b1952083b182ce8fc781",
+    "services/sahool-platform/api/phase_runtime_workers.py": "1470e50a5909972509dda32ffeced9ce63b6f8cd"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "6b7b770953c33e24d9953e8a64a722b71de8a486"
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "owner": "kafaat",
+    "owner_decision_on": "2026-11-07",
+    "text_ar": "موافق على المسار المقترح، قوم بالتنفيذ",
+    "context_ar": "جوابُ المالك على مقترح 2026-11-07: إبقاءُ GATE-01 مغلقةً، ودمجُ #1338 وختمُه، ثمّ تفويضٌ مقيَّدٌ جديد لدفعةٍ مسمّاة من الأعمال المتراكمة، وتأجيلُ OPEN حتّى تُطبَّق v237 على staging ويُعاد تحميل البرنامج الثابت."
+  },
+  "scope_limit_ar": "دفعةٌ ثانية بعينها، ثلاثُ حزم: (١) دفتر الماء اليوميّ في phase_runtime_workers.py — اليوم المحلّيّ (WATER_LEDGER_TIMEZONE، افتراضيّاً Asia/Aden)، وتقديرُ استهلاك الأيّام المتخطّاة، وتقسيمُ الحقول بالمفتاح حتّى الاستنفاد بموسمٍ نشطٍ واحد لكلّ حقل؛ (٢) CP997-05 — هجرة v241 (فهرس idempotency لـedge_results مقيَّدٌ بالمستأجِر) وسطرا تسجيلها في MANIFEST.txt وscripts_v9/run_migrations.sql قبل v206؛ (٣) actuator_runtime.py — التحقّق من التوكن عبر decode_access_token المشترك. لا يشمل event_bus.py ولا v228 ولا db_ownership.yml ولا physical_effect_boundary_contract.json ولا routers/commands.py ولا phase_runtime_store.py، ولا مسوّدات v238–v240، ولا إبطالَ التوكنات (S5)، ولا تفعيلَ enforce لسياسة المطالبات، ولا تغييرَ حالة البوّابة إلى OPEN.",
+  "why_frozen_paths_ar": "العيوب داخل الملفّات المجمَّدة نفسها: حلقة دفتر الماء في phase_runtime_workers.py؛ وتسجيل أيّ هجرة لا يكون إلّا في MANIFEST.txt وscripts_v9/run_migrations.sql؛ وآخرُ فكّ JWT خارج shared/security في actuator_runtime.py.",
+  "reissue_rule_ar": "التفويضُ مربوطٌ ببايتات الملفّات الأربعة (`authorized_blobs`). أيُّ تعديلٍ لاحقٍ على أيٍّ منها — ولو دمجاً من main يمسّه — يُبطِله ويلزم إعادةُ إصداره ببصمته الجديدة.",
+  "honesty_limit_ar": "الشواهد محلّيّة: اختبارات دفتر الماء 108 ناجحة (تعطيل تقدير الفجوة يُحمِّر 3) والـSQL الجديد مُتحقَّق على PostgreSQL 16؛ v241 مُطبَّقةٌ على قاعدة PG16 مبنيّة من MANIFEST، واختبارها الحيّ يحمرّ بـUniqueViolationError حين يُعاد الفهرس العالميّ؛ وتحقّقُ actuator يقبل توكناً صالحاً ويرفض جمهوراً آخر 401. لم يُطبَّق شيءٌ على staging أو الإنتاج: SAHOOL_MIGRATE_APPLY غير مضبوط، فالمُهاجِر يفحص ولا يطبّق.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "سجلٌّ لقرار المالك في الجلسة، لا توقيعٌ مستقلّ — والقاعدة الحيّة 20645828 تشترط صفر موافقات، فلا جهةَ مستقلّة متاحة؛ وهذا بعينه سببُ التجميد الجذريّ المُشخَّص. `pr` فارغ عند الإصدار؛ يُملأ ويُختَم `CONSUMED` مع `merge_sha` بعد الدمج."
+  },
+  "reissue_note_ar": "أُعيد ربطُ البصمات في 2026-11-07 بعد مراجعة Copilot على #1342: phase_runtime_workers.py صار يجلب ريَّ الأيّام المتخطّاة يوماً بيوم (القصُّ بعد كلّ يوم، وريٌّ مجهولٌ في يومٍ متخطّى يُعلَن ولا يُعَدّ صفراً)، ويختار يومَ التوقّع بتاريخه لا بموضعه. القرارُ نفسُه والمساراتُ الأربعة نفسُها."
+}

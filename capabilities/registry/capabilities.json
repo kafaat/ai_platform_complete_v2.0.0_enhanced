@@ -134,6 +134,10 @@
         {
           "type": "repository",
           "path": "migrations/v237_tenant_isolation_hardening.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v241_edge_idempotency_tenant_scoped.sql"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=36, tests=25, ui=1, mobile=8. Runtime and production certification remain manual evidence gates.",
@@ -145,7 +149,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 49
+        "tests": 50
       }
     },
     {
