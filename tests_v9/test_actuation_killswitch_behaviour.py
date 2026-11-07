@@ -74,6 +74,11 @@ def actuator(monkeypatch):
     stubbed = _stub_missing_dependencies()
     monkeypatch.setenv("ACTUATOR_MODE", "simulation")
     monkeypatch.setenv("JWT_SECRET_KEY", "t" * 32)
+    # This file tests the killswitch, not S5 revocation (tests_v9/test_actuator_token_revocation.py).
+    # Other modules set REDIS_URL at import and never restore it; without this the
+    # revocation check would dial that Redis and answer 503 before the killswitch runs.
+    for _var in ("DENYLIST_REDIS_URL", "REDIS_URL", "SAHOOL_ENV"):
+        monkeypatch.delenv(_var, raising=False)
     monkeypatch.syspath_prepend(str(SERVICE))
     monkeypatch.syspath_prepend(str(ROOT))
     for name in ("actuator_runtime", "routers.commands", "routers"):

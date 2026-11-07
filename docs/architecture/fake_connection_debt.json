@@ -531,6 +531,36 @@
         "services/actuator-service/test_actuator_safety_audit_20261101.py"
       ],
       "justification": "Explicit one-file admission for the actuator safety-audit unit contract (A1-A7). It covers the 2026-11-01 audit findings in actuator_runtime and routers/commands: the rule lookup scoped by tenant, sensor and field; the device lookup under the tenant GUC; the inverse-command vocabulary for compensation; the firmware-facing issued_at made distinct per command; and kill-switch and dispatch identity. The _Conn/_DB/_P doubles return fixed rule and device rows. They imitate tenant filtering only so that the code under test sees a realistic row shape, and their transaction() is a no-op context manager. No PostgreSQL enforcement is claimed: RLS, the transaction-scoped set_config, SQL constraints and concurrency are not established here. Tenant isolation on a real database is proven separately in tests_v9/test_rls_tenant_isolation_live_pg.py. No proven_live exemption is added."
+    },
+    {
+      "kind": "actuator_delivery_state_v238_unit_contract",
+      "date": "2026-11-07",
+      "before": 119,
+      "after": 120,
+      "sites": [
+        "services/actuator-service/test_actuator_delivery_state_20261103.py"
+      ],
+      "justification": "Explicit one-file admission for the v238 command-delivery unit contract (GATE-01 batch 3). The _Conn/_Pool doubles hold device_commands_log rows in a dict and imitate tenant filtering and the v238 transition trigger only so that command_delivery.py and the HTTP handlers see realistic rows; _NoDB proves the handlers refuse without a pool. No PostgreSQL enforcement is claimed here: RLS, FORCE, the BEFORE UPDATE trigger and the CHECK on delivery_state are measured on a real database in tests_v9/test_v238_actuator_delivery_state_live_pg.py. No proven_live exemption is added."
+    },
+    {
+      "kind": "edge_sync_detection_provenance_v239_wiring",
+      "date": "2026-11-07",
+      "before": 120,
+      "after": 121,
+      "sites": [
+        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py"
+      ],
+      "justification": "Explicit one-file admission for the v239 edge-sync wiring test (GATE-01 batch 3). The _Conn double and the patched tenant_connection record the statements edge_sync_receive issues, to show that the provenance row is written on the same transaction connection after the result insert, and that a malformed provenance block is refused with 422 before any connection opens. No database enforcement is claimed: tenant RLS+FORCE, append-only behaviour and constraints of detection_provenance are measured live in tests_v9/test_v239_detection_provenance_live_pg.py. No proven_live exemption is added."
+    },
+    {
+      "kind": "actuator_token_revocation_s5_unit_contract",
+      "date": "2026-11-07",
+      "before": 121,
+      "after": 122,
+      "sites": [
+        "tests_v9/test_actuator_token_revocation.py"
+      ],
+      "justification": "Explicit one-file admission for the S5 revocation unit contract in the actuator (ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01). _PoolThatMustNotBeReached fails the test if a revoked or unverifiable token ever reaches the device lookup, which is the ordering this file asserts; the inner _Conn/_Pool return one fixed device row for the allowed path. The word CHECK in the raw scan refers to the revocation check, not a SQL constraint. No PostgreSQL enforcement is claimed and device ownership on a real database is not measured here; the revocation keys are checked against a real Redis by tests_v9/test_jwt_revocation_same_redis.py. No proven_live exemption is added."
     }
   ]
 }

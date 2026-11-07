@@ -7,7 +7,7 @@ nothing distinguished "dispatched" from "the device applied it", the wire carrie
 manual/rule commands, and an ack (mesh broadcast, no id) could not be correlated at all.
 
 Every test runs the real function. The pure state machine is tested directly; the ack handler
-and HTTP handlers run against an in-memory table that mimics RLS (rows of another tenant are
+and HTTP handlers run against a dict-backed fake table that mimics RLS (rows of another tenant are
 invisible under the tenant context) and the v238 transition trigger.
 """
 
@@ -231,7 +231,7 @@ def test_the_firmware_signs_and_publishes_the_ack_the_platform_verifies():
     assert set(re.findall(r'"(applied|unknown_command)"', src)) <= set(cd.ACK_RESULTS)
 
 
-# ══ runtime: in-memory device_commands_log with RLS + v238 trigger ═══════════
+# ══ runtime: dict-backed fake device_commands_log with RLS + v238 trigger ═══════════
 def _stub_missing_dependencies() -> list[str]:
     inserted: list[str] = []
     for name, build in (

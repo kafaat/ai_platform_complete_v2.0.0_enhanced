@@ -2333,7 +2333,7 @@
       "function": "edge_sync_receive",
       "method": "POST",
       "path": "/api/v1/edge/sync",
-      "line": 23,
+      "line": 29,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/edge.py::POST /api/v1/edge/sync::edge_sync_receive"
@@ -2343,7 +2343,7 @@
       "function": "edge_sync_receive",
       "method": "POST",
       "path": "/v1/edge/sync",
-      "line": 24,
+      "line": 30,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/edge.py::POST /v1/edge/sync::edge_sync_receive"
