@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c10228d48d18fa503b62649f22b1f98835797c0dd2ba2f70d267a4e62013c1a"
+          "content": "f0ad7c7d1c015c1f6c99b43ed1eae7e28b49b01e0716da44f7a589945c4e6c2d"
         }
       ],
       "name": "docker-compose.erpnext.yml",
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9d4e8617f1554ee209588fa127cdc0f4a3d8aa2c5ed980c21276fa6854f2d94"
+          "content": "0bec5cf199e6eae2bca2647071514b0ce2fcb4cd16780f6e5cf0bec1e7e3b0b7"
         }
       ],
       "name": "docker-compose.test.yml",
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7b57b414267217f2b51cf0f5d91d1815951c93a1a415966c9021f98cb8414811"
+          "content": "4e5d6249d607c06bbeedcf6917f5387df81d15839b0631f5ea23e782ddcad934"
         }
       ],
       "name": "docker-compose.v9.gpu.yml",
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0e81d1f7dd99bcfaaa16bd3724eb60aa30a603d2d974136b0997d290f2947c2"
+          "content": "2129fcff9596bccbac85ba204113df42da84510db07d25fecff1a70b17af25c2"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4655,7 +4655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c03bd9ef83c392e7ae3e58476cf44e1170781f0ea4409e54211756b237dc79fc"
+          "content": "9ee1cb1c7a9ae7735d8f3a72eae645ac35ffb0595a979c49d5c15e9a7d59e8e9"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
