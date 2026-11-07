@@ -700,7 +700,10 @@ jobs:
       # لكلّ ملفّ. يُغلق ثغرة «الأخضر يقيس ما تختبره فقط» للـlint/format نهائيّاً —
       # كلّ ملفّ بايثون في المستودع (scripts/ tests/ alembic/ sdk/ sahool_ai/ …) مشمول.
       - run: ruff check .
-      - run: ruff format --check .
+      # Temporary, read-only formatting diagnosis; revert before merge.
+      - run: |
+          ruff format --diff scripts/ci/data_decision_outcome_proof_gate.py tests_v9/test_data_decision_outcome_manifest_binding.py tests_v9/test_data_decision_outcome_proof_gate.py
+          ruff format --check .
       # TEST-PROBE-LEAKS-INTO-THE-TREE-01: اختبارات الحرّاس تحقن مسارات اصطناعيّة
       # وتستعيدها في `finally` — و`finally` لا ينجو من SIGKILL ولا من إلغاء وظيفة.
       # تسريبٌ كهذا أنتج تقرير اعتماد خارجيّاً بـNO-GO و**١٩ إخفاقاً** عُزيت إلى
