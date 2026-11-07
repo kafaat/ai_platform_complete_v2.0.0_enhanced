@@ -33,10 +33,25 @@ class ProofGateTests(unittest.TestCase):
             fp = self.root / path
             fp.parent.mkdir(parents=True, exist_ok=True)
             fp.write_text("# source fixture\n", encoding="utf-8")
-            stages.append({"id": stage_id, "name_ar": "مرحلة", "authority": "source owner", "acceptance": "staging proof", "source_paths": [path], "e3_state": "NOT_RUN", "receipt": None})
-        self.plan = {"schema": _gate.SCHEMA, "program_id": "TEST", "baseline_commit": "a" * 40,
-                     "production_mutations_allowed": False,
-                     "promotion_policy": "independent_approval_required", "stages": stages}
+            stages.append(
+                {
+                    "id": stage_id,
+                    "name_ar": "مرحلة",
+                    "authority": "source owner",
+                    "acceptance": "staging proof",
+                    "source_paths": [path],
+                    "e3_state": "NOT_RUN",
+                    "receipt": None,
+                }
+            )
+        self.plan = {
+            "schema": _gate.SCHEMA,
+            "program_id": "TEST",
+            "baseline_commit": "a" * 40,
+            "production_mutations_allowed": False,
+            "promotion_policy": "independent_approval_required",
+            "stages": stages,
+        }
 
     def validate(self):
         return _gate.validate(self.plan, self.root)
@@ -69,9 +84,13 @@ class ProofGateTests(unittest.TestCase):
         evidence = self.root / "certification/evidence/data_decision_outcome/one.json"
         evidence.parent.mkdir(parents=True)
         evidence.write_text('{"mock_run": true}', encoding="utf-8")
-        stage["receipt"] = {"result": "PASS", "environment": "staging", "source_commit": "b"*40,
-                            "artifact_path": str(evidence.relative_to(self.root)),
-                            "sha256": hashlib.sha256(evidence.read_bytes()).hexdigest()}
+        stage["receipt"] = {
+            "result": "PASS",
+            "environment": "staging",
+            "source_commit": "b" * 40,
+            "artifact_path": str(evidence.relative_to(self.root)),
+            "sha256": hashlib.sha256(evidence.read_bytes()).hexdigest(),
+        }
         self.assertTrue(self.validate()["manifest_valid"])
         evidence.write_text('{"mock_run": false}', encoding="utf-8")
         self.assertIn("receipt_digest_mismatch", str(self.validate()["errors"]))
@@ -79,8 +98,13 @@ class ProofGateTests(unittest.TestCase):
     def test_receipt_path_cannot_escape_checkout(self):
         stage = self.plan["stages"][0]
         stage["e3_state"] = "EVIDENCE_SUBMITTED"
-        stage["receipt"] = {"result": "PASS", "environment": "ci", "source_commit": "b"*40,
-                            "artifact_path": "../other.json", "sha256": "a"*64}
+        stage["receipt"] = {
+            "result": "PASS",
+            "environment": "ci",
+            "source_commit": "b" * 40,
+            "artifact_path": "../other.json",
+            "sha256": "a" * 64,
+        }
         self.assertIn("path_escape_rejected", str(self.validate()["errors"]))
 
     def test_unsafe_production_policy_is_rejected(self):
@@ -89,13 +113,20 @@ class ProofGateTests(unittest.TestCase):
 
     def test_all_submitted_is_review_candidate_not_certification(self):
         for stage in self.plan["stages"]:
-            evidence = self.root / f"certification/evidence/data_decision_outcome/{stage['id']}.txt"
+            evidence = (
+                self.root
+                / f"certification/evidence/data_decision_outcome/{stage['id']}.txt"
+            )
             evidence.parent.mkdir(parents=True, exist_ok=True)
             evidence.write_text("synthetic", encoding="utf-8")
             stage["e3_state"] = "EVIDENCE_SUBMITTED"
-            stage["receipt"] = {"result": "PASS", "environment": "ci", "source_commit": "b"*40,
-                                "artifact_path": str(evidence.relative_to(self.root)),
-                                "sha256": hashlib.sha256(evidence.read_bytes()).hexdigest()}
+            stage["receipt"] = {
+                "result": "PASS",
+                "environment": "ci",
+                "source_commit": "b" * 40,
+                "artifact_path": str(evidence.relative_to(self.root)),
+                "sha256": hashlib.sha256(evidence.read_bytes()).hexdigest(),
+            }
         result = self.validate()
         self.assertTrue(result["manifest_valid"])
         self.assertTrue(result["e3_review_candidate"])
@@ -118,7 +149,9 @@ class ProofGateTests(unittest.TestCase):
         self.assertIn("invalid_e3_state", str(self.validate()["errors"]))
         self.plan["stages"][0]["e3_state"] = "EVIDENCE_SUBMITTED"
         self.plan["stages"][0]["receipt"] = {
-            "result": "PASS", "environment": ["staging"], "source_commit": "b" * 40,
+            "result": "PASS",
+            "environment": ["staging"],
+            "source_commit": "b" * 40,
             "artifact_path": "certification/evidence/data_decision_outcome/missing.json",
             "sha256": "a" * 64,
         }
