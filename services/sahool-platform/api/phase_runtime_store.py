@@ -465,14 +465,52 @@ async def persist_phase10_learning_outputs(
                 _json(promotion.get("rollout", {})),
             )
         update = outputs.get("online_learning_update") or {}
+        service_owns_learning_update = False
         if update:
             # جسر #2: نَسَب المصدر — كلّ تحديث تعلّم يُحَلّ مصدره وحالة قابليّة تتبّعه قبل
             # الكتابة. صدق: تحديث بلا مصدر ⇒ traceability_status='rejected_untraceable'.
             from core.learning_source_lineage import resolve_learning_source
 
             _lin = resolve_learning_source(update)
-            from api.decision_sor_mode import assert_platform_may_write_decision_sor
+            from api.decision_service_client import (
+                record_learning_update as _mirror_learning_update_to_service,
+            )
+            from api.decision_sor_mode import (
+                assert_platform_may_write_decision_sor,
+                get_platform_decision_sor_mode,
+            )
 
+            service_payload = {
+                "update_id": str(update.get("update_id")),
+                "model_id": str(update.get("model_id")),
+                "feature_set_id": str(update.get("feature_set_id")),
+                "learning_rate": float(update.get("learning_rate", 0.01)),
+                "sample_count": int(update.get("sample_count", 0)),
+                "label_summary": update.get("label_summary", {}),
+                "drift_score": float(update.get("drift_score", 0)),
+                "action": str(update.get("action")),
+                "source_type": _lin["source_type"],
+                "source_id": _lin["source_id"],
+                "field_id": _lin["field_id"],
+                "season_id": _lin["season_id"],
+                "recommendation_id": _lin["recommendation_id"],
+                "decision_id": _lin["decision_id"],
+                "evidence_snapshot_id": _lin["evidence_snapshot_id"],
+            }
+            # S5-EXEC-01 cutover: once decision-service is the SoR, the platform does not
+            # write this table at all. Strict mode must get proof of authoritative
+            # persistence from the service, or refuse the request.
+            mode = get_platform_decision_sor_mode()
+            if mode.strict_decision_service_required:
+                service_result = await _mirror_learning_update_to_service(
+                    service_payload, tenant_id=str(tenant)
+                )
+                if not service_result.get("authoritative") or not service_result.get("persisted"):
+                    raise RuntimeError(
+                        "decision-service did not prove authoritative learning-update persistence"
+                    )
+                service_owns_learning_update = True
+        if update and not service_owns_learning_update:
             assert_platform_may_write_decision_sor("online_learning_updates")
             # Local tenant settings and this write share one transaction. The remote
             # best-effort mirror below runs only after commit.
@@ -519,28 +557,8 @@ async def persist_phase10_learning_outputs(
             # هي مصدر السجلّ المؤقّت). نعكسها best-effort إلى decision-service — الفشل يُسجَّل
             # ولا يُفشِل مسار الطلب ولا يفقد بيانات المنصّة.
             try:
-                from api.decision_service_client import (
-                    record_learning_update as _mirror_learning_update_to_service,
-                )
-
                 await _mirror_learning_update_to_service(
-                    {
-                        "update_id": str(update.get("update_id")),
-                        "model_id": str(update.get("model_id")),
-                        "feature_set_id": str(update.get("feature_set_id")),
-                        "learning_rate": float(update.get("learning_rate", 0.01)),
-                        "sample_count": int(update.get("sample_count", 0)),
-                        "label_summary": update.get("label_summary", {}),
-                        "drift_score": float(update.get("drift_score", 0)),
-                        "action": str(update.get("action")),
-                        "source_type": _lin["source_type"],
-                        "source_id": _lin["source_id"],
-                        "field_id": _lin["field_id"],
-                        "season_id": _lin["season_id"],
-                        "recommendation_id": _lin["recommendation_id"],
-                        "decision_id": _lin["decision_id"],
-                        "evidence_snapshot_id": _lin["evidence_snapshot_id"],
-                    },
+                    service_payload,
                     tenant_id=str(tenant),
                 )
             except Exception as e:  # noqa: BLE001 — مِرْآة best-effort: لا تُفشِل الطلب

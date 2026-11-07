@@ -512,6 +512,16 @@
         "tests_v9/test_eo_operational_quality_contract.py"
       ],
       "justification": "Explicit one-file admission for unit contracts exercising the real field-state projection and irrigation-recommendation consumers with the existing canonical spectral resolver. The connection double supplies fixed field, season and water-ledger rows and records no live database evidence; weather and raster transports are also controlled fixtures. These tests establish propagation of declared per-index quality, acquisition dates, freshness policy and evidence identifiers, including rejection of stale, future and unknown-quality spectral evidence. They do not establish live PostgreSQL behavior, RLS, tenant authorization enforcement, SQL constraints, transactions, concurrency or production readiness. No proven_live exemption is added; any such database or operational claim requires separate live evidence."
+    },
+    {
+      "kind": "actuator_safety_audit_20261101_unit_contract",
+      "date": "2026-11-07",
+      "before": 118,
+      "after": 119,
+      "sites": [
+        "services/actuator-service/test_actuator_safety_audit_20261101.py"
+      ],
+      "justification": "Explicit one-file admission for the actuator safety-audit unit contract (A1-A7). It covers the 2026-11-01 audit findings in actuator_runtime and routers/commands: the rule lookup scoped by tenant, sensor and field; the device lookup under the tenant GUC; the inverse-command vocabulary for compensation; the firmware-facing issued_at made distinct per command; and kill-switch and dispatch identity. The _Conn/_DB/_P doubles return fixed rule and device rows. They imitate tenant filtering only so that the code under test sees a realistic row shape, and their transaction() is a no-op context manager. No PostgreSQL enforcement is claimed: RLS, the transaction-scoped set_config, SQL constraints and concurrency are not established here. Tenant isolation on a real database is proven separately in tests_v9/test_rls_tenant_isolation_live_pg.py. No proven_live exemption is added."
     }
   ]
 }

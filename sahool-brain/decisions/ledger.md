@@ -4627,3 +4627,7 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 **القرار:** عند إصلاح نافذة تقلّص مستعادة، تُراجع كل الدفاتر المصنّفة عند الأب الأول وكل أب سابق للتقلّص، ويُرفض فقد مدخل منها حتى لو زاد حجم الرأس.
 **السبب:** شاهد `BRAIN-JOURNAL-REPAIR-MISSES-CROSS-JOURNAL-CHECKPOINTS-01` يثبت أن فحص مسار الانكماش وحده يطوي فقداً في دفتر آخر؛ العيب أُعيد إنتاجه في وضعي التخطيط والتطبيق، والإصلاح لا يوسّع إذن إعادة كتابة الفرع الأصلي.
 **المرجع:** [#1336، تعليق4493050216](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1336#discussion_r4493050216)؛ المصدر `669ec849bf02ff0eb8fd37299b1a178dad14f466`، واختباراته36 ناجحة بلا تخطٍّ. الحالة `fixed` في طلب الأداة، وليست ادعاء تطبيق الأداة على #1335.
+
+**2026-11-07 — تنفيذ قطع `online_learning_updates` داخل فتح GATE-01 بدل إخراج `phase_runtime_store.py` منه.**
+**السبب:** حارس S5-EXEC-01 يُسقِط التأجيل آليّاً حين يغطّي تفويضٌ `ISSUED` الكاتب. والملفّ لازمٌ للفتح، لأنّ v237 تحذف ذراع «بلا سياق ⇒ اسمح» فتفشل كتابات المخزن بلا ربط GUC داخل المعاملة (`PHASE-RUNTIME-STORE-WRITES-DEPEND-ON-RLS-ESCAPE-ARM-01`). والفرع خاملٌ ما لم يُضبط `SAHOOL_DECISION_WRITE_MODE=decision_service_sor`، فلا يتغيّر الإنتاج.
+**المرجع:** `scripts/ci/s5_exec_01_writer_cutover_guard.py` (`HISTORICAL_GATE01_DEFERRED`) · `services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py` · `GATE01-ADJ-2026-11-03-001.reissue_note_ar` · فرع `claude/gate01-open-20261103`.

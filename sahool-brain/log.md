@@ -10469,3 +10469,9 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **تنبيه تشغيليّ:** بعد A4 يُرفَض كلُّ إرسالٍ آليّ من جسر قرار الماء (`irrigate` بلا duration_sec) حتّى يُغلَق `WATER-DECISION-BRIDGE-IRRIGATE-WITHOUT-DURATION-01` — فشلٌ مغلق لا فتحٌ بلا مدّة.
 - **التفويض:** `GATE01-ADJ-2026-11-03-001` أُعيد ربطه بالبايتات المراجَعة (القرار والمسارات الستّة كما هي).
 
+- **2026-11-07 — preflight الكامل على فرع فتح GATE-01 (`ba70e998b`) أخرج أربعة أصناف، وأُصلِحت:**
+  (١) `fake_connection_debt_guard`: أُضيف قيد قبولٍ مبرَّر لـ`services/actuator-service/test_actuator_safety_audit_20261101.py` (118→119)، بلا ادّعاء فرضٍ من القاعدة.
+  (٢) `test_the_live_authorization_is_spent_and_no_longer_grants` كان يثبّت لقطةً تجعل كلّ طلب فتحٍ أحمرَ حتماً، فصار يقيس العلاقة: غير `ISSUED` لا يمنح، والمانح `ISSUED` يُسمّي المسارين.
+  (٣) حارس S5-EXEC-01 أسقط تأجيلَ قطع `online_learning_updates` كما صُمِّم، لأنّ التفويض يمسّ `phase_runtime_store.py`. فنُفِّذ فرعُ القطع الصارم الخامل بنمط `weather.py` (`api/phase_runtime_store.py`)، وأُفرِغ `GATE01_DEFERRED` مع حفظه في `HISTORICAL_GATE01_DEFERRED`. وصار صندوقُ الاختبار يُعامِل التفويضات اللاحقة لـU07 مُستهلَكةً، ويُزيل العلامات من نسخته وحدها.
+  (٤) `V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md`: صار «٢١٣ من ٢٣٥» بعد إدراج v237.
+  وأُعيد ربط `GATE01-ADJ-2026-11-03-001`، مع استثناءٍ معلَن من «ولا S5» في `reissue_note_ar`. ملاحظة بيئة: `test_repair_brain_journal_history.py::…[symbolic]` يفشل محلّيّاً على git 2.43 وعلى فرعٍ لا يحمل هذه التغييرات، فهو ليس منها.
