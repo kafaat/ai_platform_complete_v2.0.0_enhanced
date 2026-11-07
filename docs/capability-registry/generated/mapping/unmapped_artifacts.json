@@ -10680,10 +10680,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_sim_golden.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_sim_pcse_flag_and_safety.py",
     "kind": "tests"
   },

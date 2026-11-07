@@ -5552,7 +5552,7 @@
       },
       {
         "capability_id": "FM-004",
-        "score": 9,
+        "score": 10,
         "signals": [
           "content:crop season",
           "content:season"

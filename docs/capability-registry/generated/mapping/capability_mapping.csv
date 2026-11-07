@@ -10,7 +10,7 @@ DEC-008,decision,Learning attribution,True,5,5,96,14,4,0,0,4,0
 DEC-009,decision,Model calibration,True,1,0,0,2,0,0,0,0,0
 DEC-010,decision,Model lifecycle and activation,True,5,4,91,49,7,0,0,7,0
 FM-001,farm_management,Tenant and organization management,True,6,16,2,28,11,1,0,36,0
-FM-002,farm_management,Farm registry,True,7,34,44,98,23,15,35,46,0
+FM-002,farm_management,Farm registry,True,7,34,44,98,23,15,35,47,0
 FM-003,farm_management,Field registry and boundaries,True,7,13,56,5,61,2,2,14,1
 FM-004,farm_management,Season lifecycle,True,7,30,82,87,66,15,15,44,0
 FM-005,farm_management,Crop and cultivar catalog,True,5,8,0,0,6,3,1,6,0
