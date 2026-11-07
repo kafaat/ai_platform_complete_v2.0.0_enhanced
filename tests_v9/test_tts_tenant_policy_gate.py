@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import sys
+import time
 import types
 from pathlib import Path
 
@@ -163,7 +164,13 @@ def _bearer(main, tenant=_TENANT):
     import jwt
 
     token = jwt.encode(
-        {"sub": "user-1", "iss": "sahool-auth", "tenant_id": tenant, "aud": "sahool"},
+        {
+            "sub": "user-1",
+            "iss": "sahool-auth",
+            "tenant_id": tenant,
+            "aud": "sahool",
+            "exp": int(time.time()) + 300,  # كما يُصدِره auth؛ السياسةُ تفرضه افتراضيّاً
+        },
         main.JWT_SECRET,
         algorithm="HS256",
     )

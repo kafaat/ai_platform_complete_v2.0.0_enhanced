@@ -7,11 +7,15 @@ the key or enables a fallback. Production follows auth's explicit migration flag
 that used to call ``jwt.decode`` themselves go through :func:`decode_access_token`,
 which keeps each caller's key, single pinned algorithm and claim semantics
 (``claim_semantics=``), so the decode verdict is unchanged. On top of it the stricter claim policy
-(``exp``/``sub``/``aud``/``iss`` present, issuer allow-listed) is evaluated in
-**observe mode by default** (owner decision 2026-10-01, #1118): a token the stricter
-policy would reject is counted per ``(site, reason)`` and logged without the token or
-any claim value, and still accepted. ``SAHOOL_ACCESS_TOKEN_CLAIM_POLICY=enforce``
-turns the same verdict into a rejection once the counter reads zero.
+(``exp``/``sub``/``aud``/``iss`` present, issuer allow-listed) is **enforced by default**
+(owner decision 2026-11-07, GATE-01 batch 3; it was observe-by-default under the owner
+decision of 2026-10-01, #1118): a token the stricter policy rejects is counted per
+``(site, reason)``, logged without the token or any claim value, and refused.
+``SAHOOL_ACCESS_TOKEN_CLAIM_POLICY=observe`` is the explicit, temporary escape back to
+counting without refusing; any other value, or none, enforces. Both internal issuers
+(``services/auth/main.py`` ``create_access_token`` and ``services/sahool-platform/api/main.py``
+``create_token``) mint every required claim with an allow-listed issuer, so enforcement
+refuses only foreign or hand-made tokens.
 
 Fixed here regardless of mode: an empty verification key is rejected. python-jose
 accepted a token HMAC-signed with an empty key when the verification key is empty, so
@@ -23,9 +27,10 @@ accepts a public key as an HMAC secret and has no fixed release, and it pulled `
 (PYSEC-2026-1325, no fix). It is gone from the tree; sites that used it keep its
 *claim* semantics through ``claim_semantics="python-jose"``, verified by PyJWT:
 
-- ``aud`` is checked only when present (a token without ``aud`` is accepted, exactly as
-  python-jose did, and the observe policy counts it as ``missing_aud``); when present it
-  must be a string or a list of strings containing ``sahool``.
+- ``aud`` is checked only when present by the decode itself (a token without ``aud`` decodes,
+  exactly as python-jose did); the claim policy then counts it as ``missing_aud`` and, in the
+  default enforce mode, refuses it. When present it must be a string or a list of strings
+  containing ``sahool``.
 - ``iat`` must be an integer but is never compared with the clock (python-jose had no
   "issued in the future" check; PyJWT's would turn sub-second clock skew between auth and
   a consumer into 401s that did not exist before).
@@ -54,7 +59,7 @@ ALLOWED_ISSUERS = frozenset({"sahool-auth", "sahool-platform"})
 STRICT_REQUIRED_CLAIMS = ("exp", "sub", "aud", "iss")
 #: The only algorithms a caller may pin; one per call, never taken from the token header.
 PINNED_ALGORITHMS = frozenset({"RS256", "HS256"})
-#: ``observe`` (default) counts would-be rejections; ``enforce`` rejects them.
+#: ``enforce`` (default) rejects; ``observe`` (explicit only) counts without rejecting.
 CLAIM_POLICY_ENV = "SAHOOL_ACCESS_TOKEN_CLAIM_POLICY"
 
 #: The verification library. PyJWT only: python-jose is no longer a dependency.
@@ -101,9 +106,9 @@ def access_token_verification_key() -> tuple[str, str]:
 
 
 def claim_policy_mode() -> str:
-    """``enforce`` only when explicitly set; anything else observes (no new rejection)."""
-    raw = os.getenv(CLAIM_POLICY_ENV, "observe").strip().lower()
-    return "enforce" if raw == "enforce" else "observe"
+    """``observe`` only when explicitly set; anything else enforces (fail-closed)."""
+    raw = os.getenv(CLAIM_POLICY_ENV, "enforce").strip().lower()
+    return "observe" if raw == "observe" else "enforce"
 
 
 def strict_claim_violations(payload: dict) -> tuple[str, ...]:
@@ -219,8 +224,7 @@ def decode_access_token(
     for an unusable key), so callers catching ``jwt.PyJWTError`` keep mapping them to 401.
     ``claim_semantics="python-jose"`` keeps the claim checks of sites that used python-jose
     (see the module docstring). The caller still enforces its own issuer/identity checks;
-    the stricter policy is observed here and enforced only under
-    ``SAHOOL_ACCESS_TOKEN_CLAIM_POLICY=enforce``.
+    the stricter policy is enforced here unless ``SAHOOL_ACCESS_TOKEN_CLAIM_POLICY=observe``.
     """
     import jwt
 
