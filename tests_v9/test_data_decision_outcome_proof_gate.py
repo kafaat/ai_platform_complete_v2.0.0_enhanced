@@ -113,7 +113,7 @@ class ProofGateTests(unittest.TestCase):
 
     def test_all_submitted_is_review_candidate_not_certification(self):
         for stage in self.plan["stages"]:
-            evidence = self.root / f"certification/evidence/data_decision_outcome/{stage['id']}.txt
+            evidence = self.root / f"certification/evidence/data_decision_outcome/{stage['id']}.txt"
             evidence.parent.mkdir(parents=True, exist_ok=True)
             evidence.write_text("synthetic", encoding="utf-8")
             stage["e3_state"] = "EVIDENCE_SUBMITTED"
