@@ -22,21 +22,21 @@
     "services/sahool-platform/api/phase_runtime_workers.py"
   ],
   "allowed_gap_closures": [],
-  "authorized_patch_sha256": "a1d54457efa4582f6aa106dc832c328a01a3c8c94d49c4b9c8da520c6f54ff75",
+  "authorized_patch_sha256": "b6a034f0e53667d0d0313a5cb14701dd99325ac83e1fe954545b948e42abbe3f",
   "authorized_blobs": {
     "migrations/MANIFEST.txt": "25253d9a17cd3cdcc7548883c0dcbbb2603f71cb",
     "scripts_v9/run_migrations.sql": "14230ad027ad5426c341d0c6e11e1c3a36a7de0e",
-    "services/actuator-service/actuator_runtime.py": "c34b93cdd5228643a1819c4087eebb74e75065a5",
+    "services/actuator-service/actuator_runtime.py": "bb578e8762e9cb18fb44dde119028c0ab0eed2ea",
     "services/actuator-service/routers/commands.py": "7614363ae0935ede198f3a8ad181de1c964a2fdd",
     "services/sahool-platform/api/phase_runtime_store.py": "ae85445f9e9f3bda4ab5b2ede3c53ba0c5971f21",
-    "services/sahool-platform/api/phase_runtime_workers.py": "0d7114c948b12ac0b3345c10cce0a4fc5312a138"
+    "services/sahool-platform/api/phase_runtime_workers.py": "031f8ebc4b7e43b8517af5e4e80f5907db222b87"
   },
   "bindings": {
     "require_patch_digest": true,
     "require_paths_subset": true,
     "require_baseline_match": true,
     "require_exact_head_sha": false,
-    "observed_head_sha_at_issue": "605c2f2b7841a7f27078d5e05fa8f9bdc2fabc40"
+    "observed_head_sha_at_issue": "1baede657022da1d36722e84b1b1d1e3817c60f7"
   },
   "authorization_source": {
     "kind": "current_user_instruction",
@@ -54,5 +54,6 @@
     "independently_signed": false,
     "guard_binds": "bytes_only",
     "note_ar": "سجلٌّ لقرار المالك في الجلسة، لا توقيعٌ مستقلّ — والقاعدة الحيّة 20645828 تشترط صفر موافقات، فلا جهةَ مستقلّة متاحة؛ وهذا بعينه سببُ التجميد الجذريّ المُشخَّص. `pr` فارغ عند الإصدار؛ يُملأ ويُختَم `CONSUMED` مع `merge_sha` بعد الدمج."
-  }
+  },
+  "reissue_note_ar": "أُعيد ربطُ البصمات في 2026-11-07 بعد إصلاحات المراجعة المستقلّة (ffdb932a5): ts فريد لكلّ أمر وعكسُ المفردات الكنسيّة في actuator_runtime.py، وإخراجُ نداءات الشبكة من معاملة دفتر الماء في phase_runtime_workers.py — والقرارُ نفسُه (قرار المالك 2026-11-03) لم يتغيّر، والمساراتُ الستّة نفسُها."
 }
