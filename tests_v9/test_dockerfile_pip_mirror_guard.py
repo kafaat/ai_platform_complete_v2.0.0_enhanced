@@ -135,4 +135,6 @@ def test_apt_dockerfiles_support_an_optional_debian_mirror():
                 offenders.append(f"{rel}: missing Debian/Ubuntu source rewrite")
 
     assert seen >= 25, f"only {seen} apt Dockerfiles found; expected >=25"
-    assert not offenders, "apt Dockerfiles must support an optional Debian mirror:\n  " + "\n  ".join(offenders)
+    assert not offenders, (
+        "apt Dockerfiles must support an optional Debian mirror:\n  " + "\n  ".join(offenders)
+    )
