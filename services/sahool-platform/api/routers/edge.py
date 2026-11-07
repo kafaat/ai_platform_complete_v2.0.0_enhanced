@@ -31,13 +31,10 @@ async def edge_sync_receive(
     Hardening: ON CONFLICT على idempotency_key → إعادة الإرسال بعد انقطاع
     الشبكة لا تُكرّر الصفّ. الهويّة من التوكن لا الجسم (أمان).
 
-    حدٌّ مُعلَن (Copilot على #997، `CP997-05` في الدماغ): الفهرس الفريد `uq_edge_idempotency`
-    (v9) **عالميّ** على المفتاح بينما بحثُ الصفّ القائم أدناه مقيّدٌ بالمستأجِر — فمفتاحٌ
-    يملكه مستأجِرٌ آخر يصطدم هنا ثمّ لا يُعثَر عليه فيُرفَع 409 على حدثٍ صالح. العلاجُ
-    فهرسٌ على `(tenant_id, idempotency_key)` بهجرةٍ جديدة، و`migrations/MANIFEST.txt` مسارٌ
-    مجمَّد خلف GATE-01 لا يُفتح إلّا بتفويض مالك؛ إلى حينه يبقى الهدفُ مطابقاً للفهرس
-    القائم (هدفٌ لا يطابقه فهرس يُسقِط كلَّ إدراج)، والمفاتيحُ تُولَّد `uuid4().hex` فاحتمالُ
-    التصادم عبر المستأجِرين عمليّاً معدوم."""
+    CP997-05 (Copilot على #997): كان الفهرسُ الفريد `uq_edge_idempotency` (v9) **عالميّاً** على
+    المفتاح بينما بحثُ الصفّ القائم أدناه مقيّدٌ بالمستأجِر، فمفتاحُ مستأجِرٍ آخر كان يصطدم ثمّ لا
+    يُعثَر عليه فيُرفَع 409 على حدثٍ صالح. v241 جعل الفهرسَ `(tenant_id, idempotency_key)`،
+    والهدفُ هنا يطابقه — والإعادةُ المطابقة وحدها نجاحٌ idempotent."""
     import json as _json
 
     async with tenant_connection(user) as conn:
@@ -48,7 +45,7 @@ async def edge_sync_receive(
                   synced, result_data, idempotency_key, occurred_at)
                VALUES ($1, $2::uuid, $3, $4, true, true, $5::jsonb, $6,
                        $7::timestamptz)
-               ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL
+               ON CONFLICT (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL
                DO NOTHING
                RETURNING id""",
             req.field_id,

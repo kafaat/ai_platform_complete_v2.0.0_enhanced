@@ -68,6 +68,7 @@ _BIASING_ASSUMPTIONS = frozenset(
         "et0_reference_unavailable",
         "root_zone_texture_fallback",
         "irrigation_unknown_inherited",
+        "missing_days_consumption_estimated",
     }
 )
 
@@ -250,6 +251,8 @@ def compute_daily_ledger_entry(
     root_zone_texture_fallback: bool = False,
     depletion_fraction_default: bool = False,
     prev_applied_water_status: str | None = None,
+    missing_prior_days: int = 0,
+    missing_days_irrigation_mm: float = 0.0,
 ) -> dict:
     """قيد اليوم من قيد الأمس + مدخلات اليوم — نقيّ، مع افتراضات مُعلَنة لا صامتة.
 
@@ -293,6 +296,24 @@ def compute_daily_ledger_entry(
         if not math.isfinite(prev_depletion_mm):
             raise ValueError(f"prev_depletion_mm غيرُ منتهٍ ({prev_depletion_mm!r})")
 
+    if (
+        isinstance(missing_prior_days, bool)
+        or not isinstance(missing_prior_days, int)
+        or missing_prior_days < 0
+    ):
+        raise ValueError(
+            f"missing_prior_days يجب أن يكون عدداً صحيحاً ≥ 0 — وصل {missing_prior_days!r}"
+        )
+    if (
+        isinstance(missing_days_irrigation_mm, bool)
+        or not isinstance(missing_days_irrigation_mm, (int, float))
+        or not math.isfinite(missing_days_irrigation_mm)
+        or missing_days_irrigation_mm < 0
+    ):
+        raise ValueError(
+            f"missing_days_irrigation_mm يجب أن يكون عدداً منتهياً ≥ 0 — وصل {missing_days_irrigation_mm!r}"
+        )
+
     if taw_mm <= 0:
         raise ValueError("TAW يجب أن يكون موجباً — لا يُحسب ميزان بلا سعة ماء متاح")
     if et0_mm < 0 or rain_mm < 0 or irrigation_mm < 0 or kc <= 0:
@@ -319,6 +340,16 @@ def compute_daily_ledger_entry(
             prev = min(max(prev, 0.0), taw_mm)
 
     etc_mm = round(kc * et0_mm, 2)
+    if not bootstrap and missing_prior_days:
+        # DAILY-WATER-LEDGER-SKIPPED-DAYS-DROP-CONSUMPTION-01: آخرُ قيدٍ أقدم من الأمس. كان
+        # الميزانُ يبني على ذلك القيد كأنّه الأمس، فيضيع استهلاكُ الأيّام الفائتة (ثلاثةُ أيّام
+        # ⇒ ~18 ملم) ويتأخّر الريّ. يُقدَّر استهلاكُها بـETc اليوم بلا مطرٍ (لا مطرَ مقيساً
+        # لها: تقديرٌ محافِظ نحو استنزافٍ أعلى)، ويُطرَح ريُّها المسجَّل — ويُعلَن ويُخفِّض الثقة.
+        prev = min(
+            max(prev + missing_prior_days * etc_mm - float(missing_days_irrigation_mm), 0.0),
+            taw_mm,
+        )
+        notes.append("missing_days_consumption_estimated")
     p_eff = _effective_rain(rain_mm)
     if irrigation_volume_untracked:
         notes.append("irrigation_volume_untracked")

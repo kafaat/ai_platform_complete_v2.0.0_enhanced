@@ -297,6 +297,7 @@ def test_confidence_is_derived_from_the_notes_not_from_a_second_list():
         "et0_reference_unavailable",
         "root_zone_texture_fallback",
         "irrigation_unknown_inherited",
+        "missing_days_consumption_estimated",
     }, "علَمٌ في المجموعة لا تُصدِره الدالّة — حراسةٌ على لا شيء"
 
 
@@ -757,3 +758,104 @@ def test_water_ledger_network_calls_run_outside_any_transaction():
             ]
     assert transactions >= 2
     assert inside == [], f"network call inside a transaction: {inside}"
+
+
+# ── GATE-01 batch 2 (2026-11-07): local day, skipped days, all fields ──────────────────────
+
+
+def _day(**over):
+    from api.water_ledger_auto import compute_daily_ledger_entry
+
+    args = dict(
+        prev_depletion_mm=10.0,
+        taw_mm=100.0,
+        raw_mm=50.0,
+        et0_mm=5.0,
+        kc=1.2,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+    )
+    args.update(over)
+    return compute_daily_ledger_entry(**args)
+
+
+def test_skipped_days_add_their_estimated_consumption_instead_of_dropping_it():
+    """Three days without an entry used to lose ~3 x ETc. They are now estimated and declared."""
+    same_day = _day()
+    after_gap = _day(missing_prior_days=3)
+    etc = 1.2 * 5.0
+    assert after_gap["depletion_mm"] == round(same_day["depletion_mm"] + 3 * etc, 2)
+    assert "missing_days_consumption_estimated" in after_gap["notes"]
+    assert after_gap["confidence"] < same_day["confidence"]
+
+
+def test_recorded_irrigation_in_the_gap_is_credited_and_capped_at_zero():
+    credited = _day(missing_prior_days=2, missing_days_irrigation_mm=5.0)
+    assert credited["depletion_mm"] == round(10.0 + 2 * 6.0 - 5.0 + 6.0, 2)
+    flooded = _day(missing_prior_days=1, missing_days_irrigation_mm=500.0)
+    assert flooded["depletion_mm"] == 6.0  # gap floored at field capacity, then today's ETc
+
+
+def test_a_gap_never_pushes_depletion_beyond_taw():
+    assert _day(missing_prior_days=365)["depletion_mm"] == 100.0
+
+
+def test_bootstrap_ignores_the_gap_count():
+    entry = _day(prev_depletion_mm=None, missing_prior_days=5)
+    assert "missing_days_consumption_estimated" not in entry["notes"]
+    assert entry["bootstrap"] is True
+
+
+@pytest.mark.parametrize(
+    ("field", "bad"),
+    [
+        ("missing_prior_days", -1),
+        ("missing_prior_days", True),
+        ("missing_prior_days", 1.5),
+        ("missing_days_irrigation_mm", -0.1),
+        ("missing_days_irrigation_mm", float("nan")),
+        ("missing_days_irrigation_mm", True),
+    ],
+)
+def test_gap_inputs_are_validated(field, bad):
+    good = {"missing_prior_days": 1, "missing_days_irrigation_mm": 0.0}
+    with pytest.raises(ValueError):
+        _day(**(good | {field: bad}))
+
+
+def _worker_src() -> str:
+    import inspect
+
+    from api import phase_runtime_workers as mod
+
+    return inspect.getsource(mod.run_water_ledger_once)
+
+
+def test_the_worker_uses_the_local_field_day_not_the_utc_server_day():
+    src = _worker_src()
+    assert "today = _dt.date.today()" not in src, (
+        "UTC/host-local date: the ledger day must be the field's local day (WATER_LEDGER_TIMEZONE)"
+    )
+    assert 'os.getenv("WATER_LEDGER_TIMEZONE", "Asia/Aden")' in src
+    assert "_dt.datetime.now(ZoneInfo(ledger_tz)).date()" in src
+    # irrigation is bucketed by the same calendar, not by the session's UTC date
+    assert "started_at::date" not in src, (
+        "casting timestamptz to date uses the session zone, not the ledger zone"
+    )
+    assert "(started_at AT TIME ZONE $3)::date = $2" in src
+
+
+def test_the_worker_pages_through_every_field_instead_of_the_first_fifty():
+    src = _worker_src()
+    assert "SELECT DISTINCT ON (f.field_id)" in src
+    assert "f.field_id > $2" in src
+    assert "ORDER BY f.field_id" in src
+    assert 'last_field_id = fields[-1]["field_id"]' in src
+    assert "if len(fields) < batch_size:" in src
+
+
+def test_the_worker_passes_the_gap_to_the_ledger():
+    src = _worker_src()
+    assert "missing_prior_days=missing_days" in src
+    assert "missing_days_irrigation_mm=gap_irrigation_mm" in src
+    assert '(today - prev["ledger_date"]).days - 1' in src

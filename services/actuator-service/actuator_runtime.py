@@ -19,7 +19,6 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
 import asyncpg
-import jwt as _jwt
 from aiomqtt import Client as MQTTClient
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -31,6 +30,7 @@ from shared.actuator_idempotency import (
     resolve_idempotency_mode,
 )
 from shared.actuator_mode import resolve_actuator_mode
+from shared.security.access_tokens import decode_access_token
 from shared.startup_retry import retry_startup_connect
 
 try:
@@ -530,7 +530,12 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
         raise HTTPException(401, "توكن مطلوب للتحكّم بالأجهزة")
     token = authorization.split(" ", 1)[1]
     try:
-        payload = _jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
+        # JWT-DECODE-OUTSIDE-SHARED-SECURITY-01: the last decode outside shared.security. The
+        # shared verifier pins one algorithm, enforces aud=sahool, and applies the access-token
+        # claim policy in the same observe/enforce mode as every other service.
+        payload = decode_access_token(
+            token, JWT_SECRET, algorithm=JWT_ALGORITHM, site="actuator-service"
+        )
     except Exception as e:
         raise HTTPException(401, "توكن غير صالح") from e
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
