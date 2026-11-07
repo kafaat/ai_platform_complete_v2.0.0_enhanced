@@ -15687,14 +15687,6 @@
           ]
         },
         {
-          "path": "docs/architecture/fake_connection_debt.json",
-          "score": 10,
-          "signals": [
-            "content:Irrigation recommendation",
-            "content:irrigation recommendation"
-          ]
-        },
-        {
           "path": "docs/audits/COMPARATIVE_STUDY_PLAN_VS_REALITY_20260718.md",
           "score": 10,
           "signals": [
@@ -15756,7 +15748,7 @@
         "mobile": 2,
         "tests": 11,
         "governance": 0,
-        "other_evidence": 8
+        "other_evidence": 7
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -30785,6 +30777,14 @@
           ]
         },
         {
+          "path": "docs/architecture/fake_connection_debt.json",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md",
           "score": 10,
           "signals": [
@@ -31167,7 +31167,7 @@
         "mobile": 0,
         "tests": 79,
         "governance": 0,
-        "other_evidence": 87
+        "other_evidence": 88
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -54733,19 +54733,19 @@
           ]
         },
         {
+          "capability_id": "SEC-001",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "capability_id": "SAT-003",
           "score": 10,
           "signals": [
             "content:NDVI",
             "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "IRR-005",
-          "score": 10,
-          "signals": [
-            "content:Irrigation recommendation",
-            "content:irrigation recommendation"
           ]
         }
       ]

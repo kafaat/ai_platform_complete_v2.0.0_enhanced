@@ -5645,7 +5645,8 @@
         "services/decision-service/persistence.py",
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
-        "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py"
+        "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
+        "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py"
       ],
       "created_in": "v119_phase10_continuous_learning.sql",
       "has_tenant_id": true,

@@ -1592,19 +1592,19 @@
         ]
       },
       {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
         "capability_id": "SAT-003",
         "score": 10,
         "signals": [
           "content:NDVI",
           "content:ndvi"
-        ]
-      },
-      {
-        "capability_id": "IRR-005",
-        "score": 10,
-        "signals": [
-          "content:Irrigation recommendation",
-          "content:irrigation recommendation"
         ]
       }
     ]
