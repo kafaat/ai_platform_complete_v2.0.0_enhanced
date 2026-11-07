@@ -1634,6 +1634,7 @@
         "tests_v9/test_evidence_registry.py",
         "tests_v9/test_farm_memory.py",
         "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
+        "tests_v9/test_sim_golden.py",
         "tests_v9/test_writeops_events_emitted.py"
       ]
     },
@@ -1910,7 +1911,6 @@
         "mobile/sahool_app/test/features/offline_sync/operation_store_failure_test.dart",
         "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_screens_test.dart",
         "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart",
-        "scripts/simulation/test_export_season_runs_for_golden.py",
         "services/sahool-platform/tests/test_canonical_schemas.py",
         "services/sahool-platform/tests/test_crop_rotation_intelligence.py",
         "services/sahool-platform/tests/test_farm_full_season_forensic.py",
@@ -1929,6 +1929,7 @@
         "services/sahool-platform/tests/test_seasons_endpoint.py",
         "services/sahool-platform/tests/test_tier2_modules.py",
         "services/scout-ingest-service/tests/test_season_live.py",
+        "tests_v9/test_export_season_runs_for_golden.py",
         "tests_v9/test_fii_prescription_season_context_guard.py",
         "tests_v9/test_historical_season_bridge_static.py",
         "tests_v9/test_role_bootstrap_executable.py",

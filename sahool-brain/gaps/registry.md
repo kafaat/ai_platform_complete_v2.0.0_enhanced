@@ -8676,3 +8676,41 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 |---|---|---|---|---|---|
 | BRAIN-JOURNAL-REPAIR-MISSES-CROSS-JOURNAL-CHECKPOINTS-01 | بعد دورة تقلّص واستعادة للـregistry، يمكن أن يُضاف مدخل log ثم تضيع بايتاته عند دورة ثانية مع زيادة الحجم؛ الأداة تفحص دفتر الانكماش وحده عند النقطة الثانية فتقبل إصلاحاً يطوي الفقد | متوسّطة | ci · brain · history-repair | `scripts/ci/repair_brain_journal_history.py` (`_repair_history`) · `tests_v9/test_repair_brain_journal_history.py` · [تعليق المراجعة](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1336#discussion_r4493050216) · `669ec849bf02ff0eb8fd37299b1a178dad14f466` | **fixed** — فحص كل دفتر مصنّف عند الأب الأول وكل أب سابق لأي تقلّص؛ ثماني حالات رفض حمراء قبل الإصلاح لوضعي plan/apply على أربعة دفاتر، وأربع حالات موجبة للاستعادة. الجناح الكامل36 ناجحاً بلا تخطٍّ؛ الإيصال `certification/evidence/brain_journal_repair_review_20261106/verification.json` |
 | DECISION-SERVICE-LEARNING-UPDATE-CONTRACT-INCOMPLETE-01 | مراجعة Copilot على #1338. قطعُ `online_learning_updates` الصارم لا يملك ما يقطع إليه بعد. `decision-service/persistence.py::persist_learning_update` يُدرِج بـ`ON CONFLICT (update_id) DO NOTHING`: المعرّف عامّ لا مقيَّد بالمستأجر، والتعارض يُبلَّغ نجاحاً. و`LearningUpdateIn` بلا حقول المراجعة الزراعيّة (`review_status`/`agronomically_approved`/`agronomic_review`) التي يحفظها الكاتب المحلّيّ. | عالية (عند تفعيل الوضع الصارم) | decision-service · S5 | `services/decision-service/persistence.py:543-549` · `services/decision-service/main.py:387-403,1026-1046` · `services/sahool-platform/api/phase_runtime_store.py::_unproven_learning_update_fields` | **open — مُحتوى بفشلٍ مغلق**: الفرع الصارم يشترط أن يُعيد الردّ المستأجرَ والمعرّفَ و`write ∈ {inserted, updated}` وحكمَ المراجعة، فيرفض الطلب اليوم بدل نجاحٍ يُسقِط المراجعة. الإغلاق: توسيع عقد الخدمة وتخزينها (upsert مقيَّد بالمستأجر + أعمدة المراجعة)، ثمّ اختبار ذهابٍ وإيابٍ صارم. |
+
+
+## إصلاحات التحقق البحثي — 2026-11-07
+
+## SIM-GOLDEN-HOLDOUT-USES-ID-ORDER-01 — ترتيب موسم الاختبار بهوية نصية
+
+- **الحالة:** fixed — `ee1b15dbc0a988a23c59ee042a5945abccfc1d29` على فرع الإصلاح المحلي؛ لا ادعاء وصول إلى main أو تحقق حي.
+- **الدليل على الأساس `45b1141d`:** فرز season_id قد يختار موسمًا أقدم عند «9» و«10».
+- **الإصلاح وحدوده:** ترتيب فترات الحصاد في UTC ورفض التداخل/التلامس وربط الموسم بالسياسة.
+- **المصدر والشاهد:** [`scripts/simulation/sim_golden.py`](../../scripts/simulation/sim_golden.py) · [`tests_v9/test_sim_golden.py`](../../tests_v9/test_sim_golden.py) · [تقرير الإصلاح](../../docs/reviews/research_validation_fixes_20261107.md).
+
+## SIM-GOLDEN-HELDOUT-ADEQUACY-UNBOUND-01 — كفاية إجمالية لا تخص مجموعة الاختبار
+
+- **الحالة:** fixed — `ee1b15dbc0a988a23c59ee042a5945abccfc1d29` على فرع الإصلاح المحلي؛ لا ادعاء وصول إلى main أو تحقق حي.
+- **الدليل على الأساس `45b1141d`:** اجتاز مسبار32 سجلًا بينما holdout سجلان من مزرعة واحدة؛ شروط الأساس إجمالية.
+- **الإصلاح وحدوده:** سياسة مستقلة مثبتة تربط حدود سجلات ومزارع holdout بالمرشح؛ غيابها يمنع أهلية الترقية. هذا شرط معلن لا برهان كفاية إحصائية عام.
+- **المصدر والشاهد:** [`scripts/simulation/sim_golden.py`](../../scripts/simulation/sim_golden.py) · [`tests_v9/test_sim_golden.py`](../../tests_v9/test_sim_golden.py) · [تقرير الإصلاح](../../docs/reviews/research_validation_fixes_20261107.md).
+
+## SIM-GOLDEN-MIXED-MODEL-PROMOTION-01 — خلط نسخ النماذج في أهلية واحدة
+
+- **الحالة:** fixed — `ee1b15dbc0a988a23c59ee042a5945abccfc1d29` على فرع الإصلاح المحلي؛ لا ادعاء وصول إلى main أو تحقق حي.
+- **الدليل على الأساس `45b1141d`:** نتائج مرجع جيد غطت مرشحًا ضعيفًا في حساب مجمع.
+- **الإصلاح وحدوده:** مرشح واحد ودليل schema2 والتحقق من توقعات المرشح والسياسة واتساق محتوى الدليل. اسم الإصدار ليس بصمة ملف النموذج.
+- **المصدر والشاهد:** [`scripts/simulation/sim_golden.py`](../../scripts/simulation/sim_golden.py) · [`tests_v9/test_sim_golden.py`](../../tests_v9/test_sim_golden.py) · [تقرير الإصلاح](../../docs/reviews/research_validation_fixes_20261107.md).
+
+## SIM-GOLDEN-EXPORT-FIELD-AS-FARM-01 — احتساب الحقول كمزارع بلا هوية صريحة
+
+- **الحالة:** fixed — `ee1b15dbc0a988a23c59ee042a5945abccfc1d29` على فرع الإصلاح المحلي؛ لا ادعاء وصول إلى main أو تحقق حي.
+- **الدليل على الأساس `45b1141d`:** المُصدّر استبدل farm_id المفقود بـfield_id؛ مسبارثلاثة حقول أنتجثلاث هويات مزرعة دون إثباتها.
+- **الإصلاح وحدوده:** يتطلب farm_id صريحًا. سجل v207 يحتاج إثراء ضمن المستأجر بعلاقة fields.farm_id قبل التصدير؛ لم يُنفذ استخراج حي.
+- **المصدر والشاهد:** [`scripts/simulation/export_season_runs_for_golden.py`](../../scripts/simulation/export_season_runs_for_golden.py) · [`tests_v9/test_export_season_runs_for_golden.py`](../../tests_v9/test_export_season_runs_for_golden.py) · [تقرير الإصلاح](../../docs/reviews/research_validation_fixes_20261107.md).
+
+## AGB-SYNTHETIC-UNCALIBRATED-CONFIDENCE-01 — ثقة معلنة بلا معايرة في مثال AGB
+
+- **الحالة:** fixed — `d4b2e6df54a1c6a6863d1bcfce875174aab846e8` على فرع الإصلاح المحلي؛ لا ادعاء وصول إلى main أو تحقق حي.
+- **الدليل على الأساس `45b1141d`:** تدريب500 صف اصطناعي أعاد ثقة85% وأرقام ورقة ثابتة بوصف دقة النموذج.
+- **الإصلاح وحدوده:** الثقة والفترات والدقة null؛ منشأ synthetic ومقاييس training_resubstitution ومرجع موروث غير متحقق منه. بقيت التقديرات في84 حالة متطابقة.
+- **المصدر والشاهد:** [`random_forest/agb_model.py`](../../random_forest/agb_model.py) · [`tests_v9/test_agb_research_provenance.py`](../../tests_v9/test_agb_research_provenance.py) · [تقرير الإصلاح](../../docs/reviews/research_validation_fixes_20261107.md).

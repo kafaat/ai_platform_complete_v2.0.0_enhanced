@@ -54,7 +54,7 @@
 │  ├─ IoT Edge — رطوبة · NPK · EC · Temp (LoRa + MQTT Gateway)                  │
 │  ├─ Weather — Hargreaves ET0 · Forecast · Historical (Open-Meteo + NOAA)      │
 │  ├─ Vision — Drone RGB · Multispectral · Smartphone (Edge AI)                   │
-│  └─ AGB Estimator (Random Forest R²=0.89 · 10m resolution)                     │
+│  └─ AGB Estimator (research RF · synthetic training · uncalibrated · 10m)      │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  الطبقة ١: الفيزياء الحيوية (Bio-Physics Layer)                                │
 │  ├─ WOFOST-RUE — نمو المحصول · GDD · Phenology · Harvest Index                 │

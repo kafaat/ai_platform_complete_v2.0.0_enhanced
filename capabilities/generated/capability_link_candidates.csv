@@ -972,7 +972,6 @@ FM-004,service,services/field-management-service/main.py,10,applied
 FM-004,test,mobile/sahool_app/test/features/crop_season/crop_season_screen_test.dart,5,applied
 FM-004,test,mobile/sahool_app/test/features/crop_season/season_create_reconcile_test.dart,5,applied
 FM-004,test,mobile/sahool_app/test/features/crop_season/season_form_logic_test.dart,5,applied
-FM-004,test,scripts/simulation/test_export_season_runs_for_golden.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_farm_full_season_forensic.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_field_season_projection.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py,3,applied
@@ -988,6 +987,7 @@ FM-004,test,services/sahool-platform/tests/test_season_simulation.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_season_spatial_provenance.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_season_stage_risk.py,3,applied
 FM-004,test,services/scout-ingest-service/tests/test_season_live.py,3,applied
+FM-004,test,tests_v9/test_export_season_runs_for_golden.py,3,applied
 FM-004,test,tests_v9/test_fii_prescription_season_context_guard.py,3,applied
 FM-004,test,tests_v9/test_historical_season_bridge_static.py,3,applied
 FM-004,test,tests_v9/test_season_api_static.py,3,applied
@@ -2424,6 +2424,7 @@ WX-010,test,services/raster-service/test_stac_singleflight_provenance.py,3,appli
 WX-010,test,services/sahool-platform/tests/test_season_spatial_provenance.py,3,applied
 WX-010,test,services/weather-service/tests/test_canonical_weather_state.py,3,applied
 WX-010,test,tests/architecture/test_provenance_receipt_and_replay.py,3,applied
+WX-010,test,tests_v9/test_agb_research_provenance.py,3,applied
 WX-010,test,tests_v9/test_field_state_recompute_provenance_v57_5.py,3,applied
 WX-010,test,tests_v9/test_irrx1_authoritative_provenance_lock.py,3,applied
 WX-010,test,tests_v9/test_knowledge_provenance_guard.py,3,applied
