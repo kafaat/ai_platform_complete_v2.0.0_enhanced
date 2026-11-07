@@ -43,6 +43,22 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+
+      # BRAIN-HOT-BUDGET-GUARD-RUNS-IN-A-NON-REQUIRED-CHECK-01:
+      # Check the immutable event base against the tested checkout (PR merge HEAD).
+      - name: brain-append-only-budget-guard
+        env:
+          BRAIN_BASE_SHA: >-
+            ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        shell: bash
+        run: |
+          if [[ ! "$BRAIN_BASE_SHA" =~ ^[0-9a-f]{40}$ || "$BRAIN_BASE_SHA" == 0000000000000000000000000000000000000000 ]]; then
+            echo "::error::A nonzero immutable base commit is required for the brain budget guard."
+            exit 1
+          fi
+          exec python scripts/ci/brain_append_only_guard.py --base "$BRAIN_BASE_SHA" --head HEAD
 
       - name: service-feature-ui-contract-gate
         run: python scripts/ci/service_feature_ui_contract_gate.py

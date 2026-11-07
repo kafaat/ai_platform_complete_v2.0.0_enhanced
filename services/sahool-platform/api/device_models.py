@@ -28,3 +28,17 @@ class TelemetryRequest(BaseModel):
 
 
 _DEVICE_ONLINE_WINDOW_MIN = 15  # جهاز يُعتبر online إن ظهر خلال هذه المدّة
+
+
+def telemetry_freshness(recorded_at, now, window_min: int = _DEVICE_ONLINE_WINDOW_MIN) -> dict:
+    """عمر القراءة وكونها قديمة — يُحسَب في الخادم بالنافذة نفسها التي تحكم «online».
+
+    العطلُ الذي وُجد هذا لأجله (2026-11-02): ``GET /devices/{id}/telemetry`` كان يعيد القيمة
+    ووقتها فقط، والواجهة تعرضها «قراءات حيّة»؛ فقراءةٌ عمرها يومان تُقرأ كأنّها الآن.
+    بلا وقت قراءة ⇒ ``stale: True`` و``age_sec: None`` (لا نفترض حداثةً لا نعرفها). وقتٌ في
+    المستقبل (انحراف ساعة الجهاز) ⇒ عمرٌ صفر، لا عمرٌ سالب.
+    """
+    if recorded_at is None:
+        return {"age_sec": None, "stale": True, "stale_after_sec": window_min * 60}
+    age = max(0, int((now - recorded_at).total_seconds()))
+    return {"age_sec": age, "stale": age > window_min * 60, "stale_after_sec": window_min * 60}

@@ -1349,7 +1349,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 24,
+      "line": 48,
       "method": "POST",
       "path": "/v1/predict",
       "function": "predict",
@@ -1358,7 +1358,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 106,
+      "line": 125,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1367,7 +1367,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 111,
+      "line": 130,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -1376,7 +1376,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 116,
+      "line": 135,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",

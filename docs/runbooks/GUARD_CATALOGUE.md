@@ -85,7 +85,7 @@
 
 **يفرض:** An append-only journal may not shrink — and a merge must preserve **both** parents.
 
-**يحجب في:** `no-report-only-change.yml` → `no-report-only-change`
+**يحجب في:** `ci.yml` → `structural-lint` · `no-report-only-change.yml` → `no-report-only-change`
 
 **الاختبار الشاهد:** `tests_v9/test_brain_append_only_guard.py`
 

@@ -10353,6 +10353,16 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **لماذا لا `fixed`:** السبب نفسه المسجَّل لـ#1322 (`brain_state_transition_guard` يرفض `fixed` في PR دماغيٍّ فقط).
 - **ما يبقى محجوزاً:** مسوّدتا GATE-01 (v237+T3، وA1–A8)، وS5 حتّى يُضبط `DENYLIST_REDIS_URL` على Railway.
 
+### 2026-11-02 — إصلاح: قراءة raster صحيح بـnodata في `raster-service` كانت تفشل بصمت
+
+- **كيف وُجد:** أثناء التحقّق من أنّ `raster-service` يقرأ نسخةً محلّيّة من SoilGrids (علاج `SOILGRIDS-REST-OFFICIALLY-PAUSED-NO-ALTERNATE-PATH-01`). ملفّات Homolosine Int16 بأسماء `{prop}_{depth}.tif` في `SOILGRIDS_DIR` أعادت `field-outside-source`.
+- **السبب (قِيس):** `src.read(..., masked=True).filled(np.nan)` على Int16 يرمي `TypeError: Cannot convert fill_value nan to dtype int16` (numpy 2.2.6)، ويبتلعه `except` في `read_field_window`.
+- **الإصلاح:** `.astype("float32").filled(np.nan)` في سبعة مواضع: `tile_render.py` ×4، و`soil_zones.py`، و`terrain_analysis.py`، و`terrain_render.py`. وهو مطابق النتيجة لمصادر float.
+- **الدليل:**
+  - ثلاثة اختبارات Int16 جديدة في `test_raster_crs_window.py`: حمراء قبل الإصلاح وخضراء بعده.
+  - جناح raster-service كاملاً: 1169 ناجحاً و2 متخطّيان.
+  - التحقّق نفسه بملفّات Homolosine المزيّفة يعيد ملخّصاً بثماني خصائص.
+- **ما تغيّر في [`gaps/registry.md`](gaps/registry.md):** صفّ `RASTER-INTEGER-RASTER-MASKED-FILL-NAN-SWALLOWED-01` بحالة `fixed`.
 ### 2026-11-02 — فجوةٌ جديدة: واجهة SoilGrids REST معلّقةٌ رسميّاً و`soil-service` بلا مسارٍ بديل
 
 - **المصدر:** مراجعة مقالات مصادر البيانات الزراعيّة، ومقارنة تحليلٍ خارجيٍّ لصقه المالك بالمستودع. صفحة الأسئلة عند ISRIC (آخر تحديث 2026-01-27) تعلن تعليق REST مؤقّتاً بلا موعد، وتوصي بـWCS للاقتطاع. وتوفّر كذلك خرائط SoilGrids 2.0 كاملةً بصيغة VRT عبر WebDAV في `files.isric.org/soilgrids/latest/data/` (ملفّ VRT وOVR ومجلّد بلاطات GeoTIFF، نحو 5 غيغابايت للخريطة؛ [دليل WebDAV](https://docs.isric.org/globaldata/soilgrids/WebDav.html))، فهي مصدرٌ مرشّح لنسخةٍ محلّيّة، وإصدارها وإتاحتها يُتحقَّق منهما عند التنزيل. والمتوقّفة هي خدمات إصدار 2017 وحدها.
@@ -10370,3 +10380,74 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
   - WaPOR v3: API بلا مفتاح، وAETI ليس ET0، والترخيص يُتحقَّق منه.
   - WorldCereal: يستبعد المحاصيل المعمّرة.
 - **ما لم يتغيّر:** حالة كلّ صفّ «مرشّح»، ما عدا NASA POWER المسجَّل أصلاً موصولاً للرياح في `core/weather_sources.py`.
+
+### 2026-11-02 — تنفيذ أربعة بنود من مراجعة مشروع كشف أمراض المحاصيل الخارجيّ
+
+- **السياق:** بطلب المالك («قوم بتنفيذ البنود 3 و4 و5 و6 والدمج»). أربعة وكلاء متوازين طبّقوا أسئلة تحليلَين خارجيّين لمشروع `zhihui-nongye-plat` على كود سهول. كود المشروع نفسه لم يُبلَغ: شبكة الجلسة تحجب gitcc.com.
+- **ما تغيّر:** أربعة صفوف `fixed` في آخر [`gaps/registry.md`](gaps/registry.md):
+  - `TELEMETRY-READINGS-SHOWN-LIVE-WITHOUT-AGE-01`
+  - `MODEL-SCORE-LABELLED-CONFIDENCE-01`
+  - `BIG-SCREEN-SHOWS-RANDOM-AGRONOMIC-NUMBERS-01`
+  - `SAM2-PREDICT-BLOCKS-EVENT-LOOP-01`
+- **ما لم يُنفَّذ، ولماذا:**
+  - حالة تسليم المشغّلات وإقرار الجهاز (البند 1): `actuator_runtime.py` مسارٌ مجمَّد بـGATE-01، وتمسّه مسوّدات A1–A8 المحجوزة.
+  - تتبّع الكشوف بالموسم وبصمة الأوزان (البند 2): يحتاج هجرة.
+  - كلاهما لقرار المالك.
+- **الدليل:**
+  - جناح الواجهة كاملاً: 1667 ناجحاً، و`tsc` نظيف.
+  - `sam2-inference`: 80 ناجحاً.
+  - اختبارات الأجهزة والحافّة والإسناد: 61 + 65 ناجحاً.
+  - الاختباران الجديدان لـSAM2 يحمرّان على الكود القديم: الأوّل على `main`، والثاني بلا القفل.
+### 2026-11-02 — تحقّق: المؤشّرات بالبكسل، والصور التاريخيّة قبل إنشاء الحقل، وأزرار المدد + دليل تحقّق قابل للنسخ
+
+- **بطلب المالك:** دليل تحقّق قابل للنسخ من الشاشة، والتحقّق من ثلاثة أمور. القياس قراءة كود واختبارات.
+- **المؤشّرات بالبكسل — يعمل:**
+  - طبقة MapLibre تقرأ بلاطات `/v1/fields/{id}/tiles` (COG محفوظ) أو `/cdse-tiles` (حيّ مقصوص).
+  - الخادم يصيّرها بـ`Resampling.nearest` حتّى تكبير 20، فيبقى بكسل Sentinel-2 مربّعاً حادّاً.
+  - لكنّ قيمة البكسل لا تُعرَض بالنقر: `MAP-PIXEL-VALUE-ENDPOINT-NOT-EXPOSED-TO-UI-01` (`open`).
+- **الصور التاريخيّة قبل إنشاء الحقل — يعمل:**
+  - أزرار 3/6/12/24 شهراً ترسل `preset=custom` و`months`.
+  - النافذة تُحسب من اليوم للخلف (31×الأشهر) بلا قصٍّ عند `created_at` (`raster_date_geo.py:46-58`).
+  - اختبارٌ جديد يثبت أنّ 3 أشهر تبدأ قبل اليوم بنحو 93 يوماً.
+- **أزرار المدد:**
+  - في شاشة الأقمار: مفعّلة، وتُعطَّل فقط أثناء التجهيز أو لحقلٍ بلا هندسة، وثبّت ذلك اختبارٌ ساكن.
+  - مُحدِّد المدّة في لوحة المؤشّرات كان لا يغيّر شيئاً: `FRONTEND-HYBRID-INDEX-PERIOD-SELECTOR-INERT-01` (`fixed`).
+- **وتحقّقٌ جانبيّ:** كلّ مسارات raster التي تستدعيها الواجهة ضمن قائمة مسموحات البوّابة بعد #1324. فلا شاشة انكسرت بالقائمة.
+- **الدليل:** `docs/runbooks/MAP_PIXEL_BACKFILL_DURATION_VERIFICATION_RUNBOOK.md` يغطّي:
+  - هذه الثلاثة.
+  - إصلاح Int16 (`RASTER-INTEGER-RASTER-MASKED-FILL-NAN-SWALLOWED-01`).
+  - اقتطاع SoilGrids لليمن.
+
+## 2026-11-03 — PR #1334 merge-conflict resolution
+
+- Integrate `main` at `ba99b9ed` into branch head `13b2ea1`, preserving telemetry freshness, score wording, big-screen removal and threaded SAM2 inference alongside the raster and dashboard fixes from #1333.
+- Regenerate conflicted inventories, governance reports and release checksums from their combined inputs rather than choosing either stale generated version.
+- Telemetry and SAM2 regression tests: 86 passed. Gap statuses in [`gaps/registry.md`](gaps/registry.md) remain unchanged: integration is not live verification.
+- Source: PR #1334; base commit `ba99b9ed`; branch commit `13b2ea1`.
+
+
+## 2026-11-06 — تدقيق ميزانية hot.md بست مهام مراجعة
+
+- **الطلب والنطاق:** مراجعة الميزانية والأرشفة وربط CI بست مهام وكيلاً في دفعتين، ثم مراجعة مستقلة. الأساس `01d3402d3e835682e414ff1e6bfbe8b493ecccff`، وإصلاح المصدر `f6252716a03d8fa66be1becd88c2b03dc70ce136`.
+- **النتيجة:** خمس فجوات `fixed` مسجلة في آخر `gaps/registry.md`: صلاحية سياسة الميزانية، ونوع الكائن المقاس، وإنفاذ الحارس في وظيفة مطلوبة، وحفظ بادئات الأرشيف عند التعارض، وتوافق القراء مع أوضاع Git.
+- **القياس:** حجم اللقطة في الأساس 170184 بايتاً من سقف 526815، والمتبقي 356631؛ لم يحتج هذا الأساس أرشفة. السياسة بقيت بايتاً ببايت، وتحديثات الجلسة إضافات محفوظة.
+- **الشاهد التنفيذي:** 506 اختبارات مجمعة ناجحة بلا فشل أو تخطٍّ، و24 اختباراً أصلياً من #1336 عند `fb336191612be31910c72a975b0c728e8fc8fe59` ناجحة مع الحارس المعدل في نسخة مؤقتة. الطفرات المستقلة السبع كُشفت كلها، ومراسي الحارس المسجلة الست والعشرون باقية. ملخص نتائج الأحمر والأخضر وأوامرها وبصمات سجلاتها المحلية في إيصال التدقيق؛ السجلات الخام غير مرفقة.
+- **CI:** قراءة Ruleset `main-protection` رقم 20645828 أكدت غياب `no-report-only-change` من سياقاته المطلوبة. أضيف تشغيل الحارس إلى `Repository Structural Lint` القائمة؛ لم يتغير عقد السياقات أو Ruleset. أضيف التصريح المطلوب في `docs/architecture/blocking_surface_additions.json`.
+- **الحدود:** هذا دليل مصدر واختبارات على مصدر الإصلاح، وليس نتيجة CI بعيدة أو دمجاً أو قبول تشغيل خدمات. متابعة تعليق #1336 منفصلة عن مرشح الميزانية.
+- **المراجع:** `docs/reviews/brain_hot_budget_audit_20261106.md` و`certification/evidence/brain_hot_budget_20261106/verification.json`.
+## 2026-11-06 — أداة مستقلة لإصلاح تاريخ السجل المستعاد
+
+- **النطاق:** طلب المالك فرعاً وPR جديدين لهذا الخطأ فقط، ثم اختار أداة إصلاح مستقلة واختباراتها مع بقاء #1335 دون تعديل؛ الأساس `01d3402d`.
+- **القياس:** الحارس الأصلي على `origin/main..ea12a230` أعاد `JOURNAL_SHRANK` في `ebb838e6 → e26a7153`، بنقص 485 بايتاً رغم استعادة النص في الرأس.
+- **التنفيذ:** [`repair_brain_journal_history.py`](../scripts/ci/repair_brain_journal_history.py) يخطط افتراضياً بكائن Git مؤقت، ويعيد استعمال الحارس والميزانية. `--apply` ينشئ فرعاً محلياً جديداً فقط بعد إثبات استعادة الأسطر وتطابق الشجرة؛ لا checkout أو push.
+- **شاهد السلوك:** [`test_repair_brain_journal_history.py`](../tests_v9/test_repair_brain_journal_history.py) يعيد إنتاج نقص 485 بايتاً بمستودعات مؤقتة ويختبر الحفظ والرفض؛ الدليل التشغيلي [`BRAIN_JOURNAL_HISTORY_REPAIR.md`](../docs/runbooks/BRAIN_JOURNAL_HISTORY_REPAIR.md).
+- **الحد:** PR الأداة لا يمحو تاريخ #1335، ولا يغيّر حالة تشغيل أو شهادة إنتاج. الفجوة المرجعية `A-HISTORICAL-DIP-IS-NOT-REPAIRABLE-BY-A-LATER-COMMIT-01`.
+
+
+## 2026-11-06 — إصلاح تعليق حفظ الدفاتر في #1336
+
+- **المصدر:** [تعليق Copilot](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1336#discussion_r4493050216) على الرأس `fb336191612be31910c72a975b0c728e8fc8fe59`؛ إصلاح المصدر `669ec849bf02ff0eb8fd37299b1a178dad14f466`.
+- **الفجوة:** `BRAIN-JOURNAL-REPAIR-MISSES-CROSS-JOURNAL-CHECKPOINTS-01` (`fixed`)؛ كان دفتر آخر يفقد مدخلاً بين دورتَي تقلّص للـregistry دون أن تُفحص لقطته المتوسطة.
+- **التغيير:** حاصل ضرب جميع الآباء السابقين للتقلّص والأب الأول في كل الدفاتر المصنّفة من الحارس نفسه. يبقى التحقق من ترتيب الأسطر وتكرارها ومطابقة الشجرة كما هو.
+- **الشاهد:** المصدر الأصلي قبل خطة بها فقد مدخل log رغم نموه من83 إلى106 بايت، ورفضه المصدر الجديد بـ`UNRESTORED_JOURNAL`. ثماني حالات حمراء أصلية وأربع موجبة، ثم36 حالة خضراء بلا تخطٍّ؛ حماية الملفات والفهرس والمراجع مثبتة في اختبارات الرفض.
+- **النطاق:** متابعة مستقلة لأداة #1336؛ لم يُطبق إصلاح تاريخ على فرع #1335 ولم يُنقل عمل الميزانية إلى هذه الشجرة. المصدر والقياسات في `certification/evidence/brain_journal_repair_review_20261106/verification.json`؛ الاستخدام في `docs/runbooks/BRAIN_JOURNAL_HISTORY_REPAIR.md`. النتائج مركزة على المصدر، وCI البعيد يقاس بعد النشر.

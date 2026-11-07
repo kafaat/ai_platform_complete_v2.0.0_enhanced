@@ -1656,6 +1656,18 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/HybridIndexPage.noInertPeriod.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/HybridMonitor.staleBadge.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/HybridMonitor.staleTelemetry.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/sections/HybridMonitor.tsx",
     "kind": "web"
   },
@@ -1726,6 +1738,10 @@
   {
     "path": "frontend/src/sections/ManagerConsolePage.tsx",
     "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/MapHubBackfillMonthButtons.static.test.ts",
+    "kind": "tests"
   },
   {
     "path": "frontend/src/sections/MapHubHistoricalTimeline.static.test.ts",
@@ -4649,6 +4665,10 @@
   },
   {
     "path": "services/raster-service/test_indicator_grid_provenance_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_masked_read_cast_before_fill.py",
     "kind": "tests"
   },
   {
@@ -8808,6 +8828,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_brain_hot_budget_ci.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_brain_narrative_registry_consistency.py",
     "kind": "tests"
   },
@@ -10412,6 +10436,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_repair_brain_journal_history.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_report_index_guard.py",
     "kind": "tests"
   },
@@ -10749,6 +10777,10 @@
   },
   {
     "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_telemetry_freshness.py",
     "kind": "tests"
   },
   {

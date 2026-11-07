@@ -22,6 +22,7 @@ from api.device_models import (
     _DEVICE_ONLINE_WINDOW_MIN,
     DeviceRequest,
     TelemetryRequest,
+    telemetry_freshness,
 )
 from api.idempotency import model_digest
 from api.main import (
@@ -222,12 +223,15 @@ async def list_telemetry(
             device_id,
             limit,
         )
+    now = datetime.now(UTC)
     return [
         {
             "sensor_type": r["sensor_type"],
             "value": float(r["value"]),
             "unit": r["unit"],
             "recorded_at": r["recorded_at"].isoformat() if r["recorded_at"] else None,
+            # عمر القراءة وقِدمها من الخادم بنافذة «online» نفسها — فلا تُعرَض قراءةٌ قديمة كحيّة.
+            **telemetry_freshness(r["recorded_at"], now, _DEVICE_ONLINE_WINDOW_MIN),
         }
         for r in rows
     ]
