@@ -3,12 +3,13 @@ from __future__ import annotations
 
 import contextlib
 import importlib.util
-import pytest
-
-pytestmark = pytest.mark.unit
 import io
 import json
 from pathlib import Path
+
+import pytest
+
+pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/ci/data_decision_outcome_proof_gate.py"
