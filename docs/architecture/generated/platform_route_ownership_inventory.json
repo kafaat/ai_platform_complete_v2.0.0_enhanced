@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "41d63920bab2335b73ccebffa438de9263bd051db570d7a64fa9c7c503d7f05d",
+  "inventory_sha256": "524753fc7a3253d75dcfa3f4656441fa205dd4d940f3f892a0baca868df11e1a",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "a0e6ba4b5e73db8f21cb85fc6db624a30adffaa23dbea31d9ea6fd54345a5e5f",
+  "map_sha256": "efff94a7a87a03a6b5e1e8ce24735c245ec37b40d1787b9f45516d8c46282803",
   "routes": [
     {
       "classification": null,
@@ -5839,7 +5839,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/edge.py",
       "function": "edge_sync_receive",
-      "line": 23,
+      "line": 29,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -8821,7 +8821,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/edge.py",
       "function": "edge_sync_receive",
-      "line": 24,
+      "line": 30,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",

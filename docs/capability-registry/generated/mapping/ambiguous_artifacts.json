@@ -1576,6 +1576,15 @@
     "kind": "other",
     "candidates": [
       {
+        "capability_id": "SEC-001",
+        "score": 13,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
         "capability_id": "OPS-004",
         "score": 12,
         "signals": [
@@ -1589,14 +1598,6 @@
         "signals": [
           "content:Scouting",
           "content:scouting"
-        ]
-      },
-      {
-        "capability_id": "SEC-001",
-        "score": 10,
-        "signals": [
-          "content:rls",
-          "content:tenant isolation"
         ]
       },
       {
