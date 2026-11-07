@@ -4601,3 +4601,29 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 - **حدّ الصدق:** التفويض سجلٌّ لقرار المالك في الجلسة لا توقيعٌ مستقلّ (القاعدة 20645828 بصفر موافقات).
 - **S5 مُستبعَد:** `build_revocation_store` يرفع `RuntimeError` في الإنتاج بلا Redis متاح، ومتغيّرات guardrails/notification على Railway غير مقروءة.
 **المرجع:** الفرع `claude/gate01-open-20261103` · `docs/architecture/gates/adjudications/GATE01-ADJ-2026-11-03-001.json`.
+## 2026-11-03 — Regenerate merge-conflicted artifacts (#1334)
+
+- **Decision:** merge `main` (`ba99b9ed`) into `13b2ea1` and regenerate conflicted artifacts from the combined source tree.
+- **Reason:** choosing either branch's generated output would discard evidence for the other branch's changes; retain both source fixes and rebuild their inventories and release checksums.
+- **Gap status:** unchanged; no live closure evidence is introduced by this merge.
+- **Source:** PR #1334; commits `ba99b9ed` and `13b2ea1`; session evidence in [`../log.md`](../log.md).
+
+
+## 2026-11-06 — إنفاذ ميزانية اللقطة وحفظ البايتات دون رفع السقف
+
+**القرار:** اعتماد التحقق الصارم من سياسة الميزانية وكائناتها، وتشغيل الحارس في `Repository Structural Lint` المطلوبة، ورفض حل تعارض أرشيف لا يحفظ بادئات والديه قبل أي كتابة، وتوحيد القراء مع أوضاع Git الفعلية.
+**السبب:** أمثلة مضادة نفذت على الأساس `01d3402d3e835682e414ff1e6bfbe8b493ecccff` أثبتت قبول سياسة غير صالحة وقياس غير الملف وإمكان إفلات رفع السقف من الفحوص المطلوبة، وحلاً ينجح ثم يفشل بحارس حفظ الأرشيف، واختفاء أرشيف من القارئ مع شجرة Git نظيفة. السقف 526815 بايتاً كافٍ في هذا الأساس؛ رفعه لا يعالج تلك الأسباب.
+**المصدر:** `f6252716a03d8fa66be1becd88c2b03dc70ce136`؛ `scripts/ci/brain_append_only_guard.py`، `scripts/ci/resolve_merge_conflicts.py`، `.github/workflows/ci.yml` واختباراتها المبينة في `docs/reviews/brain_hot_budget_audit_20261106.md`. نتائج المصدر: 506 اختبارات مركزة، و24 اختبار توافق، وسبع طفرات مستقلة مكشوفة.
+**حالة الفجوات:** الخمس الجديدة `fixed` في فرع الإصلاح بشواهد تنفيذية؛ لا تغيير لحالة فجوات تشغيلية أخرى ولا ادعاء بتحقق إنتاجي. أداة إصلاح التاريخ وتعليقها في #1336 لهما متابعة مستقلة.
+## 2026-11-06 — فصل أداة إصلاح التاريخ عن فرع #1335
+
+- **القرار:** إنشاء شريحة مستقلة فوق `main@01d3402d` لأداة إصلاح التاريخ واختبارها ودليلها فقط، وفق اختيار المالك في الجلسة. يبقى الفرع `fix/windows-linux-engine-gpu-maintenance` عند `ea12a230` دون تحديث.
+- **السبب:** فشل `e26a7153` يقع في علاقة تاريخية؛ إضافة سجل على main لا تعالجه. الأداة تنشئ فرعاً جديداً وتحفظ الشجرة كاملة، وتترك نشره أو تحديث الفرع السابق لعمل مفوض لاحقاً.
+- **المرجع:** #1335؛ [`A-HISTORICAL-DIP-IS-NOT-REPAIRABLE-BY-A-LATER-COMMIT-01`](../gaps/registry.md)؛ [دليل الإصلاح](../../docs/runbooks/BRAIN_JOURNAL_HISTORY_REPAIR.md).
+
+
+## 2026-11-06 — حفظ كل الدفاتر عند نقاط إصلاح التاريخ
+
+**القرار:** عند إصلاح نافذة تقلّص مستعادة، تُراجع كل الدفاتر المصنّفة عند الأب الأول وكل أب سابق للتقلّص، ويُرفض فقد مدخل منها حتى لو زاد حجم الرأس.
+**السبب:** شاهد `BRAIN-JOURNAL-REPAIR-MISSES-CROSS-JOURNAL-CHECKPOINTS-01` يثبت أن فحص مسار الانكماش وحده يطوي فقداً في دفتر آخر؛ العيب أُعيد إنتاجه في وضعي التخطيط والتطبيق، والإصلاح لا يوسّع إذن إعادة كتابة الفرع الأصلي.
+**المرجع:** [#1336، تعليق4493050216](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1336#discussion_r4493050216)؛ المصدر `669ec849bf02ff0eb8fd37299b1a178dad14f466`، واختباراته36 ناجحة بلا تخطٍّ. الحالة `fixed` في طلب الأداة، وليست ادعاء تطبيق الأداة على #1335.

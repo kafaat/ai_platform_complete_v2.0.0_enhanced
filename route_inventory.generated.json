@@ -4306,7 +4306,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/devices.py",
-    "line": 44,
+    "line": 45,
     "method": "POST",
     "path": "/api/v1/devices",
     "function": "register_device"
@@ -4314,7 +4314,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/devices.py",
-    "line": 100,
+    "line": 101,
     "method": "GET",
     "path": "/api/v1/devices",
     "function": "list_devices"
@@ -4322,7 +4322,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/devices.py",
-    "line": 126,
+    "line": 127,
     "method": "POST",
     "path": "/api/v1/devices/{device_id}/telemetry",
     "function": "ingest_telemetry"
@@ -4330,7 +4330,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/devices.py",
-    "line": 212,
+    "line": 213,
     "method": "GET",
     "path": "/api/v1/devices/{device_id}/telemetry",
     "function": "list_telemetry"
@@ -4338,7 +4338,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/devices.py",
-    "line": 237,
+    "line": 241,
     "method": "GET",
     "path": "/api/v1/devices/fleet-health",
     "function": "devices_fleet_health"
@@ -7738,7 +7738,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 24,
+    "line": 48,
     "method": "POST",
     "path": "/v1/predict",
     "function": "predict"
@@ -7746,7 +7746,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 106,
+    "line": 125,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -7754,7 +7754,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 111,
+    "line": 130,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -7762,7 +7762,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 116,
+    "line": 135,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"

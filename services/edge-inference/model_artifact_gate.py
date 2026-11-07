@@ -96,9 +96,9 @@ def high_confidence_alert(detections: Sequence[Mapping[str, object]]) -> str | N
         return None
     top = high[0]
     return (
-        "🐛 **تنبيه آفة عالية الثقة!**\n\n"
+        "🐛 **تنبيه كشف آفة — درجة نموذج مرتفعة**\n\n"
         f"الآفة المكتشفة: **{top.get('arabic_name')}**\n"
-        f"الثقة: {float(top.get('confidence', 0.0)):.0%}\n"
+        f"درجة النموذج (غير معايَرة): {float(top.get('confidence', 0.0)):.0%}\n"
         f"الموقع في الصورة: {top.get('bbox')}\n\n"
         "هذه ملاحظةُ كشفٍ فقط؛ الإجراءُ الزراعيّ أو العلاجيّ يحتاج سياسةً وتشخيصاً معتمداً."
     )

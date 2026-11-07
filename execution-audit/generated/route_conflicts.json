@@ -190,7 +190,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 111,
+          "line": 130,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/health",
@@ -429,7 +429,7 @@
         },
         {
           "function": "healthz",
-          "line": 106,
+          "line": 125,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/healthz",
@@ -803,7 +803,7 @@
         },
         {
           "function": "readyz",
-          "line": 116,
+          "line": 135,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/readyz",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1117,
-  "route_inventory_sha256": "f0fdc39ac7d53b834d2c1a51c445401fc79012dc9ab154b7b24c0670bcc60906",
+  "route_inventory_sha256": "3745e35a8be54624c8de6dcd34205f90bba3712ef3985336aa913a41c073f57e",
   "runtime_verified": false,
   "schema_version": 1
 }
