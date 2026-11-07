@@ -5493,30 +5493,6 @@
     ]
   },
   {
-    "path": "scripts/migrations/report_not_valid_constraint_violations.py",
-    "kind": "database",
-    "candidates": [
-      {
-        "capability_id": "SEC-001",
-        "score": 10,
-        "signals": [
-          "content:Tenant RLS",
-          "content:rls",
-          "content:tenant isolation"
-        ]
-      },
-      {
-        "capability_id": "SOIL-002",
-        "score": 9,
-        "signals": [
-          "content:Soil sampling",
-          "content:sampling plan",
-          "content:soil sampling"
-        ]
-      }
-    ]
-  },
-  {
     "path": "scripts/simulation/sim_golden.py",
     "kind": "other",
     "candidates": [

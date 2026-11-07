@@ -26,7 +26,7 @@
       "web": 504
     },
     "unmapped_artifacts": 2785,
-    "ambiguous_artifacts": 515
+    "ambiguous_artifacts": 514
   },
   "capabilities": [
     {
@@ -29455,6 +29455,22 @@
           "score": 17
         },
         {
+          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:115",
+          "score": 16
+        },
+        {
+          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:87",
+          "score": 16
+        },
+        {
+          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:94",
+          "score": 16
+        },
+        {
+          "value": "v132_field_state_recompute_provenance.sql @ scripts/migrations/report_not_valid_constraint_violations.py:59",
+          "score": 16
+        },
+        {
           "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1563",
           "score": 15
         },
@@ -29616,22 +29632,6 @@
         },
         {
           "value": "sahool.workflow_engine @ services/sahool-platform/core/workflow_engine.py:29",
-          "score": 10
-        },
-        {
-          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:115",
-          "score": 10
-        },
-        {
-          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:87",
-          "score": 10
-        },
-        {
-          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:94",
-          "score": 10
-        },
-        {
-          "value": "v132_field_state_recompute_provenance.sql @ scripts/migrations/report_not_valid_constraint_violations.py:59",
           "score": 10
         },
         {
@@ -34598,15 +34598,6 @@
           "score": 18
         },
         {
-          "path": "scripts/migrations/report_not_valid_constraint_violations.py",
-          "score": 9,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling"
-          ]
-        },
-        {
           "value": "lab_sample_custody_events @ scripts/ci/soil_lab_projection_guard.py:10",
           "score": 8
         },
@@ -34651,22 +34642,6 @@
         {
           "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:100",
           "score": 11
-        },
-        {
-          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:115",
-          "score": 9
-        },
-        {
-          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:87",
-          "score": 9
-        },
-        {
-          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:94",
-          "score": 9
-        },
-        {
-          "value": "v132_field_state_recompute_provenance.sql @ scripts/migrations/report_not_valid_constraint_violations.py:59",
-          "score": 9
         },
         {
           "value": "v156_durable_soil_lab_workflow.sql @ scripts/ci/soil_lab_projection_guard.py:45",
@@ -35078,8 +35053,8 @@
       "evidence_counts": {
         "backend": 14,
         "routes": 42,
-        "database": 12,
-        "events": 13,
+        "database": 11,
+        "events": 9,
         "web": 6,
         "mobile": 2,
         "tests": 14,
@@ -58629,30 +58604,6 @@
             "content:Tenant RLS",
             "content:rls",
             "content:row level security"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "scripts/migrations/report_not_valid_constraint_violations.py",
-      "kind": "database",
-      "candidates": [
-        {
-          "capability_id": "SEC-001",
-          "score": 10,
-          "signals": [
-            "content:Tenant RLS",
-            "content:rls",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "capability_id": "SOIL-002",
-          "score": 9,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling"
           ]
         }
       ]

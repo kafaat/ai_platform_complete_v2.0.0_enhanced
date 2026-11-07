@@ -7,7 +7,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 1394,
+      "line": 1418,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -31,7 +31,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "producer",
-      "line": 720,
+      "line": 744,
       "queue": null,
       "resolution": "dynamic",
       "subject": null

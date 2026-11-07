@@ -8895,7 +8895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a09cc5cd4962336153dc0fcf5720e5b4120ddb3b032dbd1c53d5fceed9e4a612"
+          "content": "954f8e401f4e30f1bb3e820ea7554e7cc9fa23626474d4db228ba54a1a9bbb49"
         }
       ],
       "name": "migrations/v237_tenant_isolation_hardening.sql",
@@ -16255,7 +16255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d224c1fd94d7d8ff02c72605e64acc62382df87c2a9480a9e3083cdbdb04431"
+          "content": "6db96ab12ccb1ac40a926f56439b139b944c0e1af533dcbf9244adcbda5f67ff"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -16355,7 +16355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e160449bf72e17986672d09e033b8edca48844d265682ebb794f7ec1eb742e7a"
+          "content": "c7565cd2857209584683b0cfd58b7d009260ed914bec8f6f612eefde646c8ae4"
         }
       ],
       "name": "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -24665,7 +24665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "56dab24de53ad894f2f388820cbc7a21648e2f6cb4319839f290dfe7c6cd1df0"
+          "content": "750ce32f9b6df9da44a2a4593e49a417d5bb127fd55be486a7b1bc0c6d039d45"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_store.py",
@@ -34705,7 +34705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "96412856f23256b3c58c095150aa54ad6475c9d8a5014dcdf74507e84f233c26"
+          "content": "856acd44d1b7ef60b98f5c6762d36b6247a8ac8ef8d68a52910dad212144b835"
         }
       ],
       "name": "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",

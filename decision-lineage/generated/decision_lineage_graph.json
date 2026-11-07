@@ -1502,7 +1502,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 294,
+      "evidence_count": 295,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1769,6 +1769,7 @@
         "services/sahool-platform/tests/test_remaining_gap_completion.py",
         "services/sahool-platform/tests/test_review_fixes.py",
         "services/sahool-platform/tests/test_route_auth_matrix_guard.py",
+        "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",
         "services/sahool-platform/tests/test_salinity_capability_contract.py",
         "services/sahool-platform/tests/test_season_calendar_guard.py",
         "services/sahool-platform/tests/test_security_v91.py",
@@ -2946,6 +2947,7 @@
         "services/sahool-platform/tests/test_learning_source_lineage.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
+        "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",
         "services/soil-service/routers/p4_workflow.py",
         "services/soil-service/test_soil_p4_governance.py",
         "shared/ai/recommendation_runtime/human_review_repository.py",
@@ -2953,7 +2955,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 188,
-      "target_evidence_count": 294,
+      "target_evidence_count": 295,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2994,7 +2996,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 294,
+      "source_evidence_count": 295,
       "target_evidence_count": 45,
       "static_supported": true,
       "runtime_verified": false
@@ -3181,5 +3183,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "59f71b30129790d3d8d613ee0c63a54e8aff0238b4cbdfa17e950a80c3826fbf"
+  "content_sha256": "b0e77dbd5c17a97b9c5a8c477f1985193263a4ffc595f0d147fe33351b37f6b3"
 }
