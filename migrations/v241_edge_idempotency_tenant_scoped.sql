@@ -12,8 +12,34 @@
 -- لا تُكتَب من الراوتر الذي يأخذ المستأجِر من التوكن دائماً.
 -- (v238–v240 محجوزةٌ لمسوّداتٍ محلّيّةٍ معلّقة لم تُسجَّل بعد.)
 
-CREATE UNIQUE INDEX IF NOT EXISTS uq_edge_idempotency_tenant
-    ON edge_results (tenant_id, idempotency_key)
-    WHERE idempotency_key IS NOT NULL;
+-- **الاسمُ يبقى `uq_edge_idempotency`** (مراجعة Copilot على #1342): المُهاجِر يُعيد تشغيل MANIFEST
+-- كاملاً في كلّ دورة (`migrations/apply_in_compose.sh`، `scripts_v9/run_migrations.sql`)، فيُعاد
+-- v9 قبل v241. لو حمل الفهرسُ الجديد اسماً آخر لأعاد v9 إنشاءَ الفهرس العالميّ بـ`IF NOT EXISTS`،
+-- ففشل بانتهاك تفرّدٍ ما إن يتشارك مستأجِران مفتاحاً — أي بعد أوّل استعمالٍ صحيحٍ لهذه الهجرة.
+-- فيُحوَّل الفهرسُ في مكانه تحت الاسم نفسه، فيصير `CREATE UNIQUE INDEX IF NOT EXISTS
+-- uq_edge_idempotency` في v9 لا-عملاً في كلّ إعادة. والتحويلُ نفسُه متساوي القوّة: فهرسٌ بعمودين
+-- قائمٌ ⇒ لا شيء. الترتيب داخل المعاملة: يُنشأ الجديد باسمٍ مؤقّت، ثمّ يُحذف القديم، ثمّ يُعاد
+-- تسميته — فلا تمرّ لحظةٌ بلا فهرسٍ فريد. ويُلتقَط أيضاً اسمُ المسوّدة المحلّيّة السابقة
+-- `uq_edge_idempotency_tenant` إن وُجد.
+DO $$
+DECLARE
+    v_cols int;
+BEGIN
+    SELECT i.indnatts INTO v_cols
+      FROM pg_index i
+      JOIN pg_class c ON c.oid = i.indexrelid
+     WHERE c.relname = 'uq_edge_idempotency'
+       AND c.relnamespace = 'public'::regnamespace;
 
-DROP INDEX IF EXISTS uq_edge_idempotency;
+    IF v_cols = 2 THEN
+        RETURN;  -- مُحوَّلٌ سلفاً (إعادة تشغيل MANIFEST)
+    END IF;
+
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_edge_idempotency_tenant
+        ON edge_results (tenant_id, idempotency_key)
+        WHERE idempotency_key IS NOT NULL;
+
+    DROP INDEX IF EXISTS uq_edge_idempotency;
+
+    ALTER INDEX uq_edge_idempotency_tenant RENAME TO uq_edge_idempotency;
+END $$;

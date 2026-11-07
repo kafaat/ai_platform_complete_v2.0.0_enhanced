@@ -298,6 +298,8 @@ def test_confidence_is_derived_from_the_notes_not_from_a_second_list():
         "root_zone_texture_fallback",
         "irrigation_unknown_inherited",
         "missing_days_consumption_estimated",
+        "missing_days_irrigation_unobserved",
+        "missing_days_irrigation_volume_untracked",
     }, "علَمٌ في المجموعة لا تُصدِره الدالّة — حراسةٌ على لا شيء"
 
 
@@ -859,3 +861,97 @@ def test_the_worker_passes_the_gap_to_the_ledger():
     assert "missing_prior_days=missing_days" in src
     assert "missing_days_irrigation_mm=gap_irrigation_mm" in src
     assert '(today - prev["ledger_date"]).days - 1' in src
+
+
+# ── Copilot review on #1342: per-day gap recurrence, gap uncertainty, forecast date ──
+
+
+def _gap_entry(**over):
+    kw = dict(
+        prev_depletion_mm=10.0,
+        taw_mm=100.0,
+        raw_mm=50.0,
+        et0_mm=6.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+        missing_prior_days=3,
+    )
+    kw.update(over)
+    return compute_daily_ledger_entry(**kw)
+
+
+def test_early_gap_irrigation_cannot_cancel_later_consumption():
+    """Copilot's case: 30 mm on the first of three skipped days.
+
+    Daily recurrence: 10+6-30 → 0, then 6, then 12, and today +6 ⇒ 18 mm. Clamping once after
+    the sum gave 10+18-30 → 0 and today 6 mm, understating depletion by 12 mm.
+    """
+    entry = _gap_entry(missing_days_irrigation_mm=[30.0, 0.0, 0.0])
+    assert entry["depletion_mm"] == 18.0
+
+
+def test_a_gap_total_with_an_unknown_day_is_placed_first_so_it_never_understates():
+    per_day_first = _gap_entry(missing_days_irrigation_mm=[30.0, 0.0, 0.0])
+    total = _gap_entry(missing_days_irrigation_mm=30.0)
+    late = _gap_entry(missing_days_irrigation_mm=[0.0, 0.0, 30.0])
+    assert total["depletion_mm"] == per_day_first["depletion_mm"] == 18.0
+    assert late["depletion_mm"] <= total["depletion_mm"]
+
+
+def test_a_per_day_list_must_cover_every_skipped_day():
+    import pytest
+
+    with pytest.raises(ValueError):
+        _gap_entry(missing_days_irrigation_mm=[1.0, 2.0])
+
+
+def test_unknown_gap_irrigation_is_not_reported_as_recorded():
+    """Today recorded, but a skipped day's irrigation unknown ⇒ the bridge must not auto-approve."""
+    from api.water_ledger_auto import (
+        APPLIED_WATER_RECORDED,
+        APPLIED_WATER_UNRECORDED,
+        APPLIED_WATER_VOLUME_UNTRACKED,
+    )
+
+    clean = _gap_entry(missing_days_irrigation_mm=[0.0, 5.0, 0.0])
+    unobserved = _gap_entry(
+        missing_days_irrigation_mm=[0.0, 5.0, 0.0], missing_days_irrigation_unobserved=True
+    )
+    untracked = _gap_entry(
+        missing_days_irrigation_mm=[0.0, 5.0, 0.0], missing_days_irrigation_untracked=True
+    )
+    assert clean["applied_water_status"] == APPLIED_WATER_RECORDED
+    assert unobserved["applied_water_status"] == APPLIED_WATER_UNRECORDED
+    assert unobserved["irrigation_known"] is False
+    assert untracked["applied_water_status"] == APPLIED_WATER_VOLUME_UNTRACKED
+    assert untracked["confidence"] < 0.7
+
+
+def test_gap_irrigation_by_day_marks_days_without_runs_and_untracked_volumes():
+    import datetime as dt
+
+    from api.water_ledger_auto import gap_irrigation_by_day
+
+    d0 = dt.date(2026, 11, 1)
+    rows = [
+        {"d": dt.date(2026, 11, 2), "mm": 30.0, "untracked": 0, "runs": 1},
+        {"d": dt.date(2026, 11, 4), "mm": 0.0, "untracked": 1, "runs": 1},
+    ]
+    mm, unobserved, untracked = gap_irrigation_by_day(rows, d0, dt.date(2026, 11, 5))
+    assert mm == [30.0, 0.0, 0.0]  # 2, 3 (no row), 4 (volume NULL)
+    assert unobserved is True and untracked is True
+    full = [{"d": dt.date(2026, 11, 2), "mm": 4.0, "untracked": 0, "runs": 2}]
+    assert gap_irrigation_by_day(full, d0, dt.date(2026, 11, 3)) == ([4.0], False, False)
+
+
+def test_the_forecast_day_is_chosen_by_its_date_not_by_position():
+    """21:00–24:00 UTC with WATER_LEDGER_TIMEZONE=UTC: Aden's first day is already tomorrow."""
+    import datetime as dt
+
+    from api.water_ledger_auto import forecast_day_for_ledger_date
+
+    forecast = {"days": [{"date": "2026-11-08", "temp_max_c": 30}, {"date": "2026-11-09"}]}
+    assert forecast_day_for_ledger_date(forecast, dt.date(2026, 11, 8))["temp_max_c"] == 30
+    assert forecast_day_for_ledger_date(forecast, dt.date(2026, 11, 7)) is None
+    assert forecast_day_for_ledger_date({"days": [{}]}, dt.date(2026, 11, 8)) is None

@@ -26,12 +26,12 @@
     "CP997-05-EDGE-IDEMPOTENCY-GLOBAL-UNIQUE-VS-TENANT-LOOKUP-01",
     "JWT-DECODE-OUTSIDE-SHARED-SECURITY-01"
   ],
-  "authorized_patch_sha256": "5822d7456e44db1d7d0434a530ec9286c21e2c98af480c962fa83246168a8dfa",
+  "authorized_patch_sha256": "4d4c33da0459bab6f4f2d80d2ec37ebe74af03b777ef359ddfe99d99c0beec17",
   "authorized_blobs": {
     "migrations/MANIFEST.txt": "652e25c542131c2307176e04a3eaf45351455b92",
     "scripts_v9/run_migrations.sql": "00027f75cd03af51c796ba4a895514d754de53d1",
     "services/actuator-service/actuator_runtime.py": "6cfd517d2a6f8e9e0930b1952083b182ce8fc781",
-    "services/sahool-platform/api/phase_runtime_workers.py": "199201a12d02ecfa4d57b6653e2c782fd0de5870"
+    "services/sahool-platform/api/phase_runtime_workers.py": "1470e50a5909972509dda32ffeced9ce63b6f8cd"
   },
   "bindings": {
     "require_patch_digest": true,
@@ -56,5 +56,6 @@
     "independently_signed": false,
     "guard_binds": "bytes_only",
     "note_ar": "سجلٌّ لقرار المالك في الجلسة، لا توقيعٌ مستقلّ — والقاعدة الحيّة 20645828 تشترط صفر موافقات، فلا جهةَ مستقلّة متاحة؛ وهذا بعينه سببُ التجميد الجذريّ المُشخَّص. `pr` فارغ عند الإصدار؛ يُملأ ويُختَم `CONSUMED` مع `merge_sha` بعد الدمج."
-  }
+  },
+  "reissue_note_ar": "أُعيد ربطُ البصمات في 2026-11-07 بعد مراجعة Copilot على #1342: phase_runtime_workers.py صار يجلب ريَّ الأيّام المتخطّاة يوماً بيوم (القصُّ بعد كلّ يوم، وريٌّ مجهولٌ في يومٍ متخطّى يُعلَن ولا يُعَدّ صفراً)، ويختار يومَ التوقّع بتاريخه لا بموضعه. القرارُ نفسُه والمساراتُ الأربعة نفسُها."
 }

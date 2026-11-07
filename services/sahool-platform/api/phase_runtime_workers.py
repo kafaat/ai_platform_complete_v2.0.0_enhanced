@@ -546,6 +546,8 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
     from api.water_ledger_auto import (
         AUTO_CREATED_BY,
         compute_daily_ledger_entry,
+        forecast_day_for_ledger_date,
+        gap_irrigation_by_day,
         manual_entry_takes_precedence,
     )
     from api.water_ledger_inputs import (
@@ -609,23 +611,31 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                         )
                         # DAILY-WATER-LEDGER-SKIPPED-DAYS-DROP-CONSUMPTION-01: أيّامٌ بلا قيدٍ بين
                         # آخر قيدٍ واليوم يُقدَّر استهلاكُها ويُطرَح ريُّها المسجَّل (لا تُسقَط).
+                        # يوماً بيوم (لا مجموعاً): القصُّ بعد كلّ يوم، وريٌّ مجهولٌ في يومٍ متخطّى
+                        # يُعلَن ولا يُعَدّ صفراً (مراجعة Copilot على #1342).
                         missing_days = 0
-                        gap_irrigation_mm = 0.0
+                        gap_irrigation_mm: list[float] = []
+                        gap_unobserved = gap_untracked = False
                         if prev and prev["ledger_date"] is not None:
                             missing_days = max((today - prev["ledger_date"]).days - 1, 0)
                         if missing_days:
-                            gap_irrigation_mm = float(
-                                await conn.fetchval(
-                                    "SELECT COALESCE(SUM(volume_mm), 0) FROM irrigation_runs"
-                                    " WHERE field_id=$1 AND status='completed'"
-                                    " AND (started_at AT TIME ZONE $4)::date > $2"
-                                    " AND (started_at AT TIME ZONE $4)::date < $3",
-                                    field_id,
-                                    prev["ledger_date"],
-                                    today,
-                                    ledger_tz,
-                                )
-                                or 0.0
+                            gap_rows = await conn.fetch(
+                                "SELECT (started_at AT TIME ZONE $4)::date AS d,"
+                                " COALESCE(SUM(volume_mm), 0) AS mm,"
+                                " COUNT(*) FILTER (WHERE volume_mm IS NULL) AS untracked,"
+                                " COUNT(*) AS runs"
+                                " FROM irrigation_runs"
+                                " WHERE field_id=$1 AND status='completed'"
+                                " AND (started_at AT TIME ZONE $4)::date > $2"
+                                " AND (started_at AT TIME ZONE $4)::date < $3"
+                                " GROUP BY 1",
+                                field_id,
+                                prev["ledger_date"],
+                                today,
+                                ledger_tz,
+                            )
+                            gap_irrigation_mm, gap_unobserved, gap_untracked = (
+                                gap_irrigation_by_day(gap_rows, prev["ledger_date"], today)
                             )
                         # نسيج مخبريّ معتمَد إن وُجد ⇒ TAW أدقّ؛ وإلّا fallback مُعلَن المصدر.
                         soil_row = await conn.fetchrow(
@@ -665,10 +675,26 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
 
                     # مدخلات اليوم من خدمة الطقس؛ ET0 يُحسب في المحرّك حصراً (agro/et0) —
                     # لا نستهلك et0 المزوّد الخام. فشل أيّهما ⇒ تخطٍّ صادق لهذا اليوم.
+                    # يومُ التوقّع الذي تاريخُه يومُ الدفتر لا ``days[0]`` أعمى: المزوّد يسمّي الأيّام
+                    # بمنطقة الحقل، وقد تخالف WATER_LEDGER_TIMEZONE. لا تطابق ⇒ تخطٍّ لا قيدٌ بتاريخٍ خاطئ.
                     forecast = await get_weather_forecast(
-                        float(row["lat"]), float(row["lon"]), days=1
+                        float(row["lat"]), float(row["lon"]), days=2
                     )
-                    day0 = (forecast.get("days") or [{}])[0]
+                    day0 = forecast_day_for_ledger_date(forecast, today)
+                    if day0 is None:
+                        print(
+                            json.dumps(
+                                {
+                                    "worker": "water_ledger",
+                                    "field_id": field_id,
+                                    "skipped": "forecast_day_not_ledger_date",
+                                    "ledger_date": today.isoformat(),
+                                },
+                                ensure_ascii=False,
+                            ),
+                            flush=True,
+                        )
+                        continue
                     t_max, t_min = day0.get("temp_max_c"), day0.get("temp_min_c")
                     # ميّز «هطول مقيس = 0» عن «هطول مفقود» — الأخير يُفترَض 0 بإعلان لا صامتاً.
                     _precip = day0.get("precipitation_mm")
@@ -723,6 +749,8 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             depletion_fraction_default=zone["depletion_fraction_default"],
                             missing_prior_days=missing_days,
                             missing_days_irrigation_mm=gap_irrigation_mm,
+                            missing_days_irrigation_unobserved=gap_unobserved,
+                            missing_days_irrigation_untracked=gap_untracked,
                         )
                         await conn.execute(
                             """
