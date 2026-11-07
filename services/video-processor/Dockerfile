@@ -1,6 +1,13 @@
 FROM python:3.11-slim-bookworm
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends     gcc     libgl1-mesa-glx     libglib2.0-0     libsm6     libxext6     libxrender-dev     libgomp1     curl     && rm -rf /var/lib/apt/lists/*
+ARG DEBIAN_MIRROR=
+RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian-security|${DEBIAN_MIRROR%/}/debian-security|g" \
+            -e "s|http://deb.debian.org/debian|${DEBIAN_MIRROR%/}/debian|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi \
+    && apt-get update && apt-get install -y --no-install-recommends     gcc     libgl1-mesa-glx     libglib2.0-0     libsm6     libxext6     libxrender-dev     libgomp1     curl     && rm -rf /var/lib/apt/lists/*
 COPY services/video-processor/requirements.txt /tmp/requirements.txt
 # ── PyPI الرسمي افتراضياً؛ يمكن استخدام Alibaba mirror عبر build arg ──
 # Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/

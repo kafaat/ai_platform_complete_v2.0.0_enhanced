@@ -18,7 +18,14 @@ LABEL org.opencontainers.image.revision="${SAHOOL_GIT_SHA}" \
       org.opencontainers.image.source="${SAHOOL_SOURCE_REPOSITORY}" \
       org.opencontainers.image.ref.name="${SAHOOL_SOURCE_REF}" \
       io.sahool.build-id="${SAHOOL_BUILD_ID}"
-RUN apt-get update && apt-get install -y --no-install-recommends gcc curl \
+ARG DEBIAN_MIRROR=
+RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian-security|${DEBIAN_MIRROR%/}/debian-security|g" \
+            -e "s|http://deb.debian.org/debian|${DEBIAN_MIRROR%/}/debian|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi \
+    && apt-get update && apt-get install -y --no-install-recommends gcc curl \
     && rm -rf /var/lib/apt/lists/*
 COPY services/supervisor-agent/requirements.txt /tmp/req.txt
 # ── PyPI الرسمي افتراضياً؛ يمكن استخدام Alibaba mirror عبر build arg ──
