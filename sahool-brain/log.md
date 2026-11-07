@@ -10460,3 +10460,12 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **التغيير:** حاصل ضرب جميع الآباء السابقين للتقلّص والأب الأول في كل الدفاتر المصنّفة من الحارس نفسه. يبقى التحقق من ترتيب الأسطر وتكرارها ومطابقة الشجرة كما هو.
 - **الشاهد:** المصدر الأصلي قبل خطة بها فقد مدخل log رغم نموه من83 إلى106 بايت، ورفضه المصدر الجديد بـ`UNRESTORED_JOURNAL`. ثماني حالات حمراء أصلية وأربع موجبة، ثم36 حالة خضراء بلا تخطٍّ؛ حماية الملفات والفهرس والمراجع مثبتة في اختبارات الرفض.
 - **النطاق:** متابعة مستقلة لأداة #1336؛ لم يُطبق إصلاح تاريخ على فرع #1335 ولم يُنقل عمل الميزانية إلى هذه الشجرة. المصدر والقياسات في `certification/evidence/brain_journal_repair_review_20261106/verification.json`؛ الاستخدام في `docs/runbooks/BRAIN_JOURNAL_HISTORY_REPAIR.md`. النتائج مركزة على المصدر، وCI البعيد يقاس بعد النشر.
+
+## 2026-11-07 — مراجعة مستقلّة لحزمة فتح GATE-01 قبل الدمج
+
+- **المراجعة:** ثلاثة وكلاء (قاعدة البيانات · التطبيق · جرد الفجوات المحجوزة) على `claude/local-unfreeze-rehearsal-20261102`.
+- **أُصلح في الفرع (`ffdb932a5`):** ts فريد لكلّ أمر إرسال (أمران من معاملة واحدة كانا يتشاركانه فيُسقَط الثاني) · عكسُ المفردات الكنسيّة في التعويض · نداءات الشبكة خارج معاملة دفتر الماء (ثلاث معاملات قصيرة) مع اختبار بنيويّ أحمر على الجسم السابق.
+- **سُجِّل مفتوحاً (7 صفوف):** `V206-RESTORES-NULL-TENANT-WITH-CHECK-AFTER-V237-01` (مقيس على PG16) · `NOT-VALID-REPORT-READS-CLEAN-UNDER-RLS-ROLE-01` · `V237-T9-SCANS-UNDER-ACCESS-EXCLUSIVE-01` · `ACTUATOR-DISPATCH-RECOVERY-REPUBLISHES-WITHOUT-LIMIT-01` · `ACTUATOR-DISPATCH-KILLSWITCH-USES-PAYLOAD-FIELD-01` · `ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01` · `IRRIGATION-RELAY-JETSTREAM-REPLAYS-WHOLE-STREAM-ON-FIRST-BIND-01`.
+- **تنبيه تشغيليّ:** بعد A4 يُرفَض كلُّ إرسالٍ آليّ من جسر قرار الماء (`irrigate` بلا duration_sec) حتّى يُغلَق `WATER-DECISION-BRIDGE-IRRIGATE-WITHOUT-DURATION-01` — فشلٌ مغلق لا فتحٌ بلا مدّة.
+- **التفويض:** `GATE01-ADJ-2026-11-03-001` أُعيد ربطه بالبايتات المراجَعة (القرار والمسارات الستّة كما هي).
+
