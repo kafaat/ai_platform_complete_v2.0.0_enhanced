@@ -10499,3 +10499,8 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
   - **متوسّطة — ريٌّ مجهولٌ في الفجوة:** يومٌ متخطّى بلا تشغيل أو بحجمٍ مجهول يُعلَن (`missing_days_irrigation_unobserved`/`_volume_untracked`) فلا تكون حالةُ الماء المضاف `recorded` ولا يعتمد الجسرُ العجزَ آليّاً.
   - **متوسّطة — منطقة التوقّع:** يُختار يومُ التوقّع بتاريخه لا `days[0]`؛ لا تطابق ⇒ تخطٍّ مُعلَن.
   - أُعيد ربطُ `GATE01-ADJ-2026-11-07-001` (phase_runtime_workers.py وحده تغيّر).
+- **2026-11-07 — الدفعة ٣ من GATE-01 (فرع `claude/gate01-batch3-20261107`، فوق الدفعة ٢، غير مدفوع):**
+  - **v238–v240:** انتقاءٌ من فرع التمرين المحلّيّ، بالترتيب v237، v238، v241، v239، v240، v206. v238 تحمل إقرارَ جهازٍ موقَّعاً `HMAC(id|device|result)` فوق توقيع المدّة من #1338.
+  - **S5 (`41d4b9640`):** `_authorize_device_control` يرفض توكناً مُبطَلاً أو أقدم من الأرضيّة بـ401، وفي الإنتاج حالةٌ مجهولة ⇒ 503. الفحصُ في `shared/security/token_revocation.py` بمخطّط المنصّة نفسه. compose: `sahool-actuator-service-denylist` للقراءة فقط على `sahool-redis-state`؛ بدونه كان المشغّل سيقرأ الكاش بمستخدم PING وحده فيردّ كلَّ أمرٍ 503 في الإنتاج. ⇒ ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01 fixed.
+  - **enforce (`551aaab30`):** `claim_policy_mode()` يفرض ما لم يُضبط `observe` صراحةً. توكناتُ اختبارٍ يدويّة بلا exp/sub (MCP، TTS) صُحِّحت. ⇒ JWT-DECODE-OUTSIDE-SHARED-SECURITY-01 «fixed + enforced».
+  - **التفويض:** `GATE01-ADJ-2026-11-07-002` على خمسة مسارات (db_ownership.yml · MANIFEST.txt · run_migrations.sql · actuator_runtime.py · routers/commands.py)، والحارسُ أخضر على فرق الدفعة. يُعاد ربطُه بعد إعادة التأسيس على الدفعة ٢ المدموجة.

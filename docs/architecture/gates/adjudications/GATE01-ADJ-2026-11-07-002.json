@@ -1,0 +1,59 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-11-07-002",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-11-07",
+  "expires_on": "2026-12-07",
+  "pr": null,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "docs/architecture/db_ownership.yml",
+    "migrations/MANIFEST.txt",
+    "scripts_v9/run_migrations.sql",
+    "services/actuator-service/actuator_runtime.py",
+    "services/actuator-service/routers/commands.py"
+  ],
+  "allowed_gap_closures": [
+    "ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01",
+    "JWT-DECODE-OUTSIDE-SHARED-SECURITY-01"
+  ],
+  "authorized_patch_sha256": "8ee2f5b85fb0a6aa6c4749244213781b50f783d7d3a691a4e8d2c8f986ab4198",
+  "authorized_blobs": {
+    "docs/architecture/db_ownership.yml": "e4f88ebd749182647dccb44429283839b2c3a511",
+    "migrations/MANIFEST.txt": "f060c9d382ae5148e56e6a35a285ec4389bc888e",
+    "scripts_v9/run_migrations.sql": "3131dc6504ad9cd57a24127f80fcfefb63cc2ff7",
+    "services/actuator-service/actuator_runtime.py": "97ec24817d171ab008c83d5707052fbd18836583",
+    "services/actuator-service/routers/commands.py": "b5c93ea4e5bc3007e2f1619e303d34b6c01418f4"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "551aaab30e8233e17e3ce3ab8cc4690c6dbc5afa"
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "owner": "kafaat",
+    "owner_decision_on": "2026-11-07",
+    "text_ar": "على ان تبدأ فك في الدفعة اللاحقة : مسوّدات v238 إلى v240، وإبطال التوكنات في الخدمة المشغّلة (S5)، وتفعيل الوضع الإلزامي enforce لسياسة المطالبات.",
+    "context_ar": "تتمّةُ قرار المالك على مسار 2026-11-07 («موافق على المسار المقترح، قوم بالتنفيذ»): GATE-01 تبقى CLOSED وتُمرَّر دفعاتٌ مسمّاة؛ والدفعةُ الثالثة يسمّيها المالكُ نفسُه بهذه الثلاثة."
+  },
+  "scope_limit_ar": "دفعةٌ ثالثة بعينها، ثلاثُ حزم: (١) مسوّدات v238 (حالةُ تسليمٍ صريحة لأوامر المشغّل مع إقرار جهازٍ موقَّع) وv239 (أصلُ كلّ كشفٍ في نتائج الحافّة) وv240 (تمريرةُ MANIFEST واحدة تعطي مخطّط التمريرتين)، بسطور تسجيلها في MANIFEST.txt وscripts_v9/run_migrations.sql بالترتيب v237، v238، v241، v239، v240، v206 (v206 أخيراً)، وتسجيلِ جداولها في db_ownership.yml، وما تستلزمه v238 في actuator_runtime.py وrouters/commands.py؛ (٢) S5 في actuator_runtime.py: رفضُ أمر الجهاز من توكنٍ أُبطِل أو أقدم من أرضيّة auth، فاشلاً مغلقاً في الإنتاج (503)، مع وحدةٍ مشتركة shared/security/token_revocation.py ومستخدمِ ACL للقراءة فقط على sahool-redis-state؛ (٣) الفرضُ الافتراضيّ لسياسة المطالبات في shared/security/access_tokens.py (خارج المسارات المجمَّدة). لا يشمل event_bus.py ولا v228 ولا phase_runtime_store.py ولا phase_runtime_workers.py ولا physical_effect_boundary_contract.json، ولا تغييرَ حالة البوّابة إلى OPEN، ولا تطبيقَ أيّ هجرةٍ على staging أو الإنتاج.",
+  "why_frozen_paths_ar": "تسجيلُ أيّ هجرة لا يكون إلّا في MANIFEST.txt وscripts_v9/run_migrations.sql، وملكيّةُ جداولها في db_ownership.yml؛ وحالةُ التسليم وإبطالُ التوكن يقعان في مسار الأمر نفسه (actuator_runtime.py وrouters/commands.py).",
+  "reissue_rule_ar": "التفويضُ مربوطٌ ببايتات الملفّات الخمسة (`authorized_blobs`). أيُّ تعديلٍ لاحقٍ على أيٍّ منها — ولو دمجاً من main أو إعادةَ تأسيسٍ على الدفعة ٢ — يُبطِله ويلزم إعادةُ إصداره ببصمته الجديدة.",
+  "honesty_limit_ar": "الشواهد محلّيّة: اختبارات إبطال المشغّل 16 (إزالةُ الاستدعاء تُحمِّر 5، وتغييرُ الحدّ يُحمِّر 1) واختبارٌ حيّ على redis-server بسطر compose؛ واختبارات سياسة المطالبات 136 مع الافتراض الجديد؛ وقاعدةُ PG16 المبنيّة من MANIFEST الدفعة تُقاس قبل الدفع. لم يُطبَّق شيءٌ على staging أو الإنتاج: SAHOOL_MIGRATE_APPLY غير مضبوط. لا خدمة actuator منشورة على Railway. عدّادُ would_reject لسياسة المطالبات على Railway غير مقروء (استعلامُ السجلّات فارغ)، فالفرضُ بقرار المالك لا بقراءة صفرٍ مقيس. وv238 تتطلّب برنامجاً ثابتاً يوقّع الإقرار — تفليشُ الأجهزة لم يُقَس.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "سجلٌّ لقرار المالك في الجلسة، لا توقيعٌ مستقلّ — والقاعدة الحيّة 20645828 تشترط صفر موافقات، فلا جهةَ مستقلّة متاحة؛ وهذا بعينه سببُ التجميد الجذريّ المُشخَّص. `pr` فارغ عند الإصدار؛ يُملأ ويُختَم `CONSUMED` مع `merge_sha` بعد الدمج."
+  }
+}
