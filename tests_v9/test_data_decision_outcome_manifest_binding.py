@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import contextlib
 import importlib.util
+import pytest
+
+pytestmark = pytest.mark.unit
 import io
 import json
 from pathlib import Path
