@@ -91,7 +91,6 @@ META_GOVERNANCE_FILES = {
     # و`capability_linker` كان يستبعده سلفاً (`META_GOVERNANCE_PREFIXES`) — فالزوجُ
     # كان محروساً نصفَه: جردان لشاهدٍ واحد، أحدُهما يُعفيه والآخر يقرؤه دليلاً.
     "tests_v9/test_no_report_only_change_guard.py",
-
     # Governance plan and its verifier are not implementation evidence. Scanning
     # their prose and negative fixtures would self-certify DEC/IRR capabilities;
     # the actual domain code remains discoverable through normal source paths.
