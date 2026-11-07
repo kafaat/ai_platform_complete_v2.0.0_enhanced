@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7019,
+    "files_scanned": 7022,
     "files_by_kind": {
       "backend": 1266,
       "database": 292,
       "governance": 87,
       "mobile": 414,
-      "other": 2145,
-      "tests": 2311,
+      "other": 2147,
+      "tests": 2312,
       "web": 504
     },
-    "unmapped_artifacts": 2785,
+    "unmapped_artifacts": 2784,
     "ambiguous_artifacts": 516
   },
   "capabilities": [
@@ -6372,6 +6372,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_sim_golden.py",
+          "score": 12,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/test/features/more/more_screen_test.dart",
           "score": 11,
           "signals": [
@@ -6575,6 +6583,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/SIM_GOLDEN_EVIDENCE_ADMISSION.md",
+          "score": 11,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "FINAL_PRODUCTION_READINESS_REPORT.md",
           "score": 10,
           "signals": [
@@ -6610,9 +6626,9 @@
         "events": 23,
         "web": 15,
         "mobile": 35,
-        "tests": 46,
+        "tests": 47,
         "governance": 0,
-        "other_evidence": 15
+        "other_evidence": 16
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -9298,7 +9314,7 @@
           ]
         },
         {
-          "path": "scripts/simulation/test_export_season_runs_for_golden.py",
+          "path": "tests_v9/test_export_season_runs_for_golden.py",
           "score": 13,
           "signals": [
             "path:season",
@@ -9508,15 +9524,15 @@
           ]
         },
         {
-          "path": "docs/ui/SAHOOL_PRODUCT_MODES_AND_FIELD_OPERATING_CONTRACT.md",
-          "score": 9,
+          "path": "scripts/simulation/sim_golden.py",
+          "score": 10,
           "signals": [
             "content:crop season",
             "content:season"
           ]
         },
         {
-          "path": "scripts/simulation/sim_golden.py",
+          "path": "docs/ui/SAHOOL_PRODUCT_MODES_AND_FIELD_OPERATING_CONTRACT.md",
           "score": 9,
           "signals": [
             "content:crop season",
@@ -26213,7 +26229,7 @@
       "evidence_truncated": {
         "backend": 25,
         "events": 58,
-        "tests": 115,
+        "tests": 116,
         "other_evidence": 4
       },
       "evidence_counts": {
@@ -52674,10 +52690,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_sim_golden.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_sim_pcse_flag_and_safety.py",
       "kind": "tests"
     },
@@ -58676,7 +58688,7 @@
         },
         {
           "capability_id": "FM-004",
-          "score": 9,
+          "score": 10,
           "signals": [
             "content:crop season",
             "content:season"
