@@ -10444,6 +10444,29 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_water_ledger_auto.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 9,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_weather_tile_engine_v10.py",
     "kind": "tests",
     "candidates": [

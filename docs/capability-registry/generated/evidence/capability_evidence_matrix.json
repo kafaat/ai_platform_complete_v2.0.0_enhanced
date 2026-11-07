@@ -9914,6 +9914,7 @@
         "services/sahool-platform/tests/test_p3_weather_service_realization_guard.py",
         "services/sahool-platform/tests/test_planting_window.py",
         "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
+        "services/sahool-platform/tests/test_water_ledger_auto.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
         "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",

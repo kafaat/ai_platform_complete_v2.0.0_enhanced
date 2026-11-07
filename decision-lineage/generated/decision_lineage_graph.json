@@ -1502,8 +1502,9 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 292,
+      "evidence_count": 294,
       "owners": [
+        "actuator-service",
         "ai_agronomist",
         "auth",
         "database",
@@ -1551,6 +1552,7 @@
         "migrations/v59_boundary_topology_fn.sql",
         "migrations/v9_foundation.sql",
         "migrations/v_ai_recommendation_runtime.sql",
+        "services/actuator-service/test_actuator_safety_audit_20261101.py",
         "services/ai_agronomist/advisory_contract.py",
         "services/ai_agronomist/ai_evidence_runtime.py",
         "services/ai_agronomist/field_boundary_backends.py",
@@ -1773,6 +1775,7 @@
         "services/sahool-platform/tests/test_skills_registry.py",
         "services/sahool-platform/tests/test_source_of_truth.py",
         "services/sahool-platform/tests/test_water_decision_bridge.py",
+        "services/sahool-platform/tests/test_water_ledger_auto.py",
         "services/scout-ingest-service/season_api.py",
         "services/scout-ingest-service/tests/test_season_live.py",
         "services/soil-service/p1_store.py",
@@ -2950,7 +2953,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 188,
-      "target_evidence_count": 292,
+      "target_evidence_count": 294,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2962,6 +2965,7 @@
       "repository_evidence": [
         "migrations/v181_irrigation_closed_loop_learning_production_certification.sql",
         "migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql",
+        "services/actuator-service/test_actuator_safety_audit_20261101.py",
         "services/decision-service/main.py",
         "services/decision-service/migrations/003_execution_plan.sql",
         "services/decision-service/migrations/004_dispatch_authorization.sql",
@@ -2990,7 +2994,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 292,
+      "source_evidence_count": 294,
       "target_evidence_count": 45,
       "static_supported": true,
       "runtime_verified": false
@@ -3177,5 +3181,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "09ae8143f1f584807c5288b415093e0b871cbb67a77fda3809ee58f517ae7915"
+  "content_sha256": "59f71b30129790d3d8d613ee0c63a54e8aff0238b4cbdfa17e950a80c3826fbf"
 }

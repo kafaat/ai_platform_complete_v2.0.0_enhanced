@@ -16255,7 +16255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b24541f3ca1611f125a7f821323c40229cd57b710662cad52f694e238ca651b"
+          "content": "0d224c1fd94d7d8ff02c72605e64acc62382df87c2a9480a9e3083cdbdb04431"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -16355,7 +16355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d1f004a7f065fafa14a588b71f62383845f061ee825b601fde0d0fdd1e6e48d"
+          "content": "e160449bf72e17986672d09e033b8edca48844d265682ebb794f7ec1eb742e7a"
         }
       ],
       "name": "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -24675,7 +24675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5e012f301b6bb67f19ec0fd895a08d73762b82891afff18bb603895bcf592279"
+          "content": "e615876b2431e8f1381243f63e925940ed184f2dfd7e8b19c28d5bb3e763fcb1"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",
@@ -35415,7 +35415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "773b749d4dcc7c7791707ff47b893a8c15e10004c7e5b6715585737d404e78aa"
+          "content": "3d42ae76db695e3df73302cdee8ea798ee230879fabd98bae1c4353a03e0a603"
         }
       ],
       "name": "services/sahool-platform/tests/test_water_ledger_auto.py",
