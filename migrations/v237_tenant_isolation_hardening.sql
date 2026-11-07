@@ -156,14 +156,13 @@ BEGIN
     RAISE NOTICE 'v237: سياسات شُدّدت = %', n_changed;
 END $$;
 
--- ── T9: CHECK (btrim(tenant_id) <> '') NOT VALID + تقرير المخالفات ───────────────
+-- ── T9: CHECK (btrim(tenant_id) <> '') NOT VALID (التقرير خارج الهجرة) ──────────────
 -- NOT VALID: يُفرض على الصفوف الجديدة/المُحدَّثة فوراً بلا مسح. VALIDATE خطوة مشغِّل بعد تقرير
 -- نظيف (scripts/migrations/report_not_valid_constraint_violations.py)، لا هجرة — كما في v127/v130.
 DO $$
 DECLARE
     t record;
     cname text;
-    bad bigint;
 BEGIN
     FOR t IN
         SELECT c.table_name
@@ -180,13 +179,11 @@ BEGIN
             EXECUTE format('ALTER TABLE public.%I ADD CONSTRAINT %I CHECK (btrim(tenant_id) <> %L) NOT VALID',
                            t.table_name, cname, '');
         END IF;
-        EXECUTE format('SELECT count(*) FROM public.%I WHERE NOT (btrim(tenant_id) <> %L)', t.table_name, '')
-           INTO bad;
-        IF bad > 0 THEN
-            RAISE WARNING 'v237 T9: %.% — % صفّ بمستأجر فارغ (تقرير؛ نظّفها قبل VALIDATE)', t.table_name, cname, bad;
-        ELSE
-            RAISE NOTICE 'v237 T9: %.% — نظيف (جاهز لـVALIDATE المشغِّل)', t.table_name, cname;
-        END IF;
+        -- لا عدَّ هنا: ADD CONSTRAINT يأخذ ACCESS EXCLUSIVE حتّى COMMIT، ومسحُ كلّ جدولٍ داخل
+        -- المعاملة يُطيل حجب القراءة والكتابة على كلّ ما سبقه (lock_timeout لا يحدّ مدّة الاحتفاظ).
+        -- العدُّ في scripts/migrations/report_not_valid_constraint_violations.py بعد الهجرة،
+        -- وبدورٍ يتخطّى RLS (السكربت يرفض غيره).
+        RAISE NOTICE 'v237 T9: %.% — NOT VALID مُثبَّت؛ العدُّ في تقرير ما بعد الهجرة', t.table_name, cname;
     END LOOP;
 END $$;
 

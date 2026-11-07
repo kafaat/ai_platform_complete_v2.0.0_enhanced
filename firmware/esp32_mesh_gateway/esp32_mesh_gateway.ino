@@ -122,12 +122,16 @@ boolean mqttReconnect() {
 // يمنع أيّ طرف ينشر على الموضوع (أو يحقن على الشبكة) من تشغيل الصمّامات،
 // حتّى مع وسيط MQTT بنصّ صريح. الحمولة المتوقّعة: {"cmd":..,"ts":..,"sig":"<hex>"}
 // حيث sig = HMAC_SHA256(CMD_HMAC_SECRET, cmd + "|" + ts).
-static bool verifyCmdHmac(const char* cmd, const char* ts, const char* sig) {
+// المدّة داخل التوقيع: cmd|ts|duration_ms. البرنامج الثابت يُغلِق بالمدّة (A7)، فمدّةٌ غير
+// موقَّعة كانت تُمدَّد بتعديل الرسالة إلى سقف الأمان دون أن يبطل التوقيع.
+static bool verifyCmdHmac(const char* cmd, const char* ts, unsigned long durationMs,
+                          const char* sig) {
   if (strlen(CMD_HMAC_SECRET) == 0) return false;   // فارغ → رفض (آمن)
   if (cmd == nullptr || ts == nullptr || sig == nullptr) return false;
-  // اِبنِ الرسالة cmd|ts
-  char msg[96];
-  snprintf(msg, sizeof(msg), "%s|%s", cmd, ts);
+  // اِبنِ الرسالة cmd|ts|duration_ms — رسالةٌ مقتطَعة لا تُوقَّع ولا تُقبَل.
+  char msg[160];
+  int n = snprintf(msg, sizeof(msg), "%s|%s|%lu", cmd, ts, durationMs);
+  if (n < 0 || n >= (int)sizeof(msg)) return false;
   // احسب HMAC-SHA256
   uint8_t hmac[32];
   const mbedtls_md_info_t* info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
@@ -182,7 +186,9 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   // A1: ارفض أيّ أمر بلا توقيع HMAC صالح (منع تشغيل الصمّامات بأمر مزوّر)
   const char* ts  = doc["ts"];
   const char* sig = doc["sig"];
-  if (!verifyCmdHmac(cmd, ts, sig)) {
+  // A7: المدّة الموقَّعة وحدها (ملّي ثانية صحيحة من المنصّة، مقرّبة لأعلى بحدٍّ أدنى ١).
+  unsigned long reqMs = doc["payload"]["duration_ms"] | 0UL;
+  if (!verifyCmdHmac(cmd, ts, reqMs, sig)) {
     Serial.println("MQTT cmd مرفوض: توقيع HMAC غير صالح");
     return;
   }
@@ -197,8 +203,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   bool known = true;
   if (strcmp(cmd, "OPEN") == 0 || strcmp(cmd, "ON") == 0) {
     // A7: المدّة المطلوبة تُحترَم (كانت تُتجاهَل)، ولا يُجدِّد OPEN متكرّرٌ مؤقّتَ السقف.
-    double reqSec = doc["payload"]["duration_sec"] | 0.0;
-    valveRequestedMs = reqSec > 0 ? (unsigned long)(reqSec * 1000.0) : 0UL;
+    valveRequestedMs = reqMs;
     if (valveOpenedAt == 0) setRelay(true);  // يفتح + يبدأ مؤقّت الإغلاق التلقائي (fail-safe)
   } else if (strcmp(cmd, "CLOSE") == 0 || strcmp(cmd, "OFF") == 0) {
     setRelay(false);   // يغلق + يلغي المؤقّت

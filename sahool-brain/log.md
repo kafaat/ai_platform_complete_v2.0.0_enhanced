@@ -10475,3 +10475,10 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
   (٣) حارس S5-EXEC-01 أسقط تأجيلَ قطع `online_learning_updates` كما صُمِّم، لأنّ التفويض يمسّ `phase_runtime_store.py`. فنُفِّذ فرعُ القطع الصارم الخامل بنمط `weather.py` (`api/phase_runtime_store.py`)، وأُفرِغ `GATE01_DEFERRED` مع حفظه في `HISTORICAL_GATE01_DEFERRED`. وصار صندوقُ الاختبار يُعامِل التفويضات اللاحقة لـU07 مُستهلَكةً، ويُزيل العلامات من نسخته وحدها.
   (٤) `V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md`: صار «٢١٣ من ٢٣٥» بعد إدراج v237.
   وأُعيد ربط `GATE01-ADJ-2026-11-03-001`، مع استثناءٍ معلَن من «ولا S5» في `reissue_note_ar`. ملاحظة بيئة: `test_repair_brain_journal_history.py::…[symbolic]` يفشل محلّيّاً على git 2.43 وعلى فرعٍ لا يحمل هذه التغييرات، فهو ليس منها.
+- **2026-11-07 — مراجعة Copilot على #1338 (ستّ ملاحظات، أُصلِحت خمسٌ في الفرع واحتُوِيت السادسة بفشلٍ مغلق):**
+  (١) **المدّة غير موقَّعة (أمنيّة):** صار التوقيع `cmd|ts|duration_ms` في `actuator_runtime.py::_build_wire_message` و`esp32_mesh_gateway.ino::verifyCmdHmac`، والجهاز يقرأ `duration_ms` الموقَّعة وحدها. والفجوة `SUP-08-…` صارت جزئيّة.
+  (٢) **المدّة دون الملّي ثانية تُعطِّل المؤقّت:** `_wire_duration_ms` تقرّب لأعلى بحدٍّ أدنى ١.
+  (٣) **v237 T9 يمسح الجداول تحت ACCESS EXCLUSIVE:** حُذِف العدّ من الهجرة. ⇒ `V237-T9-SCANS-UNDER-ACCESS-EXCLUSIVE-01` fixed.
+  (٤) **التقرير «نظيف» كاذباً تحت دورٍ خاضع لـRLS:** صار يرفض بالرمز 3. ⇒ `NOT-VALID-REPORT-READS-CLEAN-UNDER-RLS-ROLE-01` fixed.
+  (٥) و(٦) **الوضع الصارم يُسقِط حقول المراجعة، والخدمة تبتلع التعارض:** `_unproven_learning_update_fields` يرفض الطلب ما لم يُثبِت الردّ المستأجرَ والمعرّفَ و`write` وحكمَ المراجعة. فُتِحت الفجوة `DECISION-SERVICE-LEARNING-UPDATE-CONTRACT-INCOMPLETE-01`.
+  **التحقّق:** على PG16 مبنيّة من MANIFEST الفرع (235/235): اختبارا v237 وRLS الحيّان 19/19، والتقرير بدور التطبيق rc=3 وبالمالك 0 مخالفة/32. وأُعيد ربط `GATE01-ADJ-2026-11-03-001`.

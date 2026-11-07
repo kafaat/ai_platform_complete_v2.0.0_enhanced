@@ -100,6 +100,29 @@ async def _set_rls_tenant(conn: Any, tenant: UUID | None) -> None:
         await conn.execute("SELECT set_config('app.tenant_id', $1, true)", str(tenant))
 
 
+def _unproven_learning_update_fields(result: dict, tenant: str, sent: dict) -> list[str]:
+    """What the service's success reply does not prove about the learning update it stored.
+
+    ``authoritative``/``persisted`` alone are not enough. The local writer upserts on
+    ``(tenant_id, update_id)`` and keeps the agronomic review, but the service inserts with
+    ``ON CONFLICT (update_id) DO NOTHING`` and has no review columns. A reused id, including
+    another tenant's, therefore reports success while nothing changed, and an approved or
+    rejected review is dropped. The cutover is fail-closed: the reply must echo the tenant, the
+    id, an actual write and the review verdict, or the platform refuses the request.
+    """
+    unproven: list[str] = []
+    if str(result.get("tenant_id") or "") != str(tenant):
+        unproven.append("tenant_id")
+    if str(result.get("update_id") or "") != str(sent.get("update_id") or ""):
+        unproven.append("update_id")
+    if result.get("write") not in {"inserted", "updated"}:
+        unproven.append("write")
+    for key in ("review_status", "agronomically_approved"):
+        if key not in result or result.get(key) != sent.get(key):
+            unproven.append(key)
+    return unproven
+
+
 async def _tenant_execute(conn: Any, tenant: UUID | None, query: str, *args: Any) -> str:
     """One write in its own transaction with the tenant bound inside it.
 
@@ -496,6 +519,9 @@ async def persist_phase10_learning_outputs(
                 "recommendation_id": _lin["recommendation_id"],
                 "decision_id": _lin["decision_id"],
                 "evidence_snapshot_id": _lin["evidence_snapshot_id"],
+                "review_status": _lin["review_status"],
+                "agronomically_approved": _lin["agronomically_approved"],
+                "agronomic_review": _lin["review"],
             }
             # S5-EXEC-01 cutover: once decision-service is the SoR, the platform does not
             # write this table at all. Strict mode must get proof of authoritative
@@ -508,6 +534,12 @@ async def persist_phase10_learning_outputs(
                 if not service_result.get("authoritative") or not service_result.get("persisted"):
                     raise RuntimeError(
                         "decision-service did not prove authoritative learning-update persistence"
+                    )
+                unproven = _unproven_learning_update_fields(service_result, tenant, service_payload)
+                if unproven:
+                    raise RuntimeError(
+                        "decision-service did not prove authoritative learning-update persistence"
+                        f" of {', '.join(unproven)}"
                     )
                 service_owns_learning_update = True
         if update and not service_owns_learning_update:

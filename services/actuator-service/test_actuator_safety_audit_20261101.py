@@ -447,7 +447,8 @@ def test_a4_real_publish_carries_the_firmware_command_signed_on_the_wire(real_mq
     topic, msg, qos, retain = _FakeMQTT.published[0]
     assert topic == "sahool/actuator/valve-a/command"
     assert msg["cmd"] == "OPEN"
-    expected = hmac.new(b"s" * 32, f"OPEN|{msg['ts']}".encode(), hashlib.sha256).hexdigest()
+    assert msg["payload"]["duration_ms"] == 600_000
+    expected = hmac.new(b"s" * 32, f"OPEN|{msg['ts']}|600000".encode(), hashlib.sha256).hexdigest()
     assert msg["sig"] == expected, "التوقيع ليس على صيغة السلك التي يتحقّق منها البرنامج الثابت"
     # A7: QoS 1 بلا retain.
     assert (qos, retain) == (1, False)
@@ -625,3 +626,34 @@ def test_compensation_can_close_a_valve_opened_with_the_canonical_vocabulary(act
         inverse = act._inverse_command(opened)
         assert inverse is not None, opened
         assert act._to_firmware_wire(inverse, {})[0] == "CLOSE", (opened, inverse)
+
+
+def test_a7_the_signature_binds_the_duration_so_an_edit_invalidates_it(act):
+    """مدّةٌ مُعدَّلة على الطريق تُبطِل التوقيع (كانت خارجه فتُمدَّد إلى سقف الأمان)."""
+    import json as _json
+
+    short = _json.loads(
+        act._build_wire_message("OPEN", {"duration_sec": 60}, ts="t1", secret="s" * 32)
+    )
+    longer = _json.loads(
+        act._build_wire_message("OPEN", {"duration_sec": 1800}, ts="t1", secret="s" * 32)
+    )
+    assert short["payload"]["duration_ms"] == 60_000
+    assert longer["payload"]["duration_ms"] == 1_800_000
+    assert short["sig"] != longer["sig"]
+
+
+@pytest.mark.parametrize(
+    ("payload", "expected"),
+    [
+        ({"duration_sec": 0.0004}, 1),  # دون الملّي ثانية ⇒ 1 لا 0 (0 يُعطِّل المؤقّت)
+        ({"duration_sec": 0.0011}, 2),  # تقريبٌ لأعلى لا اقتطاع
+        ({"duration_sec": 60}, 60_000),
+        ({}, 0),
+        ({"duration_sec": True}, 0),
+        ({"duration_sec": "60"}, 0),
+        ({"duration_sec": float("nan")}, 0),
+    ],
+)
+def test_a7_wire_duration_is_whole_milliseconds_never_truncated_to_zero(act, payload, expected):
+    assert act._wire_duration_ms(payload) == expected

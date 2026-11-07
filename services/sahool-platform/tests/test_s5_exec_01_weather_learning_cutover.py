@@ -45,3 +45,55 @@ def test_learning_update_cutover_has_service_only_authoritative_branch():
     assert tail.index(
         'assert_platform_may_write_decision_sor("online_learning_updates")'
     ) < tail.index("INSERT INTO online_learning_updates")
+
+
+def _unproven():
+    import sys
+
+    sys.path.insert(0, str(ROOT / "services/sahool-platform"))
+    from api.phase_runtime_store import _unproven_learning_update_fields
+
+    return _unproven_learning_update_fields
+
+
+_SENT = {"update_id": "lu_1", "review_status": "approved", "agronomically_approved": True}
+
+
+def test_todays_service_reply_does_not_prove_the_learning_update_so_strict_mode_refuses():
+    """The decision-service reply as it is today (main.py record_learning_update).
+
+    It carries authoritative/persisted, but no write outcome and no review echo. The service
+    inserts ON CONFLICT (update_id) DO NOTHING and has no review columns, so the cutover must
+    refuse instead of reporting a success that dropped the review or changed nothing.
+    """
+    today = {
+        "accepted": True,
+        "authoritative": True,
+        "persisted": True,
+        "tenant_id": "t1",
+        "update_id": "lu_1",
+        "traceability_status": "traceable",
+    }
+    assert _unproven()(today, "t1", _SENT) == ["write", "review_status", "agronomically_approved"]
+
+
+def test_a_reply_for_another_tenant_or_id_is_not_proof():
+    reply = {
+        "tenant_id": "t2",
+        "update_id": "lu_other",
+        "write": "inserted",
+        "review_status": "approved",
+        "agronomically_approved": True,
+    }
+    assert _unproven()(reply, "t1", _SENT) == ["tenant_id", "update_id"]
+
+
+def test_a_complete_reply_is_accepted():
+    reply = {
+        "tenant_id": "t1",
+        "update_id": "lu_1",
+        "write": "updated",
+        "review_status": "approved",
+        "agronomically_approved": True,
+    }
+    assert _unproven()(reply, "t1", _SENT) == []

@@ -22,13 +22,13 @@
     "services/sahool-platform/api/phase_runtime_workers.py"
   ],
   "allowed_gap_closures": [],
-  "authorized_patch_sha256": "435700ffea1c131f322f8831bf122a9ccdf7ac3ad15e46a48db0b910cd79ce64",
+  "authorized_patch_sha256": "7926a9fe646aa19942dd49071d9c01bc12d716d5b968fcf869d14e6ed37842a1",
   "authorized_blobs": {
     "migrations/MANIFEST.txt": "25253d9a17cd3cdcc7548883c0dcbbb2603f71cb",
     "scripts_v9/run_migrations.sql": "14230ad027ad5426c341d0c6e11e1c3a36a7de0e",
-    "services/actuator-service/actuator_runtime.py": "bb578e8762e9cb18fb44dde119028c0ab0eed2ea",
+    "services/actuator-service/actuator_runtime.py": "972aafd31e8dcd65fc094f40a47126e3ed67496c",
     "services/actuator-service/routers/commands.py": "7614363ae0935ede198f3a8ad181de1c964a2fdd",
-    "services/sahool-platform/api/phase_runtime_store.py": "17351857118ddb05e82cff20837668da9cf70245",
+    "services/sahool-platform/api/phase_runtime_store.py": "cea1f8b30de17dada2ddcef3dc476932b923e466",
     "services/sahool-platform/api/phase_runtime_workers.py": "031f8ebc4b7e43b8517af5e4e80f5907db222b87"
   },
   "bindings": {
@@ -55,5 +55,5 @@
     "guard_binds": "bytes_only",
     "note_ar": "سجلٌّ لقرار المالك في الجلسة، لا توقيعٌ مستقلّ — والقاعدة الحيّة 20645828 تشترط صفر موافقات، فلا جهةَ مستقلّة متاحة؛ وهذا بعينه سببُ التجميد الجذريّ المُشخَّص. `pr` فارغ عند الإصدار؛ يُملأ ويُختَم `CONSUMED` مع `merge_sha` بعد الدمج."
   },
-  "reissue_note_ar": "أُعيد ربطُ البصمات في 2026-11-07 بعد إصلاحات المراجعة المستقلّة (ffdb932a5): ts فريد لكلّ أمر وعكسُ المفردات الكنسيّة في actuator_runtime.py، وإخراجُ نداءات الشبكة من معاملة دفتر الماء في phase_runtime_workers.py — والقرارُ نفسُه (قرار المالك 2026-11-03) لم يتغيّر، والمساراتُ الستّة نفسُها. — **إعادة ربطٍ ثانية (2026-11-07):** حارس S5-EXEC-01 يُسقِط تأجيلَ قطع `online_learning_updates` آليّاً حين يغطّي تفويضٌ `ISSUED` ملفَّ phase_runtime_store.py، ثمّ يفرض علاماتِ العقد. هذا سلوكٌ مصمَّم لا عَرَض. وإخراجُ الملفّ من الفتح ممتنع، لأنّ v237 تحذف ذراعَ «بلا سياق ⇒ اسمح» فتفشل كتاباتُ المخزن بلا ربط GUC داخل المعاملة. فأُضيف فرعُ القطع بنمط weather.py المدموج: في الوضع الصارم وحده تُرسَل الكتابة إلى decision-service ويُشترط `authoritative`+`persisted`، ولا تُكتب محلّيّاً. هذا الفرع خاملٌ ما لم يُضبط `SAHOOL_DECISION_WRITE_MODE=decision_service_sor` وتكتمل بوّاباته، فلا تغيير في الإنتاج ولا تفعيل لنشر مستهلكي S5. وتُعاد البصمة على البايتات الجديدة."
+  "reissue_note_ar": "أُعيد ربطُ البصمات في 2026-11-07 بعد إصلاحات المراجعة المستقلّة (ffdb932a5): ts فريد لكلّ أمر وعكسُ المفردات الكنسيّة في actuator_runtime.py، وإخراجُ نداءات الشبكة من معاملة دفتر الماء في phase_runtime_workers.py — والقرارُ نفسُه (قرار المالك 2026-11-03) لم يتغيّر، والمساراتُ الستّة نفسُها. — **إعادة ربطٍ ثانية (2026-11-07):** حارس S5-EXEC-01 يُسقِط تأجيلَ قطع `online_learning_updates` آليّاً حين يغطّي تفويضٌ `ISSUED` ملفَّ phase_runtime_store.py، ثمّ يفرض علاماتِ العقد. هذا سلوكٌ مصمَّم لا عَرَض. وإخراجُ الملفّ من الفتح ممتنع، لأنّ v237 تحذف ذراعَ «بلا سياق ⇒ اسمح» فتفشل كتاباتُ المخزن بلا ربط GUC داخل المعاملة. فأُضيف فرعُ القطع بنمط weather.py المدموج: في الوضع الصارم وحده تُرسَل الكتابة إلى decision-service ويُشترط `authoritative`+`persisted`، ولا تُكتب محلّيّاً. هذا الفرع خاملٌ ما لم يُضبط `SAHOOL_DECISION_WRITE_MODE=decision_service_sor` وتكتمل بوّاباته، فلا تغيير في الإنتاج ولا تفعيل لنشر مستهلكي S5. وتُعاد البصمة على البايتات الجديدة. — **إعادة ربطٍ ثالثة (2026-11-07، مراجعة Copilot على #1338):** (١) actuator_runtime.py: المدّة داخل توقيع السلك `cmd|ts|duration_ms` بملّي ثانية صحيحة مقرّبة لأعلى (حدٌّ أدنى ١)، لأنّ البرنامج الثابت صار يُغلِق بها (A7). (٢) phase_runtime_store.py: الفرع الصارم الخامل يفشل مغلقاً ما لم يُثبِت ردُّ الخدمة المستأجرَ والمعرّفَ والكتابةَ الفعليّة وحكمَ المراجعة. المسارات الستّة كما هي."
 }

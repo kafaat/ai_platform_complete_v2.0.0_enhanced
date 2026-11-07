@@ -95,7 +95,10 @@ def test_firmware_accepts_platform_sized_commands():
 def test_firmware_honours_requested_duration_and_does_not_renew_the_cap():
     """A7: المدّة المطلوبة تُغلق الصمّام محلّيّاً، وOPEN متكرّر لا يجدّد سقف الأمان."""
     s = _src()
-    assert 'doc["payload"]["duration_sec"]' in s
+    assert 'doc["payload"]["duration_ms"]' in s
+    # المدّة الموقَّعة وحدها تُغلِق: لا قراءة لـduration_sec غير الموقَّعة في الجهاز.
+    assert 'doc["payload"]["duration_sec"]' not in s
+    assert "valveRequestedMs = reqMs;" in s
     assert re.search(r"\(millis\(\)\s*-\s*valveOpenedAt\)\s*>=\s*valveRequestedMs", s)
     assert "if (valveOpenedAt == 0) setRelay(true);" in s
 
@@ -104,3 +107,13 @@ def test_firmware_honours_requested_duration_and_does_not_renew_the_cap():
 def test_firmware_subscribes_to_commands_at_qos1():
     """A7: الاشتراك الافتراضيّ QoS 0 يُسقط الأمر بصمت."""
     assert re.search(r"mqttClient\.subscribe\(cmdTopic\.c_str\(\),\s*1\)", _src())
+
+
+@pytest.mark.unit
+def test_firmware_signature_binds_the_requested_duration():
+    """المدّة داخل الرسالة الموقَّعة: cmd|ts|duration_ms، وتُتحقَّق قبل أيّ تشغيل."""
+    s = _src()
+    assert re.search(r'snprintf\(msg, sizeof\(msg\), "%s\|%s\|%lu", cmd, ts, durationMs\)', s)
+    assert "verifyCmdHmac(cmd, ts, reqMs, sig)" in s
+    # الرسالة المقتطَعة تُرفَض لا تُوقَّع ناقصة.
+    assert "n >= (int)sizeof(msg)) return false;" in s

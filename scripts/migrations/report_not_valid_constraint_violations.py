@@ -178,12 +178,33 @@ def dsn() -> str | None:
     return os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
 
 
+# A role subject to row-level security sees only the rows its policies admit. Since v237 an
+# empty tenant_id matches no tenant, so its count of empty-tenant rows is 0 by construction:
+# a clean report that proves nothing. The report therefore refuses to count under such a
+# role instead of printing that false OK.
+ROLE_SEES_EVERY_ROW_SQL = (
+    "SELECT r.rolsuper OR r.rolbypassrls FROM pg_roles r WHERE r.rolname = current_user"
+)
+EXIT_RLS_FILTERED_ROLE = 3
+
+
+class RlsFilteredRole(RuntimeError):
+    """The connected role is subject to RLS, so violation counts would be filtered."""
+
+
 async def gather_results(url: str) -> list[ConstraintResult]:
     import asyncpg
 
     conn = await asyncpg.connect(url, statement_cache_size=0)
     results: list[ConstraintResult] = []
     try:
+        if not await conn.fetchval(ROLE_SEES_EVERY_ROW_SQL):
+            role = await conn.fetchval("SELECT current_user")
+            raise RlsFilteredRole(
+                f"role {role!r} is neither superuser nor BYPASSRLS: row-level security would "
+                "hide violating rows (an empty tenant_id matches no tenant), so a 0 count "
+                "would be a false clean result. Re-run with an administrative role."
+            )
         for c in CONSTRAINTS:
             res = ConstraintResult(constraint=c)
             reg = await conn.fetchval("SELECT to_regclass($1)", c.table)
@@ -252,6 +273,9 @@ def main() -> int:
     except ModuleNotFoundError as exc:
         print(f"asyncpg not installed: {exc}. Nothing was checked.", file=sys.stderr)
         return 2
+    except RlsFilteredRole as exc:
+        print(f"refused: {exc} Nothing was counted.", file=sys.stderr)
+        return EXIT_RLS_FILTERED_ROLE
     except Exception as exc:  # noqa: BLE001 - connection failures are a no-DB case
         print(
             f"could not connect ({type(exc).__name__}: {exc}). Nothing was checked.",

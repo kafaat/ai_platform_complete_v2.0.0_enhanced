@@ -651,6 +651,21 @@ def _to_firmware_wire(command: str, payload: dict | None) -> tuple[str | None, s
     return wire, "ok"
 
 
+def _wire_duration_ms(payload: dict | None) -> int:
+    """المدّة التي يُغلِق بعدها الجهاز، بالملّي ثانية الصحيحة؛ 0 = لا مدّة (السقف وحده).
+
+    تُقرَّب **لأعلى** وبحدٍّ أدنى ١: مدّةٌ موجبة دون الملّي ثانية كانت تُقتطَع في الجهاز
+    إلى 0، و0 يعني «لا مؤقّت» فيبقى الصمّام مفتوحاً حتّى سقف الأمان (30 دقيقة).
+    """
+    duration = (payload or {}).get("duration_sec")
+    if isinstance(duration, bool) or not isinstance(duration, int | float):
+        return 0
+    seconds = float(duration)
+    if not math.isfinite(seconds) or seconds <= 0:
+        return 0
+    return max(1, math.ceil(seconds * 1000))
+
+
 def _build_wire_message(
     wire_cmd: str,
     payload: dict,
@@ -661,13 +676,22 @@ def _build_wire_message(
 ) -> str:
     """دالّة نقيّة: رسالة MQTT كما يقرؤها البرنامج الثابت.
 
-    التوقيع HMAC(secret, cmd|ts) على **صيغة السلك** (يطابق verifyCmdHmac)، و``ts`` هو مفتاح
-    إزالة التكرار في البرنامج الثابت — فإعادة النشر بنفس ``ts`` تُكتشَف مكرّرة (A5).
+    التوقيع HMAC(secret, cmd|ts|duration_ms) على **صيغة السلك** (يطابق verifyCmdHmac)،
+    و``ts`` هو مفتاح إزالة التكرار في البرنامج الثابت — فإعادة النشر بنفس ``ts`` تُكتشَف
+    مكرّرة (A5). المدّة داخل التوقيع: البرنامج الثابت صار يُغلِق بها (A7)، فمدّةٌ غير موقَّعة
+    كانت تُمدَّد بتعديل الرسالة إلى سقف الأمان دون أن يبطل التوقيع. ويقرأ الجهاز
+    ``duration_ms`` الموقَّعة وحدها، لا ``duration_sec``.
     """
+    duration_ms = _wire_duration_ms(payload)
+    wire_payload = dict(payload or {})
+    if duration_ms:
+        wire_payload["duration_ms"] = duration_ms
     sig = ""
     if secret:
-        sig = hmac.new(secret.encode(), f"{wire_cmd}|{ts}".encode(), hashlib.sha256).hexdigest()
-    body = {"cmd": wire_cmd, "payload": payload, "ts": ts, "sig": sig}
+        sig = hmac.new(
+            secret.encode(), f"{wire_cmd}|{ts}|{duration_ms}".encode(), hashlib.sha256
+        ).hexdigest()
+    body = {"cmd": wire_cmd, "payload": wire_payload, "ts": ts, "sig": sig}
     if command_id:
         body["id"] = command_id
     return json.dumps(body)
@@ -705,7 +729,7 @@ async def send_mqtt_command(
     # A5: إعادة النشر (استرداد) تحمل ts الأصليّ لا ts جديداً، وإلّا لا يكشفها البرنامج الثابت.
     ts = issued_at or datetime.now(UTC).isoformat()
     # A1: وقّع الأمر بـHMAC-SHA256 ليتحقّق منه الـfirmware قبل تحريك الصمّام
-    # (يطابق verifyCmdHmac في esp32_mesh_gateway.ino: HMAC(secret, cmd+"|"+ts)).
+    # (يطابق verifyCmdHmac في esp32_mesh_gateway.ino: HMAC(secret, cmd|ts|duration_ms)).
     message = _build_wire_message(
         wire_cmd,
         payload,
