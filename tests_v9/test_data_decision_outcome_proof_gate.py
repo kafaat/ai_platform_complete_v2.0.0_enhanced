@@ -113,10 +113,7 @@ class ProofGateTests(unittest.TestCase):
 
     def test_all_submitted_is_review_candidate_not_certification(self):
         for stage in self.plan["stages"]:
-            evidence = (
-                self.root
-                / f"certification/evidence/data_decision_outcome/{stage['id']}.txt"
-            )
+            evidence = self.root / f"certification/evidence/data_decision_outcome/{stage['id']}.txt
             evidence.parent.mkdir(parents=True, exist_ok=True)
             evidence.write_text("synthetic", encoding="utf-8")
             stage["e3_state"] = "EVIDENCE_SUBMITTED"
@@ -131,7 +128,6 @@ class ProofGateTests(unittest.TestCase):
         self.assertTrue(result["manifest_valid"])
         self.assertTrue(result["e3_review_candidate"])
         self.assertFalse(result["complete_e3"])
-
 
     def test_manifest_list_root_returns_structured_failure(self):
         candidate = self.root / "root-array.json"
