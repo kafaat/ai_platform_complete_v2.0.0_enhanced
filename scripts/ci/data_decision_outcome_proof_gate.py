@@ -81,11 +81,7 @@ def validate(manifest: dict[str, Any], root: Path) -> dict[str, Any]:
             continue
         sid = str(stage.get("id", "?"))
         paths = stage.get("source_paths")
-        if (
-            not isinstance(paths, list)
-            or not paths
-            or len(paths) != len(set(map(str, paths)))
-        ):
+        if not isinstance(paths, list) or not paths or len(paths) != len(set(map(str, paths))):
             errors.append(f"{sid}:invalid_source_paths")
             paths = []
         for source in paths:
@@ -110,10 +106,9 @@ def validate(manifest: dict[str, Any], root: Path) -> dict[str, Any]:
             else:
                 if receipt.get("result") != ("FAIL" if state == "FAILED" else "PASS"):
                     errors.append(f"{sid}:result_state_mismatch")
-                if (
-                    not isinstance(receipt.get("environment"), str)
-                    or receipt["environment"] not in {"ci", "staging", "field"}
-                ):
+                if not isinstance(receipt.get("environment"), str) or receipt[
+                    "environment"
+                ] not in {"ci", "staging", "field"}:
                     errors.append(f"{sid}:invalid_environment")
                 if not COMMIT_SHA.fullmatch(str(receipt.get("source_commit", ""))):
                     errors.append(f"{sid}:invalid_receipt_source_commit")
@@ -155,9 +150,7 @@ def validate(manifest: dict[str, Any], root: Path) -> dict[str, Any]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--manifest", type=Path, default=None)
     parser.add_argument(
         "--require-e3",
