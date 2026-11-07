@@ -43,3 +43,20 @@ def test_meta_proof_files_are_excluded_from_capability_scanner():
     assert expected <= scanner.META_GOVERNANCE_FILES
     scanned = {p.relative_to(scanner.ROOT).as_posix() for p in scanner.iter_files()}
     assert expected.isdisjoint(scanned)
+
+
+def test_proof_only_files_cannot_link_domain_capabilities():
+    linker_script = ROOT / "scripts/ci/capability_linker.py"
+    linker_spec = importlib.util.spec_from_file_location("capability_linker_proof_exclusion", linker_script)
+    assert linker_spec and linker_spec.loader
+    linker = importlib.util.module_from_spec(linker_spec)
+    linker_spec.loader.exec_module(linker)
+    expected = {
+        "config/proof/data_decision_outcome_v1.json",
+        "docs/strategy/DATA_DECISION_OUTCOME_PROOF_20261107.md",
+        "scripts/ci/data_decision_outcome_proof_gate.py",
+        "tests_v9/test_data_decision_outcome_manifest_binding.py",
+        "tests_v9/test_data_decision_outcome_proof_gate.py",
+    }
+    assert expected <= linker.META_GOVERNANCE_FILES
+    assert expected.isdisjoint(set(linker.discover_files()))
