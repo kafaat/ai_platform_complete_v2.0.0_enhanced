@@ -9,7 +9,14 @@ FROM ${PYTORCH_CUDA_IMAGE}
 WORKDIR /app
 
 # تبعيّات نظام لـrasterio/GDAL + git (لتثبيت sam2 من المصدر) + بناء امتدادات SAM2.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+ARG DEBIAN_MIRROR=
+RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
+        sed -i \
+            -e "s|http://archive.ubuntu.com/ubuntu|${DEBIAN_MIRROR%/}/ubuntu|g" \
+            -e "s|http://security.ubuntu.com/ubuntu|${DEBIAN_MIRROR%/}/ubuntu|g" \
+            /etc/apt/sources.list; \
+    fi \
+    && apt-get update && apt-get install -y --no-install-recommends \
         gdal-bin \
         libgdal-dev \
         git \
@@ -45,8 +52,17 @@ ENV SAM2_BUILD_CUDA=0
 # ضمان توفّر خلفيّة البناء لـ--no-build-isolation (setuptools/wheel/torch حاضرة عادةً
 # في صورة pytorch الأساس؛ نثبّتها صراحةً كتأمين ضدّ صورة قاعدة نحيلة).
 RUN pip install --timeout 300 --retries 10 --no-cache-dir --upgrade "setuptools>=61.0" wheel \
-    && pip install --timeout 300 --retries 10 --no-cache-dir --no-build-isolation \
-        "git+https://github.com/facebookresearch/sam2.git@${SAM2_REF}"
+    && git init /tmp/sam2 \
+    && git -C /tmp/sam2 remote add origin https://github.com/facebookresearch/sam2.git \
+    && for attempt in 1 2 3 4 5; do \
+        git -c http.version=HTTP/1.1 -C /tmp/sam2 fetch --depth 1 origin "${SAM2_REF}" && break; \
+        if [ "${attempt}" -eq 5 ]; then exit 1; fi; \
+        sleep "$((attempt * 5))"; \
+    done \
+    && git -C /tmp/sam2 checkout --detach FETCH_HEAD \
+    && test "$(git -C /tmp/sam2 rev-parse HEAD)" = "${SAM2_REF}" \
+    && pip install --timeout 300 --retries 10 --no-cache-dir --no-build-isolation /tmp/sam2 \
+    && rm -rf /tmp/sam2
 
 # الأوّليّات الأمنيّة المشتركة (stdlib-only) — مقارِنُ توكن الخدمة ثابتُ الزمن بتعريفٍ
 # واحد. غيابُه يُفشِل الاستيراد عند الإقلاع، وذاك المقصود (لا بديلَ صامت).
