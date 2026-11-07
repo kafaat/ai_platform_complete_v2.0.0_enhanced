@@ -41,6 +41,12 @@ def _safe_file(root: Path, path: Any, *, prefix: str | None = None) -> Path:
 
 
 def validate(manifest: dict[str, Any], root: Path) -> dict[str, Any]:
+    if not isinstance(manifest, dict):
+        return {
+            "schema": SCHEMA, "manifest_valid": False, "complete_e3": False,
+            "e3_review_candidate": False, "source_review_only": True,
+            "stages": [], "errors": ["manifest_root_not_object"],
+        }
     errors: list[str] = []
     if manifest.get("schema") != SCHEMA:
         errors.append("invalid_schema")
@@ -72,18 +78,18 @@ def validate(manifest: dict[str, Any], root: Path) -> dict[str, Any]:
         if any(not isinstance(stage.get(k), str) or not stage[k].strip() for k in ("name_ar", "authority", "acceptance")):
             errors.append(f"{sid}:missing_contract")
         state = stage.get("e3_state")
-        if state not in STATES:
+        if not isinstance(state, str) or state not in STATES:
             errors.append(f"{sid}:invalid_e3_state")
         receipt = stage.get("receipt")
         if state == "NOT_RUN" and receipt is not None:
             errors.append(f"{sid}:not_run_has_receipt")
-        if state in {"FAILED", "EVIDENCE_SUBMITTED"}:
+        if isinstance(state, str) and state in {"FAILED", "EVIDENCE_SUBMITTED"}:
             if not isinstance(receipt, dict):
                 errors.append(f"{sid}:missing_receipt")
             else:
                 if receipt.get("result") != ("FAIL" if state == "FAILED" else "PASS"):
                     errors.append(f"{sid}:result_state_mismatch")
-                if receipt.get("environment") not in {"ci", "staging", "field"}:
+                if not isinstance(receipt.get("environment"), str) or receipt["environment"] not in {"ci", "staging", "field"}:
                     errors.append(f"{sid}:invalid_environment")
                 if not COMMIT_SHA.fullmatch(str(receipt.get("source_commit", ""))):
                     errors.append(f"{sid}:invalid_receipt_source_commit")
@@ -117,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         document = json.loads(manifest_path.read_text(encoding="utf-8"))
         report = validate(document, root)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, TypeError, AttributeError) as exc:
         report = {"schema": SCHEMA, "manifest_valid": False, "complete_e3": False, "errors": [f"manifest_error:{type(exc).__name__}"]}
     print(json.dumps(report, ensure_ascii=False, indent=2))
     if not report["manifest_valid"]:
