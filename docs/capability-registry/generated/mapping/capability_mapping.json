@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7022,
+    "files_scanned": 7020,
     "files_by_kind": {
       "backend": 1266,
       "database": 292,
       "governance": 87,
       "mobile": 414,
-      "other": 2147,
-      "tests": 2312,
+      "other": 2146,
+      "tests": 2311,
       "web": 504
     },
-    "unmapped_artifacts": 2784,
+    "unmapped_artifacts": 2785,
     "ambiguous_artifacts": 516
   },
   "capabilities": [
@@ -6372,14 +6372,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_sim_golden.py",
-          "score": 12,
-          "signals": [
-            "content:farm",
-            "content:farms"
-          ]
-        },
-        {
           "path": "mobile/sahool_app/test/features/more/more_screen_test.dart",
           "score": 11,
           "signals": [
@@ -6583,14 +6575,6 @@
           ]
         },
         {
-          "path": "docs/runbooks/SIM_GOLDEN_EVIDENCE_ADMISSION.md",
-          "score": 11,
-          "signals": [
-            "content:farm",
-            "content:farms"
-          ]
-        },
-        {
           "path": "FINAL_PRODUCTION_READINESS_REPORT.md",
           "score": 10,
           "signals": [
@@ -6626,9 +6610,9 @@
         "events": 23,
         "web": 15,
         "mobile": 35,
-        "tests": 47,
+        "tests": 46,
         "governance": 0,
-        "other_evidence": 16
+        "other_evidence": 15
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -9314,7 +9298,7 @@
           ]
         },
         {
-          "path": "tests_v9/test_export_season_runs_for_golden.py",
+          "path": "scripts/simulation/test_export_season_runs_for_golden.py",
           "score": 13,
           "signals": [
             "path:season",
@@ -9524,15 +9508,15 @@
           ]
         },
         {
-          "path": "scripts/simulation/sim_golden.py",
-          "score": 10,
+          "path": "docs/ui/SAHOOL_PRODUCT_MODES_AND_FIELD_OPERATING_CONTRACT.md",
+          "score": 9,
           "signals": [
             "content:crop season",
             "content:season"
           ]
         },
         {
-          "path": "docs/ui/SAHOOL_PRODUCT_MODES_AND_FIELD_OPERATING_CONTRACT.md",
+          "path": "scripts/simulation/sim_golden.py",
           "score": 9,
           "signals": [
             "content:crop season",
@@ -14783,6 +14767,13 @@
           ]
         },
         {
+          "path": "docs/runbooks/MIGRATION_UNFREEZE_V234_V236_20261027.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "scripts/ci/brain_commit_claim_guard.py",
           "score": 20,
           "signals": [
@@ -14810,7 +14801,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 12
+        "other_evidence": 13
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -26229,7 +26220,7 @@
       "evidence_truncated": {
         "backend": 25,
         "events": 58,
-        "tests": 116,
+        "tests": 115,
         "other_evidence": 4
       },
       "evidence_counts": {
@@ -52690,6 +52681,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_sim_golden.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_sim_pcse_flag_and_safety.py",
       "kind": "tests"
     },
@@ -58688,7 +58683,7 @@
         },
         {
           "capability_id": "FM-004",
-          "score": 10,
+          "score": 9,
           "signals": [
             "content:crop season",
             "content:season"

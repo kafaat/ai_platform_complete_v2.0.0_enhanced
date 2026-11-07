@@ -194,7 +194,10 @@ SELECT tgrelid::regclass, tgname, tgenabled FROM pg_trigger
 ```sql
 SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE oid = 'raster_follow_up_requests'::regclass;
 SELECT polname, pg_get_expr(polqual, polrelid) FROM pg_policy WHERE polrelid = 'raster_follow_up_requests'::regclass;
-SELECT has_table_privilege('sahool_app', 'raster_follow_up_requests', 'SELECT,INSERT,UPDATE');
+-- قائمةُ امتيازاتٍ مفصولةٌ بفواصل في has_table_privilege تعني «أيٌّ منها» لا «كلّها»؛ فتُفحَص منفردةً بـAND
+SELECT has_table_privilege('sahool_app', 'raster_follow_up_requests', 'SELECT')
+   AND has_table_privilege('sahool_app', 'raster_follow_up_requests', 'INSERT')
+   AND has_table_privilege('sahool_app', 'raster_follow_up_requests', 'UPDATE');
 -- false ⇒ المنفِّذ ليس صاحب الامتيازات الافتراضيّة؛ منحٌ صريح يحتاج قراراً منفصلاً لا اجتهاداً
 ```
 

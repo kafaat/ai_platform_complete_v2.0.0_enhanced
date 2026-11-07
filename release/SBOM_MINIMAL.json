@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0e81d1f7dd99bcfaaa16bd3724eb60aa30a603d2d974136b0997d290f2947c2"
+          "content": "c176d2ffb5c48cc12267b339946e67336cae9a82784d436b4e8cf9342ebde666"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -16255,7 +16255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aee2bebded7a0831c03ece37c425ff4c93a62927e00d635f10fd15dc5f7beb9d"
+          "content": "f2e9c6a259cbd16d092d112e46d60cec3c0f021d0b7ab060f91d5885c69b61f9"
         }
       ],
       "name": "services/actuator-service/Dockerfile",
@@ -16395,7 +16395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08e43d19081928365ae3acee01b7be272e2951675f090767a0a6fd4f9e8ce4c1"
+          "content": "aa95664bc39cbb8fe0eff12829d96bd4ee9f6e2860619207f0855d319d20a933"
         }
       ],
       "name": "services/agriai-engine/Dockerfile",
@@ -17175,7 +17175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "50beaa40f2504f67b1744e93e129f9c8065f09196f408336c9ab5d7e0db2ab91"
+          "content": "a008c644ec1d6ed0f9c6e26318faaafdba37d95f4dc978126f2d4a4586e628a8"
         }
       ],
       "name": "services/auth/Dockerfile",
@@ -17425,7 +17425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a10f4ea9b3ba9dbfdc55d36da3f1afcb67902bb001c24d41838fb327f10dd81"
+          "content": "e008cb89dbe0ef06261338271d6154118cbd45e95bacada2c4b98238847377f9"
         }
       ],
       "name": "services/decision-service/Dockerfile",
@@ -18675,7 +18675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "91b8ffba0e14212e041b07aaacddf1498b787f28c3d7b00f899e136d4ad91596"
+          "content": "0db98995e66939424e21cde40de4b6969a8d1d767ce924f388ed81e0fab47d0a"
         }
       ],
       "name": "services/edge-inference/Dockerfile.arm64",
@@ -18835,7 +18835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10b89dd496713b9fe5179a0048553269b694dc2346366a5b6ad1644c47a41b0e"
+          "content": "b5a401fe9f5dc7714299a965ce9a8bc104c264cca81fa6218a9e0358dbae68b5"
         }
       ],
       "name": "services/field-management-service/Dockerfile",
@@ -18885,7 +18885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d1e2898bde2cbf2a80fb76360bfdb40939be9c978fd9314dcd6ed18e8b0ec6b2"
+          "content": "faec72525aa53cde598980fc47adeec99bfbf4f8e3e4483cc4f91bfd83f7a833"
         }
       ],
       "name": "services/field-segmentation/Dockerfile",
@@ -19185,7 +19185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a847d047303775664204e21ab18cf75ae6330332217edd8143c3a3e87a7bf68d"
+          "content": "514d1070f7f486f398681bf2df4107d0b0e5b7b4776a854ce664ed449c1a6159"
         }
       ],
       "name": "services/guardrails-engine/Dockerfile",
@@ -19365,7 +19365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79bd0852954a120409600d176cf097031074788c1f63ced55f3f3153f08a402a"
+          "content": "cfed8ed590cc2057041bddcf4138ce2eb8228cf8130b6c658888e9f5bbcc0cb6"
         }
       ],
       "name": "services/indicators-service/Dockerfile",
@@ -19515,7 +19515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "55694cf2237c660c3b5e3b78c5132cd0e247077981a24b5f980bfbbf8a6bb30b"
+          "content": "c11af744ebb0c7dc93417a5b5ccfac90d8f6a11e2e0b2c2e9cf0991b901aff9c"
         }
       ],
       "name": "services/local-ai-rag/Dockerfile",
@@ -19575,7 +19575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4a23c1961c3c9a4594bcd40b7b5b595e03cc7a11ad0ccad0bbbea110fe4f4af"
+          "content": "4bacc89268fe72dca4a95ba60fa83780692bca2aa9f0edda72b6fc82effc9455"
         }
       ],
       "name": "services/mcp_servers/Dockerfile",
@@ -19805,7 +19805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "535cb036c246ee0a158250f96dd850d37d2d70ffec07b774e74e7e022958f038"
+          "content": "7f01b9fb50eab79c7fe89655eb1576876b8d4da02e55702dc1151593b81af0f7"
         }
       ],
       "name": "services/odoo-bridge/Dockerfile",
@@ -19945,7 +19945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5796776a75b75c30591315f99cf67c218367a94f38515b74ac26bc9570ab562"
+          "content": "c681d4236a81cf01221baaa6bbb8538dc0b40634831fcc9749a5a93e7f40ace8"
         }
       ],
       "name": "services/qdrant-seed/Dockerfile",
@@ -20085,7 +20085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e1d59d08bd453009a891f6fc932eb2d54d2728a0d4d6e4646d7035225f3a7ecb"
+          "content": "2a442c2268fa6b7b4a845cfed472e222adf851716ea9d7b40d13b3e9d230b9c7"
         }
       ],
       "name": "services/raster-service/Dockerfile",
@@ -22255,7 +22255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a4826f8670808a943d6801ddc004bcea5850456b211bd931bf74b512ce89efc7"
+          "content": "0a0b245b682a7e87fc4b64bc2df1f01f0ccace11b0e8240b4a79acf27bcc2aa4"
         }
       ],
       "name": "services/raster-tiler-service/Dockerfile",
@@ -22305,7 +22305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "511883a4ddee5658f95882e06232e330c2b6c4e38e882d7529cf0767636453ef"
+          "content": "b10e9f6d7081c73d7934b3c6d52205b79079da8eca8cd57a075dfa4afc72045d"
         }
       ],
       "name": "services/realtime-agent/Dockerfile",
@@ -22645,7 +22645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "505ce900af46fea68bd4bb7c92b4262c2e8ca4ead10a30e1ce7e2c24debe3d1e"
+          "content": "84451829e02901e3de4f1752e1d02d5e12a24280ca2797a04844faa4718b5fc2"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/Dockerfile",
@@ -22695,7 +22695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8922e9d2086dc89ba0c5449aeb786e3b900bd73e9c91f3b50ec0a5a3fa002ec9"
+          "content": "7d024e4ee7d2f5ce0efdb52cb30732abb7605b84ee6c316b198545b574c65a61"
         }
       ],
       "name": "services/sahool-platform/Dockerfile",
@@ -35865,7 +35865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a1eac2dbf08971010a4ad8c4757d23495b44556577d9ffa41c2e5a15ad5707f3"
+          "content": "bea7d16cba1fe48b4f32ff1a7df7bcedbd2ada675bf446bc07170c0d0fb14d5a"
         }
       ],
       "name": "services/sam2-inference/Dockerfile",
@@ -35925,7 +35925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "738e3b6cacecea503e24a961719ddd2c292ad7a556f9cd97e68b2c40214be814"
+          "content": "f414f0faf1e78b99f90d2f777599f8674bff4693e989c1fd53ffd2bc407449cd"
         }
       ],
       "name": "services/scout-ingest-service/Dockerfile",
@@ -36015,7 +36015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8380bc99b25d68d178a5c391437abd9804210bc17e8e2db720f189a6f1787608"
+          "content": "481c61abd78c23ec3a33ee86c71e039b37ed2aa9b8c6eba4b2d9f71093752a10"
         }
       ],
       "name": "services/soil-service/Dockerfile",
@@ -36565,7 +36565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "67caa32fdc01a1a55f147e2557b24c3a3f9ae97cd9c82b0be98a3d70cf498f80"
+          "content": "5a204fbcfd4b78ea87b2c3593f1b7e004c21c0647522349f0609ea5e43387ac4"
         }
       ],
       "name": "services/supervisor-agent/Dockerfile",
@@ -36805,7 +36805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9a47cc7c8a0aaa628ddfbab7392c34e27293b60de230cf1bfd12461f1d5309f7"
+          "content": "bca519a210ca9f0ef3f99bf88dd6c188ddf847fb230ba810a7cfbd4790d4e3de"
         }
       ],
       "name": "services/tts-service/Dockerfile",
@@ -36945,7 +36945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc3ab4976e536a1a2981f2fbb387495a3980cb1bc58cc71d8412f302e6e83336"
+          "content": "29087d2db4dec425d4b8d2f6bd2d008d061687135873d3537eefba8826504d26"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -37415,7 +37415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "39baa5a38f0cf54f0a925c9e86f06e39230fcf01fb75e2e9c2e20b226f52e6b6"
+          "content": "b27efe1330c010536fcc0d3cebf803a8695c2278d7afe9c75a797a1a4d267141"
         }
       ],
       "name": "services/video-processor/Dockerfile",
@@ -37525,7 +37525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0437c909ce45cbbd6e743989541def679bdc3dfbe1a59f1dc807cf8c0e36afd9"
+          "content": "3156392dd529ec1416b8b15346d47c05b9d40a19be31e5eaceae2b1b97a07a23"
         }
       ],
       "name": "services/weather-service/Dockerfile",
