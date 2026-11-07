@@ -15,18 +15,18 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7016,
+    "files_scanned": 7019,
     "files_by_kind": {
       "backend": 1266,
-      "database": 291,
+      "database": 292,
       "governance": 87,
       "mobile": 414,
-      "other": 2144,
-      "tests": 2310,
+      "other": 2145,
+      "tests": 2311,
       "web": 504
     },
     "unmapped_artifacts": 2785,
-    "ambiguous_artifacts": 514
+    "ambiguous_artifacts": 516
   },
   "capabilities": [
     {
@@ -3642,7 +3642,7 @@
       ],
       "events": [
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:738",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:809",
           "score": 12
         },
         {
@@ -4046,6 +4046,14 @@
           ]
         },
         {
+          "path": "migrations/v241_edge_idempotency_tenant_scoped.sql",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "migrations/v87_audit_log_tenant.sql",
           "score": 14,
           "signals": [
@@ -4429,6 +4437,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_v241_edge_idempotency_tenant_scoped.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_v87_audit_tenant.py",
           "score": 14,
           "signals": [
@@ -4651,11 +4667,11 @@
       "evidence_counts": {
         "backend": 16,
         "routes": 2,
-        "database": 27,
+        "database": 28,
         "events": 11,
         "web": 1,
         "mobile": 0,
-        "tests": 35,
+        "tests": 36,
         "governance": 0,
         "other_evidence": 24
       },
@@ -12064,6 +12080,14 @@
           "score": 14
         },
         {
+          "path": "migrations/v241_edge_idempotency_tenant_scoped.sql",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "migrations/v9_edge_idempotency.sql",
           "score": 14,
           "signals": [
@@ -12759,6 +12783,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_v241_edge_idempotency_tenant_scoped.py",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/test/core/idempotency_test.dart",
           "score": 13,
           "signals": [
@@ -13261,11 +13293,11 @@
       "evidence_counts": {
         "backend": 31,
         "routes": 100,
-        "database": 10,
+        "database": 11,
         "events": 63,
         "web": 12,
         "mobile": 4,
-        "tests": 47,
+        "tests": 48,
         "governance": 0,
         "other_evidence": 35
       },
@@ -36208,7 +36240,7 @@
           "score": 15
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:738",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:809",
           "score": 14
         },
         {
@@ -36544,6 +36576,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_water_ledger_auto.py",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "services/weather-service/tests/test_p3_weather_service_runtime.py",
           "score": 12,
           "signals": [
@@ -36652,15 +36693,6 @@
         },
         {
           "path": "services/sahool-platform/tests/test_planting_window.py",
-          "score": 9,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/tests/test_water_ledger_auto.py",
           "score": 9,
           "signals": [
             "content:Weather forecast",
@@ -37891,7 +37923,7 @@
           "score": 12
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:738",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:809",
           "score": 12
         },
         {
@@ -57679,6 +57711,28 @@
       ]
     },
     {
+      "path": "migrations/v241_edge_idempotency_tenant_scoped.sql",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "GIS-003",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
+          "capability_id": "FM-001",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        }
+      ]
+    },
+    {
       "path": "migrations/v39_season_simulation.sql",
       "kind": "database",
       "candidates": [
@@ -63549,7 +63603,7 @@
         },
         {
           "capability_id": "WX-002",
-          "score": 9,
+          "score": 12,
           "signals": [
             "content:Weather forecast",
             "content:forecast",
@@ -65883,6 +65937,28 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_v241_edge_idempotency_tenant_scoped.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "GIS-003",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
+          "capability_id": "FM-001",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
           ]
         }
       ]

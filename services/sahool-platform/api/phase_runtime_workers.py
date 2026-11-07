@@ -537,10 +537,17 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
         return 0
     import datetime as _dt
 
+    # DAILY-WATER-LEDGER-UTC-DATE-VS-ADEN-FORECAST-DAY-01: «اليوم» يوم الحقل المحلّيّ لا يوم UTC.
+    # كان ``date.today()`` (UTC على الخادم) يُقرَن بيوم توقّعاتٍ محلّيّ، فبين منتصف الليل UTC
+    # ومنتصف الليل في عدن يُحسَب ETc والمطر في يومٍ خاطئ أو مرّتين. والريُّ يُجمَع بالتقويم نفسه.
+    from zoneinfo import ZoneInfo
+
     from api.soil_enrichment import extract_texture
     from api.water_ledger_auto import (
         AUTO_CREATED_BY,
         compute_daily_ledger_entry,
+        forecast_day_for_ledger_date,
+        gap_irrigation_by_day,
         manual_entry_takes_precedence,
     )
     from api.water_ledger_inputs import (
@@ -551,216 +558,286 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
     )
     from api.weather_service_client import get_et0_product, get_weather_forecast
 
-    today = _dt.date.today()
+    ledger_tz = os.getenv("WATER_LEDGER_TIMEZONE", "Asia/Aden")
+    today = _dt.datetime.now(ZoneInfo(ledger_tz)).date()
     processed = 0
     async with pool.acquire() as conn:
-        fields = await conn.fetch(
-            """
-            SELECT DISTINCT f.field_id, f.tenant_id, f.lat, f.lon, f.crop AS field_crop, s.season_id,
-                   s.sowing_date, s.cultivar
-            FROM fields f
-            JOIN seasons s ON s.field_id = f.field_id AND s.status = 'active'
-            WHERE f.lat IS NOT NULL AND f.lon IS NOT NULL
-            LIMIT $1
-            """,
-            batch_size,
-        )
-        for row in fields:
-            field_id = row["field_id"]
-            try:
-                # WORKER-TENANT-GUC-SET-OUTSIDE-ANY-TRANSACTION-01: set_config(…, true) يعيش داخل
-                # معاملةٍ فقط؛ بلاها يزول قبل القراءة التالية (صفر صفوف تحت FORCE RLS). ثلاث معاملات
-                # قصيرة لكلّ حقل، كلٌّ يضبط المستأجر: القراءات · القيد · الحدث. الشبكة (الطقس وET0
-                # وجسر القرار) **خارج** أيّ معاملة: لا قفلَ صفٍّ ولا معاملةَ مفتوحة أثناء I/O، والقيد
-                # يُلتزَم قبل الجسر كما كان قبل الإصلاح (فشلُ الجسر لا يُرجِع قيدَ الدفتر).
-                async with conn.transaction():
-                    await _set_tenant(conn, row["tenant_id"])
-                    existing = await conn.fetchrow(
-                        "SELECT created_by FROM water_ledger WHERE field_id=$1 AND ledger_date=$2",
-                        field_id,
-                        today,
+        # DAILY-WATER-LEDGER-FIRST-50-FIELDS-ONLY-01: كان ``LIMIT 50`` بلا ترتيب يُعالج أوّل خمسين
+        # حقلاً كيفما اتّفق، وتبقى البقيّةُ بلا دفترٍ بلا مؤشّر. صار تقسيماً بالمفتاح على ``field_id``
+        # حتّى تُستنفَد الحقول، وموسمٌ نشطٌ واحدٌ لكلّ حقل (الأحدث زراعةً) — موسمان نشطان كانا
+        # يكتبان القيدَ نفسه (field_id, ledger_date) مرّتين.
+        last_field_id = ""
+        while True:
+            fields = await conn.fetch(
+                """
+                SELECT DISTINCT ON (f.field_id)
+                       f.field_id, f.tenant_id, f.lat, f.lon, f.crop AS field_crop, s.season_id,
+                       s.sowing_date, s.cultivar
+                FROM fields f
+                JOIN seasons s ON s.field_id = f.field_id AND s.status = 'active'
+                WHERE f.lat IS NOT NULL AND f.lon IS NOT NULL AND f.field_id > $2
+                ORDER BY f.field_id, s.sowing_date DESC NULLS LAST, s.season_id
+                LIMIT $1
+                """,
+                batch_size,
+                last_field_id,
+            )
+            if not fields:
+                break
+            last_field_id = fields[-1]["field_id"]
+            for row in fields:
+                field_id = row["field_id"]
+                try:
+                    # WORKER-TENANT-GUC-SET-OUTSIDE-ANY-TRANSACTION-01: set_config(…, true) يعيش داخل
+                    # معاملةٍ فقط؛ بلاها يزول قبل القراءة التالية (صفر صفوف تحت FORCE RLS). ثلاث معاملات
+                    # قصيرة لكلّ حقل، كلٌّ يضبط المستأجر: القراءات · القيد · الحدث. الشبكة (الطقس وET0
+                    # وجسر القرار) **خارج** أيّ معاملة: لا قفلَ صفٍّ ولا معاملةَ مفتوحة أثناء I/O، والقيد
+                    # يُلتزَم قبل الجسر كما كان قبل الإصلاح (فشلُ الجسر لا يُرجِع قيدَ الدفتر).
+                    async with conn.transaction():
+                        await _set_tenant(conn, row["tenant_id"])
+                        existing = await conn.fetchrow(
+                            "SELECT created_by FROM water_ledger WHERE field_id=$1 AND ledger_date=$2",
+                            field_id,
+                            today,
+                        )
+                        if existing and manual_entry_takes_precedence(existing["created_by"]):
+                            continue  # الإنسان سيّد الدفتر — لا كتابة فوق قيد يدويّ.
+                        prev = await conn.fetchrow(
+                            "SELECT depletion_mm, ledger_date FROM water_ledger"
+                            " WHERE field_id=$1 AND ledger_date < $2"
+                            " ORDER BY ledger_date DESC LIMIT 1",
+                            field_id,
+                            today,
+                        )
+                        # DAILY-WATER-LEDGER-SKIPPED-DAYS-DROP-CONSUMPTION-01: أيّامٌ بلا قيدٍ بين
+                        # آخر قيدٍ واليوم يُقدَّر استهلاكُها ويُطرَح ريُّها المسجَّل (لا تُسقَط).
+                        # يوماً بيوم (لا مجموعاً): القصُّ بعد كلّ يوم، وريٌّ مجهولٌ في يومٍ متخطّى
+                        # يُعلَن ولا يُعَدّ صفراً (مراجعة Copilot على #1342).
+                        missing_days = 0
+                        gap_irrigation_mm: list[float] = []
+                        gap_unobserved = gap_untracked = False
+                        if prev and prev["ledger_date"] is not None:
+                            missing_days = max((today - prev["ledger_date"]).days - 1, 0)
+                        if missing_days:
+                            gap_rows = await conn.fetch(
+                                "SELECT (started_at AT TIME ZONE $4)::date AS d,"
+                                " COALESCE(SUM(volume_mm), 0) AS mm,"
+                                " COUNT(*) FILTER (WHERE volume_mm IS NULL) AS untracked,"
+                                " COUNT(*) AS runs"
+                                " FROM irrigation_runs"
+                                " WHERE field_id=$1 AND status='completed'"
+                                " AND (started_at AT TIME ZONE $4)::date > $2"
+                                " AND (started_at AT TIME ZONE $4)::date < $3"
+                                " GROUP BY 1",
+                                field_id,
+                                prev["ledger_date"],
+                                today,
+                                ledger_tz,
+                            )
+                            gap_irrigation_mm, gap_unobserved, gap_untracked = (
+                                gap_irrigation_by_day(gap_rows, prev["ledger_date"], today)
+                            )
+                        # نسيج مخبريّ معتمَد إن وُجد ⇒ TAW أدقّ؛ وإلّا fallback مُعلَن المصدر.
+                        soil_row = await conn.fetchrow(
+                            "SELECT result FROM soil_lab_tests"
+                            " WHERE field_id=$1 AND status IN ('approved','published')"
+                            " ORDER BY sampled_on DESC NULLS LAST LIMIT 1",
+                            field_id,
+                        )
+                        texture = extract_texture(soil_row["result"]) if soil_row else None
+                        # Kc الطوريّ من بطاقة المحصول وتاريخ الزراعة — لا Kc منتصف الموسم كلَّ يوم ولا
+                        # احتياطَ القمح. مجهولٌ ⇒ تخطٍّ مُعلَّل (لا قيدَ بمعاملٍ لا يمثّل الحقل).
+                        crop_kc = daily_kc(row["field_crop"], row["sowing_date"], today)
+                        if crop_kc is None:
+                            print(
+                                json.dumps(
+                                    {
+                                        "worker": "water_ledger",
+                                        "field_id": field_id,
+                                        "skipped": "crop_kc_unavailable",
+                                    },
+                                    ensure_ascii=False,
+                                ),
+                                flush=True,
+                            )
+                            continue
+                        irr = await conn.fetchrow(
+                            "SELECT COALESCE(SUM(volume_mm), 0) AS mm,"
+                            " COUNT(*) FILTER (WHERE volume_mm IS NULL) AS untracked,"
+                            " COUNT(*) AS runs"
+                            " FROM irrigation_runs"
+                            " WHERE field_id=$1 AND status='completed'"
+                            " AND (started_at AT TIME ZONE $3)::date = $2",
+                            field_id,
+                            today,
+                            ledger_tz,
+                        )
+
+                    # مدخلات اليوم من خدمة الطقس؛ ET0 يُحسب في المحرّك حصراً (agro/et0) —
+                    # لا نستهلك et0 المزوّد الخام. فشل أيّهما ⇒ تخطٍّ صادق لهذا اليوم.
+                    # يومُ التوقّع الذي تاريخُه يومُ الدفتر لا ``days[0]`` أعمى: المزوّد يسمّي الأيّام
+                    # بمنطقة الحقل، وقد تخالف WATER_LEDGER_TIMEZONE. لا تطابق ⇒ تخطٍّ لا قيدٌ بتاريخٍ خاطئ.
+                    forecast = await get_weather_forecast(
+                        float(row["lat"]), float(row["lon"]), days=2
                     )
-                    if existing and manual_entry_takes_precedence(existing["created_by"]):
-                        continue  # الإنسان سيّد الدفتر — لا كتابة فوق قيد يدويّ.
-                    prev = await conn.fetchrow(
-                        "SELECT depletion_mm FROM water_ledger"
-                        " WHERE field_id=$1 AND ledger_date < $2"
-                        " ORDER BY ledger_date DESC LIMIT 1",
-                        field_id,
-                        today,
-                    )
-                    # نسيج مخبريّ معتمَد إن وُجد ⇒ TAW أدقّ؛ وإلّا fallback مُعلَن المصدر.
-                    soil_row = await conn.fetchrow(
-                        "SELECT result FROM soil_lab_tests"
-                        " WHERE field_id=$1 AND status IN ('approved','published')"
-                        " ORDER BY sampled_on DESC NULLS LAST LIMIT 1",
-                        field_id,
-                    )
-                    texture = extract_texture(soil_row["result"]) if soil_row else None
-                    # Kc الطوريّ من بطاقة المحصول وتاريخ الزراعة — لا Kc منتصف الموسم كلَّ يوم ولا
-                    # احتياطَ القمح. مجهولٌ ⇒ تخطٍّ مُعلَّل (لا قيدَ بمعاملٍ لا يمثّل الحقل).
-                    crop_kc = daily_kc(row["field_crop"], row["sowing_date"], today)
-                    if crop_kc is None:
+                    day0 = forecast_day_for_ledger_date(forecast, today)
+                    if day0 is None:
                         print(
                             json.dumps(
                                 {
                                     "worker": "water_ledger",
                                     "field_id": field_id,
-                                    "skipped": "crop_kc_unavailable",
+                                    "skipped": "forecast_day_not_ledger_date",
+                                    "ledger_date": today.isoformat(),
                                 },
                                 ensure_ascii=False,
                             ),
                             flush=True,
                         )
                         continue
-                    irr = await conn.fetchrow(
-                        "SELECT COALESCE(SUM(volume_mm), 0) AS mm,"
-                        " COUNT(*) FILTER (WHERE volume_mm IS NULL) AS untracked,"
-                        " COUNT(*) AS runs"
-                        " FROM irrigation_runs"
-                        " WHERE field_id=$1 AND status='completed'"
-                        " AND started_at::date = $2",
-                        field_id,
-                        today,
+                    t_max, t_min = day0.get("temp_max_c"), day0.get("temp_min_c")
+                    # ميّز «هطول مقيس = 0» عن «هطول مفقود» — الأخير يُفترَض 0 بإعلان لا صامتاً.
+                    _precip = day0.get("precipitation_mm")
+                    rain_assumed_zero = _precip is None
+                    rain_mm = float(_precip or 0.0)
+                    if t_max is None or t_min is None:
+                        continue
+                    # الرطوبة ومتوسّط الريح (محوَّلاً إلى 2م، FAO-56 Eq. 47) — لا قصوى اليوم.
+                    et0 = await get_et0_product(
+                        t_max_c=float(t_max),
+                        t_min_c=float(t_min),
+                        **et0_weather_inputs(day0),
+                        lat_deg=float(row["lat"]),
+                        day_of_year=today.timetuple().tm_yday,
+                        tenant_id=str(row["tenant_id"]),
                     )
+                    et0_mm = et0.get("et0_mm")
+                    if et0_mm is None:
+                        continue
 
-                # مدخلات اليوم من خدمة الطقس؛ ET0 يُحسب في المحرّك حصراً (agro/et0) —
-                # لا نستهلك et0 المزوّد الخام. فشل أيّهما ⇒ تخطٍّ صادق لهذا اليوم.
-                forecast = await get_weather_forecast(float(row["lat"]), float(row["lon"]), days=1)
-                day0 = (forecast.get("days") or [{}])[0]
-                t_max, t_min = day0.get("temp_max_c"), day0.get("temp_min_c")
-                # ميّز «هطول مقيس = 0» عن «هطول مفقود» — الأخير يُفترَض 0 بإعلان لا صامتاً.
-                _precip = day0.get("precipitation_mm")
-                rain_assumed_zero = _precip is None
-                rain_mm = float(_precip or 0.0)
-                if t_max is None or t_min is None:
-                    continue
-                # الرطوبة ومتوسّط الريح (محوَّلاً إلى 2م، FAO-56 Eq. 47) — لا قصوى اليوم.
-                et0 = await get_et0_product(
-                    t_max_c=float(t_max),
-                    t_min_c=float(t_min),
-                    **et0_weather_inputs(day0),
-                    lat_deg=float(row["lat"]),
-                    day_of_year=today.timetuple().tm_yday,
-                    tenant_id=str(row["tenant_id"]),
-                )
-                et0_mm = et0.get("et0_mm")
-                if et0_mm is None:
-                    continue
+                    # المعاملة الثانية: سياق المستأجر من جديد (كان يزول بانتهاء الأولى)، ثمّ القيدُ وحده.
+                    async with conn.transaction():
+                        await _set_tenant(conn, row["tenant_id"])
+                        kc = crop_kc.kc
+                        zone = await ledger_root_zone(
+                            conn,
+                            tenant_id=str(row["tenant_id"]),
+                            field_id=field_id,
+                            season_id=str(row["season_id"]) if row["season_id"] else None,
+                            crop_kc=crop_kc,
+                            variety=row["cultivar"],
+                            texture=texture,
+                            etc_mm_day=kc * float(et0_mm),
+                        )
+                        entry = compute_daily_ledger_entry(
+                            prev_depletion_mm=(
+                                float(prev["depletion_mm"])
+                                if prev and prev["depletion_mm"] is not None
+                                else None
+                            ),
+                            taw_mm=zone["taw_mm"],
+                            raw_mm=zone["raw_mm"],
+                            et0_mm=float(et0_mm),
+                            kc=kc,
+                            rain_mm=rain_mm,
+                            irrigation_mm=float(irr["mm"] or 0.0),
+                            irrigation_volume_untracked=bool(irr["untracked"]),
+                            irrigation_unobserved=not int(irr["runs"] or 0),
+                            rain_assumed_zero=rain_assumed_zero,
+                            et0_reference_unavailable=not et0_is_reference(et0),
+                            root_zone_texture_fallback=zone["root_zone_texture_fallback"],
+                            depletion_fraction_default=zone["depletion_fraction_default"],
+                            missing_prior_days=missing_days,
+                            missing_days_irrigation_mm=gap_irrigation_mm,
+                            missing_days_irrigation_unobserved=gap_unobserved,
+                            missing_days_irrigation_untracked=gap_untracked,
+                        )
+                        await conn.execute(
+                            """
+                            INSERT INTO water_ledger
+                              (tenant_id, field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm,
+                               irrigation_mm, depletion_mm, deficit_mm, stage, decision,
+                               confidence, created_by, created_at, updated_at)
+                            VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+                                    $13, $14, now(), now())
+                            ON CONFLICT (field_id, ledger_date) DO UPDATE SET
+                              et0_mm = EXCLUDED.et0_mm, kc = EXCLUDED.kc, etc_mm = EXCLUDED.etc_mm,
+                              rain_mm = EXCLUDED.rain_mm, irrigation_mm = EXCLUDED.irrigation_mm,
+                              depletion_mm = EXCLUDED.depletion_mm, deficit_mm = EXCLUDED.deficit_mm,
+                              stage = EXCLUDED.stage, decision = EXCLUDED.decision,
+                              confidence = EXCLUDED.confidence, updated_at = now()
+                            """,
+                            str(row["tenant_id"]),
+                            field_id,
+                            today,
+                            float(et0_mm),
+                            kc,
+                            entry["etc_mm"],
+                            rain_mm,
+                            float(irr["mm"] or 0.0),
+                            entry["depletion_mm"],
+                            entry["deficit_mm"],
+                            crop_kc.stage,
+                            entry["decision"],
+                            entry["confidence"],
+                            AUTO_CREATED_BY,
+                        )
+                        processed += 1
+                    # Governed bridge: candidate creation is deterministic and default-off.
+                    from api.water_decision_bridge import process_water_deficit
 
-                # المعاملة الثانية: سياق المستأجر من جديد (كان يزول بانتهاء الأولى)، ثمّ القيدُ وحده.
-                async with conn.transaction():
-                    await _set_tenant(conn, row["tenant_id"])
-                    kc = crop_kc.kc
-                    zone = await ledger_root_zone(
-                        conn,
+                    bridge_result = await process_water_deficit(
                         tenant_id=str(row["tenant_id"]),
                         field_id=field_id,
                         season_id=str(row["season_id"]) if row["season_id"] else None,
-                        crop_kc=crop_kc,
-                        variety=row["cultivar"],
-                        texture=texture,
-                        etc_mm_day=kc * float(et0_mm),
+                        ledger_date=today,
+                        entry={
+                            **entry,
+                            "taw_mm": zone["taw_mm"],
+                            "raw_mm": zone["raw_mm"],
+                        },
                     )
-                    entry = compute_daily_ledger_entry(
-                        prev_depletion_mm=(
-                            float(prev["depletion_mm"])
-                            if prev and prev["depletion_mm"] is not None
-                            else None
+                    if bridge_result.get("status") not in {"disabled", "below_threshold"}:
+                        async with conn.transaction():
+                            await _set_tenant(conn, row["tenant_id"])
+                            await conn.execute(
+                                """INSERT INTO events
+                                     (event_type, entity_type, entity_id, tenant_id, actor_id, payload,
+                                      dedup_key, source, occurred_at)
+                                   VALUES ($1, 'field', $2::text, $3::uuid, $4, $5::jsonb, $6, 'scheduler', now())
+                                   ON CONFLICT (dedup_key) WHERE dedup_key IS NOT NULL DO NOTHING""",
+                                "decision.water_deficit",
+                                field_id,
+                                str(row["tenant_id"]),
+                                "water-ledger-governed-bridge",
+                                json.dumps(
+                                    {
+                                        **bridge_result,
+                                        "field_id": field_id,
+                                        "season_id": str(row["season_id"])
+                                        if row["season_id"]
+                                        else None,
+                                        "ledger_date": today.isoformat(),
+                                        "deficit_mm": entry["deficit_mm"],
+                                    }
+                                ),
+                                f"water-deficit:{row['tenant_id']}:{field_id}:{today}",
+                            )
+
+                except Exception as exc:  # noqa: BLE001 — تخطٍّ لكلّ حقل مُعلَّل، لا انهيار الدفعة
+                    print(
+                        json.dumps(
+                            {
+                                "worker": "water_ledger",
+                                "field_id": field_id,
+                                "skipped": str(exc)[:200],
+                            },
+                            ensure_ascii=False,
                         ),
-                        taw_mm=zone["taw_mm"],
-                        raw_mm=zone["raw_mm"],
-                        et0_mm=float(et0_mm),
-                        kc=kc,
-                        rain_mm=rain_mm,
-                        irrigation_mm=float(irr["mm"] or 0.0),
-                        irrigation_volume_untracked=bool(irr["untracked"]),
-                        irrigation_unobserved=not int(irr["runs"] or 0),
-                        rain_assumed_zero=rain_assumed_zero,
-                        et0_reference_unavailable=not et0_is_reference(et0),
-                        root_zone_texture_fallback=zone["root_zone_texture_fallback"],
-                        depletion_fraction_default=zone["depletion_fraction_default"],
+                        flush=True,
                     )
-                    await conn.execute(
-                        """
-                        INSERT INTO water_ledger
-                          (tenant_id, field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm,
-                           irrigation_mm, depletion_mm, deficit_mm, stage, decision,
-                           confidence, created_by, created_at, updated_at)
-                        VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-                                $13, $14, now(), now())
-                        ON CONFLICT (field_id, ledger_date) DO UPDATE SET
-                          et0_mm = EXCLUDED.et0_mm, kc = EXCLUDED.kc, etc_mm = EXCLUDED.etc_mm,
-                          rain_mm = EXCLUDED.rain_mm, irrigation_mm = EXCLUDED.irrigation_mm,
-                          depletion_mm = EXCLUDED.depletion_mm, deficit_mm = EXCLUDED.deficit_mm,
-                          stage = EXCLUDED.stage, decision = EXCLUDED.decision,
-                          confidence = EXCLUDED.confidence, updated_at = now()
-                        """,
-                        str(row["tenant_id"]),
-                        field_id,
-                        today,
-                        float(et0_mm),
-                        kc,
-                        entry["etc_mm"],
-                        rain_mm,
-                        float(irr["mm"] or 0.0),
-                        entry["depletion_mm"],
-                        entry["deficit_mm"],
-                        crop_kc.stage,
-                        entry["decision"],
-                        entry["confidence"],
-                        AUTO_CREATED_BY,
-                    )
-                    processed += 1
-                # Governed bridge: candidate creation is deterministic and default-off.
-                from api.water_decision_bridge import process_water_deficit
-
-                bridge_result = await process_water_deficit(
-                    tenant_id=str(row["tenant_id"]),
-                    field_id=field_id,
-                    season_id=str(row["season_id"]) if row["season_id"] else None,
-                    ledger_date=today,
-                    entry={
-                        **entry,
-                        "taw_mm": zone["taw_mm"],
-                        "raw_mm": zone["raw_mm"],
-                    },
-                )
-                if bridge_result.get("status") not in {"disabled", "below_threshold"}:
-                    async with conn.transaction():
-                        await _set_tenant(conn, row["tenant_id"])
-                        await conn.execute(
-                            """INSERT INTO events
-                                 (event_type, entity_type, entity_id, tenant_id, actor_id, payload,
-                                  dedup_key, source, occurred_at)
-                               VALUES ($1, 'field', $2::text, $3::uuid, $4, $5::jsonb, $6, 'scheduler', now())
-                               ON CONFLICT (dedup_key) WHERE dedup_key IS NOT NULL DO NOTHING""",
-                            "decision.water_deficit",
-                            field_id,
-                            str(row["tenant_id"]),
-                            "water-ledger-governed-bridge",
-                            json.dumps(
-                                {
-                                    **bridge_result,
-                                    "field_id": field_id,
-                                    "season_id": str(row["season_id"])
-                                    if row["season_id"]
-                                    else None,
-                                    "ledger_date": today.isoformat(),
-                                    "deficit_mm": entry["deficit_mm"],
-                                }
-                            ),
-                            f"water-deficit:{row['tenant_id']}:{field_id}:{today}",
-                        )
-
-            except Exception as exc:  # noqa: BLE001 — تخطٍّ لكلّ حقل مُعلَّل، لا انهيار الدفعة
-                print(
-                    json.dumps(
-                        {"worker": "water_ledger", "field_id": field_id, "skipped": str(exc)[:200]},
-                        ensure_ascii=False,
-                    ),
-                    flush=True,
-                )
+            if len(fields) < batch_size:
+                break
     return processed
 
 
