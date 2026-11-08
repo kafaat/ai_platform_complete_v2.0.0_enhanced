@@ -19,11 +19,13 @@ from core.season_phenology import crop_kc_profile, resolve_crop_id, stage_kc
 
 from api.canonical_root_zone_profile import resolve_canonical_root_zone_profile
 from api.field_context import _field_weather_context
+from api.irrigation_state_guard import DEFAULT_MAX_LEDGER_AGE_HOURS
 from api.water_ledger_inputs import depletion_fraction, et0_is_reference, et0_weather_inputs
 from api.weather_service_client import get_et0_series, get_weather_forecast
 
 SCHEMA_VERSION = "canonical_water_state.v1"
-MAX_LEDGER_AGE_HOURS = 72.0
+#: Same 72 h ledger age as the irrigation state guard — one constant, imported, not copied.
+MAX_LEDGER_AGE_HOURS = DEFAULT_MAX_LEDGER_AGE_HOURS
 
 
 def _digest(payload: Any) -> str:
