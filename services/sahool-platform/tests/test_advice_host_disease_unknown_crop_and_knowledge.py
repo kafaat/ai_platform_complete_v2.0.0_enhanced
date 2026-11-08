@@ -208,7 +208,8 @@ class TestUnknownCropIsAdvisoryRange:
         assert rec["net_irrigation_mm"] is None
         assert rec["gross_irrigation_mm"] is None
         assert rec["salinity_leaching_mm"] == 0.0
-        assert rec["limitations"] == [CROP_UNKNOWN_LIMITATION]
+        # قيود أخرى (مثل drainage_unknown بلا تقييم صرف) مستقلّة عن المحصول
+        assert CROP_UNKNOWN_LIMITATION in rec["limitations"]
         assert rec["advisory_range_mm"] is not None
 
     def test_recommend_irrigation_known_crop_unchanged(self):
@@ -217,7 +218,7 @@ class TestUnknownCropIsAdvisoryRange:
         )
         assert rec["net_irrigation_mm"] == 6.9
         assert rec["gross_irrigation_mm"] is not None
-        assert rec["limitations"] == []
+        assert CROP_UNKNOWN_LIMITATION not in rec["limitations"]
 
     def test_hub_title_carries_range_not_single_depth(self):
         ctx = RecommendationContext(

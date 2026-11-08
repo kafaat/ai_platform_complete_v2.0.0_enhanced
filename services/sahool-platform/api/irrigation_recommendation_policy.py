@@ -496,11 +496,11 @@ def recommend_irrigation(
         "water_stress_class": water_stress_class,
         "policy_knobs": pp.to_dict(),
         "waterlogging_hold": bool(waterlogging_block),
-        "limitations": limitations,
+        # قيود السياسة (أهليّة الرطوبة/الصرف) + قيود الأساس (محصول مجهول…) بلا تكرار
+        "limitations": list(dict.fromkeys([*limitations, *(base.get("limitations") or [])])),
         "calibrated": False,
         "crop_known": bool(base.get("crop_known", True)),
         "advisory_range_mm": base.get("advisory_range_mm"),
-        "limitations": list(base.get("limitations") or []),
     }
 
 
