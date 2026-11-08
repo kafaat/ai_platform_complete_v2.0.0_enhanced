@@ -3,11 +3,11 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-11-07-002",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner",
   "adjudicated_on": "2026-11-07",
   "expires_on": "2026-12-07",
-  "pr": null,
+  "pr": 1345,
   "one_time": true,
   "phase0_baseline_ref": {
     "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
@@ -55,5 +55,12 @@
     "independently_signed": false,
     "guard_binds": "bytes_only",
     "note_ar": "سجلٌّ لقرار المالك في الجلسة، لا توقيعٌ مستقلّ — والقاعدة الحيّة 20645828 تشترط صفر موافقات، فلا جهةَ مستقلّة متاحة؛ وهذا بعينه سببُ التجميد الجذريّ المُشخَّص. `pr` فارغ عند الإصدار؛ يُملأ ويُختَم `CONSUMED` مع `merge_sha` بعد الدمج."
+  },
+  "consumption": {
+    "merge_sha": "46ac7803a7998f8b7b0e1e265fd9d9545a65c21b",
+    "consumed_on": "2026-11-08",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1345",
+    "verified_blob_count": 5,
+    "note_ar": "خُتم التفويض بعد وصول الدفعة ٣ (#1345) إلى main عند 46ac7803. جرى التحقق من تطابق بصمات Git الخمس المصرّح بها في شجرة هذا الالتزام مع authorized_blobs حرفياً. ختم استعمال لمرّة واحدة، لا فتح عالمي للبوابة ولا إذن بهجرة أو تشغيل عتاد أو تجاوز حارس."
   }
 }

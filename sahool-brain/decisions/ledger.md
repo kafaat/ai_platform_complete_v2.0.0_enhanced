@@ -4656,3 +4656,7 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 **2026-11-07 — صلاحيات Railway للجلسة: كتابةٌ حيّة بترتيب staging ثمّ production.**
 **السبب:** طلب المالك توسعة الصلاحيات («قوم باضافة صلاحيات الكتابة لل railway» ثمّ «وسع الصلاحيات») واختار «Live, staging first» وقراءةَ المتغيّرات كلّها. التدرّجُ يحصر أثرَ أيّ خطأ في staging قبل الإنتاج، وتبقى المحظوراتُ الصريحة (المُهاجِر، `SAHOOL_MIGRATE_APPLY`، الحذف، Railway Agent) نافذةً لأنّها قراراتٌ منفصلة لم تُرفع.
 **المرجع:** إجابات المالك في الجلسة 2026-11-07 · لا SHA (قرار تشغيليّ بلا تغيير شيفرة)؛ سُجّل في `sahool-brain/log.md` مع إعادة بناء الدفعة ٣.
+
+**2026-11-08 — ختم `GATE01-ADJ-2026-11-07-002` بعد دمج #1345.**
+**السبب:** تفويضٌ `ISSUED` هبطت بايتاته يُسقط `gate01-physical-effect-freeze` على كلّ PR (`GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01`)؛ والبصمات الخمس مطابقةٌ لشجرة `46ac7803a`.
+**المرجع:** #1345 · `docs/architecture/gates/adjudications/GATE01-ADJ-2026-11-07-002.json` · فرع `claude/seal-gate01-adj-20261107-002`.
