@@ -8952,6 +8952,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_check_compose_host_ports.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_check_local_env_drift.py",
     "kind": "tests"
   },
