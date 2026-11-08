@@ -17,6 +17,11 @@ import json
 import logging
 
 from core.api_adapter import ApiRequest, handle_recommendation_request
+from core.outcome_reconciler import (
+    OutcomeLabelConflict,
+    recommendation_outcome_write_action,
+    reconcile_recommendation_outcome_labels,
+)
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
@@ -523,6 +528,28 @@ def generate_crop_candidates(
     return generate_candidates(objs, g, top_n=top_n)
 
 
+async def _server_outcome_labels(conn, req: OutcomeRecordRequest) -> dict:
+    """تسميتا التعلّم من التوصية المُخزَّنة (F4): التوقّع يُقرأ منها والنضج يُشتقّ من طوابعها."""
+    stored = None
+    if req.recommendation_id:
+        stored = await conn.fetchrow(
+            "SELECT field_id, crop, recommendation, issued_at, created_at FROM recommendations "
+            "WHERE rec_id = $1 ORDER BY created_at DESC LIMIT 1",
+            req.recommendation_id,
+        )
+    try:
+        return reconcile_recommendation_outcome_labels(
+            stored=dict(stored) if stored is not None else None,
+            client_predicted=req.predicted_yield_t_ha,
+            client_matured=req.matured_within_lag,
+            actual=req.actual_yield_t_ha,
+            crop=req.crop,
+            field_id=req.field_id,
+        )
+    except OutcomeLabelConflict as e:
+        raise HTTPException(status_code=422, detail=e.detail) from e
+
+
 @router.post("/api/v1/recommendations/outcomes", status_code=201)
 async def record_recommendation_outcome(
     req: OutcomeRecordRequest,
@@ -589,6 +616,54 @@ async def record_recommendation_outcome(
 
             async def _work():
                 assert_platform_may_write_decision_sor("recommendation_outcomes")
+                labels = await _server_outcome_labels(conn, req)
+                service_payload["metadata"].update(labels)
+                pred, matured = labels["predicted_yield_t_ha"], labels["matured_within_lag"]
+                if req.recommendation_id:
+                    # (المستأجِر، recommendation_id) ⇒ صفٌّ واحد: الإعادة لا تُضاعف العيّنة (F4).
+                    await conn.execute(
+                        "SELECT pg_advisory_xact_lock(hashtext($1))",
+                        f"reco-outcome:{user.tenant_id}:{req.recommendation_id}",
+                    )
+                    existing = await conn.fetchrow(
+                        "SELECT outcome_id, actual_yield_t_ha FROM recommendation_outcomes "
+                        "WHERE tenant_id = $1::uuid AND recommendation_id = $2 "
+                        "ORDER BY outcome_id LIMIT 1",
+                        str(user.tenant_id),
+                        req.recommendation_id,
+                    )
+                    action = recommendation_outcome_write_action(
+                        dict(existing) if existing else None,
+                        actual_yield_t_ha=req.actual_yield_t_ha,
+                    )
+                    if action == "conflict":
+                        raise HTTPException(status_code=409, detail="outcome_already_recorded")
+                    if action == "replay":
+                        return {
+                            "outcome_id": existing["outcome_id"],
+                            "recorded": True,
+                            "replayed": True,
+                            **labels,
+                        }
+                    if action == "complete":
+                        await conn.execute(
+                            """UPDATE recommendation_outcomes
+                               SET actual_yield_t_ha = $2, predicted_yield_t_ha = $3,
+                                   accepted = $4, matured_within_lag = $5,
+                                   outcome_recorded_at = now()
+                               WHERE outcome_id = $1""",
+                            existing["outcome_id"],
+                            req.actual_yield_t_ha,
+                            pred,
+                            req.accepted,
+                            matured,
+                        )
+                        return {
+                            "outcome_id": existing["outcome_id"],
+                            "recorded": True,
+                            "completed_pending": True,
+                            **labels,
+                        }
                 row = await conn.fetchrow(
                     """INSERT INTO recommendation_outcomes
                            (tenant_id, field_id, farm_id, season_id, crop, recommendation_id,
@@ -603,12 +678,12 @@ async def record_recommendation_outcome(
                     req.season_id,
                     req.crop,
                     req.recommendation_id,
-                    req.predicted_yield_t_ha,
+                    pred,
                     req.actual_yield_t_ha,
                     req.accepted,
-                    req.matured_within_lag,
+                    matured,
                 )
-                return {"outcome_id": row["outcome_id"], "recorded": True}
+                return {"outcome_id": row["outcome_id"], "recorded": True, **labels}
 
             if idem:
                 result = await _idempotent(

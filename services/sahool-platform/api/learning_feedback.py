@@ -132,6 +132,65 @@ def _stable_digest(payload: dict) -> str:
     ).hexdigest()
 
 
+_UNIT_COLUMNS = frozenset({"farm_id", "season_id"})
+
+
+def independent_outcome_units(outcomes: list[dict], *, field_id: str, season_id: str) -> set:
+    """وحداتُ التكرار المستقلّة: (المزرعة، الموسم) المتمايزة — لا الصفوف (F5).
+
+    صفٌّ بلا ``farm_id`` يُنسَب إلى حقله (``field:<id>``) فلا يُختلَق استقلالٌ من فراغ، ولا
+    يُحتسَب كلُّ صفٍّ فارغٍ وحدةً منفصلة.
+    """
+    return {
+        (
+            str(o.get("farm_id") or f"field:{field_id}"),
+            str(o.get("season_id") or season_id),
+        )
+        for o in outcomes
+    }
+
+
+# ── مراجعة المرشَّحات (F7) ─────────────────────────────────────────────────────────
+# جدولا المرشَّحات (governed_model_promotion_candidates · irrigation_learning_proposals) يقبلان
+# approved/rejected مع reviewed_by فارغ على مستوى المخطّط. لا مسارَ يكتب الحالتين اليوم؛ أيُّ
+# كاتبٍ لاحق يمرّ بهذه البوّابة النقيّة فلا تُعتمَد مرشَّحةٌ بلا مراجِع وزمن.
+CANDIDATE_REVIEW_TERMINAL = frozenset({"approved", "rejected"})
+_CANDIDATE_REVIEW_FROM = {
+    "approved": frozenset({"review_ready"}),
+    "rejected": frozenset({"review_ready", "monitor", "blocked"}),
+}
+
+
+def learning_candidate_review_transition(
+    current_status: str,
+    new_status: str,
+    *,
+    reviewed_by: str | None,
+    reviewed_at=None,
+) -> dict:
+    """يتحقّق من انتقال مراجعة مرشَّح تعلّم ويُعيد الأعمدة الواجب كتابتها معاً.
+
+    approved/rejected ⇒ ``reviewed_by`` غير فارغ إلزاميّاً و``reviewed_at`` (الآن إن غاب)؛
+    الاعتمادُ من ``review_ready`` فقط؛ الحالةُ النهائيّة لا تُراجَع ثانيةً. يرفع ``ValueError``.
+    """
+    from datetime import UTC, datetime
+
+    if new_status not in CANDIDATE_REVIEW_TERMINAL:
+        raise ValueError(f"UNSUPPORTED_REVIEW_STATUS:{new_status}")
+    if current_status in CANDIDATE_REVIEW_TERMINAL:
+        raise ValueError(f"CANDIDATE_ALREADY_REVIEWED:{current_status}")
+    if current_status not in _CANDIDATE_REVIEW_FROM[new_status]:
+        raise ValueError(f"INVALID_REVIEW_TRANSITION:{current_status}->{new_status}")
+    reviewer = (reviewed_by or "").strip() if isinstance(reviewed_by, str) else ""
+    if not reviewer:
+        raise ValueError("REVIEWER_REQUIRED")
+    return {
+        "status": new_status,
+        "reviewed_by": reviewer,
+        "reviewed_at": reviewed_at or datetime.now(UTC),
+    }
+
+
 async def process_season_closed_event(
     conn,
     *,
@@ -180,7 +239,8 @@ async def process_season_closed_event(
     # الترتيبُ بأعمدة الجدول الفعليّة (v49: outcome_id/issued_at/outcome_recorded_at) — كان
     # `created_at,id` فيفشل كلُّ إغلاق موسم بعمود غير معرَّف قبل أيّ إدامة (Copilot على #1001).
     rows = await conn.fetch(
-        """SELECT recommendation_id,predicted_yield_t_ha,actual_yield_t_ha,accepted,matured_within_lag
+        """SELECT recommendation_id,predicted_yield_t_ha,actual_yield_t_ha,accepted,matured_within_lag,
+                  farm_id,season_id
            FROM recommendation_outcomes
            WHERE field_id=$1 AND season_id=$2
            ORDER BY COALESCE(outcome_recorded_at, issued_at),outcome_id""",
@@ -188,7 +248,11 @@ async def process_season_closed_event(
         season_id,
     )
     outcomes = [dict(row) for row in rows]
-    source_digests = sorted(_stable_digest(item) for item in outcomes)
+    # البصمةُ على أعمدة الدليل وحدها (وحدةُ التكرار تُقرأ للعدّ لا للبصمة) — تبقى ثابتةً للإعادة.
+    source_digests = sorted(
+        _stable_digest({k: v for k, v in item.items() if k not in _UNIT_COLUMNS})
+        for item in outcomes
+    )
     # U02 (التدقيق الموحَّد 2026-09-13): سياسةُ الأهليّة نفسها التي يستعملها الموحِّد —
     # قيمةٌ فعليّة مبكّرة قبل النضج أو غير منتهية لا تدخل حساب MAE ولا تعدّ نحو الحدّ
     # الأدنى. دراسةُ دقّة التوقّع لا تشترط قبولَ التوصية (رفضُ المزارع لا يمحو حصاده).
@@ -206,13 +270,23 @@ async def process_season_closed_event(
     errors = [float(o["actual_yield_t_ha"]) - float(o["predicted_yield_t_ha"]) for o in paired]
     mae = None if not errors else round(sum(abs(v) for v in errors) / len(errors), 6)
     bias = None if not errors else round(sum(errors) / len(errors), 6)
-    enough = len(paired) >= minimum_outcomes
+    # F5 (pseudo-replication): صفوفُ حقلٍ-موسمٍ واحد ليست عيّناتٍ مستقلّة. الحدُّ الأدنى يُقاس
+    # بوحدات (المزرعة، الموسم) المتمايزة لا بعدد الصفوف — ثلاثُ نتائج لموسمٍ واحد وحدةٌ واحدة.
+    units = independent_outcome_units(paired, field_id=field_id, season_id=season_id)
+    enough = len(units) >= minimum_outcomes
+    limitations = []
+    if len(paired) < minimum_outcomes:
+        limitations.append("MINIMUM_VERIFIED_OUTCOMES_NOT_MET")
+    if not enough:
+        limitations.append("MINIMUM_INDEPENDENT_UNITS_NOT_MET")
     evaluation = {
         "field_id": field_id,
         "season_id": season_id,
         "outcome_count": len(paired),
         "excluded_count": len(outcomes) - len(paired),
         "excluded_reasons": excluded_reasons,
+        "independent_units": len(units),
+        "unit_basis": "distinct (farm_id, season_id)",
         "minimum_outcomes": minimum_outcomes,
         **(
             {"minimum_outcomes_requested": requested_minimum}
@@ -222,7 +296,7 @@ async def process_season_closed_event(
         "mae_t_ha": mae,
         "bias_t_ha": bias,
         "status": "review_ready" if enough else "blocked",
-        "limitations": [] if enough else ["MINIMUM_VERIFIED_OUTCOMES_NOT_MET"],
+        "limitations": limitations,
         "source_digests": source_digests,
     }
     learning_digest = _stable_digest(evaluation)

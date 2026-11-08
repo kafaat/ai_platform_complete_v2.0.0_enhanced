@@ -26,6 +26,7 @@ import logging
 import os
 import uuid as _uuid
 
+from core.outcome_reconciler import OutcomeLabelConflict, reconcile_planned_with_decision
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -465,7 +466,8 @@ async def record_outcome(
     ثانية (ON CONFLICT) — فلا يتضخّم sample_count الذي يحرس عتبة field_verified (سلامة
     حلقة التعلّم). الإعادة تُعيد القياس القائم (replayed=true) بلا حدث جديد.
     """
-    metrics = measure_outcome(req.planned.model_dump(), req.actual.model_dump())
+    planned = req.planned.model_dump()
+    metrics = measure_outcome(planned, req.actual.model_dump())
     success = _derive_success(metrics["metrics"])
     did = ensure_decision_id(req.decision_id)
     outcome_id = "out_" + _uuid.uuid4().hex[:16]
@@ -509,6 +511,24 @@ async def record_outcome(
     try:
         async with tenant_connection(user) as conn:
             assert_platform_may_write_decision_sor("outcome_record")
+            if req.decision_id:
+                # F4: «المُخطَّط» تسميةُ تعلّم — يُقرأ من القرار المُدام، ومخالفةُ العميل له 422.
+                stored = await conn.fetchrow(
+                    "SELECT field_id, decision_value FROM decision_record WHERE decision_id = $1",
+                    did,
+                )
+                try:
+                    planned, planned_sources = reconcile_planned_with_decision(
+                        stored=dict(stored) if stored is not None else None,
+                        client_planned=planned,
+                        field_id=req.field_id,
+                    )
+                except OutcomeLabelConflict as e:
+                    raise HTTPException(status_code=422, detail=e.detail) from e
+                metrics = measure_outcome(planned, req.actual.model_dump())
+                success = _derive_success(metrics["metrics"])
+                service_payload.update(planned=planned, metrics=metrics, success=success)
+                service_payload["planned_sources"] = planned_sources
             inserted = await conn.fetchval(
                 """INSERT INTO outcome_record
                     (outcome_id, tenant_id, decision_id, field_id, region,
@@ -525,7 +545,7 @@ async def record_outcome(
                 req.field_id,
                 req.region,
                 lineage["stage"],
-                _json.dumps(req.planned.model_dump()),
+                _json.dumps(planned),
                 _json.dumps(req.actual.model_dump()),
                 _json.dumps(metrics),
                 success,
@@ -559,6 +579,8 @@ async def record_outcome(
                 {"decision_id": did, "field_id": req.field_id, "success": success},
                 critical=True,  # نتيجة القرار (سلسلة النَّسَب) — fail-closed
             )
+    except HTTPException:
+        raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("إدامة نتيجة القرار", e) from e
 
@@ -579,6 +601,7 @@ async def record_outcome(
         "authoritative_store": "sahool-platform",
         "replayed": False,
         "recorded_by": str(user.user_id),
+        "planned_sources": service_payload.get("planned_sources"),
     }
 
 
