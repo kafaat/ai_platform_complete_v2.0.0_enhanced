@@ -650,6 +650,13 @@ jobs:
                 echo "✓ $f valid" ;;
             esac
           done
+      - name: Validate effective GPU reservations
+        run: |
+          set -eo pipefail
+          docker compose --env-file .ci.env -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml \
+            --profile gpu --profile vllm config --format json |
+            jq -e '.services | [.["sahool-edge", "sahool-video-processor", "sahool-sam2-inference", "sahool-vllm-jais"]
+              .deploy.resources.reservations.devices | map(select(.driver == "nvidia" and (.capabilities | index("gpu")))) | length] == [1,1,1,1]'
       - name: Check for orphaned depends_on blocks
         run: |
           # Defensive: catch the "nats: { condition... }" outside services pattern

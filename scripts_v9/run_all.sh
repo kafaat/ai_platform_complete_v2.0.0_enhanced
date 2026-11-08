@@ -26,55 +26,23 @@ log_err()  { echo -e "${RED}[ERROR]${NC} $1"; }
 check_deps() {
     log_info "Checking dependencies..."
     command -v docker >/dev/null 2>&1 || { log_err "Docker not installed"; exit 1; }
-    command -v docker compose >/dev/null 2>&1 || { log_err "docker compose not installed"; exit 1; }
+    docker compose version >/dev/null || { log_err "Docker Compose v2 is unavailable"; exit 1; }
     log_ok "Docker + docker compose found"
 }
 
-# ─── Generate .env if missing ──────────────────────────────
-generate_env() {
-    if [[ -f "$ENV_FILE" ]]; then
-        log_ok ".env exists"
-        return
+require_env() {
+    if [[ ! -f "$ENV_FILE" ]]; then
+        log_err "Configure .env from .env.example as described in docs/runbooks/LOCAL_ENVIRONMENT_RUNBOOK.md"
+        exit 1
     fi
-    log_warn ".env not found -- generating from template"
-    cat > "$ENV_FILE" << 'EOF'
-# SAHOOL v9.0 -- Environment Configuration
-# ⚠️ CHANGE ALL SECRETS BEFORE PRODUCTION
+}
 
-# Database
-POSTGRES_PASSWORD=<set-in-secret-manager>
-DB_PASSWORD=sahool_secure_db_2026_change_me
-
-# JWT
-JWT_SECRET=<set-in-secret-manager>
-
-# MinIO
-MINIO_ROOT_USER=sahool
-MINIO_ROOT_PASSWORD=<set-in-secret-manager>
-
-# Sentinel Hub (Copernicus Data Space)
-SH_CLIENT_ID=your_sentinel_hub_client_id
-SH_CLIENT_SECRET=<set-in-secret-manager>
-SH_INSTANCE_ID=your_instance_id
-
-# SAHOOL Agent
-SAHOOL_AGENT_TOKEN=<set-in-secret-manager>
-EDGE_SYNC_TOKEN=edge_sync_token_change_me_64chars
-
-# Telegram Bot
-TELEGRAM_BOT_TOKEN=<set-in-secret-manager>
-
-# Grafana
-GRAFANA_PASSWORD=<set-in-secret-manager>
-
-# Mapbox (optional, for fallback maps)
-MAPBOX_TOKEN=your_mapbox_token
-
-# Edge Device
-EDGE_DEVICE=rpi5
-OFFLINE_MODE=false
-EOF
-    log_warn "Generated .env -- EDIT SECRETS BEFORE RUNNING!"
+# Compose interpolates its build arguments even for runtime commands.
+project_compose() {
+    local sha
+    sha="$(git -C "$PROJECT_DIR" rev-parse --verify HEAD)"
+    TESTED_SHA="$sha" SAHOOL_BUILD_ID="${SAHOOL_BUILD_ID:-local-${sha:0:12}}" \
+        docker compose -f "$COMPOSE_FILE" "$@"
 }
 
 # ─── Health Check ──────────────────────────────────────────
@@ -137,14 +105,16 @@ health_check() {
 
 # ─── Start Services ────────────────────────────────────────
 cmd_up() {
-    check_deps
-    generate_env
+    cmd_build
     log_info "Starting SAHOOL v9.0..."
     cd "$PROJECT_DIR"
-    docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --build
+    project_compose --env-file "$ENV_FILE" up -d --no-build
     log_info "Waiting for services to initialize (30s)..."
     sleep 30
-    health_check || true
+    if ! health_check; then
+        log_warn "Compose started the services; some host health probes did not pass."
+        return 0
+    fi
     log_ok "SAHOOL v9.0 is running!"
     echo ""
     echo "  Dashboard:    http://localhost:3001 (Grafana)"
@@ -164,7 +134,7 @@ cmd_up() {
 cmd_down() {
     log_info "Stopping SAHOOL v9.0..."
     cd "$PROJECT_DIR"
-    docker compose -f "$COMPOSE_FILE" down --remove-orphans
+    project_compose down --remove-orphans
     log_ok "All services stopped"
 }
 
@@ -173,9 +143,9 @@ cmd_logs() {
     local svc="${2:-}"
     cd "$PROJECT_DIR"
     if [[ -n "$svc" ]]; then
-        docker compose -f "$COMPOSE_FILE" logs -f "$svc"
+        project_compose logs -f "$svc"
     else
-        docker compose -f "$COMPOSE_FILE" logs -f --tail=100
+        project_compose logs -f --tail=100
     fi
 }
 
@@ -193,9 +163,11 @@ cmd_test() {
 
 # ─── Build Images ──────────────────────────────────────────
 cmd_build() {
+    require_env
+    check_deps
     log_info "Building all Docker images..."
     cd "$PROJECT_DIR"
-    docker compose -f "$COMPOSE_FILE" build --parallel
+    bash scripts/build-immutable.sh
     log_ok "Build complete"
 }
 
@@ -208,8 +180,7 @@ cmd_reset() {
         exit 0
     fi
     cd "$PROJECT_DIR"
-    docker compose -f "$COMPOSE_FILE" down -v --remove-orphans
-    docker volume prune -f
+    project_compose down -v --remove-orphans
     log_ok "All data reset. Run './run_all.sh up' to restart."
 }
 

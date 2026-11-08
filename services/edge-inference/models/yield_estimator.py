@@ -9,6 +9,7 @@ import logging
 import os
 
 import numpy as np
+from models import onnx_providers
 from models.errors import ModelNotProvisioned
 from models.image_decode import decode_rgb
 
@@ -21,8 +22,8 @@ logger = logging.getLogger(__name__)
 # dormant and falls back to the existing rule-based heuristic estimate, unchanged.
 YIELD_MODEL_ENV = "YIELD_MODEL_PATH"
 
-# Cache of loaded ONNX sessions keyed by resolved model path (one session per file).
-_ONNX_SESSION_CACHE: dict[str, object] = {}
+# Cache model sessions separately for CPU and CUDA device selection.
+_ONNX_SESSION_CACHE: dict[tuple[str, str], object] = {}
 
 
 def _ml_yield_model_path(fallback_path: str | None = None) -> str | None:
@@ -53,7 +54,9 @@ def _load_onnx_session(model_path: str, device: str):
     onnxruntime is intentionally an OPTIONAL dependency: if the import fails the
     capability is treated as dormant and the caller falls back to the rule-based path.
     """
-    cached = _ONNX_SESSION_CACHE.get(model_path)
+    providers = onnx_providers(device)
+    key = model_path, providers[0]
+    cached = _ONNX_SESSION_CACHE.get(key)
     if cached is not None:
         return cached
     try:
@@ -64,9 +67,6 @@ def _load_onnx_session(model_path: str, device: str):
             "falling back to rule-based estimation."
         )
         return None
-    providers = ["CPUExecutionProvider"]
-    if device == "jetson_orin":
-        providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
     # نموذج تالف / provider غير متاح ⇒ خامل بصدق (سقوط للمسار القاعديّ، لا كسر طلب)
     try:
         session = ort.InferenceSession(model_path, providers=providers)
@@ -77,7 +77,7 @@ def _load_onnx_session(model_path: str, device: str):
             e,
         )
         return None
-    _ONNX_SESSION_CACHE[model_path] = session
+    _ONNX_SESSION_CACHE[key] = session
     return session
 
 
@@ -113,11 +113,9 @@ class EdgeYieldEstimator:
             try:
                 import onnxruntime as ort
 
-                providers = ["CPUExecutionProvider"]
-                if self.device == "jetson_orin":
-                    providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
-
-                self.session = ort.InferenceSession(self.model_path, providers=providers)
+                self.session = ort.InferenceSession(
+                    self.model_path, providers=onnx_providers(self.device)
+                )
                 self.input_name = self.session.get_inputs()[0].name
             except ImportError:
                 self.session = None

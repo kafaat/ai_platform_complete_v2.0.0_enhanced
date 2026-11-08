@@ -20,7 +20,6 @@ _RASTER = Path(__file__).resolve().parent.parent / "services" / "raster-service"
 
 
 def _load_stac_client():
-    sys.modules.setdefault("redis", types.ModuleType("redis"))
     spec = importlib.util.spec_from_file_location(
         "sahool_stac_client_sf", _RASTER / "stac_client.py"
     )
@@ -28,6 +27,19 @@ def _load_stac_client():
     assert spec.loader is not None
     spec.loader.exec_module(mod)
     return mod
+
+
+@pytest.mark.parametrize("existing", [None, types.ModuleType("redis")], ids=["absent", "loaded"])
+def test_stac_loader_preserves_the_redis_import_registry(monkeypatch, existing):
+    if existing is None:
+        monkeypatch.delitem(sys.modules, "redis", raising=False)
+    else:
+        monkeypatch.setitem(sys.modules, "redis", existing)
+
+    _load_stac_client()
+
+    assert ("redis" in sys.modules) == (existing is not None)
+    assert sys.modules.get("redis") is existing
 
 
 def test_concurrent_identical_searches_hit_upstream_once(monkeypatch) -> None:
