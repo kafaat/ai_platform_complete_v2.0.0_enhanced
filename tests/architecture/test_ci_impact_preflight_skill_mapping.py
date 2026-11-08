@@ -32,13 +32,12 @@ def test_skill_files_are_scanned_and_counted_without_hidden_exclusion():
     for path in SKILL_FILES:
         assert path in paths
         assert engine.classify(path) == "other"
-    output = json.loads(
-        (engine.OUT / "capability_mapping.json").read_text(encoding="utf-8")
-    )
-    assert output["summary"]["files_scanned"] == len(paths)
-    assert output["summary"]["files_by_kind"]["other"] == sum(
-        engine.classify(path) == "other" for path in paths
-    )
+    output_path = engine.OUT / "capability_mapping.json"
+    output = json.loads(output_path.read_text(encoding="utf-8"))
+    summary = output["summary"]
+    assert summary["files_scanned"] == len(paths)
+    other_count = sum(engine.classify(path) == "other" for path in paths)
+    assert summary["files_by_kind"]["other"] == other_count
 
 
 def test_pilot_skill_documentation_is_not_promoted_to_domain_implementation():
