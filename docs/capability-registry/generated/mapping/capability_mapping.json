@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7039,
+    "files_scanned": 7040,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 87,
       "mobile": 414,
       "other": 2151,
-      "tests": 2321,
+      "tests": 2322,
       "web": 504
     },
-    "unmapped_artifacts": 2790,
+    "unmapped_artifacts": 2791,
     "ambiguous_artifacts": 518
   },
   "capabilities": [
@@ -51381,6 +51381,10 @@
     },
     {
       "path": "tests_v9/test_edge_model_digest_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_edge_onnx_providers.py",
       "kind": "tests"
     },
     {

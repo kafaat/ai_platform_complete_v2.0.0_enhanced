@@ -24,6 +24,8 @@ import ast
 import json
 import os
 import re
+import shlex
+from pathlib import Path
 
 import pytest
 
@@ -79,13 +81,91 @@ def _service_dirs():
             yield s, d
 
 
+def _read_requirements(path: Path, parents: tuple[Path, ...] = ()) -> str:
+    path = path.resolve()
+    if path in parents:
+        raise ValueError(f"Cyclic requirements include: {path}")
+    content = path.read_text(encoding="utf-8")
+    parts = [content]
+    for line in content.splitlines():
+        include = re.match(r"^\s*(?:-r\s*|--requirement(?:\s+|=|$))(.*)$", line)
+        if include is None:
+            continue
+        targets = shlex.split(include.group(1), comments=True)
+        if len(targets) != 1 or "://" in targets[0]:
+            raise ValueError(f"Expected one local requirements include in {path}: {line}")
+        parts.append(_read_requirements(path.parent / targets[0], (*parents, path)))
+    return "\n".join(parts)
+
+
 def _req_text(service_dir: str) -> str | None:
     parts = []
     for pat in ("requirements.txt", "requirements_real.txt", "api/requirements.txt"):
-        p = os.path.join(service_dir, pat)
-        if os.path.isfile(p):
-            parts.append(open(p, encoding="utf-8").read())
+        path = Path(service_dir) / pat
+        if path.is_file():
+            parts.append(_read_requirements(path))
     return _norm(" ".join(parts)) if parts else None
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("option", ["-r ", "-r", "--requirement ", "--requirement="])
+def test_requirements_includes_resolve_relative_to_each_file(tmp_path, option):
+    nested = tmp_path / "nested directory"
+    nested.mkdir()
+    (tmp_path / "requirements.txt").write_text(
+        f"fastapi==0.136.3\n  {option}'nested directory/shared.txt' # included\n",
+        encoding="utf-8",
+    )
+    (nested / "shared.txt").write_text("httpx>=0.27\n-r ../common.txt\n", encoding="utf-8")
+    (tmp_path / "common.txt").write_text("NumPy>=1.26\nPillow>=10\n", encoding="utf-8")
+    text = _req_text(str(tmp_path))
+    assert all(package in text for package in ("fastapi==", "httpx>=", "numpy>=", "pillow>="))
+
+
+@pytest.mark.unit
+def test_requirements_direct_entries_and_shared_includes_are_preserved(tmp_path):
+    assert _req_text(str(tmp_path)) is None
+    (tmp_path / "api").mkdir()
+    direct = {
+        "requirements.txt": "NumPy>=1.26\n# existing comment\n",
+        "requirements_real.txt": "Pillow>=10\n",
+        "api/requirements.txt": "HTTPX>=0.27\n",
+    }
+    for name, content in direct.items():
+        (tmp_path / name).write_text(content, encoding="utf-8")
+    assert _req_text(str(tmp_path)) == _norm(" ".join(direct.values()))
+    (tmp_path / "requirements.txt").write_text("-r common.txt\n-r common.txt\n", encoding="utf-8")
+    (tmp_path / "api/requirements.txt").write_text("-r ../common.txt\n", encoding="utf-8")
+    (tmp_path / "common.txt").write_text("prometheus_client>=0.19\n", encoding="utf-8")
+    assert "prometheus-client>=" in _req_text(str(tmp_path))
+
+
+@pytest.mark.unit
+def test_missing_requirements_include_fails_closed(tmp_path):
+    (tmp_path / "requirements.txt").write_text("-r missing.txt\n", encoding="utf-8")
+    with pytest.raises(FileNotFoundError, match="missing.txt"):
+        _req_text(str(tmp_path))
+
+
+@pytest.mark.unit
+def test_cyclic_requirements_include_fails_closed(tmp_path):
+    (tmp_path / "nested").mkdir()
+    (tmp_path / "requirements.txt").write_text("-r nested/shared.txt\n", encoding="utf-8")
+    (tmp_path / "nested/shared.txt").write_text(
+        "--requirement=../requirements.txt\n", encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="Cyclic requirements include"):
+        _req_text(str(tmp_path))
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "line", ["-r", "--requirement=", "-r https://example.com/dependencies.txt"]
+)
+def test_invalid_or_remote_requirements_include_fails_closed(tmp_path, line):
+    (tmp_path / "requirements.txt").write_text(line, encoding="utf-8")
+    with pytest.raises(ValueError, match="Expected one local requirements include"):
+        _req_text(str(tmp_path))
 
 
 def _toplevel_thirdparty_imports(service_dir: str) -> set[str]:
