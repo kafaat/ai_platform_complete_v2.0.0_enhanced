@@ -5,10 +5,10 @@ tests/architecture/test_capability_mapping_engine.py. These tests make the
 source-driven accounting contract explicit and guard against silently
 excluding skill files to force a green mapping.
 """
+
 import importlib.util
 import json
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[2]
 SKILL_FILES = (
