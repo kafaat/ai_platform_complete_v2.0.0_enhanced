@@ -45,12 +45,19 @@ _PUBLIC_PORT_ALLOWLIST: dict[str, frozenset[str] | None] = {
 _PUBLIC_ALLOWLIST = frozenset(_PUBLIC_PORT_ALLOWLIST)
 
 
+# ``${VAR:-default}`` / ``${VAR-default}`` ⇒ ``default`` (افتراض compose حين لا يُضبط المتغيّر).
+_INTERPOLATION_DEFAULT_RE = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*:?-([^}]*)\}")
+
+
 def _host_port(port_spec: str) -> str:
     """أعِد منفذ المضيف المنشور من سلسلة منفذ.
 
     يدعم ``HOST:CONTAINER`` و``IP:HOST:CONTAINER`` (مثل ``127.0.0.1:8081:8080``)
-    مع لاحقة بروتوكول اختياريّة (``/udp``). منفذ المضيف هو الحقل قبل الأخير."""
-    fields = port_spec.strip().split(":")
+    مع لاحقة بروتوكول اختياريّة (``/udp``). منفذ المضيف هو الحقل قبل الأخير.
+    ومنفذ المضيف القابل للنقل (``127.0.0.1:${ZLM_HTTP_HOST_PORT:-8188}:80``) يُقرأ بافتراضه —
+    وإلّا قُطِع عند ``:-`` فصار ``-8188}`` واختفى منفذ الإدارة عن الفحص."""
+    resolved = _INTERPOLATION_DEFAULT_RE.sub(lambda m: m.group(1), port_spec.strip())
+    fields = resolved.split(":")
     host = fields[-2] if len(fields) >= 2 else fields[0]
     return host.split("/", 1)[0].strip()
 

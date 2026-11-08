@@ -244,8 +244,70 @@ docker compose -f docker-compose.v9.yml down --volumes  # ⚠ يمحو قواع�
 | `readyz` أحمر بعد الإقلاع مباشرة | الاعتماديّات ما تزال تُبنى/تُهاجَر | انتظر `sahool-migrate` يخرج 0 ثمّ أعد الفحص |
 | `local-ai-rag`/`rag-retrieval` لا تجهز | نموذج التضمين غير مسحوب في ollama | `ollama pull nomic-embed-text` (خطوة المرحلة ج) |
 | رفض بُعد المتّجهات عند البذر/الاستعلام | مجموعة Qdrant قديمة ببُعد مختلف | العقد يقرأ البُعد حيّاً — أعد إنشاء المجموعة أو أعد البذر |
-| منفذ 80/5432 مشغول | خدمة مضيف محليّة | حرّر المنفذ أو عدّل النشر في compose موضعيّاً (لا تلتزم التعديل) |
+| منفذ 80/5432/8554 مشغول (`ports are not available`) | خدمة مضيف محليّة، أو نطاقٌ محجوز على Windows | `python scripts/check_compose_host_ports.py` يسمّي المنفذ ومتغيّر نقله؛ انقله في `.env` (القسم ٨أ) — لا تعدّل compose |
 | تفعيل `RAG_RETRIEVAL_SHADOW=true` محليّاً ثمّ فشل بوّابة | مخالفة عقد مرحلة parity | أرجعه `false`؛ الظلّ يُقاس لا يُشغَّل افتراضيّاً |
+
+### ٨أ) Windows: `ports are not available … Only one usage of each socket address`
+
+العرض كما أبلغ عنه المالك (2026-11-03) عند `docker compose -f docker-compose.v9.yml up`:
+
+```text
+Error response from daemon: ports are not available: exposing port TCP 127.0.0.1:8554 -> 127.0.0.1:0:
+listen tcp4 127.0.0.1:8554: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+```
+
+`8554` كان منفذ RTSP على المضيف لـ`sahool-zlmediakit` (خادم الوسائط، بلا profile ⇒ يُقلِع افتراضيّاً).
+**الافتراضيّ صار `18554` منذ #1343** (يتصادم 8554 مع Android Emulator)؛ فإن ظهر هذا الخطأ اليوم فالأرجح
+أنّ `.env` قديمٌ يثبّت `ZLM_RTSP_HOST_PORT=8554`، أو أنّ 18554 نفسه محجوز — والفحص أدناه يميّز الحالتين.
+سببان شائعان: (١) عمليّةٌ أخرى تستمع عليه (خادم RTSP/كاميرا/VLC، أو حاوية SAHOOL قديمة ما زالت
+تعمل)، (٢) المنفذ داخل **نطاقٍ يحجزه winnat** لـHyper-V/WSL2/Docker Desktop — فلا تجد له عمليّة.
+
+**١. الفحص المسبق (بلا bash، يعمل في PowerShell/cmd):**
+
+```powershell
+py scripts\check_compose_host_ports.py            # أو: python scripts\check_compose_host_ports.py
+py scripts\check_compose_host_ports.py -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml
+```
+
+يقرأ كلّ `ports:` ويستوفي `${VAR:-default}` كما يفعل Compose (البيئة أوّلاً ثمّ `.env`)، ثمّ يجرّب
+ربط كلّ منفذ ويطبع المشغول (`BUSY`) أو المرفوض (`DENIED`، نطاق winnat غالباً) أو المنشور مرّتين
+(`CONFLICT`) مع الخدمة و`الملفّ:السطر` و**المتغيّر الذي ينقله** ومنفذاً حرّاً مقترحاً. يخرج بـ1 إن
+وُجد ما سيُفشِل `up`. وحدوده مذكورة في رأسه (منفذٌ تحمله حاويات المكدّس نفسه وهي تعمل يُعَدّ مشغولاً).
+
+**٢. من يحمل المنفذ:**
+
+```powershell
+netstat -ano | findstr :8554                       # آخر عمود = PID
+tasklist /FI "PID eq <PID>"                        # اسم العمليّة
+docker ps --filter publish=8554                    # حاوية (من هذا المكدّس أو غيره)؟
+netsh interface ipv4 show excludedportrange protocol=tcp   # هل 8554 داخل نطاقٍ محجوز؟
+```
+
+**٣. العلاج — بالترتيب:**
+
+- **انقل المنفذ (الأسلم، لا يمسّ النظام):** أضِف إلى `.env` ثمّ أعِد `up`:
+
+  ```dotenv
+  ZLM_RTSP_HOST_PORT=18554   # الافتراضيّ الآن؛ اختر منفذاً حرّاً آخر إن كان 18554 مشغولاً
+  ```
+
+  كلّ منفذ مضيف في `docker-compose*.yml` صار قابلاً للنقل بمتغيّر (الافتراضيّ = القيمة السابقة،
+  والربط يبقى `127.0.0.1` عدا بوّابة nginx): `ZLM_HTTP_HOST_PORT` · `ZLM_RTSP_HOST_PORT` ·
+  `ZLM_RTMP_HOST_PORT` · `ZLM_RTP_HOST_PORT` · `POSTGRES_HOST_PORT` · `MINIO_API_HOST_PORT` ·
+  `MINIO_CONSOLE_HOST_PORT` · `NGINX_HTTP_HOST_PORT` · `NGINX_HTTPS_HOST_PORT` … والقائمة الكاملة
+  بتعليقها في `.env.example` تحت «منافذ المضيف المنشورة». **تنبيه:** `ZLM_RTP_HOST_PORT` (WebRTC/UDP)
+  يغيّر منفذ المضيف فقط ومرشّحو ICE يعلنون 10000 — نقلُه يكسر WebRTC ما لم يُضبط `rtc.port` معه.
+- **أوقف الحائز** إن كان حاوية قديمة (`docker compose -f docker-compose.v9.yml down`) أو عمليّة لا تلزمك.
+- **نطاق winnat المحجوز** (لا عمليّة في `netstat` والمنفذ داخل `excludedportrange`) — في PowerShell
+  **كمسؤول**، وهو يقطع الشبكة لحظيّاً عن WSL/Hyper-V:
+
+  ```powershell
+  net stop winnat
+  docker compose -f docker-compose.v9.yml up -d     # يحجز Docker منافذه قبل أن يعيد winnat حجز النطاقات
+  net start winnat
+  ```
+
+  وإن تكرّر بعد كلّ إقلاع فنقلُ المنفذ بالمتغيّر أعلاه هو الحلّ الدائم (لا تعدّل نطاقات النظام لأجل منفذ واحد).
 
 ---
 

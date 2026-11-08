@@ -15,13 +15,13 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7038,
+    "files_scanned": 7039,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 87,
       "mobile": 414,
-      "other": 2150,
+      "other": 2151,
       "tests": 2321,
       "web": 504
     },
@@ -51072,6 +51072,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_check_compose_host_ports.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_check_local_env_drift.py",
       "kind": "tests"
     },
@@ -51377,10 +51381,6 @@
     },
     {
       "path": "tests_v9/test_edge_model_digest_contract.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_edge_onnx_providers.py",
       "kind": "tests"
     },
     {
