@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "6d4a38d39ddb72c5a54cc4589a1848e7ca7750d7",
+  "measured_on": "363d6d4b18eb06e696c47c448a70e912a4db43ce",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "52404dc0f985066d5d93d96ebbbb281fae6fdfe0c5667b4cbaef2c77611d2714",
+  "measurement_input_digest": "708c2fd1f61553250cfa5fdb436d550af1a0070387d50e36568a744e5e53e390",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "ae266c4d2eeea78e479c1374c692d4fcd557dbb6667ed6b3bf232392d9955199",
+  "measurement_basis_digest": "53779b25d306894a263e2910ad42d3ae11cc84b664a22047966c92afbf7812e1",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -48,7 +48,7 @@
     },
     {
       "path": "services/actuator-service/actuator_runtime.py",
-      "sha256": "6db96ab12ccb1ac40a926f56439b139b944c0e1af533dcbf9244adcbda5f67ff"
+      "sha256": "754036fba12a018f9314e9a6b2b0561d6abed7259869426e7be2a4c14d82cc14"
     },
     {
       "path": "services/auth/main.py",
@@ -124,7 +124,7 @@
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_workers.py",
-      "sha256": "e615876b2431e8f1381243f63e925940ed184f2dfd7e8b19c28d5bb3e763fcb1"
+      "sha256": "43e0f150e13112c48df1007f95fecdd36103186ed26d4ddae01aadd2e019e59e"
     },
     {
       "path": "services/sahool-platform/api/routers/break_glass.py",
@@ -193,6 +193,7 @@
   ],
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
+    "services/actuator-service/actuator_runtime.py:1439",
     "services/auth/main.py:989",
     "services/raster-service/backfill_scan_worker.py:170",
     "services/raster-service/cache_invalidation_worker.py:126",

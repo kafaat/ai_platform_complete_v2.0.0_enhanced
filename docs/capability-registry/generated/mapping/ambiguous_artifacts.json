@@ -1576,6 +1576,15 @@
     "kind": "other",
     "candidates": [
       {
+        "capability_id": "SEC-001",
+        "score": 13,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
         "capability_id": "OPS-004",
         "score": 12,
         "signals": [
@@ -1589,14 +1598,6 @@
         "signals": [
           "content:Scouting",
           "content:scouting"
-        ]
-      },
-      {
-        "capability_id": "SEC-001",
-        "score": 10,
-        "signals": [
-          "content:rls",
-          "content:tenant isolation"
         ]
       },
       {
@@ -4563,6 +4564,51 @@
     ]
   },
   {
+    "path": "migrations/v240_converge_first_pass_schema.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "SEC-004",
+        "score": 11,
+        "signals": [
+          "content:MFA",
+          "content:mfa",
+          "content:recovery code"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 9,
+        "signals": [
+          "content:crop season",
+          "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "migrations/v241_edge_idempotency_tenant_scoped.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 14,
+        "signals": [
+          "path:dem",
+          "content:dem"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
     "path": "migrations/v39_season_simulation.sql",
     "kind": "database",
     "candidates": [
@@ -5506,7 +5552,7 @@
       },
       {
         "capability_id": "FM-004",
-        "score": 9,
+        "score": 10,
         "signals": [
           "content:crop season",
           "content:season"
@@ -5551,7 +5597,7 @@
       },
       {
         "capability_id": "SEC-001",
-        "score": 10,
+        "score": 11,
         "signals": [
           "content:Tenant RLS",
           "content:rls"
@@ -10433,7 +10479,7 @@
       },
       {
         "capability_id": "WX-002",
-        "score": 9,
+        "score": 12,
         "signals": [
           "content:Weather forecast",
           "content:forecast",
@@ -12767,6 +12813,51 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_v240_first_pass_convergence_static.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-004",
+        "score": 11,
+        "signals": [
+          "content:MFA",
+          "content:mfa",
+          "content:recovery code"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 9,
+        "signals": [
+          "content:crop season",
+          "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_v241_edge_idempotency_tenant_scoped.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 14,
+        "signals": [
+          "path:dem",
+          "content:dem"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
         ]
       }
     ]

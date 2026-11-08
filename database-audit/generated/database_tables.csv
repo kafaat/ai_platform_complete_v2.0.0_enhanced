@@ -55,7 +55,8 @@ custody_chain_events,v65_harvest_traceability.sql,70,True,True,True,1,False,Fals
 decision_learning_runs,v227_decision_learning_runtime.sql,224,True,False,False,0,False,True,1,1
 decision_policies,v69_decision_policies.sql,74,True,False,False,0,False,True,1,1
 decision_record,v78_decision_record.sql,83,True,True,True,1,True,False,22,21
-device_commands_log,v20_automation_tables.sql,24,True,False,False,0,False,True,1,1
+detection_provenance,v239_detection_provenance.sql,236,True,True,True,1,True,False,2,2
+device_commands_log,v20_automation_tables.sql,24,True,False,False,0,False,True,2,2
 device_telemetry,v24_iot_devices.sql,28,True,False,False,0,False,True,2,1
 digital_twin_scenarios,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
 dispatch_decisions,v66_dispatch_decisions.sql,71,True,False,False,0,False,True,7,5
@@ -63,7 +64,7 @@ distributed_raster_jobs,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True
 documents,v29_documents.sql,33,True,False,False,0,False,True,2,1
 drawing_features,v230_drawing_features.sql,227,True,True,True,1,True,False,2,1
 drone_missions,init_v8.sql,0,True,True,False,0,False,True,0,0
-edge_results,v9_new_tables.sql,3,True,False,False,0,False,True,2,2
+edge_results,v9_new_tables.sql,3,True,False,False,0,False,True,2,3
 equipment,v23_equipment.sql,27,True,False,False,0,False,True,3,1
 equipment_maintenance,v23_equipment.sql,27,True,False,False,0,False,True,2,1
 equipment_telemetry_frames,v109_phase9_iot_execution_adapters.sql,115,True,True,True,1,True,False,0,0
@@ -141,7 +142,7 @@ inventory_batches,v22_inventory.sql,26,True,False,False,0,False,True,2,1
 inventory_items,v22_inventory.sql,26,True,False,False,0,False,True,1,1
 invitations,v89_invitations.sql,94,True,True,True,1,True,False,1,1
 iot_command_dispatch,v109_phase9_iot_execution_adapters.sql,115,True,True,True,2,True,False,0,1
-iot_devices,v24_iot_devices.sql,28,True,False,False,0,False,True,7,1
+iot_devices,v24_iot_devices.sql,28,True,False,False,0,False,True,8,1
 irrigation_battery_systems,v174_energy_agricultural_microgrid_capability.sql,179,True,False,False,0,False,True,0,0
 irrigation_capability_graph_edges,v175_unified_irrigation_capability_graph.sql,180,True,False,False,0,False,True,0,0
 irrigation_capability_graph_nodes,v175_unified_irrigation_capability_graph.sql,180,True,False,False,0,False,True,0,0

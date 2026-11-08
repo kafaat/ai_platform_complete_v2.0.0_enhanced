@@ -37,7 +37,7 @@
   "definitions": [
     {
       "kind": "app",
-      "line": 1464,
+      "line": 1810,
       "module": "services.actuator-service.actuator_runtime",
       "node_id": "services.actuator-service.actuator_runtime:app",
       "route_count": 0,
@@ -46,10 +46,10 @@
     },
     {
       "kind": "router",
-      "line": 21,
+      "line": 22,
       "module": "services.actuator-service.routers.commands",
       "node_id": "services.actuator-service.routers.commands:router",
-      "route_count": 2,
+      "route_count": 3,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -1000,7 +1000,7 @@
     },
     {
       "kind": "router",
-      "line": 20,
+      "line": 26,
       "module": "services.sahool-platform.api.routers.edge",
       "node_id": "services.sahool-platform.api.routers.edge:router",
       "route_count": 2,
@@ -2811,16 +2811,16 @@
       "target": null
     }
   ],
-  "inventory_sha256": "d2d1c179b445f484da1a503792963e8a9a071b7f050f1447bfa98c71b3eedd91",
+  "inventory_sha256": "e1cdbf3ff7c422a82d17bd1e24ea2529ecb6aae96fb35ab12f315e451924d05f",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 21,
+      "line": 22,
       "module": "services.actuator-service.routers.commands",
       "node_id": "services.actuator-service.routers.commands:router",
-      "route_count": 2,
+      "route_count": 3,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -3677,7 +3677,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 20,
+      "line": 26,
       "module": "services.sahool-platform.api.routers.edge",
       "node_id": "services.sahool-platform.api.routers.edge:router",
       "route_count": 2,

@@ -12,7 +12,14 @@ ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
-RUN apt-get update \
+ARG DEBIAN_MIRROR=
+RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian-security|${DEBIAN_MIRROR%/}/debian-security|g" \
+            -e "s|http://deb.debian.org/debian|${DEBIAN_MIRROR%/}/debian|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi \
+    && apt-get update \
     && apt-get install -y --no-install-recommends libportaudio2 \
     && rm -rf /var/lib/apt/lists/* \
     && python -m pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt \

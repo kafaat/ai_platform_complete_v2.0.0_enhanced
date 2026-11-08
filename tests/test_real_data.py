@@ -144,14 +144,14 @@ async def test_all_crops():
 
 
 # ══════════════════════════════════════════════════════════════
-# ٥. اختبار نموذج AGB
+# ٥. عقد مخرجات نموذج AGB البحثي (لا يستخدم قياسات ميدانية)
 # ══════════════════════════════════════════════════════════════
 def test_agb_model():
     from random_forest.agb_model import AGBFeatures, get_agb_model
 
     model = get_agb_model()
 
-    # حقل وادي سبأ (قمح صلب، NDVI=0.72)
+    # مدخل توضيحي؛ لا يمثّل قياساً ميدانياً للتحقق من دقة النموذج.
     feat = AGBFeatures(
         ndvi=0.72,
         evi=0.61,
@@ -164,14 +164,25 @@ def test_agb_model():
     )
     result = model.predict(feat)
 
-    assert 1.0 <= result["agb_t_ha"] <= 25.0, f"AGB out of range: {result['agb_t_ha']}"
+    if result["method"] == "random-forest-sklearn":
+        assert 1.0 <= result["agb_t_ha"] <= 25.0, f"AGB out of range: {result['agb_t_ha']}"
+        assert result["training_provenance"]["source"] == "synthetic"
+        assert result["training_metrics"]["evaluation_split"] == "training_resubstitution"
+    else:
+        assert 0.1 <= result["agb_t_ha"] <= 40.0, f"AGB out of range: {result['agb_t_ha']}"
+        assert result["method"] == "equation4-heuristic"
     assert result["yield_t_ha"] > 0
-    assert result["agb_t_ha_lower"] < result["agb_t_ha"] < result["agb_t_ha_upper"]
-    assert result["confidence_pct"] == 85
+    assert result["agb_t_ha_lower"] is None
+    assert result["agb_t_ha_upper"] is None
+    assert result["confidence_pct"] is None
+    assert result["model_accuracy"] is None
+    assert result["research_only"] is True
+    assert result["confidence_calibrated"] is False
+    assert result["calibrated_for_this_field"] is False
 
     print(
-        f"\n✅ AGB model: {result['agb_t_ha']:.2f} t/ha "
-        f"[{result['agb_t_ha_lower']:.1f}, {result['agb_t_ha_upper']:.1f}]"
+        f"\n✅ AGB research estimate: {result['agb_t_ha']:.2f} t/ha "
+        "(prediction interval unavailable; no field calibration)"
     )
     print(f"   Yield: {result['yield_t_ha']:.3f} t/ha | Total: {result['total_yield_t']:.1f} t")
     print(f"   Method: {result['method']}")

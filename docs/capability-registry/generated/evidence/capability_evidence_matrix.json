@@ -1462,6 +1462,7 @@
         "tests_v9/test_tenant_query_audit.py",
         "tests_v9/test_tts_tenant_policy_gate.py",
         "tests_v9/test_v237_tenant_isolation_live_pg.py",
+        "tests_v9/test_v241_edge_idempotency_tenant_scoped.py",
         "tests_v9/test_v87_audit_tenant.py",
         "tests_v9/test_video_stream_tenant_authz.py"
       ]
@@ -1633,6 +1634,7 @@
         "tests_v9/test_evidence_registry.py",
         "tests_v9/test_farm_memory.py",
         "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
+        "tests_v9/test_sim_golden.py",
         "tests_v9/test_writeops_events_emitted.py"
       ]
     },
@@ -1909,7 +1911,6 @@
         "mobile/sahool_app/test/features/offline_sync/operation_store_failure_test.dart",
         "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_screens_test.dart",
         "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart",
-        "scripts/simulation/test_export_season_runs_for_golden.py",
         "services/sahool-platform/tests/test_canonical_schemas.py",
         "services/sahool-platform/tests/test_crop_rotation_intelligence.py",
         "services/sahool-platform/tests/test_farm_full_season_forensic.py",
@@ -1928,6 +1929,7 @@
         "services/sahool-platform/tests/test_seasons_endpoint.py",
         "services/sahool-platform/tests/test_tier2_modules.py",
         "services/scout-ingest-service/tests/test_season_live.py",
+        "tests_v9/test_export_season_runs_for_golden.py",
         "tests_v9/test_fii_prescription_season_context_guard.py",
         "tests_v9/test_historical_season_bridge_static.py",
         "tests_v9/test_role_bootstrap_executable.py",
@@ -1940,7 +1942,8 @@
         "tests_v9/test_season_simulation_behavior_v66.py",
         "tests_v9/test_season_workspace.py",
         "tests_v9/test_v150_seasons_yield_check_static.py",
-        "tests_v9/test_v201_season_records_static.py"
+        "tests_v9/test_v201_season_records_static.py",
+        "tests_v9/test_v240_first_pass_convergence_static.py"
       ]
     },
     {
@@ -2883,7 +2886,8 @@
         "tests_v9/test_roadmap_phase23.py",
         "tests_v9/test_terrain_layers_v31_6.py",
         "tests_v9/test_terrain_soil_compose_provisioning.py",
-        "tests_v9/test_terrain_source_resolver.py"
+        "tests_v9/test_terrain_source_resolver.py",
+        "tests_v9/test_v241_edge_idempotency_tenant_scoped.py"
       ]
     },
     {
@@ -7982,6 +7986,7 @@
         "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
         "tests/integration/irrigation/test_v195_postgres.py",
         "tests_v9/test_crop_root_policy_rls_integration.py",
+        "tests_v9/test_detection_provenance_contract.py",
         "tests_v9/test_dispatch_decisions_integration.py",
         "tests_v9/test_e2e_findings_regressions.py",
         "tests_v9/test_field_aggregate_ports_integration.py",
@@ -7998,6 +8003,7 @@
       "title": "Tenant RLS",
       "unit_test_paths": [
         "TEST_REPAIR_REPORT_20260626.md",
+        "services/actuator-service/test_actuator_delivery_state_20261103.py",
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
         "services/decision-service/tests/test_element84_inventory_pg16.py",
         "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
@@ -8062,6 +8068,7 @@
         "tests_v9/test_v198_ingest_resolver_owner_live.py",
         "tests_v9/test_v237_tenant_isolation_hardening_static.py",
         "tests_v9/test_v237_tenant_isolation_live_pg.py",
+        "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
         "tests_v9/test_v87_audit_tenant.py",
         "tests_v9/test_v9_odoo_rls_hardening_static.py",
         "tests_v9/test_weather_automation_rls.py",
@@ -8464,7 +8471,8 @@
         "tests_v9/test_lab_ci_certification_steps.py",
         "tests_v9/test_mfa_crypto_v29_5.py",
         "tests_v9/test_mfa_totp_antireplay_v141.py",
-        "tests_v9/test_unit_environment_completeness.py"
+        "tests_v9/test_unit_environment_completeness.py",
+        "tests_v9/test_v240_first_pass_convergence_static.py"
       ]
     },
     {

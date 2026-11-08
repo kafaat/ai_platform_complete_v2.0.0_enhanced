@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **52**
-- Files scanned: **7018**
-- Ambiguous artifacts queued: **514**
-- Unmapped artifacts queued: **2786**
+- Files scanned: **7037**
+- Ambiguous artifacts queued: **518**
+- Unmapped artifacts queued: **2789**
 
 ## Capability coverage
 
@@ -30,17 +30,17 @@
 | DEC-008 | decision | 5 | 96 | 14 | 4 | 0 | 0 | 4 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 91 | 49 | 7 | 0 | 0 | 7 | 5 |
-| FM-001 | farm_management | 16 | 2 | 27 | 11 | 1 | 0 | 35 | 6 |
-| FM-002 | farm_management | 34 | 44 | 98 | 23 | 15 | 35 | 46 | 7 |
+| FM-001 | farm_management | 16 | 2 | 28 | 11 | 1 | 0 | 36 | 6 |
+| FM-002 | farm_management | 34 | 44 | 98 | 23 | 15 | 35 | 47 | 7 |
 | FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 14 | 7 |
-| FM-004 | farm_management | 30 | 82 | 84 | 64 | 15 | 15 | 43 | 7 |
+| FM-004 | farm_management | 30 | 82 | 87 | 66 | 15 | 15 | 44 | 7 |
 | FM-005 | farm_management | 8 | 0 | 0 | 6 | 3 | 1 | 6 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
 | FM-007 | farm_management | 8 | 26 | 26 | 14 | 1 | 8 | 15 | 7 |
 | FM-008 | farm_management | 10 | 25 | 5 | 1 | 0 | 0 | 10 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
 | GIS-002 | gis | 2 | 4 | 0 | 0 | 3 | 0 | 2 | 4 |
-| GIS-003 | gis | 31 | 100 | 10 | 63 | 12 | 4 | 47 | 7 |
+| GIS-003 | gis | 31 | 100 | 11 | 63 | 12 | 4 | 48 | 7 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 6 | 15 | 2 | 100 | 0 | 0 | 22 | 5 |
@@ -78,10 +78,10 @@
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 4 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
 | SAT-009 | satellite | 14 | 70 | 0 | 17 | 2 | 1 | 29 | 6 |
-| SEC-001 | security | 15 | 31 | 100 | 71 | 0 | 0 | 79 | 5 |
+| SEC-001 | security | 15 | 31 | 100 | 71 | 0 | 0 | 82 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
-| SEC-004 | security | 8 | 24 | 23 | 4 | 7 | 7 | 26 | 7 |
+| SEC-004 | security | 8 | 24 | 26 | 6 | 7 | 7 | 27 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
 | SEC-006 | security | 2 | 7 | 0 | 3 | 0 | 0 | 11 | 4 |
 | SEC-007 | security | 2 | 0 | 7 | 52 | 0 | 0 | 10 | 4 |

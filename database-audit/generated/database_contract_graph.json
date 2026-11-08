@@ -235,6 +235,10 @@
       "v235_decision_chain_correlation.sql",
       "v236_raster_follow_up_requests.sql",
       "v237_tenant_isolation_hardening.sql",
+      "v238_actuator_delivery_state.sql",
+      "v241_edge_idempotency_tenant_scoped.sql",
+      "v239_detection_provenance.sql",
+      "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -513,6 +517,13 @@
       "name": "tenant_isolation",
       "source": "v78_decision_record.sql",
       "table": "decision_record"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v239_detection_provenance.sql",
+      "table": "detection_provenance"
     },
     {
       "has_using": true,
@@ -1658,17 +1669,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 235,
+    "manifest_entries": 239,
     "manifest_missing_count": 0,
-    "policies": 202,
+    "policies": 203,
     "production_certified": false,
-    "rls_enabled": 215,
-    "rls_forced": 196,
+    "rls_enabled": 216,
+    "rls_forced": 197,
     "runtime_verified": false,
-    "sql_files": 238,
-    "tables": 342,
+    "sql_files": 242,
+    "tables": 343,
     "tenant_rls_gaps": 135,
-    "tenant_tables": 322,
+    "tenant_tables": 323,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -2613,10 +2624,31 @@
     },
     {
       "code_readers": [
+        "services/sahool-platform/api/edge_models.py",
+        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/edge_models.py",
+        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py"
+      ],
+      "created_in": "v239_detection_provenance.sql",
+      "has_tenant_id": true,
+      "manifest_position": 236,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "detection_provenance",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/actuator-service/actuator_runtime.py",
         "services/actuator-service/routers/commands.py"
       ],
       "code_writers": [
-        "services/actuator-service/actuator_runtime.py"
+        "services/actuator-service/actuator_runtime.py",
+        "services/actuator-service/test_actuator_delivery_state_20261103.py"
       ],
       "created_in": "v20_automation_tables.sql",
       "has_tenant_id": true,
@@ -2755,7 +2787,8 @@
       ],
       "code_writers": [
         "services/decision-service/tests/test_migration_034_pg16.py",
-        "services/sahool-platform/api/routers/edge.py"
+        "services/sahool-platform/api/routers/edge.py",
+        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py"
       ],
       "created_in": "v9_new_tables.sql",
       "has_tenant_id": true,
@@ -4103,6 +4136,7 @@
     {
       "code_readers": [
         "services/actuator-service/actuator_runtime.py",
+        "services/actuator-service/test_actuator_delivery_state_20261103.py",
         "services/sahool-platform/api/routers/decision_confidence.py",
         "services/sahool-platform/api/routers/device_twin.py",
         "services/sahool-platform/api/routers/devices.py",

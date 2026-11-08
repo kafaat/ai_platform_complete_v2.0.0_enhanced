@@ -15,18 +15,18 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7018,
+    "files_scanned": 7037,
     "files_by_kind": {
-      "backend": 1266,
-      "database": 291,
+      "backend": 1267,
+      "database": 295,
       "governance": 87,
       "mobile": 414,
-      "other": 2145,
-      "tests": 2311,
+      "other": 2150,
+      "tests": 2320,
       "web": 504
     },
-    "unmapped_artifacts": 2786,
-    "ambiguous_artifacts": 514
+    "unmapped_artifacts": 2789,
+    "ambiguous_artifacts": 518
   },
   "capabilities": [
     {
@@ -3642,7 +3642,7 @@
       ],
       "events": [
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:738",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:809",
           "score": 12
         },
         {
@@ -4046,6 +4046,14 @@
           ]
         },
         {
+          "path": "migrations/v241_edge_idempotency_tenant_scoped.sql",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "migrations/v87_audit_log_tenant.sql",
           "score": 14,
           "signals": [
@@ -4132,7 +4140,7 @@
           "score": 14
         },
         {
-          "value": "sahool.ai_policy_envelope @ tests_v9/test_tts_tenant_policy_gate.py:101",
+          "value": "sahool.ai_policy_envelope @ tests_v9/test_tts_tenant_policy_gate.py:102",
           "score": 14
         },
         {
@@ -4429,6 +4437,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_v241_edge_idempotency_tenant_scoped.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_v87_audit_tenant.py",
           "score": 14,
           "signals": [
@@ -4651,11 +4667,11 @@
       "evidence_counts": {
         "backend": 16,
         "routes": 2,
-        "database": 27,
+        "database": 28,
         "events": 11,
         "web": 1,
         "mobile": 0,
-        "tests": 35,
+        "tests": 36,
         "governance": 0,
         "other_evidence": 24
       },
@@ -6356,6 +6372,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_sim_golden.py",
+          "score": 12,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/test/features/more/more_screen_test.dart",
           "score": 11,
           "signals": [
@@ -6559,6 +6583,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/SIM_GOLDEN_EVIDENCE_ADMISSION.md",
+          "score": 11,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "FINAL_PRODUCTION_READINESS_REPORT.md",
           "score": 10,
           "signals": [
@@ -6594,9 +6626,9 @@
         "events": 23,
         "web": 15,
         "mobile": 35,
-        "tests": 46,
+        "tests": 47,
         "governance": 0,
-        "other_evidence": 15
+        "other_evidence": 16
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -8420,11 +8452,19 @@
           "score": 9
         },
         {
+          "value": "agent_queries @ migrations/v240_converge_first_pass_schema.sql:44",
+          "score": 9
+        },
+        {
           "value": "farmer_knowledge @ services/sahool-platform/storage/lite_store.py:88",
           "score": 9
         },
         {
           "value": "field_state @ services/sahool-platform/storage/lite_store.py:121",
+          "score": 9
+        },
+        {
+          "value": "guardrails_log @ migrations/v240_converge_first_pass_schema.sql:51",
           "score": 9
         },
         {
@@ -8438,6 +8478,14 @@
         {
           "value": "lab_requests @ services/sahool-platform/storage/lite_store.py:162",
           "score": 9
+        },
+        {
+          "path": "migrations/v240_converge_first_pass_schema.sql",
+          "score": 9,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
         },
         {
           "value": "observations @ services/sahool-platform/storage/lite_store.py:28",
@@ -8711,6 +8759,14 @@
         },
         {
           "value": "operation.irrigation.started @ services/sahool-platform/api/event_replay.py:375",
+          "score": 9
+        },
+        {
+          "value": "public.field_tasks @ migrations/v240_converge_first_pass_schema.sql:56",
+          "score": 9
+        },
+        {
+          "value": "public.idx_market_listings_crop_status @ migrations/v240_converge_first_pass_schema.sql:71",
           "score": 9
         },
         {
@@ -9282,7 +9338,7 @@
           ]
         },
         {
-          "path": "scripts/simulation/test_export_season_runs_for_golden.py",
+          "path": "tests_v9/test_export_season_runs_for_golden.py",
           "score": 13,
           "signals": [
             "path:season",
@@ -9371,6 +9427,14 @@
         },
         {
           "path": "tests_v9/test_role_bootstrap_executable.py",
+          "score": 9,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "tests_v9/test_v240_first_pass_convergence_static.py",
           "score": 9,
           "signals": [
             "content:crop season",
@@ -9492,15 +9556,15 @@
           ]
         },
         {
-          "path": "docs/ui/SAHOOL_PRODUCT_MODES_AND_FIELD_OPERATING_CONTRACT.md",
-          "score": 9,
+          "path": "scripts/simulation/sim_golden.py",
+          "score": 10,
           "signals": [
             "content:crop season",
             "content:season"
           ]
         },
         {
-          "path": "scripts/simulation/sim_golden.py",
+          "path": "docs/ui/SAHOOL_PRODUCT_MODES_AND_FIELD_OPERATING_CONTRACT.md",
           "score": 9,
           "signals": [
             "content:crop season",
@@ -9523,11 +9587,11 @@
       "evidence_counts": {
         "backend": 30,
         "routes": 82,
-        "database": 84,
-        "events": 64,
+        "database": 87,
+        "events": 66,
         "web": 15,
         "mobile": 15,
-        "tests": 43,
+        "tests": 44,
         "governance": 0,
         "other_evidence": 16
       },
@@ -12064,6 +12128,14 @@
           "score": 14
         },
         {
+          "path": "migrations/v241_edge_idempotency_tenant_scoped.sql",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "migrations/v9_edge_idempotency.sql",
           "score": 14,
           "signals": [
@@ -12759,6 +12831,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_v241_edge_idempotency_tenant_scoped.py",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/test/core/idempotency_test.dart",
           "score": 13,
           "signals": [
@@ -13261,11 +13341,11 @@
       "evidence_counts": {
         "backend": 31,
         "routes": 100,
-        "database": 10,
+        "database": 11,
         "events": 63,
         "web": 12,
         "mobile": 4,
-        "tests": 47,
+        "tests": 48,
         "governance": 0,
         "other_evidence": 35
       },
@@ -14735,6 +14815,13 @@
           ]
         },
         {
+          "path": "docs/runbooks/MIGRATION_UNFREEZE_V234_V236_20261027.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "scripts/ci/brain_commit_claim_guard.py",
           "score": 20,
           "signals": [
@@ -14762,7 +14849,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 12
+        "other_evidence": 13
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -26181,7 +26268,7 @@
       "evidence_truncated": {
         "backend": 25,
         "events": 58,
-        "tests": 115,
+        "tests": 116,
         "other_evidence": 4
       },
       "evidence_counts": {
@@ -28683,7 +28770,7 @@
           ]
         },
         {
-          "path": "services/sahool-platform/api/persisted_canonical_repositories.py",
+          "path": "services/actuator-service/actuator_runtime.py",
           "score": 11,
           "signals": [
             "content:Tenant RLS",
@@ -28691,8 +28778,8 @@
           ]
         },
         {
-          "path": "services/actuator-service/actuator_runtime.py",
-          "score": 10,
+          "path": "services/sahool-platform/api/persisted_canonical_repositories.py",
+          "score": 11,
           "signals": [
             "content:Tenant RLS",
             "content:rls"
@@ -30231,6 +30318,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_detection_provenance_contract.py",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
           "path": "tests_v9/test_e2e_findings_regressions.py",
           "score": 10,
           "signals": [
@@ -30269,6 +30364,22 @@
           "signals": [
             "content:rls",
             "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
+          "score": 10,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
+          ]
+        },
+        {
+          "path": "services/actuator-service/test_actuator_delivery_state_20261103.py",
+          "score": 9,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
           ]
         },
         {
@@ -30592,6 +30703,15 @@
           ]
         },
         {
+          "path": "docs/architecture/fake_connection_debt.json",
+          "score": 13,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "docs/audits/SOIL_P0_DURABLE_LAB_PROJECTION_INTEGRATION_20260713.md",
           "score": 13,
           "signals": [
@@ -30770,14 +30890,6 @@
         },
         {
           "path": "certification/evidence/chatgpt_w5_20261017/database-analysis.md",
-          "score": 10,
-          "signals": [
-            "content:rls",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "docs/architecture/fake_connection_debt.json",
           "score": 10,
           "signals": [
             "content:rls",
@@ -31156,7 +31268,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 808
+        "database": 824
       },
       "evidence_counts": {
         "backend": 15,
@@ -31165,7 +31277,7 @@
         "events": 71,
         "web": 0,
         "mobile": 0,
-        "tests": 79,
+        "tests": 82,
         "governance": 0,
         "other_evidence": 88
       },
@@ -31626,6 +31738,23 @@
           ]
         },
         {
+          "value": "agent_queries @ migrations/v240_converge_first_pass_schema.sql:44",
+          "score": 11
+        },
+        {
+          "value": "guardrails_log @ migrations/v240_converge_first_pass_schema.sql:51",
+          "score": 11
+        },
+        {
+          "path": "migrations/v240_converge_first_pass_schema.sql",
+          "score": 11,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "value": "break_glass_grants @ migrations/v90_break_glass.sql:19",
           "score": 10
         },
@@ -31658,6 +31787,14 @@
         {
           "value": "v139_field_geometry_history_append_only.sql @ tests_v9/test_field_geometry_history_append_only_v39_5.py:26",
           "score": 12
+        },
+        {
+          "value": "public.field_tasks @ migrations/v240_converge_first_pass_schema.sql:56",
+          "score": 11
+        },
+        {
+          "value": "public.idx_market_listings_crop_status @ migrations/v240_converge_first_pass_schema.sql:71",
+          "score": 11
         },
         {
           "value": "test_soil_field_tenant_authz.py @ tests_v9/test_unit_environment_completeness.py:90",
@@ -31981,6 +32118,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_v240_first_pass_convergence_static.py",
+          "score": 11,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "path": "tests_v9/test_runtime_contract_indirect_env.py",
           "score": 10,
           "signals": [
@@ -32272,11 +32418,11 @@
       "evidence_counts": {
         "backend": 8,
         "routes": 24,
-        "database": 23,
-        "events": 4,
+        "database": 26,
+        "events": 6,
         "web": 7,
         "mobile": 7,
-        "tests": 26,
+        "tests": 27,
         "governance": 1,
         "other_evidence": 26
       },
@@ -36208,7 +36354,7 @@
           "score": 15
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:738",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:809",
           "score": 14
         },
         {
@@ -36544,6 +36690,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_water_ledger_auto.py",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "services/weather-service/tests/test_p3_weather_service_runtime.py",
           "score": 12,
           "signals": [
@@ -36652,15 +36807,6 @@
         },
         {
           "path": "services/sahool-platform/tests/test_planting_window.py",
-          "score": 9,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/tests/test_water_ledger_auto.py",
           "score": 9,
           "signals": [
             "content:Weather forecast",
@@ -37891,7 +38037,7 @@
           "score": 12
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:738",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:809",
           "score": 12
         },
         {
@@ -45670,6 +45816,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/actuator-service/command_delivery.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/actuator-service/main.py",
       "kind": "backend"
     },
@@ -49054,6 +49204,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_emit_event_names.py",
       "kind": "tests"
     },
@@ -50534,6 +50688,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_actuator_token_revocation.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_adaptive_calibration.py",
       "kind": "tests"
     },
@@ -50911,10 +51069,6 @@
     },
     {
       "path": "tests_v9/test_certify_artifact_contract.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_check_compose_host_ports.py",
       "kind": "tests"
     },
     {
@@ -52646,10 +52800,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_sim_golden.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_sim_pcse_flag_and_safety.py",
       "kind": "tests"
     },
@@ -52915,6 +53065,14 @@
     },
     {
       "path": "tests_v9/test_v208_runbook_role_matches_role_model.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_v239_detection_provenance_live_pg.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_v240_first_pass_convergence_live_pg.py",
       "kind": "tests"
     },
     {
@@ -54696,6 +54854,15 @@
       "kind": "other",
       "candidates": [
         {
+          "capability_id": "SEC-001",
+          "score": 13,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "capability_id": "OPS-004",
           "score": 12,
           "signals": [
@@ -54709,14 +54876,6 @@
           "signals": [
             "content:Scouting",
             "content:scouting"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 10,
-          "signals": [
-            "content:rls",
-            "content:tenant isolation"
           ]
         },
         {
@@ -57683,6 +57842,51 @@
       ]
     },
     {
+      "path": "migrations/v240_converge_first_pass_schema.sql",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "SEC-004",
+          "score": 11,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
+          "capability_id": "FM-004",
+          "score": 9,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "migrations/v241_edge_idempotency_tenant_scoped.sql",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "GIS-003",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
+          "capability_id": "FM-001",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        }
+      ]
+    },
+    {
       "path": "migrations/v39_season_simulation.sql",
       "kind": "database",
       "candidates": [
@@ -58626,7 +58830,7 @@
         },
         {
           "capability_id": "FM-004",
-          "score": 9,
+          "score": 10,
           "signals": [
             "content:crop season",
             "content:season"
@@ -58671,7 +58875,7 @@
         },
         {
           "capability_id": "SEC-001",
-          "score": 10,
+          "score": 11,
           "signals": [
             "content:Tenant RLS",
             "content:rls"
@@ -63553,7 +63757,7 @@
         },
         {
           "capability_id": "WX-002",
-          "score": 9,
+          "score": 12,
           "signals": [
             "content:Weather forecast",
             "content:forecast",
@@ -65887,6 +66091,51 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_v240_first_pass_convergence_static.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SEC-004",
+          "score": 11,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
+          "capability_id": "FM-004",
+          "score": 9,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_v241_edge_idempotency_tenant_scoped.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "GIS-003",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
+          "capability_id": "FM-001",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
           ]
         }
       ]

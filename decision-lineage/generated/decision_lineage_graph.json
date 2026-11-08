@@ -719,7 +719,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 538,
+      "evidence_count": 539,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -773,6 +773,7 @@
         "migrations/v225_canonical_salinity_state.sql",
         "migrations/v226_canonical_nutrient_ledger.sql",
         "migrations/v227_decision_learning_runtime.sql",
+        "migrations/v240_converge_first_pass_schema.sql",
         "migrations/v49_zone_key_recommendation_outcomes.sql",
         "migrations/v65_harvest_traceability.sql",
         "migrations/v66_dispatch_decisions.sql",
@@ -1828,7 +1829,7 @@
       "kind": "lineage_stage",
       "stage": "plan",
       "order": 5,
-      "evidence_count": 45,
+      "evidence_count": 46,
       "owners": [
         "actuator-service",
         "database",
@@ -1845,6 +1846,7 @@
         "migrations/v184_irrigation_closed_loop_runtime_reconciliation.sql",
         "migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql",
         "migrations/v235_decision_chain_correlation.sql",
+        "migrations/v240_converge_first_pass_schema.sql",
         "services/actuator-service/test_actuator_safety_audit_20261101.py",
         "services/decision-service/main.py",
         "services/decision-service/migrations/003_execution_plan.sql",
@@ -2302,7 +2304,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 322,
+      "evidence_count": 326,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2337,6 +2339,8 @@
         "migrations/v18_entity_ids_text.sql",
         "migrations/v201_season_records.sql",
         "migrations/v212_farm_book_one_reversal_index.sql",
+        "migrations/v239_detection_provenance.sql",
+        "migrations/v240_converge_first_pass_schema.sql",
         "migrations/v46_lifecycle_event_sync.sql",
         "migrations/v49_zone_key_recommendation_outcomes.sql",
         "migrations/v60_event_snapshots.sql",
@@ -2426,6 +2430,7 @@
         "services/sahool-platform/api/data_lineage.py",
         "services/sahool-platform/api/decision_explain.py",
         "services/sahool-platform/api/decision_service_client.py",
+        "services/sahool-platform/api/edge_models.py",
         "services/sahool-platform/api/event_bus.py",
         "services/sahool-platform/api/event_catalog.py",
         "services/sahool-platform/api/event_replay.py",
@@ -2570,6 +2575,7 @@
         "services/sahool-platform/tests/test_decision_lineage_endpoints.py",
         "services/sahool-platform/tests/test_decision_record_persistence.py",
         "services/sahool-platform/tests/test_decision_review_endpoint.py",
+        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
         "services/sahool-platform/tests/test_engines.py",
         "services/sahool-platform/tests/test_eo_numeric_hardening.py",
         "services/sahool-platform/tests/test_event_replay.py",
@@ -2760,7 +2766,7 @@
         "services/sahool-platform/api/routers/evidence.py"
       ],
       "source_evidence_count": 673,
-      "target_evidence_count": 538,
+      "target_evidence_count": 539,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2871,7 +2877,7 @@
         "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py"
       ],
-      "source_evidence_count": 538,
+      "source_evidence_count": 539,
       "target_evidence_count": 188,
       "static_supported": true,
       "runtime_verified": false
@@ -2997,7 +3003,7 @@
         "shared/test_marketplace_plugin_runtime.py"
       ],
       "source_evidence_count": 295,
-      "target_evidence_count": 45,
+      "target_evidence_count": 46,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3040,7 +3046,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "shared/iot_execution_runtime.py"
       ],
-      "source_evidence_count": 45,
+      "source_evidence_count": 46,
       "target_evidence_count": 176,
       "static_supported": true,
       "runtime_verified": false
@@ -3173,7 +3179,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 54,
-      "target_evidence_count": 322,
+      "target_evidence_count": 326,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3183,5 +3189,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "b0e77dbd5c17a97b9c5a8c477f1985193263a4ffc595f0d147fe33351b37f6b3"
+  "content_sha256": "c9addadef46fbe134ca6ac4a5b761b36ebf649dc2ecfb54985cf939366f554f2"
 }

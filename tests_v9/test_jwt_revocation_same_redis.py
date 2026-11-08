@@ -74,10 +74,21 @@ def _auth_redis_url(env: dict[str, str]) -> str:
     return env.get("REDIS_URL", m.group(1))
 
 
+def _shared_revocation_url_fn():
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from shared.security.token_revocation import revocation_redis_url
+
+    return revocation_redis_url
+
+
 #: لكلّ دليل خدمةٍ يفحص الإبطال: كيف تختار رابطَ قائمته من بيئتها — بشيفرتها هي لا بنسخةٍ منها.
+#: ``services/actuator-service`` لا تذكر المفتاحَ نصّاً: تستورد ``shared.security.token_revocation``
+#: (ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01)، فيُشتقّ فاحصاً عبر استيرادها لا عبر النصّ.
 _RESOLVERS = {
     "services/auth": lambda env: _auth_redis_url(env),
     "services/sahool-platform": lambda env: _denylist_url_fn()(env),
+    "services/actuator-service": lambda env: _shared_revocation_url_fn()(env),
 }
 
 
@@ -200,9 +211,7 @@ def test_platform_denylist_still_refuses_to_start_in_production_without_redis(
 # ── ② عقدُ compose ──────────────────────────────────────────────────────────────
 
 
-def _checker_dirs() -> set[str]:
-    """أدلّةُ الخدمات التي تذكر شيفرتُها (لا اختباراتُها) مفتاحَ الإبطال."""
-    found: set[str] = set()
+def _code_files():
     for top in CODE_ROOTS:
         for f in (ROOT / top).rglob("*.py"):
             rel = f.relative_to(ROOT)
@@ -210,8 +219,34 @@ def _checker_dirs() -> set[str]:
                 "test_"
             ):
                 continue
-            if REVOKED_PREFIX in f.read_text(encoding="utf-8", errors="replace"):
-                found.add("/".join(rel.parts[:2]) if top == "services" else top)
+            yield top, rel, f.read_text(encoding="utf-8", errors="replace")
+
+
+def _checker_dirs() -> set[str]:
+    """أدلّةُ الخدمات التي تذكر شيفرتُها (لا اختباراتُها) مفتاحَ الإبطال، أو تستورد وحدةً مشتركةً تذكره.
+
+    وحدةٌ في ``shared/`` تذكر المفتاح ليست فاحصاً بذاتها: فاحصوها هم الخدماتُ التي تستوردها، وكلٌّ
+    منها يُصنَّف في ``_RESOLVERS`` ويُحكَم عقدُ compose عليه. ووحدةٌ مشتركةٌ لا يستوردها أحد تبقى
+    ظاهرةً باسمها (``shared``) فيحمرّ التصنيف بدل أن تُنسى.
+    """
+    found: set[str] = set()
+    shared_modules: set[str] = set()
+    files = list(_code_files())
+    for top, rel, text in files:
+        if REVOKED_PREFIX not in text:
+            continue
+        if top == "shared":
+            shared_modules.add(".".join(rel.with_suffix("").parts))
+        else:
+            found.add("/".join(rel.parts[:2]) if top == "services" else top)
+    for module in shared_modules:
+        importers = {
+            "/".join(rel.parts[:2]) if top == "services" else top
+            for top, rel, text in files
+            if top != "shared"
+            and re.search(rf"^\s*(?:from|import)\s+{re.escape(module)}\b", text, re.M)
+        }
+        found |= importers or {"shared"}
     return found
 
 
@@ -410,3 +445,45 @@ def test_live_platform_rejects_a_token_auth_revoked_and_auth_sees_a_platform_log
     finally:
         with contextlib.suppress(Exception):
             auth.close()
+
+
+@pytest.mark.integration
+def test_live_actuator_reads_auths_revocations_and_floor_and_writes_nothing(state_server):
+    """ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01: مستخدمُ المشغِّل يرى إبطالَ auth وأرضيّتَه، ولا يكتب.
+
+    والفحصُ نفسُه (``shared.security.token_revocation.revocation_reason``) برابط compose حرفيّاً:
+    إبطالُ auth ⇒ ``revoked``، وأرضيّةٌ أحدث من ``iat`` ⇒ ``below_token_floor``.
+    """
+    import redis
+
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from shared.security.token_revocation import build_revocation_client, revocation_reason
+
+    _, urls, _ = state_server
+    jti, sub = uuid.uuid4().hex, f"u-{uuid.uuid4().hex[:8]}"
+    floor_key = f"sahool:user:token_floor:{sub}"
+    auth = _client(urls["services/auth"])
+    actuator = build_revocation_client({"DENYLIST_REDIS_URL": urls["services/actuator-service"]})
+    claims = {"jti": jti, "sub": sub, "iat": 1_000}
+    try:
+        assert revocation_reason(actuator, claims) is None
+        auth.setex(floor_key, 60, "2000")  # ما يكتبه auth عند تغيير كلمة المرور/الدور
+        assert revocation_reason(actuator, claims) == "below_token_floor"
+        auth.setex(f"{REVOKED_PREFIX}{jti}", 60, "1")  # ما يكتبه auth عند الخروج
+        assert revocation_reason(actuator, claims) == "revoked"
+        for cmd in (
+            ("SETEX", f"{REVOKED_PREFIX}{jti}", "60", "1"),
+            ("DEL", f"{REVOKED_PREFIX}{jti}"),
+            ("SET", floor_key, "0"),
+            ("DEL", floor_key),
+            ("GET", f"{REVOKED_PREFIX}{jti}"),
+            ("EXISTS", "sahool:refresh:anything"),
+            ("FLUSHALL",),
+        ):
+            with pytest.raises(redis.exceptions.NoPermissionError):
+                actuator.execute_command(*cmd)
+        assert auth.get(floor_key) == "2000", "الأرضيّةُ تغيّرت"
+    finally:
+        auth.close()
+        actuator.close()

@@ -36,6 +36,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "actuator-service.commands.command_id",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/commands/{command_id}"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "actuator-service",
+      "producer": "actuator-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "actuator-service.idempotency.metrics",
       "consumers": [
         "frontend"
@@ -15983,7 +16000,7 @@
         "healthcheck": "CMD wget --quiet --tries=1 --spider http://localhost:8080/healthz",
         "mount_status": null,
         "published_ports": [
-          "127.0.0.1:${FRONTEND_HOST_PORT:-3003}:8080"
+          "127.0.0.1:3003:8080"
         ]
       },
       "source_path": "frontend",
@@ -16088,7 +16105,7 @@
         "healthcheck": "CMD curl -f http://localhost:8000/healthz",
         "mount_status": "delegated_routes",
         "published_ports": [
-          "127.0.0.1:${GUARDRAILS_ENGINE_HOST_PORT:-8097}:8000"
+          "127.0.0.1:8097:8000"
         ]
       },
       "source_path": "services/guardrails-engine",
@@ -16701,7 +16718,7 @@
         "healthcheck": "CMD python -c import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/healthz', timeout=3)",
         "mount_status": "direct_routes",
         "published_ports": [
-          "127.0.0.1:${RASTER_TILER_HOST_PORT:-8088}:8088"
+          "127.0.0.1:8088:8088"
         ]
       },
       "source_path": "services/raster-tiler-service",
@@ -16983,6 +17000,7 @@
           "custody_chain_events",
           "decision_learning_runs",
           "decision_record",
+          "detection_provenance",
           "dispatch_decisions",
           "drawing_features",
           "drone_missions",
@@ -17410,7 +17428,7 @@
         "healthcheck": "CMD curl -f http://localhost:8000/healthz",
         "mount_status": "delegated_routes",
         "published_ports": [
-          "127.0.0.1:${SUPERVISOR_AGENT_HOST_PORT:-8096}:8000"
+          "127.0.0.1:8096:8000"
         ]
       },
       "source_path": "services/supervisor-agent",
@@ -17760,7 +17778,7 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 839,
+    "capabilities": 840,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 96,
     "capabilities_idempotent": 72,
@@ -17771,9 +17789,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1134,
+    "route_rows": 1135,
     "ui_waivers": 53,
-    "unique_method_path": 1013
+    "unique_method_path": 1014
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18035,7 +18053,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "fba7252110c2cb1b4ef80392a899bebfd36780c8f6bed738b0f1c673b51371b1",
+  "fingerprint": "92c08cc8201b244df947d236bf9aa6307a51f92bac1387f2ad07aff4b715f39b",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18085,16 +18103,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 910,
+      "edge_count": 918,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 46,
         "CONSUMES": 3,
         "EMITS": 1,
-        "READS": 469,
+        "READS": 473,
         "ROUTES_TO": 72,
-        "WRITES": 319
+        "WRITES": 323
       }
     },
     "u3_wiring_ownership": {

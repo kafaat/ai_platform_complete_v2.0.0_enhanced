@@ -225,7 +225,9 @@ Error response from daemon: ports are not available: exposing port TCP 127.0.0.1
 listen tcp4 127.0.0.1:8554: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
 ```
 
-`8554` هو منفذ RTSP على المضيف لـ`sahool-zlmediakit` (خادم الوسائط، بلا profile ⇒ يُقلِع افتراضيّاً).
+`8554` كان منفذ RTSP على المضيف لـ`sahool-zlmediakit` (خادم الوسائط، بلا profile ⇒ يُقلِع افتراضيّاً).
+**الافتراضيّ صار `18554` منذ #1343** (يتصادم 8554 مع Android Emulator)؛ فإن ظهر هذا الخطأ اليوم فالأرجح
+أنّ `.env` قديمٌ يثبّت `ZLM_RTSP_HOST_PORT=8554`، أو أنّ 18554 نفسه محجوز — والفحص أدناه يميّز الحالتين.
 سببان شائعان: (١) عمليّةٌ أخرى تستمع عليه (خادم RTSP/كاميرا/VLC، أو حاوية SAHOOL قديمة ما زالت
 تعمل)، (٢) المنفذ داخل **نطاقٍ يحجزه winnat** لـHyper-V/WSL2/Docker Desktop — فلا تجد له عمليّة.
 
@@ -255,7 +257,7 @@ netsh interface ipv4 show excludedportrange protocol=tcp   # هل 8554 داخل 
 - **انقل المنفذ (الأسلم، لا يمسّ النظام):** أضِف إلى `.env` ثمّ أعِد `up`:
 
   ```dotenv
-  ZLM_RTSP_HOST_PORT=18554
+  ZLM_RTSP_HOST_PORT=18554   # الافتراضيّ الآن؛ اختر منفذاً حرّاً آخر إن كان 18554 مشغولاً
   ```
 
   كلّ منفذ مضيف في `docker-compose*.yml` صار قابلاً للنقل بمتغيّر (الافتراضيّ = القيمة السابقة،

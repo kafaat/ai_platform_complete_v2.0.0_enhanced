@@ -3696,6 +3696,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/actuator-service/command_delivery.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/actuator-service/main.py",
     "kind": "backend"
   },
@@ -7080,6 +7084,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_emit_event_names.py",
     "kind": "tests"
   },
@@ -8557,6 +8565,10 @@
   },
   {
     "path": "tests_v9/test_actuator_mode.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_actuator_token_revocation.py",
     "kind": "tests"
   },
   {
@@ -10672,10 +10684,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_sim_golden.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_sim_pcse_flag_and_safety.py",
     "kind": "tests"
   },
@@ -10941,6 +10949,14 @@
   },
   {
     "path": "tests_v9/test_v208_runbook_role_matches_role_model.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v239_detection_provenance_live_pg.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v240_first_pass_convergence_live_pg.py",
     "kind": "tests"
   },
   {

@@ -207,7 +207,8 @@ def test_every_fixed_host_port_in_the_repo_is_movable_by_a_variable(compose):
     assert hard_coded == []
 
 
-def test_zlmediakit_rtsp_8554_is_moved_by_zlm_rtsp_host_port_and_stays_on_loopback():
+def test_zlmediakit_rtsp_defaults_to_18554_is_moved_by_zlm_rtsp_host_port_and_stays_on_loopback():
+    # The default moved 8554 -> 18554 in #1343 (Android Emulator collision on Windows).
     compose = ROOT / "docker-compose.v9.yml"
     by_default = {}
     moved = {}
@@ -216,15 +217,15 @@ def test_zlmediakit_rtsp_8554_is_moved_by_zlm_rtsp_host_port_and_stays_on_loopba
             continue
         for b in ports.resolve(entry, {})[0]:
             by_default[(b.host_port, b.protocol)] = (b.host_ip, b.variables)
-        for b in ports.resolve(entry, {"ZLM_RTSP_HOST_PORT": "18554"})[0]:
+        for b in ports.resolve(entry, {"ZLM_RTSP_HOST_PORT": "28554"})[0]:
             moved[(b.host_port, b.protocol)] = b.host_ip
     assert by_default == {
         (8188, "tcp"): ("127.0.0.1", ["ZLM_HTTP_HOST_PORT"]),
-        (8554, "tcp"): ("127.0.0.1", ["ZLM_RTSP_HOST_PORT"]),
+        (18554, "tcp"): ("127.0.0.1", ["ZLM_RTSP_HOST_PORT"]),
         (1935, "tcp"): ("127.0.0.1", ["ZLM_RTMP_HOST_PORT"]),
         (10000, "udp"): ("127.0.0.1", ["ZLM_RTP_HOST_PORT"]),
     }
-    assert (18554, "tcp") in moved and (8554, "tcp") not in moved
+    assert (28554, "tcp") in moved and (18554, "tcp") not in moved
     assert set(moved.values()) == {"127.0.0.1"}
 
 

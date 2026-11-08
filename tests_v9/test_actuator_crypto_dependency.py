@@ -39,7 +39,9 @@ def test_the_actuator_verifies_rs256_when_a_public_key_is_set():
     """سببُ وجود هذا الملفّ: إن تخلّى المُشغِّل عن RS256 سقط الاعتمادُ على المزوّد."""
     runtime = (_SERVICE / "actuator_runtime.py").read_text(encoding="utf-8")
     assert 'JWT_ALGORITHM = "RS256" if _JWT_PUBLIC else "HS256"' in runtime
-    assert 'algorithms=[JWT_ALGORITHM], audience="sahool"' in runtime
+    # The shared verifier pins exactly this one algorithm and enforces aud=sahool.
+    assert "decode_access_token(" in runtime
+    assert "algorithm=JWT_ALGORITHM" in runtime
 
 
 def test_actuator_declares_the_pyjwt_crypto_runtime_extra():

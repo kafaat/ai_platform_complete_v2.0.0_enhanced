@@ -4,7 +4,7 @@
     "service": "actuator-service",
     "has_fastapi": false,
     "direct_routes": 0,
-    "router_routes": 6,
+    "router_routes": 7,
     "delegates_to_router_registry": true,
     "delegates_to_app_factory": false,
     "delegates_to_runtime_module": true,
