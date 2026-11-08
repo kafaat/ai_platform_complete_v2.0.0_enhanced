@@ -127,9 +127,7 @@ class BackupInventoryTests(unittest.TestCase):
     def test_rejects_production_project_token_even_with_staging_status(self):
         wrong = scope_fixture()
         wrong["environmentId"] = bi.connection.PRODUCTION_ID
-        with self.assertRaisesRegex(
-            bi.InventoryError, "PROJECT_TOKEN_ENVIRONMENT_MISMATCH"
-        ):
+        with self.assertRaisesRegex(bi.InventoryError, "PROJECT_TOKEN_ENVIRONMENT_MISMATCH"):
             self.make_receipt(scope=wrong)
 
     def test_rejects_wrong_project_token_project(self):
@@ -140,9 +138,7 @@ class BackupInventoryTests(unittest.TestCase):
 
     def test_rejects_production_volume_instance(self):
         status = status_fixture()
-        instance = status["environments"]["edges"][0]["node"]["volumeInstances"][
-            "edges"
-        ][0]["node"]
+        instance = status["environments"]["edges"][0]["node"]["volumeInstances"]["edges"][0]["node"]
         instance["environmentId"] = bi.connection.PRODUCTION_ID
         with self.assertRaisesRegex(bi.InventoryError, "POSTGRES_INSTANCE_ENVIRONMENT"):
             self.make_receipt(status=status)
@@ -168,9 +164,7 @@ class BackupInventoryTests(unittest.TestCase):
         ):
             volume = volume_fixture()
             volume[key] = replacement
-            with self.subTest(key=key), self.assertRaisesRegex(
-                bi.InventoryError, error
-            ):
+            with self.subTest(key=key), self.assertRaisesRegex(bi.InventoryError, error):
                 self.make_receipt(volume=volume)
 
     def test_rejects_wrong_instance_identity(self):
@@ -198,13 +192,9 @@ class BackupInventoryTests(unittest.TestCase):
 
     def test_rejects_http_200_with_graphql_errors(self):
         raw = {"data": {"volumeInstanceBackupList": backups_fixture()}, "errors": []}
-        self.assertEqual(
-            bi.checked_data(raw, "volumeInstanceBackupList"), backups_fixture()
-        )
+        self.assertEqual(bi.checked_data(raw, "volumeInstanceBackupList"), backups_fixture())
         raw["errors"] = [{"message": "private secret leaked"}]
-        with self.assertRaisesRegex(
-            bi.InventoryError, "GRAPHQL_ERRORS_OR_INVALID_RESPONSE"
-        ):
+        with self.assertRaisesRegex(bi.InventoryError, "GRAPHQL_ERRORS_OR_INVALID_RESPONSE"):
             bi.checked_data(raw, "volumeInstanceBackupList")
 
     def test_graphql_operations_are_query_only_and_fixed_endpoint(self):
@@ -214,9 +204,7 @@ class BackupInventoryTests(unittest.TestCase):
             self.assertRegex(query.lstrip(), r"^query\b")
             self.assertNotRegex(query.lower(), r"\bmutation\b")
         with mock.patch.object(bi.urllib.request, "urlopen") as urlopen:
-            with self.assertRaisesRegex(
-                bi.InventoryError, "NON_READ_ONLY_OPERATION_REJECTED"
-            ):
+            with self.assertRaisesRegex(bi.InventoryError, "NON_READ_ONLY_OPERATION_REJECTED"):
                 bi._post_query("secret", "mutation { volumeDelete }", {})
             urlopen.assert_not_called()
 
@@ -256,9 +244,9 @@ class BackupInventoryTests(unittest.TestCase):
             self.assertIn('"tests_v9/test_railway_staging_backup_inventory.py"', source)
 
     def test_existing_connection_workflow_stays_manual_and_has_no_mutations(self):
-        wf = (
-            ROOT / ".github/workflows/railway-staging-connection-preflight.yml"
-        ).read_text(encoding="utf-8")
+        wf = (ROOT / ".github/workflows/railway-staging-connection-preflight.yml").read_text(
+            encoding="utf-8"
+        )
         self.assertIn("workflow_dispatch:", wf)
         self.assertIn("refs/heads/main", wf)
         self.assertIn("backup_inventory:", wf)
