@@ -523,7 +523,7 @@ class WhatIfTempRequest(BaseModel):
     rain_mm: float = 0.0
     latitude_deg: float = 15.5
     elevation_m: float = 2000.0
-    day_of_year: int = 100
+    day_of_year: int | None = None  # None ⇒ من التاريخ الفعليّ (resolve_day_of_year)، لا 100
 
 
 class WhatIfPlantingRequest(BaseModel):
@@ -541,7 +541,7 @@ class WhatIfRainRequest(BaseModel):
     rain_scenario_mm: float
     latitude_deg: float = 15.5
     elevation_m: float = 2000.0
-    day_of_year: int = 100
+    day_of_year: int | None = None  # None ⇒ من التاريخ الفعليّ (resolve_day_of_year)، لا 100
 
 
 class EvidenceInput(BaseModel):

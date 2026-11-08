@@ -32,9 +32,58 @@ spec:
                 secretKeyRef:
                   name: {{ index $.Values.global.secretRefs .Values.jobs.migration.secretEnv.JOBS_DATABASE_URL }}
                   key: value
+            # إذن التطبيق — المتغيّر نفسه الذي يحجب مُهاجر Railway (migrations/apply_in_compose.sh).
+            # الافتراضيّ "0": فحص قراءة فقط (MIGRATIONS_NOT_APPLIED reason=apply_not_permitted).
+            - name: SAHOOL_MIGRATE_APPLY
+              value: {{ ternary "1" "0" (eq (toString .Values.jobs.migration.apply) "true") | quote }}
+            - name: APP_DB_ROLE
+              value: {{ .Values.global.runtimeDatabaseRole | quote }}
+            - name: JOBS_DB_ROLE
+              value: {{ .Values.global.jobsDatabaseRole | quote }}
+            {{- if eq (toString .Values.jobs.migration.apply) "true" }}
+            {{- range $name, $ref := .Values.jobs.migration.applySecretEnv }}
+            - name: {{ $name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required (printf "global.secretRefs.%s is required when jobs.migration.apply=true" $ref) (index $.Values.global.secretRefs $ref) }}
+                  key: value
+            {{- end }}
+            {{- end }}
           securityContext:
+            # صورة postgres-alpine تعمل جذراً افتراضيّاً؛ runAsNonRoot يتطلّب UID صريحاً (postgres=70).
+            runAsUser: {{ .Values.jobs.migration.runAsUser }}
+            runAsGroup: {{ .Values.jobs.migration.runAsUser }}
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+          volumeMounts:
+            - name: dsn-env
+              mountPath: /opt/sahool-migrate
+              readOnly: true
+            # probe_schema_state.sh يكتب بـmktemp -d؛ الجذر للقراءة فقط.
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: dsn-env
+          configMap:
+            name: sahool-migration-dsn-env
+        - name: tmp
+          emptyDir: {}
+---
+# يسبق المهمّة (الوزن -5 < 0): خطّافات pre-install تُنشأ قبل أيّ مورد عاديّ.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sahool-migration-dsn-env
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "sahool.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+data:
+  migration-dsn-env.sh: |
+    {{- .Files.Get "files/migration-dsn-env.sh" | nindent 4 }}
 {{- end }}

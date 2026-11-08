@@ -4,8 +4,13 @@ Hierarchical Intent Router for SAHOOL Supervisor Agent
 Classifies queries into domains and sub-intents for skill routing.
 """
 
+import functools
 import re
 import unicodedata
+
+# S15: the intent needs the first words, not 160 KB. Matching is linear anyway (below); the
+# bound also caps NFKC and the per-pattern scans. حدٌّ للمدخل قبل أيّ مطابقة.
+MAX_ROUTED_QUERY_CHARS = 4096
 
 
 def _normalize(query: str) -> str:
@@ -15,13 +20,60 @@ def _normalize(query: str) -> str:
     return query.translate(str.maketrans("أإآٱى", "ااااي"))
 
 
-def _matches(pattern: str, query: str) -> bool:
-    alternatives = []
-    for term in pattern.split("|"):
+def _top_level_terms(pattern: str) -> list[str]:
+    """Split on ``|`` outside groups: ``(?:صحة|حالة).*حقل`` is one term, not two."""
+    terms, depth, start = [], 0, 0
+    for i, ch in enumerate(pattern):
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        elif ch == "|" and depth == 0:
+            terms.append(pattern[start:i])
+            start = i + 1
+    terms.append(pattern[start:])
+    return terms
+
+
+@functools.lru_cache(maxsize=256)
+def _compile(pattern: str) -> tuple[re.Pattern | None, tuple[tuple[re.Pattern, re.Pattern], ...]]:
+    r"""``(?<!\w)(?:a|b|head.*tail)(?!\w)`` split into one plain regex and (head, tail) pairs.
+
+    S15: ``re.search`` retried ``head.*tail`` from every ``head`` and ran each ``.*`` to the end
+    of the line — quadratic (160 KB of «صحة » = 17 s). Same language, linear: the leftmost
+    ``head`` (fixed-length literals, so it also ends first), then one search for ``tail`` after it,
+    on the same line (``.`` never crossed a newline). كان التراجع تربيعيّاً؛ صار مسحاً واحداً.
+    """
+    plain, spans = [], []
+    for term in _top_level_terms(pattern):
         if re.fullmatch(r"[\u0621-\u064a]+", term):
             term = "(?:ال)?" + term
-        alternatives.append(term)
-    return re.search(r"(?<!\w)(?:" + "|".join(alternatives) + r")(?!\w)", query) is not None
+        if ".*" in term:
+            head, _, tail = term.partition(".*")
+            if any(c in head + tail for c in ".*+{"):
+                raise ValueError(f"routing term must be head.*tail of literals: {term!r}")
+            spans.append(
+                (re.compile(r"(?<!\w)(?:" + head + ")"), re.compile("(?:" + tail + r")(?!\w)"))
+            )
+        else:
+            if any(c in term for c in "*+{"):
+                raise ValueError(f"routing term must not repeat: {term!r}")
+            plain.append(term)
+    regex = re.compile(r"(?<!\w)(?:" + "|".join(plain) + r")(?!\w)") if plain else None
+    return regex, tuple(spans)
+
+
+def _matches(pattern: str, query: str) -> bool:
+    regex, spans = _compile(pattern)
+    if regex is not None and regex.search(query):
+        return True
+    lines = query.split("\n") if spans else []
+    for head, tail in spans:
+        for line in lines:
+            first = head.search(line)
+            if first is not None and tail.search(line, first.end()):
+                return True
+    return False
 
 
 class HierarchicalRouter:
@@ -81,7 +133,7 @@ class HierarchicalRouter:
         """
         Returns: (domain, sub_intent, confidence)
         """
-        query_lower = _normalize(query)
+        query_lower = _normalize(query[:MAX_ROUTED_QUERY_CHARS])
 
         # Level 1: Domain classification
         domain_scores = {}

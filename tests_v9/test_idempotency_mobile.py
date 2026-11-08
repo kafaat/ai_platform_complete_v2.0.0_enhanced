@@ -91,7 +91,14 @@ async def test_first_call_runs_and_caches(m):
         return {"activity_id": "act_x"}
 
     r = await m._idempotent(
-        store, _CID, work, command_type="activity.create", actor_id="u1", tenant_id=_TID, payload={}
+        store,
+        _CID,
+        work,
+        command_type="activity.create",
+        actor_id="u1",
+        tenant_id=_TID,
+        payload={},
+        request_digest="d1",
     )
     assert r == {"activity_id": "act_x"}
     assert calls["n"] == 1
@@ -105,7 +112,13 @@ async def test_replay_returns_cached_without_rerun(m):
         calls["n"] += 1
         return {"activity_id": "act_first"}
 
-    kw = dict(command_type="activity.create", actor_id="u1", tenant_id=_TID, payload={})
+    kw = dict(
+        command_type="activity.create",
+        actor_id="u1",
+        tenant_id=_TID,
+        payload={},
+        request_digest="d1",
+    )
     first = await m._idempotent(store, _CID, work, **kw)
     # إعادة بنفس المفتاح ⇒ النتيجة المخزّنة، do_work لا يُنفَّذ ثانيةً
     again = await m._idempotent(store, _CID, work, **kw)
@@ -118,7 +131,7 @@ async def test_concurrent_processing_raises_409(m):
     from fastapi import HTTPException
 
     store = _FakeStore()
-    pending = Command.new("activity.create", "u1", _TID, {}, command_id=_CID)
+    pending = Command.new("activity.create", "u1", _TID, {"request_digest": "d1"}, command_id=_CID)
     pending.status = CommandStatus.PROCESSING  # الأصل لم يكتمل بعد
     store.rows[_CID] = pending
 
@@ -134,8 +147,10 @@ async def test_concurrent_processing_raises_409(m):
             actor_id="u1",
             tenant_id=_TID,
             payload={},
+            request_digest="d1",
         )
     assert e.value.status_code == 409
+    assert e.value.detail["reason"] == "in_progress"
 
 
 def test_idem_key_validates_uuid(m):
@@ -252,15 +267,15 @@ async def test_same_key_with_a_different_payload_is_a_conflict_not_a_replay(m):
 
     kw = dict(command_type="farm_ledger.operation.create", actor_id="u1", tenant_id=_TID)
     first = await m._idempotent(
-        store, _CID, work, payload={"operation_id": "oplog_a", "request_digest": "d1"}, **kw
+        store, _CID, work, payload={"operation_id": "oplog_a"}, request_digest="d1", **kw
     )
     same = await m._idempotent(
-        store, _CID, work, payload={"operation_id": "oplog_b", "request_digest": "d1"}, **kw
+        store, _CID, work, payload={"operation_id": "oplog_b"}, request_digest="d1", **kw
     )
     assert first == same == {"operation_id": "oplog_a"}  # الإعادة الصادقة تُعيد المعرّف الأصليّ
     with pytest.raises(HTTPException) as e:
         await m._idempotent(
-            store, _CID, work, payload={"operation_id": "oplog_c", "request_digest": "d2"}, **kw
+            store, _CID, work, payload={"operation_id": "oplog_c"}, request_digest="d2", **kw
         )
     assert e.value.status_code == 409
     # D4: السبب ثابتٌ يقرؤه المستهلك، لا نصّ الرسالة.
@@ -270,33 +285,62 @@ async def test_same_key_with_a_different_payload_is_a_conflict_not_a_replay(m):
 async def test_legacy_row_without_a_digest_conflicts_with_a_digest_bearing_replay(m):
     """Copilot على #1001: صفُّ أمرٍ قديم بلا request_digest كان يُعاد نتيجتُه لطلبٍ ببصمة ولو
     اختلفت الحمولة — لا يمكن إثباتُ التطابق فيُعامَل تعارضاً."""
+    from api.command_store import Command, CommandStatus
     from fastapi import HTTPException
 
     store = _FakeStore()
+    # صفٌّ خُزِّن قبل أن تصير البصمة إلزاميّة (T6) — لا يمكن إنشاؤه عبر _idempotent الآن.
+    legacy = Command.new(
+        "farm_ledger.operation.create",
+        "u1",
+        _TID,
+        {"operation_id": "oplog_legacy"},
+        command_id=_CID,
+    )
+    legacy.status = CommandStatus.SUCCEEDED
+    legacy.result = {"operation_id": "oplog_legacy"}
+    store.rows[_CID] = legacy
 
     async def work():
-        return {"operation_id": "oplog_legacy"}
+        raise AssertionError("أُعيد التنفيذ لصفٍّ قديم")
 
     kw = dict(command_type="farm_ledger.operation.create", actor_id="u1", tenant_id=_TID)
-    legacy = await m._idempotent(store, _CID, work, payload={"operation_id": "oplog_legacy"}, **kw)
-    assert legacy == {"operation_id": "oplog_legacy"}
     with pytest.raises(HTTPException) as e:
         await m._idempotent(
-            store, _CID, work, payload={"operation_id": "x", "request_digest": "d9"}, **kw
+            store, _CID, work, payload={"operation_id": "x"}, request_digest="d9", **kw
         )
     assert e.value.status_code == 409
+    assert e.value.detail["reason"] == "payload_mismatch"
 
 
-async def test_routes_without_a_digest_keep_the_old_replay_semantics(m):
+async def test_a_route_cannot_omit_the_request_digest(m):
+    """T6 (تدقيق 2026-11-01): كانت النقاط بلا بصمة تُعيد ناتج الأوّل لجسمٍ مختلف (200).
+
+    البصمة صارت معاملاً إلزاميّاً: غيابها خطأ برمجيّ قبل أيّ كتابة، لا إعادةً عمياء.
+    """
     store = _FakeStore()
 
     async def work():
-        return {"x": 1}
+        raise AssertionError("نُفِّذ العمل بلا بصمة")
 
     kw = dict(command_type="device.create", actor_id="u1", tenant_id=_TID, payload={})
-    assert await m._idempotent(store, _CID, work, **kw) == await m._idempotent(
-        store, _CID, work, **kw
-    )
+    with pytest.raises(TypeError):
+        await m._idempotent(store, _CID, work, **kw)
+    for empty in ("", "   ", None):
+        with pytest.raises(ValueError):
+            await m._idempotent(store, _CID, work, request_digest=empty, **kw)
+    with pytest.raises(ValueError):  # مصدران متناقضان للبصمة
+        await m._idempotent(
+            store,
+            _CID,
+            work,
+            command_type="device.create",
+            actor_id="u1",
+            tenant_id=_TID,
+            payload={"request_digest": "a"},
+            request_digest="b",
+        )
+    assert store.rows == {}
 
 
 def test_idempotency_key_header_is_allowed_by_cors():
@@ -320,7 +364,7 @@ def test_farm_ledger_operation_create_is_idempotent_by_contract():
     assert "Depends(_idem_key)" in src
     assert "_idempotent(" in src
     assert "CommandStore(get_pool(), conn=conn)" in src
-    assert '"request_digest": _request_digest(req)' in src
+    assert "request_digest=_request_digest(req)" in src
     assert 'command_type="farm_ledger.operation.create"' in src
     # المعرّف يُولَّد قبل الأمر ويُحفَظ في حمولته فتُعيده الإعادة حرفيّاً.
     assert src.index('operation_id = "oplog_"') < src.index("_idempotent(")
@@ -374,6 +418,7 @@ async def test_a_key_stored_for_another_tenant_never_returns_its_result(m):
             actor_id="u-b",
             tenant_id=_OTHER_TID,
             payload=payload,
+            request_digest=payload["request_digest"],
         )
     assert e.value.status_code == 409
     assert "secret-of-tenant-a" not in str(e.value.detail)
@@ -393,11 +438,11 @@ async def test_the_foreign_tenant_refusal_reads_like_a_payload_conflict(m):
     kw = dict(command_type="lab_sample.create", actor_id="u")
     with pytest.raises(HTTPException) as foreign:
         await m._idempotent(
-            store, _CID, work, tenant_id=_OTHER_TID, payload={"request_digest": "a" * 64}, **kw
+            store, _CID, work, tenant_id=_OTHER_TID, payload={}, request_digest="a" * 64, **kw
         )
     with pytest.raises(HTTPException) as mismatch:
         await m._idempotent(
-            store, _CID, work, tenant_id=_TID, payload={"request_digest": "b" * 64}, **kw
+            store, _CID, work, tenant_id=_TID, payload={}, request_digest="b" * 64, **kw
         )
     assert foreign.value.detail == mismatch.value.detail
 
@@ -419,6 +464,7 @@ async def test_the_same_tenant_in_another_spelling_is_still_a_replay(m):
         actor_id="u",
         tenant_id=_TID.upper(),
         payload=payload,
+        request_digest=payload["request_digest"],
     )
     assert again == {"sample_id": "s-1"}
 
@@ -449,6 +495,7 @@ async def test_a_conflicting_key_whose_row_is_invisible_is_not_a_retry_later(m):
             actor_id="u",
             tenant_id=_OTHER_TID,
             payload={},
+            request_digest="d1",
         )
     assert refused.value.status_code == 409
     assert "أعد المحاولة" not in refused.value.detail

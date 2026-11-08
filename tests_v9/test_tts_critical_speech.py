@@ -136,3 +136,50 @@ def test_day_counts_require_nonnegative_whole_strings(key, value):
             "المقدار {quantity} {unit}، المدة {" + key + "} أيام",
             {"quantity": "1", "unit": "ml", key: value},
         )
+
+
+# S12: محارف غير مرئية وتطويل وأشكال أرقام بديلة لا تعبر بجرعة حرة من البوابة.
+@pytest.mark.parametrize(
+    "variant,text",
+    [
+        ("tatweel_in_unit", "استخدم 0.75 مـل"),
+        ("tatweel_in_label", "جـرعة المنتج ٢"),
+        ("zwsp_after_number", "استخدم 0.75\u200b مل"),
+        ("zwsp_before_unit", "استخدم 0.75 \u200bمل"),
+        ("zwj_in_unit", "Use 2.5 m\u200dl"),
+        ("zwnj_in_unit", "Use 2.5 m\u200cl"),
+        ("rlm_between_number_unit", "استخدم ٧٥\u200fمل"),
+        ("lrm_in_label", "PH\u200eI is 7 days"),
+        ("word_joiner", "Use 2.5 \u2060ml"),
+        ("bom", "Use 2.5\ufeff ml"),
+        ("bidi_embedding", "استخدم \u202b0.75\u202c مل"),
+        ("bidi_isolate", "استخدم \u20660.75\u2069 مل"),
+        ("arabic_letter_mark", "جر\u061cعة المنتج 2"),
+        ("harakat_in_unit", "استخدم 25 م\u0650ل"),
+        ("fullwidth_digit", "Use \uff12 ml"),
+        ("superscript_digit", "استخدم \u2077 مل"),
+        ("bengali_digit", "Use \u09ed ml"),
+        ("eastern_arabic_indic_control", "أضف ۷۵ غرام"),
+    ],
+)
+def test_invisible_and_variant_characters_do_not_bypass_dose_gate(variant, text):
+    with pytest.raises(CriticalSpeechError):
+        prepare_critical_speech(text)
+
+
+@pytest.mark.parametrize(
+    "template",
+    [
+        "المقدار {quantity} {unit} لكل لـتر",
+        "المقدار {quantity} {unit} لكل ل\u200bتر",
+        "المقدار {quantity} {unit} ثم \uff12",
+    ],
+)
+def test_template_literals_are_checked_on_normalized_view(template):
+    with pytest.raises(CriticalSpeechError):
+        prepare_critical_speech(template, {"quantity": "1", "unit": "ml"})
+
+
+def test_passing_text_is_spoken_as_original_not_normalized_view():
+    text = "توقع المطر غـدا \u200fمساء"
+    assert prepare_critical_speech(text) == text

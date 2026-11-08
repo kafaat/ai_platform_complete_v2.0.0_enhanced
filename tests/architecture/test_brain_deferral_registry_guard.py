@@ -139,6 +139,36 @@ def test_a_deferral_in_an_archive_file_without_a_gap_id_fails(private_brain):
     assert "sahool-brain/archive/hot_2026-07-01_2026-07-02.md:1" in found[0]
 
 
+def test_ignored_execute_bits_cannot_hide_an_archived_deferral(private_brain):
+    guard, brain = private_brain
+    archive = brain / "archive" / "hot_mode.md"
+    archive.write_text("> **مؤجَّل:** بند مستقل بلا معرّف.\n", encoding="utf-8")
+    archive.chmod(0o644)
+
+    def git(*args: str) -> str:
+        return subprocess.run(
+            ["git", *args],
+            cwd=brain.parent,
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        ).stdout
+
+    git("init", "-q", "-b", "main")
+    git("config", "core.filemode", "true")
+    git("add", "-A")
+    git("config", "core.filemode", "false")
+    archive.chmod(0o755)
+    assert git("diff-files", "--name-only") == "", "Git must ignore only the mode change"
+    assert git("ls-files", "--stage", "--", str(archive.relative_to(brain.parent))).startswith(
+        "100644 "
+    )
+    assert guard.scanned_files() == [brain / "hot.md", archive]
+    found = guard.violations(baseline=set())
+    assert len(found) == 1 and "sahool-brain/archive/hot_mode.md:1" in found[0], found
+
+
 def test_an_archived_deferral_that_cites_a_registered_id_passes(private_brain):
     guard, brain = private_brain
     (brain / "archive" / "hot_2026-07-01_2026-07-02.md").write_text(

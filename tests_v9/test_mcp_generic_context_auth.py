@@ -20,6 +20,7 @@ import importlib
 import importlib.util
 import os
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -133,8 +134,17 @@ def test_the_status_matrix_distinguishes_identity_from_permission(mcp_on_path):
     body = {"name": tool, "arguments": {"field_id": "f1", "tenant_id": "t1"}}
 
     def token(scope: str) -> str:
+        # كما يُصدِره auth: exp وsub من المطالبات التي تفرضها السياسةُ افتراضيّاً (2026-11-07)؛
+        # بدونهما يكون الردّ 401 «من أنت» لا 403 «هل يُسمح لك» — وهو ما يقيسه هذا الاختبار.
         return jwt.encode(
-            {"iss": "sahool-auth", "aud": "sahool", "scope": scope, "tenant_id": "t1"},
+            {
+                "iss": "sahool-auth",
+                "aud": "sahool",
+                "sub": "u1",
+                "exp": int(time.time()) + 300,
+                "scope": scope,
+                "tenant_id": "t1",
+            },
             secret,
             algorithm="HS256",
         )

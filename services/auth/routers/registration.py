@@ -21,9 +21,7 @@ async def register(req: main.RegisterRequest, request: Request, response: Respon
     ip = client_ip(request)
     await main.check_ip_rate(ip)
 
-    hashed = main.bcrypt.hashpw(
-        req.password.encode(), main.bcrypt.gensalt(main.BCRYPT_ROUNDS)
-    ).decode()
+    hashed = main.hash_password(req.password, main.BCRYPT_ROUNDS)
     async with main._acquire() as conn:
         try:
             row = await conn.fetchrow(
@@ -80,14 +78,10 @@ async def change_password(
     user_id = int(user["sub"])
     async with main._acquire() as conn:
         row = await conn.fetchrow("SELECT password_hash FROM users WHERE id=$1", user_id)
-    if not row or not main.bcrypt.checkpw(
-        req.current_password.encode(), row["password_hash"].encode()
-    ):
+    if not row or not main.verify_password(req.current_password, row["password_hash"]):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "كلمة المرور الحالية غير صحيحة")
 
-    hashed = main.bcrypt.hashpw(
-        req.new_password.encode(), main.bcrypt.gensalt(main.BCRYPT_ROUNDS)
-    ).decode()
+    hashed = main.hash_password(req.new_password, main.BCRYPT_ROUNDS)
     async with main._acquire() as conn:
         await conn.execute(
             "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", hashed, user_id

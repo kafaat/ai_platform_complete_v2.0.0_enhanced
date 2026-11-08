@@ -29,8 +29,14 @@ def raster_service_url() -> str:
     return os.getenv("RASTER_SERVICE_URL", DEFAULT_RASTER_SERVICE_URL).rstrip("/")
 
 
-def raster_service_headers(*, tenant_id: str | None = None) -> dict[str, str]:
-    headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
+def raster_service_headers(
+    *, tenant_id: str | None = None, service_token: bool = True
+) -> dict[str, str]:
+    """ترويسات نداء raster-service. ``service_token=False`` لطلبات يقودها مستخدم (T4):
+    رمز الخدمة يفتح مسارات خدميّة فقط، فلا يُرفَق بطلب يختار مستخدمٌ مساره."""
+    headers: dict[str, str] = {}
+    if service_token:
+        headers["X-Agent-Token"] = os.getenv("SAHOOL_AGENT_TOKEN", "")
     if tenant_id:
         headers["X-Tenant-Id"] = str(tenant_id)
     return headers
@@ -107,12 +113,16 @@ async def raster_get_raw(
     `/api/raster/{path:path}` where the browser may request TileJSON or tile
     bytes. It centralizes raster URL, tenant promotion, and safe response header
     filtering so legacy routers do not open-code raster transport details.
+
+    T4: the caller picks ``path``, so this never attaches the service token
+    (``X-Agent-Token``) — it forwards the user's ``Authorization`` and the
+    token-derived tenant only, exactly like the nginx ``/api/raster/`` gateway.
     """
     import httpx
     from fastapi import HTTPException
 
     url = f"{raster_service_url()}/{path.lstrip('/')}"
-    headers = raster_service_headers(tenant_id=tenant_id)
+    headers = raster_service_headers(tenant_id=tenant_id, service_token=False)
     if authorization:
         headers["Authorization"] = authorization
     try:

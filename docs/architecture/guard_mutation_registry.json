@@ -1706,7 +1706,7 @@
         },
         {
           "expect": "test_the_rules_path_consults_with_tenant_field_and_valve_scope",
-          "find": "                        ks_conn, tenant_id, field_id=field_id, valve_id=device\n                    )",
+          "find": "                        ks_conn, tenant_id, field_id=valve_field, valve_id=device\n                    )",
           "replace": "                        ks_conn, tenant_id  # mutated: نطاقُ المستأجِر وحده\n                    )",
           "test": "tests_v9/test_actuation_killswitch_behaviour.py",
           "why": "تضييقُ النطاق على مسار القواعد يُمرِّر مفتاحَ حقلٍ أو صمّام: الاستشارة تقع (فيمرّ الحارس الساكن) ولا تُطابِق — والقاعدة الآليّة تفتح الصمّام والمشغّل يظنّ الحقل موقوفاً. (والمرساة تشمل قوس الإغلاق: `valve_id=device` سلسلةٌ جزئيّة من `valve_id=device_id` في موضع الإرسال، فقصرُها كان يجعل الزرع غير محدَّد الموضع — أمسكه الحارس.)"
@@ -1739,7 +1739,7 @@
         },
         {
           "expect": "test_a_clear_killswitch_still_lets_a_manual_command_through",
-          "find": "    success = await main.send_mqtt_command(req.device_id, req.command, req.payload)",
+          "find": "    success = await main.send_mqtt_command(\n        req.device_id, req.command, req.payload, command_id=command_id\n    )",
           "replace": "    success = False  # mutated: حجبٌ شامل — لا نشر أصلاً",
           "why": "منعُ تشغيلٍ مشروع عطلٌ أيضاً: بوّابةٌ تحجب الكلّ تُرضي كلّ اختبار حجبٍ وتكسر الخدمة. فالجناح يقيس الاتّجاهين لا اتّجاه المنع وحده."
         }
@@ -2908,8 +2908,8 @@
       "mutations": [
         {
           "expect": "test_arabic_observed_intents_respect_word_boundaries_and_specificity",
-          "find": "    return re.search(r\"(?<!\\w)(?:\" + \"|\".join(alternatives) + r\")(?!\\w)\", query) is not None",
-          "replace": "    return re.search(\"|\".join(alternatives), query) is not None",
+          "find": "    regex = re.compile(r\"(?<!\\w)(?:\" + \"|\".join(plain) + r\")(?!\\w)\") if plain else None",
+          "replace": "    regex = re.compile(\"|\".join(plain)) if plain else None",
           "test": "services/supervisor-agent/test_router.py",
           "why": "Removing word boundaries makes ري inside الرياح and بق inside بقع win unrelated intents."
         }
@@ -3303,6 +3303,30 @@
           "find": "        if not report.get(\"actual_server_refresh_observed\"):\n            raise RuntimeError(\"actual_server_refresh_missing\")",
           "replace": "        if False:\n            raise RuntimeError(\"actual_server_refresh_missing\")",
           "why": "Removing the actual-refresh requirement must fail the named negative report test; its initial complete positive report must continue to pass. This measures receipt completeness, not live SFU execution."
+        }
+      ]
+    },
+    "services/actuator-service/command_delivery.py": {
+      "$why_ar": "v238: حالة تسليم أوامر المشغّلات — لا يصل الأمر إلى device_acked إلّا بإقرار جهازٍ موقَّع يسمّي معرّف الأمر، وينتهي بمهلة محدودة.",
+      "test": "services/actuator-service/test_actuator_delivery_state_20261103.py",
+      "mutations": [
+        {
+          "expect": "test_malformed_or_unsigned_acks_are_refused",
+          "find": "    if not isinstance(sig, str) or not hmac.compare_digest(sig, expected):",
+          "replace": "    if False:  # mutated: an unsigned/forged ack is trusted",
+          "why": "Without the signature check any broker client can publish an ack and move a command to device_acked."
+        },
+        {
+          "expect": "test_illegal_transitions_are_refused",
+          "find": "    if required is None:\n        raise IllegalDeliveryTransition(f\"illegal_transition:{current}->{target}\")",
+          "replace": "    if required is None:\n        return target  # mutated: any edge is accepted",
+          "why": "A state machine that accepts every edge lets a late ack resurrect an expired command or a simulation claim a device ack."
+        },
+        {
+          "expect": "test_a_late_ack_does_not_ack_and_materialises_expiry",
+          "find": "    if effective_state(record, now) == EXPIRED and current in (QUEUED, PUBLISHED):",
+          "replace": "    if False:  # mutated: the deadline is ignored",
+          "why": "Bounded expiry is the only signal that a device never answered; ignoring it turns a lost command into a late success."
         }
       ]
     }

@@ -470,6 +470,13 @@
       "owner": "TASK-IRRIGATION-OBSERVATIONS",
       "reason": "إفادةُ ريٍّ ميدانيّة مرتبطة بمهمّة (رقعة المالك SAHOOL_Task_Irrigation_Observations، 2026-10-27): تُلحِق المشاهدةَ حدثاً غيرَ انتقاليّ (from_state = to_state) بجدول المنصّة القائم irrigation_manual_execution_events (v187) عبر المسارين القائمين POST /api/v1/observations وGET /api/v1/tasks — بلا مسارٍ جديد ولا هجرة. لا تعتمد ريّاً ولا تؤكّد تنفيذاً ولا تكتب water_ledger. موضعُها المنصّة لأنّ الجدول الذي تكتبه مملوكٌ للمنصّة؛ الإغلاق بانتقالها مع دورة حياة التنفيذ اليدويّ للريّ إلى خدمتها المالكة، لا بإعفاء عدّ.",
       "target_close_by": "2026-12-31"
+    },
+    {
+      "category": "platform_domain_table_ownership",
+      "identity": "detection_provenance",
+      "owner": "EDGE-DETECTION-PROVENANCE",
+      "reason": "نسبُ كشف الحافّة (v239): صفٌّ لكلّ كشفٍ يكتبه مسارُ الإدخال القائم POST /api/v1/edge/sync في معاملة edge_results نفسها (edge_results مملوكٌ للمنصّة منذ v9) — بلا مسارٍ جديد. موضعُه المنصّة لأنّ الجدولَ الذي يشرحه مملوكٌ لها ومفتاحه الأجنبيّ المركّب (edge_result_id, tenant_id) يربطه به؛ الإغلاق بانتقال edge_results ونسبه معاً إلى خدمةٍ مالكة لإدخال الحافّة، لا بإعفاء عدّ. فرعُ فكّ تجميدٍ محلّيّ — لا يُدمَج قبل حكم GATE-01.",
+      "target_close_by": "2026-12-31"
     }
   ],
   "exception_contract": {
@@ -495,27 +502,27 @@
     "decision_record:mirror:decision-service": {
       "owner": "decision-service-cutover",
       "reason": "interim Decision SoR mirror for decision_record; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
-      "target_close_by": "2026-10-31"
+      "target_close_by": "2026-11-30"
     },
     "dispatch_decisions:mirror:decision-service": {
       "owner": "decision-service-cutover",
       "reason": "interim Decision SoR mirror for dispatch_decisions; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
-      "target_close_by": "2026-10-31"
+      "target_close_by": "2026-11-30"
     },
     "online_learning_updates:mirror:decision-service": {
       "owner": "decision-service-cutover",
       "reason": "interim Decision SoR mirror for online_learning_updates; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
-      "target_close_by": "2026-10-31"
+      "target_close_by": "2026-11-30"
     },
     "outcome_record:mirror:decision-service": {
       "owner": "decision-service-cutover",
       "reason": "interim Decision SoR mirror for outcome_record; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
-      "target_close_by": "2026-10-31"
+      "target_close_by": "2026-11-30"
     },
     "recommendation_outcomes:mirror:decision-service": {
       "owner": "decision-service-cutover",
       "reason": "interim Decision SoR mirror for recommendation_outcomes; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
-      "target_close_by": "2026-10-31"
+      "target_close_by": "2026-11-30"
     }
   }
 }

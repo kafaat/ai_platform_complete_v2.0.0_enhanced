@@ -43,7 +43,14 @@ with open("/app/.sahool-build-metadata.json", "w", encoding="utf-8") as f:
     json.dump(payload, f, sort_keys=True)
 PY
 RUN chmod 0444 /app/.sahool-build-metadata.json
-RUN apt-get update && apt-get install -y --no-install-recommends \
+ARG DEBIAN_MIRROR=
+RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian-security|${DEBIAN_MIRROR%/}/debian-security|g" \
+            -e "s|http://deb.debian.org/debian|${DEBIAN_MIRROR%/}/debian|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi \
+    && apt-get update && apt-get install -y --no-install-recommends \
     gcc libpq-dev curl \
     && rm -rf /var/lib/apt/lists/*
 COPY services/agriai-engine/requirements.txt /tmp/

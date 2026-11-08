@@ -174,6 +174,20 @@ def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
     return report
 
 
+# S14: مفاتيح عقد الترميز/التحليل يكتبها مسار إعادة الفهرسة والمحلّل وحدهما. وصولُها من
+# metadata مُستدعٍ (مثلاً مفتاحٌ مخصّص في PDF) كان يُسمِّم المجموعة: صفٌّ واحد يحمل
+# ``document_embedding_prefix`` يُسقِط إعادة بناء BM25 فيُرَدّ 503 لبحث كلّ المستأجرين.
+_RESERVED_INGEST_METADATA_KEYS = frozenset(
+    {
+        "document_embedding_prefix",
+        "reindex_revision",
+        "embedding_model_digest",
+        "retrieval_profile",
+        "chunk_id_source",
+    }
+)
+
+
 class ChunkIn(BaseModel):
     chunk_id: str
     tenant_id: str
@@ -306,6 +320,12 @@ async def ingest(
             raise HTTPException(status_code=403, detail=exc.code) from exc
         if tenant_id == GLOBAL_REFERENCE_TENANT:
             raise HTTPException(status_code=403, detail="GLOBAL_REFERENCE_INGEST_RESERVED")
+        reserved = sorted(_RESERVED_INGEST_METADATA_KEYS & c.metadata.keys())
+        if reserved:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "RESERVED_RAG_METADATA", "keys": reserved},
+            )
         payload = c.model_dump()
         payload["tenant_id"] = tenant_id
         # Canonical retrieval owns the storage metadata contract. Callers provide

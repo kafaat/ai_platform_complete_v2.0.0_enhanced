@@ -71,6 +71,18 @@ def _batch_poll_interval_s() -> float:
         return 2.0
 
 
+def _scene_max_attempts() -> int:
+    """أقصى محاولات معالجة لمشهد واحد قبل تعليمه «معالَجاً» رغم الفشل (G13).
+
+    ٣ افتراضاً: الكنس يوميّ، فثلاث محاولات = ثلاثة أيّام — أقلّ من دورة Sentinel-2
+    (~٥ أيّام)، فلا يحجب مشهدٌ معطوب دائماً المشهدَ التالي ولا يُعاد بلا نهاية.
+    """
+    try:
+        return max(1, int(os.getenv("IMAGERY_SCENE_MAX_ATTEMPTS", "3")))
+    except ValueError:
+        return 3
+
+
 def _scan_concurrency() -> int:
     """عدد الحقول المفحوصة معاً في كنسة واحدة (IMAGERY-SCAN-SERIAL-WAIT-01).
 
@@ -107,6 +119,10 @@ class TrackedField:
     last_msi_date: str | None = None  # تاريخ صورة آخر MSI
     new_images_found: int = 0
     check_errors: int = 0
+    # G13: محاولات المشهد المعلَّق (لم تُحفَظ مؤشّراته بعد). بالذاكرة فقط — لا عمود
+    # له في الجدول، فإعادة التشغيل تُصفّره (محاولات أكثر لا فقدان بيانات).
+    pending_scene_id: str | None = None
+    pending_scene_attempts: int = 0
 
     def to_dict(self) -> dict:
         return {
@@ -750,25 +766,60 @@ class ImageryAutomation:
                 # صورة جديدة؟ (مختلفة عن آخر معروفة)
                 if not newest_id or newest_id == tf.last_image_id:
                     return (False, None)
+                # G13: المشهد يُعلَّم «معالَجاً» (last_image_id) **بعد** حفظ مؤشّراته لا
+                # قبله. التعليم المسبق كان يجعل عطلاً عابراً (مهلة/شبكة/حفظ) يُفقد NDVI حتّى
+                # المشهد التالي (~٥ أيّام): الدورة اللاحقة ترى المعرّف نفسه فتتخطّاه.
+                if tf.pending_scene_id != newest_id:
+                    tf.pending_scene_id = newest_id
+                    tf.pending_scene_attempts = 0
+                tf.pending_scene_attempts += 1
+                # اطلب حساب المؤشّرات (NDVI) لو توفّر رابط الراستر. `False` صريحة فقط =
+                # عطل عابر قابل للإعادة؛ None (نسخ قديمة/بدائل اختبار) = لا شيء يُعاد.
+                processed = await self._trigger_indicators(tf, newest)
+                if processed is False and tf.pending_scene_attempts < _scene_max_attempts():
+                    tf.check_errors += 1
+                    # يُحفَظ عدّاد الأخطاء فقط؛ last_image_id يبقى القديم ⇒ يُعاد في الدورة التالية.
+                    await self._persist_field(tf)
+                    logger.warning(
+                        "مؤشّرات المشهد %s للحقل %s لم تُحفَظ (محاولة %d/%d) — يُعاد لاحقاً",
+                        newest_id,
+                        field_id,
+                        tf.pending_scene_attempts,
+                        _scene_max_attempts(),
+                    )
+                    return (False, "IndicatorsNotPersisted")
+                exhausted = processed is False
                 tf.last_image_id = newest_id
                 tf.last_image_date = newest.get("datetime") or newest.get("date")
                 tf.new_images_found += 1
-                # اطلب حساب المؤشّرات (NDVI) لو توفّر رابط الراستر
-                await self._trigger_indicators(tf, newest)
+                tf.pending_scene_id = None
+                tf.pending_scene_attempts = 0
+                if exhausted:
+                    # سقف المحاولات: لا يُعاد المشهد بلا نهاية؛ القيم تبقى NULL (لا تلفيق).
+                    tf.check_errors += 1
+                    logger.warning(
+                        "استُنفدت محاولات مؤشّرات المشهد %s للحقل %s — يُعلَّم معالَجاً بلا قيم",
+                        newest_id,
+                        field_id,
+                    )
                 # احفظ الحالة الجديدة (لا إعادة معالجة بعد إعادة التشغيل)
                 await self._persist_field(tf)
-                return (True, None)
+                return (True, "IndicatorsNotPersisted" if exhausted else None)
             except Exception as e:  # noqa: BLE001 — عزل لكلّ حقل
                 tf.check_errors += 1
                 logger.warning("فشل فحص صور الحقل %s: %s", field_id, e)
                 return (False, type(e).__name__)
 
-    async def _trigger_indicators(self, tf: TrackedField, image: dict) -> None:
+    async def _trigger_indicators(self, tf: TrackedField, image: dict) -> bool:
         """يطلب حساب المؤشّرات لصورة جديدة عبر raster-service /v1/process/batch.
 
         يحسب المؤشّرات الأساسيّة دفعةً من نفس المشهد (كفاءة): NDVI (صحّة) +
         NDRE (نيتروجين) + NDSI (ملوحة — حرج لليمن). صدق: لو لا رابط راستر
         صالح، لا يطلب (لا يدّعي معالجة).
+
+        G13: يُرجِع ``True`` حين انتهى المشهد (قيم حُفِظت، أو لا شيء قابل للمعالجة/لا
+        بكسلات صالحة — إعادته لا تُغيّر شيئاً)، و``False`` حين عطلٍ عابر (استثناء، دفعة
+        لم تكتمل، تعذّر قراءة/حفظ) يستحقّ الإعادة. المستدعي لا يُعلّم المشهد قبل ``True``.
         """
         # A single STAC NIR asset is one spectral band, not a multi-band COG.
         # Never pretend it contains red/green/rededge/SWIR: that would publish
@@ -778,7 +829,7 @@ class ImageryAutomation:
         raster_url = image.get("raster_url")
         if not raster_url:
             # لا رابط صالح — نسجّل الصورة فقط دون معالجة (صدق)
-            return
+            return True
         try:
             # batch: عدّة مؤشّرات من نفس المشهد في طلب واحد (كفاءة I/O).
             # NDVI صحّة + NDRE نيتروجين + NDSI ملوحة (سياق اليمن الجافّ).
@@ -811,13 +862,16 @@ class ImageryAutomation:
             # (SPECTRAL-COLLECTOR-ASYNC-RACE-01). ننتظر حالة نهائيّة **مرّةً واحدة**
             # للدفعة، لا مرّةً لكلّ مؤشّر.
             if not await self._await_batch_terminal(tf, body):
-                return
+                return False
             # Stage D: best-effort — استخرج متوسّط NDVI الحقيقيّ واحفظه (fail-safe).
-            await self._collect_ndvi_value(tf, image, body)
+            ndvi_ok = await self._collect_ndvi_value(tf, image, body)
             # D2b: best-effort — استخرج NDMI/MSI (تأكيد الإجهاد الطيفيّ) واحفظهما.
-            await self._collect_spectral_values(tf, image, body)
+            spectral_ok = await self._collect_spectral_values(tf, image, body)
+            # `is not False`: بدائل قديمة تُرجِع None تُعَدّ نجاحاً (لا تغيير سلوك لها).
+            return ndvi_ok is not False and spectral_ok is not False
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل طلب مؤشّرات الحقل %s: %s", tf.field_id, e)
+            return False
 
     async def _await_batch_terminal(self, tf: TrackedField, batch_body: dict) -> bool:
         """ينتظر بلوغ دفعة المؤشّرات حالةً نهائيّة قبل قراءة نتائجها الفرعيّة.
@@ -928,36 +982,39 @@ class ImageryAutomation:
     def _image_date(image: dict) -> str | None:
         return (image.get("datetime") or image.get("date") or "")[:10] or None
 
-    async def _collect_ndvi_value(self, tf: TrackedField, image: dict, batch_body: dict) -> None:
+    async def _collect_ndvi_value(self, tf: TrackedField, image: dict, batch_body: dict) -> bool:
         """best-effort: يستخرج متوسّط NDVI الحقيقيّ من نتيجة المعالجة ويحفظه.
 
-        fail-safe تامّ: أيّ تعذّر ⇒ تخطٍّ صامت، العمود يبقى NULL (لا تلفيق).
+        fail-safe تامّ: أيّ تعذّر ⇒ تخطٍّ صامت، العمود يبقى NULL (لا تلفيق). يُرجِع
+        ``False`` عند عطل عابر (قراءة/حفظ) كي لا يُعلَّم المشهد معالَجاً (G13)؛ وغياب
+        القيمة (لا بكسلات صالحة) نتيجة نهائيّة ⇒ ``True``.
         """
         try:
             job_id = batch_body.get("job_id") or tf.last_indicator_job
             if not job_id:
-                return
+                return True
             mean = await self._fetch_index_mean(job_id, "ndvi", tenant_id=tf.tenant_id)
             if mean is None:
-                return
+                return True
             tf.last_ndvi_mean = mean
             tf.last_ndvi_date = self._image_date(image)
-            await self._persist_ndvi(tf)
+            return await self._persist_ndvi(tf)
         except Exception as e:  # noqa: BLE001 — best-effort، لا يكسر الأتمتة أبداً
             logger.debug("جمع قيمة NDVI تخطٍّ للحقل %s: %s", tf.field_id, e)
+            return False
 
     async def _collect_spectral_values(
         self, tf: TrackedField, image: dict, batch_body: dict
-    ) -> None:
+    ) -> bool:
         """best-effort (D2b): يستخرج NDMI/MSI ويحفظهما — تأكيد الإجهاد الطيفيّ.
 
         كلّ مؤشّر مستقلّ: المتوفّر يُحفَظ والغائب يبقى NULL (صدق — لا تلفيق). fail-safe
-        تامّ: أيّ تعذّر ⇒ تخطٍّ صامت لا يكسر الأتمتة.
+        تامّ: أيّ تعذّر ⇒ تخطٍّ صامت لا يكسر الأتمتة؛ ``False`` = عطل عابر (G13).
         """
         try:
             job_id = batch_body.get("job_id") or tf.last_indicator_job
             if not job_id:
-                return
+                return True
             img_date = self._image_date(image)
             ndmi = await self._fetch_index_mean(job_id, "ndmi", tenant_id=tf.tenant_id)
             if ndmi is not None:
@@ -968,14 +1025,18 @@ class ImageryAutomation:
                 tf.last_msi_mean = msi
                 tf.last_msi_date = img_date
             if ndmi is not None or msi is not None:
-                await self._persist_spectral(tf)
+                return await self._persist_spectral(tf)
+            return True
         except Exception as e:  # noqa: BLE001 — best-effort، لا يكسر الأتمتة أبداً
             logger.debug("جمع NDMI/MSI تخطٍّ للحقل %s: %s", tf.field_id, e)
+            return False
 
-    async def _persist_ndvi(self, tf: TrackedField) -> None:
-        """يحفظ متوسّط NDVI + تاريخه في imagery_automation_fields (fail-safe)."""
+    async def _persist_ndvi(self, tf: TrackedField) -> bool:
+        """يحفظ متوسّط NDVI + تاريخه في imagery_automation_fields (fail-safe).
+
+        يُرجِع هل التزمت الكتابة (بلا pool: لا شيء يُحفَظ ⇒ ``True``)."""
         if self._pool is None:
-            return
+            return True
         try:
             async with self._pool.acquire() as conn:
                 async with conn.transaction():
@@ -987,17 +1048,19 @@ class ImageryAutomation:
                         tf.last_ndvi_mean,
                         tf.last_ndvi_date,
                     )
+            return True
         except Exception as e:  # noqa: BLE001 — حفظ best-effort
-            logger.debug("حفظ NDVI تخطٍّ للحقل %s: %s", tf.field_id, e)
+            logger.warning("حفظ NDVI تعذّر للحقل %s: %s", tf.field_id, e)
+            return False
 
-    async def _persist_spectral(self, tf: TrackedField) -> None:
+    async def _persist_spectral(self, tf: TrackedField) -> bool:
         """يحفظ NDMI/MSI + تاريخيهما في imagery_automation_fields (fail-safe، D2b).
 
         COALESCE يُبقي القيمة المخزَّنة حين يكون المؤشّر الحاليّ None (لا يمحو قراءة
-        سابقة بمؤشّر مفقود في صورة لاحقة).
+        سابقة بمؤشّر مفقود في صورة لاحقة). يُرجِع هل التزمت الكتابة.
         """
         if self._pool is None:
-            return
+            return True
         try:
             async with self._pool.acquire() as conn:
                 async with conn.transaction():
@@ -1015,8 +1078,10 @@ class ImageryAutomation:
                         tf.last_msi_mean,
                         tf.last_msi_date,
                     )
+            return True
         except Exception as e:  # noqa: BLE001 — حفظ best-effort
-            logger.debug("حفظ NDMI/MSI تخطٍّ للحقل %s: %s", tf.field_id, e)
+            logger.warning("حفظ NDMI/MSI تعذّر للحقل %s: %s", tf.field_id, e)
+            return False
 
 
 # مثيل وحيد للتطبيق

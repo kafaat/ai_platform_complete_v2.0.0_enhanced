@@ -611,5 +611,15 @@
 \i migrations/v235_decision_chain_correlation.sql
 \echo '═══ 233. v236_raster_follow_up_requests.sql ═══'
 \i migrations/v236_raster_follow_up_requests.sql
-\echo '═══ 234. v206_rls_final_hardening.sql ═══'
+\echo '═══ 234. v237_tenant_isolation_hardening.sql ═══'
+\i migrations/v237_tenant_isolation_hardening.sql
+\echo '═══ 235. v238_actuator_delivery_state.sql ═══'
+\i migrations/v238_actuator_delivery_state.sql
+\echo '═══ 236. v241_edge_idempotency_tenant_scoped.sql ═══'
+\i migrations/v241_edge_idempotency_tenant_scoped.sql
+\echo '═══ 237. v239_detection_provenance.sql ═══'
+\i migrations/v239_detection_provenance.sql
+\echo '═══ 238. v240_converge_first_pass_schema.sql ═══'
+\i migrations/v240_converge_first_pass_schema.sql
+\echo '═══ 239. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

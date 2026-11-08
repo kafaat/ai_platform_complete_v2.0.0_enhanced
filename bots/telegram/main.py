@@ -19,6 +19,7 @@ Commands:
 import asyncio
 import logging
 import os
+import re
 import time as _time_module
 import uuid
 from datetime import UTC, datetime
@@ -26,12 +27,15 @@ from datetime import UTC, datetime
 import httpx
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
+from aiogram.client.session.middlewares.base import BaseRequestMiddleware
+from aiogram.enums import ChatType, ParseMode
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage as _RedisStorage
+from aiogram.methods import EditMessageText, SendMessage
 from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -115,7 +119,7 @@ class RedisThrottlingMiddleware:
             logger.warning(f"Throttled: Telegram user={uid}")
             if isinstance(event, Message):
                 try:
-                    await event.answer("⚠️ طلبات كثيرة — انتظر لحظة ثم أعد المحاولة.")
+                    await event.answer("⚠️ طلبات كثيرة — انتظر لحظة ثم أعد المحاولة\\.")
                 except Exception as e:  # noqa: BLE001 — إشعار throttle تجميليّ: الفشل غير حرج
                     logger.debug("تعذّر إرسال إشعار throttle: %s", e)
             return None
@@ -163,19 +167,61 @@ except TokenValidationError:
     _sys.exit(0)
 
 
+# S13: الأحرف المحجوزة في MarkdownV2 (core.telegram.org/bots/api#markdownv2-style)،
+# مطابقة لحلقة _md2 (يحرس التطابقَ اختبارُ الذهاب والإياب في جدول التهريب).
+_MD2_RESERVED = "\\_*[]()~`>#+-=|{}.!"
+_MD2_UNESCAPE_RE = re.compile(r"\\([" + re.escape(_MD2_RESERVED) + r"])")
+
+
 def _md2(text: str) -> str:
     """Escape القيم الديناميكيّة لـMarkdownV2 (منع خطأ 400 من رموز خاصّة).
 
-    يُطبَّق على القيم القادمة من DB/المستخدم (أسماء حقول، حالات، أسماء آفات)
-    التي قد تحوي . - ( ) ! إلخ. لا يُطبَّق على القوالب الثابتة (مُهيّأة يدويّاً).
+    يُطبَّق على كلّ نصّ ديناميكيّ: ردود النموذج، مدخلات المستخدم، قيم DB،
+    نصوص الاستثناءات — فلا يُفسَّر `[x](url)` رابطاً ولا `*` تنسيقاً (S13).
+    لا يُطبَّق على القوالب الثابتة (مُهيّأة يدويّاً بتنسيقها المقصود).
+    صالح داخل `code` أيضاً (تيليجرام يقبل تهريب أيّ حرف 1..126).
     """
     if text is None:
         return ""
     out = str(text)
-    # الشرطة المائلة أوّلاً ومرّة واحدة (وإلّا تُعيد تهريب ما أضافته اللاحقة)
+    # الشرطة المائلة أوّلاً ومرّة واحدة (وإلّا تُعيد تهريب ما أضافته اللاحقة).
+    # الحرفيّة هنا لا _MD2_RESERVED: test_roadmap_phase23 يُنفّذ الدالّة معزولةً.
     for ch in "\\_*[]()~`>#+-=|{}.!":
         out = out.replace(ch, "\\" + ch)
     return out
+
+
+def _md2_to_plain(text: str) -> str:
+    """عكس `_md2`: نصّ عاديّ لمسار الرجوع (لا تبقى شرطات مائلة ظاهرة)."""
+    return _MD2_UNESCAPE_RE.sub(r"\1", text)
+
+
+class MarkdownV2PlainFallback(BaseRequestMiddleware):
+    """S13: إن رفض تيليجرام التنسيق (can't parse entities) أعِد الإرسال نصّاً عاديّاً مرّة واحدة.
+
+    شبكة أمان لا بديل عن `_md2`: قالب ثابت مكسور لا يُسقط الردّ بصمت.
+    الإعادة بـparse_mode=None لا يمكن أن تفشل بخطأ تحليل ⇒ لا حلقة.
+    """
+
+    async def __call__(self, make_request, bot, method):
+        try:
+            return await make_request(bot, method)
+        except TelegramBadRequest as exc:
+            if (
+                not isinstance(method, (SendMessage, EditMessageText))
+                or not method.text
+                or method.parse_mode is None
+                or "can't parse entities" not in str(exc.message).lower()
+            ):
+                raise
+            logger.warning("MarkdownV2 رُفض (%s) — إعادة الإرسال نصّاً عاديّاً", exc.message)
+            plain = method.model_copy(
+                update={"text": _md2_to_plain(method.text), "parse_mode": None}
+            )
+            return await make_request(bot, plain)
+
+
+bot.session.middleware(MarkdownV2PlainFallback())
 
 
 # ── TTS Voice Helper (Yemeni Arabic) ────────────────────────────
@@ -485,16 +531,40 @@ async def cmd_start(message: Message, state: FSMContext):
 
 
 # ─── ربط الحساب (/link) — إصلاح B5: مصادقة فعليّة بدل صكّ توكنات ───
+_DM_ONLY_TEXT = "🔒 ربط الحساب يتمّ في محادثة خاصّة فقط\\. راسل البوت مباشرةً وأرسل /link هناك\\."
+
+
+async def _refuse_credentials_outside_private(message: Message) -> bool:
+    """S13: لا يُطلب بريد/كلمة مرور إلّا في محادثة خاصّة (المجموعة يقرؤها الجميع).
+
+    يُرجع True إن رُفض الطلب. يحذف رسالة المستخدم best-effort (إن ملك البوت الصلاحيّة)
+    ولا يردّد محتواها أبداً.
+    """
+    if message.chat.type == ChatType.PRIVATE:
+        return False
+    try:
+        await message.delete()
+    except Exception as e:  # noqa: BLE001 — best-effort: البوت قد لا يملك صلاحيّة الحذف
+        logger.info("تعذّر حذف رسالة ربط في محادثة غير خاصّة: %s", type(e).__name__)
+    await message.answer(_DM_ONLY_TEXT)
+    return True
+
+
 @router.message(Command("link"))
 async def cmd_link(message: Message, state: FSMContext):
     """يبدأ ربط حساب تيليجرام بحساب SAHOOL عبر auth/login."""
     await state.clear()
+    if await _refuse_credentials_outside_private(message):
+        return
     await message.answer("🔐 لربط حسابك، أرسل بريدك الإلكتروني المسجّل في SAHOOL:")
     await state.set_state(LinkStates.waiting_email)
 
 
 @router.message(LinkStates.waiting_email, F.text)
 async def link_email(message: Message, state: FSMContext):
+    if await _refuse_credentials_outside_private(message):
+        await state.clear()
+        return
     await state.update_data(email=message.text.strip())
     await message.answer("🔑 الآن أرسل كلمة المرور:")
     await state.set_state(LinkStates.waiting_password)
@@ -502,6 +572,9 @@ async def link_email(message: Message, state: FSMContext):
 
 @router.message(LinkStates.waiting_password, F.text)
 async def link_password(message: Message, state: FSMContext):
+    if await _refuse_credentials_outside_private(message):
+        await state.clear()
+        return
     data = await state.get_data()
     email = data.get("email", "")
     password = message.text.strip()
@@ -513,7 +586,7 @@ async def link_password(message: Message, state: FSMContext):
     ok = await link_account(message.from_user.id, email, password)
     await state.clear()
     if ok:
-        await message.answer("✅ تمّ ربط حسابك بنجاح. يمكنك الآن استخدام كلّ الميزات.")
+        await message.answer("✅ تمّ ربط حسابك بنجاح\\. يمكنك الآن استخدام كلّ الميزات\\.")
     else:
         await message.answer("❌ فشل الربط — تحقّق من البريد وكلمة المرور وأعِد /link")
 
@@ -530,7 +603,7 @@ async def process_phone(message: Message, state: FSMContext):
     }
 
     await message.answer(
-        f"✅ تم حفظ الرقم: `{phone}`\n\n"
+        f"✅ تم حفظ الرقم: `{_md2(phone)}`\n\n"
         "الآن أرسل *معرف الحقل* \\(Field ID\\) من تطبيق SAHOOL\\:\n"
         "أو اكتب *جديد* لإنشاء حقل جديد\\.",
         reply_markup=ReplyKeyboardMarkup(
@@ -601,7 +674,7 @@ async def process_crop(message: Message, state: FSMContext):
 
     await message.answer(
         f"🎉 *تم التسجيل بنجاح\\!*\n\n"
-        f"• الحقل: `{user_cache[user_id].get('field_id', 'غير محدد')}`\n"
+        f"• الحقل: `{_md2(user_cache[user_id].get('field_id', 'غير محدد'))}`\n"
         f"• المحصول: {_md2(message.text.strip())}\n\n"
         f"استخدم القائمة أدناه أو اكتب سؤالك مباشرة\\.",
         reply_markup=main_kb,
@@ -628,7 +701,7 @@ async def cmd_ndvi(message: Message):
             context={"date": datetime.now(UTC).strftime("%Y-%m-%d")},
         )
 
-        response = result.get("response_ar", "لم أتمكن من الحصول على البيانات\\.")
+        response = _md2(result.get("response_ar") or "لم أتمكن من الحصول على البيانات.")
 
         # Add structured data if available
         if result.get("structured_data"):
@@ -654,7 +727,7 @@ async def cmd_weather(message: Message):
     try:
         result = await call_supervisor(user_id, "ما هو طقس الأيام القادمة؟", context={"days": 7})
 
-        response = result.get("response_ar", "لم أتمكن من الحصول على البيانات\\.")
+        response = _md2(result.get("response_ar") or "لم أتمكن من الحصول على البيانات.")
         await wait_msg.edit_text(response)
 
     except Exception as e:
@@ -685,7 +758,7 @@ async def process_pest_photo(message: Message, state: FSMContext):
     photo = message.photo[-1]  # Highest resolution
     MAX_PHOTO_BYTES = 10 * 1024 * 1024  # 10MB
     if photo.file_size and photo.file_size > MAX_PHOTO_BYTES:
-        await message.answer("⚠️ الصورة كبيرة جداً (الحد الأقصى 10MB). أرسل صورة أصغر.")
+        await message.answer(_md2("⚠️ الصورة كبيرة جداً (الحد الأقصى 10MB). أرسل صورة أصغر."))
         await state.clear()
         return
     await bot.get_file(photo.file_id)
@@ -702,7 +775,7 @@ async def process_pest_photo(message: Message, state: FSMContext):
             context={"crop": crop, "image_file_id": photo.file_id},
         )
 
-        response = result.get("response_ar", "لم أتمكن من التحليل\\.")
+        response = _md2(result.get("response_ar") or "لم أتمكن من التحليل.")
 
         await wait_msg.edit_text(response)
 
@@ -754,7 +827,7 @@ async def cmd_market(message: Message):
             user_id, f"كم سعر {crop} في السوق؟", context={"crop": crop, "market": "sanaa"}
         )
 
-        response = result.get("response_ar", "لم أتمكن من الحصول على الأسعار\\.")
+        response = _md2(result.get("response_ar") or "لم أتمكن من الحصول على الأسعار.")
 
         # Add price trend button
         kb = InlineKeyboardMarkup(
@@ -795,7 +868,7 @@ async def cmd_optimize(message: Message):
         return
 
     wait_msg = await message.answer(
-        "🧠 جاري تحليل البيانات وإيجاد أفضل خطة... قد يستغرق 10-30 ثانية."
+        _md2("🧠 جاري تحليل البيانات وإيجاد أفضل خطة... قد يستغرق 10-30 ثانية.")
     )
 
     try:
@@ -807,7 +880,7 @@ async def cmd_optimize(message: Message):
             objectives=["balanced"],
         )
 
-        response = result.get("trade_off_explanation", result.get("response_ar", "تم التحليل\\!"))
+        response = result.get("trade_off_explanation") or result.get("response_ar") or "تم التحليل!"
 
         # Add optimization options
         kb = InlineKeyboardMarkup(
@@ -818,7 +891,8 @@ async def cmd_optimize(message: Message):
             ]
         )
 
-        await wait_msg.edit_text(str(response)[:4000], reply_markup=kb)  # Telegram limit
+        # اقطع قبل التهريب (S13) كي لا يُبتر تسلسل \\x فيرفضه تيليجرام
+        await wait_msg.edit_text(_md2(str(response)[:4000]), reply_markup=kb)
 
     except Exception as e:
         await wait_msg.edit_text(f"❌ خطأ في التحليل\\: {_md2(str(e)[:100])}")
@@ -914,14 +988,14 @@ async def cb_price_trend(callback: CallbackQuery):
     crop = callback.data.replace("trend_", "")
     user_id = callback.from_user.id
 
-    await callback.answer("جاري التحميل\\.\\.\\.")
+    await callback.answer("جاري التحميل...")
 
     try:
         result = await call_supervisor(
             user_id, f"اتجاه سعر {crop}", context={"crop": crop, "market": "sanaa"}
         )
 
-        response = result.get("response_ar", "لم أتمكن من جلب الاتجاه\\.")
+        response = _md2(result.get("response_ar") or "لم أتمكن من جلب الاتجاه.")
         await callback.message.answer(response)
 
     except Exception as e:
@@ -942,18 +1016,18 @@ async def cb_optimize_objective(callback: CallbackQuery):
     crop = user_cache.get(user_id, {}).get("crop", "wheat")
 
     if not field_id:
-        await callback.answer("ربط حقل أولاً\\!", show_alert=True)
+        await callback.answer("اربط حقلاً أولاً!", show_alert=True)
         return
 
-    await callback.answer("جاري إعادة التحليل\\.\\.\\.")
+    await callback.answer("جاري إعادة التحليل...")
 
     try:
         result = await call_supervisor(
             user_id, "حسّن مزرعتي", field_id=field_id, context={"crop": crop}, objectives=objectives
         )
 
-        response = result.get("trade_off_explanation", result.get("response_ar", "تم التحليل\\!"))
-        await callback.message.answer(str(response)[:4000])
+        response = result.get("trade_off_explanation") or result.get("response_ar") or "تم التحليل!"
+        await callback.message.answer(_md2(str(response)[:4000]))
 
     except Exception as e:
         await callback.message.answer(f"❌ خطأ\\: {_md2(str(e)[:100])}")
@@ -963,7 +1037,7 @@ async def cb_optimize_objective(callback: CallbackQuery):
 async def cb_dismiss(callback: CallbackQuery):
     """Dismiss action."""
     await callback.message.delete()
-    await callback.answer("تم\\.")
+    await callback.answer("تم.")
 
 
 # ─── Natural Language Handler ──────────────────────────────
@@ -1009,17 +1083,18 @@ async def handle_natural_language(message: Message):
             user_id, message.text, field_id=field_id, context={"crop": crop}
         )
 
-        response = result.get("response_ar", "لم أفهم السؤال تماماً\\. حاول صياغته بطريقة أخرى\\.")
+        response = result.get("response_ar") or "لم أفهم السؤال تماماً. حاول صياغته بطريقة أخرى."
 
-        # Truncate if too long for Telegram
+        # Truncate if too long for Telegram (قبل التهريب كي لا يُقطع تسلسل \\x)
         if len(response) > 4000:
-            response = response[:3950] + "\\.\\.\\."
+            response = response[:3950] + "..."
+        response = _md2(response)
 
         await wait_msg.edit_text(response)
 
     except Exception as e:
         await wait_msg.edit_text(
-            f"❌ عذراً، حدث خطأ\\:\n`{str(e)[:200]}`\n\nحاول مرة أخرى أو استخدم /help"
+            f"❌ عذراً، حدث خطأ\\:\n`{_md2(str(e)[:200])}`\n\nحاول مرة أخرى أو استخدم /help"
         )
 
 

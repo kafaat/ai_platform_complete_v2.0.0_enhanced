@@ -2138,6 +2138,12 @@ export interface TelemetryPoint {
   value:       number;
   unit:        string | null;
   recorded_at: string;
+  /** عمر القراءة بالثواني يحسبه الخادم (null بلا وقت قراءة). */
+  age_sec?:    number | null;
+  /** قديمة إن تجاوز عمرها نافذة «online» — من الخادم لا من ساعة المتصفّح. */
+  stale?:      boolean;
+  /** النافذة التي حكم بها الخادم على ``stale`` (ثوانٍ) — مصدرُ نصّ الواجهة. */
+  stale_after_sec?: number;
 }
 
 export interface TelemetryRecordInput {

@@ -163,3 +163,148 @@ class TestMigrationV89:
     def test_in_manifest(self):
         manifest = (ROOT / "migrations" / "MANIFEST.txt").read_text(encoding="utf-8")
         assert "v89_invitations.sql" in manifest
+
+
+# ── (د) T8: الرمز يُخزَّن مُجزّأً، يُبحث بالـhash، والقديم الصريح لا يُقبَل ──
+_ROUTER_SRC = ROOT / "services" / "auth" / "routers" / "invitations.py"
+
+
+def _inv_router():
+    """وحدة routers/invitations.py كما حمّلها main (register_routers) — بالمسار لا بالاسم.
+
+    في الجناح الكامل قد يكون ``routers`` حزمةَ خدمة أخرى؛ فإن لم تُحمَّل وحدة auth بعدُ
+    نُنفّذ مساعِدات T8 النقيّة (hashlib/secrets فقط) من مصدرها نفسه بلا ``import main``.
+    """
+    import ast
+    import types
+
+    for module in list(sys.modules.values()):
+        if getattr(module, "__file__", None) == str(_ROUTER_SRC):
+            return module
+    tree = ast.parse(_ROUTER_SRC.read_text(encoding="utf-8"))
+    keep = {"INVITATION_TOKEN_HASH_PREFIX", "hash_invitation_token", "invitation_token_matches"}
+    body = [
+        n
+        for n in tree.body
+        if (isinstance(n, ast.FunctionDef) and n.name in keep)
+        or (isinstance(n, ast.Assign) and {getattr(t, "id", "") for t in n.targets} & keep)
+    ]
+    ns = types.ModuleType("_invitations_t8_helpers")
+    exec("import hashlib, secrets", ns.__dict__)  # noqa: S102 — مصدر المستودع نفسه
+    exec(compile(ast.Module(body=body, type_ignores=[]), str(_ROUTER_SRC), "exec"), ns.__dict__)  # noqa: S102
+    return ns
+
+
+def _handler(name: str):
+    import ast
+
+    tree = ast.parse(_ROUTER_SRC.read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == name:
+            return node
+    raise AssertionError(f"{name} غائب عن routers/invitations.py")
+
+
+def _db_calls_on(fn, table_marker: str):
+    """استدعاءات conn.fetchrow/execute التي يحوي SQL الأوّل فيها table_marker."""
+    import ast
+
+    out = []
+    for node in ast.walk(fn):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in {"fetchrow", "fetch", "execute", "fetchval"}
+            and node.args
+            and isinstance(node.args[0], ast.Constant)
+            and table_marker in str(node.args[0].value)
+        ):
+            out.append(node)
+    return out
+
+
+@pytest.mark.unit
+@pytest.mark.security
+class TestInvitationTokenHashedAtRest:
+    def test_stored_value_is_not_the_token(self):
+        r = _inv_router()
+        token = "tok_" + "A" * 40
+        stored = r.hash_invitation_token(token)
+        assert stored != token
+        assert token not in stored
+        assert stored.startswith("sha256:") and len(stored) == len("sha256:") + 64
+        # حتميّ (البحث بالفهرس الفريد القائم يتطلّب ذلك).
+        assert stored == r.hash_invitation_token(token)
+        assert stored != r.hash_invitation_token(token + "x")
+
+    def test_matches_only_the_right_token(self):
+        r = _inv_router()
+        stored = r.hash_invitation_token("right-token-0123456789")
+        assert r.invitation_token_matches(stored, "right-token-0123456789") is True
+        assert r.invitation_token_matches(stored, "wrong-token-0123456789") is False
+        # تقديم القيمة المخزَّنة نفسها رمزاً (من قرأ الجدول) لا يطابق.
+        assert r.invitation_token_matches(stored, stored) is False
+
+    @pytest.mark.parametrize("legacy", ["plain-legacy-token-0123456789", "", None])
+    def test_legacy_plaintext_row_never_matches(self, legacy):
+        """صفّ ما قبل T8 (رمز صريح) يُعامَل منتهياً — حتى لو قُدِّم الرمز نفسه."""
+        r = _inv_router()
+        assert r.invitation_token_matches(legacy, legacy or "x" * 20) is False
+
+    def test_compare_is_constant_time(self):
+        import ast
+
+        fn = next(
+            n
+            for n in ast.walk(ast.parse(_ROUTER_SRC.read_text(encoding="utf-8")))
+            if isinstance(n, ast.FunctionDef) and n.name == "invitation_token_matches"
+        )
+        assert "compare_digest" in ast.unparse(fn)
+
+    def test_create_stores_hash_not_token(self):
+        import ast
+
+        (insert,) = _db_calls_on(_handler("create_invitation"), "INSERT INTO invitations")
+        assert ast.unparse(insert.args[1]) == "hash_invitation_token(token)", (
+            "INSERT invitations يكتب الرمز صريحاً — من يقرأ الجدول يملك دعوة صالحة"
+        )
+
+    def test_accept_looks_up_by_hash_and_confirms(self):
+        import ast
+
+        fn = _handler("accept_invitation")
+        (select,) = _db_calls_on(fn, "FROM invitations")
+        assert "WHERE token = $1" in select.args[0].value
+        assert ast.unparse(select.args[1]) == "hash_invitation_token(req.token)"
+        assert "invitation_token_matches(inv['token'], req.token)" in ast.unparse(fn)
+
+    def test_list_marks_legacy_pending_as_expired(self):
+        (sel,) = _db_calls_on(_handler("list_invitations"), "FROM invitations")
+        sql = sel.args[0].value
+        assert "CASE WHEN token LIKE 'sha256:%' THEN status ELSE 'expired' END AS status" in sql
+
+    def test_token_never_logged_or_listed(self):
+        """الرمز لا يمرّ إلى audit_log/logger، ولا يظهر في السرد بعد الإنشاء."""
+        import ast
+
+        tree = ast.parse(_ROUTER_SRC.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            callee = ast.unparse(node.func)
+            if callee.endswith("audit_log") or callee.split(".")[0] in {"logger", "logging"}:
+                names = {
+                    n.id
+                    for a in node.args + [k.value for k in node.keywords]
+                    for n in ast.walk(a)
+                    if isinstance(n, ast.Name)
+                }
+                attrs = {
+                    ast.unparse(n)
+                    for a in node.args + [k.value for k in node.keywords]
+                    for n in ast.walk(a)
+                    if isinstance(n, ast.Attribute)
+                }
+                assert "token" not in names and "req.token" not in attrs, callee
+        listed = ast.unparse(_handler("list_invitations"))
+        assert "'token'" not in listed and '"token"' not in listed

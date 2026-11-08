@@ -14,6 +14,8 @@ import logging
 import os
 import re
 import tempfile
+import unicodedata
+from collections.abc import Mapping
 from contextlib import asynccontextmanager, suppress
 from datetime import UTC, datetime
 from pathlib import Path
@@ -262,6 +264,51 @@ def split_docs(docs: list[Document]) -> list[Document]:
     return splitter.split_documents(docs)
 
 
+# S14: بيانات الملفّ الوصفيّة (معلومات PDF ومفاتيحه المخصّصة) يكتبها المرفِع لا الخادم.
+# كانت تُنسَخ كاملةً إلى metadata المقطع، فيُزوِّر ملفٌّ واحد حقول الاستشهاد (publisher…)
+# أو يكتب مفتاح عقد الترميز فيُسقِط إعادة بناء الفهرس لكلّ المستأجرين. قائمةٌ بيضاء فقط.
+_DOC_METADATA_TEXT_KEYS = (
+    "title",
+    "author",
+    "subject",
+    "keywords",
+    "creator",
+    "producer",
+    "creationdate",
+    "moddate",
+    "page_label",
+)
+_DOC_METADATA_INT_KEYS = ("page", "total_pages")
+_DOC_METADATA_MAX_CHARS = 256
+
+
+def _clean_metadata_text(value: str) -> str:
+    """Drop format/bidi chars, turn control chars into spaces, collapse, then cap."""
+    kept = []
+    for char in value[: _DOC_METADATA_MAX_CHARS * 4]:
+        category = unicodedata.category(char)
+        if category == "Cf":
+            continue
+        kept.append(" " if category == "Cc" else char)
+    return " ".join("".join(kept).split())[:_DOC_METADATA_MAX_CHARS]
+
+
+def _document_metadata(raw: object) -> dict:
+    """Whitelisted, typed, length-capped loader metadata; never server-owned fields."""
+    if not isinstance(raw, Mapping):
+        return {}
+    clean: dict = {}
+    for key in _DOC_METADATA_TEXT_KEYS:
+        value = raw.get(key)
+        if isinstance(value, str) and (text := _clean_metadata_text(value)):
+            clean[key] = text
+    for key in _DOC_METADATA_INT_KEYS:
+        value = raw.get(key)
+        if type(value) is int and 0 <= value <= 1_000_000:
+            clean[key] = value
+    return clean
+
+
 async def ingest_documents(
     file_paths: list[Path],
     tenant_id: str = "default",
@@ -274,27 +321,40 @@ async def ingest_documents(
     Canonical-ingest failure is explicit and fail-closed; there is no direct-write fallback.
     """
     all_docs: list[Document] = []
+    chunks: list[Document] = []
+    rejected = 0
     source_names = source_names or {}
     for p in file_paths:
+        original_name = source_names.get(str(p), p.name)
+        # كلّ مستندٍ يُحمَّل ويُقطَّع داخل حدوده: مستندٌ تالف يُرفَض وحده ويُسجَّل.
         try:
-            original_name = source_names.get(str(p), p.name)
             file_digest = hashlib.sha256(p.read_bytes()).hexdigest()
             docs = load_document(p)
+            ingested_at = datetime.now(UTC).isoformat()
             for d in docs:
+                # قائمةٌ بيضاء أوّلاً، ثمّ الحقول المملوكة للخادم أخيراً فلا يتجاوزها الملفّ.
+                d.metadata = _document_metadata(d.metadata)
                 d.metadata["tenant_id"] = tenant_id
                 d.metadata["source_file"] = original_name
                 d.metadata["source_class"] = "tenant_document"
                 d.metadata["source_uri"] = f"tenant-upload://{tenant_id}/{original_name}"
                 d.metadata["source_revision"] = f"sha256:{file_digest}"
-                d.metadata["ingested_at"] = datetime.now(UTC).isoformat()
-            all_docs.extend(docs)
-        except Exception as e:
-            logger.warning(f"Failed to load {p}: {e}")
+                d.metadata["ingested_at"] = ingested_at
+            file_chunks = split_docs(docs)
+        except Exception as e:  # noqa: BLE001 — رفضٌ مُسجَّل لمستندٍ واحد
+            rejected += 1
+            logger.warning(
+                "RAG_INGEST_DOCUMENT_REJECTED source=%r reason=%s",
+                str(original_name)[:128],
+                type(e).__name__,
+            )
+            continue
+        all_docs.extend(docs)
+        chunks.extend(file_chunks)
 
     if not all_docs:
-        return {"ingested": 0, "chunks": 0}
+        return {"ingested": 0, "chunks": 0, "rejected": rejected}
 
-    chunks = split_docs(all_docs)
     by_source: dict[str, list[Document]] = {}
     for chunk in chunks:
         by_source.setdefault(str(chunk.metadata.get("source_file") or "unknown"), []).append(chunk)
@@ -342,7 +402,7 @@ async def ingest_documents(
         raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر الاستيعاب)") from exc
     if accepted != len(wire_chunks):
         raise HTTPException(503, "خدمة المعرفة أعادت عدداً غير مطابق من المقاطع المستوعبة")
-    return {"ingested": len(all_docs), "chunks": accepted}
+    return {"ingested": len(all_docs), "chunks": accepted, "rejected": rejected}
 
 
 # ══════════════════════════════════════════════════════════════

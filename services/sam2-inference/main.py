@@ -6,13 +6,37 @@ P2 decomposition shell: heavy CUDA/SAM2/STAC/raster/post-processing runtime live
 
 from __future__ import annotations
 
+import asyncio
 import os
+import threading
 import time
 
 import sam2_runtime as rt
 from fastapi import Depends, FastAPI, HTTPException
 
 app = FastAPI(title="SAHOOL SAM2 Inference", version=rt.VERSION)
+
+# مُتنبِّئ SAM2 واحدٌ مشترك، و``set_image`` ثمّ ``predict`` يحملان حالةً بين النداءين (صورة الطلب).
+# كان المسار ``async`` يستدعيهما مباشرةً، فكان آمناً من التداخل فقط لأنّه يحجز حلقة الأحداث
+# كلّها طوال الاستدلال وقراءة الصورة البعيدة: فلا يجيب ``/healthz`` ولا ``/readyz`` أثناءها.
+# الآن يجري العمل الحاجب في خيط (``asyncio.to_thread``)، والقفل يمنع طلبين من التداخل بين
+# ``set_image`` و``predict`` — فلا يُتنبَّأ بقناعٍ على صورة طلبٍ آخر.
+_PREDICT_LOCK = threading.Lock()
+
+
+def _run_inference(rgb, point_coords, point_labels, box):
+    """``set_image`` + ``predict`` تحت القفل نفسه (خيطٌ خارج حلقة الأحداث)."""
+    import torch
+
+    with _PREDICT_LOCK:
+        with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
+            rt._PREDICTOR.set_image(rgb)
+            return rt._PREDICTOR.predict(
+                point_coords=point_coords,
+                point_labels=point_labels,
+                box=box,
+                multimask_output=True,
+            )
 
 
 @app.on_event("startup")
@@ -37,10 +61,10 @@ async def predict(req: rt.PredictRequest):
         )
 
     import numpy as np
-    import torch
 
-    image_url = rt._resolve_image_url(req.image_ref, req.field_bbox)
-    rgb, transform, crs = rt._read_rgb(image_url, req.field_bbox)
+    # الحلّ والقراءة حاجبان (STAC وقراءة COG بعيدة): خارج حلقة الأحداث.
+    image_url = await asyncio.to_thread(rt._resolve_image_url, req.image_ref, req.field_bbox)
+    rgb, transform, crs = await asyncio.to_thread(rt._read_rgb, image_url, req.field_bbox)
     img_h, img_w = rgb.shape[0], rgb.shape[1]
     if img_h < 2 or img_w < 2:
         raise HTTPException(
@@ -53,14 +77,9 @@ async def predict(req: rt.PredictRequest):
     )
 
     try:
-        with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
-            rt._PREDICTOR.set_image(rgb)
-            masks, scores, _ = rt._PREDICTOR.predict(
-                point_coords=point_coords,
-                point_labels=point_labels,
-                box=box,
-                multimask_output=True,
-            )
+        masks, scores, _ = await asyncio.to_thread(
+            _run_inference, rgb, point_coords, point_labels, box
+        )
     except Exception as e:  # noqa: BLE001
         rt.logger.warning("فشل استدلال SAM2: %s", e)
         raise HTTPException(
@@ -77,7 +96,7 @@ async def predict(req: rt.PredictRequest):
     best_idx = int(np.argmax(scores)) if scores is not None and len(scores) else 0
     best_mask = np.asarray(masks[best_idx]).astype(np.uint8)
     confidence = float(scores[best_idx]) if scores is not None and len(scores) else None
-    geometry = rt._mask_to_polygon(best_mask, transform, crs)
+    geometry = await asyncio.to_thread(rt._mask_to_polygon, best_mask, transform, crs)
 
     vertices_after = (
         len(geometry.get("coordinates", [[]])[0]) if isinstance(geometry, dict) else None

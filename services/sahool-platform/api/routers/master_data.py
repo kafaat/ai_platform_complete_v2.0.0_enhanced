@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.idempotency import model_digest
 from api.main import (
     CommandStore,
     Permission,
@@ -86,6 +87,7 @@ async def create_master_data(
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
                 payload={"md_id": md_id},
+                request_digest=model_digest(req),
             )
         else:
             result = await _work()

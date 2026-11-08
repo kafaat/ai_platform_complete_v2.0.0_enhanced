@@ -99,7 +99,9 @@ location /gis/ {
 ### المشكلة في v9.0
 - Grafana للـ DevOps فقط — لا يوجد **واجهة زراعية تفاعلية** للشاشات الكبيرة.
 
-### الحل: `frontend/big-screen/index.html`
+### الحل: `frontend/big-screen/index.html` — **حُذف في 2026-11-02**
+
+> كانت الصفحة نموذجاً عرضيّاً: مؤشّراتها (NDVI · رطوبة التربة · ET₀) ونقاط خريطتها من `Math.random()`، وتستطلع `/indicators/v1/overview` غير الموجود في أيّ خدمة، ولم تُنشَر قطّ. شاشةُ قيادةٍ تعرض أرقاماً زراعيّة مُلفَّقة أخطر من غيابها. لوحات الحقل الحقيقيّة في `frontend/src/components/fieldview/`. ما يلي وصفٌ تاريخيّ للتصميم.
 **المصدر:** Gitee IofTV-Screen-Vue3 citeweb_search:12#7 + Gitee big screen collection citeweb_search:12#8 + CSDN WebGIS big screen citeweb_search:12#3
 
 | المنطقة | المكون | التقنية |
@@ -200,11 +202,8 @@ curl -X POST http://localhost:8125/query -d '{
 firefox frontend/gis-overlay/index.html
 ```
 
-### الخطوة 6: عرض Big Screen
-```bash
-# على شاشة القيادة (Kiosk mode)
-firefox --kiosk frontend/big-screen/index.html
-```
+### الخطوة 6: عرض Big Screen — **أُزيلت**
+حُذفت `frontend/big-screen` في 2026-11-02 (بيانات عشوائيّة، انظر §3). لا شاشة قيادة حاليّاً.
 
 ---
 

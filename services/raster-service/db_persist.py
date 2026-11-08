@@ -1459,3 +1459,54 @@ async def fetch_field_geometry(field_id: str, tenant_id: str | None = None) -> d
         return None
     finally:
         await conn.close()
+
+
+async def fetch_field_geometry_with_revision(
+    field_id: str, tenant_id: str | None = None
+) -> dict | None:
+    """هندسة الحقل الحاليّة **ومراجعتها** من جملة واحدة (لقطة واحدة): ``{"geometry", "revision"}``.
+
+    مراجعة PR #1324: كان process-cdse يقرأ الهندسة وحدها ويُبقي ``geometry_revision`` من
+    جسم الطلب، فتُختَم المراجعة N على أصلٍ قُصّ بهندسة N+1. هنا تُقرأ الهندسة ومراجعتها معاً:
+    ``revision`` أحدث صفّ في ``field_geometry_history`` هندستُه تساوي ``fields.geometry``
+    الحاليّة (تعريف ``follow_up_runtime.geometry_snapshot`` نفسه) — المنصّة تكتب الصفّين في
+    معاملة واحدة، فالجملة الواحدة لا ترى أحدهما دون الآخر. لا صفّ مطابق ⇒ ``revision=None``
+    (لا اختلاق نَسَب). الحقل/الهندسة غائبان أو تعذّرت القراءة ⇒ ``None`` (كـ``fetch_field_geometry``).
+    سياق المستأجر بنطاق الجلسة (``false``) لنفس سبب ``fetch_field_geometry`` أعلاه.
+    """
+    conn = await _connect()
+    if conn is None:
+        return None
+    try:
+        if tenant_id is None:
+            tenant_id = await conn.fetchval("SELECT sahool_field_owner_tenant($1)", field_id)
+        await conn.execute(
+            "SELECT set_config('app.current_tenant', $1, false)",
+            str(tenant_id) if tenant_id else "",
+        )
+        row = await conn.fetchrow(
+            """
+            SELECT f.geometry,
+                   (SELECT h.revision FROM field_geometry_history h
+                     WHERE h.tenant_id = f.tenant_id AND h.field_id = f.field_id
+                       AND h.geometry = f.geometry::jsonb
+                     ORDER BY h.revision DESC LIMIT 1) AS revision
+              FROM fields f
+             WHERE f.field_id = $1
+            """,
+            field_id,
+        )
+        if not row or row["geometry"] is None:
+            return None
+        geom = row["geometry"]
+        if isinstance(geom, str):
+            import json
+
+            geom = json.loads(geom)
+        revision = row["revision"]
+        return {"geometry": geom, "revision": int(revision) if revision is not None else None}
+    except Exception as e:  # noqa: BLE001
+        logger.warning("fetch_field_geometry_with_revision failed (%s): %s", field_id, e)
+        return None
+    finally:
+        await conn.close()

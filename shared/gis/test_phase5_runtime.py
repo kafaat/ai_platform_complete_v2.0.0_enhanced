@@ -1,3 +1,5 @@
+import pytest
+
 from shared.gis.cloud_native_runtime import RasterRegistryRecord
 from shared.gis.phase5_runtime import (
     STAC_CONFORMANCE,
@@ -87,3 +89,28 @@ def test_management_zones_and_undo_redo():
     assert not s["can_undo"] and s["can_redo"]
     s = apply_undo_redo(s, action="redo")
     assert s["can_undo"] and not s["can_redo"]
+
+
+@pytest.mark.unit
+def test_max_cloud_filter_excludes_unknown_cover_instead_of_reading_it_as_zero():
+    """G11: a scene with unknown cover cannot be returned as satisfying cloud <= max."""
+
+    def rec(rid, cloud):
+        return RasterRegistryRecord(
+            id=rid,
+            tenant_id="t",
+            field_id="f1",
+            product_date="2026-06-20",
+            index_type="ndvi",
+            cog_url=f"s3://{rid}.tif",
+            cloud_pct=cloud,
+        )
+
+    records = [rec("known5", 5.0), rec("unknown", None), rec("known40", 40.0)]
+    kept = filter_records_for_stac(records, max_cloud=35)
+    assert [r.id for r in kept] == ["known5"]
+    # Without a cloud ceiling nothing is claimed, so unknown scenes stay listed.
+    assert [r.id for r in filter_records_for_stac(records)] == ["known5", "unknown", "known40"]
+    ranked = {r["scene_id"]: r for r in rank_scenes(records, prefer_recent=False)}
+    assert "cloud_pct_unknown" in ranked["unknown"]["reason"]
+    assert ranked["unknown"]["score"] == 70 and ranked["known5"]["score"] == 94

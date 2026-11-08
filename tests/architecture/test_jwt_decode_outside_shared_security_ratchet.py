@@ -52,8 +52,8 @@ FROZEN_SITES: dict[str, int] = {
     # notification moved to shared/security/access_tokens.py in #997 (f7cd7848; local 1091c55).
     # 2026-10-14: 11 calls in 8 consumer files moved to ``decode_access_token`` (observe mode,
     # owner decision 2026-10-01 #1118). What remains is declared, not exempt:
-    # GATE-01 freezes actuator_runtime.py (docs/architecture/gate01_policy.json frozen_paths).
-    "services/actuator-service/actuator_runtime.py": 1,
+    # 2026-11-07: actuator_runtime.py moved to ``decode_access_token`` under GATE-01 batch 2
+    # (GATE01-ADJ-2026-11-07-001), so no declared site remains.
     # 2026-10-15: auth (issuer, 3 calls) and tts-service (1) moved to ``decode_access_token``
     # with python-jose claim semantics when python-jose was removed
     # (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01).

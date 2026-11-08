@@ -37,14 +37,15 @@ CANONICAL = "shared/security/"
 SECRET = "unit-test-secret-0123456789-abcdefghijklmnopqrstuvwxyz-0123456789-ABCDEF"
 
 #: ما يبقى يفكّ بنفسه — مُعلَّلٌ لا مُعفى؛ الإغلاقُ يُفرِغ هذه القائمة.
-ALLOWED_DIRECT_DECODE = {
-    # GATE-01: frozen_paths في docs/architecture/gate01_policy.json — لا يُمسّ بلا تفويضٍ محكَّم.
-    "services/actuator-service/actuator_runtime.py": 1,
+ALLOWED_DIRECT_DECODE: dict[str, int] = {
+    # فرغت 2026-11-07: actuator_runtime.py انتقل إلى decode_access_token بتفويض
+    # GATE01-ADJ-2026-11-07-001 (الدفعة ٢).
 }
 
 #: الملفّ ← (دلالةُ المطالبات المحفوظة، عددُ النداءات). ``python-jose`` = الموضعُ كان على
 #: python-jose قبل إزالته (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01) فيُحفَظ حكمُه.
 MIGRATED = {
+    "services/actuator-service/actuator_runtime.py": ("pyjwt", 1),  # GATE-01 الدفعة ٢
     "services/mcp_servers/market_server.py": ("pyjwt", 1),
     "services/mcp_servers/shared/oauth_middleware.py": ("pyjwt", 1),
     "services/auth/main.py": ("python-jose", 1),  # `_decode_issued_token` (سقفُ أسطر main)
@@ -277,8 +278,9 @@ def test_the_backend_parameter_accepts_only_pyjwt(tokens):
     ids=["no_exp", "no_sub", "no_iss", "foreign_iss"],
 )
 def test_observe_mode_counts_what_strict_policy_would_reject_without_rejecting(
-    tokens, semantics, override, reason, caplog
+    tokens, semantics, override, reason, caplog, monkeypatch
 ):
+    monkeypatch.setenv(tokens.CLAIM_POLICY_ENV, "observe")  # الهروبُ الصريح؛ الافتراضُ يفرض
     token = _encode(_claims(**override))
     with caplog.at_level(logging.WARNING, logger="sahool.security.access_tokens"):
         payload = tokens.decode_access_token(
@@ -291,7 +293,8 @@ def test_observe_mode_counts_what_strict_policy_would_reject_without_rejecting(
     assert token not in logged and "user-1" not in logged  # لا توكن ولا قيمة مطالبة
 
 
-def test_observe_mode_counts_a_missing_audience_jose_used_to_accept_silently(tokens):
+def test_observe_mode_counts_a_missing_audience_jose_used_to_accept_silently(tokens, monkeypatch):
+    monkeypatch.setenv(tokens.CLAIM_POLICY_ENV, "observe")
     token = _encode(_claims(aud=None))
     tokens.decode_access_token(
         token, SECRET, algorithm="HS256", claim_semantics="python-jose", site="s"
@@ -320,8 +323,56 @@ def test_enforce_mode_turns_the_same_verdict_into_a_rejection(tokens, semantics,
     assert tokens.would_reject_counts() == {"s": {"missing_exp": 1}}
 
 
-@pytest.mark.parametrize("value", ["", "observe", "ENFORCED", "on", "1"])
-def test_anything_but_explicit_enforce_observes(tokens, monkeypatch, value):
+@pytest.mark.parametrize("semantics", SEMANTICS)
+@pytest.mark.parametrize(
+    "override, reason",
+    [
+        ({"exp": None}, "missing_exp"),
+        ({"aud": None}, "missing_aud"),
+        ({"iss": "someone-else"}, "issuer_not_allowed"),
+    ],
+    ids=["no_exp", "no_aud", "foreign_iss"],
+)
+def test_the_default_enforces_with_no_variable_set(tokens, semantics, override, reason):
+    """قرار المالك 2026-11-07 (الدفعة ٣): الافتراضُ يفرض — بلا متغيّرٍ أصلاً يُرفَض ويُعَدّ.
+
+    ``no_aud`` بدلالة pyjwt يُرفض في الفكّ نفسه قبل السياسة، فلا يُعَدّ هناك.
+    """
+    assert tokens.claim_policy_mode() == "enforce"
+    with pytest.raises(_invalid()):
+        tokens.decode_access_token(
+            _encode(_claims(**override)),
+            SECRET,
+            algorithm="HS256",
+            claim_semantics=semantics,
+            site="s",
+        )
+    if not (reason == "missing_aud" and semantics == "pyjwt"):
+        assert tokens.would_reject_counts() == {"s": {reason: 1}}
+
+
+@pytest.mark.parametrize("semantics", SEMANTICS)
+def test_a_token_from_either_internal_issuer_passes_the_enforced_policy(tokens, semantics):
+    for issuer in sorted(tokens.ALLOWED_ISSUERS):
+        payload = tokens.decode_access_token(
+            _encode(_claims(iss=issuer)),
+            SECRET,
+            algorithm="HS256",
+            claim_semantics=semantics,
+            site="s",
+        )
+        assert payload["iss"] == issuer
+    assert tokens.would_reject_counts() == {}
+
+
+@pytest.mark.parametrize("value", ["", "enforce", "OBSERVED", "on", "1", "off", "false"])
+def test_anything_but_explicit_observe_enforces(tokens, monkeypatch, value):
+    monkeypatch.setenv(tokens.CLAIM_POLICY_ENV, value)
+    assert tokens.claim_policy_mode() == "enforce"
+
+
+@pytest.mark.parametrize("value", ["observe", " Observe "])
+def test_only_explicit_observe_observes(tokens, monkeypatch, value):
     monkeypatch.setenv(tokens.CLAIM_POLICY_ENV, value)
     assert tokens.claim_policy_mode() == "observe"
 

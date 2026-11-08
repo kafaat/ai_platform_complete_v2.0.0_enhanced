@@ -312,7 +312,12 @@ async def _start_scheduler():
     """
     from api.agronomic_consistency import check_decision_freshness, compute_data_ages
     from api.imagery_automation import bind_recovery_pool, imagery_automation
-    from api.scheduler import cluster_singleton, register_default_tasks, scheduler
+    from api.scheduler import (
+        cluster_singleton,
+        list_sweep_tenant_ids,
+        register_default_tasks,
+        scheduler,
+    )
     from api.weather_automation import weather_automation
 
     # أفضل ممارسة: مسبح تنسيق النسخ (BYPASSRLS إن توفّر، وإلّا مسبح التطبيق) —
@@ -349,11 +354,8 @@ async def _start_scheduler():
 
         from core.canonical_schemas import UserRole, UserSchema
 
-        try:
-            async with _DB_POOL.acquire() as conn:
-                trows = await conn.fetch(
-                    "SELECT DISTINCT tenant_id FROM fields WHERE tenant_id IS NOT NULL"
-                )
+        try:  # R1: السرد عبر مسبح المهامّ — مسبح التطبيق بلا سياق يُرجِع صفراً (FORCE RLS)
+            tids = await list_sweep_tenant_ids(_scheduler_pool(), sweep="فحص النضارة")
         except Exception as e:  # noqa: BLE001 — تعذّر سرد المستأجرين ⇒ تخطٍّ صامت
             logging.warning("فحص النضارة: تعذّر سرد المستأجرين: %s", type(e).__name__)
             return
@@ -362,8 +364,7 @@ async def _start_scheduler():
 
         # مرحلة الجمع: اجمع (مستخدم النظام، حقل) عبر المستأجِرين — مع عزل كلّ مستأجِر.
         pairs: list[tuple[UserSchema, str]] = []
-        for tr in trows:
-            tid = str(tr["tenant_id"])
+        for tid in tids:
             sys_user = UserSchema(
                 user_id="system-scheduler",
                 tenant_id=tid,
@@ -466,11 +467,8 @@ async def _start_scheduler():
             return
         from core.canonical_schemas import UserRole, UserSchema
 
-        try:
-            async with _DB_POOL.acquire() as conn:
-                trows = await conn.fetch(
-                    "SELECT DISTINCT tenant_id FROM fields WHERE tenant_id IS NOT NULL"
-                )
+        try:  # R1: السرد عبر مسبح المهامّ — مسبح التطبيق بلا سياق يُرجِع صفراً (FORCE RLS)
+            tids = await list_sweep_tenant_ids(_scheduler_pool(), sweep="أتمتة التنبيهات")
         except Exception as e:  # noqa: BLE001 — تعذّر سرد المستأجرين ⇒ تخطٍّ صامت
             logging.warning("أتمتة التنبيهات: تعذّر سرد المستأجرين: %s", type(e).__name__)
             return
@@ -480,8 +478,7 @@ async def _start_scheduler():
         # مرحلة الجمع: اجمع (مستخدم النظام، حقل) عبر المستأجِرين أوّلاً — لمعرفة
         # إجماليّ الحقول المُخطَّط تقييمها (سجلّ التشغيل)، مع عزل خطأ كلّ مستأجِر.
         pairs: list[tuple[UserSchema, str]] = []
-        for tr in trows:
-            tid = str(tr["tenant_id"])
+        for tid in tids:
             sys_user = UserSchema(
                 user_id="system-scheduler",
                 tenant_id=tid,
@@ -543,12 +540,12 @@ async def _start_scheduler():
 _OUTBOX_WORKER = None  # OutboxWorker | None
 _OUTBOX_TASK = None  # asyncio.Task | None
 _NATS_CONN = None  # nats client | None
+from shared.broker_url import NATS_RELAY, start_relay  # noqa: E402 — R2: اتّصال أوّل محدود
 
 
 async def _start_outbox_worker():
     """يبدأ relay الأحداث (outbox → NATS). تدهور رشيق: لو غاب NATS/القاعدة، نتخطّى
     بتحذير دون إسقاط الإقلاع — الأحداث تبقى في outbox لتُنشَر عند توفّر NATS لاحقاً."""
-    global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
     # H2 (feature flag، default OFF): يُحرَس تشغيل الناشر. OFF ⇒ الأحداث تبقى في outbox
     # (record_decision_only) ويُعلَن السبب صراحةً؛ ON ⇒ يُشغَّل الناشر (publish_event).
     from api.event_bus import NATS_PUBLISHERS_FLAG, nats_publishers_enabled
@@ -570,23 +567,29 @@ async def _start_outbox_worker():
 
         nats_url = os.getenv("NATS_URL", "nats://sahool-nats:4222")
         inbox = "_INBOX_sahool-platform"  # صندوقُ ردٍّ بهويّتها في nats.conf — لا يقرؤه غيرُها
-        _NATS_CONN = await nats.connect(nats_url, max_reconnect_attempts=-1, inbox_prefix=inbox)
 
-        # عقدُ النشر يسكن مع عاملِه لا هنا — حجّتُه في `event_bus` بفجوتها.
-        _publish = make_jetstream_publisher(_NATS_CONN)
+        async def _connect():  # R2: start_relay يحدّ الاتّصال الأوّل بمهلة؛ الأبديّ بعده فقط
+            return await nats.connect(nats_url, max_reconnect_attempts=-1, inbox_prefix=inbox)
 
-        # المرسِل يقرأ event_outbox عابراً للمستأجرين ⇒ يستعمل مسبح الوظائف
-        # (sahool_jobs/BYPASSRLS). تحت RLS الجديدة (v72) لا يصلح مسبح التطبيق هنا.
-        _OUTBOX_WORKER = OutboxWorker(_JOBS_POOL or _DB_POOL, _publish)
-        _OUTBOX_TASK = asyncio.create_task(_OUTBOX_WORKER.run())
-        # `NATS_URL` يحمل الاعتماد (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01): يُطبَع مُنقّى.
-        logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", redact_broker_url(nats_url))
+        async def _on_connected(conn):
+            global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
+            _NATS_CONN = conn
+            # عقدُ النشر يسكن مع عاملِه لا هنا — حجّتُه في `event_bus` بفجوتها.
+            _publish = make_jetstream_publisher(_NATS_CONN)
+            # المرسِل عابر للمستأجرين ⇒ مسبح الوظائف (sahool_jobs/BYPASSRLS، RLS v72).
+            _OUTBOX_WORKER = OutboxWorker(_JOBS_POOL or _DB_POOL, _publish)
+            _OUTBOX_TASK = asyncio.create_task(_OUTBOX_WORKER.run())
+            # `NATS_URL` يحمل الاعتماد (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01): يُطبَع مُنقّى.
+            logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", redact_broker_url(nats_url))
+
+        await start_relay(_connect, _on_connected, label=redact_broker_url(nats_url))
     except Exception as e:  # noqa: BLE001 — غياب NATS لا يُسقط المنصّة
         logging.warning("OutboxWorker معطّل (NATS؟): %s — الأحداث تبقى في outbox", e)
 
 
 async def _stop_outbox_worker():
     global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
+    await NATS_RELAY.reset()  # R2: أوقف إعادة الاتّصال الخلفيّة قبل العامل
     if _OUTBOX_WORKER is not None:
         _OUTBOX_WORKER.stop()
     if _OUTBOX_TASK is not None:
@@ -1687,7 +1690,7 @@ async def _evaluate_field_alerts_persist(
     today = forecast[0] if forecast else None
     # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
     irrigation_need_mm: float | None = None
-    recent_rain, fc_rain_48h, rain_fc_3d = alert_rain_context(current, forecast)
+    recent_rain, fc_rain_48h, rain_fc_3d = alert_rain_context(forecast)
     if today is not None and today.et0_mm is not None and None not in (recent_rain, fc_rain_48h):
         from core.season_phenology import resolve_crop_id, stage_kc
 

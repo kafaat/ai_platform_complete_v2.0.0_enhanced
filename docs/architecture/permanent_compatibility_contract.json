@@ -13,7 +13,7 @@
   "categories": {
     "permanent_health_compat_alias": {
       "rationale": "اسم بديل لمسار فحص صحّة/جاهزيّة قديم. الحمولة صحّيّة خالصة ({\"status\": \"ready\", \"service\": …, \"mode\": \"alias\"}) بصفر بيانات عمل — يبقيها خضراء لمجسّات/بيئات قديمة تستدعي المسار القديم.",
-      "source": "services/sahool-platform/api/routers/compat_gateway.py:26-49",
+      "source": "services/sahool-platform/api/routers/compat_gateway.py:28-51",
       "routes": [
         {
           "method": "GET",
@@ -39,7 +39,7 @@
     },
     "permanent_compatibility_gateway": {
       "rationale": "تمرير توافقيّ ضيّق (GET فقط) يلتقط طلبات توجّهها بيئات nginx/compose قديمة إلى المنصّة بدل الخدمة المقصودة. التوجيه الصحيح يبقى nginx ⇒ الخدمة مباشرةً؛ هذا يمنع انكسار الخرائط/اللوحات عند اختلاف ترتيب المواقع.",
-      "source": "services/sahool-platform/api/routers/compat_gateway.py:52-141",
+      "source": "services/sahool-platform/api/routers/compat_gateway.py:54-188",
       "routes": [
         {
           "method": "GET",

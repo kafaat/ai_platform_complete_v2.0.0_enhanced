@@ -14,6 +14,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import actuator_runtime as main
+import command_delivery as cd
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from shared.actuation_killswitch import is_actuation_halted
@@ -38,6 +39,13 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
                 "(فعّل FEATURE_MANUAL_ACTUATOR_COMMANDS)",
             },
         )
+    # A4: أمرٌ لا يفهمه البرنامج الثابت ⇒ 422 صريح قبل أيّ عمل، لا 200 بـsent=false.
+    wire_cmd, wire_reason = main._to_firmware_wire(req.command, req.payload)
+    if wire_cmd is None:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "unsupported_actuator_command", "reason": wire_reason},
+        )
     # حارس السلامة الفيزيائيّة + العزل: فحص الدور + ملكيّة الجهاز للمستأجِر (fail-closed).
     device_field_id = await main._authorize_device_control(claims, req.device_id)
     # مفتاح إيقاف طوارئ التشغيل (v133، fail-closed): استشِر قبل النشر. مفتاح مُشتبَك
@@ -51,7 +59,21 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
         )
     if halted:
         raise HTTPException(423, halt_reason or "التشغيل مُوقَف بمفتاح إيقاف الطوارئ")
-    success = await main.send_mqtt_command(req.device_id, req.command, req.payload)
+    # v238: حالة تسليم صريحة. الأمر يُسجَّل queued ويحمل command_id على السلك؛ النشر الناجح
+    # (real) يجعله published فقط — device_acked لا يأتي إلّا من إقرار الجهاز الموقَّع.
+    command_id = cd.new_command_id()
+    await main.record_command_queued(
+        tenant_id=tenant_id,
+        device_id=req.device_id,
+        command=req.command,
+        payload=req.payload,
+        command_id=command_id,
+        triggered_by="manual",
+    )
+    success = await main.send_mqtt_command(
+        req.device_id, req.command, req.payload, command_id=command_id
+    )
+    delivery_state = cd.state_after_publish(success, main.ACTUATOR_MODE)
     await main.log_command(
         rule_id=None,
         device_id=req.device_id,
@@ -59,15 +81,34 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
         payload=req.payload,
         status="sent" if success else "failed",
         tenant_id=tenant_id,
+        command_id=command_id,
+        delivery_state=delivery_state,
+        triggered_by="manual",
     )
     return {
         "device_id": req.device_id,
         "command": req.command,
         "sent": success,
+        "command_id": command_id,
+        "delivery_state": delivery_state,
         "tenant_id": tenant_id,
         "issued_by": user_id,
         "timestamp": datetime.now(UTC).isoformat(),
     }
+
+
+_COMMAND_COLUMNS = (
+    "log_id, device_id, command, status, sent_at, triggered_by, " + main._DELIVERY_COLUMNS
+)
+
+
+def _command_view(row: dict, now: datetime) -> dict:
+    """سجلّ الأمر + حالة تسليمه الفعّالة وطوابعها (v238)."""
+    base = {k: row.get(k) for k in ("log_id", "device_id", "command", "status", "triggered_by")}
+    sent_at = row.get("sent_at")
+    base["sent_at"] = sent_at.isoformat() if isinstance(sent_at, datetime) else sent_at
+    base.update(cd.delivery_view(row, now))
+    return base
 
 
 @router.get("/v1/commands")
@@ -78,13 +119,44 @@ async def list_commands(
     tenant_id = str(claims["tenant_id"])
     if not main._pool:
         return {"commands": []}
+    # v238: الجدول FORCE RLS — بلا سياق مستأجر لا صفوف (fail-closed)، فيُضبط داخل معاملة،
+    # وتُطبَّق انتهاءات المهلة قبل القراءة كي لا يُعرَض أمرٌ منتهٍ كأنّه ما زال published.
     async with main._pool.acquire() as conn:
-        rows = await conn.fetch(
-            """SELECT log_id, device_id, command, status, sent_at, triggered_by
-               FROM device_commands_log
-               WHERE tenant_id = $1::uuid
-               ORDER BY sent_at DESC LIMIT $2""",
-            tenant_id,
-            limit,
-        )
-    return {"commands": [dict(r) for r in rows]}
+        async with conn.transaction():
+            await main._set_tenant(conn, tenant_id)
+            await main.expire_overdue_commands(conn, tenant_id)
+            rows = await conn.fetch(
+                f"""SELECT {_COMMAND_COLUMNS}
+                   FROM device_commands_log
+                   WHERE tenant_id = $1::uuid
+                   ORDER BY sent_at DESC LIMIT $2""",
+                tenant_id,
+                limit,
+            )
+    now = datetime.now(UTC)
+    return {"commands": [_command_view(dict(r), now) for r in rows]}
+
+
+@router.get("/v1/commands/{command_id}")
+async def get_command(command_id: str, claims: dict = Depends(main._verify_token)):
+    """حالة تسليم أمر واحد: queued/published/device_acked/device_rejected/expired/…
+
+    أمرٌ لمستأجر آخر أو غير موجود ⇒ 404 موحّد (RLS + شرط المستأجر، لا تسريب وجود).
+    """
+    tenant_id = str(claims["tenant_id"])
+    if not main._pool:
+        raise HTTPException(503, "سجلّ الأوامر غير متاح")
+    async with main._pool.acquire() as conn:
+        async with conn.transaction():
+            await main._set_tenant(conn, tenant_id)
+            await main.expire_overdue_commands(conn, tenant_id)
+            row = await conn.fetchrow(
+                f"""SELECT {_COMMAND_COLUMNS}
+                   FROM device_commands_log
+                   WHERE tenant_id = $1::uuid AND command_id = $2""",
+                tenant_id,
+                command_id,
+            )
+    if row is None:
+        raise HTTPException(404, "الأمر غير موجود")
+    return _command_view(dict(row), datetime.now(UTC))

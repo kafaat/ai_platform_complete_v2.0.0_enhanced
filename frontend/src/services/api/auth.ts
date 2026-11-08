@@ -140,8 +140,22 @@ export const register = (payload: RegisterPayload): Promise<AuthResponse> =>
     } as AuthResponse;
   });
 
-export const logout = () =>
-  tryReal(() => authApi.post('/auth/logout').then(r => r.data), () => ({ status:'ok' }));
+// S7 — يُبطل الخادمُ jti التوكن ويمسح كوكي البلاطات (HttpOnly) فلا يبقيان صالحَين بعد
+// «الخروج». التوكن يُمرَّر صراحةً لأنّ useAuth يمسح التخزين قبل النداء (فلا يجده الـinterceptor).
+// withCredentials كي يُرسَل الكوكي ويُطبَّق مسحُه عبر الأصول؛ مهلة قصيرة: أفضل-جهد لا يُعلِّق.
+export const LOGOUT_TIMEOUT_MS = 5000;
+export const logout = (accessToken?: string | null) =>
+  tryReal(
+    () =>
+      authApi
+        .post('/auth/logout', {}, {
+          timeout: LOGOUT_TIMEOUT_MS,
+          withCredentials: true,
+          ...(accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : {}),
+        })
+        .then(r => r.data),
+    () => ({ status:'ok' }),
+  );
 
 // ── Password Reset & MFA & Change-Password ─────────────────────────
 // ربط حيّ مع auth-service (لا fallback وهميّ — مسارات أمان حسّاسة). الأشكال

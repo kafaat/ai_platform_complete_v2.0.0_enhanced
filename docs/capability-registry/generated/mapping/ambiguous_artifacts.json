@@ -12,6 +12,14 @@
         ]
       },
       {
+        "capability_id": "SEC-004",
+        "score": 12,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      },
+      {
         "capability_id": "OPS-004",
         "score": 12,
         "signals": [
@@ -26,14 +34,6 @@
           "content:Field water-source binding",
           "content:field water source",
           "content:source binding"
-        ]
-      },
-      {
-        "capability_id": "DEC-008",
-        "score": 12,
-        "signals": [
-          "content:Learning attribution",
-          "content:learning attribution"
         ]
       }
     ]
@@ -1576,6 +1576,15 @@
     "kind": "other",
     "candidates": [
       {
+        "capability_id": "SEC-001",
+        "score": 13,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
         "capability_id": "OPS-004",
         "score": 12,
         "signals": [
@@ -1597,14 +1606,6 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
-        ]
-      },
-      {
-        "capability_id": "IRR-005",
-        "score": 10,
-        "signals": [
-          "content:Irrigation recommendation",
-          "content:irrigation recommendation"
         ]
       }
     ]
@@ -2622,6 +2623,28 @@
           "content:Tenant RLS",
           "content:rls",
           "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/runbooks/MAP_PIXEL_BACKFILL_DURATION_VERIFICATION_RUNBOOK.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 11,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
         ]
       }
     ]
@@ -4496,6 +4519,29 @@
     ]
   },
   {
+    "path": "migrations/v237_tenant_isolation_hardening.down.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 15,
+        "signals": [
+          "content:rls",
+          "path:tenant isolation",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
     "path": "migrations/v23_equipment.sql",
     "kind": "database",
     "candidates": [
@@ -4513,6 +4559,51 @@
         "signals": [
           "content:Tenant RLS",
           "content:rls"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "migrations/v240_converge_first_pass_schema.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "SEC-004",
+        "score": 11,
+        "signals": [
+          "content:MFA",
+          "content:mfa",
+          "content:recovery code"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 9,
+        "signals": [
+          "content:crop season",
+          "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "migrations/v241_edge_idempotency_tenant_scoped.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 14,
+        "signals": [
+          "path:dem",
+          "content:dem"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
         ]
       }
     ]
@@ -5461,7 +5552,7 @@
       },
       {
         "capability_id": "FM-004",
-        "score": 9,
+        "score": 10,
         "signals": [
           "content:crop season",
           "content:season"
@@ -5506,7 +5597,7 @@
       },
       {
         "capability_id": "SEC-001",
-        "score": 10,
+        "score": 11,
         "signals": [
           "content:Tenant RLS",
           "content:rls"
@@ -6225,7 +6316,7 @@
       },
       {
         "capability_id": "FM-007",
-        "score": 10,
+        "score": 11,
         "signals": [
           "content:procurement",
           "content:warehouse"
@@ -6594,6 +6685,28 @@
     ]
   },
   {
+    "path": "services/raster-service/soil_indices.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 9,
+        "signals": [
+          "content:cdse",
+          "content:sentinel"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/raster-service/test_acquisition_date_provenance.py",
     "kind": "tests",
     "candidates": [
@@ -6690,23 +6803,45 @@
     ]
   },
   {
+    "path": "services/raster-service/test_clip_polygon_stored_geometry.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 10,
+        "signals": [
+          "content:cdse",
+          "content:stac"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/raster-service/test_cloud_native_catalog.py",
     "kind": "tests",
     "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
       {
         "capability_id": "SAT-009",
         "score": 10,
         "signals": [
           "content:cog",
           "content:tilejson"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 10,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
         ]
       },
       {
@@ -6767,6 +6902,28 @@
         "signals": [
           "content:cloud mask",
           "content:scl"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/raster-service/test_field_tenant_isolation_t10.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
         ]
       }
     ]
@@ -7740,6 +7897,31 @@
     ]
   },
   {
+    "path": "services/sahool-platform/api/routers/compat_gateway.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 12,
+        "signals": [
+          "content:contour",
+          "content:hillshade",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
+        "capability_id": "SOIL-002",
+        "score": 9,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/api/routers/confidence.py",
     "kind": "backend",
     "candidates": [
@@ -8231,6 +8413,28 @@
         "signals": [
           "content:Water balance",
           "content:water balance"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/api/scheduler.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 9,
+        "signals": [
+          "content:event bus",
+          "content:nats"
         ]
       }
     ]
@@ -9903,6 +10107,29 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_irrigation_recent_rain_and_soil_input_g8_g9.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 12,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
     "kind": "tests",
     "candidates": [
@@ -10234,6 +10461,29 @@
         "signals": [
           "content:Dispatch authorization",
           "content:dispatch authorization"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_water_ledger_auto.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 12,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
         ]
       }
     ]
@@ -10828,7 +11078,7 @@
     "candidates": [
       {
         "capability_id": "SAT-003",
-        "score": 8,
+        "score": 10,
         "signals": [
           "content:NDVI",
           "content:ndvi"
@@ -11011,6 +11261,28 @@
         "signals": [
           "content:field boundary",
           "content:field workspace"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "INT-002",
+        "score": 12,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
         ]
       }
     ]
@@ -11389,6 +11661,28 @@
         "signals": [
           "content:cdse",
           "content:sentinel"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_day_of_year_no_silent_default_g15.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "IRR-004",
+        "score": 12,
+        "signals": [
+          "content:Water balance",
+          "content:water balance"
         ]
       }
     ]
@@ -11791,6 +12085,50 @@
     ]
   },
   {
+    "path": "tests_v9/test_irrigation_efficiency_doy_g15.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "IRR-005",
+        "score": 10,
+        "signals": [
+          "content:Irrigation recommendation",
+          "content:irrigation recommendation"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_lab_ci_certification_steps.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "SEC-004",
+        "score": 8,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_landsat_thermal_unique_v31_0.py",
     "kind": "tests",
     "candidates": [
@@ -12001,6 +12339,28 @@
         "score": 8,
         "signals": [
           "path:dem"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_phase6_precision_integrity_g10.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "PA-001",
+        "score": 12,
+        "signals": [
+          "content:Management zones",
+          "content:management zone"
         ]
       }
     ]
@@ -12428,6 +12788,81 @@
     ]
   },
   {
+    "path": "tests_v9/test_v237_tenant_isolation_live_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 14,
+        "signals": [
+          "content:rls",
+          "path:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_v240_first_pass_convergence_static.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-004",
+        "score": 11,
+        "signals": [
+          "content:MFA",
+          "content:mfa",
+          "content:recovery code"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 9,
+        "signals": [
+          "content:crop season",
+          "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_v241_edge_idempotency_tenant_scoped.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 14,
+        "signals": [
+          "path:dem",
+          "content:dem"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_v87_audit_tenant.py",
     "kind": "tests",
     "candidates": [
@@ -12508,6 +12943,28 @@
       {
         "capability_id": "WX-004",
         "score": 10,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_wofost_weather_provenance.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-010",
+        "score": 14,
+        "signals": [
+          "path:weather provenance",
+          "content:weather provenance"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 12,
         "signals": [
           "content:ET0",
           "content:et0"

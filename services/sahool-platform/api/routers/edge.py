@@ -14,7 +14,13 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.edge_models import EdgeSyncRequest
+from api.edge_models import (
+    PROVENANCE_RESULT_TYPES,
+    EdgeSyncRequest,
+    provenance_rows,
+    read_detection_provenance,
+    record_detection_provenance,
+)
 from api.main import UserSchema, _assert_field_in_tenant, get_current_user, tenant_connection
 
 router = APIRouter()
@@ -31,14 +37,18 @@ async def edge_sync_receive(
     Hardening: ON CONFLICT على idempotency_key → إعادة الإرسال بعد انقطاع
     الشبكة لا تُكرّر الصفّ. الهويّة من التوكن لا الجسم (أمان).
 
-    حدٌّ مُعلَن (Copilot على #997، `CP997-05` في الدماغ): الفهرس الفريد `uq_edge_idempotency`
-    (v9) **عالميّ** على المفتاح بينما بحثُ الصفّ القائم أدناه مقيّدٌ بالمستأجِر — فمفتاحٌ
-    يملكه مستأجِرٌ آخر يصطدم هنا ثمّ لا يُعثَر عليه فيُرفَع 409 على حدثٍ صالح. العلاجُ
-    فهرسٌ على `(tenant_id, idempotency_key)` بهجرةٍ جديدة، و`migrations/MANIFEST.txt` مسارٌ
-    مجمَّد خلف GATE-01 لا يُفتح إلّا بتفويض مالك؛ إلى حينه يبقى الهدفُ مطابقاً للفهرس
-    القائم (هدفٌ لا يطابقه فهرس يُسقِط كلَّ إدراج)، والمفاتيحُ تُولَّد `uuid4().hex` فاحتمالُ
-    التصادم عبر المستأجِرين عمليّاً معدوم."""
+    CP997-05 (Copilot على #997): كان الفهرسُ الفريد `uq_edge_idempotency` (v9) **عالميّاً** على
+    المفتاح بينما بحثُ الصفّ القائم أدناه مقيّدٌ بالمستأجِر، فمفتاحُ مستأجِرٍ آخر كان يصطدم ثمّ لا
+    يُعثَر عليه فيُرفَع 409 على حدثٍ صالح. v241 جعل الفهرسَ `(tenant_id, idempotency_key)`،
+    والهدفُ هنا يطابقه — والإعادةُ المطابقة وحدها نجاحٌ idempotent."""
     import json as _json
+
+    # نسبُ الكشف (v239): يُتحقَّق منه **قبل** أيّ كتابة — كتلةُ نسبٍ مشوَّهة 422 لا صفٌّ نصفُ مُثبَت.
+    try:
+        provenance = provenance_rows(req.type, req.data)
+    except ValueError as exc:
+        raise HTTPException(422, f"detection_provenance_invalid:{exc}") from exc
+    stored_provenance: list[dict] | None = None
 
     async with tenant_connection(user) as conn:
         await _assert_field_in_tenant(conn, req.field_id)
@@ -48,7 +58,7 @@ async def edge_sync_receive(
                   synced, result_data, idempotency_key, occurred_at)
                VALUES ($1, $2::uuid, $3, $4, true, true, $5::jsonb, $6,
                        $7::timestamptz)
-               ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL
+               ON CONFLICT (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL
                DO NOTHING
                RETURNING id""",
             req.field_id,
@@ -78,9 +88,25 @@ async def edge_sync_receive(
                 or existing["occurred_at"] != req.occurred_at
             ):
                 raise HTTPException(409, "edge_idempotency_conflict")
-    # Only an identical, tenant-visible event counts as successful replay.
-    return {
+        else:
+            # المعاملةُ نفسُها: لا صفَّ كشفٍ مُخزَّناً بلا صفّ نسبه.
+            await record_detection_provenance(
+                conn,
+                tenant_id=str(user.tenant_id),
+                edge_result_id=row["id"],
+                rows=provenance,
+            )
+        if req.type in PROVENANCE_RESULT_TYPES:
+            stored_provenance = await read_detection_provenance(
+                conn, row["id"] if row else existing["id"]
+            )
+    receipt = {
         "status": "stored" if row else "duplicate_ignored",
         "id": row["id"] if row else existing["id"],
         "idempotency_key": req.idempotency_key,
     }
+    if stored_provenance is not None:
+        # قراءةُ النسب كما خُزِّن (RLS المستأجر)، في الإيصال وفي إعادة الإرسال المطابقة.
+        receipt["provenance"] = stored_provenance
+    # Only an identical, tenant-visible event counts as successful replay.
+    return receipt

@@ -174,7 +174,8 @@ async def update_task(
                     command_type="task.update",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"task_id": task_id, "request_digest": digest},
+                    payload={"task_id": task_id},
+                    request_digest=digest,
                 )
             return await _work()
     except HTTPException:

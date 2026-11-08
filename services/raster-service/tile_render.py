@@ -91,7 +91,7 @@ def read_field_window(src, lonlat_bbox, *, max_dim: int = MAX_READ_DIM, poly_lon
             return None
         wt = src.window_transform(window)  # أفين النافذة في src.crs
         if win_w <= max_dim and win_h <= max_dim:
-            arr = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
+            arr = src.read(1, window=window, masked=True).astype("float32").filled(np.nan)
             sx = sy = 1.0
             eff_t = wt
         else:
@@ -99,8 +99,8 @@ def read_field_window(src, lonlat_bbox, *, max_dim: int = MAX_READ_DIM, poly_lon
             out_h = int(min(max_dim, math.ceil(win_h)))
             arr = (
                 src.read(1, window=window, out_shape=(out_h, out_w), masked=True)
-                .filled(np.nan)
                 .astype("float32")
+                .filled(np.nan)
             )
             sx, sy = win_w / out_w, win_h / out_h
             eff_t = wt * rasterio.Affine.scale(sx, sy)  # أفين المصفوفة المُخفَّضة
@@ -572,8 +572,8 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
             if has_dataset_mask:
                 source = (
                     src.read(1, window=window, out_shape=read_shape, masked=True)
-                    .filled(np.nan)
                     .astype("float32")
+                    .filled(np.nan)
                 )
                 reproject(
                     source=source,
@@ -774,8 +774,8 @@ def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> by
             if has_dataset_mask:
                 source = (
                     src.read(1, window=window, out_shape=read_shape, masked=True)
-                    .filled(np.nan)
                     .astype("float32")
+                    .filled(np.nan)
                 )
                 reproject(
                     source=source,

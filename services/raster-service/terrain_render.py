@@ -209,7 +209,7 @@ def compute_field_contours(
 
                 b = transform_bounds("EPSG:4326", src_crs, *b)
             window = win_from_bounds(*b, transform=src.transform)
-            dem = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
+            dem = src.read(1, window=window, masked=True).astype("float32").filled(np.nan)
             wtransform = src.window_transform(window)
             if poly:  # قصّ على مضلّع الحقل (لا كنتور خارج الحدّ)
                 from tile_render import mask_array_by_polygon

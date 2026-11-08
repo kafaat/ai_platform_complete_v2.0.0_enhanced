@@ -203,7 +203,6 @@ function WofostFieldRow({ field }: { field: Record<string, unknown> }) {
 }
 
 export function HybridIndexPage() {
-  const [period, setPeriod]           = useState('30d');
   const [activeCategory, setCategory] = useState<string>('all');
   const [showExportMenu, setExport]   = useState(false);
   const { data, isLoading, error, refetch } = useDashboardKPIs();
@@ -302,13 +301,9 @@ export function HybridIndexPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <select value={period} onChange={e => setPeriod(e.target.value)}
-            className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm">
-            <option value="7d">7 أيام</option>
-            <option value="30d">30 يوم</option>
-            <option value="90d">3 أشهر</option>
-            <option value="1y">سنة</option>
-          </select>
+          {/* لا مُحدِّد فترة هنا: GET /api/v1/indicators/dashboard يعيد عدّاداتٍ لحظيّة ولا يقبل
+              معامل فترة، فكان مُحدِّد «7 أيام/30 يوم/3 أشهر/سنة» زرّاً لا يغيّر شيئاً. المدد
+              الحقيقيّة للصور التاريخيّة في شاشة الأقمار (3/6/12/24 شهراً). */}
           <button onClick={() => refetch()}
             className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">
             <RefreshCw className="w-4 h-4 text-slate-500" />

@@ -32,9 +32,23 @@ async def consume_refresh_token(redis: Any, token: str) -> str | None:
     ``redis`` يُمرَّر صراحةً (لا يُقرأ من حالةٍ عامّة) كي تُختبَر الدالّةُ بمُضاعَفٍ
     بلا استيراد الخدمة كلّها.
     """
+    return await consume_once(redis, f"sahool:refresh:{token}")
+
+
+async def consume_reset_token(redis: Any, token: str) -> str | None:
+    """S16(b): رمزُ إعادة تعيين كلمة المرور لمرّةٍ واحدة — الاستهلاكُ نفسُه.
+
+    كان ``confirm_password_reset`` يقرأ ``GET`` ثمّ يحذف ``DELETE`` بعد تحديث كلمة
+    المرور، فطلبان متزامنان بالرمز نفسِه ينجحان معاً (كلٌّ يضع كلمةَ مروره). الآن
+    يُستهلَك الرمزُ **قبل** أيّ عمل، وواحدٌ فقط يحصل على معرّف المستخدم.
+    """
+    return await consume_once(redis, f"sahool:reset:{token}")
+
+
+async def consume_once(redis: Any, key: str) -> str | None:
+    """قراءةٌ وحذفٌ ذرّيّان لمفتاحٍ واحد (single-use) — ``None`` لغير الفائز."""
     if not redis:
         return None
-    key = f"sahool:refresh:{token}"
     getdel = getattr(redis, "getdel", None)
     if getdel is not None:
         return await getdel(key)

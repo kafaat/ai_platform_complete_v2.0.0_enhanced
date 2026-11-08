@@ -33,6 +33,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from api.command_store import CommandStore
+from api.idempotency import request_digest
 from api.main import (
     UserSchema,
     _assert_field_in_tenant,
@@ -321,18 +322,17 @@ async def _persist_work_order(user: UserSchema, wo: dict, idem: str | None = Non
                 await conn.execute(
                     "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", command_id
                 )
-                store = CommandStore(get_pool(), conn=conn)
-                existing = await store.get(command_id)
-                if existing is not None and existing.payload != wo:
-                    raise HTTPException(409, "work_order_idempotency_conflict")
+                # بصمة أمر العمل المُشتقّ تُخزَّن مع الأمر ويقارنها _idempotent (409 عند
+                # الاختلاف) — بدل مقارنة الحمولة كاملةً هنا (T6).
                 result = await _idempotent(
-                    store,
+                    CommandStore(get_pool(), conn=conn),
                     command_id,
                     create,
                     command_type="work_order.from_recommendation",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload=wo,
+                    request_digest=request_digest(wo),
                 )
             else:
                 result = await create()

@@ -7,19 +7,31 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 1087,
+      "line": 1693,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
     },
     {
-      "client_expr": "nc",
+      "client_expr": "client",
+      "component": "actuator-service",
+      "durable": null,
+      "dynamic_expr": "topic",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "kind": "consumer",
+      "line": 1762,
+      "queue": null,
+      "resolution": "dynamic",
+      "subject": null
+    },
+    {
+      "client_expr": "js",
       "component": "sahool-platform",
       "durable": null,
       "dynamic_expr": "subject",
       "file": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
       "kind": "consumer",
-      "line": 234,
+      "line": 292,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -31,7 +43,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "producer",
-      "line": 607,
+      "line": 807,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -79,7 +91,7 @@
       "dynamic_expr": "topic",
       "file": "services/video-processor/main.py",
       "kind": "producer",
-      "line": 400,
+      "line": 404,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -151,7 +163,7 @@
       "dynamic_expr": "subject",
       "file": "shared/broker_url.py",
       "kind": "producer",
-      "line": 72,
+      "line": 78,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -269,8 +281,8 @@
   "summary": {
     "consumer_only_subjects": 3,
     "cross_component_duplicate_durables": 0,
-    "dynamic_contracts": 14,
-    "files_scanned": 1263,
+    "dynamic_contracts": 15,
+    "files_scanned": 1266,
     "matched_subjects": 0,
     "producer_only_subjects": 1,
     "production_certified": false,

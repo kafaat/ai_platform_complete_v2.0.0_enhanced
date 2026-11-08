@@ -81,6 +81,48 @@ def test_backfill_dry_run_builds_jobs_from_custom_range(monkeypatch):
     assert calls and calls[0][0] == [44.0, 15.0, 44.01, 15.01]
 
 
+def test_backfill_three_months_reaches_before_field_creation(monkeypatch):
+    """زرّ «3 شهر» في شاشة الأقمار يرسل preset=custom وmonths=3 فقط، بلا from_date.
+
+    النافذة تُحسب من اليوم إلى الوراء (31×3 يوماً) ولا تُقَصّ عند تاريخ إنشاء الحقل: حقلٌ
+    أُنشئ اليوم يرى صور الأشهر الثلاثة السابقة لإنشائه. الطلب نفسه يخرج إلى STAC بنطاقٍ
+    يبدأ قبل اليوم بـ93 يوماً، شهراً بشهر.
+    """
+    from datetime import UTC, datetime, timedelta
+
+    monkeypatch.setattr(main, "AGENT_TOKEN", "test-token")
+    calls = []
+
+    async def fake_search(bbox, dt_start, dt_end, max_cloud, limit):
+        calls.append((dt_start, dt_end))
+        return {"count": 1, "items": [_scene(dt_start[:7], "A", 10.0)]}
+
+    monkeypatch.setattr(field_routes, "_stac_search", fake_search)
+    client = TestClient(main.app)
+    before = datetime.now(UTC)
+    resp = client.post(
+        "/v1/fields/F-new/imagery/backfill",
+        headers={"x-agent-token": "test-token", "x-tenant-id": "T-1"},
+        json={
+            "tenant_id": "T-1",
+            "preset": "custom",
+            "months": 3,
+            "indices": ["ndvi"],
+            "dry_run": True,
+            "clip_polygon_geojson": _poly(),
+        },
+    )
+    assert resp.status_code == 200, resp.text
+    data = resp.json()
+    assert data["period"]["months"] == 3
+    assert data["months_scanned"] >= 3
+    assert calls, "لم يُبحث عن أيّ مشهد"
+    earliest = min(datetime.fromisoformat(c[0][:10]).replace(tzinfo=UTC) for c in calls)
+    # أقدم نطاق بحث يبدأ قبل اليوم بنحو 93 يوماً (± يوم لحدود الشهر/التوقيت).
+    assert earliest <= before - timedelta(days=88), earliest
+    assert earliest >= before - timedelta(days=125), earliest
+
+
 def test_backfill_element84_scene_job_is_contained_before_vrt_and_processing(monkeypatch):
     """مشهد Element84 (ذو ``bands_urls``) محجوبٌ عبر نقطة HTTP الحقيقيّة: ``radiometry_containment``.
 
