@@ -58,13 +58,18 @@ def _fake_ort(monkeypatch, *, fail: bool = False):
         created.append(session)
         return session
 
-    monkeypatch.setitem(sys.modules, "onnxruntime", types.SimpleNamespace(InferenceSession=inference_session))
+    monkeypatch.setitem(
+        sys.modules, "onnxruntime", types.SimpleNamespace(InferenceSession=inference_session)
+    )
     return created
 
 
 @pytest.mark.parametrize("device", GPU_DEVICES)
 def test_gpu_devices_prefer_cuda_and_keep_cpu_fallback(edge_models, device):
-    assert edge_models["pkg"].onnx_providers(device) == ["CUDAExecutionProvider", "CPUExecutionProvider"]
+    assert edge_models["pkg"].onnx_providers(device) == [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider",
+    ]
 
 
 @pytest.mark.parametrize("device", CPU_DEVICES)
