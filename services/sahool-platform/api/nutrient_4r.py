@@ -78,17 +78,23 @@ class FourRRecommendation:
 # عتبة CaCO3 التي تُفعّل تحذيرات التربة الكلسيّة (أدبيّات التربة)
 _CALCAREOUS_THRESHOLD = 15.0  # %
 _HIGH_PH_THRESHOLD = HIGH_PH_THRESHOLD  # قلويّة (المصدر الموحّد core.thresholds)
+# قيمة مجهولة ليست صفراً: غياب CaCO3/pH لا يستبعد الخطر، فيُفترَض قائماً (تحذير محافظ).
+_UNKNOWN_SOIL_RISK_WARNING = (
+    "CaCO3/pH غير معروف — افترض وجود الخطر (CaCO3/pH unknown — assume risk)"
+)
 
 
 def recommend_nitrogen(soil: SoilContext) -> FourRRecommendation:
     """قاعدة N للتربة الكلسيّة: تجنّب تطاير الأمونيا."""
     warnings = []
-    is_calc = (soil.caco3_pct or 0) >= _CALCAREOUS_THRESHOLD
-    high_ph = (soil.ph or 0) >= _HIGH_PH_THRESHOLD
+    is_calc = soil.caco3_pct is not None and soil.caco3_pct >= _CALCAREOUS_THRESHOLD
+    high_ph = soil.ph is not None and soil.ph >= _HIGH_PH_THRESHOLD
 
     source = "كبريتات الأمونيوم أو نترات (أفضل من اليوريا في التربة الكلسيّة)"
     if is_calc or high_ph:
         warnings.append("خطر تطاير الأمونيا عالٍ — تجنّب نثر اليوريا على السطح")
+    elif soil.caco3_pct is None or soil.ph is None:
+        warnings.append(_UNKNOWN_SOIL_RISK_WARNING + " — خطر تطاير الأمونيا")
 
     return FourRRecommendation(
         nutrient=Nutrient.N,
@@ -103,7 +109,7 @@ def recommend_nitrogen(soil: SoilContext) -> FourRRecommendation:
 
 def recommend_phosphorus(soil: SoilContext) -> FourRRecommendation:
     """قاعدة P: الفوسفور مُثبَّت في التربة الكلسيّة → BLOCKED بلا تحليل."""
-    is_calc = (soil.caco3_pct or 0) >= _CALCAREOUS_THRESHOLD
+    is_calc = soil.caco3_pct is not None and soil.caco3_pct >= _CALCAREOUS_THRESHOLD
 
     if soil.p_ppm is None:
         # absence-of-authority → BLOCKED (مبدأ حاكم)
@@ -120,6 +126,8 @@ def recommend_phosphorus(soil: SoilContext) -> FourRRecommendation:
     warnings = []
     if is_calc:
         warnings.append("تثبيت الفوسفور مرتفع — الحزم قرب الجذور أكفأ من النثر بكثير")
+    elif soil.caco3_pct is None:
+        warnings.append(_UNKNOWN_SOIL_RISK_WARNING + " — خطر تثبيت الفوسفور")
     low_p = soil.p_ppm < 10  # عتبة Olsen-P تقريبيّة
     return FourRRecommendation(
         nutrient=Nutrient.P,

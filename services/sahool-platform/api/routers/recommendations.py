@@ -296,6 +296,8 @@ async def recommendations_for_field(
     # The client supplies identifiers only; no canonical object or digest is accepted
     # from the request body.
     from dataclasses import asdict as _asdict
+    from datetime import UTC as _UTC
+    from datetime import datetime as _dt
 
     from api.agronomic_state_consumers import (
         consume_nutrient_ledger as _consume_nutrients,
@@ -367,7 +369,11 @@ async def recommendations_for_field(
                 if persisted.get("salinity") is not None:
                     candidates.append(_asdict(_consume_salinity(persisted["salinity"])))
                 if persisted.get("nutrients") is not None:
-                    candidates.append(_asdict(_consume_nutrients(persisted["nutrients"])))
+                    # Latest ledger only drives advice when fresh and built for this crop.
+                    nutrients = _consume_nutrients(
+                        persisted["nutrients"], now=_dt.now(_UTC), crop_id=req.crop
+                    )
+                    candidates.append(_asdict(nutrients))
                 canonical_context = {
                     "season_id": persisted.get("season_id"),
                     "candidates": candidates,

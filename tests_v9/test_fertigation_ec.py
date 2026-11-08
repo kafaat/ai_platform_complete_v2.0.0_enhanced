@@ -52,9 +52,10 @@ def test_check_fertigation_ec_status():
 def _validate(action_data, crop="wheat"):
     from tiers.environmental_tier import EnvironmentalSafetyTier
 
-    return asyncio.run(
-        EnvironmentalSafetyTier().validate("fertilization", action_data, {"crop": crop})
-    )
+    # Season carbon is supplied explicitly: an absent value is unknown, not zero, and
+    # would itself fail the tier (carbon_inputs_unknown) — not what these tests probe.
+    context = {"crop": crop, "season_carbon_kg_co2e": 0}
+    return asyncio.run(EnvironmentalSafetyTier().validate("fertilization", action_data, context))
 
 
 def test_tier_rejects_above_threshold():
