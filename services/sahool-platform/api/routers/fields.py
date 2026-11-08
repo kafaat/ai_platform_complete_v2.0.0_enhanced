@@ -2895,6 +2895,8 @@ async def create_activity(
     """
     import uuid as _uuid
 
+    from api.field_aggregate import activity_event_payload
+
     if req.activity_type not in _ACTIVITY_TYPES:
         raise HTTPException(status_code=422, detail="نوع عمليّة غير معروف")
     scheduled = _parse_date(req.scheduled_for, "التاريخ المُجدوَل")
@@ -2948,19 +2950,16 @@ async def create_activity(
                     performed,
                     status,
                 )
-                # حدث domain بنفس المعاملة (outbox): operation.* حسب النوع/الحالة أو ACTIVITY_RECORDED.
+                # حدث domain بنفس المعاملة (outbox): operation.* حين done وإلّا ACTIVITY_RECORDED.
                 await _emit_domain_event(
                     conn,
                     user,
                     _activity_event_type(req.activity_type, status),
                     "activity",
                     activity_id,
-                    {
-                        "field_id": field_id,
-                        "season_id": req.season_id,
-                        "activity_type": req.activity_type,
-                        "status": status,
-                    },
+                    activity_event_payload(
+                        field_id, req.season_id, req.activity_type, status, scheduled, performed
+                    ),
                 )
                 # Canonical Field State: تسجيل عمليّة يغيّر سياق القرار ⇒ أعِد حساب
                 # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ

@@ -88,7 +88,15 @@ _CATALOG: dict[str, DomainEvent] = {
     "ACTIVITY_RECORDED": DomainEvent(
         name="ACTIVITY_RECORDED",
         category="activity",
-        description_ar="سُجّلت عمليّة حقليّة عامّة (يكمّلها أحداث operation.* المحدّدة).",
+        description_ar="سُجّلت عمليّة عامّة أو مُخطَّطة/مُتخطّاة (المُنفَّذة: operation.*).",
+        payload_keys=(
+            "field_id",
+            "season_id",
+            "activity_type",
+            "status",
+            "scheduled_for",
+            "performed_on",
+        ),
     ),
     "PLANTING_STARTED": DomainEvent(
         name="PLANTING_STARTED",
