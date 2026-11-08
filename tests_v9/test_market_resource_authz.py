@@ -256,6 +256,82 @@ async def test_sales_dbless_visible_none_no_block(mkt):
     assert ei.value.status_code == 503  # توقّف على غياب القاعدة لا على الملكيّة
 
 
+async def test_sales_non_uuid_batch_is_422_before_any_lookup(mkt):
+    """batch_id ليس UUID (hl_… حصاد / bat_… مخزون) ⇒ 422 صريحة قبل فحص الملكيّة —
+    كان يعبر الفحص ثمّ يُسقِط الإدراج بـ500 من ::uuid."""
+    from fastapi import HTTPException
+
+    market_server, authz = mkt
+
+    async def _visible(batch_id, tenant_id):  # pragma: no cover — لا يجب أن يُبلَغ
+        raise AssertionError("فحص الملكيّة لا يُبلَغ لمعرّف غير UUID")
+
+    authz.batch_visible_under_tenant = _visible
+    _patch_pool(market_server)
+    for bad in ("hl_0123456789abcdef", "bat_0123456789ab", "not-a-uuid"):
+        with pytest.raises(HTTPException) as ei:
+            await market_server.tool_create_sales_listing(
+                {
+                    "tenant_id": OWNER_A,
+                    "batch_id": bad,
+                    "crop_type": "wheat",
+                    "quantity_kg": 100,
+                    "price_per_kg_usd": 2.0,
+                }
+            )
+        assert ei.value.status_code == 422
+
+
+async def test_authz_batch_check_rejects_non_uuid_when_db_configured(mkt):
+    """المُحقِّق نفسه fail-closed على غير UUID حين القاعدة مُهيّأة (قبل أيّ اتّصال)."""
+    _market_server, authz = mkt
+    authz.DATABASE_URL = "postgresql://x@/y"
+    with pytest.raises(authz.BatchIdNotLinkable):
+        await authz.batch_visible_under_tenant("bat_0123456789ab", OWNER_A)
+    assert authz.require_uuid_batch_id(" 33333333-3333-3333-3333-333333333333 ") == (
+        "33333333-3333-3333-3333-333333333333"
+    )
+
+
+async def test_sales_listing_defaults_ungraded_and_emits_no_dead_trace_url(mkt):
+    """بلا quality_grade ⇒ "ungraded" لا "A"؛ ولا رابط /trace/{batch_id} ميّت."""
+    import contextlib
+
+    market_server, authz = mkt
+    captured: list = []
+
+    class _CaptureConn:
+        async def fetchval(self, sql, *args):
+            captured.append(args)
+            return "44444444-4444-4444-4444-444444444444"
+
+    @contextlib.asynccontextmanager
+    async def _tc(tenant_id):
+        yield _CaptureConn()
+
+    async def _visible(batch_id, tenant_id):
+        return True
+
+    authz.batch_visible_under_tenant = _visible
+    saved_tc = market_server.tenant_connection
+    market_server.tenant_connection = _tc
+    try:
+        out = await market_server.tool_create_sales_listing(
+            {
+                "tenant_id": OWNER_A,
+                "batch_id": "33333333-3333-3333-3333-333333333333",
+                "crop_type": "wheat",
+                "quantity_kg": 100,
+                "price_per_kg_usd": 2.0,
+            }
+        )
+    finally:
+        market_server.tenant_connection = saved_tc
+    grade = captured[0][5]  # (tenant, batch, crop, qty, price, grade, …)
+    assert grade == "ungraded"
+    assert out["qr_trace_url"] is None
+
+
 # ─── (ج) /readyz يفحص القاعدة فعليّاً ────────────────────────────
 async def test_readyz_503_when_db_configured_unreachable(mkt):
     """قاعدة **مُهيّأة** لكن غير قابلة للوصول ⇒ 503 (لا توجيه حركة)."""

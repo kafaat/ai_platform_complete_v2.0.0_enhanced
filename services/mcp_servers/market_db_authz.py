@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import logging
 import os
+import uuid
 
 logger = logging.getLogger("market-mcp.authz")
 
@@ -30,6 +31,25 @@ class OwnerLookupUnavailable(Exception):
     اتّصال/استعلام فاشل أو الدالّة/الجدول غائب. يُميَّز عن «وضع بلا قاعدة»
     (DATABASE_URL غير مضبوط) كي تستطيع أدوات الكتابة fail-closed عند تعذّر الإثبات
     فقط، دون كسر التشغيل المقصود بلا قاعدة (CI)."""
+
+
+class BatchIdNotLinkable(ValueError):
+    """`batch_id` ليس UUID — عمود `market_sales_listings.batch_id` من نوع UUID، فقيمة كهذه
+    كانت تعبر فحص الملكيّة ثمّ تُسقِط الإدراج بـ500 من تحويل `::uuid`. يُترجَم إلى 422.
+
+    حدّ صدق: عروض البيع **غير قابلة للربط بعدُ بدفعات الحصاد** (`hl_…` في harvest_lots)
+    ولا بدفعات المخزون (`bat_…` في inventory_batches) — كلاهما ليس UUID. فـbatch_id هنا
+    مرجع UUID فقط، وأيّ معرّف آخر يُرفَض صراحةً بدل أن يُخزَّن أو يُفشِل الطلب بـ500."""
+
+
+def require_uuid_batch_id(batch_id: object) -> str:
+    """يُعيد batch_id بصيغة UUID القانونيّة أو يرفع BatchIdNotLinkable (fail-closed)."""
+    try:
+        return str(uuid.UUID(str(batch_id).strip()))
+    except (ValueError, AttributeError, TypeError) as e:
+        raise BatchIdNotLinkable(
+            "batch_id يجب أن يكون UUID — عروض البيع لا تُربط بعدُ بدفعات الحصاد/المخزون"
+        ) from e
 
 
 async def _connect():
@@ -81,9 +101,12 @@ async def batch_visible_under_tenant(batch_id: str, tenant_id: str | None) -> bo
     - True  ⇒ الدفعة مرئيّة تحت RLS لهذا المستأجِر (مسموح).
     - False ⇒ القاعدة مُهيّأة والاستعلام نجح لكن لا صفّ تحت RLS (ارفض fail-closed).
     - None  ⇒ DATABASE_URL غير مضبوط (بلا قاعدة) ⇒ لا حجب (CI أخضر).
-    - يرفع OwnerLookupUnavailable إن كان DATABASE_URL مضبوطاً لكن تعذّر الإثبات."""
+    - يرفع OwnerLookupUnavailable إن كان DATABASE_URL مضبوطاً لكن تعذّر الإثبات.
+    - يرفع BatchIdNotLinkable إن لم يكن batch_id UUID (القاعدة مُهيّأة): لا نُثبت ملكيّة
+      معرّفٍ سيرفضه عمود UUID في عرض البيع."""
     if not DATABASE_URL:
         return None  # وضع بلا قاعدة مقصود — لا مصدر ملكيّة
+    batch_id = require_uuid_batch_id(batch_id)
     try:
         conn = await _connect()
     except Exception as e:  # noqa: BLE001 — DB مُهيّأة لكنّ الاتّصال فشل
