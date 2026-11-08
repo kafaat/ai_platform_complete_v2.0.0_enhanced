@@ -12,7 +12,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _module(path: str):
-    spec = importlib.util.spec_from_file_location("gis_truth_" + Path(path).stem, ROOT / path)
+    spec = importlib.util.spec_from_file_location(
+        "gis_truth_" + Path(path).stem, ROOT / path
+    )
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -37,6 +39,7 @@ def test_field_route_preserves_kernel_assessment_status():
     section = source[start:end]
     assert '"status": "assessed"' not in section
     assert '"available": result.get("status") == "assessed"' in section
+    assert '"real_data": True,' in section
 
 
 def test_required_unknown_check_is_not_accepted():
