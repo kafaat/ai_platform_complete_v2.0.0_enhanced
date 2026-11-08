@@ -3,6 +3,8 @@
 //
 //   POST /api/v1/fields/{id}/activities   (fields.py:2905) — field:edit، 201،
 //        Idempotency-Key (UUID) يمنع تكرار التسجيل عند إعادة الموبايل.
+//   PATCH /api/v1/fields/{id}/activities/{activity_id} (routers/tasks.py) — field:edit؛
+//        انتقال صفّ قائم planned→done|skipped (غيرهما 409، الحالة نفسها إعادة آمنة).
 //   GET  /api/v1/fields/{id}/activities   (fields.py:3043) — الأحدث أوّلاً، limit/offset
 //        (الافتراضيّ أحدث 100).
 //   GET  /api/v1/fields/{id}/unified-timeline (field_workspace_timeline.py:31) —
@@ -31,6 +33,26 @@ class ActivitiesApi {
     asJsonMap(
       await _client.post(
         activitiesPath(fieldId),
+        data: body,
+        idempotencyKey: idempotencyKey,
+      ),
+    ),
+  );
+
+  static String activityPath(String fieldId, String activityId) =>
+      '${activitiesPath(fieldId)}/${Uri.encodeComponent(activityId)}';
+
+  /// ينقل نشاطاً قائماً بجسم ActivityTransitionRequest
+  /// (`status` done|skipped، `performed_on`، `actual_*`) ويُرجِع الصفّ المُحدَّث.
+  Future<FieldActivity> transitionActivity(
+    String fieldId,
+    String activityId,
+    Map<String, dynamic> body, {
+    IdempotencyKey? idempotencyKey,
+  }) async => FieldActivity.fromJson(
+    asJsonMap(
+      await _client.patch(
+        activityPath(fieldId, activityId),
         data: body,
         idempotencyKey: idempotencyKey,
       ),

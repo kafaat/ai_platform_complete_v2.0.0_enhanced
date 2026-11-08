@@ -2893,8 +2893,9 @@ async def create_activity(
     يخصّ المستأجِر (404) قبل الإدراج، ثمّ يردّ العمليّة المُنشأة. idempotent:
     Idempotency-Key (UUID) يمنع تكرار التسجيل عند إعادة الموبايل (offline).
     """
-    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
+
+    from api.field_aggregate import activity_event_payload
 
     if req.activity_type not in _ACTIVITY_TYPES:
         raise HTTPException(status_code=422, detail="نوع عمليّة غير معروف")
@@ -2948,19 +2949,18 @@ async def create_activity(
                     status,
                 )
                 # حدث domain ضمن نفس معاملة تسجيل العمليّة (نمط outbox) — بحدث عمليّة
-                # محدَّد (operation.*) حسب النوع/الحالة، وإلّا ACTIVITY_RECORDED العامّ.
+                # محدَّد (operation.*) حين done، وإلّا ACTIVITY_RECORDED العامّ (المُخطَّط
+                # ليس «بدءاً»). الحمولة تحمل scheduled_for/performed_on فتُسقِط الإعادةُ
+                # تاريخ التنفيذ لا زمن التسجيل (field_aggregate.activity_event_payload).
                 await _emit_domain_event(
                     conn,
                     user,
                     _activity_event_type(req.activity_type, status),
                     "activity",
                     activity_id,
-                    {
-                        "field_id": field_id,
-                        "season_id": req.season_id,
-                        "activity_type": req.activity_type,
-                        "status": status,
-                    },
+                    activity_event_payload(
+                        field_id, req.season_id, req.activity_type, status, scheduled, performed
+                    ),
                 )
                 # Canonical Field State: تسجيل عمليّة يغيّر سياق القرار ⇒ أعِد حساب
                 # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ

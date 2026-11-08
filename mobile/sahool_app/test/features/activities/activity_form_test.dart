@@ -77,6 +77,90 @@ void main() {
     );
   });
 
+  group('ActivityWriter: completing an existing planned activity', () {
+    FakeActivitiesServer withPlanned() => FakeActivitiesServer()
+      ..activities['f1']!.add(
+        activityJson('act_p', type: 'fertilization', performed: null),
+      );
+
+    test('online: PATCHes the planned row instead of POSTing a new one', () async {
+      final server = withPlanned();
+      final r = await server.writer().submit(
+        'f1',
+        {
+          'activity_type': 'fertilization',
+          'performed_on': '2026-10-26',
+          'details': {'quantity': 40, 'unit': 'kg', 'product': 'يوريا'},
+        },
+        activityId: 'act_p',
+      );
+      expect(r.isSaved, isTrue);
+      expect(r.value!.id, 'act_p');
+      expect(r.value!.status, 'done');
+      expect(server.posts, isEmpty);
+      final patch = server.patches.single;
+      expect(patch.path, '/api/v1/fields/f1/activities/act_p');
+      expect(patch.headers[kIdempotencyHeader], isNotNull);
+      expect(patch.data, {
+        'status': 'done',
+        'performed_on': '2026-10-26',
+        'actual_quantity': 40,
+        'actual_unit': 'kg',
+        'actual_product': 'يوريا',
+      });
+      expect(server.activities['f1']!.length, 1, reason: 'no duplicate row');
+    });
+
+    test('offline: queued as a PATCH activity_complete, no pending copy', () async {
+      final outbox = FakeOutbox();
+      final pending = PendingActivities();
+      final r = await withPlanned()
+          .writer(outbox: outbox, online: false, pending: pending)
+          .submit(
+            'f1',
+            {'activity_type': 'fertilization', 'performed_on': '2026-10-26'},
+            activityId: 'act_p',
+          );
+      expect(r.isQueued, isTrue);
+      final op = outbox.ops.single;
+      expect(op.kind, 'activity_complete');
+      expect(op.method, 'PATCH');
+      expect(op.path, '/api/v1/fields/f1/activities/act_p');
+      expect(op.body, {'status': 'done', 'performed_on': '2026-10-26'});
+      expect(pending.value, isEmpty);
+    });
+
+    test('skipping is queued as activity_skip', () async {
+      final outbox = FakeOutbox();
+      await withPlanned()
+          .writer(outbox: outbox, online: false)
+          .transition('f1', 'act_p', {'status': 'skipped'});
+      expect(outbox.ops.single.kind, 'activity_skip');
+      expect(outbox.ops.single.method, 'PATCH');
+    });
+
+    test('ad-hoc completed work without an id still POSTs', () async {
+      final server = withPlanned();
+      await server.writer().submit('f1', {
+        'activity_type': 'spraying',
+        'performed_on': '2026-10-26',
+      });
+      expect(server.posts.single.path, '/api/v1/fields/f1/activities');
+      expect(server.patches, isEmpty);
+    });
+
+    test('a refused transition is a visible failure, not queued', () async {
+      final server = FakeActivitiesServer()
+        ..activities['f1']!.add(activityJson('act_s', performed: '2026-10-20'));
+      final outbox = FakeOutbox();
+      final r = await server
+          .writer(outbox: outbox)
+          .transition('f1', 'act_s', {'status': 'skipped'});
+      expect(r.isFailed, isTrue);
+      expect(outbox.ops, isEmpty);
+    });
+  });
+
   group('ActivityWriter', () {
     test(
       'online: POST with an Idempotency-Key, returns the stored row',

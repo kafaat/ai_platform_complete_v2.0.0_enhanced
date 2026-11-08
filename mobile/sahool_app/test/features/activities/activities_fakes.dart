@@ -61,8 +61,15 @@ class FakeActivitiesServer {
   List<RecordedRequest> get posts =>
       adapter.requests.where((r) => r.method == 'POST').toList();
 
+  List<RecordedRequest> get patches =>
+      adapter.requests.where((r) => r.method == 'PATCH').toList();
+
   Future<FakeReply> _handle(RequestOptions o) async {
     if (o.path == '/api/v1/fields') return FakeReply(200, fields);
+    final one = RegExp(
+      r'^/api/v1/fields/([^/]+)/activities/([^/]+)$',
+    ).firstMatch(o.path);
+    if (one != null && o.method == 'PATCH') return _transition(one, o);
     final m = RegExp(
       r'^/api/v1/fields/([^/]+)/(activities|unified-timeline)$',
     ).firstMatch(o.path);
@@ -88,6 +95,31 @@ class FakeActivitiesServer {
     };
     activities.putIfAbsent(fid, () => []).insert(0, row);
     return FakeReply(201, row);
+  }
+
+  /// PATCH: انتقال صفّ قائم (planned→done|skipped؛ غيرهما 409؛ الحالة نفسها إعادة).
+  FakeReply _transition(RegExpMatch m, RequestOptions o) {
+    final fid = Uri.decodeComponent(m.group(1)!);
+    final aid = Uri.decodeComponent(m.group(2)!);
+    final body = Map<String, dynamic>.from(o.data as Map);
+    final rows = activities[fid] ?? [];
+    final i = rows.indexWhere((r) => r['activity_id'] == aid);
+    if (i < 0) return const FakeReply(404, {'detail': 'x'});
+    final row = rows[i];
+    final target = body['status'];
+    if (row['status'] == target) return FakeReply(200, row);
+    if (row['status'] != 'planned') {
+      return const FakeReply(409, {
+        'detail': {'code': 'invalid_activity_transition'},
+      });
+    }
+    final next = {
+      ...row,
+      'status': target,
+      'performed_on': body['performed_on'],
+    };
+    rows[i] = next;
+    return FakeReply(200, next);
   }
 
   ActivitiesApi get api => ActivitiesApi(client);

@@ -182,3 +182,147 @@ async def update_task(
         raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحديث المهمّة", e) from e
+
+
+# ─── دورة حياة النشاط الحقليّ: انتقال حالة صفّ قائم (لا صفّ جديد) ────────────────
+# كانت العمليّات إنشاءً فقط: «أنجزتُ» من الموبايل تُدرِج صفّاً جديداً فيبقى المُخطَّط
+# planned للأبد وتتكرّر العمليّة ولا يُبلَغ skipped. هنا (لا في routers/fields — عند سقف
+# حجمه) انتقالٌ واحد محروس: planned→done | planned→skipped؛ غيرهما 409؛ الحالة نفسها
+# إعادةٌ بلا كتابة ولا حدث. تنفيذٌ في المستقبل مرفوض (reject_future_performed_on).
+from api.api_models import ActivitySummary  # noqa: E402
+from api.field_models import ActivityTransitionRequest  # noqa: E402 — مَراسي المسارات أعلاه
+from api.idempotency import model_digest  # noqa: E402
+
+_ACTIVITY_COLS = (
+    "activity_id, field_id, season_id, activity_type, title_ar, details, "
+    "scheduled_for, performed_on, status, created_at"
+)
+
+
+@router.patch(
+    "/api/v1/fields/{field_id}/activities/{activity_id}",
+    response_model=ActivitySummary,
+)
+async def transition_activity(
+    field_id: str,
+    activity_id: str,
+    req: ActivityTransitionRequest,
+    idem: str | None = Depends(_idem_key),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """ينقل نشاطاً قائماً إلى done (تاريخ تنفيذ ≤ اليوم+١ + قيم فعليّة اختياريّة تُدمَج في
+    details) أو skipped — ضمن المستأجِر (RLS). 404 حقل/نشاط ليس له؛ 409 انتقال غير مسموح؛
+    422 done بلا تاريخ أو بتاريخ مستقبليّ. idempotent بالحالة الهدف وبـIdempotency-Key."""
+    from api.field_aggregate import (
+        FieldInvariantError,
+        activity_event_payload,
+        check_activity_transition,
+        merge_activity_actuals,
+    )
+    from api.field_state_projection import recompute_field_state
+    from api.main import (
+        _activity_event_type,
+        _assert_field_in_tenant,
+        _parse_date,
+        _row_to_activity,
+    )
+
+    performed = _parse_date(req.performed_on, "تاريخ التنفيذ")
+    req.validate_for_transition(performed)
+    try:
+        async with tenant_connection(user) as conn:
+
+            async def _work():
+                await _assert_field_in_tenant(conn, field_id)
+                row = await conn.fetchrow(
+                    f"SELECT {_ACTIVITY_COLS} FROM activities "
+                    "WHERE activity_id = $1 AND field_id = $2 FOR UPDATE",
+                    activity_id,
+                    field_id,
+                )
+                if row is None:
+                    raise HTTPException(status_code=404, detail="العمليّة غير موجودة لهذا الحقل")
+                current = _row_to_activity(row)
+                try:
+                    changed = check_activity_transition(current.status, req.status)
+                except FieldInvariantError as e:
+                    raise HTTPException(
+                        status_code=409,
+                        detail={
+                            "message_ar": e.message_ar,
+                            "code": "invalid_activity_transition",
+                            "from": current.status,
+                            "to": req.status,
+                        },
+                    ) from e
+                if not changed:
+                    return current.model_dump()
+                details = (
+                    merge_activity_actuals(current.details, req.actuals())
+                    if req.status == "done"
+                    else current.details
+                )
+                updated = await conn.fetchrow(
+                    "UPDATE activities SET status = $3, performed_on = $4, details = $5::jsonb "
+                    "WHERE activity_id = $1 AND field_id = $2 AND status = 'planned' "
+                    f"RETURNING {_ACTIVITY_COLS}",
+                    activity_id,
+                    field_id,
+                    req.status,
+                    performed,
+                    json.dumps(details),
+                )
+                if updated is None:  # سباق: انتقل الصفّ بين القراءة والكتابة
+                    raise HTTPException(
+                        status_code=409,
+                        detail={"message_ar": "تغيّرت حالة العمليّة", "code": "activity_changed"},
+                    )
+                payload = activity_event_payload(
+                    field_id,
+                    current.season_id,
+                    current.activity_type,
+                    req.status,
+                    current.scheduled_for,
+                    performed,
+                )
+                payload["previous_status"] = current.status
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    _activity_event_type(current.activity_type, req.status),
+                    "activity",
+                    activity_id,
+                    payload,
+                )
+                fs = await recompute_field_state(conn, field_id)
+                if fs["changed"]:
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "FIELD_STATE_CHANGED",
+                        "field",
+                        field_id,
+                        {
+                            "validity": fs["state"]["validity"],
+                            "execution_mode": fs["state"]["execution_mode"],
+                            "trigger": "activity.transitioned",
+                        },
+                    )
+                return _row_to_activity(updated).model_dump()
+
+            if idem:
+                return await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="activity.transition",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"field_id": field_id, "activity_id": activity_id},
+                    request_digest=model_digest(req, f"{field_id}/{activity_id}"),
+                )
+            return await _work()
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("انتقال حالة العمليّة", e) from e

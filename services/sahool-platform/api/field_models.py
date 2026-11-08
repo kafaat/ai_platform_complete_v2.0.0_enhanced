@@ -526,3 +526,52 @@ def reject_future_performed_on(performed: date | None) -> None:
                 "code": "performed_on_in_future",
             },
         )
+
+
+class ActivityTransitionRequest(BaseModel):
+    """انتقال حالة نشاط قائم: planned→done (تاريخ تنفيذ + قيم فعليّة اختياريّة) أو planned→skipped.
+
+    القيم الفعليّة تُدمَج في details بمفاتيح دفتر المدخلات (quantity/unit/product_name/cost).
+    """
+
+    status: Literal["done", "skipped"]
+    performed_on: str | None = None
+    actual_quantity: float | None = Field(default=None, ge=0)
+    actual_unit: str | None = Field(default=None, min_length=1, max_length=20)
+    actual_product: str | None = Field(default=None, min_length=1, max_length=120)
+    actual_cost: float | None = Field(default=None, ge=0)
+
+    def actuals(self) -> dict:
+        """القيم الفعليّة المُرسَلة فقط (None مُسقَطة)."""
+        return {
+            k: v
+            for k, v in {
+                "actual_quantity": self.actual_quantity,
+                "actual_unit": self.actual_unit,
+                "actual_product": self.actual_product,
+                "actual_cost": self.actual_cost,
+            }.items()
+            if v is not None
+        }
+
+    def validate_for_transition(self, performed: date | None) -> None:
+        """done يتطلّب تاريخ تنفيذ غير مستقبليّ؛ skipped لا يحمل تاريخاً ولا قيماً فعليّة (422)."""
+        if self.status == "done":
+            if performed is None:
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "message_ar": "إنجاز العمليّة يتطلّب تاريخ التنفيذ (performed_on)",
+                        "code": "performed_on_required",
+                    },
+                )
+            reject_future_performed_on(performed)
+            return
+        if performed is not None or self.actuals():
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "message_ar": "العمليّة المُتخطّاة لا تحمل تاريخ تنفيذ ولا قيماً فعليّة",
+                    "code": "skipped_has_no_execution",
+                },
+            )

@@ -105,7 +105,9 @@ def test_record_activity_emits_operation_specific_event():
 
 def test_activity_event_for_single_source_mapping():
     assert activity_event_for("planting", "done") == EventType.PLANTING_COMPLETED
-    assert activity_event_for("planting", "planned") == EventType.PLANTING_STARTED
+    # المُخطَّط ليس «بدءاً»: كان PLANTING_STARTED فيُسقَط عمليّةً جارية — صار العامّ.
+    assert activity_event_for("planting", "planned") == EventType.ACTIVITY_RECORDED
+    assert activity_event_for("harvest", "skipped") == EventType.ACTIVITY_RECORDED
     assert activity_event_for("fertilization", "done") == EventType.FERTILIZER_APPLIED
     # تسميد غير مُنجَز / نوع مجهول → العامّ.
     assert activity_event_for("fertilization", "planned") == EventType.ACTIVITY_RECORDED

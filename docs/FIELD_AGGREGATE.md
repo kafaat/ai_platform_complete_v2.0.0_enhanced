@@ -43,6 +43,13 @@ Command → FieldAggregate (تحقّق الـinvariants) → (تغيير حال�
   `harvest+done → HARVEST_COMPLETED`) لا `ACTIVITY_RECORDED` العامّ.
 - `main._activity_event_type` **يفوّض** إليه (يُرجِع اسم العضو — توافق خلفيّ تامّ).
 فيُصدِر مساراها (الـendpoint الحاليّ + مسار الأمر مستقبلاً) **الحدث نفسه** — لا تباعد.
+- الحدث المحدَّد للصفّ **المُنفَّذ** (`done`) وحده؛ المُخطَّط/المُتخطّى → `ACTIVITY_RECORDED`
+  وحالته في الحمولة (كان المُخطَّط يُصدِر `*_STARTED` فيُسقَط عمليّةً جارية). الحمولة
+  (`activity_event_payload`) تحمل `scheduled_for`/`performed_on`، والإعادة تُفضّل
+  `performed_on` على `occurred_at`.
+- انتقال صفّ قائم: `PATCH /api/v1/fields/{field_id}/activities/{activity_id}`
+  (`routers/tasks.py`) — `planned→done|skipped` فقط (`check_activity_transition`)، غيرهما
+  409، والحالة نفسها إعادة بلا كتابة ولا حدث.
 
 **المتبقّي (شريحة تالية، deployment-time):** منافذ حيّة (`load_field_state`/كاتب +
 `CommandDispatcher` على `conn`) وتوجيه أوّل endpoint فعليّاً عبر الأمر — يحتاج اختبار

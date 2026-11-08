@@ -19,6 +19,7 @@ String outboxKindLabelAr(String kind) => switch (kind) {
   'task_update' => 'تحديث مهمّة',
   'observation_create' => 'ملاحظة استكشاف',
   'activity_create' || 'activity_complete' => 'نشاط حقليّ',
+  'activity_skip' => 'تخطّي نشاط حقليّ',
   'scouting_pin_create' => 'نقطة استكشاف',
   'season_create' => 'إنشاء موسم',
   'water_applied' => 'قيد ريّ في دفتر المياه',
