@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
@@ -32,6 +34,9 @@ class TelemetryRequest(BaseModel):
     depth_from_cm: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     depth_to_cm: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     calibration_id: str | None = Field(default=None, min_length=1, max_length=160)
+    # معرّفُ رسالةٍ يُولّده الجهاز (اختياريّ): يجعل إعادةَ إرسالِ قراءةٍ **بلا** `recorded_at`
+    # مُتطابقةَ المفتاح عند المالك بدل أن يصكّ كلُّ إعادةٍ مفتاحاً من وقت وصولها.
+    message_id: str | None = Field(default=None, min_length=1, max_length=128)
 
     @field_validator("value", "depth_from_cm", "depth_to_cm", mode="before")
     @classmethod
@@ -50,6 +55,50 @@ class TelemetryRequest(BaseModel):
 
 
 _DEVICE_ONLINE_WINDOW_MIN = 15  # جهاز يُعتبر online إن ظهر خلال هذه المدّة
+
+#: أقصى تقدّمٍ لـ`recorded_at` على ساعة الخادم يُقبَل انحرافَ ساعةِ جهاز. نصفُ تسامح العقد
+#: (`shared/contracts/soil/observation.py::OBSERVATION_CLOCK_SKEW_TOLERANCE_S`) عمداً: الباقي
+#: يمتصّ فرقَ ساعتَي المنصّة و`soil-service`، فلا تُقبَل قراءةٌ هنا ثمّ تُرفَض عند المالك.
+DEVICE_CLOCK_SKEW_TOLERANCE_S = 60
+
+
+class TelemetryTimeRejected(ValueError):
+    """`recorded_at` لا يُقبَل — يحمل رمزَ HTTP ورسالتَه لتُرفَع عند الحدّ."""
+
+    def __init__(self, status_code: int, detail: str):
+        super().__init__(detail)
+        self.status_code = status_code
+        self.detail = detail
+
+
+def resolve_recorded_at(raw: str | None, now: datetime) -> tuple[datetime, bool, float]:
+    """وقتُ القراءة الوحيد: ``(recorded, declared, skew_s)`` — يُحسَم **مرّةً** للصفّ والملاحظة.
+
+    كان الصفُّ الخامُ يأخذ ``NOW()`` من القاعدة والملاحظةُ المُحوَّلة ``datetime.now`` من
+    بايثون، فيفترق الوقتان. غيابُ ``recorded_at`` ⇒ ``now`` نفسُه للاثنين و``declared=False``.
+    وقتٌ يسبق الخادمَ بأكثر من ``DEVICE_CLOCK_SKEW_TOLERANCE_S`` ⇒ 422 (كان الخامُ يُقبَل
+    والمالكُ يرفض فيصير ``201`` نصفَ صادق)؛ ودون ذلك يُقبَل كما أعلنه الجهاز و``skew_s > 0``
+    يُعلَم به ولا يُصحَّح (التصحيحُ بـ``now`` يجعل كلَّ إعادةٍ ملاحظةً مختلفة).
+    """
+    if not raw:
+        return now, False, 0.0
+    # ندعم لاحقة "Z" (Zulu/UTC) الشائعة، ونطبّع الـnaive إلى UTC قبل إدخاله في عمود
+    # TIMESTAMPTZ (لئلّا يُرفَض مدخل صحيح أو يُخزَّن توقيت ملتبس).
+    text = raw.strip().replace("Z", "+00:00").replace("z", "+00:00")
+    try:
+        recorded = datetime.fromisoformat(text)
+    except (ValueError, TypeError):
+        raise TelemetryTimeRejected(400, "recorded_at غير صالح — استخدم ISO 8601") from None
+    if recorded.tzinfo is None:
+        recorded = recorded.replace(tzinfo=UTC)
+    skew_s = (recorded - now).total_seconds()
+    if skew_s > DEVICE_CLOCK_SKEW_TOLERANCE_S:
+        raise TelemetryTimeRejected(
+            422,
+            f"recorded_at يسبق ساعة الخادم بـ{int(skew_s)}ث (الحدّ "
+            f"{DEVICE_CLOCK_SKEW_TOLERANCE_S}ث) — ساعة الجهاز منحرفة",
+        )
+    return recorded, True, max(0.0, skew_s)
 
 
 def telemetry_freshness(recorded_at, now, window_min: int = _DEVICE_ONLINE_WINDOW_MIN) -> dict:
