@@ -195,7 +195,9 @@ def recommend_irrigation(
         crop_salt_tolerance_ece=crop_salt_tolerance_ece if ec_reliable else None,
         salt_slope_pct=salt_slope_pct,
     )
-    net = float(base["recommended_mm"])
+    # محصول مجهول (Kc عامّ): ``recommended_mm=None`` + نطاقٌ استشاريّ — لا صافٍ يُبنى عليه
+    # غسلٌ أو إجماليّ. يبقى ``None`` حتّى المُخرَج بدل ``float(None)`` أو عمقٍ مُختلَق.
+    net: float | None = None if base["recommended_mm"] is None else float(base["recommended_mm"])
     salinity_ks = float(base["salinity_ks"])
 
     # (3) شروط الغسل المشروط.
@@ -210,7 +212,7 @@ def recommend_irrigation(
     )
 
     leaching_mm = 0.0
-    if leaching_possible:
+    if leaching_possible and net is not None:
         lr = leaching_requirement(float(water_ec), float(crop_salt_tolerance_ece))
         # LR كسرٌ من الماء المُطبَّق: 1 ⇒ قسمة على صفر، وخارج [0,1) لا معنى فيزيائيّاً له.
         if not 0.0 <= lr < 1.0:
@@ -219,7 +221,7 @@ def recommend_irrigation(
         # الذي يُنقِص الماء (LR=0.5 ⇒ +50% بدل +100%) — كإصلاح water_balance (G14).
         leaching_mm = round(net * lr / (1.0 - lr), 1)
 
-    gross = round((net + leaching_mm) / eff, 1)
+    gross = None if net is None else round((net + leaching_mm) / eff, 1)
 
     # ── تصنيف السياسة + هل يلزم خبير ──
     requires_expert_review = False
@@ -383,4 +385,7 @@ def recommend_irrigation(
         "water_stress_class": water_stress_class,
         "policy_knobs": pp.to_dict(),
         "calibrated": False,
+        "crop_known": bool(base.get("crop_known", True)),
+        "advisory_range_mm": base.get("advisory_range_mm"),
+        "limitations": list(base.get("limitations") or []),
     }

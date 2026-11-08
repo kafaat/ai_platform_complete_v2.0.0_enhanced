@@ -58,6 +58,12 @@ REQUIRED_NUTRIENT_PROVENANCE = {
 }
 # شكل الحياة (اختياريّ): غيابه = حوليّ. «perennial» يمنع اشتقاق نضج/حصاد من تاريخ البذار.
 ALLOWED_LIFE_FORMS = {"annual", "perennial"}
+# الأمراض الفطريّة **العائليّة** (اختياريّة): أسماء أمراضٍ تُصيب هذا المحصول تحديداً،
+# كلٌّ منها موسومٌ بنمط الطقس المُهيِّئ له. تُقرأ في ``api.weather_advice.disease_risk``
+# كي لا يُسمّى مرضٌ لا يُصيب العائل (لفحةُ البطاطس المتأخّرة لنخلة). نمطُ الطقس **مُهيِّئ**
+# لا تشخيص: لا يُرخِّص رشّاً قبل تأكيد المُمرِض ميدانيّاً.
+DISEASE_WEATHER_PATTERNS = {"humid_mild", "humid_wet", "humid_warm_dry"}
+REQUIRED_DISEASE_ITEM = {"id", "name_ar", "name_en", "favoured_by"}
 # حقول ممنوعة (تكسر حياد الموقع)
 FORBIDDEN = {"zone_factor", "yield", "expected_yield", "calibration", "region", "farm", "tenant"}
 
@@ -142,6 +148,69 @@ def _validate_nutrient_provenance(ph: dict, stages: list, errors: list) -> None:
             errors.append(f"nutrient_demand_provenance.{k} يجب أن يكون نصّاً غير فارغ")
     if prov["approximation"] is not True:
         errors.append("nutrient_demand_provenance.approximation يجب أن يكون true صراحةً")
+
+
+def _validate_diseases(card: dict, errors: list) -> None:
+    """يتحقّق من كتلة ``diseases`` (إن وُجدت): مصدرٌ + قائمةُ أمراضٍ عائليّةٍ مُهيكَلة.
+
+    البطاقات بلا ``diseases`` لا يتغيّر سلوكها (المستهلك يعود إلى خطرٍ فطريٍّ عامّ بلا أسماء).
+    """
+    block = card.get("diseases")
+    if block is None:
+        return
+    if not isinstance(block, dict):
+        errors.append("diseases ليست كتلة")
+        return
+    source = block.get("source")
+    if not isinstance(source, str) or not source.strip():
+        errors.append("diseases بلا مصدر موثّق")
+    items = block.get("items")
+    if not isinstance(items, list) or not items:
+        errors.append("diseases بلا قائمة items")
+        return
+    seen: set[str] = set()
+    for i, item in enumerate(items):
+        if not isinstance(item, dict):
+            errors.append(f"diseases[{i}] ليست كتلة")
+            continue
+        miss = REQUIRED_DISEASE_ITEM - set(item.keys())
+        if miss:
+            errors.append(f"diseases[{i}] ينقصها: {miss}")
+            continue
+        did = item["id"]
+        if not isinstance(did, str) or not re.fullmatch(r"[a-z0-9_]+", did):
+            errors.append(f"diseases[{i}].id غير صالح: {did!r}")
+        elif did in seen:
+            errors.append(f"diseases[{i}].id مكرّر: {did!r}")
+        else:
+            seen.add(did)
+        for k in ("name_ar", "name_en"):
+            if not isinstance(item[k], str) or not item[k].strip():
+                errors.append(f"diseases[{i}].{k} يجب أن يكون نصّاً غير فارغ")
+        if item["favoured_by"] not in DISEASE_WEATHER_PATTERNS:
+            errors.append(
+                f"diseases[{i}].favoured_by غير مسموح: {item['favoured_by']!r} "
+                f"(المسموح {sorted(DISEASE_WEATHER_PATTERNS)})"
+            )
+
+
+def crop_diseases(crop_id: str | None) -> list[dict] | None:
+    """أمراض المحصول العائليّة من بطاقته — أو ``None`` إن لا بطاقة/لا كتلة صالحة.
+
+    ``None`` (لا قائمة) يختلف عن ``[]``: الأوّل «لا نعرف أمراض هذا العائل»، فلا يُسمّي
+    المستهلكُ أيّ مرض. كتلةٌ لا تجتاز ``_validate_diseases`` تُعامَل ``None`` (فشلٌ مغلق:
+    لا اسمَ مرضٍ من بيانٍ مشوَّه).
+    """
+    if not crop_id:
+        return None
+    card = load_crop_card(crop_id)
+    if not isinstance(card, dict) or card.get("diseases") is None:
+        return None
+    errors: list[str] = []
+    _validate_diseases(card, errors)
+    if errors:
+        return None
+    return [dict(item) for item in card["diseases"]["items"]]
 
 
 def _validate_phenology(card: dict, errors: list) -> None:
@@ -230,6 +299,7 @@ def validate_crop_card(card: dict) -> dict:
         if block in card and "source" not in card[block]:
             errors.append(f"{block} بلا مصدر موثّق")
     _validate_phenology(card, errors)  # مراحل النمو (اختياريّة — تُتحقَّق إن وُجدت)
+    _validate_diseases(card, errors)  # الأمراض العائليّة (اختياريّة — تُتحقَّق إن وُجدت)
     if "life_form" in card and card["life_form"] not in ALLOWED_LIFE_FORMS:
         errors.append(f"life_form غير مسموح: {card['life_form']!r} (المسموح {ALLOWED_LIFE_FORMS})")
     if "aliases" in card:
