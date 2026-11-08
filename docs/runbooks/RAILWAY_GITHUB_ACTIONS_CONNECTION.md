@@ -28,6 +28,27 @@ Before any Stage-2 staging rollout: verify the tested SHA, actual deployed sourc
 
 Technical references: https://docs.railway.com/cli/status ; https://docs.railway.com/cli/deploying ; https://docs.railway.com/cli/login .
 
+## Optional staging PostgreSQL volume-backup inventory (DDO G0)
+
+The existing manual workflow can now **optionally list** staging volume backups.
+When manually dispatching on the exact current main SHA, set
+`backup_inventory: true`. Do not enable it for an unrelated PR run.
+
+- Uses the **same** GitHub secret `SAHOOL_RAILWAY_STAGING_PROJECT_TOKEN`; never an account-wide token, never exposed before the pinned CLI install.
+- The existing `railway status --json` is first validated against the exact staging project and environment. The new verifier then extracts the **volume instance** ID attached to the staging `sahool-postgres` service (the logical volume ID alone is not the instance ID).
+- Makes only three documented **GraphQL queries**: `projectToken` (confirm exact token project and staging environment), `volumeInstance` (confirm logical volume ID, service name and mount path), and `volumeInstanceBackupList` (list backup metadata). No mutation, no backup creation, no restore and no database connection.
+- Uploads only `sahool-ddo-staging-backup-inventory`: SHA-256 of the instance ID and canonical inventory, backup count, unexpired count, latest timestamp, pinned source SHA and **explicit** `backup_restored=false` / `e3_certified=false`. Raw backup IDs/names and token never enter the artifact.
+- Missing token, wrong scoped environment, unexpected volume instance, API error (including HTTP 200 + GraphQL `errors`), malformed timestamps or bytes fail closed.
+- A successful inventory does **not** prove that a backup can be restored. It must not turn E3 or any field/sensor stage green.
+
+**Critical restore distinction:** Railway [native volume backups](https://docs.railway.com/volumes/backups)
+can be restored **only into the same project and environment** and stage an
+attached-volume swap. Never click Restore or call `volumeInstanceBackupRestore`
+against the live staging or production PostgreSQL service as an "isolated drill".
+Use the existing [owner-run PostgreSQL logical export/restore drill](RAILWAY_POSTGRES_RESTORE_DRILL.md)
+against an entirely separate disposable PostgreSQL 15/PostGIS 3.4 target, or
+a separately verified PITR-to-new-service procedure. Neither is triggered here.
+
 ## Railway CLI JSON source contract (v5.63.1)
 
 The command railway status --json --project ID --environment ID returns the

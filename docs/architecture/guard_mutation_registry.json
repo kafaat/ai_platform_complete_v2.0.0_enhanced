@@ -3329,6 +3329,18 @@
           "why": "Bounded expiry is the only signal that a device never answered; ignoring it turns a lost command into a late success."
         }
       ]
+    },
+    "scripts/ci/railway_staging_backup_inventory.py": {
+      "$policy": "Opt-in staging backup inventory: a production-scoped project token must be rejected before any receipt.",
+      "test": "tests_v9/test_railway_staging_backup_inventory.py",
+      "mutations": [
+        {
+          "expect": "test_rejects_production_project_token_even_with_staging_status",
+          "find": "    if scope.get(\"environmentId\") != STAGING_ID:\n        raise InventoryError(\"PROJECT_TOKEN_ENVIRONMENT_MISMATCH\")",
+          "replace": "    if False:\n        raise InventoryError(\"PROJECT_TOKEN_ENVIRONMENT_MISMATCH\")",
+          "why": "Removing the project-token environment check must make the named negative test fail, without producing a staging inventory receipt."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
