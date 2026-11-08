@@ -137,6 +137,7 @@ def idempotency_key(
     observed_at: datetime,
     depth_from_cm: float | None = None,
     depth_to_cm: float | None = None,
+    message_id: str | None = None,
 ) -> str:
     """مفتاحٌ مشتقٌّ من هويّة القراءة — فإعادةُ الدفع لا تُضاعِف ملاحظة.
 
@@ -146,8 +147,16 @@ def idempotency_key(
     **والعمقُ جزءٌ من الهويّة حين يُعرَف:** مسبارٌ متعدّدُ الأعماق يُبلغ قراءاتِه في لحظةٍ
     واحدة، وبلا عمقٍ في المفتاح كانت الثانيةُ «مكرّرةً» للأولى فتُسقَط. قراءةٌ بلا عمقٍ
     تحتفظ بمفتاحها القديم حرفيّاً (توافقٌ رجعيّ: إعادةُ دفعها لا تُنشئ ملاحظةً ثانية).
+
+    ``message_id`` (معرّفُ رسالةِ الجهاز) يحلّ محلّ اللحظة حين يُمرَّر: قراءةٌ بلا وقتٍ مُعلَن
+    لحظتُها وقتُ الوصول، فكلُّ إعادةٍ كانت تصكّ مفتاحاً جديداً. **ولا يُمرَّر حين يُعلِن الجهازُ
+    الوقت** (``build_observation``): المفتاحُ الزمنيّ مستقرٌّ أصلاً، ويُطابِق مفتاحَ الردم
+    (``scripts/soil/reconcile_historical.py``) المشتقَّ من ``device_telemetry`` الذي لا يحفظ المعرّف.
     """
-    raw = f"{device_id}|{property_name}|{observed_at.astimezone(UTC).isoformat()}"
+    if message_id:
+        raw = f"{device_id}|{property_name}|msg={message_id}"
+    else:
+        raw = f"{device_id}|{property_name}|{observed_at.astimezone(UTC).isoformat()}"
     if depth_from_cm is not None or depth_to_cm is not None:
         raw += f"|depth={_depth_token(depth_from_cm)}-{_depth_token(depth_to_cm)}"
     return f"dev_{hashlib.sha256(raw.encode('utf-8')).hexdigest()[:48]}"
@@ -165,8 +174,14 @@ def build_observation(
     depth_from_cm: float | None = None,
     depth_to_cm: float | None = None,
     calibration_id: str | None = None,
+    message_id: str | None = None,
+    observed_at_declared: bool = True,
+    quality_flags: list[str] | None = None,
 ) -> dict[str, Any]:
     """جسمُ الملاحظة كما يقبله عقدُ المالك — بلا حقلٍ يُعلِن ما لم يُقَس.
+
+    ``observed_at_declared=False`` يعني أنّ اللحظةَ وقتُ وصولٍ عيّنه الخادم: يُقال في الأثر،
+    ويصير ``message_id`` (إن وُجد) هويّةَ المفتاح بدلها.
 
     لا ``quality_status``: العقدُ يُنزِل قراءةَ الحسّاس إلى ``uncalibrated`` عمداً، و
     ``calibration_id`` المُعلَن من الجهاز يُحفَظ أثراً لا يرفع الجودة (لا تحقّقَ منه هنا)؛
@@ -188,9 +203,16 @@ def build_observation(
             observed_at=observed_at,
             depth_from_cm=depth_from_cm,
             depth_to_cm=depth_to_cm,
+            message_id=None if observed_at_declared else message_id,
         ),
         "provenance": {"ingest_path": "platform.devices.telemetry", "device_id": device_id},
     }
+    if not observed_at_declared:
+        body["provenance"]["observed_at_source"] = "server_receipt"
+    if message_id:
+        body["provenance"]["message_id"] = message_id
+    if quality_flags:
+        body["quality_flags"] = list(quality_flags)
     if depth_from_cm is not None:
         body["depth_from_cm"] = float(depth_from_cm)
     if depth_to_cm is not None:
@@ -212,6 +234,9 @@ async def forward_observation(
     depth_from_cm: float | None = None,
     depth_to_cm: float | None = None,
     calibration_id: str | None = None,
+    message_id: str | None = None,
+    observed_at_declared: bool = True,
+    quality_flags: list[str] | None = None,
 ) -> dict[str, Any]:
     """يُحوّل القراءةَ إلى مالكها ويُعيد نتيجةً **مُسمّاة** لا منطقيّةً عارية.
 
@@ -234,6 +259,9 @@ async def forward_observation(
         depth_from_cm=depth_from_cm,
         depth_to_cm=depth_to_cm,
         calibration_id=calibration_id,
+        message_id=message_id,
+        observed_at_declared=observed_at_declared,
+        quality_flags=quality_flags,
     )
     try:
         async with httpx.AsyncClient(timeout=_TIMEOUT_SECONDS) as client:
