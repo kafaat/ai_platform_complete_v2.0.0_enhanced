@@ -143,9 +143,14 @@ class TestDiseaseRisk:
             assert k in r
 
     def test_humid_mild_wet_is_high_risk(self):
-        r = disease_risk(temp_c=20.0, humidity_pct=90.0, rain_mm_3d=15.0)
+        # الأسماء عائليّة: تُقرأ من بطاقة المحصول. بلا محصول ⇒ خطرٌ عامّ بلا أسماء
+        # (كان الاختبار يُثبت أسماءً — منها اللفحة المتأخّرة — لأيّ محصول).
+        r = disease_risk(temp_c=20.0, humidity_pct=90.0, rain_mm_3d=15.0, crop="potato")
         assert r["risk_level"] == "high"
         assert r["diseases_ar"]  # غير فارغة
+        generic = disease_risk(temp_c=20.0, humidity_pct=90.0, rain_mm_3d=15.0)
+        assert generic["risk_level"] == "high"
+        assert generic["diseases_ar"] == []
 
     def test_dry_hot_is_low_risk(self):
         r = disease_risk(temp_c=40.0, humidity_pct=20.0, rain_mm_3d=0.0)

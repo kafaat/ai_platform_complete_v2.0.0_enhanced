@@ -51,6 +51,16 @@ pest_susceptibility:
   pests: [late_blight, colorado_beetle, potato_tuber_moth, aphids]
   note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
 
+# ── الأمراض الفطريّة العائليّة (weather-driven) — أسماءٌ تُصيب هذا العائل فقط ──
+# favoured_by ∈ {humid_mild, humid_wet, humid_warm_dry}: نمطُ طقسٍ مُهيِّئ لا تشخيص.
+diseases:
+  source: "Agrios, Plant Pathology (5th ed.) — Phytophthora infestans on Solanaceae"
+  items:
+    - id: late_blight
+      name_ar: "اللفحة المتأخّرة"
+      name_en: "Late blight (Phytophthora infestans)"
+      favoured_by: humid_mild
+
 # ── مراحل النمو (Phenology) — محايدة الموقع، مُحاذاة لمراحل FAO-56 ──
 # الحدود اليوميّة تطابق kc.stage_days التراكميّة [25,30,45,30] ⇒ [0–25, 25–55, 55–100, 100–130].
 phenology:

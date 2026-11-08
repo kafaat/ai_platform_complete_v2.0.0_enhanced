@@ -755,6 +755,7 @@ async def field_irrigation_recommendation(
             "should_irrigate": rec["should_irrigate"],
             "trigger_reason": rec["trigger_reason"],
             "net_irrigation_mm": rec["net_irrigation_mm"],
+            "advisory_range_mm": rec.get("advisory_range_mm"),  # محصول مجهول ⇒ نطاق لا عمق
             "target_refill_mm": rec["target_refill_mm"],
             "water_stress_class": water_stress_class,
             "urgency": rec["urgency"],
@@ -790,6 +791,7 @@ async def field_irrigation_recommendation(
         "limitations": [
             *state["limitations"],
             *soil_prov["limitations"],
+            *rec.get("limitations", []),
             *applied_water_limitations,
             *rec["limitations"],
             *([weather_limitation] if weather_limitation else []),
