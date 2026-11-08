@@ -1060,7 +1060,7 @@ async def get_field_terrain(
     صادقاً (``dem_auto_fill.available=false``) دون تلفيق، مع إمكان الإدخال اليدويّ عبر
     PATCH /api/v1/fields/{field_id}.
     """
-    from core.engines.dem_enrichment import enrich_terrain
+    from core.engines.dem_enrichment import build_dem_auto_fill, enrich_terrain
 
     try:
         async with tenant_connection(user) as conn:
@@ -1096,19 +1096,19 @@ async def get_field_terrain(
 
     result = enrich_terrain(elevation_m=elevation_m, slope_pct=slope_pct, aspect=aspect)
     result["field_id"] = field_id
-    dem_available = bool(computed and computed.get("computed"))
-    result["dem_auto_fill"] = {
-        "available": dem_available,
-        "source": (computed or {}).get("source") if dem_available else None,
-        "computed": computed,
-        "note_ar": (
-            "التضاريس محسوبة من نموذج ارتفاع حيّ (DEM) مقصوصٍ على الحقل."
-            if dem_available
-            else "التعبئة التلقائيّة من DEM غير مُهيّأة بعد (FIELD_DEM_PATH). "
-            "أدخِل elevation_m/slope_pct/aspect عبر PATCH /api/v1/fields/{field_id}، "
-            "والتفسير أعلاه يعمل فوراً على القيم المخزّنة."
-        ),
-    }
+    # DEM auto-fill envelope, built by core.engines.dem_enrichment.build_dem_auto_fill
+    # so this router stays within its size ratchet:
+    #   - raster computed=True => available=True and the live-DEM note;
+    #   - raster refusal whose source is not "dem-not-configured" (for example
+    #     "dem-no-valid-pixels" when every DEM cell inside the field is nodata)
+    #     => that source and reason are passed through and shown as the note,
+    #     instead of the FIELD_DEM_PATH configuration message, which would hide
+    #     that a configured DEM refused this field;
+    #   - no envelope (call skipped or failed) or "dem-not-configured"
+    #     => the configuration message, with manual entry via PATCH.
+    # The raw raster envelope stays under dem_auto_fill.computed for the UI.
+    # Line count of this block is kept stable for platform_extraction_map anchors.
+    result["dem_auto_fill"] = build_dem_auto_fill(computed)
     return result
 
 

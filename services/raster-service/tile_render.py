@@ -26,31 +26,49 @@ _ORIGIN_SHIFT = math.pi * WEB_MERCATOR_R
 MAX_READ_DIM = int(__import__("os").getenv("RASTER_MAX_READ_DIM", "2048"))
 
 
+def _is_ring_list(poly_lonlat) -> bool:
+    """``True`` when ``poly_lonlat`` is a list of rings (multi-part field), not one ring."""
+    try:
+        first = poly_lonlat[0]
+        return (
+            isinstance(first, (list, tuple)) and bool(first) and isinstance(first[0], (list, tuple))
+        )
+    except (TypeError, IndexError, KeyError):
+        return False
+
+
 def mask_array_by_polygon(arr, transform, src_crs, poly_lonlat):
     """يقنّع مصفوفة: خارج **مضلّع الحقل** ⇒ ``NaN`` (قصّ على حدّ الحقل لا مربّع الإحاطة).
 
-    ``poly_lonlat``: حلقة [lng,lat] بـEPSG:4326. ``transform``: أفين المصفوفة في ``src_crs``.
-    يُعاد إسقاط المضلّع إلى ``src_crs`` ثمّ ``geometry_mask``. صدق: مضلّع غير صالح/فشل ⇒
-    تُعاد المصفوفة كما هي (لا انهيار، لا تلفيق). يُعيد نسخة مقنّعة."""
-    if not poly_lonlat or len(poly_lonlat) < 3:
+    ``poly_lonlat``: حلقة [lng,lat] بـEPSG:4326، أو **قائمة حلقات** لحقل متعدّد الأجزاء
+    (MultiPolygon: الحلقات الخارجيّة لكلّ جزء؛ الداخل = اتّحادها). ``transform``: أفين
+    المصفوفة في ``src_crs``. يُعاد إسقاط المضلّع إلى ``src_crs`` ثمّ ``geometry_mask``. صدق:
+    مضلّع غير صالح/فشل ⇒ تُعاد المصفوفة كما هي (لا انهيار، لا تلفيق). يُعيد نسخة مقنّعة."""
+    if not poly_lonlat:
+        return arr
+    rings_in = list(poly_lonlat) if _is_ring_list(poly_lonlat) else [poly_lonlat]
+    rings_in = [r for r in rings_in if r and len(r) >= 3]
+    if not rings_in:
         return arr
     try:
         import numpy as np
         from rasterio.features import geometry_mask
 
-        ring = [[float(p[0]), float(p[1])] for p in poly_lonlat]
-        if ring[0] != ring[-1]:
-            ring.append(ring[0])  # GeoJSON يتطلّب حلقة مغلقة
-        if src_crs is not None and src_crs.to_epsg() != 4326:
-            from rasterio.warp import transform as _wt
+        geoms = []
+        for raw in rings_in:
+            ring = [[float(p[0]), float(p[1])] for p in raw]
+            if ring[0] != ring[-1]:
+                ring.append(ring[0])  # GeoJSON يتطلّب حلقة مغلقة
+            if src_crs is not None and src_crs.to_epsg() != 4326:
+                from rasterio.warp import transform as _wt
 
-            xs = [p[0] for p in ring]
-            ys = [p[1] for p in ring]
-            rx, ry = _wt("EPSG:4326", src_crs, xs, ys)
-            ring = [[rx[i], ry[i]] for i in range(len(rx))]
-        geom = {"type": "Polygon", "coordinates": [ring]}
-        # invert=False ⇒ True خارج المضلّع؛ نملأ الخارج بـNaN ونُبقي الداخل.
-        outside = geometry_mask([geom], out_shape=arr.shape, transform=transform, invert=False)
+                xs = [p[0] for p in ring]
+                ys = [p[1] for p in ring]
+                rx, ry = _wt("EPSG:4326", src_crs, xs, ys)
+                ring = [[rx[i], ry[i]] for i in range(len(rx))]
+            geoms.append({"type": "Polygon", "coordinates": [ring]})
+        # invert=False ⇒ True خارج كلّ المضلّعات؛ نملأ الخارج بـNaN ونُبقي الداخل.
+        outside = geometry_mask(geoms, out_shape=arr.shape, transform=transform, invert=False)
         out = arr.copy()
         out[outside] = np.nan
         return out
