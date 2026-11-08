@@ -15,7 +15,8 @@ RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY services/edge-inference/requirements.txt .
+ARG EDGE_REQUIREMENTS=requirements.txt
+COPY services/edge-inference/requirements*.txt ./
 # ── مرآة pip صينيّة (PyPI محجوب/بطيء) — قابلة للتجاوز بـ--build-arg ──
 # Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
 ARG PIP_INDEX_URL=https://pypi.org/simple
@@ -25,7 +26,7 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
 # نُثبّت إلى /opt/pylocal (لا /root/.local الافتراضيّ): /root وضعه 0700 فلا يقرأه
 # المستخدم غير الجذر (sahool) في طور التشغيل ⇒ تكسر الاستيرادات. /opt قابل للاجتياز.
 ENV PYTHONUSERBASE=/opt/pylocal
-RUN pip install --no-cache-dir --timeout 300 --retries 10 --user -r requirements.txt
+RUN pip install --no-cache-dir --timeout 300 --retries 10 --user -r "${EDGE_REQUIREMENTS}"
 
 # Runtime stage
 FROM python:3.12-slim-bookworm
@@ -51,6 +52,11 @@ ENV PATH=/opt/pylocal/bin:$PATH
 # نُضمّن مسار حزم --user في PYTHONPATH كي تُكتشَف الحزم المثبَّتة بـ--user مع /app.
 ENV PYTHONPATH=/opt/pylocal/lib/python3.12/site-packages:/app
 
+# Make the GPU wheel's CUDA and cuDNN libraries available to the Linux dynamic loader.
+RUN if [ -d /opt/pylocal/lib/python3.12/site-packages/nvidia ]; then \
+        printf '%s\n' /opt/pylocal/lib/python3.12/site-packages/nvidia/*/lib > /etc/ld.so.conf.d/edge-cuda.conf && ldconfig; \
+    fi
+
 # الأوّليّات الأمنيّة المشتركة (stdlib-only) — تعريفٌ واحدٌ لمقارِن توكن الخدمة ثابتِ
 # الزمن بدل نسخةٍ محلّيّة تنحرف. بلا هذا السطر يفشل استيرادُ main.py عند الإقلاع،
 # وذاك المقصود: عطلُ توصيلٍ يُرى لا يُبتلَع (GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01).
@@ -59,8 +65,8 @@ COPY shared/ /app/shared/
 # Copy application (الخدمة فقط، لا كامل المشروع — context هو الجذر)
 COPY services/edge-inference/ /app/
 
-# Model cache directory
-RUN mkdir -p /models /data/sync_queue
+# Empty named volumes inherit these owners. The offline queue writes as sahool.
+RUN useradd -m sahool && install -d -o sahool -g sahool /models /data/sync_queue
 
 ENV PYTHONUNBUFFERED=1
 ENV EDGE_DEVICE=rpi5
@@ -74,6 +80,6 @@ EXPOSE 8100
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8100/healthz').status==200 else 1)" || exit 1
 
-RUN useradd -m sahool && chown -R sahool:sahool /app 2>/dev/null || true
 USER sahool
+RUN test -w /data/sync_queue && test -w /models
 CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8100"]

@@ -2,7 +2,9 @@
 
 مرجعه شجرة main بعد دمج ARCH-S3 (#864). كلّ كتلة أوامر هنا **قابلة للّصق كما هي**
 من جذر المستودع. المرجع القانونيّ للطوبولوجيا `docker-compose.v9.yml`
-(67 خدمة: 48 وحدة بناء + 19 بنية تحتيّة) — هذا الدليل لا يكرّره بل يرتّب
+ومعه `docker-compose.v9.gpu.yml` عند استخدام GPU. يعرض
+`docker compose -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu config --services`
+الخدمات المختارة بعد تجهيز البيئة. يرتّب هذا الدليل
 إقلاعه مرحليّاً ويسمّي نقاط التحقّق.
 
 > **قاعدة أمن غير قابلة للتفاوض**: ملفّ `.env` الحقيقيّ لا يُلتزم أبداً
@@ -26,6 +28,35 @@
 docker compose version
 git rev-parse --short HEAD   # وثّق الشجرة التي تشغّلها
 ```
+
+### Windows/PowerShell — تعذّر الاتصال بـ `dockerDesktopLinuxEngine`
+
+إذا عرض Compose أسماء الصور ثم ظهر `The system cannot find the file specified`
+عند فتح قناة `dockerDesktopLinuxEngine`، فقد توقف الاتصال بالمحرّك قبل بناء الصور.
+افتح Docker Desktop من قائمة Start، أو شغّل `docker desktop start` إذا كان الأمر متاحاً.
+انتظر جاهزية المحرّك ثم افحص الوجهة من نافذة PowerShell نفسها.
+
+```powershell
+docker context ls
+docker info --format '{{.OSType}}'
+```
+
+المتوقّع `linux` ورمز خروج صفر. إذا ظهر `windows`، اختر **Switch to Linux containers**
+من قائمة Docker Desktop. إذا بقي الاتصال متعذراً، تحقّق من `wsl --status` ومن تشغيل
+**Use the WSL 2 based engine** في إعدادات Docker Desktop عند استخدام GPU.
+تحقّق أيضاً مما إذا كان `DOCKER_CONTEXT` أو `DOCKER_HOST` يوجّه هذه النافذة إلى
+محرّك آخر. [دليل Docker Desktop على Windows](https://docs.docker.com/desktop/features/wsl/)
+
+لإعادة محاولة بناء GPU، جهّز ملف `.env` المحلي وفق القسم ١ ثم نفّذ الأمر
+التالي من نسخة Git نظيفة في الإصدار المطلوب. يستخرج السكربت معرّف البناء من Git
+ويتحقّق من نموذج Compose قبل بدء البناء.
+
+```powershell
+.\scripts\build-immutable.ps1 -Gpu -NoCache
+```
+
+لاختبار إتاحة البطاقة للحاويات وتشغيل SAM2 بعد البناء، اتّبع
+[دليل تشغيل GPU](../backend/RTX5090_GPU_ENABLEMENT_REPORT_20260702.md#windows--wsl2-runbook-rtx-5090-laptop--blackwell-sm_120).
 
 ### Windows/PowerShell — تثبيت Python الصحيح جنباً إلى جنب
 
@@ -77,7 +108,7 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres `
 ## ١) تهيئة البيئة
 
 ```bash
-cp .env.example .env
+[ -e .env ] || (umask 077; set -C; cat .env.example > .env)
 # عدّل الأسرار المحليّة على الأقلّ:
 #   POSTGRES_PASSWORD / DB_PASSWORD / APP_DB_PASSWORD / JWT_SECRET
 #   MINIO_ROOT_USER / MINIO_ROOT_PASSWORD

@@ -28,3 +28,36 @@ severity, with `action_policy: observation_only`. No treatment or pesticide is e
 detector; agronomic action requires a policy layer and an approved diagnosis.
 
 Use `EDGE_READINESS_MODE=partial` only when Edge inference is optional and endpoint-level 503 responses are acceptable until models are provisioned.
+
+
+## GPU profile and persistent volumes
+
+The base image installs ONNX Runtime for CPU. The GPU overlay selects the CUDA 12
+and cuDNN 9 wheel for Linux x86-64. Leave `EDGE_DEVICE` empty to use the profile's
+default. In an existing `.env`, remove a stale `EDGE_DEVICE=rpi5` override before
+running the RTX profile.
+
+After building the GPU profile, run the following command from the repository root
+on the Docker GPU host with the same Compose environment, including `TESTED_SHA`
+and `SAHOOL_BUILD_ID`. The [Windows runbook](../../docs/backend/RTX5090_GPU_ENABLEMENT_REPORT_20260702.md#3-build-and-start-the-gpu-stack)
+sets these for the build and the smoke test in one PowerShell session.
+The test executes a multiplication on CUDA inside the built edge
+image with CPU fallback disabled. The test uses the example model shipped by ONNX
+Runtime and works before either agricultural model is provisioned.
+
+```sh
+python scripts/e2e/gpu_runtime_smoke_gate.py --edge
+```
+
+For existing named volumes, check access after rebuilding the service:
+
+```sh
+docker compose -f docker-compose.v9.yml run --rm --no-deps sahool-edge sh -c 'id && ls -ld /data/sync_queue /models && test -w /data/sync_queue'
+```
+
+If the existing sync queue is root-owned, stop the edge service and repair its
+directory ownership before restarting it. This preserves queued JSON records:
+
+```sh
+docker compose -f docker-compose.v9.yml run --rm --no-deps --user root sahool-edge chown -R sahool:sahool /data/sync_queue
+```
