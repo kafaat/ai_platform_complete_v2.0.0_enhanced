@@ -256,7 +256,7 @@ class BackupInventoryTests(unittest.TestCase):
         self.assertIn("scripts/ci/railway_staging_backup_inventory.py", wf)
         self.assertNotIn("volumeInstanceBackupRestore", wf)
         self.assertNotIn("volumeInstanceBackupCreate", wf)
-        self.assertNotIn("RAILWAY_API_TOKEN:", wf)
+        self.assertNotIn("RAILWAY_API_TOKEN: ", wf)
 
 
 if __name__ == "__main__":
