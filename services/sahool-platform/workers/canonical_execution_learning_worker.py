@@ -38,6 +38,7 @@ if str(API_ROOT) not in sys.path:
 from api.canonical_nutrient_ledger import (  # noqa: E402  (import after sys.path insertion)
     CanonicalNutrientLedger,
     NutrientBalance,
+    ledger_inconsistencies,
 )
 from api.canonical_phenology_state import (  # noqa: E402  (import after sys.path insertion)
     CanonicalPhenologyState,
@@ -131,6 +132,30 @@ def _date(value: Any) -> date:
     return date.fromisoformat(str(value))
 
 
+def nutrient_ledger_from_payload(
+    payload: dict[str, Any],
+) -> tuple[CanonicalNutrientLedger | None, list[str]]:
+    """Rebuild a stored nutrient ledger and re-validate it with the builder's rules.
+
+    Returns ``(ledger, [])`` only when the payload is well-formed AND internally
+    consistent (``ledger_inconsistencies``); otherwise ``(None, problems)``.
+    """
+    try:
+        data = dict(payload)
+        data.update(
+            as_of=_dt(data["as_of"]),
+            balances=tuple(NutrientBalance(**x) for x in data.get("balances", [])),
+            verified_operation_ids=tuple(data.get("verified_operation_ids", [])),
+            limitations=tuple(data.get("limitations", [])),
+            evidence_digests=tuple(data.get("evidence_digests", [])),
+        )
+        ledger = CanonicalNutrientLedger(**data)
+        problems = ledger_inconsistencies(ledger)
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return None, ["MALFORMED_NUTRIENT_PAYLOAD"]
+    return (None, problems) if problems else (ledger, [])
+
+
 async def _process_projection_request(conn: Any, *, request_id: str) -> dict[str, Any]:
     row = await conn.fetchrow(
         "SELECT * FROM canonical_projection_requests WHERE request_id=$1::uuid FOR UPDATE",
@@ -182,14 +207,24 @@ async def _process_projection_request(conn: Any, *, request_id: str) -> dict[str
             x["observed_at"] = _dt(x["observed_at"])
         inserted, event_id = await persist_salinity_projection(conn, state, evidence)
     elif kind == "nutrient":
-        payload.update(
-            as_of=_dt(payload["as_of"]),
-            balances=tuple(NutrientBalance(**x) for x in payload.get("balances", [])),
-            verified_operation_ids=tuple(payload.get("verified_operation_ids", [])),
-            limitations=tuple(payload.get("limitations", [])),
-            evidence_digests=tuple(payload.get("evidence_digests", [])),
-        )
-        ledger = CanonicalNutrientLedger(**payload)
+        # The payload's operational_recommendation_allowed/status are claims: re-derive
+        # them with the builder's own rules and refuse a ledger that disagrees, instead
+        # of persisting it as canonical truth.  Marked failed (not raised) so the event
+        # is acknowledged once rather than redelivered or crashing the consumer.
+        ledger, problems = nutrient_ledger_from_payload(payload)
+        if problems:
+            LOGGER.warning(
+                "rejected inconsistent nutrient ledger request %s: %s",
+                request_id,
+                ",".join(problems),
+            )
+            await conn.execute(
+                "UPDATE canonical_projection_requests SET status='failed', processed_at=now(), "
+                "error_code=$2 WHERE request_id=$1::uuid",
+                request_id,
+                "INCONSISTENT_NUTRIENT_LEDGER",
+            )
+            return {"status": "rejected", "inserted": False, "problems": problems}
         for x in evidence:
             x["observed_at"] = _dt(x["observed_at"])
         inserted, event_id = await persist_nutrient_projection(conn, ledger, evidence)
