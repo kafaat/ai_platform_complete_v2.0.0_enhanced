@@ -32,7 +32,9 @@ def test_skill_files_are_scanned_and_counted_without_hidden_exclusion():
     for path in SKILL_FILES:
         assert path in paths
         assert engine.classify(path) == "other"
-    output = json.loads((engine.OUT / "capability_mapping.json").read_text(encoding="utf-8"))
+    output = json.loads(
+        (engine.OUT / "capability_mapping.json").read_text(encoding="utf-8")
+    )
     assert output["summary"]["files_scanned"] == len(paths)
     assert output["summary"]["files_by_kind"]["other"] == sum(
         engine.classify(path) == "other" for path in paths
