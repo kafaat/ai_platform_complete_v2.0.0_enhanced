@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # ─── أجهزة IoT (سجلّ + صحّة + telemetry) — الطبقة ٤ (v24) ─────────
@@ -22,9 +22,31 @@ class DeviceRequest(BaseModel):
 
 class TelemetryRequest(BaseModel):
     sensor_type: str = Field(min_length=1, max_length=40)
-    value: float
+    # قياسٌ عدديّ محدود: NaN/±inf و`true`/`false` ليست قراءات (`float(True) == 1.0` كانت
+    # تصير قراءةَ رطوبة 1٪). الأعدادُ الصحيحة تبقى مقبولة (`21` ⇒ `21.0`).
+    value: float = Field(allow_inf_nan=False)
     unit: str | None = None
     recorded_at: str | None = None  # ISO datetime اختياري (افتراض: الآن)
+    # عمقُ القياس ومعايرتُه **كما يعلنها الجهاز** (اختياريّة): تُمرَّر إلى شاهد التربة
+    # القانونيّ حين تُعلَن، ولا تُخمَّن حين تغيب.
+    depth_from_cm: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    depth_to_cm: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    calibration_id: str | None = Field(default=None, min_length=1, max_length=160)
+
+    @field_validator("value", "depth_from_cm", "depth_to_cm", mode="before")
+    @classmethod
+    def _reject_boolean(cls, v):
+        if isinstance(v, bool):
+            raise ValueError("boolean is not a measurement")
+        return v
+
+    @model_validator(mode="after")
+    def _depth_pair(self) -> TelemetryRequest:
+        if (self.depth_from_cm is None) != (self.depth_to_cm is None):
+            raise ValueError("depth_from_cm and depth_to_cm must be given together")
+        if self.depth_from_cm is not None and self.depth_to_cm <= self.depth_from_cm:
+            raise ValueError("depth_to_cm must be greater than depth_from_cm")
+        return self
 
 
 _DEVICE_ONLINE_WINDOW_MIN = 15  # جهاز يُعتبر online إن ظهر خلال هذه المدّة

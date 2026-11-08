@@ -1577,7 +1577,7 @@
     "candidates": [
       {
         "capability_id": "SEC-001",
-        "score": 13,
+        "score": 15,
         "signals": [
           "content:Tenant RLS",
           "content:rls",
@@ -1598,14 +1598,6 @@
         "signals": [
           "content:Scouting",
           "content:scouting"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 10,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
         ]
       }
     ]
@@ -11397,6 +11389,28 @@
         "signals": [
           "content:inventory",
           "content:procurement"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_automation_register_tenant_isolation.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 14,
+        "signals": [
+          "content:rls",
+          "path:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
         ]
       }
     ]

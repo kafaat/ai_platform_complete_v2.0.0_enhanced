@@ -59,8 +59,10 @@ async def _seed_authorized_chain():
             "r-" + uuid4().hex,
             uuid4().hex,
         )
+        # The plan names the valve it approved: an equipment request on a plan that binds no
+        # target is refused (plan_target_unbound).
         await c.execute(
-            "INSERT INTO decision_execution_plans(execution_plan_id,tenant_id,decision_id,review_id,candidate_lineage_id,operation_type,status,idempotency_key,request_hash,created_by) VALUES($1,$2::uuid,$3,$4,$5,'irrigation','planned',$6,$7,'p')",
+            "INSERT INTO decision_execution_plans(execution_plan_id,tenant_id,decision_id,review_id,candidate_lineage_id,operation_type,required_resources,status,idempotency_key,request_hash,created_by) VALUES($1,$2::uuid,$3,$4,$5,'irrigation','[{\"target_id\": \"valve-7\"}]'::jsonb,'planned',$6,$7,'p')",
             pid,
             TENANT,
             did,

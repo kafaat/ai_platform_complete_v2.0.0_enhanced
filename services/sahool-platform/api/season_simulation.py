@@ -65,11 +65,12 @@ _CROP_PARAMS: dict[str, CropParams] = {
     "alfalfa": CropParams(5.0, 32.0, 900.0, 1.50, 0.50, 5.0, 0.60),
 }
 
-# مرادفات عربيّة → مفتاح إنجليزي
+# مرادفات عربيّة → مفتاح إنجليزي (احتياط محلّيّ؛ المحلِّل المشترك resolve_crop_id أوّلاً).
+# «ذرة» مفردةً = sorghum (القرار الموحَّد في core/season_phenology.py) — كانت هنا maize.
 _CROP_ALIASES: dict[str, str] = {
     "قمح": "wheat",
     "شعير": "barley",
-    "ذرة": "maize",
+    "ذرة": "sorghum",
     "ذرة شامية": "maize",
     "ذرة رفيعة": "sorghum",
     "دخن": "millet",
@@ -130,6 +131,11 @@ def normalize_crop(crop: str | None) -> tuple[str, bool]:
     """يُرجع (مفتاح المحصول، هل هو مُعرّف). يطبّع العربيّة والحالة."""
     if not crop:
         return "", False
+    from core.season_phenology import resolve_crop_id
+
+    shared = resolve_crop_id(crop)
+    if shared in _CROP_PARAMS:
+        return shared, True
     key = crop.strip().lower()
     key = _CROP_ALIASES.get(crop.strip(), _CROP_ALIASES.get(key, key))
     return key, key in _CROP_PARAMS
@@ -188,9 +194,10 @@ class SimResult:
     maturity_reached: bool
     lai_max: float
     biomass_kg_ha: float
-    yield_kg_ha: float
-    yield_low_kg_ha: float  # حدّ أدنى للنطاق (≈ −20٪)
-    yield_high_kg_ha: float  # حدّ أعلى للنطاق (≈ +20٪)
+    # None حين يكون المحصول غير مُعرّف: لا HI/RUE خاصّ به ⇒ لا غلّة تُختلَق من معاملات عامّة.
+    yield_kg_ha: float | None
+    yield_low_kg_ha: float | None  # حدّ أدنى للنطاق (≈ −20٪)
+    yield_high_kg_ha: float | None  # حدّ أعلى للنطاق (≈ +20٪)
     water_need_mm: float  # ETc الموسمي
     water_supply_mm: float | None  # مطر + ريّ إن عُرف
     water_stress_factor: float  # 0..1 (1 = بلا إجهاد)
@@ -202,6 +209,9 @@ class SimResult:
     fapar_source: str = "modeled"
     assumptions_ar: list[str] = field(default_factory=list)
     warnings_ar: list[str] = field(default_factory=list)
+    # "estimated" | "unavailable_unrecognized_crop" — حالة الغلّة صراحةً لا رقم عامّ.
+    yield_status: str = "estimated"
+    limitations: list[str] = field(default_factory=list)
 
 
 # ─── دوالّ النموذج النقيّة ────────────────────────────────────────
@@ -360,11 +370,16 @@ def simulate_season(ctx: SimContext) -> SimResult:
     assumptions: list[str] = []
     warnings: list[str] = []
 
+    limitations: list[str] = []
+    yield_status = "estimated"
     if not recognized:
         warnings.append(
             f"المحصول «{ctx.crop or 'غير محدّد'}» غير مُعرّف في قاعدة المعاملات — "
-            "استُخدم نموذج عامّ (معاملات وسطيّة). عايِر ميدانيّاً."
+            "استُخدم نموذج عامّ (معاملات وسطيّة) للتراكم الحراريّ والماء فقط؛ "
+            "لا تقدير غلّة بلا مؤشّر حصاد خاصّ بالمحصول."
         )
+        limitations.append("UNRECOGNIZED_CROP_NO_YIELD_ESTIMATE")
+        yield_status = "unavailable_unrecognized_crop"
 
     weather = ctx.weather
     if not weather:
@@ -378,9 +393,9 @@ def simulate_season(ctx: SimContext) -> SimResult:
             maturity_reached=False,
             lai_max=0.0,
             biomass_kg_ha=0.0,
-            yield_kg_ha=0.0,
-            yield_low_kg_ha=0.0,
-            yield_high_kg_ha=0.0,
+            yield_kg_ha=0.0 if recognized else None,
+            yield_low_kg_ha=0.0 if recognized else None,
+            yield_high_kg_ha=0.0 if recognized else None,
             water_need_mm=0.0,
             water_supply_mm=None,
             water_stress_factor=1.0,
@@ -388,6 +403,8 @@ def simulate_season(ctx: SimContext) -> SimResult:
             rationale_ar="لا بيانات طقس كافية للمحاكاة — لا تقدير.",
             assumptions_ar=assumptions,
             warnings_ar=warnings,
+            yield_status=yield_status,
+            limitations=limitations,
         )
 
     # fAPAR مرصود (إن مُرِّر) → سلسلة يوميّة. None ⇒ نُبقي الحدّ المُنمذَج (1−e^…).
@@ -533,11 +550,16 @@ def simulate_season(ctx: SimContext) -> SimResult:
         confidence += 0.05
     confidence = round(min(0.85, confidence), 2)  # سقف ٨٥٪ — لا يقين كامل بلا قياس ميداني
 
+    yield_text = (
+        f"الإنتاج المُقدَّر≈{yield_kg_ha:.0f} kg/ha (نطاق {yield_low:.0f}–{yield_high:.0f}، "
+        f"HI={p.harvest_index:.2f})"
+        if recognized
+        else "الإنتاج غير مُقدَّر (محصول غير مُعرّف — لا مؤشّر حصاد)"
+    )
     rationale = (
         f"محاكاة {days} يوم: GDD={gdd_cum:.0f}/{p.gdd_to_maturity:.0f} °C·day، "
         f"أقصى LAI≈{lai_peak:.2f}، كتلة حيويّة≈{biomass_kg_ha:.0f} kg/ha، "
-        f"الإنتاج المُقدَّر≈{yield_kg_ha:.0f} kg/ha (نطاق {yield_low:.0f}–{yield_high:.0f}، "
-        f"HI={p.harvest_index:.2f})، احتياج الماء≈{water_need:.0f} mm. "
+        f"{yield_text}، احتياج الماء≈{water_need:.0f} mm. "
         f"الثقة {confidence:.0%} — تقدير نموذجي (RUE/FAO-56)، عايِر ميدانيّاً."
     )
 
@@ -550,9 +572,9 @@ def simulate_season(ctx: SimContext) -> SimResult:
         maturity_reached=maturity_reached,
         lai_max=round(lai_peak, 2),
         biomass_kg_ha=round(biomass_kg_ha, 1),
-        yield_kg_ha=round(yield_kg_ha, 1),
-        yield_low_kg_ha=round(yield_low, 1),
-        yield_high_kg_ha=round(yield_high, 1),
+        yield_kg_ha=round(yield_kg_ha, 1) if recognized else None,
+        yield_low_kg_ha=round(yield_low, 1) if recognized else None,
+        yield_high_kg_ha=round(yield_high, 1) if recognized else None,
         water_need_mm=round(water_need, 1),
         water_supply_mm=round(water_supply, 1) if water_supply is not None else None,
         water_stress_factor=round(water_stress, 3),
@@ -561,4 +583,6 @@ def simulate_season(ctx: SimContext) -> SimResult:
         fapar_source=fapar_source,
         assumptions_ar=assumptions,
         warnings_ar=warnings,
+        yield_status=yield_status,
+        limitations=limitations,
     )

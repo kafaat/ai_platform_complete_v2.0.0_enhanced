@@ -30,7 +30,7 @@ from datetime import date
 
 from core.season_phenology import resolve_crop_id, stage_kc
 
-from api.crop_cycle import cycle_days_to_maturity
+from api.crop_cycle import cycle_days_to_maturity, is_perennial_crop
 from api.weather_advice import disease_risk, irrigation_advice
 
 # ─── نموذج التوصية الموحَّد ────────────────────────────────────────
@@ -247,6 +247,9 @@ def _yield_rec(ctx: RecommendationContext) -> Recommendation | None:
     """نافذة حصاد تقديريّة من تاريخ البذار + طول دورة المحصول. None إن غاب أحدهما."""
     crop = _normalize_crop(ctx.crop)
     if ctx.sowing_date is None or crop is None:
+        return None
+    # المُعمِّر لا يُحصَد مرّة واحدة بعد «دورة» من تاريخ الغرس — لا نافذة ولا «تأخّر حصاد».
+    if is_perennial_crop(crop):
         return None
     cycle = cycle_days_to_maturity(crop)
     if cycle is None:

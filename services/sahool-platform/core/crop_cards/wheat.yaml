@@ -4,6 +4,9 @@ crop_id: wheat
 name_ar: القمح
 name_en: Wheat
 crop_family: cereal_C3
+aliases:
+  - "قمح صلب"   # durum — UI label
+  - "قمح طري"
 
 kc:
   initial: 0.30

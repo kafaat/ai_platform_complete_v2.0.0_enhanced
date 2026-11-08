@@ -22,6 +22,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from shared.contracts.soil.moisture_policy import SOIL_MOISTURE_SENSOR_TTL_S
+
 # أنواع الأجهزة المسموح بها (kind) — تطابق دلالة iot_devices.type في v24:
 # المستشعر (sensor) يقرأ ويبلّغ، المشغّل (actuator) ينفّذ أوامر، الكاميرا (camera)
 # عين بصريّة، والبوّابة (gateway) تجمّع/تمرّر (mesh gateway في esp32_mesh_gateway.ino).
@@ -88,8 +90,9 @@ _REGISTRY: dict[str, DeviceType] = {
             "«%» وحدَها غيرُ مُعلَنة. يغذّي توصية الريّ وقاعدة low_moisture ووصلة توأم المياه."
         ),
         # إعلانٌ: إبلاغٌ كلّ ساعة، وأربعةُ أضعافه سقفُ الطزاجة (٤ ساعات) — يُراجَع بالقياس.
+        # السقفُ مصدرُه سياسةُ الأهليّة المشتركة (SOIL-MOISTURE-ELIGIBILITY-01) لا رقمٌ هنا.
         expected_report_interval_s=3600,
-        max_reading_age_s=4 * 3600,
+        max_reading_age_s=SOIL_MOISTURE_SENSOR_TTL_S,
     ),
     # محطّة طقس/مناخ — iot_devices.type='weather_station' (v24 CHECK).
     # حقول القياس: air_temp (تعليق v24 الصريح) + air_humidity (تعليق v20_automation).

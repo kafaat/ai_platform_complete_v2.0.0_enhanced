@@ -56,6 +56,8 @@ REQUIRED_NUTRIENT_PROVENANCE = {
     "stage_mapping",
     "approximation",
 }
+# شكل الحياة (اختياريّ): غيابه = حوليّ. «perennial» يمنع اشتقاق نضج/حصاد من تاريخ البذار.
+ALLOWED_LIFE_FORMS = {"annual", "perennial"}
 # حقول ممنوعة (تكسر حياد الموقع)
 FORBIDDEN = {"zone_factor", "yield", "expected_yield", "calibration", "region", "farm", "tenant"}
 
@@ -228,6 +230,14 @@ def validate_crop_card(card: dict) -> dict:
         if block in card and "source" not in card[block]:
             errors.append(f"{block} بلا مصدر موثّق")
     _validate_phenology(card, errors)  # مراحل النمو (اختياريّة — تُتحقَّق إن وُجدت)
+    if "life_form" in card and card["life_form"] not in ALLOWED_LIFE_FORMS:
+        errors.append(f"life_form غير مسموح: {card['life_form']!r} (المسموح {ALLOWED_LIFE_FORMS})")
+    if "aliases" in card:
+        aliases = card["aliases"]
+        if not isinstance(aliases, list) or not all(
+            isinstance(a, str) and a.strip() for a in aliases
+        ):
+            errors.append("aliases يجب أن تكون قائمة نصوص غير فارغة")
     return {"valid": len(errors) == 0, "errors": errors, "crop_id": card.get("crop_id", "?")}
 
 

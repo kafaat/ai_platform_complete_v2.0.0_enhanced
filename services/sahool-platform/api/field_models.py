@@ -16,8 +16,10 @@ god-module): نماذج Pydantic للحقل (ملخّص/تفاصيل/إنشاء/
 from __future__ import annotations
 
 import json as _json
+from datetime import UTC, date, datetime, timedelta
 from typing import ClassVar, Literal
 
+from fastapi import HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -504,3 +506,23 @@ class DriftRiskRequest(BaseModel):
     years: int = Field(default=3, ge=1, le=10)
     max_distance_m: float = Field(default=200.0, gt=0, le=5000)
     half_angle_deg: float = Field(default=30.0, gt=0, le=90)
+
+
+# ─── حقيقة التنفيذ في سجلّ العمليّات: تنفيذٌ في المستقبل ليس تنفيذاً ───
+# سماحُ يومٍ واحد لفروق المناطق الزمنيّة (عميلٌ متقدّم على UTC الخادم).
+_PERFORMED_ON_FUTURE_TOLERANCE_DAYS = 1
+
+
+def reject_future_performed_on(performed: date | None) -> None:
+    """تنفيذٌ في المستقبل ليس تنفيذاً: كان يُسجَّل `done` فيدخل الدفتر والكلفة والتعلّم (422)."""
+    if performed is None:
+        return
+    latest = datetime.now(UTC).date() + timedelta(days=_PERFORMED_ON_FUTURE_TOLERANCE_DAYS)
+    if performed > latest:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message_ar": "تاريخ التنفيذ في المستقبل — سجّل العمليّة مُخطَّطة (scheduled_for)",
+                "code": "performed_on_in_future",
+            },
+        )

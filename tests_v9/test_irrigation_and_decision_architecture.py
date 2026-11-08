@@ -272,3 +272,37 @@ async def test_replay_decodes_jsonb_evaluation_delivered_as_text():
     assert result["idempotent_replay"] is True
     assert result["evaluation"] == {"status": "review_ready", "outcome_count": 3}
     assert not any("emit_event" in call[1] for call in conn.calls)
+
+
+class _DigestCollisionConn(Conn):
+    """إغلاقٌ ثانٍ للموسم نفسه: event_id جديد لكنّ التقييم (والبصمة) مطابق ⇒ الإدراج لا يُرجِع صفّاً."""
+
+    async def fetchval(self, sql, *args):
+        self.calls.append(("fetchval", sql, args))
+        if "INSERT INTO decision_learning_runs" in sql:
+            return None  # ON CONFLICT DO NOTHING RETURNING id ⇒ لا صفّ
+        if "emit_event" in sql:
+            return "00000000-0000-0000-0000-000000000001"
+        return 0
+
+
+@pytest.mark.asyncio
+async def test_second_close_of_the_same_season_is_a_replay_not_a_poison_message():
+    """`ON CONFLICT (tenant_id,event_id)` وحده كان يترك UNIQUE(tenant_id,learning_digest)
+    يرفع على الإغلاق الثاني ⇒ NAK إلى الأبد. الإدراج الآن بلا هدف ويُعاد كإعادة صامتة."""
+    mod = _load("services/sahool-platform/api/learning_feedback.py", "learning_feedback_digest")
+    conn = _DigestCollisionConn(outcomes=[])
+    result = await mod.process_season_closed_event(
+        conn,
+        event_id="evt-second-close",
+        tenant_id="00000000-0000-0000-0000-000000000001",
+        field_id="fld-1",
+        season_id="ssn-1",
+    )
+    assert result["idempotent_replay"] is True
+    assert result["replay_reason"] == "LEARNING_DIGEST_ALREADY_RECORDED"
+    insert_sql = next(c[1] for c in conn.calls if "INSERT INTO decision_learning_runs" in c[1])
+    conflict = insert_sql.split("ON CONFLICT", 1)[1].split("RETURNING", 1)[0]
+    assert conflict.strip() == "DO NOTHING", "هدفُ تعارضٍ واحد يترك القيد الفريد الآخر يرفع"
+    assert not any("emit_event" in c[1] for c in conn.calls)
+    assert not any("governed_model_promotion_candidates" in c[1] for c in conn.calls)

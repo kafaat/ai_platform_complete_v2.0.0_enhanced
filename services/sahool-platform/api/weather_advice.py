@@ -255,15 +255,18 @@ def irrigation_advice(
 
     # رطوبة التربة (إن توفّرت): التربة الرطبة تخفّض الإلحاح، والجافّة ترفعه.
     # SOIL-MOISTURE-UNIT-IDENTITY-01: العتبتان (٣٠٪/٦٠٪) نسبةُ **ماءٍ متاح**. قراءةٌ
-    # حجميّة (VWC) لا تُقارَن بهما بلا معايرة θFC/θWP فلا تُستعمل؛ ووحدةٌ غيرُ
-    # مُعلَنة تُفسَّر كما كانت تُفسَّر — لكنّ الافتراضَ يُعلَن في الأسباب لا يُخفى.
+    # حجميّة (VWC) لا تُقارَن بهما بلا معايرة θFC/θWP فلا تُستعمل. ووحدةٌ غيرُ مُعلَنة
+    # كانت «تُفسَّر ماءً متاحاً (افتراضٌ موروث)» فترفع `%` عاريةٌ الإلحاحَ إلى high؛
+    # والسياسةُ المشتركة (SOIL-MOISTURE-ELIGIBILITY-01) تجعلها استشاريّةً لا تحكم.
     if soil_moisture_pct is not None and soil_moisture_unit_kind == "vwc_pct":
         reasons.append(
             "قراءة رطوبة التربة حجميّة (VWC) بلا معايرة إلى ماءٍ متاح — لم تُستعمل في الإلحاح."
         )
+    elif soil_moisture_pct is not None and soil_moisture_unit_kind != "available_pct":
+        reasons.append(
+            "وحدة قراءة رطوبة التربة غير مُعلَنة ماءً متاحاً — استشاريّة، لم تُستعمل في الإلحاح."
+        )
     elif soil_moisture_pct is not None:
-        if soil_moisture_unit_kind == "undeclared":
-            reasons.append("وحدة قراءة رطوبة التربة غير مُعلَنة — فُسِّرت نسبةَ ماءٍ متاح (افتراضٌ موروث).")
         sm = float(soil_moisture_pct)
         if sm >= _SOIL_COMFORTABLE_PCT and urgency in {"low", "moderate"}:
             urgency = "low" if urgency == "moderate" else "none"

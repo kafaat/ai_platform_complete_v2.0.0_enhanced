@@ -8,6 +8,7 @@ crop_id: coffee
 name_ar: البُنّ (أرابيكا)
 name_en: Coffee (Arabica)
 crop_family: tree_C3
+life_form: perennial  # مُعمِّر: لا نضج/حصاد حوليّ واحد يُشتقّ من تاريخ البذار
 
 kc:
   initial: 0.90

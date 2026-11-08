@@ -4908,6 +4908,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/api/activity_execution_truth.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/api/adaptive_calibration.py",
     "kind": "backend"
   },
@@ -8544,6 +8548,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_activity_execution_truth.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_activity_type_drift.py",
     "kind": "tests"
   },
@@ -8553,6 +8561,10 @@
   },
   {
     "path": "tests_v9/test_actuation_killswitch_coverage_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_actuation_killswitch_safe_direction.py",
     "kind": "tests"
   },
   {
@@ -9696,6 +9708,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_jsonb_text_payload_decoding.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_jwt_algorithm_parity_guard_v21.py",
     "kind": "tests"
   },
@@ -10717,6 +10733,10 @@
   },
   {
     "path": "tests_v9/test_soil_lab_workflow_behavior_v66.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_soil_moisture_eligibility_policy.py",
     "kind": "tests"
   },
   {

@@ -1741,13 +1741,15 @@ jobs:
         working-directory: services/decision-service
         run: pytest tests/test_agronomic_evidence_contract.py -q -p no:cacheprovider
       # انحدارا فجوتين «مُصلَحتين» في #1289 لم يُشغّلهما أيُّ workflow (تدقيق 2026-11-01 Q4):
-      # «verified_success» على إيصالٍ فاشل، واتّجاهُ مقاييس الحماية في قرار الترقية.
+      # «verified_success» على إيصالٍ فاشل، واتّجاهُ مقاييس الحماية في قرار الترقية؛
+      # وربطُ طلب التنفيذ بالخطّة المعتمدة وانتهاءُ صلاحيّته (مراجعة 2026-11-08).
       # اتّصالٌ وهميّ في الذاكرة — بلا DATABASE_URL ولا SoR.
       - name: execution-outcome receipt gate + promotion guardrail direction (no DB)
         working-directory: services/decision-service
         run: >-
           pytest -q -p no:cacheprovider
           tests/test_execution_outcome_receipt_gate.py
+          tests/test_execution_request_plan_binding.py
           tests/test_model_promotion_guardrail_direction.py
       # AC-9→terminal lineage static contracts (pure token checks, no DB).
       - name: agronomic lineage chain static tests
