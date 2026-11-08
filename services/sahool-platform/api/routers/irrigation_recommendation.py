@@ -793,7 +793,6 @@ async def field_irrigation_recommendation(
             *soil_prov["limitations"],
             *rec.get("limitations", []),
             *applied_water_limitations,
-            *rec["limitations"],
             *([weather_limitation] if weather_limitation else []),
             *([submit_limitation] if submit_limitation else []),
         ],
