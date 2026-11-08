@@ -16,11 +16,13 @@ import os
 
 
 def field_terrain_extent(geom: dict | None) -> tuple[list[float] | None, list | None]:
-    """يستخرج (bbox, الحلقة الخارجيّة [[lon,lat]…]) من GeoJSON حقل — للقصّ الدقيق على المضلّع.
+    """يستخرج (bbox, الحدّ) من GeoJSON حقل — للقصّ الدقيق على المضلّع.
 
-    يدعم Polygon/MultiPolygon/Feature. صدق: هندسة غائبة/شاذّة ⇒ ``(None, None)`` (لا
-    نلفّق مربّعاً إقليميّاً). الحلقة تُمرَّر إلى ``read_field_window(poly_lonlat=…)`` فيُقصّ
-    خارج حدّ الحقل إلى NaN (لا مستطيل bbox) — «يقصّ داخل مضلّع الحقل فقط».
+    يدعم Polygon/MultiPolygon/Feature. الحدّ: حلقة خارجيّة واحدة ``[[lon,lat]…]`` لـPolygon
+    أو MultiPolygon ذي جزء واحد، و**قائمة الحلقات الخارجيّة لكلّ الأجزاء** لـMultiPolygon
+    متعدّد الأجزاء. الـbbox يُحسَب على **كلّ** الأجزاء (لا الجزء الأوّل وحده، فلا يسقط باقي
+    الحقل من القصّ). صدق: هندسة غائبة/شاذّة ⇒ ``(None, None)`` (لا نلفّق مربّعاً إقليميّاً).
+    الحدّ يُمرَّر إلى ``read_field_window(poly_lonlat=…)`` فيُقصّ خارج حدّ الحقل إلى NaN.
     """
     if not isinstance(geom, dict):
         return None, None
@@ -30,19 +32,21 @@ def field_terrain_extent(geom: dict | None) -> tuple[list[float] | None, list | 
     coords = g.get("coordinates")
     try:
         if g.get("type") == "Polygon":
-            ring = coords[0]
+            raw_rings = [coords[0]]
         elif g.get("type") == "MultiPolygon":
-            ring = coords[0][0]
+            raw_rings = [part[0] for part in coords if part]
         else:
             return None, None
-        pts = [[float(p[0]), float(p[1])] for p in ring if len(p) >= 2]
+        rings = [[[float(p[0]), float(p[1])] for p in ring if len(p) >= 2] for ring in raw_rings]
     except (TypeError, ValueError, IndexError):
         return None, None
-    if len(pts) < 3:
+    rings = [r for r in rings if len(r) >= 3]
+    if not rings:
         return None, None
-    lons = [p[0] for p in pts]
-    lats = [p[1] for p in pts]
-    return [min(lons), min(lats), max(lons), max(lats)], pts
+    lons = [p[0] for r in rings for p in r]
+    lats = [p[1] for r in rings for p in r]
+    bbox = [min(lons), min(lats), max(lons), max(lats)]
+    return bbox, (rings[0] if len(rings) == 1 else rings)
 
 
 def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
@@ -201,6 +205,12 @@ def compute_field_terrain(
 
     finite = np.isfinite(dem)
     ev = dem[finite]
+    if not ev.size:
+        return {
+            "computed": False,
+            "source": "dem-no-valid-pixels",
+            "reason": "لا توجد قياسات ارتفاع صالحة داخل نطاق الحقل",
+        }
     dzdx = np.gradient(dem, max(px_x_m, 1e-6), axis=1)
     dzdy = np.gradient(dem, max(px_y_m, 1e-6), axis=0)
     slope_deg = np.degrees(np.arctan(np.sqrt(dzdx**2 + dzdy**2)))
