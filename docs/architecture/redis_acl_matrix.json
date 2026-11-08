@@ -511,7 +511,7 @@
               "path": "services/actuator-service/actuator_runtime.py",
               "line": 442,
               "needle": "REDIS_URL = os.getenv(\"REDIS_URL\", \"\")",
-              "why": "the only Redis reference: read, never used"
+              "why": "read, never used on the cache: revocation reads go to DENYLIST_REDIS_URL (sahool-actuator-service-denylist on the state server)"
             }
           ]
         },
@@ -930,6 +930,82 @@
               "line": 1199,
               "needle": "or is_token_below_floor(_DENYLIST, payload)",
               "why": "get_current_user rejects a token below the floor"
+            }
+          ],
+          "selectors": [
+            {
+              "commands": [
+                "get"
+              ],
+              "read_keys": [
+                "sahool:user:token_floor:*"
+              ]
+            }
+          ]
+        },
+        "sahool-actuator-service-denylist": {
+          "service": "sahool-actuator-service",
+          "password_env": "REDIS_ACTUATOR_DENYLIST_PASSWORD",
+          "client_env": "DENYLIST_REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "note": "ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01 (S5): the physical consumer refuses a device command from a token auth revoked (sahool:jti:revoked:*) or issued before the user's floor (sahool:user:token_floor:*). Read-only, unlike sahool-platform-denylist: the actuator never revokes, so it holds no SETEX. The floor read is a Redis 7 selector (%R~), so the actuator can neither write a floor nor GET a revoked-jti key. The check fails closed in production (503 when the store is unreachable), so this user must exist wherever the actuator runs in production; the actuator's cache user stays connection-only because the client is built on DENYLIST_REDIS_URL. PING lets the shared live test confirm the compose URL connects.",
+          "commands": [
+            "ping",
+            "exists"
+          ],
+          "keys": [
+            "sahool:jti:revoked:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 36,
+              "needle": "return (env.get(\"DENYLIST_REDIS_URL\") or \"\").strip() or (env.get(\"REDIS_URL\") or \"\").strip()",
+              "why": "client env: DENYLIST_REDIS_URL, falling back to REDIS_URL (same rule as the platform)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 51,
+              "needle": "return redis.from_url(url, socket_connect_timeout=2, socket_timeout=2)",
+              "why": "the client is built on that URL"
+            },
+            {
+              "path": "services/actuator-service/actuator_runtime.py",
+              "line": 579,
+              "needle": "client = build_revocation_client()",
+              "why": "the actuator builds it lazily, never at import"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 25,
+              "needle": "JTI_REVOKED_KEY = \"sahool:jti:revoked:{jti}\"",
+              "why": "key denylist (sahool-auth's naming)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 66,
+              "needle": "if client.exists(JTI_REVOKED_KEY.format(jti=jti)):",
+              "why": "EXISTS"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 26,
+              "needle": "TOKEN_FLOOR_KEY = \"sahool:user:token_floor:{sub}\"",
+              "why": "key token floor (sahool-auth's naming)"
+            },
+            {
+              "path": "shared/security/token_revocation.py",
+              "line": 70,
+              "needle": "raw = client.get(TOKEN_FLOOR_KEY.format(sub=sub))",
+              "why": "GET, read-only (selector %R~)"
+            },
+            {
+              "path": "services/actuator-service/actuator_runtime.py",
+              "line": 634,
+              "needle": "await _assert_token_may_act(claims)",
+              "why": "_authorize_device_control refuses a revoked token before the device lookup"
             }
           ],
           "selectors": [

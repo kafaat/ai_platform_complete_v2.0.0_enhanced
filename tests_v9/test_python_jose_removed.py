@@ -391,11 +391,14 @@ def test_wrong_issuer_is_rejected_in_enforce_mode_and_counted_in_observe(
 
     private_pem, public_pem, _ = rsa_pair
     token = _rs256(private_pem, _claims(iss="someone-else"))
-    tokens.decode_access_token(token, public_pem, algorithm="RS256", site="parity")
-    assert tokens.would_reject_counts() == {"parity": {"issuer_not_allowed": 1}}
-    monkeypatch.setenv(tokens.CLAIM_POLICY_ENV, "enforce")
+    # الافتراضُ يفرض (قرار المالك 2026-11-07): يُرفَض ويُعَدّ.
     with pytest.raises(jwt.InvalidTokenError):
         tokens.decode_access_token(token, public_pem, algorithm="RS256", site="parity")
+    assert tokens.would_reject_counts() == {"parity": {"issuer_not_allowed": 1}}
+    # الهروبُ الصريح يُعيد العدَّ بلا رفض.
+    monkeypatch.setenv(tokens.CLAIM_POLICY_ENV, "observe")
+    tokens.decode_access_token(token, public_pem, algorithm="RS256", site="parity")
+    assert tokens.would_reject_counts() == {"parity": {"issuer_not_allowed": 2}}
 
 
 @pytest.mark.parametrize("semantics", SEMANTICS)
@@ -415,8 +418,23 @@ def test_empty_key_is_rejected(tokens, semantics):
 # ── دلالةُ python-jose المحفوظة (ما كان يقبله يُقبَل، وما كان يرفضه يُرفَض) ─────────
 
 
-def test_python_jose_semantics_accept_a_missing_audience_and_count_it(tokens, rsa_pair):
+def test_python_jose_semantics_accept_a_missing_audience_and_count_it(
+    tokens, rsa_pair, monkeypatch
+):
+    """الفكُّ بدلالة python-jose يقبل غيابَ ``aud``؛ السياسةُ تعدّه — وتردّه افتراضيّاً (الفرض)."""
+    import jwt
+
     private_pem, public_pem, _ = rsa_pair
+    with pytest.raises(jwt.InvalidTokenError):
+        tokens.decode_access_token(
+            _rs256(private_pem, _claims(aud=None)),
+            public_pem,
+            algorithm="RS256",
+            claim_semantics="python-jose",
+            site="parity",
+        )
+    tokens.reset_would_reject_counts()
+    monkeypatch.setenv(tokens.CLAIM_POLICY_ENV, "observe")
     payload = tokens.decode_access_token(
         _rs256(private_pem, _claims(aud=None)),
         public_pem,
@@ -585,7 +603,7 @@ def test_the_auth_issuer_signs_with_pyjwt_and_keeps_its_verdicts(rsa_pair):
         "JWT_SECRET": "",
         "SAHOOL_ENV": "development",
     }
-    env.pop("SAHOOL_ACCESS_TOKEN_CLAIM_POLICY", None)  # observe: حكمُ اليوم لا حكمُ ما بعد الفرض
+    env.pop("SAHOOL_ACCESS_TOKEN_CLAIM_POLICY", None)  # الافتراض: الفرض (قرار المالك 2026-11-07)
     proc = subprocess.run(
         [sys.executable, "-c", _AUTH_SCRIPT],
         cwd=ROOT / "services/auth",
@@ -611,9 +629,14 @@ def test_the_auth_issuer_signs_with_pyjwt_and_keeps_its_verdicts(rsa_pair):
         "empty_key",
     ):
         assert rows[case][0] == 401 and rows[case][1].startswith("Invalid token"), (case, rows)
-    assert rows["wrong_issuer"] == [401, "Invalid token issuer"]
-    # ما كان python-jose يقبله في auth يبقى مقبولاً (يُعَدّ ولا يُرفَض قبل قرار الفرض).
-    assert rows["missing_aud_kept_from_python_jose"] == ["ok", "7"]
+    # مُصدِرٌ غريب: كان يُرَدّ بفحص auth نفسه ("Invalid token issuer")؛ بالفرض تردّه السياسةُ المشتركة
+    # قبله — 401 في الحالين، والرسالةُ تتغيّر وحدَها.
+    assert rows["wrong_issuer"][0] == 401 and rows["wrong_issuer"][1].startswith("Invalid token"), (
+        rows
+    )
+    # غيابُ aud كان مقبولاً بدلالة python-jose ومعدوداً؛ بالفرض يُرَدّ — وهذا هو القرار نفسه.
+    assert rows["missing_aud_kept_from_python_jose"][0] == 401, rows
+    # iat في المستقبل ليس من السياسة (exp/sub/aud/iss) فيبقى مقبولاً كما كان.
     assert rows["future_iat_kept_from_python_jose"] == ["ok", "7"]
 
 

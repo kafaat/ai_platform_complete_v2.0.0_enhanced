@@ -1,7 +1,7 @@
 {
   "components": [
     {
-      "capability_count": 3,
+      "capability_count": 4,
       "component_id": "actuator-service",
       "domain": "execution",
       "status": {
@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "b1d001a98e108511a3664ecff7b79b9c70df2a16b5679b8224bca348026cc737",
+  "fingerprint": "92c08cc8201b244df947d236bf9aa6307a51f92bac1387f2ad07aff4b715f39b",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

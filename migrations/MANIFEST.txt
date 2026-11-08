@@ -766,6 +766,17 @@ v236_raster_follow_up_requests.sql
 #   «بلا سياق مستأجر ⇒ اسمح» بالشكل لا بالاسم، شروط v122 الصارمة، NULLIF + CHECK NOT VALID على
 #   tenant_id النصّيّ، وسحب EXECUTE دوالّ DEFINER للإدخال من sahool_app. يُدرَج قبل v206 كي يبقى آخِراً.
 v237_tenant_isolation_hardening.sql
+# v238: explicit actuator command delivery state (queued -> published -> device_acked |
+#   device_rejected | expired) on device_commands_log; additive columns + transition trigger,
+#   table keeps its FORCE RLS. Inserted before v206 so v206 stays last.
+v238_actuator_delivery_state.sql
 # v241 (CP997-05، GATE-01 الدفعة ٢): فهرسُ idempotency لـedge_results مقيَّدٌ بالمستأجِر بدل العالميّ.
 v241_edge_idempotency_tenant_scoped.sql
+# v239: per-detection provenance (model artifact sha256, input sha256, threshold, calibration);
+#       tenant RLS+FORCE, append-only. Inserted before v206 so v206 stays last.
+v239_detection_provenance.sql
+# v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
+#   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
+#   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.
+v240_converge_first_pass_schema.sql
 v206_rls_final_hardening.sql

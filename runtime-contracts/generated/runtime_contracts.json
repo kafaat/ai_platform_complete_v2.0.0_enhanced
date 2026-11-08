@@ -18,6 +18,7 @@
         "total": 7
       },
       "configuration": [
+        "ACTUATOR_ACK_TIMEOUT_SECONDS",
         "ACTUATOR_DEDUP_WINDOW_SEC",
         "ACTUATOR_DEVICE_STALE_SECONDS",
         "ACTUATOR_DISPATCH_ADAPTER_ID",

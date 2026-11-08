@@ -2,7 +2,7 @@
   {
     "service": "actuator-service",
     "file": "services/actuator-service/routers/commands.py",
-    "line": 25,
+    "line": 26,
     "method": "POST",
     "path": "/v1/command",
     "function": "send_command"
@@ -10,10 +10,18 @@
   {
     "service": "actuator-service",
     "file": "services/actuator-service/routers/commands.py",
-    "line": 81,
+    "line": 115,
     "method": "GET",
     "path": "/v1/commands",
     "function": "list_commands"
+  },
+  {
+    "service": "actuator-service",
+    "file": "services/actuator-service/routers/commands.py",
+    "line": 141,
+    "method": "GET",
+    "path": "/v1/commands/{command_id}",
+    "function": "get_command"
   },
   {
     "service": "actuator-service",
@@ -1034,7 +1042,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 193,
+    "line": 194,
     "method": "GET",
     "path": "/healthz",
     "function": "health_check"
@@ -1042,7 +1050,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 225,
+    "line": 226,
     "method": "POST",
     "path": "/v1/inference/pest-detect",
     "function": "detect_pest"
@@ -1050,7 +1058,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 295,
+    "line": 305,
     "method": "POST",
     "path": "/v1/inference/yield-estimate",
     "function": "estimate_yield"
@@ -1058,7 +1066,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 366,
+    "line": 376,
     "method": "POST",
     "path": "/v1/sync/trigger",
     "function": "trigger_sync"
@@ -1066,7 +1074,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 398,
+    "line": 408,
     "method": "GET",
     "path": "/capabilities",
     "function": "capabilities"
@@ -1074,7 +1082,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 403,
+    "line": 413,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -1082,7 +1090,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 413,
+    "line": 423,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -4474,7 +4482,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/edge.py",
-    "line": 25,
+    "line": 31,
     "method": "POST",
     "path": "/api/v1/edge/sync",
     "function": "edge_sync_receive"
@@ -4482,7 +4490,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/edge.py",
-    "line": 25,
+    "line": 31,
     "method": "POST",
     "path": "/v1/edge/sync",
     "function": "edge_sync_receive"

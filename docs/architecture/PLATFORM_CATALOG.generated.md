@@ -3,10 +3,10 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `b1d001a98e108511a3664ecff7b79b9c70df2a16b5679b8224bca348026cc737`
+- fingerprint: `92c08cc8201b244df947d236bf9aa6307a51f92bac1387f2ad07aff4b715f39b`
 - components: **37** (backend: 33)
-- route rows: **1134** → unique method/path: **1013**
-- capabilities (derived, uncurated): **839**
+- route rows: **1135** → unique method/path: **1014**
+- capabilities (derived, uncurated): **840**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **53**
@@ -41,7 +41,7 @@
 | realtime-agent | worker | realtime-voice-experimental | sahool-realtime-agent | 0 | True |
 | realtime-session | service | realtime-control-plane-experimental | sahool-realtime-session | 0 | True |
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
-| sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 196 | True |
+| sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 197 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |
 | scout-ingest-service | service | ground-ingest | sahool-scout-ingest, sahool-scout-ingest-projection | 11 | True |
 | soil-service | service | soil | sahool-soil-service | 33 | True |
@@ -56,8 +56,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **910**
-- S2 relations: CALLS=46, CONSUMES=3, EMITS=1, READS=469, ROUTES_TO=72, WRITES=319
+- ARCH-S2 dependency truth: `PASS` — edges **918**
+- S2 relations: CALLS=46, CONSUMES=3, EMITS=1, READS=473, ROUTES_TO=72, WRITES=323
 
 ## Governance gates (U3/U4)
 

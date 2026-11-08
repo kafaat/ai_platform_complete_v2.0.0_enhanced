@@ -2578,14 +2578,17 @@
         "services/raster-service/test_indicator_grid_provenance_static.py",
         "services/raster-service/test_indicator_provenance_transport.py",
         "services/raster-service/test_stac_singleflight_provenance.py",
+        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/weather-service/tests/test_canonical_weather_state.py",
         "tests/architecture/test_provenance_receipt_and_replay.py",
         "tests_v9/test_agb_research_provenance.py",
+        "tests_v9/test_detection_provenance_contract.py",
         "tests_v9/test_field_state_recompute_provenance_v57_5.py",
         "tests_v9/test_irrx1_authoritative_provenance_lock.py",
         "tests_v9/test_knowledge_provenance_guard.py",
         "tests_v9/test_sot_provenance_guard.py",
+        "tests_v9/test_v239_detection_provenance_live_pg.py",
         "tests_v9/test_wofost_weather_provenance.py"
       ],
       "runtime": {
@@ -2616,9 +2619,13 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/docs/INFORMATION_PROVENANCE.md"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v239_detection_provenance.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=14, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=17, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -3289,7 +3296,8 @@
         "GET /healthz @ services/actuator-service/routers/health.py:20",
         "GET /readyz @ services/actuator-service/routers/health.py:32",
         "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229",
-        "GET /v1/commands @ services/actuator-service/routers/commands.py:81",
+        "GET /v1/commands @ services/actuator-service/routers/commands.py:115",
+        "GET /v1/commands/{command_id} @ services/actuator-service/routers/commands.py:141",
         "GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18",
         "POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:101",
         "POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:181",
@@ -3297,7 +3305,7 @@
         "POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:865",
         "POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:897",
         "POST /api/v1/portfolio/command @ services/sahool-platform/api/routers/portfolio_command.py:70",
-        "POST /v1/command @ services/actuator-service/routers/commands.py:25",
+        "POST /v1/command @ services/actuator-service/routers/commands.py:26",
         "POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2256",
         "POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2297",
         "POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2343",
@@ -3308,6 +3316,7 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "services/actuator-service/test_actuator_delivery_state_20261103.py",
         "services/actuator-service/test_actuator_router_decomposition_guard.py",
         "services/actuator-service/test_actuator_safety.py",
         "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -3319,6 +3328,7 @@
         "tests_v9/test_actuator_crypto_dependency.py",
         "tests_v9/test_actuator_idempotency.py",
         "tests_v9/test_actuator_mode.py",
+        "tests_v9/test_actuator_token_revocation.py",
         "tests_v9/test_command_dispatch_race_v65.py",
         "tests_v9/test_command_event_causality_live_gate_contract.py",
         "tests_v9/test_command_store_behavior_v66.py",
@@ -3327,7 +3337,8 @@
         "tests_v9/test_helm_migration_command_valid_20260705.py",
         "tests_v9/test_manual_command_killswitch_scope.py",
         "tests_v9/test_portfolio_command_shape.py",
-        "tests_v9/test_rls_instructions_do_not_teach_a_command_line_password.py"
+        "tests_v9/test_rls_instructions_do_not_teach_a_command_line_password.py",
+        "tests_v9/test_v238_actuator_delivery_state_live_pg.py"
       ],
       "runtime": {
         "metrics": [],
@@ -3361,9 +3372,13 @@
         {
           "type": "repository",
           "path": "services/actuator-service/main.py"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v238_actuator_delivery_state.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=20, tests=20, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=21, tests=23, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

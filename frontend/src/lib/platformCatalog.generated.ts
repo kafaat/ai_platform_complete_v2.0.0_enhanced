@@ -14,11 +14,11 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'b1d001a98e108511a3664ecff7b79b9c70df2a16b5679b8224bca348026cc737';
+export const PLATFORM_CATALOG_FINGERPRINT = '92c08cc8201b244df947d236bf9aa6307a51f92bac1387f2ad07aff4b715f39b';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 33,
-  "capabilities": 839,
+  "capabilities": 840,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 96,
   "capabilities_idempotent": 72,
@@ -29,14 +29,14 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1134,
+  "route_rows": 1135,
   "ui_waivers": 53,
-  "unique_method_path": 1013
+  "unique_method_path": 1014
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
   {
-    "capabilityCount": 3,
+    "capabilityCount": 4,
     "domain": "execution",
     "id": "actuator-service",
     "tested": true,

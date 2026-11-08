@@ -27,6 +27,8 @@
 user sahool-actuator-service
 topic write sahool/actuator/+/command
 topic read sahool/+/+/telemetry/+
+# v238: إقرارات الأجهزة الموقَّعة (قراءة فقط — الخدمة لا تكتب إقراراً عن جهاز).
+topic read sahool/+/actuator/+/ack
 
 # ── معالج الفيديو: ينشر تنبيهاته وأحداث البثّ فقط ──
 user sahool-video-processor
@@ -43,3 +45,4 @@ pattern read sahool/actuator/%u/command
 # ── لكلّ جهاز سطرٌ مولَّد من iot_devices (tenant_id, field_id) — مثالٌ بقيمٍ نائبة:
 # user <device_id>
 # topic write sahool/<tenant_uuid>/<field_id>/telemetry/+
+# topic write sahool/<tenant_uuid>/actuator/<device_id>/ack

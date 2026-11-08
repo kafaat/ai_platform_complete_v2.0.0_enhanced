@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "7756bcf06edfe8640035572b4babb3392df09ac02cbd4121ac6cf25fa646b6f7",
+  "inventory_sha256": "86a2f8c12548e6d45584c6cdd753f48b0542643b363591fdf2eed9a0b3e17450",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "a0e6ba4b5e73db8f21cb85fc6db624a30adffaa23dbea31d9ea6fd54345a5e5f"
+    "policy_sha256": "efff94a7a87a03a6b5e1e8ce24735c245ec37b40d1787b9f45516d8c46282803"
   },
   "routes": [
     {
@@ -3330,7 +3330,7 @@
     {
       "classification": "domain",
       "function": "edge_sync_receive",
-      "line": 23,
+      "line": 29,
       "method": "POST",
       "path": "/api/v1/edge/sync",
       "source": "api/routers/edge.py"
@@ -5034,7 +5034,7 @@
     {
       "classification": "domain",
       "function": "edge_sync_receive",
-      "line": 24,
+      "line": 30,
       "method": "POST",
       "path": "/v1/edge/sync",
       "source": "api/routers/edge.py"

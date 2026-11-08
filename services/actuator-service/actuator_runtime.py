@@ -14,9 +14,11 @@ import json
 import logging
 import math
 import os
+import sys
 import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from pathlib import Path
 
 import asyncpg
 from aiomqtt import Client as MQTTClient
@@ -31,7 +33,18 @@ from shared.actuator_idempotency import (
 )
 from shared.actuator_mode import resolve_actuator_mode
 from shared.security.access_tokens import decode_access_token
+from shared.security.token_revocation import (
+    RevocationUnavailable,
+    build_revocation_client,
+    revocation_reason,
+)
 from shared.startup_retry import retry_startup_connect
+
+# The pure delivery state machine lives next to this file; make the service directory
+# importable whichever way this module is loaded (uvicorn, spec_from_file_location, tests).
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+import command_delivery as cd  # noqa: E402
 
 try:
     from shared.logging_config import setup_logging
@@ -552,6 +565,50 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
 _DEVICE_CONTROL_ROLES = {"owner", "manager"}
 
 
+_revocation_client_cache: list = []
+
+
+def _revocation_client():
+    """Lazily built Redis client for auth's revocation keys; ``None`` when none is configured.
+
+    Built on first use, never at import: the service starts without the store (the reason S5
+    was held back), and only a physical action is refused while revocation cannot be checked.
+    """
+    if _revocation_client_cache:
+        return _revocation_client_cache[0]
+    client = build_revocation_client()
+    _revocation_client_cache.append(client)
+    return client
+
+
+async def _assert_token_may_act(claims: dict) -> None:
+    """S5 for the physical consumer: a revoked or floor-expired token cannot move a device.
+
+    ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01: a manager who logged out, or whose role was
+    lowered, kept opening valves until the token expired. Fail-closed in production: unknown
+    revocation state means 503, not a command. Outside production with no store configured
+    the check is skipped (local development has no auth Redis), and that is logged.
+    """
+    production = os.getenv("SAHOOL_ENV", "development").strip().lower() in {"production", "prod"}
+    try:
+        client = _revocation_client()
+        if client is None and not production:
+            logger.warning("token revocation not checked: no revocation store (non-production)")
+            return
+        # Blocking Redis round-trips (2 s timeouts) run off the event loop.
+        reason = await asyncio.to_thread(revocation_reason, client, claims)
+    except RevocationUnavailable as exc:
+        raise HTTPException(
+            503, "تعذّر التحقّق من إبطال التوكن — التحكّم بالأجهزة معطّل بأمان"
+        ) from exc
+    except Exception as exc:  # noqa: BLE001 - building the client failed: state unknown
+        raise HTTPException(
+            503, "تعذّر التحقّق من إبطال التوكن — التحكّم بالأجهزة معطّل بأمان"
+        ) from exc
+    if reason is not None:
+        raise HTTPException(401, "التوكن مُبطَل")
+
+
 async def _authorize_device_control(claims: dict, device_id: str) -> str | None:
     """يحرس التحكّم الفيزيائيّ: فحص الدور + ملكيّة الجهاز للمستأجر (fail-closed).
 
@@ -574,6 +631,7 @@ async def _authorize_device_control(claims: dict, device_id: str) -> str | None:
     role = str(claims.get("role", "")).strip().lower()
     if role not in _DEVICE_CONTROL_ROLES:
         raise HTTPException(403, "الدور لا يملك صلاحيّة التحكّم بالأجهزة (owner/manager فقط)")
+    await _assert_token_may_act(claims)
 
     tenant_id = str(claims["tenant_id"])
     if not _pool:
@@ -946,7 +1004,19 @@ async def _compensate(
         logger.warning(
             f"COMPENSATION: إرسال العكس '{inv}' إلى {done['device']} (لإلغاء '{done['command']}')"
         )
-        comp_ok = await send_mqtt_command(done["device"], inv, done.get("payload") or {})
+        comp_id = cd.new_command_id()
+        await record_command_queued(
+            tenant_id=tenant_id,
+            device_id=done["device"],
+            command=inv,
+            payload=done.get("payload") or {},
+            command_id=comp_id,
+            rule_id=done.get("rule_id"),
+            triggered_by="compensation",
+        )
+        comp_ok = await send_mqtt_command(
+            done["device"], inv, done.get("payload") or {}, command_id=comp_id
+        )
         await log_command(
             rule_id=done.get("rule_id"),
             device_id=done["device"],
@@ -954,6 +1024,9 @@ async def _compensate(
             payload=done.get("payload") or {},
             status="sent" if comp_ok else "failed",
             tenant_id=tenant_id,
+            command_id=comp_id,
+            delivery_state=cd.state_after_publish(comp_ok, ACTUATOR_MODE),
+            triggered_by="compensation",
         )
         if not comp_ok:
             logger.error(
@@ -1261,9 +1334,19 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     )
                     continue
 
+                # v238: الأمر يُسجَّل queued قبل النشر ويحمل معرّفاً يُعيده إقرار الجهاز.
+                command_id = cd.new_command_id()
+                await record_command_queued(
+                    tenant_id=tenant_id,
+                    device_id=device,
+                    command=cmd,
+                    payload=payload,
+                    command_id=command_id,
+                    rule_id=str(row["rule_id"]),
+                )
                 # إرسال الأمر مع التقاط الفشل/الاستثناء لتشغيل خطّاف التعويض.
                 try:
-                    success = await send_mqtt_command(device, cmd, payload)
+                    success = await send_mqtt_command(device, cmd, payload, command_id=command_id)
                 except Exception as send_err:
                     logger.error(f"send_mqtt_command raised for {device}: {send_err}")
                     success = False
@@ -1276,6 +1359,8 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     payload=payload,
                     status="sent" if success else "failed",
                     tenant_id=tenant_id,
+                    command_id=command_id,
+                    delivery_state=cd.state_after_publish(success, ACTUATOR_MODE),
                 )
 
                 if not success:
@@ -1339,28 +1424,282 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
         return []
 
 
-async def log_command(
-    rule_id: str | None, device_id: str, command: str, payload: dict, status: str, tenant_id: str
-):
+# ══════════════════════════════════════════════════════════════
+# Command delivery state (v238) — queued -> published -> device_acked | device_rejected | expired
+# ══════════════════════════════════════════════════════════════
+# Bounded ack timeout (command_delivery.resolve_ack_timeout clamps to [5s, 3600s]).
+ACTUATOR_ACK_TIMEOUT_SECONDS = cd.resolve_ack_timeout(os.getenv("ACTUATOR_ACK_TIMEOUT_SECONDS"))
+# Ack retry when a fast device answers before the queued -> published write committed.
+_ACK_NOT_YET_PUBLISHED_ATTEMPTS = 3
+_ACK_NOT_YET_PUBLISHED_DELAY_SECONDS = 0.5
+
+
+async def _set_tenant(conn, tenant_id: str) -> None:
+    """RLS context for this transaction (device_commands_log is FORCE RLS, fail-closed)."""
+    await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
+
+
+async def record_command_queued(
+    *,
+    tenant_id: str,
+    device_id: str,
+    command: str,
+    payload: dict,
+    command_id: str,
+    rule_id: str | None = None,
+    triggered_by: str = "rule",
+) -> bool:
+    """Persist the command as ``queued`` **before** it is published (audit even on a crash).
+
+    Observability, not a safety gate: a failed write is logged and the caller still decides on
+    publishing; the post-publish ``log_command`` upsert then creates the row directly.
+    """
     if not _pool:
-        return
+        return False
+    now = datetime.now(UTC)
     try:
         async with _pool.acquire() as conn:
-            await conn.execute(
-                """INSERT INTO device_commands_log
-                    (tenant_id, rule_id, device_id, command, payload, status, mqtt_topic, triggered_by)
-                    VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8)""",
-                tenant_id,
-                rule_id if rule_id else None,
-                device_id,
-                command,
-                json.dumps(payload),
-                status,
-                f"sahool/actuator/{device_id}/command",
-                "rule",
-            )
+            async with conn.transaction():
+                await _set_tenant(conn, tenant_id)
+                await conn.execute(
+                    """INSERT INTO device_commands_log
+                        (tenant_id, rule_id, device_id, command, payload, status, mqtt_topic,
+                         triggered_by, command_id, delivery_state, queued_at, ack_deadline)
+                        VALUES ($1::uuid, $2::uuid, $3, $4, $5, 'queued', $6, $7, $8,
+                                'queued', $9, $10)
+                        ON CONFLICT (tenant_id, command_id) WHERE command_id IS NOT NULL
+                        DO NOTHING""",
+                    tenant_id,
+                    rule_id if rule_id else None,
+                    device_id,
+                    command,
+                    json.dumps(payload),
+                    f"sahool/actuator/{device_id}/command",
+                    triggered_by,
+                    command_id,
+                    now,
+                    cd.ack_deadline(now, ACTUATOR_ACK_TIMEOUT_SECONDS),
+                )
+        return True
+    except Exception as e:
+        logger.warning(f"record_command_queued failed for {command_id}: {e}")
+        return False
+
+
+async def log_command(
+    rule_id: str | None,
+    device_id: str,
+    command: str,
+    payload: dict,
+    status: str,
+    tenant_id: str,
+    *,
+    command_id: str | None = None,
+    delivery_state: str | None = None,
+    triggered_by: str = "rule",
+):
+    """Write the command outcome. With ``command_id`` it is an upsert onto the queued row that
+    moves it to its publish outcome (``published`` | ``simulated`` | ``publish_failed``) and
+    starts the ack deadline at publish time. Runs under the tenant's RLS context."""
+    if not _pool:
+        return
+    now = datetime.now(UTC)
+    tracked = bool(command_id) and delivery_state is not None
+    try:
+        async with _pool.acquire() as conn:
+            async with conn.transaction():
+                await _set_tenant(conn, tenant_id)
+                if not tracked:
+                    await conn.execute(
+                        """INSERT INTO device_commands_log
+                            (tenant_id, rule_id, device_id, command, payload, status,
+                             mqtt_topic, triggered_by)
+                            VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8)""",
+                        tenant_id,
+                        rule_id if rule_id else None,
+                        device_id,
+                        command,
+                        json.dumps(payload),
+                        status,
+                        f"sahool/actuator/{device_id}/command",
+                        triggered_by,
+                    )
+                    return
+                await conn.execute(
+                    """INSERT INTO device_commands_log
+                        (tenant_id, rule_id, device_id, command, payload, status, mqtt_topic,
+                         triggered_by, command_id, delivery_state, queued_at, published_at,
+                         ack_deadline)
+                        VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+                                $13)
+                        ON CONFLICT (tenant_id, command_id) WHERE command_id IS NOT NULL
+                        DO UPDATE SET status = EXCLUDED.status,
+                                      delivery_state = EXCLUDED.delivery_state,
+                                      published_at = EXCLUDED.published_at,
+                                      ack_deadline = EXCLUDED.ack_deadline""",
+                    tenant_id,
+                    rule_id if rule_id else None,
+                    device_id,
+                    command,
+                    json.dumps(payload),
+                    status,
+                    f"sahool/actuator/{device_id}/command",
+                    triggered_by,
+                    command_id,
+                    delivery_state,
+                    now,
+                    now if delivery_state == cd.PUBLISHED else None,
+                    cd.ack_deadline(now, ACTUATOR_ACK_TIMEOUT_SECONDS),
+                )
     except Exception as e:
         logger.warning(f"log_command failed: {e}")
+
+
+_DELIVERY_COLUMNS = (
+    "command_id, delivery_state, delivery_reason, queued_at, published_at, ack_deadline, "
+    "device_acked_at, device_rejected_at, expired_at"
+)
+
+
+async def expire_overdue_commands(conn, tenant_id: str) -> int:
+    """queued/published past ``ack_deadline`` -> ``expired`` (cause: expiry). Caller holds the
+    tenant RLS transaction. Returns the number of rows expired."""
+    result = await conn.execute(
+        """UPDATE device_commands_log
+              SET delivery_state = 'expired', expired_at = now(),
+                  delivery_reason = CASE WHEN delivery_state = 'queued'
+                                         THEN 'never_published'
+                                         ELSE 'no_device_ack_before_deadline' END
+            WHERE tenant_id = $1::uuid
+              AND delivery_state IN ('queued', 'published')
+              AND ack_deadline < now()""",
+        tenant_id,
+    )
+    try:
+        return int(str(result).rsplit(" ", 1)[-1])
+    except ValueError:
+        return 0
+
+
+async def _apply_ack_decision(conn, tenant_id: str, command_id: str, decision) -> None:
+    """Persist the state an ack decision allows. Every UPDATE re-checks the source state."""
+    if decision.target == cd.DEVICE_ACKED:
+        sql = """UPDATE device_commands_log
+                    SET delivery_state = 'device_acked', device_acked_at = now(),
+                        delivery_reason = $3
+                  WHERE tenant_id = $1::uuid AND command_id = $2
+                    AND delivery_state = 'published'"""
+    elif decision.target == cd.DEVICE_REJECTED:
+        sql = """UPDATE device_commands_log
+                    SET delivery_state = 'device_rejected', device_rejected_at = now(),
+                        delivery_reason = $3
+                  WHERE tenant_id = $1::uuid AND command_id = $2
+                    AND delivery_state = 'published'"""
+    elif decision.target == cd.EXPIRED:
+        sql = """UPDATE device_commands_log
+                    SET delivery_state = 'expired', expired_at = now(), delivery_reason = $3
+                  WHERE tenant_id = $1::uuid AND command_id = $2
+                    AND delivery_state IN ('queued', 'published')"""
+    else:
+        return
+    await conn.execute(sql, tenant_id, command_id, decision.reason)
+
+
+async def handle_device_ack(topic: str, raw) -> cd.AckDecision | None:
+    """One device ack from ``sahool/<tenant>/actuator/<device>/ack``.
+
+    Only a signed ack naming a command id that this tenant published to this device can move
+    the command to ``device_acked``/``device_rejected``. Anything else is refused and logged.
+    """
+    parsed = cd.parse_ack_topic(topic)
+    if parsed is None:
+        logger.warning(f"device ack ignored: unexpected topic {topic}")
+        return None
+    tenant_id, device_id = parsed
+    if isinstance(raw, bytes | bytearray):
+        raw = raw.decode(errors="replace")
+    try:
+        ack = json.loads(raw)
+    except (TypeError, ValueError):
+        ack = None
+    secret = os.getenv("CMD_HMAC_SECRET", "")
+    now = datetime.now(UTC)
+    # Shape/signature first, without touching the database: junk never reaches a query.
+    decision = cd.evaluate_ack(
+        None, ack, topic_tenant=tenant_id, topic_device=device_id, secret=secret, now=now
+    )
+    if decision.reason != "unknown_command":
+        logger.warning(f"device ack rejected on {topic}: {decision.reason}")
+        return decision
+    if _pool is None:
+        logger.warning(f"device ack not recorded on {topic}: no database")
+        return cd.AckDecision(False, "no_database")
+    command_id = ack["id"]
+    for attempt in range(_ACK_NOT_YET_PUBLISHED_ATTEMPTS):
+        async with _pool.acquire() as conn:
+            async with conn.transaction():
+                await _set_tenant(conn, tenant_id)
+                row = await conn.fetchrow(
+                    f"""SELECT tenant_id::text AS tenant_id, device_id, {_DELIVERY_COLUMNS}
+                          FROM device_commands_log
+                         WHERE tenant_id = $1::uuid AND command_id = $2
+                         FOR UPDATE""",
+                    tenant_id,
+                    command_id,
+                )
+                decision = cd.evaluate_ack(
+                    dict(row) if row is not None else None,
+                    ack,
+                    topic_tenant=tenant_id,
+                    topic_device=device_id,
+                    secret=secret,
+                    now=datetime.now(UTC),
+                )
+                if decision.target is not None:
+                    await _apply_ack_decision(conn, tenant_id, command_id, decision)
+        if decision.reason != "not_yet_published":
+            break
+        if attempt + 1 < _ACK_NOT_YET_PUBLISHED_ATTEMPTS:
+            await asyncio.sleep(_ACK_NOT_YET_PUBLISHED_DELAY_SECONDS)
+    if decision.accepted:
+        logger.info(f"device ack {command_id} on {device_id}: {decision.target}")
+    else:
+        logger.warning(f"device ack rejected on {topic} for {command_id}: {decision.reason}")
+    return decision
+
+
+def _any_command_path_enabled() -> bool:
+    return (
+        _manual_commands_enabled(FEATURE_MANUAL_ACTUATOR_COMMANDS)
+        or _automation_actuation_enabled(FEATURE_AUTOMATION_RULES_ACTUATION)
+        or _dispatch_consumer_enabled(FEATURE_DISPATCH_ACTUATOR)
+    )
+
+
+async def mqtt_ack_listener():
+    """Subscribe to device acks (real mode, and only while some command path can publish)."""
+    if ACTUATOR_MODE != "real":
+        logger.info(f"المُشغِّل في وضع {ACTUATOR_MODE} — مستمع إقرارات الأجهزة معطّل")
+        return
+    if not _any_command_path_enabled():
+        logger.info("لا مسار أوامر مفعَّل — لا اشتراك بإقرارات الأجهزة")
+        return
+    topic = "sahool/+/actuator/+/ack"
+    host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
+    while True:
+        try:
+            async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
+                async with client.messages() as messages:
+                    await client.subscribe(topic, qos=1)
+                    logger.info(f"MQTT ack listener subscribed: {topic}")
+                    async for message in messages:
+                        try:
+                            await handle_device_ack(message.topic.value, message.payload)
+                        except Exception as e:
+                            logger.warning(f"Ack processing error: {e}")
+        except Exception as e:
+            logger.error(f"MQTT ack listener crashed: {e}")
+            await asyncio.sleep(10)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1457,6 +1796,8 @@ async def lifespan(app: FastAPI):
 
     # Start background MQTT listener (احتفظ بالمرجع لمنع GC المبكّر)
     app.state.mqtt_task = asyncio.create_task(mqtt_sensor_listener())
+    # إقرارات الأجهزة (v238): تنقل الأمر من published إلى device_acked/device_rejected.
+    app.state.ack_task = asyncio.create_task(mqtt_ack_listener())
     # جسر القرار: حلقة استهلاك طلبات التنفيذ المحكومة (default-OFF fail-closed).
     if _dispatch_consumer_enabled(FEATURE_DISPATCH_ACTUATOR):
         app.state.dispatch_task = asyncio.create_task(dispatch_consumer_loop())

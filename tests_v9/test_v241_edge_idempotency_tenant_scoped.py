@@ -64,7 +64,7 @@ def test_migration_is_registered_before_v206_in_both_runners():
         if line.strip() and not line.lstrip().startswith("#")
     ]
     assert manifest[-1] == "v206_rls_final_hardening.sql"
-    assert manifest[-2] == "v241_edge_idempotency_tenant_scoped.sql"
+    assert "v241_edge_idempotency_tenant_scoped.sql" in manifest[:-1]
     runner = (ROOT / "scripts_v9" / "run_migrations.sql").read_text(encoding="utf-8")
     assert runner.index("v241_edge_idempotency_tenant_scoped.sql") < runner.index(
         "\\i migrations/v206_rls_final_hardening.sql"

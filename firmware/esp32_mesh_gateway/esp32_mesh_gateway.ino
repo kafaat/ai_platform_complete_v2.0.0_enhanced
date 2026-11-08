@@ -147,6 +147,40 @@ static bool verifyCmdHmac(const char* cmd, const char* ts, unsigned long duratio
   return diff == 0;
 }
 
+// v238 (delivery state): إقرار الجهاز للمنصّة عبر MQTT يحمل معرّف الأمر نفسه (``id``)
+// وتوقيعاً HMAC-SHA256(secret, id|device|result) — كي لا ينقل الأمرَ إلى device_acked إلّا
+// جهازٌ يملك السرّ وأقرّ هذا الأمر بعينه. الموضوع sahool/<TENANT_ID>/actuator/<DEVICE_ID>/ack،
+// وTENANT_ID يجب أن يكون UUID المستأجر (المنصّة ترفض غيره). PubSubClient ينشر QoS 0 فقط:
+// إقرارٌ ضائع يترك الأمر published حتّى تنتهي مهلته (expired) — لا يُعلَن نجاحٌ لم يُقَرّ.
+static bool hmacSha256Hex(const char* msg, char hexOut[65]) {
+  if (strlen(CMD_HMAC_SECRET) == 0 || msg == nullptr) return false;
+  uint8_t mac[32];
+  const mbedtls_md_info_t* info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
+  if (mbedtls_md_hmac(info,
+        (const uint8_t*)CMD_HMAC_SECRET, strlen(CMD_HMAC_SECRET),
+        (const uint8_t*)msg, strlen(msg), mac) != 0) return false;
+  for (int i = 0; i < 32; i++) snprintf(hexOut + i*2, 3, "%02x", mac[i]);
+  return true;
+}
+
+static void publishDeviceAck(const char* cmdId, const char* result) {
+  if (cmdId == nullptr || !mqttClient.connected()) return;
+  char msg[192];
+  snprintf(msg, sizeof(msg), "%s|%s|%s", cmdId, DEVICE_ID, result);
+  char sig[65];
+  if (!hmacSha256Hex(msg, sig)) return;   // بلا سرّ لا إقرار (المنصّة ترفض غير الموقَّع)
+  StaticJsonDocument<384> ack;
+  ack["id"] = cmdId;
+  ack["device"] = DEVICE_ID;
+  ack["result"] = result;
+  ack["status"] = digitalRead(RELAY_PIN) ? "ON" : "OFF";
+  ack["sig"] = sig;
+  String out;
+  serializeJson(ack, out);
+  String topic = String("sahool/") + TENANT_ID + "/actuator/" + DEVICE_ID + "/ack";
+  mqttClient.publish(topic.c_str(), out.c_str());
+}
+
 // P1/idempotency: نافذة إعادة (replay window) — آخر N طوابع زمنيّة لأوامر
 // نُفِّذت. أقوى من معرّف واحد: يكتشف التكرار غير المتتالي (تسليم MQTT QoS1
 // خارج الترتيب، أو إعادة إرسال متأخّرة بعد فقد ACK). أمر بـts موجود في
@@ -210,6 +244,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   } else {
     known = false;     // A4: لا يُقَرّ أمرٌ مجهول كأنّه نُفِّذ
   }
+
+  // v238: إقرار المنصّة بمعرّف الأمر (يحرّك delivery_state من published إلى device_acked/
+  // device_rejected). أمرٌ بلا id (رسالة قديمة) لا يُقَرّ للمنصّة — لا ربط ممكن.
+  const char* cmdId = doc["id"];
+  publishDeviceAck(cmdId, known ? "applied" : "unknown_command");
 
   // Acknowledge via mesh
   StaticJsonDocument<192> ack;
