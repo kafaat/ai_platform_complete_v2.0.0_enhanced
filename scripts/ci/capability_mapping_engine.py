@@ -100,6 +100,10 @@ META_GOVERNANCE_FILES = {
     "scripts/ci/data_decision_outcome_proof_gate.py",
     "tests_v9/test_data_decision_outcome_manifest_binding.py",
     "tests_v9/test_data_decision_outcome_proof_gate.py",
+    # Read-only Railway backup inventory and negative tests are security/evidence
+    # witnesses, not proof of irrigation, database migration or field outcomes.
+    "scripts/ci/railway_staging_backup_inventory.py",
+    "tests_v9/test_railway_staging_backup_inventory.py",
 }
 # Extension point for whole witness classes (e.g. a future registries/ subdir). Empty today:
 # every measured witness is an individual file, and breadth must be argued per entry.

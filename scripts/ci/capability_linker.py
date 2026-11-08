@@ -355,6 +355,10 @@ META_GOVERNANCE_FILES = {
     "scripts/ci/data_decision_outcome_proof_gate.py",
     "tests_v9/test_data_decision_outcome_manifest_binding.py",
     "tests_v9/test_data_decision_outcome_proof_gate.py",
+    # Read-only Railway backup inventory and negative tests are security/evidence
+    # witnesses, not proof of irrigation, database migration or field outcomes.
+    "scripts/ci/railway_staging_backup_inventory.py",
+    "tests_v9/test_railway_staging_backup_inventory.py",
 }
 META_GOVERNANCE_PREFIXES = ("tests_v9/test_no_report_only_change_guard",)
 
