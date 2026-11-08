@@ -13,9 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _module(path: str):
-    spec = importlib.util.spec_from_file_location(
-        "gis_truth_" + Path(path).stem, ROOT / path
-    )
+    spec = importlib.util.spec_from_file_location("gis_truth_" + Path(path).stem, ROOT / path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
