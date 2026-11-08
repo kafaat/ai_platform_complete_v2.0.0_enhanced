@@ -348,7 +348,9 @@ def test_router_refuses_with_409_before_any_write():
     import api.routers.harvest_traceability as route
 
     src = inspect.getsource(route.add_custody_event)
-    assert "SELECT status, quality_grade FROM harvest_lots" in src
+    # The locked read also carries quantity/harvest_date for the mass/time checks.
+    assert "SELECT status, quality_grade, quantity_kg, harvest_date FROM harvest_lots" in src
+    assert "FOR UPDATE" in src
     refusal = src.index("transition_refusal(")
     assert src.index("status_code=409", refusal) < src.index("INSERT INTO custody_chain_events")
     assert 'status_for_event(req.event_type, lot["status"], req.event_details)' in src
