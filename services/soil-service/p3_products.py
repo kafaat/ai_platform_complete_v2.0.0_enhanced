@@ -174,32 +174,82 @@ def build_analog_field_product(req: AnalogFieldRequest) -> AnalogFieldProduct:
     )
 
 
+# Waterlogging-risk weights.  They must sum to 1.0 so the weighted sum stays
+# in [0, 1] without clipping (which would flatten the monotonic response).
+_DRAINAGE_RISK_WEIGHTS = {
+    "water_table": 0.16,
+    "impermeable_layer": 0.12,
+    "depression": 0.13,
+    "ksat": 0.11,
+    "gradient": 0.09,
+    "outlet": 0.10,
+    "flood": 0.11,
+    "wadi": 0.07,
+    "salinity_persistence": 0.11,
+}
+
+# Unknown hydrology is not evidence of good drainage: an unmeasured water
+# table / impermeable layer scores a neutral prior instead of zero risk.
+_UNKNOWN_WATER_TABLE_RISK = 0.5
+_UNKNOWN_IMPERMEABLE_RISK = 0.5
+_UNKNOWN_KSAT_RISK = 0.45
+
+
+def _water_table_risk(depth_m: float | None) -> float | None:
+    if depth_m is None:
+        return None
+    return max(0.0, min(1.0, (2.0 - depth_m) / 2.0))
+
+
+def _impermeable_risk(depth_m: float | None) -> float | None:
+    if depth_m is None:
+        return None
+    return max(0.0, min(1.0, (1.2 - depth_m) / 1.2))
+
+
 def build_drainage_assessment(req: DrainageAssessmentRequest) -> DrainageAssessmentProduct:
-    wt = (
-        0.0
-        if req.water_table_depth_m is None
-        else max(0.0, min(1.0, (2.0 - req.water_table_depth_m) / 2.0))
-    )
+    wt_observed = _water_table_risk(req.water_table_depth_m)
+    impermeable_observed = _impermeable_risk(req.impermeable_layer_depth_m)
+    wt = _UNKNOWN_WATER_TABLE_RISK if wt_observed is None else wt_observed
     impermeable = (
-        0.0
-        if req.impermeable_layer_depth_m is None
-        else max(0.0, min(1.0, (1.2 - req.impermeable_layer_depth_m) / 1.2))
+        _UNKNOWN_IMPERMEABLE_RISK if impermeable_observed is None else impermeable_observed
     )
-    ksat = 0.45 if req.ksat_mm_h is None else max(0.0, min(1.0, (10 - req.ksat_mm_h) / 10))
+    ksat = (
+        _UNKNOWN_KSAT_RISK
+        if req.ksat_mm_h is None
+        else max(0.0, min(1.0, (10 - req.ksat_mm_h) / 10))
+    )
     gradient_risk = max(0.0, min(1.0, (0.5 - req.mean_drainage_gradient_pct) / 0.5))
+    # A poor natural outlet means surface water has nowhere to go.
+    outlet_risk = 1.0 - req.natural_outlet_score
+    w = _DRAINAGE_RISK_WEIGHTS
     risk = min(
         1.0,
-        0.18 * wt
-        + 0.13 * impermeable
-        + 0.15 * req.depression_fraction
-        + 0.12 * ksat
-        + 0.1 * gradient_risk
-        + 0.12 * req.flood_risk
-        + 0.08 * req.wadi_risk
-        + 0.12 * req.salinity_persistence,
+        w["water_table"] * wt
+        + w["impermeable_layer"] * impermeable
+        + w["depression"] * req.depression_fraction
+        + w["ksat"] * ksat
+        + w["gradient"] * gradient_risk
+        + w["outlet"] * outlet_risk
+        + w["flood"] * req.flood_risk
+        + w["wadi"] * req.wadi_risk
+        + w["salinity_persistence"] * req.salinity_persistence,
     )
-    surface = req.depression_fraction > 0.2 or req.flood_risk > 0.55
-    subsurface = wt > 0.45 or impermeable > 0.55 or (ksat > 0.55 and req.salinity_persistence > 0.5)
+    poor_outlet = req.natural_outlet_score < 0.3
+    surface = (
+        req.depression_fraction > 0.2
+        or req.flood_risk > 0.55
+        # Without a natural outlet even moderate ponding / flood exposure
+        # needs surface works.
+        or (poor_outlet and (req.depression_fraction > 0.1 or req.flood_risk > 0.35))
+    )
+    # Engineering triggers use measured evidence only; priors for unknown
+    # depths raise the screening risk but never assert a subsurface need.
+    subsurface = (
+        (wt_observed is not None and wt_observed > 0.45)
+        or (impermeable_observed is not None and impermeable_observed > 0.55)
+        or (ksat > 0.55 and req.salinity_persistence > 0.5)
+    )
     need = (
         "combined"
         if surface and subsurface
@@ -211,6 +261,17 @@ def build_drainage_assessment(req: DrainageAssessmentRequest) -> DrainageAssessm
         if risk > 0.28
         else "none"
     )
+    limitations = []
+    if req.water_table_depth_m is None:
+        limitations.append("water_table_depth_unknown")
+        if need == "none":
+            # No water-table evidence: "no drainage need" cannot be asserted.
+            need = "monitor"
+            limitations.append("insufficient_evidence_for_no_drainage_need")
+    if req.impermeable_layer_depth_m is None:
+        limitations.append("impermeable_layer_depth_unknown")
+    if req.ksat_mm_h is None:
+        limitations.append("ksat_unknown")
     prereq = []
     blocked = []
     if not req.surveyed_elevations:
@@ -224,6 +285,8 @@ def build_drainage_assessment(req: DrainageAssessmentRequest) -> DrainageAssessm
     rec = []
     if surface:
         rec.append("grade local depressions and maintain surface outlets")
+    if surface and poor_outlet:
+        rec.append("establish or improve a natural drainage outlet before surface works")
     if subsurface:
         rec.append("commission engineering subsurface drainage study")
     if req.wadi_risk > 0.5:
@@ -245,12 +308,45 @@ def build_drainage_assessment(req: DrainageAssessmentRequest) -> DrainageAssessm
         prerequisites=prereq,
         recommendations=rec,
         blocked_actions=sorted(set(blocked)),
+        limitations=limitations,
         provenance={
             "method": "governed_multi_evidence_screening",
             "engineering_design": False,
             "requires_field_verification": True,
+            "risk_weights": dict(_DRAINAGE_RISK_WEIGHTS),
         },
     )
+
+
+class DrainageNeedConflict(ValueError):
+    """Caller-asserted drainage_need contradicts the stored drainage assessment."""
+
+
+def reconcile_reclamation_drainage_need(requested: str, stored_assessment: dict | None) -> dict:
+    """Check a reclamation request's drainage_need against the stored assessment.
+
+    Returns provenance fields describing where drainage_need came from.  A
+    stored assessment for the same tenant/field is authoritative: a request
+    that contradicts it raises :class:`DrainageNeedConflict` so the caller
+    cannot downgrade the drainage block.  Without one, the caller's value is
+    kept but flagged as unverified.
+    """
+    if stored_assessment is None:
+        return {
+            "drainage_need_source": "caller_asserted",
+            "limitations": ["drainage_need_not_backed_by_stored_assessment"],
+        }
+    stored_need = stored_assessment.get("drainage_need")
+    if stored_need != requested:
+        raise DrainageNeedConflict(
+            f"drainage_need '{requested}' contradicts stored drainage assessment "
+            f"('{stored_need}'); re-run the drainage assessment first"
+        )
+    return {
+        "drainage_need_source": "stored_drainage_assessment",
+        "drainage_assessment_product_id": stored_assessment.get("product_id"),
+        "limitations": [],
+    }
 
 
 def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> ReclamationAssessmentProduct:

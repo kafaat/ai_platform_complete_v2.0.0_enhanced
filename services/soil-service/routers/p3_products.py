@@ -9,11 +9,13 @@ import main
 import p3_store
 from fastapi import APIRouter, Header, HTTPException
 from p3_products import (
+    DrainageNeedConflict,
     build_analog_field_product,
     build_drainage_assessment,
     build_mobile_visual_observation,
     build_reclamation_assessment,
     build_reclamation_economics,
+    reconcile_reclamation_drainage_need,
 )
 
 from shared.contracts.soil.p3 import (
@@ -115,7 +117,15 @@ async def reclamation(
     field_id: str, payload: ReclamationAssessmentRequest, x_agent_token: str = Header(None)
 ):
     t = await _scope(field_id, payload, x_agent_token)
+    stored = await p3_store.latest(
+        main._pool, table="soil_drainage_assessments", tenant_id=t, field_id=field_id
+    )
+    try:
+        drainage_provenance = reconcile_reclamation_drainage_need(payload.drainage_need, stored)
+    except DrainageNeedConflict as exc:
+        raise HTTPException(409, str(exc)) from exc
     p = build_reclamation_assessment(payload)
+    p.provenance.update(drainage_provenance)
     return await p3_store.save(
         main._pool,
         table="soil_reclamation_assessments",

@@ -1,22 +1,28 @@
 from datetime import UTC, datetime
 
+import pytest
 from p3_products import (
+    _DRAINAGE_RISK_WEIGHTS,
+    DrainageNeedConflict,
     build_analog_field_product,
     build_drainage_assessment,
     build_mobile_visual_observation,
     build_reclamation_assessment,
     build_reclamation_economics,
+    reconcile_reclamation_drainage_need,
 )
 
 from shared.contracts.soil.p3 import (
     AnalogFieldCandidate,
     AnalogFieldRequest,
+    DrainageAssessmentProduct,
     DrainageAssessmentRequest,
     MobileImageQuality,
     MobileSoilImageRequest,
     ReclamationAssessmentRequest,
     ReclamationEconomicsRequest,
     SoilVisualPrediction,
+    p3_drainage_need_to_salinity_class,
 )
 
 
@@ -150,3 +156,179 @@ def test_reclamation_economics_has_three_scenarios_and_risk_adjustment():
         s.risk_adjusted_npv <= s.npv if s.npv >= 0 else s.risk_adjusted_npv >= s.npv
         for s in out.scenarios
     )
+
+
+# --- drainage assessment: outlet term, unknown-hydrology priors, monotonicity ---
+
+_GRID = [i / 10 for i in range(11)]
+
+
+def _drainage_req(**overrides):
+    base = dict(
+        tenant_id="t",
+        field_id="f",
+        geometry_hash="g",
+        natural_outlet_score=0.5,
+        water_table_depth_m=1.5,
+        impermeable_layer_depth_m=1.0,
+        depression_fraction=0.1,
+        mean_drainage_gradient_pct=0.3,
+        ksat_mm_h=6.0,
+        flood_risk=0.2,
+        wadi_risk=0.2,
+        salinity_persistence=0.2,
+        surveyed_elevations=True,
+    )
+    base.update(overrides)
+    return DrainageAssessmentRequest(**base)
+
+
+def test_drainage_risk_weights_sum_to_one_and_include_outlet():
+    assert _DRAINAGE_RISK_WEIGHTS["outlet"] > 0
+    assert sum(_DRAINAGE_RISK_WEIGHTS.values()) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize(
+    "context",
+    [
+        {},
+        {"water_table_depth_m": None, "impermeable_layer_depth_m": None, "ksat_mm_h": None},
+        {"water_table_depth_m": 0.2, "depression_fraction": 0.9, "flood_risk": 1.0},
+        {"depression_fraction": 1.0, "flood_risk": 1.0, "wadi_risk": 1.0},
+    ],
+)
+def test_waterlogging_risk_strictly_decreases_as_outlet_improves(context):
+    risks = [
+        build_drainage_assessment(
+            _drainage_req(natural_outlet_score=o, **context)
+        ).waterlogging_risk
+        for o in _GRID
+    ]
+    assert all(a > b for a, b in zip(risks, risks[1:], strict=False)), risks
+
+
+@pytest.mark.parametrize("factor", ["flood_risk", "wadi_risk", "depression_fraction"])
+@pytest.mark.parametrize("outlet", [0.0, 0.5, 1.0])
+def test_waterlogging_risk_strictly_increases_with_hazard(factor, outlet):
+    risks = [
+        build_drainage_assessment(
+            _drainage_req(natural_outlet_score=outlet, **{factor: v})
+        ).waterlogging_risk
+        for v in _GRID
+    ]
+    assert all(a < b for a, b in zip(risks, risks[1:], strict=False)), risks
+
+
+def test_poor_outlet_triggers_surface_drainage_with_moderate_ponding():
+    kwargs = dict(depression_fraction=0.15, flood_risk=0.4)
+    good = build_drainage_assessment(_drainage_req(natural_outlet_score=0.9, **kwargs))
+    poor = build_drainage_assessment(_drainage_req(natural_outlet_score=0.1, **kwargs))
+    assert good.drainage_need in {"none", "monitor"}
+    assert poor.drainage_need in {"surface", "combined"}
+    assert any("outlet" in r for r in poor.recommendations)
+
+
+def test_unknown_water_table_is_not_zero_risk():
+    known_deep = build_drainage_assessment(_drainage_req(water_table_depth_m=5.0))
+    unknown = build_drainage_assessment(_drainage_req(water_table_depth_m=None))
+    assert unknown.waterlogging_risk > known_deep.waterlogging_risk
+    unknown_layer = build_drainage_assessment(_drainage_req(impermeable_layer_depth_m=None))
+    deep_layer = build_drainage_assessment(_drainage_req(impermeable_layer_depth_m=5.0))
+    assert unknown_layer.waterlogging_risk > deep_layer.waterlogging_risk
+
+
+def test_unknown_depths_do_not_assert_subsurface_need():
+    out = build_drainage_assessment(
+        _drainage_req(water_table_depth_m=None, impermeable_layer_depth_m=None)
+    )
+    assert out.drainage_need not in {"subsurface", "combined"}
+
+
+@pytest.mark.parametrize("outlet", _GRID)
+@pytest.mark.parametrize("ksat", [None, 50.0])
+def test_all_unknown_hydrology_never_yields_none(outlet, ksat):
+    out = build_drainage_assessment(
+        _drainage_req(
+            natural_outlet_score=outlet,
+            water_table_depth_m=None,
+            impermeable_layer_depth_m=None,
+            ksat_mm_h=ksat,
+            depression_fraction=0.0,
+            mean_drainage_gradient_pct=5.0,
+            flood_risk=0.0,
+            wadi_risk=0.0,
+            salinity_persistence=0.0,
+        )
+    )
+    assert out.drainage_need != "none"
+    assert "water_table_depth_unknown" in out.limitations
+    assert "seasonal_water_table_monitoring" in out.prerequisites
+
+
+def test_low_risk_with_measured_hydrology_can_still_be_none():
+    out = build_drainage_assessment(
+        _drainage_req(
+            natural_outlet_score=1.0,
+            water_table_depth_m=5.0,
+            impermeable_layer_depth_m=5.0,
+            ksat_mm_h=50.0,
+            depression_fraction=0.0,
+            mean_drainage_gradient_pct=5.0,
+            flood_risk=0.0,
+            wadi_risk=0.0,
+            salinity_persistence=0.0,
+        )
+    )
+    assert out.drainage_need == "none"
+    assert out.limitations == []
+
+
+# --- reclamation: drainage_need must agree with the stored assessment ---
+
+
+def test_reclamation_drainage_need_conflict_with_stored_assessment():
+    with pytest.raises(DrainageNeedConflict):
+        reconcile_reclamation_drainage_need("none", {"drainage_need": "combined"})
+
+
+def test_reclamation_drainage_need_matching_stored_assessment():
+    prov = reconcile_reclamation_drainage_need(
+        "surface", {"drainage_need": "surface", "product_id": "dap_1"}
+    )
+    assert prov["drainage_need_source"] == "stored_drainage_assessment"
+    assert prov["drainage_assessment_product_id"] == "dap_1"
+    assert prov["limitations"] == []
+
+
+def test_reclamation_drainage_need_without_stored_assessment_is_flagged():
+    prov = reconcile_reclamation_drainage_need("none", None)
+    assert prov["drainage_need_source"] == "caller_asserted"
+    assert prov["limitations"] == ["drainage_need_not_backed_by_stored_assessment"]
+
+
+# --- P3 drainage_need -> salinity drainage vocabulary ---
+
+
+@pytest.mark.parametrize(
+    ("need", "limitations", "expected"),
+    [
+        ("none", [], "good"),
+        ("monitor", [], "moderate"),
+        ("surface", [], "poor"),
+        ("subsurface", [], "poor"),
+        ("combined", [], "poor"),
+        ("monitor", ["water_table_depth_unknown"], "unknown"),
+        ("none", ["water_table_depth_unknown"], "unknown"),
+        ("combined", ["water_table_depth_unknown"], "poor"),
+        (None, [], "unknown"),
+        ("bogus", [], "unknown"),
+    ],
+)
+def test_p3_drainage_need_to_salinity_class(need, limitations, expected):
+    assert p3_drainage_need_to_salinity_class(need, limitations) == expected
+
+
+def test_stored_payload_without_limitations_still_validates():
+    payload = build_drainage_assessment(_drainage_req()).model_dump(mode="json")
+    payload.pop("limitations")
+    assert DrainageAssessmentProduct.model_validate(payload).limitations == []
