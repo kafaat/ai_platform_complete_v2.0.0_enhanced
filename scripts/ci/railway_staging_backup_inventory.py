@@ -192,19 +192,26 @@ def inventory_receipt(
             if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
                 raise InventoryError("BACKUP_SIZE_INVALID")
         sanitized_rows.append(
-            {"id": bid, "created_at": created.isoformat(), "expires_at": expires.isoformat() if expires else None}
+            {
+                "id": bid,
+                "created_at": created.isoformat(),
+                "expires_at": expires.isoformat() if expires else None,
+            }
         )
     canonical = json.dumps(
         sorted(sanitized_rows, key=lambda row: row["id"]), sort_keys=True
     ).encode("utf-8")
     active = sum(
-        1 for row in sanitized_rows
+        1
+        for row in sanitized_rows
         if row["expires_at"] is None or datetime.fromisoformat(row["expires_at"]) > observed_at
     )
     latest = max((row["created_at"] for row in sanitized_rows), default=None)
     return {
         "schema": SCHEMA,
-        "verdict": "BACKUP_LIST_PRESENT_NOT_RESTORE_PROVEN" if active else "NO_ACTIVE_BACKUP_PROVEN",
+        "verdict": "BACKUP_LIST_PRESENT_NOT_RESTORE_PROVEN"
+        if active
+        else "NO_ACTIVE_BACKUP_PROVEN",
         "project_id": PROJECT_ID,
         "environment_id": STAGING_ID,
         "service": "sahool-postgres",
@@ -242,9 +249,7 @@ def main(argv: list[str] | None = None) -> int:
             raise InventoryError("STATUS_JSON_INVALID") from None
         instance = select_instance(status, args.source_sha)
         scope = checked_data(_post_query(token, TOKEN_SCOPE_QUERY, {}), "projectToken")
-        volume = checked_data(
-            _post_query(token, VOLUME_QUERY, {"id": instance}), "volumeInstance"
-        )
+        volume = checked_data(_post_query(token, VOLUME_QUERY, {"id": instance}), "volumeInstance")
         backups = checked_data(
             _post_query(token, BACKUPS_QUERY, {"volumeInstanceId": instance}),
             "volumeInstanceBackupList",
