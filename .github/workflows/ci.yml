@@ -618,7 +618,11 @@ jobs:
           vs = set()
           for f in glob.glob("docker-compose*.yml"):
               vs |= set(re.findall(r'\$\{([A-Z0-9_]+)', open(f).read()))
-          open(".ci.env", "w").write("\n".join(f"{v}=dummy_{v.lower()}_0123456789abcdef" for v in sorted(vs)) + "\n")
+          # منافذ المضيف (*_PORT) صارت متغيّرات قابلة للتجاوز (#1348): تأخذ أعداداً مميّزة لا
+          # سلاسل وهميّة، وإلّا رفض compose كلَّ ملفّ يُعلمِنها بـ«invalid hostPort».
+          lines = [f"{v}={20000 + i}" if v.endswith("_PORT") else f"{v}=dummy_{v.lower()}_0123456789abcdef"
+                   for i, v in enumerate(sorted(vs))]
+          open(".ci.env", "w").write("\n".join(lines) + "\n")
           EOF
           # COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01: الأدوارُ من السجلّ لا من قائمة
           # تخطٍّ مكتوبةٍ هنا. كانت القائمة تتخطّى docker-compose.production.yml «تراكباً» ولا
