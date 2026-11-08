@@ -5,6 +5,7 @@ crop_id: fig
 name_ar: التين
 name_en: Fig
 crop_family: tree_C3
+life_form: perennial  # مُعمِّر: لا نضج/حصاد حوليّ واحد يُشتقّ من تاريخ البذار
 
 kc:
   initial: 0.40

@@ -4,6 +4,8 @@ crop_id: tomato
 name_ar: الطماطم (البندورة)
 name_en: Tomato
 crop_family: vegetable_C3
+aliases:
+  - "بندورة"
 
 kc:
   initial: 0.60

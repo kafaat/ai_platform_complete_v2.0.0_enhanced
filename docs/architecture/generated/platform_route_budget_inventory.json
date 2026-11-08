@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "86a2f8c12548e6d45584c6cdd753f48b0542643b363591fdf2eed9a0b3e17450",
+  "inventory_sha256": "f2cf1b76d7eeecdf344e2114a02c18a1e8888aecfb7cd22089e0b01792904884",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "efff94a7a87a03a6b5e1e8ce24735c245ec37b40d1787b9f45516d8c46282803"
+    "policy_sha256": "cb333b23a925e3883ba95f61ea313041508b22a49ab2ff0f1a894536029bf246"
   },
   "routes": [
     {
@@ -58,7 +58,7 @@
     {
       "classification": "domain",
       "function": "delete_field",
-      "line": 1668,
+      "line": 1669,
       "method": "DELETE",
       "path": "/api/v1/fields/{field_id}",
       "source": "api/routers/fields.py"
@@ -290,7 +290,7 @@
     {
       "classification": "domain",
       "function": "imagery_automation_status_endpoint",
-      "line": 151,
+      "line": 194,
       "method": "GET",
       "path": "/api/v1/automation/imagery/status",
       "source": "api/routers/automation.py"
@@ -298,7 +298,7 @@
     {
       "classification": "domain",
       "function": "automation_runs_endpoint",
-      "line": 56,
+      "line": 77,
       "method": "GET",
       "path": "/api/v1/automation/runs",
       "source": "api/routers/automation.py"
@@ -306,7 +306,7 @@
     {
       "classification": "domain",
       "function": "scheduler_status_endpoint",
-      "line": 41,
+      "line": 62,
       "method": "GET",
       "path": "/api/v1/automation/scheduler-status",
       "source": "api/routers/automation.py"
@@ -314,7 +314,7 @@
     {
       "classification": "domain",
       "function": "weather_cached_endpoint",
-      "line": 98,
+      "line": 136,
       "method": "GET",
       "path": "/api/v1/automation/weather/cached",
       "source": "api/routers/automation.py"
@@ -322,7 +322,7 @@
     {
       "classification": "domain",
       "function": "weather_automation_status_endpoint",
-      "line": 117,
+      "line": 155,
       "method": "GET",
       "path": "/api/v1/automation/weather/status",
       "source": "api/routers/automation.py"
@@ -730,7 +730,7 @@
     {
       "classification": "domain",
       "function": "devices_fleet_health",
-      "line": 240,
+      "line": 243,
       "method": "GET",
       "path": "/api/v1/devices/fleet-health",
       "source": "api/routers/devices.py"
@@ -746,7 +746,7 @@
     {
       "classification": "domain",
       "function": "list_telemetry",
-      "line": 212,
+      "line": 215,
       "method": "GET",
       "path": "/api/v1/devices/{device_id}/telemetry",
       "source": "api/routers/devices.py"
@@ -1034,7 +1034,7 @@
     {
       "classification": "domain",
       "function": "list_fields",
-      "line": 546,
+      "line": 547,
       "method": "GET",
       "path": "/api/v1/fields",
       "source": "api/routers/fields.py"
@@ -1042,7 +1042,7 @@
     {
       "classification": "domain",
       "function": "get_field",
-      "line": 1022,
+      "line": 1023,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}",
       "source": "api/routers/fields.py"
@@ -1050,7 +1050,7 @@
     {
       "classification": "domain",
       "function": "list_field_activities",
-      "line": 3016,
+      "line": 3019,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/activities",
       "source": "api/routers/fields.py"
@@ -1146,7 +1146,7 @@
     {
       "classification": "domain",
       "function": "field_geometry_history",
-      "line": 1512,
+      "line": 1513,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/geometry/history",
       "source": "api/routers/fields.py"
@@ -1162,7 +1162,7 @@
     {
       "classification": "domain",
       "function": "field_imagery_backfill_status_proxy",
-      "line": 988,
+      "line": 989,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/imagery/backfill/{run_id}",
       "source": "api/routers/fields.py"
@@ -1186,7 +1186,7 @@
     {
       "classification": "domain",
       "function": "field_input_traceability",
-      "line": 3045,
+      "line": 3048,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/input-traceability",
       "source": "api/routers/fields.py"
@@ -1242,7 +1242,7 @@
     {
       "classification": "domain",
       "function": "field_recommendations",
-      "line": 2779,
+      "line": 2781,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/recommendations",
       "source": "api/routers/fields.py"
@@ -1266,7 +1266,7 @@
     {
       "classification": "domain",
       "function": "list_seasons",
-      "line": 2257,
+      "line": 2259,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons",
       "source": "api/routers/fields.py"
@@ -1274,7 +1274,7 @@
     {
       "classification": "domain",
       "function": "field_season_state_endpoint",
-      "line": 548,
+      "line": 550,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
       "source": "api/routers/seasons.py"
@@ -1290,7 +1290,7 @@
     {
       "classification": "domain",
       "function": "field_soil_moisture",
-      "line": 2453,
+      "line": 2455,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/soil-moisture",
       "source": "api/routers/fields.py"
@@ -1330,7 +1330,7 @@
     {
       "classification": "domain",
       "function": "get_field_terrain",
-      "line": 1047,
+      "line": 1048,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/terrain",
       "source": "api/routers/fields.py"
@@ -1418,7 +1418,7 @@
     {
       "classification": "domain",
       "function": "field_wind_prevailing",
-      "line": 2643,
+      "line": 2645,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/wind/prevailing",
       "source": "api/routers/fields.py"
@@ -1426,7 +1426,7 @@
     {
       "classification": "domain",
       "function": "get_field_workspace",
-      "line": 1138,
+      "line": 1139,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/workspace",
       "source": "api/routers/fields.py"
@@ -1498,7 +1498,7 @@
     {
       "classification": "domain",
       "function": "get_traceability",
-      "line": 297,
+      "line": 310,
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
       "source": "api/routers/harvest_traceability.py"
@@ -2818,7 +2818,7 @@
     {
       "classification": "domain",
       "function": "update_field",
-      "line": 1227,
+      "line": 1228,
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}",
       "source": "api/routers/fields.py"
@@ -2834,7 +2834,7 @@
     {
       "classification": "domain",
       "function": "update_season",
-      "line": 2284,
+      "line": 2286,
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}",
       "source": "api/routers/fields.py"
@@ -3010,7 +3010,7 @@
     {
       "classification": "domain",
       "function": "automation_run_alerts_endpoint",
-      "line": 163,
+      "line": 206,
       "method": "POST",
       "path": "/api/v1/automation/alerts/run",
       "source": "api/routers/automation.py"
@@ -3018,7 +3018,7 @@
     {
       "classification": "domain",
       "function": "imagery_register_field_endpoint",
-      "line": 125,
+      "line": 163,
       "method": "POST",
       "path": "/api/v1/automation/imagery/register-field",
       "source": "api/routers/automation.py"
@@ -3026,7 +3026,7 @@
     {
       "classification": "domain",
       "function": "weather_register_endpoint",
-      "line": 75,
+      "line": 96,
       "method": "POST",
       "path": "/api/v1/automation/weather/register",
       "source": "api/routers/automation.py"
@@ -3170,7 +3170,7 @@
     {
       "classification": "domain",
       "function": "profit_aware_decision_endpoint",
-      "line": 529,
+      "line": 527,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
       "source": "api/routers/crop_twin.py"
@@ -3490,7 +3490,7 @@
     {
       "classification": "domain",
       "function": "create_field",
-      "line": 569,
+      "line": 570,
       "method": "POST",
       "path": "/api/v1/fields",
       "source": "api/routers/fields.py"
@@ -3506,7 +3506,7 @@
     {
       "classification": "domain",
       "function": "import_field",
-      "line": 593,
+      "line": 594,
       "method": "POST",
       "path": "/api/v1/fields/import",
       "source": "api/routers/fields.py"
@@ -3514,7 +3514,7 @@
     {
       "classification": "domain",
       "function": "merge_fields",
-      "line": 1774,
+      "line": 1775,
       "method": "POST",
       "path": "/api/v1/fields/merge",
       "source": "api/routers/fields.py"
@@ -3522,7 +3522,7 @@
     {
       "classification": "domain",
       "function": "split_field",
-      "line": 1904,
+      "line": 1905,
       "method": "POST",
       "path": "/api/v1/fields/split",
       "source": "api/routers/fields.py"
@@ -3538,7 +3538,7 @@
     {
       "classification": "domain",
       "function": "create_activity",
-      "line": 2877,
+      "line": 2879,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/activities",
       "source": "api/routers/fields.py"
@@ -3586,7 +3586,7 @@
     {
       "classification": "domain",
       "function": "revert_field_geometry",
-      "line": 1559,
+      "line": 1560,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/geometry/revert/{revision}",
       "source": "api/routers/fields.py"
@@ -3602,7 +3602,7 @@
     {
       "classification": "domain",
       "function": "field_imagery_backfill_proxy",
-      "line": 916,
+      "line": 917,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/imagery/backfill",
       "source": "api/routers/fields.py"
@@ -3610,7 +3610,7 @@
     {
       "classification": "domain",
       "function": "field_imagery_process_date_proxy",
-      "line": 657,
+      "line": 658,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/imagery/process-date",
       "source": "api/routers/fields.py"
@@ -3618,7 +3618,7 @@
     {
       "classification": "domain",
       "function": "refresh_field_imagery",
-      "line": 713,
+      "line": 714,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/imagery/refresh",
       "source": "api/routers/fields.py"
@@ -3698,7 +3698,7 @@
     {
       "classification": "domain",
       "function": "create_season",
-      "line": 2045,
+      "line": 2046,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/seasons",
       "source": "api/routers/fields.py"
@@ -3762,7 +3762,7 @@
     {
       "classification": "domain",
       "function": "field_wind_drift_risk",
-      "line": 2700,
+      "line": 2702,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/wind/drift-risk",
       "source": "api/routers/fields.py"
@@ -5074,7 +5074,7 @@
     {
       "classification": "domain",
       "function": "update_field",
-      "line": 1226,
+      "line": 1227,
       "method": "PUT",
       "path": "/api/v1/fields/{field_id}",
       "source": "api/routers/fields.py"

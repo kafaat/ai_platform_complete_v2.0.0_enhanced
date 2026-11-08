@@ -35,8 +35,20 @@ class _Tx:
         return False
 
 
+# What a real actuator receipt must carry before it can back ``verified_success``.
+REAL_ACKED = {"actuator_mode": "real", "published": True, "device_ack": True}
+
+
 class _FakeConn:
-    def __init__(self, *, request_status: str, receipt_status: str, attempt_status: str):
+    def __init__(
+        self,
+        *,
+        request_status: str,
+        receipt_status: str,
+        attempt_status: str,
+        target_type: str = "equipment",
+        receipt_payload: object = REAL_ACKED,
+    ):
         self.source = {
             "execution_request_id": "exec_1",
             "execution_plan_id": "plan_1",
@@ -47,6 +59,8 @@ class _FakeConn:
             "receipt_status": receipt_status,
             "attempt_receipt_id": RECEIPT,
             "attempt_receipt_status": attempt_status,
+            "target_type": target_type,
+            "receipt_payload": receipt_payload,
         }
         self.inserted: tuple | None = None
         self.outbox: list[tuple] = []
@@ -143,3 +157,77 @@ def test_verified_failure_on_failed_receipt_is_still_recorded(monkeypatch):
     result = _verify(monkeypatch, conn, "verified_failure")
     assert result["status"] == "ok"
     assert result["success"] is False
+
+
+# ── An equipment "accepted" receipt is a broker publish, not ground truth ─────────────────
+# The actuator bridge records ``actuator_mode`` and ``published`` and says outright that
+# "published != physically executed". verified_success on such a receipt fed learning attribution
+# with publishes — and, in simulation mode, with commands that never left the process.
+
+
+@pytest.mark.parametrize(
+    ("receipt_payload", "reason"),
+    [
+        (
+            {"actuator_mode": "simulation", "published": True, "device_ack": True},
+            "receipt_simulated",
+        ),
+        ({"actuator_mode": "real", "simulated": True, "device_ack": True}, "receipt_simulated"),
+        ({"actuator_mode": "disabled", "published": False}, "receipt_not_real_actuator"),
+        ({"published": True, "device_ack": True}, "receipt_not_real_actuator"),
+        ({"actuator_mode": "real", "published": False}, "receipt_not_published"),
+        ({"actuator_mode": "real", "published": True}, "receipt_lacks_device_ack"),
+        (
+            {"actuator_mode": "real", "published": True, "publish_only": True, "device_ack": True},
+            "receipt_lacks_device_ack",
+        ),
+        ({}, "receipt_not_real_actuator"),
+        (None, "receipt_lacks_actuator_evidence"),
+    ],
+)
+def test_verified_success_needs_a_real_device_ack_on_equipment(
+    monkeypatch, receipt_payload, reason
+):
+    conn = _FakeConn(
+        request_status="accepted",
+        receipt_status="accepted",
+        attempt_status="accepted",
+        receipt_payload=receipt_payload,
+    )
+    result = _verify(monkeypatch, conn, "verified_success")
+    assert result == {"status": "conflict", "reason": reason}
+    assert conn.inserted is None and conn.outbox == []
+
+
+def test_receipt_payload_stored_as_json_text_is_read(monkeypatch):
+    """A receipt payload that arrives as JSON text must be parsed, not read as empty."""
+    conn = _FakeConn(
+        request_status="accepted",
+        receipt_status="accepted",
+        attempt_status="accepted",
+        receipt_payload='{"actuator_mode": "real", "published": true, "device_ack": true}',
+    )
+    assert _verify(monkeypatch, conn, "verified_success")["status"] == "ok"
+
+
+def test_verified_failure_on_a_simulated_receipt_is_still_recorded(monkeypatch):
+    conn = _FakeConn(
+        request_status="accepted",
+        receipt_status="accepted",
+        attempt_status="accepted",
+        receipt_payload={"actuator_mode": "simulation", "published": True},
+    )
+    result = _verify(monkeypatch, conn, "verified_failure")
+    assert result["status"] == "ok" and result["success"] is False
+
+
+def test_task_receipts_keep_the_existing_contract(monkeypatch):
+    """A human/task-provider receipt has no actuator mode; it is not held to the device rule."""
+    conn = _FakeConn(
+        request_status="accepted",
+        receipt_status="accepted",
+        attempt_status="accepted",
+        target_type="task",
+        receipt_payload={"provider_task_id": "t-1"},
+    )
+    assert _verify(monkeypatch, conn, "verified_success")["status"] == "ok"

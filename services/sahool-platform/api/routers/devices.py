@@ -203,6 +203,9 @@ async def _forward_agronomic_reading(user, device_id: str, field_id, req, record
             value=req.value,
             unit=req.unit,
             observed_at=recorded or datetime.now(UTC),
+            depth_from_cm=req.depth_from_cm,
+            depth_to_cm=req.depth_to_cm,
+            calibration_id=req.calibration_id,
         )
     except Exception as exc:  # noqa: BLE001 — الابتلاعُ الصامتُ هو صنفُ الفجوة نفسِه
         logger.warning("soil observation forward failed", exc_info=True)

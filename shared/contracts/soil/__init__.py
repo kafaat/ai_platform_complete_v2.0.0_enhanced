@@ -186,3 +186,12 @@ __all__ += [
     "ProductionCertificationRecord",
     "LearningDatasetManifest",
 ]
+
+from .moisture_policy import POLICY_VERSION as SOIL_MOISTURE_POLICY_VERSION  # noqa: E402
+from .moisture_policy import MoistureEligibility, moisture_eligibility  # noqa: E402
+
+__all__ += [
+    "SOIL_MOISTURE_POLICY_VERSION",
+    "MoistureEligibility",
+    "moisture_eligibility",
+]

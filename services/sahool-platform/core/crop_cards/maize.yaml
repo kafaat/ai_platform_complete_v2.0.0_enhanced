@@ -5,6 +5,10 @@ crop_id: maize
 name_ar: الذرة الشامية
 name_en: Maize (grain)
 crop_family: cereal_C4
+aliases:
+  - "ذرة صفراء"  # UI label
+  - "ذرة شامية"
+  - "corn"
 
 kc:
   initial: 0.30

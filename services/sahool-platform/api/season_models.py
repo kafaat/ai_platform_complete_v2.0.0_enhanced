@@ -195,9 +195,12 @@ class SeasonSimResponse(BaseModel):
     maturity_reached: bool
     lai_max: float
     biomass_kg_ha: float
-    yield_kg_ha: float
-    yield_low_kg_ha: float
-    yield_high_kg_ha: float
+    # None حين يكون المحصول غير مُعرّف (yield_status يقول السبب) — لا غلّة من معاملات عامّة.
+    yield_kg_ha: float | None
+    yield_low_kg_ha: float | None
+    yield_high_kg_ha: float | None
+    yield_status: str = "estimated"
+    limitations: list[str] = Field(default_factory=list)
     water_need_mm: float
     water_supply_mm: float | None
     water_stress_factor: float

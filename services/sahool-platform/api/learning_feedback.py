@@ -226,11 +226,16 @@ async def process_season_closed_event(
         "source_digests": source_digests,
     }
     learning_digest = _stable_digest(evaluation)
-    await conn.execute(
+    # الجدول يحمل قيدَين فريدَين: (tenant_id,event_id) و(tenant_id,learning_digest). كان
+    # الهدفُ الأوّل وحده ⇒ إغلاقٌ ثانٍ للموسم نفسه (event_id جديد، تقييمٌ مطابق) يرفع
+    # UniqueViolation على البصمة فيُعاد تسليمه إلى الأبد (رسالة سامّة). بلا هدف ⇒ أيّ
+    # تعارضٍ فريد إعادةٌ صامتة، ولا يُصدَر حدثٌ ثانٍ لتقييمٍ سبق تسجيلُه.
+    inserted_run = await conn.fetchval(
         """INSERT INTO decision_learning_runs
         (tenant_id,season_id,field_id,event_id,status,outcome_count,source_digests,evaluation,learning_digest)
         VALUES (current_setting('app.current_tenant')::uuid,$1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8)
-        ON CONFLICT (tenant_id,event_id) DO NOTHING""",
+        ON CONFLICT DO NOTHING
+        RETURNING id""",
         season_id,
         field_id,
         event_id,
@@ -240,6 +245,13 @@ async def process_season_closed_event(
         json.dumps(evaluation),
         learning_digest,
     )
+    if inserted_run is None:
+        return {
+            "status": "replayed",
+            "idempotent_replay": True,
+            "replay_reason": "LEARNING_DIGEST_ALREADY_RECORDED",
+            "evaluation": evaluation,
+        }
     candidate = {
         "candidate_id": f"gmp_{learning_digest[:20]}",
         "season_id": season_id,

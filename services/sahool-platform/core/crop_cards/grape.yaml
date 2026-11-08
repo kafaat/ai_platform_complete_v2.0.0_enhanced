@@ -5,6 +5,7 @@ crop_id: grape
 name_ar: العنب
 name_en: Grape (table)
 crop_family: vine_C3
+life_form: perennial  # مُعمِّر: لا نضج/حصاد حوليّ واحد يُشتقّ من تاريخ البذار
 
 kc:
   initial: 0.30
