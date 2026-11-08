@@ -8,6 +8,8 @@ excluding skill files to force a green mapping.
 
 import importlib.util
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -51,3 +53,16 @@ def test_pilot_skill_documentation_is_not_promoted_to_domain_implementation():
             args = (capability["id"], capability, rel, hay_path, hay, contents)
             score, _ = engine.score_blob(*args)
             assert score < 8, (rel, capability["id"], score)
+
+
+def test_skill_documents_existing_generated_sweep_check_flag():
+    skill = (ROOT / SKILL_FILES[0]).read_text(encoding="utf-8")
+    assert "verify_all_generated.py --check" in skill
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/ci/verify_all_generated.py"), "--help"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "--check" in result.stdout
