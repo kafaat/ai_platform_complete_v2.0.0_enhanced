@@ -63,13 +63,33 @@ class TestIrrigationAdvice:
         assert base["urgency"] == "moderate"
         assert deferred["urgency"] == "low"
 
+    # SOIL-MOISTURE-ELIGIBILITY-01: العتبتان تخصّان ماءً متاحاً **مُعلَناً**؛ كان الافتراضيّ
+    # يقرأ `%` العارية ماءً متاحاً. الآن تُعلَن الوحدة صراحةً، والعارية استشاريّة.
     def test_critical_soil_moisture_forces_high(self):
-        r = irrigation_advice(et0_mm=5.0, crop="wheat", stage="mid", soil_moisture_pct=20.0)
+        r = irrigation_advice(
+            et0_mm=5.0,
+            crop="wheat",
+            stage="mid",
+            soil_moisture_pct=20.0,
+            soil_moisture_unit_kind="available_pct",
+        )
         assert r["urgency"] == "high"
 
     def test_comfortable_soil_moisture_lowers_urgency(self):
-        r = irrigation_advice(et0_mm=6.0, crop="wheat", stage="mid", soil_moisture_pct=70.0)
+        r = irrigation_advice(
+            et0_mm=6.0,
+            crop="wheat",
+            stage="mid",
+            soil_moisture_pct=70.0,
+            soil_moisture_unit_kind="available_pct",
+        )
         assert r["urgency"] == "low"
+
+    def test_bare_percentage_defaults_to_undeclared_and_cannot_move_urgency(self):
+        plain = irrigation_advice(et0_mm=5.0, crop="wheat", stage="mid")
+        bare = irrigation_advice(et0_mm=5.0, crop="wheat", stage="mid", soil_moisture_pct=20.0)
+        assert bare["urgency"] == plain["urgency"] != "high"
+        assert "غير مُعلَنة" in bare["rationale_ar"]
 
     def test_negative_et0_clamped(self):
         r = irrigation_advice(et0_mm=-3.0, crop="wheat", stage="mid")

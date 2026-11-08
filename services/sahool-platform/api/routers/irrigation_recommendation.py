@@ -54,6 +54,7 @@ from api.main import (
     tenant_connection,
 )
 from api.soil_enrichment import extract_texture, soil_water_provenance
+from api.soil_hydraulic_client import get_field_waterlogging
 from api.soil_water import soil_water_params
 from api.weather_advice import precipitation_incomplete_detail
 from api.weather_service_client import (
@@ -172,7 +173,7 @@ async def irrigation_recommendation(
         stage=req.stage,
         rain_recent_mm=req.rain_recent_mm,
         forecast_rain_mm=req.forecast_rain_mm,
-        soil_moisture_pct=req.soil_moisture_pct,
+        **req.soil_moisture_inputs(),
         kc_override=req.kc_override,
         soil_ece=req.soil_ece,
         soil_ec_age_days=req.soil_ec_age_days,
@@ -585,6 +586,7 @@ async def field_irrigation_recommendation(
         policy=req.policy,
         water_price_per_m3=req.water_price_per_m3,
         yield_value_per_ha=req.yield_value_per_ha,
+        waterlogging=await get_field_waterlogging(getattr(user, "tenant_id", None), field_id),
     )
 
     # ثقة: تبدأ من ثقة الاستنزاف المخزَّنة، وتُخفَّض بكلّ قيد مُعلَن (حالة + تربة)
@@ -789,6 +791,7 @@ async def field_irrigation_recommendation(
             *state["limitations"],
             *soil_prov["limitations"],
             *applied_water_limitations,
+            *rec["limitations"],
             *([weather_limitation] if weather_limitation else []),
             *([submit_limitation] if submit_limitation else []),
         ],
