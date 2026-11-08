@@ -8,6 +8,26 @@ Railway Usage and Billing pages first (item 1). This page prepares item 2. It is
 General procedure, physical bases and PITR: [`POSTGRES_RECOVERY.md`](POSTGRES_RECOVERY.md). This
 page covers only the Railway case: one logical export restored into a throwaway local database.
 
+## Railway volume backup vs isolated PostgreSQL restore — DDO G0
+
+The Railway [volume-backup restore](https://docs.railway.com/volumes/backups)
+**cannot restore across project/environment boundaries**. It stages a replacement
+volume on the same service and environment, to be deployed after review; it is
+not a disposable clone. **Do not use the native volume Restore button or API
+mutation merely to prove staging G0.** Native backup *inventory* may be gathered
+safely with the opt-in read-only
+[staging GitHub Actions preflight](RAILWAY_GITHUB_ACTIONS_CONNECTION.md).
+
+The safe, isolated restore acceptance described below is a **PostgreSQL logical
+`pg_dump` → `pg_restore` drill** into a freshly provisioned *different*
+database/service/container with its own empty storage, credentials and no
+actuator reachability. A catalog listing proves only archive readability;
+proof requires a real restore, verified counts/roles/RLS and RPO/RTO limits.
+The recipe below names production for its own incident; a **staging** drill
+must use an owner-supplied staging-only connection and must never replace a
+running staging/production volume. The Railway [PITR](https://docs.railway.com/volumes/point-in-time-recovery)
+alternative provisions a new service, but availability must be verified first.
+
 ## Never do during the drill
 
 - Never use Railway's "Restore" action on the production volume: it replaces the live data.
