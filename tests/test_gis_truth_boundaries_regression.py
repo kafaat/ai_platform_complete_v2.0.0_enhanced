@@ -32,7 +32,7 @@ def test_no_common_valid_pixels_is_not_assessable():
 def test_field_route_preserves_kernel_assessment_status():
     # The field handler is an async HTTP integration boundary; this guard checks
     # the exact production assignment rather than importing the whole app stack.
-    source = (ROOT / "services/raster-service/routers/fields.py").read_text()
+    source = (ROOT / "services/raster-service/routers/fields.py").read_text(encoding="utf-8")
     start = source.index("    result = cd.detect_change(")
     end = source.index("    return result", start)
     section = source[start:end]
@@ -49,7 +49,7 @@ def test_required_unknown_check_is_not_accepted():
 
 
 def test_dem_no_valid_pixels_has_explicit_refusal():
-    source = (ROOT / "services/raster-service/terrain_analysis.py").read_text()
+    source = (ROOT / "services/raster-service/terrain_analysis.py").read_text(encoding="utf-8")
     start = source.index("    finite = np.isfinite(dem)")
     end = source.index("    dzdx = np.gradient", start)
     assert "if not ev.size:" in source[start:end]
