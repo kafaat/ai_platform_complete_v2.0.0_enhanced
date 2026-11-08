@@ -704,3 +704,88 @@ def test_readyz_is_200_ready_when_the_model_is_loaded(svc, client, monkeypatch):
     assert body["reason_code"] is None and body["reason"] is None
     assert body["load_error_present"] is False
     assert body["artifact_digest"] == DIGEST and body["artifact_digest_verified"] is True
+
+
+# ═══ التزامن: العمل الحاجب خارج حلقة الأحداث، و set_image+predict لا يتداخلان ══════════
+# العطلُ الذي وُجدت هذه لأجله (2026-11-02): المسار ``async`` كان يستدعي المُتنبِّئ المشترك
+# وقراءة الصورة البعيدة مباشرةً، فيحجز حلقة الأحداث طوال الاستدلال (``/healthz`` لا يجيب).
+class _GatedPredictor(FakePredictor):
+    """يسجّل تسلسل set_image/predict، وينتظر بوّابةً بين النداءين ليكشف التداخل والحجز."""
+
+    def __init__(self, masks, scores, gate, *, wait_s: float = 2.0):
+        super().__init__(masks, scores)
+        import threading as _th
+
+        self.gate = gate
+        self.wait_s = wait_s
+        self.order: list[tuple[str, int]] = []
+        self.gate_opened_in_time: list[bool] = []
+        self._lock = _th.Lock()
+
+    def set_image(self, image) -> None:
+        with self._lock:
+            self.order.append(("set", int(image[0, 0, 0])))
+        self.gate_opened_in_time.append(self.gate.wait(self.wait_s))
+
+    def predict(self, **kwargs):
+        with self._lock:
+            self.order.append(("predict", len(self.order)))
+        return self.masks, self.scores, None
+
+
+def _arm_gated(svc, monkeypatch, gate, images, *, wait_s: float = 2.0):
+    rt = svc.rt
+    _fake_torch(monkeypatch)
+    masks = np.stack([_rect_mask(6, 8, slice(0, 2), slice(0, 2))])
+    predictor = _GatedPredictor(masks, np.array([0.9], dtype=np.float32), gate, wait_s=wait_s)
+    monkeypatch.setattr(rt, "_PREDICTOR", predictor)
+    monkeypatch.setattr(rt, "_MODEL_LOAD_ERROR", None)
+    monkeypatch.setattr(rt, "_MODEL_ARTIFACT_DIGEST", DIGEST)
+    monkeypatch.setattr(rt, "_resolve_image_url", lambda ref, bbox: str(ref))
+    it = iter(images)
+    monkeypatch.setattr(rt, "_read_rgb", lambda url, bbox: (next(it), object(), object()))
+    monkeypatch.setattr(
+        rt, "_mask_to_polygon", lambda m, t, c: {"type": "Polygon", "coordinates": [RING]}
+    )
+    return predictor
+
+
+def test_predict_does_not_block_the_event_loop_while_inferring(svc, monkeypatch):
+    import asyncio
+    import threading
+
+    gate = threading.Event()
+    predictor = _arm_gated(svc, monkeypatch, gate, [np.full((6, 8, 3), 7, dtype=np.uint8)])
+    req = svc.rt.PredictRequest(mode="auto", image_ref=IMAGE_REF, field_bbox=BBOX)
+
+    async def scenario():
+        task = asyncio.create_task(svc.main.predict(req))
+        # حلقة الأحداث حرّة أثناء الاستدلال: healthz يجيب قبل أن تُفتح البوّابة.
+        health = await asyncio.wait_for(svc.main.healthz(), timeout=1.0)
+        await asyncio.sleep(0.05)
+        gate.set()
+        return health, await asyncio.wait_for(task, timeout=5.0)
+
+    health, out = asyncio.run(scenario())
+    assert health["status"] == "alive"
+    assert out["geometry"]["type"] == "Polygon"
+    assert predictor.gate_opened_in_time == [True], "الاستدلال حجز حلقة الأحداث حتّى انتهاء المهلة"
+
+
+def test_concurrent_predicts_never_interleave_set_image_and_predict(svc, monkeypatch):
+    import asyncio
+    import threading
+
+    gate = threading.Event()  # لا تُفتح: كلّ set_image يتوقّف 50مث فتظهر أيّ نافذة تداخل
+    images = [np.full((6, 8, 3), v, dtype=np.uint8) for v in (1, 2, 3, 4)]
+    predictor = _arm_gated(svc, monkeypatch, gate, images, wait_s=0.05)
+    req = svc.rt.PredictRequest(mode="auto", image_ref=IMAGE_REF, field_bbox=BBOX)
+
+    async def scenario():
+        return await asyncio.gather(*(svc.main.predict(req) for _ in images))
+
+    outs = asyncio.run(scenario())
+    assert len(outs) == 4
+    kinds = [k for k, _ in predictor.order]
+    # كلّ set_image يتبعه predict مباشرةً — لا set ثانٍ قبل predict الأوّل.
+    assert kinds == ["set", "predict"] * 4, predictor.order

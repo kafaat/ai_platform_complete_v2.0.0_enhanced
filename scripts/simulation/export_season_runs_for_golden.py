@@ -3,8 +3,10 @@
 
 The exporter is intentionally separate from ``sim_golden.py``: it selects and
 normalizes evidence, while SIM-GOLDEN remains a deterministic validation gate.
-Input is a JSON array produced by the documented SQL query or an object with a
-``rows`` array. Tenant identifiers are pseudonymized and never exported.
+Input is a prepared JSON array or an object with a ``rows`` array. The caller
+must supply verified farm identities; raw season runs contain field identities,
+which cannot establish farm diversity. This exporter does not query or enrich
+database records. Farm identifiers are pseudonymized; tenant IDs are not exported.
 """
 
 from __future__ import annotations
@@ -53,6 +55,16 @@ def _parse_ts(value) -> datetime | None:
     return dt
 
 
+def _iso_utc(ts: datetime) -> str:
+    """Emit a parsed (naive-UTC) timestamp as explicit ISO-8601 UTC.
+
+    The evaluator refuses timezone-less timestamps. ``str(value)`` of a database
+    ``date``/``datetime``, or a naive ISO input, would therefore produce rows that
+    sim_golden always rejects; the exporter writes the instant it actually compared.
+    """
+    return ts.replace(tzinfo=UTC).isoformat().replace("+00:00", "Z")
+
+
 def _value(row: dict, *paths: str):
     for path in paths:
         current = row
@@ -72,6 +84,9 @@ def export_rows(rows: list[dict], *, pseudonym_salt: str) -> dict:
     samples: list[dict] = []
     rejected: list[dict] = []
     for row in rows:
+        if not isinstance(row, dict):
+            rejected.append({"run_id": "", "reason": "malformed_row"})
+            continue
         reason = None
         mode = str(row.get("mode") or "")
         observed = _value(row, "observed_yield_kg_ha", "harvest.yield_kg_ha")
@@ -105,8 +120,8 @@ def export_rows(rows: list[dict], *, pseudonym_salt: str) -> dict:
         if reason:
             rejected.append({"run_id": str(row.get("run_id") or ""), "reason": reason})
             continue
-        farm_key = str(row.get("farm_id") or row.get("field_id") or "")
-        if not farm_key:
+        farm_key = row.get("farm_id")
+        if not isinstance(farm_key, str) or not farm_key.strip() or farm_key != farm_key.strip():
             rejected.append({"run_id": str(row.get("run_id") or ""), "reason": "missing_farm"})
             continue
         samples.append(
@@ -118,8 +133,8 @@ def export_rows(rows: list[dict], *, pseudonym_salt: str) -> dict:
                 "observed_yield_kg_ha": float(observed),
                 "predicted_yield_kg_ha": float(predicted),
                 "observation_source": source,
-                "harvest_at": str(harvest_at),
-                "prediction_at": str(prediction_at),
+                "harvest_at": _iso_utc(harvest_ts),
+                "prediction_at": _iso_utc(prediction_ts),
                 "model_version": str(row.get("engine_version")),
                 "input_digest": str(row.get("input_digest")).lower(),
             }

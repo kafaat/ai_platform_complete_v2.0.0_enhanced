@@ -19,7 +19,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.idempotency import request_digest
+from api.idempotency import model_digest, request_digest
 from api.irrigation_models import (
     ScheduleRequest,
     ValveRequest,
@@ -148,6 +148,7 @@ async def register_valve(
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
                 payload={"valve_id": valve_id, "field_id": req.field_id},
+                request_digest=model_digest(req),
             )
         else:
             result = await _work()
@@ -227,6 +228,7 @@ async def set_valve_state(
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
                 payload={"valve_id": valve_id, "status": req.status},
+                request_digest=model_digest(req, valve_id),
             )
         else:
             result = await _work()
@@ -377,7 +379,8 @@ async def create_schedule(
                 command_type="irrigation_schedule.create",
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
-                payload={"request_digest": _schedule_request_digest(req)},
+                payload={},
+                request_digest=_schedule_request_digest(req),
             )
         return await _work()
 

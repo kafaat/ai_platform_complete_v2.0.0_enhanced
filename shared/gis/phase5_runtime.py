@@ -178,7 +178,8 @@ def filter_records_for_stac(
             continue
         if min_quality is not None and (r.quality_score or 0) < min_quality:
             continue
-        if max_cloud is not None and r.cloud_pct > max_cloud:
+        # غطاء مجهول لا يُثبِت «≤ الحدّ» فيُستبعَد عند طلب حدّ (G11). / Unknown cannot satisfy ≤ max.
+        if max_cloud is not None and (r.cloud_pct is None or r.cloud_pct > max_cloud):
             continue
         if bbox and r.bbox and not _bbox_intersects(r.bbox, bbox):
             continue

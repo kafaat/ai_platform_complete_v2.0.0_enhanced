@@ -104,6 +104,7 @@ def test_bot_reads_webhook_secret_env():
     assert re.search(r"WEBHOOK_SECRET\s*=\s*os\.getenv", src)
 
 
+@pytest.mark.unit
 @pytest.mark.security
 def test_webhook_secret_is_not_enforced():
     """SECURITY FINDING (documented, not a fake pass).

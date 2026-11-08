@@ -1,5 +1,5 @@
 {
-  "edge_count": 902,
+  "edge_count": 918,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -82,7 +82,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/hooks/useManagerConsole.ts:274",
+      "evidence": "frontend/src/hooks/useAuth.ts:127",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -522,6 +522,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/actuator-service/actuator_runtime.py",
+      "from": "actuator-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://device_commands_log",
+      "to": "db://device_commands_log",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/actuator-service/routers/commands.py",
       "from": "actuator-service",
       "from_kind": "component",
@@ -533,6 +543,16 @@
     },
     {
       "evidence": "services/actuator-service/actuator_runtime.py",
+      "from": "actuator-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://iot_devices",
+      "to": "db://iot_devices",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/actuator-service/test_actuator_delivery_state_20261103.py",
       "from": "actuator-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -1112,6 +1132,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/raster-service/db_persist.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_geometry_history",
+      "to": "db://field_geometry_history",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/raster-service/follow_up_runtime.py",
       "from": "raster-service",
       "from_kind": "component",
@@ -1432,6 +1462,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_break_glass.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://break_glass_grants",
+      "to": "db://break_glass_grants",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/calibration.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -1689,6 +1729,26 @@
       "relation": "READS",
       "resource": "db://decision_record",
       "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/edge_models.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://detection_provenance",
+      "to": "db://detection_provenance",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://detection_provenance",
+      "to": "db://detection_provenance",
       "to_kind": "resource"
     },
     {
@@ -2923,6 +2983,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/yield_map_ingestion.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/scheduler.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -4522,6 +4592,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_break_glass.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_gaps_v91.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -5902,6 +5982,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/actuator-service/test_actuator_delivery_state_20261103.py",
+      "from": "actuator-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://device_commands_log",
+      "to": "db://device_commands_log",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/auth/main.py",
       "from": "auth",
       "from_kind": "component",
@@ -6742,6 +6832,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_break_glass.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://audit_log",
+      "to": "db://audit_log",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/phase_runtime_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -6753,6 +6853,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/break_glass.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://break_glass_grants",
+      "to": "db://break_glass_grants",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_break_glass.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -7022,6 +7132,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/edge_models.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://detection_provenance",
+      "to": "db://detection_provenance",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://detection_provenance",
+      "to": "db://detection_provenance",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/devices.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -7083,6 +7213,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/edge.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://edge_results",
+      "to": "db://edge_results",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -7812,6 +7952,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://irrigation_valves",
+      "to": "db://irrigation_valves",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -8083,6 +8233,16 @@
     },
     {
       "evidence": "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://online_learning_updates",
+      "to": "db://online_learning_updates",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9040,9 +9200,9 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 465,
+    "READS": 473,
     "ROUTES_TO": 72,
-    "WRITES": 315
+    "WRITES": 323
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -9057,8 +9217,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 781,
-      "resolved": 780,
+      "observed": 797,
+      "resolved": 796,
       "unresolved_component_paths": 0
     }
   }

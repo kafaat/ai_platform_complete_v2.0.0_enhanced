@@ -12,6 +12,7 @@ D5: صمّام مستأجرٍ آخر (حتى تحت دورٍ يتجاوز RLS) �
 ``tests_v9/test_d4d5_idempotency_irrigation_live_pg.py``.
 """
 
+import ast
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 
@@ -82,7 +83,8 @@ async def _call(store, work, *, command_type="field.create", tenant=_TENANT, dig
         command_type=command_type,
         actor_id="u1",
         tenant_id=tenant,
-        payload={"request_digest": digest},
+        payload={},
+        request_digest=digest,
     )
 
 
@@ -306,6 +308,80 @@ def test_neither_valve_nor_field_is_created_unlinked(monkeypatch):
     ]
 
 
+# ── T6: كلّ نقطة idempotent تقارن البصمة (لا ناتج الأوّل لجسمٍ آخر) ──────────
+
+
+def _valve_state(monkeypatch):
+    """أمر حالة الصمّام بقاعدة وهميّة تُسجِّل كلّ تحديثٍ فعليّ (نظير نمط ``_irrigation``)."""
+    from api.routers import irrigation as mod
+
+    updates: list[str] = []
+    store = _Store()
+
+    class Conn:
+        async def fetchrow(self, query, *vals):
+            assert "UPDATE irrigation_valves" in query
+            updates.append(vals[0])
+            return {"valve_id": vals[1], "field_id": "field-a"}
+
+    @asynccontextmanager
+    async def fake_tenant_connection(user):
+        yield Conn()
+
+    async def noop(*a, **kw):
+        return True
+
+    monkeypatch.setattr(mod, "tenant_connection", fake_tenant_connection)
+    monkeypatch.setattr(mod, "_emit_domain_event", noop)
+    monkeypatch.setattr(mod, "_record_run_ledger", noop)
+    monkeypatch.setattr(mod, "CommandStore", store)
+    monkeypatch.setattr(mod, "get_pool", lambda: None)
+    app = FastAPI()
+    app.include_router(mod.router)
+    app.dependency_overrides[get_current_user] = _user
+    return TestClient(app), updates
+
+
+def test_valve_command_v2_with_v1_key_is_409_not_v1_result(monkeypatch):
+    """T6 (مقيس في التدقيق): «إغلاق» بمفتاح «فتح» أعاد ناتج الفتح بـ200 ولم يُنفَّذ."""
+    c, updates = _valve_state(monkeypatch)
+    h = {"Idempotency-Key": _KEY}
+    path = "/api/v1/irrigation/valves/vlv_a/state"
+    first = c.post(path, json={"status": "open"}, headers=h)
+    assert first.status_code == 200, first.text
+    again = c.post(path, json={"status": "open"}, headers=h)
+    assert again.status_code == 200 and again.json() == first.json()  # إعادة صادقة
+    other = c.post(path, json={"status": "closed"}, headers=h)
+    assert other.status_code == 409, other.text
+    assert other.json()["detail"]["reason"] == "payload_mismatch"
+    assert "open" not in other.text
+    # المسار جزءٌ من البصمة: المفتاح نفسه على صمّامٍ آخر ليس إعادةً لأمر الأوّل.
+    elsewhere = c.post("/api/v1/irrigation/valves/vlv_b/state", json={"status": "open"}, headers=h)
+    assert elsewhere.status_code == 409, elsewhere.text
+    assert updates == ["open"]
+
+
+def test_every_idempotent_call_site_passes_a_request_digest():
+    """حارس T6: لا موضع استدعاء بلا ``request_digest=`` (الغياب كان إعادةً عمياء)."""
+    import ast
+    from pathlib import Path
+
+    api_root = Path(__file__).resolve().parents[1] / "api"
+    sites, missing = 0, []
+    for path in sorted(api_root.rglob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Call):
+                continue
+            name = getattr(node.func, "id", None) or getattr(node.func, "attr", None)
+            if name != "_idempotent":
+                continue
+            sites += 1
+            if not any(k.arg == "request_digest" for k in node.keywords):
+                missing.append(f"{path.relative_to(api_root)}:{node.lineno}")
+    assert sites >= 20, sites  # الحارس يرى المواضع فعلاً (لا نجاح فارغ)
+    assert missing == [], missing
+
+
 # ── D4: إنشاء الحقل والموسم يقارنان البصمة ──────────────────────────────
 
 _POLY = {
@@ -410,3 +486,146 @@ def test_season_create_same_key_with_another_season_is_409(monkeypatch):
     elsewhere = c.post("/api/v1/fields/fld_2/seasons", json={"crops": ["قمح"]}, headers=h)
     assert elsewhere.status_code == 409
     assert len(created) == 1
+
+
+# ── مراجعة PR #1324: بصمة PATCH تُميّز «لم يُرسَل» عن «أُرسِل null» ─────────────
+# ``_build_field_update`` يكتب الأعمدة الموجودة في ``model_fields_set`` فقط، فـ``{"name":"x"}``
+# يُبقي ``soil_ph`` و``{"name":"x","soil_ph":null}`` يمسحه. ``model_dump()`` يُخرج الاثنين
+# متطابقَين (الغائب None افتراضاً)، فكانت البصمة واحدة ⇒ إعادة المفتاح لجسمٍ يمسح العمود
+# تُعيد ناتج الأوّل (200) ولا تمسح شيئاً، بدل 409 ``payload_mismatch``.
+
+_FIELD_PATCH_OMITTED = {"name": "x"}
+_FIELD_PATCH_CLEARED = {"name": "x", "soil_ph": None}
+
+
+def _patch_digest(body, field_id="fld_1"):
+    from api.field_models import FieldUpdateRequest
+    from api.main import model_digest
+
+    return model_digest(FieldUpdateRequest.model_validate(body), field_id)
+
+
+def test_field_patch_bodies_with_different_effects_have_different_digests():
+    from api.field_models import FieldUpdateRequest, _build_field_update
+
+    omitted = FieldUpdateRequest.model_validate(_FIELD_PATCH_OMITTED)
+    cleared = FieldUpdateRequest.model_validate(_FIELD_PATCH_CLEARED)
+    # المقدّمة: الجسمان يكتبان أعمدةً مختلفة فعلاً.
+    assert _build_field_update(omitted) == ("name = $1", ["x"])
+    assert _build_field_update(cleared) == ("name = $1, soil_ph = $2", ["x", None])
+    assert omitted.model_dump(mode="json") == cleared.model_dump(mode="json")
+    assert _patch_digest(_FIELD_PATCH_OMITTED) != _patch_digest(_FIELD_PATCH_CLEARED)
+    # ومسح عمودٍ آخر ليس مسح soil_ph.
+    assert _patch_digest(_FIELD_PATCH_CLEARED) != _patch_digest({"name": "x", "crop": None})
+    # ومعامل المسار يبقى في البصمة.
+    assert _patch_digest(_FIELD_PATCH_CLEARED) != _patch_digest(_FIELD_PATCH_CLEARED, "fld_2")
+
+
+@pytest.mark.parametrize(
+    ("first", "second"),
+    [(_FIELD_PATCH_OMITTED, _FIELD_PATCH_CLEARED), (_FIELD_PATCH_CLEARED, _FIELD_PATCH_OMITTED)],
+    ids=["omitted-then-cleared", "cleared-then-omitted"],
+)
+async def test_field_patch_key_reuse_with_explicit_null_is_409_not_a_replay(first, second):
+    store = _Store()
+    ran: list[int] = []
+
+    async def work():
+        ran.append(1)
+        return {"field_id": "fld_1"}
+
+    result = await _call(store, work, command_type="field.update", digest=_patch_digest(first))
+    replay = await _call(store, _never(), command_type="field.update", digest=_patch_digest(first))
+    assert replay == result and ran == [1]  # الجسم نفسه ⇒ إعادة صادقة
+    with pytest.raises(HTTPException) as exc:
+        await _call(store, _never(), command_type="field.update", digest=_patch_digest(second))
+    assert exc.value.status_code == 409
+    assert exc.value.detail["reason"] == "payload_mismatch"
+    assert ran == [1]
+
+
+def test_presence_digest_keeps_stored_digests_of_unambiguous_bodies():
+    """توافق البصمات المخزَّنة: جسمٌ بلا قيمةٍ افتراضيّة صريحة يبقى ببصمته السابقة."""
+    from api.field_models import FieldUpdateRequest
+    from api.idempotency import request_digest
+    from api.routers.irrigation import ValveStateRequest
+
+    body = {"name": "x", "soil_ph": 6.5, "geometry": _POLY}
+    legacy = request_digest(
+        {
+            "scope": "fld_1",
+            "request": FieldUpdateRequest.model_validate(body).model_dump(mode="json"),
+        }
+    )
+    assert _patch_digest(body) == legacy
+    # نموذجٌ بلا دلالة جزئيّة: البصمة لا تتغيّر حتّى مع قيمةٍ صريحة.
+    from api.main import model_digest
+
+    valve = ValveStateRequest.model_validate({"status": "open"})
+    assert model_digest(valve, "vlv_a") == request_digest(
+        {"scope": "vlv_a", "request": valve.model_dump(mode="json")}
+    )
+
+
+def _model_class_of(func, arg_name, module):
+    for a in [*func.args.posonlyargs, *func.args.args, *func.args.kwonlyargs]:
+        if a.arg == arg_name and isinstance(a.annotation, ast.Name):
+            return getattr(module, a.annotation.id, None)
+    return None
+
+
+def _reads_presence(func, arg_name) -> bool:
+    for node in ast.walk(func):
+        if (
+            isinstance(node, ast.Attribute)
+            and node.attr == "model_fields_set"
+            and isinstance(node.value, ast.Name)
+            and node.value.id == arg_name
+        ):
+            return True
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "model_dump"
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == arg_name
+            and any(
+                k.arg == "exclude_unset" and getattr(k.value, "value", False) is True
+                for k in node.keywords
+            )
+        ):
+            return True
+    return False
+
+
+def test_every_idempotent_handler_with_partial_semantics_digests_field_presence():
+    """حارس: معالِجٌ يبصم ``req`` ويقرأ ``req.model_fields_set``/``exclude_unset`` ⇒ نموذجه
+    يُعلن ``IDEMPOTENCY_DIGEST_PRESENCE`` (وإلّا عاد خلط «لم يُرسَل» بـ«أُرسِل null»)."""
+    import importlib
+    from pathlib import Path
+
+    routers_root = Path(__file__).resolve().parents[1] / "api" / "routers"
+    seen, missing = [], []
+    for path in sorted(routers_root.glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        module = None
+        for func in ast.walk(tree):
+            if not isinstance(func, ast.FunctionDef | ast.AsyncFunctionDef):
+                continue
+            for call in ast.walk(func):
+                if not (isinstance(call, ast.Call) and call.args):
+                    continue
+                name = getattr(call.func, "id", None) or getattr(call.func, "attr", None)
+                if name != "model_digest" or not isinstance(call.args[0], ast.Name):
+                    continue
+                arg = call.args[0].id
+                if not _reads_presence(func, arg):
+                    continue
+                module = module or importlib.import_module(f"api.routers.{path.stem}")
+                cls = _model_class_of(func, arg, module)
+                site = f"{path.name}:{func.name}"
+                seen.append(site)
+                if cls is None or not getattr(cls, "IDEMPOTENCY_DIGEST_PRESENCE", False):
+                    missing.append(site)
+    assert "fields.py:update_field" in seen, seen  # الحارس يرى PATCH الحقل فعلاً
+    assert missing == [], missing

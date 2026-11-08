@@ -60,7 +60,8 @@ BASELINE_PINNED = {
         "scipy",
         "uvicorn",
     },
-    "services/auth/requirements.txt": {"fastapi", "pydantic", "uvicorn"},
+    # bcrypt ثُبِّت (S8، 2026-11-01): ٥.x يرمي ValueError لِما > ٧٢ بايت؛ الحدّ في password_hashing.py.
+    "services/auth/requirements.txt": {"bcrypt", "fastapi", "pydantic", "uvicorn"},
     "services/guardrails-engine/requirements.txt": {"fastapi", "pydantic", "uvicorn"},
     "requirements_real.txt": {"fastapi", "pydantic", "uvicorn"},
 }

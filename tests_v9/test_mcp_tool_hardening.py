@@ -192,7 +192,6 @@ class _FakeConn:
 @pytest.fixture
 def market(mcp_env, monkeypatch):
     module = _load("_hard_market_server", MCP / "market_server.py")
-    monkeypatch.setattr(module, "JWT_SECRET", SECRET)
     monkeypatch.delenv("MARKET_AUTO_APPROVE_BELOW_USD", raising=False)
     conns: list[_FakeConn] = []
 

@@ -160,6 +160,8 @@ def _zlmedia_params(**params: object) -> dict[str, object]:
 
     ZLMediaKit deployments commonly protect /index/api/* with a shared ``secret``.
     Development images may leave it empty, so the parameter is included only when set.
+    Send the result as a JSON body (``json=``), never as URL ``params=``: httpx logs request
+    URLs at INFO, so a query-string secret ends up in the logs (S9).
     """
     if ZLMEDIAKIT_API_SECRET:
         params.setdefault("secret", ZLMEDIAKIT_API_SECRET)
@@ -176,8 +178,10 @@ async def check_video_dependencies(timeout: float = 3.0) -> dict[str, dict[str, 
     async with httpx.AsyncClient(timeout=timeout) as client:
         # ZLMediaKit: media server core for RTSP/RTMP/HLS/WebRTC lifecycle.
         try:
-            r = await client.get(
-                f"{ZLMEDIA_API_URL.rstrip('/')}/index/api/getMediaList", params=_zlmedia_params()
+            # السرّ في جسم JSON لا في الرابط: httpx يسجّل رابط كلّ طلب INFO ⇒ كان السرّ
+            # يُكتَب في السجلّ عند كلّ فحص جاهزيّة (S9). ZLMediaKit يقرأ وسائط JSON body.
+            r = await client.post(
+                f"{ZLMEDIA_API_URL.rstrip('/')}/index/api/getMediaList", json=_zlmedia_params()
             )
             out["zlmediakit"] = {"ok": 200 <= r.status_code < 500, "status_code": r.status_code}
         except Exception as e:  # noqa: BLE001

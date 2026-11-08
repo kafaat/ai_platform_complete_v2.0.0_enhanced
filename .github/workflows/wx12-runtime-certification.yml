@@ -11,6 +11,11 @@ on:
       - 'scripts/ci/resilient_docker_pull.sh'
       - 'scripts/ci/provision_pg_client.sh'
       - '.github/workflows/wx12-runtime-certification.yml'
+
+# أقلّ صلاحيّة (I5): قراءة المستودع فقط؛ أيّ وظيفة تحتاج أكثر تُعلنه على مستواها.
+permissions:
+  contents: read
+
 # عبءُ أجهزة التشغيل: دفعٌ جديد إلى الـPR نفسه يلغي تشغيلَه الأقدم لهذا المسار (كـci.yml)؛ وأحداثُ
 # غير الـPR مجموعتُها فريدة (run_id) فلا تُلغى ولا تُسلسَل — كلُّ دمجٍ إلى main يُفحص كاملاً.
 concurrency:
@@ -29,6 +34,10 @@ jobs:
   postgres:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # GHCR_TOKEN يسحب مرآة صورة CI من ghcr.io ⇒ packages: read لهذه الوظيفة وحدها.
+    permissions:
+      contents: read
+      packages: read
     env:
       DATABASE_URL: postgresql://sahool:sahool@localhost:5432/sahool
       DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: 'true'

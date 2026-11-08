@@ -10,6 +10,8 @@
 
 from __future__ import annotations
 
+import functools
+import secrets
 from typing import Annotated
 
 import main
@@ -24,30 +26,38 @@ from shared.security.access_tokens import decode_access_token
 router = APIRouter()
 
 
+@functools.cache
+def _timing_equaliser_hash(rounds: int) -> bytes:
+    """S16(c): تجزئة bcrypt بكلفة BCRYPT_ROUNDS نفسها لمسار «لا مستخدم/معطَّل»."""
+    return main.bcrypt.hashpw(secrets.token_bytes(16), main.bcrypt.gensalt(rounds))
+
+
+async def _load_login_row(email: str):
+    async with main._acquire() as conn:
+        return await conn.fetchrow(
+            "SELECT id, email, password_hash, role, full_name, tenant_id, active, "
+            "mfa_enabled, mfa_secret, encrypted_mfa_secret, mfa_failed_attempts, "
+            "mfa_locked_until FROM users WHERE email=$1",
+            email,
+        )
+
+
 @router.post("/v1/auth/login", response_model=main.TokenResponse)
 async def login(req: main.LoginRequest, request: Request, response: Response):
     ip = client_ip(request)
     await main.check_ip_rate(ip)
     await main.check_lockout(req.email)  # ✅ account lockout check
 
-    async with main._acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT id, email, password_hash, role, full_name, tenant_id, active, "
-            "mfa_enabled, mfa_secret, encrypted_mfa_secret, mfa_failed_attempts, "
-            "mfa_locked_until FROM users WHERE email=$1",
-            req.email,
-        )
+    row = await _load_login_row(req.email)
 
-    if (
-        not row
-        or not row["active"]
-        or not main.bcrypt.checkpw(
-            req.password.encode(),
-            row["password_hash"]
-            if isinstance(row["password_hash"], bytes)
-            else row["password_hash"].encode(),
-        )
-    ):
+    # S16(c): تحقّق bcrypt واحد **دائماً** — كان المستخدم المجهول/المعطَّل يتخطّاه فيُجيب
+    # أسرع بـ~٢٥٠ms ويكشف وجود الحساب بالتوقيت. الآن تجزئة وهميّة بالكلفة نفسها والردّ نفسه.
+    # S8: verify_password يُعيد False (لا 500 من bcrypt ٥) لكلمة > ٧٢ بايت أو تجزئةٍ تالفة.
+    stored = row["password_hash"] if row and row["active"] else None
+    password_ok = main.verify_password(
+        req.password, stored or _timing_equaliser_hash(main.BCRYPT_ROUNDS)
+    )
+    if not row or not row["active"] or not stored or not password_ok:
         await main.record_failed_login(
             req.email
         )  # ✅ track failed attempts (locks account internally)

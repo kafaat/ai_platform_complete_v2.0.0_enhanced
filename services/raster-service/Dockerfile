@@ -1,7 +1,14 @@
 FROM python:3.11-slim-bookworm
 WORKDIR /app
 # rasterio يحتاج GDAL (نظام)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+ARG DEBIAN_MIRROR=
+RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian-security|${DEBIAN_MIRROR%/}/debian-security|g" \
+            -e "s|http://deb.debian.org/debian|${DEBIAN_MIRROR%/}/debian|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi \
+    && apt-get update && apt-get install -y --no-install-recommends \
     gdal-bin libgdal-dev && rm -rf /var/lib/apt/lists/*
 COPY services/raster-service/requirements.txt /tmp/requirements.txt
 # ── PyPI الرسمي افتراضياً؛ يمكن استخدام Alibaba mirror عبر build arg ──
@@ -43,6 +50,9 @@ RUN chmod 0444 /app/.sahool-build-metadata.json
 
 COPY shared/ /app/shared/
 COPY services/raster-service/ /app/
+# I2: terrain_source_registry.py يقرأ config/terrain_sources.yml بجوار الوحدة في الصورة.
+# The terrain source registry must ship in the image (beside the module at /app/config/).
+COPY config/terrain_sources.yml /app/config/terrain_sources.yml
 # P1-3: مستخدم غير جذري (محاذاةً لباقي الخدمات الـ17)
 RUN useradd -m -u 10001 appuser \
     && mkdir -p /data/rasters \

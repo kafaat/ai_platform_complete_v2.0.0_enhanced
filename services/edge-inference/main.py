@@ -108,7 +108,7 @@ def _model_capability(env_name: str, default_name: str) -> dict[str, object]:
     )
 
 
-def _require_approved_model(default_name: str) -> None:
+def _require_approved_model(default_name: str) -> dict[str, object]:
     """الاستدلالُ نفسُه خلف البوّابة — لا `/capabilities` وحدَها.
 
     بدونها كان ملفٌّ بالاسم المتوقَّع **يُستدلّ به** ولو أعلنت القدرةُ `inactive`:
@@ -117,7 +117,8 @@ def _require_approved_model(default_name: str) -> None:
     path_env, _ = _MODEL_ENV[default_name]
     capability = _model_capability(path_env, default_name)
     if capability["active"]:
-        return
+        # الحكمُ نفسُه يُعاد: نسبُ الكشف يُسجِّل البصمةَ التي فُحِصت لا قيمةً ثانية.
+        return capability
     raise HTTPException(
         503,
         {
@@ -237,7 +238,7 @@ async def detect_pest(
         confidence_threshold=confidence_threshold,
         return_image=return_image,
     )
-    _require_approved_model("pest_detector_int8.onnx")
+    pest_capability = _require_approved_model("pest_detector_int8.onnx")
     detector = get_pest_detector()
     # تحقّق من المدخل: حدّ الحجم (منع DoS) + نوع الملفّ. القراءة نفسها محدودة بالسقف+1
     # كي لا يُحمَّل رفعٌ ضخم كاملاً في الذاكرة قبل رفضه.
@@ -273,6 +274,15 @@ async def detect_pest(
         "device": DEVICE,
         "timestamp": datetime.now(UTC).isoformat(),
         "model_version": detector.version,
+        # نسبُ الكشف: المصنوعة (بصمة البوّابة) · بصمة الصورة · العتبة — تُزامَن مع النتيجة
+        # فتكتبها المنصّة صفّاً لكلّ كشفٍ في detection_provenance (v239).
+        "provenance": artifact_gate.detection_provenance(
+            model_id="pest_detector_int8.onnx",
+            model_version=detector.version,
+            capability=pest_capability,
+            image_bytes=image_bytes,
+            threshold=request.confidence_threshold,
+        ),
     }
     alert = artifact_gate.high_confidence_alert(detections)
     if request.field_id is None:

@@ -23,7 +23,14 @@ LABEL org.opencontainers.image.revision=$SAHOOL_GIT_SHA \
 RUN python -c "import json,re; trig='$RAILWAY_GIT_COMMIT_SHA'; sha='$SAHOOL_GIT_SHA' or trig; bid='$SAHOOL_BUILD_ID' or ('railway-'+'$RAILWAY_DEPLOYMENT_ID' if '$RAILWAY_DEPLOYMENT_ID' else ('railway-'+trig[:12] if trig else '')); assert re.fullmatch(r'[0-9a-f]{40}',sha), 'SAHOOL_GIT_SHA must be full 40-char SHA (set it, or build from a GitHub trigger so RAILWAY_GIT_COMMIT_SHA supplies it)'; assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',bid), 'invalid SAHOOL_BUILD_ID'; assert not trig or trig==sha, 'SAHOOL_GIT_SHA '+sha+' contradicts the commit the platform built '+trig+' - unset the pinned variable or set it to the built commit'; open('/app/.sahool-build-metadata.json','w').write(json.dumps({'service':'sahool-platform','git_sha':sha,'build_id':bid,'source_repository':'$SAHOOL_SOURCE_REPOSITORY','source_ref':'$SAHOOL_SOURCE_REF'},sort_keys=True))"
 RUN chmod 0444 /app/.sahool-build-metadata.json
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+ARG DEBIAN_MIRROR=
+RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian-security|${DEBIAN_MIRROR%/}/debian-security|g" \
+            -e "s|http://deb.debian.org/debian|${DEBIAN_MIRROR%/}/debian|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi \
+    && apt-get update && apt-get install -y --no-install-recommends \
     gcc curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -40,6 +47,10 @@ RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.t
 # الكود: api/ + core/ + knowledge/ + data/ (main.py يستورد من core/)
 COPY shared/ /app/shared/
 COPY services/sahool-platform/ /app/
+# G3: shared/knowledge/source_registry.py يقرأ السجلّ من <جذر shared>/docs/architecture/؛
+# بدونه تُحجَب كلّ توصية ريّ ساعيّة (knowledge_context_unsatisfied). ملفٌّ واحد لا شجرة docs/
+# (مُستثنى بعينه في .dockerignore). The MPC knowledge registry must ship in the image.
+COPY docs/architecture/knowledge_source_registry.json /app/docs/architecture/knowledge_source_registry.json
 
 # المنطق في api/main.py → app
 ENV PYTHONPATH=/app:/app/api

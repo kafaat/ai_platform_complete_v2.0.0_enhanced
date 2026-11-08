@@ -108,6 +108,22 @@ def gdal_configure() -> None:
     os.environ["CPL_VSIL_CURL_ALLOWED_EXTENSIONS"] = ".tif"
 
 
+# R9: بلا مهلة، قراءة GDAL HTTP (/vsicurl · /vsis3) من COG بطيء تنتظر بلا حدّ وتحبس خيطاً.
+# افتراضات محافظة يغلبها ضبط المشغّل للمتغيّر نفسه (setdefault) — GDAL يقرأ البيئة كإعداد.
+GDAL_HTTP_DEFAULTS = {
+    "GDAL_HTTP_TIMEOUT": "30",
+    "GDAL_HTTP_CONNECTTIMEOUT": "10",
+    "GDAL_HTTP_MAX_RETRY": "2",
+    "GDAL_HTTP_RETRY_DELAY": "1",
+}
+
+
+def gdal_http_defaults() -> None:
+    """Bound every GDAL HTTP read; an operator-set variable of the same name wins."""
+    for key, value in GDAL_HTTP_DEFAULTS.items():
+        os.environ.setdefault(key, value)
+
+
 class ObjectStoreUploadError(RuntimeError):
     """رفع COG إلى S3 المُهيّأة فشل — fail-closed (لا تدهور صامت إلى file://)."""
 
@@ -203,5 +219,6 @@ def exists_locally(uri: str) -> bool:
     return os.path.exists(uri)
 
 
-# اضبط GDAL مرّة عند الاستيراد (no-op إن لم يُضبط S3).
+# اضبط GDAL مرّة عند الاستيراد (S3 no-op إن لم يُضبط؛ مهلات HTTP دائماً).
+gdal_http_defaults()
 gdal_configure()

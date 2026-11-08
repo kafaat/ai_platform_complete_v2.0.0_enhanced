@@ -140,22 +140,26 @@ class TestAuthEndpoints:
         assert resp.status_code == 200
         assert resp.json()["status"] == "alive"
 
+    # تدقيق 2026-11-01 (Q1): كانا ينادِيان 127.0.0.1:8120 فيتخطّيان دائماً في CI. الآن
+    # يمرّان عبر main.py الحقيقيّ لـauth (real_app_probe) بمسبح وRedis مزيّفين فقط.
+    @pytest.mark.unit
     @pytest.mark.security
-    async def test_login_wrong_password(self, http_client):
-        from conftest import service_urls
+    def test_login_wrong_password(self):
+        from real_app_probe import probe_auth
 
-        resp = await http_client.post(
-            f"{service_urls['auth']}/v1/auth/login",
-            json={"email": "test@sahool.ye", "password": "WrongPass123!"},
-        )
-        assert resp.status_code == 401
+        probe = probe_auth()
+        assert probe["login_wrong_password"] == 401
+        # شاهدٌ موجب: المزيّف موصول حقّاً — كلمة المرور الصحيحة تدخل والتوكن الصادر مقبول.
+        assert probe["login_ok"] == 200
+        assert probe["me_after_login"] == 200
 
+    @pytest.mark.unit
     @pytest.mark.security
-    async def test_sql_injection_in_email(self, http_client):
-        from conftest import service_urls
+    def test_sql_injection_in_email(self):
+        from real_app_probe import probe_auth
 
-        resp = await http_client.post(
-            f"{service_urls['auth']}/v1/auth/login",
-            json={"email": "' OR '1'='1", "password": "anything"},
-        )
-        assert resp.status_code in [401, 422]
+        probe = probe_auth()
+        assert probe["login_injection_not_email"] == 422  # EmailStr يرفضه قبل أيّ SQL
+        # بريدٌ صالح الشكل يحمل حمولة حقن: يُرفَض، ويصل إلى SQL معاملاً مربوطاً ($1) لا نصّاً.
+        assert probe["login_injection_in_valid_email"] == 401
+        assert probe["injection_bound_as_parameter"] is True

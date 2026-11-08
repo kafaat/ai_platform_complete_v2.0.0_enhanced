@@ -184,6 +184,16 @@ SUBSTANTIVE_EXACT = {
     # ولا يُضعِف هذا ما يهمّ: `branch_protection_contract_guard` ما زال يطلب مراجعةَ
     # مالكي الكود على مسار التفويضات، وهو بوّابةٌ منفصلة.
     ".github/CODEOWNERS",
+    # EXPIRED-AUTHORITY-EXCEPTION-RENEWAL-UNLANDABLE-01 — **مقيسٌ على #1320:** سجلّا استثناءاتِ
+    # السلطة المؤرَّخة **أدواتُ تفويضٍ** يقرؤها حارسان ليقرّرا PASS/FAIL —
+    # `rag_authority_convergence_guard` (`direct_qdrant_exception`) و`platform_shrink_ratchet_guard`
+    # (`baseline_exception_metadata`) — لا تقاريرُ تقدّم. وحين ينتهي `target_close_by` يحمرّ main
+    # وكلُّ PR بلا تغيير كود، فتجديدُها (أو إغلاقُها) خطوةٌ واجبة تمسّ الملفَّ + الدماغ + المصنوعات
+    # وحدها؛ فكانت «report-only» بالتصنيف وغيرَ قابلةٍ للهبوط — صنفُ `gates/` و`CODEOWNERS` أعلاه
+    # مرّةً أخرى. **بالاسم الكامل لا ببادئة `docs/architecture/`:** تحتها جرودٌ وأساساتٌ مولَّدة
+    # يجب أن تبقى مصنوعاتٍ لا تُلوندِر غيرَها.
+    "docs/architecture/rag_authority_convergence.json",
+    "docs/architecture/platform_shrink_ratchet.json",
 }
 
 

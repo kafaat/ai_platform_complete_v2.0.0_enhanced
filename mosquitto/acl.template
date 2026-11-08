@@ -1,0 +1,48 @@
+# SAHOOL — قالب ACL لوسيط MQTT (Mosquitto) — MQTT-SHARED-ACCOUNT-NO-ACL (تدقيق 2026-11-01، A8)
+#
+# **غير مُفعَّل بعد** (لا `acl_file` في mosquitto.conf): تفعيله يتطلّب هويّاتٍ منفصلة في
+# compose وتزويد أجهزة — قرار نشرٍ للمالك، لا تغييرٌ صامت. هذا القالب هو الشكل المطلوب.
+# NOT ACTIVE YET. Activating it is a deployment change (per-identity credentials below).
+#
+# ── ما كان ── حسابٌ واحد مشترك (MQTT_USERNAME) يحمله actuator-service وvideo-processor
+# وكلُّ جهاز؛ بلا ACL ⇒ أيُّ حاملٍ ينشر قراءةً لأيّ مستأجر/حقل (يُطلِق قواعد الريّ)، أو أمرَ
+# صمّامٍ لأيّ جهاز (يحميه HMAC وحده)، ويقرأ كلَّ شيء.
+#
+# ── الهويّات والأسرار المطلوبة (لا سرّ في المستودع؛ تُزوَّد من بيئة النشر/الخزنة) ──
+#   MQTT_ACTUATOR_USERNAME / MQTT_ACTUATOR_PASSWORD   — actuator-service (اسم المستخدم أدناه)
+#   MQTT_VIDEO_USERNAME    / MQTT_VIDEO_PASSWORD      — video-processor
+#   MQTT_HEALTH_USERNAME   / MQTT_HEALTH_PASSWORD     — healthcheck الوسيط ($SYS فقط)
+#   لكلّ جهاز: اسمُ مستخدمٍ = device_id في iot_devices، وكلمةُ مرورٍ فريدة تُكتب في NVS
+#   الجهاز (لا في .ino). CMD_HMAC_SECRET اليوم سرٌّ واحد للأسطول (env في actuator-service
+#   وNVS في الجهاز)؛ سرٌّ لكلّ جهاز يستلزم بحثاً عنه في المنصّة — متابعةٌ لا هذا القالب.
+#   TLS (كنمط nats/tls): mosquitto/tls/{ca.crt,server.crt,server.key} خارج git؛ المستمع 8883
+#   (انظر الكتلة المعلَّقة في mosquitto.conf) والجهاز يتحقّق بـCA عبر WiFiClientSecure.
+#
+# ── القواعد ── لا `topic #` ولا `readwrite` واسع لأيّ هويّة. الجهاز يقرأ أوامره **وحده**
+# (`%u` = اسم المستخدم = device_id) ويكتب قراءات حقله **وحده** (سطرٌ مولَّد لكلّ جهاز من
+# السجلّ). وactuator-service يرفض قراءةً لا يشهد بها iot_devices لنفس المستأجر/الحقل
+# (`_handle_telemetry_message`) — فالـACL يمنع الانتحال عند الوسيط، والسجلّ يمنعه عند المنصّة.
+
+# ── خدمة المشغّلات: تنشر الأوامر وتقرأ القراءات ──
+user sahool-actuator-service
+topic write sahool/actuator/+/command
+topic read sahool/+/+/telemetry/+
+# v238: إقرارات الأجهزة الموقَّعة (قراءة فقط — الخدمة لا تكتب إقراراً عن جهاز).
+topic read sahool/+/actuator/+/ack
+
+# ── معالج الفيديو: ينشر تنبيهاته وأحداث البثّ فقط ──
+user sahool-video-processor
+topic write sahool/tenant/+/alerts/#
+topic write sahool/video/#
+
+# ── فحص صحّة الوسيط ──
+user sahool-mqtt-health
+topic read $SYS/broker/version
+
+# ── كلّ جهاز: أوامره وحده (pattern يطبَّق على كلّ مستخدمٍ غير مذكور أعلاه أيضاً) ──
+pattern read sahool/actuator/%u/command
+
+# ── لكلّ جهاز سطرٌ مولَّد من iot_devices (tenant_id, field_id) — مثالٌ بقيمٍ نائبة:
+# user <device_id>
+# topic write sahool/<tenant_uuid>/<field_id>/telemetry/+
+# topic write sahool/<tenant_uuid>/actuator/<device_id>/ack

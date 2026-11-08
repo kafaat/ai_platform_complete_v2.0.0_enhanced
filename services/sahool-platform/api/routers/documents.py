@@ -18,6 +18,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.document_models import DocumentRequest
+from api.idempotency import model_digest
 from api.main import (
     CommandStore,
     Permission,
@@ -78,6 +79,7 @@ async def register_document(
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
                 payload={"doc_id": doc_id, "title": req.title},
+                request_digest=model_digest(req),
             )
         else:
             result = await _work()

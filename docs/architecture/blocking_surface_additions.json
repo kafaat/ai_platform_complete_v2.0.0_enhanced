@@ -167,6 +167,13 @@
       "positive_witness": "tests/architecture/test_livekit_acceptance.py::test_requires_actual_refreshed_token_and_all_cases first accepts a complete report with all required case results and actual_server_refresh_observed=True, then rejects a missing refresh and a missing case.",
       "impact": "merge",
       "$scope_limit_ar": "Isolated self-hosted SFU admission at PR time, with synthetic RS256 Platform authority. No certification of deployed RLS, Arabic inference quality, TURN, mobile networks or production readiness."
+    },
+    "scripts/ci/brain_append_only_guard.py::ci.yml::structural-lint": {
+      "counterexample": "BRAIN-HOT-BUDGET-GUARD-RUNS-IN-A-NON-REQUIRED-CHECK-01, measured on main 01d3402d3e835682e414ff1e6bfbe8b493ecccff: the historical guard ran only in no-report-only-change, absent from both required_status_checks_contract.json and live main-protection ruleset 20645828 (20 required contexts). A synthetic budget increase 100 to 120 with a 15-byte hot.md passed the size-only condition while this guard returned BUDGET_RAISED (base adc709cf894416f69d421a6cb42941476d97d0c3, head a2d56aa34f2da81006d9d695fae11413efb94baa). Repository Structural Lint was required but did not run this historical guard.",
+      "mutation": "test_the_budget_never_rises",
+      "positive_witness": "test_the_budget_never_rises permits an unchanged or lower limit; test_a_hot_md_shrink_is_accepted_only_as_an_in_order_verbatim_move permits legitimate archival rotation.",
+      "impact": "merge",
+      "$scope_limit_ar": "تشغيل الحارس القائم في Repository Structural Lint بمرجع أساس ثابت من الحدث وتاريخ كامل؛ لا سياق مطلوب جديد ولا تعديل لقواعد حماية الفرع."
     }
   }
 }

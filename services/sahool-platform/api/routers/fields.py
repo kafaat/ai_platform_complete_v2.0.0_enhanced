@@ -40,8 +40,11 @@ from api.field_models import (
     _FIELD_QUALITY_SELECT,
     _MIN_FIELD_OVERLAP_M2,
     ChildField,
+    DriftRiskRequest,
     FieldCreateRequest,
     FieldDetail,
+    FieldImageryProcessDateRequest,
+    FieldImageryRefreshRequest,
     FieldImportRequest,
     FieldMergeRequest,
     FieldSplitRequest,
@@ -525,7 +528,8 @@ async def _persist_field(
                     command_type="field.create",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"request_digest": api_main.model_digest(req)},  # D4
+                    payload={},
+                    request_digest=api_main.model_digest(req),  # D4
                 )
             else:
                 result = await _work()
@@ -648,24 +652,6 @@ async def import_field(
         reason="field.created",
     )
     return result
-
-
-class FieldImageryRefreshRequest(BaseModel):
-    date: str | None = None
-    # UI hotfix: قد تكون صفحة الأقمار تعرض حقلاً محمّلاً/مخزّناً محليّاً أو من
-    # raster timeline قبل أن يوجد الصفّ في جدول fields لنفس المستأجر. لا نلفّق
-    # هندسة؛ نقبل geometry صريحة من خيار الحقل المختار ونمرّرها إلى raster-service
-    # بدل إسقاط التحليل بـ404. إذا لم تصل هندسة، يبقى 404 صادقاً.
-    geometry: dict | None = None
-
-
-class FieldImageryProcessDateRequest(BaseModel):
-    """V8-05 PR2: طلب معالجة مشهد مفرد لتاريخٍ اختاره المستخدم (زرّ صريح، لا اختيار التاريخ)."""
-
-    date: str
-    index: str
-    scene_id: str
-    geometry: dict | None = None
 
 
 @router.post("/api/v1/fields/{field_id}/imagery/process-date")
@@ -1502,6 +1488,7 @@ async def update_field(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"field_id": field_id},
+                    request_digest=api_main.model_digest(req, field_id),
                 )
             else:
                 result = await _work()
@@ -1896,6 +1883,7 @@ async def merge_fields(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"source_ids": req.source_field_ids, "name": req.name},
+                    request_digest=api_main.model_digest(req),
                 )
             else:
                 result = await _work()
@@ -2034,6 +2022,7 @@ async def split_field(
                         "source_id": req.source_field_id,
                         "children": [c.name for c in req.children],
                     },
+                    request_digest=api_main.model_digest(req),
                 )
             else:
                 result = await _work()
@@ -2241,7 +2230,8 @@ async def create_season(
                     command_type="season.create",
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
-                    payload={"request_digest": api_main.model_digest(req, field_id)},  # D4
+                    payload={},
+                    request_digest=api_main.model_digest(req, field_id),  # D4
                 )
             else:
                 result = await _work()
@@ -2498,6 +2488,8 @@ async def field_irrigation_advice(
     والمطر من Open-Meteo (نفس مصدر /api/v1/weather). 404 إن غاب الحقل، 503 إن
     تعذّر الطقس (لا بيانات وهميّة).
     """
+    from core.season_phenology import resolve_crop_id, stage_kc
+
     from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.weather_advice import (
         complete_rain_total,
@@ -2507,7 +2499,7 @@ async def field_irrigation_advice(
 
     try:
         async with tenant_connection(user) as conn:
-            lat, lon, crop, stage, _days = await _field_weather_context(conn, field_id)
+            lat, lon, crop, stage, days_since_sowing = await _field_weather_context(conn, field_id)
             # رطوبة تربة حيّة من telemetry الأجهزة (إن وُجدت) — تُغذّي إلحاح التوصية.
             soil_reading = await _latest_soil_moisture(conn, field_id)
     except HTTPException:
@@ -2562,6 +2554,8 @@ async def field_irrigation_advice(
         rain_recent_mm=current_rain,
         forecast_rain_mm=forecast_rain,
         soil_moisture_pct=soil_pct,
+        # G1: Kc اليوميّ (FAO-56) من عمر المحصول — لا قيمة المرحلة الواحدة لكامل المرحلة.
+        kc_override=stage_kc(resolve_crop_id(crop), days_since_sowing),
     )
     advice.update(
         {
@@ -2703,24 +2697,6 @@ async def field_wind_prevailing(
     }
 
 
-class _SensitiveZone(BaseModel):
-    id: str | None = None
-    type: str | None = None
-    lat: float = Field(ge=-90, le=90)
-    lon: float = Field(ge=-180, le=180)
-
-
-class DriftRiskRequest(BaseModel):
-    """طلب تقييم انجراف الرشّ: مناطق حسّاسة يوفّرها العميل (لا تُخزَّن) + معاملات اختياريّة."""
-
-    sensitive_zones: list[_SensitiveZone] = Field(default_factory=list, max_length=200)
-    # تجاوز اتّجاه الريح (أرصاديّ)؛ None ⇒ يُشتقّ السائد من NASA POWER (تاريخ).
-    wind_from_deg: float | None = Field(default=None, ge=0, le=360)
-    years: int = Field(default=3, ge=1, le=10)
-    max_distance_m: float = Field(default=200.0, gt=0, le=5000)
-    half_angle_deg: float = Field(default=30.0, gt=0, le=90)
-
-
 @router.post("/api/v1/fields/{field_id}/wind/drift-risk")
 async def field_wind_drift_risk(
     field_id: str,
@@ -2846,7 +2822,7 @@ async def field_recommendations(
 
     # الطقس اختياريّ: نملأ سياقه إن توفّرت الإحداثيّات والمصدر. تعذّره لا يُسقط
     # الطلب — نكتفي بالتوصيات التي لا تحتاجه (تدهور رشيق، لا تلفيق).
-    from api.weather_advice import complete_rain_total
+    from api.weather_advice import complete_rain_total, irrigation_rain_window
 
     weather_available = False
     if lat is not None and lon is not None:
@@ -2857,9 +2833,9 @@ async def field_recommendations(
             et0 = today.et0_mm if today and today.et0_mm is not None else None
             ctx.et0_mm = et0
             # الغيابُ يمرّ `None` — والقواعدُ تصمت عليه بدل أن تُوصي على صفرٍ مُختلَق.
-            ctx.rain_recent_mm = current.precipitation_mm
-            ctx.forecast_rain_mm, _ = complete_rain_total(
-                [f.precipitation_mm for f in forecast[1:3]], expected_count=2
+            # G8 + #1329: التعريفُ المشترك للريّ — مجموعُ اليوم توقّعٌ لا يُخصَم «أخيراً».
+            ctx.rain_recent_mm, ctx.forecast_rain_mm, _ = irrigation_rain_window(
+                [f.precipitation_mm for f in forecast[:3]]
             )
             ctx.temp_c = current.temperature_c
             ctx.humidity_pct = current.humidity_pct
@@ -3026,6 +3002,7 @@ async def create_activity(
                     actor_id=str(user.user_id),
                     tenant_id=str(user.tenant_id),
                     payload={"field_id": field_id, "activity_id": activity_id},
+                    request_digest=api_main.model_digest(req, field_id),
                 )
             else:
                 result = await _work()

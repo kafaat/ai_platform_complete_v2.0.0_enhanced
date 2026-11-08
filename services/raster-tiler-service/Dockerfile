@@ -9,7 +9,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8088
 
 # libexpat1 is required by rasterio/GDAL in the slim image.
-RUN apt-get update \
+ARG DEBIAN_MIRROR=
+RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian-security|${DEBIAN_MIRROR%/}/debian-security|g" \
+            -e "s|http://deb.debian.org/debian|${DEBIAN_MIRROR%/}/debian|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi \
+    && apt-get update \
  && apt-get install -y --no-install-recommends libexpat1 \
  && rm -rf /var/lib/apt/lists/*
 

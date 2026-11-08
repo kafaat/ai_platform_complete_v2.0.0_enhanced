@@ -106,6 +106,32 @@ def test_a_codeowners_identity_change_is_substantive_not_a_report():
     assert result.returncode == 0, result.stderr
 
 
+def test_an_authority_exception_renewal_is_substantive_not_a_report():
+    # تجديدُ استثناءِ سلطةٍ منتهٍ يمسّ سجلَّه + الدماغ + المصنوعات وحدها، والسجلُّ مدخلٌ
+    # يقرؤه حارسٌ ليقرّر PASS/FAIL. كان «report-only» فلا يهبط أبداً بينما main أحمر بسببه.
+    # مقيسٌ على #1320 بالقائمة نفسها.
+    result = _run(
+        "docs/architecture/platform_shrink_ratchet.json",
+        "docs/architecture/rag_authority_convergence.json",
+        "release/FILE_CHECKSUMS.sha256",
+        "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "release/SBOM_MINIMAL.json",
+        "sahool-brain/decisions/ledger.md",
+        "sahool-brain/log.md",
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_the_authority_exception_exemption_is_exact_not_the_architecture_tree():
+    # الاستثناءُ على الاسمين لا على `docs/architecture/`: سجلٌّ آخرُ هناك مع مصنوعٍ
+    # يبقى محجوباً كما كان.
+    result = _run(
+        "docs/architecture/some_other_policy.json",
+        "release/FILE_CHECKSUMS.sha256",
+    )
+    assert result.returncode != 0, "ابتلع الاستثناءُ ملفّاً غيرَ مقصود"
+
+
 def test_the_codeowners_exemption_is_exact_not_a_prefix():
     # الاستثناءُ على **الاسم الكامل** لا على `.github/`: ملفٌّ آخرُ تحت `.github/`
     # لا يصير جوهريّاً بالمصادفة. وهو نفسُ تمييز `CVE-LIKE-BUT-NOT` في حارس

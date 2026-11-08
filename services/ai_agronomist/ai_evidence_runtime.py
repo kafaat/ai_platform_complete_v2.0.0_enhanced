@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import math
 import os
+import re
+import uuid
 from collections.abc import Callable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 from fastapi import HTTPException
@@ -56,6 +60,38 @@ TENANT_POLICY = build_store_from_env()
 RAG_BASE_URL = os.getenv("RAG_BASE_URL", "http://sahool-rag-retrieval:8000")
 KNOWLEDGE_GRAPH_URL = os.getenv("KNOWLEDGE_GRAPH_URL", "http://sahool-knowledge-graph:8000")
 PLATFORM_URL = os.getenv("PLATFORM_URL", "http://sahool-platform:8000")
+
+logger = logging.getLogger("ai_agronomist.evidence_runtime")
+
+# S2 — صيغة معرّف الحقل القانونيّة (``fields.field_id VARCHAR(50)``: ``fld_<hex>`` أو UUID).
+# كان المعرّف يُحقَن خاماً في مسارٍ داخليّ يحمل رمز الخدمة، فـ``../../x#`` يبلغ مسارات
+# داخليّة أخرى. الفارغ مقبول = «بلا حقل». The canonical field-id shape; anything else is rejected.
+FIELD_ID_PATTERN = r"^[A-Za-z0-9_-]{0,50}$"
+_FIELD_ID_RE = re.compile(FIELD_ID_PATTERN)
+# المقطع يُرمَّز دائماً (quote safe="") — دفاعٌ ثانٍ إن تجاوز معرّفٌ التحقّق.
+_FIELD_STATE_PATH = "/internal/fields/{field_id}/state"
+
+
+def is_canonical_field_id(value: Any) -> bool:
+    return isinstance(value, str) and bool(value) and bool(_FIELD_ID_RE.fullmatch(value))
+
+
+def _upstream_unavailable(reason: str, **log_fields: Any) -> dict[str, Any]:
+    """Generic, caller-safe failure: the upstream body/exception stays in the server log only.
+
+    S2 — كان جسم خطأ المنصّة (``resp.text``) ونصّ الاستثناء يُعادان للمتّصل عبر 502؛
+    الآن يُسجَّلان خادميّاً مع معرّف ارتباط، والمتّصل يرى المعرّف وحده.
+    """
+    correlation_id = uuid.uuid4().hex
+    logger.warning(
+        "canonical field state unavailable reason=%s correlation_id=%s %s",
+        reason,
+        correlation_id,
+        log_fields,
+    )
+    return {"status": "unavailable", "reason": reason, "correlation_id": correlation_id}
+
+
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 
@@ -95,11 +131,14 @@ async def _fetch_canonical_field_state(
     """
     if not field_id:
         return None
+    # S2 — دفاعٌ في العمق: لا يُرسَل رمز الخدمة إلى مسارٍ بُني من معرّفٍ غير قانونيّ.
+    if not is_canonical_field_id(field_id):
+        return {"status": "unavailable", "reason": "invalid_field_id"}
     if not AGENT_TOKEN:
         return {"status": "unavailable", "reason": "SAHOOL_AGENT_TOKEN not configured"}
     try:
         resp = await client.get(
-            f"{PLATFORM_URL.rstrip('/')}/internal/fields/{field_id}/state",
+            PLATFORM_URL.rstrip("/") + _FIELD_STATE_PATH.format(field_id=quote(field_id, safe="")),
             params={"tenant_id": tenant_id, "canonical": "true", "ai_context": "true"},
             headers={"X-Agent-Token": AGENT_TOKEN},
             timeout=30.0,
@@ -107,11 +146,9 @@ async def _fetch_canonical_field_state(
         if resp.status_code == 404:
             return {"status": "not_found", "field_id": field_id}
         if resp.status_code >= 400:
-            return {
-                "status": "unavailable",
-                "http_status": resp.status_code,
-                "detail": resp.text[:500],
-            }
+            return _upstream_unavailable(
+                "platform_http_error", http_status=resp.status_code, body=resp.text[:500]
+            )
         payload = resp.json()
         canonical = payload.get("canonical_field_state")
         pack = payload.get("ai_context_pack")
@@ -126,7 +163,7 @@ async def _fetch_canonical_field_state(
             return {"status": "unavailable", "reason": "canonical_context_identity_mismatch"}
         return {**canonical, "ai_context_pack": pack}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "unavailable", "reason": str(exc)}
+        return _upstream_unavailable("platform_request_failed", error=repr(exc)[:500])
 
 
 # العلاقات المحكومة التي **دورها البيانيّ مرجعيّ ودلالتها الدليليّة سياقُ استرجاع
@@ -772,6 +809,10 @@ async def build_evidence_response(
         not req.field_id or req.tool_calls or req.current_field_state is not None
     ):
         raise HTTPException(403, "voice_read_only_request_invalid")
+
+    # S2 — يُرفَض المعرّف غير القانونيّ قبل أيّ نداءٍ تابع (الموديل يفرضه أيضاً).
+    if req.field_id and not is_canonical_field_id(req.field_id):
+        raise HTTPException(422, "invalid_field_id")
 
     async with httpx.AsyncClient() as client:
         # C3: public clients must not be able to inject ``current_field_state`` and

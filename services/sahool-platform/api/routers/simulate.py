@@ -26,6 +26,10 @@ WOFOST يبقى كسولاً داخل الدالّة كما كان. لتفادي
    يُسدَّ** بحسب فرع ``irrigation`` (ويحمل معامل ×1.1 في أحد الفرعين)، فالطرح بلا
    معنى. صار مشتقّاً من ``irrigation_applied_mm`` — المقدار الوحيد المتجانس بين
    الفرعين — مع تسمية الأساس والاتّجاه صراحةً، وبلا قصٍّ عند الصفر.
+
+وG5: طقسٌ ناقص كان يُملأ بثوابت ويُسمّى «حقيقيّاً». المحرّك صار يستوفي الفجوات الصغيرة
+ويَسِمها (``weather_provenance``) ويرفض الكبيرة بـ``WEATHER_GAPS_EXCEEDED``؛ الموجِّه
+يُمرّر النَّسَب في الاستجابة ويُعيد رمز الرفض المُنمَّط كما هو.
 """
 
 from __future__ import annotations
@@ -57,6 +61,12 @@ SCENARIO_IRRIGATION_FRACTION: dict[str, float] = {
     "reduce_irrigation": 0.5,
 }
 ACTION_IRRIGATION_FRACTION = 1.0
+
+
+# رموز تعذّر المحرّك المُنمَّطة التي تُمرَّر كما هي (قائمة مغلقة — لا صدى لنصّ المحرّك).
+_ENGINE_ERROR_CODES: dict[str, str] = {
+    "WEATHER_GAPS_EXCEEDED": "بيانات الطقس المرصود ناقصة بما يتجاوز حدّ الاستكمال — لا محاكاة",
+}
 
 
 def _unavailable(field_id: str, code: str, note_ar: str, correlation_id: str) -> dict[str, Any]:
@@ -160,6 +170,11 @@ async def simulate_what_if(
         if not isinstance(result, dict) or result.get("error"):
             detail = result.get("error") if isinstance(result, dict) else type(result).__name__
             logger.warning("what-if[%s]: فرع %s أعاد تعذّراً: %s", correlation_id, label, detail)
+            code = result.get("error_code") if isinstance(result, dict) else None
+            if code in _ENGINE_ERROR_CODES:
+                out = _unavailable(req.field_id, code, _ENGINE_ERROR_CODES[code], correlation_id)
+                out["weather_provenance"] = result.get("weather_provenance")
+                return out
             return _unavailable(
                 req.field_id, "SIMULATION_FAILED", "تعذّرت المحاكاة (طقس/نموذج)", correlation_id
             )
@@ -187,13 +202,28 @@ async def simulate_what_if(
 
     resolution = action.get("parameter_resolution") or {}
     degraded = bool(resolution.get("degraded"))
-    note_ar = None
+    notes: list[str] = []
     if degraded:
-        note_ar = (
+        notes.append(
             "مُدخَل غير مُدرَج في جداول المحرّك؛ حُسِبت المحاكاة ببارامترات بديلة "
             f"(محصول: {action.get('resolved_crop')} · تربة: {action.get('resolved_soil_type')}) "
             "— الأرقام تخصّ البديل لا المُدخَل"
         )
+
+    # G5: نَسَب الطقس يصل المستهلك. الفرعان يجلبان الطقس نفسه؛ يُعرَض نَسَب الإجراء،
+    # والعلَم يُرفع إن استُكمِل أيّ يوم في أيّ فرع.
+    weather_provenance = action.get("weather_provenance")
+    gap_filled_days = max(
+        int(((r.get("weather_provenance") or {}).get("gap_filled_days")) or 0)
+        for r in (action, scenario)
+    )
+    weather_gap_filled = gap_filled_days > 0
+    if weather_gap_filled:
+        notes.append(
+            f"{gap_filled_days} يوماً من الطقس غير مرصود واستُكمِل بالاستيفاء الخطّيّ — "
+            "الأرقام تقديريّة جزئيّاً"
+        )
+    note_ar = " · ".join(notes) or None
 
     return {
         "field_id": req.field_id,
@@ -215,5 +245,7 @@ async def simulate_what_if(
         "recommended_action_helps": helps,
         "parameter_resolution": resolution,
         "degraded": degraded,
+        "weather_provenance": weather_provenance,
+        "weather_gap_filled": weather_gap_filled,
         "note_ar": note_ar,
     }

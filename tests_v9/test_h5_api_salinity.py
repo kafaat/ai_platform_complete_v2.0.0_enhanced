@@ -131,9 +131,50 @@ def test_salinity_on_adds_leaching_above_net():
     )
     lr = fao56_leaching_requirement(3.0, profile.salt_tolerance_ece)
     assert lr > 0.0
+    # FAO-29: الإجماليّ = الصافي / (1 − LR) (G14 — كان ×(1+LR) فيُنقِص الماء).
     assert math.isclose(
-        with_leach.net_irrigation_mm, no_leach.net_irrigation_mm * (1.0 + lr), rel_tol=1e-9
+        with_leach.net_irrigation_mm, no_leach.net_irrigation_mm / (1.0 - lr), rel_tol=1e-9
     )
+
+
+def test_leaching_uses_fao29_division_with_exact_numbers():
+    """G14: ECw=3، عتبة القمح 6 ⇒ LR=3/(5·6−3)=1/9 ⇒ ×9/8=1.125 (لا ×10/9≈1.111)."""
+    w = _weather()
+    no_leach = water_balance(
+        w, "wheat", "mid", rain_mm=0, soil_ece=0.0, apply_salinity=True, et0_mm=6.0
+    )
+    with_leach = water_balance(
+        w, "wheat", "mid", rain_mm=0, soil_ece=0.0, water_ec=3.0, apply_salinity=True, et0_mm=6.0
+    )
+    assert fao56_leaching_requirement(3.0, 6.0) == pytest.approx(1.0 / 9.0, rel=1e-12)
+    assert no_leach.net_irrigation_mm > 0.0
+    assert with_leach.net_irrigation_mm / no_leach.net_irrigation_mm == pytest.approx(
+        1.125, rel=1e-9
+    )
+    # الحدّ الأعلى للمحرّك LR=0.5 ⇒ ضعف الصافي تماماً (كان ×1.5).
+    capped = water_balance(
+        w, "wheat", "mid", rain_mm=0, soil_ece=0.0, water_ec=40.0, apply_salinity=True, et0_mm=6.0
+    )
+    assert capped.net_irrigation_mm == pytest.approx(2.0 * no_leach.net_irrigation_mm, rel=1e-9)
+
+
+def test_leaching_requirement_outside_unit_interval_is_rejected(monkeypatch):
+    """G14: LR ∉ [0,1) ⇒ ValueError صريح لا قسمة على صفر/سالب."""
+    from api import water_balance as wb
+
+    for bad in (1.0, 1.5, -0.1, float("nan")):
+        monkeypatch.setattr(wb, "_fao56_leaching_requirement", lambda ecw, thr, v=bad: v)
+        with pytest.raises(ValueError, match=r"\[0, 1\)"):
+            water_balance(
+                _weather(),
+                "wheat",
+                "mid",
+                rain_mm=0,
+                soil_ece=0.0,
+                water_ec=3.0,
+                apply_salinity=True,
+                et0_mm=6.0,
+            )
 
 
 # ─── المحور 3: إزالة تكرار الغسيل — التفويض للمحرّك ──────────────────────────

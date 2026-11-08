@@ -25,6 +25,13 @@ services/raster-service/soil_indices.py — مؤشّرات استشعار الت
 
 from __future__ import annotations
 
+# Validity (G4): Sentinel-2 L2A baseline ≥04.00 applies BOA_ADD_OFFSET −0.1, so
+# dark/water pixels carry negative reflectance; with mixed signs the old
+# ``_eps`` (1e-10) published ±6e7. Normalized differences now go through the
+# shared band_math kernel (negative/nonfinite band or result outside [-1, 1]
+# ⇒ NaN, excluded from stats). سالب الانعكاس ⇒ NaN لا قيمة مختلَقة.
+from band_math import nonnegative_finite, normalized_difference
+
 # الصيغ (توثيق + مرجع للتنفيذ) — تُطابق _INDICATOR_FORMULAS في main.py
 SOIL_INDEX_FORMULAS = {
     "bsi": "((SWIR2 + RED) - (NIR + BLUE)) / ((SWIR2 + RED) + (NIR + BLUE))",
@@ -45,17 +52,17 @@ SOIL_INDEX_THRESHOLDS = {
 }
 
 
-def _eps(arr, _np):
-    """يتجنّب القسمة على صفر بإضافة epsilon صغير للمقام."""
-    return _np.where(arr == 0, 1e-10, arr)
-
-
 # ─── المؤشّرات السبعة ────────────────────────────────────────────
 def compute_bsi(blue, red, nir, swir2, _np):
-    """Bare Soil Index — فصل التربة العارية عن النبات والمباني."""
-    num = (swir2 + red) - (nir + blue)
-    den = _eps((swir2 + red) + (nir + blue), _np)
-    return num / den
+    """Bare Soil Index — فصل التربة العارية عن النبات والمباني.
+
+    ND of (SWIR2+RED) and (NIR+BLUE) ⇒ range [-1, 1] (Rikimaru et al. 2002).
+    Each band is checked on its own: a negative band can hide inside a
+    non-negative sum.
+    """
+    valid = nonnegative_finite((blue, red, nir, swir2), _np)
+    swir2, red, nir, blue = (_np.asarray(x, dtype="float64") for x in (swir2, red, nir, blue))
+    return _np.where(valid, normalized_difference(swir2 + red, nir + blue, _np), _np.nan)
 
 
 def compute_bi(red, green, _np):
@@ -72,23 +79,41 @@ def compute_bi2(red, green, nir, _np):
 
 
 def compute_ndti(swir1, swir2, _np):
-    """Normalized Difference Tillage Index — الحراثة/بقايا المحاصيل."""
-    return (swir1 - swir2) / _eps(swir1 + swir2, _np)
+    """Normalized Difference Tillage Index — الحراثة/بقايا المحاصيل.
+
+    Range [-1, 1] (Van Deventer et al. 1997) via the shared ND kernel.
+    """
+    return normalized_difference(swir1, swir2, _np)
 
 
 def compute_dbsi(green, swir1, ndvi, _np):
-    """Dry Bare Soil Index — التربة الجافّة العارية (مهمّ لليمن الجافّ)."""
-    return ((swir1 - green) / _eps(swir1 + green, _np)) - ndvi
+    """Dry Bare Soil Index — التربة الجافّة العارية (مهمّ لليمن الجافّ).
+
+    ND(SWIR1, GREEN) − NDVI ⇒ range [-2, 2] (Rasul et al. 2018); an invalid
+    ND or NDVI pixel stays NaN.
+    """
+    return normalized_difference(swir1, green, _np) - _np.asarray(ndvi, dtype="float64")
 
 
 def compute_ndsi(swir1, swir2, _np):
-    """Normalized Difference Salinity Index — الملوحة (SWIR1/SWIR2، متّسق مع CDSE)."""
-    return (swir1 - swir2) / _eps(swir1 + swir2, _np)
+    """Normalized Difference Salinity Index — الملوحة (SWIR1/SWIR2، متّسق مع CDSE).
+
+    Range [-1, 1] via the shared ND kernel.
+    """
+    return normalized_difference(swir1, swir2, _np)
 
 
 def compute_satvi(red, swir1, swir2, _np, L: float = 0.5):
-    """Soil-Adjusted Total Vegetation Index — يفصل تأثير التربة."""
-    return ((swir1 - red) / _eps(swir1 + red + L, _np)) * (1 + L) - (swir2 / 2.0)
+    """Soil-Adjusted Total Vegetation Index — يفصل تأثير التربة (Marsett et al. 2006).
+
+    The denominator is ≥ L > 0 for valid bands, so only negative/nonfinite
+    bands are masked (L2A offset), matching the other indices.
+    """
+    valid = nonnegative_finite((red, swir1, swir2), _np)
+    red, swir1, swir2 = (_np.asarray(x, dtype="float64") for x in (red, swir1, swir2))
+    with _np.errstate(invalid="ignore", divide="ignore", over="ignore"):
+        out = ((swir1 - red) / (swir1 + red + L)) * (1 + L) - (swir2 / 2.0)
+    return _np.where(valid & _np.isfinite(out), out, _np.nan)
 
 
 # ─── تصنيف نسيج التربة التلقائي (تقديري — يحتاج معايرة) ──────────

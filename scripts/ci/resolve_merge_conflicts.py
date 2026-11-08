@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import stat
 import subprocess
@@ -108,19 +109,74 @@ def counts_as_archive(path: str, mode: str, folder: str) -> bool:
 
 
 def git_mode(entry: Path) -> str:
-    """The git mode a working-tree entry is committed with — read with ``lstat``, never followed."""
+    """The mode Git would record for an entry; links are never followed.
+
+    ARCHIVE-READERS-DISAGREE-WITH-GIT-MODES-01: with ``core.filemode=false``, a
+    clean 100644 archive can appear executable on disk. Conversely, an indexed
+    100755 file can appear non-executable, and ``core.symlinks=false`` materializes
+    a 120000 link as regular text. Let Git compare tracked entries with its index
+    rather than treating filesystem permission bits as the committed policy.
+    Standalone directories outside a Git repository retain filesystem semantics.
+    """
     info = entry.lstat()
     if stat.S_ISLNK(info.st_mode):
         return "120000"
     if stat.S_ISDIR(info.st_mode):
         return "040000"
-    if stat.S_ISREG(info.st_mode):
-        return "100755" if info.st_mode & stat.S_IXUSR else "100644"
-    return ""
+    if not stat.S_ISREG(info.st_mode):
+        return ""
+    filesystem_mode = "100755" if info.st_mode & stat.S_IXUSR else "100644"
+    indexed = subprocess.run(
+        ["git", "--literal-pathspecs", "ls-files", "--stage", "-z", "--", entry.name],
+        cwd=entry.parent,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={**os.environ, "LC_ALL": "C"},
+    )
+    # Only a genuinely standalone directory gets the fallback; unreadable or
+    # broken Git metadata must not silently turn into a filesystem measurement.
+    if indexed.returncode == 128 and indexed.stderr.startswith("fatal: not a git repository"):
+        return filesystem_mode
+    indexed.check_returncode()
+    records = [record.split("\t", 1)[0].split() for record in indexed.stdout.split("\0") if record]
+    if not records:
+        try:
+            filemode = _git(
+                entry.parent, "config", "--bool", "--get", "core.filemode"
+            ).stdout.strip()
+        except subprocess.CalledProcessError as exc:
+            if exc.returncode != 1:  # absent config means Git's default, true
+                raise
+            filemode = "true"
+        return "100644" if filemode == "false" else filesystem_mode
+    if len(records) != 1 or records[0][2] != "0":
+        raise ValueError(f"Unmerged entry has no resolved Git mode: {entry}")
+    changed = _git(
+        entry.parent,
+        "--literal-pathspecs",
+        "diff-files",
+        "--raw",
+        "-z",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--no-renames",
+        "--",
+        entry.name,
+    ).stdout
+    return changed.split("\0", 1)[0].split()[1] if changed else records[0][0]
 
 
 def counted_archive_files(directory: Path, folder: str) -> list[Path]:
     """The working-tree files ``counts_as_archive`` accepts, sorted — what the readers read."""
+    # Git cannot hold archive files below a symbolic-link tree entry. Inspect the
+    # declared repository-relative folder, without rejecting a linked workspace
+    # ancestor outside that folder, and never read a different vault through it.
+    component = directory
+    for _ in Path(folder).parts:
+        if component.is_symlink():
+            return []
+        component = component.parent
     if not directory.is_dir():
         return []
     return sorted(
@@ -254,12 +310,12 @@ def classify(path: str) -> str:
     return "source"
 
 
-def _git(root: Path, *args: str) -> subprocess.CompletedProcess:
+def _git(root: Path, *args: str, binary: bool = False) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["git", *args],
         capture_output=True,
-        text=True,
-        encoding="utf-8",
+        text=not binary,
+        encoding=None if binary else "utf-8",
         check=True,
         cwd=root,
     )
@@ -363,6 +419,28 @@ def _stage(root: Path, path: str) -> None:
     _git(root, "add", "--", path)
 
 
+def _archive_keeps_parent_prefixes(root: Path, path: str, merged: str, operation: str) -> bool:
+    """Strict archives must retain each resulting parent's raw bytes as a prefix.
+
+    Two independent appends cannot be combined by concatenating their conflict
+    hunks: one parent's suffix becomes an insertion into the other parent. Read
+    the unmerged index, not the worktree's marker text or decoded Git output.
+    A rebase has only the current HEAD as its new parent (stage 2); the replayed
+    commit (stage 3) does not become a second parent of the resulting commit.
+    """
+    entries = _git(root, "ls-files", "--unmerged", "-z", "--", path).stdout
+    parent_stages = ("2", "3") if operation == "merge" else ("2",)
+    parents = []
+    for record in entries.split("\0"):
+        metadata, tab, _name = record.partition("\t")
+        if tab:
+            _mode, oid, stage = metadata.split()
+            if stage in parent_stages:
+                parents.append(_git(root, "cat-file", "blob", oid, binary=True).stdout)
+    candidate = merged.encode("utf-8")
+    return bool(entries) and all(candidate.startswith(parent) for parent in parents)
+
+
 def resolve(root: Path = ROOT, dry_run: bool = False) -> int:
     paths = conflicted_paths(root)
     if not paths:
@@ -411,6 +489,30 @@ def resolve(root: Path = ROOT, dry_run: bool = False) -> int:
         )
         return 1
 
+    # ARCHIVE-CONFLICT-RESOLVER-BREAKS-PARENT-PREFIX-01: an archive is stricter
+    # than an ordinary journal. Validate all archive candidates before writing
+    # or staging ANY path, so a refused archive leaves the entire merge intact.
+    archive_candidates: dict[str, tuple[str, int]] = {}
+    for p in buckets["append_only"]:
+        if not any(p.startswith(folder) for folder in ARCHIVES.values()):
+            continue
+        try:
+            merged, n = merge_keeping_both((root / p).read_text(encoding="utf-8"), main_side)
+        except ValueError as exc:
+            print(f"  ✗ {p}: {exc} — لم يُكتب أو يُفهرس أيّ ملفّ", file=sys.stderr)
+            return 1
+        if not _archive_keeps_parent_prefixes(root, p, merged, operation):
+            print(
+                f"  ✗ [ARCHIVE_PREFIX_CONFLICT] {p}: حلّ التعارض لا يحفظ بايتات كلّ جانب"
+                "\n    كبادئة؛ الأرشيف إلحاقيّ صارم، وجمع الإضافتين يحرّر أحد الوالدين."
+                "\n    راجع نافذة الأرشفة قبل الدمج واستعمل ملفات أرشيف مستقلة لكلّ نقل،"
+                "\n    مع حفظ الأرشيفات القائمة كما هي (sahool-brain/README.md)."
+                "\n    لم يُكتب أو يُفهرس أيّ ملفّ.",
+                file=sys.stderr,
+            )
+            return 1
+        archive_candidates[p] = merged, n
+
     print(f"resolve_merge_conflicts: {operation} — جانب main هو --{main_side}")
 
     # الإلحاقيّة: تُحلّ **وتُفهرَس في نفس التكرار**. الفصل بين الخطوتين هو ما أتلف
@@ -418,7 +520,10 @@ def resolve(root: Path = ROOT, dry_run: bool = False) -> int:
     for p in buckets["append_only"]:
         f = root / p
         try:
-            merged, n = merge_keeping_both(f.read_text(encoding="utf-8"), main_side)
+            if p in archive_candidates:
+                merged, n = archive_candidates[p]
+            else:
+                merged, n = merge_keeping_both(f.read_text(encoding="utf-8"), main_side)
         except ValueError as exc:
             print(f"  ✗ {p}: {exc} — لم يُكتب أو يُفهرس هذا الملفّ", file=sys.stderr)
             return 1

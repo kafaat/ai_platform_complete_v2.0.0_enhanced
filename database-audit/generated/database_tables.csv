@@ -17,7 +17,7 @@ approval_workflows,v9_new_tables.sql,3,True,False,False,0,False,True,1,1
 as_applied_irrigation_observations,v178_canonical_as_applied_irrigation_truth.sql,183,True,True,True,1,True,False,1,0
 as_applied_irrigation_receipts,v178_canonical_as_applied_irrigation_truth.sql,183,True,True,True,1,True,False,1,1
 as_applied_irrigation_runs,v178_canonical_as_applied_irrigation_truth.sql,183,True,True,True,1,True,False,2,1
-audit_log,v9_auth_improvements.sql,2,False,True,True,2,True,False,0,2
+audit_log,v9_auth_improvements.sql,2,False,True,True,2,True,False,0,3
 automation_rules,v20_automation_tables.sql,24,True,False,False,0,False,True,1,1
 autonomous_event_store,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0
 autonomous_execution_plan,v118_phase9_autonomous_farm_os.sql,124,True,True,True,1,False,False,0,1
@@ -25,7 +25,7 @@ autonomous_recommendations,v116_enterprise_gis_phase7.sql,122,True,True,True,1,T
 backfill_run_items,v144_backfill_runs.sql,149,True,True,True,1,True,False,3,7
 backfill_runs,v144_backfill_runs.sql,149,True,True,True,1,True,False,3,5
 boundary_extraction_jobs,v115_precision_agriculture_phase6.sql,121,True,True,True,1,True,False,0,0
-break_glass_grants,v90_break_glass.sql,95,False,True,True,1,True,False,1,1
+break_glass_grants,v90_break_glass.sql,95,False,True,True,1,True,False,2,2
 calibration_audit,v84_calibration_audit.sql,89,True,True,True,1,True,False,1,1
 calibration_evidence,v86_calibration_evidence_trigger.sql,91,True,True,True,1,True,False,0,0
 calibration_override,v80_calibration_override.sql,85,True,True,True,1,True,False,1,1
@@ -55,7 +55,8 @@ custody_chain_events,v65_harvest_traceability.sql,70,True,True,True,1,False,Fals
 decision_learning_runs,v227_decision_learning_runtime.sql,224,True,False,False,0,False,True,1,1
 decision_policies,v69_decision_policies.sql,74,True,False,False,0,False,True,1,1
 decision_record,v78_decision_record.sql,83,True,True,True,1,True,False,22,21
-device_commands_log,v20_automation_tables.sql,24,True,False,False,0,False,True,1,1
+detection_provenance,v239_detection_provenance.sql,236,True,True,True,1,True,False,2,2
+device_commands_log,v20_automation_tables.sql,24,True,False,False,0,False,True,2,2
 device_telemetry,v24_iot_devices.sql,28,True,False,False,0,False,True,2,1
 digital_twin_scenarios,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
 dispatch_decisions,v66_dispatch_decisions.sql,71,True,False,False,0,False,True,7,5
@@ -63,7 +64,7 @@ distributed_raster_jobs,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True
 documents,v29_documents.sql,33,True,False,False,0,False,True,2,1
 drawing_features,v230_drawing_features.sql,227,True,True,True,1,True,False,2,1
 drone_missions,init_v8.sql,0,True,True,False,0,False,True,0,0
-edge_results,v9_new_tables.sql,3,True,False,False,0,False,True,2,2
+edge_results,v9_new_tables.sql,3,True,False,False,0,False,True,2,3
 equipment,v23_equipment.sql,27,True,False,False,0,False,True,3,1
 equipment_maintenance,v23_equipment.sql,27,True,False,False,0,False,True,2,1
 equipment_telemetry_frames,v109_phase9_iot_execution_adapters.sql,115,True,True,True,1,True,False,0,0
@@ -109,7 +110,7 @@ field_feature_store_candidate,v118_phase9_autonomous_farm_os.sql,124,True,True,T
 field_form_assignments,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_form_definitions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_form_versions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
-field_geometry_history,v96_spatial_geometry_integrity.sql,101,True,True,True,1,True,False,3,1
+field_geometry_history,v96_spatial_geometry_integrity.sql,101,True,True,True,1,True,False,4,1
 field_geometry_versions,v105_enterprise_imagery_best_practices.sql,110,True,True,True,1,True,False,0,1
 field_indicators,init_v8.sql,0,True,True,False,0,False,True,1,0
 field_irrigation_source_assignments,v214_field_irrigation_source_assignments.sql,218,True,True,True,1,True,False,1,0
@@ -120,7 +121,7 @@ field_state_snapshots,v60_event_snapshots.sql,65,True,False,False,0,False,True,1
 field_submissions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_tasks,v9_new_tables.sql,3,True,False,False,0,False,True,7,2
 field_weather_overlay,v74_weather_intelligence.sql,79,True,False,False,0,False,True,1,0
-fields,v9_foundation.sql,1,True,False,False,0,False,True,58,5
+fields,v9_foundation.sql,1,True,False,False,0,False,True,59,5
 geometry_editing_sessions,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 geometry_locks,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 gis_collaboration_events,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
@@ -141,7 +142,7 @@ inventory_batches,v22_inventory.sql,26,True,False,False,0,False,True,2,1
 inventory_items,v22_inventory.sql,26,True,False,False,0,False,True,1,1
 invitations,v89_invitations.sql,94,True,True,True,1,True,False,1,1
 iot_command_dispatch,v109_phase9_iot_execution_adapters.sql,115,True,True,True,2,True,False,0,1
-iot_devices,v24_iot_devices.sql,28,True,False,False,0,False,True,7,1
+iot_devices,v24_iot_devices.sql,28,True,False,False,0,False,True,8,1
 irrigation_battery_systems,v174_energy_agricultural_microgrid_capability.sql,179,True,False,False,0,False,True,0,0
 irrigation_capability_graph_edges,v175_unified_irrigation_capability_graph.sql,180,True,False,False,0,False,True,0,0
 irrigation_capability_graph_nodes,v175_unified_irrigation_capability_graph.sql,180,True,False,False,0,False,True,0,0
@@ -186,7 +187,7 @@ irrigation_sprinkler_packages,v173_sprinkler_runoff_capability.sql,178,True,Fals
 irrigation_sprinkler_zones,v173_sprinkler_runoff_capability.sql,178,True,False,False,0,False,True,0,0
 irrigation_system_specifications,v185_vendor_neutral_irrigation_engineering_workspace.sql,190,True,True,True,1,True,False,0,2
 irrigation_target_bindings,v196_irrigation_target_binding.sql,201,True,True,True,1,True,False,1,0
-irrigation_valves,v25_irrigation.sql,29,True,False,False,0,False,True,5,1
+irrigation_valves,v25_irrigation.sql,29,True,False,False,0,False,True,5,2
 irrigation_water_allocations,v170_water_source_well_digital_twin.sql,175,True,False,False,0,False,True,0,0
 irrigation_water_ledger_reconciliations,v184_irrigation_closed_loop_runtime_reconciliation.sql,189,True,True,True,1,True,False,1,1
 irrigation_water_profiles,v161_soil_p1_products.sql,166,True,False,False,0,False,True,0,1
@@ -243,7 +244,7 @@ offline_synced_operations,v15_offline_synced_operations.sql,19,True,False,False,
 ogc_conformance_runs,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
 onboarding_responses,v9_onboarding.sql,4,True,True,True,1,False,False,1,1
 online_feature_values,v106_phase9_10_runtime_strengthening.sql,112,True,True,True,1,True,False,0,1
-online_learning_updates,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,1,4
+online_learning_updates,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,1,5
 outbox_delivery_attempts,v140_outbox_delivery_attempts.sql,145,True,True,True,1,True,False,0,1
 outcome_record,v79_outcome_record.sql,84,True,True,True,1,True,False,13,10
 phenology_observations,v224_canonical_phenology_state.sql,221,True,True,True,1,True,False,0,2
@@ -316,7 +317,7 @@ tenant_ai_policies,v124_tenant_ai_policies.sql,130,True,True,True,1,True,False,1
 training_datasets,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
 trueup_calibrations,v12_trueup_sharing.sql,15,True,True,False,1,False,True,2,1
 usage_metering_records,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1
-users,v9_foundation.sql,1,True,True,False,2,True,True,9,10
+users,v9_foundation.sql,1,True,True,False,2,True,True,10,10
 vri_as_applied_variances,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_machine_translation_artifacts,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_prescription_zones,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0

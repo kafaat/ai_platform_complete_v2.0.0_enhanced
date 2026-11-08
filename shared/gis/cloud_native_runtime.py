@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlencode
 
-from shared.gis.cloud_native_gis import score_scene_quality
+from shared.gis.cloud_native_gis import parse_cloud_cover_pct, score_scene_quality
 from shared.gis.cog_display_policy import display_for_cog
 
 
@@ -28,7 +28,8 @@ class RasterRegistryRecord:
     index_type: str
     cog_url: str
     scene_id: str | None = None
-    cloud_pct: float = 0.0
+    # None = غطاء سحاب مجهول، لا 0% مختلَقة (G11). / None = unknown cover, never a fabricated 0%.
+    cloud_pct: float | None = None
     quality_score: int | None = None
     resolution_m: float = 10.0
     bbox: list[float] | dict[str, Any] | None = None
@@ -70,10 +71,14 @@ def _bbox_from_row(row: Any) -> list[float] | None:
 
 def record_from_db_row(row: Any) -> RasterRegistryRecord:
     get = row.get if isinstance(row, dict) else row.__getitem__
-    cloud = float(get("cloud_pct") or 0)
+    # المجهول/غير الصالح يبقى None حتّى الفلترة والدرجة وSTAC (G11).
+    cloud = parse_cloud_cover_pct(get("cloud_pct"))
     quality_score = get("quality_score")
     if quality_score is None:
         quality_score = score_scene_quality(cloud_pct=cloud).score
+    elif cloud is None:
+        # درجةٌ مخزَّنة لا تتخطّى سقفَ المجهول (٧٠) وإلّا عبرت min_quality=85؛ والأدنى يبقى.
+        quality_score = min(int(quality_score), score_scene_quality(cloud_pct=None).score)
     return RasterRegistryRecord(
         id=str(get("id")),
         tenant_id=str(get("tenant_id")),
@@ -108,6 +113,19 @@ def stac_item_from_record(record: RasterRegistryRecord, *, api_base: str = "") -
             "title": "TileJSON",
         },
     }
+    properties: dict[str, Any] = {
+        "datetime": dt,
+        "sahool:tenant_id": record.tenant_id,
+        "sahool:field_id": record.field_id,
+        "sahool:raster_id": record.id,
+        "sahool:index_type": record.index_type,
+        "sahool:cloud_cover_known": record.cloud_pct is not None,
+        "sahool:quality_score": record.quality_score,
+        "gsd": record.resolution_m,
+    }
+    if record.cloud_pct is not None:
+        # eo:cloud_cover رقم [0,100] في STAC؛ المجهول يُحذف لا يُصفَّر. / Unknown is omitted, not 0.
+        properties["eo:cloud_cover"] = record.cloud_pct
     return {
         "type": "Feature",
         "stac_version": "1.0.0",
@@ -115,16 +133,7 @@ def stac_item_from_record(record: RasterRegistryRecord, *, api_base: str = "") -
         "collection": f"sahool-{record.index_type}",
         "bbox": record.bbox,
         "geometry": None,
-        "properties": {
-            "datetime": dt,
-            "sahool:tenant_id": record.tenant_id,
-            "sahool:field_id": record.field_id,
-            "sahool:raster_id": record.id,
-            "sahool:index_type": record.index_type,
-            "eo:cloud_cover": record.cloud_pct,
-            "sahool:quality_score": record.quality_score,
-            "gsd": record.resolution_m,
-        },
+        "properties": properties,
         "assets": assets,
         "links": [
             {"rel": "self", "href": f"{api_base}/api/v1/gis/cloud-native/stac/items/{item_id}"},

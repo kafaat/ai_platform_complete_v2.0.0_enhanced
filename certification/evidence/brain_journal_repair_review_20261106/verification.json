@@ -1,0 +1,75 @@
+{
+  "schema": "sahool.brain-journal-repair-review.v1",
+  "recorded_at_utc": "2026-11-06T14:20:34.925900+00:00",
+  "review_head": "fb336191612be31910c72a975b0c728e8fc8fe59",
+  "source_commit": "669ec849bf02ff0eb8fd37299b1a178dad14f466",
+  "source_tree": "7653e1dffee044c853b9bdc193470be9aef20558",
+  "finding_id": "BRAIN-JOURNAL-REPAIR-MISSES-CROSS-JOURNAL-CHECKPOINTS-01",
+  "comment_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1336#discussion_r4493050216",
+  "source_files": {
+    "scripts/ci/repair_brain_journal_history.py": {
+      "sha256": "00d0fe96ec89c60b45a35a6caaa6fcb9d2d0b0e2b2645ce1385be6b3ed1cd3fa",
+      "bytes": 12952
+    },
+    "tests_v9/test_repair_brain_journal_history.py": {
+      "sha256": "7cec01fedf17cfa5915cb64c219e3a18c5d16d7d41c9c0621637c87723322ebd",
+      "bytes": 21826
+    }
+  },
+  "diagnosis": "Only the shrinking path was retained at later pre-shrink parents. Other journals could lose an intervening entry while growing in byte length, and the window squash accepted the loss.",
+  "fix": "Check every guard-classified journal against the selected initial parent and every pre-shrink parent. Preserve existing byte-line ordering and duplicate checks.",
+  "before_after_probe": {
+    "source_head": "fb336191612be31910c72a975b0c728e8fc8fe59",
+    "original_source_sha256": "51f4e1dd789d7dfe0ccb212d32f0321c27ab399e015f46fff3d283df1ce6a7f1",
+    "fixed_source_sha256": "00d0fe96ec89c60b45a35a6caaa6fcb9d2d0b0e2b2645ce1385be6b3ed1cd3fa",
+    "pre_second_shrink_parent": "99d1d2a6ad7028652ae21dfbda7c38c6f330db66",
+    "second_shrink": "4b1a3b7c15061be31b7a3d51772bf1d689f4a36c",
+    "head": "94ebdfabe9e87d0e0469d516e2e36c0c4f367f32",
+    "journal": "sahool-brain/log.md",
+    "checkpoint_bytes": 83,
+    "head_bytes": 106,
+    "intermediate_entry_missing_at_head": true,
+    "old_result": {
+      "status": "planned",
+      "commits_squashed": 5,
+      "shrinks_repaired": 2,
+      "applied": false
+    },
+    "new_result": {
+      "status": "blocked",
+      "error": "UNRESTORED_JOURNAL: sahool-brain/log.md line 2 from 99d1d2a6ad7028652ae21dfbda7c38c6f330db66 is missing, changed, or reordered at head"
+    },
+    "source_refs_unchanged": true,
+    "source_objects_unchanged": true,
+    "source_files_unchanged": true
+  },
+  "validation": {
+    "regression_red": {
+      "tests": 12,
+      "passed": 4,
+      "failed": 8,
+      "errors": 0,
+      "skipped": 0,
+      "log_sha256": "070810b483108623e3ca327f1a5889e4f2b7ed4d1991aea16d585e13bad2ecba",
+      "junit_sha256": "4daad18ccedce82e2b8c287a4608bae876f5d7bf0d6b84620d286d311d4add88"
+    },
+    "regression_green": {
+      "tests": 36,
+      "passed": 36,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "log_sha256": "76e7b123fc2b8dd3d67ff3ea0ff837d6209b4b89e00b87d1281b016884bfa9d8",
+      "junit_sha256": "a3af04296df7699a8c01af0a84be886e46b9c8a6beefa73ec6f0b30225af7065"
+    },
+    "command": "python -m pytest -q -o addopts= tests_v9/test_repair_brain_journal_history.py",
+    "ruff_check": "PASS",
+    "ruff_format_check": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "limits": [
+    "This is focused verification of the named source commit, not later generated metadata or remote CI.",
+    "Original local log and JUnit files are not attached; their hashes identify the observed runs, whose outcomes are included here.",
+    "No history repair was applied to PR1335 and no original branch was rewritten."
+  ]
+}

@@ -11,8 +11,10 @@ on:
       - docs/architecture/blocking_surface_additions.json
       - tests_v9/test_ci_unbounded_wait_guard.py
 
+# أقلّ صلاحيّة (I5): الكتابة على مستوى الوظيفة الوحيدة التي تدفع، لا على الملفّ كلّه.
+# وظيفةٌ لمرّة واحدة: فرعُ الزناد دُمج في #1193 — حذفُها قرارُ المالك (تحرسها tests_v9/test_ci_image_mirror.py).
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ci-mirror-regenerate-${{ github.ref }}
@@ -23,6 +25,9 @@ jobs:
     name: Regenerate and attest release files (one-shot)
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    # git push للمصنوعات المُعاد توليدها إلى فرع الزناد ⇒ contents: write.
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:

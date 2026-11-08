@@ -53,8 +53,13 @@ async def tenant_transaction(conn, tenant_id: str):
         yield conn
 
 
-def _authenticate_token(token: str, required_scope: str) -> dict:
-    """Validate one bearer token; shared by dependency and pre-body middleware."""
+def access_token_key() -> tuple[str, str]:
+    """(key, algorithm) chosen by server configuration only — never by the token header.
+
+    ``JWT_PUBLIC_KEY`` set ⇒ RS256 alone: an HS256 token signed with ``JWT_SECRET`` is then
+    rejected even when that secret is still configured (S1: كان market يقبله ⇒ أوامر في أيّ
+    مستأجِر). Every MCP surface — the scope dependency and market's REST routes — uses this.
+    """
     secret = os.getenv("JWT_SECRET", "")
     public_key = os.getenv("JWT_PUBLIC_KEY", "").strip()
     production = os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
@@ -64,37 +69,49 @@ def _authenticate_token(token: str, required_scope: str) -> dict:
         "yes",
         "on",
     }
-    if not public_key and production and not allow_hs256:
+    if public_key:
+        return public_key, "RS256"
+    if production and not allow_hs256:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "RS256 verification required")
-    if not public_key and len(secret) < 32:
+    if len(secret) < 32:
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             "JWT_SECRET not configured or too weak (min 32 chars)",
         )
-    try:
-        payload = decode_access_token(
-            token,
-            public_key or secret,
-            algorithm="RS256" if public_key else "HS256",
-            site="mcp.oauth",
-        )
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from e
+    return secret, "HS256"
+
+
+def require_issuer(payload: dict) -> None:
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
+
+
+def require_tenant(payload: dict) -> str:
+    """The tenant comes from the verified token only; absent or malformed ⇒ refused."""
+    tid = payload.get("tenant_id")
+    if not tid:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token missing tenant_id")
+    try:
+        return _validate_tenant_id(tid)
+    except ValueError as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid tenant_id") from e
+
+
+def _authenticate_token(token: str, required_scope: str) -> dict:
+    """Validate one bearer token; shared by dependency and pre-body middleware."""
+    key, algorithm = access_token_key()
+    try:
+        payload = decode_access_token(token, key, algorithm=algorithm, site="mcp.oauth")
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from e
+    require_issuer(payload)
     scope = payload.get("scope", "")
     if not isinstance(scope, str):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid token scope")
     scopes = scope.split()
     if required_scope not in scopes and "admin" not in scopes:
         raise HTTPException(status.HTTP_403_FORBIDDEN, f"Scope '{required_scope}' required")
-    tid = payload.get("tenant_id")
-    if not tid:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token missing tenant_id")
-    try:
-        _validate_tenant_id(tid)
-    except ValueError as e:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid tenant_id") from e
+    require_tenant(payload)
     return payload
 
 

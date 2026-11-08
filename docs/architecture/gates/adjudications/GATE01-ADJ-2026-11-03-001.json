@@ -1,0 +1,66 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-11-03-001",
+  "gate_id": "GATE-01",
+  "status": "CONSUMED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-11-03",
+  "expires_on": "2026-12-03",
+  "pr": 1338,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "migrations/MANIFEST.txt",
+    "scripts_v9/run_migrations.sql",
+    "services/actuator-service/actuator_runtime.py",
+    "services/actuator-service/routers/commands.py",
+    "services/sahool-platform/api/phase_runtime_store.py",
+    "services/sahool-platform/api/phase_runtime_workers.py"
+  ],
+  "allowed_gap_closures": [],
+  "authorized_patch_sha256": "7926a9fe646aa19942dd49071d9c01bc12d716d5b968fcf869d14e6ed37842a1",
+  "authorized_blobs": {
+    "migrations/MANIFEST.txt": "25253d9a17cd3cdcc7548883c0dcbbb2603f71cb",
+    "scripts_v9/run_migrations.sql": "14230ad027ad5426c341d0c6e11e1c3a36a7de0e",
+    "services/actuator-service/actuator_runtime.py": "972aafd31e8dcd65fc094f40a47126e3ed67496c",
+    "services/actuator-service/routers/commands.py": "7614363ae0935ede198f3a8ad181de1c964a2fdd",
+    "services/sahool-platform/api/phase_runtime_store.py": "cea1f8b30de17dada2ddcef3dc476932b923e466",
+    "services/sahool-platform/api/phase_runtime_workers.py": "031f8ebc4b7e43b8517af5e4e80f5907db222b87"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "1baede657022da1d36722e84b1b1d1e3817c60f7"
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "owner": "kafaat",
+    "owner_decision_on": "2026-11-03",
+    "text_ar": "ارفع القيود وافتح الآن",
+    "context_ar": "جوابُ المالك في المحادثة بتاريخ 2026-11-03 على سؤالٍ صريح «كيف تريد فتح بوّابات GATE-01 على main؟» بأربعة خيارات، اختار منها «ارفع القيود وافتح الآن» الذي نصّ وصفُه على: إلغاء قيدَي «لا تغيير لـRailway/PostgreSQL/الإنتاج» و«قبل أي قيود»، وكتابة الأحكام والدمج بعد اخضرار CI، مع بقاء SAHOOL_MIGRATE_APPLY غير مضبوط. وسبقه طلبُ المالك «لماذا لا تقوم بفتحها» ثمّ «قوم بتنفيذ و اكمال الكل». لا يشمل هذا التفويضُ ضبطَ SAHOOL_MIGRATE_APPLY ولا تطبيقَ أيّ هجرة على قاعدةٍ حيّة."
+  },
+  "scope_limit_ar": "ثلاث حزمٍ بعينها: (١) v237 + T3 (`claude/audit-draft-isolation-migrations-on-main-20261101` @ beeb9ff7a): سطرا تسجيل v237 في MANIFEST.txt (قبل v206 الأخير) وscripts_v9/run_migrations.sql؛ (٢) سلامة المشغّل A1–A8 (`claude/audit-draft-actuator-safety-on-main-20261101` @ 690eeeb6f): actuator_runtime.py وrouters/commands.py؛ (٣) ضبط سياق المستأجر داخل معاملة الكتابة: phase_runtime_store.py وphase_runtime_workers.py (حلقة دفتر الماء). لا يشمل event_bus.py ولا v228 ولا db_ownership.yml ولا physical_effect_boundary_contract.json، ولا هجراتٍ أخرى، ولا S5 — باستثناءٍ واحدٍ معلَن: فرعُ القطع الصارم لـ`online_learning_updates` في phase_runtime_store.py (انظر reissue_note_ar).",
+  "why_frozen_paths_ar": "العيوب نفسها داخل هذه الملفّات: تسجيل الهجرة لا يكون إلّا في السجلّين المجمَّدين؛ بوّابة تشغيل القواعد ونطاق الصمّام في actuator_runtime/commands؛ وset_config(…, true) خارج المعاملة في phase_runtime_store/workers.",
+  "reissue_rule_ar": "التفويضُ مربوطٌ ببايتات الملفّات الستّة (`authorized_blobs`). أيُّ تعديلٍ لاحقٍ على أيٍّ منها — ولو دمجاً من main يمسّه — يُبطِله ويلزم إعادةُ إصداره ببصمته الجديدة.",
+  "honesty_limit_ar": "الشواهد: تجربة محلّيّة على PostgreSQL 16.15 + PostGIS (فرع claude/local-unfreeze-rehearsal-20261102): 23 فحصاً بلا إخفاق — ترقية على بيانات مُركَّبة من خطّ أساس 231 ملفّاً، حقن فشل v235 بعد كلٍّ من 37 عبارة مع تكذيب الكاشف، إعادة تطبيق، probe قراءةً فقط PASS، الترقية == البناء من الصفر (11,276 سطراً)؛ واختبارات v237 الحيّة 5 فشلت على مخطّط main ونجحت بعد v237؛ و20/20 حيّة مع نزع xfail(strict) لـphase_runtime_store. **لم يُقَس:** بيانات الإنتاج وأحجامه، النسخ الاحتياطيّ والاستعادة، توافق التطبيق المنشور مع مشغّلات v235، العتاد وMQTT حيّاً. والحالة الحيّة المقروءة من سجلّ المُهاجر (2026-11-02 16:43Z/16:44Z، البيئتان): apply_not_permitted، SCHEMA_INSPECTION INCOMPLETE first_missing=v234 — فدمجُ هذه الرقعة يُعيد بناء المُهاجر فيفحص ولا يطبّق ما دام SAHOOL_MIGRATE_APPLY غير مضبوط.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "سجل التفويض ناتج عن تعليمات المالك وغير موقع استقلالياً؛ إغلاق الاستعمال هنا مبني على تطابق بايتات الملفات الستة والتحقق من شجرة main المدموجة. الختم لا يمنح تفويضاً جديداً ولا يثبت جاهزية نشر الإنتاج."
+  },
+  "reissue_note_ar": "أُعيد ربطُ البصمات في 2026-11-07 بعد إصلاحات المراجعة المستقلّة (ffdb932a5): ts فريد لكلّ أمر وعكسُ المفردات الكنسيّة في actuator_runtime.py، وإخراجُ نداءات الشبكة من معاملة دفتر الماء في phase_runtime_workers.py — والقرارُ نفسُه (قرار المالك 2026-11-03) لم يتغيّر، والمساراتُ الستّة نفسُها. — **إعادة ربطٍ ثانية (2026-11-07):** حارس S5-EXEC-01 يُسقِط تأجيلَ قطع `online_learning_updates` آليّاً حين يغطّي تفويضٌ `ISSUED` ملفَّ phase_runtime_store.py، ثمّ يفرض علاماتِ العقد. هذا سلوكٌ مصمَّم لا عَرَض. وإخراجُ الملفّ من الفتح ممتنع، لأنّ v237 تحذف ذراعَ «بلا سياق ⇒ اسمح» فتفشل كتاباتُ المخزن بلا ربط GUC داخل المعاملة. فأُضيف فرعُ القطع بنمط weather.py المدموج: في الوضع الصارم وحده تُرسَل الكتابة إلى decision-service ويُشترط `authoritative`+`persisted`، ولا تُكتب محلّيّاً. هذا الفرع خاملٌ ما لم يُضبط `SAHOOL_DECISION_WRITE_MODE=decision_service_sor` وتكتمل بوّاباته، فلا تغيير في الإنتاج ولا تفعيل لنشر مستهلكي S5. وتُعاد البصمة على البايتات الجديدة. — **إعادة ربطٍ ثالثة (2026-11-07، مراجعة Copilot على #1338):** (١) actuator_runtime.py: المدّة داخل توقيع السلك `cmd|ts|duration_ms` بملّي ثانية صحيحة مقرّبة لأعلى (حدٌّ أدنى ١)، لأنّ البرنامج الثابت صار يُغلِق بها (A7). (٢) phase_runtime_store.py: الفرع الصارم الخامل يفشل مغلقاً ما لم يُثبِت ردُّ الخدمة المستأجرَ والمعرّفَ والكتابةَ الفعليّة وحكمَ المراجعة. المسارات الستّة كما هي.",
+  "consumption": {
+    "merge_sha": "968726c1b6cd2b11d04047d9028362487fa5e9b5",
+    "consumed_on": "2026-11-07",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1338",
+    "verified_blob_count": 6,
+    "note_ar": "خُتم التفويض بعد وصول إصلاحات #1338 إلى main عند 968726c1. جرى التحقق من تطابق بصمات Git الست المصرّح بها في شجرة هذا الالتزام مع authorized_blobs حرفياً. هذا ختم استعمال لمرّة واحدة، لا فتح عالمي للبوابة ولا إذن بهجرة أو تشغيل عتاد أو تجاوز حارس."
+  }
+}

@@ -271,15 +271,29 @@ def test_the_live_authorization_is_spent_and_no_longer_grants():
     **صفرَ أخطاء** — فالخللُ في ``set()`` المُصمَتة لا في الآليّة. وقد كان التأكيدُ
     صادقاً حين كُتِب لأنّ الشجرة لم تكن تحمل إلّا سجلّاً `CONSUMED` واحداً، فثُبِّتت
     **حالةُ المستودع** مكانَ **ثابت السياسة**. بديلُه أدناه يقيس العلاقة لا اللقطة.
+
+    **وتأكيدٌ ثانٍ كان لقطةً لا ثابتاً (2026-11-07):** ``evaluate`` على **كلّ** سجلّات
+    الشجرة يشترط ألّا يمنح شيءٌ — وهذا يجعل طلبَ الفتح نفسَه (الذي يحمل تفويضاً `ISSUED`
+    صالحاً قبل دمجه) أحمرَ حتماً، فيُكافئ ختمَ التفويض **قبل** استعماله. الثابتُ الحقيقيّ
+    علاقتان تقيسان أيّ شجرة: (١) السجلّات غير `ISSUED` لا تمنح أبداً وتُرفَض بسبب
+    `CONSUMED`؛ (٢) إن منح شيءٌ فهو تفويضٌ `ISSUED` يُسمّي المسارين صراحةً — وبقاؤه
+    `ISSUED` بعد الدمج يحرسه ``stale_authorization_errors`` في CI لا هذا الاختبار.
     """
     policy = guard.load_policy(_POLICY)
     blobs = {p: guard.blob_sha(p) for p in policy["frozen_paths"]}
     adjs = guard.load_adjudications(_ADJ_DIR)
 
-    errors, used = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, adjs, blobs)
+    spent = [a for a in adjs if str(a.get("status", "")).strip().upper() != "ISSUED"]
+    errors, used = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, spent, blobs)
     assert used is None, f"تفويضٌ مُستهلَك ما زال يمنح: {used}"
     assert errors, "مسُّ مسارٍ مجمَّد مرّ بلا إذنٍ صالح"
     assert any("CONSUMED" in e for e in errors), errors
+
+    _, granted_by = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, adjs, blobs)
+    if granted_by is not None:
+        record = next(a for a in adjs if a.get("adjudication_id") == granted_by)
+        assert str(record.get("status", "")).strip().upper() == "ISSUED", record
+        assert {_FROZEN_A, _FROZEN_B} <= set(record.get("allowed_paths") or []), record
 
 
 def test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle():

@@ -152,8 +152,10 @@ def test_product_level_dedupe_excludes_cog_uri():
 # ── V8-07/V9-07/V10-07: sync fallback يمرّر geometry_revision + المنصّة تستنتجه ──
 def test_geometry_revision_flows_through_all_paths():
     raster_fields = _read(_RASTER / "routers" / "fields.py")
-    # المسار المتزامن الاحتياطيّ في raster
-    assert raster_fields.count("geometry_revision=getattr(req") >= 2
+    # المسار المتزامن الاحتياطيّ في raster: المراجعة المخزّنة (لا مراجعة الجسم) تُمرَّر مع
+    # القصّ المخزّن — #1330: _clip_on_stored_field يُعيد (clip, revision) ويرفض المراجعة القديمة.
+    assert raster_fields.count("geometry_revision=revision") >= 2
+    assert "geometry_revision=getattr(req" not in raster_fields
     # المنصّة تستنتج المراجعة من field_geometry_history في مسار backfill proxy
     platform_fields = _read(_PLATFORM / "routers" / "fields.py")
     assert "SELECT MAX(revision) FROM field_geometry_history" in platform_fields

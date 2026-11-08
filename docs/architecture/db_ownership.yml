@@ -229,6 +229,14 @@ tables:
     status: interim-bridge
     readers: [decision-service]
     source: "services/decision-service/migrations/004_dispatch_authorization.sql"
+  detection_provenance:
+    # Per-detection provenance for edge pest/disease results (model artifact sha256, input
+    # sha256, threshold, calibration). Written in the same transaction as edge_results by the
+    # platform edge-sync ingest; append-only.
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v239_detection_provenance.sql"
   device_commands_log:
     owner: actuator-service
     writers: [actuator-service]

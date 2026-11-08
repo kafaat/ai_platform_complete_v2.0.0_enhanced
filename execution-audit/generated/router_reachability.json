@@ -37,7 +37,7 @@
   "definitions": [
     {
       "kind": "app",
-      "line": 1140,
+      "line": 1810,
       "module": "services.actuator-service.actuator_runtime",
       "node_id": "services.actuator-service.actuator_runtime:app",
       "route_count": 0,
@@ -46,10 +46,10 @@
     },
     {
       "kind": "router",
-      "line": 21,
+      "line": 22,
       "module": "services.actuator-service.routers.commands",
       "node_id": "services.actuator-service.routers.commands:router",
-      "route_count": 2,
+      "route_count": 3,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -82,7 +82,7 @@
     },
     {
       "kind": "app",
-      "line": 85,
+      "line": 86,
       "module": "services.ai_agronomist.main",
       "node_id": "services.ai_agronomist.main:app",
       "route_count": 13,
@@ -91,7 +91,7 @@
     },
     {
       "kind": "app",
-      "line": 397,
+      "line": 404,
       "module": "services.auth.main",
       "node_id": "services.auth.main:app",
       "route_count": 1,
@@ -109,7 +109,7 @@
     },
     {
       "kind": "router",
-      "line": 22,
+      "line": 23,
       "module": "services.auth.routers.invitations",
       "node_id": "services.auth.routers.invitations:router",
       "route_count": 4,
@@ -136,7 +136,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 19,
       "module": "services.auth.routers.password_reset",
       "node_id": "services.auth.routers.password_reset:router",
       "route_count": 2,
@@ -163,7 +163,7 @@
     },
     {
       "kind": "router",
-      "line": 24,
+      "line": 26,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 647,
+      "line": 707,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -289,7 +289,7 @@
     },
     {
       "kind": "app",
-      "line": 126,
+      "line": 131,
       "module": "services.mcp_servers.market_server",
       "node_id": "services.mcp_servers.market_server:app",
       "route_count": 14,
@@ -325,7 +325,7 @@
     },
     {
       "kind": "app",
-      "line": 178,
+      "line": 181,
       "module": "services.odoo-bridge.main",
       "node_id": "services.odoo-bridge.main:app",
       "route_count": 0,
@@ -361,7 +361,7 @@
     },
     {
       "kind": "router",
-      "line": 17,
+      "line": 18,
       "module": "services.odoo-bridge.routers.webhooks",
       "node_id": "services.odoo-bridge.routers.webhooks:router",
       "route_count": 1,
@@ -388,7 +388,7 @@
     },
     {
       "kind": "router",
-      "line": 22,
+      "line": 23,
       "module": "services.raster-service.routers.cdse_tiles",
       "node_id": "services.raster-service.routers.cdse_tiles:router",
       "route_count": 3,
@@ -397,7 +397,7 @@
     },
     {
       "kind": "router",
-      "line": 79,
+      "line": 84,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -586,7 +586,7 @@
     },
     {
       "kind": "router",
-      "line": 47,
+      "line": 48,
       "module": "services.sahool-platform.api.routers.agro_intelligence",
       "node_id": "services.sahool-platform.api.routers.agro_intelligence:router",
       "route_count": 7,
@@ -622,7 +622,7 @@
     },
     {
       "kind": "router",
-      "line": 47,
+      "line": 48,
       "module": "services.sahool-platform.api.routers.alerts",
       "node_id": "services.sahool-platform.api.routers.alerts:router",
       "route_count": 3,
@@ -685,7 +685,7 @@
     },
     {
       "kind": "router",
-      "line": 46,
+      "line": 53,
       "module": "services.sahool-platform.api.routers.break_glass",
       "node_id": "services.sahool-platform.api.routers.break_glass:router",
       "route_count": 3,
@@ -766,7 +766,7 @@
     },
     {
       "kind": "router",
-      "line": 22,
+      "line": 24,
       "module": "services.sahool-platform.api.routers.compat_gateway",
       "node_id": "services.sahool-platform.api.routers.compat_gateway:router",
       "route_count": 7,
@@ -946,7 +946,7 @@
     },
     {
       "kind": "router",
-      "line": 38,
+      "line": 40,
       "module": "services.sahool-platform.api.routers.devices",
       "node_id": "services.sahool-platform.api.routers.devices:router",
       "route_count": 5,
@@ -973,7 +973,7 @@
     },
     {
       "kind": "router",
-      "line": 32,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.documents",
       "node_id": "services.sahool-platform.api.routers.documents:router",
       "route_count": 3,
@@ -1000,7 +1000,7 @@
     },
     {
       "kind": "router",
-      "line": 20,
+      "line": 26,
       "module": "services.sahool-platform.api.routers.edge",
       "node_id": "services.sahool-platform.api.routers.edge:router",
       "route_count": 2,
@@ -1009,7 +1009,7 @@
     },
     {
       "kind": "router",
-      "line": 35,
+      "line": 36,
       "module": "services.sahool-platform.api.routers.equipment",
       "node_id": "services.sahool-platform.api.routers.equipment:router",
       "route_count": 4,
@@ -1027,7 +1027,7 @@
     },
     {
       "kind": "router",
-      "line": 49,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.etc_dual",
       "node_id": "services.sahool-platform.api.routers.etc_dual:router",
       "route_count": 1,
@@ -1099,7 +1099,7 @@
     },
     {
       "kind": "router",
-      "line": 32,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.farms",
       "node_id": "services.sahool-platform.api.routers.farms:router",
       "route_count": 3,
@@ -1216,7 +1216,7 @@
     },
     {
       "kind": "router",
-      "line": 153,
+      "line": 156,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -1279,7 +1279,7 @@
     },
     {
       "kind": "router",
-      "line": 46,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.harvest_traceability",
       "node_id": "services.sahool-platform.api.routers.harvest_traceability:router",
       "route_count": 5,
@@ -1333,7 +1333,7 @@
     },
     {
       "kind": "router",
-      "line": 36,
+      "line": 37,
       "module": "services.sahool-platform.api.routers.inventory",
       "node_id": "services.sahool-platform.api.routers.inventory:router",
       "route_count": 4,
@@ -1405,7 +1405,7 @@
     },
     {
       "kind": "router",
-      "line": 67,
+      "line": 72,
       "module": "services.sahool-platform.api.routers.irrigation_recommendation",
       "node_id": "services.sahool-platform.api.routers.irrigation_recommendation:router",
       "route_count": 2,
@@ -1468,7 +1468,7 @@
     },
     {
       "kind": "router",
-      "line": 31,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.master_data",
       "node_id": "services.sahool-platform.api.routers.master_data:router",
       "route_count": 2,
@@ -1549,7 +1549,7 @@
     },
     {
       "kind": "router",
-      "line": 31,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.onboarding",
       "node_id": "services.sahool-platform.api.routers.onboarding:router",
       "route_count": 3,
@@ -1621,7 +1621,7 @@
     },
     {
       "kind": "router",
-      "line": 17,
+      "line": 18,
       "module": "services.sahool-platform.api.routers.platform_health",
       "node_id": "services.sahool-platform.api.routers.platform_health:router",
       "route_count": 4,
@@ -1720,7 +1720,7 @@
     },
     {
       "kind": "router",
-      "line": 51,
+      "line": 52,
       "module": "services.sahool-platform.api.routers.recommendations",
       "node_id": "services.sahool-platform.api.routers.recommendations:router",
       "route_count": 8,
@@ -1801,7 +1801,7 @@
     },
     {
       "kind": "router",
-      "line": 51,
+      "line": 52,
       "module": "services.sahool-platform.api.routers.scenario",
       "node_id": "services.sahool-platform.api.routers.scenario:router",
       "route_count": 5,
@@ -1900,7 +1900,7 @@
     },
     {
       "kind": "router",
-      "line": 45,
+      "line": 49,
       "module": "services.sahool-platform.api.routers.simulate",
       "node_id": "services.sahool-platform.api.routers.simulate:router",
       "route_count": 1,
@@ -1918,7 +1918,7 @@
     },
     {
       "kind": "router",
-      "line": 45,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.sync",
       "node_id": "services.sahool-platform.api.routers.sync:router",
       "route_count": 3,
@@ -1972,7 +1972,7 @@
     },
     {
       "kind": "router",
-      "line": 27,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.water_balance",
       "node_id": "services.sahool-platform.api.routers.water_balance:router",
       "route_count": 1,
@@ -2080,7 +2080,7 @@
     },
     {
       "kind": "app",
-      "line": 15,
+      "line": 17,
       "module": "services.sam2-inference.main",
       "node_id": "services.sam2-inference.main:app",
       "route_count": 4,
@@ -2350,7 +2350,7 @@
     },
     {
       "kind": "app",
-      "line": 483,
+      "line": 487,
       "module": "services.video-processor.main",
       "node_id": "services.video-processor.main:app",
       "route_count": 0,
@@ -2385,7 +2385,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 45,
+  "include_edge_count": 47,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2578,7 +2578,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 239,
+      "line": 241,
       "module": "services/sahool-platform/tests/test_idempotency_server_contract.py",
       "prefix": null,
       "resolved": false,
@@ -2587,7 +2587,16 @@
     },
     {
       "expression": "mod.router",
-      "line": 379,
+      "line": 340,
+      "module": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_idempotency_server_contract:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
+      "line": 455,
       "module": "services/sahool-platform/tests/test_idempotency_server_contract.py",
       "prefix": null,
       "resolved": false,
@@ -2712,6 +2721,15 @@
       "target": null
     },
     {
+      "expression": "compat_gateway.router",
+      "line": 53,
+      "module": "services/sahool-platform/tests/test_t4_raster_compat_proxy_auth.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_t4_raster_compat_proxy_auth:<dynamic-source>",
+      "target": null
+    },
+    {
       "expression": "module.router",
       "line": 199,
       "module": "services/sahool-platform/tests/test_task_irrigation_observations.py",
@@ -2793,16 +2811,16 @@
       "target": null
     }
   ],
-  "inventory_sha256": "18dad6617525668400cd8d2d6ffdc918d1a9635ac41066cc224c4ffd4ff2af67",
+  "inventory_sha256": "e1cdbf3ff7c422a82d17bd1e24ea2529ecb6aae96fb35ab12f315e451924d05f",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 21,
+      "line": 22,
       "module": "services.actuator-service.routers.commands",
       "node_id": "services.actuator-service.routers.commands:router",
-      "route_count": 2,
+      "route_count": 3,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -2839,7 +2857,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 22,
+      "line": 23,
       "module": "services.auth.routers.invitations",
       "node_id": "services.auth.routers.invitations:router",
       "route_count": 4,
@@ -2869,7 +2887,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 19,
       "module": "services.auth.routers.password_reset",
       "node_id": "services.auth.routers.password_reset:router",
       "route_count": 2,
@@ -2899,7 +2917,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 24,
+      "line": 26,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -2979,7 +2997,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 17,
+      "line": 18,
       "module": "services.odoo-bridge.routers.webhooks",
       "node_id": "services.odoo-bridge.routers.webhooks:router",
       "route_count": 1,
@@ -2999,7 +3017,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 22,
+      "line": 23,
       "module": "services.raster-service.routers.cdse_tiles",
       "node_id": "services.raster-service.routers.cdse_tiles:router",
       "route_count": 3,
@@ -3009,7 +3027,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 79,
+      "line": 84,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -3199,7 +3217,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 47,
+      "line": 48,
       "module": "services.sahool-platform.api.routers.agro_intelligence",
       "node_id": "services.sahool-platform.api.routers.agro_intelligence:router",
       "route_count": 7,
@@ -3239,7 +3257,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 47,
+      "line": 48,
       "module": "services.sahool-platform.api.routers.alerts",
       "node_id": "services.sahool-platform.api.routers.alerts:router",
       "route_count": 3,
@@ -3309,7 +3327,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 46,
+      "line": 53,
       "module": "services.sahool-platform.api.routers.break_glass",
       "node_id": "services.sahool-platform.api.routers.break_glass:router",
       "route_count": 3,
@@ -3399,7 +3417,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 22,
+      "line": 24,
       "module": "services.sahool-platform.api.routers.compat_gateway",
       "node_id": "services.sahool-platform.api.routers.compat_gateway:router",
       "route_count": 7,
@@ -3599,7 +3617,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 38,
+      "line": 40,
       "module": "services.sahool-platform.api.routers.devices",
       "node_id": "services.sahool-platform.api.routers.devices:router",
       "route_count": 5,
@@ -3629,7 +3647,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 32,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.documents",
       "node_id": "services.sahool-platform.api.routers.documents:router",
       "route_count": 3,
@@ -3659,7 +3677,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 20,
+      "line": 26,
       "module": "services.sahool-platform.api.routers.edge",
       "node_id": "services.sahool-platform.api.routers.edge:router",
       "route_count": 2,
@@ -3669,7 +3687,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 35,
+      "line": 36,
       "module": "services.sahool-platform.api.routers.equipment",
       "node_id": "services.sahool-platform.api.routers.equipment:router",
       "route_count": 4,
@@ -3689,7 +3707,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 49,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.etc_dual",
       "node_id": "services.sahool-platform.api.routers.etc_dual:router",
       "route_count": 1,
@@ -3769,7 +3787,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 32,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.farms",
       "node_id": "services.sahool-platform.api.routers.farms:router",
       "route_count": 3,
@@ -3899,7 +3917,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 153,
+      "line": 156,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -3969,7 +3987,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 46,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.harvest_traceability",
       "node_id": "services.sahool-platform.api.routers.harvest_traceability:router",
       "route_count": 5,
@@ -4029,7 +4047,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 36,
+      "line": 37,
       "module": "services.sahool-platform.api.routers.inventory",
       "node_id": "services.sahool-platform.api.routers.inventory:router",
       "route_count": 4,
@@ -4109,7 +4127,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 67,
+      "line": 72,
       "module": "services.sahool-platform.api.routers.irrigation_recommendation",
       "node_id": "services.sahool-platform.api.routers.irrigation_recommendation:router",
       "route_count": 2,
@@ -4179,7 +4197,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 31,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.master_data",
       "node_id": "services.sahool-platform.api.routers.master_data:router",
       "route_count": 2,
@@ -4269,7 +4287,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 31,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.onboarding",
       "node_id": "services.sahool-platform.api.routers.onboarding:router",
       "route_count": 3,
@@ -4349,7 +4367,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 17,
+      "line": 18,
       "module": "services.sahool-platform.api.routers.platform_health",
       "node_id": "services.sahool-platform.api.routers.platform_health:router",
       "route_count": 4,
@@ -4459,7 +4477,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 51,
+      "line": 52,
       "module": "services.sahool-platform.api.routers.recommendations",
       "node_id": "services.sahool-platform.api.routers.recommendations:router",
       "route_count": 8,
@@ -4549,7 +4567,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 51,
+      "line": 52,
       "module": "services.sahool-platform.api.routers.scenario",
       "node_id": "services.sahool-platform.api.routers.scenario:router",
       "route_count": 5,
@@ -4659,7 +4677,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 45,
+      "line": 49,
       "module": "services.sahool-platform.api.routers.simulate",
       "node_id": "services.sahool-platform.api.routers.simulate:router",
       "route_count": 1,
@@ -4679,7 +4697,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 45,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.sync",
       "node_id": "services.sahool-platform.api.routers.sync:router",
       "route_count": 3,
@@ -4739,7 +4757,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 27,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.water_balance",
       "node_id": "services.sahool-platform.api.routers.water_balance:router",
       "route_count": 1,
@@ -5094,7 +5112,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 43,
+  "unresolved_include_count": 45,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5267,7 +5285,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_idempotency_server_contract.py",
-      "line": 239,
+      "line": 241,
       "module": "services.sahool-platform.tests.test_idempotency_server_contract",
       "source": null,
       "target_expression": "mod.router"
@@ -5275,7 +5293,15 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_idempotency_server_contract.py",
-      "line": 379,
+      "line": 340,
+      "module": "services.sahool-platform.tests.test_idempotency_server_contract",
+      "source": null,
+      "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_idempotency_server_contract.py",
+      "line": 455,
       "module": "services.sahool-platform.tests.test_idempotency_server_contract",
       "source": null,
       "target_expression": "mod.router"
@@ -5383,6 +5409,14 @@
       "module": "services.sahool-platform.tests.test_soil_proxy_authorization",
       "source": null,
       "target_expression": "service_proxy.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_t4_raster_compat_proxy_auth.py",
+      "line": 53,
+      "module": "services.sahool-platform.tests.test_t4_raster_compat_proxy_auth",
+      "source": null,
+      "target_expression": "compat_gateway.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

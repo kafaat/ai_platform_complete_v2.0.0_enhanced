@@ -112,9 +112,13 @@ This compatibility path is now also cleaned for raster transport:
 - the router must not read `RASTER_SERVICE_URL` directly;
 - the router must not hard-code `sahool-raster-service`;
 - the router must not open-code `httpx.AsyncClient` for raster passthrough;
-- tenant promotion from `tid`/`tenant_id` remains in the router because it is a
-  browser compatibility concern, while service URL, token/header construction,
-  HTTP transport, and response header filtering live in the facade client.
+- T4 (audit 2026-11-01): the route requires `Depends(get_current_user)`, takes the
+  tenant from the JWT (client `X-Tenant-Id`/`tid`/`tenant_id` are ignored and
+  `tid`/`tenant_id`/`access_token` are not forwarded), forwards only an explicit
+  allowlist of browser/mobile read paths (full-match, no `..`/`%`; anything else is
+  404), and `raster_get_raw` never attaches the service token `X-Agent-Token` —
+  the same contract as the nginx `/api/raster/` gateway. Service URL, header
+  construction, HTTP transport, and response header filtering live in the facade client.
 
 This keeps the legacy raster route as a BFF/compatibility alias only, not a
 second raster transport implementation.

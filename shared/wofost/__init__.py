@@ -8,7 +8,9 @@
 
 from shared.wofost.engine import (
     CROP_PARAMS,
+    WeatherGapError,
     fetch_weather_real,
+    fill_weather_gaps,
     get_kc,
     hargreaves_et0,
     simulate_wofost,
@@ -16,7 +18,9 @@ from shared.wofost.engine import (
 
 __all__ = [
     "CROP_PARAMS",
+    "WeatherGapError",
     "fetch_weather_real",
+    "fill_weather_gaps",
     "get_kc",
     "hargreaves_et0",
     "simulate_wofost",

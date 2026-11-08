@@ -20,7 +20,12 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import HTTPBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel, Field
-from shared.oauth_middleware import require_scope  # FIX(أمان): حارس نطاق لنقاط MCP
+from shared.oauth_middleware import (  # FIX(أمان): حارس نطاق لنقاط MCP
+    access_token_key,
+    require_issuer,
+    require_scope,
+    require_tenant,
+)
 
 from shared.security.access_tokens import decode_access_token
 
@@ -30,7 +35,6 @@ logging.basicConfig(
 )
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
-JWT_SECRET = os.getenv("JWT_SECRET", "")
 ERP_BRIDGE_URL = os.getenv("ERP_BRIDGE_URL") or os.getenv("ODOO_BRIDGE_URL", "http://sahool-erp-bridge:8126")  # fmt: skip
 # Legacy constant kept for existing call sites; it now points at the generic ERP bridge.
 ODOO_BRIDGE_URL = ERP_BRIDGE_URL
@@ -38,20 +42,21 @@ SAHOOL_API_URL = os.getenv("SAHOOL_API_URL", "http://sahool-auth:8000")
 
 _pool: asyncpg.Pool | None = None
 security = HTTPBearer(auto_error=False)
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 
 def verify_token(token: str) -> dict:
-    if not JWT_SECRET or len(JWT_SECRET) < 32:
-        raise HTTPException(503, "JWT_SECRET غير مضبوط — الخدمة معطّلة بأمان")
+    """REST-route verification on the same key/issuer/tenant policy as ``require_scope``.
+
+    S1: كان يفكّ بـHS256/``JWT_SECRET`` دائماً فيقبل توكناً HS256 حتى مع RS256 مُفعَّل.
+    الآن الخوارزميّة والمفتاح من إعداد الخادم وحده (``access_token_key``)، والمستأجِر من التوكن.
+    """
+    key, algorithm = access_token_key()
     try:
-        payload = decode_access_token(token, JWT_SECRET, algorithm="HS256", site="mcp.market")
+        payload = decode_access_token(token, key, algorithm=algorithm, site="mcp.market")
     except InvalidTokenError as e:
-        raise HTTPException(401, f"Invalid token: {e}") from e
-    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise HTTPException(401, "Invalid token issuer")
+        raise HTTPException(401, "Invalid token") from e
+    require_issuer(payload)
+    require_tenant(payload)
     return payload
 
 

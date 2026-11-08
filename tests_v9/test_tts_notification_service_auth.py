@@ -16,6 +16,7 @@ from __future__ import annotations
 import importlib.util
 import os
 import sys
+import time
 import types
 
 import jwt
@@ -68,7 +69,13 @@ def _load_tts(monkeypatch):
 
 def _jwt_for(tenant_id: str = "t1", iss: str = "sahool-auth") -> str:
     return jwt.encode(
-        {"sub": "user-1", "iss": iss, "tenant_id": tenant_id, "aud": "sahool"},
+        {
+            "sub": "user-1",
+            "iss": iss,
+            "tenant_id": tenant_id,
+            "aud": "sahool",
+            "exp": int(time.time()) + 300,  # كما يُصدِره auth؛ السياسةُ تفرضه افتراضيّاً
+        },
         JWT_SECRET,
         algorithm="HS256",
     )

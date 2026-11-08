@@ -38,13 +38,20 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # 4199 → 4191 (#1232): self-intersection explanation moved to gis_geometry_guard.
     # 4191 → 4187 (unified 2026-10-27): merge/split request models moved to api/field_models
     # while the area-conservation guard (G-AREA-1) landed in the router.
-    "services/sahool-platform/api/routers/fields.py": 4187,
+    # 4187 → 4176 (audit security batch) and → 4175 (audit remediation), both 2026-11-01: the
+    # drift-risk and imagery refresh/process-date request models moved to api/field_models.
+    # Merged: 4164.
+    "services/sahool-platform/api/routers/fields.py": 4164,
     "services/sahool-platform/api/routers/weather.py": 3022,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     # 1673 → 1668 (unified 2026-10-27): pixel sampling moved to raster_field_runtime and
     # _authenticated_tenant to raster_security_context while the audit fixes landed here.
-    "services/raster-service/routers/fields.py": 1668,
-    "services/sahool-platform/api/routers/farm_operations_ledger.py": 1029,
+    # 1668 → 1662 (audit security batch 2026-11-01): T10 stored-geometry binding and the CDSE
+    # job record moved to raster_field_runtime while the T10 ownership checks landed here.
+    # 1662 → 1656 (R9 2026-11-02): blocking COG/DEM reads offloaded via raster_field_runtime.
+    "services/raster-service/routers/fields.py": 1655,
+    # 1029 → 1027 (audit security batch 2026-11-01): T6 request_digest consolidation.
+    "services/sahool-platform/api/routers/farm_operations_ledger.py": 1027,
     "services/sahool-platform/api/routers/decision_review.py": 920,
 }
 
