@@ -61,6 +61,28 @@ def _sandbox(tmp_path: Path, monkeypatch):
     u07["status"] = "ISSUED"
     u07.pop("consumption", None)
     u07_path.write_text(json.dumps(u07), encoding="utf-8")
+    # The sandbox models the tree at U07 time. A grant issued after it (for example an
+    # opening PR whose record is still ISSUED before its seal) is not part of that tree.
+    # Each one is copied as spent, so the deferral cases measure only what they set up.
+    for other in sorted(adj_dst.glob("*.json")):
+        if other.name == u07_path.name:
+            continue
+        doc = json.loads(other.read_text(encoding="utf-8"))
+        if str(doc.get("status", "")).upper() == "ISSUED":
+            doc["status"] = "CONSUMED"
+            other.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+    # The deferral mechanism is exercised on the pre-cutover writer. The live entry was
+    # retired once the cutover landed, so restore the historical entry and remove the
+    # contract markers from this copy only. The real tree keeps both.
+    monkeypatch.setattr(mod, "GATE01_DEFERRED", dict(mod.HISTORICAL_GATE01_DEFERRED))
+    for writer, table in mod.HISTORICAL_GATE01_DEFERRED:
+        if writer in mod._U07_BLOBS:
+            continue  # already the exact pre-cutover U07 bytes; editing them voids U07
+        target = tmp_path / writer
+        text = target.read_text(encoding="utf-8")
+        for marker in mod.CONTRACTS[writer][table]:
+            text = text.replace(marker, "# pre-cutover writer")
+        target.write_text(text, encoding="utf-8")
 
     class IssuedDate(date):
         @classmethod
@@ -145,12 +167,20 @@ _DEFERRED_PAIR = (
 )
 
 
-def test_gate01_deferred_writer_is_accepted_only_while_the_gate_actually_blocks():
-    """على الشجرة الحقيقيّة: المسار مجمَّد · البوّابة CLOSED · رقعة U07 وحدها لا تأذن بقطع SoR."""
-    assert _DEFERRED_PAIR in mod.GATE01_DEFERRED
-    assert mod._gate01_blocks(_DEFERRED_PAIR[0]) is True
+def test_the_retired_deferral_is_not_live_and_its_contract_is_enforced():
+    """على الشجرة الحقيقيّة: انقضى التأجيل بتفويضٍ مسّ الكاتب، ونُفِّذ عقدُ القطع.
+
+    كان هذا الاختبار يشترط أن تمنع البوّابةُ الكاتبَ الآن — لقطةٌ تنقلب حمراءَ في أيّ
+    طلب فتحٍ يحمل تفويضاً `ISSUED` يمسّه، وهو بالضبط الحدث الذي صُمِّم التأجيل لينقضي به.
+    الثابتُ الحقيقيّ: لا تأجيلَ حيّاً لهذا الزوج، والعقدُ مفروضٌ بعلاماته على الملفّ نفسه.
+    """
+    assert _DEFERRED_PAIR in mod.HISTORICAL_GATE01_DEFERRED
+    assert _DEFERRED_PAIR not in mod.GATE01_DEFERRED
+    assert mod.deferred_pairs() == []
     assert mod.findings() == []
-    assert _DEFERRED_PAIR in mod.deferred_pairs()  # مُعلَنٌ لا صامت
+    text = (ROOT / _DEFERRED_PAIR[0]).read_text(encoding="utf-8")
+    for marker in mod.CONTRACTS[_DEFERRED_PAIR[0]][_DEFERRED_PAIR[1]]:
+        assert marker in text, marker
 
 
 def test_gate01_deferral_expires_when_the_gate_opens(tmp_path, monkeypatch):

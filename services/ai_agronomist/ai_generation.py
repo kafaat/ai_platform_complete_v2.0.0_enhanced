@@ -951,6 +951,10 @@ async def generate(
     # Tool results leave for the same provider as the context, so they get the same
     # redaction; otherwise redacted_external would only cover the first message.
     redact_tools = provider_is_external(cfg.provider) and _policy_mode(policy) != "full_external"
+    # S11 — سؤال المستخدم يغادر للمزوّد نفسه، فيُنقَّح كالسياق؛ كان يُرسَل خاماً
+    # (هاتف/بريد/إحداثيّات) في redacted_external. The question gets the context's redaction.
+    if redact_tools:
+        question = _redact_text(question or "")
     tool_results: list[dict[str, Any]] = []
     pending_approvals: list[dict[str, Any]] = []
     truncated = False

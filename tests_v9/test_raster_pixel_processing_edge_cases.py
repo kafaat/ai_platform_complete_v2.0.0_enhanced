@@ -25,8 +25,20 @@ def test_savi_denominator_is_guarded_with_np_where() -> None:
     savi_block_start = src.index('elif ind == "savi":')
     savi_block_end = src.index('elif ind == "vari":', savi_block_start)
     block = src[savi_block_start:savi_block_end]
-    assert "_denom = nir + red + 0.5" in block
-    assert "np.where(_denom == 0, 1e-10, _denom)" in block
+    # G4: the 1e-10 epsilon let negative L2A reflectance (nir + red + 0.5 == 0)
+    # publish ±1e9; SAVI now goes through band_math's guarded quotient kernel.
+    assert "ctx.band_math.savi(red, nir, np)" in block
+    assert "1e-10" not in block
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_band_math_savi_guard", PIXEL_PROCESSING.with_name("band_math.py")
+    )
+    band_math = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(band_math)
+    out = band_math.savi(np.array([-0.3, 0.1]), np.array([-0.2, 0.3]), np)
+    assert np.isnan(out[0])  # zero denominator from negative reflectance ⇒ NoData
+    assert float(out[1]) == pytest.approx(1.5 * 0.2 / 0.9)
 
 
 def test_savi_zero_denominator_formula_stays_finite() -> None:

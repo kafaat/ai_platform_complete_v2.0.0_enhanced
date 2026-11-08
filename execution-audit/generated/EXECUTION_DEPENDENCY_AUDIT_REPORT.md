@@ -4,11 +4,11 @@
 
 ## Summary
 
-- Python files parsed: **2052**
-- FastAPI-style route handlers: **1062**
-- Static function-call edges: **94751**
+- Python files parsed: **2073**
+- FastAPI-style route handlers: **1063**
+- Static function-call edges: **97692**
 - Dead-code candidates: **661**
-- Duplicate function groups: **58**
+- Duplicate function groups: **59**
 - Automatic deletions: **0**
 
 ## Highest-confidence dead-code candidates
@@ -18,6 +18,7 @@
 | `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 61 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 157 |
+| `decision-service` | `_require_live_when_certifying` | function | `services/decision-service/tests/test_eligibility_assessment_live_pg.py` | 119 |
 | `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 69 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |
@@ -28,7 +29,7 @@
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_cdse_empty_raster_not_cached.py` | 70 |
 | `raster-service` | `_clean_runtime_state` | function | `services/raster-service/test_job_truth_receipts_and_fencing.py` | 77 |
 | `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 60 |
-| `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1207 |
+| `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1193 |
 | `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 190 |
 | `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 208 |
 | `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 425 |
@@ -54,10 +55,9 @@
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_decision_lineage_endpoints.py` | 31 |
 | `sahool-platform` | `_reset_breaker` | function | `services/sahool-platform/tests/test_openmeteo_circuit.py` | 21 |
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_profit_aware_decision_endpoint.py` | 25 |
-| `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 19 |
+| `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 43 |
 | `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 120 |
 | `weather-service` | `_reset_breaker` | function | `services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py` | 41 |
-| `shared` | `_normalize_feature_vector` | function | `shared/precision_agriculture/phase6_intelligence.py` | 223 |
 
 ## Duplicate implementation groups
 
@@ -65,6 +65,7 @@
 |---|---:|
 | `01e55555d0073910` | 2 |
 | `0791c0d18167f804` | 5 |
+| `0978d02a074fea20` | 2 |
 | `1259184f437d28e1` | 3 |
 | `1652c685e5ed27fa` | 4 |
 | `18a46eb263382a99` | 2 |
@@ -80,6 +81,7 @@
 | `3fa331af9f9461ea` | 9 |
 | `40b9faafbad5a23d` | 2 |
 | `4167be0d9467807a` | 2 |
+| `449d333a8f42efab` | 2 |
 | `451e12ae0877302a` | 6 |
 | `49b18910194fee42` | 2 |
 | `4cb77c1b81129bbe` | 2 |
@@ -88,7 +90,6 @@
 | `5c83798b883cda7e` | 2 |
 | `62a08c439a5d8220` | 2 |
 | `69e415224b4d3b71` | 4 |
-| `6a2cef3bc2a2519d` | 2 |
 | `6dcb6ad9fc0cd5a9` | 2 |
 | `6f642e211a717584` | 2 |
 | `732840534ed80cbd` | 5 |
@@ -112,7 +113,6 @@
 | `b5f52c1314625bcb` | 2 |
 | `c830f52a910d32a5` | 2 |
 | `c92554a020167fed` | 2 |
-| `daa44aded5a16e85` | 2 |
 
 ## Interpretation
 

@@ -23,7 +23,7 @@ const _detected = FakeReply(200, {
       'action_policy': 'observation_only',
     },
   ],
-  'alert_ar': '🐛 **تنبيه آفة عالية الثقة!**',
+  'alert_ar': '🐛 **تنبيه كشف آفة — درجة نموذج مرتفعة**',
   'model_version': 'pest-v2',
   'sync_status': 'synced',
 });
@@ -136,8 +136,8 @@ void main() {
     testWidgets('shows labels and confidence from the server', (t) async {
       await open(t, (o) async => _detected);
       expect(find.text('منّ'), findsOneWidget);
-      expect(find.text('الثقة 91٪'), findsOneWidget);
-      expect(find.textContaining('تنبيه آفة عالية الثقة'), findsOneWidget);
+      expect(find.text('درجة النموذج 91٪'), findsOneWidget);
+      expect(find.textContaining('تنبيه كشف آفة'), findsOneWidget);
       expect(find.textContaining('**'), findsNothing);
       expect(find.textContaining('pest-v2'), findsOneWidget);
     });
@@ -149,7 +149,7 @@ void main() {
             const FakeReply(200, {'detections': [], 'sync_status': 'queued'}),
       );
       expect(
-        find.textContaining('لم يكتشف النموذج آفات فوق عتبة الثقة'),
+        find.textContaining('لم يكتشف النموذج آفات فوق عتبة الدرجة'),
         findsOneWidget,
       );
     });

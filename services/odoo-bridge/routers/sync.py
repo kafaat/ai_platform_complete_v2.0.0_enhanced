@@ -75,6 +75,39 @@ async def _probe_erp_or_503(provider) -> None:
         )
 
 
+async def _schema_or_503(*, entity: str, steps: list[str]) -> None:
+    """R4: لا «queued» لمزامنة ستفشل حتماً — قاعدة غير متاحة أو جداول غائبة ⇒ 503 مُصنَّف.
+
+    أسماء الجداول ليست أسراراً؛ تُعاد كي يعرف المشغّل الهجرة الناقصة.
+    """
+    schema = await main.erp_sync_schema_status()
+    if not schema["checked"]:
+        raise HTTPException(
+            503,
+            {
+                "error": schema["reason"],
+                "entity": entity,
+                "detail": "ERP sync needs the SAHOOL database (DATABASE_URL); nothing was queued.",
+            },
+        )
+    missing = sorted(
+        {t for step in steps for t in schema["entities"].get(step, {}).get("missing_tables", [])}
+    )
+    if missing:
+        raise HTTPException(
+            503,
+            {
+                "error": "erp_schema_missing",
+                "entity": entity,
+                "missing_tables": missing,
+                "detail": (
+                    "ERP sync tables are not created by any applied migration; "
+                    "nothing was queued. Check /readyz."
+                ),
+            },
+        )
+
+
 @router.post("/v1/sync")
 async def trigger_sync(
     req: main.SyncRequest,
@@ -89,7 +122,10 @@ async def trigger_sync(
     fail-closed (ERP-BRIDGE-FIX-01):
       424 — مزوّد ERP غير مهيّأ (none/مفاتيح فارغة): لا إرسال وهميّ، لا كتابة جزئية.
       503 — مزوّد مهيّأ لكن غير مستجيب: probe بمهلة 5s قبل الإضافة للطابور.
-    كلا الرفضين يحدثان قبل أيّ background_tasks.add_task() — ضمان لا كتابة جزئية.
+      503 erp_schema_missing / erp_sync_database_unavailable (R4) — جداول المزامنة غائبة
+          أو لا قاعدة: لا «queued» لتشغيلٍ سيفشل حتماً.
+    الردّ الناجح يحمل run_id؛ فشل أيّ خطوة يُسجَّل ERROR بـrun_id وفي odoo_sync_log.
+    كلّ الرفوض يحدثان قبل أيّ background_tasks.add_task() — ضمان لا كتابة جزئية.
     الحالة الطبيعية معروضة كبيانات في /v1/readyz/capabilities (HTTP 200 دائماً).
     """
     provider = main.get_active_erp_provider()
@@ -110,20 +146,33 @@ async def trigger_sync(
             },
         )
 
-    # بوّابة ٢: مزوّد مهيّأ لكن غير مستجيب → 503 (probe بمهلة)
-    await _probe_erp_or_503(provider)
-
+    steps: list[tuple[str, object]] = []
     if req.entity == "all" or req.entity == "products":
-        background_tasks.add_task(main.sync_products)
+        steps.append(("products", main.sync_products))
     if req.entity == "all" or req.entity == "suppliers":
-        background_tasks.add_task(main.sync_suppliers)
+        steps.append(("suppliers", main.sync_suppliers))
     if req.entity == "all" or req.entity == "warehouses":
-        background_tasks.add_task(main.sync_warehouses)
+        steps.append(("warehouses", main.sync_warehouses))
     if req.entity == "all" or req.entity == "procurement":
         if main.get_active_erp_provider().name == "odoo":
-            background_tasks.add_task(main.sync_procurement_orders_to_odoo)
+            steps.append(("procurement", main.sync_procurement_orders_to_odoo))
         elif req.entity == "procurement":
             raise HTTPException(409, "procurement_sync_requires_odoo_provider")
     if req.entity == "all" or req.entity == "costs":
-        background_tasks.add_task(main.sync_field_costs_to_odoo)
-    return {"status": "queued", "entity": req.entity, "direction": req.direction}
+        steps.append(("costs", main.sync_field_costs_to_odoo))
+
+    # بوّابة ٢ (R4): مخطّط المزامنة غائب/قاعدة غير متاحة → 503 صريح بدل «queued» كاذب.
+    await _schema_or_503(entity=req.entity, steps=[name for name, _ in steps])
+
+    # بوّابة ٣: مزوّد مهيّأ لكن غير مستجيب → 503 (probe بمهلة)
+    await _probe_erp_or_503(provider)
+
+    run_id = main.new_sync_run_id()
+    background_tasks.add_task(main.run_sync_job, run_id, steps, trigger="manual")
+    return {
+        "status": "queued",
+        "run_id": run_id,
+        "entity": req.entity,
+        "direction": req.direction,
+        "steps": [name for name, _ in steps],
+    }

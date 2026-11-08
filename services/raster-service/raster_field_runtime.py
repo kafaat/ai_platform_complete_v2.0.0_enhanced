@@ -7,9 +7,11 @@ names that its endpoint code still expects.
 
 from __future__ import annotations
 
+import functools
 import logging
 import os
 import sys
+from datetime import UTC, datetime
 
 import layer_lookup
 import object_store
@@ -27,7 +29,9 @@ import stac_search as stac_search_helpers
 import tile_cache_io
 import tile_cache_maint
 import tile_observability
-from fastapi import Header
+from anyio import CapacityLimiter, to_thread
+from anyio.lowlevel import RunVar
+from fastapi import Header, HTTPException
 
 logger = logging.getLogger("raster-service")
 
@@ -98,6 +102,123 @@ async def _require_field_tenant(field_id: str, *, hide_existence: bool = False) 
     )
 
 
+def _reject_stale_revision(requested: int | None, current: int | None) -> None:
+    """مراجعةٌ في الجسم تخالف المراجعة المخزّنة ⇒ 409 ``stale_geometry_revision`` (عقد T10 واحد)."""
+    if requested is not None and requested != current:
+        raise HTTPException(
+            409,
+            {
+                "code": "stale_geometry_revision",
+                "requested_revision": requested,
+                "current_revision": current,
+                "message_ar": "مراجعة هندسة الحقل في الطلب ليست المراجعة المخزّنة الحاليّة.",
+            },
+        )
+
+
+async def _cdse_request_on_stored_field(
+    field_id: str, req: api_models.ProcessCdseRequest, owner: str
+) -> api_models.ProcessCdseRequest:
+    """هندسة process-cdse ومراجعتها من جدول ``fields`` (مصدر الحقيقة) لا من جسم الطلب (T10).
+
+    هندسة الجسم كانت تُقصّ بها الطبقات وتُحفَظ باسم الحقل، فيُعالَج أيّ مضلّع تحت معرّف
+    حقل. مع قاعدة: الهندسة المخزّنة تحكم (وbbox يُشتقّ منها) والجسم يُتجاهَل؛ غيابها ⇒ 400.
+    ومراجعتها (``geometry_revision``) تُقرأ معها في جملة واحدة وتُختَم على الطلب: مراجعةُ
+    الجسم كانت تبقى فتُحفَظ N نَسَباً لأصلٍ قُصّ بهندسة N+1 (مراجعة PR #1324). مراجعةٌ في
+    الجسم تخالف المخزّنة ⇒ 409 ``stale_geometry_revision`` بلا مهمّة، لا خلط نَسَب.
+    بلا قاعدة (وضع مقصود، كفحص الملكيّة بالذاكرة) لا سجلّ نقارن به فتبقى هندسة الجسم.
+    والمستأجر ``owner`` (مستأجر السياق) يُثبَّت على الطلب فتُنسَب الطبقات لمالكها.
+    """
+    import db_persist as _dbp
+
+    geometry, bbox, revision = req.geometry, list(req.bbox), req.geometry_revision
+    if _dbp.DATABASE_URL:
+        try:
+            stored = await _dbp.fetch_field_geometry_with_revision(field_id, _REQ_TENANT.get())
+        except Exception as e:  # noqa: BLE001 — تعذّر جلب الهندسة ⇒ 503 صادق
+            raise HTTPException(503, "تعذّر جلب هندسة الحقل المخزّنة") from e
+        geometry = (stored or {}).get("geometry")
+        bbox = _bbox_from_geojson(geometry)
+        if geometry is None or bbox is None:
+            raise HTTPException(400, "هندسة الحقل المخزّنة غير متاحة لمعالجة CDSE")
+        revision = stored.get("revision")
+        _reject_stale_revision(req.geometry_revision, revision)
+        if req.geometry is not None and req.geometry != geometry:
+            logger.warning("process-cdse field=%s: body geometry ignored (stored wins)", field_id)
+    return req.model_copy(
+        update={
+            "geometry": geometry,
+            "bbox": bbox,
+            "geometry_revision": revision,
+            "tenant_id": owner,
+        }
+    )
+
+
+async def _clip_on_stored_field(field_id: str, req) -> tuple[dict | None, int | None]:
+    """مضلّع القصّ **ومراجعته** لـprocess-date/backfill/process-from-stac من ``fields`` (قاعدة T10).
+
+    ``req`` أيّ طلب يحمل ``clip_polygon_geojson`` و``geometry_revision`` (الثلاثة تحملهما).
+
+    مع قاعدة: غياب مضلّع الجسم ⇒ الهندسة المخزّنة؛ مضلّع جسمٍ يُقبَل فقط إن احتوته الهندسة
+    المخزّنة (وإلّا 400) — فلا يُقصّ ويُحفَظ باسم الحقل مضلّعٌ يختاره المُنادي؛ غياب المخزّنة ⇒ 400.
+    والمراجعة تُقرأ مع الهندسة في جملة واحدة وتُرجَع معها: كانت المراجعة N من الجسم تُجدوَل
+    مع هندسة N+1 المخزّنة فيُختَم أصلٌ بنَسَبٍ خاطئ ويُعاد استعمال أصلٍ بمفتاح مراجعةٍ خاطئ
+    (مراجعة PR #1330). مراجعة جسمٍ تخالف المخزّنة ⇒ 409 كـprocess-cdse.
+    بلا قاعدة (وضع مقصود) لا سجلّ نقارن به فيبقى مضلّع الجسم ومراجعته كما كانا (قد يكونان None).
+    """
+    import db_persist as _dbp
+
+    body_clip, requested_revision = req.clip_polygon_geojson, req.geometry_revision
+    if not _dbp.DATABASE_URL:
+        return body_clip, requested_revision
+    try:
+        stored = await _dbp.fetch_field_geometry_with_revision(field_id, _REQ_TENANT.get())
+    except Exception as e:  # noqa: BLE001 — تعذّر جلب الهندسة ⇒ 503 صادق
+        raise HTTPException(503, "تعذّر جلب هندسة الحقل المخزّنة") from e
+    geometry = (stored or {}).get("geometry")
+    if geometry is None or _bbox_from_geojson(geometry) is None:
+        raise HTTPException(400, "هندسة الحقل المخزّنة غير متاحة لاشتقاق bbox وقصّ الصور")
+    revision = stored.get("revision")
+    _reject_stale_revision(requested_revision, revision)
+    if not body_clip:
+        return geometry, revision
+    if not raster_date_geo.clip_within_field(body_clip, geometry):
+        raise HTTPException(400, "clip_polygon_geojson يقع خارج هندسة الحقل المخزّنة")
+    return body_clip, revision
+
+
+def _clip_resolvable(req) -> bool:
+    """هل سيُحلّ لهذا الطلب مضلّع قصّ؟ — لحارس process-from-stac الذي يسبق فحص المستأجر.
+
+    كان الحارس يفحص ``req.clip_polygon_geojson`` الخام، فيُرفَض 422 ``radiometry_unresolved``
+    طلبٌ بلا مضلّع قبل أن يُطبَّق افتراض T10 (الهندسة المخزّنة) — مراجعة #1330. مع قاعدة
+    يُرجِع ``_clip_on_stored_field`` دائماً مضلّعاً غير فارغ أو يرفع (400/409/503)، فالقصّ
+    محلولٌ حتماً؛ بلا قاعدة يبقى مضلّع الجسم وحده. فيُحكَم على الطلب الموروث مبكّراً بلا قراءة.
+    """
+    import db_persist as _dbp
+
+    return bool(req.clip_polygon_geojson) or bool(_dbp.DATABASE_URL)
+
+
+def _cdse_job_record(job_id: str, owner: str, req, gate_decision) -> dict:
+    """سجلّ مهمّة process-cdse المعلَّقة، مربوطاً بمستأجِره وبقرار بوّابة satellite_cdse."""
+    job_record = {
+        "job_id": job_id,
+        "tenant_id": owner,
+        "status": JobStatus.pending,
+        "progress_pct": 0,
+        "created_at": datetime.now(UTC).isoformat(),
+        "indicators": list(req.indicators),
+        "provider": "cdse",
+    }
+    if gate_decision is not None:
+        # Bind the job to the exact activation generation it was authorized under (proof #4/#5):
+        # a later revoke/expiry bumps the generation, so the persisted evidence is non-repudiable.
+        job_record["gate"] = gate_decision.evidence()
+    return job_record
+
+
 def _safe_raster_source(url: str | None) -> str:
     return raster_security_context.safe_raster_source(
         url,
@@ -159,17 +280,48 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
 
 
 async def _real_field_grid(field_id: str, index: str, date: str, grid: int) -> dict | None:
-    return await layer_lookup.real_field_grid(
-        field_id,
-        index,
-        date,
-        grid,
-        layers=_layers,
-        field_layers=_field_layers,
-        tenant_getter=_REQ_TENANT.get,
-        logger=logger,
-        object_store_module=object_store,
-    )
+    # Same contract as layer_lookup.real_field_grid, but the COG read runs off the loop (R9).
+    layer = await _resolve_field_layer(field_id, index, date)
+    if layer is None:
+        return None
+    return await run_raster_io(_grid_from_cog, layer, index, date, grid)
+
+
+# R9: Blocking raster I/O off the event loop, bounded.
+# قراءة GDAL/rasterio متزامنة داخل معالج async على عامل uvicorn واحد كانت تُجمّد الخدمة كلّها
+# خلف COG بعيد بطيء. تُنفَّذ في خيط بحدّ تزامن (RASTER_IO_CONCURRENCY) كي لا تستهلك الخيوط
+# كلّها؛ والمحدِّد لكلّ حلقة أحداث (RunVar) كمحدِّد anyio الافتراضيّ نفسه.
+_RASTER_IO_LIMITER: RunVar[CapacityLimiter] = RunVar("raster_io_limiter")
+
+
+def raster_io_concurrency() -> int:
+    try:
+        return max(1, int(os.getenv("RASTER_IO_CONCURRENCY", "8")))
+    except ValueError:
+        return 8
+
+
+def _raster_io_limiter() -> CapacityLimiter:
+    try:
+        return _RASTER_IO_LIMITER.get()
+    except LookupError:
+        limiter = CapacityLimiter(raster_io_concurrency())
+        _RASTER_IO_LIMITER.set(limiter)
+        return limiter
+
+
+async def run_raster_io(func, /, *args, **kwargs):
+    """Run a blocking GDAL/rasterio call in a worker thread under the raster I/O limiter."""
+    call = functools.partial(func, *args, **kwargs)
+    return await to_thread.run_sync(call, limiter=_raster_io_limiter())
+
+
+def _read_index_pixel(path: str, lon: float, lat: float) -> float | None:
+    """Open ``path`` and sample the index pixel (blocking; call via ``run_raster_io``)."""
+    import rasterio
+
+    with rasterio.open(path) as src:
+        return _sample_index_pixel(src, lon, lat)
 
 
 # Tile cache helpers.

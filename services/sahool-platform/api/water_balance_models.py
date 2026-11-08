@@ -32,7 +32,9 @@ class WaterBalanceRequest(Et0WeatherInput):
     wind_2m_ms: StrictFloat | None = None
     latitude_deg: StrictFloat = 15.5
     elevation_m: StrictFloat = 2000.0
-    day_of_year: StrictInt = 100
+    # لا يوم سنة ثابتاً (كان 100 = أوائل أبريل لكلّ طلب): الغياب ⇒ ``resolve_day_of_year`` من
+    # التاريخ الفعليّ ويُعلَن ``day_of_year_source`` في المخرَج (G15).
+    day_of_year: StrictInt | None = None
     # ── تحليل الملوحة (اختياريّ) — يُفعّل مسار الملوحة تلقائيّاً عند توفّر تحليل موثوق ──
     # صدق: غيابها ⇒ حساب بلا ملوحة (السلوك القائم تماماً). توفّرها ⇒ يقرّر salinity_policy
     # تلقائيّاً (ECe/ECw حديثة <365 يوم + ثقة ≥0.8، أو ECe>2/ECw>1.5/محصول حسّاس).

@@ -576,21 +576,12 @@ async def test_the_real_soil_p1_writer_sets_the_name_its_policy_reads():
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    raises=asyncpg.InsufficientPrivilegeError,
-    reason=(
-        "phase_runtime_store._set_rls_tenant يضبط الاسمين بـset_config(…, true) خارج أيّ معاملة "
-        "في مواضعه الأحد عشر ⇒ يضيعان قبل الإدراج ⇒ WITH CHECK يرفض (42501) تحت مسبح التطبيق "
-        "المقيَّد. الملفّ مجمَّدٌ بـGATE-01: المسموحُ الاختبارُ لا الإصلاح."
-    ),
-)
 async def test_phase_runtime_store_persists_under_the_restricted_app_role():
-    """**العيبُ قائم — والاختبارُ يوثّقه تنفيذيّاً لا نثراً** (سابقة `test_compensation_killswitch`).
+    """كتابةُ المنصّة تحت الدور المقيَّد تمرّ: سياقُ المستأجر يُضبط **داخل** معاملة الكتابة.
 
-    `strict=True` يمنعه من أن يصير نسياناً: يوم يدخل الإصلاح (لفُّ `_set_rls_tenant` والكتابة
-    في `conn.transaction()`) ينجح الاختبارُ **على غير توقّع** فيحمرّ الجناح ويُطالِب بنزع
-    العلامة. و`raises` يحصر التوقّعَ في رفض RLS وحده: فشلُ استيرادٍ أو اتّصالٍ يبقى فشلاً.
+    كان هذا ``xfail(strict=True)`` يوثّق العيب (``set_config(…, true)`` خارج أيّ معاملة ⇒ يضيع
+    قبل الإدراج ⇒ ``WITH CHECK`` يرفض 42501). الإصلاح لفّ كلَّ كتابةٍ في ``conn.transaction()``
+    (أو ``_tenant_execute``)، فنُزعت العلامة كما طالب ``strict``.
     """
     from api import phase_runtime_store
 

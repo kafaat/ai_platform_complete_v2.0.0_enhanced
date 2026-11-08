@@ -744,7 +744,8 @@ async def _idempotent_as(role, tenant, key, digest, work, *, start_after=0.0, is
                 command_type="live.proof",
                 actor_id="u-live",
                 tenant_id=tenant,
-                payload={"request_digest": digest},
+                payload={},
+                request_digest=digest,
             )
     finally:
         await conn.close()
@@ -963,6 +964,8 @@ def test_a_foreign_key_without_a_digest_is_a_final_conflict_not_a_retry_later():
                     actor_id="u-live",
                     tenant_id=tenant,
                     payload={},
+                    # البصمة إلزاميّة منذ T6؛ والمطابقة هنا تعزل حالة الصفّ المحجوب وحدها.
+                    request_digest="d" * 64,
                 )
         finally:
             await conn.close()

@@ -62,7 +62,15 @@ def _probe(case: str, endpoint: str) -> dict:
     assert any(p.available() for p in main._PROVIDER_REGISTRY if p.external)
     tenant = "00000000-0000-0000-0000-0000000000c7"
     token = jwt.encode(
-        {"sub": "synthetic-probe", "iss": "sahool-auth", "aud": "sahool", "tenant_id": tenant},
+        {
+            "sub": "synthetic-probe",
+            "iss": "sahool-auth",
+            "aud": "sahool",
+            "tenant_id": tenant,
+            # The claim policy enforces by default (GATE-01 batch 3): a token without exp
+            # is refused with 401 before the boundary under test is reached.
+            "exp": int(time.time()) + 300,
+        },
         main.JWT_SECRET,
         algorithm="HS256",
     )

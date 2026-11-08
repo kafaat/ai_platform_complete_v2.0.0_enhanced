@@ -122,9 +122,13 @@ GENERIC_STAGE_KC: dict[str, float] = {"initial": 0.4, "development": 0.8, "mid":
 def stage_kc_map(crop_id: str | None) -> dict[str, float] | None:
     """Kc لكلّ مرحلة مُسمّاة من بطاقة المحصول (المصدر الوحيد لـKc) — أو ``None`` بلا بطاقة.
 
-    الإسقاط من منحنى FAO-56 الرباعيّ (Kc_ini, Kc_mid, Kc_end) إلى أربع مراحل مُسمّاة:
+    الإسقاط من منحنى FAO-56 الرباعيّ (Kc_ini, Kc_mid, Kc_end) إلى أربع مراحل مُسمّاة —
+    كلّ مرحلة بمتوسّط المنحنى عليها (FAO-56 Fig.25/Eq.66: الصعود والهبوط خطّيّان):
       initial = Kc_ini · development = (Kc_ini + Kc_mid)/2 (منتصف الصعود الخطّيّ)
-      mid = Kc_mid · late = Kc_end.
+      mid = Kc_mid · late = (Kc_mid + Kc_end)/2 (منتصف الهبوط الخطّيّ).
+    G1: كان late = Kc_end لكامل المرحلة ⇒ قمح يوم 92 يأخذ 0.40 بدل ~1.10 (−64% ماء).
+    Kc_end قيمة يوم الحصاد فقط. المستهلك الذي يعرف عمر المحصول يستعمل ``stage_kc``
+    (المنحنى اليوميّ) لا هذا الإسقاط المرحليّ.
     صدق: لا قيمة مرحلة تُكتَب يدويّاً في أيّ مستهلك — كلّها من البطاقة عبر هذا الإسقاط.
     """
     profile = crop_kc_profile(crop_id)
@@ -135,21 +139,24 @@ def stage_kc_map(crop_id: str | None) -> dict[str, float] | None:
         "initial": ini,
         "development": round((ini + mid) / 2.0, 3),
         "mid": mid,
-        "late": end,
+        "late": round((mid + end) / 2.0, 3),
     }
 
 
 def stage_kc(crop_id: str | None, days_since_sowing: int | None) -> float | None:
     """معامل المحصول Kc الطوريّ (FAO-56 kc_for_age) لعمر المحصول — أو None إن جُهِل.
 
-    يستخدم كتلة kc من بطاقة المحصول (منحنى FAO-56 الرباعيّ) — أدقّ من Kc ثابت.
+    يستخدم كتلة kc من بطاقة المحصول (منحنى FAO-56 الرباعيّ): ini ثابت · dev خطّيّ
+    ini→mid · mid ثابت · late خطّيّ mid→end. العمر خارج الموسم يُقصّ: قبل البذار ⇒
+    Kc_ini، بعد الحصاد ⇒ Kc_end (لا استقراء خارج المنحنى).
     """
     if days_since_sowing is None:
         return None
     profile = crop_kc_profile(crop_id)
     if profile is None:
         return None
-    val, _ = kc_for_age(profile, days_since_sowing)
+    day = min(max(0, int(days_since_sowing)), profile.total_season_days)
+    val, _ = kc_for_age(profile, day)
     return round(val, 2)
 
 

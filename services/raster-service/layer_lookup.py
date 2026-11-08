@@ -42,11 +42,16 @@ def find_field_layer(
     field_id: str,
     index: str,
     date: str,
+    *,
+    tenant_id: str | None = None,
 ) -> dict[str, Any] | None:
     """Find a persisted COG-backed layer for ``field_id``/``index``/``date``.
 
     ``date='latest'`` returns the newest acquisition date.  A concrete
     YYYY-MM-DD date is strict and never falls back to latest.
+
+    T10: a layer owned by another tenant is never a candidate — the in-memory
+    registry is keyed by ``field_id`` only, so ownership is checked on every read.
     """
     layer_ids = field_layers.get(field_id, [])
     internal = normalize_index(index)
@@ -54,6 +59,11 @@ def find_field_layer(
     for layer_id in layer_ids:
         layer = layers.get(layer_id)
         if not layer or not layer.get("cog_url"):
+            continue
+        # T10: طبقة مستأجر آخر لا تُقرأ (الذاكرة مفهرسة بالحقل وحده) — نفس قاعدة
+        # require_field_tenant: مالك مُسجَّل يخالف مستأجر الطلب ⇒ تُتخطّى.
+        owner = layer.get("tenant_id")
+        if owner and str(owner) != str(tenant_id or ""):
             continue
         if layer.get("index") != internal:
             continue
@@ -277,7 +287,7 @@ async def resolve_field_layer(
 ) -> dict[str, Any] | None:
     """Resolve a field layer from memory or DB with strict-date semantics."""
     internal = normalize_index(index)
-    mem = find_field_layer(layers, field_layers, field_id, index, date)
+    mem = find_field_layer(layers, field_layers, field_id, index, date, tenant_id=tenant_getter())
 
     if date and date != "latest":
         if mem is not None:

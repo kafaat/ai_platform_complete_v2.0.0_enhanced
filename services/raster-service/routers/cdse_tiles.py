@@ -14,6 +14,7 @@ import raster_date_geo
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 from raster_available_dates import utc_day
+from raster_field_runtime import run_raster_io
 from raster_http_policy import TENANT_PRIVATE_IMAGE_HEADERS, validate_xyz
 from raster_runtime_state import FIELD_LAYERS, LAYERS
 from raster_security_context import REQ_TENANT, require_field_tenant
@@ -91,7 +92,7 @@ async def _persisted_thumbnail(field_id: str, index: str, date: str, size: int) 
     try:
         import tile_render
 
-        png = tile_render.render_cog_thumbnail_png(cog_url, internal, max_px=size)
+        png = await run_raster_io(tile_render.render_cog_thumbnail_png, cog_url, internal, size)
     except Exception as e:  # noqa: BLE001
         logger.warning("persisted thumbnail render failed (%s/%s): %s", field_id, internal, e)
         return _state_response(
@@ -175,7 +176,8 @@ async def field_cdse_tile(
     try:
         import tile_render
 
-        png = tile_render.render_tile_png(cog_path, z, x, y, internal)
+        # R9: تصيير GDAL خارج حلقة الأحداث بحدّ تزامن — COG بطيء لا يُجمّد الخدمة.
+        png = await run_raster_io(tile_render.render_tile_png, cog_path, z, x, y, internal)
         if png:
             return Response(
                 content=png,
@@ -247,7 +249,8 @@ async def field_cdse_thumbnail(
     try:
         import tile_render
 
-        png = tile_render.render_cog_thumbnail_png(cog_path, params["internal"], max_px=size)
+        render = tile_render.render_cog_thumbnail_png
+        png = await run_raster_io(render, cog_path, params["internal"], size)
         if png:
             return Response(
                 content=png,

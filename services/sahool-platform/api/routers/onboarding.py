@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
+from api.idempotency import model_digest
 from api.main import (
     CommandStore,
     OnboardingSubmitRequest,
@@ -87,6 +88,7 @@ async def submit_onboarding(
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
                 payload={"field_id": req.field_id},
+                request_digest=model_digest(req),
             )
         else:
             result = await _work()

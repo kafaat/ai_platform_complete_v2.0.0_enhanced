@@ -165,7 +165,7 @@ class _PestDetectBody extends StatelessWidget {
     if (r.detections.isEmpty) return null;
     final top = r.detections.first;
     return 'كشف بالصورة: ${top.labelAr} '
-        '(ثقة ${fmtPct(top.confidence, fraction: true)})';
+        '(درجة النموذج ${fmtPct(top.confidence, fraction: true)}، غير معايَرة)';
   }
 
   String _questionFor(PestDetectResult r) {
@@ -174,8 +174,8 @@ class _PestDetectBody extends StatelessWidget {
           'ما الذي أفحصه؟';
     }
     final top = r.detections.first;
-    return 'كشف النموذج «${top.labelAr}» بثقة '
-        '${fmtPct(top.confidence, fraction: true)} في حقل ${field.nameAr}. '
+    return 'كشف النموذج «${top.labelAr}» بدرجة نموذج '
+        '${fmtPct(top.confidence, fraction: true)} (غير معايَرة) في حقل ${field.nameAr}. '
         'كيف أتأكّد وما الخطوات المناسبة؟';
   }
 }
@@ -211,7 +211,7 @@ class _ResultCard extends StatelessWidget {
         children: [
           if (result.detections.isEmpty)
             const Text(
-              'لم يكتشف النموذج آفات فوق عتبة الثقة في هذه الصورة. هذا لا يعني '
+              'لم يكتشف النموذج آفات فوق عتبة الدرجة في هذه الصورة. هذا لا يعني '
               'خلوّ النبات — إن لاحظت أعراضاً صوّر عن قرب أو سجّل مشاهدة.',
             )
           else
@@ -223,7 +223,7 @@ class _ResultCard extends StatelessWidget {
                     : 'الشدّة حسب النموذج: ${PinSeverity.fromWire(d.severity)?.labelAr ?? d.severity}',
                 icon: Icons.bug_report_outlined,
                 trailing: StatusChip(
-                  label: 'الثقة ${fmtPct(d.confidence, fraction: true)}',
+                  label: 'درجة النموذج ${fmtPct(d.confidence, fraction: true)}',
                   tone: (d.confidence ?? 0) > 0.8
                       ? StatusTone.danger
                       : StatusTone.warning,

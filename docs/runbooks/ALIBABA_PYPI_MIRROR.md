@@ -51,6 +51,16 @@ docker build \
 
 The Dockerfiles still default to official PyPI, but every pip install is guarded with explicit `--timeout` and `--retries`.
 
+For Debian/Ubuntu system packages, the Dockerfiles keep their official apt sources by default. Operators can select a regional mirror for the whole Compose build without editing the files:
+
+```bash
+docker compose -f docker-compose.v9.yml build \
+  --build-arg DEBIAN_MIRROR=https://mirrors.aliyun.com \
+  --no-cache
+```
+
+An empty `DEBIAN_MIRROR` preserves the official apt sources. Package authenticity remains protected by the normal apt repository signatures.
+
 ## docker compose builds default to Alibaba (2026-10-26)
 
 `docker compose build` uses the Alibaba mirror by default. Every compose build whose

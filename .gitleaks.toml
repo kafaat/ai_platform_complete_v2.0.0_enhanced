@@ -60,6 +60,11 @@ regexes = [
   # draft slot), matched via `storageKey =` / `KEY =`. Names of slots, not their values.
   '''sahool_pending_operations_key_v1''',
   '''sahool-season-draft-v1''',
+  # S9 log-redaction canary (audit 2026-11-01, tests_v9/test_video_zlm_secret_not_logged.py):
+  # a made-up ZLMediaKit secret the test feeds in to prove it never reaches the URL or any
+  # log line. Its whole point is to look like a secret; it is never a deployed value. The
+  # PR-range history scan re-reads the commit that introduced it, so allowlisted literally.
+  '''zlm-S9-canary-7f3a91c2''',
 ]
 
 # Preserve reviewed evidence across squash/rebase: each exception requires BOTH

@@ -36,6 +36,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "actuator-service.commands.command_id",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/commands/{command_id}"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "actuator-service",
+      "producer": "actuator-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "actuator-service.idempotency.metrics",
       "consumers": [
         "frontend"
@@ -6048,7 +6065,7 @@
         "GET /api/v1/devices",
         "POST /api/v1/devices"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -6674,7 +6691,7 @@
         "GET /api/v1/equipment",
         "POST /api/v1/equipment"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -6694,7 +6711,7 @@
         "GET /api/v1/equipment/{equipment_id}/maintenance",
         "POST /api/v1/equipment/{equipment_id}/maintenance"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -9516,7 +9533,7 @@
         "GET /api/v1/inventory/items",
         "POST /api/v1/inventory/items"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -9535,7 +9552,7 @@
       "entrypoints": [
         "POST /api/v1/inventory/items/{item_id}/batches"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10440,7 +10457,7 @@
         "GET /api/v1/master-data",
         "POST /api/v1/master-data"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10670,7 +10687,7 @@
         "GET /api/v1/onboarding/responses",
         "POST /api/v1/onboarding/responses"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -16983,6 +17000,7 @@
           "custody_chain_events",
           "decision_learning_runs",
           "decision_record",
+          "detection_provenance",
           "dispatch_decisions",
           "drawing_features",
           "drone_missions",
@@ -17760,10 +17778,10 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 839,
+    "capabilities": 840,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 96,
-    "capabilities_idempotent": 65,
+    "capabilities_idempotent": 72,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 482,
     "components": 37,
@@ -17771,9 +17789,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1134,
+    "route_rows": 1135,
     "ui_waivers": 53,
-    "unique_method_path": 1013
+    "unique_method_path": 1014
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18035,7 +18053,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "2f50f9085a590970cdd902d483e31f697d60c0b6c0c0e5ae7119295b046cd16a",
+  "fingerprint": "92c08cc8201b244df947d236bf9aa6307a51f92bac1387f2ad07aff4b715f39b",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18085,16 +18103,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 902,
+      "edge_count": 918,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 46,
         "CONSUMES": 3,
         "EMITS": 1,
-        "READS": 465,
+        "READS": 473,
         "ROUTES_TO": 72,
-        "WRITES": 315
+        "WRITES": 323
       }
     },
     "u3_wiring_ownership": {

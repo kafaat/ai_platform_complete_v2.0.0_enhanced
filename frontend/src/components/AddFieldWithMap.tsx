@@ -921,7 +921,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         confidence: res?.confidence ?? null,
         ...metadata,
       });
-      const conf = typeof res?.confidence === 'number' ? ` (ثقة ${(res.confidence * 100).toFixed(0)}٪)` : '';
+      const conf = typeof res?.confidence === 'number' ? ` (درجة النموذج ${(res.confidence * 100).toFixed(0)}٪، غير معايَرة)` : '';
       // شفافيّة ExG: نُعلِم المشغّل إن طُبِّق تحسين الغطاء النباتيّ، ونحذّره صراحةً حين
       // كان الغطاء منخفضاً (إشارة ضعيفة ⇒ الاقتراح أقلّ موثوقيّة، يستحقّ تدقيقاً أشدّ).
       const meta = metadata as Record<string, unknown>;
@@ -1519,7 +1519,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                         <span>مصدر الحد: <strong className="text-emerald-200">{boundarySourceLabel}</strong></span>
                         <span>الرؤوس: <strong className="text-emerald-200">{currentBoundaryVertices}</strong></span>
                         {boundaryConfidence !== null && (
-                          <span>الثقة: <strong className="text-emerald-200">{boundaryConfidence}%</strong></span>
+                          <span title="درجة قناع SAM2 — ليست احتمالاً معايَراً لدقّة الحدّ">درجة النموذج: <strong className="text-emerald-200">{boundaryConfidence}%</strong> <span className="text-slate-400">(غير معايَرة)</span></span>
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-2">

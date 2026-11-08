@@ -22,7 +22,14 @@ LABEL org.opencontainers.image.revision=$SAHOOL_GIT_SHA \
       io.sahool.service=soil-service
 RUN python -c "import json,re; trig='$RAILWAY_GIT_COMMIT_SHA'; sha='$SAHOOL_GIT_SHA' or trig; bid='$SAHOOL_BUILD_ID' or ('railway-'+'$RAILWAY_DEPLOYMENT_ID' if '$RAILWAY_DEPLOYMENT_ID' else ('railway-'+trig[:12] if trig else '')); assert re.fullmatch(r'[0-9a-f]{40}',sha), 'SAHOOL_GIT_SHA must be full 40-char SHA (set it, or build from a GitHub trigger so RAILWAY_GIT_COMMIT_SHA supplies it)'; assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',bid), 'invalid SAHOOL_BUILD_ID'; assert not trig or trig==sha, 'SAHOOL_GIT_SHA '+sha+' contradicts the commit the platform built '+trig+' - unset the pinned variable or set it to the built commit'; open('/app/.sahool-build-metadata.json','w').write(json.dumps({'service':'soil-service','git_sha':sha,'build_id':bid,'source_repository':'$SAHOOL_SOURCE_REPOSITORY','source_ref':'$SAHOOL_SOURCE_REF'},sort_keys=True))"
 RUN chmod 0444 /app/.sahool-build-metadata.json
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev curl && rm -rf /var/lib/apt/lists/*
+ARG DEBIAN_MIRROR=
+RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
+        sed -i \
+            -e "s|http://deb.debian.org/debian-security|${DEBIAN_MIRROR%/}/debian-security|g" \
+            -e "s|http://deb.debian.org/debian|${DEBIAN_MIRROR%/}/debian|g" \
+            /etc/apt/sources.list.d/debian.sources; \
+    fi \
+    && apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev curl && rm -rf /var/lib/apt/lists/*
 COPY services/soil-service/requirements.txt /tmp/requirements.txt
 # ── PyPI الرسمي افتراضياً؛ يمكن استخدام Alibaba mirror عبر build arg ──
 # Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/

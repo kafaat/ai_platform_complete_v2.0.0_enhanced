@@ -30,6 +30,11 @@ _CARD = _ROOT / "docs" / "architecture" / "m03_command_path_adjudication.md"
 #: المواضعُ التي تُديدِب على `idempotency_key` في شيفرة الإنتاج. البطاقةُ تحصر
 #: الأوّلَ في **مسار الأوامر**؛ والثاني في مسار الحافّة — ووجودُه هو ما أبطل
 #: صياغةَ «الوحيد في الشجرة».
+# CP997-05 (v241): the edge target became (tenant_id, idempotency_key). It is still the same
+# dedup-by-key site the card counts, so only that file may match the tenant-scoped form here.
+_EDGE_ROUTER = "services/sahool-platform/api/routers/edge.py"
+_DEDUP_TARGET = re.compile(r"ON CONFLICT \(idempotency_key\)")
+_EDGE_TENANT_TARGET = "ON CONFLICT (tenant_id, idempotency_key)"
 _DEDUP_SITES = {
     "services/sahool-platform/api/phase_runtime_store.py",
     "services/sahool-platform/api/routers/edge.py",
@@ -66,7 +71,8 @@ def test_the_dedup_key_sites_are_exactly_the_two_the_card_accounts_for():
         rel = path.relative_to(_ROOT).as_posix()
         if rel.startswith(("tests", "scripts_v9")) or "node_modules" in rel:
             continue
-        if "ON CONFLICT (idempotency_key)" in path.read_text(encoding="utf-8", errors="ignore"):
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if _DEDUP_TARGET.search(text) or (rel == _EDGE_ROUTER and _EDGE_TENANT_TARGET in text):
             found.add(rel)
     assert found == _DEDUP_SITES, (
         f"مواضعُ الديدوب بالمفتاح تغيّرت: {sorted(found)} — أعِد قياسَ §٣ب في البطاقة "

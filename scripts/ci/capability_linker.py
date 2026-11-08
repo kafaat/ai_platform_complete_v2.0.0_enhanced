@@ -348,6 +348,13 @@ META_GOVERNANCE_FILES = {
     "docs/architecture/nats_subject_ownership_contract.json",
     "tests_v9/test_live_gap_closure_runbook_contract.py",
     "tests_v9/test_nats_subject_ownership_contract.py",
+    # Source-only proof planning and its unit tests are governance witnesses,
+    # not evidence that any domain workflow has been run or certified.
+    "config/proof/data_decision_outcome_v1.json",
+    "docs/strategy/DATA_DECISION_OUTCOME_PROOF_20261107.md",
+    "scripts/ci/data_decision_outcome_proof_gate.py",
+    "tests_v9/test_data_decision_outcome_manifest_binding.py",
+    "tests_v9/test_data_decision_outcome_proof_gate.py",
 }
 META_GOVERNANCE_PREFIXES = ("tests_v9/test_no_report_only_change_guard",)
 

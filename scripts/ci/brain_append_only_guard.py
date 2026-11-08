@@ -718,15 +718,91 @@ def check_range(
     return blocking, advisory, pairs
 
 
+def _budget_blob_at(ref: str, path: str, *, root: Path) -> tuple[bytes | None, str | None]:
+    """Read regular-file bytes, distinguishing a missing path from a failed measurement.
+
+    ``git show ref:path`` also succeeds for a tree or a symlink: it measures the tree
+    listing or link target's spelling, not the journal that a reader would open.
+    Inspect the entry first, then read its exact blob ID. Executable regular files still
+    have bytes; links, directories and submodules are not regular journal/policy files.
+    """
+    result = _git("ls-tree", "-z", ref, "--", path, root=root)
+    if result.returncode != 0:
+        return None, f"Cannot read {ref}:{path}: {result.stderr.decode('utf-8', 'replace').strip()}"
+    for record in result.stdout.split(b"\0"):
+        meta, _tab, name = record.partition(b"\t")
+        if name != path.encode("utf-8"):
+            continue
+        mode, kind, oid = meta.split()
+        if mode not in (b"100644", b"100755") or kind != b"blob":
+            return None, f"Expected a regular file at {ref}:{path}, found mode {mode.decode()}"
+        content = _git("cat-file", "blob", oid.decode("ascii"), root=root)
+        if content.returncode != 0:
+            return (
+                None,
+                f"Cannot read blob at {ref}:{path}: {content.stderr.decode('utf-8', 'replace').strip()}",
+            )
+        return content.stdout, None
+    return None, None
+
+
 def _budget_at(ref: str, *, root: Path, path: str) -> tuple[dict[str, int] | None, str | None]:
-    """(journal → max bytes, error). ``(None, None)`` when the budget file is absent at ``ref``."""
-    raw = blob(ref, path, root=root)
+    """(journal → max bytes, error). ``(None, None)`` only when the policy path is absent.
+
+    Preserve the minimal ``{"budgets": ...}`` shape used by local tools, but require
+    declared schema/version metadata to match. Byte limits are exact nonnegative JSON
+    integers: coercion must not turn booleans, floats or numeric strings into a policy.
+    """
+    raw, error = _budget_blob_at(ref, path, root=root)
+    if error:
+        return None, error
     if raw is None:
         return None, None
+
+    def unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+        doc: dict[str, object] = {}
+        for key, value in pairs:
+            if key in doc:
+                raise ValueError(f"Duplicate JSON key: {key!r}")
+            doc[key] = value
+        return doc
+
+    def reject_constant(value: str) -> None:
+        raise ValueError(f"Non-finite JSON constant: {value}")
+
     try:
-        doc = json.loads(raw.decode("utf-8"))
-        return {journal: int(spec["max_bytes"]) for journal, spec in doc["budgets"].items()}, None
-    except (UnicodeDecodeError, ValueError, KeyError, TypeError, AttributeError) as exc:
+        doc = json.loads(
+            raw.decode("utf-8"), object_pairs_hook=unique_object, parse_constant=reject_constant
+        )
+        if not isinstance(doc, dict):
+            raise ValueError("Budget policy must be a JSON object")
+        if doc.get("schema", "sahool.brain-journal-budget") != "sahool.brain-journal-budget":
+            raise ValueError("Unsupported budget schema")
+        version = doc.get("version", 1)
+        if type(version) is not int or version != 1:
+            raise ValueError("Unsupported budget version (expected integer 1)")
+        specs = doc["budgets"]
+        if not isinstance(specs, dict):
+            raise ValueError("budgets must be a JSON object")
+        budgets: dict[str, int] = {}
+        for journal, spec in specs.items():
+            # JSON permits escaped lone surrogates; Git cannot measure them as UTF-8 paths.
+            # Validate here so malformed policy is reported before subprocess encoding.
+            journal.encode("utf-8")
+            if (
+                any(part in ("", ".", "..") for part in journal.split("/"))
+                or "\\" in journal
+                or any(ord(char) < 32 for char in journal)
+            ):
+                raise ValueError(f"Budget target must be a canonical repository path: {journal!r}")
+            if not isinstance(spec, dict):
+                raise ValueError(f"Budget for {journal} must be a JSON object")
+            limit = spec["max_bytes"]
+            if type(limit) is not int or limit < 0:
+                raise ValueError(f"max_bytes for {journal} must be a nonnegative JSON integer")
+            budgets[journal] = limit
+        return budgets, None
+    except (UnicodeDecodeError, ValueError, KeyError, TypeError) as exc:
         return None, f"{type(exc).__name__}: {exc}"
 
 
@@ -783,9 +859,22 @@ def check_budget(
                         f"الميزانيّة {limit:,} ← {shown} بايت — راتشِت يهبط ولا يرتفع",
                     )
                 )
+    for journal in sorted(archives):
+        if journal not in head_budgets and journal not in (base_budgets or {}):
+            blocking.append(
+                Finding(
+                    "BUDGET_REQUIRED_TARGET_ABSENT",
+                    journal,
+                    base or "—",
+                    head,
+                    "دفترٌ له أرشيف بلا سقفٍ مُعلَن في الميزانيّة؛ خلوُّ المقارنة ليس نجاحاً",
+                )
+            )
     for journal, limit in sorted(head_budgets.items()):
-        content = blob(head, journal, root=root)
-        if content is None:
+        content, target_error = _budget_blob_at(head, journal, root=root)
+        if target_error:
+            blocking.append(Finding("BUDGET_TARGET_UNREADABLE", journal, "—", head, target_error))
+        elif content is None:
             blocking.append(
                 Finding("BUDGET_TARGET_ABSENT", journal, "—", head, "دفترٌ مُوازَنٌ غائبٌ عند الرأس")
             )
@@ -890,8 +979,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     budgets, _error = _budget_at(args.head, root=ROOT, path=BUDGET)
     for journal, limit in sorted((budgets or {}).items()):
-        size = len(blob(args.head, journal) or b"")
-        print(f"  ميزانيّة {journal}: {size:,} / {limit:,} بايت (المتبقّي {limit - size:,})")
+        content, target_error = _budget_blob_at(args.head, journal, root=ROOT)
+        if target_error or content is None:
+            reason = "تعذّرت قراءة الدفتر" if target_error else "الدفتر غائب"
+            print(f"  ميزانيّة {journal}: غير مقاس / {limit:,} بايت ({reason})")
+        else:
+            size = len(content)
+            print(f"  ميزانيّة {journal}: {size:,} / {limit:,} بايت (المتبقّي {limit - size:,})")
     for finding in advisory:
         print(str(finding).replace("✗", "•"))
     if blocking:

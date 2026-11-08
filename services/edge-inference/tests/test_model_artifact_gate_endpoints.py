@@ -276,3 +276,36 @@ def test_uploads_are_read_with_a_size_bound_not_whole(monkeypatch, tmp_path):
     )
     assert len(sizes) == 2
     assert all(0 < size <= 10 * 1024 * 1024 + 1 for size in sizes)
+
+
+def test_a_synced_detection_carries_the_gate_artifact_sha_and_the_input_digest(
+    monkeypatch, tmp_path
+):
+    """نسبُ الكشف: البصمةُ المُزامَنة هي **حكمُ البوّابة** (بايتات المصنوعة المثبَّتة)،
+    وبصمةُ المدخل بايتاتُ الصورة المرفوعة — لا قيمةُ بيئةٍ ولا «معايَر» مُدّعى."""
+    import json
+
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    monkeypatch.setattr(module, "get_pest_detector", lambda: _StubDetector())
+    image = b"\xff\xd8\xff-leaf"
+    client = TestClient(module.app)
+    response = client.post(
+        "/v1/inference/pest-detect",
+        data={"field_id": "field-unit", "confidence_threshold": "0.7"},
+        files={"file": ("leaf.jpg", io.BytesIO(image), "image/jpeg")},
+        headers=_HEADERS,
+    )
+    assert response.status_code == 200
+    gate_sha = module._model_capability("PEST_MODEL_PATH", "pest_detector_int8.onnx")[
+        "actual_sha256"
+    ]
+    assert gate_sha == hashlib.sha256(b"pest-bytes").hexdigest()
+    [queued] = _queued(tmp_path)
+    provenance = json.loads(queued.read_text(encoding="utf-8"))["data"]["provenance"]
+    assert provenance["artifact_sha256"] == gate_sha
+    assert provenance["input_sha256"] == hashlib.sha256(image).hexdigest()
+    assert provenance["model_id"] == "pest_detector_int8.onnx"
+    assert provenance["model_version"] == "stub"
+    assert provenance["threshold"] == 0.7
+    assert provenance["calibrated"] is False
+    assert response.json()["provenance"] == provenance

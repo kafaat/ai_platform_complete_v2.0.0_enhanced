@@ -20,6 +20,7 @@ The two properties that matter, and both were measured before being chosen:
 from __future__ import annotations
 
 import importlib.util
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -1506,10 +1507,18 @@ def test_a_file_that_never_counted_may_change_mode(guard, tmp_path):
 # ── the size budget: a ratchet, never raised ────────────────────────────────
 
 
-def _budget(max_bytes: int) -> str:
-    import json
-
-    return json.dumps({"budgets": {_HOT: {"max_bytes": max_bytes}}}, indent=2) + "\n"
+def _budget(max_bytes: object) -> str:
+    return (
+        json.dumps(
+            {
+                "schema": "sahool.brain-journal-budget",
+                "version": 1,
+                "budgets": {_HOT: {"max_bytes": max_bytes}},
+            },
+            indent=2,
+        )
+        + "\n"
+    )
 
 
 @pytest.mark.parametrize(
@@ -1564,6 +1573,229 @@ def test_a_missing_or_unreadable_budget_fails_closed(guard, tmp_path, base_files
     assert _codes(blocking) == ([code] if code else [])
     if code is None:
         assert _codes(advisory) == ["BUDGET_INTRODUCED"]
+
+
+@pytest.mark.parametrize(
+    "limit",
+    [True, False, 100.0, 100.9, "100", -1, None, [], {}, float("inf"), float("nan")],
+    ids=[
+        "true",
+        "false",
+        "integral-float",
+        "fraction",
+        "string",
+        "negative",
+        "null",
+        "list",
+        "object",
+        "infinity",
+        "nan",
+    ],
+)
+def test_budget_limits_are_exact_nonnegative_integers(guard, tmp_path, limit):
+    """Malformed policy is not a zero cap or an implicit integer conversion."""
+    root = _archive_init(tmp_path)
+    base = _snapshot(root, {_HOT: "", _BUDGET: _budget(100)})
+    head = _snapshot(root, {_HOT: "", _BUDGET: _budget(limit)}, base)
+    blocking, _ = guard.check_budget(base, head, root=root)
+    assert _codes(blocking) == ["BUDGET_UNREADABLE"]
+
+
+@pytest.mark.parametrize("limit", [0, 10])
+def test_an_empty_regular_journal_is_measured_as_zero_bytes(guard, tmp_path, limit):
+    root = _archive_init(tmp_path)
+    head = _snapshot(root, {_HOT: "", _BUDGET: _budget(limit)})
+    blocking, _ = guard.check_budget(head, head, root=root)
+    assert not blocking
+
+
+@pytest.mark.parametrize("at", ["base", "head"])
+@pytest.mark.parametrize("duplicate", ["root", "journal", "limit"])
+def test_duplicate_budget_keys_fail_closed_at_either_end(guard, tmp_path, at, duplicate):
+    """A second copy must not silently select a different policy during a merge."""
+    policies = {
+        "root": '{"budgets": {}, "budgets": {"sahool-brain/hot.md": {"max_bytes": 100}}}',
+        "journal": '{"budgets": {"sahool-brain/hot.md": {"max_bytes": 50}, '
+        '"sahool-brain/hot.md": {"max_bytes": 100}}}',
+        "limit": '{"budgets": {"sahool-brain/hot.md": {"max_bytes": 50, "max_bytes": 100}}}',
+    }
+    root = _archive_init(tmp_path)
+    base = _snapshot(
+        root, {_HOT: "", _BUDGET: policies[duplicate] if at == "base" else _budget(100)}
+    )
+    head = _snapshot(
+        root, {_HOT: "", _BUDGET: policies[duplicate] if at == "head" else _budget(100)}, base
+    )
+    blocking, _ = guard.check_budget(base, head, root=root)
+    assert _codes(blocking) == ["BUDGET_UNREADABLE"]
+
+
+@pytest.mark.parametrize(
+    "field,value", [("schema", "other"), ("version", 2), ("version", True), ("version", 1.0)]
+)
+def test_declared_budget_schema_and_version_must_be_supported(guard, tmp_path, field, value):
+    root = _archive_init(tmp_path)
+    doc = json.loads(_budget(100))
+    doc[field] = value
+    head = _snapshot(root, {_HOT: "", _BUDGET: json.dumps(doc)})
+    blocking, _ = guard.check_budget(None, head, root=root)
+    assert _codes(blocking) == ["BUDGET_UNREADABLE"]
+
+
+def test_legacy_minimal_budget_shape_remains_supported(guard, tmp_path):
+    """The separate journal-history repair utility uses this minimal public input shape."""
+    root = _archive_init(tmp_path)
+    head = _snapshot(
+        root, {_HOT: "", _BUDGET: '{"budgets": {"sahool-brain/hot.md": {"max_bytes": 100}}}'}
+    )
+    blocking, _ = guard.check_budget(None, head, root=root)
+    assert not blocking
+
+
+@pytest.mark.parametrize("base_policy", [None, '{"budgets": {}}'])
+def test_an_empty_policy_cannot_leave_hot_md_unbudgeted(guard, tmp_path, base_policy):
+    root = _archive_init(tmp_path)
+    base_files = {_HOT: _TOP}
+    if base_policy is not None:
+        base_files[_BUDGET] = base_policy
+    base = _snapshot(root, base_files)
+    head = _snapshot(root, {_HOT: _TOP, _BUDGET: '{"budgets": {}}'}, base)
+    blocking, _ = guard.check_budget(base, head, root=root)
+    assert _codes(blocking) == ["BUDGET_REQUIRED_TARGET_ABSENT"]
+    assert blocking[0].path == _HOT
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        "",
+        "/hot.md",
+        "../hot.md",
+        "sahool-brain/./hot.md",
+        "sahool-brain//hot.md",
+        "sahool-brain\\hot.md",
+        "sahool-brain/\ud800.md",
+        "sahool-brain/\udfff.md",
+        "sahool-brain/\udc80.md",
+    ],
+)
+def test_budget_targets_use_canonical_repository_paths(guard, tmp_path, target):
+    root = _archive_init(tmp_path)
+    doc = json.loads(_budget(100))
+    doc["budgets"][target] = {"max_bytes": 100}
+    head = _snapshot(root, {_HOT: "", _BUDGET: json.dumps(doc)})
+    blocking, _ = guard.check_budget(None, head, root=root)
+    assert _codes(blocking) == ["BUDGET_UNREADABLE"]
+
+
+def test_budget_targets_accept_valid_unicode_scalar_paths(guard, tmp_path):
+    """JSON surrogate pairs decode to a real UTF-8 path; lone surrogates do not."""
+    root = _archive_init(tmp_path)
+    target = "sahool-brain/" + chr(0x1F33E) + ".md"
+    doc = json.loads(_budget(100))
+    doc["budgets"][target] = {"max_bytes": 5}
+    head = _snapshot(root, {_HOT: "", target: b"entry", _BUDGET: json.dumps(doc)})
+    blocking, _ = guard.check_budget(None, head, root=root)
+    assert not blocking
+
+
+@pytest.mark.parametrize("path", [_BUDGET, _HOT], ids=["policy", "journal"])
+def test_budget_measurement_does_not_accept_symlinks_as_regular_files(guard, tmp_path, path):
+    root = _archive_init(tmp_path)
+    files = {_HOT: "large.md", "sahool-brain/large.md": "x" * 1000, _BUDGET: _budget(100)}
+    head = _snapshot(root, files, modes={path: "120000"})
+    blocking, _ = guard.check_budget(None, head, root=root)
+    assert _codes(blocking) == [
+        "BUDGET_UNREADABLE" if path == _BUDGET else "BUDGET_TARGET_UNREADABLE"
+    ]
+
+
+def test_a_directory_is_not_a_budgeted_journal(guard, tmp_path):
+    root = _archive_init(tmp_path)
+    head = _snapshot(root, {_HOT + "/entry.md": "x" * 1000, _BUDGET: _budget(1000)})
+    blocking, _ = guard.check_budget(None, head, root=root)
+    assert _codes(blocking) == ["BUDGET_TARGET_UNREADABLE"]
+
+
+def test_executable_regular_files_still_have_measurable_bytes(guard, tmp_path):
+    root = _archive_init(tmp_path)
+    head = _snapshot(
+        root, {_HOT: _TOP, _BUDGET: _budget(100)}, modes={_HOT: "100755", _BUDGET: "100755"}
+    )
+    blocking, _ = guard.check_budget(head, head, root=root)
+    assert not blocking
+
+
+@pytest.mark.parametrize("which", ["base", "head"])
+def test_an_unreadable_budget_ref_is_not_an_absent_policy(guard, tmp_path, which):
+    root = _archive_init(tmp_path)
+    head = _snapshot(root, {_HOT: "", _BUDGET: _budget(100)})
+    refs = {"base": head, "head": head}
+    refs[which] = "missing-ref"
+    blocking, _ = guard.check_budget(**refs, root=root)
+    assert _codes(blocking) == ["BUDGET_UNREADABLE"]
+
+
+@pytest.mark.parametrize("extra,expected", [(b"", []), (b"x", ["BUDGET_EXCEEDED"])])
+def test_budget_counts_utf8_and_crlf_bytes_from_the_committed_object(
+    guard, tmp_path, extra, expected
+):
+    root = _archive_init(tmp_path)
+    content = "سهول\r\n".encode()
+    head = _snapshot(root, {_HOT: content + extra, _BUDGET: _budget(len(content))})
+    (root / _HOT).parent.mkdir(parents=True)
+    (root / _HOT).write_bytes(b"")
+    (root / _BUDGET).parent.mkdir(parents=True)
+    (root / _BUDGET).write_text(_budget(1000), encoding="utf-8")
+    blocking, _ = guard.check_budget(head, head, root=root)
+    assert _codes(blocking) == expected
+
+
+@pytest.mark.parametrize("path", [_BUDGET, _HOT], ids=["policy", "journal"])
+def test_an_unreadable_blob_is_not_a_missing_or_empty_budget_input(
+    guard, tmp_path, monkeypatch, path
+):
+    root = _archive_init(tmp_path)
+    head = _snapshot(root, {_HOT: _TOP, _BUDGET: _budget(100)})
+    missing_oid = _archive_git(root, "rev-parse", f"{head}:{path}")
+    original_git = guard._git
+
+    def fail_read(*args, root):
+        if args == ("cat-file", "blob", missing_oid):
+            return subprocess.CompletedProcess(args, 1, stdout=b"", stderr=b"unreadable object")
+        return original_git(*args, root=root)
+
+    monkeypatch.setattr(guard, "_git", fail_read)
+    blocking, _ = guard.check_budget(None, head, root=root)
+    assert _codes(blocking) == [
+        "BUDGET_UNREADABLE" if path == _BUDGET else "BUDGET_TARGET_UNREADABLE"
+    ]
+    assert "unreadable object" in blocking[0].detail
+
+
+@pytest.mark.parametrize("kind", ["absent", "symlink"])
+def test_cli_never_reports_an_unmeasured_journal_as_zero_bytes(
+    guard, tmp_path, monkeypatch, capsys, kind
+):
+    root = _archive_init(tmp_path)
+    base = _snapshot(root, {_HOT: "", _BUDGET: _budget(100)})
+    files = {_BUDGET: _budget(100)}
+    if kind == "symlink":
+        files[_HOT] = "large.md"
+    head = _snapshot(root, files, base, modes={_HOT: "120000"})
+    original_git = guard._git
+    original_check_budget = guard.check_budget
+    monkeypatch.setattr(guard, "ROOT", root)
+    monkeypatch.setattr(guard, "_git", lambda *args, root=root: original_git(*args, root=root))
+    monkeypatch.setattr(guard, "check_range", lambda base, head: ([], [], 0))
+    monkeypatch.setattr(
+        guard, "check_budget", lambda base, head: original_check_budget(base, head, root=root)
+    )
+    assert guard.main(["--base", base, "--head", head]) == 1
+    output = capsys.readouterr()
+    assert "غير مقاس / 100" in output.out
+    assert "0 / 100" not in output.out
+    assert "BUDGET_TARGET_" in output.err
 
 
 @pytest.mark.parametrize("over_budget", [True, False], ids=["exceeded", "within"])

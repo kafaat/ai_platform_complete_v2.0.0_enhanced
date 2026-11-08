@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { login as apiLogin, register as apiRegister, acceptInvitation as apiAcceptInvitation, getCurrentUser as apiGetCurrentUser } from '../services/api';
+import { login as apiLogin, register as apiRegister, acceptInvitation as apiAcceptInvitation, getCurrentUser as apiGetCurrentUser, logout as apiLogout } from '../services/api';
 
 interface AuthUser {
   id?: number;
@@ -24,7 +24,8 @@ interface AuthState {
   signup: (data: { full_name: string; email: string; password: string }) => Promise<void>;
   acceptInvite: (data: { token: string; password: string; full_name: string }) => Promise<void>;
   loginDemo: () => void;
-  logout: () => void;
+  // يمسح الحالة المحلّيّة فوراً ثمّ يُبطل الجلسة خادميّاً (أفضل-جهد، لا يرمي).
+  logout: () => Promise<void>;
   setTenant: (id: string) => void;
   // يُعيد قراءة المستخدم الحاليّ من الخادم (GET /api/v1/me) — يُحدّث الدور بعد
   // تغييره إداريّاً (يكمّل «أعضاء الفريق والأدوار»: الخادم يُبطل الجلسة، وهذا
@@ -121,10 +122,22 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        // S7 — كان الخروج محلّيّاً فقط ⇒ التوكن وكوكي البلاطات صالحان حتى انتهائهما (60 د).
+        // نلتقط التوكن ثمّ نمسح الحالة فوراً (لا ينتظر المستخدم الشبكة)، ثمّ نُبلغ الخادم
+        // (/auth/logout: إبطال jti + مسح الكوكي). فشلُه أو مهلتُه لا يُبقيان جلسة محلّيّة.
+        const { token, isDemoMode } = get();
+        const serverToken = token ?? sessionStorage.getItem('sahool_access_token');
         sessionStorage.removeItem('sahool_access_token');
         sessionStorage.removeItem('sahool_tenant_id');
         sessionStorage.removeItem('sahool_user');
         set({ token: null, tenantId: null, user: null, isAuthenticated: false, isDemoMode: false });
+        // وضع التجريب: توكن وهميّ لا خادم له.
+        if (!serverToken || isDemoMode) return Promise.resolve();
+        // أفضل-جهد: الحالة المحلّيّة مُسِحت أصلاً؛ لا يرمي أبداً (المستدعون لا ينتظرونه).
+        return apiLogout(serverToken).then(
+          () => undefined,
+          () => undefined,
+        );
       },
 
       setTenant: (id: string) => {

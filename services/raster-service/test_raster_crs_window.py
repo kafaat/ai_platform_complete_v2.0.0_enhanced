@@ -127,6 +127,87 @@ def test_soil_projected_zones_and_points_in_lonlat(tmp_path: Path, monkeypatch):
         assert _in_bbox(lon, lat), f"نقطة عيّنة خارج bbox (CRS خاطئ): {lon},{lat}"
 
 
+# ── أعداد صحيحة بـnodata (شكل SoilGrids الفعليّ: Int16 و-32768) ──────────────────
+# العطلُ الذي وُجِدت هذه لأجله (2026-11-02): ``masked.filled(np.nan)`` على مصفوفةٍ صحيحة
+# يرمي ``TypeError`` (NaN لا يُمثَّل في int16)، ويبتلعه ``except`` فيُقرأ «خارج المصدر».
+# فكلّ ملخّص تربة ومناطق عيّناتٍ من ملفّات SoilGrids الحقيقيّة كان سيعود فارغاً، والاختبارات
+# أعلاه كلّها float32 فلم تره.
+_INT_NODATA = -32768
+
+
+def _make_projected_int_raster(path: str, data: np.ndarray, nodata: int = _INT_NODATA) -> None:
+    """كـ``_make_projected_raster`` لكن Int16 بـnodata صحيح — كما تُنشَر طبقات SoilGrids."""
+    h, w = data.shape
+    minx, miny, maxx, maxy = transform_bounds("EPSG:4326", _UTM, *_LL_BBOX)
+    profile = dict(
+        driver="GTiff",
+        height=h,
+        width=w,
+        count=1,
+        dtype="int16",
+        crs=_UTM,
+        transform=t_from_bounds(minx, miny, maxx, maxy, w, h),
+        nodata=nodata,
+    )
+    with rasterio.open(path, "w", **profile) as dst:
+        dst.write(data.astype("int16"), 1)
+
+
+def test_read_field_window_int16_nodata_becomes_nan(tmp_path: Path):
+    data = np.full((40, 40), 250, dtype="int16")
+    data[:5, :] = _INT_NODATA  # شريطٌ بلا بيانات
+    p = str(tmp_path / "clay_int16.tif")
+    _make_projected_int_raster(p, data)
+    with rasterio.open(p) as src:
+        res = tile_render.read_field_window(src, _LL_BBOX)
+        assert res is not None, "نافذة Int16 أعادت None (ابتُلع خطأ filled(nan))"
+        arr, _sx, _sy = res
+        assert arr.dtype == np.float32
+        assert np.isnan(arr).any(), "nodata لم يصر NaN"
+        finite = arr[np.isfinite(arr)]
+        assert finite.size and np.allclose(finite, 250.0)
+        # مسار التخفيض (نافذة أكبر من السقف) يجب أن ينجح كذلك.
+        capped = tile_render.read_field_window(src, _LL_BBOX, max_dim=8)
+        assert capped is not None and capped[0].shape[0] <= 8 and capped[0].shape[1] <= 8
+
+
+def test_soil_summary_and_zones_on_int16_soilgrids_layers(tmp_path: Path, monkeypatch):
+    d = tmp_path / "soil_int16"
+    d.mkdir()
+    monkeypatch.setenv("SOILGRIDS_DIR", str(d))
+    rows, cols = 50, 50
+    grad = np.linspace(0, 1, cols)[None, :].repeat(rows, axis=0)
+    clay = (200 + 200 * grad).astype("int16")  # 20..40٪ ×10
+    sand = (500 - 200 * grad.T).astype("int16")  # 50..30٪ ×10
+    clay[0, :] = _INT_NODATA
+    _make_projected_int_raster(str(d / "clay_0-5cm.tif"), clay)
+    _make_projected_int_raster(str(d / "sand_0-5cm.tif"), sand)
+    _make_projected_int_raster(str(d / "phh2o_0-5cm.tif"), np.full((rows, cols), 78, dtype="int16"))
+
+    summary = sr.compute_field_soil_summary(_LL_BBOX, "0-5cm")
+    assert summary["computed"] is True, summary
+    props = summary["properties"]
+    assert 20.0 <= props["clay"]["mean"] <= 40.0
+    assert abs(props["phh2o"]["mean"] - 7.8) < 1e-6
+    assert props["clay"]["min"] >= 20.0, "nodata (-32768) تسرّب إلى الإحصاء"
+
+    zones = sz.compute_soil_sampling_zones(_LL_BBOX, depth="0-5cm", n_zones=2)
+    assert zones["computed"] is True and zones["features"], zones
+
+
+def test_terrain_on_int16_dem(tmp_path: Path):
+    # DEM صحيح (مثل SRTM Int16) — مسارا التضاريس والكنتور يقرآن بـfilled(nan) أيضاً.
+    dem = (np.linspace(1000, 1200, 40 * 40).reshape(40, 40)).astype("int16")
+    dem[0, 0] = _INT_NODATA
+    p = str(tmp_path / "dem_int16.tif")
+    _make_projected_int_raster(p, dem)
+    terr = ta.compute_field_terrain(p, _LL_BBOX)
+    assert terr.get("computed") is True, terr
+    assert terr["elevation_m"]["min"] >= 990, "nodata (-32768) تسرّب إلى إحصاء الارتفاع"
+    cont = tr.compute_field_contours(p, _LL_BBOX, interval_m=20.0)
+    assert cont["computed"] is True and cont["features"], cont
+
+
 if __name__ == "__main__":
     import pytest
 

@@ -12,13 +12,15 @@ import hashlib
 import hmac
 import json
 import logging
+import math
 import os
+import sys
 import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from pathlib import Path
 
 import asyncpg
-import jwt as _jwt
 from aiomqtt import Client as MQTTClient
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -30,7 +32,19 @@ from shared.actuator_idempotency import (
     resolve_idempotency_mode,
 )
 from shared.actuator_mode import resolve_actuator_mode
+from shared.security.access_tokens import decode_access_token
+from shared.security.token_revocation import (
+    RevocationUnavailable,
+    build_revocation_client,
+    revocation_reason,
+)
 from shared.startup_retry import retry_startup_connect
+
+# The pure delivery state machine lives next to this file; make the service directory
+# importable whichever way this module is loaded (uvicorn, spec_from_file_location, tests).
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+import command_delivery as cd  # noqa: E402
 
 try:
     from shared.logging_config import setup_logging
@@ -206,7 +220,34 @@ def _plan_dispatch_execution(item: dict, *, allowlist: set[str]):
         declared_risk = payload.get("risk_level")
     if declared_risk is not None and not _is_risk_allowed(declared_risk, allowlist):
         return ("refused_risk", str(declared_risk))
+    # A4: أمرٌ لا يفهمه البرنامج الثابت يُرفَض بسببه في الإيصال، لا «accepted» بلا حركة.
+    wire_cmd, wire_reason = _to_firmware_wire(cmd, payload)
+    if wire_cmd is None:
+        return ("unsupported_command", wire_reason)
     return ("send", device_id, cmd, payload)
+
+
+def _dispatch_wire_identity(item: dict, payload: dict, req_id: str) -> tuple[str, str | None]:
+    """دالّة نقيّة (A5): هويّة أمر الإرسال **الثابتة** عبر إعادة النشر (استرداد بعد إعادة تشغيل).
+
+    ``command_id`` = مفتاح idempotency الأمر (أو معرّف الطلب)، و``issued_at`` = ``requested_at``
+    للطلب — لا ``now()``. فيحمل النشرُ المُعاد نفسَ ``ts`` ويكتشفه البرنامج الثابت مكرّراً.
+    """
+    raw = item.get("command_payload")
+    key = payload.get("idempotency_key")
+    if not key and isinstance(raw, dict):
+        key = raw.get("idempotency_key")
+    command_id = str(key or req_id)
+    requested_at = item.get("requested_at")
+    # البرنامج الثابت يكشف التكرار بـts وحده (حلقة 16 في الذاكرة). و``requested_at`` وحده
+    # يتشاركه أمران أُدرجا في معاملةٍ واحدة (now() = بداية المعاملة)، فيُسقَط الثاني — مثلاً
+    # CLOSE — مكرّراً بصمت. لاحقةٌ قصيرة مشتقّة من هويّة الأمر تجعله فريداً لكلّ أمر وثابتاً
+    # عبر إعادة النشر. والطول محسوب: رسالة HMAC في البرنامج الثابت ``char msg[96]``.
+    issued_at = None
+    if requested_at:
+        tag = hashlib.sha256(command_id.encode("utf-8")).hexdigest()[:12]
+        issued_at = f"{requested_at}~{tag}"
+    return command_id, issued_at
 
 
 def _device_dispatch_gate(
@@ -365,7 +406,10 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
                     receipt_status = "failed"
                     device_reason = f"killswitch:{scoped_reason}"
                 else:
-                    sent = await send_mqtt_command(device_id, cmd, payload)
+                    command_id, issued_at = _dispatch_wire_identity(item, payload, req_id)
+                    sent = await send_mqtt_command(
+                        device_id, cmd, payload, command_id=command_id, issued_at=issued_at
+                    )
                     receipt_status = "accepted" if sent else "failed"
             else:
                 sent = False
@@ -388,6 +432,8 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
                     if plan[0] == "refused_risk"
                     else f"target_mismatch:{plan[1]}:{plan[2]}"
                     if plan[0] == "target_mismatch"
+                    else f"unsupported_command:{plan[1]}"
+                    if plan[0] == "unsupported_command"
                     else plan[0]
                 ),
             }
@@ -478,6 +524,10 @@ _IDEM_METRICS: dict[str, int] = {}
 # تحت ACTUATOR_IDEMPOTENCY_MODE — هذا الـdict يبقى مساراً محلّيّاً/احتياطيّاً (fail-soft).
 _dedup_last_fired: dict[tuple[str, str, str, str], float] = {}
 
+# A3: بداية استمرار شرط القاعدة (tenant, field, rule_id) → time.monotonic(). داخل العمليّة
+# كـ_dedup_last_fired؛ إعادة تشغيلٍ تُصفّرها (أي تُؤخّر الإطلاق، لا تُعجّله — الاتّجاه الآمن).
+_trigger_since: dict[tuple[str, str, str], float] = {}
+
 _pool: asyncpg.Pool | None = None
 
 
@@ -493,7 +543,12 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
         raise HTTPException(401, "توكن مطلوب للتحكّم بالأجهزة")
     token = authorization.split(" ", 1)[1]
     try:
-        payload = _jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
+        # JWT-DECODE-OUTSIDE-SHARED-SECURITY-01: the last decode outside shared.security. The
+        # shared verifier pins one algorithm, enforces aud=sahool, and applies the access-token
+        # claim policy in the same observe/enforce mode as every other service.
+        payload = decode_access_token(
+            token, JWT_SECRET, algorithm=JWT_ALGORITHM, site="actuator-service"
+        )
     except Exception as e:
         raise HTTPException(401, "توكن غير صالح") from e
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
@@ -508,6 +563,50 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
 # (owner/manager فقط؛ agronomist/worker/viewer لهم DEVICE_VIEW لا MANAGE).
 # السلامة الفيزيائيّة: تشغيل صمّام/مضخّة قرار إدارة لا قراءة.
 _DEVICE_CONTROL_ROLES = {"owner", "manager"}
+
+
+_revocation_client_cache: list = []
+
+
+def _revocation_client():
+    """Lazily built Redis client for auth's revocation keys; ``None`` when none is configured.
+
+    Built on first use, never at import: the service starts without the store (the reason S5
+    was held back), and only a physical action is refused while revocation cannot be checked.
+    """
+    if _revocation_client_cache:
+        return _revocation_client_cache[0]
+    client = build_revocation_client()
+    _revocation_client_cache.append(client)
+    return client
+
+
+async def _assert_token_may_act(claims: dict) -> None:
+    """S5 for the physical consumer: a revoked or floor-expired token cannot move a device.
+
+    ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01: a manager who logged out, or whose role was
+    lowered, kept opening valves until the token expired. Fail-closed in production: unknown
+    revocation state means 503, not a command. Outside production with no store configured
+    the check is skipped (local development has no auth Redis), and that is logged.
+    """
+    production = os.getenv("SAHOOL_ENV", "development").strip().lower() in {"production", "prod"}
+    try:
+        client = _revocation_client()
+        if client is None and not production:
+            logger.warning("token revocation not checked: no revocation store (non-production)")
+            return
+        # Blocking Redis round-trips (2 s timeouts) run off the event loop.
+        reason = await asyncio.to_thread(revocation_reason, client, claims)
+    except RevocationUnavailable as exc:
+        raise HTTPException(
+            503, "تعذّر التحقّق من إبطال التوكن — التحكّم بالأجهزة معطّل بأمان"
+        ) from exc
+    except Exception as exc:  # noqa: BLE001 - building the client failed: state unknown
+        raise HTTPException(
+            503, "تعذّر التحقّق من إبطال التوكن — التحكّم بالأجهزة معطّل بأمان"
+        ) from exc
+    if reason is not None:
+        raise HTTPException(401, "التوكن مُبطَل")
 
 
 async def _authorize_device_control(claims: dict, device_id: str) -> str | None:
@@ -532,6 +631,7 @@ async def _authorize_device_control(claims: dict, device_id: str) -> str | None:
     role = str(claims.get("role", "")).strip().lower()
     if role not in _DEVICE_CONTROL_ROLES:
         raise HTTPException(403, "الدور لا يملك صلاحيّة التحكّم بالأجهزة (owner/manager فقط)")
+    await _assert_token_may_act(claims)
 
     tenant_id = str(claims["tenant_id"])
     if not _pool:
@@ -568,42 +668,142 @@ def _parse_mqtt_broker_url(url: str) -> tuple[str, int]:
     return (parsed.hostname or "localhost"), (parsed.port or 1883)
 
 
-async def send_mqtt_command(device_id: str, command: str, payload: dict):
+# ── مفردات الأوامر الكنسيّة ⇒ صيغة البرنامج الثابت (ACTUATOR-COMMAND-VOCABULARY, A4) ──
+# البرنامج الثابت (firmware/esp32_mesh_gateway.ino) يفهم OPEN/CLOSE فقط، والمنصّة تُصدر
+# open_valve/close/irrigate… فكان الأمر يُنشَر ويُسجَّل «accepted» والصمّام لا يتحرّك.
+# The firmware understands OPEN/CLOSE only; translate here, at the MQTT boundary, once.
+# أمرٌ مجهول ⇒ رفضٌ قبل النشر (لا تخمين أمرٍ فيزيائيّ).
+_FIRMWARE_WIRE_COMMANDS = {
+    "open": "OPEN",
+    "open_valve": "OPEN",
+    "on": "OPEN",
+    "start": "OPEN",
+    "start_irrigation": "OPEN",
+    "irrigate": "OPEN",
+    "close": "CLOSE",
+    "close_valve": "CLOSE",
+    "off": "CLOSE",
+    "stop": "CLOSE",
+    "stop_irrigation": "CLOSE",
+}
+# أمرُ «جرعة» لا «حالة»: بلا مدّة صريحة يصير فتحاً حتّى سقف الأمان — يُرفض لا يُخمَّن.
+_DOSE_COMMANDS = frozenset({"irrigate"})
+# يطابق VALVE_MAX_OPEN_MS في البرنامج الثابت: مدّة أطول تُقصّ هناك بصمت ⇒ تُرفض هنا.
+ACTUATOR_MAX_OPEN_SEC = 1800
+
+
+def _to_firmware_wire(command: str, payload: dict | None) -> tuple[str | None, str]:
+    """دالّة نقيّة: أمرٌ منطقيّ ⇒ ``(wire_cmd, "ok")`` أو ``(None, reason)`` (رفضٌ قبل النشر)."""
+    canon = str(command or "").strip().lower()
+    wire = _FIRMWARE_WIRE_COMMANDS.get(canon)
+    if wire is None:
+        return None, f"unknown_command:{canon or '-'}"
+    duration = (payload or {}).get("duration_sec")
+    if duration is None:
+        if canon in _DOSE_COMMANDS:
+            return None, "dose_command_requires_duration_sec"
+        return wire, "ok"
+    # رقمٌ JSON فقط: البرنامج الثابت يقرأ duration_sec رقماً، والنصّ يصير 0 هناك بصمت.
+    if isinstance(duration, bool) or not isinstance(duration, int | float):
+        return None, "invalid_duration_sec"
+    seconds = float(duration)
+    if not math.isfinite(seconds) or seconds <= 0:
+        return None, "invalid_duration_sec"
+    if seconds > ACTUATOR_MAX_OPEN_SEC:
+        return None, "duration_exceeds_device_max"
+    return wire, "ok"
+
+
+def _wire_duration_ms(payload: dict | None) -> int:
+    """المدّة التي يُغلِق بعدها الجهاز، بالملّي ثانية الصحيحة؛ 0 = لا مدّة (السقف وحده).
+
+    تُقرَّب **لأعلى** وبحدٍّ أدنى ١: مدّةٌ موجبة دون الملّي ثانية كانت تُقتطَع في الجهاز
+    إلى 0، و0 يعني «لا مؤقّت» فيبقى الصمّام مفتوحاً حتّى سقف الأمان (30 دقيقة).
+    """
+    duration = (payload or {}).get("duration_sec")
+    if isinstance(duration, bool) or not isinstance(duration, int | float):
+        return 0
+    seconds = float(duration)
+    if not math.isfinite(seconds) or seconds <= 0:
+        return 0
+    return max(1, math.ceil(seconds * 1000))
+
+
+def _build_wire_message(
+    wire_cmd: str,
+    payload: dict,
+    *,
+    ts: str,
+    secret: str,
+    command_id: str | None = None,
+) -> str:
+    """دالّة نقيّة: رسالة MQTT كما يقرؤها البرنامج الثابت.
+
+    التوقيع HMAC(secret, cmd|ts|duration_ms) على **صيغة السلك** (يطابق verifyCmdHmac)،
+    و``ts`` هو مفتاح إزالة التكرار في البرنامج الثابت — فإعادة النشر بنفس ``ts`` تُكتشَف
+    مكرّرة (A5). المدّة داخل التوقيع: البرنامج الثابت صار يُغلِق بها (A7)، فمدّةٌ غير موقَّعة
+    كانت تُمدَّد بتعديل الرسالة إلى سقف الأمان دون أن يبطل التوقيع. ويقرأ الجهاز
+    ``duration_ms`` الموقَّعة وحدها، لا ``duration_sec``.
+    """
+    duration_ms = _wire_duration_ms(payload)
+    wire_payload = dict(payload or {})
+    if duration_ms:
+        wire_payload["duration_ms"] = duration_ms
+    sig = ""
+    if secret:
+        sig = hmac.new(
+            secret.encode(), f"{wire_cmd}|{ts}|{duration_ms}".encode(), hashlib.sha256
+        ).hexdigest()
+    body = {"cmd": wire_cmd, "payload": wire_payload, "ts": ts, "sig": sig}
+    if command_id:
+        body["id"] = command_id
+    return json.dumps(body)
+
+
+async def send_mqtt_command(
+    device_id: str,
+    command: str,
+    payload: dict,
+    *,
+    command_id: str | None = None,
+    issued_at: str | None = None,
+):
     # وضع المُشغِّل (الإغلاق المرن): يتفرّع السلوك حسب ACTUATOR_MODE مع حفظ التوقيع/المستدعين.
     if ACTUATOR_MODE == "disabled":
         # لا عمليّة — السلوك الحاليّ عند غياب الوسيط (يُعيد False).
         logger.debug(f"المُشغِّل معطّل (disabled) — تخطّي الأمر إلى {device_id}: {command}")
+        return False
+    # A4: الترجمة والرفض **قبل** أيّ نشر — وقبل المحاكاة أيضاً كي لا تُعلن نجاحاً لأمرٍ
+    # لن يفهمه الجهاز.
+    wire_cmd, wire_reason = _to_firmware_wire(command, payload)
+    if wire_cmd is None:
+        logger.error(f"أمر مرفوض قبل النشر إلى {device_id}: {command} ({wire_reason})")
         return False
     if ACTUATOR_MODE == "simulation":
         # محاكاة صريحة: لا نشر MQTT. نُعيد نجاحاً موسوماً (simulated=true) ونُسجّل log
         # كي تبقى السلسلة كاملة (command → ledger → simulated_ack) دون وسيط حقيقيّ.
         # صدق: هذا أثرٌ محاكى لا تنفيذ فيزيائيّ — لا تحرّك الصمّام/المضخّة فعليّاً.
         logger.info(
-            f"SIMULATION → {device_id}: {command} (simulated=true، لا نشر MQTT، لا تنفيذ فيزيائيّ)"
+            f"SIMULATION → {device_id}: {command}→{wire_cmd} "
+            "(simulated=true، لا نشر MQTT، لا تنفيذ فيزيائيّ)"
         )
         return True
     topic = f"sahool/actuator/{device_id}/command"
-    ts = datetime.now(UTC).isoformat()
+    # A5: إعادة النشر (استرداد) تحمل ts الأصليّ لا ts جديداً، وإلّا لا يكشفها البرنامج الثابت.
+    ts = issued_at or datetime.now(UTC).isoformat()
     # A1: وقّع الأمر بـHMAC-SHA256 ليتحقّق منه الـfirmware قبل تحريك الصمّام
-    # (يطابق verifyCmdHmac في esp32_mesh_gateway.ino: HMAC(secret, cmd+"|"+ts)).
-    import hashlib as _hashlib
-    import hmac as _hmac
-
-    secret = os.getenv("CMD_HMAC_SECRET", "")
-    sig = ""
-    if secret:
-        sig = _hmac.new(secret.encode(), f"{command}|{ts}".encode(), _hashlib.sha256).hexdigest()
-    message = json.dumps(
-        {
-            "cmd": command,
-            "payload": payload,
-            "ts": ts,
-            "sig": sig,
-        }
+    # (يطابق verifyCmdHmac في esp32_mesh_gateway.ino: HMAC(secret, cmd|ts|duration_ms)).
+    message = _build_wire_message(
+        wire_cmd,
+        payload,
+        ts=ts,
+        secret=os.getenv("CMD_HMAC_SECRET", ""),
+        command_id=command_id,
     )
     host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
     try:
         async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
+            # QoS 1 (A7): الأمر يُقَرّ من الوسيط؛ لا retain (أمرٌ قديم لا يُعاد على كلّ اشتراك).
             await client.publish(topic, message, qos=1)
             logger.info(f"MQTT → {device_id}: {command}")
             return True
@@ -709,6 +909,13 @@ _INVERSE_COMMANDS = {
     "off": "on",
     "start": "stop",
     "stop": "start",
+    # A4 جعل المفردات الكنسيّة تحرّك الصمّام فعلاً؛ بلا عكسٍ لها لا يستطيع التعويضُ إغلاقَ
+    # صمّامٍ فُتح بها إن فشل أمرٌ لاحق في التسلسل (يبقى مفتوحاً حتّى المدّة أو سقف 30 دقيقة).
+    "open_valve": "close_valve",
+    "close_valve": "open_valve",
+    "start_irrigation": "stop_irrigation",
+    "stop_irrigation": "start_irrigation",
+    "irrigate": "stop_irrigation",
 }
 
 
@@ -797,7 +1004,19 @@ async def _compensate(
         logger.warning(
             f"COMPENSATION: إرسال العكس '{inv}' إلى {done['device']} (لإلغاء '{done['command']}')"
         )
-        comp_ok = await send_mqtt_command(done["device"], inv, done.get("payload") or {})
+        comp_id = cd.new_command_id()
+        await record_command_queued(
+            tenant_id=tenant_id,
+            device_id=done["device"],
+            command=inv,
+            payload=done.get("payload") or {},
+            command_id=comp_id,
+            rule_id=done.get("rule_id"),
+            triggered_by="compensation",
+        )
+        comp_ok = await send_mqtt_command(
+            done["device"], inv, done.get("payload") or {}, command_id=comp_id
+        )
         await log_command(
             rule_id=done.get("rule_id"),
             device_id=done["device"],
@@ -805,6 +1024,9 @@ async def _compensate(
             payload=done.get("payload") or {},
             status="sent" if comp_ok else "failed",
             tenant_id=tenant_id,
+            command_id=comp_id,
+            delivery_state=cd.state_after_publish(comp_ok, ACTUATOR_MODE),
+            triggered_by="compensation",
         )
         if not comp_ok:
             logger.error(
@@ -815,13 +1037,117 @@ async def _compensate(
 # ══════════════════════════════════════════════════════════════
 # Scene Linkage Engine
 # ══════════════════════════════════════════════════════════════
+def _sustained_trigger_ready(
+    key: tuple[str, str, str],
+    matched: bool,
+    now: float,
+    duration_sec,
+    store: dict[tuple[str, str, str], float],
+) -> bool:
+    """دالّة نقيّة (A3): هل دام الشرط ``trigger_duration_sec`` دون قراءةٍ تنقضه؟
+
+    قراءةٌ لا تطابق ⇒ تُصفّر النافذة. مدّة 0/فارغة ⇒ السلوك اللحظيّ السابق.
+    """
+    if not matched:
+        store.pop(key, None)
+        return False
+    try:
+        duration = float(duration_sec or 0)
+    except (TypeError, ValueError):
+        duration = 0.0
+    if duration <= 0:
+        return True
+    start = store.setdefault(key, now)
+    return (now - start) >= duration
+
+
+def _reading_value(payload) -> float | None:
+    """دالّة نقيّة (A3): قيمة القراءة أو ``None`` — لا تُعامَل القيمة المفقودة صفراً."""
+    if not isinstance(payload, dict):
+        return None
+    raw = payload.get("value")
+    if raw is None or isinstance(raw, bool) or not isinstance(raw, int | float | str):
+        return None
+    try:
+        value = float(raw)
+    except ValueError:
+        return None
+    return value if math.isfinite(value) else None
+
+
+async def _registry_device(tenant_id: str, device_id: str) -> dict | None:
+    """صفّ الجهاز من السجلّ السلطويّ (iot_devices) تحت RLS المستأجر. خطأ القاعدة يُرفع."""
+    if _pool is None:
+        raise RuntimeError("device registry unavailable")
+    async with _pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
+            row = await conn.fetchrow(
+                """SELECT device_id, tenant_id::text AS tenant_id, type, field_id::text AS field_id
+                   FROM iot_devices WHERE device_id=$1""",
+                device_id,
+            )
+    return dict(row) if row else None
+
+
+def _telemetry_source_gate(
+    record: dict | None, *, topic_tenant: str, topic_field: str
+) -> tuple[bool, str]:
+    """دالّة نقيّة (A3): الموضوع مفتاحُ بحثٍ فقط — المستأجر/الحقل يشهد بهما السجلّ."""
+    if not record:
+        return False, "device_not_registered"
+    if str(record.get("tenant_id") or "") != str(topic_tenant):
+        return False, "topic_tenant_mismatch"
+    if not record.get("field_id") or str(record["field_id"]) != str(topic_field):
+        return False, "topic_field_mismatch"
+    return True, "ok"
+
+
+def _rule_valve_gate(
+    record: dict | None, *, tenant_id: str, sensor_field_id: str
+) -> tuple[bool, str]:
+    """دالّة نقيّة (A2): قاعدةٌ لا تُحرّك إلّا مُشغِّلاً للمستأجر **في حقل المستشعر نفسه**."""
+    if not record:
+        return False, "device_not_found"
+    if str(record.get("tenant_id") or "") != str(tenant_id):
+        return False, "device_tenant_mismatch"
+    if str(record.get("type") or "").lower() != "actuator":
+        return False, "device_not_actuator"
+    if not record.get("field_id") or str(record["field_id"]) != str(sensor_field_id):
+        return False, "device_field_mismatch"
+    return True, "ok"
+
+
+async def _resolve_rule_valve(
+    tenant_id: str, device_id: str, sensor_field_id: str
+) -> tuple[str | None, str]:
+    """حقل الصمّام السلطويّ أو ``(None, reason)`` — تعذّر السجلّ ⇒ رفض (fail-closed)."""
+    try:
+        record = await _registry_device(tenant_id, device_id)
+    except Exception as exc:  # noqa: BLE001 — fail-closed: لا إطلاق بلا تحقّق
+        logger.error("rule valve registry lookup failed for %s: %s", device_id, exc)
+        return None, "device_registry_error"
+    ok, reason = _rule_valve_gate(record, tenant_id=tenant_id, sensor_field_id=sensor_field_id)
+    return (str(record["field_id"]) if ok else None), reason
+
+
 async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_id: str):
-    """Evaluate automation_rules and trigger actuators."""
+    """Evaluate automation_rules and trigger actuators.
+
+    ``tenant_id``/``field_id`` must be registry-attested (see ``_handle_telemetry_message``),
+    never raw MQTT-topic segments.
+    """
     if not _pool:
+        return
+    # حراسة per-path (A1، استعادة ما أسقطه e48c1332b): أتمتة القواعد معطّلة افتراضيّاً ⇒ لا
+    # تقييم ولا إطلاق ولا تغيير حالة. ACTUATOR_MODE=real وحده لا يكفي (بوّابة مزدوجة).
+    if not _automation_actuation_enabled(FEATURE_AUTOMATION_RULES_ACTUATION):
+        logger.debug("أتمتة القواعد معطّلة (FEATURE_AUTOMATION_RULES_ACTUATION) — تخطّي")
         return
 
     try:
         async with _pool.acquire() as conn:
+            # A2: قاعدةٌ بحقلٍ تخصّ حقلها وحده؛ وقاعدةٌ بلا حقل تبقى مقيّدة بحقل الصمّام أدناه.
             rows = await conn.fetch(
                 """
                 SELECT rule_id, trigger_operator, trigger_threshold,
@@ -833,9 +1159,11 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                 WHERE enabled = true
                   AND tenant_id = $1::uuid
                   AND trigger_sensor = $2
+                  AND (field_id IS NULL OR field_id = $3)
                 """,
                 tenant_id,
                 sensor_type,
+                field_id,
             )
 
         now = datetime.now(UTC)
@@ -844,6 +1172,34 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
         succeeded: list[dict] = []
 
         for row in rows:
+            # Evaluate condition
+            op = row["trigger_operator"]
+            thresh = float(row["trigger_threshold"])
+            matched = False
+            if op == ">" and value > thresh:
+                matched = True
+            elif op == ">=" and value >= thresh:
+                matched = True
+            elif op == "<" and value < thresh:
+                matched = True
+            elif op == "<=" and value <= thresh:
+                matched = True
+            elif op == "==" and abs(value - thresh) < 0.001:
+                matched = True
+
+            # A3: trigger_duration_sec — الشرط يجب أن يدوم المدّة قبل الإطلاق (كان يُتجاهَل).
+            # يُقيَّم قبل حواجز الجدولة كي ترى كلُّ قراءةٍ نافذةَ الاستمرار وتُصفِّرها.
+            sustain_key = (tenant_id, field_id, str(row["rule_id"]))
+            matched = _sustained_trigger_ready(
+                sustain_key,
+                matched,
+                time.monotonic(),
+                row["trigger_duration_sec"],
+                _trigger_since,
+            )
+            if not matched:
+                continue
+
             # Check day of week
             if now.weekday() not in (row["days_of_week"] or list(range(7))):
                 continue
@@ -867,25 +1223,36 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
             if last_trig and (now - last_trig).total_seconds() < (row["cooldown_sec"] or 0):
                 continue
 
-            # Evaluate condition
-            op = row["trigger_operator"]
-            thresh = float(row["trigger_threshold"])
-            matched = False
-            if op == ">" and value > thresh:
-                matched = True
-            elif op == ">=" and value >= thresh:
-                matched = True
-            elif op == "<" and value < thresh:
-                matched = True
-            elif op == "<=" and value <= thresh:
-                matched = True
-            elif op == "==" and abs(value - thresh) < 0.001:
-                matched = True
-
             if matched:
                 device = row["action_device"]
                 cmd = row["action_command"]
                 payload = row["action_payload"] or {}
+
+                # A2: حقل الصمّام من السجلّ السلطويّ (iot_devices) — لا يُفتح صمّامٌ خارج حقل
+                # المستشعر، ومفتاح الإيقاف يُستشار بحقل **الصمّام** لا بحقل موضوع MQTT.
+                valve_field, valve_reason = await _resolve_rule_valve(tenant_id, device, field_id)
+                if valve_field is None:
+                    logger.warning(
+                        f"قاعدة {row['rule_id']}: رفض الأمر '{cmd}' على {device} ({valve_reason})"
+                    )
+                    await log_command(
+                        rule_id=str(row["rule_id"]),
+                        device_id=device,
+                        command=cmd,
+                        payload=payload,
+                        status="rejected",
+                        tenant_id=tenant_id,
+                    )
+                    triggered.append(
+                        {
+                            "rule_id": str(row["rule_id"]),
+                            "device": device,
+                            "command": cmd,
+                            "sent": False,
+                            "rejected": valve_reason,
+                        }
+                    )
+                    continue
 
                 # إزالة التكرار (idempotency): تخطَّ إن أُطلق نفس الأمر الفعّال
                 # (tenant, field, device, command) خلال نافذة التهدئة.
@@ -937,12 +1304,12 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                 # هذا الأمر دون غيره). تعذّر القاعدة ⇒ مُوقَف (is_actuation_halted fail-closed).
                 async with _pool.acquire() as ks_conn:
                     halted, halt_reason = await is_actuation_halted(
-                        ks_conn, tenant_id, field_id=field_id, valve_id=device
+                        ks_conn, tenant_id, field_id=valve_field, valve_id=device
                     )
                 if halted:
                     logger.warning(
                         f"مفتاح إيقاف الطوارئ مُشتبَك — حجب الأمر '{cmd}' على {device} "
-                        f"(حقل {field_id}): {halt_reason}"
+                        f"(حقل {valve_field}): {halt_reason}"
                     )
                     _dedup_last_fired.pop(dedup_key, None)
                     if ACTUATOR_IDEMPOTENCY_MODE != "local":
@@ -967,9 +1334,19 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     )
                     continue
 
+                # v238: الأمر يُسجَّل queued قبل النشر ويحمل معرّفاً يُعيده إقرار الجهاز.
+                command_id = cd.new_command_id()
+                await record_command_queued(
+                    tenant_id=tenant_id,
+                    device_id=device,
+                    command=cmd,
+                    payload=payload,
+                    command_id=command_id,
+                    rule_id=str(row["rule_id"]),
+                )
                 # إرسال الأمر مع التقاط الفشل/الاستثناء لتشغيل خطّاف التعويض.
                 try:
-                    success = await send_mqtt_command(device, cmd, payload)
+                    success = await send_mqtt_command(device, cmd, payload, command_id=command_id)
                 except Exception as send_err:
                     logger.error(f"send_mqtt_command raised for {device}: {send_err}")
                     success = False
@@ -982,6 +1359,8 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     payload=payload,
                     status="sent" if success else "failed",
                     tenant_id=tenant_id,
+                    command_id=command_id,
+                    delivery_state=cd.state_after_publish(success, ACTUATOR_MODE),
                 )
 
                 if not success:
@@ -993,7 +1372,7 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                         await _cluster_clear(tenant_id, field_id, device, cmd)
                     # `field_id` يُمرَّر من المستدعي الذي يملكه — بدونه يتراجع نطاق
                     # استشارة المفتاح إلى (مستأجِر+صمّام) بصمت، فيفلت مفتاحُ الحقل.
-                    await _compensate(succeeded, tenant_id, device, cmd, field_id=field_id)
+                    await _compensate(succeeded, tenant_id, device, cmd, field_id=valve_field)
                     triggered.append(
                         {
                             "rule_id": str(row["rule_id"]),
@@ -1019,6 +1398,8 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                             row["rule_id"],
                         )
 
+                # استمرارٌ استُهلِك: الإطلاق التالي يتطلّب نافذةً كاملة جديدة.
+                _trigger_since.pop(sustain_key, None)
                 entry = {
                     "rule_id": str(row["rule_id"]),
                     "device": device,
@@ -1043,33 +1424,323 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
         return []
 
 
-async def log_command(
-    rule_id: str | None, device_id: str, command: str, payload: dict, status: str, tenant_id: str
-):
+# ══════════════════════════════════════════════════════════════
+# Command delivery state (v238) — queued -> published -> device_acked | device_rejected | expired
+# ══════════════════════════════════════════════════════════════
+# Bounded ack timeout (command_delivery.resolve_ack_timeout clamps to [5s, 3600s]).
+ACTUATOR_ACK_TIMEOUT_SECONDS = cd.resolve_ack_timeout(os.getenv("ACTUATOR_ACK_TIMEOUT_SECONDS"))
+# Ack retry when a fast device answers before the queued -> published write committed.
+_ACK_NOT_YET_PUBLISHED_ATTEMPTS = 3
+_ACK_NOT_YET_PUBLISHED_DELAY_SECONDS = 0.5
+
+
+async def _set_tenant(conn, tenant_id: str) -> None:
+    """RLS context for this transaction (device_commands_log is FORCE RLS, fail-closed)."""
+    await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
+
+
+async def record_command_queued(
+    *,
+    tenant_id: str,
+    device_id: str,
+    command: str,
+    payload: dict,
+    command_id: str,
+    rule_id: str | None = None,
+    triggered_by: str = "rule",
+) -> bool:
+    """Persist the command as ``queued`` **before** it is published (audit even on a crash).
+
+    Observability, not a safety gate: a failed write is logged and the caller still decides on
+    publishing; the post-publish ``log_command`` upsert then creates the row directly.
+    """
     if not _pool:
-        return
+        return False
+    now = datetime.now(UTC)
     try:
         async with _pool.acquire() as conn:
-            await conn.execute(
-                """INSERT INTO device_commands_log
-                    (tenant_id, rule_id, device_id, command, payload, status, mqtt_topic, triggered_by)
-                    VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8)""",
-                tenant_id,
-                rule_id if rule_id else None,
-                device_id,
-                command,
-                json.dumps(payload),
-                status,
-                f"sahool/actuator/{device_id}/command",
-                "rule",
-            )
+            async with conn.transaction():
+                await _set_tenant(conn, tenant_id)
+                await conn.execute(
+                    """INSERT INTO device_commands_log
+                        (tenant_id, rule_id, device_id, command, payload, status, mqtt_topic,
+                         triggered_by, command_id, delivery_state, queued_at, ack_deadline)
+                        VALUES ($1::uuid, $2::uuid, $3, $4, $5, 'queued', $6, $7, $8,
+                                'queued', $9, $10)
+                        ON CONFLICT (tenant_id, command_id) WHERE command_id IS NOT NULL
+                        DO NOTHING""",
+                    tenant_id,
+                    rule_id if rule_id else None,
+                    device_id,
+                    command,
+                    json.dumps(payload),
+                    f"sahool/actuator/{device_id}/command",
+                    triggered_by,
+                    command_id,
+                    now,
+                    cd.ack_deadline(now, ACTUATOR_ACK_TIMEOUT_SECONDS),
+                )
+        return True
+    except Exception as e:
+        logger.warning(f"record_command_queued failed for {command_id}: {e}")
+        return False
+
+
+async def log_command(
+    rule_id: str | None,
+    device_id: str,
+    command: str,
+    payload: dict,
+    status: str,
+    tenant_id: str,
+    *,
+    command_id: str | None = None,
+    delivery_state: str | None = None,
+    triggered_by: str = "rule",
+):
+    """Write the command outcome. With ``command_id`` it is an upsert onto the queued row that
+    moves it to its publish outcome (``published`` | ``simulated`` | ``publish_failed``) and
+    starts the ack deadline at publish time. Runs under the tenant's RLS context."""
+    if not _pool:
+        return
+    now = datetime.now(UTC)
+    tracked = bool(command_id) and delivery_state is not None
+    try:
+        async with _pool.acquire() as conn:
+            async with conn.transaction():
+                await _set_tenant(conn, tenant_id)
+                if not tracked:
+                    await conn.execute(
+                        """INSERT INTO device_commands_log
+                            (tenant_id, rule_id, device_id, command, payload, status,
+                             mqtt_topic, triggered_by)
+                            VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8)""",
+                        tenant_id,
+                        rule_id if rule_id else None,
+                        device_id,
+                        command,
+                        json.dumps(payload),
+                        status,
+                        f"sahool/actuator/{device_id}/command",
+                        triggered_by,
+                    )
+                    return
+                await conn.execute(
+                    """INSERT INTO device_commands_log
+                        (tenant_id, rule_id, device_id, command, payload, status, mqtt_topic,
+                         triggered_by, command_id, delivery_state, queued_at, published_at,
+                         ack_deadline)
+                        VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+                                $13)
+                        ON CONFLICT (tenant_id, command_id) WHERE command_id IS NOT NULL
+                        DO UPDATE SET status = EXCLUDED.status,
+                                      delivery_state = EXCLUDED.delivery_state,
+                                      published_at = EXCLUDED.published_at,
+                                      ack_deadline = EXCLUDED.ack_deadline""",
+                    tenant_id,
+                    rule_id if rule_id else None,
+                    device_id,
+                    command,
+                    json.dumps(payload),
+                    status,
+                    f"sahool/actuator/{device_id}/command",
+                    triggered_by,
+                    command_id,
+                    delivery_state,
+                    now,
+                    now if delivery_state == cd.PUBLISHED else None,
+                    cd.ack_deadline(now, ACTUATOR_ACK_TIMEOUT_SECONDS),
+                )
     except Exception as e:
         logger.warning(f"log_command failed: {e}")
+
+
+_DELIVERY_COLUMNS = (
+    "command_id, delivery_state, delivery_reason, queued_at, published_at, ack_deadline, "
+    "device_acked_at, device_rejected_at, expired_at"
+)
+
+
+async def expire_overdue_commands(conn, tenant_id: str) -> int:
+    """queued/published past ``ack_deadline`` -> ``expired`` (cause: expiry). Caller holds the
+    tenant RLS transaction. Returns the number of rows expired."""
+    result = await conn.execute(
+        """UPDATE device_commands_log
+              SET delivery_state = 'expired', expired_at = now(),
+                  delivery_reason = CASE WHEN delivery_state = 'queued'
+                                         THEN 'never_published'
+                                         ELSE 'no_device_ack_before_deadline' END
+            WHERE tenant_id = $1::uuid
+              AND delivery_state IN ('queued', 'published')
+              AND ack_deadline < now()""",
+        tenant_id,
+    )
+    try:
+        return int(str(result).rsplit(" ", 1)[-1])
+    except ValueError:
+        return 0
+
+
+async def _apply_ack_decision(conn, tenant_id: str, command_id: str, decision) -> None:
+    """Persist the state an ack decision allows. Every UPDATE re-checks the source state."""
+    if decision.target == cd.DEVICE_ACKED:
+        sql = """UPDATE device_commands_log
+                    SET delivery_state = 'device_acked', device_acked_at = now(),
+                        delivery_reason = $3
+                  WHERE tenant_id = $1::uuid AND command_id = $2
+                    AND delivery_state = 'published'"""
+    elif decision.target == cd.DEVICE_REJECTED:
+        sql = """UPDATE device_commands_log
+                    SET delivery_state = 'device_rejected', device_rejected_at = now(),
+                        delivery_reason = $3
+                  WHERE tenant_id = $1::uuid AND command_id = $2
+                    AND delivery_state = 'published'"""
+    elif decision.target == cd.EXPIRED:
+        sql = """UPDATE device_commands_log
+                    SET delivery_state = 'expired', expired_at = now(), delivery_reason = $3
+                  WHERE tenant_id = $1::uuid AND command_id = $2
+                    AND delivery_state IN ('queued', 'published')"""
+    else:
+        return
+    await conn.execute(sql, tenant_id, command_id, decision.reason)
+
+
+async def handle_device_ack(topic: str, raw) -> cd.AckDecision | None:
+    """One device ack from ``sahool/<tenant>/actuator/<device>/ack``.
+
+    Only a signed ack naming a command id that this tenant published to this device can move
+    the command to ``device_acked``/``device_rejected``. Anything else is refused and logged.
+    """
+    parsed = cd.parse_ack_topic(topic)
+    if parsed is None:
+        logger.warning(f"device ack ignored: unexpected topic {topic}")
+        return None
+    tenant_id, device_id = parsed
+    if isinstance(raw, bytes | bytearray):
+        raw = raw.decode(errors="replace")
+    try:
+        ack = json.loads(raw)
+    except (TypeError, ValueError):
+        ack = None
+    secret = os.getenv("CMD_HMAC_SECRET", "")
+    now = datetime.now(UTC)
+    # Shape/signature first, without touching the database: junk never reaches a query.
+    decision = cd.evaluate_ack(
+        None, ack, topic_tenant=tenant_id, topic_device=device_id, secret=secret, now=now
+    )
+    if decision.reason != "unknown_command":
+        logger.warning(f"device ack rejected on {topic}: {decision.reason}")
+        return decision
+    if _pool is None:
+        logger.warning(f"device ack not recorded on {topic}: no database")
+        return cd.AckDecision(False, "no_database")
+    command_id = ack["id"]
+    for attempt in range(_ACK_NOT_YET_PUBLISHED_ATTEMPTS):
+        async with _pool.acquire() as conn:
+            async with conn.transaction():
+                await _set_tenant(conn, tenant_id)
+                row = await conn.fetchrow(
+                    f"""SELECT tenant_id::text AS tenant_id, device_id, {_DELIVERY_COLUMNS}
+                          FROM device_commands_log
+                         WHERE tenant_id = $1::uuid AND command_id = $2
+                         FOR UPDATE""",
+                    tenant_id,
+                    command_id,
+                )
+                decision = cd.evaluate_ack(
+                    dict(row) if row is not None else None,
+                    ack,
+                    topic_tenant=tenant_id,
+                    topic_device=device_id,
+                    secret=secret,
+                    now=datetime.now(UTC),
+                )
+                if decision.target is not None:
+                    await _apply_ack_decision(conn, tenant_id, command_id, decision)
+        if decision.reason != "not_yet_published":
+            break
+        if attempt + 1 < _ACK_NOT_YET_PUBLISHED_ATTEMPTS:
+            await asyncio.sleep(_ACK_NOT_YET_PUBLISHED_DELAY_SECONDS)
+    if decision.accepted:
+        logger.info(f"device ack {command_id} on {device_id}: {decision.target}")
+    else:
+        logger.warning(f"device ack rejected on {topic} for {command_id}: {decision.reason}")
+    return decision
+
+
+def _any_command_path_enabled() -> bool:
+    return (
+        _manual_commands_enabled(FEATURE_MANUAL_ACTUATOR_COMMANDS)
+        or _automation_actuation_enabled(FEATURE_AUTOMATION_RULES_ACTUATION)
+        or _dispatch_consumer_enabled(FEATURE_DISPATCH_ACTUATOR)
+    )
+
+
+async def mqtt_ack_listener():
+    """Subscribe to device acks (real mode, and only while some command path can publish)."""
+    if ACTUATOR_MODE != "real":
+        logger.info(f"المُشغِّل في وضع {ACTUATOR_MODE} — مستمع إقرارات الأجهزة معطّل")
+        return
+    if not _any_command_path_enabled():
+        logger.info("لا مسار أوامر مفعَّل — لا اشتراك بإقرارات الأجهزة")
+        return
+    topic = "sahool/+/actuator/+/ack"
+    host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
+    while True:
+        try:
+            async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
+                async with client.messages() as messages:
+                    await client.subscribe(topic, qos=1)
+                    logger.info(f"MQTT ack listener subscribed: {topic}")
+                    async for message in messages:
+                        try:
+                            await handle_device_ack(message.topic.value, message.payload)
+                        except Exception as e:
+                            logger.warning(f"Ack processing error: {e}")
+        except Exception as e:
+            logger.error(f"MQTT ack listener crashed: {e}")
+            await asyncio.sleep(10)
 
 
 # ══════════════════════════════════════════════════════════════
 # MQTT Sensor Listener (background task)
 # ══════════════════════════════════════════════════════════════
+async def _handle_telemetry_message(topic: str, raw) -> list | None:
+    """قراءة مستشعر واحدة ⇒ تقييم القواعد، بمستأجرٍ وحقلٍ **من السجلّ** لا من الموضوع (A3).
+
+    الموضوع ``sahool/<tenant>/<field>/telemetry/<sensor>`` والحمولة ``{device_id, value}``.
+    أيّ عميل على الوسيط يكتب أيّ موضوع، فالموضوع مفتاحُ بحثٍ فقط: جهازٌ غير مسجَّل أو
+    مستأجر/حقل لا يطابق السجلّ ⇒ رفض + تسجيل. قيمة مفقودة/غير رقميّة ⇒ تُتجاهَل القراءة.
+    """
+    parts = str(topic).split("/")
+    if len(parts) != 5 or parts[0] != "sahool" or parts[3] != "telemetry":
+        return None
+    topic_tenant, topic_field, sensor_type = parts[1], parts[2], parts[4]
+    if isinstance(raw, bytes | bytearray):
+        raw = raw.decode()
+    try:
+        payload = json.loads(raw)
+    except (TypeError, ValueError):
+        logger.warning(f"telemetry ignored on {topic}: malformed JSON")
+        return None
+    value = _reading_value(payload)
+    if value is None:
+        logger.info(f"telemetry ignored on {topic}: missing/non-numeric value")
+        return None
+    device_id = payload.get("device_id")
+    if not isinstance(device_id, str) or not device_id.strip():
+        logger.warning(f"telemetry rejected on {topic}: no device_id to attest the source")
+        return None
+    record = await _registry_device(topic_tenant, device_id.strip())
+    ok, reason = _telemetry_source_gate(record, topic_tenant=topic_tenant, topic_field=topic_field)
+    if not ok:
+        logger.warning(f"telemetry rejected on {topic} from {device_id}: {reason}")
+        return None
+    return await evaluate_rules(
+        sensor_type, value, str(record["tenant_id"]), str(record["field_id"])
+    )
+
+
 async def mqtt_sensor_listener():
     """Listen to sensor telemetry and evaluate rules."""
     # المستمع يتطلّب وسيطاً حقيقيّاً للاشتراك — يعمل في وضع real فقط. في simulation/
@@ -1077,6 +1748,10 @@ async def mqtt_sensor_listener():
     # عند الاستنتاج الافتراضيّ، دون تغيير سلوك real).
     if ACTUATOR_MODE != "real":
         logger.info(f"المُشغِّل في وضع {ACTUATOR_MODE} — مستمع MQTT معطّل (لا وسيط للاشتراك)")
+        return
+    # A1: المستمع لا غرض له إلّا أتمتة القواعد — معطّلة افتراضيّاً ⇒ لا اشتراك أصلاً.
+    if not _automation_actuation_enabled(FEATURE_AUTOMATION_RULES_ACTUATION):
+        logger.info("أتمتة القواعد معطّلة (FEATURE_AUTOMATION_RULES_ACTUATION) — لا اشتراك")
         return
     topic = "sahool/+/+/telemetry/+"  # tenant/field/telemetry/sensor_type
     host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
@@ -1088,14 +1763,7 @@ async def mqtt_sensor_listener():
                     logger.info(f"MQTT listener subscribed: {topic}")
                     async for message in messages:
                         try:
-                            payload = json.loads(message.payload.decode())
-                            parts = message.topic.value.split("/")
-                            if len(parts) >= 5:
-                                tenant_id = parts[1]
-                                field_id = parts[2]
-                                sensor_type = parts[4]
-                                value = float(payload.get("value", 0))
-                                await evaluate_rules(sensor_type, value, tenant_id, field_id)
+                            await _handle_telemetry_message(message.topic.value, message.payload)
                         except Exception as e:
                             logger.warning(f"Message processing error: {e}")
         except Exception as e:
@@ -1128,6 +1796,8 @@ async def lifespan(app: FastAPI):
 
     # Start background MQTT listener (احتفظ بالمرجع لمنع GC المبكّر)
     app.state.mqtt_task = asyncio.create_task(mqtt_sensor_listener())
+    # إقرارات الأجهزة (v238): تنقل الأمر من published إلى device_acked/device_rejected.
+    app.state.ack_task = asyncio.create_task(mqtt_ack_listener())
     # جسر القرار: حلقة استهلاك طلبات التنفيذ المحكومة (default-OFF fail-closed).
     if _dispatch_consumer_enabled(FEATURE_DISPATCH_ACTUATOR):
         app.state.dispatch_task = asyncio.create_task(dispatch_consumer_loop())

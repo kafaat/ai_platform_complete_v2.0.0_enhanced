@@ -16,6 +16,7 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from api.idempotency import model_digest
 from api.inventory_models import (
     InventoryBatchRequest,
     InventoryItemRequest,
@@ -80,6 +81,7 @@ async def create_inventory_item(
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
                 payload={"item_id": item_id},
+                request_digest=model_digest(req),
             )
         else:
             result = await _work()
@@ -174,6 +176,7 @@ async def add_inventory_batch(
                 actor_id=str(user.user_id),
                 tenant_id=str(user.tenant_id),
                 payload={"batch_id": batch_id, "item_id": item_id},
+                request_digest=model_digest(req, item_id),
             )
         else:
             result = await _work()

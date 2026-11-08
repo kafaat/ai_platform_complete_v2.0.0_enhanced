@@ -11,6 +11,7 @@ not safe doses. Preserve the rendered text through subsequent normalization.
 from __future__ import annotations
 
 import re
+import unicodedata
 from decimal import Decimal
 from string import Formatter
 
@@ -55,6 +56,23 @@ _DOSE_LABEL_NUMBER = re.compile(
 )
 _NUMBER = re.compile(r"(?:0|[1-9][0-9]*)(?:\.[0-9]{1,6})?\Z")
 _KEYS = {"quantity", "unit", "basis_quantity", "basis_unit", "interval_days", "phi_days"}
+_TATWEEL = "\u0640"
+
+
+def _gate_view(text: str) -> str:
+    """Canonical view used ONLY for detection; the caller's text is what is spoken.
+
+    S12: التطويل ومحارف العرض الصفريّ/الاتّجاه والتشكيل وأرقام يونيكود الأخرى كانت
+    تكسر مطابقة الأرقام والوحدات فتعبر الجرعة بلا قوالب. NFKC ثمّ حذف Cf (عرض صفريّ،
+    علامات اتّجاه، BOM) وMn (تشكيل/علامات مركّبة) والتطويل، ثمّ كلّ رقم عشريّ ⇒ ASCII.
+    """
+    out = []
+    for char in unicodedata.normalize("NFKC", text):
+        if char == _TATWEEL or unicodedata.category(char) in ("Cf", "Mn"):
+            continue
+        digit = unicodedata.decimal(char, None)
+        out.append(str(digit) if digit is not None else char)
+    return "".join(out).replace("\u066b", ".")
 
 
 class CriticalSpeechError(ValueError):
@@ -120,7 +138,8 @@ def prepare_critical_speech(text: str, slots: dict[str, str] | None = None) -> s
     if not isinstance(text, str):
         raise CriticalSpeechError("speech text must be a string")
     if slots is None:
-        if _CRITICAL_NUMBER.search(text) or _DOSE_LABEL_NUMBER.search(text):
+        view = _gate_view(text)
+        if _CRITICAL_NUMBER.search(view) or _DOSE_LABEL_NUMBER.search(view):
             raise CriticalSpeechError("critical numeric speech requires structured quantity slots")
         return text
     if (
@@ -146,7 +165,7 @@ def prepare_critical_speech(text: str, slots: dict[str, str] | None = None) -> s
         raise CriticalSpeechError("template must bind every supplied critical slot exactly once")
     if any(spec or conversion for _, _, spec, conversion in parsed):
         raise CriticalSpeechError("template formatting and conversions are unsupported")
-    literal = "".join(part for part, _, _, _ in parsed)
+    literal = _gate_view("".join(part for part, _, _, _ in parsed))
     if re.search(r"[0-9٠-٩۰-۹]", literal) or _LITERAL_UNIT.search(literal):
         raise CriticalSpeechError("critical numbers and dose units must come from slots only")
     rendered = {"quantity": _number_words(slots["quantity"]), "unit": _UNITS[slots["unit"]]}

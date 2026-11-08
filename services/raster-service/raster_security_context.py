@@ -15,36 +15,54 @@ from fastapi import HTTPException
 
 REQ_TENANT: ContextVar[str | None] = ContextVar("req_tenant", default=None)
 
-try:
-    from shared.security.tenant_context import resolve_tenant_context as _resolve_tenant_context
-except ImportError:  # pragma: no cover - service can still run from its folder in minimal CI
 
-    def _resolve_tenant_context(
-        request, tid: str | None = None, tenant_id: str | None = None
-    ) -> str | None:
-        def _clean(value: str | None) -> str | None:
-            if not value:
-                return None
-            return value.strip() or None
-
-        return _clean(request.headers.get("X-Tenant-Id")) or _clean(tid) or _clean(tenant_id)
+def _clean(value: str | None) -> str | None:
+    if not value:
+        return None
+    return str(value).strip() or None
 
 
 def tenant_from_header(value: str | None) -> str | None:
     """Backwards-compatible normalizer used by tests and older call sites."""
-    if not value:
+    return _clean(value)
+
+
+def _bearer_token(request) -> str | None:
+    """JWT المستخدم من ``Authorization: Bearer`` أو ``access_token`` (بلاطة <img> في التطوير)."""
+    scheme, _, token = (request.headers.get("Authorization") or "").partition(" ")
+    if scheme.lower() == "bearer" and token.strip():
+        return token.strip()
+    return _clean(request.query_params.get("access_token"))
+
+
+def verified_token_tenant(request) -> str | None:
+    """مستأجر JWT مُتحقَّق التوقيع (المُتحقِّق المشترك)، أو None إن غاب/فشل/لم يُهيَّأ."""
+    token = _bearer_token(request)
+    if not token:
         return None
-    value = value.strip()
-    return value or None
+    try:
+        from shared.security.access_tokens import verify_access_token
+
+        return _clean(verify_access_token(token).get("tenant_id"))
+    except (ImportError, ValueError):
+        return None
 
 
 def tenant_from_request(request) -> str | None:
-    """Extract the tenant context from trusted gateway header or tile query hints."""
-    return _resolve_tenant_context(
-        request,
-        tid=request.query_params.get("tid"),
-        tenant_id=request.query_params.get("tenant_id"),
-    )
+    """مستأجر الطلب من مصدر موثَّق فقط؛ ``tid``/``tenant_id`` في الاستعلام تلميح يطابقه أو 403.
+
+    المصدر الموثَّق: رأس ``X-Tenant-Id`` الذي تحقنه البوّابة بعد التحقّق من JWT (وتمسح نسخة
+    العميل — ``frontend/nginx.conf``، ``nginx/nginx.v9.conf`` R6)، وإلّا مستأجر JWT مُتحقَّق
+    التوقيع (``Authorization`` أو ``access_token`` لبلاطات <img> في التطوير بلا بوّابة).
+    كان ``tid`` يُقبَل وحده بلا رأس، فأيّ مُنادٍ يبلغ الخدمة دون البوّابة يختار مستأجره.
+    الآن: تلميح استعلام لا يطابق المستأجر الموثَّق — أو بلا مستأجر موثَّق — ⇒ ``403``.
+    """
+    verified = _clean(request.headers.get("X-Tenant-Id")) or verified_token_tenant(request)
+    for name in ("tid", "tenant_id"):
+        hint = _clean(request.query_params.get(name))
+        if hint is not None and hint != verified:
+            raise HTTPException(403, f"{name} لا يطابق المستأجِر المُصادَق للطلب")
+    return verified
 
 
 _field_owner_cache: dict[str, tuple[str | None, float]] = {}

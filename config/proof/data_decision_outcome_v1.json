@@ -1,0 +1,119 @@
+{
+  "schema": "sahool.data-decision-outcome-proof/v1",
+  "program_id": "SAHOOL-DDO-20261107",
+  "baseline_commit": "968726c1b6cd2b11d04047d9028362487fa5e9b5",
+  "scope": "irrigation decision/outcome chain, source review only",
+  "promotion_policy": "independent_approval_required",
+  "production_mutations_allowed": false,
+  "stages": [
+    {
+      "id": "S01_EO_INGEST",
+      "name_ar": "الاستشعار عن بعد والمعايرة الإشعاعية",
+      "source_paths": [
+        "services/raster-service/stac_vrt.py",
+        "services/raster-service/radiometry_containment.py"
+      ],
+      "authority": "scene/provider lineage; no derived pixel is a field measurement",
+      "acceptance": "Verify radiometry, CRS, band grids, NoData and blocked Element84 paths against independent pixels",
+      "e3_state": "NOT_RUN",
+      "receipt": null
+    },
+    {
+      "id": "S02_WEATHER_ET0",
+      "name_ar": "مدخلات الطقس وحساب ET0",
+      "source_paths": [
+        "services/weather-service/et0.py",
+        "docs/audits/ET0_PLATFORM_BOUNDARY_20261023.md"
+      ],
+      "authority": "weather-service numerical ET0 owner; fallback stays advisory/degraded",
+      "acceptance": "Compare real provider inputs and FAO56 reference; preserve missing/degraded inputs without zero substitution",
+      "e3_state": "NOT_RUN",
+      "receipt": null
+    },
+    {
+      "id": "S03_FIELD_CONTEXT",
+      "name_ar": "الحالة المعيارية للحقل والمحاذاة الزمنية",
+      "source_paths": [
+        "services/sahool-platform/core/source_of_truth.py",
+        "services/decision-service/agronomic_context/point_in_time.py"
+      ],
+      "authority": "canonical field state/SoR, not a cache or a RAG narrative",
+      "acceptance": "Reject cross-tenant, wrong field/season, future-available features, and invalid soil evidence",
+      "e3_state": "NOT_RUN",
+      "receipt": null
+    },
+    {
+      "id": "S04_WATER_LEDGER",
+      "name_ar": "دفتر المياه ومصدر كمية الري",
+      "source_paths": [
+        "services/sahool-platform/api/phase_runtime_workers.py",
+        "services/sahool-platform/api/water_ledger_inputs.py",
+        "services/sahool-platform/api/water_ledger_auto.py"
+      ],
+      "authority": "water_ledger is a derived balance; recorded/unknown applied water must remain distinguished",
+      "acceptance": "Prove stage-specific Kc, root-zone, PM quality and inherited unobserved-water behavior in real PG",
+      "e3_state": "NOT_RUN",
+      "receipt": null
+    },
+    {
+      "id": "S05_DECISION_APPROVAL",
+      "name_ar": "الترشيح والقرار والموافقة",
+      "source_paths": [
+        "services/sahool-platform/api/routers/irrigation_recommendation.py",
+        "services/sahool-platform/api/water_decision_bridge.py"
+      ],
+      "authority": "only governed decision record is an approval; RAG and estimates are advisory",
+      "acceptance": "Check idempotent candidate, unknown-water hold, approval and fail-closed safety gates",
+      "e3_state": "NOT_RUN",
+      "receipt": null
+    },
+    {
+      "id": "S06_EXECUTION",
+      "name_ar": "تنفيذ الري والتأكيد المنفصل",
+      "source_paths": [
+        "services/sahool-platform/api/task_irrigation_observations.py",
+        "docs/irrigation_task_observations.md"
+      ],
+      "authority": "manual report is not actuator acknowledgement or independent confirmation",
+      "acceptance": "Check ACK vs intent, tenant scope, offline replay, same-event deduplication and failure recovery",
+      "e3_state": "NOT_RUN",
+      "receipt": null
+    },
+    {
+      "id": "S07_OUTCOME",
+      "name_ar": "نتيجة زراعية موثقة ومصدر حقيقة القرار",
+      "source_paths": [
+        "services/decision-service/main.py",
+        "docs/architecture/DECISION_SERVICE_SOR_CUTOVER_READINESS.md"
+      ],
+      "authority": "platform temporary SoR unless cutover gate is proven; outcome requires independent ground truth",
+      "acceptance": "Prove authoritative write, duplicate/retry isolation, late outcomes, mirror parity and cutover safety",
+      "e3_state": "NOT_RUN",
+      "receipt": null
+    },
+    {
+      "id": "S08_CALIBRATION",
+      "name_ar": "تقييم ومعايرة المحرك الفيزيائي",
+      "source_paths": [
+        "docs/adr/ADR-0035-physics-ai-calibration.md",
+        "services/sahool-platform/core/feedback_closure.py"
+      ],
+      "authority": "calibration ledger distinct from model registry; ADR-0035 unlock conditions govern",
+      "acceptance": "Prove independent outcomes, season eligibility, SIM-GOLDEN and no production tuning before unlock",
+      "e3_state": "NOT_RUN",
+      "receipt": null
+    },
+    {
+      "id": "S09_LEARNING_RELEASE",
+      "name_ar": "تجهيز بيانات التعلم والاختبار والترقية",
+      "source_paths": [
+        "shared/feature_store/ml_quality_bridge.py",
+        "docs/contracts/ML-QUALITY-BRIDGE-v1.md"
+      ],
+      "authority": "candidate dataset is not trained model, certification, or promotion",
+      "acceptance": "Check verified receipts, leakage embargo, held-out fields, external evaluator and independent promotion",
+      "e3_state": "NOT_RUN",
+      "receipt": null
+    }
+  ]
+}

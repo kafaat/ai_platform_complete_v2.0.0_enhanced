@@ -115,3 +115,26 @@ def test_every_compose_pip_build_forwards_the_alibaba_default_index():
         f"compose pip builds must forward PIP_INDEX_URL as {_COMPOSE_PIP_ARG!r}:\n  "
         + "\n  ".join(offenders)
     )
+
+
+def test_apt_dockerfiles_support_an_optional_debian_mirror():
+    seen = 0
+    offenders: list[str] = []
+    for directory in _SCAN_DIRS:
+        for df in (_ROOT / directory).rglob("Dockerfile*"):
+            text = df.read_text(encoding="utf-8")
+            if "apt-get update" not in text:
+                continue
+            seen += 1
+            rel = str(df.relative_to(_ROOT))
+            if "ARG DEBIAN_MIRROR=" not in text:
+                offenders.append(f"{rel}: missing optional ARG DEBIAN_MIRROR")
+            if "${DEBIAN_MIRROR%/}" not in text:
+                offenders.append(f"{rel}: apt sources do not use DEBIAN_MIRROR")
+            if "deb.debian.org" not in text and "archive.ubuntu.com" not in text:
+                offenders.append(f"{rel}: missing Debian/Ubuntu source rewrite")
+
+    assert seen >= 25, f"only {seen} apt Dockerfiles found; expected >=25"
+    assert not offenders, (
+        "apt Dockerfiles must support an optional Debian mirror:\n  " + "\n  ".join(offenders)
+    )

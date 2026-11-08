@@ -39,7 +39,7 @@ class ZLMediaKitClient:
         self.base_url = (base_url or "").rstrip("/")
         self.secret = secret or ""
         self.timeout = timeout
-        # الحقن: افتراضيّاً GET عبر httpx؛ الاختبار يمرّر بديلاً بلا شبكة.
+        # الحقن: افتراضيّاً POST بجسم JSON عبر httpx؛ الاختبار يمرّر بديلاً بلا شبكة.
         self._request_fn: RequestFn = request_fn or self._default_request
 
     # ── بناء الرابط والمُعامِلات (منطق صرف، يُعاد استخدام اصطلاح secret) ──
@@ -55,8 +55,10 @@ class ZLMediaKitClient:
     def _default_request(self, url: str, params: dict[str, Any]) -> ResponseLike:
         if httpx is None:  # pragma: no cover - httpx حاضر عمليّاً
             raise RuntimeError("httpx غير متوفّر ولا request_fn محقون")
+        # جسم JSON لا ``params=``: httpx يسجّل الرابط INFO، فالسرّ في الاستعلام يتسرّب
+        # إلى السجلّات (S9). ZLMediaKit يدمج وسائط JSON body مع وسائط الرابط.
         with httpx.Client(timeout=self.timeout) as client:
-            return client.get(url, params=params)
+            return client.post(url, json=params)
 
     def _call(self, method: str, *, binary: bool = False, **params: Any) -> dict[str, Any]:
         """ينفّذ نداءً ويُطبّع الردّ إلى ``dict`` منظّم فشلاً-ليّناً."""

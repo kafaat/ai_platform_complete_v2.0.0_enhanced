@@ -10,6 +10,10 @@
   والوصول إلى الناتج المخزَّن يمرّ أوّلاً بترخيص المسار نفسه (``require_permission``).
 * **البصمة من تمثيلٍ موحَّد للحمولة المؤثّرة** (`request_digest`): JSON بمفاتيح مرتّبة
   لنموذج الطلب بعد التحقّق (القيم الافتراضيّة مُطبَّقة)، فترتيب مفاتيح JSON لا يصنع تعارضاً.
+  **وهي إلزاميّة** في ``_idempotent`` (T6، 2026-11-01): كان تمريرها اختياريّاً فأعادت المواضع
+  التي لا تمرّرها ناتجَ الطلب الأوّل لجسمٍ مختلف (أمر صمّام V2 أعاد ناتج V1 بلا تنفيذ).
+  تُخزَّن في ``commands.payload`` (لا عمود جديد)؛ والمسار/الطريقة مربوطان بـ``command_type``
+  وبمعاملات المسار في ``scope``. صفٌّ قديم بلا بصمة ⇒ 409 ``payload_mismatch`` (لا يُثبَت التطابق).
 * **الأمر والتغيير في معاملة PostgreSQL واحدة:** `_idempotent` يُستدعى داخل
   ``tenant_connection`` فيُدرَج صفّ الأمر ويُنفَّذ العمل ويُسجَّل الناتج على الاتّصال
   نفسه؛ فشل العمل يُرجِع الثلاثة معاً. أثرٌ خارج القاعدة (HTTP/طابور) لا تشمله المعاملة
@@ -76,9 +80,33 @@ def request_digest(effective_payload) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def _explicit_defaults(model) -> list[str]:
+    """الحقول المُرسَلة صراحةً بقيمةٍ تساوي افتراضيّها — وحدها لا يُفرّقها ``model_dump`` عن الغائبة."""
+    fields = type(model).model_fields
+    explicit = []
+    for name in model.model_fields_set:
+        info = fields.get(name)
+        if info is None or info.is_required():
+            continue
+        if getattr(model, name) == info.get_default(call_default_factory=True):
+            explicit.append(name)
+    return sorted(explicit)
+
+
 def model_digest(model, scope=None) -> str:
-    """بصمة نموذج الطلب بعد التحقّق؛ و``scope`` (مثل حقل المسار) جزءٌ من الحمولة المؤثّرة."""
+    """بصمة نموذج الطلب بعد التحقّق؛ و``scope`` (مثل حقل المسار) جزءٌ من الحمولة المؤثّرة.
+
+    نموذجٌ دلالتُه جزئيّة (PATCH يكتب ``model_fields_set`` وحده) يُعلن
+    ``IDEMPOTENCY_DIGEST_PRESENCE = True``، فتدخل البصمةَ أسماءُ الحقول المُرسَلة صراحةً
+    بقيمتها الافتراضيّة: ``{"name":"x"}`` يُبقي ``soil_ph`` و``{"name":"x","soil_ph":null}``
+    يمسحه، و``model_dump()`` يُخرجهما متطابقَين (مراجعة PR #1324). تُضاف فقط حين توجد،
+    فجسمٌ بلا قيمةٍ افتراضيّة صريحة — ونماذج الإنشاء كلّها — تبقى ببصمتها المخزَّنة سابقاً.
+    """
     effective = model.model_dump(mode="json")
+    if getattr(type(model), "IDEMPOTENCY_DIGEST_PRESENCE", False):
+        explicit = _explicit_defaults(model)
+        if explicit:
+            effective = {"request": effective, "explicit_defaults": explicit}
     return request_digest(effective if scope is None else {"scope": scope, "request": effective})
 
 
@@ -120,8 +148,13 @@ def _idem_key(idempotency_key: str | None = Header(None, alias="Idempotency-Key"
     return key
 
 
-async def _idempotent(store, command_id, do_work, *, command_type, actor_id, tenant_id, payload):
+async def _idempotent(
+    store, command_id, do_work, *, command_type, actor_id, tenant_id, payload, request_digest
+):
     """منطق idempotency نقيّ (store مُحقَن ⇒ قابل للاختبار). يُرجِع نتيجة العمل (JSON).
+
+    ``request_digest`` إلزاميّ (بصمة الحمولة المؤثّرة، انظر ``model_digest``): يُخزَّن مع
+    الأمر، والإعادة بالمفتاح نفسه وبصمةٍ أخرى ⇒ 409 ``payload_mismatch`` لا ناتج الأوّل.
 
     أوّل مرّة: يُدرِج الأمر، ينفّذ do_work، يسجّل النتيجة. الإعادة الناجحة: يُعيد
     النتيجة المخزّنة بلا تنفيذ. الإعادة بينما الأصل قيد المعالجة/فشل: 409 ``in_progress``؛
@@ -136,11 +169,18 @@ async def _idempotent(store, command_id, do_work, *, command_type, actor_id, ten
     """
     from api.command_store import Command, CommandSource, CommandStatus
 
+    # بلا بصمة لا يمكن تمييز الإعادة الصادقة من إعادة استعمال المفتاح ⇒ خطأ برمجيّ لا تخمين.
+    if not isinstance(request_digest, str) or not request_digest.strip():
+        raise ValueError("_idempotent: request_digest إلزاميّ (بصمة الحمولة المؤثّرة)")
+    stored_payload = dict(payload or {})
+    if stored_payload.setdefault("request_digest", request_digest) != request_digest:
+        raise ValueError("_idempotent: payload.request_digest يخالف request_digest")
+
     cmd = Command.new(
         command_type,
         actor_id,
         tenant_id,
-        payload,
+        stored_payload,
         source=CommandSource.MOBILE,
         command_id=command_id,
     )
@@ -159,10 +199,9 @@ async def _idempotent(store, command_id, do_work, *, command_type, actor_id, ten
     # D4: المفتاح مربوطٌ بنوع العمليّة أيضاً — مفتاح «إنشاء حقل» لا يُعيد ناتجه لـ«إنشاء موسم».
     if existing.command_type != command_type:
         raise _conflict(REASON_PAYLOAD_MISMATCH, _MSG_PAYLOAD_MISMATCH)
-    # U06: طلبٌ ببصمة يُقارَن ببصمة الصفّ؛ صفٌّ قديم بلا بصمة لا يُعامَل إعادةً صادقة (Copilot #1001).
-    wanted = (payload or {}).get("request_digest")
+    # U06/T6: البصمة تُقارَن دائماً؛ صفٌّ قديم بلا بصمة لا يُعامَل إعادةً صادقة (Copilot #1001).
     stored = (existing.payload or {}).get("request_digest")
-    if wanted and (stored is None or wanted != stored):
+    if stored is None or stored != request_digest:
         raise _conflict(REASON_PAYLOAD_MISMATCH, _MSG_PAYLOAD_MISMATCH)
     if existing.status != CommandStatus.SUCCEEDED:
         raise _conflict(REASON_IN_PROGRESS, _MSG_IN_PROGRESS)
