@@ -7,9 +7,10 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class LoginRequest(BaseModel):
@@ -115,12 +116,62 @@ class TaskListResponse(BaseModel):
     next_cursor: str | None = None
 
 
+# انتقالاتُ حالة المهمّة المسموحة (الحالةُ نفسُها مسموحةٌ دائماً — إعادةٌ صادقة). الإنجازُ
+# المباشر من pending مسموح (الجوّال يُرسِله)؛ إعادةُ فتح المنجَزة تمسح completed_at؛ المنجَزةُ
+# لا تُلغى والملغاةُ لا تُنجَز (تُعاد إلى pending أوّلاً). غيرُ ذلك ⇒ 409.
+TASK_TRANSITIONS: dict[str, frozenset[str]] = {
+    "pending": frozenset({"in_progress", "completed", "cancelled"}),
+    "in_progress": frozenset({"pending", "completed", "cancelled"}),
+    "completed": frozenset({"pending", "in_progress"}),
+    "cancelled": frozenset({"pending"}),
+}
+#: انحرافُ ساعة الجهاز المقبول لـ``completed_at`` القادم من صندوق الإرسال دون اتّصال.
+TASK_COMPLETED_AT_SKEW = timedelta(minutes=5)
+
+
+def task_transition_allowed(current: str | None, target: str) -> bool:
+    """هل يُسمَح بالانتقال؟ الحالةُ الفارغة (صفوفٌ قديمة) تُعامَل ``pending``."""
+    current = current or "pending"
+    return current == target or target in TASK_TRANSITIONS.get(current, frozenset())
+
+
+def task_allowed_sources(target: str) -> list[str]:
+    """الحالاتُ التي يجوز منها الانتقالُ إلى ``target`` (لشرط ``UPDATE`` الذرّيّ)."""
+    return sorted(s for s in TASK_TRANSITIONS if task_transition_allowed(s, target))
+
+
 class TaskUpdateRequest(BaseModel):
-    """تحديث مهمّة (جزئيّ): الحالة و/أو صورة و/أو ملاحظة."""
+    """تحديث مهمّة (جزئيّ): الحالة و/أو صورة و/أو ملاحظة.
+
+    ``completed_at`` (اختياريّ): وقتُ الإنجاز الفعليّ على الجهاز للمزامنة دون اتّصال — لا
+    يتجاوز «الآن» إلا بانحراف ساعةٍ صغير، ويُقبَل فقط مع ``status=completed``. بغيابه يُختَم
+    بوقت الخادم. ``actual_cost_usd`` (اختياريّ، ≥0): التكلفةُ الفعليّة عند الإنجاز.
+    """
 
     status: str | None = None
     photo_url: str | None = None
     notes: str | None = None
+    completed_at: datetime | None = None
+    actual_cost_usd: float | None = Field(default=None, ge=0, le=99_999_999)
+
+    @field_validator("completed_at")
+    @classmethod
+    def _completed_at_not_future(cls, v: datetime | None) -> datetime | None:
+        if v is None:
+            return None
+        if v.tzinfo is None:  # صندوقُ إرسالٍ بلا منطقة ⇒ UTC
+            v = v.replace(tzinfo=UTC)
+        if v > datetime.now(UTC) + TASK_COMPLETED_AT_SKEW:
+            raise ValueError("completed_at cannot be in the future")
+        return v
+
+    @model_validator(mode="after")
+    def _completion_fields_need_completed(self):
+        if (self.completed_at is not None or self.actual_cost_usd is not None) and (
+            self.status != "completed"
+        ):
+            raise ValueError("completed_at/actual_cost_usd require status=completed")
+        return self
 
 
 class NDVIObservationIn(BaseModel):

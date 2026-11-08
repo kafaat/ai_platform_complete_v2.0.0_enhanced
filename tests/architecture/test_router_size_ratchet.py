@@ -51,7 +51,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # 1662 → 1656 (R9 2026-11-02): blocking COG/DEM reads offloaded via raster_field_runtime.
     "services/raster-service/routers/fields.py": 1655,
     # 1029 → 1027 (audit security batch 2026-11-01): T6 request_digest consolidation.
-    "services/sahool-platform/api/routers/farm_operations_ledger.py": 1027,
+    # 1027 → 996 (wave 2, 2026-11-08): budget/actual fetch moved to core.farm_operations_ledger
+    # while the planned-vs-executed status filter landed here.
+    "services/sahool-platform/api/routers/farm_operations_ledger.py": 996,
     "services/sahool-platform/api/routers/decision_review.py": 920,
 }
 
