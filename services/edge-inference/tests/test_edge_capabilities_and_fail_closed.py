@@ -114,3 +114,35 @@ def test_production_required_forces_strict_readyz_when_models_are_absent(monkeyp
     assert payload["readiness_mode"] == "partial"
     assert payload["production_required"] is True
     assert "EDGE_PRODUCTION_REQUIRED forces strict readiness" in payload["model_policy"]
+
+
+@pytest.mark.parametrize(
+    ("model_module", "model_class"),
+    [("pest_detector", "EdgePestDetector"), ("yield_estimator", "EdgeYieldEstimator")],
+)
+def test_model_sessions_select_cuda_for_rtx_and_keep_cpu_cache_separate(
+    monkeypatch, tmp_path, model_module, model_class
+):
+    from types import SimpleNamespace
+
+    monkeypatch.syspath_prepend(str(EDGE))
+    module = importlib.import_module(f"models.{model_module}")
+    sessions = []
+
+    def create_session(path, providers):
+        sessions.append(providers)
+        return SimpleNamespace(get_inputs=lambda: [SimpleNamespace(name="image")])
+
+    monkeypatch.setitem(
+        sys.modules, "onnxruntime", SimpleNamespace(InferenceSession=create_session)
+    )
+    model_path = str(tmp_path / "demo.onnx")
+    Path(model_path).touch()
+    getattr(module, model_class)(model_path, "rtx5090")
+    module._load_onnx_session(model_path, "rpi5")
+    module._load_onnx_session(model_path, "RTX5090")
+    assert sessions == [
+        ["CUDAExecutionProvider", "CPUExecutionProvider"],
+        ["CPUExecutionProvider"],
+        ["CUDAExecutionProvider", "CPUExecutionProvider"],
+    ]
