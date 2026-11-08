@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7037,
+    "files_scanned": 7039,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 87,
       "mobile": 414,
-      "other": 2150,
-      "tests": 2320,
+      "other": 2151,
+      "tests": 2321,
       "web": 504
     },
-    "unmapped_artifacts": 2789,
+    "unmapped_artifacts": 2790,
     "ambiguous_artifacts": 518
   },
   "capabilities": [
@@ -51069,6 +51069,10 @@
     },
     {
       "path": "tests_v9/test_certify_artifact_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_check_compose_host_ports.py",
       "kind": "tests"
     },
     {

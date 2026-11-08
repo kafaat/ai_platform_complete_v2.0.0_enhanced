@@ -73,17 +73,28 @@ def test_agent_token_required_in_v9_compose():
 # ── F-005: المنافذ الحسّاسة (MinIO/raster) مربوطة بـlocalhost لا 0.0.0.0 ──
 def test_sensitive_ports_bound_to_localhost():
     """F-005: منافذ MinIO (9000/9001) مربوطة بـ127.0.0.1، وraster (8001) لا يُنشَر على المضيف في v9."""
+    import re
+
     import yaml
 
+    # منفذ المضيف صار قابلاً للتجاوز (`${MINIO_API_HOST_PORT:-9000}`) لحلّ تعارض المنافذ
+    # محلّيّاً. فيُقاس الشكل الافتراضيّ بعد حلّ `${VAR:-default}`، بينما يبقى عنوان الربط
+    # حرفيّاً: لو صار متغيّراً لأمكن تجاوزه إلى 0.0.0.0 دون أن يراه هذا الحارس.
+    def _resolved(spec: str) -> str:
+        return re.sub(r"\$\{[A-Za-z0-9_]+:-([^}]*)\}", r"\1", spec)
+
     services = yaml.safe_load(_read("docker-compose.v9.yml"))["services"]
-    minio = [str(p) for p in services["sahool-minio"].get("ports") or []]
+    minio_raw = [str(p) for p in services["sahool-minio"].get("ports") or []]
+    minio = [_resolved(p) for p in minio_raw]
     for port in ("9000", "9001"):
         assert f"127.0.0.1:{port}:{port}" in minio, f"المنفذ {port} ليس مربوطاً بـ127.0.0.1"
     published = [str(p) for spec in services.values() for p in (spec or {}).get("ports") or []]
-    for spec in published:
-        host_port = spec.split(":")[-2] if spec.count(":") >= 1 else spec
+    for raw in published:
+        spec = _resolved(raw)
+        parts = spec.split(":")
+        host_port = parts[-2] if len(parts) >= 2 else parts[0]
         if host_port.split("/")[0] in {"9000", "9001", "8001"}:
-            assert spec.startswith("127.0.0.1:"), f"{spec} مكشوف على كلّ الواجهات — انحدار F-005"
+            assert raw.startswith("127.0.0.1:"), f"{raw} مكشوف على كلّ الواجهات — انحدار F-005"
 
 
 # ── F-006: ترويسات أمان nginx ──

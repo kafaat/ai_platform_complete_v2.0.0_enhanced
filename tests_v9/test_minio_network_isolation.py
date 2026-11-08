@@ -100,7 +100,11 @@ def test_every_service_pointing_at_minio_is_classified():
 
 def test_minio_ports_are_loopback_only_and_still_published():
     ports = [str(p) for p in _doc()["services"]["sahool-minio"]["ports"]]
-    assert ports == ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    # The host side is overridable (a busy 9000/9001 on the operator's machine), the address is not.
+    assert ports == [
+        "127.0.0.1:${MINIO_API_HOST_PORT:-9000}:9000",
+        "127.0.0.1:${MINIO_CONSOLE_HOST_PORT:-9001}:9001",
+    ]
 
 
 @pytest.mark.parametrize("compose", sorted(ROOT.glob("docker-compose*.yml")), ids=lambda p: p.name)
