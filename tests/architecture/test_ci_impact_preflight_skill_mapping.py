@@ -6,6 +6,7 @@ source-driven accounting contract explicit and guard against silently
 excluding skill files to force a green mapping.
 """
 
+import hashlib
 import importlib.util
 import json
 import subprocess
@@ -66,3 +67,11 @@ def test_skill_documents_existing_generated_sweep_check_flag():
         check=True,
     )
     assert "--check" in result.stdout
+
+
+def test_current_impact_index_binds_workflow_sha256():
+    workflow = ROOT / ".github/workflows/capability-governance.yml"
+    index_path = ROOT / "docs/capability-registry/generated/impact/impact_index_summary.json"
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    actual = hashlib.sha256(workflow.read_bytes()).hexdigest()
+    assert index["inputs"][".github/workflows/capability-governance.yml"] == actual
