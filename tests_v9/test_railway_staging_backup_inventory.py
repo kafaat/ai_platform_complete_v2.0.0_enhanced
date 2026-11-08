@@ -246,6 +246,15 @@ class BackupInventoryTests(unittest.TestCase):
             self.assertFalse(evidence.exists())
             api.assert_not_called()
 
+    def test_capability_scanners_exclude_proof_witnesses(self):
+        for path in (
+            "scripts/ci/capability_mapping_engine.py",
+            "scripts/ci/capability_linker.py",
+        ):
+            source = (ROOT / path).read_text(encoding="utf-8")
+            self.assertIn('"scripts/ci/railway_staging_backup_inventory.py"', source)
+            self.assertIn('"tests_v9/test_railway_staging_backup_inventory.py"', source)
+
     def test_existing_connection_workflow_stays_manual_and_has_no_mutations(self):
         wf = (
             ROOT / ".github/workflows/railway-staging-connection-preflight.yml"
