@@ -8720,3 +8720,16 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الحالة:** open
 - **المصدر:** بلاغ Windows عن انتهاء البناء عند `0/43` بخطأ فتح `dockerDesktopLinuxEngine`، وشجرة الأساس `01d3402d`. مسار التحقق في [دليل التشغيل المحلي](../../docs/runbooks/LOCAL_ENVIRONMENT_RUNBOOK.md) و[غلاف PowerShell](../../scripts/build-immutable.ps1).
 - **شرط الإغلاق:** إيصال من الجهاز المتأثر يُظهر محرك Linux، ونجاح بناء ملفّي v9 مع `--profile gpu --no-cache` من نسخة Git معروفة، ثم نتيجة اختبار عتاد GPU في الصورة المبنية. يُسجَّل كل شرط على حدة.
+- **تحديث 2026-11-08:** الإصلاح على main عبر #1347 (`46656c518`). أكّد المالك في جلسة الدمج نجاح الشروط الثلاثة على جهاز Windows، لكن لا إيصال آليّ منها في المستودع؛ تبقى الفجوة مفتوحة حتّى يُضاف الإيصال (مخرجات `docker version`، وسجلّ البناء، ونتيجة `python scripts/e2e/gpu_runtime_smoke_gate.py --edge`).
+
+## LIVEKIT-FFI-EXIT-PANIC-INTERMITTENT-01 — انهيار مكتبة LiveKit الأصليّة عند خروج عمليّة الاختبار
+
+- **الحالة:** open
+- **الخلل المقيس:** في سير العمل Realtime Voice Worker على دفعة main عند `f80840f69` (2026-11-07 قرابة 21:44Z) نجحت اختبارات `services/realtime-agent` كلّها (106/106)، ثمّ انهار خيط `tokio-rt-worker` في مكتبة `livekit` 1.1.20 الأصليّة («panic in a function that cannot unwind») أثناء خروج المفسّر، فانتهت العمليّة بالرمز 134 وفشلت الوظيفة.
+- **ما يُعرف:** المكتبة تُحرِّر وقت تشغيلها الأصليّ عبر خطّاف `atexit` يستدعي `livekit_ffi_dispose`؛ الانهيار يبدو سباق توقيت في هذا الإغلاق. الإعادة على الالتزام نفسه نجحت (المحاولة 2)، وهي الحالة الوحيدة في 20 تشغيلاً، ولم يُعَد إنتاجها محلّيّاً بالإصدارات نفسها على Python 3.12 (0 من 20).
+- **المصدر والشاهد:** `services/realtime-agent/realtime_agent/worker.py` و`playback.py` و`tests/test_worker.py` (استيراد `from livekit import rtc`)؛ سجلّ الوظيفة المُلصق في الجلسة.
+- **مرجع التشغيل:** Realtime Voice Worker، التشغيل `42417185477` (#20)، دفعة main عند `f80840f6927176bef055847e49baff811295e0ca`. المحاولة 1: الوظيفة `isolated-worker` رقم `128537712113` فشلت في الخطوة 6 «Test actual SDK boundaries and publication refusal» (21:44:00–21:44:03Z). المحاولة 2: الوظيفة `128538601557` نجحت بكلّ خطواتها، ومنها بناء الصورة واستيراد بيئات التشغيل الأصليّة. https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/42417185477/job/128537712113
+- **الأمر والبيئة:** `python -m pytest -q -o addopts='' services/realtime-agent/tests/ --junitxml=realtime-agent-results.xml` على `ubuntu-24.04` وPython 3.12 (`.github/workflows/realtime-agent.yml:35`).
+- **سطر الـpanic (السند الوحيد لنسبته إلى FFI مع رمز الخروج):** `thread 'tokio-rt-worker' (2386) panicked at …/library/core/src/panicking.rs:225:5: panic in a function that cannot unwind`. لا أثر استدعاءات كامل: شُغّل بلا `RUST_BACKTRACE=1`، وهذا حدٌّ للدليل.
+- **فصل النتائج:** نجاح 106 اختبارات يثبت التأكيدات قبل انتهاء العمليّة فقط · الخروج بالرمز 134 يعني فشل تلك الجولة كاملة · نجاح المحاولة 2 محاولةٌ لاحقة ناجحة · عدم التكرار محلّيّاً (0 من 20) لا يثبت زوال العطل.
+- **شرط الإغلاق:** أمرُ إعادة إنتاج أو تكرارٌ قابل للقياس، ثمّ إصلاح يُثبَت بانتهاء **العمليّة نفسها** بالرمز 0 عبر تشغيلات متكرّرة؛ ملخّص اختبارات ناجح قبل انهيار العمليّة لا يكفي. يُسجَّل مع البلاغ التالي: الالتزام وأمر التشغيل، وإصدارات Python وlivekit، ونهاية stdout/stderr، ورمز الخروج أو الإشارة.

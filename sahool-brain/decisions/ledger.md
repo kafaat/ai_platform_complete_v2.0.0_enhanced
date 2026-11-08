@@ -4669,3 +4669,21 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **Decision:** treat the current generated files, their sidecar digest, and a fresh source-derived candidate as one `--check` invariant; regenerate the audit rather than changing the release checksum to bless stale contents.
 - **Reason:** the prior check could pass with a fresh sidecar/candidate while the committed JSON remained at 96,685 call edges instead of the source-derived 96,704. The corrected artifact matches the previously recorded SHA-256, with 20/20 closure checks and all 7,904 release checksums verified.
 - **Source:** PR #1335; checker fix `9c0058ca9e9814a6dc424f1dfeff22583c6f0f40`; artifact regeneration `186171fb148323c4b4d06e55b1d81521e7e728ee`; session evidence in [`../log.md`](../log.md).
+
+## 2026-11-08 — إغلاق تجارب Impeccable بلا PR موحّد
+
+- **القرار:** إغلاق #1308 و#1310 و#1314 و#1315 بلا دمج والاحتفاظ بفروعها.
+- **السبب:** ثلاث مراجعات مستقلّة: الكود يعمل (25 اختباراً، و0 نتائج على 8 ملفّات) لكنّه لا يصلح منتجاً، والنتيجة المفيدة على main أصلاً (اختبار Playwright للإتاحة وبوّابة التباين)، والدمج يضيف ثنائيّاً أصليّاً بـ22 ميغابايت بلا قفل ولا تجزئة في المستودع. #1314 لم يكن قابلاً للدمج (انحراف التعيين وثلاث وظائف CI حمراء).
+- **المصدر:** https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1314#issuecomment-6722155186 · [`../log.md`](../log.md).
+
+## 2026-11-08 — نقل تثبيت `sahool-auth-main` على staging إلى `46656c518` مع إبقاء التثبيت
+
+- **القرار:** نشر المصادقة على staging من التزام محدّد مقبول (`46656c518`) بتغيير مرحليّ لبيئة واحدة، وإبقاء الخدمة مثبَّتة على التزام بدل متابعة main.
+- **السبب:** كانت متأخّرة 29 التزاماً عن main (12 ملفّاً في خدمة المصادقة: الجلسات والتسجيل وMFA وكلمات المرور)، وإعادة تشغيل البناء القديم لا تُدخل التغييرات. التثبيت يجعل كلَّ ترقية خطوة قبول صريحة؛ قرار المالك «أبقِ التثبيت».
+- **المصدر:** نشر Railway `fd914881` (SUCCESS) · [`../log.md`](../log.md).
+
+## 2026-11-08 — تسجيل انهيار LiveKit عند الخروج فجوةً لا إصلاحاً غير مختبَر
+
+- **القرار:** تسجيل `LIVEKIT-FFI-EXIT-PANIC-INTERMITTENT-01` بأدلّته، وتأجيل أيّ تخفيف حتّى يُعاد إنتاجه أو يتكرّر بما يكفي للقياس.
+- **السبب:** حدث مرّة واحدة في 20 تشغيلاً لسير العمل، وأُعيدت الوظيفة فنجحت، ولم يُعَد إنتاجه محلّيّاً (0 من 20). التخفيف المقترح (تحرير وقت تشغيل livekit قبل نهاية المفسّر) لا يمكن إثبات أثره بلا إعادة إنتاج.
+- **المصدر:** [`../gaps/registry.md`](../gaps/registry.md) · [`../log.md`](../log.md).
