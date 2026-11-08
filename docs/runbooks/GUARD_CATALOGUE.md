@@ -10,7 +10,7 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **286**
+- حرّاس تحجب في CI: **287**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **58**
 - إجماليّ الطفرات المُسجَّلة: **464**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **393** على 136 مصدراً
@@ -20,7 +20,7 @@
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **228** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **229** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -1100,7 +1100,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (228)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (229)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -1262,6 +1262,7 @@
 | `production_truth_readiness_gate.py` | Production truth/readiness gate: no synthetic serving paths; honest readiness. | `structural-lint` · `contract` |
 | `provenance_receipt.py` | Create/validate the external provenance receipt required by the read-only bridge. | `verify-and-evaluate` |
 | `railway_dockerfile_pr_build_plan.py` | أيُّ ملفّات Dockerfile التي يبنيها Railway يمسّها هذا الـPR؟ — DOCKER-BUILD-VERIFIED-ONLY-ON-… | `plan` |
+| `railway_staging_backup_inventory.py` | Read-only staging PostgreSQL volume-backup inventory; never restore or certify. | `staging-connection` |
 | `railway_staging_connection_preflight.py` | Fail-closed Railway staging status verification. Never emit raw CLI data. | `staging-connection` |
 | `raster_import_graph_gate.py` | Static import-graph gate for services/raster-service. | `structural-lint` |
 | `raster_main_decomposition_gate.py` | Raster-service main.py decomposition contract gate. | `structural-lint` |
