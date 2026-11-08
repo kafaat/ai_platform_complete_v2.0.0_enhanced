@@ -3,6 +3,7 @@
 These tests deliberately load the production modules from their service roots,
 rather than duplicating their decision logic.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -44,7 +45,9 @@ def test_field_route_preserves_kernel_assessment_status():
 
 def test_required_unknown_check_is_not_accepted():
     checks = _module("services/gis-workflow-service/self_checks.py")
-    result = checks.run_self_checks({"analysis": {"index": "ndvi"}, "target": {}}, {}, {})
+    result = checks.run_self_checks(
+        {"analysis": {"index": "ndvi"}, "target": {}}, {}, {}
+    )
     assert result["passed"] is False
     assert result["quality"] == "failed"
 
