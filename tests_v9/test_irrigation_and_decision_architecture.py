@@ -157,8 +157,10 @@ def test_registered_worker_is_an_executable_root_for_both_event_chains():
     assert "finalize_irrigation_closed_loop" in text
     assert "process_season_closed_event" in text
     assert "await msg.ack()" in text
-    assert "await msg.nak(delay=5)" in text
+    # Redelivery is bounded (exponential nak, then dead letter + term) — no fixed 5 s forever.
+    assert "await msg.nak(delay=redelivery_delay(num_delivered))" in text
     assert "await msg.term()" in text
+    assert '"sahool.dlq.canonical_execution_learning"' in text
 
 
 @pytest.mark.asyncio

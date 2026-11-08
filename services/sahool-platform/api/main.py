@@ -677,12 +677,12 @@ CRITICAL_EVENT_TYPES: frozenset[str] = frozenset(
         # تبدّل حالة الصمّام الفيزيائيّ — تحوّل حالة فِعليّ (actuator state transition).
         "IRRIGATION_VALVE_STATE_CHANGED",
         # حوكمة المعايرة — تعيين قيمة معايرة مُتحكِّمة (تغيّر سلوك القرار لكلّ منطقة).
-        # ملحوظة: قيد التدقيق CALIBRATION_AUDIT_RECORDED مقصودٌ best-effort (يُصدَر داخل
-        # ``_append_calibration_audit`` ذي savepoint+ابتلاع صريح) فلا يُدرَج هنا.
+        # (CALIBRATION_AUDIT_RECORDED best-effort عمداً: savepoint في _append_calibration_audit)
         "CALIBRATION_OVERRIDE_SET",
-        # قياسات خرائط الغلّة (PA-003) دليل حقليّ ثابت؛ استمرار بلا حدث نَسَب outbox
-        # المرافق ليس التزاماً جزئيّاً مقبولاً.
+        # دليلٌ حقليّ ثابت (PA-003) وسلسلةُ حيازة الحصاد المبصومة: لا صفَّ بلا حدث نَسَبه.
         "YIELD_MAP_INGESTED",
+        "HARVEST_LOT_CREATED",
+        "CUSTODY_EVENT_RECORDED",
     }
 )
 
