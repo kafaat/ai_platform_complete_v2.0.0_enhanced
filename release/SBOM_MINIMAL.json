@@ -25045,7 +25045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94f93568961e2f016696c5b57d57e85bf1a0ea0de9f31d3e62a260d9f2ad1af4"
+          "content": "4883a491b3b1cc9c719bd982d41be40ce996b6770a0d1bca17387308e901117d"
         }
       ],
       "name": "services/sahool-platform/api/routers/automation.py",
