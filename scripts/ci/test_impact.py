@@ -20,6 +20,14 @@ never read as full coverage.
 
 **It is an accelerator, not a gate.** Its green means "what was selected passed". CI decides.
 
+**An audit sample measures what the selection drops.** In selected mode a seeded random
+sample of the *excluded* tests runs too (the method and formula of Unified Local Lab
+``portable_ci_lab.change_selection``: ``max(1, ceil(n * percent / 100))``, seeded by base,
+head and the changed paths, so the same change draws the same sample). A failure there is a
+measured miss of the cone, not noise. The plan also records the resolved commits, a decision
+for every tracked test (selected · floor · audit · excluded-not-run) and its own digest, so
+"what was planned" can be checked against "what ran" without trusting either alone.
+
     bash scripts/ci/test_impact.sh                 # select against origin/main, then run
     python scripts/ci/test_impact.py --plan-only    # print the plan, run nothing
     python scripts/ci/test_impact.py --json         # the plan as data
@@ -28,8 +36,11 @@ never read as full coverage.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
+import math
+import random
 import subprocess
 import sys
 from pathlib import Path
@@ -187,6 +198,72 @@ def select(
     return selected, floor
 
 
+def audit_sample(excluded: list[str], percent: float, seed: str) -> list[str]:
+    """A reproducible sample of excluded tests (Unified Local Lab ``_audit_sample``).
+
+    Empty only when nothing was excluded; otherwise at least one test, so a selection
+    that drops anything always spends a little to check what it dropped.
+    """
+    if not excluded:
+        return []
+    if not (isinstance(percent, (int, float)) and math.isfinite(percent) and 0 < percent <= 100):
+        raise ValueError("audit percent must be in (0, 100]")
+    count = min(len(excluded), max(1, math.ceil(len(excluded) * percent / 100.0)))
+    return sorted(random.Random(seed).sample(sorted(excluded), count))
+
+
+def _digest(value: Any) -> str:
+    raw = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def decide(
+    tests: list[str],
+    selected: dict[str, Any],
+    floor: list[str],
+    *,
+    mode: str,
+    percent: float,
+    seed: str,
+) -> tuple[list[str], dict[str, int]]:
+    """Every tracked test gets exactly one decision; return the audit sample and the counts.
+
+    In full mode everything runs, so nothing is excluded and no audit is drawn.
+    """
+    if mode == "full":
+        return [], {
+            "selected": 0,
+            "floor": 0,
+            "audit": 0,
+            "excluded_not_run": 0,
+            "full_suite": len(tests),
+            "total": len(tests),
+        }
+    chosen = set(selected) | set(floor)
+    excluded = [path for path in tests if path not in chosen]
+    audit = audit_sample(excluded, percent, seed)
+    return audit, {
+        "selected": len(selected),
+        "floor": len(floor),
+        "audit": len(audit),
+        "excluded_not_run": len(excluded) - len(audit),
+        "full_suite": 0,
+        "total": len(tests),
+    }
+
+
+def resolve_commit(ref: str, root: Path = ROOT) -> str:
+    out = subprocess.run(
+        ["git", "rev-parse", "--verify", f"{ref}^{{commit}}"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    )
+    return out.stdout.strip()
+
+
 def plan(
     base: str,
     head: str,
@@ -205,7 +282,8 @@ def plan(
     result = engine.impact(changed, snapshot)
     affected = set(result["affected"])
 
-    selected, floor = select(snapshot, affected, discover_test_files(root))
+    tests = discover_test_files(root)
+    selected, floor = select(snapshot, affected, tests)
 
     undecided = [p for p in changed if not _is_bound(snapshot, p)]
     reasons = escalation_reasons(
@@ -215,23 +293,40 @@ def plan(
         unbound=set(undecided),
     )
 
-    return {
+    mode = "full" if reasons else "selected"
+    head_commit = resolve_commit(head, root)
+    percent = active["audit_sample"]["percent"]
+    seed = _digest({"base": resolved_base, "head": head_commit, "changed": changed})
+    audit, counts = decide(tests, selected, floor, mode=mode, percent=percent, seed=seed)
+
+    result_plan = {
         "schema": "sahool.test_impact_plan",
-        "version": 1,
+        "version": 2,
         "base": resolved_base,
         "head": head,
+        "head_commit": head_commit,
         "changed_paths": changed,
         "committed_paths": committed,
         "working_tree_paths": working,
         "affected_capabilities": sorted(affected),
         "direct_capabilities": result["direct"],
-        "mode": "full" if reasons else "selected",
+        "mode": mode,
         "escalation_reasons": reasons,
         "selected": selected,
         "floor": floor,
         "undecided_changed_paths": undecided,
         "ceiling": active["measured_ceiling"],
+        "audit": {
+            "percent": percent,
+            "seed": seed,
+            "population": counts["audit"] + counts["excluded_not_run"],
+            "test_paths": audit,
+        },
+        "decision_counts": counts,
+        "authority": "plan-only: what was planned, not what ran or passed",
     }
+    result_plan["plan_sha256"] = _digest(result_plan)
+    return result_plan
 
 
 def _is_bound(snapshot: Any, path: str) -> bool:
@@ -244,10 +339,11 @@ def _is_bound(snapshot: Any, path: str) -> bool:
 
 
 def paths_to_run(result: dict[str, Any], *, root: Path = ROOT) -> list[str]:
-    """Selection ∪ floor — or every tracked test when escalated. The floor is never dropped."""
+    """Selection ∪ floor ∪ audit — or every tracked test when escalated. The floor is never dropped."""
     if result["mode"] == "full":
         return discover_test_files(root)
-    return sorted(set(result["floor"]) | set(result["selected"]))
+    audit = (result.get("audit") or {}).get("test_paths", [])  # absent in a v1 plan
+    return sorted(set(result["floor"]) | set(result["selected"]) | set(audit))
 
 
 def render(result: dict[str, Any]) -> str:
@@ -276,6 +372,17 @@ def render(result: dict[str, Any]) -> str:
 
     lines.append(f"  الأرضيّة الثابتة (لا يبلغها مخروط): {len(result['floor'])} ملفّاً")
 
+    counts = result["decision_counts"]
+    if result["mode"] != "full":
+        audit = result["audit"]
+        lines.append(
+            f"  عيّنة التدقيق ({audit['percent']}٪ من المستبعَدة، بذرة {audit['seed'][:12]}): "
+            f"{counts['audit']} من {audit['population']} — فشلُ أحدها إخفاقٌ مقيس للمخروط"
+        )
+        for path in audit["test_paths"]:
+            lines.append(f"    ◇ {path}")
+        lines.append(f"  مستبعَدة لم تُشغَّل: {counts['excluded_not_run']} ملفّاً")
+
     if result["undecided_changed_paths"]:
         lines.append(
             f"  غير محسوم — المحرّك لا يربط {len(result['undecided_changed_paths'])} "
@@ -292,6 +399,7 @@ def render(result: dict[str, Any]) -> str:
         f"{ceiling['cases_in_the_always_run_floor']} من {ceiling['unit_test_cases']} حالة "
         "تعمل دائماً — الاختيار يُنصِّف ولا يُلغي."
     )
+    lines.append(f"  بصمة الخطّة: {result['plan_sha256'][:16]} · رأس {result['head_commit'][:12]}")
     lines.append("  هذه أداة تسريع محلّيّة. القرار النهائيّ لـCI.")
     return "\n".join(lines)
 

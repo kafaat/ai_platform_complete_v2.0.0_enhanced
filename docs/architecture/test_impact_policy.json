@@ -30,6 +30,11 @@
     "unbound_source_ar": "**ملفّ مصدر لا يربطه المحرّك بأيّ قدرة يُصعِّد.** لا نعرف أيّ اختبار يغطّيه، فالتضييق عليه تخمين — وأسوأ عطل في مُنتقي اختبارات هو الإسقاط الصامت: جولةٌ تخطّت الاختبار الفاشل تبدو كجولة ناجحة. القياس (2026-08-05): ٩٥٦ من ٢٢٧٠ ملفّ مصدر غير اختباريّ قابلة للربط = **٤٢٪**، أي أنّ الأداة تُصعِّد على نحو ٥٨٪ من تغييرات المصدر. هذا ثمن الصدق لا عيب في الأداة، وهو مُعلَن كي لا يُقرأ التصعيد عطلاً.",
     "non_source_ar": "الوثائق ونثر الدماغ والمصنوعات المولَّدة **لا تُصعِّد** بمجرّد كونها غير مربوطة: لا تُغيّر سلوكاً يقيسه اختبار. وما يُغيّره منها محكومٌ بأنماط `paths` أعلاه (`docs/architecture/` مثلاً) وبالمكنسة."
   },
+  "audit_sample": {
+    "percent": 5,
+    "note_ar": "في وضع الاختيار الجزئيّ تُشغَّل أيضاً عيّنةٌ عشوائيّة ذاتُ بذرة من الاختبارات **المستبعَدة** (أدناها واحد). البذرة مشتقّة من الأساس والرأس والمسارات المتغيّرة، فالتغيير نفسه يسحب العيّنة نفسها. الطريقة والصيغة `max(1, ceil(n×percent/100))` من `portable_ci_lab.change_selection` في المختبر المحلّيّ الموحّد. فشلُ اختبارٍ في العيّنة إخفاقٌ **مقيس** للمخروط، لا ضجيج.",
+    "note_en": "In selected mode a seeded random sample of the excluded tests also runs (at least one). The seed derives from base, head and changed paths, so the same change draws the same sample. Method and formula from Unified Local Lab portable_ci_lab.change_selection. A failing audited test is a measured miss of the cone."
+  },
   "default_marker": "unit",
   "exit_codes": {
     "0": "الاختيار أُنتج (أو الجناح شُغِّل ونجح)",

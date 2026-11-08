@@ -329,3 +329,81 @@ def test_an_unresolvable_base_is_diagnosed_not_a_traceback(tool):
         "the message must name the ref it could not resolve"
     )
     assert "Traceback" not in result.stderr, result.stderr
+
+
+# ── the audit sample measures what the selection drops ──────────────────────
+# Method and formula from Unified Local Lab ``portable_ci_lab.change_selection``.
+
+TESTS = [f"tests_v9/test_{i:03d}.py" for i in range(100)]
+SELECTED = {TESTS[0]: {}, TESTS[1]: {}}
+FLOOR = TESTS[2:12]
+
+
+def test_the_audit_is_drawn_only_from_excluded_tests_and_never_empty(tool):
+    audit, counts = tool.decide(TESTS, SELECTED, FLOOR, mode="selected", percent=5, seed="s")
+    excluded = set(TESTS) - set(SELECTED) - set(FLOOR)
+    assert audit and set(audit) <= excluded
+    assert len(audit) == 5  # ceil(88 * 5 / 100)
+    assert counts == {
+        "selected": 2,
+        "floor": 10,
+        "audit": 5,
+        "excluded_not_run": 83,
+        "full_suite": 0,
+        "total": 100,
+    }
+    assert sum(counts[k] for k in ("selected", "floor", "audit", "excluded_not_run")) == 100
+    one, _ = tool.decide(TESTS, SELECTED, TESTS[2:99], mode="selected", percent=5, seed="s")
+    assert one == [TESTS[99]], "a single excluded test is still audited"
+
+
+def test_the_same_change_draws_the_same_sample_and_another_change_may_not(tool):
+    first = tool.audit_sample(TESTS, 10, "seed-a")
+    assert first == tool.audit_sample(list(reversed(TESTS)), 10, "seed-a")
+    assert any(tool.audit_sample(TESTS, 10, f"seed-{n}") != first for n in range(5))
+
+
+def test_a_full_suite_run_has_nothing_to_audit(tool):
+    audit, counts = tool.decide(TESTS, SELECTED, FLOOR, mode="full", percent=5, seed="s")
+    assert audit == [] and counts["full_suite"] == 100 and counts["excluded_not_run"] == 0
+
+
+def test_an_invalid_audit_percent_is_refused(tool):
+    for bad in (0, -1, 101, float("nan"), "5"):
+        with pytest.raises(ValueError):
+            tool.audit_sample(TESTS, bad, "s")
+
+
+def test_the_runner_runs_the_audit_sample_and_never_drops_the_floor(tool):
+    result = {
+        "mode": "selected",
+        "selected": SELECTED,
+        "floor": FLOOR,
+        "audit": {"test_paths": [TESTS[50]]},
+    }
+    assert tool.paths_to_run(result) == sorted(set(SELECTED) | set(FLOOR) | {TESTS[50]})
+
+
+def test_the_policy_declares_a_valid_audit_percent():
+    percent = json.loads(POLICY.read_text(encoding="utf-8"))["audit_sample"]["percent"]
+    assert isinstance(percent, (int, float)) and 0 < percent <= 100
+
+
+def test_a_real_plan_records_commits_decisions_and_its_own_digest(tool):
+    plan = tool.plan(_resolvable_base(tool), "HEAD")
+    assert len(plan["head_commit"]) == 40
+    counts = plan["decision_counts"]
+    assert counts["total"] == len(tool.discover_test_files())
+    if plan["mode"] == "full":
+        assert counts["full_suite"] == counts["total"] and not plan["audit"]["test_paths"]
+    else:
+        assert (
+            sum(counts[k] for k in ("selected", "floor", "audit", "excluded_not_run"))
+            == counts["total"]
+        )
+        assert set(plan["audit"]["test_paths"]).isdisjoint(
+            set(plan["selected"]) | set(plan["floor"])
+        )
+    unsigned = {k: v for k, v in plan.items() if k != "plan_sha256"}
+    assert plan["plan_sha256"] == tool._digest(unsigned)
+    assert "not what ran" in plan["authority"]
