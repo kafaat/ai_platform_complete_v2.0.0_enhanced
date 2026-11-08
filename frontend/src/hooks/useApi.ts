@@ -415,8 +415,10 @@ export interface ChangeDetectionResponse {
   index: string;
   date_a: string;
   date_b: string;
-  available: boolean;      // false ⇒ لا COG حقيقي لأحد التاريخين (لا تغيّر مُفبرَك)
-  real_data: boolean;
+  available: boolean;      // false ⇒ قد تكون الصور موجودة لكن المقارنة غير قابلة للتقييم
+  real_data: boolean;      // provenance of actual COG, independent of availability
+  status?: string;         // assessed | not_assessable
+  reason_codes?: string[];
   // الحقول التالية موجودة فقط عند available=true
   rows?: number;
   cols?: number;
