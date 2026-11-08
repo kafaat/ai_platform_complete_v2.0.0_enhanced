@@ -22805,16 +22805,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0739e304b2824a8998719af2598489c5f829f86634370306ee4c1159aa9d3c6e"
-        }
-      ],
-      "name": "services/sahool-platform/api/activity_execution_truth.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "b53f3e20059d58df305850da303221b599cc1198132f54ab44e1bb6bb60ef060"
         }
       ],
@@ -23855,7 +23845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ebaf58f4cac8fb120515dc20914cc221a04ff0a7d97fae4dd25953f2ffe8f36a"
+          "content": "58dd197a77d64d24faa9d8413f196d93c212c04069ec543310ef37da63fad6a7"
         }
       ],
       "name": "services/sahool-platform/api/field_models.py",
@@ -25665,7 +25655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "27b7a539be7c05fdea64984299494cad95e565afeb0b3547d25e91db428cea66"
+          "content": "ff9b1fb9de48298e8e4529fbee2deb72e3c535b50189d597657c3d679e823141"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

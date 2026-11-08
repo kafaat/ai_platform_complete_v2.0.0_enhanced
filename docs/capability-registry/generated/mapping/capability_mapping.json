@@ -15,9 +15,9 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7050,
+    "files_scanned": 7049,
     "files_by_kind": {
-      "backend": 1268,
+      "backend": 1267,
       "database": 295,
       "governance": 87,
       "mobile": 414,
@@ -25,7 +25,7 @@
       "tests": 2330,
       "web": 504
     },
-    "unmapped_artifacts": 2796,
+    "unmapped_artifacts": 2795,
     "ambiguous_artifacts": 519
   },
   "capabilities": [
@@ -47073,10 +47073,6 @@
     },
     {
       "path": "services/sahool-platform/api/__init__.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/activity_execution_truth.py",
       "kind": "backend"
     },
     {
