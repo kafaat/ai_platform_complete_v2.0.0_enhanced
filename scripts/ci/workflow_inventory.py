@@ -7,11 +7,10 @@ import hashlib
 import json
 import re
 import sys
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
 MAX_FILE_BYTES = 2_000_000
 COMMAND_PATTERN = re.compile(r"(?:pytest|ruff|mypy|vitest|playwright|flutter|npm|pnpm|yarn|python|bash|sh|docker|helm|trivy|bandit|pip-audit|mutmut|crosshair)", re.I)
-PATH_PATTERN = re.compile(r"(?:[\w./-]+\.(?:py|sh|yml|yaml|json|toml|ts|tsx|dart))")
 TEST_PATTERN = re.compile(r"(?:^|[\s'\"=])((?:tests|tests_v9|services)/[\w./-]*test[\w./-]*\.py)")
 
 def digest(raw: bytes) -> str:
