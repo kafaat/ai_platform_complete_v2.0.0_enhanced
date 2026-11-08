@@ -19,6 +19,8 @@ on:
         type: boolean
   pull_request:
     paths:
+      - "scripts/build-immutable.ps1"
+      - "tests/architecture/test_immutable_build_wrapper_behaviour.py"
       - "services/raster-service/**"
       - "services/weather-service/**"
       - "services/edge-inference/**"
@@ -46,6 +48,18 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  windows-wrapper:
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install pytest
+      - name: Exercise the Windows build wrapper with a recording Docker CLI
+        run: python -m pytest -q tests/architecture/test_immutable_build_wrapper_behaviour.py -k powershell
+
   static:
     runs-on: ubuntu-latest
     steps:
@@ -85,12 +99,27 @@ jobs:
             *) echo "::error::invalid mode"; exit 2 ;;
           esac
           echo "args=$args" >> "$GITHUB_OUTPUT"
+      - name: Install pinned Trivy for the requested scan
+        if: ${{ !inputs.skip_security }}
+        run: scripts/ci/install_pinned_trivy.sh
       - name: Docker build matrix verifier
         env:
           MODE_ARG: ${{ steps.mode.outputs.args }}
           SKIP_SECURITY: ${{ inputs.skip_security }}
+          COMPOSE_ENV_FILES: ${{ runner.temp }}/matrix-compose.env
         run: |
           set -euo pipefail
+          # Synthetic inputs for Compose's schema check only. Keep optional defaults
+          # (including ports and image references) and Docker build arguments intact.
+          python - <<'PY'
+          import os, re
+          from pathlib import Path
+          compose = Path("docker-compose.v9.yml").read_text(encoding="utf-8")
+          names = set(re.findall(r"(?<!\$)\$\{([A-Z0-9_]+)(?::?\?|\})", compose))
+          Path(os.environ["COMPOSE_ENV_FILES"]).write_text(
+              "".join(f"{name}=compose-probe\n" for name in sorted(names)), encoding="utf-8"
+          )
+          PY
           case "$MODE_ARG" in
             --all|--extended|--critical) ;;
             *) echo "::error::invalid mode argument"; exit 2 ;;

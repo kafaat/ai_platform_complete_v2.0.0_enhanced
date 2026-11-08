@@ -37,7 +37,8 @@ REQUIRED = {
     ),
     "raster_tiler_compose": (
         "docker-compose.v9.yml",
-        ["raster-tiler-service", "127.0.0.1:8088:8088"],
+        # Host port is overridable (RASTER_TILER_HOST_PORT); loopback binding and default stay pinned.
+        ["raster-tiler-service", "127.0.0.1:${RASTER_TILER_HOST_PORT:-8088}:8088"],
     ),
 }
 

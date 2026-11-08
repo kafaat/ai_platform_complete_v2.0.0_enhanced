@@ -16000,7 +16000,7 @@
         "healthcheck": "CMD wget --quiet --tries=1 --spider http://localhost:8080/healthz",
         "mount_status": null,
         "published_ports": [
-          "127.0.0.1:3003:8080"
+          "127.0.0.1:${FRONTEND_HOST_PORT:-3003}:8080"
         ]
       },
       "source_path": "frontend",
@@ -16105,7 +16105,7 @@
         "healthcheck": "CMD curl -f http://localhost:8000/healthz",
         "mount_status": "delegated_routes",
         "published_ports": [
-          "127.0.0.1:8097:8000"
+          "127.0.0.1:${GUARDRAILS_ENGINE_HOST_PORT:-8097}:8000"
         ]
       },
       "source_path": "services/guardrails-engine",
@@ -16718,7 +16718,7 @@
         "healthcheck": "CMD python -c import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/healthz', timeout=3)",
         "mount_status": "direct_routes",
         "published_ports": [
-          "127.0.0.1:8088:8088"
+          "127.0.0.1:${RASTER_TILER_HOST_PORT:-8088}:8088"
         ]
       },
       "source_path": "services/raster-tiler-service",
@@ -17428,7 +17428,7 @@
         "healthcheck": "CMD curl -f http://localhost:8000/healthz",
         "mount_status": "delegated_routes",
         "published_ports": [
-          "127.0.0.1:8096:8000"
+          "127.0.0.1:${SUPERVISOR_AGENT_HOST_PORT:-8096}:8000"
         ]
       },
       "source_path": "services/supervisor-agent",
@@ -18053,7 +18053,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "92c08cc8201b244df947d236bf9aa6307a51f92bac1387f2ad07aff4b715f39b",
+  "fingerprint": "ab8c901d05e6d15932410ea02a7f454a6350cc48febfb392dd1b488249a90fd9",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

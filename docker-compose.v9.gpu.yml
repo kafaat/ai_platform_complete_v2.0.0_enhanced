@@ -5,6 +5,12 @@
 
 services:
   sahool-edge:
+    build:
+      context: .
+      dockerfile: services/edge-inference/Dockerfile.arm64
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
+        EDGE_REQUIREMENTS: requirements-gpu.txt
     environment:
       EDGE_DEVICE: ${EDGE_DEVICE:-rtx5090}
       NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
@@ -28,19 +34,13 @@ services:
     # يُعرَض على loopback المضيف فقط (GPU-profile) كي تصله بوّابة sam2_live_gpu_gate.py
     # من المضيف. الخدمة داخليّة أصلاً؛ هذا المنفذ للاختبار/التطوير المحلّيّ لا للإنتاج.
     ports:
-    - 127.0.0.1:8080:8080
+    - "127.0.0.1:${SAM2_INFERENCE_HOST_PORT:-8080}:8080"
     environment:
       NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
       NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
       TORCH_CUDA_ARCH_LIST: ${TORCH_CUDA_ARCH_LIST:-12.0}
       CUDA_MODULE_LOADING: ${CUDA_MODULE_LOADING:-LAZY}
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    # The base reserves one GPU for the predictor. Compose appends device lists.
 
   sahool-field-segmentation:
     environment:
@@ -82,10 +82,3 @@ services:
     environment:
       NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
       NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]

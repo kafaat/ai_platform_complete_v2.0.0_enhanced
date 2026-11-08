@@ -421,7 +421,7 @@ def healthcheck_service(service: str, host_port: int) -> HealthResult:
 def trivy_scan(service: str) -> SecurityResult:
     rc, _, _ = run_command(["which", "trivy"], timeout=20)
     if rc != 0:
-        return SecurityResult(service, "skipped", 0, 0, 0, None, "trivy not installed")
+        return SecurityResult(service, "fail", 0, 0, 0, None, "trivy not installed")
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     report = EVIDENCE_DIR / f"trivy-{service}.json"
     rc, _, stderr = run_command(
@@ -452,10 +452,10 @@ def trivy_scan(service: str) -> SecurityResult:
 
 
 def compose_check(compose_file: Path) -> ComposeResult:
-    if not compose_file.exists():
-        return ComposeResult("skipped", str(compose_file), False, False, ["compose file not found"])
+    if not compose_file.is_file():
+        return ComposeResult("fail", str(compose_file), False, False, ["compose file not found"])
     rc, _, stderr = run_command(
-        ["docker", "compose", "-f", str(compose_file), "config"], timeout=120
+        ["docker", "compose", "-f", str(compose_file), "config", "--quiet"], timeout=120
     )
     if rc != 0:
         return ComposeResult(
@@ -495,11 +495,11 @@ def build_evidence(
         all(item.status == "pass" for item in health) if phases_run.get("health") else False
     )
     security_pass = (
-        all(item.status in {"pass", "skipped"} and item.critical_count == 0 for item in security)
+        all(item.status == "pass" and item.critical_count == 0 for item in security)
         if phases_run.get("security")
         else True
     )
-    compose_pass = compose.status in {"pass", "skipped"}
+    compose_pass = compose.status == "pass" if phases_run.get("compose_config") else True
     verified = build_pass and files_pass and health_pass and security_pass and compose_pass
 
     return {

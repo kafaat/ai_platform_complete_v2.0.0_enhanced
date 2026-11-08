@@ -41,8 +41,14 @@ def test_notification_agent_uses_real_tts_service():
 def test_gpu_overlay_enables_rtx5090_paths():
     d = load("docker-compose.v9.gpu.yml")
     services = d["services"]
-    for name in ["sahool-edge", "sahool-sam2-inference", "sahool-video-processor"]:
-        assert "devices" in str(services[name].get("deploy", {}))
+    base = load("docker-compose.v9.yml")["services"]
+    for name in ["sahool-sam2-inference", "sahool-vllm-jais"]:
+        assert base[name]["deploy"]["resources"]["reservations"]["devices"] == [
+            {"driver": "nvidia", "count": 1, "capabilities": ["gpu"]}
+        ]
+        assert "devices" not in services[name].get("deploy", {}).get("resources", {}).get(
+            "reservations", {}
+        )
     assert env(services["sahool-edge"])["EDGE_DEVICE"] == "${EDGE_DEVICE:-rtx5090}"
     seg_env = env(services["sahool-field-segmentation"])
     assert seg_env["SEGMENTATION_BACKEND"] == "sam2"
@@ -55,10 +61,14 @@ def test_sam2_dockerfile_defaults_to_cuda_128_image():
     assert "cuda12.8" in text
 
 
-def test_edge_detector_accepts_rtx5090_cuda_device():
-    text = (ROOT / "services/edge-inference/models/pest_detector.py").read_text(encoding="utf-8")
-    assert "rtx5090" in text
-    assert "CUDAExecutionProvider" in text
+def test_edge_profile_selects_gpu_only_dependencies_and_inherits_device():
+    edge = ROOT / "services/edge-inference"
+    assert "EDGE_DEVICE=" in (ROOT / ".env.example").read_text(encoding="utf-8").splitlines()
+    overlay = load("docker-compose.v9.gpu.yml")["services"]["sahool-edge"]
+    gpu_reqs = edge / overlay["build"]["args"]["EDGE_REQUIREMENTS"]
+    assert "onnxruntime-gpu[cuda,cudnn]==" in gpu_reqs.read_text(encoding="utf-8")
+    assert "onnxruntime>=" in (edge / "requirements.txt").read_text(encoding="utf-8")
+    assert "onnxruntime" not in (edge / "requirements-common.txt").read_text(encoding="utf-8")
 
 
 def test_sam2_readyz_exposes_actionable_reason():
