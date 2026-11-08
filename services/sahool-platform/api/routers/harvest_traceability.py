@@ -63,9 +63,7 @@ async def create_harvest_lot(
     idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
-    """ينشئ دفعة حصاد مربوطة بحقل (إلزاميّ) وموسم (اختياريّ، يخصّ الحقل). يُصدِر
-    HARVEST_LOT_CREATED. 404 إن لم يكن الحقل/الموسم للمستأجِر. 503 عند تعذّر القاعدة.
-    idempotent: Idempotency-Key (UUID) يمنع تكرار الإنشاء عند إعادة الموبايل (offline)."""
+    """دفعة حصاد + HARVEST_LOT_CREATED؛ قبل انقضاء PHI ⇒ 409 (تجاوز: المالك + سبب)؛ 404/503؛ idempotent."""
     harvest_date = _parse_date(req.harvest_date, "تاريخ الحصاد")
     if harvest_date is None:
         raise HTTPException(status_code=422, detail="تاريخ الحصاد مطلوب (ISO YYYY-MM-DD)")
@@ -83,6 +81,9 @@ async def create_harvest_lot(
                     )
                     if not ok:
                         raise HTTPException(status_code=404, detail="الموسم غير موجود لهذا الحقل")
+                from api.field_context import harvest_lot_phi_check  # بوّابة PHI
+
+                phi = await harvest_lot_phi_check(conn, user, req, harvest_date)
                 async with conn.transaction():
                     await conn.execute(
                         """INSERT INTO harvest_lots
@@ -110,17 +111,16 @@ async def create_harvest_lot(
                             "field_id": req.field_id,
                             "season_id": req.season_id,
                             "quantity_kg": req.quantity_kg,
+                            "phi_check": phi,
                         },
                     )
                 row = await conn.fetchrow(
                     f"SELECT {_HARVEST_LOT_SELECT} FROM harvest_lots WHERE harvest_lot_id = $1",
                     lot_id,
                 )
-                # نُعيد JSON (model_dump mode="json") ليُخزَّن كنتيجة أمر idempotent
-                # (التواريخ → ISO)؛ response_model يتحقّق منه أوّل مرّة وعند الإعادة.
-                return _row_to_harvest_lot(row).model_dump(mode="json")
+                # JSON (mode="json") يُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً عند الإعادة.
+                return {**_row_to_harvest_lot(row).model_dump(mode="json"), "phi_check": phi}
 
-            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
             if idem:
                 result = await _idempotent(
                     CommandStore(get_pool(), conn=conn),

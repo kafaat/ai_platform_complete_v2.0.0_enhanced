@@ -2893,7 +2893,6 @@ async def create_activity(
     يخصّ المستأجِر (404) قبل الإدراج، ثمّ يردّ العمليّة المُنشأة. idempotent:
     Idempotency-Key (UUID) يمنع تكرار التسجيل عند إعادة الموبايل (offline).
     """
-    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
     if req.activity_type not in _ACTIVITY_TYPES:
@@ -2904,7 +2903,7 @@ async def create_activity(
     activity_id = "act_" + _uuid.uuid4().hex[:12]
     status = "done" if performed else "planned"
     try:
-        details_json = json.dumps(req.details or {})
+        json.dumps(req.details or {})  # تحقّق مبكّر؛ الإدراج بعد بوّابة PHI
     except (TypeError, ValueError) as e:
         # محتوى details غير قابل للتسلسل ⇒ خطأ إدخال صريح (422) لا 500/503.
         raise HTTPException(
@@ -2916,8 +2915,7 @@ async def create_activity(
             async def _work():
                 await _assert_field_in_tenant(conn, field_id)
                 if req.season_id is not None:
-                    # الموسم اختياريّ، لكن إن مُرّر فيجب أن يوجد ويخصّ الحقل نفسه
-                    # (لا FK صلب على القاعدة؛ تحقّق تطبيقيّ + فهرس داعم — v45).
+                    # الموسم اختياريّ؛ إن مُرّر فيجب أن يخصّ الحقل (لا FK صلب — v45).
                     season_ok = await conn.fetchval(
                         "SELECT 1 FROM seasons WHERE season_id = $1 AND field_id = $2",
                         req.season_id,
@@ -2931,6 +2929,9 @@ async def create_activity(
                                 "code": "invalid_season_for_field",
                             },
                         )
+                from api.field_context import activity_details_with_phi_gate  # PHI (حصاد)
+
+                details_out = await activity_details_with_phi_gate(conn, user, field_id, req)
                 await conn.execute(
                     """INSERT INTO activities
                         (activity_id, tenant_id, field_id, season_id, activity_type,
@@ -2942,13 +2943,12 @@ async def create_activity(
                     req.season_id,
                     req.activity_type,
                     req.title_ar,
-                    details_json,
+                    json.dumps(details_out),
                     scheduled,
                     performed,
                     status,
                 )
-                # حدث domain ضمن نفس معاملة تسجيل العمليّة (نمط outbox) — بحدث عمليّة
-                # محدَّد (operation.*) حسب النوع/الحالة، وإلّا ACTIVITY_RECORDED العامّ.
+                # حدث domain بنفس المعاملة (outbox): operation.* حسب النوع/الحالة أو ACTIVITY_RECORDED.
                 await _emit_domain_event(
                     conn,
                     user,
@@ -2989,7 +2989,7 @@ async def create_activity(
                     season_id=req.season_id,
                     activity_type=req.activity_type,
                     title_ar=req.title_ar,
-                    details=req.details or {},
+                    details=details_out,
                     scheduled_for=scheduled.isoformat() if scheduled else None,
                     performed_on=performed.isoformat() if performed else None,
                     status=status,

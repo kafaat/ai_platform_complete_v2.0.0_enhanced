@@ -337,3 +337,134 @@ async def read_ai_context_recommendations(conn, field_id, tenant_id):
             field_id,
         )
     return rows
+
+
+# ─── بوّابة PHI على تسجيل الحصاد (create_activity[harvest] + create_harvest_lot) ───
+# آخر رشّات الحقل المنفَّذة حتى تاريخ الحصاد (RLS عبر conn المستأجِر). سقف 200 صفّاً:
+# أحدث الرشّات هي ما يحكم فترة الأمان، والأقدم انقضت فترته عمليّاً.
+_DONE_SPRAYS_SQL = """
+    SELECT activity_id, performed_on, details
+    FROM activities
+    WHERE field_id = $1 AND activity_type = 'spraying' AND status = 'done'
+      AND performed_on IS NOT NULL AND performed_on <= $2
+    ORDER BY performed_on DESC, created_at DESC
+    LIMIT 200
+"""
+
+
+def _details_dict(raw) -> dict:
+    if isinstance(raw, str):
+        import json as _json
+
+        try:
+            raw = _json.loads(raw)
+        except (TypeError, ValueError):
+            return {}
+    return raw if isinstance(raw, dict) else {}
+
+
+def phi_override_record(user, check, override, reason) -> dict:
+    """حصاد داخل فترة الأمان: 409 ما لم يُطلَب تجاوز صريح بسبب ومن صاحب صلاحيّة
+    ``HARVEST_AUTHORIZE`` (المالك حصراً). يُرجع سجلّ التجاوز ليُحفَظ مع الحصاد."""
+    from core.authorization import Permission, has_permission
+
+    blocking = check.blocking_spray
+    if override is not True:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message_ar": check.message_ar,
+                "code": "phi_not_elapsed",
+                "product": blocking.product if blocking else None,
+                "spray_date": blocking.performed_on.isoformat() if blocking else None,
+                "phi_days": blocking.phi_days if blocking else None,
+                "days_since_spray": check.days_since_spray,
+                "earliest_safe_date": (
+                    check.earliest_safe_date.isoformat() if check.earliest_safe_date else None
+                ),
+            },
+        )
+    reason_text = reason.strip() if isinstance(reason, str) else ""
+    if len(reason_text) < 3:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message_ar": "تجاوز بوّابة PHI يتطلّب سبباً صريحاً (phi_override_reason)",
+                "code": "phi_override_reason_required",
+            },
+        )
+    if not has_permission(user, Permission.HARVEST_AUTHORIZE):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "message_ar": "تجاوز بوّابة PHI صلاحيّة المالك حصراً (harvest:authorize)",
+                "code": "phi_override_forbidden",
+            },
+        )
+    return {
+        "reason": reason_text[:500],
+        "by": str(getattr(user, "user_id", "") or ""),
+        "at": datetime.now(UTC).isoformat(),
+    }
+
+
+async def harvest_phi_check(conn, user, field_id, harvest_date, override=False, reason=None):
+    """يقيّم PHI لحصاد الحقل في ``harvest_date`` (None ⇒ لا تاريخ ⇒ لا فحص ⇒ None).
+
+    يرفع 409/422/403 (انظر ``phi_override_record``)؛ وإلّا يُرجع نتيجة الفحص كقاموس
+    (``limitations`` تحمل ``phi_unknown`` حين لا PHI لآخر رشّة، و``override`` حين تُجووِز).
+    خطأ القاعدة يتسرّب إلى معالِج المسار ⇒ 503 (لا حصاد بلا فحص — فشل مغلق)."""
+    from core.engines.pesticide import (
+        SprayRecord,
+        evaluate_harvest_phi,
+        phi_days_from_details,
+        spray_product_from_details,
+    )
+
+    if harvest_date is None:
+        return None
+    rows = await conn.fetch(_DONE_SPRAYS_SQL, field_id, harvest_date)
+    sprays = []
+    for r in rows:
+        d = _details_dict(r["details"])
+        sprays.append(
+            SprayRecord(
+                performed_on=r["performed_on"],
+                phi_days=phi_days_from_details(d),
+                product=spray_product_from_details(d),
+                activity_id=r["activity_id"],
+            )
+        )
+    check = evaluate_harvest_phi(harvest_date, sprays)
+    out = check.to_dict()
+    if not check.allowed:
+        out["override"] = phi_override_record(user, check, override, reason)
+    return out
+
+
+async def activity_details_with_phi_gate(conn, user, field_id, req) -> dict:
+    """تفاصيل نشاط ``create_activity`` بعد بوّابة PHI: غير الحصاد يمرّ كما هو؛ الحصاد
+    (تاريخ التنفيذ أو المُجدوَل) يُفحَص، والتجاوز يُطلَب في التفاصيل نفسها
+    (``phi_override: true`` + ``phi_override_reason``) ويُسجَّل فيها تحت ``phi_check``."""
+    details = dict(req.details or {})
+    if req.activity_type != "harvest":
+        return details
+    raw_date = req.performed_on or req.scheduled_for
+    harvest_date = date.fromisoformat(raw_date.strip()) if raw_date else None
+    override, reason = details.get("phi_override"), details.get("phi_override_reason")
+    phi = await harvest_phi_check(conn, user, field_id, harvest_date, override, reason)
+    if phi is None:
+        return details
+    details["phi_check"] = phi  # يكتب فوق أيّ phi_check من العميل: الخادم مصدره الوحيد
+    if phi["limitations"]:
+        prior = details.get("limitations")
+        prior = [x for x in prior if isinstance(x, str)] if isinstance(prior, list) else []
+        details["limitations"] = sorted(set(prior) | set(phi["limitations"]))
+    return details
+
+
+async def harvest_lot_phi_check(conn, user, req, harvest_date):
+    """بوّابة PHI لـ``create_harvest_lot`` (التجاوز من حقلَي الطلب phi_override/_reason)."""
+    return await harvest_phi_check(
+        conn, user, req.field_id, harvest_date, req.phi_override, req.phi_override_reason
+    )
