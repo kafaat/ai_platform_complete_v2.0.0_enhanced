@@ -69,6 +69,23 @@ SUBJECTS = (
 SUBJECT_PREFIX = "sahool.events."
 _DURABLE_UNSAFE = re.compile(r"[^A-Za-z0-9_-]+")
 
+# Bounded redelivery + dead letter. A "blocked" irrigation finalize (reconciliation or
+# depletion measurements not visible yet) used to be acked, and a validation error was
+# term'ed with only a log line: either way the event was gone for good. Now a not-ready or
+# transient outcome is nak'ed with an exponential delay keyed on JetStream's own
+# ``num_delivered``; on the MAX_DELIVERIES-th delivery, or on a permanent validation error,
+# the original envelope and the reason are published to DLQ_SUBJECT before ``term``. If
+# that publish fails the message is nak'ed instead of term'ed, so nothing is dropped
+# silently. 20 deliveries at 5 s doubling to a 15 min cap span roughly three hours.
+DLQ_SUBJECT = "sahool.dlq.canonical_execution_learning"
+MAX_DELIVERIES = 20
+NAK_BASE_DELAY_SECONDS = 5.0
+NAK_MAX_DELAY_SECONDS = 900.0
+# Server-side backstop on consumers this worker creates. A few deliveries above
+# MAX_DELIVERIES so a failed dead-letter publish on the last delivery still gets retried;
+# an existing durable keeps its stored config (nats-py only applies ``config`` on create).
+CONSUMER_MAX_DELIVER = MAX_DELIVERIES + 3
+
 
 def durable_for_subject(base: str, subject: str) -> str:
     """Return this subject's own durable consumer name.
@@ -99,12 +116,23 @@ def durable_for_subject(base: str, subject: str) -> str:
     return f"{base}-{suffix}"
 
 
+def consumer_config() -> Any:
+    """Config for a durable this worker creates: bounded ``max_deliver`` (never unlimited)."""
+    try:
+        from nats.js.api import ConsumerConfig
+    except ImportError:  # no client library: nothing can be created anyway
+        return None
+    return ConsumerConfig(max_deliver=CONSUMER_MAX_DELIVER)
+
+
 async def subscribe_subjects(js: Any, *, durable_base: str, callback: Any) -> dict[str, str]:
     """Bind one durable consumer per subject and return the subject → durable map."""
     bound: dict[str, str] = {}
     for subject in SUBJECTS:
         durable = durable_for_subject(durable_base, subject)
-        await js.subscribe(subject, durable=durable, cb=callback, manual_ack=True)
+        await js.subscribe(
+            subject, durable=durable, cb=callback, manual_ack=True, config=consumer_config()
+        )
         bound[subject] = durable
         LOGGER.info("subscribed %s as durable %s", subject, durable)
     return bound
@@ -321,6 +349,118 @@ async def retarget_foreign_deliveries(nc: Any, js: Any, *, durable_base: str) ->
     return moved
 
 
+def delivery_count(msg: Any) -> int:
+    """JetStream's ``num_delivered`` for this message (1 when unknown, e.g. core NATS)."""
+    try:
+        return max(int(msg.metadata.num_delivered), 1)
+    except Exception:  # noqa: BLE001 — metadata absent or unparsable
+        return 1
+
+
+def redelivery_delay(num_delivered: int) -> float:
+    """Exponential nak delay: 5 s, 10 s, 20 s … capped at NAK_MAX_DELAY_SECONDS."""
+    exponent = min(max(num_delivered - 1, 0), 16)
+    return min(NAK_BASE_DELAY_SECONDS * (2**exponent), NAK_MAX_DELAY_SECONDS)
+
+
+def result_is_not_ready(envelope: dict[str, Any], result: Any) -> bool:
+    """A ``blocked`` irrigation closure means its inputs are not visible yet: retry later.
+
+    Scoped to ``irrigation.execution.completed``: ``season.closed`` also reports
+    ``blocked`` but as a recorded verdict (too few outcomes), persisted and final.
+    """
+    return (
+        str(envelope.get("event_type") or "") == "irrigation.execution.completed"
+        and isinstance(result, dict)
+        and result.get("status") == "blocked"
+    )
+
+
+async def publish_dead_letter(js: Any, msg: Any, *, reason: str, num_delivered: int) -> bool:
+    """Best-effort: publish the original envelope plus reason to DLQ_SUBJECT. Never raises."""
+    try:
+        metadata = msg.metadata
+        source_id = f"{metadata.stream}:{metadata.sequence.stream}"
+    except Exception:  # noqa: BLE001 — core message or test double without metadata
+        source_id = None
+    try:
+        data = msg.data
+        body = {
+            "dead_lettered_at": datetime.now(UTC).isoformat(),
+            "envelope": data.decode("utf-8", errors="replace")
+            if isinstance(data, bytes | bytearray)
+            else str(data),
+            "num_delivered": num_delivered,
+            "reason": reason[:500],
+            "source_id": source_id,
+            "source_subject": getattr(msg, "subject", None),
+            "worker": "canonical-execution-learning-worker",
+        }
+        headers = {"Nats-Msg-Id": f"{DLQ_SUBJECT}:{source_id}"} if source_id else None
+        await js.publish(
+            "sahool.dlq.canonical_execution_learning",
+            json.dumps(body, sort_keys=True).encode("utf-8"),
+            headers=headers,
+        )
+        return True
+    except Exception:  # noqa: BLE001 — the caller keeps the message instead of dropping it
+        LOGGER.exception("dead-letter publish failed (%s); message kept for redelivery", reason)
+        return False
+
+
+async def _terminate(msg: Any, js: Any, *, reason: str, num_delivered: int) -> str:
+    if await publish_dead_letter(js, msg, reason=reason, num_delivered=num_delivered):
+        await msg.term()
+        return "term"
+    await msg.nak(delay=redelivery_delay(num_delivered))
+    return "nak"
+
+
+async def _retry_or_dead_letter(msg: Any, js: Any, *, reason: str, num_delivered: int) -> str:
+    if num_delivered >= MAX_DELIVERIES:
+        return await _terminate(
+            msg,
+            js,
+            reason=f"{reason};deliveries_exhausted:{num_delivered}",
+            num_delivered=num_delivered,
+        )
+    await msg.nak(delay=redelivery_delay(num_delivered))
+    return "nak"
+
+
+async def settle_delivery(msg: Any, *, pool: Any, js: Any, handler: Any = None) -> str:
+    """Process one delivery and settle it: ``ack`` | ``nak`` | ``term`` (returned)."""
+    num_delivered = delivery_count(msg)
+    try:
+        envelope = json.loads(msg.data.decode("utf-8"))
+        if not isinstance(envelope, dict):
+            raise ValueError("EVENT_ENVELOPE_OBJECT_REQUIRED")
+        result = await (handler or handle_envelope)(pool, envelope)
+    except (KeyError, TypeError, ValueError, UnicodeDecodeError) as exc:
+        LOGGER.exception("permanent event validation failure")
+        return await _terminate(
+            msg, js, reason=f"permanent:{type(exc).__name__}:{exc}", num_delivered=num_delivered
+        )
+    except Exception as exc:  # noqa: BLE001 — anything else is retried, then dead-lettered
+        LOGGER.exception("transient event processing failure")
+        return await _retry_or_dead_letter(
+            msg, js, reason=f"transient:{type(exc).__name__}", num_delivered=num_delivered
+        )
+    if result_is_not_ready(envelope, result):
+        LOGGER.warning(
+            "event %s not ready (%s); delivery %d of %d",
+            envelope.get("event_id"),
+            result.get("reason"),
+            num_delivered,
+            MAX_DELIVERIES,
+        )
+        return await _retry_or_dead_letter(
+            msg, js, reason=f"not_ready:{result.get('reason')}", num_delivered=num_delivered
+        )
+    await msg.ack()
+    return "ack"
+
+
 async def preflight() -> dict[str, Any]:
     """Fail-closed connectivity/schema check and return auditable facts."""
     import asyncpg
@@ -394,16 +534,7 @@ async def run() -> None:
     js = nc.jetstream()
 
     async def callback(msg):
-        try:
-            envelope = json.loads(msg.data.decode("utf-8"))
-            await handle_envelope(pool, envelope)
-            await msg.ack()
-        except (KeyError, TypeError, ValueError, json.JSONDecodeError):
-            LOGGER.exception("permanent event validation failure")
-            await msg.term()
-        except Exception:
-            LOGGER.exception("transient event processing failure")
-            await msg.nak(delay=5)
+        await settle_delivery(msg, pool=pool, js=js)
 
     await retarget_foreign_deliveries(nc, js, durable_base=durable)
     await subscribe_subjects(js, durable_base=durable, callback=callback)

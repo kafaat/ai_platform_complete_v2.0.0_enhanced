@@ -436,7 +436,9 @@ def _relay_durables() -> list[str]:
 def test_the_relay_may_bind_only_its_own_durables():
     """A6: المُرحِّل مستهلكٌ دائمٌ بإقرار (لا Core) — يُنشئ مستهلكيه بأسمائهم ويُقِرّ عليهم وحدهم."""
     user = _users()["sahool-reservation-dispatch-relay-worker"]
-    expected = {"$JS.API.STREAM.NAMES"}
+    worker = _platform_import("irrigation_dispatch_relay_worker")
+    # رسائلُه الميتة: الموضوعُ مُشتقٌّ من الشيفرة (`DLQ_SUBJECT`) لا منسوخ.
+    expected = {"$JS.API.STREAM.NAMES", worker.DLQ_SUBJECT}
     for d in _relay_durables():
         expected |= {
             f"$JS.API.CONSUMER.INFO.{STREAM}.{d}",
@@ -454,7 +456,7 @@ def test_the_relay_may_bind_only_its_own_durables():
 def test_the_learning_worker_may_bind_only_its_own_durables():
     durables = _canonical_durables()
     allowed = set(_allow(_users()["sahool-canonical-execution-learning-worker"], "publish"))
-    expected = {"$JS.API.INFO", "$JS.API.STREAM.NAMES"}
+    expected = {"$JS.API.INFO", "$JS.API.STREAM.NAMES", _canonical_worker().DLQ_SUBJECT}
     for d in durables:
         expected |= {
             f"$JS.API.CONSUMER.INFO.{STREAM}.{d}",
@@ -546,11 +548,11 @@ def _expected() -> dict[str, dict[str, set[str]]]:
             "subscribe": set(),
         },
         "sahool-reservation-dispatch-relay-worker": {
-            "publish": set(),
+            "publish": {_platform_import("irrigation_dispatch_relay_worker").DLQ_SUBJECT},
             "subscribe": inbox("sahool-reservation-dispatch-relay-worker"),
         },
         "sahool-canonical-execution-learning-worker": {
-            "publish": set(),
+            "publish": {_canonical_worker().DLQ_SUBJECT},
             "subscribe": inbox("sahool-canonical-execution-learning-worker"),
         },
         NOTIFICATION: {"publish": {"sahool.notification.dead_letter"}, "subscribe": {"_INBOX.>"}},
