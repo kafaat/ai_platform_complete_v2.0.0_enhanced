@@ -502,3 +502,41 @@ def recommend_irrigation(
         "advisory_range_mm": base.get("advisory_range_mm"),
         "limitations": list(base.get("limitations") or []),
     }
+
+
+# ── Decision provenance (what produced a submitted irrigation candidate) ──────────────────
+#: Version of the rule set in ``recommend_irrigation`` + ``irrigation_candidate_confidence``.
+#: Bump it whenever the trigger/refill/salinity rules or the confidence heuristic change, so a
+#: stored decision names the rules it ran under.
+IRRIGATION_RULE_VERSION = "irrigation-recommendation-policy/1"
+IRRIGATION_PRODUCER_ID = "sahool-platform/irrigation-recommendation"
+#: The confidence below is a transparent heuristic, NOT a calibrated probability.
+IRRIGATION_CONFIDENCE_METHOD = (
+    "heuristic_uncalibrated: stored depletion confidence (0.5 when absent) "
+    "- 0.15 per declared state/soil limitation - soil provenance penalty, floored at 0"
+)
+
+
+def irrigation_candidate_confidence(
+    depletion_confidence: float | None, limitations: list, soil_penalty: float
+) -> float:
+    """The confidence named by ``IRRIGATION_CONFIDENCE_METHOD`` (pure, deterministic)."""
+    base = float(depletion_confidence) if depletion_confidence is not None else 0.5
+    return round(max(0.0, base - 0.15 * len(limitations) - soil_penalty), 2)
+
+
+def irrigation_decision_provenance(rec: dict, *, evidence_refs: list) -> dict:
+    """The typed provenance decision-service persists inside the candidate's decision_value."""
+    knobs = rec.get("policy_knobs") or {}
+    return {
+        "producer_id": IRRIGATION_PRODUCER_ID,
+        "model_or_rule_version": IRRIGATION_RULE_VERSION,
+        "policy_version": (
+            f"irrigation-policy:{knobs.get('policy') or 'unresolved'}"
+            f"/salinity:{rec.get('policy') or 'unresolved'}"
+        ),
+        "explanation": str(rec.get("rationale_ar") or rec.get("trigger_reason") or "")[:4000]
+        or None,
+        "confidence_method": IRRIGATION_CONFIDENCE_METHOD,
+        "evidence_refs": [str(ref) for ref in evidence_refs],
+    }

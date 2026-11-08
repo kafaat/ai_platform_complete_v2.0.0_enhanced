@@ -215,3 +215,18 @@ def test_dispatch_authorization_is_append_only():
     ):
         with pytest.raises(asyncpg.PostgresError):
             _run(mutate(sql))
+
+
+# ── separation of duties (DECISION_REQUIRE_SEPARATION_OF_DUTIES) ───────────────────────────
+def test_the_reviewer_cannot_authorize_dispatch_when_sod_is_on(monkeypatch):
+    monkeypatch.setenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", "true")
+    plan, did, rid, lin = _run(_seed())
+    res = _run(_authorize(plan, did, rid, lin, authorized_by="Reviewer"))
+    assert res == {"status": "forbidden", "reason": "separation_of_duties_violation"}
+    assert _run(_authorize(plan, did, rid, lin))["status"] == "ok"
+
+
+def test_the_reviewer_may_authorize_when_sod_is_off(monkeypatch):
+    monkeypatch.setenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", "false")
+    plan, did, rid, lin = _run(_seed())
+    assert _run(_authorize(plan, did, rid, lin, authorized_by="reviewer"))["status"] == "ok"
