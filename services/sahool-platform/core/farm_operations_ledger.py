@@ -8,9 +8,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from enum import Enum
 from typing import Any
+
+from core.farm_costing import ActualCostLine, SeasonBudgetLine
 
 
 class BusinessUnitType(str, Enum):
@@ -74,6 +76,27 @@ class InputType(str, Enum):
     AMENDMENT = "amendment"
     PACKAGING = "packaging"
     OTHER = "other"
+
+
+# ─── حالة العمليّة: المخطَّط ليس منفَّذاً ─────────────────────────────────────────────
+# كان ``status`` نصّاً حرّاً (v100 بلا CHECK) وكان الملخّص والانحراف والربحيّة تجمع كلَّ
+# صفّ — فتُحسَب عمليّةٌ مخطَّطة أو ملغاة أو مؤرَّخةٌ في المستقبل تكلفةً فعليّة.
+OPERATION_STATUSES = ("planned", "in_progress", "completed", "cancelled")
+COMPLETED_FUTURE_TOLERANCE = timedelta(days=1)  # فارق المناطق الزمنيّة بين الجهاز والخادم
+ACTUAL_OPERATION_SQL = "status = 'completed' AND operation_date <= CURRENT_DATE"
+PLANNED_OPERATION_SQL = "status IN ('planned', 'in_progress')"
+
+
+def validate_operation_status(
+    status: str, operation_date: date, *, today: date | None = None
+) -> str:
+    """يرفض حالةً خارج ``OPERATION_STATUSES`` و«منجَزة» مؤرَّخةً بعد الغد (سماحُ يومٍ للمنطقة)."""
+    if status not in OPERATION_STATUSES:
+        raise ValueError(f"status must be one of {', '.join(OPERATION_STATUSES)}")
+    today = today or datetime.now(UTC).date()
+    if status == "completed" and operation_date > today + COMPLETED_FUTURE_TOLERANCE:
+        raise ValueError("completed operation cannot be dated in the future")
+    return status
 
 
 class SyncStatus(str, Enum):
@@ -471,3 +494,56 @@ async def persist_operation_subrecords(
         )
         counts["inputs"] += 1
     return counts
+
+
+async def fetch_budget_and_actual(conn, tenant_id: str, season_id: str):
+    """بنود ميزانيّة الموسم وتكاليفه **الفعليّة** فقط (منجَزة وبتاريخٍ لا يتجاوز اليوم).
+
+    نُقِلت من الراوتر (راتشِت الحجم). المخطَّط/الجاري/الملغى والمؤرَّخ مستقبلاً ليس تكلفةً فعليّة
+    فلا يدخل الانحرافَ ولا الربحيّة.
+    """
+    budget_rows = await conn.fetch(
+        """SELECT budget_line_id, season_id, stage, category, planned_quantity, unit,
+                  planned_unit_cost, planned_cost, currency, source, editable
+           FROM farm_season_budget_lines
+           WHERE tenant_id = $1::uuid AND season_id = $2""",
+        tenant_id,
+        season_id,
+    )
+    actual_rows = await conn.fetch(
+        f"""SELECT operation_id, season_id, COALESCE(cost_category, operation_type) AS category,
+                  'whole_season' AS stage, cost_amount, currency
+           FROM farm_operation_ledger
+           WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NOT NULL
+             AND {ACTUAL_OPERATION_SQL}""",
+        tenant_id,
+        season_id,
+    )
+    budgets = [
+        SeasonBudgetLine(
+            line_id=r["budget_line_id"],
+            season_id=r["season_id"],
+            category=r["category"],
+            stage=r["stage"],
+            planned_quantity=r["planned_quantity"],
+            unit=r["unit"],
+            planned_unit_cost=r["planned_unit_cost"],
+            planned_cost=float(r["planned_cost"] or 0.0),
+            currency=r["currency"],
+            source=r["source"],
+            editable=r["editable"],
+        )
+        for r in budget_rows
+    ]
+    actuals = [
+        ActualCostLine(
+            source_id=r["operation_id"],
+            season_id=r["season_id"],
+            category=r["category"],
+            stage=r["stage"],
+            actual_cost=float(r["cost_amount"] or 0.0),
+            currency=r["currency"],
+        )
+        for r in actual_rows
+    ]
+    return budgets, actuals
