@@ -32,27 +32,35 @@ async def _connect():
     return await asyncpg.connect(DB, statement_cache_size=0)
 
 
-async def _seed(*, state="approved", tenant=TENANT):
+async def _seed(*, state="approved", tenant=TENANT, approved_digest="auto"):
+    from persistence import decision_value_digest
+
     decision_id = "dec_" + uuid4().hex
     review_id = "rev_" + uuid4().hex
     lineage = "lin_" + uuid4().hex
+    value = {"candidate_lineage_id": lineage, "evidence": {"gdd": 42}}
+    digest = decision_value_digest(value)
     conn = await _connect()
     try:
         await conn.execute(
             """INSERT INTO decision_record
-               (decision_id,tenant_id,decision_type,stage,decision_value,review_state,candidate_lineage_id)
-               VALUES ($1,$2::uuid,'crop_decision_candidate','candidate',$3::jsonb,$4,$5)""",
+               (decision_id,tenant_id,decision_type,stage,decision_value,review_state,
+                candidate_lineage_id,decision_value_digest)
+               VALUES ($1,$2::uuid,'crop_decision_candidate','candidate',$3::jsonb,$4,$5,$6)""",
             decision_id,
             tenant,
-            json.dumps({"candidate_lineage_id": lineage, "evidence": {"gdd": 42}}),
+            json.dumps(value),
             state,
             lineage,
+            digest,
         )
+        # A post-035 approval binds the version it approved; a NULL approved digest is legacy.
         await conn.execute(
             """INSERT INTO decision_reviews
                (review_id,decision_id,tenant_id,action,previous_state,new_state,reason,reviewed_by,
-                candidate_lineage_id,idempotency_key,request_hash,policy_version)
-               VALUES ($1,$2,$3::uuid,$4,'pending_approval',$5,'ok','reviewer',$6,$7,$8,'p1')""",
+                candidate_lineage_id,idempotency_key,request_hash,policy_version,
+                approved_decision_value_digest)
+               VALUES ($1,$2,$3::uuid,$4,'pending_approval',$5,'ok','reviewer',$6,$7,$8,'p1',$9)""",
             review_id,
             decision_id,
             tenant,
@@ -61,6 +69,9 @@ async def _seed(*, state="approved", tenant=TENANT):
             lineage,
             "seed-" + uuid4().hex,
             uuid4().hex,
+            (digest if state == "approved" else None)
+            if approved_digest == "auto"
+            else approved_digest,
         )
         return decision_id, review_id, lineage
     finally:
@@ -307,3 +318,9 @@ def test_plan_state_reports_the_bound_version_for_the_live_recheck():
         get_execution_plan_state(tenant_id=OTHER, execution_plan_id=plan["execution_plan_id"])
     )
     assert other == {"status": "not_found"}  # tenant-scoped, no oracle
+
+
+def test_a_legacy_approval_without_a_bound_version_cannot_be_planned():
+    did, rid, lin = _run(_seed(approved_digest=None))
+    res = _run(_create(did, rid, lin))
+    assert res == {"status": "conflict", "reason": "decision_version_unbound"}

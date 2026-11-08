@@ -43,7 +43,11 @@ from api.irrigation_models import (
     IrrigationRecommendationRequest,
     resolve_day_of_year,
 )
-from api.irrigation_recommendation_policy import recommend_irrigation
+from api.irrigation_recommendation_policy import (
+    irrigation_candidate_confidence,
+    irrigation_decision_provenance,
+    recommend_irrigation,
+)
 from api.irrigation_state_guard import assess_irrigation_state
 from api.main import (
     Permission,
@@ -589,13 +593,8 @@ async def field_irrigation_recommendation(
 
     # ثقة: تبدأ من ثقة الاستنزاف المخزَّنة، وتُخفَّض بكلّ قيد مُعلَن (حالة + تربة)
     # وبعقوبة نَسَب التربة (fallback عامّ) — شفّاف، غير معايَر (WS-D.2b).
-    base_conf = float(dep_conf) if dep_conf is not None else 0.5
-    confidence = round(
-        max(
-            0.0,
-            base_conf - 0.15 * len(state["limitations"]) - soil_prov["confidence_penalty"],
-        ),
-        2,
+    confidence = irrigation_candidate_confidence(
+        dep_conf, state["limitations"], soil_prov["confidence_penalty"]
     )
 
     # WS-D.2d: المرشَّح ليس قراراً. approval_state يمنع عرض «اروِ» كقرار نهائيّ قبل
@@ -712,6 +711,7 @@ async def field_irrigation_recommendation(
             "stage": CANDIDATE_STAGE,
             "decision_value": candidate,
             "created_by": getattr(user, "username", None) or getattr(user, "user_id", None),
+            "provenance": irrigation_decision_provenance(rec, evidence_refs=evidence_ids),
         }
         try:
             res = await _submit_candidate_to_decision(
