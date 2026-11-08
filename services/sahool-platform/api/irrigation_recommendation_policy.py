@@ -22,9 +22,16 @@ from __future__ import annotations
 
 import math
 import os
+from datetime import UTC, datetime
 
 from core.engines.fao56 import leaching_requirement
 from core.thresholds import SALINITY_CRITICAL_ECE, SALINITY_MODERATE_ECE
+
+from shared.contracts.soil.moisture_policy import (
+    UNIT_AVAILABLE_PCT,
+    UNIT_UNDECLARED,
+    moisture_eligibility,
+)
 
 from .irrigation_policy import IrrigationPolicy, policy_params
 from .weather_advice import irrigation_advice
@@ -37,6 +44,37 @@ DEFAULT_EC_MAX_AGE_DAYS = 365
 _DRAINAGE_OK = {"fast", "medium"}
 # قيم env التي تُجبر المسار الصافي فقط (تعطيل سياسة الملوحة عمداً).
 _FORCE_NET_ONLY = {"0", "false", "off", "no", "net_only", "disabled"}
+
+# ── خطر الغَدَق (التشبّع) من تقييم صرف soil-service ──
+# ``waterlogging_risk`` في soil-service (``p3_products.build_drainage_assessment``) مجموعٌ
+# موزون في [0, 1] لمنسوب الماء الأرضيّ والطبقة الصمّاء والمنخفضات وKsat والفيضان؛ وهو
+# يُعلِن ``monitor`` فوق 0.28. العتبة 0.6 هنا **حدٌّ احترازيّ غير معايَر**: أكثر من ضعف
+# عتبة المراقبة، أي أنّ أغلب عوامل الغدق قائمة معاً. والحاجةُ إلى صرفٍ تحت سطحيّ أو مركّب
+# تعني أنّ الماء محتبَسٌ في منطقة الجذور نفسها — فلا ريّ ولا غسل فوقه أيّاً كانت النسبة.
+WATERLOGGING_HOLD_RISK = 0.6
+WATERLOGGING_HOLD_DRAINAGE_NEEDS = frozenset({"subsurface", "combined"})
+HOLD_WATERLOGGING_RISK = "waterlogging_risk"
+LIMIT_DRAINAGE_UNKNOWN = "drainage_unknown"
+
+
+def waterlogging_blocks_irrigation(waterlogging: dict | None) -> bool | None:
+    """هل يمنع تقييمُ الصرف الريَّ؟ ``None`` ⇒ لا تقييم (مجهول، لا يُفترَض آمناً ولا خطراً).
+
+    ``waterlogging``: ``{"risk": float|None, "drainage_need": str|None}`` كما يُعيده
+    ``soil_hydraulic_client.parse_drainage_assessment``. تقييمٌ بلا أيٍّ من الحقلين ⇒ ``None``.
+    """
+    if not isinstance(waterlogging, dict):
+        return None
+    risk = waterlogging.get("risk")
+    need = waterlogging.get("drainage_need")
+    risk_ok = isinstance(risk, (int, float)) and not isinstance(risk, bool) and math.isfinite(risk)
+    need_ok = isinstance(need, str) and bool(need.strip())
+    if not risk_ok and not need_ok:
+        return None
+    return bool(
+        (risk_ok and float(risk) >= WATERLOGGING_HOLD_RISK)
+        or (need_ok and need.strip().lower() in WATERLOGGING_HOLD_DRAINAGE_NEEDS)
+    )
 
 
 def salinity_policy_forced_off(env_value: str | None) -> bool:
@@ -84,6 +122,11 @@ def recommend_irrigation(
     rain_recent_mm: float | None = None,
     forecast_rain_mm: float | None = None,
     soil_moisture_pct: float | None = None,
+    # SOIL-MOISTURE-ELIGIBILITY-01: نسبةٌ عارية بلا وحدة مُعلَنة **غيرُ مُعلَنة** (استشاريّة)،
+    # لا «ماء متاح» ضمناً. لا تدخل الإلحاح إلّا إن أجازتها السياسة المشتركة.
+    soil_moisture_unit_kind: str | None = None,
+    soil_moisture_observed_at: datetime | None = None,
+    soil_moisture_quality_status: str | None = None,
     kc_override: float | None = None,
     # ── مدخلات الملوحة (فحص مخبريّ) ──
     soil_ece: float | None = None,
@@ -103,9 +146,12 @@ def recommend_irrigation(
     policy: IrrigationPolicy | str | None = None,
     water_price_per_m3: float | None = None,
     yield_value_per_ha: float | None = None,
+    # ── تقييم الصرف/الغدق (soil-service) — None ⇒ غير متاح (قيد ``drainage_unknown``) ──
+    waterlogging: dict | None = None,
     # ── ضبط ──
     force_net_only: bool | None = None,
     ec_max_age_days: int = DEFAULT_EC_MAX_AGE_DAYS,
+    now: datetime | None = None,
 ) -> dict:
     """يُرجِع توصية ريّ موحَّدة تختار الصيغة بحسب توفّر بيانات الملوحة.
 
@@ -131,6 +177,14 @@ def recommend_irrigation(
             ``trigger_fraction`` (× RAW) و``refill_fraction`` (× Dr).
         water_price_per_m3/yield_value_per_ha: لـ PROFIT_MAX (غيابها ⇒ تراجع موسوم).
         force_net_only: تجاوز يدويّ (None ⇒ يُقرأ من علم البيئة).
+        soil_moisture_unit_kind/soil_moisture_observed_at/soil_moisture_quality_status:
+            تُحكَم بـ``shared.contracts.soil.moisture_policy.moisture_eligibility``. قراءةٌ
+            غير مؤهَّلة للقرار (وحدة غير مُعلَنة، VWC، قديمة، جودة غير مثبتة) تبقى خارج
+            الإلحاح كلّيّاً — لا ترفعه ولا تخفضه — وتُعلَن قيودها في ``limitations``.
+        waterlogging: ``{"risk", "drainage_need"}`` من تقييم صرف soil-service. خطر ≥
+            ``WATERLOGGING_HOLD_RISK`` أو حاجة صرف تحت سطحيّ/مركّب ⇒ **حجز**:
+            ``should_irrigate=False`` و``trigger_reason="waterlogging_risk"`` وغسل = 0.
+            ``None`` ⇒ لا حجز، لكن قيد ``drainage_unknown``.
 
     Returns dict:
         ``net_irrigation_mm`` · ``salinity_leaching_mm`` · ``gross_irrigation_mm`` ·
@@ -182,6 +236,28 @@ def recommend_irrigation(
             }
         )
 
+    limitations: list[str] = []
+    # رطوبة التربة عبر السياسة المشتركة: المؤهَّلة للقرار وحدها تصل الإلحاح.
+    moisture_for_urgency: float | None = None
+    if soil_moisture_pct is not None:
+        eligibility = moisture_eligibility(
+            soil_moisture_unit_kind or UNIT_UNDECLARED,
+            soil_moisture_quality_status,
+            soil_moisture_observed_at,
+            now or datetime.now(UTC),
+        )
+        if eligibility.decision_eligible:
+            moisture_for_urgency = float(soil_moisture_pct)
+        else:
+            limitations.extend(eligibility.limitations)
+            evidence.append(
+                {
+                    "source": "soil_moisture_reading",
+                    "value": float(soil_moisture_pct),
+                    "note_ar": "قراءة رطوبة استشاريّة (وحدة/حداثة/جودة غير مثبتة) — خارج الإلحاح.",
+                }
+            )
+
     # (1)+(2) الصافي + Ks عبر المصدر الموحَّد (irrigation_advice يطبّق Ks فقط عند EC≥العتبة).
     base = irrigation_advice(
         et0_mm=et0_mm,
@@ -189,11 +265,12 @@ def recommend_irrigation(
         stage=stage,
         rain_recent_mm=rain_recent_mm,
         forecast_rain_mm=forecast_rain_mm,
-        soil_moisture_pct=soil_moisture_pct,
+        soil_moisture_pct=moisture_for_urgency,
         kc_override=kc_override,
         soil_ece=ece,
         crop_salt_tolerance_ece=crop_salt_tolerance_ece if ec_reliable else None,
         salt_slope_pct=salt_slope_pct,
+        soil_moisture_unit_kind=UNIT_AVAILABLE_PCT,
     )
     net = float(base["recommended_mm"])
     salinity_ks = float(base["salinity_ks"])
@@ -201,8 +278,13 @@ def recommend_irrigation(
     # (3) شروط الغسل المشروط.
     checked_eff = validate_irrigation_efficiency(irrigation_efficiency)
     eff = DEFAULT_IRRIGATION_EFFICIENCY if checked_eff is None else checked_eff
+    # الغدق يُقرَّر قبل الغسل: لا ماء إضافيّ فوق منطقة جذور مشبَعة.
+    waterlogging_block = waterlogging_blocks_irrigation(waterlogging)
+    if waterlogging_block is None:
+        limitations.append(LIMIT_DRAINAGE_UNKNOWN)
     leaching_possible = (
-        ec_reliable
+        waterlogging_block is not True
+        and ec_reliable
         and crop_salt_tolerance_ece is not None
         and water_ec is not None
         and irrigation_efficiency is not None
@@ -326,6 +408,24 @@ def recommend_irrigation(
         target_refill_mm = None
         trigger_reason = "forecast_rain_hold_requires_reassessment"
 
+    # ── حجز الغدق: حجزٌ صلب يعلو على الإطلاق وعلى حجز المطر ──
+    # التقييم يقول إنّ الماء محتبَس في منطقة الجذور؛ الاستنزافُ المحسوب من الدفتر لا يرى
+    # منسوب الماء الأرضيّ، فلا يُترَك يُصدِر «اروِ» فوق تربةٍ مشبَعة.
+    if waterlogging_block:
+        should_irrigate = False
+        target_refill_mm = None
+        trigger_reason = HOLD_WATERLOGGING_RISK
+        evidence.append(
+            {
+                "source": "soil_service.drainage_assessment",
+                "value": waterlogging.get("risk") if isinstance(waterlogging, dict) else None,
+                "note_ar": (
+                    f"خطر غدق/حاجة صرف ({(waterlogging or {}).get('drainage_need')}) ⇒ حجز الريّ "
+                    f"والغسل (عتبة {WATERLOGGING_HOLD_RISK}، غير معايَرة)."
+                ),
+            }
+        )
+
     # الإلحاح (مفردات irrigation_advice: none|low|moderate|high): الإجهاد الحرج يرفعه
     # صراحةً؛ لا يختلق قراراً (يبقى should_irrigate كما هو).
     urgency = base.get("urgency")
@@ -333,9 +433,18 @@ def recommend_irrigation(
         urgency = "high"
     elif water_stress_class == "watch" and urgency in (None, "none", "low"):
         urgency = "moderate"
+    timing_ar = base.get("timing_ar")
+    if waterlogging_block:
+        urgency = "none"
+        timing_ar = "مؤجَّل — خطر غدق؛ لا ريّ قبل معالجة الصرف"
 
     rationale_ar = str(base.get("rationale_ar", ""))
-    if trigger_reason == "forecast_rain_hold_requires_reassessment":
+    if trigger_reason == HOLD_WATERLOGGING_RISK:
+        rationale_ar += (
+            " ⚠ تقييم الصرف يُظهر خطر غدق/احتباس ماء في منطقة الجذور — **لا ريّ ولا غسل** "
+            "حتّى يُعالَج الصرف أو يُعاد التقييم."
+        )
+    elif trigger_reason == "forecast_rain_hold_requires_reassessment":
         rationale_ar += (
             " الاستنزاف بلغ عتبة الإطلاق ومطرٌ متوقَّعٌ يؤجّل الريّ — **حكمان متعارضان**، "
             "فلا أمرَ ريٍّ تلقائيّ. أعِد التقييم بعد المطر أو راجِعه بشراً."
@@ -360,6 +469,8 @@ def recommend_irrigation(
         rationale_ar += " (تقييم الملوحة: Ks مُطبَّق؛ الغسل غير محسوب لنقص ECw/صرف/كفاءة.)"
     elif policy == "net_only" and soil_ece is None:
         rationale_ar += " (تقييم الملوحة غير مكتمل — لا فحص EC مخبريّ.)"
+    if soil_moisture_pct is not None and moisture_for_urgency is None:
+        rationale_ar += " (قراءة رطوبة التربة استشاريّة — لم تُستعمل في الإلحاح.)"
 
     return {
         "net_irrigation_mm": net,
@@ -370,7 +481,7 @@ def recommend_irrigation(
         "policy": policy,
         "requires_expert_review": requires_expert_review,
         "urgency": urgency,
-        "timing_ar": base.get("timing_ar"),
+        "timing_ar": timing_ar,
         "rationale_ar": rationale_ar,
         "evidence": evidence,
         # ── قرار الإطلاق المُشتقّ من الاستنزاف (FAO-56) ──
@@ -382,5 +493,7 @@ def recommend_irrigation(
         "depletion_mm": round(dr_out, 1) if dr_out is not None else None,
         "water_stress_class": water_stress_class,
         "policy_knobs": pp.to_dict(),
+        "waterlogging_hold": bool(waterlogging_block),
+        "limitations": limitations,
         "calibrated": False,
     }

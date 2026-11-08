@@ -150,7 +150,7 @@ def irrigation_advice(
     soil_ece: float | None = None,
     crop_salt_tolerance_ece: float | None = None,
     salt_slope_pct: float | None = None,
-    soil_moisture_unit_kind: str = "available_pct",
+    soil_moisture_unit_kind: str = "undeclared",
 ) -> dict:
     """توصية ريّ بنمط FAO-56 — دالّة نقيّة (تُختبَر offline).
 

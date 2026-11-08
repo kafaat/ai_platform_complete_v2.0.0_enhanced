@@ -8,7 +8,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 
 from fastapi import HTTPException
 from pydantic import BaseModel, Field, StrictFloat, StrictInt, field_validator
@@ -73,6 +73,11 @@ class IrrigationRecommendationRequest(Et0WeatherInput):
     rain_recent_mm: float | None = None
     forecast_rain_mm: float | None = None
     soil_moisture_pct: float | None = None
+    # SOIL-MOISTURE-ELIGIBILITY-01: الوحدة غير المُرسَلة ⇒ ``undeclared`` (استشاريّة، لا ترفع
+    # الإلحاح) — لا «ماء متاح» ضمناً. ``available_pct`` + ``accepted`` + رصدٌ حديث وحدها تحكم.
+    soil_moisture_unit_kind: str | None = None  # available_pct|vwc_pct|undeclared
+    soil_moisture_observed_at: datetime | None = None
+    soil_moisture_quality_status: str | None = None  # accepted|uncalibrated|suspect|rejected
     kc_override: float | None = None  # Kc دقيق من الفينولوجيا إن توفّر
     # طقس Penman-Monteith (اختياريّ — يسقط إلى Hargreaves عند الغياب)
     solar_rad_mj_m2: StrictFloat | None = None
@@ -106,6 +111,15 @@ class IrrigationRecommendationRequest(Et0WeatherInput):
     def _efficiency_is_a_fraction(cls, value):
         # 85 بدل 0.85 كانت تُعطي ≈1% من الاحتياج؛ تُرفَض برسالة تسمّي الخلط (422).
         return validate_irrigation_efficiency(value)
+
+    def soil_moisture_inputs(self) -> dict:
+        """القراءة مع هويّتها (وحدة/زمن/جودة) — تحكمها السياسة المشتركة في ``recommend_irrigation``."""
+        return {
+            "soil_moisture_pct": self.soil_moisture_pct,
+            "soil_moisture_unit_kind": self.soil_moisture_unit_kind,
+            "soil_moisture_observed_at": self.soil_moisture_observed_at,
+            "soil_moisture_quality_status": self.soil_moisture_quality_status,
+        }
 
 
 def resolve_day_of_year(day_of_year: int | None, today: date | None = None) -> tuple[int, str]:
