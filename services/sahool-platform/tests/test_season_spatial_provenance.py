@@ -100,11 +100,13 @@ class _Day:
 
 
 class _Conn:
-    def __init__(self, season_row, geometry_rows, *, geometry_error=False):
+    def __init__(self, season_row, geometry_rows, *, geometry_error=False, candidates=()):
         self.season_row = season_row
         self.geometry_rows = geometry_rows
         self.geometry_error = geometry_error
+        self.candidates = list(candidates)
         self.runs: list[tuple] = []
+        self.executed: list[str] = []
 
     @contextlib.asynccontextmanager
     async def transaction(self):
@@ -120,6 +122,8 @@ class _Conn:
             if self.geometry_error:
                 raise RuntimeError("relation field_geometry_history does not exist")
             return self.geometry_rows
+        if "FROM season_records sr" in sql:
+            return self.candidates
         return []
 
     async def fetchval(self, sql, *args):
@@ -128,6 +132,7 @@ class _Conn:
         return uuid.uuid4()
 
     async def execute(self, sql, *args):
+        self.executed.append(sql)
         return "OK"
 
 
@@ -237,3 +242,70 @@ async def test_persisted_context_carries_scene_identity_and_digest_tracks_it(mon
     assert obs["source_uri"] == "s3://rasters/field-a/ndvi/r1.tif"
     assert a.yield_kg_ha == b.yield_kg_ha
     assert a.input_digest != b.input_digest
+
+
+# ── النافذة والمحصول والهندسة في استجابة المسار ─────────────────────────────────────
+
+
+async def _simulate_season(monkeypatch, season, **conn_kw):
+    conn = _Conn(season, [], **conn_kw)
+    route = _install(monkeypatch, conn, [])
+    out = await route.simulate_season_endpoint("season-a", user=_USER)
+    return out, conn
+
+
+async def test_long_season_window_is_truncated_explicitly_not_silently(monkeypatch):
+    sow = _TODAY - timedelta(days=300)
+    out, conn = await _simulate_season(monkeypatch, {**_season(sow, None), "season_end": None})
+    assert out.truncated is True
+    assert out.window_days_requested == 301
+    assert out.window_days_simulated == 161
+    assert out.days_simulated == 161
+    assert "SIM_WINDOW_TRUNCATED" in out.limitations
+    (warning,) = [w for w in out.warnings_ar if "سقف المحاكاة" in w]
+    assert warning in json.loads(conn.runs[0][-1])
+
+
+async def test_response_declares_simulated_crop_and_current_geometry_basis(monkeypatch):
+    out, _ = await _simulate_season(monkeypatch, {**_season(_SOW, _END), "crops": ["قمح", "شعير"]})
+    assert out.simulated_crop == "قمح"
+    assert out.geometry_basis == "current_boundary"
+    assert out.truncated is False
+    assert out.window_days_requested == out.window_days_simulated == 71
+    assert any("حوكِيَ المحصول" in w for w in out.warnings_ar)  # التحذير المختلط باقٍ
+
+
+async def test_season_without_sowing_date_is_refused_with_arabic_422(monkeypatch):
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException) as exc:
+        await _simulate_season(monkeypatch, {**_season(_SOW, _END), "sowing_date": None})
+    assert exc.value.status_code == 422
+    assert "تاريخ بذار" in exc.value.detail
+
+
+def _record(crop_ref):
+    return {
+        "id": uuid.UUID(int=7),
+        "tenant_id": _TENANT,
+        "field_id": "field-a",
+        "trust_status": "accepted",
+        "link_crop_registry_ref": crop_ref,
+        "link_variety_name": None,
+    }
+
+
+async def test_historical_record_of_another_crop_is_not_auto_linked(monkeypatch):
+    out, conn = await _simulate_season(
+        monkeypatch, _season(_SOW, _END), candidates=[_record("barley")]
+    )
+    assert not any("season_record_links" in sql for sql in conn.executed)
+    assert out.historical_context_used is False
+
+
+async def test_historical_record_of_the_same_crop_is_auto_linked(monkeypatch):
+    out, conn = await _simulate_season(
+        monkeypatch, _season(_SOW, _END), candidates=[_record("wheat")]
+    )
+    assert any("INSERT INTO season_record_links" in sql for sql in conn.executed)
+    assert out.historical_context_used is True
