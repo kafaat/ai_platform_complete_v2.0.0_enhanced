@@ -40,6 +40,14 @@ REQUIRED_PRODUCTION_GATES = {
     "observability_audit",
 }
 
+# F2: أساسُ «النضوب بعد الريّ». ``applied_balance_model`` = قبل − المُطبَّق (حسابُ ميزانٍ لا رصد):
+# مقارنتُه بالمتوقَّع دائريّة فلا تُنتج مقترح فيزياء تربة. فقط رصدٌ مستقلّ لرطوبة التربة بعد الريّ
+# يفتح ``root_zone_water_response``.
+DEPLETION_BASIS_MODEL = "applied_balance_model"
+DEPLETION_BASIS_OBSERVED = "independent_soil_moisture_observation"
+DEPLETION_BASES = frozenset({DEPLETION_BASIS_MODEL, DEPLETION_BASIS_OBSERVED})
+NO_INDEPENDENT_MEASUREMENT = "no_independent_measurement"
+
 
 def _digest(payload: Any) -> str:
     return hashlib.sha256(
@@ -94,6 +102,7 @@ class IrrigationOutcomeEvidence:
     outcome_status: str
     reason_codes: list[str]
     outcome_evidence_digest: str
+    depletion_after_basis: str = DEPLETION_BASIS_MODEL
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -113,6 +122,7 @@ class GovernedLearningProposal:
     source_lineage: dict[str, str]
     limitations: list[str]
     proposal_digest: str
+    blocked_reason: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -178,6 +188,7 @@ def build_irrigation_outcome_evidence(
     stress_days_observed: float | None = None,
     yield_t_ha: float | None = None,
     depletion_tolerance_mm: float = 8.0,
+    depletion_after_basis: str = DEPLETION_BASIS_MODEL,
 ) -> IrrigationOutcomeEvidence:
     numbers = {
         "planned_depth_mm": planned_depth_mm,
@@ -197,6 +208,8 @@ def build_irrigation_outcome_evidence(
     optional = [water_use_efficiency_kg_m3, energy_kwh, stress_days_observed, yield_t_ha]
     if any(v is not None and (_finite(v) is None or float(v) < 0) for v in optional):
         raise ValueError("INVALID_OPTIONAL_OUTCOME_MEASUREMENT")
+    if depletion_after_basis not in DEPLETION_BASES:
+        raise ValueError("UNKNOWN_DEPLETION_AFTER_BASIS")
 
     reasons: list[str] = []
     delta = abs(float(depletion_after_mm) - float(expected_depletion_after_mm))
@@ -228,6 +241,7 @@ def build_irrigation_outcome_evidence(
         "source_digests": dict(sorted(source_digests.items())),
         "outcome_status": status,
         "reason_codes": reasons,
+        "depletion_after_basis": depletion_after_basis,
     }
     return IrrigationOutcomeEvidence(**payload, outcome_evidence_digest=_digest(payload))
 
@@ -324,9 +338,16 @@ def propose_governed_irrigation_learning(
     changes: list[dict[str, Any]] = []
     if not closed_loop.learning_eligible:
         limitations.append("VERIFIED_CLOSED_LOOP_REQUIRED")
-    if sample_count < minimum_samples:
+    # حدٌّ أدنى ≤ 0 كان يُمرّر البوّابة على لا عيّنة (F5).
+    if sample_count < max(1, int(minimum_samples)):
         limitations.append("MINIMUM_FIELD_SAMPLE_COUNT_NOT_MET")
-    if outcome_evidence.outcome_status == "degraded":
+    independent = outcome_evidence.depletion_after_basis == DEPLETION_BASIS_OBSERVED
+    blocked_reason = None
+    if not independent:
+        # F2: النضوبُ بعد الريّ محسوبٌ من الميزان لا مرصود — لا مقترح فيزياء تربة منه.
+        limitations.append("NO_INDEPENDENT_POST_IRRIGATION_MEASUREMENT")
+        blocked_reason = NO_INDEPENDENT_MEASUREMENT
+    if independent and outcome_evidence.outcome_status == "degraded":
         deviation = (
             outcome_evidence.depletion_after_mm - outcome_evidence.expected_depletion_after_mm
         )
@@ -368,6 +389,7 @@ def propose_governed_irrigation_learning(
         "evidence_digest": evidence_digest,
         "source_lineage": source_lineage,
         "limitations": limitations,
+        "blocked_reason": blocked_reason,
     }
     return GovernedLearningProposal(**payload, proposal_digest=_digest(payload))
 

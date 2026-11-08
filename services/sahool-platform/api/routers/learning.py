@@ -128,8 +128,10 @@ async def prediction_calibration_status(
         PredictionPair,
         analyze_systematic_bias,
     )
+    from core.outcome_reconciler import recommendation_outcome_eligibility
 
     pairs: list = []
+    excluded: dict[str, int] = {}
     schema_ready = True  # False فقط عند غياب الجدول/العمود
     try:
         async with tenant_connection(user) as conn:
@@ -139,7 +141,7 @@ async def prediction_calibration_status(
                     # tenant_id ثابتاً، فعدّه لا يقيس الاستقلال (تفادي pseudoreplication).
                     q = (
                         "SELECT predicted_yield_t_ha AS pred, actual_yield_t_ha AS act, "
-                        "crop AS crop_id, farm_id::text AS fid "
+                        "crop AS crop_id, farm_id::text AS fid, accepted, matured_within_lag "
                         "FROM recommendation_outcomes "
                         "WHERE predicted_yield_t_ha IS NOT NULL "
                         "AND actual_yield_t_ha IS NOT NULL"
@@ -149,13 +151,30 @@ async def prediction_calibration_status(
                         q += " AND crop = $1"
                         params.append(crop_id)
                     rows = await conn.fetch(q, *params)
-                pairs = [
-                    PredictionPair(float(r["pred"]), float(r["act"]), r["crop_id"], r["fid"])
-                    for r in rows
-                ]
+                # F9: سياسةُ الأهليّة المشتركة (U02) قبل المعايرة — نتيجةٌ غير ناضجة أو غير منتهية
+                # لا تدخل الانحياز. دقّةُ التوقّع لا تشترط القبول (كما في learning_feedback).
+                for r in rows:
+                    verdict = recommendation_outcome_eligibility(
+                        {
+                            "predicted_yield_t_ha": r["pred"],
+                            "actual_yield_t_ha": r["act"],
+                            "matured_within_lag": r["matured_within_lag"],
+                        },
+                        require_acceptance=False,
+                    )
+                    if verdict["eligible"]:
+                        pairs.append(
+                            PredictionPair(
+                                float(r["pred"]), float(r["act"]), r["crop_id"], r["fid"]
+                            )
+                        )
+                    else:
+                        reason = str(verdict["reason"])
+                        excluded[reason] = excluded.get(reason, 0) + 1
             except (_asyncpg.UndefinedColumnError, _asyncpg.UndefinedTableError):
                 schema_ready = False
                 pairs = []
+                excluded = {}
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -166,6 +185,8 @@ async def prediction_calibration_status(
     result["schema_ready"] = schema_ready
     result["live_data_wired"] = schema_ready
     result["has_pairs"] = bool(pairs)
+    result["excluded_count"] = sum(excluded.values())
+    result["excluded_reasons"] = excluded
     result["data_source_note_ar"] = (
         "الأزواج من recommendation_outcomes (توقّع تاريخي + نتيجة فعليّة) عبر RLS "
         "(v49 مُفعَّل)، ووحدة التكرار = المزرعة (farm_id) لا المستأجِر (تفادي "
