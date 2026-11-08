@@ -22,6 +22,9 @@ class HarvestLotCreateRequest(BaseModel):
     moisture_pct: float | None = Field(default=None, ge=0, le=100)
     quality_grade: str | None = Field(default=None, pattern="^(A|B|C|reject)$")
     notes_ar: str | None = Field(default=None, max_length=2000)
+    # تجاوز بوّابة PHI (حصاد داخل فترة أمان آخر رشّ): صريح + سبب + صلاحيّة المالك فقط.
+    phi_override: bool = False
+    phi_override_reason: str | None = Field(default=None, max_length=500)
 
 
 class HarvestLotSummary(BaseModel):
@@ -36,6 +39,9 @@ class HarvestLotSummary(BaseModel):
     notes_ar: str | None = None
     status: str
     created_at: str | None = None
+    # نتيجة بوّابة PHI عند الإنشاء (تجاوز/قيد phi_unknown)؛ تُحفَظ في حدث HARVEST_LOT_CREATED
+    # لا في الجدول (لا عمود تفاصيل في harvest_lots) ⇒ None في القراءات اللاحقة.
+    phi_check: dict | None = None
 
 
 class CustodyEventCreateRequest(BaseModel):

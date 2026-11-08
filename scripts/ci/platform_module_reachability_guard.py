@@ -170,7 +170,6 @@ INHERITED_UNREACHABLE = frozenset(
         "core/engines/deficit_irrigation.py",
         "core/engines/fertility.py",
         "core/engines/fuzzy.py",
-        "core/engines/pesticide.py",
         "core/engines/planting_window.py",
         "core/engines/suitability.py",
         "core/engines/supplemental_irrigation.py",
