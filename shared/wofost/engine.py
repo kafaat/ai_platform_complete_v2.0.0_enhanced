@@ -361,6 +361,59 @@ def get_kc(day: int, p: dict) -> float:
 
 
 # ══════════════════════════════════════════════════════════════
+# بارامترات محقونة من المصدر القانونيّ (بطاقة المحصول + FAO-56)
+# ══════════════════════════════════════════════════════════════
+WOFOST_BUILTIN_SOURCE = "wofost_builtin"
+CROP_CARD_SOURCE = "crop_card"
+FAO56_SOURCE = "fao56"
+
+
+def _apply_injected_parameters(
+    cp: dict,
+    sp: dict,
+    *,
+    kc: tuple[float | None, float | None, float | None],
+    tbase: float | None,
+    theta: tuple[float | None, float | None],
+) -> tuple[dict, dict, dict]:
+    """يطبّق البارامترات المحقونة على نسختَي الجدولين ويُرجِع مصدر كلّ مجموعة.
+
+    المجموعة إمّا كاملة أو غائبة (لا خلط Kc بطاقةٍ بـKc مدمج داخل المنحنى الواحد)،
+    والقيم تُتحقَّق فيزيائيّاً — المحقون غير الصالح ``ValueError`` لا قيمة مُسكَتة.
+    """
+    source = {
+        "kc": WOFOST_BUILTIN_SOURCE,
+        "tbase": WOFOST_BUILTIN_SOURCE,
+        "soil_water": WOFOST_BUILTIN_SOURCE,
+    }
+    given_kc = [v is not None for v in kc]
+    if any(given_kc):
+        if not all(given_kc):
+            raise ValueError("kc_ini/kc_mid/kc_end تُحقَن معاً أو لا تُحقَن")
+        values = [float(v) for v in kc]  # type: ignore[arg-type]
+        if not all(0.0 < v <= 2.0 for v in values):
+            raise ValueError(f"Kc محقون خارج المدى الفيزيائيّ (0, 2]: {values}")
+        cp["kc_ini"], cp["kc_mid"], cp["kc_end"] = values
+        source["kc"] = CROP_CARD_SOURCE
+    if tbase is not None:
+        t = float(tbase)
+        if not -10.0 <= t < cp["topt"]:
+            raise ValueError(f"tbase محقون خارج المدى [-10, topt={cp['topt']}): {t}")
+        cp["tbase"] = t
+        source["tbase"] = CROP_CARD_SOURCE
+    fc, wp = theta
+    if fc is not None or wp is not None:
+        if fc is None or wp is None:
+            raise ValueError("theta_fc/theta_wp تُحقَن معاً أو لا تُحقَن")
+        fc, wp = float(fc), float(wp)
+        if not 0.0 < wp < fc < 1.0:
+            raise ValueError(f"θ محقونة غير صالحة (يلزم 0 < θWP < θFC < 1): {fc}, {wp}")
+        sp["fc"], sp["wp"] = fc, wp
+        source["soil_water"] = FAO56_SOURCE
+    return cp, sp, source
+
+
+# ══════════════════════════════════════════════════════════════
 # WOFOST-RUE Core Simulation
 # ══════════════════════════════════════════════════════════════
 async def simulate_wofost(
@@ -374,6 +427,13 @@ async def simulate_wofost(
     irrigation: bool = True,
     cfet: float = 1.15,
     irrigation_fraction: float | None = None,
+    *,
+    kc_ini: float | None = None,
+    kc_mid: float | None = None,
+    kc_end: float | None = None,
+    tbase: float | None = None,
+    theta_fc: float | None = None,
+    theta_wp: float | None = None,
 ) -> dict:
     """
     محاكاة WOFOST-RUE كاملة بطقس حقيقي من Open-Meteo.
@@ -382,6 +442,13 @@ async def simulate_wofost(
     التبخّر منهجيّاً في المناطق الجافّة؛ الأبحاث (شبه جافّة مماثلة للجوف) تُوصي
     برفعه إلى 1.15-1.2 (الحدّ الأقصى) لتصحيح هذا التحيّز. الافتراض 1.15 مناسب
     للجوف الجافّ؛ 1.0 للمناخ المعتدل. يُطبَّق: ETc = ET0 · Kc · CFET.
+
+    بارامترات محقونة (اختياريّة، بالاسم فقط): ``kc_ini``/``kc_mid``/``kc_end`` (ثلاثتها
+    معاً) و``tbase`` و``theta_fc``/``theta_wp`` (معاً). يحقنها مستدعٍ يملك المصدر القانونيّ
+    (المنصّة: بطاقة المحصول + جدول FAO-56) دون أن يستورد ``shared`` شيئاً من المنصّة
+    (اتّجاه التبعيّة shared→platform محفوظ). المحقون يحلّ محلّ نسخة ``CROP_PARAMS``/
+    ``SOIL_PARAMS`` المدمجة، والمخرَج يُعلن مصدر كلّ مجموعة في ``parameter_source``
+    (``crop_card``/``fao56`` حين يُحقَن، ``wofost_builtin`` حين لا يُحقَن).
 
     المخرجات:
       - GDD التراكمي، LAI، biomass، yield، ETc
@@ -404,8 +471,19 @@ async def simulate_wofost(
     soil_known = soil_type in SOIL_PARAMS
     resolved_crop = crop if crop_known else "قمح صلب"
     resolved_soil = soil_type if soil_known else "loam"
-    cp = CROP_PARAMS[resolved_crop]
-    sp = SOIL_PARAMS[resolved_soil]
+    cp = dict(CROP_PARAMS[resolved_crop])
+    sp = dict(SOIL_PARAMS[resolved_soil])
+    cp, sp, parameter_source = _apply_injected_parameters(
+        cp,
+        sp,
+        kc=(kc_ini, kc_mid, kc_end),
+        tbase=tbase,
+        theta=(theta_fc, theta_wp),
+    )
+    if parameter_source["soil_water"] != "wofost_builtin":
+        # θFC/θWP محقونان من مصدر يعرف هذا القوام ⇒ الماء الأرضيّ يخصّ المُدخَل لا loam.
+        soil_known = True
+        resolved_soil = soil_type
 
     tsum_needed = cp["tsum1"] + cp["tsum2"]
     total_season_days = int(tsum_needed / 8) + 30  # تقدير أولي
@@ -573,6 +651,16 @@ async def simulate_wofost(
             "crop_known": crop_known,
             "soil_type_known": soil_known,
             "degraded": not (crop_known and soil_known),
+        },
+        # مصدر كلّ مجموعة بارامترات زراعيّة: محقون من المصدر القانونيّ أم نسخة WOFOST المدمجة.
+        "parameter_source": parameter_source,
+        "parameters_used": {
+            "kc_ini": cp["kc_ini"],
+            "kc_mid": cp["kc_mid"],
+            "kc_end": cp["kc_end"],
+            "tbase": cp["tbase"],
+            "theta_fc": sp["fc"],
+            "theta_wp": sp["wp"],
         },
         "planting_date": planting_date.isoformat(),
         "harvest_date": harvest_date.isoformat(),
