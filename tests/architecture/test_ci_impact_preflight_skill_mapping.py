@@ -48,7 +48,6 @@ def test_pilot_skill_documentation_is_not_promoted_to_domain_implementation():
         hay = engine.norm(contents[:250_000])
         hay_path = engine.norm(rel)
         for capability in capabilities:
-            score, _ = engine.score_blob(
-                capability["id"], capability, rel, hay_path, hay, contents
-            )
+            args = (capability["id"], capability, rel, hay_path, hay, contents)
+            score, _ = engine.score_blob(*args)
             assert score < 8, (rel, capability["id"], score)
