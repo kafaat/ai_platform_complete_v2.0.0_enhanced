@@ -35,6 +35,7 @@ import {
   type PinPersistence, type PinSeverity,
 } from '../components/fieldhealth';
 import { timelineRecordByDay } from '../components/fieldhealth/timelineByDay';
+import { unavailableFieldChangeMessage } from '../lib/fieldChangeAvailability';
 import { useScoutingPins, useCreateScoutingPin, useCropScoutingIssues } from '../hooks/useScouting';
 import type { ScoutingPinRecord } from '../hooks/useScouting';
 import { useLocation } from 'react-router';
@@ -827,7 +828,7 @@ export default function SatellitePage() {
                   <p className="text-[11px] text-amber-400/80 py-1">تعذّر حساب التغيّر.</p>
                 ) : change && !change.available ? (
                   <p className="text-[11px] text-amber-400/80 py-1">
-                    {change.note || 'لا توجد بيانات COG حقيقيّة لأحد التاريخين — لا تغيّر مُفبرَك.'}
+                    {unavailableFieldChangeMessage(change)}
                   </p>
                 ) : change && change.available ? (
                   <div className="space-y-2">

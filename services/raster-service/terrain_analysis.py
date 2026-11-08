@@ -201,6 +201,12 @@ def compute_field_terrain(
 
     finite = np.isfinite(dem)
     ev = dem[finite]
+    if not ev.size:
+        return {
+            "computed": False,
+            "source": "dem-no-valid-pixels",
+            "reason": "لا توجد قياسات ارتفاع صالحة داخل نطاق الحقل",
+        }
     dzdx = np.gradient(dem, max(px_x_m, 1e-6), axis=1)
     dzdy = np.gradient(dem, max(px_y_m, 1e-6), axis=0)
     slope_deg = np.degrees(np.arctan(np.sqrt(dzdx**2 + dzdy**2)))
