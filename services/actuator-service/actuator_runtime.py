@@ -702,6 +702,11 @@ def _to_firmware_wire(command: str, payload: dict | None) -> tuple[str | None, s
     if duration is None:
         if canon in _DOSE_COMMANDS:
             return None, "dose_command_requires_duration_sec"
+        # ACTUATOR-OPEN-WITHOUT-DURATION-01: فتحٌ بلا مدّة يبقى مفتوحاً حتّى سقف البرنامج
+        # الثابت (VALVE_MAX_OPEN_MS = 30 دقيقة) — فكلُّ OPEN يحتاج مدّةً صريحة تُغلِق بعدها.
+        # الإغلاق/الإيقاف لا يحتاج مدّة: هو الحالة الآمنة نفسها.
+        if wire == "OPEN":
+            return None, "open_command_requires_duration_sec"
         return wire, "ok"
     # رقمٌ JSON فقط: البرنامج الثابت يقرأ duration_sec رقماً، والنصّ يصير 0 هناك بصمت.
     if isinstance(duration, bool) or not isinstance(duration, int | float):

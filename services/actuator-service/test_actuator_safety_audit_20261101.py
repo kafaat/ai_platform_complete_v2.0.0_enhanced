@@ -380,10 +380,10 @@ def test_a3_trigger_duration_requires_a_sustained_condition(wired, monkeypatch):
 @pytest.mark.parametrize(
     ("command", "payload", "wire"),
     [
-        ("open", {}, "OPEN"),
+        ("open", {"duration_sec": 60}, "OPEN"),
         ("open_valve", {"duration_sec": 600}, "OPEN"),
         ("irrigate", {"duration_sec": 900}, "OPEN"),
-        ("start", {}, "OPEN"),
+        ("start", {"duration_sec": 60}, "OPEN"),
         ("close", {}, "CLOSE"),
         ("CLOSE_VALVE", {}, "CLOSE"),
         ("stop", {}, "CLOSE"),
@@ -399,6 +399,12 @@ def test_a4_platform_commands_map_to_the_firmware_vocabulary(act, command, paylo
         ("pulse", {}, "unknown_command:pulse"),
         ("", {}, "unknown_command:-"),
         ("irrigate", {"amount_mm": 12.0}, "dose_command_requires_duration_sec"),
+        # ACTUATOR-OPEN-WITHOUT-DURATION-01: كلُّ OPEN بلا مدّة — لا `irrigate` وحده.
+        ("open", {}, "open_command_requires_duration_sec"),
+        ("open_valve", {}, "open_command_requires_duration_sec"),
+        ("on", {}, "open_command_requires_duration_sec"),
+        ("start", {}, "open_command_requires_duration_sec"),
+        ("start_irrigation", None, "open_command_requires_duration_sec"),
         ("open_valve", {"duration_sec": -5}, "invalid_duration_sec"),
         ("open_valve", {"duration_sec": "abc"}, "invalid_duration_sec"),
         ("open_valve", {"duration_sec": "600"}, "invalid_duration_sec"),
@@ -463,7 +469,24 @@ def test_a4_unknown_command_never_reaches_the_broker(real_mqtt):
 
 def test_a4_simulation_does_not_claim_success_for_an_unknown_command(act):
     assert asyncio.run(act.send_mqtt_command("valve-a", "pulse", {})) is False
-    assert asyncio.run(act.send_mqtt_command("valve-a", "open", {})) is True
+    assert asyncio.run(act.send_mqtt_command("valve-a", "open", {"duration_sec": 60})) is True
+
+
+def test_an_open_without_duration_is_refused_before_any_publish_in_every_mode(act, real_mqtt):
+    """ACTUATOR-OPEN-WITHOUT-DURATION-01: فتحٌ بلا مدّة لا يُنشَر ولا يُحاكى نجاحاً.
+
+    كان يُقبَل (عدا ``irrigate``) فيبقى الصمّام مفتوحاً حتّى سقف البرنامج الثابت
+    ``VALVE_MAX_OPEN_MS`` (30 دقيقة). والإغلاق — الحالة الآمنة — يُنشَر بلا مدّة.
+    """
+    for mode in ("real", "simulation"):
+        _FakeMQTT.published = []
+        act.ACTUATOR_MODE = mode
+        for cmd in ("open", "open_valve", "on", "start", "start_irrigation"):
+            assert asyncio.run(act.send_mqtt_command("valve-a", cmd, {})) is False, (mode, cmd)
+        assert _FakeMQTT.published == [], mode
+    act.ACTUATOR_MODE = "real"
+    assert asyncio.run(act.send_mqtt_command("valve-a", "close", {})) is True
+    assert _FakeMQTT.published[0][1]["cmd"] == "CLOSE"
 
 
 def test_a4_dispatch_plan_refuses_unmappable_command_with_its_reason(act):
