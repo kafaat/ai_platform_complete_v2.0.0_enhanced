@@ -91,6 +91,7 @@ export async function approveManualCandidate(candidate: ManualWorkflowCandidate)
     candidate_lineage_id: candidate.candidate_lineage_id,
     decision_value_digest: candidate.decision_value_digest,
     idempotency_key: `manual-review:${candidate.decision_id}:${candidate.decision_value_digest}`,
+    policy_version: 'irrigation-manual-review-v1',
   });
   if (!validatedReview(candidate, data)) throw new Error('لم يؤكد الخادم اعتماد هذه النسخة.');
   return data;

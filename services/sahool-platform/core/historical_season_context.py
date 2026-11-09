@@ -13,6 +13,7 @@ from collections.abc import Iterable, Mapping
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 from api.season_simulation import fapar_from_ndvi
 
@@ -22,6 +23,10 @@ def _primitive(value: Any) -> Any:
         return value.isoformat()
     if isinstance(value, Decimal):
         return float(value)
+    # asyncpg يُعيد أعمدة UUID (season_records.id/tenant_id) كـ``UUID`` — نصّها القانونيّ،
+    # وإلّا يسقط json.dumps للبصمة فيفشل التشغيل بعد ربط السجلّ.
+    if isinstance(value, UUID):
+        return str(value)
     if isinstance(value, Mapping):
         return {str(k): _primitive(v) for k, v in sorted(value.items(), key=lambda p: str(p[0]))}
     if isinstance(value, (list, tuple)):

@@ -70,6 +70,12 @@ async def create_calibration(payload: dict, x_agent_token: str = Header(None)):
         model_version=payload["model_version"],
         records=rows,
         minimum_samples=int(payload.get("minimum_samples", 20)),
+        # optional: fields used to train the model — overlap with validation fails leakage
+        training_field_ids=(
+            payload["training_field_ids"]
+            if isinstance(payload.get("training_field_ids"), list)
+            else None
+        ),
     )
     return await p4_store.save(
         main._pool,

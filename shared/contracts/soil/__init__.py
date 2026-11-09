@@ -129,6 +129,7 @@ from .p3 import (  # noqa: E402
     ReclamationScenario,
     SoilVisualObservation,
     SoilVisualPrediction,
+    p3_drainage_need_to_salinity_class,
 )
 
 __all__ += [
@@ -147,6 +148,7 @@ __all__ += [
     "ReclamationEconomicsRequest",
     "ReclamationScenario",
     "ReclamationEconomicsProduct",
+    "p3_drainage_need_to_salinity_class",
     "ApprovalRequirement",
     "SoilActionPolicy",
     "SoilActionEvaluation",

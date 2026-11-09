@@ -4699,3 +4699,15 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **القرار:** توحيد المحلِّل: «ذرة» = sorghum، و«ذرة شامية/صفراء» = maize، عبر بطاقات المحاصيل (`aliases`).
 - **السبب:** أربعة جداول أسماء مستعارة كانت تختلف (`season_phenology` ⇒ sorghum، `season_simulation`/`ky_registry` ⇒ maize)، فيُحاكى الموسم بمعاملات الذرة الشاميّة ويُنصح بمراحل الرفيعة؛ والاستعمال اليمنيّ الشائع لـ«ذرة» مفردةً هو الرفيعة، والواجهة ترسل «ذرة صفراء» للشاميّة.
 - **المصدر:** [`../gaps/registry.md`](../gaps/registry.md) (`UNKNOWN-AND-PERENNIAL-CROP-OUTPUTS-01`).
+
+## 2026-11-09 — موجة 2: لا يُرفع سقف المسارات لمسار انتقال النشاط
+
+- **القرار:** دمج قواعد دورة حياة النشاط بلا مسار `PATCH` الجديد ولا نداء الموبايل له.
+- **السبب:** المسار يرفع مسارات النطاق إلى 630 فوق 629، وCLAUDE.md: «لا ترفع السقف ولا تحذف نقطة provenance لحلّ تعارض ميزانية»؛ ولا مسار قائم يحمل الانتقال بصدق (`routers/tasks.py` يخدم `field_tasks` لا `activities`، و`routers/fields.py` عند سقف حجمه).
+- **المصدر:** فرع `claude/w2-integ-20261108` · [`../log.md`](../log.md) · [`../gaps/registry.md`](../gaps/registry.md) (`ACTIVITY-LIFECYCLE-CREATE-ONLY-01`).
+
+## 2026-11-09 — موجة 2: فصل المهامّ مفعَّل افتراضيّاً في الإنتاج مع إيقاف صريح
+
+- **القرار:** إبقاء `DECISION_REQUIRE_SEPARATION_OF_DUTIES` مفعَّلاً متى كانت البيئة إنتاجاً، مع السماح بإيقافه صراحةً، وتسجيل أثره على المزارع الوحيد فجوةً لحكم المالك.
+- **السبب:** «الافتراضيّ مفعَّل» هو المطلوب في الفجوة `DECISION-PROVENANCE-AND-SOD-01`، لكنّ مسار الريّ اليدويّ لمزارع وحيد يُقدِّم ويعتمد بنفسه، فالمنع المطلق يكسره؛ القرار بين الصرامة وهذه الحالة للمالك.
+- **المصدر:** [`../../services/decision-service/persistence.py`](../../services/decision-service/persistence.py) · [`../gaps/registry.md`](../gaps/registry.md) (`DECISION-SOD-SINGLE-USER-FARM-POLICY-01`).

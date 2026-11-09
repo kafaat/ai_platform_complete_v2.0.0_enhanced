@@ -348,7 +348,47 @@ def test_router_refuses_with_409_before_any_write():
     import api.routers.harvest_traceability as route
 
     src = inspect.getsource(route.add_custody_event)
-    assert "SELECT status, quality_grade FROM harvest_lots" in src
+    # The locked read also carries quantity/harvest_date for the mass/time checks.
+    assert "SELECT status, quality_grade, quantity_kg, harvest_date FROM harvest_lots" in src
+    assert "FOR UPDATE" in src
     refusal = src.index("transition_refusal(")
     assert src.index("status_code=409", refusal) < src.index("INSERT INTO custody_chain_events")
     assert 'status_for_event(req.event_type, lot["status"], req.event_details)' in src
+
+
+# ── N6: a persisted ledger is consumed only when fresh and for the same crop ──
+
+
+def test_stale_persisted_ledger_cannot_drive_fertilization():
+    from datetime import timedelta as _td
+
+    from api.agronomic_state_consumers import NUTRIENT_LEDGER_MAX_AGE
+
+    ledger = _ledger()
+    fresh = consume_nutrient_ledger(ledger, now=ledger.as_of + _td(days=1), crop_id=ledger.crop_id)
+    assert fresh.action_type == "fertilize"
+    stale = consume_nutrient_ledger(
+        ledger, now=ledger.as_of + NUTRIENT_LEDGER_MAX_AGE + _td(seconds=1), crop_id=ledger.crop_id
+    )
+    assert stale.status == "blocked"
+    assert stale.operational_allowed is False
+    assert stale.action_type == "hold"
+    assert "NUTRIENT_LEDGER_STALE" in stale.constraints
+
+
+def test_persisted_ledger_for_another_crop_is_blocked():
+    ledger = _ledger()
+    out = consume_nutrient_ledger(ledger, now=ledger.as_of, crop_id="  " + ledger.crop_id.upper())
+    assert out.action_type == "fertilize"  # case/whitespace-insensitive match
+    other = consume_nutrient_ledger(ledger, now=ledger.as_of, crop_id="different-crop")
+    assert other.status == "blocked" and other.operational_allowed is False
+    assert "NUTRIENT_LEDGER_CROP_MISMATCH" in other.constraints
+
+
+def test_future_dated_persisted_ledger_is_blocked():
+    from datetime import timedelta as _td
+
+    ledger = _ledger()
+    out = consume_nutrient_ledger(ledger, now=ledger.as_of - _td(hours=1), crop_id=ledger.crop_id)
+    assert out.status == "blocked"
+    assert "NUTRIENT_LEDGER_FROM_FUTURE" in out.constraints

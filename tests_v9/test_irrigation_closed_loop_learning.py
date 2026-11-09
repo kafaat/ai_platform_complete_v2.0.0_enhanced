@@ -126,7 +126,11 @@ def test_identity_mismatch_blocks_loop():
 
 
 def test_outcome_deviation_creates_human_review_proposal_only():
-    outcome = _outcome(depletion_after_mm=78.0)
+    # F2: المقترح يتطلّب رصد رطوبة تربة مستقلّاً بعد الريّ (لا نضوب الميزان المحسوب).
+    outcome = _outcome(
+        depletion_after_mm=78.0,
+        depletion_after_basis="independent_soil_moisture_observation",
+    )
     closed = _closed(outcome_evidence=outcome)
     proposal = propose_governed_irrigation_learning(
         closed_loop=closed,
@@ -138,6 +142,44 @@ def test_outcome_deviation_creates_human_review_proposal_only():
     assert proposal.review_required is True
     assert proposal.auto_adjust is False
     assert proposal.proposed_parameter_changes
+
+
+def test_model_derived_depletion_cannot_produce_soil_physics_proposal():
+    """F2: «بعد» = قبل − المُطبَّق حسابٌ دائريّ — لا root_zone_water_response منه."""
+    outcome = _outcome(depletion_after_mm=78.0)  # الأساس الافتراضيّ: applied_balance_model
+    assert outcome.depletion_after_basis == "applied_balance_model"
+    assert outcome.outcome_status == "degraded"
+    proposal = propose_governed_irrigation_learning(
+        closed_loop=_closed(outcome_evidence=outcome),
+        outcome_evidence=outcome,
+        minimum_samples=5,
+        sample_count=8,
+    )
+    assert proposal.status == "blocked"
+    assert proposal.blocked_reason == "no_independent_measurement"
+    assert proposal.proposed_parameter_changes == []
+    assert "NO_INDEPENDENT_POST_IRRIGATION_MEASUREMENT" in proposal.limitations
+    assert proposal.to_dict()["blocked_reason"] == "no_independent_measurement"
+
+
+def test_unknown_depletion_basis_is_rejected():
+    with pytest.raises(ValueError, match="UNKNOWN_DEPLETION_AFTER_BASIS"):
+        _outcome(depletion_after_basis="guess")
+
+
+def test_non_positive_minimum_samples_cannot_open_the_proposal_gate():
+    outcome = _outcome(
+        depletion_after_mm=78.0,
+        depletion_after_basis="independent_soil_moisture_observation",
+    )
+    proposal = propose_governed_irrigation_learning(
+        closed_loop=_closed(outcome_evidence=outcome),
+        outcome_evidence=outcome,
+        minimum_samples=0,
+        sample_count=0,
+    )
+    assert proposal.status == "blocked"
+    assert "MINIMUM_FIELD_SAMPLE_COUNT_NOT_MET" in proposal.limitations
 
 
 def test_insufficient_samples_block_learning_proposal():

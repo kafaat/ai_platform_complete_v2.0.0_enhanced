@@ -47,6 +47,15 @@ def _shape_area_by_crop(rows) -> list[dict]:
     return shaped
 
 
+#: حالةُ النشاط المنفَّذ فعلاً (v35: planned|done|skipped). العدُّ «المنجَز» لا يشمل غيرها.
+ACTIVITY_DONE_STATUS = "done"
+
+
+def _activities_done(activities_by_status: dict[str, int]) -> int:
+    """عددُ الأنشطة المنفَّذة فعلاً من تفصيل الحالات — المخطَّطُ والمتخطّى ليسا تنفيذاً."""
+    return int(activities_by_status.get(ACTIVITY_DONE_STATUS, 0) or 0)
+
+
 def _shape_farm_summary(
     *,
     farms_count: int,
@@ -68,6 +77,7 @@ def _shape_farm_summary(
         "total_area_ha": round(float(total_area_ha or 0), 2),
         "active_seasons_count": int(active_seasons_count or 0),
         "activities_total": sum(activities_by_status.values()),
+        "activities_done_total": _activities_done(activities_by_status),
         "activities_by_status": activities_by_status,
         "open_alerts_count": int(open_alerts_count or 0),
         "area_by_crop": area_by_crop,

@@ -49,7 +49,7 @@ REGISTRY = ROOT / "sahool-brain/gaps/registry.md"
 GAP_ID = "RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01"
 #: بصمةُ blob للمصدر الذي قِيس. تغيُّرُها يُفشِل الشاهدَ **عمداً**: بديلُ الاتّصال
 #: يحاكي محمولاتِ استعلاماتٍ بعينها، فمصدرٌ آخر يعني وصفاً لم يُراجَع.
-PINNED_BLOB = "57773aa49c72b3cd1acd0086a9bd2d7828c1f2be"
+PINNED_BLOB = "b5f17e3afabf6ca2e6d58213de69e7cf0b08181b"
 TENANT = "00000000-0000-4000-8000-000000000001"
 FUTURE_SENSOR = "future_soil_sensor"
 SOURCE_NAME = "device_telemetry"
@@ -64,6 +64,7 @@ _WANTED = {
     "_open_deferrals",
     "_process_telemetry_row",
     "reconcile_device_telemetry",
+    "live_bridge_idempotency_key",
 }
 _WANTED_ASSIGNS = {"TELEMETRY_MAP", "DEFERRAL_REASONS", "_TELEMETRY_COLUMNS"}
 
@@ -134,6 +135,8 @@ def _load(mutation: str | None = None) -> dict[str, Any]:
     module = types.ModuleType("_pinned_reconcile")
     namespace = module.__dict__
     namespace["dataclass"] = dataclasses.dataclass
+    namespace["hashlib"] = hashlib
+    namespace["UTC"] = UTC
 
     # `@dataclass` يقرأ `sys.modules[cls.__module__].__dict__`، فيلزم تسجيلُ الوحدة
     # مؤقّتاً. والاستعادةُ في `finally` مقصودة: تلويثُ `sys.modules` يبقى نافذاً بقيّةَ

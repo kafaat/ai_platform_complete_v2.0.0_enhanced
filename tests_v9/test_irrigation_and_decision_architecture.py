@@ -60,18 +60,67 @@ async def test_season_learning_reads_persisted_outcomes_and_never_auto_promotes(
         for i in range(3)
     ]
     conn = Conn(outcomes=outcomes)
+    # F5: ثلاثُ نتائج لحقلٍ-موسمٍ واحد وحدةُ تكرارٍ واحدة — الحدُّ هنا وحدةٌ واحدة صراحةً.
     result = await mod.process_season_closed_event(
         conn,
         event_id="evt-1",
         tenant_id="00000000-0000-0000-0000-000000000001",
         field_id="fld-1",
         season_id="ssn-1",
+        minimum_outcomes=1,
     )
     assert result["status"] == "review_ready"
     assert result["promotion_candidate"]["review_required"] is True
     assert result["promotion_candidate"]["auto_promote"] is False
     assert any("FROM recommendation_outcomes" in call[1] for call in conn.calls)
     assert any("governed_model_promotion_candidates" in call[1] for call in conn.calls)
+
+
+@pytest.mark.asyncio
+async def test_rows_of_one_field_season_are_one_unit_not_three_samples():
+    """F5 (pseudo-replication): ثلاثةُ صفوفٍ لموسمٍ واحد لا تبلغ حدّاً أدنى من ثلاث وحدات مستقلّة."""
+    mod = _load("services/sahool-platform/api/learning_feedback.py", "learning_feedback_units")
+    outcomes = [
+        {
+            "recommendation_id": f"r{i}",
+            "predicted_yield_t_ha": 4.0,
+            "actual_yield_t_ha": 4.2,
+            "accepted": True,
+            "matured_within_lag": True,
+            "farm_id": "farm-1",
+            "season_id": "ssn-1",
+        }
+        for i in range(3)
+    ]
+    conn = Conn(outcomes=outcomes)
+    result = await mod.process_season_closed_event(
+        conn,
+        event_id="evt-units",
+        tenant_id="00000000-0000-0000-0000-000000000001",
+        field_id="fld-1",
+        season_id="ssn-1",
+    )
+    evaluation = result["evaluation"]
+    assert evaluation["outcome_count"] == 3
+    assert evaluation["independent_units"] == 1
+    assert evaluation["status"] == "blocked"
+    assert "MINIMUM_INDEPENDENT_UNITS_NOT_MET" in evaluation["limitations"]
+    assert "MINIMUM_VERIFIED_OUTCOMES_NOT_MET" not in evaluation["limitations"]
+    fetch_sql = next(call[1] for call in conn.calls if call[0] == "fetch")
+    assert "farm_id" in fetch_sql
+
+
+def test_independent_units_count_distinct_farm_season_pairs():
+    mod = _load("services/sahool-platform/api/learning_feedback.py", "learning_feedback_units2")
+    rows = [
+        {"farm_id": "a", "season_id": "s1"},
+        {"farm_id": "a", "season_id": "s1"},
+        {"farm_id": "b", "season_id": "s1"},
+        {"farm_id": None, "season_id": None},
+        {"farm_id": None, "season_id": None},
+    ]
+    units = mod.independent_outcome_units(rows, field_id="f1", season_id="s1")
+    assert units == {("a", "s1"), ("b", "s1"), ("field:f1", "s1")}
 
 
 @pytest.mark.asyncio
@@ -108,8 +157,10 @@ def test_registered_worker_is_an_executable_root_for_both_event_chains():
     assert "finalize_irrigation_closed_loop" in text
     assert "process_season_closed_event" in text
     assert "await msg.ack()" in text
-    assert "await msg.nak(delay=5)" in text
+    # Redelivery is bounded (exponential nak, then dead letter + term) — no fixed 5 s forever.
+    assert "await msg.nak(delay=redelivery_delay(num_delivered))" in text
     assert "await msg.term()" in text
+    assert '"sahool.dlq.canonical_execution_learning"' in text
 
 
 @pytest.mark.asyncio

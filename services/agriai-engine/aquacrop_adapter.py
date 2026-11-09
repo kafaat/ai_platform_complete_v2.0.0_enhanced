@@ -38,14 +38,57 @@ except Exception:  # noqa: BLE001
 # عتبة تفعيل المحرّك الملحيّ (dS/m). تحتها: أثر ملحيّ مهمَل ⇒ PCSE المرجع (مصدر حقيقة واحد).
 AQUACROP_ECE_THRESHOLD = float(os.getenv("AQUACROP_ECE_THRESHOLD", "2.0"))
 
-# عتبات/ميول الملوحة المرجعيّة (FAO-56 Table / Maas-Hoffman) — **غير مُعايَرة يمنيّاً**.
+# عتبات/ميول الملوحة المرجعيّة (FAO-56 Table 23 / Maas-Hoffman) — **غير مُعايَرة يمنيّاً**.
 # (a=عتبة ECe dS/m فوقها يبدأ الخفض، b=ميل الخفض ٪ لكلّ dS/m).
+#
+# **نسخة مرآة لكتلة ``salinity`` في بطاقات المحاصيل** (المصدر القانونيّ:
+# ``services/sahool-platform/core/crop_cards/<crop_id>.yaml``). سياق Docker لهذه الخدمة
+# يحوي ``shared/`` ومجلّدها فقط، فلا تستطيع استيراد بطاقات المنصّة؛ التطابق مفروض بـ
+# ``tests_v9/test_aquacrop_salt_tolerance_card_parity.py`` (كلّ بطاقة ⇔ كلّ مدخل، بالقيم).
+# كان الجدول ثلاثة محاصيل + افتراض (2.0, 10.0) لأيّ محصول آخر يخالف البطاقات (ذرة 1.7/12،
+# طماطم 2.5/9.9): محصولٌ بلا مدخل الآن **رفضٌ** (لا عتبة مُختلَقة).
 _SALT_TOLERANCE: dict[str, tuple[float, float]] = {
-    "wheat": (6.0, 7.1),
+    "alfalfa": (2.0, 7.3),
+    "banana": (1.3, 9.0),
     "barley": (8.0, 5.0),
+    "chickpea": (1.0, 12.0),
+    "citrus": (1.7, 16.0),
+    "coffee": (1.5, 10.0),
+    "common_bean": (1.0, 19.0),
+    "cotton": (7.7, 5.2),
+    "cowpea": (4.9, 12.0),
+    "cranberry": (1.0, 18.0),
+    "cucumber": (2.5, 13.0),
+    "date_palm": (4.0, 3.6),
+    "eggplant": (1.5, 7.0),
+    "faba_bean": (1.5, 9.6),
+    "fenugreek": (2.5, 10.0),
+    "fig": (2.5, 6.0),
+    "garlic": (1.3, 16.0),
+    "grape": (1.5, 9.6),
+    "guava": (3.0, 6.0),
+    "lentil": (1.5, 12.0),
+    "maize": (1.7, 12.0),
+    "mango": (1.5, 8.0),
+    "melon": (2.2, 7.3),
+    "millet": (6.5, 8.4),
+    "okra": (1.5, 12.0),
+    "onion": (1.2, 16.0),
+    "papaya": (1.0, 10.0),
+    "pea": (1.5, 12.0),
+    "peanut": (3.2, 29.0),
+    "pepper": (1.5, 14.0),
+    "pomegranate": (3.0, 5.0),
     "potato": (1.7, 12.0),
+    "qat": (2.0, 7.0),
+    "sesame": (1.5, 9.0),
+    "sorghum": (6.8, 16.0),
+    "sunflower": (3.0, 6.0),
+    "tomato": (2.5, 9.9),
+    "watermelon": (2.5, 9.0),
+    "wheat": (6.0, 7.1),
 }
-_DEFAULT_TOLERANCE = (2.0, 10.0)  # محافظ لمحصول غير مُعرَّف (لا يُدّعى دقّة)
+SALT_TOLERANCE_UNAVAILABLE = "aquacrop_crop_tolerance_unavailable"
 
 
 def aquacrop_enabled() -> bool:
@@ -72,9 +115,13 @@ def salt_engine_applies(
         return False
 
 
-def _salt_tolerance(crop: dict[str, Any] | None) -> tuple[float, float]:
-    name = ((crop or {}).get("name") or (crop or {}).get("crop") or "").strip().lower()
-    return _SALT_TOLERANCE.get(name, _DEFAULT_TOLERANCE)
+def _crop_name(crop: dict[str, Any] | None) -> str:
+    return str((crop or {}).get("name") or (crop or {}).get("crop") or "").strip().lower()
+
+
+def _salt_tolerance(crop: dict[str, Any] | None) -> tuple[float, float] | None:
+    """(a, b) من مرآة بطاقة المحصول، أو ``None`` لمحصول بلا عتبة (لا افتراض مُختلَق)."""
+    return _SALT_TOLERANCE.get(_crop_name(crop))
 
 
 def maas_hoffman_ks(ec_e: float, threshold_a: float, slope_b: float) -> float:
@@ -156,7 +203,21 @@ def simulate(
         except (TypeError, ValueError):
             ec_w = None
 
-    a, b = _salt_tolerance(crop)
+    tolerance = _salt_tolerance(crop)
+    if tolerance is None:
+        # كان (2.0, 10.0) افتراضاً لأيّ محصول غير مُدرَج — رقم غلّة لا تسنده بطاقة. رفضٌ مُصنَّف.
+        return {
+            "available": False,
+            "provenance": SALT_TOLERANCE_UNAVAILABLE,
+            "reason": "crop_salt_tolerance_unknown",
+            "crop": _crop_name(crop) or None,
+            "yield_kg_ha": None,
+            "biomass": None,
+            "water_use": None,
+            "stages": [],
+            "engine": "maas_hoffman_internal",
+        }
+    a, b = tolerance
     ks_salt = maas_hoffman_ks(ec_e, a, b)
     lr = leaching_fraction(ec_w, a)
     ceiling = _base_yield(crop, soil)
@@ -180,6 +241,7 @@ def simulate(
             "tolerance_threshold_a": a,
             "tolerance_slope_b": b,
         },
+        "available": True,
         "provenance": "aquacrop_uncalibrated",
         "engine": "maas_hoffman_internal",  # ليست الحزمة الرسميّة (مؤجَّلة §5-2)
     }
@@ -257,6 +319,7 @@ AQUACROP_SALT_CAPABILITY = SaltEngineCapability(
         "aquacrop_uncalibrated",  # Maas-Hoffman الداخليّ فعليّ لكن غير مُعايَر
         "aquacrop_production_unavailable",  # فشل مُغلَق مُصنَّف (إنتاج/الحزمة مؤجَّلة)
         "not_applicable_pcse_reference",  # ECe تحت العتبة ⇒ لم يُستدعَ (PCSE المرجع)
+        SALT_TOLERANCE_UNAVAILABLE,  # محصول بلا عتبة ملوحة في البطاقات ⇒ رفض لا افتراض
     ),
     routing_rule="ec_e >= AQUACROP_ECE_THRESHOLD (default 2.0 dS/m) ⇒ salt engine; else PCSE",
     calibration_status="uncalibrated_pending_golden",

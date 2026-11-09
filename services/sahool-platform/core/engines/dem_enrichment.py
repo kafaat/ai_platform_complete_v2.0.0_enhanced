@@ -241,3 +241,40 @@ def enrich_terrain(elevation_m: float | None, slope_pct: float | None, aspect: s
             "تُملأ من DEM بعد التشغيل أو يدويّاً."
         ),
     }
+
+
+_DEM_NOT_CONFIGURED_NOTE_AR = (
+    "التعبئة التلقائيّة من DEM غير مُهيّأة بعد (FIELD_DEM_PATH). "
+    "أدخِل elevation_m/slope_pct/aspect عبر PATCH /api/v1/fields/{field_id}، "
+    "والتفسير أعلاه يعمل فوراً على القيم المخزّنة."
+)
+
+
+def build_dem_auto_fill(computed: dict | None) -> dict:
+    """مظروف ``dem_auto_fill`` لمسار تضاريس الحقل — يحفظ سبب رفض raster-service.
+
+    ``computed`` هو المظروف الخامّ من raster-service (أو ``None`` حين لم يُستدعَ/تعذّر).
+    حسابٌ ناجح ⇒ ``available=True``. رفضٌ يحمل ``source``/``reason`` غير «غير مُهيّأ» (مثل
+    ``dem-no-valid-pixels``) ⇒ يُمرَّر المصدر والسبب كما هما وتُعرَض رسالتهما، لا رسالة
+    «FIELD_DEM_PATH غير مُهيّأ» التي تُخفي أنّ DEM مُهيّأ لكنّه رفض الحقل.
+    """
+    env = computed if isinstance(computed, dict) else None
+    available = bool(env and env.get("computed"))
+    source = env.get("source") if env else None
+    reason = env.get("reason") if env else None
+    if available:
+        note = "التضاريس محسوبة من نموذج ارتفاع حيّ (DEM) مقصوصٍ على الحقل."
+    elif source and source != "dem-not-configured":
+        note = (
+            f"تعذّرت التعبئة التلقائيّة من DEM ({source}): {reason or 'بلا سبب مُعلَن'}. "
+            "أدخِل elevation_m/slope_pct/aspect يدويّاً عبر PATCH /api/v1/fields/{field_id}."
+        )
+    else:
+        note = _DEM_NOT_CONFIGURED_NOTE_AR
+    return {
+        "available": available,
+        "source": source,
+        "reason": None if available else reason,
+        "computed": computed,
+        "note_ar": note,
+    }

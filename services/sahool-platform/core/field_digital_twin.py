@@ -23,9 +23,21 @@ class FieldTwinState:
 
 
 def simulate_irrigation(state: FieldTwinState, irrigation_mm: float) -> FieldTwinState:
-    soil_moisture = float(state.current.get("soil_moisture_pct", 0) or 0)
-    predicted_moisture = min(100.0, soil_moisture + irrigation_mm * 0.8)
+    raw_moisture = state.current.get("soil_moisture_pct")
     risks = dict(state.risks)
+    if raw_moisture is None:
+        # Unknown moisture is not 0 % (which reads as "high stress"): no prediction.
+        risks["water_stress"] = "unknown"
+        predicted = {**state.predicted, "soil_moisture_pct_after_irrigation": None}
+        return FieldTwinState(
+            state.field_id,
+            state.current,
+            state.expected,
+            predicted,
+            risks,
+            [*state.assumptions, "soil moisture unknown: water stress not simulated"],
+        )
+    predicted_moisture = min(100.0, float(raw_moisture) + irrigation_mm * 0.8)
     risks["water_stress"] = (
         "low" if predicted_moisture >= 35 else "medium" if predicted_moisture >= 20 else "high"
     )

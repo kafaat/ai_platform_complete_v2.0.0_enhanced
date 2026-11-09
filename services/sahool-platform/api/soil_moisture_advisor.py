@@ -20,6 +20,7 @@ api/soil_moisture_advisor.py — قراءة مستشعر الرطوبة + قرا
   RWC < 60%   → يحتاج ريّاً
   RWC 60-80%  → إجهاد خفيف (راقب)
   RWC > 80%   → آمن (قرب السعة الحقليّة)
+  VWC ≥ θFC + 0.5·(θs − θFC) → غدق/تشبّع (لا ريّ + تحذير) — إضافة سهول، لا من المستند
 
 ⚠ صدق: القيم المرجعيّة (θFC/θWP) تقديريّة حسب نوع التربة — تُقرأ من FAO-56 Table 19
 عبر core.engines.fao56 (المصدر الوحيد؛ لا جدول NRCCA موازٍ). الأدقّ قياسها
@@ -37,7 +38,7 @@ from core.engines.fao56 import canonical_texture, theta_fc_wp_for_texture
 # جدولاً ثالثاً (NRCCA: طميّ 0.40/0.125 ⇒ 275 مم/م) يخالف المحرّك (0.25/0.10 ⇒ 150)
 # وsoil_water (175) معاً. بقرار المالك (2026-10-15) يُقرأ θFC/θWP من ``core.engines.fao56``
 # (FAO-56 Table 19) وحده. يبقى هنا ما ليس θFC/θWP: الاسم العربيّ والملاحظة وθs (التشبّع،
-# للعرض فقط — لا يدخل أيّ حساب). القوام خارج هذه الثلاثة ⇒ loam (السلوك القائم).
+# يدخل عتبة الغدق فقط — ``waterlogged_threshold``). القوام خارج هذه الثلاثة ⇒ loam.
 _SOIL_DISPLAY = {
     "sand": {  # رمليّة
         "name_ar": "رمليّة",
@@ -69,6 +70,21 @@ def _soil_params(soil_type: str | None) -> dict:
 # عتبات قرار الريّ على RWC (من المستند)
 _RWC_NEED = 0.60  # تحتها: يحتاج ريّاً
 _RWC_SAFE = 0.80  # فوقها: آمن
+
+# عتبة التشبّع/الغدق: VWC ≥ θFC + k·(θs − θFC) ⇒ "waterlogged" (لا ريّ + تحذير).
+# k = 0.5: منتصف المسافة بين السعة الحقليّة والتشبّع — فوق θFC يصرف الماء
+# الجاذبيّ خلال ١–٣ أيّام عادةً، أمّا البقاء في النصف العلويّ نحو θs فيعني مسامّ
+# هوائيّة شبه مسدودة (نقص أكسجين الجذور). قيمة اصطلاحيّة محافظة لا معايرة حقليّة؛
+# بين θFC والعتبة يبقى القرار "safe" (لا ريّ) كما كان.
+_WATERLOGGED_K = 0.5
+
+
+def waterlogged_threshold(theta_fc: float, theta_s: float) -> float | None:
+    """عتبة VWC للغدق = θFC + k·(θs − θFC)؛ None حين θs ≤ θFC (لا مرجع تشبّع صالح)."""
+    if theta_s <= theta_fc:
+        return None
+    return theta_fc + _WATERLOGGED_K * (theta_s - theta_fc)
+
 
 # عمق منطقة الجذور الفعّال (متر) — لحساب كمّيّة الريّ (FAO-56 جدول ٢٢)
 # المرجع: FAO Irrigation & Drainage Paper 56 (Allen et al. 1998)
@@ -142,8 +158,22 @@ def compute_rwc(
     rwc_pct = round(rwc * 100, 1)
     fc_ratio_pct = round(min(1.0, vwc / fc) * 100, 1) if fc > 0 else 0.0
 
+    # التشبّع: θs من جدول العرض النوعيّ (قيمة تقديريّة). لو عُويِرت θFC فوق θs
+    # النوعيّة فلا مرجع تشبّع صالح ⇒ لا قرار غدق (يبقى "safe"، أي لا ريّ أيضاً).
+    theta_s = st["theta_s"]
+    wl_threshold = waterlogged_threshold(fc, theta_s)
+
     # قرار الريّ حسب العتبات الموثّقة
-    if rwc < _RWC_NEED:
+    if wl_threshold is not None and vwc >= wl_threshold:
+        decision = "waterlogged"
+        decision_ar = "تشبّع/غدق — لا تروِ"
+        reason_ar = (
+            f"الرطوبة الحجميّة {round(vwc * 100, 1)}% تجاوزت عتبة الغدق "
+            f"{round(wl_threshold * 100, 1)}% (منتصف المسافة بين السعة الحقليّة "
+            f"{round(fc * 100, 1)}% والتشبّع {round(theta_s * 100, 1)}%) — "
+            "⚠ خطر اختناق الجذور وتعفّنها. أوقف الريّ وتحقّق من الصرف."
+        )
+    elif rwc < _RWC_NEED:
         decision = "irrigate"
         decision_ar = "يحتاج ريّاً الآن"
         reason_ar = (
@@ -179,6 +209,9 @@ def compute_rwc(
         "soil_type_ar": st["name_ar"],
         "theta_fc": round(fc, 3),
         "theta_wp": round(wp, 3),
+        "theta_s": round(theta_s, 3),
+        "waterlogged_threshold_vwc": (round(wl_threshold, 3) if wl_threshold is not None else None),
+        "irrigation_allowed": decision in ("irrigate", "monitor"),
         "calibrated": calibrated,
         "decision": decision,
         "decision_ar": decision_ar,
@@ -260,7 +293,7 @@ def irrigation_guidance(
 
     # تنبيه حسّاسيّة المرحلة (المستند يذكر أنّ مرحلة سحب الذكور في الذرة حرجة)
     stage_note_ar = None
-    if growth_stage and base["decision"] != "safe":
+    if growth_stage and base["decision"] in ("irrigate", "monitor"):
         sensitive = any(
             k in growth_stage
             for k in ["إزهار", "flower", "سحب", "tassel", "عقد", "fruit_set", "ذروة", "mid"]

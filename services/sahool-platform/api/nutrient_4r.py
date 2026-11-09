@@ -78,17 +78,23 @@ class FourRRecommendation:
 # عتبة CaCO3 التي تُفعّل تحذيرات التربة الكلسيّة (أدبيّات التربة)
 _CALCAREOUS_THRESHOLD = 15.0  # %
 _HIGH_PH_THRESHOLD = HIGH_PH_THRESHOLD  # قلويّة (المصدر الموحّد core.thresholds)
+# قيمة مجهولة ليست صفراً: غياب CaCO3/pH لا يستبعد الخطر، فيُفترَض قائماً (تحذير محافظ).
+_UNKNOWN_SOIL_RISK_WARNING = (
+    "CaCO3/pH غير معروف — افترض وجود الخطر (CaCO3/pH unknown — assume risk)"
+)
 
 
 def recommend_nitrogen(soil: SoilContext) -> FourRRecommendation:
     """قاعدة N للتربة الكلسيّة: تجنّب تطاير الأمونيا."""
     warnings = []
-    is_calc = (soil.caco3_pct or 0) >= _CALCAREOUS_THRESHOLD
-    high_ph = (soil.ph or 0) >= _HIGH_PH_THRESHOLD
+    is_calc = soil.caco3_pct is not None and soil.caco3_pct >= _CALCAREOUS_THRESHOLD
+    high_ph = soil.ph is not None and soil.ph >= _HIGH_PH_THRESHOLD
 
     source = "كبريتات الأمونيوم أو نترات (أفضل من اليوريا في التربة الكلسيّة)"
     if is_calc or high_ph:
         warnings.append("خطر تطاير الأمونيا عالٍ — تجنّب نثر اليوريا على السطح")
+    elif soil.caco3_pct is None or soil.ph is None:
+        warnings.append(_UNKNOWN_SOIL_RISK_WARNING + " — خطر تطاير الأمونيا")
 
     return FourRRecommendation(
         nutrient=Nutrient.N,
@@ -103,7 +109,7 @@ def recommend_nitrogen(soil: SoilContext) -> FourRRecommendation:
 
 def recommend_phosphorus(soil: SoilContext) -> FourRRecommendation:
     """قاعدة P: الفوسفور مُثبَّت في التربة الكلسيّة → BLOCKED بلا تحليل."""
-    is_calc = (soil.caco3_pct or 0) >= _CALCAREOUS_THRESHOLD
+    is_calc = soil.caco3_pct is not None and soil.caco3_pct >= _CALCAREOUS_THRESHOLD
 
     if soil.p_ppm is None:
         # absence-of-authority → BLOCKED (مبدأ حاكم)
@@ -120,6 +126,8 @@ def recommend_phosphorus(soil: SoilContext) -> FourRRecommendation:
     warnings = []
     if is_calc:
         warnings.append("تثبيت الفوسفور مرتفع — الحزم قرب الجذور أكفأ من النثر بكثير")
+    elif soil.caco3_pct is None:
+        warnings.append(_UNKNOWN_SOIL_RISK_WARNING + " — خطر تثبيت الفوسفور")
     low_p = soil.p_ppm < 10  # عتبة Olsen-P تقريبيّة
     return FourRRecommendation(
         nutrient=Nutrient.P,
@@ -172,7 +180,8 @@ def recommend_micronutrient(soil: SoilContext, nutrient: Nutrient) -> FourRRecom
 # ترتيب المراحل من _STAGE_FRACTIONS (مصدر موحّد) — أمّا نِسَب الامتصاص فمستقلّة عن
 # أطوال المراحل (الامتصاص مدفوع بالكتلة الحيويّة لا بالزمن).
 # ⚠ نِسَب أوّليّة من شكل منحنى الامتصاص العامّ (أدبيّات) — تحتاج معايرة يمنيّة لكلّ
-# محصول/عنصر. موسومة calibrated=False. Σ=1.0.
+# محصول/عنصر. موسومة calibrated=False. Σ=1.0. **احتياط فقط**: محصولٌ تحمل بطاقته منحنى
+# ``phenology.stages[].nutrient_demand`` يُقرأ منحناه أوّلاً (``nutrient_uptake``).
 _UPTAKE_FRACTIONS: dict[str, float] = {
     "initial": 0.10,
     "development": 0.35,
@@ -200,36 +209,109 @@ def _stage_length_bounds() -> list[tuple[str, float, float]]:
     return bounds
 
 
+_NUTRIENT_KEYS: dict[str, str] = {
+    "n": "n",
+    "nitrogen": "n",
+    "p": "p",
+    "phosphorus": "p",
+    "k": "k",
+    "potassium": "k",
+}
+
+
+def _card_uptake_curve(
+    crop: str | None, element: str
+) -> tuple[list[tuple[str, float, float, float]], str | None, str | None]:
+    """منحنى امتصاص العنصر من بطاقة المحصول: [(مرحلة، كسر، بداية، نهاية)] بتقدّم [0,1].
+
+    الكسور مشتقّة لنوافذ FAO-56 في البطاقة نفسها (``phenology.stages``)، فحدود التقدّم
+    تُؤخذ من أيّام تلك النوافذ لا من الأطوال العامّة — كسرٌ يُطبَّق على نافذةٍ غير التي
+    اشتُقّ لها يُزيح الجرعة زمنيّاً. يُرجِع ([], None, سبب) إن لا منحنى صالحاً.
+    """
+    from core.crop_cards.loader import stage_nutrient_demand
+    from core.season_phenology import resolve_crop_id
+
+    crop_id = resolve_crop_id(crop)
+    if crop_id is None:
+        return [], None, None
+    stages = stage_nutrient_demand(crop_id)
+    if not stages:
+        return [], crop_id, None
+    names = [st["stage"] for st in stages]
+    fracs = [st.get(f"{element}_fraction") for st in stages]
+    total_days = max(float(st["day_end"]) for st in stages)
+    if (
+        names != _stage_order()
+        or not all(isinstance(f, (int, float)) and f >= 0 for f in fracs)
+        or abs(sum(fracs) - 1.0) > 0.01
+        or total_days <= 0
+    ):
+        return [], crop_id, "منحنى البطاقة غير صالح (مراحل/مجموع كسور) — استُعمل المنحنى العامّ"
+    curve = [
+        (
+            st["stage"],
+            float(f),
+            float(st["day_start"]) / total_days,
+            float(st["day_end"]) / total_days,
+        )
+        for st, f in zip(stages, fracs, strict=True)
+    ]
+    return curve, crop_id, None
+
+
+def _generic_uptake_curve() -> list[tuple[str, float, float, float]]:
+    return [
+        (name, _UPTAKE_FRACTIONS.get(name, 0.0), start, end)
+        for name, start, end in _stage_length_bounds()
+    ]
+
+
 def nutrient_uptake(
     crop: str | None,
     stage_or_progress: str | float | None,
     target_uptake_kg_ha: float,
+    nutrient: str = "n",
 ) -> dict:
     """يوزّع الاحتياج الكلّيّ من عنصر على منحنى الامتصاص عبر المراحل — نقيّ حتميّ.
 
     المدخلات:
-      • crop: لمعايرة مستقبليّة لكلّ محصول (حاليّاً منحنى عامّ موسوم غير معايَر).
+      • crop: يُحلّ إلى بطاقة المحصول؛ منحنى البطاقة المرحليّ للعنصر (``nutrient_demand``)
+        يُقرأ أوّلاً (``source: crop_card``)، وإلّا المنحنى العامّ (``source: generic``).
       • stage_or_progress: اسم مرحلة (تراكم *شامل* لها)، أو تقدّم موسمي [0,1]
-        (استيفاء خطّيّ عبر حدود أطوال المراحل)، أو None (المنحنى الكامل بلا "حتى الآن").
+        (استيفاء خطّيّ عبر حدود المراحل)، أو None (المنحنى الكامل بلا "حتى الآن").
       • target_uptake_kg_ha: الاحتياج الموسمي الكلّيّ (مثلاً crop_demand_kg_ha من
         fertilizer.compute). سالب أو صفر ⇒ كمّيّات صفريّة (لا تلفيق).
+      • nutrient: العنصر الذي يخصّه الهدف (n/p/k؛ الافتراض n).
 
-    المخرجات (dict): المنحنى لكلّ مرحلة + التراكم "حتى الآن" + calibrated=False + تحذيرات.
-    صدق: نِسَب الامتصاص غير معايَرة يمنيّاً (موسومة)؛ عند غياب الهدف لا نخترع رقماً.
+    المخرجات (dict): المنحنى لكلّ مرحلة + التراكم "حتى الآن" + المصدر + calibrated=False.
+    صدق: لا منحنى معايَر محلّيّاً (منحنى البطاقة تقريب أدبيّ، والعامّ أقلّ منه)؛ عند غياب
+    الهدف لا نخترع رقماً.
     """
-    warnings_ar: list[str] = [
-        "منحنى امتصاص عامّ غير معايَر يمنيّاً — النِّسَب تقديريّة لكلّ محصول/عنصر",
-    ]
+    element = _NUTRIENT_KEYS.get((nutrient or "").strip().lower())
+    if element is None:
+        raise ValueError(f"عنصر غير مدعوم لمنحنى الامتصاص: {nutrient!r} (n/p/k)")
+    curve, crop_id, card_warning = _card_uptake_curve(crop, element)
+    if curve:
+        source = "crop_card"
+        warnings_ar: list[str] = [
+            "منحنى امتصاص البطاقة تقريب أدبيّ غير معايَر محلّيّاً — الكسور تقديريّة",
+        ]
+    else:
+        source = "generic"
+        curve = _generic_uptake_curve()
+        warnings_ar = [
+            "منحنى امتصاص عامّ غير معايَر يمنيّاً — النِّسَب تقديريّة لكلّ محصول/عنصر",
+        ]
+        if card_warning:
+            warnings_ar.append(card_warning)
     target = max(0.0, float(target_uptake_kg_ha or 0.0))
     if target_uptake_kg_ha is not None and target_uptake_kg_ha < 0:
         warnings_ar.append("هدف الامتصاص سالب — عومل كصفر")
 
-    order = _stage_order()
     stages: list[dict] = []
     cum_frac = 0.0
     cum_kg = 0.0
-    for name in order:
-        frac = _UPTAKE_FRACTIONS.get(name, 0.0)
+    for name, frac, _start, _end in curve:
         kg = frac * target
         cum_frac += frac
         cum_kg += kg
@@ -248,18 +330,17 @@ def nutrient_uptake(
     matched_stage: str | None = None
     if isinstance(stage_or_progress, str):
         key = stage_or_progress.strip().lower()
-        if key in _UPTAKE_FRACTIONS:
+        if key in {name for name, *_ in curve}:
             matched_stage = key
-            for name in order:
-                to_date_fraction += _UPTAKE_FRACTIONS.get(name, 0.0)
+            for name, frac, _start, _end in curve:
+                to_date_fraction += frac
                 if name == key:
                     break
         else:
             warnings_ar.append(f"مرحلة غير معروفة ({stage_or_progress}) — التراكم حتى الآن=0")
     elif isinstance(stage_or_progress, (int, float)) and not isinstance(stage_or_progress, bool):
         p = min(1.0, max(0.0, float(stage_or_progress)))
-        for name, start, end in _stage_length_bounds():
-            frac = _UPTAKE_FRACTIONS.get(name, 0.0)
+        for name, frac, start, end in curve:
             if p >= end:
                 to_date_fraction += frac
                 matched_stage = name
@@ -275,6 +356,9 @@ def nutrient_uptake(
     to_date_fraction = min(1.0, to_date_fraction)
     return {
         "crop": (crop or "").strip().lower() or None,
+        "crop_id": crop_id,
+        "nutrient": element,
+        "source": source,
         "target_uptake_kg_ha": round(target, 2),
         "stages": stages,
         "matched_stage": matched_stage,

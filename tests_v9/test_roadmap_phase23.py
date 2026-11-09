@@ -1251,7 +1251,7 @@ def test_soil_moisture_advisor():
     # العتبات الثلاث
     if (
         compute_rwc(0.13, "loam")["decision"] == "irrigate"
-        and compute_rwc(0.45, "loam")["decision"] == "safe"
+        and compute_rwc(0.30, "loam")["decision"] == "safe"
     ):
         r.append(("✓", "العتبات: RWC<60% ريّ · >80% آمن (من المستند)"))
     # حسّاسيّة المرحلة (الذرة في الإزهار)

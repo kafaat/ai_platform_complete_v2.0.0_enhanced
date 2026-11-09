@@ -22,6 +22,8 @@ from api.device_models import (
     _DEVICE_ONLINE_WINDOW_MIN,
     DeviceRequest,
     TelemetryRequest,
+    TelemetryTimeRejected,
+    resolve_recorded_at,
     telemetry_freshness,
 )
 from api.idempotency import model_digest
@@ -131,19 +133,12 @@ async def ingest_telemetry(
 ):
     """يبتلع قراءة من جهاز ويحدّث آخر ظهوره (= نبضة صحّة). تسجيل القراءة من
     صلاحية observation:record (العامل يدفع قراءات الميدان)."""
-    recorded = None
-    if req.recorded_at:
-        # ندعم لاحقة "Z" (Zulu/UTC) الشائعة، ونطبّع الـnaive إلى UTC قبل
-        # إدخاله في عمود TIMESTAMPTZ (لئلّا يُرفَض مدخل صحيح أو يُخزَّن توقيت ملتبس).
-        raw = req.recorded_at.strip().replace("Z", "+00:00").replace("z", "+00:00")
-        try:
-            recorded = datetime.fromisoformat(raw)
-        except (ValueError, TypeError):
-            raise HTTPException(
-                status_code=400, detail="recorded_at غير صالح — استخدم ISO 8601"
-            ) from None
-        if recorded.tzinfo is None:
-            recorded = recorded.replace(tzinfo=UTC)
+    # وقتٌ واحد يُحسَم مرّةً للصفّ الخامّ والملاحظة المُحوَّلة (لا NOW() هنا وnow() هناك).
+    now = datetime.now(UTC)
+    try:
+        recorded, declared, skew_s = resolve_recorded_at(req.recorded_at, now)
+    except TelemetryTimeRejected as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from None
     async with tenant_connection(user) as conn:
         device = await conn.fetchrow(
             "SELECT field_id FROM iot_devices WHERE device_id = $1", device_id
@@ -153,7 +148,7 @@ async def ingest_telemetry(
         await conn.execute(
             """INSERT INTO device_telemetry
                 (tenant_id, device_id, sensor_type, value, unit, recorded_at)
-               VALUES ($1::uuid, $2, $3, $4, $5, COALESCE($6, NOW()))""",
+               VALUES ($1::uuid, $2, $3, $4, $5, $6)""",
             str(user.tenant_id),
             device_id,
             req.sensor_type,
@@ -161,27 +156,36 @@ async def ingest_telemetry(
             req.unit,
             recorded,
         )
-        # القراءة = نبضة صحّة: حدّث آخر ظهور والحالة online
-        await conn.execute(
-            "UPDATE iot_devices SET last_seen_at = NOW(), status = 'online' WHERE device_id = $1",
-            device_id,
-        )
+        # القراءة = نبضة صحّة **حين تكون حديثة** (نافذة «online» نفسها): قراءةٌ مؤرَّخةٌ
+        # قديمة (رفعُ مخزونٍ مؤجَّل) لا تجعل جهازاً صامتاً «online».
+        if not telemetry_freshness(recorded, now, _DEVICE_ONLINE_WINDOW_MIN)["stale"]:
+            await conn.execute(
+                "UPDATE iot_devices SET last_seen_at = NOW(), status = 'online' "
+                "WHERE device_id = $1",
+                device_id,
+            )
 
     # SENSOR-TELEMETRY-INGEST-REACHES-NO-AGRONOMIC-CONSUMER-01: `device_telemetry` لا يقرؤه
     # حكمٌ زراعيّ — كلُّ مستهلكي رطوبة التربة يقرؤون `soil_observations`. تُحوَّل القراءةُ
     # إلى **مالكِ** ذلك الجدول (`soil-service`) لا تُكتَب من هنا، فالمنصّةُ قارئةٌ بالعقد.
-    agronomic = await _forward_agronomic_reading(user, device_id, device["field_id"], req, recorded)
+    agronomic = await _forward_agronomic_reading(
+        user, device_id, device["field_id"], req, recorded, declared, skew_s
+    )
 
     # الردُّ يقول ما بلغ وما لم يبلغ. «سُجّلت القراءة» وحدَها كانت **صادقةً حرفيّاً وكاذبةً
     # دلاليّاً**: القراءةُ سُجِّلت في جدولٍ لا يقرؤه قرار، فيبقى الدافعُ واثقاً بأنّها
     # تُستعمَل. الرفضُ كان سيُعلِمه فوراً؛ فالقبولُ يجب أن يُعلِمه بحدوده.
     body = {"device_id": device_id, "message_ar": "سُجّلت القراءة"}
+    if skew_s > 0:
+        body["device_clock_skew_s"] = round(skew_s, 3)
     if agronomic is not None:
         body["agronomic_path"] = agronomic
     return body
 
 
-async def _forward_agronomic_reading(user, device_id: str, field_id, req, recorded):
+async def _forward_agronomic_reading(
+    user, device_id: str, field_id, req, recorded, declared=True, skew_s=0.0
+):
     """يُحوّل القراءةَ الزراعيّة إلى مالكِ `soil_observations`، ويُعيد نتيجةً مُسمّاة.
 
     يُعيد ``None`` حين لا تكون القراءةُ زراعيّةً أصلاً — فلا يُقحَم مفتاحٌ يوحي بمسارٍ
@@ -202,10 +206,13 @@ async def _forward_agronomic_reading(user, device_id: str, field_id, req, record
             property_name=req.sensor_type,
             value=req.value,
             unit=req.unit,
-            observed_at=recorded or datetime.now(UTC),
+            observed_at=recorded,
             depth_from_cm=req.depth_from_cm,
             depth_to_cm=req.depth_to_cm,
             calibration_id=req.calibration_id,
+            message_id=req.message_id,
+            observed_at_declared=declared,
+            quality_flags=["device_clock_skew"] if skew_s > 0 else None,
         )
     except Exception as exc:  # noqa: BLE001 — الابتلاعُ الصامتُ هو صنفُ الفجوة نفسِه
         logger.warning("soil observation forward failed", exc_info=True)

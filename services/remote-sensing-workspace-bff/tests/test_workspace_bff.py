@@ -104,10 +104,13 @@ def test_overview_counts_use_real_upstream_keys(monkeypatch):
     assert overview["observation_count"] == 3  # from ``entries`` — not a fabricated 0
     assert overview["open_anomaly_count"] == 1
     assert overview["decision_count"] == 1
-    # No invented verified-outcome figure while the upstream is a stub — only an
-    # honest availability flag derived from the real payload key.
-    assert "verified_outcome_count" not in overview
-    assert overview["outcome_reconciliation_available"] is True
+    # No invented verified-outcome figure while the upstream is a stub: the key is
+    # present (the UI contract) but null. An explicit "stub" status is not
+    # availability — a non-empty dict of zeros used to read as available=True.
+    assert overview["verified_outcome_count"] is None
+    assert overview["outcome_reconciliation_status"] == "stub"
+    assert overview["outcome_reconciliation_available"] is False
+    assert overview["decision_scope"] == "field"
     assert body["sections"]["outcomes"] == {
         "outcome_reconciliation": {"sample_count": 0, "status": "stub"}
     }
@@ -197,3 +200,86 @@ def test_missing_production_service_token_never_uses_user_token(platform_identit
     assert response.status_code == 503
     assert len(platform_identity["requests"]) == 1
     assert response.json()["detail"] == "decision_service_auth_unavailable"
+
+
+def _overview_with_outcomes(monkeypatch, outcomes):
+    async def fake_get(client, url, headers, params=None):
+        if "observation-timeline" in url:
+            return {"entries": []}
+        if "signal-anomalies" in url:
+            return {"anomalies": []}
+        if url.endswith("/v1/decisions"):
+            return {"decisions": [{"id": "d1"}, {"id": "d2"}], "count": 2}
+        if "outcomes/reconciled" in url:
+            return outcomes
+        raise AssertionError(f"unexpected upstream {url}")
+
+    monkeypatch.setattr(mod, "_get", fake_get)
+    response = client.get(
+        "/v1/fields/fld_a/remote-sensing-workspace",
+        params={"season_id": "s1", "include": "overview"},
+        headers={"Authorization": "Bearer x", "X-Tenant-Id": "t"},
+    )
+    assert response.status_code == 200
+    return response.json()["sections"]["overview"]
+
+
+def test_overview_verified_outcome_count_from_explicit_upstream_count(monkeypatch):
+    ov = _overview_with_outcomes(
+        monkeypatch,
+        {"outcome_reconciliation": {"source": "store", "verified_outcome_count": 4}},
+    )
+    assert ov["verified_outcome_count"] == 4
+    assert ov["outcome_reconciliation_available"] is True
+    assert ov["outcome_reconciliation_status"] == "store"
+    assert ov["decision_count"] == 2
+    assert ov["decision_scope"] == "field"
+
+
+def test_overview_verified_outcome_count_from_list(monkeypatch):
+    ov = _overview_with_outcomes(
+        monkeypatch,
+        {
+            "outcome_reconciliation": {"source": "store"},
+            "verified_outcomes": [{"id": 1}, {"id": 2}],
+        },
+    )
+    assert ov["verified_outcome_count"] == 2
+
+
+def test_overview_real_upstream_store_summary_without_verified_count_is_null(monkeypatch):
+    # decision-service store summary: counts exist but none is labelled "verified"
+    ov = _overview_with_outcomes(
+        monkeypatch,
+        {
+            "outcome_reconciliation": {
+                "enabled": True,
+                "sample_count": 5,
+                "evaluated_count": 3,
+                "source": "store",
+            }
+        },
+    )
+    assert ov["verified_outcome_count"] is None
+    assert ov["outcome_reconciliation_available"] is True
+
+
+def test_overview_unavailable_source_and_unlabelled_payload(monkeypatch):
+    ov = _overview_with_outcomes(
+        monkeypatch,
+        {"outcome_reconciliation": {"enabled": True, "sample_count": 0, "source": "unavailable"}},
+    )
+    assert ov["outcome_reconciliation_available"] is False
+    assert ov["verified_outcome_count"] is None
+    ov = _overview_with_outcomes(monkeypatch, {"outcome_reconciliation": {"sample_count": 0}})
+    assert ov["outcome_reconciliation_available"] is None
+    assert ov["outcome_reconciliation_status"] is None
+
+
+def test_overview_rejects_bool_or_negative_verified_count(monkeypatch):
+    for bad in (True, -1, "3"):
+        ov = _overview_with_outcomes(
+            monkeypatch,
+            {"outcome_reconciliation": {"source": "store", "verified_outcome_count": bad}},
+        )
+        assert ov["verified_outcome_count"] is None

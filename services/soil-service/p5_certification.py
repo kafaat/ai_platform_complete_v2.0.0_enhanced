@@ -59,6 +59,24 @@ def _r2(y, p):
     return 1 - sum((a - b) ** 2 for a, b in zip(y, p, strict=False)) / ss
 
 
+# قاعدة spatial_cv: لا يُعَدّ مقياس مُتحقَّقاً مكانيّاً إلّا إذا جاءت ملاحظاته من ≥3 حقول مميّزة
+# **و** لم يستأثر حقل واحد بأكثر من نصف الملاحظات المميّزة (وإلّا فالـ«تحقّق» عمليّاً حقل واحد).
+SPATIAL_CV_MIN_FIELDS = 3
+SPATIAL_CV_MAX_FIELD_SHARE = 0.5
+
+
+def _spatial_cv_ok(field_by_observation: dict[tuple[str, str], str]) -> bool:
+    n = len(field_by_observation)
+    if n == 0:
+        return False
+    per_field: dict[str, int] = defaultdict(int)
+    for field_id in field_by_observation.values():
+        per_field[field_id] += 1
+    if len(per_field) < SPATIAL_CV_MIN_FIELDS:
+        return False
+    return max(per_field.values()) / n <= SPATIAL_CV_MAX_FIELD_SHARE
+
+
 def build_calibration(
     *,
     tenant_id: str,
@@ -69,19 +87,46 @@ def build_calibration(
     model_version: str,
     records: Iterable[FieldValidationRecord],
     minimum_samples: int = 20,
+    training_field_ids: Iterable[str] | None = None,
 ) -> RegionalCalibrationArtifact:
-    accepted = [
-        r
-        for r in records
-        if r.accepted and r.governorate == governorate and (crop is None or r.crop == crop)
-    ]
-    grouped = defaultdict(list)
+    """يبني مُعايرة إقليميّة من سجلّات تحقّق ميدانيّ مقبولة.
+
+    * ``n`` لكلّ خاصّيّة = عدد الملاحظات المميّزة ``(validation_id, property)`` — تكرار السجلّ
+      نفسه لا يضخّم العيّنة. صفوف الخطأ تُزال ازدواجيّتها على ``(validation_id, property,
+      depth_cm)``.
+    * ``leakage_checks_passed`` يُحسَب على **المدخل قبل إزالة الازدواج**: أيّ ``validation_id``
+      مكرَّر ⇒ False؛ وإن مُرِّرت ``training_field_ids`` فأيّ حقل تحقّق موجود في التدريب ⇒ False.
+    * ``spatial_cv``: ≥3 حقول مميّزة ولا يتجاوز نصيب حقل واحد نصف الملاحظات المميّزة.
+    """
+    all_records = list(records)
+    id_counts: dict[str, int] = defaultdict(int)
+    for r in all_records:
+        id_counts[r.validation_id] += 1
+    duplicated_ids = any(c > 1 for c in id_counts.values())
+
+    accepted = []
+    seen_ids: set[str] = set()
+    for r in all_records:
+        if not (r.accepted and r.governorate == governorate and (crop is None or r.crop == crop)):
+            continue
+        if r.validation_id in seen_ids:
+            continue  # first occurrence only; the duplication itself fails leakage below
+        seen_ids.add(r.validation_id)
+        accepted.append(r)
+
+    grouped: dict[str, list] = defaultdict(list)
+    observation_field: dict[str, dict[tuple[str, str], str]] = defaultdict(dict)
+    seen_rows: set[tuple[str, str, int | None]] = set()
     for r in accepted:
         for m in r.measurements:
-            if m.predicted_value is not None:
-                grouped[m.property_name].append(
-                    (m.measured_value, m.predicted_value, r.field_id, r.validation_id)
-                )
+            if m.predicted_value is None:
+                continue
+            row_key = (r.validation_id, m.property_name, m.depth_cm)
+            if row_key in seen_rows:
+                continue
+            seen_rows.add(row_key)
+            grouped[m.property_name].append((m.measured_value, m.predicted_value))
+            observation_field[m.property_name][(r.validation_id, m.property_name)] = r.field_id
     metrics = []
     for prop, rows in sorted(grouped.items()):
         y = [x[0] for x in rows]
@@ -90,17 +135,21 @@ def build_calibration(
         metrics.append(
             CalibrationMetric(
                 property_name=prop,
-                n=len(rows),
+                n=len(observation_field[prop]),
                 mae=sum(abs(e) for e in errs) / len(errs),
                 rmse=math.sqrt(sum(e * e for e in errs) / len(errs)),
                 bias=sum(errs) / len(errs),
                 r2=_r2(y, p),
-                spatial_cv=len({x[2] for x in rows}) >= 3,
+                spatial_cv=_spatial_cv_ok(observation_field[prop]),
             )
         )
     ids = sorted({r.validation_id for r in accepted})
     h = hashlib.sha256(json.dumps(ids, sort_keys=True).encode()).hexdigest()
     enough = bool(metrics) and all(m.n >= minimum_samples for m in metrics)
+    training_overlap = False
+    if training_field_ids is not None:
+        training_fields = {str(f) for f in training_field_ids}
+        training_overlap = any(r.field_id in training_fields for r in accepted)
     return RegionalCalibrationArtifact(
         tenant_id=tenant_id,
         governorate=governorate,
@@ -113,7 +162,7 @@ def build_calibration(
         status="candidate" if enough else "insufficient_data",
         model_version=model_version,
         training_data_hash=h,
-        leakage_checks_passed=len(ids) == len(set(ids)),
+        leakage_checks_passed=not duplicated_ids and not training_overlap,
     )
 
 
@@ -201,6 +250,10 @@ def build_learning_manifest(
     if not all(r.get("source_profile_hash") and r.get("outcome_id") for r in eligible):
         exclusions.append("lineage_incomplete")
     ids = sorted(str(r.get("learning_id")) for r in eligible)
+    leakage_checks_passed = len(ids) == len(set(ids))
+    if not leakage_checks_passed:
+        # صفّ تعلّم مكرَّر يتسرّب بين train/validation/test — لا تدريب عليه.
+        exclusions.append("leakage_checks_failed")
     digest = hashlib.sha256(json.dumps(ids, sort_keys=True).encode()).hexdigest()
     n = len(eligible)
     train = int(n * 0.7)
@@ -216,7 +269,7 @@ def build_learning_manifest(
         train_count=train,
         validation_count=val,
         test_count=test,
-        leakage_checks_passed=len(ids) == len(set(ids)),
+        leakage_checks_passed=leakage_checks_passed,
         lineage_complete="lineage_incomplete" not in exclusions,
         dataset_hash=digest,
         eligible_for_training=not exclusions,

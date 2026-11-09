@@ -63,13 +63,33 @@ class TestIrrigationAdvice:
         assert base["urgency"] == "moderate"
         assert deferred["urgency"] == "low"
 
+    # SOIL-MOISTURE-ELIGIBILITY-01: العتبتان تخصّان ماءً متاحاً **مُعلَناً**؛ كان الافتراضيّ
+    # يقرأ `%` العارية ماءً متاحاً. الآن تُعلَن الوحدة صراحةً، والعارية استشاريّة.
     def test_critical_soil_moisture_forces_high(self):
-        r = irrigation_advice(et0_mm=5.0, crop="wheat", stage="mid", soil_moisture_pct=20.0)
+        r = irrigation_advice(
+            et0_mm=5.0,
+            crop="wheat",
+            stage="mid",
+            soil_moisture_pct=20.0,
+            soil_moisture_unit_kind="available_pct",
+        )
         assert r["urgency"] == "high"
 
     def test_comfortable_soil_moisture_lowers_urgency(self):
-        r = irrigation_advice(et0_mm=6.0, crop="wheat", stage="mid", soil_moisture_pct=70.0)
+        r = irrigation_advice(
+            et0_mm=6.0,
+            crop="wheat",
+            stage="mid",
+            soil_moisture_pct=70.0,
+            soil_moisture_unit_kind="available_pct",
+        )
         assert r["urgency"] == "low"
+
+    def test_bare_percentage_defaults_to_undeclared_and_cannot_move_urgency(self):
+        plain = irrigation_advice(et0_mm=5.0, crop="wheat", stage="mid")
+        bare = irrigation_advice(et0_mm=5.0, crop="wheat", stage="mid", soil_moisture_pct=20.0)
+        assert bare["urgency"] == plain["urgency"] != "high"
+        assert "غير مُعلَنة" in bare["rationale_ar"]
 
     def test_negative_et0_clamped(self):
         r = irrigation_advice(et0_mm=-3.0, crop="wheat", stage="mid")
@@ -123,9 +143,14 @@ class TestDiseaseRisk:
             assert k in r
 
     def test_humid_mild_wet_is_high_risk(self):
-        r = disease_risk(temp_c=20.0, humidity_pct=90.0, rain_mm_3d=15.0)
+        # الأسماء عائليّة: تُقرأ من بطاقة المحصول. بلا محصول ⇒ خطرٌ عامّ بلا أسماء
+        # (كان الاختبار يُثبت أسماءً — منها اللفحة المتأخّرة — لأيّ محصول).
+        r = disease_risk(temp_c=20.0, humidity_pct=90.0, rain_mm_3d=15.0, crop="potato")
         assert r["risk_level"] == "high"
         assert r["diseases_ar"]  # غير فارغة
+        generic = disease_risk(temp_c=20.0, humidity_pct=90.0, rain_mm_3d=15.0)
+        assert generic["risk_level"] == "high"
+        assert generic["diseases_ar"] == []
 
     def test_dry_hot_is_low_risk(self):
         r = disease_risk(temp_c=40.0, humidity_pct=20.0, rain_mm_3d=0.0)
