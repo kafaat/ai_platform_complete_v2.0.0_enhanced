@@ -1,0 +1,9 @@
+# E3 restore target — authentication probe (owner-approved E3 experimentation, 2026-11-09).
+# Touches no data: reads version/PostGIS/pg_hba rules, proves wrong and missing passwords are
+# refused over TCP, and that a restricted role can log in but cannot create a database.
+FROM debian:bookworm-slim
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends postgresql-client-15 bash ca-certificates openssl \
+ && rm -rf /var/lib/apt/lists/*
+COPY deploy/railway/e3/probe_restore_auth.sh /probe.sh
+ENTRYPOINT ["bash", "/probe.sh"]
