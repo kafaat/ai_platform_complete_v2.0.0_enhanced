@@ -390,6 +390,47 @@ def test_base_changed_after_approval_is_refused(repo, keys):
     _blocked(errors, "base changed after approval")
 
 
+# ── history rewritten after signing: every rewrite fails closed (owner re-signs) ──
+# The ancestry check compares a = subject.head_sha (the commit the owner signed) with
+# b = the PR head (github.event.pull_request.head.sha). A rewrite of the PR branch gives b
+# a history that no longer contains a, even when the bytes are identical, so the
+# authorization is refused rather than carried onto commits the owner never saw.
+_GIT_ID = ("-c", "user.name=t", "-c", "user.email=t@e")
+
+
+def test_a_rebase_after_signing_is_refused(repo, keys):
+    head = _transition_commit(repo)
+    _authorize(repo, keys, head=head)
+    _git(repo, "checkout", "-q", "main")
+    _write(repo, "README.md", "main moved\n")
+    _commit(repo, "main moves")
+    _git(repo, "checkout", "-q", "pr")
+    _git(repo, *_GIT_ID, "rebase", "-q", "main")
+    errors, _ = _findings(repo)
+    _blocked(errors, "is not an ancestor of the PR head")
+    _blocked(errors, "base changed after approval")
+
+
+def test_a_squash_of_the_pr_branch_after_signing_is_refused(repo, keys):
+    head = _transition_commit(repo)
+    _authorize(repo, keys, head=head)
+    tree_before = _git(repo, "rev-parse", "HEAD^{tree}")
+    _git(repo, "reset", "-q", "--soft", "main")
+    _git(repo, *_GIT_ID, "commit", "-q", "-m", "squashed")
+    assert _git(repo, "rev-parse", "HEAD^{tree}") == tree_before  # same bytes, new history
+    errors, _ = _findings(repo)
+    _blocked(errors, "is not an ancestor of the PR head")
+
+
+def test_amending_the_signed_commit_with_identical_bytes_is_refused(repo, keys):
+    head = _transition_commit(repo)
+    _git(repo, *_GIT_ID, "commit", "-q", "--amend", "-m", "reworded, same tree")
+    assert _git(repo, "rev-parse", "HEAD^{tree}") == _git(repo, "rev-parse", f"{head}^{{tree}}")
+    _authorize(repo, keys, head=head)  # the signature names the pre-amend commit
+    errors, _ = _findings(repo)
+    _blocked(errors, "is not an ancestor of the PR head")
+
+
 def test_a_commit_after_the_signed_head_is_refused(repo, keys):
     head = _transition_commit(repo)
     _authorize(repo, keys, head=head)
