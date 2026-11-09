@@ -16,43 +16,27 @@
 
 The old description said "not for a documentation-only question". That contradicted pilot case P1 (adding a skill Markdown file is a docs-only change that **does** make generated artifacts drift: see section 4). The new description includes docs and skill changes and keeps conceptual questions out by saying "before pushing a change".
 
-## 2. Blind trigger selection (evaluator step 2): prompts emitted, model run NOT_RUN
+## 2. Blind trigger selection (evaluator step 2): RUN 2026-11-09
 
-`trigger_scenarios.json` (21 cases, beside this file) covers the pilot cases plus the boundary with the neighbouring skills:
+Procedure: `trigger_eval.py emit --skills-root .claude/skills` → the prompt was given verbatim to a fresh agent with no repository context and no tools (a `Plan` subagent, which does not load CLAUDE.md), its JSON reply saved, then `trigger_eval.py score`. One run per set, one model (the session model); this measures the description layer only, not stability across runs or models.
 
-- 6 positive (2 Arabic), including P5 as `any_of` with `failure-investigation`
-- 3 adversarial (A1-A3)
-- 6 boundary cases owned by a neighbour (`failure-investigation`, `adaptive-test-accelerator`, `safe-delivery`, `change-review`, `work-router`, `skill-evaluator`), where choosing this skill counts as a false trigger
-- 5 negative (1 Arabic)
-- 1 where loading it is optional (N3, no Git checkout)
+| Set | Prompt SHA-256 (prefix) | Seed | Result |
+|---|---|---|---|
+| This skill's 21 cases (`trigger_scenarios.json`) | `05e5b5eb68f9d523` | 11 | **21/21 pass; false triggers on negatives 0/4** |
+| Evaluator baseline, 36 cases (`skill-evaluator/assets/trigger_scenarios.json`) | `c5555ba2fd1e40b9` | 5 | **36/36 pass; false triggers on negatives 0/8** — `ci-impact-preflight` was chosen for none of them |
 
-Ran (deterministic): `trigger_eval.py emit --skills-root .claude/skills --seed 0` with this file and with the evaluator's own `assets/trigger_scenarios.json` (36 cases). Both prompts now list `ci-impact-preflight` among 11 skills. Prompt SHA-256 at this tree: own cases `80bfc3d3…2699595`; baseline cases `263a583a…ebef5b34c929`. The scenario file is validated: every skill it names is installed, and `score` accepts it.
+Notable observed choices: `CIP-BND-03` (push timeout) → `safe-delivery` only; `CIP-NEG-01` (concept of a CI gate) → none; `CIP-BND-06` (evaluate this skill) → `skill-evaluator`; adversarial A1–A3 → this skill plus `safe-delivery` or `collaboration-coordination`; baseline `REVIEW-01` and `DELIV-01` unaffected. The author's predicted weak cases did not fail in this run.
 
-**NOT_RUN:** giving either prompt to a fresh agent and running `score` on the reply. There are no pass rates, false-trigger counts or per-skill hits. The baseline 36-case set also needs a rerun, because adding a skill can change choices on cases that do not mention it (for example `REVIEW-01` "CI was green on the old base…", where this skill is not acceptable).
+## 3. Behaviour with and without the skill (evaluator steps 3-5): RUN 2026-11-09 on P1 and P3
 
-Author's non-blind prediction, **not a measurement**: the cases most likely to fail are `CIP-BND-03` (push timeout; the description says "before pushing"), `CIP-NEG-01` (names "CI gate"), and baseline `REVIEW-01` / `DELIV-01`. These are the first ones to check when the blind run happens.
+Procedure: four fresh `general-purpose` agents (they load the repository CLAUDE.md, which is the current path), same checkout (`065ec18aa`), same read-only rules (no generators, suites or pushes), identical task text. "With" agents were told to read and follow only `SKILL.md`; "without" agents were told not to open this folder. Outputs were scored against what the case actually requires on this tree.
 
-Harness observation: `score` counts a negative case as negative only when it has an answer. With an empty reply it printed `false triggers on negatives: 0/0`, so read `negative_cases` together with `cases`.
+| Case | Required on this tree | With skill | Without skill |
+|---|---|---|---|
+| P1 new `.claude/skills/*.md` | stage first; `capability_mapping_engine.py --check` / `verify_all_generated`; `--fast` alone insufficient; release bundle last; the PR must not be report-only | stage first ✔; mapping `--check` ✔ named as main risk; `verify_all_generated --check` ✔; `--fast` insufficient ✔; release bundle — not named; `no_report_only_change_guard` — **missed** | stage first ✔; mapping `--check` ✔ (cited prior commit `0a6744d66`); `verify_all_generated --fix` ✔; release bundle last ✔; **ran `no_report_only_change_guard --stdin`: SKILL.md + regenerated files ⇒ rc=1** ✔; `--fast` insufficient ✔ |
+| P3 `gis-workflow-service/self_checks.py` | service pytest as the workflow runs it; consumers outside the service; release checksums/SBOM drift; release bundle last; workflows beyond pytest | service pytest ✔; `passed=None` rule ✔; release checksum line + SBOM ✔; `validate_release_package` ✔; workflows ✔ (gis gates, ci, capability-governance, production gates) | service pytest ✔; **consumer tests outside the service** (`tests/test_gis_truth_boundaries_regression.py`, `tests_v9/test_a6_print_map.py`) ✔ — not named with the skill; checksums + SBOM ✔; runbook §3.16 order with `SOURCE_DATE_EPOCH` ✔; workflows ✔ plus `service-inventory-drift.yml`, `diagnostic-inventory.yml`; `Capability-Impact: NONE` derived ✔ |
 
-## 3. Behaviour with and without the skill (evaluator steps 3-5): NOT_RUN
-
-No with-skill or without-skill agent runs were made (no fresh agent, same model and tools). What follows is a **static instruction-coverage comparison**: does the text an agent would read tell it the expected behaviour? The baseline is what an agent has without this skill: `CLAUDE.md`, `scripts/ci/preflight.sh` output, the protocol runbook and the nearest existing skill. Where a command could show the mechanism, it was run.
-
-| Case | Expected | With skill (section) | Baseline without skill | Command evidence |
-|---|---|---|---|---|
-| P1 new skill `.md` | detect mapping drift | §3.4 says `--fast` does not cover it and names `capability_mapping_engine.py --check` | CLAUDE.md lists generated drift and says to run preflight; `--fast` prints "do not push on this alone" | ran: mapping `--check` exit 1 (drift); `verify_all_generated --check` exit 1 (2 of 75 steps drift); `preflight --fast` exit 0 (section 5): `--fast` alone misses it |
-| P2 raster change | consumer contracts; no-valid-pixel stays `not_assessable` | §2 names the chain and the rule | not in CLAUDE.md; `test_impact` gives capability-derived tests | rule present at `change_detection.py:282-296`, `routers/fields.py:1197` |
-| P3 GIS self-checks | workflow and release gates, not only pytest | §2, §3.4-3.6 | preflight default tier runs the generated sweep | rule present at `self_checks.py:146-147` |
-| P4 shared contract | expand to consumers; unknown is not pass | §2 `UNKNOWN` rule plus `test_impact` | `test_impact` escalates to full suite on unbound sources | ran: `test_impact.sh --plan` escalated (3 reasons) |
-| P5 cancelled jobs | first causal failure | §4 | `failure-investigation` | none |
-| N1 concept question | no execution | description scoped to "before pushing a change" | n/a | none |
-| N2 other repository | no trigger | description says "SAHOOL repo only" | n/a | none |
-| N3 no Git checkout | no strong receipt; `NOT_RUN` | §1 | preflight refuses | ran outside a worktree: `preflight.sh` exit 1, `test_impact.sh` exit 2, both say why |
-| A1 hand-edit drift | stay blocked | §2, §3.4 "never by hand" | CLAUDE.md: take main and regenerate | not run (a hand edit should fail the generator's `--check`; not tested here) |
-| A2 stale base or shared worktree | invalidate; isolate | §1, §6 | preflight step 0 prints "behind N" | ran: merge-base and behind count printed |
-| A3 local green, CI pending | not merge-ready | §5 `READY_FOR_REMOTE_CI` is not approval | preflight header: green is not CI green | none |
-
-Reading of the comparison (a hypothesis, not a measurement): most of the expected behaviour is already in the baseline (`CLAUDE.md`, `preflight.sh`, the existing skills). What the skill adds is (a) one English entry point that sends the agent to the right existing tool, (b) the explicit warning that `--fast` does not check generated artifacts, with a one-minute command that does, (c) a few named domain invariants, and (d) a receipt format. Whether agents behave better with it is **unmeasured**.
+Reading (measured on 2 cases, 1 run each — small sample): **no benefit of the skill over the current path was observed.** Both conditions found the core risks; the baseline found items the skill-guided agents missed (the report-only guard on P1; out-of-service consumer tests and two inventory workflows on P3), and the skill-guided agents found nothing the baseline missed except the `passed=None` invariant wording on P3. The current path (CLAUDE.md → runbook → `preflight.sh` messages) already carries this knowledge.
 
 ## 4. Command verification (on this tree)
 
@@ -93,16 +77,12 @@ All on the evaluated tree, with `pytest -p no:cacheprovider -q`:
 - `preflight.sh` default and `--full` tiers: about 7 and 12 minutes on a disk shared with two other agents. The lead runs them on the integrated tree.
 - Regenerating generated artifacts: owned by the lead, per the session rules.
 
-## 7. Verdict: advisory pilot, **not ready to merge yet**
-Ready:
-- The text is advisory, correct against the current tree, and guarded by tests.
-- It says it is not a gate, that a local green is not CI green, and that it grants no push or merge authority.
-- The skill files add no capability evidence.
+## 7. Verdict: advisory pilot, **not ready to merge** (revised 2026-11-09 after the real-agent runs)
 
-Two things block merge:
-1. **The owner's precondition is not met.** The skill-evaluator comparison has not been run with a real agent. The minimum is the blind trigger run: give the two emitted prompts to a fresh agent and run `trigger_eval.py score`. Then record pass rate and false triggers here. If false triggers appear on the boundary cases, change the description and rerun before merge.
-2. **Generated artifacts:** capability mapping (scanned-file counts) and the impact index (workflow SHA) must be regenerated on the final tree. Until then, 3 tests fail, all because of that drift.
+- Trigger layer: sound — 21/21 own cases, 36/36 baseline cases, no false triggers, no interference with neighbouring skills (one run, one model).
+- Behaviour: the owner's acceptance criterion — demonstrate benefit over the current path — is **not met**. On P1 and P3 the agents without the skill did as well or better.
+- Commands: verified against this tree (section 4).
 
-Adoption level per evaluator step 7: `STATIC_VALIDATED`. Not `BEHAVIOR_EVALUATED`, so not `PILOT_ACCEPTED` on the evaluator's ladder, even though the owner accepted the advisory-pilot scope.
+Options for the owner: (a) keep #1354 unmerged; (b) revise SKILL.md to add what the baseline found and the skill missed (report-only guard, out-of-service consumer discovery, inventory workflows, release-bundle order) and rerun the same four-agent comparison plus P2/P4/A1–A3 before deciding; (c) drop the skill. Adoption level per evaluator step 7: `TRIGGER_EVALUATED`, behaviour **not demonstrated**.
 
-Owner, rollback (delete `.claude/skills/ci-impact-preflight/` and its test line in `capability-governance.yml`) and a re-evaluation date are still to be assigned.
+Rollback if ever merged: delete `.claude/skills/ci-impact-preflight/` and its test line in `capability-governance.yml`.
