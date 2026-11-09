@@ -32,7 +32,7 @@
       "raw": 3275
     },
     "test_dependency_files": 1778,
-    "test_dependency_edges": 4474,
+    "test_dependency_edges": 4475,
     "test_dependency_bounded_files": 1038,
     "test_dependency_unresolved_relations": 452
   },
@@ -68735,6 +68735,11 @@
           "line": 45
         },
         {
+          "source": "scripts/ci/gate01_owner_signature_guard.py",
+          "kind": "source_read",
+          "line": 51
+        },
+        {
           "source": "scripts/ops/branch_funeral.py",
           "kind": "source_read",
           "line": 37
@@ -68742,7 +68747,7 @@
         {
           "source": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
           "kind": "source_read",
-          "line": 51
+          "line": 61
         }
       ],
       "unresolved": []
