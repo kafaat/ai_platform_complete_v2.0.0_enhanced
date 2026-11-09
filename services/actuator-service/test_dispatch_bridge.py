@@ -102,11 +102,17 @@ def test_parse_command_payload_defaults_to_empty():
     ) == ("v1", "open", {})
 
 
-# ── حالة النتيجة (صدق: نُشِر≠نُفِّذ) ───────────────────────────────
-def test_outcome_status():
-    """نجاح النشر ⇒ executed (نُشِر للوسيط، لا تأكيد فيزيائيّ)؛ فشل ⇒ failed."""
-    assert main._dispatch_outcome_status(True) == "executed"
-    assert main._dispatch_outcome_status(False) == "failed"
+# ── حالة النتيجة (صدق: نُشِر≠نُفِّذ) — TRANSPORT-ACK-MISLABELED-AS-EXECUTED-01 ──
+def test_no_helper_labels_a_broker_ack_as_executed():
+    """إقرارُ الوسيط ليس تنفيذاً: لا دالّة تُرجِم نجاحَ النشر إلى ``executed``.
+
+    كانت ``_dispatch_outcome_status`` تفعل ذلك بلا مستدعٍ إنتاجيّ، وهذا الاختبار كان
+    يُثبِّت التسمية بدل أن يكذّبها. والإيصال الحيّ يبقى ``accepted``/``failed``.
+    """
+    assert not hasattr(main, "_dispatch_outcome_status")
+    source = (Path(main.__file__)).read_text(encoding="utf-8")
+    assert '"executed"' not in source
+    assert 'receipt_status = "accepted" if sent else "failed"' in source
 
 
 # ── مخطّط تنفيذ الطلب (ACTUATOR-DISPATCH-CONSUMER) — نقيّ بلا شبكة ──
