@@ -1724,6 +1724,13 @@
           "replace": "                if False:  # mutated: تُحسَب النتيجة ولا تُقرأ\n                    logger.warning(\n                        f\"مفتاح إيقاف الطوارئ مُشتبَك — حجب الأمر '{cmd}' على {device} \"",
           "test": "tests_v9/test_actuation_killswitch_behaviour.py",
           "why": "«يستشير ثمّ يتجاهل» على المسار الذي يعمل **بلا إنسان**: لا مراجِع ولا استجابة HTTP يُرى فيها الفرق — الصمّام يتحرّك وحده والمفتاح مُشتبَك."
+        },
+        {
+          "expect": "test_an_open_without_duration_is_refused_before_any_publish_in_every_mode",
+          "find": "        if wire == \"OPEN\":\n            return None, \"open_command_requires_duration_sec\"",
+          "replace": "        if False:  # mutated: فتحٌ بلا مدّة يُقبَل\n            return None, \"open_command_requires_duration_sec\"",
+          "test": "services/actuator-service/test_actuator_safety_audit_20261101.py",
+          "why": "ACTUATOR-OPEN-WITHOUT-DURATION-01: بلا هذا الفرع يُقبَل فتحٌ بلا مدّة (عدا `irrigate`) فيبقى الصمّام مفتوحاً حتّى سقف البرنامج الثابت VALVE_MAX_OPEN_MS (30 دقيقة). والمقيس أنّ **النشر** لم يقع في الوضعين الحقيقيّ والمحاكى، لا وجودُ سلسلة السبب."
         }
       ],
       "test": "tests_v9/test_compensation_killswitch.py"

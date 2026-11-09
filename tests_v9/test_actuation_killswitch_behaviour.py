@@ -172,6 +172,10 @@ def manual(actuator, monkeypatch) -> _Trace:
     return trace
 
 
+#: ACTUATOR-OPEN-WITHOUT-DURATION-01: كلُّ OPEN يحتاج مدّةً صريحة (وإلّا 422 قبل الاستشارة).
+_TIMED_OPEN = {"duration_sec": 60}
+
+
 def _claims(tenant: str = TENANT, role: str = "owner") -> dict:
     return {"tenant_id": tenant, "role": role, "sub": "user-1"}
 
@@ -182,7 +186,9 @@ async def test_manual_command_consults_the_killswitch_with_the_authoritative_fie
     وهذه هي الثغرة الأصليّة بعينها: `match_killswitch` يشترط ``field_id is not None``
     لمطابقة نطاق `field`، فاستشارةٌ بلا حقل **تقع ولا تُطابِق**.
     """
-    await manual.send(manual.request(device_id="valve-a", command="open"), _claims())
+    await manual.send(
+        manual.request(device_id="valve-a", command="open", payload=_TIMED_OPEN), _claims()
+    )
 
     assert manual.of("killswitch") == [("killswitch", TENANT, "field-9", "valve-a")]
 
@@ -194,7 +200,9 @@ async def test_a_field_scoped_halt_blocks_a_manual_valve_command(manual):
     manual.halts[("field-9", "valve-a")] = (True, "إيقاف الحقل")
 
     with pytest.raises(HTTPException) as exc:
-        await manual.send(manual.request(device_id="valve-a", command="open"), _claims())
+        await manual.send(
+            manual.request(device_id="valve-a", command="open", payload=_TIMED_OPEN), _claims()
+        )
 
     assert exc.value.status_code == 423
     assert manual.of("mqtt") == [], "استجابةٌ ٤٢٣ بعد نشرٍ وقع ليست حجباً"
@@ -205,10 +213,30 @@ async def test_a_clear_killswitch_still_lets_a_manual_command_through(manual):
 
     والاستشارة **تسبق** النشر: استشارةٌ بعده تُرضي الحارس الساكن وقد وقع الأثر.
     """
-    result = await manual.send(manual.request(device_id="valve-a", command="open"), _claims())
+    result = await manual.send(
+        manual.request(device_id="valve-a", command="open", payload=_TIMED_OPEN), _claims()
+    )
 
     assert result["sent"] is True
     assert [e[0] for e in manual.events] == ["killswitch", "mqtt", "log"]
+
+
+async def test_a_manual_open_without_duration_is_refused_before_any_work(manual):
+    """ACTUATOR-OPEN-WITHOUT-DURATION-01: فتحٌ يدويّ بلا مدّة ⇒ 422 بسببه، بلا استشارةٍ ولا نشر.
+
+    بلا مدّة يبقى الصمّام مفتوحاً حتّى سقف البرنامج الثابت (30 دقيقة). والإغلاق يمرّ بلا مدّة.
+    """
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException) as exc:
+        await manual.send(manual.request(device_id="valve-a", command="open"), _claims())
+
+    assert exc.value.status_code == 422
+    assert exc.value.detail["reason"] == "open_command_requires_duration_sec"
+    assert manual.events == [], "وقع شيءٌ قبل رفض فتحٍ بلا مدّة"
+
+    result = await manual.send(manual.request(device_id="valve-a", command="close"), _claims())
+    assert result["sent"] is True
 
 
 async def test_a_device_of_another_tenant_fails_closed_before_any_actuation(manual):
@@ -220,7 +248,8 @@ async def test_a_device_of_another_tenant_fails_closed_before_any_actuation(manu
 
     with pytest.raises(HTTPException) as exc:
         await manual.send(
-            manual.request(device_id="valve-a", command="open"), _claims(tenant=OTHER_TENANT)
+            manual.request(device_id="valve-a", command="open", payload=_TIMED_OPEN),
+            _claims(tenant=OTHER_TENANT),
         )
 
     assert exc.value.status_code == 404
