@@ -5,6 +5,9 @@ crop_id: sorghum
 name_ar: الذرة الرفيعة (السورغم)
 name_en: Sorghum
 crop_family: cereal_C4
+aliases:
+  - "ذرة"       # Yemeni usage: «ذرة» alone = sorghum (see core/season_phenology.py)
+  - "سورغم"
 
 kc:
   initial: 0.30

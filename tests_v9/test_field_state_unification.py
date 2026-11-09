@@ -48,7 +48,9 @@ class _Conn:
         depletion_confidence=0.9,
         ndmi=None,
         msi=None,
+        ledger_date=None,
     ):
+        self._ledger_date = ledger_date
         self._ndvi = ndvi_mean
         self._ec = ec
         self._boundary_confidence = boundary_confidence
@@ -91,6 +93,8 @@ class _Conn:
                 "depletion_mm": self._depletion_mm,
                 "soil_moisture_pct": None,
                 "confidence": self._depletion_confidence,
+                # ledger_date NOT NULL في water_ledger — صفّ اليوم حاضرٌ (≤ 72 س).
+                "ledger_date": self._ledger_date or self._today,
             }
         if "FROM field_state" in sql:
             return None
@@ -196,6 +200,32 @@ async def test_water_stress_block_present_no_escalation(core_on_path):
     assert st["water_stress"]["source"] == "field_state.canonical"
     # بلا تأكيد طيفيّ (ndmi/msi غائبان) ⇒ غير مؤهَّل ⇒ لا تصعيد (نمط D2b: فيزياء+رصد).
     assert st["water_stress"]["escalation_eligible"] is False
+    assert st["execution_mode"] == "auto"
+
+
+@pytest.mark.asyncio
+async def test_stale_ledger_row_is_not_current_water_stress(core_on_path, monkeypatch):
+    """أحدث صفّ دفتر أقدم من 72 س ⇒ كتلة غير متاحة بقيد مُعلَن — لا صنف ولا تصعيد حتّى مع العلم."""
+    from datetime import timedelta
+
+    from api.field_state_projection import recompute_field_state
+
+    monkeypatch.setenv("FEATURE_WATER_STRESS_ESCALATION", "1")
+    conn = _Conn(
+        ndvi_mean=0.7,
+        ec=1.0,
+        depletion_mm=81.0,
+        depletion_confidence=0.9,
+        ledger_date=date.today() - timedelta(days=5),
+        **_SPECTRAL_STRESS,
+    )
+    st = (await recompute_field_state(conn, "fld_1"))["state"]
+    ws = st["water_stress"]
+    assert ws["available"] is False
+    assert ws["water_stress_class"] is None
+    assert ws["limitations"] == ["stale_water_ledger"]
+    assert ws["ledger_age_hours"] > 72
+    assert ws["escalation_eligible"] is False and ws["escalation_triggered"] is False
     assert st["execution_mode"] == "auto"
 
 

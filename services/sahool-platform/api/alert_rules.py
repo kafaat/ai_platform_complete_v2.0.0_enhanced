@@ -112,7 +112,7 @@ class FieldAlertContext:
     soil_moisture_pct: float | None = None
     # SOIL-MOISTURE-UNIT-IDENTITY-01: نوعُ وحدة القراءة كما أعلنه المصدر —
     # `available_pct` (ما تقيسه العتبة) · `vwc_pct` (حجميّة، لا تُقارَن بعتبة ماءٍ متاح
-    # بلا معايرة) · `undeclared` (تُفسَّر كما كانت، والافتراضُ يُكتَب في السبب).
+    # بلا معايرة) · `undeclared` (استشاريّة لا تُقارَن — SOIL-MOISTURE-ELIGIBILITY-01).
     soil_moisture_unit_kind: str = "available_pct"
     # احتياج الريّ الصافي (mm) من توصية الريّ (FAO-56) — بديل لرطوبة التربة.
     irrigation_need_mm: float | None = None
@@ -162,8 +162,11 @@ def _low_moisture(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert 
         # قراءةٌ حجميّة لا تُقارَن بعتبةِ ماءٍ متاح بلا θFC/θWP — تسقط إلى مسار الاحتياج.
         sm = None
         unit_note = " (قراءة الرطوبة حجميّة بلا معايرة إلى ماءٍ متاح فلم تُستعمل)"
-    elif sm is not None and ctx.soil_moisture_unit_kind == "undeclared":
-        unit_note = " (وحدة القراءة غير مُعلَنة — فُسِّرت ماءً متاحاً، افتراضٌ موروث)"
+    elif sm is not None and ctx.soil_moisture_unit_kind != "available_pct":
+        # وحدةٌ غيرُ مُعلَنة كانت «تُفسَّر ماءً متاحاً» فتُطلِق التنبيهَ من `%` عارية؛ السياسةُ
+        # المشتركة (SOIL-MOISTURE-ELIGIBILITY-01) تجعلها استشاريّة — تسقط إلى مسار الاحتياج.
+        sm = None
+        unit_note = " (وحدة قراءة الرطوبة غير مُعلَنة ماءً متاحاً فلم تُستعمل)"
     if sm is not None and sm < t.LOW_MOISTURE_SOIL_PCT:
         fired = True
         reason = (

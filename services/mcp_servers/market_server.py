@@ -374,7 +374,9 @@ async def tool_create_sales_listing(args: dict) -> dict:
     crop = args["crop_type"]
     qty = float(args["quantity_kg"])
     price = float(args["price_per_kg_usd"])
-    grade = args.get("quality_grade", "A")
+    # بلا درجة مُعلَنة ⇒ "ungraded" لا "A": لا تُنسَب جودة لم يُثبتها فحص. (افتراض العمود
+    # في القاعدة يبقى 'A' بلا migration، لكنّ الكود يمرّر القيمة دائماً فلا يُبلَغ.)
+    grade = args.get("quality_grade") or "ungraded"
     certs = args.get("certifications", [])
     from_date = args.get("available_from")
     until_date = args.get("available_until")
@@ -384,11 +386,19 @@ async def tool_create_sales_listing(args: dict) -> dict:
     # العرض (جدول inventory_batches مُعزَّل لكلّ مستأجِر). fail-closed: قاعدة مُهيّأة
     # ولا صفّ مرئيّ ⇒ 403/404؛ تعذّر الإثبات ⇒ 503. بلا قاعدة (DB-less/CI) ⇒
     # None ⇒ لا حجب (CI أخضر).
+    # batch_id غير UUID ⇒ 422 صريحة دائماً (العمود UUID — كان 500 من ::uuid). عروض البيع
+    # لا تُربط بعدُ بدفعات الحصاد (hl_…) ولا المخزون (bat_…): ليست UUID.
     if batch_id:
+        try:
+            batch_id = market_db_authz.require_uuid_batch_id(batch_id)
+        except market_db_authz.BatchIdNotLinkable as e:
+            raise HTTPException(422, str(e)) from e
         try:
             visible = await market_db_authz.batch_visible_under_tenant(str(batch_id), tenant_id)
         except market_db_authz.OwnerLookupUnavailable as e:
             raise HTTPException(503, "تعذّر إثبات ملكيّة الدفعة — أعد المحاولة لاحقاً") from e
+        except market_db_authz.BatchIdNotLinkable as e:
+            raise HTTPException(422, str(e)) from e
         if visible is False:
             raise HTTPException(403, "الدفعة لا تخصّ مستأجِرك")
     async with tenant_connection(tenant_id) as conn:
@@ -415,7 +425,10 @@ async def tool_create_sales_listing(args: dict) -> dict:
         "listing_id": str(listing_id),
         "status": "active",
         "total_value_usd": round(qty * price, 2),  # FIX: كان المفتاح "" فارغاً
-        "qr_trace_url": f"/trace/{batch_id}" if batch_id else None,
+        # لا مسار عامّ /trace/{batch_id} في أيّ خدمة (الأثر الوحيد مُصادَق عليه على دفعة
+        # حصاد hl_…، وعرض البيع لا يُربط بها بعدُ) — فلا نُصدر رابط QR ميّتاً. يبقى المفتاح
+        # None للتوافق مع المستهلكين.
+        "qr_trace_url": None,
     }
 
 

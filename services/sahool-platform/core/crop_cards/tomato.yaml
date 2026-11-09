@@ -4,6 +4,8 @@ crop_id: tomato
 name_ar: الطماطم (البندورة)
 name_en: Tomato
 crop_family: vegetable_C3
+aliases:
+  - "بندورة"
 
 kc:
   initial: 0.60
@@ -46,6 +48,15 @@ modifying:
 pest_susceptibility:
   pests: [early_blight, late_blight, tuta_absoluta, whitefly]
   note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── الأمراض الفطريّة العائليّة (weather-driven) — أسماءٌ تُصيب هذا العائل فقط ──
+diseases:
+  source: "Agrios, Plant Pathology (5th ed.) — Phytophthora infestans on Solanaceae"
+  items:
+    - id: late_blight
+      name_ar: "اللفحة المتأخّرة"
+      name_en: "Late blight (Phytophthora infestans)"
+      favoured_by: humid_mild
 
 # ── مراحل النمو ── الحدود = المجاميع التراكميّة [30,40,40,25] ⇒ [0–30, 30–70, 70–110, 110–135].
 phenology:

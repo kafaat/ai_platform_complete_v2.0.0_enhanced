@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 from uuid import uuid4
@@ -10,6 +10,14 @@ from uuid import uuid4
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 SOIL_OBSERVATION_CONTRACT_VERSION = "soil-observation.v1"
+
+#: How far ``observed_at`` may lead ``received_at`` before the observation is refused.
+#: A device clock running ~1 s fast used to turn a valid reading into a 422 here while the
+#: platform had already stored the raw row. Small drifts are clock error, not time travel;
+#: anything beyond this bound is still refused. The platform edge rejects at half of it
+#: (``api/device_models.DEVICE_CLOCK_SKEW_TOLERANCE_S``) so the remainder absorbs
+#: differences between the platform's and soil-service's own clocks.
+OBSERVATION_CLOCK_SKEW_TOLERANCE_S = 120
 
 
 class SoilObservationSource(StrEnum):
@@ -82,7 +90,9 @@ class SoilObservation(BaseModel):
             raise ValueError("soil_observation_contract_version_unsupported")
         if self.depth_to_cm <= self.depth_from_cm:
             raise ValueError("soil_observation_depth_invalid")
-        if self.received_at < self.observed_at:
+        if self.observed_at - self.received_at > timedelta(
+            seconds=OBSERVATION_CLOCK_SKEW_TOLERANCE_S
+        ):
             raise ValueError("soil_observation_received_before_observed")
         if self.supersedes_observation_id == self.observation_id:
             raise ValueError("soil_observation_cannot_supersede_itself")

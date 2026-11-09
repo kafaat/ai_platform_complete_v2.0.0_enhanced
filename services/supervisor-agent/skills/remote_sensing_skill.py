@@ -5,6 +5,7 @@ Handles: NDVI · SAR · Satellite imagery · Change detection
 """
 
 import json
+import math
 import os
 from typing import Any
 
@@ -51,36 +52,56 @@ class RemoteSensingSkill:
             content = result.get("content", [{}])[0].get("text", "{}")
             ndvi_data = json.loads(content)
 
-            # Interpret NDVI values
+            # Describe NDVI as an observation only. A field-mean NDVI cannot tell
+            # water stress from crop stage, sparse planting or soil background, so
+            # no irrigation/harvest instruction is derived from it here.
             mean_ndvi = ndvi_data.get("mean")
-            if mean_ndvi is None:
+            if isinstance(mean_ndvi, bool) or not isinstance(mean_ndvi, (int, float)):
                 return {"type": "error", "response": "لا توجد مشاهدة NDVI موثقة قابلة للاستخدام."}
+            if not math.isfinite(float(mean_ndvi)):
+                return {"type": "error", "response": "لا توجد مشاهدة NDVI موثقة قابلة للاستخدام."}
+            mean_ndvi = float(mean_ndvi)
             if mean_ndvi < 0.2:
-                health = "تربة عارية أو غطاء نباتي ضعيف جداً"
-                recommendation = "⚠️ الحقل يحتاج إلى زراعة عاجلة أو ري فوري."
+                health = "غطاء نباتي منخفض جداً أو تربة مكشوفة في المشهد"
             elif mean_ndvi < 0.4:
-                health = "غطاء نباتي متوسط — محاصيل مبكرة أو إجهاد مائي"
-                recommendation = "💧 راقب رطوبة التربة. قد يحتاج إلى ري إضافي."
+                health = "غطاء نباتي منخفض إلى متوسط — قد يعكس مرحلة نموّ مبكرة أو إجهاداً؛ لا يُحدَّد السبب من NDVI وحده"
             elif mean_ndvi < 0.6:
-                health = "غطاء نباتي جيد — نمو طبيعي"
-                recommendation = "✅ الحالة جيدة. استمر في المراقبة الدورية."
+                health = "غطاء نباتي متوسط إلى جيد"
             elif mean_ndvi < 0.8:
-                health = "غطاء نباتي كثيف — نمو ممتاز"
-                recommendation = "🌿 نمو ممتاز! راقب الآفات والأمراض المحتملة."
+                health = "غطاء نباتي كثيف"
             else:
-                health = "غطاء نباتي مكتمل — أقصى كثافة"
-                recommendation = "🏆 كثافة نباتية ممتازة. استعد للحصاد."
+                health = "غطاء نباتي كثيف جداً (قد يقترب NDVI من التشبّع)"
+            observation_note = (
+                "ملاحظة رصديّة من متوسّط NDVI للحقل فقط، وليست توصية ري أو حصاد. "
+                "يحتاج تحقّقاً ميدانياً، مع سياق المرحلة والرطوبة (مرحلة النموّ ورطوبة التربة) "
+                "وجودة المشهد، قبل أيّ قرار."
+            )
+
+            cloud_raw = ndvi_data.get("cloud_coverage")
+            cloud_pct = ndvi_data.get("cloud_coverage_pct")
+            if isinstance(cloud_pct, (int, float)) and not isinstance(cloud_pct, bool):
+                cloud_coverage_pct = round(float(cloud_pct), 1)
+            elif isinstance(cloud_raw, (int, float)) and not isinstance(cloud_raw, bool):
+                cloud_coverage_pct = round(float(cloud_raw) * 100, 1)
+            else:
+                cloud_coverage_pct = None  # unknown — never a fabricated clear sky
 
             return {
                 "type": "ndvi_report",
                 "ndvi_mean": round(mean_ndvi, 3),
                 "health_status": health,
-                "recommendation": recommendation,
+                "observation_note": observation_note,
+                "recommendation": None,
+                "requires_field_verification": True,
+                "interpretation_context_required": ["crop_stage", "soil_moisture", "scene_quality"],
                 "distribution": ndvi_data.get("health_distribution", {}),
-                "cloud_coverage_pct": round(ndvi_data.get("cloud_coverage", 0) * 100, 1),
+                "cloud_coverage_pct": cloud_coverage_pct,
+                "index": ndvi_data.get("index", "ndvi"),
                 "scene_id": ndvi_data.get("scene_id"),
                 "acquisition_date": ndvi_data.get("date"),
                 "quality": ndvi_data.get("quality"),
+                "observation_source": ndvi_data.get("source"),
+                "real_data": ndvi_data.get("real_data"),
                 "sources": ["raster-service", "Sentinel-2 L2A"],
             }
 

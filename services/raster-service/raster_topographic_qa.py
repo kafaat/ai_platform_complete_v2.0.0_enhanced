@@ -11,6 +11,12 @@ from __future__ import annotations
 import math
 from typing import Any
 
+# Version of the cast-shadow ray-march. Bumped to /2 when the blocker sampling
+# was corrected to look toward the sun (/1 sampled the opposite side and so
+# flagged the sunlit side of a barrier). Carried in the QA envelope so a
+# provenance reader can tell which algorithm produced a cast_shadow_risk_pct.
+CAST_SHADOW_ALGORITHM_VERSION = "sahool.cast_shadow_raymarch/2"
+
 
 def _clamp_pct(value: float | int | None) -> float | None:
     if value is None:
@@ -79,6 +85,7 @@ def compute_cast_shadow_mask_from_dem(
             "cast_shadow_available": False,
             "cast_shadow_max_steps": int(max_steps),
             "cast_shadow_step_pixels": int(step_pixels),
+            "cast_shadow_algorithm_version": CAST_SHADOW_ALGORITHM_VERSION,
             "warnings": ["cast_shadow_inputs_unavailable"],
         }
 
@@ -101,7 +108,13 @@ def compute_cast_shadow_mask_from_dem(
     h, w = arr.shape
     shadow = np.zeros((h, w), dtype=bool)
 
-    def shifted_up_sun(values, row_offset: int, col_offset: int):
+    def sample_toward_sun(values, row_offset: int, col_offset: int):
+        """Return ``out`` with ``out[r, c] = values[r + row_offset, c + col_offset]``.
+
+        Each pixel samples the cell that lies toward the sun from it (NaN off
+        the grid), so a barrier shades the pixels on its far side from the sun.
+        """
+        row_offset, col_offset = -row_offset, -col_offset
         shifted = np.full_like(values, np.nan, dtype="float32")
         src_r0 = max(0, -row_offset)
         src_r1 = min(h, h - row_offset)
@@ -122,7 +135,7 @@ def compute_cast_shadow_mask_from_dem(
         if (dr, dc) == (0, 0) or (dr, dc) in seen_offsets:
             continue
         seen_offsets.add((dr, dc))
-        blocker = shifted_up_sun(arr, dr, dc)
+        blocker = sample_toward_sun(arr, dr, dc)
         distance_m = math.hypot(dr * py, dc * px)
         if distance_m <= 0:
             continue
@@ -140,6 +153,7 @@ def compute_cast_shadow_mask_from_dem(
         "cast_shadow_available": True,
         "cast_shadow_max_steps": max_steps,
         "cast_shadow_step_pixels": step_pixels,
+        "cast_shadow_algorithm_version": CAST_SHADOW_ALGORITHM_VERSION,
         "warnings": warnings,
     }
 
@@ -340,6 +354,9 @@ def build_topographic_qa(
         "slope_risk_threshold_pct": slope_risk_threshold_pct,
         "shadow_hillshade_threshold": shadow_hillshade_threshold,
         "cast_shadow_max_steps": cast_shadow_max_steps,
+        "cast_shadow_algorithm_version": (
+            CAST_SHADOW_ALGORITHM_VERSION if cast_shadow_available else None
+        ),
         "warnings": warnings,
         "fabricated_topographic_mask": False,
     }

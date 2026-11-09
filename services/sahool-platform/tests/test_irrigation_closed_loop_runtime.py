@@ -92,6 +92,9 @@ async def test_verified_run_reconciles_measured_water():
     assert out["reconciled"] is True
     assert out["applied_depth_mm"] == pytest.approx(1.2)
     assert out["depletion_after_mm"] == pytest.approx(18.8)
+    # F2: the after-value is the applied-balance model, labelled as such; the old key is an alias.
+    assert out["applied_balance_depletion_mm"] == pytest.approx(18.8)
+    assert out["depletion_after_basis"] == "applied_balance_model"
     assert any("INSERT INTO water_ledger" in sql for sql, _ in conn.writes)
 
 

@@ -82,6 +82,177 @@ def recommendation_outcome_eligibility(row: dict, *, require_acceptance: bool = 
     return {"eligible": True, "reason": None}
 
 
+# ── تسميات التعلّم من جهة الخادم (F4 — R09) ─────────────────────────────────────────
+# التوقّعُ ونضجُ النتيجة تسميتا تعلّم: كانا يُقبَلان من العميل كما هما فيكتب أيُّ مستخدمٍ
+# «توقّعاً» يطابق الحصاد فيُصفِّر الخطأ. حين يوجد السجلّ المُخزَّن (توصية/قرار) يُقرأ التوقّع منه،
+# ويُرفَض توقّعُ عميلٍ يخالفه؛ ويُشتقّ النضج من الطوابع الزمنيّة متى أمكن.
+LABEL_TOLERANCE = 1e-6
+
+
+class OutcomeLabelConflict(ValueError):
+    """تسميةٌ من العميل تخالف السجلّ المُخزَّن — يُترجِمها المسار إلى 422."""
+
+    def __init__(self, code: str, detail: dict | None = None):
+        super().__init__(code)
+        self.code = code
+        self.detail = {"code": code, **(detail or {})}
+
+
+def _as_mapping(value) -> dict:
+    if isinstance(value, (str, bytes, bytearray)):
+        import json
+
+        try:
+            value = json.loads(value)
+        except (TypeError, ValueError):
+            return {}
+    return value if isinstance(value, dict) else {}
+
+
+def find_stored_value(document, key: str, *, max_depth: int = 2):
+    """أوّلُ قيمةٍ غير فارغة لـ``key`` في وثيقة JSON مُخزَّنة (المستوى الأعلى ثمّ المتداخل)."""
+    level = [_as_mapping(document)]
+    for _ in range(max_depth + 1):
+        nested: list[dict] = []
+        for node in level:
+            if node.get(key) is not None:
+                return node[key]
+            nested.extend(v for v in node.values() if isinstance(v, dict))
+        level = nested
+    return None
+
+
+def labels_differ(a: float | None, b: float | None) -> bool:
+    if a is None or b is None:
+        return (a is None) != (b is None)
+    return abs(a - b) > LABEL_TOLERANCE
+
+
+def _iso(value) -> str | None:
+    if value is None:
+        return None
+    return value.isoformat() if hasattr(value, "isoformat") else str(value)
+
+
+def reconcile_recommendation_outcome_labels(
+    *,
+    stored: dict | None,
+    client_predicted,
+    client_matured: bool,
+    actual,
+    crop: str | None,
+    field_id: str | None,
+    now: str | None = None,
+) -> dict:
+    """يحسم تسميتَي التعلّم لصفّ ``recommendation_outcomes`` من التوصية المُخزَّنة.
+
+    ``stored``: صفّ ``recommendations`` (field_id · crop · recommendation · issued_at) أو None.
+    بلا سجلّ مُخزَّن تبقى قيمُ العميل موسومةً ``client_unverified``. مع السجلّ:
+    حقلٌ/محصولٌ مخالف ⇒ تعارض · توقّعُ عميلٍ يخالف المُخزَّن (أو يُختلَق حيث لا توقّع
+    مُخزَّن) ⇒ تعارض · غيابُه ⇒ يُملأ من المُخزَّن · النضجُ يُشتقّ من ``issued_at`` ونافذة
+    المحصول حين تُعرَف، وادّعاءُ عميلٍ بالنضج يخالف الاشتقاق ⇒ تعارض.
+    """
+    predicted = _num(client_predicted)
+    act = _num(actual)
+    out = {
+        "predicted_yield_t_ha": predicted,
+        "matured_within_lag": bool(client_matured),
+        "prediction_source": "client_unverified" if predicted is not None else None,
+        "maturity_source": "client_unverified",
+    }
+    if stored is None:
+        return out
+
+    stored_field = stored.get("field_id")
+    if stored_field and field_id and str(stored_field) != str(field_id):
+        raise OutcomeLabelConflict(
+            "field_mismatch", {"stored_field_id": stored_field, "field_id": field_id}
+        )
+    stored_crop = stored.get("crop")
+    if stored_crop and crop and str(stored_crop) != str(crop):
+        raise OutcomeLabelConflict("crop_mismatch", {"stored_crop": stored_crop, "crop": crop})
+
+    stored_pred = _finite(
+        _num(find_stored_value(stored.get("recommendation"), "predicted_yield_t_ha"))
+    )
+    if predicted is not None and labels_differ(predicted, stored_pred):
+        raise OutcomeLabelConflict(
+            "predicted_yield_mismatch",
+            {"stored_predicted_yield_t_ha": stored_pred, "predicted_yield_t_ha": predicted},
+        )
+    out["predicted_yield_t_ha"] = stored_pred
+    out["prediction_source"] = "stored_recommendation" if stored_pred is not None else None
+
+    issued = _iso(stored.get("issued_at") or stored.get("created_at"))
+    lag_crop = str(stored_crop or crop or "")
+    if issued:
+        from core.feedback_closure import _DEFAULT_LAG_WINDOWS, is_outcome_ready_for_learning
+
+        if lag_crop in _DEFAULT_LAG_WINDOWS:
+            ready, _reason = is_outcome_ready_for_learning(issued, lag_crop, now)
+            derived = bool(ready and act is not None)
+            if client_matured and not derived:
+                raise OutcomeLabelConflict(
+                    "maturity_contradicts_timestamps",
+                    {"issued_at": issued, "crop": lag_crop, "derived_matured_within_lag": False},
+                )
+            out["matured_within_lag"] = derived
+            out["maturity_source"] = "derived_from_timestamps"
+    return out
+
+
+def recommendation_outcome_write_action(existing: dict | None, *, actual_yield_t_ha) -> str:
+    """لا صفَّ ثانياً لـ(المستأجِر، recommendation_id) — يقرّر الكاتب ماذا يفعل بالموجود.
+
+    ``insert`` بلا صفّ سابق · ``complete`` صفٌّ معلَّق (بلا فعليّ) يكتمل الآن · ``replay``
+    إعادةٌ لا تضيف معلومة (أو الفعليّ نفسه) · ``conflict`` فعليٌّ مختلف لنتيجةٍ مكتملة.
+    """
+    if existing is None:
+        return "insert"
+    prev = _num(existing.get("actual_yield_t_ha"))
+    new = _num(actual_yield_t_ha)
+    if prev is None and new is not None:
+        return "complete"
+    if new is None or not labels_differ(prev, new):
+        return "replay"
+    return "conflict"
+
+
+def reconcile_planned_with_decision(
+    *, stored: dict | None, client_planned: dict, field_id: str | None
+) -> tuple[dict, dict]:
+    """يحسم ``planned`` لنتيجة قرار من ``decision_record`` المُخزَّن (F4).
+
+    يُعيد (planned، مصدر كلّ مفتاح). مفتاحٌ يحمله القرار المُخزَّن ⇒ قيمته هي المعتمدة،
+    وقيمةُ عميلٍ تخالفه ⇒ ``OutcomeLabelConflict``؛ مفتاحٌ لا يحمله القرار يبقى من العميل
+    موسوماً ``client_unverified`` (``decision_value`` حرّ الشكل فلا يُفترَض ما ليس فيه).
+    """
+    planned = dict(client_planned or {})
+    sources = {k: "client_unverified" for k, v in planned.items() if v is not None}
+    if stored is None:
+        return planned, sources
+    stored_field = stored.get("field_id")
+    if stored_field and field_id and str(stored_field) != str(field_id):
+        raise OutcomeLabelConflict(
+            "field_mismatch", {"stored_field_id": stored_field, "field_id": field_id}
+        )
+    for key in list(planned):
+        stored_value = _finite(_num(find_stored_value(stored.get("decision_value"), key)))
+        if stored_value is None:
+            continue
+        client_value = _num(planned.get(key))
+        if client_value is not None and labels_differ(client_value, stored_value):
+            raise OutcomeLabelConflict(
+                "planned_mismatch",
+                {"key": key, "stored_value": stored_value, "client_value": client_value},
+            )
+        # النوع يُحفَظ (أيّام الإجهاد عددٌ صحيح في النموذج).
+        integral = key.endswith("_days") and stored_value.is_integer()
+        planned[key] = int(stored_value) if integral else stored_value
+        sources[key] = "decision_record"
+    return planned, sources
+
+
 def _derive_rec_success(row: dict) -> bool | None:
     """يشتقّ نجاح توصية بحذر: فقط عند القبول والنضج واكتمال الغلّتين (فعليّ ≥ متوقّع).
     وإلّا None.

@@ -63,6 +63,43 @@ class InputApplication:
         return ACTIVITY_TO_INPUT.get(self.activity_type, "other")
 
 
+def _aggregate_quantities(applications: list[InputApplication]) -> list[dict]:
+    """الكمّيّة الفعليّة المطبَّقة مجمّعةً per (نوع المدخل، المنتج، الوحدة).
+
+    لا جمع عبر وحدات مختلفة (kg مع L) ولا تحويل ضمنيّ: كلّ وحدة سطرٌ مستقلّ. تطبيقٌ
+    بلا كمّيّة يُعدّ في ``n_without_quantity`` لا صفراً — الغائب يُعلَن لا يُؤلَّف.
+    """
+    groups: dict[tuple[str, str | None, str | None], dict] = {}
+    for app in applications:
+        unit = app.unit.strip() if isinstance(app.unit, str) and app.unit.strip() else None
+        key = (app.input_type, app.product_name, unit)
+        grp = groups.setdefault(
+            key,
+            {
+                "input_type": key[0],
+                "product_name": key[1],
+                "unit": key[2],
+                "quantity": None,
+                "n_applications": 0,
+                "n_without_quantity": 0,
+            },
+        )
+        grp["n_applications"] += 1
+        qty = app.quantity
+        if qty is None or isinstance(qty, bool) or qty < 0:
+            grp["n_without_quantity"] += 1
+            continue
+        grp["quantity"] = round((grp["quantity"] or 0.0) + float(qty), 3)
+    return sorted(
+        groups.values(),
+        key=lambda g: (
+            _INPUT_ORDER.get(g["input_type"], 9),
+            g["product_name"] or "",
+            g["unit"] or "",
+        ),
+    )
+
+
 def build_input_ledger(
     applications: list[InputApplication],
     *,
@@ -86,6 +123,7 @@ def build_input_ledger(
             "total_cost": 0.0,
             "cost_coverage": 0.0,
             "currency": currency,
+            "quantities": [],
             "reason_ar": "لا مدخلات مسجّلة لهذا الحقل/الموسم بعد.",
         }
 
@@ -104,6 +142,7 @@ def build_input_ledger(
             grp["n_with_cost"] += 1
             n_with_cost += 1
             total_cost = round(total_cost + app.cost, 2)
+    quantities = _aggregate_quantities(applications)
     # ترتيب النَسَب من البذرة للحصاد.
     ordered = dict(sorted(by_type.items(), key=lambda kv: _INPUT_ORDER.get(kv[0], 9)))
 
@@ -149,6 +188,7 @@ def build_input_ledger(
         "harvest_yield_t_ha": harvest_yield_t_ha,
         "area_ha": area_ha,
         "currency": currency,
+        "quantities": quantities,
         "gaps_ar": gaps,
         "honesty_note_ar": (
             "نَسَب المدخلات من البذرة للحصاد per حقل/موسم. الكلفة الغائبة تُستثنى "

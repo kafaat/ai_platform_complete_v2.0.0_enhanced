@@ -61,8 +61,10 @@ def test_start_season_with_active_supersedes_not_409():
         EventType.SEASON_CREATED.value,
     ]
     # payload الإغلاق يطابق ما يُصدِره الـendpoint حرفيّاً.
+    # season_id (الموسم المُغلَق) يقرأه عامل التعلّم — بدونه كان يُسقِط كلّ season.closed.
     assert eff.events[0][1] == {
         "field_id": "f1",
+        "season_id": "s0",
         "reason": "superseded_by_new_season",
         "superseded_by": "s1",
     }
@@ -77,7 +79,11 @@ def test_start_season_with_active_omits_superseded_by_when_season_id_absent():
         EventType.SEASON_CREATED.value,
     ]
     assert "superseded_by" not in eff.events[0][1]
-    assert eff.events[0][1] == {"field_id": "f1", "reason": "superseded_by_new_season"}
+    assert eff.events[0][1] == {
+        "field_id": "f1",
+        "season_id": "s0",
+        "reason": "superseded_by_new_season",
+    }
 
 
 def test_record_activity_requires_existing_field():
@@ -99,7 +105,9 @@ def test_record_activity_emits_operation_specific_event():
 
 def test_activity_event_for_single_source_mapping():
     assert activity_event_for("planting", "done") == EventType.PLANTING_COMPLETED
-    assert activity_event_for("planting", "planned") == EventType.PLANTING_STARTED
+    # المُخطَّط ليس «بدءاً»: كان PLANTING_STARTED فيُسقَط عمليّةً جارية — صار العامّ.
+    assert activity_event_for("planting", "planned") == EventType.ACTIVITY_RECORDED
+    assert activity_event_for("harvest", "skipped") == EventType.ACTIVITY_RECORDED
     assert activity_event_for("fertilization", "done") == EventType.FERTILIZER_APPLIED
     # تسميد غير مُنجَز / نوع مجهول → العامّ.
     assert activity_event_for("fertilization", "planned") == EventType.ACTIVITY_RECORDED

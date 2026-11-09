@@ -4,6 +4,9 @@ crop_id: wheat
 name_ar: القمح
 name_en: Wheat
 crop_family: cereal_C3
+aliases:
+  - "قمح صلب"   # durum — UI label
+  - "قمح طري"
 
 kc:
   initial: 0.30
@@ -51,6 +54,19 @@ modifying:
 pest_susceptibility:
   pests: [rust, aphids, hessian_fly]
   note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── الأمراض الفطريّة العائليّة (weather-driven) — أسماءٌ تُصيب هذا العائل فقط ──
+diseases:
+  source: "Agrios, Plant Pathology (5th ed.) — Puccinia spp. rusts; Zymoseptoria tritici (rain-splash)"
+  items:
+    - id: rust
+      name_ar: "الصدأ"
+      name_en: "Rust (Puccinia spp.)"
+      favoured_by: humid_mild
+    - id: septoria_tritici_blotch
+      name_ar: "تبقّع السبتوريا"
+      name_en: "Septoria tritici blotch (Zymoseptoria tritici)"
+      favoured_by: humid_wet
 
 # ── مراحل النمو (Phenology) — محايدة الموقع، مُحاذاة لمراحل FAO-56 ──
 # الحدود اليوميّة تطابق kc.stage_days التراكميّة [15,25,50,30] ⇒ [0–15, 15–40, 40–90, 90–120].

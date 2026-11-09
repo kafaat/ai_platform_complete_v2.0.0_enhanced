@@ -312,12 +312,21 @@ _ALLOWLIST: dict[tuple[str, str], str] = {
     (
         "shared/wofost/engine.py",
         "CROP_PARAMS",
-    ): "قرار المالك: نسخة WOFOST الموازية تبقى (نقلها يعكس اتّجاه shared→platform) — الفجوة PARTIAL",
+    ): "قيم WOFOST المدمجة للمستدعين خارج services/ فقط (موسومة parameter_source=wofost_builtin)؛ "
+    "كلّ مستدعٍ تحت services/ يحقن Kc/tbase من البطاقة — يفرضه "
+    "test_every_service_call_to_wofost_injects_canonical_parameters",
     (
         "shared/wofost/engine.py",
         "SOIL_PARAMS",
-    ): "قرار المالك: نسخة WOFOST الموازية تبقى (نقلها يعكس اتّجاه shared→platform) — الفجوة PARTIAL",
+    ): "θ WOFOST المدمجة للمستدعين خارج services/ فقط (موسومة parameter_source=wofost_builtin)؛ "
+    "كلّ مستدعٍ تحت services/ يحقن θFC/θWP من FAO-56 — يفرضه "
+    "test_every_service_call_to_wofost_injects_canonical_parameters",
 }
+
+# المستدعون تحت services/ يجب أن يحقنوا كلّ بارامترات المصدر القانونيّ: إمّا صراحةً بالاسم،
+# أو بـ``**name`` حيث ``name`` مُسنَد في الملفّ نفسه من ``canonical_engine_parameters(...)``.
+_WOFOST_INJECTED = {"kc_ini", "kc_mid", "kc_end", "tbase", "theta_fc", "theta_wp"}
+_CANONICAL_PARAMS_FN = "canonical_engine_parameters"
 
 
 def _is_num(node: ast.AST) -> bool:
@@ -429,6 +438,72 @@ def test_no_literal_kc_or_taw_table_outside_canonical_sources(_hits):
         "core.engines.fao56) — اقرأ منهما بدل نسخة موازية: "
         + "; ".join(f"{p}::{o} [{k}]" for (p, o), k in sorted(offenders.items()))
     )
+
+
+def _call_name(node: ast.Call) -> str | None:
+    f = node.func
+    return f.attr if isinstance(f, ast.Attribute) else (f.id if isinstance(f, ast.Name) else None)
+
+
+def _uninjected_wofost_calls(source: str) -> list[int]:
+    """أسطر استدعاءات ``simulate_wofost`` التي لا تحقن البارامترات القانونيّة كلّها."""
+    tree = ast.parse(source)
+    canonical_names = {
+        t.id
+        for n in ast.walk(tree)
+        if isinstance(n, ast.Assign)
+        and isinstance(n.value, ast.Call)
+        and _call_name(n.value) == _CANONICAL_PARAMS_FN
+        for t in n.targets
+        if isinstance(t, ast.Name)
+    }
+    bad: list[int] = []
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.Call) and _call_name(node) == "simulate_wofost"):
+            continue
+        named = {k.arg for k in node.keywords if k.arg}
+        spread = {
+            k.value.id for k in node.keywords if k.arg is None and isinstance(k.value, ast.Name)
+        }
+        if not (_WOFOST_INJECTED <= named or spread & canonical_names):
+            bad.append(node.lineno)
+    return bad
+
+
+def test_every_service_call_to_wofost_injects_canonical_parameters():
+    """جداول WOFOST المدمجة لا تصل إلى أيّ مسار إنتاج تحت services/ (سماحها أعلاه مشروط بهذا)."""
+    calls: dict[str, list[int]] = {}
+    seen = 0
+    for path in _prod_files(_ROOT / "services"):
+        source = path.read_text(encoding="utf-8")
+        if "simulate_wofost(" not in source:
+            continue
+        seen += 1
+        bad = _uninjected_wofost_calls(source)
+        if bad:
+            calls[path.relative_to(_ROOT).as_posix()] = bad
+    assert seen >= 1, "لا مستدعٍ لـsimulate_wofost تحت services/ — الحارس يقيس فراغاً"
+    assert not calls, (
+        "استدعاء simulate_wofost تحت services/ بلا حقن Kc/tbase/θ من البطاقة وFAO-56 "
+        f"(مرّر **canonical_engine_parameters(crop, soil)): {calls}"
+    )
+
+
+@pytest.mark.parametrize(
+    ("source", "bad"),
+    [
+        ("await simulate_wofost(f, c, s)", [1]),
+        ("await eng.simulate_wofost(f, c, s, kc_ini=1, kc_mid=1, kc_end=1)", [1]),
+        ("p = other(c)\nawait simulate_wofost(f, **p)", [2]),
+        ("p = canonical_engine_parameters(c, s)\nawait eng.simulate_wofost(f, **p)", []),
+        (
+            "simulate_wofost(f, kc_ini=a, kc_mid=b, kc_end=c, tbase=t, theta_fc=x, theta_wp=y)",
+            [],
+        ),
+    ],
+)
+def test_wofost_injection_detector_self_test(source, bad):
+    assert _uninjected_wofost_calls(source) == bad
 
 
 def test_allowlist_has_no_stale_entries(_hits):

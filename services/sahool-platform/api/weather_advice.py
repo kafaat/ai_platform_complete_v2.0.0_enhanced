@@ -16,13 +16,21 @@ api/weather_advice.py — منطق صرف (pure) لتوصية الريّ ومخ�
 
 from __future__ import annotations
 
+from core.crop_cards.loader import crop_diseases
+
 # H5 — تصحيح ملوحة محافظ: نُعيد استخدام رياضيّات Maas-Hoffman من نواة FAO-56
 # (مصدر واحد للحقيقة) وعتبة الملوحة المتوسّطة الموحّدة من core.thresholds.
 # لا نُعيد كتابة الصيغة هنا، ولا نضيف غسيلاً (لا مصدر موثوق لـECw).
 from core.engines.fao56 import salinity_stress_ks as _salinity_stress_ks
+from core.season_phenology import resolve_crop_id
 from core.thresholds import SALINITY_MODERATE_ECE as _SALINITY_MODERATE_ECE
 
-from api.water_balance import _effective_rain, kc_map_for_crop
+from api.water_balance import (
+    CROP_UNKNOWN_LIMITATION,
+    _effective_rain,
+    generic_kc_advisory_range,
+    kc_map_for_crop,
+)
 
 
 class _SaltToleranceShim:
@@ -150,7 +158,7 @@ def irrigation_advice(
     soil_ece: float | None = None,
     crop_salt_tolerance_ece: float | None = None,
     salt_slope_pct: float | None = None,
-    soil_moisture_unit_kind: str = "available_pct",
+    soil_moisture_unit_kind: str = "undeclared",
 ) -> dict:
     """توصية ريّ بنمط FAO-56 — دالّة نقيّة (تُختبَر offline).
 
@@ -191,9 +199,15 @@ def irrigation_advice(
         غسيل (لا مصدر موثوق لـECw). إن غابت أيّ شرط ⇒ السلوك مطابق تماماً للقديم
         (salinity_ks = 1.0).
 
+    المحصول المجهول (بلا بطاقة ولا ``kc_override``):
+        ``recommended_mm=None`` و``advisory_range_mm={"low","high"}`` (Kc عامّ ±
+        ``GENERIC_KC_UNCERTAINTY``) و``limitations=["crop_unknown_generic_kc"]`` — نطاقٌ
+        استشاريّ لا عمقٌ قابلٌ للتنفيذ. المحصول المعروف: ``advisory_range_mm=None``.
+
     Returns:
         {recommended_mm, urgency, timing_ar, et0, kc, kc_used, kc_source,
-         salinity_ks, rationale_ar}
+         salinity_ks, rationale_ar, forecast_hold, crop_known, advisory_range_mm,
+         limitations}
         urgency ∈ {none, low, moderate, high}
         kc_used: قيمة Kc المستخدمة فعليّاً في الحساب.
         kc_source: مصدرها — "phenology_fao56" عند تمرير kc_override، وإلّا الوسم
@@ -202,10 +216,12 @@ def irrigation_advice(
         ومُتتبَّع، غير مخفيّ).
     """
     et0 = max(0.0, float(et0_mm))
-    kc, _known, kc_source = resolve_kc(crop, stage)
+    kc, crop_known, kc_source = resolve_kc(crop, stage)
     if kc_override is not None:
         kc = float(kc_override)
         kc_source = "phenology_fao56"
+        # Kc صريح (منحنى البطاقة الطوريّ أو قيمة مُمرَّرة) لم يعد المنحنى العامّ.
+        crop_known = True
     etc = et0 * kc
 
     reasons: list[str] = [
@@ -255,15 +271,18 @@ def irrigation_advice(
 
     # رطوبة التربة (إن توفّرت): التربة الرطبة تخفّض الإلحاح، والجافّة ترفعه.
     # SOIL-MOISTURE-UNIT-IDENTITY-01: العتبتان (٣٠٪/٦٠٪) نسبةُ **ماءٍ متاح**. قراءةٌ
-    # حجميّة (VWC) لا تُقارَن بهما بلا معايرة θFC/θWP فلا تُستعمل؛ ووحدةٌ غيرُ
-    # مُعلَنة تُفسَّر كما كانت تُفسَّر — لكنّ الافتراضَ يُعلَن في الأسباب لا يُخفى.
+    # حجميّة (VWC) لا تُقارَن بهما بلا معايرة θFC/θWP فلا تُستعمل. ووحدةٌ غيرُ مُعلَنة
+    # كانت «تُفسَّر ماءً متاحاً (افتراضٌ موروث)» فترفع `%` عاريةٌ الإلحاحَ إلى high؛
+    # والسياسةُ المشتركة (SOIL-MOISTURE-ELIGIBILITY-01) تجعلها استشاريّةً لا تحكم.
     if soil_moisture_pct is not None and soil_moisture_unit_kind == "vwc_pct":
         reasons.append(
             "قراءة رطوبة التربة حجميّة (VWC) بلا معايرة إلى ماءٍ متاح — لم تُستعمل في الإلحاح."
         )
+    elif soil_moisture_pct is not None and soil_moisture_unit_kind != "available_pct":
+        reasons.append(
+            "وحدة قراءة رطوبة التربة غير مُعلَنة ماءً متاحاً — استشاريّة، لم تُستعمل في الإلحاح."
+        )
     elif soil_moisture_pct is not None:
-        if soil_moisture_unit_kind == "undeclared":
-            reasons.append("وحدة قراءة رطوبة التربة غير مُعلَنة — فُسِّرت نسبةَ ماءٍ متاح (افتراضٌ موروث).")
         sm = float(soil_moisture_pct)
         if sm >= _SOIL_COMFORTABLE_PCT and urgency in {"low", "moderate"}:
             urgency = "low" if urgency == "moderate" else "none"
@@ -296,14 +315,37 @@ def irrigation_advice(
     }
     timing_ar = timing_map[urgency]
 
-    if recommended_mm <= 0:
+    # المحصول المجهول (Kc عامّ، لا override): الوسمُ كان يُهمَل فيخرج عمقٌ مفرد قابلٌ
+    # للتنفيذ من Kc لا يخصّ المحصول. الآن نطاقٌ استشاريّ + ``recommended_mm=None`` + قيدٌ
+    # مُسمّى؛ الإلحاح/التوقيت يبقيان (تحكمهما التربة والمطر أيضاً) لكن بلا كمّيّة.
+    advisory_range_mm: dict | None = None
+    limitations: list[str] = []
+    out_mm: float | None
+    if not crop_known:
+        low, high = generic_kc_advisory_range(et0, kc, eff_rain, salinity_ks)
+        advisory_range_mm = {"low": low, "high": high}
+        limitations = [CROP_UNKNOWN_LIMITATION]
+        out_mm = None
+        if high <= 0:
+            rationale_ar = (
+                "لا حاجة للريّ — المطر يغطّي حتّى الطرف الأعلى من الاحتياج التقديريّ. "
+                + " ".join(reasons)
+            )
+        else:
+            rationale_ar = (
+                f"المحصول غير مُعرّف — نطاقٌ تقديريّ للاحتياج {low:.1f}–{high:.1f} مم بمنحنى "
+                "Kc عامّ، لا عمقَ ريٍّ للتنفيذ. حدّد المحصول أو قِس رطوبة التربة قبل الريّ. "
+                + " ".join(reasons)
+            )
+    elif recommended_mm <= 0:
         rationale_ar = "لا حاجة للريّ — المطر يغطّي الاحتياج. " + " ".join(reasons)
-        recommended_mm = 0.0
+        out_mm = 0.0
     else:
         rationale_ar = f"الاحتياج الصافي {recommended_mm:.1f} مم. " + " ".join(reasons)
+        out_mm = recommended_mm
 
     return {
-        "recommended_mm": recommended_mm,
+        "recommended_mm": out_mm,
         "urgency": urgency,
         "timing_ar": timing_ar,
         "et0": round(et0, 2),
@@ -313,6 +355,9 @@ def irrigation_advice(
         "salinity_ks": round(salinity_ks, 3),
         "rationale_ar": rationale_ar,
         "forecast_hold": forecast_hold,
+        "crop_known": crop_known,
+        "advisory_range_mm": advisory_range_mm,
+        "limitations": limitations,
     }
 
 
@@ -340,8 +385,14 @@ def disease_risk(
       • مطر تراكميّ ٣ أيّام (≥ ١٠ مم) → رطوبة مظلّة مستمرّة.
     كلّ عامل متحقّق يرفع الدرجة. الحرارة العالية جدّاً (> ٣٥°م) تكبح الفطريّات.
 
+    الأسماء عائليّة: تُقرأ من كتلة ``diseases`` في بطاقة المحصول (``crop``) وتُرشَّح
+    بنمط الطقس النشط. محصولٌ مجهول أو بلا قائمة ⇒ ``diseases_ar=[]`` و
+    ``host_specific=False`` و``limitations=["no_host_disease_list"]``. النصيحة فحصٌ
+    ميدانيّ لا رشّ (``spray_recommended`` دائماً ``False``): الطقس لا يؤكّد مُمرِضاً.
+
     Returns:
-        {risk_level, diseases_ar:[...], advice_ar}
+        {risk_level, diseases_ar:[...], advice_ar, crop_id, host_specific,
+         spray_recommended, limitations}
         risk_level ∈ {low, moderate, high}
     """
     t = float(temp_c)
@@ -377,31 +428,50 @@ def disease_risk(
     else:
         risk_level = "low"
 
-    # أمراض محتملة وفق البيئة (موسومة كاحتمال لا تشخيص).
+    # أمراض محتملة وفق البيئة (موسومة كاحتمال لا تشخيص) — **عائليّةٌ فقط**.
+    # كان الاسمُ يُختار من الطقس وحده ويُتجاهَل ``crop``: «اللفحة المتأخّرة» لنخلةٍ أو
+    # قمح. الآن تُقرأ أمراض العائل من بطاقة المحصول (``diseases``، كلٌّ بنمط طقسه
+    # المُهيِّئ)، ولا يُسمّى مرضٌ لا تُعلنه البطاقة. محصولٌ بلا قائمة ⇒ خطرٌ فطريٌّ عامّ
+    # مدفوعٌ بالطقس بلا اسم.
+    active_patterns = {
+        "humid_mild": humid and mild,
+        "humid_wet": humid and wet,
+        "humid_warm_dry": rh >= 70 and not wet and 20 <= t <= 30,
+    }
+    crop_id = resolve_crop_id(crop)
+    host_diseases = crop_diseases(crop_id)
+    host_specific = host_diseases is not None
     diseases_ar: list[str] = []
-    if humid and mild:
-        diseases_ar.append("اللفحة المتأخّرة (Late blight)")
-        diseases_ar.append("البياض الزغبيّ (Downy mildew)")
-    if humid and wet:
-        diseases_ar.append("تبقّع الأوراق الفطريّ (Leaf spot)")
-        diseases_ar.append("الصدأ (Rust)")
-    if rh >= 70 and not wet and 20 <= t <= 30:
-        diseases_ar.append("البياض الدقيقيّ (Powdery mildew)")
+    if host_diseases:
+        diseases_ar = [
+            f"{d['name_ar']} — {d['name_en']}"
+            for d in host_diseases
+            if active_patterns.get(d["favoured_by"])
+        ]
     # إزالة التكرار مع الحفاظ على الترتيب.
     diseases_ar = list(dict.fromkeys(diseases_ar))
+    limitations: list[str] = [] if host_specific else ["no_host_disease_list"]
 
+    # **لا رشَّ من الطقس وحده.** الطقس يُهيِّئ ولا يُشخِّص؛ قرارُ المكافحة يلزمه تأكيدُ
+    # المُمرِض في الحقل (أعراض/مختبر). فالنصيحة فحصٌ ووقايةٌ زراعيّة لا مبيد.
+    generic_note = (
+        "" if host_specific else " (لا قائمة أمراض موثّقة لهذا المحصول — خطرٌ فطريٌّ عامّ مدفوعٌ بالطقس.)"
+    )
+    confirm_ar = "لا ترشّ قبل تأكيد المُمرِض ميدانيّاً أو مخبريّاً."
     if risk_level == "high":
         advice_ar = (
             "خطر مرتفع: "
             + "، ".join(factors)
-            + ". افحص المحصول ميدانيّاً، وفكّر في رشّ وقائيّ مناسب وتحسين التهوية، "
-            "وتجنّب الريّ المسائيّ الذي يُطيل بلل الورقة."
+            + ". افحص الحقل الآن بحثاً عن أعراض الإصابة، وحسّن التهوية، "
+            "وتجنّب الريّ المسائيّ الذي يُطيل بلل الورقة. " + confirm_ar + generic_note
         )
     elif risk_level == "moderate":
         advice_ar = (
             "خطر متوسّط: "
             + "، ".join(factors)
-            + ". راقب الحقل عن كثب وكُن مستعدّاً للرشّ الوقائيّ إن ساءت الظروف."
+            + ". راقب الحقل عن كثب وافحص الحقل إن ساءت الظروف. "
+            + confirm_ar
+            + generic_note
         )
     else:
         advice_ar = "خطر منخفض حاليّاً — الظروف الجوّيّة غير مُهيّئة لتفشٍّ فطريّ. تابع المراقبة الدوريّة."
@@ -410,4 +480,8 @@ def disease_risk(
         "risk_level": risk_level,
         "diseases_ar": diseases_ar,
         "advice_ar": advice_ar,
+        "crop_id": crop_id,
+        "host_specific": host_specific,
+        "spray_recommended": False,
+        "limitations": limitations,
     }

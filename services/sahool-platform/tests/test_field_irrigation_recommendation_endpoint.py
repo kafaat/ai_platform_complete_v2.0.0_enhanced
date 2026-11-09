@@ -729,6 +729,38 @@ async def test_submitted_candidate_carries_content_lineage_and_a_deterministic_i
 
 
 @pytest.mark.asyncio
+async def test_submitted_candidate_carries_typed_decision_provenance(monkeypatch):
+    from api.irrigation_recommendation_policy import (
+        IRRIGATION_CONFIDENCE_METHOD,
+        IRRIGATION_RULE_VERSION,
+    )
+
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=_pm_et0_product())
+    seen: list[dict] = []
+
+    async def _submit(payload, _tenant):
+        seen.append(payload)
+        return {
+            "decision_id": payload["decision_id"],
+            "authoritative": True,
+            "persisted": True,
+            "stage": "candidate",
+        }
+
+    monkeypatch.setattr(mod, "_submit_candidate_to_decision", _submit)
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _snap_dry)
+    req = FieldIrrigationRequest(policy="water_saving", submit_to_decision=True)
+    await field_irrigation_recommendation("fld_1", req, user=_TenantUser())
+
+    provenance = seen[0]["provenance"]
+    assert provenance["model_or_rule_version"] == IRRIGATION_RULE_VERSION
+    assert provenance["confidence_method"] == IRRIGATION_CONFIDENCE_METHOD
+    assert provenance["policy_version"].startswith("irrigation-policy:water_saving/salinity:")
+    assert provenance["evidence_refs"] == seen[0]["decision_value"]["evidence_ids"]
+    assert provenance["producer_id"] and provenance["explanation"]
+
+
+@pytest.mark.asyncio
 async def test_zero_fallback_et0_is_preserved_as_advisory(monkeypatch):
     _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=_fake_et0_product(et0_mm=0.0))
     out = await field_irrigation_recommendation("fld_1", _REQ, user=object())

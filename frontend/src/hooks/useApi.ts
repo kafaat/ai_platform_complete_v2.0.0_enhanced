@@ -415,18 +415,24 @@ export interface ChangeDetectionResponse {
   index: string;
   date_a: string;
   date_b: string;
-  available: boolean;      // false ⇒ لا COG حقيقي لأحد التاريخين (لا تغيّر مُفبرَك)
-  real_data: boolean;
+  available: boolean;      // false ⇒ قد تكون الصور موجودة لكن المقارنة غير قابلة للتقييم
+  real_data: boolean;      // provenance of actual COG, independent of availability
+  status?: string;         // assessed | not_assessable
+  reason_codes?: string[];
   // الحقول التالية موجودة فقط عند available=true
   rows?: number;
   cols?: number;
   bbox?: [number, number, number, number];
   delta_grid?: (number | null)[][]; // after - before (null = فجوة/غيمة)
   change_grid?: (number | null)[][]; // -2/-1/0/1 (null = فجوة)
-  mean_delta?: number;
-  improved_pct?: number;
-  degraded_pct?: number;
-  stable_pct?: number;
+  mean_delta?: number | null;
+  improved_pct?: number | null;
+  degraded_pct?: number | null;
+  stable_pct?: number | null;
+  // مؤشّرات اتجاهها رهن السياق (bsi/lst/…): فرق البكسلات محفوظ، وحكم التحسّن/التدهور محجوب
+  direction?: 'higher_is_worse' | 'lower_is_worse' | 'context_dependent';
+  verdict_withheld?: boolean;
+  changed_pct?: number | null;
   coverage_pct?: number;
   valid_pixels?: number;
   total_pixels?: number;

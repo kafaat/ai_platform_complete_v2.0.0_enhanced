@@ -140,6 +140,10 @@ class DrainageAssessmentProduct(BaseModel):
     recommendations: list[str]
     blocked_actions: list[str]
     provenance: dict
+    # Evidence gaps that bound how far the screening result can be trusted
+    # (e.g. ``water_table_depth_unknown``).  Defaulted so payloads stored
+    # before this field existed still validate.
+    limitations: list[str] = Field(default_factory=list)
 
 
 class ReclamationAssessmentRequest(BaseModel):
@@ -224,3 +228,28 @@ class ReclamationEconomicsProduct(BaseModel):
     scenarios: list[ReclamationScenario]
     recommended_scenario: str | None
     provenance: dict
+
+
+# P3 drainage_need -> the drainage_class vocabulary consumed by the canonical
+# salinity state ({good, moderate, poor, unknown}).  Engineering-level needs
+# map to "poor"; a "none"/"monitor" verdict reached without water-table
+# evidence maps to "unknown" so downstream leaching gates stay closed.
+_P3_TO_SALINITY_DRAINAGE = {
+    "none": "good",
+    "monitor": "moderate",
+    "surface": "poor",
+    "subsurface": "poor",
+    "combined": "poor",
+}
+
+
+def p3_drainage_need_to_salinity_class(
+    drainage_need: str | None, limitations: list[str] | tuple[str, ...] = ()
+) -> Literal["good", "moderate", "poor", "unknown"]:
+    """Map a P3 ``drainage_need`` onto the salinity drainage vocabulary."""
+    mapped = _P3_TO_SALINITY_DRAINAGE.get(drainage_need or "")
+    if mapped is None:
+        return "unknown"
+    if mapped in {"good", "moderate"} and "water_table_depth_unknown" in limitations:
+        return "unknown"
+    return mapped

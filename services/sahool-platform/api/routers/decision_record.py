@@ -26,6 +26,7 @@ import logging
 import os
 import uuid as _uuid
 
+from core.outcome_reconciler import OutcomeLabelConflict, reconcile_planned_with_decision
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -163,6 +164,39 @@ async def _assert_field_ownership(user: UserSchema, field_id: str | None) -> Non
         raise HTTPException(status_code=403, detail="غير مصرَّح: الحقل ليس ضمن مستأجِرك")
 
 
+_REPLAY_CONFLICT_DETAIL = "decision_id_payload_mismatch: القرار مُسجَّل بمحتوى مختلف"
+
+
+class _DecisionReplayConflict(Exception):
+    """`decision_id` قائم بمحتوى مختلف — يُرفَع داخل المعاملة ويُترجَم 409 خارجها."""
+
+
+_STORED_DECISION_SQL = (
+    "SELECT field_id, decision_type, stage, decision_value FROM decision_record "
+    "WHERE decision_id = $1"
+)
+
+
+def _replayed_decision_matches(
+    stored, *, decision_value: dict, field_id: str | None, decision_type: str, stage: str
+) -> bool:
+    """إعادةٌ على `decision_id` قائم صادقةٌ فقط إن كانت **السجلَّ نفسَه** (نقيّ).
+
+    كان `ON CONFLICT DO NOTHING` يُسقِط المحتوى الجديد بصمت ثمّ يُعلن الإدامة؛ الآن يُقارَن
+    المحفوظ (مرئيّاً للمستأجِر عبر RLS) بالمُرسَل، وأيُّ اختلاف ⇒ 409 لا نجاح."""
+    if stored is None:  # غير مرئيّ لهذا المستأجِر ⇒ ليس سجلَّه
+        return False
+    value = stored["decision_value"]
+    if isinstance(value, str):
+        value = _json.loads(value)
+    return (
+        value == _json.loads(_json.dumps(decision_value))
+        and (stored["field_id"] or None) == (field_id or None)
+        and stored["decision_type"] == decision_type
+        and stored["stage"] == stage
+    )
+
+
 async def persist_decision_if_enabled(
     user: UserSchema,
     *,
@@ -196,12 +230,12 @@ async def persist_decision_if_enabled(
     try:
         async with tenant_connection(user) as conn:
             assert_platform_may_write_decision_sor("decision_record")
-            await conn.execute(
+            inserted = await conn.fetchval(
                 """INSERT INTO decision_record
                     (decision_id, tenant_id, field_id, decision_type, region,
                      stage, decision_value, confidence, created_by)
                    VALUES ($1, $2::uuid, $3, $4, $5, 'decision', $6::jsonb, $7, $8)
-                   ON CONFLICT (decision_id) DO NOTHING""",
+                   ON CONFLICT (decision_id) DO NOTHING RETURNING decision_id""",
                 decision_id,
                 str(user.tenant_id),
                 field_id,
@@ -211,6 +245,14 @@ async def persist_decision_if_enabled(
                 conf,
                 str(user.user_id),
             )
+            if inserted is None and not _replayed_decision_matches(
+                await conn.fetchrow(_STORED_DECISION_SQL, decision_id),
+                decision_value=decision_value,
+                field_id=field_id,
+                decision_type=decision_type,
+                stage="decision",
+            ):
+                raise HTTPException(status_code=409, detail=_REPLAY_CONFLICT_DETAIL)
             await _emit_domain_event(
                 conn,
                 user,
@@ -371,12 +413,12 @@ async def record_decision(
     try:
         async with tenant_connection(user) as conn:
             assert_platform_may_write_decision_sor("decision_record")
-            await conn.execute(
+            inserted = await conn.fetchval(
                 """INSERT INTO decision_record
                     (decision_id, tenant_id, field_id, decision_type, region,
                      stage, decision_value, confidence, created_by)
                    VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9)
-                   ON CONFLICT (decision_id) DO NOTHING""",
+                   ON CONFLICT (decision_id) DO NOTHING RETURNING decision_id""",
                 did,
                 str(user.tenant_id),
                 req.field_id,
@@ -387,6 +429,14 @@ async def record_decision(
                 req.confidence,
                 str(user.user_id),
             )
+            if inserted is None and not _replayed_decision_matches(
+                await conn.fetchrow(_STORED_DECISION_SQL, did),
+                decision_value=req.decision_value,
+                field_id=req.field_id,
+                decision_type=req.decision_type,
+                stage=lineage["stage"],
+            ):
+                raise _DecisionReplayConflict(did)
             await _emit_domain_event(
                 conn,
                 user,
@@ -401,6 +451,8 @@ async def record_decision(
                 },
                 critical=True,  # رأس سلسلة النَّسَب — fail-closed
             )
+    except _DecisionReplayConflict as e:  # إعادةٌ بمحتوى مختلف ليست عطل قاعدة
+        raise HTTPException(status_code=409, detail=_REPLAY_CONFLICT_DETAIL) from e
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("إدامة القرار", e) from e
 
@@ -417,7 +469,7 @@ async def record_decision(
         "lineage": lineage,
         "persisted": True,
         "authoritative_store": "sahool-platform",
-        "replayed": False,
+        "replayed": inserted is None,
         "recorded_by": str(user.user_id),
     }
 
@@ -465,7 +517,8 @@ async def record_outcome(
     ثانية (ON CONFLICT) — فلا يتضخّم sample_count الذي يحرس عتبة field_verified (سلامة
     حلقة التعلّم). الإعادة تُعيد القياس القائم (replayed=true) بلا حدث جديد.
     """
-    metrics = measure_outcome(req.planned.model_dump(), req.actual.model_dump())
+    planned = req.planned.model_dump()
+    metrics = measure_outcome(planned, req.actual.model_dump())
     success = _derive_success(metrics["metrics"])
     did = ensure_decision_id(req.decision_id)
     outcome_id = "out_" + _uuid.uuid4().hex[:16]
@@ -509,6 +562,24 @@ async def record_outcome(
     try:
         async with tenant_connection(user) as conn:
             assert_platform_may_write_decision_sor("outcome_record")
+            if req.decision_id:
+                # F4: «المُخطَّط» تسميةُ تعلّم — يُقرأ من القرار المُدام، ومخالفةُ العميل له 422.
+                stored = await conn.fetchrow(
+                    "SELECT field_id, decision_value FROM decision_record WHERE decision_id = $1",
+                    did,
+                )
+                try:
+                    planned, planned_sources = reconcile_planned_with_decision(
+                        stored=dict(stored) if stored is not None else None,
+                        client_planned=planned,
+                        field_id=req.field_id,
+                    )
+                except OutcomeLabelConflict as e:
+                    raise HTTPException(status_code=422, detail=e.detail) from e
+                metrics = measure_outcome(planned, req.actual.model_dump())
+                success = _derive_success(metrics["metrics"])
+                service_payload.update(planned=planned, metrics=metrics, success=success)
+                service_payload["planned_sources"] = planned_sources
             inserted = await conn.fetchval(
                 """INSERT INTO outcome_record
                     (outcome_id, tenant_id, decision_id, field_id, region,
@@ -525,7 +596,7 @@ async def record_outcome(
                 req.field_id,
                 req.region,
                 lineage["stage"],
-                _json.dumps(req.planned.model_dump()),
+                _json.dumps(planned),
                 _json.dumps(req.actual.model_dump()),
                 _json.dumps(metrics),
                 success,
@@ -559,6 +630,8 @@ async def record_outcome(
                 {"decision_id": did, "field_id": req.field_id, "success": success},
                 critical=True,  # نتيجة القرار (سلسلة النَّسَب) — fail-closed
             )
+    except HTTPException:
+        raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("إدامة نتيجة القرار", e) from e
 
@@ -579,6 +652,7 @@ async def record_outcome(
         "authoritative_store": "sahool-platform",
         "replayed": False,
         "recorded_by": str(user.user_id),
+        "planned_sources": service_payload.get("planned_sources"),
     }
 
 

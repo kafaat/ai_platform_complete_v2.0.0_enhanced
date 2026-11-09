@@ -35,6 +35,7 @@ import {
   type PinPersistence, type PinSeverity,
 } from '../components/fieldhealth';
 import { timelineRecordByDay } from '../components/fieldhealth/timelineByDay';
+import { unavailableFieldChangeMessage } from '../lib/fieldChangeAvailability';
 import { useScoutingPins, useCreateScoutingPin, useCropScoutingIssues } from '../hooks/useScouting';
 import type { ScoutingPinRecord } from '../hooks/useScouting';
 import { useLocation } from 'react-router';
@@ -827,23 +828,32 @@ export default function SatellitePage() {
                   <p className="text-[11px] text-amber-400/80 py-1">تعذّر حساب التغيّر.</p>
                 ) : change && !change.available ? (
                   <p className="text-[11px] text-amber-400/80 py-1">
-                    {change.note || 'لا توجد بيانات COG حقيقيّة لأحد التاريخين — لا تغيّر مُفبرَك.'}
+                    {unavailableFieldChangeMessage(change)}
                   </p>
+                ) : change && change.available && change.verdict_withheld ? (
+                  <div className="space-y-1">
+                    <div className="text-base font-bold text-sky-300">
+                      تغيّر: {change.changed_pct == null ? 'غير متاح' : `${change.changed_pct.toFixed(1)}%`}
+                    </div>
+                    <p className="text-[10px] text-slate-400">
+                      اتجاه هذا المؤشّر يتوقّف على السياق (المرحلة والموسم)، فلا يُعرض حكم تحسّن أو تدهور.
+                    </p>
+                  </div>
                 ) : change && change.available ? (
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="rounded-lg px-2 py-1.5 text-center" style={{ background:'#13301f', border:'1px solid #2d6a3e' }}>
-                        <div className="text-base font-bold text-emerald-400">{(change.improved_pct ?? 0).toFixed(1)}%</div>
+                        <div className="text-base font-bold text-emerald-400">{change.improved_pct == null ? 'غير متاح' : `${change.improved_pct.toFixed(1)}%`}</div>
                         <div className="text-[10px] text-emerald-300/70">تحسّن</div>
                       </div>
                       <div className="rounded-lg px-2 py-1.5 text-center" style={{ background:'#3a1414', border:'1px solid #7a2a2a' }}>
-                        <div className="text-base font-bold text-red-400">{(change.degraded_pct ?? 0).toFixed(1)}%</div>
+                        <div className="text-base font-bold text-red-400">{change.degraded_pct == null ? 'غير متاح' : `${change.degraded_pct.toFixed(1)}%`}</div>
                         <div className="text-[10px] text-red-300/70">تدهور</div>
                       </div>
                     </div>
                     <div className="flex justify-between text-[10px] text-slate-500">
-                      <span>مستقرّ: {(change.stable_pct ?? 0).toFixed(1)}%</span>
-                      <span>Δ متوسّط: {(change.mean_delta ?? 0).toFixed(3)}</span>
+                      <span>مستقرّ: {change.stable_pct == null ? 'غير متاح' : `${change.stable_pct.toFixed(1)}%`}</span>
+                      <span>Δ متوسّط: {change.mean_delta == null ? 'غير متاح' : change.mean_delta.toFixed(3)}</span>
                     </div>
                     {change.cloud_warning && (
                       <p className="text-[10px] text-amber-400/80">

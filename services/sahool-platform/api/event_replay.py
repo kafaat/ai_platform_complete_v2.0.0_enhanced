@@ -308,6 +308,14 @@ def _summarize_ar(event_type: str, payload: dict[str, Any]) -> str:
 # ─── Reconstruction engine ──────────────────────────────────────
 
 
+def _performed_on_or_occurred(payload: dict[str, Any], event: dict[str, Any]) -> Any:
+    """تاريخ التنفيذ من الحمولة إن وُجد (نصّ غير فارغ)، وإلّا زمن الحدث."""
+    performed = payload.get("performed_on")
+    if isinstance(performed, str) and performed:
+        return performed
+    return event["occurred_at"]
+
+
 class FieldStateReconstructor:
     """
     يُعيد بناء state حقل من history.
@@ -368,9 +376,10 @@ class FieldStateReconstructor:
 
         elif etype == "operation.planting.completed":
             state.planting_completed_count += 1
-            # إكمال البذر يُثبت تاريخ الزراعة من زمن الحدث (لا مفتاح تاريخ في
-            # payload النشاط الحقيقيّ: {field_id, season_id, activity_type, status}).
-            state.planting_date = event["occurred_at"]
+            # تاريخ الزراعة = تاريخ التنفيذ (payload.performed_on — field_aggregate.
+            # activity_event_payload)، لا زمن تسجيل الحدث: تسجيلٌ متأخّر من الموبايل
+            # (offline) كان يُزيح التاريخ. occurred_at احتياطٌ لأحداثٍ أقدم بلا المفتاح.
+            state.planting_date = _performed_on_or_occurred(payload, event)
 
         elif etype == "operation.irrigation.started":
             state.irrigation_started_count += 1
@@ -389,7 +398,7 @@ class FieldStateReconstructor:
 
         elif etype == "operation.harvest.completed":
             state.harvest_completed_count += 1
-            state.harvest_date = event["occurred_at"]
+            state.harvest_date = _performed_on_or_occurred(payload, event)
 
         elif etype == "season.created":
             # payload الحقيقيّ: {field_id, crops, cultivar, irrigation_type,
@@ -412,9 +421,9 @@ class FieldStateReconstructor:
             state.season_updated_count += 1
 
         elif etype == "activity.recorded":
-            # payload الحقيقيّ: {field_id, season_id, activity_type, status}
-            # (routers/fields، حدث ACTIVITY_RECORDED الاحتياطيّ). نشاط عامّ لا يُطابَق
-            # operation.* محدَّداً (مثل scouting). نعدّه ونحفظ آخر نوع نشاط.
+            # payload الحقيقيّ: {field_id, season_id, activity_type, status, scheduled_for,
+            # performed_on} (field_aggregate.activity_event_payload). حدث ACTIVITY_RECORDED
+            # الاحتياطيّ: نشاط عامّ (scouting…) أو صفّ مُخطَّط/مُتخطّى. نعدّه ونحفظ آخر نوع.
             state.activity_recorded_count += 1
             if "activity_type" in payload:
                 state.last_activity_type = payload["activity_type"]

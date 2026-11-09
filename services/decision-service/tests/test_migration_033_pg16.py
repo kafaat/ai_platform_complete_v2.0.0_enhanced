@@ -541,7 +541,7 @@ MODEL_WRITERS = {
 
 
 @pytest.mark.asyncio
-async def test_model_lifecycle_writers_after_033(database, observed_writers):
+async def test_model_lifecycle_writers_after_033(database, observed_writers, monkeypatch):
     """Execute the persisted model lifecycle; no model training or registry network I/O."""
     import main as api
     import test_agronomic_lineage_integrity as lineage
@@ -636,18 +636,30 @@ async def test_model_lifecycle_writers_after_033(database, observed_writers):
             idempotency_key="ci-activation",
         ),
     )
+    activation_review = api.ModelActivationReviewIn(
+        review_decision="approved",
+        review_reason="ci-only",
+        registry_alias="ci-alias",
+        previous_artifact_uri="s3://ci/previous",
+        previous_artifact_digest="c" * 64,
+        idempotency_key="ci-activation-review",
+    )
+    # Separation of duties ON: the requester ("ci") may not approve their own activation, and
+    # the refusal records nothing. OFF (the default outside production): the same call succeeds.
+    monkeypatch.setenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", "true")
+    refused = await persistence.review_model_activation_request(
+        tenant_id=TENANT,
+        activation_request_id=request["activation_request_id"],
+        reviewed_by="ci",
+        payload=activation_review,
+    )
+    assert refused == {"status": "forbidden", "reason": "separation_of_duties_violation"}
+    monkeypatch.setenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", "false")
     review = await call(
         "review_model_activation_request",
         activation_request_id=request["activation_request_id"],
         reviewed_by="ci",
-        payload=api.ModelActivationReviewIn(
-            review_decision="approved",
-            review_reason="ci-only",
-            registry_alias="ci-alias",
-            previous_artifact_uri="s3://ci/previous",
-            previous_artifact_digest="c" * 64,
-            idempotency_key="ci-activation-review",
-        ),
+        payload=activation_review,
     )
     command_id = review["activation_command"]["activation_command_id"]
     await call(

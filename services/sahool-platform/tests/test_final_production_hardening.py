@@ -105,3 +105,15 @@ def test_rag_and_kg_annotations_do_not_enter_recommendation_inputs():
     )
     assert state.recommendation_inputs == {"soil_ec_ds_m": 3.5}
     assert state.explanatory_annotations[0]["verified"] is False
+
+
+def test_unknown_soil_moisture_is_not_high_water_stress():
+    twin = FieldTwinState(field_id="f", current={})
+    out = simulate_irrigation(twin, 30)
+    assert out.risks["water_stress"] == "unknown"
+    assert out.predicted["soil_moisture_pct_after_irrigation"] is None
+    # An explicit 0 % reading is a measurement and still classifies.
+    measured = simulate_irrigation(
+        FieldTwinState(field_id="f", current={"soil_moisture_pct": 0}), 10
+    )
+    assert measured.risks["water_stress"] == "high"

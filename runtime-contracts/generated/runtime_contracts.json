@@ -393,7 +393,9 @@
         "DECISION_033_TEST_DATABASE_URL",
         "DECISION_DATABASE_URL",
         "DECISION_DB_POOL_MAX",
+        "DECISION_EXECUTION_REQUEST_MAX_AGE_S",
         "DECISION_REQUIRE_AGRONOMIC_CONTEXT",
+        "DECISION_REQUIRE_SEPARATION_OF_DUTIES",
         "DECISION_REQUIRE_SOIL_EVIDENCE_GATE",
         "DECISION_REQUIRE_SOIL_PROFILE",
         "DECISION_SERVICE_ALLOW_SCHEMA_CHANGE",
@@ -490,6 +492,7 @@
           "services/decision-service/tests/test_agronomic_evidence_contract.py",
           "services/decision-service/tests/test_correlation_http_projection.py",
           "services/decision-service/tests/test_decision_evidence_read.py",
+          "services/decision-service/tests/test_decision_provenance_integrity.py",
           "services/decision-service/tests/test_execution_request_feed.py",
           "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
           "services/decision-service/tests/test_p4_decision_service_runtime.py",
@@ -2396,6 +2399,7 @@
           "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
           "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
           "services/sahool-platform/tests/test_productivity_router.py",
+          "services/sahool-platform/tests/test_r09_learning_label_integrity.py",
           "services/sahool-platform/tests/test_readyz_db_probe.py",
           "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
           "services/sahool-platform/tests/test_s5_exec_01_decision_record_cutover.py",
@@ -2663,6 +2667,7 @@
           "services/soil-service/projection_observability.py",
           "services/soil-service/routers/soil_profile.py",
           "services/soil-service/soilgrids_client.py",
+          "services/soil-service/test_soil_canonical_duplicate_identity.py",
           "services/soil-service/test_soil_ingest_entrypoint_parity.py"
         ],
         "metrics": [
@@ -2682,6 +2687,7 @@
           "services/soil-service/routers/p6_certification.py",
           "services/soil-service/routers/readings.py",
           "services/soil-service/routers/soil_profile.py",
+          "services/soil-service/test_soil_canonical_duplicate_identity.py",
           "services/soil-service/test_soil_ingest_entrypoint_parity.py"
         ],
         "tracing": []

@@ -3,6 +3,14 @@ from __future__ import annotations
 from math import isfinite
 from typing import Any
 
+# عتبات الرطوبة السطحيّة **المُنمذَجة** (Open-Meteo 1–3 سم) — مصدرٌ واحد مع منصّة سهول
+# (``routers/weather.py::_operation_suitability``)؛ اختبار تكافؤ يثبّتها.
+from shared.contracts.soil.moisture_policy import (
+    MODELLED_SURFACE_MOISTURE_SOURCE,
+    SURFACE_MOISTURE_DRY_M3M3,
+    SURFACE_MOISTURE_WET_M3M3,
+)
+
 SUPPORTED_OPERATIONS = {"spraying", "harvesting", "sowing", "fertilizing", "irrigation"}
 
 
@@ -119,7 +127,7 @@ def operation_suitability(sample: dict[str, Any] | None, operation: str) -> dict
         )
         penalize(precip > 8, 0.20, "heavy_rain_risk")
         if soil_moisture is not None:
-            penalize(soil_moisture < 0.12, 0.25, "soil_too_dry")
+            penalize(soil_moisture < SURFACE_MOISTURE_DRY_M3M3, 0.25, "soil_too_dry")
     elif op == "fertilizing":
         penalize(wind > 25, 0.25, "wind_high")
         penalize(precip > 0.2, 0.45, "rain_present")
@@ -128,8 +136,8 @@ def operation_suitability(sample: dict[str, Any] | None, operation: str) -> dict
         penalize(precip > 2, 0.50, "rain_expected_or_present")
         penalize(temp is not None and temp < 2, 0.20, "cold_conditions")
         if soil_moisture is not None:
-            penalize(soil_moisture > 0.35, 0.35, "soil_already_wet")
-            if soil_moisture < 0.18:
+            penalize(soil_moisture > SURFACE_MOISTURE_WET_M3M3, 0.35, "soil_already_wet")
+            if soil_moisture < SURFACE_MOISTURE_DRY_M3M3:
                 factors.append("soil_moisture_low")
                 score = min(1.0, score + 0.08)
 
@@ -141,6 +149,10 @@ def operation_suitability(sample: dict[str, Any] | None, operation: str) -> dict
         "limiting_factors": factors,
         "safe": suitability not in {"unsafe"},
         "status": "ok",
+        # الرطوبة هنا مُنمذَجة سطحيّة لا قراءة حسّاس ولا ماء منطقة الجذور — مُعلَنة.
+        "soil_moisture_source": (
+            MODELLED_SURFACE_MOISTURE_SOURCE if soil_moisture is not None else None
+        ),
     }
 
 

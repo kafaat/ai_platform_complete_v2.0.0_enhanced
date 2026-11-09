@@ -16,8 +16,10 @@ god-module): نماذج Pydantic للحقل (ملخّص/تفاصيل/إنشاء/
 from __future__ import annotations
 
 import json as _json
+from datetime import UTC, date, datetime, timedelta
 from typing import ClassVar, Literal
 
+from fastapi import HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -504,3 +506,72 @@ class DriftRiskRequest(BaseModel):
     years: int = Field(default=3, ge=1, le=10)
     max_distance_m: float = Field(default=200.0, gt=0, le=5000)
     half_angle_deg: float = Field(default=30.0, gt=0, le=90)
+
+
+# ─── حقيقة التنفيذ في سجلّ العمليّات: تنفيذٌ في المستقبل ليس تنفيذاً ───
+# سماحُ يومٍ واحد لفروق المناطق الزمنيّة (عميلٌ متقدّم على UTC الخادم).
+_PERFORMED_ON_FUTURE_TOLERANCE_DAYS = 1
+
+
+def reject_future_performed_on(performed: date | None) -> None:
+    """تنفيذٌ في المستقبل ليس تنفيذاً: كان يُسجَّل `done` فيدخل الدفتر والكلفة والتعلّم (422)."""
+    if performed is None:
+        return
+    latest = datetime.now(UTC).date() + timedelta(days=_PERFORMED_ON_FUTURE_TOLERANCE_DAYS)
+    if performed > latest:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message_ar": "تاريخ التنفيذ في المستقبل — سجّل العمليّة مُخطَّطة (scheduled_for)",
+                "code": "performed_on_in_future",
+            },
+        )
+
+
+class ActivityTransitionRequest(BaseModel):
+    """انتقال حالة نشاط قائم: planned→done (تاريخ تنفيذ + قيم فعليّة اختياريّة) أو planned→skipped.
+
+    القيم الفعليّة تُدمَج في details بمفاتيح دفتر المدخلات (quantity/unit/product_name/cost).
+    """
+
+    status: Literal["done", "skipped"]
+    performed_on: str | None = None
+    actual_quantity: float | None = Field(default=None, ge=0)
+    actual_unit: str | None = Field(default=None, min_length=1, max_length=20)
+    actual_product: str | None = Field(default=None, min_length=1, max_length=120)
+    actual_cost: float | None = Field(default=None, ge=0)
+
+    def actuals(self) -> dict:
+        """القيم الفعليّة المُرسَلة فقط (None مُسقَطة)."""
+        return {
+            k: v
+            for k, v in {
+                "actual_quantity": self.actual_quantity,
+                "actual_unit": self.actual_unit,
+                "actual_product": self.actual_product,
+                "actual_cost": self.actual_cost,
+            }.items()
+            if v is not None
+        }
+
+    def validate_for_transition(self, performed: date | None) -> None:
+        """done يتطلّب تاريخ تنفيذ غير مستقبليّ؛ skipped لا يحمل تاريخاً ولا قيماً فعليّة (422)."""
+        if self.status == "done":
+            if performed is None:
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "message_ar": "إنجاز العمليّة يتطلّب تاريخ التنفيذ (performed_on)",
+                        "code": "performed_on_required",
+                    },
+                )
+            reject_future_performed_on(performed)
+            return
+        if performed is not None or self.actuals():
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "message_ar": "العمليّة المُتخطّاة لا تحمل تاريخ تنفيذ ولا قيماً فعليّة",
+                    "code": "skipped_has_no_execution",
+                },
+            )

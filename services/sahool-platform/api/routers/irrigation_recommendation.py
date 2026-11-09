@@ -43,7 +43,11 @@ from api.irrigation_models import (
     IrrigationRecommendationRequest,
     resolve_day_of_year,
 )
-from api.irrigation_recommendation_policy import recommend_irrigation
+from api.irrigation_recommendation_policy import (
+    irrigation_candidate_confidence,
+    irrigation_decision_provenance,
+    recommend_irrigation,
+)
 from api.irrigation_state_guard import assess_irrigation_state
 from api.main import (
     Permission,
@@ -54,6 +58,7 @@ from api.main import (
     tenant_connection,
 )
 from api.soil_enrichment import extract_texture, soil_water_provenance
+from api.soil_hydraulic_client import get_field_waterlogging
 from api.soil_water import soil_water_params
 from api.weather_advice import precipitation_incomplete_detail
 from api.weather_service_client import (
@@ -172,7 +177,7 @@ async def irrigation_recommendation(
         stage=req.stage,
         rain_recent_mm=req.rain_recent_mm,
         forecast_rain_mm=req.forecast_rain_mm,
-        soil_moisture_pct=req.soil_moisture_pct,
+        **req.soil_moisture_inputs(),
         kc_override=req.kc_override,
         soil_ece=req.soil_ece,
         soil_ec_age_days=req.soil_ec_age_days,
@@ -585,17 +590,13 @@ async def field_irrigation_recommendation(
         policy=req.policy,
         water_price_per_m3=req.water_price_per_m3,
         yield_value_per_ha=req.yield_value_per_ha,
+        waterlogging=await get_field_waterlogging(getattr(user, "tenant_id", None), field_id),
     )
 
     # ثقة: تبدأ من ثقة الاستنزاف المخزَّنة، وتُخفَّض بكلّ قيد مُعلَن (حالة + تربة)
     # وبعقوبة نَسَب التربة (fallback عامّ) — شفّاف، غير معايَر (WS-D.2b).
-    base_conf = float(dep_conf) if dep_conf is not None else 0.5
-    confidence = round(
-        max(
-            0.0,
-            base_conf - 0.15 * len(state["limitations"]) - soil_prov["confidence_penalty"],
-        ),
-        2,
+    confidence = irrigation_candidate_confidence(
+        dep_conf, state["limitations"], soil_prov["confidence_penalty"]
     )
 
     # WS-D.2d: المرشَّح ليس قراراً. approval_state يمنع عرض «اروِ» كقرار نهائيّ قبل
@@ -712,6 +713,7 @@ async def field_irrigation_recommendation(
             "stage": CANDIDATE_STAGE,
             "decision_value": candidate,
             "created_by": getattr(user, "username", None) or getattr(user, "user_id", None),
+            "provenance": irrigation_decision_provenance(rec, evidence_refs=evidence_ids),
         }
         try:
             res = await _submit_candidate_to_decision(
@@ -753,6 +755,7 @@ async def field_irrigation_recommendation(
             "should_irrigate": rec["should_irrigate"],
             "trigger_reason": rec["trigger_reason"],
             "net_irrigation_mm": rec["net_irrigation_mm"],
+            "advisory_range_mm": rec.get("advisory_range_mm"),  # محصول مجهول ⇒ نطاق لا عمق
             "target_refill_mm": rec["target_refill_mm"],
             "water_stress_class": water_stress_class,
             "urgency": rec["urgency"],
@@ -788,6 +791,7 @@ async def field_irrigation_recommendation(
         "limitations": [
             *state["limitations"],
             *soil_prov["limitations"],
+            *rec.get("limitations", []),
             *applied_water_limitations,
             *([weather_limitation] if weather_limitation else []),
             *([submit_limitation] if submit_limitation else []),

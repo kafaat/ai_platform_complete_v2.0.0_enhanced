@@ -119,13 +119,46 @@ def _token() -> str | None:
     )
 
 
-def idempotency_key(*, device_id: str, property_name: str, observed_at: datetime) -> str:
+#: ثقةُ قراءةٍ غيرِ معايَرة — **القيمةُ نفسُها** التي يكتبها المسارُ الموروث
+#: (`soil-service/routers/readings.py`، `confidence=0.65` مع `uncalibrated`). كان الجسرُ لا
+#: يرسل ثقةً فيُطبَّق افتراضُ العقد `1.0` (`shared/contracts/soil/observation.py`) على قراءةٍ
+#: يُنزلها العقدُ نفسُه إلى `uncalibrated` — قراءةٌ «غيرُ معايَرة بثقةٍ تامّة».
+UNCALIBRATED_SENSOR_CONFIDENCE = 0.65
+
+
+def _depth_token(value: float | None) -> str:
+    return "" if value is None else format(float(value), "g")
+
+
+def idempotency_key(
+    *,
+    device_id: str,
+    property_name: str,
+    observed_at: datetime,
+    depth_from_cm: float | None = None,
+    depth_to_cm: float | None = None,
+    message_id: str | None = None,
+) -> str:
     """مفتاحٌ مشتقٌّ من هويّة القراءة — فإعادةُ الدفع لا تُضاعِف ملاحظة.
 
     مبنيٌّ على (الجهاز · الخاصّيّة · لحظةُ القياس) لا على وقت الوصول: دفعتان لقراءةٍ
     واحدة تحملان اللحظةَ نفسَها، ومفتاحٌ من `now()` كان سيجعلهما ملاحظتَين.
+
+    **والعمقُ جزءٌ من الهويّة حين يُعرَف:** مسبارٌ متعدّدُ الأعماق يُبلغ قراءاتِه في لحظةٍ
+    واحدة، وبلا عمقٍ في المفتاح كانت الثانيةُ «مكرّرةً» للأولى فتُسقَط. قراءةٌ بلا عمقٍ
+    تحتفظ بمفتاحها القديم حرفيّاً (توافقٌ رجعيّ: إعادةُ دفعها لا تُنشئ ملاحظةً ثانية).
+
+    ``message_id`` (معرّفُ رسالةِ الجهاز) يحلّ محلّ اللحظة حين يُمرَّر: قراءةٌ بلا وقتٍ مُعلَن
+    لحظتُها وقتُ الوصول، فكلُّ إعادةٍ كانت تصكّ مفتاحاً جديداً. **ولا يُمرَّر حين يُعلِن الجهازُ
+    الوقت** (``build_observation``): المفتاحُ الزمنيّ مستقرٌّ أصلاً، ويُطابِق مفتاحَ الردم
+    (``scripts/soil/reconcile_historical.py``) المشتقَّ من ``device_telemetry`` الذي لا يحفظ المعرّف.
     """
-    raw = f"{device_id}|{property_name}|{observed_at.astimezone(UTC).isoformat()}"
+    if message_id:
+        raw = f"{device_id}|{property_name}|msg={message_id}"
+    else:
+        raw = f"{device_id}|{property_name}|{observed_at.astimezone(UTC).isoformat()}"
+    if depth_from_cm is not None or depth_to_cm is not None:
+        raw += f"|depth={_depth_token(depth_from_cm)}-{_depth_token(depth_to_cm)}"
     return f"dev_{hashlib.sha256(raw.encode('utf-8')).hexdigest()[:48]}"
 
 
@@ -138,9 +171,23 @@ def build_observation(
     value: Any,
     unit: str | None,
     observed_at: datetime,
+    depth_from_cm: float | None = None,
+    depth_to_cm: float | None = None,
+    calibration_id: str | None = None,
+    message_id: str | None = None,
+    observed_at_declared: bool = True,
+    quality_flags: list[str] | None = None,
 ) -> dict[str, Any]:
-    """جسمُ الملاحظة كما يقبله عقدُ المالك — بلا حقلٍ يُعلِن ما لم يُقَس."""
-    return {
+    """جسمُ الملاحظة كما يقبله عقدُ المالك — بلا حقلٍ يُعلِن ما لم يُقَس.
+
+    ``observed_at_declared=False`` يعني أنّ اللحظةَ وقتُ وصولٍ عيّنه الخادم: يُقال في الأثر،
+    ويصير ``message_id`` (إن وُجد) هويّةَ المفتاح بدلها.
+
+    لا ``quality_status``: العقدُ يُنزِل قراءةَ الحسّاس إلى ``uncalibrated`` عمداً، و
+    ``calibration_id`` المُعلَن من الجهاز يُحفَظ أثراً لا يرفع الجودة (لا تحقّقَ منه هنا)؛
+    فالثقةُ ثقةُ قراءةٍ غيرِ معايَرة. والعمقُ يُرسَل حين يُعلَن فقط — غيابُه يُبقي افتراضَ العقد.
+    """
+    body: dict[str, Any] = {
         "tenant_id": tenant_id,
         "field_id": field_id,
         "property": property_name,
@@ -149,11 +196,30 @@ def build_observation(
         "observed_at": observed_at.astimezone(UTC).isoformat(),
         "source_type": "sensor",
         "source_id": device_id,
+        "confidence": UNCALIBRATED_SENSOR_CONFIDENCE,
         "idempotency_key": idempotency_key(
-            device_id=device_id, property_name=property_name, observed_at=observed_at
+            device_id=device_id,
+            property_name=property_name,
+            observed_at=observed_at,
+            depth_from_cm=depth_from_cm,
+            depth_to_cm=depth_to_cm,
+            message_id=None if observed_at_declared else message_id,
         ),
         "provenance": {"ingest_path": "platform.devices.telemetry", "device_id": device_id},
     }
+    if not observed_at_declared:
+        body["provenance"]["observed_at_source"] = "server_receipt"
+    if message_id:
+        body["provenance"]["message_id"] = message_id
+    if quality_flags:
+        body["quality_flags"] = list(quality_flags)
+    if depth_from_cm is not None:
+        body["depth_from_cm"] = float(depth_from_cm)
+    if depth_to_cm is not None:
+        body["depth_to_cm"] = float(depth_to_cm)
+    if calibration_id is not None:
+        body["calibration_id"] = calibration_id
+    return body
 
 
 async def forward_observation(
@@ -165,6 +231,12 @@ async def forward_observation(
     value: Any,
     unit: str | None,
     observed_at: datetime,
+    depth_from_cm: float | None = None,
+    depth_to_cm: float | None = None,
+    calibration_id: str | None = None,
+    message_id: str | None = None,
+    observed_at_declared: bool = True,
+    quality_flags: list[str] | None = None,
 ) -> dict[str, Any]:
     """يُحوّل القراءةَ إلى مالكها ويُعيد نتيجةً **مُسمّاة** لا منطقيّةً عارية.
 
@@ -184,6 +256,12 @@ async def forward_observation(
         value=value,
         unit=unit,
         observed_at=observed_at,
+        depth_from_cm=depth_from_cm,
+        depth_to_cm=depth_to_cm,
+        calibration_id=calibration_id,
+        message_id=message_id,
+        observed_at_declared=observed_at_declared,
+        quality_flags=quality_flags,
     )
     try:
         async with httpx.AsyncClient(timeout=_TIMEOUT_SECONDS) as client:

@@ -836,7 +836,7 @@
       "function": "analytics_costs_by_field",
       "method": "GET",
       "path": "/api/v1/analytics/costs/by-field",
-      "line": 56,
+      "line": 60,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/analytics.py::GET /api/v1/analytics/costs/by-field::analytics_costs_by_field"
@@ -926,7 +926,7 @@
       "function": "imagery_automation_status_endpoint",
       "method": "GET",
       "path": "/api/v1/automation/imagery/status",
-      "line": 151,
+      "line": 194,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/automation.py::GET /api/v1/automation/imagery/status::imagery_automation_status_endpoint"
@@ -936,7 +936,7 @@
       "function": "automation_runs_endpoint",
       "method": "GET",
       "path": "/api/v1/automation/runs",
-      "line": 56,
+      "line": 77,
       "target_owner": "actuator-service",
       "owner_type": "execution-adapter",
       "route_key": "api/routers/automation.py::GET /api/v1/automation/runs::automation_runs_endpoint"
@@ -946,7 +946,7 @@
       "function": "scheduler_status_endpoint",
       "method": "GET",
       "path": "/api/v1/automation/scheduler-status",
-      "line": 41,
+      "line": 62,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/automation.py::GET /api/v1/automation/scheduler-status::scheduler_status_endpoint"
@@ -956,7 +956,7 @@
       "function": "weather_cached_endpoint",
       "method": "GET",
       "path": "/api/v1/automation/weather/cached",
-      "line": 98,
+      "line": 136,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/automation.py::GET /api/v1/automation/weather/cached::weather_cached_endpoint"
@@ -966,7 +966,7 @@
       "function": "weather_automation_status_endpoint",
       "method": "GET",
       "path": "/api/v1/automation/weather/status",
-      "line": 117,
+      "line": 155,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/automation.py::GET /api/v1/automation/weather/status::weather_automation_status_endpoint"
@@ -976,7 +976,7 @@
       "function": "automation_run_alerts_endpoint",
       "method": "POST",
       "path": "/api/v1/automation/alerts/run",
-      "line": 163,
+      "line": 206,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/automation.py::POST /api/v1/automation/alerts/run::automation_run_alerts_endpoint"
@@ -986,7 +986,7 @@
       "function": "imagery_register_field_endpoint",
       "method": "POST",
       "path": "/api/v1/automation/imagery/register-field",
-      "line": 125,
+      "line": 163,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/automation.py::POST /api/v1/automation/imagery/register-field::imagery_register_field_endpoint"
@@ -996,7 +996,7 @@
       "function": "weather_register_endpoint",
       "method": "POST",
       "path": "/api/v1/automation/weather/register",
-      "line": 75,
+      "line": 96,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/automation.py::POST /api/v1/automation/weather/register::weather_register_endpoint"
@@ -1136,7 +1136,7 @@
       "function": "delete_region_override",
       "method": "DELETE",
       "path": "/api/v1/calibration/{region}/override",
-      "line": 589,
+      "line": 595,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::DELETE /api/v1/calibration/{region}/override::delete_region_override"
@@ -1146,7 +1146,7 @@
       "function": "list_region_overrides",
       "method": "GET",
       "path": "/api/v1/calibration/overrides/all",
-      "line": 556,
+      "line": 562,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::GET /api/v1/calibration/overrides/all::list_region_overrides"
@@ -1156,7 +1156,7 @@
       "function": "get_region_calibration_audit",
       "method": "GET",
       "path": "/api/v1/calibration/{region}/audit",
-      "line": 635,
+      "line": 641,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::GET /api/v1/calibration/{region}/audit::get_region_calibration_audit"
@@ -1166,7 +1166,7 @@
       "function": "get_persisted_region_evidence",
       "method": "GET",
       "path": "/api/v1/calibration/{region}/evidence/persisted",
-      "line": 179,
+      "line": 184,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::GET /api/v1/calibration/{region}/evidence/persisted::get_persisted_region_evidence"
@@ -1176,7 +1176,7 @@
       "function": "get_resolved_region_calibration",
       "method": "GET",
       "path": "/api/v1/calibration/{region}/resolved",
-      "line": 527,
+      "line": 533,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::GET /api/v1/calibration/{region}/resolved::get_resolved_region_calibration"
@@ -1186,7 +1186,7 @@
       "function": "get_region_calibration",
       "method": "GET",
       "path": "/api/v1/calibration/{region}",
-      "line": 105,
+      "line": 110,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::GET /api/v1/calibration/{region}::get_region_calibration"
@@ -1196,7 +1196,7 @@
       "function": "list_calibration",
       "method": "GET",
       "path": "/api/v1/calibration",
-      "line": 94,
+      "line": 99,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::GET /api/v1/calibration::list_calibration"
@@ -1206,7 +1206,7 @@
       "function": "compute_learning_feedback",
       "method": "POST",
       "path": "/api/v1/calibration/feedback",
-      "line": 221,
+      "line": 226,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/feedback::compute_learning_feedback"
@@ -1216,7 +1216,7 @@
       "function": "apply_region_adaptation_from_evidence",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt-from-evidence/apply",
-      "line": 329,
+      "line": 334,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/adapt-from-evidence/apply::apply_region_adaptation_from_evidence"
@@ -1226,7 +1226,7 @@
       "function": "propose_region_adaptation_from_evidence",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt-from-evidence",
-      "line": 283,
+      "line": 288,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/adapt-from-evidence::propose_region_adaptation_from_evidence"
@@ -1236,7 +1236,7 @@
       "function": "propose_region_adaptation",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt",
-      "line": 239,
+      "line": 244,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/adapt::propose_region_adaptation"
@@ -1246,7 +1246,7 @@
       "function": "compute_region_evidence",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/evidence",
-      "line": 123,
+      "line": 128,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/evidence::compute_region_evidence"
@@ -1256,7 +1256,7 @@
       "function": "set_region_override",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/override",
-      "line": 461,
+      "line": 467,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/override::set_region_override"
@@ -1266,7 +1266,7 @@
       "function": "propose_region_values",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/propose-values",
-      "line": 438,
+      "line": 444,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/propose-values::propose_region_values"
@@ -1647,7 +1647,7 @@
       "function": "profit_aware_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
-      "line": 529,
+      "line": 527,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision/profit-aware::profit_aware_decision_endpoint"
@@ -1887,7 +1887,7 @@
       "function": "list_decision_records",
       "method": "GET",
       "path": "/api/v1/decision/records",
-      "line": 625,
+      "line": 699,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::GET /api/v1/decision/records::list_decision_records"
@@ -1897,7 +1897,7 @@
       "function": "get_decision_lineage",
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/lineage",
-      "line": 585,
+      "line": 659,
       "target_owner": "decision-service",
       "owner_type": "knowledge-store",
       "route_key": "api/routers/decision_record.py::GET /api/v1/decision/{decision_id}/lineage::get_decision_lineage"
@@ -1907,7 +1907,7 @@
       "function": "get_field_lineage",
       "method": "GET",
       "path": "/api/v1/field/{field_id}/lineage",
-      "line": 676,
+      "line": 750,
       "target_owner": "decision-service",
       "owner_type": "knowledge-store",
       "route_key": "api/routers/decision_record.py::GET /api/v1/field/{field_id}/lineage::get_field_lineage"
@@ -1917,7 +1917,7 @@
       "function": "record_decision",
       "method": "POST",
       "path": "/api/v1/decision/record",
-      "line": 330,
+      "line": 372,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::POST /api/v1/decision/record::record_decision"
@@ -1927,7 +1927,7 @@
       "function": "record_outcome",
       "method": "POST",
       "path": "/api/v1/outcome/record",
-      "line": 453,
+      "line": 505,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::POST /api/v1/outcome/record::record_outcome"
@@ -2123,7 +2123,7 @@
       "function": "devices_fleet_health",
       "method": "GET",
       "path": "/api/v1/devices/fleet-health",
-      "line": 240,
+      "line": 250,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/devices.py::GET /api/v1/devices/fleet-health::devices_fleet_health"
@@ -2133,7 +2133,7 @@
       "function": "list_telemetry",
       "method": "GET",
       "path": "/api/v1/devices/{device_id}/telemetry",
-      "line": 212,
+      "line": 222,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/devices.py::GET /api/v1/devices/{device_id}/telemetry::list_telemetry"
@@ -2143,7 +2143,7 @@
       "function": "list_devices",
       "method": "GET",
       "path": "/api/v1/devices",
-      "line": 100,
+      "line": 102,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/devices.py::GET /api/v1/devices::list_devices"
@@ -2153,7 +2153,7 @@
       "function": "ingest_telemetry",
       "method": "POST",
       "path": "/api/v1/devices/{device_id}/telemetry",
-      "line": 126,
+      "line": 128,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/devices.py::POST /api/v1/devices/{device_id}/telemetry::ingest_telemetry"
@@ -2163,7 +2163,7 @@
       "function": "register_device",
       "method": "POST",
       "path": "/api/v1/devices",
-      "line": 44,
+      "line": 46,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/devices.py::POST /api/v1/devices::register_device"
@@ -2483,7 +2483,7 @@
       "function": "get_season_budget",
       "method": "GET",
       "path": "/api/v1/farm-ledger/budgets/{season_id}",
-      "line": 576,
+      "line": 583,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/budgets/{season_id}::get_season_budget"
@@ -2493,7 +2493,7 @@
       "function": "get_economic_state",
       "method": "GET",
       "path": "/api/v1/farm-ledger/economic-state/{season_id}",
-      "line": 983,
+      "line": 950,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/economic-state/{season_id}::get_economic_state"
@@ -2503,7 +2503,7 @@
       "function": "get_erp_projection",
       "method": "GET",
       "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
-      "line": 759,
+      "line": 723,
       "target_owner": "erp-bridge",
       "owner_type": "adapter",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/erp-projection/{season_id}::get_erp_projection"
@@ -2513,7 +2513,7 @@
       "function": "get_inventory_projection",
       "method": "GET",
       "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
-      "line": 890,
+      "line": 856,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/inventory-projection/{season_id}::get_inventory_projection"
@@ -2523,7 +2523,7 @@
       "function": "list_operation_ledger_records",
       "method": "GET",
       "path": "/api/v1/farm-ledger/operations",
-      "line": 319,
+      "line": 323,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/operations::list_operation_ledger_records"
@@ -2533,7 +2533,7 @@
       "function": "get_season_profitability",
       "method": "GET",
       "path": "/api/v1/farm-ledger/profitability/{season_id}",
-      "line": 724,
+      "line": 686,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/profitability/{season_id}::get_season_profitability"
@@ -2543,7 +2543,7 @@
       "function": "farm_ledger_summary",
       "method": "GET",
       "path": "/api/v1/farm-ledger/summary",
-      "line": 367,
+      "line": 371,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/summary::farm_ledger_summary"
@@ -2553,7 +2553,7 @@
       "function": "get_budget_variance",
       "method": "GET",
       "path": "/api/v1/farm-ledger/variance/{season_id}",
-      "line": 696,
+      "line": 656,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/variance/{season_id}::get_budget_variance"
@@ -2563,7 +2563,7 @@
       "function": "operation_autowrite_preview",
       "method": "POST",
       "path": "/api/v1/farm-ledger/autowrite-preview",
-      "line": 842,
+      "line": 808,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/autowrite-preview::operation_autowrite_preview"
@@ -2573,7 +2573,7 @@
       "function": "upsert_season_budget_lines",
       "method": "POST",
       "path": "/api/v1/farm-ledger/budgets",
-      "line": 495,
+      "line": 502,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/budgets::upsert_season_budget_lines"
@@ -2583,7 +2583,7 @@
       "function": "create_operation_ledger_record",
       "method": "POST",
       "path": "/api/v1/farm-ledger/operations",
-      "line": 224,
+      "line": 228,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/operations::create_operation_ledger_record"
@@ -2593,7 +2593,7 @@
       "function": "create_revenue_record",
       "method": "POST",
       "path": "/api/v1/farm-ledger/revenues",
-      "line": 604,
+      "line": 611,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/revenues::create_revenue_record"
@@ -2883,7 +2883,7 @@
       "function": "delete_field",
       "method": "DELETE",
       "path": "/api/v1/fields/{field_id}",
-      "line": 1668,
+      "line": 1669,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::DELETE /api/v1/fields/{field_id}::delete_field"
@@ -2893,7 +2893,7 @@
       "function": "list_field_activities",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/activities",
-      "line": 3016,
+      "line": 3018,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/activities::list_field_activities"
@@ -2903,7 +2903,7 @@
       "function": "field_alerts_derived",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/alerts/derived",
-      "line": 4004,
+      "line": 4003,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/alerts/derived::field_alerts_derived"
@@ -2913,7 +2913,7 @@
       "function": "field_geometry_history",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/geometry/history",
-      "line": 1512,
+      "line": 1513,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/geometry/history::field_geometry_history"
@@ -2923,7 +2923,7 @@
       "function": "field_history",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/history",
-      "line": 3701,
+      "line": 3700,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/history::field_history"
@@ -2933,7 +2933,7 @@
       "function": "field_imagery_backfill_status_proxy",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/imagery/backfill/{run_id}",
-      "line": 988,
+      "line": 989,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/imagery/backfill/{run_id}::field_imagery_backfill_status_proxy"
@@ -2943,7 +2943,7 @@
       "function": "field_input_traceability",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/input-traceability",
-      "line": 3045,
+      "line": 3047,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/input-traceability::field_input_traceability"
@@ -2953,7 +2953,7 @@
       "function": "field_recommendations",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/recommendations",
-      "line": 2779,
+      "line": 2781,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/recommendations::field_recommendations"
@@ -2963,7 +2963,7 @@
       "function": "list_crop_rotations",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/rotations",
-      "line": 3460,
+      "line": 3459,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/rotations::list_crop_rotations"
@@ -2973,7 +2973,7 @@
       "function": "list_seasons",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons",
-      "line": 2257,
+      "line": 2259,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/seasons::list_seasons"
@@ -2983,7 +2983,7 @@
       "function": "list_soil_lab_tests",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
-      "line": 3248,
+      "line": 3247,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/soil-lab-tests::list_soil_lab_tests"
@@ -2993,7 +2993,7 @@
       "function": "field_soil_moisture",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/soil-moisture",
-      "line": 2453,
+      "line": 2455,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/soil-moisture::field_soil_moisture"
@@ -3003,7 +3003,7 @@
       "function": "field_state_full",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state/full",
-      "line": 4030,
+      "line": 4029,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/state/full::field_state_full"
@@ -3013,7 +3013,7 @@
       "function": "field_canonical_state",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state",
-      "line": 3976,
+      "line": 3975,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/state::field_canonical_state"
@@ -3023,7 +3023,7 @@
       "function": "get_field_terrain",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/terrain",
-      "line": 1047,
+      "line": 1048,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/terrain::get_field_terrain"
@@ -3033,7 +3033,7 @@
       "function": "field_water_stress_spectral",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-stress-spectral",
-      "line": 3944,
+      "line": 3943,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/water-stress-spectral::field_water_stress_spectral"
@@ -3043,7 +3043,7 @@
       "function": "field_wind_prevailing",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/wind/prevailing",
-      "line": 2643,
+      "line": 2645,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/wind/prevailing::field_wind_prevailing"
@@ -3053,7 +3053,7 @@
       "function": "get_field_workspace",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/workspace",
-      "line": 1138,
+      "line": 1139,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/workspace::get_field_workspace"
@@ -3063,7 +3063,7 @@
       "function": "get_field",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}",
-      "line": 1022,
+      "line": 1023,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}::get_field"
@@ -3073,7 +3073,7 @@
       "function": "list_fields",
       "method": "GET",
       "path": "/api/v1/fields",
-      "line": 546,
+      "line": 547,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields::list_fields"
@@ -3083,7 +3083,7 @@
       "function": "update_season",
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}",
-      "line": 2284,
+      "line": 2286,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::PATCH /api/v1/fields/{field_id}/seasons/{season_id}::update_season"
@@ -3093,7 +3093,7 @@
       "function": "update_soil_lab_test",
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
-      "line": 3272,
+      "line": 3271,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::PATCH /api/v1/fields/{field_id}/soil-lab-tests/{test_id}::update_soil_lab_test"
@@ -3103,7 +3103,7 @@
       "function": "update_field",
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}",
-      "line": 1227,
+      "line": 1228,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::PATCH /api/v1/fields/{field_id}::update_field"
@@ -3113,7 +3113,7 @@
       "function": "import_field",
       "method": "POST",
       "path": "/api/v1/fields/import",
-      "line": 593,
+      "line": 594,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/import::import_field"
@@ -3123,7 +3123,7 @@
       "function": "merge_fields",
       "method": "POST",
       "path": "/api/v1/fields/merge",
-      "line": 1774,
+      "line": 1775,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/merge::merge_fields"
@@ -3133,7 +3133,7 @@
       "function": "split_field",
       "method": "POST",
       "path": "/api/v1/fields/split",
-      "line": 1904,
+      "line": 1905,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/split::split_field"
@@ -3143,7 +3143,7 @@
       "function": "validate_geometry",
       "method": "POST",
       "path": "/api/v1/fields/validate-geometry",
-      "line": 3546,
+      "line": 3545,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/validate-geometry::validate_geometry"
@@ -3153,7 +3153,7 @@
       "function": "create_activity",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/activities",
-      "line": 2877,
+      "line": 2879,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/activities::create_activity"
@@ -3163,7 +3163,7 @@
       "function": "evaluate_field_alerts_endpoint",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/alerts/evaluate",
-      "line": 3399,
+      "line": 3398,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/alerts/evaluate::evaluate_field_alerts_endpoint"
@@ -3173,7 +3173,7 @@
       "function": "revert_field_geometry",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/geometry/revert/{revision}",
-      "line": 1559,
+      "line": 1560,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/geometry/revert/{revision}::revert_field_geometry"
@@ -3183,7 +3183,7 @@
       "function": "field_growth_narrative",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/growth-narrative",
-      "line": 3150,
+      "line": 3149,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/growth-narrative::field_growth_narrative"
@@ -3193,7 +3193,7 @@
       "function": "field_imagery_backfill_proxy",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/imagery/backfill",
-      "line": 916,
+      "line": 917,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/imagery/backfill::field_imagery_backfill_proxy"
@@ -3203,7 +3203,7 @@
       "function": "field_imagery_process_date_proxy",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/imagery/process-date",
-      "line": 657,
+      "line": 658,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/imagery/process-date::field_imagery_process_date_proxy"
@@ -3213,7 +3213,7 @@
       "function": "refresh_field_imagery",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/imagery/refresh",
-      "line": 713,
+      "line": 714,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/imagery/refresh::refresh_field_imagery"
@@ -3223,7 +3223,7 @@
       "function": "create_pin",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/pins",
-      "line": 3818,
+      "line": 3817,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/pins::create_pin"
@@ -3233,7 +3233,7 @@
       "function": "prescribe_nitrogen",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
-      "line": 3579,
+      "line": 3578,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/prescriptions/nitrogen::prescribe_nitrogen"
@@ -3243,7 +3243,7 @@
       "function": "add_crop_rotation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/rotations",
-      "line": 3418,
+      "line": 3417,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/rotations::add_crop_rotation"
@@ -3253,7 +3253,7 @@
       "function": "create_season",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/seasons",
-      "line": 2045,
+      "line": 2046,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/seasons::create_season"
@@ -3263,7 +3263,7 @@
       "function": "create_soil_lab_test",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
-      "line": 3190,
+      "line": 3189,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/soil-lab-tests::create_soil_lab_test"
@@ -3273,7 +3273,7 @@
       "function": "field_timeline",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/timeline",
-      "line": 3681,
+      "line": 3680,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/timeline::field_timeline"
@@ -3283,7 +3283,7 @@
       "function": "apply_trueup",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/trueup",
-      "line": 3487,
+      "line": 3486,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/trueup::apply_trueup"
@@ -3293,7 +3293,7 @@
       "function": "field_walk_plan_pdf",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
-      "line": 3911,
+      "line": 3910,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/walk-plan/pdf::field_walk_plan_pdf"
@@ -3303,7 +3303,7 @@
       "function": "field_walk_plan",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan",
-      "line": 3901,
+      "line": 3900,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/walk-plan::field_walk_plan"
@@ -3313,7 +3313,7 @@
       "function": "field_wind_drift_risk",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/wind/drift-risk",
-      "line": 2700,
+      "line": 2702,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/wind/drift-risk::field_wind_drift_risk"
@@ -3323,7 +3323,7 @@
       "function": "estimate_field_yield",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-estimate",
-      "line": 3608,
+      "line": 3607,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/yield-estimate::estimate_field_yield"
@@ -3333,7 +3333,7 @@
       "function": "field_zones",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/zones",
-      "line": 3930,
+      "line": 3929,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/zones::field_zones"
@@ -3343,7 +3343,7 @@
       "function": "create_field",
       "method": "POST",
       "path": "/api/v1/fields",
-      "line": 569,
+      "line": 570,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields::create_field"
@@ -3353,7 +3353,7 @@
       "function": "update_field",
       "method": "PUT",
       "path": "/api/v1/fields/{field_id}",
-      "line": 1226,
+      "line": 1227,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::PUT /api/v1/fields/{field_id}::update_field"
@@ -3763,7 +3763,7 @@
       "function": "get_traceability",
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
-      "line": 297,
+      "line": 354,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/harvest_traceability.py::GET /api/v1/harvest-lots/{harvest_lot_id}/traceability::get_traceability"
@@ -3773,7 +3773,7 @@
       "function": "get_harvest_lot",
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}",
-      "line": 178,
+      "line": 180,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/harvest_traceability.py::GET /api/v1/harvest-lots/{harvest_lot_id}::get_harvest_lot"
@@ -3783,7 +3783,7 @@
       "function": "list_harvest_lots",
       "method": "GET",
       "path": "/api/v1/harvest-lots",
-      "line": 142,
+      "line": 144,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/harvest_traceability.py::GET /api/v1/harvest-lots::list_harvest_lots"
@@ -3793,7 +3793,7 @@
       "function": "add_custody_event",
       "method": "POST",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
-      "line": 197,
+      "line": 209,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/harvest_traceability.py::POST /api/v1/harvest-lots/{harvest_lot_id}/custody-events::add_custody_event"
@@ -3803,7 +3803,7 @@
       "function": "create_harvest_lot",
       "method": "POST",
       "path": "/api/v1/harvest-lots",
-      "line": 58,
+      "line": 60,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/harvest_traceability.py::POST /api/v1/harvest-lots::create_harvest_lot"
@@ -4203,7 +4203,7 @@
       "function": "field_irrigation_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
-      "line": 202,
+      "line": 207,
       "target_owner": "sahool-platform",
       "owner_type": "bff-decision-candidate",
       "route_key": "api/routers/irrigation_recommendation.py::POST /api/v1/fields/{field_id}/irrigation-recommendation::field_irrigation_recommendation"
@@ -4213,7 +4213,7 @@
       "function": "irrigation_recommendation",
       "method": "POST",
       "path": "/api/v1/irrigation-recommendation",
-      "line": 115,
+      "line": 120,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/irrigation_recommendation.py::POST /api/v1/irrigation-recommendation::irrigation_recommendation"
@@ -4843,7 +4843,7 @@
       "function": "capacity_profiles_endpoint",
       "method": "GET",
       "path": "/api/v1/recommendations/capacity-profiles",
-      "line": 453,
+      "line": 464,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::GET /api/v1/recommendations/capacity-profiles::capacity_profiles_endpoint"
@@ -4853,7 +4853,7 @@
       "function": "recommendation_engines",
       "method": "GET",
       "path": "/api/v1/recommendations/engines",
-      "line": 388,
+      "line": 399,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::GET /api/v1/recommendations/engines::recommendation_engines"
@@ -4863,7 +4863,7 @@
       "function": "get_recommendation",
       "method": "GET",
       "path": "/api/v1/recommendations/{rec_id}",
-      "line": 649,
+      "line": 728,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::GET /api/v1/recommendations/{rec_id}::get_recommendation"
@@ -4873,7 +4873,7 @@
       "function": "generate_crop_candidates",
       "method": "POST",
       "path": "/api/v1/recommendations/candidates",
-      "line": 461,
+      "line": 472,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/candidates::generate_crop_candidates"
@@ -4883,7 +4883,7 @@
       "function": "economic_adaptation_endpoint",
       "method": "POST",
       "path": "/api/v1/recommendations/economic-adaptation",
-      "line": 435,
+      "line": 446,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/economic-adaptation::economic_adaptation_endpoint"
@@ -4893,7 +4893,7 @@
       "function": "recommendations_for_field",
       "method": "POST",
       "path": "/api/v1/recommendations/for-field",
-      "line": 257,
+      "line": 262,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/for-field::recommendations_for_field"
@@ -4903,7 +4903,7 @@
       "function": "record_recommendation_outcome",
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes",
-      "line": 526,
+      "line": 559,
       "target_owner": "decision-service",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/outcomes::record_recommendation_outcome"
@@ -4913,7 +4913,7 @@
       "function": "recommendations",
       "method": "POST",
       "path": "/api/v1/recommendations",
-      "line": 231,
+      "line": 236,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations::recommendations"
@@ -5023,7 +5023,7 @@
       "function": "field_sustainability",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/sustainability",
-      "line": 206,
+      "line": 218,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/reports.py::GET /api/v1/fields/{field_id}/sustainability::field_sustainability"
@@ -5033,7 +5033,7 @@
       "function": "report_farm_summary",
       "method": "GET",
       "path": "/api/v1/reports/farm-summary",
-      "line": 40,
+      "line": 45,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/reports.py::GET /api/v1/reports/farm-summary::report_farm_summary"
@@ -5043,7 +5043,7 @@
       "function": "report_field_summary",
       "method": "GET",
       "path": "/api/v1/reports/field/{field_id}/summary",
-      "line": 95,
+      "line": 100,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/reports.py::GET /api/v1/reports/field/{field_id}/summary::report_field_summary"
@@ -5053,7 +5053,7 @@
       "function": "report_season_summary",
       "method": "GET",
       "path": "/api/v1/reports/season/{season_id}/summary",
-      "line": 252,
+      "line": 264,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/reports.py::GET /api/v1/reports/season/{season_id}/summary::report_season_summary"
@@ -5063,7 +5063,7 @@
       "function": "build_report",
       "method": "POST",
       "path": "/api/v1/reports/build",
-      "line": 357,
+      "line": 375,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/reports.py::POST /api/v1/reports/build::build_report"
@@ -5073,7 +5073,7 @@
       "function": "operation_report_csv",
       "method": "POST",
       "path": "/api/v1/reports/operation",
-      "line": 307,
+      "line": 325,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/reports.py::POST /api/v1/reports/operation::operation_report_csv"
@@ -5243,7 +5243,7 @@
       "function": "field_season_state_endpoint",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
-      "line": 548,
+      "line": 562,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/seasons.py::GET /api/v1/fields/{field_id}/seasons/{season_id}/state::field_season_state_endpoint"
@@ -5253,7 +5253,7 @@
       "function": "simulate_season_endpoint",
       "method": "POST",
       "path": "/api/v1/seasons/{season_id}/simulate",
-      "line": 151,
+      "line": 155,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/seasons.py::POST /api/v1/seasons/{season_id}/simulate::simulate_season_endpoint"
@@ -5413,7 +5413,7 @@
       "function": "simulate_what_if",
       "method": "POST",
       "path": "/api/v1/simulate/what-if",
-      "line": 85,
+      "line": 112,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/simulate.py::POST /api/v1/simulate/what-if::simulate_what_if"
@@ -5544,7 +5544,7 @@
       "function": "list_tasks",
       "method": "GET",
       "path": "/api/v1/tasks",
-      "line": 44,
+      "line": 45,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/tasks.py::GET /api/v1/tasks::list_tasks"
@@ -5554,7 +5554,7 @@
       "function": "update_task",
       "method": "PATCH",
       "path": "/api/v1/tasks/{task_id}",
-      "line": 104,
+      "line": 105,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/tasks.py::PATCH /api/v1/tasks/{task_id}::update_task"
@@ -5734,7 +5734,7 @@
       "function": "field_water_twin",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/water-twin",
-      "line": 196,
+      "line": 197,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/water_twin.py::POST /api/v1/fields/{field_id}/water-twin::field_water_twin"

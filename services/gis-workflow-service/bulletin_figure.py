@@ -117,7 +117,8 @@ def bulletin_self_checks(
             _geo_detail,
         )
     )
-    failed_req = [c for c in checks if c["severity"] == "required" and c["passed"] is False]
+    # Required check with unknown result (None) does not pass — same contract as self_checks.
+    failed_req = [c for c in checks if c["severity"] == "required" and c["passed"] is not True]
     failed_q = [c for c in checks if c["severity"] == "quality" and c["passed"] is False]
     quality = "failed" if failed_req else ("degraded" if failed_q else "good")
     return {
