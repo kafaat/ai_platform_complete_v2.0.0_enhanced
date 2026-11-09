@@ -412,7 +412,9 @@ def python_functional_text(text: str, *, fixture_data: bool) -> str | None:
 # (3.12) and local runs (3.11) must reproduce byte-for-byte, so an f-string is folded
 # back into a single STRING token spanning its exact source text on every version.
 _STRING_GROUP_STARTS = {
-    getattr(tokenize, name) for name in ("FSTRING_START", "TSTRING_START") if hasattr(tokenize, name)
+    getattr(tokenize, name)
+    for name in ("FSTRING_START", "TSTRING_START")
+    if hasattr(tokenize, name)
 }
 _STRING_GROUP_ENDS = {
     getattr(tokenize, name) for name in ("FSTRING_END", "TSTRING_END") if hasattr(tokenize, name)
