@@ -5,9 +5,9 @@
 ## Summary
 
 - Capabilities: **81**
-- Average assessed maturity: **2.11 / 5**
-- Aligned: **32**
-- Declared above current evidence: **46**
+- Average assessed maturity: **1.99 / 5**
+- Aligned: **24**
+- Declared above current evidence: **54**
 - Evidence above declared: **3**
 - Runtime verified: **0**
 - Production certified: **0**
@@ -16,16 +16,16 @@
 
 | Domain | Capabilities | Declared avg | Assessed avg | Declared above evidence |
 |---|---:|---:|---:|---:|
-| decision | 10 | 3.0 | 2.6 | 3 |
+| decision | 10 | 3.0 | 2.4 | 5 |
 | farm_management | 10 | 3.0 | 2.2 | 6 |
 | gis | 4 | 3.0 | 2.0 | 3 |
-| irrigation | 11 | 2.55 | 1.82 | 7 |
-| operations | 8 | 3.0 | 2.0 | 5 |
+| irrigation | 11 | 2.55 | 1.73 | 8 |
+| operations | 8 | 3.0 | 1.75 | 6 |
 | precision | 6 | 2.0 | 1.5 | 4 |
-| satellite | 9 | 3.0 | 2.67 | 3 |
-| security | 8 | 3.0 | 1.88 | 5 |
-| soil | 5 | 3.0 | 1.8 | 4 |
-| weather | 10 | 3.0 | 2.2 | 6 |
+| satellite | 9 | 3.0 | 2.56 | 4 |
+| security | 8 | 3.0 | 2.0 | 5 |
+| soil | 5 | 3.0 | 1.6 | 4 |
+| weather | 10 | 3.0 | 1.8 | 9 |
 
 ## Policy
 

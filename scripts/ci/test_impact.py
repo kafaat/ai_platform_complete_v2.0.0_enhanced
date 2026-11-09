@@ -167,13 +167,22 @@ def ref_exists(ref: str, root: Path = ROOT) -> bool:
 
 
 def select(
-    snapshot: Any, affected: set[str], tests: list[str]
+    snapshot: Any,
+    affected: set[str],
+    tests: list[str],
+    dependent_tests: dict[str, list[str]] | None = None,
 ) -> tuple[dict[str, dict[str, Any]], list[str]]:
     """Split the test corpus into what this cone reaches and the floor it can never reach.
 
     A file the engine binds to no capability is not "unselected" — no cone can reach it, so
     it always runs. Tree-wide guards live there, which is why the measured ceiling is about
     half the suite rather than a small slice of it.
+
+    ``dependent_tests`` is the engine's own ``impact()["dependent_tests"]``: tests with a
+    proven static dependency (import · source read · loader) on a changed path. They are
+    selected with that reason even when their capability label differs from the changed
+    source's — the label is not rewritten to make the cone intersect. The floor rule is
+    untouched: a floor test stays in the floor whatever its dependencies.
     """
     selected: dict[str, dict[str, Any]] = {}
     floor: list[str] = []
@@ -184,8 +193,11 @@ def select(
             floor.append(path)
             continue
         hit = sorted(capabilities & affected)
-        if hit:
+        reasons = sorted((dependent_tests or {}).get(path, []))
+        if hit or reasons:
             selected[path] = {"capabilities": hit, "sources": sorted(reference.sources)}
+            if reasons:
+                selected[path]["dependencies"] = reasons
     return selected, floor
 
 
@@ -239,7 +251,7 @@ def plan(
     affected = set(result["affected"])
 
     tests = discover_test_files(root)
-    selected, floor = select(snapshot, affected, tests)
+    selected, floor = select(snapshot, affected, tests, result.get("dependent_tests"))
     deselected = sorted(set(tests) - set(floor) - set(selected))
 
     undecided = [p for p in changed if not _is_bound(snapshot, p)]
@@ -325,8 +337,10 @@ def render(result: dict[str, Any]) -> str:
 
     for path, why in sorted(result["selected"].items()):
         lines.append(f"    ✓ {path}")
-        lines.append(f"        القدرات: {', '.join(why['capabilities'])}")
+        lines.append(f"        القدرات: {', '.join(why['capabilities']) or '—'}")
         lines.append(f"        المصدر : {', '.join(why['sources'])}")
+        if why.get("dependencies"):
+            lines.append(f"        تبعيّة : {', '.join(why['dependencies'])}")
 
     lines.append(f"  الأرضيّة الثابتة (لا يبلغها مخروط): {len(result['floor'])} ملفّاً")
 

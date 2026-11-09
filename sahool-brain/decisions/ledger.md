@@ -4717,3 +4717,9 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **القرار:** يُجمَّع مرشّح تعلّم إغلاق الموسم عبر حقول المستأجر نفسه ذات المحصول القانونيّ نفسه ومهمّة `yield_forecast_calibration`، ويُعَدّ الحدّ الأدنى بوحدات (مزرعة، موسم) مستقلّة، ويُربط الاعتماد ببصمة المجمّع.
 - **السبب:** صفوف `recommendation_outcomes` تحمل `crop` (v49) ولا تحمل نسخة نموذج أو منطقة، فهذا أضيق مفتاح صادق تدعمه البيانات؛ وبدونه كان المرشّح محجوباً دائماً (وحدة واحدة مقابل حدّ 3).
 - **المصدر:** [`../../services/sahool-platform/api/learning_feedback.py`](../../services/sahool-platform/api/learning_feedback.py) · [`../gaps/registry.md`](../gaps/registry.md) (`LEARNING-SINGLE-FIELD-SEASON-ALWAYS-BLOCKED-01`).
+
+## 2026-11-09 — نضج القدرات بعد إزالة العدّ المكرّر: يُسجَّل الانجراف ولا تُمسّ القيم
+
+- **القرار:** تُضاف هويّات القدرات الثماني إلى `reconciliation_drift_baseline.json` صنف `declared_above_evidence`، ولا يُخفَض النضج المُعلَن في السجلّ ولا يُرخى المولِّد.
+- **السبب:** الانخفاض حقيقيّ (المُعلَن كان مسنوداً بعدٍّ مكرَّر)، وآليّة الراتشِت نفسها تسمّي الدَّين هويّةً هويّةً؛ وخفض قيمة مُعلَنة في السجلّ حكمٌ على القدرة نفسها يعود للمالك. السابقة: #1306 و#1299 أضافا هويّات عند تغيّر الأدلّة.
+- **المصدر:** `6057296ef` على `claude/test-impact-mapping-20261109` · [`../gaps/registry.md`](../gaps/registry.md) (`CAPABILITY-MATURITY-INFLATED-BY-DOUBLE-COUNT-01`).
