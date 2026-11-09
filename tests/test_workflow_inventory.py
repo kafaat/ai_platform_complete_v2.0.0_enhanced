@@ -34,8 +34,12 @@ def test_preserves_on_key_and_extracts_jobs(tmp_path):
     assert result["job_count"] == 2
     workflow = result["workflows"][0]
     assert "pull_request" in workflow["on"]
-    assert workflow["jobs"][0]["explicit_test_paths"] == ["tests/architecture/test_sample.py"]
-    assert workflow["jobs"][1]["uses"] == "./.github/workflows/reusable.yml"
+    # Jobs are emitted sorted by id for determinism; address them by id, not position.
+    assert [job["id"] for job in workflow["jobs"]] == ["integration", "unit"]
+    jobs = {job["id"]: job for job in workflow["jobs"]}
+    assert jobs["unit"]["explicit_test_paths"] == ["tests/architecture/test_sample.py"]
+    assert jobs["integration"]["uses"] == "./.github/workflows/reusable.yml"
+    assert jobs["integration"]["needs"] == "unit"
     assert result["scope"] == "static_workflow_inventory_not_required_check_authority"
 
 
