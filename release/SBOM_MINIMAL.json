@@ -3375,7 +3375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e827f6812bcf3b129ae25afaf50f56221caf3b704bf2c8fb1dde283e5ea3b1b4"
+          "content": "514e08a254c69dd8137f400a8225f7a4f72c93c4713d29fa8a1e099a0e30ad1c"
         }
       ],
       "name": "frontend/src/lib/cropOptions.ts",

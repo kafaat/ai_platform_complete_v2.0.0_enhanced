@@ -80040,43 +80040,43 @@
           "import": "core.crop_cards.loader"
         },
         {
-          "line": 286,
+          "line": 300,
           "import": "core.season_phenology"
         },
         {
-          "line": 296,
+          "line": 310,
           "import": "core.season_phenology"
         },
         {
-          "line": 306,
+          "line": 320,
           "import": "api.season_simulation"
         },
         {
-          "line": 307,
+          "line": 321,
           "import": "core.engines.ky_registry"
         },
         {
-          "line": 308,
+          "line": 322,
           "import": "core.season_phenology"
         },
         {
-          "line": 322,
+          "line": 336,
           "import": "core.engines.harvest_traceability"
         },
         {
-          "line": 332,
+          "line": 346,
           "import": "core.engines.harvest_traceability"
         },
         {
-          "line": 347,
+          "line": 361,
           "import": "api.main"
         },
         {
-          "line": 348,
+          "line": 362,
           "import": "api.routers.harvest_traceability"
         },
         {
-          "line": 365,
+          "line": 379,
           "import": "api.agronomic_state_consumers"
         }
       ]
