@@ -83,6 +83,35 @@ def _write_json(path: Path, obj: Any) -> None:
     path.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def register_evidence(
+    evidence_writer: Callable[[dict[str, Any]], None] | None,
+    manifest: dict[str, Any],
+    status: str,
+) -> dict[str, Any]:
+    """يستدعي كاتب الأدلّة ويُعيد نتيجة التسجيل — مشترك بين حزمة التشغيل وحزمة النشرة.
+
+    لا يكسر الحزمة، لكنّ فشله لا يُبتلَع صامتاً. بلا كاتب ⇒ ``evidence_registered=None`` (لم
+    يُطلَب). كاتب مُمرَّر وفشل ⇒ الحزمة تبقى قابلة للعرض (``status`` كما هي) لكنّها **غير
+    مقبولة** (``accepted=False``). حزمة ``failed`` لا تُقبَل أبداً.
+    """
+    evidence_registered: bool | None = None
+    evidence_error_class: str | None = None
+    if evidence_writer is not None:
+        try:
+            evidence_writer(manifest)
+            evidence_registered = True
+        except Exception as exc:  # noqa: BLE001 — يُسجَّل في المانيفست والنتيجة، لا يُبتلَع.
+            evidence_registered = False
+            evidence_error_class = type(exc).__name__
+    evidence_registration_failed = evidence_registered is False
+    return {
+        "evidence_registered": evidence_registered,
+        "evidence_error_class": evidence_error_class,
+        "evidence_registration_failed": evidence_registration_failed,
+        "accepted": status != "failed" and not evidence_registration_failed,
+    }
+
+
 def _checks_md(sc: dict[str, Any]) -> str:
     lines = [
         "# فحص ذاتيّ (self-check)",
@@ -256,25 +285,7 @@ def run_workflow_bundle(
     }
     _write_json(run_dir / "provenance" / "run_manifest.json", manifest)
 
-    # تسجيل الأدلّة: لا يكسر الحزمة، لكنّ فشله لا يُبتلَع صامتاً. بلا كاتب ⇒ None (لم يُطلَب).
-    # كاتب مُمرَّر وفشل ⇒ الحزمة تبقى قابلة للعرض (status كما هي) لكنّها **غير مقبولة**.
-    evidence_registered: bool | None = None
-    evidence_error_class: str | None = None
-    if evidence_writer is not None:
-        try:
-            evidence_writer(manifest)
-            evidence_registered = True
-        except Exception as exc:  # noqa: BLE001 — يُسجَّل في المانيفست والنتيجة، لا يُبتلَع.
-            evidence_registered = False
-            evidence_error_class = type(exc).__name__
-    evidence_registration_failed = evidence_registered is False
-    accepted = status != "failed" and not evidence_registration_failed
-    evidence_outcome = {
-        "evidence_registered": evidence_registered,
-        "evidence_error_class": evidence_error_class,
-        "evidence_registration_failed": evidence_registration_failed,
-        "accepted": accepted,
-    }
+    evidence_outcome = register_evidence(evidence_writer, manifest, status)
     if evidence_writer is not None:
         manifest = {**manifest, **evidence_outcome}
         _write_json(run_dir / "provenance" / "run_manifest.json", manifest)
