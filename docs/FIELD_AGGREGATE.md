@@ -51,7 +51,7 @@ Command → FieldAggregate (تحقّق الـinvariants) → (تغيير حال�
   (`check_activity_transition` + `ActivityTransitionRequest`)، غيرهما 409، والحالة نفسها
   إعادة بلا كتابة ولا حدث. **المسار نفسه لم يُضَف:** كان سيرفع مسارات النطاق إلى 630
   فوق سقف 629، ولا يُرفع السقف لحلّ تعارض ميزانية. ينتظر قرار المالك (الفجوة
-  `ACTIVITY-TRANSITION-ROUTE-BUDGET-01`).
+  `ACTIVITY-LIFECYCLE-CREATE-ONLY-01`).
 
 **المتبقّي (شريحة تالية، deployment-time):** منافذ حيّة (`load_field_state`/كاتب +
 `CommandDispatcher` على `conn`) وتوجيه أوّل endpoint فعليّاً عبر الأمر — يحتاج اختبار
