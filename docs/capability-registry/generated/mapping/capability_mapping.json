@@ -15,24 +15,24 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7083,
+    "files_scanned": 7086,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
-      "governance": 87,
+      "governance": 89,
       "mobile": 414,
       "other": 2152,
-      "tests": 2363,
+      "tests": 2364,
       "web": 505
     },
-    "unmapped_artifacts": 3375,
+    "unmapped_artifacts": 3376,
     "ambiguous_artifacts": 232,
     "files_by_reading": {
-      "python_functional": 3812,
-      "raw": 3271
+      "python_functional": 3814,
+      "raw": 3272
     },
-    "test_dependency_files": 1776,
-    "test_dependency_edges": 4466,
+    "test_dependency_files": 1777,
+    "test_dependency_edges": 4467,
     "test_dependency_bounded_files": 1038,
     "test_dependency_unresolved_relations": 452
   },
@@ -40526,6 +40526,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests/test_workflow_inventory.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
       "kind": "tests"
     },
@@ -67174,6 +67178,21 @@
           "source": "tools/tts_bakeoff/worker.py",
           "kind": "import",
           "line": 30
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests/test_workflow_inventory.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ci/workflow_inventory.py",
+          "kind": "import",
+          "line": 6
         }
       ],
       "unresolved": []
