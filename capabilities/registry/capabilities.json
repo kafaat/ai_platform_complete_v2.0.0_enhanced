@@ -4584,9 +4584,9 @@
         "tests/architecture/test_capability_evidence_maturity_engine.py",
         "tests/architecture/test_runtime_evidence_ingestion.py",
         "tests/architecture/test_runtime_evidence_trust_hardening.py",
+        "tests_v9/test_capability_mapping_dependency_evidence.py",
         "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
-        "tests_v9/test_collect_guard_surface_evidence.py",
-        "tests_v9/test_cropwise_evidence_quality.py"
+        "tests_v9/test_collect_guard_surface_evidence.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4628,7 +4628,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 15
+        "tests": 16
       }
     },
     {

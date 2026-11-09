@@ -17,16 +17,22 @@ reported but never promote a capability here (see the honesty invariant at the m
 from __future__ import annotations
 
 import argparse
+import ast
+import bisect
 import csv
 import hashlib
+import io
 import json
 import re
 import subprocess
 import sys
 import tempfile
+import tokenize
 from collections import Counter
 from collections.abc import Iterable
-from pathlib import Path
+from functools import cache
+from pathlib import Path, PurePosixPath
+from typing import NamedTuple
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "docs/capability-registry/generated/capability_registry.json"
@@ -104,6 +110,10 @@ META_GOVERNANCE_FILES = {
     # witnesses, not proof of irrigation, database migration or field outcomes.
     "scripts/ci/railway_staging_backup_inventory.py",
     "tests_v9/test_railway_staging_backup_inventory.py",
+    # The R1/R2/R3 regression test names capability IDs, domain words and reviewed case
+    # paths by construction (positive and negative controls); scanning it would make the
+    # witness of the scorer evidence for the capabilities it controls for.
+    "tests_v9/test_capability_mapping_dependency_evidence.py",
 }
 # Extension point for whole witness classes (e.g. a future registries/ subdir). Empty today:
 # every measured witness is an individual file, and breadth must be argued per entry.
@@ -277,6 +287,541 @@ def norm(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
 
 
+# ── Evidence extraction and weighting (test-impact recall review, 2026-11-09) ─────────
+#
+# R1 — one normalized term, one weight. A title often repeats an alias in another
+# spelling (title "GDD", alias "gdd"). Both normalize to ``gdd`` and both were scored,
+# so a single word counted twice and crossed the 8-point threshold on its own
+# (services/weather-service/tests/test_missing_temperature_is_not_zero.py: signals
+# ``content:GDD`` + ``content:gdd`` = 12). Terms are grouped by ``norm()`` before scoring;
+# the merged spellings stay visible as a ``dedup:`` signal so the change is explainable.
+#
+# R2 — contextual matching for ambiguous words. "inventory" names farm stock (FM-007)
+# next to suppliers, reorder levels and agro-inputs; alone it is usually a *software*
+# inventory (route/component/diagnostic inventories), which mapped
+# scripts/diagnostics/build_main_inventory.py to FM-007. Such a term counts — in the path
+# or the content — only when one of its context words occurs in the same file's
+# functional text. Default-deny for the ambiguous reading, not a deny-list of technical
+# phrases, which could never be complete.
+CONTEXTUAL_TERMS: dict[str, tuple[str, ...]] = {
+    "inventory": (
+        "stock",
+        "quantity",
+        "supplier",
+        "fertilizer",
+        "fertiliser",
+        "pesticide",
+        "warehouse",
+        "procurement",
+        "purchase",
+        "reorder",
+        "agrochemical",
+        "unit cost",
+    ),
+}
+
+
+def _has_context(hay: str, context: tuple[str, ...]) -> bool:
+    padded = f" {hay} "
+    return any(f" {norm(word)} " in padded for word in context)
+
+
+@cache
+def _scoring_terms(cid: str, title: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """``(normalized term, original spellings)`` — each normalized term exactly once."""
+    spellings: dict[str, set[str]] = {}
+    for term in (*ALIASES.get(cid, ()), *((title,) if title else ())):
+        normalized = norm(term)
+        if not normalized or len(normalized) < 3:
+            continue
+        spellings.setdefault(normalized, set()).add(term)
+    return tuple((t, tuple(sorted(s))) for t, s in sorted(spellings.items()))
+
+
+# R2 — functional text. Capability IDs and domain words inside comments and (for test
+# files) fixture data / example payloads are not functional evidence:
+# tests_v9/test_main_inventory_generator.py was credited SOIL-001 (+20, explicit_id) for
+# a fabricated ``"capability_id": "SOIL-001"`` fixture row, and tests_v9/service_module.py
+# was credited SEC-004 for comments recalling an MFA import-cache incident. Python is
+# read through ``ast``/``tokenize``; comments are dropped, and in test files every string
+# literal inside a dict/list/tuple/set display is dropped (fixture rows, payloads,
+# parametrize tables). Docstrings stay: they declare what a module or test is *for*
+# (measured: dropping them also removed the reviewed-correct SEC-001 label of
+# tests_v9/test_rs_anomaly_pg_isolation_integration.py). Identifiers, calls and other
+# literals stay. Unparsable Python and non-Python files keep the legacy raw reading.
+_DISPLAYS = (ast.Dict, ast.List, ast.Tuple, ast.Set)
+
+
+def _span(node: ast.AST) -> tuple[tuple[int, int], tuple[int, int]]:
+    return (
+        (node.lineno, node.col_offset),
+        (node.end_lineno or node.lineno, node.end_col_offset or node.col_offset),
+    )
+
+
+def _non_functional_string_spans(
+    tree: ast.AST, *, fixture_data: bool
+) -> list[tuple[tuple[int, int], tuple[int, int]]]:
+    spans: list[tuple[tuple[int, int], tuple[int, int]]] = []
+    for node in ast.walk(tree):
+        if fixture_data and isinstance(node, _DISPLAYS):
+            for inner in ast.walk(node):
+                if isinstance(inner, ast.JoinedStr) or (
+                    isinstance(inner, ast.Constant) and isinstance(inner.value, str)
+                ):
+                    spans.append(_span(inner))
+    merged: list[tuple[tuple[int, int], tuple[int, int]]] = []
+    for start, end in sorted(set(spans)):
+        if merged and start <= merged[-1][1]:
+            if end > merged[-1][1]:
+                merged[-1] = (merged[-1][0], end)
+        else:
+            merged.append((start, end))
+    return merged
+
+
+def python_functional_text(text: str, *, fixture_data: bool) -> str | None:
+    """Python source without comments and (optionally) test fixture literals.
+
+    ``None`` when the source does not parse — the caller then keeps the raw text.
+    """
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError, RecursionError, MemoryError):
+        return None
+    spans = _non_functional_string_spans(tree, fixture_data=fixture_data)
+    starts = [start for start, _ in spans]
+    kept: list[str] = []
+    try:
+        for tok_type, tok_string, tok_start, tok_end in _version_stable_tokens(text):
+            if tok_type == tokenize.COMMENT:
+                continue
+            if tok_type == tokenize.STRING and spans:
+                index = bisect.bisect_right(starts, tok_start) - 1
+                if index >= 0 and spans[index][0] <= tok_start and tok_end <= spans[index][1]:
+                    continue
+            kept.append(tok_string)
+    except (tokenize.TokenError, SyntaxError):
+        return None
+    return " ".join(kept)
+
+
+# Python 3.12 (PEP 701) tokenizes an f-string as FSTRING_START … FSTRING_END with the
+# interpolated expressions as separate tokens; 3.14 adds the same for t-strings. Earlier
+# versions emit one STRING token. The functional text feeds generated artifacts that CI
+# (3.12) and local runs (3.11) must reproduce byte-for-byte, so an f-string is folded
+# back into a single STRING token spanning its exact source text on every version.
+_STRING_GROUP_STARTS = {
+    getattr(tokenize, name)
+    for name in ("FSTRING_START", "TSTRING_START")
+    if hasattr(tokenize, name)
+}
+_STRING_GROUP_ENDS = {
+    getattr(tokenize, name) for name in ("FSTRING_END", "TSTRING_END") if hasattr(tokenize, name)
+}
+
+
+def _version_stable_tokens(text: str):
+    lines = text.splitlines(keepends=True)
+    offsets = [0]
+    for line in lines:
+        offsets.append(offsets[-1] + len(line))
+
+    def offset(position: tuple[int, int]) -> int:
+        row, col = position
+        return offsets[row - 1] + col if row - 1 < len(offsets) else len(text)
+
+    depth = 0
+    group_start: tuple[int, int] | None = None
+    for tok in tokenize.generate_tokens(io.StringIO(text).readline):
+        if tok.type in _STRING_GROUP_STARTS:
+            if depth == 0:
+                group_start = tok.start
+            depth += 1
+            continue
+        if depth:
+            if tok.type in _STRING_GROUP_ENDS:
+                depth -= 1
+                if depth == 0 and group_start is not None:
+                    yield (
+                        tokenize.STRING,
+                        text[offset(group_start) : offset(tok.end)],
+                        group_start,
+                        tok.end,
+                    )
+                    group_start = None
+            continue
+        yield tok.type, tok.string, tok.start, tok.end
+
+
+class ScoringText(NamedTuple):
+    """What a file is scored on: normalized path, normalized functional text, ID text.
+
+    A NamedTuple, not a dataclass: tests load this script by path without registering
+    it in ``sys.modules``, which the dataclass decorator requires."""
+
+    hay_path: str
+    hay: str
+    id_text: str
+    reading: str
+
+
+def scoring_text(rel: str, text: str, kind: str) -> ScoringText:
+    functional: str | None = None
+    reading = "raw"
+    if rel.endswith(".py"):
+        functional = python_functional_text(text, fixture_data=kind == "tests")
+        if functional is not None:
+            reading = "python_functional"
+    body = text if functional is None else functional
+    return ScoringText(norm(rel), norm(body[:250_000]), body, reading)
+
+
+# ── R3: proven test → source dependencies (existing contract, no second selector) ──────
+#
+# Lexical similarity is not dependency evidence. A test that imports a source module,
+# reads a source file by path (``ast.parse(SOURCE.read_text())``) or loads it through a
+# shared loader (``load_service_main(dir)``, ``spec_from_file_location``) depends on it,
+# whatever words either file contains. These edges are emitted in
+# ``capability_mapping.json`` → ``test_dependencies`` and folded by the single impact
+# engine (``pr_capability_impact_gate.build_snapshot``): a change to the source selects
+# the test with a ``dependency:<kind>:<source>`` reason (path-level, the test's own
+# capability label is not rewritten) — no second selector, no new registry, no change to
+# escalation or floor rules. They are not capability evidence and never count towards
+# ``mapped``/``coverage_dimensions``.
+#
+# Dynamic relations that cannot be resolved statically are recorded, never guessed:
+# ``unresolved``. A test with no capability of its own only inherits its sources'
+# capabilities when its relation set is ``bounded`` (every relation resolved, no
+# tree-wide scan, no shared test harness, no repository data-file read) — otherwise it
+# stays in the floor. Edges are direct only; transitive imports are not followed.
+_LOADER_CALLS = {
+    "spec_from_file_location",
+    "run_path",
+    "SourceFileLoader",
+    "load_service_main",
+}
+# Loader helpers that take a *service directory* and import ``<dir>/main.py``.
+_DIRECTORY_LOADERS = {"load_service_main": "main.py"}
+_TREE_WIDE_CALLS = {"glob", "rglob", "iglob", "walk", "iterdir", "listdir", "scandir"}
+_TREE_WIDE_MODULES = {"subprocess"}
+_PATH_WRAPPERS = {"str", "Path", "PurePath", "fspath", "resolve", "absolute"}
+_PATH_LIKE = re.compile(r"^[\w.\-]+(?:/[\w.\-]+)*/?$")
+
+
+def _call_name(node: ast.Call) -> str:
+    func = node.func
+    if isinstance(func, ast.Attribute):
+        return func.attr
+    if isinstance(func, ast.Name):
+        return func.id
+    return ""
+
+
+def _path_parts(node: ast.AST) -> list[str] | None:
+    """String parts of a path expression: ``"a/b"``, ``X / "a" / "b"``, ``join(X, "a")``."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return [node.value]
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+        left = _path_parts(node.left) or []
+        right = _path_parts(node.right)
+        if right is None:
+            return None
+        return left + right
+    if isinstance(node, ast.Call) and _call_name(node) == "join" and node.args:
+        parts: list[str] = []
+        for arg in node.args:
+            sub = _path_parts(arg)
+            if sub:
+                parts.extend(sub)
+        return parts or None
+    if isinstance(node, ast.Call) and _call_name(node) in {"str", "Path", "PurePath", "fspath"}:
+        if len(node.args) == 1:
+            return _path_parts(node.args[0])
+    return None
+
+
+class _RepoIndex(NamedTuple):
+    files: frozenset[str]
+    dirs: frozenset[str]
+    module_names: frozenset[str]
+
+
+def repo_index(tracked: Iterable[str]) -> _RepoIndex:
+    files = frozenset(tracked)
+    dirs: set[str] = set()
+    names: set[str] = set()
+    for path in files:
+        pure = PurePosixPath(path)
+        for parent in pure.parents:
+            if str(parent) != ".":
+                dirs.add(parent.as_posix())
+        if pure.suffix == ".py":
+            names.add(pure.parent.name if pure.name == "__init__.py" else pure.stem)
+    return _RepoIndex(files, frozenset(dirs), frozenset(names))
+
+
+def _resolve_path(parts: list[str], test_dir: PurePosixPath, index: _RepoIndex) -> str | None:
+    joined = "/".join(p.strip("/") for p in parts if p and p.strip("/") not in {"", "."})
+    if not joined or not _PATH_LIKE.match(joined) or ".." in joined.split("/"):
+        return None
+    candidates = [PurePosixPath(joined)]
+    candidates += [anc / joined for anc in (test_dir, *test_dir.parents) if str(anc) != "."]
+    for candidate in candidates:
+        value = candidate.as_posix()
+        if value in index.files or value in index.dirs:
+            return value
+    return None
+
+
+def _module_file(root: PurePosixPath | None, dotted: str, index: _RepoIndex) -> str | None:
+    base = PurePosixPath(*dotted.split(".")) if root is None else root.joinpath(*dotted.split("."))
+    for candidate in (f"{base.as_posix()}.py", f"{base.as_posix()}/__init__.py"):
+        if candidate in index.files:
+            return candidate
+    return None
+
+
+def _enclosing_function(node: ast.AST, parents: dict[ast.AST, ast.AST]) -> ast.AST | None:
+    current = parents.get(node)
+    while current is not None and not isinstance(current, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        current = parents.get(current)
+    return current
+
+
+def _is_test_support(path: str) -> bool:
+    """A non-test module inside a test tree: a shared harness whose own reads are not
+    analysed here (e.g. tests_v9/service_module.py mutates sys.path for every test)."""
+    pure = PurePosixPath(path)
+    in_test_tree = any(part in {"tests", "tests_v9", "test"} for part in pure.parts[:-1])
+    return in_test_tree and not is_test_module(path)
+
+
+def _standalone_path_literal(value: str) -> bool:
+    """A lone string is a path candidate only if it looks like one (``a/b`` or ``x.py``)."""
+    return "/" in value or bool(re.search(r"\.[A-Za-z0-9]{1,5}$", value))
+
+
+def extract_test_dependencies(rel: str, text: str, index: _RepoIndex) -> dict | None:
+    """Static test → repository-source relations of one Python test file.
+
+    Edge kinds: ``import`` (module import resolved to a tracked file), ``source_read``
+    (a tracked ``.py`` path named in the test, e.g. ``ast.parse(SOURCE.read_text())``),
+    ``loader`` (a path or service directory handed to a loader: ``spec_from_file_location``,
+    ``run_path``, ``load_service_main`` → ``<dir>/main.py``, or a local helper whose every
+    call passes a resolvable path). ``None`` for unparsable files or files without any
+    relation — no claim either way.
+    """
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError, RecursionError, MemoryError):
+        return None
+    test_dir = PurePosixPath(rel).parent
+    parents: dict[ast.AST, ast.AST] = {}
+    for node in ast.walk(tree):
+        for child in ast.iter_child_nodes(node):
+            parents[child] = node
+    edges: dict[tuple[str, str], int] = {}
+    unresolved: list[dict] = []
+    unbounded: set[str] = set()
+    path_names: dict[str, str] = {}
+    referenced_dirs: dict[str, int] = {}
+    used_dirs: set[str] = set()
+
+    def add_edge(source: str, kind: str, line: int) -> None:
+        if source != rel and ((source, kind) not in edges or line < edges[(source, kind)]):
+            edges[(source, kind)] = line
+
+    def resolve_expr(node: ast.AST) -> str | None:
+        if isinstance(node, ast.Name) and node.id in path_names:
+            return path_names[node.id]
+        if isinstance(node, ast.Call) and _call_name(node) in {"str", "Path", "fspath"}:
+            if len(node.args) == 1:
+                return resolve_expr(node.args[0])
+        parts = _path_parts(node)
+        if not parts:
+            return None
+        if isinstance(node, ast.Constant) and not _standalone_path_literal(node.value):
+            return None
+        return _resolve_path(parts, test_dir, index)
+
+    # 1. Path expressions naming tracked paths (plain literals and maximal ``/`` chains).
+    for node in ast.walk(tree):
+        holder = parents.get(node)
+        if isinstance(node, ast.Constant):
+            if isinstance(holder, ast.BinOp) or not isinstance(node.value, str):
+                continue
+        elif isinstance(node, ast.BinOp):
+            if isinstance(holder, ast.BinOp) or not isinstance(node.op, ast.Div):
+                continue
+        elif not (isinstance(node, ast.Call) and _call_name(node) == "join"):
+            continue
+        resolved = resolve_expr(node)
+        if resolved is None:
+            continue
+        while (isinstance(holder, ast.Call) and _call_name(holder) in _PATH_WRAPPERS) or (
+            isinstance(holder, ast.Attribute) and holder.attr in _PATH_WRAPPERS
+        ):
+            holder = parents.get(holder)
+        if isinstance(holder, ast.Assign):
+            for target in holder.targets:
+                if isinstance(target, ast.Name):
+                    path_names[target.id] = resolved
+        if resolved in index.dirs:
+            referenced_dirs.setdefault(resolved, node.lineno)
+        elif resolved.endswith(".py"):
+            add_edge(resolved, "source_read", node.lineno)
+        else:
+            unbounded.add("reads_repository_data_file")
+
+    # 2. Loader calls: resolve the path argument, or record the relation as unresolved.
+    pending: list[tuple[ast.Call, ast.AST | None]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        name = _call_name(node)
+        if name in _TREE_WIDE_CALLS:
+            unbounded.add("tree_wide_scan")
+        if name not in _LOADER_CALLS:
+            continue
+        resolved_any = False
+        for arg in [*node.args, *(kw.value for kw in node.keywords)]:
+            target = resolve_expr(arg)
+            if target in index.dirs and name in _DIRECTORY_LOADERS:
+                entry = f"{target}/{_DIRECTORY_LOADERS[name]}"
+                if entry in index.files:
+                    add_edge(entry, "loader", node.lineno)
+                    used_dirs.add(target)
+                    resolved_any = True
+            elif target and target in index.files and target.endswith(".py"):
+                add_edge(target, "loader", node.lineno)
+                resolved_any = True
+        if not resolved_any:
+            pending.append((node, _enclosing_function(node, parents)))
+
+    # A loader inside a local helper (``def _load(rel_path, name): spec_from_file_location(
+    # name, ROOT / rel_path)``) is resolved when *every* call of that helper in this file
+    # passes a resolvable repository path; the helper's targets become ``loader`` edges.
+    calls_by_name: dict[str, list[ast.Call]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            calls_by_name.setdefault(node.func.id, []).append(node)
+    for call, function in pending:
+        targets: list[tuple[str, int]] = []
+        helper_calls = calls_by_name.get(function.name, []) if function is not None else []
+        params = (
+            {
+                a.arg
+                for a in (
+                    *function.args.posonlyargs,
+                    *function.args.args,
+                    *function.args.kwonlyargs,
+                )
+            }
+            if function is not None
+            else set()
+        )
+        uses_param = any(
+            isinstance(inner, ast.Name) and inner.id in params
+            for arg in [*call.args, *(kw.value for kw in call.keywords)]
+            for inner in ast.walk(arg)
+        )
+        if uses_param and helper_calls:
+            for helper_call in helper_calls:
+                found = [
+                    t
+                    for arg in [*helper_call.args, *(kw.value for kw in helper_call.keywords)]
+                    if (t := resolve_expr(arg)) and t in index.files and t.endswith(".py")
+                ]
+                if not found:
+                    targets = []
+                    break
+                targets += [(t, helper_call.lineno) for t in found]
+        if targets:
+            for target, line in targets:
+                add_edge(target, "loader", line)
+        else:
+            unresolved.append({"line": call.lineno, "call": _call_name(call)})
+
+    # 3. Imports (and literal ``import_module``), resolved against directories the test
+    #    names, its own directory and ancestors (the sys.path conventions used here), then
+    #    the repository root. A non-literal ``import_module`` is an unresolved relation.
+    import_roots = [PurePosixPath(d) for d in referenced_dirs]
+    roots = [*import_roots, test_dir, *[p for p in test_dir.parents if str(p) != "."], None]
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and node.id in _TREE_WIDE_MODULES:
+            unbounded.add("subprocess")
+        modules: list[tuple[str, list[str], int]] = []
+        if isinstance(node, ast.Import):
+            modules = [(alias.name, [], node.lineno) for alias in node.names]
+        elif isinstance(node, ast.ImportFrom) and node.level:
+            base = test_dir
+            for _ in range(node.level - 1):
+                base = base.parent
+            dotted = node.module or ""
+            for sub in (alias.name for alias in node.names if alias.name != "*"):
+                sub_found = _module_file(base, f"{dotted}.{sub}" if dotted else sub, index)
+                if sub_found:
+                    add_edge(sub_found, "import", node.lineno)
+            found = _module_file(base, dotted, index) if dotted else None
+            if found:
+                add_edge(found, "import", node.lineno)
+            continue
+        elif isinstance(node, ast.ImportFrom):
+            names = [alias.name for alias in node.names if alias.name != "*"]
+            modules = [(node.module or "", names, node.lineno)]
+        elif isinstance(node, ast.Call) and _call_name(node) == "import_module" and node.args:
+            first = node.args[0]
+            if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                modules = [(first.value, [], node.lineno)]
+            else:
+                unresolved.append({"line": node.lineno, "call": "import_module"})
+        for dotted, names, line in modules:
+            if not dotted or dotted.startswith("."):
+                continue
+            found = None
+            for root in roots:
+                found = _module_file(root, dotted, index)
+                if found:
+                    if root is not None:
+                        used_dirs.add(root.as_posix())
+                    for sub in names:
+                        sub_found = _module_file(root, f"{dotted}.{sub}", index)
+                        if sub_found:
+                            add_edge(sub_found, "import", line)
+                    break
+            if found:
+                add_edge(found, "import", line)
+                if _is_test_support(found):
+                    unbounded.add("shared_test_helper")
+                continue
+            top = dotted.split(".")[0]
+            if top in index.module_names and top not in sys.stdlib_module_names:
+                unresolved.append({"line": line, "import": dotted})
+
+    if any(directory not in used_dirs for directory in referenced_dirs):
+        unbounded.add("directory_reference")
+    if unresolved:
+        unbounded.add("unresolved_dynamic_relation")
+    if not edges and not unresolved:
+        return None
+    return {
+        "test": rel,
+        "bounded": not unbounded,
+        "unbounded_reasons": sorted(unbounded),
+        "edges": [
+            {"source": source, "kind": kind, "line": line}
+            for (source, kind), line in sorted(edges.items())
+        ],
+        "unresolved": sorted(unresolved, key=lambda item: (item["line"], json.dumps(item))),
+    }
+
+
+def is_test_module(rel: str) -> bool:
+    name = PurePosixPath(rel).name
+    return name.endswith(".py") and (name.startswith("test_") or name.endswith("_test.py"))
+
+
 def load_registry() -> list[dict]:
     data = json.loads(REGISTRY.read_text(encoding="utf-8"))
     return data["capabilities"]
@@ -437,24 +982,40 @@ def event_items(rel: str, text: str) -> list[str]:
 def score_blob(
     cid: str, cap: dict, rel: str, hay_path: str, hay: str, raw_text: str
 ) -> tuple[int, list[str]]:
-    terms = list(ALIASES.get(cid, ()))
-    title = cap.get("title", {}).get("en", "")
-    if title:
-        terms.append(title)
+    """Score one file against one capability.
+
+    ``hay`` / ``raw_text`` are the file's *functional* text (see ``scoring_text``); each
+    normalized term is weighted once (R1) and contextual terms need their context (R2).
+    """
     hits = []
     score = 0
-    for term in sorted(set(terms)):
-        t = norm(term)
-        if not t or len(t) < 3:
+    terms = _scoring_terms(cid, cap.get("title", {}).get("en", ""))
+    # The 8-point threshold asks for corroboration: two distinct terms, a path hit or an
+    # explicit ID — one term's content weight saturates at 6. A capability whose whole
+    # vocabulary is ONE normalized term (NDMI, NDVI, "scouting") can only be corroborated
+    # by repetition, so that term saturates at the threshold instead — reached at six
+    # occurrences. Before R1 those capabilities bound at two occurrences only because the
+    # title repeated the alias and the same word was scored twice.
+    saturation = 8 if len(terms) == 1 else 6
+    for t, spellings in terms:
+        context = CONTEXTUAL_TERMS.get(t)
+        if context and not _has_context(hay, context):
             continue
+        label = spellings[0]
+        hit = False
         if t in hay_path:
             score += 8
-            hits.append(f"path:{term}")
+            hits.append(f"path:{label}")
+            hit = True
         count = hay.count(t)
         if count:
-            score += min(6, 2 + count)
-            hits.append(f"content:{term}")
-    # Direct capability ID references are authoritative static links.
+            score += min(saturation, 2 + count)
+            hits.append(f"content:{label}")
+            hit = True
+        if hit and len(spellings) > 1:
+            hits.append("dedup:" + "=".join(spellings))
+    # Direct capability ID references are authoritative static links — when they occur in
+    # functional text, not in a comment or a test fixture row.
     raw_lower = raw_text.lower()
     if cid.lower() in raw_lower or cid.lower().replace("-", "_") in raw_lower:
         score += 20
@@ -520,6 +1081,9 @@ def build() -> dict:
     unmapped = []
     ambiguous = []
     inventory = Counter()
+    readings = Counter()
+    test_dependencies: list[dict] = []
+    index = repo_index(_tracked_files())
     files = list(iter_files())
     for p in files:
         rel = p.relative_to(ROOT).as_posix()
@@ -529,11 +1093,15 @@ def build() -> dict:
             text = p.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
+        if is_test_module(rel):
+            relations = extract_test_dependencies(rel, text, index)
+            if relations is not None:
+                test_dependencies.append(relations)
         scored = []
-        hay_path = norm(rel)
-        hay = norm(text[:250_000])
+        reading = scoring_text(rel, text, kind)
+        readings[reading.reading] += 1
         for cid, cap in by_id.items():
-            score, hits = score_blob(cid, cap, rel, hay_path, hay, text)
+            score, hits = score_blob(cid, cap, rel, reading.hay_path, reading.hay, reading.id_text)
             if score >= 8:
                 scored.append((score, cid, hits))
         scored.sort(reverse=True)
@@ -641,10 +1209,24 @@ def build() -> dict:
             "files_by_kind": dict(sorted(inventory.items())),
             "unmapped_artifacts": len(unmapped),
             "ambiguous_artifacts": len(ambiguous),
+            "files_by_reading": dict(sorted(readings.items())),
+            "test_dependency_files": len(test_dependencies),
+            "test_dependency_edges": sum(len(t["edges"]) for t in test_dependencies),
+            "test_dependency_bounded_files": sum(t["bounded"] for t in test_dependencies),
+            "test_dependency_unresolved_relations": sum(
+                len(t["unresolved"]) for t in test_dependencies
+            ),
         },
         "capabilities": [maps[k] for k in sorted(maps)],
         "unmapped_artifacts": sorted(unmapped, key=lambda x: x["path"]),
         "ambiguous_artifacts": sorted(ambiguous, key=lambda x: x["path"]),
+        # Proven static test → source relations (R3). Not capability evidence and never
+        # counted in ``mapped``/``coverage_dimensions``: the impact engine folds them
+        # into test selection (``pr_capability_impact_gate.build_snapshot``).
+        "test_dependencies_semantics": (
+            "static_import_source_read_loader_edges__unresolved_dynamic_relations_explicit"
+        ),
+        "test_dependencies": sorted(test_dependencies, key=lambda x: x["test"]),
     }
 
 
