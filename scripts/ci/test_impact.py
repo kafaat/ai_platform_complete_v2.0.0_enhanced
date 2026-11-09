@@ -28,8 +28,10 @@ never read as full coverage.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
+import random
 import subprocess
 import sys
 from pathlib import Path
@@ -187,6 +189,37 @@ def select(
     return selected, floor
 
 
+def audit_sample(deselected: list[str], seed_material: str, per_run: int) -> list[str]:
+    """A seeded sample of the tests the cone *excluded*, run alongside the selection.
+
+    Selection drops a test because the engine says the change cannot reach it. If that
+    belief is wrong, nothing in a narrowed run would ever show it: the dropped test simply
+    does not run. Running a few excluded tests every time turns the map's accuracy from an
+    assumption into an observation — a sampled test that fails is a test the map missed.
+
+    Deterministic by construction: the seed is the head commit and the base, so the same
+    tree yields the same sample (``test_selection_is_reproducible_from_git_alone``), while
+    successive commits rotate through the excluded corpus instead of pinning one slice.
+    """
+    if per_run <= 0 or not deselected:
+        return []
+    digest = hashlib.sha256(seed_material.encode("utf-8")).hexdigest()
+    rng = random.Random(int(digest[:16], 16))
+    return sorted(rng.sample(sorted(deselected), min(per_run, len(deselected))))
+
+
+def _rev(ref: str, root: Path) -> str:
+    out = subprocess.run(
+        ["git", "rev-parse", "--verify", f"{ref}^{{commit}}"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    )
+    return out.stdout.strip()
+
+
 def plan(
     base: str,
     head: str,
@@ -205,7 +238,9 @@ def plan(
     result = engine.impact(changed, snapshot)
     affected = set(result["affected"])
 
-    selected, floor = select(snapshot, affected, discover_test_files(root))
+    tests = discover_test_files(root)
+    selected, floor = select(snapshot, affected, tests)
+    deselected = sorted(set(tests) - set(floor) - set(selected))
 
     undecided = [p for p in changed if not _is_bound(snapshot, p)]
     reasons = escalation_reasons(
@@ -213,6 +248,18 @@ def plan(
         active,
         governance_wide=result["governance_wide"],
         unbound=set(undecided),
+    )
+
+    mode = "full" if reasons else "selected"
+    sample_policy = active.get("audit_sample") or {}
+    sample = (
+        audit_sample(
+            deselected,
+            f"{_rev(head, root)}:{resolved_base}",
+            int(sample_policy.get("per_run", 0)),
+        )
+        if mode == "selected"
+        else []
     )
 
     return {
@@ -225,10 +272,12 @@ def plan(
         "working_tree_paths": working,
         "affected_capabilities": sorted(affected),
         "direct_capabilities": result["direct"],
-        "mode": "full" if reasons else "selected",
+        "mode": mode,
         "escalation_reasons": reasons,
         "selected": selected,
         "floor": floor,
+        "deselected_count": len(deselected),
+        "audit_sample": sample,
         "undecided_changed_paths": undecided,
         "ceiling": active["measured_ceiling"],
     }
@@ -244,10 +293,15 @@ def _is_bound(snapshot: Any, path: str) -> bool:
 
 
 def paths_to_run(result: dict[str, Any], *, root: Path = ROOT) -> list[str]:
-    """Selection ∪ floor — or every tracked test when escalated. The floor is never dropped."""
+    """Selection ∪ floor ∪ audit sample — or every tracked test when escalated.
+
+    The floor is never dropped, and the audit sample rides with every narrowed run.
+    """
     if result["mode"] == "full":
         return discover_test_files(root)
-    return sorted(set(result["floor"]) | set(result["selected"]))
+    return sorted(
+        set(result["floor"]) | set(result["selected"]) | set(result.get("audit_sample", []))
+    )
 
 
 def render(result: dict[str, Any]) -> str:
@@ -275,6 +329,15 @@ def render(result: dict[str, Any]) -> str:
         lines.append(f"        المصدر : {', '.join(why['sources'])}")
 
     lines.append(f"  الأرضيّة الثابتة (لا يبلغها مخروط): {len(result['floor'])} ملفّاً")
+
+    if result["mode"] == "selected":
+        sample = result.get("audit_sample", [])
+        lines.append(
+            f"  عيّنة تدقيق من المُستبعَد: {len(sample)} من {result.get('deselected_count', 0)} "
+            "— تُشغَّل مع الاختيار؛ فشلُ أحدها يعني أنّ الخريطة أخطأت في استبعاده:"
+        )
+        for path in sample:
+            lines.append(f"      ◇ {path}")
 
     if result["undecided_changed_paths"]:
         lines.append(
