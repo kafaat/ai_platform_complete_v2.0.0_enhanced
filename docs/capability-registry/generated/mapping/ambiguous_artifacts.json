@@ -2752,21 +2752,21 @@
     "kind": "other",
     "candidates": [
       {
+        "capability_id": "INT-002",
+        "score": 13,
+        "signals": [
+          "content:event bus",
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
         "capability_id": "WX-002",
         "score": 12,
         "signals": [
           "content:Weather forecast",
           "content:forecast",
           "content:weather forecast"
-        ]
-      },
-      {
-        "capability_id": "INT-002",
-        "score": 12,
-        "signals": [
-          "content:event bus",
-          "content:jetstream",
-          "content:nats"
         ]
       }
     ]
@@ -5906,6 +5906,28 @@
     ]
   },
   {
+    "path": "services/decision-service/tests/test_decision_provenance_integrity.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-004",
+        "score": 10,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "IRR-005",
+        "score": 8,
+        "signals": [
+          "content:Irrigation recommendation",
+          "content:irrigation recommendation"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
     "kind": "tests",
     "candidates": [
@@ -6123,6 +6145,28 @@
     ]
   },
   {
+    "path": "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "DEC-002",
+        "score": 12,
+        "signals": [
+          "content:Decision candidate",
+          "content:decision candidate"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/gis-workflow-service/tests/test_map_layout.py",
     "kind": "tests",
     "candidates": [
@@ -6170,6 +6214,28 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/mcp_servers/market_db_authz.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls"
+        ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 8,
+        "signals": [
+          "content:inventory",
+          "content:procurement"
         ]
       }
     ]
@@ -8554,29 +8620,6 @@
     ]
   },
   {
-    "path": "services/sahool-platform/api/weather_advice.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "WX-009",
-        "score": 9,
-        "signals": [
-          "content:disease risk",
-          "content:downy mildew",
-          "content:late blight"
-        ]
-      }
-    ]
-  },
-  {
     "path": "services/sahool-platform/core/agronomic_state_engine.py",
     "kind": "backend",
     "candidates": [
@@ -9557,6 +9600,37 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_advice_host_disease_unknown_crop_and_knowledge.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-009",
+        "score": 15,
+        "signals": [
+          "content:disease risk",
+          "content:downy mildew",
+          "content:late blight"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "IRR-004",
+        "score": 12,
+        "signals": [
+          "content:Water balance",
+          "content:water balance"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_agronomic_context_composer.py",
     "kind": "tests",
     "candidates": [
@@ -10315,6 +10389,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_season_sim_window_kc_link.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 14,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_season_simulation.py",
     "kind": "tests",
     "candidates": [
@@ -10543,6 +10639,28 @@
         "signals": [
           "content:Soil profile",
           "content:soil profile"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/soil-service/test_soil_p3_products.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "IRR-009",
+        "score": 9,
+        "signals": [
+          "content:salinity",
+          "content:sodicity"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 8,
+        "signals": [
+          "content:slope",
+          "content:terrain"
         ]
       }
     ]
@@ -12960,6 +13078,28 @@
         "signals": [
           "content:ET0",
           "content:et0"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_wofost_card_parameter_injection.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "IRR-004",
+        "score": 12,
+        "signals": [
+          "content:Water balance",
+          "content:water balance"
         ]
       }
     ]

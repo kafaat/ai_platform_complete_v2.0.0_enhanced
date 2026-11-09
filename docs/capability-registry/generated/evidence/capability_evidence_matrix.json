@@ -1628,6 +1628,7 @@
         "services/sahool-platform/tests/test_learning.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
+        "services/sahool-platform/tests/test_planned_vs_executed_lifecycle.py",
         "services/sahool-platform/tests/test_prediction_calibration.py",
         "services/sahool-platform/tests/test_reports.py",
         "services/sahool-platform/tests/test_simple_farm_book.py",
@@ -1925,6 +1926,7 @@
         "services/sahool-platform/tests/test_season_integrity.py",
         "services/sahool-platform/tests/test_season_lifecycle.py",
         "services/sahool-platform/tests/test_season_phenology.py",
+        "services/sahool-platform/tests/test_season_sim_window_kc_link.py",
         "services/sahool-platform/tests/test_season_simulation.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_season_stage_risk.py",
@@ -2857,6 +2859,7 @@
         "services/decision-service/tests/test_no_leakage_certification.py",
         "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
         "services/raster-service/test_field_terrain.py",
+        "services/raster-service/test_field_terrain_multipolygon_extent.py",
         "services/raster-service/test_poly_clip.py",
         "services/raster-service/test_raster_crs_window.py",
         "services/raster-service/test_raster_honest_envelopes_20260705.py",
@@ -2867,6 +2870,7 @@
         "services/raster-service/test_terrain_render.py",
         "services/sahool-platform/tests/test_agronomic_context_composer.py",
         "services/sahool-platform/tests/test_crop_cards.py",
+        "services/sahool-platform/tests/test_dem_auto_fill_refusal.py",
         "services/sahool-platform/tests/test_dem_enrichment.py",
         "services/sahool-platform/tests/test_field_intelligence_card.py",
         "services/sahool-platform/tests/test_field_workspace.py",
@@ -3267,6 +3271,7 @@
         "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
         "tests_v9/test_canonical_execution_learning_worker_subscriptions.py",
         "tests_v9/test_event_bus_invariants.py",
+        "tests_v9/test_event_consumer_dead_letter.py",
         "tests_v9/test_h2_nats_publishers_flag.py",
         "tests_v9/test_nats_broker_authentication.py",
         "tests_v9/test_nats_compose_policy.py",
@@ -4040,13 +4045,15 @@
       "runtime_verified": false,
       "title": "Water balance",
       "unit_test_paths": [
+        "services/sahool-platform/tests/test_advice_host_disease_unknown_crop_and_knowledge.py",
         "services/sahool-platform/tests/test_scenario_whatif.py",
         "services/sahool-platform/tests/test_water_balance.py",
         "tests_v9/test_day_of_year_no_silent_default_g15.py",
         "tests_v9/test_h5_api_salinity.py",
         "tests_v9/test_h5_water_balance_auto.py",
         "tests_v9/test_predictive_irrigation.py",
-        "tests_v9/test_taw_kc_single_source.py"
+        "tests_v9/test_taw_kc_single_source.py",
+        "tests_v9/test_wofost_card_parameter_injection.py"
       ]
     },
     {
@@ -4172,6 +4179,7 @@
       "title": "Irrigation recommendation",
       "unit_test_paths": [
         "mobile/sahool_app/test/features/irrigation/recommendation_test.dart",
+        "services/decision-service/tests/test_decision_provenance_integrity.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py",
         "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
@@ -4685,6 +4693,7 @@
       "unit_test_paths": [
         "services/sahool-platform/tests/test_fao56_dual_kc_salinity_validation.py",
         "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+        "services/soil-service/test_soil_p3_products.py",
         "tests_v9/test_canonical_salinity.py",
         "tests_v9/test_canonical_salinity_state.py",
         "tests_v9/test_h5_api_salinity.py",
@@ -10207,10 +10216,13 @@
       "unit_test_paths": [
         "mobile/sahool_app/test/features/irrigation/irrigation_plan_test.dart",
         "mobile/sahool_app/test/features/irrigation/water_ledger_test.dart",
+        "services/decision-service/tests/test_decision_provenance_integrity.py",
+        "services/sahool-platform/tests/test_advice_host_disease_unknown_crop_and_knowledge.py",
         "services/sahool-platform/tests/test_agronomic_context_composer.py",
         "services/sahool-platform/tests/test_agronomic_decision.py",
         "services/sahool-platform/tests/test_confidence_aggregation.py",
         "services/sahool-platform/tests/test_crop_intelligence_phase4.py",
+        "services/sahool-platform/tests/test_decision_provenance_producers.py",
         "services/sahool-platform/tests/test_fao56_agronomic_validation.py",
         "services/sahool-platform/tests/test_fao56_dual_kc_salinity_validation.py",
         "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
@@ -10218,6 +10230,7 @@
         "services/sahool-platform/tests/test_irrigation_plan_endpoint.py",
         "services/sahool-platform/tests/test_irrigation_recent_rain_and_soil_input_g8_g9.py",
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+        "services/sahool-platform/tests/test_irrigation_waterlogging_hold_and_moisture_unit.py",
         "services/sahool-platform/tests/test_kc_extraction_engine.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
         "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
@@ -10227,6 +10240,7 @@
         "services/sahool-platform/tests/test_recommendations_hub.py",
         "services/sahool-platform/tests/test_scenario_whatif.py",
         "services/sahool-platform/tests/test_season_et0_injection.py",
+        "services/sahool-platform/tests/test_season_sim_window_kc_link.py",
         "services/sahool-platform/tests/test_season_simulation.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_skills_registry.py",
@@ -10520,6 +10534,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
         "tests_v9/test_advice_facade_contract.py",
         "tests_v9/test_consumer_contract_gate.py",
         "tests_v9/test_e2e_offline_flow.py"
@@ -10578,7 +10593,8 @@
         "tests_v9/test_qualification_suite.py",
         "tests_v9/test_season_simulation_behavior_v66.py",
         "tests_v9/test_taw_kc_single_source.py",
-        "tests_v9/test_weather_engine_formula_guard.py"
+        "tests_v9/test_weather_engine_formula_guard.py",
+        "tests_v9/test_wofost_card_parameter_injection.py"
       ]
     },
     {
@@ -10951,6 +10967,7 @@
       "runtime_verified": false,
       "title": "Disease weather models",
       "unit_test_paths": [
+        "services/sahool-platform/tests/test_advice_host_disease_unknown_crop_and_knowledge.py",
         "services/sahool-platform/tests/test_weather_engine_disease_window_layers.py"
       ]
     },

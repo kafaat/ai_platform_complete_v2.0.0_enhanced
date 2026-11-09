@@ -1,5 +1,5 @@
 table,created_in,manifest_position,has_tenant_id,rls_enabled,rls_forced,policy_count,write_policy_with_check,tenant_rls_gap,code_reader_count,code_writer_count
-activities,v35_activities.sql,39,True,False,False,0,False,True,3,1
+activities,v35_activities.sql,39,True,False,False,0,False,True,5,2
 actuation_killswitch,v133_actuation_killswitch.sql,139,True,True,True,1,True,False,1,0
 actuator_command_dedup,v81_actuator_command_dedup.sql,86,True,True,True,1,True,False,1,1
 actuator_command_outbox,v118_phase9_autonomous_farm_os.sql,124,True,True,True,1,False,False,0,1
@@ -28,7 +28,7 @@ boundary_extraction_jobs,v115_precision_agriculture_phase6.sql,121,True,True,Tru
 break_glass_grants,v90_break_glass.sql,95,False,True,True,1,True,False,2,2
 calibration_audit,v84_calibration_audit.sql,89,True,True,True,1,True,False,1,1
 calibration_evidence,v86_calibration_evidence_trigger.sql,91,True,True,True,1,True,False,0,0
-calibration_override,v80_calibration_override.sql,85,True,True,True,1,True,False,1,1
+calibration_override,v80_calibration_override.sql,85,True,True,True,1,True,False,1,2
 canonical_as_applied_irrigation_truths,v178_canonical_as_applied_irrigation_truth.sql,183,True,True,True,1,True,False,0,1
 canonical_controller_capabilities,v176_controller_edge_adapter_framework.sql,181,True,False,False,0,False,True,0,0
 canonical_energy_capabilities,v174_energy_agricultural_microgrid_capability.sql,179,True,False,False,0,False,True,0,0
@@ -91,10 +91,10 @@ farm_ledger_entries,v211_simple_farm_book.sql,215,True,True,True,1,True,False,1,
 farm_ledger_erp_projection_outbox,v102_farm_closed_loop.sql,107,True,True,True,1,True,False,1,0
 farm_ledger_inventory_projections,v102_farm_closed_loop.sql,107,True,True,True,1,True,False,0,0
 farm_ledger_parties,v211_simple_farm_book.sql,215,True,True,True,1,True,False,1,1
-farm_operation_ledger,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,1,1
+farm_operation_ledger,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,2,1
 farm_production_units,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,1,0
 farm_revenue_records,v101_farm_budget_costing.sql,106,True,True,True,1,True,False,1,1
-farm_season_budget_lines,v101_farm_budget_costing.sql,106,True,True,True,1,True,False,1,1
+farm_season_budget_lines,v101_farm_budget_costing.sql,106,True,True,True,1,True,False,2,1
 farm_season_projects,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,3,0
 farm_water_records,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,1,1
 farms,v19_farms.sql,23,True,False,False,0,False,True,6,1
@@ -130,7 +130,7 @@ global_gis_release_gate,v117_global_scale_phase8.sql,123,True,True,True,1,False,
 global_gis_topology,v117_global_scale_phase8.sql,123,True,True,True,1,False,False,0,0
 governed_model_promotion_candidates,v227_decision_learning_runtime.sql,224,True,False,False,0,False,True,0,1
 guardrails_log,v9_new_tables.sql,3,True,False,False,0,False,True,0,0
-harvest_lots,v65_harvest_traceability.sql,70,True,True,True,1,False,False,1,1
+harvest_lots,v65_harvest_traceability.sql,70,True,True,True,1,False,False,1,2
 historical_weather_daily,v209_historical_weather_sor.sql,213,True,True,True,1,True,False,2,1
 hourly_energy_envelopes,v174_energy_agricultural_microgrid_capability.sql,179,True,False,False,0,False,True,0,0
 hourly_irrigation_mpc_actions,v179_hourly_energy_aware_irrigation_mpc.sql,184,True,True,True,1,True,False,0,1
@@ -260,7 +260,7 @@ raster_cache_invalidations,v96_spatial_geometry_integrity.sql,101,True,True,True
 raster_follow_up_requests,v236_raster_follow_up_requests.sql,232,True,True,True,1,True,False,2,1
 raster_registry,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,3
 recommendation_feedback,v_ai_recommendation_runtime.sql,111,True,True,True,1,True,False,0,0
-recommendation_outcomes,v49_zone_key_recommendation_outcomes.sql,53,True,True,True,2,True,False,9,4
+recommendation_outcomes,v49_zone_key_recommendation_outcomes.sql,53,True,True,True,2,True,False,10,5
 recommendation_reviews,v_ai_recommendation_runtime.sql,111,True,True,True,1,True,False,0,0
 recommendations,v77_recommendations.sql,82,True,True,True,1,True,False,2,2
 retraining_jobs,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0
@@ -273,8 +273,8 @@ season_cost_items,v201_season_records.sql,206,True,False,False,0,False,True,2,2
 season_crop,v201_season_records.sql,206,True,False,False,0,False,True,3,2
 season_events,v201_season_records.sql,206,True,False,False,0,False,True,4,2
 season_harvest,v201_season_records.sql,206,True,False,False,0,False,True,4,2
-season_record_links,v207_historical_season_simulation_bridge.sql,211,True,False,False,0,False,True,2,1
-season_records,v201_season_records.sql,206,True,False,False,0,False,True,4,2
+season_record_links,v207_historical_season_simulation_bridge.sql,211,True,False,False,0,False,True,2,2
+season_records,v201_season_records.sql,206,True,False,False,0,False,True,5,2
 season_simulation_runs,v207_historical_season_simulation_bridge.sql,211,True,False,False,0,False,True,1,2
 seasons,v32_seasons.sql,36,True,False,False,0,False,True,22,3
 settings,v28_settings.sql,32,True,False,False,0,False,True,5,1

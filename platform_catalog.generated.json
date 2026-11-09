@@ -1075,7 +1075,7 @@
       "entrypoints": [
         "POST /v1/decisions/record"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -14247,7 +14247,7 @@
       "entrypoints": [
         "POST /v1/soil/observations"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "soil-service",
       "producer": "soil-service",
@@ -17781,7 +17781,7 @@
     "capabilities": 840,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 96,
-    "capabilities_idempotent": 72,
+    "capabilities_idempotent": 74,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 482,
     "components": 37,
@@ -18053,7 +18053,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "ab8c901d05e6d15932410ea02a7f454a6350cc48febfb392dd1b488249a90fd9",
+  "fingerprint": "35c20020b11a0adabbbf56e90f3a0e124e80669283f7a1aad3ebe7e84062d746",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18103,16 +18103,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 918,
+      "edge_count": 931,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 46,
         "CONSUMES": 3,
-        "EMITS": 1,
-        "READS": 473,
+        "EMITS": 3,
+        "READS": 479,
         "ROUTES_TO": 72,
-        "WRITES": 323
+        "WRITES": 328
       }
     },
     "u3_wiring_ownership": {

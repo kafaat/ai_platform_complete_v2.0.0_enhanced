@@ -43,7 +43,10 @@ platform,sahool-redis-state,compose-depends-on,docker-compose.v9.yml
 platform,scout-ingest-service,code-reference,services/sahool-platform/api/routers/service_proxy.py
 platform,soil-service,code-reference,services/sahool-platform/api/canonical_soil_state.py
 platform,soil-service,code-reference,services/sahool-platform/api/device_registry.py
+platform,soil-service,code-reference,services/sahool-platform/api/irrigation_recommendation_policy.py
+platform,soil-service,code-reference,services/sahool-platform/api/irrigation_state_guard.py
 platform,soil-service,code-reference,services/sahool-platform/api/routers/service_proxy.py
+platform,soil-service,code-reference,services/sahool-platform/api/routers/weather.py
 platform,soil-service,code-reference,services/sahool-platform/api/soil_evidence_bridge.py
 platform,soil-service,code-reference,services/sahool-platform/api/soil_hydraulic_client.py
 platform,soil-service,code-reference,services/sahool-platform/api/soil_telemetry.py
@@ -188,3 +191,4 @@ vegetation-analysis-service,raster-service,code-reference,services/vegetation-an
 vegetation-analysis-service,raster-service,code-reference,services/vegetation-analysis-service/routers/health.py
 vegetation-analysis-service,raster-service,code-reference,services/vegetation-analysis-service/vegetation_runtime.py
 video-processor,edge-inference,code-reference,services/video-processor/main.py
+weather-service,soil-service,code-reference,services/weather-service/operations.py
