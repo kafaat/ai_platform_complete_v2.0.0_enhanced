@@ -1334,6 +1334,7 @@ GIS-003,api,POST /v1/terrain/slope @ services/raster-service/routers/analysis.py
 GIS-003,service,services/raster-service/main.py,10,applied
 GIS-003,test,services/raster-service/test_field_terrain.py,3,applied
 GIS-003,test,services/raster-service/test_field_terrain_multipolygon_extent.py,3,applied
+GIS-003,test,services/raster-service/test_terrain_gradient_support_and_holes.py,3,applied
 GIS-003,test,services/raster-service/test_terrain_render.py,3,applied
 GIS-003,test,services/sahool-platform/tests/test_dem_auto_fill_refusal.py,3,applied
 GIS-003,test,services/sahool-platform/tests/test_dem_enrichment.py,3,applied
@@ -1444,7 +1445,7 @@ IRR-007,api,GET /api/v1/commands/{command_id} @ services/sahool-platform/api/rou
 IRR-007,api,GET /health @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /healthz @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /readyz @ services/actuator-service/routers/health.py:32,3,applied
-IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229,2,applied
+IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:236,2,applied
 IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:115,3,applied
 IRR-007,api,GET /v1/commands/{command_id} @ services/actuator-service/routers/commands.py:141,5,applied
 IRR-007,api,GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
@@ -1943,6 +1944,7 @@ SAT-007,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/
 SAT-007,service,services/raster-service/main.py,10,applied
 SAT-007,test,services/raster-service/test_change_detection_grid.py,7,applied
 SAT-007,test,services/raster-service/test_change_detection_validity.py,7,applied
+SAT-007,test,services/raster-service/test_change_direction_policy.py,3,applied
 SAT-007,test,services/raster-service/test_field_change_alignment.py,3,applied
 SAT-007,test,tests_v9/test_change_detection.py,7,applied
 SAT-007,test,tests_v9/test_field_change_summary.py,3,applied
@@ -2093,6 +2095,7 @@ SAT-009,test,services/raster-service/test_cdse_process_rate_limit.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_tilejson_availability.py,5,applied
 SAT-009,test,services/raster-service/test_change_detection_grid.py,3,applied
 SAT-009,test,services/raster-service/test_change_detection_validity.py,3,applied
+SAT-009,test,services/raster-service/test_change_direction_policy.py,3,applied
 SAT-009,test,services/raster-service/test_clip_grid.py,3,applied
 SAT-009,test,services/raster-service/test_clip_polygon_stored_geometry.py,3,applied
 SAT-009,test,services/raster-service/test_cloud_mask_strategies.py,3,applied
@@ -2177,6 +2180,7 @@ SAT-009,test,services/raster-service/test_stac_vrt.py,3,applied
 SAT-009,test,services/raster-service/test_storage_lifecycle_upload.py,3,applied
 SAT-009,test,services/raster-service/test_tenant_guc_session_scope_guard.py,3,applied
 SAT-009,test,services/raster-service/test_tenant_propagation.py,3,applied
+SAT-009,test,services/raster-service/test_terrain_gradient_support_and_holes.py,3,applied
 SAT-009,test,services/raster-service/test_terrain_render.py,3,applied
 SAT-009,test,services/raster-service/test_tile_http_policy.py,5,applied
 SAT-009,test,services/raster-service/test_tile_render_mask_fail_closed_bounded_reads.py,5,applied
@@ -2297,7 +2301,7 @@ SEC-004,test,tests_v9/test_mfa_migration_contract_guard.py,3,applied
 SEC-004,test,tests_v9/test_mfa_totp_antireplay_v141.py,5,applied
 SEC-005,api,GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19,2,applied
 SEC-005,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:642,2,applied
-SEC-005,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229,2,applied
+SEC-005,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:236,2,applied
 SEC-005,service,services/auth/main.py,10,applied
 SEC-005,test,services/actuator-service/test_actuator_safety_audit_20261101.py,3,applied
 SEC-005,test,services/sahool-platform/tests/test_calibration_audit_endpoint.py,3,applied

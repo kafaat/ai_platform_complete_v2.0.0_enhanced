@@ -4668,6 +4668,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_change_direction_policy.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_container_healthcheck_status.py",
     "kind": "tests"
   },

@@ -15,18 +15,18 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7081,
+    "files_scanned": 7083,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 87,
       "mobile": 414,
       "other": 2152,
-      "tests": 2361,
+      "tests": 2363,
       "web": 505
     },
-    "unmapped_artifacts": 2813,
-    "ambiguous_artifacts": 525
+    "unmapped_artifacts": 2814,
+    "ambiguous_artifacts": 526
   },
   "capabilities": [
     {
@@ -12657,6 +12657,16 @@
           ]
         },
         {
+          "path": "services/raster-service/test_terrain_gradient_support_and_holes.py",
+          "score": 26,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "path:terrain",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "tests_v9/test_field_terrain_foundation_v31_2.py",
           "score": 26,
           "signals": [
@@ -12738,6 +12748,15 @@
           "score": 18,
           "signals": [
             "content:contour",
+            "content:dem",
+            "content:terrain"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_dem_auto_fill_refusal.py",
+          "score": 18,
+          "signals": [
+            "path:dem",
             "content:dem",
             "content:terrain"
           ]
@@ -12828,14 +12847,6 @@
             "content:contour",
             "content:dem",
             "content:terrain"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/tests/test_dem_auto_fill_refusal.py",
-          "score": 14,
-          "signals": [
-            "path:dem",
-            "content:dem"
           ]
         },
         {
@@ -13411,7 +13422,7 @@
         "events": 63,
         "web": 12,
         "mobile": 4,
-        "tests": 50,
+        "tests": 51,
         "governance": 0,
         "other_evidence": 35
       },
@@ -26371,7 +26382,7 @@
       "production_certified": false,
       "evidence_truncated": {
         "backend": 25,
-        "events": 58,
+        "events": 59,
         "tests": 119,
         "other_evidence": 3
       },
@@ -35878,6 +35889,15 @@
           ]
         },
         {
+          "path": "services/supervisor-agent/tool_contracts.py",
+          "score": 18,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/irrigation_engineering_workspace.py",
           "score": 16,
           "signals": [
@@ -35906,15 +35926,6 @@
         },
         {
           "path": "services/sahool-platform/core/field_intelligence_adapters.py",
-          "score": 16,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
-          "path": "services/supervisor-agent/tool_contracts.py",
           "score": 16,
           "signals": [
             "content:Weather forecast",
@@ -36360,31 +36371,35 @@
           "score": 18
         },
         {
-          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:119",
+          "value": "weather.forecast @ services/supervisor-agent/tool_contracts.py:497",
           "score": 18
         },
         {
-          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:193",
+          "value": "weather.forecast @ services/supervisor-agent/tool_contracts.py:58",
           "score": 18
         },
         {
-          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:48",
+          "value": "weather.forecast @ services/supervisor-agent/tool_contracts.py:596",
           "score": 18
         },
         {
-          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:61",
+          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:111",
           "score": 18
         },
         {
-          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:79",
+          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:342",
           "score": 18
         },
         {
-          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:92",
+          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:357",
           "score": 18
         },
         {
-          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:97",
+          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:45",
+          "score": 18
+        },
+        {
+          "value": "weather.forecast @ tests_v9/test_tool_contracts.py:98",
           "score": 18
         },
         {
@@ -36392,15 +36407,27 @@
           "score": 18
         },
         {
-          "value": "weather.read @ tests_v9/test_tool_contracts.py:121",
+          "value": "weather.read @ services/supervisor-agent/tool_contracts.py:519",
           "score": 18
         },
         {
-          "value": "weather.read @ tests_v9/test_tool_contracts.py:195",
+          "value": "weather.read @ tests_v9/test_tool_contracts.py:149",
           "score": 18
         },
         {
-          "value": "weather.read @ tests_v9/test_tool_contracts.py:99",
+          "value": "weather.read @ tests_v9/test_tool_contracts.py:171",
+          "score": 18
+        },
+        {
+          "value": "weather.read @ tests_v9/test_tool_contracts.py:245",
+          "score": 18
+        },
+        {
+          "value": "weather.read @ tests_v9/test_tool_contracts.py:342",
+          "score": 18
+        },
+        {
+          "value": "weather.read @ tests_v9/test_tool_contracts.py:69",
           "score": 18
         },
         {
@@ -36410,18 +36437,6 @@
         {
           "value": "weather_service_client.py @ scripts/ci/weather_service_real_contract_gate.py:86",
           "score": 18
-        },
-        {
-          "value": "weather.forecast @ services/supervisor-agent/tool_contracts.py:461",
-          "score": 16
-        },
-        {
-          "value": "weather.forecast @ services/supervisor-agent/tool_contracts.py:58",
-          "score": 16
-        },
-        {
-          "value": "weather.read @ services/supervisor-agent/tool_contracts.py:483",
-          "score": 16
         },
         {
           "value": "field.create @ frontend/e2e/support/seed.ts:151",
@@ -36736,6 +36751,10 @@
           "score": 12
         },
         {
+          "value": "weather.forecast @ services/supervisor-agent/test_ai_orchestration_forensic.py:824",
+          "score": 12
+        },
+        {
           "value": "weather_server.py @ tests_v9/test_mcp_weather_archive_host.py:33",
           "score": 12
         },
@@ -36745,14 +36764,6 @@
         },
         {
           "value": "sahool.public_read_taxonomy.v1 @ services/sahool-platform/tests/_public_read_taxonomy.json:2",
-          "score": 10
-        },
-        {
-          "value": "weather_boundary_allowlist.json @ services/sahool-platform/tests/test_p1_weather_boundary_guard.py:15",
-          "score": 10
-        },
-        {
-          "value": "weather_runtime.py @ services/sahool-platform/tests/test_p1_weather_boundary_guard.py:12",
           "score": 10
         }
       ],
@@ -36961,6 +36972,15 @@
         },
         {
           "path": "services/sahool-platform/tests/test_water_ledger_auto.py",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "path": "services/supervisor-agent/test_ai_orchestration_forensic.py",
           "score": 12,
           "signals": [
             "content:Weather forecast",
@@ -37372,7 +37392,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 2
+        "events": 4
       },
       "evidence_counts": {
         "backend": 21,
@@ -37381,7 +37401,7 @@
         "events": 100,
         "web": 9,
         "mobile": 1,
-        "tests": 34,
+        "tests": 35,
         "governance": 0,
         "other_evidence": 23
       },
@@ -47138,6 +47158,10 @@
     },
     {
       "path": "services/raster-service/test_cast_shadow_direction.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/raster-service/test_change_direction_policy.py",
       "kind": "tests"
     },
     {
@@ -64432,6 +64456,29 @@
           "signals": [
             "content:Change detection",
             "content:change detection"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/supervisor-agent/test_ai_orchestration_forensic.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-002",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]

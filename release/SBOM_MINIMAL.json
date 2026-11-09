@@ -2845,7 +2845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d5e9e55092647604f9b3fbedac6893f127ad2406c1e38e24333da9764bb3f723"
+          "content": "934ae5c72b00722e9d2e6876cfa6cc37a99e66667fec7195c3955016d97da589"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -6575,7 +6575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd97114557177593f1fff1a6712916910e25d48db45e12ea33618735c37d1dd0"
+          "content": "54ab385e6f6ba175db020d828e0f9941e8a7bb094c7e58ee5759bc74981337ed"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -20295,7 +20295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f74dc3adcf4a1164502938b9874c76c6376277d16bd8c8272ffa2657377391c9"
+          "content": "c027b8bd2b1399eca0f695eb176bd3b615f0e261577d510771373c24a9a91474"
         }
       ],
       "name": "services/raster-service/change_detection.py",
@@ -21155,7 +21155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5f1e574d46ad57bb2ca5e382a63249de55db2ef83478631c28cd6aea7d6cb8a"
+          "content": "39b84e8f4f4d4bf2e174de4707870c81cb4ca8d0eac49527f1b383a34d429c14"
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
@@ -21385,10 +21385,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c565fd995b5e7dcc400163f95ea382f039affb0d91dc0bdf9e944e3a46986381"
+          "content": "97a907a0f5ff2d35a249565dce86186b4755a31fd5d48a41fbdfb0ba8c430e5e"
         }
       ],
       "name": "services/raster-service/test_change_detection_validity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cafe017c2bcf57acbdf20d5bc4965e208aeeb9ce30d16e1fe6d6bd23ee9b735d"
+        }
+      ],
+      "name": "services/raster-service/test_change_direction_policy.py",
       "type": "file"
     },
     {
@@ -21575,7 +21585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "638d72395b438c9e21d97b0f31180ae20d7d4c9f9b1fdb1b753a4bf396959098"
+          "content": "fbd800ac10619a4f5de0e8fefa6f149c216b5bf872187a4bf97ac045bc1f8182"
         }
       ],
       "name": "services/raster-service/test_field_terrain_multipolygon_extent.py",
@@ -22235,6 +22245,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4a8cc6d2c6b547d2f7ce7f03fb576ea62e26a8453e6bdd078940d279ae816673"
+        }
+      ],
+      "name": "services/raster-service/test_terrain_gradient_support_and_holes.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "420b8e31154223605415660dd4255c1ce01dc8c4d86e3aae0d5f95ac5331fd22"
         }
       ],
@@ -22355,7 +22375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6ecd1caf94a69dce2438e21a5e47e55cf143e376cc857822123041665ab4e152"
+          "content": "abcf927b9312c37ec675318af06785791ea6f28fa51b9f33992a9c6a6f50652a"
         }
       ],
       "name": "services/raster-service/tile_render.py",
@@ -32295,7 +32315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "445a2bdf5c7c1569c5c9b22a607e7f5e097141cd2ed99680d787a23562e5210f"
+          "content": "e38262ee7f3af91a9f43baaf94eac5097b2192f0d1c8f8c10e2d7dda5260b75c"
         }
       ],
       "name": "services/sahool-platform/tests/test_dem_auto_fill_refusal.py",
@@ -36925,7 +36945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7beb3349f401a66bd85bf0d72f1467e3e965183716184a32902db9a628c8fcdf"
+          "content": "fe9ed4b2d9dfe03a9b2bb4995d6e94f3b4fa86a95a5b8e94d4757d570c6fd4b6"
         }
       ],
       "name": "services/supervisor-agent/routers/agent.py",
@@ -36995,7 +37015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "603def7d0333e9640eb720b8ec2a5bb217a1fc9b5880bfed5c40adbe691fbf6d"
+          "content": "10164f23d85b18f666f6e86b98443fba06737b139f40aab7ce726232cb287e1c"
         }
       ],
       "name": "services/supervisor-agent/test_ai_orchestration_forensic.py",
@@ -37075,7 +37095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7285ff31c448cdaef77b597275ca3801bb6f015eca72ea6bcbc39af773c019df"
+          "content": "9a7b8dc27788c199bc4725ad9994a296db26efc2beaa93327b01b857fab03a46"
         }
       ],
       "name": "services/supervisor-agent/tool_contracts.py",
@@ -37315,7 +37335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "099ced8289938f25d25485dd7d1438455a56391d8b0756f17958a2a95626883e"
+          "content": "ea2db549f9261b8981cb5f51b639715f4f70a6f8a520dd9ff9382cf0c94c83d0"
         }
       ],
       "name": "services/vegetation-analysis-service/diagnosis_engine.py",
@@ -37435,7 +37455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a4a71125e9aa79d0993fc5f1b93f55bdec436df5cd2f4f7827308bce2abee997"
+          "content": "f6262a4e80b3391a937d2e5320f41387551e28dc6b9a58de609283e803f68250"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/diagnoses.py",
@@ -37525,7 +37545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "33933f483c02402d99dd27a6a896d3aaa9407ab7399a91d92f878398a84ea5a2"
+          "content": "f8c096ffec3eae325f401cdb2ebd6c2ae0523b28925cc74ff58e5170923f698e"
         }
       ],
       "name": "services/vegetation-analysis-service/test_diagnosis_engine.py",

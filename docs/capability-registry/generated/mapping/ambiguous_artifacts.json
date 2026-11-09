@@ -10710,6 +10710,29 @@
     ]
   },
   {
+    "path": "services/supervisor-agent/test_ai_orchestration_forensic.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-002",
+        "score": 12,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/vegetation-analysis-service/main.py",
     "kind": "backend",
     "candidates": [
