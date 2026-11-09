@@ -1,0 +1,13 @@
+# E3 acceptance, stage 1 — isolated runner (owner-approved 2026-11-09).
+# Runs ONLY against the isolated sahool-e3-acceptance-20261109 database over Railway's
+# private network. Not for main; never pointed at sahool-staging or production.
+FROM python:3.12-slim-bookworm
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends postgresql-client-15 bash ca-certificates gzip coreutils \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /repo
+COPY constraints-ci-tools.txt /repo/constraints-ci-tools.txt
+COPY tests_v9/requirements-test.txt /repo/tests_v9/requirements-test.txt
+RUN pip install --no-cache-dir -r /repo/tests_v9/requirements-test.txt
+COPY . /repo
+ENTRYPOINT ["bash", "/repo/deploy/railway/e3/run_e3_stage1.sh"]
