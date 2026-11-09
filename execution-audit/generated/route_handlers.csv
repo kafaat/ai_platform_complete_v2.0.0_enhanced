@@ -798,7 +798,7 @@ sahool-platform,POST,/api/v1/recommendations/economic-adaptation,economic_adapta
 sahool-platform,GET,/api/v1/recommendations/capacity-profiles,capacity_profiles_endpoint,services/sahool-platform/api/routers/recommendations.py,465
 sahool-platform,POST,/api/v1/recommendations/candidates,generate_crop_candidates,services/sahool-platform/api/routers/recommendations.py,473
 sahool-platform,POST,/api/v1/recommendations/outcomes,record_recommendation_outcome,services/sahool-platform/api/routers/recommendations.py,560
-sahool-platform,GET,/api/v1/recommendations/{rec_id},get_recommendation,services/sahool-platform/api/routers/recommendations.py,731
+sahool-platform,GET,/api/v1/recommendations/{rec_id},get_recommendation,services/sahool-platform/api/routers/recommendations.py,729
 sahool-platform,GET,/api/v1/regional/bulletin,regional_bulletin,services/sahool-platform/api/routers/regional_bulletin.py,53
 sahool-platform,GET,/api/v1/regional-calendar,regional_calendar,services/sahool-platform/api/routers/regional_calendar.py,20
 sahool-platform,GET,/api/v1/registry/report-fields,list_registry_report_fields,services/sahool-platform/api/routers/registry.py,32

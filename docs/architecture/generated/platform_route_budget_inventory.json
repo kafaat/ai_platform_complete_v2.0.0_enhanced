@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "1d0eacd1ccf55e4530e2ab8825df1672fef9515cddcf93cffa5e5a993aa2bad4",
+  "inventory_sha256": "2959a789380159f7f5683bccdce02a78d7c5a2b05c8b3cef72de89d424272dba",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "cb333b23a925e3883ba95f61ea313041508b22a49ab2ff0f1a894536029bf246"
+    "policy_sha256": "8efc61fa3dc886a125acbe72797d5845a4c71191bbdec511953a9c8573fe0b8c"
   },
   "routes": [
     {
@@ -1970,7 +1970,7 @@
     {
       "classification": "domain",
       "function": "get_recommendation",
-      "line": 730,
+      "line": 728,
       "method": "GET",
       "path": "/api/v1/recommendations/{rec_id}",
       "source": "api/routers/recommendations.py"

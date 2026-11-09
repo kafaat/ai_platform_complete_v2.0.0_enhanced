@@ -10,11 +10,11 @@
     },
     {
       "path": "docs/architecture/generated/platform_route_budget_inventory.json",
-      "sha256": "a4a85e00a1e6da462846efc6f4f16b137a2b1c39bd2c3d3b40eac0aa42329711"
+      "sha256": "62446d012e7e72f78f0f27461025e8cdcbe8f5cdbeaac3202f4068d60530a3e1"
     },
     {
       "path": "docs/architecture/generated/platform_route_ownership_inventory.json",
-      "sha256": "711f02877b5b10e0bbf09e5c89233b1e62e4bac4a43d84afdd1824b022a130e2"
+      "sha256": "329b4708dacf88b7f509134c8ba413653c6deae5be042fa231d9df1bf0b28b59"
     }
   ],
   "schema_version": "sahool.platform-route-governance-attestation.v1",

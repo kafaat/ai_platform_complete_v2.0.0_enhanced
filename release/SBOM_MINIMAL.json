@@ -4675,7 +4675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1506f50f30167c0ea21b4b8d52d9846d67112e8f7d20ed7fbacce402b9b61434"
+          "content": "374fe0df55322d9ee2ba142b5c683fdf750aeee1f1bf4247e2224191972aec45"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -24575,7 +24575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "801a3e9c042eb455b30bdda065d53ae6c64252219f5f2ef3c944c8de2e4c22a1"
+          "content": "5efa86e40051302b73244de421d05d3387c81bbe6e1a1fcc04f0b852983aa27f"
         }
       ],
       "name": "services/sahool-platform/api/learning_feedback.py",
@@ -26275,7 +26275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b2e777396971aae9e2fd0f0f9f6a659c4b93b3dec73d53119b2b5b05bdfee6d3"
+          "content": "3008f794a49d2b66e7b57dc8abfb72299b7b4eb0cfa5dcdf1aefe8327e60be21"
         }
       ],
       "name": "services/sahool-platform/api/routers/recommendations.py",
@@ -34515,7 +34515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "db6975b154eb136d38bb06c849994eaa30613b52dd0e2c4c6ec15089430f157f"
+          "content": "0e4cf94882aeec937720fd63b8b0d32082f1aeac87463f9115ecf239aaeab7b0"
         }
       ],
       "name": "services/sahool-platform/tests/test_planned_vs_executed_lifecycle.py",

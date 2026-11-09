@@ -836,7 +836,7 @@ sahool-platform,services/sahool-platform/api/routers/recommendations.py,447,POST
 sahool-platform,services/sahool-platform/api/routers/recommendations.py,465,GET,/api/v1/recommendations/capacity-profiles,capacity_profiles_endpoint
 sahool-platform,services/sahool-platform/api/routers/recommendations.py,473,POST,/api/v1/recommendations/candidates,generate_crop_candidates
 sahool-platform,services/sahool-platform/api/routers/recommendations.py,560,POST,/api/v1/recommendations/outcomes,record_recommendation_outcome
-sahool-platform,services/sahool-platform/api/routers/recommendations.py,731,GET,/api/v1/recommendations/{rec_id},get_recommendation
+sahool-platform,services/sahool-platform/api/routers/recommendations.py,729,GET,/api/v1/recommendations/{rec_id},get_recommendation
 sahool-platform,services/sahool-platform/api/routers/regional_bulletin.py,53,GET,/api/v1/regional/bulletin,regional_bulletin
 sahool-platform,services/sahool-platform/api/routers/regional_calendar.py,20,GET,/api/v1/regional-calendar,regional_calendar
 sahool-platform,services/sahool-platform/api/routers/registry.py,32,GET,/api/v1/registry/report-fields,list_registry_report_fields
