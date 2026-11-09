@@ -10586,3 +10586,9 @@ The full local unit run exposed two additional test defects. The requirements co
 - **القياس عند `e374faf90`:** النطاق الأساسيّ 337 إيداعاً، سياسة CF1: قبل 21 مضيَّقاً و26/31 مغطّى، بعد 13 و19/19 (6 بالتبعيّة). النطاق المُعلَن مسبقاً (first-parent 501–800، 111 إيداعاً): قبل 24/33، بعد 25/28، ولم تتحوّل حالة SELECTED أو FLOOR إلى إخفاق. معظم الاستدعاء جاء من تحوّل 8 إيداعات إلى تشغيل كامل. الحالات السبع: ثلاث SELECTED بالتبعيّة (C01 C02 C04) وأربع ESCALATED تحفّظاً لا تحسّناً.
 - **أثر جانبيّ مُعلَن:** ثماني قدرات صار مقيسها تحت المُعلَن ⇒ `CAPABILITY-MATURITY-INFLATED-BY-DOUBLE-COUNT-01` (open)؛ والتعليقات غير Python ما تزال تُحتسب ⇒ `CAPABILITY-MAPPING-NON-PYTHON-COMMENTS-COUNT-01` (open) ([سجل الفجوات](gaps/registry.md)).
 - **PRs:** #1353 أُغلق بإشارة (محتواه على main عبر #1359/#1360)؛ #1354 أُبقي مفتوحاً (شرطه التجريبيّ لم يتحقّق، ويتقاطع مع هذا الإصلاح)؛ #1356 يُحمل على `claude/ci-workflow-inventory-20261109` مع إصلاح اختبار يفترض ترتيب الوظائف.
+
+## 2026-11-09 (و) — فتح GATE-01 بحكم المالك وإصلاحا سلامة المشغّل
+
+- **الفتح:** `gate01_policy.json` من CLOSED إلى OPEN (`8ee16b427`)، والحارس يتحقّق من حالة OPEN بـ`open_state_errors()` (أدلّة مجمّدة، `success`، SHA، بصمات، حكم مؤرَّخ ومصدره)، وثلاث طفرات مسجّلة. مؤشّرات الفتح: أدلّة المرحلة 0 مجمّدة ناجحة، والتفويضات الـ17 كلّها `CONSUMED`، وحكم 2026-11-03. وما ضدّه (v234–v236 غير مطبّقة حيّاً، وS5 بلا Redis إبطال) شروط نشر لا شروط كود.
+- **الإصلاحان:** `TRANSPORT-ACK-MISLABELED-AS-EXECUTED-01` ⇒ fixed (`d0d6cbb7a`)، و`ACTUATOR-OPEN-WITHOUT-DURATION-01` ⇒ fixed (`c5d4322cc`). و`ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01` يبقى open لحكم المالك ([سجل الفجوات](gaps/registry.md)).
+
