@@ -156,9 +156,9 @@ def _parse_dispatch_command(command):
     return device_id, cmd, payload
 
 
-def _dispatch_outcome_status(send_success: bool) -> str:
-    """دالّة نقيّة: نتيجة النشر ⇒ حالة التنفيذ. نجاح النشر ⇒ executed (نُشِر≠نُفِّذ)، وإلّا failed."""
-    return "executed" if send_success else "failed"
+# TRANSPORT-ACK-MISLABELED-AS-EXECUTED-01: أُزيلت `_dispatch_outcome_status` — كانت تُترجم
+# إقرارَ الوسيط إلى `executed` بلا مستدعٍ إنتاجيّ. الإيصالُ الحيّ يكتب `accepted`/`failed`
+# و`published` (نقلٌ لا أثر)، و`executed` محجوزةٌ لِما يُثبِته تحقّقٌ من الأثر.
 
 
 # ─── جسر القرار (ACTUATOR-DISPATCH-CONSUMER) — مستهلك طلبات التنفيذ المحكومة ───
