@@ -22,7 +22,12 @@ from fastapi.responses import PlainTextResponse
 # تُستورَد مباشرةً من وحدتها — نفس الرموز التي كان main يُعيد تصديرها (نُقل
 # استيرادها هنا لإزالة F401 من main بعد نقل الدالّة).
 from api.alert_models import _row_to_alert
-from api.analytics_shapers import _count_by_key, _shape_area_by_crop, _shape_farm_summary
+from api.analytics_shapers import (
+    _activities_done,
+    _count_by_key,
+    _shape_area_by_crop,
+    _shape_farm_summary,
+)
 from api.main import (
     OperationReportRequest,
     Permission,
@@ -118,7 +123,8 @@ async def report_field_summary(
                 field_id,
             )
             by_type_rows = await conn.fetch(
-                "SELECT activity_type, COUNT(*) AS count FROM activities "
+                "SELECT activity_type, COUNT(*) AS count, "
+                "COUNT(*) FILTER (WHERE status = 'done') AS done_count FROM activities "
                 "WHERE field_id = $1 GROUP BY activity_type",
                 field_id,
             )
@@ -166,6 +172,12 @@ async def report_field_summary(
         "current_season": current_season,
         "activities_total": sum(by_status.values()),
         "activities_by_type": _count_by_key(by_type_rows, "activity_type"),
+        # المنفَّذ فعلاً (status='done') — activities_total يعدّ كلَّ الحالات (توافقاً للخلف).
+        "activities_done_total": _activities_done(by_status),
+        "activities_done_by_type": _count_by_key(
+            [{"activity_type": r["activity_type"], "count": r["done_count"]} for r in by_type_rows],
+            "activity_type",
+        ),
         "activities_by_status": by_status,
         "recent_alerts": [_row_to_alert(r).model_dump() for r in recent_alert_rows],
     }
@@ -270,8 +282,10 @@ async def report_season_summary(
             )
             if season is None:
                 raise HTTPException(status_code=404, detail="الموسم غير موجود ضمن هذا المستأجِر")
-            activities_count = await conn.fetchval(
-                "SELECT COUNT(*) FROM activities WHERE season_id = $1", season_id
+            activity_status_rows = await conn.fetch(
+                "SELECT status, COUNT(*) AS count FROM activities "
+                "WHERE season_id = $1 GROUP BY status",
+                season_id,
             )
     except HTTPException:
         raise
@@ -290,6 +304,7 @@ async def report_season_summary(
 
     crops = _arr(season["crops"])
     stages = _arr(season["stages"])
+    activities_by_status = _count_by_key(activity_status_rows, "status")
     return {
         "season_id": season["season_id"],
         "field_id": season["field_id"],
@@ -300,7 +315,10 @@ async def report_season_summary(
         "season_end": season["season_end"].isoformat() if season["season_end"] else None,
         "status": season["status"],
         "stage_count": len(stages) if isinstance(stages, list) else 0,
-        "activities_count": int(activities_count or 0),
+        # activities_count يعدّ كلَّ الحالات (توافقاً للخلف)؛ المنفَّذُ فعلاً في activities_done_count.
+        "activities_count": sum(activities_by_status.values()),
+        "activities_done_count": _activities_done(activities_by_status),
+        "activities_by_status": activities_by_status,
     }
 
 

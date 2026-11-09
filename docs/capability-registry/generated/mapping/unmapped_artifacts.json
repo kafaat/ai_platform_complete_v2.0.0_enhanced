@@ -1052,6 +1052,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/fieldChangeAvailability.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldChangeAvailability.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/fieldClimateRisk.test.ts",
     "kind": "tests"
   },
@@ -4652,6 +4660,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_cast_shadow_direction.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_container_healthcheck_status.py",
     "kind": "tests"
   },
@@ -6744,6 +6756,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_activity_lifecycle.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_activity_log.py",
     "kind": "tests"
   },
@@ -7244,6 +7260,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_harvest_phi_gate.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_historical_loader.py",
     "kind": "tests"
   },
@@ -7553,6 +7573,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_production_readiness_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_r09_learning_label_integrity.py",
     "kind": "tests"
   },
   {
@@ -7944,6 +7968,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/soil-service/test_soil_canonical_duplicate_identity.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/soil-service/test_soil_cutover_readiness.py",
     "kind": "tests"
   },
@@ -7961,6 +7989,10 @@
   },
   {
     "path": "services/soil-service/test_soil_p5_certification.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_p5_leakage_and_dedup.py",
     "kind": "tests"
   },
   {
@@ -8149,6 +8181,10 @@
   },
   {
     "path": "services/vegetation-analysis-service/test_anomaly_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/vegetation-analysis-service/test_decision_bridge_candidate.py",
     "kind": "tests"
   },
   {
@@ -8736,6 +8772,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_aquacrop_salt_tolerance_card_parity.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_architecture_compose_edges.py",
     "kind": "tests"
   },
@@ -9224,6 +9264,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_device_telemetry_time_identity.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_disease_field_state_feed.py",
     "kind": "tests"
   },
@@ -9553,6 +9597,10 @@
   },
   {
     "path": "tests_v9/test_guardrails_pool_live_pg.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_harvest_custody_integrity.py",
     "kind": "tests"
   },
   {
@@ -9953,6 +10001,10 @@
   },
   {
     "path": "tests_v9/test_notification_subjects_prefix.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_nutrient_ledger_worker_revalidation.py",
     "kind": "tests"
   },
   {
@@ -10740,6 +10792,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_soil_moisture_waterlogged_decision.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_soil_p4_multisource_e2e.py",
     "kind": "tests"
   },
@@ -10780,6 +10836,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_surface_moisture_threshold_parity.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_t3_ingest_definer_execute_revoked_static.py",
     "kind": "tests"
   },
@@ -10809,6 +10869,10 @@
   },
   {
     "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_telemetry_backfill_key_parity.py",
     "kind": "tests"
   },
   {
@@ -11049,6 +11113,10 @@
   },
   {
     "path": "tests_v9/test_water_efficiency.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_water_ledger_age_limit.py",
     "kind": "tests"
   },
   {

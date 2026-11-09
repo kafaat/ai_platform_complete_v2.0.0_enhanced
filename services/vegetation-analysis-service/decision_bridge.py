@@ -19,6 +19,11 @@ from shared.contracts.remote_sensing.decision_referral_v1 import (
 from shared.security.decision_service_auth import decision_service_auth_headers
 
 
+def candidate_lineage_id(diagnosis_ref: str, snapshot_hash: str) -> str:
+    """Deterministic candidate lineage for one diagnosis over one evidence snapshot."""
+    return "rs8_" + hashlib.sha256(f"{diagnosis_ref}|{snapshot_hash}".encode()).hexdigest()[:16]
+
+
 class DecisionBridge:
     def __init__(self, base_url: str | None = None, timeout_s: float = 8.0) -> None:
         self.base_url = (base_url or os.getenv("DECISION_SERVICE_URL", "")).rstrip("/")
@@ -76,8 +81,17 @@ class DecisionBridge:
                 "field_id": diagnosis.field_id,
                 "season_id": diagnosis.season_id,
                 "decision_type": "remote_sensing_diagnosis_referral",
-                "stage": "pending_approval",
+                # "candidate" is the only reviewable stage: the former "pending_approval" stage
+                # was stored but could never be reviewed. The review state lives server-side.
+                "stage": "candidate",
                 "decision_value": {
+                    "status": "pending_approval",
+                    "approval_required": True,
+                    # Deterministic content identity: decision-service derives the decision_id
+                    # from tenant + this lineage, so a retry replays instead of duplicating.
+                    "candidate_lineage_id": candidate_lineage_id(
+                        diagnosis.diagnosis_ref, snapshot_hash
+                    ),
                     "diagnosis_ref": diagnosis.diagnosis_ref,
                     "suspected_condition": diagnosis.suspected_condition,
                     "confidence": float(diagnosis.confidence),

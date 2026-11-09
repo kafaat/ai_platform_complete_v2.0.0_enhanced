@@ -143,7 +143,8 @@ def run_self_checks(
         check_value_range(index, stats),
         check_extent_covers_target(meta, target),
     ]
-    failed_required = [c for c in checks if c["severity"] == "required" and c["passed"] is False]
+    # Missing required measurements do not satisfy a required check.
+    failed_required = [c for c in checks if c["severity"] == "required" and c["passed"] is not True]
     failed_quality = [c for c in checks if c["severity"] == "quality" and c["passed"] is False]
     if failed_required:
         quality = "failed"

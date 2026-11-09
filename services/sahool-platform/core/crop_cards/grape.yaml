@@ -49,4 +49,17 @@ pest_susceptibility:
   pests: [powdery_mildew, downy_mildew, grape_berry_moth]
   note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
 
+# ── الأمراض الفطريّة العائليّة (weather-driven) — أسماءٌ تُصيب هذا العائل فقط ──
+diseases:
+  source: "Agrios, Plant Pathology (5th ed.) — Plasmopara viticola (needs free water); Erysiphe necator (no free water)"
+  items:
+    - id: downy_mildew
+      name_ar: "البياض الزغبيّ"
+      name_en: "Downy mildew (Plasmopara viticola)"
+      favoured_by: humid_wet
+    - id: powdery_mildew
+      name_ar: "البياض الدقيقيّ"
+      name_en: "Powdery mildew (Erysiphe necator)"
+      favoured_by: humid_warm_dry
+
 # لا كتلة phenology (مُعمِّر مُتساقط — يُدار موسميّاً). لا calibration/yield/zone_factor.

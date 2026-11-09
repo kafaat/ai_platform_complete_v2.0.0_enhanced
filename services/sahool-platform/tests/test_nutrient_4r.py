@@ -61,20 +61,36 @@ def test_nitrogen_caco3_boundary_is_inclusive():
         _AMMONIA_WARNING
         in recommend_nitrogen(SoilContext(caco3_pct=_CALCAREOUS_THRESHOLD)).warnings_ar
     )
-    # أقلّ بقليل لا يُفعّل.
-    assert recommend_nitrogen(SoilContext(caco3_pct=_CALCAREOUS_THRESHOLD - 0.1)).warnings_ar == []
+    # أقلّ بقليل لا يُفعّل (مع pH معروف منخفض — المجهول لا يستبعد الخطر).
+    assert (
+        recommend_nitrogen(SoilContext(caco3_pct=_CALCAREOUS_THRESHOLD - 0.1, ph=7.0)).warnings_ar
+        == []
+    )
 
 
 def test_nitrogen_ph_boundary_is_inclusive():
     assert _AMMONIA_WARNING in recommend_nitrogen(SoilContext(ph=_HIGH_PH_THRESHOLD)).warnings_ar
-    assert recommend_nitrogen(SoilContext(ph=_HIGH_PH_THRESHOLD - 0.1)).warnings_ar == []
+    assert (
+        recommend_nitrogen(SoilContext(ph=_HIGH_PH_THRESHOLD - 0.1, caco3_pct=5.0)).warnings_ar
+        == []
+    )
 
 
-def test_nitrogen_none_values_default_to_non_calcareous():
-    # None تُعامَل كصفر (or 0) ⇒ لا كلسيّة ولا pH عالٍ ⇒ لا تحذير.
+def test_nitrogen_unknown_soil_assumes_volatilisation_risk():
+    # None ليست صفراً: CaCO3/pH مجهولان ⇒ تحذير محافظ «افترض الخطر» لا صمت.
     rec = recommend_nitrogen(SoilContext())
     assert rec.status == RecommendationStatus.ADVISORY
-    assert rec.warnings_ar == []
+    assert len(rec.warnings_ar) == 1
+    assert "CaCO3/pH unknown — assume risk" in rec.warnings_ar[0]
+    # Only one of the two known and below threshold still cannot exclude the risk.
+    assert recommend_nitrogen(SoilContext(caco3_pct=5.0)).warnings_ar
+    assert recommend_nitrogen(SoilContext(ph=7.0)).warnings_ar
+
+
+def test_phosphorus_unknown_caco3_assumes_fixation_risk():
+    rec = recommend_phosphorus(SoilContext(p_ppm=20.0))
+    assert any("CaCO3/pH unknown — assume risk" in w for w in rec.warnings_ar)
+    assert recommend_phosphorus(SoilContext(p_ppm=20.0, caco3_pct=5.0)).warnings_ar == []
 
 
 # ─── الفوسفور: محجوب بلا تحليل، وإلّا حسب عتبة Olsen-P ─────────────────────

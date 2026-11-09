@@ -23,6 +23,7 @@ from __future__ import annotations
 import ast
 import os
 import sys
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -147,9 +148,14 @@ class _Conn:
                 "last_msi_date": self._d2,
             }
         if "FROM water_ledger" in sql:
-            # الأعمدة الثلاثة التي يقرأها الإسقاط فعلاً (لا شكل مُتخيَّل):
-            # depletion_mm · soil_moisture_pct · confidence
-            return {"depletion_mm": 95.0, "soil_moisture_pct": 11.0, "confidence": 0.9}
+            # الأعمدة التي يقرأها الإسقاط فعلاً (لا شكل مُتخيَّل): depletion_mm ·
+            # soil_moisture_pct · confidence · ledger_date (صفّ اليوم حاضر ≤ 72 س).
+            return {
+                "depletion_mm": 95.0,
+                "soil_moisture_pct": 11.0,
+                "confidence": 0.9,
+                "ledger_date": date.today(),
+            }
         return None
 
     async def fetchval(self, sql, *a):

@@ -18,6 +18,7 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.api_models import task_allowed_sources
 from api.main import (
     _TASK_COLS,
     _TASK_STATUSES,
@@ -113,7 +114,12 @@ async def update_task(
 
     idempotent عند وجود Idempotency-Key (UUID): إعادة صندوق الإرسال دون اتّصال تُعيد
     النتيجة الأولى بلا تحديثٍ ثانٍ ولا حدثِ تحديثٍ مكرَّر؛ والمفتاح نفسه بحمولة
-    مختلفة ⇒ 409."""
+    مختلفة ⇒ 409.
+
+    انتقالُ الحالة مشروطٌ ذرّيّاً بجدول ``TASK_TRANSITIONS`` (شرط ``WHERE`` على الحالة
+    الحاليّة)؛ الانتقالُ غيرُ المسموح ⇒ 409. ``completed_at`` من الجهاز (مزامنةٌ دون اتّصال)
+    يُحفَظ كما هو، وبغيابه يُختَم بوقت الخادم مرّةً واحدة (إعادةُ الإنجاز لا تُزيحه)؛ وإعادةُ
+    فتح مهمّةٍ منجَزة تمسحه."""
     if req.status is not None and req.status not in _TASK_STATUSES:
         raise HTTPException(status_code=422, detail="حالة مهمّة غير معروفة")
     sets: list[str] = []
@@ -121,8 +127,20 @@ async def update_task(
     if req.status is not None:
         vals.append(req.status)
         sets.append(f"status = ${len(vals)}")
-        if req.status == "completed":
-            sets.append("completed_at = NOW()")
+        if req.status == "completed" and req.completed_at is not None:
+            vals.append(req.completed_at)
+            sets.append(f"completed_at = ${len(vals)}")
+        elif req.status == "completed":
+            # SET يقرأ القيمَ القديمة: إنجازٌ مكرَّر يُبقي الختمَ الأوّل.
+            sets.append(
+                "completed_at = CASE WHEN status = 'completed' AND completed_at IS NOT NULL "
+                "THEN completed_at ELSE NOW() END"
+            )
+        elif req.status in ("pending", "in_progress"):
+            sets.append("completed_at = NULL")
+        if req.actual_cost_usd is not None:
+            vals.append(req.actual_cost_usd)
+            sets.append(f"actual_cost_usd = ${len(vals)}")
     if req.photo_url is not None:
         vals.append(req.photo_url)
         sets.append(f"photo_url = ${len(vals)}")
@@ -133,10 +151,11 @@ async def update_task(
         raise HTTPException(status_code=422, detail="لا حقول للتحديث")
     sets.append("updated_at = NOW()")
     vals.append(task_id)
-    query = (
-        f"UPDATE field_tasks SET {', '.join(sets)} "
-        f"WHERE task_id::TEXT = ${len(vals)} RETURNING {_TASK_COLS}"
-    )
+    where = f"task_id::TEXT = ${len(vals)}"
+    if req.status is not None:
+        vals.append(task_allowed_sources(req.status))
+        where += f" AND COALESCE(status, 'pending') = ANY(${len(vals)}::text[])"
+    query = f"UPDATE field_tasks SET {', '.join(sets)} WHERE {where} RETURNING {_TASK_COLS}"
     try:
         async with tenant_connection(user) as conn:
 
@@ -156,13 +175,31 @@ async def update_task(
                         {"status": row.get("status"), "field_id": row.get("field_id")},
                     )
                     return _row_to_task(row).model_dump(mode="json")
-                # داخل المعاملة ⇒ لا يُسجَّل أمرٌ لمهمّةٍ غير موجودة.
+                # داخل المعاملة ⇒ لا يُسجَّل أمرٌ لمهمّةٍ غير موجودة ولا لانتقالٍ مرفوض.
+                current = None
+                if req.status is not None:
+                    current = await conn.fetchrow(
+                        "SELECT status FROM field_tasks WHERE task_id::TEXT = $1", task_id
+                    )
+                if current is not None:
+                    raise HTTPException(
+                        status_code=409,
+                        detail={
+                            "error": "illegal_task_transition",
+                            "from": current["status"] or "pending",
+                            "to": req.status,
+                        },
+                    )
                 raise HTTPException(status_code=404, detail="المهمّة غير موجودة ضمن هذا المستأجِر")
 
             if idem:
+                new_absent = {
+                    k for k in ("completed_at", "actual_cost_usd") if getattr(req, k) is None
+                }
                 digest = hashlib.sha256(
                     json.dumps(
-                        {"task_id": task_id, **req.model_dump(mode="json")},
+                        # الحقلان الجديدان يُستبعَدان غائبَين فتبقى بصمةُ الطلبات القديمة كما هي.
+                        {"task_id": task_id, **req.model_dump(mode="json", exclude=new_absent)},
                         sort_keys=True,
                         ensure_ascii=False,
                     ).encode("utf-8")

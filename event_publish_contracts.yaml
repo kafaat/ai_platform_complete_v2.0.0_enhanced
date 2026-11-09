@@ -58,6 +58,21 @@ subjects:
     reserved_future_subject: true
     reason: "توجيه دقيق محجوز؛ التحليل الاقتصاديّ عبر sahool.events.* عند بناء مصدره."
 
+  # ── مُستهلَك بلا منتِجٍ إنتاجيّ: منتِجُه الوحيد سكربت e2e (قرار: يبقى الاشتراك) ──
+  # عاملُ الإسقاط الكنسيّ يشترك فيه عبر حلقةٍ على ``SUBJECTS`` (لا ``.subscribe("literal")``،
+  # فلا يراه الحارس آليّاً). لا شيفرة إنتاجيّة تُصدِر ``agronomy.projection.requested`` ولا
+  # تكتب ``canonical_projection_requests``؛ منتِجُه الوحيد سكربتُ البوّابة الحيّة الذي يُدرِج
+  # الطلبَ وينشره ثمّ يحذفه. يبقى الاشتراكُ لأنّ عقدَي البوّابة الحيّة يفرضانه
+  # (tests_v9/test_canonical_execution_learning_live_gate_contract.py ·
+  # tests_v9/test_canonical_execution_learning_root_closure.py) — حذفُه يُطفئ إثباتَ الكتّاب
+  # الكنسيّين الحيّ؛ وتوثيقُه هنا يمنع قراءةَ الحافّة مساراً إنتاجيّاً.
+  - subject: "sahool.events.agronomy.projection.requested"
+    consumer: "sahool-canonical-execution-learning-worker (canonical-execution-learning-v1-agronomy-projection-requested)"
+    producer: null
+    e2e_only_producer: "scripts/e2e/canonical_projection_jetstream_roundtrip.py"
+    reserved_future_subject: true
+    reason: "لا منتِجَ إنتاجيّ؛ سكربت e2e وحده ينشره لإثبات مسار الإسقاط الكنسيّ حيّاً. أيُّ منتِجٍ إنتاجيّ يُضاف يُحدِّث هذا القيد."
+
   # 2026-10-17: أُزيل ``sahool.weather.forecast.updated`` مع مشترِكه الوحيد
   # weather-polygon-worker بقرار مالك (WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01): كان
   # ``reserved_future_subject`` لموضوعٍ لا ناشرَ له في الشجرة، فيمرّ الحارسُ والعاملُ ينتظر أبداً.
@@ -68,7 +83,150 @@ subjects:
 # يربط كلّ **موضوع NATS مُنشَر** بلا مشترِك حاليّ بمنتِجه الفعليّ + سبب صريح. يحترمه
 # ``tools/sahool_inspector.py: check_nats_subjects`` فلا يُصدِر WARN «موضوع منشور بلا
 # مشترِك» لهذه الموضوعات الموثَّقة. صدق: المنتِج حقيقيّ في الكود؛ المستهلِك مستقبليّ
-# موثَّق — لا نختلق مشترِكاً ولا نحذف نشراً قائماً. أيّ موضوع منشور غير موثَّق هنا ⇒ WARN.
-# 2026-10-17: ``sahool.weather.field.overlay.completed`` (منتِجه weather-polygon-worker)
-# أُزيل مع العامل — فالقائمة فارغة: أيّ موضوع منشور بلا مشترِك يعود يُصدِر WARN.
-published_no_consumer: []
+# موثَّق — لا نختلق مشترِكاً ولا نحذف نشراً قائماً.
+#
+# 2026-11-08: كانت القائمة ``[]`` بينما تنشر عمّالُ phase-runtime ووكيلُ الإشعارات مواضيعَ لا يشترك فيها
+# أحد (الحارسُ القديم يرى ``.publish("literal")`` وحده، وهؤلاء ينشرون بمتغيّر). صار
+# ``tools/sahool_inspector.py: check_nats_published_no_consumer`` يشتقّ جردَ الناشرين من
+# ``nats/nats.conf`` (كلُّ موضوعٍ تأذن الهويّةُ بنشره — والوسيطُ يرفض ما سواه) ويُسقِط CI
+# إن وُجد موضوعٌ مأذونٌ بلا مشترِكٍ ولا قيدٍ هنا، أو قيدٌ صار له مشترِك، أو قيدٌ بلا
+# ``producer``/``source``/``reason``، أو ``broker_identity`` لا تأذن بالموضوع.
+#
+# الحقول: ``broker_identity`` هويّةُ nats.conf التي تنشره (أو ``null`` حين لا هويّةَ للمنتِج
+# فلا يبلغ الوسيطَ أصلاً — يُذكَر ذلك في ``reason``) · ``source`` ملفُّ المنتِج.
+published_no_consumer:
+  # ── عمّالُ phase-runtime المجمَّدون (GATE-01): Core NATS بلا إقرار ──
+  - subject: "sahool.phase9.execution.plan.created"
+    producer: "sahool-phase-runtime-outbox-worker (run_outbox_once)"
+    broker_identity: "sahool-phase-runtime-outbox-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "runtime_event_outbox ⇐ persist_runtime_event؛ لا مشترِك في الشجرة ولا يلتقطه notif_domain_events (خارج sahool.events.>). يُخزَّن في الدفق sahool (sahool.>) فقط."
+  - subject: "sahool.phase9.autonomy.cycle.completed"
+    producer: "sahool-phase-runtime-outbox-worker (run_outbox_once)"
+    broker_identity: "sahool-phase-runtime-outbox-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "مثل plan.created: حدثُ دورة الاستقلاليّة يُنشَر ولا يستهلكه أحد بعد."
+  - subject: "sahool.plugin.execution.requested"
+    producer: "sahool-plugin-runtime-worker (run_plugin_once)"
+    broker_identity: "sahool-plugin-runtime-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "طلبُ تنفيذ الإضافة؛ لا مُنفِّذَ إضافاتٍ يشترك فيه بعد."
+  - subject: "sahool.field.updated"
+    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
+    broker_identity: "sahool-plugin-runtime-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "حدثُ خطافٍ للإضافات (sahool.<hook>) خارج sahool.events.> (تباعدُ مساحة الأسماء معلَنٌ في nats/nats.conf)؛ لا مشترِك."
+  - subject: "sahool.recommendation.before"
+    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
+    broker_identity: "sahool-plugin-runtime-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "حدثُ خطافٍ للإضافات؛ لا مشترِك."
+  - subject: "sahool.recommendation.after"
+    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
+    broker_identity: "sahool-plugin-runtime-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "حدثُ خطافٍ للإضافات؛ لا مشترِك."
+  - subject: "sahool.recommendation.created"
+    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
+    broker_identity: "sahool-plugin-runtime-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "حدثُ خطافٍ للإضافات؛ الإشعارات تستهلك sahool.events.recommendation.created لا هذا."
+  - subject: "sahool.alert.created"
+    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
+    broker_identity: "sahool-plugin-runtime-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "حدثُ خطافٍ للإضافات؛ الإشعارات تستهلك sahool.events.alert.created لا هذا."
+  - subject: "sahool.operation.completed"
+    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
+    broker_identity: "sahool-plugin-runtime-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "حدثُ خطافٍ للإضافات؛ لا مشترِك."
+  - subject: "sahool.model.promoted"
+    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
+    broker_identity: "sahool-plugin-runtime-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "حدثُ خطافٍ للإضافات؛ لا مشترِك."
+  - subject: "sahool.billing.usage.recorded"
+    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
+    broker_identity: "sahool-plugin-runtime-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "حدثُ خطافٍ للإضافات؛ لا مشترِك."
+  - subject: "sahool.digital.twin.snapshot.created"
+    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
+    broker_identity: "sahool-plugin-runtime-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "حدثُ خطافٍ للإضافات (digital_twin ⇒ digital.twin بتحويل العامل)؛ لا مشترِك."
+  - subject: "sahool.model.promotion.requested"
+    producer: "sahool-model-registry-worker (run_model_registry_once)"
+    broker_identity: "sahool-model-registry-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "طلبُ ترقية نموذج؛ لا مُنفِّذَ يشترك فيه بعد (الترقيةُ محكومةٌ بالمراجعة لا بالحدث)."
+  - subject: "sahool.model.rollback.requested"
+    producer: "sahool-model-registry-worker (run_model_registry_once)"
+    broker_identity: "sahool-model-registry-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "طلبُ تراجع نموذج؛ لا مشترِك."
+  - subject: "sahool.actuator.dispatch.requested"
+    producer: "sahool-actuator-dispatch-worker (run_actuator_once)"
+    broker_identity: "sahool-actuator-dispatch-worker"
+    source: "services/sahool-platform/api/phase_runtime_workers.py"
+    reason: "إشعارُ تسليمٍ لا أمرُ تشغيل (physical_effect=False)، ولا مستهلكَ له بالعقد: tests_v9/test_nats_subject_ownership_contract.py يفرض «ناشرٌ واحد ولا مستهلك في المستودع»؛ actuator-service يستهلك طابور القاعدة."
+
+  # ── رسائلُ ميتة: تُحفَظ في الدفق sahool (sahool.>) للفحص والإعادة اليدويّة ──
+  - subject: "sahool.notification.dead_letter"
+    producer: "sahool-notification-agent (_dead_letter)"
+    broker_identity: "sahool-notification-agent"
+    source: "agents/notification/agent.py"
+    reason: "رسالةٌ ميتة بعد ١٠ محاولات أو إشعارٍ غير صالح؛ لا مستهلكَ آليّ — يقرؤها المشغِّل من الدفق."
+  - subject: "sahool.dlq.canonical_execution_learning"
+    producer: "sahool-canonical-execution-learning-worker (publish_dead_letter)"
+    broker_identity: "sahool-canonical-execution-learning-worker"
+    source: "services/sahool-platform/workers/canonical_execution_learning_worker.py"
+    reason: "المغلّفُ الأصليّ + السبب قبل كلّ term (خطأ تحقّقٍ دائم، أو نفادُ MAX_DELIVERIES لحدثٍ غير جاهز/عطلٍ عابر)؛ لا مستهلكَ آليّ — للفحص والإعادة اليدويّة."
+  - subject: "sahool.dlq.irrigation_dispatch_relay"
+    producer: "sahool-reservation-dispatch-relay-worker (publish_dead_letter)"
+    broker_identity: "sahool-reservation-dispatch-relay-worker"
+    source: "services/sahool-platform/api/irrigation_dispatch_relay_worker.py"
+    reason: "المغلّفُ الأصليّ + السبب قبل كلّ term (رفضٌ دائم من الصندوق، أو نفادُ MAX_DELIVERIES)؛ لا مستهلكَ آليّ — للفحص والإعادة اليدويّة."
+
+  # ── منتِجون في الشيفرة بلا هويّةٍ في الوسيط: لا يبلغ نشرُهم الوسيطَ أصلاً ──
+  - subject: "sahool.video.stream.started"
+    producer: "video-processor (emit_stream_event)"
+    broker_identity: null
+    source: "services/video-processor/stream_events.py"
+    reason: "best-effort بلا هويّة في nats/nats.conf ولا NATS_URL في compose (ليس ضمن connected_services) ⇒ يُتخطّى أو يُرفَض؛ ولا مشترِك. المسارُ الفعليّ MQTT."
+  - subject: "sahool.video.stream.stopped"
+    producer: "video-processor (emit_stream_event)"
+    broker_identity: null
+    source: "services/video-processor/stream_events.py"
+    reason: "مثل stream.started: لا هويّة في الوسيط ولا مشترِك."
+  - subject: "sahool.video.recording.started"
+    producer: "video-processor (emit_stream_event)"
+    broker_identity: null
+    source: "services/video-processor/stream_events.py"
+    reason: "مثل stream.started: لا هويّة في الوسيط ولا مشترِك."
+  - subject: "sahool.video.recording.stopped"
+    producer: "video-processor (emit_stream_event)"
+    broker_identity: null
+    source: "services/video-processor/stream_events.py"
+    reason: "مثل stream.started: لا هويّة في الوسيط ولا مشترِك."
+  - subject: "sahool.video.stream.error"
+    producer: "video-processor (emit_stream_event)"
+    broker_identity: null
+    source: "services/video-processor/stream_events.py"
+    reason: "مثل stream.started: لا هويّة في الوسيط ولا مشترِك."
+  - subject: "SAHOOL.AI.GUARDRAIL"
+    producer: "ai_agronomist (NATS_SUBJECTS — ثابتٌ مُعلَن)"
+    broker_identity: null
+    source: "services/ai_agronomist/guardrail_events.py"
+    reason: "ثابتٌ مُعلَن لا تنشره أيُّ شيفرة (لا .publish له)، بلا بادئة sahool. الصغيرة، ولا هويّة في الوسيط؛ لا مشترِك."
+  - subject: "SAHOOL.AI.REVIEW"
+    producer: "ai_agronomist (NATS_SUBJECTS — ثابتٌ مُعلَن)"
+    broker_identity: null
+    source: "services/ai_agronomist/guardrail_events.py"
+    reason: "مثل SAHOOL.AI.GUARDRAIL: مُعلَنٌ غيرُ منشور؛ لا مشترِك."
+  - subject: "SAHOOL.AI.FEEDBACK"
+    producer: "ai_agronomist (NATS_SUBJECTS — ثابتٌ مُعلَن)"
+    broker_identity: null
+    source: "services/ai_agronomist/guardrail_events.py"
+    reason: "مثل SAHOOL.AI.GUARDRAIL: مُعلَنٌ غيرُ منشور؛ لا مشترِك."

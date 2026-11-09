@@ -11,7 +11,7 @@ import hashlib
 import json
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from api.canonical_nutrient_ledger import CanonicalNutrientLedger
@@ -19,6 +19,12 @@ from api.canonical_phenology_state import CanonicalPhenologyState
 from api.canonical_salinity_state import CanonicalSalinityState
 
 _NUTRIENT_CONFIDENCE_PENALTY = 0.15
+# A persisted ledger is a snapshot at ``as_of``: applications and phenology after it
+# are not in its balance.  Two weeks is about one split-N interval / phenology
+# sub-stage; an older ledger is shown for context but cannot drive fertilization.
+NUTRIENT_LEDGER_MAX_AGE = timedelta(days=14)
+# Clock skew tolerated before an ``as_of`` in the future is treated as invalid.
+_NUTRIENT_LEDGER_FUTURE_SKEW = timedelta(minutes=5)
 
 
 def _digest(payload: Mapping[str, Any]) -> str:
@@ -144,8 +150,31 @@ def consume_salinity_state(state: CanonicalSalinityState) -> AgronomicStateCandi
     )
 
 
-def consume_nutrient_ledger(ledger: CanonicalNutrientLedger) -> AgronomicStateCandidate:
-    """Convert canonical N/P/K balances into one guarded fertilization candidate."""
+def _norm_crop(value: object) -> str:
+    return str(value or "").strip().lower()
+
+
+def consume_nutrient_ledger(
+    ledger: CanonicalNutrientLedger,
+    *,
+    now: datetime | None = None,
+    crop_id: str | None = None,
+) -> AgronomicStateCandidate:
+    """Convert canonical N/P/K balances into one guarded fertilization candidate.
+
+    With ``now`` the ledger is blocked when older than ``NUTRIENT_LEDGER_MAX_AGE`` (or
+    dated in the future); with ``crop_id`` it is blocked when it was built for a
+    different crop (case/whitespace-insensitive).  Production callers pass both.
+    """
+    freshness: list[str] = []
+    if now is not None:
+        age = now.astimezone(UTC) - ledger.as_of.astimezone(UTC)
+        if age > NUTRIENT_LEDGER_MAX_AGE:
+            freshness.append("NUTRIENT_LEDGER_STALE")
+        elif age < -_NUTRIENT_LEDGER_FUTURE_SKEW:
+            freshness.append("NUTRIENT_LEDGER_FROM_FUTURE")
+    if crop_id is not None and _norm_crop(crop_id) != _norm_crop(ledger.crop_id):
+        freshness.append("NUTRIENT_LEDGER_CROP_MISMATCH")
     # Only balances with known soil supply AND known demand are actionable; an
     # unknown soil value must never be read as zero supply (full-demand advice).
     actionable = [item for item in ledger.balances if item.actionable]
@@ -157,9 +186,9 @@ def consume_nutrient_ledger(ledger: CanonicalNutrientLedger) -> AgronomicStateCa
         for item in actionable
         if item.remaining_requirement_kg_ha > 0
     }
-    fertilize = bool(ledger.operational_recommendation_allowed and remaining)
-    blocked = ledger.status == "blocked"
-    limitations = sorted(set(ledger.limitations))
+    blocked = ledger.status == "blocked" or bool(freshness)
+    fertilize = bool(ledger.operational_recommendation_allowed and remaining and not blocked)
+    limitations = sorted(set(ledger.limitations) | set(freshness))
     if blocked:
         status = "blocked"
         confidence = 0.0
@@ -195,7 +224,7 @@ def consume_nutrient_ledger(ledger: CanonicalNutrientLedger) -> AgronomicStateCa
         "requires_human_approval": fertilize,
         "payload": payload,
         "evidence_digests": sorted(ledger.evidence_digests),
-        "constraints": sorted(ledger.limitations),
+        "constraints": limitations,
     }
     return AgronomicStateCandidate(
         **{

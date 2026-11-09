@@ -162,6 +162,9 @@ def test_critical_set_membership(main_mod):
         "IRRIGATION_VALVE_STATE_CHANGED",
         "CALIBRATION_OVERRIDE_SET",
         "YIELD_MAP_INGESTED",
+        # سلسلةُ حيازة الحصاد: الإدراجُ وحدثُه في معاملةٍ واحدة (harvest_traceability.py).
+        "HARVEST_LOT_CREATED",
+        "CUSTODY_EVENT_RECORDED",
     ):
         assert name in crit, f"{name} يجب أن يكون حرجاً"
     # تيليمتري/إشارات لينة تبقى غير حرجة (best-effort) كي لا تصبح انقطاعاً.

@@ -48,10 +48,12 @@ router = APIRouter()
 
 
 def _parse_dt(value: str, field: str) -> datetime:
-    """ISO datetime → datetime؛ 422 واضحة على قيمة غير صالحة (لا 500 من القاعدة)."""
+    """ISO datetime → datetime واعٍ (الساذج = UTC)؛ 422 واضحة على قيمة غير صالحة."""
+    from core.engines.harvest_traceability import parse_occurred_at
+
     try:
-        return datetime.fromisoformat(value.strip())
-    except (ValueError, AttributeError) as e:
+        return parse_occurred_at(value)
+    except (ValueError, AttributeError, TypeError) as e:
         raise HTTPException(status_code=422, detail=f"{field}: زمن ISO غير صالح") from e
 
 
@@ -61,9 +63,7 @@ async def create_harvest_lot(
     idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
-    """ينشئ دفعة حصاد مربوطة بحقل (إلزاميّ) وموسم (اختياريّ، يخصّ الحقل). يُصدِر
-    HARVEST_LOT_CREATED. 404 إن لم يكن الحقل/الموسم للمستأجِر. 503 عند تعذّر القاعدة.
-    idempotent: Idempotency-Key (UUID) يمنع تكرار الإنشاء عند إعادة الموبايل (offline)."""
+    """دفعة حصاد + HARVEST_LOT_CREATED؛ قبل انقضاء PHI ⇒ 409 (تجاوز: المالك + سبب)؛ 404/503؛ idempotent."""
     harvest_date = _parse_date(req.harvest_date, "تاريخ الحصاد")
     if harvest_date is None:
         raise HTTPException(status_code=422, detail="تاريخ الحصاد مطلوب (ISO YYYY-MM-DD)")
@@ -81,6 +81,9 @@ async def create_harvest_lot(
                     )
                     if not ok:
                         raise HTTPException(status_code=404, detail="الموسم غير موجود لهذا الحقل")
+                from api.field_context import harvest_lot_phi_check  # بوّابة PHI
+
+                phi = await harvest_lot_phi_check(conn, user, req, harvest_date)
                 async with conn.transaction():
                     await conn.execute(
                         """INSERT INTO harvest_lots
@@ -108,17 +111,16 @@ async def create_harvest_lot(
                             "field_id": req.field_id,
                             "season_id": req.season_id,
                             "quantity_kg": req.quantity_kg,
+                            "phi_check": phi,
                         },
                     )
                 row = await conn.fetchrow(
                     f"SELECT {_HARVEST_LOT_SELECT} FROM harvest_lots WHERE harvest_lot_id = $1",
                     lot_id,
                 )
-                # نُعيد JSON (model_dump mode="json") ليُخزَّن كنتيجة أمر idempotent
-                # (التواريخ → ISO)؛ response_model يتحقّق منه أوّل مرّة وعند الإعادة.
-                return _row_to_harvest_lot(row).model_dump(mode="json")
+                # JSON (mode="json") يُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً عند الإعادة.
+                return {**_row_to_harvest_lot(row).model_dump(mode="json"), "phi_check": phi}
 
-            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
             if idem:
                 result = await _idempotent(
                     CommandStore(get_pool(), conn=conn),
@@ -194,6 +196,16 @@ async def get_harvest_lot(
     return _row_to_harvest_lot(row)
 
 
+async def _custody_event_json(conn, ev_id) -> dict:
+    """حدث مقروء كـJSON (model_dump mode="json") ليُخزَّن كنتيجة أمر idempotent (الأزمنة →
+    ISO)؛ response_model يتحقّق منه أوّل مرّة وعند الإعادة."""
+    row = await conn.fetchrow(
+        f"SELECT {_CUSTODY_EVENT_SELECT} FROM custody_chain_events WHERE custody_event_id = $1",
+        ev_id,
+    )
+    return _row_to_custody_event(row).model_dump(mode="json")
+
+
 @router.post(
     "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
     status_code=201,
@@ -206,25 +218,37 @@ async def add_custody_event(
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
     """يسجّل حدث حيازة (append-only) على دفعة + يحرّك حالتها تطبيقيّاً (status_for_event)
-    + content_hash للتدقيق. يُصدِر CUSTODY_EVENT_RECORDED. القفل (FOR UPDATE) يُسلسِل
-    التسجيلات المتزامنة على نفس الدفعة. 404 إن لم تكن الدفعة للمستأجِر. 503 عند تعذّر القاعدة.
-    idempotent: Idempotency-Key (UUID) يمنع تكرار التسجيل عند إعادة الموبايل (offline)."""
+    + content_hash (كلّ حقول العمل، مُطبَّعة) للتدقيق. يُصدِر CUSTODY_EVENT_RECORDED. القفل
+    (FOR UPDATE) يُسلسِل التسجيلات المتزامنة على نفس الدفعة. 404 إن لم تكن الدفعة للمستأجِر.
+    422 إن خالف الكتلة/الزمن (custody_event_refusal). 503 عند تعذّر القاعدة.
+    idempotent: Idempotency-Key (UUID) يمنع تكرار التسجيل عند إعادة الموبايل (offline)؛
+    وبلا مفتاح يُعاد الحدث المطابق القائم (نفس البصمة) بدل إدراج نسخة ثانية."""
     from core.engines.harvest_traceability import (
-        compute_event_hash,
+        compute_custody_event_hash,
+        custody_event_refusal,
+        normalize_quantity_kg,
         status_for_event,
         transition_refusal,
     )
 
     occurred = _parse_dt(req.occurred_at, "occurred_at")
-    content_hash = compute_event_hash(
-        harvest_lot_id, req.event_type, occurred.isoformat(), req.event_details
+    quantity = normalize_quantity_kg(req.quantity_kg)  # كما تخزّنها NUMERIC(12,2)
+    content_hash = compute_custody_event_hash(
+        harvest_lot_id,
+        req.event_type,
+        occurred,
+        handler=req.handler,
+        handler_role=req.handler_role,
+        location_name=req.location_name,
+        quantity_kg=quantity,
+        event_details=req.event_details,
     )
     try:
         async with tenant_connection(user) as conn:
 
             async def _work():
                 lot = await conn.fetchrow(
-                    "SELECT status, quality_grade FROM harvest_lots "
+                    "SELECT status, quality_grade, quantity_kg, harvest_date FROM harvest_lots "
                     "WHERE harvest_lot_id = $1 FOR UPDATE",
                     harvest_lot_id,
                 )
@@ -232,6 +256,16 @@ async def add_custody_event(
                     raise HTTPException(
                         status_code=404, detail="دفعة الحصاد غير موجودة ضمن هذا المستأجِر"
                     )
+                # مفتاح طبيعيّ بلا Idempotency-Key: حدث مطابق في كلّ حقوله موجود ⇒ نُعيده
+                # (إعادة إرسال) قبل أيّ فحص — وإلّا لرفضت فحوص الكتلة/الزمن الإعادة نفسها.
+                ev_id = await conn.fetchval(
+                    "SELECT custody_event_id FROM custody_chain_events WHERE harvest_lot_id = $1 "
+                    "AND content_hash = $2 ORDER BY custody_event_id LIMIT 1",
+                    harvest_lot_id,
+                    content_hash,
+                )
+                if ev_id is not None:
+                    return await _custody_event_json(conn, ev_id)
                 refusal = transition_refusal(
                     req.event_type,
                     lot["status"],
@@ -240,6 +274,23 @@ async def add_custody_event(
                 )
                 if refusal is not None:
                     raise HTTPException(status_code=409, detail=refusal)
+                prior = await conn.fetchrow(
+                    "SELECT max(occurred_at) AS last_at, COALESCE(sum(quantity_kg) "
+                    "FILTER (WHERE event_type = 'sales'), 0) AS outgoing_kg "
+                    "FROM custody_chain_events WHERE harvest_lot_id = $1",
+                    harvest_lot_id,
+                )
+                invalid = custody_event_refusal(
+                    event_type=req.event_type,
+                    occurred_at=occurred,
+                    quantity_kg=quantity,
+                    lot_quantity_kg=lot["quantity_kg"],
+                    harvest_date=lot["harvest_date"],
+                    last_occurred_at=prior["last_at"] if prior else None,
+                    outgoing_kg_so_far=prior["outgoing_kg"] if prior else 0,
+                )
+                if invalid is not None:
+                    raise HTTPException(status_code=422, detail=invalid)
                 new_status = status_for_event(req.event_type, lot["status"], req.event_details)
                 async with conn.transaction():
                     ev_id = await conn.fetchval(
@@ -254,7 +305,7 @@ async def add_custody_event(
                         req.handler,
                         req.handler_role,
                         req.location_name,
-                        req.quantity_kg,
+                        quantity,
                         _json.dumps(req.event_details),
                         occurred,
                         content_hash,
@@ -277,14 +328,7 @@ async def add_custody_event(
                             "new_status": new_status,
                         },
                     )
-                row = await conn.fetchrow(
-                    f"SELECT {_CUSTODY_EVENT_SELECT} FROM custody_chain_events "
-                    "WHERE custody_event_id = $1",
-                    ev_id,
-                )
-                # نُعيد JSON (model_dump mode="json") ليُخزَّن كنتيجة أمر idempotent
-                # (الأزمنة → ISO)؛ response_model يتحقّق منه أوّل مرّة وعند الإعادة.
-                return _row_to_custody_event(row).model_dump(mode="json")
+                return await _custody_event_json(conn, ev_id)
 
             # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
             if idem:
@@ -313,7 +357,8 @@ async def get_traceability(
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """الأثر الكامل لدفعة: الدفعة + سلسلة الحيازة مرتّبة + المنشأ + تقييم الاكتمال
-    (دالّة نقيّة assemble_traceability). 404 إن لم تكن الدفعة للمستأجِر. 503 عند تعذّر القاعدة."""
+    (incomplete_reasons) + إعادة حساب البصمات (hash_verified/hash_status لكلّ حدث وإجماليّاً)
+    — دالّة نقيّة assemble_traceability. 404 إن لم تكن الدفعة للمستأجِر. 503 عند تعذّر القاعدة."""
     from core.engines.harvest_traceability import assemble_traceability
 
     try:

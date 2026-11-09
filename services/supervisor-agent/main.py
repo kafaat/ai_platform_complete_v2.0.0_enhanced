@@ -376,7 +376,7 @@ def _format_arabic_response(result: dict) -> str:
 مؤشر NDVI: {result.get("ndvi_mean", "N/A")}
 الحالة: {result.get("health_status", "غير معروفة")}
 
-{result.get("recommendation", "")}
+{result.get("observation_note") or result.get("recommendation") or ""}
 """.strip()
     elif result.get("type") == "irrigation_advice":
         return f"""
