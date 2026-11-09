@@ -8,7 +8,7 @@
 // لكلّ خيار معرّف بطاقة محصول قانونيّ (`id` = crop_id في core/crop_cards) وتسمية
 // عربيّة تُعرَض وتُرسَل كما كانت (field.crop يُعرَض خاماً في الواجهة). الخادم يحلّ
 // التسمية عبر core.season_phenology.resolve_crop_id، واختبار الحارس
-// tests_v9/unit/test_crop_picker_options_resolve.py يُثبت أنّ resolve_crop_id(label)
+// tests_v9/test_crop_picker_options_resolve.py يُثبت أنّ resolve_crop_id(label)
 // يساوي `id` لكلّ خيار — فلا خيار يُعرَض بلا بطاقة محصول تُحلّ إليه.
 //
 // «خضروات» العامّة حُذفت: لا بطاقة لها، فكان اختيارها يحجب نصيحة العناصر دائماً
