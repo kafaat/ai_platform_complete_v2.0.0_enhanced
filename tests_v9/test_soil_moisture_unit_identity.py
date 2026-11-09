@@ -211,7 +211,7 @@ def test_the_soil_sensor_declares_its_cadence_and_freshness_bound():
 # ─── (٥) مسارُ الإلحاح يقرأ الوحدة ────────────────────────────────────────
 
 
-def _advice(unit_kind: str, pct: float = 20.0) -> dict:
+def _advice(unit_kind: str, pct: float | None = 20.0) -> dict:
     return irrigation_advice(
         et0_mm=6.0,
         crop="wheat",
@@ -231,9 +231,13 @@ def test_a_vwc_reading_does_not_drive_urgency_against_available_water_thresholds
     assert "VWC" in vwc["rationale_ar"]
 
 
-def test_an_undeclared_unit_keeps_the_inherited_reading_but_names_the_assumption():
+def test_an_undeclared_unit_is_advisory_and_does_not_drive_urgency():
+    """SOIL-MOISTURE-ELIGIBILITY-01: كان هذا الشاهدُ يُثبِت «الافتراضَ الموروث» — `%` عاريةٌ
+    تُفسَّر ماءً متاحاً فترفع الإلحاحَ إلى high. السياسةُ المشتركة تجعلها استشاريّة."""
     out = _advice("undeclared")
-    assert out["urgency"] == _advice("available_pct")["urgency"]
+    assert _advice("available_pct")["urgency"] == "high"
+    assert out["urgency"] != "high"
+    assert out["urgency"] == _advice("available_pct", pct=None)["urgency"]  # كأن لا قراءة
     assert "غير مُعلَنة" in out["rationale_ar"]
 
 
@@ -259,11 +263,13 @@ def test_a_vwc_reading_does_not_fire_the_available_water_alert():
     assert with_need is not None and "حجميّة" in with_need.message_ar
 
 
-def test_an_available_reading_still_fires_and_an_undeclared_one_names_its_assumption():
+def test_an_available_reading_still_fires_and_an_undeclared_one_falls_to_the_need_path():
+    """كان `undeclared` يُطلِق «رطوبة منخفضة» بافتراضٍ موروث — الآن مثلُ VWC: استشاريّة."""
     available = _low_moisture_alert("available_pct")
     assert available is not None and "غير مُعلَنة" not in available.message_ar
-    undeclared = _low_moisture_alert("undeclared")
-    assert undeclared is not None and "غير مُعلَنة" in undeclared.message_ar
+    assert _low_moisture_alert("undeclared") is None
+    with_need = _low_moisture_alert("undeclared", need=50.0)
+    assert with_need is not None and "غير مُعلَنة" in with_need.message_ar
 
 
 # ─── (٧) جانبُ الكاتب: الوحدةُ المُعلَنة تصل السجلَّ القانونيّ ──────────────

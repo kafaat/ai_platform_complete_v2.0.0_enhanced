@@ -517,6 +517,8 @@ async def simulate_season_endpoint(
         yield_kg_ha=result.yield_kg_ha,
         yield_low_kg_ha=result.yield_low_kg_ha,
         yield_high_kg_ha=result.yield_high_kg_ha,
+        yield_status=result.yield_status,
+        limitations=result.limitations,
         water_need_mm=result.water_need_mm,
         water_supply_mm=result.water_supply_mm,
         water_stress_factor=result.water_stress_factor,

@@ -19,6 +19,7 @@ from api.canonical_as_applied_irrigation import (
     build_execution_receipt,
 )
 from api.event_bus import EventSource
+from api.persisted_canonical_repositories import decode_jsonb
 
 
 def _rowdict(row: Any) -> dict[str, Any]:
@@ -126,7 +127,8 @@ async def reconcile_irrigation_run(
         run_id,
     )
     if existing is not None:
-        payload = dict(existing["payload"] or {})
+        # jsonb يصل نصّاً (لا codec مُسجَّل على asyncpg) — `dict(str)` كان يرفع ValueError.
+        payload = dict(decode_jsonb(existing["payload"], {}) or {})
         payload["idempotent_replay"] = True
         return payload
 
@@ -291,7 +293,7 @@ async def finalize_irrigation_closed_loop(
         return {
             "status": "replayed",
             "idempotent_replay": True,
-            "payload": dict(existing["payload"] or {}),
+            "payload": dict(decode_jsonb(existing["payload"], {}) or {}),
         }
 
     reconciliation = await reconcile_irrigation_run(conn, run_id=run_id, now=measured_at)

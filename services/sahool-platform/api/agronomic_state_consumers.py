@@ -18,6 +18,8 @@ from api.canonical_nutrient_ledger import CanonicalNutrientLedger
 from api.canonical_phenology_state import CanonicalPhenologyState
 from api.canonical_salinity_state import CanonicalSalinityState
 
+_NUTRIENT_CONFIDENCE_PENALTY = 0.15
+
 
 def _digest(payload: Mapping[str, Any]) -> str:
     encoded = json.dumps(
@@ -144,16 +146,33 @@ def consume_salinity_state(state: CanonicalSalinityState) -> AgronomicStateCandi
 
 def consume_nutrient_ledger(ledger: CanonicalNutrientLedger) -> AgronomicStateCandidate:
     """Convert canonical N/P/K balances into one guarded fertilization candidate."""
+    # Only balances with known soil supply AND known demand are actionable; an
+    # unknown soil value must never be read as zero supply (full-demand advice).
+    actionable = [item for item in ledger.balances if item.actionable]
+    non_actionable = sorted(
+        {item.nutrient for item in ledger.balances} - {item.nutrient for item in actionable}
+    )
     remaining = {
         item.nutrient: item.remaining_requirement_kg_ha
-        for item in ledger.balances
-        if item.remaining_requirement_kg_ha is not None and item.remaining_requirement_kg_ha > 0
+        for item in actionable
+        if item.remaining_requirement_kg_ha > 0
     }
     fertilize = bool(ledger.operational_recommendation_allowed and remaining)
     blocked = ledger.status == "blocked"
+    limitations = sorted(set(ledger.limitations))
+    if blocked:
+        status = "blocked"
+        confidence = 0.0
+    else:
+        partial = bool(limitations or non_actionable)
+        status = "degraded" if partial or not ledger.operational_recommendation_allowed else "ready"
+        # Each limitation costs confidence; 1.0 is reserved for complete evidence.
+        penalty = _NUTRIENT_CONFIDENCE_PENALTY * max(len(limitations), len(non_actionable))
+        confidence = round(max(0.0, 1.0 - penalty), 6)
     payload = {
         "phenology_stage": ledger.phenology_stage,
         "remaining_requirement_kg_ha": remaining,
+        "non_actionable_nutrients": non_actionable,
         "balances": [asdict(item) for item in ledger.balances],
         "total_verified_cost": ledger.total_verified_cost,
         "currency": ledger.currency,
@@ -164,18 +183,14 @@ def consume_nutrient_ledger(ledger: CanonicalNutrientLedger) -> AgronomicStateCa
         "source_engine": "canonical_nutrient_ledger",
         "source_state_digest": ledger.ledger_digest,
         "generated_at": ledger.as_of.astimezone(UTC).isoformat(),
-        "status": "blocked"
-        if blocked
-        else "ready"
-        if ledger.operational_recommendation_allowed
-        else "degraded",
+        "status": status,
         "action_type": "fertilize" if fertilize else "hold" if blocked else "monitor",
         "recommendation_code": "NUTRIENT_APPLICATION_REQUIRED"
         if fertilize
         else "NUTRIENT_LEDGER_BLOCKED"
         if blocked
         else "NUTRIENT_BALANCE_MONITOR",
-        "confidence": 1.0 if ledger.operational_recommendation_allowed else 0.0 if blocked else 0.5,
+        "confidence": confidence,
         "operational_allowed": fertilize,
         "requires_human_approval": fertilize,
         "payload": payload,

@@ -1638,6 +1638,7 @@ async def _evaluate_field_alerts_persist(
         thresholds_from_policy,
     )
     from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
+    from api.soil_telemetry import decision_soil_moisture
     from api.weather_advice import irrigation_advice
 
     # سياسة عتبات التنبيهات لكلّ مستأجِر (best-effort): تُضبَط عبر النقطة الموجودة
@@ -1684,9 +1685,8 @@ async def _evaluate_field_alerts_persist(
             detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
         ) from e
 
-    soil_pct = soil_reading.value_pct if soil_reading is not None else None
-    # الوحدةُ تُقرأ من القراءة نفسها؛ غيابُها يُبقي الافتراضَ الموروث مُسمًّى لا صامتاً.
-    soil_unit_kind = soil_reading.unit_kind if soil_reading is not None else "available_pct"
+    # SOIL-MOISTURE-ELIGIBILITY-01: المؤهَّلةُ وحدَها (جودة/عمر/وحدة) تبلغ التوصيةَ والتنبيه.
+    soil_pct, soil_unit_kind = decision_soil_moisture(soil_reading)
     today = forecast[0] if forecast else None
     # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
     irrigation_need_mm: float | None = None

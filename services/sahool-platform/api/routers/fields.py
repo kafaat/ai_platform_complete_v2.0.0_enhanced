@@ -55,6 +55,7 @@ from api.field_models import (
     _row_to_field_summary,
     _significant_overlaps,
     field_quality_grade,
+    reject_future_performed_on,
 )
 
 # رموز صارت يتيمة في api.main بعد نقل المعالِجات — تُستورَد هنا من وحداتها الحقيقيّة
@@ -2125,6 +2126,7 @@ async def create_season(
                             cr["season_id"],
                             {
                                 "field_id": field_id,
+                                "season_id": cr["season_id"],
                                 "reason": "superseded_by_new_season",
                                 "superseded_by": season_id,
                             },
@@ -2426,7 +2428,7 @@ async def update_season(
                         "SEASON_CLOSED",
                         "season",
                         season_id,
-                        {"field_id": field_id, "reason": "explicit_update"},
+                        {"field_id": field_id, "season_id": season_id, "reason": "explicit_update"},
                     )
 
                 row = await conn.fetchrow(
@@ -2898,6 +2900,7 @@ async def create_activity(
         raise HTTPException(status_code=422, detail="نوع عمليّة غير معروف")
     scheduled = _parse_date(req.scheduled_for, "التاريخ المُجدوَل")
     performed = _parse_date(req.performed_on, "تاريخ التنفيذ")
+    reject_future_performed_on(performed)
     activity_id = "act_" + _uuid.uuid4().hex[:12]
     status = "done" if performed else "planned"
     try:
@@ -3088,8 +3091,9 @@ async def field_input_traceability(
             )
 
             q = (
-                "SELECT activity_type, details, performed_on, scheduled_for FROM activities "
-                "WHERE field_id = $1 AND activity_type = ANY($2::text[])"
+                "SELECT activity_type, details, performed_on FROM activities "
+                "WHERE field_id = $1 AND activity_type = ANY($2::text[]) "
+                "AND status = 'done' AND performed_on IS NOT NULL"
             )
             params: list = [field_id, list(ACTIVITY_TO_INPUT.keys())]
             if season_id is not None:
@@ -3131,11 +3135,7 @@ async def field_input_traceability(
                 quantity=_num(d.get("quantity")),
                 unit=d.get("unit"),
                 cost=_num(d.get("cost")),
-                applied_on=(
-                    (r["performed_on"] or r["scheduled_for"]).isoformat()
-                    if (r["performed_on"] or r["scheduled_for"])
-                    else None
-                ),
+                applied_on=r["performed_on"].isoformat(),
             )
         )
     return build_input_ledger(

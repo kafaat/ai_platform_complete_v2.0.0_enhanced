@@ -488,12 +488,9 @@ async def compose_profit_aware_decision(
     plan_dict = plan.to_dict()
 
     # ٢) economic_state من كمّيّات الخطّة + الأسعار المُمرَّرة (لا اختلاق).
-    nut = st["twin"]["nutrient"]
-    fert_remaining = max(
-        0.0,
-        (nut.get("target_uptake_kg_ha", 0.0) or 0.0)
-        - (nut.get("uptake_to_date_kg_ha", 0.0) or 0.0),
-    )
+    # التسميد: المتبقّي امتصاصُ عنصرٍ مُنمذَج (كجم N/ها)، لا كجم منتج سماد. لا تحويل
+    # عنصر→منتج (نسبة الصنف/التركيز) ولا إمداد تربة هنا ⇒ لا يُسعَّر بسعر كجم المنتج؛
+    # تكلفة السماد غير متاحة (مُعلَنة) بدل رقم مُضلِّل.
     # الماء الإجماليّ المسحوب = الصافي ÷ كفاءة التطبيق (Ea). طريقة مجهولة/غير ممرَّرة ⇒
     # كفاءة عامّة محافظة (0.70) — يبقى الصافي مصحَّحاً بـEa عامّة (مقبول وموسوم calibrated=false).
     gross_total_mm = gross_irrigation_mm(plan_dict["total_irrigation_mm"], req.irrigation_method)
@@ -504,9 +501,10 @@ async def compose_profit_aware_decision(
         water_price_per_m3=req.water_price_per_m3,
         energy_kwh_ha=req.energy_kwh_ha,
         energy_price_per_kwh=req.energy_price_per_kwh,
-        fertilizer_kg_ha=fert_remaining if fert_remaining > 0 else None,
+        fertilizer_kg_ha=None,
         fertilizer_price_per_kg=req.fertilizer_price_per_kg,
     )
+    econ["fertilizer_cost_status"] = "unavailable_no_nutrient_to_product_conversion"
 
     decision = unified_decision(st["twin"], plan_dict, st["quality"], economic=econ)
     did = ensure_decision_id(req.decision_id)

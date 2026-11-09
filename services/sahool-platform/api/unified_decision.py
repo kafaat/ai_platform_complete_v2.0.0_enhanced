@@ -196,11 +196,15 @@ def nutrient_salinity_ledger(
         if demand is None or demand < 0:
             continue
         supplied = applied.get(nutrient.lower(), 0.0)
+        # demand − applied only: soil supply is NOT considered here, so this is a
+        # demand gap, not a fertilizer dose (see canonical_nutrient_ledger for that).
         balances[nutrient.lower()] = {
             "demand_kg_ha": round(demand, 3),
             "applied_kg_ha": round(supplied, 3),
             "remaining_kg_ha": round(max(0.0, demand - supplied), 3),
             "surplus_kg_ha": round(max(0.0, supplied - demand), 3),
+            "basis": "crop_demand_minus_applied",
+            "soil_supply_considered": False,
         }
 
     ece = _finite((soil_state or {}).get("ece") or (soil_state or {}).get("soil_ece"))
@@ -223,6 +227,7 @@ def nutrient_salinity_ledger(
         "water_ec": ecw,
         "salinity_status": salinity_status,
         "fertilizer_rate_authoritative": False,
+        "soil_supply_considered": False,
         "requires_lab_or_declared_demand": not bool(balances),
     }
     return {**body, "ledger_digest": _digest(body)}
@@ -375,21 +380,38 @@ def unified_decision(
         ),
     }
 
-    # ── قرار التسميد (من حالة العنصر) ──
+    # ── حالة العنصر (امتصاص محصوليّ مُنمذَج — ليست جرعة سماد) ──
+    # الفرق «هدف − امتصاص حتى الآن» امتصاصُ محصولٍ مُنمذَج؛ بلا إمداد التربة لا يُترجَم
+    # إلى سماد مستحقّ. امتصاص حتى الآن غائب ⇒ المتبقّي مجهول (None) لا «الهدف كاملاً».
     target = nut.get("target_uptake_kg_ha", 0.0) or 0.0
-    to_date = nut.get("uptake_to_date_kg_ha", 0.0) or 0.0
-    remaining = max(0.0, target - to_date)
-    fert_due = target > 0 and remaining > 0
+    to_date_raw = nut.get("uptake_to_date_kg_ha")
+    to_date = _finite(to_date_raw)
+    remaining: float | None
+    if target <= 0:
+        remaining, fert_due = 0.0, False
+        action_ar = "لا هدف امتصاص مُدخَل"
+    elif to_date is None:
+        remaining, fert_due = None, None
+        action_ar = "الامتصاص حتى الآن غير معروف — المتبقّي غير محسوب"
+    else:
+        remaining = round(max(0.0, target - to_date), 2)
+        fert_due = remaining > 0
+        action_ar = (
+            f"امتصاص محصوليّ مُنمذَج متبقٍّ ~{remaining:.0f} كجم/هكتار"
+            f" (مرحلة {nut.get('stage') or '—'}) — ليس جرعة سماد؛ إمداد التربة غير معروف"
+            if fert_due
+            else "اكتمل الامتصاص المستهدف"
+        )
     fertilization = {
         "stage": nut.get("stage"),
         "uptake_to_date_kg_ha": to_date,
-        "remaining_need_kg_ha": round(remaining, 2),
+        "remaining_need_kg_ha": remaining,
+        "remaining_crop_uptake_kg_ha": remaining,
+        "basis": "modelled_crop_uptake",
+        "soil_supply_known": False,
+        "fertilizer_dose_kg_ha": None,
         "due": fert_due,
-        "action_ar": (
-            f"احتياج متبقٍّ ~{remaining:.0f} كجم/هكتار (مرحلة {nut.get('stage') or '—'})"
-            if fert_due
-            else ("لا هدف امتصاص مُدخَل" if target <= 0 else "اكتمل الامتصاص المستهدف")
-        ),
+        "action_ar": action_ar,
     }
 
     # ── المخاطر (الحقيقيّ منها فقط؛ الباقي «يحتاج بيانات») ──
@@ -406,7 +428,13 @@ def unified_decision(
     if pheno.get("past_maturity"):
         flags.append({"code": "past_maturity", "label_ar": "تجاوز النضج المتوقّع"})
     if fert_due:
-        flags.append({"code": "fertilization_due", "label_ar": "تسميد مستحقّ"})
+        # امتصاص مُنمذَج متبقٍّ — لا يُعلَن «تسميد مستحقّ» وإمداد التربة مجهول.
+        flags.append(
+            {
+                "code": "crop_uptake_remaining",
+                "label_ar": "امتصاص محصوليّ متبقٍّ (نمذجة — ليس جرعة سماد)",
+            }
+        )
 
     agronomic_context = canonical_agronomic_context(
         field_state=field_state, crop_twin=crop_twin, operations=operations, economics=economic

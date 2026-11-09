@@ -62,7 +62,10 @@ def validate_soil_use(profile: SoilProfileSnapshot | dict[str, Any], use: str) -
     else:
         required = 0
     reasons: list[str] = []
-    if not snapshot.quality_gate.passed:
+    # The gate fails when no selected value is decision-eligible (accepted and, for dynamic
+    # properties, fresh). That must stop decisions, not low-risk orientation uses such as
+    # a sampling plan — those exist precisely to obtain better evidence.
+    if not snapshot.quality_gate.passed and use not in LOW_RISK_USES:
         reasons.append("soil_profile_quality_gate_failed")
     if use in set(snapshot.blocked_use):
         reasons.append("soil_use_explicitly_blocked")

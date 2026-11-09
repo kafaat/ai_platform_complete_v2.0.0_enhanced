@@ -136,7 +136,7 @@ class FieldAggregate:
         مطابِق لـ`_assert_field_in_tenant`).
 
         ترتيب الأحداث (مطابِق لترتيب الـendpoint): SEASON_CLOSED ثمّ SEASON_CREATED.
-        payload الإغلاق: {field_id, reason:"superseded_by_new_season", superseded_by}.
+        payload الإغلاق: {field_id, season_id, reason:"superseded_by_new_season", superseded_by}.
         معرّف الموسم الجديد I/O (يولّده الـendpoint) — يُمرَّر عبر `data["season_id"]`؛
         وإن غاب يُحذف `superseded_by` ويملؤه منفذ `apply` بعد التوليد (نفس المعاملة).
         """
@@ -147,6 +147,9 @@ class FieldAggregate:
                 "field_id": self.state.field_id,
                 "reason": "superseded_by_new_season",
             }
+            # عاملُ التعلّم يقرأ معرّف الموسم المُغلَق من الحمولة (المغلّف يحمله كـentity_id).
+            if self.state.active_season_id is not None:
+                close_payload["season_id"] = self.state.active_season_id
             new_season_id = data.get("season_id")
             if new_season_id is not None:
                 close_payload["superseded_by"] = new_season_id

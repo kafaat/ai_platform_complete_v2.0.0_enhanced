@@ -15,7 +15,7 @@ required = {
     ],
     "services/soil-service/profile_composer.py": [
         "compose_snapshot",
-        "soil-profile-selection.v1",
+        "soil-profile-selection.v2",
         "quality_gate",
     ],
     "services/soil-service/routers/canonical.py": [

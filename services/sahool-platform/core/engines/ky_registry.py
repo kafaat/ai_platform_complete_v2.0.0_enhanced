@@ -119,9 +119,10 @@ _CROP_INDEX: dict[tuple[str, str], KyEntry] = {
 }
 
 # مرادفات أسماء المحاصيل الشائعة ⇒ المفتاح الكنسيّ في السجلّ.
+# «ذرة» مفردةً = sorghum (القرار الموحَّد في core/season_phenology.resolve_crop_id) — لا maize.
 _CROP_ALIASES: dict[str, str] = {
     "corn": "maize",
-    "ذرة": "maize",
+    "ذرة": "sorghum",
     "ذرة_شامية": "maize",
     "ذرة_رفيعة": "sorghum",
     "sorgum": "sorghum",
@@ -132,6 +133,13 @@ _CROP_ALIASES: dict[str, str] = {
     "بطاطا": "potato",
     "بصل": "onion",
 }
+
+
+def _shared_crop_id(crop: str | None) -> str | None:
+    """المحلِّل المشترك لأسماء المحاصيل (بطاقات + مرادفات) — استيراد كسول تجنّباً للدورات."""
+    from core.season_phenology import resolve_crop_id
+
+    return resolve_crop_id(crop)
 
 
 def _norm(value: str | None) -> str:
@@ -149,7 +157,7 @@ def lookup_ky(crop: str | None, growth_stage: str | None) -> KyLookup | None:
         return None  # مرحلة غائبة/غير مُعرَّفة ⇒ insufficient_data لدى المتحكّم
 
     crop_key = _norm(crop)
-    crop_key = _CROP_ALIASES.get(crop_key, crop_key)
+    crop_key = _CROP_ALIASES.get(crop_key) or _shared_crop_id(crop) or crop_key
     entry = _CROP_INDEX.get((crop_key, stage))
     if entry is not None:
         return KyLookup(

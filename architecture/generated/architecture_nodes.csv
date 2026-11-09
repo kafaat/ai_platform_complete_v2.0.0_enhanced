@@ -27,7 +27,7 @@ knowledge-graph,service,2,0,False,services/knowledge-graph
 local-ai-rag,service,1,1,False,services/local-ai-rag
 mcp-servers,service,0,3,False,services/mcp_servers
 model-registry-adapter,service,0,2,False,services/model-registry-adapter
-platform,service,6,23,False,services/sahool-platform
+platform,service,6,26,False,services/sahool-platform
 production-preflight,compose-service,3,0,False,
 qdrant-seed,service,0,0,True,services/qdrant-seed
 rag-retrieval,service,1,0,False,services/rag-retrieval
@@ -103,7 +103,7 @@ sahool-zlmediakit,compose-service,2,1,False,
 sahool-zlmediakit-config,compose-service,1,0,False,
 sam2-inference,service,0,0,True,services/sam2-inference
 scout-ingest-service,service,1,0,False,services/scout-ingest-service
-soil-service,service,8,0,False,services/soil-service
+soil-service,service,11,0,False,services/soil-service
 supervisor-agent,service,0,4,False,services/supervisor-agent
 tts-service,service,0,0,True,services/tts-service
 vegetation-analysis-service,service,0,10,False,services/vegetation-analysis-service

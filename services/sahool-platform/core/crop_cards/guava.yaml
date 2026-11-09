@@ -5,6 +5,7 @@ crop_id: guava
 name_ar: الجوافة
 name_en: Guava
 crop_family: tree_C3
+life_form: perennial  # مُعمِّر: لا نضج/حصاد حوليّ واحد يُشتقّ من تاريخ البذار
 
 kc:
   initial: 0.50

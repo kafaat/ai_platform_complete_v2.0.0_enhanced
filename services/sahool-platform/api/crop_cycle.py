@@ -88,3 +88,17 @@ def cycle_days_to_maturity(
     if name in _REGION_DEFAULT_OVERRIDES:
         return _REGION_DEFAULT_OVERRIDES[name]
     return card_cycle_days(name)
+
+
+def is_perennial_crop(crop: str | None) -> bool:
+    """هل المحصول مُعمِّر (بطاقته تُعلن ``life_form: perennial``)؟ مجهول/خطأ ⇒ False.
+
+    للمُعمِّر (بُنّ/قات/حمضيات/نخيل…) لا «نضج تقديريّ» من تاريخ البذار: طول الدورة هنا
+    دورة سنويّة إرشاديّة لا موعد حصاد، فلا يُشتقّ منه «تأخّر حصاد».
+    """
+    try:
+        from core.season_phenology import is_perennial
+
+        return is_perennial(crop)
+    except Exception:  # noqa: BLE001 — بطاقة غائبة/معطوبة ⇒ لا تصنيف (degrade صادق)
+        return False
