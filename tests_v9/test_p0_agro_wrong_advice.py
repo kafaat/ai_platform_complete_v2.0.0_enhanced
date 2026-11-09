@@ -380,9 +380,66 @@ def test_persisted_ledger_for_another_crop_is_blocked():
     ledger = _ledger()
     out = consume_nutrient_ledger(ledger, now=ledger.as_of, crop_id="  " + ledger.crop_id.upper())
     assert out.action_type == "fertilize"  # case/whitespace-insensitive match
-    other = consume_nutrient_ledger(ledger, now=ledger.as_of, crop_id="different-crop")
+    other = consume_nutrient_ledger(ledger, now=ledger.as_of, crop_id="barley")
     assert other.status == "blocked" and other.operational_allowed is False
     assert "NUTRIENT_LEDGER_CROP_MISMATCH" in other.constraints
+    assert "NUTRIENT_LEDGER_CROP_UNRESOLVED" not in other.constraints
+
+
+# The request crop is a display name from the web/mobile pickers («قمح صلب», «ذرة صفراء»)
+# while the ledger carries a card id; identity is the canonical card id on both sides.
+@pytest.mark.parametrize(
+    ("request_crop", "ledger_crop"),
+    [
+        ("قمح صلب", "wheat"),  # web/mobile picker label vs canonical id
+        ("قمح", "wheat"),  # card name_ar
+        ("سورغم", "sorghum"),  # card alias
+        ("ذرة", "sorghum"),  # platform-wide «ذرة» decision
+        ("ذرة صفراء", "maize"),
+        ("wheat", "قمح"),  # either side may carry the name
+    ],
+)
+def test_ledger_crop_matches_by_canonical_identity(request_crop, ledger_crop):
+    from dataclasses import replace
+
+    ledger = replace(_ledger(), crop_id=ledger_crop)
+    out = consume_nutrient_ledger(ledger, now=ledger.as_of, crop_id=request_crop)
+    assert out.action_type == "fertilize", out.constraints
+    assert not {"NUTRIENT_LEDGER_CROP_MISMATCH", "NUTRIENT_LEDGER_CROP_UNRESOLVED"} & set(
+        out.constraints
+    )
+
+
+@pytest.mark.parametrize(
+    ("request_crop", "ledger_crop"),
+    [("ذرة صفراء", "sorghum"), ("ذرة", "maize"), ("شعير", "wheat")],
+)
+def test_ledger_for_a_genuinely_different_crop_is_blocked(request_crop, ledger_crop):
+    from dataclasses import replace
+
+    ledger = replace(_ledger(), crop_id=ledger_crop)
+    out = consume_nutrient_ledger(ledger, now=ledger.as_of, crop_id=request_crop)
+    assert out.status == "blocked" and out.action_type == "hold"
+    assert "NUTRIENT_LEDGER_CROP_MISMATCH" in out.constraints
+
+
+@pytest.mark.parametrize(
+    ("request_crop", "ledger_crop"),
+    [
+        ("خضروات", "wheat"),  # generic picker entry: no card, no guess
+        ("different-crop", "wheat"),
+        ("wheat", "durum_wheat"),  # ledger side unresolvable
+        ("خضروات", "خضروات"),  # equal spelling is not identity
+    ],
+)
+def test_unresolvable_crop_identity_is_blocked_with_its_own_reason(request_crop, ledger_crop):
+    from dataclasses import replace
+
+    ledger = replace(_ledger(), crop_id=ledger_crop)
+    out = consume_nutrient_ledger(ledger, now=ledger.as_of, crop_id=request_crop)
+    assert out.status == "blocked" and out.operational_allowed is False
+    assert "NUTRIENT_LEDGER_CROP_UNRESOLVED" in out.constraints
+    assert "NUTRIENT_LEDGER_CROP_MISMATCH" not in out.constraints
 
 
 def test_future_dated_persisted_ledger_is_blocked():
