@@ -1916,6 +1916,43 @@ def _non_negative_number(value: Any) -> float | None:
     return number if math.isfinite(number) and number >= 0 else None
 
 
+# The actuator reads one duration field, ``duration_sec``, and converts nothing. Other spellings on
+# an equipment request are refused here, synchronously, instead of failing later in the receipt:
+# alone they would leave an OPEN without a duration; beside ``duration_sec`` they must agree.
+# (key, factor to seconds). Conversion from minutes belongs to the producer, not to this check.
+_NON_CANONICAL_DURATION_KEYS: tuple[tuple[str, float], ...] = (
+    ("duration_seconds", 1.0),
+    ("duration_min", 60.0),
+    ("duration_mins", 60.0),
+    ("duration_minutes", 60.0),
+    ("durationMinutes", 60.0),
+    ("minutes", 60.0),
+)
+
+
+def _equipment_duration_violation(layers: list[dict[str, Any]]) -> str | None:
+    """Pure: ``non_canonical_duration_field`` / ``conflicting_duration_fields`` / ``None``."""
+    others = [
+        (raw, factor)
+        for key, factor in _NON_CANONICAL_DURATION_KEYS
+        for raw in _layer_values(layers, (key,))
+    ]
+    if not others:
+        return None
+    canonical = _layer_values(layers, ("duration_sec",))
+    if not canonical:
+        return "non_canonical_duration_field"
+    seconds: list[float] = []
+    for raw, factor in [(v, 1.0) for v in canonical] + others:
+        number = _non_negative_number(raw)
+        if number is None:
+            return "conflicting_duration_fields"
+        seconds.append(number * factor)
+    if max(seconds) - min(seconds) > 1e-6:
+        return "conflicting_duration_fields"
+    return None
+
+
 def _execution_request_plan_violation(plan: Any, payload: Any, *, now: datetime) -> str | None:
     """Pure check: is this request covered by the approved plan? ``None`` or a conflict reason.
 
@@ -1952,6 +1989,11 @@ def _execution_request_plan_violation(plan: Any, payload: Any, *, now: datetime)
         zones = {str(v).strip() for v in _layer_values(layers, ("zone_id", "field_id"))}
         if not zones or not zones <= plan_zones:
             return "target_zone_mismatch"
+
+    if payload.target_type == "equipment":
+        duration_violation = _equipment_duration_violation(layers)
+        if duration_violation:
+            return duration_violation
 
     constraints = _jsonish(plan.get("constraints")) or {}
     if not isinstance(constraints, dict):

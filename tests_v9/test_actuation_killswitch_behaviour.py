@@ -239,6 +239,32 @@ async def test_a_manual_open_without_duration_is_refused_before_any_work(manual)
     assert result["sent"] is True
 
 
+@pytest.mark.parametrize(
+    ("payload", "reason"),
+    [
+        ({"duration_minutes": 10}, "non_canonical_duration_field:duration_minutes"),
+        ({"duration_sec": 60, "duration_minutes": 10}, "conflicting_duration_fields"),
+    ],
+)
+async def test_a_manual_open_with_minutes_or_conflicting_durations_is_refused(
+    manual, payload, reason
+):
+    """`duration_sec` كنسيّ: الدقائق لا تُحوَّل ضمنيّاً ومدّتان متعارضتان لا يُختار أحدُهما.
+
+    422 بسببٍ مُسمّى قبل الملكيّة والمفتاح والنشر — لا 30 دقيقة افتراضيّة صامتة.
+    """
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException) as exc:
+        await manual.send(
+            manual.request(device_id="valve-a", command="open", payload=payload), _claims()
+        )
+
+    assert exc.value.status_code == 422
+    assert exc.value.detail["reason"] == reason
+    assert manual.events == []
+
+
 async def test_a_device_of_another_tenant_fails_closed_before_any_actuation(manual):
     """عزلُ المستأجرين يسبق كلّ شيء: ٤٠٤ بلا استشارةٍ ولا نشرٍ ولا سجلّ.
 
