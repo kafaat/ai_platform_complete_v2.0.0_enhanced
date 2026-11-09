@@ -318,4 +318,6 @@ def test_router_dedupes_by_hash_before_checks_and_refuses_422_before_insert():
     )
     # الكمّيّة المُدرَجة هي المُطبَّعة نفسها التي بُصِمت.
     assert "quantity_kg=quantity," in src
-    assert "req.quantity_kg,\n" not in src
+    assert "req.quantity_kg,\n" not in src, (
+        "the raw request quantity must pass the mass check before it is inserted"
+    )

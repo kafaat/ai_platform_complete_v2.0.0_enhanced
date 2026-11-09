@@ -1,5 +1,5 @@
 {
-  "edge_count": 931,
+  "edge_count": 930,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -4063,16 +4063,6 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/learning_summary.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://recommendation_outcomes",
-      "to": "db://recommendation_outcomes",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/recommendations.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9330,7 +9320,7 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 479,
+    "READS": 478,
     "ROUTES_TO": 72,
     "WRITES": 328
   },
@@ -9347,8 +9337,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 808,
-      "resolved": 807,
+      "observed": 807,
+      "resolved": 806,
       "unresolved_component_paths": 0
     }
   }

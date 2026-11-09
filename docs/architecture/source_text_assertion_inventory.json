@@ -1,7 +1,7 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "ac0d8999a7189c64adf9f97ef752277b9bb916fb",
+  "measured_on": "4589712309733dc76991eb6a3ebae261bbfc5269",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
     "source_text_assertions": 2495,
@@ -26,10 +26,6 @@
     "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py": {
       "WHERE water_source_id=$1": 1,
       "water_ec: float": 1
-    },
-    "services/sahool-platform/tests/test_planned_vs_executed_lifecycle.py": {
-      "SELECT COUNT(*) FROM activities WHERE season_id": 1,
-      "async def _fetch_budget_and_actual": 1
     },
     "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py": {
       "PlaceholderPanel": 1
@@ -176,9 +172,6 @@
     "tests_v9/test_fii_prescription_season_context_guard.py": {
       "UPDATE prescriptions": 1
     },
-    "tests_v9/test_harvest_custody_integrity.py": {
-      "req.quantity_kg,\n": 1
-    },
     "tests_v9/test_historical_imagery_timeline_contract.py": {
       ".style.display": 1,
       "months * 31": 1,
@@ -232,10 +225,6 @@
     },
     "tests_v9/test_vegetation_real_only_posture_guard.py": {
       "VEGETATION_REAL_ONLY: \"0\"": 1
-    },
-    "tests_v9/test_water_ledger_age_limit.py": {
-      "DEFAULT_MAX_LEDGER_AGE_HOURS = 72": 1,
-      "MAX_LEDGER_AGE_HOURS = 72": 1
     },
     "tests_v9/test_wx10_10_dispatch_authorization_contract.py": {
       "INSERT INTO dispatch_decisions": 1

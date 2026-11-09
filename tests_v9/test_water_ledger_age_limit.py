@@ -138,5 +138,9 @@ def test_latest_row_consumers_check_age(rel):
     assert (
         _calls_in(path, "water_ledger_row_freshness") + _calls_in(path, "current_ledger_row") >= 1
     )
-    assert "DEFAULT_MAX_LEDGER_AGE_HOURS = 72" not in text
-    assert "MAX_LEDGER_AGE_HOURS = 72" not in text
+    assert "DEFAULT_MAX_LEDGER_AGE_HOURS = 72" not in text, (
+        "the ledger age limit has one source: moisture_policy.WATER_LEDGER_MAX_AGE_HOURS"
+    )
+    assert "MAX_LEDGER_AGE_HOURS = 72" not in text, (
+        "a local copy of the 72 h limit would drift from moisture_policy"
+    )

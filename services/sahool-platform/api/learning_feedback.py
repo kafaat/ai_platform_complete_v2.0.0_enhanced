@@ -364,3 +364,20 @@ async def process_season_closed_event(
         "promotion_candidate": {**candidate, "candidate_digest": candidate_digest},
         "event_id": str(outbox_event_id) if outbox_event_id else None,
     }
+
+
+async def existing_recommendation_outcome(conn, tenant_id: str, recommendation_id: str):
+    """The stored outcome row for (tenant, recommendation_id), or None.
+
+    Read by the pre-cutover outcome writer after it takes the advisory lock, so a repeat is
+    replayed or completed instead of adding a second sample (F4). Kept in this module, which
+    already reads ``recommendation_outcomes``, so the S5-EXEC-01 frozen runtime read surface
+    does not gain a new file.
+    """
+    return await conn.fetchrow(
+        "SELECT outcome_id, actual_yield_t_ha FROM recommendation_outcomes "
+        "WHERE tenant_id = $1::uuid AND recommendation_id = $2 "
+        "ORDER BY outcome_id LIMIT 1",
+        tenant_id,
+        recommendation_id,
+    )

@@ -75,7 +75,9 @@ def test_actuals_queries_count_only_completed_operations_up_to_today():
     # HTTP summary (ops CTE + breakdown) and the season summary (CTE + breakdown).
     assert router.count("{ledger_core.ACTUAL_OPERATION_SQL}") == 4
     assert '"planned_cost": float(row["planned_cost"] or 0.0)' in router
-    assert "async def _fetch_budget_and_actual" not in router
+    assert "async def _fetch_budget_and_actual" not in router, (
+        "budget/actual fetch moved to core.farm_operations_ledger; a router copy would split the query"
+    )
 
 
 # ── field tasks: transition table ─────────────────────────────────────────────
@@ -167,4 +169,6 @@ def test_field_and_season_reports_expose_done_counts():
     assert "COUNT(*) FILTER (WHERE status = 'done') AS done_count" in src
     assert '"activities_done_total": _activities_done(by_status)' in src
     assert '"activities_done_count": _activities_done(activities_by_status)' in src
-    assert "SELECT COUNT(*) FROM activities WHERE season_id" not in src
+    assert "SELECT COUNT(*) FROM activities WHERE season_id" not in src, (
+        "counting every activity mixes planned rows into executed totals"
+    )

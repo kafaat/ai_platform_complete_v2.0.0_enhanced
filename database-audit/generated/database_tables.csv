@@ -260,7 +260,7 @@ raster_cache_invalidations,v96_spatial_geometry_integrity.sql,101,True,True,True
 raster_follow_up_requests,v236_raster_follow_up_requests.sql,232,True,True,True,1,True,False,2,1
 raster_registry,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,3
 recommendation_feedback,v_ai_recommendation_runtime.sql,111,True,True,True,1,True,False,0,0
-recommendation_outcomes,v49_zone_key_recommendation_outcomes.sql,53,True,True,True,2,True,False,10,5
+recommendation_outcomes,v49_zone_key_recommendation_outcomes.sql,53,True,True,True,2,True,False,9,5
 recommendation_reviews,v_ai_recommendation_runtime.sql,111,True,True,True,1,True,False,0,0
 recommendations,v77_recommendations.sql,82,True,True,True,1,True,False,2,2
 retraining_jobs,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0

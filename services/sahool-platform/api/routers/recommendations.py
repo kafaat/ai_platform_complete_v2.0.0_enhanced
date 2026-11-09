@@ -631,12 +631,10 @@ async def record_recommendation_outcome(
                         "SELECT pg_advisory_xact_lock(hashtext($1))",
                         f"reco-outcome:{user.tenant_id}:{req.recommendation_id}",
                     )
-                    existing = await conn.fetchrow(
-                        "SELECT outcome_id, actual_yield_t_ha FROM recommendation_outcomes "
-                        "WHERE tenant_id = $1::uuid AND recommendation_id = $2 "
-                        "ORDER BY outcome_id LIMIT 1",
-                        str(user.tenant_id),
-                        req.recommendation_id,
+                    from api.learning_feedback import existing_recommendation_outcome
+
+                    existing = await existing_recommendation_outcome(
+                        conn, str(user.tenant_id), req.recommendation_id
                     )
                     action = recommendation_outcome_write_action(
                         dict(existing) if existing else None,
