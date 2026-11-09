@@ -1257,6 +1257,7 @@
       "tests": [
         "services/raster-service/test_field_terrain.py",
         "services/raster-service/test_field_terrain_multipolygon_extent.py",
+        "services/raster-service/test_terrain_gradient_support_and_holes.py",
         "services/raster-service/test_terrain_render.py",
         "services/sahool-platform/tests/test_dem_auto_fill_refusal.py",
         "services/sahool-platform/tests/test_dem_enrichment.py",
@@ -1294,7 +1295,7 @@
           "path": "services/raster-service/terrain_source_registry.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=10, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=11, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -1881,6 +1882,7 @@
       "tests": [
         "services/raster-service/test_change_detection_grid.py",
         "services/raster-service/test_change_detection_validity.py",
+        "services/raster-service/test_change_direction_policy.py",
         "services/raster-service/test_field_change_alignment.py",
         "tests_v9/test_change_detection.py",
         "tests_v9/test_field_change_summary.py"
@@ -1901,7 +1903,7 @@
           "path": "shared/field_change_summary.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=5, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -2076,10 +2078,10 @@
         "services/raster-service/test_cdse_tilejson_availability.py",
         "services/raster-service/test_change_detection_grid.py",
         "services/raster-service/test_change_detection_validity.py",
+        "services/raster-service/test_change_direction_policy.py",
         "services/raster-service/test_clip_grid.py",
         "services/raster-service/test_clip_polygon_stored_geometry.py",
-        "services/raster-service/test_cloud_mask_strategies.py",
-        "services/raster-service/test_cloud_masking.py"
+        "services/raster-service/test_cloud_mask_strategies.py"
       ],
       "runtime": {
         "metrics": [],
@@ -2123,7 +2125,7 @@
       },
       "evidence_truncated": {
         "apis": 63,
-        "tests": 148
+        "tests": 150
       }
     },
     {
@@ -3302,7 +3304,7 @@
         "GET /health @ services/actuator-service/routers/health.py:20",
         "GET /healthz @ services/actuator-service/routers/health.py:20",
         "GET /readyz @ services/actuator-service/routers/health.py:32",
-        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229",
+        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:236",
         "GET /v1/commands @ services/actuator-service/routers/commands.py:115",
         "GET /v1/commands/{command_id} @ services/actuator-service/routers/commands.py:141",
         "GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18",
@@ -4563,6 +4565,7 @@
         "services/decision-service/tests/test_activation_evidence_contract.py",
         "services/decision-service/tests/test_agronomic_evidence_contract.py",
         "services/decision-service/tests/test_decision_evidence_read.py",
+        "services/gis-workflow-service/tests/test_bulletin_bundle_evidence.py",
         "services/gis-workflow-service/tests/test_run_bundle_validity_and_evidence.py",
         "services/raster-service/test_cdse_cause_evidence.py",
         "services/sahool-platform/tests/test_adapt_from_evidence.py",
@@ -4582,16 +4585,14 @@
         "tests/architecture/test_runtime_evidence_trust_hardening.py",
         "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
         "tests_v9/test_collect_guard_surface_evidence.py",
-        "tests_v9/test_cropwise_evidence_quality.py",
-        "tests_v9/test_d09_live_evidence_receipt.py"
+        "tests_v9/test_cropwise_evidence_quality.py"
       ],
       "runtime": {
         "metrics": [],
         "traces": [],
         "receipts": [
           "receipt:api:POST_/v1/activation/evidence-receipts",
-          "receipt:api:POST_/v1/activation/evidence-receipts/{evidence_id}/revoke",
-          "receipt:test:tests_v9/test_d09_live_evidence_receipt.py"
+          "receipt:api:POST_/v1/activation/evidence-receipts/{evidence_id}/revoke"
         ],
         "audit_events": []
       },
@@ -4626,7 +4627,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 14
+        "tests": 15
       }
     },
     {
@@ -5643,7 +5644,7 @@
       "apis": [
         "GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19",
         "GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:642",
-        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229"
+        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:236"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

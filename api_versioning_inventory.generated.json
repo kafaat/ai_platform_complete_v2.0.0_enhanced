@@ -9443,7 +9443,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 205,
+    "line": 212,
     "method": "GET",
     "path": "/v1/agent/journal/{invocation_id}",
     "handler": "get_journal_replay",
@@ -9452,7 +9452,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 229,
+    "line": 236,
     "method": "GET",
     "path": "/v1/agent/actuator-audit",
     "handler": "get_actuator_audit",

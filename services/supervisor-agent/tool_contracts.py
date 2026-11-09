@@ -66,6 +66,9 @@ class ToolContract:
         cost_estimate: تقدير تكلفة الاستدعاء (للـtoken budgeting)
         retry_policy: إن فشل، هل نُعيد المحاولة؟
         idempotent: هل الاستدعاء مرّتَين = استدعاء مرّة واحدة؟
+        example_only: عقدٌ توضيحيّ بلا تنفيذ حقيقيّ — يُعرَض في الكتالوج موسوماً ولا يُنفَّذ
+        available: هل للأداة تنفيذٌ حيّ قابل للاستدعاء؟ ``invoke`` يرفض ما ليس متاحاً
+            قبل لمس التنفيذ، مهما حمل المستدعي من صلاحيّات.
     """
 
     tool_id: str
@@ -81,6 +84,8 @@ class ToolContract:
     retry_policy: str = "exponential_backoff"
     max_retries: int = 3
     idempotent: bool = True
+    example_only: bool = False
+    available: bool = True
 
     def __post_init__(self):
         # Validation
@@ -90,6 +95,13 @@ class ToolContract:
             assert self.idempotent or self.max_retries == 0, (
                 f"{self.tool_id}: write/actuator يجب أن يكون idempotent أو max_retries=0"
             )
+        # مثالٌ لا يكون متاحاً أبداً: الإعلان المتناقض يُرفَض عند البناء لا عند الاستدعاء.
+        if self.example_only and self.available:
+            raise ValueError(f"{self.tool_id}: example_only tool cannot be available")
+
+    @property
+    def invocable(self) -> bool:
+        return self.available and not self.example_only
 
 
 @dataclass
@@ -140,6 +152,10 @@ class ToolRegistry:
     def list_tools(self) -> list[str]:
         return sorted(self._contracts.keys())
 
+    def list_invocable_tools(self) -> list[str]:
+        """الأدوات ذات التنفيذ الحيّ فقط (لا أمثلة ولا غير متاحة)."""
+        return sorted(tid for tid, c in self._contracts.items() if c.invocable)
+
     def list_by_side_effect(self, sec: SideEffectClass) -> list[str]:
         return [tid for tid, c in self._contracts.items() if c.side_effects == sec]
 
@@ -170,6 +186,21 @@ class ToolRegistry:
                 invocation_id=invocation_id,
                 success=False,
                 error=f"tool {tool_id} غير مسجّل",
+            )
+
+        # ١ب. example/unavailable — يُرفَض قبل الصلاحيّات وقبل التنفيذ: مثالٌ بلا تنفيذ حيّ لا
+        # يصير «نجاحاً» (كانت `actuator.pump.start` تُعيد irrigation_event_id مُختلَقاً لمن يحمل
+        # actuator.pump.control). AGENT-TOOL-REGISTRY-DUMMIES-01 / S-07.
+        if not contract.invocable:
+            kind = "example-only" if contract.example_only else "unavailable"
+            err = f"tool {tool_id} is {kind}: no live implementation is wired; refusing to invoke"
+            if journal:
+                await journal.record_denial(invocation_id, tool_id, err, tenant_id)
+            return ToolExecutionResult(
+                tool_id=tool_id,
+                invocation_id=invocation_id,
+                success=False,
+                error=err,
             )
 
         # ٢. capabilities check
@@ -449,11 +480,16 @@ def _hash_payload(data: Any) -> str:
     return hashlib.sha256(s.encode()).hexdigest()[:16]
 
 
-# ─── Example: تسجيل tools حقيقيّة ────────────────────────────────
+# ─── Examples: عقودٌ توضيحيّة غير متاحة ───────────────────────────
 
 
 def bootstrap_default_tools(registry: ToolRegistry) -> None:
-    """يسجّل أمثلة من الـtools الحقيقيّة في سهول."""
+    """يسجّل **أمثلة** عقود (لا أدوات حيّة) لتوضيح شكل الـcontract.
+
+    الثلاثة ``example_only=True`` و``available=False``: تظهر في الكتالوج موسومةً كأمثلة،
+    و``ToolRegistry.invoke`` يرفضها قبل لمس التنفيذ. ليس لأيّ منها تنفيذٌ حقيقيّ موصول
+    عبر السجلّ بعد (AGENT-TOOL-REGISTRY-DUMMIES-01 ما زالت مفتوحة لذلك الشقّ).
+    """
 
     # 1. Weather forecast (pure, read-only)
     registry.register(
@@ -482,6 +518,8 @@ def bootstrap_default_tools(registry: ToolRegistry) -> None:
             deterministic=False,  # weather يتغيّر
             required_capabilities=["weather.read"],
             idempotent=True,
+            example_only=True,
+            available=False,
         ),
         implementation=_dummy_weather_impl,
     )
@@ -511,6 +549,8 @@ def bootstrap_default_tools(registry: ToolRegistry) -> None:
             cost_estimate_tokens=0,
             max_retries=0,  # ⚠ لا retry للـactuators
             idempotent=False,
+            example_only=True,
+            available=False,
         ),
         implementation=_dummy_pump_impl,
     )
@@ -533,22 +573,26 @@ def bootstrap_default_tools(registry: ToolRegistry) -> None:
             timeout_ms=30000,
             deterministic=True,
             required_capabilities=["ndvi.read"],
+            example_only=True,
+            available=False,
         ),
         implementation=_dummy_ndvi_impl,
     )
 
 
-async def _dummy_weather_impl(lat: float, lng: float, days: int = 7):
-    """مثال — يُستبدَل بالـimpl الحقيقي."""
-    await asyncio.sleep(0.01)
-    return {"forecast": [{"day": i, "temp_c": 25 + i} for i in range(days)]}
+def _example_has_no_implementation(tool_id: str):
+    """تنفيذ المثال: يرفض دائماً بدل اختلاق ناتج (دفاعٌ إضافيّ وراء رفض ``invoke``).
+
+    كانت هذه تُعيد توقّعاً مُختلَقاً، وNDVI ثابتاً 0.65، و``irrigation_event_id`` مُختلَقاً
+    (نجاح مشغّل زائف). لا ناتج بلا مصدر حيّ.
+    """
+
+    async def _impl(**_kwargs: Any) -> Any:
+        raise RuntimeError(f"{tool_id} is an example contract with no live implementation")
+
+    return _impl
 
 
-async def _dummy_pump_impl(well_id: str, duration_min: int):
-    await asyncio.sleep(0.01)
-    return {"irrigation_event_id": str(uuid.uuid4())}
-
-
-async def _dummy_ndvi_impl(field_id: str):
-    await asyncio.sleep(0.01)
-    return {"ndvi_mean": 0.65}
+_dummy_weather_impl = _example_has_no_implementation("weather.forecast")
+_dummy_pump_impl = _example_has_no_implementation("actuator.pump.start")
+_dummy_ndvi_impl = _example_has_no_implementation("ndvi.read_observation")

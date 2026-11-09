@@ -99,7 +99,7 @@ medium,raster-service,function,fetch_wapor_mapsets,services/raster-service/wapor
 medium,sahool-platform,class,AgroZone,services/sahool-platform/api/agro_climate_zones.py,26,0,review_before_delete,False
 medium,sahool-platform,function,consume_phenology_state,services/sahool-platform/api/agronomic_state_consumers.py,55,0,review_before_delete,False
 medium,sahool-platform,function,consume_salinity_state,services/sahool-platform/api/agronomic_state_consumers.py,96,0,review_before_delete,False
-medium,sahool-platform,function,consume_nutrient_ledger,services/sahool-platform/api/agronomic_state_consumers.py,157,0,review_before_delete,False
+medium,sahool-platform,function,consume_nutrient_ledger,services/sahool-platform/api/agronomic_state_consumers.py,171,0,review_before_delete,False
 medium,sahool-platform,function,build_canonical_energy_microgrid_capability,services/sahool-platform/api/canonical_energy_microgrid_capability.py,131,0,review_before_delete,False
 medium,sahool-platform,function,energy_capability_to_mpc_constraints,services/sahool-platform/api/canonical_energy_microgrid_capability.py,385,0,review_before_delete,False
 medium,sahool-platform,function,build_canonical_hydraulic_capability,services/sahool-platform/api/canonical_hydraulic_capability.py,117,0,review_before_delete,False

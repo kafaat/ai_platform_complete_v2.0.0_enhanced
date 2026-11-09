@@ -15,25 +15,33 @@ change_detection.py — كشف التغيير المكاني بين تاريخي
 
 from __future__ import annotations
 
-# المؤشّرات حيث القيمة الأعلى = أسوأ (تدهور): الملوحة. الباقي (ندوة/رطوبة/مياه):
-# القيمة الأدنى = أسوأ. اتّجاه شدّة indicator_grid صار يُشتقّ من tile_render._INDEX_DOMAIN
-# (invert)؛ هذه المجموعة تطابقه لـsalinity/ndsi فقط (msi/bsi المعكوسة غير مُدرَجة هنا بعد).
-_HIGHER_IS_WORSE = {"salinity", "ndsi"}
-
-# القائمة المعروفة باتّجاه صريح (S3-b): كلّ مؤشّر قياسيّ في IndicatorKind + الاسم
-# العامّ salinity. اسم خارجها يُرفض (ValueError ⇒ 422 على الحدود) بدل أن يسقط
-# صامتاً على «الأدنى أسوأ» فيقلب التدهور تحسّناً. truecolor/et_inputs ليست مؤشّراً
-# قياسيّاً بقيمة واحدة فلا اتّجاه لها.
-# تنبيه: بقيّة المؤشّرات تحمل الافتراض الموروث «الأدنى أسوأ»، ومنها مؤشّرات إجهاد/تربة
-# عارية (msi/cwsi/tvdi/lst/bsi/bi/bi2/dbsi/ndti/sipi) قد يكون اتّجاهها معكوساً —
-# تصحيحها قرار علميّ مفتوح، لا يُخمَّن هنا.
-# نسخة الحدود raster_api_models.canonical_change_index تطابق canonical_index (مفروض
-# باختبار) — الوحدتان ورقتان تُحمَّلان بمساريهما فلا تستورد إحداهما الأخرى.
+# اتّجاه المؤشّر لكشف التغيّر — ثلاثة أصناف صريحة (S3-b: اسم خارجها يُرفض ValueError ⇒ 422
+# على الحدود بدل أن يسقط صامتاً على «الأدنى أسوأ» فيقلب التدهور تحسّناً):
+#
+# • القيمة الأعلى = أسوأ: الملوحة (salinity/ndsi)، و**مؤشّرات الإجهاد المائيّ بتعريفها**:
+#   MSI = SWIR/NIR (B11/B08) يرتفع بنقص ماء الورقة؛ CWSI = مؤشّر إجهاد مائيّ للمحصول
+#   (0 = بلا إجهاد، 1 = إجهاد أقصى)؛ TVDI = مؤشّر جفاف حرارة–نبات (0 رطب، 1 جاف). كانت
+#   الثلاثة في «الأدنى أسوأ» فيُوسَم تفاقم الإجهاد «تحسّناً» — حُسِم بتعريفاتها (لا تخمين)،
+#   ويطابق tile_render._INDEX_DOMAIN (invert=True لـmsi/cwsi/tvdi) الذي تشتقّ منه شدّة
+#   indicator_grid.
+# • الاتّجاه يتبع السياق (لا حكم عامّ تحسّن/تدهور): تربة عارية/سطوع/حراثة (bsi/bi/bi2/dbsi/
+#   ndti) — ارتفاعها قد يكون تدهور غطاء أو حراثة/حصاد مقصودين؛ وLST — ارتفاعها إجهاد حراريّ
+#   في الصيف وقد يكون موسميّاً محضاً. يُحفَظ فرق البكسل وإحصاؤه ويُحجَب وسم التحسّن/التدهور
+#   مع سبب صريح (index_direction_context_dependent). بقي مفتوحاً: ربط اتّجاهها بالموسم/مرحلة
+#   المحصول، واتّجاه sipi (ما زال على الافتراض الموروث «الأدنى أسوأ»).
+# • القيمة الأدنى = أسوأ: الغطاء النباتيّ/اليخضور/الرطوبة/المياه وTCI/VHI (عالٍ = صحّيّ).
+#
+# truecolor/et_inputs ليست مؤشّراً قياسيّاً بقيمة واحدة فلا اتّجاه لها. نسخة الحدود
+# raster_api_models.canonical_change_index تطابق canonical_index (مفروض باختبار) — الوحدتان
+# ورقتان تُحمَّلان بمساريهما فلا تستورد إحداهما الأخرى (ولا تحمل نسخة الحدود اتّجاهاً).
+_HIGHER_IS_WORSE = {"salinity", "ndsi", "msi", "cwsi", "tvdi"}
+_CONTEXT_DEPENDENT = {"bsi", "bi", "bi2", "dbsi", "ndti", "lst"}
 _LOWER_IS_WORSE = {
     "ndvi", "evi", "savi", "ndwi", "ndmi", "gndvi", "fapar", "vari", "gli", "tgi",
-    "ndre", "reci", "gci", "arvi", "sipi", "nbr", "ccci", "msi", "msavi", "moisture",
-    "bsi", "bi", "bi2", "ndti", "dbsi", "satvi", "lst", "cwsi", "tvdi", "tci", "vhi",
+    "ndre", "reci", "gci", "arvi", "sipi", "nbr", "ccci", "msavi", "moisture",
+    "satvi", "tci", "vhi",
 }  # fmt: skip
+_DIRECTION_WITHHELD_REASON = "index_direction_context_dependent"
 _INDEX_ALIASES = {
     "salt": "salinity",
     "soil_salinity": "salinity",
@@ -49,14 +57,19 @@ def canonical_index(index: str | None) -> str:
     """
     key = str(index or "").strip().lower().replace(" ", "_").replace("-", "_")
     key = _INDEX_ALIASES.get(key, key)
-    if key not in _HIGHER_IS_WORSE and key not in _LOWER_IS_WORSE:
+    if key not in _HIGHER_IS_WORSE | _LOWER_IS_WORSE | _CONTEXT_DEPENDENT:
         raise ValueError(f"unknown_change_index: {index!r}")
     return key
 
 
 def index_direction(index: str) -> str:
-    """اتّجاه المؤشّر الصريح بعد التطبيع: higher_is_worse | lower_is_worse."""
-    return "higher_is_worse" if canonical_index(index) in _HIGHER_IS_WORSE else "lower_is_worse"
+    """اتّجاه المؤشّر الصريح بعد التطبيع: higher_is_worse | lower_is_worse | context_dependent."""
+    key = canonical_index(index)
+    if key in _HIGHER_IS_WORSE:
+        return "higher_is_worse"
+    if key in _CONTEXT_DEPENDENT:
+        return "context_dependent"
+    return "lower_is_worse"
 
 
 # تغطية صالحة دونها تُعتبر النتيجة جزئيّة (غيوم/فجوات) ويُرفع تحذير.
@@ -142,7 +155,17 @@ def _interpret_ar(
         return "لا بكسلات صالحة للمقارنة (تغطية صفر — غيوم أو فجوات بين التاريخين)."
 
     parts: list[str] = []
-    salinity = index in _HIGHER_IS_WORSE
+    if index in _CONTEXT_DEPENDENT:
+        parts.append(
+            f"فرق المؤشّر محسوب (متوسّط {mean_delta:+.3f})، لكن لا حكم عامّ بالتحسّن أو التدهور: "
+            f"اتّجاه {index} يتبع السياق (حراثة/حصاد/موسم مقابل تدهور غطاء) — "
+            "فسِّر خريطة الفرق مع مرحلة المحصول والعمليّات الميدانيّة"
+        )
+        msg = "؛ ".join(parts) + "."
+        if cloud_warning:
+            msg += f" ⚠️ التغطية {round(coverage * 100, 1)}% فقط — نتيجة جزئيّة (غيوم/فجوات)."
+        return msg
+    salinity = index in {"salinity", "ndsi"}  # لا «زحف ملوحة» لإجهاد msi/cwsi/tvdi
     if degraded_pct >= 5.0:
         lead = "زحف ملوحة محتمل: " if salinity else ""
         parts.append(
@@ -204,6 +227,7 @@ def detect_change(
     rows, cols = (int(b.shape[0]), int(b.shape[1])) if b.size else (0, 0)
     total = rows * cols
     higher_is_worse = index in _HIGHER_IS_WORSE
+    verdict_withheld = index in _CONTEXT_DEPENDENT
     slight = abs(float(slight_threshold))
     severe = max(abs(float(severe_threshold)), slight)
 
@@ -258,10 +282,47 @@ def detect_change(
     # S3-a: بلا خليّة صالحة مشتركة لا مقارنة أصلاً ⇒ not_assessable ومقاييس null
     # (لا mean_delta=0 ولا نسب 0% تُقرأ «استقراراً مرصوداً»). الشبكتان تبقيان null.
     assessable = valid > 0
+    interpretation = _interpret_ar(
+        index, coverage, mean_delta, severe_pct, degraded_pct, improved_pct, cloud_warning
+    )
+
+    if verdict_withheld:
+        # اتّجاه يتبع السياق: فرق البكسل وإحصاؤه حقيقيّان ويُعادان؛ وسم التحسّن/التدهور
+        # (change_grid/zones/النسب) يُحجَب بدل تخمينه. changed_pct = |Δ| ≥ العتبة الطفيفة.
+        changed_pct = round(100.0 - stable_pct, 2) if assessable else None
+        return {
+            "index": index,
+            "direction": "context_dependent",
+            "status": "assessed" if assessable else "not_assessable",
+            "reason_codes": [] if assessable else ["no_common_valid_pixels"],
+            "verdict_withheld": True,
+            "verdict_reason_codes": [_DIRECTION_WITHHELD_REASON],
+            "rows": rows,
+            "cols": cols,
+            "delta_grid": delta_grid,
+            "change_grid": None,
+            "mean_delta": mean_delta if assessable else None,
+            "improved_pct": None,
+            "degraded_pct": None,
+            "stable_pct": stable_pct if assessable else None,
+            "changed_pct": changed_pct,
+            "stats": stats if assessable else None,
+            "coverage_pct": round(coverage * 100, 2),
+            "valid_pixels": valid,
+            "percentage_denominator": "common_valid_pixels",
+            "degraded_grid_pct": None,
+            "total_pixels": total,
+            "areas": None,
+            "zones": [],
+            "thresholds": {"slight": slight, "severe": severe},
+            "cloud_warning": cloud_warning,
+            "interpretation_ar": interpretation,
+        }
 
     return {
         "index": index,
         "direction": "higher_is_worse" if higher_is_worse else "lower_is_worse",
+        "verdict_withheld": False,
         "status": "assessed" if assessable else "not_assessable",
         "reason_codes": [] if assessable else ["no_common_valid_pixels"],
         "rows": rows,
@@ -290,7 +351,5 @@ def detect_change(
         "zones": _zones_from_codes(code_grid, delta_grid, rows, cols),
         "thresholds": {"slight": slight, "severe": severe},
         "cloud_warning": cloud_warning,
-        "interpretation_ar": _interpret_ar(
-            index, coverage, mean_delta, severe_pct, degraded_pct, improved_pct, cloud_warning
-        ),
+        "interpretation_ar": interpretation,
     }
