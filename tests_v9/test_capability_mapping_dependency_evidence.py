@@ -410,3 +410,21 @@ def test_reviewed_labels_are_preserved_not_rewritten(shipped):
     assert "tests_v9/test_main_inventory_generator.py" not in caps
     assert "scripts/diagnostics/build_main_inventory.py" not in caps
     assert "tests_v9/service_module.py" not in caps
+
+
+def test_functional_text_is_identical_across_python_tokenizers():
+    """PEP 701 (3.12) splits an f-string into FSTRING_START/MIDDLE/END plus expression
+    tokens; 3.11 emits one STRING. CI regenerates on 3.12 and local runs on 3.11, so the
+    functional text must fold each f-string back into one token spanning its exact source,
+    or the committed map drifts on one of them (seen on #1361 at 84a62ad28)."""
+    source = (
+        'x = f"a{b!r:>{w}}c{f\'{d}\'}"  # comment\n'
+        'rows = [{"id": f"FM-{i}"}, "NDVI"]\n'
+    )
+    assert ENGINE.python_functional_text(source, fixture_data=False) == (
+        'x = f"a{b!r:>{w}}c{f\'{d}\'}" \n rows = [ { "id" : f"FM-{i}" } , "NDVI" ] \n '
+    )
+    # A fixture f-string inside a literal is dropped like any fixture string.
+    assert ENGINE.python_functional_text(source, fixture_data=True) == (
+        'x = f"a{b!r:>{w}}c{f\'{d}\'}" \n rows = [ { : } , ] \n '
+    )

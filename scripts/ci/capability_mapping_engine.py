@@ -393,17 +393,63 @@ def python_functional_text(text: str, *, fixture_data: bool) -> str | None:
     starts = [start for start, _ in spans]
     kept: list[str] = []
     try:
-        for tok in tokenize.generate_tokens(io.StringIO(text).readline):
-            if tok.type == tokenize.COMMENT:
+        for tok_type, tok_string, tok_start, tok_end in _version_stable_tokens(text):
+            if tok_type == tokenize.COMMENT:
                 continue
-            if tok.type == tokenize.STRING and spans:
-                index = bisect.bisect_right(starts, tok.start) - 1
-                if index >= 0 and spans[index][0] <= tok.start and tok.end <= spans[index][1]:
+            if tok_type == tokenize.STRING and spans:
+                index = bisect.bisect_right(starts, tok_start) - 1
+                if index >= 0 and spans[index][0] <= tok_start and tok_end <= spans[index][1]:
                     continue
-            kept.append(tok.string)
+            kept.append(tok_string)
     except (tokenize.TokenError, SyntaxError):
         return None
     return " ".join(kept)
+
+
+# Python 3.12 (PEP 701) tokenizes an f-string as FSTRING_START … FSTRING_END with the
+# interpolated expressions as separate tokens; 3.14 adds the same for t-strings. Earlier
+# versions emit one STRING token. The functional text feeds generated artifacts that CI
+# (3.12) and local runs (3.11) must reproduce byte-for-byte, so an f-string is folded
+# back into a single STRING token spanning its exact source text on every version.
+_STRING_GROUP_STARTS = {
+    getattr(tokenize, name) for name in ("FSTRING_START", "TSTRING_START") if hasattr(tokenize, name)
+}
+_STRING_GROUP_ENDS = {
+    getattr(tokenize, name) for name in ("FSTRING_END", "TSTRING_END") if hasattr(tokenize, name)
+}
+
+
+def _version_stable_tokens(text: str):
+    lines = text.splitlines(keepends=True)
+    offsets = [0]
+    for line in lines:
+        offsets.append(offsets[-1] + len(line))
+
+    def offset(position: tuple[int, int]) -> int:
+        row, col = position
+        return offsets[row - 1] + col if row - 1 < len(offsets) else len(text)
+
+    depth = 0
+    group_start: tuple[int, int] | None = None
+    for tok in tokenize.generate_tokens(io.StringIO(text).readline):
+        if tok.type in _STRING_GROUP_STARTS:
+            if depth == 0:
+                group_start = tok.start
+            depth += 1
+            continue
+        if depth:
+            if tok.type in _STRING_GROUP_ENDS:
+                depth -= 1
+                if depth == 0 and group_start is not None:
+                    yield (
+                        tokenize.STRING,
+                        text[offset(group_start) : offset(tok.end)],
+                        group_start,
+                        tok.end,
+                    )
+                    group_start = None
+            continue
+        yield tok.type, tok.string, tok.start, tok.end
 
 
 class ScoringText(NamedTuple):
