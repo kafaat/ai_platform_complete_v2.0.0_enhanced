@@ -9,11 +9,12 @@ same decision_id on a retry and replays it instead of minting a duplicate.
 from __future__ import annotations
 
 import asyncio
+from datetime import UTC, datetime
 from uuid import UUID
 
 import decision_bridge
 import pytest
-from decision_bridge import DecisionBridge, candidate_lineage_id
+from decision_bridge import DecisionBridge, candidate_lineage_id, snapshot_quality_gate
 from diagnosis_engine import build_diagnosis
 
 pytestmark = pytest.mark.unit
@@ -21,7 +22,7 @@ pytestmark = pytest.mark.unit
 TENANT = "88ddb9f8-cf89-4398-a404-fe88ec4d4bb6"
 
 
-def _diagnosis():
+def _diagnosis(evidence_overrides=None):
     record = {
         "anomaly_ref": "urn:sahool:anomaly:anm_bridge",
         "tenant_id": TENANT,
@@ -42,6 +43,7 @@ def _diagnosis():
                     "captured_at": "2026-07-15T00:00:00Z",
                     "content_hash": "a" * 64,
                     "verification_state": "verified",
+                    **(evidence_overrides or {}),
                 }
             ],
             "disposition_reason_codes": ["soil_dry"],
@@ -117,3 +119,46 @@ def test_lineage_is_deterministic_and_content_bound():
     assert a == candidate_lineage_id("urn:sahool:diagnosis:d1", "f" * 64)
     assert a != candidate_lineage_id("urn:sahool:diagnosis:d1", "e" * 64)
     assert a != candidate_lineage_id("urn:sahool:diagnosis:d2", "f" * 64)
+
+
+def _snapshot(monkeypatch, diagnosis) -> dict:
+    posts: list = []
+    monkeypatch.setattr(decision_bridge.httpx, "AsyncClient", _fake_client(posts))
+    asyncio.run(
+        DecisionBridge(base_url="http://decision.test").refer(
+            diagnosis=diagnosis,
+            authorization="Bearer t",
+            field_state_ref="urn:sahool:field-state:fs_1",
+        )
+    )
+    return next(body for url, body in posts if url.endswith("/v1/evidence/vegetation-snapshots"))
+
+
+def test_snapshot_claims_ground_verification_only_from_verified_ground_evidence(monkeypatch):
+    monkeypatch.delenv("DECISION_SERVICE_TOKEN", raising=False)
+    monkeypatch.delenv("SAHOOL_ENV", raising=False)
+    gate = _snapshot(monkeypatch, _diagnosis())["quality_gate"]
+    assert gate["status"] == "verified" and gate["source"] == "ground_verification"
+    assert gate["evidence_refs"] == ["urn:sahool:evidence:evd_1"]
+
+
+@pytest.mark.parametrize(
+    "override",
+    [
+        {"evidence_type": "satellite_observation"},
+        {"valid_until": "2026-07-16T00:00:00Z"},
+    ],
+)
+def test_snapshot_is_unverified_without_usable_ground_evidence(override):
+    diagnosis = _diagnosis(override)
+    gate = snapshot_quality_gate(diagnosis, now=datetime(2026, 11, 1, tzinfo=UTC))
+    assert gate["status"] == "unverified"
+    assert gate["source"] == "remote_sensing_hypothesis"
+    assert gate["evidence_refs"] == []
+
+
+def test_contradicting_ground_evidence_blocks_the_verified_claim():
+    diagnosis = _diagnosis({"relation_type": "contradicting"})
+    gate = snapshot_quality_gate(diagnosis, now=datetime(2026, 11, 1, tzinfo=UTC))
+    assert gate["status"] == "contradicted"
+    assert gate["source"] == "remote_sensing_hypothesis"
