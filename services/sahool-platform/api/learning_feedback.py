@@ -132,22 +132,141 @@ def _stable_digest(payload: dict) -> str:
     ).hexdigest()
 
 
-_UNIT_COLUMNS = frozenset({"farm_id", "season_id"})
-
-
 def independent_outcome_units(outcomes: list[dict], *, field_id: str, season_id: str) -> set:
     """وحداتُ التكرار المستقلّة: (المزرعة، الموسم) المتمايزة — لا الصفوف (F5).
 
-    صفٌّ بلا ``farm_id`` يُنسَب إلى حقله (``field:<id>``) فلا يُختلَق استقلالٌ من فراغ، ولا
-    يُحتسَب كلُّ صفٍّ فارغٍ وحدةً منفصلة.
+    صفٌّ بلا ``farm_id`` يُنسَب إلى حقله (``field:<id>`` — حقلُ الصفّ نفسه إن حمله، وإلّا الحقلُ
+    المُغلَق) فلا يُختلَق استقلالٌ من فراغ، ولا يُحتسَب كلُّ صفٍّ فارغٍ وحدةً منفصلة. صفوفُ وحدةٍ
+    واحدة المكرَّرة تُعَدّ مرّةً واحدة (مجموعة).
     """
-    return {
-        (
-            str(o.get("farm_id") or f"field:{field_id}"),
-            str(o.get("season_id") or season_id),
-        )
-        for o in outcomes
-    }
+    return {_outcome_unit(o, field_id=field_id, season_id=season_id) for o in outcomes}
+
+
+def _outcome_unit(o: dict, *, field_id: str, season_id: str) -> tuple[str, str]:
+    return (
+        str(o.get("farm_id") or f"field:{o.get('field_id') or field_id}"),
+        str(o.get("season_id") or season_id),
+    )
+
+
+# ── تجميع الدليل عبر وحداتٍ مستقلّة متماثلة ──────────────────────────────────────────
+# حقلٌ-موسمٌ واحد وحدةٌ واحدة، فالحدُّ الأدنى (٣ افتراضاً) لا يُبلَغ من إغلاقٍ واحد أبداً. يُجمَّع
+# الدليلُ من مواسم المستأجِر **الأخرى المكتملة** المتماثلة مع المُغلَق. مفتاحُ التماثل أضيقُ ما تحمله
+# صفوف ``recommendation_outcomes`` (v49) بصدق: المستأجِر (RLS + مُسنَدٌ صريح) × المحصول القانونيّ
+# (``resolve_crop_id`` على عمود ``crop``؛ اسمٌ مجهول أو ملتبس ⇒ لا تجميع) × المهمّة
+# ``yield_forecast_calibration`` (كلُّ صفوف الجدول أزواجُ غلّة، وسياسةُ الأهليّة تُسقِط ما لا زوجَ له).
+# لا عمودَ لإصدار النموذج/السياسة ولا للإقليم على الصفّ، والإقليمُ (``fields.zone_key``) جدولٌ لا يقرؤه
+# هذا المسار — فلا يُدَّعى تماثلٌ أضيق ممّا يُقاس. «مكتمل» = صفٌّ اجتاز سياسة الأهليّة نفسها
+# (ناضج + قيمة فعليّة منتهية).
+LEARNING_POOL_TASK = "yield_forecast_calibration"
+
+
+def _normalized_tenant(value) -> str:
+    from uuid import UUID
+
+    text = str(value or "").strip()
+    try:
+        return str(UUID(text))
+    except (TypeError, ValueError):
+        return text.lower()
+
+
+def resolve_pooling_crop(outcomes: list[dict]) -> tuple[str | None, str | None]:
+    """المحصولُ القانونيّ للوحدة المُغلَقة من صفوفها: ``(crop_id, None)`` أو ``(None, السبب)``.
+
+    بلا محصول ⇒ ``POOLING_CROP_MISSING``؛ اسمٌ لا تحلّه البطاقات ⇒ ``POOLING_CROP_UNRESOLVED``؛
+    أكثر من محصولٍ قانونيّ في الحقل-الموسم ⇒ ``POOLING_CROP_AMBIGUOUS``. لا تخمين.
+    """
+    from core.season_phenology import resolve_crop_id
+
+    raws = {str(o.get("crop")).strip() for o in outcomes if str(o.get("crop") or "").strip()}
+    if not raws:
+        return None, "POOLING_CROP_MISSING"
+    ids = {resolve_crop_id(raw) for raw in raws}
+    if None in ids:
+        return None, "POOLING_CROP_UNRESOLVED"
+    if len(ids) != 1:
+        return None, "POOLING_CROP_AMBIGUOUS"
+    return ids.pop(), None
+
+
+def comparable_pool_rows(
+    candidates: list[dict],
+    *,
+    tenant_id: str,
+    crop_id: str,
+    field_id: str,
+    season_id: str,
+) -> tuple[list[dict], dict[str, int]]:
+    """صفوفُ الحقول-المواسم الأخرى المتماثلة ``(rows, rejected_reasons)`` — دفاعٌ ثانٍ فوق SQL.
+
+    يُرفَض: مستأجِرٌ آخر أو غائب (``tenant_mismatch``)، محصولٌ قانونيّ آخر (``crop_mismatch``)،
+    صفوفُ الحقل-الموسم المُغلَق نفسه (تُقرأ في استعلامها فلا تُعَدّ مرّتين: ``closing_unit_row``)،
+    صفٌّ بلا موسم (``missing_season`` — لا يُنسَب إلى الموسم المُغلَق) أو بلا مزرعة ولا حقل
+    (``missing_unit_identity``).
+    """
+    from core.season_phenology import resolve_crop_id
+
+    tenant = _normalized_tenant(tenant_id)
+    kept: list[dict] = []
+    rejected: dict[str, int] = {}
+
+    def _reject(reason: str) -> None:
+        rejected[reason] = rejected.get(reason, 0) + 1
+
+    for row in candidates:
+        if not row.get("tenant_id") or _normalized_tenant(row.get("tenant_id")) != tenant:
+            _reject("tenant_mismatch")
+        elif resolve_crop_id(str(row.get("crop") or "")) != crop_id:
+            _reject("crop_mismatch")
+        elif not row.get("season_id"):
+            _reject("missing_season")
+        elif not (row.get("farm_id") or row.get("field_id")):
+            _reject("missing_unit_identity")
+        elif str(row.get("field_id") or "") == str(field_id) and str(row["season_id"]) == str(
+            season_id
+        ):
+            _reject("closing_unit_row")
+        else:
+            kept.append(row)
+    return kept, rejected
+
+
+def contributing_units(
+    paired: list[dict], *, closing_units: set, field_id: str, season_id: str
+) -> list[dict]:
+    """قائمةُ الوحدات المساهِمة القابلة للتدقيق: الوحدة + عدد نتائجها المؤهّلة + هل هي المُغلَقة."""
+    counts: dict[tuple[str, str], int] = {}
+    for o in paired:
+        unit = _outcome_unit(o, field_id=field_id, season_id=season_id)
+        counts[unit] = counts.get(unit, 0) + 1
+    return [
+        {
+            "farm_id": farm,
+            "season_id": season,
+            "outcome_count": n,
+            "closing": (farm, season) in closing_units,
+        }
+        for (farm, season), n in sorted(counts.items())
+    ]
+
+
+def outcome_source_digests(rows: list[dict]) -> list[str]:
+    """بصمةُ كلّ صفٍّ مساهِم على أعمدة الدليل **وهويّة وحدته** (مزرعة/موسم/حقل/محصول).
+
+    هويّةُ الوحدة داخل البصمة: مجمّعٌ مختلف (وحدةٌ أُضيفت/أُسقِطت/استُبدِلت) يُنتج بصماتٍ مختلفة فلا
+    يرث مراجعةَ غيره. المستأجِر يُستبعَد (ثابتٌ تحت RLS).
+    """
+    return sorted(
+        _stable_digest({k: v for k, v in row.items() if k != "tenant_id"}) for row in rows
+    )
+
+
+def learning_pool_digest(*, pooling_key: dict, units: list[dict], source_digests: list[str]) -> str:
+    """بصمةُ المجمّع كاملاً (المفتاح + الوحدات + بصمات الصفوف) — تربط المراجعةَ بمجمّعٍ بعينه."""
+    return _stable_digest(
+        {"pooling_key": pooling_key, "units": units, "source_digests": source_digests}
+    )
 
 
 # ── مراجعة المرشَّحات (F7) ─────────────────────────────────────────────────────────
@@ -167,11 +286,16 @@ def learning_candidate_review_transition(
     *,
     reviewed_by: str | None,
     reviewed_at=None,
+    evidence_pool_digest: str | None = None,
+    reviewed_pool_digest: str | None = None,
 ) -> dict:
     """يتحقّق من انتقال مراجعة مرشَّح تعلّم ويُعيد الأعمدة الواجب كتابتها معاً.
 
     approved/rejected ⇒ ``reviewed_by`` غير فارغ إلزاميّاً و``reviewed_at`` (الآن إن غاب)؛
     الاعتمادُ من ``review_ready`` فقط؛ الحالةُ النهائيّة لا تُراجَع ثانيةً. يرفع ``ValueError``.
+
+    مرشَّحٌ مجمَّع يحمل ``pool_digest`` في دليله: حين يُمرَّر (``evidence_pool_digest``) لا يُعتمَد إلّا
+    بمراجعةٍ تُسمّي البصمةَ نفسها (``reviewed_pool_digest``) — مراجعةُ مجمّعٍ لا تُنقَل إلى مجمّعٍ آخر.
     """
     from datetime import UTC, datetime
 
@@ -184,11 +308,147 @@ def learning_candidate_review_transition(
     reviewer = (reviewed_by or "").strip() if isinstance(reviewed_by, str) else ""
     if not reviewer:
         raise ValueError("REVIEWER_REQUIRED")
+    if (
+        new_status == "approved"
+        and evidence_pool_digest is not None
+        and reviewed_pool_digest != evidence_pool_digest
+    ):
+        raise ValueError("REVIEWED_POOL_DIGEST_MISMATCH")
     return {
         "status": new_status,
         "reviewed_by": reviewer,
         "reviewed_at": reviewed_at or datetime.now(UTC),
     }
+
+
+# الحدُّ المطلوب كما طُبِّق — مُميِّزٌ لا ``None`` لأنّ ``None`` نفسه حمولةٌ سيّئة تُعلَن.
+_REQUESTED_AS_APPLIED = object()
+
+
+def _has_eligible_outcome(outcomes: list[dict]) -> bool:
+    from core.outcome_reconciler import recommendation_outcome_eligibility
+
+    return any(
+        recommendation_outcome_eligibility(o, require_acceptance=False)["eligible"]
+        for o in outcomes
+    )
+
+
+def evaluate_season_learning(
+    outcomes: list[dict],
+    pool_rows: list[dict],
+    *,
+    tenant_id: str,
+    field_id: str,
+    season_id: str,
+    minimum_outcomes: int,
+    requested_minimum=_REQUESTED_AS_APPLIED,
+) -> dict:
+    """تقييمُ مرشَّح التعلّم من صفوف الوحدة المُغلَقة وصفوف المجمّع المقروءة — نقيّ حتميّ.
+
+    ``outcomes``: صفوف الحقل-الموسم المُغلَق. ``pool_rows``: صفوف الحقول-المواسم الأخرى المرشَّحة
+    (تُفرَز هنا بالمستأجِر والمحصول القانونيّ والهويّة؛ لا يُوثَق بالاستعلام وحده). أقلّ من الحدّ الأدنى
+    من الوحدات المستقلّة ⇒ ``blocked`` + ``MINIMUM_INDEPENDENT_UNITS_NOT_MET`` والعددُ الفعليّ.
+    """
+    if requested_minimum is _REQUESTED_AS_APPLIED:
+        requested_minimum = minimum_outcomes
+    # U02 (التدقيق الموحَّد 2026-09-13): سياسةُ الأهليّة نفسها التي يستعملها الموحِّد —
+    # قيمةٌ فعليّة مبكّرة قبل النضج أو غير منتهية لا تدخل حساب MAE ولا تعدّ نحو الحدّ
+    # الأدنى. دراسةُ دقّة التوقّع لا تشترط قبولَ التوصية (رفضُ المزارع لا يمحو حصاده).
+    from core.outcome_reconciler import recommendation_outcome_eligibility
+
+    excluded_reasons: dict[str, int] = {}
+
+    def _eligible(items: list[dict]) -> list[dict]:
+        kept: list[dict] = []
+        for o in items:
+            verdict = recommendation_outcome_eligibility(o, require_acceptance=False)
+            if verdict["eligible"]:
+                kept.append(o)
+            else:
+                reason = str(verdict["reason"])
+                excluded_reasons[reason] = excluded_reasons.get(reason, 0) + 1
+        return kept
+
+    closing_paired = _eligible(outcomes)
+    closing_units = independent_outcome_units(
+        closing_paired, field_id=field_id, season_id=season_id
+    )
+
+    # التجميع عبر الوحدات المتماثلة (انظر LEARNING_POOL_TASK): لا يُفعَّل إلّا إذا ساهمت الوحدةُ
+    # المُغلَقة نفسها بنتيجةٍ مؤهّلة وحُلَّ محصولُها قانونيّاً — وإلّا يبقى العدُّ على وحدتها وحدها.
+    crop_id, pooling_limitation = resolve_pooling_crop(outcomes)
+    if crop_id is not None and not closing_paired:
+        pooling_limitation = "POOLING_REQUIRES_ELIGIBLE_CLOSING_OUTCOME"
+    pool_candidates: list[dict] = []
+    pool_rejected: dict[str, int] = {}
+    if pooling_limitation is None and crop_id is not None:
+        pool_candidates, pool_rejected = comparable_pool_rows(
+            pool_rows,
+            tenant_id=tenant_id,
+            crop_id=crop_id,
+            field_id=field_id,
+            season_id=season_id,
+        )
+    pooled_paired = _eligible(pool_candidates)
+    paired = closing_paired + pooled_paired
+    considered = len(outcomes) + len(pool_candidates)
+    errors = [float(o["actual_yield_t_ha"]) - float(o["predicted_yield_t_ha"]) for o in paired]
+    mae = None if not errors else round(sum(abs(v) for v in errors) / len(errors), 6)
+    bias = None if not errors else round(sum(errors) / len(errors), 6)
+    # F5 (pseudo-replication): صفوفُ حقلٍ-موسمٍ واحد ليست عيّناتٍ مستقلّة. الحدُّ الأدنى يُقاس
+    # بوحدات (المزرعة، الموسم) المتمايزة لا بعدد الصفوف — ثلاثُ نتائج لموسمٍ واحد وحدةٌ واحدة،
+    # ووحدةٌ تظهر في الإغلاق وفي المجمّع معاً تُعَدّ مرّةً واحدة.
+    units = independent_outcome_units(paired, field_id=field_id, season_id=season_id)
+    unit_list = contributing_units(
+        paired, closing_units=closing_units, field_id=field_id, season_id=season_id
+    )
+    enough = len(units) >= minimum_outcomes
+    limitations = []
+    if len(paired) < minimum_outcomes:
+        limitations.append("MINIMUM_VERIFIED_OUTCOMES_NOT_MET")
+    if not enough:
+        limitations.append("MINIMUM_INDEPENDENT_UNITS_NOT_MET")
+    if pooling_limitation is not None:
+        limitations.append(pooling_limitation)
+    pooling_key = {
+        "tenant_scope": "app.current_tenant",
+        "crop_id": crop_id,
+        "task": LEARNING_POOL_TASK,
+        "source_table": "recommendation_outcomes",
+    }
+    # البصمةُ على كلّ صفٍّ مساهِم بهويّة وحدته — مجمّعٌ مختلف ⇒ بصماتٌ مختلفة ⇒ مرشَّحٌ مختلف.
+    source_digests = outcome_source_digests(paired)
+    evaluation = {
+        "field_id": field_id,
+        "season_id": season_id,
+        "outcome_count": len(paired),
+        "closing_unit_outcome_count": len(closing_paired),
+        "excluded_count": considered - len(paired),
+        "excluded_reasons": excluded_reasons,
+        "independent_units": len(units),
+        "unit_basis": "distinct (farm_id, season_id)",
+        "pooling_key": pooling_key,
+        "pooling_applied": pooling_limitation is None and crop_id is not None,
+        "pool_rejected": pool_rejected,
+        "contributing_units": unit_list,
+        "contributing_unit_count": len(unit_list),
+        "minimum_outcomes": minimum_outcomes,
+        **(
+            {"minimum_outcomes_requested": requested_minimum}
+            if requested_minimum != minimum_outcomes
+            else {}
+        ),
+        "mae_t_ha": mae,
+        "bias_t_ha": bias,
+        "status": "review_ready" if enough else "blocked",
+        "limitations": limitations,
+        "source_digests": source_digests,
+        "pool_digest": learning_pool_digest(
+            pooling_key=pooling_key, units=unit_list, source_digests=source_digests
+        ),
+    }
+    return evaluation
 
 
 async def process_season_closed_event(
@@ -240,7 +500,7 @@ async def process_season_closed_event(
     # `created_at,id` فيفشل كلُّ إغلاق موسم بعمود غير معرَّف قبل أيّ إدامة (Copilot على #1001).
     rows = await conn.fetch(
         """SELECT recommendation_id,predicted_yield_t_ha,actual_yield_t_ha,accepted,matured_within_lag,
-                  farm_id,season_id
+                  farm_id,season_id,field_id,crop
            FROM recommendation_outcomes
            WHERE field_id=$1 AND season_id=$2
            ORDER BY COALESCE(outcome_recorded_at, issued_at),outcome_id""",
@@ -248,57 +508,51 @@ async def process_season_closed_event(
         season_id,
     )
     outcomes = [dict(row) for row in rows]
-    # البصمةُ على أعمدة الدليل وحدها (وحدةُ التكرار تُقرأ للعدّ لا للبصمة) — تبقى ثابتةً للإعادة.
-    source_digests = sorted(
-        _stable_digest({k: v for k, v in item.items() if k not in _UNIT_COLUMNS})
-        for item in outcomes
-    )
-    # U02 (التدقيق الموحَّد 2026-09-13): سياسةُ الأهليّة نفسها التي يستعملها الموحِّد —
-    # قيمةٌ فعليّة مبكّرة قبل النضج أو غير منتهية لا تدخل حساب MAE ولا تعدّ نحو الحدّ
-    # الأدنى. دراسةُ دقّة التوقّع لا تشترط قبولَ التوصية (رفضُ المزارع لا يمحو حصاده).
-    from core.outcome_reconciler import recommendation_outcome_eligibility
+    crop_id, pooling_limitation = resolve_pooling_crop(outcomes)
+    pool_rows: list[dict] = []
+    if pooling_limitation is None and _has_eligible_outcome(outcomes):
+        # أسماءُ المحصول الخام لدى المستأجِر التي تحلّها البطاقات إلى المحصول نفسه — ثمّ مطابقةٌ تامّة
+        # في SQL. المستأجِر مُسنَدٌ صريح فوق RLS (لا اعتمادَ على السياسة وحدها، ولا عبورَ مستأجِر)،
+        # ثمّ يُعاد فرزُ كلّ صفٍّ في ``comparable_pool_rows`` (دفاعٌ ثانٍ).
+        from core.season_phenology import resolve_crop_id
 
-    paired: list[dict] = []
-    excluded_reasons: dict[str, int] = {}
-    for o in outcomes:
-        verdict = recommendation_outcome_eligibility(o, require_acceptance=False)
-        if verdict["eligible"]:
-            paired.append(o)
-        else:
-            reason = str(verdict["reason"])
-            excluded_reasons[reason] = excluded_reasons.get(reason, 0) + 1
-    errors = [float(o["actual_yield_t_ha"]) - float(o["predicted_yield_t_ha"]) for o in paired]
-    mae = None if not errors else round(sum(abs(v) for v in errors) / len(errors), 6)
-    bias = None if not errors else round(sum(errors) / len(errors), 6)
-    # F5 (pseudo-replication): صفوفُ حقلٍ-موسمٍ واحد ليست عيّناتٍ مستقلّة. الحدُّ الأدنى يُقاس
-    # بوحدات (المزرعة، الموسم) المتمايزة لا بعدد الصفوف — ثلاثُ نتائج لموسمٍ واحد وحدةٌ واحدة.
-    units = independent_outcome_units(paired, field_id=field_id, season_id=season_id)
-    enough = len(units) >= minimum_outcomes
-    limitations = []
-    if len(paired) < minimum_outcomes:
-        limitations.append("MINIMUM_VERIFIED_OUTCOMES_NOT_MET")
-    if not enough:
-        limitations.append("MINIMUM_INDEPENDENT_UNITS_NOT_MET")
-    evaluation = {
-        "field_id": field_id,
-        "season_id": season_id,
-        "outcome_count": len(paired),
-        "excluded_count": len(outcomes) - len(paired),
-        "excluded_reasons": excluded_reasons,
-        "independent_units": len(units),
-        "unit_basis": "distinct (farm_id, season_id)",
-        "minimum_outcomes": minimum_outcomes,
-        **(
-            {"minimum_outcomes_requested": requested_minimum}
-            if requested_minimum != minimum_outcomes
-            else {}
-        ),
-        "mae_t_ha": mae,
-        "bias_t_ha": bias,
-        "status": "review_ready" if enough else "blocked",
-        "limitations": limitations,
-        "source_digests": source_digests,
-    }
+        crop_rows = await conn.fetch(
+            """SELECT DISTINCT crop FROM recommendation_outcomes
+               WHERE crop IS NOT NULL
+                 AND tenant_id::text = NULLIF(current_setting('app.current_tenant', TRUE), '')"""
+        )
+        raw_crops = sorted(
+            {
+                str(r["crop"])
+                for r in (dict(x) for x in crop_rows)
+                if r.get("crop") and resolve_crop_id(str(r["crop"])) == crop_id
+            }
+        )
+        if raw_crops:
+            fetched = await conn.fetch(
+                """SELECT tenant_id::text AS tenant_id,recommendation_id,predicted_yield_t_ha,
+                          actual_yield_t_ha,accepted,matured_within_lag,farm_id,season_id,field_id,crop
+                   FROM recommendation_outcomes
+                   WHERE crop = ANY($1::text[])
+                     AND season_id IS NOT NULL
+                     AND NOT (field_id IS NOT DISTINCT FROM $2 AND season_id = $3)
+                     AND tenant_id::text = NULLIF(current_setting('app.current_tenant', TRUE), '')
+                   ORDER BY COALESCE(outcome_recorded_at, issued_at),outcome_id""",
+                raw_crops,
+                field_id,
+                season_id,
+            )
+            pool_rows = [dict(r) for r in fetched]
+    evaluation = evaluate_season_learning(
+        outcomes,
+        pool_rows,
+        tenant_id=tenant_id,
+        field_id=field_id,
+        season_id=season_id,
+        minimum_outcomes=minimum_outcomes,
+        requested_minimum=requested_minimum,
+    )
+    paired_count = evaluation["outcome_count"]
     learning_digest = _stable_digest(evaluation)
     # الجدول يحمل قيدَين فريدَين: (tenant_id,event_id) و(tenant_id,learning_digest). كان
     # الهدفُ الأوّل وحده ⇒ إغلاقٌ ثانٍ للموسم نفسه (event_id جديد، تقييمٌ مطابق) يرفع
@@ -314,8 +568,8 @@ async def process_season_closed_event(
         field_id,
         event_id,
         evaluation["status"],
-        len(paired),
-        json.dumps(source_digests),
+        paired_count,
+        json.dumps(evaluation["source_digests"]),
         json.dumps(evaluation),
         learning_digest,
     )
@@ -329,8 +583,8 @@ async def process_season_closed_event(
     candidate = {
         "candidate_id": f"gmp_{learning_digest[:20]}",
         "season_id": season_id,
-        "task": "yield_forecast_calibration",
-        "status": "review_ready" if enough else "blocked",
+        "task": LEARNING_POOL_TASK,
+        "status": evaluation["status"],
         "review_required": True,
         "auto_promote": False,
         "evidence": evaluation,

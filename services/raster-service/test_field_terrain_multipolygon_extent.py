@@ -19,18 +19,24 @@ def test_multipolygon_extent_spans_all_parts():
     assert rings[1][0] == [44.02, 15.02]
 
 
-def test_multipolygon_extent_ignores_holes_and_degenerate_parts():
+def test_multipolygon_extent_keeps_holes_as_polygons():
     hole = [[44.002, 15.002], [44.004, 15.002], [44.004, 15.004], [44.002, 15.002]]
     geom = {
         "type": "Feature",
-        "geometry": {
-            "type": "MultiPolygon",
-            "coordinates": [[_PART_A, hole], [[[44.5, 15.5]]], [_PART_B]],
-        },
+        "geometry": {"type": "MultiPolygon", "coordinates": [[_PART_A, hole], [_PART_B]]},
     }
-    bbox, rings = ta.field_terrain_extent(geom)
+    bbox, polygons = ta.field_terrain_extent(geom)
     assert bbox == [44.00, 15.00, 44.03, 15.04]
-    assert len(rings) == 2
+    # a holed field is returned as polygons [[exterior, hole...], ...] so the hole is kept
+    assert len(polygons) == 2
+    assert polygons[0][0] == _PART_A and polygons[0][1] == hole
+    assert polygons[1] == [_PART_B]
+
+
+def test_multipolygon_with_degenerate_part_is_rejected_not_reduced():
+    # A part with a single coordinate used to be dropped silently; now the geometry is refused.
+    geom = {"type": "MultiPolygon", "coordinates": [[_PART_A], [[[44.5, 15.5]]], [_PART_B]]}
+    assert ta.field_terrain_extent(geom) == (None, None)
 
 
 def test_mask_by_multiple_rings_keeps_every_part():

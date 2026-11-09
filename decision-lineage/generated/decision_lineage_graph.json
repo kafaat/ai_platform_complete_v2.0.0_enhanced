@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 684,
+      "evidence_count": 685,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -181,6 +181,7 @@
         "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
         "services/gis-workflow-service/bulletin_bundle.py",
         "services/gis-workflow-service/run_bundle.py",
+        "services/gis-workflow-service/tests/test_bulletin_bundle_evidence.py",
         "services/gis-workflow-service/tests/test_run_bundle_validity_and_evidence.py",
         "services/guardrails-engine/contracts.py",
         "services/guardrails-engine/main.py",
@@ -1319,7 +1320,7 @@
       "kind": "lineage_stage",
       "stage": "decision",
       "order": 3,
-      "evidence_count": 193,
+      "evidence_count": 194,
       "owners": [
         "ai_agronomist",
         "database",
@@ -1519,6 +1520,7 @@
         "services/vegetation-analysis-service/decision_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_decision_bridge_candidate.py",
+        "services/vegetation-analysis-service/test_diagnosis_engine.py",
         "shared/ai/recommendation_runtime/human_review_repository.py",
         "shared/continuous_learning_phase10.py",
         "shared/contracts/soil/p4.py",
@@ -1930,7 +1932,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 181,
+      "evidence_count": 182,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2126,6 +2128,7 @@
         "services/vegetation-analysis-service/routers/insights.py",
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_decision_bridge_candidate.py",
+        "services/vegetation-analysis-service/test_diagnosis_engine.py",
         "services/vegetation-analysis-service/test_evidence_producer_contract.py",
         "services/vegetation-analysis-service/test_ground_verification_bridge.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py",
@@ -2823,7 +2826,7 @@
         "services/sahool-platform/api/routers/decision_record.py",
         "services/sahool-platform/api/routers/decision_review.py"
       ],
-      "source_evidence_count": 684,
+      "source_evidence_count": 685,
       "target_evidence_count": 552,
       "static_supported": true,
       "runtime_verified": false
@@ -2936,7 +2939,7 @@
         "services/sahool-platform/tests/test_outcome_reconciler.py"
       ],
       "source_evidence_count": 552,
-      "target_evidence_count": 193,
+      "target_evidence_count": 194,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3023,7 +3026,7 @@
         "shared/contracts/soil/p4.py",
         "shared/federated_agent_runtime.py"
       ],
-      "source_evidence_count": 193,
+      "source_evidence_count": 194,
       "target_evidence_count": 301,
       "static_supported": true,
       "runtime_verified": false
@@ -3112,7 +3115,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 47,
-      "target_evidence_count": 181,
+      "target_evidence_count": 182,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3148,7 +3151,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 181,
+      "source_evidence_count": 182,
       "target_evidence_count": 40,
       "static_supported": true,
       "runtime_verified": false
@@ -3259,5 +3262,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "af86741a751c8eba947b343f1dcac2ca45a65c0ebbb5402382e7a3032a8cd0cb"
+  "content_sha256": "9b905afee19f90ebdf812e05a3067c3f9d68b543b7999a939c25726561aa7902"
 }

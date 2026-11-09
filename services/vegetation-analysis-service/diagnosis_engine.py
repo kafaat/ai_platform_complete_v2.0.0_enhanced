@@ -12,6 +12,9 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
+from anomaly_store import InvalidTransition
+from pydantic import ValidationError
+
 from shared.contracts.remote_sensing import (
     DiagnosisHypothesisV1,
     EvidenceBundleV1,
@@ -89,3 +92,22 @@ def build_diagnosis(*, anomaly_record: dict[str, Any], tenant_id: UUID) -> Diagn
         diagnosis_model_ref="urn:sahool:model:diagnosis_rules_v1",
         proposed_at=now,
     )
+
+
+def load_stored_diagnosis(payload: Any) -> DiagnosisHypothesisV1:
+    """Reload a diagnosis persisted with ``model_dump(mode="json")``.
+
+    ``DiagnosisHypothesisV1`` is a strict ``ContractModel``: ``model_validate`` on the JSON-mode
+    dict rejects the ISO datetime / UUID / Decimal / enum strings and the lists that stand in for
+    tuples, so the referral path failed before reaching the decision bridge. Round-tripping
+    through ``model_validate_json`` applies JSON-mode coercion while keeping strict typing. A
+    corrupt or invalid stored payload is refused as an invalid transition (409), never a 500.
+    """
+    if not payload:
+        raise InvalidTransition("diagnosis_not_proposed")
+    if not isinstance(payload, dict):
+        raise InvalidTransition("stored_diagnosis_invalid")
+    try:
+        return DiagnosisHypothesisV1.model_validate_json(json.dumps(payload))
+    except (ValidationError, TypeError, ValueError) as exc:
+        raise InvalidTransition("stored_diagnosis_invalid") from exc

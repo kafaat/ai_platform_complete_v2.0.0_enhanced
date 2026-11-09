@@ -15,38 +15,118 @@ import math
 import os
 
 
+def _finite_ring(raw) -> list[list[float]] | None:
+    """حلقة GeoJSON صالحة ⇒ ``[[lon,lat]…]``؛ شاذّة ⇒ ``None`` (لا اختزال صامت).
+
+    صالحة = ٤ إحداثيّات على الأقلّ (حلقة GeoJSON المغلقة الدنيا: مثلّث + إغلاق) وكلّ
+    إحداثيّة رقمان منتهيان. نقطة ناقصة/غير رقميّة/NaN/Inf تُسقِط الحلقة كلّها لا النقطة
+    وحدها — إسقاط نقطة بصمت يغيّر شكل الحقل ثمّ يُحسَب كأنّه الحقل.
+    """
+    if not isinstance(raw, (list, tuple)) or len(raw) < 4:
+        return None
+    ring: list[list[float]] = []
+    for p in raw:
+        if not isinstance(p, (list, tuple)) or len(p) < 2:
+            return None
+        try:
+            lon, lat = float(p[0]), float(p[1])
+        except (TypeError, ValueError):
+            return None
+        if not (math.isfinite(lon) and math.isfinite(lat)):
+            return None
+        ring.append([lon, lat])
+    return ring
+
+
+def _field_polygons(geom: dict | None) -> list[list[list[list[float]]]] | None:
+    """أجزاء الحقل ``[[خارجيّة, ثقب…], …]`` لكلّ أجزاء Polygon/MultiPolygon، أو ``None``.
+
+    تُحفَظ الحلقات الداخليّة (الثقوب): إسقاطها كان يعدّ الثقب مساحةَ حقل. أيّ حلقة شاذّة
+    (خارجيّة أو داخليّة) أو جزء فارغ ⇒ ``None`` للهندسة كلّها — رفض لا اختزال.
+    """
+    if not isinstance(geom, dict):
+        return None
+    g = geom.get("geometry") if geom.get("type") == "Feature" else geom
+    if not isinstance(g, dict):
+        return None
+    coords = g.get("coordinates")
+    if g.get("type") == "Polygon":
+        raw_parts = [coords]
+    elif g.get("type") == "MultiPolygon":
+        raw_parts = coords
+    else:
+        return None
+    if not isinstance(raw_parts, (list, tuple)) or not raw_parts:
+        return None
+    polygons: list[list[list[list[float]]]] = []
+    for part in raw_parts:
+        if not isinstance(part, (list, tuple)) or not part:
+            return None
+        rings = [_finite_ring(r) for r in part]
+        if any(r is None for r in rings):
+            return None
+        polygons.append(rings)  # type: ignore[arg-type]
+    return polygons
+
+
 def field_terrain_extent(geom: dict | None) -> tuple[list[float] | None, list | None]:
     """يستخرج (bbox, الحدّ) من GeoJSON حقل — للقصّ الدقيق على المضلّع.
 
-    يدعم Polygon/MultiPolygon/Feature. الحدّ: حلقة خارجيّة واحدة ``[[lon,lat]…]`` لـPolygon
-    أو MultiPolygon ذي جزء واحد، و**قائمة الحلقات الخارجيّة لكلّ الأجزاء** لـMultiPolygon
-    متعدّد الأجزاء. الـbbox يُحسَب على **كلّ** الأجزاء (لا الجزء الأوّل وحده، فلا يسقط باقي
-    الحقل من القصّ). صدق: هندسة غائبة/شاذّة ⇒ ``(None, None)`` (لا نلفّق مربّعاً إقليميّاً).
-    الحدّ يُمرَّر إلى ``read_field_window(poly_lonlat=…)`` فيُقصّ خارج حدّ الحقل إلى NaN.
+    يدعم Polygon/MultiPolygon/Feature. شكل الحدّ (يفهمه ``tile_render.mask_array_by_polygon``):
+      • بلا ثقوب: حلقة خارجيّة واحدة ``[[lon,lat]…]`` لجزء واحد، أو **قائمة الحلقات الخارجيّة
+        لكلّ الأجزاء** لـMultiPolygon متعدّد الأجزاء (الشكلان الموروثان كما هما).
+      • بثقب واحد على الأقلّ: **قائمة مضلّعات** ``[[خارجيّة, ثقب…], …]`` (حتّى لجزء واحد، كي لا
+        يلتبس الثقب بجزءٍ ثانٍ) فيُقنَّع الثقب خارج الحقل لا داخله.
+    الـbbox يُحسَب على **كلّ** الحلقات الخارجيّة لكلّ الأجزاء. صدق: هندسة غائبة/شاذّة (حلقة دون
+    ٤ إحداثيّات، إحداثيّة غير منتهية، جزء فارغ) ⇒ ``(None, None)`` فيُرجِع الحساب
+    ``computed=false`` — لا نختزلها بصمت ولا نلفّق مربّعاً إقليميّاً.
     """
-    if not isinstance(geom, dict):
+    polygons = _field_polygons(geom)
+    if not polygons:
         return None, None
-    g = geom.get("geometry") if geom.get("type") == "Feature" else geom
-    if not isinstance(g, dict):
-        return None, None
-    coords = g.get("coordinates")
-    try:
-        if g.get("type") == "Polygon":
-            raw_rings = [coords[0]]
-        elif g.get("type") == "MultiPolygon":
-            raw_rings = [part[0] for part in coords if part]
-        else:
-            return None, None
-        rings = [[[float(p[0]), float(p[1])] for p in ring if len(p) >= 2] for ring in raw_rings]
-    except (TypeError, ValueError, IndexError):
-        return None, None
-    rings = [r for r in rings if len(r) >= 3]
-    if not rings:
-        return None, None
-    lons = [p[0] for r in rings for p in r]
-    lats = [p[1] for r in rings for p in r]
+    lons = [p[0] for poly in polygons for p in poly[0]]
+    lats = [p[1] for poly in polygons for p in poly[0]]
     bbox = [min(lons), min(lats), max(lons), max(lats)]
-    return bbox, (rings[0] if len(rings) == 1 else rings)
+    if any(len(poly) > 1 for poly in polygons):
+        return bbox, polygons
+    exteriors = [poly[0] for poly in polygons]
+    return bbox, (exteriors[0] if len(exteriors) == 1 else exteriors)
+
+
+def _boundary_is_valid(poly) -> bool:
+    """يتحقّق من حدٍّ بأيّ شكل يقبله ``mask_array_by_polygon`` (حلقة/حلقات/مضلّعات)."""
+    depth = 0
+    node = poly
+    while isinstance(node, (list, tuple)) and node:
+        depth += 1
+        node = node[0]
+    if depth == 2:
+        polygons = [[poly]]
+    elif depth == 3:
+        polygons = [[ring] for ring in poly]
+    elif depth == 4:
+        polygons = poly
+    else:
+        return False
+    return all(
+        isinstance(part, (list, tuple)) and part and all(_finite_ring(r) is not None for r in part)
+        for part in polygons
+    )
+
+
+def _no_gradient_support_envelope() -> dict:
+    """رفض صريح حين لا يدعم الـDEM تدرّجاً: محور دون خليّتين (``np.gradient`` يرفع)، أو لا
+    خليّة انحدار منتهية (كلّ جار NaN). كان الفرع يُرجِع ``computed: True`` بانحدار 0.0 —
+    أي «أرض مستوية» مُخترَعة تُغذّي توصية الريّ السطحيّ. الانحدار الصفريّ **المَقيس** على أرض
+    مستوية يبقى ``computed: True``؛ هذا الرفض لغياب القياس لا لقيمته."""
+    return {
+        "computed": False,
+        "source": "dem-insufficient-gradient-support",
+        "reason": (
+            "نافذة الارتفاع لا تكفي لحساب الانحدار: يلزم خليّتان متجاورتان صالحتان على كلّ "
+            "محور — لا يُعرَض انحدار صفريّ لم يُقَس"
+        ),
+    }
 
 
 def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
@@ -73,6 +153,8 @@ def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
     except rasterio.errors.RasterioIOError as e:
         return {"computed": False, "reason": f"تعذّر قراءة DEM: {type(e).__name__}"}
 
+    if dem.ndim != 2 or min(dem.shape) < 2:
+        return _no_gradient_support_envelope()
     # تدرّج Horn (3×3) — dz/dx و dz/dy
     dzdx = np.gradient(dem, pixel_size_m, axis=1)
     dzdy = np.gradient(dem, pixel_size_m, axis=0)
@@ -83,17 +165,18 @@ def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
         aspect < 0, 90.0 - aspect, np.where(aspect > 90.0, 360.0 - aspect + 90.0, 90.0 - aspect)
     )
 
-    valid = np.isfinite(slope_deg)
-    sv = slope_deg[valid]
+    sv = slope_deg[np.isfinite(slope_deg)]
+    if not sv.size:
+        return _no_gradient_support_envelope()
     return {
         "computed": True,
         "slope_deg": {
-            "min": float(np.min(sv)) if sv.size else 0.0,
-            "max": float(np.max(sv)) if sv.size else 0.0,
-            "mean": float(np.mean(sv)) if sv.size else 0.0,
+            "min": float(np.min(sv)),
+            "max": float(np.max(sv)),
+            "mean": float(np.mean(sv)),
         },
-        "flat_pct": float((sv < 2).sum() / sv.size * 100) if sv.size else 0.0,
-        "steep_pct": float((sv > 15).sum() / sv.size * 100) if sv.size else 0.0,
+        "flat_pct": float((sv < 2).sum() / sv.size * 100),
+        "steep_pct": float((sv > 15).sum() / sv.size * 100),
         "note": "الانحدار<2° مناسب للريّ السطحي؛ >15° يحتاج مدرّجات/حصاد مياه",
     }
 
@@ -135,6 +218,14 @@ def compute_field_terrain(
             "computed": False,
             "source": "field-bbox-unavailable",
             "reason": "مربّع إحاطة الحقل غير متاح — لا نحسب تضاريس إقليميّة كأنّها للحقل",
+        }
+    if poly is not None and not _boundary_is_valid(poly):
+        # حدّ شاذّ (حلقة دون ٤ إحداثيّات/إحداثيّة غير منتهية) ⇒ رفض لا قصّ مُختزَل: القناع
+        # كان يُسقِط الحلقة الشاذّة بصمت فيُحسَب الحقل بلا قصّ (أو بلا ثقبه) كأنّه الحقل.
+        return {
+            "computed": False,
+            "source": "field-geometry-invalid",
+            "reason": "حدّ الحقل غير صالح (حلقة دون ٤ إحداثيّات أو إحداثيّة غير منتهية)",
         }
 
     min_lon, min_lat, max_lon, max_lat = (float(v) for v in bbox)
@@ -211,6 +302,8 @@ def compute_field_terrain(
             "source": "dem-no-valid-pixels",
             "reason": "لا توجد قياسات ارتفاع صالحة داخل نطاق الحقل",
         }
+    if dem.ndim != 2 or min(dem.shape) < 2:
+        return _no_gradient_support_envelope()
     dzdx = np.gradient(dem, max(px_x_m, 1e-6), axis=1)
     dzdy = np.gradient(dem, max(px_y_m, 1e-6), axis=0)
     slope_deg = np.degrees(np.arctan(np.sqrt(dzdx**2 + dzdy**2)))
@@ -219,6 +312,9 @@ def compute_field_terrain(
         aspect < 0, 90.0 - aspect, np.where(aspect > 90.0, 360.0 - aspect + 90.0, 90.0 - aspect)
     )
     sv = slope_deg[np.isfinite(slope_deg)]
+    if not sv.size:
+        # ارتفاعات صالحة لكن معزولة (لا جار صالح على أحد المحورين) ⇒ لا انحدار مَقيس.
+        return _no_gradient_support_envelope()
 
     # الاتّجاه الغالب (8 جهات) للجريان السطحيّ.
     dirs = ["شمال", "شمال شرق", "شرق", "جنوب شرق", "جنوب", "جنوب غرب", "غرب", "شمال غرب"]
@@ -241,12 +337,12 @@ def compute_field_terrain(
             "mean": float(np.mean(ev)) if ev.size else None,
         },
         "slope_deg": {
-            "min": float(np.min(sv)) if sv.size else 0.0,
-            "max": float(np.max(sv)) if sv.size else 0.0,
-            "mean": float(np.mean(sv)) if sv.size else 0.0,
+            "min": float(np.min(sv)),
+            "max": float(np.max(sv)),
+            "mean": float(np.mean(sv)),
         },
-        "flat_pct": float((sv < 2).sum() / sv.size * 100) if sv.size else 0.0,
-        "steep_pct": float((sv > 15).sum() / sv.size * 100) if sv.size else 0.0,
+        "flat_pct": float((sv < 2).sum() / sv.size * 100),
+        "steep_pct": float((sv > 15).sum() / sv.size * 100),
         "dominant_aspect": dominant_aspect,
         "note": "الانحدار<2° مناسب للريّ السطحي؛ >15° يحتاج مدرّجات/حصاد مياه",
     }

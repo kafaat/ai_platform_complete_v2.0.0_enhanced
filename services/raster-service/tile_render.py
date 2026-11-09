@@ -26,36 +26,49 @@ _ORIGIN_SHIFT = math.pi * WEB_MERCATOR_R
 MAX_READ_DIM = int(__import__("os").getenv("RASTER_MAX_READ_DIM", "2048"))
 
 
-def _is_ring_list(poly_lonlat) -> bool:
-    """``True`` when ``poly_lonlat`` is a list of rings (multi-part field), not one ring."""
-    try:
-        first = poly_lonlat[0]
-        return (
-            isinstance(first, (list, tuple)) and bool(first) and isinstance(first[0], (list, tuple))
-        )
-    except (TypeError, IndexError, KeyError):
-        return False
+def _boundary_polygons(poly_lonlat) -> list[list]:
+    """يطبّع الحدّ إلى ``[[خارجيّة, ثقب…], …]`` حسب عمق التداخل.
+
+    عمق 2 = حلقة واحدة · عمق 3 = حلقات خارجيّة لأجزاء (اتّحاد، الشكل الموروث) · عمق 4 =
+    مضلّعات بثقوب (``terrain_analysis.field_terrain_extent`` حين في الحقل ثقب). غير ذلك ⇒ [].
+    """
+    depth, node = 0, poly_lonlat
+    while isinstance(node, (list, tuple)) and node:
+        depth += 1
+        node = node[0]
+    if depth == 2:
+        return [[poly_lonlat]]
+    if depth == 3:
+        return [[ring] for ring in poly_lonlat]
+    if depth == 4:
+        return [list(part) for part in poly_lonlat]
+    return []
 
 
 def mask_array_by_polygon(arr, transform, src_crs, poly_lonlat):
     """يقنّع مصفوفة: خارج **مضلّع الحقل** ⇒ ``NaN`` (قصّ على حدّ الحقل لا مربّع الإحاطة).
 
     ``poly_lonlat``: حلقة [lng,lat] بـEPSG:4326، أو **قائمة حلقات** لحقل متعدّد الأجزاء
-    (MultiPolygon: الحلقات الخارجيّة لكلّ جزء؛ الداخل = اتّحادها). ``transform``: أفين
-    المصفوفة في ``src_crs``. يُعاد إسقاط المضلّع إلى ``src_crs`` ثمّ ``geometry_mask``. صدق:
-    مضلّع غير صالح/فشل ⇒ تُعاد المصفوفة كما هي (لا انهيار، لا تلفيق). يُعيد نسخة مقنّعة."""
+    (MultiPolygon: الحلقات الخارجيّة لكلّ جزء؛ الداخل = اتّحادها)، أو **قائمة مضلّعات**
+    ``[[خارجيّة, ثقب…], …]`` فيُقنَّع الثقب (الداخل = الخارجيّة ناقص ثقوبها، ثمّ اتّحاد الأجزاء).
+    ``transform``: أفين المصفوفة في ``src_crs``. يُعاد إسقاط كلّ حلقة إلى ``src_crs`` ثمّ
+    ``geometry_mask``. حلقة دون ٣ نقاط بلا مساحة فتُهمَل (لا تغيّر القناع)؛ التحقّق من صحّة
+    الهندسة مسؤوليّة المُستدعي (``terrain_analysis`` يرفضها ``computed=false``). صدق: فشل ⇒
+    تُعاد المصفوفة كما هي (لا انهيار، لا تلفيق). يُعيد نسخة مقنّعة."""
     if not poly_lonlat:
         return arr
-    rings_in = list(poly_lonlat) if _is_ring_list(poly_lonlat) else [poly_lonlat]
-    rings_in = [r for r in rings_in if r and len(r) >= 3]
-    if not rings_in:
+    parts = []
+    for part in _boundary_polygons(poly_lonlat):
+        rings = [r for r in part if r and len(r) >= 3]
+        if rings and rings[0] is part[0]:  # خارجيّة بلا مساحة ⇒ الجزء كلّه بلا مساحة
+            parts.append(rings)
+    if not parts:
         return arr
     try:
         import numpy as np
         from rasterio.features import geometry_mask
 
-        geoms = []
-        for raw in rings_in:
+        def _ring_in_src(raw):
             ring = [[float(p[0]), float(p[1])] for p in raw]
             if ring[0] != ring[-1]:
                 ring.append(ring[0])  # GeoJSON يتطلّب حلقة مغلقة
@@ -66,8 +79,12 @@ def mask_array_by_polygon(arr, transform, src_crs, poly_lonlat):
                 ys = [p[1] for p in ring]
                 rx, ry = _wt("EPSG:4326", src_crs, xs, ys)
                 ring = [[rx[i], ry[i]] for i in range(len(rx))]
-            geoms.append({"type": "Polygon", "coordinates": [ring]})
-        # invert=False ⇒ True خارج كلّ المضلّعات؛ نملأ الخارج بـNaN ونُبقي الداخل.
+            return ring
+
+        geoms = [
+            {"type": "Polygon", "coordinates": [_ring_in_src(r) for r in rings]} for rings in parts
+        ]
+        # invert=False ⇒ True خارج كلّ المضلّعات (والثقوب خارجها)؛ نملأ الخارج بـNaN.
         outside = geometry_mask(geoms, out_shape=arr.shape, transform=transform, invert=False)
         out = arr.copy()
         out[outside] = np.nan
@@ -83,7 +100,8 @@ def read_field_window(src, lonlat_bbox, *, max_dim: int = MAX_READ_DIM, poly_lon
     - يُعيد إسقاط ``lonlat_bbox`` (EPSG:4326) إلى ``src.crs`` قبل ``from_bounds`` حين لا
       يكون المصدر بـEPSG:4326 (وإلّا نافذة خاطئة على raster مُسقَط: UTM/Homolosine…).
     - يسقف أبعاد القراءة عند ``max_dim`` (تخفيض عيّنة عند القراءة) لتفادي نافذة ضخمة.
-    - إن مُرِّر ``poly_lonlat`` (حلقة [lng,lat]) قصّ خارج المضلّع إلى ``NaN`` (حدّ الحقل لا bbox).
+    - إن مُرِّر ``poly_lonlat`` (حلقة/حلقات/مضلّعات بثقوب، انظر ``mask_array_by_polygon``) قصّ
+      خارج المضلّع وداخل ثقوبه إلى ``NaN`` (حدّ الحقل لا bbox).
     - يُعيد ``(arr, scale_x, scale_y)``: arr float32 بـ``NaN`` للـnodata، وscale = أبعاد
       النافذة ÷ أبعاد المخرَج (عامل التخفيض؛ 1.0 بلا تخفيض) كي يضبط المُستدعي حجم البكسل.
       يُعيد ``None`` عند فشل القراءة أو نافذة فارغة (لا تلفيق).
@@ -218,6 +236,10 @@ _INDEX_DOMAIN = {
     "gli": (-0.2, 0.5, False),  # Green Leaf Index (−1..1): نبات موجب
     # Bare Soil Index: عالٍ = تربة عارية (سيّئ للغطاء) ⇒ نعكس (عالٍ = أحمر).
     "bsi": (-0.5, 0.5, True),
+    # إجهاد مائيّ حراريّ (Landsat): CWSI وTVDI بتعريفهما 0..1، عالٍ = إجهاد/جفاف ⇒ نعكس —
+    # مطابق لـchange_detection._HIGHER_IS_WORSE (msi/cwsi/tvdi).
+    "cwsi": (0.0, 1.0, True),
+    "tvdi": (0.0, 1.0, True),
 }
 
 

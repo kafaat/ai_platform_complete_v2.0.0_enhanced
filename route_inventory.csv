@@ -1056,8 +1056,8 @@ soil-service,services/soil-service/routers/soil_profile.py,76,GET,/v1/soil/soilg
 supervisor-agent,services/supervisor-agent/routers/agent.py,33,POST,/v1/agent/query,process_query
 supervisor-agent,services/supervisor-agent/routers/agent.py,120,POST,/v1/agent/optimize,optimize_farm
 supervisor-agent,services/supervisor-agent/routers/agent.py,183,GET,/v1/agent/tools,list_tools
-supervisor-agent,services/supervisor-agent/routers/agent.py,205,GET,/v1/agent/journal/{invocation_id},get_journal_replay
-supervisor-agent,services/supervisor-agent/routers/agent.py,229,GET,/v1/agent/actuator-audit,get_actuator_audit
+supervisor-agent,services/supervisor-agent/routers/agent.py,212,GET,/v1/agent/journal/{invocation_id},get_journal_replay
+supervisor-agent,services/supervisor-agent/routers/agent.py,236,GET,/v1/agent/actuator-audit,get_actuator_audit
 supervisor-agent,services/supervisor-agent/routers/health.py,21,GET,/healthz,healthz
 supervisor-agent,services/supervisor-agent/routers/health.py,21,GET,/health,healthz
 supervisor-agent,services/supervisor-agent/routers/health.py,26,GET,/readyz,readyz
