@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **287**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **58**
-- إجماليّ الطفرات المُسجَّلة: **464**
+- إجماليّ الطفرات المُسجَّلة: **478**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **394** على 137 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -581,6 +581,7 @@
 - حجبٌ داخل المدّة يجعل تسجيلَ الحالة مستحيلاً: لا صيغةَ للإقرار تمرّ، فيُطفَأ الحقلُ أو يُطفَأ الحارس. صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026. — يُسقِط `test_a_live_acknowledgement_still_silences_the_report`
 - شحنُ «يحذّر قبل أن يحجب» للتفويضات وتركُ الإقرار يحجب فجأةً تناقضٌ في الملفّ نفسِه — والقاعدةُ واحدة: أوّلُ خبرٍ عن الأجل يجب ألّا يكون الحجب. — يُسقِط `test_the_alias_deadline_warns_before_it_blocks`
 - FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01: بلا فرع الاسم الأساسيّ يعود ادّعاءُ «غيرُ موجودٍ بعد» غيرَ قابلٍ للتكذيب — `migrations/run_migrations.sql` يُعلَن غائباً والمُشغِّلُ الحقيقيُّ `scripts_v9/run_migrations.sql` قائمٌ خارج التجميد، وإقرارُ النظير الساري يُسكِت `alias_escape_errors`. فيمرّ الحارسُ أخضرَ على تجميدٍ فارغ، كما مرّ على #954. — يُسقِط `test_a_declared_absent_basename_elsewhere_is_falsified_even_when_acknowledged`
+- GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01: the owner-signature verdict is computed but never reaches the guard's exit code, so CI stays green on an unsigned CLOSED->OPEN. — يُسقِط `test_the_frozen_path_guard_blocks_an_unsigned_transition`
 
 ### `github_actions_security_guard.py`
 
@@ -1349,11 +1350,12 @@
 
 ---
 
-## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (10)
+## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (11)
 
 أداة غير موصولة لا تحرس شيئاً (§٣.٢). وجودها هنا سؤالٌ لا اتّهام.
 
 - `actuation_killswitch_coverage_guard.py`
+- `gate01_owner_signature_guard.py`
 - `manifest_registry_guard.py`
 - `s5_exec_01_writer_cutover_guard.py`
 - `scripts/architecture/authority_cutover_guard.py`
