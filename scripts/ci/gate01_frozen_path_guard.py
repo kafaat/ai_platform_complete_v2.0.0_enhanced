@@ -13,7 +13,10 @@
         ├─ لا  ⇒ PASS
         └─ نعم
              البوّابة OPEN؟
-               ├─ نعم ⇒ PASS  (انتقالُ مرحلةٍ قُبِل نهائيّاً)
+               ├─ نعم ⇒ شروطُ OPEN مكتملة؟ (أدلّة المرحلة ٠ FROZEN · success ·
+               │         بصمات · حكمُ مالكٍ مؤرَّخ ومصدرُه — `open_state_errors`)
+               │           ├─ نعم ⇒ PASS  (انتقالُ مرحلةٍ قُبِل نهائيّاً)
+               │           └─ لا  ⇒ BLOCK (ويحجب أيضاً بلا مسّ: السياسة متناقضة)
                └─ لا
                     تفويضٌ مقيَّد مطابق؟
                       ├─ لا  ⇒ BLOCK
@@ -477,6 +480,55 @@ def _authorization_errors(
     return errs
 
 
+_SHA1_HEX = re.compile(r"^[0-9a-f]{40}$")
+_SHA256_DIGEST = re.compile(r"^sha256:[0-9a-f]{64}$")
+
+
+def is_open(policy: dict) -> bool:
+    return str((policy.get("gate") or {}).get("state", "")).strip().upper() == "OPEN"
+
+
+def open_state_errors(policy: dict) -> list[str]:
+    """`OPEN` حالةٌ لها شروطٌ مكتوبة في السياسة نفسها، لا كلمةٌ تكفي وحدها.
+
+    دلالةُ `OPEN` في `state_semantics_ar`: «تجميدُ أدلّة المرحلة ٠ قُبِل **نهائيّاً**».
+    فبوّابةٌ تقول `OPEN` وأساسُ المرحلة ٠ غيرُ مجمَّد، أو خلاصتُه غيرُ `success`، أو بلا
+    بصمات، أو بلا حكمِ مالكٍ مؤرَّخٍ ومصدرِه، تُعلِن انتقالاً لم تتحقّق شروطُه. وكلُّ واحدٍ
+    من هذه **يحجب**: الفتحُ يرفع الحجرَ عن كلّ المسارات، فيفشل مغلقاً لا مفتوحاً.
+
+    وحدُّ الصدق: هذا يتحقّق من **اكتمال السجلّ** لا من أصالته — البصماتُ مرساةٌ مقروءة،
+    والحكمُ مُسجَّلٌ بيد الوكيل لا موقَّعٌ مستقلّاً (GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01).
+    """
+    if not is_open(policy):
+        return []
+    gate = policy.get("gate") or {}
+    base = policy.get("phase0_baseline") or {}
+    errs: list[str] = []
+    if base.get("evidence_status") != "FROZEN":
+        errs.append(
+            f"GATE-01 OPEN وأدلّة المرحلة ٠ غير مجمَّدة (evidence_status={base.get('evidence_status')!r})"
+        )
+    if base.get("evidence_conclusion") != "success":
+        errs.append(
+            "GATE-01 OPEN وخلاصة تشغيل الأدلّة ليست success "
+            f"(evidence_conclusion={base.get('evidence_conclusion')!r})"
+        )
+    if not _SHA1_HEX.match(str(base.get("commit_sha") or "")):
+        errs.append("GATE-01 OPEN بلا commit_sha كاملٍ لأساس المرحلة ٠")
+    digests = base.get("artifact_digests")
+    if (
+        not isinstance(digests, dict)
+        or not digests
+        or not all(_SHA256_DIGEST.match(str(v)) for v in digests.values())
+    ):
+        errs.append("GATE-01 OPEN بلا بصمات sha256 لمصنوعات أدلّة المرحلة ٠")
+    if _parse_day(gate.get("owner_ruling_on")) is None:
+        errs.append("GATE-01 OPEN بلا owner_ruling_on مؤرَّخ")
+    if not gate.get("ruling_source"):
+        errs.append("GATE-01 OPEN بلا ruling_source")
+    return errs
+
+
 def evaluate(
     changed: list[str], policy: dict, adjudications: list[dict], blobs: dict[str, str | None]
 ):
@@ -487,8 +539,10 @@ def evaluate(
         return [], None
 
     gate = policy.get("gate") or {}
-    if str(gate.get("state", "")).strip().upper() == "OPEN":
-        return [], None
+    if is_open(policy):
+        # `OPEN` ناقصُ الشروط لا يمنح شيئاً — ولا يُسقِط إلى مسار التفويض المقيَّد، لأنّ
+        # السياسة نفسها متناقضة حينئذٍ والصواب إصلاحُها لا الالتفافُ عليها.
+        return open_state_errors(policy), None
 
     if not adjudications:
         return [
@@ -588,6 +642,9 @@ def main(argv: list[str] | None = None) -> int:
     errors = errors + alias_escape_errors(policy)
     # وتكذيبُ ادّعاء الغياب يجري **دائماً** أيضاً، ولا يُسكِته إقرارُ نظير.
     errors = errors + not_yet_in_tree_falsified_errors(policy)
+    # وشروطُ `OPEN` تُفحَص **دائماً** لا عند المسّ وحده: سياسةٌ تُعلِن فتحاً بلا شروطه
+    # خاطئةٌ في الشجرة كلّها، لا في الـPR التي صادف أن مسّت مجمَّداً.
+    errors = errors + [e for e in open_state_errors(policy) if e not in errors]
     # التحذيرُ يُطبَع في الحالتين: قبل الحجب لأنّه قد يكون سببَ الحجب القادم، وبعد
     # الخضرة لأنّ خضرةً تسكت عن أجلٍ يقترب تُخفي الحجبَ الذي ستراه بعد أسبوع.
     warnings = expiry_warnings(adjudications) + alias_deadline_warnings(policy)

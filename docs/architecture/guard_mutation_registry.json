@@ -181,6 +181,13 @@
           "replace": "    \"migrations/run_migrations.sql\",\n",
           "test": "tests_v9/test_gate01_frozen_path_guard.py",
           "why": "أُعيد رسوُّها مع FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01: مرساتُها السابقة كانت `live_alias` في إقرار النظير، والإقرارُ أُزيل حين حكم المالك (2026-10-15) بتجميد المسار الحقيقيّ — فلا نظيرَ في السياسة الحيّة يُقَرّ. وهذه تُعيد العطلَ الذي حُكِم فيه حرفيّاً: التجميدُ يعود إلى اسمٍ لم يُنشَأ قطّ والمُشغِّلُ الحقيقيُّ خارجه. (ودعوى السابقة — الإقرارُ يُسمّي نظيرَه بعينه — باقيةٌ مُختبَرةً على سياساتٍ مصطنعة في `test_an_acknowledgement_that_does_not_name_this_alias_still_blocks`.)"
+        },
+        {
+          "expect": "test_the_live_policy_records_the_owner_opening",
+          "find": "\"state\": \"OPEN\",",
+          "replace": "\"state\": \"CLOSED\",",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "why": "GATE-01 صارت OPEN بقرار المالك 2026-11-09. إعادةُ الحالة إلى CLOSED بلا قرار تُعيد حجرَ الشيفرة صامتاً، والسياسةُ تبقى تحمل حكمَ فتحٍ مؤرَّخاً — تناقضٌ بين الحالة ومصدرها. والفتحُ يجب أن يكون حالةً مقيسة: الاختبار يشترط OPEN وشروطَه (`open_state_errors == []`) والنصَّ الحرفيّ لحكم المالك."
         }
       ]
     },
@@ -4743,9 +4750,15 @@
         },
         {
           "expect": "test_any_state_that_is_not_open_fails_closed",
-          "find": "    if str(gate.get(\"state\", \"\")).strip().upper() == \"OPEN\":",
-          "replace": "    if str(gate.get(\"state\", \"\")).strip().upper() != \"IMPOSSIBLE\":",
-          "why": "حالةٌ غير OPEN تُقرأ مفتوحةً ⇒ CLOSED نفسها تصير إذناً عامّاً (موروثة من #836)."
+          "find": "    return str((policy.get(\"gate\") or {}).get(\"state\", \"\")).strip().upper() == \"OPEN\"",
+          "replace": "    return str((policy.get(\"gate\") or {}).get(\"state\", \"\")).strip().upper() != \"IMPOSSIBLE\"",
+          "why": "حالةٌ غير OPEN تُقرأ مفتوحةً ⇒ CLOSED نفسها تصير إذناً عامّاً (موروثة من #836؛ أُعيد رسوُّها على `is_open` في 2026-11-09 حين صار فحصُ الحالة دالّةً يتشاركها `evaluate` و`open_state_errors`)."
+        },
+        {
+          "expect": "test_open_without_its_preconditions_blocks_a_frozen_touch",
+          "find": "        return open_state_errors(policy), None",
+          "replace": "        return [], None",
+          "why": "OPEN بلا شروطه (أدلّة المرحلة ٠ FROZEN · success · بصمات · حكمُ مالكٍ مؤرَّخ ومصدرُه) يصير كلمةً تكفي وحدها لرفع الحجر عن كلّ مسار — وهي بالضبط «انتقالٌ لا استثناء» مقلوبةً."
         },
         {
           "expect": "test_an_empty_frozen_list_fails_closed",

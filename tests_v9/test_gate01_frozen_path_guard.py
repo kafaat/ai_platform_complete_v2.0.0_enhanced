@@ -3,7 +3,8 @@
 الخصائص المقيسة، وكلٌّ منها فرعٌ حاجب:
 
 - مسارٌ غير مجمَّد ⇒ يمرّ · مجمَّدٌ بلا تفويض ⇒ يُحجَب.
-- بوّابةٌ ``OPEN`` ⇒ الدلالة القديمة تبقى · وأيّ حالةٍ أخرى تفشل **مغلقة**.
+- بوّابةٌ ``OPEN`` بشروطها (أدلّة المرحلة ٠ مجمَّدة ناجحة · حكمُ مالكٍ مؤرَّخ) ⇒ تمرّ ·
+  و``OPEN`` ناقصُ الشروط ⇒ يُحجَب · وأيّ حالةٍ أخرى تفشل **مغلقة**.
 - تفويضٌ مطابق تماماً ⇒ يمرّ · وأيّ انحرافٍ عنه ⇒ يُحجَب: بوّابةٌ أخرى · أساسٌ مخالف
   · مسارٌ مجمَّد زائد · بايتاتٌ تغيّرت · بصمةٌ تناقض بصماتها · مُستهلَك أو ملغى ·
   مخطَّطٌ مجهول · بلا مسارات.
@@ -44,12 +45,36 @@ _FROZEN_C = "services/sahool-platform/api/event_bus.py"
 
 
 def _policy(state="CLOSED"):
+    """سياسةٌ مصطنعة تحمل شروطَ ``OPEN`` كاملةً — فحالتُها وحدها هي المتغيِّر المقيس."""
     return {
         "schema": "sahool.gate01_policy/v2",
-        "gate": {"id": "GATE-01", "gap_id": "GAP-X", "state": state},
-        "phase0_baseline": {"commit_sha": "b" * 40},
+        "gate": {
+            "id": "GATE-01",
+            "gap_id": "GAP-X",
+            "state": state,
+            "owner_ruling_on": "2026-11-09",
+            "ruling_source": {"kind": "current_user_instruction", "owner": "owner"},
+        },
+        "phase0_baseline": {
+            "commit_sha": "b" * 40,
+            "evidence_status": "FROZEN",
+            "evidence_conclusion": "success",
+            "artifact_digests": {"evidence": "sha256:" + "d" * 64},
+        },
         "frozen_paths": [_FROZEN_A, _FROZEN_B, _FROZEN_C],
     }
+
+
+def _live_policy_as_closed() -> dict:
+    """السياسة الحيّة بحالة ``CLOSED`` — لقياس آليّة التفويض المقيَّد على مساراتها وسجلّاتها.
+
+    البوّابة الحيّة ``OPEN`` منذ 2026-11-09، فـ``evaluate`` عليها تمرّ قبل أن تبلغ فرعَ
+    التفويض. والآليّة باقيةٌ دلالةً لـ``CLOSED`` (وإعادةُ الإغلاق قرارُ مالك)، فتُقاس على
+    نسخةٍ مُغلَقة بدل أن تُترَك بلا شاهد.
+    """
+    policy = copy.deepcopy(guard.load_policy(_POLICY))
+    policy["gate"]["state"] = "CLOSED"
+    return policy
 
 
 _BLOBS = {_FROZEN_A: "a" * 40, _FROZEN_B: "c" * 40, _FROZEN_C: "e" * 40}
@@ -206,11 +231,82 @@ def test_an_empty_frozen_list_fails_closed(tmp_path):
 
 
 # ── الشجرة الحيّة ────────────────────────────────────────────────────────────
-def test_the_live_policy_is_readable_and_globally_closed():
-    """البوّابة تبقى مغلقة عالميّاً — التفويض المقيَّد لا يفتحها."""
+_OWNER_OPENING_TEXT = "تجاوز ابقاء البوابة مجمدة اذا هناك مؤشرات لفتحها قوم بفتحها"
+
+
+def test_the_live_policy_records_the_owner_opening():
+    """GATE-01 ``OPEN`` بقرار المالك 2026-11-09 — انتقالُ مرحلة بشروطه، لا كلمةٌ وحدها.
+
+    طفرةُ إعادة ``state`` إلى ``CLOSED`` في السياسة الحيّة تُسقِط هذا الاختبار بالاسم
+    (مسجَّلةٌ في ``guard_mutation_registry.json``)، فالفتحُ حالةٌ مقيسة لا نصٌّ يُقرأ.
+    """
     policy = guard.load_policy(_POLICY)
-    assert policy["gate"]["state"] == "CLOSED"
+    gate = policy["gate"]
+    assert gate["state"] == "OPEN"
+    assert gate["owner_ruling_on"] == "2026-11-09"
+    source = gate["ruling_source"]
+    assert source["text_ar"] == _OWNER_OPENING_TEXT
+    assert source["kind"] == "current_user_instruction"
+    assert "سجّله الوكيل" in source["provenance_honesty_ar"]
+    assert guard.open_state_errors(policy) == []
+    # الفتحُ يرفع حجرَ التعديل عن **كلّ** المسارات بلا تفويض — ذلك معناه لا عَرَضُه.
+    errors, used = guard.evaluate(list(policy["frozen_paths"]), policy, [], {})
+    assert errors == [] and used is None
+    # والفتحُ لا يأذن بأثرٍ فيزيائيّ في النشر — مكتوبٌ في السياسة لا مفترَض.
+    assert "SAHOOL_MIGRATE_APPLY" in gate["what_open_does_not_authorize_ar"]
+
+
+def test_the_live_policy_keeps_its_phase0_baseline():
+    policy = guard.load_policy(_POLICY)
     assert policy["phase0_baseline"]["commit_sha"]
+    assert policy["phase0_baseline"]["evidence_status"] == "FROZEN"
+
+
+_OPEN_PRECONDITIONS = [
+    ("phase0_baseline", "evidence_status", "NOT_FROZEN"),
+    ("phase0_baseline", "evidence_status", None),
+    ("phase0_baseline", "evidence_conclusion", "failure"),
+    ("phase0_baseline", "commit_sha", "6ba0bef5"),
+    ("phase0_baseline", "artifact_digests", {}),
+    ("phase0_baseline", "artifact_digests", {"x": "sha256:short"}),
+    ("gate", "owner_ruling_on", None),
+    ("gate", "owner_ruling_on", "soon"),
+    ("gate", "ruling_source", ""),
+]
+
+
+@pytest.mark.parametrize(("section", "key", "value"), _OPEN_PRECONDITIONS)
+def test_open_without_its_preconditions_blocks_a_frozen_touch(section, key, value):
+    """``OPEN`` بلا أدلّةٍ مجمَّدة ناجحة أو بلا حكمٍ مؤرَّخ لا يمنح — يفشل مغلقاً."""
+    policy = _policy(state="OPEN")
+    if value is None:
+        policy[section].pop(key, None)
+    else:
+        policy[section][key] = value
+    assert guard.open_state_errors(policy), (section, key, value)
+    errors, used = _run([_FROZEN_A], policy=policy)
+    assert errors and used is None, (section, key, value)
+
+
+def test_open_without_its_preconditions_fails_the_guard_even_untouched(tmp_path):
+    """سياسةٌ تُعلِن فتحاً بلا شروطه خاطئةٌ في الشجرة كلّها — لا عند المسّ وحده."""
+    policy = guard.load_policy(_POLICY)
+    p = tmp_path / "policy.json"
+    adj = tmp_path / "adj"
+    adj.mkdir()
+    argv = ["--policy", str(p), "--adjudications", str(adj)]
+    p.write_text(json.dumps(policy, ensure_ascii=False), encoding="utf-8")
+    assert guard.main(argv) == 0  # الشاهدُ الضابط: السياسة الحيّة نفسها تمرّ
+    policy["phase0_baseline"]["evidence_status"] = "NOT_FROZEN"
+    p.write_text(json.dumps(policy, ensure_ascii=False), encoding="utf-8")
+    assert guard.main(argv) == 1
+
+
+def test_open_preconditions_do_not_constrain_a_closed_gate():
+    """شروطُ ``OPEN`` لا تُفرَض على ``CLOSED`` — الإغلاقُ لا يحتاج أدلّةً ليُغلِق."""
+    policy = _policy(state="CLOSED")
+    policy["phase0_baseline"] = {"commit_sha": "b" * 40}
+    assert guard.open_state_errors(policy) == []
 
 
 def test_every_live_adjudication_is_self_consistent():
@@ -242,7 +338,7 @@ def test_a_frozen_path_absent_from_the_tree_is_declared_absent():
 
 def test_the_real_reverted_patch_would_still_be_caught_without_its_authorization():
     """بلا تفويضٍ مطابق، المسّ نفسه يُحجَب — فالإذن هو الفارق لا تليينُ الحارس."""
-    policy = guard.load_policy(_POLICY)
+    policy = _live_policy_as_closed()
     errors, used = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, [], _BLOBS)
     assert used is None and errors
 
@@ -279,7 +375,7 @@ def test_the_live_authorization_is_spent_and_no_longer_grants():
     `CONSUMED`؛ (٢) إن منح شيءٌ فهو تفويضٌ `ISSUED` يُسمّي المسارين صراحةً — وبقاؤه
     `ISSUED` بعد الدمج يحرسه ``stale_authorization_errors`` في CI لا هذا الاختبار.
     """
-    policy = guard.load_policy(_POLICY)
+    policy = _live_policy_as_closed()
     blobs = {p: guard.blob_sha(p) for p in policy["frozen_paths"]}
     adjs = guard.load_adjudications(_ADJ_DIR)
 
@@ -788,12 +884,12 @@ def test_the_live_policy_makes_no_falsified_absence_claim():
 
 def test_the_migration_runner_is_frozen_by_its_real_path():
     """المُجمَّدُ هو الملفُّ الذي يؤدّي الدور لا اسمٌ لم يُنشَأ — ومسُّه يُحجَب بلا تفويض."""
-    policy = guard.load_policy(_POLICY)
+    policy = _live_policy_as_closed()
     frozen = policy["frozen_paths"]
     assert _REAL_RUNNER in frozen, f"المُشغِّلُ الحقيقيّ خارج التجميد: {frozen}"
     assert _NEVER_CREATED_RUNNER not in frozen, "التجميدُ ما زال يحرس اسماً لم يُنشَأ"
     errors, used = guard.evaluate([_REAL_RUNNER], policy, [], {_REAL_RUNNER: "f" * 40})
-    assert errors and used is None, "مسُّ المُشغِّل الحقيقيّ مرّ بلا تفويض"
+    assert errors and used is None, "مسُّ المُشغِّل الحقيقيّ مرّ بلا تفويض (تحت CLOSED)"
 
 
 def _absence_policy(declared: str, **over) -> dict:

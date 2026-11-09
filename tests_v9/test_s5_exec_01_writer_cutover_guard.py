@@ -43,11 +43,15 @@ def _sandbox(tmp_path: Path, monkeypatch):
         assert mod.GATE01.blob_sha(rel, root=tmp_path) == blob
     # مُدخَلا GATE-01 يُنسَخان أيضاً: قرار التأجيل يُقاس منهما، فتركُهما مُشيرَين إلى
     # الشجرة الحقيقيّة كان سيجعل حالات التأجيل تقيس شيئاً لا تتحكّم فيه.
-    policy_dst = tmp_path / "docs/architecture/gate01_policy.json"
-    policy_dst.write_text(
-        (ROOT / "docs/architecture/gate01_policy.json").read_text(encoding="utf-8"),
-        encoding="utf-8",
+    # والحالةُ تُثبَّت `CLOSED` في النسخة: هذه الحالات تقيس آليّة التأجيل تحت بوّابةٍ مغلقة
+    # (زمنَ U07)، والبوّابة الحيّة صارت `OPEN` في 2026-11-09. وفتحُها يُقاس صراحةً في
+    # `test_gate01_deferral_expires_when_the_gate_opens` عبر `_open_the_gate`.
+    policy_doc = json.loads(
+        (ROOT / "docs/architecture/gate01_policy.json").read_text(encoding="utf-8")
     )
+    policy_doc["gate"]["state"] = "CLOSED"
+    policy_dst = tmp_path / "docs/architecture/gate01_policy.json"
+    policy_dst.write_text(json.dumps(policy_doc, ensure_ascii=False), encoding="utf-8")
     adj_dst = tmp_path / "docs/architecture/gates/adjudications"
     adj_dst.mkdir(parents=True, exist_ok=True)
     for adjudication in sorted((ROOT / "docs/architecture/gates/adjudications").glob("*.json")):
