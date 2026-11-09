@@ -45,6 +45,20 @@
   ],
   "not_yet_in_tree": [],
   "not_yet_in_tree_note_ar": "القائمةُ فارغةٌ منذ 2026-10-17، وفراغُها **ادّعاءٌ مُتحقَّقٌ لا إغفال**: كلُّ مسارٍ في `frozen_paths` قائمٌ في الشجرة. وآخرُ مدخلٍ كان `migrations/run_migrations.sql` — ملفٌّ **لم يوجد قطّ** في تاريخ المستودع، بينما المُشغِّلُ الحقيقيُّ `scripts_v9/run_migrations.sql` قائمٌ وخارجَ التجميد، فكان التجميدُ عليه فارغاً منذ #837 (FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01). صُحِّح بقرار المالك فصار المُجمَّدُ هو المسارَ الحقيقيّ. **وأيُّ مدخلٍ يُضاف هنا بعد اليوم ادّعاءٌ قابلٌ للتكذيب:** `not_yet_in_tree_falsified_errors` في الحارس يحجب إن كان المسارُ قائماً في موضعه، أو كان اسمُه الأساسيُّ قائماً في مجلّدٍ آخر — ولا يُسكِته إقرارُ نظير.",
+  "owner_signature": {
+    "$gap": "GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01",
+    "$semantics_ar": "توقيعُ المالك المنفصل: تفويضُ GATE-01 يُثبَت أنّه من المالك بتوقيعٍ بمفتاحٍ لا يملكه الوكيل (ظرف DSSE فوق `ssh-keygen -Y`)، يتحقّق منه `scripts/ci/gate01_owner_signature_guard.py` مقابل `allowed_signers_path` **مقروءاً من فرع الأساس** لا من الـPR. `required_for` = الأفعال التي تحجب بلا توقيعٍ مُتحقَّق (انتقال CLOSED إلى OPEN). `required_for_bounded` = false: التفويض المقيَّد يُتحقَّق منه إن حمل توقيعاً ويُبلَّغ عنه إرشاديّاً إن لم يحمل، حتّى يُثبِّت المالك مفتاحه ويقلبها true. وبلا مفتاحٍ مُثبَّت كلُّ تفويضٍ UNVERIFIED فيُرفَض ما يتطلّب التوقيع. وإضعافُ هذه الكتلة (إسقاطُ فعلٍ من required_for، أو قلبُ required_for_bounded إلى false، أو تغييرُ المسارات أو النطاق، أو إطالةُ المدّة) يتطلّب تفويض policy_change موقَّعاً. الدليل: docs/runbooks/GATE01_OWNER_SIGNING.md",
+    "required_for": [
+      "state_transition"
+    ],
+    "required_for_bounded": false,
+    "namespace": "sahool-gate01-authorization-v1",
+    "allowed_signers_path": "docs/architecture/gates/owner_allowed_signers",
+    "authorizations_dir": "docs/architecture/gates/authorizations",
+    "consumed_ledger_path": "docs/architecture/gates/consumed_authorizations.json",
+    "revocations_path": "docs/architecture/gates/revoked_authorizations.json",
+    "max_validity_days": 14
+  },
   "scope_note_ar": "القائمة تحمل المسارات المُسمّاة صراحةً في حكم المالك والقابلة للتثبيت على مسارٍ واحد لا لبس فيه. والحكم يذكر كذلك «اختبارات killswitch والحدث والoutbox وclaim» و«تدقيق المستأجِر واختباره» — وهي أوصافٌ لا مسارات، فلم تُدرَج كي لا يُحمِرّ الحارس على ملفٍّ لم يقصده الحكم. فالتغطية هنا **أضيق من الحكم عمداً**، والحارس يُعلِن ذلك في مخرَجه بدل أن يُوهِم اكتمالاً.",
   "why_a_guard_ar": "كان الحكم مفروضاً بقراءة بشرٍ لملفٍّ نثريّ — فمُسّت المسارات المجمَّدة مرّتين (2026-08-09 و2026-08-13)، وفي المرّتين نُفِّذت رقعةٌ كاملة ثمّ أُرجِعت. والكلفة ليست الوقت وحده: كلّ من يُعدّل مساراً يظنّ تعديله تحسيناً، فالنيّة الحسنة ليست حارساً. هذا الملفّ يجعل الحكم تنفيذيّاً: يُحمِرّ CI عند أوّل مسٍّ بدل أن يُكتشَف بعد اكتمال العمل.",
   "honesty_limit_ar": "هذه السياسة تصف الحماية ولا تمنحها: الحارس يشتقّ PASS/BLOCK منها ومن التفويضات، ولا يملك القرار أيٌّ منهما وحده. وخضرةُ الحارس تعني «لم يُمَسّ مجمَّدٌ بلا إذنٍ مطابق» لا «التعديل صحيح» — صحّةُ الرقعة تقيسها اختباراتها وطفراتها.",

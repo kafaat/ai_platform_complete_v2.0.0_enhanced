@@ -4896,6 +4896,13 @@
           "find": "        elsewhere = same_basename_elsewhere(declared, root)\n        if elsewhere:\n",
           "replace": "        elsewhere = same_basename_elsewhere(declared, root)\n        if False:  # mutated: الاسمُ في مجلّدٍ آخر لا يُكذِّب ادّعاءَ الغياب\n",
           "why": "FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01: بلا فرع الاسم الأساسيّ يعود ادّعاءُ «غيرُ موجودٍ بعد» غيرَ قابلٍ للتكذيب — `migrations/run_migrations.sql` يُعلَن غائباً والمُشغِّلُ الحقيقيُّ `scripts_v9/run_migrations.sql` قائمٌ خارج التجميد، وإقرارُ النظير الساري يُسكِت `alias_escape_errors`. فيمرّ الحارسُ أخضرَ على تجميدٍ فارغ، كما مرّ على #954."
+        },
+        {
+          "expect": "test_the_frozen_path_guard_blocks_an_unsigned_transition",
+          "find": "    errors = errors + owner_errors\n",
+          "replace": "    errors = errors + []\n",
+          "test": "tests_v9/test_gate01_owner_signature_guard.py",
+          "why": "GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01: the owner-signature verdict is computed but never reaches the guard's exit code, so CI stays green on an unsigned CLOSED->OPEN."
         }
       ],
       "test": "tests_v9/test_gate01_frozen_path_guard.py"
@@ -6499,6 +6506,89 @@
           "why": "تعليقاتُ المراجعة تُجلَب ولا يُحكَم عليها ⇒ ملاحظةُ بوتٍ أو مراجِعٍ «(High)» على GitHub تُصلَح بلا معرّف والخطوةُ خضراء — الشطرُ الثاني من «الباقي» في GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01"
         }
       ]
+    },
+    "gate01_owner_signature_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_signature_by_another_key_is_refused",
+          "find": "    if not ok:\n        v.status, v.reasons = (",
+          "replace": "    if False:\n        v.status, v.reasons = (",
+          "why": "Ignoring the ssh-keygen verdict turns any envelope that names the owner principal into an owner decision: the agent signs with its own key and the transition passes."
+        },
+        {
+          "expect": "test_a_key_added_in_the_pr_itself_is_not_trusted",
+          "find": "            raw = show_bytes(root, base_commit, cfg[\"allowed_signers_path\"])",
+          "replace": "            raw = _read_head(root, cfg[\"allowed_signers_path\"])",
+          "why": "Reading the trust root from the PR instead of the base lets one PR install the agent's own key and sign its own CLOSED->OPEN transition — the whole gap in one step."
+        },
+        {
+          "expect": "test_a_signed_base_that_is_not_the_merge_base_is_refused",
+          "find": "        if subj[\"base_sha\"] != actual_base:",
+          "replace": "        if False:",
+          "why": "Without the base binding an approval given against one base survives a rebase onto another; the scope comparison is skipped exactly when the base differs, so only this branch catches it."
+        },
+        {
+          "expect": "test_an_expired_decision_is_refused",
+          "find": "    if ctx.now >= ex:",
+          "replace": "    if False:",
+          "why": "An expired decision stays valid forever; expires_at becomes decoration (the class of GATE01-AUTHORIZATION-NEVER-EXPIRES-01)."
+        },
+        {
+          "expect": "test_an_already_consumed_decision_is_refused",
+          "find": "    if any(e.get(\"decision_id\") == did for e in ctx.base_ledger if isinstance(e, dict)):",
+          "replace": "    if False:",
+          "why": "A decision already consumed on the base can be presented again: single_use is then a promise, not a property."
+        },
+        {
+          "expect": "test_unsigned_open_transition_is_refused",
+          "find": "            hit = satisfied(\"state_transition\", {POLICY_PATH})\n            if hit is None:",
+          "replace": "            hit = satisfied(\"state_transition\", {POLICY_PATH})\n            if False:",
+          "why": "The spike's root: an OPEN policy with every field present but no owner signature passes."
+        },
+        {
+          "expect": "test_spike_fabricated_ruling_source_is_refused_even_when_signed",
+          "find": "    if not want or gate.get(\"ruling_source\") != want:",
+          "replace": "    if False:",
+          "why": "ruling_source returns to free text the agent can fabricate instead of naming the verified envelope."
+        },
+        {
+          "expect": "test_a_revoked_decision_is_refused",
+          "find": "    if payload[\"decision_id\"] in ctx.revoked:",
+          "replace": "    if False:",
+          "why": "A revocation list that is read but not enforced: the owner cannot withdraw a signed decision."
+        },
+        {
+          "expect": "test_a_valid_signature_over_a_different_subject_is_refused",
+          "find": "    if ident[\"pr_number\"] != ctx.pr_number:",
+          "replace": "    if False:",
+          "why": "A genuine owner signature for another PR is replayed on this one."
+        },
+        {
+          "expect": "test_exactly_one_of_concurrent_reservations_wins",
+          "find": "            fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)",
+          "replace": "            fd = os.open(lock, os.O_CREAT | os.O_WRONLY, 0o600)",
+          "why": "Without O_EXCL the lock is not exclusive: concurrent reservations all read an empty ledger and more than one wins."
+        },
+        {
+          "expect": "test_weakening_the_owner_signature_block_is_refused",
+          "find": "            if weak and satisfied(\"policy_change\", {POLICY_PATH}) is None:",
+          "replace": "            if False:",
+          "why": "The mechanism can be switched off by the agent in one PR (drop state_transition from required_for), and the next PR opens the gate unsigned."
+        },
+        {
+          "expect": "test_a_commit_after_the_signed_head_is_refused",
+          "find": "            if extra:\n                reasons.append(",
+          "replace": "            if False:\n                reasons.append(",
+          "why": "Commits stacked after the signed head (e.g. a frozen-path edit) ride on the approval of the earlier commit."
+        },
+        {
+          "expect": "test_a_tampered_scope_digest_is_refused",
+          "find": "            if actual_scope != sorted(subj[\"scope\"], key=lambda e: e.get(\"path\", \"\")):",
+          "replace": "            if False:",
+          "why": "The signed scope is not compared with the real diff: the owner approves digests that are not the bytes that land."
+        }
+      ],
+      "test": "tests_v9/test_gate01_owner_signature_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

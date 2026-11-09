@@ -98,6 +98,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BASE_REF: ${{ github.base_ref }}
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -114,4 +116,9 @@ jobs:
       # يُردّ إصلاحٌ صحيح.
       - name: GATE-01 physical-effect freeze (scoped authorization)
         run: |
-          git diff --name-only "origin/${BASE_REF}...HEAD" | python scripts/ci/gate01_frozen_path_guard.py --stdin
+          # GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01: the trusted base, the PR head and the
+          # PR number bind owner-signed authorizations to this exact PR (repository and its
+          # numeric id come from GITHUB_REPOSITORY / GITHUB_REPOSITORY_ID). ssh-keygen is on
+          # the runner image; without a trusted key every authorization is UNVERIFIED.
+          git diff --name-only "origin/${BASE_REF}...HEAD" | python scripts/ci/gate01_frozen_path_guard.py --stdin \
+            --base-ref "origin/${BASE_REF}" --pr-head-sha "${PR_HEAD_SHA}" --pr-number "${PR_NUMBER}"
