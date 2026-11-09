@@ -75561,6 +75561,7 @@
       "test": "tests_v9/test_gate01_owner_signature_guard.py",
       "bounded": false,
       "unbounded_reasons": [
+        "directory_reference",
         "reads_repository_data_file",
         "subprocess"
       ],
