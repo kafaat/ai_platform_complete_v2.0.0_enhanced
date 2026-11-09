@@ -1463,7 +1463,7 @@ async def authorize_dispatch(
             source = await conn.fetchrow(
                 """
                 SELECT p.execution_plan_id, p.decision_id, p.review_id,
-                       p.candidate_lineage_id, p.status AS plan_state,
+                       p.candidate_lineage_id, p.status AS plan_state, p.planned_end,
                        d.review_state, r.new_state
                   FROM decision_execution_plans p
                   JOIN decision_record d
@@ -1488,6 +1488,8 @@ async def authorize_dispatch(
                 return {"status": "conflict", "reason": "review_id_mismatch"}
             if source["candidate_lineage_id"] != candidate_lineage_id:
                 return {"status": "conflict", "reason": "candidate_lineage_mismatch"}
+            if _plan_expired(source.get("planned_end"), datetime.now(UTC)):
+                return {"status": "conflict", "reason": "plan_expired"}
 
             authorization_id = (
                 "dauth_"
@@ -1732,6 +1734,155 @@ async def record_reservation_dispatch_intent(
         await conn.close()
 
 
+# ── Execution request ⇄ approved plan binding (P0: the request carried client-chosen fields) ──
+# A request used to copy target/operation/command from the caller after checking only ids and
+# states, so an approved "irrigate zone A for 20 min" plan could authorize "open valve B for
+# 30 min". These pure helpers bind the request to what the plan actually approved.
+EXECUTION_REQUEST_MAX_AGE_DEFAULT_S = 3600.0
+# (conflict reason, plan constraint keys with factor to base unit, command keys with factor).
+_PLAN_QUANTITY_LIMITS: tuple[
+    tuple[str, tuple[tuple[str, float], ...], tuple[tuple[str, float], ...]], ...
+] = (
+    (
+        "duration_exceeds_plan",
+        (("max_duration_sec", 1.0), ("max_duration_seconds", 1.0), ("max_duration_minutes", 60.0)),
+        (
+            ("duration_sec", 1.0),
+            ("duration_seconds", 1.0),
+            ("duration_min", 60.0),
+            ("duration_minutes", 60.0),
+            ("minutes", 60.0),
+        ),
+    ),
+    (
+        "quantity_exceeds_plan",
+        (("max_irrigation_mm", 1.0), ("max_amount_mm", 1.0)),
+        (("amount_mm", 1.0), ("irrigation_mm", 1.0)),
+    ),
+)
+
+
+def _as_utc(value: Any) -> datetime | None:
+    """timestamptz/ISO text ⇒ aware UTC datetime; anything unreadable ⇒ None."""
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    if not isinstance(value, datetime):
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
+
+
+def _plan_expired(planned_end: Any, now: datetime) -> bool:
+    """True when the plan's approved window has closed. An unreadable bound fails closed."""
+    if planned_end is None:
+        return False
+    end = _as_utc(planned_end)
+    return end is None or now > end
+
+
+def _execution_request_max_age_s() -> float:
+    raw = os.getenv("DECISION_EXECUTION_REQUEST_MAX_AGE_S", "").strip()
+    try:
+        value = float(raw) if raw else EXECUTION_REQUEST_MAX_AGE_DEFAULT_S
+    except ValueError:
+        return EXECUTION_REQUEST_MAX_AGE_DEFAULT_S
+    if not math.isfinite(value) or value <= 0:
+        return EXECUTION_REQUEST_MAX_AGE_DEFAULT_S
+    return value
+
+
+def _command_layers(command_payload: Any) -> list[dict[str, Any]]:
+    """The command envelope and its nested ``payload`` — the two places the adapter reads."""
+    command = _jsonish(command_payload)
+    if not isinstance(command, dict):
+        return []
+    layers = [command]
+    inner = command.get("payload")
+    if isinstance(inner, dict):
+        layers.append(inner)
+    return layers
+
+
+def _layer_values(layers: list[dict[str, Any]], keys: tuple[str, ...]) -> list[Any]:
+    return [layer[k] for layer in layers for k in keys if layer.get(k) not in (None, "")]
+
+
+def _non_negative_number(value: Any) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    number = float(value)
+    return number if math.isfinite(number) and number >= 0 else None
+
+
+def _execution_request_plan_violation(plan: Any, payload: Any, *, now: datetime) -> str | None:
+    """Pure check: is this request covered by the approved plan? ``None`` or a conflict reason.
+
+    Every value the adapter could act on is checked in both the command envelope and its nested
+    ``payload``, so a permitted value in one layer cannot mask a different one in the other.
+    """
+    if _plan_expired(plan.get("planned_end"), now):
+        return "plan_expired"
+    plan_operation = str(plan.get("plan_operation_type") or "").strip()
+    if str(payload.operation_type or "").strip() != plan_operation:
+        return "operation_type_mismatch"
+
+    layers = _command_layers(payload.command_payload)
+    target_id = str(payload.target_id or "").strip()
+    resources = _jsonish(plan.get("required_resources")) or []
+    plan_targets = {
+        str(r.get(k)).strip()
+        for r in (resources if isinstance(resources, list) else [])
+        if isinstance(r, dict)
+        for k in ("target_id", "device_id")
+        if r.get(k) not in (None, "")
+    }
+    zones_raw = _jsonish(plan.get("target_zone_ids")) or []
+    plan_zones = {str(z).strip() for z in (zones_raw if isinstance(zones_raw, list) else []) if z}
+    # Equipment moves water: a plan that names neither a target nor a zone approved nothing.
+    if payload.target_type != "task" and not plan_targets and not plan_zones:
+        return "plan_target_unbound"
+    if plan_targets and target_id not in plan_targets:
+        return "target_mismatch"
+    command_devices = {str(v).strip() for v in _layer_values(layers, ("device_id", "device"))}
+    if command_devices and command_devices != {target_id}:
+        return "command_target_mismatch"
+    if plan_zones:
+        zones = {str(v).strip() for v in _layer_values(layers, ("zone_id", "field_id"))}
+        if not zones or not zones <= plan_zones:
+            return "target_zone_mismatch"
+
+    constraints = _jsonish(plan.get("constraints")) or {}
+    if not isinstance(constraints, dict):
+        constraints = {}
+    for reason, limit_keys, command_keys in _PLAN_QUANTITY_LIMITS:
+        requested: list[float] = []
+        for key, factor in command_keys:
+            for raw in _layer_values(layers, (key,)):
+                number = _non_negative_number(raw)
+                if number is None:
+                    return "invalid_command_quantity"
+                requested.append(number * factor)
+        if not requested:
+            continue
+        for key, factor in limit_keys:
+            if key not in constraints:
+                continue
+            limit = _non_negative_number(constraints[key])
+            if limit is None:
+                return "plan_quantity_unreadable"
+            if max(requested) > limit * factor:
+                return reason
+        if reason == "duration_exceeds_plan" and plan.get("planned_end") is not None:
+            end = _as_utc(plan.get("planned_end"))
+            if end is None or (end - now).total_seconds() < max(requested):
+                return "duration_exceeds_plan_window"
+    return None
+
+
 async def create_execution_request(
     *, tenant_id: str, dispatch_authorization_id: str, requested_by: str, payload: Any
 ) -> dict[str, Any]:
@@ -1753,7 +1904,9 @@ async def create_execution_request(
                 return _authoritative_execution_request(prior, replay=True)
             auth = await conn.fetchrow(
                 """SELECT a.dispatch_authorization_id,a.execution_plan_id,a.decision_id,a.status,
-                          p.status AS plan_state,d.review_state
+                          p.status AS plan_state,d.review_state,
+                          p.operation_type AS plan_operation_type,p.target_zone_ids,
+                          p.required_resources,p.constraints,p.planned_start,p.planned_end
                      FROM decision_dispatch_authorizations a
                      JOIN decision_execution_plans p ON p.tenant_id=a.tenant_id AND p.execution_plan_id=a.execution_plan_id
                      JOIN decision_record d ON d.tenant_id=a.tenant_id AND d.decision_id=a.decision_id
@@ -1774,6 +1927,9 @@ async def create_execution_request(
                 return {"status": "conflict", "reason": "execution_plan_id_mismatch"}
             if auth["decision_id"] != payload.decision_id:
                 return {"status": "conflict", "reason": "decision_id_mismatch"}
+            violation = _execution_request_plan_violation(auth, payload, now=datetime.now(UTC))
+            if violation:
+                return {"status": "conflict", "reason": violation}
             request_id = (
                 "exec_"
                 + hashlib.sha256(
@@ -1968,6 +2124,26 @@ async def claim_execution_request(
                 return {"status": "conflict", "reason": "execution_request_not_queued"}
             if request["target_type"] != adapter_kind:
                 return {"status": "conflict", "reason": "adapter_kind_mismatch"}
+            # A queued request is a command for *then*: one released hours later (kill-switch
+            # cleared, adapter back online) must not fire. Refuse without a status change — the
+            # schema has no expired state, and 'failed' without a receipt would break the
+            # receipt-backed terminal contract.
+            now = datetime.now(UTC)
+            requested_at = _as_utc(request["requested_at"])
+            if (
+                requested_at is None
+                or (now - requested_at).total_seconds() > _execution_request_max_age_s()
+            ):
+                return {"status": "conflict", "reason": "execution_request_expired"}
+            plan = await conn.fetchrow(
+                "SELECT planned_end FROM decision_execution_plans WHERE tenant_id=$1::uuid AND execution_plan_id=$2",
+                tenant_id,
+                request["execution_plan_id"],
+            )
+            if plan is None:
+                return {"status": "conflict", "reason": "execution_plan_not_found"}
+            if _plan_expired(plan["planned_end"], now):
+                return {"status": "conflict", "reason": "plan_expired"}
             attempt_id = (
                 "del_"
                 + hashlib.sha256(f"{tenant_id}:{execution_request_id}".encode()).hexdigest()[:20]
@@ -2156,6 +2332,31 @@ def _authoritative_execution_outcome(row: Any, *, replay: bool) -> dict[str, Any
     }
 
 
+def _equipment_receipt_evidence_gap(receipt_payload: Any) -> str | None:
+    """Pure check: may an equipment receipt back ``verified_success``? ``None`` or a reason.
+
+    The actuator records its mode and publish result in the receipt payload; a broker publish is
+    not a device acknowledgement, and a simulated publish is not even a publish. Missing evidence
+    fails closed.
+    """
+    receipt = _jsonish(receipt_payload)
+    if not isinstance(receipt, dict):
+        return "receipt_lacks_actuator_evidence"
+    mode = str(receipt.get("actuator_mode") or "").strip().lower()
+    if receipt.get("simulated") not in (None, False) or mode == "simulation":
+        return "receipt_simulated"
+    if mode != "real":
+        return "receipt_not_real_actuator"
+    if receipt.get("published") is not True:
+        return "receipt_not_published"
+    device_acked = (
+        receipt.get("device_ack") is True or receipt.get("delivery_state") == "device_acked"
+    )
+    if receipt.get("publish_only") not in (None, False) or not device_acked:
+        return "receipt_lacks_device_ack"
+    return None
+
+
 async def verify_execution_outcome(
     *, tenant_id: str, execution_request_id: str, verified_by: str, payload: Any
 ) -> dict[str, Any]:
@@ -2178,6 +2379,7 @@ async def verify_execution_outcome(
             source = await conn.fetchrow(
                 """SELECT r.execution_request_id,r.execution_plan_id,r.dispatch_authorization_id,
                           r.decision_id,r.status,r.receipt_id,r.receipt_status,
+                          r.target_type,r.receipt_payload,
                           a.receipt_id AS attempt_receipt_id,
                           a.receipt_status AS attempt_receipt_status
                      FROM decision_execution_requests r
@@ -2214,6 +2416,15 @@ async def verify_execution_outcome(
                 and source["attempt_receipt_status"] == "accepted"
             ):
                 return {"status": "conflict", "reason": "receipt_not_accepted"}
+            # An equipment receipt of "accepted" means only "published to the broker" (or, in
+            # simulation, not even that). Ground truth needs a real actuator and a device ack.
+            if (
+                payload.verification_state == "verified_success"
+                and source.get("target_type") != "task"
+            ):
+                evidence_gap = _equipment_receipt_evidence_gap(source.get("receipt_payload"))
+                if evidence_gap:
+                    return {"status": "conflict", "reason": evidence_gap}
             outcome_id = (
                 "out_"
                 + hashlib.sha256(

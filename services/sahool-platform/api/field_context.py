@@ -42,6 +42,21 @@ def _growth_stage(days_since_sowing: int | None) -> str | None:
     return "late"
 
 
+def _season_stage(crop: str | None, age: int) -> str | None:
+    """مرحلة الموسم: من بطاقة المحصول، أو تقدير الأيّام العامّ لمحصول **معروف** فقط.
+
+    محصول غير مُعرَّف ⇒ None: حدود الأيّام العامّة لا تخصّه، والمرحلة المُختلَقة تقود
+    Kc/التسميد المرحليّ. البطاقة المعروفة بلا مرحلة جارية ⇒ تقدير عامّ (السلوك السابق).
+    """
+    from core.season_phenology import current_stage, resolve_crop_id
+
+    crop_id = resolve_crop_id(crop)
+    phase = current_stage(crop_id, age) if age >= 0 else None
+    if phase:
+        return phase["stage"]
+    return _growth_stage(age) if crop_id else None
+
+
 async def _field_weather_context(
     conn, field_id: str
 ) -> tuple[float, float, str | None, str | None, int | None]:
@@ -64,6 +79,7 @@ async def _latest_soil_moisture(conn, field_id: str):
     المنطق النقيّ pick_latest_soil_moisture (يتجاهل القيم خارج النطاق المعقول).
     يُعيد كائن SoilMoistureReading أو None — لا يرفع استثناء عند غياب البيانات
     (القرار يتدبّر None برشاقة: يعتمد احتياج الريّ بدلاً منها).
+
     """
     from api.soil_telemetry import pick_latest_soil_moisture
 
@@ -114,11 +130,7 @@ async def _field_season_context(conn, field_id: str):
             crop = str(crops[0])
         sowing_date = season["sowing_date"]
         if sowing_date is not None:
-            from core.season_phenology import current_stage, resolve_crop_id
-
-            age = (date.today() - sowing_date).days
-            phase = current_stage(resolve_crop_id(crop), age) if age >= 0 else None
-            stage = phase["stage"] if phase else _growth_stage(age)
+            stage = _season_stage(crop, (date.today() - sowing_date).days)
     lat = float(row["lat"]) if row["lat"] is not None else None
     lon = float(row["lon"]) if row["lon"] is not None else None
     return lat, lon, crop, stage, sowing_date

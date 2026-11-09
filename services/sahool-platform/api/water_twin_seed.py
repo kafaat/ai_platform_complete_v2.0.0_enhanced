@@ -18,6 +18,8 @@
 
 from __future__ import annotations
 
+from shared.contracts.soil import moisture_policy as _moisture_policy
+
 
 def average_recent_etc(recent_rows: list[dict]) -> float | None:
     """متوسّط ``etc_mm`` غير الفارغة من صفوف الدفتر الأخيرة (None إن لا قيم — لا تلفيق)."""
@@ -65,15 +67,16 @@ def _clamp(value: float, taw_mm: float) -> float:
 SENSOR_CONFLICT_FRACTION_OF_TAW = 0.15
 SENSOR_CONFLICT_FLOOR_MM = 10.0
 
-LIMIT_UNIT_UNDECLARED = "soil_moisture_sensor_unit_undeclared"
+LIMIT_UNIT_UNDECLARED = _moisture_policy.LIMIT_UNIT_UNDECLARED
 LIMIT_CONVERSION_INPUTS_MISSING = "soil_moisture_sensor_conversion_inputs_missing"
-LIMIT_SENSOR_STALE = "soil_moisture_sensor_reading_stale"
-LIMIT_FRESHNESS_UNPROVEN = "soil_moisture_sensor_freshness_unproven"
-LIMIT_TIMESTAMP_IN_FUTURE = "soil_moisture_sensor_timestamp_in_future"
+LIMIT_SENSOR_STALE = _moisture_policy.LIMIT_SENSOR_STALE
+LIMIT_FRESHNESS_UNPROVEN = _moisture_policy.LIMIT_FRESHNESS_UNPROVEN
+LIMIT_TIMESTAMP_IN_FUTURE = _moisture_policy.LIMIT_TIMESTAMP_IN_FUTURE
 
 #: سياسةُ الطوابع المستقبليّة، مُعلَنة: انحرافُ ساعاتٍ حتّى خمس دقائق يُعدّ طازجاً؛
-#: أبعدُ منه طابعٌ من المستقبل لا يثبت شيئاً.
-FUTURE_SKEW_TOLERANCE_S = 300.0
+#: أبعدُ منه طابعٌ من المستقبل لا يثبت شيئاً. مصدرُها السياسةُ المشتركة
+#: (`shared/contracts/soil/moisture_policy.py`، SOIL-MOISTURE-ELIGIBILITY-01).
+FUTURE_SKEW_TOLERANCE_S = _moisture_policy.FUTURE_SKEW_TOLERANCE_S
 
 
 def _finite(value: float | None) -> bool:
@@ -94,26 +97,17 @@ def sensor_freshness(age_s: float | None, max_reading_age_s: float | None) -> st
     الآن: ``fresh`` فقط حين يكون العمرُ والسقفُ عددين محدودين، والسقفُ موجباً، والعمرُ
     ضمن النافذة؛ وإلّا ``unproven`` (ناقص/غيرُ صالح) أو ``future`` أو ``stale``.
     """
-    if not _finite(age_s) or not _finite(max_reading_age_s) or float(max_reading_age_s) <= 0:
-        return "unproven"
-    if float(age_s) < -FUTURE_SKEW_TOLERANCE_S:
-        return "future"
-    if float(age_s) > float(max_reading_age_s):
-        return "stale"
-    return "fresh"
+    # الحكمُ نفسُه يعيش في السياسة المشتركة — لا نسخةَ ثانية تنحرف عنها.
+    return _moisture_policy.classify_freshness(age_s, max_reading_age_s)
 
 
-_FRESHNESS_LIMITATION = {
-    "stale": LIMIT_SENSOR_STALE,
-    "unproven": LIMIT_FRESHNESS_UNPROVEN,
-    "future": LIMIT_TIMESTAMP_IN_FUTURE,
-}
+_FRESHNESS_LIMITATION = _moisture_policy.FRESHNESS_LIMITATION
 
 #: أهليّةُ **التهيئة من الحسّاس وحدَه** — سياسةٌ صريحة لا استنتاج: الوحدةُ الصحيحة
 #: والطابعُ الحديث لا يُثبِتان جودةَ القياس. `accepted` وحدَها تؤهّل؛ `uncalibrated`
 #: و`suspect` تبقيان شاهداً مرئيّاً يُقارَن ولا يهيّئ؛ الغيابُ لا يؤهّل (إثباتٌ إيجابيّ).
-SEED_ELIGIBLE_QUALITY_STATUSES = frozenset({"accepted"})
-LIMIT_QUALITY_UNPROVEN = "soil_moisture_sensor_quality_unproven"
+SEED_ELIGIBLE_QUALITY_STATUSES = _moisture_policy.DECISION_ELIGIBLE_QUALITY_STATUSES
+LIMIT_QUALITY_UNPROVEN = _moisture_policy.LIMIT_QUALITY_UNPROVEN
 LIMIT_QUALITY_NOT_SEED_ELIGIBLE = "soil_moisture_sensor_quality_not_seed_eligible"
 
 

@@ -133,7 +133,8 @@ def test_economic_state_filled_when_provided():
 def test_unified_flags():
     d = unified_decision(_twin(needs_irrig=True, past_maturity=True), _plan(), _quality())
     codes = {f["code"] for f in d["stress_flags"]}
-    assert {"water_deficit", "past_maturity", "fertilization_due"} <= codes
+    # modelled uptake remaining is not «fertilization due» (soil supply unknown)
+    assert {"water_deficit", "past_maturity", "crop_uptake_remaining"} <= codes
 
 
 def test_confidence_and_warnings_propagate():

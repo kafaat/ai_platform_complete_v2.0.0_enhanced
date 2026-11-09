@@ -209,7 +209,11 @@ async def add_custody_event(
     + content_hash للتدقيق. يُصدِر CUSTODY_EVENT_RECORDED. القفل (FOR UPDATE) يُسلسِل
     التسجيلات المتزامنة على نفس الدفعة. 404 إن لم تكن الدفعة للمستأجِر. 503 عند تعذّر القاعدة.
     idempotent: Idempotency-Key (UUID) يمنع تكرار التسجيل عند إعادة الموبايل (offline)."""
-    from core.engines.harvest_traceability import compute_event_hash, status_for_event
+    from core.engines.harvest_traceability import (
+        compute_event_hash,
+        status_for_event,
+        transition_refusal,
+    )
 
     occurred = _parse_dt(req.occurred_at, "occurred_at")
     content_hash = compute_event_hash(
@@ -220,14 +224,23 @@ async def add_custody_event(
 
             async def _work():
                 lot = await conn.fetchrow(
-                    "SELECT status FROM harvest_lots WHERE harvest_lot_id = $1 FOR UPDATE",
+                    "SELECT status, quality_grade FROM harvest_lots "
+                    "WHERE harvest_lot_id = $1 FOR UPDATE",
                     harvest_lot_id,
                 )
                 if lot is None:
                     raise HTTPException(
                         status_code=404, detail="دفعة الحصاد غير موجودة ضمن هذا المستأجِر"
                     )
-                new_status = status_for_event(req.event_type, lot["status"])
+                refusal = transition_refusal(
+                    req.event_type,
+                    lot["status"],
+                    quality_grade=lot["quality_grade"],
+                    event_details=req.event_details,
+                )
+                if refusal is not None:
+                    raise HTTPException(status_code=409, detail=refusal)
+                new_status = status_for_event(req.event_type, lot["status"], req.event_details)
                 async with conn.transaction():
                     ev_id = await conn.fetchval(
                         """INSERT INTO custody_chain_events

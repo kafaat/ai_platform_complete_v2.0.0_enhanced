@@ -4,7 +4,8 @@
 إلى السوق. كلّ الدوالّ هنا نقيّة (لا I/O) فتُختبَر offline، والراوتر يلفّها بالقاعدة.
 
 - compute_event_hash: SHA-256 حتميّ لمحتوى حدث الحيازة (سلامة السجلّ append-only).
-- status_for_event: الحالة الجديدة للدفعة المُشتقّة من نوع حدث الحيازة.
+- status_for_event: الحالة الجديدة للدفعة المُشتقّة من نوع حدث الحيازة (وفحص راسب ⇒ rejected).
+- transition_refusal: سبب رفض حدث غير مسموح (بيع المرفوض، الرجوع عن البيع) — 409 في الراوتر.
 - assemble_traceability: يجمع الدفعة + السلسلة المرتّبة زمنيّاً + المنشأ + تقييم
   اكتمال السلسلة في أثر واحد جاهز للـJSON.
 - ثوابت التحقّق (الأنواع/الأدوار) — مصدر حقيقة واحد يشاركه الراوتر والاختبار.
@@ -53,10 +54,67 @@ _EVENT_TO_STATUS: dict[str, str | None] = {
 }
 
 
-def status_for_event(event_type: str, current_status: str) -> str:
-    """الحالة الجديدة للدفعة بعد حدث حيازة. النوع المجهول أو غير المُحرِّك ⇒ تبقى الحالة."""
+# اصطلاح نتيجة فحص الجودة في event_details (لا عمود مخصّص في v65): أيّ من
+#   passed: false · result ∈ {fail, failed, reject, rejected} · grade/quality_grade = reject
+# يعني فحصاً راسباً ⇒ الدفعة «rejected». غياب هذه المفاتيح ⇒ فحص لا يحرّك الحالة.
+_FAILED_RESULTS = frozenset({"fail", "failed", "reject", "rejected"})
+# حالات «ما قبل البيع» التي لا تعود إليها دفعة مُباعة (البيع لا يُنقَض بحدث حركة).
+_PRE_SALE_STATUSES = frozenset({"harvested", "stored", "in_transit", "at_market"})
+
+
+def quality_check_failed(event_details: dict[str, Any] | None) -> bool:
+    """هل تفاصيل فحص الجودة تقول «راسب»؟ اصطلاح صريح ضيّق — لا استدلال من نصّ حرّ."""
+    details = event_details or {}
+    if details.get("passed") is False:
+        return True
+    result = details.get("result")
+    if isinstance(result, str) and result.strip().lower() in _FAILED_RESULTS:
+        return True
+    for key in ("grade", "quality_grade"):
+        grade = details.get(key)
+        if isinstance(grade, str) and grade.strip().lower() == "reject":
+            return True
+    return False
+
+
+def status_for_event(
+    event_type: str, current_status: str, event_details: dict[str, Any] | None = None
+) -> str:
+    """الحالة الجديدة للدفعة بعد حدث حيازة. النوع المجهول أو غير المُحرِّك ⇒ تبقى الحالة.
+
+    فحص جودة راسب ⇒ «rejected» (إلّا على دفعة مُباعة: البيع لا يُعاد كتابته، والفحص
+    يبقى دليلاً في السلسلة). فحص ناجح لا يُلغي رفضاً سابقاً.
+    """
+    if event_type == "quality_check":
+        if quality_check_failed(event_details) and current_status != "sold":
+            return "rejected"
+        return current_status
     nxt = _EVENT_TO_STATUS.get(event_type)
     return nxt if nxt is not None else current_status
+
+
+def transition_refusal(
+    event_type: str,
+    current_status: str,
+    *,
+    quality_grade: str | None = None,
+    event_details: dict[str, Any] | None = None,
+) -> str | None:
+    """سبب رفض الحدث (نصّ عربيّ) أو None إن كان مسموحاً — يُترجمه الراوتر إلى 409.
+
+    - بيع دفعة مرفوضة (حالة rejected) أو مُصنَّفة reject عند الإنشاء ⇒ مرفوض.
+    - إعادة دفعة مُباعة إلى حالة ما قبل البيع (حصاد/تخزين/نقل) ⇒ مرفوض.
+    """
+    if event_type == "sales":
+        if current_status == "rejected":
+            return "لا يمكن بيع دفعة مرفوضة في فحص الجودة"
+        if isinstance(quality_grade, str) and quality_grade.strip().lower() == "reject":
+            return "لا يمكن بيع دفعة مُصنَّفة reject"
+    if current_status == "sold":
+        nxt = status_for_event(event_type, current_status, event_details)
+        if nxt in _PRE_SALE_STATUSES:
+            return "الدفعة مُباعة — لا تعود إلى حالة ما قبل البيع"
+    return None
 
 
 def compute_event_hash(

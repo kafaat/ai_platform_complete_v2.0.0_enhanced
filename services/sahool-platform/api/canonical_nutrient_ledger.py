@@ -81,6 +81,15 @@ class NutrientBalance:
     remaining_requirement_kg_ha: float | None
     surplus_kg_ha: float | None
 
+    @property
+    def actionable(self) -> bool:
+        """A balance is actionable only when soil supply and demand are both known."""
+        return (
+            self.soil_supply_kg_ha is not None
+            and self.crop_demand_kg_ha is not None
+            and self.remaining_requirement_kg_ha is not None
+        )
+
 
 @dataclass(frozen=True)
 class CanonicalNutrientLedger:
@@ -209,8 +218,10 @@ def build_canonical_nutrient_ledger(
         required = _value(demand, nutrient) if demand else None
         amount = round(applied[nutrient], 6)
         remaining = surplus = None
-        if required is not None:
-            available = float(supply or 0.0) + amount
+        # Unknown soil supply is not zero supply: without a laboratory value the
+        # balance cannot be closed, so the nutrient stays non-actionable.
+        if required is not None and supply is not None:
+            available = float(supply) + amount
             remaining = round(max(0.0, required - available), 6)
             surplus = round(max(0.0, available - required), 6)
         balances.append(

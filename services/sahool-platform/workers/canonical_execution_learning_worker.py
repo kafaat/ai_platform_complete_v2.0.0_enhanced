@@ -203,6 +203,21 @@ async def _process_projection_request(conn: Any, *, request_id: str) -> dict[str
     return {"status": "processed", "inserted": inserted, "event_id": event_id}
 
 
+def _season_id_of(envelope: dict[str, Any], payload: dict[str, Any]) -> str:
+    """معرّف الموسم من الحمولة، وإلّا من هويّة كيان المغلّف حين يكون الكيانُ موسماً.
+
+    منتِجو `season.closed` (`routers/fields.py` و`field_aggregate`) حملوا المعرّف في
+    `entity_id` وحده (`_emit_domain_event(..., "season", season_id, {field_id, reason})`)،
+    فكان `payload["season_id"]` يرفع `KeyError` فيُسقِط العاملُ **كلّ** إغلاق موسم.
+    """
+    season_id = payload.get("season_id")
+    if not season_id and str(envelope.get("entity_type") or "") == "season":
+        season_id = envelope.get("entity_id")
+    if not season_id:
+        raise ValueError("SEASON_ID_REQUIRED")
+    return str(season_id)
+
+
 async def handle_envelope(pool: Any, envelope: dict[str, Any]) -> dict[str, Any]:
     event_type = str(envelope.get("event_type") or "")
     event_id = str(envelope.get("event_id") or "")
@@ -221,7 +236,7 @@ async def handle_envelope(pool: Any, envelope: dict[str, Any]) -> dict[str, Any]
                 event_id=event_id,
                 tenant_id=tenant_id,
                 field_id=str(payload["field_id"]),
-                season_id=str(payload["season_id"]),
+                season_id=_season_id_of(envelope, payload),
                 minimum_outcomes=int(payload.get("minimum_outcomes", 3)),
             )
         elif event_type == "irrigation.execution.completed" and payload.get("source") == "manual":

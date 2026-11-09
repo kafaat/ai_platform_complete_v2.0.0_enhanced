@@ -5,6 +5,8 @@ crop_id: potato
 name_ar: البطاطس
 name_en: Potato
 crop_family: tuber_C3
+aliases:
+  - "بطاطا"
 
 kc:
   initial: 0.50

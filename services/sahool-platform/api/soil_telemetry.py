@@ -172,19 +172,21 @@ def pick_latest_soil_moisture(rows: list[dict[str, Any]]) -> SoilMoistureReading
 def irrigation_soil_input(
     reading: SoilMoistureReading | None, *, now: datetime | None = None
 ) -> dict[str, Any]:
-    """G9 — ما يدخل توصية الريّ من قراءة التربة: **الوحدةُ والعمرُ يُمرَّران لا يُسقَطان**.
+    """G9 — ما يدخل توصية الريّ من قراءة التربة: **الوحدةُ والعمرُ والجودةُ تُمرَّر لا تُسقَط**.
 
     كان المسارُ يمرّر ``value_pct`` عارياً فتُقرأ ``25٪ VWC`` «ماءً متاحاً ٢٥٪» (حرجة ⇒
-    ريٌّ عاجل) وقراءةُ أسبوعٍ مضى قراءةَ اليوم. الآن: ``usable_pct`` يُعطى للمُقرِّر
-    **فقط** حين تكون القراءةُ طازجةً (سقفُ ``soil_moisture_sensor.max_reading_age_s``
-    عبر ``water_twin_seed.sensor_freshness`` نفسها) ووحدتُها قابلةً للمقارنة بعتبات الماء
-    المتاح؛ والحجميّةُ بلا θFC/θWP تُعلَن غيرَ قابلة للمقارنة (لا تُحوَّل تخميناً).
-    والقراءةُ الخام تبقى معروضةً بوحدتها وعمرها.
+    ريٌّ عاجل) وقراءةُ أسبوعٍ مضى قراءةَ اليوم. ثمّ صار يحكم بالطزاجة والوحدة وحدَهما
+    (``used = fresh and unit != vwc``) فبقيت ``%`` العاريةُ و``uncalibrated`` تبلغ المُقرِّر
+    وترفع الإلحاح. **الحكمُ الآن واحدٌ مشترك** — ``shared.contracts.soil.moisture_policy``
+    (SOIL-MOISTURE-ELIGIBILITY-01): ``usable_pct`` يُعطى للمُقرِّر **فقط** حين تكون القراءةُ
+    ``decision_eligible`` (جودةٌ ``accepted`` · عمرٌ ضمن سقف
+    ``soil_moisture_sensor.max_reading_age_s`` · وحدةٌ مُعلَنة ماءً متاحاً). وغيرُها استشاريّة:
+    تبقى معروضةً بوحدتها وعمرها وجودتها وقيودها، ولا ترفع الإلحاح ولا تخفضه.
     """
     from datetime import UTC
 
     from api.device_registry import get_device_type
-    from api.water_twin_seed import _FRESHNESS_LIMITATION, sensor_freshness
+    from shared.contracts.soil.moisture_policy import POLICY_VERSION, moisture_eligibility
 
     if reading is None:
         return {
@@ -193,32 +195,46 @@ def irrigation_soil_input(
             "soil_moisture_at": None,
             "soil_moisture_unit": None,
             "soil_moisture_unit_kind": None,
+            "soil_moisture_quality_status": None,
             "soil_moisture_age_s": None,
             "soil_moisture_freshness": None,
             "soil_moisture_used": False,
             "soil_moisture_limitations": [],
+            "soil_moisture_policy_version": POLICY_VERSION,
         }
     observed = reading.recorded_at
     if observed.tzinfo is None:  # timestamptz يصل واعياً؛ الساذجُ يُعامَل UTC صراحةً
         observed = observed.replace(tzinfo=UTC)
-    age_s = ((now or datetime.now(UTC)) - observed).total_seconds()
+    current = now or datetime.now(UTC)
+    age_s = (current - observed).total_seconds()
     max_age_s = (get_device_type("soil_moisture_sensor") or {}).get("max_reading_age_s")
-    freshness = sensor_freshness(age_s, max_age_s)
-    limitations = [_FRESHNESS_LIMITATION[freshness]] if freshness != "fresh" else []
-    if reading.unit_kind == UNIT_VWC_PCT:
-        limitations.append("soil_moisture_vwc_not_comparable_to_available_water")
-    elif reading.unit_kind == UNIT_UNDECLARED:
-        limitations.append("soil_moisture_sensor_unit_undeclared")
-    used = freshness == "fresh" and reading.unit_kind != UNIT_VWC_PCT
+    verdict = moisture_eligibility(
+        reading.unit_kind, reading.quality_status, observed, current, max_age_s=max_age_s
+    )
     return {
-        # الطازجُ وحدَه يبلغ المُقرِّر؛ والحجميّةُ تبلغه ليُعلِنها هو غيرَ مُستعمَلة.
-        "usable_pct": reading.value_pct if freshness == "fresh" else None,
+        # المؤهَّلةُ وحدَها تبلغ المُقرِّر؛ الاستشاريّةُ تُعرَض بقيودها ولا تحكم.
+        "usable_pct": reading.value_pct if verdict.decision_eligible else None,
         "soil_moisture_pct": reading.value_pct,
         "soil_moisture_at": reading.recorded_at.isoformat(),
         "soil_moisture_unit": reading.unit,
         "soil_moisture_unit_kind": reading.unit_kind,
+        "soil_moisture_quality_status": reading.quality_status,
         "soil_moisture_age_s": round(age_s, 1),
-        "soil_moisture_freshness": freshness,
-        "soil_moisture_used": used,
-        "soil_moisture_limitations": limitations,
+        "soil_moisture_freshness": verdict.freshness,
+        "soil_moisture_used": verdict.decision_eligible,
+        "soil_moisture_limitations": list(verdict.limitations),
+        "soil_moisture_policy_version": verdict.policy_version,
     }
+
+
+def decision_soil_moisture(
+    reading: SoilMoistureReading | None, *, now: datetime | None = None
+) -> tuple[float | None, str]:
+    """``(pct, unit_kind)`` لمستهلكٍ يقرّر (توصية الريّ · قاعدة ``low_moisture``).
+
+    كان مسارُ التنبيهات يمرّر ``value_pct`` بلا عمرٍ ولا جودة — قراءةُ أسبوعٍ أو حسّاسٌ
+    غيرُ معايَر يُطلِق «رطوبة منخفضة». القيمةُ هنا هي ``usable_pct`` من الحكم المشترك نفسِه:
+    ``None`` لكلّ قراءةٍ غير مؤهّلة، فيسقط المستهلكُ إلى مسار الاحتياج المائيّ.
+    """
+    soil = irrigation_soil_input(reading, now=now)
+    return soil["usable_pct"], soil["soil_moisture_unit_kind"] or UNIT_AVAILABLE_PCT

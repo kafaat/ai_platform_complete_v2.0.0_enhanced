@@ -204,7 +204,13 @@ class WeatherAutomation:
     async def register_location_persistent(
         self, lat: float, lon: float, field_id: str | None = None
     ) -> None:
-        """يسجّل + يحفظ في القاعدة (لو توفّر pool)."""
+        """يسجّل + يحفظ في القاعدة (لو توفّر pool).
+
+        للمُستدعين الموثوقين بلا سياق مستأجِر فقط (المُجدوِل/البذر): `self._pool` هو
+        مسبحُ المهامّ (BYPASSRLS). مسارُ الطلب يكتب عبر
+        `register_location_on_tenant_connection` — يحرسه
+        `test_routers_do_not_write_through_the_jobs_pool`.
+        """
         self.register_location(lat, lon, field_id)
         await self._persist_location(lat, lon, field_id)
 
@@ -233,6 +239,20 @@ class WeatherAutomation:
         """
         if not field_id:
             raise ValueError("field_id مطلوب لتسجيل متابعة الطقس")
+        await self.register_location_on_tenant_connection(conn, lat=lat, lon=lon, field_id=field_id)
+
+    async def register_location_on_tenant_connection(
+        self, conn, *, lat: float, lon: float, field_id: str | None
+    ) -> None:
+        """إدراجُ الموقع على اتّصالٍ يملكه المُستدعي (سياق المستأجِر، RLS v73).
+
+        مسارُ الطلب (`POST /automation/weather/register`) يكتب هنا لا عبر
+        `register_location_persistent`: ذاك يكتب على `self._pool` — مسبحُ المهامّ
+        (`sahool_jobs`، BYPASSRLS) — فكان `field_id` غيرُ المُتحقَّق منه يتجاوز سياسة
+        `v73` و`DO UPDATE` يسرق ارتباطَ موقعِ مستأجِرٍ آخر. `DO NOTHING` للعلّة نفسها
+        الموثَّقة في `register_on_connection`. ولا تُمَسّ الذاكرة: يُحدِّثها المُستدعي
+        بعد الالتزام.
+        """
         await conn.execute(
             "INSERT INTO weather_automation_locations "
             "(location_key, lat, lon, field_id) VALUES ($1,$2,$3,$4) "
