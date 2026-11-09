@@ -132,7 +132,10 @@ def test_the_floor_survives_every_mode(tool):
 
 
 def test_the_audit_sample_rides_with_every_narrowed_run(tool):
-    """Excluded tests never run, so a wrong exclusion is invisible unless some are sampled."""
+    """Excluded tests never run, so a wrong exclusion is invisible unless some are sampled.
+
+    This is the v1 plan shape from #1357 (top-level ``audit_sample``); it must stay readable.
+    """
     result = {
         "mode": "selected",
         "floor": ["a/test_x.py"],
@@ -143,30 +146,35 @@ def test_the_audit_sample_rides_with_every_narrowed_run(tool):
 
 
 def test_the_audit_sample_is_seeded_bounded_and_drawn_only_from_the_excluded(tool):
+    # #1357's guarantees under the percent-with-minimum size (5% of 40 = 2, minimum 5 → 5).
+    kw = {"percent": 5, "minimum": 5}
     excluded = [f"t/test_{i}.py" for i in range(40)]
-    first = tool.audit_sample(excluded, "abc:def", 5)
-    assert first == tool.audit_sample(list(reversed(excluded)), "abc:def", 5), (
+    first = tool.audit_sample(excluded, "abc:def", **kw)
+    assert first == tool.audit_sample(list(reversed(excluded)), "abc:def", **kw), (
         "order must not matter"
     )
     assert len(first) == 5 and set(first) <= set(excluded) and first == sorted(first)
-    rotated = {tuple(tool.audit_sample(excluded, f"commit{i}:def", 5)) for i in range(8)}
+    rotated = {tuple(tool.audit_sample(excluded, f"commit{i}:def", **kw)) for i in range(8)}
     assert len(rotated) > 1, "successive commits must rotate through the excluded corpus"
-    assert tool.audit_sample(excluded[:3], "abc:def", 5) == sorted(excluded[:3])
-    assert tool.audit_sample(excluded, "abc:def", 0) == []
-    assert tool.audit_sample([], "abc:def", 5) == []
+    assert tool.audit_sample(excluded[:3], "abc:def", **kw) == sorted(excluded[:3])
+    assert tool.audit_sample([], "abc:def", **kw) == []
+    # Changed from #1357: ``per_run: 0`` used to mean "sample nothing". One mechanism now,
+    # and a minimum below one is refused rather than read as switching the audit off.
+    with pytest.raises(ValueError):
+        tool.audit_sample(excluded, "abc:def", percent=5, minimum=0)
 
 
 def test_a_real_plan_samples_only_excluded_tests_and_none_when_escalated(tool):
     base = _resolvable_base(tool)
     result = tool.plan(base, "HEAD", include_working_tree=False)
-    sample = set(result["audit_sample"])
+    sample = set(result["audit"]["test_paths"])
     if result["mode"] == "full":
         assert not sample, "full mode excludes nothing, so there is nothing to sample"
     else:
         assert not sample & set(result["floor"]) and not sample & set(result["selected"])
-        assert len(sample) == min(
-            json.loads(POLICY.read_text(encoding="utf-8"))["audit_sample"]["per_run"],
-            result["deselected_count"],
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))["audit_sample"]
+        assert len(sample) == tool.sample_size(
+            result["audit"]["population"], policy["percent"], policy["minimum"]
         )
 
 
@@ -376,13 +384,14 @@ def test_an_unresolvable_base_is_diagnosed_not_a_traceback(tool):
 TESTS = [f"tests_v9/test_{i:03d}.py" for i in range(100)]
 SELECTED = {TESTS[0]: {}, TESTS[1]: {}}
 FLOOR = TESTS[2:12]
+KW = {"mode": "selected", "percent": 5, "minimum": 5, "seed_material": "s"}
 
 
 def test_the_audit_is_drawn_only_from_excluded_tests_and_never_empty(tool):
-    audit, counts = tool.decide(TESTS, SELECTED, FLOOR, mode="selected", percent=5, seed="s")
+    audit, counts, decisions = tool.decide(TESTS, SELECTED, FLOOR, **KW)
     excluded = set(TESTS) - set(SELECTED) - set(FLOOR)
     assert audit and set(audit) <= excluded
-    assert len(audit) == 5  # ceil(88 * 5 / 100)
+    assert len(audit) == 5  # max(5, ceil(88 * 5 / 100))
     assert counts == {
         "selected": 2,
         "floor": 10,
@@ -392,25 +401,35 @@ def test_the_audit_is_drawn_only_from_excluded_tests_and_never_empty(tool):
         "total": 100,
     }
     assert sum(counts[k] for k in ("selected", "floor", "audit", "excluded_not_run")) == 100
-    one, _ = tool.decide(TESTS, SELECTED, TESTS[2:99], mode="selected", percent=5, seed="s")
+    assert set(decisions) == set(TESTS), "every tracked test gets exactly one decision"
+    tally = {}
+    for record in decisions.values():
+        tally[record["decision"]] = tally.get(record["decision"], 0) + 1
+    assert tally == {k: v for k, v in counts.items() if k != "total" and v}
+    one, _, _ = tool.decide(TESTS, SELECTED, TESTS[2:99], **KW)
     assert one == [TESTS[99]], "a single excluded test is still audited"
 
 
 def test_the_same_change_draws_the_same_sample_and_another_change_may_not(tool):
-    first = tool.audit_sample(TESTS, 10, "seed-a")
-    assert first == tool.audit_sample(list(reversed(TESTS)), 10, "seed-a")
-    assert any(tool.audit_sample(TESTS, 10, f"seed-{n}") != first for n in range(5))
+    kw = {"percent": 10, "minimum": 5}
+    first = tool.audit_sample(TESTS, "seed-a", **kw)
+    assert first == tool.audit_sample(list(reversed(TESTS)), "seed-a", **kw)
+    assert any(tool.audit_sample(TESTS, f"seed-{n}", **kw) != first for n in range(5))
 
 
 def test_a_full_suite_run_has_nothing_to_audit(tool):
-    audit, counts = tool.decide(TESTS, SELECTED, FLOOR, mode="full", percent=5, seed="s")
+    audit, counts, decisions = tool.decide(TESTS, SELECTED, FLOOR, **{**KW, "mode": "full"})
     assert audit == [] and counts["full_suite"] == 100 and counts["excluded_not_run"] == 0
+    assert {record["decision"] for record in decisions.values()} == {"full_suite"}
 
 
 def test_an_invalid_audit_percent_is_refused(tool):
-    for bad in (0, -1, 101, float("nan"), "5"):
+    for bad in (0, -1, 101, float("nan"), "5", True):
         with pytest.raises(ValueError):
-            tool.audit_sample(TESTS, bad, "s")
+            tool.audit_sample(TESTS, "s", percent=bad, minimum=5)
+    for bad in (0, -1, 2.5, "5", True):
+        with pytest.raises(ValueError):
+            tool.audit_sample(TESTS, "s", percent=5, minimum=bad)
 
 
 def test_the_runner_runs_the_audit_sample_and_never_drops_the_floor(tool):
@@ -423,9 +442,54 @@ def test_the_runner_runs_the_audit_sample_and_never_drops_the_floor(tool):
     assert tool.paths_to_run(result) == sorted(set(SELECTED) | set(FLOOR) | {TESTS[50]})
 
 
-def test_the_policy_declares_a_valid_audit_percent():
-    percent = json.loads(POLICY.read_text(encoding="utf-8"))["audit_sample"]["percent"]
+def test_the_policy_declares_one_valid_sampling_mechanism():
+    """One policy block: percent with a minimum. The old fixed ``per_run`` must not linger."""
+    policy = json.loads(POLICY.read_text(encoding="utf-8"))["audit_sample"]
+    percent, minimum = policy["percent"], policy["minimum"]
     assert isinstance(percent, (int, float)) and 0 < percent <= 100
+    assert isinstance(minimum, int) and minimum >= 5, (
+        "the minimum is the fixed count #1357 ran; no narrowed run may audit fewer"
+    )
+    assert "per_run" not in policy, "two sampling mechanisms would disagree on the count"
+
+
+@pytest.mark.parametrize(
+    "n, expected",
+    [
+        (0, 0),
+        (1, 1),
+        (3, 3),
+        (5, 5),
+        (10, 5),
+        (50, 5),
+        (100, 5),
+        (101, 6),
+        (200, 10),
+        (878, 44),
+        (2000, 100),
+    ],
+)
+def test_the_sample_size_is_a_percent_with_a_minimum_never_more_than_excluded(tool, n, expected):
+    """min(n, max(minimum, ceil(n * percent / 100))) at 5% / minimum 5."""
+    assert tool.sample_size(n, 5, 5) == expected
+
+
+def test_a_dependency_selected_test_carries_decision_selected_with_its_reason(tool):
+    """#1361: a test selected only by a proven edge is ``selected``, its edge is the reason."""
+    edge = "dependency:source_read:services/guard/main.py"
+    selected = {
+        TESTS[0]: {"capabilities": [], "sources": ["x"], "dependencies": [edge]},
+        TESTS[1]: {"capabilities": ["SEC-006"], "sources": ["y"]},
+    }
+    audit, counts, decisions = tool.decide(TESTS, selected, FLOOR, **KW)
+    assert decisions[TESTS[0]] == {"decision": "selected", "reasons": [edge]}
+    assert decisions[TESTS[1]] == {"decision": "selected", "reasons": ["capability:SEC-006"]}
+    assert TESTS[0] not in audit and counts["selected"] == 2
+
+
+def test_a_v1_plan_without_any_audit_is_still_runnable(tool):
+    result = {"mode": "selected", "floor": FLOOR, "selected": SELECTED}
+    assert tool.paths_to_run(result) == sorted(set(SELECTED) | set(FLOOR))
 
 
 def test_a_real_plan_records_commits_decisions_and_its_own_digest(tool):
@@ -443,6 +507,11 @@ def test_a_real_plan_records_commits_decisions_and_its_own_digest(tool):
         assert set(plan["audit"]["test_paths"]).isdisjoint(
             set(plan["selected"]) | set(plan["floor"])
         )
+    assert set(plan["decisions"]) == set(tool.discover_test_files())
+    for path in plan["selected"]:
+        assert plan["decisions"][path]["decision"] == "selected"
     unsigned = {k: v for k, v in plan.items() if k != "plan_sha256"}
     assert plan["plan_sha256"] == tool._digest(unsigned)
+    # The digest identifies the plan; the record must say it is not evidence of a run.
     assert "not what ran" in plan["authority"]
+    assert "لا تُثبت أنّ اختباراً عمل" in tool.render(plan)
