@@ -16,7 +16,7 @@ import json
 import subprocess
 import sys
 import threading
-from datetime import UTC, datetime, timezone
+from datetime import UTC, date, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -924,6 +924,132 @@ def test_the_frozen_path_guard_blocks_an_unsigned_transition(repo, monkeypatch, 
     out = capsys.readouterr().out
     assert rc == 1, out
     assert "CLOSED→OPEN refused" in out
+
+
+# ── both guards together on a bounded change ────────────────────────────────────
+# The legacy adjudication layer accepts any record whose `status` reads `ISSUED` and whose
+# blobs match; the agent can write that word. These run the real CI entry point
+# (`gate01_frozen_path_guard.main`, old layer + owner-signature layer) on one PR so the
+# combined verdict is measured, not inferred from each layer alone.
+ADJ_DIR = "docs/architecture/gates/adjudications"
+
+
+def _bounded_change_with_adjudication(repo: Path, status: str = "ISSUED") -> str:
+    """The PR commit an agent can prepare alone: new frozen bytes + an adjudication record."""
+    _write(repo, FROZEN, "print('frozen v2')\n")
+    blobs = {FROZEN: _git(repo, "hash-object", FROZEN)}
+    _write(
+        repo,
+        f"{ADJ_DIR}/GATE01-ADJ-TEST-001.json",
+        {
+            "schema": "sahool.gate01_adjudication/v1",
+            "adjudication_id": "GATE01-ADJ-TEST-001",
+            "gate_id": "GATE-01",
+            "status": status,
+            "expires_on": (date.today() + timedelta(days=30)).isoformat(),
+            "phase0_baseline_ref": {"commit_sha": _base_policy()["phase0_baseline"]["commit_sha"]},
+            "allowed_paths": [FROZEN],
+            "authorized_blobs": blobs,
+            "authorized_patch_sha256": g01.canonical_patch_digest(blobs),
+            "bindings": {"require_patch_digest": True},
+        },
+    )
+    return _commit(repo, f"bounded change + adjudication {status}")
+
+
+def _require_bounded_on_main(repo: Path) -> None:
+    _git(repo, "checkout", "-q", "main")
+    pol = _base_policy()
+    pol["owner_signature"]["required_for_bounded"] = True
+    _write(repo, POLICY, pol)
+    _commit(repo, "owner flips required_for_bounded")
+    _git(repo, "checkout", "-q", "pr")
+    _git(repo, "rebase", "-q", "main")
+
+
+def _run_both_guards(repo: Path, monkeypatch, capsys) -> tuple[int, str]:
+    changed = _git(repo, "diff", "--name-only", "main...HEAD")
+    monkeypatch.setattr(g01, "ROOT", repo)
+    # `blob_sha` binds the real checkout as a default argument; measure the fixture repo.
+    monkeypatch.setattr(
+        g01,
+        "blob_sha",
+        lambda p, root=None: _git(repo, "hash-object", p) if (repo / p).exists() else None,
+    )
+    monkeypatch.setattr(sys, "stdin", io.StringIO(changed + "\n"))
+    rc = g01.main(
+        [
+            "--stdin",
+            "--policy",
+            str(repo / POLICY),
+            "--adjudications",
+            str(repo / ADJ_DIR),
+            "--base-ref",
+            "main",
+            "--pr-head-sha",
+            _git(repo, "rev-parse", "HEAD"),
+            "--pr-number",
+            str(PR),
+            "--repository",
+            REPO_NAME,
+            "--repository-id",
+            str(REPO_ID),
+            "--now",
+            "2026-11-09T12:00:00Z",
+        ]
+    )
+    return rc, capsys.readouterr().out
+
+
+def test_both_guards_pass_an_unsigned_issued_record_while_bounded_is_advisory(
+    repo, monkeypatch, capsys
+):
+    """The documented window: before `required_for_bounded=true`, `ISSUED` alone passes."""
+    _bounded_change_with_adjudication(repo)
+    rc, out = _run_both_guards(repo, monkeypatch, capsys)
+    assert rc == 0, out
+    assert "advisory until required_for_bounded=true" in out
+
+
+def test_both_guards_block_an_unsigned_issued_record_once_bounded_is_required(
+    repo, monkeypatch, capsys
+):
+    _require_bounded_on_main(repo)
+    _bounded_change_with_adjudication(repo)
+    rc, out = _run_both_guards(repo, monkeypatch, capsys)
+    assert rc == 1, out
+    assert "carries no verified owner signature" in out
+
+
+def test_both_guards_pass_an_issued_record_carried_by_an_owner_signature(
+    repo, keys, monkeypatch, capsys
+):
+    _require_bounded_on_main(repo)
+    head = _bounded_change_with_adjudication(repo)
+    _authorize(repo, keys, head=head, action="bounded_change")
+    rc, out = _run_both_guards(repo, monkeypatch, capsys)
+    assert rc == 0, out
+    assert "owner-signed" in out
+
+
+def test_both_guards_block_an_issued_record_signed_by_the_agent(repo, keys, monkeypatch, capsys):
+    _require_bounded_on_main(repo)
+    head = _bounded_change_with_adjudication(repo)
+    _authorize(repo, keys, head=head, action="bounded_change", key="agent")
+    rc, out = _run_both_guards(repo, monkeypatch, capsys)
+    assert rc == 1, out
+    assert "INVALID owner authorization" in out
+
+
+def test_an_owner_signature_does_not_replace_the_issued_record(repo, keys, monkeypatch, capsys):
+    """The signature proves origin; the legacy layer still needs a matching `ISSUED` record."""
+    _require_bounded_on_main(repo)
+    head = _bounded_change_with_adjudication(repo, status="PENDING_OWNER_SIGNATURE")
+    _authorize(repo, keys, head=head, action="bounded_change")
+    rc, out = _run_both_guards(repo, monkeypatch, capsys)
+    assert rc == 1, out
+    assert "owner-signed" in out
+    assert "PENDING_OWNER_SIGNATURE' لا ISSUED" in out
 
 
 def test_schema_rejects_missing_unknown_and_malformed_fields():
