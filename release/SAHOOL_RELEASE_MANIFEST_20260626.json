@@ -2,15 +2,15 @@
   "checksums_file": "release/FILE_CHECKSUMS.sha256",
   "components": {
     "component_file_counts": {
-      "frontend": 731,
+      "frontend": 730,
       "grafana": 5,
       "migrations": 250,
       "mobile": 639,
       "prometheus": 2,
-      "scripts": 491,
-      "services": 2210,
+      "scripts": 492,
+      "services": 2209,
       "shared": 177,
-      "tests": 157
+      "tests": 158
     }
   },
   "deployment_gates": [
@@ -133,5 +133,5 @@
     "bash scripts/chaos/run_chaos_tests.sh",
     "bash scripts/recovery/recovery_smoke.sh"
   ],
-  "total_size_bytes": 95183272
+  "total_size_bytes": 95103124
 }
