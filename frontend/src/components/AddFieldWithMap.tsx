@@ -31,6 +31,7 @@ import AutoSegmentControl, { type SegmentNotice } from './maphub/AutoSegmentCont
 // تغذية راجعة قبل الحفظ بينما يبقى PostGIS الخلفيّ هو المرجع. (تفعيل أوّل للوحدة المشتركة.)
 import { validateDrawFeature, type DrawFeature, type DrawValidationIssue } from './maphub/drawing';
 import { availableBasemapLayers, getLayer, resolveLayerSource } from '../lib/layerRegistry';
+import { CROP_LABELS } from '../lib/cropOptions';
 
 // الطبقة المرسومة من leaflet-draw: circle يحمل getLatLng/getRadius؛
 // polygon/rectangle يحملان getLatLngs. نستخدمه لتضييق layer داخل المعالِج.
@@ -155,7 +156,8 @@ interface Props {
   existingFields?: ReadonlyArray<{ geometry: unknown }>;
 }
 
-const CROPS = ['قمح صلب','شعير','ذرة صفراء','طماطم','بطاطس','خضروات','برسيم'];
+// مفردات المحاصيل المشتركة (lib/cropOptions): كلّ خيار يُحلّ إلى بطاقة محصول قانونيّة.
+const CROPS = CROP_LABELS;
 // قيم نوع التربة تطابق جدول fields (loam/clay_loam/...) — التسمية عربيّة فقط.
 const SOIL_TYPES = [
   { value:'loam',       label:'مزيجية (Loam)' },
