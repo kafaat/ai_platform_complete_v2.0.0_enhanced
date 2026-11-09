@@ -10,7 +10,7 @@
       "id": "DEC-002",
       "domain": "decision",
       "title": "Decision candidate",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "DEC-003",
@@ -34,7 +34,7 @@
       "id": "DEC-006",
       "domain": "decision",
       "title": "Execution receipt",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "DEC-007",
@@ -178,7 +178,7 @@
       "id": "IRR-004",
       "domain": "irrigation",
       "title": "Water balance",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "IRR-005",
@@ -232,7 +232,7 @@
       "id": "OPS-003",
       "domain": "operations",
       "title": "Scouting",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "OPS-004",
@@ -316,7 +316,7 @@
       "id": "SAT-004",
       "domain": "satellite",
       "title": "NDMI",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "SAT-005",
@@ -442,13 +442,13 @@
       "id": "WX-003",
       "domain": "weather",
       "title": "Weather history",
-      "maturity": 3
+      "maturity": 1
     },
     {
       "id": "WX-004",
       "domain": "weather",
       "title": "ET0",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "WX-005",
@@ -460,7 +460,7 @@
       "id": "WX-006",
       "domain": "weather",
       "title": "GDD",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "WX-007",
