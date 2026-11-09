@@ -29,9 +29,11 @@ Verdicts
 ``INVALID``    it was checked and something does not hold.
 
 Honesty limit: this proves the *origin* of a decision (the holder of the owner key
-signed these exact bytes). It is not an independent review, and the very first
-installation of the trust root still relies on the owner checking the key fingerprint
-in the PR that adds it (after that, rotation needs a signature by the trusted key).
+signed these exact bytes). It is not an independent review. The very first
+installation of the trust root is pinned by a fingerprint the owner sets outside the
+repository (Actions variable ``GATE01_OWNER_KEY_FINGERPRINT``); its assurance equals that
+of the account that can edit repository settings, no more. After that, rotation needs a
+signature by the trusted key.
 """
 
 from __future__ import annotations
@@ -187,6 +189,26 @@ def parse_allowed_signers(text: str | None) -> dict[str, list[str]]:
         for principal in tokens[0].split(","):
             if principal:
                 out.setdefault(principal, []).append(line)
+    return out
+
+
+OWNER_KEY_FINGERPRINT_ENV = "GATE01_OWNER_KEY_FINGERPRINT"
+
+
+def key_fingerprints(signers: dict[str, list[str]]) -> set[str]:
+    """OpenSSH ``SHA256:<base64, unpadded>`` fingerprint of every key line.
+
+    Same form as ``ssh-keygen -lf key.pub`` prints, so the owner can compare the
+    value they set out of band with what their own machine shows.
+    """
+    out: set[str] = set()
+    for lines in signers.values():
+        for line in lines:
+            tokens = shlex.split(line, posix=True)
+            idx = next(i for i, tok in enumerate(tokens) if tok in ALLOWED_KEY_TYPES)
+            blob = base64.b64decode(tokens[idx + 1], validate=True)
+            digest = base64.b64encode(hashlib.sha256(blob).digest()).decode().rstrip("=")
+            out.add(f"SHA256:{digest}")
     return out
 
 
@@ -930,6 +952,7 @@ def owner_signature_findings(
     repository_id: int | None = None,
     pr_number: int | None = None,
     now: datetime | None = None,
+    owner_key_fingerprint: str | None = None,
 ) -> tuple[list[str], list[str]]:
     """``(errors, notes)`` for one PR. Errors block; notes are printed advisories."""
     now = now or datetime.now(UTC)
@@ -1055,10 +1078,42 @@ def owner_signature_findings(
                     f"currently trusted key ({why_not('trust_root_change')})"
                 )
         else:
-            notes.append(
-                f"{signers_path}: INITIAL trust-root installation — not signature-checked; the owner must "
-                "verify the key fingerprint in this PR (runbook GATE01_OWNER_SIGNING.md)"
-            )
+            # GATE01-INITIAL-TRUST-ROOT-IS-TOFU-01: nothing in the repository can tell the owner
+            # from an agent that shares the owner's GitHub account, so the FIRST key is pinned
+            # by a value only the owner can set outside the repository (an Actions repository
+            # variable). Without it, a key installation is refused, not merely warned about.
+            pinned = (
+                owner_key_fingerprint
+                if owner_key_fingerprint is not None
+                else os.environ.get(OWNER_KEY_FINGERPRINT_ENV, "")
+            ).strip()
+            try:
+                head_keys = parse_allowed_signers(
+                    (_read_head(root, signers_path) or b"").decode("utf-8")
+                )
+            except AuthorizationError as exc:
+                head_keys = {}
+                errors.append(f"{signers_path}: {exc}")
+            if head_keys:
+                found = key_fingerprints(head_keys)
+                if not pinned:
+                    errors.append(
+                        f"{signers_path}: INITIAL trust-root installation refused — the owner has not pinned "
+                        f"the key out of band (repository variable {OWNER_KEY_FINGERPRINT_ENV} is unset); "
+                        "runbook GATE01_OWNER_SIGNING.md"
+                    )
+                elif found != {pinned}:
+                    errors.append(
+                        f"{signers_path}: INITIAL trust-root installation refused — key fingerprint(s) "
+                        f"{sorted(found)} do not equal exactly the owner-pinned {pinned}"
+                    )
+                else:
+                    notes.append(
+                        f"{signers_path}: INITIAL trust-root installation matches the owner-pinned "
+                        f"fingerprint {pinned}"
+                    )
+            else:
+                notes.append(f"{signers_path} changed but holds no key — nothing is trusted")
 
     # 4) bounded adjudications (frozen path touched while CLOSED).
     if frozen_touched and not _is_open(head_policy):

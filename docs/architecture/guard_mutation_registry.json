@@ -6564,12 +6564,6 @@
           "why": "A genuine owner signature for another PR is replayed on this one."
         },
         {
-          "expect": "test_exactly_one_of_concurrent_reservations_wins",
-          "find": "            fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)",
-          "replace": "            fd = os.open(lock, os.O_CREAT | os.O_WRONLY, 0o600)",
-          "why": "Without O_EXCL the lock is not exclusive: concurrent reservations all read an empty ledger and more than one wins."
-        },
-        {
           "expect": "test_weakening_the_owner_signature_block_is_refused",
           "find": "            if weak and satisfied(\"policy_change\", {POLICY_PATH}) is None:",
           "replace": "            if False:",

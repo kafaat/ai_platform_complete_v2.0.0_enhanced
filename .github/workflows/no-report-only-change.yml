@@ -100,6 +100,9 @@ jobs:
       BASE_REF: ${{ github.base_ref }}
       PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
+      # Set by the owner in repository settings, never in the repository: pins the FIRST
+      # GATE-01 owner key (GATE01-INITIAL-TRUST-ROOT-IS-TOFU-01).
+      GATE01_OWNER_KEY_FINGERPRINT: ${{ vars.GATE01_OWNER_KEY_FINGERPRINT }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:

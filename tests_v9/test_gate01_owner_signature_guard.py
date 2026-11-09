@@ -617,6 +617,80 @@ def test_a_key_added_in_the_pr_itself_is_not_trusted(tmp_path, keys):
     _blocked(errors, sig.NOT_CONFIGURED)
 
 
+# ── first trust-root installation: pinned out of band (GATE01-INITIAL-TRUST-ROOT-IS-TOFU-01) ──
+def _empty_trust_root_repo(tmp_path: Path) -> Path:
+    r = tmp_path / "repo"
+    r.mkdir()
+    _git(r, "init", "-q", "-b", "main")
+    _write(r, POLICY, _base_policy())
+    _write(r, SIGNERS, "# empty trust root\n")
+    _write(r, LEDGER, {"schema": sig.LEDGER_SCHEMA, "entries": []})
+    _write(r, REVOKED, {"schema": sig.REVOCATION_SCHEMA, "revoked": []})
+    _write(r, EVIDENCE, "{}\n")
+    _write(r, FROZEN, "x\n")
+    _commit(r, "base")
+    _git(r, "checkout", "-q", "-b", "pr")
+    return r
+
+
+def _ssh_fingerprint(key: Path) -> str:
+    out = subprocess.run(
+        ["ssh-keygen", "-lf", str(key.with_suffix(".pub"))],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.split()
+    return out[1]
+
+
+def test_the_fingerprint_form_is_what_ssh_keygen_prints(keys):
+    line = _signer_line(OWNER, keys["owner"])
+    assert sig.key_fingerprints(sig.parse_allowed_signers(line)) == {
+        _ssh_fingerprint(keys["owner"])
+    }
+
+
+def test_an_initial_key_without_an_owner_pin_is_refused(tmp_path, keys, monkeypatch):
+    monkeypatch.delenv(sig.OWNER_KEY_FINGERPRINT_ENV, raising=False)
+    r = _empty_trust_root_repo(tmp_path)
+    # The agent shares the owner's GitHub account and installs a key it holds.
+    _write(r, SIGNERS, _signer_line(OWNER, keys["agent"]))
+    _commit(r, "install a key")
+    errors, _ = _findings(r)
+    _blocked(errors, "INITIAL trust-root installation refused")
+
+
+def test_an_initial_key_that_differs_from_the_owner_pin_is_refused(tmp_path, keys):
+    r = _empty_trust_root_repo(tmp_path)
+    _write(r, SIGNERS, _signer_line(OWNER, keys["agent"]))
+    _commit(r, "install the wrong key")
+    errors, _ = _findings(r, owner_key_fingerprint=_ssh_fingerprint(keys["owner"]))
+    _blocked(errors, "do not equal exactly the owner-pinned")
+
+
+def test_an_extra_key_beside_the_pinned_one_is_refused(tmp_path, keys):
+    r = _empty_trust_root_repo(tmp_path)
+    _write(r, SIGNERS, _signer_line(OWNER, keys["owner"]) + _signer_line(OWNER, keys["agent"]))
+    _commit(r, "install two keys")
+    errors, _ = _findings(r, owner_key_fingerprint=_ssh_fingerprint(keys["owner"]))
+    _blocked(errors, "do not equal exactly the owner-pinned")
+
+
+def test_an_initial_key_that_matches_the_owner_pin_is_accepted(tmp_path, keys, monkeypatch):
+    r = _empty_trust_root_repo(tmp_path)
+    _write(r, SIGNERS, _signer_line(OWNER, keys["owner"]))
+    _commit(r, "install the owner key")
+    monkeypatch.setenv(sig.OWNER_KEY_FINGERPRINT_ENV, _ssh_fingerprint(keys["owner"]))
+    errors, notes = _findings(r)
+    assert errors == []
+    assert any("matches the owner-pinned fingerprint" in n for n in notes), notes
+
+
+def test_the_workflow_passes_the_owner_pin_from_a_repository_variable():
+    wf = (_ROOT / ".github/workflows/no-report-only-change.yml").read_text(encoding="utf-8")
+    assert "GATE01_OWNER_KEY_FINGERPRINT: ${{ vars.GATE01_OWNER_KEY_FINGERPRINT }}" in wf
+
+
 def test_the_committed_trust_root_holds_no_key():
     text = (_ROOT / SIGNERS).read_text(encoding="utf-8")
     assert sig.parse_allowed_signers(text) == {}
