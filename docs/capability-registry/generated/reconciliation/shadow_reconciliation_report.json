@@ -51,14 +51,6 @@
       "ratchet_identity": "FM-006:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 2,
-      "capability_id": "FM-007",
-      "declared_maturity": 3,
-      "finding_id": "FM-007:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "FM-007:declared_above_evidence:evidence-maturity"
-    },
-    {
       "assessed_maturity": 1,
       "capability_id": "GIS-001",
       "declared_maturity": 3,
@@ -453,8 +445,10 @@
       "evidence_maturity": {
         "baseline_count": 49,
         "new": [],
-        "observed_count": 49,
-        "stale": []
+        "observed_count": 48,
+        "stale": [
+          "FM-007:declared_above_evidence:evidence-maturity"
+        ]
       },
       "registry_reconciliation": {
         "baseline_count": 0,
@@ -463,7 +457,7 @@
         "stale": []
       }
     },
-    "decision": "PASS",
+    "decision": "BLOCK",
     "mode": "identity-exact-ratchet"
   },
   "schema": "sahool.capability-shadow-reconciliation/v1",

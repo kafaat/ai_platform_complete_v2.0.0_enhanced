@@ -15,14 +15,14 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7083,
+    "files_scanned": 7086,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
-      "governance": 87,
+      "governance": 89,
       "mobile": 414,
       "other": 2152,
-      "tests": 2363,
+      "tests": 2364,
       "web": 505
     },
     "unmapped_artifacts": 2814,
@@ -10462,6 +10462,14 @@
           ]
         },
         {
+          "path": "tests/test_workflow_inventory.py",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "tests_v9/test_element84_legacy_inventory.py",
           "score": 14,
           "signals": [
@@ -10537,6 +10545,22 @@
         },
         {
           "path": ".github/workflows/service-inventory-drift.yml",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "docs/ci/WORKFLOW_INVENTORY_PILOT.md",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "scripts/ci/workflow_inventory.py",
           "score": 14,
           "signals": [
             "path:inventory",
@@ -10856,8 +10880,8 @@
         "events": 14,
         "web": 1,
         "mobile": 8,
-        "tests": 15,
-        "governance": 4,
+        "tests": 16,
+        "governance": 6,
         "other_evidence": 36
       },
       "coverage_dimensions": 7,

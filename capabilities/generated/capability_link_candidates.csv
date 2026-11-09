@@ -1139,6 +1139,7 @@ FM-007,test,mobile/sahool_app/test/features/inventory/inventory_sheets_test.dart
 FM-007,test,services/decision-service/tests/test_element84_inventory_pg16.py,3,applied
 FM-007,test,services/sahool-platform/tests/test_data_inventory.py,3,applied
 FM-007,test,tests/architecture/test_generate_service_inventory.py,3,applied
+FM-007,test,tests/test_workflow_inventory.py,3,applied
 FM-007,test,tests_v9/test_element84_legacy_inventory.py,3,applied
 FM-007,test,tests_v9/test_inventory_edge_classification.py,3,applied
 FM-007,test,tests_v9/test_inventory_equipment.py,3,applied
