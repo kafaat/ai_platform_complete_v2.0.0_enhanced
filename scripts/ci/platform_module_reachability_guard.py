@@ -31,8 +31,14 @@ import argparse
 import ast
 import json
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
+
+# Report under any locale (guard_locale_survival_guard): the messages carry non-ASCII text.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -180,7 +186,6 @@ INHERITED_UNREACHABLE = frozenset(
         "core/farm_memory.py",
         "core/farmer_agency.py",
         "core/feature_store.py",
-        "core/feedback_closure.py",
         "core/field_context_coordinator.py",
         "core/field_event_sourcing.py",
         "core/field_lifecycle.py",
