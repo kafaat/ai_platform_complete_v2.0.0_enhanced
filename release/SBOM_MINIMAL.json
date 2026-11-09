@@ -19085,7 +19085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "860c460a013085cc49294e4be9ded0c97963e51174186e40576650c0e20439ca"
+          "content": "328ad829a6ce6fab42b8fe5e5dc71a8c36e301840b78fe1e96c0688baa4dd86a"
         }
       ],
       "name": "services/gis-workflow-service/bulletin_bundle.py",
@@ -19095,7 +19095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f52a47aab3544c0bbb3ae5e52cd50f0bf8f92de7f4eacca5f3769466bedfed7"
+          "content": "7007dbd6cdb33064e7ee3af65208680a69d8e775e2825aee6cb9677ef9d5db8b"
         }
       ],
       "name": "services/gis-workflow-service/bulletin_figure.py",
@@ -19155,7 +19155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a7255042ac6daf960f0bcc0a3f4ad43274da2519ca45d20274e0c1fd5af7905c"
+          "content": "dfa293bc3845f1b17a5215e9c258f8fa19b72ad8e0abf045da6ff34203e3330c"
         }
       ],
       "name": "services/gis-workflow-service/run_bundle.py",
@@ -19199,6 +19199,16 @@
         }
       ],
       "name": "services/gis-workflow-service/tests/test_bulletin_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32478100683431f0325bc7d78b29e1d8ea39f5db9a3642b3841cbfaeb13f02b8"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_bulletin_bundle_evidence.py",
       "type": "file"
     },
     {
@@ -22925,7 +22935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "61c3c239e3555b807fe70050422cc5123e83932c777704368e481997f700e4e1"
+          "content": "49c73e7a1a3d1bdce55f582d90db56bfead228ba1b2d2bd92cec6ab44e879c4b"
         }
       ],
       "name": "services/sahool-platform/api/agronomic_state_consumers.py",
@@ -24575,7 +24585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5efa86e40051302b73244de421d05d3387c81bbe6e1a1fcc04f0b852983aa27f"
+          "content": "70460f028db69996bbc7e779f963ed3b060953f174b70e3354aabbf80f993948"
         }
       ],
       "name": "services/sahool-platform/api/learning_feedback.py",

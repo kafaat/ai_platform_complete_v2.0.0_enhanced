@@ -27,6 +27,7 @@ DEC-001,test,docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md,3,applied
 DEC-001,test,services/decision-service/tests/test_activation_evidence_contract.py,3,applied
 DEC-001,test,services/decision-service/tests/test_agronomic_evidence_contract.py,3,applied
 DEC-001,test,services/decision-service/tests/test_decision_evidence_read.py,7,applied
+DEC-001,test,services/gis-workflow-service/tests/test_bulletin_bundle_evidence.py,3,applied
 DEC-001,test,services/gis-workflow-service/tests/test_run_bundle_validity_and_evidence.py,3,applied
 DEC-001,test,services/raster-service/test_cdse_cause_evidence.py,3,applied
 DEC-001,test,services/sahool-platform/tests/test_adapt_from_evidence.py,3,applied

@@ -4296,6 +4296,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/gis-workflow-service/tests/test_bulletin_bundle_evidence.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/gis-workflow-service/tests/test_no_external_sources.py",
     "kind": "tests"
   },
@@ -5293,10 +5297,6 @@
   },
   {
     "path": "services/sahool-platform/api/irrigation_state_guard.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/learning_feedback.py",
     "kind": "backend"
   },
   {
@@ -9797,6 +9797,10 @@
   },
   {
     "path": "tests_v9/test_learning_loop_e2e.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_learning_pool_independent_units.py",
     "kind": "tests"
   },
   {

@@ -4563,6 +4563,7 @@
         "services/decision-service/tests/test_activation_evidence_contract.py",
         "services/decision-service/tests/test_agronomic_evidence_contract.py",
         "services/decision-service/tests/test_decision_evidence_read.py",
+        "services/gis-workflow-service/tests/test_bulletin_bundle_evidence.py",
         "services/gis-workflow-service/tests/test_run_bundle_validity_and_evidence.py",
         "services/raster-service/test_cdse_cause_evidence.py",
         "services/sahool-platform/tests/test_adapt_from_evidence.py",
@@ -4582,16 +4583,14 @@
         "tests/architecture/test_runtime_evidence_trust_hardening.py",
         "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
         "tests_v9/test_collect_guard_surface_evidence.py",
-        "tests_v9/test_cropwise_evidence_quality.py",
-        "tests_v9/test_d09_live_evidence_receipt.py"
+        "tests_v9/test_cropwise_evidence_quality.py"
       ],
       "runtime": {
         "metrics": [],
         "traces": [],
         "receipts": [
           "receipt:api:POST_/v1/activation/evidence-receipts",
-          "receipt:api:POST_/v1/activation/evidence-receipts/{evidence_id}/revoke",
-          "receipt:test:tests_v9/test_d09_live_evidence_receipt.py"
+          "receipt:api:POST_/v1/activation/evidence-receipts/{evidence_id}/revoke"
         ],
         "audit_events": []
       },
@@ -4626,7 +4625,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 14
+        "tests": 15
       }
     },
     {

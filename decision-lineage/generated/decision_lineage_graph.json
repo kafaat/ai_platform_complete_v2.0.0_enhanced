@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 684,
+      "evidence_count": 685,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -181,6 +181,7 @@
         "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
         "services/gis-workflow-service/bulletin_bundle.py",
         "services/gis-workflow-service/run_bundle.py",
+        "services/gis-workflow-service/tests/test_bulletin_bundle_evidence.py",
         "services/gis-workflow-service/tests/test_run_bundle_validity_and_evidence.py",
         "services/guardrails-engine/contracts.py",
         "services/guardrails-engine/main.py",
@@ -2823,7 +2824,7 @@
         "services/sahool-platform/api/routers/decision_record.py",
         "services/sahool-platform/api/routers/decision_review.py"
       ],
-      "source_evidence_count": 684,
+      "source_evidence_count": 685,
       "target_evidence_count": 552,
       "static_supported": true,
       "runtime_verified": false
@@ -3259,5 +3260,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "af86741a751c8eba947b343f1dcac2ca45a65c0ebbb5402382e7a3032a8cd0cb"
+  "content_sha256": "ddf7231b9e75ba5bb38c71aa26bbafda636fbde718dfc376e3ba98962dc1896a"
 }

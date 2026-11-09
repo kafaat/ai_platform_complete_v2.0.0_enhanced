@@ -15,17 +15,17 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 52,
-    "files_scanned": 7079,
+    "files_scanned": 7081,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 87,
       "mobile": 414,
       "other": 2152,
-      "tests": 2359,
+      "tests": 2361,
       "web": 505
     },
-    "unmapped_artifacts": 2812,
+    "unmapped_artifacts": 2813,
     "ambiguous_artifacts": 525
   },
   "capabilities": [
@@ -28926,6 +28926,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/learning_feedback.py",
+          "score": 9,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/offline_pending_db.py",
           "score": 9,
           "signals": [
@@ -29856,6 +29864,10 @@
         {
           "value": "v78_decision_record.sql @ services/decision-service/tests/test_platform_v235_correlation_pg16.py:24",
           "score": 10
+        },
+        {
+          "value": "decision.learning.review_requested @ services/sahool-platform/api/learning_feedback.py:607",
+          "score": 9
         },
         {
           "value": "field.created @ docs/audits/OPERATIONAL_CONTRACTS.md:115",
@@ -31387,10 +31399,10 @@
         "database": 824
       },
       "evidence_counts": {
-        "backend": 15,
+        "backend": 16,
         "routes": 31,
         "database": 100,
-        "events": 71,
+        "events": 72,
         "web": 0,
         "mobile": 0,
         "tests": 83,
@@ -46757,6 +46769,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/gis-workflow-service/tests/test_bulletin_bundle_evidence.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/gis-workflow-service/tests/test_no_external_sources.py",
       "kind": "tests"
     },
@@ -47754,10 +47770,6 @@
     },
     {
       "path": "services/sahool-platform/api/irrigation_state_guard.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/learning_feedback.py",
       "kind": "backend"
     },
     {
@@ -52258,6 +52270,10 @@
     },
     {
       "path": "tests_v9/test_learning_loop_e2e.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_learning_pool_independent_units.py",
       "kind": "tests"
     },
     {
