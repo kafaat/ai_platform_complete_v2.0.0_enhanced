@@ -69,6 +69,33 @@ _ENGINE_ERROR_CODES: dict[str, str] = {
 }
 
 
+def canonical_engine_parameters(crop: str, soil_type: str) -> dict[str, float]:
+    """بارامترات المحرّك من المصدر القانونيّ: بطاقة المحصول (Kc · حرارة الأساس) + FAO-56 (θ).
+
+    WOFOST في ``shared/`` يحمل جداوله المدمجة (Kc/tbase/θ تخالف البطاقة وFAO-56)، ولا
+    يجوز أن يستورد المنصّة (اتّجاه shared→platform). فالمنصّة تحقنها هنا بالاسم. ما لا
+    يعرفه المصدر القانونيّ (محصول بلا بطاقة/قوام خارج FAO-56) لا يُحقَن، فيُعلن المحرّك
+    ``parameter_source: wofost_builtin`` لتلك المجموعة — لا قيمة بطاقةٍ مُلفَّقة.
+    """
+    from core.crop_cards.loader import load_crop_card
+    from core.engines.fao56 import canonical_texture, theta_fc_wp_for_texture
+    from core.season_phenology import resolve_crop_id
+
+    params: dict[str, float] = {}
+    crop_id = resolve_crop_id(crop)
+    card = load_crop_card(crop_id) if crop_id else None
+    kc = (card or {}).get("kc") or {}
+    if all(isinstance(kc.get(k), int | float) for k in ("initial", "mid", "end")):
+        params.update(kc_ini=kc["initial"], kc_mid=kc["mid"], kc_end=kc["end"])
+    gdd_base = ((card or {}).get("thermal") or {}).get("gdd_base_c")
+    if isinstance(gdd_base, int | float) and not isinstance(gdd_base, bool):
+        params["tbase"] = float(gdd_base)
+    texture = canonical_texture(soil_type)
+    if texture is not None:
+        params["theta_fc"], params["theta_wp"] = theta_fc_wp_for_texture(texture)
+    return params
+
+
 def _unavailable(field_id: str, code: str, note_ar: str, correlation_id: str) -> dict[str, Any]:
     """استجابة تعذّر موحّدة: رمز ثابت للآلة، نصّ عامّ للإنسان، تفاصيل في السجلّ فقط."""
     return {
@@ -142,6 +169,8 @@ async def simulate_what_if(
         pd = _date.today()
 
     scenario_fraction = SCENARIO_IRRIGATION_FRACTION[req.scenario]
+    # Kc/tbase من بطاقة المحصول وθFC/θWP من FAO-56 — لا من جداول WOFOST الموازية.
+    engine_params = canonical_engine_parameters(req.crop, req.soil_type)
 
     async def _run(fraction: float):
         return await _eng.simulate_wofost(
@@ -153,6 +182,7 @@ async def simulate_what_if(
             pd,
             irrigation=fraction > 0,
             irrigation_fraction=fraction,
+            **engine_params,
         )
 
     try:
@@ -244,6 +274,7 @@ async def simulate_what_if(
         "water_use_direction": direction,
         "recommended_action_helps": helps,
         "parameter_resolution": resolution,
+        "parameter_source": action.get("parameter_source"),
         "degraded": degraded,
         "weather_provenance": weather_provenance,
         "weather_gap_filled": weather_gap_filled,

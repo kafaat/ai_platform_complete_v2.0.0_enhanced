@@ -129,6 +129,7 @@ from .p3 import (  # noqa: E402
     ReclamationScenario,
     SoilVisualObservation,
     SoilVisualPrediction,
+    p3_drainage_need_to_salinity_class,
 )
 
 __all__ += [
@@ -147,6 +148,7 @@ __all__ += [
     "ReclamationEconomicsRequest",
     "ReclamationScenario",
     "ReclamationEconomicsProduct",
+    "p3_drainage_need_to_salinity_class",
     "ApprovalRequirement",
     "SoilActionPolicy",
     "SoilActionEvaluation",
@@ -185,4 +187,13 @@ __all__ += [
     "CalibrationPromotionDecision",
     "ProductionCertificationRecord",
     "LearningDatasetManifest",
+]
+
+from .moisture_policy import POLICY_VERSION as SOIL_MOISTURE_POLICY_VERSION  # noqa: E402
+from .moisture_policy import MoistureEligibility, moisture_eligibility  # noqa: E402
+
+__all__ += [
+    "SOIL_MOISTURE_POLICY_VERSION",
+    "MoistureEligibility",
+    "moisture_eligibility",
 ]

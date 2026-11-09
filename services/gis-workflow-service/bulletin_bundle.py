@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from bulletin_figure import bulletin_self_checks, bulletin_to_rows
-from run_bundle import _sha256, _write_json, compact_ts
+from run_bundle import _sha256, _write_json, compact_ts, register_evidence
 
 
 def make_bulletin_run_id(ts_iso: str) -> str:
@@ -127,11 +127,11 @@ def run_bulletin_bundle(
     }
     _write_json(run_dir / "provenance" / "run_manifest.json", manifest)
 
+    # فشل كاتب الأدلّة لا يُبتلَع: الحزمة تبقى قابلة للعرض لكنّها غير مقبولة (نفس عقد run_bundle).
+    evidence_outcome = register_evidence(evidence_writer, manifest, status)
     if evidence_writer is not None:
-        try:
-            evidence_writer(manifest)
-        except Exception:  # noqa: BLE001 — ربط الأدلّة اختياريّ fail-soft.
-            pass
+        manifest = {**manifest, **evidence_outcome}
+        _write_json(run_dir / "provenance" / "run_manifest.json", manifest)
 
     return {
         "status": status,
@@ -140,6 +140,7 @@ def run_bulletin_bundle(
         "render_ok": render_ok,
         "self_check": sc,
         "outputs": sorted(checksums.keys()),
+        **evidence_outcome,
     }
 
 

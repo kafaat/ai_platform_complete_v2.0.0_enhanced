@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Backfill legacy soil_readings/device_telemetry into soil_observations.
 
-Idempotency keys are derived from the immutable legacy row identity. The script is
+soil_readings keys are derived from the immutable legacy row identity; device_telemetry
+keys reuse the live platform bridge's reading identity (device, property, recorded_at) so
+a backfill after live ingestion does not count a forwarded reading twice. The script is
 restart-safe, tenant-scoped, batchable and records checkpoints in v157.
 """
 
@@ -9,8 +11,10 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import os
 from dataclasses import dataclass
+from datetime import UTC
 
 import asyncpg
 
@@ -208,6 +212,20 @@ _TELEMETRY_COLUMNS = """SELECT t.telemetry_id,t.device_id,t.sensor_type,t.value,
            FROM device_telemetry t LEFT JOIN iot_devices d ON d.device_id=t.device_id"""
 
 
+def live_bridge_idempotency_key(device_id: str, property_name: str, observed_at) -> str:
+    """The key the live platform bridge gives this reading, so a backfill does not re-add it.
+
+    Mirrors ``services/sahool-platform/api/soil_evidence_bridge.py::idempotency_key`` for a
+    depth-less reading (``device_telemetry`` stores no depth and no device message id).
+    The old ``device_telemetry:<id>:<prop>`` key never matched the live key, so running the
+    backfill after live ingestion wrote every forwarded reading a second time. Parity is
+    pinned by ``tests_v9/test_telemetry_backfill_key_parity.py``; a mirror rather than an
+    import because this operator script must not depend on the platform package or httpx.
+    """
+    raw = f"{device_id}|{property_name}|{observed_at.astimezone(UTC).isoformat()}"
+    return f"dev_{hashlib.sha256(raw.encode('utf-8')).hexdigest()[:48]}"
+
+
 async def _process_telemetry_row(
     conn, tenant_id: str, row, stats: Stats, fields: set
 ) -> str | None:
@@ -234,7 +252,7 @@ async def _process_telemetry_row(
            VALUES ($1,'soil-observation.v1',$2::uuid,$3,$4,to_jsonb($5::numeric),$6,0,30,$7,$8,
                    'sensor',$9,'device_telemetry_backfill','suspect','["depth_unknown","calibration_unknown"]'::jsonb,
                    0.60,$10,jsonb_build_object('legacy_table','device_telemetry','legacy_id',$11::bigint))
-           ON CONFLICT(tenant_id,idempotency_key) DO NOTHING""",
+           ON CONFLICT DO NOTHING""",
         f"obs_legacy_dt_{row['telemetry_id']}_{prop}",
         tenant_id,
         row["field_id"],
@@ -244,7 +262,7 @@ async def _process_telemetry_row(
         row["recorded_at"],
         row["received_at"],
         row["device_id"],
-        f"device_telemetry:{row['telemetry_id']}:{prop}",
+        live_bridge_idempotency_key(row["device_id"], prop, row["recorded_at"]),
         row["telemetry_id"],
     )
     stats.inserted += int(result.endswith("1"))

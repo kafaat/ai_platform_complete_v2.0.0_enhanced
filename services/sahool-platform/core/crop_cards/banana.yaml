@@ -5,6 +5,7 @@ crop_id: banana
 name_ar: الموز
 name_en: Banana
 crop_family: tree_C3
+life_form: perennial  # مُعمِّر: لا نضج/حصاد حوليّ واحد يُشتقّ من تاريخ البذار
 
 kc:
   initial: 1.00

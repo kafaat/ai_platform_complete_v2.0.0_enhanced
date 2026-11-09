@@ -220,3 +220,87 @@ class TestGuardrailsEndpoints:
         assert resp.status_code in [200, 201]
         data = resp.json()
         assert "risk" in data or "overall_risk" in data
+
+
+class TestUnknownIsNotZero:
+    """N10: an absent dose / N history / EC is unknown, never a passing zero."""
+
+    _FULL_FERT = {"N_kg_ha": 40, "P_kg_ha": 10, "K_kg_ha": 10}
+    _FULL_CTX = {"crop": "wheat", "annual_N_kg_ha": 20, "season_carbon_kg_co2e": 0}
+
+    def _tier(self, gr_mod, tier, action, data, ctx):
+        return asyncio.run(getattr(gr_mod, tier)().validate(action, data, ctx))
+
+    @pytest.mark.unit
+    def test_complete_fertilization_still_passes(self, gr_mod):
+        for tier in ("ChemicalSafetyTier", "EnvironmentalSafetyTier"):
+            check = self._tier(gr_mod, tier, "fertilization", self._FULL_FERT, self._FULL_CTX)
+            assert check["passed"] is True, check
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "key,rule",
+        [
+            ("N_kg_ha", "n_dose_unknown"),
+            ("P_kg_ha", "p_dose_unknown"),
+            ("K_kg_ha", "k_dose_unknown"),
+        ],
+    )
+    def test_missing_fertilizer_dose_fails_closed(self, gr_mod, key, rule):
+        data = {k: v for k, v in self._FULL_FERT.items() if k != key}
+        check = self._tier(gr_mod, "ChemicalSafetyTier", "fertilization", data, self._FULL_CTX)
+        assert check["passed"] is False
+        assert _rules(check).get(rule) == "HIGH"
+
+    @pytest.mark.unit
+    def test_huge_dose_with_unknown_history_is_not_hidden(self, gr_mod):
+        ctx = {k: v for k, v in self._FULL_CTX.items() if k != "annual_N_kg_ha"}
+        check = self._tier(gr_mod, "ChemicalSafetyTier", "fertilization", self._FULL_FERT, ctx)
+        assert check["passed"] is False
+        assert "n_history_unknown" in _rules(check)
+
+    @pytest.mark.unit
+    def test_missing_carbon_inputs_fail_closed(self, gr_mod):
+        ctx = {k: v for k, v in self._FULL_CTX.items() if k != "season_carbon_kg_co2e"}
+        check = self._tier(gr_mod, "EnvironmentalSafetyTier", "fertilization", self._FULL_FERT, ctx)
+        assert check["passed"] is False
+        assert "carbon_inputs_unknown" in _rules(check)
+
+    @pytest.mark.unit
+    def test_missing_pesticide_dose_fails_closed(self, gr_mod):
+        check = _chem(gr_mod, "glyphosate", None, crop="wheat")
+        assert check["passed"] is False
+        assert _rules(check).get("dosage_unknown") == "HIGH"
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "water_ec,soil_ec,expected",
+        [
+            (None, None, "ec_unknown"),
+            (3.0, None, "ec_unknown"),
+            (None, 3.0, "ec_unknown"),
+            (1.0, None, None),  # a known low water EC excludes the risk
+            (None, 1.0, None),  # a known low soil EC excludes the risk
+            (3.0, 3.0, "salinity_risk"),
+        ],
+    )
+    def test_irrigation_ec_unknown_requires_review(self, gr_mod, water_ec, soil_ec, expected):
+        data = {"water_m3": 10}
+        ctx = {
+            "crop": "wheat",
+            "field_area_ha": 1,
+            "season_water_used_m3_ha": 0,
+            "water_source": "groundwater",
+        }
+        if water_ec is not None:
+            data["water_ec_ds_m"] = water_ec
+        if soil_ec is not None:
+            ctx["soil_ec_ds_m"] = soil_ec
+        check = self._tier(gr_mod, "EnvironmentalSafetyTier", "irrigation", data, ctx)
+        rules = _rules(check)
+        if expected == "ec_unknown":
+            assert rules.get("ec_unknown") == "MEDIUM" and check["passed"] is False
+        elif expected == "salinity_risk":
+            assert "salinity_risk" in rules and "ec_unknown" not in rules
+        else:
+            assert "ec_unknown" not in rules and check["passed"] is True

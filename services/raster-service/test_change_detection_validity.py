@@ -130,7 +130,12 @@ def test_every_scalar_indicator_kind_has_explicit_direction():
     scalar = {k.value for k in IndicatorKind} - {"truecolor", "et_inputs"}
     for name in scalar | {"salinity"}:
         assert cd.canonical_index(name.upper()) == name
-        assert cd.index_direction(name) in ("higher_is_worse", "lower_is_worse")
+        # context_dependent is explicit too: delta kept, improved/degraded verdict withheld.
+        assert cd.index_direction(name) in (
+            "higher_is_worse",
+            "lower_is_worse",
+            "context_dependent",
+        )
 
 
 def test_request_models_normalise_and_reject_unknown_index():

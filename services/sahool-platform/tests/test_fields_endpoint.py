@@ -338,7 +338,7 @@ def test_activity_event_type_mapping():
 
     cases = {
         ("irrigation", "done"): "IRRIGATION_COMPLETED",
-        ("irrigation", "planned"): "IRRIGATION_STARTED",
+        ("irrigation", "planned"): "ACTIVITY_RECORDED",  # المُخطَّط ليس «بدءاً»
         ("planting", "done"): "PLANTING_COMPLETED",
         ("harvest", "done"): "HARVEST_COMPLETED",
         ("fertilization", "done"): "FERTILIZER_APPLIED",

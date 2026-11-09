@@ -37,6 +37,27 @@ from api.weather_automation import weather_automation
 router = APIRouter()
 
 
+async def _assert_field_owned(conn, user: UserSchema, field_id: str) -> None:
+    """404 ما لم يكن الحقل للمستأجِر نفسه — صريحٌ بـ``tenant_id`` لا اعتماداً على RLS وحده."""
+    owned = await conn.fetchval(
+        "SELECT 1 FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+        field_id,
+        str(user.tenant_id),
+    )
+    if not owned:
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+
+
+async def _require_field_in_caller_tenant(user: UserSchema, field_id: str) -> None:
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_owned(conn, user, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("التحقّق من ملكيّة الحقل", e) from e
+
+
 # ─── ٥٨. حالة جدولة الأتمتة (مراقبة) ──
 @router.get("/api/v1/automation/scheduler-status")
 def scheduler_status_endpoint(
@@ -83,8 +104,25 @@ async def weather_register_endpoint(
 
     يُحفظ في القاعدة لو توفّرت (يبقى بعد إعادة التشغيل).
     H1 FIX: يتطلّب مصادقة — يمنع تسجيل/استنزاف مجهول لمهامّ السحب الدوريّة.
+
+    عزل المستأجرين: الكتابة على اتّصال المستأجِر (``tenant_connection``، RLS v73) لا
+    على مسبح المهامّ (``sahool_jobs`` BYPASSRLS) الذي يحمله ``weather_automation`` —
+    كان ``field_id`` غير المُتحقَّق منه يُكتَب عبر ذلك المسبح بـ``DO UPDATE`` فيسرق
+    مستأجِرٌ ارتباطَ موقع حقل مستأجِرٍ آخر. الحقلُ يُتحقَّق من ملكيّته أوّلاً (404).
+    والذاكرةُ تُحدَّث بعد الالتزام فقط (لا حقلٌ مُتراجَعٌ عنه في سجلّ المُجدوِل).
     """
-    await weather_automation.register_location_persistent(lat, lon, field_id)
+    try:
+        async with tenant_connection(user) as conn:
+            if field_id is not None:
+                await _assert_field_owned(conn, user, field_id)
+            await weather_automation.register_location_on_tenant_connection(
+                conn, lat=lat, lon=lon, field_id=field_id
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("تسجيل موقع الطقس", e) from e
+    weather_automation.register_location(lat, lon, field_id)
     return {
         "registered": True,
         "lat": lat,
@@ -132,7 +170,12 @@ async def imagery_register_field_endpoint(
     عند كلّ دورة جدولة: يُبحَث عن صور جديدة، وتُحسب المؤشّرات (NDVI) لها.
     يُحفظ في القاعدة لو توفّرت (يبقى بعد إعادة التشغيل، لا إعادة معالجة).
     الهويّة (tenant) من التوكن — تُمرَّر لـraster /process عند الحساب التلقائي.
+
+    عزل المستأجرين: الحفظ يجري على مسبح المهامّ (`sahool_jobs` المتجاوز لـRLS) بـ``ON CONFLICT (field_id)
+    DO UPDATE`` يكتب ``tenant_id`` — فيُتحقَّق أوّلاً أنّ الحقل يخصّ مستأجِر المُستدعي
+    (404 وإلّا) كي لا يستولي مستأجِرٌ على متابعة صور حقلٍ لغيره.
     """
+    await _require_field_in_caller_tenant(user, req.field_id)
     try:
         await imagery_automation.register_field_persistent(
             req.field_id, req.bbox, tenant_id=str(user.tenant_id)

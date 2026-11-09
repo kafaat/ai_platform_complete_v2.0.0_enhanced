@@ -192,10 +192,10 @@ export default function CropStatePage() {
               </div>
             </div>
             <div className="rounded-xl border p-4" style={{ background: '#0a1612', borderColor: '#10b98133' }}>
-              <div className="flex items-center gap-1 text-sm font-semibold text-emerald-200 mb-2"><FlaskConical className="w-4 h-4" /> التسميد المقترح</div>
+              <div className="flex items-center gap-1 text-sm font-semibold text-emerald-200 mb-2"><FlaskConical className="w-4 h-4" /> حالة العنصر (امتصاص مُنمذَج)</div>
               <div className="text-sm text-slate-100">{res.fertilization.action_ar}</div>
               <div className="text-[11px] text-slate-400 mt-1">
-                المُمتصّ حتى الآن {res.fertilization.uptake_to_date_kg_ha.toFixed(0)} كجم/ها · {res.fertilization.due ? 'مستحقّ' : 'غير مستحقّ'}
+                المُمتصّ حتى الآن {res.fertilization.uptake_to_date_kg_ha != null ? `${res.fertilization.uptake_to_date_kg_ha.toFixed(0)} كجم/ها` : 'غير معروف'} · {res.fertilization.due == null ? 'المتبقّي غير محسوب' : res.fertilization.due ? 'امتصاص متبقٍّ (نمذجة — ليس جرعة سماد)' : 'اكتمل الامتصاص المستهدف'}
               </div>
             </div>
           </div>

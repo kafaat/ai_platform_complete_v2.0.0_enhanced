@@ -139,3 +139,81 @@ def test_candidate_not_visible_to_other_tenant_queue():
         it for it in _queue(c, tenant=OTHER_TENANT)["items"] if it["decision_id"] == "dec_wx106_iso"
     ]
     assert other == []
+
+
+# ── retries replay; a different version under the same id is refused ─────────────────
+def _value(item: dict) -> dict:
+    import json
+
+    value = item["decision_value"]
+    return json.loads(value) if isinstance(value, str) else value
+
+
+def _lineage_payload(lineage: str, gdd: float = 42.0, **top) -> dict:
+    payload = _candidate_payload("unused")
+    payload.pop("decision_id")  # the crop bridge sends no decision_id
+    payload["decision_value"] = {
+        **payload["decision_value"],
+        "candidate_lineage_id": lineage,
+        "evidence": {"field_id": "f-wx106", "accumulated_gdd": gdd},
+    }
+    payload.update(top)
+    return payload
+
+
+def test_a_candidate_retry_without_decision_id_replays_not_duplicates():
+    c = _client()
+    body = _lineage_payload("cand/wx106retry")
+    first = c.post("/v1/decisions/record", json=body, headers={"X-Tenant-Id": TENANT})
+    retry = c.post("/v1/decisions/record", json=body, headers={"X-Tenant-Id": TENANT})
+    assert first.status_code == retry.status_code == 200, (first.text, retry.text)
+    assert first.json()["decision_id"] == retry.json()["decision_id"]
+    assert first.json()["replayed"] is False and retry.json()["replayed"] is True
+    queued = [
+        it
+        for it in _queue(c)["items"]
+        if _value(it).get("candidate_lineage_id") == "cand/wx106retry"
+    ]
+    assert len(queued) == 1
+
+
+def test_a_different_version_under_an_existing_decision_id_is_409():
+    c = _client()
+    ok = c.post(
+        "/v1/decisions/record",
+        json={**_lineage_payload("cand/wx106v1"), "decision_id": "dec_wx106_v"},
+        headers={"X-Tenant-Id": TENANT},
+    )
+    assert ok.status_code == 200, ok.text
+    changed = c.post(
+        "/v1/decisions/record",
+        json={**_lineage_payload("cand/wx106v1", gdd=99.0), "decision_id": "dec_wx106_v"},
+        headers={"X-Tenant-Id": TENANT},
+    )
+    assert changed.status_code == 409, changed.text
+    assert changed.json()["detail"] == "decision_id_payload_mismatch"
+    shown = [it for it in _queue(c)["items"] if it["decision_id"] == "dec_wx106_v"][0]
+    assert _value(shown)["evidence"]["accumulated_gdd"] == 42.0
+
+
+def test_typed_provenance_is_stored_inside_the_candidate_and_covered_by_its_digest():
+    from persistence import decision_value_digest
+
+    provenance = {
+        "producer_id": "sahool-platform/crop-decision-bridge",
+        "model_or_rule_version": "crop-intelligence/1",
+        "policy_version": None,
+        "explanation": None,
+        "confidence_method": "engine_reported",
+        "evidence_refs": ["snap-a"],
+    }
+    c = _client()
+    r = c.post(
+        "/v1/decisions/record",
+        json={**_lineage_payload("cand/wx106prov"), "provenance": provenance},
+        headers={"X-Tenant-Id": TENANT},
+    )
+    assert r.status_code == 200, r.text
+    shown = [it for it in _queue(c)["items"] if it["decision_id"] == r.json()["decision_id"]][0]
+    assert _value(shown)["decision_provenance"] == provenance
+    assert shown["decision_value_digest"] == decision_value_digest(_value(shown))

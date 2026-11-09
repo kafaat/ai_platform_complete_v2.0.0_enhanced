@@ -112,6 +112,7 @@ async def test_unfallen_rain_today_does_not_cancel_irrigation_on_critically_dry_
         recorded_at=datetime.now(UTC) - timedelta(minutes=20),
         unit="available_pct",
         unit_kind="available_pct",
+        quality_status="accepted",
     )
     wmod = _patch_workspace(monkeypatch, forecast_days=forecast_days, soil=reading)
     out = await wmod.field_irrigation_advice_facade("fld_1", user=object())
@@ -147,12 +148,14 @@ def _reading(*, unit, age, value=25.0):
         device_id="dev-1",
         unit=unit,
         unit_kind={"vwc_pct": "vwc_pct", "available_pct": "available_pct"}.get(unit, "undeclared"),
+        quality_status="accepted",
     )
 
 
 def test_soil_input_carries_unit_and_age_and_gates_stale_and_vwc():
     fresh_vwc = irrigation_soil_input(_reading(unit="vwc_pct", age=timedelta(hours=1)), now=_NOW)
-    assert fresh_vwc["usable_pct"] == 25.0  # يبلغ المُقرِّر ليُعلِنه غيرَ مُستعمَل
+    # SOIL-MOISTURE-ELIGIBILITY-01: غيرُ المؤهَّلة لا تبلغ المُقرِّر (كانت تبلغه ليُعلِنها هو).
+    assert fresh_vwc["usable_pct"] is None
     assert fresh_vwc["soil_moisture_unit_kind"] == "vwc_pct"
     assert fresh_vwc["soil_moisture_age_s"] == 3600.0
     assert fresh_vwc["soil_moisture_freshness"] == "fresh"
@@ -203,6 +206,7 @@ async def test_workspace_irrigation_respects_soil_unit_and_age(
         recorded_at=datetime.now(UTC) - age,
         unit=unit,
         unit_kind=unit,
+        quality_status="accepted",
     )
     wmod = _patch_workspace(monkeypatch, forecast_days=_DRY_DAYS, soil=reading)
     out = await wmod.field_irrigation_advice_facade("fld_1", user=object())

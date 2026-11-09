@@ -40,8 +40,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # while the area-conservation guard (G-AREA-1) landed in the router.
     # 4187 → 4176 (audit security batch) and → 4175 (audit remediation), both 2026-11-01: the
     # drift-risk and imagery refresh/process-date request models moved to api/field_models.
-    # Merged: 4164.
-    "services/sahool-platform/api/routers/fields.py": 4164,
+    # Merged: 4164. → 4163 (wave 2, 2026-11-09): activity event payload moved to
+    # api.field_aggregate.activity_event_payload.
+    "services/sahool-platform/api/routers/fields.py": 4163,
     "services/sahool-platform/api/routers/weather.py": 3022,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     # 1673 → 1668 (unified 2026-10-27): pixel sampling moved to raster_field_runtime and
@@ -51,7 +52,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # 1662 → 1656 (R9 2026-11-02): blocking COG/DEM reads offloaded via raster_field_runtime.
     "services/raster-service/routers/fields.py": 1655,
     # 1029 → 1027 (audit security batch 2026-11-01): T6 request_digest consolidation.
-    "services/sahool-platform/api/routers/farm_operations_ledger.py": 1027,
+    # 1027 → 996 (wave 2, 2026-11-08): budget/actual fetch moved to core.farm_operations_ledger
+    # while the planned-vs-executed status filter landed here.
+    "services/sahool-platform/api/routers/farm_operations_ledger.py": 996,
     "services/sahool-platform/api/routers/decision_review.py": 920,
 }
 

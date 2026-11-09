@@ -20,7 +20,7 @@ api/water_balance.py — توصية ميزان الماء (ET0 + المطر)
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # WS-C.1b Zero-Legacy: لا نواة ET0 محلّيّة هنا. ET0 يُحقَن من **منتج محرّك الطقس**
 # (get_et0_product) عبر المُوجِّهات async — المحرّك مصدر ET0 الوحيد للمنصّة.
@@ -55,6 +55,31 @@ def kc_map_for_crop(crop: str | None) -> tuple[dict[str, float], bool]:
     return kc_map, True
 
 
+# ─── المحصول المجهول: نطاقٌ استشاريّ لا عمقٌ قابلٌ للتنفيذ ─────────────────────
+#
+# ``kc_map_for_crop`` يُعيد ``GENERIC_STAGE_KC`` لمحصولٍ بلا بطاقة ويَسِمه ``False``، لكنّ
+# الوسمَ كان يُهمَل فيخرج «رُيّ بهذا العمق» بعمقٍ محسوبٍ من Kc لا يخصّ المحصول. Kc_mid في
+# FAO-56 Table 12 يتراوح بين المحاصيل من نحو 0.7 إلى 1.25 حول 1.1 العامّ، فالعمقُ المفرد
+# دقّةٌ زائفة. فللمحصول المجهول: **نطاقٌ** (Kc العامّ ± ``GENERIC_KC_UNCERTAINTY``) بلا عمقٍ
+# موصى به، وقيدٌ مُسمّى ``CROP_UNKNOWN_LIMITATION``. الكسرُ نطاقٌ مُعلَن لا معايَر.
+GENERIC_KC_UNCERTAINTY = 0.25
+CROP_UNKNOWN_LIMITATION = "crop_unknown_generic_kc"
+
+
+def generic_kc_advisory_range(
+    et0_mm: float, kc: float, effective_rain_mm: float, ks: float = 1.0
+) -> tuple[float, float]:
+    """``(low_mm, high_mm)`` للاحتياج الصافي بـKc عامّ ± ``GENERIC_KC_UNCERTAINTY`` — نقيّة.
+
+    ``ks`` معامل إجهادٍ يُضرَب في ETc (الملوحة) إن طُبِّق؛ المطر الفعّال يُخصَم من الطرفين.
+    """
+    lo_kc = kc * (1.0 - GENERIC_KC_UNCERTAINTY)
+    hi_kc = kc * (1.0 + GENERIC_KC_UNCERTAINTY)
+    low = max(0.0, et0_mm * lo_kc * ks - effective_rain_mm)
+    high = max(0.0, et0_mm * hi_kc * ks - effective_rain_mm)
+    return round(low, 1), round(high, 1)
+
+
 @dataclass
 class WeatherInput:
     """مدخلات الطقس اليوميّة."""
@@ -87,6 +112,11 @@ class WaterBalanceResult:
     advice_ar: str
     kc_source_ar: str = "محصول مُعرّف"  # هل Kc خاصّ بالمحصول أم عامّ؟
     salinity_applied: bool = False  # هل طُبّق خطّاف الملوحة (Ks/غسيل)؟ افتراضيّاً off
+    # المحصول بلا بطاقة ⇒ Kc عامّ: ``net_irrigation_mm`` هنا تقديرٌ داخليّ (للمقارنات
+    # النسبيّة) لا عمقٌ يُنفَّذ، والمُسلسَل يُخفيه ويعرض النطاق مع القيد.
+    crop_known: bool = True
+    advisory_range_mm: tuple[float, float] | None = None
+    limitations: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         d = {
@@ -103,6 +133,16 @@ class WaterBalanceResult:
         # القائم تماماً (لا انحدار على المستهلكين/الاختبارات). on ⇒ شفّافيّة opt-in.
         if self.salinity_applied:
             d["salinity_applied"] = self.salinity_applied
+        # المحصول المجهول: لا عمقَ قابلاً للتنفيذ في الحمولة — نطاقٌ + قيدٌ مُسمّى. المحصول
+        # المعروف يحفظ شكل القاموس القائم تماماً (لا انحدار على المستهلكين).
+        if not self.crop_known:
+            d["net_irrigation_mm"] = None
+            d["recommended_mm"] = None
+            d["crop_known"] = False
+            if self.advisory_range_mm is not None:
+                low, high = self.advisory_range_mm
+                d["advisory_range_mm"] = {"low": low, "high": high}
+            d["limitations"] = list(self.limitations)
         return d
 
 
@@ -307,7 +347,28 @@ def water_balance(
             crop, etc, net, soil_ece, water_ec
         )
 
-    if net <= 0:
+    advisory_range: tuple[float, float] | None = None
+    limitations: list[str] = []
+    if not crop_known:
+        # Kc عامّ (حتّى مع NDVI: مرساتا الاستيفاء من المنحنى العامّ) ⇒ نطاقٌ لا عمق.
+        # لا ملوحة هنا: ``_salinity_hook`` يعود بلا أثر لمحصولٍ بلا بطاقة.
+        advisory_range = generic_kc_advisory_range(et0, kc, eff_rain)
+        limitations = [CROP_UNKNOWN_LIMITATION]
+
+    if advisory_range is not None:
+        low, high = advisory_range
+        if high <= 0:
+            advice = (
+                f"لا حاجة للريّ — المطر ({eff_rain:.1f} مم فعّال) يغطّي حتّى الطرف الأعلى "
+                "من الاحتياج التقديريّ (المحصول غير مُعرّف)."
+            )
+        else:
+            advice = (
+                f"المحصول '{crop}' غير مُعرّف — نطاقٌ تقديريّ للاحتياج {low:.1f}–{high:.1f} مم "
+                "بمنحنى Kc عامّ، لا عمقَ ريٍّ للتنفيذ. حدّد المحصول أو قِس رطوبة التربة "
+                f"قبل الريّ. الطريقة: {method}."
+            )
+    elif net <= 0:
         advice = f"لا حاجة للريّ — المطر ({eff_rain:.1f} مم فعّال) يغطّي الاحتياج ({etc:.1f} مم)."
     elif net < 5:
         advice = f"احتياج منخفض: {net:.1f} مم. يُمكن تأجيل الريّ قليلاً."
@@ -338,6 +399,9 @@ def water_balance(
         advice_ar=advice,
         kc_source_ar=kc_source,
         salinity_applied=salinity_applied,
+        crop_known=crop_known,
+        advisory_range_mm=advisory_range,
+        limitations=limitations,
     )
 
 

@@ -20,14 +20,19 @@ from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.evidence_registry import aggregate_evidence, evidence_from_persisted_outcomes
 from api.learning_feedback import learning_feedback
 from api.main import (
+    Permission,
     UserSchema,
     _db_unavailable,
     _emit_domain_event,
     get_current_user,
+    require_permission,
     tenant_connection,
 )
 
 router = APIRouter()
+
+# F8: كتابةُ المعايرة المُدامة (تطبيق تكيّف · تثبيت تجاوز · حذفه) تغيّر قرارات المستأجِر كلّها —
+# لا تكفيها المصادقة؛ تلزم صلاحيةُ تشغيل المعايرة (CALIBRATION_RUN) نفسها التي تحرس TrueUp.
 
 
 # ── سجلّ تدقيق المعايرة (Calibration Audit Trail, v84) ─────────────────────────
@@ -330,7 +335,7 @@ class AdaptApplyRequest(BaseModel):
 async def apply_region_adaptation_from_evidence(
     region: str,
     req: AdaptApplyRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.CALIBRATION_RUN)),
 ):
     """يُطبّق تكيّف المعايرة المحروس بالدليل المُدام على متجر المعايرة (v80) — يُغلق الحلقة.
 
@@ -381,6 +386,7 @@ async def apply_region_adaptation_from_evidence(
                 proposal["validation"] = vres
                 raise HTTPException(status_code=422, detail=proposal)
             accepted = vres["accepted"]
+            old_values = await _read_override_values(conn, prof.region)
 
             await conn.execute(
                 """INSERT INTO calibration_override
@@ -407,9 +413,9 @@ async def apply_region_adaptation_from_evidence(
                 critical=True,  # حوكمة المعايرة — fail-closed
             )
             # تدقيق append-only: تطبيق تكيّف آليّ محروس بالدليل (نفس المعاملة، best-effort).
-            # old_values=None (لا نقرأ السابق هنا — لا تلفيق)؛ new_values=القيم المُدامة.
+            # old_values = التجاوز السابق المقروء قبل الـupsert (None إن لم يوجد)؛ new = المُدام.
             await _append_calibration_audit(
-                conn, user, prof.region, "adaptation_applied", None, accepted, source_ar
+                conn, user, prof.region, "adaptation_applied", old_values, accepted, source_ar
             )
     except HTTPException:
         raise
@@ -462,7 +468,7 @@ def propose_region_values(
 async def set_region_override(
     region: str,
     req: ProposeValuesRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.CALIBRATION_RUN)),
 ):
     """يُدِيم قيم معايرة مُتحقَّقة لمنطقة (المستأجِر) في القاعدة — معايرة مُدارة DB-backed.
 
@@ -589,7 +595,7 @@ async def list_region_overrides(user: UserSchema = Depends(get_current_user)):
 @router.delete("/api/v1/calibration/{region}/override")
 async def delete_region_override(
     region: str,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.CALIBRATION_RUN)),
 ):
     """يحذف تجاوز المنطقة المُدام ويعيدها للوراثة العامّة — عكوسيّة (مبدأ الصدق). معزول بـRLS.
 

@@ -21,7 +21,9 @@ sahool_core.engines.pesticide
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from collections.abc import Iterable
+from dataclasses import dataclass, field
+from datetime import date, timedelta
 from enum import Enum
 
 
@@ -189,4 +191,157 @@ def evaluate_pesticide_safety(
         reason_ar=f"مضت فترة الأمان (PHI={phi_days}يوم)",
         recommendation_ar="انقضت فترة الأمان الزمنية؛ التقدير قرينة لا إذن — المختبر يحكم",
         requires_lab_ar=note,
+    )
+
+
+# ════════════════════════════════════════════════════════════
+# ٤. بوّابة PHI على تسجيل الحصاد (المستهلك الإنتاجيّ لـphi_gate)
+# ════════════════════════════════════════════════════════════
+# مفاتيح PHI المقبولة في تفاصيل نشاط الرشّ (details) — لا كتالوج مبيدات بقيم PHI في
+# المنصّة، فمصدر الحقيقة هو ما سُجِّل مع الرشّة نفسها (ملصق المنتج).
+_PHI_DETAIL_KEYS = ("phi_days", "phi", "pre_harvest_interval_days")
+_PRODUCT_DETAIL_KEYS = ("product_name", "product", "pesticide", "active_ingredient")
+
+
+def phi_days_from_details(details: dict | None) -> int | None:
+    """PHI (أيّام) من تفاصيل نشاط الرشّ. غير معروف/غير صالح ⇒ None.
+
+    كسر اليوم يُقرَّب للأعلى (السلامة: لا نُقصِّر فترة الأمان). سالب/منطقيّ/نصّ ⇒ None."""
+    if not isinstance(details, dict):
+        return None
+    for key in _PHI_DETAIL_KEYS:
+        raw = details.get(key)
+        if raw is None or isinstance(raw, bool):
+            continue
+        try:
+            value = float(raw)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(value) and value >= 0:
+            return math.ceil(value)
+    return None
+
+
+def spray_product_from_details(details: dict | None) -> str | None:
+    """اسم المبيد من تفاصيل نشاط الرشّ (أوّل مفتاح نصّيّ غير فارغ) أو None."""
+    if not isinstance(details, dict):
+        return None
+    for key in _PRODUCT_DETAIL_KEYS:
+        raw = details.get(key)
+        if isinstance(raw, str) and raw.strip():
+            return raw.strip()[:120]
+    return None
+
+
+@dataclass(frozen=True)
+class SprayRecord:
+    """رشّة منفَّذة (status=done) على الحقل: تاريخ التنفيذ + PHI المنتج (إن عُرف)."""
+
+    performed_on: date
+    phi_days: int | None
+    product: str | None = None
+    activity_id: str | None = None
+
+
+@dataclass
+class HarvestPhiCheck:
+    """نتيجة فحص PHI لحصادٍ بتاريخ محدَّد مقابل الرشّات المنفَّذة قبله."""
+
+    allowed: bool
+    harvest_date: date
+    blocking_spray: SprayRecord | None = None
+    days_since_spray: int | None = None
+    earliest_safe_date: date | None = None
+    limitations: list[str] = field(default_factory=list)
+    message_ar: str = ""
+
+    def to_dict(self) -> dict:
+        spray = self.blocking_spray
+        return {
+            "allowed": self.allowed,
+            "harvest_date": self.harvest_date.isoformat(),
+            "blocking_spray": (
+                {
+                    "activity_id": spray.activity_id,
+                    "performed_on": spray.performed_on.isoformat(),
+                    "product": spray.product,
+                    "phi_days": spray.phi_days,
+                }
+                if spray is not None
+                else None
+            ),
+            "days_since_spray": self.days_since_spray,
+            "earliest_safe_date": (
+                self.earliest_safe_date.isoformat() if self.earliest_safe_date else None
+            ),
+            "limitations": list(self.limitations),
+            "message_ar": self.message_ar,
+        }
+
+
+def evaluate_harvest_phi(harvest_date: date, sprays: Iterable[SprayRecord]) -> HarvestPhiCheck:
+    """هل يُسمَح بحصادٍ في ``harvest_date`` بعد الرشّات المنفَّذة؟ (نقيّة، بلا I/O)
+
+    * كلّ رشّة معروفة PHI تمرّ على ``phi_gate`` (الحاجز الزمنيّ الصارم)؛ لم يمضِ PHI ⇒
+      مرفوض، والرشّة الحاجبة هي ذات **أبعد** تاريخ آمن (عدّة رشّات: الأشدّ يحكم).
+    * أحدث رشّة بلا PHI معروف ⇒ لا حجب (لا نعرف ما نحجب به) لكن قيد صريح
+      ``phi_unknown`` يُسجَّل مع الحصاد — لا صمت.
+    * الرشّات بعد تاريخ الحصاد لا تخصّه فتُهمَل."""
+    relevant = sorted(
+        (s for s in sprays if s.performed_on <= harvest_date),
+        key=lambda s: s.performed_on,
+        reverse=True,
+    )
+    if not relevant:
+        return HarvestPhiCheck(
+            allowed=True, harvest_date=harvest_date, message_ar="لا رشّ منفَّذ قبل الحصاد"
+        )
+    worst: tuple[date, SprayRecord, int] | None = None
+    for spray in relevant:
+        days = (harvest_date - spray.performed_on).days
+        ok, _reason = phi_gate(days, spray.phi_days)
+        if ok is False:
+            safe = spray.performed_on + timedelta(days=spray.phi_days)
+            if worst is None or safe > worst[0]:
+                worst = (safe, spray, days)
+    latest_day = relevant[0].performed_on
+    unknown = any(s.phi_days is None for s in relevant if s.performed_on == latest_day)
+    limitations = ["phi_unknown"] if unknown else []
+    if worst is not None:
+        safe, spray, days = worst
+        product = spray.product or "غير مسمّى"
+        return HarvestPhiCheck(
+            allowed=False,
+            harvest_date=harvest_date,
+            blocking_spray=spray,
+            days_since_spray=days,
+            earliest_safe_date=safe,
+            limitations=limitations,
+            message_ar=(
+                f"الحصاد مرفوض: لم تمضِ فترة الأمان قبل الحصاد (PHI) للمبيد «{product}» "
+                f"المرشوش في {spray.performed_on.isoformat()} (PHI={spray.phi_days} يوماً؛ "
+                f"مضى {days}). أقرب تاريخ آمن للحصاد: {safe.isoformat()}."
+            ),
+        )
+    if unknown:
+        product = next(
+            (s.product for s in relevant if s.performed_on == latest_day and s.phi_days is None),
+            None,
+        )
+        return HarvestPhiCheck(
+            allowed=True,
+            harvest_date=harvest_date,
+            days_since_spray=(harvest_date - latest_day).days,
+            limitations=limitations,
+            message_ar=(
+                f"تحذير: فترة الأمان (PHI) لآخر رشّة ({latest_day.isoformat()}"
+                f"{'، ' + product if product else ''}) غير مسجَّلة — تعذّر التحقّق من "
+                "انقضائها. سجّل PHI المنتج مع الرشّ، ويُستحسن فحص مخبري للمخلّفات."
+            ),
+        )
+    return HarvestPhiCheck(
+        allowed=True,
+        harvest_date=harvest_date,
+        days_since_spray=(harvest_date - latest_day).days,
+        message_ar="مضت فترة الأمان (PHI) لكلّ الرشّات المنفَّذة قبل الحصاد",
     )

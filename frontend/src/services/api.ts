@@ -1507,7 +1507,9 @@ export interface CropDecisionResult {
     next_event_day: number | null; next_event_mm: number; stress_days: number; action_ar: string;
   };
   fertilization: {
-    stage: string | null; uptake_to_date_kg_ha: number; remaining_need_kg_ha: number; due: boolean; action_ar: string;
+    // remaining = modelled crop uptake (soil supply unknown) — not a fertilizer dose; null when uptake is unknown.
+    stage: string | null; uptake_to_date_kg_ha: number | null; remaining_need_kg_ha: number | null; due: boolean | null; action_ar: string;
+    basis?: 'modelled_crop_uptake'; soil_supply_known?: boolean; fertilizer_dose_kg_ha?: number | null;
   };
   risks: UnifiedRisk[];
   stress_flags: UnifiedFlag[];

@@ -5,6 +5,11 @@ crop_id: alfalfa
 name_ar: البرسيم الحجازي (الفصّة)
 name_en: Alfalfa (lucerne)
 crop_family: forage_legume_C3
+life_form: perennial  # مُعمِّر: لا نضج/حصاد حوليّ واحد يُشتقّ من تاريخ البذار
+aliases:
+  - "برسيم"     # Yemeni usage for lucerne — UI label
+  - "فصة"
+  - "lucerne"
 
 kc:
   initial: 0.40

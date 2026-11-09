@@ -62,7 +62,12 @@ def _digest(lineage: str = "cand/lin-1") -> str:
 
 
 async def _seed_candidate(
-    decision_id: str, lineage: str, *, tenant: str = TENANT, with_digest: bool = True
+    decision_id: str,
+    lineage: str,
+    *,
+    tenant: str = TENANT,
+    with_digest: bool = True,
+    created_by: str | None = None,
 ) -> None:
     conn = await _connect()
     try:
@@ -72,15 +77,16 @@ async def _seed_candidate(
             """
             INSERT INTO decision_record
               (decision_id, tenant_id, decision_type, stage, decision_value,
-               review_state, candidate_lineage_id, decision_value_digest)
+               review_state, candidate_lineage_id, decision_value_digest, created_by)
             VALUES ($1, $2::uuid, 'crop_decision_candidate', 'candidate', $3::jsonb,
-                    'pending_approval', $4, $5)
+                    'pending_approval', $4, $5, $6)
             """,
             decision_id,
             tenant,
             json.dumps(_value(lineage)),
             lineage,
             _digest(lineage) if with_digest else None,
+            created_by,
         )
     finally:
         await conn.close()
@@ -295,6 +301,8 @@ def _body(**over):
         "candidate_lineage_id": "cand/lin-1",
         "decision_value_digest": _digest(),
         "idempotency_key": "http-1",
+        # Required since the review policy version stopped defaulting to "unspecified".
+        "policy_version": "rev/1.0.0",
     }
     b.update(over)
     return b
@@ -443,3 +451,47 @@ def test_endpoint_approve_without_the_version_digest_is_422():
     body.pop("decision_value_digest")
     r = _client().post("/v1/decisions/dec_x/review", json=body, headers=_HDR)
     assert r.status_code == 422
+
+
+# ── policy version + separation of duties ─────────────────────────────────────────────────
+def test_endpoint_review_without_a_policy_version_is_422():
+    body = _body(idempotency_key="http-nopolicy")
+    body.pop("policy_version")
+    r = _client().post("/v1/decisions/dec_x/review", json=body, headers=_HDR)
+    assert r.status_code == 422 and "policy_version" in r.text
+
+
+def test_same_key_under_another_policy_version_is_a_conflict_not_a_replay():
+    _run(_seed_candidate("dec_pol1", "cand/lin-1"))
+    assert _run(_review("dec_pol1"))["status"] == "ok"
+    res = _run(_review("dec_pol1", policy_version="rev/2.0.0"))
+    assert res == {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+
+
+def test_the_creator_cannot_review_their_own_candidate_when_sod_is_on(monkeypatch):
+    monkeypatch.setenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", "true")
+    _run(_seed_candidate("dec_sod1", "cand/lin-1", created_by="u-maker"))
+    res = _run(_review("dec_sod1", reviewed_by="U-Maker "))
+    assert res == {"status": "forbidden", "reason": "separation_of_duties_violation"}
+    assert _run(_fetch_record("dec_sod1"))["review_state"] == "pending_approval"
+    assert _run(_counts("dec_sod1")) == (0, 0)
+    ok = _run(_review("dec_sod1", reviewed_by="u-checker", idempotency_key="idem-dec_sod1-b"))
+    assert ok["status"] == "ok" and ok["state"] == "approved"
+
+
+def test_self_review_stays_possible_when_sod_is_off(monkeypatch):
+    monkeypatch.setenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", "false")
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    _run(_seed_candidate("dec_sod2", "cand/lin-1", created_by="u-maker"))
+    res = _run(_review("dec_sod2", reviewed_by="u-maker"))
+    assert res["status"] == "ok" and res["state"] == "approved"
+
+
+def test_endpoint_self_review_is_403_in_production_by_default(monkeypatch):
+    monkeypatch.delenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    _run(_seed_candidate("dec_sod3", "cand/lin-1", created_by="u-rev"))
+    r = _client().post(
+        "/v1/decisions/dec_sod3/review", json=_body(idempotency_key="http-sod3"), headers=_HDR
+    )
+    assert r.status_code == 403, r.text

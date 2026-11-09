@@ -65,11 +65,12 @@ _CROP_PARAMS: dict[str, CropParams] = {
     "alfalfa": CropParams(5.0, 32.0, 900.0, 1.50, 0.50, 5.0, 0.60),
 }
 
-# مرادفات عربيّة → مفتاح إنجليزي
+# مرادفات عربيّة → مفتاح إنجليزي (احتياط محلّيّ؛ المحلِّل المشترك resolve_crop_id أوّلاً).
+# «ذرة» مفردةً = sorghum (القرار الموحَّد في core/season_phenology.py) — كانت هنا maize.
 _CROP_ALIASES: dict[str, str] = {
     "قمح": "wheat",
     "شعير": "barley",
-    "ذرة": "maize",
+    "ذرة": "sorghum",
     "ذرة شامية": "maize",
     "ذرة رفيعة": "sorghum",
     "دخن": "millet",
@@ -130,6 +131,11 @@ def normalize_crop(crop: str | None) -> tuple[str, bool]:
     """يُرجع (مفتاح المحصول، هل هو مُعرّف). يطبّع العربيّة والحالة."""
     if not crop:
         return "", False
+    from core.season_phenology import resolve_crop_id
+
+    shared = resolve_crop_id(crop)
+    if shared in _CROP_PARAMS:
+        return shared, True
     key = crop.strip().lower()
     key = _CROP_ALIASES.get(crop.strip(), _CROP_ALIASES.get(key, key))
     return key, key in _CROP_PARAMS
@@ -176,6 +182,9 @@ class SimContext:
     # WS-C.1b: سلسلة ET0 يوميّة محقونة من محرّك الطقس (المصدر الكنسيّ). None لكامل
     # السلسلة ⇒ يُستعمَل et0 المُمرَّر مع اليوم؛ لا Hargreaves محلّيّ في أيّ حال.
     et0_daily_override: list[float | None] | None = None
+    # أوّل يوم في سلسلة الطقس. None ⇒ النافذة تبدأ يوم البذار (عقد المسار). مع تاريخ البذار
+    # يُشتقّ منه عمر المحصول لكلّ يوم ⇒ Kc يوميّ من منحنى البطاقة لا توزيع تناسبيّ.
+    window_start: date | None = None
 
 
 @dataclass
@@ -188,9 +197,10 @@ class SimResult:
     maturity_reached: bool
     lai_max: float
     biomass_kg_ha: float
-    yield_kg_ha: float
-    yield_low_kg_ha: float  # حدّ أدنى للنطاق (≈ −20٪)
-    yield_high_kg_ha: float  # حدّ أعلى للنطاق (≈ +20٪)
+    # None حين يكون المحصول غير مُعرّف: لا HI/RUE خاصّ به ⇒ لا غلّة تُختلَق من معاملات عامّة.
+    yield_kg_ha: float | None
+    yield_low_kg_ha: float | None  # حدّ أدنى للنطاق (≈ −20٪)
+    yield_high_kg_ha: float | None  # حدّ أعلى للنطاق (≈ +20٪)
     water_need_mm: float  # ETc الموسمي
     water_supply_mm: float | None  # مطر + ريّ إن عُرف
     water_stress_factor: float  # 0..1 (1 = بلا إجهاد)
@@ -202,6 +212,9 @@ class SimResult:
     fapar_source: str = "modeled"
     assumptions_ar: list[str] = field(default_factory=list)
     warnings_ar: list[str] = field(default_factory=list)
+    # "estimated" | "unavailable_unrecognized_crop" — حالة الغلّة صراحةً لا رقم عامّ.
+    yield_status: str = "estimated"
+    limitations: list[str] = field(default_factory=list)
 
 
 # ─── دوالّ النموذج النقيّة ────────────────────────────────────────
@@ -276,16 +289,46 @@ def fapar_from_ndvi(ndvi: float) -> float:
     return min(1.0, max(0.0, 1.24 * ndvi - 0.168))
 
 
-def _seasonal_water_need(crop_key: str, et0_series: list[float | None]) -> float:
-    """ETc الموسمي = Σ(ET₀_يوم × Kc_للمرحلة) موزّعاً على مراحل FAO-56.
+def _per_day_kc_series(crop_key: str, n: int, days_since_sowing_start: int) -> list[float] | None:
+    """Kc يوميّ من منحنى FAO-56 لبطاقة المحصول بحسب **عمر المحصول الفعليّ** — أو None بلا بطاقة.
 
-    يوزّع أيّام الموسم على المراحل بالنِّسب القياسيّة ويضرب ET₀ بـKc المرحلة.
+    اليوم ``i`` من النافذة عمره ``days_since_sowing_start + i`` يوماً منذ البذار، فتشغيلٌ في
+    منتصف الموسم يأخذ Kc مرحلته الحقيقيّة لا مرحلةً من توزيعٍ تناسبيّ على طول النافذة.
+    القصّ مطابق لـ ``season_phenology.stage_kc`` (قبل البذار ⇒ Kc_ini، بعد الدورة ⇒ Kc_end)؛
+    البروفايل يُبنى مرّة واحدة لا لكلّ يوم.
+    """
+    from core.engines.fao56 import kc_for_age
+    from core.season_phenology import crop_kc_profile, resolve_crop_id
+
+    profile = crop_kc_profile(resolve_crop_id(crop_key))
+    if profile is None:
+        return None
+    total = profile.total_season_days
+    return [
+        kc_for_age(profile, min(max(0, days_since_sowing_start + i), total))[0] for i in range(n)
+    ]
+
+
+def _seasonal_water_need(
+    crop_key: str,
+    et0_series: list[float | None],
+    days_since_sowing_start: int | None = None,
+) -> float:
+    """ETc الموسمي = Σ(ET₀_يوم × Kc_يوم) (FAO-56).
+
+    حين يُعرَف عمر المحصول في أوّل يوم من النافذة (``days_since_sowing_start``) وللمحصول
+    بطاقة: Kc يوميّ من منحنى البطاقة بحسب عمر كلّ يوم. وإلّا (لا بذار/لا بطاقة) يوزّع أيّام
+    النافذة على المراحل بالنِّسب القياسيّة — تقدير خشن موسوم في الافتراضات.
     WS-C.1b: يوم بلا ET0 (None — لا تقدير محلّيّ) يُتجاهَل في المجموع (لا يُلفَّق صفراً
     مُضلِّلاً ولا ET0 محلّيّاً)؛ النتيجة تقدير أدنى مع أيّام محسوبة أقلّ.
     """
     n = len(et0_series)
     if n == 0:
         return 0.0
+    if days_since_sowing_start is not None:
+        daily_kc = _per_day_kc_series(crop_key, n, days_since_sowing_start)
+        if daily_kc is not None:
+            return sum(e * kc for e, kc in zip(et0_series, daily_kc, strict=True) if e is not None)
     kc_map, _ = kc_map_for_crop(crop_key)  # بطاقة المحصول — المصدر الوحيد لـKc
     total = 0.0
     idx = 0
@@ -360,11 +403,16 @@ def simulate_season(ctx: SimContext) -> SimResult:
     assumptions: list[str] = []
     warnings: list[str] = []
 
+    limitations: list[str] = []
+    yield_status = "estimated"
     if not recognized:
         warnings.append(
             f"المحصول «{ctx.crop or 'غير محدّد'}» غير مُعرّف في قاعدة المعاملات — "
-            "استُخدم نموذج عامّ (معاملات وسطيّة). عايِر ميدانيّاً."
+            "استُخدم نموذج عامّ (معاملات وسطيّة) للتراكم الحراريّ والماء فقط؛ "
+            "لا تقدير غلّة بلا مؤشّر حصاد خاصّ بالمحصول."
         )
+        limitations.append("UNRECOGNIZED_CROP_NO_YIELD_ESTIMATE")
+        yield_status = "unavailable_unrecognized_crop"
 
     weather = ctx.weather
     if not weather:
@@ -378,9 +426,9 @@ def simulate_season(ctx: SimContext) -> SimResult:
             maturity_reached=False,
             lai_max=0.0,
             biomass_kg_ha=0.0,
-            yield_kg_ha=0.0,
-            yield_low_kg_ha=0.0,
-            yield_high_kg_ha=0.0,
+            yield_kg_ha=0.0 if recognized else None,
+            yield_low_kg_ha=0.0 if recognized else None,
+            yield_high_kg_ha=0.0 if recognized else None,
             water_need_mm=0.0,
             water_supply_mm=None,
             water_stress_factor=1.0,
@@ -388,6 +436,8 @@ def simulate_season(ctx: SimContext) -> SimResult:
             rationale_ar="لا بيانات طقس كافية للمحاكاة — لا تقدير.",
             assumptions_ar=assumptions,
             warnings_ar=warnings,
+            yield_status=yield_status,
+            limitations=limitations,
         )
 
     # fAPAR مرصود (إن مُرِّر) → سلسلة يوميّة. None ⇒ نُبقي الحدّ المُنمذَج (1−e^…).
@@ -425,10 +475,9 @@ def simulate_season(ctx: SimContext) -> SimResult:
         solar = day.solar_mj_m2
         if solar is None:
             # تقدير حسب شهر اليوم (من تاريخ البذر + الإزاحة) — أدقّ من ثابت واحد.
+            day_start = ctx.window_start or ctx.sowing_date
             day_month = (
-                (ctx.sowing_date + timedelta(days=day_idx)).month
-                if ctx.sowing_date is not None
-                else None
+                (day_start + timedelta(days=day_idx)).month if day_start is not None else None
             )
             solar = _solar_estimate(day_month)
             estimated_solar_days += 1
@@ -457,13 +506,18 @@ def simulate_season(ctx: SimContext) -> SimResult:
         rain_total += max(0.0, day.rain_mm)
 
     days = len(weather)
+    days_since_sowing_start = (
+        ((ctx.window_start or ctx.sowing_date) - ctx.sowing_date).days
+        if ctx.sowing_date is not None
+        else None
+    )
     maturity_reached = gdd_cum >= p.gdd_to_maturity
 
     # g/m² → kg/ha  (1 g/m² = 10 kg/ha)
     biomass_kg_ha = biomass_g_m2 * 10.0
 
     # احتياج الماء الموسمي ETc (FAO-56) + مقارنة بالعرض (مطر + ريّ).
-    water_need = _seasonal_water_need(crop_key, et0_series)
+    water_need = _seasonal_water_need(crop_key, et0_series, days_since_sowing_start)
     water_supply: float | None = None
     if ctx.irrigation_mm_total is not None or rain_total > 0:
         water_supply = rain_total + (ctx.irrigation_mm_total or 0.0)
@@ -491,7 +545,10 @@ def simulate_season(ctx: SimContext) -> SimResult:
 
     # افتراضات حول التواريخ/التغطية.
     if ctx.sowing_date is None:
-        assumptions.append("لم يُعرَف تاريخ البذار — اعتُمدت سلسلة الطقس المُمرَّرة كما هي.")
+        assumptions.append(
+            "لم يُعرَف تاريخ البذار — اعتُمدت سلسلة الطقس المُمرَّرة كما هي، ووُزِّع Kc على "
+            "مراحل FAO-56 تناسبيّاً مع طول النافذة (لا عمر محصول معروف)."
+        )
     if estimated_solar_days > 0:
         assumptions.append(
             f"الإشعاع الشمسي غير متوفّر لـ{estimated_solar_days} يوم — استُخدم تقدير "
@@ -533,11 +590,16 @@ def simulate_season(ctx: SimContext) -> SimResult:
         confidence += 0.05
     confidence = round(min(0.85, confidence), 2)  # سقف ٨٥٪ — لا يقين كامل بلا قياس ميداني
 
+    yield_text = (
+        f"الإنتاج المُقدَّر≈{yield_kg_ha:.0f} kg/ha (نطاق {yield_low:.0f}–{yield_high:.0f}، "
+        f"HI={p.harvest_index:.2f})"
+        if recognized
+        else "الإنتاج غير مُقدَّر (محصول غير مُعرّف — لا مؤشّر حصاد)"
+    )
     rationale = (
         f"محاكاة {days} يوم: GDD={gdd_cum:.0f}/{p.gdd_to_maturity:.0f} °C·day، "
         f"أقصى LAI≈{lai_peak:.2f}، كتلة حيويّة≈{biomass_kg_ha:.0f} kg/ha، "
-        f"الإنتاج المُقدَّر≈{yield_kg_ha:.0f} kg/ha (نطاق {yield_low:.0f}–{yield_high:.0f}، "
-        f"HI={p.harvest_index:.2f})، احتياج الماء≈{water_need:.0f} mm. "
+        f"{yield_text}، احتياج الماء≈{water_need:.0f} mm. "
         f"الثقة {confidence:.0%} — تقدير نموذجي (RUE/FAO-56)، عايِر ميدانيّاً."
     )
 
@@ -550,9 +612,9 @@ def simulate_season(ctx: SimContext) -> SimResult:
         maturity_reached=maturity_reached,
         lai_max=round(lai_peak, 2),
         biomass_kg_ha=round(biomass_kg_ha, 1),
-        yield_kg_ha=round(yield_kg_ha, 1),
-        yield_low_kg_ha=round(yield_low, 1),
-        yield_high_kg_ha=round(yield_high, 1),
+        yield_kg_ha=round(yield_kg_ha, 1) if recognized else None,
+        yield_low_kg_ha=round(yield_low, 1) if recognized else None,
+        yield_high_kg_ha=round(yield_high, 1) if recognized else None,
         water_need_mm=round(water_need, 1),
         water_supply_mm=round(water_supply, 1) if water_supply is not None else None,
         water_stress_factor=round(water_stress, 3),
@@ -561,4 +623,151 @@ def simulate_season(ctx: SimContext) -> SimResult:
         fapar_source=fapar_source,
         assumptions_ar=assumptions,
         warnings_ar=warnings,
+        yield_status=yield_status,
+        limitations=limitations,
     )
+
+
+# ─── نافذة المحاكاة (من البذار إلى نهاية الموسم) ───────────────────────────────────────
+# سقف صلب لطول النافذة (يوم): دورة سنويّة واحدة على الأكثر — حدّ لحجم طلب الطقس التاريخيّ.
+_SIM_HARD_MAX_WINDOW_DAYS = 366
+# أرشيف ERA5 التاريخيّ يتأخّر ~5 أيّام — لا يُطلَب أحدث من ذلك.
+_ERA5_LAG_DAYS = 5
+
+
+class SimWindowError(ValueError):
+    """نافذة لا تُحاكى (لا تاريخ بذار / قصيرة / في المستقبل) — رسالتها عربيّة للمستخدم (422)."""
+
+    def __init__(self, detail_ar: str):
+        super().__init__(detail_ar)
+        self.detail_ar = detail_ar
+
+
+@dataclass(frozen=True)
+class SimWindow:
+    """نافذة المحاكاة المخطَّطة — بما طُلِب وما سيُحاكى، فلا قصّ صامت."""
+
+    start: date
+    end: date
+    cap_days: int
+    days_requested: int  # أيّام النافذة المطلوبة (البذار → نهاية الموسم أو اليوم)، شاملة
+    days_simulated: int  # أيّام النافذة المحاكاة فعلاً (بعد السقف وتأخّر ERA5)، شاملة
+    truncated: bool  # True ⇔ قُصَّت النافذة لأنّها أطول من السقف
+
+    def limitations(self) -> list[str]:
+        return ["SIM_WINDOW_TRUNCATED"] if self.truncated else []
+
+    def warnings_ar(self) -> list[str]:
+        if not self.truncated:
+            return []
+        return [
+            f"نافذة الموسم ({self.days_requested} يوم) أطول من سقف المحاكاة ({self.cap_days} "
+            f"يوم) — حوكِيَ أوّل {self.days_simulated} يوم فقط من البذار حتّى "
+            f"{self.end.isoformat()}؛ النتيجة لا تغطّي بقيّة الموسم."
+        ]
+
+
+def crop_cycle_window_cap(crop: str | None, floor_days: int) -> int:
+    """سقف نافذة المحاكاة: طول دورة المحصول (بطاقته/معايرة المنطقة) أو ``floor_days`` أيّهما أطول.
+
+    لا يقصر عن السقف التاريخيّ (``floor_days``) لأنّ مراحل البطاقة اسميّة (FAO-56) والنضج
+    هنا يُقاس بـGDD (أبطأ في المرتفعات)، ويمتدّ لمحاصيل الدورة الطويلة بدل قصّها صامتاً.
+    محدود بسقف صلب (سنة واحدة).
+    """
+    from core.season_phenology import crop_kc_profile, resolve_crop_id
+
+    from api.crop_cycle import cycle_days_to_maturity
+
+    crop_id = resolve_crop_id(crop)
+    cycles = [floor_days]
+    profile = crop_kc_profile(crop_id)
+    if profile is not None:
+        cycles.append(int(profile.total_season_days))
+    region_cycle = cycle_days_to_maturity(crop_id)
+    if region_cycle is not None:
+        cycles.append(int(region_cycle))
+    return min(max(cycles), _SIM_HARD_MAX_WINDOW_DAYS)
+
+
+def plan_simulation_window(
+    crop: str | None,
+    sowing_date: date | None,
+    season_end: date | None,
+    today: date,
+    *,
+    floor_days: int,
+) -> SimWindow:
+    """يخطّط نافذة المحاكاة من البذار إلى نهاية الموسم (أو اليوم) — نقيّة.
+
+    بلا تاريخ بذار ⇒ ``SimWindowError``: لا يُخترَع بدءٌ (كان اليوم−160) فيُحسَب عمر المحصول
+    ومراحل Kc من بذارٍ وهميّ. نافذة أطول من السقف تُقصّ **معلَنةً** (``truncated``).
+    """
+    if sowing_date is None:
+        raise SimWindowError(
+            "الموسم بلا تاريخ بذار — لا يمكن معرفة عمر المحصول ومراحل نموّه، فلا تُشغَّل "
+            "المحاكاة على بداية مُفترَضة. أضِف تاريخ البذار ثمّ أعِد المحاولة."
+        )
+    cap = crop_cycle_window_cap(crop, floor_days)
+    start = sowing_date
+    requested_end = min(season_end, today) if season_end is not None else today
+    if requested_end <= start:
+        requested_end = min(start + timedelta(days=cap), today)
+    win_end = requested_end
+    truncated = False
+    if (win_end - start).days > cap:
+        win_end = start + timedelta(days=cap)
+        truncated = True
+    win_end = min(win_end, today - timedelta(days=_ERA5_LAG_DAYS))
+    if win_end <= start:
+        raise SimWindowError(
+            "نافذة الموسم قصيرة جدّاً أو في المستقبل — لا بيانات طقس تاريخيّة كافية للمحاكاة."
+        )
+    return SimWindow(
+        start=start,
+        end=win_end,
+        cap_days=cap,
+        days_requested=max(0, (requested_end - start).days) + 1,
+        days_simulated=(win_end - start).days + 1,
+        truncated=truncated,
+    )
+
+
+# ─── ربط السجلّ التاريخيّ تلقائيّاً (حقل + يوم بذار + المحصول نفسه) ─────────────────────
+#: أعمدة مساعدة يجلبها استعلام المرشّحين للمقارنة فقط — تُزال قبل أن يدخل السجلّ حزمة الإدخال.
+AUTO_LINK_CROP_COLUMNS = ("link_crop_registry_ref", "link_variety_name")
+
+
+def historical_record_crop_matches(
+    season_crop: str | None, record_crop_ref: str | None, record_variety: str | None
+) -> bool:
+    """هل محصول السجلّ التاريخيّ هو محصول الموسم نفسه؟ بالمحلِّل القانونيّ على الطرفين.
+
+    طرف السجلّ: ``crop_registry_ref`` و``variety_name`` يُحلّان معاً؛ ما يُحلّ منهما يجب أن
+    يتّفق على crop_id واحد. أيّ طرف لا يُحلّ، أو تعارض، ⇒ False (لا ربط بالتخمين).
+    """
+    from core.season_phenology import resolve_crop_id
+
+    mine = resolve_crop_id(season_crop)
+    if mine is None:
+        return False
+    theirs = {resolve_crop_id(v) for v in (record_crop_ref, record_variety) if v}
+    theirs.discard(None)
+    return theirs == {mine}
+
+
+def select_auto_link_candidate(candidates, season_crop: str | None) -> dict | None:
+    """يختار السجلّ الوحيد المطابق محصولاً من مرشّحي (الحقل + يوم البذار) — أو None.
+
+    صفر أو أكثر من مطابق ⇒ None (لا ربط). المُرجَع بلا الأعمدة المساعدة، فلا تتغيّر
+    بصمة حزمة الإدخال بسبب المقارنة.
+    """
+    matching = [
+        dict(c)
+        for c in candidates
+        if historical_record_crop_matches(
+            season_crop, c[AUTO_LINK_CROP_COLUMNS[0]], c[AUTO_LINK_CROP_COLUMNS[1]]
+        )
+    ]
+    if len(matching) != 1:
+        return None
+    return {k: v for k, v in matching[0].items() if k not in AUTO_LINK_CROP_COLUMNS}

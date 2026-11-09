@@ -95,7 +95,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 3,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Decision candidate"
@@ -1503,7 +1503,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 3,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Water balance"
@@ -2173,7 +2173,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 1,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Maintenance"
@@ -2738,7 +2738,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 3,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "NDMI"
@@ -3338,7 +3338,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 1,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Decision SoR DB ownership"
@@ -3592,7 +3592,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 1,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "pH EC SOM nutrients"
@@ -3796,7 +3796,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 3,
+      "sahool_score": 1,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Weather history"
@@ -3946,7 +3946,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 3,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "GDD"

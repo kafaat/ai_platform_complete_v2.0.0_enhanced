@@ -4,8 +4,13 @@ export interface RemoteSensingWorkspaceOverview {
   latest_observation_refs: Record<string, unknown>;
   observation_count: number;
   open_anomaly_count: number;
+  /** Field-wide count (upstream /v1/decisions has no season filter yet). */
   decision_count: number;
-  verified_outcome_count: number;
+  decision_scope?: 'field';
+  /** null = upstream states no verified-outcome count (unknown, not zero). */
+  verified_outcome_count: number | null;
+  outcome_reconciliation_status?: string | null;
+  outcome_reconciliation_available?: boolean | null;
 }
 
 export interface RemoteSensingWorkspaceResponse {

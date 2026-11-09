@@ -28,6 +28,21 @@ from typing import Any
 # سبب افتراضيّ عند تعذّر القاعدة (fail-closed) — لا إيقاف صامت بلا نصّ مفهوم.
 FAIL_CLOSED_REASON = "تعذّر التحقّق من مفتاح إيقاف الطوارئ — التشغيل مُوقَف بأمان (fail-closed)"
 
+# الاتّجاه الآمن (safe direction): أوامرٌ تُعيد المُشغِّل إلى حالته الآمنة — إغلاق صمّام /
+# إيقاف مضخّة — فتُطابق صيغة السلك ``CLOSE`` في ``_to_firmware_wire`` (actuator-service).
+# مفتاح الإيقاف يمنع **إطلاق** الماء؛ وحجبُ الإغلاق تحته يترك الصمّام مفتوحاً حتّى سقف الأمان.
+# The kill-switch exists to stop water; blocking CLOSE under it leaves a valve open until the
+# firmware cap. Membership is exact (normalised), never a substring, so an unknown command is
+# never treated as safe.
+SAFE_DIRECTION_COMMANDS = frozenset({"close", "close_valve", "off", "stop", "stop_irrigation"})
+
+
+def is_safe_direction(command: Any) -> bool:
+    """دالّة نقيّة: هل الأمر في الاتّجاه الآمن (إغلاق/إيقاف)؟ المجهول ⇒ False (ليس آمناً)."""
+    if not isinstance(command, str):
+        return False
+    return command.strip().lower() in SAFE_DIRECTION_COMMANDS
+
 
 def match_killswitch(
     switches: Iterable[Mapping[str, Any]],
@@ -64,8 +79,13 @@ async def is_actuation_halted(
     tenant_id: str,
     field_id: str | None = None,
     valve_id: str | None = None,
+    *,
+    command: str | None = None,
 ) -> tuple[bool, str | None]:
     """يستشير القاعدة: هل التشغيل مُوقَف لهذا (المستأجِر، الحقل، الصمّام)؟ (fail-closed).
+
+    ``command`` اختياريّ: أمرٌ في الاتّجاه الآمن (``is_safe_direction``) لا يُحجَب — لا بمفتاحٍ
+    مُشتبَك ولا بتعذّر القاعدة — فيُعاد ``(False, None)`` دون استعلام. غيابُه يحفظ السلوك السابق.
 
     يضبط ``app.current_tenant`` ضمن معاملة (SET LOCAL) لتفعيل RLS ثمّ يقرأ المفاتيح
     الفعّالة غير المنتهية ويُفوّض ``match_killswitch``. أيّ استثناء (لا اتّصال/خطأ) ⇒
@@ -73,6 +93,8 @@ async def is_actuation_halted(
 
     ``conn``: اتّصال asyncpg (قد يكون داخل معاملة مستأجِر قائمة — نفتح savepoint آمناً).
     """
+    if is_safe_direction(command):
+        return False, None
     try:
         async with conn.transaction():
             # SET LOCAL app.current_tenant — يُفعّل RLS (FORCE) كي تُرى صفوف المستأجِر.

@@ -1022,7 +1022,7 @@ jobs:
             run_group services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py
             run_group services/ai_agronomist/test_ai_field_memory_v49.py
             run_group services/auth/tests/test_router_decomposition_guard.py
-            run_group services/decision-service/tests/test_correlation_http_projection.py services/decision-service/tests/test_eligibility_assessment_policy.py services/decision-service/tests/test_manual_irrigation_source_binding.py services/decision-service/tests/test_migration_runner_readonly.py services/decision-service/tests/test_outcome_reconcile.py services/decision-service/tests/test_tenant_boundary_migration_static.py
+            run_group services/decision-service/tests/test_correlation_http_projection.py services/decision-service/tests/test_decision_provenance_integrity.py services/decision-service/tests/test_eligibility_assessment_policy.py services/decision-service/tests/test_manual_irrigation_source_binding.py services/decision-service/tests/test_migration_runner_readonly.py services/decision-service/tests/test_outcome_reconcile.py services/decision-service/tests/test_tenant_boundary_migration_static.py
             run_group services/field-management-service/tests/test_field_management_service_contract.py
             run_group services/field-segmentation/test_exg_preprocess.py services/field-segmentation/test_segmentation.py
             run_group services/guardrails-engine/test_guardrails_router_decomposition_guard.py
@@ -1035,7 +1035,7 @@ jobs:
             run_group services/soil-service/test_canonical_soil_profile.py services/soil-service/test_soil_cutover_readiness.py services/soil-service/test_soil_evidence_adapters_and_policy.py services/soil-service/test_soil_ingest_entrypoint_parity.py services/soil-service/test_soil_lab_supersession_adapter.py services/soil-service/test_soil_p1_products.py services/soil-service/test_soil_p2_products.py services/soil-service/test_soil_p3_products.py services/soil-service/test_soil_p4_governance.py services/soil-service/test_soil_p5_certification.py services/soil-service/test_soil_p6_certification.py services/soil-service/test_soil_projection_jobs.py services/soil-service/test_soil_projection_observability.py services/soil-service/test_soil_router_decomposition_guard.py services/soil-service/test_soil_snapshot_identity.py services/soil-service/test_soil_supersession_current_pointer.py services/soil-service/test_soil_validation.py
             run_group services/supervisor-agent/test_ai_orchestration_forensic.py services/supervisor-agent/test_chaos_resilience.py services/supervisor-agent/test_circuit_breaker.py services/supervisor-agent/test_circuit_observability.py services/supervisor-agent/test_graceful_degradation.py services/supervisor-agent/test_router.py services/supervisor-agent/test_supervisor_router_decomposition_guard.py
             run_group services/tts-service/test_tts_router_decomposition_guard.py
-            run_group services/vegetation-analysis-service/test_anomaly_engine.py services/vegetation-analysis-service/test_anomaly_store.py services/vegetation-analysis-service/test_baseline_engine.py services/vegetation-analysis-service/test_diagnosis_engine.py services/vegetation-analysis-service/test_ground_verification_bridge.py services/vegetation-analysis-service/test_platform_field_catalog_boundary.py services/vegetation-analysis-service/test_raster_bundle_boundary.py services/vegetation-analysis-service/test_rs_final_hardening.py services/vegetation-analysis-service/test_rs_review_hardening.py services/vegetation-analysis-service/test_vegetation_event_admission.py services/vegetation-analysis-service/test_vegetation_logic.py services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py
+            run_group services/vegetation-analysis-service/test_anomaly_engine.py services/vegetation-analysis-service/test_anomaly_store.py services/vegetation-analysis-service/test_baseline_engine.py services/vegetation-analysis-service/test_decision_bridge_candidate.py services/vegetation-analysis-service/test_diagnosis_engine.py services/vegetation-analysis-service/test_ground_verification_bridge.py services/vegetation-analysis-service/test_platform_field_catalog_boundary.py services/vegetation-analysis-service/test_raster_bundle_boundary.py services/vegetation-analysis-service/test_rs_final_hardening.py services/vegetation-analysis-service/test_rs_review_hardening.py services/vegetation-analysis-service/test_vegetation_event_admission.py services/vegetation-analysis-service/test_vegetation_logic.py services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py
             run_group services/video-processor/test_video_processor_router_decomposition_guard.py
             run_group shared/enterprise_gis/test_phase7_enterprise.py shared/enterprise_gis/test_phase8_global_scale.py shared/gis/test_cloud_native_gis.py shared/gis/test_cloud_native_runtime.py shared/gis/test_phase5_runtime.py shared/precision_agriculture/test_phase6_intelligence.py shared/test_autonomous_farm_os_phase9.py shared/test_continuous_learning_phase10.py shared/test_federated_agent_runtime.py shared/test_federated_agents_phase11.py shared/test_field_runtime_cohesion.py shared/test_marketplace_ecosystem_phase12.py shared/test_marketplace_plugin_runtime.py
 
@@ -1741,13 +1741,15 @@ jobs:
         working-directory: services/decision-service
         run: pytest tests/test_agronomic_evidence_contract.py -q -p no:cacheprovider
       # انحدارا فجوتين «مُصلَحتين» في #1289 لم يُشغّلهما أيُّ workflow (تدقيق 2026-11-01 Q4):
-      # «verified_success» على إيصالٍ فاشل، واتّجاهُ مقاييس الحماية في قرار الترقية.
+      # «verified_success» على إيصالٍ فاشل، واتّجاهُ مقاييس الحماية في قرار الترقية؛
+      # وربطُ طلب التنفيذ بالخطّة المعتمدة وانتهاءُ صلاحيّته (مراجعة 2026-11-08).
       # اتّصالٌ وهميّ في الذاكرة — بلا DATABASE_URL ولا SoR.
       - name: execution-outcome receipt gate + promotion guardrail direction (no DB)
         working-directory: services/decision-service
         run: >-
           pytest -q -p no:cacheprovider
           tests/test_execution_outcome_receipt_gate.py
+          tests/test_execution_request_plan_binding.py
           tests/test_model_promotion_guardrail_direction.py
       # AC-9→terminal lineage static contracts (pure token checks, no DB).
       - name: agronomic lineage chain static tests

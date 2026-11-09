@@ -802,3 +802,37 @@ def test_field_state_fetch_cannot_traverse_platform_paths(monkeypatch):
     assert len(seen) == 1
     path = seen[0].split(b"?")[0]
     assert path == b"/internal/fields/..%2F..%2Fadmin%2Fusers%3Fx%3D1%23/state"
+
+
+def test_tool_catalog_marks_bootstrap_examples_unavailable_and_invoke_refuses_them():
+    """S-07: the catalog must not present example contracts as live tools, and the shared
+    registry must refuse them before the (example) implementation runs — even for a caller
+    holding the actuator capability."""
+    from fastapi.testclient import TestClient
+
+    main.app.dependency_overrides[main._get_current_user] = lambda: {
+        "sub": "42",
+        "tenant_id": "trusted-tenant",
+    }
+    try:
+        response = TestClient(main.app).get("/v1/agent/tools")
+    finally:
+        main.app.dependency_overrides.clear()
+    assert response.status_code == 200, response.text
+    body = response.json()
+    by_id = {t["tool_id"]: t for t in body["tools"]}
+    for tool_id in ("weather.forecast", "actuator.pump.start", "ndvi.read_observation"):
+        assert by_id[tool_id]["example_only"] is True
+        assert by_id[tool_id]["available"] is False
+    assert body["available_total"] == 0
+
+    result = _run(
+        main._tool_registry.invoke(
+            "actuator.pump.start",
+            {"well_id": "w1", "duration_min": 30},
+            {"actuator.pump.control"},
+            tenant_id="trusted-tenant",
+        )
+    )
+    assert result.success is False and result.output is None
+    assert "example-only" in result.error

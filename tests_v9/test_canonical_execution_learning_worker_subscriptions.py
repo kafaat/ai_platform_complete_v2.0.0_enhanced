@@ -50,8 +50,10 @@ class FakeJetStream:
 
     def __init__(self) -> None:
         self.bindings: dict[str, str] = {}
+        self.configs: dict[str, object] = {}
 
-    async def subscribe(self, subject, *, durable, cb, manual_ack):  # noqa: ARG002
+    async def subscribe(self, subject, *, durable, cb, manual_ack, config=None):  # noqa: ARG002
+        self.configs[durable] = config
         if durable in self.bindings:
             raise RuntimeError(
                 "nats: JetStream.Error consumer is already bound to a subscription "

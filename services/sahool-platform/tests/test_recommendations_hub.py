@@ -58,9 +58,12 @@ class TestFullContext:
             assert r.detail_ar and isinstance(r.detail_ar, str)
             assert r.source and isinstance(r.source, str)
 
-    def test_dry_soil_drives_high_irrigation_priority(self):
-        recs = build_recommendations(self._ctx(et0_mm=10.0, soil_moisture_pct=20.0))
-        assert _by_cat(recs, "irrigation").priority == "high"
+    def test_bare_soil_percentage_does_not_raise_irrigation_priority(self):
+        # SOIL-MOISTURE-ELIGIBILITY-01: السياق لا يحمل وحدة القراءة، فـ`%` العارية استشاريّة —
+        # كانت تُقرأ ماءً متاحاً فترفع الأولويّة إلى high بلا أساس.
+        dry = build_recommendations(self._ctx(et0_mm=10.0, soil_moisture_pct=20.0))
+        none = build_recommendations(self._ctx(et0_mm=10.0, soil_moisture_pct=None))
+        assert _by_cat(dry, "irrigation").priority == _by_cat(none, "irrigation").priority
 
     def test_high_disease_environment_is_high_priority(self):
         # رطوبة عالية + حرارة معتدلة + مطر تراكميّ ⇒ خطر مرتفع.

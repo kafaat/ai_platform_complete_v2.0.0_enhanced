@@ -1,7 +1,7 @@
 {
   "domains": [
     {
-      "average_sahool_maturity": 2.6,
+      "average_sahool_maturity": 2.4,
       "benchmark_coverage_pct": 0.0,
       "benchmarked_count": 0,
       "capability_count": 10,
@@ -43,7 +43,7 @@
       }
     },
     {
-      "average_sahool_maturity": 1.82,
+      "average_sahool_maturity": 1.73,
       "benchmark_coverage_pct": 9.1,
       "benchmarked_count": 1,
       "capability_count": 11,
@@ -57,7 +57,7 @@
       }
     },
     {
-      "average_sahool_maturity": 2.0,
+      "average_sahool_maturity": 1.75,
       "benchmark_coverage_pct": 25.0,
       "benchmarked_count": 2,
       "capability_count": 8,
@@ -85,7 +85,7 @@
       }
     },
     {
-      "average_sahool_maturity": 2.67,
+      "average_sahool_maturity": 2.56,
       "benchmark_coverage_pct": 11.1,
       "benchmarked_count": 1,
       "capability_count": 9,
@@ -99,7 +99,7 @@
       }
     },
     {
-      "average_sahool_maturity": 1.88,
+      "average_sahool_maturity": 2.0,
       "benchmark_coverage_pct": 0.0,
       "benchmarked_count": 0,
       "capability_count": 8,
@@ -113,7 +113,7 @@
       }
     },
     {
-      "average_sahool_maturity": 1.8,
+      "average_sahool_maturity": 1.6,
       "benchmark_coverage_pct": 40.0,
       "benchmarked_count": 2,
       "capability_count": 5,
@@ -127,7 +127,7 @@
       }
     },
     {
-      "average_sahool_maturity": 2.2,
+      "average_sahool_maturity": 1.8,
       "benchmark_coverage_pct": 20.0,
       "benchmarked_count": 2,
       "capability_count": 10,

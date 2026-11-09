@@ -41,7 +41,7 @@ def _decision_context_mirror_enabled() -> bool:
 
 
 async def _load_linked_historical_inputs(
-    conn, season_id: str, field_id: str, tenant_id, sowing_date, start, end
+    conn, season_id: str, field_id: str, tenant_id, sowing_date, start, end, season_crop=None
 ):
     """Read only an accepted, non-superseded manual record and qualified NDVI.
 
@@ -60,22 +60,26 @@ async def _load_linked_historical_inputs(
         field_id,
     )
     # Safe migration path for existing data: auto-link only one unambiguous accepted
-    # record with the same field and exact sowing day. Zero/multiple matches remain
+    # record with the same field, exact sowing day AND the same crop (canonical resolver
+    # on both sides; either side unresolved ⇒ no link). Zero/multiple matches remain
     # unlinked; no fuzzy date or crop inference is allowed.
     if record is None and sowing_date is not None:
+        from api.season_simulation import select_auto_link_candidate
+
         candidates = await conn.fetch(
-            "SELECT sr.* FROM season_records sr "
+            "SELECT sr.*, sc.crop_registry_ref AS link_crop_registry_ref, "
+            "sc.variety_name AS link_variety_name FROM season_records sr "
             "JOIN season_crop sc ON sc.season_id = sr.id "
             "WHERE sr.field_id = $1 AND sr.trust_status = 'accepted' "
             "AND sc.sowing_precision = 'day' AND sc.sowing_date = $2 "
             "AND NOT EXISTS (SELECT 1 FROM season_record_links l "
             "                WHERE l.season_record_id = sr.id) "
-            "ORDER BY sr.accepted_at, sr.id LIMIT 2",
+            "ORDER BY sr.accepted_at, sr.id LIMIT 20",
             field_id,
             sowing_date,
         )
-        if len(candidates) == 1:
-            record = candidates[0]
+        record = select_auto_link_candidate(candidates, season_crop)
+        if record is not None:
             await conn.execute(
                 "INSERT INTO season_record_links "
                 "(tenant_id, season_record_id, canonical_season_id, field_id, "
@@ -156,7 +160,7 @@ async def simulate_season_endpoint(
     """يشغّل محاكاة محصوليّة (RUE/FAO-56) للموسم ويحفظ الناتج على صفّه.
 
     يؤكّد أنّ الموسم يخصّ المستأجِر (404 وإلّا)، يجمع المحصول/التواريخ من القاعدة
-    والطقس التاريخي من Open-Meteo لنافذة الموسم (sowing→end أو آخر ~160 يوماً)،
+    والطقس التاريخي من Open-Meteo لنافذة الموسم (sowing→end بسقف دورة المحصول؛ 422 بلا بذار)،
     يستدعي api.season_simulation.simulate_season (نقيّ)، يكتب sim_* + sim_ran_at،
     ويردّ النتيجة (تقديرات بنطاق وثقة). 503 إن تعذّرت القاعدة أو الطقس.
     """
@@ -201,23 +205,19 @@ async def simulate_season_endpoint(
             f"الأوّل فقط ({crop}). النتيجة لا تمثّل الزراعة المختلطة."
         )
 
-    # ٢) نافذة المحاكاة: من البذار إلى نهاية الموسم (أو اليوم)، بحدّ أقصى.
-    today = datetime.now(UTC).date()
+    # ٢) نافذة المحاكاة: من البذار إلى نهاية الموسم (أو اليوم)، بسقف دورة المحصول. بلا بذار
+    # ⇒ 422 (لا بداية مُفترَضة)؛ نافذة أطول من السقف تُقصّ معلَنةً (truncated) لا صامتةً.
+    from api.season_simulation import SimWindowError, plan_simulation_window
+
     sow = srow["sowing_date"]
     end = srow["season_end"]
-    start = sow if sow is not None else (today - timedelta(days=_SIM_MAX_WINDOW_DAYS))
-    win_end = min(end, today) if end is not None else today
-    if win_end <= start:
-        win_end = min(start + timedelta(days=_SIM_MAX_WINDOW_DAYS), today)
-    if (win_end - start).days > _SIM_MAX_WINDOW_DAYS:
-        win_end = start + timedelta(days=_SIM_MAX_WINDOW_DAYS)
-    # ERA5 التاريخي يتأخّر ~5 أيّام — لا نطلب أحدث من ذلك.
-    win_end = min(win_end, today - timedelta(days=5))
-    if win_end <= start:
-        raise HTTPException(
-            status_code=422,
-            detail="نافذة الموسم قصيرة جدّاً أو في المستقبل — لا بيانات طقس تاريخيّة كافية للمحاكاة.",
+    try:
+        window = plan_simulation_window(
+            crop, sow, end, datetime.now(UTC).date(), floor_days=_SIM_MAX_WINDOW_DAYS
         )
+    except SimWindowError as exc:
+        raise HTTPException(status_code=422, detail=exc.detail_ar) from exc
+    start, win_end = window.start, window.end
 
     # ٢-ب) مدخلات الموسم التاريخي من المصادر القائمة (لا نسخ ولا تخمين).
     try:
@@ -236,6 +236,7 @@ async def simulate_season_endpoint(
                 sow,
                 start,
                 win_end,
+                crop,
             )
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("قراءة سياق الموسم التاريخي", e) from e
@@ -383,8 +384,10 @@ async def simulate_season_endpoint(
             observed_fapar=composed_inputs["observed_fapar"],
             gdd_daily_override=gdd_override,
             et0_daily_override=et0_override,
+            window_start=start,
         )
     )
+    window_warnings = window.warnings_ar()
 
     # ٥) حفظ النتائج على صفّ الموسم (+ وقت التشغيل).
     ran_at = datetime.now(UTC)
@@ -430,7 +433,10 @@ async def simulate_season_endpoint(
                     _json.dumps(result_payload, ensure_ascii=False, default=str),
                     result.confidence,
                     _json.dumps(result.assumptions_ar, ensure_ascii=False),
-                    _json.dumps([*spatial_warnings, *result.warnings_ar], ensure_ascii=False),
+                    _json.dumps(
+                        [*window_warnings, *spatial_warnings, *result.warnings_ar],
+                        ensure_ascii=False,
+                    ),
                 )
                 await conn.execute(
                     "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
@@ -517,6 +523,8 @@ async def simulate_season_endpoint(
         yield_kg_ha=result.yield_kg_ha,
         yield_low_kg_ha=result.yield_low_kg_ha,
         yield_high_kg_ha=result.yield_high_kg_ha,
+        yield_status=result.yield_status,
+        limitations=[*window.limitations(), *result.limitations],
         water_need_mm=result.water_need_mm,
         water_supply_mm=result.water_supply_mm,
         water_stress_factor=result.water_stress_factor,
@@ -525,6 +533,7 @@ async def simulate_season_endpoint(
         assumptions_ar=result.assumptions_ar,
         warnings_ar=[
             *([multi_crop_warning] if multi_crop_warning else []),
+            *window_warnings,
             *spatial_warnings,
             *result.warnings_ar,
         ],
@@ -542,6 +551,11 @@ async def simulate_season_endpoint(
         eligible_for_calibration=False,
         simulation_engine=ENGINE_NAME,
         canonical_yield_engine="pcse_wofost",
+        simulated_crop=crop,
+        truncated=window.truncated,
+        window_days_requested=window.days_requested,
+        window_days_simulated=window.days_simulated,
+        geometry_basis="current_boundary",
     )
 
 
