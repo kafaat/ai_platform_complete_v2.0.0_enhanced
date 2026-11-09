@@ -37325,7 +37325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "feccbee7d00d610919a4bd67a4c151e08d121f7948a516477262b3fc2ad58e7e"
+          "content": "7b461ce54d9950c92495cbba53c78b1a63cc96de39d11c0f3fec841d491f30ee"
         }
       ],
       "name": "services/vegetation-analysis-service/decision_bridge.py",
@@ -37535,7 +37535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1a094d60c57bfe601caa58c55480b035ca40367b93f57b0f0423772f7f3d4d8f"
+          "content": "0cf370bed01e31ee80e1d9607677fb6a55863a5908702210821a6a62070a58e1"
         }
       ],
       "name": "services/vegetation-analysis-service/test_decision_bridge_candidate.py",
