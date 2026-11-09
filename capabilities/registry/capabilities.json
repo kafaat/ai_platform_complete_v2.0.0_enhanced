@@ -837,6 +837,7 @@
         "services/decision-service/tests/test_element84_inventory_pg16.py",
         "services/sahool-platform/tests/test_data_inventory.py",
         "tests/architecture/test_generate_service_inventory.py",
+        "tests/test_workflow_inventory.py",
         "tests_v9/test_element84_legacy_inventory.py",
         "tests_v9/test_inventory_edge_classification.py",
         "tests_v9/test_inventory_equipment.py",
@@ -872,7 +873,7 @@
           "path": "services/sahool-platform/core/data_inventory.yaml"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=13, ui=0, mobile=8. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=14, ui=0, mobile=8. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
