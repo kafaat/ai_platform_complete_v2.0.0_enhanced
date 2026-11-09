@@ -4711,3 +4711,9 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **القرار:** إبقاء `DECISION_REQUIRE_SEPARATION_OF_DUTIES` مفعَّلاً متى كانت البيئة إنتاجاً، مع السماح بإيقافه صراحةً، وتسجيل أثره على المزارع الوحيد فجوةً لحكم المالك.
 - **السبب:** «الافتراضيّ مفعَّل» هو المطلوب في الفجوة `DECISION-PROVENANCE-AND-SOD-01`، لكنّ مسار الريّ اليدويّ لمزارع وحيد يُقدِّم ويعتمد بنفسه، فالمنع المطلق يكسره؛ القرار بين الصرامة وهذه الحالة للمالك.
 - **المصدر:** [`../../services/decision-service/persistence.py`](../../services/decision-service/persistence.py) · [`../gaps/registry.md`](../gaps/registry.md) (`DECISION-SOD-SINGLE-USER-FARM-POLICY-01`).
+
+## 2026-11-09 — مفتاح تجميع التعلّم: المستأجر والمحصول القانونيّ والمهمّة
+
+- **القرار:** يُجمَّع مرشّح تعلّم إغلاق الموسم عبر حقول المستأجر نفسه ذات المحصول القانونيّ نفسه ومهمّة `yield_forecast_calibration`، ويُعَدّ الحدّ الأدنى بوحدات (مزرعة، موسم) مستقلّة، ويُربط الاعتماد ببصمة المجمّع.
+- **السبب:** صفوف `recommendation_outcomes` تحمل `crop` (v49) ولا تحمل نسخة نموذج أو منطقة، فهذا أضيق مفتاح صادق تدعمه البيانات؛ وبدونه كان المرشّح محجوباً دائماً (وحدة واحدة مقابل حدّ 3).
+- **المصدر:** [`../../services/sahool-platform/api/learning_feedback.py`](../../services/sahool-platform/api/learning_feedback.py) · [`../gaps/registry.md`](../gaps/registry.md) (`LEARNING-SINGLE-FIELD-SEASON-ALWAYS-BLOCKED-01`).
