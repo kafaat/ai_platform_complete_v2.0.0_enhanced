@@ -6,7 +6,7 @@
 ## Inventory summary
 
 - Services discovered: **33**
-- Python LOC discovered: **311,671**
+- Python LOC discovered: **312,306**
 - Routes discovered: **1135**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
@@ -19,7 +19,7 @@
 | `agriai-engine` | AI Advisor | 18 | 2723 | 5 | 9 | `services/agriai-engine/main.py` | `services/agriai-engine/Dockerfile` | `services/agriai-engine/requirements.txt` | `normal` |
 | `ai_agronomist` | AI Advisor | 46 | 6899 | 1 | 13 | `services/ai_agronomist/main.py` | `services/ai_agronomist/Dockerfile` | `services/ai_agronomist/requirements.txt` | `normal` |
 | `auth` | Identity & Access | 22 | 2668 | 2 | 29 | `services/auth/main.py` | `services/auth/Dockerfile` | `services/auth/requirements.txt` | `normal` |
-| `decision-service` | Decision SoR | 88 | 21399 | 66 | 72 | `services/decision-service/main.py` | `services/decision-service/Dockerfile` | `services/decision-service/requirements.txt` | `normal` |
+| `decision-service` | Decision SoR | 89 | 22034 | 67 | 72 | `services/decision-service/main.py` | `services/decision-service/Dockerfile` | `services/decision-service/requirements.txt` | `normal` |
 | `edge-inference` | Edge Inference | 12 | 1700 | 2 | 7 | `services/edge-inference/main.py` | `services/edge-inference/Dockerfile.arm64` | `services/edge-inference/requirements.txt` | `normal` |
 | `field-management-service` | Unclassified / Support | 3 | 527 | 2 | 7 | `services/field-management-service/main.py` | `services/field-management-service/Dockerfile` | `services/field-management-service/requirements.txt` | `normal` |
 | `field-segmentation` | Field Boundary AI | 5 | 1049 | 2 | 4 | `services/field-segmentation/main.py` | `services/field-segmentation/Dockerfile` | `services/field-segmentation/requirements.txt` | `normal` |

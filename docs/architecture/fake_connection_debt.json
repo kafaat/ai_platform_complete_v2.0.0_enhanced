@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "3bff698c1ebb453f277c52776d99bd1e01d17b77",
+  "measured_on": "3898e17efd4f25a6bc885a96e07cedd151f03156",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -9,6 +9,7 @@
     "services/decision-service/tests/test_execution_request_plan_binding.py",
     "services/decision-service/tests/test_migration_runner_readonly.py",
     "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
+    "services/decision-service/tests/test_sod_single_operator_self_approval.py",
     "services/decision-service/tests/test_wx10_8_review_queue.py",
     "services/raster-service/test_acquisition_date_provenance.py",
     "services/raster-service/test_backfill_processing_version_preflight.py",
