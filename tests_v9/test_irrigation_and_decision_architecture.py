@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import re
 from datetime import UTC, datetime
 from pathlib import Path
@@ -20,9 +21,11 @@ def _load(path: str, name: str):
 
 
 class Conn:
-    def __init__(self, *, replay=False, outcomes=None):
+    def __init__(self, *, replay=False, outcomes=None, crop_rows=None, pool_rows=None):
         self.replay = replay
         self.outcomes = outcomes or []
+        self.crop_rows = crop_rows or []
+        self.pool_rows = pool_rows or []
         self.calls = []
 
     async def execute(self, sql, *args):
@@ -37,6 +40,10 @@ class Conn:
 
     async def fetch(self, sql, *args):
         self.calls.append(("fetch", sql, args))
+        if "SELECT DISTINCT crop" in sql:
+            return self.crop_rows
+        if "crop = ANY" in sql:
+            return self.pool_rows
         return self.outcomes
 
     async def fetchval(self, sql, *args):
@@ -108,6 +115,67 @@ async def test_rows_of_one_field_season_are_one_unit_not_three_samples():
     assert "MINIMUM_VERIFIED_OUTCOMES_NOT_MET" not in evaluation["limitations"]
     fetch_sql = next(call[1] for call in conn.calls if call[0] == "fetch")
     assert "farm_id" in fetch_sql
+
+
+@pytest.mark.asyncio
+async def test_season_learning_pools_comparable_units_inside_the_tenant():
+    """LEARNING-SINGLE-FIELD-SEASON-ALWAYS-BLOCKED-01: الإغلاقُ يجمّع وحدات المستأجِر الأخرى لنفس
+    المحصول القانونيّ — بمُسنَد مستأجِرٍ صريح، بلا صفوف الوحدة المُغلَقة، وبصماتُ المجمّع تُدام."""
+    mod = _load("services/sahool-platform/api/learning_feedback.py", "learning_feedback_pool")
+    tenant = "00000000-0000-0000-0000-000000000001"
+
+    def row(rec, farm, season, field, crop="wheat", **extra):
+        return {
+            "recommendation_id": rec,
+            "predicted_yield_t_ha": 4.0,
+            "actual_yield_t_ha": 4.2,
+            "accepted": True,
+            "matured_within_lag": True,
+            "farm_id": farm,
+            "season_id": season,
+            "field_id": field,
+            "crop": crop,
+            **extra,
+        }
+
+    closing = [row(f"c{i}", "farm-1", "ssn-1", "fld-1") for i in range(3)]
+    pool = [
+        row("p1", "farm-2", "ssn-0", "fld-2", crop="قمح", tenant_id=tenant),
+        row("p2", "farm-3", "ssn-0", "fld-3", tenant_id=tenant),
+        row("p3", "farm-4", "ssn-0", "fld-4", tenant_id="00000000-0000-0000-0000-000000000002"),
+    ]
+    conn = Conn(
+        outcomes=closing,
+        crop_rows=[{"crop": "wheat"}, {"crop": "قمح"}, {"crop": "sorghum"}],
+        pool_rows=pool,
+    )
+    result = await mod.process_season_closed_event(
+        conn, event_id="evt-pool", tenant_id=tenant, field_id="fld-1", season_id="ssn-1"
+    )
+    evaluation = result["evaluation"]
+    assert result["status"] == "review_ready"
+    assert evaluation["independent_units"] == 3
+    assert evaluation["pool_rejected"] == {"tenant_mismatch": 1}
+    assert result["promotion_candidate"]["review_required"] is True
+    assert result["promotion_candidate"]["auto_promote"] is False
+
+    fetches = [call for call in conn.calls if call[0] == "fetch"]
+    crop_sql = next(sql for _, sql, _ in fetches if "SELECT DISTINCT crop" in sql)
+    pool_sql, pool_args = next((sql, args) for _, sql, args in fetches if "crop = ANY" in sql)
+    for sql in (crop_sql, pool_sql):
+        assert "current_setting('app.current_tenant', TRUE)" in sql
+    assert pool_args == (["wheat", "قمح"], "fld-1", "ssn-1")
+    assert "NOT (field_id IS NOT DISTINCT FROM $2 AND season_id = $3)" in pool_sql
+    order_by = pool_sql.split("ORDER BY", 1)[1]
+    assert set(re.findall(r"[a-z_]+", order_by)) <= _recommendation_outcomes_columns()
+
+    run_args = next(
+        args
+        for kind, sql, args in conn.calls
+        if "decision_learning_runs" in sql and kind == "fetchval"
+    )
+    assert json.loads(run_args[5]) == evaluation["source_digests"]
+    assert len(evaluation["source_digests"]) == 5
 
 
 def test_independent_units_count_distinct_farm_season_pairs():
