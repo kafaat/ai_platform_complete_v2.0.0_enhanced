@@ -425,6 +425,17 @@ def test_a4_platform_commands_map_to_the_firmware_vocabulary(act, command, paylo
         ("open", {"duration_sec": 60, "duration_minutes": 10}, "conflicting_duration_fields"),
         ("open_valve", {"duration_sec": 600, "duration_min": "10"}, "conflicting_duration_fields"),
         ("open", {"duration_sec": 60, "duration_seconds": 61}, "conflicting_duration_fields"),
+        # An invalid duration_sec beside a non-canonical field is refused as invalid,
+        # never accepted because the second field happens to be well formed.
+        ("open", {"duration_sec": "abc", "duration_minutes": 10}, "invalid_duration_sec"),
+        ("open_valve", {"duration_sec": True, "duration_min": 1}, "invalid_duration_sec"),
+        # NaN is a float, so it reaches the comparison and equals nothing: still refused,
+        # with the conflict reason (the OPEN never reaches the firmware either way).
+        (
+            "start",
+            {"duration_sec": float("nan"), "duration_seconds": 60},
+            "conflicting_duration_fields",
+        ),
     ],
 )
 def test_a4_unmappable_commands_are_rejected(act, command, payload, reason):
