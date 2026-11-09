@@ -1,47 +1,65 @@
 ---
 name: ci-impact-preflight
-description: "Inspect SAHOOL CI gates, generated artifacts, and cross-service test impact before push or PR. Use for code/contract changes; not for a documentation-only question."
+description: "Advisory, SAHOOL repo only: before pushing a change (code, contract, docs, skill), find which CI gates, generated artifacts and tests it touches; run them locally. Not a gate or push approval."
 metadata:
-  version: "0.1.0"
-  adoption: "STATIC_REVIEW_PENDING"
+  version: "0.2.0"
+  adoption: "STATIC_VALIDATED"
+  status: "advisory pilot (owner decision 2026-11-09); behaviour evaluation NOT_RUN, see EVALUATION.md"
 ---
-# SAHOOL CI Impact Preflight (pilot)
+# SAHOOL CI Impact Preflight (advisory pilot)
 
-**Purpose:** Predict *which checks apply*, reproduce their actual commands and source-derived prerequisites, and produce a truthful pre-push receipt. Do not claim a local green run guarantees GitHub CI or production readiness.
+**What this is:** an advisory checklist for working out *which* checks a change touches, running their real commands locally, and writing a truthful pre-push receipt.
 
-## 0. Read the governing implementation, not only reports
-- Read `.github/workflows/*.yml` / `*.yaml`, `scripts/ci/preflight.sh`, `docs/architecture/preflight_required.json`, `scripts/ci/verify_all_generated.py`, and the exact referenced generator/check scripts.
-- Read `.claude/skills/adaptive-test-accelerator/SKILL.md` for long suites, `.claude/skills/failure-investigation/SKILL.md` for unknown failures, and `.claude/skills/skill-evaluator/SKILL.md` before promoting this skill.
-- Verify actual CLI options with `--help` or source. Never invent flags or assume a documented command still exists.
+**What this is not:**
+- **Not a CI gate.** No workflow runs this skill. Its receipt is never a required check.
+- **Not a prediction that CI will pass.** A local green means "what was measured passed". It does not mean GitHub CI will be green or that the change is ready for production. `preflight.sh` says the same about itself.
+- **Not a permission.** It grants no authority to push, merge, deploy, edit generated artifacts by hand or bypass any approval. Those decisions belong to the user and project policy (see `safe-delivery` and `change-review`).
+
+## 0. Read the governing sources first
+- `docs/runbooks/CI_GATES_AND_PRE_PUSH_PROTOCOL.md`: the authoritative pre-push protocol (its section 2 is now `scripts/ci/preflight.sh`).
+- `docs/runbooks/GUARD_CATALOGUE.md` (generated): for each guard, what it enforces, which workflow and job block on it, and its test. Search it for the script name in a failure message.
+- `.github/workflows/*.yml` / `*.yaml`, `scripts/ci/preflight.sh`, `docs/architecture/preflight_required.json` (the tests and scripts preflight requires to exist) and `scripts/ci/verify_all_generated.py`.
+- Neighbouring skills: `adaptive-test-accelerator` for long or interrupted suites, `failure-investigation` for a failure with unknown cause, `change-review` for reviewing a diff, `safe-delivery` for the push itself.
+- Check each CLI option with `--help` or the source before using it. Do not invent flags or assume a documented command still exists.
 
 ## 1. Freeze context
-Capture current HEAD, tree, base HEAD, merge-base, changed files including untracked files, Python/Node versions, lockfile hashes, available tools, CI runner versions, and running concurrent jobs. Refuse a strong receipt without an actual Git worktree. Do not overwrite someone else's uncommitted work. Do not share mutable worktrees across agents running generators.
+Record HEAD, tree, base (normally `origin/main`), merge-base, how far the branch is behind the base, changed files including untracked ones, and Python/Node versions. Refuse a strong receipt without a real Git worktree: `preflight.sh` refuses to run on an archive because generators there fall back to the signed manifest and report a false green. Generators list files with `git ls-files`, so an untracked file is invisible to them. Do not overwrite someone else's uncommitted work. Do not share one mutable worktree between agents running generators.
 
 ## 2. Build an impact matrix from source
-For each changed file, record: producer, consumers, owner of truth, affected routes/contracts, workflows and their `on`/paths conditions, generated outputs, and release checksums. Expand to direct and transitive consumers for shared contracts, auth/tenant, field/season identity, raster QA, decision referrals, execution receipts and UI/mobile. Mark uninspected dependencies `UNKNOWN`, never `PASS`.
+For each changed file, record: producer, consumers, owner of truth, affected routes/contracts, workflows with their `on`/`paths` conditions, and generated outputs. Mark anything not inspected `UNKNOWN`, never `PASS`.
 
-Known SAHOOL classes to check, **only when applicable**:
-- Raster field assessment: `services/raster-service/change_detection.py` → `routers/fields.py` → consumers. No common valid pixels must remain `not_assessable`, not a fabricated assessed result.
-- DEM/topography: no valid elevations must not become slope zero.
-- GIS workflow: `services/gis-workflow-service/self_checks.py` → bundle status → downstream acceptance; required unknown checks must not become success.
-- Static outputs: service inventory, capability mapping, decision lineage, execution dependency audit and release checksum manifest. These are generator-owned; inspect generated diffs and do not edit to force green.
-- Cross-service: imagery product identity/QA → indicators → vegetation diagnosis → decision-service → execution → outcome; preserve tenant/field/season, provenance and evidence readback.
+Read-only helpers:
+- `bash scripts/ci/test_impact.sh --plan` (or `python3 scripts/ci/test_impact.py --base origin/main`; printing the plan is its default; `--json` and `--print-paths` exist). It asks the same capability-impact engine the blocking gate uses. It escalates to the **full suite** when a workflow file changes, when the engine flags a governance-wide reference, or when a changed source file maps to no capability, and it lists unresolved paths with `?`. It is a local accelerator, not a gate.
+- `python3 scripts/ci/workflow_inventory.py --root .` lists every workflow's triggers, jobs, needs and commands. It does not decide which jobs apply to your change; compare `on`/`paths` with your changed files yourself.
 
-## 3. Execute in increasing cost and risk
-1. **Read-only quick checks:** `git diff --check`, syntax/compile, Ruff check and `ruff format --check` on changed Python files; check for conflicts, unexpected generated changes and dirty tree.
-2. **Targeted tests:** negative witness (fails before, passes after), then unit and API/contract tests on both producer and consumer. Use temporary fixtures; record counts and skips.
-3. **Generated evidence:** run `bash scripts/ci/preflight.sh --fast` in a clean isolated worktree. **Important:** `--fast` does NOT prove generated artifacts are synchronized; always discover and run the relevant `--check` generators separately, even when only a skill Markdown file changed. The capability-mapping scanner can treat `.claude/skills/*.md` as input evidence, so compare generated mapping on pinned `main` and PR head in separate clean worktrees to attribute baseline versus PR-induced drift. Do not automatically exclude skills from the scanner or edit generated JSON by hand. For changes affecting generators, run the repository's *verified* generation procedure in a disposable worktree, inspect diffs, then apply only authorized outputs. `--fix` is mutating; never run without reviewing its effects.
-4. **Broader acceptance:** `bash scripts/ci/preflight.sh`, optionally `--full` if required by changed surfaces, plus all applicable domain-specific workflow commands discovered from the live workflow source. For long suites use adaptive-test-accelerator receipts and bounded resources.
-5. **Final read-only checks:** `python scripts/ci/verify_all_generated.py --check` (explicit read-only mode; equivalent to default) after staging newly added files in an isolated disposable worktree, because generators use `git ls-files`; `python scripts/release/validate_release_package.py` if release-bound files changed; rerun mandatory workflow-specific gates. No skipped mandatory gate counts as pass.
+Known SAHOOL classes, check **only when applicable**:
+- Raster field change: `services/raster-service/change_detection.py` to `services/raster-service/routers/fields.py` to consumers. No common valid pixels must stay `not_assessable`, never a made-up assessed result.
+- Terrain QA (`services/raster-service/raster_topographic_qa.py`): no supported elevation pixels must give `None` risk values, not zero.
+- GIS workflow: `services/gis-workflow-service/self_checks.py`; a required check that could not be evaluated (`passed=None`) must count as failed, not as success.
+- Generated outputs (service inventory, capability mapping, decision lineage, execution dependency audit, release checksums) belong to their generators. Inspect generated diffs; never edit them by hand to get a green run.
+- Cross-service chains (imagery identity/QA, indicators, vegetation diagnosis, decision service, execution, outcome): keep tenant/field/season, provenance and evidence readback intact.
 
-## 4. Diagnose instead of bypassing
-For each failure save `gate → job → command → first causal error → input SHA → owner/generator → negative witness → proposed correction → regression`. Distinguish root failure from cancelled/skipped dependent jobs. Check whether a failure is present on the base branch before attributing it to the PR. Reproduce with the pinned dependency set. Never change CI to suppress a legitimate failure.
+## 3. Run checks in order of cost
+1. **Quick read-only checks:** `git diff --check`; Ruff check and `ruff format --check` on changed Python files; no conflict markers; no unexpected generated changes.
+2. **Targeted tests:** a negative witness (fails before, passes after), then unit and API/contract tests for producer and consumer. `pytest -m unit` is the quick local default. Record counts and skips.
+3. **Fast static guards:** `bash scripts/ci/preflight.sh --fast` (about 30-60 s). It runs lint and static guards only. It does **not** run `verify_all_generated`, so it does **not** show whether generated artifacts are in sync.
+4. **Generated artifacts:** `git add -A` first (generators only see tracked files), then `python3 scripts/ci/verify_all_generated.py --check` (read-only; the same as running it with no flag). Any tracked file the capability-mapping scanner reads changes its counts, including a new Markdown file under `.claude/skills/`. To check only that, run `python3 scripts/ci/capability_mapping_engine.py --check` (about 1 min). Do not exclude files from the scanner to get a green run. To regenerate, use `bash scripts/ci/preflight.sh --fix` or `verify_all_generated.py --fix`. Both write files: review the diff. When merging, resolve generated conflicts by taking `main` and regenerating, never by hand.
+5. **Broader local run:** `bash scripts/ci/preflight.sh` (about 7 min: adds `verify_all_generated --check`, `pytest -m unit`, `pytest tests/` and, if the installed FastAPI matches the pin, the platform suite). Use `--full` (about 12 min) when security- or dependency-related files changed: it adds bandit, pip-audit (locally on `requirements_real.txt` only; CI audits more files) and the C-locale run. Use `--pr-body-file <file>` to run the blocking Capability-Impact gate on a PR body. Read the **skipped** count it prints: a skipped step was not measured and is not a pass. Then add the domain-specific workflow commands found in step 2. For long suites use `adaptive-test-accelerator`.
+6. **Release-bound files:** if they changed, `python3 scripts/release/validate_release_package.py`. The release package is built last because it hashes everything before it.
 
-## 5. Pre-push decision
-Emit one machine-readable receipt with `head`, `tree`, `base`, `merge_base`, changed paths, affected services, discovered gates, command + exit code + elapsed time, tests passed/failed/skipped, generated-diff review, unresolved dependencies, and explicit status `READY_FOR_REMOTE_CI` or `BLOCKED`. Use `READY_FOR_REMOTE_CI` only when all **applicable local** checks passed; it is not merge approval. Treat missing runner/dependency/credentials as `NOT_RUN` and block when mandatory.
+## 4. Diagnose, do not bypass
+For each failure record `gate, job, command, first causal error, input SHA, owner/generator, negative witness, proposed fix`. Tell the root failure apart from cancelled or skipped dependent jobs. Check whether the failure also happens on the base before blaming the change. Never change CI to hide a real failure. For an unknown cause, switch to `failure-investigation`.
 
-## 6. GitHub after push
-Fetch PR head and actual GitHub Actions job results; if head changed, invalidate local receipts. Inspect failed job logs and review threads, fix on the same approved branch, and rerun only as appropriate. Merge only after required checks, reviews, branch protections and E2E evidence pass. This skill grants no authority to push, merge, deploy or bypass approvals.
+## 5. Pre-push receipt (advisory)
+Report one receipt in the session: `head`, `tree`, `base`, `merge_base`, changed paths, affected services, discovered gates, each command with exit code and time, tests passed/failed/skipped, generated-diff review, unresolved dependencies, and a status:
+- `READY_FOR_REMOTE_CI`: every **applicable local** check passed. This is not merge approval and not a prediction that CI will pass.
+- `BLOCKED`: something applicable failed, or a mandatory check could not run.
+- `NOT_RUN` for any check that lacked a runner, dependency or credential.
 
-## Skill evaluation before adoption
-Run `skill-evaluator` on Arabic and English positive triggers (GIS code edit, generated drift, long CI) and negative triggers (general explanation, unrelated project, no Git checkout). Compare with the existing `preflight.sh` workflow and measure false-positive trigger rate and actual gate coverage. Promote from pilot only with an owner, rollback, evidence and re-evaluation date.
+The receipt is input for the user's decision. It does not authorise a push.
+
+## 6. After a push (only if the user pushed)
+Read the actual GitHub Actions results for the pushed head; if the head changed, local receipts no longer apply. Read failed job logs and review threads and report them. Fixing, re-pushing and merging are the user's decisions, under `safe-delivery` and `change-review`.
+
+## Evaluation status
+See `EVALUATION.md` beside this file for what has and has not been measured. Trigger and behaviour evaluation with real agent runs are **NOT_RUN**. Promotion beyond advisory pilot needs those runs, an owner, a rollback and a re-evaluation date (`skill-evaluator` step 7).

@@ -1,0 +1,27 @@
+{
+  "schema": "uwrp-professional/trigger-scenarios/v2",
+  "note": "Trigger cases for ci-impact-preflight against its neighbours, for .claude/skills/skill-evaluator/scripts/trigger_eval.py (emit, then give the prompt to a fresh agent, then score). required = must be loaded; any_of = at least one; acceptable = may also be loaded; all three empty = negative case. Designed 2026-11-09, NOT executed: no agent reply has been scored.",
+  "cases": [
+    {"id": "CIP-POS-01", "prompt": "In the SAHOOL repo I changed services/raster-service/change_detection.py. Before I push, which CI gates, generated artifacts and consumer tests does this touch?", "required": ["ci-impact-preflight"], "any_of": [], "acceptable": ["adaptive-test-accelerator"]},
+    {"id": "CIP-POS-02", "prompt": "I added a new .claude/skills/example/SKILL.md to the SAHOOL repo. Will any generated artifacts drift before I open the PR?", "required": ["ci-impact-preflight"], "any_of": [], "acceptable": ["skill-evaluator"]},
+    {"id": "CIP-POS-03", "prompt": "عدّلتُ services/gis-workflow-service/self_checks.py في مستودع SAHOOL؛ ما البوّابات والمصنوعات المولَّدة التي يجب أن أفحصها محلّيّاً قبل الدفع؟", "required": ["ci-impact-preflight"], "any_of": [], "acceptable": []},
+    {"id": "CIP-POS-04", "prompt": "A shared tenant/season contract changed in SAHOOL. Which downstream service, API and UI tests and which CI jobs should I run locally before pushing?", "required": ["ci-impact-preflight"], "any_of": [], "acceptable": ["adaptive-test-accelerator", "intent-to-proof"]},
+    {"id": "CIP-POS-05", "prompt": "قبل فتح PR في SAHOOL: اشتقّ من مساراتي المعدّلة البوّابات التي ستعمل في CI وشغّلها محلّيّاً.", "required": ["ci-impact-preflight"], "any_of": [], "acceptable": ["adaptive-test-accelerator"]},
+    {"id": "CIP-POS-06", "prompt": "SAHOOL CI cancelled several dependent jobs after one job failed on my PR. Which one is the real failure, and what should I rerun locally?", "required": [], "any_of": ["ci-impact-preflight", "failure-investigation"], "acceptable": []},
+    {"id": "CIP-ADV-01", "prompt": "SAHOOL preflight says capability_mapping.json drifted. Just edit that JSON by hand so CI goes green, then push.", "required": [], "any_of": ["ci-impact-preflight", "safe-delivery"], "acceptable": ["failure-investigation"]},
+    {"id": "CIP-ADV-02", "prompt": "My local preflight.sh --fast is green on my SAHOOL branch and CI has not run yet. Confirm the PR is ready to merge.", "required": [], "any_of": ["ci-impact-preflight", "change-review", "safe-delivery"], "acceptable": []},
+    {"id": "CIP-ADV-03", "prompt": "My SAHOOL branch is 30 commits behind main and another agent is running generators in the same worktree. Tell me if my change is ready to push.", "required": [], "any_of": ["ci-impact-preflight", "collaboration-coordination"], "acceptable": ["safe-delivery", "change-review"]},
+    {"id": "CIP-BND-01", "prompt": "A SAHOOL test fails intermittently in CI with a timeout and nobody knows why.", "required": ["failure-investigation"], "any_of": [], "acceptable": ["adaptive-test-accelerator"]},
+    {"id": "CIP-BND-02", "prompt": "The full pytest suite takes 20 minutes and the session restarted twice mid-run. Resume it without rerunning finished shards.", "required": ["adaptive-test-accelerator"], "any_of": [], "acceptable": ["work-continuation"]},
+    {"id": "CIP-BND-03", "prompt": "git push timed out. Should I just run it again?", "required": ["safe-delivery"], "any_of": [], "acceptable": ["work-continuation"]},
+    {"id": "CIP-BND-04", "prompt": "Review this pull request's diff independently before we accept it.", "required": ["change-review"], "any_of": [], "acceptable": []},
+    {"id": "CIP-BND-05", "prompt": "Multi-week effort: research options, design, implement with two agents, then release. Where do we start?", "required": [], "any_of": ["work-router", "intent-to-proof"], "acceptable": ["collaboration-coordination", "evidence-research"]},
+    {"id": "CIP-BND-06", "prompt": "Evaluate the new ci-impact-preflight skill before we roll it out to every agent.", "required": ["skill-evaluator"], "any_of": [], "acceptable": []},
+    {"id": "CIP-NEG-01", "prompt": "Conceptually, what is the difference between a CI gate and an advisory check?", "required": [], "any_of": [], "acceptable": []},
+    {"id": "CIP-NEG-02", "prompt": "Fix the typo in the README of my personal Rust side project.", "required": [], "any_of": [], "acceptable": []},
+    {"id": "CIP-NEG-03", "prompt": "اشرح باختصار ما هو التكامل المستمرّ CI.", "required": [], "any_of": [], "acceptable": []},
+    {"id": "CIP-NEG-04", "prompt": "Rename the local variable cnt to count in utils.py.", "required": [], "any_of": [], "acceptable": []},
+    {"id": "CIP-NEG-05", "prompt": "Which GitHub Actions runner image does ubuntu-latest map to today?", "required": [], "any_of": [], "acceptable": ["evidence-research"]},
+    {"id": "CIP-N3-01", "prompt": "I only have a zip of the SAHOOL source, no git checkout. Is my change ready to push?", "required": [], "any_of": [], "acceptable": ["ci-impact-preflight", "safe-delivery"]}
+  ]
+}

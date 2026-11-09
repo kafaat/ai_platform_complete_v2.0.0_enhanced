@@ -35,3 +35,7 @@ consistency. This witness is observed CI evidence, not a passed skill evaluation
 - CI witnesses: [Capability Governance, run 42522967795](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/42522967795) and [SAHOOL v9.1.0 CI, run 42522967854](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/42522967854). Repository Tests: 1,086 passed, 1 mapping-drift failure, 8 skipped. Earlier separate Git executable-mode failure is not reproduced on this head.
 - Source-derived incremental reconciliation: both new tracked files are classified as `other`, below the candidate selection score threshold. Only scanned-file / `other` inventory counts, raw mapping JSON, report and manifest hashes should change. The canonical `capability_mapping_engine.py --check` must confirm this on the next CI run. This derivation is **not** a claim that the full generator was executed in a local worktree.
 - Independent behavioral evaluation using `skill-evaluator`: P1–P5 / N1–N3 / A1–A3 = **NOT_RUN**. No agent execution receipts, trigger sensitivity measurements or successful behavior outcomes are asserted. Keep draft / merge-blocked until evaluated.
+
+## Status update (2026-11-09)
+
+Owner decision: accepted as an **advisory pilot**, not a CI gate. The skill-evaluator procedure, command verification and real-agent status are recorded in `EVALUATION.md`. Real-agent trigger and behaviour runs for these cases are still **NOT_RUN**; the trigger cases are in `trigger_scenarios.json`.
