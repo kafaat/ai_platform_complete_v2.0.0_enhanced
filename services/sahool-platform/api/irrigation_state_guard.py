@@ -16,11 +16,97 @@
 
 from __future__ import annotations
 
+from datetime import UTC, date, datetime
+
+from shared.contracts.soil.moisture_policy import WATER_LEDGER_MAX_AGE_HOURS
+
 # نضارة دفتر المياه الافتراضيّة (ساعات) — استنزاف أقدم منها يقود قراراً حاضراً بحذر.
-DEFAULT_MAX_LEDGER_AGE_HOURS = 72.0
+# القيمة من السياسة المشتركة (shared/contracts/soil/moisture_policy.py)؛ وفي المنصّة
+# يستوردها canonical_water_state وwater_twin وfield_state_projection من هنا (لا نسخ موازية).
+DEFAULT_MAX_LEDGER_AGE_HOURS = WATER_LEDGER_MAX_AGE_HOURS
+
+LIMIT_STALE_WATER_LEDGER = "stale_water_ledger"
+LIMIT_WATER_LEDGER_DATE_UNPROVEN = "water_ledger_date_unproven"
+LIMIT_WATER_LEDGER_DATE_IN_FUTURE = "water_ledger_date_in_future"
+
+
+def _as_ledger_date(value: object) -> date | None:
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str) and value.strip():
+        try:
+            return date.fromisoformat(value.strip()[:10])
+        except ValueError:
+            return None
+    return None
+
+
+def water_ledger_row_freshness(
+    ledger_date: object,
+    now: datetime,
+    *,
+    max_age_hours: float = DEFAULT_MAX_LEDGER_AGE_HOURS,
+) -> dict:
+    """هل صفّ الدفتر حاضرٌ بما يكفي ليُعامَل حالةً جارية؟ — نقيّة، fail-closed.
+
+    العمر = ``now`` − بداية ``ledger_date`` بتوقيت UTC (نفس اصطلاح
+    ``canonical_water_state``). تاريخ مفقود/غير صالح ⇒ غير مُثبَت؛ تاريخ في
+    المستقبل ⇒ لا يُثبت شيئاً؛ أقدم من العتبة ⇒ قديم. في الثلاث ``current=False``
+    والقيد مُعلَن — المستهلك يعامل الصفّ غير متاح لا حالة حاضرة.
+
+    Returns: ``{"current": bool, "age_hours": float|None, "limitation": str|None,
+    "max_age_hours": float}``.
+    """
+    d = _as_ledger_date(ledger_date)
+    if d is None:
+        return {
+            "current": False,
+            "age_hours": None,
+            "limitation": LIMIT_WATER_LEDGER_DATE_UNPROVEN,
+            "max_age_hours": max_age_hours,
+        }
+    now_aware = now if now.tzinfo is not None else now.replace(tzinfo=UTC)
+    start = datetime.combine(d, datetime.min.time(), tzinfo=UTC)
+    age_hours = (now_aware - start).total_seconds() / 3600.0
+    if age_hours < 0:
+        limitation: str | None = LIMIT_WATER_LEDGER_DATE_IN_FUTURE
+    elif age_hours > max_age_hours:
+        limitation = LIMIT_STALE_WATER_LEDGER
+    else:
+        limitation = None
+    return {
+        "current": limitation is None,
+        "age_hours": round(age_hours, 2),
+        "limitation": limitation,
+        "max_age_hours": max_age_hours,
+    }
+
 
 # مصادر TAW التي تُعدّ غير مُعايَرة يمنيّاً (تُوسَم قيداً على الثقة، لا تحجب).
 _UNCALIBRATED_TAW_SOURCES = frozenset({None, "texture_fallback", "crop_default", "model_estimate"})
+
+
+def current_ledger_row(
+    latest_row: dict | None,
+    now: datetime,
+    *,
+    max_age_hours: float = DEFAULT_MAX_LEDGER_AGE_HOURS,
+) -> tuple[dict | None, dict | None, list[str]]:
+    """أحدث صفّ دفتر (``ORDER BY ledger_date DESC LIMIT``) كحالة حاضرة أو لا شيء — نقيّة.
+
+    يُرجِع ``(row_or_None, freshness_or_None, limitations)``: صفٌّ غير حاضر (قديم/بلا
+    تاريخ/مستقبليّ) يُستبدَل بـ``None`` فلا يبذر حالةً جارية، وقيده في ``limitations``.
+    """
+    if not latest_row:
+        return None, None, []
+    freshness = water_ledger_row_freshness(
+        latest_row.get("ledger_date"), now, max_age_hours=max_age_hours
+    )
+    if freshness["current"]:
+        return latest_row, freshness, []
+    return None, freshness, [freshness["limitation"]]
 
 
 def assess_irrigation_state(
@@ -70,7 +156,7 @@ def assess_irrigation_state(
     # (3) قيود لا تحجب (نضارة + معايرة TAW).
     limitations: list[str] = []
     if ledger_age_hours is not None and ledger_age_hours > max_ledger_age_hours:
-        limitations.append("stale_water_ledger")
+        limitations.append(LIMIT_STALE_WATER_LEDGER)
     if taw_source in _UNCALIBRATED_TAW_SOURCES:
         limitations.append("taw_uncalibrated")
 

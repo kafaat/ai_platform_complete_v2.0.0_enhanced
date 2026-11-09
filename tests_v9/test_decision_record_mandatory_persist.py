@@ -66,6 +66,8 @@ class _FailConn:
     async def execute(self, *args, **kwargs):
         raise RuntimeError("simulated platform DB failure")
 
+    fetchval = execute  # the INSERT now returns the inserted id (replay detection)
+
 
 class _FailTenantConn:
     async def __aenter__(self):
@@ -99,6 +101,11 @@ def captured_inserts(monkeypatch):
         async def execute(self, sql, *args):
             if "INSERT INTO decision_record" in sql:
                 recorder.append({"sql": sql, "args": args})
+
+        async def fetchval(self, sql, *args):
+            # INSERT … RETURNING decision_id: a fresh row returns its id (not a replay).
+            await self.execute(sql, *args)
+            return args[0] if "INSERT INTO decision_record" in sql else None
 
     class _TenantConn:
         async def __aenter__(self):

@@ -9,7 +9,8 @@
 الفحوصات الساكنة (تعمل هنا بلا docker):
   1. RLS coverage      — كلّ جدول بمستأجِر له ENABLE+FORCE + سياسة current_setting.
   2. router wiring      — لا راوتر يتيم (مُستورَد + مُضمَّن في main).
-  3. NATS subjects      — بادئة sahool.، وكشف المواضيع اليتيمة (نشر بلا اشتراك/عكسه).
+  3. NATS subjects      — بادئة sahool.، وكشف المواضيع اليتيمة (نشر بلا اشتراك/عكسه)،
+     وجردُ ناشري nats/nats.conf مقابل ``published_no_consumer`` في عقد النشر.
   4. endpoint authz     — كلّ نقطة /api/v1 لها تبعيّة مصادقة/تفويض.
   5. migration manifest — تطابق ملفّات الهجرات مع MANIFEST، وترقيم متّسق.
 
@@ -334,6 +335,153 @@ def check_nats_publisher_coverage() -> Result:
 
 
 # ════════════════════════════════════════════════════════════
+# 3c. منشور بلا مشترِك — جردُ الناشرين من nats/nats.conf لا من ``.publish("literal")``
+# ════════════════════════════════════════════════════════════
+# ``check_nats_subjects`` يرى ``.publish("literal")`` وحده، والعمّالُ ينشرون بمتغيّر — فبقي
+# ``published_no_consumer: []`` في العقد بينما مواضيعُ مأذونةٌ كثيرة لا يشترك فيها أحد.
+# الوسيطُ يرفض كلَّ نشرٍ خارج قوائم ``publish.allow`` (``default_permissions`` ترفض الكلّ،
+# و``tests_v9/test_nats_least_privilege.py`` يُطابِقها بالشيفرة)، فهي جردُ الناشرين الكامل.
+NATS_CONF = REPO / "nats" / "nats.conf"
+CONTRACTS = REPO / "event_publish_contracts.yaml"
+_NATS_TOKEN = re.compile(r'\s+|#[^\n]*|//[^\n]*|"(?:[^"\\]|\\.)*"|[{}\[\]]|[,:=]|[^\s{}\[\],:=#"]+')
+
+
+def _nats_conf_users(text: str) -> dict[str, dict]:
+    """هويّاتُ ``authorization.users`` بقارئٍ صغيرٍ لصيغة الوسيط (خرائط/مصفوفات/مفاتيح)."""
+    tokens = [
+        t
+        for t in (m.group(0) for m in _NATS_TOKEN.finditer(text))
+        if not (t.isspace() or t.startswith(("#", "//")) or t in {",", ":", "="})
+    ]
+
+    def value(pos: int):
+        tok = tokens[pos]
+        if tok == "{":
+            return mapping(pos + 1, "}")
+        if tok == "[":
+            items, pos = [], pos + 1
+            while tokens[pos] != "]":
+                item, pos = value(pos)
+                items.append(item)
+            return items, pos + 1
+        return (tok[1:-1] if tok.startswith('"') else tok), pos + 1
+
+    def mapping(pos: int, until: str | None):
+        out: dict = {}
+        while pos < len(tokens) and tokens[pos] != until:
+            key = tokens[pos].strip('"')
+            out[key], pos = value(pos + 1)
+        return out, pos + 1
+
+    users = mapping(0, None)[0].get("authorization", {}).get("users", [])
+    return {str(u.get("user")): u for u in users if isinstance(u, dict)}
+
+
+def _nats_matches(pattern: str, subject: str) -> bool:
+    """مطابقةُ NATS رمزاً رمزاً (``*`` رمز، ``>`` ذيل) — الموضوعُ قد يحمل بدوره رموزاً بدل."""
+    pat, sub = pattern.split("."), subject.split(".")
+    for i, token in enumerate(pat):
+        if token == ">":
+            return len(sub) > i
+        if i >= len(sub) or (token != "*" and token != sub[i]):
+            return False
+    return len(pat) == len(sub)
+
+
+def _broker_publish_inventory(users: dict[str, dict]) -> dict[str, list[str]]:
+    """{موضوعٌ مأذونٌ نشرُه: [الهويّات]} خارج ``$JS``/``$SYS`` وصناديق الردّ."""
+    inventory: dict[str, list[str]] = {}
+    for name, user in sorted(users.items()):
+        perms = user.get("permissions") or {}
+        for subj in (perms.get("publish") or {}).get("allow") or []:
+            subj = str(subj)
+            if subj.startswith(("$", "_INBOX")):
+                continue
+            inventory.setdefault(subj, []).append(name)
+    return inventory
+
+
+def check_nats_published_no_consumer() -> Result:
+    """كلُّ موضوعٍ يأذن الوسيطُ بنشره له مشترِكٌ أو قيدٌ صادق في ``published_no_consumer``.
+
+    FAIL عند: موضوعٍ مأذونٍ بلا مشترِكٍ ولا قيد · قيدٍ صار موضوعُه مُستهلَكاً (ادّعاءٌ بائت) ·
+    قيدٍ بلا ``producer``/``source``/``reason`` أو بمصدرٍ غير موجود · ``broker_identity``
+    غير موجودة أو لا تأذن بالموضوع. ``broker_identity: null`` مسموحٌ لمنتِجٍ لا هويّةَ له
+    (فلا يبلغ الوسيط) والسببُ يقول ذلك.
+    """
+    name = "NATS published without consumer"
+    try:
+        import yaml
+
+        doc = yaml.safe_load(_read(CONTRACTS)) or {}
+        users = _nats_conf_users(_read(NATS_CONF))
+    except Exception as e:  # noqa: BLE001
+        return Result(
+            name, FAIL, "تعذّر قراءة العقد أو nats.conf", [f"FAIL {type(e).__name__}: {e}"]
+        )
+    if not users:
+        return Result(name, FAIL, "nats.conf بلا هويّات", ["FAIL لا authorization.users"])
+
+    consumed = set(_consumed_subjects())
+
+    def is_consumed(subj: str) -> bool:
+        return any(_nats_matches(c, subj) for c in consumed)
+
+    findings: list[str] = []
+    waivers: dict[str, dict] = {}
+    for entry in doc.get("published_no_consumer") or []:
+        subj = entry.get("subject") if isinstance(entry, dict) else None
+        if not subj:
+            findings.append(f"FAIL قيدٌ بلا subject في published_no_consumer: {entry!r}")
+            continue
+        if subj in waivers:
+            findings.append(f"FAIL قيدٌ مكرّر في published_no_consumer: `{subj}`")
+        waivers[subj] = entry
+        for key in ("producer", "source", "reason"):
+            if not str(entry.get(key) or "").strip():
+                findings.append(f"FAIL قيد `{subj}` بلا `{key}`")
+        source = str(entry.get("source") or "").strip()
+        if source and not (REPO / source).exists():
+            findings.append(f"FAIL قيد `{subj}`: المصدر غير موجود `{source}`")
+        if "broker_identity" not in entry:
+            findings.append(f"FAIL قيد `{subj}` بلا `broker_identity` (هويّة nats.conf أو null)")
+        identity = entry.get("broker_identity")
+        if identity is not None:
+            user = users.get(str(identity))
+            allowed = (
+                ((user.get("permissions") or {}).get("publish") or {}).get("allow") or []
+                if user
+                else []
+            )
+            if user is None:
+                findings.append(f"FAIL قيد `{subj}`: الهويّة `{identity}` ليست في nats.conf")
+            elif not any(_nats_matches(str(a), subj) for a in allowed):
+                findings.append(f"FAIL قيد `{subj}`: الهويّة `{identity}` لا تأذن بنشره")
+        if is_consumed(subj):
+            findings.append(
+                f"FAIL قيد بائت: `{subj}` صار له مشترِك — احذفه من published_no_consumer"
+            )
+
+    inventory = _broker_publish_inventory(users)
+    unconsumed = 0
+    for subj, identities in sorted(inventory.items()):
+        if is_consumed(subj):
+            continue
+        unconsumed += 1
+        if subj not in waivers:
+            findings.append(
+                f"FAIL موضوعٌ مأذونٌ نشرُه بلا مشترِك ولا قيد: `{subj}` "
+                f"({', '.join(identities)} في nats/nats.conf)"
+            )
+    status = FAIL if findings else PASS
+    summary = (
+        f"{len(inventory)} موضوعاً مأذوناً؛ {unconsumed} بلا مشترِك؛ "
+        f"{len(waivers)} قيداً موثَّقاً؛ {len(findings)} مخالفة"
+    )
+    return Result(name, status, summary, findings)
+
+
+# ════════════════════════════════════════════════════════════
 # 4. endpoint authz — كلّ نقطة لها تبعيّة مصادقة/تفويض
 # ════════════════════════════════════════════════════════════
 def check_endpoint_authz() -> Result:
@@ -431,6 +579,7 @@ CHECKS = (
     check_router_wiring,
     check_nats_subjects,
     check_nats_publisher_coverage,
+    check_nats_published_no_consumer,
     check_endpoint_authz,
     check_migration_manifest,
 )

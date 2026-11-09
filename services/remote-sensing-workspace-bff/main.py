@@ -105,6 +105,48 @@ async def _workspace_identity(
     return tenant
 
 
+_RECON_UNAVAILABLE_STATUSES = {"unavailable", "stub", "disabled", "error", "not_configured"}
+
+
+def _verified_outcome_count(outcomes: Any) -> int | None:
+    """Verified-outcome count only when the upstream states one explicitly.
+
+    Accepts an integer ``verified_outcome_count`` or a ``verified_outcomes`` list,
+    either at the top level or inside ``outcome_reconciliation``. Anything else
+    (absent, stub summary, wrong type) is ``None`` — an unknown, not a zero.
+    """
+    if not isinstance(outcomes, dict):
+        return None
+    recon = outcomes.get("outcome_reconciliation")
+    for scope in (recon if isinstance(recon, dict) else {}, outcomes):
+        count = scope.get("verified_outcome_count")
+        if isinstance(count, int) and not isinstance(count, bool) and count >= 0:
+            return count
+        items = scope.get("verified_outcomes")
+        if isinstance(items, list):
+            return len(items)
+    return None
+
+
+def _outcome_reconciliation_status(outcomes: Any) -> tuple[str | None, bool | None]:
+    """Return ``(status, available)`` from an explicit upstream status only.
+
+    The decision service labels its summary with ``status`` or ``source``
+    (``store`` / ``unavailable``). No explicit label ⇒ ``(None, None)``: a
+    non-empty dict of zeros is not evidence that reconciliation is available.
+    """
+    if not isinstance(outcomes, dict):
+        return None, None
+    recon = outcomes.get("outcome_reconciliation")
+    if not isinstance(recon, dict):
+        return None, None
+    status = recon.get("status") or recon.get("source")
+    if not isinstance(status, str) or not status.strip():
+        return None, None
+    status = status.strip()
+    return status, status.lower() not in _RECON_UNAVAILABLE_STATUSES
+
+
 @app.get("/v1/fields/{field_id}/remote-sensing-workspace")
 async def workspace(
     field_id: str,
@@ -222,16 +264,21 @@ async def workspace(
         anomalies = raw.get("anomalies", {}).get("anomalies", [])
         decisions = raw.get("decisions", {}).get("decisions", [])
 
+        outcomes_payload = raw.get("outcomes")
+        recon_status, recon_available = _outcome_reconciliation_status(outcomes_payload)
+
         result["sections"]["overview"] = {
             "latest_observation_refs": timeline.get("latest_observation_refs", {}),
             "observation_count": len(timeline.get("entries", [])),
             "open_anomaly_count": sum(1 for item in anomalies if item.get("status") != "resolved"),
             # field-wide today: upstream /v1/decisions has no season filter yet;
-            # season_id is forwarded for forward-compatibility.
+            # season_id is forwarded for forward-compatibility. decision_scope says so.
             "decision_count": len(decisions),
-            "outcome_reconciliation_available": bool(
-                raw.get("outcomes", {}).get("outcome_reconciliation")
-            ),
+            "decision_scope": "field",
+            # null when the upstream carries no explicit verified count/list — never a 0
+            "verified_outcome_count": _verified_outcome_count(outcomes_payload),
+            "outcome_reconciliation_status": recon_status,
+            "outcome_reconciliation_available": recon_available,
         }
     if errors:
         result["partial"] = True

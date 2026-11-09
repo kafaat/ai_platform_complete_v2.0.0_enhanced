@@ -25,15 +25,23 @@ def _user():
     )
 
 
-def _harness(monkeypatch, *, row_exists=True):
+def _harness(monkeypatch, *, row_exists=True, current_status=None, queries=None):
     updates = []
     events = []
     commands = {}
 
     class FakeConn:
         async def fetchrow(self, query, *vals):
+            if queries is not None:
+                queries.append((query, vals))
+            if query.startswith("SELECT status"):  # 409/404 disambiguation after a refused guard
+                return {"status": current_status} if row_exists else None
             updates.append(vals)
             if not row_exists:
+                return None
+            # The atomic transition guard binds the allowed source states as the last array.
+            allowed = next((v for v in reversed(vals) if isinstance(v, list)), None)
+            if current_status is not None and allowed is not None and current_status not in allowed:
                 return None
             return {
                 "task_id": "t-1",
@@ -126,3 +134,85 @@ def test_missing_task_is_404_and_records_no_command(monkeypatch):
     )
     assert resp.status_code == 404
     assert events == []
+
+
+def test_illegal_transition_is_409_and_emits_nothing(monkeypatch):
+    c, updates, events = _harness(monkeypatch, current_status="completed")
+    resp = c.patch("/api/v1/tasks/t-1", json={"status": "cancelled"})
+    assert resp.status_code == 409
+    assert resp.json()["detail"] == {
+        "error": "illegal_task_transition",
+        "from": "completed",
+        "to": "cancelled",
+    }
+    assert events == []
+
+
+def test_cancelled_task_cannot_be_completed(monkeypatch):
+    c, _, events = _harness(monkeypatch, current_status="cancelled")
+    assert c.patch("/api/v1/tasks/t-1", json={"status": "completed"}).status_code == 409
+    assert events == []
+
+
+def test_client_completed_at_is_stored_instead_of_server_now(monkeypatch):
+    queries = []
+    c, _, events = _harness(monkeypatch, current_status="in_progress", queries=queries)
+    resp = c.patch(
+        "/api/v1/tasks/t-1",
+        json={
+            "status": "completed",
+            "completed_at": "2026-10-20T06:30:00Z",
+            "actual_cost_usd": 12.5,
+        },
+    )
+    assert resp.status_code == 200 and events == ["TASK_UPDATED"]
+    sql, vals = queries[-1]
+    assert "NOW()" not in sql.split("updated_at")[0]  # the completion stamp is the client's
+    assert datetime(2026, 10, 20, 6, 30, tzinfo=UTC) in vals and 12.5 in vals
+    assert "actual_cost_usd = $" in sql and "= ANY(" in sql
+
+
+def test_server_stamp_is_kept_on_repeat_completion_and_cleared_on_reopen(monkeypatch):
+    queries = []
+    c, _, _ = _harness(monkeypatch, current_status="completed", queries=queries)
+    assert c.patch("/api/v1/tasks/t-1", json={"status": "completed"}).status_code == 200
+    assert "THEN completed_at ELSE NOW()" in queries[-1][0]
+    assert c.patch("/api/v1/tasks/t-1", json={"status": "pending"}).status_code == 200
+    assert "completed_at = NULL" in queries[-1][0]
+
+
+def test_future_completed_at_is_rejected_before_any_update(monkeypatch):
+    c, updates, _ = _harness(monkeypatch, current_status="pending")
+    resp = c.patch(
+        "/api/v1/tasks/t-1", json={"status": "completed", "completed_at": "2999-01-01T00:00:00Z"}
+    )
+    assert resp.status_code == 422 and updates == []
+
+
+def test_idempotency_digest_of_a_legacy_body_is_unchanged(monkeypatch):
+    """New optional fields are excluded from the digest when absent, so an outbox replay of a
+    request recorded before this change still matches its stored command."""
+    import hashlib
+    import json
+
+    seen = {}
+
+    class Store:
+        def __init__(self, pool, conn=None):
+            pass
+
+    async def fake_idempotent(store, key, work, **kw):
+        seen["digest"] = kw["request_digest"]
+        return await work()
+
+    c, _, _ = _harness(monkeypatch, current_status="pending")
+    monkeypatch.setattr(mod, "_idempotent", fake_idempotent)
+    monkeypatch.setattr(mod, "CommandStore", Store)
+    c.patch(
+        "/api/v1/tasks/t-1", json={"status": "in_progress"}, headers={"Idempotency-Key": _REPLAY_ID}
+    )
+    legacy = {"task_id": "t-1", "status": "in_progress", "photo_url": None, "notes": None}
+    expected = hashlib.sha256(
+        json.dumps(legacy, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+    assert seen["digest"] == expected

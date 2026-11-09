@@ -131,6 +131,45 @@ def test_the_floor_survives_every_mode(tool):
     assert set(tool.paths_to_run(result)) == {"a/test_x.py", "b/test_y.py"}
 
 
+def test_the_audit_sample_rides_with_every_narrowed_run(tool):
+    """Excluded tests never run, so a wrong exclusion is invisible unless some are sampled."""
+    result = {
+        "mode": "selected",
+        "floor": ["a/test_x.py"],
+        "selected": {"b/test_y.py": {}},
+        "audit_sample": ["c/test_z.py"],
+    }
+    assert set(tool.paths_to_run(result)) == {"a/test_x.py", "b/test_y.py", "c/test_z.py"}
+
+
+def test_the_audit_sample_is_seeded_bounded_and_drawn_only_from_the_excluded(tool):
+    excluded = [f"t/test_{i}.py" for i in range(40)]
+    first = tool.audit_sample(excluded, "abc:def", 5)
+    assert first == tool.audit_sample(list(reversed(excluded)), "abc:def", 5), (
+        "order must not matter"
+    )
+    assert len(first) == 5 and set(first) <= set(excluded) and first == sorted(first)
+    rotated = {tuple(tool.audit_sample(excluded, f"commit{i}:def", 5)) for i in range(8)}
+    assert len(rotated) > 1, "successive commits must rotate through the excluded corpus"
+    assert tool.audit_sample(excluded[:3], "abc:def", 5) == sorted(excluded[:3])
+    assert tool.audit_sample(excluded, "abc:def", 0) == []
+    assert tool.audit_sample([], "abc:def", 5) == []
+
+
+def test_a_real_plan_samples_only_excluded_tests_and_none_when_escalated(tool):
+    base = _resolvable_base(tool)
+    result = tool.plan(base, "HEAD", include_working_tree=False)
+    sample = set(result["audit_sample"])
+    if result["mode"] == "full":
+        assert not sample, "full mode excludes nothing, so there is nothing to sample"
+    else:
+        assert not sample & set(result["floor"]) and not sample & set(result["selected"])
+        assert len(sample) == min(
+            json.loads(POLICY.read_text(encoding="utf-8"))["audit_sample"]["per_run"],
+            result["deselected_count"],
+        )
+
+
 # ── escalation ─────────────────────────────────────────────────────────────
 
 

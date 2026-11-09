@@ -42,7 +42,7 @@ def make_run_id(spec: dict[str, Any], ts_iso: str) -> str:
 
 
 def array_stats(values: Any) -> dict[str, Any]:
-    """إحصاءات المصفوفة (min/max/nodata_ratio/valid_pixel_ratio/shape) — nodata = NaN.
+    """إحصاءات المصفوفة (min/max/nodata_ratio/valid_pixel_ratio/shape) — nodata = غير منتهٍ (NaN/±inf).
 
     يتطلّب numpy؛ غيابه/فشله ⇒ dict فارغ (الفحوص تتخطّى ما لا يُقاس، لا تلفيق).
     """
@@ -53,9 +53,11 @@ def array_stats(values: Any) -> dict[str, Any]:
         if arr.ndim != 2 or arr.size == 0:
             return {}
         total = int(arr.size)
-        nodata = int(np.count_nonzero(np.isnan(arr)))
-        valid = total - nodata
-        finite = arr[np.isfinite(arr)]
+        # صالح = منتهٍ فقط: ±inf ليس قيمة مؤشّر (كان يُعَدّ صالحاً لأنّ الطرح كان من NaN وحده).
+        finite_mask = np.isfinite(arr)
+        valid = int(np.count_nonzero(finite_mask))
+        nodata = total - valid
+        finite = arr[finite_mask]
         out: dict[str, Any] = {
             "shape": [int(arr.shape[0]), int(arr.shape[1])],
             "nodata_ratio": nodata / total if total else None,
@@ -79,6 +81,35 @@ def _sha256(path: Path) -> str:
 
 def _write_json(path: Path, obj: Any) -> None:
     path.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def register_evidence(
+    evidence_writer: Callable[[dict[str, Any]], None] | None,
+    manifest: dict[str, Any],
+    status: str,
+) -> dict[str, Any]:
+    """يستدعي كاتب الأدلّة ويُعيد نتيجة التسجيل — مشترك بين حزمة التشغيل وحزمة النشرة.
+
+    لا يكسر الحزمة، لكنّ فشله لا يُبتلَع صامتاً. بلا كاتب ⇒ ``evidence_registered=None`` (لم
+    يُطلَب). كاتب مُمرَّر وفشل ⇒ الحزمة تبقى قابلة للعرض (``status`` كما هي) لكنّها **غير
+    مقبولة** (``accepted=False``). حزمة ``failed`` لا تُقبَل أبداً.
+    """
+    evidence_registered: bool | None = None
+    evidence_error_class: str | None = None
+    if evidence_writer is not None:
+        try:
+            evidence_writer(manifest)
+            evidence_registered = True
+        except Exception as exc:  # noqa: BLE001 — يُسجَّل في المانيفست والنتيجة، لا يُبتلَع.
+            evidence_registered = False
+            evidence_error_class = type(exc).__name__
+    evidence_registration_failed = evidence_registered is False
+    return {
+        "evidence_registered": evidence_registered,
+        "evidence_error_class": evidence_error_class,
+        "evidence_registration_failed": evidence_registration_failed,
+        "accepted": status != "failed" and not evidence_registration_failed,
+    }
 
 
 def _checks_md(sc: dict[str, Any]) -> str:
@@ -254,11 +285,10 @@ def run_workflow_bundle(
     }
     _write_json(run_dir / "provenance" / "run_manifest.json", manifest)
 
+    evidence_outcome = register_evidence(evidence_writer, manifest, status)
     if evidence_writer is not None:
-        try:
-            evidence_writer(manifest)
-        except Exception:  # noqa: BLE001 — ربط الأدلّة اختياريّ fail-soft.
-            pass
+        manifest = {**manifest, **evidence_outcome}
+        _write_json(run_dir / "provenance" / "run_manifest.json", manifest)
 
     return {
         "status": status,
@@ -267,6 +297,7 @@ def run_workflow_bundle(
         "render_ok": render_ok,
         "self_check": sc,
         "outputs": sorted(checksums.keys()),
+        **evidence_outcome,
     }
 
 

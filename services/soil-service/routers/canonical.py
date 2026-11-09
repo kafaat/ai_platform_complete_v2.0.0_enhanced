@@ -28,12 +28,28 @@ async def create_observation(observation: SoilObservation, x_agent_token: str = 
     if not main._pool:
         raise HTTPException(503, "database unavailable")
     inserted = await soil_store.persist_observation(main._pool, observation)
+    observation_id = observation.observation_id
+    if not inserted:
+        # A duplicate key must answer with the row that exists, not the generated id of
+        # a row that was never written; and a different reading under the same key is a
+        # conflict, not a silent drop.
+        stored = await soil_store.load_observation_by_key(
+            main._pool, tenant_id, observation.idempotency_key
+        )
+        # A server-assigned instant (the platform bridge marks it in provenance) is the
+        # arrival time of that attempt, so a keyed retry legitimately differs there.
+        server_timed = observation.provenance.get("observed_at_source") == "server_receipt"
+        if stored is None or not soil_store.stored_observation_matches(
+            stored, observation, check_observed_at=not server_timed
+        ):
+            raise HTTPException(409, "idempotency_key conflicts with a different soil observation")
+        observation_id = stored["observation_id"]
     snapshot = await soil_store.rebuild_snapshot_locked(
         main._pool, tenant_id=tenant_id, field_id=observation.field_id
     )
     return {
         "status": "created" if inserted else "duplicate",
-        "observation_id": observation.observation_id,
+        "observation_id": observation_id,
         "profile_id": snapshot.profile_id,
         "profile_hash": snapshot.profile_hash,
     }

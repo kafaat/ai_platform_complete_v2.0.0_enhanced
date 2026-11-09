@@ -15,6 +15,10 @@ from fastapi import HTTPException
 from api.irrigation_observations import IrrigationObservationInput
 
 EVENT_TYPE = "task.irrigation_observation.v1"
+#: Closed executions accept no new field evidence: a cancelled run never happened and a
+#: reconciled run is already settled in the as-applied ledger. Honest replays of an
+#: observation recorded before the close still return the stored payload.
+CLOSED_EXECUTION_STATES = frozenset({"cancelled", "reconciled"})
 
 
 def _payload(row):
@@ -58,6 +62,11 @@ async def record_observation(conn, user, task_id: str, req: IrrigationObservatio
     digest = hashlib.sha256(
         json.dumps(identity, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
     ).hexdigest()
+    if execution["state"] in CLOSED_EXECUTION_STATES:
+        previous = await _replayed(conn, user, req, digest)
+        if previous is not None:
+            return previous
+        raise HTTPException(409, f"عملية الري مغلقة ({execution['state']})؛ لا تُقبل ملاحظات جديدة")
     payload = {
         **identity,
         "request_digest": digest,
@@ -80,6 +89,14 @@ async def record_observation(conn, user, task_id: str, req: IrrigationObservatio
     )
     if inserted is not None:
         return _payload(inserted)
+    previous = await _replayed(conn, user, req, digest)
+    if previous is not None:
+        return previous
+    raise HTTPException(409, "معرّف الملاحظة مستخدم؛ أعد إرسال الملاحظة الأصلية دون تعديل")
+
+
+async def _replayed(conn, user, req: IrrigationObservationInput, digest: str):
+    """The stored payload when this exact observation was already recorded, else None."""
     # A fresh READ COMMITTED statement sees the winning committed insert. Do not
     # compare lifecycle state: an operation may advance before an offline retry.
     prior = await conn.fetchrow(
@@ -96,7 +113,7 @@ async def record_observation(conn, user, task_id: str, req: IrrigationObservatio
             and previous.get("event_type") == EVENT_TYPE
         ):
             return previous
-    raise HTTPException(409, "معرّف الملاحظة مستخدم؛ أعد إرسال الملاحظة الأصلية دون تعديل")
+    return None
 
 
 async def list_observations(conn, user, task_id: str):

@@ -32,6 +32,7 @@ dict. النواة تُختبر بـdicts عاديّة، الإطار الخار
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import time
 from collections import defaultdict, deque
@@ -39,6 +40,8 @@ from dataclasses import asdict, dataclass, field
 
 from core.canonical_schemas import UserSchema
 from core.internal_orchestrator import orchestrate_recommendation
+
+logger = logging.getLogger(__name__)
 
 # ─── Request/Response Types ──────────────────────────────────────
 
@@ -172,6 +175,15 @@ def handle_recommendation_request(
         )
 
     # 4. delegate to المايسترو الداخلي
+    # المعرفة المحلّيّة لا تُقبَل من جسم الطلب: كانت تُمرَّر كما هي إلى المايسترو، فالقواميس
+    # (شكلُ JSON الوحيد) تُتجاهَل صامتةً لغياب ``prior_weight`` ولا يعلم العميل، ولا سبيل
+    # للتحقّق من حالة «مؤكَّدة» يدّعيها العميل. تُسقَط صراحةً بإشعارٍ في السجلّ؛ مصدرها
+    # المخزن المُتحقَّق منه داخليّاً لا الطلب.
+    if req.payload.get("local_knowledge") is not None:
+        logger.info(
+            "recommendation request: client-supplied local_knowledge ignored "
+            "(unverifiable; not used in the recommendation)"
+        )
     try:
         result = orchestrate_recommendation(
             user=req.user,
@@ -184,7 +196,7 @@ def handle_recommendation_request(
             suitability=req.payload.get("suitability"),
             zone_factor=req.payload.get("zone_factor"),
             zone_factor_status=req.payload.get("zone_factor_status", "pending"),
-            local_knowledge=req.payload.get("local_knowledge"),
+            local_knowledge=None,
             field_state=req.payload.get("field_state"),
             recommendation_history=recommendation_history or [],
             current_indicators=req.payload.get("current_indicators"),

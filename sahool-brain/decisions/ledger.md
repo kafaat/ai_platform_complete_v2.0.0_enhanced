@@ -4699,3 +4699,27 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **القرار:** توحيد المحلِّل: «ذرة» = sorghum، و«ذرة شامية/صفراء» = maize، عبر بطاقات المحاصيل (`aliases`).
 - **السبب:** أربعة جداول أسماء مستعارة كانت تختلف (`season_phenology` ⇒ sorghum، `season_simulation`/`ky_registry` ⇒ maize)، فيُحاكى الموسم بمعاملات الذرة الشاميّة ويُنصح بمراحل الرفيعة؛ والاستعمال اليمنيّ الشائع لـ«ذرة» مفردةً هو الرفيعة، والواجهة ترسل «ذرة صفراء» للشاميّة.
 - **المصدر:** [`../gaps/registry.md`](../gaps/registry.md) (`UNKNOWN-AND-PERENNIAL-CROP-OUTPUTS-01`).
+
+## 2026-11-09 — موجة 2: لا يُرفع سقف المسارات لمسار انتقال النشاط
+
+- **القرار:** دمج قواعد دورة حياة النشاط بلا مسار `PATCH` الجديد ولا نداء الموبايل له.
+- **السبب:** المسار يرفع مسارات النطاق إلى 630 فوق 629، وCLAUDE.md: «لا ترفع السقف ولا تحذف نقطة provenance لحلّ تعارض ميزانية»؛ ولا مسار قائم يحمل الانتقال بصدق (`routers/tasks.py` يخدم `field_tasks` لا `activities`، و`routers/fields.py` عند سقف حجمه).
+- **المصدر:** فرع `claude/w2-integ-20261108` · [`../log.md`](../log.md) · [`../gaps/registry.md`](../gaps/registry.md) (`ACTIVITY-LIFECYCLE-CREATE-ONLY-01`).
+
+## 2026-11-09 — موجة 2: فصل المهامّ مفعَّل افتراضيّاً في الإنتاج مع إيقاف صريح
+
+- **القرار:** إبقاء `DECISION_REQUIRE_SEPARATION_OF_DUTIES` مفعَّلاً متى كانت البيئة إنتاجاً، مع السماح بإيقافه صراحةً، وتسجيل أثره على المزارع الوحيد فجوةً لحكم المالك.
+- **السبب:** «الافتراضيّ مفعَّل» هو المطلوب في الفجوة `DECISION-PROVENANCE-AND-SOD-01`، لكنّ مسار الريّ اليدويّ لمزارع وحيد يُقدِّم ويعتمد بنفسه، فالمنع المطلق يكسره؛ القرار بين الصرامة وهذه الحالة للمالك.
+- **المصدر:** [`../../services/decision-service/persistence.py`](../../services/decision-service/persistence.py) · [`../gaps/registry.md`](../gaps/registry.md) (`DECISION-SOD-SINGLE-USER-FARM-POLICY-01`).
+
+## 2026-11-09 — مفتاح تجميع التعلّم: المستأجر والمحصول القانونيّ والمهمّة
+
+- **القرار:** يُجمَّع مرشّح تعلّم إغلاق الموسم عبر حقول المستأجر نفسه ذات المحصول القانونيّ نفسه ومهمّة `yield_forecast_calibration`، ويُعَدّ الحدّ الأدنى بوحدات (مزرعة، موسم) مستقلّة، ويُربط الاعتماد ببصمة المجمّع.
+- **السبب:** صفوف `recommendation_outcomes` تحمل `crop` (v49) ولا تحمل نسخة نموذج أو منطقة، فهذا أضيق مفتاح صادق تدعمه البيانات؛ وبدونه كان المرشّح محجوباً دائماً (وحدة واحدة مقابل حدّ 3).
+- **المصدر:** [`../../services/sahool-platform/api/learning_feedback.py`](../../services/sahool-platform/api/learning_feedback.py) · [`../gaps/registry.md`](../gaps/registry.md) (`LEARNING-SINGLE-FIELD-SEASON-ALWAYS-BLOCKED-01`).
+
+## 2026-11-09 — نضج القدرات بعد إزالة العدّ المكرّر: يُسجَّل الانجراف ولا تُمسّ القيم
+
+- **القرار:** تُضاف هويّات القدرات الثماني إلى `reconciliation_drift_baseline.json` صنف `declared_above_evidence`، ولا يُخفَض النضج المُعلَن في السجلّ ولا يُرخى المولِّد.
+- **السبب:** الانخفاض حقيقيّ (المُعلَن كان مسنوداً بعدٍّ مكرَّر)، وآليّة الراتشِت نفسها تسمّي الدَّين هويّةً هويّةً؛ وخفض قيمة مُعلَنة في السجلّ حكمٌ على القدرة نفسها يعود للمالك. السابقة: #1306 و#1299 أضافا هويّات عند تغيّر الأدلّة.
+- **المصدر:** `6057296ef` على `claude/test-impact-mapping-20261109` · [`../gaps/registry.md`](../gaps/registry.md) (`CAPABILITY-MATURITY-INFLATED-BY-DOUBLE-COUNT-01`).

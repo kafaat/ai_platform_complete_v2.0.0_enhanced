@@ -11,7 +11,7 @@ import hashlib
 import json
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from api.canonical_nutrient_ledger import CanonicalNutrientLedger
@@ -19,6 +19,12 @@ from api.canonical_phenology_state import CanonicalPhenologyState
 from api.canonical_salinity_state import CanonicalSalinityState
 
 _NUTRIENT_CONFIDENCE_PENALTY = 0.15
+# A persisted ledger is a snapshot at ``as_of``: applications and phenology after it
+# are not in its balance.  Two weeks is about one split-N interval / phenology
+# sub-stage; an older ledger is shown for context but cannot drive fertilization.
+NUTRIENT_LEDGER_MAX_AGE = timedelta(days=14)
+# Clock skew tolerated before an ``as_of`` in the future is treated as invalid.
+_NUTRIENT_LEDGER_FUTURE_SKEW = timedelta(minutes=5)
 
 
 def _digest(payload: Mapping[str, Any]) -> str:
@@ -144,8 +150,49 @@ def consume_salinity_state(state: CanonicalSalinityState) -> AgronomicStateCandi
     )
 
 
-def consume_nutrient_ledger(ledger: CanonicalNutrientLedger) -> AgronomicStateCandidate:
-    """Convert canonical N/P/K balances into one guarded fertilization candidate."""
+def _crop_identity_limitation(request_crop: str, ledger_crop: str) -> str | None:
+    """Compare crops by canonical card id, not by spelling.
+
+    The request carries a display name (``req.crop``: «قمح صلب», «ذرة صفراء» from the
+    web/mobile pickers) while the ledger carries whatever crop id its builder was given,
+    so both sides go through the platform's one crop resolver (card ``crop_id`` ·
+    ``name_ar`` · ``name_en`` · ``aliases``).  A side that does not resolve is not
+    evidence of a *different* crop, but it is no proof of the same one either: it
+    stays blocked under its own reason.
+    """
+    from core.season_phenology import resolve_crop_id
+
+    requested, built_for = resolve_crop_id(request_crop), resolve_crop_id(ledger_crop)
+    if requested is None or built_for is None:
+        return "NUTRIENT_LEDGER_CROP_UNRESOLVED"
+    return None if requested == built_for else "NUTRIENT_LEDGER_CROP_MISMATCH"
+
+
+def consume_nutrient_ledger(
+    ledger: CanonicalNutrientLedger,
+    *,
+    now: datetime | None = None,
+    crop_id: str | None = None,
+) -> AgronomicStateCandidate:
+    """Convert canonical N/P/K balances into one guarded fertilization candidate.
+
+    With ``now`` the ledger is blocked when older than ``NUTRIENT_LEDGER_MAX_AGE`` (or
+    dated in the future); with ``crop_id`` it is blocked unless both crops resolve to
+    the same canonical card id (``NUTRIENT_LEDGER_CROP_MISMATCH`` when they resolve to
+    different crops, ``NUTRIENT_LEDGER_CROP_UNRESOLVED`` when either does not resolve).
+    Production callers pass both.
+    """
+    freshness: list[str] = []
+    if now is not None:
+        age = now.astimezone(UTC) - ledger.as_of.astimezone(UTC)
+        if age > NUTRIENT_LEDGER_MAX_AGE:
+            freshness.append("NUTRIENT_LEDGER_STALE")
+        elif age < -_NUTRIENT_LEDGER_FUTURE_SKEW:
+            freshness.append("NUTRIENT_LEDGER_FROM_FUTURE")
+    if crop_id is not None:
+        crop_problem = _crop_identity_limitation(crop_id, ledger.crop_id)
+        if crop_problem:
+            freshness.append(crop_problem)
     # Only balances with known soil supply AND known demand are actionable; an
     # unknown soil value must never be read as zero supply (full-demand advice).
     actionable = [item for item in ledger.balances if item.actionable]
@@ -157,9 +204,9 @@ def consume_nutrient_ledger(ledger: CanonicalNutrientLedger) -> AgronomicStateCa
         for item in actionable
         if item.remaining_requirement_kg_ha > 0
     }
-    fertilize = bool(ledger.operational_recommendation_allowed and remaining)
-    blocked = ledger.status == "blocked"
-    limitations = sorted(set(ledger.limitations))
+    blocked = ledger.status == "blocked" or bool(freshness)
+    fertilize = bool(ledger.operational_recommendation_allowed and remaining and not blocked)
+    limitations = sorted(set(ledger.limitations) | set(freshness))
     if blocked:
         status = "blocked"
         confidence = 0.0
@@ -195,7 +242,7 @@ def consume_nutrient_ledger(ledger: CanonicalNutrientLedger) -> AgronomicStateCa
         "requires_human_approval": fertilize,
         "payload": payload,
         "evidence_digests": sorted(ledger.evidence_digests),
-        "constraints": sorted(ledger.limitations),
+        "constraints": limitations,
     }
     return AgronomicStateCandidate(
         **{

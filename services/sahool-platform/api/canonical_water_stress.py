@@ -300,3 +300,26 @@ def canonical_water_stress(
         "calibrated": False,  # TAW/p غير معايَرين يمنيّاً (صدق)
         "source": "field_state.canonical",
     }
+
+
+def stale_ledger_water_stress(freshness: dict) -> dict:
+    """كتلة ``water_stress`` غير متاحة لأنّ صفّ الدفتر ليس حاضراً — نقيّة.
+
+    ``freshness`` مخرَج ``irrigation_state_guard.water_ledger_row_freshness``. استنزافٌ
+    أقدم من عتبة الدفتر (72 س) لا يُصنَّف حالةً جارية: لا AWF ولا صنف ولا أهليّة تصعيد،
+    والقيد مُعلَن (لا صمت ولا قرار على قديم).
+    """
+    limitation = freshness.get("limitation") or "stale_water_ledger"
+    return {
+        "available": False,
+        "water_stress_awf": None,
+        "water_stress_class": None,
+        "limitations": [limitation],
+        "ledger_age_hours": freshness.get("age_hours"),
+        "max_ledger_age_hours": freshness.get("max_age_hours"),
+        "escalation_eligible": False,
+        "escalation_triggered": False,
+        "disabled_reason": limitation,
+        "calibrated": False,
+        "source": "field_state.canonical",
+    }

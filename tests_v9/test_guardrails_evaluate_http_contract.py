@@ -63,8 +63,12 @@ def _irrigation_request() -> dict:
             "water_m3": 120.0,
             "cost_usd": 40.0,
             "projected_revenue_increase_usd": 260.0,
+            # Salinity evidence is explicit: an absent EC is unknown (rule ec_unknown ⇒
+            # review), no longer a silent 0 dS/m that let this request pass as LOW.
+            "water_ec_ds_m": 0.8,
         },
         "farm_context": {
+            "soil_ec_ds_m": 1.2,
             "field_area_ha": 4.0,
             "season_water_used_m3_ha": 900.0,
             "water_source": "groundwater",

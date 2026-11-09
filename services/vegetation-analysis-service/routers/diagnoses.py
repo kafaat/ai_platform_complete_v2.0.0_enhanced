@@ -6,7 +6,7 @@ import main
 from anomaly_runtime import store as _store
 from anomaly_store import AnomalyNotFound, InvalidTransition
 from decision_bridge import DecisionBridge
-from diagnosis_engine import build_diagnosis
+from diagnosis_engine import build_diagnosis, load_stored_diagnosis
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -63,12 +63,7 @@ async def refer_to_decision(
         record = await _store.get(anomaly_ref, tenant_id=tenant)
         if record["tenant_id"] != tenant:
             raise AnomalyNotFound(anomaly_ref)
-        diagnosis_payload = record["payload"].get("diagnosis")
-        if not diagnosis_payload:
-            raise InvalidTransition("diagnosis_not_proposed")
-        from shared.contracts.remote_sensing import DiagnosisHypothesisV1
-
-        diagnosis = DiagnosisHypothesisV1.model_validate(diagnosis_payload)
+        diagnosis = load_stored_diagnosis(record["payload"].get("diagnosis"))
         result = await _bridge.refer(
             diagnosis=diagnosis,
             authorization=authorization,

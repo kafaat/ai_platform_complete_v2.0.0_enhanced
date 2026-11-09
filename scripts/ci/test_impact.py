@@ -21,12 +21,16 @@ never read as full coverage.
 **It is an accelerator, not a gate.** Its green means "what was selected passed". CI decides.
 
 **An audit sample measures what the selection drops.** In selected mode a seeded random
-sample of the *excluded* tests runs too (the method and formula of Unified Local Lab
-``portable_ci_lab.change_selection``: ``max(1, ceil(n * percent / 100))``, seeded by base,
-head and the changed paths, so the same change draws the same sample). A failure there is a
-measured miss of the cone, not noise. The plan also records the resolved commits, a decision
-for every tracked test (selected · floor · audit · excluded-not-run) and its own digest, so
-"what was planned" can be checked against "what ran" without trusting either alone.
+sample of the *excluded* tests runs too: ``min(n, max(minimum, ceil(n * percent / 100)))``
+of them (policy ``audit_sample``: 5% with a minimum of 5), seeded by the head commit and the
+resolved base, so the same tree draws the same sample. A failure there is a measured miss of
+the cone, not noise.
+
+**The plan is a record of intent, not of execution.** It carries the resolved commits, one
+planned decision for every tracked test (selected · floor · audit · excluded-not-run, or
+full-suite) and ``plan_sha256``, a digest of the rest of the plan. That digest identifies
+*which plan* was produced; it does not show that any test ran or passed — that evidence can
+only come from the run itself.
 
     bash scripts/ci/test_impact.sh                 # select against origin/main, then run
     python scripts/ci/test_impact.py --plan-only    # print the plan, run nothing
@@ -176,13 +180,22 @@ def ref_exists(ref: str, root: Path = ROOT) -> bool:
 
 
 def select(
-    snapshot: Any, affected: set[str], tests: list[str]
+    snapshot: Any,
+    affected: set[str],
+    tests: list[str],
+    dependent_tests: dict[str, list[str]] | None = None,
 ) -> tuple[dict[str, dict[str, Any]], list[str]]:
     """Split the test corpus into what this cone reaches and the floor it can never reach.
 
     A file the engine binds to no capability is not "unselected" — no cone can reach it, so
     it always runs. Tree-wide guards live there, which is why the measured ceiling is about
     half the suite rather than a small slice of it.
+
+    ``dependent_tests`` is the engine's own ``impact()["dependent_tests"]``: tests with a
+    proven static dependency (import · source read · loader) on a changed path. They are
+    selected with that reason even when their capability label differs from the changed
+    source's — the label is not rewritten to make the cone intersect. The floor rule is
+    untouched: a floor test stays in the floor whatever its dependencies.
     """
     selected: dict[str, dict[str, Any]] = {}
     floor: list[str] = []
@@ -193,28 +206,74 @@ def select(
             floor.append(path)
             continue
         hit = sorted(capabilities & affected)
-        if hit:
+        reasons = sorted((dependent_tests or {}).get(path, []))
+        if hit or reasons:
             selected[path] = {"capabilities": hit, "sources": sorted(reference.sources)}
+            if reasons:
+                selected[path]["dependencies"] = reasons
     return selected, floor
 
 
-def audit_sample(excluded: list[str], percent: float, seed: str) -> list[str]:
-    """A reproducible sample of excluded tests (Unified Local Lab ``_audit_sample``).
+def sample_size(n: int, percent: float, minimum: int) -> int:
+    """How many excluded tests to audit: ``min(n, max(minimum, ceil(n * percent / 100)))``.
 
-    Empty only when nothing was excluded; otherwise at least one test, so a selection
-    that drops anything always spends a little to check what it dropped.
+    The percentage keeps the chance of catching one wrong exclusion constant (≈ percent per
+    run) however large the excluded set grows — a fixed count's chance falls as 1/n. The
+    minimum stops the percentage shrinking to one test when the excluded set is small; it
+    equals the fixed count this tool used before (#1357), so no run audits fewer than it did.
+    Invalid policy is refused, never read as "audit nothing".
     """
-    if not excluded:
+    if not (
+        isinstance(percent, (int, float))
+        and not isinstance(percent, bool)
+        and math.isfinite(percent)
+        and 0 < percent <= 100
+    ):
+        raise ValueError("audit percent must be a number in (0, 100]")
+    if not (isinstance(minimum, int) and not isinstance(minimum, bool) and minimum >= 1):
+        raise ValueError("audit minimum must be an integer >= 1")
+    if n <= 0:
+        return 0
+    return min(n, max(minimum, math.ceil(n * percent / 100.0)))
+
+
+def seed_of(seed_material: str) -> str:
+    """The recorded seed: sha256 of ``'<head commit>:<resolved base>'`` (the #1357 derivation)."""
+    return hashlib.sha256(seed_material.encode("utf-8")).hexdigest()
+
+
+def audit_sample(
+    deselected: list[str], seed_material: str, *, percent: float, minimum: int
+) -> list[str]:
+    """A seeded sample of the tests the cone *excluded*, run alongside the selection.
+
+    Selection drops a test because the engine says the change cannot reach it. If that
+    belief is wrong, nothing in a narrowed run would ever show it: the dropped test simply
+    does not run. Running some excluded tests every time turns the map's accuracy from an
+    assumption into an observation — a sampled test that fails is a test the map missed.
+
+    Deterministic by construction: the seed is the head commit and the base, so the same
+    tree yields the same sample (``test_selection_is_reproducible_from_git_alone``), while
+    successive commits rotate through the excluded corpus instead of pinning one slice.
+    Empty only when nothing was excluded.
+    """
+    count = sample_size(len(deselected), percent, minimum)
+    if not count:
         return []
-    if not (isinstance(percent, (int, float)) and math.isfinite(percent) and 0 < percent <= 100):
-        raise ValueError("audit percent must be in (0, 100]")
-    count = min(len(excluded), max(1, math.ceil(len(excluded) * percent / 100.0)))
-    return sorted(random.Random(seed).sample(sorted(excluded), count))
+    rng = random.Random(int(seed_of(seed_material)[:16], 16))
+    return sorted(rng.sample(sorted(deselected), count))
 
 
 def _digest(value: Any) -> str:
     raw = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _selection_reasons(why: dict[str, Any]) -> list[str]:
+    """Why a test was selected, in the engine's own terms: capability hits and proven edges."""
+    return [f"capability:{cap}" for cap in why.get("capabilities", [])] + list(
+        why.get("dependencies", [])
+    )
 
 
 def decide(
@@ -224,32 +283,59 @@ def decide(
     *,
     mode: str,
     percent: float,
-    seed: str,
-) -> tuple[list[str], dict[str, int]]:
-    """Every tracked test gets exactly one decision; return the audit sample and the counts.
+    minimum: int,
+    seed_material: str,
+) -> tuple[list[str], dict[str, int], dict[str, dict[str, Any]]]:
+    """Give every tracked test exactly one planned decision.
 
-    In full mode everything runs, so nothing is excluded and no audit is drawn.
+    Returns the audit sample, the counts and the per-test decisions. ``selected`` carries
+    its reasons — a capability hit or a ``dependency:<kind>:<source>`` edge (#1361). In full
+    mode everything is planned to run, so nothing is excluded and no audit is drawn. These
+    are decisions of the plan, not outcomes: nothing here says a test ran or passed.
     """
     if mode == "full":
-        return [], {
-            "selected": 0,
-            "floor": 0,
-            "audit": 0,
-            "excluded_not_run": 0,
-            "full_suite": len(tests),
+        decisions = {path: {"decision": "full_suite"} for path in tests}
+        return (
+            [],
+            {
+                "selected": 0,
+                "floor": 0,
+                "audit": 0,
+                "excluded_not_run": 0,
+                "full_suite": len(tests),
+                "total": len(tests),
+            },
+            decisions,
+        )
+    floor_set = set(floor)
+    excluded = [path for path in tests if path not in selected and path not in floor_set]
+    audit = audit_sample(excluded, seed_material, percent=percent, minimum=minimum)
+    audit_set = set(audit)
+    decisions: dict[str, dict[str, Any]] = {}
+    for path in tests:
+        if path in selected:
+            decisions[path] = {
+                "decision": "selected",
+                "reasons": _selection_reasons(selected[path]),
+            }
+        elif path in floor_set:
+            decisions[path] = {"decision": "floor"}
+        elif path in audit_set:
+            decisions[path] = {"decision": "audit"}
+        else:
+            decisions[path] = {"decision": "excluded_not_run"}
+    return (
+        audit,
+        {
+            "selected": len(selected),
+            "floor": len(floor),
+            "audit": len(audit),
+            "excluded_not_run": len(excluded) - len(audit),
+            "full_suite": 0,
             "total": len(tests),
-        }
-    chosen = set(selected) | set(floor)
-    excluded = [path for path in tests if path not in chosen]
-    audit = audit_sample(excluded, percent, seed)
-    return audit, {
-        "selected": len(selected),
-        "floor": len(floor),
-        "audit": len(audit),
-        "excluded_not_run": len(excluded) - len(audit),
-        "full_suite": 0,
-        "total": len(tests),
-    }
+        },
+        decisions,
+    )
 
 
 def resolve_commit(ref: str, root: Path = ROOT) -> str:
@@ -283,7 +369,7 @@ def plan(
     affected = set(result["affected"])
 
     tests = discover_test_files(root)
-    selected, floor = select(snapshot, affected, tests)
+    selected, floor = select(snapshot, affected, tests, result.get("dependent_tests"))
 
     undecided = [p for p in changed if not _is_bound(snapshot, p)]
     reasons = escalation_reasons(
@@ -295,9 +381,19 @@ def plan(
 
     mode = "full" if reasons else "selected"
     head_commit = resolve_commit(head, root)
-    percent = active["audit_sample"]["percent"]
-    seed = _digest({"base": resolved_base, "head": head_commit, "changed": changed})
-    audit, counts = decide(tests, selected, floor, mode=mode, percent=percent, seed=seed)
+    sample_policy = active["audit_sample"]
+    percent = sample_policy["percent"]
+    minimum = sample_policy["minimum"]
+    seed_material = f"{head_commit}:{resolved_base}"
+    audit, counts, decisions = decide(
+        tests,
+        selected,
+        floor,
+        mode=mode,
+        percent=percent,
+        minimum=minimum,
+        seed_material=seed_material,
+    )
 
     result_plan = {
         "schema": "sahool.test_impact_plan",
@@ -318,13 +414,17 @@ def plan(
         "ceiling": active["measured_ceiling"],
         "audit": {
             "percent": percent,
-            "seed": seed,
+            "minimum": minimum,
+            "seed": seed_of(seed_material),
             "population": counts["audit"] + counts["excluded_not_run"],
             "test_paths": audit,
         },
+        "decisions": decisions,
         "decision_counts": counts,
         "authority": "plan-only: what was planned, not what ran or passed",
     }
+    # Identifies the plan, nothing more: a matching digest says "this is the plan that was
+    # printed", never that any test in it ran or passed.
     result_plan["plan_sha256"] = _digest(result_plan)
     return result_plan
 
@@ -339,11 +439,17 @@ def _is_bound(snapshot: Any, path: str) -> bool:
 
 
 def paths_to_run(result: dict[str, Any], *, root: Path = ROOT) -> list[str]:
-    """Selection ∪ floor ∪ audit — or every tracked test when escalated. The floor is never dropped."""
+    """Selection ∪ floor ∪ audit — or every tracked test when escalated.
+
+    The floor is never dropped, and the audit sample rides with every narrowed run. Reads
+    a v2 plan (``audit.test_paths``), a v1 plan that carried ``audit_sample`` (#1357), and
+    a v1 plan with neither.
+    """
     if result["mode"] == "full":
         return discover_test_files(root)
-    audit = (result.get("audit") or {}).get("test_paths", [])  # absent in a v1 plan
-    return sorted(set(result["floor"]) | set(result["selected"]) | set(audit))
+    audit = set((result.get("audit") or {}).get("test_paths", []))
+    audit |= set(result.get("audit_sample", []))
+    return sorted(set(result["floor"]) | set(result["selected"]) | audit)
 
 
 def render(result: dict[str, Any]) -> str:
@@ -367,8 +473,10 @@ def render(result: dict[str, Any]) -> str:
 
     for path, why in sorted(result["selected"].items()):
         lines.append(f"    ✓ {path}")
-        lines.append(f"        القدرات: {', '.join(why['capabilities'])}")
+        lines.append(f"        القدرات: {', '.join(why['capabilities']) or '—'}")
         lines.append(f"        المصدر : {', '.join(why['sources'])}")
+        if why.get("dependencies"):
+            lines.append(f"        تبعيّة : {', '.join(why['dependencies'])}")
 
     lines.append(f"  الأرضيّة الثابتة (لا يبلغها مخروط): {len(result['floor'])} ملفّاً")
 
@@ -376,12 +484,13 @@ def render(result: dict[str, Any]) -> str:
     if result["mode"] != "full":
         audit = result["audit"]
         lines.append(
-            f"  عيّنة التدقيق ({audit['percent']}٪ من المستبعَدة، بذرة {audit['seed'][:12]}): "
-            f"{counts['audit']} من {audit['population']} — فشلُ أحدها إخفاقٌ مقيس للمخروط"
+            f"  عيّنة تدقيق من المُستبعَد ({audit['percent']}٪، أدناها {audit['minimum']}، "
+            f"بذرة {audit['seed'][:12]}): {counts['audit']} من {audit['population']} "
+            "— تُشغَّل مع الاختيار؛ فشلُ أحدها يعني أنّ الخريطة أخطأت في استبعاده:"
         )
         for path in audit["test_paths"]:
-            lines.append(f"    ◇ {path}")
-        lines.append(f"  مستبعَدة لم تُشغَّل: {counts['excluded_not_run']} ملفّاً")
+            lines.append(f"      ◇ {path}")
+        lines.append(f"  مستبعَدة لن تُشغَّل: {counts['excluded_not_run']} ملفّاً")
 
     if result["undecided_changed_paths"]:
         lines.append(
@@ -399,7 +508,10 @@ def render(result: dict[str, Any]) -> str:
         f"{ceiling['cases_in_the_always_run_floor']} من {ceiling['unit_test_cases']} حالة "
         "تعمل دائماً — الاختيار يُنصِّف ولا يُلغي."
     )
-    lines.append(f"  بصمة الخطّة: {result['plan_sha256'][:16]} · رأس {result['head_commit'][:12]}")
+    lines.append(
+        f"  بصمة الخطّة: {result['plan_sha256'][:16]} · رأس {result['head_commit'][:12]} "
+        "— تُعرِّف الخطّة لا التنفيذ: لا تُثبت أنّ اختباراً عمل أو نجح."
+    )
     lines.append("  هذه أداة تسريع محلّيّة. القرار النهائيّ لـCI.")
     return "\n".join(lines)
 
@@ -440,6 +552,9 @@ def main(argv: list[str] | None = None) -> int:
         result = plan(args.base, args.head, include_working_tree=not args.committed_only)
     except subprocess.CalledProcessError as exc:
         print(f"✗ تعذّر اشتقاق الخطّة: {exc}", file=sys.stderr)
+        return 2
+    except ValueError as exc:  # an invalid audit_sample policy is refused, not read as "none"
+        print(f"✗ سياسة عيّنة التدقيق غير صالحة: {exc}", file=sys.stderr)
         return 2
 
     if args.print_paths:

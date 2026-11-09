@@ -13,6 +13,17 @@ Validates pesticides, fertilizers, and chemical inputs against:
 """
 
 
+def _known_amount(value) -> float | None:
+    """A numeric amount, or None when absent/non-numeric. Absent is never zero."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return value
+
+
+def _unknown_finding(rule: str, message: str, message_ar: str, severity: str = "HIGH") -> dict:
+    return {"severity": severity, "message": message, "message_ar": message_ar, "rule": rule}
+
+
 class ChemicalSafetyTier:
     """
     Chemical safety validation for agricultural inputs.
@@ -98,7 +109,7 @@ class ChemicalSafetyTier:
 
         if action_type == "pesticide":
             chemical = action_data.get("chemical", "").lower().strip()
-            dosage_kg_ha = action_data.get("dosage_kg_ha", 0)
+            dosage_kg_ha = _known_amount(action_data.get("dosage_kg_ha"))
             # Crop keys in MAX_DOSAGES are lowercase; the crop may arrive on the action
             # or only in the farm context. Normalise so "Tomato" still hits the ban.
             crop = next(
@@ -141,7 +152,17 @@ class ChemicalSafetyTier:
                     )
                     passed = False
 
-                if dosage_kg_ha > limits["max_kg_ha"]:
+                if dosage_kg_ha is None:
+                    # Fail closed: an absent dose is not a zero dose; limits cannot be checked.
+                    findings.append(
+                        _unknown_finding(
+                            "dosage_unknown",
+                            f"Dosage for {chemical} not specified; dose limits cannot be checked",
+                            f"جرعة مادة {chemical} غير محدّدة — تعذّر فحص حدود الجرعة؛ يتطلب مراجعة خبير",
+                        )
+                    )
+                    passed = False
+                elif dosage_kg_ha > limits["max_kg_ha"]:
                     findings.append(
                         {
                             "severity": "HIGH",
@@ -201,12 +222,25 @@ class ChemicalSafetyTier:
                 passed = False
 
         elif action_type == "fertilization":
-            n_kg = action_data.get("N_kg_ha", 0)
-            p_kg = action_data.get("P_kg_ha", 0)
-            k_kg = action_data.get("K_kg_ha", 0)
+            n_kg = _known_amount(action_data.get("N_kg_ha"))
+            p_kg = _known_amount(action_data.get("P_kg_ha"))
+            k_kg = _known_amount(action_data.get("K_kg_ha"))
+
+            # Fail closed: an absent dose or N history is unknown, not zero — the
+            # single-application and annual limits cannot be evaluated without it.
+            for key, value in (("N", n_kg), ("P", p_kg), ("K", k_kg)):
+                if value is None:
+                    findings.append(
+                        _unknown_finding(
+                            f"{key.lower()}_dose_unknown",
+                            f"{key}_kg_ha not specified; {key} limits cannot be checked",
+                            f"جرعة {key}_kg_ha غير محدّدة — تعذّر فحص حدودها؛ يتطلب مراجعة",
+                        )
+                    )
+                    passed = False
 
             # Check N limits
-            if n_kg > self.FERTILIZER_LIMITS["N"]["max_single_application"]:
+            if n_kg is not None and n_kg > self.FERTILIZER_LIMITS["N"]["max_single_application"]:
                 findings.append(
                     {
                         "severity": "HIGH",
@@ -226,8 +260,22 @@ class ChemicalSafetyTier:
                 )
 
             # Check water pollution risk
-            annual_n = farm_context.get("annual_N_kg_ha", 0) + n_kg
-            if annual_n > self.FERTILIZER_LIMITS["N"]["water_risk_threshold"]:
+            prior_n = _known_amount(farm_context.get("annual_N_kg_ha"))
+            if prior_n is None:
+                findings.append(
+                    _unknown_finding(
+                        "n_history_unknown",
+                        "Annual N already applied is unknown; water-pollution limit cannot be checked",
+                        "كمّيّة النيتروجين المضافة هذا العام غير معروفة — تعذّر فحص حدّ تلوّث المياه؛ يتطلب مراجعة",
+                        severity="MEDIUM",
+                    )
+                )
+                passed = False
+            annual_n = None if prior_n is None or n_kg is None else prior_n + n_kg
+            if (
+                annual_n is not None
+                and annual_n > self.FERTILIZER_LIMITS["N"]["water_risk_threshold"]
+            ):
                 findings.append(
                     {
                         "severity": "MEDIUM",
@@ -238,7 +286,7 @@ class ChemicalSafetyTier:
                 )
 
             # Check P single-application limit
-            if p_kg > self.FERTILIZER_LIMITS["P"]["max_single_application"]:
+            if p_kg is not None and p_kg > self.FERTILIZER_LIMITS["P"]["max_single_application"]:
                 findings.append(
                     {
                         "severity": "HIGH",
@@ -258,7 +306,7 @@ class ChemicalSafetyTier:
                 )
 
             # Check K single-application limit
-            if k_kg > self.FERTILIZER_LIMITS["K"]["max_single_application"]:
+            if k_kg is not None and k_kg > self.FERTILIZER_LIMITS["K"]["max_single_application"]:
                 findings.append(
                     {
                         "severity": "HIGH",

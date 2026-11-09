@@ -46,6 +46,29 @@ DYNAMIC_PROPERTY_TTL_S = SOIL_MOISTURE_SENSOR_TTL_S
 #: Clock skew up to five minutes counts as fresh; further ahead is a future timestamp.
 FUTURE_SKEW_TOLERANCE_S = 300.0
 
+#: Water-ledger (daily bucket) age beyond which the latest row is not current state. The
+#: platform's ``api/irrigation_state_guard.DEFAULT_MAX_LEDGER_AGE_HOURS`` is this value, and
+#: every ledger consumer (canonical water state, water twin, field-state water stress)
+#: imports it from there.
+WATER_LEDGER_MAX_AGE_HOURS = 72.0
+
+# ── Field-operation advice on MODELLED surface moisture ──────────────────────────────
+#: These thresholds apply to the weather model's surface layer (Open-Meteo
+#: ``soil_moisture_1_to_3cm``, m³/m³) — a modelled value, not a sensor reading and not
+#: root-zone available water, so none of the eligibility rules above apply to it. Both
+#: ``sahool-platform/api/routers/weather.py::_operation_suitability`` and
+#: ``weather-service/operations.py::operation_suitability`` read them from here (a parity
+#: test pins it); before, sowing said "dry" below 0.18 in one service and 0.12 in the other.
+#:
+#: DRY 0.18 = FAO-56 Table 19 θFC of sandy loam: a surface layer below it is drier than field
+#: capacity of light (sandy-loam) soils ⇒ sowing penalised,
+#: irrigation need flagged. WET 0.34 ⇒ surface near saturation for loams ⇒ harvest
+#: trafficability penalised / irrigation pointless. Advisory field-ops heuristics, not
+#: calibrated per field.
+MODELLED_SURFACE_MOISTURE_SOURCE = "modelled_surface_soil_moisture_1_to_3cm"
+SURFACE_MOISTURE_DRY_M3M3 = 0.18
+SURFACE_MOISTURE_WET_M3M3 = 0.34
+
 UNIT_AVAILABLE_PCT = "available_pct"
 UNIT_VWC_PCT = "vwc_pct"
 UNIT_UNDECLARED = "undeclared"

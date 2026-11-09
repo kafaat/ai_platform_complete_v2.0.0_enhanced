@@ -46,6 +46,12 @@ FIXTURE = (
     "docker-compose.v9.yml",
     "migrations/v11_events_bus.sql",
     "frontend/src/sections/MapHub.tsx",
+    # Added when the mapping engine stopped scoring one word twice (title "GDD" + alias
+    # "gdd"): two of the fixture's direct edges (persisted_canonical_repositories.py ->
+    # WX-006, irrigation_closed_loop_runtime.py -> DEC-006) existed only through that
+    # double count. A path-bound weather source keeps the fixture wide enough for a
+    # divergence to show, without asserting the old inflated edges.
+    "services/weather-service/gdd.py",
 )
 
 

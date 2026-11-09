@@ -8,6 +8,7 @@ reconciles only verified measured water into the daily water ledger.
 from __future__ import annotations
 
 import json
+import math
 from datetime import UTC, datetime
 from typing import Any
 
@@ -231,6 +232,10 @@ async def reconcile_irrigation_run(
         "applied_depth_mm": applied_depth,
         "applied_volume_m3": float(ledger_event["applied_volume_m3"] or 0.0),
         "depletion_before_mm": None if before is None else float(before),
+        # F2: «بعد» = قبل − المُطبَّق — حسابُ ميزانٍ لا رصدُ تربة. الاسم الصادق هو
+        # applied_balance_depletion_mm؛ depletion_after_mm يبقى اسماً مستعاراً للمستهلكين.
+        "applied_balance_depletion_mm": depletion_after,
+        "depletion_after_basis": "applied_balance_model",
         "depletion_after_mm": depletion_after,
         "truth": truth_dict,
     }
@@ -262,6 +267,13 @@ async def reconcile_irrigation_run(
     return result
 
 
+def _finite_non_negative(value: Any) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    number = float(value)
+    return number if math.isfinite(number) and number >= 0 else None
+
+
 async def finalize_irrigation_closed_loop(
     conn,
     *,
@@ -274,9 +286,17 @@ async def finalize_irrigation_closed_loop(
     energy_kwh: float | None = None,
     stress_days_observed: float | None = None,
     yield_t_ha: float | None = None,
+    observed_depletion_after_mm: float | None = None,
 ) -> dict[str, Any]:
-    """Complete the verified irrigation loop atomically without auto-adjusting models."""
+    """Complete the verified irrigation loop atomically without auto-adjusting models.
+
+    ``observed_depletion_after_mm`` is an independent post-irrigation soil-moisture observation.
+    Without it the after-value is the applied-balance model (before - applied), so the outcome is
+    recorded but the learning proposal is blocked (``no_independent_measurement``).
+    """
     from api.irrigation_closed_loop_learning import (
+        DEPLETION_BASIS_MODEL,
+        DEPLETION_BASIS_OBSERVED,
         build_irrigation_closed_loop_record,
         build_irrigation_outcome_evidence,
         propose_governed_irrigation_learning,
@@ -317,7 +337,13 @@ async def finalize_irrigation_closed_loop(
         "execution_plan_digest": reconciliation["execution_plan_digest"],
     }
     before = reconciliation.get("depletion_before_mm")
-    after = reconciliation.get("depletion_after_mm")
+    after = reconciliation.get(
+        "applied_balance_depletion_mm", reconciliation.get("depletion_after_mm")
+    )
+    basis = DEPLETION_BASIS_MODEL
+    observed = _finite_non_negative(observed_depletion_after_mm)
+    if observed is not None:
+        after, basis = observed, DEPLETION_BASIS_OBSERVED
     if before is None or after is None:
         return {"status": "blocked", "reason": "DEPLETION_MEASUREMENTS_REQUIRED"}
 
@@ -338,6 +364,7 @@ async def finalize_irrigation_closed_loop(
         energy_kwh=energy_kwh,
         stress_days_observed=stress_days_observed,
         yield_t_ha=yield_t_ha,
+        depletion_after_basis=basis,
     )
     await conn.execute(
         """INSERT INTO irrigation_outcome_evidence
@@ -389,6 +416,8 @@ async def finalize_irrigation_closed_loop(
         closed.closed_loop_digest,
         json.dumps(closed_payload, default=str),
     )
+    # sample_count يعدّ حلقاتِ الحقل-الموسم نفسه (وحدةٌ واحدة لا عيّناتٌ مستقلّة)؛ الحدّ ≥ 1 (F5).
+    minimum_samples = max(1, int(minimum_samples))
     sample_count = int(
         await conn.fetchval(
             "SELECT count(*) FROM irrigation_closed_loop_records WHERE field_id=$1 AND season_id=$2 AND learning_eligible",

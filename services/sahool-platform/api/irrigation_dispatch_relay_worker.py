@@ -65,6 +65,17 @@ _DURABLE_UNSAFE = re.compile(r"[^A-Za-z0-9_-]+")
 # Reply inbox under this worker's own identity (nats/nats.conf denies the shared `_INBOX.>`).
 INBOX_PREFIX = "_INBOX_sahool-reservation-dispatch-relay-worker"
 NAK_DELAY_SECONDS = 15.0
+# Bounded redelivery + dead letter: a retryable failure is nak'ed with a delay doubling from
+# NAK_DELAY_SECONDS to NAK_MAX_DELAY_SECONDS (keyed on JetStream's ``num_delivered``); on the
+# MAX_DELIVERIES-th delivery, and before any ``term``, the original envelope and the reason
+# are published to DLQ_SUBJECT. A failed dead-letter publish keeps the message (nak) instead
+# of dropping it. 20 deliveries span roughly three and a half hours of inbox outage.
+DLQ_SUBJECT = "sahool.dlq.irrigation_dispatch_relay"
+MAX_DELIVERIES = 20
+NAK_MAX_DELAY_SECONDS = 900.0
+# Server-side backstop on consumers this relay creates (an existing durable keeps its stored
+# config); a few above MAX_DELIVERIES so a failed last dead-letter publish is retried.
+CONSUMER_MAX_DELIVER = MAX_DELIVERIES + 3
 # Inbox refusals that a redelivery cannot fix (bad body / unknown route / conflicting duplicate).
 _PERMANENT_STATUSES = frozenset({400, 404, 409, 410, 422})
 
@@ -104,16 +115,100 @@ def settlement_for(result: dict[str, Any]) -> str:
     return "nak"
 
 
-async def _settle(msg: Any, decision: str) -> None:
-    """Apply the settlement when the message is a JetStream delivery (core messages have none)."""
+def delivery_count(msg: Any) -> int:
+    """JetStream's ``num_delivered`` for this message (1 when unknown)."""
+    try:
+        return max(int(msg.metadata.num_delivered), 1)
+    except Exception:  # noqa: BLE001 — metadata absent or unparsable
+        return 1
+
+
+def redelivery_delay(num_delivered: int) -> float:
+    """Exponential nak delay: 15 s, 30 s, 60 s … capped at NAK_MAX_DELAY_SECONDS."""
+    exponent = min(max(num_delivered - 1, 0), 16)
+    return min(NAK_DELAY_SECONDS * (2**exponent), NAK_MAX_DELAY_SECONDS)
+
+
+def _settlement_reason(result: dict[str, Any]) -> str:
+    parts = [str(result.get("outcome"))]
+    for key in ("reason", "status", "error"):
+        if result.get(key) is not None:
+            parts.append(f"{key}={result[key]}")
+    return ";".join(parts)
+
+
+async def publish_dead_letter(js: Any, msg: Any, *, reason: str, num_delivered: int) -> bool:
+    """Best-effort: publish the original envelope plus reason to DLQ_SUBJECT. Never raises."""
+    if js is None:
+        return False
+    try:
+        metadata = msg.metadata
+        source_id = f"{metadata.stream}:{metadata.sequence.stream}"
+    except Exception:  # noqa: BLE001 — core message or test double without metadata
+        source_id = None
+    try:
+        data = msg.data
+        body = {
+            "dead_lettered_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "envelope": data.decode("utf-8", errors="replace")
+            if isinstance(data, bytes | bytearray)
+            else str(data),
+            "num_delivered": num_delivered,
+            "reason": reason[:500],
+            "source_id": source_id,
+            "source_subject": getattr(msg, "subject", None),
+            "worker": WORKER_NAME,
+        }
+        headers = {"Nats-Msg-Id": f"{DLQ_SUBJECT}:{source_id}"} if source_id else None
+        await js.publish(
+            "sahool.dlq.irrigation_dispatch_relay",
+            json.dumps(body, sort_keys=True).encode("utf-8"),
+            headers=headers,
+        )
+        return True
+    except Exception as exc:  # noqa: BLE001 — the caller keeps the message instead
+        logger.warning("dispatch relay: dead-letter publish failed (%s): %s", reason, exc)
+        return False
+
+
+async def _settle(
+    msg: Any, decision: str, *, js: Any = None, reason: str = "", dead_letter: bool = False
+) -> str:
+    """Apply the settlement when the message is a JetStream delivery (core messages have none).
+
+    ``dead_letter`` marks a relay wired to JetStream (``js`` given): every ``term`` and the
+    last bounded ``nak`` go to DLQ_SUBJECT first, and a failed publish keeps the message. A
+    handler built without a sink (``js=None``) keeps the legacy ``term`` — a JetStream
+    relay always passes one (``run_relay``).
+    """
     if not hasattr(msg, "ack"):
-        return
+        return "none"
+    num_delivered = delivery_count(msg)
+    if decision == "nak" and num_delivered >= MAX_DELIVERIES:
+        decision = "term"
+        reason = f"{reason};deliveries_exhausted:{num_delivered}"
     if decision == "ack":
         await msg.ack()
-    elif decision == "term":
+        return "ack"
+    if decision == "term":
+        if dead_letter and not await publish_dead_letter(
+            js, msg, reason=reason, num_delivered=num_delivered
+        ):
+            await msg.nak(delay=redelivery_delay(num_delivered))
+            return "nak"
         await msg.term()
-    else:
-        await msg.nak(delay=NAK_DELAY_SECONDS)
+        return "term"
+    await msg.nak(delay=redelivery_delay(num_delivered))
+    return "nak"
+
+
+def consumer_config() -> Any:
+    """Config for a durable this relay creates: bounded ``max_deliver`` (never unlimited)."""
+    try:
+        from nats.js.api import ConsumerConfig
+    except ImportError:  # no client library (or a test double): nothing to create anyway
+        return None
+    return ConsumerConfig(max_deliver=CONSUMER_MAX_DELIVER)
 
 
 def subscribed_subjects() -> tuple[str, ...]:
@@ -196,9 +291,11 @@ async def _default_post(tenant_id: str | None, body: dict[str, Any]) -> tuple[in
 
 
 def make_message_handler(
-    post: PostFn, heartbeat: HeartbeatState
+    post: PostFn, heartbeat: HeartbeatState, *, js: Any = None
 ) -> Callable[[Any], Awaitable[None]]:
     """The NATS callback: relay one delivery and leave a heartbeat behind it.
+
+    ``js`` is the JetStream context the dead letters go to (see ``_settle``).
 
     A handler error marks the beat ``failed`` (the probe reports it with the error text) but
     never kills the subscription — the next delivery may succeed and mark it running again.
@@ -210,7 +307,7 @@ def make_message_handler(
         except Exception as exc:  # noqa: BLE001 — a single bad message must not kill the worker
             logger.warning("dispatch relay handler error: %s", exc)
             heartbeat.mark_error(f"{type(exc).__name__}: {exc}")
-            result = {"outcome": "error"}
+            result = {"outcome": "error", "error": type(exc).__name__}
         else:
             # The structured outcome IS the health signal — a handler that returns is not a
             # handler that delivered. Only `delivered` counts; a `failed` POST (503 mirror,
@@ -227,7 +324,13 @@ def make_message_handler(
                 _touch_alive(heartbeat)
         heartbeat.write()
         try:
-            await _settle(msg, settlement_for(result))
+            await _settle(
+                msg,
+                settlement_for(result),
+                js=js,
+                reason=_settlement_reason(result),
+                dead_letter=js is not None,
+            )
         except Exception as exc:  # noqa: BLE001 — unacked ⇒ JetStream redelivers after ack_wait
             logger.warning("dispatch relay settlement error: %s", exc)
 
@@ -285,11 +388,17 @@ async def run_relay(
     # `NATS_URL` صار يحمل الاعتماد — يُطبَع مُنقّى (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01).
     logger.info("reservation dispatch relay connected to NATS at %s", redact_broker_url(nats_url))
 
-    on_message = make_message_handler(post, beat)
+    on_message = make_message_handler(post, beat, js=js)
     try:
         for subject in subscribed_subjects():
             durable = durable_for_subject(subject)
-            await js.subscribe(subject, durable=durable, cb=on_message, manual_ack=True)
+            await js.subscribe(
+                subject,
+                durable=durable,
+                cb=on_message,
+                manual_ack=True,
+                config=consumer_config(),
+            )
             logger.info("reservation dispatch relay bound %s as durable %s", subject, durable)
         await idle_with_heartbeat(beat, state="running")
     finally:

@@ -42,6 +42,56 @@ def journal():
     return ExecutionJournal()
 
 
+EXAMPLE_TOOLS = ("weather.forecast", "actuator.pump.start", "ndvi.read_observation")
+
+
+def _register_live_tools(r: ToolRegistry, calls: list | None = None) -> ToolRegistry:
+    """أدوات حيّة للاختبار (ليست أمثلة bootstrap): read + actuator مسجَّلان بتنفيذ صريح."""
+
+    async def live_read(lat, lng, days=7):
+        if calls is not None:
+            calls.append(("live.read", lat, lng, days))
+        return {"forecast": [{"day": i} for i in range(days)]}
+
+    async def live_actuator(well_id, duration_min):
+        if calls is not None:
+            calls.append(("live.actuator", well_id, duration_min))
+        return {"irrigation_event_id": f"evt-{well_id}"}
+
+    r.register(
+        ToolContract(
+            tool_id="live.read",
+            version="1.0.0",
+            description="live read tool (test)",
+            input_schema={"type": "object", "required": ["lat", "lng"]},
+            output_schema={"type": "object", "required": ["forecast"]},
+            side_effects=SideEffectClass.EXTERNAL_API,
+            required_capabilities=["weather.read"],
+        ),
+        implementation=live_read,
+    )
+    r.register(
+        ToolContract(
+            tool_id="live.actuator",
+            version="1.0.0",
+            description="live actuator tool (test)",
+            input_schema={"type": "object", "required": ["well_id", "duration_min"]},
+            output_schema={"type": "object", "required": ["irrigation_event_id"]},
+            side_effects=SideEffectClass.ACTUATOR,
+            required_capabilities=["actuator.pump.control"],
+            max_retries=0,
+            idempotent=False,
+        ),
+        implementation=live_actuator,
+    )
+    return r
+
+
+@pytest.fixture
+def live_registry():
+    return _register_live_tools(ToolRegistry())
+
+
 class TestToolRegistry:
     def test_default_tools_registered(self, registry):
         tools = registry.list_tools()
@@ -73,10 +123,10 @@ class TestInvocation:
         assert "غير مسجّل" in result.error
 
     @pytest.mark.asyncio
-    async def test_capability_denied(self, registry, journal):
-        # actor بدون capabilities
-        result = await registry.invoke(
-            tool_id="weather.forecast",
+    async def test_capability_denied(self, live_registry, journal):
+        # actor بدون capabilities — على أداة حيّة (الأمثلة تُرفَض قبل فحص الصلاحيّات)
+        result = await live_registry.invoke(
+            tool_id="live.read",
             input_data={"lat": 15.0, "lng": 44.0, "days": 7},
             actor_capabilities=set(),  # لا capabilities
             tenant_id="test-tenant",
@@ -89,12 +139,12 @@ class TestInvocation:
         entries = await journal.get_entries()
         denials = [e for e in entries if e.event == "denial"]
         assert len(denials) == 1
-        assert denials[0].tool_id == "weather.forecast"
+        assert denials[0].tool_id == "live.read"
 
     @pytest.mark.asyncio
-    async def test_successful_invocation(self, registry, journal):
-        result = await registry.invoke(
-            tool_id="weather.forecast",
+    async def test_successful_invocation(self, live_registry, journal):
+        result = await live_registry.invoke(
+            tool_id="live.read",
             input_data={"lat": 15.0, "lng": 44.0, "days": 3},
             actor_capabilities={"weather.read"},
             tenant_id="test-tenant",
@@ -113,10 +163,10 @@ class TestInvocation:
         assert completes[0].payload["success"] is True
 
     @pytest.mark.asyncio
-    async def test_invalid_input_rejected(self, registry):
+    async def test_invalid_input_rejected(self, live_registry):
         # missing 'lat'
-        result = await registry.invoke(
-            tool_id="weather.forecast",
+        result = await live_registry.invoke(
+            tool_id="live.read",
             input_data={"lng": 44.0},
             actor_capabilities={"weather.read"},
         )
@@ -186,11 +236,11 @@ class TestActuatorContracts:
 
 class TestJournalReplay:
     @pytest.mark.asyncio
-    async def test_replay_extracts_history(self, registry, journal):
+    async def test_replay_extracts_history(self, live_registry, journal):
         # نفّذ tool عدّة مرّات
         for i in range(3):
-            await registry.invoke(
-                "weather.forecast",
+            await live_registry.invoke(
+                "live.read",
                 {"lat": 15.0 + i, "lng": 44.0, "days": 7},
                 {"weather.read"},
                 tenant_id="t1",
@@ -227,10 +277,10 @@ class TestJournalReplay:
 
 class TestSideEffectsTracking:
     @pytest.mark.asyncio
-    async def test_actuator_invocation_journaled(self, registry, journal):
+    async def test_actuator_invocation_journaled(self, live_registry, journal):
         """actuator invocation يجب أن يُسجَّل في journal (للـaudit)."""
-        result = await registry.invoke(
-            "actuator.pump.start",
+        result = await live_registry.invoke(
+            "live.actuator",
             {"well_id": "w1", "duration_min": 30},
             {"actuator.pump.control"},
             tenant_id="t1",
@@ -240,6 +290,129 @@ class TestSideEffectsTracking:
         assert result.side_effects_recorded
 
         # تحقّق من journal
-        actuator_entries = await journal.get_entries(tool_id="actuator.pump.start")
+        actuator_entries = await journal.get_entries(tool_id="live.actuator")
         starts = [e for e in actuator_entries if e.event == "start"]
         assert len(starts) == 1
+
+
+class TestExampleToolsAreNotExecutable:
+    """S-07: أمثلة bootstrap لا تُنفَّذ ولا تُعرَض كأدوات حيّة.
+
+    كان `actuator.pump.start` يُعيد `irrigation_event_id` مُختلَقاً لمن يحمل
+    `actuator.pump.control` — نجاح مشغّل زائف — والطقس توقّعاً مُختلَقاً وNDVI ثابتاً 0.65.
+    """
+
+    def test_bootstrap_tools_are_all_marked_example_and_unavailable(self, registry):
+        for tool_id in EXAMPLE_TOOLS:
+            contract = registry.get_contract(tool_id)
+            assert contract.example_only is True
+            assert contract.available is False
+            assert contract.invocable is False
+        assert registry.list_invocable_tools() == []
+
+    @pytest.mark.asyncio
+    async def test_example_pump_refused_with_capability_and_impl_never_called(
+        self, registry, journal
+    ):
+        called = []
+
+        async def spy(**kwargs):
+            called.append(kwargs)
+            return {"irrigation_event_id": "fabricated"}
+
+        registry._implementations["actuator.pump.start"] = spy
+        result = await registry.invoke(
+            "actuator.pump.start",
+            {"well_id": "w1", "duration_min": 30},
+            {"actuator.pump.control"},
+            tenant_id="t1",
+            journal=journal,
+        )
+        assert result.success is False
+        assert result.output is None
+        assert "example-only" in result.error
+        assert called == []
+        entries = await journal.get_entries(tool_id="actuator.pump.start")
+        assert [e.event for e in entries] == ["denial"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("tool_id", "payload", "caps"),
+        [
+            ("weather.forecast", {"lat": 15.0, "lng": 44.0, "days": 3}, {"weather.read"}),
+            ("ndvi.read_observation", {"field_id": "f1"}, {"ndvi.read"}),
+        ],
+    )
+    async def test_example_read_tools_refused_even_with_capability(
+        self, registry, tool_id, payload, caps
+    ):
+        result = await registry.invoke(tool_id, payload, caps)
+        assert result.success is False
+        assert result.output is None
+        assert "example-only" in result.error
+
+    @pytest.mark.asyncio
+    async def test_example_implementations_do_not_fabricate_output(self, registry):
+        for tool_id, payload in (
+            ("weather.forecast", {"lat": 1.0, "lng": 2.0}),
+            ("actuator.pump.start", {"well_id": "w1", "duration_min": 5}),
+            ("ndvi.read_observation", {"field_id": "f1"}),
+        ):
+            with pytest.raises(RuntimeError, match="no live implementation"):
+                await registry._implementations[tool_id](**payload)
+
+    @pytest.mark.asyncio
+    async def test_unavailable_non_example_tool_is_refused(self):
+        called = []
+
+        async def impl(**kwargs):
+            called.append(kwargs)
+            return {}
+
+        r = ToolRegistry()
+        r.register(
+            ToolContract(
+                tool_id="planned.tool",
+                version="1.0.0",
+                description="declared, not wired",
+                input_schema={"type": "object"},
+                output_schema={"type": "object"},
+                side_effects=SideEffectClass.READ_DB,
+                available=False,
+            ),
+            implementation=impl,
+        )
+        result = await r.invoke("planned.tool", {}, set())
+        assert result.success is False
+        assert "unavailable" in result.error
+        assert called == []
+
+    def test_example_cannot_be_declared_available(self):
+        with pytest.raises(ValueError):
+            ToolContract(
+                tool_id="bad.example",
+                version="1.0.0",
+                description="contradiction",
+                input_schema={"type": "object"},
+                output_schema={"type": "object"},
+                side_effects=SideEffectClass.PURE,
+                example_only=True,
+                available=True,
+            )
+
+    @pytest.mark.asyncio
+    async def test_live_tool_still_invokes(self, journal):
+        calls: list = []
+        r = _register_live_tools(ToolRegistry(), calls)
+        bootstrap_default_tools(r)  # الأمثلة بجانب أداة حيّة لا تعطّلها
+        result = await r.invoke(
+            "live.actuator",
+            {"well_id": "w9", "duration_min": 10},
+            {"actuator.pump.control"},
+            tenant_id="t1",
+            journal=journal,
+        )
+        assert result.success, result.error
+        assert result.output == {"irrigation_event_id": "evt-w9"}
+        assert calls == [("live.actuator", "w9", 10)]
+        assert r.list_invocable_tools() == ["live.actuator", "live.read"]

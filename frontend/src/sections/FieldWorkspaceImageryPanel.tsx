@@ -67,7 +67,7 @@ function WorkspaceOverview({ data }: { data: RemoteSensingWorkspaceOverview }) {
   const rows = [
     ['الرصدات', data.observation_count],
     ['الشذوذ المفتوح', data.open_anomaly_count],
-    ['القرارات المرتبطة', data.decision_count],
+    ['القرارات المرتبطة (كامل الحقل)', data.decision_count],
     ['النتائج المتحققة', data.verified_outcome_count],
   ] as const;
   return (
@@ -75,7 +75,7 @@ function WorkspaceOverview({ data }: { data: RemoteSensingWorkspaceOverview }) {
       {rows.map(([label, value]) => (
         <div key={label} className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
           <dt className="text-xs text-slate-400">{label}</dt>
-          <dd className="mt-1 text-lg font-bold text-slate-100">{value}</dd>
+          <dd className="mt-1 text-lg font-bold text-slate-100">{value ?? 'غير متاح'}</dd>
         </div>
       ))}
     </dl>

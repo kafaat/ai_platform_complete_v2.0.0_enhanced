@@ -23,7 +23,6 @@ from core.farm_closed_loop import (
     operation_event_to_ledger_payload,
 )
 from core.farm_costing import (
-    ActualCostLine,
     SeasonBudgetLine,
     compute_profitability,
     compute_variances,
@@ -33,7 +32,7 @@ from core.farm_costing import (
 )
 from core.farm_operations_ledger import LedgerSummary
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from api import main as api_main
 from api.feature_registry import is_enabled
@@ -213,6 +212,11 @@ class OperationLedgerIn(BaseModel):
     @classmethod
     def _cost_positive(cls, v):
         return _non_negative_or_none(v, "cost_amount")
+
+    @model_validator(mode="after")
+    def _status_lifecycle(self):  # مخطَّط≠منفَّذ: حالةٌ معدودة ولا «منجَزة» مستقبليّة
+        ledger_core.validate_operation_status(self.status, self.operation_date)
+        return self
 
 
 def _request_digest(req: OperationLedgerIn) -> str:
@@ -396,11 +400,12 @@ async def farm_ledger_summary(
             if field_id:
                 await _assert_field_in_tenant(conn, field_id)
             row = await conn.fetchrow(
-                f"""WITH ops AS (
-                    SELECT * FROM farm_operation_ledger o WHERE {where_sql}
-                )
+                f"""WITH scoped AS (SELECT * FROM farm_operation_ledger o WHERE {where_sql}),
+                ops AS (SELECT * FROM scoped WHERE {ledger_core.ACTUAL_OPERATION_SQL})
                 SELECT
                     COUNT(*)::int AS operation_count,
+                    (SELECT COUNT(*) FROM scoped WHERE {ledger_core.PLANNED_OPERATION_SQL})::int AS planned_operation_count,
+                    (SELECT COALESCE(SUM(cost_amount), 0) FROM scoped WHERE {ledger_core.PLANNED_OPERATION_SQL})::float AS planned_cost,
                     COALESCE(SUM(cost_amount), 0)::float AS total_cost,
                     COALESCE(SUM(cost_amount) FILTER (WHERE cost_category IN ('administration','overhead','supervision','security','management')), 0)::float AS indirect_cost,
                     COALESCE(SUM(cost_amount) FILTER (WHERE sync_status IN ('ready_for_sync','synced','sync_failed')), 0)::float AS syncable_cost,
@@ -417,7 +422,7 @@ async def farm_ledger_summary(
             breakdown_rows = await conn.fetch(
                 f"""SELECT COALESCE(cost_category, 'uncategorized') AS category,
                            COALESCE(SUM(cost_amount), 0)::float AS amount
-                    FROM farm_operation_ledger o WHERE {where_sql}
+                    FROM farm_operation_ledger o WHERE {where_sql} AND {ledger_core.ACTUAL_OPERATION_SQL}
                     GROUP BY COALESCE(cost_category, 'uncategorized')
                     ORDER BY category""",
                 *args,
@@ -430,8 +435,10 @@ async def farm_ledger_summary(
     indirect = float(row["indirect_cost"] or 0.0)
     return {
         "summary": {
-            "operation_count": row["operation_count"],
+            "operation_count": row["operation_count"],  # منجَزة حتى اليوم فقط
             "total_cost": total,
+            "planned_operation_count": row["planned_operation_count"],
+            "planned_cost": float(row["planned_cost"] or 0.0),
             "direct_cost": total - indirect,
             "indirect_cost": indirect,
             "cost_breakdown": {r["category"]: float(r["amount"] or 0.0) for r in breakdown_rows},
@@ -646,53 +653,6 @@ async def create_revenue_record(
     return {"revenue_id": revenue_id, "amount": amount, "message_ar": "حُفظ سجل الإيراد"}
 
 
-async def _fetch_budget_and_actual(conn, tenant_id: str, season_id: str):
-    budget_rows = await conn.fetch(
-        """SELECT budget_line_id, season_id, stage, category, planned_quantity, unit,
-                  planned_unit_cost, planned_cost, currency, source, editable
-           FROM farm_season_budget_lines
-           WHERE tenant_id = $1::uuid AND season_id = $2""",
-        tenant_id,
-        season_id,
-    )
-    actual_rows = await conn.fetch(
-        """SELECT operation_id, season_id, COALESCE(cost_category, operation_type) AS category,
-                  'whole_season' AS stage, cost_amount, currency
-           FROM farm_operation_ledger
-           WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NOT NULL""",
-        tenant_id,
-        season_id,
-    )
-    budgets = [
-        SeasonBudgetLine(
-            line_id=r["budget_line_id"],
-            season_id=r["season_id"],
-            category=r["category"],
-            stage=r["stage"],
-            planned_quantity=r["planned_quantity"],
-            unit=r["unit"],
-            planned_unit_cost=r["planned_unit_cost"],
-            planned_cost=float(r["planned_cost"] or 0.0),
-            currency=r["currency"],
-            source=r["source"],
-            editable=r["editable"],
-        )
-        for r in budget_rows
-    ]
-    actuals = [
-        ActualCostLine(
-            source_id=r["operation_id"],
-            season_id=r["season_id"],
-            category=r["category"],
-            stage=r["stage"],
-            actual_cost=float(r["cost_amount"] or 0.0),
-            currency=r["currency"],
-        )
-        for r in actual_rows
-    ]
-    return budgets, actuals
-
-
 @router.get("/api/v1/farm-ledger/variance/{season_id}")
 async def get_budget_variance(
     season_id: str,
@@ -708,7 +668,9 @@ async def get_budget_variance(
         }
     try:
         async with tenant_connection(user) as conn:
-            budgets, actuals = await _fetch_budget_and_actual(conn, str(user.tenant_id), season_id)
+            budgets, actuals = await ledger_core.fetch_budget_and_actual(
+                conn, str(user.tenant_id), season_id
+            )
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحليل انحرافات الموسم", e) from e
     variance = compute_variances(budgets, actuals)
@@ -733,7 +695,9 @@ async def get_season_profitability(
         return {"season_id": season_id, "profitability": None, "note_ar": "القاعدة غير مفعلة"}
     try:
         async with tenant_connection(user) as conn:
-            _, actuals = await _fetch_budget_and_actual(conn, str(user.tenant_id), season_id)
+            _, actuals = await ledger_core.fetch_budget_and_actual(
+                conn, str(user.tenant_id), season_id
+            )
             rev = await conn.fetchrow(
                 """SELECT COALESCE(SUM(amount), 0)::float AS revenue
                    FROM farm_revenue_records WHERE tenant_id = $1::uuid AND season_id = $2""",
@@ -768,7 +732,9 @@ async def get_erp_projection(
         return {"season_id": season_id, "lines": [], "note_ar": "القاعدة غير مفعلة"}
     try:
         async with tenant_connection(user) as conn:
-            _, actuals = await _fetch_budget_and_actual(conn, str(user.tenant_id), season_id)
+            _, actuals = await ledger_core.fetch_budget_and_actual(
+                conn, str(user.tenant_id), season_id
+            )
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("إسقاط ERP", e) from e
     lines = project_to_erp_lines(actuals, cost_center=cost_center, project=season_id)
@@ -932,8 +898,9 @@ async def get_inventory_projection(
 
 async def _fetch_ledger_summary_for_season(conn, tenant_id: str, season_id: str) -> LedgerSummary:
     row = await conn.fetchrow(
-        """WITH ops AS (
+        f"""WITH ops AS (
             SELECT * FROM farm_operation_ledger WHERE tenant_id = $1::uuid AND season_id = $2
+              AND {ledger_core.ACTUAL_OPERATION_SQL}
         )
         SELECT
             COUNT(*)::int AS operation_count,
@@ -952,10 +919,10 @@ async def _fetch_ledger_summary_for_season(conn, tenant_id: str, season_id: str)
         season_id,
     )
     breakdown_rows = await conn.fetch(
-        """SELECT COALESCE(cost_category, 'uncategorized') AS category,
+        f"""SELECT COALESCE(cost_category, 'uncategorized') AS category,
                   COALESCE(SUM(cost_amount), 0)::float AS amount
            FROM farm_operation_ledger
-           WHERE tenant_id = $1::uuid AND season_id = $2
+           WHERE tenant_id = $1::uuid AND season_id = $2 AND {ledger_core.ACTUAL_OPERATION_SQL}
            GROUP BY COALESCE(cost_category, 'uncategorized')""",
         tenant_id,
         season_id,
@@ -995,7 +962,9 @@ async def get_economic_state(
     try:
         async with tenant_connection(user) as conn:
             summary = await _fetch_ledger_summary_for_season(conn, str(user.tenant_id), season_id)
-            budgets, actuals = await _fetch_budget_and_actual(conn, str(user.tenant_id), season_id)
+            budgets, actuals = await ledger_core.fetch_budget_and_actual(
+                conn, str(user.tenant_id), season_id
+            )
             variances = compute_variances(budgets, actuals)
             rev = await conn.fetchrow(
                 """SELECT COALESCE(SUM(amount), 0)::float AS revenue

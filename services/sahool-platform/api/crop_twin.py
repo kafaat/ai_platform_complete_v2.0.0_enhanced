@@ -209,6 +209,9 @@ def crop_twin_state(
             "stage": nut["matched_stage"],
             "cumulative_fraction_to_date": nut["cumulative_fraction_to_date"],
             "uptake_to_date_kg_ha": nut["uptake_to_date_kg_ha"],
+            # منحنى البطاقة المرحليّ (crop_card) أم المنحنى العامّ (generic) — والعنصر الذي يخصّه.
+            "curve_source": nut["source"],
+            "nutrient": nut["nutrient"],
         },
         "crop_intelligence": crop_intelligence,
         "calibrated": False,

@@ -296,5 +296,83 @@ def test_subjects_check_warns_on_unwaived_orphan_and_waiver_silences_it(monkeypa
     assert si.check_nats_subjects().status == si.PASS
 
 
+# ── منشور بلا مشترِك: جردُ الناشرين من nats/nats.conf (لا ``.publish("literal")``) ──
+# كان ``published_no_consumer: []`` بينما تأذن nats.conf لعمّال phase-runtime ووكيل الإشعارات
+# بمواضيعَ لا يشترك فيها أحد — الفحصُ القديم يرى النشرَ الحرفيّ وحده.
+
+
+def _contract_with(tmp_path, mutate) -> Path:
+    import yaml
+
+    doc = yaml.safe_load((_ROOT / "event_publish_contracts.yaml").read_text(encoding="utf-8"))
+    mutate(doc)
+    out = tmp_path / "event_publish_contracts.yaml"
+    out.write_text(yaml.safe_dump(doc, allow_unicode=True), encoding="utf-8")
+    return out
+
+
+def test_published_no_consumer_guard_is_registered_and_passes_on_the_tree():
+    assert si.check_nats_published_no_consumer in si.CHECKS
+    result = si.check_nats_published_no_consumer()
+    assert result.status == si.PASS, "\n".join(result.findings)
+
+
+def test_every_broker_publishable_subject_without_consumer_is_in_the_contract():
+    """الجردُ نفسُه: كلُّ موضوعٍ مأذونٍ في nats.conf بلا مشترِك موثَّقٌ بقيد (لا قائمة فارغة)."""
+    import yaml
+
+    users = si._nats_conf_users((_ROOT / "nats" / "nats.conf").read_text(encoding="utf-8"))
+    consumed = set(si._consumed_subjects())
+    orphans = {
+        s
+        for s in si._broker_publish_inventory(users)
+        if not any(si._nats_matches(c, s) for c in consumed)
+    }
+    doc = yaml.safe_load((_ROOT / "event_publish_contracts.yaml").read_text(encoding="utf-8"))
+    waived = {e["subject"] for e in doc["published_no_consumer"]}
+    assert orphans, "nats.conf بلا موضوعٍ يتيم؟ إن صحّ فاحذف القيود البائتة"
+    assert orphans <= waived, sorted(orphans - waived)
+    assert "sahool.actuator.dispatch.requested" in orphans
+    assert "sahool.events.>" not in orphans  # notif_domain_events يستهلكه
+
+
+def test_guard_fails_on_an_undocumented_publishable_subject(monkeypatch, tmp_path):
+    victim = "sahool.model.rollback.requested"
+
+    def drop(doc):
+        doc["published_no_consumer"] = [
+            e for e in doc["published_no_consumer"] if e["subject"] != victim
+        ]
+
+    monkeypatch.setattr(si, "CONTRACTS", _contract_with(tmp_path, drop))
+    result = si.check_nats_published_no_consumer()
+    assert result.status == si.FAIL
+    assert any(victim in f and "بلا مشترِك ولا قيد" in f for f in result.findings)
+
+
+def test_guard_fails_on_a_stale_waiver_whose_subject_gained_a_consumer(monkeypatch):
+    orig = si._consumed_subjects
+    monkeypatch.setattr(si, "_consumed_subjects", lambda: {**orig(), "sahool.plugin.>": "test:0"})
+    result = si.check_nats_published_no_consumer()
+    assert result.status == si.FAIL
+    assert any(
+        "قيد بائت" in f and "sahool.plugin.execution.requested" in f for f in result.findings
+    )
+
+
+def test_guard_fails_on_a_waiver_without_reason_or_with_a_wrong_identity(monkeypatch, tmp_path):
+    def corrupt(doc):
+        for e in doc["published_no_consumer"]:
+            if e["subject"] == "sahool.phase9.execution.plan.created":
+                e["reason"] = ""
+            if e["subject"] == "sahool.actuator.dispatch.requested":
+                e["broker_identity"] = "sahool-platform"
+
+    monkeypatch.setattr(si, "CONTRACTS", _contract_with(tmp_path, corrupt))
+    findings = si.check_nats_published_no_consumer().findings
+    assert any("sahool.phase9.execution.plan.created" in f and "`reason`" in f for f in findings)
+    assert any("sahool.actuator.dispatch.requested" in f and "لا تأذن بنشره" in f for f in findings)
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))

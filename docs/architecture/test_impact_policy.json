@@ -32,8 +32,11 @@
   },
   "audit_sample": {
     "percent": 5,
-    "note_ar": "في وضع الاختيار الجزئيّ تُشغَّل أيضاً عيّنةٌ عشوائيّة ذاتُ بذرة من الاختبارات **المستبعَدة** (أدناها واحد). البذرة مشتقّة من الأساس والرأس والمسارات المتغيّرة، فالتغيير نفسه يسحب العيّنة نفسها. الطريقة والصيغة `max(1, ceil(n×percent/100))` من `portable_ci_lab.change_selection` في المختبر المحلّيّ الموحّد. فشلُ اختبارٍ في العيّنة إخفاقٌ **مقيس** للمخروط، لا ضجيج.",
-    "note_en": "In selected mode a seeded random sample of the excluded tests also runs (at least one). The seed derives from base, head and changed paths, so the same change draws the same sample. Method and formula from Unified Local Lab portable_ci_lab.change_selection. A failing audited test is a measured miss of the cone."
+    "minimum": 5,
+    "size_formula": "min(n, max(minimum, ceil(n * percent / 100)))",
+    "seed": "sha256 of '<head commit>:<resolved base>'; the RNG takes the first 16 hex digits",
+    "note_ar": "في الوضع الجزئيّ تُضاف عيّنةٌ مبذورة من الاختبارات التي **استبعدها** المخروط إلى ما يُشغَّل. الاستبعاد اعتقادٌ بأنّ التغيير لا يبلغها؛ وبلا عيّنة لا يظهر خطؤه أبداً لأنّ المُستبعَد لا يعمل. فشلُ اختبارٍ من العيّنة يعني أنّ الخريطة أخطأت. الحجم نسبةٌ من المُستبعَد بأرضيّةٍ دنيا: `min(n, max(minimum, ceil(n×percent/100)))` — النسبة تُبقي احتمالَ الإمساك بخطأٍ واحد ثابتاً (≈٥٪ لكلّ جولة) مهما كبر المُستبعَد، والأرضيّة (٥، العددُ الثابت السابق) تمنعها من الانكماش إلى واحدٍ حين يصغر. البذرة من الـcommit والأساس: الشجرة نفسها تُعطي العيّنة نفسها، والـcommits المتتالية تدور على المُستبعَد. لا تُضاف في وضع الجناح الكامل (لا مُستبعَد فيه).",
+    "note_en": "In selected mode, a seeded sample of the tests the cone excluded is added to what runs. Exclusion is a belief that the change cannot reach them; without a sample, an error in it never shows, because an excluded test does not run. A sampled failure means the map was wrong. Size is a percentage of the excluded set with a floor: min(n, max(minimum, ceil(n * percent / 100))). The percentage keeps the chance of catching one wrong exclusion near 5% per run however large the excluded set grows; the minimum (5, the previous fixed count) stops it shrinking to one when the set is small. Seeded from the head commit and base: the same tree gives the same sample, and successive commits rotate through the excluded set. Not added in full mode, which excludes nothing."
   },
   "default_marker": "unit",
   "exit_codes": {

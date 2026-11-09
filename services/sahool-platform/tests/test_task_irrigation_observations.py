@@ -326,6 +326,29 @@ def test_replay_after_lifecycle_advance_returns_original_observation(monkeypatch
     assert conn.execution["state"] == "stopped" and len(conn.events) == 1
 
 
+@pytest.mark.parametrize("closed", ["cancelled", "reconciled"])
+def test_new_observation_on_a_closed_execution_is_409_and_appends_nothing(monkeypatch, closed):
+    client, conn = _harness(monkeypatch)
+    conn.execution["state"] = closed
+    response = client.post(URL, json=_body())
+    assert response.status_code == 409
+    assert closed in response.json()["detail"]
+    assert not conn.writes and not conn.events
+
+
+@pytest.mark.parametrize("closed", ["cancelled", "reconciled"])
+def test_honest_replay_after_close_still_returns_the_original(monkeypatch, closed):
+    client, conn = _harness(monkeypatch)
+    first = client.post(URL, json=_body())
+    assert first.status_code == 200
+    conn.execution["state"] = closed
+    replay = client.post(URL, json=_body())
+    assert replay.status_code == 200 and replay.json() == first.json()
+    changed = client.post(URL, json=_body(volume_m3=3500))
+    assert changed.status_code == 409
+    assert len(conn.events) == 1 and len(conn.writes) == 1
+
+
 def test_foreign_observation_id_collision_never_exposes_payload(monkeypatch):
     client, conn = _harness(monkeypatch)
     conn.events[OBSERVATION] = {
