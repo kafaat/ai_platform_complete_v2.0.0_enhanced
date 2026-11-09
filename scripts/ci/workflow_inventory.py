@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Read-only, source-derived GitHub Actions inventory. Never infer required status checks."""
+
 from __future__ import annotations
 
 import argparse
@@ -10,14 +11,20 @@ import sys
 from pathlib import Path
 
 MAX_FILE_BYTES = 2_000_000
-COMMAND_PATTERN = re.compile(r"(?:pytest|ruff|mypy|vitest|playwright|flutter|npm|pnpm|yarn|python|bash|sh|docker|helm|trivy|bandit|pip-audit|mutmut|crosshair)", re.I)
+COMMAND_PATTERN = re.compile(
+    r"(?:pytest|ruff|mypy|vitest|playwright|flutter|npm|pnpm|yarn|python|bash|sh|docker|helm|trivy|bandit|pip-audit|mutmut|crosshair)",
+    re.I,
+)
 TEST_PATTERN = re.compile(r"(?:^|[\s'\"=])((?:tests|tests_v9|services)/[\w./-]*test[\w./-]*\.py)")
+
 
 def digest(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
+
 def regular_file(path: Path) -> bool:
     return path.is_file() and not path.is_symlink()
+
 
 def parse_workflow(raw: bytes) -> dict:
     # BaseLoader prevents PyYAML's YAML-1.1 conversion of the GitHub 'on' key to True.
@@ -32,6 +39,7 @@ def parse_workflow(raw: bytes) -> dict:
     if not isinstance(jobs, dict):
         raise ValueError("jobs must be a mapping")
     return data
+
 
 def inventory(root: Path) -> dict:
     workflow_dir = root / ".github" / "workflows"
@@ -65,26 +73,50 @@ def inventory(root: Path) -> dict:
                 if command is not None:
                     if not isinstance(command, str):
                         raise ValueError("run must be a string")
-                    commands.append({"name": step.get("name", ""), "run": command,
-                                     "test_paths": sorted(set(TEST_PATTERN.findall(command))),
-                                     "tool_hints": sorted(set(m.group(0).lower() for m in COMMAND_PATTERN.finditer(command)))})
+                    commands.append(
+                        {
+                            "name": step.get("name", ""),
+                            "run": command,
+                            "test_paths": sorted(set(TEST_PATTERN.findall(command))),
+                            "tool_hints": sorted(
+                                set(m.group(0).lower() for m in COMMAND_PATTERN.finditer(command))
+                            ),
+                        }
+                    )
                     tests.update(TEST_PATTERN.findall(command))
-            rows.append({
-                "id": job_id, "name": job.get("name", job_id),
-                "needs": job.get("needs", []), "if": job.get("if"),
-                "runs_on": job.get("runs-on"), "uses": job.get("uses"),
-                "strategy": job.get("strategy"), "timeout_minutes": job.get("timeout-minutes"),
-                "commands": commands, "explicit_test_paths": sorted(tests),
-            })
+            rows.append(
+                {
+                    "id": job_id,
+                    "name": job.get("name", job_id),
+                    "needs": job.get("needs", []),
+                    "if": job.get("if"),
+                    "runs_on": job.get("runs-on"),
+                    "uses": job.get("uses"),
+                    "strategy": job.get("strategy"),
+                    "timeout_minutes": job.get("timeout-minutes"),
+                    "commands": commands,
+                    "explicit_test_paths": sorted(tests),
+                }
+            )
         triggers = document.get("on", {})
-        workflows.append({"path": path.relative_to(root).as_posix(), "sha256": digest(raw),
-                          "name": document.get("name", path.stem), "on": triggers,
-                          "permissions": document.get("permissions"), "concurrency": document.get("concurrency"),
-                          "jobs": rows, "job_count": len(rows)})
+        workflows.append(
+            {
+                "path": path.relative_to(root).as_posix(),
+                "sha256": digest(raw),
+                "name": document.get("name", path.stem),
+                "on": triggers,
+                "permissions": document.get("permissions"),
+                "concurrency": document.get("concurrency"),
+                "jobs": rows,
+                "job_count": len(rows),
+            }
+        )
     return {
-        "schema_version": 1, "source": "repository_workflow_files",
+        "schema_version": 1,
+        "source": "repository_workflow_files",
         "scope": "static_workflow_inventory_not_required_check_authority",
-        "workflow_count": len(workflows), "job_count": sum(x["job_count"] for x in workflows),
+        "workflow_count": len(workflows),
+        "job_count": sum(x["job_count"] for x in workflows),
         "workflows": workflows,
         "limitations": [
             "No branch-protection or ruleset required-check status is inferred",
@@ -95,6 +127,7 @@ def inventory(root: Path) -> dict:
         ],
     }
 
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
@@ -102,7 +135,9 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     try:
         result = inventory(args.root.resolve())
-        payload = json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n"
+        payload = (
+            json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n"
+        )
         if args.output:
             target = args.output.absolute()
             if target.exists() or target.is_symlink():
@@ -116,6 +151,7 @@ def main(argv=None) -> int:
     except (ValueError, RuntimeError, OSError, UnicodeError) as exc:
         print(f"CI_INVENTORY_BLOCKED: {exc}", file=sys.stderr)
         return 2
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -1,15 +1,18 @@
 """Contract tests for read-only CI workflow inventory."""
+
 from pathlib import Path
 
 import pytest
 
-from scripts.ci.workflow_inventory import inventory, parse_workflow, main
+from scripts.ci.workflow_inventory import inventory, main, parse_workflow
 
 
 def setup(tmp_path: Path, name="sample.yml", source=None):
     folder = tmp_path / ".github" / "workflows"
     folder.mkdir(parents=True)
-    (folder / name).write_text(source or """
+    (folder / name).write_text(
+        source
+        or """
 name: CI
 on:
   pull_request:
@@ -24,7 +27,9 @@ jobs:
   integration:
     needs: unit
     uses: ./.github/workflows/reusable.yml
-""", encoding="utf-8")
+""",
+        encoding="utf-8",
+    )
     return tmp_path
 
 
