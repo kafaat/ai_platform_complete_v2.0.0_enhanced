@@ -61,7 +61,7 @@ class DecisionBridge:
             "snapshot_hash": snapshot_hash,
             "acquisition_at": diagnosis.proposed_at.isoformat(),
             "data_available_at": now.isoformat(),
-            "quality_gate": {"status": "verified", "source": "ground_verification"},
+            "quality_gate": snapshot_quality_gate(diagnosis, now=now),
             "feature_manifest": {
                 "contract": "DiagnosisHypothesisV1",
                 "version": diagnosis.schema_version,
@@ -146,3 +146,50 @@ class DecisionBridge:
                 "decision": decision_idempotency,
             },
         }
+
+
+_GROUND_EVIDENCE_TYPE = "ground_verification"
+_SUPPORTING_RELATIONS = frozenset({"primary", "supporting", "corroborating"})
+
+
+def snapshot_quality_gate(diagnosis: DiagnosisHypothesisV1, *, now: datetime) -> dict[str, Any]:
+    """The snapshot's quality gate, derived from the diagnosis evidence (never a fixed label).
+
+    ``verified``/``ground_verification`` is claimed only when the bundle carries ground
+    verification evidence of this tenant that is VERIFIED, supports the diagnosis, is not
+    expired at ``now``, and is not contradicted by another ground observation. Otherwise the
+    snapshot says plainly that it is an unverified remote-sensing hypothesis and repeats the
+    diagnosis' own ground-verification requirement. decision-service eligibility does not read
+    these two fields, so the honest value does not change acceptance.
+    """
+    tenant = str(diagnosis.tenant_id)
+    ground = [
+        e
+        for e in diagnosis.evidence_bundle.evidence
+        if e.evidence_type == _GROUND_EVIDENCE_TYPE and str(e.tenant_id) == tenant
+    ]
+    contradicted = any(
+        str(e.relation_type) == "contradicting" and str(e.verification_state) != "superseded"
+        for e in ground
+    )
+    usable = [
+        e
+        for e in ground
+        if str(e.relation_type) in _SUPPORTING_RELATIONS
+        and str(e.verification_state) == "verified"
+        and (e.valid_until is None or e.valid_until > now)
+    ]
+    requirement = str(diagnosis.ground_verification_requirement)
+    if usable and not contradicted:
+        return {
+            "status": "verified",
+            "source": _GROUND_EVIDENCE_TYPE,
+            "evidence_refs": sorted(e.evidence_ref for e in usable),
+            "ground_verification_requirement": requirement,
+        }
+    return {
+        "status": "contradicted" if contradicted else "unverified",
+        "source": "remote_sensing_hypothesis",
+        "evidence_refs": [],
+        "ground_verification_requirement": requirement,
+    }
