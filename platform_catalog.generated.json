@@ -1144,6 +1144,21 @@
     },
     {
       "approval_required": false,
+      "capability_id": "decision-service.evidence.vegetation-snapshots.latest",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/evidence/vegetation-snapshots/latest"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "decision-service",
+      "producer": "decision-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "decision-service.execution-plans.execution_plan_id",
       "consumers": [],
       "curated": false,
@@ -17778,7 +17793,7 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 840,
+    "capabilities": 841,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 96,
     "capabilities_idempotent": 74,
@@ -17789,9 +17804,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1135,
+    "route_rows": 1136,
     "ui_waivers": 53,
-    "unique_method_path": 1014
+    "unique_method_path": 1015
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18053,7 +18068,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "72b02e77622fb96e04bae2d11e08a1d375231f73aa3193cb4195b1a825b590a0",
+  "fingerprint": "b49041e712acf0b34de7be36dbf6c78f45f33e5b345a6e2f28b922d9da9b8a6d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 685,
+      "evidence_count": 687,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -168,6 +168,7 @@
         "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
         "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
         "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",
+        "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_soil_profile_context_gate.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
@@ -526,6 +527,7 @@
         "services/sahool-platform/tests/test_identity.py",
         "services/sahool-platform/tests/test_improvements_v91.py",
         "services/sahool-platform/tests/test_indicator_observations_route.py",
+        "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
         "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
         "services/sahool-platform/tests/test_irrigation_commissioning_runtime.py",
         "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
@@ -731,7 +733,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 552,
+      "evidence_count": 555,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -855,6 +857,7 @@
         "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
         "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_compat.py",
         "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_preflight.py",
+        "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
@@ -902,6 +905,7 @@
         "services/remote-sensing-workspace-bff/main.py",
         "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
         "services/sahool-platform/api/agronomic_consistency.py",
+        "services/sahool-platform/api/agronomic_context_composer.py",
         "services/sahool-platform/api/agronomic_state_consumers.py",
         "services/sahool-platform/api/api_models.py",
         "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
@@ -1167,6 +1171,7 @@
         "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
         "services/sahool-platform/tests/test_identity.py",
         "services/sahool-platform/tests/test_implementation_verification.py",
+        "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
         "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
         "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
         "services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py",
@@ -1320,7 +1325,7 @@
       "kind": "lineage_stage",
       "stage": "decision",
       "order": 3,
-      "evidence_count": 194,
+      "evidence_count": 196,
       "owners": [
         "ai_agronomist",
         "database",
@@ -1401,6 +1406,7 @@
         "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/decision-service/tests/test_s5_exec_01_decision_record_immutable.py",
         "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_compat.py",
+        "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
@@ -1488,6 +1494,7 @@
         "services/sahool-platform/tests/test_execution_ledger_entry.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
+        "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
         "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
         "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
         "services/sahool-platform/tests/test_learning_dashboard_degraded_guard.py",
@@ -1534,7 +1541,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 301,
+      "evidence_count": 303,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1624,6 +1631,7 @@
         "services/decision-service/tests/test_migration_036_correlation_pg16.py",
         "services/decision-service/tests/test_migration_runner_readonly.py",
         "services/decision-service/tests/test_service_token_guard.py",
+        "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_tenant_boundary_migration_static.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
@@ -1783,6 +1791,7 @@
         "services/sahool-platform/tests/test_human_escalation.py",
         "services/sahool-platform/tests/test_identity.py",
         "services/sahool-platform/tests/test_indicator_observations_route.py",
+        "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
         "services/sahool-platform/tests/test_irrigation_commissioning_runtime.py",
         "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
         "services/sahool-platform/tests/test_irrigation_scenario_value.py",
@@ -1932,7 +1941,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 182,
+      "evidence_count": 183,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1996,6 +2005,7 @@
         "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/decision-service/tests/test_runtime_worker_tenants.py",
         "services/decision-service/tests/test_service_token_guard.py",
+        "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
@@ -2352,7 +2362,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 339,
+      "evidence_count": 340,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2435,6 +2445,7 @@
         "services/decision-service/tests/test_s5_exec_01_decision_record_immutable.py",
         "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
         "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_compat.py",
+        "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_worker_identity_binding.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
@@ -2766,6 +2777,7 @@
         "services/decision-service/tests/test_manual_irrigation_source_binding.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_preflight.py",
+        "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
         "services/decision-service/tests/test_wx10_9_execution_plan.py",
@@ -2784,6 +2796,7 @@
         "services/remote-sensing-workspace-bff/main.py",
         "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
         "services/sahool-platform/api/agronomic_consistency.py",
+        "services/sahool-platform/api/agronomic_context_composer.py",
         "services/sahool-platform/api/agronomic_state_consumers.py",
         "services/sahool-platform/api/api_models.py",
         "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
@@ -2822,12 +2835,10 @@
         "services/sahool-platform/api/routers/crop_twin.py",
         "services/sahool-platform/api/routers/decision_confidence.py",
         "services/sahool-platform/api/routers/decision_explain.py",
-        "services/sahool-platform/api/routers/decision_impact.py",
-        "services/sahool-platform/api/routers/decision_record.py",
-        "services/sahool-platform/api/routers/decision_review.py"
+        "services/sahool-platform/api/routers/decision_impact.py"
       ],
-      "source_evidence_count": 685,
-      "target_evidence_count": 552,
+      "source_evidence_count": 687,
+      "target_evidence_count": 555,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2878,6 +2889,7 @@
         "services/decision-service/tests/test_p4_decision_service_runtime.py",
         "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_compat.py",
+        "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
@@ -2931,15 +2943,14 @@
         "services/sahool-platform/tests/test_dispatch_executor.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
+        "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
         "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
         "services/sahool-platform/tests/test_learning_source_lineage.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
-        "services/sahool-platform/tests/test_loop_referential_integrity.py",
-        "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
-        "services/sahool-platform/tests/test_outcome_reconciler.py"
+        "services/sahool-platform/tests/test_loop_referential_integrity.py"
       ],
-      "source_evidence_count": 552,
-      "target_evidence_count": 194,
+      "source_evidence_count": 555,
+      "target_evidence_count": 196,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2975,6 +2986,7 @@
         "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_migration_036_correlation_pg16.py",
         "services/decision-service/tests/test_migration_runner_readonly.py",
+        "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
@@ -3012,6 +3024,7 @@
         "services/sahool-platform/tests/test_decision_correlation_http_projection.py",
         "services/sahool-platform/tests/test_decision_review_endpoint.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+        "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
         "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
         "services/sahool-platform/tests/test_learning_source_lineage.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
@@ -3026,8 +3039,8 @@
         "shared/contracts/soil/p4.py",
         "shared/federated_agent_runtime.py"
       ],
-      "source_evidence_count": 194,
-      "target_evidence_count": 301,
+      "source_evidence_count": 196,
+      "target_evidence_count": 303,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3069,7 +3082,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 301,
+      "source_evidence_count": 303,
       "target_evidence_count": 47,
       "static_supported": true,
       "runtime_verified": false
@@ -3115,7 +3128,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 47,
-      "target_evidence_count": 182,
+      "target_evidence_count": 183,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3151,7 +3164,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 182,
+      "source_evidence_count": 183,
       "target_evidence_count": 40,
       "static_supported": true,
       "runtime_verified": false
@@ -3252,7 +3265,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 57,
-      "target_evidence_count": 339,
+      "target_evidence_count": 340,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3262,5 +3275,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "9b905afee19f90ebdf812e05a3067c3f9d68b543b7999a939c25726561aa7902"
+  "content_sha256": "463e56f6d4de9569959d54154b1aa0f66a4e108e6a9e999db9bc05b9537fb737"
 }

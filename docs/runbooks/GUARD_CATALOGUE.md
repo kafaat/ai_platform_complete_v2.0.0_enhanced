@@ -361,6 +361,19 @@
 - نزع حجب مدخل الدَّين البائت — يُسقِط `test_stale_debt_entry_is_blocked`
 - SHA مجهول يُبلَّغ «صفر التزام» بدل «غير قابل للحلّ» — يُسقِط `test_an_unknown_sha_reports_unresolvable_not_zero`
 
+### `codecov_coverage_guard.py`
+
+**يفرض:** Check that uploaded Codecov XML paths refer to measured, tracked Git files.
+
+**يحجب في:** `ci.yml` → `decision-service-tests` · `ci.yml` → `platform-unit-tests` · `ci.yml` → `unit-tests`
+
+**الاختبار الشاهد:** `tests_v9/test_codecov_coverage_wiring.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- إذا تجاهل الحارس المسارات الخارجة عن نطاق الخدمة نجح تقرير تغطية بلا مطابقة Git؛ اختبار المسار غير المطابق يجب أن يسقط. — يُسقِط `test_unmatched_and_duplicate_paths_fail_closed`
+- إذا قُبلت ملفات الاختبارات ضمن تغطية القرار أصبحت أرقام الإنتاج مضخمة؛ شاهد المنع يجب أن يسقط. — يُسقِط `test_forbidden_decision_test_source_is_refused`
+
 ### `compose_auth_sink_guard.py`
 
 **يفرض:** سرُّ استيثاقٍ لا يصل فارغاً — `SERVER-AUTH-SECRET-MUST-BE-NONEMPTY-01`.

@@ -14,6 +14,7 @@ import {
   Calendar, Wheat, ChevronDown, AlertCircle, Info,
 } from 'lucide-react';
 import { asApiError } from '../services/api';
+import { CROP_OPTIONS } from '../lib/cropOptions';
 
 interface Stage { name: string; date: string; notes: string; }
 
@@ -45,16 +46,20 @@ interface Props {
   onCancel: () => void;
 }
 
-const CROPS = [
-  { label:'قمح صلب',    suitability:'S1', emoji:'🌾', desc:'ملاءمة عالية للمنطقة (GAEZ S1)' },
-  { label:'شعير',       suitability:'S1', emoji:'🌾', desc:'ملاءمة عالية' },
-  { label:'ذرة صفراء', suitability:'S2', emoji:'🌽', desc:'ملاءمة متوسطة' },
-  { label:'طماطم',     suitability:'S2', emoji:'🍅', desc:'ملاءمة متوسطة' },
-  { label:'بطاطس',     suitability:'S2', emoji:'🥔', desc:'ملاءمة متوسطة — تتطلب ري كافٍ' },
-  { label:'خضروات',    suitability:'S3', emoji:'🥬', desc:'ملاءمة منخفضة — تتطلب عناية إضافية' },
-  { label:'برسيم',     suitability:'S1', emoji:'🌿', desc:'ملاءمة ممتازة كمحصول ثانوي' },
-  { label:'دخن',        suitability:'S3', emoji:'🌿', desc:'مقاوم للجفاف' },
-];
+// تلميح الملاءمة القائم لكلّ محصول (بمعرّف بطاقته). محصول بلا تلميح مُعلَن لا يُختلَق له
+// صنف ملاءمة: يُعرَض بلا سطر ملاءمة. («خضروات» العامّة حُذفت من المفردات المشتركة.)
+const SUITABILITY: Partial<Record<string, { suitability: string; desc: string }>> = {
+  wheat:   { suitability:'S1', desc:'ملاءمة عالية للمنطقة (GAEZ S1)' },
+  barley:  { suitability:'S1', desc:'ملاءمة عالية' },
+  maize:   { suitability:'S2', desc:'ملاءمة متوسطة' },
+  tomato:  { suitability:'S2', desc:'ملاءمة متوسطة' },
+  potato:  { suitability:'S2', desc:'ملاءمة متوسطة — تتطلب ري كافٍ' },
+  alfalfa: { suitability:'S1', desc:'ملاءمة ممتازة كمحصول ثانوي' },
+  millet:  { suitability:'S3', desc:'مقاوم للجفاف' },
+};
+
+// المفردات المشتركة (lib/cropOptions): كلّ خيار يُحلّ إلى بطاقة محصول قانونيّة.
+const CROPS = CROP_OPTIONS.map(o => ({ ...o, ...SUITABILITY[o.id] }));
 
 const IRRIGATION_TYPES = [
   { value:'drip',       label:'تنقيط',   icon:'💧', desc:'90% كفاءة — الأفضل للمنطقة' },
@@ -218,9 +223,11 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
                     <span className="text-lg">{c.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <div className="text-slate-200 font-medium">{c.label}</div>
-                      <div className="text-[10px]" style={{ color: suitabilityColor(c.suitability) }}>
-                        {c.suitability} — {c.desc}
-                      </div>
+                      {c.suitability && (
+                        <div className="text-[10px]" style={{ color: suitabilityColor(c.suitability) }}>
+                          {c.suitability} — {c.desc}
+                        </div>
+                      )}
                     </div>
                   </button>
                 ))}

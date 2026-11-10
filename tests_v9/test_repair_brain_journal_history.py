@@ -443,6 +443,23 @@ def test_concurrent_destination_creation_is_not_overwritten(incident, repair, mo
         assert _run_git(incident.root, "show-ref", "--verify", target, check=False).returncode
 
 
+def test_a_dangling_symbolic_destination_is_refused_and_left_intact(incident, repair):
+    """git 2.43 lets `update-ref --no-deref` `create` replace a dangling symref; the
+    transaction must refuse it, keep the symref, and release the destination lock.
+
+    Newer git (measured: 2.56.0 on the CI runner) already refuses at `prepare` with
+    "dangling symref already exists"; on 2.43 the refusal comes from the check under the
+    lock. Either refusal is correct — the assertions below are what must hold on both."""
+    root = incident.root
+    ref, target = "refs/heads/journal-repaired", "refs/heads/unrelated"
+    _git(root, "symbolic-ref", ref, target)
+    with pytest.raises(repair.RepairError, match="symbolic ref|dangling symref"):
+        repair._create_branch(root, ref, incident.base)
+    assert _git(root, "symbolic-ref", ref) == target
+    git_dir = Path(_git(root, "rev-parse", "--absolute-git-dir"))
+    assert not list(git_dir.rglob("*.lock")), "the destination lock must be released"
+
+
 def test_merge_windows_require_manual_review(incident, repair):
     root = incident.root
     _git(root, "checkout", "-qb", "side", incident.parent)
