@@ -69871,12 +69871,12 @@
         {
           "source": "scripts/ci/guard_catalogue.py",
           "kind": "loader",
-          "line": 249
+          "line": 251
         },
         {
           "source": "scripts/ci/guard_catalogue.py",
           "kind": "source_read",
-          "line": 249
+          "line": 251
         }
       ],
       "unresolved": []
