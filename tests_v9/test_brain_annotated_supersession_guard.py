@@ -228,8 +228,10 @@ def test_the_guard_runs_where_its_job_runs_without_any_dependency(tmp_path):
     # تفكّ بترميز الآلة — فتحت `LC_ALL=C` يسقط الشاهدُ بـUnicodeDecodeError وهو يقرأ
     # نجاحاً. نفسُ `GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01` المقتبَس في
     # رأس الحارس نفسِه — أمسكه `test_text_encoding_locale` عليّ هنا.
+    # `-B`: the fresh `env` drops the runner's PYTHONDONTWRITEBYTECODE, and without it the
+    # child writes `scripts/ci/__pycache__/gap_registry_measure.*.pyc` into the tree.
     result = subprocess.run(
-        [sys.executable, str(GUARD_PATH)],
+        [sys.executable, "-B", str(GUARD_PATH)],
         capture_output=True,
         text=True,
         encoding="utf-8",
