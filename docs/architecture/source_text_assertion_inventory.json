@@ -1,10 +1,10 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "ecd8c3e48883c5c8065f19da14d676f5c51872ec",
+  "measured_on": "4b2ab1303467dea61e102c28c900334925e2e23c",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
-    "source_text_assertions": 2498,
+    "source_text_assertions": 2499,
     "positive_pinning_a_call": 360,
     "prohibitions": 225
   },
@@ -147,10 +147,6 @@
     "tests_v9/test_certification_regression_fixes.py": {
       "/api/probe-newservice/readyz": 1,
       "probe_unadjudicated_alias_": 1
-    },
-    "tests_v9/test_codecov_coverage_wiring.py": {
-      "*/main.py": 1,
-      "*/persistence.py": 1
     },
     "tests_v9/test_command_event_causality_live_gate_contract.py": {
       "uuid_generate_v5_stub": 1

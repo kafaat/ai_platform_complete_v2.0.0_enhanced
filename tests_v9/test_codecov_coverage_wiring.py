@@ -16,7 +16,7 @@ from scripts.ci.codecov_coverage_guard import CoveragePathError, validate_report
 
 pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
-JOBS = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())["jobs"]
+JOBS = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))["jobs"]
 ACTION = "codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5"
 
 
@@ -82,7 +82,7 @@ def test_unit_reexport_is_validated_from_repo_root():
 
 
 def test_codecov_waits_for_three_reports_before_notifying():
-    options = yaml.safe_load((ROOT / "codecov.yml").read_text())
+    options = yaml.safe_load((ROOT / "codecov.yml").read_text(encoding="utf-8"))
     assert options["codecov"]["notify"]["after_n_builds"] == 3
     assert options["comment"]["after_n_builds"] == 3
     assert "coverage" not in options
@@ -91,17 +91,19 @@ def test_codecov_waits_for_three_reports_before_notifying():
 
 
 def test_decision_service_coverage_omits_test_source_only():
-    cfg = (ROOT / "services/decision-service/.coveragerc").read_text()
+    cfg = (ROOT / "services/decision-service/.coveragerc").read_text(encoding="utf-8")
     assert "*/tests/*" in cfg
-    assert "*/main.py" not in cfg
-    assert "*/persistence.py" not in cfg
+    assert "*/main.py" not in cfg, "production source must stay measured; only tests are omitted"
+    assert "*/persistence.py" not in cfg, (
+        "production source must stay measured; only tests are omitted"
+    )
 
 
 def _fake_report(tmp_path, filenames):
     for filename in filenames:
         path = tmp_path / filename
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("value = 1\n")
+        path.write_text("value = 1\n", encoding="utf-8")
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     root = ET.Element("coverage")
@@ -144,7 +146,7 @@ def test_root_export_preserves_same_basenames_in_two_packages(tmp_path):
     for filename in paths:
         path = tmp_path / filename
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("value = 7\n")
+        path.write_text("value = 7\n", encoding="utf-8")
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     database = tmp_path / "services/sahool-platform/.coverage"
@@ -169,6 +171,7 @@ def test_root_export_preserves_same_basenames_in_two_packages(tmp_path):
         check=True,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert validate_report(
         tmp_path / "coverage-platform.xml",
