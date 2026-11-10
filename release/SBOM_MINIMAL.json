@@ -4675,7 +4675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "374fe0df55322d9ee2ba142b5c683fdf750aeee1f1bf4247e2224191972aec45"
+          "content": "f6a4cc24fe0cfa5c8d3371bf83d7b8f9bcbb464b7d6833d9a46c915b0b4bdbb2"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17605,7 +17605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "abdbba16428789fa07acd33f645693ef3aa9af1e7b483f2269d2c5244480c31e"
+          "content": "b994734dd9f4a26a9923c8ef7ac790a6699367d9674d3c77b054825fdaefc7a9"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -18005,7 +18005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cdb4473c02b5b8071b97052526930b356b3309a1952a4a14b0e3a318aa9170a3"
+          "content": "8ef911e8f97859bf7b4514b5d5b6731c7d9b0674cc757d056c9aab01095fbf9b"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -18125,7 +18125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4956fc3660d3b8ccd479993a3f6160a9c4c4ef74c95135da5fcb5c4d906cad64"
+          "content": "7861166e09ca8e83018ed5dc38f67ade8c4f3e549d67e9496a88b8d53eed33d2"
         }
       ],
       "name": "services/decision-service/tests/test_ac1_agronomic_context.py",
@@ -22935,7 +22935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eea169567a4299ba6af1672b18299e1003e5bd1517921bda8846490595c03bfc"
+          "content": "10a0c1a5b1ba3345120a674135c51bd0239d01aa08373e53b22b5a508f53f38c"
         }
       ],
       "name": "services/sahool-platform/api/agronomic_context_composer.py",
@@ -23615,7 +23615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a06bc46a324bff2e573afcb04f48e422c6803d270b917d63306ba34d127e86f"
+          "content": "7defe7f42869d6f99f4be4e70cd0ab7faed06c61e35369f246c6461948b07b1d"
         }
       ],
       "name": "services/sahool-platform/api/decision_service_client.py",
@@ -24525,7 +24525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95c63a17867b94fba619d2b089a4deee601959a876c6baa24d2ed9dfb0c15636"
+          "content": "23d1e56f9325c7f871e9a4b657bb2589d38a945509489af5fe9de8846d5dd4c0"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_recommendation_policy.py",
@@ -25955,7 +25955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d375ad78cb73dd62e3119a9d677f3f2b3a5355efdea53b7872e83ccb7cf0122f"
+          "content": "e5ec012095bfae17eaa3a180ef30ad8e374d42b01b4034549ac51f1ed3544d21"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -33499,6 +33499,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_input_traceability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ae659dc3c1e71cdbfc9205aebb756acdb7c87ca3a8aa6a3838a4f52a878b53ea"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
       "type": "file"
     },
     {

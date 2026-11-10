@@ -4116,6 +4116,7 @@
       "unit_test_paths": [
         "mobile/sahool_app/test/features/irrigation/recommendation_test.dart",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+        "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
         "tests_v9/test_irrigation_recommendation_policy.py"
       ]
@@ -8959,6 +8960,7 @@
       "title": "Soil profile",
       "unit_test_paths": [
         "services/decision-service/tests/test_soil_profile_context_gate.py",
+        "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
         "services/soil-service/test_canonical_soil_profile.py",
         "tests_v9/test_canonical_root_zone_profile.py"
       ]
