@@ -51,14 +51,11 @@ def test_platform_keeps_its_api_and_core_sources():
     assert any("--cov=api --cov=core" in text for text in commands)
     assert any(
         "--data-file=services/sahool-platform/.coverage" in text
-        and "--include=services/sahool-platform/api/*,services/sahool-platform/core/*"
-        in text
+        and "--include=services/sahool-platform/api/*,services/sahool-platform/core/*" in text
         for text in commands
     )
     assert any("codecov_coverage_guard.py" in text for text in commands)
-    assert any(
-        "--rcfile=services/sahool-platform/.coveragerc" in text for text in commands
-    )
+    assert any("--rcfile=services/sahool-platform/.coveragerc" in text for text in commands)
 
 
 def test_decision_job_aggregates_existing_real_pg_tests():
@@ -73,12 +70,8 @@ def test_decision_job_aggregates_existing_real_pg_tests():
     assert any("tests/test_ac1_agronomic_context.py" in text for text in commands)
     assert any("tests/test_agronomic_lineage_integrity.py" in text for text in commands)
     assert any("--data-file=.coverage.decision-service" in text for text in commands)
-    assert any(
-        "--rcfile=services/decision-service/.coveragerc" in text for text in commands
-    )
-    assert any(
-        "--forbid-prefix services/decision-service/tests" in text for text in commands
-    )
+    assert any("--rcfile=services/decision-service/.coveragerc" in text for text in commands)
+    assert any("--forbid-prefix services/decision-service/tests" in text for text in commands)
 
 
 def test_unit_reexport_is_validated_from_repo_root():
