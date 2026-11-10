@@ -965,6 +965,7 @@ jobs:
           -n auto --maxprocesses=4
           --cov=services
           --cov-report=
+          --junitxml=unit-par.xml
       - name: Unit suite — serial tree_writer half + coverage ratchet over both halves
         run: >-
           pytest -v -m "unit and tree_writer"
@@ -973,6 +974,14 @@ jobs:
           --cov-report=xml
           --cov-report=term
           --cov-fail-under=43
+          --junitxml=unit-tw.xml
+      # S1 F3 (OFFICE-20261110:F3 on #1369): every skip report of the two stages above, by
+      # node id and reason, must equal docs/testing/unit_skip_inventory.json. A new skip, a
+      # changed reason, a declared skip that stopped happening or a skip in another stage is
+      # BLOCKED. Entries stay `open` until the owner records a named exception; this step
+      # never turns a skip into a pass. Pinned by tests_v9/test_unit_skip_inventory_guard.py.
+      - name: Unit skip inventory (every skip declared, by node id and reason)
+        run: python scripts/ci/unit_skip_inventory_guard.py --junit parallel=unit-par.xml --junit tree_writer=unit-tw.xml
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
         with: {files: coverage.xml}
       # raster-tiler-service: in-service tests sit outside `testpaths = tests_v9`, so

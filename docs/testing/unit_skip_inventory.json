@@ -1,0 +1,177 @@
+{
+  "schema": "sahool.unit-skip-inventory/v1",
+  "source": "OFFICE-20261110:F3 practical-remediation-v1 on #1369 (hospital S1-15 on f8a9cd05a: INCONCLUSIVE / TESTS_SKIPPED)",
+  "measured_on": {
+    "commit": "f8a9cd05a78670e25dc6a88fa950b1fcfad6c2df",
+    "tree": "58948877bf7be0d41cc5a35752bf37b00c8505f7",
+    "stages": {
+      "parallel": "-m \"unit and not tree_writer\"",
+      "tree_writer": "-m \"unit and tree_writer\""
+    },
+    "result": "13,139 reports: 13,050 + 65 passed, 22 + 2 skipped, 0 failed (equals hospital S1-15)",
+    "removed_by_this_change": "4 collection-skip reports (test_h51_field_source_binding_pg.py and test_realtime_webhooks.py, each in both stages)"
+  },
+  "$policy": "Debt, not exemption. Every entry is `open` until the owner records a named exception (`status: exception` + `decision`). While any entry is open, S1 stays INCONCLUSIVE. The inventory only shrinks: a fixed skip leaves in the same change. Enforced by scripts/ci/unit_skip_inventory_guard.py in the Unit Tests job.",
+  "skips": [
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_blob_store_presign_public_endpoint.py::test_real_botocore_signs_for_the_public_host_offline",
+      "reason": "could not import 'boto3': No module named 'boto3'",
+      "classification": "optional-profile",
+      "required_gate": "boto3/botocore in tests_v9/requirements-test.txt after pip-audit and scout-ingest version sync, or the service's own job",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_canonical_water_state_mpc.py::test_operational_route_carries_source_digests",
+      "reason": "V21 integration: the canonical_water_state→MPC route wiring (resolve_canonical_water_state + MpcRecommendationRequest + source_digests trace) belongs to the zip's divergent P1.1c router, which was NOT adopted — the landed branch keeps its own server-authoritative P1.1c-b router (facts_provenance). The canonical_water_state kernel and its module-level truth/fail-closed/digest tests above are integrated and pass; only this route-level wiring is deferred, matching the forensic P0-2/P0-C finding that these kernels are not yet mounted into a production read path.",
+      "classification": "obsolete-or-inapplicable",
+      "required_gate": "assert the current adopted route explicitly (it does not carry source_digests) or delete with a decision receipt",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_compose_redis_health.py::test_redis_requires_password[docker-compose.erpnext.yml-erpnext-redis-cache-svc0]",
+      "reason": "erpnext-redis-cache: redis داخليّ لـERPNext (بلا مصادقة بحكم العُرف)",
+      "classification": "integration",
+      "required_gate": "rewrite to assert the safe property (internal network only, no published port) or refuse the unsafe state; keeping the convention needs a named owner exception",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_compose_redis_health.py::test_redis_requires_password[docker-compose.erpnext.yml-erpnext-redis-queue-svc1]",
+      "reason": "erpnext-redis-queue: redis داخليّ لـERPNext (بلا مصادقة بحكم العُرف)",
+      "classification": "integration",
+      "required_gate": "rewrite to assert the safe property (internal network only, no published port) or refuse the unsafe state; keeping the convention needs a named owner exception",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_farm_memory.py::test_export_to_parquet_skips_if_no_pyarrow",
+      "reason": "pyarrow not installed — skipping parquet test",
+      "classification": "optional-profile",
+      "required_gate": "an environment with pyarrow, or assert the absent-pyarrow behaviour explicitly instead of skipping",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_frontend_lint_debt_guard.py::test_the_repository_itself_sits_at_its_baseline",
+      "reason": "eslint غير مثبَّت — القياس الحيّ غير متاح، ولا يُدَّعى أنّه مرّ",
+      "classification": "optional-profile",
+      "required_gate": "the frontend job that has Node and eslint, by path, failing on skip",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_mfa_totp_antireplay_v141.py::test_column_exists_and_conditional_update_is_antireplay",
+      "reason": "TEST_DATABASE_URL غير متاح — اختبار تكامل",
+      "classification": "integration",
+      "required_gate": "move to `integration` (Integration Tests sets TEST_DATABASE_URL) with a before/after collected manifest proving it runs there unskipped",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_recommendation_runtime_reachability.py::test_the_measured_zero_is_still_zero_while_the_gap_is_open",
+      "reason": "الفجوة لم تعد `open` — الاتّجاهان أعلاه يحرسان العدد بعد قلبِ الحالة",
+      "classification": "obsolete-or-inapplicable",
+      "required_gate": "the gap is closed: delete with a receipt or flip to asserting the closed state",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_scripts_are_held_to_the_callers_acl[sahool-redis-state]",
+      "reason": "لا مستخدمَ يملك EVAL على هذا الخادم",
+      "classification": "integration",
+      "required_gate": "a live least-privilege Redis ACL gate that grants EVAL to the calling user; never an unauthenticated server",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_tts_providers_20260702.py::TestProviderAvailability::test_edge_available",
+      "reason": "edge_tts كعبٌ محقون/غائب — لا مكتبة حقيقيّة لتأكيد available=True",
+      "classification": "optional-profile",
+      "required_gate": "Unit Tests › service-local step (already installs edge-tts>=6.1.12 and fails on skips), with the sys.modules stub isolated and no external call",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_tts_providers_20260702.py::test_status_endpoint_shape",
+      "reason": "edge_tts كعبٌ محقون/غائب — لا مكتبة حقيقيّة لتأكيد available=True",
+      "classification": "optional-profile",
+      "required_gate": "Unit Tests › service-local step (already installs edge-tts>=6.1.12 and fails on skips), with the sys.modules stub isolated and no external call",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_tts_providers_20260702.py::test_voices_endpoint_includes_providers",
+      "reason": "edge_tts كعبٌ محقون/غائب — لا مكتبة حقيقيّة لتأكيد available=True",
+      "classification": "optional-profile",
+      "required_gate": "Unit Tests › service-local step (already installs edge-tts>=6.1.12 and fails on skips), with the sys.modules stub isolated and no external call",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_wofost_pcse_offline_integration.py::test_copied_pcse_bounds_and_default_soil_match_pcse",
+      "reason": "pcse غير مُركَّبة (تبعيّة agriai اختياريّة؛ CI الوحدة لا يُركّبها) — التشغيل الحقيقيّ يُتخطّى هنا، والبُناة مغطّاة بلا pcse في test_wofost_pcse_input_builders.py",
+      "classification": "optional-profile",
+      "required_gate": "a dedicated blocking job with pcse pinned and no network, running this file by path and failing on any skip",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_wofost_pcse_offline_integration.py::test_every_registry_crop_runs_offline",
+      "reason": "pcse غير مُركَّبة (تبعيّة agriai اختياريّة؛ CI الوحدة لا يُركّبها) — التشغيل الحقيقيّ يُتخطّى هنا، والبُناة مغطّاة بلا pcse في test_wofost_pcse_input_builders.py",
+      "classification": "optional-profile",
+      "required_gate": "a dedicated blocking job with pcse pinned and no network, running this file by path and failing on any skip",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_wofost_pcse_offline_integration.py::test_irrigated_season_with_harvest_date",
+      "reason": "pcse غير مُركَّبة (تبعيّة agriai اختياريّة؛ CI الوحدة لا يُركّبها) — التشغيل الحقيقيّ يُتخطّى هنا، والبُناة مغطّاة بلا pcse في test_wofost_pcse_input_builders.py",
+      "classification": "optional-profile",
+      "required_gate": "a dedicated blocking job with pcse pinned and no network, running this file by path and failing on any skip",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_wofost_pcse_offline_integration.py::test_pcse_import_hazard_is_real_without_the_restore",
+      "reason": "pcse غير مُركَّبة (تبعيّة agriai اختياريّة؛ CI الوحدة لا يُركّبها) — التشغيل الحقيقيّ يُتخطّى هنا، والبُناة مغطّاة بلا pcse في test_wofost_pcse_input_builders.py",
+      "classification": "optional-profile",
+      "required_gate": "a dedicated blocking job with pcse pinned and no network, running this file by path and failing on any skip",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_wofost_pcse_offline_integration.py::test_pcse_import_leaves_host_logging_intact",
+      "reason": "pcse غير مُركَّبة (تبعيّة agriai اختياريّة؛ CI الوحدة لا يُركّبها) — التشغيل الحقيقيّ يُتخطّى هنا، والبُناة مغطّاة بلا pcse في test_wofost_pcse_input_builders.py",
+      "classification": "optional-profile",
+      "required_gate": "a dedicated blocking job with pcse pinned and no network, running this file by path and failing on any skip",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_wofost_pcse_offline_integration.py::test_rainfed_season_offline_equals_pcse_native_readers",
+      "reason": "pcse غير مُركَّبة (تبعيّة agriai اختياريّة؛ CI الوحدة لا يُركّبها) — التشغيل الحقيقيّ يُتخطّى هنا، والبُناة مغطّاة بلا pcse في test_wofost_pcse_input_builders.py",
+      "classification": "optional-profile",
+      "required_gate": "a dedicated blocking job with pcse pinned and no network, running this file by path and failing on any skip",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_wofost_pcse_offline_integration.py::test_weather_provider_matches_pcse_csv_reader_day_by_day",
+      "reason": "pcse غير مُركَّبة (تبعيّة agriai اختياريّة؛ CI الوحدة لا يُركّبها) — التشغيل الحقيقيّ يُتخطّى هنا، والبُناة مغطّاة بلا pcse في test_wofost_pcse_input_builders.py",
+      "classification": "optional-profile",
+      "required_gate": "a dedicated blocking job with pcse pinned and no network, running this file by path and failing on any skip",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/test_wofost_pcse_offline_integration.py::test_wind_at_10m_is_converted_with_pcse_own_profile",
+      "reason": "pcse غير مُركَّبة (تبعيّة agriai اختياريّة؛ CI الوحدة لا يُركّبها) — التشغيل الحقيقيّ يُتخطّى هنا، والبُناة مغطّاة بلا pcse في test_wofost_pcse_input_builders.py",
+      "classification": "optional-profile",
+      "required_gate": "a dedicated blocking job with pcse pinned and no network, running this file by path and failing on any skip",
+      "status": "open"
+    }
+  ]
+}

@@ -13,13 +13,32 @@ from pathlib import Path
 import httpx
 import pytest
 
-api = pytest.importorskip("livekit.api")
+try:
+    from livekit import api
+except ImportError:  # the shared unit layer cannot hold the SDK; see the marker below
+    api = None
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services/realtime-session"))
 from realtime_session.session_runtime import create_app  # noqa: E402
 from realtime_session.webhooks import WebhookReceiptStore  # noqa: E402
 
-pytestmark = pytest.mark.unit
+# S1 F3: this file needs the LiveKit SDK, which pins PyJWT 2.15.1 while the shared unit layer
+# keeps 2.15.0, so it can never run under `-m unit`. It was marked `unit` with a module-level
+# `importorskip`, so every unit stage reported it as skipped. It now carries `isolated_runtime`
+# (deselected by `-m unit`) and runs by path in .github/workflows/realtime-session.yml, which
+# imports the SDK before collecting it. tests_v9/test_isolated_runtime_gate.py fails if that
+# workflow stops naming this file.
+pytestmark = pytest.mark.isolated_runtime
+
+
+@pytest.fixture(autouse=True)
+def _require_the_sdk() -> None:
+    """Fail, never skip: this file is selected only where the SDK is mandatory."""
+    if api is None:
+        pytest.fail(
+            "livekit SDK missing: run this file in its isolated gate "
+            "(.github/workflows/realtime-session.yml), not in the shared unit layer"
+        )
 KEY = "webhook-fixture"
 SECRET = "receipt-fixture-" * 3
 
