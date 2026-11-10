@@ -39,6 +39,8 @@ def _require_the_sdk() -> None:
             "livekit SDK missing: run this file in its isolated gate "
             "(.github/workflows/realtime-session.yml), not in the shared unit layer"
         )
+
+
 KEY = "webhook-fixture"
 SECRET = "receipt-fixture-" * 3
 

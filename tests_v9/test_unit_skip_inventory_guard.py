@@ -40,7 +40,9 @@ def _junit(tmp_path: Path, name: str, cases: list[tuple[str, str, str | None]]) 
     body = []
     for classname, test, skipped in cases:
         inner = "" if skipped is None else f'<skipped type="pytest.skip" message="{skipped}"/>'
-        body.append(f'<testcase classname="{classname}" name="{test}" time="0.1">{inner}</testcase>')
+        body.append(
+            f'<testcase classname="{classname}" name="{test}" time="0.1">{inner}</testcase>'
+        )
     path = tmp_path / name
     path.write_text(
         '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest">'
@@ -130,7 +132,13 @@ def test_a_class_method_keeps_its_class_in_the_node_id(tmp_path):
     report = _junit(
         tmp_path,
         "k.xml",
-        [("tests_v9.test_tts_providers_20260702.TestProviderAvailability", "test_edge_available", "s")],
+        [
+            (
+                "tests_v9.test_tts_providers_20260702.TestProviderAvailability",
+                "test_edge_available",
+                "s",
+            )
+        ],
     )
     assert guard.skips_in("parallel", report)[0][1] == (
         "tests_v9/test_tts_providers_20260702.py::TestProviderAvailability::test_edge_available"
