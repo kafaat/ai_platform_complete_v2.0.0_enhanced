@@ -1,6 +1,6 @@
 {
   "fail_closed": true,
-  "plan_sha256": "0ac78db61bd8df060042a43350af08e6b0c0a3e3222ddcc6b9a39da8db3376a7",
+  "plan_sha256": "63d14255e45ad23bc1390f5b0aa895e769f29270e66a443bcfc0a3971026addd",
   "schema_version": "1.0",
   "services": [
     {
@@ -1137,5 +1137,5 @@
       "source_service": "weather-signal-engine"
     }
   ],
-  "source_contract_sha256": "f8500f75bb0894a1a13a68925cd94a0c3cf0d5f09cd8fbd3e5bda3656fc8dea5"
+  "source_contract_sha256": "b0018ae0bbf19eaed8e5eea4c466ad917401e6631bf04b3464c0094d672b9eca"
 }

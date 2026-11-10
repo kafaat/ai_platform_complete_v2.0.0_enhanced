@@ -1,7 +1,7 @@
 confidence,owner,kind,symbol,file,line,reference_count,action,decorated_route
 high,ai-agronomist,function,_zone_polygon,services/ai_agronomist/productivity_zones.py,61,0,review_before_delete,False
 high,decision-service,function,_memberships,services/decision-service/decision_sor_role_certify.py,163,0,review_before_delete,False
-high,decision-service,function,_service_token_guard,services/decision-service/main.py,159,0,review_before_delete,False
+high,decision-service,function,_service_token_guard,services/decision-service/main.py,160,0,review_before_delete,False
 high,decision-service,function,_require_live_when_certifying,services/decision-service/tests/test_eligibility_assessment_live_pg.py,119,0,review_before_delete,False
 high,decision-service,function,_clean_policy_env,services/decision-service/tests/test_sod_single_operator_self_approval.py,32,0,review_before_delete,False
 high,raster-service,function,_endpoint_host,services/raster-service/object_store.py,69,0,review_before_delete,False

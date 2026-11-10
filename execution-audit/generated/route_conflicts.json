@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 598,
+          "line": 599,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 545,
+          "line": 546,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -651,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 550,
+          "line": 551,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 539,
+          "line": 540,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1119,
-  "route_inventory_sha256": "b9892fc996ad6a8cfa929ad57f2f01477a70c6c020a6054fa257074f6714fbc2",
+  "route_inventory_sha256": "3ed3d612615f303b54415ee8e805880bcaadf0ab2d7a7b21f1ee2abf641ea8b4",
   "runtime_verified": false,
   "schema_version": 1
 }

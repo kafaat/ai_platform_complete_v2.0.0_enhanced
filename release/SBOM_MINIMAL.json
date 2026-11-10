@@ -375,7 +375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c0b68ca2ec212c98846414244c4029d933eec6ce90572d2a9aa6564d1e74110"
+          "content": "c77ce7a54586aed9740458333cef179a9ad89a1c34b658bea50d61434ee5384e"
         }
       ],
       "name": "frontend/package-lock.json",
@@ -17625,7 +17625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b994734dd9f4a26a9923c8ef7ac790a6699367d9674d3c77b054825fdaefc7a9"
+          "content": "5d477e5ef6189492685bcdc12d9f543b3251328ae50a04a7bbf33b4f50eecd6f"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -18025,7 +18025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ef911e8f97859bf7b4514b5d5b6731c7d9b0674cc757d056c9aab01095fbf9b"
+          "content": "8bb29ec73f0394a19a86ee98fb5c6bc6c2e4595696e3f9ce02fb5a6a66568f5d"
         }
       ],
       "name": "services/decision-service/persistence.py",

@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 686,
+      "evidence_count": 687,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -733,7 +733,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 554,
+      "evidence_count": 555,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1325,7 +1325,7 @@
       "kind": "lineage_stage",
       "stage": "decision",
       "order": 3,
-      "evidence_count": 195,
+      "evidence_count": 196,
       "owners": [
         "ai_agronomist",
         "database",
@@ -1541,7 +1541,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 302,
+      "evidence_count": 303,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2835,11 +2835,10 @@
         "services/sahool-platform/api/routers/crop_twin.py",
         "services/sahool-platform/api/routers/decision_confidence.py",
         "services/sahool-platform/api/routers/decision_explain.py",
-        "services/sahool-platform/api/routers/decision_impact.py",
-        "services/sahool-platform/api/routers/decision_record.py"
+        "services/sahool-platform/api/routers/decision_impact.py"
       ],
-      "source_evidence_count": 686,
-      "target_evidence_count": 554,
+      "source_evidence_count": 687,
+      "target_evidence_count": 555,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2948,11 +2947,10 @@
         "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
         "services/sahool-platform/tests/test_learning_source_lineage.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
-        "services/sahool-platform/tests/test_loop_referential_integrity.py",
-        "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py"
+        "services/sahool-platform/tests/test_loop_referential_integrity.py"
       ],
-      "source_evidence_count": 554,
-      "target_evidence_count": 195,
+      "source_evidence_count": 555,
+      "target_evidence_count": 196,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3041,8 +3039,8 @@
         "shared/contracts/soil/p4.py",
         "shared/federated_agent_runtime.py"
       ],
-      "source_evidence_count": 195,
-      "target_evidence_count": 302,
+      "source_evidence_count": 196,
+      "target_evidence_count": 303,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3084,7 +3082,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 302,
+      "source_evidence_count": 303,
       "target_evidence_count": 47,
       "static_supported": true,
       "runtime_verified": false
@@ -3277,5 +3275,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "46ab58420d0a91fb0bd027da9444d12fcdc6c9e4fc3e704e5b2cdaec4513333c"
+  "content_sha256": "463e56f6d4de9569959d54154b1aa0f66a4e108e6a9e999db9bc05b9537fb737"
 }
