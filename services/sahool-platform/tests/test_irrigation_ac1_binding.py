@@ -514,3 +514,107 @@ async def test_decision_services_ac1_refusal_is_a_named_block_not_a_server_error
     assert out["approval_state"] == "blocked_agronomic_context_incomplete"
     assert out["decision_id"] is None
     assert any("cultivar_id" in lim for lim in out["limitations"])
+
+
+# ── 4) defensive branches (codecov/patch on #1373: 10 lines of this PR uncovered) ─
+def _history_from(ledger_date):
+    payload = irrigation_candidate_compose_payload(
+        tenant_id="t-1",
+        field_id="fld_1",
+        season_id="season_2026",
+        cutoff=CUTOFF,
+        features=_features(),
+        inputs=INPUTS,
+        ledger_date=ledger_date,
+    )
+    return payload["historical"]["history_from"]
+
+
+def test_a_naive_ledger_datetime_is_read_as_utc_not_refused():
+    assert _history_from(datetime(2026, 7, 9, 0, 0)) == "2026-07-09T00:00:00+00:00"
+
+
+def test_an_unparsable_ledger_date_falls_back_to_one_day_before_the_cutoff():
+    assert _history_from("not-a-date") == "2026-07-09T06:00:00+00:00"
+
+
+def test_a_ledger_date_after_the_cutoff_never_opens_the_history_window_after_it():
+    """history_from > cutoff would describe a window that ends before it starts."""
+    assert _history_from("2026-07-11") == "2026-07-09T06:00:00+00:00"
+
+
+def test_a_profile_the_contract_rejects_is_reported_with_its_issues_and_not_attached():
+    from api.agronomic_context_composer import canonical_soil_profile_for_context
+
+    broken = {k: v for k, v in _canonical_profile().items() if k != "layers"}
+    profile, issues = canonical_soil_profile_for_context(broken, cutoff=CUTOFF)
+    assert profile is None
+    assert issues, "a rejected profile must say why, never pass silently"
+
+
+def test_a_profile_with_a_naive_availability_time_is_refused_by_the_contract():
+    """No silent "assume UTC": the strict contract refuses it, and the reason travels."""
+    from api.agronomic_context_composer import canonical_soil_profile_for_context
+
+    naive = _canonical_profile(available_at="2026-07-09T06:00:00")
+    profile, issues = canonical_soil_profile_for_context(naive, cutoff=CUTOFF)
+    assert profile is None
+    assert issues, "a naive availability time must be refused with a reason"
+
+
+def test_a_422_that_is_not_the_ac1_refusal_is_not_mapped_to_the_named_block():
+    b = _bind()
+    assert b.refusal(422, {"code": "something_else"}) is None
+    assert b.refusal(500, {"code": "agronomic_context_required"}) is None
+    assert b.refusal(422, "agronomic_context_required") is None
+    state, _ = b.refusal(422, {"code": "agronomic_context_required", "missing": ["crop_id"]})
+    assert state == "blocked_agronomic_context_incomplete"
+
+
+def test_a_crop_without_a_crop_card_is_reported_and_never_filled():
+    b = _bind(crop_id=None)
+    assert "crop_id" in b.missing and "crop_id" not in b.record_fields
+    assert b.detail["crop_id"] == "crop not resolved to a crop card"
+
+
+@pytest.mark.asyncio
+async def test_the_vegetation_read_asks_decision_service_for_the_point_in_time_snapshot(
+    monkeypatch,
+):
+    get, seen = _calls({"snapshot_id": "veg_1"})
+    monkeypatch.setattr(client, "decision_get_json", get)
+    out = await client.latest_vegetation_snapshot(
+        tenant_id="t-1",
+        field_id="fld_1",
+        season_id="season_2026",
+        available_before="2026-07-10T06:00:00+00:00",
+    )
+    assert out == {"snapshot_id": "veg_1"}
+    (args, kwargs) = seen[0]
+    assert args == ("/v1/evidence/vegetation-snapshots/latest",)
+    assert kwargs["params"] == {
+        "field_id": "fld_1",
+        "available_before": "2026-07-10T06:00:00+00:00",
+        "season_id": "season_2026",
+    }
+    # Without a season the read is not scoped to an invented one.
+    await client.latest_vegetation_snapshot(
+        tenant_id="t-1", field_id="fld_1", season_id=None, available_before="x"
+    )
+    assert "season_id" not in seen[1][1]["params"]
+
+
+@pytest.mark.asyncio
+async def test_without_an_active_season_nothing_is_composed_and_the_gap_is_named(monkeypatch):
+    monkeypatch.setenv("AGRONOMIC_CONTEXT_COMPOSE_ENABLED", "1")
+    monkeypatch.setenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "1")
+    compose, composed = _calls(_CTX_OK)
+    vegetation, veg_seen = _calls(_VEG_OK)
+    monkeypatch.setattr(client, "compose_context_snapshot", compose)
+    monkeypatch.setattr(client, "latest_vegetation_snapshot", vegetation)
+    b = await client.irrigation_candidate_lineage(
+        object(), "fld_1", {"cultivar": "yecora"}, INPUTS, WX, ET0, "2026-07-09", 40
+    )
+    assert composed == [] and veg_seen == []
+    assert b.detail["season_id"] == "no active season for the field"
+    assert b.blocked and "season_id" in b.missing
