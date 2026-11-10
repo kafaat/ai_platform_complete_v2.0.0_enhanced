@@ -256,10 +256,19 @@ def test_validator_rejects_bad_life_form_and_aliases():
 # ── 5. UI labels resolve; «ذرة» means one thing everywhere ──────────────────────
 
 
+_SHARED_CROP_OPTIONS = "frontend/src/lib/cropOptions.ts"
+
+
 def _ui_crop_labels(rel: str) -> list[str]:
+    """Labels a season picker offers. Since the picker vocabulary moved to the shared
+    lib/cropOptions.ts (one list for every web picker), each component must take its
+    CROPS from CROP_OPTIONS; the labels are read from the shared list."""
     src = (ROOT / rel).read_text(encoding="utf-8")
-    block = re.search(r"const CROPS = \[(.*?)\];", src, re.S)
-    assert block, rel
+    assert re.search(r"import \{[^}]*\bCROP_OPTIONS\b[^}]*\} from '[./]*lib/cropOptions'", src), rel
+    assert re.search(r"const CROPS = CROP_OPTIONS\b", src), rel
+    shared = (ROOT / _SHARED_CROP_OPTIONS).read_text(encoding="utf-8")
+    block = re.search(r"export const CROP_OPTIONS[^=]*= \[(.*?)\];", shared, re.S)
+    assert block, _SHARED_CROP_OPTIONS
     return re.findall(r"label:\s*'([^']+)'", block.group(1))
 
 
@@ -267,11 +276,16 @@ _EXPECTED_UI = {
     "قمح صلب": "wheat",
     "شعير": "barley",
     "ذرة صفراء": "maize",
+    "سورغم": "sorghum",
+    "دخن": "millet",
     "طماطم": "tomato",
     "بطاطس": "potato",
-    "خضروات": None,  # generic — honestly unresolved
+    "بصل": "onion",
+    "خيار": "cucumber",
+    "باذنجان": "eggplant",
+    "فلفل": "pepper",
+    "بامية": "okra",
     "برسيم": "alfalfa",
-    "دخن": "millet",
 }
 
 

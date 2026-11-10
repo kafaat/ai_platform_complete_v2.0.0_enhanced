@@ -174,6 +174,50 @@ void main() {
     expect(find.text('سُجِّل رفض التوصية.'), findsOneWidget);
   });
 
+  // RECOMMENDATION-CROP-PICKER-UNRESOLVABLE-ENTRY-01: محصول حقلٍ مخزّن بقيمة عامّة قديمة
+  // («خضروات») لا يُمرَّر صامتاً إلى المحرّك: يُعرَض «غير محدَّد» ولا طلب حتّى يُختار محصول.
+  testWidgets('legacy generic field crop is shown unspecified, not sent', (
+    tester,
+  ) async {
+    final adapter = FakeAdapter((_) async => const FakeReply(200, _columnBody));
+    await tester.pumpWidget(
+      hostApp(
+        RecommendationsScreen(
+          fieldId: 'f-1',
+          api: fakeAdvisorApi(adapter),
+          fieldLoader: () async => [
+            {
+              'field_id': 'f-1',
+              'farm_id': 'farm-1',
+              'name_ar': 'الحقل الشماليّ',
+              'crop': 'خضروات',
+            },
+          ],
+          role: 'agronomist',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('اطلب توصية'));
+    await tester.pumpAndSettle();
+    expect(find.text('محصول الحقل: $kUnspecifiedCropLabel.'), findsOneWidget);
+    await tester.tap(find.text('اطلب توصية'));
+    await tester.pumpAndSettle();
+    expect(adapter.to('/api/v1/recommendations/for-field'), isEmpty);
+  });
+
+  test('picker offers no legacy generic crop; helper drops them', () {
+    expect(kEngineCrops.toSet().intersection(kLegacyGenericCrops), isEmpty);
+    expect(kEngineCrops, isNot(contains('خضروات')));
+    for (final v in kLegacyGenericCrops) {
+      expect(specifiedFieldCrop(v), isNull, reason: v);
+    }
+    expect(specifiedFieldCrop('  '), isNull);
+    expect(specifiedFieldCrop(null), isNull);
+    expect(specifiedFieldCrop('بنّ'), 'بنّ');
+    expect(specifiedFieldCrop('قمح صلب'), 'قمح صلب');
+  });
+
   group('OutcomeFeedbackCubit', () {
     test(
       'one intent keeps one key across user retries; recorded is final',

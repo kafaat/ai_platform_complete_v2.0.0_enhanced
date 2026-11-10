@@ -252,8 +252,10 @@ capabilities:
   domain: satellite
   owner: raster-service+vegetation-analysis-service
   lifecycle: active
-  maturity: 3
-  evidence_level: 3
+  # maturity + evidence_level: lowered 2026-11-09 by owner decision; evidence double-counted
+  # before #1361; raise only with new independent evidence
+  maturity: 2
+  evidence_level: 2
   status: runtime_or_workflow_unverified
   confidence: low
   production_certified: false
