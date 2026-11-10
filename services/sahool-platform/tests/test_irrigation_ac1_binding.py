@@ -273,6 +273,140 @@ async def test_composer_violations_are_reported_not_hidden(monkeypatch):
     assert b.detail["vegetation"] == "no snapshot available by the cutoff"
 
 
+# ── 3b) the canonical soil profile must reach context.soil intact ────────────────
+def _canonical_profile(*, available_at="2026-07-09T06:00:00+00:00", gate_passed=True):
+    from shared.contracts.soil.profile import canonical_soil_profile_hash
+
+    body = {
+        "contract_version": "soil-profile.v1",
+        "profile_id": "soilprof_1",
+        "tenant_id": "t-1",
+        "field_id": "fld_1",
+        "zone_id": None,
+        "effective_at": "2026-07-01T00:00:00+00:00",
+        "data_available_at": available_at,
+        "status": "field_guided",
+        "evidence_level": "lab_verified",
+        "layers": [
+            {
+                "depth_from_cm": 0,
+                "depth_to_cm": 30,
+                "properties": {
+                    "texture_class": {
+                        "value": "loam",
+                        "evidence_class": "measured",
+                        "selected_source": "soil_lab_test",
+                        "confidence": 0.9,
+                    }
+                },
+            }
+        ],
+        "completeness_score": 0.8,
+        "quality_gate": {"passed": gate_passed, "executable": gate_passed, "reasons": []},
+        "selection_policy_version": "soil-selection.v1",
+    }
+    body["profile_hash"] = canonical_soil_profile_hash(body)
+    return body
+
+
+def _decision_service_validate(payload, monkeypatch):
+    """decision-service's own point-in-time policy, in production mode (soil profile required)."""
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.syspath_prepend(str(_REPO / "services" / "decision-service"))
+    for name in [
+        m for m in sys.modules if m == "agronomic_context" or m.startswith("agronomic_context.")
+    ]:
+        monkeypatch.delitem(sys.modules, name)
+    from agronomic_context.contracts import ContextComposeIn
+    from agronomic_context.point_in_time import validate_composition
+
+    return [v["code"] for v in validate_composition(ContextComposeIn(**payload))]
+
+
+async def _lineage_with_soil(monkeypatch, raw_profile):
+    import api.canonical_soil_state as soil_state
+
+    monkeypatch.setenv("AGRONOMIC_CONTEXT_COMPOSE_ENABLED", "1")
+
+    async def _soil(**_kw):
+        return raw_profile
+
+    monkeypatch.setattr(soil_state, "resolve_canonical_soil_state", _soil)
+    compose, composed = _calls(_CTX_OK)
+    vegetation, _ = _calls(_VEG_OK)
+    monkeypatch.setattr(client, "compose_context_snapshot", compose)
+    monkeypatch.setattr(client, "latest_vegetation_snapshot", vegetation)
+    b = await client.irrigation_candidate_lineage(
+        object(), "fld_1", SEASON, INPUTS, WX, ET0, "2026-07-09", 40
+    )
+    return b, composed[0][0][0]
+
+
+@pytest.mark.asyncio
+async def test_a_valid_canonical_profile_reaches_context_soil_and_passes_the_production_check(
+    monkeypatch,
+):
+    profile = _canonical_profile()
+    # the strict platform client adds normalisation keys the contract forbids
+    raw = {**profile, "schema_version": "soil-profile.v1", "quality_status": "verified"}
+    b, payload = await _lineage_with_soil(monkeypatch, raw)
+    assert payload["context"]["soil"] == profile, "the canonical snapshot must travel verbatim"
+    assert "soil_profile" not in b.detail
+    assert _decision_service_validate(payload, monkeypatch) == []
+
+
+@pytest.mark.asyncio
+async def test_without_a_profile_production_names_the_soil_gap(monkeypatch):
+    b, payload = await _lineage_with_soil(monkeypatch, None)
+    assert b.detail["soil_profile"] == "no canonical soil profile for the field"
+    assert _decision_service_validate(payload, monkeypatch) == ["canonical_soil_profile_required"]
+
+
+@pytest.mark.asyncio
+async def test_a_profile_whose_gate_failed_is_carried_and_refused_by_name(monkeypatch):
+    b, payload = await _lineage_with_soil(monkeypatch, _canonical_profile(gate_passed=False))
+    assert payload["context"]["soil"]["quality_gate"]["passed"] is False
+    assert _decision_service_validate(payload, monkeypatch) == ["soil_profile_quality_gate_failed"]
+
+
+@pytest.mark.asyncio
+async def test_a_profile_published_after_the_cutoff_is_not_attached(monkeypatch):
+    b, payload = await _lineage_with_soil(
+        monkeypatch, _canonical_profile(available_at="2099-01-01T00:00:00+00:00")
+    )
+    assert b.detail["soil_profile"] == "soil profile became available after the decision cutoff"
+    assert payload["context"]["soil"].get("profile_id") is None
+
+
+def test_a_new_profile_never_reuses_the_idempotency_key_of_an_older_one():
+    first = irrigation_candidate_compose_payload(
+        tenant_id="t-1",
+        field_id="fld_1",
+        season_id="season_2026",
+        cutoff=CUTOFF,
+        features=_features(),
+        inputs=INPUTS,
+        ledger_date="2026-07-09",
+        soil_profile=_canonical_profile(),
+    )
+    second_profile = {**_canonical_profile(), "completeness_score": 0.9}
+    from shared.contracts.soil.profile import canonical_soil_profile_hash
+
+    second_profile["profile_hash"] = canonical_soil_profile_hash(second_profile)
+    second = irrigation_candidate_compose_payload(
+        tenant_id="t-1",
+        field_id="fld_1",
+        season_id="season_2026",
+        cutoff=CUTOFF,
+        features=_features(),
+        inputs=INPUTS,
+        ledger_date="2026-07-09",
+        soil_profile=second_profile,
+    )
+    assert first["idempotency_key"] != second["idempotency_key"]
+    assert first["idempotency_key"] != _payload()["idempotency_key"]
+
+
 # ── 4) the route ─────────────────────────────────────────────────────────────────
 _endpoint_path = Path(__file__).with_name("test_field_irrigation_recommendation_endpoint.py")
 _spec = importlib.util.spec_from_file_location("_ac1_endpoint_harness", _endpoint_path)

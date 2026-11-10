@@ -229,10 +229,12 @@ async def irrigation_candidate_lineage(
         Ac1Binding,
         agronomic_context_compose_enabled,
         agronomic_context_required,
+        canonical_soil_profile_for_context,
         irrigation_candidate_compose_payload,
         irrigation_candidate_features,
         lineage_binding,
     )
+    from api.canonical_soil_state import resolve_canonical_soil_state
 
     tenant_id = str(getattr(user, "tenant_id", "") or "")
     season_id = season.get("season_id") if season else None
@@ -255,6 +257,14 @@ async def irrigation_candidate_lineage(
         detail["season_id"] = "no active season for the field"
     else:
         cutoff = datetime.now(UTC)
+        soil_profile, soil_gap = canonical_soil_profile_for_context(
+            await resolve_canonical_soil_state(tenant_id=tenant_id, field_id=field_id),
+            cutoff=cutoff,
+        )
+        if soil_gap is not None:
+            # Not fatal here: decision-service decides whether the profile is required and
+            # names the violation; this records why none was attached.
+            detail["soil_profile"] = soil_gap
         payload = irrigation_candidate_compose_payload(
             tenant_id=tenant_id,
             field_id=field_id,
@@ -262,6 +272,7 @@ async def irrigation_candidate_lineage(
             cutoff=cutoff,
             inputs=inputs,
             ledger_date=ledger_date,
+            soil_profile=soil_profile,
             features=irrigation_candidate_features(
                 cutoff=cutoff,
                 field_id=field_id,

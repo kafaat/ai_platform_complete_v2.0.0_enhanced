@@ -375,6 +375,33 @@ def irrigation_candidate_features(
     return feats
 
 
+def canonical_soil_profile_for_context(
+    raw: dict[str, Any] | None, *, cutoff: datetime
+) -> tuple[dict[str, Any] | None, str | list[str] | None]:
+    """The canonical ``SoilProfileSnapshot`` for ``context.soil``, or why there is none.
+
+    decision-service validates ``context.soil`` as a full profile when the soil profile is
+    required (always in production). The assembler's group summary can never pass that, so the
+    canonical snapshot itself must travel. Only the contract's own fields are kept (the strict
+    client adds normalisation keys the contract forbids); the snapshot is validated with the
+    shared contract here, and refused if it became available after the decision cutoff.
+    """
+    if not isinstance(raw, dict):
+        return None, "no canonical soil profile for the field"
+    from shared.contracts.soil.profile import SoilProfileSnapshot, validate_soil_profile_snapshot
+
+    profile = {k: v for k, v in raw.items() if k in SoilProfileSnapshot.model_fields}
+    snapshot, issues = validate_soil_profile_snapshot(profile)
+    if snapshot is None:
+        return None, issues
+    available = snapshot.data_available_at
+    if available.tzinfo is None:
+        available = available.replace(tzinfo=UTC)
+    if available > cutoff:
+        return None, "soil profile became available after the decision cutoff"
+    return profile, None
+
+
 def irrigation_candidate_compose_payload(
     *,
     tenant_id: str,
@@ -384,13 +411,19 @@ def irrigation_candidate_compose_payload(
     features: list[dict[str, Any]],
     inputs: dict[str, Any],
     ledger_date: Any,
+    soil_profile: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """``ContextComposeIn`` body for the irrigation candidate, via the existing assembler."""
+    """``ContextComposeIn`` body for the irrigation candidate, via the existing assembler.
+
+    With a validated canonical soil profile, ``context.soil`` is that profile verbatim (not the
+    assembler's group summary) and the idempotency key covers its hash, so a new profile never
+    collides with a key composed over an older one.
+    """
     history_from = _day_start(ledger_date) or (cutoff - timedelta(days=1))
     if history_from > cutoff:
         history_from = cutoff - timedelta(days=1)
     unheld = "not composed by the field irrigation route"
-    return assemble_agronomic_context(
+    payload = assemble_agronomic_context(
         tenant_id=tenant_id,
         field_id=field_id,
         season_id=season_id,
@@ -411,6 +444,15 @@ def irrigation_candidate_compose_payload(
             },
         },
     )["payload"]
+    if soil_profile is not None:
+        payload["context"]["soil"] = soil_profile
+        payload["idempotency_key"] = (
+            "acx_"
+            + _stable_hash(
+                {"key": payload["idempotency_key"], "soil": soil_profile.get("profile_hash")}
+            )[:32]
+        )
+    return payload
 
 
 @dataclass(frozen=True)
