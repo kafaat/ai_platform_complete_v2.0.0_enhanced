@@ -70,7 +70,7 @@ REVOCATION_SCHEMA = "sahool.gate01_revoked_authorizations/v1"
 POLICY_PATH = "docs/architecture/gate01_policy.json"
 DEFAULT_CONFIG = {
     "required_for": ["state_transition"],
-    "required_for_bounded": False,
+    "required_for_bounded": True,
     "namespace": NAMESPACE_DEFAULT,
     "allowed_signers_path": "docs/architecture/gates/owner_allowed_signers",
     "authorizations_dir": "docs/architecture/gates/authorizations",

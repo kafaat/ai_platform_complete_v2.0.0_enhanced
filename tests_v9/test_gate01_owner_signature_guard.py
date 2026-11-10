@@ -739,7 +739,7 @@ def test_the_committed_trust_root_holds_no_key():
     policy = json.loads((_ROOT / POLICY).read_text(encoding="utf-8"))
     block = policy["owner_signature"]
     assert block["required_for"] == ["state_transition"]
-    assert block["required_for_bounded"] is False
+    assert block["required_for_bounded"] is True
     assert block["allowed_signers_path"] == SIGNERS
     assert policy["gate"]["state"] == "CLOSED"
 
@@ -829,27 +829,36 @@ def test_closing_or_keeping_closed_needs_no_signature(repo):
     assert errors == []
 
 
-# ── bounded adjudications: verified if present, advisory if absent ──────────────
-def test_an_unsigned_bounded_change_is_advisory_by_default(repo):
+# ── bounded adjudications: required by default (owner ruling 2026-11-10, option B) ──
+def _set_bounded_on_main(repo: Path, value: bool) -> None:
+    """Commit ``required_for_bounded = value`` on ``main`` and rebase the PR onto it."""
+    _git(repo, "checkout", "-q", "main")
+    pol = _base_policy()
+    pol["owner_signature"]["required_for_bounded"] = value
+    _write(repo, POLICY, pol)
+    _commit(repo, f"main sets required_for_bounded={value}")
+    _git(repo, "checkout", "-q", "pr")
+    _git(repo, "rebase", "-q", "main")
+
+
+def test_the_default_config_requires_a_signature_for_bounded_changes():
+    assert sig.DEFAULT_CONFIG["required_for_bounded"] is True
+
+
+def test_an_unsigned_bounded_change_blocks_by_default(repo):
+    _write(repo, FROZEN, "print('frozen v2')\n")
+    _commit(repo, "bounded change")
+    errors, _ = _findings(repo, frozen_touched={FROZEN})
+    _blocked(errors, "carries no verified owner signature")
+
+
+def test_an_unsigned_bounded_change_is_advisory_only_where_main_switched_it_off(repo):
+    _set_bounded_on_main(repo, False)
     _write(repo, FROZEN, "print('frozen v2')\n")
     _commit(repo, "bounded change")
     errors, notes = _findings(repo, frozen_touched={FROZEN})
     assert errors == []
     assert any("advisory until required_for_bounded=true" in n for n in notes), notes
-
-
-def test_an_unsigned_bounded_change_blocks_once_required(repo):
-    _git(repo, "checkout", "-q", "main")
-    pol = _base_policy()
-    pol["owner_signature"]["required_for_bounded"] = True
-    _write(repo, POLICY, pol)
-    _commit(repo, "owner flips required_for_bounded")
-    _git(repo, "checkout", "-q", "pr")
-    _git(repo, "rebase", "-q", "main")
-    _write(repo, FROZEN, "print('frozen v2')\n")
-    _commit(repo, "bounded change")
-    errors, _ = _findings(repo, frozen_touched={FROZEN})
-    _blocked(errors, "carries no verified owner signature")
 
 
 def test_a_signed_bounded_change_is_verified(repo, keys):
@@ -879,9 +888,18 @@ def test_weakening_the_owner_signature_block_is_refused(repo):
     _blocked(errors, "owner_signature weakened")
 
 
+def test_turning_the_bounded_requirement_off_is_refused(repo):
+    pol = _base_policy()
+    pol["owner_signature"]["required_for_bounded"] = False
+    _write(repo, POLICY, pol)
+    _commit(repo, "weaken bounded")
+    errors, _ = _findings(repo)
+    _blocked(errors, "required_for_bounded turned off")
+
+
 def test_strengthening_the_owner_signature_block_needs_no_signature(repo):
     pol = _base_policy()
-    pol["owner_signature"]["required_for_bounded"] = True
+    pol["owner_signature"]["max_validity_days"] = 7
     _write(repo, POLICY, pol)
     _commit(repo, "strengthen")
     errors, _ = _findings(repo)
@@ -957,16 +975,6 @@ def _bounded_change_with_adjudication(repo: Path, status: str = "ISSUED") -> str
     return _commit(repo, f"bounded change + adjudication {status}")
 
 
-def _require_bounded_on_main(repo: Path) -> None:
-    _git(repo, "checkout", "-q", "main")
-    pol = _base_policy()
-    pol["owner_signature"]["required_for_bounded"] = True
-    _write(repo, POLICY, pol)
-    _commit(repo, "owner flips required_for_bounded")
-    _git(repo, "checkout", "-q", "pr")
-    _git(repo, "rebase", "-q", "main")
-
-
 def _run_both_guards(repo: Path, monkeypatch, capsys) -> tuple[int, str]:
     changed = _git(repo, "diff", "--name-only", "main...HEAD")
     monkeypatch.setattr(g01, "ROOT", repo)
@@ -1001,20 +1009,18 @@ def _run_both_guards(repo: Path, monkeypatch, capsys) -> tuple[int, str]:
     return rc, capsys.readouterr().out
 
 
-def test_both_guards_pass_an_unsigned_issued_record_while_bounded_is_advisory(
+def test_both_guards_pass_an_unsigned_issued_record_only_where_bounded_is_off(
     repo, monkeypatch, capsys
 ):
-    """The documented window: before `required_for_bounded=true`, `ISSUED` alone passes."""
+    """Why option B: with the flag off, an agent-written `ISSUED` alone passes both layers."""
+    _set_bounded_on_main(repo, False)
     _bounded_change_with_adjudication(repo)
     rc, out = _run_both_guards(repo, monkeypatch, capsys)
     assert rc == 0, out
     assert "advisory until required_for_bounded=true" in out
 
 
-def test_both_guards_block_an_unsigned_issued_record_once_bounded_is_required(
-    repo, monkeypatch, capsys
-):
-    _require_bounded_on_main(repo)
+def test_both_guards_block_an_unsigned_issued_record_by_default(repo, monkeypatch, capsys):
     _bounded_change_with_adjudication(repo)
     rc, out = _run_both_guards(repo, monkeypatch, capsys)
     assert rc == 1, out
@@ -1024,7 +1030,6 @@ def test_both_guards_block_an_unsigned_issued_record_once_bounded_is_required(
 def test_both_guards_pass_an_issued_record_carried_by_an_owner_signature(
     repo, keys, monkeypatch, capsys
 ):
-    _require_bounded_on_main(repo)
     head = _bounded_change_with_adjudication(repo)
     _authorize(repo, keys, head=head, action="bounded_change")
     rc, out = _run_both_guards(repo, monkeypatch, capsys)
@@ -1033,7 +1038,6 @@ def test_both_guards_pass_an_issued_record_carried_by_an_owner_signature(
 
 
 def test_both_guards_block_an_issued_record_signed_by_the_agent(repo, keys, monkeypatch, capsys):
-    _require_bounded_on_main(repo)
     head = _bounded_change_with_adjudication(repo)
     _authorize(repo, keys, head=head, action="bounded_change", key="agent")
     rc, out = _run_both_guards(repo, monkeypatch, capsys)
@@ -1043,7 +1047,6 @@ def test_both_guards_block_an_issued_record_signed_by_the_agent(repo, keys, monk
 
 def test_an_owner_signature_does_not_replace_the_issued_record(repo, keys, monkeypatch, capsys):
     """The signature proves origin; the legacy layer still needs a matching `ISSUED` record."""
-    _require_bounded_on_main(repo)
     head = _bounded_change_with_adjudication(repo, status="PENDING_OWNER_SIGNATURE")
     _authorize(repo, keys, head=head, action="bounded_change")
     rc, out = _run_both_guards(repo, monkeypatch, capsys)
