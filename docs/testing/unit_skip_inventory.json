@@ -10,7 +10,7 @@
     },
     "result": "13,139 reports: 13,050 + 65 passed, 22 + 2 skipped, 0 failed (equals hospital S1-15)",
     "removed_by_this_change": "4 collection-skip reports (test_h51_field_source_binding_pg.py and test_realtime_webhooks.py, each in both stages)",
-    "reference_environment": "The CI Unit Tests job is the reference: the guard runs there. Measured on #1374 at 8b4e9fceb (run 42914096801, job 130171914718): 38 skip reports. That job has no redis-server, so 18 live Redis ACL proofs skip there and run in no CI job. S1's environment (24 reports on f8a9cd05a) and local runs have redis-server, so the guard is exact only in the CI job's environment."
+    "reference_environment": "The CI Unit Tests job is the reference: the guard runs there. Its first run on #1374 at 8b4e9fceb (run 42914096801, job 130171914718) reported 38 skips: that job had no redis-server, so 18 live Redis ACL proofs skipped there and ran in no CI job. The job now installs redis-server (system service stopped, nothing on 6379; each test spawns its own on a free port) and sets REDIS_ACL_LIVE_REQUIRED=1, so a missing binary fails instead of skipping. The 18 run in the blocking gate and leave this list; the EVAL case keeps its ACL-property reason."
   },
   "$policy": "Debt, not exemption. Every entry is `open` until the owner records a named exception (`status: exception` + `decision`). While any entry is open, S1 stays INCONCLUSIVE. The inventory only shrinks: a fixed skip leaves in the same change. Enforced by scripts/ci/unit_skip_inventory_guard.py in the Unit Tests job.",
   "skips": [
@@ -64,50 +64,10 @@
     },
     {
       "stage": "parallel",
-      "nodeid": "tests_v9/test_jwt_revocation_same_redis.py::test_live_actuator_reads_auths_revocations_and_floor_and_writes_nothing",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_jwt_revocation_same_redis.py::test_live_platform_denylist_user_sees_what_auth_writes_and_nothing_else",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_jwt_revocation_same_redis.py::test_live_platform_rejects_a_token_auth_revoked_and_auth_sees_a_platform_logout",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
       "nodeid": "tests_v9/test_mfa_totp_antireplay_v141.py::test_column_exists_and_conditional_update_is_antireplay",
       "reason": "TEST_DATABASE_URL غير متاح — اختبار تكامل",
       "classification": "integration",
       "required_gate": "move to `integration` (Integration Tests sets TEST_DATABASE_URL) with a before/after collected manifest proving it runs there unskipped",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_platform_token_floor.py::test_live_auth_revoke_all_sessions_is_401_on_the_platform",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_raster_invalidation_redis_acl.py::test_live_compose_publisher_reaches_subscriber_and_denies_other_access",
-      "reason": "redis-server unavailable",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
       "status": "open"
     },
     {
@@ -120,114 +80,10 @@
     },
     {
       "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_denials_are_real_noperm_for_command_key_and_channel[sahool-redis-state]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_denials_are_real_noperm_for_command_key_and_channel[sahool-redis]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_each_user_runs_its_commands_inside_its_patterns_only[sahool-redis-state]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_each_user_runs_its_commands_inside_its_patterns_only[sahool-redis]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_every_client_url_connects_as_its_user[sahool-redis-state]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_every_client_url_connects_as_its_user[sahool-redis]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_no_service_user_holds_an_admin_or_dangerous_command[sahool-redis-state]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_no_service_user_holds_an_admin_or_dangerous_command[sahool-redis]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
       "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_scripts_are_held_to_the_callers_acl[sahool-redis-state]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
+      "reason": "لا مستخدمَ يملك EVAL على هذا الخادم",
       "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there); with redis-server it still needs a user granted EVAL",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_scripts_are_held_to_the_callers_acl[sahool-redis]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_selectors_read_their_keys_and_write_nothing[sahool-redis-state]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_selectors_read_their_keys_and_write_nothing[sahool-redis]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_the_shared_password_alone_is_refused[sahool-redis-state]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_the_shared_password_alone_is_refused[sahool-redis]",
-      "reason": "لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة",
-      "classification": "integration",
-      "required_gate": "a blocking job with a real redis-server and the per-service ACL users (none in CI today: these live proofs ran in no CI job; S1's environment and local runs have redis-server, so they run there)",
+      "required_gate": "a live least-privilege Redis ACL gate that grants EVAL to the calling user; never an unauthenticated server",
       "status": "open"
     },
     {

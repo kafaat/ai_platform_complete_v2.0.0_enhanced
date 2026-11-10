@@ -183,3 +183,25 @@ def test_the_unit_job_feeds_both_stages_to_the_guard():
         "python scripts/ci/unit_skip_inventory_guard.py --junit parallel=unit-par.xml "
         "--junit tree_writer=unit-tw.xml"
     ) in joined
+
+
+def test_the_unit_job_runs_the_live_redis_proofs_instead_of_declaring_them():
+    """REDIS-ACL-LIVE-IN-NO-CI-JOB-01: the 18 live Redis ACL proofs skipped in this job for lack
+    of a binary and ran in no CI job. The remedy is the binary plus a flag that fails on its
+    absence, never 18 more inventory lines. Removing either makes this test red."""
+    import yaml
+
+    document = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+    steps = document["jobs"]["unit-tests"]["steps"]
+    runs = [str(step.get("run", "")) for step in steps]
+    install = next(
+        i for i, run in enumerate(runs) if "resilient_apt_install.sh redis-server" in run
+    )
+    assert "systemctl stop redis-server" in runs[install], "the distro service must not hold 6379"
+    suites = [i for i, run in enumerate(runs) if '-m "unit and' in run]
+    assert len(suites) == 2 and all(install < i for i in suites)
+    for i in suites:
+        assert (steps[i].get("env") or {}).get("REDIS_ACL_LIVE_REQUIRED") == "1", runs[i]
+    entries = guard.load_inventory()
+    assert not [e for e in entries if e["reason"].startswith("لا redis-server")]
+    assert not [e for e in entries if e["reason"] == "redis-server unavailable"]
