@@ -4314,7 +4314,7 @@
       "mutations": [
         {
           "expect": "test_unmatched_and_duplicate_paths_fail_closed",
-          "find": "        if not any(filename.startswith(prefix.rstrip(\"/\") + \"/\") for prefix in prefixes):",
+          "find": "        if not any(\n            filename.startswith(prefix.rstrip(\"/\") + \"/\") for prefix in prefixes\n        ):",
           "replace": "        if False:  # mutated: do not reject paths outside permitted source roots",
           "why": "إذا تجاهل الحارس المسارات الخارجة عن نطاق الخدمة نجح تقرير تغطية بلا مطابقة Git؛ اختبار المسار غير المطابق يجب أن يسقط."
         },

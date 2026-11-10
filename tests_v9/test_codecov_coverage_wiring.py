@@ -31,7 +31,11 @@ def _upload(job):
     [
         ("unit-tests", "unit-tests", "coverage-unit.xml"),
         ("platform-unit-tests", "platform-unit-tests", "coverage-platform.xml"),
-        ("decision-service-tests", "decision-service-tests", "coverage-decision-service.xml"),
+        (
+            "decision-service-tests",
+            "decision-service-tests",
+            "coverage-decision-service.xml",
+        ),
     ],
 )
 def test_three_separate_uploads_without_report_autodiscovery(job, flag, report):
@@ -47,11 +51,14 @@ def test_platform_keeps_its_api_and_core_sources():
     assert any("--cov=api --cov=core" in text for text in commands)
     assert any(
         "--data-file=services/sahool-platform/.coverage" in text
-        and "--include=services/sahool-platform/api/*,services/sahool-platform/core/*" in text
+        and "--include=services/sahool-platform/api/*,services/sahool-platform/core/*"
+        in text
         for text in commands
     )
     assert any("codecov_coverage_guard.py" in text for text in commands)
-    assert any("--rcfile=services/sahool-platform/.coveragerc" in text for text in commands)
+    assert any(
+        "--rcfile=services/sahool-platform/.coveragerc" in text for text in commands
+    )
 
 
 def test_decision_job_aggregates_existing_real_pg_tests():
@@ -66,8 +73,12 @@ def test_decision_job_aggregates_existing_real_pg_tests():
     assert any("tests/test_ac1_agronomic_context.py" in text for text in commands)
     assert any("tests/test_agronomic_lineage_integrity.py" in text for text in commands)
     assert any("--data-file=.coverage.decision-service" in text for text in commands)
-    assert any("--rcfile=services/decision-service/.coveragerc" in text for text in commands)
-    assert any("--forbid-prefix services/decision-service/tests" in text for text in commands)
+    assert any(
+        "--rcfile=services/decision-service/.coveragerc" in text for text in commands
+    )
+    assert any(
+        "--forbid-prefix services/decision-service/tests" in text for text in commands
+    )
 
 
 def test_unit_reexport_is_validated_from_repo_root():
@@ -172,6 +183,7 @@ def test_root_export_preserves_same_basenames_in_two_packages(tmp_path):
         ("services/sahool-platform/api", "services/sahool-platform/core"),
         paths,
     ) == (2, 2, 2)
+
 
 def test_forbidden_decision_test_source_is_refused(tmp_path):
     name = "services/decision-service/tests/test_bad.py"

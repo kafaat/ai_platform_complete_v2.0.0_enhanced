@@ -37,7 +37,9 @@ def validate_report(
         raise CoveragePathError("not a Cobertura coverage XML report")
     sources = [item.text for item in root.findall("./sources/source")]
     if len(sources) != 1 or not sources[0] or Path(sources[0]).resolve() != repo_root:
-        raise CoveragePathError(f"expected one Git-root source {repo_root}, got {sources}")
+        raise CoveragePathError(
+            f"expected one Git-root source {repo_root}, got {sources}"
+        )
     if not prefixes:
         raise CoveragePathError("no allowed source prefixes")
     tracked = set(
@@ -53,11 +55,18 @@ def validate_report(
     for entry in classes:
         filename = entry.get("filename", "")
         path = PurePosixPath(filename)
-        if not filename or path.is_absolute() or ".." in path.parts or chr(92) in filename:
+        if (
+            not filename
+            or path.is_absolute()
+            or ".." in path.parts
+            or chr(92) in filename
+        ):
             raise CoveragePathError(f"non-canonical report path: {filename!r}")
         if filename != path.as_posix():
             raise CoveragePathError(f"not a canonical path: {filename!r}")
-        if not any(filename.startswith(prefix.rstrip("/") + "/") for prefix in prefixes):
+        if not any(
+            filename.startswith(prefix.rstrip("/") + "/") for prefix in prefixes
+        ):
             raise CoveragePathError(f"out-of-scope report path: {filename}")
         if filename in seen:
             raise CoveragePathError(f"duplicate coverage class path: {filename}")
@@ -102,7 +111,9 @@ def main() -> int:
     except (CoveragePathError, subprocess.CalledProcessError, OSError) as exc:
         print(f"CODECOV_REPORT_INVALID: {exc}", file=sys.stderr)
         return 1
-    print(f"CODECOV_REPORT_VALID files={files} measured_lines={total} covered_lines={covered}")
+    print(
+        f"CODECOV_REPORT_VALID files={files} measured_lines={total} covered_lines={covered}"
+    )
     return 0
 
 
