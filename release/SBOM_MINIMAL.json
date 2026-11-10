@@ -22935,7 +22935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10a0c1a5b1ba3345120a674135c51bd0239d01aa08373e53b22b5a508f53f38c"
+          "content": "cfdffe526ce91175fde1602874e21ae905725178d8786ab8cbb19442b60829c0"
         }
       ],
       "name": "services/sahool-platform/api/agronomic_context_composer.py",
@@ -33505,7 +33505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae659dc3c1e71cdbfc9205aebb756acdb7c87ca3a8aa6a3838a4f52a878b53ea"
+          "content": "ca6919af7ef0200857a96a08414e2016ac9fc5212c4a7e2b9e634b4f4b43a317"
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
