@@ -17495,6 +17495,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cbf6a5ee4f0e5c23b92241ca59c5c0d21f4a2d9c365e0521e20ef412006054e2"
+        }
+      ],
+      "name": "services/decision-service/.coveragerc",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e008cb89dbe0ef06261338271d6154118cbd45e95bacada2c4b98238847377f9"
         }
       ],

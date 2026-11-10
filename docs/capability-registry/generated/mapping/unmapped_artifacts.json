@@ -10908,6 +10908,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_codecov_coverage_wiring.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_collect_guard_surface_evidence.py",
     "kind": "tests"
   },

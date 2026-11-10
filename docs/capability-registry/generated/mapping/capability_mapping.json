@@ -15,26 +15,26 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7086,
+    "files_scanned": 7090,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 89,
       "mobile": 414,
-      "other": 2152,
-      "tests": 2364,
+      "other": 2155,
+      "tests": 2365,
       "web": 505
     },
-    "unmapped_artifacts": 3376,
+    "unmapped_artifacts": 3377,
     "ambiguous_artifacts": 232,
     "files_by_reading": {
-      "python_functional": 3814,
-      "raw": 3272
+      "python_functional": 3816,
+      "raw": 3274
     },
-    "test_dependency_files": 1777,
-    "test_dependency_edges": 4467,
+    "test_dependency_files": 1778,
+    "test_dependency_edges": 4469,
     "test_dependency_bounded_files": 1038,
-    "test_dependency_unresolved_relations": 452
+    "test_dependency_unresolved_relations": 453
   },
   "capabilities": [
     {
@@ -41126,6 +41126,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_codecov_coverage_wiring.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_collect_guard_surface_evidence.py",
       "kind": "tests"
     },
@@ -71612,6 +71616,34 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_codecov_coverage_wiring.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "subprocess",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ci/codecov_coverage_guard.py",
+          "kind": "import",
+          "line": 15
+        },
+        {
+          "source": "services/decision-service/main.py",
+          "kind": "source_read",
+          "line": 195
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 154,
+          "call": "run_path"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_collect_guard_surface_evidence.py",
