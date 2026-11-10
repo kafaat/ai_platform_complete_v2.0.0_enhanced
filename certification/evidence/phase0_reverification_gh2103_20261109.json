@@ -1,0 +1,94 @@
+{
+  "schema": "sahool.phase0_reverification/v1",
+  "recorded_on": "2026-11-09",
+  "status": "NOT_REVERIFIED",
+  "status_detail": "PENDING: no cryptographic re-verification was performed in this record. Nothing below is a verdict on the Phase-0 evidence; it only states what was read, what was blocked, and what a human must run.",
+  "trigger": "The pinned attestation verifier was raised from gh 2.93.0 to gh 2.103.3. gh before 2.102.0 carries two flaws in flags this repository relies on: GHSA-wjmr-j3rp-mh2g (--signer-workflow matched only a prefix of the certificate identity) and GHSA-4mq3-hpgx-9cx8 (--source-ref compared case-insensitively). Source for both fixes: the cli/cli v2.102.0 release notes (as provided by the owner); the GHSA advisory pages were not reachable from this session. The Phase-0 VERIFIED verdict was produced by gh 2.93.0, so it should be re-checked with a fixed verifier.",
+  "original_record": {
+    "path": "docs/architecture/gate01_policy.json",
+    "json_pointer": "/phase0_baseline",
+    "left_untouched": true,
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "tree_sha": "ac25432304025877477eb5096272027b3213ced3",
+    "evidence_run_id": "31701614219",
+    "artifact_digests": {
+      "live-pg-verified-evidence": "sha256:257206bf7f3212d083c8cf73b7e2cfdb4001f1ecf71bc24c0615d863fdd438a9",
+      "live-pg-evidence-attestation": "sha256:e36a658d90404a9815a98e7133744b40b27adbd8a775c94204f26a6f3f145b25",
+      "live-pg-evidence": "sha256:272000e5179026fa303321769dd4881bdda2fc9ebd845e818ded79f4e77fe07e"
+    },
+    "original_verifier": "gh 2.93.0 (pinned at the time in docs/architecture/sot_provenance_policy.json)"
+  },
+  "new_verifier": {
+    "version": "2.103.3",
+    "archive": "gh_2.103.3_linux_amd64.tar.gz",
+    "release_url": "https://github.com/cli/cli/releases/download/v2.103.3/gh_2.103.3_linux_amd64.tar.gz",
+    "archive_sha256_official": "4c806978ffce1cec70853302a56d70ac6da4f19bae7adca4e1a8ab00633dd91d",
+    "archive_sha256_official_source": "gh_2.103.3_checksums.txt from the same release (file sha256 f756e7859d90dbb5e85aae5194206c37da220bec9bac23d3d659078a8e766fdc)",
+    "archive_sha256_computed_locally": "4c806978ffce1cec70853302a56d70ac6da4f19bae7adca4e1a8ab00633dd91d",
+    "extracted_binary": "gh_2.103.3_linux_amd64/bin/gh",
+    "extracted_binary_sha256_computed_locally": "b768184570b12536be4ac1528893f6340d1c6a7b40b56ad45bca9cd0e87ad34d",
+    "version_output": "gh version 2.103.3 (2026-10-26)",
+    "trust_limit": "The checksums file and the archive were both fetched from GitHub release assets over TLS; they are not independent of GitHub. The release's own Sigstore attestation was not verified, because api.github.com access to cli/cli is not enabled for this session."
+  },
+  "measured_in_this_session": {
+    "method": "GitHub REST API metadata only (gh api), read on 2026-11-09. Metadata, not bytes: it detects substitution of the artifact but proves nothing cryptographically.",
+    "run": {
+      "id": "31701614219",
+      "head_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+      "head_branch": "main",
+      "event": "push",
+      "conclusion": "success",
+      "workflow_path": ".github/workflows/ci.yml",
+      "created_at": "2026-08-13T12:46:11Z"
+    },
+    "artifacts_still_listed": [
+      {
+        "id": 9181497489,
+        "name": "live-pg-verified-evidence-6ba0bef56f47926ce657515fe1717019522f868b",
+        "digest": "sha256:257206bf7f3212d083c8cf73b7e2cfdb4001f1ecf71bc24c0615d863fdd438a9",
+        "digest_matches_original_record": true,
+        "size_in_bytes": 19731,
+        "expired": false,
+        "expires_at": "2026-11-11T12:46:11Z"
+      }
+    ],
+    "artifacts_no_longer_listed": [
+      "live-pg-evidence-attestation (30-day retention in ci.yml)",
+      "live-pg-evidence (30-day retention in ci.yml)"
+    ],
+    "note": "The verified-evidence archive (90-day retention) holds every file needed for re-verification: live_pg_evidence.json, live_pg_evidence.xml, live_pg_role_closure.json, live_pg_canonical_manifest.json, live_pg_evidence.sha256, live_pg_evidence.attestation.json, live_pg_trusted_root.jsonl, live_pg_verification_record.json. It EXPIRES 2026-11-11T12:46:11Z. After that the re-verification cannot be done from GitHub at all."
+  },
+  "why_not_done": {
+    "blocked_request": "GET /repos/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/artifacts/9181497489/zip",
+    "blocked_at": "the redirect target host productionresultssa15.blob.core.windows.net",
+    "observed_error": "HTTP 403 Forbidden from the session's network proxy; zero bytes received",
+    "consequence": "Without the artifact bytes there is no subject, bundle or trusted root to verify against. No re-verification was attempted and no result is claimed."
+  },
+  "checks_required": [
+    {"check": "artifact_digest", "what": "sha256 of the downloaded zip equals sha256:257206bf7f3212d083c8cf73b7e2cfdb4001f1ecf71bc24c0615d863fdd438a9"},
+    {"check": "subject_integrity", "what": "sha256sum --check --strict live_pg_evidence.sha256 passes, and the manifest closure is exact (no file outside live_pg_canonical_manifest.json)"},
+    {"check": "signature", "what": "the DSSE bundle live_pg_evidence.attestation.json verifies for every subject (each manifest file and the manifest itself) with gh 2.103.3"},
+    {"check": "repository_identity", "what": "--repo kafaat/ai_platform_complete_v2.0.0_enhanced"},
+    {"check": "signer_workflow", "what": "--signer-workflow kafaat/ai_platform_complete_v2.0.0_enhanced/.github/workflows/ci.yml, now matched as an anchored identity (the 2.93.0 prefix match is the reason for this record)"},
+    {"check": "oidc_issuer", "what": "--cert-oidc-issuer https://token.actions.githubusercontent.com"},
+    {"check": "source_sha", "what": "--source-digest 6ba0bef56f47926ce657515fe1717019522f868b"},
+    {"check": "source_ref", "what": "--source-ref refs/heads/main, now compared case-sensitively"},
+    {"check": "predicate_and_runner", "what": "--predicate-type https://slsa.dev/provenance/v1 and --deny-self-hosted-runners"},
+    {"check": "trust_root", "what": "verify twice: once with the archived live_pg_trusted_root.jsonl, once with a freshly fetched `gh attestation trusted-root`; both must pass. The archived root alone only proves consistency with what the run itself fetched."}
+  ],
+  "human_procedure": {
+    "where": "a machine with GitHub access to this repository and to blob.core.windows.net, BEFORE 2026-11-11T12:46:11Z",
+    "commands": [
+      "bash scripts/ci/install_pinned_gh_attestation_cli.sh   # prints the path of the pinned gh; checks archive sha256 4c806978...",
+      "GH=<path printed above>; \"$GH\" --version   # must print: gh version 2.103.3 (2026-10-26)",
+      "mkdir phase0 && cd phase0",
+      "gh api repos/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/artifacts/9181497489/zip > verified.zip",
+      "sha256sum verified.zip   # must be 257206bf7f3212d083c8cf73b7e2cfdb4001f1ecf71bc24c0615d863fdd438a9",
+      "unzip -q verified.zip && sha256sum --check --strict live_pg_evidence.sha256",
+      "\"$GH\" attestation trusted-root > fresh_trusted_root.jsonl",
+      "for root in live_pg_trusted_root.jsonl fresh_trusted_root.jsonl; do for s in live_pg_evidence.json live_pg_evidence.xml live_pg_role_closure.json live_pg_canonical_manifest.json; do \"$GH\" attestation verify \"$s\" --repo kafaat/ai_platform_complete_v2.0.0_enhanced --bundle live_pg_evidence.attestation.json --custom-trusted-root \"$root\" --predicate-type https://slsa.dev/provenance/v1 --signer-workflow kafaat/ai_platform_complete_v2.0.0_enhanced/.github/workflows/ci.yml --cert-oidc-issuer https://token.actions.githubusercontent.com --source-digest 6ba0bef56f47926ce657515fe1717019522f868b --source-ref refs/heads/main --deny-self-hosted-runners --format json > \"verify_${root%%.jsonl}_${s}.out\" || echo \"FAIL $root $s\"; done; done"
+    ],
+    "subjects_note": "The subject list above is the one the ci.yml step signs (live_pg_evidence.sha256 lists the signed subjects). If the manifest in the archive lists a different set, verify exactly the manifest's files plus the manifest itself, as sot_provenance_guard does.",
+    "record_the_result": "write a NEW evidence file with the outputs and gh_binary_sha256; do not edit this record or gate01_policy.json"
+  }
+}

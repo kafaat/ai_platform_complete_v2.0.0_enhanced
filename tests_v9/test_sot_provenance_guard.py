@@ -23,7 +23,7 @@ def _policy():
         "signer_workflow": "kafaat/ai_platform_complete_v2.0.0_enhanced/.github/workflows/ci.yml",
         "predicate_type": "https://slsa.dev/provenance/v1",
         "oidc_issuer": "https://token.actions.githubusercontent.com",
-        "gh_cli": {"version": "2.93.0"},
+        "gh_cli": {"version": "2.103.3"},
         "release_refs": ["refs/heads/main"],
     }
 
@@ -293,7 +293,7 @@ def test_a_broken_policy_is_a_policy_reason(mutate):
         "predicate_type": "p",
         "signer_workflow": "w",
         "oidc_issuer": "i",
-        "gh_cli": {"version": "2.93.0"},
+        "gh_cli": {"version": "2.103.3"},
     }
     mutate(policy)
     with pytest.raises(RuntimeError) as err:
@@ -308,9 +308,76 @@ def test_a_valid_policy_passes_through_unchanged():
         "predicate_type": "p",
         "signer_workflow": "w",
         "oidc_issuer": "i",
-        "gh_cli": {"version": "2.93.0"},
+        "gh_cli": {"version": "2.103.3"},
     }
     assert MOD.validate_policy(policy) is policy
+
+
+# ── أرضيّةُ gh: إصدارٌ بلا إصلاحَي الرايتين لا يُثبَّت ─────────────────────
+
+
+def _policy_pinning(version):
+    return {
+        "repository": "o/r",
+        "predicate_type": "p",
+        "signer_workflow": "w",
+        "oidc_issuer": "i",
+        "gh_cli": {"version": version},
+    }
+
+
+@pytest.mark.parametrize("version", ["2.93.0", "2.101.0", "2.101.99", "1.200.0"])
+def test_a_policy_pinning_a_gh_without_both_attestation_fixes_is_refused(version):
+    """ما قبل 2.102.0: `--signer-workflow` يطابق بادئةً و`--source-ref` بلا حالة أحرف.
+
+    2.93.0 هو التثبيت السابق بعينه — خفضُ السياسة إليه يجب أن يحمرّ.
+    """
+    with pytest.raises(RuntimeError) as err:
+        MOD.validate_policy(_policy_pinning(version))
+    assert str(err.value) == "POLICY_MISMATCH"
+
+
+@pytest.mark.parametrize("version", ["2.102.0", "2.103.3", "3.0.0"])
+def test_a_policy_pinning_a_gh_at_or_above_the_floor_passes(version):
+    policy = _policy_pinning(version)
+    assert MOD.validate_policy(policy) is policy
+
+
+@pytest.mark.parametrize(
+    "version",
+    ["2.103", "v2.103.3", "2.103.3-rc1", "2.103.3 ", "٢.١٠٣.٣"],
+    ids=["two-part", "v-prefix", "suffix", "trailing-space", "non-ascii-digits"],
+)
+def test_an_unparseable_gh_version_is_a_policy_reason_not_a_pass(version):
+    """نسخةٌ لا تُقارَن بالأرضيّة لا تُعامَل كأنّها فوقها."""
+    with pytest.raises(RuntimeError) as err:
+        MOD.validate_policy(_policy_pinning(version))
+    assert str(err.value) == "POLICY_MISMATCH"
+
+
+def test_the_shipped_gh_pin_meets_the_floor_and_agrees_with_the_installer():
+    """موضعا التثبيت (السياسة والمُثبِّت) يحملان نسخةً وبصمةً واحدة فوق الأرضيّة."""
+    shipped = json.loads(
+        (ROOT / "docs" / "architecture" / "sot_provenance_policy.json").read_text(encoding="utf-8")
+    )
+    gh = shipped["gh_cli"]
+    version = gh["version"]
+    assert MOD.gh_version_tuple(version) >= MOD.MIN_GH_ATTESTATION_CLI
+    MOD.validate_policy(shipped)
+    archive = f"gh_{version}_linux_amd64.tar.gz"
+    assert gh["linux_amd64_archive"] == archive
+    assert gh["release_url"] == (
+        f"https://github.com/cli/cli/releases/download/v{version}/{archive}"
+    )
+    digest = gh["linux_amd64_archive_sha256"]
+    assert len(digest) == 64 and all(c in "0123456789abcdef" for c in digest)
+
+    installer = (ROOT / "scripts/ci/install_pinned_gh_attestation_cli.sh").read_text(
+        encoding="utf-8"
+    )
+    assert f'VERSION="{version}"\n' in installer
+    assert f'EXPECTED="{digest}"\n' in installer
+    assert "sha256sum --check --strict" in installer
 
 
 @pytest.mark.parametrize(
