@@ -5816,10 +5816,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/decision_service_client.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/device_models.py",
     "kind": "backend"
   },

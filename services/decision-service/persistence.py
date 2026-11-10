@@ -5396,6 +5396,7 @@ async def compose_agronomic_context(
                         "snapshot_id": existing["snapshot_id"],
                         "historical_snapshot_id": hid,
                         "feature_manifest_id": mid,
+                        "feature_manifest_hash": manifest_hash,
                         "content_hash": ctx_hash,
                     }
                 return {"status": "conflict", "reason": "context_idempotency_conflict"}
@@ -5490,6 +5491,9 @@ async def compose_agronomic_context(
                 "snapshot_id": sid,
                 "historical_snapshot_id": hid,
                 "feature_manifest_id": mid,
+                # AC-1 requires the decision to pin the manifest hash; return the one stored so
+                # producers never have to recompute the canonical hash themselves.
+                "feature_manifest_hash": manifest_hash,
                 "content_hash": ctx_hash,
                 "feature_count": len(payload.features),
             }
@@ -5722,6 +5726,44 @@ async def _validate_vegetation_reference(
     if season_id and row["season_id"] and season_id != row["season_id"]:
         return "vegetation_season_mismatch"
     return None
+
+
+async def latest_vegetation_snapshot(
+    *, tenant_id: str, field_id: str, season_id: str | None, available_before: datetime
+) -> dict[str, Any]:
+    """AC-6 read: the newest vegetation snapshot for this field (and season, when the snapshot
+    names one) whose data was available at or before the decision cutoff.
+
+    Point-in-time by construction: a snapshot published after the cutoff is never returned, so
+    a producer cannot bind evidence it could not have seen. Read-only; the quality gate is
+    returned as stored and judged by the caller."""
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            row = await conn.fetchrow(
+                """SELECT snapshot_id, field_id, season_id, contract_version, snapshot_hash,
+                          acquisition_at, data_available_at, quality_gate
+                   FROM decision_vegetation_snapshots
+                   WHERE tenant_id=$1::uuid AND field_id=$2
+                     AND ($3::text IS NULL OR season_id IS NULL OR season_id=$3)
+                     AND data_available_at <= $4
+                   ORDER BY data_available_at DESC, acquisition_at DESC, snapshot_id
+                   LIMIT 1""",
+                tenant_id,
+                field_id,
+                season_id,
+                available_before,
+            )
+    finally:
+        await conn.close()
+    if not row:
+        return {"status": "not_found"}
+    out = dict(row)
+    out["quality_gate"] = _jsonish(out["quality_gate"])
+    for k in ("acquisition_at", "data_available_at"):
+        out[k] = _iso(out[k])
+    return {"status": "ok", **out}
 
 
 async def _canonical_snapshot_id(

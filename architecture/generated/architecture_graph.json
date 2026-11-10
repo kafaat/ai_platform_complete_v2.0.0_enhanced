@@ -262,7 +262,7 @@
       ],
       "kind": "service",
       "incoming": 6,
-      "outgoing": 29,
+      "outgoing": 30,
       "orphan": false
     },
     {
@@ -889,7 +889,7 @@
         "services/soil-service"
       ],
       "kind": "service",
-      "incoming": 15,
+      "incoming": 16,
       "outgoing": 0,
       "orphan": false
     },
@@ -1206,6 +1206,12 @@
       "target": "scout-ingest-service",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/api/routers/service_proxy.py"
+    },
+    {
+      "source": "platform",
+      "target": "soil-service",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/agronomic_context_composer.py"
     },
     {
       "source": "platform",
@@ -2117,11 +2123,11 @@
   "cycles": [],
   "summary": {
     "nodes": 111,
-    "edges": 193,
+    "edges": 194,
     "orphans": 9,
     "cycles": 0,
-    "code_edges": 60,
+    "code_edges": 61,
     "compose_edges": 133
   },
-  "content_sha256": "f47089f6a803bee879dd8d8f95b50841f559a3e0d9e046320ac3df18a300f472"
+  "content_sha256": "e289f9ecda132d34a93d14d595e69f9090acba518d392bee9a70331bf1e5c014"
 }
