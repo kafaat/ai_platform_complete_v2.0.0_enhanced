@@ -1,0 +1,5 @@
+{
+  "schema": "sahool.gate01_consumed_authorizations/v1",
+  "$semantics": "Append-only ledger of consumed (reserved) owner-signed GATE-01 decisions. A decision listed on the base branch is already consumed and is refused; a PR that uses a decision must reserve it here exactly once (scripts/gates/prepare_gate01_authorization.py reserve). Entries are never edited, removed or reordered — enforced by scripts/ci/gate01_owner_signature_guard.py.",
+  "entries": []
+}

@@ -10,9 +10,9 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **288**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **59**
-- إجماليّ الطفرات المُسجَّلة: **466**
+- حرّاس تحجب في CI: **287**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **58**
+- إجماليّ الطفرات المُسجَّلة: **477**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **394** على 137 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -27,7 +27,7 @@
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (59)
+## الحرّاس المُثبَتة بالتكذيب (58)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -361,19 +361,6 @@
 - نزع حجب مدخل الدَّين البائت — يُسقِط `test_stale_debt_entry_is_blocked`
 - SHA مجهول يُبلَّغ «صفر التزام» بدل «غير قابل للحلّ» — يُسقِط `test_an_unknown_sha_reports_unresolvable_not_zero`
 
-### `codecov_coverage_guard.py`
-
-**يفرض:** Check that uploaded Codecov XML paths refer to measured, tracked Git files.
-
-**يحجب في:** `ci.yml` → `decision-service-tests` · `ci.yml` → `platform-unit-tests` · `ci.yml` → `unit-tests`
-
-**الاختبار الشاهد:** `tests_v9/test_codecov_coverage_wiring.py`
-
-**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
-
-- إذا تجاهل الحارس المسارات الخارجة عن نطاق الخدمة نجح تقرير تغطية بلا مطابقة Git؛ اختبار المسار غير المطابق يجب أن يسقط. — يُسقِط `test_unmatched_and_duplicate_paths_fail_closed`
-- إذا قُبلت ملفات الاختبارات ضمن تغطية القرار أصبحت أرقام الإنتاج مضخمة؛ شاهد المنع يجب أن يسقط. — يُسقِط `test_forbidden_decision_test_source_is_refused`
-
 ### `compose_auth_sink_guard.py`
 
 **يفرض:** سرُّ استيثاقٍ لا يصل فارغاً — `SERVER-AUTH-SECRET-MUST-BE-NONEMPTY-01`.
@@ -594,6 +581,7 @@
 - حجبٌ داخل المدّة يجعل تسجيلَ الحالة مستحيلاً: لا صيغةَ للإقرار تمرّ، فيُطفَأ الحقلُ أو يُطفَأ الحارس. صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026. — يُسقِط `test_a_live_acknowledgement_still_silences_the_report`
 - شحنُ «يحذّر قبل أن يحجب» للتفويضات وتركُ الإقرار يحجب فجأةً تناقضٌ في الملفّ نفسِه — والقاعدةُ واحدة: أوّلُ خبرٍ عن الأجل يجب ألّا يكون الحجب. — يُسقِط `test_the_alias_deadline_warns_before_it_blocks`
 - FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01: بلا فرع الاسم الأساسيّ يعود ادّعاءُ «غيرُ موجودٍ بعد» غيرَ قابلٍ للتكذيب — `migrations/run_migrations.sql` يُعلَن غائباً والمُشغِّلُ الحقيقيُّ `scripts_v9/run_migrations.sql` قائمٌ خارج التجميد، وإقرارُ النظير الساري يُسكِت `alias_escape_errors`. فيمرّ الحارسُ أخضرَ على تجميدٍ فارغ، كما مرّ على #954. — يُسقِط `test_a_declared_absent_basename_elsewhere_is_falsified_even_when_acknowledged`
+- GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01: the owner-signature verdict is computed but never reaches the guard's exit code, so CI stays green on an unsigned CLOSED->OPEN. — يُسقِط `test_the_frozen_path_guard_blocks_an_unsigned_transition`
 
 ### `github_actions_security_guard.py`
 
@@ -1362,11 +1350,12 @@
 
 ---
 
-## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (10)
+## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (11)
 
 أداة غير موصولة لا تحرس شيئاً (§٣.٢). وجودها هنا سؤالٌ لا اتّهام.
 
 - `actuation_killswitch_coverage_guard.py`
+- `gate01_owner_signature_guard.py`
 - `manifest_registry_guard.py`
 - `s5_exec_01_writer_cutover_guard.py`
 - `scripts/architecture/authority_cutover_guard.py`

@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -75,6 +76,22 @@ for _stream in (sys.stdout, sys.stderr):
 ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / "docs" / "architecture" / "gate01_policy.json"
 ADJUDICATIONS = ROOT / "docs" / "architecture" / "gates" / "adjudications"
+OWNER_SIGNATURE_GUARD = Path(__file__).resolve().parent / "gate01_owner_signature_guard.py"
+
+
+def _owner_signature_module():
+    """The owner-signature verifier, loaded by path (it is also a standalone CLI).
+
+    GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01: the adjudication files say who approved;
+    only a signature by a key the agent does not hold proves it.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "gate01_owner_signature_guard", OWNER_SIGNATURE_GUARD
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault("gate01_owner_signature_guard", module)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _load(path: Path) -> dict:
@@ -564,6 +581,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--stdin", action="store_true", help="اقرأ المسارات المُغيَّرة من stdin")
     parser.add_argument("--policy", default=str(POLICY))
     parser.add_argument("--adjudications", default=str(ADJUDICATIONS))
+    # Owner-signature context (CI passes these; locally they may be absent ⇒ UNVERIFIED).
+    parser.add_argument("--base-ref", default=None, help="trusted base, e.g. origin/main")
+    parser.add_argument("--pr-head-sha", default=None)
+    parser.add_argument("--pr-number", default=None)
+    parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY"))
+    parser.add_argument("--repository-id", default=os.environ.get("GITHUB_REPOSITORY_ID"))
+    parser.add_argument("--now", default=None, help="YYYY-MM-DDTHH:MM:SSZ (default: wall clock)")
     args = parser.parse_args(argv)
 
     changed = (
@@ -588,6 +612,22 @@ def main(argv: list[str] | None = None) -> int:
     errors = errors + alias_escape_errors(policy)
     # وتكذيبُ ادّعاء الغياب يجري **دائماً** أيضاً، ولا يُسكِته إقرارُ نظير.
     errors = errors + not_yet_in_tree_falsified_errors(policy)
+    owner = _owner_signature_module()
+    owner_errors, owner_notes = owner.owner_signature_findings(
+        ROOT,
+        changed,
+        policy,
+        frozen_touched,
+        base_ref=args.base_ref,
+        pr_head=args.pr_head_sha,
+        repository=args.repository,
+        repository_id=owner._int_or_none(args.repository_id),
+        pr_number=owner._int_or_none(args.pr_number),
+        now=owner._parse_now(args.now),
+    )
+    errors = errors + owner_errors
+    for note in owner_notes:
+        print(f"  🔏 {note}")
     # التحذيرُ يُطبَع في الحالتين: قبل الحجب لأنّه قد يكون سببَ الحجب القادم، وبعد
     # الخضرة لأنّ خضرةً تسكت عن أجلٍ يقترب تُخفي الحجبَ الذي ستراه بعد أسبوع.
     warnings = expiry_warnings(adjudications) + alias_deadline_warnings(policy)
