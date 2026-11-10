@@ -15,24 +15,24 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7102,
+    "files_scanned": 7106,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 89,
       "mobile": 414,
-      "other": 2162,
-      "tests": 2369,
+      "other": 2164,
+      "tests": 2371,
       "web": 506
     },
-    "unmapped_artifacts": 3380,
+    "unmapped_artifacts": 3382,
     "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3822,
-      "raw": 3280
+      "python_functional": 3825,
+      "raw": 3281
     },
-    "test_dependency_files": 1782,
-    "test_dependency_edges": 4489,
+    "test_dependency_files": 1784,
+    "test_dependency_edges": 4493,
     "test_dependency_bounded_files": 1039,
     "test_dependency_unresolved_relations": 456
   },
@@ -42118,6 +42118,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_isolated_runtime_gate.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_json_duplicate_key_guard.py",
       "kind": "tests"
     },
@@ -43527,6 +43531,10 @@
     },
     {
       "path": "tests_v9/test_unit_environment_completeness.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_unit_skip_inventory_guard.py",
       "kind": "tests"
     },
     {
@@ -77851,6 +77859,23 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_isolated_runtime_gate.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "subprocess",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/test_realtime_webhooks.py",
+          "kind": "source_read",
+          "line": 120
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_jobs_role_isolation.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -83146,12 +83171,12 @@
         {
           "source": "services/realtime-session/realtime_session/session_runtime.py",
           "kind": "import",
-          "line": 19
+          "line": 22
         },
         {
           "source": "services/realtime-session/realtime_session/webhooks.py",
           "kind": "import",
-          "line": 20
+          "line": 23
         }
       ],
       "unresolved": []
@@ -88011,6 +88036,31 @@
           "call": "import_module"
         }
       ]
+    },
+    {
+      "test": "tests_v9/test_unit_skip_inventory_guard.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ci/unit_skip_inventory_guard.py",
+          "kind": "loader",
+          "line": 24
+        },
+        {
+          "source": "scripts/ci/unit_skip_inventory_guard.py",
+          "kind": "source_read",
+          "line": 20
+        },
+        {
+          "source": "tests_v9/test_h51_field_source_binding_pg.py",
+          "kind": "source_read",
+          "line": 127
+        }
+      ],
+      "unresolved": []
     },
     {
       "test": "tests_v9/test_uwrp_learning_scripts_candidate.py",
