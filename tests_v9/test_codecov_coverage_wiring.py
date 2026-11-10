@@ -29,7 +29,7 @@ def _upload(job):
 @pytest.mark.parametrize(
     ("job", "flag", "report"),
     [
-        ("unit-tests", "unit-tests", "coverage.xml"),
+        ("unit-tests", "unit-tests", "coverage-unit.xml"),
         ("platform-unit-tests", "platform-unit-tests", "coverage-platform.xml"),
         ("decision-service-tests", "decision-service-tests", "coverage-decision-service.xml"),
     ],
@@ -39,7 +39,7 @@ def test_three_separate_uploads_without_report_autodiscovery(job, flag, report):
     assert options["files"] == report
     assert options["flags"] == flag
     assert options["disable_search"] is True
-    assert options["fail_ci_if_error"] is True
+    assert options["fail_ci_if_error"] is False
 
 
 def test_platform_keeps_its_api_and_core_sources():
@@ -51,6 +51,7 @@ def test_platform_keeps_its_api_and_core_sources():
         for text in commands
     )
     assert any("codecov_coverage_guard.py" in text for text in commands)
+    assert any("--rcfile=services/sahool-platform/.coveragerc" in text for text in commands)
 
 
 def test_decision_job_aggregates_existing_real_pg_tests():
@@ -58,11 +59,38 @@ def test_decision_job_aggregates_existing_real_pg_tests():
     assert "--cov-append" in job["env"]["PYTEST_ADDOPTS"]
     assert "--cov-report=" in job["env"]["PYTEST_ADDOPTS"]
     assert ".coverage.decision-service" in job["env"]["COVERAGE_FILE"]
+    assert "--cov-config=" in job["env"]["PYTEST_ADDOPTS"]
+    assert "services/decision-service/.coveragerc" in job["env"]["PYTEST_ADDOPTS"]
     commands = [step.get("run", "") for step in job["steps"]]
     assert any('"pytest-cov>=5.0.0"' in text for text in commands)
     assert any("tests/test_ac1_agronomic_context.py" in text for text in commands)
     assert any("tests/test_agronomic_lineage_integrity.py" in text for text in commands)
     assert any("--data-file=.coverage.decision-service" in text for text in commands)
+    assert any("--rcfile=services/decision-service/.coveragerc" in text for text in commands)
+    assert any("--forbid-prefix services/decision-service/tests" in text for text in commands)
+
+
+def test_unit_reexport_is_validated_from_repo_root():
+    commands = [step.get("run", "") for step in JOBS["unit-tests"]["steps"]]
+    assert any("--data-file=.coverage" in command for command in commands)
+    assert any("--include=services/*" in command for command in commands)
+    assert any("--report coverage-unit.xml" in command for command in commands)
+
+
+def test_codecov_waits_for_three_reports_before_notifying():
+    options = yaml.safe_load((ROOT / "codecov.yml").read_text())
+    assert options["codecov"]["notify"]["after_n_builds"] == 3
+    assert options["comment"]["after_n_builds"] == 3
+    assert "coverage" not in options
+    assert "ignore" not in options
+    assert "fixes" not in options
+
+
+def test_decision_service_coverage_omits_test_source_only():
+    cfg = (ROOT / "services/decision-service/.coveragerc").read_text()
+    assert "*/tests/*" in cfg
+    assert "*/main.py" not in cfg
+    assert "*/persistence.py" not in cfg
 
 
 def _fake_report(tmp_path, filenames):
@@ -77,7 +105,11 @@ def _fake_report(tmp_path, filenames):
     classes = ET.SubElement(ET.SubElement(root, "packages"), "classes")
     for filename in filenames:
         node = ET.SubElement(classes, "class", {"filename": filename})
-        ET.SubElement(ET.SubElement(node, "lines"), "line", {"number": "1", "hits": "1"})
+        ET.SubElement(
+            ET.SubElement(node, "lines"),
+            "line",
+            {"number": "1", "hits": "1"},
+        )
     report = tmp_path / "report.xml"
     ET.ElementTree(root).write(report)
     return report
@@ -120,12 +152,19 @@ def test_root_export_preserves_same_basenames_in_two_packages(tmp_path):
     cov.save()
     subprocess.run(
         [
-            sys.executable, "-m", "coverage", "xml",
+            sys.executable,
+            "-m",
+            "coverage",
+            "xml",
             "--data-file=services/sahool-platform/.coverage",
             "--include=services/sahool-platform/api/*,services/sahool-platform/core/*",
-            "-o", "coverage-platform.xml",
+            "-o",
+            "coverage-platform.xml",
         ],
-        cwd=tmp_path, check=True, capture_output=True, text=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
     )
     assert validate_report(
         tmp_path / "coverage-platform.xml",
@@ -133,3 +172,23 @@ def test_root_export_preserves_same_basenames_in_two_packages(tmp_path):
         ("services/sahool-platform/api", "services/sahool-platform/core"),
         paths,
     ) == (2, 2, 2)
+
+def test_forbidden_decision_test_source_is_refused(tmp_path):
+    name = "services/decision-service/tests/test_bad.py"
+    report = _fake_report(tmp_path, [name])
+    with pytest.raises(CoveragePathError, match="forbidden test/source path"):
+        validate_report(
+            report,
+            tmp_path,
+            ("services/decision-service",),
+            (),
+            ("services/decision-service/tests",),
+        )
+
+
+def test_untracked_coverage_path_is_refused(tmp_path):
+    name = "services/decision-service/main.py"
+    report = _fake_report(tmp_path, [name])
+    (tmp_path / name).unlink()
+    with pytest.raises(CoveragePathError, match="not tracked source"):
+        validate_report(report, tmp_path, ("services/decision-service",), ())

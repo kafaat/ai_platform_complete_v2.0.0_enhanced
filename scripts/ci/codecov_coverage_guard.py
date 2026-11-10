@@ -26,6 +26,7 @@ def validate_report(
     repo_root: Path,
     prefixes: tuple[str, ...],
     required_files: tuple[str, ...],
+    forbidden_prefixes: tuple[str, ...] = (),
 ) -> tuple[int, int, int]:
     repo_root = repo_root.resolve()
     try:
@@ -60,6 +61,11 @@ def validate_report(
             raise CoveragePathError(f"out-of-scope report path: {filename}")
         if filename in seen:
             raise CoveragePathError(f"duplicate coverage class path: {filename}")
+        if any(
+            filename.startswith(prefix.rstrip("/") + "/")
+            for prefix in forbidden_prefixes
+        ):
+            raise CoveragePathError(f"forbidden test/source path: {filename}")
         if filename not in tracked or not (repo_root / filename).is_file():
             raise CoveragePathError(f"coverage path is not tracked source: {filename}")
         lines = entry.findall("./lines/line")
@@ -83,10 +89,15 @@ def main() -> int:
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--prefix", action="append", required=True)
     parser.add_argument("--require-file", action="append", default=[])
+    parser.add_argument("--forbid-prefix", action="append", default=[])
     args = parser.parse_args()
     try:
         files, total, covered = validate_report(
-            args.report, REPO_ROOT, tuple(args.prefix), tuple(args.require_file)
+            args.report,
+            REPO_ROOT,
+            tuple(args.prefix),
+            tuple(args.require_file),
+            tuple(args.forbid_prefix),
         )
     except (CoveragePathError, subprocess.CalledProcessError, OSError) as exc:
         print(f"CODECOV_REPORT_INVALID: {exc}", file=sys.stderr)
