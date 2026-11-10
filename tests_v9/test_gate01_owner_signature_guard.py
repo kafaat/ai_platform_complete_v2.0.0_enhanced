@@ -624,7 +624,7 @@ def test_no_trusted_key_is_unverified_and_fails_closed_for_a_transition(tmp_path
     r.mkdir()
     _git(r, "init", "-q", "-b", "main")
     _write(r, POLICY, _base_policy())
-    _write(r, SIGNERS, (_ROOT / SIGNERS).read_text(encoding="utf-8"))  # the committed template
+    _write(r, SIGNERS, "# Explicitly unconfigured trust root for this scenario.\n")
     _write(r, LEDGER, {"schema": sig.LEDGER_SCHEMA, "entries": []})
     _write(r, REVOKED, {"schema": sig.REVOCATION_SCHEMA, "revoked": []})
     _write(r, EVIDENCE, "{}\n")
@@ -733,9 +733,12 @@ def test_the_workflow_passes_the_owner_pin_from_a_repository_variable():
     assert "GATE01_OWNER_KEY_FINGERPRINT: ${{ vars.GATE01_OWNER_KEY_FINGERPRINT }}" in wf
 
 
-def test_the_committed_trust_root_holds_no_key():
+def test_the_committed_trust_root_matches_owner_key_and_keeps_gate_closed():
     text = (_ROOT / SIGNERS).read_text(encoding="utf-8")
-    assert sig.parse_allowed_signers(text) == {}
+    signers = sig.parse_allowed_signers(text)
+    assert set(signers) == {"kafaat-gate01-owner"}
+    assert len(signers["kafaat-gate01-owner"]) == 1
+    assert sig.key_fingerprints(signers) == {"SHA256:f+On1XERxEbQIrVSKJH1LgsDHk3cdbnEdxwFvxi7TjU"}
     policy = json.loads((_ROOT / POLICY).read_text(encoding="utf-8"))
     block = policy["owner_signature"]
     assert block["required_for"] == ["state_transition"]
