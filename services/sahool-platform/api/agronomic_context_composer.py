@@ -394,9 +394,10 @@ def canonical_soil_profile_for_context(
     snapshot, issues = validate_soil_profile_snapshot(profile)
     if snapshot is None:
         return None, issues
+    # The strict contract refuses a naive ``data_available_at`` (measured: it reports
+    # ``soil_profile_invalid:TypeError``), so a validated snapshot is always timezone-aware and
+    # compares with the aware cutoff directly. A local "assume UTC" branch here was dead code.
     available = snapshot.data_available_at
-    if available.tzinfo is None:
-        available = available.replace(tzinfo=UTC)
     if available > cutoff:
         return None, "soil profile became available after the decision cutoff"
     return profile, None
