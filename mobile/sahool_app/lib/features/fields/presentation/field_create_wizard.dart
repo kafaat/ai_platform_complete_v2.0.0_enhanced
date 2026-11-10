@@ -86,17 +86,32 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   // المزارع أو يضيف موقعه؛ لا ندّعي أنّها موقع حقله.
   static const _yemenCenter = LatLng(15.3, 44.2);
 
+  // المفاتيح = crop_id لبطاقات محاصيل موجودة (core/crop_cards)؛ التسمية عربيّة للعرض.
+  // لا فئات عامّة («خضروات»/«فواكه»/«أخرى» لا بطاقة لها فكانت تحجب نصيحة العناصر):
+  // محصول غير مُدرَج يُترَك فارغاً (المحصول اختياريّ هنا). يحرسها
+  // tests_v9/test_crop_picker_options_resolve.py.
   static const _crops = {
     'wheat': 'قمح',
     'barley': 'شعير',
     'sorghum': 'ذرة رفيعة',
     'maize': 'ذرة شاميّة',
+    'millet': 'دخن',
     'coffee': 'بنّ',
     'qat': 'قات',
-    'vegetables': 'خضروات',
-    'fruits': 'فواكه',
+    'tomato': 'طماطم',
+    'potato': 'بطاطس',
+    'onion': 'بصل',
+    'cucumber': 'خيار',
+    'eggplant': 'باذنجان',
+    'pepper': 'فلفل',
+    'okra': 'بامية',
+    'mango': 'مانجو',
+    'banana': 'موز',
+    'grape': 'عنب',
+    'pomegranate': 'رمّان',
+    'citrus': 'حمضيات',
+    'date_palm': 'نخيل التمر',
     'alfalfa': 'برسيم',
-    'other': 'أخرى',
   };
   static const _waterSources = {
     'well': 'بئر',

@@ -21,10 +21,12 @@ def _src() -> str:
     return _MAIN.read_text(encoding="utf-8")
 
 
-def test_main_compiles():
+def test_main_compiles(tmp_path):
     """يُصرَّف main.py بلا أخطاء صياغة."""
     assert _MAIN.is_file(), "main.py مفقود"
-    py_compile.compile(str(_MAIN), doraise=True)
+    # `cfile` في tmp_path: بدونه يكتب py_compile `src/__pycache__/main.*.pyc` داخل الشجرة
+    # دائماً، ولا يمنعه PYTHONDONTWRITEBYTECODE ولا sys.dont_write_bytecode.
+    py_compile.compile(str(_MAIN), cfile=str(tmp_path / "main.pyc"), doraise=True)
 
 
 def test_uses_jobs_role_not_superuser():

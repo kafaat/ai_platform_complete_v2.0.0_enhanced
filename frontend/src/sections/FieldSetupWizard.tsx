@@ -1,4 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
+import { CROP_LABELS } from "../lib/cropOptions";
 
 // ════════════════════════════════════════════════════════════
 // SAHOOL — معالج إعداد الحقل الكامل (6 خطوات)
@@ -18,7 +19,9 @@ const IRRIGATION: Record<string, { label: string; extra: string[] }> = {
   furrow: { label: "غمر/أحواض (Furrow)", extra: ["flow"] },
   none: { label: "بعلي (بلا ري)", extra: [] },
 };
-const CROPS = ["قمح (سخا)", "قمح شتوي", "شعير", "ذرة رفيعة (سورغم)", "طماطم", "بطاطس", "العلس (محلي)", "أخرى"];
+// المفردات المشتركة (lib/cropOptions): كلّ خيار يُحلّ إلى بطاقة محصول قانونيّة (كانت هنا
+// «قمح (سخا)» و«العلس (محلي)» و«أخرى» وغيرها مما لا يُحلّ إلى بطاقة).
+const CROPS = CROP_LABELS;
 const SEASONS = ["الموسم الشتوي ٢٠٢٥/٢٠٢٦", "الموسم الصيفي ٢٠٢٦", "موسم مخصّص"];
 const STEPS = [
   { id: 1, icon: "📍", title: "الموقع" }, { id: 2, icon: "📅", title: "الموسم" },

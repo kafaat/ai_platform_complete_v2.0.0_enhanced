@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-VERSION="2.93.0"
+VERSION="2.103.3"
 ARCHIVE="gh_${VERSION}_linux_amd64.tar.gz"
-EXPECTED="02d1290eba130e0b896f3709ffff22e1c75a51475ddb70476a85abc6b5807af0"
+EXPECTED="4c806978ffce1cec70853302a56d70ac6da4f19bae7adca4e1a8ab00633dd91d"
 URL="https://github.com/cli/cli/releases/download/v${VERSION}/${ARCHIVE}"
 DEST="${RUNNER_TEMP:-/tmp}/sahool-gh-${VERSION}"
 mkdir -p "$DEST"

@@ -19,17 +19,46 @@ import 'package:sahool_app/features/advisor/presentation/widgets/field_picker.da
 import 'package:sahool_app/features/advisor/presentation/widgets/recommendation_widgets.dart';
 import 'package:sahool_app/features/fields/data/fields_api.dart';
 
-/// محاصيل شائعة (مرآة CROPS في RecommendationPage.tsx) حين لا يحمل الحقل محصولاً.
+/// محاصيل شائعة (مرآة CROP_OPTIONS في frontend/src/lib/cropOptions.ts) حين لا يحمل
+/// الحقل محصولاً. كلّ تسمية تُحلّ خادميّاً إلى بطاقة محصول (resolve_crop_id) — يحرسها
+/// tests_v9/test_crop_picker_options_resolve.py.
 const List<String> kEngineCrops = [
   'قمح صلب',
   'شعير',
   'ذرة صفراء',
+  'سورغم',
+  'دخن',
   'طماطم',
   'بطاطس',
-  'خضروات',
+  'بصل',
+  'خيار',
+  'باذنجان',
+  'فلفل',
+  'بامية',
   'برسيم',
-  'سورغم',
 ];
+
+/// قيم عامّة عرضتها منتقيات سابقة وقد تبقى مخزّنة في حقول قائمة (مرآة
+/// LEGACY_GENERIC_CROP_VALUES في الويب). لا تُحلّ إلى بطاقة محصول، فلا تُمرَّر صامتةً
+/// إلى المحرّك ولا تُربَط بمحصول اعتباطيّ: تُعرَض «غير محدَّد» حتّى يُختار محصول.
+const Set<String> kLegacyGenericCrops = {
+  'خضروات',
+  'vegetables',
+  'فواكه',
+  'fruits',
+  'أخرى',
+  'other',
+};
+
+/// ما يُعرَض مكان محصول حقلٍ مخزّن لا يُحلّ إلى بطاقة.
+const String kUnspecifiedCropLabel = 'غير محدَّد — اختر المحصول';
+
+/// محصول الحقل إن كان محدّداً؛ null للفارغ أو القيمة العامّة القديمة.
+String? specifiedFieldCrop(String? crop) {
+  final c = crop?.trim();
+  if (c == null || c.isEmpty || kLegacyGenericCrops.contains(c)) return null;
+  return c;
+}
 
 class RecommendationsScreen extends StatelessWidget {
   const RecommendationsScreen({
@@ -337,13 +366,18 @@ class _EngineSectionState extends State<_EngineSection> {
     super.dispose();
   }
 
+  String? get _fieldCrop => specifiedFieldCrop(widget.field.crop);
+
+  bool get _fieldCropLegacyGeneric =>
+      (widget.field.crop?.trim() ?? '').isNotEmpty && _fieldCrop == null;
+
   List<String> get _crops {
-    final c = widget.field.crop;
+    final c = _fieldCrop;
     return [if (c != null && !kEngineCrops.contains(c)) c, ...kEngineCrops];
   }
 
   Future<void> _feedback(bool accepted, EngineRecommendation rec) async {
-    final crop = _crop ?? widget.field.crop;
+    final crop = _crop ?? _fieldCrop;
     if (crop == null) return;
     final ok = await showOutcomeFeedbackSheet(
       context,
@@ -369,7 +403,7 @@ class _EngineSectionState extends State<_EngineSection> {
   Widget build(BuildContext context) {
     final state = widget.state;
     final cubit = context.read<RecommendationsCubit>();
-    final crop = _crop ?? widget.field.crop;
+    final crop = _crop ?? _fieldCrop;
     final rec = state.engine;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -415,7 +449,9 @@ class _EngineSectionState extends State<_EngineSection> {
                 Padding(
                   padding: const EdgeInsets.only(top: SahoolSpacing.xs),
                   child: Text(
-                    'اختر المحصول أوّلاً.',
+                    _fieldCropLegacyGeneric
+                        ? 'محصول الحقل: $kUnspecifiedCropLabel.'
+                        : 'اختر المحصول أوّلاً.',
                     style: context.textStyles.bodySmall,
                   ),
                 ),

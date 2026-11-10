@@ -973,8 +973,25 @@ jobs:
           --cov-report=xml
           --cov-report=term
           --cov-fail-under=43
+      # The pytest-cov XML has source=<repo>/services, not the Git root.
+      # Re-export the same data from the Git root before validating/uploading.
+      - name: Export unit coverage with Git-relative paths
+        run: >-
+          python -m coverage xml
+          --data-file=.coverage
+          --include=services/*
+          -o coverage-unit.xml
+      - name: Verify unit Codecov report paths
+        run: >-
+          python scripts/ci/codecov_coverage_guard.py
+          --report coverage-unit.xml
+          --prefix services
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
-        with: {files: coverage.xml}
+        with:
+          files: coverage-unit.xml
+          flags: unit-tests
+          disable_search: true
+          fail_ci_if_error: false
       # raster-tiler-service: in-service tests sit outside `testpaths = tests_v9`, so
       # `-m unit` never collects them; TiTiler is stubbed, deps come from requirements-test.
       - name: raster-tiler-service wrapper route contracts
@@ -1096,6 +1113,28 @@ jobs:
           PYTHONPATH=. pytest tests -q -p no:cacheprovider
           --cov=api --cov=core --cov-config=.coveragerc
           --cov-report=term --cov-report=xml
+      # Export the already-collected .coverage from the Git root. Coverage XML
+      # from two independent source roots can collapse duplicate basenames.
+      - name: Export platform coverage with Git-relative paths
+        run: >-
+          python -m coverage xml
+          --rcfile=services/sahool-platform/.coveragerc
+          --data-file=services/sahool-platform/.coverage
+          --include=services/sahool-platform/api/*,services/sahool-platform/core/*
+          -o coverage-platform.xml
+      - name: Verify platform Codecov report paths
+        run: >-
+          python scripts/ci/codecov_coverage_guard.py
+          --report coverage-platform.xml
+          --prefix services/sahool-platform/api
+          --prefix services/sahool-platform/core
+          --require-file services/sahool-platform/core/actuator_command.py
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
+        with:
+          files: coverage-platform.xml
+          flags: platform-unit-tests
+          disable_search: true
+          fail_ci_if_error: false
 
   # ── MUT-SWEEP-SHARDING-01: مكنسة الطفرات موزَّعةً على خمسة عمّال ──
   # **والمكنسة ما تزال داخل *Unit Tests* عمداً في هذه المرحلة.** الازدواج ثمنُ
@@ -1428,6 +1467,11 @@ jobs:
       packages: read
     name: Decision Service Tests
     runs-on: ubuntu-24.04
+    # Accumulate coverage across existing test commands and real-PG proofs;
+    # an absolute source path survives their different working directories.
+    env:
+      COVERAGE_FILE: ${{ github.workspace }}/.coverage.decision-service
+      PYTEST_ADDOPTS: --cov=${{ github.workspace }}/services/decision-service --cov-append --cov-report= --cov-config=${{ github.workspace }}/services/decision-service/.coveragerc
     # سقف صارم: المدّة الطبيعيّة دقائق قليلة؛ بلاه يحترق runner ستّ ساعات على أيّ تجمّد (مقيس).
     timeout-minutes: 30
     # WX-10.7: decision-service owns the authoritative review transition (state machine + append
@@ -1470,7 +1514,7 @@ jobs:
             || { printf '%s\n' POSTGRES_TCP_READINESS_FAILED >"$HARNESS_PRIMARY_CAUSE_FILE"; exit 1; }
       # PyJWT + prometheus-client: required by vegetation_runtime, imported by the
       # vegetation-agriai contract step below (pure logic, but module-level imports).
-      - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx PyJWT prometheus-client
+      - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio "pytest-cov>=5.0.0" httpx PyJWT prometheus-client
       - name: Apply decision-service migrations (custom runner — 001 through 026)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
@@ -1517,6 +1561,12 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx10_7_decision_review.py -q -p no:cacheprovider
+      # Single-operator self-approval exception to separation of duties: policy parsing,
+      # eligibility, hard exclusions and the audit marker, as pure functions plus the HTTP layer
+      # with the connection mocked to refuse I/O (the database-backed path is covered by WX-10.7).
+      - name: SoD single-operator self-approval policy (unit)
+        working-directory: services/decision-service
+        run: pytest tests/test_sod_single_operator_self_approval.py -q -p no:cacheprovider
       # WX-10.6 crop-decision-candidate DOWNSTREAM consumption (real Postgres, SoR on): the boundary
       # output (a crop_decision_candidate recorded via /v1/decisions/record — the bridge's HTTP
       # target) surfaces in the reviewer queue the Approvals Console consumes and is reviewable,
@@ -1776,6 +1826,27 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest ../model-registry-adapter/tests -q -p no:cacheprovider
+      - name: Export decision-service coverage with Git-relative paths
+        run: >-
+          python -m coverage xml
+          --rcfile=services/decision-service/.coveragerc
+          --data-file=.coverage.decision-service
+          --include=services/decision-service/*
+          -o coverage-decision-service.xml
+      - name: Verify decision-service Codecov report paths
+        run: >-
+          python scripts/ci/codecov_coverage_guard.py
+          --report coverage-decision-service.xml
+          --prefix services/decision-service
+          --forbid-prefix services/decision-service/tests
+          --require-file services/decision-service/main.py
+          --require-file services/decision-service/persistence.py
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
+        with:
+          files: coverage-decision-service.xml
+          flags: decision-service-tests
+          disable_search: true
+          fail_ci_if_error: false
       - name: Classify Decision Service harness setup evidence
         if: always()
         run: |

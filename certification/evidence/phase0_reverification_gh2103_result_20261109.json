@@ -1,0 +1,83 @@
+{
+  "schema": "sahool.phase0_reverification_result/v1",
+  "recorded_on": "2026-11-09",
+  "follows": "certification/evidence/phase0_reverification_gh2103_20261109.json (left unchanged, as it instructs)",
+  "status": "REVERIFIED_ARCHIVED_ROOT_ONLY",
+  "status_detail": "Every cryptographic and identity check passed with gh 2.103.3 against the trusted root ARCHIVED in the artifact. The second required check, against a freshly fetched Sigstore trusted root, could NOT be run: tuf-repo-cdn.sigstore.dev returned 403 from this session's network proxy. The archived root only proves consistency with what run 31701614219 itself fetched. This record does not change the historical verdict in docs/architecture/gate01_policy.json, and it is not an authorization of anything.",
+  "artifact": {
+    "source": "uploaded by the repository owner into the agent session on 2026-11-09 (downloaded by the owner from GitHub Actions artifact 9181497489 before its expiry 2026-11-11T12:46:11Z)",
+    "file_name": "phase0_verified_evidence_6ba0bef56.zip",
+    "size_bytes": 19731,
+    "sha256_measured": "257206bf7f3212d083c8cf73b7e2cfdb4001f1ecf71bc24c0615d863fdd438a9",
+    "sha256_expected_from_github_artifact_metadata": "257206bf7f3212d083c8cf73b7e2cfdb4001f1ecf71bc24c0615d863fdd438a9",
+    "digest_match": true,
+    "why_the_upload_is_trusted": "Only by digest: the bytes equal the digest GitHub reports for artifact 9181497489. Who carried the file does not matter once the digest matches."
+  },
+  "contents": {
+    "files": {
+      "live_pg_canonical_manifest.json": "602a2aea46166679e06831ae58d3fa9c95b629bbcec864f0d6e14b4fb589fc90",
+      "live_pg_evidence.attestation.json": "a75a396920047a712b0ffcd8f224a459742179b1ab3ccbed09511ed18bbdf94b",
+      "live_pg_evidence.json": "003de6a7c22ed835d8d080331fcca363c399899261c7ea58ac95086505c1b8d0",
+      "live_pg_evidence.sha256": "3ed07ba03941c1a26b33e526cda6f79e5dbe0891f288a9631cadaf2611343ff4",
+      "live_pg_evidence.xml": "54010a210bc8daebaa56b689e245240301e17024c69b837a72e22828d6460978",
+      "live_pg_role_closure.json": "83938a3b1aaf1c37f847526e76023caa32e40fbc793c432cb64e4d849858619d",
+      "live_pg_trusted_root.jsonl": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+      "live_pg_verification_record.json": "acfd2728de28280abc80323db75cb8793c756aeadda8a19c767bbdf651822757"
+    },
+    "subject_integrity": "sha256sum --check --strict live_pg_evidence.sha256: 4/4 OK",
+    "manifest_closure_exact": true,
+    "archived_record_cross_check": "live_pg_verification_record.json names attestation_bundle_sha256, manifest_sha256 and trusted_root.sha256 equal to the measured file digests above",
+    "tested_identity_in_repository": "git cat-file -p 6ba0bef56f47926ce657515fe1717019522f868b gives tree ac25432304025877477eb5096272027b3213ced3, equal to the manifest's tested_identity.tree_sha"
+  },
+  "verifier": {
+    "version_output": "gh version 2.103.3 (2026-10-26)",
+    "archive_sha256": "4c806978ffce1cec70853302a56d70ac6da4f19bae7adca4e1a8ab00633dd91d",
+    "archive_check": "sha256sum --check --strict against the pinned value: OK",
+    "binary_sha256": "b768184570b12536be4ac1528893f6340d1c6a7b40b56ad45bca9cd0e87ad34d",
+    "auth": "no GitHub token and an empty GH_CONFIG_DIR; --bundle and --custom-trusted-root make the check offline"
+  },
+  "positive_checks": {
+    "command": "gh attestation verify <subject> --repo kafaat/ai_platform_complete_v2.0.0_enhanced --bundle live_pg_evidence.attestation.json --custom-trusted-root live_pg_trusted_root.jsonl --predicate-type https://slsa.dev/provenance/v1 --signer-workflow kafaat/ai_platform_complete_v2.0.0_enhanced/.github/workflows/ci.yml --cert-oidc-issuer https://token.actions.githubusercontent.com --source-digest 6ba0bef56f47926ce657515fe1717019522f868b --source-ref refs/heads/main --deny-self-hosted-runners --format json",
+    "same_flags_as": "scripts/ci/sot_provenance_guard.build_gh_command",
+    "results": {
+      "live_pg_evidence.json": {"exit": 0, "results": 1},
+      "live_pg_evidence.xml": {"exit": 0, "results": 1},
+      "live_pg_role_closure.json": {"exit": 0, "results": 1},
+      "live_pg_canonical_manifest.json": {"exit": 0, "results": 1}
+    },
+    "certificate_identity": {
+      "subjectAlternativeName": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/.github/workflows/ci.yml@refs/heads/main",
+      "issuer": "https://token.actions.githubusercontent.com",
+      "githubWorkflowTrigger": "push",
+      "githubWorkflowSHA": "6ba0bef56f47926ce657515fe1717019522f868b",
+      "githubWorkflowRef": "refs/heads/main",
+      "sourceRepositoryDigest": "6ba0bef56f47926ce657515fe1717019522f868b",
+      "runnerEnvironment": "github-hosted",
+      "runInvocationURI": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/31701614219/attempts/1"
+    },
+    "predicate_type": "https://slsa.dev/provenance/v1",
+    "statement_subjects": ["live_pg_evidence.json", "live_pg_evidence.xml", "live_pg_role_closure.json", "live_pg_canonical_manifest.json"]
+  },
+  "negative_controls": {
+    "purpose": "Each must FAIL; a verifier that accepts them proves nothing. N3-N5 are the classes fixed by GHSA-4mq3-hpgx-9cx8, GHSA-wjmr-j3rp-mh2g and GHSA-mm27-mwq9-fr5g.",
+    "results": {
+      "N1_subject_tampered_one_byte": 1,
+      "N2_wrong_source_digest_32b223745": 1,
+      "N3_source_ref_case_refs_heads_MAIN": 1,
+      "N4_signer_workflow_prefix_ci_without_yml": 1,
+      "N5_signer_workflow_regex_metachar_ci.ym.": 1,
+      "N6_other_workflow_deploy.yml": 1,
+      "N7_wrong_repository": 1,
+      "N8_wrong_predicate_type": 1
+    },
+    "positive_rerun_after_controls": 0
+  },
+  "not_done": {
+    "fresh_trusted_root": {
+      "command": "gh attestation trusted-root",
+      "observed_error": "tuf refresh failed: Get \"https://tuf-repo-cdn.sigstore.dev/15.root.json\": Forbidden",
+      "consequence": "status stays REVERIFIED_ARCHIVED_ROOT_ONLY until a human runs the same loop with a freshly fetched root (command in the human_procedure of the record this one follows)"
+    },
+    "release_attestation_of_gh_itself": "not verified (api.github.com access to cli/cli is not enabled for this session)"
+  }
+}

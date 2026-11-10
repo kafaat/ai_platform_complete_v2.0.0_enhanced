@@ -540,3 +540,55 @@ def irrigation_decision_provenance(rec: dict, *, evidence_refs: list) -> dict:
         "confidence_method": IRRIGATION_CONFIDENCE_METHOD,
         "evidence_refs": [str(ref) for ref in evidence_refs],
     }
+
+
+def irrigation_candidate_record(
+    rec: dict,
+    *,
+    field_id: str,
+    season_id: str | None,
+    confidence: float | None,
+    evidence_ids: list[str],
+    et0_snapshot_id: str | None,
+    et0_product: dict,
+    weather_valid_time: str | None,
+    taw_source: str | None,
+    applied_status: str | None,
+) -> dict:
+    """The governed irrigation candidate (``decision_value``) — the registrar's contract.
+
+    Moved verbatim from the field route (no shape change) so the route stays under the router
+    size ratchet. The candidate is not a decision: ``approval_required`` and
+    ``status=pending_approval`` hold until decision-service records an approval.
+    """
+    return {
+        "decision_type": "irrigation",
+        "field_id": field_id,
+        "season_id": season_id,
+        "status": "pending_approval",
+        "approval_required": True,
+        "recommendation": {
+            "should_irrigate": rec["should_irrigate"],
+            "trigger_reason": rec["trigger_reason"],
+            "net_irrigation_mm": rec["net_irrigation_mm"],
+            "target_refill_mm": rec["target_refill_mm"],
+            "urgency": rec["urgency"],
+            # `timing_ar`/`rationale_ar` هما الموضعان الوحيدان اللذان يذكران المطرَ
+            # المتوقَّع للمزارع. حجبُهما كان يجعل الحجزَ صامتاً: قرارٌ يُمتنَع عنه بلا سبب.
+            "timing_ar": rec["timing_ar"],
+            "rationale_ar": rec["rationale_ar"],
+            "forecast_hold": rec["forecast_hold"],
+        },
+        "confidence": confidence,
+        "evidence_ids": evidence_ids,
+        "provenance": {
+            "et0": et0_snapshot_id,
+            "et0_product": et0_product,
+            "weather": weather_valid_time,
+            "taw_source": taw_source,
+            "applied_water_status": applied_status,
+        },
+        "calibrated": False,
+        "policy": rec.get("policy"),
+        "requires_expert_review": bool(rec.get("requires_expert_review")),
+    }
