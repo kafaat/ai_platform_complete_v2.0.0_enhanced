@@ -15,24 +15,24 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7086,
+    "files_scanned": 7092,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 89,
       "mobile": 414,
-      "other": 2152,
-      "tests": 2364,
+      "other": 2157,
+      "tests": 2365,
       "web": 505
     },
-    "unmapped_artifacts": 3376,
+    "unmapped_artifacts": 3377,
     "ambiguous_artifacts": 232,
     "files_by_reading": {
-      "python_functional": 3814,
-      "raw": 3272
+      "python_functional": 3817,
+      "raw": 3275
     },
-    "test_dependency_files": 1777,
-    "test_dependency_edges": 4467,
+    "test_dependency_files": 1778,
+    "test_dependency_edges": 4475,
     "test_dependency_bounded_files": 1038,
     "test_dependency_unresolved_relations": 452
   },
@@ -41710,6 +41710,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gate01_owner_signature_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_gateway_operational_endpoints_contract.py",
       "kind": "tests"
     },
@@ -68731,6 +68735,11 @@
           "line": 45
         },
         {
+          "source": "scripts/ci/gate01_owner_signature_guard.py",
+          "kind": "source_read",
+          "line": 51
+        },
+        {
           "source": "scripts/ops/branch_funeral.py",
           "kind": "source_read",
           "line": 37
@@ -68738,7 +68747,7 @@
         {
           "source": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
           "kind": "source_read",
-          "line": 51
+          "line": 61
         }
       ],
       "unresolved": []
@@ -75544,6 +75553,53 @@
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "source_read",
           "line": 43
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_gate01_owner_signature_guard.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "subprocess"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ci/gate01_frozen_path_guard.py",
+          "kind": "loader",
+          "line": 39
+        },
+        {
+          "source": "scripts/ci/gate01_frozen_path_guard.py",
+          "kind": "source_read",
+          "line": 39
+        },
+        {
+          "source": "scripts/ci/gate01_owner_signature_guard.py",
+          "kind": "loader",
+          "line": 37
+        },
+        {
+          "source": "scripts/ci/gate01_owner_signature_guard.py",
+          "kind": "source_read",
+          "line": 37
+        },
+        {
+          "source": "scripts/gates/prepare_gate01_authorization.py",
+          "kind": "loader",
+          "line": 38
+        },
+        {
+          "source": "scripts/gates/prepare_gate01_authorization.py",
+          "kind": "source_read",
+          "line": 38
+        },
+        {
+          "source": "services/actuator-service/actuator_runtime.py",
+          "kind": "source_read",
+          "line": 46
         }
       ],
       "unresolved": []

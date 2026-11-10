@@ -1,0 +1,23 @@
+# GATE-01 owner trust root (OpenSSH allowed_signers format) — GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01
+#
+# THIS FILE INTENTIONALLY CONTAINS NO KEY. Only the owner can provide one.
+# While no key line exists, scripts/ci/gate01_owner_signature_guard.py reports
+# "owner signing key not configured" and treats every GATE-01 authorization as
+# UNVERIFIED, so anything that requires a verified authorization (a CLOSED->OPEN
+# transition) is refused. Fail closed.
+#
+# The guard reads this file from the BASE branch, never from the PR under review:
+# a PR that adds or replaces a key only takes effect after it is merged, and once a
+# key is installed, replacing it needs a trust_root_change authorization signed by
+# the currently trusted key.
+#
+# To install (owner only; runbook docs/runbooks/GATE01_OWNER_SIGNING.md):
+#   1. ssh-keygen -t ed25519 -C "kafaat GATE-01 owner signing key" -f ~/.ssh/sahool_gate01_owner
+#      (offline machine; never copy the private key into this repository or to an agent)
+#   2. add ONE line below, uncommented, with your real public key:
+#        <principal> namespaces="sahool-gate01-authorization-v1" ssh-ed25519 <base64-public-key> <comment>
+#      e.g. principal: kafaat-gate01-owner
+#   3. compare `ssh-keygen -lf ~/.ssh/sahool_gate01_owner.pub` with the fingerprint shown in the PR.
+#
+# Only ssh-ed25519 / sk-ssh-ed25519@openssh.com keys are accepted; cert-authority
+# lines are rejected.
