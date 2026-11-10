@@ -4209,6 +4209,17 @@
       ],
       "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py"
     },
+    "ci_invoked_locale_preamble_guard.py": {
+      "test": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
+      "mutations": [
+        {
+          "expect": "test_the_inventory_is_the_class_not_the_naming_convention",
+          "find": "    files = sorted({row[\"script\"] for row in rows if row[\"status\"] == \"file\"})",
+          "replace": "    files = sorted(\n        {r[\"script\"] for r in rows if r[\"status\"] == \"file\" and r[\"script\"].endswith(\"_guard.py\")}\n    )",
+          "why": "عودةُ الجرد إلى اصطلاح التسمية `*_guard.py` ⇒ `guard_catalogue` و`verify_all_generated` و`tools/sahool_inspector.py` وكلُّ `*_gate.py` تخرج من البصر ثانيةً، والحارسُ أخضر لأنّه لا يرى ما مات — وهو العطلُ الذي وُجِد لأجله (C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01)"
+        }
+      ]
+    },
     "ci_unbounded_wait_guard.py": {
       "$why_ar": "CI-UNBOUNDED-PROVISIONING-WAIT-01: المواضع أُصلحت في #868؛ هذا يمنع عودة الصنف — وحارسٌ يتّهم الصحيح يُنزَع، فالذِّكر مُميَّز عن الاستدعاء. وثقبٌ ثالث كشفه تعليقٌ حيّ: الحدّ على اسم الأمر يفوته من يستدعي APT من جوفه، والسقف كان مقصوراً على حاويات القواعد.",
       "mutations": [
@@ -4297,6 +4308,23 @@
         }
       ],
       "test": "tests_v9/test_claim_base_guard.py"
+    },
+    "codecov_coverage_guard.py": {
+      "test": "tests_v9/test_codecov_coverage_wiring.py",
+      "mutations": [
+        {
+          "expect": "test_unmatched_and_duplicate_paths_fail_closed",
+          "find": "        if not any(filename.startswith(prefix.rstrip(\"/\") + \"/\") for prefix in prefixes):",
+          "replace": "        if False:  # mutated: do not reject paths outside permitted source roots",
+          "why": "إذا تجاهل الحارس المسارات الخارجة عن نطاق الخدمة نجح تقرير تغطية بلا مطابقة Git؛ اختبار المسار غير المطابق يجب أن يسقط."
+        },
+        {
+          "expect": "test_forbidden_decision_test_source_is_refused",
+          "find": "            raise CoveragePathError(f\"forbidden test/source path: {filename}\")",
+          "replace": "            pass  # mutated: do not reject test source from production coverage",
+          "why": "إذا قُبلت ملفات الاختبارات ضمن تغطية القرار أصبحت أرقام الإنتاج مضخمة؛ شاهد المنع يجب أن يسقط."
+        }
+      ]
     },
     "compose_auth_sink_guard.py": {
       "mutations": [
@@ -5619,6 +5647,29 @@
       ],
       "test": "tests_v9/test_platform_module_reachability_guard.py"
     },
+    "pr_finding_gap_id_guard.py": {
+      "test": "tests_v9/test_pr_finding_gap_id_guard.py",
+      "mutations": [
+        {
+          "expect": "test_an_unregistered_id_shaped_text_is_not_a_registration",
+          "find": "    return {candidate for candidate in gap_id.findall(paragraph) if candidate in known}",
+          "replace": "    return set(gap_id.findall(paragraph))",
+          "why": "قبولُ أيّ نصٍّ بشكل المعرّف بدل المسجَّل ⇒ يكفي أن يُكتَب معرّفٌ مخترَع بجانب الملاحظة فتمرّ، ولا يبقى للعيب أثرٌ في السجلّ بعد الدمج — وهو بعينه ما كشفه #1133 (GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01)"
+        },
+        {
+          "expect": "test_two_findings_in_one_paragraph_need_two_ids",
+          "find": "        findings = [(label, registered_ids(seg, known, gap_id)) for label, seg in segments]",
+          "replace": "        findings = [(segments[0][0], registered_ids(paragraph, known, gap_id))]",
+          "why": "عودةُ الفقرة وحدةً بدل الملاحظة ⇒ فقرةٌ تسرد ملاحظتين موسومتين تمرّ بمعرّفٍ واحد، فتبقى الثانية بلا أثرٍ في السجلّ بعد الدمج — الشطرُ الأوّل من «الباقي» في GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01"
+        },
+        {
+          "expect": "test_an_unregistered_high_review_comment_is_blocked",
+          "find": "        labels = [label for p in paragraphs(thread.root) for label in severity_labels(p)]",
+          "replace": "        labels = []",
+          "why": "تعليقاتُ المراجعة تُجلَب ولا يُحكَم عليها ⇒ ملاحظةُ بوتٍ أو مراجِعٍ «(High)» على GitHub تُصلَح بلا معرّف والخطوةُ خضراء — الشطرُ الثاني من «الباقي» في GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01"
+        }
+      ]
+    },
     "probe_leak_guard.py": {
       "mutations": [
         {
@@ -6373,6 +6424,17 @@
       ],
       "test": "tests/architecture/test_marker_coverage_guard.py"
     },
+    "text_anchor_liveness_guard.py": {
+      "test": "tests_v9/test_text_anchor_liveness_guard.py",
+      "mutations": [
+        {
+          "expect": "test_the_app_tsx_dead_lazy_anchor_of_824_is_caught",
+          "find": "    if not names:\n        return False  # a side-effect import is live by construction",
+          "replace": "    if True:\n        return False  # every binding treated as used",
+          "why": "معاملةُ كلّ ربطٍ كأنّه مُستعمَل ⇒ مرساةُ `./sections/FieldWorkspaceMapCard` على `lazy(...)` ميّتٍ في `App.tsx` تمرّ ثانيةً — الحالةُ المقيسة في #824 التي مرّت على صدفةٍ ثمّ أحمرّت على من نظّفها (TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01)"
+        }
+      ]
+    },
     "undeclared_context_dependency_guard.py": {
       "mutations": [
         {
@@ -6454,51 +6516,6 @@
         }
       ],
       "test": "tests_v9/test_visual_fixme_baseline_guard.py"
-    },
-    "ci_invoked_locale_preamble_guard.py": {
-      "test": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
-      "mutations": [
-        {
-          "expect": "test_the_inventory_is_the_class_not_the_naming_convention",
-          "find": "    files = sorted({row[\"script\"] for row in rows if row[\"status\"] == \"file\"})",
-          "replace": "    files = sorted(\n        {r[\"script\"] for r in rows if r[\"status\"] == \"file\" and r[\"script\"].endswith(\"_guard.py\")}\n    )",
-          "why": "عودةُ الجرد إلى اصطلاح التسمية `*_guard.py` ⇒ `guard_catalogue` و`verify_all_generated` و`tools/sahool_inspector.py` وكلُّ `*_gate.py` تخرج من البصر ثانيةً، والحارسُ أخضر لأنّه لا يرى ما مات — وهو العطلُ الذي وُجِد لأجله (C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01)"
-        }
-      ]
-    },
-    "text_anchor_liveness_guard.py": {
-      "test": "tests_v9/test_text_anchor_liveness_guard.py",
-      "mutations": [
-        {
-          "expect": "test_the_app_tsx_dead_lazy_anchor_of_824_is_caught",
-          "find": "    if not names:\n        return False  # a side-effect import is live by construction",
-          "replace": "    if True:\n        return False  # every binding treated as used",
-          "why": "معاملةُ كلّ ربطٍ كأنّه مُستعمَل ⇒ مرساةُ `./sections/FieldWorkspaceMapCard` على `lazy(...)` ميّتٍ في `App.tsx` تمرّ ثانيةً — الحالةُ المقيسة في #824 التي مرّت على صدفةٍ ثمّ أحمرّت على من نظّفها (TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01)"
-        }
-      ]
-    },
-    "pr_finding_gap_id_guard.py": {
-      "test": "tests_v9/test_pr_finding_gap_id_guard.py",
-      "mutations": [
-        {
-          "expect": "test_an_unregistered_id_shaped_text_is_not_a_registration",
-          "find": "    return {candidate for candidate in gap_id.findall(paragraph) if candidate in known}",
-          "replace": "    return set(gap_id.findall(paragraph))",
-          "why": "قبولُ أيّ نصٍّ بشكل المعرّف بدل المسجَّل ⇒ يكفي أن يُكتَب معرّفٌ مخترَع بجانب الملاحظة فتمرّ، ولا يبقى للعيب أثرٌ في السجلّ بعد الدمج — وهو بعينه ما كشفه #1133 (GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01)"
-        },
-        {
-          "expect": "test_two_findings_in_one_paragraph_need_two_ids",
-          "find": "        findings = [(label, registered_ids(seg, known, gap_id)) for label, seg in segments]",
-          "replace": "        findings = [(segments[0][0], registered_ids(paragraph, known, gap_id))]",
-          "why": "عودةُ الفقرة وحدةً بدل الملاحظة ⇒ فقرةٌ تسرد ملاحظتين موسومتين تمرّ بمعرّفٍ واحد، فتبقى الثانية بلا أثرٍ في السجلّ بعد الدمج — الشطرُ الأوّل من «الباقي» في GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01"
-        },
-        {
-          "expect": "test_an_unregistered_high_review_comment_is_blocked",
-          "find": "        labels = [label for p in paragraphs(thread.root) for label in severity_labels(p)]",
-          "replace": "        labels = []",
-          "why": "تعليقاتُ المراجعة تُجلَب ولا يُحكَم عليها ⇒ ملاحظةُ بوتٍ أو مراجِعٍ «(High)» على GitHub تُصلَح بلا معرّف والخطوةُ خضراء — الشطرُ الثاني من «الباقي» في GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01"
-        }
-      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
