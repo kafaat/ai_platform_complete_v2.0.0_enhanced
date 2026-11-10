@@ -21,3 +21,4 @@
 #
 # Only ssh-ed25519 / sk-ssh-ed25519@openssh.com keys are accepted; cert-authority
 # lines are rejected.
+kafaat-gate01-owner namespaces="sahool-gate01-authorization-v1" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHtlM8tN18SRB0ifcNVF34KeQT0xiXqnuM6FtweV9miO kafaat GATE-01 owner signing key
