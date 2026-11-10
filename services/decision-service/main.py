@@ -62,6 +62,7 @@ from persistence import (
     get_context_snapshot,
     get_decision_agronomic_evidence,
     get_execution_plan_state,
+    latest_vegetation_snapshot,
     list_decision_records,
     list_inflight_execution_requests,
     list_queued_execution_requests,
@@ -642,6 +643,31 @@ async def create_vegetation_snapshot(
         "created": result["created"],
         "snapshot_hash": payload.snapshot_hash,
     }
+
+
+@app.get("/v1/evidence/vegetation-snapshots/latest")
+async def read_latest_vegetation_snapshot(
+    field_id: str,
+    available_before: datetime,
+    season_id: str | None = None,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """AC-6 point-in-time read for producers: the newest snapshot whose data was available at
+    or before ``available_before``. 404 when none exists — never a substitute snapshot."""
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not authoritative")
+    if available_before.tzinfo is None:
+        raise HTTPException(status_code=422, detail="available_before must carry a timezone")
+    result = await latest_vegetation_snapshot(
+        tenant_id=tenant,
+        field_id=field_id,
+        season_id=season_id,
+        available_before=available_before,
+    )
+    if result.get("status") != "ok":
+        raise HTTPException(status_code=404, detail="no vegetation snapshot available")
+    return {"tenant_id": tenant, **{k: v for k, v in result.items() if k != "status"}}
 
 
 def derive_decision_id(
