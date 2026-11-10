@@ -49648,12 +49648,12 @@
         {
           "source": "scripts/ci/pr_capability_impact_gate.py",
           "kind": "loader",
-          "line": 59
+          "line": 72
         },
         {
           "source": "scripts/ci/pr_capability_impact_gate.py",
           "kind": "source_read",
-          "line": 50
+          "line": 63
         }
       ],
       "unresolved": []
@@ -86816,7 +86816,7 @@
         {
           "source": "scripts/ci/verify_all_generated.py",
           "kind": "source_read",
-          "line": 188
+          "line": 196
         },
         {
           "source": "services/decision-service/main.py",
@@ -86826,7 +86826,7 @@
         {
           "source": "services/sahool-platform/api/learning_feedback.py",
           "kind": "source_read",
-          "line": 228
+          "line": 236
         },
         {
           "source": "tests/architecture/test_architecture_graph.py",
@@ -86836,7 +86836,7 @@
         {
           "source": "tests_v9/conftest.py",
           "kind": "source_read",
-          "line": 186
+          "line": 194
         }
       ],
       "unresolved": []
