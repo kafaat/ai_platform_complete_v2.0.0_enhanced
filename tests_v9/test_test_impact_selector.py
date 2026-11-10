@@ -497,8 +497,14 @@ def test_a_real_plan_records_commits_decisions_and_its_own_digest(tool):
     assert len(plan["head_commit"]) == 40
     counts = plan["decision_counts"]
     assert counts["total"] == len(tool.discover_test_files())
+    assert set(plan["decisions"]) == set(tool.discover_test_files())
+    # Which branch runs depends on the local diff against the resolved base, so both
+    # must hold. Measured on the wave-7 carrier: a diff touching .github/workflows/
+    # escalated to full while ``selected`` still listed the 1072-file cone, and the
+    # selected-mode check below, then unconditional, failed on the first of them.
     if plan["mode"] == "full":
         assert counts["full_suite"] == counts["total"] and not plan["audit"]["test_paths"]
+        assert {d["decision"] for d in plan["decisions"].values()} == {"full_suite"}
     else:
         assert (
             sum(counts[k] for k in ("selected", "floor", "audit", "excluded_not_run"))
@@ -507,9 +513,8 @@ def test_a_real_plan_records_commits_decisions_and_its_own_digest(tool):
         assert set(plan["audit"]["test_paths"]).isdisjoint(
             set(plan["selected"]) | set(plan["floor"])
         )
-    assert set(plan["decisions"]) == set(tool.discover_test_files())
-    for path in plan["selected"]:
-        assert plan["decisions"][path]["decision"] == "selected"
+        for path in plan["selected"]:
+            assert plan["decisions"][path]["decision"] == "selected"
     unsigned = {k: v for k, v in plan.items() if k != "plan_sha256"}
     assert plan["plan_sha256"] == tool._digest(unsigned)
     # The digest identifies the plan; the record must say it is not evidence of a run.
