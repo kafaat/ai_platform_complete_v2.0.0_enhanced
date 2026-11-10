@@ -24,7 +24,7 @@ def _src() -> str:
 def test_main_compiles(tmp_path):
     """يُصرَّف main.py بلا أخطاء صياغة."""
     assert _MAIN.is_file(), "main.py مفقود"
-    # `cfile` في tmp_path: بدونه يكتب py_compile ‎`src/__pycache__/main.*.pyc` داخل الشجرة
+    # `cfile` في tmp_path: بدونه يكتب py_compile `src/__pycache__/main.*.pyc` داخل الشجرة
     # دائماً، ولا يمنعه PYTHONDONTWRITEBYTECODE ولا sys.dont_write_bytecode.
     py_compile.compile(str(_MAIN), cfile=str(tmp_path / "main.pyc"), doraise=True)
 
