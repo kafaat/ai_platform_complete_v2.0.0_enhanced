@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7107,
+    "files_scanned": 7105,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 89,
       "mobile": 414,
-      "other": 2165,
+      "other": 2163,
       "tests": 2371,
       "web": 506
     },
@@ -29,7 +29,7 @@
     "ambiguous_artifacts": 234,
     "files_by_reading": {
       "python_functional": 3825,
-      "raw": 3282
+      "raw": 3280
     },
     "test_dependency_files": 1784,
     "test_dependency_edges": 4493,
