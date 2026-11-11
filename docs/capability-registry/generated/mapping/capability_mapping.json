@@ -87824,7 +87824,7 @@
         {
           "source": "services/tts-service/arabic_normalizer.py",
           "kind": "import",
-          "line": 34
+          "line": 33
         },
         {
           "source": "services/tts-service/main.py",
@@ -87834,7 +87834,7 @@
         {
           "source": "services/tts-service/providers.py",
           "kind": "import",
-          "line": 35
+          "line": 34
         },
         {
           "source": "tests_v9/conftest.py",
