@@ -87824,22 +87824,22 @@
         {
           "source": "services/tts-service/arabic_normalizer.py",
           "kind": "import",
-          "line": 33
+          "line": 34
         },
         {
           "source": "services/tts-service/main.py",
           "kind": "import",
-          "line": 258
+          "line": 267
         },
         {
           "source": "services/tts-service/providers.py",
           "kind": "import",
-          "line": 34
+          "line": 35
         },
         {
           "source": "tests_v9/conftest.py",
           "kind": "import",
-          "line": 229
+          "line": 238
         }
       ],
       "unresolved": []
