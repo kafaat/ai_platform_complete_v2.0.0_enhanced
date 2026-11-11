@@ -431,3 +431,30 @@ def test_the_release_payload_scope_is_derived_not_handwritten():
         assert f":(exclude){artifact}" in scope, f"{artifact} يُجزّئ نفسه"
     # `sahool-brain/` تحديداً: كلّ جلسة تُلحق به، فدخوله يُعيد العطل كاملاً.
     assert ":(exclude)sahool-brain/" in scope
+
+
+def test_the_gate01_signature_trailer_is_outside_the_release_fingerprint():
+    """#1367: حجزُ التفويض بعد الرأس الموقَّع لا يجوز أن يُحرِّك بصمةَ الإصدار.
+
+    المسارات مقروءةٌ من سياسة GATE-01 الحيّة، فنقلُ المذيّل دون نقل الاستثناء يفشل.
+    """
+    import importlib.util
+    import json
+    from pathlib import PurePosixPath
+
+    spec = importlib.util.spec_from_file_location("_brb", _BUILDER)
+    brb = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(brb)
+    policy = json.loads((_ROOT / "docs/architecture/gate01_policy.json").read_text(encoding="utf-8"))
+    cfg = policy["owner_signature"]
+    assert cfg["authorizations_dir"].rstrip("/") in brb.GATE01_SIGNATURE_TRAILER_DIRS
+    for key in ("consumed_ledger_path", "revocations_path"):
+        assert cfg[key] in brb.GATE01_SIGNATURE_TRAILER_FILES, key
+        assert brb.is_excluded(PurePosixPath(cfg[key]))
+    envelope = PurePosixPath(cfg["authorizations_dir"]) / "GATE01-AUTH-2099-01-01-001.dsse.json"
+    assert brb.is_excluded(envelope)
+    # ضيّقٌ بالبناء: قراراتُ التحكيم المجاورة تبقى داخل البصمة.
+    assert not brb.is_excluded(PurePosixPath("docs/architecture/gates/adjudications/x.json"))
+    assert not brb.is_excluded(PurePosixPath("docs/architecture/gates/owner_allowed_signers"))
+    scope = brb.payload_pathspec()
+    assert f":(exclude){cfg['consumed_ledger_path']}" in scope
