@@ -121,8 +121,10 @@ capabilities:
   domain: weather
   owner: weather-service
   lifecycle: active
-  maturity: 3
-  evidence_level: 3
+  # maturity + evidence_level: lowered 2026-11-09 by owner decision; evidence double-counted
+  # before #1361; raise only with new independent evidence
+  maturity: 1
+  evidence_level: 1
   status: operational_evidence
   confidence: medium
   production_certified: false
@@ -179,8 +181,10 @@ capabilities:
   domain: weather
   owner: weather-service
   lifecycle: active
-  maturity: 3
-  evidence_level: 3
+  # maturity + evidence_level: lowered 2026-11-09 by owner decision; evidence double-counted
+  # before #1361; raise only with new independent evidence
+  maturity: 2
+  evidence_level: 2
   status: behavioral_test_linked_runtime_unverified
   confidence: high
   production_certified: false
@@ -302,8 +306,10 @@ capabilities:
   domain: weather
   owner: weather-service
   lifecycle: active
-  maturity: 3
-  evidence_level: 3
+  # maturity + evidence_level: lowered 2026-11-09 by owner decision; evidence double-counted
+  # before #1361; raise only with new independent evidence
+  maturity: 2
+  evidence_level: 2
   status: behavioral_test_linked_runtime_unverified
   confidence: high
   production_certified: false

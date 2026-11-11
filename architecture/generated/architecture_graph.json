@@ -262,7 +262,7 @@
       ],
       "kind": "service",
       "incoming": 6,
-      "outgoing": 23,
+      "outgoing": 30,
       "orphan": false
     },
     {
@@ -889,7 +889,7 @@
         "services/soil-service"
       ],
       "kind": "service",
-      "incoming": 8,
+      "incoming": 16,
       "outgoing": 0,
       "orphan": false
     },
@@ -940,7 +940,7 @@
       ],
       "kind": "service",
       "incoming": 4,
-      "outgoing": 0,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -1211,13 +1211,43 @@
       "source": "platform",
       "target": "soil-service",
       "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/agronomic_context_composer.py"
+    },
+    {
+      "source": "platform",
+      "target": "soil-service",
+      "kind": "code-reference",
       "evidence": "services/sahool-platform/api/canonical_soil_state.py"
     },
     {
       "source": "platform",
       "target": "soil-service",
       "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/device_registry.py"
+    },
+    {
+      "source": "platform",
+      "target": "soil-service",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/irrigation_recommendation_policy.py"
+    },
+    {
+      "source": "platform",
+      "target": "soil-service",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/irrigation_state_guard.py"
+    },
+    {
+      "source": "platform",
+      "target": "soil-service",
+      "kind": "code-reference",
       "evidence": "services/sahool-platform/api/routers/service_proxy.py"
+    },
+    {
+      "source": "platform",
+      "target": "soil-service",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/routers/weather.py"
     },
     {
       "source": "platform",
@@ -1230,6 +1260,18 @@
       "target": "soil-service",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/api/soil_hydraulic_client.py"
+    },
+    {
+      "source": "platform",
+      "target": "soil-service",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/soil_telemetry.py"
+    },
+    {
+      "source": "platform",
+      "target": "soil-service",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/water_twin_seed.py"
     },
     {
       "source": "platform",
@@ -2070,16 +2112,22 @@
       "target": "edge-inference",
       "kind": "code-reference",
       "evidence": "services/video-processor/main.py"
+    },
+    {
+      "source": "weather-service",
+      "target": "soil-service",
+      "kind": "code-reference",
+      "evidence": "services/weather-service/operations.py"
     }
   ],
   "cycles": [],
   "summary": {
     "nodes": 111,
-    "edges": 186,
+    "edges": 194,
     "orphans": 9,
     "cycles": 0,
-    "code_edges": 53,
+    "code_edges": 61,
     "compose_edges": 133
   },
-  "content_sha256": "f1a43e05a730a28614ab2c431ae0768f1513a3e1b603885933cd24d0074361a9"
+  "content_sha256": "e289f9ecda132d34a93d14d595e69f9090acba518d392bee9a70331bf1e5c014"
 }

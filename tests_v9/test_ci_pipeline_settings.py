@@ -138,6 +138,87 @@ def test_check_names_survive_the_slice_and_unit_tests_is_a_singleton() -> None:
     assert not missing, f"أسماءٌ مطلوبة في حماية الفرع غابت عن ci.yml: {sorted(missing)}"
 
 
+def test_the_required_lane_runs_on_every_pr_and_cannot_be_skipped_green() -> None:
+    """الخطّ الإلزاميّ ثابت: كلّ فحصٍ مطلوب يعمل على كلّ PR، ولا شيء يُحوّله «تخطّياً» أخضر.
+
+    في GitHub طريقان يُفرغان الفحص المطلوب من معناه دون أن يحمرّ شيء:
+    * **مرشّح مسارات على الـworkflow**: يتخطّاه GitHub فلا يُبلَّغ السياق أبداً، فيبقى
+      الـPR معلّقاً بلا فشلٍ حقيقيّ؛
+    * **`if:` على الوظيفة، أو `needs:` على وظيفةٍ غير مطلوبة تفشل**: تُبلَّغ الوظيفة
+      `skipped`، وGitHub يعدّ المطلوب المتخطّى ناجحاً. فتمرّ البوّابة صامتةً.
+    وكذلك `continue-on-error` على وظيفةٍ مطلوبة يجعل فشلها أخضر.
+
+    واسمٌ مطلوب يحمله workflow آخر يُرضي السياقَ نفسه بالاسم. فإن كان ذاك الآخر مُرشَّحاً
+    بالمسارات أو أضيق، صار المطلوب يُقضى بغير ci.yml. فالاسم يجب أن يكون **لـci.yml وحده**.
+
+    مقيسٌ عند كتابة هذا الاختبار على 8216ef4: لا شيء من ذلك قائم (١٦ وظيفة تُبلِّغ
+    ٢٠ سياقاً، بلا `if` ولا `needs` ولا مرشّح). فهذا قفلٌ على حالٍ صحيحة، لا إصلاح.
+    والخطوط الاختياريّة (بقيّة الـworkflows، ومنها المُرشَّحة بالمسارات) حرّةٌ في ذلك
+    ما دامت لا تحمل اسماً مطلوباً.
+    """
+    ci = _ci()
+    on = ci.get(True, ci.get("on"))
+    assert isinstance(on, dict) and "pull_request" in on, "ci.yml يجب أن يعمل على pull_request"
+    pr = on["pull_request"] or {}
+    assert "paths" not in pr and "paths-ignore" not in pr, (
+        "مرشّح مسارات على ci.yml يُعلّق الفحوص المطلوبة على كلّ PR لا يمسّها"
+    )
+    if "branches" in pr:
+        assert "main" in pr["branches"], "ci.yml لا يعمل على PRs إلى main"
+    assert "branches-ignore" not in pr
+
+    required = set(
+        json.loads(
+            (ROOT / "docs/architecture/required_status_checks_contract.json").read_text(
+                encoding="utf-8"
+            )
+        )["required_contexts"]
+    )
+    jobs = ci["jobs"]
+
+    def reported(key: str, job: dict) -> set[str]:
+        names = {job.get("name", key)}
+        for entry in ((job.get("strategy") or {}).get("matrix") or {}).get("include") or []:
+            if isinstance(entry, dict) and isinstance(entry.get("check_name"), str):
+                names.add(entry["check_name"])
+        return names
+
+    required_jobs = {key for key, job in jobs.items() if reported(key, job) & required}
+    assert required_jobs, "لم تُوجَد أيّ وظيفةٍ مطلوبة — القراءة نفسها معطوبة"
+
+    def needs(key: str) -> set[str]:
+        direct = jobs[key].get("needs") or []
+        direct = [direct] if isinstance(direct, str) else list(direct)
+        found = set(direct)
+        for item in direct:
+            found |= needs(item)
+        return found
+
+    problems = []
+    for key in sorted(required_jobs):
+        job = jobs[key]
+        if "if" in job:
+            problems.append(f"{key}: `if:` على وظيفةٍ مطلوبة — تخطّيها يُحسَب نجاحاً")
+        if job.get("continue-on-error"):
+            problems.append(f"{key}: `continue-on-error` على وظيفةٍ مطلوبة — فشلها يصير أخضر")
+        optional = sorted(needs(key) - required_jobs)
+        if optional:
+            problems.append(f"{key}: `needs` على وظائف غير مطلوبة {optional} — فشلها يتخطّاها أخضر")
+    assert not problems, "\n".join(problems)
+
+    elsewhere = []
+    for path in sorted((ROOT / ".github/workflows").glob("*.y*ml")):
+        if path.name == "ci.yml":
+            continue
+        document = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        for key, job in (document.get("jobs") or {}).items():
+            if isinstance(job, dict):
+                clash = reported(key, job) & required
+                if clash:
+                    elsewhere.append(f"{path.name}:{key} → {sorted(clash)}")
+    assert not elsewhere, f"أسماءٌ مطلوبة تحملها workflows غير ci.yml: {elsewhere}"
+
+
 def test_the_sharded_sweep_job_declares_literal_check_names() -> None:
     """أسماءُ الفحوص المطلوبة تُطابَق حرفيّاً — واسمٌ يشتقّه التعبير يُيتَّم.
 

@@ -24,7 +24,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from datetime import datetime, timedelta
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 # المجموعات السبع التي يجب أن يحملها العقد (AC-1 contracts.CONTEXT_GROUPS — مصدر واحد للحقيقة،
@@ -217,3 +218,339 @@ def assemble_agronomic_context(
         "temporal_skew_hours": round(temporal_skew_hours, 3),
         "content_digest": _stable_hash(payload),
     }
+
+
+# ── AC-1/AC-6 lineage for one governed producer: the field irrigation candidate ──────────
+# EX-WATER-01 (path B). decision-service refuses a governed decision without its agronomic
+# lineage when AC-1 is enforced (always in production). The field irrigation route sent none of
+# it, so a production submission could only end in an unexplained 422 (registry
+# DECISION-PROVENANCE-AND-SOD-01). The pure half lives here, next to the assembler it feeds;
+# the network half (compose + vegetation read) is ``decision_service_client.irrigation_candidate_lineage``.
+
+REQUIRED_LINEAGE_FIELDS = (
+    "season_id",
+    "crop_id",
+    "cultivar_id",
+    "agronomic_context_snapshot_id",
+    "field_historical_context_snapshot_id",
+    "feature_manifest_id",
+    "feature_manifest_hash",
+    "vegetation_snapshot_id",
+)
+_CONTEXT_REFERENCE_FIELDS = REQUIRED_LINEAGE_FIELDS[3:7]
+BLOCKED_STATE = "blocked_agronomic_context_incomplete"
+
+
+def agronomic_context_required() -> bool:
+    """Same rule as decision-service ``agronomic_context_required``: explicit flag anywhere,
+    always in production — production cannot silently skip AC-1."""
+    explicit = os.getenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "").strip().lower()
+    environment = os.getenv("ENVIRONMENT", os.getenv("SAHOOL_ENV", "development")).strip().lower()
+    return explicit in {"1", "true", "yes", "on"} or environment in {"production", "prod"}
+
+
+def _day_start(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
+    text = str(value)[:10] if value is not None else ""
+    try:
+        return datetime.fromisoformat(text).replace(tzinfo=UTC) if text else None
+    except ValueError:
+        return None
+
+
+def irrigation_candidate_features(
+    *,
+    cutoff: datetime,
+    field_id: str,
+    crop_id: str | None,
+    cultivar_id: str | None,
+    days_since_sowing: Any,
+    inputs: dict[str, Any],
+    ledger_date: Any,
+    weather: dict[str, Any],
+    et0: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """The route's own inputs as assembler features (group + full provenance).
+
+    A value the route does not hold is simply absent — its group is then reported missing by
+    ``assemble_agronomic_context``; nothing is filled in.
+    """
+    if cutoff.tzinfo is None:
+        raise ValueError("cutoff must carry a timezone")
+    now = {"observed_at": cutoff, "available_at": cutoff}
+    feats: list[dict[str, Any]] = []
+    if crop_id:
+        feats.append(
+            {
+                "group": "crop",
+                "name": "crop_id",
+                "value": crop_id,
+                "source_service": "sahool-platform.crop_cards",
+                "quality_status": "verified",
+                **now,
+            }
+        )
+    if cultivar_id:
+        feats.append(
+            {
+                "group": "crop",
+                "name": "cultivar_id",
+                "value": cultivar_id,
+                "source_service": "sahool-platform.seasons",
+                "quality_status": "verified",
+                **now,
+            }
+        )
+    if days_since_sowing is not None:
+        feats.append(
+            {
+                "group": "crop",
+                "name": "days_since_sowing",
+                "value": days_since_sowing,
+                "unit": "d",
+                "source_service": "sahool-platform.seasons",
+                "quality_status": "verified",
+                **now,
+            }
+        )
+    texture = (inputs.get("soil_provenance") or {}).get("texture") or {}
+    sampled = (
+        _day_start(texture.get("sampled_on")) if texture.get("source") == "lab_measured" else None
+    )
+    if inputs.get("taw_mm") is not None:
+        feats.append(
+            {
+                "group": "soil",
+                "name": "total_available_water_mm",
+                "value": inputs["taw_mm"],
+                "unit": "mm",
+                "source_service": "sahool-platform",
+                "source_snapshot_id": f"soil_lab_test:{texture.get('sampled_on')}"
+                if sampled
+                else None,
+                "observed_at": sampled or cutoff,
+                "available_at": cutoff,
+                "quality_status": "verified" if sampled else "accepted_with_warning",
+                "formula_version": f"soil_water_params:{inputs.get('taw_source')}",
+            }
+        )
+    age = inputs.get("ledger_age_hours")
+    if inputs.get("depletion_mm") is not None and age is not None:
+        updated = cutoff - timedelta(hours=max(float(age), 0.0))
+        feats.append(
+            {
+                "group": "irrigation",
+                "name": "root_zone_depletion_mm",
+                "value": inputs["depletion_mm"],
+                "unit": "mm",
+                "source_service": "sahool-platform",
+                "source_snapshot_id": f"water_ledger:{field_id}:{ledger_date}",
+                "observed_at": updated,
+                "available_at": updated,
+                # A derived daily balance, never a measurement.
+                "quality_status": "accepted_with_warning",
+                "formula_version": "water_ledger.daily_balance",
+                "temporal_scope": f"ledger_date:{ledger_date}",
+            }
+        )
+    if et0.get("et0_mm") is not None:
+        valid = weather.get("valid_time")
+        feats.append(
+            {
+                "group": "weather",
+                "name": "et0_mm",
+                "value": et0["et0_mm"],
+                "unit": "mm/day",
+                "source_service": "weather-service",
+                "source_snapshot_id": et0.get("weather_snapshot_id"),
+                "quality_status": "verified"
+                if et0.get("quality_status") == "validated"
+                else "accepted_with_warning",
+                "formula_version": et0.get("formula_version"),
+                "temporal_scope": f"valid_time:{valid}" if valid else None,
+                **now,
+            }
+        )
+    return feats
+
+
+def canonical_soil_profile_for_context(
+    raw: dict[str, Any] | None, *, cutoff: datetime
+) -> tuple[dict[str, Any] | None, str | list[str] | None]:
+    """The canonical ``SoilProfileSnapshot`` for ``context.soil``, or why there is none.
+
+    decision-service validates ``context.soil`` as a full profile when the soil profile is
+    required (always in production). The assembler's group summary can never pass that, so the
+    canonical snapshot itself must travel. Only the contract's own fields are kept (the strict
+    client adds normalisation keys the contract forbids); the snapshot is validated with the
+    shared contract here, and refused if it became available after the decision cutoff.
+    """
+    if not isinstance(raw, dict):
+        return None, "no canonical soil profile for the field"
+    from shared.contracts.soil.profile import SoilProfileSnapshot, validate_soil_profile_snapshot
+
+    profile = {k: v for k, v in raw.items() if k in SoilProfileSnapshot.model_fields}
+    snapshot, issues = validate_soil_profile_snapshot(profile)
+    if snapshot is None:
+        return None, issues
+    # The strict contract refuses a naive ``data_available_at`` (measured: it reports
+    # ``soil_profile_invalid:TypeError``), so a validated snapshot is always timezone-aware and
+    # compares with the aware cutoff directly. A local "assume UTC" branch here was dead code.
+    available = snapshot.data_available_at
+    if available > cutoff:
+        return None, "soil profile became available after the decision cutoff"
+    return profile, None
+
+
+def irrigation_candidate_compose_payload(
+    *,
+    tenant_id: str,
+    field_id: str,
+    season_id: str | None,
+    cutoff: datetime,
+    features: list[dict[str, Any]],
+    inputs: dict[str, Any],
+    ledger_date: Any,
+    soil_profile: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """``ContextComposeIn`` body for the irrigation candidate, via the existing assembler.
+
+    With a validated canonical soil profile, ``context.soil`` is that profile verbatim (not the
+    assembler's group summary) and the idempotency key covers its hash, so a new profile never
+    collides with a key composed over an older one.
+    """
+    history_from = _day_start(ledger_date) or (cutoff - timedelta(days=1))
+    if history_from > cutoff:
+        history_from = cutoff - timedelta(days=1)
+    unheld = "not composed by the field irrigation route"
+    payload = assemble_agronomic_context(
+        tenant_id=tenant_id,
+        field_id=field_id,
+        season_id=season_id,
+        as_of_time=cutoff,
+        decision_cutoff_time=cutoff,
+        features=features,
+        empty_group_reasons={"climate": unheld, "terrain": unheld, "operations": unheld},
+        history={
+            "history_from": _iso(history_from),
+            "history_to": _iso(cutoff),
+            "manifest_version": "irrigation-route-history.v1",
+            "history": {
+                "water_ledger_latest": {
+                    "ledger_date": str(ledger_date) if ledger_date is not None else None,
+                    "depletion_mm": inputs.get("depletion_mm"),
+                    "applied_water_status": inputs.get("applied_water_status"),
+                }
+            },
+        },
+    )["payload"]
+    if soil_profile is not None:
+        payload["context"]["soil"] = soil_profile
+        payload["idempotency_key"] = (
+            "acx_"
+            + _stable_hash(
+                {"key": payload["idempotency_key"], "soil": soil_profile.get("profile_hash")}
+            )[:32]
+        )
+    return payload
+
+
+@dataclass(frozen=True)
+class Ac1Binding:
+    """What could be bound, what is missing, and whether the gap blocks submission."""
+
+    record_fields: dict[str, str]
+    missing: tuple[str, ...]
+    required: bool
+    detail: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def blocked(self) -> bool:
+        return self.required and bool(self.missing)
+
+    def blocked_state(self) -> tuple[str, str]:
+        return BLOCKED_STATE, "agronomic_context_incomplete — لم يُقدَّم: " + ", ".join(self.missing)
+
+    def refusal(self, status_code: int, detail: Any) -> tuple[str, str] | None:
+        """decision-service's own AC-1 refusal (it enforces where this process did not expect
+        it) as the same named block — never a server error."""
+        if (
+            status_code == 422
+            and isinstance(detail, dict)
+            and detail.get("code") == "agronomic_context_required"
+        ):
+            return BLOCKED_STATE, "agronomic_context_incomplete — لم يُقدَّم: " + ", ".join(
+                detail.get("missing") or []
+            )
+        return None
+
+    def report(self) -> dict[str, Any]:
+        if not self.missing:
+            status = "bound"
+        elif self.blocked:
+            status = "blocked"
+        else:
+            status = "partially_bound" if self.record_fields.keys() - {"season_id"} else "unbound"
+        return {
+            "status": status,
+            "required": self.required,
+            "missing": list(self.missing),
+            "bound_fields": sorted(self.record_fields),
+            "detail": self.detail,
+        }
+
+
+def lineage_binding(
+    *,
+    season_id: str | None,
+    crop_id: str | None,
+    cultivar_id: str | None,
+    context: dict[str, Any] | None,
+    vegetation: dict[str, Any] | None,
+    required: bool,
+    detail: dict[str, Any],
+) -> Ac1Binding:
+    """Decide what may be bound. The four context references go all-or-none (decision-service
+    rejects a partial binding); vegetation only with an executable quality gate."""
+    fields: dict[str, str] = {}
+    if season_id:
+        fields["season_id"] = season_id
+    if crop_id:
+        fields["crop_id"] = crop_id
+    else:
+        detail.setdefault("crop_id", "crop not resolved to a crop card")
+    if cultivar_id and str(cultivar_id).strip():
+        fields["cultivar_id"] = str(cultivar_id).strip()
+    else:
+        detail.setdefault("cultivar_id", "season has no cultivar")
+    if context is not None:
+        ids = {
+            "agronomic_context_snapshot_id": context.get("snapshot_id"),
+            "field_historical_context_snapshot_id": context.get("historical_snapshot_id"),
+            "feature_manifest_id": context.get("feature_manifest_id"),
+            "feature_manifest_hash": context.get("feature_manifest_hash"),
+        }
+        if all(ids.values()) and context.get("persisted") is True:
+            fields.update({k: str(v) for k, v in ids.items()})
+        else:
+            detail.setdefault("context", "composer did not confirm a persisted, complete context")
+    if vegetation is not None:
+        gate = (
+            vegetation.get("quality_gate")
+            if isinstance(vegetation.get("quality_gate"), dict)
+            else {}
+        )
+        if vegetation.get("snapshot_id") and gate.get("executable") is True:
+            fields["vegetation_snapshot_id"] = str(vegetation["snapshot_id"])
+        else:
+            detail.setdefault(
+                "vegetation",
+                {
+                    "snapshot_id": vegetation.get("snapshot_id"),
+                    "reason": "quality gate not executable",
+                    "gate_reasons": gate.get("reasons"),
+                },
+            )
+    missing = tuple(k for k in REQUIRED_LINEAGE_FIELDS if k not in fields)
+    return Ac1Binding(record_fields=fields, missing=missing, required=required, detail=detail)

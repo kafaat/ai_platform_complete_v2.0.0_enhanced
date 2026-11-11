@@ -9,6 +9,7 @@ crop_id: qat
 name_ar: القات
 name_en: Qat (khat, Catha edulis)
 crop_family: tree_C3
+life_form: perennial  # مُعمِّر: لا نضج/حصاد حوليّ واحد يُشتقّ من تاريخ البذار
 
 kc:
   initial: 0.60

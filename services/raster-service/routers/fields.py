@@ -1193,8 +1193,8 @@ async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: st
             "date_b": grid_b.get("date", req.date_b),
             "bbox": grid_b.get("bbox") or grid_a.get("bbox"),
             "real_data": True,
-            "available": True,
-            "status": "assessed",
+            "available": result.get("status") == "assessed",
+            # Preserve the change kernel's not_assessable status and reason_codes.
             "grid_identity": identity,
         }
     )

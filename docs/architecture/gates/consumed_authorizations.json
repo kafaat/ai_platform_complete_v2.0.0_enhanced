@@ -1,0 +1,15 @@
+{
+  "schema": "sahool.gate01_consumed_authorizations/v1",
+  "$semantics": "Append-only ledger of consumed (reserved) owner-signed GATE-01 decisions. A decision listed on the base branch is already consumed and is refused; a PR that uses a decision must reserve it here exactly once (scripts/gates/prepare_gate01_authorization.py reserve). Entries are never edited, removed or reordered — enforced by scripts/ci/gate01_owner_signature_guard.py.",
+  "entries": [
+    {
+      "decision_id": "GATE01-AUTH-2026-11-11-002",
+      "action": "bounded_change",
+      "pr_number": 1367,
+      "head_sha": "f110cbc91097baa92de8aad584953d00a7d4ebe3",
+      "subject_sha256": "7e29e58dcc88065c6ee4503c4a85ec3f1a1698322e6c88452ed3e9b10360c857",
+      "envelope_sha256": "0261fadcf9a639040e876c9efef0b6a14f3b7f901c564faa790f5dfadec3c12d",
+      "reserved_at": "2026-11-11T17:29:34Z"
+    }
+  ]
+}

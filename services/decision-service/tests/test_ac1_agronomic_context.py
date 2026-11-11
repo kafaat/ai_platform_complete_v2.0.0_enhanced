@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
+from fastapi import HTTPException
 
 SERVICE_DIR = Path(__file__).resolve().parents[1]
 if str(SERVICE_DIR) not in sys.path:
@@ -106,6 +107,21 @@ def test_compose_is_deterministic_reusable_and_replayable():
     )
     assert replay["status"] == "ok" and replay.get("replay") is True
     assert replay["snapshot_id"] == first["snapshot_id"]
+    # the manifest hash a decision must pin is returned, equal on replay, and is the stored one
+    assert len(first["feature_manifest_hash"]) == 64
+    assert replay["feature_manifest_hash"] == first["feature_manifest_hash"]
+
+    async def stored_manifest_hash():
+        c = await _connect()
+        try:
+            return await c.fetchval(
+                "SELECT content_hash FROM decision_feature_manifests WHERE feature_manifest_id=$1",
+                first["feature_manifest_id"],
+            )
+        finally:
+            await c.close()
+
+    assert _run(stored_manifest_hash()) == first["feature_manifest_hash"]
     # same content, different idempotency key => the snapshot is REUSED (content-addressed).
     again = _run(
         compose_agronomic_context(
@@ -266,3 +282,116 @@ def test_snapshot_read_and_append_only():
             await c.close()
 
     assert _run(try_mutate()) != "mutated"  # append-only trigger blocks tampering
+
+
+# ── AC-6 point-in-time vegetation read (producers pin vegetation evidence by the cutoff) ──
+def _main():
+    import main
+
+    return main
+
+
+def _call(**kw):
+    m = _main()
+    return asyncio.run(
+        m.read_latest_vegetation_snapshot(
+            field_id=kw.get("field_id", "f1"),
+            available_before=kw.get("available_before", datetime(2026, 7, 10, tzinfo=UTC)),
+            season_id=kw.get("season_id"),
+            x_tenant_id=TENANT,
+        )
+    )
+
+
+def test_the_read_is_refused_when_decision_service_is_not_authoritative(monkeypatch):
+    m = _main()
+    monkeypatch.setattr(m, "sor_enabled", lambda: False)
+    with pytest.raises(HTTPException) as exc:
+        _call()
+    assert exc.value.status_code == 503
+
+
+def test_a_cutoff_without_a_timezone_is_refused(monkeypatch):
+    m = _main()
+    monkeypatch.setattr(m, "sor_enabled", lambda: True)
+    with pytest.raises(HTTPException) as exc:
+        _call(available_before=datetime(2026, 7, 10))
+    assert exc.value.status_code == 422
+
+
+def test_no_snapshot_is_a_404_never_a_substitute(monkeypatch):
+    m = _main()
+    monkeypatch.setattr(m, "sor_enabled", lambda: True)
+
+    async def _none(**_kw):
+        return {"status": "not_found"}
+
+    monkeypatch.setattr(m, "latest_vegetation_snapshot", _none)
+    with pytest.raises(HTTPException) as exc:
+        _call()
+    assert exc.value.status_code == 404
+
+
+def test_the_read_passes_the_cutoff_through_and_returns_the_snapshot(monkeypatch):
+    m = _main()
+    monkeypatch.setattr(m, "sor_enabled", lambda: True)
+    seen = {}
+
+    async def _one(**kw):
+        seen.update(kw)
+        return {"status": "ok", "snapshot_id": "veg_1", "quality_gate": {"executable": True}}
+
+    monkeypatch.setattr(m, "latest_vegetation_snapshot", _one)
+    cutoff = datetime(2026, 7, 10, 6, tzinfo=UTC)
+    out = _call(available_before=cutoff, season_id="s1")
+    assert out["snapshot_id"] == "veg_1" and "status" not in out
+    assert seen == {
+        "tenant_id": TENANT,
+        "field_id": "f1",
+        "season_id": "s1",
+        "available_before": cutoff,
+    }
+
+
+def test_live_pg_only_snapshots_available_by_the_cutoff_are_returned():
+    from main import VegetationSnapshotIn
+    from persistence import latest_vegetation_snapshot, persist_vegetation_snapshot
+
+    field = "f_" + uuid4().hex[:8]
+    base = datetime.now(UTC).replace(microsecond=0) - timedelta(days=2)
+
+    def snap(hours: int, tag: str):
+        return VegetationSnapshotIn(
+            field_id=field,
+            season_id="s2026",
+            snapshot_hash=uuid4().hex + uuid4().hex,
+            acquisition_at=base + timedelta(hours=hours - 1),
+            data_available_at=base + timedelta(hours=hours),
+            quality_gate={"executable": True, "reasons": []},
+            feature_manifest={"tag": tag},
+            payload={"tag": tag},
+        )
+
+    early = asyncio.run(
+        persist_vegetation_snapshot(
+            tenant_id=TENANT, payload=snap(1, "early"), snapshot_id="veg_" + uuid4().hex[:12]
+        )
+    )
+    asyncio.run(
+        persist_vegetation_snapshot(
+            tenant_id=TENANT, payload=snap(30, "late"), snapshot_id="veg_" + uuid4().hex[:12]
+        )
+    )
+    cutoff = base + timedelta(hours=10)
+    got = asyncio.run(
+        latest_vegetation_snapshot(
+            tenant_id=TENANT, field_id=field, season_id="s2026", available_before=cutoff
+        )
+    )
+    assert got["status"] == "ok" and got["snapshot_id"] == early["snapshot_id"]
+    none = asyncio.run(
+        latest_vegetation_snapshot(
+            tenant_id=TENANT, field_id=field, season_id="s2026", available_before=base
+        )
+    )
+    assert none == {"status": "not_found"}

@@ -179,7 +179,8 @@ _SEASON_SELECT_COLS = (
     "row_version"
 )
 
-# سقف نافذة المحاكاة (يوم) حين يغيب season_end — دورة موسميّة معقولة.
+# أرضيّة سقف نافذة المحاكاة (يوم): السقف الفعليّ = max(هذا، دورة المحصول في بطاقته) بحدّ سنة
+# (season_simulation.crop_cycle_window_cap)، والقصّ يُعلَن في الاستجابة (truncated).
 _SIM_MAX_WINDOW_DAYS = 160
 
 
@@ -195,9 +196,12 @@ class SeasonSimResponse(BaseModel):
     maturity_reached: bool
     lai_max: float
     biomass_kg_ha: float
-    yield_kg_ha: float
-    yield_low_kg_ha: float
-    yield_high_kg_ha: float
+    # None حين يكون المحصول غير مُعرّف (yield_status يقول السبب) — لا غلّة من معاملات عامّة.
+    yield_kg_ha: float | None
+    yield_low_kg_ha: float | None
+    yield_high_kg_ha: float | None
+    yield_status: str = "estimated"
+    limitations: list[str] = Field(default_factory=list)
     water_need_mm: float
     water_supply_mm: float | None
     water_stress_factor: float
@@ -233,3 +237,12 @@ class SeasonSimResponse(BaseModel):
     observed_fapar_used: bool = False
     decision_context_status: str = "not_attempted"
     decision_historical_snapshot_id: str | None = None
+    # المحصول المحاكى فعلاً كما في الموسم (الأوّل عند تعدّد المحاصيل — مع تحذير صريح).
+    simulated_crop: str | None = None
+    # نافذة المحاكاة: ما طُلِب (البذار → نهاية الموسم/اليوم) مقابل ما حوكِيَ؛ truncated=True
+    # حين قُصَّت لأنّها أطول من سقف دورة المحصول (ومعه SIM_WINDOW_TRUNCATED في limitations).
+    truncated: bool = False
+    window_days_requested: int | None = None
+    window_days_simulated: int | None = None
+    # الهندسة المقروءة: حدّ الحقل **الحاليّ** (الموسم لا يُثبّت مراجعة هندسة) — صراحةً للمستهلك.
+    geometry_basis: str = "current_boundary"

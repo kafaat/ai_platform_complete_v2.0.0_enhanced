@@ -10,24 +10,24 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **286**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **58**
-- إجماليّ الطفرات المُسجَّلة: **464**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **393** على 136 مصدراً
+- حرّاس تحجب في CI: **289**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **60**
+- إجماليّ الطفرات المُسجَّلة: **481**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **394** على 137 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **228** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **229** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (58)
+## الحرّاس المُثبَتة بالتكذيب (60)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -361,6 +361,19 @@
 - نزع حجب مدخل الدَّين البائت — يُسقِط `test_stale_debt_entry_is_blocked`
 - SHA مجهول يُبلَّغ «صفر التزام» بدل «غير قابل للحلّ» — يُسقِط `test_an_unknown_sha_reports_unresolvable_not_zero`
 
+### `codecov_coverage_guard.py`
+
+**يفرض:** Check that uploaded Codecov XML paths refer to measured, tracked Git files.
+
+**يحجب في:** `ci.yml` → `decision-service-tests` · `ci.yml` → `platform-unit-tests` · `ci.yml` → `unit-tests`
+
+**الاختبار الشاهد:** `tests_v9/test_codecov_coverage_wiring.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- إذا تجاهل الحارس المسارات الخارجة عن نطاق الخدمة نجح تقرير تغطية بلا مطابقة Git؛ اختبار المسار غير المطابق يجب أن يسقط. — يُسقِط `test_unmatched_and_duplicate_paths_fail_closed`
+- إذا قُبلت ملفات الاختبارات ضمن تغطية القرار أصبحت أرقام الإنتاج مضخمة؛ شاهد المنع يجب أن يسقط. — يُسقِط `test_forbidden_decision_test_source_is_refused`
+
 ### `compose_auth_sink_guard.py`
 
 **يفرض:** سرُّ استيثاقٍ لا يصل فارغاً — `SERVER-AUTH-SECRET-MUST-BE-NONEMPTY-01`.
@@ -581,6 +594,7 @@
 - حجبٌ داخل المدّة يجعل تسجيلَ الحالة مستحيلاً: لا صيغةَ للإقرار تمرّ، فيُطفَأ الحقلُ أو يُطفَأ الحارس. صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026. — يُسقِط `test_a_live_acknowledgement_still_silences_the_report`
 - شحنُ «يحذّر قبل أن يحجب» للتفويضات وتركُ الإقرار يحجب فجأةً تناقضٌ في الملفّ نفسِه — والقاعدةُ واحدة: أوّلُ خبرٍ عن الأجل يجب ألّا يكون الحجب. — يُسقِط `test_the_alias_deadline_warns_before_it_blocks`
 - FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01: بلا فرع الاسم الأساسيّ يعود ادّعاءُ «غيرُ موجودٍ بعد» غيرَ قابلٍ للتكذيب — `migrations/run_migrations.sql` يُعلَن غائباً والمُشغِّلُ الحقيقيُّ `scripts_v9/run_migrations.sql` قائمٌ خارج التجميد، وإقرارُ النظير الساري يُسكِت `alias_escape_errors`. فيمرّ الحارسُ أخضرَ على تجميدٍ فارغ، كما مرّ على #954. — يُسقِط `test_a_declared_absent_basename_elsewhere_is_falsified_even_when_acknowledged`
+- GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01: the owner-signature verdict is computed but never reaches the guard's exit code, so CI stays green on an unsigned CLOSED->OPEN. — يُسقِط `test_the_frozen_path_guard_blocks_an_unsigned_transition`
 
 ### `github_actions_security_guard.py`
 
@@ -1082,6 +1096,19 @@
 - بلا عقدٍ مقروء يمرّ الحارس على عالمٍ فارغ فيقول «لا مخالفة» عن سؤالٍ لم يُطرَح — وقد كان هذا حاله فعلاً عند أوّل تشغيل (صفر طلب). — يُسقِط `test_no_declared_keys_fails_closed`
 - عودةُ قراءة الوسائط الموضعيّة وحدها ⇒ `ctx.require(key="…")` مسارُ تجاوزٍ مفتوح. و`require(self, key: str)` ليست positional-only فالصيغة مشروعة تماماً، ولا يحتاج الالتفافُ نيّةً سيّئة: يكفي أن يكتبها أحدٌ هكذا. أمسكتها المراجعة. — يُسقِط `test_a_keyword_argument_request_is_seen`
 
+### `unit_skip_inventory_guard.py`
+
+**يفرض:** Every skip report in the Unit Tests job is a declared, named debt, never a silent one.
+
+**يحجب في:** `ci.yml` → `unit-tests`
+
+**الاختبار الشاهد:** `tests_v9/test_unit_skip_inventory_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- قبولُ تخطٍّ غير معلَن يعيد العطل الذي وُجد الحارس لأجله: اختبارٌ يتوقّف عن العمل ولا أحد يعلم، فتبقى الوظيفة خضراء على سطرٍ واحد في الذيل (S1 F3). — يُسقِط `test_an_undeclared_skip_is_blocked`
+- تجاهلُ تبدّل السبب يُبقي قراراً مكتوباً يصف سبباً لم يعد قائماً، فيُقرأ الدَّين معروفاً وهو قد تبدّل. — يُسقِط `test_a_changed_reason_is_blocked`
+
 ### `visual_fixme_baseline_guard.py`
 
 **يفرض:** الاختبار المُعطَّل دَينٌ — والدَّينُ يُحرَس أو يتراكم صامتاً.
@@ -1100,7 +1127,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (228)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (229)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -1262,6 +1289,7 @@
 | `production_truth_readiness_gate.py` | Production truth/readiness gate: no synthetic serving paths; honest readiness. | `structural-lint` · `contract` |
 | `provenance_receipt.py` | Create/validate the external provenance receipt required by the read-only bridge. | `verify-and-evaluate` |
 | `railway_dockerfile_pr_build_plan.py` | أيُّ ملفّات Dockerfile التي يبنيها Railway يمسّها هذا الـPR؟ — DOCKER-BUILD-VERIFIED-ONLY-ON-… | `plan` |
+| `railway_staging_backup_inventory.py` | Read-only staging PostgreSQL volume-backup inventory; never restore or certify. | `staging-connection` |
 | `railway_staging_connection_preflight.py` | Fail-closed Railway staging status verification. Never emit raw CLI data. | `staging-connection` |
 | `raster_import_graph_gate.py` | Static import-graph gate for services/raster-service. | `structural-lint` |
 | `raster_main_decomposition_gate.py` | Raster-service main.py decomposition contract gate. | `structural-lint` |
@@ -1348,11 +1376,12 @@
 
 ---
 
-## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (10)
+## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (11)
 
 أداة غير موصولة لا تحرس شيئاً (§٣.٢). وجودها هنا سؤالٌ لا اتّهام.
 
 - `actuation_killswitch_coverage_guard.py`
+- `gate01_owner_signature_guard.py`
 - `manifest_registry_guard.py`
 - `s5_exec_01_writer_cutover_guard.py`
 - `scripts/architecture/authority_cutover_guard.py`

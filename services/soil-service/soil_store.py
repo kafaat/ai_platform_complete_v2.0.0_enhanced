@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
@@ -47,24 +48,55 @@ async def ingest_retry_ids(
     ids = []
     for item in observations:
         row = by_key[item.idempotency_key]
-        value = row["value_json"]
-        value = json.loads(value) if isinstance(value, str) else value
-        # PostgreSQL's existing depth columns are NUMERIC(8,2).
-        depth = Decimal(str(item.depth_to_cm)).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
-        if (
-            row["property"] != item.property
-            or row["field_id"] != item.field_id
-            or value != item.value
-            or row["unit"] != item.unit
-            or float(row["depth_from_cm"]) != item.depth_from_cm
-            or Decimal(str(row["depth_to_cm"])) != depth
-            or row["source_type"] != item.source_type.value
-            or row["source_id"] != item.source_id
-            or (check_observed_at and row["observed_at"] != item.observed_at)
-        ):
+        if not stored_observation_matches(row, item, check_observed_at=check_observed_at):
             raise SoilIngestConflict("soil_ingest_idempotency_conflict")
         ids.append(row["observation_id"])
     return ids
+
+
+def _as_utc(moment: datetime) -> datetime:
+    return moment.replace(tzinfo=UTC) if moment.tzinfo is None else moment
+
+
+def stored_observation_matches(
+    row, item: SoilObservation, *, check_observed_at: bool = True
+) -> bool:
+    """Whether a stored row is the same measurement as ``item`` (generated IDs ignored).
+
+    Pure so that both the wide-ingest retry path and the canonical duplicate path decide
+    "same reading" with one rule: property, field, value, unit, depth, source and (when
+    asked) observed_at.
+    """
+    value = row["value_json"]
+    value = json.loads(value) if isinstance(value, str) else value
+    # PostgreSQL's existing depth columns are NUMERIC(8,2).
+    depth = Decimal(str(item.depth_to_cm)).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
+    return not (
+        row["property"] != item.property
+        or row["field_id"] != item.field_id
+        or value != item.value
+        or row["unit"] != item.unit
+        or float(row["depth_from_cm"]) != item.depth_from_cm
+        or Decimal(str(row["depth_to_cm"])) != depth
+        or row["source_type"] != item.source_type.value
+        or row["source_id"] != item.source_id
+        or (check_observed_at and _as_utc(row["observed_at"]) != _as_utc(item.observed_at))
+    )
+
+
+async def load_observation_by_key(pool, tenant_id: str, idempotency_key: str):
+    """The stored row an idempotency key already names in this tenant, or ``None``."""
+    async with tenant_transaction(pool, tenant_id) as conn:
+        return await conn.fetchrow(
+            """
+            SELECT observation_id, idempotency_key, field_id, property, value_json, unit,
+                   depth_from_cm, depth_to_cm, observed_at, source_type, source_id
+            FROM soil_observations
+            WHERE tenant_id=$1::uuid AND idempotency_key=$2
+            """,
+            tenant_id,
+            idempotency_key,
+        )
 
 
 async def _tenant_tx(conn, tenant_id: str):

@@ -162,6 +162,36 @@ def test_a_consumed_or_revoked_authorization_cannot_be_reused(status):
     assert any("ISSUED" in e for e in errors)
 
 
+# ── ٩ب) مقترحٌ ينتظر توقيع المالك ⇒ لا يمنح شيئاً (فشلٌ مغلق) ─────────────────
+#
+# سجلٌّ يكتبه الوكيلُ لقرار المالك ليس تفويضاً: يصير مقبولاً فقط بعد التحقّق من توقيع
+# المالك المستقلّ (GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01). فالمقترحُ **مطابقُ البايتات
+# تماماً** يبقى حاجباً، ولا يُعَدّ بائتاً، ولا يُحذَّر من أجله كأنّه إذنٌ حيّ.
+_PENDING_STATUSES = ("PROPOSED", "PENDING_OWNER_SIGNATURE")
+
+
+@pytest.mark.parametrize("status", _PENDING_STATUSES)
+def test_a_proposal_awaiting_the_owner_signature_authorizes_nothing(status):
+    errors, used = _run([_FROZEN_A, _FROZEN_B], adjs=[_adj(status=status)])
+    assert used is None
+    assert errors and any(status in e for e in errors), errors
+    assert guard.stale_authorization_errors([_adj(status=status)], set(), _BLOBS) == []
+    assert guard.expiry_warnings([_adj(status=status, expires_on=_future(3))]) == []
+
+
+def test_every_live_proposal_authorizes_nothing_even_on_its_own_bytes():
+    """المقترحُ الحيّ في الشجرة لا يمنح نطاقَه ولو طابقت بايتاتُه الشجرة حرفيّاً."""
+    policy = guard.load_policy(_POLICY)
+    blobs = {p: guard.blob_sha(p) for p in policy["frozen_paths"]}
+    for adj in guard.load_adjudications(_ADJ_DIR):
+        if adj.get("status") not in _PENDING_STATUSES:
+            continue
+        errors, used = guard.evaluate(sorted(adj["allowed_paths"]), policy, [adj], blobs)
+        assert used is None and errors, f"{adj['adjudication_id']}: مقترحٌ منح إذناً"
+        signing = adj.get("provenance_honesty") or {}
+        assert signing.get("independently_signed") is False, adj["adjudication_id"]
+
+
 # ── ١٠) تفويضٌ مشوَّه ⇒ فشلٌ مغلق ────────────────────────────────────────────
 @pytest.mark.parametrize(
     "over, ident",
@@ -318,7 +348,9 @@ def test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle(
     for adj in guard.load_adjudications(_ADJ_DIR):
         ident = adj["adjudication_id"]
         status = adj["status"]
-        assert status in {"ISSUED", "CONSUMED", "REVOKED"}, f"{ident}: حالةٌ خارج المفردات"
+        assert status in {"ISSUED", "CONSUMED", "REVOKED", *_PENDING_STATUSES}, (
+            f"{ident}: حالةٌ خارج المفردات"
+        )
 
         # النطاق ← من السياسة، لا من السجلّ
         assert set(adj["allowed_paths"]) <= frozen, f"{ident}: يأذن بما ليس مجمَّداً"

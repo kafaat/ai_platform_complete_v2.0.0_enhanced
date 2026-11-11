@@ -13,12 +13,13 @@
   ],
   "$release_refs": "المراجع التي يجوز أن تبلغ أدلّتُها L4/L5. الضمان دالّةٌ في **من أين** جاء الدليل لا في اتّساق بصماته وحده: دفعةٌ إلى فرع عمل تُنتِج ربطاً صحيحاً بالالتزام والشجرة، وذلك لا يجعلها إصداراً. مقيسٌ بالحادثة: الحزمة attestation/40374289 على ffc29415 بلغت L5 من فرع غير محميّ (UNPROTECTED-BRANCH-CAN-ATTAIN-L5-01). والقائمة **بيانات في السياسة** لا شرطٌ في YAML، كي لا يستطيع workflow آخر تمرير exact_commit على فرع غير معتمد.",
   "gh_cli": {
-    "version": "2.93.0",
-    "linux_amd64_archive": "gh_2.93.0_linux_amd64.tar.gz",
-    "linux_amd64_archive_sha256": "02d1290eba130e0b896f3709ffff22e1c75a51475ddb70476a85abc6b5807af0",
-    "release_url": "https://github.com/cli/cli/releases/download/v2.93.0/gh_2.93.0_linux_amd64.tar.gz"
+    "version": "2.103.3",
+    "linux_amd64_archive": "gh_2.103.3_linux_amd64.tar.gz",
+    "linux_amd64_archive_sha256": "4c806978ffce1cec70853302a56d70ac6da4f19bae7adca4e1a8ab00633dd91d",
+    "release_url": "https://github.com/cli/cli/releases/download/v2.103.3/gh_2.103.3_linux_amd64.tar.gz",
+    "$why_ar": "رُفِع من 2.93.0 (2026-11-09، بموافقة المالك) لأنّ ما قبل 2.102.0 يحمل ثغرتين في عين الرايتين اللتين نستعملهما: GHSA-wjmr-j3rp-mh2g (`--signer-workflow` يطابق بادئةَ هويّة الشهادة فقط) وGHSA-4mq3-hpgx-9cx8 (`--source-ref` يُقارَن بلا حساسيّة لحالة الأحرف). والبصمة مقيسةٌ من مصدرين: ملفّ gh_2.103.3_checksums.txt الرسميّ وsha256 محسوبٌ على الأرشيف المُنزَّل — متطابقان. والأرضيّة 2.102.0 مفروضةٌ في الكود (`sot_provenance_guard.MIN_GH_ATTESTATION_CLI`) لا هنا، كي لا يُنزِلها خفضُ هذه السياسة نفسها."
   },
-  "adjudicated_on": "2026-08-13",
+  "adjudicated_on": "2026-11-09",
   "version": 2,
   "require_execution_outcome": false,
   "$why_execution_outcome_is_declared_off_ar": "ATTESTED-IS-NOT-CERTIFIED-01. الشرط منفَّذ في `sot_provenance_guard.execution_clean` ومُكذَّب بالطفرات، والمفتاح باقٍ false **عمداً وبعد بناء وظيفة الاعتماد لا قبله**: موضعُ الفرض وظيفةُ workflow_run بعد اكتمال التشغيل — `certify-run` تمرّر `--require-execution-outcome` وتفرض معه عقد الوظائف المطلوبة وإغلاق هويّة التشغيل على الـtuple الكاملة وعقد المصنوعة. أمّا قلبُ هذا المفتاح فيُفعِّل الفرضَ في استدعاء `ci.yml` **داخل** التشغيل حيث لا يملك المُنتِج خلاصةَ تشغيله، فيحمرّ main على غيابٍ بنيويّ لا على عطل — القياس الأصليّ باقٍ صحيحاً. والوظيفة لم تعد وعداً: أوّل سجلّ اعتمادٍ حيّ أُنتج في التشغيل 31907504319 على 2d8fdb3f بحكم VERIFIED عند L5 وصفر أسباب، ومرجعُه المقبول مدوَّن مؤشّراً لا برهاناً في docs/architecture/certification_acceptance_record.json. فالحال المستقرّة: المفتاح false هنا، والفرض بالراية في موضعه الوحيد الممكن."

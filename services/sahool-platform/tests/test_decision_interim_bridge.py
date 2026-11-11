@@ -45,6 +45,8 @@ class _FakeConn:
         if self.fail:
             raise RuntimeError("simulated platform DB failure")
         self.log.append(("fetchval", sql))
+        if "INSERT INTO decision_record" in sql:
+            return args[0]  # INSERT … RETURNING decision_id: a fresh row, not a replay
         return None  # no idempotency replay row
 
     async def fetchrow(self, sql, *args):
@@ -103,7 +105,7 @@ async def test_decision_record_writes_platform_then_mirrors_when_mirror_ok(monke
     )
     out = await dr.record_decision(req, _USER)
     # (a) authoritative platform write happened (INSERT + outbox emit).
-    assert any(k == "execute" and "INSERT INTO decision_record" in s for k, s in log)
+    assert any(k == "fetchval" and "INSERT INTO decision_record" in s for k, s in log)
     assert any(k == "emit" for k, s in log)
     # (b) the mirror was attempted after the write.
     assert mirror_calls and mirror_calls[0][0] == "decision"
@@ -123,7 +125,7 @@ async def test_decision_record_survives_mirror_failure_without_data_loss(monkeyp
     out = await dr.record_decision(req, _USER)
     assert out["persisted"] is True
     # platform write still committed (not lost) and mirror was attempted.
-    assert any(k == "execute" and "INSERT INTO decision_record" in s for k, s in log)
+    assert any(k == "fetchval" and "INSERT INTO decision_record" in s for k, s in log)
     assert mirror_calls and mirror_calls[0][0] == "decision"
 
 

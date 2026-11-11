@@ -36,6 +36,9 @@ from api.weather_service_client import (
     get_weather_tile_data,
     get_weather_tile_series,
 )
+from shared.contracts.soil.moisture_policy import MODELLED_SURFACE_MOISTURE_SOURCE as _SM_SRC
+from shared.contracts.soil.moisture_policy import SURFACE_MOISTURE_DRY_M3M3 as _SM_DRY
+from shared.contracts.soil.moisture_policy import SURFACE_MOISTURE_WET_M3M3 as _SM_WET
 
 router = APIRouter()
 
@@ -1859,12 +1862,8 @@ def _num(sample: dict, key: str, default: float | None = None) -> float | None:
 
 
 def _operation_suitability(sample: dict, operation: str) -> dict:
-    """خريطة صلاحية عمليات زراعية من بيانات Open-Meteo لنقطة/بلاطة.
-
-    الهدف هنا ليس نموذجاً زراعياً نهائياً، بل طبقة قرار عملية قابلة للرسم:
-    score 0..1 + عوامل مانعة واضحة. تستخدم عتبات محافظة متوافقة مع منطق
-    Weather Intelligence Layer في SAHOOL.
-    """
+    """صلاحية عمليات زراعية (score 0..1 + عوامل مانعة) من Open-Meteo لنقطة/بلاطة — طبقة قرار
+    قابلة للرسم. رطوبة 1–3 سم مُنمذَجة لا حسّاس؛ عتباتها من moisture_policy كـweather-service."""
     temp = _num(sample, "temperature_2m_c", 25.0) or 25.0
     rh = _num(sample, "relative_humidity_2m_pct", 55.0) or 55.0
     wind = _num(sample, "wind_speed_10m_kmh", 0.0) or 0.0
@@ -1893,10 +1892,10 @@ def _operation_suitability(sample: dict, operation: str) -> dict:
         penalize(wind > 36, 0.25, "wind_high")
         penalize(rh > 70, 0.30, "humidity_high")
         penalize(rain > 0.1, 0.45, "precipitation_present")
-        penalize(soil_m is not None and soil_m > 0.34, 0.22, "soil_too_wet")
+        penalize(soil_m is not None and soil_m > _SM_WET, 0.22, "soil_too_wet")
     elif operation == "sowing":
         penalize(soil_t < 8 or soil_t > 35, 0.35, "soil_temperature_unsuitable")
-        penalize(soil_m is not None and soil_m < 0.18, 0.22, "soil_moisture_low")
+        penalize(soil_m is not None and soil_m < _SM_DRY, 0.22, "soil_moisture_low")
         penalize(rain > 10, 0.20, "heavy_rain_risk")
     elif operation == "irrigation":
         # للري: score أعلى عندما يكون VPD مرتفعاً/رطوبة التربة منخفضة ولا يوجد مطر.
@@ -1904,7 +1903,7 @@ def _operation_suitability(sample: dict, operation: str) -> dict:
         if vpd > 2.2:
             score += 0.22
             factors.append("high_vpd_irrigation_need")
-        if soil_m is not None and soil_m < 0.20:
+        if soil_m is not None and soil_m < _SM_DRY:
             score += 0.25
             factors.append("soil_moisture_low")
         if rain > 2:
@@ -1928,6 +1927,7 @@ def _operation_suitability(sample: dict, operation: str) -> dict:
         "score": round(score, 3),
         "suitability": suitability,
         "limiting_factors": factors,
+        "soil_moisture_source": _SM_SRC if soil_m is not None else None,
     }
 
 

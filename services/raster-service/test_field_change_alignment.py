@@ -255,3 +255,22 @@ async def test_real_cogs_misregistered_by_origin_are_not_assessable(tmp_path, mo
     layers["2026-02-01"] = cog("b_shifted.tif", 400040, 0.2)
     out = await fields.field_change("fld_1", _req(), x_agent_token="ok")
     _assert_not_assessable(out, "change_grid_spatial_identity_mismatch")
+
+
+@pytest.mark.asyncio
+async def test_real_cogs_without_common_valid_pixels_remain_unassessable(monkeypatch):
+    """Provenance is real although no spatial change is computable."""
+    a = _grid("2026-01-01", 0.8)
+    b = _grid("2026-02-01", 0.2)
+    a["grid"] = [[0.8, None], [None, 0.6]]
+    b["grid"] = [[None, 0.2], [0.4, None]]
+    _install(monkeypatch, a, b)
+
+    out = await fields.field_change("f", _req(), x_agent_token="ok")
+    assert out["real_data"] is True
+    assert out["available"] is False
+    assert out["status"] == "not_assessable"
+    assert "no_common_valid_pixels" in out["reason_codes"]
+    assert out["valid_pixels"] == 0
+    for metric in ("mean_delta", "improved_pct", "degraded_pct", "stable_pct"):
+        assert out[metric] is None

@@ -1685,12 +1685,15 @@
   "tables": [
     {
       "code_readers": [
+        "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/reports.py",
-        "services/sahool-platform/api/routers/season_workspace.py"
+        "services/sahool-platform/api/routers/season_workspace.py",
+        "services/sahool-platform/tests/test_planned_vs_executed_lifecycle.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/fields.py"
+        "services/sahool-platform/api/routers/fields.py",
+        "services/sahool-platform/tests/test_harvest_phi_gate.py"
       ],
       "created_in": "v35_activities.sql",
       "has_tenant_id": true,
@@ -2168,7 +2171,8 @@
         "services/sahool-platform/api/routers/calibration.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/calibration.py"
+        "services/sahool-platform/api/routers/calibration.py",
+        "services/sahool-platform/tests/test_r09_learning_label_integrity.py"
       ],
       "created_in": "v80_calibration_override.sql",
       "has_tenant_id": true,
@@ -3236,7 +3240,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/api/routers/farm_operations_ledger.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
@@ -3285,7 +3290,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/api/routers/farm_operations_ledger.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
@@ -3942,7 +3948,8 @@
         "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/harvest_traceability.py"
+        "services/sahool-platform/api/routers/harvest_traceability.py",
+        "services/sahool-platform/tests/test_harvest_phi_gate.py"
       ],
       "created_in": "v65_harvest_traceability.sql",
       "has_tenant_id": true,
@@ -5988,6 +5995,7 @@
         "services/decision-service/persistence.py",
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+        "services/sahool-platform/tests/test_r09_learning_label_integrity.py",
         "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py"
       ],
       "created_in": "v49_zone_key_recommendation_outcomes.sql",
@@ -6207,7 +6215,8 @@
         "services/sahool-platform/api/routers/seasons.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/seasons.py"
+        "services/sahool-platform/api/routers/seasons.py",
+        "services/sahool-platform/tests/test_season_spatial_provenance.py"
       ],
       "created_in": "v207_historical_season_simulation_bridge.sql",
       "has_tenant_id": true,
@@ -6223,6 +6232,7 @@
       "code_readers": [
         "services/sahool-platform/api/routers/agronomic_replay.py",
         "services/sahool-platform/api/routers/seasons.py",
+        "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/scout-ingest-service/season_api.py",
         "services/scout-ingest-service/tests/test_season_live.py"
       ],

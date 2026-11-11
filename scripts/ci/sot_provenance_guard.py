@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -60,6 +61,22 @@ def require_nonempty_str(mapping: dict, key: str, reason: str) -> str:
     return value
 
 
+# أرضيّةُ gh المقبولة للتحقّق. ما قبل 2.102.0 يحمل GHSA-wjmr-j3rp-mh2g (`--signer-workflow`
+# يطابق بادئةَ هويّة الشهادة فقط) وGHSA-4mq3-hpgx-9cx8 (`--source-ref` بلا حساسيّة لحالة
+# الأحرف) — وهما عين الرايتين اللتين يبني بهما هذا الحارس أمرَه. والأرضيّة في الكود لا في
+# السياسة: خفضُ تثبيت السياسة إلى إصدارٍ مثقوب يجب أن يُرفَض، لا أن يُنزِل أرضيّتَه معه.
+MIN_GH_ATTESTATION_CLI = (2, 102, 0)
+_GH_VERSION = re.compile(r"([0-9]+)\.([0-9]+)\.([0-9]+)")
+
+
+def gh_version_tuple(value: str) -> tuple[int, int, int]:
+    """`X.Y.Z` صارماً أو `POLICY_MISMATCH` — نسخةٌ مبهمة لا تُقارَن بالأرضيّة."""
+    match = _GH_VERSION.fullmatch(value)
+    if match is None:
+        raise RuntimeError("POLICY_MISMATCH")
+    return (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+
+
 def validate_policy(policy: dict) -> dict:
     """السياسة تُتحقَّق **قبل** بناء الأمر أو فحص الأداة.
 
@@ -71,7 +88,9 @@ def validate_policy(policy: dict) -> dict:
     for key in ("repository", "predicate_type", "signer_workflow", "oidc_issuer"):
         require_nonempty_str(policy, key, "POLICY_MISMATCH")
     gh_cli = require_mapping(policy.get("gh_cli"), "POLICY_MISMATCH")
-    require_nonempty_str(gh_cli, "version", "POLICY_MISMATCH")
+    version = require_nonempty_str(gh_cli, "version", "POLICY_MISMATCH")
+    if gh_version_tuple(version) < MIN_GH_ATTESTATION_CLI:
+        raise RuntimeError("POLICY_MISMATCH")
     return policy
 
 

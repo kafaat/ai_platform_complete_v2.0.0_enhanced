@@ -43,6 +43,15 @@ Command → FieldAggregate (تحقّق الـinvariants) → (تغيير حال�
   `harvest+done → HARVEST_COMPLETED`) لا `ACTIVITY_RECORDED` العامّ.
 - `main._activity_event_type` **يفوّض** إليه (يُرجِع اسم العضو — توافق خلفيّ تامّ).
 فيُصدِر مساراها (الـendpoint الحاليّ + مسار الأمر مستقبلاً) **الحدث نفسه** — لا تباعد.
+- الحدث المحدَّد للصفّ **المُنفَّذ** (`done`) وحده؛ المُخطَّط/المُتخطّى → `ACTIVITY_RECORDED`
+  وحالته في الحمولة (كان المُخطَّط يُصدِر `*_STARTED` فيُسقَط عمليّةً جارية). الحمولة
+  (`activity_event_payload`) تحمل `scheduled_for`/`performed_on`، والإعادة تُفضّل
+  `performed_on` على `occurred_at`.
+- قاعدة انتقال صفّ قائم جاهزة ومختبَرة: `planned→done|skipped` فقط
+  (`check_activity_transition` + `ActivityTransitionRequest`)، غيرهما 409، والحالة نفسها
+  إعادة بلا كتابة ولا حدث. **المسار نفسه لم يُضَف:** كان سيرفع مسارات النطاق إلى 630
+  فوق سقف 629، ولا يُرفع السقف لحلّ تعارض ميزانية. ينتظر قرار المالك (الفجوة
+  `ACTIVITY-LIFECYCLE-CREATE-ONLY-01`).
 
 **المتبقّي (شريحة تالية، deployment-time):** منافذ حيّة (`load_field_state`/كاتب +
 `CommandDispatcher` على `conn`) وتوجيه أوّل endpoint فعليّاً عبر الأمر — يحتاج اختبار

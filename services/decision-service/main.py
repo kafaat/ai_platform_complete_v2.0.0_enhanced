@@ -22,13 +22,14 @@ Migration path to a real decision-service SoR is documented in
 
 from __future__ import annotations
 
+import hashlib
 import hmac
 import json
 import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID, uuid4
 
 import activation_gate
@@ -38,6 +39,7 @@ from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from outcome_reconcile import reconcile_outcomes
 from persistence import (
+    SELF_APPROVAL_REASON_PREFIX,
     acquire_connection,
     authorize_dispatch,
     build_calibration_dataset,
@@ -61,6 +63,7 @@ from persistence import (
     get_context_snapshot,
     get_decision_agronomic_evidence,
     get_execution_plan_state,
+    latest_vegetation_snapshot,
     list_decision_records,
     list_inflight_execution_requests,
     list_queued_execution_requests,
@@ -312,15 +315,37 @@ def _tenant(x_tenant_id: str | None) -> str:
     return x_tenant_id
 
 
+class DecisionProvenanceIn(BaseModel):
+    """Typed decision provenance: who produced the decision, under which model/rule and policy
+    version, why, and how its confidence was derived. Persisted INSIDE ``decision_value`` under
+    ``decision_provenance`` (no schema change), so the server digest a reviewer approves covers it.
+    The key is distinct from producer-specific ``provenance`` blocks (e.g. input sources)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    producer_id: str = Field(min_length=1, max_length=200)
+    model_or_rule_version: str = Field(min_length=1, max_length=200)
+    policy_version: str | None = Field(default=None, max_length=200)
+    explanation: str | None = Field(default=None, max_length=4000)
+    confidence_method: str | None = Field(default=None, max_length=500)
+    evidence_refs: list[str] = Field(default_factory=list, max_length=500)
+
+
+DECISION_PROVENANCE_KEY = "decision_provenance"
+
+
 class DecisionRecordIn(BaseModel):
     decision_id: str | None = None
     field_id: str | None = None
     decision_type: str = "recommendation"
     region: str | None = None
-    stage: str = "decision"
+    # Only "candidate" is reviewable; anything else that is not a plain decision (e.g. the
+    # former "pending_approval" stage) could be stored but never reviewed — refused at the edge.
+    stage: Literal["decision", "candidate"] = "decision"
     decision_value: dict[str, Any] = Field(default_factory=dict)
     confidence: float | None = None
     created_by: str | None = None
+    provenance: DecisionProvenanceIn | None = None
     # AC-1 context lineage: optional until enforcement is enabled, always validated when present.
     agronomic_context_snapshot_id: str | None = None
     field_historical_context_snapshot_id: str | None = None
@@ -621,12 +646,84 @@ async def create_vegetation_snapshot(
     }
 
 
+@app.get("/v1/evidence/vegetation-snapshots/latest")
+async def read_latest_vegetation_snapshot(
+    field_id: str,
+    available_before: datetime,
+    season_id: str | None = None,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """AC-6 point-in-time read for producers: the newest snapshot whose data was available at
+    or before ``available_before``. 404 when none exists — never a substitute snapshot."""
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not authoritative")
+    if available_before.tzinfo is None:
+        raise HTTPException(status_code=422, detail="available_before must carry a timezone")
+    result = await latest_vegetation_snapshot(
+        tenant_id=tenant,
+        field_id=field_id,
+        season_id=season_id,
+        available_before=available_before,
+    )
+    if result.get("status") != "ok":
+        raise HTTPException(status_code=404, detail="no vegetation snapshot available")
+    return {"tenant_id": tenant, **{k: v for k, v in result.items() if k != "status"}}
+
+
+def derive_decision_id(
+    *, tenant_id: str, payload: DecisionRecordIn, idempotency_key: str | None
+) -> str:
+    """The decision_id of a write that did not name one — deterministic whenever the write
+    carries an identity, so a producer retry REPLAYS instead of minting a duplicate candidate.
+
+    Order: explicit decision_id; else tenant + candidate_lineage_id (a candidate's content
+    identity); else tenant + Idempotency-Key; else a fresh random id (no identity to replay)."""
+    if payload.decision_id:
+        return payload.decision_id
+    lineage = (payload.decision_value or {}).get("candidate_lineage_id")
+    if payload.stage == "candidate" and isinstance(lineage, str) and lineage.strip():
+        material = f"{tenant_id}:candidate:{lineage.strip()}"
+    elif idempotency_key and idempotency_key.strip():
+        material = f"{tenant_id}:idempotency:{idempotency_key.strip()}"
+    else:
+        return "dec_" + uuid4().hex[:16]
+    return "dec_" + hashlib.sha256(material.encode()).hexdigest()[:24]
+
+
+def _with_decision_provenance(payload: DecisionRecordIn) -> DecisionRecordIn:
+    """Embed the typed provenance into decision_value (additive; 422 on a contradicting or
+    malformed embedded block). Without provenance the payload is returned unchanged."""
+    value = dict(payload.decision_value or {})
+    embedded = value.get(DECISION_PROVENANCE_KEY)
+    if embedded is not None:
+        try:
+            embedded = DecisionProvenanceIn.model_validate(embedded).model_dump()
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=422, detail=f"{DECISION_PROVENANCE_KEY} is malformed"
+            ) from exc
+    if payload.provenance is None:
+        return payload
+    typed = payload.provenance.model_dump()
+    if embedded is not None and embedded != typed:
+        raise HTTPException(
+            status_code=422,
+            detail=f"provenance contradicts decision_value.{DECISION_PROVENANCE_KEY}",
+        )
+    value[DECISION_PROVENANCE_KEY] = typed
+    return payload.model_copy(update={"decision_value": value, "provenance": None})
+
+
 @app.post("/v1/decisions/record")
 async def record_decision(
-    payload: DecisionRecordIn, x_tenant_id: str | None = Header(default=None)
+    payload: DecisionRecordIn,
+    x_tenant_id: str | None = Header(default=None),
+    idempotency_key: str | None = Header(default=None),
 ) -> dict[str, Any]:
     tenant = _tenant(x_tenant_id)
-    did = payload.decision_id or "dec_" + uuid4().hex[:16]
+    payload = _with_decision_provenance(payload)
+    did = derive_decision_id(tenant_id=tenant, payload=payload, idempotency_key=idempotency_key)
     # AC-1/AC-6 mandatory binding: when enforcement is on, no new governed decision may enter
     # without the full agronomic lineage (identity + three immutable context references +
     # vegetation evidence + manifest hash). Checked before the SoR branch: strict mode is a
@@ -654,6 +751,9 @@ async def record_decision(
         result = await persist_decision_record(tenant_id=tenant, payload=payload, decision_id=did)
         if isinstance(result, dict) and result.get("status") == "rejected":
             raise HTTPException(status_code=422, detail=result.get("reason", "context rejected"))
+        if isinstance(result, dict) and result.get("status") == "conflict":
+            # Same decision_id, different content: never drop the new version and report success.
+            raise HTTPException(status_code=409, detail=result.get("reason", "decision conflict"))
         return {
             "accepted": True,
             "authoritative": True,
@@ -737,7 +837,13 @@ class DecisionReviewIn(BaseModel):
     # a rejection approves nothing, so it stays possible for a legacy row without a digest.
     decision_value_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     idempotency_key: str
+    # Required (no "unspecified" default) and bound into the review's idempotency hash.
     policy_version: str | None = None
+    # Single-operator exception: an explicit acknowledgement that the reviewer is approving
+    # their own candidate. Considered only when separation of duties would otherwise refuse
+    # it and the tenant-scoped policy allows it (persistence.evaluate_self_approval).
+    self_approval_acknowledged: bool = False
+    self_approval_reason: str | None = Field(default=None, max_length=500)
 
 
 @app.post("/v1/decisions/{decision_id}/review")
@@ -765,8 +871,13 @@ async def review_candidate(
         raise HTTPException(status_code=422, detail="candidate_lineage_id is required")
     if not payload.idempotency_key:
         raise HTTPException(status_code=422, detail="idempotency_key is required")
+    if not (payload.policy_version or "").strip():
+        raise HTTPException(status_code=422, detail="policy_version is required")
     if payload.action == "reject" and not payload.reason.strip():
         raise HTTPException(status_code=422, detail="reason is required to reject")
+    if payload.reason.startswith(SELF_APPROVAL_REASON_PREFIX):
+        # Only the service writes the self-approval audit marker; a client may not forge one.
+        raise HTTPException(status_code=422, detail="reason may not carry the self-approval marker")
     if payload.action == "approve" and not payload.decision_value_digest:
         raise HTTPException(status_code=422, detail="decision_value_digest is required to approve")
     # Optimistic concurrency: the caller asserts the state it saw. Anything other than
@@ -799,12 +910,19 @@ async def review_candidate(
         idempotency_key=payload.idempotency_key,
         policy_version=payload.policy_version,
         decision_value_digest=payload.decision_value_digest,
+        self_approval_acknowledged=payload.self_approval_acknowledged,
+        self_approval_reason=payload.self_approval_reason,
     )
     status = result.get("status")
     if status == "ok":
         return {"accepted": True, "tenant_id": tenant, **result}
     if status == "not_found":
         raise HTTPException(status_code=404, detail="decision candidate not found")
+    if status == "invalid":
+        raise HTTPException(status_code=422, detail=result.get("reason", "invalid review"))
+    if status == "forbidden":
+        # The message starts with the reason code and names the independent-approver need.
+        raise HTTPException(status_code=403, detail=result.get("message") or result.get("reason"))
     # conflict: not_pending_approval / candidate_lineage_mismatch / already_reviewed /
     # idempotency_key_payload_mismatch — all 409 (concurrency/terminal-state).
     raise HTTPException(status_code=409, detail=result.get("reason", "review conflict"))
@@ -1246,6 +1364,8 @@ async def authorize_execution_plan_dispatch(
         return {"accepted": True, "tenant_id": tenant, **result}
     if result.get("status") == "not_found":
         raise HTTPException(status_code=404, detail="execution plan not found")
+    if result.get("status") == "forbidden":
+        raise HTTPException(status_code=403, detail=result.get("reason"))
     raise HTTPException(
         status_code=409, detail=result.get("reason", "dispatch authorization conflict")
     )
@@ -2244,6 +2364,8 @@ async def review_activation_request_boundary(
         return {"accepted": True, "tenant_id": tenant, **result}
     if result.get("status") == "not_found":
         raise HTTPException(status_code=404, detail="activation request not found")
+    if result.get("status") == "forbidden":
+        raise HTTPException(status_code=403, detail=result.get("reason"))
     raise HTTPException(status_code=409, detail=result.get("reason", "activation review conflict"))
 
 

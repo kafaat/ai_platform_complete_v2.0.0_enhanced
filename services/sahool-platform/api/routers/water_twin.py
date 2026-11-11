@@ -32,6 +32,7 @@ from pydantic import BaseModel, Field
 
 from api import main as api_main
 from api.device_registry import get_device_type
+from api.irrigation_state_guard import current_ledger_row
 from api.main import (
     Permission,
     UserSchema,
@@ -252,7 +253,11 @@ async def field_water_twin(
     if raw_mm > taw_mm:
         raise HTTPException(status_code=422, detail="RAW يجب أن يكون ≤ TAW.")
 
-    latest_row = recent[0] if recent else None
+    # أحدثُ صفٍّ أقدم من عتبة الدفتر (72 س، irrigation_state_guard) ليس حالةً حاضرة: لا يبذر
+    # النضوب (يُعامَل غير متاح) ويُعلَن قيداً — LIMIT/DESC وحدهما لا يضمنان الحداثة.
+    latest_row, ledger_freshness, seed_limitations = current_ledger_row(
+        recent[0] if recent else None, datetime.now(UTC)
+    )
     init_dr, dr_source = seed_initial_depletion(latest_row, taw_mm, req.initial_depletion_mm)
     soil_moisture_join = _join_sensor(sensor_reading, init_dr, dr_source, taw_mm, taw_meta, req)
     if init_dr is None and soil_moisture_join["depletion_mm"] is not None:
@@ -267,9 +272,10 @@ async def field_water_twin(
         raise HTTPException(
             status_code=422,
             detail=(
-                "تعذّر اشتقاق النضوب الابتدائيّ: لا صفّ دفتر يحمل depletion_mm/soil_moisture_pct "
-                "ولا initial_depletion_mm في الطلب ولا قراءةَ حسّاسٍ طازجةً بوحدةٍ مُعلَنة "
-                f"({', '.join(soil_moisture_join['limitations']) or 'لا حسّاس'}). "
+                "تعذّر اشتقاق النضوب الابتدائيّ: لا صفّ دفتر حاضر (≤ 72 س) يحمل "
+                "depletion_mm/soil_moisture_pct ولا initial_depletion_mm في الطلب ولا قراءةَ "
+                "حسّاسٍ طازجةً بوحدةٍ مُعلَنة "
+                f"({', '.join(seed_limitations + soil_moisture_join['limitations']) or 'لا حسّاس'}). "
                 "سجّل قيد دفتر أوّلاً أو مرّر القيمة صراحةً."
             ),
         )
@@ -304,6 +310,8 @@ async def field_water_twin(
         "daily_etc_source": etc_source,
         "ledger_rows_used": len(recent),
         "horizon_days": req.horizon_days,
+        "ledger_age_hours": ledger_freshness["age_hours"] if ledger_freshness else None,
+        "limitations": seed_limitations,
     }
     result["soil_moisture_join"] = soil_moisture_join
     result["taw_mm"] = round(taw_mm, 2)

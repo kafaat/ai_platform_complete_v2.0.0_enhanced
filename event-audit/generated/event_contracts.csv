@@ -1,4 +1,6 @@
 subject,status,producer_count,consumer_count,producer_components,consumer_components
+sahool.dlq.canonical_execution_learning,producer_only,1,0,sahool-platform,
+sahool.dlq.irrigation_dispatch_relay,producer_only,1,0,sahool-platform,
 sahool.events.agronomy.projection.requested,consumer_only,0,1,,sahool-platform
 sahool.events.irrigation.execution.completed,consumer_only,0,1,,sahool-platform
 sahool.events.season.closed,consumer_only,0,1,,sahool-platform

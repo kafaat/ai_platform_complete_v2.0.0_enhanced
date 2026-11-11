@@ -17,8 +17,20 @@ from shared.contracts.soil import (
     SoilPropertyValue,
     canonical_soil_profile_hash,
 )
+from shared.contracts.soil.moisture_policy import (
+    DYNAMIC_PROPERTY_TTL_S,
+    FRESH,
+    QUALITY_ACCEPTED,
+    classify_freshness,
+    normalize_quality,
+    quality_tier,
+    reading_age_s,
+)
 
-POLICY_VERSION = "soil-profile-selection.v1"
+#: v2 (SOIL-MOISTURE-ELIGIBILITY-01): dynamic properties rank freshness (shared sensor TTL)
+#: > quality tier > recency > source > confidence; v1 ranked source+10·accepted, then
+#: confidence, then recency — so a 30-day-old reading or an uncalibrated sensor could win.
+POLICY_VERSION = "soil-profile-selection.v2"
 _STATIC_SOURCE_PRIORITY = {
     "laboratory": 100,
     "field": 80,
@@ -77,45 +89,110 @@ def _provenance_uncertainty(row: dict[str, Any]) -> dict[str, Any]:
     return dict(prov.get("uncertainty") or {}) if isinstance(prov, dict) else {}
 
 
-def _score(row: dict[str, Any]) -> tuple[int, float, datetime, datetime]:
-    quality = str(row.get("quality_status") or "")
-    if quality == "rejected":
-        return (-1, 0.0, datetime.min.replace(tzinfo=UTC), datetime.min.replace(tzinfo=UTC))
-    quality_bonus = 10 if quality == "accepted" else 0
+_MIN_TS = datetime.min.replace(tzinfo=UTC)
+
+
+def _ts(value: Any) -> datetime:
+    if not isinstance(value, datetime):
+        return _MIN_TS
+    return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
+
+
+def _is_rejected(row: dict[str, Any]) -> bool:
+    return normalize_quality(row.get("quality_status")) == "rejected"
+
+
+def _depth(row: dict[str, Any]) -> tuple[float, float] | None:
+    """Layer bucket; a row without a declared depth is not silently bucketed into 0–30."""
+    depth_from, depth_to = row.get("depth_from_cm"), row.get("depth_to_cm")
+    if depth_from is None or depth_to is None:
+        return None
+    return (float(depth_from), float(depth_to))
+
+
+def _dynamic_freshness(row: dict[str, Any], now: datetime) -> str:
+    return classify_freshness(reading_age_s(row.get("observed_at"), now), DYNAMIC_PROPERTY_TTL_S)
+
+
+def _score(row: dict[str, Any], now: datetime | None = None) -> tuple:
+    """Ranking key (higher wins) within one property's candidates.
+
+    Static properties keep v1 semantics. Dynamic properties (soil moisture/temperature,
+    pore-water EC) rank a proven-fresh reading above any stale one, then quality tier
+    (accepted > uncalibrated > suspect) above source priority, then recency — so an
+    uncalibrated sensor no longer beats an accepted field reading, and a 30-day-old
+    high-confidence reading no longer beats today's.
+    """
+    if _is_rejected(row):
+        return (-1,)
     property_name = str(row.get("property") or "")
-    priorities = (
-        _DYNAMIC_SOURCE_PRIORITY
-        if property_name in _DYNAMIC_PROPERTIES
-        else _STATIC_SOURCE_PRIORITY
-    )
+    confidence = float(row.get("confidence") or 0)
+    if property_name in _DYNAMIC_PROPERTIES:
+        fresh = _dynamic_freshness(row, now or datetime.now(UTC)) == FRESH
+        return (
+            1 if fresh else 0,
+            quality_tier(row.get("quality_status")),
+            _ts(row.get("observed_at")),
+            _DYNAMIC_SOURCE_PRIORITY.get(str(row.get("source_type")), 0),
+            confidence,
+            _ts(row.get("received_at")),
+        )
+    quality_bonus = 10 if normalize_quality(row.get("quality_status")) == QUALITY_ACCEPTED else 0
     return (
-        priorities.get(str(row.get("source_type")), 0) + quality_bonus,
-        float(row.get("confidence") or 0),
-        row.get("observed_at") or datetime.min.replace(tzinfo=UTC),
-        row.get("received_at") or datetime.min.replace(tzinfo=UTC),
+        _STATIC_SOURCE_PRIORITY.get(str(row.get("source_type")), 0) + quality_bonus,
+        confidence,
+        _ts(row.get("observed_at")),
+        _ts(row.get("received_at")),
     )
+
+
+def _decision_eligible(row: dict[str, Any], now: datetime) -> bool:
+    """Selected evidence that may back a decision: accepted, and fresh when dynamic."""
+    if normalize_quality(row.get("quality_status")) != QUALITY_ACCEPTED:
+        return False
+    if str(row.get("property") or "") in _DYNAMIC_PROPERTIES:
+        return _dynamic_freshness(row, now) == FRESH
+    return True
 
 
 def compose_snapshot(
-    *, tenant_id: str, field_id: str, observations: list[dict[str, Any]]
+    *,
+    tenant_id: str,
+    field_id: str,
+    observations: list[dict[str, Any]],
+    now: datetime | None = None,
 ) -> SoilProfileSnapshot:
-    usable = [
-        row for row in observations if _score(row)[0] >= 0 and not bool(row.get("is_superseded"))
-    ]
+    now = now or datetime.now(UTC)
+    usable: list[dict[str, Any]] = []
     groups: dict[tuple[float, float], dict[str, list[dict[str, Any]]]] = {}
-    for row in usable:
-        depth = (float(row.get("depth_from_cm") or 0), float(row.get("depth_to_cm") or 30))
+    for row in observations:
+        depth = _depth(row)
+        if depth is None or _is_rejected(row) or bool(row.get("is_superseded")):
+            continue
+        usable.append(row)
         groups.setdefault(depth, {}).setdefault(str(row["property"]), []).append(row)
 
     layers: list[SoilLayer] = []
     evidence_ids: list[str] = []
     conflicts: list[dict[str, Any]] = []
     sources: set[str] = set()
+    eligible_selected = 0
+    gate_reasons: list[str] = []
     for (depth_from, depth_to), properties in sorted(groups.items()):
         projected: dict[str, SoilPropertyValue] = {}
         for property_name, candidates in properties.items():
-            ranked = sorted(candidates, key=_score, reverse=True)
+            ranked = sorted(candidates, key=lambda item: _score(item, now), reverse=True)
             selected = ranked[0]
+            if _decision_eligible(selected, now):
+                eligible_selected += 1
+            elif property_name in _DYNAMIC_PROPERTIES:
+                reason = (
+                    f"{property_name}_not_fresh"
+                    if _dynamic_freshness(selected, now) != FRESH
+                    else f"{property_name}_quality_not_accepted"
+                )
+                if reason not in gate_reasons:
+                    gate_reasons.append(reason)
             alternatives = [
                 {
                     "observation_id": item["observation_id"],
@@ -190,14 +267,20 @@ def compose_snapshot(
         rootable_depth_cm=_num("rootable_depth"),
         bulk_density=_num("bulk_density"),
     )
-    executable = all(
+    # The gate passes only when at least one selected value is decision-eligible (accepted,
+    # and fresh for dynamic properties) — it was hard-coded ``True``.
+    passed = eligible_selected > 0
+    if not passed:
+        gate_reasons.insert(0, "soil_profile_no_decision_eligible_evidence")
+    executable = passed and all(
         [
             model_inputs.field_capacity is not None,
             model_inputs.wilting_point is not None,
             model_inputs.rootable_depth_cm is not None,
         ]
     )
-    now = datetime.now(UTC)
+    # Irrigation scheduling reads current moisture; stale or non-accepted moisture cannot back it.
+    moisture_blocks_schedule = any(r.startswith("soil_moisture_") for r in gate_reasons)
     draft = {
         "contract_version": "soil-profile.v1",
         "profile_id": f"sp_{uuid4().hex}",
@@ -212,9 +295,9 @@ def compose_snapshot(
         "layers": [layer.model_dump(mode="json") for layer in layers],
         "completeness_score": completeness,
         "quality_gate": {
-            "passed": True,
+            "passed": passed,
             "executable": executable,
-            "reasons": [] if executable else ["soil_hydraulic_inputs_incomplete"],
+            "reasons": gate_reasons + ([] if executable else ["soil_hydraulic_inputs_incomplete"]),
         },
         "conflicts": conflicts,
         "allowed_use": (
@@ -272,5 +355,8 @@ def compose_snapshot(
         "selection_policy_version": POLICY_VERSION,
         "model_inputs": model_inputs.model_dump(mode="json"),
     }
+    if moisture_blocks_schedule:
+        draft["allowed_use"] = [u for u in draft["allowed_use"] if u != "irrigation_schedule"]
+        draft["blocked_use"] = [*draft["blocked_use"], "irrigation_schedule"]
     draft["profile_hash"] = canonical_soil_profile_hash(draft)
     return SoilProfileSnapshot.model_validate(draft)

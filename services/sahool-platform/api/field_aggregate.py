@@ -91,27 +91,95 @@ def _payload(field_id: str, data: dict) -> dict:
     return {"field_id": field_id, **{k: v for k, v in data.items() if k != "field_id"}}
 
 
-# خريطة (نوع النشاط، أُنجِز؟) → حدث عمليّة محدَّد (operation.*). مصدر واحد لدلالة
-# أحداث النشاط — يستعمله الـaggregate و(تفويضاً) endpoint النشاط في main.
+# خريطة نوع النشاط **المُنفَّذ** (status=done) → حدث عمليّة محدَّد (operation.*). مصدر
+# واحد لدلالة أحداث النشاط — يستعمله الـaggregate و(تفويضاً) endpoint النشاط في main.
+# صفّ مُخطَّط (planned) أو مُتخطّى (skipped) ليس «بدءاً»: كان المُخطَّط يُصدِر *_STARTED
+# فيقرؤه الإسقاط عمليّةً جارية. صار ACTIVITY_RECORDED العامّ وحالته في الحمولة.
 _ACTIVITY_OP_EVENT = {
-    ("planting", True): EventType.PLANTING_COMPLETED,
-    ("planting", False): EventType.PLANTING_STARTED,
-    ("irrigation", True): EventType.IRRIGATION_COMPLETED,
-    ("irrigation", False): EventType.IRRIGATION_STARTED,
-    ("harvest", True): EventType.HARVEST_COMPLETED,
-    ("harvest", False): EventType.HARVEST_STARTED,
-    ("fertilization", True): EventType.FERTILIZER_APPLIED,
-    ("spraying", True): EventType.PESTICIDE_APPLIED,
+    "planting": EventType.PLANTING_COMPLETED,
+    "irrigation": EventType.IRRIGATION_COMPLETED,
+    "harvest": EventType.HARVEST_COMPLETED,
+    "fertilization": EventType.FERTILIZER_APPLIED,
+    "spraying": EventType.PESTICIDE_APPLIED,
 }
+
+# انتقالات دورة حياة النشاط المسموحة (v35: planned|done|skipped). done/skipped نهائيّتان.
+ACTIVITY_TRANSITIONS: frozenset[tuple[str, str]] = frozenset(
+    {("planned", "done"), ("planned", "skipped")}
+)
 
 
 def activity_event_for(activity_type: str, status: str) -> EventType:
-    """يربط نوع النشاط + حالته (done/planned) بحدث عمليّة محدَّد، وإلّا ACTIVITY_RECORDED.
+    """يربط نوع النشاط + حالته بحدث عمليّة محدَّد حين done فقط، وإلّا ACTIVITY_RECORDED.
 
     مصدر واحد للدلالة (لا تكرار): الـaggregate يستعمله مباشرةً، و`main._activity_event_type`
     يفوّض إليه — فيُصدِر المساران الحدثَ نفسه.
     """
-    return _ACTIVITY_OP_EVENT.get((activity_type, status == "done"), EventType.ACTIVITY_RECORDED)
+    if status != "done":
+        return EventType.ACTIVITY_RECORDED
+    return _ACTIVITY_OP_EVENT.get(activity_type, EventType.ACTIVITY_RECORDED)
+
+
+def activity_event_payload(
+    field_id: str,
+    season_id: str | None,
+    activity_type: str,
+    status: str,
+    scheduled_for: Any = None,
+    performed_on: Any = None,
+) -> dict:
+    """حمولة أحداث النشاط: تحمل تاريخَي الخطّة والتنفيذ (ISO) فيُسقِط الإعادةُ تاريخ
+    التنفيذ الحقيقيّ لا زمن تسجيل الحدث (occurred_at)."""
+
+    def _iso(v: Any) -> str | None:
+        if v is None:
+            return None
+        return v.isoformat() if hasattr(v, "isoformat") else str(v)
+
+    return {
+        "field_id": field_id,
+        "season_id": season_id,
+        "activity_type": activity_type,
+        "status": status,
+        "scheduled_for": _iso(scheduled_for),
+        "performed_on": _iso(performed_on),
+    }
+
+
+def check_activity_transition(current: str, target: str) -> bool:
+    """يتحقّق من انتقال حالة نشاط: True = طبِّق، False = لا شيء (الحالة نفسها، idempotent).
+
+    أيّ انتقال آخر (done→planned، skipped→done…) يرفع FieldInvariantError(409).
+    """
+    if current == target:
+        return False
+    if (current, target) not in ACTIVITY_TRANSITIONS:
+        raise FieldInvariantError(f"انتقال حالة النشاط غير مسموح: {current} → {target}", 409)
+    return True
+
+
+_ACTUAL_DETAIL_KEYS = (
+    ("actual_quantity", "quantity"),
+    ("actual_unit", "unit"),
+    ("actual_product", "product_name"),
+    ("actual_cost", "cost"),
+)
+
+
+def merge_activity_actuals(details: dict | None, actuals: dict) -> dict:
+    """يدمج القيم الفعليّة في details بالمفاتيح التي يقرؤها دفتر المدخلات
+    (quantity/unit/product_name/cost). القيمة المُخطَّطة المختلفة تُحفَظ planned_<key>
+    (مرّة واحدة) فلا يمحو الفعليُّ الخطّة. القيم None تُتجاهَل."""
+    merged = dict(details or {})
+    for src, key in _ACTUAL_DETAIL_KEYS:
+        value = actuals.get(src)
+        if value is None:
+            continue
+        previous = merged.get(key)
+        if previous is not None and previous != value and f"planned_{key}" not in merged:
+            merged[f"planned_{key}"] = previous
+        merged[key] = value
+    return merged
 
 
 class FieldAggregate:
@@ -136,7 +204,7 @@ class FieldAggregate:
         مطابِق لـ`_assert_field_in_tenant`).
 
         ترتيب الأحداث (مطابِق لترتيب الـendpoint): SEASON_CLOSED ثمّ SEASON_CREATED.
-        payload الإغلاق: {field_id, reason:"superseded_by_new_season", superseded_by}.
+        payload الإغلاق: {field_id, season_id, reason:"superseded_by_new_season", superseded_by}.
         معرّف الموسم الجديد I/O (يولّده الـendpoint) — يُمرَّر عبر `data["season_id"]`؛
         وإن غاب يُحذف `superseded_by` ويملؤه منفذ `apply` بعد التوليد (نفس المعاملة).
         """
@@ -147,6 +215,9 @@ class FieldAggregate:
                 "field_id": self.state.field_id,
                 "reason": "superseded_by_new_season",
             }
+            # عاملُ التعلّم يقرأ معرّف الموسم المُغلَق من الحمولة (المغلّف يحمله كـentity_id).
+            if self.state.active_season_id is not None:
+                close_payload["season_id"] = self.state.active_season_id
             new_season_id = data.get("season_id")
             if new_season_id is not None:
                 close_payload["superseded_by"] = new_season_id

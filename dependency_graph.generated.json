@@ -1,5 +1,5 @@
 {
-  "edge_count": 918,
+  "edge_count": 930,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -112,7 +112,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/components/AddFieldWithMap.tsx:447",
+      "evidence": "frontend/src/components/AddFieldWithMap.tsx:449",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -462,7 +462,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:107",
+      "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:134",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "nats",
@@ -472,7 +472,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:107",
+      "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:134",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "nats",
@@ -482,13 +482,33 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:107",
+      "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:134",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "nats",
       "relation": "CONSUMES",
       "resource": "nats://sahool.events.season.closed",
       "to": "nats://sahool.events.season.closed",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:446",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "nats",
+      "relation": "EMITS",
+      "resource": "nats://sahool.dlq.canonical_execution_learning",
+      "to": "nats://sahool.dlq.canonical_execution_learning",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py:163",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "nats",
+      "relation": "EMITS",
+      "resource": "nats://sahool.dlq.irrigation_dispatch_relay",
+      "to": "nats://sahool.dlq.irrigation_dispatch_relay",
       "to_kind": "resource"
     },
     {
@@ -1282,6 +1302,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/field_context.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://activities",
+      "to": "db://activities",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/fields.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -1303,6 +1333,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/season_workspace.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://activities",
+      "to": "db://activities",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_planned_vs_executed_lifecycle.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2182,6 +2222,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_operation_ledger",
+      "to": "db://farm_operation_ledger",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -2203,6 +2253,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/farm_operations_ledger.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_season_budget_lines",
+      "to": "db://farm_season_budget_lines",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -4143,6 +4203,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/seasons.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://season_records",
+      "to": "db://season_records",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_season_spatial_provenance.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -6742,6 +6812,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_harvest_phi_gate.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://activities",
+      "to": "db://activities",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/phase_runtime_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -6883,6 +6963,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/calibration.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://calibration_override",
+      "to": "db://calibration_override",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_r09_learning_label_integrity.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -7653,6 +7743,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/harvest_traceability.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://harvest_lots",
+      "to": "db://harvest_lots",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_harvest_phi_gate.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8462,6 +8562,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_r09_learning_label_integrity.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://recommendation_outcomes",
+      "to": "db://recommendation_outcomes",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -8533,6 +8643,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/seasons.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://season_record_links",
+      "to": "db://season_record_links",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_season_spatial_provenance.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9199,10 +9319,10 @@
   "relation_counts": {
     "CALLS": 46,
     "CONSUMES": 3,
-    "EMITS": 1,
-    "READS": 473,
+    "EMITS": 3,
+    "READS": 478,
     "ROUTES_TO": 72,
-    "WRITES": 323
+    "WRITES": 328
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -9212,13 +9332,13 @@
       "runtime_upstream_targets": 19
     },
     "nats": {
-      "observed": 4,
-      "resolved": 4,
+      "observed": 6,
+      "resolved": 6,
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 797,
-      "resolved": 796,
+      "observed": 807,
+      "resolved": 806,
       "unresolved_component_paths": 0
     }
   }

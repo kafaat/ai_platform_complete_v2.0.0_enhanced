@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import date
+from datetime import UTC, date, datetime
 
 from .boundary_confidence import CONFIDENCE_REVIEW_THRESHOLD
 from .canonical_boundary import canonical_boundary
@@ -31,12 +31,14 @@ from .canonical_water import canonical_water
 from .canonical_water_stress import (
     SPECTRAL_MAX_AGE_DAYS,
     canonical_water_stress,
+    stale_ledger_water_stress,
     water_stress_spectral_inputs,
 )
 from .feature_registry import is_enabled
 from .field_operational_state import resolve_field_state
 from .field_readiness import compute_field_readiness
 from .field_state_gateway import build_state_inputs
+from .irrigation_state_guard import water_ledger_row_freshness
 
 # علم تصعيد الإجهاد المائيّ (D2b) — default OFF (قرار المستخدم 2026-06-23): مراقبة
 # ميدانيّة قبل تغيير القرار الإنتاجيّ. ليس علم راوتر ⇒ لا يُسجَّل في feature_registry.
@@ -705,11 +707,20 @@ async def recompute_field_state(conn, field_id: str) -> dict:
     # غياب Dr موثوق ⇒ لا كتلة (صدق، لا قرار على غياب).
     try:
         lrow = await conn.fetchrow(
-            "SELECT depletion_mm, soil_moisture_pct, confidence "
+            "SELECT depletion_mm, soil_moisture_pct, confidence, ledger_date "
             "FROM water_ledger WHERE field_id = $1 ORDER BY ledger_date DESC LIMIT 1",
             field_id,
         )
-        if lrow is not None and lrow["depletion_mm"] is not None:
+        # أحدث صفّ ليس بالضرورة حاضراً: أقدم من 72 س (irrigation_state_guard) ⇒ كتلة غير
+        # متاحة بقيد مُعلَن، لا صنف إجهاد ولا تصعيد على استنزاف قديم.
+        ledger_freshness = (
+            water_ledger_row_freshness(dict(lrow).get("ledger_date"), datetime.now(UTC))
+            if lrow is not None and lrow["depletion_mm"] is not None
+            else None
+        )
+        if ledger_freshness is not None and not ledger_freshness["current"]:
+            state["water_stress"] = stale_ledger_water_stress(ledger_freshness)
+        elif ledger_freshness is not None:
             from .soil_water import soil_water_params
 
             # TAW من النسيج (افتراضيّ احتياطيّ) × عمق جذور افتراضيّ موسوم — موسومة
@@ -735,6 +746,7 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                 max_spectral_age_days=SPECTRAL_MAX_AGE_DAYS,
             )
             if stress is not None:
+                stress["ledger_age_hours"] = ledger_freshness["age_hours"]
                 state["water_stress"] = stress
                 # D2b: التصعيد خلف العلم (default off). المسند الكامل (الأهليّة) مُعلَن
                 # دائماً؛ human_review لا يقع إلّا عند تفعيل العلم — صدق: نُعلن سبب

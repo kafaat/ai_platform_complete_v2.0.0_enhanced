@@ -1075,7 +1075,7 @@
       "entrypoints": [
         "POST /v1/decisions/record"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1138,6 +1138,21 @@
       ],
       "idempotency_required": false,
       "kind": "command",
+      "owner": "decision-service",
+      "producer": "decision-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "decision-service.evidence.vegetation-snapshots.latest",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/evidence/vegetation-snapshots/latest"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
       "owner": "decision-service",
       "producer": "decision-service",
       "required_context": []
@@ -14247,7 +14262,7 @@
       "entrypoints": [
         "POST /v1/soil/observations"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "soil-service",
       "producer": "soil-service",
@@ -17778,10 +17793,10 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 840,
+    "capabilities": 841,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 96,
-    "capabilities_idempotent": 72,
+    "capabilities_idempotent": 74,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 482,
     "components": 37,
@@ -17789,9 +17804,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1135,
+    "route_rows": 1136,
     "ui_waivers": 53,
-    "unique_method_path": 1014
+    "unique_method_path": 1015
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18053,7 +18068,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "ab8c901d05e6d15932410ea02a7f454a6350cc48febfb392dd1b488249a90fd9",
+  "fingerprint": "b49041e712acf0b34de7be36dbf6c78f45f33e5b345a6e2f28b922d9da9b8a6d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18103,16 +18118,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 918,
+      "edge_count": 930,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 46,
         "CONSUMES": 3,
-        "EMITS": 1,
-        "READS": 473,
+        "EMITS": 3,
+        "READS": 478,
         "ROUTES_TO": 72,
-        "WRITES": 323
+        "WRITES": 328
       }
     },
     "u3_wiring_ownership": {

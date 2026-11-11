@@ -56,18 +56,27 @@ APP_URL = os.getenv("TEST_DATABASE_URL", "").strip()
 ADMIN_URL = os.getenv("TEST_DATABASE_ADMIN_URL", "").strip() or APP_URL
 
 
-def _skip_or_fail(reason: str, *, module_level: bool = False) -> None:
+def _skip_or_fail(reason: str) -> None:
     if CERTIFICATION_REQUIRED:
         raise AssertionError(f"H5.1 certification required but unavailable: {reason}")
-    # A module-level skip (during collection, e.g. under `-m unit` with no DB env) must declare
-    # allow_module_level; a function-level skip (inside a test) must not.
-    pytest.skip(reason, allow_module_level=module_level)
+    pytest.skip(reason)
 
 
-if asyncpg is None:
-    _skip_or_fail("asyncpg not installed", module_level=True)
-if not APP_URL:
-    _skip_or_fail("TEST_DATABASE_URL not set", module_level=True)
+@pytest.fixture(autouse=True)
+def _require_live_database() -> None:
+    """Check the environment when a test runs, never at import.
+
+    S1 F3: the checks used to run at module level with ``allow_module_level=True``. pytest
+    imports every file under ``testpaths`` before ``-m`` deselects anything, so each
+    ``-m unit`` stage reported this integration-only file as *skipped* although none of its
+    tests was selected. Here the file is simply deselected under ``-m unit``; under
+    ``-m integration`` the same reasons still skip, and ``H51_CERTIFICATION_REQUIRED=1``
+    still turns each of them into a hard failure.
+    """
+    if asyncpg is None:
+        _skip_or_fail("asyncpg not installed")
+    if not APP_URL:
+        _skip_or_fail("TEST_DATABASE_URL not set")
 
 
 async def _connect(url: str):

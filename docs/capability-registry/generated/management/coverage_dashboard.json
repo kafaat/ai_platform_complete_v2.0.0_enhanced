@@ -11,9 +11,9 @@
   "production_certified": 0,
   "maturity_distribution": {
     "0": 2,
-    "1": 1,
-    "2": 3,
-    "3": 75
+    "1": 2,
+    "2": 10,
+    "3": 67
   },
   "parity_distribution": {
     "Behind": 9,
@@ -30,8 +30,8 @@
       "domain": "decision",
       "capabilities": 10,
       "mapped": 10,
-      "average_maturity": 3.0,
-      "average_evidence": 3.0,
+      "average_maturity": 2.8,
+      "average_evidence": 2.8,
       "runtime_verified": 0,
       "production_certified": 0,
       "unassessed_parity": 0
@@ -60,8 +60,8 @@
       "domain": "irrigation",
       "capabilities": 11,
       "mapped": 11,
-      "average_maturity": 2.55,
-      "average_evidence": 2.55,
+      "average_maturity": 2.45,
+      "average_evidence": 2.45,
       "runtime_verified": 0,
       "production_certified": 0,
       "unassessed_parity": 0
@@ -70,8 +70,8 @@
       "domain": "operations",
       "capabilities": 8,
       "mapped": 8,
-      "average_maturity": 3.0,
-      "average_evidence": 3.0,
+      "average_maturity": 2.88,
+      "average_evidence": 2.88,
       "runtime_verified": 0,
       "production_certified": 0,
       "unassessed_parity": 0
@@ -90,8 +90,8 @@
       "domain": "satellite",
       "capabilities": 9,
       "mapped": 9,
-      "average_maturity": 3.0,
-      "average_evidence": 3.0,
+      "average_maturity": 2.89,
+      "average_evidence": 2.89,
       "runtime_verified": 0,
       "production_certified": 0,
       "unassessed_parity": 0
@@ -120,8 +120,8 @@
       "domain": "weather",
       "capabilities": 10,
       "mapped": 10,
-      "average_maturity": 3.0,
-      "average_evidence": 3.0,
+      "average_maturity": 2.6,
+      "average_evidence": 2.6,
       "runtime_verified": 0,
       "production_certified": 0,
       "unassessed_parity": 0

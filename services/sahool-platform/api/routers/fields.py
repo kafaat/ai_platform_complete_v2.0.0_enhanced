@@ -55,6 +55,7 @@ from api.field_models import (
     _row_to_field_summary,
     _significant_overlaps,
     field_quality_grade,
+    reject_future_performed_on,
 )
 
 # رموز صارت يتيمة في api.main بعد نقل المعالِجات — تُستورَد هنا من وحداتها الحقيقيّة
@@ -1059,7 +1060,7 @@ async def get_field_terrain(
     صادقاً (``dem_auto_fill.available=false``) دون تلفيق، مع إمكان الإدخال اليدويّ عبر
     PATCH /api/v1/fields/{field_id}.
     """
-    from core.engines.dem_enrichment import enrich_terrain
+    from core.engines.dem_enrichment import build_dem_auto_fill, enrich_terrain
 
     try:
         async with tenant_connection(user) as conn:
@@ -1095,19 +1096,19 @@ async def get_field_terrain(
 
     result = enrich_terrain(elevation_m=elevation_m, slope_pct=slope_pct, aspect=aspect)
     result["field_id"] = field_id
-    dem_available = bool(computed and computed.get("computed"))
-    result["dem_auto_fill"] = {
-        "available": dem_available,
-        "source": (computed or {}).get("source") if dem_available else None,
-        "computed": computed,
-        "note_ar": (
-            "التضاريس محسوبة من نموذج ارتفاع حيّ (DEM) مقصوصٍ على الحقل."
-            if dem_available
-            else "التعبئة التلقائيّة من DEM غير مُهيّأة بعد (FIELD_DEM_PATH). "
-            "أدخِل elevation_m/slope_pct/aspect عبر PATCH /api/v1/fields/{field_id}، "
-            "والتفسير أعلاه يعمل فوراً على القيم المخزّنة."
-        ),
-    }
+    # DEM auto-fill envelope, built by core.engines.dem_enrichment.build_dem_auto_fill
+    # so this router stays within its size ratchet:
+    #   - raster computed=True => available=True and the live-DEM note;
+    #   - raster refusal whose source is not "dem-not-configured" (for example
+    #     "dem-no-valid-pixels" when every DEM cell inside the field is nodata)
+    #     => that source and reason are passed through and shown as the note,
+    #     instead of the FIELD_DEM_PATH configuration message, which would hide
+    #     that a configured DEM refused this field;
+    #   - no envelope (call skipped or failed) or "dem-not-configured"
+    #     => the configuration message, with manual entry via PATCH.
+    # The raw raster envelope stays under dem_auto_fill.computed for the UI.
+    # Line count of this block is kept stable for platform_extraction_map anchors.
+    result["dem_auto_fill"] = build_dem_auto_fill(computed)
     return result
 
 
@@ -2125,6 +2126,7 @@ async def create_season(
                             cr["season_id"],
                             {
                                 "field_id": field_id,
+                                "season_id": cr["season_id"],
                                 "reason": "superseded_by_new_season",
                                 "superseded_by": season_id,
                             },
@@ -2426,7 +2428,7 @@ async def update_season(
                         "SEASON_CLOSED",
                         "season",
                         season_id,
-                        {"field_id": field_id, "reason": "explicit_update"},
+                        {"field_id": field_id, "season_id": season_id, "reason": "explicit_update"},
                     )
 
                 row = await conn.fetchrow(
@@ -2891,17 +2893,19 @@ async def create_activity(
     يخصّ المستأجِر (404) قبل الإدراج، ثمّ يردّ العمليّة المُنشأة. idempotent:
     Idempotency-Key (UUID) يمنع تكرار التسجيل عند إعادة الموبايل (offline).
     """
-    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
+
+    from api.field_aggregate import activity_event_payload
 
     if req.activity_type not in _ACTIVITY_TYPES:
         raise HTTPException(status_code=422, detail="نوع عمليّة غير معروف")
     scheduled = _parse_date(req.scheduled_for, "التاريخ المُجدوَل")
     performed = _parse_date(req.performed_on, "تاريخ التنفيذ")
+    reject_future_performed_on(performed)
     activity_id = "act_" + _uuid.uuid4().hex[:12]
     status = "done" if performed else "planned"
     try:
-        details_json = json.dumps(req.details or {})
+        json.dumps(req.details or {})  # تحقّق مبكّر؛ الإدراج بعد بوّابة PHI
     except (TypeError, ValueError) as e:
         # محتوى details غير قابل للتسلسل ⇒ خطأ إدخال صريح (422) لا 500/503.
         raise HTTPException(
@@ -2913,8 +2917,7 @@ async def create_activity(
             async def _work():
                 await _assert_field_in_tenant(conn, field_id)
                 if req.season_id is not None:
-                    # الموسم اختياريّ، لكن إن مُرّر فيجب أن يوجد ويخصّ الحقل نفسه
-                    # (لا FK صلب على القاعدة؛ تحقّق تطبيقيّ + فهرس داعم — v45).
+                    # الموسم اختياريّ؛ إن مُرّر فيجب أن يخصّ الحقل (لا FK صلب — v45).
                     season_ok = await conn.fetchval(
                         "SELECT 1 FROM seasons WHERE season_id = $1 AND field_id = $2",
                         req.season_id,
@@ -2928,6 +2931,9 @@ async def create_activity(
                                 "code": "invalid_season_for_field",
                             },
                         )
+                from api.field_context import activity_details_with_phi_gate  # PHI (حصاد)
+
+                details_out = await activity_details_with_phi_gate(conn, user, field_id, req)
                 await conn.execute(
                     """INSERT INTO activities
                         (activity_id, tenant_id, field_id, season_id, activity_type,
@@ -2939,25 +2945,21 @@ async def create_activity(
                     req.season_id,
                     req.activity_type,
                     req.title_ar,
-                    details_json,
+                    json.dumps(details_out),
                     scheduled,
                     performed,
                     status,
                 )
-                # حدث domain ضمن نفس معاملة تسجيل العمليّة (نمط outbox) — بحدث عمليّة
-                # محدَّد (operation.*) حسب النوع/الحالة، وإلّا ACTIVITY_RECORDED العامّ.
+                # حدث domain بنفس المعاملة (outbox): operation.* حين done وإلّا ACTIVITY_RECORDED.
                 await _emit_domain_event(
                     conn,
                     user,
                     _activity_event_type(req.activity_type, status),
                     "activity",
                     activity_id,
-                    {
-                        "field_id": field_id,
-                        "season_id": req.season_id,
-                        "activity_type": req.activity_type,
-                        "status": status,
-                    },
+                    activity_event_payload(
+                        field_id, req.season_id, req.activity_type, status, scheduled, performed
+                    ),
                 )
                 # Canonical Field State: تسجيل عمليّة يغيّر سياق القرار ⇒ أعِد حساب
                 # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
@@ -2986,7 +2988,7 @@ async def create_activity(
                     season_id=req.season_id,
                     activity_type=req.activity_type,
                     title_ar=req.title_ar,
-                    details=req.details or {},
+                    details=details_out,
                     scheduled_for=scheduled.isoformat() if scheduled else None,
                     performed_on=performed.isoformat() if performed else None,
                     status=status,
@@ -3088,8 +3090,9 @@ async def field_input_traceability(
             )
 
             q = (
-                "SELECT activity_type, details, performed_on, scheduled_for FROM activities "
-                "WHERE field_id = $1 AND activity_type = ANY($2::text[])"
+                "SELECT activity_type, details, performed_on FROM activities "
+                "WHERE field_id = $1 AND activity_type = ANY($2::text[]) "
+                "AND status = 'done' AND performed_on IS NOT NULL"
             )
             params: list = [field_id, list(ACTIVITY_TO_INPUT.keys())]
             if season_id is not None:
@@ -3131,11 +3134,7 @@ async def field_input_traceability(
                 quantity=_num(d.get("quantity")),
                 unit=d.get("unit"),
                 cost=_num(d.get("cost")),
-                applied_on=(
-                    (r["performed_on"] or r["scheduled_for"]).isoformat()
-                    if (r["performed_on"] or r["scheduled_for"])
-                    else None
-                ),
+                applied_on=r["performed_on"].isoformat(),
             )
         )
     return build_input_ledger(

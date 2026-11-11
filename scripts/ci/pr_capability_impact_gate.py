@@ -69,6 +69,10 @@ class Snapshot:
     dependents: dict[str, set[str]]
     known_capabilities: set[str]
     input_hashes: dict[str, str]
+    # source path → {test path → reasons}: proven static test → source edges (see
+    # ``_fold_test_dependencies``). Path-level, so a change to the source selects the
+    # test without widening the test's capability cone.
+    test_dependencies: dict[str, dict[str, set[str]]] = field(default_factory=dict)
 
 
 def sha256_bytes(content: bytes) -> str:
@@ -148,6 +152,59 @@ def _roadmap_capabilities(item: dict[str, Any]) -> set[str]:
     return result
 
 
+def _fold_test_dependencies(
+    references: dict[str, Reference], relations: Any
+) -> dict[str, dict[str, set[str]]]:
+    """Fold proven test → source edges into the snapshot; return source → test → reasons.
+
+    ``relations`` is ``capability_mapping.json`` → ``test_dependencies``: static edges a
+    test has to a source (``import`` · ``source_read`` · ``loader``), extracted by the
+    mapping engine. Lexical similarity is not dependency evidence — the token-guard test
+    reads ``services/guardrails-engine/main.py`` by AST whatever words either contains —
+    so the edge, not the words, links them. The reason is kept as
+    ``dependency:<kind>:<source>`` and shows in the selection explanation.
+
+    * A test with capabilities of its own keeps exactly those (its label is not
+      rewritten); the edge is recorded **path-level**: a change to that source selects
+      it. Inheriting the source's whole capability cone instead was measured to double
+      the selected share through hub modules (``api/main.py`` binds 16 capabilities).
+    * A test with no capability of its own is in the floor and stays there unless its
+      relation set is ``bounded`` (every relation resolved, no tree-wide scan, no
+      shared-harness or data-file read). Only then does it inherit the registry/mapping
+      capabilities of its sources (never another inherited edge) — the engine binds it
+      on evidence; the floor rule itself (no capability ⇒ always run) is unchanged.
+
+    Escalation rules are untouched: an unbound changed source still escalates.
+    """
+    index: dict[str, dict[str, set[str]]] = {}
+    if not isinstance(relations, list):
+        return index
+    own = {path: set(reference.capabilities) for path, reference in references.items()}
+    for relation in relations:
+        if not isinstance(relation, dict):
+            continue
+        try:
+            test_path = normalize_repo_path(relation.get("test"))
+        except ValueError:
+            continue
+        has_own = bool(own.get(test_path))
+        if not has_own and relation.get("bounded") is not True:
+            continue
+        for edge in relation.get("edges") or []:
+            if not isinstance(edge, dict):
+                continue
+            try:
+                source_path = normalize_repo_path(edge.get("source"))
+            except ValueError:
+                continue
+            reason = f"dependency:{edge.get('kind', 'unknown')}:{source_path}"
+            index.setdefault(source_path, {}).setdefault(test_path, set()).add(reason)
+            inherited = own.get(source_path)
+            if not has_own and inherited:
+                add_reference(references, test_path, inherited, source=f"mapping:{reason}")
+    return index
+
+
 def build_snapshot(
     registry: dict[str, Any],
     mapping: dict[str, Any],
@@ -220,6 +277,8 @@ def build_snapshot(
                         source=f"mapping:{dimension}",
                     )
 
+    test_dependencies = _fold_test_dependencies(references, mapping.get("test_dependencies"))
+
     if isinstance(roadmap, dict):
         items = roadmap.get("items", [])
         if isinstance(items, list):
@@ -287,6 +346,7 @@ def build_snapshot(
         dependents={key: set(value) for key, value in dependents.items()},
         known_capabilities=known,
         input_hashes=dict(input_hashes or {}),
+        test_dependencies=test_dependencies,
     )
 
 
@@ -295,9 +355,13 @@ def merge_snapshots(*snapshots: Snapshot) -> Snapshot:
     dependents: dict[str, set[str]] = defaultdict(set)
     known: set[str] = set()
     input_hashes: dict[str, str] = {}
+    test_dependencies: dict[str, dict[str, set[str]]] = {}
     for snapshot in snapshots:
         known.update(snapshot.known_capabilities)
         input_hashes.update(snapshot.input_hashes)
+        for source, tests in snapshot.test_dependencies.items():
+            for test, reasons in tests.items():
+                test_dependencies.setdefault(source, {}).setdefault(test, set()).update(reasons)
         for dependency, values in snapshot.dependents.items():
             dependents[dependency].update(values)
         for path, incoming in snapshot.references.items():
@@ -311,6 +375,7 @@ def merge_snapshots(*snapshots: Snapshot) -> Snapshot:
         dependents={key: set(value) for key, value in dependents.items()},
         known_capabilities=known,
         input_hashes=input_hashes,
+        test_dependencies=test_dependencies,
     )
 
 
@@ -485,6 +550,11 @@ def impact(paths: Iterable[str], snapshot: Snapshot | None = None) -> dict[str, 
                 matched_paths[capability_id].add(changed)
                 matched_sources[capability_id].update(reference.sources)
 
+    dependent_tests: dict[str, set[str]] = defaultdict(set)
+    for changed in normalized_paths:
+        for test_path, reasons in active.test_dependencies.get(changed, {}).items():
+            dependent_tests[test_path].update(reasons)
+
     affected = set(direct)
     queue = deque(sorted(direct))
     while queue:
@@ -503,6 +573,10 @@ def impact(paths: Iterable[str], snapshot: Snapshot | None = None) -> dict[str, 
         "matched_paths": {key: sorted(value) for key, value in sorted(matched_paths.items())},
         "matched_sources": {key: sorted(value) for key, value in sorted(matched_sources.items())},
         "governance_wide": governance_wide,
+        # Tests that provably depend on a changed path (import · source read · loader).
+        # Selection input only: it adds no capability to direct/affected, so the PR
+        # Capability-Impact declaration is unchanged by it.
+        "dependent_tests": {key: sorted(value) for key, value in sorted(dependent_tests.items())},
         "runtime_claims": False,
         "production_certification": False,
     }

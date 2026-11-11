@@ -102,18 +102,48 @@ def test_parse_command_payload_defaults_to_empty():
     ) == ("v1", "open", {})
 
 
-# ── حالة النتيجة (صدق: نُشِر≠نُفِّذ) ───────────────────────────────
-def test_outcome_status():
-    """نجاح النشر ⇒ executed (نُشِر للوسيط، لا تأكيد فيزيائيّ)؛ فشل ⇒ failed."""
-    assert main._dispatch_outcome_status(True) == "executed"
-    assert main._dispatch_outcome_status(False) == "failed"
+# ── حالة النتيجة (صدق: نُشِر≠نُفِّذ) — TRANSPORT-ACK-MISLABELED-AS-EXECUTED-01 ──
+def test_no_helper_labels_a_broker_ack_as_executed():
+    """إقرارُ الوسيط ليس تنفيذاً: لا دالّة تُرجِم نجاحَ النشر إلى ``executed``.
+
+    كانت ``_dispatch_outcome_status`` تفعل ذلك بلا مستدعٍ إنتاجيّ، وهذا الاختبار كان
+    يُثبِّت التسمية بدل أن يكذّبها. والإيصال الحيّ يبقى ``accepted``/``failed``.
+    """
+    assert not hasattr(main, "_dispatch_outcome_status")
+    source = (Path(main.__file__)).read_text(encoding="utf-8")
+    assert '"executed"' not in source
+    assert 'receipt_status = "accepted" if sent else "failed"' in source
 
 
 # ── مخطّط تنفيذ الطلب (ACTUATOR-DISPATCH-CONSUMER) — نقيّ بلا شبكة ──
 def test_plan_dispatch_send_when_valid_and_risk_allowed():
+    item = {
+        "command_payload": {
+            "device_id": "valve-7",
+            "command": "open",
+            "risk_level": "low",
+            "payload": {"duration_sec": 600},
+        }
+    }
+    plan = main._plan_dispatch_execution(item, allowlist={"low", "medium"})
+    assert plan == ("send", "valve-7", "open", {"duration_sec": 600})
+
+
+def test_plan_dispatch_refuses_an_open_without_duration():
+    """ACTUATOR-OPEN-WITHOUT-DURATION-01: طلبُ فتحٍ بلا مدّة ⇒ إيصال failed بسببه، لا نشر.
+
+    بلا مدّة يبقى الصمّام مفتوحاً حتّى سقف البرنامج الثابت (30 دقيقة) — والإغلاق يمرّ بلا مدّة.
+    """
     item = {"command_payload": {"device_id": "valve-7", "command": "open", "risk_level": "low"}}
     plan = main._plan_dispatch_execution(item, allowlist={"low", "medium"})
-    assert plan == ("send", "valve-7", "open", {})
+    assert plan == ("unsupported_command", "open_command_requires_duration_sec")
+    item = {"command_payload": {"device_id": "valve-7", "command": "close", "risk_level": "low"}}
+    assert main._plan_dispatch_execution(item, allowlist={"low"}) == (
+        "send",
+        "valve-7",
+        "close",
+        {},
+    )
 
 
 def test_plan_dispatch_refuses_declared_high_risk():

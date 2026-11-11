@@ -12,13 +12,19 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date, timedelta
+from functools import lru_cache
 
-from core.crop_cards.loader import load_crop_card
+from core.crop_cards.loader import list_crop_cards, load_crop_card
 from core.engines.fao56 import CropKcProfile, kc_for_age
 
 # اسم المحصول (كما يخزَّن في الموسم: عربيّ/إنجليزيّ شائع) → crop_id لبطاقة المحصول.
 # صدق: الاسم غير المعروف يُعاد None فيتدهور المستدعي إلى المنطق العامّ (لا تخمين).
+#
+# «ذرة» — قرار واحد موثَّق لكلّ المنصّة: في الاستعمال اليمنيّ «ذرة» مفردةً تعني الذرة
+# الرفيعة (sorghum)، أمّا الذرة الشاميّة (maize) فتُسمّى «ذرة شامية/صفراء». كلّ محلِّل محصول
+# آخر يمرّ بـ resolve_crop_id فلا يعود «ذرة» → maize في مكان و→ sorghum في آخر.
 _CROP_ALIASES: dict[str, str] = {
     "قمح": "wheat",
     "شعير": "barley",
@@ -51,10 +57,58 @@ _CROP_ALIASES: dict[str, str] = {
 }
 
 
+# التشكيل (الحركات/الشدّة/السكون/الألف الخنجريّة) والتطويل لا يغيّران الاسم.
+_TASHKEEL = re.compile("[\u064b-\u0652\u0670\u0640]")
+_PAREN = re.compile(r"\([^)]*\)")
+
+
+def normalize_crop_name(text: str | None) -> str:
+    """تطبيع اسم محصول للمطابقة: بلا تشكيل، أحرف صغيرة، فراغات موحّدة، بلا «ال» التعريف.
+
+    «الذرة الشاميّة» و«ذرة شامية» و«ذرة_شامية» تتطابق؛ لا يُخمَّن ما وراء ذلك.
+    """
+    if not text:
+        return ""
+    t = _TASHKEEL.sub("", str(text)).strip().lower()
+    t = re.sub(r"[_\s]+", " ", t)
+    words = [w[2:] if w.startswith("ال") and len(w) >= 4 else w for w in t.split(" ")]
+    return " ".join(w for w in words if w)
+
+
+@lru_cache(maxsize=1)
+def _card_name_index() -> dict[str, str]:
+    """فهرس الأسماء → crop_id من البطاقات نفسها (name_ar · name_en · aliases · crop_id).
+
+    يُفهرَس الاسم **خارج** الأقواس فقط (ما بين القوسين مؤهِّلات مثل «grain»/«table» لا
+    أسماء)؛ المرادفات الصريحة تُعلَن في ``aliases:`` بالبطاقة. اسمٌ تدّعيه بطاقتان يُسقَط
+    (ملتبس ⇒ None، لا اختيار اعتباطيّ).
+    """
+    claims: dict[str, set[str]] = {}
+    for crop_id in list_crop_cards():
+        card = load_crop_card(crop_id) or {}
+        names: list[str] = [crop_id.replace("_", " ")]
+        for field in ("name_ar", "name_en"):
+            value = card.get(field)
+            if isinstance(value, str):
+                names.extend(part for part in _PAREN.sub(" ", value).split("/"))
+        aliases = card.get("aliases")
+        if isinstance(aliases, list):
+            names.extend(a for a in aliases if isinstance(a, str))
+        for name in names:
+            key = normalize_crop_name(name)
+            if key:
+                claims.setdefault(key, set()).add(crop_id)
+    return {key: next(iter(ids)) for key, ids in claims.items() if len(ids) == 1}
+
+
+_NORMALIZED_ALIASES: dict[str, str] = {normalize_crop_name(k): v for k, v in _CROP_ALIASES.items()}
+
+
 def resolve_crop_id(crop: str | None) -> str | None:
     """يحوّل اسم محصول (عربيّ/إنجليزيّ) إلى crop_id لبطاقة موجودة، أو None إن جُهِل.
 
-    يجرّب التطابق المباشر مع crop_id أوّلاً (بطاقة موجودة)، ثمّ جدول المرادفات.
+    الترتيب: crop_id مباشر (بطاقة موجودة) ← جدول المرادفات أعلاه ← أسماء البطاقات
+    ومرادفاتها المُعلَنة (``aliases:``). اسم عامّ مثل «خضروات» يبقى None (لا تخمين).
     """
     if not crop:
         return None
@@ -63,7 +117,21 @@ def resolve_crop_id(crop: str | None) -> str | None:
     # crop_id مباشر (بطاقة موجودة)
     if load_crop_card(key) is not None:
         return key
-    return _CROP_ALIASES.get(raw) or _CROP_ALIASES.get(key)
+    direct = _CROP_ALIASES.get(raw) or _CROP_ALIASES.get(key)
+    if direct:
+        return direct
+    norm = normalize_crop_name(raw)
+    if not norm:
+        return None
+    return _NORMALIZED_ALIASES.get(norm) or _card_name_index().get(norm)
+
+
+def is_perennial(crop: str | None) -> bool:
+    """هل المحصول مُعمِّر بحسب بطاقته (``life_form: perennial``)؟ مجهول ⇒ False."""
+    crop_id = resolve_crop_id(crop)
+    if crop_id is None:
+        return False
+    return (load_crop_card(crop_id) or {}).get("life_form") == "perennial"
 
 
 def _stages(crop_id: str | None) -> list[dict]:

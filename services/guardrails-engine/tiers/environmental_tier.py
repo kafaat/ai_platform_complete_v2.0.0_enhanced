@@ -53,6 +53,13 @@ def check_fertigation_ec(
     return "REJECT", ec_max
 
 
+def _known_amount(value) -> float | None:
+    """A numeric reading, or None when absent/non-numeric. Absent is never zero."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return value
+
+
 class EnvironmentalSafetyTier:
     """
     Environmental impact validation for farm actions.
@@ -139,10 +146,22 @@ class EnvironmentalSafetyTier:
                 )
 
             # Check soil salinity risk from irrigation
-            irrigation_ec = action_data.get("water_ec_ds_m", 0)
-            current_soil_ec = farm_context.get("soil_ec_ds_m", 0)
-
-            if irrigation_ec > 2.0 and current_soil_ec > 2.5:
+            irrigation_ec = _known_amount(action_data.get("water_ec_ds_m"))
+            current_soil_ec = _known_amount(farm_context.get("soil_ec_ds_m"))
+            # Risk is excluded only by a KNOWN low reading; an absent EC is not 0 dS/m.
+            water_risky = irrigation_ec is None or irrigation_ec > 2.0
+            soil_risky = current_soil_ec is None or current_soil_ec > 2.5
+            if water_risky and soil_risky and (irrigation_ec is None or current_soil_ec is None):
+                findings.append(
+                    {
+                        "severity": "MEDIUM",
+                        "message": "Irrigation water or soil EC unknown; salinity risk cannot be excluded",
+                        "message_ar": "ملوحة مياه الري أو التربة (EC) غير معروفة — تعذّر استبعاد خطر التملّح؛ يتطلب مراجعة",
+                        "rule": "ec_unknown",
+                    }
+                )
+                passed = False
+            elif water_risky and soil_risky:
                 findings.append(
                     {
                         "severity": "HIGH",
@@ -201,15 +220,27 @@ class EnvironmentalSafetyTier:
                     )
 
             # Check carbon footprint of synthetic fertilizer production
-            n_kg = action_data.get("N_kg_ha", 0)
-            # Synthetic N fertilizer: ~8 kg CO2e per kg N (production + transport)
-            fertilizer_carbon = n_kg * 8
-
+            n_kg = _known_amount(action_data.get("N_kg_ha"))
+            season_carbon = _known_amount(farm_context.get("season_carbon_kg_co2e"))
             crop_budget = self.CARBON_BUDGET.get(crop, 500)
-            season_carbon = farm_context.get("season_carbon_kg_co2e", 0)
-            projected_total = season_carbon + fertilizer_carbon
+            if n_kg is None or season_carbon is None:
+                # Fail closed: absent N dose or season carbon is unknown, not zero.
+                findings.append(
+                    {
+                        "severity": "MEDIUM",
+                        "message": "N dose or season carbon unknown; carbon budget cannot be checked",
+                        "message_ar": "جرعة النيتروجين أو كربون الموسم غير معروفة — تعذّر فحص ميزانية الكربون؛ يتطلب مراجعة",
+                        "rule": "carbon_inputs_unknown",
+                    }
+                )
+                passed = False
+                fertilizer_carbon = projected_total = None
+            else:
+                # Synthetic N fertilizer: ~8 kg CO2e per kg N (production + transport)
+                fertilizer_carbon = n_kg * 8
+                projected_total = season_carbon + fertilizer_carbon
 
-            if projected_total > crop_budget:
+            if projected_total is not None and projected_total > crop_budget:
                 findings.append(
                     {
                         "severity": "MEDIUM",

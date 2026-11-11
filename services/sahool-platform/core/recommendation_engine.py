@@ -57,6 +57,9 @@ class BackendDetail:
     zone_factor: float | None = None
     zone_factor_status: str = "pending"
     local_knowledge_applied: list[dict] = field(default_factory=list)
+    # معرفة مجتمعيّة بوزنٍ موجب لكنّها **لم تُؤكَّد** (pending/unverifiable): تُعرَض موسومةً
+    # منفصلةً للتدقيق، ولا تُحسَب «مُطبَّقة» في التوصية.
+    local_knowledge_pending_unverified: list[dict] = field(default_factory=list)
     provenance_chain: list[dict] = field(default_factory=list)
 
 
@@ -186,18 +189,26 @@ def generate_recommendation(
             signal = FarmerSignal.CAUTION
             alerts.append("🟡 ملاءمة حدّية — يحتاج تحسين تربة")
 
-    # المعرفة المحلية (وزن ≤0.15 — ترجّح، توجّه، لا تحكم)
+    # المعرفة المحلية (وزن ≤0.15 — ترجّح، توجّه، لا تحكم). «مُطبَّقة» تعني **مؤكَّدة**:
+    # كانت كلّ معرفةٍ بوزنٍ موجب تُدرَج مُطبَّقةً، ومنها المعلَّقة (pending) التي لم يُتحقَّق
+    # منها قطّ. الآن ``verification_status == confirmed`` شرطٌ للتطبيق؛ وما سواها بوزنٍ موجب
+    # يُوسَم ``pending_unverified`` منفصلاً، والمرفوض/المتعارض (وزن صفر) يُسقَط.
     if local_knowledge:
         for fk in local_knowledge:
             w = getattr(fk, "prior_weight", 0)
-            if w > 0:
-                backend.local_knowledge_applied.append(
-                    {
-                        "content": getattr(fk, "content_ar", ""),
-                        "weight": w,
-                        "scope": getattr(fk, "spatial_scope", ""),
-                    }
-                )
+            if not isinstance(w, (int, float)) or isinstance(w, bool) or w <= 0:
+                continue
+            status = _verification_status_value(fk)
+            entry = {
+                "content": getattr(fk, "content_ar", ""),
+                "weight": w,
+                "scope": getattr(fk, "spatial_scope", ""),
+                "verification_status": status,
+            }
+            if status == "confirmed":
+                backend.local_knowledge_applied.append(entry)
+            else:
+                backend.local_knowledge_pending_unverified.append(entry)
 
     # الثقة (محكومة بأضعف حلقة + حالة المعايرة)
     conf, conf_ar = _compute_confidence(validation, zone_factor_status)
@@ -241,6 +252,14 @@ _OBS_AR = {
     "I1": "كمية المياه",
     "G1": "الإنتاج",
 }
+
+
+def _verification_status_value(fk) -> str:
+    """قيمة ``verification_status`` نصّاً صغيراً (StrEnum أو نصّ) — غيابها ⇒ ``"pending"``."""
+    raw = getattr(fk, "verification_status", None)
+    if raw is None:
+        return "pending"
+    return str(getattr(raw, "value", raw)).strip().lower() or "pending"
 
 
 def _observable_names_ar(ids: list[str]) -> str:

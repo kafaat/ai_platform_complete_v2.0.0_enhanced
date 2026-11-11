@@ -8,7 +8,38 @@ routers/harvest_traceability مباشرةً (لا عبر main.py)، فيُقلّ
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+import json
+
+from pydantic import BaseModel, Field, field_validator
+
+# حدود event_details (JSONB حرّ): الحجم مُسلسَلاً (UTF-8) والعمق — يمنعان حمولةً بلا سقف
+# تُخزَّن وتُبصَم وتُعاد في كلّ قراءة أثر.
+EVENT_DETAILS_MAX_BYTES = 8 * 1024
+EVENT_DETAILS_MAX_DEPTH = 4
+# أقصى ما تحمله NUMERIC(12,2).
+_MAX_KG = 9_999_999_999.99
+
+
+def _json_depth(value, level: int = 1) -> int:
+    """عمق التداخل: dict/list في القمّة = 1، وكلّ حاوية متداخلة +1."""
+    if not isinstance(value, (dict, list)):
+        return level - 1
+    children = value.values() if isinstance(value, dict) else value
+    return max([level, *(_json_depth(c, level + 1) for c in children)])
+
+
+def validate_event_details(details: dict) -> dict:
+    """يرفض event_details فوق 8 KB مُسلسَلةً أو أعمق من 4 أو بقيم NaN/Infinity (ليست JSON
+    صالحاً لـJSONB)."""
+    try:
+        raw = json.dumps(details, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+    except (ValueError, TypeError) as e:
+        raise ValueError("event_details: قيمة غير قابلة للتمثيل JSON") from e
+    if len(raw.encode("utf-8")) > EVENT_DETAILS_MAX_BYTES:
+        raise ValueError(f"event_details أكبر من {EVENT_DETAILS_MAX_BYTES} بايت مُسلسَلةً")
+    if _json_depth(details) > EVENT_DETAILS_MAX_DEPTH:
+        raise ValueError(f"event_details أعمق من {EVENT_DETAILS_MAX_DEPTH} مستويات")
+    return details
 
 
 class HarvestLotCreateRequest(BaseModel):
@@ -22,6 +53,9 @@ class HarvestLotCreateRequest(BaseModel):
     moisture_pct: float | None = Field(default=None, ge=0, le=100)
     quality_grade: str | None = Field(default=None, pattern="^(A|B|C|reject)$")
     notes_ar: str | None = Field(default=None, max_length=2000)
+    # تجاوز بوّابة PHI (حصاد داخل فترة أمان آخر رشّ): صريح + سبب + صلاحيّة المالك فقط.
+    phi_override: bool = False
+    phi_override_reason: str | None = Field(default=None, max_length=500)
 
 
 class HarvestLotSummary(BaseModel):
@@ -36,6 +70,9 @@ class HarvestLotSummary(BaseModel):
     notes_ar: str | None = None
     status: str
     created_at: str | None = None
+    # نتيجة بوّابة PHI عند الإنشاء (تجاوز/قيد phi_unknown)؛ تُحفَظ في حدث HARVEST_LOT_CREATED
+    # لا في الجدول (لا عمود تفاصيل في harvest_lots) ⇒ None في القراءات اللاحقة.
+    phi_check: dict | None = None
 
 
 class CustodyEventCreateRequest(BaseModel):
@@ -47,9 +84,14 @@ class CustodyEventCreateRequest(BaseModel):
         default=None, pattern="^(farmer|storage|transporter|trader|buyer|inspector|system)$"
     )
     location_name: str | None = Field(default=None, max_length=120)
-    quantity_kg: float | None = Field(default=None, ge=0)
+    quantity_kg: float | None = Field(default=None, ge=0, le=_MAX_KG, allow_inf_nan=False)
     event_details: dict = Field(default_factory=dict)
-    occurred_at: str  # ISO datetime (يُتحقَّق في المسار)
+    occurred_at: str = Field(max_length=64)  # ISO datetime (يُتحقَّق في المسار)
+
+    @field_validator("event_details")
+    @classmethod
+    def _bounded_details(cls, v: dict) -> dict:
+        return validate_event_details(v)
 
 
 class CustodyEventSummary(BaseModel):

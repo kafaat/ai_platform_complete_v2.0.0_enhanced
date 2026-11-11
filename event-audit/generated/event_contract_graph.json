@@ -7,7 +7,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 1693,
+      "line": 1733,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -19,7 +19,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 1762,
+      "line": 1802,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -31,7 +31,7 @@
       "dynamic_expr": "subject",
       "file": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
       "kind": "consumer",
-      "line": 292,
+      "line": 395,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -43,7 +43,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "producer",
-      "line": 807,
+      "line": 847,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -195,12 +195,52 @@
     ],
     "cross_component_duplicate_durables": [],
     "producer_only_subjects": [
+      "sahool.dlq.canonical_execution_learning",
+      "sahool.dlq.irrigation_dispatch_relay",
       "sahool.tenant.*.satellite.*.computed"
     ]
   },
   "schema_version": 1,
   "scope": "static_literal_nats_jetstream_contracts",
   "subjects": [
+    {
+      "consumers": [],
+      "producers": [
+        {
+          "client_expr": "js",
+          "component": "sahool-platform",
+          "durable": null,
+          "dynamic_expr": null,
+          "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+          "kind": "producer",
+          "line": 446,
+          "queue": null,
+          "resolution": "literal",
+          "subject": "sahool.dlq.canonical_execution_learning"
+        }
+      ],
+      "status": "producer_only",
+      "subject": "sahool.dlq.canonical_execution_learning"
+    },
+    {
+      "consumers": [],
+      "producers": [
+        {
+          "client_expr": "js",
+          "component": "sahool-platform",
+          "durable": null,
+          "dynamic_expr": null,
+          "file": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+          "kind": "producer",
+          "line": 163,
+          "queue": null,
+          "resolution": "literal",
+          "subject": "sahool.dlq.irrigation_dispatch_relay"
+        }
+      ],
+      "status": "producer_only",
+      "subject": "sahool.dlq.irrigation_dispatch_relay"
+    },
     {
       "consumers": [
         {
@@ -210,7 +250,7 @@
           "dynamic_expr": null,
           "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
           "kind": "consumer",
-          "line": 107,
+          "line": 134,
           "queue": null,
           "resolution": "module_constant_loop",
           "subject": "sahool.events.agronomy.projection.requested"
@@ -229,7 +269,7 @@
           "dynamic_expr": null,
           "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
           "kind": "consumer",
-          "line": 107,
+          "line": 134,
           "queue": null,
           "resolution": "module_constant_loop",
           "subject": "sahool.events.irrigation.execution.completed"
@@ -248,7 +288,7 @@
           "dynamic_expr": null,
           "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
           "kind": "consumer",
-          "line": 107,
+          "line": 134,
           "queue": null,
           "resolution": "module_constant_loop",
           "subject": "sahool.events.season.closed"
@@ -282,12 +322,12 @@
     "consumer_only_subjects": 3,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 15,
-    "files_scanned": 1266,
+    "files_scanned": 1267,
     "matched_subjects": 0,
-    "producer_only_subjects": 1,
+    "producer_only_subjects": 3,
     "production_certified": false,
-    "resolved_contracts": 4,
+    "resolved_contracts": 6,
     "runtime_verified": false,
-    "subjects": 4
+    "subjects": 6
   }
 }

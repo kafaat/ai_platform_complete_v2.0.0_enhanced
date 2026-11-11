@@ -196,9 +196,16 @@ async def list_tools(user: dict = Depends(main._get_current_user)):
                 "required_capabilities": contract.required_capabilities,
                 "idempotent": contract.idempotent,
                 "max_retries": contract.max_retries,
+                # الأمثلة تُعرَض موسومةً لا كأدوات حيّة؛ invoke يرفضها.
+                "example_only": contract.example_only,
+                "available": contract.invocable,
             }
         )
-    return {"total": len(tools), "tools": tools}
+    return {
+        "total": len(tools),
+        "available_total": sum(1 for t in tools if t["available"]),
+        "tools": tools,
+    }
 
 
 @router.get("/v1/agent/journal/{invocation_id}")

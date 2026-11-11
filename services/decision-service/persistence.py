@@ -11,12 +11,14 @@ real Postgres integration tests and backfill prove decision-service can be promo
 from __future__ import annotations
 
 import asyncio
+import functools
 import hashlib
 import json
 import logging
 import math
 import os
 import re
+import uuid
 import weakref
 from datetime import UTC, datetime
 from typing import Any
@@ -43,6 +45,300 @@ def database_url() -> str:
 
 def now_iso() -> str:
     return datetime.now(UTC).isoformat()
+
+
+_FALSY = {"0", "false", "no", "off"}
+
+
+def _production_environment() -> bool:
+    """The service's production detection: SAHOOL_ENV (``main._is_production``) or ENVIRONMENT
+    (``main.agronomic_context_required``) naming production; either one arms production rules."""
+    return any(
+        os.getenv(name, "").strip().lower() in {"production", "prod"}
+        for name in ("SAHOOL_ENV", "ENVIRONMENT")
+    )
+
+
+def separation_of_duties_required() -> bool:
+    """DECISION_REQUIRE_SEPARATION_OF_DUTIES: an explicit value wins; unset, it is ON in
+    production and OFF elsewhere. When on, the actor of a governance step may not be the actor of
+    the step it checks (creator/reviewer, reviewer/authorizer, activation requester/approver)."""
+    explicit = os.getenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", "").strip().lower()
+    if explicit in _TRUTHY:
+        return True
+    if explicit in _FALSY:
+        return False
+    return _production_environment()
+
+
+def same_actor(first: Any, second: Any) -> bool:
+    """True when both identities are present and name the same actor (trimmed, case-folded).
+    An absent identity is never "the same": there is nothing to compare."""
+    a = str(first or "").strip().casefold()
+    b = str(second or "").strip().casefold()
+    return bool(a) and a == b
+
+
+def separation_of_duties_violation(first: Any, second: Any) -> bool:
+    return separation_of_duties_required() and same_actor(first, second)
+
+
+# --- Single-operator self-approval exception (DECISION-SOD-SINGLE-USER-FARM-POLICY-01) -----
+# Owner decision 2026-11-09: a farm with one user may explicitly self-approve a LOW-risk
+# candidate under an audited, tenant-scoped exception; anything higher still needs an
+# independent approver. It covers ONLY the creator/reviewer check of ``review_decision``: the
+# reviewer/authorizer check (dispatch authorization, the step toward physical effect) and the
+# model-activation requester/approver check are never relaxed. Default OFF: with nothing
+# configured, behaviour is exactly the strict separation of duties.
+SELF_APPROVAL_POLICY_ID = "decision-sod-single-operator-exception"
+SELF_APPROVAL_POLICY_VERSION = "1"
+SELF_APPROVAL_TENANTS_ENV = "DECISION_SOD_SELF_APPROVAL_TENANTS"
+SELF_APPROVAL_DECISION_TYPES_ENV = "DECISION_SOD_SELF_APPROVAL_DECISION_TYPES"
+SELF_APPROVAL_MAX_RISK_ENV = "DECISION_SOD_SELF_APPROVAL_MAX_RISK"
+# The persisted review reason of a self-approval: this prefix + canonical JSON. ``reason`` is
+# part of the review's request_hash, so the audit marker cannot be stripped silently.
+SELF_APPROVAL_REASON_PREFIX = "sod-self-approval-exception/v1:"
+# Same vocabulary and the same fail-closed rule as the platform's decision dispatch
+# (core/decision_dispatch.py): an undeclared or unknown risk level counts as CRITICAL.
+RISK_ORDER = {"LOW": 0, "MEDIUM": 1, "HIGH": 2, "CRITICAL": 3}
+# The configurable bound may never reach HIGH: HIGH/CRITICAL always need another person.
+_SELF_APPROVAL_BOUND_CHOICES = ("LOW", "MEDIUM")
+# Hard exclusions, whatever the configuration says. A decision type containing any of these
+# fragments is physical-effect/actuation, financial or otherwise sensitive; listing one in the
+# allowlist invalidates the whole configuration (so the exclusion is visible at config time).
+SELF_APPROVAL_EXCLUDED_TYPE_FRAGMENTS = (
+    # physical effect / actuation (irrigation, irrigation_deficit, irrigation_mpc, ...)
+    "irrigation",
+    "fertigation",
+    "actuat",
+    "dispatch",
+    "command",
+    "execution",
+    "operation",
+    "valve",
+    "pump",
+    "spray",
+    "chemical",
+    # financial
+    "financ",
+    "payment",
+    "invoice",
+    "billing",
+    "credit",
+    "loan",
+    "purchase",
+    "procure",
+    "price",
+    "market",
+    "insurance",
+    "subsid",
+    "payout",
+    # sensitive governance
+    "activation",
+    "promotion",
+    "model",
+    "access",
+    "permission",
+    "role",
+    "credential",
+    "tenant",
+    "delete",
+    "purge",
+)
+# Evidence keys that mean the candidate itself carries a physical-effect specification.
+SELF_APPROVAL_EXCLUDED_VALUE_KEYS = (
+    "manual_execution_source",
+    "command",
+    "command_payload",
+    "actuator_command",
+)
+_DECISION_TYPE_RE = re.compile(r"^[a-z0-9_]{1,60}$")
+
+
+def _normalize_tenant(value: Any) -> str | None:
+    try:
+        return str(uuid.UUID(str(value).strip()))
+    except (ValueError, AttributeError, TypeError):
+        return None
+
+
+def decision_type_hard_excluded(decision_type: Any) -> bool:
+    text = str(decision_type or "").strip().casefold()
+    return not text or any(fragment in text for fragment in SELF_APPROVAL_EXCLUDED_TYPE_FRAGMENTS)
+
+
+@functools.lru_cache(maxsize=8)
+def parse_self_approval_policy(
+    tenants_raw: str, types_raw: str, max_risk_raw: str
+) -> dict[str, Any]:
+    """Strict parse of the three settings. Returns ``{"enabled": False, "reason": ...}`` when
+    unconfigured or malformed (logged once per distinct configuration), otherwise the policy.
+
+    Malformed config disables the exception instead of stopping the service: the exception only
+    relaxes a control, so failing closed means the strict separation of duties stays in force
+    and the service stays available; the refusal code tells the caller the policy is invalid."""
+    if not tenants_raw.strip():
+        return {"enabled": False, "reason": "not_configured"}
+    problems: list[str] = []
+    tenants: set[str] = set()
+    for item in tenants_raw.split(","):
+        normalized = _normalize_tenant(item)
+        if normalized is None:
+            problems.append(f"{SELF_APPROVAL_TENANTS_ENV}: {item.strip()!r} is not a tenant UUID")
+        else:
+            tenants.add(normalized)
+    types: set[str] = set()
+    for item in types_raw.split(","):
+        name = item.strip()
+        if not _DECISION_TYPE_RE.fullmatch(name):
+            problems.append(f"{SELF_APPROVAL_DECISION_TYPES_ENV}: {name!r} is not a decision type")
+        elif decision_type_hard_excluded(name):
+            problems.append(f"{SELF_APPROVAL_DECISION_TYPES_ENV}: {name!r} is hard-excluded")
+        else:
+            types.add(name)
+    max_risk = (max_risk_raw or "LOW").strip().upper()
+    if max_risk not in _SELF_APPROVAL_BOUND_CHOICES:
+        problems.append(
+            f"{SELF_APPROVAL_MAX_RISK_ENV}: {max_risk_raw!r} must be one of "
+            f"{', '.join(_SELF_APPROVAL_BOUND_CHOICES)}"
+        )
+    if problems:
+        logger.error(
+            "self-approval exception DISABLED (strict separation of duties applies): %s",
+            "; ".join(problems),
+        )
+        return {"enabled": False, "reason": "invalid", "problems": problems}
+    return {
+        "enabled": True,
+        "tenants": frozenset(tenants),
+        "decision_types": frozenset(types),
+        "max_risk_level": max_risk,
+    }
+
+
+def self_approval_policy() -> dict[str, Any]:
+    return parse_self_approval_policy(
+        os.getenv(SELF_APPROVAL_TENANTS_ENV, ""),
+        os.getenv(SELF_APPROVAL_DECISION_TYPES_ENV, ""),
+        os.getenv(SELF_APPROVAL_MAX_RISK_ENV, ""),
+    )
+
+
+def candidate_risk_level(decision_value: Any) -> str:
+    """The risk the candidate's producer declared (``decision_value.risk_level``), escalated to
+    at least HIGH when the candidate requires an expert. Undeclared/unknown ⇒ CRITICAL."""
+    value = decision_value if isinstance(decision_value, dict) else {}
+    declared = str(value.get("risk_level") or "").strip().upper()
+    level = declared if declared in RISK_ORDER else "CRITICAL"
+    if value.get("requires_expert_review") is True and RISK_ORDER[level] < RISK_ORDER["HIGH"]:
+        level = "HIGH"
+    return level
+
+
+_INDEPENDENT_APPROVER = (
+    "an independent approver (a different user from the proposer) must review it"
+)
+_SELF_APPROVAL_REFUSALS = {
+    "self_approval_policy_invalid": "the self-approval exception is misconfigured",
+    "self_approval_not_enabled_for_tenant": "self-approval is not enabled for this tenant",
+    "self_approval_covers_approval_only": "the self-approval exception covers approvals only",
+    "self_approval_excluded_operation": (
+        "physical-effect, financial and sensitive decisions are never self-approvable"
+    ),
+    "self_approval_operation_not_allowlisted": "this decision type is not allowlisted",
+    "self_approval_risk_above_bound": "the decision's risk is above the self-approval bound",
+    "self_approval_acknowledgement_required": (
+        "self-approval requires self_approval_acknowledged=true and a self_approval_reason"
+    ),
+}
+
+
+def evaluate_self_approval(
+    *,
+    tenant_id: str,
+    action: str,
+    decision_type: Any,
+    decision_value: Any,
+    proposer: Any,
+    approver: str,
+    acknowledged: bool,
+    acknowledgement_reason: str | None,
+    policy: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Pure verdict for a review whose reviewer IS the candidate's creator under separation of
+    duties. ``{"allowed": True, "audit": {...}}`` or ``{"allowed": False, "refusal": code,
+    "message": ...}`` — the refusal keeps the established ``separation_of_duties_violation``."""
+    policy = self_approval_policy() if policy is None else policy
+    value = decision_value if isinstance(decision_value, dict) else {}
+    risk = candidate_risk_level(value)
+    tenant = _normalize_tenant(tenant_id)
+    ack_reason = (acknowledgement_reason or "").strip()
+    if not policy.get("enabled"):
+        code = (
+            "self_approval_policy_invalid"
+            if policy.get("reason") == "invalid"
+            else "self_approval_not_enabled_for_tenant"
+        )
+    elif tenant is None or tenant not in policy["tenants"]:
+        code = "self_approval_not_enabled_for_tenant"
+    elif action != "approve":
+        code = "self_approval_covers_approval_only"
+    elif decision_type_hard_excluded(decision_type) or any(
+        value.get(key) for key in SELF_APPROVAL_EXCLUDED_VALUE_KEYS
+    ):
+        code = "self_approval_excluded_operation"
+    elif str(decision_type).strip() not in policy["decision_types"]:
+        code = "self_approval_operation_not_allowlisted"
+    elif RISK_ORDER[risk] > RISK_ORDER[policy["max_risk_level"]]:
+        code = "self_approval_risk_above_bound"
+    elif acknowledged is not True or not ack_reason:
+        code = "self_approval_acknowledgement_required"
+    else:
+        return {
+            "allowed": True,
+            "audit": {
+                "policy_id": SELF_APPROVAL_POLICY_ID,
+                "policy_version": SELF_APPROVAL_POLICY_VERSION,
+                "tenant_id": tenant,
+                "decision_type": str(decision_type).strip(),
+                "risk_level": risk,
+                "max_risk_level": policy["max_risk_level"],
+                "proposer": str(proposer).strip(),
+                "approver": approver.strip(),
+                "acknowledged": True,
+                "reason": ack_reason,
+            },
+        }
+    return {
+        "allowed": False,
+        "refusal": code,
+        "message": (
+            f"separation_of_duties_violation ({code}): {_SELF_APPROVAL_REFUSALS[code]}; "
+            f"{_INDEPENDENT_APPROVER}"
+        ),
+    }
+
+
+def self_approval_review_reason(audit: dict[str, Any], review_reason: str | None) -> str:
+    """The persisted review reason of an exception self-approval (canonical, hash-bound)."""
+    body = json.dumps(
+        {"self_approval_exception": audit, "review_reason": review_reason or ""},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return SELF_APPROVAL_REASON_PREFIX + body
+
+
+def self_approval_audit_from_reason(reason: Any) -> dict[str, Any] | None:
+    """The audit marker inside a saved review reason, or None for an ordinary review."""
+    if not isinstance(reason, str) or not reason.startswith(SELF_APPROVAL_REASON_PREFIX):
+        return None
+    try:
+        body = json.loads(reason[len(SELF_APPROVAL_REASON_PREFIX) :])
+    except ValueError:
+        return None
+    audit = body.get("self_approval_exception") if isinstance(body, dict) else None
+    return audit if isinstance(audit, dict) else None
 
 
 _POOLS: dict[int, Any] = {}
@@ -141,6 +437,26 @@ def decision_value_digest(decision_value: Any) -> str:
         decision_value or {}, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str
     )
     return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def decision_replay_mismatch(existing: Any, payload: Any) -> str | None:
+    """Compare a stored decision_record row with a replayed write under the same decision_id.
+
+    Returns None for a true replay, else the conflict reason. The version is compared by the
+    server digest (035); a legacy row without one is compared by the digest of its stored
+    evidence, so it is never treated as matching by default."""
+    stored_digest = existing["decision_value_digest"]
+    if not stored_digest:
+        stored_value = existing["decision_value"]
+        if isinstance(stored_value, str):
+            stored_value = json.loads(stored_value)
+        stored_digest = decision_value_digest(stored_value)
+    if stored_digest != decision_value_digest(payload.decision_value):
+        return "decision_id_payload_mismatch"
+    for column in ("field_id", "decision_type", "stage"):
+        if (existing[column] or None) != (getattr(payload, column, None) or None):
+            return "decision_id_payload_mismatch"
+    return None
 
 
 async def persist_decision_record(
@@ -244,12 +560,17 @@ async def persist_decision_record(
             replayed = inserted is None
             if replayed:
                 existing = await conn.fetchrow(
-                    "SELECT tenant_id, decision_id, decision_value_digest FROM decision_record "
-                    "WHERE decision_id=$1",
+                    "SELECT tenant_id, decision_id, decision_value_digest, decision_value, "
+                    "field_id, decision_type, stage FROM decision_record WHERE decision_id=$1",
                     decision_id,
                 )
                 if existing is None or str(existing["tenant_id"]) != str(tenant_id):
                     raise ValueError("decision_id collision belongs to another tenant")
+                # A replay is only a replay of the SAME record: a different version under an
+                # existing decision_id was silently dropped and reported as success (409 now).
+                mismatch = decision_replay_mismatch(existing, payload)
+                if mismatch:
+                    return {"status": "conflict", "reason": mismatch}
                 stored_digest = existing["decision_value_digest"]
             else:
                 await emit_outbox_event(
@@ -624,6 +945,15 @@ def _authoritative_review(row: Any, *, replay: bool) -> dict[str, Any]:
     }
 
 
+def _reviewed(row: Any, *, replay: bool) -> dict[str, Any]:
+    """The review result plus the single-operator exception audit marker, read back from the
+    saved (hash-bound) reason; ``None`` for an ordinary review."""
+    return {
+        **_authoritative_review(row, replay=replay),
+        "self_approval": self_approval_audit_from_reason(row.get("reason")),
+    }
+
+
 def _request_hash(
     *,
     decision_id: str,
@@ -632,17 +962,24 @@ def _request_hash(
     reason: str | None,
     candidate_lineage_id: str,
     decision_value_digest: str | None,
+    policy_version: str | None = None,
 ) -> str:
-    """Stable hash of the semantic review request — drives idempotency replay vs conflict."""
+    """Stable hash of the semantic review request — drives idempotency replay vs conflict.
+    The policy version the review was made under is part of the request: the same key replayed
+    under another policy is a conflict, not a replay. ``None`` reproduces the pre-policy hash of
+    reviews saved before the policy version was bound (replay compatibility only)."""
+    request = {
+        "decision_id": decision_id,
+        "action": action,
+        "new_state": new_state,
+        "reason": reason or "",
+        "candidate_lineage_id": candidate_lineage_id,
+        "decision_value_digest": decision_value_digest,
+    }
+    if policy_version is not None:
+        request["policy_version"] = policy_version
     blob = json.dumps(
-        {
-            "decision_id": decision_id,
-            "action": action,
-            "new_state": new_state,
-            "reason": reason or "",
-            "candidate_lineage_id": candidate_lineage_id,
-            "decision_value_digest": decision_value_digest,
-        },
+        request,
         sort_keys=True,
         separators=(",", ":"),
     )
@@ -659,8 +996,10 @@ async def review_decision(
     reviewed_by: str,
     candidate_lineage_id: str,
     idempotency_key: str,
-    policy_version: str | None,
+    policy_version: str,
     decision_value_digest: str | None,
+    self_approval_acknowledged: bool = False,
+    self_approval_reason: str | None = None,
 ) -> dict[str, Any]:
     """WX-10.7 — atomic ``pending_approval -> approved|rejected`` transition owned by
     decision-service, in ONE transaction: conditional UPDATE of the dedicated ``review_state``
@@ -671,6 +1010,10 @@ async def review_decision(
     (built from the saved audit row), or ``{status: "not_found"}`` / ``{status: "conflict",
     reason: ...}`` for fail-closed mapping. 0-row classification is tenant-scoped — it never
     reveals a decision that belongs to another tenant (no cross-tenant existence oracle).
+
+    Separation of duties refuses a creator reviewing their own candidate unless the tenant-scoped
+    single-operator exception (``evaluate_self_approval``) allows it; such an approval persists
+    its audit marker in the review ``reason``, which the request_hash binds.
     """
     try:
         import asyncpg  # type: ignore
@@ -679,20 +1022,64 @@ async def review_decision(
     except ImportError as exc:  # pragma: no cover - deploy/runtime only
         raise RuntimeError("asyncpg is required when DECISION_SERVICE_SOR_ENABLED=true") from exc
 
-    request_hash = _request_hash(
-        decision_id=decision_id,
-        action=action,
-        new_state=new_state,
-        reason=reason,
-        candidate_lineage_id=candidate_lineage_id,
-        decision_value_digest=decision_value_digest,
-    )
-    policy_version = policy_version or "unspecified"
+    policy_version = (policy_version or "").strip()
+    if not policy_version:
+        # No "unspecified" default: a review records the policy it was made under (fail-closed).
+        return {"status": "invalid", "reason": "policy_version is required"}
+    if (reason or "").startswith(SELF_APPROVAL_REASON_PREFIX):
+        # Only this function writes the self-approval audit marker; a caller may not forge one.
+        return {"status": "invalid", "reason": "reason may not carry the self-approval marker"}
 
     conn = await _connect()
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            # (0) Separation of duties (DECISION_REQUIRE_SEPARATION_OF_DUTIES): the creator of a
+            # candidate may not review it, unless the single-operator exception allows this
+            # approval. A candidate without a recorded creator has no identity to compare and is
+            # not refused here. The verdict is computed before the idempotency lookup because an
+            # exception approval persists its audit marker in the hashed reason; the refusal is
+            # applied after it, so a recorded review still replays as before.
+            verdict: dict[str, Any] | None = None
+            if separation_of_duties_required():
+                candidate = await conn.fetchrow(
+                    "SELECT created_by, decision_type, decision_value FROM decision_record "
+                    "WHERE decision_id = $1 AND tenant_id = $2::uuid AND stage = 'candidate'",
+                    decision_id,
+                    tenant_id,
+                )
+                if candidate is not None and same_actor(candidate["created_by"], reviewed_by):
+                    value = candidate["decision_value"]
+                    if isinstance(value, str):
+                        try:
+                            value = json.loads(value)
+                        except ValueError:
+                            value = None
+                    verdict = evaluate_self_approval(
+                        tenant_id=tenant_id,
+                        action=action,
+                        decision_type=candidate["decision_type"],
+                        decision_value=value,
+                        proposer=candidate["created_by"],
+                        approver=reviewed_by,
+                        acknowledged=self_approval_acknowledged,
+                        acknowledgement_reason=self_approval_reason,
+                    )
+            self_approval = verdict.get("audit") if verdict and verdict["allowed"] else None
+            stored_reason = (
+                self_approval_review_reason(self_approval, reason) if self_approval else reason
+            )
+            semantic = dict(
+                decision_id=decision_id,
+                action=action,
+                new_state=new_state,
+                reason=stored_reason,
+                candidate_lineage_id=candidate_lineage_id,
+                decision_value_digest=decision_value_digest,
+            )
+            request_hash = _request_hash(**semantic, policy_version=policy_version)
+            legacy_hash = _request_hash(**semantic)
+
             # (1) Idempotency by (tenant, key) via request_hash: same key + same request ⇒ replay
             # the original authoritative result; same key + different request ⇒ conflict.
             existing = await conn.fetchrow(
@@ -705,9 +1092,23 @@ async def review_decision(
                 idempotency_key,
             )
             if existing is not None:
-                if existing["request_hash"] == request_hash:
-                    return _authoritative_review(existing, replay=True)
+                if existing["request_hash"] == request_hash or (
+                    # A review saved before the policy version entered the hash replays only
+                    # under the policy version it recorded.
+                    existing["request_hash"] == legacy_hash
+                    and existing.get("policy_version") == policy_version
+                ):
+                    return _reviewed(existing, replay=True)
                 return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+
+            # (1b) The separation-of-duties refusal (computed in step 0).
+            if verdict is not None and not verdict["allowed"]:
+                return {
+                    "status": "forbidden",
+                    "reason": "separation_of_duties_violation",
+                    "refusal": verdict["refusal"],
+                    "message": verdict["message"],
+                }
 
             # (2) Atomic conditional transition on the dedicated review_state column. Evidence
             # (decision_value) untouched.
@@ -768,7 +1169,7 @@ async def review_decision(
                     tenant_id,
                     action,
                     new_state,
-                    reason,
+                    stored_reason,
                     reviewed_by,
                     candidate_lineage_id,
                     idempotency_key,
@@ -791,9 +1192,10 @@ async def review_decision(
                     "action": action,
                     "new_state": new_state,
                     "review_id": review_row["review_id"],
+                    **({"self_approval": self_approval} if self_approval else {}),
                 },
             )
-            return _authoritative_review(review_row, replay=False)
+            return _reviewed(review_row, replay=False)
     finally:
         await conn.close()
 
@@ -1232,8 +1634,12 @@ async def create_execution_plan(
                 return {"status": "conflict", "reason": "candidate_lineage_mismatch"}
             if source["review_id"] != review_id:
                 return {"status": "conflict", "reason": "review_id_mismatch"}
+            # Fail closed on a NULL approved digest (a pre-035 approval bound no version): a plan
+            # may only derive from an approval of the exact version the record carries.
             approved = source["approved_decision_value_digest"]
-            if approved is not None and approved != source["decision_value_digest"]:
+            if not approved:
+                return {"status": "conflict", "reason": "decision_version_unbound"}
+            if approved != source["decision_value_digest"]:
                 return {"status": "conflict", "reason": "decision_version_mismatch"}
             if payload.operation_type == "manual_irrigation":
                 violation = _manual_irrigation_plan_violation(source, payload)
@@ -1463,8 +1869,8 @@ async def authorize_dispatch(
             source = await conn.fetchrow(
                 """
                 SELECT p.execution_plan_id, p.decision_id, p.review_id,
-                       p.candidate_lineage_id, p.status AS plan_state,
-                       d.review_state, r.new_state
+                       p.candidate_lineage_id, p.status AS plan_state, p.planned_end,
+                       d.review_state, r.new_state, r.reviewed_by
                   FROM decision_execution_plans p
                   JOIN decision_record d
                     ON d.tenant_id=p.tenant_id AND d.decision_id=p.decision_id
@@ -1488,6 +1894,11 @@ async def authorize_dispatch(
                 return {"status": "conflict", "reason": "review_id_mismatch"}
             if source["candidate_lineage_id"] != candidate_lineage_id:
                 return {"status": "conflict", "reason": "candidate_lineage_mismatch"}
+            if _plan_expired(source.get("planned_end"), datetime.now(UTC)):
+                return {"status": "conflict", "reason": "plan_expired"}
+            # Separation of duties: the reviewer who approved the decision may not authorize it.
+            if separation_of_duties_violation(source.get("reviewed_by"), authorized_by):
+                return {"status": "forbidden", "reason": "separation_of_duties_violation"}
 
             authorization_id = (
                 "dauth_"
@@ -1732,6 +2143,197 @@ async def record_reservation_dispatch_intent(
         await conn.close()
 
 
+# ── Execution request ⇄ approved plan binding (P0: the request carried client-chosen fields) ──
+# A request used to copy target/operation/command from the caller after checking only ids and
+# states, so an approved "irrigate zone A for 20 min" plan could authorize "open valve B for
+# 30 min". These pure helpers bind the request to what the plan actually approved.
+EXECUTION_REQUEST_MAX_AGE_DEFAULT_S = 3600.0
+# (conflict reason, plan constraint keys with factor to base unit, command keys with factor).
+_PLAN_QUANTITY_LIMITS: tuple[
+    tuple[str, tuple[tuple[str, float], ...], tuple[tuple[str, float], ...]], ...
+] = (
+    (
+        "duration_exceeds_plan",
+        (("max_duration_sec", 1.0), ("max_duration_seconds", 1.0), ("max_duration_minutes", 60.0)),
+        (
+            ("duration_sec", 1.0),
+            ("duration_seconds", 1.0),
+            ("duration_min", 60.0),
+            ("duration_minutes", 60.0),
+            ("minutes", 60.0),
+        ),
+    ),
+    (
+        "quantity_exceeds_plan",
+        (("max_irrigation_mm", 1.0), ("max_amount_mm", 1.0)),
+        (("amount_mm", 1.0), ("irrigation_mm", 1.0)),
+    ),
+)
+
+
+def _as_utc(value: Any) -> datetime | None:
+    """timestamptz/ISO text ⇒ aware UTC datetime; anything unreadable ⇒ None."""
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    if not isinstance(value, datetime):
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
+
+
+def _plan_expired(planned_end: Any, now: datetime) -> bool:
+    """True when the plan's approved window has closed. An unreadable bound fails closed."""
+    if planned_end is None:
+        return False
+    end = _as_utc(planned_end)
+    return end is None or now > end
+
+
+def _execution_request_max_age_s() -> float:
+    raw = os.getenv("DECISION_EXECUTION_REQUEST_MAX_AGE_S", "").strip()
+    try:
+        value = float(raw) if raw else EXECUTION_REQUEST_MAX_AGE_DEFAULT_S
+    except ValueError:
+        return EXECUTION_REQUEST_MAX_AGE_DEFAULT_S
+    if not math.isfinite(value) or value <= 0:
+        return EXECUTION_REQUEST_MAX_AGE_DEFAULT_S
+    return value
+
+
+def _command_layers(command_payload: Any) -> list[dict[str, Any]]:
+    """The command envelope and its nested ``payload`` — the two places the adapter reads."""
+    command = _jsonish(command_payload)
+    if not isinstance(command, dict):
+        return []
+    layers = [command]
+    inner = command.get("payload")
+    if isinstance(inner, dict):
+        layers.append(inner)
+    return layers
+
+
+def _layer_values(layers: list[dict[str, Any]], keys: tuple[str, ...]) -> list[Any]:
+    return [layer[k] for layer in layers for k in keys if layer.get(k) not in (None, "")]
+
+
+def _non_negative_number(value: Any) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    number = float(value)
+    return number if math.isfinite(number) and number >= 0 else None
+
+
+# The actuator reads one duration field, ``duration_sec``, and converts nothing. Other spellings on
+# an equipment request are refused here, synchronously, instead of failing later in the receipt:
+# alone they would leave an OPEN without a duration; beside ``duration_sec`` they must agree.
+# (key, factor to seconds). Conversion from minutes belongs to the producer, not to this check.
+_NON_CANONICAL_DURATION_KEYS: tuple[tuple[str, float], ...] = (
+    ("duration_seconds", 1.0),
+    ("duration_min", 60.0),
+    ("duration_mins", 60.0),
+    ("duration_minutes", 60.0),
+    ("durationMinutes", 60.0),
+    ("minutes", 60.0),
+)
+
+
+def _equipment_duration_violation(layers: list[dict[str, Any]]) -> str | None:
+    """Pure: ``non_canonical_duration_field`` / ``conflicting_duration_fields`` / ``None``."""
+    others = [
+        (raw, factor)
+        for key, factor in _NON_CANONICAL_DURATION_KEYS
+        for raw in _layer_values(layers, (key,))
+    ]
+    if not others:
+        return None
+    canonical = _layer_values(layers, ("duration_sec",))
+    if not canonical:
+        return "non_canonical_duration_field"
+    seconds: list[float] = []
+    for raw, factor in [(v, 1.0) for v in canonical] + others:
+        number = _non_negative_number(raw)
+        if number is None:
+            return "conflicting_duration_fields"
+        seconds.append(number * factor)
+    if max(seconds) - min(seconds) > 1e-6:
+        return "conflicting_duration_fields"
+    return None
+
+
+def _execution_request_plan_violation(plan: Any, payload: Any, *, now: datetime) -> str | None:
+    """Pure check: is this request covered by the approved plan? ``None`` or a conflict reason.
+
+    Every value the adapter could act on is checked in both the command envelope and its nested
+    ``payload``, so a permitted value in one layer cannot mask a different one in the other.
+    """
+    if _plan_expired(plan.get("planned_end"), now):
+        return "plan_expired"
+    plan_operation = str(plan.get("plan_operation_type") or "").strip()
+    if str(payload.operation_type or "").strip() != plan_operation:
+        return "operation_type_mismatch"
+
+    layers = _command_layers(payload.command_payload)
+    target_id = str(payload.target_id or "").strip()
+    resources = _jsonish(plan.get("required_resources")) or []
+    plan_targets = {
+        str(r.get(k)).strip()
+        for r in (resources if isinstance(resources, list) else [])
+        if isinstance(r, dict)
+        for k in ("target_id", "device_id")
+        if r.get(k) not in (None, "")
+    }
+    zones_raw = _jsonish(plan.get("target_zone_ids")) or []
+    plan_zones = {str(z).strip() for z in (zones_raw if isinstance(zones_raw, list) else []) if z}
+    # Equipment moves water: a plan that names neither a target nor a zone approved nothing.
+    if payload.target_type != "task" and not plan_targets and not plan_zones:
+        return "plan_target_unbound"
+    if plan_targets and target_id not in plan_targets:
+        return "target_mismatch"
+    command_devices = {str(v).strip() for v in _layer_values(layers, ("device_id", "device"))}
+    if command_devices and command_devices != {target_id}:
+        return "command_target_mismatch"
+    if plan_zones:
+        zones = {str(v).strip() for v in _layer_values(layers, ("zone_id", "field_id"))}
+        if not zones or not zones <= plan_zones:
+            return "target_zone_mismatch"
+
+    if payload.target_type == "equipment":
+        duration_violation = _equipment_duration_violation(layers)
+        if duration_violation:
+            return duration_violation
+
+    constraints = _jsonish(plan.get("constraints")) or {}
+    if not isinstance(constraints, dict):
+        constraints = {}
+    for reason, limit_keys, command_keys in _PLAN_QUANTITY_LIMITS:
+        requested: list[float] = []
+        for key, factor in command_keys:
+            for raw in _layer_values(layers, (key,)):
+                number = _non_negative_number(raw)
+                if number is None:
+                    return "invalid_command_quantity"
+                requested.append(number * factor)
+        if not requested:
+            continue
+        for key, factor in limit_keys:
+            if key not in constraints:
+                continue
+            limit = _non_negative_number(constraints[key])
+            if limit is None:
+                return "plan_quantity_unreadable"
+            if max(requested) > limit * factor:
+                return reason
+        if reason == "duration_exceeds_plan" and plan.get("planned_end") is not None:
+            end = _as_utc(plan.get("planned_end"))
+            if end is None or (end - now).total_seconds() < max(requested):
+                return "duration_exceeds_plan_window"
+    return None
+
+
 async def create_execution_request(
     *, tenant_id: str, dispatch_authorization_id: str, requested_by: str, payload: Any
 ) -> dict[str, Any]:
@@ -1753,7 +2355,9 @@ async def create_execution_request(
                 return _authoritative_execution_request(prior, replay=True)
             auth = await conn.fetchrow(
                 """SELECT a.dispatch_authorization_id,a.execution_plan_id,a.decision_id,a.status,
-                          p.status AS plan_state,d.review_state
+                          p.status AS plan_state,d.review_state,
+                          p.operation_type AS plan_operation_type,p.target_zone_ids,
+                          p.required_resources,p.constraints,p.planned_start,p.planned_end
                      FROM decision_dispatch_authorizations a
                      JOIN decision_execution_plans p ON p.tenant_id=a.tenant_id AND p.execution_plan_id=a.execution_plan_id
                      JOIN decision_record d ON d.tenant_id=a.tenant_id AND d.decision_id=a.decision_id
@@ -1774,6 +2378,9 @@ async def create_execution_request(
                 return {"status": "conflict", "reason": "execution_plan_id_mismatch"}
             if auth["decision_id"] != payload.decision_id:
                 return {"status": "conflict", "reason": "decision_id_mismatch"}
+            violation = _execution_request_plan_violation(auth, payload, now=datetime.now(UTC))
+            if violation:
+                return {"status": "conflict", "reason": violation}
             request_id = (
                 "exec_"
                 + hashlib.sha256(
@@ -1968,6 +2575,26 @@ async def claim_execution_request(
                 return {"status": "conflict", "reason": "execution_request_not_queued"}
             if request["target_type"] != adapter_kind:
                 return {"status": "conflict", "reason": "adapter_kind_mismatch"}
+            # A queued request is a command for *then*: one released hours later (kill-switch
+            # cleared, adapter back online) must not fire. Refuse without a status change — the
+            # schema has no expired state, and 'failed' without a receipt would break the
+            # receipt-backed terminal contract.
+            now = datetime.now(UTC)
+            requested_at = _as_utc(request["requested_at"])
+            if (
+                requested_at is None
+                or (now - requested_at).total_seconds() > _execution_request_max_age_s()
+            ):
+                return {"status": "conflict", "reason": "execution_request_expired"}
+            plan = await conn.fetchrow(
+                "SELECT planned_end FROM decision_execution_plans WHERE tenant_id=$1::uuid AND execution_plan_id=$2",
+                tenant_id,
+                request["execution_plan_id"],
+            )
+            if plan is None:
+                return {"status": "conflict", "reason": "execution_plan_not_found"}
+            if _plan_expired(plan["planned_end"], now):
+                return {"status": "conflict", "reason": "plan_expired"}
             attempt_id = (
                 "del_"
                 + hashlib.sha256(f"{tenant_id}:{execution_request_id}".encode()).hexdigest()[:20]
@@ -2156,6 +2783,31 @@ def _authoritative_execution_outcome(row: Any, *, replay: bool) -> dict[str, Any
     }
 
 
+def _equipment_receipt_evidence_gap(receipt_payload: Any) -> str | None:
+    """Pure check: may an equipment receipt back ``verified_success``? ``None`` or a reason.
+
+    The actuator records its mode and publish result in the receipt payload; a broker publish is
+    not a device acknowledgement, and a simulated publish is not even a publish. Missing evidence
+    fails closed.
+    """
+    receipt = _jsonish(receipt_payload)
+    if not isinstance(receipt, dict):
+        return "receipt_lacks_actuator_evidence"
+    mode = str(receipt.get("actuator_mode") or "").strip().lower()
+    if receipt.get("simulated") not in (None, False) or mode == "simulation":
+        return "receipt_simulated"
+    if mode != "real":
+        return "receipt_not_real_actuator"
+    if receipt.get("published") is not True:
+        return "receipt_not_published"
+    device_acked = (
+        receipt.get("device_ack") is True or receipt.get("delivery_state") == "device_acked"
+    )
+    if receipt.get("publish_only") not in (None, False) or not device_acked:
+        return "receipt_lacks_device_ack"
+    return None
+
+
 async def verify_execution_outcome(
     *, tenant_id: str, execution_request_id: str, verified_by: str, payload: Any
 ) -> dict[str, Any]:
@@ -2178,6 +2830,7 @@ async def verify_execution_outcome(
             source = await conn.fetchrow(
                 """SELECT r.execution_request_id,r.execution_plan_id,r.dispatch_authorization_id,
                           r.decision_id,r.status,r.receipt_id,r.receipt_status,
+                          r.target_type,r.receipt_payload,
                           a.receipt_id AS attempt_receipt_id,
                           a.receipt_status AS attempt_receipt_status
                      FROM decision_execution_requests r
@@ -2214,6 +2867,15 @@ async def verify_execution_outcome(
                 and source["attempt_receipt_status"] == "accepted"
             ):
                 return {"status": "conflict", "reason": "receipt_not_accepted"}
+            # An equipment receipt of "accepted" means only "published to the broker" (or, in
+            # simulation, not even that). Ground truth needs a real actuator and a device ack.
+            if (
+                payload.verification_state == "verified_success"
+                and source.get("target_type") != "task"
+            ):
+                evidence_gap = _equipment_receipt_evidence_gap(source.get("receipt_payload"))
+                if evidence_gap:
+                    return {"status": "conflict", "reason": evidence_gap}
             outcome_id = (
                 "out_"
                 + hashlib.sha256(
@@ -3285,6 +3947,11 @@ async def review_model_activation_request(
             )
             if not request:
                 return {"status": "not_found"}
+            # Separation of duties: the requester may not approve their own model activation.
+            if payload.review_decision == "approved" and separation_of_duties_violation(
+                request["requested_by"], reviewed_by
+            ):
+                return {"status": "forbidden", "reason": "separation_of_duties_violation"}
             existing = await conn.fetchrow(
                 "SELECT * FROM decision_model_activation_reviews WHERE tenant_id=$1::uuid AND activation_request_id=$2",
                 tenant_id,
@@ -4771,6 +5438,7 @@ async def compose_agronomic_context(
                         "snapshot_id": existing["snapshot_id"],
                         "historical_snapshot_id": hid,
                         "feature_manifest_id": mid,
+                        "feature_manifest_hash": manifest_hash,
                         "content_hash": ctx_hash,
                     }
                 return {"status": "conflict", "reason": "context_idempotency_conflict"}
@@ -4865,6 +5533,9 @@ async def compose_agronomic_context(
                 "snapshot_id": sid,
                 "historical_snapshot_id": hid,
                 "feature_manifest_id": mid,
+                # AC-1 requires the decision to pin the manifest hash; return the one stored so
+                # producers never have to recompute the canonical hash themselves.
+                "feature_manifest_hash": manifest_hash,
                 "content_hash": ctx_hash,
                 "feature_count": len(payload.features),
             }
@@ -5097,6 +5768,44 @@ async def _validate_vegetation_reference(
     if season_id and row["season_id"] and season_id != row["season_id"]:
         return "vegetation_season_mismatch"
     return None
+
+
+async def latest_vegetation_snapshot(
+    *, tenant_id: str, field_id: str, season_id: str | None, available_before: datetime
+) -> dict[str, Any]:
+    """AC-6 read: the newest vegetation snapshot for this field (and season, when the snapshot
+    names one) whose data was available at or before the decision cutoff.
+
+    Point-in-time by construction: a snapshot published after the cutoff is never returned, so
+    a producer cannot bind evidence it could not have seen. Read-only; the quality gate is
+    returned as stored and judged by the caller."""
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            row = await conn.fetchrow(
+                """SELECT snapshot_id, field_id, season_id, contract_version, snapshot_hash,
+                          acquisition_at, data_available_at, quality_gate
+                   FROM decision_vegetation_snapshots
+                   WHERE tenant_id=$1::uuid AND field_id=$2
+                     AND ($3::text IS NULL OR season_id IS NULL OR season_id=$3)
+                     AND data_available_at <= $4
+                   ORDER BY data_available_at DESC, acquisition_at DESC, snapshot_id
+                   LIMIT 1""",
+                tenant_id,
+                field_id,
+                season_id,
+                available_before,
+            )
+    finally:
+        await conn.close()
+    if not row:
+        return {"status": "not_found"}
+    out = dict(row)
+    out["quality_gate"] = _jsonish(out["quality_gate"])
+    for k in ("acquisition_at", "data_available_at"):
+        out[k] = _iso(out[k])
+    return {"status": "ok", **out}
 
 
 async def _canonical_snapshot_id(

@@ -5,6 +5,7 @@ crop_id: date_palm
 name_ar: نخيل التمر
 name_en: Date palm
 crop_family: tree_C3
+life_form: perennial  # مُعمِّر: لا نضج/حصاد حوليّ واحد يُشتقّ من تاريخ البذار
 
 kc:
   initial: 0.90
