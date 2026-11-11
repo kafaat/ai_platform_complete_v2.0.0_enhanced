@@ -3,13 +3,13 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-11-09-001",
   "gate_id": "GATE-01",
-  "status": "PENDING_OWNER_SIGNATURE",
-  "status_semantics_ar": "مقترحٌ ينتظر توقيعَ المالك المستقلّ — **ليس تفويضاً**. الحارسُ يقبل `ISSUED` وحدَه، فهذا السجلّ لا يمنح شيئاً، وحارسُ GATE-01 يبقى أحمرَ على هذا الفرع حتّى يُتحقَّق من التوقيع (الحزمة ٣). ولا يُنقَل إلى `ISSUED` بيد الوكيل.",
-  "approved_by": null,
+  "status": "ISSUED",
+  "status_semantics_ar": "صادرٌ بشرط توقيع المالك: هذه البايتات (ومنها هذه الحالة) هي ما يوقّعه المالك في الظرف `docs/architecture/gates/authorizations/GATE01-AUTH-2026-11-11-001.dsse.json` (`bounded_change`). بلا ذلك الظرف مُتحقَّقاً بمفتاح جذر الثقة على الأساس يحجب `gate01_owner_signature_guard` الفرعَ (`required_for_bounded` = true) — فالحالة لا تمنح شيئاً وحدها.",
+  "approved_by": "owner (signature GATE01-AUTH-2026-11-11-001, principal kafaat-gate01-owner)",
   "proposed_on": "2026-11-09",
-  "adjudicated_on": null,
+  "adjudicated_on": "2026-11-11",
   "expires_on": "2026-12-09",
-  "pr": null,
+  "pr": 1367,
   "one_time": true,
   "phase0_baseline_ref": {
     "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
@@ -56,11 +56,12 @@
     "observed_head_sha_at_issue": "40c62ebd3a1d471a722085a4e3ea16b199fc4106"
   },
   "authorization_source": {
-    "kind": "owner_decision_recorded_by_agent_pending_signature",
+    "kind": "owner_signature_bounded_change",
     "owner": "kafaat",
     "owner_decision_on": "2026-11-09",
     "text_ar": "فتح مقيّد الآن",
-    "context_ar": "قرارُ المالك في 2026-11-09: تفويضٌ مقيَّد لإصلاحَي سلامة المُشغِّل وحدَهما (حذف `_dispatch_outcome_status` التي سمّت إقرارَ الوسيط `executed`، ورفض كلّ OPEN بلا `duration_sec`)، منفصلاً عن انتقال السياسة المقترح في المسوّدة #1363 التي تبقى مسوّدة. ثمّ تصحيحُ المالك في اليوم نفسه: لا يُصدِر الوكيلُ لنفسه تفويضاً — يُسجَّل مقترحاً بحالة PENDING_OWNER_SIGNATURE ولا يصير تفويضاً مقبولاً إلّا بعد التحقّق من توقيع المالك المستقلّ."
+    "context_ar": "قرارُ المالك في 2026-11-09: تفويضٌ مقيَّد لإصلاحَي سلامة المُشغِّل وحدَهما (حذف `_dispatch_outcome_status` التي سمّت إقرارَ الوسيط `executed`، ورفض كلّ OPEN بلا `duration_sec`)، منفصلاً عن انتقال السياسة المقترح في المسوّدة #1363 التي تبقى مسوّدة. ثمّ تصحيحُ المالك في اليوم نفسه: لا يُصدِر الوكيلُ لنفسه تفويضاً — يُسجَّل مقترحاً بحالة PENDING_OWNER_SIGNATURE ولا يصير تفويضاً مقبولاً إلّا بعد التحقّق من توقيع المالك المستقلّ.",
+    "decision_id": "GATE01-AUTH-2026-11-11-001"
   },
   "scope_limit_ar": "مسارٌ مجمَّدٌ واحد: services/actuator-service/actuator_runtime.py، بثلاثة تغييرات: (١) حذف `_dispatch_outcome_status` الميتة؛ (٢) رفض كلّ أمرٍ صيغتُه على السلك OPEN بلا `duration_sec` (`open_command_requires_duration_sec`)؛ (٣) `duration_sec` كنسيّ: تهجئةُ مدّةٍ أخرى وحدَها على OPEN ⇒ `non_canonical_duration_field:<field>`، ومدّتان متعارضتان ⇒ `conflicting_duration_fields`. لا يغيّر حالةَ GATE-01 (تبقى CLOSED) ولا gate01_policy.json ولا الحارس، ولا يحمل تغييرات #1363، ولا يمسّ سلوك مفتاح الطوارئ المعتمد في #837 (الإغلاق والتعويض يبقيان محجوبَين ما دام مُشتبَكاً)، ولا يأذن بهجرةٍ أو نشرٍ أو تشغيل عتاد.",
   "why_frozen_paths_ar": "العيبان داخل الملفّ المجمَّد نفسه: الدالّة الميتة وترجمةُ الأمر إلى صيغة السلك (`_to_firmware_wire`) التي تمرّ بها المسارات الأربعة (يدويّ، إرسال، قواعد، تعويض).",
@@ -68,9 +69,9 @@
   "honesty_limit_ar": "الشواهد محلّيّة: أجنحة المُشغِّل والـkillswitch والـoutbox/claim خضراء محلّيّاً. لم يُطبَّق شيءٌ على staging أو الإنتاج، ولا خدمة actuator منشورة. البرنامجُ الثابت لم يُعدَّل: تكرارُ OPEN بـts جديد أثناء فتح الصمّام لا يُجدِّد سقفَ الثلاثين دقيقة لكنّه يستبدل المدّة المطلوبة المقيسة من لحظة الفتح الأولى.",
   "provenance_honesty": {
     "record_authored_by": "agent-for-current-user-instruction",
-    "independently_signed": false,
+    "independently_signed": "pending: true only once GATE01-AUTH-2026-11-11-001 verifies on the trusted base",
     "guard_binds": "bytes_only",
-    "becomes_authorization_when_ar": "فقط بعد التحقّق من توقيع المالك المستقلّ (الحزمة ٣، قيد البناء)، وعندها تُنقَل الحالة إلى ISSUED ويُعاد ربطُ head/tree.",
+    "becomes_authorization_when_ar": "عند التحقّق من الظرف GATE01-AUTH-2026-11-11-001 بمفتاح المالك المثبَّت في `owner_allowed_signers` على الأساس (#1372). بلا الظرف يبقى الحارس أحمر.",
     "note_ar": "سجلٌّ يكتبه الوكيل لقرار المالك، لا توقيعٌ مستقلّ (GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01 مفتوحة). ولذلك حالته PENDING_OWNER_SIGNATURE لا ISSUED، وحارسُ GATE-01 يحجب هذا الفرع حتّى التوقيع — وذلك متوقَّعٌ وصحيح."
   }
 }
