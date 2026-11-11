@@ -16325,7 +16325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "754036fba12a018f9314e9a6b2b0561d6abed7259869426e7be2a4c14d82cc14"
+          "content": "01797cf440ebfa23127489a7fb4ff74e37c0c92dcf5bcea338c17d7069c3b55d"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -16415,7 +16415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "91b11730836371766072f676922a15114ee8cad630200217b34fb5ad493ee9d7"
+          "content": "d015b2056fa829c76edd70e9c29013e498692d63fbc762f5ca45bde94a833091"
         }
       ],
       "name": "services/actuator-service/test_actuator_delivery_state_20261103.py",
@@ -16445,7 +16445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7565cd2857209584683b0cfd58b7d009260ed914bec8f6f612eefde646c8ae4"
+          "content": "f29c394eea9814ee8d15f951984708ed0df6215cae0beb3b13798932daec193b"
         }
       ],
       "name": "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -16465,7 +16465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5a91ef4420da50677c212340beb673dd89e9092d2f9c8ec55b8b795dc52de0cc"
+          "content": "51bd2e3ab26f8a9f236a646ca5e90c3e01222f7b3ada66b4a966615fc6ac0eaa"
         }
       ],
       "name": "services/actuator-service/test_dispatch_bridge.py",
@@ -18025,7 +18025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8bb29ec73f0394a19a86ee98fb5c6bc6c2e4595696e3f9ce02fb5a6a66568f5d"
+          "content": "2a9b297256ed932bc8e78a39cd9cb4a592bede9afe208ff911ae55d9a88dedb6"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -18335,7 +18335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d1b052d5686d14f3a55acb20965069a988d7956b3ecd7063973deac2cc721cbd"
+          "content": "7910799d7dc0dcd0eb37403ede4bd878cec0e44d6624f9b4e63b38d098bb6d1d"
         }
       ],
       "name": "services/decision-service/tests/test_execution_request_plan_binding.py",
@@ -27335,7 +27335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "210abc747742e7f5b2d0bbf6c8edcff8d957115cbbd39b4271a94558231918e3"
+          "content": "a46d7e0c0d6cb08daa7a10392b80795382aa0bc6aa030f1b61bd13c2736de4a6"
         }
       ],
       "name": "services/sahool-platform/core/actuator_command.py",
@@ -31165,7 +31165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cdd258b0a06efc02ec8c794033adc3ce0dafcb57e739005dfddd843b52aede9b"
+          "content": "74d4af8d52136f63876ab52a3bf651de294fecbb4a3c1f943dfd2d2b8b14f24c"
         }
       ],
       "name": "services/sahool-platform/tests/test_actuator_command.py",
