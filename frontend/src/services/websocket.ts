@@ -64,6 +64,20 @@ class WebSocketService {
   // الاتصالَ بإطار إقرار صريح (auth_ok/authenticated) بعد إطار auth — لا على مجرّد
   // ورود أوّل إطار — فلا تُبَثّ رسائل قبل تحقّق الخادم من الـJWT.
   private authed = false;
+  private connectionListeners = new Set<() => void>();
+
+  subscribeConnection(listener: () => void): () => void {
+    this.connectionListeners.add(listener);
+    return () => { this.connectionListeners.delete(listener); };
+  }
+
+  isAuthenticatedConnection(): boolean {
+    return this.authed && this.isConnected();
+  }
+
+  private notifyConnection(): void {
+    this.connectionListeners.forEach(listener => listener());
+  }
   // صندوق صادر محدود (Phase 3): يحفظ الرسائل المُرسَلة بينما القناة ليست OPEN
   // (إعادة اتصال/إقلاع) ويُفرِّغها عند الفتح، بدل إسقاطها صامتةً. فقدان أمر
   // تشغيليّ (ريّ/صمام/مضخّة) صامتاً أخطر من تأخيره. محدود بسقفٍ لتجنّب نموّ
@@ -106,7 +120,8 @@ class WebSocketService {
           clearTimeout(this.reconnectTimer);
           this.reconnectTimer = null;
         }
-        this.authed = false; // لم يُقِرّ الخادمُ المصادقةَ بعد.
+        this.authed = false;
+        this.notifyConnection(); // لم يُقِرّ الخادمُ المصادقةَ بعد.
         // أوّلاً: أرسل إطار المصادقة قبل أيّ شيء آخر (التوكن في الرسالة الأولى).
         this.ws?.send(JSON.stringify({ type: 'auth', token }));
         // لا نُفرّغ الصندوق هنا: ننتظر إطار إقرار مصادقة صريحاً من الخادم — FE-09.
@@ -136,6 +151,7 @@ class WebSocketService {
           const t = typeof data.type === 'string' ? data.type : '';
           if (AUTH_ACK_TYPES.has(t)) {
             this.authed = true;
+            this.notifyConnection();
             this._flushOutbox();
           }
           return;
@@ -157,6 +173,7 @@ class WebSocketService {
       this.ws.onclose = (e) => {
         this.isConnecting = false;
         this.authed = false;
+        this.notifyConnection();
         if (this.pingInterval) clearInterval(this.pingInterval);
         if (e.code !== 1000 && this.reconnectAttempts < this.maxReconnects) {
           const delay = Math.min(30_000, 2000 * Math.pow(1.5, this.reconnectAttempts));
@@ -268,6 +285,8 @@ class WebSocketService {
     if (this.pingInterval)   clearInterval(this.pingInterval);
     this.ws?.close(1000, 'logout');
     this.ws = null;
+    this.authed = false;
+    this.notifyConnection();
     this.userId = null;
     this.reconnectAttempts = 0;
     this.isConnecting = false;

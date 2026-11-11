@@ -16,7 +16,7 @@
 // الحالات (تحميل/فراغ/خطأ) صريحة: قائمة فارغة ⇒ EmptyState صادق (note_ar من الخادم
 // إن وُجد)؛ 503/403 ⇒ ErrorState. شارة النضج alpha صريحة. RTL · ds.
 // ═══════════════════════════════════════════════════════════════
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, FeatureGroup } from 'react-leaflet';
 import DrawControl from '../components/maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import type * as GeoJSONNS from 'geojson';
@@ -26,7 +26,7 @@ import {
   SlidersHorizontal, MapPin, Trash2, Download, Save, Plus,
 } from 'lucide-react';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldPrescriptions, useCreatePrescription } from '../hooks/useApi';
+import { useFieldPrescriptions, useCreatePrescription, useSeasons } from '../hooks/useApi';
 import { asApiError, exportPrescriptionShapefile } from '../services/api';
 import type { SavedPrescription, SavedPrescriptionZone } from '../services/api';
 import { geomToPolygon, areaSqMeters } from '../lib/geo';
@@ -115,6 +115,7 @@ export default function PrescriptionBuilderPage() {
 
   // مناطق المسوّدة (يرسمها المستخدِم) + بياناتها — مصدر الحقيقة قبل الحفظ.
   const [fg, setFg] = useState<L.FeatureGroup | null>(null);
+  const captureGroup = useCallback((group: L.FeatureGroup | null) => setFg(group), []);
   const [zones, setZones] = useState<DraftZone[]>([]);
   const [name, setName] = useState('');
   const [productType, setProductType] = useState<'seed' | 'fertility'>('seed');
@@ -122,6 +123,12 @@ export default function PrescriptionBuilderPage() {
 
   // الوصفات المحفوظة + التصدير المُختار.
   const listQ = useFieldPrescriptions(fieldId, !!fieldId);
+  const seasonsQ = useSeasons(fieldId || undefined);
+  const [seasonSelection, setSeasonSelection] = useState({ fieldId: '', seasonId: '' });
+  const seasons = (seasonsQ.data ?? []).filter(s => s.field_id === fieldId);
+  const seasonId = seasonSelection.fieldId === fieldId && seasons.some(s => s.season_id === seasonSelection.seasonId)
+    ? seasonSelection.seasonId : '';
+  const saveAttempt = useRef<{ fingerprint: string; id: string } | null>(null);
   const createM = useCreatePrescription(fieldId);
   const [selectedRxId, setSelectedRxId] = useState<string>('');
 
@@ -134,7 +141,7 @@ export default function PrescriptionBuilderPage() {
         const id = L.stamp(layer);
         const toGeoJSON = (layer as { toGeoJSON?: () => GeoJSONNS.Feature }).toGeoJSON;
         let gj: GeoJSONNS.Feature | null;
-        try { gj = toGeoJSON?.() ?? null; } catch { gj = null; }
+        try { gj = toGeoJSON?.call(layer) ?? null; } catch { gj = null; }
         const geom = gj?.geometry;
         if (!geom || (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon')) return;
         const existing = prev.find((z) => z.id === id);
@@ -162,13 +169,29 @@ export default function PrescriptionBuilderPage() {
     setZones([]);
     setName('');
     setSaveError('');
+    saveAttempt.current = null;
   };
 
+  useEffect(() => {
+    clearDraft();
+    // Reset on external field changes too; geometry belongs to exactly one field.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldId]);
+
   // التحقّق قبل الحفظ: اسم + منطقة واحدة على الأقلّ بمعدّل رقميّ صالح.
-  const ratesValid = zones.length > 0 && zones.every((z) => z.rate.trim() !== '' && Number.isFinite(Number(z.rate)));
+  const ratesValid = zones.length > 0 && zones.every((z) => z.rate.trim() !== '' && Number.isFinite(Number(z.rate)) && Number(z.rate) >= 0);
+  // The season is optional: the server's default ('audit') accepts a prescription with no
+  // season, and only an 'enforce' deployment rejects it — with its own explicit error. So a
+  // field without a season (or a failed seasons fetch) must not block saving here.
   const canSave = !!fieldId && name.trim() !== '' && ratesValid && !createM.isPending;
+  const draftFingerprint = JSON.stringify({ fieldId, seasonId, name: name.trim(), productType, zones: zones.map(z => [z.geometry, Number(z.rate), z.unit.trim() || DEFAULT_UNIT[productType]]) });
+  const latestDraft = useRef(draftFingerprint);
+  latestDraft.current = draftFingerprint;
 
   const handleSave = () => {
+    if (!canSave) return;
+    if (saveAttempt.current?.fingerprint !== draftFingerprint) saveAttempt.current = { fingerprint: draftFingerprint, id: makeId() };
+    const submittedFingerprint = draftFingerprint;
     setSaveError('');
     const payloadZones: SavedPrescriptionZone[] = zones.map((z) => ({
       geometry: z.geometry,
@@ -176,9 +199,9 @@ export default function PrescriptionBuilderPage() {
       unit: z.unit.trim() || DEFAULT_UNIT[productType],
     }));
     createM.mutate(
-      { prescription_id: makeId(), name: name.trim(), product_type: productType, zones: payloadZones },
+      { prescription_id: saveAttempt.current.id, ...(seasonId ? { season_id: seasonId } : {}), name: name.trim(), product_type: productType, zones: payloadZones },
       {
-        onSuccess: () => clearDraft(),
+        onSuccess: () => { if (latestDraft.current === submittedFingerprint) clearDraft(); },
         onError: (e) => {
           const status = asApiError(e).response?.status;
           setSaveError(
@@ -258,6 +281,19 @@ export default function PrescriptionBuilderPage() {
 
       {fieldId && (
         <>
+          <Card>
+            <SectionLabel>الموسم المرتبط بالوصفة</SectionLabel>
+            {seasonsQ.isError ? <ErrorState title="تعذّر تحميل المواسم" onRetry={() => { void seasonsQ.refetch(); }} />
+              : seasonsQ.isLoading ? <LoadingState message="جارٍ تحميل المواسم…" />
+              : seasons.length === 0 ? <EmptyState title="لا مواسم لهذا الحقل" hint="تُحفَظ الوصفة بلا موسم. سجّل موسمًا للحقل لربطها به." />
+              : <label>الموسم
+                  <select aria-label="الموسم المرتبط بالوصفة" value={seasonId}
+                    onChange={e => setSeasonSelection({ fieldId, seasonId: e.target.value })}>
+                    <option value="">بلا موسم</option>
+                    {seasons.map(s => <option key={s.season_id} value={s.season_id}>{s.crops.join('، ') || s.season_id} · {s.sowing_date || s.season_id}</option>)}
+                  </select>
+                </label>}
+          </Card>
           {/* الخريطة + أداة رسم المناطق */}
           <Card>
             <SectionLabel>
@@ -271,7 +307,7 @@ export default function PrescriptionBuilderPage() {
               </div>
             )}
             <div style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${T.line}` }}>
-              <MapContainer center={center} zoom={15} style={{ height: 420, width: '100%' }} scrollWheelZoom>
+              <MapContainer key={fieldId} center={center} zoom={15} style={{ height: 420, width: '100%' }} scrollWheelZoom>
                 <TileLayer
                   url={BASEMAP_SAT}
                   attribution="Esri World Imagery"
@@ -279,7 +315,7 @@ export default function PrescriptionBuilderPage() {
                 {polygon && polygon.length >= 3 && (
                   <Polygon positions={polygon} pathOptions={{ color: '#5cbf6e', weight: 2, fill: false }} />
                 )}
-                <FeatureGroup ref={(r: L.FeatureGroup | null) => setFg(r)}>
+                <FeatureGroup ref={captureGroup}>
                   <DrawControl
                     position="topright"
                     onCreated={handleDrawn}

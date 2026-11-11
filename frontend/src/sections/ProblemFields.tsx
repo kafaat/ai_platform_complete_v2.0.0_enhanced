@@ -104,7 +104,7 @@ export default function ProblemFields() {
         const id = String(f.field_id ?? '');
         const ndviRaw = isRealData(f) ? f.ndvi : null;
         const ndviValid =
-          typeof ndviRaw === 'number' && Number.isFinite(ndviRaw) && ndviRaw >= 0 && ndviRaw <= 1;
+          typeof ndviRaw === 'number' && Number.isFinite(ndviRaw) && ndviRaw >= -1 && ndviRaw <= 1;
         const ndvi = ndviValid ? (ndviRaw as number) : null;
         const ndviGap = ndvi != null ? clamp01(1 - ndvi) : 0;
         const al = alertsByField.get(id) ?? { count: 0, weight: 0 };

@@ -212,8 +212,8 @@ export default function App() {
     } else {
       wsService.disconnect();
     }
-    return () => {};
-  }, [isAuthenticated, user?.id]);
+    return () => wsService.disconnect();
+  }, [isAuthenticated, user?.id, token]);
 
   // R10: تفريغ طابور الرسوم المحفوظة دون اتّصال — عند البدء، وعند تجدّد الجلسة (تغيّر
   // token يُعيد التشغيل)، وعند `online`، ودوريّاً بـbackoff. استيراد كسول لا يمسّ الحزمة الأولى.

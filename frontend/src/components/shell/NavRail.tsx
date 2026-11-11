@@ -12,7 +12,7 @@ import {
   Leaf, LogOut, User, ChevronLeft, ChevronRight, Shield, ChevronDown,
 } from 'lucide-react';
 import { useAuthStore } from '../../hooks/useAuth';
-import { wsService } from '../../services/websocket';
+import ConnectionStatus from '../ConnectionStatus';
 import { canAccess } from '../../lib/permissions';
 import { NAV_SECTIONS, ALL_ROUTES, pageForPath, maturityBadge, type RouteDef } from '../../lib/routes';
 import { isPageEnabled } from '../../lib/featureFlags';
@@ -28,7 +28,6 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
   const { user, logout, isDemoMode } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const wsOk = wsService.isConnected();
   const featureRegistry = useFeatureRegistry();
   // الصفحة النشطة من مسار URL الحاليّ (مصدر الحقيقة للتمييز).
   const activePage = pageForPath(location.pathname);
@@ -53,12 +52,8 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
       <button key={item.id} onClick={() => go(item)}
         aria-current={active ? 'page' : undefined}
         title={collapsed ? item.label : undefined}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all"
-        style={{
-          background: active ? 'rgba(var(--sahool-green), 0.16)' : 'transparent',
-          borderRight: active ? '3px solid rgb(var(--sahool-green))' : '3px solid transparent',
-          color: active ? 'rgb(var(--sahool-green-light))' : 'rgb(var(--sahool-muted))',
-        }}>
+        className="ops-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all"
+        >
         <Icon className="w-4 h-4 shrink-0" />
         {!collapsed && (
           <>
@@ -86,10 +81,10 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
   const allowed = (r: RouteDef) => isPageEnabled(r.id) && isRuntimePageEnabled(r.id, featureRegistry) && canAccess(user?.role, r.id) && !r.hidden;
 
   return (
-    <aside className="flex flex-col h-full" style={{
+    <aside className="ops-nav flex flex-col h-full" style={{
       width: collapsed ? 64 : 240,
-      background: 'rgb(var(--sahool-surface))',
-      borderLeft: '1px solid rgb(var(--sahool-border))',
+
+
       flexShrink: 0,
       transition: 'width .3s',
     }}>
@@ -100,11 +95,8 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
         </div>
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <div className="text-emerald-400 font-bold text-sm">سهول</div>
-            <div className="flex items-center gap-1 text-[10px]">
-              <span className={`w-1.5 h-1.5 rounded-full ${wsOk ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
-              <span className="text-slate-500">{wsOk ? 'NATS متصل' : 'offline'}</span>
-            </div>
+            <div className="ops-brand-title">سهول</div>
+            <span className="ops-brand-caption">مركز العمليات الزراعية</span>
           </div>
         )}
         <button onClick={() => setCollapsed(!collapsed)}
@@ -125,7 +117,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
       {/* التنقّل — مُرشَّح حسب الدور وعلم الميزة (لا تظهر صفحة محجوبة).
           مطويّ: كلّ العناصر المسموح بها كأيقونات (بلا رؤوس أقسام).
           مفتوح: أقسام قابلة للطيّ؛ قسم بلا عناصر مسموح بها يُخفى بالكامل. */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+      <nav aria-label="التنقل الرئيسي" className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {collapsed
           ? ALL_ROUTES.filter(allowed).map(renderItem)
           : NAV_SECTIONS.map((section) => {
@@ -135,6 +127,8 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
               return (
                 <div key={section.id} className="pt-1">
                   <button
+                    aria-expanded={!!open}
+                    aria-controls={`nav-section-${section.id}`}
                     onClick={() => setOpenSections((s) => ({ ...s, [section.id]: !s[section.id] }))}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-300 transition-colors">
                     <span className="text-[11px] font-semibold tracking-wide flex-1 text-right">{section.label}</span>
@@ -142,7 +136,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
                       style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }} />
                   </button>
                   {open && (
-                    <div className="space-y-0.5 mt-0.5">
+                    <div id={`nav-section-${section.id}`} className="space-y-0.5 mt-0.5">
                       {items.map(renderItem)}
                     </div>
                   )}
@@ -151,6 +145,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
             })}
       </nav>
 
+      {!collapsed && <div className="ops-nav-status"><ConnectionStatus /></div>}
       {/* المستخدم */}
       {!collapsed && (
         <div className="px-3 py-4 border-t border-slate-800">
@@ -164,7 +159,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
                 <Shield className="w-2.5 h-2.5" />{user?.role || 'viewer'}
               </div>
             </div>
-            <button onClick={logout} title="خروج"
+            <button onClick={logout} title="خروج" aria-label="تسجيل الخروج"
               className="p-1 hover:text-red-400 text-slate-500 transition-colors">
               <LogOut className="w-3.5 h-3.5" />
             </button>

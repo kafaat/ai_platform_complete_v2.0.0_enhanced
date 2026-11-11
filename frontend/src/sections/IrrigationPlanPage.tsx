@@ -4,7 +4,7 @@
 // لا تعرض «ما الخطّة؟» فقط بل «لماذا هذه الخطّة؟» + أثر السياسة + المخاطر + الميزانيّة.
 // صدق: ما لا يملك الخادم بياناته (حرارة/ملوحة) يُعلَن «يحتاج بيانات» لا يُفبرَك.
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Droplets, CalendarRange, AlertTriangle, CloudRain,
   Info, Scale, GitCompare, Gauge,
@@ -61,6 +61,18 @@ export default function IrrigationPlanPage() {
   // مقارنة السيناريوهات (نفس البيانات، سياسات مختلفة).
   const [scenarios, setScenarios] = useState<IrrigationPlanResult[] | null>(null);
   const [scenLoading, setScenLoading] = useState(false);
+  const [scenError, setScenError] = useState(false);
+  const [computedFor, setComputedFor] = useState<string | null>(null);
+  const contextKey = JSON.stringify([fieldId, horizon, et0, kc, rain, texture, rootDepth, p, policy, initDepletion, budget, seasonUsed, waterPrice, yieldValue]);
+  const compareRequest = useRef(0);
+  useEffect(() => {
+    compareRequest.current += 1;
+    setComputedFor(null);
+    setScenarios(null);
+    setScenError(false);
+    setScenLoading(false);
+    return () => { compareRequest.current += 1; };
+  }, [contextKey]);
 
   const numOr = (s: string, d: number): number => {
     const n = Number(s);
@@ -87,17 +99,24 @@ export default function IrrigationPlanPage() {
     } as IrrigationPlanInput & { field_id?: string };
   };
 
-  const onCompute = () => { setScenarios(null); mut.mutate(buildPayload()); };
-
-  const onCompare = () => {
-    setScenLoading(true);
-    Promise.all(SCENARIO_POLICIES.map(pol => computeIrrigationPlan(buildPayload(pol))))
-      .then(rs => setScenarios(rs))
-      .catch(() => setScenarios(null))
-      .finally(() => setScenLoading(false));
+  const onCompute = () => {
+    compareRequest.current += 1;
+    setScenarios(null); setScenError(false); setScenLoading(false);
+    setComputedFor(contextKey);
+    mut.mutate(buildPayload());
   };
 
-  const res = mut.data;
+  const onCompare = () => {
+    const activeRequest = ++compareRequest.current;
+    setScenarios(null); setScenError(false);
+    setScenLoading(true);
+    Promise.all(SCENARIO_POLICIES.map(pol => computeIrrigationPlan(buildPayload(pol))))
+      .then(rs => { if (activeRequest === compareRequest.current) setScenarios(rs); })
+      .catch(() => { if (activeRequest === compareRequest.current) { setScenarios(null); setScenError(true); } })
+      .finally(() => { if (activeRequest === compareRequest.current) setScenLoading(false); });
+  };
+
+  const res = computedFor === contextKey ? mut.data : undefined;
 
   // ── اشتقاقات التفسير/المخاطر (من بيانات الخادم فقط) ──
   const clampPct = (n: number): number => Math.max(0, Math.min(100, n));
@@ -221,9 +240,10 @@ export default function IrrigationPlanPage() {
         </div>
       </div>
 
-      {mut.isError && <ErrorState title="تعذّر حساب خطّة الريّ" onRetry={onCompute} />}
+      {computedFor === contextKey && mut.isError && <ErrorState title="تعذّر حساب خطّة الريّ" onRetry={onCompute} />}
 
       {/* Scenario comparison */}
+      {scenError && <ErrorState title="تعذّرت مقارنة سياسات الريّ" detail="لم تكتمل طلبات المقارنة. أعد المحاولة." onRetry={onCompare} />}
       {scenarios && (
         <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
           <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>

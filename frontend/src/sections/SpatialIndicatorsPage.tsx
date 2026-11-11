@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   useIndicatorGrid, useFieldPrescription, useIndicatorsCatalog,
   type GridIndex, type IndicatorGridResponse, type CatalogIndicator,
 } from "../hooks/useApi";
+import { fetchFieldImageryAvailableDates, type FieldImageryDateOption } from '../services/api';
 import FieldIndicatorMap from "../components/FieldIndicatorMap";
 import { GradientScale, SegmentedScale, type ScaleBand } from "../components/insights/ScaleLegend";
 import FieldSelector from "../components/FieldSelector";
@@ -191,12 +192,7 @@ function buildIndicatorScale(indexKey: IndexKey): {
 }
 
 const SEV_AR = { high: "🔴 شديد", medium: "🟡 متوسط", low: "🟢 طفيف" };
-const TIMELINE = [
-  { date: "2026-05-22", cloud: 8, q: "صافٍ", sat: "S2" },
-  { date: "2026-05-17", cloud: 35, q: "دمج S1+S2", sat: "S1+S2" },
-  { date: "2026-05-12", cloud: 72, q: "رادار", sat: "S1" },
-  { date: "2026-05-07", cloud: 5, q: "صافٍ", sat: "S2" },
-];
+
 
 export default function SpatialView() {
   const [indexKey, setIndexKey] = useState<IndexKey>("ndvi");
@@ -226,7 +222,19 @@ export default function SpatialView() {
   // إن سقط المؤشّر المختار خارج القائمة المتاحة (تغيّر الكتالوج)، نعود لأوّل متاح.
   const activeKey: IndexKey = indices.includes(indexKey) ? indexKey : indices[0];
 
-  const apiDate = tIdx === 0 ? "latest" : TIMELINE[tIdx].date;
+  const [availableDates, setAvailableDates] = useState<FieldImageryDateOption[]>([]);
+  const [datesContext, setDatesContext] = useState('');
+  const [datesError, setDatesError] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    setTIdx(0); setAvailableDates([]); setDatesError(false);
+    if (fieldId) fetchFieldImageryAvailableDates(fieldId, activeKey).then((dates) => {
+      if (alive) { setAvailableDates(dates); setDatesContext(`${fieldId}:${activeKey}`); }
+    }).catch(() => { if (alive) setDatesError(true); });
+    return () => { alive = false; };
+  }, [fieldId, activeKey]);
+  const timeline = [{ date: 'latest', cloud_pct: null }, ...(datesContext === `${fieldId}:${activeKey}` ? availableDates : [])];
+  const apiDate = timeline[tIdx]?.date ?? 'latest';
   const { data: gridResp, isLoading, isError } = useIndicatorGrid(
     fieldId,
     activeKey as GridIndex,
@@ -464,9 +472,9 @@ export default function SpatialView() {
 
           {/* الشريط الزمني */}
           <div style={{ marginTop: 18 }}>
-            <div style={{ fontSize: 12, color: "#7fae8c", marginBottom: 8, fontWeight: 600 }}>الشريط الزمني · مقارنة</div>
+            <div style={{ fontSize: 12, color: "#7fae8c", marginBottom: 8, fontWeight: 600 }}>الشريط الزمني · مقارنة</div>{datesError && <p role="alert">تعذّر تحميل التواريخ المتاحة. لا تُعرض تواريخ مفترضة.</p>}
             <div style={{ display: "flex", gap: 8 }}>
-              {TIMELINE.map((t, i) => (
+              {timeline.map((t, i) => (
                 <button key={i} onClick={() => { setTIdx(i); setSelectedZone(null); }}
                   style={{
                     flex: 1, padding: "8px 6px", borderRadius: 8, cursor: "pointer",
@@ -474,9 +482,9 @@ export default function SpatialView() {
                     background: tIdx === i ? "#1f3a2a" : "transparent",
                     fontFamily: "inherit",
                   }}>
-                  <div style={{ fontSize: 11, color: "#e8eee9", fontWeight: 600 }}>{t.date.slice(5)}</div>
-                  <div style={{ fontSize: 9, color: t.cloud > 20 ? "#d4a017" : "#7fae8c", marginTop: 2 }}>
-                    ☁ {t.cloud}% · {t.q}
+                  <div style={{ fontSize: 11, color: "#e8eee9", fontWeight: 600 }}>{t.date === 'latest' ? 'أحدث قراءة' : t.date}</div>
+                  <div style={{ fontSize: 9, color: (t.cloud_pct ?? 0) > 20 ? "#d4a017" : "#7fae8c", marginTop: 2 }}>
+                    {t.cloud_pct == null ? 'السحب: غير متاحة' : `☁ ${t.cloud_pct}%`}
                   </div>
                 </button>
               ))}

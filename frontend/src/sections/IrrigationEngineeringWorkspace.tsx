@@ -3,10 +3,11 @@ import { IRRIGATION_ENGINEERING_SECTIONS, type IrrigationEngineeringSummary } fr
 type Props = {
   summary?: IrrigationEngineeringSummary | null;
   onCalculate?: () => void;
+  calculateDisabled?: boolean;
   onConfirmManualExecution?: () => void;
 };
 
-export function IrrigationEngineeringWorkspace({ summary, onCalculate, onConfirmManualExecution }: Props) {
+export function IrrigationEngineeringWorkspace({ summary, onCalculate, calculateDisabled = false, onConfirmManualExecution }: Props) {
   return (
     <section aria-label="Vendor-neutral irrigation engineering workspace" className="space-y-4">
       <header>
@@ -16,9 +17,10 @@ export function IrrigationEngineeringWorkspace({ summary, onCalculate, onConfirm
       <nav aria-label="Irrigation engineering sections" className="flex flex-wrap gap-2">
         {IRRIGATION_ENGINEERING_SECTIONS.map((section) => <span key={section} className="rounded-sm border px-2 py-1 text-xs">{section}</span>)}
       </nav>
-      {!summary ? (
-        <button type="button" onClick={onCalculate}>احسب قابلية النظام</button>
-      ) : (
+      <button type="button" disabled={calculateDisabled || !onCalculate} onClick={onCalculate}>
+        {summary ? 'أعد حساب قابلية النظام' : 'احسب قابلية النظام'}
+      </button>
+      {summary && (
         <div className="space-y-3">
           <div data-status={summary.status}>الحالة: {summary.status}</div>
           <div>الحجم المستهدف: {summary.manual_operation.target_volume_m3} م³</div>

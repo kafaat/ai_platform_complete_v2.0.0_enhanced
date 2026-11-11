@@ -4,7 +4,7 @@
 // إقرار يُثبَّت على الخادم (useAcknowledgeAlert) تفاؤليّاً، حالات موحّدة
 // (StateViews)، وأزرار محكومة بالدور (RBAC: المُشاهِد لا يُقِرّ/يحذف).
 // ═══════════════════════════════════════════════════════════════
-import { useState, type CSSProperties } from 'react';
+import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { FixedSizeList, type ListChildComponentProps } from 'react-window';
 import { CheckCircle, AlertTriangle, AlertOctagon, Info, Check, X, Zap, Play } from 'lucide-react';
 import { useAlerts, useAcknowledgeAlert, useEvaluateAlerts, useRunAllAlerts } from '../hooks/useApi';
@@ -66,6 +66,9 @@ function relTime(ts?: string): string {
 export function AlertSystemPage() {
   const { user } = useAuthStore();
   const mutateAllowed = canMutate(user?.role);
+  const authScope = `${user?.tenant_id ?? ''}:${user?.id ?? ''}`;
+  const authScopeRef = useRef(authScope);
+  authScopeRef.current = authScope;
   const { data, isLoading, isError, refetch } = useAlerts();
   const ackMut = useAcknowledgeAlert();
   const evalMut = useEvaluateAlerts();
@@ -78,6 +81,10 @@ export function AlertSystemPage() {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [evalNote, setEvalNote] = useState<string>('');
   const [runAllNote, setRunAllNote] = useState<string>('');
+  const [ackError, setAckError] = useState('');
+  useEffect(() => {
+    setAckIds(new Set()); setDismissedIds(new Set()); setAckError('');
+  }, [user?.tenant_id, user?.id]);
 
   // قائمة الحقول لمنتقي التقييم — مُطبَّعة عبر useSelectedField (FieldView source).
   const runEvaluate = () => {
@@ -143,9 +150,13 @@ export function AlertSystemPage() {
   );
 
   const acknowledge = (id: string) => {
-    if (!mutateAllowed) return;
-    setAckIds(prev => new Set(prev).add(id)); // تفاؤليّ
-    ackMut.mutate(id);                          // تثبيت على الخادم (best-effort)
+    if (!mutateAllowed || ackMut.isPending) return;
+    setAckError('');
+    const scope = authScope;
+    ackMut.mutate(id, {
+      onSuccess: () => { if (authScopeRef.current === scope) setAckIds(prev => new Set(prev).add(id)); },
+      onError: () => { if (authScopeRef.current === scope) setAckError('تعذّر تثبيت إقرار التنبيه. بقي التنبيه نشطًا؛ أعد المحاولة.'); },
+    });
   };
   const dismiss = (id: string) => {
     if (!mutateAllowed) return;
@@ -188,7 +199,7 @@ export function AlertSystemPage() {
           </div>
           {mutateAllowed && !a.acknowledged && (
             <div className="flex gap-1.5">
-              <button onClick={() => acknowledge(a.id)} title="إقرار"
+              <button disabled={ackMut.isPending} onClick={() => acknowledge(a.id)} title="إقرار"
                 className="p-1.5 rounded-lg hover:bg-emerald-950 text-slate-400 hover:text-emerald-400 transition-colors">
                 <Check className="w-4 h-4" />
               </button>
@@ -205,6 +216,7 @@ export function AlertSystemPage() {
 
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
+      {ackError && <p role="alert" className="text-red-400">{ackError}</p>}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-100">نظام التنبيهات</h2>
@@ -286,7 +298,7 @@ export function AlertSystemPage() {
       {filtered.length === 0 ? (
         <EmptyState
           icon={<CheckCircle className="w-10 h-10 text-emerald-700" />}
-          title="لا توجد تنبيهات نشطة 🎉"
+          title={filter !== 'all' ? "لا توجد تنبيهات تطابق المرشح" : "لا توجد تنبيهات في العرض الحالي"}
           hint={apiAlerts.length === 0 ? 'لا تنبيهات واردة من الخدمة حاليّاً' : undefined}
         />
       ) : filtered.length <= VIRTUALIZE_THRESHOLD ? (

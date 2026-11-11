@@ -37,6 +37,12 @@ const feature: DrawFeature = {
 
 describe('v41 offline drawing drafts and sync queue', () => {
   beforeEach(() => {
+    window.sessionStorage.setItem('sahool_access_token', 'test-token');
+    window.sessionStorage.setItem('sahool_tenant_id', 'test-tenant');
+    window.sessionStorage.setItem('sahool_user', JSON.stringify({ id: 'test-user' }));
+    const scope = encodeURIComponent(JSON.stringify(['test-tenant', 'test-user']));
+    window.localStorage.removeItem(`${DRAWING_DRAFTS_STORAGE_KEY}:owner:${scope}`);
+    window.localStorage.removeItem(`${DRAWING_SYNC_QUEUE_STORAGE_KEY}:owner:${scope}`);
     window.localStorage.removeItem(DRAWING_DRAFTS_STORAGE_KEY);
     window.localStorage.removeItem(DRAWING_SYNC_QUEUE_STORAGE_KEY);
   });

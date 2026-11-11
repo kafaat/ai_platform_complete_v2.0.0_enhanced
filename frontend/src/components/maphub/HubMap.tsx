@@ -120,7 +120,7 @@ function measureLayer(layer: L.Layer): Measurement | null {
   const id = L.stamp(layer);
   const toGeoJSON = (layer as { toGeoJSON?: () => GeoJSON.Feature }).toGeoJSON;
   let gj: GeoJSON.Feature | null;
-  try { gj = toGeoJSON?.() ?? null; } catch { gj = null; }
+  try { gj = toGeoJSON?.call(layer) ?? null; } catch { gj = null; }
   const type = gj?.geometry?.type;
   if (type === 'Polygon' || type === 'MultiPolygon') return { id, kind: 'polygon', areaM2: areaSqMeters(gj) };
   if (type === 'LineString' || type === 'MultiLineString') return { id, kind: 'polyline', lengthM: lengthMeters(gj) };

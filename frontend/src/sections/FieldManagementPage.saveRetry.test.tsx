@@ -4,6 +4,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 
+const emptyFields = vi.hoisted(() => ({ fields: [] }));
 const captured = vi.hoisted(() => ({ onSave: null as null | ((d: unknown) => Promise<void>) }));
 const post = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -24,7 +25,7 @@ vi.mock('../services/api', async (orig) => {
 });
 vi.mock('../services/websocket', () => ({ toastStore: { add: toastAdd } }));
 vi.mock('../hooks/useApi', () => ({
-  useFields: () => ({ data: { fields: [] }, isLoading: false, isError: false, refetch: vi.fn() }),
+  useFields: () => ({ data: emptyFields, isLoading: false, isError: false, refetch: vi.fn() }),
   useSimulateSeason: () => ({ mutate: vi.fn(), mutateAsync: vi.fn(), isPending: false, isError: false, data: undefined }),
 }));
 vi.mock('../hooks/useAuth', () => ({ useAuthStore: () => ({ user: { role: 'owner' } }) }));

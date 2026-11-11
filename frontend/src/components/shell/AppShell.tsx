@@ -6,7 +6,8 @@
 // <Routes>). يحلّ محلّ Sidebar+TopBar القديمين. RTL، نفس رموز اللوحة.
 // التنقّل كلّه عبر الراوتر؛ يُغلَق درج الموبايل عند تغيّر المسار.
 // ═══════════════════════════════════════════════════════════════
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { X } from 'lucide-react';
 import { useLocation } from 'react-router';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import type { Theme } from '../../hooks/useTheme';
@@ -14,6 +15,7 @@ import NavRail from './NavRail';
 import ContextBar from './ContextBar';
 import MobileTabBar from './MobileTabBar';
 import CommandPalette from './CommandPalette';
+import '../../styles/operations.css';
 
 interface AppShellProps {
   theme: Theme;
@@ -28,12 +30,18 @@ export default function AppShell({ theme, setTheme, tenantName, tenantLogo, chil
   const reduce = useReducedMotion();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const drawer = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (mobileOpen) drawer.current?.showModal();
+    else drawer.current?.close();
+  }, [mobileOpen]);
 
   // إغلاق درج الموبايل عند تغيّر المسار (تنقّل ناجح).
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ background: 'rgb(var(--sahool-bg))' }}>
+    <div className="ops-shell flex flex-col h-screen overflow-hidden" style={{ background: 'rgb(var(--sahool-bg))' }}>
+      <a className="ops-skip" href="#sahool-main">انتقل إلى المحتوى</a>
       <div className="flex flex-1 overflow-hidden">
         {/* شريط التنقّل الثابت — سطح المكتب */}
         <div className="hidden md:flex">
@@ -41,14 +49,11 @@ export default function AppShell({ theme, setTheme, tenantName, tenantLogo, chil
         </div>
 
         {/* درج التنقّل — الموبايل */}
-        {mobileOpen && (
-          <>
-            <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden" onClick={() => setMobileOpen(false)} />
-            <div className="fixed right-0 top-0 h-full z-50 md:hidden">
-              <NavRail collapsed={false} setCollapsed={() => {}} onNavigate={() => setMobileOpen(false)} />
-            </div>
-          </>
-        )}
+        <dialog ref={drawer} className="ops-drawer" aria-label="القائمة الرئيسية"
+          onCancel={() => setMobileOpen(false)} onClose={() => setMobileOpen(false)}>
+          <button className="ops-drawer-close ops-button" aria-label="إغلاق القائمة" onClick={() => setMobileOpen(false)}><X size={20} /></button>
+          <NavRail collapsed={false} setCollapsed={() => setMobileOpen(false)} onNavigate={() => setMobileOpen(false)} />
+        </dialog>
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <ContextBar
@@ -56,7 +61,7 @@ export default function AppShell({ theme, setTheme, tenantName, tenantLogo, chil
             theme={theme} setTheme={setTheme}
             tenantName={tenantName} tenantLogo={tenantLogo}
           />
-          <main className="flex-1 overflow-y-auto sahool-safe-bottom" style={{ padding: 'var(--sahool-page-pad)' }}>
+          <main id="sahool-main" tabIndex={-1} className="flex-1 overflow-y-auto sahool-safe-bottom" style={{ padding: 'var(--sahool-page-pad)' }}>
             {/* انتقال صفحة لطيف (تلاشٍ/انزلاق) مفتاحه مسار URL — مع mode="wait"
                 كي يخرج القديم قبل دخول الجديد. يحترم prefers-reduced-motion
                 (يُلغى التحريك تماماً، فيبقى التبديل فوريّاً بلا حركة). */}

@@ -7,7 +7,7 @@
 // خادميّ حقيقيّ. حالات تحميل/خطأ صريحة. توصية-فقط: لا أمر تنفيذ من هذه الشاشة
 // (التنفيذ اليدويّ المحكوم يمرّ عبر «الريّ التشغيليّ» + مركز القرار). RTL.
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IrrigationEngineeringWorkspace } from './IrrigationEngineeringWorkspace';
 import type { IrrigationEngineeringSummary, IrrigationSystemType } from '../lib/irrigationEngineering';
 import {
@@ -46,8 +46,16 @@ export default function IrrigationEngineeringPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
+  const requestId = useRef(0);
+  useEffect(() => () => { requestId.current += 1; }, []);
+  const set = <K extends keyof FormState>(k: K, v: FormState[K]) => {
+    requestId.current += 1;
     setForm((f) => ({ ...f, [k]: v }));
+    setSummary(null);
+    setError(null);
+    setNotice(null);
+    setLoading(false);
+  };
 
   const area = Number(form.irrigatedAreaHa);
   const depth = Number(form.netDepthMm);
@@ -59,6 +67,7 @@ export default function IrrigationEngineeringPage() {
 
   async function runCalculate() {
     if (!valid || !user?.tenant_id) return;
+    const activeRequest = ++requestId.current;
     setLoading(true);
     setError(null);
     setNotice(null);
@@ -74,12 +83,14 @@ export default function IrrigationEngineeringPage() {
         effectiveRainMm: Number(form.effectiveRainMm) || 0,
         lengthM: form.lengthM ? Number(form.lengthM) : null,
       };
-      setSummary(await calculateIrrigationEngineering(input));
+      const result = await calculateIrrigationEngineering(input);
+      if (activeRequest === requestId.current) setSummary(result);
     } catch (e) {
+      if (activeRequest !== requestId.current) return;
       setError(asApiError(e).message ?? 'تعذّر حساب هندسة الريّ');
       setSummary(null);
     } finally {
-      setLoading(false);
+      if (activeRequest === requestId.current) setLoading(false);
     }
   }
 
@@ -136,7 +147,8 @@ export default function IrrigationEngineeringPage() {
 
       <IrrigationEngineeringWorkspace
         summary={summary}
-        onCalculate={loading ? undefined : runCalculate}
+        onCalculate={runCalculate}
+        calculateDisabled={loading || !valid}
         onConfirmManualExecution={() =>
           setNotice('التنفيذ اليدويّ المحكوم يتمّ عبر «الريّ التشغيليّ» ومركز القرار (بمعرّف تنفيذ)، لا من الحاسبة.')
         }
