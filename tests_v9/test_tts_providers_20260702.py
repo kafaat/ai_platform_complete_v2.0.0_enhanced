@@ -18,6 +18,7 @@ tts-service:
 
 from __future__ import annotations
 
+import importlib
 import sys
 from pathlib import Path
 
@@ -209,8 +210,16 @@ def _require_real_edge_tts():
     (و``_load_main`` قد يعيد استعمال نسخة tts محمّلة بهذا التجميد) ⇒ فيفشل تأكيد
     available=True. الكعب بلا ``__file__`` — نتحقّق من مكتبة حقيقيّة وإلّا نتخطّى.
     """
-    et = pytest.importorskip("edge_tts")
-    if getattr(et, "__file__", None) is None:
+    # One skip reason for both cases. ``importorskip`` would report "could not import
+    # 'edge_tts'" when the library is absent, but the stub reason when a sibling file has
+    # already injected its stub into this xdist worker. Which of the two happens depends
+    # on how xdist distributes the files, so the unit skip inventory guard (which matches
+    # the reason exactly) would turn red or green with the scheduling, not with the code.
+    try:
+        et = importlib.import_module("edge_tts")
+    except ImportError:
+        et = None
+    if et is None or getattr(et, "__file__", None) is None:
         pytest.skip("edge_tts كعبٌ محقون/غائب — لا مكتبة حقيقيّة لتأكيد available=True")
 
 
