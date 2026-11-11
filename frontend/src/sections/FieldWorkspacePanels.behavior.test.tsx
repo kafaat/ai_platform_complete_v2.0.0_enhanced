@@ -11,6 +11,12 @@ import type { ReactNode } from 'react';
 const irrigation = vi.hoisted(() => ({ advice: vi.fn(), schedules: vi.fn() }));
 const tasks = vi.hoisted(() => ({ get: vi.fn() }));
 const timeline = vi.hoisted(() => ({ get: vi.fn() }));
+const connected = vi.hoisted(() => ({ reports: vi.fn(), recommendations: vi.fn() }));
+vi.mock('../services/api', async (original) => ({
+  ...await original<typeof import('../services/api')>(),
+  getFieldReportSummary: connected.reports,
+  fetchFieldRecommendations: connected.recommendations,
+}));
 
 vi.mock('../services/api/fieldIrrigation', () => ({
   getFieldIrrigationAdvice: irrigation.advice,
@@ -52,6 +58,8 @@ beforeEach(() => {
   irrigation.schedules.mockReset().mockResolvedValue([]);
   tasks.get.mockReset();
   timeline.get.mockReset();
+  connected.reports.mockReset();
+  connected.recommendations.mockReset();
 });
 
 describe('UI-W6: cached advice after a failed refetch', () => {
@@ -171,17 +179,46 @@ describe('UI-W6: 401 and the panels the first cases left out', () => {
   });
 });
 
-describe('UI-W7: unwired reports/recommendations tabs say "not connected", not "none"', () => {
-  it('reports tab does not assert an unmeasured empty result', () => {
-    render(<FieldWorkspaceReportsPanel fieldId="f-1" seasonId="s-1" />);
-    expect(screen.getByText('التقارير غير مربوطة بهذه الواجهة بعد')).toBeInTheDocument();
-    expect(screen.queryByText('لا توجد تقارير محفوظة')).not.toBeInTheDocument();
+describe('UI-W7: connected reports and recommendations preserve source/error meaning', () => {
+  it('loads the current field report with its actual identity', async () => {
+    connected.reports.mockResolvedValue({ field_id: 'f-1', name: 'الحقل الفعلي', area_ha: 4, crop: 'قمح', activities_total: 2, activities_by_status: { done: 2 }, recent_alerts: [] });
+    withClient([], <FieldWorkspaceReportsPanel fieldId="f-1" seasonId="historic-season" />);
+    expect(await screen.findByText(/الحقل الفعلي/)).toBeInTheDocument();
+    expect(connected.reports).toHaveBeenCalledWith('f-1');
+    expect(screen.getByText(/ليس ملفاً محفوظاً أو تقريراً تاريخياً/)).toBeInTheDocument();
   });
-
-  it('recommendations tab does not assert an unmeasured empty result', () => {
-    render(<FieldWorkspaceRecommendationsPanel fieldId="f-1" seasonId="s-1" />);
-    expect(screen.getByText('التوصيات غير مربوطة بهذه الواجهة بعد')).toBeInTheDocument();
-    expect(screen.queryByText('لا توجد توصيات موثقة')).not.toBeInTheDocument();
+  it('labels status keys in Arabic and keeps unknown keys visible as-is', async () => {
+    connected.reports.mockResolvedValue({
+      field_id: 'f-1', name: 'الحقل الفعلي', area_ha: 4, crop: 'قمح', activities_total: 4,
+      activities_by_status: { completed: 2, in_progress: 1, novel_state: 1 },
+      recent_alerts: [{ alert_id: 'a1', alert_type: 'frost', title_ar: 'صقيع', message_ar: 'احمِ الشتلات', status: 'acknowledged' }],
+    });
+    withClient([], <FieldWorkspaceReportsPanel fieldId="f-1" />);
+    expect(await screen.findByText('مكتملة: 2')).toBeInTheDocument();
+    expect(screen.getByText('جارية: 1')).toBeInTheDocument();
+    expect(screen.getByText('novel_state: 1')).toBeInTheDocument();
+    expect(screen.getByText('تمّ الاطّلاع')).toBeInTheDocument();
+    expect(screen.queryByText(/^completed/)).not.toBeInTheDocument();
+  });
+  it('does not call a report failure an empty result', async () => {
+    connected.reports.mockRejectedValue(httpError(503));
+    withClient([], <FieldWorkspaceReportsPanel fieldId="f-1" />);
+    expect(await screen.findByText('تعذّر تحميل تقرير الحقل')).toBeInTheDocument();
+    expect(screen.queryByText('لا توجد تنبيهات في آخر استجابة ناجحة.')).not.toBeInTheDocument();
+  });
+  it('shows backend recommendations with their source and review requirement', async () => {
+    connected.recommendations.mockResolvedValue({ field_id: 'f-1', weather_available: true, requires_review: true, recommendations: [{ category: 'irrigation', priority: 'high', title_ar: 'توصية مصدرية', detail_ar: 'راجع الرطوبة', source: 'محرك المنصة' }] });
+    withClient([], <FieldWorkspaceRecommendationsPanel fieldId="f-1" />);
+    expect(await screen.findByText('توصية مصدرية')).toBeInTheDocument();
+    expect(screen.getByText('محرك المنصة')).toBeInTheDocument();
+    expect(screen.getByText('يحتاج مراجعة بشريّة')).toBeInTheDocument();
+    expect(connected.recommendations).toHaveBeenCalledWith('f-1');
+  });
+  it('does not call recommendation failure an empty result', async () => {
+    connected.recommendations.mockRejectedValue(httpError(403));
+    withClient([], <FieldWorkspaceRecommendationsPanel fieldId="f-1" />);
+    expect(await screen.findByText('تعذّر جلب توصيات الحقل')).toBeInTheDocument();
+    expect(screen.queryByText('لا توصيات متاحة')).not.toBeInTheDocument();
   });
 });
 

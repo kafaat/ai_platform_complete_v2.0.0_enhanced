@@ -67,7 +67,14 @@ export default function IrrigationEngineeringCalculator({ fieldId, seasonId }: {
     if (!input) { setError('هوية المستأجر غير متاحة.'); return; }
     setBusy(true); setError(null);
     try { setResult(await calculateInteractiveIrrigation(input)); }
-    catch (e) { setError((e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? 'تعذر تنفيذ الحساب.'); }
+    catch (e) {
+      const detail: unknown = (e as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+      const messages = Array.isArray(detail)
+        ? detail.flatMap(item => item && typeof item === 'object' && 'msg' in item && typeof item.msg === 'string' ? [item.msg] : [])
+        : [];
+      setError(typeof detail === 'string' ? detail : messages.join('، ') || 'تعذر تنفيذ الحساب.');
+      setResult(null);
+    }
     finally { setBusy(false); }
   }
 

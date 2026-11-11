@@ -5,7 +5,7 @@
 // صدق: القيم تقديريّة غير معايَرة؛ مصدر كلّ قيمة مُعلَن (NDVI/الملوحة من الحقل أم الطلب)؛
 // تُعرَض كلّ افتراضات المحرّك ولا تُخفى. لا تُعرَض قيمة لا يردّها الخادم.
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Droplets, Calculator, Info, AlertTriangle, Satellite } from 'lucide-react';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { computeFieldEtcDual, asApiError } from '../services/api';
@@ -29,7 +29,16 @@ export default function EtcDualPage() {
   const [ndviOverride, setNdviOverride] = useState('');
   const [dasOverride, setDasOverride] = useState('');
 
-  const [result, setResult] = useState<EtcDualResult | null>(null);
+  const [storedResult, setResult] = useState<EtcDualResult | null>(null);
+  const result = storedResult?.field_id === fieldId ? storedResult : null;
+  const requestSequence = useRef(0);
+  const currentField = useRef(fieldId);
+  currentField.current = fieldId;
+  useEffect(() => {
+    requestSequence.current += 1;
+    setResult(null); setError(null); setLoading(false);
+    return () => { requestSequence.current += 1; };
+  }, [fieldId]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,16 +67,21 @@ export default function EtcDualPage() {
       ndvi: optNum(ndviOverride),
       days_after_planting: dasParsed === null ? null : Math.max(0, Math.round(dasParsed)),
     };
+    const sequence = ++requestSequence.current;
+    const requestedField = fieldId;
+    const isCurrent = () => requestSequence.current === sequence && currentField.current === requestedField;
+    setResult(null);
     setLoading(true);
     setError(null);
     computeFieldEtcDual(fieldId, payload)
-      .then(r => { setResult(r); })
+      .then(r => { if (isCurrent()) setResult(r); })
       .catch(e => {
+        if (!isCurrent()) return;
         const detail = asApiError(e)?.response?.data?.detail;
         setError(typeof detail === 'string' ? detail : 'تعذّر حساب ETc المزدوج.');
         setResult(null);
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (isCurrent()) setLoading(false); });
   };
 
   const inputCls = 'px-3 py-2 rounded-lg text-sm w-full';

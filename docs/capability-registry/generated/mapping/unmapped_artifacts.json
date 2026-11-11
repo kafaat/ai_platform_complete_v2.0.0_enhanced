@@ -140,6 +140,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/ConnectionStatus.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/FieldDetailPanel.tsx",
     "kind": "web"
   },
@@ -664,6 +668,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/components/maphub/drawing/DrawingSyncScope.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/components/maphub/drawing/PivotDesignerMapHub.static.test.ts",
     "kind": "tests"
   },
@@ -869,6 +877,10 @@
   },
   {
     "path": "frontend/src/hooks/useClimateAnalogs.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useConnectionStatus.ts",
     "kind": "web"
   },
   {
@@ -1460,6 +1472,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/operationsSummary.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/paginated.test.ts",
     "kind": "tests"
   },
@@ -1948,6 +1964,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/IrrigationOpsPage.failures.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/IrrigationOpsPage.tsx",
     "kind": "web"
   },
@@ -1965,6 +1985,10 @@
   },
   {
     "path": "frontend/src/sections/IrrigationWaterPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/LabSamplingPage.auditRepair.test.tsx",
     "kind": "web"
   },
   {
@@ -2124,6 +2148,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/sections/UiSourceRepair.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/UnifiedCabin.tsx",
     "kind": "web"
   },
@@ -2221,10 +2249,6 @@
   },
   {
     "path": "frontend/src/services/api/calibration.ts",
-    "kind": "web"
-  },
-  {
-    "path": "frontend/src/services/api/client.ts",
     "kind": "web"
   },
   {

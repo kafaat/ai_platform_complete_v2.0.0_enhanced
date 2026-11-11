@@ -80,14 +80,14 @@ export function ErrorState({
   onRetry?: () => void;
 }) {
   return (
-    <div className="text-center py-10" dir="rtl" role="alert" aria-live="assertive">
+    <div className="ops-state text-center py-10" dir="rtl" role="alert" aria-live="assertive">
       <AlertTriangle className="w-8 h-8 text-status-critical mx-auto mb-2" aria-hidden="true" />
       <p className="text-sm font-medium text-sahool-text">{title}</p>
       {detail && <p className="text-xs text-sahool-muted mt-1">{detail}</p>}
       {onRetry && (
         <button
           onClick={onRetry}
-          className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-sahool-border text-sm text-sahool-text hover:border-sahool-green focus:outline-hidden focus:ring-2 focus:ring-sahool-border-focus"
+          className="ops-button mt-3"
         >
           <RefreshCw className="w-4 h-4" aria-hidden="true" />
           إعادة المحاولة

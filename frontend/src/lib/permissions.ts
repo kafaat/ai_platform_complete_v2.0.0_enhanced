@@ -134,6 +134,9 @@ const CAPABILITY_MIN_RANK: Record<Capability, number> = {
 const RESOURCE_OVERRIDES: Record<string, number> = {
   'create:farm': ROLE_RANK.owner,   // = canCreateFarm (FARM_CREATE مقصور على OWNER في الخلفيّة)
   'delete:field': ROLE_RANK.owner,  // = roleUiContract.delete_field (owner فقط) — الحذف الحقليّ للمالك
+  // FIELD_EDIT في الخلفيّة لـowner/manager فقط (core/authorization.py) — كتابات رسم الخريطة
+  // (Pivot/Zones) تطلبه، فإظهارها للعامل يعني زرّ حفظ ينتهي بـ403.
+  'edit:field': ROLE_RANK.manager,
   'manage:user': ROLE_RANK.manager, // تغيير الأدوار/الدعوات: owner/manager (= canManage)
   'delete:user': ROLE_RANK.owner,   // إزالة مستخدم: المالك فقط
 };

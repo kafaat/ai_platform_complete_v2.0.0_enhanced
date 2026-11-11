@@ -1,3 +1,4 @@
+import { getAuthScope } from '../../../lib/authStorage';
 import type { DrawFeature } from './drawingTypes';
 
 export type DrawingOfflineOperationType = 'create' | 'update' | 'delete';
@@ -42,6 +43,7 @@ export interface DrawingOfflineQueueItem {
 export interface DrawingOfflineSyncRequestMeta {
   /** ثابت عبر كلّ المحاولات لنفس العملية ⇒ إعادة المحاولة لا تُكرِّر. */
   idempotencyKey: string;
+  ownerScope?: string;
 }
 
 export interface DrawingOfflineSyncClient {
@@ -88,11 +90,21 @@ function getStorage(): Storage | null {
   }
 }
 
+let capturedStorageOwner: string | null = null;
+/** Synchronous preservation after a request clears an expired session. Never used for replay. */
+export function withDrawingOwnerScope<T>(owner: string, operation: () => T): T {
+  const previous = capturedStorageOwner;
+  capturedStorageOwner = owner;
+  try { return operation(); } finally { capturedStorageOwner = previous; }
+}
+
 function readJsonArray<T>(key: string): T[] {
   const storage = getStorage();
   if (!storage) return [];
   try {
-    const raw = storage.getItem(key);
+    const owner = capturedStorageOwner ?? getAuthScope();
+    if (!owner) return [];
+    const raw = storage.getItem(`${key}:owner:${encodeURIComponent(owner)}`);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -103,12 +115,38 @@ function readJsonArray<T>(key: string): T[] {
 
 function writeJsonArray<T>(key: string, value: T[]): void {
   const storage = getStorage();
+  const owner = capturedStorageOwner ?? getAuthScope();
+  if (!storage || !owner) throw new Error('تعذّر حفظ الرسم محليًا: لا توجد جلسة معرّفة أو مساحة تخزين متاحة.');
+  // Legacy unscoped data is deliberately not migrated to a possibly different owner.
+  storage.setItem(`${key}:owner:${encodeURIComponent(owner)}`, JSON.stringify(value));
+}
+
+/**
+ * Drawings queued by a build that stored them under one shared key (no tenant/user scope).
+ * They are never replayed: the owner is unknown, and sending them under whoever is signed in now
+ * is exactly the cross-account replay the scoped storage prevents. They are counted so the map
+ * can tell the user they exist instead of letting them vanish silently.
+ */
+export function countLegacyUnscopedDrawingOperations(): number {
+  const storage = getStorage();
+  if (!storage) return 0;
+  try {
+    const parsed = JSON.parse(storage.getItem(DRAWING_SYNC_QUEUE_STORAGE_KEY) || '[]');
+    return Array.isArray(parsed)
+      ? parsed.filter((item: { status?: string }) => item?.status !== 'synced').length
+      : 0;
+  } catch { return 0; }
+}
+
+/** Explicit user action: drop the legacy unscoped drafts and queue (never sent anywhere). */
+export function discardLegacyUnscopedDrawingData(): void {
+  const storage = getStorage();
   if (!storage) return;
   try {
-    storage.setItem(key, JSON.stringify(value));
-  } catch {
-    // لا نكسر الرسم إذا كان localStorage ممتلئاً أو محجوباً.
-  }
+    storage.removeItem(DRAWING_SYNC_QUEUE_STORAGE_KEY);
+    storage.removeItem(DRAWING_DRAFTS_STORAGE_KEY);
+  } catch { /* storage blocked: nothing to discard */ }
+  emitDrawingSyncEvent(DRAWING_SYNC_CHANGED_EVENT);
 }
 
 export function isLikelyOfflineError(error: unknown): boolean {
@@ -322,6 +360,7 @@ export function syncDrawingQueue(client: DrawingOfflineSyncClient, options: Draw
 }
 
 async function drainDrawingQueue(client: DrawingOfflineSyncClient, options: DrawingOfflineSyncOptions): Promise<DrawingOfflineSyncResult> {
+  const ownerScope = getAuthScope();
   const now = options.now ?? Date.now();
   const due = listDrawingSyncQueue().filter((item) => isDueForSync(item, now, Boolean(options.force)));
   let attempted = 0;
@@ -331,14 +370,16 @@ async function drainDrawingQueue(client: DrawingOfflineSyncClient, options: Draw
   let authRequired = false;
 
   for (const item of due) {
+    if (!ownerScope || getAuthScope() !== ownerScope) { authRequired = true; break; }
     attempted += 1;
     const attemptCount = item.attemptCount + 1;
-    const meta: DrawingOfflineSyncRequestMeta = { idempotencyKey: item.operationId };
+    const meta: DrawingOfflineSyncRequestMeta = { idempotencyKey: item.operationId, ownerScope };
     updateQueueItem(item.id, { status: 'syncing', attemptCount, lastError: undefined });
     try {
       if (item.type === 'create' && item.feature) {
         // معرّف الرسمة يولّده العميل والخادم يعمل upsert عليه ⇒ الإعادة لا تُنشئ نسخة ثانية.
         const saved = await client.create(stripOfflineProps(item.feature), meta);
+        if (getAuthScope() !== ownerScope) { authRequired = true; break; }
         removeOfflineDrawingDraft(item.feature.id);
         if (saved?.id && saved.id !== item.feature.id) removeOfflineDrawingDraft(saved.id);
       } else if (item.type === 'update') {
@@ -350,11 +391,14 @@ async function drainDrawingQueue(client: DrawingOfflineSyncClient, options: Draw
           // 404 على حذف = محذوفة أصلاً (إعادة بعد نجاح لم يُسجَّل) ⇒ نجاح.
           if ((error as { response?: { status?: number } })?.response?.status !== 404) throw error;
         }
+        if (getAuthScope() !== ownerScope) { authRequired = true; break; }
         removeOfflineDrawingDraft(item.featureId);
       }
+      if (getAuthScope() !== ownerScope) { authRequired = true; break; }
       updateQueueItem(item.id, { status: 'synced', syncedAt: nowIso(), authRequired: false, nextAttemptAt: undefined });
       synced += 1;
     } catch (error) {
+      if (getAuthScope() !== ownerScope) { authRequired = true; break; }
       const message = error instanceof Error ? error.message : 'sync failed';
       const kind = classifyDrawingSyncError(error);
       if (kind === 'permanent') {
@@ -380,7 +424,9 @@ async function drainDrawingQueue(client: DrawingOfflineSyncClient, options: Draw
   }
 
   const remaining = listDrawingSyncQueue().filter((item) => item.status !== 'synced').length;
-  emitDrawingSyncEvent(DRAWING_SYNC_CHANGED_EVENT, { synced, failed, remaining });
+  // Only a drain that touched the queue changes what the map shows; an idle periodic run must
+  // not make every listener refetch (MapHub reloads its saved drawings on this event).
+  if (attempted > 0) emitDrawingSyncEvent(DRAWING_SYNC_CHANGED_EVENT, { synced, failed, remaining });
   if (authRequired) {
     emitDrawingSyncEvent(DRAWING_SYNC_AUTH_REQUIRED_EVENT, { pending: remaining });
   }

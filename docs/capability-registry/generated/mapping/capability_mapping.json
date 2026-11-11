@@ -15,21 +15,21 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7105,
+    "files_scanned": 7116,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 89,
       "mobile": 414,
       "other": 2163,
-      "tests": 2371,
-      "web": 506
+      "tests": 2372,
+      "web": 516
     },
-    "unmapped_artifacts": 3382,
-    "ambiguous_artifacts": 234,
+    "unmapped_artifacts": 3388,
+    "ambiguous_artifacts": 233,
     "files_by_reading": {
       "python_functional": 3825,
-      "raw": 3280
+      "raw": 3291
     },
     "test_dependency_files": 1784,
     "test_dependency_edges": 4493,
@@ -3840,6 +3840,14 @@
           ]
         },
         {
+          "path": "frontend/src/sections/SimpleFarmBookPage.operationKey.test.tsx",
+          "score": 14,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "frontend/src/sections/SimpleFarmBookPage.tsx",
           "score": 14,
           "signals": [
@@ -4825,7 +4833,7 @@
         "routes": 44,
         "database": 100,
         "events": 25,
-        "web": 17,
+        "web": 18,
         "mobile": 35,
         "tests": 47,
         "governance": 0,
@@ -10182,6 +10190,14 @@
           ]
         },
         {
+          "path": "frontend/src/components/shell/ContextBar.demoBadge.test.tsx",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "frontend/src/components/fieldview/FieldIntelligenceCardView.tsx",
           "score": 13,
           "signals": [
@@ -10205,14 +10221,6 @@
           "signals": [
             "content:dem",
             "content:slope"
-          ]
-        },
-        {
-          "path": "frontend/src/sections/SetupCabin.tsx",
-          "score": 9,
-          "signals": [
-            "content:dem",
-            "content:terrain"
           ]
         }
       ],
@@ -15224,18 +15232,18 @@
           "score": 11
         },
         {
-          "value": "sahool.drawing.offline.drafts.v1 @ frontend/src/components/maphub/drawing/drawingOfflineSync.ts:10",
-          "score": 8
+          "value": "sahool.drawing.offline.drafts.v1 @ frontend/src/components/maphub/drawing/drawingOfflineSync.ts:11",
+          "score": 9
         },
         {
-          "value": "sahool.drawing.offline.syncQueue.v1 @ frontend/src/components/maphub/drawing/drawingOfflineSync.ts:11",
-          "score": 8
+          "value": "sahool.drawing.offline.syncQueue.v1 @ frontend/src/components/maphub/drawing/drawingOfflineSync.ts:12",
+          "score": 9
         }
       ],
       "web": [
         {
           "path": "frontend/src/components/maphub/drawing/drawingOfflineSync.ts",
-          "score": 8,
+          "score": 9,
           "signals": [
             "content:offline sync",
             "content:sync queue"
@@ -17522,6 +17530,14 @@
             "content:cdse",
             "content:sentinel"
           ]
+        },
+        {
+          "path": "frontend/src/services/api/client.ts",
+          "score": 8,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
         }
       ],
       "mobile": [],
@@ -18755,7 +18771,7 @@
         "routes": 100,
         "database": 5,
         "events": 43,
-        "web": 5,
+        "web": 6,
         "mobile": 0,
         "tests": 54,
         "governance": 0,
@@ -20089,6 +20105,14 @@
           ]
         },
         {
+          "path": "frontend/src/sections/DashboardPage.dataStates.test.tsx",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
           "path": "frontend/src/sections/DashboardPage.tsx",
           "score": 8,
           "signals": [
@@ -20106,6 +20130,14 @@
         },
         {
           "path": "frontend/src/sections/FieldAppPreview.tsx",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
+          "path": "frontend/src/sections/FieldManagementPage.auditRepair.test.tsx",
           "score": 8,
           "signals": [
             "content:NDVI",
@@ -21050,7 +21082,7 @@
         "routes": 43,
         "database": 6,
         "events": 97,
-        "web": 32,
+        "web": 34,
         "mobile": 5,
         "tests": 63,
         "governance": 0,
@@ -30466,6 +30498,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/ConnectionStatus.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/FieldDetailPanel.tsx",
       "kind": "web"
     },
@@ -30990,6 +31026,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/components/maphub/drawing/DrawingSyncScope.test.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/src/components/maphub/drawing/PivotDesignerMapHub.static.test.ts",
       "kind": "tests"
     },
@@ -31195,6 +31235,10 @@
     },
     {
       "path": "frontend/src/hooks/useClimateAnalogs.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/hooks/useConnectionStatus.ts",
       "kind": "web"
     },
     {
@@ -31786,6 +31830,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/lib/operationsSummary.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/lib/paginated.test.ts",
       "kind": "tests"
     },
@@ -32274,6 +32322,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/IrrigationOpsPage.failures.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/IrrigationOpsPage.tsx",
       "kind": "web"
     },
@@ -32291,6 +32343,10 @@
     },
     {
       "path": "frontend/src/sections/IrrigationWaterPage.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/LabSamplingPage.auditRepair.test.tsx",
       "kind": "web"
     },
     {
@@ -32450,6 +32506,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/sections/UiSourceRepair.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/UnifiedCabin.tsx",
       "kind": "web"
     },
@@ -32547,10 +32607,6 @@
     },
     {
       "path": "frontend/src/services/api/calibration.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/services/api/client.ts",
       "kind": "web"
     },
     {
@@ -45858,28 +45914,6 @@
           "signals": [
             "content:true color",
             "content:truecolor"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "frontend/src/sections/SetupCabin.tsx",
-      "kind": "web",
-      "candidates": [
-        {
-          "capability_id": "FM-002",
-          "score": 12,
-          "signals": [
-            "content:farm",
-            "content:farms"
-          ]
-        },
-        {
-          "capability_id": "GIS-003",
-          "score": 9,
-          "signals": [
-            "content:dem",
-            "content:terrain"
           ]
         }
       ]

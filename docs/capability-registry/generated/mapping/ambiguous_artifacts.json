@@ -2007,28 +2007,6 @@
     ]
   },
   {
-    "path": "frontend/src/sections/SetupCabin.tsx",
-    "kind": "web",
-    "candidates": [
-      {
-        "capability_id": "FM-002",
-        "score": 12,
-        "signals": [
-          "content:farm",
-          "content:farms"
-        ]
-      },
-      {
-        "capability_id": "GIS-003",
-        "score": 9,
-        "signals": [
-          "content:dem",
-          "content:terrain"
-        ]
-      }
-    ]
-  },
-  {
     "path": "frontend/src/sections/SpatialIndicatorsPage.tsx",
     "kind": "web",
     "candidates": [

@@ -4,7 +4,7 @@
 // واستهلاك الماء (مسار FAO-56 أماميّ، مُغذّى بدفتر المياه v98 للحقل).
 // صدق: لا غلّة مُلفّقة — أيّام إجهاد/استهلاك ماء فقط؛ مصدر كلّ قيمة مُعلَن (من الدفتر أم الطلب).
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Droplets, GitCompare, Info, AlertTriangle } from 'lucide-react';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { simulateFieldWaterTwin, asApiError } from '../services/api';
@@ -26,9 +26,20 @@ export default function WaterTwinPage() {
   const [delayDays, setDelayDays] = useState(3);
   const [scalePct, setScalePct] = useState(80);
 
-  const [result, setResult] = useState<WaterTwinResult | null>(null);
+  const contextKey = JSON.stringify([fieldId, taw, raw, horizon, baselineIrr, rain, etcOverride, initOverride, kind, delayDays, scalePct]);
+  const [storedResult, setStoredResult] = useState<{ key: string; data: WaterTwinResult } | null>(null);
+  const result = storedResult?.key === contextKey ? storedResult.data : null;
+  const requestId = useRef(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    requestId.current += 1;
+    setStoredResult(null);
+    setLoading(false);
+    setError(null);
+    return () => { requestId.current += 1; };
+  }, [contextKey]);
 
   const numOr = (s: string, d: number): number => {
     const n = Number(s);
@@ -53,14 +64,16 @@ export default function WaterTwinPage() {
     };
     setLoading(true);
     setError(null);
+    const activeRequest = ++requestId.current;
     simulateFieldWaterTwin(fieldId, payload)
-      .then(r => { setResult(r); })
+      .then(r => { if (activeRequest === requestId.current) setStoredResult({ key: contextKey, data: r }); })
       .catch(e => {
+        if (activeRequest !== requestId.current) return;
         const detail = asApiError(e)?.response?.data?.detail;
         setError(typeof detail === 'string' ? detail : 'تعذّرت المحاكاة.');
-        setResult(null);
+        setStoredResult(null);
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (activeRequest === requestId.current) setLoading(false); });
   };
 
   const inputCls = 'px-3 py-2 rounded-lg text-sm w-full';

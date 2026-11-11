@@ -35,6 +35,7 @@ import { fieldRepresentativePoint, geomToPolygon } from '../lib/geo';
 import { kongApi, rasterApi, asApiError, apiErrorMessage, processFieldImageryDate, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fetchHistoricalImageryBackfillStatus, isTerminalBackfillStatus, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, fetchSoilTileJson, soilTileUrl, fetchSoilSamplingPlan, type FieldImageryDateOption, type TerrainTileJson, type FieldContours, type SoilProperty, type SoilTileJson } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore, UNAUTH_TENANT_KEY } from '../hooks/useAuth';
+import { getAuthScope } from '../lib/authStorage';
 import { canMutate } from '../lib/permissions';
 import { availableBasemapLayers, layersOfKind } from '../lib/layerRegistry';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
@@ -127,7 +128,7 @@ import { dateHasPersistedCog } from '../components/maphub/persistedCog';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 import SceneProvenanceCard from '../components/maphub/SceneProvenanceCard';
 import type { DrawFeature } from '../components/maphub/drawing';
-import { buildPivotDrawFeature, summarizePivotDesign, createDrawingFeatureOfflineFirst as createDrawingFeature, listDrawingFeaturesWithOfflineQueue as listDrawingFeatures, isDrawingPendingSync, buildAgriculturalZoneFeature, normalizeFieldGeometryForZone, type AgriculturalZoneKind, type PersistedDrawFeature } from '../components/maphub/drawing';
+import { buildPivotDrawFeature, summarizePivotDesign, createDrawingFeatureOfflineFirst as createDrawingFeature, listDrawingFeaturesWithOfflineQueue as listDrawingFeatures, isDrawingPendingSync, DrawingFeatureReadError, DRAWING_SYNC_CHANGED_EVENT, countLegacyUnscopedDrawingOperations, discardLegacyUnscopedDrawingData, buildAgriculturalZoneFeature, normalizeFieldGeometryForZone, type AgriculturalZoneKind, type PersistedDrawFeature } from '../components/maphub/drawing';
 
 // العرض ثلاثيّ الأبعاد مقسوم بالكود — لا يُحمَّل إلا عند تفعيل وضع التضاريس،
 // فلا يُثقِل الحزمة الأساسيّة (يحوي مستقبلاً maplibre-gl الثقيل).
@@ -313,7 +314,12 @@ function MapHubCore() {
     selectionReason,
   } = useSelectedField({ routeFieldId });
   const { user, tenantId } = useAuthStore();
+  const drawingOwnerScope = getAuthScope();
   const mutateAllowed = canMutate(user?.role);
+  // كتابات الرسم (Pivot/Zones) تتطلّب FIELD_EDIT في الخلفيّة (owner/manager)؛ الدبابيس
+  // يقبلها الخادم من أيّ مستخدم مسجَّل (get_current_user) — فلا تُحجَب عن المُشاهِد.
+  const fieldEditAllowed = canMutate(user?.role, 'field');
+  const pinAllowed = !!user;
 
   const detailQ = useFieldDetail(fieldId || undefined);
 
@@ -412,8 +418,27 @@ function MapHubCore() {
   const [pivotRingCount, setPivotRingCount] = useState(4);
   const [pivotSpanCount, setPivotSpanCount] = useState(8);
   const [pivotDrafts, setPivotDrafts] = useState<DrawFeature[]>([]);
-  const [pivotPersisted, setPivotPersisted] = useState<PersistedDrawFeature[]>([]);
-  const [zonePersisted, setZonePersisted] = useState<PersistedDrawFeature[]>([]);
+  const fieldPivotDrafts = pivotDrafts.filter((draft) => draft.properties.fieldId === fieldId && draft.properties.localOwnerScope === drawingOwnerScope);
+  const currentFieldRef = useRef(fieldId);
+  currentFieldRef.current = fieldId;
+  const currentOwnerRef = useRef(drawingOwnerScope);
+  currentOwnerRef.current = drawingOwnerScope;
+  useEffect(() => { setPivotDrafts([]); }, [drawingOwnerScope]);
+  const [drawingReadError, setDrawingReadError] = useState<string | null>(null);
+  // Drawings queued by an older build under one shared key: never replayed (owner unknown),
+  // but shown so they do not disappear silently.
+  const [legacyDrawingCount, setLegacyDrawingCount] = useState(() => countLegacyUnscopedDrawingOperations());
+  const [drawingRevision, setDrawingRevision] = useState(0);
+  useEffect(() => {
+    const reload = () => setDrawingRevision((n) => n + 1);
+    window.addEventListener(DRAWING_SYNC_CHANGED_EVENT, reload);
+    return () => window.removeEventListener(DRAWING_SYNC_CHANGED_EVENT, reload);
+  }, []);
+  const [storedPivotPersisted, setPivotPersisted] = useState<PersistedDrawFeature[]>([]);
+  const [storedZonePersisted, setZonePersisted] = useState<PersistedDrawFeature[]>([]);
+  const [drawingLoadedScope, setDrawingLoadedScope] = useState<string | null>(null);
+  const pivotPersisted = drawingLoadedScope === drawingOwnerScope ? storedPivotPersisted : [];
+  const zonePersisted = drawingLoadedScope === drawingOwnerScope ? storedZonePersisted : [];
   const [zoneDesigner, setZoneDesigner] = useState(false);
   const [zoneKind, setZoneKind] = useState<AgriculturalZoneKind>('management-zone');
   const [zoneRate, setZoneRate] = useState(120);
@@ -1414,6 +1439,7 @@ function MapHubCore() {
   // pin_id)؛ نجاح الطلب يُبطِل مخبّأ useScoutingPins ⇒ إعادة جلب فتظهر مُخزَّنة، والفشل
   // ⇒ تراجُع فوريّ عن التفاؤليّ. لا حقل مختار ⇒ عرض تفاؤليّ فقط (لا وجهة حفظ).
   const handleAddPin = useCallback((lat: number, lng: number) => {
+    if (!pinAllowed || !fieldId) return;
     const pinId = `pin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     setOptimisticPins((prev) => [...prev, { id: pinId, lat, lng, note: '', category: pinCategory }]);
     if (!fieldId) return;
@@ -1421,7 +1447,7 @@ function MapHubCore() {
       { pin_id: pinId, field_id: fieldId, lat, lng, issue_category: pinCategory, note_ar: null },
       { onError: () => setOptimisticPins((prev) => prev.filter((p) => p.id !== pinId)) },
     );
-  }, [pinCategory, fieldId, createScoutPin]);
+  }, [pinCategory, fieldId, createScoutPin, pinAllowed]);
 
   // «مسح» يُزيل الدبابيس التفاؤليّة غير المُثبَّتة بعد فقط — المُخزَّنة على الخادم دائمة
   // (لا نقطة حذف جماعيّ). صدق: لا يُدَّعى أنّه يحذف المُخزَّنة.
@@ -1435,24 +1461,32 @@ function MapHubCore() {
       setZonePersisted([]);
       return () => { alive = false; };
     }
+    setDrawingReadError(null);
+    setPivotPersisted([]);
+    setZonePersisted([]);
     listDrawingFeatures(selected.id)
       .then((features) => {
-        if (!alive) return;
+        if (!alive || currentOwnerRef.current !== drawingOwnerScope) return;
+        setDrawingLoadedScope(drawingOwnerScope);
         setPivotPersisted(features.filter((f) => f.kind === 'pivot'));
         setZonePersisted(features.filter((f) => ['management-zone', 'prescription-zone', 'exclusion-zone'].includes(f.kind)));
       })
-      .catch(() => {
-        if (!alive) return;
-        setPivotPersisted([]);
-        setZonePersisted([]);
+      .catch((error: unknown) => {
+        if (!alive || currentOwnerRef.current !== drawingOwnerScope) return;
+        setDrawingLoadedScope(drawingOwnerScope);
+        const queued = error instanceof DrawingFeatureReadError ? error.queuedFeatures : [];
+        setPivotPersisted(queued.filter((f) => f.kind === 'pivot'));
+        setZonePersisted(queued.filter((f) => ['management-zone', 'prescription-zone', 'exclusion-zone'].includes(f.kind)));
+        setDrawingReadError('تعذّر التحقق من الرسومات المحفوظة بالخادم. المعروض محليًا لا يمثل قائمة الخادم الكاملة.');
       });
     return () => { alive = false; };
-  }, [selected?.id]);
+  }, [selected?.id, drawingRevision, drawingOwnerScope]);
 
   // ── v36: Pivot Designer مرئي داخل MapHub ─────────────────────
   // النقر على الخريطة في وضع التصميم ينشئ قطاع pivot كـ DrawFeature محليّ.
   // الحفظ الدائم سيأتي في مرحلة Backend CRUD/PostGIS، لذلك نعلّمه draft=true.
   const handleAddPivotDraft = useCallback((lat: number, lng: number) => {
+    if (!fieldEditAllowed) return;
     if (!selected) {
       toastStore.add('warning', 'اختر حقلاً أولاً', 'تصميم المحوري يحتاج حقلاً مختاراً لربط التصميم به.');
       return;
@@ -1468,40 +1502,47 @@ function MapHubCore() {
       seasonId: selectedActiveSeasonId ?? undefined,
       name: `Pivot ${selected.name}`,
     });
+    feature.properties.localOwnerScope = drawingOwnerScope;
     setPivotDrafts((prev) => [...prev, feature]);
     setShowPivots(true);
     toastStore.add('success', 'تم إنشاء تصميم Pivot', `المساحة التقريبية ${(feature.measurements?.areaHa ?? 0).toFixed(2)} هـ`);
-  }, [pivotEndAngleDeg, pivotRadiusM, pivotRingCount, pivotSpanCount, pivotStartAngleDeg, selected, selectedActiveSeasonId]);
+  }, [pivotEndAngleDeg, pivotRadiusM, pivotRingCount, pivotSpanCount, pivotStartAngleDeg, selected, selectedActiveSeasonId, fieldEditAllowed, drawingOwnerScope]);
 
-  const handleClearPivotDrafts = useCallback(() => setPivotDrafts([]), []);
+  const handleClearPivotDrafts = useCallback(() => setPivotDrafts((prev) => prev.filter((draft) => draft.properties.fieldId !== fieldId)), [fieldId]);
 
   const handleSavePivotDrafts = useCallback(async () => {
-    if (pivotDrafts.length === 0) return;
+    if (!fieldEditAllowed || !drawingOwnerScope || currentOwnerRef.current !== drawingOwnerScope || fieldPivotDrafts.length === 0) return;
     if (!selected?.id) {
       toastStore.add('warning', 'اختر حقلاً أولاً', 'لا يمكن حفظ تصميم Pivot بدون حقل مرتبط.');
       return;
     }
+    const savingFieldId = selected.id;
+    const savingIds = new Set(fieldPivotDrafts.map((draft) => draft.id));
     setPivotSyncBusy(true);
     try {
       const saved = await Promise.all(
-        pivotDrafts.map((draft) => createDrawingFeature({
+        fieldPivotDrafts.map((draft) => createDrawingFeature({
           ...draft,
           draft: false,
           properties: {
             ...draft.properties,
-            fieldId: selected.id,
-            seasonId: draft.properties.seasonId ?? selectedActiveSeasonId ?? undefined,
+            localOwnerScope: undefined,
+            fieldId: draft.properties.fieldId,
+            seasonId: draft.properties.seasonId,
             workflow: 'design-pivot',
           },
           updatedAt: new Date().toISOString(),
         })),
       );
+      if (currentOwnerRef.current !== drawingOwnerScope) return;
+      setPivotDrafts((prev) => prev.filter((draft) => !savingIds.has(draft.id)));
+      if (currentFieldRef.current !== savingFieldId || currentOwnerRef.current !== drawingOwnerScope) return;
+      setDrawingLoadedScope(drawingOwnerScope);
       setPivotPersisted((prev) => {
         const byId = new Map(prev.map((f) => [f.id, f]));
         for (const f of saved) byId.set(f.id, f);
         return Array.from(byId.values());
       });
-      setPivotDrafts([]);
       setShowPivots(true);
       // R10: المحفوظ محلياً ليس «محفوظاً» — نُظهر الحالة الحقيقيّة (بانتظار المزامنة).
       const pendingSync = saved.filter(isDrawingPendingSync).length;
@@ -1515,9 +1556,10 @@ function MapHubCore() {
     } finally {
       setPivotSyncBusy(false);
     }
-  }, [pivotDrafts, selected?.id, selectedActiveSeasonId]);
+  }, [fieldPivotDrafts, selected?.id, selectedActiveSeasonId, fieldEditAllowed, drawingOwnerScope]);
 
   const handleCreateZoneFromField = useCallback(async () => {
+    if (!fieldEditAllowed) return;
     if (!selected?.id) {
       toastStore.add('warning', 'اختر حقلاً أولاً', 'إنشاء مناطق الإدارة/الوصفات يحتاج حقلاً مختاراً.');
       return;
@@ -1543,6 +1585,8 @@ function MapHubCore() {
     setZoneSyncBusy(true);
     try {
       const saved = await createDrawingFeature(feature);
+      if (currentFieldRef.current !== selected.id || currentOwnerRef.current !== drawingOwnerScope) return;
+      setDrawingLoadedScope(drawingOwnerScope);
       setZonePersisted((prev) => [saved, ...prev.filter((f) => f.id !== saved.id)]);
       setShowPivots(true);
       if (isDrawingPendingSync(saved)) {
@@ -1555,7 +1599,7 @@ function MapHubCore() {
     } finally {
       setZoneSyncBusy(false);
     }
-  }, [activeIndicator, selected, selectedActiveSeasonId, zoneKind, zoneRate, zoneRateUnit]);
+  }, [activeIndicator, selected, selectedActiveSeasonId, zoneKind, zoneRate, zoneRateUnit, fieldEditAllowed, drawingOwnerScope]);
 
   const pivotSummary = useMemo(() => summarizePivotDesign({
     center: selectedPoint ? [selectedPoint[1], selectedPoint[0]] : [44, 15],
@@ -2676,9 +2720,9 @@ function MapHubCore() {
                     {/* حصر متبادل: الرسم/القياس والدبابيس يستهلكان نقرات الخريطة معاً، فتفعيل
                         أحدهما يُعطّل الآخر (والمقارنة) — وإلّا كلّ نقرة قياس تُسقط دبّوساً بالخطأ. */}
                     <MapHubToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
-                    <MapHubToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
-                    <MapHubToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم Pivot" />
-                    <MapHubToolToggle testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="Zones" />
+                    {pinAllowed && <MapHubToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />}
+                    {fieldEditAllowed && <><MapHubToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم Pivot" />
+                    <MapHubToolToggle testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="Zones" /></>}
                   </div>
                 </div>
 
@@ -2831,15 +2875,20 @@ function MapHubCore() {
                   </div>
                 )}
 
+                {legacyDrawingCount > 0 && <div role="status" className="mt-3 text-sm text-amber-300">
+                  توجد {legacyDrawingCount} عملية رسم محفوظة محليًا من نسخة سابقة. لن تُرسَل تلقائيًا لأنّ صاحبها غير معروف؛ أعد رسمها إن كانت لك.
+                  <button type="button" className="mr-2 underline" onClick={() => { discardLegacyUnscopedDrawingData(); setLegacyDrawingCount(0); }}>تجاهلها</button>
+                </div>}
+                {drawingReadError && <div role="alert" className="mt-3 text-sm text-amber-300">{drawingReadError}<button type="button" onClick={() => setDrawingRevision((n) => n + 1)} className="mr-2 underline">إعادة المحاولة</button></div>}
                 {zoneDesigner && (
                   <div data-testid="zone-designer-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-semibold" style={{ color: T.muted }}>Management / Prescription Zones</span>
-                      <Pill tone="info">{zonePersisted.length} محفوظة</Pill>
+                      <Pill tone="info">{zonePersisted.filter((f) => !isDrawingPendingSync(f)).length} محفوظة بالخادم</Pill><Pill tone="warn">{zonePersisted.filter(isDrawingPendingSync).length} محلية بانتظار المزامنة</Pill>
                       <Pill tone={activeIndicator ? 'ok' : 'warn'}>{activeIndicator ? `مصدر: ${activeIndicator.toUpperCase()}` : 'بدون source layer'}</Pill>
                       <Pill tone={selectedActiveSeasonId ? 'ok' : 'warn'}>{selectedActiveSeasonId ? 'مربوطة بالموسم' : 'لا موسم نشط'}</Pill>
                       <button
-                        type="button" onClick={handleCreateZoneFromField} disabled={zoneSyncBusy}
+                        type="button" onClick={handleCreateZoneFromField} disabled={!fieldEditAllowed || zoneSyncBusy}
                         data-testid="btn-create-zone-from-field"
                         className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg disabled:opacity-60"
                         style={{ color: T.ok, border: `1px solid ${T.line}` }}
@@ -2878,17 +2927,17 @@ function MapHubCore() {
                   </div>
                 )}
 
-                {(pivotDesigner || pivotDrafts.length > 0) && (
+                {(pivotDesigner || fieldPivotDrafts.length > 0) && (
                   <div data-testid="pivot-designer-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-semibold" style={{ color: T.muted }}>مصمم Pivot</span>
-                      <Pill tone="info">{pivotDrafts.length + pivotPersisted.length} تصميم</Pill>
+                      <Pill tone="info">{fieldPivotDrafts.length + pivotPersisted.length} تصميم</Pill>
                       {pivotDesigner && <span className="text-[11px]" style={{ color: T.faint }}>انقر على الخريطة لاختيار مركز المحوري</span>}
                       <Pill tone={selectedActiveSeasonId ? 'ok' : 'warn'}>{selectedActiveSeasonId ? 'مربوط بالموسم' : 'لا موسم نشط'}</Pill>
-                      {pivotDrafts.length > 0 && (
+                      {fieldPivotDrafts.length > 0 && (
                         <>
                           <button
-                            type="button" onClick={handleSavePivotDrafts} disabled={pivotSyncBusy}
+                            type="button" onClick={handleSavePivotDrafts} disabled={!fieldEditAllowed || pivotSyncBusy}
                             data-testid="btn-save-pivot-drafts"
                             className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg disabled:opacity-60"
                             style={{ color: T.ok, border: `1px solid ${T.line}` }}
@@ -3012,7 +3061,7 @@ function MapHubCore() {
                       indicatorId={indicatorActive}
                       indicatorOpacity={opacity}
                       drawTools={drawTools}
-                      pinMode={pinMode}
+                      pinMode={pinMode && pinAllowed}
                       pins={pins}
                       onAddPin={handleAddPin}
                       alertMarkers={showAlerts ? alertMarkers : []}
@@ -3025,9 +3074,9 @@ function MapHubCore() {
                       imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
                       preferPersistedCog={selectedDateHasCog}
                       tenantId={tenantId}
-                      pivotDesignerEnabled={pivotDesigner}
+                      pivotDesignerEnabled={pivotDesigner && fieldEditAllowed}
                       onAddPivotDraft={handleAddPivotDraft}
-                      pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...pivotDrafts] : []}
+                      pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...fieldPivotDrafts] : []}
                       hillshadeTilesUrl={hillshadeTilesUrl}
                       slopeTilesUrl={slopeTilesUrl}
                       soilTilesUrl={soilTilesUrl}
@@ -3045,7 +3094,7 @@ function MapHubCore() {
                     indicatorId={indicatorActive}
                     indicatorOpacity={opacity}
                     drawTools={drawTools}
-                    pinMode={pinMode}
+                    pinMode={pinMode && pinAllowed}
                     pins={pins}
                     onAddPin={handleAddPin}
                     alertMarkers={showAlerts ? alertMarkers : []}
@@ -3065,9 +3114,9 @@ function MapHubCore() {
                     soilOpacity={opacity}
                     soilSamplePoints={showSoilSamples ? soilSamplePoints : []}
                     contours={showContours ? contoursData : null}
-                    pivotDesignerEnabled={pivotDesigner}
+                    pivotDesignerEnabled={pivotDesigner && fieldEditAllowed}
                     onAddPivotDraft={handleAddPivotDraft}
-                    pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...pivotDrafts] : []}
+                    pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...fieldPivotDrafts] : []}
                   />
                 )}
                 {/* أسطورة المقياس العموديّة الموحَّدة (يمين الخريطة) — تظهر فقط عند
