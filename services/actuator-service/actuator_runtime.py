@@ -156,9 +156,9 @@ def _parse_dispatch_command(command):
     return device_id, cmd, payload
 
 
-def _dispatch_outcome_status(send_success: bool) -> str:
-    """دالّة نقيّة: نتيجة النشر ⇒ حالة التنفيذ. نجاح النشر ⇒ executed (نُشِر≠نُفِّذ)، وإلّا failed."""
-    return "executed" if send_success else "failed"
+# TRANSPORT-ACK-MISLABELED-AS-EXECUTED-01: أُزيلت `_dispatch_outcome_status` — كانت تُترجم
+# إقرارَ الوسيط إلى `executed` بلا مستدعٍ إنتاجيّ. الإيصالُ الحيّ يكتب `accepted`/`failed`
+# و`published` (نقلٌ لا أثر)، و`executed` محجوزةٌ لِما يُثبِته تحقّقٌ من الأثر.
 
 
 # ─── جسر القرار (ACTUATOR-DISPATCH-CONSUMER) — مستهلك طلبات التنفيذ المحكومة ───
@@ -690,6 +690,35 @@ _FIRMWARE_WIRE_COMMANDS = {
 _DOSE_COMMANDS = frozenset({"irrigate"})
 # يطابق VALVE_MAX_OPEN_MS في البرنامج الثابت: مدّة أطول تُقصّ هناك بصمت ⇒ تُرفض هنا.
 ACTUATOR_MAX_OPEN_SEC = 1800
+# `duration_sec` هو الحقل الكنسيّ الوحيد الذي يُترجَم إلى `duration_ms` الموقَّعة. وهذه
+# تهجئاتٌ أخرى للمدّة (الحقل ⇒ معامل التحويل إلى ثوانٍ): لا تُحوَّل هنا ضمنيّاً — التحويل
+# صريحٌ عند المصدر — فوحدُها على OPEN رفضٌ مُسمّى، ومع `duration_sec` يجب أن تطابقه.
+_NON_CANONICAL_DURATION_FIELDS = (
+    ("duration_seconds", 1.0),
+    ("duration_min", 60.0),
+    ("duration_mins", 60.0),
+    ("duration_minutes", 60.0),
+    ("durationMinutes", 60.0),
+    ("minutes", 60.0),
+)
+
+
+def _duration_field_conflict(payload: dict, duration) -> str | None:
+    """دالّة نقيّة: سببُ رفض تهجئات المدّة غير الكنسيّة على OPEN، أو ``None``."""
+    present = [(k, f) for k, f in _NON_CANONICAL_DURATION_FIELDS if payload.get(k) is not None]
+    if not present:
+        return None
+    if duration is None:
+        return f"non_canonical_duration_field:{present[0][0]}"
+    if isinstance(duration, bool) or not isinstance(duration, int | float):
+        return None  # يُرفَض `invalid_duration_sec` أدناه
+    for key, factor in present:
+        other = payload[key]
+        if isinstance(other, bool) or not isinstance(other, int | float):
+            return "conflicting_duration_fields"
+        if not math.isclose(float(other) * factor, float(duration), rel_tol=0.0, abs_tol=1e-6):
+            return "conflicting_duration_fields"
+    return None
 
 
 def _to_firmware_wire(command: str, payload: dict | None) -> tuple[str | None, str]:
@@ -699,9 +728,20 @@ def _to_firmware_wire(command: str, payload: dict | None) -> tuple[str | None, s
     if wire is None:
         return None, f"unknown_command:{canon or '-'}"
     duration = (payload or {}).get("duration_sec")
+    # لا مدّة افتراضيّة صامتة: `duration_minutes` وحدها لا تصير 30 دقيقة ولا تُخمَّن ثوانيها،
+    # ومدّتان متعارضتان لا يُختار أحدُهما. والإغلاق لا يُحجَب بحقلٍ زائد: هو الحالة الآمنة.
+    if wire == "OPEN":
+        conflict = _duration_field_conflict(payload or {}, duration)
+        if conflict is not None:
+            return None, conflict
     if duration is None:
         if canon in _DOSE_COMMANDS:
             return None, "dose_command_requires_duration_sec"
+        # ACTUATOR-OPEN-WITHOUT-DURATION-01: فتحٌ بلا مدّة يبقى مفتوحاً حتّى سقف البرنامج
+        # الثابت (VALVE_MAX_OPEN_MS = 30 دقيقة) — فكلُّ OPEN يحتاج مدّةً صريحة تُغلِق بعدها.
+        # الإغلاق/الإيقاف لا يحتاج مدّة: هو الحالة الآمنة نفسها.
+        if wire == "OPEN":
+            return None, "open_command_requires_duration_sec"
         return wire, "ok"
     # رقمٌ JSON فقط: البرنامج الثابت يقرأ duration_sec رقماً، والنصّ يصير 0 هناك بصمت.
     if isinstance(duration, bool) or not isinstance(duration, int | float):

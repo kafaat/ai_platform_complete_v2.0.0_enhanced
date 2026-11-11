@@ -1040,6 +1040,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/cropOptions.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/cropPropagation.test.ts",
     "kind": "tests"
   },
@@ -4656,6 +4660,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/decision-service/tests/test_sod_single_operator_self_approval.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
     "kind": "tests"
   },
@@ -5805,10 +5813,6 @@
   },
   {
     "path": "services/sahool-platform/api/decision_lineage.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/decision_service_client.py",
     "kind": "backend"
   },
   {
@@ -10908,6 +10912,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_codecov_coverage_wiring.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_collect_guard_surface_evidence.py",
     "kind": "tests"
   },
@@ -11033,6 +11041,10 @@
   },
   {
     "path": "tests_v9/test_crop_model_uncertainty_v64.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_crop_picker_options_resolve.py",
     "kind": "tests"
   },
   {
@@ -11492,6 +11504,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gate01_owner_signature_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gateway_operational_endpoints_contract.py",
     "kind": "tests"
   },
@@ -11773,6 +11789,10 @@
   },
   {
     "path": "tests_v9/test_irrx1_pcert_real_postgres.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_isolated_runtime_gate.py",
     "kind": "tests"
   },
   {
@@ -13185,6 +13205,10 @@
   },
   {
     "path": "tests_v9/test_unit_environment_completeness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_unit_skip_inventory_guard.py",
     "kind": "tests"
   },
   {

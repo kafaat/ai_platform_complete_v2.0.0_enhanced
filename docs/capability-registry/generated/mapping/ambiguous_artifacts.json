@@ -3870,6 +3870,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/api/agronomic_context_composer.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 10,
+        "signals": [
+          "content:dem",
+          "content:terrain"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 8,
+        "signals": [
+          "content:Soil profile",
+          "dedup:Soil profile=soil profile"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/api/agronomic_replay.py",
     "kind": "backend",
     "candidates": [
@@ -4897,6 +4919,28 @@
         "signals": [
           "path:field workspace",
           "content:field workspace"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SOIL-001",
+        "score": 8,
+        "signals": [
+          "content:Soil profile",
+          "dedup:Soil profile=soil profile"
+        ]
+      },
+      {
+        "capability_id": "IRR-005",
+        "score": 8,
+        "signals": [
+          "content:Irrigation recommendation",
+          "dedup:Irrigation recommendation=irrigation recommendation"
         ]
       }
     ]

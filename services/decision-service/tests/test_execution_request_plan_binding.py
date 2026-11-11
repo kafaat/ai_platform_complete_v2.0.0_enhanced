@@ -201,6 +201,33 @@ def test_request_covered_by_the_plan_is_queued(monkeypatch):
             },
             "invalid_command_quantity",
         ),
+        (
+            _plan(),
+            {
+                "command_payload": {
+                    "device_id": "valve-7",
+                    "command": "irrigate",
+                    "payload": {"field_id": "f1", "amount_mm": 10.0, "duration_minutes": 10},
+                }
+            },
+            "non_canonical_duration_field",
+        ),
+        (
+            _plan(),
+            {
+                "command_payload": {
+                    "device_id": "valve-7",
+                    "command": "irrigate",
+                    "payload": {
+                        "field_id": "f1",
+                        "amount_mm": 10.0,
+                        "duration_sec": 600,
+                        "duration_minutes": 5,
+                    },
+                }
+            },
+            "conflicting_duration_fields",
+        ),
         (_plan(planned_end=NOW - timedelta(seconds=1)), {}, "plan_expired"),
     ],
 )
@@ -411,3 +438,43 @@ def test_request_whose_plan_is_missing_is_not_claimed(monkeypatch):
 def test_unreadable_plan_end_fails_closed():
     assert persistence._plan_expired("not-a-time", NOW) is True
     assert persistence._plan_expired(None, NOW) is False
+
+
+# ── `duration_sec` is canonical on equipment requests (the actuator converts nothing) ──
+@pytest.mark.parametrize(
+    ("layers", "reason"),
+    [
+        ([{"duration_sec": 600}], None),
+        ([{"duration_sec": 600, "duration_minutes": 10}], None),
+        ([{"duration_sec": 90}, {"duration_min": 1.5}], None),
+        ([{"duration_minutes": 10}], "non_canonical_duration_field"),
+        ([{"command": "open"}, {"durationMinutes": 3}], "non_canonical_duration_field"),
+        ([{"duration_seconds": 60}], "non_canonical_duration_field"),
+        ([{"duration_sec": 60, "duration_minutes": 10}], "conflicting_duration_fields"),
+        ([{"duration_sec": 600}, {"duration_min": "10"}], "conflicting_duration_fields"),
+        (
+            [{"duration_sec": 60}, {"duration_sec": 600, "minutes": 10}],
+            "conflicting_duration_fields",
+        ),
+        ([{}], None),
+    ],
+)
+def test_equipment_duration_fields_are_canonical_or_refused(layers, reason):
+    assert persistence._equipment_duration_violation(layers) == reason
+
+
+def test_an_equipment_request_whose_minutes_agree_with_duration_sec_is_accepted(monkeypatch):
+    request = _request(
+        command_payload={
+            "device_id": "valve-7",
+            "command": "irrigate",
+            "payload": {
+                "field_id": "f1",
+                "amount_mm": 10.0,
+                "duration_sec": 600,
+                "duration_minutes": 10,
+            },
+        }
+    )
+    result, _ = _create(monkeypatch, _plan(), request)
+    assert result["status"] == "ok"

@@ -33,3 +33,24 @@ describe('G-AREA-3 — EditFieldModal area is read-only, derived from geometry',
     expect(onSave.mock.calls[0][0]).toEqual({ name: 'حقل الوادي', crop: 'قمح صلب' });
   });
 });
+
+// RECOMMENDATION-CROP-PICKER-UNRESOLVABLE-ENTRY-01 — قيمة محصول عامّة قديمة («خضروات») لا
+// بطاقة لها: تُعرَض «غير محدَّد — اختر المحصول» ولا تُعاد في الحمولة ولا تُربَط بمحصول اعتباطيّ.
+describe('EditFieldModal — legacy generic crop is unspecified, never resent', () => {
+  it('shows the unspecified placeholder instead of «خضروات» and omits crop on save', () => {
+    const onSave = vi.fn();
+    render(<EditFieldModal field={{ ...FIELD, crop: 'خضروات' } as FieldProp} onSave={onSave} onCancel={vi.fn()} />);
+    expect(screen.getByRole('option', { name: 'غير محدَّد — اختر المحصول' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'خضروات' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /حفظ/ }));
+    expect(onSave.mock.calls[0][0]).toEqual({ name: 'حقل الوادي' });
+  });
+
+  it('a chosen specific crop is sent after the placeholder', () => {
+    const onSave = vi.fn();
+    render(<EditFieldModal field={{ ...FIELD, crop: 'خضروات' } as FieldProp} onSave={onSave} onCancel={vi.fn()} />);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'بصل' } });
+    fireEvent.click(screen.getByRole('button', { name: /حفظ/ }));
+    expect(onSave.mock.calls[0][0]).toEqual({ name: 'حقل الوادي', crop: 'بصل' });
+  });
+});

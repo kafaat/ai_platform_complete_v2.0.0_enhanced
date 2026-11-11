@@ -160,9 +160,16 @@ def test_ignored_execute_bits_cannot_hide_an_archived_deferral(private_brain):
     git("add", "-A")
     git("config", "core.filemode", "false")
     archive.chmod(0o755)
-    assert git("diff-files", "--name-only") == "", "Git must ignore only the mode change"
-    assert git("ls-files", "--stage", "--", str(archive.relative_to(brain.parent))).startswith(
-        "100644 "
+    # A newly staged file can be reported as dirty by Git's stat/racy-index
+    # checks even when core.filemode=false.  Verify the invariant directly:
+    # only the worktree execute bits changed; the staged blob is identical.
+    relative = archive.relative_to(brain.parent).as_posix()
+    mode, staged_blob, *_ = git("ls-files", "--stage", "--", relative).split()
+    assert mode == "100644", "the index must still record a non-executable file"
+    assert archive.stat().st_mode & 0o111, "the worktree must be executable"
+    assert git("config", "--get", "core.filemode").strip() == "false"
+    assert git("hash-object", "--", relative).strip() == staged_blob, (
+        "changing execute bits must not change the staged file contents"
     )
     assert guard.scanned_files() == [brain / "hot.md", archive]
     found = guard.violations(baseline=set())

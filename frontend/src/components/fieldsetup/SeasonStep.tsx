@@ -7,26 +7,18 @@
 //   body: { crops, cultivar?, irrigation_type?, seed_rate_kg_ha?, sowing_date?,
 //           season_end?, target_yield_kg_ha?, tillage_type?, maturity?,
 //           actual_yield_kg_ha?, notes_ar? }
-// المفردات (محاصيل/ريّ) مأخوذة من نفس قاموس AddSeasonWithStages القائم —
-// لا مفردات جديدة مخترَعة.
+// المفردات: المحاصيل من القاموس المشترك lib/cropOptions (نفسه في AddSeasonWithStages،
+// كلّ خيار يُحلّ إلى بطاقة محصول)، والريّ من قاموس AddSeasonWithStages القائم.
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { Sprout, Wheat, Plus } from 'lucide-react';
 import { kongApi, apiErrorMessage } from '../../services/api';
 import StepShell from './StepShell';
 import type { FieldSetupStepProps } from './types';
+import { CROP_OPTIONS, UNSPECIFIED_CROP_LABEL, isUnspecifiedCrop } from '../../lib/cropOptions';
 
-// نفس مفردات المحاصيل في AddSeasonWithStages (قاموس ثابت قائم — لا توسيع للمفردات).
-const CROPS = [
-  { label: 'قمح صلب', emoji: '🌾' },
-  { label: 'شعير', emoji: '🌾' },
-  { label: 'ذرة صفراء', emoji: '🌽' },
-  { label: 'طماطم', emoji: '🍅' },
-  { label: 'بطاطس', emoji: '🥔' },
-  { label: 'خضروات', emoji: '🥬' },
-  { label: 'برسيم', emoji: '🌿' },
-  { label: 'دخن', emoji: '🌿' },
-];
+// نفس مفردات المحاصيل في AddSeasonWithStages (القاموس المشترك lib/cropOptions).
+const CROPS = CROP_OPTIONS;
 
 // نفس مفردات نوع الريّ في AddSeasonWithStages.
 const IRRIGATION_TYPES = [
@@ -54,6 +46,8 @@ export default function SeasonStep({
 }: FieldSetupStepProps) {
   // محصول الحقل الافتراضيّ مُهيّأ مُسبقاً إن كان ضمن المفردات المعروفة.
   const initialCrop = CROPS.some(c => c.label === ctx.crop) ? [ctx.crop] : [];
+  // قيمة عامّة قديمة («خضروات»…) لا تُحلّ إلى بطاقة: لا تُهيَّأ ولا تُربَط بمحصول اعتباطيّ.
+  const legacyUnspecified = !!ctx.crop?.trim() && isUnspecifiedCrop(ctx.crop);
   const [crops, setCrops] = useState<string[]>(initialCrop);
   const [cultivar, setCultivar] = useState('');
   const [irrType, setIrrType] = useState('drip');
@@ -162,6 +156,9 @@ export default function SeasonStep({
         <label className="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
           <Wheat className="w-4 h-4 text-emerald-400" /> المحصول / المحاصيل *
         </label>
+        {legacyUnspecified && crops.length === 0 && (
+          <p className="text-xs text-amber-300 mb-2">محصول الحقل: {UNSPECIFIED_CROP_LABEL}</p>
+        )}
         <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
           {crops.map(c => {
             const cd = CROPS.find(x => x.label === c);

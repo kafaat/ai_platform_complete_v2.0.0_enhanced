@@ -43,6 +43,19 @@ SELF_GENERATED = {
     "release/SBOM_MINIMAL.json",
 }
 
+# مذيّلُ توقيع GATE-01: مجلّدُ الظروف والسجلّان المُلحَقان (`authorizations_dir`،
+# `consumed_ledger_path`، `revocations_path` في كتلة `owner_signature` من
+# `docs/architecture/gate01_policy.json`). **مقيسٌ على #1367**، أوّلِ تغييرٍ مقيَّد موقَّع:
+# الظرفُ والحجزُ يُلتزَمان **بعد** الرأس الموقَّع، و`gate01_owner_signature_guard` يرفض أيَّ
+# التزامٍ بعده يمسّ غيرَهما. فلمّا دخل السجلُّ هذه البصمة صار حجزُه «checksum mismatch»
+# يطلب إعادةَ بناءٍ يرفضها حارسُ التوقيع — قفلٌ لا يمرّ منه تغييرٌ موقَّعٌ أخضر. سلامةُ
+# المذيّل يحرسها حارسُ التوقيع نفسه (إلحاقٌ فقط، مقروءٌ من فرع الأساس) لا هذه البصمة.
+GATE01_SIGNATURE_TRAILER_FILES = {
+    "docs/architecture/gates/consumed_authorizations.json",
+    "docs/architecture/gates/revoked_authorizations.json",
+}
+GATE01_SIGNATURE_TRAILER_DIRS = {"docs/architecture/gates/authorizations"}
+
 
 def payload_pathspec() -> list[str]:
     """نطاق **حمولة** البيان لسؤال git عن آخر التزام مسّها.
@@ -62,6 +75,8 @@ def payload_pathspec() -> list[str]:
     spec = ["."]
     spec += [f":(exclude){d}/" for d in sorted(EXCLUDE_DIRS)]
     spec += [f":(exclude){f}" for f in sorted(SELF_GENERATED)]
+    spec += [f":(exclude){d}/" for d in sorted(GATE01_SIGNATURE_TRAILER_DIRS)]
+    spec += [f":(exclude){f}" for f in sorted(GATE01_SIGNATURE_TRAILER_FILES)]
     return spec
 
 
@@ -159,6 +174,11 @@ def is_excluded(path: Path) -> bool:
     if path.name in EXCLUDE_SUFFIXES:
         return True
     if any(path.name.endswith(suffix) for suffix in EXCLUDE_SUFFIXES):
+        return True
+    rel = path.as_posix()
+    if rel in GATE01_SIGNATURE_TRAILER_FILES:
+        return True
+    if any(rel.startswith(f"{d}/") for d in GATE01_SIGNATURE_TRAILER_DIRS):
         return True
     return False
 

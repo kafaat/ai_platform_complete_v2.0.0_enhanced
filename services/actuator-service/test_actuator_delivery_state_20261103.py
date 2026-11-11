@@ -465,7 +465,8 @@ def _claims(tenant=TENANT):
 
 
 def _send(act, router_mod, device="valve-a", command="open"):
-    req = act.CommandRequest(device_id=device, command=command)
+    # ACTUATOR-OPEN-WITHOUT-DURATION-01: فتحٌ بلا مدّة يُرفَض 422 قبل أيّ عمل.
+    req = act.CommandRequest(device_id=device, command=command, payload={"duration_sec": 60})
     return asyncio.run(router_mod.send_command(req, _claims()))
 
 

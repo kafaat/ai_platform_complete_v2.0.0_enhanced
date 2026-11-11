@@ -1,0 +1,5 @@
+{
+  "schema": "sahool.gate01_revoked_authorizations/v1",
+  "$semantics": "Append-only revocation list for owner-signed GATE-01 decisions: {decision_id, revoked_at, reason}. A listed decision is refused whether the entry is on the base branch or added in the PR itself. Entries are never removed — enforced by scripts/ci/gate01_owner_signature_guard.py.",
+  "revoked": []
+}

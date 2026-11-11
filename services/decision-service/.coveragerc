@@ -1,0 +1,9 @@
+# Decision Service Test coverage is product-source only.
+# Do not remove any production files from coverage; the only omission is tests.
+[run]
+omit =
+    */tests/*
+
+[report]
+omit =
+    */tests/*

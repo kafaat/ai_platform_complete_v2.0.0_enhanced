@@ -30,7 +30,7 @@ from api.canonical_water_stress import (
 # مرحلةُ المرشَّح تُستورَد ولا تُكرَّر: سلسلةٌ ثانيةٌ باسم `"candidate"` هنا كانت ستُطابِق
 # اليوم وتنحرف غداً، وشرطُ الإثبات يقارنها بما يُعيده المُسجِّل.
 from api.crop_decision_bridge import CANDIDATE_STAGE
-from api.decision_service_client import record_decision
+from api.decision_service_client import irrigation_candidate_lineage, record_decision
 from api.field_context import _field_weather_context
 from api.irrigation_engineering_workspace import (
     build_manual_source,
@@ -239,8 +239,8 @@ async def field_irrigation_recommendation(
             conn, field_id
         )
         season = await conn.fetchrow(
-            "SELECT season_id FROM seasons WHERE field_id = $1 AND status = 'active' "
-            "ORDER BY created_at DESC LIMIT 1",
+            "SELECT season_id, cultivar, irrigation_type FROM seasons WHERE field_id = $1 "
+            "AND status = 'active' ORDER BY created_at DESC LIMIT 1",
             field_id,
         )
         season_id = season["season_id"] if season else None
@@ -604,6 +604,7 @@ async def field_irrigation_recommendation(
     approval_state = "not_submitted"
     decision_id = None
     submit_limitation: str | None = None
+    ac1 = None  # AC-1/AC-6 lineage (EX-WATER-01 path B); set only when submission is attempted
     if req.submit_to_decision and (
         et0_prod.get("method") != "fao56_penman_monteith"
         or et0_prod.get("quality_status") != "validated"
@@ -639,42 +640,34 @@ async def field_irrigation_recommendation(
             if rec.get("requires_expert_review")
             else "لم يُقدَّم: التوصية لا تقترح ريّاً — لا شيء يُعتمَد"
         )
+    elif (
+        req.submit_to_decision
+        and (
+            ac1 := await irrigation_candidate_lineage(
+                user, field_id, season, inputs, wx, et0_prod, ledger_date, days_since_sowing
+            )
+        ).blocked
+    ):
+        approval_state, submit_limitation = ac1.blocked_state()
     elif req.submit_to_decision:
         # **عقدُ التسجيل هو عقدُ `crop_decision_bridge` نفسُه.** كان هذا المسار يرسل
         # `recommendation` و`status` — حقلين لا يقرؤهما المُسجِّل — فتُحفَظ قيمةٌ فارغة،
         # ثمّ يُستنتَج `pending_approval` **محلّيّاً** من غياب استثناء. أي إعلانُ نجاحٍ
         # بلا شاهدٍ عليه، في مسارٍ يقود إلى ماءٍ يُصرَف.
-        candidate = {
-            "decision_type": "irrigation",
-            "field_id": field_id,
-            "season_id": season_id,
-            "status": "pending_approval",
-            "approval_required": True,
-            "recommendation": {
-                "should_irrigate": rec["should_irrigate"],
-                "trigger_reason": rec["trigger_reason"],
-                "net_irrigation_mm": rec["net_irrigation_mm"],
-                "target_refill_mm": rec["target_refill_mm"],
-                "urgency": rec["urgency"],
-                # `timing_ar`/`rationale_ar` هما الموضعان الوحيدان اللذان يذكران المطرَ
-                # المتوقَّع للمزارع. حجبُهما كان يجعل الحجزَ صامتاً: قرارٌ يُمتنَع عنه بلا سبب.
-                "timing_ar": rec["timing_ar"],
-                "rationale_ar": rec["rationale_ar"],
-                "forecast_hold": rec["forecast_hold"],
-            },
-            "confidence": confidence,
-            "evidence_ids": evidence_ids,
-            "provenance": {
-                "et0": et0_prod.get("weather_snapshot_id"),
-                "et0_product": _et0_provenance(et0_prod),
-                "weather": wx.get("valid_time"),
-                "taw_source": taw_source,
-                "applied_water_status": applied_status,
-            },
-            "calibrated": False,
-            "policy": rec.get("policy"),
-            "requires_expert_review": bool(rec.get("requires_expert_review")),
-        }
+        from api.irrigation_recommendation_policy import irrigation_candidate_record
+
+        candidate = irrigation_candidate_record(
+            rec,
+            field_id=field_id,
+            season_id=season_id,
+            confidence=confidence,
+            evidence_ids=evidence_ids,
+            et0_snapshot_id=et0_prod.get("weather_snapshot_id"),
+            et0_product=_et0_provenance(et0_prod),
+            weather_valid_time=wx.get("valid_time"),
+            taw_source=taw_source,
+            applied_status=applied_status,
+        )
         if req.manual_execution:
             try:
                 source = build_manual_source(
@@ -714,6 +707,7 @@ async def field_irrigation_recommendation(
             "decision_value": candidate,
             "created_by": getattr(user, "username", None) or getattr(user, "user_id", None),
             "provenance": irrigation_decision_provenance(rec, evidence_refs=evidence_ids),
+            **ac1.record_fields,
         }
         try:
             res = await _submit_candidate_to_decision(
@@ -742,6 +736,8 @@ async def field_irrigation_recommendation(
             if exc.status_code in _ENGINE_DOWN_CODES:
                 approval_state = "submit_unavailable"
                 submit_limitation = "decision-service unavailable — candidate not submitted"
+            elif (refused := ac1.refusal(exc.status_code, exc.detail)) is not None:
+                approval_state, submit_limitation = refused
             else:
                 raise
 
@@ -786,6 +782,7 @@ async def field_irrigation_recommendation(
         # WS-D.2d: حالة الاعتماد صريحة — «اروِ» ليس قراراً نهائيّاً قبل approved.
         "approval_state": approval_state,
         "decision_id": decision_id,
+        "agronomic_context": ac1.report() if ac1 else None,
         "confidence": confidence,
         "evidence_ids": evidence_ids,
         "limitations": [

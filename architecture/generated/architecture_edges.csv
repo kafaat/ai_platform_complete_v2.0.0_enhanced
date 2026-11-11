@@ -41,6 +41,7 @@ platform,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 platform,sahool-redis,compose-depends-on,docker-compose.v9.yml
 platform,sahool-redis-state,compose-depends-on,docker-compose.v9.yml
 platform,scout-ingest-service,code-reference,services/sahool-platform/api/routers/service_proxy.py
+platform,soil-service,code-reference,services/sahool-platform/api/agronomic_context_composer.py
 platform,soil-service,code-reference,services/sahool-platform/api/canonical_soil_state.py
 platform,soil-service,code-reference,services/sahool-platform/api/device_registry.py
 platform,soil-service,code-reference,services/sahool-platform/api/irrigation_recommendation_policy.py
