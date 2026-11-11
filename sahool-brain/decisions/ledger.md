@@ -4759,3 +4759,7 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **القرار:** قرار المالك أوّلاً «استمرار التجميد»، ثمّ في الجلسة نفسها: «تجاوز ابقاء البوابة مجمدة اذا هناك مؤشرات لفتحها قوم بفتحها». التقييم والتنفيذ في فرع `claude/w5-gate01-open-20261109` مستقلّ عن هذا الـPR.
 - **السبب:** قرار المالك المباشر؛ وفصل الفتح عن إصلاحات المنتج يُبقي كلّاً منهما قابلاً للمراجعة وحده.
 - **المصدر:** `docs/architecture/gate01_policy.json`.
+
+**2026-11-11 — ختم `GATE01-ADJ-2026-11-09-001` بعد دمج #1367.**
+**السبب:** تفويضٌ `ISSUED` هبطت بايتاته يُسقط `gate01_frozen_path_guard` على كلّ PR (`GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01`)؛ والبصمة الوحيدة المأذونة (`actuator_runtime.py` = `815a1327`) مطابقةٌ لشجرة `ce4b05c46`، والقرار الموقَّع محجوزٌ في `consumed_authorizations.json` على main.
+**المرجع:** #1367 · `docs/architecture/gates/adjudications/GATE01-ADJ-2026-11-09-001.json` · فرع `claude/seal-gate01-adj-2026-11-09-001`.
