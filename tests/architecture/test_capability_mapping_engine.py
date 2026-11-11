@@ -186,6 +186,33 @@ def test_meta_governance_witness_files_are_not_capability_evidence() -> None:
     assert "tests_v9/test_nats_subject_ownership_contract.py" not in paths
 
 
+def test_gate01_signature_trailer_never_changes_the_map() -> None:
+    """The envelope and ledgers committed after a signed head must not move this map.
+
+    Measured on #1367 (first owner-signed bounded_change): committing the DSSE envelope raised
+    files_scanned 7107 → 7108, so capability-registry required a regeneration that
+    gate01_owner_signature_guard refuses after the signed head. The excluded paths are read
+    from the live GATE-01 policy, so moving the trailer without moving this exclusion fails.
+    """
+    spec = __import__("importlib.util").util.spec_from_file_location("capability_mapping", SCRIPT)
+    assert spec and spec.loader
+    module = __import__("importlib.util").util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    policy = json.loads((ROOT / "docs/architecture/gate01_policy.json").read_text(encoding="utf-8"))
+    cfg = policy["owner_signature"]
+    prefix = cfg["authorizations_dir"].rstrip("/") + "/"
+    assert prefix in module.META_GOVERNANCE_PREFIXES
+    for key in ("consumed_ledger_path", "revocations_path"):
+        assert cfg[key] in module.META_GOVERNANCE_FILES, key
+    paths = _iter_scanned_paths()
+    assert not any(path.startswith(prefix) for path in paths)
+    assert cfg["consumed_ledger_path"] not in paths
+    assert cfg["revocations_path"] not in paths
+    # Narrow by construction: sibling GATE-01 records stay out only by their own rules,
+    # not because of this exclusion.
+    assert module.META_GOVERNANCE_PREFIXES == (prefix,)
+
+
 def test_legitimate_architecture_evidence_remains_discoverable() -> None:
     """The witness fix must not undercount: a subtree ban was rejected in review.
 

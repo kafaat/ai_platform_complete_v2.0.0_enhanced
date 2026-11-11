@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7106,
+    "files_scanned": 7105,
     "files_by_kind": {
       "backend": 1267,
       "database": 295,
       "governance": 89,
       "mobile": 414,
-      "other": 2164,
+      "other": 2163,
       "tests": 2371,
       "web": 506
     },
@@ -29,11 +29,11 @@
     "ambiguous_artifacts": 234,
     "files_by_reading": {
       "python_functional": 3825,
-      "raw": 3281
+      "raw": 3280
     },
     "test_dependency_files": 1784,
     "test_dependency_edges": 4493,
-    "test_dependency_bounded_files": 1039,
+    "test_dependency_bounded_files": 1038,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -49932,8 +49932,10 @@
     },
     {
       "test": "services/actuator-service/test_actuator_safety_audit_20261101.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
       "edges": [
         {
           "source": "services/actuator-service/actuator_runtime.py",
@@ -49948,7 +49950,7 @@
         {
           "source": "services/actuator-service/routers/commands.py",
           "kind": "import",
-          "line": 489
+          "line": 587
         }
       ],
       "unresolved": []

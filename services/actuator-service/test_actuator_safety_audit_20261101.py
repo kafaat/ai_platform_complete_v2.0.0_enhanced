@@ -380,10 +380,10 @@ def test_a3_trigger_duration_requires_a_sustained_condition(wired, monkeypatch):
 @pytest.mark.parametrize(
     ("command", "payload", "wire"),
     [
-        ("open", {}, "OPEN"),
+        ("open", {"duration_sec": 60}, "OPEN"),
         ("open_valve", {"duration_sec": 600}, "OPEN"),
         ("irrigate", {"duration_sec": 900}, "OPEN"),
-        ("start", {}, "OPEN"),
+        ("start", {"duration_sec": 60}, "OPEN"),
         ("close", {}, "CLOSE"),
         ("CLOSE_VALVE", {}, "CLOSE"),
         ("stop", {}, "CLOSE"),
@@ -399,16 +399,62 @@ def test_a4_platform_commands_map_to_the_firmware_vocabulary(act, command, paylo
         ("pulse", {}, "unknown_command:pulse"),
         ("", {}, "unknown_command:-"),
         ("irrigate", {"amount_mm": 12.0}, "dose_command_requires_duration_sec"),
+        # ACTUATOR-OPEN-WITHOUT-DURATION-01: كلُّ OPEN بلا مدّة — لا `irrigate` وحده.
+        ("open", {}, "open_command_requires_duration_sec"),
+        ("open_valve", {}, "open_command_requires_duration_sec"),
+        ("on", {}, "open_command_requires_duration_sec"),
+        ("start", {}, "open_command_requires_duration_sec"),
+        ("start_irrigation", None, "open_command_requires_duration_sec"),
+        ("open", {"duration_sec": None}, "open_command_requires_duration_sec"),
+        ("open_valve", {"duration_sec": 0}, "invalid_duration_sec"),
+        ("open_valve", {"duration_sec": 0.0}, "invalid_duration_sec"),
+        ("open_valve", {"duration_sec": float("nan")}, "invalid_duration_sec"),
         ("open_valve", {"duration_sec": -5}, "invalid_duration_sec"),
         ("open_valve", {"duration_sec": "abc"}, "invalid_duration_sec"),
         ("open_valve", {"duration_sec": "600"}, "invalid_duration_sec"),
         ("open_valve", {"duration_sec": float("inf")}, "invalid_duration_sec"),
         ("open_valve", {"duration_sec": True}, "invalid_duration_sec"),
         ("open_valve", {"duration_sec": 7200}, "duration_exceeds_device_max"),
+        # `duration_sec` كنسيّ: الدقائق وحدها لا تُخمَّن ثوانيها ولا تصير سقف 30 دقيقة.
+        ("open", {"duration_minutes": 10}, "non_canonical_duration_field:duration_minutes"),
+        ("open_valve", {"duration_min": 30}, "non_canonical_duration_field:duration_min"),
+        ("start", {"durationMinutes": 5}, "non_canonical_duration_field:durationMinutes"),
+        ("irrigate", {"minutes": 5}, "non_canonical_duration_field:minutes"),
+        ("on", {"duration_seconds": 60}, "non_canonical_duration_field:duration_seconds"),
+        # مدّتان متعارضتان ⇒ رفضٌ بسببٍ مميَّز، لا اختيارُ إحداهما.
+        ("open", {"duration_sec": 60, "duration_minutes": 10}, "conflicting_duration_fields"),
+        ("open_valve", {"duration_sec": 600, "duration_min": "10"}, "conflicting_duration_fields"),
+        ("open", {"duration_sec": 60, "duration_seconds": 61}, "conflicting_duration_fields"),
+        # An invalid duration_sec beside a non-canonical field is refused as invalid,
+        # never accepted because the second field happens to be well formed.
+        ("open", {"duration_sec": "abc", "duration_minutes": 10}, "invalid_duration_sec"),
+        ("open_valve", {"duration_sec": True, "duration_min": 1}, "invalid_duration_sec"),
+        # NaN is a float, so it reaches the comparison and equals nothing: still refused,
+        # with the conflict reason (the OPEN never reaches the firmware either way).
+        (
+            "start",
+            {"duration_sec": float("nan"), "duration_seconds": 60},
+            "conflicting_duration_fields",
+        ),
     ],
 )
 def test_a4_unmappable_commands_are_rejected(act, command, payload, reason):
     assert act._to_firmware_wire(command, payload) == (None, reason)
+
+
+@pytest.mark.parametrize(
+    ("command", "payload", "wire"),
+    [
+        # مدّةٌ ثانيةٌ تطابق `duration_sec` تماماً ليست تعارضاً.
+        ("open_valve", {"duration_sec": 600, "duration_minutes": 10}, "OPEN"),
+        ("open", {"duration_sec": 90, "duration_min": 1.5}, "OPEN"),
+        # الإغلاق لا يُحجَب بحقل مدّةٍ زائد: هو الحالة الآمنة.
+        ("close", {"duration_minutes": 10}, "CLOSE"),
+        ("stop_irrigation", {"duration_sec": 60, "duration_minutes": 99}, "CLOSE"),
+    ],
+)
+def test_matching_or_irrelevant_duration_fields_are_not_refused(act, command, payload, wire):
+    assert act._to_firmware_wire(command, payload) == (wire, "ok")
 
 
 class _FakeMQTT:
@@ -463,7 +509,59 @@ def test_a4_unknown_command_never_reaches_the_broker(real_mqtt):
 
 def test_a4_simulation_does_not_claim_success_for_an_unknown_command(act):
     assert asyncio.run(act.send_mqtt_command("valve-a", "pulse", {})) is False
-    assert asyncio.run(act.send_mqtt_command("valve-a", "open", {})) is True
+    assert asyncio.run(act.send_mqtt_command("valve-a", "open", {"duration_sec": 60})) is True
+
+
+def test_an_open_without_duration_is_refused_before_any_publish_in_every_mode(act, real_mqtt):
+    """ACTUATOR-OPEN-WITHOUT-DURATION-01: فتحٌ بلا مدّة لا يُنشَر ولا يُحاكى نجاحاً.
+
+    كان يُقبَل (عدا ``irrigate``) فيبقى الصمّام مفتوحاً حتّى سقف البرنامج الثابت
+    ``VALVE_MAX_OPEN_MS`` (30 دقيقة). والإغلاق — الحالة الآمنة — يُنشَر بلا مدّة.
+    """
+    for mode in ("real", "simulation"):
+        _FakeMQTT.published = []
+        act.ACTUATOR_MODE = mode
+        for cmd in ("open", "open_valve", "on", "start", "start_irrigation"):
+            assert asyncio.run(act.send_mqtt_command("valve-a", cmd, {})) is False, (mode, cmd)
+        assert _FakeMQTT.published == [], mode
+    act.ACTUATOR_MODE = "real"
+    assert asyncio.run(act.send_mqtt_command("valve-a", "close", {})) is True
+    assert _FakeMQTT.published[0][1]["cmd"] == "CLOSE"
+
+
+def test_a_minutes_only_or_conflicting_open_is_refused_on_publish_and_dispatch(act, real_mqtt):
+    """`duration_sec` كنسيّ: دقائق وحدها أو مدّتان متعارضتان ⇒ لا نشر ولا محاكاة ولا إرسال.
+
+    المساران اللذان لا يمرّان بالموجّه اليدويّ — القواعد والتعويض (``send_mqtt_command``)
+    وطلبُ التنفيذ المحكوم (``_plan_dispatch_execution``) — يرفضان بنفس السبب.
+    """
+    cases = (
+        ({"duration_minutes": 10}, "non_canonical_duration_field:duration_minutes"),
+        ({"duration_sec": 60, "duration_minutes": 10}, "conflicting_duration_fields"),
+    )
+    for payload, reason in cases:
+        for mode in ("real", "simulation"):
+            _FakeMQTT.published = []
+            act.ACTUATOR_MODE = mode
+            assert asyncio.run(act.send_mqtt_command("valve-a", "open_valve", payload)) is False
+            assert _FakeMQTT.published == [], (mode, payload)
+        item = {
+            "command_payload": {
+                "device_id": "valve-1",
+                "command": "open_valve",
+                "payload": payload,
+                "risk_level": "low",
+            }
+        }
+        assert act._plan_dispatch_execution(item, allowlist={"low"}) == (
+            "unsupported_command",
+            reason,
+        )
+    act.ACTUATOR_MODE = "real"
+    _FakeMQTT.published = []
+    payload = {"duration_sec": 600, "duration_minutes": 10}
+    assert asyncio.run(act.send_mqtt_command("valve-a", "open_valve", payload)) is True
+    assert _FakeMQTT.published[0][1]["payload"]["duration_ms"] == 600_000
 
 
 def test_a4_dispatch_plan_refuses_unmappable_command_with_its_reason(act):
@@ -657,3 +755,47 @@ def test_a7_the_signature_binds_the_duration_so_an_edit_invalidates_it(act):
 )
 def test_a7_wire_duration_is_whole_milliseconds_never_truncated_to_zero(act, payload, expected):
     assert act._wire_duration_ms(payload) == expected
+
+
+# ══ تكرارُ OPEN لا يُعيد التشغيل ولا يُمدِّد المدّة (idempotency) ═══════════════
+def test_a_repeated_rule_open_with_a_longer_duration_is_not_refired(wired, monkeypatch):
+    """مفتاحُ إزالة التكرار (مستأجِر، حقل، جهاز، أمر) لا يحمل المدّة عمداً.
+
+    فإعادةُ إطلاق القاعدة نفسها ضمن النافذة — ولو بمدّةٍ أطول — لا تُنشَر: لا تُعيد
+    التشغيل ولا تُمدِّده. ولو دخلت المدّةُ المفتاحَ لصار كلُّ تعديلٍ للمدّة إطلاقاً جديداً.
+    """
+    act, db, trace = wired
+    monkeypatch.setattr(act, "ACTUATOR_DEDUP_WINDOW_SEC", 60.0)
+    db.rules[0]["action_payload"] = {"duration_sec": 60}
+    asyncio.run(act.evaluate_rules("soil_moisture", 42.0, TENANT, "field-9"))
+    db.rules[0]["action_payload"] = {"duration_sec": 1200}
+    asyncio.run(act.evaluate_rules("soil_moisture", 42.0, TENANT, "field-9"))
+
+    assert [(d, c) for d, c, _ in trace.mqtt] == [("valve-a", "open")]
+
+
+def test_a_republished_dispatch_open_is_a_duplicate_on_the_wire(act):
+    """إعادةُ نشر طلب التنفيذ نفسه (استرداد) تحمل الـ``ts`` نفسَه — ولو تغيّرت المدّة.
+
+    والبرنامجُ الثابت يُسقِط المكرّرَ بـ``ts`` **قبل** فرع OPEN، فلا يصل التكرارُ إلى
+    ``valveRequestedMs``: لا إعادة تشغيل ولا تمديد. والمدّة داخل التوقيع، فلا تُمدَّد
+    رسالةٌ منشورة بتعديلها على السلك.
+    """
+    item = {"requested_at": "2026-11-09T10:00:00+00:00", "command_payload": {}}
+    first = act._dispatch_wire_identity(item, {"idempotency_key": "k-1"}, "req-1")
+    again = act._dispatch_wire_identity(item, {"idempotency_key": "k-1"}, "req-1")
+    assert first == again and first[1]
+
+    ts = first[1]
+    original = json.loads(
+        act._build_wire_message("OPEN", {"duration_sec": 60}, ts=ts, secret="s" * 32)
+    )
+    longer = json.loads(
+        act._build_wire_message("OPEN", {"duration_sec": 1200}, ts=ts, secret="s" * 32)
+    )
+    assert original["ts"] == longer["ts"] == ts
+    assert original["sig"] != longer["sig"], "المدّة خارج التوقيع ⇒ تُمدَّد بلا كسره"
+
+    fw = (ROOT / "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino").read_text("utf-8")
+    callback = fw[fw.index("void mqttCallback(") :]
+    assert callback.index("if (isDuplicateCmd(ts))") < callback.index("valveRequestedMs = reqMs;")

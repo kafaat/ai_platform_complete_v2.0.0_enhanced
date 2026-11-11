@@ -115,9 +115,26 @@ META_GOVERNANCE_FILES = {
     # witness of the scorer evidence for the capabilities it controls for.
     "tests_v9/test_capability_mapping_dependency_evidence.py",
 }
-# Extension point for whole witness classes (e.g. a future registries/ subdir). Empty today:
-# every measured witness is an individual file, and breadth must be argued per entry.
-META_GOVERNANCE_PREFIXES: tuple[str, ...] = ()
+# Extension point for whole witness classes. Breadth must be argued per entry.
+#
+# GATE-01 signature trailer (envelopes directory + the two append-only ledgers, i.e. exactly
+# `authorizations_dir`, `consumed_ledger_path` and `revocations_path` in the owner_signature
+# block of docs/architecture/gate01_policy.json). Measured on #1367, the first owner-signed
+# bounded_change: the DSSE envelope is committed AFTER the signed head, and
+# gate01_owner_signature_guard refuses any post-signature commit that touches more than those
+# trailer paths. Scanning them made `files_scanned` 7107 → 7108, so capability-registry
+# demanded a regeneration of this map that the signature guard must refuse: a deadlock in
+# which no signed bounded change could ever merge green. The trailer is signature plumbing
+# (base64 payloads, decision ids, SHAs), never implementation evidence; the subtree holds
+# nothing else by construction (the guard reads every file in it as an envelope).
+GATE01_SIGNATURE_TRAILER_FILES = frozenset(
+    {
+        "docs/architecture/gates/consumed_authorizations.json",
+        "docs/architecture/gates/revoked_authorizations.json",
+    }
+)
+META_GOVERNANCE_FILES |= GATE01_SIGNATURE_TRAILER_FILES
+META_GOVERNANCE_PREFIXES: tuple[str, ...] = ("docs/architecture/gates/authorizations/",)
 
 # High-signal synonyms. Generic words are deliberately absent.
 ALIASES: dict[str, tuple[str, ...]] = {
