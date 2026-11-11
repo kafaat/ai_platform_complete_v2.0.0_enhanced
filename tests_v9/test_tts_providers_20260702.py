@@ -18,7 +18,6 @@ tts-service:
 
 from __future__ import annotations
 
-import importlib
 import sys
 from pathlib import Path
 
@@ -201,6 +200,9 @@ def _bearer(main_mod) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
+_NO_REAL_EDGE_TTS = "edge_tts كعبٌ محقون/غائب — لا مكتبة حقيقيّة لتأكيد available=True"
+
+
 def _require_real_edge_tts():
     """تخطَّ إن لم تتوفّر مكتبة edge_tts **الحقيقيّة** (كعبٌ محقون أو غائبة).
 
@@ -210,17 +212,15 @@ def _require_real_edge_tts():
     (و``_load_main`` قد يعيد استعمال نسخة tts محمّلة بهذا التجميد) ⇒ فيفشل تأكيد
     available=True. الكعب بلا ``__file__`` — نتحقّق من مكتبة حقيقيّة وإلّا نتخطّى.
     """
-    # One skip reason for both cases. ``importorskip`` would report "could not import
+    # One skip reason for both cases. Plain ``importorskip`` reports "could not import
     # 'edge_tts'" when the library is absent, but the stub reason when a sibling file has
-    # already injected its stub into this xdist worker. Which of the two happens depends
-    # on how xdist distributes the files, so the unit skip inventory guard (which matches
-    # the reason exactly) would turn red or green with the scheduling, not with the code.
-    try:
-        et = importlib.import_module("edge_tts")
-    except ImportError:
-        et = None
-    if et is None or getattr(et, "__file__", None) is None:
-        pytest.skip("edge_tts كعبٌ محقون/غائب — لا مكتبة حقيقيّة لتأكيد available=True")
+    # already injected its stub into this xdist worker. Which one appears depends on how
+    # xdist distributes the files, so the unit skip inventory guard (which matches the
+    # reason exactly) would follow the scheduling, not the code. ``reason=`` pins it, and
+    # keeping ``importorskip`` keeps the dormancy visible to the dependency-dormancy guard.
+    et = pytest.importorskip("edge_tts", reason=_NO_REAL_EDGE_TTS)
+    if getattr(et, "__file__", None) is None:
+        pytest.skip(_NO_REAL_EDGE_TTS)
 
 
 def _load_main():
