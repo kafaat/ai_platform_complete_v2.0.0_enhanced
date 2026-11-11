@@ -48,7 +48,7 @@ interface Props {
 function layerToGeometry(layer: L.Layer): ArealGeometry | null {
   const toGeoJSON = (layer as { toGeoJSON?: () => GeoJSON.Feature }).toGeoJSON;
   let gj: GeoJSON.Feature | null;
-  try { gj = toGeoJSON?.() ?? null; } catch { gj = null; }
+  try { gj = toGeoJSON?.call(layer) ?? null; } catch { gj = null; }
   const g = gj?.geometry;
   if (g && (g.type === 'Polygon' || g.type === 'MultiPolygon')) {
     return g as ArealGeometry;

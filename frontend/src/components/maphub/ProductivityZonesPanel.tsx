@@ -47,6 +47,7 @@ export function ProductivityZonesPanel({
   }
   return (
     <div className="rounded-2xl border border-amber-100 bg-white/95 p-3 shadow-xs" data-testid="productivity-zones-panel">
+      {(!onAccept || !onPlanSoilSampling || !onReject) && <p role="status" className="mb-2 text-xs text-amber-700">بعض الإجراءات غير متاحة في هذا العرض؛ لم يُحفظ المقترح أو يُعتمد.</p>}
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-1 text-sm font-semibold text-slate-800">
@@ -73,13 +74,13 @@ export function ProductivityZonesPanel({
         ))}
       </div>
       <div className="mt-3 flex flex-wrap gap-1">
-        <button type="button" data-testid="productivity-zones-accept" onClick={() => onAccept?.(zones)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
+        <button disabled={!onAccept} title={!onAccept ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="productivity-zones-accept" onClick={() => onAccept?.(zones)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
           <CheckCircle2 className="h-3 w-3" /> اعتماد المناطق
         </button>
-        <button type="button" data-testid="productivity-zones-soil-sampling" onClick={() => onPlanSoilSampling?.(zones)} className="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-white px-2 py-1 text-xs text-sky-700 hover:bg-sky-50">
+        <button disabled={!onPlanSoilSampling} title={!onPlanSoilSampling ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="productivity-zones-soil-sampling" onClick={() => onPlanSoilSampling?.(zones)} className="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-white px-2 py-1 text-xs text-sky-700 hover:bg-sky-50">
           <Beaker className="h-3 w-3" /> خطط عينات التربة
         </button>
-        <button type="button" data-testid="productivity-zones-reject" onClick={onReject} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
+        <button disabled={!onReject} title={!onReject ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="productivity-zones-reject" onClick={onReject} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
           <XCircle className="h-3 w-3" /> رفض
         </button>
       </div>

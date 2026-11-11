@@ -49,6 +49,16 @@ function errDetail(error: unknown): string {
   return 'تعذّر الاتصال بخدمة الريّ.';
 }
 
+// For a failed write (valve intent / schedule delete): name the cause without implying it was a read.
+function actionErrDetail(error: unknown): string {
+  const status = asApiError(error).response?.status;
+  if (status === 503) return 'خدمة الريّ غير متاحة حاليّاً';
+  if (status === 403) return 'لا تملك صلاحية هذا الإجراء';
+  if (status === 409) return 'تعارضت الحالة مع تغيير آخر';
+  if (status) return `رفض الخادم الطلب (${status})`;
+  return 'لم يصل ردّ من الخادم — قد يكون الطلب سُجِّل';
+}
+
 // ════════════════════════════════════════════════════════════════
 // لوحة الصمّامات
 // ════════════════════════════════════════════════════════════════
@@ -115,6 +125,7 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
         </span>
       </div>
 
+      {setState.isError && <p role="alert" className="text-sm text-red-400 mb-3">تعذّر تسجيل طلب تغيير الصمّام{setState.variables ? ` (${setState.variables.valveId})` : ''}: {actionErrDetail(setState.error)}. أُعيد تحميل حالة الصمّامات من الخادم — تحقّق منها قبل إعادة الطلب.</p>}
       {/* نموذج إنشاء */}
       {mutable && showForm && (
         <div className="rounded-xl border p-3 mb-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
@@ -294,6 +305,7 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
         )}
       </div>
 
+      {deleteSchedule.isError && <p role="alert" className="text-sm text-red-400 mb-3">تعذّر حذف الجدول: {actionErrDetail(deleteSchedule.error)}. أُعيد تحميل القائمة من الخادم — تحقّق منها قبل إعادة المحاولة.</p>}
       {/* نموذج إنشاء */}
       {mutable && showForm && (
         <div className="rounded-xl border p-3 mb-3" style={{ background: '#1e293b', borderColor: '#334155' }}>

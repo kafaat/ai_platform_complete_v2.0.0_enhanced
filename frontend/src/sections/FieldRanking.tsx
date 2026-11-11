@@ -65,7 +65,7 @@ export default function FieldRanking() {
     return mapped
       // صدق المصدر: نُبقي فقط القيم العدديّة الصالحة (لا null/NaN/خارج النطاق).
       .filter((f): f is RankedField =>
-        isRealData(f) && typeof f.ndvi === 'number' && Number.isFinite(f.ndvi) && f.ndvi >= 0 && f.ndvi <= 1)
+        isRealData(f) && typeof f.ndvi === 'number' && Number.isFinite(f.ndvi) && f.ndvi >= -1 && f.ndvi <= 1)
       .sort((a, b) => b.ndvi - a.ndvi);
   }, [q.data]);
 

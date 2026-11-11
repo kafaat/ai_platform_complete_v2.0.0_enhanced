@@ -10,6 +10,7 @@ import DecisionInsightPanel from '../components/decision/DecisionInsightPanel';
 import DecisionDeepPanel from '../components/decision/DecisionDeepPanel';
 import RecommendationsLifecyclePanel from '../components/decision/RecommendationsLifecyclePanel';
 import { T } from '../components/ds';
+import { ErrorState, LoadingState } from '../components/StateViews';
 
 const ACTIONS = ['irrigation', 'fertigation', 'spray', 'harvest', 'other'];
 const RISKS = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
@@ -68,10 +69,10 @@ export default function DecisionRuntimePage() {
             <div className="inline-flex items-center gap-2 text-sm font-bold mb-2" style={{ color: T.ink }}>
               <Shield className="w-4 h-4 text-emerald-300" aria-hidden="true" /> القرارات المحروسة
               <span className="text-[11px] font-normal" style={{ color: T.faint }}>
-                · {overview.total} ({overview.ready} جاهز · {overview.pendingApproval} بانتظار · {overview.blocked} محجوب)
+                {decisionsQ.isSuccess && !decisionsQ.isError ? `· ${overview.total} (${overview.ready} جاهز · ${overview.pendingApproval} بانتظار · ${overview.blocked} محجوب)` : '· غير متاح'}
               </span>
             </div>
-            {decisionsQ.isLoading ? (
+            {decisionsQ.isError ? <ErrorState title="تعذّر تحميل القرارات" onRetry={() => { void decisionsQ.refetch(); }} /> : decisionsQ.isLoading ? (
               <div className="text-[11px]" style={{ color: T.faint }}>جارٍ القراءة…</div>
             ) : (decisionsQ.data?.decisions ?? []).length === 0 ? (
               <div className="text-[11px]" style={{ color: T.muted }}>لا قرارات توزيع مُسجَّلة بعد.</div>
@@ -97,7 +98,7 @@ export default function DecisionRuntimePage() {
               <ListOrdered className="w-4 h-4 text-sky-300" aria-hidden="true" /> طابور المُشغِّل
               <span className="text-[11px] font-normal" style={{ color: T.faint }}>· {queueQ.data?.count ?? '—'} منتظِراً</span>
             </div>
-            {queueQ.isLoading ? (
+            {queueQ.isError ? <ErrorState title="تعذّر تحميل طابور الأوامر" onRetry={() => { void queueQ.refetch(); }} /> : queueQ.isLoading ? (
               <div className="text-[11px]" style={{ color: T.faint }}>جارٍ القراءة…</div>
             ) : (queueQ.data?.queued ?? []).length === 0 ? (
               <div className="text-[11px]" style={{ color: T.muted }}>لا أوامر منتظِرة — الطابور فارغ.</div>
@@ -122,7 +123,7 @@ export default function DecisionRuntimePage() {
               <ScrollText className="w-4 h-4 text-amber-300" aria-hidden="true" /> سجلّ التنفيذ
               <span className="text-[11px] font-normal" style={{ color: T.faint }}>· {ledgerQ.data?.count ?? '—'}</span>
             </div>
-            {(ledgerQ.data?.ledger ?? []).length === 0 ? (
+            {ledgerQ.isError ? <ErrorState title="تعذّر تحميل سجل التنفيذ" onRetry={() => { void ledgerQ.refetch(); }} /> : ledgerQ.isLoading ? <LoadingState /> : (ledgerQ.data?.ledger ?? []).length === 0 ? (
               <div className="text-[11px]" style={{ color: T.muted }}>لا نتائج تنفيذ مُسجَّلة بعد.</div>
             ) : (
               <div className="flex flex-col gap-1">
@@ -142,7 +143,7 @@ export default function DecisionRuntimePage() {
               <Shield className="w-4 h-4 text-violet-300" aria-hidden="true" /> سياسات القرار
               <span className="text-[11px] font-normal" style={{ color: T.faint }}>· {policiesQ.data?.count ?? '—'}</span>
             </div>
-            {(policiesQ.data?.policies ?? []).length === 0 ? (
+            {policiesQ.isError ? <ErrorState title="تعذّر تحميل سياسات القرار" onRetry={() => { void policiesQ.refetch(); }} /> : policiesQ.isLoading ? <LoadingState /> : (policiesQ.data?.policies ?? []).length === 0 ? (
               <div className="text-[11px]" style={{ color: T.muted }}>لا سياسات مُعرَّفة — القرارات تخضع للحواجز الافتراضيّة فقط.</div>
             ) : (
               <div className="flex flex-col gap-1">

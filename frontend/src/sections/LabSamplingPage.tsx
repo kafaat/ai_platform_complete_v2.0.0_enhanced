@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Marker, useMapEvents } from 'react-leaflet';
 import '../lib/leafletSetup';
 import { FlaskConical, MapPin, Plus, ShieldCheck } from 'lucide-react';
@@ -85,7 +85,11 @@ export default function LabSamplingPage() {
   const fieldPolygon = useMemo(() => geomToPolygon(selected?.geometry), [selected?.geometry]);
   const rep = selected ? fieldRepresentativePoint(selected) : null;
   const mapCenter = (rep ?? fieldPolygon?.[0] ?? [15.0, 44.0]) as [number, number];
-  const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(null);
+  const [pointDraft, setPointDraft] = useState<{ fieldId: string | null; point: [number, number] | null }>({ fieldId: null, point: null });
+  // A point belongs to one field; switching fields immediately makes it unavailable.
+  const pickedPoint = pointDraft.fieldId === fieldId ? pointDraft.point : null;
+  const setPickedPoint = (point: [number, number]) => setPointDraft({ fieldId, point });
+  useEffect(() => { setMsg(null); }, [fieldId]);
   const soilSamples = useMemo(() => (samplesQ.data ?? []).filter((s) => s.kind === 'soil'), [samplesQ.data]);
 
   const onCreateSample = async (fd: FormData) => {
@@ -154,12 +158,12 @@ export default function LabSamplingPage() {
 
       {!fieldId ? <EmptyState title="اختر حقلاً" hint="يجب اختيار حقل قبل إضافة عينة." /> : null}
       {samplesQ.isLoading ? <LoadingState message="جارٍ تحميل العينات…" /> : null}
-      {samplesQ.isError ? <ErrorState title="تعذر تحميل العينات" detail={apiErrorMessage(asApiError(samplesQ.error), 'خطأ غير معروف')} /> : null}
+      {samplesQ.isError ? <ErrorState title="تعذر تحميل العينات" detail={apiErrorMessage(asApiError(samplesQ.error), 'خطأ غير معروف')} onRetry={() => { void samplesQ.refetch(); }} /> : null}
       {msg ? <div className="rounded-xl border border-emerald-900 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-200">{msg}</div> : null}
 
       {fieldId ? (
         <div className="grid gap-4 lg:grid-cols-3">
-          <form className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 space-y-3" action={(fd) => void onCreateSample(fd)}>
+          <form key={`sample-${fieldId}`} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 space-y-3" action={(fd) => void onCreateSample(fd)}>
             <h2 className="font-semibold text-slate-100 flex items-center gap-2"><MapPin size={18} /> إضافة نقطة عينة</h2>
             <label className="block text-sm text-slate-300">نوع العينة<select name="kind" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2"><option value="soil">تربة</option><option value="water">مياه</option></select></label>
             <SamplePointPicker value={pickedPoint} onPick={(lat, lng) => setPickedPoint([lat, lng])} polygon={fieldPolygon} center={mapCenter} />
@@ -172,7 +176,7 @@ export default function LabSamplingPage() {
             <button disabled={!fieldId || createSample.isPending} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-white disabled:opacity-50"><Plus size={16} /> حفظ العينة</button>
           </form>
 
-          <form className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 space-y-3" action={(fd) => void onSubmitSoil(fd)}>
+          <form key={`soil-${fieldId}`} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 space-y-3" action={(fd) => void onSubmitSoil(fd)}>
             <h2 className="font-semibold text-slate-100 flex items-center gap-2"><ShieldCheck size={18} /> إدخال تحليل تربة</h2>
             <label className="block text-sm text-slate-300">العينة<select name="sample_id" required className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2"><option value="">اختر عينة</option>{soilSamples.map((s) => <option key={s.sample_id} value={s.sample_id}>{s.sample_id} · {s.sampled_on ?? 'بدون تاريخ'}</option>)}</select></label>
             <div className="grid grid-cols-3 gap-2"><input name="ph" type="number" step="any" placeholder="pH" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /><input name="ec_dsm" type="number" step="any" placeholder="EC dS/m" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /><input name="organic_matter_pct" type="number" step="any" placeholder="OM %" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></div>
@@ -186,10 +190,12 @@ export default function LabSamplingPage() {
             <h2 className="font-semibold text-slate-100">سياق القرار</h2>
             <p className="text-sm text-slate-400 mt-1">الحقل: {selected?.name ?? fieldId}</p>
             {contextQ.isLoading ? <LoadingState message="جارٍ قراءة سياق المختبر…" /> : null}
-            {contextQ.data ? <div className="mt-3 space-y-2 text-sm"><div>بوابة التوصية: <b className="text-emerald-300">{contextQ.data.recommendation_gate}</b></div><div>جاهزية التربة للتسميد: {contextQ.data.soil_lab_ready_for_fertilizer ? 'نعم' : 'تحتاج مراجعة'}</div><ul className="list-disc pr-5 text-amber-200">{contextQ.data.warnings_ar.map((w) => <li key={w}>{w}</li>)}</ul></div> : <p className="text-sm text-slate-500 mt-3">لا يوجد سياق قرار متاح بعد.</p>}
+            {contextQ.isError ? <ErrorState title="تعذّر تحميل سياق المختبر" detail={labErrorMessage(contextQ.error, 'تعذّر الاتصال بالخدمة')} onRetry={() => { void contextQ.refetch(); }} /> : contextQ.data ? <div className="mt-3 space-y-2 text-sm"><div>بوابة التوصية: <b className="text-emerald-300">{contextQ.data.recommendation_gate}</b></div><div>جاهزية التربة للتسميد: {contextQ.data.soil_lab_ready_for_fertilizer ? 'نعم' : 'تحتاج مراجعة'}</div><ul className="list-disc pr-5 text-amber-200">{contextQ.data.warnings_ar.map((w) => <li key={w}>{w}</li>)}</ul></div> : !contextQ.isLoading ? <p className="text-sm text-slate-500 mt-3">لا يوجد سياق قرار متاح بعد.</p> : null}
           </section>
         </div>
       ) : null}
+
+
 
       {fieldId && samplesQ.data ? (
         <section className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">

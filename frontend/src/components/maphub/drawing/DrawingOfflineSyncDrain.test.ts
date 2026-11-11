@@ -52,6 +52,12 @@ async function saveWhileOffline() {
 
 describe('R10 offline drawing queue is drained, idempotent and honest about its state', () => {
   beforeEach(() => {
+    window.sessionStorage.setItem('sahool_access_token', 'test-token');
+    window.sessionStorage.setItem('sahool_tenant_id', 'test-tenant');
+    window.sessionStorage.setItem('sahool_user', JSON.stringify({ id: 'test-user' }));
+    const scope = encodeURIComponent(JSON.stringify(['test-tenant', 'test-user']));
+    window.localStorage.removeItem(`${DRAWING_DRAFTS_STORAGE_KEY}:owner:${scope}`);
+    window.localStorage.removeItem(`${DRAWING_SYNC_QUEUE_STORAGE_KEY}:owner:${scope}`);
     window.localStorage.removeItem(DRAWING_DRAFTS_STORAGE_KEY);
     window.localStorage.removeItem(DRAWING_SYNC_QUEUE_STORAGE_KEY);
     kong.post.mockReset();
@@ -101,7 +107,7 @@ describe('R10 offline drawing queue is drained, idempotent and honest about its 
     expect(body.id).toBe('zone-offline-1'); // معرّف العميل ⇒ upsert في الخادم
     expect(body.draft).toBe(false);
     expect(body.properties.offlinePending).toBeUndefined();
-    expect(config).toEqual({ headers: { 'Idempotency-Key': item.operationId } });
+    expect(config).toEqual({ expectedAuthScope: JSON.stringify(['test-tenant', 'test-user']), headers: { 'Idempotency-Key': item.operationId } });
     expect(listQueuedDrawingFeatures('field-1')).toHaveLength(0);
   });
 

@@ -44,6 +44,7 @@ export function SoilSamplingPlannerPanel({
   if (!plan || !samplePoints.length) return null;
   return (
     <div className="rounded-2xl border border-sky-100 bg-white/95 p-3 shadow-xs" data-testid="soil-sampling-planner-panel">
+      {(!onAccept || !onContinueToVra || !onReject) && <p role="status" className="mb-2 text-xs text-amber-700">بعض الإجراءات غير متاحة في هذا العرض؛ لم يُحفظ المقترح أو يُعتمد.</p>}
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-1 text-sm font-semibold text-slate-800">
@@ -80,13 +81,13 @@ export function SoilSamplingPlannerPanel({
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1">
-        <button type="button" data-testid="soil-sampling-accept" onClick={() => onAccept?.(plan, samplePoints)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
+        <button disabled={!onAccept} title={!onAccept ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="soil-sampling-accept" onClick={() => onAccept?.(plan, samplePoints)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
           <CheckCircle2 className="h-3 w-3" /> اعتماد خطة العينات
         </button>
-        <button type="button" data-testid="soil-sampling-vra-next" onClick={() => onContinueToVra?.(plan)} className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-white px-2 py-1 text-xs text-amber-700 hover:bg-amber-50">
+        <button disabled={!onContinueToVra} title={!onContinueToVra ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="soil-sampling-vra-next" onClick={() => onContinueToVra?.(plan)} className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-white px-2 py-1 text-xs text-amber-700 hover:bg-amber-50">
           إلى وصفات VRA
         </button>
-        <button type="button" data-testid="soil-sampling-reject" onClick={onReject} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
+        <button disabled={!onReject} title={!onReject ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="soil-sampling-reject" onClick={onReject} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
           <XCircle className="h-3 w-3" /> رفض
         </button>
       </div>

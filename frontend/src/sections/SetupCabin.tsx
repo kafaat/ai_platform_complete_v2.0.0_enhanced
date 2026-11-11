@@ -21,7 +21,6 @@ import { useSelectedField } from '../hooks/useSelectedField';
 import { useAuthStore, UNAUTH_TENANT_KEY } from '../hooks/useAuth';
 import { ROLE_LABEL_AR, normalizeRole, canAccess, canMutate, type Role } from '../lib/permissions';
 import { kongApi, type FieldImportInput } from '../services/api';
-import { loadSettings } from '../lib/appSettings';
 import { toastStore } from '../services/websocket';
 import FieldSetupWizard from '../components/fieldsetup/FieldSetupWizard';
 import type { PageId } from '../App';
@@ -59,8 +58,6 @@ function withoutIdempotency<T extends Record<string, unknown>>(source: T): Omit<
   return body;
 }
 
-const LANG_AR: Record<string, string> = { ar: 'العربيّة', en: 'الإنجليزيّة' };
-const MAP_AR: Record<string, string> = { satellite: 'قمر صناعيّ', street: 'شوارع', terrain: 'تضاريس' };
 
 export default function SetupCabin() {
   const farmsQ = useFarms();
@@ -85,9 +82,8 @@ export default function SetupCabin() {
     [userRole],
   );
 
-  const prefs = useMemo(loadSettings, []);
-  const langLabel = prefs.lang ? (LANG_AR[prefs.lang] ?? prefs.lang) : null;
-  const mapLabel = prefs.map ? (MAP_AR[prefs.map] ?? prefs.map) : null;
+  const langLabel = 'العربية';
+  const mapLabel = 'تُضبط من مركز الخرائط';
 
   // ── إنشاء حقل جديد: نقطة دخول للمعالج المتسلسل القائم (FieldSetupWizard) ──
   // تفتح نفس المعالج الذي تستخدمه صفحة «إدارة الحقول» — لا تدفّق مكرّر. التعديل

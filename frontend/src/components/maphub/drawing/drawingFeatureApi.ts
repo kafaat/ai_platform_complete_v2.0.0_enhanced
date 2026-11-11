@@ -1,7 +1,9 @@
+import { getAuthScope } from '../../../lib/authStorage';
 import { kongApi } from '../../../services/api';
 import type { DrawFeature } from './drawingTypes';
 import {
   DRAWING_SYNC_AUTH_REQUIRED_EVENT,
+  withDrawingOwnerScope,
   classifyDrawingSyncError,
   compactSyncedDrawingQueue,
   enqueueDrawingCreate,
@@ -34,7 +36,9 @@ export function listDrawingFeatures(fieldId: string): Promise<PersistedDrawFeatu
 }
 
 function idempotencyConfig(meta?: DrawingOfflineSyncRequestMeta) {
-  return meta?.idempotencyKey ? { headers: { 'Idempotency-Key': meta.idempotencyKey } } : undefined;
+  const ownerScope = meta?.ownerScope ?? getAuthScope();
+  if (!ownerScope) throw new Error('يلزم تسجيل الدخول لحفظ الرسم.');
+  return { expectedAuthScope: ownerScope, ...(meta?.idempotencyKey ? { headers: { 'Idempotency-Key': meta.idempotencyKey } } : {}) };
 }
 
 export function createDrawingFeature(feature: DrawFeature, meta?: DrawingOfflineSyncRequestMeta): Promise<PersistedDrawFeature> {
@@ -75,6 +79,13 @@ export function validateDrawingFeatureTopology(feature: DrawFeature, excludeFeat
 }
 
 
+export class DrawingFeatureReadError extends Error {
+  constructor(public readonly queuedFeatures: PersistedDrawFeature[], public readonly cause: unknown) {
+    super('تعذّر تحميل الرسومات المحفوظة بالخادم');
+    this.name = 'DrawingFeatureReadError';
+  }
+}
+
 export async function listDrawingFeaturesWithOfflineQueue(fieldId: string): Promise<PersistedDrawFeature[]> {
   const queued = listQueuedDrawingFeatures(fieldId) as PersistedDrawFeature[];
   try {
@@ -83,8 +94,8 @@ export async function listDrawingFeaturesWithOfflineQueue(fieldId: string): Prom
     for (const feature of remote) byId.set(feature.id, feature);
     for (const feature of queued) byId.set(feature.id, feature);
     return Array.from(byId.values());
-  } catch {
-    return queued;
+  } catch (error) {
+    throw new DrawingFeatureReadError(queued, error);
   }
 }
 
@@ -94,11 +105,12 @@ function shouldQueueOffline(error: unknown): boolean {
 }
 
 export async function createDrawingFeatureOfflineFirst(feature: DrawFeature): Promise<PersistedDrawFeature> {
+  const ownerScope = getAuthScope();
   try {
     return await createDrawingFeature(feature);
   } catch (error) {
-    if (!shouldQueueOffline(error)) throw error;
-    const queued = enqueueDrawingCreate(feature);
+    if (!ownerScope || (getAuthScope() !== null && getAuthScope() !== ownerScope) || !shouldQueueOffline(error)) throw error;
+    const queued = withDrawingOwnerScope(ownerScope, () => enqueueDrawingCreate(feature));
     return {
       ...(queued.feature as DrawFeature),
       draft: true,
@@ -115,11 +127,12 @@ export async function createDrawingFeatureOfflineFirst(feature: DrawFeature): Pr
 }
 
 export async function updateDrawingFeatureOfflineFirst(featureId: string, patch: Partial<DrawFeature>, fieldId?: string): Promise<PersistedDrawFeature> {
+  const ownerScope = getAuthScope();
   try {
     return await updateDrawingFeature(featureId, patch);
   } catch (error) {
-    if (!shouldQueueOffline(error)) throw error;
-    enqueueDrawingUpdate(featureId, patch, fieldId);
+    if (!ownerScope || (getAuthScope() !== null && getAuthScope() !== ownerScope) || !shouldQueueOffline(error)) throw error;
+    withDrawingOwnerScope(ownerScope, () => enqueueDrawingUpdate(featureId, patch, fieldId));
     return {
       id: featureId,
       kind: patch.kind ?? 'field',
@@ -137,11 +150,12 @@ export async function updateDrawingFeatureOfflineFirst(featureId: string, patch:
 }
 
 export async function deleteDrawingFeatureOfflineFirst(featureId: string, fieldId?: string): Promise<{ deleted: true; feature_id: string; offline?: true }> {
+  const ownerScope = getAuthScope();
   try {
     return await deleteDrawingFeature(featureId);
   } catch (error) {
-    if (!shouldQueueOffline(error)) throw error;
-    enqueueDrawingDelete(featureId, fieldId);
+    if (!ownerScope || (getAuthScope() !== null && getAuthScope() !== ownerScope) || !shouldQueueOffline(error)) throw error;
+    withDrawingOwnerScope(ownerScope, () => enqueueDrawingDelete(featureId, fieldId));
     return { deleted: true, feature_id: featureId, offline: true };
   }
 }

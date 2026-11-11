@@ -8,7 +8,7 @@
 // المنطقة feasible_unverified ليست مرور نظيف. warnings_ar تُعرَض كلّها.
 // العلم مُطفأً (FEATURE_IRRIGATION_NETWORK) ⇒ 404 ⇒ رسالة «الميزة غير مُفعَّلة».
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Share2, Droplets, Network, AlertTriangle, Plus, Trash2, ShieldAlert, CheckCircle2, XCircle } from 'lucide-react';
 import { checkIrrigationNetworkFeasibility, asApiError } from '../services/api';
 import type {
@@ -75,10 +75,21 @@ const CONSTRAINT_LABELS: Record<string, string> = {
 export default function IrrigationNetworkPage() {
   const [nodes, setNodes] = useState<NodeRow[]>(DEFAULT_NODES);
   const [edges, setEdges] = useState<EdgeRow[]>(DEFAULT_EDGES);
-  const [res, setRes] = useState<IrrigationNetworkResult | null>(null);
+  const contextKey = JSON.stringify([nodes, edges]);
+  const [storedResult, setStoredResult] = useState<{ key: string; data: IrrigationNetworkResult } | null>(null);
+  const res = storedResult?.key === contextKey ? storedResult.data : null;
+  const requestId = useRef(0);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(false);
   const [featureOff, setFeatureOff] = useState(false);
+
+  useEffect(() => {
+    requestId.current += 1;
+    setStoredResult(null);
+    setLoading(false);
+    setErr(false); setFeatureOff(false);
+    return () => { requestId.current += 1; };
+  }, [contextKey]);
 
   // الفارغ ⇒ null (القيد غير محدَّد، يُعرَض صراحةً كـ«غير مفحوص» في النتائج).
   const optNum = (s: string): number | null => {
@@ -121,15 +132,17 @@ export default function IrrigationNetworkPage() {
 
   const onCheck = () => {
     setLoading(true); setErr(false); setFeatureOff(false);
+    const activeRequest = ++requestId.current;
     checkIrrigationNetworkFeasibility(buildPayload())
-      .then(r => setRes(r))
+      .then(r => { if (activeRequest === requestId.current) setStoredResult({ key: contextKey, data: r }); })
       .catch(e => {
-        setRes(null);
+        if (activeRequest !== requestId.current) return;
+        setStoredResult(null);
         // 404 ⇒ العلم مُطفأ (الميزة غير مُفعَّلة) — رسالة ودودة لا حالة خطأ.
         if (asApiError(e).response?.status === 404) setFeatureOff(true);
         else setErr(true);
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (activeRequest === requestId.current) setLoading(false); });
   };
 
   const nodeIds = nodes.map(n => n.node_id);

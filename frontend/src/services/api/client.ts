@@ -13,9 +13,13 @@
 // ═══════════════════════════════════════════════════════════════
 
 import axios, { type AxiosInstance } from 'axios';
-import { clearAccessToken, getAccessToken, getTenantId } from '../../lib/authStorage';
+import { clearAccessToken, getAccessToken, getTenantId, getAuthScope } from '../../lib/authStorage';
 import { isAccessTokenExpired } from '../../lib/jwt';
 import { ENDPOINTS } from '../../config/endpoints';
+
+declare module 'axios' {
+  interface AxiosRequestConfig { expectedAuthScope?: string; sahoolRequestAccessToken?: string | null; }
+}
 
 // ── توجيه العملاء: البوّابة (nginx/Kong :80) هي المرجع القانونيّ ──────────────
 // القرار التصميميّ: الإنتاج المرجعيّ هو nginx/Kong على :80، فتنادي الواجهةُ
@@ -50,6 +54,10 @@ function makeClient(baseURL: string): AxiosInstance {
   const client = axios.create({ baseURL, timeout: 15000, headers: { 'Content-Type': 'application/json' } });
   // JWT interceptor
   client.interceptors.request.use((config) => {
+    // MAP-05: a request bound to a session (tenant + user) must never leave under another one.
+    if (config.expectedAuthScope && config.expectedAuthScope !== getAuthScope()) {
+      return Promise.reject(new Error('session changed before request'));
+    }
     // FIX (مراجعة): useAuth يكتب التوكن/المستأجِر في sessionStorage، فكانت قراءة
     // localStorage هنا تُرجِع فارغاً ⇒ كلّ طلبات kongApi غير مُصادَقة. نقرأ من
     // sessionStorage حيث يُكتَب فعلاً (مصدر الحقيقة في useAuth.ts).
@@ -67,6 +75,7 @@ function makeClient(baseURL: string): AxiosInstance {
     }
     if (token) config.headers.Authorization = `Bearer ${token}`;
     config.headers['X-Tenant-ID'] = getTenantId();
+    config.sahoolRequestAccessToken = token;
     return config;
   });
   // 401 → logout
@@ -92,7 +101,8 @@ function makeClient(baseURL: string): AxiosInstance {
       // الاعتماد الفعليّة. انتهاء التوكن الحقيقيّ يلتقطه فحص الصلاحيّة جهة-العميل أعلاه.
       const url = String(err.config?.url || '');
       const isAuthEndpoint = url.startsWith('/auth/');
-      if (isAuthEndpoint && err.response?.status === 401) {
+      if (isAuthEndpoint && err.response?.status === 401 &&
+          err.config?.sahoolRequestAccessToken === getAccessToken()) {
         clearAccessToken();
         window.dispatchEvent(new CustomEvent('sahool:auth:unauthorized'));
       }

@@ -38,21 +38,31 @@ def test_ui21_tasks_panel_has_empty_degraded_permission_states():
     assert "لا يتم إنشاء مهام وهمية" in src
 
 
-def test_ui22_recommendations_are_evidence_only_shell_not_fabricated_advice():
+def test_ui22_recommendations_are_server_backed_not_fabricated_advice():
+    # The panel was a static shell; it now delegates to the server-backed recommendation list.
+    # The invariant is unchanged: nothing is invented client-side, each item shows its source,
+    # a fetch failure is not shown as "no recommendations", and the screen issues no commands.
     src = read("frontend/src/sections/FieldWorkspaceRecommendationsPanel.tsx")
+    rec = read("frontend/src/sections/RecommendationPage.tsx")
     route = read("frontend/src/sections/FieldWorkspaceRouteShell.tsx")
-    assert "evidence lineage" in src
-    assert "recommendation_id" in src
-    assert "confidence" in src
-    assert "لا توجد توصيات موثقة" in src
+    assert "<UnifiedRecommendations fieldId={fieldId} />" in src
+    assert "لا تنفذ هذه الشاشة أوامر تشغيل" in src
+    unified = rec[rec.index("export function UnifiedRecommendations") :]
+    assert "useFieldRecommendations(" in unified
+    assert "{rec.source}" in unified
+    assert 'title="تعذّر جلب توصيات الحقل"' in unified
+    assert 'title="لا توصيات متاحة"' in unified
     assert "<FieldWorkspaceRecommendationsPanel fieldId={fieldId} seasonId={seasonId}" in route
 
 
-def test_ui23_reports_shell_requires_saved_server_side_reports():
+def test_ui23_reports_panel_is_a_live_summary_not_a_saved_report():
+    # The panel now reads the live field summary. It must say it is not a saved report, keep a
+    # failure distinct from an empty result, and never generate PDF/CSV files in the browser.
     src = read("frontend/src/sections/FieldWorkspaceReportsPanel.tsx")
     route = read("frontend/src/sections/FieldWorkspaceRouteShell.tsx")
-    assert "report_id" in src
-    assert "download_url" in src
-    assert "لا توجد تقارير محفوظة" in src
-    assert "لا تُولد PDF/CSV" in src
+    assert "useFieldReport(" in src
+    assert "ليس ملفاً محفوظاً أو تقريراً تاريخياً" in src
+    assert "<ErrorState" in src and "<EmptyState" in src
+    for forbidden in ("new Blob", "createObjectURL", "jspdf", "download="):
+        assert forbidden not in src.lower(), forbidden
     assert "<FieldWorkspaceReportsPanel fieldId={fieldId} seasonId={seasonId}" in route

@@ -221,6 +221,17 @@ describe('FE-06 — القدرات الدقيقة (can) + التوافق الخ�
     }
   });
 
+  it('تجاوز المورد: edit:field = owner/manager (يطابق FIELD_EDIT في الخلفيّة)', () => {
+    expect(can('owner', 'edit', 'field')).toBe(true);
+    expect(can('manager', 'edit', 'field')).toBe(true);
+    expect(can('agronomist', 'edit', 'field')).toBe(false);
+    expect(can('worker', 'edit', 'field')).toBe(false);
+    expect(can('viewer', 'edit', 'field')).toBe(false);
+    expect(canMutate('worker', 'field')).toBe(false);
+    // المورد غير الحقليّ يبقى على العتبة العامّة (worker+):
+    expect(canMutate('worker', 'task')).toBe(true);
+  });
+
   it('تجاوزات المورد: manage:user (مدير+) و delete:user (مالك فقط)', () => {
     expect(can('manager', 'manage', 'user')).toBe(true);
     expect(can('agronomist', 'manage', 'user')).toBe(false);

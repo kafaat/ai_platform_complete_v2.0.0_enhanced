@@ -105,6 +105,7 @@ export interface SavedPrescription {
 
 export interface PrescriptionCreateInput {
   prescription_id: string;
+  season_id?:      string;
   name:            string;
   product_type:    'seed' | 'fertility';
   zones:           SavedPrescriptionZone[];
