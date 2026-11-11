@@ -445,7 +445,9 @@ def test_the_gate01_signature_trailer_is_outside_the_release_fingerprint():
     spec = importlib.util.spec_from_file_location("_brb", _BUILDER)
     brb = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(brb)
-    policy = json.loads((_ROOT / "docs/architecture/gate01_policy.json").read_text(encoding="utf-8"))
+    policy = json.loads(
+        (_ROOT / "docs/architecture/gate01_policy.json").read_text(encoding="utf-8")
+    )
     cfg = policy["owner_signature"]
     assert cfg["authorizations_dir"].rstrip("/") in brb.GATE01_SIGNATURE_TRAILER_DIRS
     for key in ("consumed_ledger_path", "revocations_path"):
