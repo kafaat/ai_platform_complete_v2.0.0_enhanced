@@ -932,6 +932,22 @@ jobs:
       # تُعلِن عدد من لم يُقَس لهذا السبب بالضبط، فلا تُقرأ خضرتُها أوسع ممّا قاست.
       - name: Every guard survives being run under a C locale
         run: python scripts/ci/guard_locale_survival_guard.py
+      # REDIS-ACL-LIVE-IN-NO-CI-JOB-01 (S1 F3 on #1369, measured by the skip inventory's first
+      # CI run on #1374: run 42914096801): this job had no redis-server, so the 18 live Redis
+      # ACL proofs (per-service users, JWT revocation on the shared Redis, the platform token
+      # floor, raster invalidation pub/sub) skipped here and ran in no CI job — the security
+      # claims they make were measured only on machines that happened to have the binary.
+      # Each test spawns its own redis-server from the compose argv on a free port, so only
+      # the binary is installed: the distro service is stopped and disabled, leaving 6379 as
+      # empty as before (several tests treat localhost:6379 as "no Redis").
+      # REDIS_ACL_LIVE_REQUIRED=1 on both stages turns a missing binary into a failure, not a
+      # skip. Pinned by tests_v9/test_unit_skip_inventory_guard.py.
+      - name: redis-server binary for the live Redis ACL proofs (service stopped, 6379 empty)
+        run: |
+          bash scripts/ci/resilient_apt_install.sh redis-server
+          sudo systemctl stop redis-server
+          sudo systemctl disable redis-server
+          redis-server --version
       # UNIT-SUITE-RUN-TWICE-01 (2026-08-05): كانت هنا خطوتان تُشغّلان **الجناح نفسه
       # مرّتين** — `pytest -v -m unit --cov=services --cov-report=…` ثمّ خطوة بوّابة
       # التغطية `pytest -m unit --cov=services --cov-fail-under=43 -q`. نفس العلامة،
@@ -960,12 +976,17 @@ jobs:
       # عبر النصفين (`--cov-append`) فتُقاس الأرضيّة ٤٣ على الجناح كاملاً كما كانت.
       # والتتامّ مفروض: test_a_tree_writer_split_keeps_both_halves_in_the_same_job.
       - name: Unit suite — parallel half (all unit tests except tree_writer)
+        env:
+          REDIS_ACL_LIVE_REQUIRED: "1"
         run: >-
           pytest -v -m "unit and not tree_writer"
           -n auto --maxprocesses=4
           --cov=services
           --cov-report=
+          --junitxml=unit-par.xml
       - name: Unit suite — serial tree_writer half + coverage ratchet over both halves
+        env:
+          REDIS_ACL_LIVE_REQUIRED: "1"
         run: >-
           pytest -v -m "unit and tree_writer"
           --cov=services
@@ -973,6 +994,14 @@ jobs:
           --cov-report=xml
           --cov-report=term
           --cov-fail-under=43
+          --junitxml=unit-tw.xml
+      # S1 F3 (OFFICE-20261110:F3 on #1369): every skip report of the two stages above, by
+      # node id and reason, must equal docs/testing/unit_skip_inventory.json. A new skip, a
+      # changed reason, a declared skip that stopped happening or a skip in another stage is
+      # BLOCKED. Entries stay `open` until the owner records a named exception; this step
+      # never turns a skip into a pass. Pinned by tests_v9/test_unit_skip_inventory_guard.py.
+      - name: Unit skip inventory (every skip declared, by node id and reason)
+        run: python scripts/ci/unit_skip_inventory_guard.py --junit parallel=unit-par.xml --junit tree_writer=unit-tw.xml
       # The pytest-cov XML has source=<repo>/services, not the Git root.
       # Re-export the same data from the Git root before validating/uploading.
       - name: Export unit coverage with Git-relative paths

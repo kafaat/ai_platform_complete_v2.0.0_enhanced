@@ -6600,6 +6600,23 @@
         }
       ],
       "test": "tests_v9/test_gate01_owner_signature_guard.py"
+    },
+    "unit_skip_inventory_guard.py": {
+      "test": "tests_v9/test_unit_skip_inventory_guard.py",
+      "mutations": [
+        {
+          "expect": "test_an_undeclared_skip_is_blocked",
+          "find": "        if key not in declared:",
+          "replace": "        if False:  # mutated: accept undeclared skips",
+          "why": "قبولُ تخطٍّ غير معلَن يعيد العطل الذي وُجد الحارس لأجله: اختبارٌ يتوقّف عن العمل ولا أحد يعلم، فتبقى الوظيفة خضراء على سطرٍ واحد في الذيل (S1 F3)."
+        },
+        {
+          "expect": "test_a_changed_reason_is_blocked",
+          "find": "        elif declared[key] != reason:",
+          "replace": "        elif False:  # mutated: ignore a changed skip reason",
+          "why": "تجاهلُ تبدّل السبب يُبقي قراراً مكتوباً يصف سبباً لم يعد قائماً، فيُقرأ الدَّين معروفاً وهو قد تبدّل."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
