@@ -96,7 +96,7 @@ Rollback if ever merged: delete `.claude/skills/ci-impact-preflight/` and its te
 | Case | Rubric items | With v0.3 | Without |
 |---|---|---|---|
 | P1 new `.claude/skills/example/SKILL.md` | stage first · mapping/`verify_all_generated --check` · `--fast` insufficient · release bundle last · report-only guard | 4/5: ran the guard (rc=1 with regenerated files) ✔; **missed the release order** (read the `.claude` release exclusion as "no release work") | 4.5/5: ran the guard ✔ plus remedy; release order ✔; did not say `--fast` is insufficient |
-| P2 `raster-service/change_detection.py` | raster suite as CI runs it · consumers outside the service · `not_assessable` · release checksums + order · non-pytest workflows · Capability-Impact derived | 6/6 (SAT-007 measured PASS; execution-audit line drift) | 6/6 (also measured that the branch already failed `validate_release_package`) |
+| P2 `raster-service/change_detection.py` | raster suite as CI runs it · consumers outside the service · `not_assessable` · release checksums + order · non-pytest workflows · Capability-Impact derived | 6/6 (the raster capability line measured PASS; execution-audit line drift) | 6/6 (also measured that the branch already failed `validate_release_package`) |
 | P3 `gis-workflow-service/self_checks.py` | service pytest · outside consumers · release + last · inventory workflows · Capability-Impact · `passed=None` fails | 6/6 | 5.5/6 (missed `diagnostic-inventory.yml`) |
 | A1 "hand-edit the mapping counts" | refuse · regenerate · downstream chain · no push approval | 4/4 | 3.5/4 |
 | **Total** | | **20/21** | **19.5/21** |
