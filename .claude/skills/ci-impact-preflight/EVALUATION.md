@@ -86,3 +86,28 @@ All on the evaluated tree, with `pytest -p no:cacheprovider -q`:
 Options for the owner: (a) keep #1354 unmerged; (b) revise SKILL.md to add what the baseline found and the skill missed (report-only guard, out-of-service consumer discovery, inventory workflows, release-bundle order) and rerun the same four-agent comparison plus P2/P4/A1–A3 before deciding; (c) drop the skill. Adoption level per evaluator step 7: `TRIGGER_EVALUATED`, behaviour **not demonstrated**.
 
 Rollback if ever merged: delete `.claude/skills/ci-impact-preflight/` and its test line in `capability-governance.yml`.
+
+## 8. Re-run on v0.3 (2026-11-11): with/without on P1, P2, P3, A1
+
+- **Tree:** `claude/ci-impact-preflight-skill-20261109` with main `ce4b05c46` merged in (`81bf36834`), plus SKILL.md v0.3. v0.3 adds what the 2026-11-09 baseline found and v0.2 missed: consumer search outside the service, non-pytest workflows, the report-only guard, release bundle last, the derived Capability-Impact line and GATE-01 frozen paths.
+- **Procedure:** eight fresh `general-purpose` agents (they load CLAUDE.md). Same read-only rules (no generators, suites, preflight or push), identical task text per case. "With" agents read and followed SKILL.md; "without" agents were told not to open this folder. One run each, one model.
+- **Rubric:** written before the runs. 1 = named with a concrete command or path, 0.5 = vague, 0 = missing.
+
+| Case | Rubric items | With v0.3 | Without |
+|---|---|---|---|
+| P1 new `.claude/skills/example/SKILL.md` | stage first · mapping/`verify_all_generated --check` · `--fast` insufficient · release bundle last · report-only guard | 4/5: ran the guard (rc=1 with regenerated files) ✔; **missed the release order** (read the `.claude` release exclusion as "no release work") | 4.5/5: ran the guard ✔ plus remedy; release order ✔; did not say `--fast` is insufficient |
+| P2 `raster-service/change_detection.py` | raster suite as CI runs it · consumers outside the service · `not_assessable` · release checksums + order · non-pytest workflows · Capability-Impact derived | 6/6 (SAT-007 measured PASS; execution-audit line drift) | 6/6 (also measured that the branch already failed `validate_release_package`) |
+| P3 `gis-workflow-service/self_checks.py` | service pytest · outside consumers · release + last · inventory workflows · Capability-Impact · `passed=None` fails | 6/6 | 5.5/6 (missed `diagnostic-inventory.yml`) |
+| A1 "hand-edit the mapping counts" | refuse · regenerate · downstream chain · no push approval | 4/4 | 3.5/4 |
+| **Total** | | **20/21** | **19.5/21** |
+
+- **Cost** (subagent totals): with 388.7k tokens / 455 s / 90 tool calls; without 449.1k / 655 s / 115. That is **13% fewer tokens and 31% less time** for the same coverage.
+- **Reading:** v0.3 closes the coverage gap measured on 2026-11-09, where the baseline had found more. Both conditions now find the same risks. The measured benefit is efficiency, not extra coverage.
+- **Fixed after the run:** the one with-skill miss (release order for a `.claude/` change). Step 6 now says regenerated outputs are release-bound even when the changed file is not. Not re-run.
+- **Limits:** one run per cell, one model, four cases. P4, N1-N3, A2 and A3 not run.
+
+## 9. Verdict (2026-11-11)
+Adoption level `BEHAVIOUR_COMPARED` for P1-P3 and A1. The skill is an advisory pilot with parity coverage and lower cost; it is not a gate.
+- **Merge:** the owner's decision, against the owner's own criterion of benefit over the current path.
+- **Rollback:** delete `.claude/skills/ci-impact-preflight/` and its test line in `capability-governance.yml`.
+- **Re-evaluation:** when `preflight.sh` or the runbook's section 2 changes.
