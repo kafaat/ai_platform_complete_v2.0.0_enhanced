@@ -18,8 +18,11 @@ import { useSelectedField } from '../hooks/useSelectedField';
 import { ErrorState, LoadingState, EmptyState } from '../components/StateViews';
 import SpeakButton from '../components/SpeakButton';
 import type { FieldRecommendation, FieldRecommendationsResult } from '../services/api';
+import { CROP_LABELS } from '../lib/cropOptions';
 
-const CROPS = ['قمح صلب', 'شعير', 'ذرة صفراء', 'طماطم', 'بطاطس', 'خضروات', 'برسيم', 'سورغم'];
+// مفردات المحاصيل المشتركة (lib/cropOptions): كلّ خيار يُحلّ إلى بطاقة محصول، فلا خيار
+// يحجب نصيحة العناصر دائماً بـNUTRIENT_LEDGER_CROP_UNRESOLVED (كان «خضروات»).
+const CROPS = CROP_LABELS;
 
 const GRADE_COLOR: Record<string, string> = {
   HIGH: '#16a34a', MEDIUM: '#ca8a04', LOW: '#f97316', BLOCKED: '#dc2626', UNKNOWN: '#6b7280',

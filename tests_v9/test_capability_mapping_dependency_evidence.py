@@ -288,6 +288,27 @@ def test_a_labelled_test_is_selected_by_its_source_without_relabelling():
     ]
 
 
+def test_the_plan_records_a_dependency_selected_test_as_selected_with_its_edge():
+    """The plan-evidence decision for an edge-selected test is ``selected``, reason = edge."""
+    relations = [_relation("tests_v9/test_token.py", "services/guard/main.py", "source_read")]
+    snapshot = GATE.build_snapshot(_REGISTRY, _mapping(relations), None, root=None)
+    _, selected, floor = _plan(snapshot, ["services/guard/main.py"], ["tests_v9/test_token.py"])
+    audit, counts, decisions = SELECTOR.decide(
+        ["tests_v9/test_token.py"],
+        selected,
+        floor,
+        mode="selected",
+        percent=5,
+        minimum=5,
+        seed_material="head:base",
+    )
+    assert decisions["tests_v9/test_token.py"] == {
+        "decision": "selected",
+        "reasons": ["dependency:source_read:services/guard/main.py"],
+    }
+    assert audit == [] and counts["selected"] == 1
+
+
 def test_without_the_edge_the_same_change_excludes_the_test():
     snapshot = GATE.build_snapshot(_REGISTRY, _mapping([]), None, root=None)
     _, selected, floor = _plan(snapshot, ["services/guard/main.py"], ["tests_v9/test_token.py"])

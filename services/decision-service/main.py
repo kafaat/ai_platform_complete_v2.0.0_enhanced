@@ -39,6 +39,7 @@ from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from outcome_reconcile import reconcile_outcomes
 from persistence import (
+    SELF_APPROVAL_REASON_PREFIX,
     acquire_connection,
     authorize_dispatch,
     build_calibration_dataset,
@@ -62,6 +63,7 @@ from persistence import (
     get_context_snapshot,
     get_decision_agronomic_evidence,
     get_execution_plan_state,
+    latest_vegetation_snapshot,
     list_decision_records,
     list_inflight_execution_requests,
     list_queued_execution_requests,
@@ -644,6 +646,31 @@ async def create_vegetation_snapshot(
     }
 
 
+@app.get("/v1/evidence/vegetation-snapshots/latest")
+async def read_latest_vegetation_snapshot(
+    field_id: str,
+    available_before: datetime,
+    season_id: str | None = None,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """AC-6 point-in-time read for producers: the newest snapshot whose data was available at
+    or before ``available_before``. 404 when none exists — never a substitute snapshot."""
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not authoritative")
+    if available_before.tzinfo is None:
+        raise HTTPException(status_code=422, detail="available_before must carry a timezone")
+    result = await latest_vegetation_snapshot(
+        tenant_id=tenant,
+        field_id=field_id,
+        season_id=season_id,
+        available_before=available_before,
+    )
+    if result.get("status") != "ok":
+        raise HTTPException(status_code=404, detail="no vegetation snapshot available")
+    return {"tenant_id": tenant, **{k: v for k, v in result.items() if k != "status"}}
+
+
 def derive_decision_id(
     *, tenant_id: str, payload: DecisionRecordIn, idempotency_key: str | None
 ) -> str:
@@ -812,6 +839,11 @@ class DecisionReviewIn(BaseModel):
     idempotency_key: str
     # Required (no "unspecified" default) and bound into the review's idempotency hash.
     policy_version: str | None = None
+    # Single-operator exception: an explicit acknowledgement that the reviewer is approving
+    # their own candidate. Considered only when separation of duties would otherwise refuse
+    # it and the tenant-scoped policy allows it (persistence.evaluate_self_approval).
+    self_approval_acknowledged: bool = False
+    self_approval_reason: str | None = Field(default=None, max_length=500)
 
 
 @app.post("/v1/decisions/{decision_id}/review")
@@ -843,6 +875,9 @@ async def review_candidate(
         raise HTTPException(status_code=422, detail="policy_version is required")
     if payload.action == "reject" and not payload.reason.strip():
         raise HTTPException(status_code=422, detail="reason is required to reject")
+    if payload.reason.startswith(SELF_APPROVAL_REASON_PREFIX):
+        # Only the service writes the self-approval audit marker; a client may not forge one.
+        raise HTTPException(status_code=422, detail="reason may not carry the self-approval marker")
     if payload.action == "approve" and not payload.decision_value_digest:
         raise HTTPException(status_code=422, detail="decision_value_digest is required to approve")
     # Optimistic concurrency: the caller asserts the state it saw. Anything other than
@@ -875,6 +910,8 @@ async def review_candidate(
         idempotency_key=payload.idempotency_key,
         policy_version=payload.policy_version,
         decision_value_digest=payload.decision_value_digest,
+        self_approval_acknowledged=payload.self_approval_acknowledged,
+        self_approval_reason=payload.self_approval_reason,
     )
     status = result.get("status")
     if status == "ok":
@@ -884,7 +921,8 @@ async def review_candidate(
     if status == "invalid":
         raise HTTPException(status_code=422, detail=result.get("reason", "invalid review"))
     if status == "forbidden":
-        raise HTTPException(status_code=403, detail=result.get("reason"))
+        # The message starts with the reason code and names the independent-approver need.
+        raise HTTPException(status_code=403, detail=result.get("message") or result.get("reason"))
     # conflict: not_pending_approval / candidate_lineage_mismatch / already_reviewed /
     # idempotency_key_payload_mismatch — all 409 (concurrency/terminal-state).
     raise HTTPException(status_code=409, detail=result.get("reason", "review conflict"))

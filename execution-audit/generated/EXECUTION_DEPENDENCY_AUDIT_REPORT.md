@@ -4,11 +4,11 @@
 
 ## Summary
 
-- Python files parsed: **2095**
-- FastAPI-style route handlers: **1063**
-- Static function-call edges: **100511**
-- Dead-code candidates: **665**
-- Duplicate function groups: **59**
+- Python files parsed: **2097**
+- FastAPI-style route handlers: **1064**
+- Static function-call edges: **101007**
+- Dead-code candidates: **666**
+- Duplicate function groups: **61**
 - Automatic deletions: **0**
 
 ## Highest-confidence dead-code candidates
@@ -17,8 +17,9 @@
 |---|---|---|---|---:|
 | `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 61 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
-| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 158 |
+| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 160 |
 | `decision-service` | `_require_live_when_certifying` | function | `services/decision-service/tests/test_eligibility_assessment_live_pg.py` | 119 |
+| `decision-service` | `_clean_policy_env` | function | `services/decision-service/tests/test_sod_single_operator_self_approval.py` | 32 |
 | `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 69 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |
@@ -79,6 +80,7 @@
 | `38f3e26a90604c6a` | 3 |
 | `3bdaa4de02900ca1` | 2 |
 | `3fa331af9f9461ea` | 9 |
+| `40b1c55020ad6fb0` | 2 |
 | `40b9faafbad5a23d` | 2 |
 | `4167be0d9467807a` | 2 |
 | `449d333a8f42efab` | 2 |
@@ -87,6 +89,7 @@
 | `4cb77c1b81129bbe` | 2 |
 | `4d3489c6804536ee` | 2 |
 | `558f76feaf3a04fa` | 3 |
+| `5727c6ada3b74a40` | 2 |
 | `5c83798b883cda7e` | 2 |
 | `62a08c439a5d8220` | 2 |
 | `69e415224b4d3b71` | 4 |
@@ -111,8 +114,6 @@
 | `aa517cd1f9c74cf4` | 3 |
 | `abea79905276671b` | 2 |
 | `b5f52c1314625bcb` | 2 |
-| `c830f52a910d32a5` | 2 |
-| `c92554a020167fed` | 2 |
 
 ## Interpretation
 

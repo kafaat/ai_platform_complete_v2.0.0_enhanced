@@ -183,6 +183,37 @@
       "impact": "publish",
       "$impact_ar": "Manual workflow_dispatch with backup_inventory=true only: it gates publication of the sanitized inventory receipt; it does not gate ordinary PR merge, create or restore a backup, deploy, or certify production.",
       "$scope_limit_ar": "Backup discovery (G0) for the staging Postgres volume instance only; not restore verification, schema inspection or E3/E4/E5 evidence."
+    },
+    "scripts/ci/unit_skip_inventory_guard.py::ci.yml::unit-tests": {
+      "counterexample": "S1-F3 (OFFICE-20261110:F3 on #1369): the hospital's S1-15 measurement of the unit suite on f8a9cd05a gave 13,139 reports, 0 failures and 24 skips, verdict INCONCLUSIVE / TESTS_SKIPPED, and nothing in the repository named those 24. Re-measured locally on the same head and tree 58948877 with JUnit: 22 + 2 skip reports, equal to S1. Four were collection skips of two files no unit stage selects; the other twenty had no declared owner, gate or decision. Run against those reports, the guard blocks the four removed collection skips by name and accepts the twenty declared entries.",
+      "mutation": "test_an_undeclared_skip_is_blocked",
+      "$mutation_ar": "مسجَّلة في guard_mutation_registry.json تحت unit_skip_inventory_guard.py: قبولُ التخطّي غير المعلَن يُسقط test_an_undeclared_skip_is_blocked، وتجاهلُ تبدّل السبب يُسقط test_a_changed_reason_is_blocked.",
+      "positive_witness": "test_reports_equal_to_the_inventory_pass_and_say_skips_stay_open: reports equal to the inventory pass, and the pass line states that open entries keep S1 INCONCLUSIVE.",
+      "impact": "merge"
+    },
+    "scripts/ci/codecov_coverage_guard.py::ci.yml::unit-tests": {
+      "counterexample": "CODECOV-PLATFORM-AND-DECISION-COVERAGE-NOT-UPLOADED: only Unit Tests uploaded coverage, so lines tested only by Platform Unit Tests / Decision Service Tests showed as uncovered on Codecov (#1367: 43% on Codecov vs 100% locally for core/actuator_command.py; #1370: 14% vs 94.5% for its diff). Measured in review of #1371 at ef195bec8: the two-source platform XML collapses same-named files (669 files / 55,002 lines vs 674 / 55,188 from the same data), and an unchecked decision-service report counted test files (24 files / 4,646 lines vs 22 / 4,550). The guard refuses a report whose paths are missing, untracked, duplicated, outside the service prefix, under a forbidden prefix, or that covers nothing.",
+      "mutation": "test_unmatched_and_duplicate_paths_fail_closed",
+      "$mutation_ar": "مسجَّلة في guard_mutation_registry.json تحت codecov_coverage_guard.py: تعطيل رفض المسار خارج نطاق الخدمة (`if False:`) يُسقط test_unmatched_and_duplicate_paths_fail_closed، وتعطيل رفض مسارات الاختبارات (`pass`) يُسقط test_forbidden_decision_test_source_is_refused.",
+      "positive_witness": "test_root_export_preserves_same_basenames_in_two_packages: a root re-export holding services/sahool-platform/api/__init__.py and services/sahool-platform/core/__init__.py side by side is accepted with both files counted, so the legitimate report passes.",
+      "impact": "merge",
+      "$impact_ar": "يحجب الدمج داخل الوظيفة التي يُرفع منها التقرير: تقريرٌ بمسارات غير صحيحة لا يُرفع إلى Codecov كأنّه حقيقيّ. والرفع نفسه fail_ci_if_error: false فانقطاع Codecov لا يحمّر فحصاً."
+    },
+    "scripts/ci/codecov_coverage_guard.py::ci.yml::platform-unit-tests": {
+      "counterexample": "CODECOV-PLATFORM-AND-DECISION-COVERAGE-NOT-UPLOADED: only Unit Tests uploaded coverage, so lines tested only by Platform Unit Tests / Decision Service Tests showed as uncovered on Codecov (#1367: 43% on Codecov vs 100% locally for core/actuator_command.py; #1370: 14% vs 94.5% for its diff). Measured in review of #1371 at ef195bec8: the two-source platform XML collapses same-named files (669 files / 55,002 lines vs 674 / 55,188 from the same data), and an unchecked decision-service report counted test files (24 files / 4,646 lines vs 22 / 4,550). The guard refuses a report whose paths are missing, untracked, duplicated, outside the service prefix, under a forbidden prefix, or that covers nothing.",
+      "mutation": "test_unmatched_and_duplicate_paths_fail_closed",
+      "$mutation_ar": "مسجَّلة في guard_mutation_registry.json تحت codecov_coverage_guard.py: تعطيل رفض المسار خارج نطاق الخدمة (`if False:`) يُسقط test_unmatched_and_duplicate_paths_fail_closed، وتعطيل رفض مسارات الاختبارات (`pass`) يُسقط test_forbidden_decision_test_source_is_refused.",
+      "positive_witness": "test_root_export_preserves_same_basenames_in_two_packages: a root re-export holding services/sahool-platform/api/__init__.py and services/sahool-platform/core/__init__.py side by side is accepted with both files counted, so the legitimate report passes.",
+      "impact": "merge",
+      "$impact_ar": "يحجب الدمج داخل الوظيفة التي يُرفع منها التقرير: تقريرٌ بمسارات غير صحيحة لا يُرفع إلى Codecov كأنّه حقيقيّ. والرفع نفسه fail_ci_if_error: false فانقطاع Codecov لا يحمّر فحصاً."
+    },
+    "scripts/ci/codecov_coverage_guard.py::ci.yml::decision-service-tests": {
+      "counterexample": "CODECOV-PLATFORM-AND-DECISION-COVERAGE-NOT-UPLOADED: only Unit Tests uploaded coverage, so lines tested only by Platform Unit Tests / Decision Service Tests showed as uncovered on Codecov (#1367: 43% on Codecov vs 100% locally for core/actuator_command.py; #1370: 14% vs 94.5% for its diff). Measured in review of #1371 at ef195bec8: the two-source platform XML collapses same-named files (669 files / 55,002 lines vs 674 / 55,188 from the same data), and an unchecked decision-service report counted test files (24 files / 4,646 lines vs 22 / 4,550). The guard refuses a report whose paths are missing, untracked, duplicated, outside the service prefix, under a forbidden prefix, or that covers nothing.",
+      "mutation": "test_forbidden_decision_test_source_is_refused",
+      "$mutation_ar": "مسجَّلة في guard_mutation_registry.json تحت codecov_coverage_guard.py: تعطيل رفض المسار خارج نطاق الخدمة (`if False:`) يُسقط test_unmatched_and_duplicate_paths_fail_closed، وتعطيل رفض مسارات الاختبارات (`pass`) يُسقط test_forbidden_decision_test_source_is_refused.",
+      "positive_witness": "test_root_export_preserves_same_basenames_in_two_packages: a root re-export holding services/sahool-platform/api/__init__.py and services/sahool-platform/core/__init__.py side by side is accepted with both files counted, so the legitimate report passes.",
+      "impact": "merge",
+      "$impact_ar": "يحجب الدمج داخل الوظيفة التي يُرفع منها التقرير: تقريرٌ بمسارات غير صحيحة لا يُرفع إلى Codecov كأنّه حقيقيّ. والرفع نفسه fail_ci_if_error: false فانقطاع Codecov لا يحمّر فحصاً."
     }
   }
 }

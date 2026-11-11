@@ -109,8 +109,10 @@ def test_gate_discards_gdal_values_the_environment_carried():
 
 
 def _run_gate(env, *command):
+    # `-B`: the explicit `env` drops the runner's PYTHONDONTWRITEBYTECODE; without it the
+    # gate writes `shared/storage/__pycache__/s3_endpoint_security.*.pyc` into the tree.
     return subprocess.run(
-        [sys.executable, str(GATE), *command],
+        [sys.executable, "-B", str(GATE), *command],
         env=env,
         capture_output=True,
         text=True,

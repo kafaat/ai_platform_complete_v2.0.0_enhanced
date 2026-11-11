@@ -174,6 +174,149 @@ async def compose_context_snapshot(
     )
 
 
+async def latest_vegetation_snapshot(
+    *,
+    tenant_id: str,
+    field_id: str,
+    season_id: str | None,
+    available_before: str,
+) -> dict[str, Any]:
+    """AC-6 point-in-time read: newest vegetation snapshot available by the decision cutoff.
+    decision-service answers 404 when none exists; never a substitute snapshot."""
+    return await decision_get_json(
+        "/v1/evidence/vegetation-snapshots/latest",
+        tenant_id=tenant_id,
+        params={
+            "field_id": field_id,
+            "available_before": available_before,
+            **({"season_id": season_id} if season_id else {}),
+        },
+        timeout_s=3.0,
+    )
+
+
+def _http_reason(exc: Any) -> str:
+    detail = getattr(exc, "detail", None)
+    if isinstance(detail, dict):
+        detail = detail.get("reason") or detail.get("code") or detail
+    return f"{getattr(exc, 'status_code', '?')}:{detail}"
+
+
+async def irrigation_candidate_lineage(
+    user: Any,
+    field_id: str,
+    season: Any,
+    inputs: dict[str, Any],
+    weather: dict[str, Any],
+    et0: dict[str, Any],
+    ledger_date: Any,
+    days_since_sowing: Any,
+) -> Any:
+    """AC-1/AC-6 lineage for the field irrigation candidate (EX-WATER-01, path B).
+
+    Only runs the composition when the server-side composer is enabled
+    (``AGRONOMIC_CONTEXT_COMPOSE_ENABLED``); otherwise nothing is called and, where AC-1 is
+    enforced, the candidate is blocked with that reason instead of failing in decision-service.
+    Every identity comes from its owner; anything missing is named, never filled in.
+    """
+    from datetime import UTC, datetime
+
+    from core.season_phenology import resolve_crop_id
+    from fastapi import HTTPException
+
+    from api.agronomic_context_composer import (
+        REQUIRED_LINEAGE_FIELDS,
+        Ac1Binding,
+        agronomic_context_compose_enabled,
+        agronomic_context_required,
+        canonical_soil_profile_for_context,
+        irrigation_candidate_compose_payload,
+        irrigation_candidate_features,
+        lineage_binding,
+    )
+    from api.canonical_soil_state import resolve_canonical_soil_state
+
+    tenant_id = str(getattr(user, "tenant_id", "") or "")
+    season_id = season.get("season_id") if season else None
+    cultivar_id = season.get("cultivar") if season else None
+    crop_id = resolve_crop_id(inputs.get("crop"))
+    detail: dict[str, Any] = {}
+    context = vegetation = None
+    if not agronomic_context_compose_enabled():
+        # Nothing is attached while the operator has not enabled the composer: the request is
+        # exactly what it was before, and an enforcing environment gets a named block.
+        return Ac1Binding(
+            record_fields={},
+            missing=REQUIRED_LINEAGE_FIELDS,
+            required=agronomic_context_required(),
+            detail={
+                "composer": "server-side composer disabled (AGRONOMIC_CONTEXT_COMPOSE_ENABLED)"
+            },
+        )
+    if not season_id:
+        detail["season_id"] = "no active season for the field"
+    else:
+        cutoff = datetime.now(UTC)
+        soil_profile, soil_gap = canonical_soil_profile_for_context(
+            await resolve_canonical_soil_state(tenant_id=tenant_id, field_id=field_id),
+            cutoff=cutoff,
+        )
+        if soil_gap is not None:
+            # Not fatal here: decision-service decides whether the profile is required and
+            # names the violation; this records why none was attached.
+            detail["soil_profile"] = soil_gap
+        payload = irrigation_candidate_compose_payload(
+            tenant_id=tenant_id,
+            field_id=field_id,
+            season_id=season_id,
+            cutoff=cutoff,
+            inputs=inputs,
+            ledger_date=ledger_date,
+            soil_profile=soil_profile,
+            features=irrigation_candidate_features(
+                cutoff=cutoff,
+                field_id=field_id,
+                crop_id=crop_id,
+                cultivar_id=cultivar_id,
+                days_since_sowing=days_since_sowing,
+                inputs=inputs,
+                ledger_date=ledger_date,
+                weather=weather,
+                et0=et0,
+            ),
+        )
+        try:
+            context = await compose_context_snapshot(
+                payload, tenant_id=tenant_id, requested_by=str(getattr(user, "user_id", "") or "")
+            )
+        except HTTPException as exc:
+            detail["context"] = _http_reason(exc)
+            if isinstance(exc.detail, dict) and exc.detail.get("violations"):
+                detail["context_violations"] = exc.detail["violations"]
+        try:
+            vegetation = await latest_vegetation_snapshot(
+                tenant_id=tenant_id,
+                field_id=field_id,
+                season_id=season_id,
+                available_before=payload["decision_cutoff_time"],
+            )
+        except HTTPException as exc:
+            detail["vegetation"] = (
+                "no snapshot available by the cutoff"
+                if exc.status_code == 404
+                else _http_reason(exc)
+            )
+    return lineage_binding(
+        season_id=season_id,
+        crop_id=crop_id,
+        cultivar_id=cultivar_id,
+        context=context,
+        vegetation=vegetation,
+        required=agronomic_context_required(),
+        detail=detail,
+    )
+
+
 async def list_review_queue(
     *,
     tenant_id: str | None = None,

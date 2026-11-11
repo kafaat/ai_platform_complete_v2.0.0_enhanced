@@ -30,14 +30,7 @@ class RepairError(RuntimeError):
     """The requested history cannot be repaired by this narrow operation."""
 
 
-def _git(
-    root: Path,
-    *args: str,
-    input: bytes | None = None,
-    objects: Path | None = None,
-    alternate: Path | None = None,
-    check: bool = True,
-) -> subprocess.CompletedProcess[bytes]:
+def _git_env(objects: Path | None = None, alternate: Path | None = None) -> dict[str, str]:
     env = os.environ.copy()
     for name in (
         "GIT_DIR",
@@ -62,6 +55,18 @@ def _git(
     if alternate is not None:
         # Git understands C-quoted paths, including an embedded path-list separator.
         env["GIT_ALTERNATE_OBJECT_DIRECTORIES"] = json.dumps(str(alternate), ensure_ascii=False)
+    return env
+
+
+def _git(
+    root: Path,
+    *args: str,
+    input: bytes | None = None,
+    objects: Path | None = None,
+    alternate: Path | None = None,
+    check: bool = True,
+) -> subprocess.CompletedProcess[bytes]:
+    env = _git_env(objects, alternate)
     result = subprocess.run(["git", *args], cwd=root, input=input, capture_output=True, env=env)
     if check and result.returncode:
         detail = result.stderr.decode("utf-8", "replace").strip()
@@ -123,9 +128,54 @@ def _preserve_lines(before: bytes, after: bytes, path: str, parent: str) -> None
 
 
 def _create_branch(root: Path, ref: str, candidate: str) -> None:
-    # 'create' is an atomic absent-ref compare-and-swap, not a prior existence check.
-    # Do not follow a symbolic ref introduced after the initial destination check.
-    _git(root, "update-ref", "--no-deref", "--stdin", input=f"create {ref} {candidate}\n".encode())
+    """Create ``ref`` only if nothing — not even a dangling symbolic ref — occupies it.
+
+    ``create`` is an absent-ref compare-and-swap, but git 2.43 treats a *dangling* symbolic
+    ref as absent and, with ``--no-deref``, replaces it (reproduced: exit 0, the symref is
+    gone). So the creation runs as a transaction: ``prepare`` takes the destination lock,
+    the symbolic-ref check runs while that lock is held — no git-mediated writer can change
+    the ref until ``commit``/``abort`` — and only then is the transaction committed.
+    """
+    proc = subprocess.Popen(
+        ["git", "update-ref", "--no-deref", "--stdin"],
+        cwd=root,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=_git_env(),
+    )
+    assert proc.stdin is not None and proc.stdout is not None
+
+    def send(line: str) -> None:
+        proc.stdin.write(line.encode() + b"\n")
+        proc.stdin.flush()
+
+    def expect(step: str) -> None:
+        got = proc.stdout.readline().decode("ascii", "replace").strip()
+        if got != f"{step}: ok":
+            proc.stdin.close()
+            detail = proc.stderr.read().decode("utf-8", "replace").strip()
+            proc.wait()
+            raise RepairError(
+                f"git update-ref {step} failed for {ref}: {detail or got or 'no output'}"
+            )
+
+    try:
+        send("start")
+        expect("start")
+        send(f"create {ref} {candidate}")
+        send("prepare")
+        expect("prepare")
+        if _git(root, "symbolic-ref", "-q", ref, check=False).returncode == 0:
+            send("abort")
+            expect("abort")
+            raise RepairError(f"{ref} exists as a symbolic ref; refusing to replace it")
+        send("commit")
+        expect("commit")
+    finally:
+        if not proc.stdin.closed:
+            proc.stdin.close()
+        proc.wait()
 
 
 def repair_history(

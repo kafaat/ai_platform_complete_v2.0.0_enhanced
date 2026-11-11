@@ -24,6 +24,7 @@ import type { SeasonSimResult } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate, can } from '../lib/permissions';
 import { saveFieldMapView } from '../lib/fieldMapView';
+import { CROP_LABELS, UNSPECIFIED_CROP_LABEL, isUnspecifiedCrop } from '../lib/cropOptions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
 interface Field {
@@ -777,8 +778,13 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 // مُصدَّر لاختبار السلوك (FieldManagementPage.editArea.test).
 export function EditFieldModal({ field, onSave, onCancel }: { field: Field; onSave: (d:any)=>void; onCancel:()=>void }) {
   const [name,    setName]    = useState(field.name);
-  const [crop,    setCrop]    = useState(field.crop);
-  const CROPS = ['قمح صلب','شعير','ذرة صفراء','طماطم','بطاطس','خضروات','برسيم'];
+  // محصول مخزّن بلا بطاقة (فارغ/«—»/قيمة عامّة قديمة مثل «خضروات») يُعرَض «غير محدَّد —
+  // اختر المحصول» ولا يُعاد إرساله صامتاً ولا يُربَط بمحصول اعتباطيّ. قيمة محدّدة خارج
+  // المفردات (مثل محصول أُدخِل من الموبايل) تُعرَض كما هي بدل أن يُظهر المنتقي غيرها.
+  const storedUnspecified = isUnspecifiedCrop(field.crop);
+  const [crop,    setCrop]    = useState(storedUnspecified ? '' : field.crop);
+  const CROPS = !storedUnspecified && !CROP_LABELS.includes(field.crop)
+    ? [field.crop, ...CROP_LABELS] : CROP_LABELS;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background:'rgba(0,0,0,0.7)' }}>
       <div className="rounded-2xl p-6 w-full max-w-sm" style={{ background:'#1e293b', border:'1px solid #334155' }}>
@@ -806,11 +812,12 @@ export function EditFieldModal({ field, onSave, onCancel }: { field: Field; onSa
             <select value={crop} onChange={e=>setCrop(e.target.value)}
               className="w-full px-3 py-2 rounded-lg text-sm"
               style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+              {crop === '' && <option value="" disabled>{UNSPECIFIED_CROP_LABEL}</option>}
               {CROPS.map(c=><option key={c}>{c}</option>)}
             </select>
           </div>
           <div className="flex gap-3 pt-2">
-            <button onClick={() => onSave({ name, crop })}
+            <button onClick={() => onSave(crop === '' ? { name } : { name, crop })}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold text-white"
               style={{ background:'#16a34a' }}>
               <Check className="w-4 h-4" /> حفظ

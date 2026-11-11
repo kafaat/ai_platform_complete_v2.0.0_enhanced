@@ -162,7 +162,19 @@ def discover_invocation_sites() -> list[dict]:
 #: An unknown module is **not** assumed external: it fails closed as unresolved, because
 #: a guessed exemption is exactly how an inventory silently shrinks.
 EXTERNAL_MODULES = frozenset(
-    {"pip", "pytest", "pip_audit", "piptools", "compileall", "py_compile", "venv", "json"}
+    {
+        "pip",
+        "pytest",
+        "pip_audit",
+        "piptools",
+        "compileall",
+        "py_compile",
+        "venv",
+        "json",
+        # Third-party coverage.py: `python -m coverage xml` re-exports CI coverage data
+        # for Codecov. Nothing in the repo to inspect, exactly like pytest.
+        "coverage",
+    }
 )
 
 _PYTHON = re.compile(r"(?:^|(?<=[\s;&|(`]))python(?:3(?:\.\d+)?)?(?=\s)")

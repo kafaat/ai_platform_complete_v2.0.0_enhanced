@@ -41,6 +41,25 @@
 # تشغيلَ الخطوة. تلك تحتاج عيناً بشريّة، وهذا السطرُ هو ما يوفّرها.
 /.github/workflows/                     @kafaat @haithmgarallah-ye
 
+# ــ وجذرُ الثقة لتوقيع المالك ومُتحقِّقُه ــــــــــــــــــــــــــــــــــــــ
+#
+# GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01 (قرارُ المالك 2026-11-09): تفويضُ GATE-01
+# يُثبَت بتوقيعٍ بمفتاحٍ لا يملكه الوكيل. ومَن يملك تعديلَ جذرِ الثقة أو المُتحقِّق
+# يملك تزويرَ التوقيع، فيُحمَيان هنا. والحارسُ نفسُه يقرأ جذرَ الثقة من فرع الأساس
+# لا من الـPR، ويطلب لتدويرِ مفتاحٍ مُثبَّتٍ توقيعاً بالمفتاح القائم — وهذه الأسطرُ
+# تحمي التثبيتَ الأوّل والمُتحقِّقَ نفسَه، وهما ما لا يحميه التوقيع.
+#
+# **وحدُّ صدق:** هذه الأسطرُ تقبل **أيَّ** المالكَين المُسمَّيَين لا الثاني بعينه، و
+# GitHub يمنع مؤلّفَ الـPR من اعتمادها — فحين يكون المؤلّفُ @kafaat يقع الاعتمادُ على
+# @haithmgarallah-ye. وكلُّها خاملةٌ ما لم يُفعَّل «Require review from Code Owners».
+/docs/architecture/gates/owner_allowed_signers          @kafaat @haithmgarallah-ye
+/docs/architecture/gates/authorizations/                @kafaat @haithmgarallah-ye
+/docs/architecture/gates/consumed_authorizations.json   @kafaat @haithmgarallah-ye
+/docs/architecture/gates/revoked_authorizations.json    @kafaat @haithmgarallah-ye
+/scripts/ci/gate01_owner_signature_guard.py             @kafaat @haithmgarallah-ye
+/scripts/ci/gate01_frozen_path_guard.py                 @kafaat @haithmgarallah-ye
+/scripts/gates/                                         @kafaat @haithmgarallah-ye
+
 # ــ والملفُّ يحمي نفسَه ــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
 #
 # بلا هذا السطر يبقى القفلُ **ذاتيَّ الفكّ**: مَن أراد تفويضاً بلا مراجعٍ مستقلّ

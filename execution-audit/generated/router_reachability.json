@@ -37,7 +37,7 @@
   "definitions": [
     {
       "kind": "app",
-      "line": 1850,
+      "line": 1810,
       "module": "services.actuator-service.actuator_runtime",
       "node_id": "services.actuator-service.actuator_runtime:app",
       "route_count": 0,
@@ -190,10 +190,10 @@
     },
     {
       "kind": "app",
-      "line": 128,
+      "line": 130,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
-      "route_count": 72,
+      "route_count": 73,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -2811,7 +2811,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "1c5851974c640ffd17e9de2aa986e36f1e91d3d33c4e3f74fdca56f80f8abd81",
+  "inventory_sha256": "f49c7c59c155dd2f0ec5ab0e7878ac32cf065ee2c8b3496d433ba9002a37281a",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {

@@ -472,11 +472,75 @@ def test_the_creator_cannot_review_their_own_candidate_when_sod_is_on(monkeypatc
     monkeypatch.setenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", "true")
     _run(_seed_candidate("dec_sod1", "cand/lin-1", created_by="u-maker"))
     res = _run(_review("dec_sod1", reviewed_by="U-Maker "))
-    assert res == {"status": "forbidden", "reason": "separation_of_duties_violation"}
+    assert (res["status"], res["reason"]) == ("forbidden", "separation_of_duties_violation")
+    # No single-operator exception is configured: the refusal says so and names the remedy.
+    assert res["refusal"] == "self_approval_not_enabled_for_tenant"
+    assert "independent approver" in res["message"]
     assert _run(_fetch_record("dec_sod1"))["review_state"] == "pending_approval"
     assert _run(_counts("dec_sod1")) == (0, 0)
     ok = _run(_review("dec_sod1", reviewed_by="u-checker", idempotency_key="idem-dec_sod1-b"))
     assert ok["status"] == "ok" and ok["state"] == "approved"
+
+
+async def _seed_low_risk_candidate(decision_id: str, created_by: str) -> str:
+    from persistence import decision_value_digest
+
+    value = {**_value("cand/lin-1"), "risk_level": "LOW"}
+    conn = await _connect()
+    try:
+        await conn.execute("DELETE FROM decision_reviews WHERE decision_id=$1", decision_id)
+        await conn.execute("DELETE FROM decision_record WHERE decision_id=$1", decision_id)
+        await conn.execute(
+            """
+            INSERT INTO decision_record
+              (decision_id, tenant_id, decision_type, stage, decision_value,
+               review_state, candidate_lineage_id, decision_value_digest, created_by)
+            VALUES ($1, $2::uuid, 'crop_decision_candidate', 'candidate', $3::jsonb,
+                    'pending_approval', 'cand/lin-1', $4, $5)
+            """,
+            decision_id,
+            TENANT,
+            json.dumps(value),
+            decision_value_digest(value),
+            created_by,
+        )
+    finally:
+        await conn.close()
+    return decision_value_digest(value)
+
+
+def test_single_operator_self_approval_is_persisted_with_its_hash_bound_audit(monkeypatch):
+    from persistence import SELF_APPROVAL_REASON_PREFIX
+
+    monkeypatch.setenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", "true")
+    monkeypatch.setenv("DECISION_SOD_SELF_APPROVAL_TENANTS", TENANT)
+    monkeypatch.setenv("DECISION_SOD_SELF_APPROVAL_DECISION_TYPES", "crop_decision_candidate")
+    digest = _run(_seed_low_risk_candidate("dec_sod_self", "u-solo"))
+    refused = _run(_review("dec_sod_self", reviewed_by="u-solo", decision_value_digest=digest))
+    assert refused["refusal"] == "self_approval_acknowledgement_required"
+    assert _run(_counts("dec_sod_self")) == (0, 0)
+    args = dict(
+        reviewed_by="u-solo",
+        decision_value_digest=digest,
+        self_approval_acknowledged=True,
+        self_approval_reason="single-operator farm",
+    )
+    ok = _run(_review("dec_sod_self", **args))
+    assert ok["status"] == "ok" and ok["state"] == "approved"
+    assert ok["self_approval"]["risk_level"] == "LOW"
+    assert ok["self_approval"]["approver"] == "u-solo"
+    assert _run(_review("dec_sod_self", **args))["replay"] is True
+
+    async def _saved_reason():
+        conn = await _connect()
+        try:
+            return await conn.fetchval(
+                "SELECT reason FROM decision_reviews WHERE decision_id='dec_sod_self'"
+            )
+        finally:
+            await conn.close()
+
+    assert _run(_saved_reason()).startswith(SELF_APPROVAL_REASON_PREFIX)
 
 
 def test_self_review_stays_possible_when_sod_is_off(monkeypatch):
