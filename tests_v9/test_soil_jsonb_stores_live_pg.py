@@ -117,10 +117,25 @@ def _observation(tenant: str, field_id: str, prop: str, value: float, unit: str)
 def _run(case):
     async def body():
         pool = await asyncpg.create_pool(DSN, min_size=1, max_size=3)
+        tenant, field_id = str(uuid.uuid4()), f"hb-soil-{uuid.uuid4().hex[:10]}"
         try:
-            await case(pool, str(uuid.uuid4()), f"hb-soil-{uuid.uuid4().hex[:10]}")
+            await case(pool, tenant, field_id)
         finally:
-            await pool.close()
+            # Observation writes enqueue a projection job for the field. The database is shared
+            # with the other integration tests, and the projection worker's claim takes the
+            # oldest pending job of any tenant, so a job left here is claimed in place of the
+            # one a later test inserted (test_soil_p6_runtime_integration).
+            try:
+                async with pool.acquire() as conn, conn.transaction():
+                    await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant)
+                    await conn.execute(
+                        """DELETE FROM soil_profile_projection_jobs
+                           WHERE tenant_id=$1::uuid AND field_id=$2""",
+                        tenant,
+                        field_id,
+                    )
+            finally:
+                await pool.close()
 
     asyncio.run(body())
 
