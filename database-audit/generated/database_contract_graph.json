@@ -4046,9 +4046,9 @@
     {
       "code_readers": [],
       "code_writers": [],
-      "created_in": "v58_field_boundary_quality.sql",
+      "created_in": "v36_alerts.sql",
       "has_tenant_id": false,
-      "manifest_position": 63,
+      "manifest_position": 40,
       "policy_count": 0,
       "rls_enabled": false,
       "rls_forced": false,
