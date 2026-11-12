@@ -7931,7 +7931,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 170,
+    "line": 193,
     "method": "POST",
     "path": "/api/v1/farm-book/parties",
     "handler": "create_party",
@@ -7940,7 +7940,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 202,
+    "line": 225,
     "method": "GET",
     "path": "/api/v1/farm-book/parties",
     "handler": "list_parties",
@@ -7949,7 +7949,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 320,
+    "line": 343,
     "method": "POST",
     "path": "/api/v1/farm-book/entries",
     "handler": "create_entry",
@@ -7958,7 +7958,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 500,
+    "line": 525,
     "method": "GET",
     "path": "/api/v1/farm-book/entries",
     "handler": "list_entries",
@@ -7967,7 +7967,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 533,
+    "line": 558,
     "method": "GET",
     "path": "/api/v1/farm-book/monthly",
     "handler": "monthly_report",
@@ -7976,7 +7976,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 569,
+    "line": 594,
     "method": "GET",
     "path": "/api/v1/farm-book/balances",
     "handler": "book_balances",
@@ -7985,7 +7985,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 590,
+    "line": 615,
     "method": "GET",
     "path": "/api/v1/farm-book/export",
     "handler": "export_book",

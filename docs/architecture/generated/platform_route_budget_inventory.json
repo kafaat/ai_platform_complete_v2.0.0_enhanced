@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "a35c39a7980bb88830adf9b2b915a42ec51ae34b6a9dc286fd6e1310f7d64c56",
+  "inventory_sha256": "055b3d8366838bb7b240f9fc17fd87549d461f0fec18c3ddf6355b60290955b4",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "7bf8adecf10c953cb591a8745cc6251bb53facd132e8fe82d0f9d891c8e9fb94"
+    "policy_sha256": "4bead336d43a048d63610552ab962613b356a919f5ead3d2693e5437c027fd7d"
   },
   "routes": [
     {
@@ -874,7 +874,7 @@
     {
       "classification": "domain",
       "function": "book_balances",
-      "line": 568,
+      "line": 593,
       "method": "GET",
       "path": "/api/v1/farm-book/balances",
       "source": "api/routers/simple_farm_book.py"
@@ -882,7 +882,7 @@
     {
       "classification": "domain",
       "function": "list_entries",
-      "line": 499,
+      "line": 524,
       "method": "GET",
       "path": "/api/v1/farm-book/entries",
       "source": "api/routers/simple_farm_book.py"
@@ -890,7 +890,7 @@
     {
       "classification": "domain",
       "function": "export_book",
-      "line": 589,
+      "line": 614,
       "method": "GET",
       "path": "/api/v1/farm-book/export",
       "source": "api/routers/simple_farm_book.py"
@@ -898,7 +898,7 @@
     {
       "classification": "domain",
       "function": "monthly_report",
-      "line": 532,
+      "line": 557,
       "method": "GET",
       "path": "/api/v1/farm-book/monthly",
       "source": "api/routers/simple_farm_book.py"
@@ -906,7 +906,7 @@
     {
       "classification": "domain",
       "function": "list_parties",
-      "line": 201,
+      "line": 224,
       "method": "GET",
       "path": "/api/v1/farm-book/parties",
       "source": "api/routers/simple_farm_book.py"
@@ -3402,7 +3402,7 @@
     {
       "classification": "domain",
       "function": "create_entry",
-      "line": 319,
+      "line": 342,
       "method": "POST",
       "path": "/api/v1/farm-book/entries",
       "source": "api/routers/simple_farm_book.py"
@@ -3410,7 +3410,7 @@
     {
       "classification": "domain",
       "function": "create_party",
-      "line": 169,
+      "line": 192,
       "method": "POST",
       "path": "/api/v1/farm-book/parties",
       "source": "api/routers/simple_farm_book.py"
