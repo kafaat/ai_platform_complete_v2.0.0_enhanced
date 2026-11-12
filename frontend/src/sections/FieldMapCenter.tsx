@@ -21,7 +21,7 @@ import { useDevices } from '../hooks/useApi';
 import { useFieldOptions } from '../hooks/useFieldOptions';
 import { useFieldContextStore } from '../hooks/useFieldContext';
 import { fetchFieldImageryAvailableDates, type FieldImageryDateOption } from '../services/api';
-import { geomToPolygon } from '../lib/geo';
+import { fieldBoundary, type FieldBoundary } from '../lib/fieldBoundary';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import {
   T, Card, Pill, Badge, SectionLabel, Row,
@@ -79,7 +79,7 @@ function MapPanel({
   field, polygon, fallbackBounds, layerId, height, date,
 }: {
   field: MapField;
-  polygon?: [number, number][];
+  polygon?: FieldBoundary;
   fallbackBounds?: [number, number, number, number];
   layerId: LayerId;
   height: number;
@@ -130,12 +130,12 @@ export default function FieldMapCenter() {
   // في المتجر المشترك، فيراه باقي الشاشات.
   useEffect(() => {
     if (fieldId || !fields.length) return;
-    const withGeom = fields.find((f) => geomToPolygon(f.geometry)) ?? fields[0];
+    const withGeom = fields.find((f) => fieldBoundary(f.geometry)) ?? fields[0];
     setFieldId(withGeom.id);
   }, [fields, fieldId, setFieldId]);
 
   const field = fields.find((f) => f.id === fieldId) ?? fields[0];
-  const polygon = field ? geomToPolygon(field.geometry) : undefined;
+  const polygon = field ? fieldBoundary(field.geometry) : undefined;
   const fallbackBounds: [number, number, number, number] | undefined =
     field && field.lat != null && field.lon != null
       ? [field.lon - 0.01, field.lat - 0.01, field.lon + 0.01, field.lat + 0.01]
@@ -211,7 +211,7 @@ export default function FieldMapCenter() {
                   }}
                 >
                   {fields.map((f) => (
-                    <option key={f.id} value={f.id}>{f.name}{geomToPolygon(f.geometry) ? '' : ' (بلا حدود)'}</option>
+                    <option key={f.id} value={f.id}>{f.name}{fieldBoundary(f.geometry) ? '' : ' (بلا حدود)'}</option>
                   ))}
                 </select>
                 <div style={{ marginBottom: 10 }}>

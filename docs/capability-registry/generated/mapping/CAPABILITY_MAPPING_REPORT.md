@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **42**
-- Files scanned: **7141**
-- Ambiguous artifacts queued: **234**
-- Unmapped artifacts queued: **3396**
+- Files scanned: **7158**
+- Ambiguous artifacts queued: **233**
+- Unmapped artifacts queued: **3409**
 
 ## Capability coverage
 
@@ -57,23 +57,23 @@
 | IRR-009 | irrigation | 8 | 1 | 7 | 9 | 1 | 0 | 11 | 6 |
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-001 | operations | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
-| OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 7 | 6 |
+| OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 6 | 6 |
 | OPS-003 | operations | 3 | 2 | 4 | 7 | 6 | 16 | 11 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 28 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 14 | 1 | 13 | 11 | 7 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | OPS-007 | operations | 0 | 0 | 3 | 0 | 0 | 1 | 0 | 2 |
 | OPS-008 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| PA-001 | precision | 10 | 34 | 8 | 2 | 0 | 0 | 10 | 5 |
+| PA-001 | precision | 10 | 34 | 8 | 2 | 1 | 0 | 10 | 6 |
 | PA-002 | precision | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | PA-003 | precision | 3 | 4 | 9 | 1 | 0 | 0 | 4 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| SAT-001 | satellite | 42 | 100 | 5 | 43 | 6 | 0 | 56 | 6 |
+| SAT-001 | satellite | 42 | 100 | 5 | 43 | 6 | 0 | 58 | 6 |
 | SAT-002 | satellite | 0 | 1 | 0 | 1 | 1 | 0 | 5 | 4 |
-| SAT-003 | satellite | 59 | 43 | 6 | 97 | 34 | 5 | 64 | 7 |
+| SAT-003 | satellite | 59 | 43 | 6 | 97 | 38 | 5 | 64 | 7 |
 | SAT-004 | satellite | 8 | 0 | 5 | 13 | 3 | 0 | 8 | 5 |
-| SAT-005 | satellite | 7 | 6 | 0 | 1 | 0 | 0 | 14 | 4 |
+| SAT-005 | satellite | 6 | 6 | 0 | 1 | 0 | 0 | 14 | 4 |
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 3 | 3 |
 | SAT-007 | satellite | 1 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |

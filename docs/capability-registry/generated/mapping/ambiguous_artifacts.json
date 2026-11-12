@@ -1990,7 +1990,7 @@
     "candidates": [
       {
         "capability_id": "SAT-001",
-        "score": 12,
+        "score": 11,
         "signals": [
           "content:cdse",
           "content:sentinel"
@@ -2002,6 +2002,22 @@
         "signals": [
           "content:true color",
           "content:truecolor"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "dedup:NDVI=ndvi"
+        ]
+      },
+      {
+        "capability_id": "PA-001",
+        "score": 8,
+        "signals": [
+          "content:management zone",
+          "content:Management zones"
         ]
       }
     ]
@@ -3489,7 +3505,7 @@
     "candidates": [
       {
         "capability_id": "SAT-001",
-        "score": 14,
+        "score": 15,
         "signals": [
           "content:cdse",
           "content:sentinel",
@@ -3503,28 +3519,6 @@
           "content:aoi cloud",
           "content:cloud mask",
           "content:scl"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "services/raster-service/raster_asset_persistence.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "SAT-001",
-        "score": 10,
-        "signals": [
-          "content:cdse",
-          "content:sentinel"
-        ]
-      },
-      {
-        "capability_id": "SAT-005",
-        "score": 9,
-        "signals": [
-          "content:aoi cloud",
-          "content:cloud mask"
         ]
       }
     ]
