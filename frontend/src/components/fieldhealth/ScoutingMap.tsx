@@ -145,6 +145,7 @@ export default function ScoutingMap({
         {/* طبقة بلاطات المؤشّر (التباين المكانيّ) — شفّافة خارج الحقل */}
         <TileLayer
           key={`${fieldId}-${index}-${date}`}
+          className="sahool-indicator-pixels"
           url={tilesUrl}
           opacity={opacity}
           errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg=="

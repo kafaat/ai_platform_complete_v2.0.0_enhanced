@@ -2443,7 +2443,7 @@
     },
     {
       "expression": "analysis.router",
-      "line": 450,
+      "line": 452,
       "module": "services/raster-service/test_indicator_provenance_transport.py",
       "prefix": null,
       "resolved": false,
@@ -2811,7 +2811,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "43c579fb0319fe486acb36ee608444a4c9dc8ac6d6c26675e1ba69498b8585fa",
+  "inventory_sha256": "bba5cb86959412dfa4b52a47299fbd1ee42674d492207406e37849bec4566bb6",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -5165,7 +5165,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/raster-service/test_indicator_provenance_transport.py",
-      "line": 450,
+      "line": 452,
       "module": "services.raster-service.test_indicator_provenance_transport",
       "source": null,
       "target_expression": "analysis.router"

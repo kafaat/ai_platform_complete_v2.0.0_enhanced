@@ -114,7 +114,7 @@ class CogRegistryRequest(BaseModel):
     shadow_pct: float = 0
     nodata_pct: float = 0
     haze_pct: float = 0
-    resolution_m: float = 10
+    resolution_m: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     bbox: list[float] | dict[str, Any] | None = None
     bands: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)

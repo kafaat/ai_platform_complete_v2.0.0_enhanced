@@ -64,7 +64,8 @@ def build_provenance(
     capture_datetime: str | None = None,
     raster_url: str | None = None,
     source_format: str | None = None,
-    crs: str = "EPSG:4326",
+    crs: str | None = None,
+    spatial_sampling: dict | None = None,
     resolution_m: float | None = None,
     apply_cloud_mask: bool = True,
     band_mapping: dict | None = None,
@@ -92,6 +93,8 @@ def build_provenance(
         "band_mapping": band_mapping,
         "clip_polygon_hash": polygon_hash,
     }
+    if spatial_sampling is not None:
+        reproducibility_inputs["spatial_sampling"] = spatial_sampling
     canonical = json.dumps(
         reproducibility_inputs, sort_keys=True, separators=(",", ":"), ensure_ascii=False
     )
@@ -103,6 +106,7 @@ def build_provenance(
         "capture_datetime": capture_datetime,  # وقت التقاط القمر
         "raster_url": raster_url,  # الأصل
         "source_format": source_format,
+        "spatial_sampling": spatial_sampling,
         "indicator": indicator,
         "formula_version": formula_version,  # نسخة الصيغة
         "crs": crs,
