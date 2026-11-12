@@ -3148,7 +3148,7 @@ function MapHubCore() {
 
             <div className="text-[11px]" style={{ color: T.muted }}>
               السطح الموحّد «الحقول والخريطة» — بلاطات <code>/raster</code> الحقيقيّة فوق حدود <code>/fields</code>.
-              أدوات القياس من turf، تُحفظ دبابيس التفتيش في الحقل المختار.
+              أدوات القياس من turf، وتُحفظ دبابيس التفتيش على الخادم مربوطةً بالحقل المحدَّد.
             </div>
           </div>
         </div>

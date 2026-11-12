@@ -3870,7 +3870,8 @@ async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
         async with tenant_connection(user) as conn:
             exists = await conn.fetchval(
                 "SELECT 1 FROM fields WHERE field_id=$1 AND tenant_id=$2::uuid",
-                pin.field_id, str(user.tenant_id),
+                pin.field_id,
+                str(user.tenant_id),
             )
             if not exists:
                 raise HTTPException(404, "الحقل غير موجود ضمن هذا المستأجر")
@@ -3902,11 +3903,13 @@ async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
             if result == "INSERT 0 0":
                 previous = await conn.fetchrow(
                     "SELECT * FROM scouting_pins WHERE pin_id=$1 AND tenant_id=$2::uuid",
-                    pin.pin_id, str(user.tenant_id),
+                    pin.pin_id,
+                    str(user.tenant_id),
                 )
                 if previous is None or any(
                     previous[key] != value
-                    for key, value in pin.to_dict().items() if key != "created_at"
+                    for key, value in pin.to_dict().items()
+                    if key != "created_at"
                 ):
                     raise HTTPException(409, "معرّف الدبوس مستخدم لمشاهدة مختلفة")
                 pin.created_at = previous["created_at"].isoformat()
