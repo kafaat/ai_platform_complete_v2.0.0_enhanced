@@ -10,17 +10,17 @@
 // fallback: «مرتفع»/«منخفض» لأيّ مؤشّر غير مُعرَّف هنا (لا ينكسر).
 interface IndicatorMeta { name: string; high: string; low: string }
 const INDICATOR_META: Record<string, IndicatorMeta> = {
-  ndvi: { name: 'NDVI', high: 'غطاء صحّي', low: 'تربة عارية' },
+  ndvi: { name: 'NDVI', high: 'إشارة غطاء نباتي أعلى', low: 'إشارة غطاء نباتي أدنى' },
   gndvi: { name: 'GNDVI', high: 'خُضرة عالية', low: 'خُضرة ضعيفة' },
-  ndmi: { name: 'NDMI', high: 'رطوبة عالية', low: 'جفاف' },
-  ndwi: { name: 'NDWI', high: 'ماء/رطوبة', low: 'جافّ' },
-  ndre: { name: 'NDRE', high: 'نيتروجين كافٍ', low: 'نقص نيتروجين' },
-  msavi: { name: 'MSAVI', high: 'غطاء صحّي', low: 'تربة عارية' },
-  savi: { name: 'SAVI', high: 'غطاء صحّي', low: 'تربة عارية' },
+  ndmi: { name: 'NDMI', high: 'إشارة رطوبة أعلى', low: 'إشارة رطوبة أدنى' },
+  ndwi: { name: 'NDWI', high: 'قيمة NDWI أعلى', low: 'قيمة NDWI أدنى' },
+  ndre: { name: 'NDRE', high: 'قيمة NDRE أعلى', low: 'قيمة NDRE أدنى' },
+  msavi: { name: 'MSAVI', high: 'إشارة غطاء نباتي أعلى', low: 'إشارة غطاء نباتي أدنى' },
+  savi: { name: 'SAVI', high: 'إشارة غطاء نباتي أعلى', low: 'إشارة غطاء نباتي أدنى' },
   evi: { name: 'EVI', high: 'غطاء كثيف', low: 'غطاء ضعيف' },
-  salinity: { name: 'مؤشّر الملوحة', high: 'ملوحة مرتفعة', low: 'ملوحة منخفضة' },
-  si: { name: 'مؤشّر الملوحة', high: 'ملوحة مرتفعة', low: 'ملوحة منخفضة' },
-  moisture: { name: 'الرطوبة', high: 'رطوبة عالية', low: 'جفاف' },
+  salinity: { name: 'مؤشّر الملوحة الطيفي', high: 'قيمة المؤشّر أعلى', low: 'قيمة المؤشّر أدنى' },
+  si: { name: 'مؤشّر الملوحة الطيفي', high: 'قيمة المؤشّر أعلى', low: 'قيمة المؤشّر أدنى' },
+  moisture: { name: 'الرطوبة', high: 'إشارة رطوبة أعلى', low: 'إشارة رطوبة أدنى' },
 };
 
 // تدرّج RdYlGn القياسيّ من القيمة المنخفضة → المرتفعة (أحمر→أصفر→أخضر).

@@ -156,6 +156,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/FieldIndicatorMap.boundary.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/FieldIndicatorMap.static.test.ts",
     "kind": "tests"
   },
@@ -1012,6 +1016,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/acquisitionUtcWire.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/lib/adminRuntime.test.ts",
     "kind": "tests"
   },
@@ -1205,6 +1213,10 @@
   },
   {
     "path": "frontend/src/lib/fieldAgroKnowledge.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldBoundary.ts",
     "kind": "web"
   },
   {
@@ -5212,7 +5224,15 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/raster_clip_query.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/raster_date_geo.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_field_coverage.py",
     "kind": "backend"
   },
   {
@@ -5328,6 +5348,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_boundary_clip_query.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_c7_latest_cache_provenance.py",
     "kind": "tests"
   },
@@ -5345,6 +5369,10 @@
   },
   {
     "path": "services/raster-service/test_field_change_alignment.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_field_tile_asset_cache.py",
     "kind": "tests"
   },
   {
@@ -5380,6 +5408,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_layer_lookup_chronology.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_masked_read_cast_before_fill.py",
     "kind": "tests"
   },
@@ -5389,6 +5421,10 @@
   },
   {
     "path": "services/raster-service/test_object_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_pixel_georeferencing.py",
     "kind": "tests"
   },
   {
@@ -5425,6 +5461,10 @@
   },
   {
     "path": "services/raster-service/test_raster_error_sanitization_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_field_coverage.py",
     "kind": "tests"
   },
   {
@@ -5465,6 +5505,10 @@
   },
   {
     "path": "services/raster-service/test_raw_data_processing.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raw_indicator_contract.py",
     "kind": "tests"
   },
   {
@@ -8556,6 +8600,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_field_auto_imagery_revision.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_field_bundle.py",
     "kind": "tests"
   },
@@ -8581,6 +8629,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_field_lifecycle.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_overlap_postgis.py",
     "kind": "tests"
   },
   {
