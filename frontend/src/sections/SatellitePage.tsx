@@ -35,6 +35,7 @@ import {
   type ScrubberPoint, type ScoutPin, type PinCategory,
   type PinPersistence, type PinSeverity,
 } from '../components/fieldhealth';
+import { satelliteArchiveLayer } from '../components/fieldhealth/satelliteArchive';
 import { timelineRecordByDay } from '../components/fieldhealth/timelineByDay';
 import { unavailableFieldChangeMessage } from '../lib/fieldChangeAvailability';
 import { useScoutingPins, useCreateScoutingPin, useCropScoutingIssues } from '../hooks/useScouting';
@@ -212,7 +213,7 @@ export default function SatellitePage() {
     [cropIssuesQ.data],
   );
 
-  const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, days);
+  const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, Math.min(days, 365));
   const { data: ndviNow, error: ndviError }      = useCurrentNDVI(fieldId);
   // عقد 424 التشخيصيّ: خدمة الغطاء real-only تفشل مُغلَقةً بسبب مُصنَّف حين لا NDVI موثّق.
   // نُصيّر حالة فارغة هادئة (لا console.error، لا اختلاق) بدل ترك الخطأ صامتاً.
@@ -290,30 +291,30 @@ export default function SatellitePage() {
   // نقاط الشريط مُثراة بصورة مُصغَّرة لكلّ تاريخ (cdse-thumbnail) وبفرق المؤشّر عن
   // التاريخ الأسبق — لبطاقات السجلّ الزمنيّ (تاريخ · صورة · متوسّط + تغيّر).
   const stripPoints: ScrubberPoint[] = useMemo(() => {
-    const base: ScrubberPoint[] = (Array.isArray(rasterPoints) && rasterPoints.length)
-      ? rasterPoints.map((p) => {
-          const rec = timelineByDay.get(String(p.datetime).slice(0, 10));
-          return {
-            date: p.datetime,
-            value: p.mean,
-            cloud: p.cloudy_pct ?? null,
-            thumbUrl: rec?.thumbnail_url ?? null,
-            thumbProduct: rec?.thumbnail_url ? (rec.thumbnail_index ?? null) : null,
-            acquisitionDatetime: rec?.acquisition_datetime ?? null,
-          };
-        })
-      : (timelineItems.length
-          ? timelineItems.map((item) => ({
-              date: item.date,
-              value: null,
-              cloud: typeof item.cloud_pct === 'number' ? item.cloud_pct : null,
-              thumbUrl: item.thumbnail_url,
-              thumbProduct: item.thumbnail_index ?? null,
-              acquisitionDatetime: item.acquisition_datetime ?? null,
-            }))
-          : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null })));
+    const base: ScrubberPoint[] = rasterPoints.map((p) => {
+      const rec = timelineByDay.get(String(p.datetime).slice(0, 10));
+      return {
+        date: p.datetime.slice(0, 10),
+        value: p.mean,
+        cloud: p.cloudy_pct ?? null,
+        thumbUrl: rec?.thumbnail_url ?? null,
+        thumbProduct: rec?.thumbnail_url ? (rec.thumbnail_index ?? null) : null,
+        acquisitionDatetime: rec?.acquisition_datetime ?? null,
+      };
+    });
+    const measuredDays = new Set(base.map(point => point.date));
+    for (const [date, item] of timelineByDay) {
+      if (measuredDays.has(date)) continue;
+      base.push({ date, value: null, cloud: item.cloud_pct ?? null,
+        thumbUrl: item.thumbnail_url, thumbProduct: item.thumbnail_index ?? null,
+        acquisitionDatetime: item.acquisition_datetime ?? null });
+    }
+    if (!base.length && gridIndex === 'ndvi') {
+      for (const t of ts) base.push({ date: t.date, value: t.ndvi ?? null, cloud: null });
+    }
+    base.sort((a, b) => a.date.localeCompare(b.date));
     // فرق المؤشّر عن التاريخ الأسبق (ترتيب زمنيّ تصاعديّ).
-    const chron = base.filter((p) => p.date).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+    const chron = base.filter((p) => p.date);
     const deltaByDate = new Map<string, number>();
     for (let i = 1; i < chron.length; i++) {
       const cur = chron[i];
@@ -387,6 +388,10 @@ export default function SatellitePage() {
 
   // طبقة الخريطة: التاريخ المختار إن وُجِد، وإلّا "latest" (سلوك سابق).
   const mapDate = selectedDate || 'latest';
+  const archiveLayer = satelliteArchiveLayer(mode, gridIndex, mapDate,
+    imageryTimeline?.field_id === fieldId ? timelineItems : [],
+    rasterTs?.real_data && rasterTs.field_id === fieldId && rasterTs.index === gridIndex ? rasterPoints : [],
+  );
 
   // شبكة المؤشّر الحقيقيّة — لوسم مصدر البيانات بصدق (حقيقيّة / لا توجد بعد) ولشارة
   // الحداثة. تُطلَب لنفس تاريخ البلاطات (mapDate) لا 'latest': وإلّا تصف الشارة شبكةً
@@ -473,8 +478,8 @@ export default function SatellitePage() {
         <LayerSwitcher layers={modeLayers} active={mode} onChange={setMode} />
         <span className="text-[11px] text-slate-500 mr-auto">
           {mode === 'scouting'   && 'تباين مناطقيّ + دبابيس مشاهدات (محلّيّة للجلسة)'}
-          {mode === 'vegetation' && 'مؤشّر نباتيّ زمنيّ (NDVI/NDMI) — بلاطات + سلسلة'}
-          {mode === 'truecolor'  && 'صور الأساس الحقيقيّة فقط (بلا طبقة مؤشّر)'}
+          {mode === 'vegetation' && (archiveLayer.stored ? 'مصدر الطبقة: راستر المؤشر المحفوظ' : 'مصدر الطبقة: خدمة CDSE')}
+          {mode === 'truecolor'  && (archiveLayer.stored ? 'صورة اللون الحقيقي المحفوظة للتاريخ المحدد' : 'صور خريطة الأساس')}
         </span>
       </div>
 
@@ -546,41 +551,19 @@ export default function SatellitePage() {
                   onRemovePin={handleRemovePin}
                   height={400}
                 />
-              ) : mode === 'truecolor' ? (
-                // اللون الحقيقيّ: صور الأساس (Esri World Imagery) فقط. طبقة المؤشّر
-                // تبدأ بشفافيّة صفر (مخفيّة) — صدق: لا نُلفّق مشهد لون-حقيقيّ من
-                // Sentinel، نعرض الأساس الجوّيّ. يمكن للمستخدم رفع الشفافيّة لكشف
-                // المؤشّر فوق نفس الأساس إن رغب (نفس التاريخ الحقيقيّ، لا طلب وهميّ).
-                <FieldIndicatorMap
-                  key={`${fieldId}-truecolor`}
-                  fieldId={fieldId}
-                  index={gridIndex}
-                  date={mapDate}
-                  fieldPolygon={fieldPolygon}
-                  fallbackBounds={fallbackBounds}
-                  basemap="satellite"
-                  initialOpacity={0}
-                  height={400}
-                  tools={measureTools}
-                  tileSegment="cdse-tiles"
-                  fieldGeometry={field?.geometry ?? null}
-                  fieldBbox={fallbackBounds}
-                />
               ) : (
-                // وضع النباتيّ: بلاطات CDSE الحيّة (Sentinel Hub) مع قصّ poly.
-                // CDSE_CLIENT_ID/SECRET موجودان ⇒ available=true ⇒ تُركَّب طبقة المؤشّر.
                 <FieldIndicatorMap
-                  key={fieldId}
+                  key={`${fieldId}-${mode}-${archiveLayer.segment}`}
                   fieldId={fieldId}
-                  index={gridIndex}
+                  index={archiveLayer.index}
                   date={mapDate}
                   fieldPolygon={fieldPolygon}
                   fallbackBounds={fallbackBounds}
                   basemap="satellite"
-                  initialOpacity={0.75}
+                  initialOpacity={archiveLayer.opacity}
                   height={400}
                   tools={measureTools}
-                  tileSegment="cdse-tiles"
+                  tileSegment={archiveLayer.segment}
                   fieldGeometry={field?.geometry ?? null}
                   fieldBbox={fallbackBounds}
                 />
@@ -613,11 +596,11 @@ export default function SatellitePage() {
                   {playing ? 'إيقاف' : 'تشغيل'}
                 </button>
                 <div className="flex gap-1 mr-auto">
-                  {[14,30,60].map(d=>(
+                  {[14,30,60,730].map(d=>(
                     <button key={d} onClick={()=>setDays(d)}
                       className="px-2 py-0.5 rounded-sm text-[11px]"
                       style={{ background:days===d?'#16a34a22':'transparent', color:days===d?'#4ade80':'#64748b', border:`1px solid ${days===d?'#16a34a44':'#334155'}` }}>
-                      {d}ي
+                      {d === 730 ? 'سنتان' : `${d}ي`}
                     </button>
                   ))}
                 </div>

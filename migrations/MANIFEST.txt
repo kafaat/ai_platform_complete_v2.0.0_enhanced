@@ -775,7 +775,6 @@ v241_edge_idempotency_tenant_scoped.sql
 # v239: per-detection provenance (model artifact sha256, input sha256, threshold, calibration);
 #       tenant RLS+FORCE, append-only. Inserted before v206 so v206 stays last.
 v239_detection_provenance.sql
-v242_raster_registry_resolution.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

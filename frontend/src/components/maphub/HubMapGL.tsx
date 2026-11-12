@@ -782,7 +782,7 @@ export default function HubMapGL({
     const beforeId = map.getLayer(LYR_LINE) ? LYR_LINE : undefined;
     map.addLayer({
       id: LYR_INDICATOR, type: 'raster', source: SRC_INDICATOR,
-      paint: { 'raster-opacity': indicatorOpacity },
+      paint: { 'raster-opacity': indicatorOpacity, 'raster-resampling': 'nearest', 'raster-fade-duration': 0 },
     }, beforeId);
   }
 
