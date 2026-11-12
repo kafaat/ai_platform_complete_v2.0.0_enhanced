@@ -34,13 +34,19 @@ else
   scripts/ci/resilient_docker_pull.sh "$base_image"
 fi
 
+# The server package is installed in the same apt step as PostGIS: the base image is pinned by
+# digest, but pgdg's postgis-3 is not, and a newer postgis built against a later 16.x/15.x minor
+# failed to load on the older pinned server (2026-11-12: `postgis-3.so: undefined symbol:
+# heap_datum_check` in Integration Tests and Live PG Proofs). One snapshot keeps them matched.
 if ! docker build --pull=false --tag "$image_tag" - <<DOCKERFILE
 FROM $build_base
 USER root
 RUN timeout -k 10 240 apt-get update \
     && DEBIAN_FRONTEND=noninteractive timeout -k 10 240 apt-get install --yes --no-install-recommends \
+        postgresql-$pg_major \
         postgresql-$pg_major-postgis-3 \
         postgresql-$pg_major-postgis-3-scripts \
+    && dpkg-query --show --showformat='\${Package}=\${Version}\n' postgresql-$pg_major \
     && dpkg-query --show --showformat='\${Package}=\${Version}\n' postgresql-$pg_major-postgis-3 \
     && dpkg-query --show --showformat='\${Package}=\${Version}\n' postgresql-$pg_major-postgis-3-scripts \
     && rm -rf /var/lib/apt/lists/*
