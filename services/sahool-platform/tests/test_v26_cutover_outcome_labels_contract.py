@@ -73,13 +73,16 @@ def _branches() -> tuple[str, str]:
 @pytest.mark.unit
 def test_both_branches_reconcile_before_their_write():
     cutover, legacy = _branches()
-    assert cutover.index("await _server_outcome_labels(") < cutover.index(
-        "await _mirror_recommendation_outcome_to_service("
-    )
-    assert cutover.index("authoritative_outcome_label_refusal(labels)") < cutover.index(
+    assert cutover.index("await _cutover_outcome_labels(user, req)") < cutover.index(
         "await _mirror_recommendation_outcome_to_service("
     )
     assert 'service_payload["metadata"].update(labels)' in cutover
+    text = ROUTER.read_text(encoding="utf-8")
+    helper = text[text.index("async def _cutover_outcome_labels(") :]
+    helper = helper[: helper.index("\n\n\n")]
+    assert helper.index("await _server_outcome_labels(") < helper.index(
+        "authoritative_outcome_label_refusal(labels)"
+    )
     assert legacy.index("await _server_outcome_labels(conn, req)") < legacy.index(
         "INSERT INTO recommendation_outcomes"
     )

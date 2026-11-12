@@ -14,24 +14,29 @@ def _body() -> str:
 
 
 def test_cutover_branch_never_writes_the_platform_and_reads_only_the_sealed_labels():
-    # Amended by v26 workstream 06: the cutover branch may open ONE tenant connection to read
-    # the sealed recommendation and reconcile its labels (so a contradicting prediction is
-    # refused in both modes), but it performs no platform write; decision-service stays the
+    # Amended by v26 workstream 06 (was: no platform connection at all in the cutover branch).
+    # Before the only authoritative write, the branch reconciles the outcome labels against the
+    # sealed recommendation through _cutover_outcome_labels: ONE tenant read, no platform write,
+    # so a contradicting prediction is refused in both SOR modes. decision-service stays the
     # only writer.
     body = _body()
     cut = body.index("if mode.strict_decision_service_required:")
     pre = body.index("# Pre-cutover bridge:")
     authoritative_branch = body[cut:pre]
-    assert authoritative_branch.count("tenant_connection(") == 1
-    for write in ("INSERT INTO", "UPDATE ", "DELETE FROM", "conn.execute", "_idempotent("):
-        assert write not in authoritative_branch, write
-    assert authoritative_branch.index("tenant_connection(") < authoritative_branch.index(
-        "await _mirror_recommendation_outcome_to_service"
+    assert "tenant_connection" not in authoritative_branch
+    assert authoritative_branch.index("await _cutover_outcome_labels(user, req)") < (
+        authoritative_branch.index("await _mirror_recommendation_outcome_to_service")
     )
-    assert "await _mirror_recommendation_outcome_to_service" in authoritative_branch
-    assert 'service_result.get("authoritative")' in authoritative_branch
-    assert 'service_result.get("persisted")' in authoritative_branch
-    assert 'service_result.get("outcome_id")' in authoritative_branch
+    text = ROUTER.read_text(encoding="utf-8")
+    helper = text[
+        text.index("async def _cutover_outcome_labels(") : text.index(
+            '@router.post("/api/v1/recommendations/outcomes"'
+        )
+    ]
+    assert helper.count("tenant_connection(") == 1
+    for write in ("INSERT INTO", "UPDATE ", "DELETE FROM", "conn.execute", "_idempotent("):
+        assert write not in authoritative_branch + helper, write
+    assert "INSERT INTO recommendation_outcomes" not in authoritative_branch
 
 
 def test_pre_cutover_branch_remains_platform_authoritative_then_fail_soft_mirror():
