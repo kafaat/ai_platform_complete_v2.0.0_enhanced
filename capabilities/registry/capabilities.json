@@ -2542,8 +2542,11 @@
         "GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:429"
       ],
       "ui_consumers": [],
-      "mobile_consumers": [],
+      "mobile_consumers": [
+        "mobile/sahool_app/lib/features/scouting/presentation/disease_symptoms_dialog.dart"
+      ],
       "tests": [
+        "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
         "services/sahool-platform/tests/test_advice_host_disease_unknown_crop_and_knowledge.py",
         "services/sahool-platform/tests/test_weather_engine_disease_window_layers.py",
         "tests_v9/test_disease_field_state_feed.py"
@@ -2560,7 +2563,7 @@
           "path": "services/sahool-platform/api/disease_diagnosis.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=3, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=4, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": "4",
@@ -4084,6 +4087,7 @@
         "mobile/sahool_app/lib/features/scouting/data/device_sources.dart",
         "mobile/sahool_app/lib/features/scouting/data/scouting_api.dart",
         "mobile/sahool_app/lib/features/scouting/data/scouting_models.dart",
+        "mobile/sahool_app/lib/features/scouting/presentation/disease_symptoms_dialog.dart",
         "mobile/sahool_app/lib/features/scouting/presentation/new_observation_cubit.dart",
         "mobile/sahool_app/lib/features/scouting/presentation/new_observation_screen.dart",
         "mobile/sahool_app/lib/features/scouting/presentation/pest_detect_cubit.dart",
@@ -4097,6 +4101,7 @@
         "mobile/sahool_app/lib/features/scouting/scouting_routes.dart"
       ],
       "tests": [
+        "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_cubit_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_screen_test.dart",
         "mobile/sahool_app/test/features/scouting/pest_detect_test.dart",
@@ -4138,7 +4143,7 @@
           "path": "services/scout-ingest-service/main.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=24, tests=12, ui=0, mobile=15. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=24, tests=13, ui=0, mobile=16. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "4",
         "CropX": null,
