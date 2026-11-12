@@ -239,6 +239,51 @@ def test_a_pin_a_few_metres_past_the_boundary_is_within_gps_tolerance(monkeypatc
 # ── S-H2: recommendations ──────────────────────────────────────────────────
 
 
+def test_a_faithful_resend_survives_a_later_boundary_revision(monkeypatch):
+    """The boundary judges a new observation; a stored pin's resend is settled by comparison."""
+    from fastapi import HTTPException
+
+    main, fields, _, _ = _platform()
+
+    async def case(live):
+        monkeypatch.setattr(main, "_DB_POOL", live.pool)
+        req = _pin(live.field_id, 15.355, 44.205)
+        first = await fields.create_pin(live.field_id, req, user=_user(live.tenant_a))
+        assert first["persisted"] is True
+        far = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [44.300, 15.450],
+                    [44.310, 15.450],
+                    [44.310, 15.460],
+                    [44.300, 15.460],
+                    [44.300, 15.450],
+                ]
+            ],
+        }
+        await live.owner.execute(
+            "UPDATE fields SET geometry = $2::jsonb WHERE field_id = $1",
+            live.field_id,
+            json.dumps(far),
+        )
+        assert await live.owner.fetchval(
+            "SELECT NOT ST_DWithin(geom::geography,"
+            " ST_SetSRID(ST_MakePoint(44.205, 15.355), 4326)::geography, 25)"
+            " FROM fields WHERE field_id = $1",
+            live.field_id,
+        ), "the revised boundary must exclude the stored pin"
+        again = await fields.create_pin(live.field_id, req, user=_user(live.tenant_a))
+        assert again["persisted"] is True
+        with pytest.raises(HTTPException) as caught:
+            await fields.create_pin(
+                live.field_id, _pin(live.field_id, 15.355, 44.205), user=_user(live.tenant_a)
+            )
+        assert caught.value.status_code == 422
+
+    _run(case)
+
+
 def test_a_recommendation_with_the_engines_iso_timestamp_is_written(monkeypatch):
     """The engine stamps ``datetime.now().isoformat()``; that string must reach the row.
 

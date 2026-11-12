@@ -381,20 +381,20 @@ async def recommendations_for_field(
         }
         try:
             async with tenant_connection(user) as conn:
-                persisted = await load_agronomic_context(conn, field_id=req.field_id)
+                stored_context = await load_agronomic_context(conn, field_id=req.field_id)
                 candidates = []
-                if persisted.get("phenology") is not None:
-                    candidates.append(_asdict(_consume_phenology(persisted["phenology"])))
-                if persisted.get("salinity") is not None:
-                    candidates.append(_asdict(_consume_salinity(persisted["salinity"])))
-                if persisted.get("nutrients") is not None:
+                if stored_context.get("phenology") is not None:
+                    candidates.append(_asdict(_consume_phenology(stored_context["phenology"])))
+                if stored_context.get("salinity") is not None:
+                    candidates.append(_asdict(_consume_salinity(stored_context["salinity"])))
+                if stored_context.get("nutrients") is not None:
                     # Latest ledger only drives advice when fresh and built for this crop.
                     nutrients = _consume_nutrients(
-                        persisted["nutrients"], now=_dt.now(_UTC), crop_id=req.crop
+                        stored_context["nutrients"], now=_dt.now(_UTC), crop_id=req.crop
                     )
                     candidates.append(_asdict(nutrients))
                 canonical_context = {
-                    "season_id": persisted.get("season_id"),
+                    "season_id": stored_context.get("season_id"),
                     "candidates": candidates,
                     "source_state_digests": sorted(
                         item["source_state_digest"] for item in candidates

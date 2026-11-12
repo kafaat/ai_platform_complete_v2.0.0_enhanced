@@ -355,7 +355,16 @@ async def persist_scouting_pin(
             )
             if not exists:
                 raise HTTPException(404, "الحقل غير موجود ضمن هذا المستأجر")
-            await _assert_pin_inside_field(conn, pin.field_id, pin.lat, pin.lng)
+            # The boundary judges a new observation only. A resend of a stored pin is settled
+            # by the idempotent comparison below; judging it against a boundary revised since
+            # it was recorded would turn a faithful resend into a 422.
+            stored = await conn.fetchval(
+                "SELECT 1 FROM scouting_pins WHERE pin_id=$1 AND tenant_id=$2::uuid",
+                pin.pin_id,
+                str(user.tenant_id),
+            )
+            if not stored:
+                await _assert_pin_inside_field(conn, pin.field_id, pin.lat, pin.lng)
             result = await conn.execute(
                 "INSERT INTO scouting_pins "
                 "(pin_id, tenant_id, field_id, lat, lng, issue_category, severity, "

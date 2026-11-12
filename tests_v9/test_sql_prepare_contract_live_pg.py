@@ -98,6 +98,11 @@ async def _prepare_all(statements):
     conn = await asyncpg.connect(**_dsn(), timeout=10)
     defects, other = [], 0
     try:
+        # EXPLAIN (GENERIC_PLAN) exists from PostgreSQL 16; on an older server every planned
+        # statement would fail into the uncounted bucket and the contract would pass vacuously.
+        assert int(await conn.fetchval("SHOW server_version_num")) >= 160000, (
+            "the ON CONFLICT generic-plan contract needs PostgreSQL 16+"
+        )
         tx = conn.transaction()
         await tx.start()
         try:
