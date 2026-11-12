@@ -334,9 +334,8 @@ async def test_create_pin_rejects_body_field_differing_from_path(fields_mod):
 
 # ─── وقت المشاهدة وموقعها (S-H2) ───────────────────────────────────────────
 def test_an_unparseable_observation_time_is_a_422_not_a_silent_persisted_false():
-    from fastapi import HTTPException
-
     from api.scouting_pins import _pin_created_at
+    from fastapi import HTTPException
 
     with pytest.raises(HTTPException) as err:
         _pin_created_at("yesterday morning")
