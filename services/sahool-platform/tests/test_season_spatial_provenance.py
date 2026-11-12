@@ -161,6 +161,10 @@ def _install(monkeypatch, conn, points):
         return points
 
     monkeypatch.setattr(route, "tenant_connection", _tenant_connection)
+    # The route reads "today" from its own clock; the fixtures below are built from _TODAY,
+    # fixed once at import. A run that crosses midnight UTC between collection and the call
+    # saw one more day (window_days_requested 302 != 301, PR #1318, run 43123678786).
+    monkeypatch.setattr(route, "datetime", _ClockOnFixtureDay)
     monkeypatch.setattr(openmeteo, "fetch_historical", _historical)
     monkeypatch.setattr(wsc, "get_et0_series", _et0)
     monkeypatch.setattr(wsc, "get_gdd_product", _gdd)
@@ -185,6 +189,17 @@ def _rev(revision: int, at: date) -> dict:
 
 
 _TODAY = datetime.now(UTC).date()
+
+
+class _ClockOnFixtureDay(datetime):
+    """The real clock, kept on the fixtures' calendar day (_TODAY)."""
+
+    @classmethod
+    def now(cls, tz=None):
+        real = datetime.now(tz)
+        return real.replace(year=_TODAY.year, month=_TODAY.month, day=_TODAY.day)
+
+
 _SOW = _TODAY - timedelta(days=90)
 _END = _TODAY - timedelta(days=20)
 

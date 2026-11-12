@@ -306,6 +306,7 @@ export default function FieldWorkspaceMapCard({
                   وإعلان توفّرها. لا تلوين مفبرك: بلا COG صافٍ تظهر بلاطات فارغة. */}
               {ndviOn && ndviAvailable && ndviTileUrl && (
                 <TileLayer
+                  className="sahool-indicator-pixels"
                   url={ndviTileUrl}
                   opacity={0.75}
                   attribution="NDVI &copy; SAHOOL Raster (Sentinel-2)"

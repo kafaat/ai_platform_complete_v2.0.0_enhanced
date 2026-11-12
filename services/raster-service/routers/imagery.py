@@ -120,7 +120,7 @@ async def scene_quality_score(payload: dict) -> dict:
         shadow_pct=payload.get("shadow_pct", 0),
         nodata_pct=payload.get("nodata_pct", 0),
         haze_pct=payload.get("haze_pct", 0),
-        resolution_m=payload.get("resolution_m", 10),
+        resolution_m=payload.get("resolution_m"),
         max_cloud_pct=float(payload.get("max_cloud_pct", 35)),
     )
     return q.__dict__
@@ -143,5 +143,5 @@ async def cog_registry_preview(payload: dict) -> dict:
         cog_url=str(payload["cog_url"]),
         scene_id=payload.get("scene_id"),
         cloud_pct=payload.get("cloud_pct"),
-        resolution_m=payload.get("resolution_m", 10),
+        resolution_m=payload.get("resolution_m"),
     )

@@ -13,7 +13,8 @@ import main
 import mfa_crypto
 import mfa_enrollment
 import pyotp
-from fastapi import APIRouter, Depends, HTTPException, status
+from client_address import client_ip
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
 
 router = APIRouter()
@@ -58,7 +59,7 @@ async def _refuse_if_mfa_locked(row, user_id: int, *, locked_event: str) -> None
 
 
 @router.post("/v1/auth/mfa/setup")
-async def mfa_setup(user: dict = Depends(_setup_user)):
+async def mfa_setup(request: Request, user: dict = Depends(_setup_user)):
     """يبدأ اقتران MFA: يولّد سرّاً ويُعيد provisioning_uri (لتطبيق المصادقة).
 
     V29.5: السرّ يُخزَّن **مشفّراً** (encrypted_mfa_secret) لا نصّاً؛ يتطلّب مفتاح تشفير
@@ -115,7 +116,10 @@ async def mfa_setup(user: dict = Depends(_setup_user)):
         else None
     )
     uri = pyotp.TOTP(secret).provisioning_uri(name=row["email"], issuer_name="SAHOOL")
-    await main.audit_log("mfa_setup_started", user_id, "authenticated")
+    # R-H3: عنوانٌ صالح ومستأجِرٌ مربوط — كان "authenticated" يُسقط الصفّ (inet).
+    await main.audit_log(
+        "mfa_setup_started", user_id, client_ip(request), tenant_id=row["tenant_id"]
+    )
     await main._emit_mfa_audit(
         user_id=user_id, event="mfa_setup_started", outcome="pending", tenant_id=row["tenant_id"]
     )
@@ -132,7 +136,9 @@ async def mfa_setup(user: dict = Depends(_setup_user)):
 
 
 @router.post("/v1/auth/mfa/activate")
-async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(_activation_user)):
+async def mfa_activate(
+    req: main.MfaCodeRequest, request: Request, user: dict = Depends(_activation_user)
+):
     """يفعّل MFA بعد تأكيد أوّل رمز صحيح، ويُصدِر رموز استرداد (تُعرَض مرّة واحدة)."""
     user_id = int(user["sub"])
     row = await _load_mfa_row(user_id)
@@ -204,7 +210,7 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(_activatio
         raise HTTPException(409, "MFA enrollment state changed; sign in again")
     recovery_codes = mfa_crypto.generate_recovery_codes()
     await main._store_recovery_codes(user_id, row["tenant_id"], recovery_codes)
-    await main.audit_log("mfa_activated", user_id, "authenticated")
+    await main.audit_log("mfa_activated", user_id, client_ip(request), tenant_id=row["tenant_id"])
     await main._emit_mfa_audit(
         user_id=user_id, event="mfa_enabled", outcome="success", tenant_id=row["tenant_id"]
     )
@@ -223,7 +229,9 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(_activatio
 
 
 @router.post("/v1/auth/mfa/disable")
-async def mfa_disable(req: main.MfaCodeRequest, user: dict = Depends(main.get_current_user)):
+async def mfa_disable(
+    req: main.MfaCodeRequest, request: Request, user: dict = Depends(main.get_current_user)
+):
     """يعطّل MFA — يتطلّب رمزاً صحيحاً حاليّاً (لا يُعطّله مهاجم بتوكن مسروق بلا الجهاز)."""
     user_id = int(user["sub"])
     row = await _load_mfa_row(user_id)
@@ -257,7 +265,7 @@ async def mfa_disable(req: main.MfaCodeRequest, user: dict = Depends(main.get_cu
         )
         await conn.execute("DELETE FROM mfa_recovery_codes WHERE user_id=$1", user_id)
     await main.revoke_all_user_sessions(user_id)
-    await main.audit_log("mfa_disabled", user_id, "authenticated")
+    await main.audit_log("mfa_disabled", user_id, client_ip(request), tenant_id=row["tenant_id"])
     await main._emit_mfa_audit(
         user_id=user_id, event="mfa_disabled", outcome="success", tenant_id=row["tenant_id"]
     )

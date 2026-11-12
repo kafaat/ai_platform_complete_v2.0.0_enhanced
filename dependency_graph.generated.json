@@ -1,5 +1,5 @@
 {
-  "edge_count": 930,
+  "edge_count": 934,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -112,7 +112,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/components/AddFieldWithMap.tsx:414",
+      "evidence": "frontend/src/components/AddFieldWithMap.tsx:449",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -122,7 +122,17 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/hooks/useApi.ts:248",
+      "evidence": "frontend/src/components/fieldhealth/ScoutingMap.tsx:8",
+      "from": "frontend",
+      "from_kind": "component",
+      "protocol": "ui",
+      "relation": "CALLS",
+      "resource": "/api/v1",
+      "to": "sahool-platform",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "frontend/src/hooks/useApi.ts:254",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -502,7 +512,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/vegetation-analysis-service/vegetation_runtime.py:626",
+      "evidence": "services/vegetation-analysis-service/vegetation_runtime.py:644",
       "from": "vegetation-analysis-service",
       "from_kind": "component",
       "protocol": "nats",
@@ -602,7 +612,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/auth/mfa_enrollment.py",
+      "evidence": "services/auth/main.py",
       "from": "auth",
       "from_kind": "component",
       "protocol": "postgres",
@@ -3062,6 +3072,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/scouting_pins.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/weather_service_client.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4113,6 +4133,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/scouting.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_pins",
+      "to": "db://scouting_pins",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/scouting_pins.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -6442,6 +6472,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/tests/test_element84_inventory_pg16.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -8632,7 +8672,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/fields.py",
+      "evidence": "services/sahool-platform/api/scouting_pins.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9317,12 +9357,12 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 45,
+    "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 479,
+    "READS": 481,
     "ROUTES_TO": 72,
-    "WRITES": 328
+    "WRITES": 329
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -9337,8 +9377,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 808,
-      "resolved": 807,
+      "observed": 811,
+      "resolved": 810,
       "unresolved_component_paths": 0
     }
   }

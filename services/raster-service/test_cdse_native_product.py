@@ -332,11 +332,11 @@ def _measure_against_request(tmp_path, tiff, payload):
         # Requested CRS and pixel size, displaced by one degree: another place.
         ("EPSG:4326", from_origin(45, 16.001, 0.001 / 16, 0.001 / 16)),
         # Requested CRS and origin, doubled pixel size: footprint does not close.
-        ("EPSG:4326", from_origin(44, 15.001, 0.002 / 16, 0.002 / 16)),
+        ("EPSG:4326", from_origin(44, 15.0015, 0.003 / 16, 0.002 / 16)),
     ],
 )
 def test_native_decoded_grid_must_match_requested_grid(tmp_path, crs, transform):
-    payload = _native_grid_payload([44, 15, 44.001, 15.001])
+    payload = _native_grid_payload([44, 15, 44.0015, 15.0015])
     assert (payload["output"]["width"], payload["output"]["height"]) == (16, 16)
     tiff = _native_grid_tiff(crs=crs, transform=transform)
     with pytest.raises(ValueError, match="cdse_native_grid_does_not_match_request"):
@@ -346,7 +346,7 @@ def test_native_decoded_grid_must_match_requested_grid(tmp_path, crs, transform)
 def test_native_decoded_grid_on_requested_bbox_is_accepted(tmp_path):
     from rasterio.transform import from_bounds
 
-    bbox = [44, 15, 44.001, 15.001]
+    bbox = [44, 15, 44.0015, 15.0015]
     payload = _native_grid_payload(bbox)
     assert (payload["output"]["width"], payload["output"]["height"]) == (16, 16)
     tiff = _native_grid_tiff(crs="EPSG:4326", transform=from_bounds(*bbox, 16, 16))

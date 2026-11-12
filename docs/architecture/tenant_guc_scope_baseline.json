@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "15fb2a899ae492eaae0f12afb8b8ef0e4ad8b6db",
+  "measured_on": "4d024ef74ad758004b454acdd31e24beed9003f2",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "f382d53b6153115b3946907f702251dba3e0a846f21f39de88228fc395f1ff99",
+  "measurement_input_digest": "c21908193512230222305fee90e384d97c8dd01b05f34e4580a25bcbdd8d5e2f",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "b1d74741047cd2d130dcfda4037b51bc7d41a0e798a8d13ec27ef94fe4e45413",
+  "measurement_basis_digest": "de337e23bd7705761293292e67c4f4c8ae4aa4ca3d6482538b02a1a524dc647f",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -43,6 +43,10 @@
       "sha256": "2fdccc2eebc6cd6c2840b694dedb9760a238d99d95d4fa576e2206eaa9f3d682"
     },
     {
+      "path": "scripts/staging/c12_live_activation_receipt.py",
+      "sha256": "eae9125fb60fc337cf8825124cbe07077ea7dd0e975101b4bc1bea941c4562da"
+    },
+    {
       "path": "scripts/tenant_query_audit.py",
       "sha256": "629109244d6c8c20b60c5ff61f20722d7dbc107fe14389f75afc3acc2ddb0251"
     },
@@ -52,7 +56,7 @@
     },
     {
       "path": "services/auth/main.py",
-      "sha256": "6d72d50bd22b7d5ebea84bd7be7e0194b3c0ddeb133dc51c37871fbeb2e7757b"
+      "sha256": "c25eaef196c3d144d73f3761fc5dea78337d86f033ffcef3e2185eb70d08eda5"
     },
     {
       "path": "services/decision-service/observation_context.py",
@@ -60,7 +64,7 @@
     },
     {
       "path": "services/decision-service/persistence.py",
-      "sha256": "2a9b297256ed932bc8e78a39cd9cb4a592bede9afe208ff911ae55d9a88dedb6"
+      "sha256": "550d66acd86e8c4b13b8584b44258f2f36bf2ef22b34a950ef0f6cb135ecfe3c"
     },
     {
       "path": "services/field-management-service/main.py",
@@ -92,7 +96,7 @@
     },
     {
       "path": "services/raster-service/db_persist.py",
-      "sha256": "5a14af5df82d0a2468b4c7493505257fdc3181a4dacf9f7ceaa90c38d14d24d8"
+      "sha256": "869cee18493045a15de597ca52fe29fcfc9ddfb15636ac2045bd31d0544a3768"
     },
     {
       "path": "services/raster-service/follow_up_store.py",
@@ -100,11 +104,11 @@
     },
     {
       "path": "services/raster-service/raster_batch_job_store.py",
-      "sha256": "8e42b21c59f2a3e4f5eb30a5609db38963d0229458dbec9bc13b8fabefb405c3"
+      "sha256": "b8e0faf0c9fd771b08045e7f990c95fb708fc863da6a475edf59aac2cb43ffcd"
     },
     {
       "path": "services/sahool-platform/api/imagery_automation.py",
-      "sha256": "25867a67221d446a3b64d06be0e32c8576222c8b598711d454ec6781cc90055b"
+      "sha256": "44a4680e6fda47b41de15a71855a804771c4a6203168b81b5f4a12059a6c6252"
     },
     {
       "path": "services/sahool-platform/api/irrigation_reservation_adapter.py",
@@ -116,7 +120,7 @@
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "db4ee5f1e02e2057faed02e158e48570c7d4892e7887dc4018fdf8f34b7af905"
+      "sha256": "847706d4effaff3d1e6eb2e9ce622a67dfa4ec710cf44f1cfa0aea146feb2a29"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
@@ -140,7 +144,7 @@
     },
     {
       "path": "services/scout-ingest-service/field_forms_api.py",
-      "sha256": "699b4a9046261acb22795004b252015f85f54e8e204ec7cbef2b22561a0a6a82"
+      "sha256": "33090cc6583c308e6fc2ec262cbdcf02b402e02ea638db25fd29695121d042c9"
     },
     {
       "path": "services/scout-ingest-service/main.py",
@@ -194,7 +198,7 @@
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
     "services/actuator-service/actuator_runtime.py:1479",
-    "services/auth/main.py:989",
+    "services/auth/main.py:993",
     "services/raster-service/backfill_scan_worker.py:170",
     "services/raster-service/cache_invalidation_worker.py:126",
     "services/sahool-platform/api/imagery_automation.py:201",
@@ -213,6 +217,7 @@
     "app.current_role",
     "app.current_tenant",
     "app.current_tenant_id",
+    "app.current_worker",
     "app.tenant_id"
   ]
 }

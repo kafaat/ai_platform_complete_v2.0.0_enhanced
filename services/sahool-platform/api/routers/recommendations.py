@@ -674,7 +674,7 @@ async def record_recommendation_outcome(
                             predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag,
                             outcome_recorded_at)
                        VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                               CASE WHEN $8 IS NOT NULL THEN now() ELSE NULL END)
+                               CASE WHEN $8::numeric IS NOT NULL THEN now() ELSE NULL END)
                        RETURNING outcome_id""",
                     str(getattr(user, "tenant_id", "")),
                     req.field_id,

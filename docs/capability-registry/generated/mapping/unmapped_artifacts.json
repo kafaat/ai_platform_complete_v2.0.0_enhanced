@@ -80,6 +80,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/e2e/satellite-pixel-display.spec.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/e2e/ui-chrome.visual.spec.ts",
     "kind": "tests"
   },
@@ -320,6 +324,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/fieldhealth/satelliteArchive.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/fieldhealth/satelliteArchive.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/fieldhealth/timelineByDay.test.ts",
     "kind": "tests"
   },
@@ -541,6 +553,14 @@
   },
   {
     "path": "frontend/src/components/maphub/FieldSplitMergeTool.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/GridSamplingDetails.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/GridSamplingDetails.tsx",
     "kind": "web"
   },
   {
@@ -5472,6 +5492,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_spatial_sampling_product.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_storage_lifecycle_upload.py",
     "kind": "tests"
   },
@@ -9888,10 +9912,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/vegetation-analysis-service/test_vegetation_logic.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
     "kind": "tests"
   },
@@ -11356,6 +11376,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_events_entity_type_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_evidence_lab_contract.py",
     "kind": "tests"
   },
@@ -11421,6 +11445,10 @@
   },
   {
     "path": "tests_v9/test_field_ai_context_hardening_v49_5.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_alerts_schema_contract.py",
     "kind": "tests"
   },
   {
@@ -13037,6 +13065,10 @@
   },
   {
     "path": "tests_v9/test_spatial_e2e_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sql_prepare_contract_live_pg.py",
     "kind": "tests"
   },
   {

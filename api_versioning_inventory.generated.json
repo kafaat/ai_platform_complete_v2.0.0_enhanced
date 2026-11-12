@@ -92,7 +92,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 94,
+    "line": 93,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -101,7 +101,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 101,
+    "line": 100,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",
@@ -110,7 +110,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 275,
+    "line": 274,
     "method": "POST",
     "path": "/v1/recommend",
     "handler": "recommend",
@@ -119,7 +119,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 340,
+    "line": 339,
     "method": "POST",
     "path": "/v1/simulate",
     "handler": "simulate",
@@ -128,7 +128,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 353,
+    "line": 352,
     "method": "POST",
     "path": "/v1/plan",
     "handler": "plan",
@@ -137,7 +137,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 369,
+    "line": 368,
     "method": "POST",
     "path": "/v1/replay/verify",
     "handler": "replay_verify",
@@ -263,7 +263,7 @@
   {
     "service": "auth",
     "file": "services/auth/main.py",
-    "line": 408,
+    "line": 409,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_identity",
@@ -344,7 +344,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 61,
+    "line": 48,
     "method": "POST",
     "path": "/v1/auth/mfa/setup",
     "handler": "mfa_setup",
@@ -353,7 +353,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 135,
+    "line": 104,
     "method": "POST",
     "path": "/v1/auth/mfa/activate",
     "handler": "mfa_activate",
@@ -362,7 +362,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 226,
+    "line": 179,
     "method": "POST",
     "path": "/v1/auth/mfa/disable",
     "handler": "mfa_disable",
@@ -452,7 +452,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 70,
+    "line": 46,
     "method": "POST",
     "path": "/v1/auth/login",
     "handler": "login",
@@ -461,7 +461,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 193,
+    "line": 139,
     "method": "POST",
     "path": "/v1/auth/refresh",
     "handler": "refresh_token",
@@ -470,7 +470,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 257,
+    "line": 195,
     "method": "POST",
     "path": "/v1/auth/logout",
     "handler": "logout",
@@ -479,7 +479,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 302,
+    "line": 240,
     "method": "GET",
     "path": "/v1/auth/me",
     "handler": "me",
@@ -1181,7 +1181,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 205,
+    "line": 194,
     "method": "GET",
     "path": "/healthz",
     "handler": "health_check",
@@ -1190,7 +1190,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 239,
+    "line": 226,
     "method": "POST",
     "path": "/v1/inference/pest-detect",
     "handler": "detect_pest",
@@ -1199,7 +1199,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 316,
+    "line": 305,
     "method": "POST",
     "path": "/v1/inference/yield-estimate",
     "handler": "estimate_yield",
@@ -1208,7 +1208,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 385,
+    "line": 376,
     "method": "POST",
     "path": "/v1/sync/trigger",
     "handler": "trigger_sync",
@@ -1217,7 +1217,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 417,
+    "line": 408,
     "method": "GET",
     "path": "/capabilities",
     "handler": "capabilities",
@@ -1226,7 +1226,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 422,
+    "line": 413,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -1235,7 +1235,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 432,
+    "line": 423,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1307,7 +1307,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 546,
+    "line": 375,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1316,7 +1316,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 551,
+    "line": 380,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1325,7 +1325,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 556,
+    "line": 385,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1334,7 +1334,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 602,
+    "line": 431,
     "method": "POST",
     "path": "/v1/segment",
     "handler": "segment",
@@ -3782,7 +3782,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 63,
+    "line": 69,
     "method": "GET",
     "path": "/api/v1/automation/scheduler-status",
     "handler": "scheduler_status_endpoint",
@@ -3791,7 +3791,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 78,
+    "line": 84,
     "method": "GET",
     "path": "/api/v1/automation/runs",
     "handler": "automation_runs_endpoint",
@@ -3800,7 +3800,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 97,
+    "line": 103,
     "method": "POST",
     "path": "/api/v1/automation/weather/register",
     "handler": "weather_register_endpoint",
@@ -3809,7 +3809,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 137,
+    "line": 143,
     "method": "GET",
     "path": "/api/v1/automation/weather/cached",
     "handler": "weather_cached_endpoint",
@@ -3818,7 +3818,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 156,
+    "line": 162,
     "method": "GET",
     "path": "/api/v1/automation/weather/status",
     "handler": "weather_automation_status_endpoint",
@@ -3827,7 +3827,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 164,
+    "line": 177,
     "method": "POST",
     "path": "/api/v1/automation/imagery/register-field",
     "handler": "imagery_register_field_endpoint",
@@ -3836,7 +3836,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 195,
+    "line": 208,
     "method": "GET",
     "path": "/api/v1/automation/imagery/status",
     "handler": "imagery_automation_status_endpoint",
@@ -3845,7 +3845,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 207,
+    "line": 226,
     "method": "POST",
     "path": "/api/v1/automation/alerts/run",
     "handler": "automation_run_alerts_endpoint",
@@ -5897,7 +5897,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3901,
+    "line": 3868,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan",
     "handler": "field_walk_plan",
@@ -5906,7 +5906,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3911,
+    "line": 3878,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
     "handler": "field_walk_plan_pdf",
@@ -5915,7 +5915,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3930,
+    "line": 3897,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/zones",
     "handler": "field_zones",
@@ -5924,7 +5924,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3944,
+    "line": 3911,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/water-stress-spectral",
     "handler": "field_water_stress_spectral",
@@ -5933,7 +5933,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3976,
+    "line": 3943,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state",
     "handler": "field_canonical_state",
@@ -5942,7 +5942,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 4004,
+    "line": 3971,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/alerts/derived",
     "handler": "field_alerts_derived",
@@ -5951,7 +5951,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 4030,
+    "line": 3997,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state/full",
     "handler": "field_state_full",
@@ -8660,7 +8660,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 130,
+    "line": 125,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -8669,7 +8669,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 135,
+    "line": 130,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -8678,7 +8678,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 140,
+    "line": 135,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -8714,7 +8714,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 327,
+    "line": 328,
     "method": "POST",
     "path": "/internal/field-forms/versions/{version_id}/retire",
     "handler": "retire_version",
@@ -8723,7 +8723,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 361,
+    "line": 362,
     "method": "POST",
     "path": "/internal/field-forms/assignments",
     "handler": "create_assignment",
@@ -8732,7 +8732,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 393,
+    "line": 394,
     "method": "GET",
     "path": "/internal/field-forms/download",
     "handler": "download_forms",
@@ -8741,7 +8741,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 465,
+    "line": 466,
     "method": "POST",
     "path": "/internal/field-forms/submissions",
     "handler": "submit_form",
@@ -8885,7 +8885,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/main.py",
-    "line": 220,
+    "line": 221,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",
@@ -9839,7 +9839,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 121,
+    "line": 116,
     "method": "GET",
     "path": "/v1/streams/{stream_id}",
     "handler": "get_stream",
@@ -9848,7 +9848,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 144,
+    "line": 139,
     "method": "GET",
     "path": "/v1/streams",
     "handler": "list_streams",
@@ -9857,7 +9857,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 170,
+    "line": 165,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/snapshot",
     "handler": "snapshot",
@@ -9866,7 +9866,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 188,
+    "line": 183,
     "method": "GET",
     "path": "/v1/streams/{stream_id}/snapshot",
     "handler": "snapshot_zlm",
@@ -9875,7 +9875,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 211,
+    "line": 206,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/start",
     "handler": "record_start",
@@ -9884,7 +9884,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 231,
+    "line": 226,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/stop",
     "handler": "record_stop",

@@ -1,8 +1,7 @@
 """cdse_client.py — تكامل Copernicus Data Space Ecosystem (CDSE) عبر Sentinel Hub Process API.
 
-CDSE هو **المزوّد الافتراضيّ** للصور (أقوى من Element84): يُصادَق بـOAuth ويحسب المؤشّر
-**خادميّاً** عبر ``evalscript`` على نطاقات Sentinel-2 L2A الكاملة (10م، فسيفساء أقلّ غيوماً)،
-فيُرجِع GeoTIFF نطاق-واحد جاهزاً للمؤشّر — لا تنزيل نطاقات منفصلة ولا حساب عميل.
+يسترجع العميل بيانات Sentinel-2 L2A من CDSE عبر OAuth. تُحسب معظم المؤشرات عند المزوّد.
+يُحسب NDRE وNDMI وmoisture محلياً بعد تجميع الانعكاسات على شبكة تناسب نطاق العشرين متراً.
 
 **التدرّج (fallback):** المنسّق (``api/imagery_automation.py``) يجرّب CDSE أوّلاً ثمّ يسقط تلقائيّاً
 إلى Element84 Earth Search عند تعذّر CDSE (غير مُهيّأ / انقطاع / فشل). فلا توقّف ولا تلفيق.
@@ -492,22 +491,42 @@ def build_truecolor_evalscript() -> str:
 
 
 def bbox_dims(bbox: list[float], target_res_m: float = 10.0, max_px: int = 2500) -> tuple[int, int]:
-    """يحسب أبعاد المُخرَج (عرض، ارتفاع) بكسلاً لمستطيل ``bbox`` (EPSG:4326) عند ~10م.
-
-    نقيّ. يقيّد إلى [16, ``max_px``] (حدّ Sentinel Hub Process ~2500). تقدير الأمتار/درجة
-    عند خطّ العرض الأوسط (طول الموجة الطوليّة يتقلّص بـcos(lat)).
-    """
+    """Approximate whole source samples in the requested WGS84 extent (one cell minimum)."""
     west, south, east, north = _validate_bbox_4326(bbox)
+    if not math.isfinite(target_res_m) or target_res_m <= 0 or max_px < 1:
+        raise ValueError("invalid_cdse_grid_parameters")
     lat_mid = math.radians((south + north) / 2.0)
-    m_per_deg_lat = 111_320.0
-    m_per_deg_lon = 111_320.0 * max(math.cos(lat_mid), 0.01)
-    width_m = abs(east - west) * m_per_deg_lon
-    height_m = abs(north - south) * m_per_deg_lat
-    w = int(round(width_m / target_res_m))
-    h = int(round(height_m / target_res_m))
-    w = max(16, min(w, max_px))
-    h = max(16, min(h, max_px))
-    return w, h
+    width_m = (east - west) * 111_320.0 * math.cos(lat_mid)
+    height_m = (north - south) * 111_320.0
+    return tuple(max(1, min(int(length / target_res_m), max_px)) for length in (width_m, height_m))
+
+
+_BAND_RESOLUTION_M = {"B02": 10, "B03": 10, "B04": 10, "B08": 10, "B05": 20, "B11": 20, "B12": 20}
+_AGGREGATED_INDICES = {"ndre", "ndmi", "moisture"}
+
+
+def spatial_sampling(index: str) -> dict:
+    bands = ("B04", "B03", "B02") if is_truecolor(index) else INDEX_EXPR[index][0]
+    return {
+        "native_band_resolution_m": {band: _BAND_RESOLUTION_M[band] for band in bands},
+        "resampling_method": (
+            "nearest_provider_samples_then_block_mean_reflectance_before_normalized_difference"
+            if index in _AGGREGATED_INDICES
+            else "nearest_provider_samples"
+        ),
+    }
+
+
+def _sampling_grid(index, bbox):
+    bands = spatial_sampling(index)["native_band_resolution_m"]
+    if index not in _AGGREGATED_INDICES:
+        return bbox_dims(bbox, max(bands.values())), (1, 1)
+    target = bbox_dims(bbox, 20, max_px=1250)
+    fine = bbox_dims(bbox, 10)
+    factors = tuple(
+        2 if available >= 2 * cells else 1 for cells, available in zip(target, fine, strict=True)
+    )
+    return tuple(n * k for n, k in zip(target, factors, strict=True)), factors
 
 
 class CdseQuotaExhausted(RuntimeError):
@@ -542,7 +561,11 @@ def build_process_payload(
         else build_evalscript(index)
     )
     bbox = _validate_bbox_4326(bbox)
-    width, height = bbox_dims(bbox)
+    (width, height), factors = _sampling_grid(index, bbox)
+    if index in _AGGREGATED_INDICES:
+        import cdse_reflectance
+
+        evalscript = cdse_reflectance.build_evalscript(index, INDEX_EXPR[index][0], factors)
     bounds: dict = {
         "bbox": bbox,
         "properties": {"crs": "http://www.opengis.net/def/crs/EPSG/0/4326"},
@@ -556,6 +579,7 @@ def build_process_payload(
             "data": [
                 {
                     "type": _COLLECTION,
+                    "processing": {"upsampling": "NEAREST", "downsampling": "NEAREST"},
                     "dataFilter": {
                         "timeRange": {"from": time_from, "to": time_to},
                         "maxCloudCoverage": _clamp_cloud_pct(max_cloud_pct),
@@ -578,18 +602,31 @@ def build_process_payload(
     return payload
 
 
+def backfill_request_bbox(scene: dict, clip: dict | None):
+    """The area a historical/single-scene request asks CDSE for: the FIELD, not the scene.
+
+    ``scene["bbox"]`` is the whole Sentinel-2 tile (~1 degree). Asking for it rendered a
+    2500x2500 image at ~44 m/px (the size cap) instead of the field at 10 m, and spent about
+    two thousand times the field's pixels from the shared CDSE quota. The scene bbox is used
+    only when no field geometry exists at all.
+    """
+    from raster_date_geo import bbox_from_geojson
+
+    field_bbox = bbox_from_geojson(clip) if clip else None
+    return field_bbox or scene.get("bbox")
+
+
 def backfill_request_identity(scene: dict, index: str, clip: dict | None) -> tuple[str, str]:
     import hashlib
 
     from cdse_native_product import request_digest
-    from raster_date_geo import bbox_from_geojson
 
     day = str(scene.get("datetime") or "")[:10]
     if len(day) != 10:
         raise ValueError("cdse_native_request_date_missing")
     payload = build_process_payload(
         index=index,
-        bbox=scene.get("bbox") or bbox_from_geojson(clip),
+        bbox=backfill_request_bbox(scene, clip),
         time_from=f"{day}T00:00:00Z",
         time_to=f"{day}T23:59:59Z",
         geometry=clip,
@@ -663,7 +700,7 @@ class CdseClient:
     ) -> bytes | NativeProduct:
         """يطلب من Process API حساب ``index`` للفترة، ويُرجِع GeoTIFF (بايتات).
 
-        المؤشّر يُحسَب خادميّاً (evalscript) فيُعاد نطاقاً واحداً FLOAT32. ``geometry``
+        يُعاد المؤشر في GeoTIFF. تحسب المؤشرات ذات تجميع الانعكاس محلياً. ``geometry``
         (Polygon EPSG:4326) يقصّ على الحقل.
 
         ``mosaicking_order`` يجب أن **يوافق عقد المُستدعي**: ``MOSAIC_MOST_RECENT`` لمسار
@@ -755,6 +792,13 @@ class CdseClient:
                         _safe_log_payload(payload),
                     )
                     raise
+                if index in _AGGREGATED_INDICES:
+                    import cdse_reflectance
+
+                    _, factors = _sampling_grid(index, bbox)
+                    return cdse_reflectance.finish(
+                        resp.content, INDEX_EXPR[index][0], payload, factors, with_native_qa
+                    )
                 if with_native_qa:
                     return cdse_native_product.decode_response(
                         resp.content, evalscript, request_payload=payload

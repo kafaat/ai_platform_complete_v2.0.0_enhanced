@@ -484,7 +484,7 @@ async def _start_scheduler():
                 total_created += len(created)
             except Exception as fe:  # noqa: BLE001 — عزل لكلّ حقل
                 rec.mark_errored(field_id, fe)
-                logging.debug("أتمتة التنبيهات: تخطّي حقل %s: %s", field_id, type(fe).__name__)
+                logging.warning("أتمتة التنبيهات: تخطّي حقل %s: %s", field_id, type(fe).__name__)
         rec.finish()
         if total_created:
             logging.info("أتمتة التنبيهات: أُنشئ %s تنبيهاً عبر كلّ الحقول", total_created)
@@ -1634,7 +1634,7 @@ async def _evaluate_field_alerts_persist(
             # NDVI الحاليّ من آخر صورة Sentinel (imagery_automation يكتب last_ndvi_mean) —
             # يُغذّي قاعدة vegetation_stress (هبوط النباتيّ ⇒ تنبيه كشف ميدانيّ).
             ndvi_current = await conn.fetchval(
-                "SELECT last_ndvi_mean FROM fields WHERE field_id = $1", field_id
+                "SELECT last_ndvi_mean FROM imagery_automation_fields WHERE field_id = $1", field_id
             )
             try:
                 _policy_row = await conn.fetchrow(

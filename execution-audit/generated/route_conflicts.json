@@ -32,7 +32,7 @@
       "registrations": [
         {
           "function": "capabilities",
-          "line": 417,
+          "line": 408,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/capabilities",
@@ -118,7 +118,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 551,
+          "line": 380,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/health",
@@ -190,7 +190,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 135,
+          "line": 130,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/health",
@@ -285,7 +285,7 @@
         },
         {
           "function": "health_check",
-          "line": 205,
+          "line": 194,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/healthz",
@@ -301,7 +301,7 @@
         },
         {
           "function": "healthz",
-          "line": 546,
+          "line": 375,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/healthz",
@@ -429,7 +429,7 @@
         },
         {
           "function": "healthz",
-          "line": 130,
+          "line": 125,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/healthz",
@@ -492,7 +492,7 @@
       "registrations": [
         {
           "function": "metrics",
-          "line": 94,
+          "line": 93,
           "method": "GET",
           "module": "services/agriai-engine/main.py",
           "path": "/metrics",
@@ -516,7 +516,7 @@
         },
         {
           "function": "metrics",
-          "line": 422,
+          "line": 413,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/metrics",
@@ -659,7 +659,7 @@
         },
         {
           "function": "readyz",
-          "line": 432,
+          "line": 423,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/readyz",
@@ -675,7 +675,7 @@
         },
         {
           "function": "readyz",
-          "line": 556,
+          "line": 385,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/readyz",
@@ -803,7 +803,7 @@
         },
         {
           "function": "readyz",
-          "line": 140,
+          "line": 135,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/readyz",
@@ -866,7 +866,7 @@
       "registrations": [
         {
           "function": "runtime_evidence_identity",
-          "line": 101,
+          "line": 100,
           "method": "GET",
           "module": "services/agriai-engine/main.py",
           "path": "/runtime-identity",
@@ -874,7 +874,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 408,
+          "line": 409,
           "method": "GET",
           "module": "services/auth/main.py",
           "path": "/runtime-identity",
@@ -922,7 +922,7 @@
         },
         {
           "function": "runtime_evidence_identity",
-          "line": 220,
+          "line": 221,
           "method": "GET",
           "module": "services/soil-service/main.py",
           "path": "/runtime-identity",
@@ -1178,7 +1178,7 @@
       "registrations": [
         {
           "function": "recommend",
-          "line": 275,
+          "line": 274,
           "method": "POST",
           "module": "services/agriai-engine/main.py",
           "path": "/v1/recommend",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1119,
-  "route_inventory_sha256": "1623f0704af2fa7d057aac4ff09ff0ed3630dbe5ed4ae128a85173f569760227",
+  "route_inventory_sha256": "b5f999d358dfa2978cdbbdf893e3a8e47232e16ee62c28f4e6a80bca45c011f2",
   "runtime_verified": false,
   "schema_version": 1
 }

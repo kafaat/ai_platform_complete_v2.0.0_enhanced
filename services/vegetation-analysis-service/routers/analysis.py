@@ -166,7 +166,7 @@ async def all_fields(token: str = Depends(main.security)):
     fields_out = []
     for (fid, item), observed in zip(valid, observed_all, strict=True):
         value = observed.get("value") if observed else None
-        health = main._health_classification(value, 0.5) if value is not None else None
+        health = main._health_classification(value) if value is not None else None
         fields_out.append(
             {
                 "field_id": fid,

@@ -226,6 +226,8 @@ async def test_persist_pin_inserts_parameterized(fields_mod, monkeypatch):
     assert conn.execute_args[0] == "pin-y"
     assert conn.execute_args[1] == str(user.tenant_id)
     assert conn.execute_args[2] == "fld-1"
+    assert isinstance(conn.execute_args[-1], _dt.datetime)
+    assert conn.execute_args[-1].tzinfo is not None
 
 
 async def test_persist_pin_failure_best_effort(fields_mod, monkeypatch):
@@ -243,3 +245,88 @@ async def test_persist_pin_failure_best_effort(fields_mod, monkeypatch):
     pin = make_pin("pin-z", "fld-1", 16.0, 45.0, "pest")
     ok = await fields_mod._persist_scouting_pin(_FakeUser(), pin)
     assert ok is False
+
+
+# ─── حدود الإدامة: حقلٌ خارج المستأجِر، إعادة إرسال مطابقة/متعارضة، عدم تطابق المسار ───
+
+
+class _ExistingPinConn(_FakeConn):
+    """conn يحاكي دبّوساً مخزَّناً مسبقاً (ON CONFLICT ⇒ INSERT 0 0) ثمّ يُرجِع صفّه."""
+
+    def __init__(self, stored: dict):
+        super().__init__()
+        self._stored = stored
+
+    async def execute(self, sql, *args):  # noqa: ANN001
+        self.execute_sql = sql
+        self.execute_args = args
+        return "INSERT 0 0"
+
+    async def fetchrow(self, sql, *args):  # noqa: ANN001
+        return self._stored
+
+
+async def test_persist_pin_field_outside_tenant_is_404(fields_mod, monkeypatch):
+    """حقلٌ لا يُرى ضمن مستأجِر المستدعي (RLS) ⇒ 404 قبل أيّ INSERT."""
+    from api.scouting_pins import make_pin
+    from fastapi import HTTPException
+
+    class _NoFieldConn(_FakeConn):
+        async def fetchval(self, sql, *args):  # noqa: ANN001
+            return None
+
+    conn = _NoFieldConn()
+    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(fields_mod, "tenant_connection", lambda user: _FakeTenantConn(conn))
+    with pytest.raises(HTTPException) as exc:
+        await fields_mod._persist_scouting_pin(
+            _FakeUser(), make_pin("p1", "fld-x", 16.0, 45.0, "pest")
+        )
+    assert exc.value.status_code == 404
+    assert conn.execute_sql is None
+
+
+async def test_persist_pin_identical_resend_returns_stored_row(fields_mod, monkeypatch):
+    """إعادة إرسال مطابقة ⇒ True ويُرجَع created_at المخزَّن (لا تكرار ولا ختم جديد)."""
+    from api.scouting_pins import make_pin
+
+    pin = make_pin("p2", "fld-1", 16.0, 45.0, "pest")
+    stored_at = _dt.datetime(2026, 1, 2, 3, 4, 5, tzinfo=_dt.UTC)
+    stored = {k: v for k, v in pin.to_dict().items() if k != "created_at"} | {
+        "created_at": stored_at
+    }
+    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(
+        fields_mod, "tenant_connection", lambda user: _FakeTenantConn(_ExistingPinConn(stored))
+    )
+    assert await fields_mod._persist_scouting_pin(_FakeUser(), pin) is True
+    assert pin.created_at == stored_at.isoformat()
+
+
+async def test_persist_pin_conflicting_resend_is_409(fields_mod, monkeypatch):
+    """المُعرِّف نفسه بإحداثيات مختلفة ⇒ 409 (لا يُعلَن نجاحٌ بحمولةٍ غير المخزَّنة)."""
+    from api.scouting_pins import make_pin
+    from fastapi import HTTPException
+
+    pin = make_pin("p3", "fld-1", 16.0, 45.0, "pest")
+    stored = pin.to_dict() | {"lat": 16.5}
+    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(
+        fields_mod, "tenant_connection", lambda user: _FakeTenantConn(_ExistingPinConn(stored))
+    )
+    with pytest.raises(HTTPException) as exc:
+        await fields_mod._persist_scouting_pin(_FakeUser(), pin)
+    assert exc.value.status_code == 409
+
+
+async def test_create_pin_rejects_body_field_differing_from_path(fields_mod):
+    """field_id في الجسم يخالف المسار ⇒ 422 قبل التحقّق والإدامة."""
+    from api.api_models import PinCreateRequest
+    from fastapi import HTTPException
+
+    req = PinCreateRequest(
+        pin_id="p4", field_id="fld-other", lat=16.0, lng=45.0, issue_category="pest"
+    )
+    with pytest.raises(HTTPException) as exc:
+        await fields_mod.create_pin("fld-1", req, _FakeUser())
+    assert exc.value.status_code == 422

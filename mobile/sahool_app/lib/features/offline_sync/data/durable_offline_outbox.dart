@@ -592,7 +592,7 @@ class DurableOfflineOutbox implements OfflineOutbox {
     final token = CancelToken();
     _inflight = token;
     try {
-      await _api.sendOp(
+      final response = await _api.sendOp(
         r.op,
         cancelToken: token,
         // يُفحَص على الرمز الذي سيُرسَل فعلاً، بعد أيّ تجديد داخل ApiClient.
@@ -605,6 +605,13 @@ class DurableOfflineOutbox implements OfflineOutbox {
           return OutboxOwner.fromAccessToken(access) == r.owner;
         },
       );
+      if (r.op.kind == 'observation_create' &&
+          (response is! Map || response['persisted'] != true)) {
+        return const OutboxOutcome(
+          OutboxOutcomeKind.retryLater,
+          messageAr: 'لم يؤكد الخادم حفظ دبوس التفتيش',
+        );
+      }
       return const OutboxOutcome(OutboxOutcomeKind.sent);
     } catch (e) {
       return classifyOutboxFailure(ApiException.from(e), now: _clock());

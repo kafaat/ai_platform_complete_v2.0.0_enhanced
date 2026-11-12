@@ -26,11 +26,11 @@
         "GET /healthz @ services/auth/routers/ops.py:27",
         "GET /metrics @ services/auth/routers/ops.py:21",
         "GET /readyz @ services/auth/routers/ops.py:32",
-        "GET /runtime-identity @ services/auth/main.py:408",
+        "GET /runtime-identity @ services/auth/main.py:409",
         "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:786",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:104",
-        "GET /v1/auth/me @ services/auth/routers/session.py:302",
+        "GET /v1/auth/me @ services/auth/routers/session.py:240",
         "GET /v1/auth/users @ services/auth/routers/users.py:23",
         "GET /v1/auth/verify @ services/auth/routers/email_verify.py:98",
         "GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:108",
@@ -42,14 +42,14 @@
         "POST /v1/auth/change-password @ services/auth/routers/registration.py:73",
         "POST /v1/auth/invitations @ services/auth/routers/invitations.py:45",
         "POST /v1/auth/invitations/accept @ services/auth/routers/invitations.py:137",
-        "POST /v1/auth/login @ services/auth/routers/session.py:70",
-        "POST /v1/auth/logout @ services/auth/routers/session.py:257",
-        "POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:135",
-        "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:226",
-        "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:61",
+        "POST /v1/auth/login @ services/auth/routers/session.py:46",
+        "POST /v1/auth/logout @ services/auth/routers/session.py:195",
+        "POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:104",
+        "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:179",
+        "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:48",
         "POST /v1/auth/password-reset/confirm @ services/auth/routers/password_reset.py:62",
         "POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:43",
-        "POST /v1/auth/refresh @ services/auth/routers/session.py:193",
+        "POST /v1/auth/refresh @ services/auth/routers/session.py:139",
         "POST /v1/auth/register @ services/auth/routers/registration.py:20",
         "POST /v1/auth/tenants @ services/auth/routers/tenants.py:41",
         "POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:56",
@@ -81,6 +81,8 @@
         "scripts_v9/test_tenant_isolation.sql",
         "services/auth/tests/__init__.py",
         "services/auth/tests/test_router_decomposition_guard.py",
+        "services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py",
+        "services/decision-service/tests/test_tenant_binding_force_rls.py",
         "services/decision-service/tests/test_tenant_boundary_migration_static.py",
         "services/raster-service/test_cors_preflight_tenant_order.py",
         "services/raster-service/test_field_tenant_isolation_t10.py",
@@ -92,15 +94,14 @@
         "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
         "services/sahool-platform/tests/test_fields_tenant_arg_completeness_guard.py",
         "services/sahool-platform/tests/test_route_auth_matrix_guard.py",
-        "services/sahool-platform/tests/test_sweep_tenant_enumeration.py",
-        "services/sahool-platform/tests/test_t4_raster_compat_proxy_auth.py",
-        "services/sahool-platform/tests/test_tenant_audit.py"
+        "services/sahool-platform/tests/test_sweep_tenant_enumeration.py"
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:272",
-          "metric:sahool_auth_register_total@services/auth/main.py:273",
-          "metric:sahool_auth_resets_total@services/auth/main.py:274"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_logins_total@services/auth/main.py:273",
+          "metric:sahool_auth_register_total@services/auth/main.py:274",
+          "metric:sahool_auth_resets_total@services/auth/main.py:275"
         ],
         "traces": [],
         "receipts": [],
@@ -149,7 +150,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 53
+        "tests": 57
       }
     },
     {
@@ -307,7 +308,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:299",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278",
         "DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1670",
         "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:667",
         "GET / @ services/field-management-service/main.py:273",
@@ -327,7 +328,7 @@
         "GET /api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:3019",
         "GET /api/v1/fields/{field_id}/agronomic-replay @ services/sahool-platform/api/routers/agronomic_replay.py:58",
         "GET /api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:652",
-        "GET /api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4004",
+        "GET /api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:3971",
         "GET /api/v1/fields/{field_id}/available-dates @ services/sahool-platform/api/routers/field_workspace_imagery.py:51",
         "GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265",
         "GET /api/v1/fields/{field_id}/data-completeness @ services/sahool-platform/api/routers/field_completeness.py:56",
@@ -443,7 +444,7 @@
       },
       "evidence_truncated": {
         "apis": 205,
-        "tests": 137,
+        "tests": 139,
         "mobile_consumers": 44
       }
     },
@@ -1331,6 +1332,7 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "services/raster-service/test_spatial_sampling_product.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_spatial_geometry_integrity.py",
         "tests_v9/test_geospatial.py",
@@ -1370,7 +1372,7 @@
           "path": "services/raster-service/trial_zonal_outcomes.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -1422,7 +1424,9 @@
         "POST /v1/scenes/quality-score @ services/raster-service/routers/imagery.py:114",
         "POST /v1/stac/mosaicjson @ services/raster-service/routers/stac.py:33"
       ],
-      "ui_consumers": [],
+      "ui_consumers": [
+        "frontend/e2e/satellite-pixel-display.spec.ts"
+      ],
       "mobile_consumers": [
         "mobile/sahool_app/lib/features/satellite/data/satellite_api.dart",
         "mobile/sahool_app/lib/features/satellite/data/satellite_models.dart",
@@ -1446,6 +1450,7 @@
         "services/raster-service/test_cdse_native_product.py",
         "services/raster-service/test_cdse_poly_contract.py",
         "services/raster-service/test_cdse_process_rate_limit.py",
+        "services/raster-service/test_cdse_reflectance.py",
         "services/raster-service/test_cdse_tilejson_availability.py",
         "services/raster-service/test_scene_cloud_unknown_never_clear.py",
         "services/raster-service/test_single_scene_concurrent_pg.py",
@@ -1456,8 +1461,7 @@
         "tests_v9/test_backfill_scene_job_threadpool_v30_3.py",
         "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
-        "tests_v9/test_cdse_catalog_hardening_20260626.py",
-        "tests_v9/test_cdse_cloud_filter_policy.py"
+        "tests_v9/test_cdse_catalog_hardening_20260626.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1491,7 +1495,7 @@
           "path": "services/raster-service/cdse_diagnostics.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=0, mobile=7. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=1, mobile=7. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -1500,7 +1504,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 13
+        "tests": 14
       }
     },
     {
@@ -1792,6 +1796,7 @@
       "mobile_consumers": [],
       "tests": [
         "services/indicators-service/tests/test_observation_timeline.py",
+        "services/raster-service/test_backfill_field_bbox.py",
         "services/raster-service/test_backfill_incremental_retry_guard.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
         "services/raster-service/test_backfill_scene_policy.py",
@@ -1814,8 +1819,7 @@
         "tests_v9/test_historical_search_cdse_v30_8.py",
         "tests_v9/test_historical_season_bridge_static.py",
         "tests_v9/test_imagery_timeline_endpoint_v31_4.py",
-        "tests_v9/test_telemetry_backfill_key_parity.py",
-        "tests_v9/test_unified_timeline.py"
+        "tests_v9/test_telemetry_backfill_key_parity.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1852,6 +1856,9 @@
         "GeoPard": null,
         "Cropwise": "4",
         "Farmonaut": "3"
+      },
+      "evidence_truncated": {
+        "tests": 1
       }
     },
     {
@@ -1933,7 +1940,7 @@
         "services/vegetation-analysis-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3944",
+        "GET /api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3911",
         "GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:217",
         "GET /api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:182",
         "GET /v1/weather/thermal-stress @ services/weather-service/main.py:35",
@@ -2061,6 +2068,7 @@
       "tests": [
         "services/raster-service/test_acquisition_date_provenance.py",
         "services/raster-service/test_available_dates_provider_datetime.py",
+        "services/raster-service/test_backfill_field_bbox.py",
         "services/raster-service/test_backfill_incremental_retry_guard.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
         "services/raster-service/test_backfill_scene_policy.py",
@@ -2068,6 +2076,7 @@
         "services/raster-service/test_band_math_zones.py",
         "services/raster-service/test_batch_single_open_certification.py",
         "services/raster-service/test_batch_single_open_metrics.py",
+        "services/raster-service/test_c1_native_sampling.py",
         "services/raster-service/test_c7_latest_cache_provenance.py",
         "services/raster-service/test_cast_shadow_direction.py",
         "services/raster-service/test_cdse_cause_evidence.py",
@@ -2077,13 +2086,11 @@
         "services/raster-service/test_cdse_native_product.py",
         "services/raster-service/test_cdse_poly_contract.py",
         "services/raster-service/test_cdse_process_rate_limit.py",
+        "services/raster-service/test_cdse_reflectance.py",
         "services/raster-service/test_cdse_tilejson_availability.py",
         "services/raster-service/test_change_detection_grid.py",
         "services/raster-service/test_change_detection_validity.py",
-        "services/raster-service/test_change_direction_policy.py",
-        "services/raster-service/test_clip_grid.py",
-        "services/raster-service/test_clip_polygon_stored_geometry.py",
-        "services/raster-service/test_cloud_mask_strategies.py"
+        "services/raster-service/test_change_direction_policy.py"
       ],
       "runtime": {
         "metrics": [],
@@ -2127,7 +2134,7 @@
       },
       "evidence_truncated": {
         "apis": 63,
-        "tests": 150
+        "tests": 156
       }
     },
     {
@@ -4049,19 +4056,19 @@
         "GET /api/v1/scouting/pins @ services/sahool-platform/api/routers/scouting.py:78",
         "GET /api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:114",
         "GET /healthz @ services/scout-ingest-service/main.py:200",
-        "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393",
+        "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394",
         "GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:242",
         "GET /internal/seasons @ services/scout-ingest-service/season_api.py:478",
         "GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668",
         "GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368",
         "GET /readyz @ services/scout-ingest-service/main.py:205",
         "PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264",
-        "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361",
+        "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362",
         "POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195",
         "POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230",
-        "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465",
+        "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466",
         "POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278",
-        "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327",
+        "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328",
         "POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:370",
         "POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:361",
         "POST /internal/seasons @ services/scout-ingest-service/season_api.py:205",
@@ -4158,14 +4165,14 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:299",
-        "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393",
-        "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278",
+        "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394",
+        "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362",
         "POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195",
         "POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230",
-        "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465",
+        "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466",
         "POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278",
-        "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327"
+        "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328"
       ],
       "ui_consumers": [
         "frontend/src/components/ds/forms.test.tsx",
@@ -4502,9 +4509,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:272",
-          "metric:sahool_auth_register_total@services/auth/main.py:273",
-          "metric:sahool_auth_resets_total@services/auth/main.py:274"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_logins_total@services/auth/main.py:273",
+          "metric:sahool_auth_register_total@services/auth/main.py:274",
+          "metric:sahool_auth_resets_total@services/auth/main.py:275"
         ],
         "traces": [],
         "receipts": [],
@@ -4543,10 +4551,10 @@
         "GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539",
         "GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638",
         "GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571",
-        "GET /runtime-identity @ services/agriai-engine/main.py:101",
+        "GET /runtime-identity @ services/agriai-engine/main.py:100",
         "GET /runtime-identity @ services/raster-service/main.py:64",
         "GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:25",
-        "GET /runtime-identity @ services/soil-service/main.py:220",
+        "GET /runtime-identity @ services/soil-service/main.py:221",
         "GET /runtime-identity @ services/weather-service/main.py:56",
         "GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1271",
         "GET /v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:650",
@@ -5374,6 +5382,9 @@
       "mobile_consumers": [],
       "tests": [
         "scripts_v9/test_tenant_isolation.sql",
+        "services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py",
+        "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
+        "services/decision-service/tests/test_tenant_binding_force_rls.py",
         "services/raster-service/test_field_tenant_isolation_t10.py",
         "services/raster-service/test_process_date_tenant_isolation.py",
         "tests/security/test_fii_chemical_chain_rls_gate.py",
@@ -5383,6 +5394,7 @@
         "tests/security/test_phase23_rls_preserve_using.py",
         "tests_v9/test_auth_rls_and_routing.py",
         "tests_v9/test_automation_register_tenant_isolation.py",
+        "tests_v9/test_automation_status_tenant_isolation.py",
         "tests_v9/test_compose_rls_bypass_guard.py",
         "tests_v9/test_crop_root_policy_rls_integration.py",
         "tests_v9/test_d1_raster_queue_rls_live_pg.py",
@@ -5393,11 +5405,7 @@
         "tests_v9/test_rls_instructions_do_not_teach_a_command_line_password.py",
         "tests_v9/test_rls_isolation.py",
         "tests_v9/test_rls_isolation_negative.py",
-        "tests_v9/test_rls_policy_missing_ok_discipline.py",
-        "tests_v9/test_rls_role_hardening_v66.py",
-        "tests_v9/test_rls_tenant_coverage.py",
-        "tests_v9/test_rls_tenant_isolation_live_pg.py",
-        "tests_v9/test_rls_write_isolation_integration.py"
+        "tests_v9/test_rls_policy_missing_ok_discipline.py"
       ],
       "runtime": {
         "metrics": [],
@@ -5436,7 +5444,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 5
+        "tests": 9
       }
     },
     {
@@ -5520,9 +5528,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:272",
-          "metric:sahool_auth_register_total@services/auth/main.py:273",
-          "metric:sahool_auth_resets_total@services/auth/main.py:274"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_logins_total@services/auth/main.py:273",
+          "metric:sahool_auth_register_total@services/auth/main.py:274",
+          "metric:sahool_auth_resets_total@services/auth/main.py:275"
         ],
         "traces": [],
         "receipts": [],
@@ -5569,9 +5578,9 @@
         "services/auth/main.py"
       ],
       "apis": [
-        "POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:135",
-        "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:226",
-        "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:61"
+        "POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:104",
+        "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:179",
+        "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:48"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -5591,9 +5600,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:272",
-          "metric:sahool_auth_register_total@services/auth/main.py:273",
-          "metric:sahool_auth_resets_total@services/auth/main.py:274"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_logins_total@services/auth/main.py:273",
+          "metric:sahool_auth_register_total@services/auth/main.py:274",
+          "metric:sahool_auth_resets_total@services/auth/main.py:275"
         ],
         "traces": [],
         "receipts": [],
@@ -5662,6 +5672,8 @@
         "tests_v9/test_ai_approval_audit_v55.py",
         "tests_v9/test_ai_provider_native_multiround_audit_v58.py",
         "tests_v9/test_audit_r5_r6_reclaim_and_weather_resync.py",
+        "tests_v9/test_auth_audit_log_inputs.py",
+        "tests_v9/test_auth_audit_log_live_pg.py",
         "tests_v9/test_calibration_audit_events.py",
         "tests_v9/test_calibration_audit_migration.py",
         "tests_v9/test_compose_security_audit.py",
@@ -5676,9 +5688,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:272",
-          "metric:sahool_auth_register_total@services/auth/main.py:273",
-          "metric:sahool_auth_resets_total@services/auth/main.py:274"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_logins_total@services/auth/main.py:273",
+          "metric:sahool_auth_register_total@services/auth/main.py:274",
+          "metric:sahool_auth_resets_total@services/auth/main.py:275"
         ],
         "traces": [],
         "receipts": [],
@@ -5706,7 +5719,7 @@
           "path": "services/sahool-platform/api/routers/security_audit.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=20, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=22, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5743,9 +5756,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:272",
-          "metric:sahool_auth_register_total@services/auth/main.py:273",
-          "metric:sahool_auth_resets_total@services/auth/main.py:274"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_logins_total@services/auth/main.py:273",
+          "metric:sahool_auth_register_total@services/auth/main.py:274",
+          "metric:sahool_auth_resets_total@services/auth/main.py:275"
         ],
         "traces": [],
         "receipts": [],
@@ -5861,6 +5875,7 @@
       "tests": [
         "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
         "services/raster-service/test_production_truth_fail_closed.py",
+        "services/raster-service/test_tile_isolation_fail_closed.py",
         "services/raster-service/test_tile_render_mask_fail_closed_bounded_reads.py",
         "services/weather-service/tests/test_operation_fail_closed.py",
         "tests_v9/test_apply_in_compose_fail_closed.py",
@@ -5875,9 +5890,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:272",
-          "metric:sahool_auth_register_total@services/auth/main.py:273",
-          "metric:sahool_auth_resets_total@services/auth/main.py:274"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_logins_total@services/auth/main.py:273",
+          "metric:sahool_auth_register_total@services/auth/main.py:274",
+          "metric:sahool_auth_resets_total@services/auth/main.py:275"
         ],
         "traces": [],
         "receipts": [],
@@ -5901,7 +5917,7 @@
           "path": "shared/security/secret_guard.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=13, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=14, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

@@ -169,7 +169,7 @@ void main() {
       'every producer kind replays generically over its own method, '
       'path and body; unknown kinds too; nothing goes to /api/v1/sync',
       () async {
-        final h = Harness();
+        final h = Harness(handler: (_) async => const FakeReply(200, {'persisted': true}));
         // كلّ نوع يُودِعه منتِج حقيقيّ في التطبيق، بمساره من مساعد ميزته.
         final ops = [
           op(
@@ -262,6 +262,18 @@ void main() {
         expect(h.store.records, isEmpty, reason: '2xx ⇒ removed');
       },
     );
+
+    test('a pin stays queued until the server confirms persistence', () async {
+      var persisted = false;
+      final h = Harness(handler: (_) async => FakeReply(200, {'persisted': persisted}));
+      final pin = op(scoutingPinCreatePath('f1'), method: 'POST', kind: 'observation_create');
+      await h.outbox.enqueue(pin);
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records.single.op.idempotencyKey, pin.idempotencyKey);
+      persisted = true;
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records, isEmpty);
+    });
 
     test(
       'the same Idempotency-Key is reused on every retry of one op',

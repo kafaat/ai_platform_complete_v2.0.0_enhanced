@@ -34,7 +34,7 @@ def row(cid, tenant):
             "source_revision": "v1",
         },
     )
-    return (pq.canonical_storage_point_id(cid), c.payload)
+    return (pq.canonical_storage_point_id(cid, tenant_id=tenant), c.payload)
 
 
 def test_complete_inventory_includes_uploads_tenants_and_quarantine():
@@ -47,9 +47,24 @@ def test_complete_inventory_includes_uploads_tenants_and_quarantine():
     assert rows == before
 
 
-def test_logical_collision_across_tenants_is_not_silently_overwritten():
+def test_logical_collision_within_a_tenant_is_not_silently_overwritten():
     with pytest.raises(ValueError, match="collision"):
-        reindex.inventory([row("same", "a"), row("same", "b")], spec())
+        reindex.inventory([row("same", "a"), row("same", "a")], spec())
+
+
+def test_same_chunk_id_in_two_tenants_is_two_identities_not_an_overwrite():
+    """R-H14: ``chunk_id`` نفسه لمستأجِرَين نقطتان مختلفتان — لا تصادم ولا كتابةَ فوق."""
+    a, b, seeded = row("same", "a"), row("same", "b"), row("same", "__seed_quarantine__")
+    assert len({a[0], b[0], seeded[0]}) == 3
+    result = reindex.inventory([a, b, seeded], spec())
+    assert result["tenants"] == {"__seed_quarantine__": 1, "a": 1, "b": 1}
+
+
+def test_tenant_row_stored_at_the_public_formula_id_is_noncanonical():
+    _, payload = row("seed:1", "a")
+    public_id = pq.canonical_storage_point_id("seed:1", tenant_id="__global__")
+    with pytest.raises(ValueError, match="noncanonical"):
+        reindex.inventory([(public_id, payload)], spec())
 
 
 def test_noncanonical_point_identity_requires_existing_migration_plan():

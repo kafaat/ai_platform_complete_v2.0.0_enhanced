@@ -3797,6 +3797,7 @@
         "services/sahool-platform/api/routers/yield_analysis.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/scheduler.py",
+        "services/sahool-platform/api/scouting_pins.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
@@ -4041,9 +4042,9 @@
     {
       "code_readers": [],
       "code_writers": [],
-      "created_in": "v58_field_boundary_quality.sql",
+      "created_in": "v36_alerts.sql",
       "has_tenant_id": false,
-      "manifest_position": 63,
+      "manifest_position": 40,
       "policy_count": 0,
       "rls_enabled": false,
       "rls_forced": false,
@@ -5734,6 +5735,7 @@
         "services/decision-service/persistence.py",
         "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
+        "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
         "services/sahool-platform/api/routers/decision_record.py",
         "services/sahool-platform/tests/test_decision_interim_bridge.py",
         "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
@@ -6113,10 +6115,11 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/scouting.py"
+        "services/sahool-platform/api/routers/scouting.py",
+        "services/sahool-platform/api/scouting_pins.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/fields.py"
+        "services/sahool-platform/api/scouting_pins.py"
       ],
       "created_in": "v94_scouting_pins.sql",
       "has_tenant_id": true,
@@ -6910,7 +6913,7 @@
     },
     {
       "code_readers": [
-        "services/auth/mfa_enrollment.py",
+        "services/auth/main.py",
         "services/auth/mfa_runtime.py",
         "services/auth/routers/email_verify.py",
         "services/auth/routers/mfa.py",

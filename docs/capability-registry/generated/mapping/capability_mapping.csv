@@ -9,7 +9,7 @@ DEC-007,decision,Outcome recording,True,6,4,8,4,3,1,0,4,0
 DEC-008,decision,Learning attribution,True,4,0,1,2,1,0,0,1,0
 DEC-009,decision,Model calibration,True,1,0,0,2,0,0,0,0,0
 DEC-010,decision,Model lifecycle and activation,True,5,4,92,49,7,0,0,6,1
-FM-001,farm_management,Tenant and organization management,True,6,16,2,28,11,1,0,37,0
+FM-001,farm_management,Tenant and organization management,True,6,16,2,28,12,1,0,40,0
 FM-002,farm_management,Farm registry,True,7,36,44,100,25,18,35,47,0
 FM-003,farm_management,Field registry and boundaries,True,7,13,56,5,65,3,2,15,1
 FM-004,farm_management,Season lifecycle,True,7,31,82,80,41,15,15,47,0
@@ -48,23 +48,23 @@ PA-002,precision,Variable rate prescription,True,1,3,0,0,0,0,0,0,0
 PA-003,precision,Yield map ingestion,True,5,3,4,9,1,0,0,4,0
 PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
 PA-005,precision,Machine telemetry,True,1,1,0,0,0,0,0,0,0
-SAT-001,satellite,Satellite scene search,True,6,41,100,5,43,6,0,54,0
+SAT-001,satellite,Satellite scene search,True,6,42,100,5,43,6,0,56,0
 SAT-002,satellite,True color imagery,True,4,0,1,0,1,1,0,5,0
-SAT-003,satellite,NDVI,True,7,59,43,6,97,34,5,63,0
+SAT-003,satellite,NDVI,True,7,59,43,6,97,34,5,64,0
 SAT-004,satellite,NDMI,True,5,8,0,5,13,3,0,8,0
-SAT-005,satellite,Cloud screening,True,4,7,6,0,1,0,0,13,0
+SAT-005,satellite,Cloud screening,True,4,7,6,0,1,0,0,14,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
 SAT-007,satellite,Change detection,True,3,1,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,6,0
-SAT-009,satellite,COG persistence and tiling,True,6,12,52,0,15,2,1,27,0
-SEC-001,security,Tenant RLS,True,5,12,16,100,70,0,0,79,0
+SAT-009,satellite,COG persistence and tiling,True,6,12,52,0,15,2,1,28,0
+SEC-001,security,Tenant RLS,True,5,12,16,100,73,0,0,83,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,1,0
 SEC-003,security,Worker identity binding,True,1,0,0,0,0,0,0,1,0
-SEC-004,security,MFA,True,7,6,9,19,1,5,4,12,0
-SEC-005,security,Audit logging,True,2,0,0,4,0,0,0,1,0
+SEC-004,security,MFA,True,7,5,9,19,1,3,4,10,0
+SEC-005,security,Audit logging,True,2,0,0,4,0,0,0,3,0
 SEC-006,security,Service token guard,True,4,3,85,0,3,0,0,11,1
 SEC-007,security,Decision SoR DB ownership,True,5,3,73,7,47,0,0,9,0
-SEC-008,security,Secrets and production fail-closed,True,3,0,0,4,2,0,0,8,0
+SEC-008,security,Secrets and production fail-closed,True,3,0,0,4,2,0,0,9,0
 SOIL-001,soil,Soil profile,True,5,6,2,14,22,0,0,5,0
 SOIL-002,soil,Soil sampling,True,6,10,30,6,7,2,0,4,0
 SOIL-003,soil,Laboratory results,True,3,1,0,15,0,0,1,0,0

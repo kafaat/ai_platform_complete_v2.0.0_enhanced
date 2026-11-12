@@ -27,7 +27,8 @@ def process_backfill_scene_cdse(
     day = dt[:10]
     if len(day) != 10:
         raise RuntimeError("CDSE scene بلا تاريخ صالح")
-    bbox = scene.get("bbox") or ctx._bbox_from_geojson(clip)
+    # Field bbox first (same helper as the request identity, so provenance matches the call).
+    bbox = cdse_client.backfill_request_bbox(scene, clip)
     if not bbox:
         raise RuntimeError("bbox مطلوب لمعالجة مشهد CDSE")
     tiff = cdse_client.get_client().process_index(
@@ -63,4 +64,6 @@ def process_backfill_scene_cdse(
         geometry_revision=geometry_revision,
     )
     preq._cdse_native_product = native_product
+    if native_product is not None:
+        preq._spatial_sampling = cdse_client.spatial_sampling(index)
     ctx._run_processing(jid, preq)
