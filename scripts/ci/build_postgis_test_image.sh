@@ -34,13 +34,21 @@ else
   scripts/ci/resilient_docker_pull.sh "$base_image"
 fi
 
+# The server package is installed in the same step as PostGIS. The base image is pinned by
+# digest but the pgdg PostGIS package is not, and pgdg builds it against the newest 16.x minor:
+# against an older server binary it fails at CREATE EXTENSION with
+# `undefined symbol: heap_datum_check` (seen 2026-11-12). Installing both from one apt snapshot
+# keeps them ABI-compatible. Acquire::Retries covers a pgdg mirror caught mid-sync
+# ("File has unexpected size ... Mirror sync in progress?").
 if ! docker build --pull=false --tag "$image_tag" - <<DOCKERFILE
 FROM $build_base
 USER root
-RUN timeout -k 10 240 apt-get update \
-    && DEBIAN_FRONTEND=noninteractive timeout -k 10 240 apt-get install --yes --no-install-recommends \
+RUN timeout -k 10 240 apt-get -o Acquire::Retries=3 update \
+    && DEBIAN_FRONTEND=noninteractive timeout -k 10 240 apt-get -o Acquire::Retries=3 install --yes --no-install-recommends \
+        postgresql-$pg_major \
         postgresql-$pg_major-postgis-3 \
         postgresql-$pg_major-postgis-3-scripts \
+    && dpkg-query --show --showformat='\${Package}=\${Version}\n' postgresql-$pg_major \
     && dpkg-query --show --showformat='\${Package}=\${Version}\n' postgresql-$pg_major-postgis-3 \
     && dpkg-query --show --showformat='\${Package}=\${Version}\n' postgresql-$pg_major-postgis-3-scripts \
     && rm -rf /var/lib/apt/lists/*
