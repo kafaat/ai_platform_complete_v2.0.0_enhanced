@@ -12,6 +12,7 @@ Publish approved laboratory evidence to soil-service's canonical evidence bounda
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from datetime import UTC, datetime
 from typing import Any
@@ -34,6 +35,16 @@ _ANALYTE_MAP = {
     "silt_pct": ("silt", "%"),
     "texture": ("texture", None),
 }
+
+
+def _row_value(raw: Any) -> Any:
+    """A stored ``value_json``: JSON text, or already decoded (a texture label stays a label)."""
+    if isinstance(raw, str):
+        try:
+            return json.loads(raw)
+        except ValueError:
+            return raw
+    return raw
 
 
 def _lab_property(analyte: str, method: str | None) -> str:
@@ -111,6 +122,9 @@ async def publish_soil_lab_evidence(
                 methods_by_property[canonical] = method
             if row:
                 observed_by_property[canonical] = row["observed_at"].isoformat()
+                # Publish the value of the row whose id is recorded, not another row's value.
+                if row.get("value_json") is not None:
+                    value = _row_value(row["value_json"])
             properties[canonical] = value
             if unit:
                 units[canonical] = unit
@@ -135,7 +149,8 @@ async def publish_soil_lab_evidence(
         "observed_at": max(row["observed_at"] for row in result_rows).isoformat()
         if result_rows
         else None,
-        "units": units,
+        # No top-level units: soil-service's canonical units win (the lab labels stay in
+        # provenance). Legacy rows were stored with the canonical units too.
         "observed_at_by_property": observed_by_property,
         "method_by_property": methods_by_property,
         "depth_from_cm": float(sample.get("depth_cm_from") or 0),
@@ -154,6 +169,7 @@ async def publish_soil_lab_evidence(
             },
             "units": units,
             "workflow_status": "published",
+            "observed_at_source": "laboratory_result",
         },
     }
     headers = {"X-Agent-Token": token, "X-Tenant-Id": tenant_id}

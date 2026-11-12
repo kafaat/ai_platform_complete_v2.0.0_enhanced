@@ -70,7 +70,17 @@ def _content_digest(text: str) -> str:
 # ── D09-C — عقدُ الشكل القانونيّ: سياسةٌ حتميّة، لا نتيجةُ قياسٍ حيّ ──────────
 
 
-def canonical_storage_point_id(chunk_id: str) -> str:
+#: R-H14 — فضاءُ uuid5 لنقاط المستأجرين، **منفصلٌ** عن ``NAMESPACE_URL`` الذي تُشتقّ منه
+#: نقاطُ المرجع العامّ والحجر. ثابتٌ إلى الأبد: تغييرُه يُيتِّم كلَّ نقطة مستأجِرٍ مكتوبة.
+TENANT_POINT_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "sahool-rag-tenant-points:v1")
+
+#: المستأجرون الذين تبقى نقاطُهم على الصيغة التاريخيّة ``sahool-rag:{chunk_id}`` — يكتبهم
+#: الباذرُ (``services/qdrant-seed/seed.py``) وحده، فتبقى إعادةُ البذر idempotent على
+#: المُعرِّفات المكتوبة سلفاً. ``rag-retrieval`` يرفض كليهما مستأجِراً لطلب.
+LEGACY_POINT_ID_TENANTS = frozenset({GLOBAL_REFERENCE_TENANT, SEED_QUARANTINE_TENANT})
+
+
+def canonical_storage_point_id(chunk_id: str, *, tenant_id: str) -> str:
     """إسقاطُ الهويّة المنطقيّة إلى مُعرِّف تخزينٍ حتميّ — **سلطةٌ واحدة**.
 
     كانت الصيغةُ مضمَّنةً في `upsert` وحدها، فحملت حزمةُ D12 نسختين أخريين (مخطِّطاً
@@ -81,11 +91,29 @@ def canonical_storage_point_id(chunk_id: str) -> str:
     **والاتّجاهُ واحدٌ بالقصد.** لا عكسَ لها ولن يُكتَب: الذهابُ من هويّةٍ منطقيّة إلى
     UUID مشروعٌ لأنّه يبدأ من هويّةٍ مُعلَنة؛ والعكسُ يعني اختلاقَ هويّةٍ منطقيّة من
     مُعرِّف تخزين، وهو ما يمنعه `HOLD_IDENTITY_EVIDENCE` في D12.
+
+    **والهويّةُ (مستأجِر، chunk_id) لا chunk_id وحده** (R-H14). كان المُعرِّف دالّةً في
+    ``chunk_id`` وحده، فكاتبٌ لمستأجِرٍ يحمل ``chunk_id="seed:1"`` كتب فوق نقطة المرجع
+    العامّ ``seed:1`` وفوق وثائق مستأجِرٍ آخر على Qdrant الحقيقيّ (``PUT points`` استبدال).
+
+    * المرجعُ العامّ والحجر (``LEGACY_POINT_ID_TENANTS``): الصيغة التاريخيّة نفسها بلا
+      تغيير — الباذرُ يكتبها مستقلّاً، ومُعرِّفاتُها المكتوبة تبقى ثابتة فيبقى البذرُ
+      idempotent بلا هجرة.
+    * كلُّ مستأجِرٍ آخر: ``uuid5(TENANT_POINT_NAMESPACE, "<len>:<tenant>:<chunk_id>")``.
+      الفضاءُ المنفصل يجعل التصادم مع نقطةٍ عامّة تصادمَ SHA-1 لا اختياراً لاسم، وبادئةُ
+      الطول تجعل الاسم غير ملتبس بين مستأجِرَين مهما احتوى المعرّفان من ``:``.
+
+    ``tenant_id`` إلزاميٌّ بلا افتراض: افتراضٌ صامت كان سيُعيد العطلَ نفسَه لمن ينساه.
     """
     logical = str(chunk_id).strip()
     if not logical:
         raise ValueError("non-empty logical chunk_id is required")
-    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"sahool-rag:{logical}"))
+    tenant = str(tenant_id or "").strip()
+    if not tenant:
+        raise ValueError("non-empty tenant_id is required for a storage point id")
+    if tenant in LEGACY_POINT_ID_TENANTS:
+        return str(uuid.uuid5(uuid.NAMESPACE_URL, f"sahool-rag:{logical}"))
+    return str(uuid.uuid5(TENANT_POINT_NAMESPACE, f"{len(tenant)}:{tenant}:{logical}"))
 
 
 def canonical_storage_shape(payload: dict[str, Any]) -> bool:
@@ -1259,7 +1287,7 @@ class QdrantHttpClient:
             # be arbitrary strings, so derive a stable UUID while retaining the
             # original chunk_id in metadata.  The projection lives in one place —
             # every other reader imports it instead of restating the formula.
-            point_id = canonical_storage_point_id(chunk.chunk_id)
+            point_id = canonical_storage_point_id(chunk.chunk_id, tenant_id=chunk.tenant_id)
             points.append({"id": point_id, "vector": vector, "payload": chunk.payload})
         self._request("PUT", f"/collections/{self.collection}/points?wait=true", {"points": points})
 
@@ -1470,6 +1498,11 @@ class HybridQdrantRetriever:
         # Qdrant returns storage UUIDs. Fusion MUST use the canonical logical
         # ``metadata.chunk_id`` or dense and sparse scores for the same chunk split
         # into two candidates.
+        # R-H14: المرشَّحون يُحَلّون من صفوف **هذا الطلب** المرئيّة للسائل لا من
+        # ``self._chunks`` المشترك المفهرس بـ``chunk_id`` وحده: بعد فصل مُعرِّفات التخزين
+        # بالمستأجِر صار ``chunk_id`` نفسه يعيش لمستأجِرَين، فكان مرشَّحٌ متناثر لـB يُحَلّ
+        # إلى نصّ A الذي كتبه استرجاعُ A الكثيف في الذاكرة المشتركة.
+        visible: dict[str, KnowledgeChunk] = {}
         dense_map: dict[str, float] = {}
         for point_id, score, payload in dense_rows:
             if self.retrieval_profile is not None:
@@ -1485,11 +1518,14 @@ class HybridQdrantRetriever:
             if chunk.tenant_id not in {tenant_id, GLOBAL_REFERENCE_TENANT}:
                 continue
             self._chunks[chunk.chunk_id] = chunk
+            visible[chunk.chunk_id] = chunk
             dense_map[chunk.chunk_id] = max(score, dense_map.get(chunk.chunk_id, float("-inf")))
         sparse_rows = self.bm25.search(
             query, tenant_id=tenant_id, filters=filters, limit=top_k_initial
         )
         sparse_map: dict[str, float] = {chunk.chunk_id: score for chunk, score in sparse_rows}
+        for chunk, _score in sparse_rows:
+            visible.setdefault(chunk.chunk_id, chunk)
         fused_scores, dense_ranks, sparse_ranks = weighted_rrf_scores(
             dense_map,
             sparse_map,
@@ -1499,8 +1535,8 @@ class HybridQdrantRetriever:
         candidates = set(fused_scores)
         fused: list[RetrievedAnnotation] = []
         for cid in candidates:
-            chunk = self._chunks.get(cid)
-            if chunk is None:
+            chunk = visible.get(cid)
+            if chunk is None or chunk.tenant_id not in {tenant_id, GLOBAL_REFERENCE_TENANT}:
                 continue
             dense = dense_map.get(cid)
             sparse = sparse_map.get(cid)

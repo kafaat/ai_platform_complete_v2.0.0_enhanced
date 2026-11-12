@@ -324,8 +324,28 @@ class ImageryAutomation:
     def tracked_count(self) -> int:
         return len(self._fields)
 
-    def status(self) -> dict:
+    def tenant_status(self, tenant_id: str) -> dict:
+        """عرض المستأجِر: حقولُه وحدها — لا معرّفات ولا هندسة حقول غيره (R-H1).
+
+        ``status()`` يعرض المتعقِّب المشترك كلّه (كلّ المستأجرين) فيبقى عرضَ مدير
+        المنصّة وحده. الحقلُ بلا ``tenant_id`` (تسجيلٌ قديم/مجهول) لا يُنسَب لأحد،
+        فلا يظهر لأيّ مستأجِر (fail closed). لا تفاصيل تشغيليّة داخليّة هنا.
+        """
+        wanted = str(tenant_id)
+        own = [f for f in self._fields.values() if f.tenant_id and str(f.tenant_id) == wanted]
         return {
+            "scope": "tenant",
+            "tracked_fields": len(own),
+            "auto_indicators": DEFAULT_INDICATORS,
+            "default_provider": "cdse",
+            "fallback_provider": "element84",
+            "fields": [f.to_dict() for f in own],
+        }
+
+    def status(self) -> dict:
+        """عرض المنصّة الكامل (عابر للمستأجرين) — لا يُعاد إلّا لـ``PLATFORM_MANAGE``."""
+        return {
+            "scope": "platform",
             "tracked_fields": len(self._fields),
             "raster_service_url": raster_service_url(),
             "auto_indicators": DEFAULT_INDICATORS,

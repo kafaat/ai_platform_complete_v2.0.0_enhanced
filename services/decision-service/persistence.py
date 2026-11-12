@@ -2196,6 +2196,32 @@ def _plan_expired(planned_end: Any, now: datetime) -> bool:
     return end is None or now > end
 
 
+# A plan approved for a window must not fire before it opens; allow only clock skew between the
+# planner's clock and this database.
+PLAN_START_SKEW_S = 60.0
+
+
+def _plan_not_started(planned_start: Any, now: datetime) -> bool:
+    """True before the plan's approved window opens (minus skew). An unreadable bound fails closed."""
+    if planned_start is None:
+        return False
+    start = _as_utc(planned_start)
+    return start is None or (start - now).total_seconds() > PLAN_START_SKEW_S
+
+
+def _opens_water(layers: list[dict[str, Any]]) -> bool:
+    """Unless every command named in the envelope is a safe-direction close/stop, it may open.
+
+    Reads both ``command`` and ``cmd`` on both layers: the actuator's parser accepts either
+    key (``_parse_dispatch_command``), so a decoy ``payload.command = "close"`` beside an
+    outer ``cmd = "open_valve"`` must not pass as a close.
+    """
+    from shared.actuation_killswitch import is_safe_direction
+
+    commands = _layer_values(layers, ("command", "cmd"))
+    return not commands or not all(is_safe_direction(c) for c in commands)
+
+
 def _execution_request_max_age_s() -> float:
     raw = os.getenv("DECISION_EXECUTION_REQUEST_MAX_AGE_S", "").strip()
     try:
@@ -2305,6 +2331,19 @@ def _execution_request_plan_violation(plan: Any, payload: Any, *, now: datetime)
             return "target_zone_mismatch"
 
     if payload.target_type == "equipment":
+        field_ids = {str(v).strip() for v in _layer_values(layers, ("field_id",))}
+        decision_field = plan.get("decision_field_id")
+        if decision_field and field_ids != {str(decision_field)}:
+            return "command_field_mismatch"
+        if not decision_field and field_ids and not field_ids <= plan_zones:
+            return "command_field_unbound"
+        # The actuator scopes its field kill switch by this field: an opening command that names
+        # no field under a decision with none could only be halted by tenant or valve scope.
+        if not decision_field and not field_ids and _opens_water(layers):
+            return "command_field_unbound"
+        command_decisions = {str(v) for v in _layer_values(layers, ("decision_id",))}
+        if command_decisions and command_decisions != {str(plan["decision_id"])}:
+            return "command_decision_mismatch"
         duration_violation = _equipment_duration_violation(layers)
         if duration_violation:
             return duration_violation
@@ -2358,7 +2397,7 @@ async def create_execution_request(
                 return _authoritative_execution_request(prior, replay=True)
             auth = await conn.fetchrow(
                 """SELECT a.dispatch_authorization_id,a.execution_plan_id,a.decision_id,a.status,
-                          p.status AS plan_state,d.review_state,
+                          p.status AS plan_state,d.review_state,d.field_id AS decision_field_id,
                           p.operation_type AS plan_operation_type,p.target_zone_ids,
                           p.required_resources,p.constraints,p.planned_start,p.planned_end
                      FROM decision_dispatch_authorizations a
@@ -2479,11 +2518,21 @@ async def list_queued_execution_requests(
                          AND a.execution_request_id = r.execution_request_id
                          AND a.receipt_id IS NULL
                      )
+                     AND r.requested_at >= now() - $4::double precision * interval '1 second'
+                     AND EXISTS (
+                       SELECT 1 FROM decision_execution_plans p
+                       WHERE p.tenant_id=r.tenant_id AND p.execution_plan_id=r.execution_plan_id
+                         AND (p.planned_end IS NULL OR p.planned_end >= now())
+                         AND (p.planned_start IS NULL
+                              OR p.planned_start <= now() + $5::double precision * interval '1 second')
+                     )
                    ORDER BY r.requested_at
                    LIMIT $3""",
                 tenant_id,
                 target_type,
                 limit,
+                _execution_request_max_age_s(),
+                PLAN_START_SKEW_S,
             )
         items = []
         for r in rows:
@@ -2522,12 +2571,19 @@ async def list_inflight_execution_requests(
                    WHERE r.tenant_id=$1::uuid AND r.status='delivering'
                      AND a.adapter_id=$2 AND a.receipt_id IS NULL
                      AND ($3::text IS NULL OR r.target_type=$3)
+                     AND r.requested_at >= now() - $5::double precision * interval '1 second'
+                     AND EXISTS (
+                       SELECT 1 FROM decision_execution_plans p
+                       WHERE p.tenant_id=r.tenant_id AND p.execution_plan_id=r.execution_plan_id
+                         AND (p.planned_end IS NULL OR p.planned_end >= now())
+                     )
                    ORDER BY a.claimed_at
                    LIMIT $4""",
                 tenant_id,
                 adapter_id,
                 target_type,
                 limit,
+                _execution_request_max_age_s(),
             )
         items = []
         for r in rows:
@@ -2560,6 +2616,13 @@ async def claim_execution_request(
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            request = await conn.fetchrow(
+                "SELECT * FROM decision_execution_requests WHERE tenant_id=$1::uuid AND execution_request_id=$2 FOR UPDATE",
+                tenant_id,
+                execution_request_id,
+            )
+            if not request:
+                return {"status": "not_found"}
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_execution_delivery_attempts WHERE tenant_id=$1::uuid AND execution_request_id=$2",
                 tenant_id,
@@ -2572,15 +2635,9 @@ async def claim_execution_request(
                     or prior["delivery_token_hash"] != token_hash
                 ):
                     return {"status": "conflict", "reason": "execution_request_already_claimed"}
-                return _authoritative_delivery(prior, replay=True)
-            request = await conn.fetchrow(
-                "SELECT * FROM decision_execution_requests WHERE tenant_id=$1::uuid AND execution_request_id=$2 FOR UPDATE",
-                tenant_id,
-                execution_request_id,
-            )
-            if not request:
-                return {"status": "not_found"}
-            if request["status"] != "queued":
+                if prior["receipt_id"] is not None:
+                    return {"status": "conflict", "reason": "execution_request_already_receipted"}
+            if request["status"] != ("delivering" if prior else "queued"):
                 return {"status": "conflict", "reason": "execution_request_not_queued"}
             if request["target_type"] != adapter_kind:
                 return {"status": "conflict", "reason": "adapter_kind_mismatch"}
@@ -2596,7 +2653,7 @@ async def claim_execution_request(
             ):
                 return {"status": "conflict", "reason": "execution_request_expired"}
             plan = await conn.fetchrow(
-                "SELECT planned_end FROM decision_execution_plans WHERE tenant_id=$1::uuid AND execution_plan_id=$2",
+                "SELECT planned_start, planned_end FROM decision_execution_plans WHERE tenant_id=$1::uuid AND execution_plan_id=$2",
                 tenant_id,
                 request["execution_plan_id"],
             )
@@ -2604,6 +2661,10 @@ async def claim_execution_request(
                 return {"status": "conflict", "reason": "execution_plan_not_found"}
             if _plan_expired(plan["planned_end"], now):
                 return {"status": "conflict", "reason": "plan_expired"}
+            if _plan_not_started(plan["planned_start"], now):
+                return {"status": "conflict", "reason": "plan_not_started"}
+            if prior:
+                return _authoritative_delivery(prior, replay=True)
             attempt_id = (
                 "del_"
                 + hashlib.sha256(f"{tenant_id}:{execution_request_id}".encode()).hexdigest()[:20]
@@ -2656,6 +2717,12 @@ async def record_execution_receipt(
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            # Same lock order as claim_execution_request: request row first, then the attempt.
+            request = await conn.fetchrow(
+                "SELECT status FROM decision_execution_requests WHERE tenant_id=$1::uuid AND execution_request_id=$2 FOR UPDATE",
+                tenant_id,
+                execution_request_id,
+            )
             attempt = await conn.fetchrow(
                 "SELECT * FROM decision_execution_delivery_attempts WHERE tenant_id=$1::uuid AND execution_request_id=$2 FOR UPDATE",
                 tenant_id,
@@ -2693,11 +2760,6 @@ async def record_execution_receipt(
                     if hasattr(received_at, "isoformat")
                     else received_at,
                 }
-            request = await conn.fetchrow(
-                "SELECT status FROM decision_execution_requests WHERE tenant_id=$1::uuid AND execution_request_id=$2 FOR UPDATE",
-                tenant_id,
-                execution_request_id,
-            )
             if not request or request["status"] != "delivering":
                 return {"status": "conflict", "reason": "execution_request_not_delivering"}
             row = await conn.fetchrow(

@@ -275,6 +275,18 @@ void main() {
       expect(h.store.records, isEmpty);
     });
 
+    test('a pin stays queued until the server confirms persistence', () async {
+      var persisted = false;
+      final h = Harness(handler: (_) async => FakeReply(200, {'persisted': persisted}));
+      final pin = op(scoutingPinCreatePath('f1'), method: 'POST', kind: 'observation_create');
+      await h.outbox.enqueue(pin);
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records.single.op.idempotencyKey, pin.idempotencyKey);
+      persisted = true;
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records, isEmpty);
+    });
+
     test(
       'the same Idempotency-Key is reused on every retry of one op',
       () async {

@@ -85,26 +85,31 @@ def inventory(rows: list[tuple[str, dict[str, Any]]], spec: ReindexSpec) -> dict
     if not rows or len(rows) > spec.max_points:
         raise ValueError("empty or truncated source inventory cannot certify a reindex")
     seen_points: set[str] = set()
-    seen_chunks: set[str] = set()
+    # R-H14: الهويّة المنطقيّة (مستأجِر، chunk_id) — ``chunk_id`` نفسه لمستأجِرَين وثيقتان
+    # مختلفتان بمُعرِّفَي تخزين مختلفين، لا تصادم.
+    seen_identities: set[tuple[str, str]] = set()
+    logical_ids: list[str] = []
     tenants: Counter[str] = Counter()
     normalized = []
     for point_id, payload in rows:
         if not canonical_storage_shape(payload):
             raise ValueError("noncanonical payload requires an explicit migration disposition")
         chunk = KnowledgeChunk.from_payload(payload, fallback_id=point_id)
-        if point_id in seen_points or chunk.chunk_id in seen_chunks:
+        identity = (chunk.tenant_id, chunk.chunk_id)
+        if point_id in seen_points or identity in seen_identities:
             raise ValueError("identity collision requires a separate migration disposition")
-        if point_id != canonical_storage_point_id(chunk.chunk_id):
+        if point_id != canonical_storage_point_id(chunk.chunk_id, tenant_id=chunk.tenant_id):
             raise ValueError("noncanonical storage identity requires the existing migration plan")
         seen_points.add(point_id)
-        seen_chunks.add(chunk.chunk_id)
+        seen_identities.add(identity)
+        logical_ids.append(chunk.chunk_id)
         tenants[chunk.tenant_id] += 1
         normalized.append((point_id, payload))
     return {
         "point_count": len(rows),
         "payload_digest": _digest(sorted(normalized, key=lambda row: row[0])),
         "tenants": dict(sorted(tenants.items())),
-        "logical_id_digest": _digest(sorted(seen_chunks)),
+        "logical_id_digest": _digest(sorted(logical_ids)),
     }
 
 

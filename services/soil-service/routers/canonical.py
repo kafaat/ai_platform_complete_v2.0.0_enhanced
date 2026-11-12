@@ -181,10 +181,10 @@ async def ingest_typed_evidence(
     created = 0
     observation_ids = []
     for observation in observations:
-        # One commit per observation (retry-stable ids); a refused supersession is a 409.
         try:
             inserted = await soil_store.persist_observation(main._pool, observation)
-        except soil_store.SoilIngestConflict as exc:
+        except ValueError as exc:
+            # An invalid or already-replaced supersession target: the row was rolled back.
             raise HTTPException(409, str(exc)) from exc
         if inserted:
             created += 1
@@ -196,8 +196,11 @@ async def ingest_typed_evidence(
             if stored is None or not soil_store.stored_observation_matches(
                 stored,
                 observation,
-                check_observed_at=payload.observed_at is not None
-                or observation.property in payload.observed_at_by_property,
+                check_observed_at=(
+                    payload.observed_at is not None
+                    or observation.property in payload.observed_at_by_property
+                )
+                and not soil_store.is_legacy_lab_publication(stored),
             ):
                 raise HTTPException(409, "conflicting soil evidence under existing key")
             observation_ids.append(stored["observation_id"])

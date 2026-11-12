@@ -437,3 +437,74 @@ def test_soil_ec_method_separates_reference_and_dilution():
         assert salinity["value_dsm"] == 8.4
     with pytest.raises(ValidationError):
         mod.SoilLabResultIn(sample_id="sample", ph=7.2, ec_extraction_method="saturated_paste")
+
+
+def _capture_soil_publication(monkeypatch):
+    import asyncio
+
+    from api import soil_evidence_bridge as bridge
+
+    sent = {}
+
+    class _Response:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            n = len(sent["json"]["properties"])
+            return {"status": "accepted", "observation_ids": [f"sob_{i}" for i in range(n)]}
+
+    class _Client:
+        def __init__(self, **_kw):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_exc):
+            return False
+
+        async def post(self, url, json, headers):
+            sent["json"] = json
+            return _Response()
+
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "test-only")
+    monkeypatch.setattr(bridge.httpx, "AsyncClient", _Client)
+    return sent, bridge, asyncio
+
+
+def test_published_value_comes_from_the_row_whose_id_is_recorded(monkeypatch):
+    sent, bridge, asyncio = _capture_soil_publication(monkeypatch)
+    observed = datetime(2026, 11, 1, 8, tzinfo=UTC)
+    rows = [  # publishable order: the first row per analyte is the one recorded
+        # saturated paste: the method that publishes as soil "ec"
+        {
+            "analyte": "ec_dsm",
+            "result_id": "r-new",
+            "value_json": "1.7",
+            "observed_at": observed,
+            "method_code": "saturated_paste",
+        },
+        {
+            "analyte": "ec_dsm",
+            "result_id": "r-old",
+            "value_json": "1.2",
+            "observed_at": observed,
+            "method_code": "saturated_paste",
+        },
+        {"analyte": "ph", "result_id": "r-ph", "value_json": "7.1", "observed_at": observed},
+    ]
+    receipt = asyncio.run(
+        bridge.publish_soil_lab_evidence(
+            tenant_id="00000000-0000-0000-0000-000000000001",
+            field_id="pivot",
+            sample={"sample_id": "s-1"},
+            results={"ec_dsm": 1.2, "ph": 7.1},  # a value from a different row than r-new
+            result_rows=rows,
+        )
+    )
+    assert sent["json"]["properties"] == {"ph": 7.1, "ec": 1.7}
+    assert receipt["result_by_canonical"]["ec"] == "r-new"
+    # soil-service's canonical units win; the lab's labels stay in provenance only.
+    assert "units" not in sent["json"]
+    assert sent["json"]["provenance"]["observed_at_source"] == "laboratory_result"

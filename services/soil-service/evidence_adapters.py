@@ -16,6 +16,11 @@ from shared.contracts.soil import (
 UNITS = {
     "ph": "pH",
     "ec": "dS/m",
+    # Lab EC by extraction method (shared.contracts.soil.observation.LAB_EC_PROPERTIES_BY_METHOD).
+    "ec_1_1": "dS/m",
+    "ec_1_2_5": "dS/m",
+    "ec_1_5": "dS/m",
+    "ec_unspecified": "dS/m",
     "organic_matter": "%",
     "nitrogen": "mg/kg",
     "phosphorus": "mg/kg",

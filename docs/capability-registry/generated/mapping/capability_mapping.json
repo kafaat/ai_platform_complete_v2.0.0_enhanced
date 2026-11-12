@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7134,
+    "files_scanned": 7140,
     "files_by_kind": {
       "backend": 1268,
       "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2163,
-      "tests": 2385,
+      "tests": 2391,
       "web": 519
     },
-    "unmapped_artifacts": 3395,
+    "unmapped_artifacts": 3396,
     "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3837,
+      "python_functional": 3843,
       "raw": 3297
     },
-    "test_dependency_files": 1793,
-    "test_dependency_edges": 4526,
-    "test_dependency_bounded_files": 1043,
+    "test_dependency_files": 1798,
+    "test_dependency_edges": 4543,
+    "test_dependency_bounded_files": 1046,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -2218,7 +2218,7 @@
           "score": 14
         },
         {
-          "value": "raster_field_runtime.py @ tests_v9/test_raster_field_tenant_authz.py:248",
+          "value": "raster_field_runtime.py @ tests_v9/test_raster_field_tenant_authz.py:256",
           "score": 14
         },
         {
@@ -2246,7 +2246,7 @@
           "score": 14
         },
         {
-          "value": "v88_field_owner_function.sql @ tests_v9/test_raster_field_tenant_authz.py:277",
+          "value": "v88_field_owner_function.sql @ tests_v9/test_raster_field_tenant_authz.py:285",
           "score": 14
         },
         {
@@ -2403,6 +2403,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_automation_status_tenant_isolation.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_nginx_tenant_injection_guard.py",
           "score": 14,
           "signals": [
@@ -2436,6 +2444,14 @@
         },
         {
           "path": "tests_v9/test_operation_report_tenant_authz.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "tests_v9/test_rag_point_id_tenant_namespace.py",
           "score": 14,
           "signals": [
             "path:tenant",
@@ -2781,7 +2797,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 38,
+        "tests": 40,
         "governance": 0,
         "other_evidence": 25
       },
@@ -5017,7 +5033,7 @@
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4003",
+          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:3970",
           "score": 15
         },
         {
@@ -5109,11 +5125,11 @@
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:3975",
+          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:3942",
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4029",
+          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:3996",
           "score": 15
         },
         {
@@ -5129,15 +5145,15 @@
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3900",
+          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3867",
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3910",
+          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3877",
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3943",
+          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3910",
           "score": 15
         },
         {
@@ -5157,7 +5173,7 @@
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3929",
+          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3896",
           "score": 15
         },
         {
@@ -6171,7 +6187,7 @@
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4003",
+          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:3970",
           "score": 15
         },
         {
@@ -6263,11 +6279,11 @@
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:3975",
+          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:3942",
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4029",
+          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:3996",
           "score": 15
         },
         {
@@ -6283,15 +6299,15 @@
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3900",
+          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3867",
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3910",
+          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3877",
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3943",
+          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3910",
           "score": 15
         },
         {
@@ -6311,7 +6327,7 @@
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3929",
+          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3896",
           "score": 15
         },
         {
@@ -9476,7 +9492,7 @@
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4003",
+          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:3970",
           "score": 18
         },
         {
@@ -9568,11 +9584,11 @@
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:3975",
+          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:3942",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4029",
+          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:3996",
           "score": 18
         },
         {
@@ -9588,15 +9604,15 @@
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3900",
+          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3867",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3910",
+          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3877",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3943",
+          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3910",
           "score": 18
         },
         {
@@ -9616,7 +9632,7 @@
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3929",
+          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3896",
           "score": 18
         },
         {
@@ -25694,19 +25710,19 @@
       ],
       "routes": [
         {
-          "value": "/v1/auth/mfa/activate @ services/auth/routers/mfa.py:99",
+          "value": "/v1/auth/mfa/activate @ services/auth/routers/mfa.py:103",
           "score": 26
         },
         {
-          "value": "/v1/auth/mfa/disable @ services/auth/routers/mfa.py:172",
+          "value": "/v1/auth/mfa/disable @ services/auth/routers/mfa.py:178",
           "score": 26
         },
         {
-          "value": "/v1/auth/mfa/setup @ services/auth/routers/mfa.py:46",
+          "value": "/v1/auth/mfa/setup @ services/auth/routers/mfa.py:47",
           "score": 26
         },
         {
-          "value": "/runtime-identity @ services/auth/main.py:407",
+          "value": "/runtime-identity @ services/auth/main.py:408",
           "score": 13
         },
         {
@@ -26142,6 +26158,22 @@
       "mobile": [],
       "tests": [
         {
+          "path": "tests_v9/test_auth_audit_log_live_pg.py",
+          "score": 14,
+          "signals": [
+            "path:audit log",
+            "content:audit log"
+          ]
+        },
+        {
+          "path": "tests_v9/test_auth_audit_log_inputs.py",
+          "score": 13,
+          "signals": [
+            "path:audit log",
+            "content:audit log"
+          ]
+        },
+        {
           "path": "tests_v9/test_calibration_audit_events.py",
           "score": 12,
           "signals": [
@@ -26172,7 +26204,7 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 1
       },
@@ -27515,6 +27547,13 @@
           ]
         },
         {
+          "path": "services/raster-service/test_tile_isolation_fail_closed.py",
+          "score": 8,
+          "signals": [
+            "path:fail closed"
+          ]
+        },
+        {
           "path": "tests_v9/test_apply_in_compose_fail_closed.py",
           "score": 8,
           "signals": [
@@ -27544,7 +27583,7 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 8,
+        "tests": 9,
         "governance": 0,
         "other_evidence": 1
       },
@@ -41867,6 +41906,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_field_alerts_schema_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_field_change_summary.py",
       "kind": "tests"
     },
@@ -54828,6 +54871,39 @@
           "source": "services/raster-service/tile_render.py",
           "kind": "import",
           "line": 49
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/raster-service/test_tile_isolation_fail_closed.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/cdse_client.py",
+          "kind": "import",
+          "line": 26
+        },
+        {
+          "source": "services/raster-service/db_persist.py",
+          "kind": "import",
+          "line": 27
+        },
+        {
+          "source": "services/raster-service/imagery_source_gate.py",
+          "kind": "import",
+          "line": 28
+        },
+        {
+          "source": "services/raster-service/raster_cdse_tile_runtime.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
+          "source": "services/raster-service/raster_security_context.py",
+          "kind": "import",
+          "line": 30
         }
       ],
       "unresolved": []
@@ -69775,6 +69851,41 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_auth_audit_log_inputs.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/auth/client_address.py",
+          "kind": "import",
+          "line": 24
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_auth_audit_log_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "shared_test_helper"
+      ],
+      "edges": [
+        {
+          "source": "services/auth/main.py",
+          "kind": "loader",
+          "line": 88
+        },
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 24
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_auth_bcrypt_72_byte_boundary.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -69937,7 +70048,7 @@
         {
           "source": "services/auth/mfa_crypto.py",
           "kind": "import",
-          "line": 296
+          "line": 298
         },
         {
           "source": "tests_v9/service_module.py",
@@ -69947,7 +70058,7 @@
       ],
       "unresolved": [
         {
-          "line": 171,
+          "line": 173,
           "call": "spec_from_file_location"
         }
       ]
@@ -70167,6 +70278,39 @@
           "source": "services/sahool-platform/api/weather_automation.py",
           "kind": "import",
           "line": 71
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_automation_status_tenant_isolation.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/imagery_automation.py",
+          "kind": "import",
+          "line": 44
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
+          "source": "services/sahool-platform/api/routers/automation.py",
+          "kind": "import",
+          "line": 30
+        },
+        {
+          "source": "services/sahool-platform/api/weather_automation.py",
+          "kind": "import",
+          "line": 45
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 36
         }
       ],
       "unresolved": []
@@ -82250,7 +82394,7 @@
         {
           "source": "scripts/architecture/rag_logical_identity_migration_plan_guard.py",
           "kind": "loader",
-          "line": 462
+          "line": 465
         },
         {
           "source": "scripts/architecture/rag_logical_identity_migration_plan_guard.py",
@@ -82260,7 +82404,7 @@
         {
           "source": "services/qdrant-seed/seed.py",
           "kind": "source_read",
-          "line": 410
+          "line": 413
         },
         {
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
@@ -82336,6 +82480,24 @@
           "source": "tests_v9/service_module.py",
           "kind": "import",
           "line": 12
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_rag_point_id_tenant_namespace.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "loader",
+          "line": 27
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "source_read",
+          "line": 23
         }
       ],
       "unresolved": []
@@ -82704,6 +82866,11 @@
         "unresolved_dynamic_relation"
       ],
       "edges": [
+        {
+          "source": "services/raster-service/db_persist.py",
+          "kind": "import",
+          "line": 76
+        },
         {
           "source": "services/raster-service/raster_main_runtime.py",
           "kind": "import",
@@ -85733,6 +85900,11 @@
       "bounded": true,
       "unbounded_reasons": [],
       "edges": [
+        {
+          "source": "services/sahool-platform/api/api_models.py",
+          "kind": "import",
+          "line": 324
+        },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
