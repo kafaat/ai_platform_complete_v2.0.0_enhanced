@@ -28,7 +28,9 @@ class SeasonCreateRequest(BaseModel):
     """طلب إنشاء موسم زراعيّ لحقل (محاصيل/صنف/ريّ/تواريخ/مراحل)."""
 
     # Omit the legacy default from dumps so existing idempotency digests still replay.
-    initial_status: Literal["active", "planned"] = Field(default="active", exclude_if=lambda v: v == "active")
+    initial_status: Literal["active", "planned"] = Field(
+        default="active", exclude_if=lambda v: v == "active"
+    )
     crops: list[str] = Field(default_factory=list)
     cultivar: str | None = Field(default=None, max_length=100)
     irrigation_type: str | None = None

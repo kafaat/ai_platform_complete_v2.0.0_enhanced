@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { readWheatReferences, wheatCultivars, type WheatReference } from '../lib/wheatRegister';
+import { readWheatReferences, seedRatePerHa, wheatCultivars, type WheatReference } from '../lib/wheatRegister';
 
 type Selection = { variety: string; rate: string; note: string; irrigation: string };
 export default function WheatSeasonPlanner({ onApply, initialRefs = [], initialSource = '', easternRainfed = false, confirmation }: { onApply: (plan: Selection) => void; initialRefs?: WheatReference[]; initialSource?: string; easternRainfed?: boolean; confirmation?: string }) {
@@ -24,6 +24,7 @@ export default function WheatSeasonPlanner({ onApply, initialRefs = [], initialS
     const current = ++version.current;
     setSheet(''); setRate(''); setRefs([]); setSource(''); setEast(false); setMessage('');
     if (!file) return;
+    if (file.size > 20 * 1024 * 1024) { setMessage('ملف Excel أكبر من 20 ميغابايت. يمكنك إدخال المعدل يدوياً.'); return; }
     try {
       const { default: read } = await import('read-excel-file/browser');
       const bytes = await file.arrayBuffer();
@@ -39,7 +40,7 @@ export default function WheatSeasonPlanner({ onApply, initialRefs = [], initialS
   function choose(sheetName: string) {
     setSheet(sheetName);
     const item = refs.find(r => r.sheet === sheetName);
-    setRate(item ? (item.seedKg / item.hectares).toFixed(2) : '');
+    setRate(item ? seedRatePerHa(item) : '');
   }
   function apply() {
     if (!need || !variety || !irrigation) return;

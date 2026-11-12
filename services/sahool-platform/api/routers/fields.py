@@ -2005,7 +2005,6 @@ async def create_season(
     (RLS) بعد تأكيد أنّ الحقل يخصّه (404)، ويردّ الموسم المُنشأ. idempotent:
     Idempotency-Key (UUID) يمنع تكرار الإنشاء عند إعادة الموبايل (offline).
     """
-    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
     if req.irrigation_type and req.irrigation_type not in _IRRIGATION_TYPES:
@@ -2056,13 +2055,13 @@ async def create_season(
                 # المعاملة — فيكون «إنشاء موسم» انتقالاً نظيفاً للموسم النشط. الفهرس
                 # الفريد الجزئي (uq_seasons_one_active) هو الضمانة النهائيّة للثابت.
                 async with conn.transaction():
-                    closed = []
-                    if req.initial_status == "active":
-                        closed = await conn.fetch(
-                            "UPDATE seasons SET status = 'closed' "
-                            "WHERE field_id = $1 AND status = 'active' RETURNING season_id",
-                            field_id,
-                        )
+                    # موسم مخطَّط (initial_status='planned') لا يُغلق النشط: $2 يقيّد الإغلاق.
+                    closed = await conn.fetch(
+                        "UPDATE seasons SET status = 'closed' WHERE field_id = $1 "
+                        "AND status = 'active' AND $2::text = 'active' RETURNING season_id",
+                        field_id,
+                        req.initial_status,
+                    )
                     # حدث SEASON_CLOSED لكلّ موسم نشط أُغلق آليّاً (توسيع تغطية الأحداث).
                     for cr in closed:
                         await _emit_domain_event(
@@ -2260,8 +2259,6 @@ async def update_season(
     fields_set = req.model_fields_set
     updates: list[tuple[str, object, bool]] = []  # (col, value, is_jsonb)
     if "crops" in fields_set:
-        # json is imported once at module scope (line anchor preserved)
-
         updates.append(("crops", json.dumps(req.crops or []), True))
     if "cultivar" in fields_set:
         updates.append(("cultivar", req.cultivar, False))
@@ -2681,8 +2678,6 @@ async def field_wind_drift_risk(
 
     field_geom = None
     if isinstance(field_geom_raw, str):
-        # json is imported once at module scope (line anchor preserved)
-
         try:
             field_geom = json.loads(field_geom_raw)
         except (ValueError, TypeError):
