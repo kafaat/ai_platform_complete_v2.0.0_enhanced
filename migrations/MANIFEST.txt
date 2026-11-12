@@ -786,6 +786,7 @@ v246_scouting_pin_inspection_task.sql
 v247_farm_operations_task_link.sql
 v248_inspection_handoffs.sql
 v249_task_cost_trace.sql
+v254_inspection_review.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

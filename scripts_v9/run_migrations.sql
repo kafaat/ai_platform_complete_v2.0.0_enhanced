@@ -633,7 +633,9 @@
 \i migrations/v248_inspection_handoffs.sql
 \echo '═══ 244. v249_task_cost_trace.sql ═══'
 \i migrations/v249_task_cost_trace.sql
-\echo '═══ 245. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 245. v254_inspection_review.sql ═══'
+\i migrations/v254_inspection_review.sql
+\echo '═══ 246. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 246. v206_rls_final_hardening.sql ═══'
+\echo '═══ 247. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

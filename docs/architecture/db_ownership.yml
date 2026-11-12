@@ -2050,7 +2050,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: [sahool-platform]
-    source: "migrations/v248_inspection_handoffs.sql, services/sahool-platform/api/routers/scouting.py"
+    source: "migrations/v248_inspection_handoffs.sql, migrations/v254_inspection_review.sql, services/sahool-platform/api/routers/scouting.py, services/sahool-platform/api/routers/tasks.py"
   task_expense_links:
     owner: sahool-platform
     writers: [sahool-platform]

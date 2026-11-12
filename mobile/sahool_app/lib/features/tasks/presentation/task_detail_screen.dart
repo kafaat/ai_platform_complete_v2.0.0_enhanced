@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sahool_app/core/permissions/permissions.dart';
 import 'package:sahool_app/core/theme/sahool_tokens.dart';
 import 'package:sahool_app/core/theme/tokens.dart';
 import 'package:sahool_app/core/utils/formatters.dart';
@@ -19,6 +20,7 @@ import 'package:sahool_app/features/tasks/data/task_photo_store.dart';
 
 import 'complete_task_sheet.dart';
 import 'irrigation_observations_screen.dart';
+import 'inspection_review_panel.dart';
 import 'task_grouping.dart';
 import 'task_labels.dart';
 import 'tasks_cubit.dart';
@@ -154,6 +156,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   ) {
     final tk = context.tokens;
     final busy = s.busy.contains(task.id);
+    final canUpdate = widget.canEdit && (task.sourcePinId == null || canManage(currentRole()));
     final today = cubit.todayKey;
     final bucket = bucketOf(task, today);
     final late = overdueDays(task, today);
@@ -294,7 +297,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 TaskPhotoStore.notice,
                 style: context.textStyles.bodySmall?.copyWith(color: tk.muted),
               ),
-              if (widget.canEdit && widget.photos.pick != null) ...[
+              if (canUpdate && widget.photos.pick != null) ...[
                 const SizedBox(height: SahoolSpacing.sm),
                 SecondaryButton(
                   label: 'التقاط صورة',
@@ -305,6 +308,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             ],
           ),
         ),
+        if (task.sourcePinId != null)
+          InspectionReviewPanel(key: ValueKey(task.id), task: task),
         if (task.fieldId.isNotEmpty) ...[
           const SizedBox(height: SahoolSpacing.md),
           SecondaryButton(
@@ -319,7 +324,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             ),
           ),
         ],
-        if (widget.canEdit) ...[
+        if (canUpdate) ...[
           const SizedBox(height: SahoolSpacing.lg),
           if (task.status == TaskStatus.pending) ...[
             SecondaryButton(

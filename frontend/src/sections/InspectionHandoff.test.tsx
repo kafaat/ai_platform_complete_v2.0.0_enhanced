@@ -7,7 +7,7 @@ import { InspectionHandoff } from './InspectionHandoff';
 afterEach(() => vi.restoreAllMocks());
 const original = {
   revision: 0, accepted: false, assigned_to: '1', assigned_by: '6', initial_assignee: '1',
-  assigned_at: '2026-11-12T06:30:00Z', events: [], can_accept: false, can_reassign: false,
+  assigned_at: '2026-11-12T06:30:00Z', events: [], can_accept: false, can_reassign: false, can_submit:false, can_review:false,
 };
 const path = '/api/v1/fields/wheat/tasks/t1/handoff';
 
@@ -45,4 +45,16 @@ it('requires a different user and reason and displays the saved transfer', async
   await waitFor(() => expect(post).toHaveBeenCalledWith(path + '/reassign',
     {expected_revision:1,assigned_to:5,reason:'انتهاء الوردية'}));
   expect(await screen.findByText(/أعاد 6 الإسناد من 1 إلى 5/)).toBeInTheDocument();
+});
+
+it('requires a review comment and submits the displayed revision', async () => {
+  open({...original, revision:4, can_review:true});
+  const post = vi.spyOn(kongApi, 'post').mockResolvedValue({data:{...original, revision:5}});
+  const approve = await screen.findByRole('button', {name:'اعتماد نتيجة التفتيش'});
+  expect(approve).toBeDisabled();
+  expect(screen.queryByRole('button', {name:'رفع النتيجة للمراجعة'})).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('تعليق المراجع'), {target:{value:'تم التحقق'}});
+  fireEvent.click(approve);
+  await waitFor(() => expect(post).toHaveBeenCalledWith(path+'/finding',
+    {action:'approve', reason:'تم التحقق', expected_revision:4}));
 });

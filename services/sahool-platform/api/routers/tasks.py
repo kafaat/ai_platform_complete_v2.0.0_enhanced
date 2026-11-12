@@ -163,10 +163,50 @@ async def update_task(
         async with tenant_connection(user) as conn:
 
             async def _work():
+                reopening = None
+                if req.status in ("pending", "in_progress"):
+                    reopening = await conn.fetchrow(
+                        """SELECT task_id, assigned_to, field_id FROM field_tasks WHERE task_id::text=$1
+                           AND tenant_id=$2::uuid AND source_scouting_pin_id IS NOT NULL
+                           AND status IN ('completed','cancelled') FOR UPDATE""",
+                        task_id,
+                        user.tenant_id,
+                    )
+                if req.status == "completed":
+                    inspection = await conn.fetchval(
+                        """SELECT task_id FROM field_tasks WHERE task_id::text=$1 AND tenant_id=$2::uuid
+                           AND source_scouting_pin_id IS NOT NULL AND status IS DISTINCT FROM 'completed'
+                           FOR UPDATE""",
+                        task_id,
+                        user.tenant_id,
+                    )
+                    if inspection is not None:
+                        latest = await conn.fetchval(
+                            """SELECT action FROM inspection_handoffs WHERE task_id=$1 AND tenant_id=$2::uuid
+                               ORDER BY revision DESC LIMIT 1""",
+                            inspection,
+                            user.tenant_id,
+                        )
+                        if latest != "approve":
+                            raise HTTPException(
+                                409, "تتطلب زيارة التفتيش اعتماد نتيجتها قبل الإغلاق"
+                            )
                 row = await conn.fetchrow(query, *vals)
                 # حدث تحديث المهمّة (تفاعليّ): يبثّه وكيل الإشعارات للواجهة حيّاً. داخل
                 # المعاملة وفقط عند وجود الصفّ (مرشَّح بالمستأجِر عبر RLS).
                 if row is not None:
+                    if reopening is not None:
+                        await conn.execute(
+                            """INSERT INTO inspection_handoffs
+                               (tenant_id,field_id,task_id,revision,action,previous_assignee,assignee,actor)
+                               SELECT $1::uuid,$2,$3,COALESCE(MAX(revision),0)+1,'reopen',$4,$4,$5
+                               FROM inspection_handoffs WHERE tenant_id=$1::uuid AND task_id=$3""",
+                            user.tenant_id,
+                            reopening["field_id"],
+                            reopening["task_id"],
+                            reopening["assigned_to"],
+                            str(user.user_id),
+                        )
                     await _emit_domain_event(
                         conn,
                         user,

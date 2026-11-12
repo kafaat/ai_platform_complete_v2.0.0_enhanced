@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+from typing import Literal
 from uuid import UUID
 
 from core.authorization import has_permission
@@ -247,6 +248,16 @@ class InspectionRevision(BaseModel):
     expected_revision: int = Field(ge=0, le=2147483646)
 
 
+class InspectionFinding(InspectionRevision):
+    action: Literal["submit", "approve", "return"]
+    reason: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def strip_note(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
 class Reassignment(InspectionRevision):
     assigned_to: int = Field(gt=0, le=2147483647)
     reason: str = Field(min_length=1, max_length=500)
@@ -282,9 +293,23 @@ async def _load(conn, tenant, field, task, *, write):
 
 def _view(row, events, user):
     last = events[-1] if events else None
-    accepted = bool(last and last["action"] == "accept" and last["assignee"] == row["assigned_to"])
+    accepted = bool(
+        last
+        and last["action"] not in ("reassign", "reopen")
+        and last["assignee"] == row["assigned_to"]
+    )
     open_task = row["status"] in ("pending", "in_progress")
     return {
+        "review_state": last["action"] if last else "assigned",
+        "can_submit": open_task
+        and accepted
+        and last["action"] in ("accept", "return")
+        and row["assigned_to"] == str(user.user_id)
+        and has_permission(user, Permission.OBSERVATION_RECORD),
+        "can_review": open_task
+        and bool(last and last["action"] == "submit")
+        and row["assigned_to"] != str(user.user_id)
+        and has_permission(user, Permission.INSPECTION_REVIEW),
         "revision": last["revision"] if last else 0,
         "assigned_to": row["assigned_to"],
         "accepted": accepted,
@@ -396,3 +421,62 @@ async def reassign_inspection(
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
     return await _transition(field_id, task_id, req, user)
+
+
+_SUBMIT_ROLES = ("worker", "farmer", "agronomist", "expert", "manager", "owner", "admin")
+_REVIEW_ROLES = ("agronomist", "expert", "manager", "owner", "admin")
+
+
+@router.post("/api/v1/fields/{field_id}/tasks/{task_id}/handoff/finding")
+async def record_inspection_finding(
+    field_id: str,
+    task_id: UUID,
+    req: InspectionFinding,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """The assignee submits the finding; someone else approves it or returns it (v254)."""
+    submit = req.action == "submit"
+    required = Permission.OBSERVATION_RECORD if submit else Permission.INSPECTION_REVIEW
+    actor = str(user.user_id)
+    if not has_permission(user, required):
+        raise HTTPException(403, "لا تملك صلاحية هذا الإجراء")
+    async with tenant_connection(user) as conn:
+        row, events = await _load(conn, user.tenant_id, field_id, task_id, write=True)
+        if not await conn.fetchval(
+            "SELECT true FROM users WHERE tenant_id=$1::uuid AND id::text=$2 AND active AND role=ANY($3::text[])",
+            user.tenant_id,
+            actor,
+            list(_SUBMIT_ROLES if submit else _REVIEW_ROLES),
+        ):
+            raise HTTPException(403, "الحساب غير نشط أو تغيرت صلاحياته")
+        current = _view(row, events, user)
+        if req.expected_revision < current["revision"]:
+            prior = events[req.expected_revision]
+            if (prior["action"], prior["actor"], prior["reason"]) == (
+                req.action,
+                actor,
+                req.reason,
+            ):
+                return current
+        if (actor == row["assigned_to"]) != submit:
+            raise HTTPException(403, "يرفع المستلم نتيجة الزيارة ويراجعها شخص آخر")
+        if (
+            req.expected_revision != current["revision"]
+            or not current["can_submit" if submit else "can_review"]
+        ):
+            raise HTTPException(409, "تغيرت حالة الزيارة أو لم تجهز لهذا الإجراء")
+        await conn.execute(
+            """INSERT INTO inspection_handoffs
+               (tenant_id,field_id,task_id,revision,action,previous_assignee,assignee,actor,reason)
+               VALUES ($1::uuid,$2,$3,$4,$5,$6,$6,$7,$8)""",
+            user.tenant_id,
+            field_id,
+            task_id,
+            current["revision"] + 1,
+            req.action,
+            row["assigned_to"],
+            actor,
+            req.reason,
+        )
+        row, events = await _load(conn, user.tenant_id, field_id, task_id, write=False)
+        return _view(row, events, user)

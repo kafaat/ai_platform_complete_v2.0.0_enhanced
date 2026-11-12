@@ -31,7 +31,15 @@ def _harness(monkeypatch, *, row_exists=True, current_status=None, queries=None)
     commands = {}
 
     class FakeConn:
+        # The task under test is not a pin-sourced inspection: the v254 inspection
+        # lookups (close gate, reopen event) find no row.
+        async def fetchval(self, query, *vals):
+            assert "source_scouting_pin_id IS NOT NULL" in query, query
+            return None
+
         async def fetchrow(self, query, *vals):
+            if "source_scouting_pin_id IS NOT NULL" in query:
+                return None
             if queries is not None:
                 queries.append((query, vals))
             if query.startswith("SELECT status"):  # 409/404 disambiguation after a refused guard
