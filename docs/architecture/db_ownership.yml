@@ -1034,7 +1034,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v94_scouting_pins.sql, migrations/v192_fii_rls_write_fail_closed.sql"
+    source: "migrations/v94_scouting_pins.sql, migrations/v192_fii_rls_write_fail_closed.sql, migrations/v257_scouting_pin_location_photo.sql"
   seasons:
     owner: sahool-platform
     writers: [sahool-platform]
