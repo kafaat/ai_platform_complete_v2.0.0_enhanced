@@ -8105,7 +8105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4aecc742567b39e378e85c328684268c79b312f0cb264f8950b3b014a01ddb54"
+          "content": "d6082e90d56d10f66563cec3022ea6120d4b55054df1247a5fb18ec08b464d9c"
         }
       ],
       "name": "migrations/v145_raster_assets_product_dedup.sql",
@@ -8515,7 +8515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9320837b66cb9f5e38ce5070c192e0a542f323fa47202ed6d275f32dacd4010d"
+          "content": "93bab64044f33c1a33bd339f1bedbec6354852e96ec662f5b2a2e79dd4ce3c38"
         }
       ],
       "name": "migrations/v182_decision_content_lineage_and_secret_hardening.sql",
@@ -8525,7 +8525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28d92b81a5d8a9534089e7ca86236b4cf9abbbde6bb6d270c199242bf56c728b"
+          "content": "974cc1dd13b63fd9b357b5462cf496a99f34b45fba6a1be36c0a540db465831e"
         }
       ],
       "name": "migrations/v183_decision_lineage_integrity_hardening.sql",
@@ -9375,7 +9375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f185d0c80bbd52a7d073db7551f00c5ccac37a200201741b3316ae42219e382"
+          "content": "6b4d0ddede6a6d8aad377e719fb531098154879be04b164dc6ef4ee9d54af7c2"
         }
       ],
       "name": "migrations/v51_review_round2_fixes.sql",
@@ -10015,7 +10015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f025bc714629ea0862819a3d838bb0ce35ddb9d158c4c98524e423bb550f2e7"
+          "content": "1642b2bd880c0ea7ee2d7f13faf9fe4462e0212e358d89750723870660a85f91"
         }
       ],
       "name": "migrations/v9_rls_tenant_isolation.sql",
@@ -29325,7 +29325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7ef10da52f220d2c9cb21f0792b5a55b3ba50f50a5576c5e4381eddeb678644"
+          "content": "3544501be70b766b463184cdf40f12d89426f41cb0a8475bcec5b279433aa988"
         }
       ],
       "name": "services/sahool-platform/core/event_schema.py",

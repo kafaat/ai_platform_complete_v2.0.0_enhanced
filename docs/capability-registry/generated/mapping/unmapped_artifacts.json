@@ -11332,6 +11332,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_events_entity_type_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_evidence_lab_contract.py",
     "kind": "tests"
   },

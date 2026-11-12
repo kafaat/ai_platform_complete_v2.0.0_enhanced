@@ -156,8 +156,11 @@ BEGIN
     IF OLD.content_digest IS DISTINCT FROM NEW.content_digest THEN
         RAISE EXCEPTION 'content_digest is immutable';
     END IF;
-    IF to_jsonb(OLD) ? 'source_content_digest'
-       AND OLD.source_content_digest IS DISTINCT FROM NEW.source_content_digest THEN
+    -- Read the optional column through jsonb: PL/pgSQL resolves OLD.<field> even behind a
+    -- false "?" test, so a direct reference fails on tables without the column
+    -- (recommendations): every re-applied deploy with one row aborted here.
+    IF (to_jsonb(OLD)->>'source_content_digest')
+       IS DISTINCT FROM (to_jsonb(NEW)->>'source_content_digest') THEN
         RAISE EXCEPTION 'source_content_digest is immutable';
     END IF;
     RETURN NEW;
