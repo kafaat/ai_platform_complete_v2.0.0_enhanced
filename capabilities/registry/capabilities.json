@@ -620,7 +620,7 @@
         "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:297",
         "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:528",
         "POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3363",
-        "POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:473"
+        "POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:492"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -1330,8 +1330,8 @@
         "services/raster-service/main.py"
       ],
       "apis": [
-        "GET /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:141",
-        "POST /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:35"
+        "GET /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:143",
+        "POST /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:36"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -2727,15 +2727,15 @@
         "GET /api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:65",
         "GET /api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:53",
         "GET /v1/fields/{field_id}/soil/sampling-plan @ services/raster-service/routers/soil_tiles.py:177",
-        "GET /v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:154",
+        "GET /v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:156",
         "GET /v1/fields/{field_id}/soil/sampling-zones.geojson @ services/raster-service/routers/soil_tiles.py:150",
         "POST /api/v1/fields/{field_id}/zone-sampling-plan @ services/sahool-platform/api/routers/productivity.py:84",
         "POST /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:181",
         "POST /api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:327",
         "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:223",
         "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:295",
-        "POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:83",
-        "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100"
+        "POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:84",
+        "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:101"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -2996,7 +2996,7 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "POST /v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:128"
+        "POST /v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:130"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -3160,14 +3160,14 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:400",
-        "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:729",
+        "GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:419",
+        "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:748",
         "GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2593",
         "POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:208",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:542",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329",
         "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:121",
-        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:560",
+        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:579",
         "POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922",
         "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:352",
         "POST /v1/recommendation-outcomes @ services/decision-service/main.py:1118"
@@ -4739,7 +4739,7 @@
         "POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42",
         "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:850",
         "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2326",
-        "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100"
+        "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:101"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -5050,7 +5050,7 @@
         "POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:72",
         "POST /api/v1/outcome/record @ services/sahool-platform/api/routers/decision_record.py:506",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
-        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:560",
+        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:579",
         "POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:66",
         "POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2063",
         "POST /v1/fields/{field_id}/soil/outcomes @ services/soil-service/routers/p4_workflow.py:95",

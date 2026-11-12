@@ -7031,7 +7031,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/notifications.py",
-    "line": 179,
+    "line": 183,
     "method": "POST",
     "path": "/api/v1/notifications/delivery",
     "handler": "upsert_notification_delivery",
@@ -7454,7 +7454,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 237,
+    "line": 246,
     "method": "POST",
     "path": "/api/v1/recommendations",
     "handler": "recommendations",
@@ -7463,7 +7463,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 263,
+    "line": 276,
     "method": "POST",
     "path": "/api/v1/recommendations/for-field",
     "handler": "recommendations_for_field",
@@ -7472,7 +7472,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 400,
+    "line": 419,
     "method": "GET",
     "path": "/api/v1/recommendations/engines",
     "handler": "recommendation_engines",
@@ -7481,7 +7481,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 447,
+    "line": 466,
     "method": "POST",
     "path": "/api/v1/recommendations/economic-adaptation",
     "handler": "economic_adaptation_endpoint",
@@ -7490,7 +7490,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 465,
+    "line": 484,
     "method": "GET",
     "path": "/api/v1/recommendations/capacity-profiles",
     "handler": "capacity_profiles_endpoint",
@@ -7499,7 +7499,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 473,
+    "line": 492,
     "method": "POST",
     "path": "/api/v1/recommendations/candidates",
     "handler": "generate_crop_candidates",
@@ -7508,7 +7508,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 560,
+    "line": 579,
     "method": "POST",
     "path": "/api/v1/recommendations/outcomes",
     "handler": "record_recommendation_outcome",
@@ -7517,7 +7517,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 729,
+    "line": 748,
     "method": "GET",
     "path": "/api/v1/recommendations/{rec_id}",
     "handler": "get_recommendation",
@@ -9011,7 +9011,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 35,
+    "line": 36,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/soilgrids-spatial",
     "handler": "ingest_soilgrids",
@@ -9020,7 +9020,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 83,
+    "line": 84,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/sampling-plans",
     "handler": "create_plan",
@@ -9029,7 +9029,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 100,
+    "line": 101,
     "method": "POST",
     "path": "/v1/soil/sampling-plans/{plan_id}/approve",
     "handler": "approve_plan",
@@ -9038,7 +9038,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 114,
+    "line": 115,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/hydraulic-profile/rebuild",
     "handler": "rebuild_hydraulic",
@@ -9047,7 +9047,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 128,
+    "line": 130,
     "method": "POST",
     "path": "/v1/soil/irrigation-water/samples",
     "handler": "water_sample",
@@ -9056,7 +9056,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 141,
+    "line": 143,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/soilgrids-spatial",
     "handler": "current_soilgrids",
@@ -9065,7 +9065,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 154,
+    "line": 156,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/sampling-plans/current",
     "handler": "current_sampling",
@@ -9074,7 +9074,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 167,
+    "line": 169,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/hydraulic-profile",
     "handler": "current_hydraulic",
@@ -9083,7 +9083,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 180,
+    "line": 182,
     "method": "GET",
     "path": "/v1/soil/irrigation-water/sources/{source_id}/profile",
     "handler": "current_water",

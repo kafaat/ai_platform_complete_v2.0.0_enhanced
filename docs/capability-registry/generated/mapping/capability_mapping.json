@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7158,
+    "files_scanned": 7161,
     "files_by_kind": {
-      "backend": 1270,
+      "backend": 1271,
       "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2163,
-      "tests": 2402,
+      "tests": 2404,
       "web": 524
     },
-    "unmapped_artifacts": 3409,
+    "unmapped_artifacts": 3410,
     "ambiguous_artifacts": 233,
     "files_by_reading": {
-      "python_functional": 3855,
+      "python_functional": 3858,
       "raw": 3303
     },
-    "test_dependency_files": 1808,
-    "test_dependency_edges": 4576,
-    "test_dependency_bounded_files": 1054,
+    "test_dependency_files": 1810,
+    "test_dependency_edges": 4592,
+    "test_dependency_bounded_files": 1055,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -1727,11 +1727,11 @@
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:2018",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:2023",
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:2017",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:2022",
           "score": 12
         },
         {
@@ -14289,6 +14289,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_api_writes_persist_live_pg.py",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "tests_v9/test_cropwise_evidence_quality.py",
           "score": 8,
           "signals": [
@@ -14327,7 +14335,7 @@
         "events": 7,
         "web": 6,
         "mobile": 16,
-        "tests": 11,
+        "tests": 12,
         "governance": 0,
         "other_evidence": 1
       },
@@ -27808,11 +27816,11 @@
           "score": 8
         },
         {
-          "value": "public.soil_observations @ services/soil-service/soil_store.py:484",
+          "value": "public.soil_observations @ services/soil-service/soil_store.py:488",
           "score": 8
         },
         {
-          "value": "public.soil_profile_snapshots @ services/soil-service/soil_store.py:485",
+          "value": "public.soil_profile_snapshots @ services/soil-service/soil_store.py:489",
           "score": 8
         },
         {
@@ -27840,7 +27848,7 @@
           "score": 8
         },
         {
-          "value": "soil-profile.v1 @ services/soil-service/soil_store.py:522",
+          "value": "soil-profile.v1 @ services/soil-service/soil_store.py:526",
           "score": 8
         },
         {
@@ -28128,39 +28136,39 @@
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/soil/hydraulic-profile @ services/soil-service/routers/p1_products.py:166",
+          "value": "/v1/fields/{field_id}/soil/hydraulic-profile @ services/soil-service/routers/p1_products.py:168",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/soil/hydraulic-profile/rebuild @ services/soil-service/routers/p1_products.py:113",
+          "value": "/v1/fields/{field_id}/soil/hydraulic-profile/rebuild @ services/soil-service/routers/p1_products.py:114",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:82",
+          "value": "/v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:83",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:153",
+          "value": "/v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:155",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:140",
+          "value": "/v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:142",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:34",
+          "value": "/v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:35",
           "score": 12
         },
         {
-          "value": "/v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:127",
+          "value": "/v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:129",
           "score": 12
         },
         {
-          "value": "/v1/soil/irrigation-water/sources/{source_id}/profile @ services/soil-service/routers/p1_products.py:179",
+          "value": "/v1/soil/irrigation-water/sources/{source_id}/profile @ services/soil-service/routers/p1_products.py:181",
           "score": 12
         },
         {
-          "value": "/v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:99",
+          "value": "/v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100",
           "score": 12
         },
         {
@@ -28724,6 +28732,10 @@
           "score": 9
         },
         {
+          "value": "public.soil_hydraulic_profiles @ tests_v9/test_soil_jsonb_stores_live_pg.py:58",
+          "score": 9
+        },
+        {
           "value": "soil.SMFCF @ services/agriai-engine/pcse_inputs.py:513",
           "score": 9
         },
@@ -28738,7 +28750,16 @@
       ],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "tests_v9/test_soil_jsonb_stores_live_pg.py",
+          "score": 9,
+          "signals": [
+            "content:field capacity",
+            "content:wilting point"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -28769,14 +28790,14 @@
         "backend": 7,
         "routes": 0,
         "database": 0,
-        "events": 7,
+        "events": 8,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 2
       },
-      "coverage_dimensions": 2,
+      "coverage_dimensions": 3,
       "mapped": true
     },
     {
@@ -40088,6 +40109,10 @@
     },
     {
       "path": "services/soil-service/evidence_adapters.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/soil-service/jsonb_values.py",
       "kind": "backend"
     },
     {
@@ -65200,7 +65225,7 @@
         {
           "source": "services/scout-ingest-service/main.py",
           "kind": "import",
-          "line": 88
+          "line": 99
         }
       ],
       "unresolved": []
@@ -65383,6 +65408,11 @@
       "bounded": true,
       "unbounded_reasons": [],
       "edges": [
+        {
+          "source": "services/soil-service/jsonb_values.py",
+          "kind": "import",
+          "line": 123
+        },
         {
           "source": "services/soil-service/p1_products.py",
           "kind": "import",
@@ -70043,6 +70073,44 @@
           "source": "services/video-processor/routers/streams.py",
           "kind": "source_read",
           "line": 1087
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_api_writes_persist_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 72
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 73
+        },
+        {
+          "source": "services/sahool-platform/api/routers/fields.py",
+          "kind": "import",
+          "line": 73
+        },
+        {
+          "source": "services/sahool-platform/api/routers/notifications.py",
+          "kind": "import",
+          "line": 73
+        },
+        {
+          "source": "services/sahool-platform/api/routers/recommendations.py",
+          "kind": "import",
+          "line": 73
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 79
         }
       ],
       "unresolved": []
@@ -86249,6 +86317,11 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 356
+        },
+        {
           "source": "services/sahool-platform/api/api_models.py",
           "kind": "import",
           "line": 324
@@ -87067,6 +87140,56 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_soil_jsonb_stores_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "shared_test_helper"
+      ],
+      "edges": [
+        {
+          "source": "services/soil-service/main.py",
+          "kind": "loader",
+          "line": 84
+        },
+        {
+          "source": "services/soil-service/p1_store.py",
+          "kind": "import",
+          "line": 88
+        },
+        {
+          "source": "services/soil-service/p2_store.py",
+          "kind": "import",
+          "line": 89
+        },
+        {
+          "source": "services/soil-service/p3_store.py",
+          "kind": "import",
+          "line": 90
+        },
+        {
+          "source": "services/soil-service/routers/p1_products.py",
+          "kind": "import",
+          "line": 91
+        },
+        {
+          "source": "services/soil-service/soil_store.py",
+          "kind": "import",
+          "line": 87
+        },
+        {
+          "source": "shared/contracts/soil/__init__.py",
+          "kind": "import",
+          "line": 100
+        },
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 26
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_soil_lab_field_state_emit.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -87507,7 +87630,7 @@
         {
           "source": "services/decision-service/persistence.py",
           "kind": "source_read",
-          "line": 141
+          "line": 150
         }
       ],
       "unresolved": []

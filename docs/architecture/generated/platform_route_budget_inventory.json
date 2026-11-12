@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "e7399245a970b2c6c9a690fab2ac58732447293d9056551857cddfd17f9508c5",
+  "inventory_sha256": "7b7b18856cf802debedb6f1e797eda548e5b7c16872b6c7130f6a3d8380d41c5",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "bf8cd04aa58a729922e47f5e30cbeea345c09e3f9bbeabdbe00a8e249a3b2a22"
+    "policy_sha256": "19fd841a167b6a6c84e866638f9560e01bbe27eabdc86233d94ad538b6ed57d4"
   },
   "routes": [
     {
@@ -1954,7 +1954,7 @@
     {
       "classification": "domain",
       "function": "capacity_profiles_endpoint",
-      "line": 464,
+      "line": 483,
       "method": "GET",
       "path": "/api/v1/recommendations/capacity-profiles",
       "source": "api/routers/recommendations.py"
@@ -1962,7 +1962,7 @@
     {
       "classification": "domain",
       "function": "recommendation_engines",
-      "line": 399,
+      "line": 418,
       "method": "GET",
       "path": "/api/v1/recommendations/engines",
       "source": "api/routers/recommendations.py"
@@ -1970,7 +1970,7 @@
     {
       "classification": "domain",
       "function": "get_recommendation",
-      "line": 728,
+      "line": 747,
       "method": "GET",
       "path": "/api/v1/recommendations/{rec_id}",
       "source": "api/routers/recommendations.py"
@@ -4114,7 +4114,7 @@
     {
       "classification": "domain",
       "function": "upsert_notification_delivery",
-      "line": 175,
+      "line": 179,
       "method": "POST",
       "path": "/api/v1/notifications/delivery",
       "source": "api/routers/notifications.py"
@@ -4186,7 +4186,7 @@
     {
       "classification": "domain",
       "function": "recommendations",
-      "line": 236,
+      "line": 245,
       "method": "POST",
       "path": "/api/v1/recommendations",
       "source": "api/routers/recommendations.py"
@@ -4194,7 +4194,7 @@
     {
       "classification": "domain",
       "function": "generate_crop_candidates",
-      "line": 472,
+      "line": 491,
       "method": "POST",
       "path": "/api/v1/recommendations/candidates",
       "source": "api/routers/recommendations.py"
@@ -4202,7 +4202,7 @@
     {
       "classification": "domain",
       "function": "economic_adaptation_endpoint",
-      "line": 446,
+      "line": 465,
       "method": "POST",
       "path": "/api/v1/recommendations/economic-adaptation",
       "source": "api/routers/recommendations.py"
@@ -4210,7 +4210,7 @@
     {
       "classification": "domain",
       "function": "recommendations_for_field",
-      "line": 262,
+      "line": 275,
       "method": "POST",
       "path": "/api/v1/recommendations/for-field",
       "source": "api/routers/recommendations.py"
@@ -4218,7 +4218,7 @@
     {
       "classification": "domain",
       "function": "record_recommendation_outcome",
-      "line": 559,
+      "line": 578,
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes",
       "source": "api/routers/recommendations.py"
