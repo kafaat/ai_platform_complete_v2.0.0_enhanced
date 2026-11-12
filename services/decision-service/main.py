@@ -70,6 +70,7 @@ from persistence import (
     list_review_queue,
     list_runtime_work,
     list_worker_tenants,
+    normalize_operation_type,
     persist_decision_record,
     persist_dispatch_decision,
     persist_learning_update,
@@ -964,8 +965,20 @@ async def build_execution_plan(
             status_code=422,
             detail="review_id, candidate_lineage_id and idempotency_key are required",
         )
-    if not payload.operation_type.strip():
+    # Normalise once at the boundary and persist exactly what was validated: a padded or
+    # case-variant spelling must not skip the manual-irrigation binding in persistence
+    # (DECISION-MANUAL-PLAN-PADDED-OPERATION-BYPASS-01).
+    operation_type = normalize_operation_type(payload.operation_type)
+    if not operation_type:
         raise HTTPException(status_code=422, detail="operation_type is required")
+    payload = payload.model_copy(update={"operation_type": operation_type})
+    # Plan windows are compared with each other and with aware UTC "now" downstream; a naive
+    # bound made the comparison raise TypeError (HTTP 500). Reject it like available_before
+    # (DECISION-PLAN-MIXED-TIMEZONE-500-01).
+    for name in ("planned_start", "planned_end"):
+        bound = getattr(payload, name)
+        if bound is not None and bound.tzinfo is None:
+            raise HTTPException(status_code=422, detail=f"{name} must carry a timezone")
     if (
         payload.planned_start
         and payload.planned_end
@@ -991,6 +1004,8 @@ async def build_execution_plan(
         return {"accepted": True, "tenant_id": tenant, **result}
     if result.get("status") == "not_found":
         raise HTTPException(status_code=404, detail="approved decision not found")
+    if result.get("status") == "invalid":
+        raise HTTPException(status_code=422, detail=result.get("reason", "invalid execution plan"))
     raise HTTPException(status_code=409, detail=result.get("reason", "execution plan conflict"))
 
 
