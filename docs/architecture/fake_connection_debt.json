@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "c7c0627c89124476f68431777dd394eea307acca",
+  "measured_on": "deab6557d9df10ef63408d8be15c3f47874a7107",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -10,6 +10,7 @@
     "services/decision-service/tests/test_migration_runner_readonly.py",
     "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
     "services/decision-service/tests/test_sod_single_operator_self_approval.py",
+    "services/decision-service/tests/test_tenant_binding_force_rls.py",
     "services/decision-service/tests/test_wx10_8_review_queue.py",
     "services/raster-service/test_acquisition_date_provenance.py",
     "services/raster-service/test_backfill_processing_version_preflight.py",
@@ -614,6 +615,16 @@
         "services/decision-service/tests/test_sod_single_operator_self_approval.py"
       ],
       "justification": "Wave 5 single-operator self-approval policy. The only stand-in patches persistence._connect with a mock that raises if called: it proves review_decision refuses a client-supplied reason that imitates the self-approval audit marker before opening any connection. It claims nothing about PostgreSQL; the database-backed self-approval and separation-of-duties path runs against a real database in test_wx10_7_decision_review.py."
+    },
+    {
+      "kind": "hospital_h1_20261112_tenant_binding_call_order",
+      "date": "2026-11-12",
+      "before": 130,
+      "after": 131,
+      "sites": [
+        "services/decision-service/tests/test_tenant_binding_force_rls.py"
+      ],
+      "justification": "Decision-service FORCE RLS on the remaining tenant tables (migration 037). The recording stand-in pins call order only: each fixed persistence function opens a transaction and runs set_config('app.current_tenant'|'app.current_worker', ..., true) before its first statement, because a transaction-local setting outside a transaction does not reach the query. It claims nothing about what PostgreSQL enforces; the policies, the fail-closed worker authorization, the tenant-only writes and the reads returning only the bound tenant's rows are proven against a real PG16 as a non-superuser NOBYPASSRLS owner in services/decision-service/tests/test_migration_037_force_rls_pg16.py (decision-033-pg16-proof job)."
     }
   ]
 }

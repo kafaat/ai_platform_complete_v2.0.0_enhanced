@@ -145,6 +145,23 @@ def test_sql_inputs_are_strictly_validated():
         )
 
 
+def test_sql_binds_the_tenant_before_the_chain_query_and_prints_nothing_for_it():
+    """Decision migration 037 forces tenant RLS on every joined table, so the query must
+    bind app.current_tenant in the same psql -c transaction. The binding is a zero-column
+    SELECT: collect() reads only the last output line, and a bare set_config would leave
+    the tenant uuid as that line whenever no chain exists."""
+    sql = c12._sql("11111111-1111-1111-1111-111111111111".upper(), "yield-v2", None, "staging")
+    binding, chain = sql.split(";\n", 1)
+    assert binding == (
+        "SELECT FROM (SELECT set_config('app.current_tenant', "
+        "'11111111-1111-1111-1111-111111111111', true)) AS tenant_binding"
+    )
+    assert chain.lstrip().startswith("SELECT json_build_object(")
+    assert "set_config" not in chain
+    with pytest.raises(ValueError):
+        c12._sql("not-a-uuid'; SELECT 1; --", "yield-v2", None, "staging")
+
+
 def test_receipt_round_trip_is_stable(tmp_path):
     path = tmp_path / "receipt.json"
     body = receipt()

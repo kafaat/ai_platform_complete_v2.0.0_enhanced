@@ -2087,6 +2087,9 @@ async def record_reservation_dispatch_intent(
     conn = await _connect()
     try:
         async with conn.transaction():
+            # 037 forces tenant RLS on the inbox: bind before the first read so the
+            # policy (not only the WHERE clause) scopes every statement below.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_reservation_dispatch_inbox "
                 "WHERE tenant_id=$1::uuid AND source_event_id=$2",
@@ -2460,25 +2463,28 @@ async def list_queued_execution_requests(
     """
     conn = await _connect()
     try:
-        rows = await conn.fetch(
-            """SELECT r.execution_request_id, r.decision_id, r.execution_plan_id,
-                      r.dispatch_authorization_id, r.target_type, r.target_id,
-                      r.operation_type, r.command_payload, r.requested_at
-               FROM decision_execution_requests r
-               WHERE r.tenant_id = $1::uuid AND r.status = 'queued'
-                 AND ($2::text IS NULL OR r.target_type = $2)
-                 AND NOT EXISTS (
-                   SELECT 1 FROM decision_execution_delivery_attempts a
-                   WHERE a.tenant_id = r.tenant_id
-                     AND a.execution_request_id = r.execution_request_id
-                     AND a.receipt_id IS NULL
-                 )
-               ORDER BY r.requested_at
-               LIMIT $3""",
-            tenant_id,
-            target_type,
-            limit,
-        )
+        async with conn.transaction():
+            # 037 forces tenant RLS on execution requests/attempts: bind first.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            rows = await conn.fetch(
+                """SELECT r.execution_request_id, r.decision_id, r.execution_plan_id,
+                          r.dispatch_authorization_id, r.target_type, r.target_id,
+                          r.operation_type, r.command_payload, r.requested_at
+                   FROM decision_execution_requests r
+                   WHERE r.tenant_id = $1::uuid AND r.status = 'queued'
+                     AND ($2::text IS NULL OR r.target_type = $2)
+                     AND NOT EXISTS (
+                       SELECT 1 FROM decision_execution_delivery_attempts a
+                       WHERE a.tenant_id = r.tenant_id
+                         AND a.execution_request_id = r.execution_request_id
+                         AND a.receipt_id IS NULL
+                     )
+                   ORDER BY r.requested_at
+                   LIMIT $3""",
+                tenant_id,
+                target_type,
+                limit,
+            )
         items = []
         for r in rows:
             item = dict(r)
@@ -2502,24 +2508,27 @@ async def list_inflight_execution_requests(
     """Recovery feed for requests claimed by this adapter but missing a terminal receipt."""
     conn = await _connect()
     try:
-        rows = await conn.fetch(
-            """SELECT r.execution_request_id, r.decision_id, r.execution_plan_id,
-                      r.dispatch_authorization_id, r.target_type, r.target_id,
-                      r.operation_type, r.command_payload, r.requested_at, a.claimed_at
-               FROM decision_execution_requests r
-               JOIN decision_execution_delivery_attempts a
-                 ON a.tenant_id=r.tenant_id
-                AND a.execution_request_id=r.execution_request_id
-               WHERE r.tenant_id=$1::uuid AND r.status='delivering'
-                 AND a.adapter_id=$2 AND a.receipt_id IS NULL
-                 AND ($3::text IS NULL OR r.target_type=$3)
-               ORDER BY a.claimed_at
-               LIMIT $4""",
-            tenant_id,
-            adapter_id,
-            target_type,
-            limit,
-        )
+        async with conn.transaction():
+            # 037 forces tenant RLS on execution requests/attempts: bind first.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            rows = await conn.fetch(
+                """SELECT r.execution_request_id, r.decision_id, r.execution_plan_id,
+                          r.dispatch_authorization_id, r.target_type, r.target_id,
+                          r.operation_type, r.command_payload, r.requested_at, a.claimed_at
+                   FROM decision_execution_requests r
+                   JOIN decision_execution_delivery_attempts a
+                     ON a.tenant_id=r.tenant_id
+                    AND a.execution_request_id=r.execution_request_id
+                   WHERE r.tenant_id=$1::uuid AND r.status='delivering'
+                     AND a.adapter_id=$2 AND a.receipt_id IS NULL
+                     AND ($3::text IS NULL OR r.target_type=$3)
+                   ORDER BY a.claimed_at
+                   LIMIT $4""",
+                tenant_id,
+                adapter_id,
+                target_type,
+                limit,
+            )
         items = []
         for r in rows:
             item = dict(r)
@@ -3186,43 +3195,47 @@ async def build_calibration_dataset(
     """WX-11.1: read immutable attribution/outcome lineage into a calibration dataset."""
     conn = await _connect()
     try:
-        rows = await conn.fetch(
-            """SELECT la.learning_attribution_id,la.outcome_id,la.decision_id,
-                      la.execution_request_id,la.model_id,la.feature_set_id,la.label,
-                      la.weight,la.evidence_snapshot_id,la.attributed_at,
-                      o.verification_state,o.success,o.metrics,o.actual,
-                      d.decision_type,d.field_id,d.season_id,d.crop_id,d.cultivar_id,
-                      d.agronomic_context_snapshot_id,d.vegetation_snapshot_id,
-                      d.field_historical_context_snapshot_id,d.feature_manifest_id,d.feature_manifest_hash,
-                      d.confidence,d.created_at AS decision_created_at
-                 FROM decision_learning_attributions la
-                 JOIN outcome_record o
-                   ON o.tenant_id=la.tenant_id AND o.outcome_id=la.outcome_id
-                 JOIN decision_record d
-                   ON d.tenant_id=la.tenant_id AND d.decision_id=la.decision_id
-                WHERE la.tenant_id=$1::uuid AND la.model_id=$2
-                  AND la.feature_set_id IS NOT DISTINCT FROM $3
-                  AND la.learning_state='attributed'
-                  AND o.verification_state IN ('verified_success','verified_failure')
-                  AND d.agronomic_context_snapshot_id IS NOT NULL
-                  AND d.vegetation_snapshot_id IS NOT NULL
-                  AND d.field_historical_context_snapshot_id IS NOT NULL
-                  AND d.feature_manifest_id IS NOT NULL
-                  AND d.feature_manifest_hash IS NOT NULL
-                  AND d.season_id IS NOT NULL
-                  AND d.crop_id IS NOT NULL
-                  AND d.cultivar_id IS NOT NULL
-                  AND ($4::text IS NULL OR d.field_id=$4)
-                  AND ($5::text IS NULL OR d.season_id=$5)
-                ORDER BY la.attributed_at DESC,la.learning_attribution_id DESC
-                LIMIT $6""",
-            tenant_id,
-            model_id,
-            feature_set_id,
-            field_id,
-            season_id,
-            limit,
-        )
+        async with conn.transaction():
+            # decision_record/outcome_record are FORCE-RLS on the shared DB (v78) and 037
+            # forces attributions too: without the binding this read returns no rows.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            rows = await conn.fetch(
+                """SELECT la.learning_attribution_id,la.outcome_id,la.decision_id,
+                          la.execution_request_id,la.model_id,la.feature_set_id,la.label,
+                          la.weight,la.evidence_snapshot_id,la.attributed_at,
+                          o.verification_state,o.success,o.metrics,o.actual,
+                          d.decision_type,d.field_id,d.season_id,d.crop_id,d.cultivar_id,
+                          d.agronomic_context_snapshot_id,d.vegetation_snapshot_id,
+                          d.field_historical_context_snapshot_id,d.feature_manifest_id,d.feature_manifest_hash,
+                          d.confidence,d.created_at AS decision_created_at
+                     FROM decision_learning_attributions la
+                     JOIN outcome_record o
+                       ON o.tenant_id=la.tenant_id AND o.outcome_id=la.outcome_id
+                     JOIN decision_record d
+                       ON d.tenant_id=la.tenant_id AND d.decision_id=la.decision_id
+                    WHERE la.tenant_id=$1::uuid AND la.model_id=$2
+                      AND la.feature_set_id IS NOT DISTINCT FROM $3
+                      AND la.learning_state='attributed'
+                      AND o.verification_state IN ('verified_success','verified_failure')
+                      AND d.agronomic_context_snapshot_id IS NOT NULL
+                      AND d.vegetation_snapshot_id IS NOT NULL
+                      AND d.field_historical_context_snapshot_id IS NOT NULL
+                      AND d.feature_manifest_id IS NOT NULL
+                      AND d.feature_manifest_hash IS NOT NULL
+                      AND d.season_id IS NOT NULL
+                      AND d.crop_id IS NOT NULL
+                      AND d.cultivar_id IS NOT NULL
+                      AND ($4::text IS NULL OR d.field_id=$4)
+                      AND ($5::text IS NULL OR d.season_id=$5)
+                    ORDER BY la.attributed_at DESC,la.learning_attribution_id DESC
+                    LIMIT $6""",
+                tenant_id,
+                model_id,
+                feature_set_id,
+                field_id,
+                season_id,
+                limit,
+            )
         items = []
         success_weight = 0.0
         total_weight = 0.0
@@ -4515,13 +4528,16 @@ async def get_active_model_state(
 ) -> dict[str, Any]:
     conn = await _connect()
     try:
-        row = await conn.fetchrow(
-            """WITH activations AS (SELECT c.model_id,c.feature_set_id,c.target_environment,c.registry_alias,r.active_artifact_uri,r.active_artifact_digest,r.registry_version,r.recorded_at,'activated'::text transition_state,'activation'::text source_transition_type,r.activation_receipt_id source_receipt_id,r.agronomic_cohorts,r.agronomic_cohort_fingerprint FROM decision_model_registry_activation_receipts r JOIN decision_model_registry_activation_commands c USING(activation_command_id) WHERE r.tenant_id=$1::uuid AND r.receipt_state='activated'), rollbacks AS (SELECT c.model_id,c.feature_set_id,c.target_environment,c.registry_alias,r.active_artifact_uri,r.active_artifact_digest,r.registry_version,r.recorded_at,'rolled_back'::text transition_state,'rollback'::text source_transition_type,r.rollback_receipt_id source_receipt_id,r.agronomic_cohorts,r.agronomic_cohort_fingerprint FROM decision_model_registry_rollback_receipts r JOIN decision_model_registry_rollback_commands rb USING(rollback_command_id) JOIN decision_model_registry_activation_commands c ON c.activation_command_id=rb.activation_command_id WHERE r.tenant_id=$1::uuid AND r.receipt_state='rolled_back') SELECT * FROM (SELECT * FROM activations UNION ALL SELECT * FROM rollbacks) s WHERE model_id=$2 AND feature_set_id IS NOT DISTINCT FROM $3 AND target_environment=$4 ORDER BY recorded_at DESC LIMIT 1""",
-            tenant_id,
-            model_id,
-            feature_set_id,
-            target_environment,
-        )
+        async with conn.transaction():
+            # 037 forces tenant RLS on the registry receipt/command tables: bind first.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            row = await conn.fetchrow(
+                """WITH activations AS (SELECT c.model_id,c.feature_set_id,c.target_environment,c.registry_alias,r.active_artifact_uri,r.active_artifact_digest,r.registry_version,r.recorded_at,'activated'::text transition_state,'activation'::text source_transition_type,r.activation_receipt_id source_receipt_id,r.agronomic_cohorts,r.agronomic_cohort_fingerprint FROM decision_model_registry_activation_receipts r JOIN decision_model_registry_activation_commands c USING(activation_command_id) WHERE r.tenant_id=$1::uuid AND r.receipt_state='activated'), rollbacks AS (SELECT c.model_id,c.feature_set_id,c.target_environment,c.registry_alias,r.active_artifact_uri,r.active_artifact_digest,r.registry_version,r.recorded_at,'rolled_back'::text transition_state,'rollback'::text source_transition_type,r.rollback_receipt_id source_receipt_id,r.agronomic_cohorts,r.agronomic_cohort_fingerprint FROM decision_model_registry_rollback_receipts r JOIN decision_model_registry_rollback_commands rb USING(rollback_command_id) JOIN decision_model_registry_activation_commands c ON c.activation_command_id=rb.activation_command_id WHERE r.tenant_id=$1::uuid AND r.receipt_state='rolled_back') SELECT * FROM (SELECT * FROM activations UNION ALL SELECT * FROM rollbacks) s WHERE model_id=$2 AND feature_set_id IS NOT DISTINCT FROM $3 AND target_environment=$4 ORDER BY recorded_at DESC LIMIT 1""",
+                tenant_id,
+                model_id,
+                feature_set_id,
+                target_environment,
+            )
         if not row:
             return {"status": "not_found"}
         return {
@@ -4892,190 +4908,199 @@ async def list_runtime_work(*, tenant_id: str, worker_id: str, limit: int = 20) 
     lim = max(1, min(int(limit or 20), 100))
     conn = await _connect()
     try:
-        rows = await conn.fetch(
-            """
-            WITH work AS (
-                SELECT 'activation_command'::text AS work_type, c.created_at AS at,
-                       jsonb_build_object(
-                         'activation_command_id', c.activation_command_id,
-                         'model_id', c.model_id,
-                         'target_environment', c.target_environment,
-                         'registry_alias', c.registry_alias,
-                         'previous_artifact_digest', c.previous_artifact_digest,
-                         'candidate_artifact_uri', c.candidate_artifact_uri,
-                         'candidate_artifact_digest', c.candidate_artifact_digest) AS payload
-                FROM decision_model_registry_activation_commands c
-                WHERE c.tenant_id=$1::uuid
-                  AND NOT EXISTS (SELECT 1 FROM decision_model_registry_activation_receipts r
-                                  WHERE r.tenant_id=c.tenant_id AND r.activation_command_id=c.activation_command_id)
-                UNION ALL
-                SELECT 'rollback_command', rc.requested_at,
-                       jsonb_build_object(
-                         'rollback_command_id', rc.rollback_command_id,
-                         'model_id', ac.model_id,
-                         'target_environment', rc.target_environment,
-                         'registry_alias', rc.registry_alias,
-                         'replace_artifact_digest', rc.replace_artifact_digest,
-                         'restore_artifact_uri', rc.restore_artifact_uri,
-                         'restore_artifact_digest', rc.restore_artifact_digest)
-                FROM decision_model_registry_rollback_commands rc
-                JOIN decision_model_registry_activation_commands ac
-                  ON ac.tenant_id=rc.tenant_id AND ac.activation_command_id=rc.activation_command_id
-                WHERE rc.tenant_id=$1::uuid
-                  AND NOT EXISTS (SELECT 1 FROM decision_model_registry_rollback_receipts rr
-                                  WHERE rr.tenant_id=rc.tenant_id AND rr.rollback_command_id=rc.rollback_command_id)
-                UNION ALL
-                SELECT 'post_activation_verification', ar.recorded_at,
-                       jsonb_build_object(
-                         'activation_receipt_id', ar.activation_receipt_id,
-                         'model_id', ac.model_id,
-                         'feature_set_id', ac.feature_set_id,
-                         'target_environment', ac.target_environment,
-                         'active_artifact_uri', ar.active_artifact_uri,
-                         'active_artifact_digest', ar.active_artifact_digest)
-                FROM decision_model_registry_activation_receipts ar
-                JOIN decision_model_registry_activation_commands ac
-                  ON ac.tenant_id=ar.tenant_id AND ac.activation_command_id=ar.activation_command_id
-                WHERE ar.tenant_id=$1::uuid AND ar.receipt_state='activated'
-                  AND NOT EXISTS (SELECT 1 FROM decision_model_post_activation_verifications v
-                                  WHERE v.tenant_id=ar.tenant_id AND v.activation_receipt_id=ar.activation_receipt_id)
-                UNION ALL
-                SELECT 'rollout_apply', rp.requested_at,
-                       jsonb_build_object(
-                         'rollout_plan_id', rp.rollout_plan_id,
-                         'model_id', ac.model_id,
-                         'feature_set_id', ac.feature_set_id,
-                         'target_environment', ac.target_environment,
-                         'rollout_mode', rp.mode,
-                         'traffic_percent', rp.traffic_percent,
-                         'candidate_artifact_digest', ac.candidate_artifact_digest,
-                         -- CAS invariant is derived from the activation *receipt* (what is actually
-                         -- live now), not the pre-activation pointer: the controller confirms the
-                         -- active artifact matches what activation recorded before shifting traffic.
-                         'expected_active_artifact_digest', ar.active_artifact_digest)
-                FROM decision_model_rollout_plans rp
-                JOIN decision_model_registry_activation_receipts ar
-                  ON ar.tenant_id=rp.tenant_id AND ar.activation_receipt_id=rp.activation_receipt_id
-                JOIN decision_model_registry_activation_commands ac
-                  ON ac.tenant_id=ar.tenant_id AND ac.activation_command_id=ar.activation_command_id
-                WHERE rp.tenant_id=$1::uuid
-                  AND NOT EXISTS (SELECT 1 FROM decision_model_rollout_receipts rr
-                                  WHERE rr.tenant_id=rp.tenant_id AND rr.rollout_plan_id=rp.rollout_plan_id)
-                UNION ALL
-                SELECT 'retraining_dispatch', tr.requested_at,
-                       jsonb_build_object(
-                         'retraining_request_id', tr.retraining_request_id,
-                         'model_id', tr.model_id,
-                         'feature_set_id', tr.feature_set_id,
-                         'dataset_fingerprint', tr.dataset_fingerprint,
-                         'training_manifest', tr.training_manifest,
-                         'code_version', tr.code_version,
-                         'hyperparameters', tr.hyperparameters)
-                FROM decision_model_retraining_requests tr
-                WHERE tr.tenant_id=$1::uuid
-                  AND NOT EXISTS (SELECT 1 FROM decision_model_retraining_dispatch_receipts dr
-                                  WHERE dr.tenant_id=tr.tenant_id AND dr.retraining_request_id=tr.retraining_request_id)
-                UNION ALL
-                -- WX-12.3 scheduled monitoring: emit the latest fully-elapsed window that has no
-                -- snapshot yet. Window boundaries tile from a second-truncated anchor so the ISO
-                -- string round-trips exactly through the runtime and back into the snapshot row
-                -- (progression is derived from the append-only snapshot, not mutable state).
-                SELECT 'monitoring_window', mw.we,
-                       jsonb_build_object(
-                         'schedule_id', s.schedule_id,
-                         'work_key', s.schedule_id,
-                         'active_state', jsonb_build_object(
-                           'model_id', s.model_id,
-                           'feature_set_id', s.feature_set_id,
-                           'target_environment', s.target_environment),
-                         'window_start', to_char(mw.ws AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
-                         'window_end', to_char(mw.we AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))
-                FROM decision_model_runtime_schedules s
-                CROSS JOIN LATERAL (
-                  SELECT date_trunc('second', s.anchor_at)
-                           + make_interval(secs => floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds) * s.period_seconds)
-                           AS we,
-                         date_trunc('second', s.anchor_at)
-                           + make_interval(secs => (floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds) - 1) * s.period_seconds)
-                           AS ws,
-                         floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds)::bigint AS n
-                ) mw
-                WHERE s.tenant_id=$1::uuid AND s.enabled AND s.kind='monitoring_window' AND mw.n >= 1
-                  AND NOT EXISTS (SELECT 1 FROM decision_model_monitoring_snapshots ms
-                                  WHERE ms.tenant_id=s.tenant_id AND ms.model_id=s.model_id
-                                    AND ms.target_environment=s.target_environment
-                                    AND ms.window_start=mw.ws AND ms.window_end=mw.we)
-                UNION ALL
-                -- WX-12.3 scheduled reconciliation: due when no reconcile evidence exists within the
-                -- last period for this (model, environment). period_index gives the runtime a
-                -- deterministic idempotency bucket.
-                SELECT 'active_state_reconcile', now(),
-                       jsonb_build_object(
-                         'schedule_id', s.schedule_id,
-                         'work_key', s.schedule_id,
-                         'model_id', s.model_id,
-                         'feature_set_id', s.feature_set_id,
-                         'target_environment', s.target_environment,
-                         'period_index', floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds)::bigint)
-                FROM decision_model_runtime_schedules s
-                WHERE s.tenant_id=$1::uuid AND s.enabled AND s.kind='active_state_reconcile'
-                  AND NOT EXISTS (SELECT 1 FROM decision_model_reconcile_evidence re
-                                  WHERE re.tenant_id=s.tenant_id AND re.model_id=s.model_id
-                                    AND re.target_environment=s.target_environment
-                                    AND re.checked_at > now() - make_interval(secs => s.period_seconds))
+        async with conn.transaction():
+            # 037 forces tenant RLS on every WX-11/WX-12 table below, including the lease
+            # table: bind the tenant first. The feed read and the lease upserts now commit
+            # together (one transaction) instead of one autocommit per lease; a concurrent
+            # replica's upsert on the same key waits for this commit, then loses on the
+            # unexpired-lease predicate, so the at-most-one-holder guarantee is unchanged.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            rows = await conn.fetch(
+                """
+                WITH work AS (
+                    SELECT 'activation_command'::text AS work_type, c.created_at AS at,
+                           jsonb_build_object(
+                             'activation_command_id', c.activation_command_id,
+                             'model_id', c.model_id,
+                             'target_environment', c.target_environment,
+                             'registry_alias', c.registry_alias,
+                             'previous_artifact_digest', c.previous_artifact_digest,
+                             'candidate_artifact_uri', c.candidate_artifact_uri,
+                             'candidate_artifact_digest', c.candidate_artifact_digest) AS payload
+                    FROM decision_model_registry_activation_commands c
+                    WHERE c.tenant_id=$1::uuid
+                      AND NOT EXISTS (SELECT 1 FROM decision_model_registry_activation_receipts r
+                                      WHERE r.tenant_id=c.tenant_id AND r.activation_command_id=c.activation_command_id)
+                    UNION ALL
+                    SELECT 'rollback_command', rc.requested_at,
+                           jsonb_build_object(
+                             'rollback_command_id', rc.rollback_command_id,
+                             'model_id', ac.model_id,
+                             'target_environment', rc.target_environment,
+                             'registry_alias', rc.registry_alias,
+                             'replace_artifact_digest', rc.replace_artifact_digest,
+                             'restore_artifact_uri', rc.restore_artifact_uri,
+                             'restore_artifact_digest', rc.restore_artifact_digest)
+                    FROM decision_model_registry_rollback_commands rc
+                    JOIN decision_model_registry_activation_commands ac
+                      ON ac.tenant_id=rc.tenant_id AND ac.activation_command_id=rc.activation_command_id
+                    WHERE rc.tenant_id=$1::uuid
+                      AND NOT EXISTS (SELECT 1 FROM decision_model_registry_rollback_receipts rr
+                                      WHERE rr.tenant_id=rc.tenant_id AND rr.rollback_command_id=rc.rollback_command_id)
+                    UNION ALL
+                    SELECT 'post_activation_verification', ar.recorded_at,
+                           jsonb_build_object(
+                             'activation_receipt_id', ar.activation_receipt_id,
+                             'model_id', ac.model_id,
+                             'feature_set_id', ac.feature_set_id,
+                             'target_environment', ac.target_environment,
+                             'active_artifact_uri', ar.active_artifact_uri,
+                             'active_artifact_digest', ar.active_artifact_digest)
+                    FROM decision_model_registry_activation_receipts ar
+                    JOIN decision_model_registry_activation_commands ac
+                      ON ac.tenant_id=ar.tenant_id AND ac.activation_command_id=ar.activation_command_id
+                    WHERE ar.tenant_id=$1::uuid AND ar.receipt_state='activated'
+                      AND NOT EXISTS (SELECT 1 FROM decision_model_post_activation_verifications v
+                                      WHERE v.tenant_id=ar.tenant_id AND v.activation_receipt_id=ar.activation_receipt_id)
+                    UNION ALL
+                    SELECT 'rollout_apply', rp.requested_at,
+                           jsonb_build_object(
+                             'rollout_plan_id', rp.rollout_plan_id,
+                             'model_id', ac.model_id,
+                             'feature_set_id', ac.feature_set_id,
+                             'target_environment', ac.target_environment,
+                             'rollout_mode', rp.mode,
+                             'traffic_percent', rp.traffic_percent,
+                             'candidate_artifact_digest', ac.candidate_artifact_digest,
+                             -- CAS invariant is derived from the activation *receipt* (what is actually
+                             -- live now), not the pre-activation pointer: the controller confirms the
+                             -- active artifact matches what activation recorded before shifting traffic.
+                             'expected_active_artifact_digest', ar.active_artifact_digest)
+                    FROM decision_model_rollout_plans rp
+                    JOIN decision_model_registry_activation_receipts ar
+                      ON ar.tenant_id=rp.tenant_id AND ar.activation_receipt_id=rp.activation_receipt_id
+                    JOIN decision_model_registry_activation_commands ac
+                      ON ac.tenant_id=ar.tenant_id AND ac.activation_command_id=ar.activation_command_id
+                    WHERE rp.tenant_id=$1::uuid
+                      AND NOT EXISTS (SELECT 1 FROM decision_model_rollout_receipts rr
+                                      WHERE rr.tenant_id=rp.tenant_id AND rr.rollout_plan_id=rp.rollout_plan_id)
+                    UNION ALL
+                    SELECT 'retraining_dispatch', tr.requested_at,
+                           jsonb_build_object(
+                             'retraining_request_id', tr.retraining_request_id,
+                             'model_id', tr.model_id,
+                             'feature_set_id', tr.feature_set_id,
+                             'dataset_fingerprint', tr.dataset_fingerprint,
+                             'training_manifest', tr.training_manifest,
+                             'code_version', tr.code_version,
+                             'hyperparameters', tr.hyperparameters)
+                    FROM decision_model_retraining_requests tr
+                    WHERE tr.tenant_id=$1::uuid
+                      AND NOT EXISTS (SELECT 1 FROM decision_model_retraining_dispatch_receipts dr
+                                      WHERE dr.tenant_id=tr.tenant_id AND dr.retraining_request_id=tr.retraining_request_id)
+                    UNION ALL
+                    -- WX-12.3 scheduled monitoring: emit the latest fully-elapsed window that has no
+                    -- snapshot yet. Window boundaries tile from a second-truncated anchor so the ISO
+                    -- string round-trips exactly through the runtime and back into the snapshot row
+                    -- (progression is derived from the append-only snapshot, not mutable state).
+                    SELECT 'monitoring_window', mw.we,
+                           jsonb_build_object(
+                             'schedule_id', s.schedule_id,
+                             'work_key', s.schedule_id,
+                             'active_state', jsonb_build_object(
+                               'model_id', s.model_id,
+                               'feature_set_id', s.feature_set_id,
+                               'target_environment', s.target_environment),
+                             'window_start', to_char(mw.ws AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+                             'window_end', to_char(mw.we AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))
+                    FROM decision_model_runtime_schedules s
+                    CROSS JOIN LATERAL (
+                      SELECT date_trunc('second', s.anchor_at)
+                               + make_interval(secs => floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds) * s.period_seconds)
+                               AS we,
+                             date_trunc('second', s.anchor_at)
+                               + make_interval(secs => (floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds) - 1) * s.period_seconds)
+                               AS ws,
+                             floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds)::bigint AS n
+                    ) mw
+                    WHERE s.tenant_id=$1::uuid AND s.enabled AND s.kind='monitoring_window' AND mw.n >= 1
+                      AND NOT EXISTS (SELECT 1 FROM decision_model_monitoring_snapshots ms
+                                      WHERE ms.tenant_id=s.tenant_id AND ms.model_id=s.model_id
+                                        AND ms.target_environment=s.target_environment
+                                        AND ms.window_start=mw.ws AND ms.window_end=mw.we)
+                    UNION ALL
+                    -- WX-12.3 scheduled reconciliation: due when no reconcile evidence exists within the
+                    -- last period for this (model, environment). period_index gives the runtime a
+                    -- deterministic idempotency bucket.
+                    SELECT 'active_state_reconcile', now(),
+                           jsonb_build_object(
+                             'schedule_id', s.schedule_id,
+                             'work_key', s.schedule_id,
+                             'model_id', s.model_id,
+                             'feature_set_id', s.feature_set_id,
+                             'target_environment', s.target_environment,
+                             'period_index', floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds)::bigint)
+                    FROM decision_model_runtime_schedules s
+                    WHERE s.tenant_id=$1::uuid AND s.enabled AND s.kind='active_state_reconcile'
+                      AND NOT EXISTS (SELECT 1 FROM decision_model_reconcile_evidence re
+                                      WHERE re.tenant_id=s.tenant_id AND re.model_id=s.model_id
+                                        AND re.target_environment=s.target_environment
+                                        AND re.checked_at > now() - make_interval(secs => s.period_seconds))
+                )
+                SELECT work_type, payload FROM work ORDER BY at ASC LIMIT $2
+                """,
+                tenant_id,
+                lim,
             )
-            SELECT work_type, payload FROM work ORDER BY at ASC LIMIT $2
-            """,
-            tenant_id,
-            lim,
-        )
-        # Multi-replica safety: activation/rollback already have claim tables (the worker claims
-        # atomically). For the side-effecting types below, take a durable lease here so at most one
-        # replica receives each item; an expired lease is reclaimable (attempt++). The lease insert
-        # is the real guard — even if two workers saw the same candidate, only one wins.
-        lease_seconds = max(30, int(os.getenv("RUNTIME_WORK_LEASE_SECONDS", "120")))
-        claimed_types = {
-            "post_activation_verification": "activation_receipt_id",
-            "rollout_apply": "rollout_plan_id",
-            "retraining_dispatch": "retraining_request_id",
-            # scheduled types lease per schedule (bounded: one claim row per schedule; a live
-            # lease from the previous window delays the next by at most lease_seconds).
-            "monitoring_window": "work_key",
-            "active_state_reconcile": "work_key",
-        }
-        items: list[dict[str, Any]] = []
-        for r in rows:
-            wt = r["work_type"]
-            payload = r["payload"] if isinstance(r["payload"], dict) else json.loads(r["payload"])
-            key_field = claimed_types.get(wt)
-            if key_field is not None:
-                work_key = payload[key_field]
-                claim_id = (
-                    "wkclaim_"
-                    + hashlib.sha256(f"{tenant_id}:{wt}:{work_key}".encode()).hexdigest()[:20]
+            # Multi-replica safety: activation/rollback already have claim tables (the worker claims
+            # atomically). For the side-effecting types below, take a durable lease here so at most one
+            # replica receives each item; an expired lease is reclaimable (attempt++). The lease insert
+            # is the real guard — even if two workers saw the same candidate, only one wins.
+            lease_seconds = max(30, int(os.getenv("RUNTIME_WORK_LEASE_SECONDS", "120")))
+            claimed_types = {
+                "post_activation_verification": "activation_receipt_id",
+                "rollout_apply": "rollout_plan_id",
+                "retraining_dispatch": "retraining_request_id",
+                # scheduled types lease per schedule (bounded: one claim row per schedule; a live
+                # lease from the previous window delays the next by at most lease_seconds).
+                "monitoring_window": "work_key",
+                "active_state_reconcile": "work_key",
+            }
+            items: list[dict[str, Any]] = []
+            for r in rows:
+                wt = r["work_type"]
+                payload = (
+                    r["payload"] if isinstance(r["payload"], dict) else json.loads(r["payload"])
                 )
-                won = await conn.fetchval(
-                    """INSERT INTO decision_model_runtime_work_claims
-                         (work_claim_id,tenant_id,work_type,work_key,worker_id,lease_expires_at)
-                       VALUES($1,$2::uuid,$3,$4,$5, now() + make_interval(secs => $6))
-                       ON CONFLICT (tenant_id,work_type,work_key) DO UPDATE
-                         SET worker_id=EXCLUDED.worker_id, lease_expires_at=EXCLUDED.lease_expires_at,
-                             attempt=decision_model_runtime_work_claims.attempt+1,
-                             claimed_at=now(), heartbeat_at=now()
-                         WHERE decision_model_runtime_work_claims.lease_expires_at < now()
-                       RETURNING work_claim_id""",
-                    claim_id,
-                    tenant_id,
-                    wt,
-                    work_key,
-                    worker_id,
-                    lease_seconds,
-                )
-                if not won:
-                    continue  # another replica holds a live lease on this item
-                payload["work_claim_id"] = claim_id
-            items.append({"work_type": wt, "payload": payload})
-        return {"status": "ok", "authoritative": True, "worker_id": worker_id, "items": items}
+                key_field = claimed_types.get(wt)
+                if key_field is not None:
+                    work_key = payload[key_field]
+                    claim_id = (
+                        "wkclaim_"
+                        + hashlib.sha256(f"{tenant_id}:{wt}:{work_key}".encode()).hexdigest()[:20]
+                    )
+                    won = await conn.fetchval(
+                        """INSERT INTO decision_model_runtime_work_claims
+                             (work_claim_id,tenant_id,work_type,work_key,worker_id,lease_expires_at)
+                           VALUES($1,$2::uuid,$3,$4,$5, now() + make_interval(secs => $6))
+                           ON CONFLICT (tenant_id,work_type,work_key) DO UPDATE
+                             SET worker_id=EXCLUDED.worker_id, lease_expires_at=EXCLUDED.lease_expires_at,
+                                 attempt=decision_model_runtime_work_claims.attempt+1,
+                                 claimed_at=now(), heartbeat_at=now()
+                             WHERE decision_model_runtime_work_claims.lease_expires_at < now()
+                           RETURNING work_claim_id""",
+                        claim_id,
+                        tenant_id,
+                        wt,
+                        work_key,
+                        worker_id,
+                        lease_seconds,
+                    )
+                    if not won:
+                        continue  # another replica holds a live lease on this item
+                    payload["work_claim_id"] = claim_id
+                items.append({"work_type": wt, "payload": payload})
+            return {"status": "ok", "authoritative": True, "worker_id": worker_id, "items": items}
     finally:
         await conn.close()
 
@@ -5546,19 +5571,22 @@ async def compose_agronomic_context(
 async def get_context_snapshot(*, tenant_id: str, snapshot_id: str) -> dict[str, Any]:
     conn = await _connect()
     try:
-        row = await conn.fetchrow(
-            "SELECT snapshot_id, field_id, season_id, as_of_time, schema_version, composer_version, context, content_hash, created_by, created_at FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND snapshot_id=$2",
-            tenant_id,
-            snapshot_id,
-        )
-        if not row:
-            return {"status": "not_found"}
-        out = dict(row)
-        if not isinstance(out.get("context"), dict):
-            out["context"] = json.loads(out["context"])
-        for k in ("as_of_time", "created_at"):
-            out[k] = out[k].isoformat()
-        return {"status": "ok", "snapshot": out}
+        async with conn.transaction():
+            # 037 forces tenant RLS on context snapshots: bind first.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            row = await conn.fetchrow(
+                "SELECT snapshot_id, field_id, season_id, as_of_time, schema_version, composer_version, context, content_hash, created_by, created_at FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND snapshot_id=$2",
+                tenant_id,
+                snapshot_id,
+            )
+            if not row:
+                return {"status": "not_found"}
+            out = dict(row)
+            if not isinstance(out.get("context"), dict):
+                out["context"] = json.loads(out["context"])
+            for k in ("as_of_time", "created_at"):
+                out[k] = out[k].isoformat()
+            return {"status": "ok", "snapshot": out}
     finally:
         await conn.close()
 
@@ -5587,127 +5615,131 @@ async def get_decision_agronomic_evidence(*, tenant_id: str, decision_id: str) -
     """
     conn = await _connect()
     try:
-        decision = await conn.fetchrow(
-            """SELECT decision_id, field_id, season_id, crop_id, cultivar_id, decision_type,
-                      stage, review_state, candidate_lineage_id, confidence, decision_value,
-                      created_by, created_at, context_contract_version,
-                      agronomic_context_snapshot_id, field_historical_context_snapshot_id,
-                      feature_manifest_id, feature_manifest_hash, vegetation_snapshot_id
-               FROM decision_record WHERE tenant_id=$1::uuid AND decision_id=$2""",
-            tenant_id,
-            decision_id,
-        )
-        if not decision:
-            return {"status": "not_found"}
-        d = dict(decision)
-        d["decision_value"] = _jsonish(d.get("decision_value"))
-        d["created_at"] = _iso(d["created_at"])
-
-        context = None
-        if d["agronomic_context_snapshot_id"]:
-            row = await conn.fetchrow(
-                """SELECT snapshot_id, field_id, season_id, as_of_time, schema_version,
-                          composer_version, context, content_hash, created_by, created_at
-                   FROM decision_agronomic_context_snapshots
-                   WHERE tenant_id=$1::uuid AND snapshot_id=$2""",
+        async with conn.transaction():
+            # Every table read here is FORCE-RLS (decision_record since v78, the AC-1
+            # snapshot/manifest tables since 037): one transaction, tenant bound first.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            decision = await conn.fetchrow(
+                """SELECT decision_id, field_id, season_id, crop_id, cultivar_id, decision_type,
+                          stage, review_state, candidate_lineage_id, confidence, decision_value,
+                          created_by, created_at, context_contract_version,
+                          agronomic_context_snapshot_id, field_historical_context_snapshot_id,
+                          feature_manifest_id, feature_manifest_hash, vegetation_snapshot_id
+                   FROM decision_record WHERE tenant_id=$1::uuid AND decision_id=$2""",
                 tenant_id,
-                d["agronomic_context_snapshot_id"],
+                decision_id,
             )
-            if row:
-                context = dict(row)
-                context["context"] = _jsonish(context["context"])
-                context["as_of_time"] = _iso(context["as_of_time"])
-                context["created_at"] = _iso(context["created_at"])
+            if not decision:
+                return {"status": "not_found"}
+            d = dict(decision)
+            d["decision_value"] = _jsonish(d.get("decision_value"))
+            d["created_at"] = _iso(d["created_at"])
 
-        historical = None
-        if d["field_historical_context_snapshot_id"]:
-            row = await conn.fetchrow(
-                """SELECT historical_snapshot_id, field_id, season_id, as_of_time, history_from,
-                          history_to, manifest_version, history, content_hash, created_at
-                   FROM decision_field_historical_context_snapshots
-                   WHERE tenant_id=$1::uuid AND historical_snapshot_id=$2""",
-                tenant_id,
-                d["field_historical_context_snapshot_id"],
-            )
-            if row:
-                historical = dict(row)
-                historical["history"] = _jsonish(historical["history"])
-                for k in ("as_of_time", "history_from", "history_to", "created_at"):
-                    historical[k] = _iso(historical[k])
+            context = None
+            if d["agronomic_context_snapshot_id"]:
+                row = await conn.fetchrow(
+                    """SELECT snapshot_id, field_id, season_id, as_of_time, schema_version,
+                              composer_version, context, content_hash, created_by, created_at
+                       FROM decision_agronomic_context_snapshots
+                       WHERE tenant_id=$1::uuid AND snapshot_id=$2""",
+                    tenant_id,
+                    d["agronomic_context_snapshot_id"],
+                )
+                if row:
+                    context = dict(row)
+                    context["context"] = _jsonish(context["context"])
+                    context["as_of_time"] = _iso(context["as_of_time"])
+                    context["created_at"] = _iso(context["created_at"])
 
-        manifest = None
-        if d["feature_manifest_id"]:
-            head = await conn.fetchrow(
-                """SELECT feature_manifest_id, field_id, as_of_time, decision_cutoff_time,
-                          content_hash, created_at
-                   FROM decision_feature_manifests
-                   WHERE tenant_id=$1::uuid AND feature_manifest_id=$2""",
-                tenant_id,
-                d["feature_manifest_id"],
-            )
-            if head:
-                manifest = dict(head)
-                for k in ("as_of_time", "decision_cutoff_time", "created_at"):
-                    manifest[k] = _iso(manifest[k])
-                entries = await conn.fetch(
-                    """SELECT name, value, unit, source_service, source_snapshot_id,
-                              observed_at, available_at, quality_status, formula_version
-                       FROM decision_feature_manifest_entries
-                       WHERE tenant_id=$1::uuid AND feature_manifest_id=$2 ORDER BY name""",
+            historical = None
+            if d["field_historical_context_snapshot_id"]:
+                row = await conn.fetchrow(
+                    """SELECT historical_snapshot_id, field_id, season_id, as_of_time, history_from,
+                              history_to, manifest_version, history, content_hash, created_at
+                       FROM decision_field_historical_context_snapshots
+                       WHERE tenant_id=$1::uuid AND historical_snapshot_id=$2""",
+                    tenant_id,
+                    d["field_historical_context_snapshot_id"],
+                )
+                if row:
+                    historical = dict(row)
+                    historical["history"] = _jsonish(historical["history"])
+                    for k in ("as_of_time", "history_from", "history_to", "created_at"):
+                        historical[k] = _iso(historical[k])
+
+            manifest = None
+            if d["feature_manifest_id"]:
+                head = await conn.fetchrow(
+                    """SELECT feature_manifest_id, field_id, as_of_time, decision_cutoff_time,
+                              content_hash, created_at
+                       FROM decision_feature_manifests
+                       WHERE tenant_id=$1::uuid AND feature_manifest_id=$2""",
                     tenant_id,
                     d["feature_manifest_id"],
                 )
-                manifest["entries"] = [
-                    {
-                        **dict(e),
-                        "value": _jsonish(e["value"]),
-                        "observed_at": _iso(e["observed_at"]),
-                        "available_at": _iso(e["available_at"]),
-                    }
-                    for e in entries
-                ]
-                # the hash pinned ON the decision must match the manifest it points to —
-                # surface the comparison so tampering shows up in the UI, not just in triggers.
-                manifest["hash_matches_decision"] = (
-                    d["feature_manifest_hash"] is None
-                    or d["feature_manifest_hash"] == manifest["content_hash"]
+                if head:
+                    manifest = dict(head)
+                    for k in ("as_of_time", "decision_cutoff_time", "created_at"):
+                        manifest[k] = _iso(manifest[k])
+                    entries = await conn.fetch(
+                        """SELECT name, value, unit, source_service, source_snapshot_id,
+                                  observed_at, available_at, quality_status, formula_version
+                           FROM decision_feature_manifest_entries
+                           WHERE tenant_id=$1::uuid AND feature_manifest_id=$2 ORDER BY name""",
+                        tenant_id,
+                        d["feature_manifest_id"],
+                    )
+                    manifest["entries"] = [
+                        {
+                            **dict(e),
+                            "value": _jsonish(e["value"]),
+                            "observed_at": _iso(e["observed_at"]),
+                            "available_at": _iso(e["available_at"]),
+                        }
+                        for e in entries
+                    ]
+                    # the hash pinned ON the decision must match the manifest it points to —
+                    # surface the comparison so tampering shows up in the UI, not just in triggers.
+                    manifest["hash_matches_decision"] = (
+                        d["feature_manifest_hash"] is None
+                        or d["feature_manifest_hash"] == manifest["content_hash"]
+                    )
+
+            vegetation = None
+            if d["vegetation_snapshot_id"]:
+                row = await conn.fetchrow(
+                    """SELECT snapshot_id, field_id, season_id, contract_version, snapshot_hash,
+                              acquisition_at, data_available_at, quality_gate, created_at
+                       FROM decision_vegetation_snapshots
+                       WHERE tenant_id=$1::uuid AND snapshot_id=$2""",
+                    tenant_id,
+                    d["vegetation_snapshot_id"],
                 )
+                if row:
+                    vegetation = dict(row)
+                    vegetation["quality_gate"] = _jsonish(vegetation["quality_gate"])
+                    for k in ("acquisition_at", "data_available_at", "created_at"):
+                        vegetation[k] = _iso(vegetation[k])
 
-        vegetation = None
-        if d["vegetation_snapshot_id"]:
-            row = await conn.fetchrow(
-                """SELECT snapshot_id, field_id, season_id, contract_version, snapshot_hash,
-                          acquisition_at, data_available_at, quality_gate, created_at
-                   FROM decision_vegetation_snapshots
-                   WHERE tenant_id=$1::uuid AND snapshot_id=$2""",
-                tenant_id,
-                d["vegetation_snapshot_id"],
-            )
-            if row:
-                vegetation = dict(row)
-                vegetation["quality_gate"] = _jsonish(vegetation["quality_gate"])
-                for k in ("acquisition_at", "data_available_at", "created_at"):
-                    vegetation[k] = _iso(vegetation[k])
-
-        bound = d["context_contract_version"] not in (None, "", "legacy_unbound")
-        return {
-            "status": "ok",
-            "authoritative": True,
-            "persisted": True,
-            "read_only": True,
-            "decision": d,
-            "context_snapshot": context,
-            "historical_snapshot": historical,
-            "feature_manifest": manifest,
-            "vegetation_snapshot": vegetation,
-            "evidence_complete": bool(
-                bound
-                and context
-                and historical
-                and manifest
-                and manifest.get("entries") is not None
-            ),
-        }
+            bound = d["context_contract_version"] not in (None, "", "legacy_unbound")
+            return {
+                "status": "ok",
+                "authoritative": True,
+                "persisted": True,
+                "read_only": True,
+                "decision": d,
+                "context_snapshot": context,
+                "historical_snapshot": historical,
+                "feature_manifest": manifest,
+                "vegetation_snapshot": vegetation,
+                "evidence_complete": bool(
+                    bound
+                    and context
+                    and historical
+                    and manifest
+                    and manifest.get("entries") is not None
+                ),
+            }
     finally:
         await conn.close()
 
@@ -5888,6 +5920,12 @@ async def register_runtime_worker_tenant(
             await conn.execute(
                 "SELECT set_config('app.current_tenant', $1, true)", payload.tenant_id
             )
+            # 037: (worker_id, idempotency_key) is unique ACROSS tenants, so the replay
+            # lookup must see this worker's commands for every tenant. The worker-scoped
+            # policy grants that read only under app.current_worker; without it a key
+            # reused for another tenant is invisible and the insert below raises a
+            # UniqueViolation (500) instead of the 409 conflict. Writes stay tenant-bound.
+            await conn.execute("SELECT set_config('app.current_worker', $1, true)", worker_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_runtime_worker_tenant_commands"
                 " WHERE worker_id=$1 AND idempotency_key=$2",
@@ -5980,10 +6018,16 @@ async def list_worker_tenants(*, worker_id: str) -> dict[str, Any]:
     """Server-side tenant discovery for an authenticated worker (no free header picking)."""
     conn = await _connect()
     try:
-        rows = await conn.fetch(
-            "SELECT tenant_id, enabled FROM decision_runtime_worker_tenants WHERE worker_id=$1 ORDER BY tenant_id",
-            worker_id,
-        )
+        async with conn.transaction():
+            # 037: this table is worker-partitioned, not tenant-partitioned. The caller has
+            # already verified the worker identity (WORKER-IDENTITY-BINDING); binding it here
+            # lets the policy return this worker's registrations across all tenants, and
+            # only this worker's.
+            await conn.execute("SELECT set_config('app.current_worker', $1, true)", worker_id)
+            rows = await conn.fetch(
+                "SELECT tenant_id, enabled FROM decision_runtime_worker_tenants WHERE worker_id=$1 ORDER BY tenant_id",
+                worker_id,
+            )
         return {
             "worker_id": worker_id,
             "registered": bool(rows),
@@ -6016,17 +6060,24 @@ async def worker_tenant_authorized(*, worker_id: str, tenant_id: str) -> bool:
     for the worker, only its enabled tenants pass."""
     conn = await _connect()
     try:
-        registered = await conn.fetchval(
-            "SELECT 1 FROM decision_runtime_worker_tenants WHERE worker_id=$1 LIMIT 1",
-            worker_id,
-        )
-        if not registered:
-            return not strict_worker_tenants_enabled()
-        allowed = await conn.fetchval(
-            "SELECT 1 FROM decision_runtime_worker_tenants WHERE worker_id=$1 AND tenant_id=$2::uuid AND enabled",
-            worker_id,
-            tenant_id,
-        )
-        return bool(allowed)
+        async with conn.transaction():
+            # 037 fail-closed invariant: the "registered at all?" probe is cross-tenant, so
+            # it MUST run under the worker binding. Under a tenant-only binding it would see
+            # nothing for a worker registered elsewhere and fall into the legacy allow branch
+            # (any worker, any tenant). Bound to the worker, a registered worker is always
+            # found and only its own enabled tenants pass.
+            await conn.execute("SELECT set_config('app.current_worker', $1, true)", worker_id)
+            registered = await conn.fetchval(
+                "SELECT 1 FROM decision_runtime_worker_tenants WHERE worker_id=$1 LIMIT 1",
+                worker_id,
+            )
+            if not registered:
+                return not strict_worker_tenants_enabled()
+            allowed = await conn.fetchval(
+                "SELECT 1 FROM decision_runtime_worker_tenants WHERE worker_id=$1 AND tenant_id=$2::uuid AND enabled",
+                worker_id,
+                tenant_id,
+            )
+            return bool(allowed)
     finally:
         await conn.close()
