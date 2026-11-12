@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Mapping
+from datetime import UTC, datetime
 from typing import Any
 
 # NOTE: fastapi is imported lazily inside the functions that raise/catch HTTPException.
@@ -576,3 +577,89 @@ async def get_job_status(
         if exc.status_code == 404:
             return None
         raise
+
+
+# ── Indicator grids for the field AI pack (pure; moved from api/routers/field_ai_context.py
+#    so that router stays under the router-size ceiling) ─────────────────────────────────
+
+
+def _utc_instant(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
+    if hasattr(value, "isoformat"):
+        value = value.isoformat()
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
+def observed_indicator_product(payload: Any, *, field_id: str, index: str) -> bool:
+    """The raster service's own verdict: an observed, quality-passed product of this field and index."""
+    product = payload.get("indicator_product") if isinstance(payload, dict) else None
+    return (
+        isinstance(product, dict)
+        and product.get("quality_gate_passed") is True
+        and payload.get("field_id") == field_id
+        and payload.get("index") == index
+        and product.get("estimated") is not True
+    )
+
+
+def indicator_grid_from_payload(
+    payload: Any,
+) -> tuple[list[list[float]] | None, dict[str, Any] | None]:
+    """Pure extraction of a *real* indicator grid + quality from a raster indicator-grid
+    response (v62.3-C). Returns ``(None, None)`` unless the payload carries a real
+    (non-synthetic) 2D grid, so simulation fallbacks never masquerade as evidence.
+
+    Never fabricates: only quality keys actually present in the payload are copied;
+    absent metrics are omitted. The v62.3-B quality fields
+    (``valid_pixel_ratio``/``coverage_ratio``/``cloud_cover``) are read defensively
+    since that slice lands in parallel and may not yet be populated.
+    """
+    if not isinstance(payload, dict):
+        return None, None
+    if payload.get("real_data") is not True:
+        return None, None  # simulation / unknown ⇒ degrade to no grid (today's behavior)
+    grid = payload.get("grid")
+    if not (isinstance(grid, list) and grid and all(isinstance(r, list) for r in grid)):
+        return None, None
+    quality: dict[str, Any] = {}
+    for key in (
+        "cloud_cover",
+        "cloud_pct",
+        "valid_pixel_ratio",
+        "coverage_ratio",
+        "scene_id",
+        "source_resolution_m",
+        "asset_id",
+    ):
+        val = payload.get(key)
+        if val is not None:
+            quality[key] = val
+    product = payload.get("indicator_product")
+    provenance = product.get("provenance") if isinstance(product, dict) else None
+    if isinstance(provenance, dict) and provenance.get("scene_id"):
+        quality["scene_id"] = provenance["scene_id"]
+    acq = payload.get("acquisition_date") or payload.get("date")
+    if isinstance(provenance, dict):
+        acq = provenance.get("acquisition_datetime") or provenance.get("capture_datetime") or acq
+    instant = _utc_instant(acq)
+    if instant:
+        quality["acquisition_date"] = instant.astimezone(UTC).date().isoformat()
+    for key in ("grid_identity", "bbox"):
+        if payload.get(key) is not None:
+            quality[key] = payload[key]
+    return grid, (quality or None)
+
+
+def zoning_grid_metadata(quality: dict[str, Any]) -> dict[str, Any] | None:
+    """Grid identity shared by every index grid that zoning may combine."""
+    keys = ("grid_identity", "bbox", "scene_id", "acquisition_date")
+    if not all(quality.get(key) for key in keys):
+        return None
+    return {key: quality[key] for key in keys}

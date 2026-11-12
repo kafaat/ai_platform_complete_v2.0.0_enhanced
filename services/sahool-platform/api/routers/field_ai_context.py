@@ -20,7 +20,13 @@ from pydantic import BaseModel, Field
 
 from api import field_context as context_reads
 from api.main import Permission, UserSchema, require_permission, tenant_connection
-from api.raster_service_client import get_available_dates, get_indicator_grid
+from api.raster_service_client import (
+    get_available_dates,
+    get_indicator_grid,
+    indicator_grid_from_payload,
+    observed_indicator_product,
+    zoning_grid_metadata,
+)
 
 router = APIRouter(tags=["field-ai-context"])
 
@@ -418,70 +424,15 @@ async def _optional_recommendations(
         return {"available": False, "items": [], "total": 0}, f"تعذّر جلب التوصيات: {exc}"
 
 
-def _ndvi_grid_from_raster_payload(
-    payload: Any,
-) -> tuple[list[list[float]] | None, dict[str, Any] | None]:
-    """Pure extraction of a *real* NDVI grid + quality from a raster indicator-grid
-    response (v62.3-C). Returns ``(None, None)`` unless the payload carries a real
-    (non-synthetic) 2D grid, so simulation fallbacks never masquerade as evidence.
-
-    Never fabricates: only quality keys actually present in the payload are copied;
-    absent metrics are omitted. The v62.3-B quality fields
-    (``valid_pixel_ratio``/``coverage_ratio``/``cloud_cover``) are read defensively
-    since that slice lands in parallel and may not yet be populated.
-    """
-    if not isinstance(payload, dict):
-        return None, None
-    if payload.get("real_data") is not True:
-        return None, None  # simulation / unknown ⇒ degrade to no grid (today's behavior)
-    grid = payload.get("grid")
-    if not (isinstance(grid, list) and grid and all(isinstance(r, list) for r in grid)):
-        return None, None
-    quality: dict[str, Any] = {}
-    for key in (
-        "cloud_cover",
-        "cloud_pct",
-        "valid_pixel_ratio",
-        "coverage_ratio",
-        "scene_id",
-        "source_resolution_m",
-        "asset_id",
-    ):
-        val = payload.get(key)
-        if val is not None:
-            quality[key] = val
-    product = payload.get("indicator_product")
-    provenance = product.get("provenance") if isinstance(product, dict) else None
-    if isinstance(provenance, dict) and provenance.get("scene_id"):
-        quality["scene_id"] = provenance["scene_id"]
-    acq = payload.get("acquisition_date") or payload.get("date")
-    if isinstance(provenance, dict):
-        acq = provenance.get("acquisition_datetime") or provenance.get("capture_datetime") or acq
-    instant = _parse_dt(acq)
-    if instant:
-        quality["acquisition_date"] = instant.astimezone(UTC).date().isoformat()
-    for key in ("grid_identity", "bbox"):
-        if payload.get(key) is not None:
-            quality[key] = payload[key]
-    return grid, (quality or None)
-
-
 async def _optional_index_grid(field_id: str, tenant_id: str, index: str, acquisition: str):
     """Read one bounded field grid with the raster service's own quality verdict."""
     try:
         payload = await get_indicator_grid(
             field_id, tenant_id=tenant_id, index=index, date=acquisition, grid=16, timeout_s=6.0
         )
-        product = payload.get("indicator_product") if isinstance(payload, dict) else None
-        if (
-            not isinstance(product, dict)
-            or product.get("quality_gate_passed") is not True
-            or payload.get("field_id") != field_id
-            or payload.get("index") != index
-            or product.get("estimated") is True
-        ):
+        if not observed_indicator_product(payload, field_id=field_id, index=index):
             return None, None, f"{index}_grid: ineligible_raster_product"
-        grid, quality = _ndvi_grid_from_raster_payload(payload)
+        grid, quality = indicator_grid_from_payload(payload)
         if grid is None or not quality:
             return None, None, f"{index}_grid: missing_observed_grid"
         if acquisition != "latest" and quality.get("acquisition_date") != acquisition:
@@ -493,13 +444,6 @@ async def _optional_index_grid(field_id: str, tenant_id: str, index: str, acquis
 
 async def _optional_ndvi_grid(field_id: str, tenant_id: str):
     return await _optional_index_grid(field_id, tenant_id, "ndvi", "latest")
-
-
-def _zoning_metadata(quality: dict[str, Any]) -> dict[str, Any] | None:
-    keys = ("grid_identity", "bbox", "scene_id", "acquisition_date")
-    if not all(quality.get(key) for key in keys):
-        return None
-    return {key: quality[key] for key in keys}
 
 
 async def _optional_imagery_timeline(
@@ -579,7 +523,7 @@ async def _optional_imagery_timeline(
         result["ndvi_grid"] = ndvi_grid
     if ndvi_grid_quality:
         result["ndvi_grid_quality"] = ndvi_grid_quality
-    master = _zoning_metadata(ndvi_grid_quality) if ndvi_grid_quality else None
+    master = zoning_grid_metadata(ndvi_grid_quality) if ndvi_grid_quality else None
     if master:
         metadata = {"ndvi": master}
         anchor = master["acquisition_date"]
@@ -600,7 +544,7 @@ async def _optional_imagery_timeline(
             if warning:
                 warnings.append(warning)
                 continue
-            meta = _zoning_metadata(quality) if quality else None
+            meta = zoning_grid_metadata(quality) if quality else None
             if not meta or meta != master:
                 warnings.append(f"{index}_grid: scene_or_geometry_mismatch")
                 continue
