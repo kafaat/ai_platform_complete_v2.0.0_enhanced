@@ -18,7 +18,7 @@ import json
 
 from core.authorization import Permission
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from api.decision_service_client import list_review_queue as ds_list_review_queue
 from api.decision_service_client import review_decision as ds_review_decision
@@ -191,6 +191,14 @@ class ExecutionPlanRequest(BaseModel):
     safety_conditions: dict = Field(default_factory=dict)
     weather_window_reference: dict | None = None
     idempotency_key: str
+
+    @field_validator("operation_type")
+    @classmethod
+    def _canonical_operation_type(cls, value: str) -> str:
+        # DECISION-MANUAL-PLAN-PADDED-OPERATION-BYPASS-01: decision-service stores the
+        # canonical spelling; the manual-irrigation branch below must see the same one,
+        # or " manual_irrigation " becomes a validated plan with no manual source.
+        return value.strip().lower()
 
 
 @router.post("/api/v1/decisions/{decision_id}/execution-plan")
