@@ -15,6 +15,10 @@ def _sample_record(row):
     return data
 
 
+class SampleFieldNotFound(LookupError):
+    """The requested field is outside the available tenant fields."""
+
+
 async def create_sample(
     conn, *, tenant_id: str, created_by: str, payload: dict[str, Any]
 ) -> dict[str, Any]:
@@ -26,7 +30,9 @@ async def create_sample(
           sample_id, tenant_id, field_id, kind, latitude, longitude, sampled_on,
           depth_cm_from, depth_cm_to, source, status, gps_accuracy_m,
           sampling_plan_id, barcode, collected_by, created_by, sampling_origin
-        ) VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb)
+        )
+        SELECT $1,$2::uuid,f.field_id,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb
+        FROM fields f WHERE f.field_id=$3 AND f.tenant_id=$2::uuid
         RETURNING *
         """,
         sample_id,
@@ -47,27 +53,34 @@ async def create_sample(
         created_by,
         json.dumps(payload["sampling_origin"]) if payload.get("sampling_origin") else None,
     )
+    if row is None:
+        raise SampleFieldNotFound(payload["field_id"])
     return _sample_record(row)
 
 
 async def list_samples(
-    conn, *, tenant_id: str, field_id: str | None = None
+    conn, *, tenant_id: str, field_id: str | None = None, sample_id: str | None = None
 ) -> list[dict[str, Any]]:
     rows = await conn.fetch(
         """
-        SELECT * FROM lab_samples
-        WHERE tenant_id=$1::uuid AND ($2::text IS NULL OR field_id=$2)
-        ORDER BY created_at DESC
+        SELECT s.* FROM lab_samples s
+        JOIN fields f ON f.field_id=s.field_id AND f.tenant_id=s.tenant_id
+        WHERE s.tenant_id=$1::uuid AND ($2::text IS NULL OR s.field_id=$2)
+          AND ($3::text IS NULL OR s.sample_id=$3)
+        ORDER BY s.created_at DESC
         """,
         tenant_id,
         field_id,
+        sample_id,
     )
     return [_sample_record(r) for r in rows]
 
 
 async def get_sample(conn, *, tenant_id: str, sample_id: str) -> dict[str, Any] | None:
     row = await conn.fetchrow(
-        "SELECT * FROM lab_samples WHERE tenant_id=$1::uuid AND sample_id=$2 FOR UPDATE",
+        """SELECT s.* FROM lab_samples s
+           JOIN fields f ON f.field_id=s.field_id AND f.tenant_id=s.tenant_id
+           WHERE s.tenant_id=$1::uuid AND s.sample_id=$2 FOR UPDATE OF s""",
         tenant_id,
         sample_id,
     )
@@ -117,6 +130,10 @@ async def add_custody_event(
     return dict(row)
 
 
+class InvalidResultReplacement(ValueError):
+    """A prior result cannot be superseded by the submitted measurement."""
+
+
 async def insert_soil_results(
     conn,
     *,
@@ -145,9 +162,9 @@ async def insert_soil_results(
             if (
                 not prior
                 or prior["analyte"] != item["analyte"]
-                or prior["quality_status"] == "superseded"
+                or prior["quality_status"] not in {"unreviewed", "approved"}
             ):
-                raise ValueError("invalid_or_already_superseded_lab_result")
+                raise InvalidResultReplacement("invalid_or_already_superseded_lab_result")
         row = await conn.fetchrow(
             """INSERT INTO soil_lab_results
                (result_id,tenant_id,sample_id,analyte,value_json,unit,method_code,detection_limit,
@@ -180,20 +197,40 @@ async def insert_soil_results(
 
 
 async def has_soil_result(conn, *, tenant_id: str, sample_id: str) -> bool:
-    """هل توجد نتيجة تربة فعليّة (غير مُلغاة) لهذه العيّنة — بصرف النظر عن الاعتماد؟
-
-    يُستخدَم للتحقّق من شرط «توجد نتيجة» عند انتقال result_received→approved: النتيجة
-    تُدخَل غير مُعتمَدة (unreviewed)، فلا يصحّ استعمال ``latest_soil_analysis`` (المقصورة
-    على المُعتمَد) لهذا الشرط وإلّا استحال الاعتمادُ أصلاً (دجاجة وبيضة).
-    """
+    """Does this review cycle contain a result awaiting a review decision?"""
     row = await conn.fetchrow(
         """SELECT 1 FROM soil_lab_results
-           WHERE tenant_id=$1::uuid AND sample_id=$2 AND quality_status <> 'superseded'
+           WHERE tenant_id=$1::uuid AND sample_id=$2 AND quality_status='unreviewed'
            LIMIT 1""",
         tenant_id,
         sample_id,
     )
     return row is not None
+
+
+async def reject_soil_results(conn, *, tenant_id: str, sample_id: str) -> None:
+    """Reject pending measurements and restore the accepted parent of a declined correction."""
+    await conn.execute(
+        """WITH RECURSIVE rejected AS (
+               UPDATE soil_lab_results SET quality_status='rejected'
+               WHERE tenant_id=$1::uuid AND sample_id=$2 AND quality_status='unreviewed'
+               RETURNING supersedes_result_id
+           ), ancestors AS (
+               SELECT supersedes_result_id AS result_id FROM rejected
+               UNION
+               SELECT r.supersedes_result_id
+               FROM ancestors a JOIN soil_lab_results r ON r.result_id=a.result_id
+               WHERE r.tenant_id=$1::uuid AND r.sample_id=$2
+                 AND r.approved_at IS NULL AND r.published_observation_id IS NULL
+           )
+           UPDATE soil_lab_results r SET quality_status='approved'
+           FROM ancestors a
+           WHERE r.result_id=a.result_id AND r.tenant_id=$1::uuid AND r.sample_id=$2
+             AND r.quality_status='superseded'
+             AND (r.approved_at IS NOT NULL OR r.published_observation_id IS NOT NULL)""",
+        tenant_id,
+        sample_id,
+    )
 
 
 async def approve_soil_results(conn, *, tenant_id: str, sample_id: str, approved_by: str) -> int:
@@ -233,8 +270,9 @@ async def latest_soil_analysis(
 ) -> dict[str, Any] | None:
     rows = await conn.fetch(
         """
-        SELECT s.sample_id, r.result_id, r.analyte, r.value_json, r.quality_status, r.published_observation_id, r.supersedes_result_id
+        SELECT s.sample_id, r.result_id, r.analyte, r.value_json, r.method_code, r.quality_status, r.published_observation_id, r.supersedes_result_id
         FROM lab_samples s JOIN soil_lab_results r ON r.sample_id=s.sample_id AND r.tenant_id=s.tenant_id
+        JOIN fields f ON f.field_id=s.field_id AND f.tenant_id=s.tenant_id
         WHERE s.tenant_id=$1::uuid AND s.field_id=$2 AND s.kind='soil'
           AND ($3::text IS NULL OR s.sample_id=$3)
           AND s.status IN ('approved','published')
@@ -249,12 +287,42 @@ async def latest_soil_analysis(
         return None
     sid = rows[0]["sample_id"]
     values = {}
-    for r in rows:
-        if r["sample_id"] == sid and r["analyte"] not in values:
-            raw = r["value_json"]
-            values[r["analyte"]] = json.loads(raw) if isinstance(raw, str) else raw
+    for row in rows:
+        if row["sample_id"] == sid:
+            if row["analyte"] == "ec_dsm":
+                values.setdefault("ec_extraction_method", row.get("method_code"))
+            values.setdefault(row["analyte"], _analyte_value(row["value_json"]))
     values.update({"sample_id": sid, "approved": True})
     return values
+
+
+# Lab review cycle (the delivery's api/lab_review.py, folded here so the platform module
+# count stays within its budget): who entered the current cycle's results, and which
+# measurements a reviewer is shown and must name when approving.
+async def result_entry_actors(conn, tenant_id: str, sample_id: str) -> set[str]:
+    rows = await conn.fetch(
+        """SELECT DISTINCT actor_id FROM lab_sample_custody_events
+           WHERE tenant_id=$1::uuid AND sample_id=$2 AND event_type='lab_result_received'
+             AND occurred_at > COALESCE((
+                 SELECT MAX(occurred_at) FROM lab_sample_custody_events
+                 WHERE tenant_id=$1::uuid AND sample_id=$2 AND event_type IN ('status:approved', 'status:rejected')
+             ), '-infinity'::timestamptz)""",
+        tenant_id,
+        sample_id,
+    )
+    return {r["actor_id"] for r in rows if r["actor_id"]}
+
+
+async def review_results(conn, tenant_id: str, sample_id: str) -> list[dict]:
+    rows = await conn.fetch(
+        """SELECT result_id, analyte, value_json, unit, method_code, observed_at, quality_status
+           FROM soil_lab_results WHERE tenant_id=$1::uuid AND sample_id=$2
+             AND quality_status IN ('approved','unreviewed')
+           ORDER BY analyte, observed_at DESC, result_id""",
+        tenant_id,
+        sample_id,
+    )
+    return [{**dict(row), "value_json": _analyte_value(row["value_json"])} for row in rows]
 
 
 async def insert_water_result(
@@ -288,6 +356,7 @@ async def latest_water_analysis(conn, *, tenant_id: str, field_id: str) -> dict[
     row = await conn.fetchrow(
         """SELECT w.analysis FROM lab_samples s JOIN water_lab_result_sets w
            ON w.sample_id=s.sample_id AND w.tenant_id=s.tenant_id
+           JOIN fields f ON f.field_id=s.field_id AND f.tenant_id=s.tenant_id
            WHERE s.tenant_id=$1::uuid AND s.field_id=$2 AND s.kind='water'
            ORDER BY w.observed_at DESC LIMIT 1""",
         tenant_id,
@@ -314,11 +383,13 @@ async def publishable_soil_results(conn, *, tenant_id: str, sample_id: str) -> l
 async def current_soil_result_ids(
     conn, *, tenant_id: str, sample_id: str, analytes: list[str]
 ) -> dict[str, Any]:
-    """The newest result per analyte of this sample that no correction has superseded."""
+    """The newest result per analyte of this sample that no correction has superseded.
+
+    A rejected row is not current: insert_soil_results refuses to supersede it."""
     rows = await conn.fetch(
         """SELECT DISTINCT ON (analyte) analyte, result_id FROM soil_lab_results
            WHERE tenant_id=$1::uuid AND sample_id=$2 AND analyte = ANY($3::text[])
-             AND quality_status <> 'superseded'
+             AND quality_status IN ('unreviewed', 'approved')
            ORDER BY analyte, observed_at DESC, received_at DESC, result_id DESC""",
         tenant_id,
         sample_id,
@@ -340,7 +411,8 @@ async def mark_soil_results_published(
             await conn.execute(
                 """UPDATE soil_lab_results
                    SET published_observation_id=$3, published_at=now()
-                   WHERE tenant_id=$1::uuid AND result_id=$2::uuid""",
+                   WHERE tenant_id=$1::uuid AND result_id=$2::uuid
+                     AND published_observation_id IS DISTINCT FROM $3""",
                 tenant_id,
                 result_id,
                 observation_id,

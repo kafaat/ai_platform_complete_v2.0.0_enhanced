@@ -589,7 +589,16 @@ class RetrievedAnnotation:
     fusion_version: str = "weighted_rrf_v1"
 
     def as_annotation(self) -> dict[str, Any]:
+        from shared.ai.seed_claims import seed_claim_details
+
         return {
+            **seed_claim_details(
+                {
+                    **self.chunk.metadata,
+                    "chunk_id": self.chunk.chunk_id,
+                    "document_id": self.chunk.document_id,
+                }
+            ),
             "type": "rag_annotation",
             "verified": False,
             "decision_authority": "none",

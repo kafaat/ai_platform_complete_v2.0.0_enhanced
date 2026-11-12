@@ -352,12 +352,16 @@ async def get_indicator_grid(
     tenant_id: str | None = None,
     index: str = "ndvi",
     date: str = "latest",
+    grid: int | None = None,
     timeout_s: float = 8.0,
 ) -> dict[str, Any]:
+    params: dict[str, Any] = {"index": index, "date": date}
+    if grid is not None:
+        params["grid"] = grid
     return await raster_get_json(
         f"/v1/fields/{field_id}/indicator-grid",
         tenant_id=tenant_id,
-        params={"index": index, "date": date},
+        params=params,
         timeout_s=timeout_s,
     )
 

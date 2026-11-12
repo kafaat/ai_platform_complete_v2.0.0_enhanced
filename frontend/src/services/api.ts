@@ -3580,7 +3580,7 @@ const MOCK_DASHBOARD = {
 // Inspired by OneSoil soil-sampling map best practice: point coordinates are first-class
 // data and the map layer reads the same API as forms/reports. No fabricated fallback.
 export type LabSampleKind = 'soil' | 'water';
-export type LabSampleStatus = 'planned' | 'collected' | 'submitted' | 'analyzed' | 'approved';
+export type LabSampleStatus = 'planned' | 'collected' | 'submitted' | 'analyzed' | 'requested' | 'sampled' | 'in_lab' | 'result_received' | 'approved' | 'published' | 'rejected' | 'cancelled';
 export interface LabSampleRecord {
   sampling_plan_id?: string | null;
   sampling_origin?: SamplingOrigin | null;
@@ -3606,9 +3606,15 @@ export interface LabSampleRecord {
   approved?: boolean;
 }
 export interface SamplingOrigin {
+  sampling_purpose?: 'fertility' | 'nitrate' | 'salinity' | 'orchard' | 'texture' | 'no_till';
+  location_id?: string;
+  composite?: boolean;
+  planned_depth_cm?: [number, number];
+  indicator_sources?: Record<string, {scene_id?: string; acquisition_date?: string; asset_id?: string}>;
   point_id: string; zone_id: string; longitude: number; latitude: number; indicators: string[];
 }
 export interface LabSampleCreateInput {
+  idempotency_key?: string;
   sampling_plan_id?: string;
   sampling_origin?: SamplingOrigin;
   field_id: string;
@@ -3619,10 +3625,14 @@ export interface LabSampleCreateInput {
   depth_cm_from?: number | null;
   depth_cm_to?: number | null;
   source?: string | null;
-  status?: LabSampleStatus;
+  status?: 'planned' | 'collected' | 'submitted';
   gps_accuracy_m?: number | null;
 }
+export type SoilECMethod = 'saturated_paste' | 'soil_water_1_1' | 'soil_water_1_2_5' | 'soil_water_1_5' | 'unspecified';
 export interface SoilLabResultInput {
+  idempotency_key?: string;
+  ec_extraction_method?: SoilECMethod;
+  observed_at?: string;
   sand_pct?: number | null;
   silt_pct?: number | null;
   clay_pct?: number | null;
@@ -3655,14 +3665,35 @@ export interface LabDecisionContext {
   warnings_ar: string[];
   recommendation_gate: 'allow' | 'needs_review' | string;
 }
+export interface LabReview {
+  results: { result_id: string; analyte: string; value_json: number | string; unit: string | null; method_code: string | null; observed_at: string }[];
+  can_approve: boolean;
+  can_publish: boolean;
+}
+// The review cycle is read through the sample list (one sample, include_review), not a
+// route of its own: the platform domain-route budget is already above its ceiling.
+export const fetchLabReview = (id: string): Promise<LabReview> =>
+  kongApi
+    .get<(LabSampleRecord & { review?: LabReview })[]>('/api/v1/lab/samples', { params: { sample_id: id, include_review: true } })
+    .then(r => {
+      const review = Array.isArray(r.data) ? r.data[0]?.review : undefined;
+      if (!review) throw new Error('lab review unavailable');
+      return review;
+    });
+export const transitionLabSample = (id: string, target: 'approved' | 'published', ids: string[]) =>
+  kongApi.post<LabSampleRecord>(`/api/v1/lab/samples/${encodeURIComponent(id)}/transition`, {
+    target_status: target, reviewed_result_ids: ids,
+  }).then(r => r.data);
 export const listLabSamples = (fieldId?: string): Promise<LabSampleRecord[]> =>
   kongApi
     .get<LabSampleRecord[]>('/api/v1/lab/samples', { params: fieldId ? { field_id: fieldId } : undefined })
     .then(r => Array.isArray(r.data) ? r.data : []);
-export const createLabSample = (payload: LabSampleCreateInput): Promise<LabSampleRecord> =>
-  kongApi.post<LabSampleRecord>('/api/v1/lab/samples', payload).then(r => r.data);
-export const submitSoilLabResult = (payload: SoilLabResultInput): Promise<SoilLabAnalysisResult> =>
-  kongApi.post<SoilLabAnalysisResult>('/api/v1/lab/soil-results', payload).then(r => r.data);
+export const createLabSample = ({ idempotency_key, ...payload }: LabSampleCreateInput): Promise<LabSampleRecord> =>
+  kongApi.post<LabSampleRecord>('/api/v1/lab/samples', payload,
+    idempotency_key ? { headers: { 'Idempotency-Key': idempotency_key } } : undefined).then(r => r.data);
+export const submitSoilLabResult = ({ idempotency_key, ...payload }: SoilLabResultInput): Promise<SoilLabAnalysisResult> =>
+  kongApi.post<SoilLabAnalysisResult>('/api/v1/lab/soil-results', payload,
+    idempotency_key ? { headers: { 'Idempotency-Key': idempotency_key } } : undefined).then(r => r.data);
 export const fetchLabDecisionContext = (fieldId: string): Promise<LabDecisionContext> =>
   kongApi.get<LabDecisionContext>(`/api/v1/fields/${encodeURIComponent(fieldId)}/lab-context`).then(r => r.data);
 

@@ -60,6 +60,7 @@ def observations_from_properties(
     supersedes_observation_ids: dict[str, str] | None = None,
     supersession_reason: str | None = None,
     units: dict[str, str] | None = None,
+    method_by_property: dict[str, str] | None = None,
 ) -> list[SoilObservation]:
     """يحوّل خصائصَ شاهدٍ إلى سجلّات قانونيّة. ``units`` وحدةٌ **يُعلنها المصدر** لخاصّيّة
     بعينها فتغلب الافتراضيّ في ``UNITS``؛ ما لم يُعلَن يبقى على افتراضيّه (ولـ`soil_moisture`
@@ -99,6 +100,8 @@ def observations_from_properties(
         }.get(prop, prop)
         identity = f"{source_type.value}:{source_id}:{canonical}:{depth_from_cm}:{depth_to_cm}"
         prior_id = (supersedes_observation_ids or {}).get(canonical)
+        # Keyed like observed_at_by_property: by the canonical name, the raw name as fallback.
+        method = (method_by_property or {}).get(canonical) or (method_by_property or {}).get(prop)
         if prior_id:
             identity = "correction:" + hashlib.sha256(f"{identity}:{prior_id}".encode()).hexdigest()
         out.append(
@@ -117,7 +120,11 @@ def observations_from_properties(
                 quality_status=quality,
                 confidence=confidence_default,
                 idempotency_key=identity,
-                provenance={**(provenance or {}), "adapter_version": "soil-evidence-adapters.v1"},
+                provenance={
+                    **(provenance or {}),
+                    "adapter_version": "soil-evidence-adapters.v1",
+                    **({"method_code": method} if method else {}),
+                },
                 supersedes_observation_id=(supersedes_observation_ids or {}).get(canonical),
                 supersession_reason=supersession_reason,
             )

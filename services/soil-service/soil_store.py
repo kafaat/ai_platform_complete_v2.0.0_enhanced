@@ -9,6 +9,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from shared.contracts.soil import SoilObservation, SoilProfileSnapshot
+from shared.contracts.soil.observation import LAB_EC_PROPERTIES_BY_METHOD, PLATFORM_LAB_PROCEDURE
 
 
 class SoilIngestConflict(ValueError):
@@ -171,7 +172,22 @@ async def persist_observation_in_transaction(conn, observation: SoilObservation)
                 WHERE old.observation_id = $2
                   AND old.tenant_id = $1::uuid AND new.tenant_id = $1::uuid
                   AND old.field_id = new.field_id
-                  AND old.property = new.property
+                  AND (
+                    (old.property = new.property
+                     AND old.procedure_id IS DISTINCT FROM $6::text
+                     AND new.procedure_id IS DISTINCT FROM $6::text)
+                    OR (
+                      old.source_type = 'laboratory' AND new.source_type = 'laboratory'
+                      AND old.procedure_id = $6 AND new.procedure_id = $6
+                      AND old.source_id = new.source_id
+                      AND (
+                        old.property = new.property OR (
+                          old.property = ANY($5::text[]) AND new.property = ANY($5::text[])
+                          AND old.unit = 'dS/m' AND new.unit = 'dS/m'
+                        )
+                      )
+                    )
+                  )
                   AND old.depth_from_cm = new.depth_from_cm
                   AND old.depth_to_cm = new.depth_to_cm
                 ON CONFLICT (tenant_id, superseded_observation_id) DO NOTHING
@@ -181,9 +197,13 @@ async def persist_observation_in_transaction(conn, observation: SoilObservation)
                 observation.supersedes_observation_id,
                 observation.observation_id,
                 observation.supersession_reason,
+                list(LAB_EC_PROPERTIES_BY_METHOD.values()),
+                PLATFORM_LAB_PROCEDURE,
             )
             if linked is None:
-                raise ValueError("soil_observation_supersession_target_invalid_or_already_replaced")
+                raise SoilIngestConflict(
+                    "soil_observation_supersession_target_invalid_or_already_replaced"
+                )
         import projection_jobs
 
         await projection_jobs.enqueue(
@@ -195,6 +215,14 @@ async def persist_observation_in_transaction(conn, observation: SoilObservation)
             else "observation_ingested",
         )
     return result.endswith("1")
+
+
+def _observation_row(row) -> dict[str, Any]:
+    """Decode the selected JSON columns once, including scalar lab values."""
+    data = dict(row)
+    for name in ("value_json", "quality_flags", "provenance"):
+        data[name] = json.loads(data[name])
+    return data
 
 
 async def list_observations(
@@ -211,10 +239,10 @@ async def list_observations(
             rows = await conn.fetch(
                 """
                 SELECT o.observation_id, o.contract_version, o.tenant_id::text, o.field_id, o.zone_id,
-                       o.property, o.value_json, o.unit, o.depth_from_cm, o.depth_to_cm,
+                       o.property, o.value_json::text AS value_json, o.unit, o.depth_from_cm, o.depth_to_cm,
                        o.observed_at, o.received_at, o.source_type, o.source_id, o.procedure_id,
-                       o.calibration_id, o.quality_status, o.quality_flags, o.confidence,
-                       o.idempotency_key, o.provenance,
+                       o.calibration_id, o.quality_status, o.quality_flags::text AS quality_flags, o.confidence,
+                       o.idempotency_key, o.provenance::text AS provenance,
                        s.replacement_observation_id IS NOT NULL AS is_superseded,
                        s.replacement_observation_id AS superseded_by_observation_id
                 FROM soil_observations o
@@ -231,7 +259,7 @@ async def list_observations(
                 limit,
             )
             await tx.commit()
-            return [dict(row) for row in rows]
+            return [_observation_row(row) for row in rows]
         except Exception:
             await tx.rollback()
             raise
@@ -347,10 +375,10 @@ async def rebuild_snapshot_in_transaction(
     rows = await conn.fetch(
         """
         SELECT o.observation_id, o.contract_version, o.tenant_id::text, o.field_id, o.zone_id,
-               o.property, o.value_json, o.unit, o.depth_from_cm, o.depth_to_cm,
+               o.property, o.value_json::text AS value_json, o.unit, o.depth_from_cm, o.depth_to_cm,
                o.observed_at, o.received_at, o.source_type, o.source_id, o.procedure_id,
-               o.calibration_id, o.quality_status, o.quality_flags, o.confidence,
-               o.idempotency_key, o.provenance,
+               o.calibration_id, o.quality_status, o.quality_flags::text AS quality_flags, o.confidence,
+               o.idempotency_key, o.provenance::text AS provenance,
                (s.replacement_observation_id IS NOT NULL) AS is_superseded,
                s.replacement_observation_id AS superseded_by_observation_id
         FROM soil_observations o
@@ -364,7 +392,7 @@ async def rebuild_snapshot_in_transaction(
         field_id,
     )
     snapshot = profile_composer.compose_snapshot(
-        tenant_id=tenant_id, field_id=field_id, observations=[dict(r) for r in rows]
+        tenant_id=tenant_id, field_id=field_id, observations=[_observation_row(r) for r in rows]
     )
     payload = snapshot.model_dump(mode="json")
     persisted = await conn.fetchval(

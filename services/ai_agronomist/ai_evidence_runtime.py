@@ -907,9 +907,15 @@ async def build_evidence_response(
         if rag_resp.status_code >= 400:
             raise HTTPException(502, {"dependency": "rag-retrieval", "detail": rag_resp.text})
 
+    from shared.ai.seed_claims import partition_generation_references
+
     rag_payload = rag_resp.json()
+    # Keep unreviewed seed pointers auditable while excluding their claim text from generation.
+    usable, unreviewed = partition_generation_references(rag_payload.get("annotations") or [])
+    rag_payload = {**rag_payload, "annotations": usable}
     annotations = {
         "rag": rag_payload.get("annotations", []),
+        "unverified_seed_references": unreviewed,
         "knowledge_graph": kg_payload.get("edges", []),
         # KG can change retrieval selection and reference IDs, but contributes
         # no measurement confidence and holds no decision authority.

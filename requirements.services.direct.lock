@@ -31,6 +31,8 @@ uvicorn[standard]==0.30.6
 pydantic==2.13.4
 httpx==0.28.1
 redis==5.3.1
+rasterio==1.4.4
+shapely==2.0.6
 
 # --- services/auth/requirements.txt ---
 fastapi==0.136.3

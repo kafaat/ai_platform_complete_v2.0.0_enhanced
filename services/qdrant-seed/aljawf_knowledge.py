@@ -40,7 +40,7 @@ services/qdrant-seed/aljawf_knowledge.py
 #
 # المرجع لهذا التصنيف: USDA Salinity Lab Classification
 
-ALJAWF_KNOWLEDGE = [
+_ENTRIES = [
     # ─── الجغرافيا والمناخ (100-101) ─────────────────────────
     {
         "id": 100,
@@ -561,6 +561,25 @@ ALJAWF_KNOWLEDGE = [
         "source": "DOC-IMPORT-2024",
     },
 ]
+
+
+def _claim_record(entry):
+    # Keep the original label, including any already-declared table, page or section.
+    source = entry["source"]
+    locator = None
+    for separator in (" - ", " / "):
+        if separator in source:
+            locator = source.split(separator, 1)[1]
+            break
+    return {
+        **entry,
+        "claim_source_label": source,
+        "claim_locator": locator,
+        "claim_verification": "not_verified_against_original",
+    }
+
+
+ALJAWF_KNOWLEDGE = [_claim_record(entry) for entry in _ENTRIES]
 
 
 # ─── Validation helpers (للاستخدام داخل seed.py) ─────────────────

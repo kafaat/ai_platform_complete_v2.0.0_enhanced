@@ -14,9 +14,11 @@ vi.mock('react-router', () => ({
   useNavigate: () => state.navigate,
 }));
 vi.mock('../lib/leafletSetup', () => ({}));
-vi.mock('react-leaflet', () => ({ MapContainer: ({ children }: any) => <div>{children}</div>, TileLayer: () => null, Polygon: () => null, Marker: () => null, useMapEvents: () => ({}) }));
+vi.mock('react-leaflet', () => ({ MapContainer: ({ children }: any) => <div>{children}</div>, TileLayer: () => null, Polygon: () => null, Marker: () => null, CircleMarker: () => null, Tooltip: () => null, useMapEvents: () => ({}) }));
+import { useAuthStore } from '../hooks/useAuth';
 import LabSamplingPage from './LabSamplingPage';
-beforeEach(() => { cleanup(); vi.clearAllMocks(); state.save.mockResolvedValue({}); });
+// Sample collection is offered to roles that may create records (the page now gates it).
+beforeEach(() => { cleanup(); vi.clearAllMocks(); sessionStorage.clear(); useAuthStore.setState({ tenantId: 't1', user: { id: 1, email: 'm@example.org', full_name: 'm', role: 'manager' } }); state.save.mockResolvedValue({}); });
 
 async function saveSample() {
   fireEvent.change(screen.getByRole('spinbutton', { name: 'Latitude' }), { target: { value: '16.10001' } });

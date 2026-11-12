@@ -8,11 +8,11 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 
-def _user():
+def _user(user_id="u1", role=UserRole.MANAGER):
     return UserSchema(
-        user_id="u1",
+        user_id=user_id,
         tenant_id="00000000-0000-0000-0000-000000000001",
-        role=UserRole.MANAGER,
+        role=role,
         name_ar="مدير",
     )
 
@@ -32,7 +32,16 @@ def test_lab_sampling_api_roundtrip_and_context(monkeypatch):
         samples[row["sample_id"]] = row
         return row
 
+    authors = set()
+
+    async def current_authors(*args):
+        return authors
+
+    monkeypatch.setattr(mod.lab_store, "result_entry_actors", current_authors)
+
     async def add_custody_event(*args, **kwargs):
+        if kwargs["event_type"] == "lab_result_received":
+            authors.add(kwargs["actor_id"])
         return {"event_id": "e1"}
 
     async def get_sample(conn, *, tenant_id, sample_id):
@@ -57,6 +66,9 @@ def test_lab_sampling_api_roundtrip_and_context(monkeypatch):
         # قاموس التحاليل نظيف (مفاتيح analyte + sample_id + approved) كي يقبله SoilLabResult؛
         # حالة الجودة تُتبَّع منفصلةً في quality.
         results[sample_id] = {a["analyte"]: a["value"] for a in analytes}
+        for item in analytes:
+            if item["analyte"] == "ec_dsm":
+                results[sample_id]["ec_extraction_method"] = item["method_code"]
         results[sample_id].update(sample_id=sample_id, approved=approved)
         quality[sample_id] = "unreviewed"
         return analytes
@@ -71,7 +83,7 @@ def test_lab_sampling_api_roundtrip_and_context(monkeypatch):
             return 1
         return 0
 
-    async def list_samples(conn, *, tenant_id, field_id=None):
+    async def list_samples(conn, *, tenant_id, field_id=None, sample_id=None):
         rows = list(samples.values())
         return [r for r in rows if field_id is None or r["field_id"] == field_id]
 
@@ -106,7 +118,7 @@ def test_lab_sampling_api_roundtrip_and_context(monkeypatch):
 
     app = FastAPI()
     app.include_router(mod.router)
-    app.dependency_overrides[get_current_user] = _user
+    app.dependency_overrides[get_current_user] = lambda: _user()
     c = TestClient(app)
     try:
         sample = c.post(
@@ -131,6 +143,7 @@ def test_lab_sampling_api_roundtrip_and_context(monkeypatch):
                 "sample_id": sid,
                 "ph": 7.2,
                 "ec_dsm": 1.1,
+                "ec_extraction_method": "saturated_paste",
                 "organic_matter_pct": 2.2,
                 "nitrogen_mg_kg": 30,
                 "phosphorus_mg_kg": 18,
@@ -147,6 +160,13 @@ def test_lab_sampling_api_roundtrip_and_context(monkeypatch):
 
         # الاعتماد عبر انتقال الحالة المُصرَّح به فقط (فصل الواجبات) — يَختِم النتيجة
         # بهويّة المُعتمِد فتُصبح قابلة للقرار.
+        assert (
+            c.post(
+                f"/api/v1/lab/samples/{sid}/transition", json={"target_status": "approved"}
+            ).status_code
+            == 403
+        )
+        app.dependency_overrides[get_current_user] = lambda: _user("reviewer", UserRole.AGRONOMIST)
         transition = c.post(
             f"/api/v1/lab/samples/{sid}/transition",
             json={"target_status": "approved"},
@@ -192,7 +212,7 @@ def test_published_sample_correction_is_accepted_for_republication(monkeypatch):
 
     app = FastAPI()
     app.include_router(mod.router)
-    app.dependency_overrides[get_current_user] = _user
+    app.dependency_overrides[get_current_user] = lambda: _user()
     c = TestClient(app)
     try:
         response = c.post(
@@ -263,7 +283,7 @@ def _idempotency_harness(monkeypatch):
     monkeypatch.setattr(mod.lab_store, "add_custody_event", add_custody_event)
     app = FastAPI()
     app.include_router(mod.router)
-    app.dependency_overrides[get_current_user] = _user
+    app.dependency_overrides[get_current_user] = lambda: _user()
     return TestClient(app), created
 
 
@@ -394,3 +414,26 @@ def test_fraction_correction_supersedes_the_whole_texture_group(monkeypatch):
     assert sent["texture"]["value"] == "clay loam"
     assert sent["texture"]["supersedes_result_id"] == "old-texture"
     assert sent["sand_pct"]["supersedes_result_id"] == "old-sand_pct"
+
+
+def test_soil_ec_method_separates_reference_and_dilution():
+    import pytest
+    from pydantic import ValidationError
+
+    for method in ("saturated_paste", "soil_water_1_1", "soil_water_1_2_5", "soil_water_1_5", None):
+        payload = mod.SoilLabResultIn(
+            sample_id="sample",
+            ec_dsm=8.4,
+            ph=7.2,
+            method_code="lab-SOP",
+            ec_extraction_method=method,
+        )
+        rows = {row["analyte"]: row for row in mod._analytes(payload)}
+        assert rows["ec_dsm"]["method_code"] == (method or "lab-SOP")
+        assert rows["ph"]["method_code"] == "lab-SOP"
+        result = mod._interpret_lab_values({"sample_id": "sample", "ec_dsm": 8.4}, method)
+        salinity = result["classification"]["salinity_ec"]
+        assert (salinity["class"] is not None) == (method == "saturated_paste")
+        assert salinity["value_dsm"] == 8.4
+    with pytest.raises(ValidationError):
+        mod.SoilLabResultIn(sample_id="sample", ph=7.2, ec_extraction_method="saturated_paste")

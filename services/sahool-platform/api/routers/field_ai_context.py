@@ -8,6 +8,7 @@ breaking the chat UI.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from datetime import UTC, date, datetime, timedelta
 from statistics import mean
@@ -449,42 +450,69 @@ def _ndvi_grid_from_raster_payload(
         val = payload.get(key)
         if val is not None:
             quality[key] = val
-    # acquisition_date: prefer an explicit field, else the grid's resolved date.
+    product = payload.get("indicator_product")
+    provenance = product.get("provenance") if isinstance(product, dict) else None
+    if isinstance(provenance, dict) and provenance.get("scene_id"):
+        quality["scene_id"] = provenance["scene_id"]
     acq = payload.get("acquisition_date") or payload.get("date")
-    if acq is not None:
-        quality["acquisition_date"] = acq
+    if isinstance(provenance, dict):
+        acq = provenance.get("acquisition_datetime") or provenance.get("capture_datetime") or acq
+    instant = _parse_dt(acq)
+    if instant:
+        quality["acquisition_date"] = instant.astimezone(UTC).date().isoformat()
+    for key in ("grid_identity", "bbox"):
+        if payload.get(key) is not None:
+            quality[key] = payload[key]
     return grid, (quality or None)
 
 
-async def _optional_ndvi_grid(
-    field_id: str, tenant_id: str
-) -> tuple[list[list[float]] | None, dict[str, Any] | None, str | None]:
-    """Fetch the latest real NDVI grid + quality through the raster facade.
-
-    P2.2: this router must not open direct raster-service HTTP clients. Fail-safe:
-    any raster error/timeout, or a synthetic/missing grid, degrades to ``(None, None)``
-    so the pack is still built exactly as before (no grid attached).
-    """
+async def _optional_index_grid(field_id: str, tenant_id: str, index: str, acquisition: str):
+    """Read one bounded field grid with the raster service's own quality verdict."""
     try:
         payload = await get_indicator_grid(
-            field_id, tenant_id=tenant_id, index="ndvi", date="latest", timeout_s=12.0
+            field_id, tenant_id=tenant_id, index=index, date=acquisition, grid=16, timeout_s=6.0
         )
+        product = payload.get("indicator_product") if isinstance(payload, dict) else None
+        if (
+            not isinstance(product, dict)
+            or product.get("quality_gate_passed") is not True
+            or payload.get("field_id") != field_id
+            or payload.get("index") != index
+            or product.get("estimated") is True
+        ):
+            return None, None, f"{index}_grid: ineligible_raster_product"
         grid, quality = _ndvi_grid_from_raster_payload(payload)
+        if grid is None or not quality:
+            return None, None, f"{index}_grid: missing_observed_grid"
+        if acquisition != "latest" and quality.get("acquisition_date") != acquisition:
+            return None, None, f"{index}_grid: acquisition_mismatch"
         return grid, quality, None
-    except Exception as exc:  # noqa: BLE001 — raster outage never breaks the pack
-        return None, None, f"ndvi_grid: {exc}"
+    except Exception as exc:  # noqa: BLE001 — a raster outage never breaks the pack
+        return None, None, f"{index}_grid: {exc}"
+
+
+async def _optional_ndvi_grid(field_id: str, tenant_id: str):
+    return await _optional_index_grid(field_id, tenant_id, "ndvi", "latest")
+
+
+def _zoning_metadata(quality: dict[str, Any]) -> dict[str, Any] | None:
+    keys = ("grid_identity", "bbox", "scene_id", "acquisition_date")
+    if not all(quality.get(key) for key in keys):
+        return None
+    return {key: quality[key] for key in keys}
 
 
 async def _optional_imagery_timeline(
     field_id: str, tenant_id: str, days: int
 ) -> tuple[dict[str, Any], str | None]:
     since = date.today() - timedelta(days=days)
-    indicators = ["truecolor", "ndvi", "ndmi", "ndre", "msavi"]
+    indicators = ["truecolor", "ndvi", "ndmi", "ndre", "msavi", "reci"]
     per_indicator: dict[str, Any] = {}
     warnings: list[str] = []
     ndvi_grid: list[list[float]] | None = None
     ndvi_grid_quality: dict[str, Any] | None = None
-    for indicator in indicators:
+
+    async def read_dates(indicator: str):
         try:
             payload = await get_available_dates(
                 field_id, tenant_id=tenant_id, index=indicator, limit=240
@@ -505,12 +533,20 @@ async def _optional_imagery_timeline(
         except Exception as exc:  # noqa: BLE001
             per_indicator[indicator] = {"available": False, "dates": [], "total": 0}
             warnings.append(f"{indicator}: {exc}")
+
+    await asyncio.gather(*(read_dates(indicator) for indicator in indicators))
     # v62.3-C — also carry the latest *real* NDVI grid + quality so the AI pack can
     # fire the k-means productivity-zoning path and feed the VRA raster-quality gate.
     # P2.2: this is routed through api.raster_service_client, not direct httpx.
     ndvi_grid, ndvi_grid_quality, grid_warn = await _optional_ndvi_grid(field_id, tenant_id)
     if grid_warn:
         warnings.append(grid_warn)
+    anchor_date = (ndvi_grid_quality or {}).get("acquisition_date")
+    if ndvi_grid is not None and (
+        not anchor_date or not since.isoformat() <= anchor_date <= date.today().isoformat()
+    ):
+        warnings.append("ndvi_grid: acquisition_outside_requested_window_or_unknown")
+        ndvi_grid, ndvi_grid_quality = None, None
     total_dates = sum(int(v.get("total", 0)) for v in per_indicator.values())
     result: dict[str, Any] = {
         "available": total_dates > 0,
@@ -543,6 +579,34 @@ async def _optional_imagery_timeline(
         result["ndvi_grid"] = ndvi_grid
     if ndvi_grid_quality:
         result["ndvi_grid_quality"] = ndvi_grid_quality
+    master = _zoning_metadata(ndvi_grid_quality) if ndvi_grid_quality else None
+    if master:
+        metadata = {"ndvi": master}
+        anchor = master["acquisition_date"]
+        requested = [
+            index
+            for index in ("ndmi", "reci", "msavi")
+            if any(
+                isinstance(item, dict)
+                and item.get("date") == anchor
+                and item.get("has_cog") is True
+                for item in per_indicator[index]["dates"]
+            )
+        ]
+        grids = await asyncio.gather(
+            *(_optional_index_grid(field_id, tenant_id, index, anchor) for index in requested)
+        )
+        for index, (grid, quality, warning) in zip(requested, grids, strict=True):
+            if warning:
+                warnings.append(warning)
+                continue
+            meta = _zoning_metadata(quality) if quality else None
+            if not meta or meta != master:
+                warnings.append(f"{index}_grid: scene_or_geometry_mismatch")
+                continue
+            result[f"{index}_grid"] = grid
+            metadata[index] = meta
+        result["grid_metadata"] = metadata
     return result, ("؛ ".join(warnings) if warnings else None)
 
 

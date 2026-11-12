@@ -307,6 +307,42 @@ def plan_soil_sampling(
 
     field_id = field_id or params.get("field_id")
 
+    from .soil_sampling_strategies import collection_protocol, prepare_collection
+
+    try:
+        purpose, depths = collection_protocol(params)
+    except ValueError as exc:
+        return {
+            "field_id": field_id,
+            "soil_sampling_plan": None,
+            "sample_points": [],
+            "requires_user_confirmation": True,
+            "error": str(exc),
+        }
+
+    result = _plan_locations(params, field_id=field_id, evidence_context=evidence_context)
+    plan = result.get("soil_sampling_plan")
+    if plan is None:
+        return result
+    locations = result["sample_points"]
+    strategy = result["sampling_strategy"]
+    bags = prepare_collection(locations, purpose, depths, strategy)
+    for layer in plan["strata"]:
+        layer["location_count"] = layer["sample_count"]
+        layer["sample_count"] *= max(len(depths), 1)
+    plan.update(
+        plan_id=_plan_id(field_id, strategy, bags),
+        sampling_purpose=purpose,
+        depth_intervals_cm=depths,
+        depth_status="specified" if depths else "requires_lab_protocol",
+        total_locations=len(locations),
+        total_samples=len(bags),
+    )
+    result["sample_points"] = bags
+    return result
+
+
+def _plan_locations(params, *, field_id, evidence_context):
     # V61.1 — strategy dispatch (default ``zone`` = unchanged v61 behaviour).
     from .soil_sampling_strategies import (
         VALID_STRATEGIES,
@@ -367,7 +403,6 @@ def plan_soil_sampling(
             "sampling_strategy": "grid",
             "recommended_total_samples": recommended_samples_for_area(area),
             "soil_sampling_plan": {
-                "plan_id": _plan_id(field_id, strategy, samples),
                 "lab_panel": lab_panel_early,
                 "analytes": analytes_early,
                 "strata": [stratum],
@@ -437,7 +472,7 @@ def plan_soil_sampling(
     sample_points: list[dict[str, Any]] = []
     strata: list[dict[str, Any]] = []
     boundary_polys = polygon_rings(params.get("boundary"))
-    for idx, zone in enumerate(zones[:8]):
+    for idx, zone in enumerate(zones):
         bbox = _zone_bbox(zone)
         if bbox is None:
             continue
@@ -474,6 +509,14 @@ def plan_soil_sampling(
                     ]
                     if isinstance(zone.get("feature_names"), list)
                     else [],
+                    "indicator_sources": {
+                        indicator: source
+                        for indicator, source in zone.get("indicator_sources", {}).items()
+                        if indicator in (zone.get("feature_names") or [])
+                        and isinstance(source, dict)
+                    }
+                    if isinstance(zone.get("indicator_sources"), dict)
+                    else {},
                     "ndvi_centroid": _as_float(zone.get("ndvi_centroid")),
                     "zone_id": zone_id,
                     "productivity_class": zone_class,
@@ -482,11 +525,8 @@ def plan_soil_sampling(
                         "type": "Point",
                         "coordinates": coordinates,
                     },
-                    "depth_cm": [0, 30],
-                    "composite": True,
                     "lab_panel": lab_panel,
                     "analytes": analytes,
-                    "instructions_ar": "خذ عينة مركبة من 8–12 نقطة صغيرة حول هذه النقطة داخل نفس المنطقة الإنتاجية، وتجنب الحواف ومسارات المركبات.",
                 }
             )
 
@@ -513,11 +553,11 @@ def plan_soil_sampling(
     # V61.1 — hybrid: top up zone strata with grid infill toward the area target.
     if strategy == "hybrid":
         method = "hybrid_zone_grid_sampling"
-        zone_bboxes = [b for b in (_zone_bbox(z) for z in zones[:8]) if b is not None]
+        zone_bboxes = [b for b in (_zone_bbox(z) for z in zones) if b is not None]
         # Infill points must fall inside some zone (polygon, or bbox for bbox-only zones).
         zone_polys = [
             polygon_rings(z.get("geometry")) or polygon_rings(bbox_polygon(b))
-            for z in zones[:8]
+            for z in zones
             if (b := _zone_bbox(z)) is not None
         ]
         if zone_bboxes:
@@ -544,11 +584,8 @@ def plan_soil_sampling(
                             "productivity_class": "unknown",
                             "priority": "normal",
                             "point": {"type": "Point", "coordinates": p},
-                            "depth_cm": [0, 30],
-                            "composite": True,
                             "lab_panel": lab_panel,
                             "analytes": analytes,
-                            "instructions_ar": "عينة شبكيّة مكمّلة — مركّبة من نقاط صغيرة حولها، تجنّب الحواف.",
                         }
                     )
                 if infill:
@@ -569,7 +606,6 @@ def plan_soil_sampling(
         "sampling_strategy": strategy,
         "recommended_total_samples": recommended_samples_for_area(total_area),
         "soil_sampling_plan": {
-            "plan_id": _plan_id(field_id, strategy, sample_points),
             "lab_panel": lab_panel,
             "analytes": analytes,
             "strata": strata,
