@@ -12,14 +12,17 @@
 // TileLayer.url (Leaflet هو من يستبدلها)، فلا نستخدم استبدال JS داخل
 // هذا الجزء — فقط نُمرّر index/date عبر استعلام مُرمَّز.
 // ═══════════════════════════════════════════════════════════════
-import { useEffect, useState, useCallback } from 'react';
-import { MapContainer, TileLayer, Polygon, FeatureGroup, useMap } from 'react-leaflet';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { MapContainer, TileLayer, Polygon, FeatureGroup, useMap, useMapEvents, Popup } from 'react-leaflet';
 import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
 import '../lib/leafletSetup'; // CSS الأساسيّ + أيقونات Leaflet + أداة الرسم (side-effect) — حاسم للتصيير
 import { fieldCdseTileUrl, fieldIndicatorTileUrl, normalizeIndicatorIndex, rasterApi, cdseClipParams } from '../services/api';
 import { getTenantId } from '../lib/authStorage';
-import { areaSqMeters, lengthMeters } from '../lib/geo';
+import { boundaryBounds, type MapBoundary } from '../lib/fieldBoundary';
+import { acquisitionUtcDay } from '../lib/dates';
+import { lengthMeters } from '../lib/geo';
+import { measureDrawFeature } from './maphub/drawing/drawingMeasurements';
 import { readFieldMapView, consumeDefaultViewOnce } from '../lib/fieldMapView';
 import { MapIndicatorLegend } from './insights/MapIndicatorLegend';
 
@@ -45,7 +48,7 @@ export interface TileJSON {
 }
 
 // حدود الحقل كـ [lat, lng] لكل رأس (مناسبة مباشرة لـ Leaflet Polygon)
-export type FieldPolygonLatLng = [number, number][];
+export type FieldPolygonLatLng = MapBoundary;
 
 export interface FieldIndicatorMapProps {
   fieldId: string;
@@ -97,8 +100,9 @@ function measureLayer(layer: L.Layer): Measurement | null {
   let gj: GeoJSON.Feature | null;
   try { gj = toGeoJSON?.call(layer) ?? null; } catch { gj = null; }
   const type = gj?.geometry?.type;
-  if (type === 'Polygon' || type === 'MultiPolygon') {
-    return { id, kind: 'polygon', areaM2: areaSqMeters(gj) };
+  if (gj?.geometry.type === 'Polygon' || gj?.geometry.type === 'MultiPolygon') {
+    const { areaHa } = measureDrawFeature({ geometry: gj.geometry });
+    return areaHa === undefined ? null : { id, kind: 'polygon', areaM2: areaHa * 10000 };
   }
   if (type === 'LineString' || type === 'MultiLineString') {
     return { id, kind: 'polyline', lengthM: lengthMeters(gj) };
@@ -148,7 +152,7 @@ function MeasureTools() {
           draw={{
             // قياس فقط: مضلّع (مساحة) + خطّ (طول). لا علامات/دوائر/مستطيل.
             // showArea:false — يتفادى عطل readableArea في leaflet-draw مع Leaflet 1.9؛
-            // المساحة تُحسَب وتُعرَض من turf (areaSqMeters) في الشارة أدناه.
+            // تُحسب المساحة من الرؤوس بنفس نموذج قياس الحقول في سهول.
             polygon: { allowIntersection: false, showArea: false, shapeOptions: { color: '#38bdf8' } },
             polyline: { shapeOptions: { color: '#fbbf24' } },
             rectangle: false,
@@ -164,7 +168,7 @@ function MeasureTools() {
       <div
         dir="rtl"
         style={{
-          position: 'absolute', top: 12, left: 12, zIndex: 1000,
+          position: 'absolute', top: 12, left: 54, zIndex: 1000,
           background: 'rgba(13,22,17,.92)', borderRadius: 10, padding: '10px 12px',
           fontSize: 12, color: '#e2e8f0', border: '1px solid #2d4a37',
           backdropFilter: 'blur(6px)', maxWidth: 260,
@@ -217,7 +221,7 @@ function MeasureTools() {
 }
 
 // مكوّن داخلي: يضبط إطار الخريطة على الحدود المتاحة (مضلع → TileJSON → fallback)
-function FitBounds({
+export function FitBounds({
   polygon,
   tileBounds,
   fallbackBounds,
@@ -238,13 +242,9 @@ function FitBounds({
       return;
     }
     let bounds: L.LatLngBounds | null = null;
-    if (polygon && polygon.length >= 3) {
-      bounds = L.latLngBounds(polygon.map(([lat, lng]) => L.latLng(lat, lng)));
-    } else if (tileBounds) {
-      const [w, s, e, n] = tileBounds;
-      bounds = L.latLngBounds(L.latLng(s, w), L.latLng(n, e));
-    } else if (fallbackBounds) {
-      const [w, s, e, n] = fallbackBounds;
+    const extent = boundaryBounds(polygon) ?? tileBounds ?? fallbackBounds;
+    if (extent) {
+      const [w, s, e, n] = extent;
       bounds = L.latLngBounds(L.latLng(s, w), L.latLng(n, e));
     }
     if (bounds && bounds.isValid()) {
@@ -252,6 +252,41 @@ function FitBounds({
     }
   }, [map, polygon, tileBounds, fallbackBounds, fieldId]);
   return null;
+}
+
+function PixelProbe({ fieldId, index, date, version }: {
+  fieldId: string; index: string; date: string; version?: string | number | null;
+}) {
+  const [reading, setReading] = useState<{ position: [number, number]; message: string }>();
+  const request = useRef<AbortController | null>(null);
+  useEffect(() => () => request.current?.abort(), []);
+  useMapEvents({
+    async click({ latlng: { lat, lng } }) {
+      request.current?.abort();
+      const controller = new AbortController();
+      request.current = controller;
+      const position: [number, number] = [lat, lng];
+      setReading({ position, message: 'جاري قراءة البكسل…' });
+      try {
+        const { data } = await rasterApi.get<{
+          field_id: string; index: string; date: string; valid: boolean; value: number | null;
+        }>(`/v1/fields/${fieldId}/pixel`, {
+          params: { lat, lon: lng, index, date, v: version }, signal: controller.signal,
+        });
+        if (controller.signal.aborted) return;
+        if (data.field_id !== fieldId || data.index !== index || acquisitionUtcDay(data.date) !== date) {
+          throw new Error('Pixel metadata mismatch');
+        }
+        const message = data.valid === true && typeof data.value === 'number' && Number.isFinite(data.value)
+          ? `${index.toUpperCase()} · ${data.value.toFixed(4)} · ${date}`
+          : 'لا توجد قراءة صالحة في هذا البكسل.';
+        setReading({ position, message });
+      } catch {
+        if (!controller.signal.aborted) setReading({ position, message: 'تعذرت قراءة البكسل في هذا الموقع.' });
+      }
+    },
+  });
+  return reading ? <Popup position={reading.position}><span dir="rtl">{reading.message}</span></Popup> : null;
 }
 
 export default function FieldIndicatorMap({
@@ -269,11 +304,7 @@ export default function FieldIndicatorMap({
   fieldGeometry,
 }: FieldIndicatorMapProps) {
   const [opacity, setOpacity] = useState(initialOpacity);
-  const [tileBounds, setTileBounds] = useState<[number, number, number, number] | undefined>();
-  const [tileAvailable, setTileAvailable] = useState<boolean | null>(null);
-  const [legend, setLegend] = useState<TileJSON['legend'] | undefined>();
-  const [tileUnavailableMessage, setTileUnavailableMessage] = useState<string | null>(null);
-  const [tileCacheVersion, setTileCacheVersion] = useState<string | number | null>(null);
+  const [manifest, setManifest] = useState<{ key: string; data: Partial<TileJSON> }>();
 
   const baseUrl = basemap === 'satellite' ? BASEMAP_SAT : BASEMAP_LIGHT;
   // البلاطات تُحمَّل كصور Leaflet، لذلك لا تمر عبر Axios ولا تحمل X-Tenant-ID.
@@ -284,20 +315,24 @@ export default function FieldIndicatorMap({
   // سلسلة ثابتة كي تُعيد useEffect الفحص عند تغيّر الحدود فقط (لا حلقة تصيير لا نهائيّة).
   const clipSig = JSON.stringify(cdseClipParams(fieldGeometry, fieldBbox));
   // توحيد main↔cert: بلاطات CDSE الحيّة (قصّ poly) عند tileSegment='cdse-tiles'، وإلّا COG محلّي.
+  const manifestKey = JSON.stringify([tenantId, fieldId, normalizedIndex, date, tileSegment, clipSig]);
+  const active = manifest?.key === manifestKey ? manifest.data : undefined;
+  const tileAvailable = active ? active.available === true : null;
+  const tileBounds = tileAvailable ? active?.bounds : undefined;
+  const isStored = tileSegment === 'tiles';
+  const legend = isStored ? active?.legend : undefined;
+  const tileCacheVersion = isStored ? active?.cache_version ?? active?.resolved_date : undefined;
+  const layerDate = isStored && date === 'latest' ? active?.resolved_date || date : date;
+  const tileUnavailableMessage = active?.user_message || active?.note || active?.reason;
   const tilesUrl = tileSegment === 'cdse-tiles'
     ? fieldCdseTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion, fieldGeometry, fieldBbox)
-    : fieldIndicatorTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion);
+    : fieldIndicatorTileUrl(fieldId, normalizedIndex, layerDate, tenantId, tileCacheVersion);
 
   // جلب TileJSON لضبط الإطار وفحص التوفّر.
   // CDSE: يستخدم cdse-tilejson (يعكس توفّر CDSE_CLIENT_ID لا COG محلّيّ).
   // COG:  يستخدم tilejson العاديّ (يعكس وجود ملف COG فعليّ).
   useEffect(() => {
     let cancelled = false;
-    setTileBounds(undefined);
-    setTileAvailable(null);
-    setLegend(undefined);
-    setTileUnavailableMessage(null);
-    setTileCacheVersion(null);
     // توحيد main↔cert: في وضع CDSE الحيّ نفحص cdse-tilejson (available=is_configured)
     // لا tilejson المحلّيّ (COG) — وإلّا حُجبت طبقة المؤشّر دائماً لحقل بلا COG رغم توفّر CDSE.
     const isCdse = tileSegment === 'cdse-tiles';
@@ -316,47 +351,24 @@ export default function FieldIndicatorMap({
     rasterApi
       .get<TileJSON>(tilejsonEndpoint, { params })
       .then((r) => {
-        if (cancelled) return;
-        if (r.data?.available === false) {
-          setTileAvailable(false);
-          setTileUnavailableMessage(
-            isCdse
-              ? 'CDSE غير مُهيّأ — تحقّق من CDSE_CLIENT_ID/CDSE_CLIENT_SECRET في الخادم.'
-              : (r.data?.user_message || r.data?.note || r.data?.reason || null),
-          );
-          return;
-        }
-        setTileAvailable(true);
-        if (!isCdse) {
-          setLegend(r.data?.legend);
-          setTileCacheVersion(r.data?.cache_version ?? r.data?.resolved_date ?? null);
-        }
-        const b = r.data?.bounds;
-        if (Array.isArray(b) && b.length === 4) {
-          setTileBounds([b[0], b[1], b[2], b[3]]);
-        }
+        if (!cancelled) setManifest({ key: manifestKey, data: r.data ?? {} });
       })
       .catch(() => {
-        if (!cancelled) {
-          setTileAvailable(false);
-          setTileUnavailableMessage(
-            isCdse
-              ? 'تعذّر التحقّق من إعداد CDSE. راجع اتصال خدمة الراستر.'
-              : 'تعذر التحقق من توفر طبقة المؤشر. راجع اتصال خدمة الراستر أو اختر تاريخاً آخر.',
-          );
-        }
+        if (!cancelled) setManifest({ key: manifestKey, data: {
+          available: false,
+          user_message: 'تعذر التحقق من توفر طبقة المؤشر. راجع اتصال خدمة الراستر أو اختر تاريخاً آخر.',
+        } });
       });
     return () => { cancelled = true; };
     // clipSig (v8-F4): يُعيد فحص TileJSON عند تغيّر هندسة القصّ في وضع CDSE.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fieldId, normalizedIndex, date, tenantId, tileSegment, clipSig]);
+  }, [fieldId, normalizedIndex, date, tenantId, tileSegment, clipSig, manifestKey]);
 
   // مركز افتراضي قبل ضبط fitBounds
-  const center: [number, number] = fieldPolygon && fieldPolygon.length
-    ? fieldPolygon[0]
-    : fallbackBounds
-      ? [(fallbackBounds[1] + fallbackBounds[3]) / 2, (fallbackBounds[0] + fallbackBounds[2]) / 2]
-      : [16.153, 45.303];
+  const extent = boundaryBounds(fieldPolygon) ?? fallbackBounds;
+  const center: [number, number] = extent
+    ? [(extent[1] + extent[3]) / 2, (extent[0] + extent[2]) / 2]
+    : [16.153, 45.303];
 
   return (
     <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>
@@ -387,8 +399,13 @@ export default function FieldIndicatorMap({
           />
         )}
 
+        {tileAvailable && isStored && normalizedIndex !== 'truecolor' && !tools && opacity > 0 && /^\d{4}-\d{2}-\d{2}$/.test(layerDate) && (
+          <PixelProbe key={JSON.stringify([manifestKey, tileCacheVersion])} fieldId={fieldId}
+            index={normalizedIndex} date={layerDate} version={tileCacheVersion} />
+        )}
+
         {/* حدود الحقل إن توفّرت */}
-        {fieldPolygon && fieldPolygon.length >= 3 && (
+        {fieldPolygon && fieldPolygon.length > 0 && (
           <Polygon
             positions={fieldPolygon}
             pathOptions={{ color: '#5cbf6e', weight: 2, fill: false }}
@@ -416,7 +433,7 @@ export default function FieldIndicatorMap({
       )}
 
       {/* أسطورة المؤشّر العموديّة — يمين الخريطة، ارتفاع متوسّط، تدرّج قيم لكلّ المؤشّرات */}
-      {tileAvailable === true && legend && (
+      {tileAvailable === true && normalizedIndex !== 'truecolor' && legend && (
         <div
           style={{
             position: 'absolute', top: '50%', insetInlineEnd: 12, transform: 'translateY(-50%)',

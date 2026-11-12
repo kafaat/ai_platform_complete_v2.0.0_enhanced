@@ -324,7 +324,10 @@ def _read_index_pixel(path: str, lon: float, lat: float) -> float | None:
         return _sample_index_pixel(src, lon, lat)
 
 
-# Tile cache helpers.
+class InvalidPixelSource(ValueError):
+    """The raster cannot supply a georeferenced scalar measurement."""
+
+
 def _sample_index_pixel(src, lon: float, lat: float) -> float | None:
     """قيمة بكسل المؤشّر عند (lon, lat) بـEPSG:4326 من راستر مفتوح، أو None إن لم تصلح.
 
@@ -334,10 +337,15 @@ def _sample_index_pixel(src, lon: float, lat: float) -> float | None:
     import math
 
     import numpy as np
+    from rasterio.enums import ColorInterp
     from rasterio.warp import transform
 
+    if src.crs is None:
+        raise InvalidPixelSource("نظام إحداثيات طبقة المؤشر غير معروف")
+    if any(band != ColorInterp.alpha for band in src.colorinterp[1:]):
+        raise InvalidPixelSource("تتطلب قراءة البكسل طبقة مؤشر أحادية القيم")
     xs, ys = [lon], [lat]
-    if src.crs and str(src.crs).upper() not in ("EPSG:4326", "OGC:CRS84"):
+    if str(src.crs).upper() not in ("EPSG:4326", "OGC:CRS84"):
         xs, ys = transform("EPSG:4326", src.crs, xs, ys)
     row, col = src.index(xs[0], ys[0])
     if row < 0 or col < 0 or row >= src.height or col >= src.width:

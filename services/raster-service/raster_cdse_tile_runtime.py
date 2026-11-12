@@ -21,6 +21,7 @@ import db_persist as _db
 import layer_lookup
 import raster_date_geo
 import scene_policy
+from raster_clip_query import parse_poly
 from raster_security_context import REQ_TENANT
 
 LATEST_WINDOW_DAYS = int(os.getenv("CDSE_LATEST_WINDOW_DAYS", "365"))
@@ -56,25 +57,6 @@ def _unlink_best_effort(path: str, reason: str) -> None:
             type(exc).__name__,
             exc,
         )
-
-
-def parse_poly(poly: str) -> dict | None:
-    """Convert ``poly='lng,lat;lng,lat;...'`` into a closed GeoJSON Polygon."""
-    try:
-        pts: list[list[float]] = []
-        for pair in poly.split(";"):
-            pair = pair.strip()
-            if not pair:
-                continue
-            lng_s, lat_s = pair.split(",")
-            pts.append([float(lng_s), float(lat_s)])
-        if len(pts) < 3:
-            return None
-        if pts[0] != pts[-1]:
-            pts.append(pts[0])
-        return {"type": "Polygon", "coordinates": [pts]}
-    except (ValueError, TypeError):
-        return None
 
 
 async def normalize_cdse_request(

@@ -344,7 +344,75 @@ async def _insert_field_within_tx(
         lat=lat,
         lon=lon,
         geometry=geometry,
-    ).model_dump(mode="json")
+    ).model_dump(mode="json") | {"geometry_revision": rev}
+
+
+async def _lock_field_boundaries(conn, tenant_id: str) -> None:
+    # A separate statement under READ COMMITTED makes the subsequent lookup see
+    # the previous writer's commit, even when both started against an empty area.
+    await conn.execute(
+        "SELECT pg_advisory_xact_lock(hashtextextended('fields.geometry:' || $1::uuid::text, 0))",
+        tenant_id,
+    )
+
+
+async def _reject_field_overlap(
+    conn, tenant_id: str, geometry: dict, exclude_field_id: str | None = None
+) -> None:
+    import asyncpg
+
+    # منع تداخل الهندسة مع حقول المستأجِر (ST_Intersects على عمود geom المفهرس
+    # GiST — v43) — يكشف أيضاً «النسخ» الهندسيّة ولو اختلف الاسم. يتطلّب PostGIS؛
+    # تدهور رشيق فقط عند غيابه (دالّة/نوع غير معرّف)؛ أيّ خطأ DB آخر ⇒ 503.
+    try:
+        # An optional PostGIS error must roll back only the overlap query.
+        async with conn.transaction():
+            overlaps = await conn.fetch(
+                """
+                SELECT field_id, name,
+                       ST_Area(ST_Intersection(
+                           ST_GeomFromGeoJSON($1), geom
+                       )::geography) AS overlap_m2
+                FROM fields
+                WHERE tenant_id = $2::uuid AND geom IS NOT NULL
+                  AND ST_Intersects(ST_GeomFromGeoJSON($1), geom)
+                  AND field_id IS DISTINCT FROM $3::text
+                ORDER BY overlap_m2 DESC NULLS LAST
+                LIMIT 5
+                """,
+                json.dumps(geometry),
+                tenant_id,
+                exclude_field_id,
+            )
+    except (
+        asyncpg.UndefinedFunctionError,
+        asyncpg.UndefinedObjectError,
+        asyncpg.UndefinedColumnError,
+    ) as ovl_err:
+        # PostGIS غير مُثبَّت (دوال/نوع geometry غير معرّفة) — تخطٍّ رشيق فقط هنا.
+        logging.warning("تخطّي فحص تداخل الحقول — PostGIS غير متاح: %s", ovl_err)
+        overlaps = []
+    significant = _significant_overlaps(overlaps, _MIN_FIELD_OVERLAP_M2)
+    if significant:
+        top = significant[0]
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message_ar": (
+                    f"حدود الحقل تتداخل مع «{top['name']}» "
+                    f"(~{top['overlap_m2']:.0f} م²). صحّح الحدود."
+                ),
+                "code": "field_geometry_overlap",
+                "overlaps": [
+                    {
+                        "field_id": o["field_id"],
+                        "name": o["name"],
+                        "overlap_m2": round(o["overlap_m2"] or 0.0, 1),
+                    }
+                    for o in significant
+                ],
+            },
+        )
 
 
 # ─── معالِج حفظ الحقل المشترك (مرسوم/مستورَد) — نُقل من main.py (تفكيك B1) ──────
@@ -363,19 +431,17 @@ async def _persist_field(
     # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
-    import asyncpg  # لتضييق التقاط أخطاء PostGIS الغائب في فحص التداخل
-
     # Geometry Guard: كل حدود الحقول تدخل النظام كـPolygon canonical في EPSG:4326.
     # Pivot fields are canonicalized from center/radius/angles when the client sends
     # pivot metadata, so irrigation geometry and map polygon cannot drift apart.
     raw_payload = req.model_dump(mode="json")
-    canonical_pivot = maybe_canonicalize_pivot_geometry(
-        raw_payload, req.irrigation_type or req.water_source or None
-    )
-    raw_geometry = canonical_pivot or req.geometry
     try:
+        canonical_pivot = maybe_canonicalize_pivot_geometry(
+            raw_payload, req.irrigation_type or req.water_source or None
+        )
+        raw_geometry = canonical_pivot or req.geometry
         guarded = guard_field_geometry(raw_geometry)
-    except ValueError as exc:
+    except (TypeError, ValueError, OverflowError) as exc:
         raise HTTPException(
             status_code=422,
             detail=field_geometry_error_detail(exc),
@@ -405,7 +471,6 @@ async def _persist_field(
         country = country or auto_country
         region = region or auto_region
     field_id = "fld_" + _uuid.uuid4().hex[:12]
-    geom_json = json.dumps(geometry)
     try:
         async with tenant_connection(user) as conn:
 
@@ -427,6 +492,7 @@ async def _persist_field(
                                 "code": "farm_not_found",
                             },
                         )
+                await _lock_field_boundaries(conn, str(user.tenant_id))
                 # منع تكرار اسم الحقل داخل نفس المزرعة/المستأجر (تطبيع حالة الأحرف).
                 dup = await conn.fetchrow(
                     "SELECT field_id FROM fields WHERE tenant_id = $1::uuid "
@@ -444,54 +510,7 @@ async def _persist_field(
                             "existing_field_id": dup["field_id"],
                         },
                     )
-                # منع تداخل الهندسة مع حقول المستأجِر (ST_Intersects على عمود geom المفهرس
-                # GiST — v43) — يكشف أيضاً «النسخ» الهندسيّة ولو اختلف الاسم. يتطلّب PostGIS؛
-                # تدهور رشيق فقط عند غيابه (دالّة/نوع غير معرّف)؛ أيّ خطأ DB آخر ⇒ 503.
-                try:
-                    overlaps = await conn.fetch(
-                        """
-                        SELECT field_id, name,
-                               ST_Area(ST_Intersection(
-                                   ST_GeomFromGeoJSON($1), geom
-                               )::geography) AS overlap_m2
-                        FROM fields
-                        WHERE tenant_id = $2::uuid AND geom IS NOT NULL
-                          AND ST_Intersects(ST_GeomFromGeoJSON($1), geom)
-                        ORDER BY overlap_m2 DESC NULLS LAST
-                        LIMIT 5
-                        """,
-                        geom_json,
-                        str(user.tenant_id),
-                    )
-                except (
-                    asyncpg.UndefinedFunctionError,
-                    asyncpg.UndefinedObjectError,
-                    asyncpg.UndefinedColumnError,
-                ) as ovl_err:
-                    # PostGIS غير مُثبَّت (دوال/نوع geometry غير معرّفة) — تخطٍّ رشيق فقط هنا.
-                    logging.warning("تخطّي فحص تداخل الحقول — PostGIS غير متاح: %s", ovl_err)
-                    overlaps = []
-                significant = _significant_overlaps(overlaps, _MIN_FIELD_OVERLAP_M2)
-                if significant:
-                    top = significant[0]
-                    raise HTTPException(
-                        status_code=409,
-                        detail={
-                            "message_ar": (
-                                f"حدود الحقل تتداخل مع «{top['name']}» "
-                                f"(~{top['overlap_m2']:.0f} م²). صحّح الحدود."
-                            ),
-                            "code": "field_geometry_overlap",
-                            "overlaps": [
-                                {
-                                    "field_id": o["field_id"],
-                                    "name": o["name"],
-                                    "overlap_m2": round(o["overlap_m2"] or 0.0, 1),
-                                }
-                                for o in significant
-                            ],
-                        },
-                    )
+                await _reject_field_overlap(conn, str(user.tenant_id), geometry)
                 # جوهر الإدراج المشترك (INSERT + FIELD_CREATED + سجلّ الهندسة + إبطال
                 # الراستر + FIELD_GEOMETRY_CHANGED + حالة الحقل) — مصدر واحد للحقيقة
                 # يُعاد استخدامه في merge/split (سلوك محفوظ حرفيّاً).
@@ -586,6 +605,7 @@ async def create_field(
         field_id=result["field_id"],
         tenant_id=str(user.tenant_id),
         geometry=result["geometry"],
+        geometry_revision=result.get("geometry_revision"),
         reason="field.created",
     )
     return result
@@ -650,6 +670,7 @@ async def import_field(
         field_id=result["field_id"],
         tenant_id=str(user.tenant_id),
         geometry=result["geometry"],
+        geometry_revision=result.get("geometry_revision"),
         reason="field.created",
     )
     return result
@@ -1286,6 +1307,10 @@ async def update_field(
                                 "code": "pivot_polygon_drift_forbidden",
                             },
                         ) from exc
+                    except (TypeError, ValueError, OverflowError) as exc:
+                        raise HTTPException(
+                            status_code=422, detail=field_geometry_error_detail(exc)
+                        ) from exc
                     raw_geometry = canonical if canonical is not None else req.geometry
                     # حارس الهندسة (CRS/تقاطع ذاتي/مساحة) على الناتج (الخام أو المُشتقّ).
                     try:
@@ -1306,6 +1331,10 @@ async def update_field(
                                 "issues": str(exc).split(","),
                             },
                         ) from exc
+                    await _lock_field_boundaries(conn, str(user.tenant_id))
+                    await _reject_field_overlap(
+                        conn, str(user.tenant_id), guarded.geometry, field_id
+                    )
                     req = req.model_copy(update={"geometry": guarded.geometry})
                     # حدود الحقل هي مصدر مساحة/مركز الحقل. تحديث geometry دون تحديث
                     # area_ha/lat/lon يترك القائمة والتوصيات والـbbox الاحتياطي على
@@ -1326,6 +1355,7 @@ async def update_field(
                 sql, exec_values = _build_versioned_update(
                     set_clause, values, field_id, req.base_version
                 )
+                merged_from_version = None
                 upd = await conn.execute(sql, *exec_values)
                 # تعارض تزامن تفاؤليّ: الحقل موجود (تأكّدنا) لكن UPDATE أصاب 0 صفّ ⇒
                 # row_version لا يطابق base_version ⇒ عُدِّل من جلسة أخرى بين قراءة العميل
@@ -1333,7 +1363,7 @@ async def update_field(
                 if req.base_version is not None and upd.rsplit(" ", 1)[-1] == "0":
                     # تعارض إصدار: نقرأ سجلّ الخادم الحاليّ لتصنيف تغييرات العميل.
                     srow = await conn.fetchrow(
-                        f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+                        f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid FOR UPDATE",
                         field_id,
                         str(user.tenant_id),
                     )
@@ -1349,72 +1379,36 @@ async def update_field(
                     can_merge, conflicts = _field_merge_plan(
                         client_changes, server_py, req.base_values
                     )
-                    if can_merge:
-                        # Auto-merge (Level 3): لا تقاطع فعليّ ⇒ نُعيد تطبيق تغييرات
-                        # العميل على النسخة الحاليّة بلا حارس الإصدار (دمج آمن، لا فقد).
-                        merge_sql, merge_vals = _build_versioned_update(
-                            set_clause, values, field_id, None
-                        )
-                        await conn.execute(merge_sql, *merge_vals)
-                        mrow = await conn.fetchrow(
-                            f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
-                            field_id,
-                            str(user.tenant_id),
-                        )
-                        _auto_payload = {**client_changes, "_auto_merged": True}
-                        if geometry_changed and req.geometry is not None:
-                            _auto_payload.update(
-                                {
-                                    "area_ha": new_geometry_area_ha,
-                                    "lat": new_geometry_lat,
-                                    "lon": new_geometry_lon,
-                                }
-                            )
-                        await _emit_domain_event(
-                            conn,
-                            user,
-                            "FIELD_UPDATED",
-                            "field",
-                            field_id,
-                            _auto_payload,
-                        )
-                        # تدقيق صريح للدمج الآليّ (إضافةً لحدث تغيّر الحقل).
-                        await _emit_domain_event(
-                            conn,
-                            user,
-                            "OFFLINE_MERGE_AUTO",
-                            "field",
-                            field_id,
-                            {
-                                "merged_fields": sorted(client_changes),
-                                "server_version_before": server_py.get("row_version"),
+                    if not can_merge:
+                        # تعارض حقيقيّ (تقاطع أو بلا base_values) ⇒ 409 مُثرى (Workflow).
+                        raise HTTPException(
+                            status_code=409,
+                            detail={
+                                "error": "version_conflict",
+                                "conflict": True,
+                                "safe_to_retry": False,  # إعادة عمياء تدهس عمل الطرف الآخر
+                                "message_ar": (
+                                    "عُدِّل الحقل من جلسة أخرى منذ قراءتك — راجع الفروق ثمّ احسم "
+                                    "(نسخة الخادم/نسختي/دمج)."
+                                ),
+                                "server_version": server_py.get("row_version"),
+                                "client_version": req.base_version,
+                                "base_version": req.base_version,
+                                "server_record": server_detail.model_dump(mode="json"),
+                                "client_record": client_changes,  # ما حاول العميل كتابته
+                                "base_record": req.base_values,  # لقطة الأساس إن توفّرت
+                                "conflicting_fields": conflicts,  # المتقاطعة فعليّاً (تحتاج حسماً)
+                                "changed_fields": conflicts,  # اسم سابق (توافق خلفيّ)
+                                # أسماء قديمة للتوافق الخلفيّ مع عملاء يقرؤونها:
+                                "current_version": server_py.get("row_version"),
+                                "your_base_version": req.base_version,
                             },
                         )
-                        return _row_to_field_detail(mrow).model_dump()
-                    # تعارض حقيقيّ (تقاطع أو بلا base_values) ⇒ 409 مُثرى (Workflow).
-                    raise HTTPException(
-                        status_code=409,
-                        detail={
-                            "error": "version_conflict",
-                            "conflict": True,
-                            "safe_to_retry": False,  # إعادة عمياء تدهس عمل الطرف الآخر
-                            "message_ar": (
-                                "عُدِّل الحقل من جلسة أخرى منذ قراءتك — راجع الفروق ثمّ احسم "
-                                "(نسخة الخادم/نسختي/دمج)."
-                            ),
-                            "server_version": server_py.get("row_version"),
-                            "client_version": req.base_version,
-                            "base_version": req.base_version,
-                            "server_record": server_detail.model_dump(mode="json"),
-                            "client_record": client_changes,  # ما حاول العميل كتابته
-                            "base_record": req.base_values,  # لقطة الأساس إن توفّرت
-                            "conflicting_fields": conflicts,  # المتقاطعة فعليّاً (تحتاج حسماً)
-                            "changed_fields": conflicts,  # اسم سابق (توافق خلفيّ)
-                            # أسماء قديمة للتوافق الخلفيّ مع عملاء يقرؤونها:
-                            "current_version": server_py.get("row_version"),
-                            "your_base_version": req.base_version,
-                        },
+                    merge_sql, merge_vals = _build_versioned_update(
+                        set_clause, values, field_id, None
                     )
+                    await conn.execute(merge_sql, *merge_vals)
+                    merged_from_version = server_py["row_version"]
                 row = await conn.fetchrow(
                     f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
                     field_id,
@@ -1428,6 +1422,8 @@ async def update_field(
                 _updated_payload = req.model_dump(
                     exclude_unset=True, exclude={"base_version", "base_values"}
                 )
+                if merged_from_version is not None:
+                    _updated_payload["_auto_merged"] = True
                 if geometry_changed and req.geometry is not None:
                     _updated_payload.update(
                         {
@@ -1445,6 +1441,19 @@ async def update_field(
                     # base_version عمّاد تزامن لا تغييرَ حقل ⇒ يُستثنى من حدث الـdomain.
                     _updated_payload,
                 )
+                if merged_from_version is not None:
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "OFFLINE_MERGE_AUTO",
+                        "field",
+                        field_id,
+                        {
+                            "merged_fields": sorted(client_changes),
+                            "server_version_before": merged_from_version,
+                        },
+                    )
+                rev = None
                 if geometry_changed and req.geometry is not None:
                     updated_detail = _row_to_field_detail(row)
                     rev = await save_field_geometry_revision(
@@ -1477,7 +1486,7 @@ async def update_field(
                     )
                 # نُعيد JSON (model_dump) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
                 # عند الإعادة — response_model=FieldDetail يتحقّق منه.
-                return _row_to_field_detail(row).model_dump()
+                return _row_to_field_detail(row).model_dump() | {"geometry_revision": rev}
 
             # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
             if idem:
@@ -1505,6 +1514,7 @@ async def update_field(
             field_id=field_id,
             tenant_id=str(user.tenant_id),
             geometry=result["geometry"],
+            geometry_revision=result.get("geometry_revision"),
             reason="field.geometry.updated",
         )
     return result
@@ -1661,6 +1671,7 @@ async def revert_field_geometry(
         field_id=field_id,
         tenant_id=str(user.tenant_id),
         geometry=guarded.geometry,
+        geometry_revision=new_rev,
         reason="field.geometry.reverted",
     )
     return detail
@@ -1897,6 +1908,7 @@ async def merge_fields(
         field_id=result["field_id"],
         tenant_id=str(user.tenant_id),
         geometry=result["geometry"],
+        geometry_revision=result.get("geometry_revision"),
         reason="field.merged",
     )
     return result
@@ -2038,6 +2050,7 @@ async def split_field(
             field_id=child_result["field_id"],
             tenant_id=str(user.tenant_id),
             geometry=child_result["geometry"],
+            geometry_revision=child_result.get("geometry_revision"),
             reason="field.split",
         )
     return result
@@ -3870,7 +3883,8 @@ async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
         async with tenant_connection(user) as conn:
             exists = await conn.fetchval(
                 "SELECT 1 FROM fields WHERE field_id=$1 AND tenant_id=$2::uuid",
-                pin.field_id, str(user.tenant_id),
+                pin.field_id,
+                str(user.tenant_id),
             )
             if not exists:
                 raise HTTPException(404, "الحقل غير موجود ضمن هذا المستأجر")
@@ -3902,11 +3916,13 @@ async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
             if result == "INSERT 0 0":
                 previous = await conn.fetchrow(
                     "SELECT * FROM scouting_pins WHERE pin_id=$1 AND tenant_id=$2::uuid",
-                    pin.pin_id, str(user.tenant_id),
+                    pin.pin_id,
+                    str(user.tenant_id),
                 )
                 if previous is None or any(
                     previous[key] != value
-                    for key, value in pin.to_dict().items() if key != "created_at"
+                    for key, value in pin.to_dict().items()
+                    if key != "created_at"
                 ):
                     raise HTTPException(409, "معرّف الدبوس مستخدم لمشاهدة مختلفة")
                 pin.created_at = previous["created_at"].isoformat()

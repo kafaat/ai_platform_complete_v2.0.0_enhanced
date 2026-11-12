@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 import re
+from datetime import UTC, datetime
 from tempfile import TemporaryDirectory
 from urllib.parse import urlsplit
 
@@ -53,6 +54,8 @@ def validate_c1_scene(scene: dict, *, entry_point: str) -> dict:
             raise ValueError("unsupported_baseline")
         if not scene.get("datetime") or props.get("datetime") != scene["datetime"]:
             raise ValueError("capture_identity")
+        if datetime.fromisoformat(scene["datetime"]).tzinfo is None:
+            raise ValueError("capture_requires_timezone")
         selected = stac_search.band_urls_from_assets(context.get("assets", {}))
         if set(hrefs) != set(BANDS) or hrefs != selected:
             raise ValueError("asset_identity")
@@ -124,7 +127,20 @@ def process_c1_scene(
 
     # Match the spectral support of each mixed-resolution measurement. The
     # finer bands are aggregated before the processing core applies the ratio.
-    target_band = {"ndre": "rededge", "ndmi": "swir1", "moisture": "swir1"}.get(index)
+    target_band = {
+        "ndre": "rededge",
+        "reci": "rededge",
+        "ccci": "rededge",
+        "ndmi": "swir1",
+        "moisture": "swir1",
+        "msi": "swir1",
+        "ndsi": "swir1",
+        "ndti": "swir1",
+        "dbsi": "swir1",
+        "satvi": "swir1",
+        "nbr": "swir2",
+        "bsi": "swir2",
+    }.get(index)
     resolutions = {}
     with TemporaryDirectory(prefix="stac_c1_", dir=out_dir) as directory:
         try:
@@ -157,11 +173,16 @@ def process_c1_scene(
             provider="element84",
             geometry_revision=geometry_revision,
         )
+        captured = datetime.fromisoformat(scene["datetime"]).astimezone(UTC)
+        request._verified_stac_capture = {
+            "scene_id": scene["item_id"],
+            "datetime": captured.isoformat().replace("+00:00", "Z"),
+        }
         request._spatial_sampling = {
             "native_band_resolution_m": resolutions,
             "resampling_method": (
                 "area_average_valid_fine_reflectance_before_ratio; nearest_SCL"
-                if target_band
+                if target_band and index not in {"ndsi", "ndti"}
                 else "nearest"
             ),
         }

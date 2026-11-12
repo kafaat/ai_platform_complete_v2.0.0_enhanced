@@ -12,10 +12,11 @@ def read(rel: str) -> str:
 def test_field_indicator_map_uses_tilejson_cache_version_for_tile_url():
     src = read("frontend/src/components/FieldIndicatorMap.tsx")
     api = read("frontend/src/services/api.ts")
-    assert "cache_version" in src
-    assert "setTileCacheVersion(r.data?.cache_version" in src
+    assert "manifest?.key === manifestKey ? manifest.data : undefined" in src
+    assert "active?.cache_version ?? active?.resolved_date" in src
     assert (
-        "fieldIndicatorTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion)" in src
+        "fieldIndicatorTileUrl(fieldId, normalizedIndex, layerDate, tenantId, tileCacheVersion)"
+        in src
     )
     assert "cacheVersion?: string | number | null" in api
     assert "params.set('v', String(cacheVersion))" in api

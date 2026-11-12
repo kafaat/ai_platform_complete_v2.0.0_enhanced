@@ -16,9 +16,25 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.mark.parametrize(
-    "index,coarse_band", [("ndre", "rededge"), ("ndmi", "swir1"), ("moisture", "swir1")]
+    "index,coarse_band,expected",
+    [
+        ("ndre", "rededge", 1 / 3),
+        ("ndmi", "swir1", 1 / 3),
+        ("moisture", "swir1", 1 / 3),
+        ("reci", "rededge", 1),
+        ("ccci", "rededge", 1),
+        ("msi", "swir1", 0.5),
+        ("ndsi", "swir1", 0),
+        ("ndti", "swir1", 0),
+        ("dbsi", "swir1", -1 / 3),
+        ("satvi", "swir1", -0.05),
+        ("nbr", "swir2", 1 / 3),
+        ("bsi", "swir2", -0.2),
+    ],
 )
-def test_c1_ratio_uses_valid_fine_samples_on_coarse_band_grid(scene, tmp_path, index, coarse_band):
+def test_c1_ratio_uses_valid_fine_samples_on_coarse_band_grid(
+    scene, tmp_path, index, coarse_band, expected
+):
     data, _, paths = scene
     clip = transform_geom(
         "EPSG:32638",
@@ -94,9 +110,10 @@ def test_c1_ratio_uses_valid_fine_samples_on_coarse_band_grid(scene, tmp_path, i
             output = cog.read(1, masked=True)
             assert cog.res == (20, 20)
             assert output.count() > 0
-            assert output.mask[0, 0]
+            if index not in {"ndsi", "ndti", "satvi"}:
+                assert output.mask[0, 0]
             assert output.mask[scl == 9].all()
-            np.testing.assert_allclose(output.compressed(), 1 / 3, rtol=2e-6)
+            np.testing.assert_allclose(output.compressed(), expected, rtol=2e-6, atol=2e-7)
 
     c1.process_c1_scene(
         data,

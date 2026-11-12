@@ -67,9 +67,10 @@ describe('AddFieldWithMap — تكامل أدوات الرسم التفاعلي�
     expect(src).toContain('draggable: true');
   });
 
-  it('uses fewer circle vertices so individual points are grabbable', () => {
-    // 24 رأساً (خطوة 15°) بدل 72 المتلاصقة — ليُمسِك المستخدم رأساً بعينه.
-    expect(src).toMatch(/radiusM: number, n = 24/);
+  it('uses the same pivot detail for the preview and the saved model', () => {
+    expect(src).toContain('i < PIVOT_VERTEX_COUNT');
+    expect(src).toContain('vertices: PIVOT_VERTEX_COUNT');
+    expect(src).toContain('if (!isPivot) editable.editing?.enable()');
   });
 
   it('exposes on-map undo and cancel controls during editing', () => {

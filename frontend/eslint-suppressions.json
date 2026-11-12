@@ -24,11 +24,6 @@
       "count": 1
     }
   },
-  "src/sections/SatellitePage.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 3
-    }
-  },
   "src/sections/SimpleFarmBookPage.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
