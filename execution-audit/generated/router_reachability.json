@@ -397,7 +397,7 @@
     },
     {
       "kind": "router",
-      "line": 84,
+      "line": 87,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -469,7 +469,7 @@
     },
     {
       "kind": "router",
-      "line": 27,
+      "line": 28,
       "module": "services.raster-service.routers.soil_tiles",
       "node_id": "services.raster-service.routers.soil_tiles:router",
       "route_count": 6,
@@ -496,7 +496,7 @@
     },
     {
       "kind": "router",
-      "line": 29,
+      "line": 30,
       "module": "services.raster-service.routers.terrain_tiles",
       "node_id": "services.raster-service.routers.terrain_tiles:router",
       "route_count": 5,
@@ -2596,7 +2596,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 455,
+      "line": 458,
       "module": "services/sahool-platform/tests/test_idempotency_server_contract.py",
       "prefix": null,
       "resolved": false,
@@ -2811,7 +2811,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "e2b2162aa3cc10fe312ef87394eefd959382549950603cf0429517831879e95e",
+  "inventory_sha256": "71bda5c4f6f53820c6b02ebc3e1145c7f5353cb367b40673229760440cb8c3d0",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -3027,7 +3027,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 84,
+      "line": 87,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -3107,7 +3107,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 27,
+      "line": 28,
       "module": "services.raster-service.routers.soil_tiles",
       "node_id": "services.raster-service.routers.soil_tiles:router",
       "route_count": 6,
@@ -3137,7 +3137,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 29,
+      "line": 30,
       "module": "services.raster-service.routers.terrain_tiles",
       "node_id": "services.raster-service.routers.terrain_tiles:router",
       "route_count": 5,
@@ -5301,7 +5301,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_idempotency_server_contract.py",
-      "line": 455,
+      "line": 458,
       "module": "services.sahool-platform.tests.test_idempotency_server_contract",
       "source": null,
       "target_expression": "mod.router"

@@ -1,8 +1,8 @@
-"""Compute mixed-resolution normalized differences on the coarser output grid.
+"""Compute mixed-resolution indices on the coarser output grid.
 
 CDSE exposes nearest, bilinear and bicubic resampling for an entire S2 input.
-Request both reflectances, SCL, dataMask and scene ordinal on one nearest-sampled
-working grid. Average the reflectances within each output cell before division.
+Request all reflectances, SCL, dataMask and scene ordinal on one nearest-sampled
+working grid. Average the reflectances within each output cell before computing the index.
 This grid is tied to the requested footprint, not the native UTM detector grid.
 """
 
@@ -14,28 +14,46 @@ import cdse_native_product as native
 
 
 def build_evalscript(index, bands, factors):
+    channels = ", ".join(f"s.{band}" for band in bands)
+    empty = ", ".join("NaN" for _ in bands)
     inputs = json.dumps([*bands, "SCL", "dataMask"])
     return (
         "//VERSION=3\n"
         f"// sahool/block-mean-v1 {index} {factors[0]}x{factors[1]}\n"
         "function setup() { return { "
         f"input: [{{bands: {inputs}}}], "
-        'output: {bands: 5, sampleType: "FLOAT32"}, mosaicking: "TILE" }; }\n'
+        f'output: {{bands: {len(bands) + 3}, sampleType: "FLOAT32"}}, mosaicking: "TILE" }}; }}\n'
         "function evaluatePixel(samples) {\n"
         "  for (let i = 0; i < samples.length; i++) { const s = samples[i];\n"
-        f"    if (s.dataMask === 1) return [s.{bands[0]}, s.{bands[1]}, s.SCL, 1, i+1];\n"
-        "  } return [NaN, NaN, 0, 0, 0];\n}\n"
+        f"    if (s.dataMask === 1) return [{channels}, s.SCL, 1, i+1];\n"
+        f"  }} return [{empty}, 0, 0, 0];\n}}\n"
         "function updateOutputMetadata(scenes, inputMetadata, outputMetadata) {\n"
         f"  outputMetadata.userData = {{schema: {json.dumps(native.SCHEMA)}, "
         "tiles: scenes.tiles.map(t => ({id: String(t.shId), date: t.date}))};\n}\n"
     )
 
 
-def finish(content, bands, payload, factors, with_native_qa):
+def _index_from_means(index, means, np):
+    from band_math import ccci, chlorophyll_index, msi, normalized_difference
+    from soil_indices import compute_bsi
+
+    nir = means["B08"]
+    if index == "ccci":
+        return ccci(means["B04"], nir, means["B05"], np)
+    if index == "bsi":
+        return compute_bsi(means["B02"], means["B04"], nir, means["B12"], np)
+    if index == "reci":
+        return chlorophyll_index(nir, means["B05"], np)
+    if index == "msi":
+        return msi(nir, means["B11"], np)
+    reference = {"ndre": "B05", "ndmi": "B11", "moisture": "B11", "nbr": "B12"}[index]
+    return normalized_difference(nir, means[reference], np)
+
+
+def finish(content, index, bands, payload, factors, with_native_qa):
     import numpy as np
     import rasterio
     from affine import Affine
-    from band_math import normalized_difference
 
     if len(content) > native.MAX_RESPONSE_BYTES:
         raise ValueError("cdse_native_response_too_large")
@@ -58,17 +76,29 @@ def finish(content, bands, payload, factors, with_native_qa):
     )
     fx, fy = factors
     cols, rows = width // fx, height // fy
+
+    def blocks(array):
+        return array.reshape(rows, fy, cols, fx)
+
+    axes = (1, 3)
+    wire_count = len(bands) + 3
     with rasterio.MemoryFile(product.tiff if product else content) as mem, mem.open() as src:
         if (
-            src.count != 5
-            or src.dtypes != ("float32",) * 5
+            src.count != wire_count
+            or src.dtypes != ("float32",) * wire_count
             or src.crs is None
             or (src.width, src.height) != (width, height)
         ):
             raise ValueError("cdse_reflectance_grid_invalid")
         native._assert_requested_grid(src, grid)
-        first, second, scl, mask, scene = src.read()
-        band_valid = (src.read_masks(1) > 0) & (src.read_masks(2) > 0)
+        scl, mask, scene = src.read((wire_count - 2, wire_count - 1, wire_count))
+        band_valid = np.ones((rows, cols), dtype=bool)
+        means = {}
+        for number, band in enumerate(bands, start=1):
+            values = src.read(number)
+            valid = (src.read_masks(number) > 0) & np.isfinite(values) & (values >= 0)
+            band_valid &= blocks(valid).all(axis=axes)
+            means[band] = blocks(values).mean(axis=axes, dtype="float64")
         transform = src.transform * Affine.scale(fx, fy)
         crs = src.crs
 
@@ -78,26 +108,14 @@ def finish(content, bands, payload, factors, with_native_qa):
     if not np.isin(scene[present], range(1, (len(product.tiles) if product else 256) + 1)).all():
         raise ValueError("cdse_reflectance_scene_invalid")
 
-    def blocks(array):
-        return array.reshape(rows, fy, cols, fx)
-
-    axes = (1, 3)
     full = blocks(present).all(axis=axes)
     cloudy = blocks(np.isin(scl, (3, 8, 9, 10, 11))).any(axis=axes)
     clear = blocks(np.isin(scl, (2, 4, 5, 6, 7))).all(axis=axes)
     lower_scene = blocks(scene).min(axis=axes)
     if np.any(full & (lower_scene != blocks(scene).max(axis=axes))):
         raise ValueError("cdse_reflectance_mixed_contributor_block")
-    usable = (
-        full
-        & clear
-        & blocks(
-            band_valid & np.isfinite(first) & np.isfinite(second) & (first >= 0) & (second >= 0)
-        ).all(axis=axes)
-    )
-    a, b = (blocks(band).mean(axis=axes, dtype="float64") for band in (first, second))
-    nir, reference = (a, b) if bands[0] == "B08" else (b, a)
-    result = np.where(usable, normalized_difference(nir, reference, np), np.nan).astype("float32")
+    usable = full & clear & band_valid
+    result = np.where(usable, _index_from_means(index, means, np), np.nan).astype("float32")
 
     with rasterio.MemoryFile() as out:
         with out.open(

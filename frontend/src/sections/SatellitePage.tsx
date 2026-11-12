@@ -17,16 +17,16 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
   useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI,
-  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, useRefreshFieldImagery, useFieldImageryTimeline, type GridIndex,
+  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, useFieldImageryTimeline, type GridIndex,
 } from '../hooks/useApi';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
-import GridSamplingDetails from '../components/maphub/GridSamplingDetails';
+import GridSamplingDetails, { GridCoverageDetails } from '../components/maphub/GridSamplingDetails';
 import DataFreshnessBadge from '../components/maphub/DataFreshnessBadge';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import NdviUnavailableNotice, { ndviUnavailableFromError } from '../components/fieldview/NdviUnavailableNotice';
-import { geomToPolygon } from '../lib/geo';
+import { fieldBoundary, boundaryBounds } from '../lib/fieldBoundary';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { apiErrorMessage, fieldCdseThumbnailUrl } from '../services/api';
+import { apiErrorMessage } from '../services/api';
 import { useIndicatorsCatalog } from '../hooks/useApi';
 import type { CatalogIndicator } from '../hooks/useApi';
 import { LayerSwitcher } from '../components/ds';
@@ -41,6 +41,7 @@ import { unavailableFieldChangeMessage } from '../lib/fieldChangeAvailability';
 import { toastStore } from '../services/websocket';
 import { useScoutingPins, useCreateScoutingPin, useCropScoutingIssues } from '../hooks/useScouting';
 import type { ScoutingPinRecord } from '../hooks/useScouting';
+import { acquisitionUtcDay } from '../lib/dates';
 import { useLocation } from 'react-router';
 
 // مبدّل الطبقات مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=طبقة بلاطات مكانيّة)
@@ -106,7 +107,7 @@ export default function SatellitePage() {
   // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً.
   const [measureTools, setMeasureTools] = useState(false);
   // أثر زرّ «تحليل الآن» المرئيّ (نجاح/خطأ) — كان الزرّ يبدو بلا استجابة.
-  const [analyzeMsg, setAnalyzeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [analyzeMsg, setAnalyzeMsg] = useState<{ fieldId: string; ok: boolean; text: string } | null>(null);
 
   // ── دبابيس الاستطلاع الدائمة (v94 — تُجلَب من الخادم وتُحفَظ، تبقى عبر الجلسات) ──
   // GET /api/v1/scouting/pins?field_id=… يُرجِع المُخزَّنة (RLS)؛ الإنشاء عبر POST
@@ -224,10 +225,16 @@ export default function SatellitePage() {
     if (!fieldId || analyzing) return;
     setAnalyzeMsg(null);
     try {
-      await analyze({ fieldId, geometry: field?.geometry });
-      setAnalyzeMsg({ ok: true, text: 'اكتمل التحليل — حُدِّث الشريط الزمنيّ والقيم.' });
+      const response = await analyze({ fieldId, geometry: field?.geometry });
+      const result = response as { queued?: boolean; status?: string; failures?: unknown[]; note_ar?: string } | null;
+      const queued = result?.queued === true && result.status === 'queued';
+      const partial = queued && Array.isArray(result.failures) && result.failures.length > 0;
+      const text = queued
+        ? (partial ? 'أُضيفت بعض المؤشرات إلى قائمة الانتظار، وتعذّر إدراج بعض المؤشرات.' : 'أُضيف طلب معالجة الصور إلى قائمة الانتظار.')
+        : (typeof result?.note_ar === 'string' && result.note_ar.trim() || 'لم تؤكّد الخدمة إدراج طلب معالجة الصور.');
+      setAnalyzeMsg({ fieldId, ok: queued && !partial, text });
     } catch (e) {
-      setAnalyzeMsg({ ok: false, text: apiErrorMessage(e, 'تعذّر التحليل — حاول مجدّداً') });
+      setAnalyzeMsg({ fieldId, ok: false, text: apiErrorMessage(e, 'تعذّر التحليل — حاول مجدّداً') });
     }
   }, [fieldId, field?.geometry, analyzing, analyze]);
   // إخفاء تنويه التحليل تلقائيّاً بعد مدّة وجيزة (لا يبقى عالقاً).
@@ -236,24 +243,26 @@ export default function SatellitePage() {
     const t = setTimeout(() => setAnalyzeMsg(null), 6000);
     return () => clearTimeout(t);
   }, [analyzeMsg]);
-  const { mutateAsync: refreshImagery, isPending: refreshingImagery } = useRefreshFieldImagery();
 
   // السلسلة الزمنيّة الحقيقيّة من raster-service (متوسّط المؤشّر لكلّ تاريخ COG).
   // صدق: لا COG ⇒ available=false (لا قيم مخترعة) — نُظهر حالة فارغة لا رسماً وهميّاً.
   const { data: rasterTs, isLoading: rasterTsLoading, isError: rasterTsError } =
     useFieldTimeseries(fieldId, gridIndex, '');
-  const rasterPoints = rasterTs?.available ? (rasterTs.points ?? []) : [];
+  const rasterPoints = useMemo(() => (rasterTs?.available ? (rasterTs.points ?? []) : []), [rasterTs]);
   // خطّ زمنيّ خادميّ للتواريخ/المصغّرات من raster_assets؛ لا يعتمد على حساب mean للمؤشّر.
   // هذا يمنع حالة: COGs محفوظة بنجاح لكن /timeseries لم يرجع نقاطاً بعد، فتختفي thumbnails.
   const imageryTimelineMonths = useMemo(() => Math.max(1, Math.ceil(days / 31)), [days]);
   const { data: imageryTimeline } = useFieldImageryTimeline(fieldId, imageryTimelineMonths);
-  const timelineItems = Array.isArray(imageryTimeline?.items) ? imageryTimeline.items : [];
+  const timelineItems = useMemo(
+    () => (Array.isArray(imageryTimeline?.items) ? imageryTimeline.items : []),
+    [imageryTimeline],
+  );
   // T2: سجلّ واحد لكلّ يوم — المصغّرة ووقت الالتقاط والمنتَج من المشهد نفسه. كان رابط
   // المصغّرة من آخر سجلّ لليوم (Map.set) ووقته من أوّل سجلّ (find) ⇒ صورة مشهد بوقت آخر.
   const timelineByDay = useMemo(() => timelineRecordByDay(timelineItems), [timelineItems]);
   // تواريخ COG الحقيقيّة المتاحة (لاختيار تاريخَي كشف التغيّر).
   const availableDates = useMemo(
-    () => rasterPoints.map((p) => p.datetime).filter(Boolean),
+    () => [...new Set(rasterPoints.map(p => acquisitionUtcDay(p.datetime)).filter((day): day is string => !!day))].sort(),
     [rasterPoints],
   );
 
@@ -282,7 +291,7 @@ export default function SatellitePage() {
   // نقطة سلسلة زمنيّة كما تقرؤها هذه الشاشة: تاريخ (موجود دائماً للنقطة) + NDVI اختياريّ.
   type TsPoint = { date: string; ndvi?: number };
   const tsRaw = tsData as { timeseries?: TsPoint[]; data?: TsPoint[] } | undefined;
-  const ts: TsPoint[] = tsRaw?.timeseries || tsRaw?.data || [];
+  const ts: TsPoint[] = useMemo(() => tsRaw?.timeseries || tsRaw?.data || [], [tsRaw]);
   const currentNdvi = ndviNow?.ndvi?.current ?? ts[ts.length - 1]?.ndvi ?? null;
   // الشريط الزمني يعرض المتوسّطات الحقيقيّة من raster-service عند توفّرها،
   // وإلّا يسقط إلى سلسلة vegetation-service. لا بيانات تركيبيّة.
@@ -290,16 +299,18 @@ export default function SatellitePage() {
   // نقاط الشريط مُثراة بصورة مُصغَّرة لكلّ تاريخ (cdse-thumbnail) وبفرق المؤشّر عن
   // التاريخ الأسبق — لبطاقات السجلّ الزمنيّ (تاريخ · صورة · متوسّط + تغيّر).
   const stripPoints: ScrubberPoint[] = useMemo(() => {
-    const base: ScrubberPoint[] = rasterPoints.map((p) => {
-      const rec = timelineByDay.get(String(p.datetime).slice(0, 10));
-      return {
-        date: p.datetime.slice(0, 10),
+    const base: ScrubberPoint[] = rasterPoints.flatMap((p) => {
+      const date = acquisitionUtcDay(p.datetime);
+      if (!date) return [];
+      const rec = timelineByDay.get(date);
+      return [{
+        date,
         value: p.mean,
         cloud: p.cloudy_pct ?? null,
         thumbUrl: rec?.thumbnail_url ?? null,
         thumbProduct: rec?.thumbnail_url ? (rec.thumbnail_index ?? null) : null,
         acquisitionDatetime: rec?.acquisition_datetime ?? null,
-      };
+      }];
     });
     const measuredDays = new Set(base.map(point => point.date));
     for (const [date, item] of timelineByDay) {
@@ -309,7 +320,10 @@ export default function SatellitePage() {
         acquisitionDatetime: item.acquisition_datetime ?? null });
     }
     if (!base.length && gridIndex === 'ndvi') {
-      for (const t of ts) base.push({ date: t.date, value: t.ndvi ?? null, cloud: null });
+      for (const t of ts) {
+        const date = acquisitionUtcDay(t.date);
+        if (date) base.push({ date, value: t.ndvi ?? null, cloud: null });
+      }
     }
     base.sort((a, b) => a.date.localeCompare(b.date));
     // فرق المؤشّر عن التاريخ الأسبق (ترتيب زمنيّ تصاعديّ).
@@ -323,19 +337,11 @@ export default function SatellitePage() {
         deltaByDate.set(cur.date, cur.value - prev.value);
       }
     }
-    const geom = (field?.geometry ?? null) as { type?: string; coordinates?: unknown } | null;
-    return base.map((p) => {
-      const fallbackUrl = !p.thumbUrl && fieldId && p.date
-        ? fieldCdseThumbnailUrl(fieldId, 'truecolor', p.date.slice(0, 10), null, geom, null, 160)
-        : null;
-      return {
-        ...p,
-        delta: p.date && deltaByDate.has(p.date) ? (deltaByDate.get(p.date) as number) : null,
-        thumbUrl: p.thumbUrl ?? fallbackUrl,
-        thumbProduct: fallbackUrl ? 'truecolor' : (p.thumbProduct ?? null),
-      };
-    });
-  }, [rasterPoints, timelineItems, timelineByDay, ts, fieldId, gridIndex, field?.geometry]);
+    return base.map((p) => ({
+      ...p,
+      delta: p.date && deltaByDate.has(p.date) ? (deltaByDate.get(p.date) as number) : null,
+    }));
+  }, [rasterPoints, timelineByDay, ts, gridIndex]);
 
   // هل يوفّر المصدر نسبة غيوم؟ (raster نعم، vegetation لا) — يضبط إتاحة المُبدِّل.
   const hasCloudData = stripPoints.some((p) => typeof p.cloud === 'number');
@@ -399,7 +405,7 @@ export default function SatellitePage() {
   const hasGrid = !!gridResp && gridResp.real_data && Array.isArray(gridResp.grid) && gridResp.grid.length > 0;
 
   // مضلّع الحقل + إطار احتياطيّ للخريطة من هندسة/مركز الحقل الحقيقيّ.
-  const fieldPolygon = field ? geomToPolygon(field.geometry) : undefined;
+  const fieldPolygon = useMemo(() => fieldBoundary(field?.geometry), [field?.geometry]);
   const fallbackBounds: [number, number, number, number] | undefined =
     field && field.lat != null && field.lon != null
       ? [field.lon - 0.01, field.lat - 0.01, field.lon + 0.01, field.lat + 0.01]
@@ -447,13 +453,13 @@ export default function SatellitePage() {
             {analyzing ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> تحليل...</> : <><RefreshCw className="w-3.5 h-3.5" /> تحليل الآن</>}
           </button>
           <button
-            onClick={() => fieldId && refreshImagery({ fieldId })}
-            disabled={refreshingImagery || !fieldId}
+            onClick={handleAnalyze}
+            disabled={analyzing || !fieldId}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border disabled:opacity-50"
             style={{ background: '#1e293b', color: '#fbbf24', borderColor: '#92400e' }}
-            title="يحسب مؤشّرات Sentinel-2 الحقيقيّة عبر CDSE (الافتراضيّ الأقوى) مع تحوّل تلقائيّ إلى Element84 عند تعذّره؛ معالجة COG حقيقيّة — لا قيم وهمية."
+            title="يطلب معالجة صور Sentinel-2 للحقل المحدد، وتظهر قيم المؤشرات بعد اكتمال المعالجة."
           >
-            {refreshingImagery
+            {analyzing
               ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> تحديث الصور...</>
               : <><Satellite className="w-3.5 h-3.5" /> تحديث صور الأقمار</>}
           </button>
@@ -461,7 +467,7 @@ export default function SatellitePage() {
       </div>
 
       {/* تنويه أثر «تحليل الآن» (نجاح/خطأ) — يضمن استجابة مرئيّة صريحة للزرّ */}
-      {analyzeMsg && (
+      {analyzeMsg && analyzeMsg.fieldId === fieldId && (
         <div className="rounded-lg px-3 py-2 text-sm border flex items-center gap-2"
           role="status"
           style={analyzeMsg.ok
@@ -510,8 +516,12 @@ export default function SatellitePage() {
           )}
 
           {mode !== 'truecolor' && hasGrid && (
-            <GridSamplingDetails grid={gridResp} fieldId={fieldId} index={gridIndex} date={mapDate}
-              sceneId={timelineByDay.get(mapDate.slice(0, 10))?.scene_id} />
+            <>
+              <GridSamplingDetails grid={gridResp} fieldId={fieldId} index={gridIndex} date={mapDate}
+                sceneId={timelineByDay.get(mapDate.slice(0, 10))?.scene_id} />
+              <GridCoverageDetails grid={gridResp} fieldId={fieldId} index={gridIndex} date={mapDate}
+                sceneId={timelineByDay.get(mapDate.slice(0, 10))?.scene_id} />
+            </>
           )}
 
           {/* تحذير عدم تطابق توقيت بيانات الطبقة/المشهد (FieldView) — يقارن تاريخ
@@ -564,7 +574,7 @@ export default function SatellitePage() {
                   tools={measureTools}
                   tileSegment={archiveLayer.segment}
                   fieldGeometry={field?.geometry ?? null}
-                  fieldBbox={fallbackBounds}
+                  fieldBbox={boundaryBounds(fieldPolygon) ?? fallbackBounds}
                 />
               )}
             </motion.div>
@@ -668,8 +678,8 @@ export default function SatellitePage() {
             {ndviUnavailable && (
               <NdviUnavailableNotice
                 info={ndviUnavailable}
-                onProcess={() => fieldId && refreshImagery({ fieldId })}
-                processing={refreshingImagery}
+                onProcess={handleAnalyze}
+                processing={analyzing}
                 className="mt-2 flex flex-col items-center gap-2 rounded-lg border border-sahool-border bg-sahool-surface/40 p-3 text-center"
               />
             )}
@@ -762,14 +772,6 @@ export default function SatellitePage() {
                 )}
               </div>
 
-              {/* Legend */}
-              <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
-                <div className="text-[11px] text-slate-400 mb-1.5">مقياس {idx.name}</div>
-                <div className="h-3 rounded-full" style={{ background:'linear-gradient(to right,#dc2626,#f97316,#f59e0b,#65a30d,#16a34a)' }} />
-                <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                  <span>0.2- (تربة)</span><span>0.9+ (صحي)</span>
-                </div>
-              </div>
             </>
           )}
 
@@ -845,7 +847,7 @@ export default function SatellitePage() {
                     </div>
                     {change.cloud_warning && (
                       <p className="text-[10px] text-amber-400/80">
-                        ⚠️ التغطية {(change.coverage_pct ?? 0).toFixed(0)}% فقط (غيوم/فجوات) — نتيجة جزئيّة.
+                        ⚠️ {change.coverage_pct == null ? 'تغطية المقارنة غير متاحة' : `تغطية المقارنة ${change.coverage_pct.toFixed(0)}%`} (غيوم/فجوات) — نتيجة جزئيّة.
                       </p>
                     )}
                     {change.interpretation_ar && (
