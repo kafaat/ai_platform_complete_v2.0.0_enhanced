@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import date, datetime
+from datetime import date
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import Response
@@ -137,6 +137,7 @@ from api.raster_service_client import (
     # facade call distinct so DEM auto-fill hits raster-service, not the route.
     get_field_terrain as raster_get_field_terrain,
 )
+from api.scouting_pin_store import persist_scouting_pin
 from api.scouting_pins import make_pin
 
 # نماذج/مساعدات المواسم نُقِلت إلى api.season_models (تفكيك B1) وتُستورَد من هناك.
@@ -3858,67 +3859,10 @@ async def create_pin(
 
 
 async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
-    """يُثبّت دبّوس مشاهدة في ``scouting_pins`` تحت سياق المستأجِر (RLS) — best-effort.
-
-    يُرجِع ``True`` لو ثُبِّت (أو كان موجوداً مسبقاً idempotent)، و``False`` لو تعذّرت
-    القاعدة (لا استثناء يصعد — المسار offline-first يبقى سليماً). SQL بارامتريّ
-    بالكامل (لا حقن). ``created_at`` يُمرَّر كقيمة datetime ويُحوَّل بـ``::timestamptz``.
-    """
-    if api_main._DB_POOL is None:
-        return False
-    try:
-        async with tenant_connection(user) as conn:
-            exists = await conn.fetchval(
-                "SELECT 1 FROM fields WHERE field_id=$1 AND tenant_id=$2::uuid",
-                pin.field_id,
-                str(user.tenant_id),
-            )
-            if not exists:
-                raise HTTPException(404, "الحقل غير موجود ضمن هذا المستأجر")
-            result = await conn.execute(
-                "INSERT INTO scouting_pins "
-                "(pin_id, tenant_id, field_id, lat, lng, issue_category, severity, "
-                " status, persistence, crop, issue_code, note_ar, photo_uri, color, "
-                " created_by, created_at) "
-                "VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, "
-                " $13, $14, $15, $16::timestamptz) "
-                "ON CONFLICT (pin_id) DO NOTHING",
-                pin.pin_id,
-                str(user.tenant_id),
-                pin.field_id,
-                pin.lat,
-                pin.lng,
-                pin.issue_category.value,
-                pin.severity.value,
-                pin.status.value,
-                pin.persistence.value,
-                pin.crop,
-                pin.issue_code,
-                pin.note_ar,
-                pin.photo_uri,
-                pin.color,
-                pin.created_by,
-                datetime.fromisoformat(pin.created_at),
-            )
-            if result == "INSERT 0 0":
-                previous = await conn.fetchrow(
-                    "SELECT * FROM scouting_pins WHERE pin_id=$1 AND tenant_id=$2::uuid",
-                    pin.pin_id,
-                    str(user.tenant_id),
-                )
-                if previous is None or any(
-                    previous[key] != value
-                    for key, value in pin.to_dict().items()
-                    if key != "created_at"
-                ):
-                    raise HTTPException(409, "معرّف الدبوس مستخدم لمشاهدة مختلفة")
-                pin.created_at = previous["created_at"].isoformat()
-        return True
-    except HTTPException:
-        raise
-    except Exception:  # noqa: BLE001 — إدامة best-effort: تعذّر القاعدة ⇒ persisted=false
-        logging.warning("scouting pin persistence failed for pin %s", pin.pin_id)
-        return False
+    """يُديم الدبّوس تحت RLS — التنفيذ في ``api.scouting_pin_store`` (حدّ حجم الراوتر)."""
+    return await persist_scouting_pin(
+        user, pin, pool_ready=api_main._DB_POOL is not None, connect=tenant_connection
+    )
 
 
 @router.post("/api/v1/fields/{field_id}/walk-plan")
