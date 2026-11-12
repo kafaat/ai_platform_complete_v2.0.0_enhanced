@@ -12275,7 +12275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0316ba010c961e2d4fb719b13aeb8e817ed352a74627569c4d45283e0458f31f"
+          "content": "7201589abe16ed112eecd76648dafaed59ca48e3609f2b78df5fd3d3d94bd3e5"
         }
       ],
       "name": "mobile/sahool_app/lib/features/farm_book/presentation/farm_book_text.dart",
@@ -26965,7 +26965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c05cd2e6c3d3fcecf5f49938ece4b58292a5172cd7f29808107edd4701c08512"
+          "content": "56270ffd928a010bd7ff8b8c8efdd5579608d22e5080ac62c07c8684f7e95ea7"
         }
       ],
       "name": "services/sahool-platform/api/routers/simple_farm_book.py",

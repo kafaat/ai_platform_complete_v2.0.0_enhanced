@@ -889,11 +889,11 @@ sahool-platform,services/sahool-platform/api/routers/sharing.py,86,POST,/api/v1/
 sahool-platform,services/sahool-platform/api/routers/sharing.py,117,GET,/api/v1/sharing/keys,list_sharing_keys
 sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,193,POST,/api/v1/farm-book/parties,create_party
 sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,225,GET,/api/v1/farm-book/parties,list_parties
-sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,343,POST,/api/v1/farm-book/entries,create_entry
-sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,525,GET,/api/v1/farm-book/entries,list_entries
-sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,558,GET,/api/v1/farm-book/monthly,monthly_report
-sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,594,GET,/api/v1/farm-book/balances,book_balances
-sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,615,GET,/api/v1/farm-book/export,export_book
+sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,347,POST,/api/v1/farm-book/entries,create_entry
+sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,529,GET,/api/v1/farm-book/entries,list_entries
+sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,562,GET,/api/v1/farm-book/monthly,monthly_report
+sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,598,GET,/api/v1/farm-book/balances,book_balances
+sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,619,GET,/api/v1/farm-book/export,export_book
 sahool-platform,services/sahool-platform/api/routers/simulate.py,113,POST,/api/v1/simulate/what-if,simulate_what_if
 sahool-platform,services/sahool-platform/api/routers/soil_sampling.py,53,GET,/api/v1/soil-sampling/subsamples,soil_subsamples_endpoint
 sahool-platform,services/sahool-platform/api/routers/soil_sampling.py,59,GET,/api/v1/soil-sampling/depth,soil_depth_endpoint
