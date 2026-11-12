@@ -4735,7 +4735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f6a4cc24fe0cfa5c8d3371bf83d7b8f9bcbb464b7d6833d9a46c915b0b4bdbb2"
+          "content": "aa57965068df72fd30ca7a367851f8dd953d3029ed2cec1027858de4598e590d"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -18125,6 +18125,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "06c8290bc53de506449c67f900f35462752c833c6aec19532132937fb789d10d"
+        }
+      ],
+      "name": "services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "679ee098c8e250b1190727a617d715609933b7b7283879371880db5eae3f725f"
         }
       ],
@@ -18145,7 +18155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2a9b297256ed932bc8e78a39cd9cb4a592bede9afe208ff911ae55d9a88dedb6"
+          "content": "695222a31f8b7556eab2d582c2b9ef7b867c17fa85f40de533b6d307c05b7a1f"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -18405,6 +18415,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "bfc624c5febaa6bab97ab53add483dd513e8bbb1074000fdd06258d825bf3540"
+        }
+      ],
+      "name": "services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c587cdc07eae0de4becdabfad96d6429b81f57d8b84e7ba865f5d38ce42076a9"
         }
       ],
@@ -18539,6 +18559,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_migration_036_correlation_pg16.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "245e660e19993f64fdf69f3f0eeb332c4b2e0d7eee1beb06dd30245c47e84101"
+        }
+      ],
+      "name": "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
       "type": "file"
     },
     {
@@ -18709,6 +18739,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_soil_profile_context_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4fa397fe92f2ea60a0fcb0a1f26bfeb5c8d5e45203638bcc659e65096ad78277"
+        }
+      ],
+      "name": "services/decision-service/tests/test_tenant_binding_force_rls.py",
       "type": "file"
     },
     {

@@ -163,7 +163,14 @@ def _sql(tenant_id: str, model_id: str, feature_set_id: str | None, environment:
     feature_predicate = (
         f"c.feature_set_id = '{feature}'" if feature is not None else "c.feature_set_id IS NULL"
     )
+    # Decision migration 037 forces tenant RLS on every table joined below, so the
+    # tenant must be bound transaction-locally. psql -c sends both statements as one
+    # implicit transaction, so the binding reaches the main query. The binding is wrapped
+    # in a zero-column SELECT so it prints nothing: collect() reads only the last output
+    # line, and a bare set_config would leave the tenant uuid as that line when no chain
+    # exists. `tenant` is the canonical form of a parsed UUID, so quoting it is safe.
     return f"""
+SELECT FROM (SELECT set_config('app.current_tenant', '{tenant}', true)) AS tenant_binding;
 SELECT json_build_object(
  'tenant_id', c.tenant_id::text, 'model_id', c.model_id,
  'feature_set_id', c.feature_set_id, 'target_environment', c.target_environment,

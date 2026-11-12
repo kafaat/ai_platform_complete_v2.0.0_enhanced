@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7116,
+    "files_scanned": 7120,
     "files_by_kind": {
       "backend": 1267,
-      "database": 295,
+      "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2163,
-      "tests": 2372,
+      "tests": 2375,
       "web": 516
     },
     "unmapped_artifacts": 3388,
-    "ambiguous_artifacts": 233,
+    "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3825,
-      "raw": 3291
+      "python_functional": 3828,
+      "raw": 3292
     },
-    "test_dependency_files": 1784,
-    "test_dependency_edges": 4493,
-    "test_dependency_bounded_files": 1038,
+    "test_dependency_files": 1786,
+    "test_dependency_edges": 4501,
+    "test_dependency_bounded_files": 1039,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -2214,6 +2214,10 @@
           "score": 14
         },
         {
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/tests/test_tenant_binding_force_rls.py:215",
+          "score": 14
+        },
+        {
           "value": "raster_field_runtime.py @ tests_v9/test_raster_field_tenant_authz.py:248",
           "score": 14
         },
@@ -2288,6 +2292,14 @@
         },
         {
           "path": "services/decision-service/tests/test_runtime_worker_tenants.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "services/decision-service/tests/test_tenant_binding_force_rls.py",
           "score": 14,
           "signals": [
             "path:tenant",
@@ -2766,10 +2778,10 @@
         "backend": 16,
         "routes": 2,
         "database": 28,
-        "events": 11,
+        "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 37,
+        "tests": 38,
         "governance": 0,
         "other_evidence": 25
       },
@@ -23190,6 +23202,249 @@
           "score": 32
         },
         {
+          "value": "decision_agronomic_context_snapshots @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:40",
+          "score": 29
+        },
+        {
+          "value": "decision_dispatch_authorizations @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:50",
+          "score": 29
+        },
+        {
+          "value": "decision_dispatch_authorizations @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:51",
+          "score": 29
+        },
+        {
+          "value": "decision_execution_delivery_attempts @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:77",
+          "score": 29
+        },
+        {
+          "value": "decision_execution_delivery_attempts @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:78",
+          "score": 29
+        },
+        {
+          "value": "decision_execution_plans @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:59",
+          "score": 29
+        },
+        {
+          "value": "decision_execution_plans @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:60",
+          "score": 29
+        },
+        {
+          "value": "decision_execution_requests @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:68",
+          "score": 29
+        },
+        {
+          "value": "decision_execution_requests @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:69",
+          "score": 29
+        },
+        {
+          "value": "decision_feature_manifest_entries @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:41",
+          "score": 29
+        },
+        {
+          "value": "decision_feature_manifests @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:42",
+          "score": 29
+        },
+        {
+          "value": "decision_field_historical_context_snapshots @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:43",
+          "score": 29
+        },
+        {
+          "value": "decision_learning_attributions @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:45",
+          "score": 29
+        },
+        {
+          "value": "decision_model_activation_requests @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:104",
+          "score": 29
+        },
+        {
+          "value": "decision_model_activation_requests @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:105",
+          "score": 29
+        },
+        {
+          "value": "decision_model_activation_reviews @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:113",
+          "score": 29
+        },
+        {
+          "value": "decision_model_activation_reviews @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:114",
+          "score": 29
+        },
+        {
+          "value": "decision_model_evaluation_runs @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:86",
+          "score": 29
+        },
+        {
+          "value": "decision_model_evaluation_runs @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:87",
+          "score": 29
+        },
+        {
+          "value": "decision_model_monitoring_snapshots @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:203",
+          "score": 29
+        },
+        {
+          "value": "decision_model_monitoring_snapshots @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:204",
+          "score": 29
+        },
+        {
+          "value": "decision_model_post_activation_verifications @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:176",
+          "score": 29
+        },
+        {
+          "value": "decision_model_post_activation_verifications @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:177",
+          "score": 29
+        },
+        {
+          "value": "decision_model_promotion_decisions @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:95",
+          "score": 29
+        },
+        {
+          "value": "decision_model_promotion_decisions @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:96",
+          "score": 29
+        },
+        {
+          "value": "decision_model_reconcile_evidence @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:239",
+          "score": 29
+        },
+        {
+          "value": "decision_model_reconcile_evidence @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:240",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_activation_claims @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:122",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_activation_claims @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:123",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_activation_commands @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:140",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_activation_commands @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:141",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_activation_receipts @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:149",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_activation_receipts @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:150",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_rollback_claims @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:131",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_rollback_claims @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:132",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_rollback_commands @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:158",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_rollback_commands @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:159",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_rollback_receipts @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:167",
+          "score": 29
+        },
+        {
+          "value": "decision_model_registry_rollback_receipts @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:168",
+          "score": 29
+        },
+        {
+          "value": "decision_model_retraining_dispatch_receipts @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:221",
+          "score": 29
+        },
+        {
+          "value": "decision_model_retraining_dispatch_receipts @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:222",
+          "score": 29
+        },
+        {
+          "value": "decision_model_retraining_requests @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:212",
+          "score": 29
+        },
+        {
+          "value": "decision_model_retraining_requests @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:213",
+          "score": 29
+        },
+        {
+          "value": "decision_model_rollout_plans @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:185",
+          "score": 29
+        },
+        {
+          "value": "decision_model_rollout_plans @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:186",
+          "score": 29
+        },
+        {
+          "value": "decision_model_rollout_receipts @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:194",
+          "score": 29
+        },
+        {
+          "value": "decision_model_rollout_receipts @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:195",
+          "score": 29
+        },
+        {
+          "value": "decision_model_runtime_schedules @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:230",
+          "score": 29
+        },
+        {
+          "value": "decision_model_runtime_schedules @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:231",
+          "score": 29
+        },
+        {
+          "value": "decision_model_runtime_work_claims @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:248",
+          "score": 29
+        },
+        {
+          "value": "decision_model_runtime_work_claims @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:249",
+          "score": 29
+        },
+        {
+          "value": "decision_reservation_dispatch_inbox @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:257",
+          "score": 29
+        },
+        {
+          "value": "decision_reservation_dispatch_inbox @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:258",
+          "score": 29
+        },
+        {
+          "value": "decision_runtime_worker_tenant_commands @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:307",
+          "score": 29
+        },
+        {
+          "value": "decision_runtime_worker_tenant_commands @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:308",
+          "score": 29
+        },
+        {
+          "value": "decision_runtime_worker_tenants @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:293",
+          "score": 29
+        },
+        {
+          "value": "decision_runtime_worker_tenants @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:294",
+          "score": 29
+        },
+        {
+          "value": "decision_vegetation_snapshots @ services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql:44",
+          "score": 29
+        },
+        {
+          "path": "services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql",
+          "score": 29,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation",
+            "content:Tenant RLS"
+          ]
+        },
+        {
           "path": "migrations/v9_rls_tenant_isolation.down.sql",
           "score": 28,
           "signals": [
@@ -23396,276 +23651,6 @@
         {
           "value": "prescriptions @ migrations/v192_fii_rls_write_fail_closed.sql:39",
           "score": 20
-        },
-        {
-          "value": "scouting_pins @ migrations/v192_fii_rls_write_fail_closed.sql:21",
-          "score": 20
-        },
-        {
-          "value": "scouting_pins @ migrations/v192_fii_rls_write_fail_closed.sql:22",
-          "score": 20
-        },
-        {
-          "value": "soil_observations @ migrations/v155_soil_observations_profiles.sql:2",
-          "score": 20
-        },
-        {
-          "value": "soil_observations @ migrations/v155_soil_observations_profiles.sql:57",
-          "score": 20
-        },
-        {
-          "value": "soil_observations @ migrations/v155_soil_observations_profiles.sql:58",
-          "score": 20
-        },
-        {
-          "value": "soil_profile_snapshots @ migrations/v155_soil_observations_profiles.sql:32",
-          "score": 20
-        },
-        {
-          "value": "soil_profile_snapshots @ migrations/v155_soil_observations_profiles.sql:59",
-          "score": 20
-        },
-        {
-          "value": "soil_profile_snapshots @ migrations/v155_soil_observations_profiles.sql:60",
-          "score": 20
-        },
-        {
-          "value": "autonomous_recommendations @ migrations/v116_enterprise_gis_phase7.sql:106",
-          "score": 18
-        },
-        {
-          "value": "autonomous_recommendations @ migrations/v116_enterprise_gis_phase7.sql:75",
-          "score": 18
-        },
-        {
-          "value": "autonomous_recommendations @ migrations/v116_enterprise_gis_phase7.sql:99",
-          "score": 18
-        },
-        {
-          "value": "boundary_extraction_jobs @ migrations/v115_precision_agriculture_phase6.sql:4",
-          "score": 18
-        },
-        {
-          "value": "boundary_extraction_jobs @ migrations/v115_precision_agriculture_phase6.sql:75",
-          "score": 18
-        },
-        {
-          "value": "boundary_extraction_jobs @ migrations/v115_precision_agriculture_phase6.sql:81",
-          "score": 18
-        },
-        {
-          "value": "digital_twin_scenarios @ migrations/v116_enterprise_gis_phase7.sql:105",
-          "score": 18
-        },
-        {
-          "value": "digital_twin_scenarios @ migrations/v116_enterprise_gis_phase7.sql:63",
-          "score": 18
-        },
-        {
-          "value": "digital_twin_scenarios @ migrations/v116_enterprise_gis_phase7.sql:98",
-          "score": 18
-        },
-        {
-          "value": "distributed_raster_jobs @ migrations/v116_enterprise_gis_phase7.sql:104",
-          "score": 18
-        },
-        {
-          "value": "distributed_raster_jobs @ migrations/v116_enterprise_gis_phase7.sql:45",
-          "score": 18
-        },
-        {
-          "value": "distributed_raster_jobs @ migrations/v116_enterprise_gis_phase7.sql:97",
-          "score": 18
-        },
-        {
-          "value": "farm_digital_twin_snapshots @ migrations/v115_precision_agriculture_phase6.sql:64",
-          "score": 18
-        },
-        {
-          "value": "farm_digital_twin_snapshots @ migrations/v115_precision_agriculture_phase6.sql:79",
-          "score": 18
-        },
-        {
-          "value": "farm_digital_twin_snapshots @ migrations/v115_precision_agriculture_phase6.sql:85",
-          "score": 18
-        },
-        {
-          "value": "gis_collaboration_events @ migrations/v116_enterprise_gis_phase7.sql:102",
-          "score": 18
-        },
-        {
-          "value": "gis_collaboration_events @ migrations/v116_enterprise_gis_phase7.sql:17",
-          "score": 18
-        },
-        {
-          "value": "gis_collaboration_events @ migrations/v116_enterprise_gis_phase7.sql:95",
-          "score": 18
-        },
-        {
-          "value": "gis_collaboration_sessions @ migrations/v116_enterprise_gis_phase7.sql:101",
-          "score": 18
-        },
-        {
-          "value": "gis_collaboration_sessions @ migrations/v116_enterprise_gis_phase7.sql:4",
-          "score": 18
-        },
-        {
-          "value": "gis_collaboration_sessions @ migrations/v116_enterprise_gis_phase7.sql:94",
-          "score": 18
-        },
-        {
-          "value": "management_zone_sets @ migrations/v115_precision_agriculture_phase6.sql:23",
-          "score": 18
-        },
-        {
-          "value": "management_zone_sets @ migrations/v115_precision_agriculture_phase6.sql:76",
-          "score": 18
-        },
-        {
-          "value": "management_zone_sets @ migrations/v115_precision_agriculture_phase6.sql:82",
-          "score": 18
-        },
-        {
-          "path": "migrations/v115_precision_agriculture_phase6.sql",
-          "score": 18,
-          "signals": [
-            "content:rls",
-            "content:row level security",
-            "content:tenant isolation",
-            "content:Tenant RLS"
-          ]
-        },
-        {
-          "path": "migrations/v116_enterprise_gis_phase7.sql",
-          "score": 18,
-          "signals": [
-            "content:rls",
-            "content:row level security",
-            "content:tenant isolation",
-            "content:Tenant RLS"
-          ]
-        },
-        {
-          "path": "migrations/v123_rls_with_check_preserve_using.sql",
-          "score": 18,
-          "signals": [
-            "path:rls",
-            "content:rls",
-            "content:tenant isolation",
-            "content:Tenant RLS"
-          ]
-        },
-        {
-          "path": "migrations/v237_tenant_isolation_hardening.sql",
-          "score": 18,
-          "signals": [
-            "content:rls",
-            "path:tenant isolation",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "migrations/v92_offline_pending_ops.sql",
-          "score": 18,
-          "signals": [
-            "content:rls",
-            "content:row level security",
-            "content:tenant isolation",
-            "content:Tenant RLS"
-          ]
-        },
-        {
-          "path": "migrations/v9_rls_force_all.sql",
-          "score": 18,
-          "signals": [
-            "path:rls",
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
-          "value": "offline_pending_ops @ migrations/v92_offline_pending_ops.sql:17",
-          "score": 18
-        },
-        {
-          "value": "offline_pending_ops @ migrations/v92_offline_pending_ops.sql:45",
-          "score": 18
-        },
-        {
-          "value": "offline_pending_ops @ migrations/v92_offline_pending_ops.sql:46",
-          "score": 18
-        },
-        {
-          "value": "ogc_conformance_runs @ migrations/v116_enterprise_gis_phase7.sql:103",
-          "score": 18
-        },
-        {
-          "value": "ogc_conformance_runs @ migrations/v116_enterprise_gis_phase7.sql:33",
-          "score": 18
-        },
-        {
-          "value": "ogc_conformance_runs @ migrations/v116_enterprise_gis_phase7.sql:96",
-          "score": 18
-        },
-        {
-          "value": "prescription_maps @ migrations/v115_precision_agriculture_phase6.sql:38",
-          "score": 18
-        },
-        {
-          "value": "prescription_maps @ migrations/v115_precision_agriculture_phase6.sql:77",
-          "score": 18
-        },
-        {
-          "value": "prescription_maps @ migrations/v115_precision_agriculture_phase6.sql:83",
-          "score": 18
-        },
-        {
-          "value": "yield_stability_maps @ migrations/v115_precision_agriculture_phase6.sql:54",
-          "score": 18
-        },
-        {
-          "value": "yield_stability_maps @ migrations/v115_precision_agriculture_phase6.sql:78",
-          "score": 18
-        },
-        {
-          "value": "yield_stability_maps @ migrations/v115_precision_agriculture_phase6.sql:84",
-          "score": 18
-        },
-        {
-          "value": "custody_chain_events @ migrations/v65_harvest_traceability.sql:48",
-          "score": 17
-        },
-        {
-          "value": "custody_chain_events @ migrations/v65_harvest_traceability.sql:76",
-          "score": 17
-        },
-        {
-          "value": "custody_chain_events @ migrations/v65_harvest_traceability.sql:77",
-          "score": 17
-        },
-        {
-          "value": "decision_reviews @ services/decision-service/tests/test_migration_034_pg16.py:285",
-          "score": 17
-        },
-        {
-          "value": "edge_results @ services/decision-service/tests/test_migration_034_pg16.py:405",
-          "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:37",
-          "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:53",
-          "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:54",
-          "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:55",
-          "score": 17
         }
       ],
       "events": [
@@ -23738,6 +23723,14 @@
           "score": 16
         },
         {
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/tests/test_migration_037_force_rls_pg16.py:105",
+          "score": 16
+        },
+        {
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/tests/test_migration_037_force_rls_pg16.py:112",
+          "score": 16
+        },
+        {
           "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase23.py:2700",
           "score": 16
         },
@@ -23767,6 +23760,10 @@
         },
         {
           "value": "cert06_imagery_automation_rls_certification_migrated_po.step.log @ certification/evidence/local_lab_20261025_certification/lab_evidence.json:879",
+          "score": 15
+        },
+        {
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/tests/test_tenant_binding_force_rls.py:215",
           "score": 15
         },
         {
@@ -23996,6 +23993,16 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py",
+          "score": 21,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests_v9/test_rls_isolation.py",
           "score": 21,
           "signals": [
@@ -24138,6 +24145,15 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
+          "score": 16,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
           "path": "tests/security/test_fii_chemical_chain_rls_gate.py",
           "score": 16,
           "signals": [
@@ -24162,6 +24178,15 @@
             "content:rls",
             "content:row level security",
             "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "services/decision-service/tests/test_tenant_binding_force_rls.py",
+          "score": 15,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:row level security"
           ]
         },
         {
@@ -25398,16 +25423,16 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 826
+        "database": 886
       },
       "evidence_counts": {
         "backend": 12,
         "routes": 16,
         "database": 100,
-        "events": 70,
+        "events": 73,
         "web": 0,
         "mobile": 0,
-        "tests": 79,
+        "tests": 82,
         "governance": 0,
         "other_evidence": 89
       },
@@ -47218,6 +47243,29 @@
       ]
     },
     {
+      "path": "services/decision-service/tests/test_tenant_binding_force_rls.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 15,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
+          "capability_id": "FM-001",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        }
+      ]
+    },
+    {
       "path": "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
       "kind": "tests",
       "candidates": [
@@ -50698,6 +50746,51 @@
       "unresolved": []
     },
     {
+      "test": "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "shared_test_helper"
+      ],
+      "edges": [
+        {
+          "source": "services/decision-service/main.py",
+          "kind": "import",
+          "line": 137
+        },
+        {
+          "source": "services/decision-service/migration_runner.py",
+          "kind": "import",
+          "line": 21
+        },
+        {
+          "source": "services/decision-service/persistence.py",
+          "kind": "import",
+          "line": 22
+        },
+        {
+          "source": "services/decision-service/tests/_model_chain.py",
+          "kind": "import",
+          "line": 235
+        },
+        {
+          "source": "services/decision-service/tests/test_agronomic_lineage_integrity.py",
+          "kind": "import",
+          "line": 138
+        },
+        {
+          "source": "services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py",
+          "kind": "import",
+          "line": 24
+        },
+        {
+          "source": "services/decision-service/tests/test_migration_033_pg16.py",
+          "kind": "import",
+          "line": 25
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/decision-service/tests/test_migration_runner_readonly.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -50998,6 +51091,19 @@
           "source": "services/decision-service/agronomic_context/point_in_time.py",
           "kind": "import",
           "line": 14
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/decision-service/tests/test_tenant_binding_force_rls.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/decision-service/persistence.py",
+          "kind": "import",
+          "line": 30
         }
       ],
       "unresolved": []

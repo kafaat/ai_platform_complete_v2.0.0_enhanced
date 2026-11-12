@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "769ec32a21ce2911f121bca7513f21c2bf3052ae",
+  "measured_on": "529f36e89cbcf316107135d8a8668171c63a1e40",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "5ccf7385e4fc802fece8aaa144b90ebe0bc27983eabc1bbcd1b585ab62ec5f66",
+  "measurement_input_digest": "d34dc3932989b3e227a937a1efa5c0ececc83c3266f4571a05e4194ed7f20d02",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "5bf53a3dbd28214b1f18e4f65117ae85b57040f61a82364d14eb58ea62df2fcd",
+  "measurement_basis_digest": "9b78e4eb12609ad5a25b0ef5b6dc3f2f76a810d9e0a5e545c83c1f93c8531626",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -43,6 +43,10 @@
       "sha256": "2fdccc2eebc6cd6c2840b694dedb9760a238d99d95d4fa576e2206eaa9f3d682"
     },
     {
+      "path": "scripts/staging/c12_live_activation_receipt.py",
+      "sha256": "eae9125fb60fc337cf8825124cbe07077ea7dd0e975101b4bc1bea941c4562da"
+    },
+    {
       "path": "scripts/tenant_query_audit.py",
       "sha256": "629109244d6c8c20b60c5ff61f20722d7dbc107fe14389f75afc3acc2ddb0251"
     },
@@ -60,7 +64,7 @@
     },
     {
       "path": "services/decision-service/persistence.py",
-      "sha256": "2a9b297256ed932bc8e78a39cd9cb4a592bede9afe208ff911ae55d9a88dedb6"
+      "sha256": "695222a31f8b7556eab2d582c2b9ef7b867c17fa85f40de533b6d307c05b7a1f"
     },
     {
       "path": "services/field-management-service/main.py",
@@ -213,6 +217,7 @@
     "app.current_role",
     "app.current_tenant",
     "app.current_tenant_id",
+    "app.current_worker",
     "app.tenant_id"
   ]
 }
