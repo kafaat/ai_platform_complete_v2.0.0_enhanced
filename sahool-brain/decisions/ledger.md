@@ -4766,4 +4766,4 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 
 **2026-11-12 — فتح GATE-01 (CLOSED → OPEN) بقرار المالك.**
 **السبب:** عُرض على المالك البديلُ المقيَّد، وهو تفويضٌ موقَّع لكلّ PR وكانت ثلاثة تواقيع تكفي للأعمال المحجوزة، فاختار «افضل الفتح الكامل» لغرض التطوير والإصلاح. يسري الفتح فقط بظرف `state_transition` موقَّع بمفتاح المالك (`GATE01-AUTH-2026-11-12-001`). يبقى `owner_signature` كما هو: إضعافه أو تدوير المفتاح يحتاج توقيعاً. والإغلاق تشديدٌ لا يحتاج توقيعاً.
-**المرجع:** فرع `gate01/open-phase1` · `docs/architecture/gates/rulings/GATE01-OPEN-2026-11-12.json` · `docs/architecture/gate01_policy.json`.
+**المرجع:** فرع `gate01/open-phase1` · سجلّ القرار في `docs/architecture/gates/rulings/` · `docs/architecture/gate01_policy.json`.
