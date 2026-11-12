@@ -226,6 +226,8 @@ async def test_persist_pin_inserts_parameterized(fields_mod, monkeypatch):
     assert conn.execute_args[0] == "pin-y"
     assert conn.execute_args[1] == str(user.tenant_id)
     assert conn.execute_args[2] == "fld-1"
+    assert isinstance(conn.execute_args[-1], _dt.datetime)
+    assert conn.execute_args[-1].tzinfo is not None
 
 
 async def test_persist_pin_failure_best_effort(fields_mod, monkeypatch):

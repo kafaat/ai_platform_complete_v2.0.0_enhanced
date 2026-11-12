@@ -95,6 +95,7 @@ vi.mock('maplibre-gl', () => {
     NavigationControl: FakeNavigationControl,
     LngLatBounds: FakeLngLatBounds,
     // webglSupported() يستدعي maplibregl.supported إن وُجدت؛ نقرؤها حسب العَلَم.
+    setWorkerUrl: vi.fn(),
     supported: () => mockState.webglOk,
   };
   return { __esModule: true, default: api, ...api };

@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import date
+from datetime import date, datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import Response
@@ -3818,7 +3818,7 @@ async def field_unified_timeline(
 async def create_pin(
     field_id: str,
     req: PinCreateRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
     """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة.
 
@@ -3829,6 +3829,8 @@ async def create_pin(
     ``persisted=false`` (لا اختراع نجاح، يبقى المسار offline-first سليماً). idempotent
     عبر ``ON CONFLICT (pin_id) DO NOTHING`` (إعادة المزامنة لا تُكرّر).
     """
+    if req.field_id != field_id:
+        raise HTTPException(422, "معرّف الحقل لا يطابق المسار")
     try:
         pin = make_pin(
             req.pin_id,
@@ -3844,13 +3846,13 @@ async def create_pin(
             note_ar=req.note_ar,
             photo_uri=req.photo_uri,
             color=req.color,
-            created_by=req.created_by or user.user_id,
+            created_by=user.user_id,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
 
-    out = pin.to_dict()
     persisted = await _persist_scouting_pin(user, pin)
+    out = pin.to_dict()
     out["persisted"] = persisted
     return out
 
@@ -3860,13 +3862,19 @@ async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
 
     يُرجِع ``True`` لو ثُبِّت (أو كان موجوداً مسبقاً idempotent)، و``False`` لو تعذّرت
     القاعدة (لا استثناء يصعد — المسار offline-first يبقى سليماً). SQL بارامتريّ
-    بالكامل (لا حقن). ``created_at`` يُمرَّر كنصّ ISO من النواة ويُحوَّل بـ``::timestamptz``.
+    بالكامل (لا حقن). ``created_at`` يُمرَّر كقيمة datetime ويُحوَّل بـ``::timestamptz``.
     """
     if api_main._DB_POOL is None:
         return False
     try:
         async with tenant_connection(user) as conn:
-            await conn.execute(
+            exists = await conn.fetchval(
+                "SELECT 1 FROM fields WHERE field_id=$1 AND tenant_id=$2::uuid",
+                pin.field_id, str(user.tenant_id),
+            )
+            if not exists:
+                raise HTTPException(404, "الحقل غير موجود ضمن هذا المستأجر")
+            result = await conn.execute(
                 "INSERT INTO scouting_pins "
                 "(pin_id, tenant_id, field_id, lat, lng, issue_category, severity, "
                 " status, persistence, crop, issue_code, note_ar, photo_uri, color, "
@@ -3889,9 +3897,22 @@ async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
                 pin.photo_uri,
                 pin.color,
                 pin.created_by,
-                pin.created_at or None,
+                datetime.fromisoformat(pin.created_at),
             )
+            if result == "INSERT 0 0":
+                previous = await conn.fetchrow(
+                    "SELECT * FROM scouting_pins WHERE pin_id=$1 AND tenant_id=$2::uuid",
+                    pin.pin_id, str(user.tenant_id),
+                )
+                if previous is None or any(
+                    previous[key] != value
+                    for key, value in pin.to_dict().items() if key != "created_at"
+                ):
+                    raise HTTPException(409, "معرّف الدبوس مستخدم لمشاهدة مختلفة")
+                pin.created_at = previous["created_at"].isoformat()
         return True
+    except HTTPException:
+        raise
     except Exception:  # noqa: BLE001 — إدامة best-effort: تعذّر القاعدة ⇒ persisted=false
         logging.warning("scouting pin persistence failed for pin %s", pin.pin_id)
         return False

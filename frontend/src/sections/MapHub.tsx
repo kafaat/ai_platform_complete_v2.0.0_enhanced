@@ -272,7 +272,14 @@ function monthLabel(date: string): string {
   return /^\d{4}-\d{2}-\d{2}$/.test(d) ? `${d.slice(0, 4)}-${d.slice(5, 7)}` : '—';
 }
 
-const PIN_CATEGORIES = ['آفة', 'مرض', 'نقص تغذية', 'إجهاد مائيّ', 'عشب ضارّ', 'أخرى'];
+const PIN_CATEGORY_CODES: Record<string, string> = {
+  'آفة': 'pest', 'مرض': 'disease', 'نقص تغذية': 'nutrient',
+  'إجهاد مائيّ': 'water_stress', 'عشب ضارّ': 'weed', 'غير حيوي': 'abiotic', 'أخرى': 'other',
+};
+const PIN_CATEGORIES = Object.keys(PIN_CATEGORY_CODES);
+function pinCategoryLabel(value?: string | null): string {
+  return PIN_CATEGORIES.find(label => label === value || PIN_CATEGORY_CODES[label] === value) ?? 'آفة';
+}
 
 // ── طبقة التربة (SoilGrids) — الخصائص الثمانية المدعومة + أعماقها (عقد raster-service) ──
 // التسميات العربيّة للقوائم المنسدلة (name_ar الرسميّ من الخادم يُعرَض للطبقة النشطة عبر
@@ -455,7 +462,7 @@ function MapHubCore() {
   useEffect(() => { setOptimisticPins([]); }, [fieldId]);
   const serverPins = useMemo<ScoutPin[]>(
     () => (scoutingPinsQ.data?.pins ?? []).map((r: ScoutingPinRecord) => ({
-      id: r.pin_id, lat: r.lat, lng: r.lng, note: r.note_ar ?? '', category: r.issue_category,
+      id: r.pin_id, lat: r.lat, lng: r.lng, note: r.note_ar ?? '', category: pinCategoryLabel(r.issue_category),
     })),
     [scoutingPinsQ.data],
   );
@@ -463,7 +470,7 @@ function MapHubCore() {
     const ids = new Set(serverPins.map((p) => p.id));
     return [...serverPins, ...optimisticPins.filter((p) => !ids.has(p.id))];
   }, [serverPins, optimisticPins]);
-  const [pinCategory, setPinCategory] = useState(savedWorkspace?.pinCategory || PIN_CATEGORIES[0]);
+  const [pinCategory, setPinCategory] = useState(pinCategoryLabel(savedWorkspace?.pinCategory));
   // ── v2: لقطة عرض الخريطة (مركز lat/lng + تكبير) — تُستعاد وتُلتقط من الخريطة ──
   const [mapView, setMapView] = useState<SahoolMapView | null>(savedWorkspace?.mapView ?? null);
   // مفتاح إعادة التركيب — يتغيّر عند استيراد مشروع ذي عرض، فتُعاد الخريطة وتبدأ من
@@ -1029,7 +1036,7 @@ function MapHubCore() {
       setShowWeather(w.showWeather);
       setShowAlerts(w.showAlerts);
       setShowDevices(w.showDevices);
-      if (w.pinCategory) setPinCategory(w.pinCategory);
+      if (w.pinCategory) setPinCategory(pinCategoryLabel(w.pinCategory));
       if (w.selectedFieldId) setFieldId(w.selectedFieldId);
       // v2: استعادة عرض الخريطة المستورد. تحديث mapView + بصمة الاستعادة يُعيد
       // تركيب الخريطة (مفتاح remount) فتبدأ من العرض الجديد — كأوّل تحميل تماماً.
@@ -1439,14 +1446,19 @@ function MapHubCore() {
   // pin_id)؛ نجاح الطلب يُبطِل مخبّأ useScoutingPins ⇒ إعادة جلب فتظهر مُخزَّنة، والفشل
   // ⇒ تراجُع فوريّ عن التفاؤليّ. لا حقل مختار ⇒ عرض تفاؤليّ فقط (لا وجهة حفظ).
   const handleAddPin = useCallback((lat: number, lng: number) => {
-    if (!pinAllowed || !fieldId) return;
+    if (!pinAllowed) return;
+    if (!fieldId) {
+      toastStore.add('info', 'دبوس مؤقت', 'اختر الحقل قبل إضافة دبوس تريد حفظه.');
+      return;
+    }
     const pinId = `pin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     setOptimisticPins((prev) => [...prev, { id: pinId, lat, lng, note: '', category: pinCategory }]);
-    if (!fieldId) return;
-    createScoutPin.mutate(
-      { pin_id: pinId, field_id: fieldId, lat, lng, issue_category: pinCategory, note_ar: null },
-      { onError: () => setOptimisticPins((prev) => prev.filter((p) => p.id !== pinId)) },
-    );
+    void createScoutPin.mutateAsync(
+      { pin_id: pinId, field_id: fieldId, lat, lng, issue_category: PIN_CATEGORY_CODES[pinCategory], note_ar: null },
+    ).catch(() => {
+      setOptimisticPins((prev) => prev.filter((p) => p.id !== pinId));
+      toastStore.add('error', 'تعذّر حفظ دبوس التفتيش', 'تحقق من الاتصال والصلاحية ثم أعد المحاولة.');
+    });
   }, [pinCategory, fieldId, createScoutPin, pinAllowed]);
 
   // «مسح» يُزيل الدبابيس التفاؤليّة غير المُثبَّتة بعد فقط — المُخزَّنة على الخادم دائمة
@@ -3136,7 +3148,7 @@ function MapHubCore() {
 
             <div className="text-[11px]" style={{ color: T.muted }}>
               السطح الموحّد «الحقول والخريطة» — بلاطات <code>/raster</code> الحقيقيّة فوق حدود <code>/fields</code>.
-              أدوات القياس من turf، الدبابيس محلّيّة (لا اختراع نقطة قراءة خلفيّة).
+              أدوات القياس من turf، تُحفظ دبابيس التفتيش في الحقل المختار.
             </div>
           </div>
         </div>
