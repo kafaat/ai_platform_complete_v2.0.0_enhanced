@@ -2512,10 +2512,6 @@
     "kind": "database"
   },
   {
-    "path": "migrations/v242_events_entity_type_contract.sql",
-    "kind": "database"
-  },
-  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },

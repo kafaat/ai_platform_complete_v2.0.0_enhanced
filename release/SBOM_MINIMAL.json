@@ -7555,7 +7555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe67d5f21d1c5dbafb16eb7d38480027c8fcee7a1fce7369d4e15d8e08f0ab73"
+          "content": "bc22cc83d2bbf69731861c31784104d25632cd0a1868b53f186707da1eabfb5e"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7615,7 +7615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40e0c5114944ad29ada717b73b4f6246e2fa836829746bef758eb58ed5e38739"
+          "content": "05e15b354b78f18df3de1f3852db78b651002605f97ddb861faf7128c03b8fd3"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -9105,16 +9105,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5931d0f088fd84af6d674ee234f1b3ba6e2fb8104a7c01c28cc801f944c73971"
-        }
-      ],
-      "name": "migrations/v242_events_entity_type_contract.sql",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "b0b60f865feae3fcfd9cf2623a9eca2630e2d55a491a3dabf0311002b3a65d08"
         }
       ],
@@ -9385,7 +9375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "57e4ea6d4555230517fe1ef4e521aa9c746d01c81fe7501cf0a4cae1b6b19603"
+          "content": "6b4d0ddede6a6d8aad377e719fb531098154879be04b164dc6ef4ee9d54af7c2"
         }
       ],
       "name": "migrations/v51_review_round2_fixes.sql",
@@ -29315,7 +29305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "45e42b51a9adcf77b7427ce9d6201ef4bc5c44d867e05dfd1e2991314185fa9c"
+          "content": "3544501be70b766b463184cdf40f12d89426f41cb0a8475bcec5b279433aa988"
         }
       ],
       "name": "services/sahool-platform/core/event_schema.py",

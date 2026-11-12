@@ -92,9 +92,9 @@ class EventEnvelope:
 
 
 # events.entity_type: the coarse entity category the events table accepts. This set is the
-# single source for migrations/v242_events_entity_type_contract.sql (events_entity_type_check);
+# single source for the list in migrations/v51_review_round2_fixes.sql (events_entity_type_check);
 # tests_v9/test_events_entity_type_contract.py fails if the two drift or if code emits a value
-# outside it. Before v242 the CHECK held only the first 11, so every event for the other
+# outside it. Before this change the CHECK held only the first 11, so every event for the other
 # entities (harvest lots, tasks, alerts, ...) was rejected by the database; non-critical
 # emits swallowed that, and critical ones aborted the business write.
 ALLOWED_ENTITY_TYPES: frozenset[str] = frozenset(
@@ -111,7 +111,7 @@ ALLOWED_ENTITY_TYPES: frozenset[str] = frozenset(
         "user",
         "activity",
         "soil_lab_test",
-        # v242: emitted by the platform but rejected until then
+        # emitted by the platform but rejected by the 11-value CHECK until then
         "alert",
         "calibration_audit",
         "calibration_override",

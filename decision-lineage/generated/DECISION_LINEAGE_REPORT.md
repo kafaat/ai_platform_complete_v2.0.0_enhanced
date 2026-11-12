@@ -18,7 +18,7 @@
 | 1 | `evidence` | `sahool-platform` | 687 |
 | 2 | `candidate` | `sahool-platform` | 557 |
 | 3 | `decision` | `sahool-platform` | 198 |
-| 4 | `review` | `sahool-platform` | 303 |
+| 4 | `review` | `sahool-platform` | 304 |
 | 5 | `plan` | `decision-service` | 49 |
 | 6 | `authorization` | `sahool-platform` | 183 |
 | 7 | `request` | `decision-service` | 40 |

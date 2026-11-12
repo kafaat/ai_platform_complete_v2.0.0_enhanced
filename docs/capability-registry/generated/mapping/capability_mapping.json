@@ -15,21 +15,21 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7119,
+    "files_scanned": 7118,
     "files_by_kind": {
       "backend": 1267,
-      "database": 296,
+      "database": 295,
       "governance": 89,
       "mobile": 414,
       "other": 2163,
       "tests": 2374,
       "web": 516
     },
-    "unmapped_artifacts": 3390,
+    "unmapped_artifacts": 3389,
     "ambiguous_artifacts": 233,
     "files_by_reading": {
       "python_functional": 3827,
-      "raw": 3292
+      "raw": 3291
     },
     "test_dependency_files": 1785,
     "test_dependency_edges": 4498,
@@ -32875,10 +32875,6 @@
     },
     {
       "path": "migrations/v235_decision_chain_correlation.sql",
-      "kind": "database"
-    },
-    {
-      "path": "migrations/v242_events_entity_type_contract.sql",
       "kind": "database"
     },
     {
@@ -74542,27 +74538,27 @@
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "source_read",
-          "line": 37
+          "line": 36
         },
         {
           "source": "services/sahool-platform/api/irrigation_execution_request_port.py",
           "kind": "source_read",
-          "line": 39
+          "line": 38
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "source_read",
-          "line": 36
+          "line": 35
         },
         {
           "source": "services/sahool-platform/core/event_schema.py",
           "kind": "import",
-          "line": 48
+          "line": 47
         },
         {
           "source": "services/sahool-platform/core/event_schema.py",
           "kind": "source_read",
-          "line": 38
+          "line": 37
         }
       ],
       "unresolved": []

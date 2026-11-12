@@ -1,13 +1,13 @@
 """events.entity_type: what the code emits, what Python validates and what the CHECK accepts agree.
 
-Until v242 the CHECK held 11 categories while the platform emitted 34, so the database
+Until this change the CHECK held 11 categories while the platform emitted 34, so the database
 rejected every event for harvest lots, tasks, alerts, calibration overrides, decision records
 and more. Non-critical emits swallowed that; critical ones aborted the business write. Test
 doubles accept any value, so nothing caught it.
 
 Three sources must stay equal:
   * ``ALLOWED_ENTITY_TYPES`` in services/sahool-platform/core/event_schema.py;
-  * the ``wanted`` list in migrations/v242_events_entity_type_contract.sql;
+  * the ``wanted`` list in migrations/v51_review_round2_fixes.sql;
   * every entity_type literal a call site passes to an emit path (``_emit_domain_event``,
     ``EventBus.emit``, ``new_event``, or SQL ``emit_event(...)``), which must be a subset.
 
@@ -27,7 +27,6 @@ pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
-V242 = ROOT / "migrations" / "v242_events_entity_type_contract.sql"
 V51 = ROOT / "migrations" / "v51_review_round2_fixes.sql"
 MANIFEST = ROOT / "migrations" / "MANIFEST.txt"
 
@@ -120,10 +119,10 @@ def _emitted() -> tuple[dict[str, set[str]], list[tuple[str, str, int]]]:
     return found, unresolved
 
 
-def _v242_values() -> set[str]:
-    text = V242.read_text(encoding="utf-8")
+def _v51_values() -> set[str]:
+    text = V51.read_text(encoding="utf-8")
     block = re.search(r"wanted\s+text\[\]\s*:=\s*ARRAY\[(.*?)\];", text, re.S)
-    assert block, "v242 no longer declares its `wanted` list"
+    assert block, "v51 no longer declares its `wanted` list"
     return set(re.findall(r"'([a-z_]+)'", block.group(1)))
 
 
@@ -156,10 +155,10 @@ def test_unreadable_entity_types_are_declared_pass_throughs():
 
 
 def test_migration_and_python_set_are_identical():
-    assert _v242_values() == set(_allowed())
+    assert _v51_values() == set(_allowed())
 
 
-def test_v242_is_the_last_manifest_entry_defining_the_constraint():
+def test_v51_is_the_only_manifest_entry_redefining_the_constraint():
     entries = [ln.strip() for ln in MANIFEST.read_text(encoding="utf-8").splitlines()]
     entries = [e for e in entries if e and not e.startswith("#")]
     definers = [
@@ -167,7 +166,7 @@ def test_v242_is_the_last_manifest_entry_defining_the_constraint():
         for e in entries
         if "events_entity_type_check" in (ROOT / "migrations" / e).read_text(encoding="utf-8")
     ]
-    assert definers and definers[-1] == V242.name, definers
+    assert definers == [V51.name], definers
 
 
 def test_v51_does_not_narrow_a_wider_constraint_on_rerun():
