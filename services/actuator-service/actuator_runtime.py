@@ -25,7 +25,7 @@ from aiomqtt import Client as MQTTClient
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
-from shared.actuation_killswitch import is_actuation_halted
+from shared.actuation_killswitch import is_actuation_halted, is_safe_direction
 from shared.actuator_idempotency import (
     decide_fire,
     idempotency_counters,
@@ -269,7 +269,7 @@ def _device_dispatch_gate(
         return False, "device_tenant_mismatch"
     if str(record.get("type") or "").lower() != "actuator":
         return False, "device_not_actuator"
-    if field_id and str(record.get("field_id") or "") != str(field_id):
+    if field_id and str(record.get("field_id") or "").strip() != str(field_id).strip():
         return False, "device_field_mismatch"
     if str(record.get("status") or "").lower() != "online":
         return False, "device_not_online"
@@ -405,6 +405,11 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
             device_ok, device_reason, device_field = await _validate_dispatch_device(
                 tenant_id, device_id, field_id
             )
+            if device_ok and not (field_id or device_field) and not is_safe_direction(cmd):
+                # No field anywhere (command or registry): no field kill switch could hold an
+                # opening command, so it is refused. decision-service refuses new ones too
+                # (command_field_unbound); this catches requests queued before that check.
+                device_ok, device_reason = False, "dispatch_field_unbound"
             if device_ok:
                 # Re-check the scoped kill-switch after the command has been parsed: tenant + field + device.
                 # A command that names no field is held by the field its device is registered in.

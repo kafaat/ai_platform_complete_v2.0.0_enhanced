@@ -311,7 +311,8 @@ def test_consumer_halts_only_the_addressed_field(monkeypatch):
     async def acquire():
         yield object()
 
-    # OPEN: #1386 deliberately lets a CLOSE through a halted field, so the halt is shown on OPEN.
+    # OPEN is used here. Whether a CLOSE should pass a halted field is pending the owner's ruling
+    # on #1386; on this branch no caller passes command=, so a CLOSE is held like an OPEN.
     rows = [
         {
             "execution_request_id": field,
@@ -452,3 +453,91 @@ def test_device_validation_reports_the_registered_field(monkeypatch):
         "device_field_mismatch",
         "pivot-1",
     )
+
+
+def _run_consumer_with(monkeypatch, command, device_field, halted_field=None):
+    """Drive run_dispatch_consumer_once with one queued request; returns (receipts, publish)."""
+    import asyncio
+    from contextlib import asynccontextmanager
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    @asynccontextmanager
+    async def acquire():
+        yield object()
+
+    rows = [
+        {
+            "execution_request_id": "r1",
+            "target_id": "valve-1",
+            "command_payload": {
+                "command": command,
+                "device_id": "valve-1",
+                "payload": {"duration_sec": 60},
+            },
+        }
+    ]
+    receipts = []
+
+    async def decision(client, method, path, tenant, json_body=None):
+        if method == "GET":
+            return SimpleNamespace(
+                status_code=200, json=lambda: {"items": [] if "recovery" in path else rows}
+            )
+        if path.endswith("/receipt"):
+            receipts.append(json_body["receipt_payload"].get("device_validation"))
+        return SimpleNamespace(status_code=200)
+
+    async def halted(conn, tenant, *, field_id=None, valve_id=None, **_kwargs):
+        return (halted_field is not None and field_id == halted_field), "field-stop"
+
+    publish = AsyncMock(return_value=True)
+    monkeypatch.setattr(main, "_pool", SimpleNamespace(acquire=acquire))
+    monkeypatch.setattr(main, "_decision_request", decision)
+    monkeypatch.setattr(
+        main, "_validate_dispatch_device", AsyncMock(return_value=(True, "ok", device_field))
+    )
+    monkeypatch.setattr(main, "is_actuation_halted", halted)
+    monkeypatch.setattr(main, "send_mqtt_command", publish)
+    monkeypatch.setattr(main, "ACTUATOR_DELIVERY_TOKEN_KEY", "fixture")
+    asyncio.run(main.run_dispatch_consumer_once(None, "tenant", allowlist={"low"}))
+    return receipts, publish
+
+
+def test_an_opening_command_to_a_device_with_no_registered_field_is_refused(monkeypatch):
+    # Independent re-check (SAHOOL session), gap 1: neither the command nor the registry named
+    # a field, so no field kill switch could hold the OPEN; it was accepted and published.
+    receipts, publish = _run_consumer_with(monkeypatch, "open_valve", device_field=None)
+    assert receipts == ["dispatch_field_unbound"]
+    publish.assert_not_awaited()
+
+
+def test_a_close_to_a_device_with_no_registered_field_is_still_published(monkeypatch):
+    receipts, publish = _run_consumer_with(monkeypatch, "close_valve", device_field=None)
+    assert receipts == ["ok"]
+    publish.assert_awaited_once()
+
+
+def test_field_ids_that_differ_only_by_whitespace_match_the_gate_and_the_kill_switch():
+    # Independent re-check, gap 2: a registry value "pivot-1 " and a halt on "pivot-1 " let an
+    # OPEN through because the gate and match_killswitch compared raw strings.
+    from datetime import UTC, datetime
+
+    from shared.actuation_killswitch import match_killswitch
+
+    now = datetime.now(UTC)
+    record = {
+        "tenant_id": "t",
+        "type": "actuator",
+        "field_id": "pivot-1 ",
+        "status": "online",
+        "last_seen_at": now,
+    }
+    ok, reason = main._device_dispatch_gate(
+        record, tenant_id="t", field_id="pivot-1", now=now, stale_seconds=600
+    )
+    assert (ok, reason) == (True, "ok")
+    halted, _ = match_killswitch(
+        [{"scope": "field", "field_id": "pivot-1 ", "active": True}], field_id="pivot-1"
+    )
+    assert halted
