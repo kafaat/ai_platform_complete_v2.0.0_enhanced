@@ -374,7 +374,7 @@ class NewObservationCubit extends Cubit<NewObservationState> {
     try {
       final r = await _api.createPin(field.id, body, idempotencyKey: key);
       if (isClosed) return;
-      if (r['persisted'] == false) {
+      if (r['persisted'] != true) {
         // الخادم تحقّق ولم يُدِم (القاعدة غير متاحة) — نعيد المحاولة لاحقاً.
         await _enqueue(body, why: 'not_persisted');
         return;

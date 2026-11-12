@@ -38,6 +38,7 @@ import {
 import { satelliteArchiveLayer } from '../components/fieldhealth/satelliteArchive';
 import { timelineRecordByDay } from '../components/fieldhealth/timelineByDay';
 import { unavailableFieldChangeMessage } from '../lib/fieldChangeAvailability';
+import { toastStore } from '../services/websocket';
 import { useScoutingPins, useCreateScoutingPin, useCropScoutingIssues } from '../hooks/useScouting';
 import type { ScoutingPinRecord } from '../hooks/useScouting';
 import { useLocation } from 'react-router';
@@ -156,18 +157,16 @@ export default function SatellitePage() {
       severity: pinSeverity, issueCode: pinIssueCode || null, persisted: false,
     };
     setOptimisticPins((prev) => [...prev, optimistic]);
-    createPin.mutate(
+    void createPin.mutateAsync(
       {
         pin_id: pinId, field_id: fieldId, lat, lng: lon,
         issue_category: pinCategory, severity: pinSeverity, persistence: pinPersistence,
         issue_code: pinIssueCode || null, note_ar: pinNote || null,
       },
-      {
-        // عند نجاح الإنشاء تُعيد useCreateScoutingPin إبطال المخبّأ ⇒ إعادة جلب؛
-        // نزيل التفاؤليّ عند ظهوره من الخادم (effect أدناه). الفشل ⇒ تراجُع فوريّ.
-        onError: () => setOptimisticPins((prev) => prev.filter((p) => p.id !== pinId)),
-      },
-    );
+    ).catch(() => {
+      setOptimisticPins((prev) => prev.filter((p) => p.id !== pinId));
+      toastStore.add('error', 'تعذّر حفظ دبوس التفتيش', 'تحقق من الاتصال والصلاحية ثم أعد المحاولة.');
+    });
   }, [fieldId, pinCategory, pinPersistence, pinSeverity, pinIssueCode, pinNote, createPin]);
 
   // تنظيف التفاؤليّة بعد أن تصبح مُخزَّنة فعليّاً (ظهرت في استجابة الخادم).
