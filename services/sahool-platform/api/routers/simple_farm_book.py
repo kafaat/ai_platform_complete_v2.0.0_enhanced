@@ -96,6 +96,14 @@ async def _assert_scope(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         raise HTTPException(status_code=404, detail="farm_not_found_for_tenant")
     if req.field_id:
         await _assert_field_in_tenant(conn, req.field_id)
+        # The field must be on the entry's farm. Checking it against the tenant alone let an
+        # entry on farm X name a field of farm Y (and cite that field's receipt). A legacy
+        # field with no farm recorded is not attributable to another farm and is accepted.
+        field_farm = await conn.fetchval(
+            "SELECT farm_id FROM fields WHERE field_id=$1", req.field_id
+        )
+        if field_farm is not None and field_farm != req.farm_id:
+            raise HTTPException(status_code=422, detail="field_not_in_farm")
     if req.season_id:
         season = await conn.fetchval(
             """SELECT 1 FROM seasons WHERE tenant_id=$1::uuid AND season_id=$2
@@ -140,6 +148,15 @@ def _may_link_receipt(user: UserSchema, farm_id: str | None) -> bool:
     return authorize(user, Permission.DOCUMENT_VIEW, farm_id=farm_id).allowed
 
 
+def _may_write_on_farm(user: UserSchema, farm_id: str | None) -> bool:
+    """``ACTIVITY_EXECUTE`` on the entry's farm: the role and ``farm_ids_access``.
+
+    The route dependency checks the role only; a user limited to some farms of the tenant
+    could otherwise write entries on every farm.
+    """
+    return authorize(user, Permission.ACTIVITY_EXECUTE, farm_id=farm_id).allowed
+
+
 async def _assert_receipt(conn, tenant_id: str, req: SimpleEntryIn, user: UserSchema) -> None:
     """A receipt belongs to the entry it is attached to.
 
@@ -153,9 +170,11 @@ async def _assert_receipt(conn, tenant_id: str, req: SimpleEntryIn, user: UserSc
     if not _may_link_receipt(user, req.farm_id):
         raise HTTPException(status_code=403, detail="receipt_document_permission_required")
     document = await conn.fetchrow(
-        """SELECT field_id FROM documents
-           WHERE tenant_id=$1::uuid AND doc_id=$2
-             AND category IN ('image','report','other')""",
+        """SELECT d.field_id, f.farm_id AS field_farm_id
+             FROM documents d
+             LEFT JOIN fields f ON f.field_id = d.field_id
+            WHERE d.tenant_id=$1::uuid AND d.doc_id=$2
+              AND d.category IN ('image','report','other')""",
         tenant_id,
         req.receipt_document_id,
     )
@@ -164,6 +183,10 @@ async def _assert_receipt(conn, tenant_id: str, req: SimpleEntryIn, user: UserSc
     refusal = _receipt_field_refusal(document["field_id"], req.field_id)
     if refusal:
         raise HTTPException(status_code=422, detail=refusal)
+    # documents carry no farm; a field-bound receipt's farm is its field's. Authorise that farm
+    # too, so the permission never rests only on the farm the caller named.
+    if document["field_farm_id"] and not _may_link_receipt(user, document["field_farm_id"]):
+        raise HTTPException(status_code=403, detail="receipt_document_permission_required")
 
 
 @router.post("/api/v1/farm-book/parties", status_code=201)
@@ -331,6 +354,8 @@ async def create_entry(
         raise HTTPException(status_code=422, detail="only_payment_can_settle_entry")
     if req.reverses_entry_id and req.entry_type == "payment":
         raise HTTPException(status_code=422, detail="payment_cannot_be_a_reversal")
+    if not _may_write_on_farm(user, req.farm_id):
+        raise HTTPException(status_code=403, detail="farm_access_denied")
     entry_id = "fbe_" + uuid.uuid4().hex[:18]
     tenant_id = str(user.tenant_id)
     request_digest = hashlib.sha256(

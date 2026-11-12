@@ -90,6 +90,14 @@ def test_linking_needs_document_view_on_the_entry_farm(mod):
         assert mod._may_link_receipt(_user(role), "farm-1"), role
 
 
+def test_writing_an_entry_needs_activity_execute_on_its_farm(mod):
+    assert not mod._may_write_on_farm(_user("manager", farms=["farm-9"]), "farm-1")
+    assert not mod._may_write_on_farm(_user("viewer"), "farm-1")
+    assert mod._may_write_on_farm(_user("manager", farms=["farm-1"]), "farm-1")
+    for role in ("owner", "manager", "worker"):
+        assert mod._may_write_on_farm(_user(role), "farm-1"), role
+
+
 def _function(source: str, name: str) -> ast.AsyncFunctionDef:
     return next(
         n
@@ -116,6 +124,19 @@ def test_the_permission_is_decided_before_the_document_is_read_and_the_field_is_
     assert calls.index("fetchrow") < calls.index("_receipt_field_refusal")
 
 
+def test_the_farm_is_authorised_before_any_connection_and_the_field_must_be_on_it():
+    source = ROUTER.read_text(encoding="utf-8")
+    create = _calls_in_order(_function(source, "create_entry"))
+    assert create.index("_may_write_on_farm") < create.index("tenant_connection")
+    scope = ast.get_source_segment(source, _function(source, "_assert_scope")) or ""
+    assert "SELECT farm_id FROM fields WHERE field_id=$1" in scope
+    assert '"field_not_in_farm"' in scope
+    receipt = _calls_in_order(_function(source, "_assert_receipt"))
+    assert receipt.count("_may_link_receipt") == 2, (
+        "entry farm before the read, document farm after"
+    )
+
+
 def test_the_receipt_is_checked_on_every_new_entry_after_the_reversal_inherits_its_field():
     source = ROUTER.read_text(encoding="utf-8")
     calls = [
@@ -125,4 +146,4 @@ def test_the_receipt_is_checked_on_every_new_entry_after_the_reversal_inherits_i
     scope = ast.get_source_segment(source, _function(source, "_assert_scope")) or ""
     assert "documents" not in scope, "the receipt lookup lives in one place, after inheritance"
     receipt = ast.get_source_segment(source, _function(source, "_assert_receipt")) or ""
-    assert "AND category IN ('image','report','other')" in receipt
+    assert "AND d.category IN ('image','report','other')" in receipt
