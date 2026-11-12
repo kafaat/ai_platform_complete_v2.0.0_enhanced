@@ -1,9 +1,10 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "deab6557d9df10ef63408d8be15c3f47874a7107",
+  "measured_on": "9ee9da921470dac4acd224631d9e05b6156e5414",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
+    "services/actuator-service/test_killswitch_close_exemption.py",
     "services/decision-service/tests/test_decision_provenance_integrity.py",
     "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
     "services/decision-service/tests/test_execution_request_plan_binding.py",
@@ -625,6 +626,16 @@
         "services/decision-service/tests/test_tenant_binding_force_rls.py"
       ],
       "justification": "Decision-service FORCE RLS on the remaining tenant tables (migration 037). The recording stand-in pins call order only: each fixed persistence function opens a transaction and runs set_config('app.current_tenant'|'app.current_worker', ..., true) before its first statement, because a transaction-local setting outside a transaction does not reach the query. It claims nothing about what PostgreSQL enforces; the policies, the fail-closed worker authorization, the tenant-only writes and the reads returning only the bound tenant's rows are proven against a real PG16 as a non-superuser NOBYPASSRLS owner in services/decision-service/tests/test_migration_037_force_rls_pg16.py (decision-033-pg16-proof job)."
+    },
+    {
+      "kind": "actuator_killswitch_close_exemption_unit_contract",
+      "date": "2026-11-12",
+      "before": 131,
+      "after": 132,
+      "sites": [
+        "services/actuator-service/test_killswitch_close_exemption.py"
+      ],
+      "justification": "ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01. The _EngagedConn/_Pool doubles answer the actuation_killswitch query with one engaged tenant-scoped switch (or raise, to exercise the fail-closed answer) so the REAL shared.actuation_killswitch.is_actuation_halted runs on every actuator call site; their transaction() is a no-op. They measure only that each path passes the command so CLOSE/OFF is not held. No PostgreSQL enforcement is claimed: RLS on actuation_killswitch, the transaction-scoped set_config and switch expiry are not established here. No proven_live exemption is added."
     }
   ]
 }
