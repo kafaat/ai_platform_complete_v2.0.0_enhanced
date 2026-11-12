@@ -4845,7 +4845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "791ce2a46651d0624333cbccbc21837dd0932995b63c637bded83bad0946ed63"
+          "content": "a0dfc83f1fc891e8b07d78f78cdc1ec173f4e4ad2baa03411fbf01259c053515"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -24445,7 +24445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "313920385ee5c253a56037c65ac28f1ab4916e2aa9157d71ccd195c5359556a1"
+          "content": "05d16ce6af02ecab75879003f09175186ba3917a0e9f4f56b4074a8c695e8fe6"
         }
       ],
       "name": "services/sahool-platform/api/field_models.py",
@@ -26255,7 +26255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b81aab7411622d6da9663d9749f686b0be9949f3416d10b75dc660a4623bd4d"
+          "content": "75add61e2a0c1d086f2aa39b08dfce21f02eaf20d50ab3d19c6e6092e0c5ae17"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -33459,6 +33459,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "05e2cc977f2c9eb17a4e31d05c637cc7a46493f33f596a212825dd1e3ae952b8"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_field_geometry_revert_overlap.py",
       "type": "file"
     },
     {

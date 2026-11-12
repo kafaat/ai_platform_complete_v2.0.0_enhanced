@@ -1558,7 +1558,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 307,
+      "evidence_count": 308,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1798,6 +1798,7 @@
         "services/sahool-platform/tests/test_farm_full_season_forensic.py",
         "services/sahool-platform/tests/test_field_boundary_pipeline.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
+        "services/sahool-platform/tests/test_field_geometry_revert_overlap.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_field_lifecycle.py",
         "services/sahool-platform/tests/test_field_season_projection.py",
@@ -3083,7 +3084,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 202,
-      "target_evidence_count": 307,
+      "target_evidence_count": 308,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3128,7 +3129,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 307,
+      "source_evidence_count": 308,
       "target_evidence_count": 50,
       "static_supported": true,
       "runtime_verified": false
@@ -3327,5 +3328,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "fe8ea32e41fa367876b01802413f72baeb90743248412ed455d60bb235d24e44"
+  "content_sha256": "e13ff6523efaf18e273a13bc3d76dbfc0926d4defe36bb79f773a9986cb0c943"
 }
