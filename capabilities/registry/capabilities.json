@@ -4136,10 +4136,6 @@
         {
           "type": "repository",
           "path": "services/scout-ingest-service/main.py"
-        },
-        {
-          "type": "repository",
-          "path": "services/sahool-platform/api/scouting_pin_store.py"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=24, tests=12, ui=0, mobile=15. Runtime and production certification remain manual evidence gates.",
