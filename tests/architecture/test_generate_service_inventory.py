@@ -155,11 +155,14 @@ def test_inventory_composes_empty_path_and_omits_test_routes(tmp_path, monkeypat
         "router = APIRouter(prefix='/fields/{field_id}/handoff')\n"
         "@router.get('')\ndef handoff(): pass\n"
         "router.post('')(save_handoff)\n"
-        "@router.get(dynamic_path)\ndef dynamic(): pass\n"
+        "@router.get(dynamic_path)\ndef dynamic(): pass\n",
+        encoding="utf-8",
     )
-    (service / "example.py").write_text("@app.post('/reference')\ndef example(): pass\n")
+    (service / "example.py").write_text(
+        "@app.post('/reference')\ndef example(): pass\n", encoding="utf-8"
+    )
     monkeypatch.setattr(mod, "UNMOUNTED_REFERENCE_FILES", {"services/field-service/example.py"})
-    (tests / "fixture.py").write_text("@app.get('/probe')\ndef probe(): pass\n")
+    (tests / "fixture.py").write_text("@app.get('/probe')\ndef probe(): pass\n", encoding="utf-8")
     monkeypatch.setattr(mod, "ROOT", tmp_path)
     monkeypatch.setattr(mod, "SERVICES", service.parent)
     services, routes = mod.discover()

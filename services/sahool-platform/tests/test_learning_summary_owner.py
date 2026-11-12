@@ -4,8 +4,8 @@ from contextlib import asynccontextmanager
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
-import pytest
 import api.main
+import pytest
 from api.routers import learning_summary as dashboard
 from fastapi import HTTPException
 

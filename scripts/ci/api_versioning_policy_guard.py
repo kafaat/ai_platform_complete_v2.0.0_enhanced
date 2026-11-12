@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import ast
 import csv
+import io
 import json
 import re
 import sys
-import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -215,18 +215,17 @@ def collect():
     return rows
 
 
-def write(rows, output_root: Path = ROOT):
-    (output_root / INV.name).write_text(
-        json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+def render(rows) -> dict[Path, str]:
+    """The three generated outputs as text, keyed by their path (pure: ``--check`` compares
+    these strings and never writes, so a failed check leaves a stale tree untouched)."""
+    buf = io.StringIO()
+    w = csv.DictWriter(
+        buf,
+        fieldnames=["service", "file", "line", "method", "path", "handler", "classification"],
+        lineterminator="\n",
     )
-    with (output_root / CSV.name).open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(
-            f,
-            fieldnames=["service", "file", "line", "method", "path", "handler", "classification"],
-            lineterminator="\n",
-        )
-        w.writeheader()
-        w.writerows(rows)
+    w.writeheader()
+    w.writerows(rows)
     legacy = sorted(
         {
             f"{r['method']} {r['path']}"
@@ -240,40 +239,41 @@ def write(rows, output_root: Path = ROOT):
     for r in rows:
         if r["classification"] in _permanent_contract().values():
             permanent.setdefault(r["classification"], []).append(f"{r['method']} {r['path']}")
-    (output_root / ALLOW.name).write_text(
-        json.dumps(
-            {
-                "legacy_unversioned_business_routes": legacy,
-                "permanent_compatibility_routes": {
-                    k: sorted(set(v)) for k, v in sorted(permanent.items())
-                },
-            },
-            indent=2,
-            ensure_ascii=False,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
+    allow = {
+        "legacy_unversioned_business_routes": legacy,
+        "permanent_compatibility_routes": {k: sorted(set(v)) for k, v in sorted(permanent.items())},
+    }
+    return {
+        INV: json.dumps(rows, indent=2, ensure_ascii=False) + "\n",
+        CSV: buf.getvalue(),
+        ALLOW: json.dumps(allow, indent=2, ensure_ascii=False) + "\n",
+    }
+
+
+def write(rows):
+    # Literal targets: scripts/ci/generated_write_targets.py derives the generated-file
+    # manifest from these write calls, so the paths must stay visible to its AST scan.
+    outputs = render(rows)
+    INV.write_text(outputs[INV], encoding="utf-8")
+    with CSV.open("w", newline="", encoding="utf-8") as f:
+        f.write(outputs[CSV])
+    ALLOW.write_text(outputs[ALLOW], encoding="utf-8")
 
 
 def main():
     check = "--check" in sys.argv
     rows = collect()
     if check:
-        with tempfile.TemporaryDirectory(prefix="sahool-api-versioning-") as tmp:
-            candidate = Path(tmp)
-            write(rows, candidate)
-            drift = [
-                output.name
-                for output in (INV, CSV, ALLOW)
-                if not output.is_file()
-                or output.read_bytes() != (candidate / output.name).read_bytes()
-            ]
-            if drift:
-                raise SystemExit(
-                    f"api versioning inventory drift ({', '.join(drift)}); "
-                    "rerun scripts/ci/api_versioning_policy_guard.py and review unversioned allowlist"
-                )
+        drift = [
+            output.name
+            for output, text in render(rows).items()
+            if not output.is_file() or output.read_bytes() != text.encode("utf-8")
+        ]
+        if drift:
+            raise SystemExit(
+                f"api versioning inventory drift ({', '.join(drift)}); "
+                "rerun scripts/ci/api_versioning_policy_guard.py and review unversioned allowlist"
+            )
         # API-VERSIONING-GUARD-IS-A-MIRROR-01: المقارنة أعلاه تكشف الانحراف، لكنّ
         # علاجها المُوثَّق «أعِد التوليد» — فمسار غير مُصدَّر **جديد** يُقبَل بمجرّد
         # الالتزام بالقائمة الجديدة. كاشف انحراف لا بوّابة سياسة. الراتشِت أدناه
@@ -337,7 +337,7 @@ def main():
                 )
         print("api_versioning_policy_check_ok")
     else:
-        write(rows, ROOT)
+        write(rows)
         counts = {}
         for r in rows:
             counts[r["classification"]] = counts.get(r["classification"], 0) + 1
