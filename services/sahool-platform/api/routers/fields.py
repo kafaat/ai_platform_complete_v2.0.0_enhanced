@@ -137,8 +137,7 @@ from api.raster_service_client import (
     # facade call distinct so DEM auto-fill hits raster-service, not the route.
     get_field_terrain as raster_get_field_terrain,
 )
-from api.scouting_pin_store import persist_scouting_pin
-from api.scouting_pins import make_pin
+from api.scouting_pins import make_pin, persist_scouting_pin
 
 # نماذج/مساعدات المواسم نُقِلت إلى api.season_models (تفكيك B1) وتُستورَد من هناك.
 from api.season_models import (
@@ -3859,7 +3858,7 @@ async def create_pin(
 
 
 async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
-    """يُديم الدبّوس تحت RLS — التنفيذ في ``api.scouting_pin_store`` (حدّ حجم الراوتر)."""
+    """يُديم الدبّوس تحت RLS — التنفيذ في ``api.scouting_pins`` (حدّ حجم الراوتر)."""
     return await persist_scouting_pin(
         user, pin, pool_ready=api_main._DB_POOL is not None, connect=tenant_connection
     )
