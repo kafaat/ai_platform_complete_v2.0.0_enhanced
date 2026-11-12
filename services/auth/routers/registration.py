@@ -72,6 +72,7 @@ async def register(req: main.RegisterRequest, request: Request, response: Respon
 @router.post("/v1/auth/change-password")
 async def change_password(
     req: main.ChangePasswordRequest,
+    request: Request,
     user: dict = Depends(main.get_current_user),
 ):
     """✅ NEW: Change password for authenticated user."""
@@ -87,5 +88,6 @@ async def change_password(
             "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", hashed, user_id
         )
     await main.revoke_all_user_sessions(user_id)  # إبطال كلّ الجلسات (يشمل الحاليّة) ⇒ إعادة دخول
-    await main.audit_log("change_password", user_id, "authenticated")
+    # R-H3: عنوان العميل لا وسمٌ نصّيّ ("authenticated" يُرفَض في inet فيضيع الصفّ كلّه).
+    await main.audit_log("change_password", user_id, client_ip(request))
     return {"message": "تم تغيير كلمة المرور بنجاح"}

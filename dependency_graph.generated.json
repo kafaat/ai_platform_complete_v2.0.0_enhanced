@@ -612,6 +612,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/auth/main.py",
+      "from": "auth",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/auth/mfa_runtime.py",
       "from": "auth",
       "from_kind": "component",

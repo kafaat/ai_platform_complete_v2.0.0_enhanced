@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "1cd5a03c5b0713164954fdc206d8c04d2abd67b4",
+  "measured_on": "9a66efb5f83573637bbb6735a241d40b57fea21a",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "958b4a9c6264d837181e7d2f9118bf7d65f551ad486b96624c57ee8959864428",
+  "measurement_input_digest": "fa841622bf93d9ad572e73b1a472c1deebea4d06fff1c1708e376cae5c1d6a3a",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "7477606f6e3826da8f93c66cd6ee6e25b99fc610a46b33a495e5f0e8bbab93a6",
+  "measurement_basis_digest": "72e3a6bb8ac9673e33fa30f844968e94d44da1922249c067ad33a383d4d4b24c",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -56,7 +56,7 @@
     },
     {
       "path": "services/auth/main.py",
-      "sha256": "6d72d50bd22b7d5ebea84bd7be7e0194b3c0ddeb133dc51c37871fbeb2e7757b"
+      "sha256": "c25eaef196c3d144d73f3761fc5dea78337d86f033ffcef3e2185eb70d08eda5"
     },
     {
       "path": "services/decision-service/observation_context.py",
@@ -108,7 +108,7 @@
     },
     {
       "path": "services/sahool-platform/api/imagery_automation.py",
-      "sha256": "25867a67221d446a3b64d06be0e32c8576222c8b598711d454ec6781cc90055b"
+      "sha256": "44a4680e6fda47b41de15a71855a804771c4a6203168b81b5f4a12059a6c6252"
     },
     {
       "path": "services/sahool-platform/api/irrigation_reservation_adapter.py",
@@ -198,7 +198,7 @@
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
     "services/actuator-service/actuator_runtime.py:1479",
-    "services/auth/main.py:989",
+    "services/auth/main.py:993",
     "services/raster-service/backfill_scan_worker.py:170",
     "services/raster-service/cache_invalidation_worker.py:126",
     "services/sahool-platform/api/imagery_automation.py:201",
