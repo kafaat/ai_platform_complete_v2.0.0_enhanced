@@ -619,7 +619,9 @@
 \i migrations/v241_edge_idempotency_tenant_scoped.sql
 \echo '═══ 237. v239_detection_provenance.sql ═══'
 \i migrations/v239_detection_provenance.sql
-\echo '═══ 238. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 238. v259_yield_map_observed_zero.sql ═══'
+\i migrations/v259_yield_map_observed_zero.sql
+\echo '═══ 239. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 239. v206_rls_final_hardening.sql ═══'
+\echo '═══ 240. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql
