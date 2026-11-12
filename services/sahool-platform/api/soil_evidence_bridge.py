@@ -20,14 +20,17 @@ import httpx
 
 _ANALYTE_MAP = {
     "ph": ("ph", "1"),
-    "ec_dsm": ("electrical_conductivity", "dS/m"),
+    "ec_dsm": ("ec", "dS/m"),
     "organic_matter_pct": ("organic_matter", "%"),
     "nitrogen_mg_kg": ("nitrogen", "mg/kg"),
     "phosphorus_mg_kg": ("phosphorus", "mg/kg"),
     "potassium_mg_kg": ("potassium", "mg/kg"),
     "cec_cmol_kg": ("cec", "cmol(+)/kg"),
     "calcium_carbonate_pct": ("calcium_carbonate", "%"),
-    "texture": ("texture_class", None),
+    "clay_pct": ("clay", "%"),
+    "sand_pct": ("sand", "%"),
+    "silt_pct": ("silt", "%"),
+    "texture": ("texture", None),
 }
 
 
@@ -65,12 +68,16 @@ async def publish_soil_lab_evidence(
         raise RuntimeError("no publishable soil analytes")
     supersedes_observation_ids: dict[str, str] = {}
     result_by_canonical: dict[str, str] = {}
+    observed_by_property = {}
     for row in result_rows or []:
         mapped = _ANALYTE_MAP.get(row.get("analyte"))
         if not mapped:
             continue
         canonical = mapped[0]
-        result_by_canonical[canonical] = str(row.get("result_id"))
+        if canonical in result_by_canonical:
+            continue
+        result_by_canonical[canonical] = str(row["result_id"])
+        observed_by_property[canonical] = row["observed_at"].isoformat()
         prior = row.get("supersedes_result_id")
         if prior:
             prior_observation = row.get("superseded_published_observation_id")
@@ -80,7 +87,11 @@ async def publish_soil_lab_evidence(
         "source_type": "laboratory",
         "source_id": sample["sample_id"],
         "properties": properties,
-        "observed_at": datetime.now(UTC).isoformat(),
+        "observed_at": max(row["observed_at"] for row in result_rows).isoformat()
+        if result_rows
+        else None,
+        "units": units,
+        "observed_at_by_property": observed_by_property,
         "depth_from_cm": float(sample.get("depth_cm_from") or 0),
         "depth_to_cm": float(sample.get("depth_cm_to") or 30),
         "approved": True,
@@ -89,6 +100,12 @@ async def publish_soil_lab_evidence(
         "supersession_reason": correction_reason,
         "provenance": {
             "sample_id": sample["sample_id"],
+            "sampling_plan_id": sample.get("sampling_plan_id"),
+            "sampling_origin": sample.get("sampling_origin"),
+            "collected_position": {
+                "latitude": sample.get("latitude"),
+                "longitude": sample.get("longitude"),
+            },
             "units": units,
             "workflow_status": "published",
         },
@@ -100,6 +117,16 @@ async def publish_soil_lab_evidence(
         )
     response.raise_for_status()
     receipt = response.json()
+    ids = receipt.get("observation_ids")
+    if (
+        receipt.get("status") != "accepted"
+        or not isinstance(ids, list)
+        or len(ids) != len(properties)
+        or any(not isinstance(i, str) or not i for i in ids)
+        or len(set(ids)) != len(ids)
+    ):
+        raise ValueError("incomplete soil-service receipt")
+    receipt["observation_by_analyte"] = dict(zip(properties, ids, strict=True))
     receipt["result_by_canonical"] = result_by_canonical
     return receipt
 

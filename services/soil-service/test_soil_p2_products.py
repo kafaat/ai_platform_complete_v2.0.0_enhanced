@@ -167,3 +167,30 @@ def test_salinity_screening_blocks_high_risk_and_lab_verified_allows():
     assert p.zones[1].evidence_level == "lab_verified"
     assert p.zones[1].blocked_use == []
     assert p.zones[1].classification == "saline_sodic"
+
+
+def test_texture_uses_triangle_and_only_supported_evidence():
+    from shared.contracts.soil.p2 import TextureCalibrationSample
+
+    feature = TextureFeatureVector(
+        zone_id="sample", bare_bands={}, soilgrids={"sand_pct": 40, "clay_pct": 20}
+    )
+    request = TextureProbabilityRequest(
+        tenant_id="test",
+        field_id="field",
+        geometry_hash="hash",
+        features=[
+            feature,
+            TextureFeatureVector(zone_id="unused", bare_bands={}, sentinel1={"vv": -11}),
+        ],
+    )
+    base = build_texture_probability(request)
+    calibration = TextureCalibrationSample(feature=feature, sand_pct=40, silt_pct=40, clay_pct=20)
+    many = build_texture_probability(
+        request.model_copy(update={"calibration_samples": [calibration] * 15})
+    )
+    assert [(z.zone_id, z.texture_class) for z in base.zones] == [("sample", "loam")]
+    assert base.provenance["zones_without_usable_inputs"] == ["unused"]
+    assert base.provenance["inputs"] == ["soilgrids"]
+    assert many.spatial_cv["status"] == "not_evaluated"
+    assert base.zones[0].uncertainty == many.zones[0].uncertainty

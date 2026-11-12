@@ -26,7 +26,7 @@ from core.lab_sampling import (
     lab_decision_context,
 )
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from api import lab_store
 from api.main import (
@@ -45,6 +45,7 @@ from api.soil_sampling_protocol import (
     sampling_protocol,
     subsamples_for_area,
 )
+from shared.soil_texture import normalize_texture_label, usda_texture_class
 
 router = APIRouter()
 
@@ -77,18 +78,50 @@ _COMPAT_STATUS = {
 }
 
 
+class SamplingOrigin(BaseModel):
+    point_id: str = Field(min_length=1, max_length=80)
+    zone_id: str = Field(min_length=1, max_length=80)
+    longitude: float = Field(ge=-180, le=180)
+    latitude: float = Field(ge=-90, le=90)
+    indicators: list[Literal["ndvi", "ndmi", "reci", "msavi", "slope"]] = Field(
+        default_factory=list, max_length=5
+    )
+
+
 class LabSampleIn(BaseModel):
     field_id: str
     kind: Literal["soil", "water"]
     latitude: float = Field(ge=-90, le=90)
     longitude: float = Field(ge=-180, le=180)
     sampled_on: date | None = None
-    depth_cm_from: int | None = None
-    depth_cm_to: int | None = None
+    depth_cm_from: int | None = Field(default=None, ge=0)
+    depth_cm_to: int | None = Field(default=None, ge=0)
     source: str | None = None
-    status: Literal["planned", "collected", "submitted", "analyzed", "approved"] = "collected"
+    status: Literal["planned", "collected", "submitted"] = "collected"
     gps_accuracy_m: float | None = Field(default=None, ge=0)
-    sampling_plan_id: str | None = None
+    sampling_plan_id: str | None = Field(default=None, min_length=1, max_length=64)
+    sampling_origin: SamplingOrigin | None = None
+
+    @field_validator("sampling_plan_id", mode="before")
+    @classmethod
+    def blank_plan_is_none(cls, value):
+        # Older clients sent "" for "no plan"; keep those requests (and replays) valid.
+        return None if isinstance(value, str) and not value.strip() else value
+
+    @model_validator(mode="after")
+    def validate_collection(self):
+        if self.kind == "soil" and (self.depth_cm_from is None or self.depth_cm_to is None):
+            raise ValueError("soil collection requires both sampling depths")
+        if (
+            self.depth_cm_from is not None
+            and self.depth_cm_to is not None
+            and self.depth_cm_to <= self.depth_cm_from
+        ):
+            raise ValueError("ending depth must exceed starting depth")
+        if self.sampling_origin and (self.kind != "soil" or not self.sampling_plan_id):
+            raise ValueError("sampling_origin requires a soil sample and a plan ID")
+        return self
+
     barcode: str | None = None
     collected_by: str | None = None
 
@@ -103,7 +136,31 @@ class SoilLabResultIn(BaseModel):
     potassium_mg_kg: float | None = None
     cec_cmol_kg: float | None = None
     calcium_carbonate_pct: float | None = None
+    sand_pct: float | None = Field(default=None, ge=0, le=100)
+    silt_pct: float | None = Field(default=None, ge=0, le=100)
+    clay_pct: float | None = Field(default=None, ge=0, le=100)
     texture: str | None = None
+
+    @model_validator(mode="after")
+    def classify_measured_texture(self):
+        # The class is decided on fractions normalised to 100; the fractions are stored as
+        # measured. Within the ±1 tolerance a point on a class boundary can therefore get
+        # the class of its normalised position, not of the raw numbers.
+        written = (self.texture or "").strip() or None
+        label = normalize_texture_label(written)
+        if written and label is None:
+            raise ValueError("texture must be one of the 12 USDA texture classes")
+        self.texture = label
+        fractions = (self.clay_pct, self.sand_pct, self.silt_pct)
+        if any(value is not None for value in fractions):
+            if None in fractions or abs(sum(fractions) - 100) > 1:
+                raise ValueError("sand, silt and clay percentages must total 100 ± 1")
+            result = usda_texture_class(*fractions)
+            if label and label != result["key"]:
+                raise ValueError("texture conflicts with measured fractions")
+            self.texture = result["key"]
+        return self
+
     # فصل الواجبات: لا يُقبَل «approved» من نموذج الإدخال — الإدخال العاديّ يُنشئ نتيجة
     # غير مُعتمَدة (result_received)، والاعتماد انتقال حالة منفصل مُصرَّح به
     # (POST /lab/samples/{id}/transition → approved) بهويّة مُعتمِد مُصادَقة. حذف الحقل
@@ -142,6 +199,9 @@ def _analytes(payload: SoilLabResultIn) -> list[dict]:
         "potassium_mg_kg": "mg/kg",
         "cec_cmol_kg": "cmol(+)/kg",
         "calcium_carbonate_pct": "%",
+        "sand_pct": "%",
+        "silt_pct": "%",
+        "clay_pct": "%",
         "texture": None,
     }
     out = []
@@ -162,6 +222,29 @@ def _analytes(payload: SoilLabResultIn) -> list[dict]:
     return out
 
 
+# Sand, silt and clay are validated together and texture is derived from them, so a
+# correction resends the whole group. Each resent member supersedes its current row;
+# otherwise the unchanged fractions and the new texture reuse the old idempotency key
+# in soil-service with a different value/time (409) and the old texture stays approved.
+_TEXTURE_GROUP = ("sand_pct", "silt_pct", "clay_pct", "texture")
+
+
+async def _link_texture_group(conn, tenant_id: str, sample_id: str, analytes: list[dict]) -> None:
+    unlinked = [
+        a["analyte"]
+        for a in analytes
+        if a["analyte"] in _TEXTURE_GROUP and not a.get("supersedes_result_id")
+    ]
+    if not unlinked:
+        return
+    current = await lab_store.current_soil_result_ids(
+        conn, tenant_id=tenant_id, sample_id=sample_id, analytes=unlinked
+    )
+    for item in analytes:
+        if item["analyte"] in current and not item.get("supersedes_result_id"):
+            item["supersedes_result_id"] = current[item["analyte"]]
+
+
 @router.get("/api/v1/lab/samples")
 async def list_lab_samples(
     field_id: str | None = None,
@@ -173,7 +256,10 @@ async def list_lab_samples(
 
 def _sample_request_digest(payload: LabSampleIn) -> str:
     """بصمة الحمولة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
-    canonical = json.dumps(payload.model_dump(mode="json"), sort_keys=True, ensure_ascii=False)
+    data = payload.model_dump(mode="json")
+    if data["sampling_origin"] is None:
+        del data["sampling_origin"]  # preserve pre-migration retry fingerprints
+    canonical = json.dumps(data, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
@@ -235,6 +321,8 @@ async def submit_soil_lab_result(
             raise HTTPException(404, "soil sample not found")
         current = sample["status"]
         is_correction = bool(payload.supersedes_result_ids)
+        if is_correction:
+            await _link_texture_group(conn, str(user.tenant_id), payload.sample_id, analytes)
         # A published sample may receive an immutable correction; it returns to approved
         # and must be explicitly published again. New samples still follow the legal path.
         if is_correction and current == "published":
@@ -340,7 +428,10 @@ async def transition_lab_sample(
         is_soil = sample["kind"] == "soil"
         soil = (
             await lab_store.latest_soil_analysis(
-                conn, tenant_id=str(user.tenant_id), field_id=sample["field_id"]
+                conn,
+                tenant_id=str(user.tenant_id),
+                field_id=sample["field_id"],
+                sample_id=sample_id,
             )
             if is_soil
             else None
@@ -380,48 +471,30 @@ async def transition_lab_sample(
             seal_id=payload.seal_id,
         )
         if payload.target_status == "published" and sample["kind"] == "soil":
-            publish_payload = (sample, soil or {})
+            # Values and result ids come from the same rows: one current row per analyte.
             publish_rows = await lab_store.publishable_soil_results(
                 conn, tenant_id=str(user.tenant_id), sample_id=sample_id
             )
-    if publish_payload:
-        try:
-            receipt = await publish_soil_lab_evidence(
-                tenant_id=str(user.tenant_id),
-                field_id=publish_payload[0]["field_id"],
-                sample=publish_payload[0],
-                results=publish_payload[1],
-                result_rows=publish_rows or [],
-                correction_reason=payload.condition_notes,
-            )
-        except Exception as exc:
-            raise HTTPException(502, f"soil evidence publication failed: {exc}") from exc
-        observation_ids = receipt.get("observation_ids", [])
-        result_by_canonical = receipt.get("result_by_canonical", {})
-        canonical_order = [
-            {
-                "ph": "ph",
-                "ec_dsm": "ec",
-                "organic_matter_pct": "organic_matter",
-                "nitrogen_mg_kg": "nitrogen",
-                "phosphorus_mg_kg": "phosphorus",
-                "potassium_mg_kg": "potassium",
-                "cec_cmol_kg": "cec",
-                "calcium_carbonate_pct": "calcium_carbonate",
-                "texture": "texture_class",
-            }.get(k, k)
-            for k in (publish_payload[1] or {}).keys()
-            if k not in {"sample_id", "approved"}
-        ]
-        observation_by_analyte = dict(zip(canonical_order, observation_ids, strict=False))
-        async with tenant_connection(user) as conn:
+            publish_payload = (sample, {r["analyte"]: r["value_json"] for r in publish_rows})
+        if publish_payload:
+            try:
+                receipt = await publish_soil_lab_evidence(
+                    tenant_id=str(user.tenant_id),
+                    field_id=publish_payload[0]["field_id"],
+                    sample=publish_payload[0],
+                    results=publish_payload[1],
+                    result_rows=publish_rows or [],
+                    correction_reason=payload.condition_notes,
+                )
+            except Exception as exc:
+                raise HTTPException(502, f"soil evidence publication failed: {exc}") from exc
             await lab_store.mark_soil_results_published(
                 conn,
                 tenant_id=str(user.tenant_id),
-                observation_by_analyte=observation_by_analyte,
-                result_by_analyte=result_by_canonical,
+                observation_by_analyte=receipt["observation_by_analyte"],
+                result_by_analyte=receipt["result_by_canonical"],
             )
-        row["soil_evidence_receipt"] = receipt
+            row["soil_evidence_receipt"] = receipt
     return row
 
 

@@ -56,6 +56,7 @@ def _cluster_field_soil(bbox, depth: str, n_zones: int, poly: list | None = None
     try:
         import numpy as np
         import rasterio
+        from rasterio.windows import Window
         from rasterio.windows import from_bounds as win_from_bounds
     except Exception:  # noqa: BLE001
         return {"error": "runtime-libs-missing"}
@@ -76,11 +77,26 @@ def _cluster_field_soil(bbox, depth: str, n_zones: int, poly: list | None = None
                 # صحّة CRS: أعِد إسقاط bbox (lon/lat) إلى src.crs قبل النافذة إن كان
                 # المصدر مُسقَطاً (SoilGrids الأصليّ Homolosine…) وإلّا نافذة خاطئة.
                 b = tuple(float(v) for v in bbox)
-                if src.crs is not None and src.crs.to_epsg() != 4326:
+                if src.crs is None:
+                    continue
+                if src.crs.to_epsg() != 4326:
                     from rasterio.warp import transform_bounds
 
                     b = transform_bounds("EPSG:4326", src.crs, *b)
                 window = win_from_bounds(*b, transform=src.transform)
+                window = window.intersection(Window(0, 0, src.width, src.height))
+                # Read whole source cells and keep the matching affine transform.
+                import math
+
+                x0, y0 = math.floor(window.col_off), math.floor(window.row_off)
+                x1 = math.ceil(window.col_off + window.width)
+                y1 = math.ceil(window.row_off + window.height)
+                window = Window(x0, y0, x1 - x0, y1 - y0)
+                affine = src.window_transform(window)
+                if ref_transform is not None and (
+                    src.crs != src_crs or not affine.almost_equals(ref_transform, precision=1e-10)
+                ):
+                    continue
                 arr = src.read(1, window=window, masked=True).astype("float32").filled(np.nan)
                 if arr.size == 0:
                     continue
@@ -131,7 +147,7 @@ def _reproject_ring_to_wgs84(coords, src_crs):
     يجب إعادتها إلى lon/lat وإلّا صار GeoJSON بأمتار الإسقاط (خطأ عرض). المصدر جغرافيّ
     ⇒ إرجاع كما هي (لا كلفة)."""
     if src_crs is None or src_crs.to_epsg() == 4326:
-        return coords
+        return [[list(point) for point in ring] for ring in coords]
     from rasterio.warp import transform as _warp_transform
 
     def _ring(ring):

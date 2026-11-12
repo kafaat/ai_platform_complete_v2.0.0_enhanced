@@ -3582,6 +3582,8 @@ const MOCK_DASHBOARD = {
 export type LabSampleKind = 'soil' | 'water';
 export type LabSampleStatus = 'planned' | 'collected' | 'submitted' | 'analyzed' | 'approved';
 export interface LabSampleRecord {
+  sampling_plan_id?: string | null;
+  sampling_origin?: SamplingOrigin | null;
   sample_id: string;
   field_id: string;
   kind: LabSampleKind;
@@ -3603,7 +3605,12 @@ export interface LabSampleRecord {
   rsc_meq_l?: number | null;
   approved?: boolean;
 }
+export interface SamplingOrigin {
+  point_id: string; zone_id: string; longitude: number; latitude: number; indicators: string[];
+}
 export interface LabSampleCreateInput {
+  sampling_plan_id?: string;
+  sampling_origin?: SamplingOrigin;
   field_id: string;
   kind: LabSampleKind;
   latitude: number;
@@ -3616,6 +3623,9 @@ export interface LabSampleCreateInput {
   gps_accuracy_m?: number | null;
 }
 export interface SoilLabResultInput {
+  sand_pct?: number | null;
+  silt_pct?: number | null;
+  clay_pct?: number | null;
   sample_id: string;
   ph?: number | null;
   ec_dsm?: number | null;

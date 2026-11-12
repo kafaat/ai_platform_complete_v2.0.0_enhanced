@@ -170,6 +170,7 @@ def propose_productivity_zones(
                 "label_ar": _LABELS_AR[z["productivity_class"]],
                 "zoning_method": cl_method,
                 "score": z["score"],
+                "feature_names": feature_names,
                 "ndvi_centroid": z["ndvi_centroid"],
                 "confidence": cl_conf,
                 "area_ha": round(total_area * z["pixel_area"] / total_px, 3),
