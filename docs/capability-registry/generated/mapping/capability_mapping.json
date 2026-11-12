@@ -15,20 +15,20 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7134,
+    "files_scanned": 7135,
     "files_by_kind": {
       "backend": 1268,
       "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2163,
-      "tests": 2385,
+      "tests": 2386,
       "web": 519
     },
-    "unmapped_artifacts": 3395,
+    "unmapped_artifacts": 3396,
     "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3837,
+      "python_functional": 3838,
       "raw": 3297
     },
     "test_dependency_files": 1793,
@@ -41864,6 +41864,10 @@
     },
     {
       "path": "tests_v9/test_field_ai_context_hardening_v49_5.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_field_alerts_schema_contract.py",
       "kind": "tests"
     },
     {

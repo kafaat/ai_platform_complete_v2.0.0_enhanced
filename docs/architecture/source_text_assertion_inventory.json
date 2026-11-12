@@ -1,12 +1,12 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "df784978c6e2a1c3d2cb819ddb68439958be903d",
+  "measured_on": "fe708b4abf4a766476dd6a84500e1f7f7df2427b",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
-    "source_text_assertions": 2497,
+    "source_text_assertions": 2498,
     "positive_pinning_a_call": 361,
-    "prohibitions": 225
+    "prohibitions": 226
   },
   "prohibitions_without_a_stated_reason": {
     "services/agriai-engine/tests/test_production_readiness_truth.py": {
@@ -157,6 +157,9 @@
     "tests_v9/test_evidence_lab_contract.py": {
       "0.0.0.0:": 1,
       "docker-compose.v9.yml": 1
+    },
+    "tests_v9/test_field_alerts_schema_contract.py": {
+      "logging.debug(\"أتمتة التنبيهات: تخطّي حقل": 1
     },
     "tests_v9/test_field_change_summary.py": {
       "satellite:write": 1
