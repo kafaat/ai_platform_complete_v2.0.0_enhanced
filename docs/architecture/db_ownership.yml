@@ -1267,7 +1267,12 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v156_durable_soil_lab_workflow.sql"
+    source: "migrations/v156_durable_soil_lab_workflow.sql, migrations/v258_lab_water_revisions_plan_copies.sql"
+  soil_sampling_plan_copies:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v258_lab_water_revisions_plan_copies.sql"
   soil_spatial_products:
     owner: soil-service
     writers: [soil-service]
