@@ -1389,7 +1389,7 @@ function MapHubCore() {
   // سجلّ التتبّع: مواسم الحقل + العمليّات المكتملة (Farmonaut) — تقرير قابل للمشاركة.
   const seasonsQ = useSeasons(expertMode ? (fieldId ?? undefined) : undefined);
   const activeSeason = useMemo(
-    () => (seasonsQ.data ?? []).find((s) => s.status === 'active') ?? seasonsQ.data?.[0] ?? null,
+    () => (seasonsQ.data ?? []).find((s) => s.status === 'active') ?? null,
     [seasonsQ.data],
   );
   // ربحيّة الموسم: تعكس التكاليف/الإيرادات الفعليّة المُخزَّنة (farm-ledger v100–v102) في FieldView.
@@ -2062,7 +2062,12 @@ function MapHubCore() {
       {/* المعرفة الزراعيّة الاختصاصيّة (P3): ملاءمة المحاصيل + تركيب حالة (dry-run) +
           الإكثار الخضري والأصل + الأساليب + صمود الجفاف + تقييم البذار + العيّنات. */}
       {selected && fieldMode === 'expert' && (
-        <CropPropagationCard cropLabel={selected.crop} enabled={expertMode} />
+        <CropPropagationCard
+          fieldId={fieldId ?? null}
+          seasonId={activeSeasonId}
+          cropLabel={activeSeason?.crops?.[0] ?? selected.crop}
+          enabled={expertMode}
+        />
       )}
 
       {/* عمليّات GIS الهندسيّة + التحكيم الزمني + محاكاة ماذا-لو + مخاطر المرحلة +
