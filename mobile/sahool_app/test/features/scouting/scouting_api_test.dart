@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
+import 'package:sahool_app/features/scouting/data/scouting_api.dart';
 
 import '../../core/fake_http.dart';
 import 'scouting_fakes.dart';
@@ -32,6 +33,65 @@ void main() {
         expect(page.noteAr, isNull);
       },
     );
+
+    test(
+      'a supervisor tells a measured pin from a field-centre pin (v257)',
+      () async {
+        final (api, _) = fakeApi(
+          (o) async => FakeReply(200, {
+            'pins': [
+              {
+                ...pinJson('gps'),
+                'location_source': 'gps',
+                'accuracy_m': 7.6,
+                'photo': {
+                  'document_id': 'pinph_1',
+                  'status': 'stored',
+                  'content_url': '/api/v1/documents/pinph_1?content=true',
+                },
+              },
+              {...pinJson('centre'), 'location_source': 'field_centroid'},
+              pinJson('legacy'),
+            ],
+          }),
+        );
+        final pins = (await api.listPins('f1')).pins;
+        expect(pins[0].locationSource, 'gps');
+        expect(pins[0].accuracyM, 7.6);
+        expect(pins[0].locationSourceLabelAr, 'GPS (مقيس، ±8 م)');
+        expect(pins[0].photoDocumentId, 'pinph_1');
+        expect(pins[1].locationSource, 'field_centroid');
+        expect(pins[1].locationSourceLabelAr, contains('مركز الحقل'));
+        expect(pins[1].photoDocumentId, isNull);
+        expect(pins[2].locationSource, 'unknown');
+        expect(pins[2].locationSourceLabelAr, 'غير معروف');
+      },
+    );
+
+    test('pinPhotoStored needs persisted and a stored photo document', () {
+      expect(pinPhotoStored({'persisted': true}), isFalse);
+      expect(
+        pinPhotoStored({
+          'persisted': false,
+          'photo': {'document_id': 'd', 'status': 'stored'},
+        }),
+        isFalse,
+      );
+      expect(
+        pinPhotoStored({
+          'persisted': true,
+          'photo': {'status': 'not_stored'},
+        }),
+        isFalse,
+      );
+      expect(
+        pinPhotoStored({
+          'persisted': true,
+          'photo': {'document_id': 'd', 'status': 'stored'},
+        }),
+        isTrue,
+      );
+    });
 
     test('passes field_id as a query parameter', () async {
       RequestOptions? seen;

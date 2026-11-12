@@ -4,7 +4,8 @@
 //
 // صدق: لا إحداثيّات وهميّة عند رفض الإذن أو تعطّل الخدمة — يُعاد سبب الفشل كما
 // هو، والبديل الوحيد «مركز الحقل» المسجَّل على الخادم ويُعلَن أنّه مركز لا قياس.
-// الصور: لا نقطة تخزين في المنصّة، فتُنسخ إلى مجلّد التطبيق وتبقى على الجهاز.
+// الصور: تُنسخ إلى مجلّد التطبيق فوراً (تبقى إن أُغلق التطبيق قبل الإرسال)، ثمّ تُرفع
+// مع الدبّوس إلى مخزن المرفقات في المنصّة (new_observation_cubit.dart).
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -178,6 +179,9 @@ abstract class LocalPhotoStore {
 
   /// مسار صورة الدبّوس على هذا الجهاز إن وُجدت.
   Future<String?> find(String pinId);
+
+  /// بايتات صورة محفوظة (للرفع). يرمي إن لم يوجد الملفّ.
+  Future<Uint8List> read(String path);
 }
 
 /// `documents/scouting_photos/<tenant>/<pin_id>.<ext>` — مُنطَّق بالمستأجِر كي لا
@@ -217,6 +221,9 @@ class DeviceLocalPhotoStore implements LocalPhotoStore {
       if (f.existsSync()) await f.delete();
     } catch (_) {}
   }
+
+  @override
+  Future<Uint8List> read(String path) => File(path).readAsBytes();
 
   @override
   Future<String?> find(String pinId) async {

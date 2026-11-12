@@ -9,7 +9,17 @@
 //
 // مفتاح Idempotency-Key واحد لكلّ نيّة (يُولَّد عند فتح النموذج) وهو نفسه pin_id،
 // والخادم idempotent على pin_id (ON CONFLICT DO NOTHING) — الإعادة لا تكرّر.
+//
+// مصدر الموقع (v257): يُرسل location_source (gps | field_centroid) وaccuracy_m لقراءة
+// GPS فقط، فيميّز المشرف من جهاز آخر الموقع المقيس من مركز الحقل. اختيار المستخدم
+// اليدويّ (مركز الحقل) يُلغي أيّ طلب GPS معلّق: ردٌّ متأخّر لا يكتب فوقه.
+//
+// الصورة (v257): بعد حفظ الدبّوس تُرسل الصورة إلى المسار نفسه (جسم الدبّوس + photo)
+// بمفتاح ثانٍ ثابت؛ الخادم يخزّنها في مخزن المرفقات مربوطة بـpin_id وidempotent على
+// المحتوى. دون اتّصال تُودَع عمليّة observation_photo بعد عمليّة الدبّوس لنفس الحقل
+// (الصندوق يحفظ الترتيب)، وحالة الرفع تُعرض للمفتّش.
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,6 +49,19 @@ enum LocationMode { none, locating, gps, fieldCentre, failed }
 
 enum SubmitOutcome { none, sent, queued, failed }
 
+/// حالة رفع صورة المشاهدة كما تُعرض للمفتّش.
+enum PhotoUpload { none, uploading, uploaded, queued, failed }
+
+/// حدّ الخادم بعد فكّ base64 (MAX_PIN_PHOTO_BYTES في api/scouting_pins.py).
+const int kMaxPinPhotoBytes = 8 * 1024 * 1024;
+
+/// قيمة location_source على السلك لوضع الموقع؛ null ⇒ لا موقع.
+String? locationSourceWire(LocationMode mode) => switch (mode) {
+  LocationMode.gps => 'gps',
+  LocationMode.fieldCentre => 'field_centroid',
+  _ => null,
+};
+
 /// مفاتيح أخطاء التحقّق.
 enum ObservationField { location, category, severity }
 
@@ -61,6 +84,8 @@ class NewObservationState {
     this.outcome = SubmitOutcome.none,
     this.outcomeMessage,
     this.issues = const [],
+    this.photoUpload = PhotoUpload.none,
+    this.photoUploadMessage,
   });
 
   final LocationMode locationMode;
@@ -73,7 +98,7 @@ class NewObservationState {
   final PinSeverity? severity;
   final String note;
 
-  /// مسار الصورة على الجهاز (لا تُرسل — لا تخزين صور في الخادم).
+  /// مسار الصورة على الجهاز؛ تُرفع بعد حفظ الدبّوس (حالة الرفع في [photoUpload]).
   final String? photoPath;
   final String? photoError;
   final Map<ObservationField, String> errors;
@@ -83,6 +108,9 @@ class NewObservationState {
 
   /// مشاكل المحصول من تصنيف الخادم (فارغة إن لم يُعرف المحصول).
   final List<TaxonomyIssue> issues;
+
+  final PhotoUpload photoUpload;
+  final String? photoUploadMessage;
 
   bool get hasLocation => lat != null && lng != null;
 
@@ -113,6 +141,8 @@ class NewObservationState {
     String? outcomeMessage,
     bool clearOutcomeMessage = false,
     List<TaxonomyIssue>? issues,
+    PhotoUpload? photoUpload,
+    String? photoUploadMessage,
   }) => NewObservationState(
     locationMode: locationMode ?? this.locationMode,
     lat: lat ?? this.lat,
@@ -132,6 +162,8 @@ class NewObservationState {
         ? null
         : (outcomeMessage ?? this.outcomeMessage),
     issues: issues ?? this.issues,
+    photoUpload: photoUpload ?? this.photoUpload,
+    photoUploadMessage: photoUploadMessage ?? this.photoUploadMessage,
   );
 }
 
@@ -145,6 +177,7 @@ class NewObservationCubit extends Cubit<NewObservationState> {
     OfflineOutbox? outbox,
     ConnectivityStatus? connectivity,
     IdempotencyKey? idempotencyKey,
+    IdempotencyKey? photoIdempotencyKey,
     IssueCategory? initialCategory,
     String? initialNote,
   }) : _api = api,
@@ -154,6 +187,7 @@ class NewObservationCubit extends Cubit<NewObservationState> {
        _outbox = outbox,
        _connectivity = connectivity ?? ConnectivityStatus.instance,
        key = idempotencyKey ?? IdempotencyKey.generate(),
+       photoKey = photoIdempotencyKey ?? IdempotencyKey.generate(),
        super(
          NewObservationState(
            category: initialCategory,
@@ -172,6 +206,15 @@ class NewObservationCubit extends Cubit<NewObservationState> {
   /// ثابت لنيّة «هذه المشاهدة» — وهو pin_id أيضاً.
   final IdempotencyKey key;
   String get pinId => key.value;
+
+  /// ثابت لنيّة «صورة هذه المشاهدة» (عمليّة صندوق ثانية بمفتاح مستقلّ).
+  final IdempotencyKey photoKey;
+
+  /// جيل طلب الموقع: يزيد مع كلّ طلب GPS ومع كلّ اختيار يدويّ، فردٌّ لجيل سابق يُهمَل.
+  int _locationGen = 0;
+
+  /// جسم الدبّوس كما أُرسل أو أُودع — الصورة تُرسل معه حرفيّاً (الخادم يقارنه).
+  Map<String, dynamic>? _sentBody;
 
   /// صحيحة بعد إرسال/إيداع ناجح: الصورة صارت مرتبطة بمشاهدة محفوظة.
   bool _committed = false;
@@ -197,6 +240,7 @@ class NewObservationCubit extends Cubit<NewObservationState> {
   Future<void> locate() async {
     if (state.locationMode == LocationMode.locating) return;
     final previous = state.locationMode;
+    final gen = ++_locationGen;
     emit(
       state.copyWith(
         locationMode: LocationMode.locating,
@@ -204,7 +248,8 @@ class NewObservationCubit extends Cubit<NewObservationState> {
       ),
     );
     final r = await _location.current();
-    if (isClosed) return;
+    // أُغلق النموذج، أو اختار المستخدم موقعاً يدويّاً أثناء الانتظار ⇒ الردّ متأخّر.
+    if (isClosed || gen != _locationGen) return;
     switch (r) {
       case GpsFix(:final lat, :final lng, :final accuracyM):
         final errors = Map.of(state.errors)..remove(ObservationField.location);
@@ -237,6 +282,7 @@ class NewObservationCubit extends Cubit<NewObservationState> {
   /// بديل يدويّ صريح: مركز الحقل المسجَّل (ليس قياساً لموقع المشاهدة).
   void useFieldCentre() {
     if (!field.hasCenter) return;
+    _locationGen++; // يُلغي طلب GPS معلّقاً: الاختيار اليدويّ هو الأخير
     final errors = Map.of(state.errors)..remove(ObservationField.location);
     emit(
       state.copyWith(
@@ -244,6 +290,7 @@ class NewObservationCubit extends Cubit<NewObservationState> {
         lat: field.centerLat,
         lng: field.centerLng,
         clearAccuracy: true,
+        clearGpsFailure: true,
         errors: errors,
       ),
     );
@@ -320,10 +367,11 @@ class NewObservationCubit extends Cubit<NewObservationState> {
     return errors;
   }
 
-  /// جسم PinCreateRequest (api/api_models.py:374). photo_uri لا يُرسل: الصورة
-  /// ملفّ محلّيّ لا يملك الخادم وصولاً إليه.
+  /// جسم PinCreateRequest (api/api_models.py). photo_uri لا يُرسل: الصورة تُرفع
+  /// ببايتاتها في عمليّة مستقلّة بعد حفظ الدبّوس (انظر [_sendPhoto]).
   Map<String, dynamic> buildBody() {
     final note = state.note.trim();
+    final source = locationSourceWire(state.locationMode);
     return {
       'pin_id': pinId,
       'field_id': field.id,
@@ -336,6 +384,9 @@ class NewObservationCubit extends Cubit<NewObservationState> {
       if (field.crop != null) 'crop': field.crop,
       if (state.issueCode != null) 'issue_code': state.issueCode,
       if (note.isNotEmpty) 'note_ar': note,
+      if (source != null) 'location_source': source,
+      if (source == 'gps' && state.accuracyM != null)
+        'accuracy_m': state.accuracyM,
     };
   }
 
@@ -366,6 +417,7 @@ class NewObservationCubit extends Cubit<NewObservationState> {
       ),
     );
     final body = buildBody();
+    _sentBody = body;
 
     if (!_connectivity.isOnline) {
       await _enqueue(body, why: 'offline');
@@ -380,11 +432,13 @@ class NewObservationCubit extends Cubit<NewObservationState> {
         return;
       }
       _committed = true;
+      final photo = await _sendPhoto(online: true);
+      if (isClosed) return;
       emit(
         state.copyWith(
           submitting: false,
           outcome: SubmitOutcome.sent,
-          outcomeMessage: 'حُفظت المشاهدة على الخادم.',
+          outcomeMessage: 'حُفظت المشاهدة على الخادم.${_photoSuffix(photo)}',
         ),
       );
     } catch (e) {
@@ -428,13 +482,15 @@ class NewObservationCubit extends Cubit<NewObservationState> {
     if (isClosed) return;
     if (receipt.queued) {
       _committed = true;
+      final photo = await _sendPhoto(online: false);
+      if (isClosed) return;
       emit(
         state.copyWith(
           submitting: false,
           outcome: SubmitOutcome.queued,
-          outcomeMessage: why == 'not_persisted'
-              ? 'محفوظ للإرسال — تحقّق الخادم منها لكنه لم يحفظها بعد، وستُعاد تلقائيّاً.'
-              : 'محفوظ للإرسال — ستُرسل المشاهدة عند عودة الاتّصال.',
+          outcomeMessage:
+              '${why == 'not_persisted' ? 'محفوظ للإرسال — تحقّق الخادم منها لكنه لم يحفظها بعد، وستُعاد تلقائيّاً.' : 'محفوظ للإرسال — ستُرسل المشاهدة عند عودة الاتّصال.'}'
+              '${_photoSuffix(photo)}',
         ),
       );
     } else {
@@ -448,6 +504,88 @@ class NewObservationCubit extends Cubit<NewObservationState> {
         ),
       );
     }
+  }
+
+  static String _photoSuffix(PhotoUpload p) => switch (p) {
+    PhotoUpload.uploaded => ' رُفعت الصورة ويراها المشرف.',
+    PhotoUpload.queued =>
+      ' الصورة بانتظار الرفع وستُرسل تلقائيّاً (تابعها في حالة المزامنة).',
+    PhotoUpload.failed => ' لم تُرفع الصورة — بقيت على هذا الجهاز فقط.',
+    PhotoUpload.none || PhotoUpload.uploading => '',
+  };
+
+  /// يرفع صورة دبّوسٍ ملتزَم: مباشرةً إن كان الدبّوس قد وصل والجهاز متّصل، وإلّا
+  /// (أو عند فشل عابر) تُودَع عمليّة observation_photo بمفتاح [photoKey] الثابت.
+  /// فشلٌ غير عابر (حجم/نوع/تعارض) يُعرض كما قاله الخادم ولا يُودَع ليتكرّر.
+  Future<PhotoUpload> _sendPhoto({required bool online}) async {
+    final path = state.photoPath;
+    final pinBody = _sentBody;
+    if (path == null || pinBody == null) return PhotoUpload.none;
+    Map<String, dynamic> body;
+    try {
+      final bytes = await _store.read(path);
+      if (bytes.isEmpty || bytes.length > kMaxPinPhotoBytes) {
+        return _photoState(
+          PhotoUpload.failed,
+          'الصورة أكبر من 8 ميغابايت (أو فارغة) — لم تُرفع.',
+        );
+      }
+      body = {
+        ...pinBody,
+        'photo': {'content_b64': base64Encode(bytes)},
+      };
+    } catch (_) {
+      return _photoState(PhotoUpload.failed, 'تعذّر قراءة الصورة من الجهاز.');
+    }
+    if (online && _connectivity.isOnline) {
+      _photoState(PhotoUpload.uploading, 'جارٍ رفع الصورة…');
+      try {
+        final r = await _api.createPin(
+          field.id,
+          body,
+          idempotencyKey: photoKey,
+        );
+        if (pinPhotoStored(r)) {
+          return _photoState(PhotoUpload.uploaded, 'رُفعت الصورة.');
+        }
+        // تحقّق الخادم ولم يُدِم ⇒ إعادة لاحقة عبر الصندوق.
+      } catch (e) {
+        final err = ApiException.from(e);
+        if (!isTransient(err)) {
+          return _photoState(PhotoUpload.failed, err.messageAr);
+        }
+      }
+    }
+    OutboxReceipt receipt;
+    try {
+      receipt = await _box.enqueue(
+        OutboxOp(
+          kind: kObservationPhotoKind,
+          method: 'POST',
+          path: scoutingPinCreatePath(field.id),
+          body: body,
+          idempotencyKey: photoKey.value,
+          fieldId: field.id,
+          labelAr:
+              'صورة مشاهدة ${state.category?.labelAr ?? ''} — ${field.nameAr}',
+        ),
+      );
+    } catch (_) {
+      receipt = const OutboxReceipt.notQueued('enqueue_failed');
+    }
+    return receipt.queued
+        ? _photoState(PhotoUpload.queued, 'الصورة بانتظار الرفع.')
+        : _photoState(
+            PhotoUpload.failed,
+            'تعذّر حفظ الصورة للإرسال لاحقاً — بقيت على هذا الجهاز فقط.',
+          );
+  }
+
+  PhotoUpload _photoState(PhotoUpload p, String message) {
+    if (!isClosed) {
+      emit(state.copyWith(photoUpload: p, photoUploadMessage: message));
+    }
+    return p;
   }
 
   @override

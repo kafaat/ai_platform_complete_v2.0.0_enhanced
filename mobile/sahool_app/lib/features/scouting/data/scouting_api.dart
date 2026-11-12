@@ -13,7 +13,11 @@
 //   POST /api/edge/v1/inference/pest-detect (service_proxy.py:172 → edge-inference
 //        main.py:223) multipart: file + field_id (Form مطلوب ⇒ 422 بدونه) + crop.
 //
-// لا نقطة تخزين صور في المنصّة (photo_uri نصّ فقط): الصور تبقى على الجهاز.
+//   v257: الجسم يحمل location_source (gps | manual | field_centroid | unknown) وaccuracy_m
+//        (لـgps فقط)، وphoto اختياريّاً {content_b64}: الخادم يخزّن الصورة في مخزن
+//        المرفقات مربوطةً بـpin_id (idempotent على المحتوى) ويردّ photo:{document_id,
+//        status:"stored", content_url}. يفتحها المشرف عبر
+//        GET /api/v1/documents/{document_id}?content=true (معزول بالمستأجِر).
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -28,6 +32,18 @@ String scoutingPinCreatePath(String fieldId) =>
     '/api/v1/fields/${Uri.encodeComponent(fieldId)}/pins';
 
 const String kPestDetectPath = '/api/edge/v1/inference/pest-detect';
+
+/// نوع عمليّة صندوق الإرسال لرفع صورة دبّوس (بعد عمليّة observation_create).
+const String kObservationPhotoKind = 'observation_photo';
+
+/// هل أكّد ردّ الخادم أنّ صورة الدبّوس محفوظة في مخزن المرفقات؟
+bool pinPhotoStored(Object? response) {
+  if (response is! Map || response['persisted'] != true) return false;
+  final photo = response['photo'];
+  return photo is Map &&
+      photo['status'] == 'stored' &&
+      (photo['document_id']?.toString() ?? '').isNotEmpty;
+}
 
 class ScoutingApi {
   ScoutingApi([ApiClient? client]) : _client = client ?? ApiClient.instance;

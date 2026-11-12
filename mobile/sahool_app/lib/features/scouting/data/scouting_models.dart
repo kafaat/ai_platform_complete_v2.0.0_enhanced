@@ -123,6 +123,9 @@ class ScoutingPin {
     this.photoUri,
     this.createdBy,
     this.createdAt,
+    this.locationSource = 'unknown',
+    this.accuracyM,
+    this.photoDocumentId,
   });
 
   final String pinId;
@@ -141,6 +144,24 @@ class ScoutingPin {
   final String? photoUri;
   final String? createdBy;
   final DateTime? createdAt;
+
+  /// v257: gps | manual | field_centroid | unknown (دبابيس قبل الهجرة ⇒ unknown).
+  final String locationSource;
+
+  /// دقّة GPS بالأمتار كما أبلغها جهاز المفتّش (لقراءة gps فقط).
+  final double? accuracyM;
+
+  /// مستند الصورة على الخادم (يفتحه المشرف)؛ null ⇒ لا صورة مرفوعة.
+  final String? photoDocumentId;
+
+  /// وصف مصدر الموقع للمشرف: المقيس يختلف عن مركز الحقل.
+  String get locationSourceLabelAr => switch (locationSource) {
+    'gps' =>
+      accuracyM == null ? 'GPS (مقيس)' : 'GPS (مقيس، ±${accuracyM!.round()} م)',
+    'manual' => 'إدخال يدويّ',
+    'field_centroid' => 'مركز الحقل — ليس قياساً',
+    _ => 'غير معروف',
+  };
 
   IssueCategory? get category => IssueCategory.fromWire(categoryWire);
   PinSeverity? get severity => PinSeverity.fromWire(severityWire);
@@ -161,6 +182,8 @@ class ScoutingPin {
     }
 
     final created = s('created_at');
+    final acc = j['accuracy_m'];
+    final photo = j['photo'];
     return ScoutingPin(
       pinId: id,
       fieldId: s('field_id') ?? '',
@@ -176,6 +199,9 @@ class ScoutingPin {
       photoUri: s('photo_uri'),
       createdBy: s('created_by'),
       createdAt: created == null ? null : DateTime.tryParse(created),
+      locationSource: s('location_source') ?? 'unknown',
+      accuracyM: acc is num ? acc.toDouble() : null,
+      photoDocumentId: photo is Map ? photo['document_id']?.toString() : null,
     );
   }
 }

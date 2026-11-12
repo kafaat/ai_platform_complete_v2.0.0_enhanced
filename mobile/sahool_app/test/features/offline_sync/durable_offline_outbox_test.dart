@@ -287,6 +287,38 @@ void main() {
       expect(h.store.records, isEmpty);
     });
 
+    test('a pin photo stays queued until the server says it is stored', () async {
+      Object? photo;
+      final h = Harness(
+        handler: (_) async =>
+            FakeReply(200, {'persisted': true, 'photo': photo}),
+      );
+      final o = op(
+        scoutingPinCreatePath('f1'),
+        method: 'POST',
+        kind: kObservationPhotoKind,
+        body: {
+          'pin_id': 'p1',
+          'photo': {'content_b64': '/9j/4A=='},
+        },
+      );
+      await h.outbox.enqueue(o);
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(
+        h.store.records.single.op.idempotencyKey,
+        o.idempotencyKey,
+        reason: 'pin stored but no photo confirmation ⇒ retry later',
+      );
+      photo = {'document_id': 'pinph_1', 'status': 'stored'};
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records, isEmpty);
+      expect(
+        h.adapter.requests.map((r) => r.headers[kIdempotencyHeader]).toSet(),
+        {o.idempotencyKey},
+        reason: 'every retry carries the same key',
+      );
+    });
+
     test(
       'the same Idempotency-Key is reused on every retry of one op',
       () async {

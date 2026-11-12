@@ -1,5 +1,9 @@
 // تدفّق «مشاهدة جديدة»: التحقّق، مسار رفض GPS ومركز الحقل، والإرسال/الإيداع
 // دون اتّصال مع احترام إيصال صندوق الإرسال.
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
@@ -37,6 +41,7 @@ void main() {
       outbox: outbox,
       connectivity: connectivity(online: online),
       idempotencyKey: const IdempotencyKey('key-1'),
+      photoIdempotencyKey: const IdempotencyKey('photo-key-1'),
     );
   }
 
@@ -181,9 +186,13 @@ void main() {
         String? key;
         final c = await ready(
           (o) async => taxonomyOr(o, () async {
-            body = Map<String, dynamic>.from(o.data as Map);
-            key = o.headers['Idempotency-Key'] as String?;
-            return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
+            body ??= Map<String, dynamic>.from(o.data as Map);
+            key ??= o.headers['Idempotency-Key'] as String?;
+            return FakeReply(200, {
+              ...pinJson('key-1'),
+              'persisted': true,
+              'photo': {'document_id': 'pinph_1', 'status': 'stored'},
+            });
           }),
         );
         await c.capturePhoto();
@@ -201,9 +210,12 @@ void main() {
           'persistence': 'seasonal',
           'crop': 'wheat',
           'note_ar': 'بقع صفراء',
+          'location_source': 'gps',
+          'accuracy_m': 8.0,
         });
-        // الصورة محلّيّة: لا photo_uri يُرسل.
+        // لا مسار ملفّ محلّيّ في photo_uri؛ الصورة تُرفع ببايتاتها في طلب ثانٍ.
         expect(body!.containsKey('photo_uri'), isFalse);
+        expect(body!.containsKey('photo'), isFalse);
         expect(outbox.ops, isEmpty);
       },
     );
@@ -341,6 +353,255 @@ void main() {
     });
   });
 
+  group('location source (v257)', () {
+    test('field centre is sent as field_centroid with no accuracy', () async {
+      Map<String, dynamic>? body;
+      final c = make(
+        (o) async => taxonomyOr(o, () async {
+          body = Map<String, dynamic>.from(o.data as Map);
+          return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
+        }),
+      );
+      await c.start();
+      c
+        ..useFieldCentre()
+        ..selectCategory(IssueCategory.pest)
+        ..selectSeverity(PinSeverity.low);
+      await c.submit();
+      expect(body!['location_source'], 'field_centroid');
+      expect(body!.containsKey('accuracy_m'), isFalse);
+      expect(body!['lat'], sanaaField.centerLat);
+    });
+
+    test(
+      'a GPS reply that arrives after the manual choice does not overwrite it',
+      () async {
+        final gps = Completer<GpsResult>();
+        final (api, _) = fakeApi(
+          (o) async => taxonomyOr(o, () async => const FakeReply(200, {})),
+        );
+        final c = NewObservationCubit(
+          field: sanaaField,
+          api: api,
+          location: _PendingLocation(gps.future),
+          photos: FakePhotos(),
+          photoStore: store,
+          outbox: outbox,
+          connectivity: connectivity(online: false),
+          idempotencyKey: const IdempotencyKey('key-1'),
+        );
+        final started = c.start();
+        await Future<void>.delayed(Duration.zero);
+        expect(c.state.locationMode, LocationMode.locating);
+        c.useFieldCentre();
+        gps.complete(const GpsFix(lat: 15.9, lng: 44.9, accuracyM: 3));
+        await started;
+        expect(c.state.locationMode, LocationMode.fieldCentre);
+        expect(c.state.lat, sanaaField.centerLat);
+        expect(c.state.lng, sanaaField.centerLng);
+        expect(c.state.accuracyM, isNull);
+        c
+          ..selectCategory(IssueCategory.pest)
+          ..selectSeverity(PinSeverity.low);
+        await c.submit();
+        final body = outbox.ops.single.body;
+        expect(body['location_source'], 'field_centroid');
+        expect(body['lat'], sanaaField.centerLat);
+        expect(body.containsKey('accuracy_m'), isFalse);
+      },
+    );
+
+    test('a late GPS failure does not clear the manual choice', () async {
+      final gps = Completer<GpsResult>();
+      final (api, _) = fakeApi(
+        (o) async => taxonomyOr(o, () async => const FakeReply(200, {})),
+      );
+      final c = NewObservationCubit(
+        field: sanaaField,
+        api: api,
+        location: _PendingLocation(gps.future),
+        photos: FakePhotos(),
+        photoStore: store,
+        outbox: outbox,
+        connectivity: connectivity(online: true),
+      );
+      final started = c.start();
+      await Future<void>.delayed(Duration.zero);
+      c.useFieldCentre();
+      gps.complete(const GpsFailure(GpsFailureReason.timeout));
+      await started;
+      expect(c.state.locationMode, LocationMode.fieldCentre);
+      expect(c.state.gpsFailure, isNull);
+    });
+
+    test('pressing GPS again after the manual choice is honoured', () async {
+      final loc = FakeLocation(const GpsFailure(GpsFailureReason.timeout));
+      final (api, _) = fakeApi(
+        (o) async => taxonomyOr(o, () async => const FakeReply(200, {})),
+      );
+      final c = NewObservationCubit(
+        field: sanaaField,
+        api: api,
+        location: loc,
+        photos: FakePhotos(),
+        photoStore: store,
+        outbox: outbox,
+        connectivity: connectivity(online: true),
+      );
+      await c.start();
+      c.useFieldCentre();
+      loc.result = const GpsFix(lat: 15.4, lng: 44.3, accuracyM: 6);
+      await c.locate();
+      expect(c.state.locationMode, LocationMode.gps);
+      expect(c.state.accuracyM, 6);
+      c
+        ..selectCategory(IssueCategory.weed)
+        ..selectSeverity(PinSeverity.low);
+      expect(c.buildBody()['location_source'], 'gps');
+      expect(c.buildBody()['accuracy_m'], 6);
+    });
+  });
+
+  group('photo upload (v257)', () {
+    test(
+      'online: the photo follows the pin with its own key and is reported uploaded',
+      () async {
+        final posts = <RequestOptions>[];
+        final c = await ready(
+          (o) async => taxonomyOr(o, () async {
+            posts.add(o);
+            final hasPhoto = (o.data as Map).containsKey('photo');
+            return FakeReply(200, {
+              ...pinJson('key-1'),
+              'persisted': true,
+              'photo': hasPhoto
+                  ? {'document_id': 'pinph_1', 'status': 'stored'}
+                  : null,
+            });
+          }),
+        );
+        await c.capturePhoto();
+        await c.submit();
+        expect(posts, hasLength(2));
+        expect(posts[0].headers['Idempotency-Key'], 'key-1');
+        expect(posts[1].headers['Idempotency-Key'], 'photo-key-1');
+        final photoBody = Map<String, dynamic>.from(posts[1].data as Map);
+        final pinBody = Map<String, dynamic>.from(posts[0].data as Map);
+        expect(
+          Map<String, dynamic>.from(photoBody)..remove('photo'),
+          pinBody,
+          reason: 'the photo request repeats the pin body exactly',
+        );
+        expect(
+          base64Decode((photoBody['photo'] as Map)['content_b64'] as String),
+          store.bytes,
+        );
+        expect(c.state.photoUpload, PhotoUpload.uploaded);
+        expect(c.state.outcome, SubmitOutcome.sent);
+        expect(c.state.outcomeMessage, contains('رُفعت الصورة'));
+        expect(outbox.ops, isEmpty);
+      },
+    );
+
+    test(
+      'offline: pin op then photo op for the same field, both kept on the device',
+      () async {
+        final c = await ready(
+          (o) async => taxonomyOr(o, () async => const FakeReply(200, {})),
+          online: false,
+        );
+        await c.capturePhoto();
+        await c.submit();
+        expect(outbox.ops.map((o) => o.kind), [
+          'observation_create',
+          'observation_photo',
+        ]);
+        final pin = outbox.ops[0];
+        final photo = outbox.ops[1];
+        expect(photo.idempotencyKey, 'photo-key-1');
+        expect(photo.path, pin.path);
+        expect(photo.fieldId, pin.fieldId);
+        expect(
+          Map<String, dynamic>.from(photo.body)..remove('photo'),
+          pin.body,
+        );
+        expect((photo.body['photo'] as Map)['content_b64'], isNotEmpty);
+        expect(c.state.photoUpload, PhotoUpload.queued);
+        expect(c.state.outcomeMessage, contains('بانتظار الرفع'));
+        // الدبّوس ملتزَم: إغلاق النموذج لا يحذف الصورة المنتظرة.
+        await c.close();
+        expect(store.discarded, isEmpty);
+      },
+    );
+
+    test('a transient failure of the photo request queues it', () async {
+      var n = 0;
+      final c = await ready(
+        (o) async => taxonomyOr(o, () async {
+          n++;
+          if (n == 1) {
+            return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
+          }
+          return connectionFailure;
+        }),
+      );
+      await c.capturePhoto();
+      await c.submit();
+      expect(c.state.outcome, SubmitOutcome.sent);
+      expect(c.state.photoUpload, PhotoUpload.queued);
+      expect(outbox.ops.single.kind, 'observation_photo');
+      expect(outbox.ops.single.idempotencyKey, 'photo-key-1');
+    });
+
+    test('a server refusal of the photo is shown and never queued', () async {
+      var n = 0;
+      final c = await ready(
+        (o) async => taxonomyOr(o, () async {
+          n++;
+          if (n == 1) {
+            return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
+          }
+          return const FakeReply(415, {'detail': 'pin_photo_unsupported_type'});
+        }),
+      );
+      await c.capturePhoto();
+      await c.submit();
+      expect(c.state.outcome, SubmitOutcome.sent);
+      expect(c.state.photoUpload, PhotoUpload.failed);
+      expect(c.state.outcomeMessage, contains('لم تُرفع الصورة'));
+      expect(outbox.ops, isEmpty);
+    });
+
+    test('a photo over the server limit is not sent', () async {
+      var posts = 0;
+      store.bytes = Uint8List(kMaxPinPhotoBytes + 1);
+      final c = await ready(
+        (o) async => taxonomyOr(o, () async {
+          posts++;
+          return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
+        }),
+      );
+      await c.capturePhoto();
+      await c.submit();
+      expect(posts, 1, reason: 'only the pin');
+      expect(c.state.photoUpload, PhotoUpload.failed);
+      expect(outbox.ops, isEmpty);
+    });
+
+    test('no photo ⇒ no second request and no upload state', () async {
+      var posts = 0;
+      final c = await ready(
+        (o) async => taxonomyOr(o, () async {
+          posts++;
+          return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
+        }),
+      );
+      await c.submit();
+      expect(posts, 1);
+      expect(c.state.photoUpload, PhotoUpload.none);
+    });
+  });
+
   test('taxonomy issues are offered only for the chosen category', () async {
     final (api, _) = fakeApi(
       (o) async => const FakeReply(200, {
@@ -367,4 +628,16 @@ void main() {
     c.selectCategory(IssueCategory.disease);
     expect(c.state.issueCode, isNull, reason: 'changing category clears issue');
   });
+}
+
+/// موقع يردّ متى أُكمل المستقبل — لمحاكاة ردّ GPS متأخّر.
+class _PendingLocation implements LocationSource {
+  _PendingLocation(this._result);
+  final Future<GpsResult> _result;
+
+  @override
+  Future<GpsResult> current() => _result;
+
+  @override
+  Future<void> openSettings(GpsFailureReason reason) async {}
 }

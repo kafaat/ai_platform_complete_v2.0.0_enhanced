@@ -226,6 +226,9 @@ class _PinDetails extends StatelessWidget {
           'الموقع',
           '${pin.lat.toStringAsFixed(6)}, ${pin.lng.toStringAsFixed(6)}',
         ),
+        row('مصدر الموقع', pin.locationSourceLabelAr),
+        if (pin.photoDocumentId != null)
+          row('الصورة', 'مرفوعة إلى الخادم ويراها المشرف'),
         if (pin.issueCode != null) row('المشكلة', pin.issueCode!),
         if (pin.crop != null) row('المحصول', pin.crop!),
         row('ملاحظة', pin.noteAr ?? '—'),
@@ -251,7 +254,9 @@ class _PinDetails extends StatelessWidget {
                   ),
                   const SizedBox(height: SahoolSpacing.xs),
                   Text(
-                    'الصورة محفوظة على هذا الجهاز فقط.',
+                    pin.photoDocumentId == null
+                        ? 'الصورة على هذا الجهاز ولم تصل الخادم بعد.'
+                        : 'نسخة هذا الجهاز من الصورة المرفوعة.',
                     style: TextStyle(color: t.muted),
                   ),
                 ],
