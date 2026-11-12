@@ -86,9 +86,12 @@ export interface SeasonSimResult {
   maturity_reached:    boolean;
   lai_max:             number;
   biomass_kg_ha:       number;
-  yield_kg_ha:         number;
-  yield_low_kg_ha:     number;
-  yield_high_kg_ha:    number;
+  // null = no estimate (unrecognized crop, no weather, no GDD evidence) — never an observed 0.
+  yield_kg_ha:         number | null;
+  yield_low_kg_ha:     number | null;
+  yield_high_kg_ha:    number | null;
+  yield_status?:       string;
+  limitations?:        string[];
   water_need_mm:       number;
   water_supply_mm:     number | null;
   water_stress_factor: number;

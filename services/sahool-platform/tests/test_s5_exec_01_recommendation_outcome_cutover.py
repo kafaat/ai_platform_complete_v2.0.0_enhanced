@@ -13,13 +13,21 @@ def _body() -> str:
     return text[start:end]
 
 
-def test_cutover_branch_calls_service_before_any_platform_connection():
+def test_cutover_branch_never_writes_the_platform_and_reads_only_the_sealed_labels():
+    # Amended by v26 workstream 06: the cutover branch may open ONE tenant connection to read
+    # the sealed recommendation and reconcile its labels (so a contradicting prediction is
+    # refused in both modes), but it performs no platform write; decision-service stays the
+    # only writer.
     body = _body()
     cut = body.index("if mode.strict_decision_service_required:")
     pre = body.index("# Pre-cutover bridge:")
     authoritative_branch = body[cut:pre]
-    assert "tenant_connection" not in authoritative_branch
-    assert "INSERT INTO recommendation_outcomes" not in authoritative_branch
+    assert authoritative_branch.count("tenant_connection(") == 1
+    for write in ("INSERT INTO", "UPDATE ", "DELETE FROM", "conn.execute", "_idempotent("):
+        assert write not in authoritative_branch, write
+    assert authoritative_branch.index("tenant_connection(") < authoritative_branch.index(
+        "await _mirror_recommendation_outcome_to_service"
+    )
     assert "await _mirror_recommendation_outcome_to_service" in authoritative_branch
     assert 'service_result.get("authoritative")' in authoritative_branch
     assert 'service_result.get("persisted")' in authoritative_branch

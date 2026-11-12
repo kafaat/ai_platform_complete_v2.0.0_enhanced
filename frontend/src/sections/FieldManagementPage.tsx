@@ -263,6 +263,13 @@ export default function FieldManagementPage() {
         custom_stages: data.custom_stages,
         initial_status: data.initial_status,
         notes_ar: data.notes_ar,
+        target_yield_kg_ha: data.target_yield_kg_ha ?? null,
+        actual_yield_kg_ha: data.actual_yield_kg_ha ?? null,
+        tillage_type: data.tillage_type || null,
+        seed_variety_source: data.seed_variety_source || null,
+        plant_density: data.plant_density ?? null,
+        row_spacing_cm: data.row_spacing_cm ?? null,
+        maturity: data.maturity || null,
       });
       seasonId = (r?.data as { season_id?: string } | undefined)?.season_id ?? null;
     } catch (e: any) {
@@ -705,8 +712,13 @@ function SeasonSimModal({ seasonId, crops, onClose }: {
           {r && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
-                <Stat label="الإنتاج المُقدَّر (kg/ha)"
-                  value={`${num(r.yield_low_kg_ha)} – ${num(r.yield_high_kg_ha)}`} hint={`المركزي ≈ ${num(r.yield_kg_ha)}`} />
+                {r.yield_kg_ha == null ? (
+                  <Stat label="الإنتاج المُقدَّر (kg/ha)" value="—"
+                    hint={`غير متاح (${r.yield_status ?? 'unavailable'}) — ليس صفراً مرصوداً`} />
+                ) : (
+                  <Stat label="الإنتاج المُقدَّر (kg/ha)"
+                    value={`${num(r.yield_low_kg_ha)} – ${num(r.yield_high_kg_ha)}`} hint={`المركزي ≈ ${num(r.yield_kg_ha)}`} />
+                )}
                 <Stat label="GDD التراكمي (°C·day)"
                   value={`${num(r.gdd_total)} / ${num(r.gdd_to_maturity)}`} hint={r.maturity_reached ? 'بلغ النضج' : 'لم يبلغ النضج'} />
                 <Stat label="أقصى LAI (m²/m²)" value={r.lai_max.toFixed(2)} hint="مؤشّر تقريبي" />
