@@ -38,7 +38,6 @@ from api.field_geometry_save_guard import sanitize_boundary_metadata, validate_b
 from api.field_models import (
     _FIELD_DETAIL_SELECT,
     _FIELD_QUALITY_SELECT,
-    _MIN_FIELD_OVERLAP_M2,
     ChildField,
     DriftRiskRequest,
     FieldCreateRequest,
@@ -51,9 +50,10 @@ from api.field_models import (
     FieldSummary,
     FieldUpdateRequest,
     _build_field_update,
+    _lock_field_boundaries,
+    _reject_field_overlap,
     _row_to_field_detail,
     _row_to_field_summary,
-    _significant_overlaps,
     field_quality_grade,
     reject_future_performed_on,
 )
@@ -345,74 +345,6 @@ async def _insert_field_within_tx(
         lon=lon,
         geometry=geometry,
     ).model_dump(mode="json") | {"geometry_revision": rev}
-
-
-async def _lock_field_boundaries(conn, tenant_id: str) -> None:
-    # A separate statement under READ COMMITTED makes the subsequent lookup see
-    # the previous writer's commit, even when both started against an empty area.
-    await conn.execute(
-        "SELECT pg_advisory_xact_lock(hashtextextended('fields.geometry:' || $1::uuid::text, 0))",
-        tenant_id,
-    )
-
-
-async def _reject_field_overlap(
-    conn, tenant_id: str, geometry: dict, exclude_field_id: str | None = None
-) -> None:
-    import asyncpg
-
-    # منع تداخل الهندسة مع حقول المستأجِر (ST_Intersects على عمود geom المفهرس
-    # GiST — v43) — يكشف أيضاً «النسخ» الهندسيّة ولو اختلف الاسم. يتطلّب PostGIS؛
-    # تدهور رشيق فقط عند غيابه (دالّة/نوع غير معرّف)؛ أيّ خطأ DB آخر ⇒ 503.
-    try:
-        # An optional PostGIS error must roll back only the overlap query.
-        async with conn.transaction():
-            overlaps = await conn.fetch(
-                """
-                SELECT field_id, name,
-                       ST_Area(ST_Intersection(
-                           ST_GeomFromGeoJSON($1), geom
-                       )::geography) AS overlap_m2
-                FROM fields
-                WHERE tenant_id = $2::uuid AND geom IS NOT NULL
-                  AND ST_Intersects(ST_GeomFromGeoJSON($1), geom)
-                  AND field_id IS DISTINCT FROM $3::text
-                ORDER BY overlap_m2 DESC NULLS LAST
-                LIMIT 5
-                """,
-                json.dumps(geometry),
-                tenant_id,
-                exclude_field_id,
-            )
-    except (
-        asyncpg.UndefinedFunctionError,
-        asyncpg.UndefinedObjectError,
-        asyncpg.UndefinedColumnError,
-    ) as ovl_err:
-        # PostGIS غير مُثبَّت (دوال/نوع geometry غير معرّفة) — تخطٍّ رشيق فقط هنا.
-        logging.warning("تخطّي فحص تداخل الحقول — PostGIS غير متاح: %s", ovl_err)
-        overlaps = []
-    significant = _significant_overlaps(overlaps, _MIN_FIELD_OVERLAP_M2)
-    if significant:
-        top = significant[0]
-        raise HTTPException(
-            status_code=409,
-            detail={
-                "message_ar": (
-                    f"حدود الحقل تتداخل مع «{top['name']}» "
-                    f"(~{top['overlap_m2']:.0f} م²). صحّح الحدود."
-                ),
-                "code": "field_geometry_overlap",
-                "overlaps": [
-                    {
-                        "field_id": o["field_id"],
-                        "name": o["name"],
-                        "overlap_m2": round(o["overlap_m2"] or 0.0, 1),
-                    }
-                    for o in significant
-                ],
-            },
-        )
 
 
 # ─── معالِج حفظ الحقل المشترك (مرسوم/مستورَد) — نُقل من main.py (تفكيك B1) ──────

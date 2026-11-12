@@ -9,8 +9,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 import os
 import uuid
 from datetime import UTC, datetime
@@ -19,12 +17,7 @@ import raster_security_context
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
 from fastapi.responses import Response
 from radiometry_containment import single_scene_detail as _radiometry_single_scene_detail
-from raster_available_dates import (
-    create_date_accumulator,
-    select_available_dates,
-    timeline_cutoff,
-    utc_day,
-)
+from raster_available_dates import create_date_accumulator, select_available_dates, timeline_cutoff
 from raster_field_runtime import (
     _REQ_TENANT,
     _TRANSPARENT_PNG,
@@ -85,6 +78,8 @@ from raster_field_runtime import (
     logger,
     object_store,
     run_raster_io,
+    tile_asset_revision,
+    tilejson_asset_version,
 )
 from raster_http_policy import TENANT_PRIVATE_IMAGE_HEADERS, requested_dates, validate_xyz
 from raster_indicator_product import eligible_observation_product
@@ -1339,30 +1334,11 @@ async def field_tile(
             import tile_render
 
             cog_path = object_store.to_gdal_path(layer["cog_url"])
-            resolved_date = utc_day(layer.get("acquisition_date")) or date
-            revision = [
-                layer.get(key) for key in ("created_at", "processing_job_id", "data_available_at")
-            ]
-            local = "://" not in cog_path and not cog_path.startswith("/vsi")
-            if local:
-                try:
-                    stat = os.stat(cog_path)
-                    revision.extend((stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns))
-                except OSError:
-                    pass
-            identity = json.dumps([layer["cog_url"], resolved_date, *revision, v], default=str)
-            version = hashlib.sha256(identity.encode()).hexdigest()
-            # A remote asset without a revision may be overwritten at the same URI.
-            cache_path = None
-            if local or any(revision):
-                cache_path = _tile_cache_key(
-                    field_id, index, resolved_date, z, x, y, tenant, v=version
-                )
-            headers = {
-                **TENANT_PRIVATE_IMAGE_HEADERS,
-                "X-Sahool-Tile-Date": resolved_date,
-                "X-Sahool-Tile-Version": v or version,
-            }
+            resolved_date, version, cacheable = tile_asset_revision(layer, cog_path, date, v)
+            key = _tile_cache_key(field_id, index, resolved_date, z, x, y, tenant, v=version)
+            cache_path = key if cacheable else None  # remote, unrevisioned ⇒ no cache
+            headers = {**TENANT_PRIVATE_IMAGE_HEADERS, "X-Sahool-Tile-Date": resolved_date}
+            headers["X-Sahool-Tile-Version"] = v or version
             if date == "latest" or not v or cache_path is None:
                 headers["Cache-Control"] = "private, no-cache"
             cached_png = _read_tile_cache(cache_path) if cache_path else None
@@ -1620,12 +1596,7 @@ async def field_tilejson(
         round((bounds[1] + bounds[3]) / 2.0, 6),
         14,
     ]
-    asset = layer or {}
-    resolved_date = utc_day(asset.get("acquisition_date")) or date
-    resolved_version = v or str(asset.get("created_at") or "")
-    if not resolved_version:
-        uri = asset.get("cog_url")
-        resolved_version = hashlib.sha256(uri.encode()).hexdigest() if uri else "default"
+    resolved_date, resolved_version = tilejson_asset_version(layer, date, v)
     # TileJSON is fetched by JS, but the returned tiles are loaded later as <img>
     # requests and cannot rely on axios headers. Propagate the tenant hint from the
     # already-validated request into the tile URL so restart/DB rehydration keeps

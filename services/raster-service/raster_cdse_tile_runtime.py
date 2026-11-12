@@ -59,25 +59,6 @@ def _unlink_best_effort(path: str, reason: str) -> None:
         )
 
 
-def parse_poly(poly: str) -> dict | None:
-    """Convert ``poly='lng,lat;lng,lat;...'`` into a closed GeoJSON Polygon."""
-    try:
-        pts: list[list[float]] = []
-        for pair in poly.split(";"):
-            pair = pair.strip()
-            if not pair:
-                continue
-            lng_s, lat_s = pair.split(",")
-            pts.append([float(lng_s), float(lat_s)])
-        if len(pts) < 3:
-            return None
-        if pts[0] != pts[-1]:
-            pts.append(pts[0])
-        return {"type": "Polygon", "coordinates": [pts]}
-    except (ValueError, TypeError):
-        return None
-
-
 # G-H1: هامش مقارنة حدود هندسة العميل بحدود الحقل المخزّنة (~١١م) — الواجهة ترسل مضلّع
 # الحقل نفسه بعد تقريب إحداثيّاته، فالمقارنة الحرفيّة كانت سترفض الطلب الشرعيّ.
 CLIENT_GEOMETRY_TOLERANCE_DEG = 1e-4
