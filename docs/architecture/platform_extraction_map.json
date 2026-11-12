@@ -1737,7 +1737,7 @@
       "function": "list_dispatch_decisions",
       "method": "GET",
       "path": "/api/v1/decision/dispatch/decisions",
-      "line": 492,
+      "line": 458,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_dispatch.py::GET /api/v1/decision/dispatch/decisions::list_dispatch_decisions"
@@ -1747,7 +1747,7 @@
       "function": "list_dispatch_queue",
       "method": "GET",
       "path": "/api/v1/decision/dispatch/queue",
-      "line": 524,
+      "line": 490,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_dispatch.py::GET /api/v1/decision/dispatch/queue::list_dispatch_queue"
@@ -1757,7 +1757,7 @@
       "function": "list_execution_ledger",
       "method": "GET",
       "path": "/api/v1/decision/ledger",
-      "line": 677,
+      "line": 643,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_dispatch.py::GET /api/v1/decision/ledger::list_execution_ledger"
@@ -1767,7 +1767,7 @@
       "function": "consume_dispatch_queue",
       "method": "POST",
       "path": "/api/v1/decision/dispatch/consume",
-      "line": 444,
+      "line": 410,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_dispatch.py::POST /api/v1/decision/dispatch/consume::consume_dispatch_queue"
@@ -1777,7 +1777,7 @@
       "function": "evaluate_dispatch_endpoint",
       "method": "POST",
       "path": "/api/v1/decision/dispatch/evaluate",
-      "line": 198,
+      "line": 210,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_dispatch.py::POST /api/v1/decision/dispatch/evaluate::evaluate_dispatch_endpoint"
@@ -1787,7 +1787,7 @@
       "function": "execute_dispatch_endpoint",
       "method": "POST",
       "path": "/api/v1/decision/dispatch/execute",
-      "line": 247,
+      "line": 258,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_dispatch.py::POST /api/v1/decision/dispatch/execute::execute_dispatch_endpoint"
@@ -1797,7 +1797,7 @@
       "function": "record_execution_outcome",
       "method": "POST",
       "path": "/api/v1/decision/ledger",
-      "line": 581,
+      "line": 547,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_dispatch.py::POST /api/v1/decision/ledger::record_execution_outcome"
@@ -1807,7 +1807,7 @@
       "function": "unified_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/decision/unified",
-      "line": 129,
+      "line": 141,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_dispatch.py::POST /api/v1/decision/unified::unified_decision_endpoint"
@@ -1817,7 +1817,7 @@
       "function": "explain_decision_endpoint",
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/explain",
-      "line": 74,
+      "line": 79,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_explain.py::GET /api/v1/decision/{decision_id}/explain::explain_decision_endpoint"
@@ -1887,7 +1887,7 @@
       "function": "list_decision_records",
       "method": "GET",
       "path": "/api/v1/decision/records",
-      "line": 699,
+      "line": 704,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::GET /api/v1/decision/records::list_decision_records"
@@ -1897,7 +1897,7 @@
       "function": "get_decision_lineage",
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/lineage",
-      "line": 659,
+      "line": 661,
       "target_owner": "decision-service",
       "owner_type": "knowledge-store",
       "route_key": "api/routers/decision_record.py::GET /api/v1/decision/{decision_id}/lineage::get_decision_lineage"
@@ -1907,7 +1907,7 @@
       "function": "get_field_lineage",
       "method": "GET",
       "path": "/api/v1/field/{field_id}/lineage",
-      "line": 750,
+      "line": 758,
       "target_owner": "decision-service",
       "owner_type": "knowledge-store",
       "route_key": "api/routers/decision_record.py::GET /api/v1/field/{field_id}/lineage::get_field_lineage"
@@ -1917,7 +1917,7 @@
       "function": "record_decision",
       "method": "POST",
       "path": "/api/v1/decision/record",
-      "line": 372,
+      "line": 374,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::POST /api/v1/decision/record::record_decision"
@@ -1927,7 +1927,7 @@
       "function": "record_outcome",
       "method": "POST",
       "path": "/api/v1/outcome/record",
-      "line": 505,
+      "line": 507,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::POST /api/v1/outcome/record::record_outcome"
@@ -1937,7 +1937,7 @@
       "function": "get_decision_review_queue",
       "method": "GET",
       "path": "/api/v1/decisions/review-queue",
-      "line": 50,
+      "line": 51,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_review.py::GET /api/v1/decisions/review-queue::get_decision_review_queue",
@@ -1948,7 +1948,7 @@
       "function": "get_decision_agronomic_evidence_boundary",
       "method": "GET",
       "path": "/api/v1/decisions/{decision_id}/agronomic-evidence",
-      "line": 82,
+      "line": 79,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_review.py::GET /api/v1/decisions/{decision_id}/agronomic-evidence::get_decision_agronomic_evidence_boundary",
@@ -1981,7 +1981,7 @@
       "function": "review_decision_candidate",
       "method": "POST",
       "path": "/api/v1/decisions/{decision_id}/review",
-      "line": 118,
+      "line": 115,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_review.py::POST /api/v1/decisions/{decision_id}/review::review_decision_candidate",
@@ -2433,7 +2433,7 @@
       "function": "evidence_map_endpoint",
       "method": "GET",
       "path": "/api/v1/evidence/map",
-      "line": 87,
+      "line": 90,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/evidence_map.py::GET /api/v1/evidence/map::evidence_map_endpoint"
@@ -2493,7 +2493,7 @@
       "function": "get_economic_state",
       "method": "GET",
       "path": "/api/v1/farm-ledger/economic-state/{season_id}",
-      "line": 950,
+      "line": 955,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/economic-state/{season_id}::get_economic_state"
@@ -2513,7 +2513,7 @@
       "function": "get_inventory_projection",
       "method": "GET",
       "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
-      "line": 856,
+      "line": 861,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/inventory-projection/{season_id}::get_inventory_projection"
@@ -2533,7 +2533,7 @@
       "function": "get_season_profitability",
       "method": "GET",
       "path": "/api/v1/farm-ledger/profitability/{season_id}",
-      "line": 686,
+      "line": 691,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/profitability/{season_id}::get_season_profitability"
@@ -2563,7 +2563,7 @@
       "function": "operation_autowrite_preview",
       "method": "POST",
       "path": "/api/v1/farm-ledger/autowrite-preview",
-      "line": 808,
+      "line": 813,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/autowrite-preview::operation_autowrite_preview"
@@ -4203,7 +4203,7 @@
       "function": "field_irrigation_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
-      "line": 207,
+      "line": 208,
       "target_owner": "sahool-platform",
       "owner_type": "bff-decision-candidate",
       "route_key": "api/routers/irrigation_recommendation.py::POST /api/v1/fields/{field_id}/irrigation-recommendation::field_irrigation_recommendation"
@@ -4213,7 +4213,7 @@
       "function": "irrigation_recommendation",
       "method": "POST",
       "path": "/api/v1/irrigation-recommendation",
-      "line": 120,
+      "line": 121,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/irrigation_recommendation.py::POST /api/v1/irrigation-recommendation::irrigation_recommendation"
@@ -4283,7 +4283,7 @@
       "function": "get_learning_summary",
       "method": "GET",
       "path": "/api/v1/learning/summary",
-      "line": 52,
+      "line": 135,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/learning_summary.py::GET /api/v1/learning/summary::get_learning_summary"
@@ -5243,7 +5243,7 @@
       "function": "field_season_state_endpoint",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
-      "line": 562,
+      "line": 563,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/seasons.py::GET /api/v1/fields/{field_id}/seasons/{season_id}/state::field_season_state_endpoint"
@@ -5253,7 +5253,7 @@
       "function": "simulate_season_endpoint",
       "method": "POST",
       "path": "/api/v1/seasons/{season_id}/simulate",
-      "line": 155,
+      "line": 156,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/seasons.py::POST /api/v1/seasons/{season_id}/simulate::simulate_season_endpoint"
@@ -5423,7 +5423,7 @@
       "function": "field_lab_context",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/lab-context",
-      "line": 428,
+      "line": 412,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/fields/{field_id}/lab-context::field_lab_context"
