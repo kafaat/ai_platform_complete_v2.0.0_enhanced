@@ -1602,6 +1602,7 @@
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "tests_v9/test_export_season_runs_for_golden.py",
+        "tests_v9/test_farm_book_corrections_and_categories.py",
         "tests_v9/test_farm_memory.py",
         "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
         "tests_v9/test_sim_golden.py",
