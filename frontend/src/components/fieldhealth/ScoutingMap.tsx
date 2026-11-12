@@ -19,7 +19,8 @@ import type { LatLngExpression } from 'leaflet';
 import '../../lib/leafletSetup'; // CSS + أيقونات Leaflet (side-effect حاسم)
 import { fieldIndicatorTileUrl, normalizeIndicatorIndex } from '../../services/api';
 import { getTenantId } from '../../lib/authStorage';
-import type { FieldPolygonLatLng } from '../FieldIndicatorMap';
+import { boundaryBounds } from '../../lib/fieldBoundary';
+import { FitBounds, type FieldPolygonLatLng } from '../FieldIndicatorMap';
 
 const BASEMAP_SAT =
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -130,9 +131,9 @@ export default function ScoutingMap({
 
   // مركز افتراضيّ من المضلّع/الإطار الاحتياطيّ (نفس منطق FieldIndicatorMap).
   const center: LatLngExpression = useMemo(() => {
-    if (fieldPolygon && fieldPolygon.length) return fieldPolygon[0];
-    if (fallbackBounds) {
-      return [(fallbackBounds[1] + fallbackBounds[3]) / 2, (fallbackBounds[0] + fallbackBounds[2]) / 2];
+    const extent = boundaryBounds(fieldPolygon) ?? fallbackBounds;
+    if (extent) {
+      return [(extent[1] + extent[3]) / 2, (extent[0] + extent[2]) / 2];
     }
     return [16.153, 45.303];
   }, [fieldPolygon, fallbackBounds]);
@@ -152,7 +153,8 @@ export default function ScoutingMap({
         />
 
         {/* حدود الحقل */}
-        {fieldPolygon && fieldPolygon.length >= 3 && (
+        <FitBounds polygon={fieldPolygon} fallbackBounds={fallbackBounds} fieldId={fieldId} />
+        {fieldPolygon && fieldPolygon.length > 0 && (
           <Polygon positions={fieldPolygon} pathOptions={{ color: '#5cbf6e', weight: 2, fill: false }} />
         )}
 

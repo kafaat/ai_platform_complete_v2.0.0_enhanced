@@ -193,6 +193,10 @@ def test_c1_calibration_reaches_processing_once_and_bundle_is_removed(scene, tmp
             assert src.width <= 8 and src.height <= 8
             assert set(np.unique(src.read(req.bands.scl))) == {4}
         assert req.tenant_id == "tenant" and req.field_id == "field"
+        assert req._verified_stac_capture == {
+            "scene_id": data["item_id"],
+            "datetime": data["datetime"],
+        }
         assert req.raw_qa_required and req.apply_cloud_mask
         assert req.reflectance_scale is None and req.reflectance_offset is None
         calls.append(req.raster_url)
@@ -542,3 +546,12 @@ def test_sync_backfill_dispatches_supported_c1_into_existing_processing_core(
         job.func(*job.args, **job.kwargs)
     assert len(calls) == 1 and calls[0].scene_id == data["item_id"]
     assert calls[0].tenant_id == "tenant" and calls[0].raw_qa_required
+
+
+@pytest.mark.parametrize("stamp", ["2026-10-15", "not-a-time", "2026-10-15T07:34:28"])
+def test_c1_requires_a_catalogue_capture_instant(scene, stamp):
+    data, _, _ = scene
+    data["datetime"] = stamp
+    data["radiometry_context"]["properties"]["datetime"] = stamp
+    with pytest.raises(rc.RadiometryUnresolved):
+        c1.validate_c1_scene(data, entry_point="process_from_stac")

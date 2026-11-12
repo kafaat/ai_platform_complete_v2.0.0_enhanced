@@ -1190,7 +1190,12 @@ async def register_field_tracking_intents(
 
 
 async def _kick_imagery_processing(
-    *, field_id: str, tenant_id: str, geometry: object, reason: str
+    *,
+    field_id: str,
+    tenant_id: str,
+    geometry: object,
+    reason: str,
+    geometry_revision: int | None = None,
 ) -> None:
     """يُطلِق المعالجة المُستهدَفة بعد إنشاء/تحديث حقل (BackgroundTasks، بعد الالتزام).
 
@@ -1199,12 +1204,41 @@ async def _kick_imagery_processing(
     على ردّ الكتابة). صدق: يعتمد raster-service الحقيقيّ؛ لا يُختلَق شيء عند تعذّره."""
     try:
         guarded = guard_field_geometry(geometry)
+        if geometry_revision is None:
+            # Older idempotency records lack the revision. Only recover an unambiguous
+            # historical match when that exact boundary still belongs to this tenant.
+            import json
+
+            from api.main import get_pool
+
+            async with get_pool().acquire() as conn:
+                async with conn.transaction():
+                    await conn.execute(
+                        "SELECT set_config('app.current_tenant', $1, true)", tenant_id
+                    )
+                    geometry_revision = await conn.fetchval(
+                        """
+                        SELECT min(h.revision)
+                          FROM fields f JOIN field_geometry_history h
+                            ON h.field_id = f.field_id AND h.tenant_id = f.tenant_id
+                         WHERE f.field_id = $1 AND f.tenant_id = $2::uuid
+                           AND f.geometry::jsonb = $3::jsonb AND h.geometry = f.geometry::jsonb
+                        HAVING count(*) = 1
+                        """,
+                        field_id,
+                        tenant_id,
+                        json.dumps(guarded.geometry),
+                    )
+            if geometry_revision is None:
+                logging.warning("No matching geometry revision for imagery task field=%s", field_id)
+                return
         res = await imagery_automation.trigger_field_imagery_processing(
             field_id=field_id,
             tenant_id=tenant_id,
             bbox=guarded.bbox,
             geometry=guarded.geometry,
             reason=reason,
+            geometry_revision=geometry_revision,
         )
         # تشخيص: أظهِر نتيجة الإطلاق في docker logs بدل الصمت — يكشف سبب عدم ظهور NDVI
         # الحقيقيّ (queued / no_scene / missing_bands / error) دون الحاجة لتتبّع الراستر.

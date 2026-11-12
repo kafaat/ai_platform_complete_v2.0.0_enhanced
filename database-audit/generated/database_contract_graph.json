@@ -3557,6 +3557,7 @@
       "code_readers": [
         "services/raster-service/db_persist.py",
         "services/raster-service/follow_up_runtime.py",
+        "services/sahool-platform/api/imagery_automation.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/seasons.py"
       ],
@@ -3759,7 +3760,9 @@
         "services/sahool-platform/api/canonical_water_state.py",
         "services/sahool-platform/api/field_aggregate_ports.py",
         "services/sahool-platform/api/field_context.py",
+        "services/sahool-platform/api/field_models.py",
         "services/sahool-platform/api/field_state_projection.py",
+        "services/sahool-platform/api/imagery_automation.py",
         "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/onboarding.py",
@@ -3817,6 +3820,7 @@
         "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/routers/fields.py",
+        "services/sahool-platform/tests/test_field_overlap_postgis.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
         "services/scout-ingest-service/tests/test_season_live.py"
       ],
@@ -4042,9 +4046,9 @@
     {
       "code_readers": [],
       "code_writers": [],
-      "created_in": "v58_field_boundary_quality.sql",
+      "created_in": "v36_alerts.sql",
       "has_tenant_id": false,
-      "manifest_position": 63,
+      "manifest_position": 40,
       "policy_count": 0,
       "rls_enabled": false,
       "rls_forced": false,
@@ -5872,6 +5876,7 @@
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
+        "services/raster-service/test_cdse_timeline_pg.py",
         "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/sahool-platform/api/routers/field_intelligence.py"
       ],
@@ -5880,6 +5885,7 @@
         "services/raster-service/cache_invalidation_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
+        "services/raster-service/test_cdse_timeline_pg.py",
         "services/raster-service/test_raster_publication_gate.py"
       ],
       "created_in": "v14_imagery_storage.sql",
@@ -6833,10 +6839,12 @@
     },
     {
       "code_readers": [
-        "services/raster-service/db_persist.py"
+        "services/raster-service/db_persist.py",
+        "services/raster-service/test_cdse_timeline_pg.py"
       ],
       "code_writers": [
-        "services/raster-service/db_persist.py"
+        "services/raster-service/db_persist.py",
+        "services/raster-service/test_cdse_timeline_pg.py"
       ],
       "created_in": "v114_cloud_native_gis_best_practices.sql",
       "has_tenant_id": true,

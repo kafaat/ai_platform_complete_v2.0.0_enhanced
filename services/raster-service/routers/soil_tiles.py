@@ -18,6 +18,7 @@ from typing import Annotated
 
 import soil_render as _soil
 from fastapi import APIRouter, Query, Response
+from raster_clip_query import parse_mask_parts as _parse_poly_points
 from raster_runtime_state import FIELD_LAYERS, LAYERS
 from raster_security_context import REQ_TENANT, require_field_tenant
 from raster_settings import TRANSPARENT_PNG
@@ -121,23 +122,6 @@ def _parse_bbox(bbox) -> list[float] | None:
         return parts if len(parts) == 4 else None
     except (TypeError, ValueError):
         return None
-
-
-def _parse_poly_points(poly) -> list | None:
-    """``poly="lng,lat;lng,lat;..."`` (EPSG:4326) ⇒ قائمة [lng,lat] للقصّ على حدّ الحقل، أو None."""
-    if not isinstance(poly, str) or not poly:
-        return None
-    pts: list[list[float]] = []
-    for pair in poly.split(";"):
-        pair = pair.strip()
-        if not pair:
-            continue
-        try:
-            lng_s, lat_s = pair.split(",")
-            pts.append([float(lng_s), float(lat_s)])
-        except (TypeError, ValueError):
-            return None
-    return pts if len(pts) >= 3 else None
 
 
 @router.get("/v1/fields/{field_id}/soil/summary")

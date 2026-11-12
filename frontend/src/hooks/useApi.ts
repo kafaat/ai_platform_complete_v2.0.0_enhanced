@@ -232,6 +232,14 @@ export interface IndicatorGridResponse {
   // هويّة الشبكة بنظام CRS المصدر: transform [a,b,c,d,e,f] يربط (col,row) بالإحداثيّات
   // الأصليّة (bbox غلاف مُحوَّل فقط). null حين يجهل الخادم CRS/مراجعة الهندسة.
   grid_identity?: GridIdentity | null;
+  valid_pixel_ratio?: number | null; // Valid cells over the rectangular source raster.
+  field_coverage?: {
+    denominator: 'field_pixel_centres';
+    geometry_revision: number;
+    valid_pixels: number;
+    field_pixels: number;
+    valid_pixel_ratio: number;
+  } | null;
   spatial_sampling?: {
     native_band_resolution_m: Record<string, number> | null;
     output_pixel_size_m: [number, number] | null;

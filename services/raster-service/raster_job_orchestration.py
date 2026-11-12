@@ -272,6 +272,7 @@ def run_processing(ctx, job_id: str, req):
             else False
         )
         if persisted:
+            layer["field_coverage"] = meta.get("field_coverage")
             ctx._layers[layer_id] = layer
             # فهرس حقل→طبقات (للبحث عن أحدث COG لحقل+مؤشّر في شبكة المؤشّر). يُستخدَم
             # ``ctx._field_layers`` (فهرس field_id→[layer_id]) لا ``ctx._layers`` (مخزن
