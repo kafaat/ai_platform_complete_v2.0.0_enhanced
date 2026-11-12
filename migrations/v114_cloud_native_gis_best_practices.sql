@@ -20,6 +20,12 @@ CREATE TABLE IF NOT EXISTS raster_registry (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (tenant_id, field_id, product_date, index_type, cog_url)
 );
+-- Unknown ground spacing stays NULL on new registry writes (raster v26 repairs): the
+-- application passes resolution_m explicitly, and a 10 m default would mislabel 20 m
+-- products. Existing rows keep their values (a historical 10 can be measured). Idempotent:
+-- the MANIFEST re-applies this file on every run, and DROP DEFAULT on a column without a
+-- default is a no-op. Kept in v114 (where the column is created) so MANIFEST is unchanged.
+ALTER TABLE raster_registry ALTER COLUMN resolution_m DROP DEFAULT;
 CREATE INDEX IF NOT EXISTS idx_raster_registry_lookup
     ON raster_registry (tenant_id, field_id, product_date DESC, index_type);
 CREATE INDEX IF NOT EXISTS idx_raster_registry_scene
