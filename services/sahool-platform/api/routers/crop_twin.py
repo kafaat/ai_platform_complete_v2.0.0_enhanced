@@ -132,9 +132,7 @@ async def _compose_state(req: CropTwinComposeRequest, *, tenant_id: str | None =
     spec_quality = req.spectral_quality_status
     spec_temporal_compat = req.spectral_temporal_compatible
     spectral_state = None
-    server_spectral_attempted = False
     if compose_server_authoritative_spectral_enabled() and req.field_id:
-        server_spectral_attempted = True
         spectral_state = await resolve_canonical_spectral_state(
             field_id=req.field_id, tenant_id=tenant_id
         )
