@@ -3072,7 +3072,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/scouting_pin_store.py",
+      "evidence": "services/sahool-platform/api/scouting_pins.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -4142,7 +4142,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/scouting_pin_store.py",
+      "evidence": "services/sahool-platform/api/scouting_pins.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8672,7 +8672,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/scouting_pin_store.py",
+      "evidence": "services/sahool-platform/api/scouting_pins.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",

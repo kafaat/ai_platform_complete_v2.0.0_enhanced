@@ -26055,7 +26055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f54c6f223d1be4f42e873bf0d4b881a5de51a593f25103717fe3c1d429ab2a74"
+          "content": "b7e14717e14ae17b4df8a3412c054a324c9cabf25aa9e929b300ab14d7fc6fce"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -27035,17 +27035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "47d738f5fd48ea38382b8889261149e62e804e74f8ce2cd63c1f3782e260eb5f"
-        }
-      ],
-      "name": "services/sahool-platform/api/scouting_pin_store.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "00eeeb23179efdeeaefd10c1d7d12b43187c2e75fd6d3436fd0d852577b7ad43"
+          "content": "7fb750946cb5ad1c72e147cd456b58019b6275023b3a0d8ec49363b367990e0b"
         }
       ],
       "name": "services/sahool-platform/api/scouting_pins.py",
