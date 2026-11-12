@@ -85,6 +85,7 @@ import LearningEvidenceCard from '../components/fieldview/LearningEvidenceCard';
 import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues, useScoutingPins, useCreateScoutingPin } from '../hooks/useScouting';
+import { PinInspectionTask } from './PinInspectionTask';
 import type { ScoutingPinRecord } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
@@ -2892,6 +2893,11 @@ function MapHubCore() {
                   <button type="button" className="mr-2 underline" onClick={() => { discardLegacyUnscopedDrawingData(); setLegacyDrawingCount(0); }}>تجاهلها</button>
                 </div>}
                 {drawingReadError && <div role="alert" className="mt-3 text-sm text-amber-300">{drawingReadError}<button type="button" onClick={() => setDrawingRevision((n) => n + 1)} className="mr-2 underline">إعادة المحاولة</button></div>}
+                {fieldId && serverPins.length > 0 && (
+                  <PinInspectionTask key={`${tenantId}-${fieldId}`} field={fieldId} pins={serverPins}
+                    tenant={tenantId ?? UNAUTH_TENANT_KEY} role={user?.role} />
+                )}
+
                 {zoneDesigner && (
                   <div data-testid="zone-designer-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
                     <div className="flex flex-wrap items-center gap-2">

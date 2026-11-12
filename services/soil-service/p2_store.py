@@ -5,6 +5,11 @@ from __future__ import annotations
 import json
 
 
+def _payload(row):
+    value = row["payload"]
+    return json.loads(value) if isinstance(value, str) else dict(value)
+
+
 async def _tenant(conn, tenant_id: str):
     await conn.execute("SELECT set_config('app.current_tenant_id',$1,true)", tenant_id)
 
@@ -47,7 +52,7 @@ async def save_product(
                 geometry_hash,
                 json.dumps(payload),
             )
-            return dict(row["payload"])
+            return _payload(row)
 
 
 async def get_latest(pool, *, table: str, tenant_id: str, field_id: str):
@@ -67,4 +72,4 @@ async def get_latest(pool, *, table: str, tenant_id: str, field_id: str):
                 tenant_id,
                 field_id,
             )
-            return dict(row["payload"]) if row else None
+            return _payload(row) if row else None

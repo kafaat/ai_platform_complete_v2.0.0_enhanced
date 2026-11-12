@@ -775,6 +775,17 @@ v241_edge_idempotency_tenant_scoped.sql
 # v239: per-detection provenance (model artifact sha256, input sha256, threshold, calibration);
 #       tenant RLS+FORCE, append-only. Inserted before v206 so v206 stays last.
 v239_detection_provenance.sql
+# v243–v249 (owner delivery «v26 Unified Task Cost and Inspection»): task sources, the farm-book,
+#   operations and pin links to a task, inspection hand-offs and the task cost trace. Each file is
+#   idempotent on a re-applied MANIFEST (IF NOT EXISTS / catalog-checked constraints); the new
+#   tenant tables are RLS ENABLE+FORCE. Inserted before v240 so v240 stays directly before v206.
+v243_field_task_satellite_sources.sql
+v244_field_task_terrain_sources.sql
+v245_farm_book_task_link.sql
+v246_scouting_pin_inspection_task.sql
+v247_farm_operations_task_link.sql
+v248_inspection_handoffs.sql
+v249_task_cost_trace.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

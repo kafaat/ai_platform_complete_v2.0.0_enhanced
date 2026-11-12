@@ -619,7 +619,21 @@
 \i migrations/v241_edge_idempotency_tenant_scoped.sql
 \echo '═══ 237. v239_detection_provenance.sql ═══'
 \i migrations/v239_detection_provenance.sql
-\echo '═══ 238. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 238. v243_field_task_satellite_sources.sql ═══'
+\i migrations/v243_field_task_satellite_sources.sql
+\echo '═══ 239. v244_field_task_terrain_sources.sql ═══'
+\i migrations/v244_field_task_terrain_sources.sql
+\echo '═══ 240. v245_farm_book_task_link.sql ═══'
+\i migrations/v245_farm_book_task_link.sql
+\echo '═══ 241. v246_scouting_pin_inspection_task.sql ═══'
+\i migrations/v246_scouting_pin_inspection_task.sql
+\echo '═══ 242. v247_farm_operations_task_link.sql ═══'
+\i migrations/v247_farm_operations_task_link.sql
+\echo '═══ 243. v248_inspection_handoffs.sql ═══'
+\i migrations/v248_inspection_handoffs.sql
+\echo '═══ 244. v249_task_cost_trace.sql ═══'
+\i migrations/v249_task_cost_trace.sql
+\echo '═══ 245. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 239. v206_rls_final_hardening.sql ═══'
+\echo '═══ 246. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

@@ -41,8 +41,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # 4187 → 4176 (audit security batch) and → 4175 (audit remediation), both 2026-11-01: the
     # drift-risk and imagery refresh/process-date request models moved to api/field_models.
     # Merged: 4164. → 4163 (wave 2, 2026-11-09): activity event payload moved to
-    # api.field_aggregate.activity_event_payload.
-    "services/sahool-platform/api/routers/fields.py": 4163,
+    # api.field_aggregate.activity_event_payload. → 4143 (2026-11-12, task cost/inspection port):
+    # scouting-pin persistence moved to api.scouting_pins (the route keeps a thin wrapper).
+    "services/sahool-platform/api/routers/fields.py": 4143,
     "services/sahool-platform/api/routers/weather.py": 3022,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     # 1673 → 1668 (unified 2026-10-27): pixel sampling moved to raster_field_runtime and
@@ -50,11 +51,14 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # 1668 → 1662 (audit security batch 2026-11-01): T10 stored-geometry binding and the CDSE
     # job record moved to raster_field_runtime while the T10 ownership checks landed here.
     # 1662 → 1656 (R9 2026-11-02): blocking COG/DEM reads offloaded via raster_field_runtime.
-    "services/raster-service/routers/fields.py": 1655,
+    # 1655 → 1654 (2026-11-12): tile-cache/TileJSON asset identity moved to raster_field_runtime
+    # (tile_asset_revision · tilejson_asset_version) while the satellite-port fixes landed here.
+    "services/raster-service/routers/fields.py": 1654,
     # 1029 → 1027 (audit security batch 2026-11-01): T6 request_digest consolidation.
     # 1027 → 996 (wave 2, 2026-11-08): budget/actual fetch moved to core.farm_operations_ledger
-    # while the planned-vs-executed status filter landed here.
-    "services/sahool-platform/api/routers/farm_operations_ledger.py": 996,
+    # while the planned-vs-executed status filter landed here. 996 → 988 (2026-11-12): tenant-scope
+    # lookups moved to core.farm_operations_ledger while the optional task link (v247) landed here.
+    "services/sahool-platform/api/routers/farm_operations_ledger.py": 988,
     "services/sahool-platform/api/routers/decision_review.py": 920,
 }
 

@@ -436,3 +436,45 @@ def _process_backfill_scene_cdse(
     raster_backfill_scene_processing.process_backfill_scene_cdse(
         ctx, scene, index, field_id, tenant_id, clip, geometry_revision, jid
     )
+
+
+def tile_asset_revision(
+    layer: dict, cog_path: str, date: str, v: str | None
+) -> tuple[str, str, bool]:
+    """``(resolved_date, version, cacheable)`` for a resolved field tile asset.
+
+    The cache key follows the resolved asset (URI, capture day, revision columns and, for a
+    local file, its inode/size/mtime), not the requested date. A remote asset without a
+    revision may be overwritten at the same URI, so it is not cacheable.
+    """
+    import hashlib
+    import json
+
+    from raster_available_dates import utc_day
+
+    resolved_date = utc_day(layer.get("acquisition_date")) or date
+    revision = [layer.get(key) for key in ("created_at", "processing_job_id", "data_available_at")]
+    local = "://" not in cog_path and not cog_path.startswith("/vsi")
+    if local:
+        try:
+            stat = os.stat(cog_path)
+            revision.extend((stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns))
+        except OSError:
+            pass
+    identity = json.dumps([layer["cog_url"], resolved_date, *revision, v], default=str)
+    return resolved_date, hashlib.sha256(identity.encode()).hexdigest(), local or any(revision)
+
+
+def tilejson_asset_version(layer: dict | None, date: str, v: str | None) -> tuple[str, str]:
+    """``(resolved_date, version)`` advertised by TileJSON for the resolved asset."""
+    import hashlib
+
+    from raster_available_dates import utc_day
+
+    asset = layer or {}
+    resolved_date = utc_day(asset.get("acquisition_date")) or date
+    resolved_version = v or str(asset.get("created_at") or "")
+    if not resolved_version:
+        uri = asset.get("cog_url")
+        resolved_version = hashlib.sha256(uri.encode()).hexdigest() if uri else "default"
+    return resolved_date, resolved_version

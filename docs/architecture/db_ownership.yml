@@ -2044,3 +2044,20 @@ tables:
     writers: [sahool-platform]
     readers: [sahool-platform]
     source: "migrations/v227_decision_learning_runtime.sql, services/sahool-platform/workers/canonical_execution_learning_worker.py"
+  # v248/v249 (owner delivery «v26 Unified Task Cost and Inspection»): append-only tenant
+  # ledgers written and read only through the platform routes (RLS ENABLE+FORCE).
+  inspection_handoffs:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v248_inspection_handoffs.sql, services/sahool-platform/api/routers/scouting.py"
+  task_expense_links:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v249_task_cost_trace.sql, services/sahool-platform/api/routers/simple_farm_book.py"
+  task_cost_history:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v249_task_cost_trace.sql (trigger record_field_task_cost on field_tasks)"

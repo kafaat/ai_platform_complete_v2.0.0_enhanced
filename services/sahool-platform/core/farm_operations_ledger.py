@@ -547,3 +547,45 @@ async def fetch_budget_and_actual(conn, tenant_id: str, season_id: str):
         for r in actual_rows
     ]
     return budgets, actuals
+
+
+#: v247: an operation may name one task, and only inside the field it is recorded for.
+TASK_IN_FIELD_SQL = (
+    "SELECT 1 FROM field_tasks WHERE task_id=$1 AND tenant_id=$2::uuid AND field_id=$3"
+)
+
+
+async def task_link_error(conn, tenant_id: str, task_id, field_id: str | None):
+    """Return ``(status, detail)`` when an optional task link is invalid, else ``None``."""
+    if task_id is None:
+        return None
+    if not field_id:
+        return 422, "task_link_requires_field"
+    if not await conn.fetchval(TASK_IN_FIELD_SQL, task_id, tenant_id, field_id):
+        return 404, "task_not_found_in_field"
+    return None
+
+
+#: Tenant-scope lookups of the operations ledger (moved from the router for its size ratchet).
+_TENANT_SCOPE_SQL: dict[str, tuple[str, str]] = {
+    "season": (
+        "SELECT 1 FROM farm_season_projects WHERE tenant_id = $1::uuid AND season_id = $2",
+        "season_not_found_for_tenant",
+    ),
+    "production_unit": (
+        "SELECT 1 FROM farm_production_units WHERE tenant_id = $1::uuid AND production_unit_id = $2",
+        "production_unit_not_found_for_tenant",
+    ),
+    "farm": (
+        "SELECT 1 FROM farms WHERE tenant_id = $1::uuid AND farm_id = $2",
+        "farm_not_found_for_tenant",
+    ),
+}
+
+
+async def missing_tenant_scope(conn, tenant_id: str, kind: str, value: str | None) -> str | None:
+    """The 404 detail when ``value`` is set and not owned by the tenant; ``None`` otherwise."""
+    if not value:
+        return None
+    sql, detail = _TENANT_SCOPE_SQL[kind]
+    return None if await conn.fetchval(sql, tenant_id, value) == 1 else detail
