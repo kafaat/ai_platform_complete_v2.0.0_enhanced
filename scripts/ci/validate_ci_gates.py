@@ -151,8 +151,8 @@ def validate(root: Path) -> list[str]:
         errors,
     )
     require(
-        "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1" in workflow,
-        "workflow must use immutable setup-python v6 commit",
+        "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0" in workflow,
+        "workflow must use immutable setup-python v7.1.0 commit",
         errors,
     )
     for script_call in [
