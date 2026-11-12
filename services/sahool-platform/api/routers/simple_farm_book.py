@@ -186,7 +186,8 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
     if not req.settles_entry_id or not req.party_id:
         raise HTTPException(status_code=422, detail="payment_requires_party_and_settled_entry")
     original = await conn.fetchrow(
-        """SELECT entry_id, entry_type, payment_method, amount, currency, party_id
+        """SELECT entry_id, entry_type, payment_method, amount, currency, party_id,
+                  reverses_entry_id
            FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND entry_id=$2 FOR UPDATE""",
         tenant_id,
@@ -194,6 +195,17 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
     )
     if not original or original["payment_method"] != "credit":
         raise HTTPException(status_code=422, detail="settled_entry_must_be_credit")
+    # A reversal (or a reversed entry) is no debt: paying it drives the party's payable
+    # negative, and the report then silently nets that against the party's other debts.
+    if original["reverses_entry_id"] is not None:
+        raise HTTPException(status_code=422, detail="cannot_settle_a_reversal")
+    if await conn.fetchval(
+        """SELECT 1 FROM farm_ledger_entries
+           WHERE tenant_id=$1::uuid AND reverses_entry_id=$2 LIMIT 1""",
+        tenant_id,
+        req.settles_entry_id,
+    ):
+        raise HTTPException(status_code=409, detail="settled_entry_is_reversed")
     if original["party_id"] != req.party_id or original["currency"] != req.currency:
         raise HTTPException(status_code=422, detail="payment_party_or_currency_mismatch")
     paid = await conn.fetchval(
@@ -210,12 +222,16 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
 async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
     """Append-only correction: a reversing entry mirrors the original exactly and both
     net to zero in every total (see core.summarize_entries). The mirror must match the
-    original's type/method/amount/currency so the DB CHECKs still hold, must not itself
-    be a settlement, and each original may be reversed at most once."""
+    original's type/method/amount/currency so the DB CHECKs still hold, and its
+    category/farm/field/season so every report window cancels it where the original
+    counted; it must not predate the original or itself be a settlement, each original
+    may be reversed at most once, and a credit entry with payments cannot be reversed
+    (its payable would go negative and cancel the party's other debts)."""
     if req.settles_entry_id:
         raise HTTPException(status_code=422, detail="reversal_cannot_also_settle")
     original = await conn.fetchrow(
-        """SELECT entry_type, payment_method, amount, currency, party_id, reverses_entry_id
+        """SELECT entry_type, payment_method, amount, currency, party_id, reverses_entry_id,
+                  category, farm_id, field_id, season_id, occurred_on
            FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND entry_id=$2 FOR UPDATE""",
         tenant_id,
@@ -230,9 +246,22 @@ async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         or original["payment_method"] != req.payment_method
         or Decimal(str(original["amount"])) != req.amount
         or original["currency"] != req.currency
-        or (original["party_id"] or None) != (req.party_id or None)
+        or original["category"] != req.category
+        or any(
+            (original[column] or None) != (getattr(req, column) or None)
+            for column in ("party_id", "farm_id", "field_id", "season_id")
+        )
     ):
         raise HTTPException(status_code=422, detail="reversal_must_mirror_original")
+    if req.occurred_on < original["occurred_on"]:
+        raise HTTPException(status_code=422, detail="reversal_cannot_predate_original")
+    if await conn.fetchval(
+        """SELECT 1 FROM farm_ledger_entries
+           WHERE tenant_id=$1::uuid AND settles_entry_id=$2 LIMIT 1""",
+        tenant_id,
+        req.reverses_entry_id,
+    ):
+        raise HTTPException(status_code=409, detail="cannot_reverse_a_settled_entry")
     already = await conn.fetchval(
         """SELECT 1 FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND reverses_entry_id=$2 LIMIT 1""",
@@ -374,8 +403,13 @@ def _entry_filters(
         ("season_id", season_id),
     ):
         if value:
+            # A reversing row is allocated where its original is (``orig``, joined in
+            # _fetch_entries), so a legacy reversal stored elsewhere still cancels it.
             args.append(value)
-            clauses.append(f"e.{column}=${len(args)}")
+            clauses.append(
+                f"(CASE WHEN orig.entry_id IS NULL THEN e.{column} ELSE orig.{column} END)"
+                f"=${len(args)}"
+            )
     if date_from:
         args.append(date_from)
         clauses.append(f"e.occurred_on>=${len(args)}")
@@ -392,12 +426,15 @@ async def _fetch_entries(conn, where: str, args: list, *, limit: int | None = No
         query_args.append(limit)
         limit_sql = f" LIMIT ${len(query_args)}"
     rows = await conn.fetch(
-        f"""SELECT e.*, p.name AS party_name, settled.entry_type AS settled_entry_type
+        f"""SELECT e.*, p.name AS party_name, settled.entry_type AS settled_entry_type,
+                   orig.category AS original_category
             FROM farm_ledger_entries e
             LEFT JOIN farm_ledger_parties p
               ON p.tenant_id=e.tenant_id AND p.party_id=e.party_id
             LEFT JOIN farm_ledger_entries settled
               ON settled.tenant_id=e.tenant_id AND settled.entry_id=e.settles_entry_id
+            LEFT JOIN farm_ledger_entries orig
+              ON orig.tenant_id=e.tenant_id AND orig.entry_id=e.reverses_entry_id
             WHERE {where}
             ORDER BY e.occurred_on DESC, e.created_at DESC{limit_sql}""",
         *query_args,
