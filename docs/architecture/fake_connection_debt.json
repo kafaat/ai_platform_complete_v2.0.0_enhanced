@@ -629,6 +629,16 @@
         "services/decision-service/tests/test_tenant_binding_force_rls.py"
       ],
       "justification": "Decision-service FORCE RLS on the remaining tenant tables (migration 037). The recording stand-in pins call order only: each fixed persistence function opens a transaction and runs set_config('app.current_tenant'|'app.current_worker', ..., true) before its first statement, because a transaction-local setting outside a transaction does not reach the query. It claims nothing about what PostgreSQL enforces; the policies, the fail-closed worker authorization, the tenant-only writes and the reads returning only the bound tenant's rows are proven against a real PG16 as a non-superuser NOBYPASSRLS owner in services/decision-service/tests/test_migration_037_force_rls_pg16.py (decision-033-pg16-proof job)."
+    },
+    {
+      "kind": "satellite_field_port_20261112_imagery_revision_hand_off",
+      "date": "2026-11-12",
+      "before": 131,
+      "after": 132,
+      "sites": [
+        "services/sahool-platform/tests/test_field_auto_imagery_revision.py"
+      ],
+      "justification": "Satellite-field continuation port. The stand-in (SimpleNamespace conn with execute/fetchval/transaction and a patched get_pool) pins two hand-offs only: create_field passes the committed geometry_revision to trigger_field_imagery_processing, and the legacy-receipt path recovers a revision only when the current geometry for the same tenant matches. It claims nothing about what PostgreSQL enforces. The overlap guard, the per-tenant advisory lock, self-exclusion on edit and tenant scoping run against a real PostGIS in services/sahool-platform/tests/test_field_overlap_postgis.py (SAHOOL_FIELD_POSTGIS_TEST_URL), and the end-to-end revision rejection (raster answers 409 stale_geometry_revision to the delayed create-time task) was measured live as sahool_app under RLS before this PR."
     }
   ]
 }
