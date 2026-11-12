@@ -121,7 +121,7 @@ field_state_snapshots,v60_event_snapshots.sql,65,True,False,False,0,False,True,1
 field_submissions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_tasks,v9_new_tables.sql,3,True,False,False,0,False,True,7,2
 field_weather_overlay,v74_weather_intelligence.sql,79,True,False,False,0,False,True,1,0
-fields,v9_foundation.sql,1,True,False,False,0,False,True,59,5
+fields,v9_foundation.sql,1,True,False,False,0,False,True,60,5
 geometry_editing_sessions,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 geometry_locks,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 gis_collaboration_events,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
@@ -136,7 +136,7 @@ hourly_energy_envelopes,v174_energy_agricultural_microgrid_capability.sql,179,Tr
 hourly_irrigation_mpc_actions,v179_hourly_energy_aware_irrigation_mpc.sql,184,True,True,True,1,True,False,0,1
 hourly_irrigation_mpc_schedules,v179_hourly_energy_aware_irrigation_mpc.sql,184,True,True,True,1,True,False,0,2
 hydraulic_capacity_evaluations,v195_irrigation_capacity_reservation_core.sql,200,True,False,False,0,False,True,0,1
-if,v58_field_boundary_quality.sql,63,False,False,False,0,False,False,0,0
+if,v36_alerts.sql,40,False,False,False,0,False,False,0,0
 imagery_automation_fields,v9_automation_persistence.sql,7,True,False,False,0,False,True,6,1
 inventory_batches,v22_inventory.sql,26,True,False,False,0,False,True,2,1
 inventory_items,v22_inventory.sql,26,True,False,False,0,False,True,1,1
@@ -268,7 +268,7 @@ review_decisions,v_ai_recommendation_runtime.sql,111,False,True,True,1,True,Fals
 runtime_event_outbox,v106_phase9_10_runtime_strengthening.sql,112,True,True,True,2,True,False,0,1
 salinity_evidence_observations,v225_canonical_salinity_state.sql,222,True,True,True,1,True,False,0,1
 scenario_runs,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
-scouting_pins,v94_scouting_pins.sql,99,True,True,True,2,True,False,1,1
+scouting_pins,v94_scouting_pins.sql,99,True,True,True,2,True,False,2,1
 season_cost_items,v201_season_records.sql,206,True,False,False,0,False,True,2,2
 season_crop,v201_season_records.sql,206,True,False,False,0,False,True,3,2
 season_events,v201_season_records.sql,206,True,False,False,0,False,True,4,2
@@ -317,7 +317,7 @@ tenant_ai_policies,v124_tenant_ai_policies.sql,130,True,True,True,1,True,False,1
 training_datasets,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
 trueup_calibrations,v12_trueup_sharing.sql,15,True,True,False,1,False,True,2,1
 usage_metering_records,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1
-users,v9_foundation.sql,1,True,True,False,2,True,True,10,10
+users,v9_foundation.sql,1,True,True,False,2,True,True,11,10
 vri_as_applied_variances,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_machine_translation_artifacts,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_prescription_zones,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0

@@ -64,7 +64,7 @@ medium,ai-agronomist,function,tool_allowed,services/ai_agronomist/policy_envelop
 medium,ai-agronomist,function,build_provider_tools,services/ai_agronomist/provider_tooling.py,153,0,review_before_delete,False
 medium,ai-agronomist,function,extract_tool_calls,services/ai_agronomist/provider_tooling.py,182,0,review_before_delete,False
 medium,ai-agronomist,function,trace_decision,services/ai_agronomist/runtime_tracing.py,1,0,review_before_delete,False
-medium,auth,function,tenant_header_middleware,services/auth/main.py,425,0,review_before_delete,False
+medium,auth,function,tenant_header_middleware,services/auth/main.py,426,0,review_before_delete,False
 medium,auth,function,verify_recovery_code,services/auth/mfa_crypto.py,209,0,review_before_delete,False
 medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_before_delete,False
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,46,0,review_before_delete,False
@@ -76,9 +76,9 @@ medium,odoo-bridge,class,OdooConfigResponse,services/odoo-bridge/main.py,206,0,r
 medium,raster-service,function,dem_quality_from_num,services/raster-service/dem_quality.py,34,0,review_before_delete,False
 medium,raster-service,function,stability_zones,services/raster-service/management_zones.py,70,0,review_before_delete,False
 medium,raster-service,function,single_scene_detail,services/raster-service/radiometry_containment.py,102,0,review_before_delete,False
-medium,raster-service,class,RawDataProcessResponse,services/raster-service/raster_api_models.py,151,0,review_before_delete,False
+medium,raster-service,class,RawDataProcessResponse,services/raster-service/raster_api_models.py,152,0,review_before_delete,False
 medium,raster-service,function,extract_trial_zonal_outcomes,services/raster-service/raster_processing_runtime.py,177,0,review_before_delete,False
-medium,raster-service,function,verify_provenance_match,services/raster-service/raster_provenance.py,126,0,review_before_delete,False
+medium,raster-service,function,verify_provenance_match,services/raster-service/raster_provenance.py,130,0,review_before_delete,False
 medium,raster-service,function,dem_providers,services/raster-service/raster_scene_model.py,331,0,review_before_delete,False
 medium,raster-service,function,preferred_dem,services/raster-service/raster_scene_model.py,336,0,review_before_delete,False
 medium,raster-service,function,research_sources,services/raster-service/raster_scene_model.py,397,0,review_before_delete,False
@@ -220,8 +220,8 @@ medium,sahool-platform,function,detect_metric_drift,services/sahool-platform/cor
 medium,sahool-platform,function,multi_season_summary,services/sahool-platform/core/multi_season_analytics.py,275,0,review_before_delete,False
 medium,sahool-platform,class,ConnectivityState,services/sahool-platform/core/offline_first.py,355,0,review_before_delete,False
 medium,sahool-platform,function,propagate_add,services/sahool-platform/core/provenance.py,124,0,review_before_delete,False
-medium,sahool-platform,class,ReferenceProvenance,services/sahool-platform/core/rag/production_qdrant.py,237,0,review_before_delete,False
-medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,753,0,review_before_delete,False
+medium,sahool-platform,class,ReferenceProvenance,services/sahool-platform/core/rag/production_qdrant.py,265,0,review_before_delete,False
+medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,781,0,review_before_delete,False
 medium,sahool-platform,function,arbitrate_summary,services/sahool-platform/core/source_of_truth.py,273,0,review_before_delete,False
 medium,sahool-platform,function,detect_zones_of_interest,services/sahool-platform/core/spatial/indicators.py,90,0,review_before_delete,False
 medium,sahool-platform,function,link_farmer_knowledge,services/sahool-platform/core/spatial/indicators.py,202,0,review_before_delete,False

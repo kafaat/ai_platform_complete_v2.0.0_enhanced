@@ -277,8 +277,25 @@ class WeatherAutomation:
     def registered_count(self) -> int:
         return len(self._locations)
 
-    def status(self) -> dict:
+    def aggregate_status(self) -> dict:
+        """عدّاداتٌ مجمَّعة فقط — بلا إحداثيّات ولا بيانات طقس لأيّ موقع (R-H1).
+
+        المواقع المتتبَّعة لا تحمل ``tenant_id`` في الذاكرة (جدول المواقع مفتاحُه
+        الخليّة لا المستأجِر)، فلا ترشيحَ آمناً لكلّ مستأجِر هنا؛ والإحداثيّات
+        الدقيقة تكشف مواقع حقول المستأجرين الآخرين. فالعرض لغير مدير المنصّة أرقامٌ
+        مجمَّعة وحدها، والقراءة لموقعٍ بعينه تبقى عبر ``/weather/cached``.
+        """
         return {
+            "scope": "aggregate",
+            "registered_locations": len(self._locations),
+            "cached_entries": len(self._cache),
+            "ttl_seconds": WEATHER_TTL_SECONDS,
+        }
+
+    def status(self) -> dict:
+        """عرض المنصّة الكامل (كلّ الإحداثيّات + الطقس) — لـ``PLATFORM_MANAGE`` وحده."""
+        return {
+            "scope": "platform",
             "registered_locations": len(self._locations),
             "cached_entries": len(self._cache),
             "ttl_seconds": WEATHER_TTL_SECONDS,

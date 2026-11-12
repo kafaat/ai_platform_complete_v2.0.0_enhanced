@@ -1,5 +1,5 @@
 {
-  "edge_count": 931,
+  "edge_count": 934,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -132,7 +132,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/hooks/useApi.ts:248",
+      "evidence": "frontend/src/hooks/useApi.ts:254",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -609,6 +609,16 @@
       "relation": "READS",
       "resource": "db://mfa_recovery_codes",
       "to": "db://mfa_recovery_codes",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/auth/main.py",
+      "from": "auth",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
       "to_kind": "resource"
     },
     {
@@ -3062,6 +3072,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/scouting_pins.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/weather_service_client.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4113,6 +4133,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/scouting.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_pins",
+      "to": "db://scouting_pins",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/scouting_pins.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8642,7 +8672,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/fields.py",
+      "evidence": "services/sahool-platform/api/scouting_pins.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9330,7 +9360,7 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 478,
+    "READS": 481,
     "ROUTES_TO": 72,
     "WRITES": 329
   },
@@ -9347,8 +9377,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 808,
-      "resolved": 807,
+      "observed": 811,
+      "resolved": 810,
       "unresolved_component_paths": 0
     }
   }

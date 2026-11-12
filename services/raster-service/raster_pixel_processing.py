@@ -94,10 +94,15 @@ def _grid_bounds_4326(crs, transform, shape) -> list[float]:
     return list(transform_bounds(crs, "EPSG:4326", west, south, east, north))
 
 
-def _ground_resolution_m(crs, transform, shape) -> float | None:
-    """Published ``resolution_m``: ground x-spacing in metres, ``None`` if unknown."""
+def _product_sampling(req, crs, transform, shape):
+    """Only trusted provider paths know the native sensor bands; measure the output grid."""
     spacing = _ground_pixel_size_m(crs, transform, shape)
-    return spacing[0] if spacing is not None else None
+    source = getattr(req, "_spatial_sampling", None) or {}
+    return {
+        "native_band_resolution_m": source.get("native_band_resolution_m"),
+        "resampling_method": source.get("resampling_method"),
+        "output_pixel_size_m": list(spacing) if spacing is not None else None,
+    }
 
 
 def _cog_publishable(cog_info: dict) -> bool:
@@ -254,7 +259,8 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
     observed = None
     with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
         # دقّة أرضيّة بالأمتار (CDSE يُسلِّم EPSG:4326 بالدرجات) — لا وحدات CRS كأمتار.
-        res_m = _ground_resolution_m(src.crs, src.transform, src.shape)
+        sampling = _product_sampling(req, src.crs, src.transform, src.shape)
+        res_m = sampling["output_pixel_size_m"][0] if sampling["output_pixel_size_m"] else None
         src_crs = src.crs
         if src_crs is not None:
             bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
@@ -358,7 +364,9 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
 
         cog_uid = uuid.uuid4().hex[:8]
         cog_path = os.path.join(ctx.UPLOAD_DIR, f"{req.indicator.value}_{cog_uid}.tif")
-        cog_info = cog_writer.write_cog(arr, cog_path, transform, crs=cog_crs, nodata=RASTER_NODATA)
+        cog_info = cog_writer.write_cog(
+            arr, cog_path, transform, crs=cog_crs, nodata=RASTER_NODATA, spatial_sampling=sampling
+        )
         stats["cog"] = cog_info
         if _cog_publishable(cog_info):
             cog_url = ctx.object_store.upload_cog(
@@ -370,7 +378,8 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         "cog_url": cog_url,
         "cog_crs": cog_crs,
         "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
-        "resolution_m": res_m,  # كي لا يسقط السجلّ إلى 10 م افتراضيّاً
+        "resolution_m": res_m,
+        "spatial_sampling": sampling,
         "nodata": RASTER_NODATA,
         "pixel_qa": pixel_qa,
         "topographic_qa": topographic_qa,
@@ -391,7 +400,8 @@ def process_precomputed_truecolor(ctx, req):
 
     with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
         # دقّة أرضيّة بالأمتار (CDSE يُسلِّم EPSG:4326 بالدرجات) — لا وحدات CRS كأمتار.
-        res_m = _ground_resolution_m(src.crs, src.transform, src.shape)
+        sampling = _product_sampling(req, src.crs, src.transform, src.shape)
+        res_m = sampling["output_pixel_size_m"][0] if sampling["output_pixel_size_m"] else None
         src_crs = src.crs
         if src_crs is not None:
             bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
@@ -481,7 +491,7 @@ def process_precomputed_truecolor(ctx, req):
         try:
             cog_uid = uuid.uuid4().hex[:8]
             cog_path = os.path.join(ctx.UPLOAD_DIR, f"truecolor_{cog_uid}.tif")
-            cog_info = cog_writer.write_rgba_cog_source(src, cog_path)
+            cog_info = cog_writer.write_rgba_cog_source(src, cog_path, spatial_sampling=sampling)
             stats["cog"] = cog_info
             if _cog_publishable(cog_info):
                 cog_url = ctx.object_store.upload_cog(
@@ -493,7 +503,8 @@ def process_precomputed_truecolor(ctx, req):
             "cog_url": cog_url,
             "cog_crs": cog_crs,
             "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
-            "resolution_m": res_m,  # كي لا يسقط السجلّ إلى 10 م افتراضيّاً
+            "resolution_m": res_m,
+            "spatial_sampling": sampling,
             "nodata": None,  # RGBA يستخدم قناة ألفا لا قيمة nodata
             "pixel_qa": pixel_qa,
             "topographic_qa": topographic_qa,
@@ -635,7 +646,8 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
 
     # الحدود والدقّة من شبكة المُخرَج النهائيّة (بعد القصّ) لا من المشهد المصدر.
     bounds = _grid_bounds_4326(src_crs, transform, r.shape)
-    res_m = _ground_resolution_m(src_crs, transform, r.shape)
+    sampling = _product_sampling(req, src_crs, transform, r.shape)
+    res_m = sampling["output_pixel_size_m"][0] if sampling["output_pixel_size_m"] else None
     # ألفا = صلاحيّة المصدر لا سطوع اللون المُكمَّم: البكسل صالح إن صلح في كلّ نطاق
     # حاضر؛ بلا أيّ نطاق لا شيء صالح.
     present = [v for v in (r_valid, g_valid, bl_valid) if v is not None]
@@ -659,7 +671,9 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
 
         cog_uid = uuid.uuid4().hex[:8]
         cog_path = os.path.join(ctx.UPLOAD_DIR, f"truecolor_{cog_uid}.tif")
-        cog_info = cog_writer.write_rgba_cog(rgba, cog_path, transform, crs=cog_crs)
+        cog_info = cog_writer.write_rgba_cog(
+            rgba, cog_path, transform, crs=cog_crs, spatial_sampling=sampling
+        )
         stats["cog"] = cog_info
         if _cog_publishable(cog_info):
             cog_url = ctx.object_store.upload_cog(
@@ -671,7 +685,8 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         "cog_url": cog_url,
         "cog_crs": cog_crs,
         "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
-        "resolution_m": res_m,  # كي لا يسقط السجلّ إلى 10 م افتراضيّاً
+        "resolution_m": res_m,
+        "spatial_sampling": sampling,
         "nodata": None,
     }
     return stats, bounds, res_m, meta
@@ -1014,7 +1029,8 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
         # حدود المشهد كاملاً) إلى EPSG:4326، والدقّة إلى أمتار أرضيّة (لا درجات).
         out_transform = _out["transform"]
         bounds = _grid_bounds_4326(src_crs, out_transform, arr.shape)
-        res_m = _ground_resolution_m(src_crs, out_transform, arr.shape)
+        sampling = _product_sampling(req, src_crs, out_transform, arr.shape)
+        res_m = sampling["output_pixel_size_m"][0] if sampling["output_pixel_size_m"] else None
         topographic_qa = _topographic_qa_for_indicator(
             ctx,
             req=req,
@@ -1121,7 +1137,12 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             cog_uid = uuid.uuid4().hex[:8]
             cog_path = os.path.join(ctx.UPLOAD_DIR, f"{req.indicator.value}_{cog_uid}.tif")
             cog_info = cog_writer.write_cog(
-                arr, cog_path, out_transform, crs=cog_crs, nodata=RASTER_NODATA
+                arr,
+                cog_path,
+                out_transform,
+                crs=cog_crs,
+                nodata=RASTER_NODATA,
+                spatial_sampling=sampling,
             )
             stats["cog"] = cog_info
             if _cog_publishable(cog_info):
@@ -1138,7 +1159,8 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             "cog_url": cog_url,
             "cog_crs": cog_crs,
             "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
-            "resolution_m": res_m,  # كي لا يسقط السجلّ إلى 10 م افتراضيّاً
+            "resolution_m": res_m,
+            "spatial_sampling": sampling,
             "nodata": RASTER_NODATA,
             "pixel_qa": pixel_qa,
             "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),

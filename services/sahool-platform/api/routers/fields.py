@@ -137,7 +137,7 @@ from api.raster_service_client import (
     # facade call distinct so DEM auto-fill hits raster-service, not the route.
     get_field_terrain as raster_get_field_terrain,
 )
-from api.scouting_pins import make_pin
+from api.scouting_pins import make_pin, persist_scouting_pin
 
 # نماذج/مساعدات المواسم نُقِلت إلى api.season_models (تفكيك B1) وتُستورَد من هناك.
 from api.season_models import (
@@ -3818,7 +3818,7 @@ async def field_unified_timeline(
 async def create_pin(
     field_id: str,
     req: PinCreateRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
     """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة.
 
@@ -3829,6 +3829,8 @@ async def create_pin(
     ``persisted=false`` (لا اختراع نجاح، يبقى المسار offline-first سليماً). idempotent
     عبر ``ON CONFLICT (pin_id) DO NOTHING`` (إعادة المزامنة لا تُكرّر).
     """
+    if req.field_id != field_id:
+        raise HTTPException(422, "معرّف الحقل لا يطابق المسار")
     try:
         pin = make_pin(
             req.pin_id,
@@ -3844,57 +3846,22 @@ async def create_pin(
             note_ar=req.note_ar,
             photo_uri=req.photo_uri,
             color=req.color,
-            created_by=req.created_by or user.user_id,
+            created_by=user.user_id,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
 
-    out = pin.to_dict()
     persisted = await _persist_scouting_pin(user, pin)
+    out = pin.to_dict()
     out["persisted"] = persisted
     return out
 
 
 async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
-    """يُثبّت دبّوس مشاهدة في ``scouting_pins`` تحت سياق المستأجِر (RLS) — best-effort.
-
-    يُرجِع ``True`` لو ثُبِّت (أو كان موجوداً مسبقاً idempotent)، و``False`` لو تعذّرت
-    القاعدة (لا استثناء يصعد — المسار offline-first يبقى سليماً). SQL بارامتريّ
-    بالكامل (لا حقن). ``created_at`` يُمرَّر كنصّ ISO من النواة ويُحوَّل بـ``::timestamptz``.
-    """
-    if api_main._DB_POOL is None:
-        return False
-    try:
-        async with tenant_connection(user) as conn:
-            await conn.execute(
-                "INSERT INTO scouting_pins "
-                "(pin_id, tenant_id, field_id, lat, lng, issue_category, severity, "
-                " status, persistence, crop, issue_code, note_ar, photo_uri, color, "
-                " created_by, created_at) "
-                "VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, "
-                " $13, $14, $15, $16::timestamptz) "
-                "ON CONFLICT (pin_id) DO NOTHING",
-                pin.pin_id,
-                str(user.tenant_id),
-                pin.field_id,
-                pin.lat,
-                pin.lng,
-                pin.issue_category.value,
-                pin.severity.value,
-                pin.status.value,
-                pin.persistence.value,
-                pin.crop,
-                pin.issue_code,
-                pin.note_ar,
-                pin.photo_uri,
-                pin.color,
-                pin.created_by,
-                pin.created_at or None,
-            )
-        return True
-    except Exception:  # noqa: BLE001 — إدامة best-effort: تعذّر القاعدة ⇒ persisted=false
-        logging.warning("scouting pin persistence failed for pin %s", pin.pin_id)
-        return False
+    """يُديم الدبّوس تحت RLS — التنفيذ في ``api.scouting_pins`` (حدّ حجم الراوتر)."""
+    return await persist_scouting_pin(
+        user, pin, pool_ready=api_main._DB_POOL is not None, connect=tenant_connection
+    )
 
 
 @router.post("/api/v1/fields/{field_id}/walk-plan")

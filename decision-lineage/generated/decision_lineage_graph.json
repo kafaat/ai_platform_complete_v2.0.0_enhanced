@@ -738,7 +738,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 558,
+      "evidence_count": 559,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -898,6 +898,7 @@
         "services/raster-service/follow_up_store.py",
         "services/raster-service/layer_lookup.py",
         "services/raster-service/raster_api_models.py",
+        "services/raster-service/raster_cdse_tile_runtime.py",
         "services/raster-service/raster_main_compat_exports.py",
         "services/raster-service/raster_settings.py",
         "services/raster-service/raster_stac_runtime.py",
@@ -1555,7 +1556,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 306,
+      "evidence_count": 307,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1681,6 +1682,7 @@
         "services/raster-service/test_poly_clip.py",
         "services/raster-service/test_raster_crs_window.py",
         "services/raster-service/test_raster_publication_gate.py",
+        "services/raster-service/test_registry_writes_owner_api.py",
         "services/raster-service/test_router_query_direct_call.py",
         "services/raster-service/test_storage_lifecycle_upload.py",
         "services/raster-service/test_tiles.py",
@@ -2827,6 +2829,7 @@
         "services/raster-service/cdse_native_product.py",
         "services/raster-service/follow_up_store.py",
         "services/raster-service/layer_lookup.py",
+        "services/raster-service/raster_cdse_tile_runtime.py",
         "services/raster-service/stac_search.py",
         "services/remote-sensing-workspace-bff/main.py",
         "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
@@ -2868,11 +2871,10 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/api/routers/crop_twin.py",
-        "services/sahool-platform/api/routers/decision_confidence.py",
-        "services/sahool-platform/api/routers/decision_explain.py"
+        "services/sahool-platform/api/routers/decision_confidence.py"
       ],
       "source_evidence_count": 692,
-      "target_evidence_count": 558,
+      "target_evidence_count": 559,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2983,7 +2985,7 @@
         "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
         "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py"
       ],
-      "source_evidence_count": 558,
+      "source_evidence_count": 559,
       "target_evidence_count": 202,
       "static_supported": true,
       "runtime_verified": false
@@ -3078,7 +3080,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 202,
-      "target_evidence_count": 306,
+      "target_evidence_count": 307,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3123,7 +3125,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 306,
+      "source_evidence_count": 307,
       "target_evidence_count": 50,
       "static_supported": true,
       "runtime_verified": false
@@ -3322,5 +3324,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "5ab5552580ee7d46c29c922ca0c366ed1cfc7646149fee90476ac9e33690302e"
+  "content_sha256": "9643b1e65a24c8ce4c7024168dd52b48c6030919880b6509bbced3425442829a"
 }

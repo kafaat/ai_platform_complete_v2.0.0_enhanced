@@ -464,7 +464,7 @@ def _reproject_dataset_mask(src, *, dst_transform, dst_crs: str, out_shape: tupl
 def render_truecolor_tile_png(cog_path: str, z: int, x: int, y: int) -> bytes | None:
     """يصيّر بلاطة XYZ من COG صورة خام (RGBA UINT8، 3-4 نطاقات) — بلا خريطة ألوان.
 
-    يعيد إسقاط نطاقات R/G/B (bilinear لنعومة بصريّة) وقناة ألفا (nearest للحدّة) إلى
+    يعيد إسقاط نطاقات R/G/B وقناة ألفا بأقرب جار للحفاظ على حدود خلايا المنتج إلى
     مصفوفة 256×256 في EPSG:3857 ثمّ يرمّزها PNG مباشرةً. البكسلات خارج البيانات/القناع
     ⇒ ألفا 0 (شفّاف). يُرجِع None عند: لا rasterio / <3 نطاقات / لا تقاطع / لا بكسل مرئيّ.
     """
@@ -504,7 +504,7 @@ def render_truecolor_tile_png(cog_path: str, z: int, x: int, y: int) -> bytes | 
                     src_crs=src.crs,
                     dst_transform=dst_transform,
                     dst_crs=dst_crs,
-                    resampling=Resampling.bilinear,
+                    resampling=Resampling.nearest,
                     dst_nodata=0,
                 )
                 rgba[..., bi] = band
