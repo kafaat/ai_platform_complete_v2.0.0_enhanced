@@ -17795,7 +17795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d477e5ef6189492685bcdc12d9f543b3251328ae50a04a7bbf33b4f50eecd6f"
+          "content": "73029a87a4c176553aca7ec875321a7bc0e48e188a7f33987ab353eb8dc71b10"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -18205,7 +18205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "550d66acd86e8c4b13b8584b44258f2f36bf2ef22b34a950ef0f6cb135ecfe3c"
+          "content": "940082a37fa3cbf8869823afc3162daef8f5e22d4f71de215680a34bbb4de308"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -18509,6 +18509,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "86cdb4d9950d19194550206227b54d2f2d13b861c7c10fc419e762e15e94c50f"
+        }
+      ],
+      "name": "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
       "type": "file"
     },
     {
@@ -19985,7 +19995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79a9bd55931eb909c0aaed33aa789159e78bc57ff14947b65f0a55cb592dbef2"
+          "content": "dd1ce9622642587e2e4ceff97ca0ad75704dabbb1ee251d04bc8ec242c877c15"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -25725,7 +25735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2d95b26b256cfd060b56869330c70eae5802a44152a6af2660069d9e596fc2b"
+          "content": "e6514bf376f1e3273e001db4b999405e8007230555a03d407ff45cc18f0fe29d"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_review.py",

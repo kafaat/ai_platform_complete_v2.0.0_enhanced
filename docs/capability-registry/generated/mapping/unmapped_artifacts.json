@@ -4660,6 +4660,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
     "kind": "tests"
   },
@@ -10725,6 +10729,10 @@
   },
   {
     "path": "tests_v9/test_backup_recovery_execution.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_bff_execution_plan_operation_canonical.py",
     "kind": "tests"
   },
   {
