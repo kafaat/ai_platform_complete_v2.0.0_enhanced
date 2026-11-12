@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "32df0ef12a70343da6cec966fdbcb004d79a5bbb",
+  "measured_on": "65cb3bc1e7a6f91cf831dc3c298f9ca9785a8584",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -32,6 +32,7 @@
     "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
     "services/sahool-platform/tests/test_farm_operations_ledger.py",
     "services/sahool-platform/tests/test_field_aggregate_ports.py",
+    "services/sahool-platform/tests/test_field_auto_imagery_revision.py",
     "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
     "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
     "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
@@ -152,6 +153,9 @@
     ],
     "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py": [
       "TRIGGER"
+    ],
+    "services/sahool-platform/tests/test_field_auto_imagery_revision.py": [
+      "jsonb"
     ],
     "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py": [
       "jsonb"
