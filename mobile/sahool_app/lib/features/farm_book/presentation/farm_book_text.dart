@@ -114,8 +114,10 @@ const Map<String, String> _detailAr = {
   'reversed_entry_not_found': 'القيد الأصليّ غير موجود.',
   'cannot_reverse_a_reversal': 'لا يمكن عكس قيد عكسي.',
   'reversal_must_mirror_original':
-      'القيد العكسي يجب أن يطابق القيد الأصليّ تماماً (النوع والدفع والمبلغ والطرف والتصنيف والمزرعة والحقل والموسم).',
-  'reversal_cannot_predate_original':
+      'القيد العكسي يجب أن يطابق القيد الأصليّ (النوع والدفع والمبلغ والعملة والطرف).',
+  'entry_scope_mismatch':
+      'القيد مرتبط بمزرعة أو حقل أو موسم غير التي سُجِّل عليها القيد الأصليّ.',
+  'entry_precedes_original':
       'تاريخ القيد العكسي لا يسبق تاريخ القيد الأصليّ.',
   'cannot_reverse_entry_with_settlements':
       'هذا القيد الآجل سُدِّد منه جزء؛ لا يُعكس بعد السداد.',

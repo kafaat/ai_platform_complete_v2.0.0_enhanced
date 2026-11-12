@@ -231,14 +231,22 @@ def test_e_paying_a_reversal_or_a_reversed_entry_is_refused_when_written():
 # --------------------------------------------------------------------------- write-time mirror
 
 
-def test_a_reversal_must_mirror_the_original_category_and_allocation_when_written():
+def test_a_reversal_inherits_the_original_allocation_and_may_carry_its_own_category():
+    """The owner's delivery (fix/field-tasks-costs-inspection, season-proof.py) records the
+    correction with a category the user typed and without field/season, and expects 201:
+    reports net it under the original's category; allocation is inherited, and only a
+    *different* farm/field/season or an earlier date is refused, with the delivery's codes."""
     body = _function_source("_assert_reversal")
     columns = _selected_columns(body)
-    for column in ("category", "farm_id", "field_id", "season_id", "occurred_on"):
+    for column in ("farm_id", "field_id", "season_id", "occurred_on"):
         assert column in columns, column
-    assert "req.category" in body
+    assert 'original["category"] != req.category' not in body, (
+        "the typed category of a correction must not be refused; reports use original_category"
+    )
+    assert "setattr(req, column, original[column])" in body
+    assert "entry_scope_mismatch" in body
+    assert "entry_precedes_original" in body
     assert "reversal_must_mirror_original" in body
-    assert "reversal_cannot_predate_original" in body
 
 
 def test_the_summary_query_carries_the_original_category_and_allocation():

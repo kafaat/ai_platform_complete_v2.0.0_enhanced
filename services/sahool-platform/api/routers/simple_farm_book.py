@@ -220,13 +220,16 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
 
 
 async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
-    """Append-only correction: a reversing entry mirrors the original exactly and both
-    net to zero in every total (see core.summarize_entries). The mirror must match the
-    original's type/method/amount/currency so the DB CHECKs still hold, and its
-    category/farm/field/season so every report window cancels it where the original
-    counted; it must not predate the original or itself be a settlement, each original
-    may be reversed at most once, and a credit entry with payments cannot be reversed
-    (its payable would go negative and cancel the party's other debts)."""
+    """Append-only correction: a reversing entry mirrors the original's type/method/
+    amount/currency/party (so the DB CHECKs still hold and both net to zero in every
+    total, see core.summarize_entries). Its category may be what the user typed
+    («تصحيح»): reports net it under the original's category (original_category). Its
+    farm/field/season are the original's: omitted ones are inherited, and a different
+    one is refused (entry_scope_mismatch), so every report window cancels it where the
+    original counted. It must not predate the original (entry_precedes_original) or
+    itself be a settlement; each original may be reversed at most once, and a credit
+    entry with payments cannot be reversed (its payable would go negative and cancel
+    the party's other debts). Codes match fix/field-tasks-costs-inspection."""
     if req.settles_entry_id:
         raise HTTPException(status_code=422, detail="reversal_cannot_also_settle")
     original = await conn.fetchrow(
@@ -246,15 +249,16 @@ async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         or original["payment_method"] != req.payment_method
         or Decimal(str(original["amount"])) != req.amount
         or original["currency"] != req.currency
-        or original["category"] != req.category
-        or any(
-            (original[column] or None) != (getattr(req, column) or None)
-            for column in ("party_id", "farm_id", "field_id", "season_id")
-        )
+        or (original["party_id"] or None) != (req.party_id or None)
     ):
         raise HTTPException(status_code=422, detail="reversal_must_mirror_original")
+    for column in ("farm_id", "field_id", "season_id"):
+        given = getattr(req, column) or None
+        if given is not None and given != (original[column] or None):
+            raise HTTPException(status_code=422, detail="entry_scope_mismatch")
+        setattr(req, column, original[column])
     if req.occurred_on < original["occurred_on"]:
-        raise HTTPException(status_code=422, detail="reversal_cannot_predate_original")
+        raise HTTPException(status_code=422, detail="entry_precedes_original")
     if await conn.fetchval(
         """SELECT 1 FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND settles_entry_id=$2 LIMIT 1""",
