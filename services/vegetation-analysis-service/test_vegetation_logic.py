@@ -53,3 +53,37 @@ def test_no_spectral_formula_exports_from_main():
 
     assert not hasattr(main, "_compute_indices")
     assert not hasattr(main, "_realistic_bands")
+
+
+def test_health_classification_without_measured_cwsi_uses_ndvi_only():
+    # The raster "current" path has no water-stress estimate: calling without CWSI must
+    # not raise (it was a TypeError -> 500 on every real NDVI) and must not invent 0.5.
+    out = _health_classification(0.86)
+    assert out["status"] == "excellent" and out["basis"] == "ndvi_only"
+    assert _health_classification(0.1)["status"] == "critical"
+
+
+def test_current_ndvi_endpoint_classifies_a_real_observation(monkeypatch):
+    import asyncio
+
+    import main
+    from routers import analysis
+
+    async def load_field(field_id, tenant_id, user_bearer=None):
+        return {"id": field_id, "name": "F", "crop": "wheat"}
+
+    async def observed(field_id, tenant_id):
+        return {
+            "value": 0.81,
+            "observed_at": "2026-11-01",
+            "scene_id": "S2A_TEST",
+        }, None
+
+    monkeypatch.setattr(main, "_verify_claims", lambda token: {"tenant_id": "t1"})
+    monkeypatch.setattr(main, "_tenant_from_claims", lambda claims: "t1")
+    monkeypatch.setattr(main, "load_field", load_field)
+    monkeypatch.setattr(main, "_current_ndvi_from_raster", observed)
+    body = asyncio.run(analysis.current_ndvi("f1", token=None))
+    assert body["ndvi"]["current"] == 0.81
+    assert body["classification"]["status"] == "excellent"
+    assert body["classification"]["basis"] == "ndvi_only"
