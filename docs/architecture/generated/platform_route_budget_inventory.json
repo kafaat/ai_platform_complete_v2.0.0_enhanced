@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "e7399245a970b2c6c9a690fab2ac58732447293d9056551857cddfd17f9508c5",
+  "inventory_sha256": "f6b8c8ee9697fa3007f1f4002884a52a815af59600f88e2f609203003f51b9e2",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "bf8cd04aa58a729922e47f5e30cbeea345c09e3f9bbeabdbe00a8e249a3b2a22"
+    "policy_sha256": "32642f89193486cb2c448932d614c2df8f8208c30b5b69e05904f059b4b8b829"
   },
   "routes": [
     {
@@ -874,7 +874,7 @@
     {
       "classification": "domain",
       "function": "book_balances",
-      "line": 486,
+      "line": 527,
       "method": "GET",
       "path": "/api/v1/farm-book/balances",
       "source": "api/routers/simple_farm_book.py"
@@ -882,7 +882,7 @@
     {
       "classification": "domain",
       "function": "list_entries",
-      "line": 417,
+      "line": 458,
       "method": "GET",
       "path": "/api/v1/farm-book/entries",
       "source": "api/routers/simple_farm_book.py"
@@ -890,7 +890,7 @@
     {
       "classification": "domain",
       "function": "export_book",
-      "line": 507,
+      "line": 548,
       "method": "GET",
       "path": "/api/v1/farm-book/export",
       "source": "api/routers/simple_farm_book.py"
@@ -898,7 +898,7 @@
     {
       "classification": "domain",
       "function": "monthly_report",
-      "line": 450,
+      "line": 491,
       "method": "GET",
       "path": "/api/v1/farm-book/monthly",
       "source": "api/routers/simple_farm_book.py"
@@ -3402,7 +3402,7 @@
     {
       "classification": "domain",
       "function": "create_entry",
-      "line": 246,
+      "line": 279,
       "method": "POST",
       "path": "/api/v1/farm-book/entries",
       "source": "api/routers/simple_farm_book.py"
