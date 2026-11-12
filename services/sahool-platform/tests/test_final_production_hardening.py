@@ -51,10 +51,13 @@ def test_data_quality_blocks_impossible_values_and_warns_on_salinity_indication(
 
 
 def test_digital_twin_simulates_without_emitting_recommendation():
-    twin = FieldTwinState("F1", {"soil_moisture_pct": 15, "soil_ec_ds_m": 4.0})
+    twin = FieldTwinState(
+        "F1", {"depletion_mm": 55.0, "taw_mm": 120.0, "raw_mm": 60.0, "soil_ec_ds_m": 4.0}
+    )
     irrigated = simulate_irrigation(twin, 30)
     risked = simulate_salinity_risk(irrigated)
-    assert risked.predicted["soil_moisture_pct_after_irrigation"] == 39.0
+    assert risked.predicted["depletion_mm_after_irrigation"] == 25.0
+    assert risked.predicted["soil_moisture_pct_after_irrigation"] == 79.17
     assert risked.risks["water_stress"] == "low"
     assert risked.risks["salinity"] == "medium"
     assert "recommendation" not in risked.predicted
@@ -112,8 +115,10 @@ def test_unknown_soil_moisture_is_not_high_water_stress():
     out = simulate_irrigation(twin, 30)
     assert out.risks["water_stress"] == "unknown"
     assert out.predicted["soil_moisture_pct_after_irrigation"] is None
-    # An explicit 0 % reading is a measurement and still classifies.
+    # A 0% measurement is observed but cannot be converted to mm without
+    # field capacity/root depth. The projected *post-irrigation* risk is unknown.
     measured = simulate_irrigation(
         FieldTwinState(field_id="f", current={"soil_moisture_pct": 0}), 10
     )
-    assert measured.risks["water_stress"] == "high"
+    assert measured.risks["water_stress"] == "unknown"
+    assert measured.predicted["soil_moisture_pct_after_irrigation"] is None
