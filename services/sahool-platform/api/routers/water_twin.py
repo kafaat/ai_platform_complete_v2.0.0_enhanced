@@ -21,6 +21,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import UTC, date, datetime
 from typing import Literal
@@ -213,12 +214,21 @@ async def field_water_twin(
     crop_name: str | None = None
     planting_date = None
     sensor_reading = None
+    season_id: str | None = None
+    season_context_source = "not_loaded"
+    season_context_limitations: list[str] = []
     if api_main._DB_POOL is not None:
         try:
             async with tenant_connection(user) as conn:
                 await _assert_field_in_tenant(conn, field_id)
                 field_row = await conn.fetchrow(
                     "SELECT crop, planting_date FROM fields WHERE field_id = $1", field_id
+                )
+                active_season = await conn.fetchrow(
+                    "SELECT season_id, crops, sowing_date FROM seasons "
+                    "WHERE field_id = $1 AND status = 'active' "
+                    "ORDER BY created_at DESC LIMIT 1",
+                    field_id,
                 )
                 rows = await conn.fetch(
                     f"SELECT {LEDGER_SELECT_COLS} FROM water_ledger "
@@ -229,9 +239,27 @@ async def field_water_twin(
                 # SOIL-MOISTURE-UNIT-IDENTITY-01: قراءةُ الحسّاس تُقارَن بالدفتر ولا تحكمه.
                 sensor_reading = await api_main._latest_soil_moisture(conn, field_id)
             recent = [row_to_ledger_entry(r) for r in rows]
-            if field_row is not None:
+            if active_season is not None:
+                season_id = str(active_season["season_id"])
+                season_context_source = "seasons.active"
+                season_crops = active_season["crops"]
+                if isinstance(season_crops, str):
+                    try:
+                        season_crops = json.loads(season_crops)
+                    except (TypeError, ValueError):
+                        season_crops = []
+                if isinstance(season_crops, list) and len(season_crops) == 1:
+                    crop_name = str(season_crops[0])
+                    planting_date = active_season["sowing_date"]
+                else:
+                    # A mixed/invalid crop array cannot be mapped to one root policy.
+                    # An explicit TAW is still permitted for preview, never inferred.
+                    season_context_limitations.append("active_season_crop_ambiguous")
+            elif field_row is not None:
                 crop_name = field_row["crop"]
                 planting_date = field_row["planting_date"]
+                season_context_source = "fields_legacy_unverified"
+                season_context_limitations.append("no_active_season")
         except HTTPException:
             raise  # 404 (حقل خارج المستأجِر) يصعد كما هو
         except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -303,6 +331,14 @@ async def field_water_twin(
         raise HTTPException(status_code=422, detail=str(e)) from e
 
     result["field_id"] = field_id
+    result["season_context"] = {
+        "season_id": season_id,
+        "crop": crop_name,
+        "source": season_context_source,
+        "limitations": season_context_limitations,
+        "decision_authority": "none",
+    }
+    result["preview_only"] = True
     result["seed"] = {
         "initial_depletion_mm": round(init_dr, 2),
         "initial_depletion_source": dr_source,
