@@ -30,7 +30,7 @@
         "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:786",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:104",
-        "GET /v1/auth/me @ services/auth/routers/session.py:240",
+        "GET /v1/auth/me @ services/auth/routers/session.py:302",
         "GET /v1/auth/users @ services/auth/routers/users.py:23",
         "GET /v1/auth/verify @ services/auth/routers/email_verify.py:98",
         "GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:108",
@@ -42,14 +42,14 @@
         "POST /v1/auth/change-password @ services/auth/routers/registration.py:73",
         "POST /v1/auth/invitations @ services/auth/routers/invitations.py:45",
         "POST /v1/auth/invitations/accept @ services/auth/routers/invitations.py:137",
-        "POST /v1/auth/login @ services/auth/routers/session.py:46",
-        "POST /v1/auth/logout @ services/auth/routers/session.py:195",
-        "POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:104",
-        "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:179",
-        "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:48",
+        "POST /v1/auth/login @ services/auth/routers/session.py:70",
+        "POST /v1/auth/logout @ services/auth/routers/session.py:257",
+        "POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:139",
+        "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:232",
+        "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:62",
         "POST /v1/auth/password-reset/confirm @ services/auth/routers/password_reset.py:62",
         "POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:43",
-        "POST /v1/auth/refresh @ services/auth/routers/session.py:139",
+        "POST /v1/auth/refresh @ services/auth/routers/session.py:193",
         "POST /v1/auth/register @ services/auth/routers/registration.py:20",
         "POST /v1/auth/tenants @ services/auth/routers/tenants.py:41",
         "POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:56",
@@ -150,7 +150,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 57
+        "tests": 59
       }
     },
     {
@@ -308,7 +308,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:299",
         "DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1613",
         "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:667",
         "GET / @ services/field-management-service/main.py:273",
@@ -4171,7 +4171,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:299",
         "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394",
         "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362",
         "POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195",
@@ -4557,10 +4557,10 @@
         "GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539",
         "GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638",
         "GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571",
-        "GET /runtime-identity @ services/agriai-engine/main.py:100",
+        "GET /runtime-identity @ services/agriai-engine/main.py:101",
         "GET /runtime-identity @ services/raster-service/main.py:64",
         "GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:25",
-        "GET /runtime-identity @ services/soil-service/main.py:221",
+        "GET /runtime-identity @ services/soil-service/main.py:220",
         "GET /runtime-identity @ services/weather-service/main.py:56",
         "GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1271",
         "GET /v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:650",
@@ -5584,9 +5584,9 @@
         "services/auth/main.py"
       ],
       "apis": [
-        "POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:104",
-        "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:179",
-        "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:48"
+        "POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:139",
+        "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:232",
+        "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:62"
       ],
       "ui_consumers": [],
       "mobile_consumers": [

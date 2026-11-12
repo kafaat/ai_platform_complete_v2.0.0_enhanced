@@ -18068,7 +18068,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "4c5f644658fd154a6cec409b5fd26e9340b8f7a61b1d2329e750df292ac665de",
+  "fingerprint": "b208100eaf480d583b9cca6f943cbaa78cd544570dc701330bf12294250049ce",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18122,10 +18122,10 @@
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 46,
+        "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 486,
+        "READS": 487,
         "ROUTES_TO": 72,
         "WRITES": 332
       }

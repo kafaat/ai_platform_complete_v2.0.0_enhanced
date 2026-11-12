@@ -112,17 +112,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/components/AddFieldWithMap.tsx:446",
-      "from": "frontend",
-      "from_kind": "component",
-      "protocol": "ui",
-      "relation": "CALLS",
-      "resource": "/api/v1",
-      "to": "sahool-platform",
-      "to_kind": "component"
-    },
-    {
-      "evidence": "frontend/src/components/fieldhealth/ScoutingMap.tsx:8",
+      "evidence": "frontend/src/components/AddFieldWithMap.tsx:411",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -613,6 +603,16 @@
     },
     {
       "evidence": "services/auth/main.py",
+      "from": "auth",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/auth/mfa_enrollment.py",
       "from": "auth",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9437,10 +9437,10 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 46,
+    "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 486,
+    "READS": 487,
     "ROUTES_TO": 72,
     "WRITES": 332
   },
@@ -9457,8 +9457,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 819,
-      "resolved": 818,
+      "observed": 820,
+      "resolved": 819,
       "unresolved_component_paths": 0
     }
   }

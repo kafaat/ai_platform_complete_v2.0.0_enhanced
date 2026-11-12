@@ -317,7 +317,7 @@ tenant_ai_policies,v124_tenant_ai_policies.sql,130,True,True,True,1,True,False,1
 training_datasets,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
 trueup_calibrations,v12_trueup_sharing.sql,15,True,True,False,1,False,True,2,1
 usage_metering_records,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1
-users,v9_foundation.sql,1,True,True,False,2,True,True,11,10
+users,v9_foundation.sql,1,True,True,False,2,True,True,12,10
 vri_as_applied_variances,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_machine_translation_artifacts,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_prescription_zones,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
