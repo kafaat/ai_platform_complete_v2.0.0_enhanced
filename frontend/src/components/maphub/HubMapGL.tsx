@@ -30,6 +30,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import {
   geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint,
   areaSqMeters, lengthMeters, snapPoint,
@@ -78,6 +79,8 @@ const SNAP_TOLERANCE_M = 10;
 // لون/عرض نقطة الالتقاط التي يرسمها Terra Draw حين يلتقط toCustom (تلميح بصريّ).
 const SNAP_POINT_COLOR = '#22d3ee';
 const SNAP_POINT_WIDTH = 6;
+
+maplibregl.setWorkerUrl(workerUrl);
 
 export interface HubMapGLProps {
   fields: FieldOption[];
