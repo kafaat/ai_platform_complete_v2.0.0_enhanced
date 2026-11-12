@@ -106,3 +106,36 @@ def test_reconciliation_refuses_sent_status_without_sent_timestamp():
             receipt_provider="erpnext",
             evidence={"projection_digest": digest},
         )
+
+
+@pytest.mark.asyncio
+async def test_foreign_currency_projection_route_binds_lines_to_envelope(monkeypatch):
+    from contextlib import asynccontextmanager
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    import api.main
+    from api.routers import farm_operations_ledger as router
+    from core.farm_costing import ActualCostLine
+
+    @asynccontextmanager
+    async def connection(user):
+        yield conn
+
+    conn = AsyncMock()
+    user = SimpleNamespace(tenant_id="tenant-a")
+    load = AsyncMock(
+        return_value=([], [ActualCostLine("op1", "s1", "water", actual_cost=42, currency="USD")])
+    )
+    monkeypatch.setattr(api.main, "_DB_POOL", object())
+    monkeypatch.setattr(router, "_enabled", lambda: True)
+    monkeypatch.setattr(router, "tenant_connection", connection)
+    monkeypatch.setattr(router.ledger_core, "fetch_budget_and_actual", load)
+    response = await router.get_erp_projection("s1", currency=" usd ", user=user)
+    load.assert_awaited_once_with(conn, "tenant-a", "s1", "USD")
+    assert response["currency"] == response["lines"][0]["currency"] == "USD"
+    assert response["lines"][0]["amount"] == 42
+    payload = {
+        k: response[k] for k in ("schema_version", "season_id", "currency", "provider", "lines")
+    }
+    assert response["projection_digest"] == canonical_digest(payload)

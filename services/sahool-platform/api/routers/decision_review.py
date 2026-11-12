@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 
 from api.decision_service_client import list_review_queue as ds_list_review_queue
 from api.decision_service_client import review_decision as ds_review_decision
+from api.decision_service_client import validate_review_queue
 from api.irrigation_engineering_workspace import (
     manual_plan_window_and_quantities,
     missing_manual_plan_constraints,
@@ -31,7 +32,7 @@ from api.main import UserSchema, require_permission, tenant_connection
 router = APIRouter()
 
 _ENGINE_DOWN_CODES = {502, 503, 504}
-_TERMINAL_STATES = {"approved", "rejected"}
+_REVIEW_STATES = {"approve": "approved", "reject": "rejected"}
 
 
 class DecisionReviewRequest(BaseModel):
@@ -71,11 +72,7 @@ async def get_decision_review_queue(
                 status_code=503, detail="decision-service unavailable — review queue not read"
             ) from exc
         raise
-    if result.get("authoritative") is not True or result.get("persisted") is not True:
-        raise HTTPException(status_code=503, detail="non-authoritative review queue rejected")
-    items = result.get("items")
-    if not isinstance(items, list) or result.get("count") != len(items):
-        raise HTTPException(status_code=503, detail="invalid authoritative review queue contract")
+    validate_review_queue(result, str(user.tenant_id), field_id, season_id)
     return result
 
 
@@ -125,10 +122,8 @@ async def review_decision_candidate(
 
     الملكيّة: decision-service يملك الانتقال الآمِر (state machine + audit + transaction). هذه
     النقطة تفرض *مَن* يراجع (``DECISION_APPROVE``) وتُمرّر فقط؛ tenant من الـJWT، ``reviewed_by``
-    من المستخدم. **fail-closed:** لا نجاح إلّا إذا أثبت ردّ الخدمة الانتقال الآمِر (authoritative
-    ∧ persisted ∧ decision_id مطابق ∧ previous_state=pending_approval ∧ state∈{approved,rejected}
-    ∧ review_id/reviewed_by/reviewed_at غير فارغة ∧ candidate_lineage_id مطابق). mirror/SoR-off ⇒
-    ردّ غير آمِر ⇒ 503. الخدمة ساقطة ⇒ 503. لا تنفيذ (dispatch/task/معدّات)."""
+    من المستخدم. **fail-closed:** نجاحٌ بإثبات الخدمة فقط (آمِر مُدام، المستأجر والقرار والمراجِع
+    والنَّسَب والبصمة مطابقة، state حالةُ الإجراء المطلوب)، وإلّا 503. لا تنفيذ."""
     payload = req.model_dump()  # كلُّ حقول الطلب، ومنها بصمةُ النسخة المعروضة ومفتاحُ عدم التكرار
     try:
         result = await ds_review_decision(
@@ -152,9 +147,11 @@ async def review_decision_candidate(
         and result.get("persisted") is True
         and result.get("decision_id") == decision_id
         and result.get("previous_state") == "pending_approval"
-        and result.get("state") in _TERMINAL_STATES
+        and req.action in _REVIEW_STATES
+        and result.get("state") == _REVIEW_STATES[req.action]
+        and result.get("tenant_id") == str(user.tenant_id)
         and bool(result.get("review_id"))
-        and bool(result.get("reviewed_by"))
+        and result.get("reviewed_by") == user.user_id
         and bool(result.get("reviewed_at"))
         and result.get("candidate_lineage_id") == req.candidate_lineage_id
         # النسخةُ المعتمدة هي النسخةُ التي رآها المراجِع — يُثبتها الخادم لا يفترضها الموجِّه.
@@ -166,6 +163,9 @@ async def review_decision_candidate(
             detail="decision-service did not confirm an authoritative review — fail-closed",
         )
     return {
+        "authoritative": True,
+        "persisted": True,
+        "tenant_id": result["tenant_id"],
         "correlation_id": result.get("correlation_id"),
         "decision_id": decision_id,
         "state": result["state"],

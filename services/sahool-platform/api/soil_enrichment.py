@@ -37,6 +37,7 @@ def soil_water_provenance(
     texture_sampled_on: str | None,
     texture_age_days: float | None,
     root_depth_supplied: bool,
+    evidence_ref: str | None = None,
 ) -> dict:
     """يبني نَسَب مصدر ماء التربة + قيود + عقوبة ثقة إجماليّة. نقيّ حتميّ.
 
@@ -58,17 +59,21 @@ def soil_water_provenance(
         )
 
     root_source = ROOT_CLIENT if root_depth_supplied else ROOT_DEFAULT
+    texture = {
+        "value": texture_value,
+        "source": texture_source,
+        "sampled_on": texture_sampled_on,
+        "age_days": round(texture_age_days, 1) if texture_age_days is not None else None,
+    }
+    if texture_source == TEXTURE_LAB_MEASURED and evidence_ref:
+        # The TAW feature cites the exact lab row the texture came from.
+        texture["evidence_ref"] = evidence_ref
     if not root_depth_supplied:
         penalty += _PENALTY_ROOT_DEFAULT
         limitations.append("root depth not provided — assumed default (uncalibrated)")
 
     return {
-        "texture": {
-            "value": texture_value,
-            "source": texture_source,
-            "sampled_on": texture_sampled_on,
-            "age_days": round(texture_age_days, 1) if texture_age_days is not None else None,
-        },
+        "texture": texture,
         "taw": {"source": taw_source, "calibrated": False},
         "root_depth": {"source": root_source},
         "limitations": limitations,

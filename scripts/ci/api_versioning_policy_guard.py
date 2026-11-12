@@ -13,6 +13,7 @@ import csv
 import json
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -187,11 +188,11 @@ def _is_test_file(path: Path) -> bool:
 #     سابقة مستقلّة قائمة: tests_v9/test_endpoint_auth_coverage.py يستثنيه بالاسم للسبب نفسه.
 #   الحقائق الثلاث مُثبَّتة في tests_v9/test_api_versioning_policy_guard.py — لو رُكِّب
 #   الملفّ يوماً (أو نُقِل إلى api/routers/) يسقط الاختبار ويُجبِر إعادة التقييم.
-_UNMOUNTED_REFERENCE_FILES = frozenset({"services/sahool-platform/api/chat_proxy_reference.py"})
+UNMOUNTED_REFERENCE_FILES = frozenset({"services/sahool-platform/api/chat_proxy_reference.py"})
 
 
 def _is_unmounted_reference(path: Path) -> bool:
-    return path.relative_to(ROOT).as_posix() in _UNMOUNTED_REFERENCE_FILES
+    return path.relative_to(ROOT).as_posix() in UNMOUNTED_REFERENCE_FILES
 
 
 def collect():
@@ -214,9 +215,11 @@ def collect():
     return rows
 
 
-def write(rows):
-    INV.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    with CSV.open("w", newline="", encoding="utf-8") as f:
+def write(rows, output_root: Path = ROOT):
+    (output_root / INV.name).write_text(
+        json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    with (output_root / CSV.name).open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(
             f,
             fieldnames=["service", "file", "line", "method", "path", "handler", "classification"],
@@ -237,7 +240,7 @@ def write(rows):
     for r in rows:
         if r["classification"] in _permanent_contract().values():
             permanent.setdefault(r["classification"], []).append(f"{r['method']} {r['path']}")
-    ALLOW.write_text(
+    (output_root / ALLOW.name).write_text(
         json.dumps(
             {
                 "legacy_unversioned_business_routes": legacy,
@@ -256,19 +259,21 @@ def write(rows):
 def main():
     check = "--check" in sys.argv
     rows = collect()
-    before = INV.read_text(encoding="utf-8") if INV.exists() else None
-    before_csv = CSV.read_text(encoding="utf-8") if CSV.exists() else None
-    before_allow = ALLOW.read_text(encoding="utf-8") if ALLOW.exists() else None
-    write(rows)
-    if check and before is not None:
-        if (
-            before != INV.read_text(encoding="utf-8")
-            or before_csv != CSV.read_text(encoding="utf-8")
-            or before_allow != ALLOW.read_text(encoding="utf-8")
-        ):
-            raise SystemExit(
-                "api versioning inventory drift; rerun scripts/ci/api_versioning_policy_guard.py and review unversioned allowlist"
-            )
+    if check:
+        with tempfile.TemporaryDirectory(prefix="sahool-api-versioning-") as tmp:
+            candidate = Path(tmp)
+            write(rows, candidate)
+            drift = [
+                output.name
+                for output in (INV, CSV, ALLOW)
+                if not output.is_file()
+                or output.read_bytes() != (candidate / output.name).read_bytes()
+            ]
+            if drift:
+                raise SystemExit(
+                    f"api versioning inventory drift ({', '.join(drift)}); "
+                    "rerun scripts/ci/api_versioning_policy_guard.py and review unversioned allowlist"
+                )
         # API-VERSIONING-GUARD-IS-A-MIRROR-01: المقارنة أعلاه تكشف الانحراف، لكنّ
         # علاجها المُوثَّق «أعِد التوليد» — فمسار غير مُصدَّر **جديد** يُقبَل بمجرّد
         # الالتزام بالقائمة الجديدة. كاشف انحراف لا بوّابة سياسة. الراتشِت أدناه
@@ -332,6 +337,7 @@ def main():
                 )
         print("api_versioning_policy_check_ok")
     else:
+        write(rows, ROOT)
         counts = {}
         for r in rows:
             counts[r["classification"]] = counts.get(r["classification"], 0) + 1

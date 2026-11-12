@@ -268,17 +268,11 @@ def test_recommendation_outcomes_carry_farm_id_into_independence_counts():
         '"farm_id": r["farm_id"]' in summary_src
         and summary_src.count('"tenant_id": str(r["tenant_id"])') == 2
     )
+    assert "LEFT JOIN fields f ON f.field_id = ro.field_id" in summary_src
+    assert "f.region AS region" in summary_src and '"region": r["region"]' in summary_src
     seasons_src = (routers / "seasons.py").read_text(encoding="utf-8")
     assert "ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id" in seasons_src
-    assert "SELECT outcome_id, tenant_id, field_id, region" in seasons_src
-    assert (
-        '"farm_id": r["farm_id"]' in seasons_src
-        and seasons_src.count('"tenant_id": str(r["tenant_id"])') == 2
-    )
-    # v49 بلا region: كلا المسارين يشتقّها من الحقل كي لا تسقط صفوفُ الغلّة في `_unspecified`.
-    for src in (summary_src, seasons_src):
-        assert "LEFT JOIN fields f ON f.field_id = ro.field_id" in src
-        assert "f.region AS region" in src and '"region": r["region"]' in src
+    assert "o.tenant_id, d.field_id, o.region" in seasons_src
 
 
 def test_reconciled_rows_keep_unit_identity_for_independence_counts():

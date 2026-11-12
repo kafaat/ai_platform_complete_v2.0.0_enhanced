@@ -144,3 +144,28 @@ def test_route_inventory_check_passes_on_current_tree():
     surface for a regressed fix (revert router_prefixes() locally and this fails)."""
     mod = _load_module()
     mod.check_drift()
+
+
+def test_inventory_composes_empty_path_and_omits_test_routes(tmp_path, monkeypatch):
+    mod = _load_module()
+    service = tmp_path / "services" / "field-service"
+    tests = service / "tests"
+    tests.mkdir(parents=True)
+    (service / "main.py").write_text(
+        "router = APIRouter(prefix='/fields/{field_id}/handoff')\n"
+        "@router.get('')\ndef handoff(): pass\n"
+        "router.post('')(save_handoff)\n"
+        "@router.get(dynamic_path)\ndef dynamic(): pass\n"
+    )
+    (service / "example.py").write_text("@app.post('/reference')\ndef example(): pass\n")
+    monkeypatch.setattr(mod, "UNMOUNTED_REFERENCE_FILES", {"services/field-service/example.py"})
+    (tests / "fixture.py").write_text("@app.get('/probe')\ndef probe(): pass\n")
+    monkeypatch.setattr(mod, "ROOT", tmp_path)
+    monkeypatch.setattr(mod, "SERVICES", service.parent)
+    services, routes = mod.discover()
+    assert services[0].tests == 1
+    assert {(r.method, r.path) for r in routes} == {
+        ("GET", "/fields/{field_id}/handoff"),
+        ("POST", "/fields/{field_id}/handoff"),
+        ("GET", "<dynamic>"),
+    }

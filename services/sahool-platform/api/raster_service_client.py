@@ -572,3 +572,57 @@ async def get_job_status(
         if exc.status_code == 404:
             return None
         raise
+
+
+async def season_state_scene(field_id, tenant, start, end):
+    """Use one processed acquisition. Different scenes on the same day do not corroborate."""
+    import asyncio
+    from datetime import datetime
+
+    from fastapi import HTTPException
+
+    try:
+        catalogue = await get_available_dates(field_id, tenant_id=tenant, index="ndvi", limit=500)
+    except (HTTPException, ValueError):
+        return {}
+    if catalogue.get("field_id") != field_id or not isinstance(catalogue.get("dates"), list):
+        return {}
+    candidates = []
+    for row in catalogue["dates"]:
+        if not isinstance(row, dict) or row.get("has_cog") is not True:
+            continue
+        try:
+            day = datetime.strptime(row["date"], "%Y-%m-%d").date()
+        except (KeyError, TypeError, ValueError):
+            continue
+        if start <= day <= end:
+            candidates.append(day.isoformat())
+    if not candidates:
+        return {}
+    day = max(candidates)
+    ndvi, ndmi = await asyncio.gather(
+        *(
+            get_field_timeseries(field_id, tenant_id=tenant, index=index, dates=day)
+            for index in ("ndvi", "ndmi")
+        )
+    )
+    scene = next(
+        (row for row in ndvi if row.get("datetime") == day and row.get("mean") is not None), None
+    )
+    if not scene:
+        return {}
+    water = next(
+        (
+            row
+            for row in ndmi
+            if row.get("datetime") == day
+            and scene.get("scene_id")
+            and row.get("scene_id") == scene["scene_id"]
+            and row.get("geometry_revision") == scene.get("geometry_revision")
+            and row.get("mean") is not None
+            and (row.get("valid_pixel_ratio") is None or row["valid_pixel_ratio"] >= 0.6)
+            and (row.get("cloud_pct") is None or row["cloud_pct"] <= 35)
+        ),
+        {},
+    )
+    return {**scene, "ndmi": water.get("mean")}

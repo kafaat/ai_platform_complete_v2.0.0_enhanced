@@ -115,6 +115,7 @@ def assemble_field_season_state(
     today: date | None = None,
     accumulated_gdd: float | None = None,
     observed_ndvi: float | None = None,
+    imagery_date: date | None = None,
     observed_ndmi: float | None = None,
     valid_pixel_ratio: float | None = None,
     cloud_pct: float | None = None,
@@ -159,8 +160,13 @@ def assemble_field_season_state(
     stage_risk = stage_weather_risks(effective_stage, crop_id, risk_signals)
 
     # ⑤ تعارض الاستشعار مع المرحلة
+    eo_stage = effective_stage
+    if imagery_date is not None and imagery_date != ref:
+        # Historical imagery cannot be compared to a later crop stage or later GDD.
+        scene_age = (imagery_date - sowing_date).days if sowing_date is not None else None
+        eo_stage = phenology_progress(crop_id, scene_age, None).get("days_stage")
     eo = detect_eo_stage_mismatch(
-        effective_stage,
+        eo_stage,
         observed_ndvi,
         observed_ndmi,
         valid_pixel_ratio=valid_pixel_ratio,
