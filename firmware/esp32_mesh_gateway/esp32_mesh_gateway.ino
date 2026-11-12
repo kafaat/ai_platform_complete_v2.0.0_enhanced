@@ -280,9 +280,10 @@ static bool jsonUint(JsonVariantConst v, uint64_t* out) {
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   Serial.printf("MQTT cmd on %s (%u bytes)\n", topic, length);
 
-  // A4: رسالة المنصّة تتجاوز 256 بايتاً.
+  // A4: رسالة المنصّة تتجاوز 256 بايتاً. الإدخال const ⇒ ArduinoJson ينسخ النصوص إلى doc:
+  // payload هو مخزن PubSubClient نفسه، ونشرُ الإقرار أدناه يكتب فوقه (لا zero-copy هنا).
   StaticJsonDocument<1024> doc;
-  DeserializationError err = deserializeJson(doc, payload, length);
+  DeserializationError err = deserializeJson(doc, (const char*)payload, length);
   if (err) return;
 
   cmdauth::Command m{};
