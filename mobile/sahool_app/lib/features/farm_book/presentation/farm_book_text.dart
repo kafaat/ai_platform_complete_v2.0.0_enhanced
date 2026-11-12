@@ -117,10 +117,10 @@ const Map<String, String> _detailAr = {
       'القيد العكسي يجب أن يطابق القيد الأصليّ تماماً (النوع والدفع والمبلغ والطرف والتصنيف والمزرعة والحقل والموسم).',
   'reversal_cannot_predate_original':
       'تاريخ القيد العكسي لا يسبق تاريخ القيد الأصليّ.',
-  'cannot_reverse_a_settled_entry':
+  'cannot_reverse_entry_with_settlements':
       'هذا القيد الآجل سُدِّد منه جزء؛ لا يُعكس بعد السداد.',
   'cannot_settle_a_reversal': 'لا يُسدَّد قيد عكسي.',
-  'settled_entry_is_reversed': 'هذا القيد الآجل معكوس؛ لا دين عليه يُسدَّد.',
+  'cannot_settle_reversed_entry': 'هذا القيد الآجل معكوس؛ لا دين عليه يُسدَّد.',
   'entry_already_reversed': 'هذا القيد عُكس من قبل؛ لا يُعكس مرّتين.',
   'client_operation_id_payload_conflict':
       'أُرسلت هذه العمليّة سابقاً بقيم مختلفة. حدّث الدفتر وتحقّق قبل الإعادة.',

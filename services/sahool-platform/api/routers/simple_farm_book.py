@@ -205,7 +205,7 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
         tenant_id,
         req.settles_entry_id,
     ):
-        raise HTTPException(status_code=409, detail="settled_entry_is_reversed")
+        raise HTTPException(status_code=409, detail="cannot_settle_reversed_entry")
     if original["party_id"] != req.party_id or original["currency"] != req.currency:
         raise HTTPException(status_code=422, detail="payment_party_or_currency_mismatch")
     paid = await conn.fetchval(
@@ -261,7 +261,7 @@ async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         tenant_id,
         req.reverses_entry_id,
     ):
-        raise HTTPException(status_code=409, detail="cannot_reverse_a_settled_entry")
+        raise HTTPException(status_code=409, detail="cannot_reverse_entry_with_settlements")
     already = await conn.fetchval(
         """SELECT 1 FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND reverses_entry_id=$2 LIMIT 1""",

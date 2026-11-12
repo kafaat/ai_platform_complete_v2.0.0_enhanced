@@ -218,14 +218,14 @@ def test_d_overpayment_is_refused_when_written():
 def test_e_reversing_a_settled_credit_entry_is_refused_when_written():
     body = _function_source("_assert_reversal")
     assert "settles_entry_id=$2" in body, "the reversal check must look for settlements"
-    assert "cannot_reverse_a_settled_entry" in body
+    assert "cannot_reverse_entry_with_settlements" in body
 
 
 def test_e_paying_a_reversal_or_a_reversed_entry_is_refused_when_written():
     body = _function_source("_prepare_payment")
     assert "reverses_entry_id" in _selected_columns(body)
     assert "cannot_settle_a_reversal" in body
-    assert "settled_entry_is_reversed" in body
+    assert "cannot_settle_reversed_entry" in body
 
 
 # --------------------------------------------------------------------------- write-time mirror
