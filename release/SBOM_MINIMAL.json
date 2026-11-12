@@ -4825,7 +4825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "63b08d00a040c8b8f0b77df25d7d4b846ba339542f3caa221c1f5e9aa9cc3e9d"
+          "content": "1e472143f5a030ffcb10f405c3f7236a631b95ee693eccdeecd6e0fbea210ece"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17855,7 +17855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d477e5ef6189492685bcdc12d9f543b3251328ae50a04a7bbf33b4f50eecd6f"
+          "content": "22198a5eeba79ea874034f1b13027f2626e0b97ec9898d3e706c8f0ccb896afb"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -18265,7 +18265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6feabd888cbefc1c76b2afcd22cf56c087cfd12136af66e096bea7c015eba8ef"
+          "content": "aab5ce5bd28b71bf02d451e7e5813e10c2b5fce958012e389c71f36779da3e21"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -18645,7 +18645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5797f776f197cd7ece8d3942cf5c161050be827a3f4858bec5083ba849a890b2"
+          "content": "46bb790c9e96e18184c0231cf4838ca1aa7595f2037f4722078e2191fff392c6"
         }
       ],
       "name": "services/decision-service/tests/test_migration_033_pg16.py",
@@ -26775,7 +26775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dda45cab4260cfc1f98854d886fafd20645555fa2ad69a830479747938e3c24c"
+          "content": "ad7dc8aa89f3bea1322fea901e97856e83af28c575526fd7bf42c3b2bc7636eb"
         }
       ],
       "name": "services/sahool-platform/api/routers/recommendations.py",
@@ -27195,7 +27195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "23c2370ad238ec5edec13faa3bd7e9ec6c3a9ebed10e41c7c6445f89b54a6676"
+          "content": "1c11234744f197162e9768211c9d852937673236657ca1799863e6838a4bb0d3"
         }
       ],
       "name": "services/sahool-platform/api/scouting_pins.py",
