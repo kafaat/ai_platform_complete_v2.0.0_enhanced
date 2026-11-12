@@ -4718,7 +4718,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 205,
+    "line": 197,
     "method": "POST",
     "path": "/api/v1/decisions/{decision_id}/execution-plan",
     "handler": "create_decision_execution_plan",
@@ -4727,7 +4727,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 331,
+    "line": 323,
     "method": "POST",
     "path": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
     "handler": "authorize_execution_plan_dispatch",
@@ -4736,7 +4736,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 397,
+    "line": 389,
     "method": "POST",
     "path": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
     "handler": "create_authorized_execution_request",
@@ -4745,7 +4745,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 465,
+    "line": 457,
     "method": "POST",
     "path": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
     "handler": "verify_execution_outcome_boundary",
@@ -4754,7 +4754,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 528,
+    "line": 520,
     "method": "POST",
     "path": "/api/v1/outcomes/{outcome_id}/learning-attribution",
     "handler": "create_learning_attribution_boundary",
@@ -4763,7 +4763,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 584,
+    "line": 576,
     "method": "GET",
     "path": "/api/v1/learning/calibration-dataset",
     "handler": "read_calibration_dataset_boundary",
@@ -4772,7 +4772,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 638,
+    "line": 630,
     "method": "POST",
     "path": "/api/v1/learning/evaluation-runs",
     "handler": "register_model_evaluation_boundary",
@@ -4781,7 +4781,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 689,
+    "line": 681,
     "method": "POST",
     "path": "/api/v1/learning/promotion-decisions",
     "handler": "register_model_promotion_decision_boundary",
@@ -4790,7 +4790,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 734,
+    "line": 726,
     "method": "POST",
     "path": "/api/v1/learning/activation-requests",
     "handler": "register_model_activation_request_boundary",
@@ -4799,7 +4799,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 782,
+    "line": 774,
     "method": "POST",
     "path": "/api/v1/learning/activation-requests/{activation_request_id}/review",
     "handler": "review_model_activation_request_boundary",
@@ -4808,7 +4808,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 836,
+    "line": 828,
     "method": "POST",
     "path": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
     "handler": "claim_registry_activation_command_bff",
@@ -4817,7 +4817,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 873,
+    "line": 865,
     "method": "POST",
     "path": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
     "handler": "record_registry_activation_receipt_bff",
@@ -4826,7 +4826,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 905,
+    "line": 897,
     "method": "POST",
     "path": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
     "handler": "create_registry_rollback_command_bff",
