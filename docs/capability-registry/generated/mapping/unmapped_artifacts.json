@@ -11280,6 +11280,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_diagnose_crop_normalisation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_disease_field_state_feed.py",
     "kind": "tests"
   },

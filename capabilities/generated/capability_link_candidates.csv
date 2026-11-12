@@ -1108,6 +1108,7 @@ FM-005,test,tests_v9/test_crop_picker_options_resolve.py,3,applied
 FM-005,test,tests_v9/test_crop_root_policy_rls_integration.py,3,applied
 FM-005,test,tests_v9/test_crop_twin.py,3,applied
 FM-005,test,tests_v9/test_crop_twin_verified_learning_c2.py,3,applied
+FM-005,test,tests_v9/test_diagnose_crop_normalisation.py,3,applied
 FM-005,test,tests_v9/test_supervisor_crop_model_agriai_routing.py,3,applied
 FM-005,test,tests_v9/test_variety_catalog_reference_only_barrier.py,3,applied
 FM-005,test,tests_v9/test_variety_policy_resolution.py,3,applied
