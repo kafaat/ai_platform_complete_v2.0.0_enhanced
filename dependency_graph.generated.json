@@ -132,7 +132,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/hooks/useApi.ts:248",
+      "evidence": "frontend/src/hooks/useApi.ts:254",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",

@@ -1359,6 +1359,7 @@ GIS-003,test,tests_v9/test_terrain_source_resolver.py,3,applied
 GIS-004,api,GET /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:141,2,applied
 GIS-004,api,POST /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:35,2,applied
 GIS-004,service,services/raster-service/main.py,10,applied
+GIS-004,test,services/raster-service/test_spatial_sampling_product.py,3,applied
 GIS-004,test,services/sahool-platform/tests/test_season_spatial_provenance.py,3,applied
 GIS-004,test,services/sahool-platform/tests/test_spatial_geometry_integrity.py,3,applied
 GIS-004,test,tests_v9/test_geospatial.py,3,applied
@@ -1819,6 +1820,7 @@ SAT-001,test,services/raster-service/test_cdse_empty_raster_not_cached.py,3,appl
 SAT-001,test,services/raster-service/test_cdse_native_product.py,3,applied
 SAT-001,test,services/raster-service/test_cdse_poly_contract.py,3,applied
 SAT-001,test,services/raster-service/test_cdse_process_rate_limit.py,3,applied
+SAT-001,test,services/raster-service/test_cdse_reflectance.py,3,applied
 SAT-001,test,services/raster-service/test_cdse_tilejson_availability.py,3,applied
 SAT-001,test,services/raster-service/test_scene_cloud_unknown_never_clear.py,3,applied
 SAT-001,test,services/raster-service/test_single_scene_concurrent_pg.py,3,applied
@@ -1844,6 +1846,7 @@ SAT-001,test,tests_v9/test_imagery_single_scene_process.py,3,applied
 SAT-001,test,tests_v9/test_normalized_scene_wiring_v63_2.py,3,applied
 SAT-001,test,tests_v9/test_raster_scene_model_v63.py,3,applied
 SAT-001,test,tests_v9/test_stac_singleflight_v30_5.py,3,applied
+SAT-001,ui,frontend/e2e/satellite-pixel-display.spec.ts,2,applied
 SAT-002,service,services/raster-service/main.py,10,applied
 SAT-002,test,services/raster-service/test_truecolor_render.py,3,applied
 SAT-002,test,services/raster-service/test_truecolor_validity_alpha.py,3,applied
@@ -2098,6 +2101,7 @@ SAT-009,test,services/raster-service/test_backfill_worker_schema_drift_visibilit
 SAT-009,test,services/raster-service/test_band_math_zones.py,3,applied
 SAT-009,test,services/raster-service/test_batch_single_open_certification.py,3,applied
 SAT-009,test,services/raster-service/test_batch_single_open_metrics.py,3,applied
+SAT-009,test,services/raster-service/test_c1_native_sampling.py,3,applied
 SAT-009,test,services/raster-service/test_c7_latest_cache_provenance.py,3,applied
 SAT-009,test,services/raster-service/test_cast_shadow_direction.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_cause_evidence.py,3,applied
@@ -2107,6 +2111,7 @@ SAT-009,test,services/raster-service/test_cdse_empty_raster_not_cached.py,3,appl
 SAT-009,test,services/raster-service/test_cdse_native_product.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_poly_contract.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_process_rate_limit.py,3,applied
+SAT-009,test,services/raster-service/test_cdse_reflectance.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_tilejson_availability.py,5,applied
 SAT-009,test,services/raster-service/test_change_detection_grid.py,3,applied
 SAT-009,test,services/raster-service/test_change_detection_validity.py,3,applied
@@ -2117,6 +2122,7 @@ SAT-009,test,services/raster-service/test_cloud_mask_strategies.py,3,applied
 SAT-009,test,services/raster-service/test_cloud_masking.py,3,applied
 SAT-009,test,services/raster-service/test_cloud_native_catalog.py,3,applied
 SAT-009,test,services/raster-service/test_cog_finite_nodata_runtime.py,5,applied
+SAT-009,test,services/raster-service/test_cog_small_overviews.py,5,applied
 SAT-009,test,services/raster-service/test_cog_windowed_processing.py,5,applied
 SAT-009,test,services/raster-service/test_cog_writer_cog_layout.py,5,applied
 SAT-009,test,services/raster-service/test_cog_writer_internal_mask.py,5,applied
@@ -2188,6 +2194,7 @@ SAT-009,test,services/raster-service/test_scene_cloud_unknown_never_clear.py,3,a
 SAT-009,test,services/raster-service/test_single_scene_concurrent_pg.py,3,applied
 SAT-009,test,services/raster-service/test_soil_render.py,3,applied
 SAT-009,test,services/raster-service/test_soil_zones.py,3,applied
+SAT-009,test,services/raster-service/test_spatial_sampling_product.py,3,applied
 SAT-009,test,services/raster-service/test_stac_c1_processing.py,3,applied
 SAT-009,test,services/raster-service/test_stac_projection_contract.py,3,applied
 SAT-009,test,services/raster-service/test_stac_singleflight_provenance.py,3,applied

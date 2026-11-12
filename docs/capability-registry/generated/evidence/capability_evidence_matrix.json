@@ -6569,6 +6569,7 @@
         "services/raster-service/test_cdse_empty_raster_not_cached.py",
         "services/raster-service/test_cdse_native_product.py",
         "services/raster-service/test_cdse_process_rate_limit.py",
+        "services/raster-service/test_cdse_reflectance.py",
         "services/raster-service/test_cdse_tilejson_availability.py",
         "services/raster-service/test_clip_polygon_stored_geometry.py",
         "services/raster-service/test_cloud_native_catalog.py",
@@ -7177,6 +7178,7 @@
       "title": "Cloud screening",
       "unit_test_paths": [
         "services/raster-service/test_acquisition_date_provenance.py",
+        "services/raster-service/test_c1_native_sampling.py",
         "services/raster-service/test_cloud_mask_strategies.py",
         "services/raster-service/test_cloud_masking.py",
         "services/raster-service/test_element84_vrt_defect_witnesses.py",
@@ -7704,6 +7706,7 @@
         "services/raster-service/test_cdse_tilejson_availability.py",
         "services/raster-service/test_cloud_native_catalog.py",
         "services/raster-service/test_cog_finite_nodata_runtime.py",
+        "services/raster-service/test_cog_small_overviews.py",
         "services/raster-service/test_cog_windowed_processing.py",
         "services/raster-service/test_cog_writer_cog_layout.py",
         "services/raster-service/test_cog_writer_internal_mask.py",

@@ -64,4 +64,6 @@ def process_backfill_scene_cdse(
         geometry_revision=geometry_revision,
     )
     preq._cdse_native_product = native_product
+    if native_product is not None:
+        preq._spatial_sampling = cdse_client.spatial_sampling(index)
     ctx._run_processing(jid, preq)

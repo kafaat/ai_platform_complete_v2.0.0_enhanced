@@ -24,6 +24,7 @@ cog_writer.py — كتابة Cloud-Optimized GeoTIFF محسّنة (تحسين ت
 
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 
@@ -51,6 +52,12 @@ _DATASET_KEYS = {"driver", "dtype", "height", "width", "count", "crs", "transfor
 # حدّ موضع IFD الرئيسيّ: بعد ترويسة TIFF ومنطقة GDAL الشبحيّة (~200 بايت). نفس عتبة
 # مدقّق rio-cogeo/GDAL المستقلّ («The offset of the main IFD should be < 300»).
 _MAX_MAIN_IFD_OFFSET = 300
+
+
+def _overview_levels(height: int, width: int) -> list[int]:
+    """Stop once both axes reach one pixel, including a 1×1 source itself."""
+    longest = max(height, width)
+    return [factor for factor in OVERVIEW_LEVELS if factor // 2 < longest]
 
 
 def _finalize_cog(write_intermediate, output_path: str, profile: dict) -> None:
@@ -83,6 +90,8 @@ def write_cog(
     transform,
     crs: str = "EPSG:4326",
     nodata: float = DEFAULT_NODATA,
+    *,
+    spatial_sampling: dict | None = None,
 ) -> dict:
     """يكتب مصفوفة مؤشّر كـCOG محسّن (ضغط + بلاطات + أهرامات داخليّة).
 
@@ -106,6 +115,7 @@ def write_cog(
         return {"written": False, "reason": "مصفوفة غير صالحة (متوقَّع مصفوفة ثنائيّة الأبعاد)"}
 
     h, w = array.shape
+    levels = _overview_levels(h, w)
     # Convert only one tile at a time; retain masks on caller-owned arrays.
     if not np.isfinite(nodata):
         nodata = DEFAULT_NODATA
@@ -121,6 +131,10 @@ def write_cog(
 
     def _write(path: str) -> None:
         with rasterio.open(path, "w", **profile) as dst:
+            if spatial_sampling is not None:
+                dst.update_tags(
+                    SAHOOL_SPATIAL_SAMPLING=json.dumps(spatial_sampling, allow_nan=False)
+                )
             for window in write_windows(h, w):
                 rows, cols = window.toslices()
                 tile = np.ma.asarray(array[rows, cols], dtype="float32")
@@ -130,7 +144,8 @@ def write_cog(
                 dst.write_mask(valid.astype("uint8") * 255, window=window)
             # أهرامات داخليّة (overviews) — قراءة سريعة عند التكبير/التصغير.
             # average للمؤشّر المتّصل؛ القناع يُهرَّم معها داخليّاً.
-            dst.build_overviews(OVERVIEW_LEVELS, Resampling.average)
+            if levels:
+                dst.build_overviews(levels, Resampling.average)
             # وسم المجال الافتراضيّ (اصطلاح rio-cogeo) — يُنسَخ مع البيانات إلى الناتج.
             dst.update_tags(OVR_RESAMPLING_ALG="AVERAGE")
 
@@ -143,7 +158,7 @@ def write_cog(
         "size_bytes": size,
         "size_mb": round(size / 1e6, 2),
         "compression": "DEFLATE+predictor3",
-        "overviews": OVERVIEW_LEVELS,
+        "overviews": levels,
         "block_size": "512x512",
         # توحيد main↔cert: ندمج تدقيق COG في ردّ الكتابة (سلوك main) — تدقيق فوريّ بعد
         # الكتابة (مبلّط + أهرامات) دون استدعاء منفصل. يطابقه حارس test_cog_writer_internal_mask.
@@ -164,7 +179,14 @@ RGBA_COG_PROFILE = {
 }
 
 
-def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -> dict:
+def write_rgba_cog(
+    array,
+    output_path: str,
+    transform,
+    crs: str = "EPSG:4326",
+    *,
+    spatial_sampling: dict | None = None,
+) -> dict:
     """يكتب صورة RGBA (4 نطاقات UINT8) كـCOG محسّن — للصورة الخام (truecolor).
 
     ``array``: ``(4,H,W)`` أو ``(H,W,4)`` (يُقبَل 3 نطاقات RGB أيضاً). النطاق الرابع
@@ -190,6 +212,7 @@ def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -
     if arr.ndim != 3 or arr.shape[0] not in (3, 4):
         return {"written": False, "reason": "متوقَّع RGB/RGBA (3 أو 4 نطاقات)"}
     bands, h, w = arr.shape[0], arr.shape[1], arr.shape[2]
+    levels = _overview_levels(h, w)
     profile = {
         **RGBA_COG_PROFILE,
         "height": h,
@@ -209,6 +232,10 @@ def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -
 
     def _write(path: str) -> None:
         with rasterio.open(path, "w", **profile) as dst:
+            if spatial_sampling is not None:
+                dst.update_tags(
+                    SAHOOL_SPATIAL_SAMPLING=json.dumps(spatial_sampling, allow_nan=False)
+                )
             for window in write_windows(h, w):
                 rows, cols = window.toslices()
                 tile = arr[:, rows, cols]
@@ -224,7 +251,8 @@ def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -
                 interps.append(ColorInterp.alpha)  # النطاق الرابع = ألفا (قناع الخارج/الغيوم)
             dst.colorinterp = interps
             # nearest لمنتج العرض 8-بت: لا يخلط ألفا 0/255 ولا يخترع ألواناً.
-            dst.build_overviews(OVERVIEW_LEVELS, Resampling.nearest)
+            if levels:
+                dst.build_overviews(levels, Resampling.nearest)
             dst.update_tags(OVR_RESAMPLING_ALG="NEAREST")
 
     _finalize_cog(_write, output_path, profile)
@@ -236,7 +264,7 @@ def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -
         "size_bytes": size,
         "size_mb": round(size / 1e6, 2),
         "compression": "DEFLATE+predictor2",
-        "overviews": OVERVIEW_LEVELS,
+        "overviews": levels,
         "block_size": "512x512",
         "bands": bands,
         "validation": validate_cog(output_path),
@@ -260,7 +288,7 @@ def source_valid_mask(src, window):
     return valid
 
 
-def write_rgba_cog_source(src, output_path: str) -> dict:
+def write_rgba_cog_source(src, output_path: str, *, spatial_sampling: dict | None = None) -> dict:
     """Copy an open RGB/RGBA uint8 raster with bounded pixel buffers.
 
     The caller owns the source handle and admission budget. GDAL block/cache and
@@ -270,6 +298,7 @@ def write_rgba_cog_source(src, output_path: str) -> dict:
     import rasterio
     from rasterio.enums import ColorInterp, Resampling
 
+    levels = _overview_levels(src.height, src.width)
     if src.count not in (3, 4) or any(dtype != "uint8" for dtype in src.dtypes):
         raise ValueError("truecolor source requires 3 or 4 uint8 bands")
     if src.crs is None:
@@ -288,6 +317,10 @@ def write_rgba_cog_source(src, output_path: str) -> dict:
 
     def _write(path):
         with rasterio.open(path, "w", **profile) as dst:
+            if spatial_sampling is not None:
+                dst.update_tags(
+                    SAHOOL_SPATIAL_SAMPLING=json.dumps(spatial_sampling, allow_nan=False)
+                )
             for window in write_windows(src.height, src.width):
                 values = src.read(window=window)
                 valid = source_valid_mask(src, window)
@@ -298,7 +331,8 @@ def write_rgba_cog_source(src, output_path: str) -> dict:
             dst.colorinterp = (ColorInterp.red, ColorInterp.green, ColorInterp.blue) + (
                 (ColorInterp.alpha,) if src.count == 4 else ()
             )
-            dst.build_overviews(OVERVIEW_LEVELS, Resampling.nearest)
+            if levels:
+                dst.build_overviews(levels, Resampling.nearest)
             dst.update_tags(OVR_RESAMPLING_ALG="NEAREST")
 
     _finalize_cog(_write, output_path, profile)
@@ -309,7 +343,7 @@ def write_rgba_cog_source(src, output_path: str) -> dict:
         "size_bytes": size,
         "size_mb": round(size / 1e6, 2),
         "compression": "DEFLATE+predictor2",
-        "overviews": OVERVIEW_LEVELS,
+        "overviews": levels,
         "block_size": "512x512",
         "bands": src.count,
         "validation": validate_cog(output_path),
@@ -372,7 +406,7 @@ def validate_cog(path: str) -> dict:
         has_overviews = len(src.overviews(1)) > 0
         errors = _cog_layout_errors(src)
         return {
-            "valid": bool(is_tiled and has_overviews and not errors),
+            "valid": bool(is_tiled and (has_overviews or src.shape == (1, 1)) and not errors),
             "tiled": is_tiled,
             "overviews": src.overviews(1),
             "compression": str(src.profile.get("compress", "none")),
