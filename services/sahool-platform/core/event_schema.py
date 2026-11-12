@@ -91,6 +91,54 @@ class EventEnvelope:
         }
 
 
+# events.entity_type: the coarse entity category the events table accepts. This set is the
+# single source for migrations/v242_events_entity_type_contract.sql (events_entity_type_check);
+# tests_v9/test_events_entity_type_contract.py fails if the two drift or if code emits a value
+# outside it. Before v242 the CHECK held only the first 11, so every event for the other
+# entities (harvest lots, tasks, alerts, ...) was rejected by the database; non-critical
+# emits swallowed that, and critical ones aborted the business write.
+ALLOWED_ENTITY_TYPES: frozenset[str] = frozenset(
+    {
+        # v11 + v51
+        "field",
+        "farm",
+        "operation",
+        "equipment",
+        "sensor",
+        "well",
+        "sample",
+        "season",
+        "user",
+        "activity",
+        "soil_lab_test",
+        # v242: emitted by the platform but rejected until then
+        "alert",
+        "calibration_audit",
+        "calibration_override",
+        "crop_rotation",
+        "decision_record",
+        "dispatch_decision",
+        "equipment_maintenance",
+        "harvest_lot",
+        "inventory_batch",
+        "inventory_item",
+        "irrigation_execution_plan",
+        "irrigation_manual_execution",
+        "irrigation_schedule",
+        "irrigation_valve",
+        "lineage_link",
+        "master_data",
+        "notification_delivery",
+        "outcome_record",
+        "recommendation",
+        "task",
+        "tenant",
+        "work_order",
+        "yield_map_ingestion",
+    }
+)
+
+
 def validate_envelope(env: EventEnvelope) -> list[str]:
     """يُرجِع قائمة أخطاء (فارغة = صالح). صدق: يُعلن كلّ خلل لا يرمي بصمت."""
     errors: list[str] = []
@@ -98,6 +146,9 @@ def validate_envelope(env: EventEnvelope) -> list[str]:
         errors.append(f"event_type غير صالح: {env.event_type!r} (المتوقّع entity.action)")
     if not env.entity_type:
         errors.append("entity_type مفقود")
+    elif env.entity_type not in ALLOWED_ENTITY_TYPES:
+        # Rejected here with a name, instead of by the database CHECK after the write began.
+        errors.append(f"entity_type غير مسموح: {env.entity_type!r} (ALLOWED_ENTITY_TYPES)")
     # entity_id نصّيّ لا UUID: معرّفات الكيانات الزراعيّة نصّيّة عمداً
     # (fields.field_id VARCHAR مثل "fld_demo_001") — v18 وحّد الأعمدة على TEXT.
     # فرض UUID هنا كان يرفض كلّ أحداث الحقول الحقيقيّة (regression مكشوف).

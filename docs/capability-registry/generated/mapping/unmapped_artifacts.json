@@ -2512,6 +2512,10 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v242_events_entity_type_contract.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -11333,6 +11337,10 @@
   },
   {
     "path": "tests_v9/test_event_schema.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_events_entity_type_contract.py",
     "kind": "tests"
   },
   {

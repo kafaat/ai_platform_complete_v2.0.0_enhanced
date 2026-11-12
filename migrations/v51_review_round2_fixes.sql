@@ -8,10 +8,26 @@
 -- idempotent + آمن (IF EXISTS / OR REPLACE).
 
 -- ── (1) توسيع قيد entity_type ────────────────────────────────────
-ALTER TABLE events DROP CONSTRAINT IF EXISTS events_entity_type_check;
-ALTER TABLE events ADD CONSTRAINT events_entity_type_check
-    CHECK (entity_type IN ('field', 'farm', 'operation', 'equipment', 'sensor', 'well',
-                           'sample', 'season', 'user', 'activity', 'soil_lab_test'));
+--    MANIFEST is re-applied on every deploy. Re-running an unconditional DROP+ADD here would
+--    narrow the constraint back to these 11 values after v242 widened it, and the ADD would
+--    fail (taking the deploy with it) once any row holds a v242 value such as 'harvest_lot'.
+--    So it only widens a constraint that does not yet accept 'soil_lab_test' (the v11 form).
+DO $v51$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'events'::regclass
+          AND conname = 'events_entity_type_check'
+          AND pg_get_constraintdef(oid) LIKE '%''soil_lab_test''%'
+    ) THEN
+        RETURN;
+    END IF;
+    ALTER TABLE events DROP CONSTRAINT IF EXISTS events_entity_type_check;
+    ALTER TABLE events ADD CONSTRAINT events_entity_type_check
+        CHECK (entity_type IN ('field', 'farm', 'operation', 'equipment', 'sensor', 'well',
+                               'sample', 'season', 'user', 'activity', 'soil_lab_test'));
+END
+$v51$;
 
 -- ── (2) RLS على lifecycle_temporal_rejections ────────────────────
 ALTER TABLE lifecycle_temporal_rejections ENABLE ROW LEVEL SECURITY;

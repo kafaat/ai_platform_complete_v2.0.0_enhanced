@@ -15,24 +15,24 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7116,
+    "files_scanned": 7119,
     "files_by_kind": {
       "backend": 1267,
-      "database": 295,
+      "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2163,
-      "tests": 2372,
+      "tests": 2374,
       "web": 516
     },
-    "unmapped_artifacts": 3388,
+    "unmapped_artifacts": 3390,
     "ambiguous_artifacts": 233,
     "files_by_reading": {
-      "python_functional": 3825,
-      "raw": 3291
+      "python_functional": 3827,
+      "raw": 3292
     },
-    "test_dependency_files": 1784,
-    "test_dependency_edges": 4493,
+    "test_dependency_files": 1785,
+    "test_dependency_edges": 4498,
     "test_dependency_bounded_files": 1038,
     "test_dependency_unresolved_relations": 456
   },
@@ -23159,7 +23159,7 @@
       "database": [
         {
           "path": "migrations/v9_rls_tenant_isolation.sql",
-          "score": 36,
+          "score": 37,
           "signals": [
             "path:rls",
             "content:rls",
@@ -24492,6 +24492,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_migration_rerun_safety_live_pg.py",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
           "score": 10,
           "signals": [
@@ -25407,7 +25415,7 @@
         "events": 70,
         "web": 0,
         "mobile": 0,
-        "tests": 79,
+        "tests": 80,
         "governance": 0,
         "other_evidence": 89
       },
@@ -32867,6 +32875,10 @@
     },
     {
       "path": "migrations/v235_decision_chain_correlation.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v242_events_entity_type_contract.sql",
       "kind": "database"
     },
     {
@@ -41691,6 +41703,10 @@
     },
     {
       "path": "tests_v9/test_event_schema.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_events_entity_type_contract.py",
       "kind": "tests"
     },
     {
@@ -74510,6 +74526,43 @@
           "source": "services/sahool-platform/core/event_schema.py",
           "kind": "source_read",
           "line": 20
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_events_entity_type_contract.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/event_bus.py",
+          "kind": "source_read",
+          "line": 37
+        },
+        {
+          "source": "services/sahool-platform/api/irrigation_execution_request_port.py",
+          "kind": "source_read",
+          "line": 39
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "source_read",
+          "line": 36
+        },
+        {
+          "source": "services/sahool-platform/core/event_schema.py",
+          "kind": "import",
+          "line": 48
+        },
+        {
+          "source": "services/sahool-platform/core/event_schema.py",
+          "kind": "source_read",
+          "line": 38
         }
       ],
       "unresolved": []
