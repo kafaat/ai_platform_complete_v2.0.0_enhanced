@@ -50,6 +50,7 @@ from api.field_models import (
     FieldSummary,
     FieldUpdateRequest,
     _build_field_update,
+    _lock_and_reject_field_overlap,
     _lock_field_boundaries,
     _reject_field_overlap,
     _row_to_field_detail,
@@ -1075,8 +1076,6 @@ async def _compute_field_terrain_from_dem(
     """
     try:
         if isinstance(geometry, str):
-            # json is imported once at module scope (line anchor preserved)
-
             geometry = json.loads(geometry)
         guarded = guard_field_geometry(geometry)
         return await raster_get_field_terrain(
@@ -1263,8 +1262,7 @@ async def update_field(
                                 "issues": str(exc).split(","),
                             },
                         ) from exc
-                    await _lock_field_boundaries(conn, str(user.tenant_id))
-                    await _reject_field_overlap(
+                    await _lock_and_reject_field_overlap(
                         conn, str(user.tenant_id), guarded.geometry, field_id
                     )
                     req = req.model_copy(update={"geometry": guarded.geometry})
@@ -1542,7 +1540,9 @@ async def revert_field_geometry(
             if not isinstance(raw_geometry, dict):
                 raise HTTPException(status_code=409, detail="stored_geometry_invalid")
             guarded = guard_field_geometry(raw_geometry)
-
+            await _lock_and_reject_field_overlap(
+                conn, str(user.tenant_id), guarded.geometry, field_id
+            )
             await conn.execute(
                 """
                 UPDATE fields
@@ -3228,7 +3228,6 @@ async def update_soil_lab_test(
     نهائيّان؛ لا اعتماد/نشر بلا نتيجة — 422). تأكيد ملكيّة الحقل (404)؛ الفحص يخصّ
     الحقل (404). 503 عند تعذّر القاعدة.
     """
-    # json is imported once at module scope (line anchor preserved)
 
     from core.engines.soil_lab_workflow import SoilWorkflowError, validate_soil_transition
 

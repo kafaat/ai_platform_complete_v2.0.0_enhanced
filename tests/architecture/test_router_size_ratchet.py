@@ -45,7 +45,7 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # moved to api.scouting_pins (the route keeps a thin wrapper).
     # → 4075 (2026-11-12, satellite-field port): field-overlap lock/reject helpers moved to
     # api.field_models beside _significant_overlaps.
-    "services/sahool-platform/api/routers/fields.py": 4074,
+    "services/sahool-platform/api/routers/fields.py": 4073,
     "services/sahool-platform/api/routers/weather.py": 3022,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     # 1673 → 1668 (unified 2026-10-27): pixel sampling moved to raster_field_runtime and
