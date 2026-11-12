@@ -40,7 +40,7 @@ def _const_owner(value):
 
 
 @pytest.fixture
-def rm():
+def rm(monkeypatch):
     """يستورد raster-service.main وينظّف الحالة العالميّة + ذاكرة المالك قبل/بعد كلّ
     اختبار. يستبدل _field_owner ببديل افتراضيّ يُعيد None (لا قاعدة) كي تحكم الذاكرة
     ما لم يُعيّن الاختبار مالكاً صراحةً."""
@@ -70,6 +70,14 @@ def rm():
 
     raster_main = raster_main_runtime
 
+    # G-H1: «المالك None» يعني حقلاً غير موجود متى هُيّئت القاعدة أو في الإنتاج ⇒ رفض
+    # (test_tile_isolation_fail_closed.py). هذه الشهود تقيس **الوضع بلا قاعدة خارج
+    # الإنتاج** صراحةً، لا ما تصادف أن تركه اختبارٌ آخر في البيئة.
+    import db_persist
+
+    monkeypatch.setattr(db_persist, "DATABASE_URL", "")
+    for var in ("SAHOOL_ENV", "APP_ENV", "ENV", "ENVIRONMENT"):
+        monkeypatch.delenv(var, raising=False)
     raster_main._layers.clear()
     raster_main._field_layers.clear()
     raster_main._field_owner_cache.clear()
@@ -147,7 +155,7 @@ async def test_missing_tenant_with_owned_field_forbidden(rm):
 
 # ─── حقل مجهول / قاعدة متعذّرة: لا حجب (لا تسريب، لا رفض زائف) ──────
 async def test_unknown_field_no_decision(rm):
-    """حقل لا طبقة له ولا في fields (المالك None) ⇒ لا حجب (لا بيانات تُسرَّب)."""
+    """وضعٌ بلا قاعدة: حقل لا طبقة له (المالك None) ⇒ لا حجب. مع قاعدة/إنتاج ⇒ رفض (G-H1)."""
     rm._REQ_TENANT.set("tenant_b")
     await rm._require_field_tenant("field_never_seen")  # لا يرفع
 

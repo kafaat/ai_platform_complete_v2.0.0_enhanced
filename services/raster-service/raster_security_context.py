@@ -128,15 +128,40 @@ async def require_field_tenant(
             field_layers[field_id] = kept
         return
 
-    # DB-less/field not known: fall back to in-memory defense only.
+    # G-H1: الحقل غير معروف لمصدر الملكيّة. كان هذا الفرع يمرّر الطلب ما لم تُثبت
+    # الذاكرة مالكاً **آخر** — «لا دليل ⇒ مسموح» — فأيّ مستخدم مُصادَق يسمّي ``field_id``
+    # غيرَ موجود يصيّر بلاطات CDSE على الحصّة المشتركة. الرفض بالرمز نفسه المُعاد لحقل
+    # مستأجِرٍ آخر، كي لا يُميَّز «غير موجود» من «ليس لك».
+    denied = HTTPException(
+        404 if hide_existence else 403,
+        "الحقل غير موجود" if hide_existence else "الحقل لا يخصّ مستأجِرك",
+    )
+    if _ownership_source_expected(db_persist):
+        # القاعدة مُهيّأة (أو الإنتاج): مالكٌ غائب يعني حقلاً غير موجود ⇒ fail-closed.
+        logger.warning("refusing field with no owner in fields table field=%s", field_id)
+        raise denied
+
+    # وضعٌ بلا قاعدة مقصود (تطوير/اختبار، خارج الإنتاج): لا مصدر ملكيّة أصلاً، فيبقى
+    # دفاع الذاكرة وحده — طبقةٌ مخبّأة لمستأجِرٍ آخر ⇒ رفض.
     for lid in field_layers.get(field_id, []):
         lyr = layers.get(lid)
         cached_owner = lyr.get("tenant_id") if lyr else None
         if cached_owner and cached_owner != req_tenant:
-            raise HTTPException(
-                404 if hide_existence else 403,
-                "الحقل غير موجود" if hide_existence else "الحقل لا يخصّ مستأجِرك",
-            )
+            raise denied
+
+
+_PRODUCTION_ENV_VARS = ("SAHOOL_ENV", "APP_ENV", "ENV", "ENVIRONMENT")
+
+
+def _ownership_source_expected(db_module) -> bool:
+    """هل يجب أن يُعرَف مالكُ كلّ حقل؟ نعم متى هُيّئت القاعدة، ودائماً في الإنتاج.
+
+    الإنتاج بلا ``DATABASE_URL`` تهيئةٌ مكسورة لا «وضعٌ بلا قاعدة»: يُرفَض كلّ حقل غير
+    مُثبَت الملكيّة بدل فتح البلاطات لكلّ مُصادَق (نفس قاعدة ``secret_guard.is_production``).
+    """
+    if getattr(db_module, "DATABASE_URL", ""):
+        return True
+    return any(os.getenv(v, "").strip().lower() == "production" for v in _PRODUCTION_ENV_VARS)
 
 
 def require_layer_tenant(layer_id: str, *, layers: dict[str, dict]) -> None:
