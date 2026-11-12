@@ -2210,10 +2210,15 @@ def _plan_not_started(planned_start: Any, now: datetime) -> bool:
 
 
 def _opens_water(layers: list[dict[str, Any]]) -> bool:
-    """Unless every command named in the envelope is a safe-direction close/stop, it may open."""
+    """Unless every command named in the envelope is a safe-direction close/stop, it may open.
+
+    Reads both ``command`` and ``cmd`` on both layers: the actuator's parser accepts either
+    key (``_parse_dispatch_command``), so a decoy ``payload.command = "close"`` beside an
+    outer ``cmd = "open_valve"`` must not pass as a close.
+    """
     from shared.actuation_killswitch import is_safe_direction
 
-    commands = _layer_values(layers, ("command",))
+    commands = _layer_values(layers, ("command", "cmd"))
     return not commands or not all(is_safe_direction(c) for c in commands)
 
 
