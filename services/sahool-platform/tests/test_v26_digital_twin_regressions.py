@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import math
-
 import pytest
 
 from api.crop_decision_bridge import build_crop_decision_candidate
