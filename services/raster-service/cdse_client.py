@@ -578,18 +578,31 @@ def build_process_payload(
     return payload
 
 
+def backfill_request_bbox(scene: dict, clip: dict | None):
+    """The area a historical/single-scene request asks CDSE for: the FIELD, not the scene.
+
+    ``scene["bbox"]`` is the whole Sentinel-2 tile (~1 degree). Asking for it rendered a
+    2500x2500 image at ~44 m/px (the size cap) instead of the field at 10 m, and spent about
+    two thousand times the field's pixels from the shared CDSE quota. The scene bbox is used
+    only when no field geometry exists at all.
+    """
+    from raster_date_geo import bbox_from_geojson
+
+    field_bbox = bbox_from_geojson(clip) if clip else None
+    return field_bbox or scene.get("bbox")
+
+
 def backfill_request_identity(scene: dict, index: str, clip: dict | None) -> tuple[str, str]:
     import hashlib
 
     from cdse_native_product import request_digest
-    from raster_date_geo import bbox_from_geojson
 
     day = str(scene.get("datetime") or "")[:10]
     if len(day) != 10:
         raise ValueError("cdse_native_request_date_missing")
     payload = build_process_payload(
         index=index,
-        bbox=scene.get("bbox") or bbox_from_geojson(clip),
+        bbox=backfill_request_bbox(scene, clip),
         time_from=f"{day}T00:00:00Z",
         time_to=f"{day}T23:59:59Z",
         geometry=clip,

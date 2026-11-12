@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 687,
+      "evidence_count": 688,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -644,6 +644,7 @@
         "services/vegetation-analysis-service/test_indicator_registry.py",
         "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
         "services/vegetation-analysis-service/test_vegetation_event_admission.py",
+        "services/vegetation-analysis-service/test_vegetation_logic.py",
         "services/vegetation-analysis-service/test_vegetation_production_contract.py",
         "services/vegetation-analysis-service/vegetation_contracts.py",
         "services/vegetation-analysis-service/vegetation_runtime.py",
@@ -2837,7 +2838,7 @@
         "services/sahool-platform/api/routers/decision_explain.py",
         "services/sahool-platform/api/routers/decision_impact.py"
       ],
-      "source_evidence_count": 687,
+      "source_evidence_count": 688,
       "target_evidence_count": 555,
       "static_supported": true,
       "runtime_verified": false
@@ -3275,5 +3276,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "463e56f6d4de9569959d54154b1aa0f66a4e108e6a9e999db9bc05b9537fb737"
+  "content_sha256": "148104c9999fc621313b131c7a5b725bd4104ef0470e33ad7fcf7699e692462a"
 }

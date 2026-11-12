@@ -8714,7 +8714,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 327,
+    "line": 328,
     "method": "POST",
     "path": "/internal/field-forms/versions/{version_id}/retire",
     "handler": "retire_version",
@@ -8723,7 +8723,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 361,
+    "line": 362,
     "method": "POST",
     "path": "/internal/field-forms/assignments",
     "handler": "create_assignment",
@@ -8732,7 +8732,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 393,
+    "line": 394,
     "method": "GET",
     "path": "/internal/field-forms/download",
     "handler": "download_forms",
@@ -8741,7 +8741,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 465,
+    "line": 466,
     "method": "POST",
     "path": "/internal/field-forms/submissions",
     "handler": "submit_form",
