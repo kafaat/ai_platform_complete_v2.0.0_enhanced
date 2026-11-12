@@ -59,7 +59,7 @@ async def request_password_reset(
 
 
 @router.post("/v1/auth/password-reset/confirm")
-async def confirm_password_reset(req: main.PasswordResetConfirm):
+async def confirm_password_reset(req: main.PasswordResetConfirm, request: Request):
     """✅ NEW: Confirm password reset with token."""
     if not main._redis:
         raise HTTPException(503, "Password reset requires Redis")
@@ -75,5 +75,6 @@ async def confirm_password_reset(req: main.PasswordResetConfirm):
     hashed = main.hash_password(req.new_password, main.BCRYPT_ROUNDS)
     await _store_password_hash(user_id, hashed)
     await main.revoke_all_user_sessions(user_id)  # إبطال كلّ الجلسات القائمة بعد إعادة التعيين
-    await main.audit_log("password_reset_confirm", user_id, "system")
+    # R-H3: عنوان العميل لا "system" (يُرفَض في inet)؛ المستأجِر يُحَلّ من user_id.
+    await main.audit_log("password_reset_confirm", user_id, client_ip(request))
     return {"message": "تم تغيير كلمة المرور بنجاح"}

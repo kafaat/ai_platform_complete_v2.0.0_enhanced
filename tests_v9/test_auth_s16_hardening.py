@@ -132,6 +132,7 @@ class _ResetRedis:
 
 def test_two_concurrent_resets_with_one_token_cannot_both_succeed(auth, monkeypatch):
     from fastapi import HTTPException
+    from starlette.requests import Request
 
     router = _router("password_reset")
     stored: list[int] = []
@@ -150,9 +151,10 @@ def test_two_concurrent_resets_with_one_token_cannot_both_succeed(auth, monkeypa
 
     async def race():
         req = auth.PasswordResetConfirm(token="tok", new_password=STRONG)
+        http = Request({"type": "http", "headers": [], "client": ("203.0.113.7", 4321)})
         return await asyncio.gather(
-            router.confirm_password_reset(req),
-            router.confirm_password_reset(req),
+            router.confirm_password_reset(req, http),
+            router.confirm_password_reset(req, http),
             return_exceptions=True,
         )
 
