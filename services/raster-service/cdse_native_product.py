@@ -15,6 +15,8 @@ import tarfile
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from band_math import MIN_REFLECTANCE_DENOMINATOR
+
 SCHEMA = "sahool.cdse_native_product/1"
 MASK_VERSION = "cdse-native-scl-datamask/2"
 MAX_RESPONSE_BYTES = 128 * 1024 * 1024
@@ -102,6 +104,50 @@ def _assert_requested_grid(src, product: NativeProduct) -> None:
         raise ValueError("cdse_native_grid_does_not_match_request")
 
 
+# Mirror the physical domain of band_math.guarded_quotient in both wire formats.
+# Tuples hold the denominator expression and inclusive range.
+_QUOTIENT_DOMAIN = {
+    "evi": ("s.B08 + 6*s.B04 - 7.5*s.B02 + 1", -1, 1),
+    "savi": ("s.B08 + s.B04 + 0.5", -1.5, 1.5),
+    "vari": ("s.B03 + s.B04 - s.B02", -1, 1),
+    "gli": ("2*s.B03 + s.B04 + s.B02", -1, 1),
+    "arvi": ("s.B08 + (2*s.B04 - s.B02)", -1, 1),
+    "sipi": ("s.B08 - s.B04", 0, 2),
+    "ccci": ("(s.B08 - s.B04) / (s.B08 + s.B04)", 0, 1),
+    "msi": ("s.B08", 0, None),
+    "reci": ("s.B05", -1, None),
+    "gci": ("s.B03", -1, None),
+}
+
+
+def index_value_function(index, bands, expression):
+    """Generate one scalar evaluator shared by the scalar and native QA scripts."""
+    if index not in _QUOTIENT_DOMAIN:
+        return f"function indexValue(s) {{ return {expression}; }}\n"
+    denominator, lo, hi = _QUOTIENT_DOMAIN[index]
+    inputs = ", ".join(f"s.{band}" for band in bands)
+    within_upper = "" if hi is None else f" && v <= {hi}"
+    endpoint = ""
+    if index == "sipi":
+        # Sentinel-2 reflectances are delivered at float32 precision. Keep a
+        # rounded physical endpoint without admitting a one-DN overshoot.
+        endpoint = (
+            "  const excess = (s.B08 - s.B02) - 2*den;\n"
+            "  const tol = Math.pow(2,-23) * (s.B08 + 2*s.B04 + s.B02);\n"
+            "  if (excess > 0 && excess <= tol) v = 2;\n"
+        )
+    return (
+        "function indexValue(s) {\n"
+        f"  if (![{inputs}].every(x => Number.isFinite(x) && x >= 0)) return NaN;\n"
+        f"  const den = {denominator};\n"
+        f"  if (!Number.isFinite(den) || den < {MIN_REFLECTANCE_DENOMINATOR}) return NaN;\n"
+        f"  let v = {expression};\n"
+        f"{endpoint}"
+        f"  return Number.isFinite(v) && v >= {lo}{within_upper} ? v : NaN;\n"
+        "}\n"
+    )
+
+
 def build_evalscript(index: str, expressions: dict) -> str:
     if index not in expressions:
         raise ValueError("unsupported_cdse_native_indicator")
@@ -112,10 +158,11 @@ def build_evalscript(index: str, expressions: dict) -> str:
         "function setup() { return { "
         f"input: [{{bands: {inputs}}}], "
         'output: {bands: 4, sampleType: "FLOAT32"}, mosaicking: "TILE" }; }\n'
+        f"{index_value_function(index, bands, expression)}"
         "function evaluatePixel(samples) {\n"
         "  for (let i = 0; i < samples.length; i++) {\n"
         "    const s = samples[i];\n"
-        f"    if (s.dataMask === 1) {{ const v = {expression}; "
+        "    if (s.dataMask === 1) { const v = indexValue(s); "
         "return [v, s.SCL, s.dataMask, i + 1]; }\n"
         "  }\n"
         "  return [NaN, 0, 0, 0];\n"

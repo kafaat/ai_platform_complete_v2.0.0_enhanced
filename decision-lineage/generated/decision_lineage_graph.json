@@ -738,7 +738,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 559,
+      "evidence_count": 561,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -907,6 +907,8 @@
         "services/raster-service/stac_search.py",
         "services/raster-service/terrain_source_registry.py",
         "services/raster-service/test_cdse_native_product.py",
+        "services/raster-service/test_cdse_timeline_pg.py",
+        "services/raster-service/test_layer_lookup_chronology.py",
         "services/realtime-agent/realtime_agent/providers.py",
         "services/realtime-session/realtime_session/engine.py",
         "services/realtime-session/realtime_session/store.py",
@@ -2392,7 +2394,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 346,
+      "evidence_count": 347,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2510,6 +2512,7 @@
         "services/raster-service/stac_search.py",
         "services/raster-service/stac_vrt.py",
         "services/raster-service/test_element84_vrt_defect_witnesses.py",
+        "services/raster-service/test_quotient_index_validity.py",
         "services/raster-service/test_raster_batch_postgres_integration.py",
         "services/raster-service/test_stac_c1_processing.py",
         "services/realtime-session/realtime_session/body_limit.py",
@@ -2874,7 +2877,7 @@
         "services/sahool-platform/api/routers/decision_confidence.py"
       ],
       "source_evidence_count": 692,
-      "target_evidence_count": 559,
+      "target_evidence_count": 561,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2985,7 +2988,7 @@
         "services/sahool-platform/tests/test_irrigation_ac1_binding.py",
         "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py"
       ],
-      "source_evidence_count": 559,
+      "source_evidence_count": 561,
       "target_evidence_count": 202,
       "static_supported": true,
       "runtime_verified": false
@@ -3314,7 +3317,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 58,
-      "target_evidence_count": 346,
+      "target_evidence_count": 347,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3324,5 +3327,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "9643b1e65a24c8ce4c7024168dd52b48c6030919880b6509bbced3425442829a"
+  "content_sha256": "fe8ea32e41fa367876b01802413f72baeb90743248412ed455d60bb235d24e44"
 }
