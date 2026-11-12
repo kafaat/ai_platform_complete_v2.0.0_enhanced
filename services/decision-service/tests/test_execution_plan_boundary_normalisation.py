@@ -104,6 +104,33 @@ def test_execution_request_match_is_not_loosened_on_case():
     assert reason == "operation_type_mismatch"
 
 
+def _request(operation_type):
+    return SimpleNamespace(
+        execution_plan_id="xplan_1",
+        decision_id="dec_1",
+        target_type="valve",
+        target_id="valve-1",
+        operation_type=operation_type,
+        command_payload={"command": "close_valve"},
+    )
+
+
+def test_execution_request_is_stored_and_hashed_trimmed_so_a_padded_retry_replays():
+    """A request accepted as " manual_irrigation " is stored, hashed and published as the plan's
+    canonical value, so a retry that differs only in padding replays instead of a 409."""
+    padded = _request(" manual_irrigation ")
+    plain = _request("manual_irrigation")
+    assert persistence._request_operation_type(padded) == "manual_irrigation"
+    assert persistence._execution_request_hash(
+        dispatch_authorization_id="auth_1", payload=padded
+    ) == persistence._execution_request_hash(dispatch_authorization_id="auth_1", payload=plain)
+    source = inspect.getsource(persistence.create_execution_request)
+    assert "payload.operation_type" not in source, (
+        "the stored row and outbox payload must carry _request_operation_type(payload), "
+        "not the raw request value"
+    )
+
+
 # ── HTTP boundary ────────────────────────────────────────────────────────────────────────────
 
 
@@ -202,3 +229,44 @@ def test_aware_ordered_window_is_accepted_and_inverted_window_refused(client):
     )
     assert inverted.status_code == 422
     assert writer.call_count == 1
+
+
+# ── learning monitoring snapshot: same mixed-timezone class ──────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "start,end",
+    [
+        ("2026-11-01T00:00:00", "2026-11-02T00:00:00+00:00"),
+        ("2026-11-01T00:00:00+00:00", "2026-11-02T00:00:00"),
+        ("2026-11-01T00:00:00", "2026-11-02T00:00:00"),
+    ],
+)
+def test_monitoring_snapshot_naive_window_is_a_422_not_a_500(monkeypatch, start, end):
+    import main
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("DECISION_SERVICE_AUTH_TOKEN", TOKEN)
+    monkeypatch.setattr(main, "sor_enabled", lambda: True)
+    writer = AsyncMock(return_value={"status": "ok"})
+    monkeypatch.setattr(main, "record_monitoring_snapshot", writer)
+    test_client = TestClient(main.app, raise_server_exceptions=False)
+    response = test_client.post(
+        "/v1/learning/monitoring-snapshots",
+        json={
+            "model_id": "m1",
+            "target_environment": "staging",
+            "window_start": start,
+            "window_end": end,
+            "sample_count": 10,
+            "drift_state": "stable",
+            "idempotency_key": "snap-1",
+        },
+        headers={
+            "Authorization": f"Bearer {TOKEN}",
+            "X-Tenant-ID": TENANT,
+            "X-Captured-By": "monitor",
+        },
+    )
+    assert response.status_code == 422, response.text
+    writer.assert_not_called()

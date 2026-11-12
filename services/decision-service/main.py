@@ -2704,6 +2704,11 @@ async def monitoring_snapshot_boundary(
     actor = (x_captured_by or "").strip()
     if not actor:
         raise HTTPException(status_code=400, detail="X-Captured-By is required")
+    # Same defect class as DECISION-PLAN-MIXED-TIMEZONE-500-01: a naive bound against an aware one
+    # made ``window_end <= window_start`` raise TypeError (HTTP 500).
+    for name in ("window_start", "window_end"):
+        if getattr(payload, name).tzinfo is None:
+            raise HTTPException(status_code=422, detail=f"{name} must carry a timezone")
     if (
         payload.drift_state not in {"stable", "warning", "critical"}
         or payload.sample_count < 0

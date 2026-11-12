@@ -340,7 +340,11 @@ async def tool_create_procurement(args: dict) -> dict:
                 it["product_name"],
                 float(it["quantity"]),
                 it.get("unit", "kg"),
-                float(it.get("max_unit_price_usd", 0)),
+                # Unusable price (missing, ≤0, NaN, ±inf, non-numeric) is stored as 0 — the
+                # column's own "unpriced" value (v229: NOT NULL DEFAULT 0, CHECK >= 0) — and the
+                # order already waits for approval above. float() persisted NaN/inf, a negative
+                # hit the CHECK as a 500, and "abc" raised before the insert.
+                _positive_finite(it.get("max_unit_price_usd")) or 0.0,
                 it.get("notes", ""),
             )
         if auto_approved:

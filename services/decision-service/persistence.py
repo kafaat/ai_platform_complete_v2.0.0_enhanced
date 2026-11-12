@@ -1992,6 +1992,15 @@ async def authorize_dispatch(
         await conn.close()
 
 
+def _request_operation_type(payload: Any) -> str:
+    """The execution request's operation as stored, hashed and published: trimmed only.
+
+    ``_execution_request_plan_violation`` accepts a request only when this value equals the plan's
+    canonical operation, so every accepted request is stored canonical. Case is not loosened.
+    """
+    return str(payload.operation_type or "").strip()
+
+
 def _execution_request_hash(*, dispatch_authorization_id: str, payload: Any) -> str:
     blob = json.dumps(
         {
@@ -2000,7 +2009,9 @@ def _execution_request_hash(*, dispatch_authorization_id: str, payload: Any) -> 
             "decision_id": payload.decision_id,
             "target_type": payload.target_type,
             "target_id": payload.target_id,
-            "operation_type": payload.operation_type,
+            # Hashed as stored: trimmed (the plan match already requires the trimmed value to equal
+            # the canonical plan operation), so a retry that differs only in padding replays.
+            "operation_type": _request_operation_type(payload),
             "command_payload": payload.command_payload,
         },
         sort_keys=True,
@@ -2305,7 +2316,7 @@ def _execution_request_plan_violation(plan: Any, payload: Any, *, now: datetime)
     # The plan side is canonicalised (legacy rows may be padded/case-variant); the request must
     # name that canonical operation — case is not loosened here, only surrounding whitespace.
     plan_operation = normalize_operation_type(plan.get("plan_operation_type"))
-    if str(payload.operation_type or "").strip() != plan_operation:
+    if _request_operation_type(payload) != plan_operation:
         return "operation_type_mismatch"
 
     layers = _command_layers(payload.command_payload)
@@ -2433,7 +2444,7 @@ async def create_execution_request(
                 payload.decision_id,
                 payload.target_type,
                 payload.target_id,
-                payload.operation_type,
+                _request_operation_type(payload),
                 _json(payload.command_payload),
                 payload.idempotency_key,
                 request_hash,
@@ -2451,7 +2462,7 @@ async def create_execution_request(
                     "dispatch_authorization_id": dispatch_authorization_id,
                     "target_type": payload.target_type,
                     "target_id": payload.target_id,
-                    "operation_type": payload.operation_type,
+                    "operation_type": _request_operation_type(payload),
                     "status": "queued",
                 },
             )

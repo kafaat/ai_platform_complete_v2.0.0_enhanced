@@ -237,6 +237,20 @@ async def test_market_unpriced_item_is_never_auto_approved(market, price):
     assert _final_status(conns[-1]) == "pending_approval"
 
 
+@pytest.mark.parametrize("price", [-5, 0, "NaN", "Infinity", float("inf"), "abc", None], ids=repr)
+async def test_market_unusable_item_price_is_stored_as_unpriced_zero(market, price):
+    """v229 stores max_unit_price_usd NOT NULL DEFAULT 0 CHECK (>= 0): an unusable price is kept as
+    0 ("unpriced"), never NaN/inf, a negative that trips the CHECK, or a 500 on "abc"."""
+    module, conns = market
+    item = {"product_name": "seed", "quantity": 1}
+    if price is not None:
+        item["max_unit_price_usd"] = price
+    result = await _procure(module, [item])
+    assert result["status"] == "pending_approval"
+    item_inserts = [p for sql, p in conns[-1].statements if "market_procurement_items" in sql]
+    assert item_inserts and item_inserts[0][6] == 0.0, item_inserts
+
+
 async def test_market_small_fully_priced_order_is_still_auto_approved(market):
     module, conns = market
     items = [{"product_name": "urea", "quantity": 2, "max_unit_price_usd": 10}]
