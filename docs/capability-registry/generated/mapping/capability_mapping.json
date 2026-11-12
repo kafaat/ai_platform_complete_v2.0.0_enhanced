@@ -15,21 +15,21 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7158,
+    "files_scanned": 7160,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
-      "mobile": 414,
+      "mobile": 415,
       "other": 2163,
-      "tests": 2402,
+      "tests": 2403,
       "web": 524
     },
     "unmapped_artifacts": 3409,
     "ambiguous_artifacts": 233,
     "files_by_reading": {
       "python_functional": 3855,
-      "raw": 3303
+      "raw": 3305
     },
     "test_dependency_files": 1808,
     "test_dependency_edges": 4576,
@@ -14197,6 +14197,15 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/lib/features/scouting/presentation/disease_symptoms_dialog.dart",
+          "score": 14,
+          "signals": [
+            "path:Scouting",
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/lib/features/scouting/data/device_sources.dart",
           "score": 13,
           "signals": [
@@ -14289,6 +14298,15 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
+          "score": 12,
+          "signals": [
+            "path:Scouting",
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "tests_v9/test_cropwise_evidence_quality.py",
           "score": 8,
           "signals": [
@@ -14326,8 +14344,8 @@
         "database": 4,
         "events": 7,
         "web": 6,
-        "mobile": 16,
-        "tests": 11,
+        "mobile": 17,
+        "tests": 12,
         "governance": 0,
         "other_evidence": 1
       },
