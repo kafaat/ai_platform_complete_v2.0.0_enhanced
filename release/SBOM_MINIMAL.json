@@ -4785,7 +4785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69c051a8db123c0f3eb777d4343e9ae27e9330ab57afaecb91c2e48b630b3e99"
+          "content": "0d762c9833f8ecdce92fa411d151527f33e4a5ae800e3f7e70a33cebb8efb3ed"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6355,7 +6355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2767d7dfdb9f4910f636f9854097a12cdd8b2cb976e2f52629925f8ad7aa22e4"
+          "content": "b1a7891763cde9b23a303f01e77dd0b30bd35d4c9cd33dcdc81a576c3746d5c3"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -26055,7 +26055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a48062177785614b95943ef1c75a0503a0cebae8cee477091843620008b603d"
+          "content": "f54c6f223d1be4f42e873bf0d4b881a5de51a593f25103717fe3c1d429ab2a74"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -27029,6 +27029,16 @@
         }
       ],
       "name": "services/sahool-platform/api/scheduler.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "47d738f5fd48ea38382b8889261149e62e804e74f8ce2cd63c1f3782e260eb5f"
+        }
+      ],
+      "name": "services/sahool-platform/api/scouting_pin_store.py",
       "type": "file"
     },
     {

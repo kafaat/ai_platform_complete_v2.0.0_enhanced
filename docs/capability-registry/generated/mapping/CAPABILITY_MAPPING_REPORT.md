@@ -12,7 +12,7 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **42**
-- Files scanned: **7139**
+- Files scanned: **7140**
 - Ambiguous artifacts queued: **234**
 - Unmapped artifacts queued: **3395**
 
@@ -58,7 +58,7 @@
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-001 | operations | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
 | OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 6 | 6 |
-| OPS-003 | operations | 3 | 2 | 4 | 7 | 6 | 16 | 11 | 7 |
+| OPS-003 | operations | 4 | 2 | 4 | 7 | 6 | 16 | 11 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 28 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 14 | 1 | 13 | 11 | 7 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |

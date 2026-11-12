@@ -1,5 +1,5 @@
 {
-  "edge_count": 932,
+  "edge_count": 934,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -3072,6 +3072,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/scouting_pin_store.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/weather_service_client.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4122,7 +4132,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/fields.py",
+      "evidence": "services/sahool-platform/api/routers/scouting.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -4132,7 +4142,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/scouting.py",
+      "evidence": "services/sahool-platform/api/scouting_pin_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8662,7 +8672,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/fields.py",
+      "evidence": "services/sahool-platform/api/scouting_pin_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9350,7 +9360,7 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 479,
+    "READS": 481,
     "ROUTES_TO": 72,
     "WRITES": 329
   },
@@ -9367,8 +9377,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 809,
-      "resolved": 808,
+      "observed": 811,
+      "resolved": 810,
       "unresolved_component_paths": 0
     }
   }
