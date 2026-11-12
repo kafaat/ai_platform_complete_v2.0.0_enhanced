@@ -379,6 +379,7 @@ export default function FieldIndicatorMap({
         {tileAvailable === true && (
           <TileLayer
             key={`${fieldId}-${normalizedIndex}-${date}-${tileCacheVersion ?? 'default'}`}
+            className="sahool-indicator-pixels"
             url={tilesUrl}
             opacity={opacity}
             // المؤشر مقصوص بالفعل على الحقل من الـ backend؛ نتجنّب أخطاء 404 صاخبة

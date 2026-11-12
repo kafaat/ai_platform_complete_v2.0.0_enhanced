@@ -26,6 +26,7 @@ const mockState = vi.hoisted(() => ({
   // حين false يُحاكي jsdom (لا سياق webgl) فيسلك المكوّن المسار الاحتياطيّ الأمين.
   webglOk: true,
   // مصادر addSource المسجَّلة (id + spec) — لِتأكيد رابط بلاطات المؤشّر الفعليّ.
+  layers: [] as Array<{ id: string; source?: string; paint?: Record<string, unknown> }>,
   sources: [] as Array<{ id: string; spec: { tiles?: string[] } }>,
 }));
 const { markerInstances, mapInstances } = mockState;
@@ -56,7 +57,10 @@ vi.mock('maplibre-gl', () => {
       mockState.sources.push({ id, spec });
       return this;
     }
-    addLayer() { return this; }
+    addLayer(layer: typeof mockState.layers[number]) {
+      mockState.layers.push(layer);
+      return this;
+    }
     getSource() { return { setData() {} }; }
     getLayer() { return undefined; }
     getStyle() { return { layers: [] as Array<{ id: string }> }; }
@@ -148,6 +152,7 @@ beforeEach(() => {
   markerInstances.length = 0;
   mapInstances.length = 0;
   mockState.sources.length = 0;
+  mockState.layers.length = 0;
 });
 
 describe('HubMapGL — تظليل MapLibre GL (تغطية أسلاك/منطق)', () => {
@@ -235,5 +240,10 @@ describe('HubMapGL — تظليل MapLibre GL (تغطية أسلاك/منطق)',
     const last = lastTile();
     expect(last).toContain('/v1/fields/f1/tiles/');
     expect(last).not.toContain('cdse-tiles');
+    const indicatorLayers = mockState.layers.filter((layer) => layer.source === 'sahool-indicator');
+    expect(indicatorLayers.length).toBeGreaterThan(0);
+    for (const layer of indicatorLayers) {
+      expect(layer.paint).toMatchObject({ 'raster-resampling': 'nearest', 'raster-fade-duration': 0 });
+    }
   });
 });

@@ -232,6 +232,12 @@ export interface IndicatorGridResponse {
   // هويّة الشبكة بنظام CRS المصدر: transform [a,b,c,d,e,f] يربط (col,row) بالإحداثيّات
   // الأصليّة (bbox غلاف مُحوَّل فقط). null حين يجهل الخادم CRS/مراجعة الهندسة.
   grid_identity?: GridIdentity | null;
+  spatial_sampling?: {
+    native_band_resolution_m: Record<string, number> | null;
+    output_pixel_size_m: [number, number] | null;
+    resampling_method: string | null;
+  } | null;
+  indicator_product?: { provenance?: { scene_id?: string | null } | null } | null;
   stats: { min: number; max: number; mean: number };
   zones: IndicatorGridZone[];
   source: string;

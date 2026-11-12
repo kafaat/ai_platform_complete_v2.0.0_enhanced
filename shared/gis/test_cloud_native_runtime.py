@@ -119,3 +119,40 @@ def test_unknown_cloud_cover_keeps_a_lower_persisted_score_and_known_cover_keeps
     assert record_from_db_row(_row(cloud_pct=None, quality_score="55")).quality_score == 55
     # Known cover: the persisted score is the registry's own judgement and stays as stored.
     assert record_from_db_row(_row(cloud_pct=12, quality_score=100)).quality_score == 100
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "resolution", [None, 0, -1, float("nan"), float("inf"), "invalid", False, 7.5]
+)
+def test_registry_and_stac_preserve_only_measured_resolution(resolution):
+    rec = record_from_db_row(_row(resolution_m=resolution))
+    props = stac_item_from_record(rec)["properties"]
+    if resolution == 7.5:
+        assert rec.resolution_m == 7.5
+        assert "gsd" not in props
+    else:
+        assert rec.resolution_m is None
+        assert "gsd" not in props
+
+
+@pytest.mark.unit
+def test_stac_sampling_keeps_native_resolution_separate_from_output_grid():
+    sampling = {
+        "native_band_resolution_m": {"B11": 20},
+        "output_pixel_size_m": [7.5, 8],
+        "resampling_method": "bilinear",
+    }
+    record = record_from_db_row(_row(resolution_m=7.5, metadata={"spatial_sampling": sampling}))
+    props = stac_item_from_record(record)["properties"]
+    assert props["gsd"] == 20
+    assert props["sahool:spatial_sampling"] == sampling
+
+
+@pytest.mark.unit
+def test_stac_mixed_native_bands_keep_per_band_values_without_single_gsd():
+    sampling = {"native_band_resolution_m": {"nir": 10, "swir1": 20}, "output_pixel_size_m": [1, 1]}
+    record = record_from_db_row(_row(resolution_m=1, metadata={"spatial_sampling": sampling}))
+    props = stac_item_from_record(record)["properties"]
+    assert "gsd" not in props
+    assert props["sahool:spatial_sampling"] == sampling

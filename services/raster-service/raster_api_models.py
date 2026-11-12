@@ -110,6 +110,7 @@ class BandMapping(BaseModel):
 
 class ProcessRequest(BaseModel):
     # Internal request-bound provider receipt; never accepted from API JSON.
+    _spatial_sampling: dict | None = PrivateAttr(default=None)
     _cdse_native_product: object = PrivateAttr(default=None)
     tenant_id: str
     field_id: str | None = None
