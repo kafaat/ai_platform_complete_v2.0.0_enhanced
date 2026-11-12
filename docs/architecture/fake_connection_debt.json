@@ -643,6 +643,16 @@
         "services/sahool-platform/tests/test_field_auto_imagery_revision.py"
       ],
       "justification": "Satellite-field continuation port. The stand-in (SimpleNamespace conn with execute/fetchval/transaction and a patched get_pool) pins two hand-offs only: create_field passes the committed geometry_revision to trigger_field_imagery_processing, and the legacy-receipt path recovers a revision only when the current geometry for the same tenant matches. It claims nothing about what PostgreSQL enforces. The overlap guard, the per-tenant advisory lock, self-exclusion on edit and tenant scoping run against a real PostGIS in services/sahool-platform/tests/test_field_overlap_postgis.py (SAHOOL_FIELD_POSTGIS_TEST_URL), and the end-to-end revision rejection (raster answers 409 stale_geometry_revision to the delayed create-time task) was measured live as sahool_app under RLS before this PR."
+    },
+    {
+      "kind": "auth_enrollment_asgi_crypto_boundary_20261111",
+      "date": "2026-11-11",
+      "before": 132,
+      "after": 133,
+      "sites": [
+        "tests_v9/test_auth_enrollment_http.py"
+      ],
+      "justification": "Explicit one-file admission for the MFA enrollment and refresh HTTP regression suite. FakeConnection and FakePool supply selected user-row fields and record or simulate conditional SQL outcomes so the actual imported FastAPI application, bearer dependencies, HS256/RS256 verification, bcrypt, Fernet and TOTP can be exercised without PostgreSQL. The account-change race cases mutate synthetic rows before the modeled UPDATE and assert handler refusal; they do not prove PostgreSQL transaction isolation, row locking, RLS, trigger/constraint enforcement or concurrent database behavior. Redis is also a boundary double in this file, so GETDEL and TTL/distributed guarantees are not certified by its green result. These tests pin application control flow and authorization scope; live database and Redis enforcement remain unmeasured here. No proven_live exemption, budget increase or database-enforcement claim is added."
     }
   ]
 }
