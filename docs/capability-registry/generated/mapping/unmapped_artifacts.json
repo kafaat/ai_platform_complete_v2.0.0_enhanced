@@ -9484,6 +9484,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/soil-service/jsonb_values.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/soil-service/main.py",
     "kind": "backend"
   },

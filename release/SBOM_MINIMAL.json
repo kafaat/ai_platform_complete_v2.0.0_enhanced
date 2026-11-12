@@ -7575,7 +7575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a37fd7108cba66ccb91ce187cc41fbc4ccbc5168b7954dcb9056f262ab56f20b"
+          "content": "d7904bfd21cd6edb0aaec6f3ba2b920cb1c23f11b0504553f719491f43d6158b"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -7585,7 +7585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a9dd7a2c357a4cf92f3e979cd1789e4124505efe0a9c3518873c136db9edd728"
+          "content": "8851a9ca4efe1f6c14dc3dc4750adcf1a131109c26f84c0f943986fc0b624b34"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
@@ -18145,7 +18145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5f9cff16a4add100e5fb63fe8cb19ea5ebeffddba012a195138dd98fec009b8"
+          "content": "e10e753edd2e0c9ad19300974e517fafec571bd5cc54d4f7a7d13dd5376c74ac"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -25905,7 +25905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc1184eb383b02fd21cffa63ae83bcfe1f99a622138d202d9c02740a89ef30d5"
+          "content": "f37862994cabb12e0ed3c4b651898255aa19f8abdbcda0a6da6ee529dc42e23a"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -26245,7 +26245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6eaaf7715a2c9b3b29658b0cbefa8b227c4f6a8c6970a46b1fbffd9720d17926"
+          "content": "6fbfca5ca590d0102b2f77bd43d0ccb88801765baafdbe21675419a63c22010d"
         }
       ],
       "name": "services/sahool-platform/api/routers/notifications.py",
@@ -26465,7 +26465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "094e9699f105a82c1eda1c2946cd5365b87729198a2379c4d4d612c30a402f99"
+          "content": "b5976aaef4a30170b87bd7396c0159064bf902c004fad89afaa69234419a3e0c"
         }
       ],
       "name": "services/sahool-platform/api/routers/recommendations.py",
@@ -36425,7 +36425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7464115433224bc671d4df732821bc97a432926cc62dd354615d4ea32889eb6c"
+          "content": "c624fe08812d6300664cf25fd48e62a8f719832f50714827d38ba88e5203b25a"
         }
       ],
       "name": "services/scout-ingest-service/tests/test_ingest_live.py",
@@ -36495,6 +36495,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "df6af5086f6a107d1c2799b39a1eb7afe441b5eac526e5af63f76c1ed0293541"
+        }
+      ],
+      "name": "services/soil-service/jsonb_values.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cac2588d04d260ca08851b4d1942d6cbf6db89a0dd2342c340635ae28f2b2863"
         }
       ],
@@ -36525,7 +36535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40ed7710e556d89474f033543756f19ae207331ced906e4bc510ffacfe7a0b30"
+          "content": "2ea416b79944315fe8f54b78b2e8c338e81f51051bd5ba486aa1be5e5cad2336"
         }
       ],
       "name": "services/soil-service/p1_store.py",
@@ -36545,7 +36555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "34456f9958b473170688e4d75b8127b3e9981c843a621e8cc65968745e109775"
+          "content": "e761493a75cd25db67bff7a59e867e52f14d14564678fdb551f479f0e6e5a736"
         }
       ],
       "name": "services/soil-service/p2_store.py",
@@ -36565,7 +36575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "713bb6a58ddb73394d148ce72b6232dc6ef88f01c246c39507caa95676cd7537"
+          "content": "9824465384e0a5e5e9072118c1d8e2e5cd84aac7636d3143345c22c6d557f722"
         }
       ],
       "name": "services/soil-service/p3_store.py",
@@ -36705,7 +36715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e4fccccb5da7b7b0cd24d2c00224042db44e75bd4225115cd70c029ee265620"
+          "content": "6728f780b28974dcdd27c0b496dd9046380ebb4ad661eb1a0f6048d61d963422"
         }
       ],
       "name": "services/soil-service/routers/p1_products.py",
@@ -36795,7 +36805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d18ef61435ba82b1606b91d78a27f28a16d8645372d3e51193def8d3b890eb2"
+          "content": "45d920bb98d66147b7e3f83790a70f3ef36a2691b85d75ece60fa471c2be18b8"
         }
       ],
       "name": "services/soil-service/soil_store.py",
@@ -36885,7 +36895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7c48c338850f4fb6237f0590966c5f27c7d040a546b511e22a3a9002def920c1"
+          "content": "1ce124bc5bc494b79c7507a3ac87c616ae929c17c18e5286f6a68d1a2ce0f44a"
         }
       ],
       "name": "services/soil-service/test_soil_p1_products.py",
