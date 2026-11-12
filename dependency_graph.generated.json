@@ -1,5 +1,5 @@
 {
-  "edge_count": 931,
+  "edge_count": 932,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -9357,8 +9357,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 808,
-      "resolved": 807,
+      "observed": 809,
+      "resolved": 808,
       "unresolved_component_paths": 0
     }
   }
