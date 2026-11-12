@@ -268,7 +268,7 @@ review_decisions,v_ai_recommendation_runtime.sql,111,False,True,True,1,True,Fals
 runtime_event_outbox,v106_phase9_10_runtime_strengthening.sql,112,True,True,True,2,True,False,0,1
 salinity_evidence_observations,v225_canonical_salinity_state.sql,222,True,True,True,1,True,False,0,1
 scenario_runs,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
-scouting_pins,v94_scouting_pins.sql,99,True,True,True,2,True,False,1,1
+scouting_pins,v94_scouting_pins.sql,99,True,True,True,2,True,False,2,1
 season_cost_items,v201_season_records.sql,206,True,False,False,0,False,True,2,2
 season_crop,v201_season_records.sql,206,True,False,False,0,False,True,3,2
 season_events,v201_season_records.sql,206,True,False,False,0,False,True,4,2

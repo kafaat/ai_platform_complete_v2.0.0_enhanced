@@ -6114,6 +6114,7 @@
     },
     {
       "code_readers": [
+        "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/scouting.py"
       ],
       "code_writers": [

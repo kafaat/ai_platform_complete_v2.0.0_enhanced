@@ -1905,7 +1905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fbeeb43c1381df13a12739acaf5c41062cd4d33bc16a5ace3ca2998b76ae67a9"
+          "content": "f1b909e013eb5064593bae1634d6cecda92c3cb6b0c710f9755321223c70b2a6"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.basemap.test.tsx",
@@ -1915,7 +1915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0cdc6fe27b3b7a4ae5b78703cd88350e5f9f89f8259f46cb392c0ecccc751d2a"
+          "content": "89fb146627c566eb6ef978fee309f405dd3402764aa0422e9649dc875dc4c099"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.test.tsx",
@@ -1925,7 +1925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "83bb2b4c489c136ec46947dfab0cba42ab5684ab8885d6a0592ab1c7fc640a9a"
+          "content": "966ac730062f5ced1fa075b112decc3f4b409bfb1679ff67ee045c099ff45426"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -3215,7 +3215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d7e14acc3ef01390f7c7922d1234df104e25257601b385b49931975c1a6c412"
+          "content": "5825809c598b11c12657b0d4e03be921b97f76bc0c0bbc34593f1f5b75499aa4"
         }
       ],
       "name": "frontend/src/hooks/useScouting.ts",
@@ -4785,7 +4785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa57965068df72fd30ca7a367851f8dd953d3029ed2cec1027858de4598e590d"
+          "content": "69c051a8db123c0f3eb777d4343e9ae27e9330ab57afaecb91c2e48b630b3e99"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6355,7 +6355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6727f026281b1ed2872107e3c1f04c293f09a68ea4b8df8f53bcc08929a4e03b"
+          "content": "2767d7dfdb9f4910f636f9854097a12cdd8b2cb976e2f52629925f8ad7aa22e4"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -6415,7 +6415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ef8bafd9074a598186aad9546f117e59b8677d70fb9858e63ccfa82f4203596"
+          "content": "2fc9501711fe27b1987983ebbf65b3daf32e688965dcd6f0b21cd8752b5c380c"
         }
       ],
       "name": "frontend/src/sections/MapHubScoutingPinsPersistence.static.test.ts",
@@ -6725,7 +6725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b1483f819ff0b2fe99c7039769676868bb06a2971280c6d5f23689e1082c60a7"
+          "content": "1a9b511a7200af0f0c2571050681fa83999381403f7ffe8eaeed0a2f1bfbf63c"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -13515,7 +13515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1c693bf60fab0e25d93f22bc4b4ddc4e40443dd0f0c8c19742b6c152a62481a1"
+          "content": "55b9c63eef99782cf368d59bd0ff69d837300e967894485a0e4fa5102037305a"
         }
       ],
       "name": "mobile/sahool_app/lib/features/offline_sync/data/durable_offline_outbox.dart",
@@ -13835,7 +13835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1c95bfa431618e69b9222014c3eb34b4d48d5939f66178553794e8281630ea27"
+          "content": "23eb3772fbede2387b9d556fae305cb7b3ae88844df355139142f91c4ea03e82"
         }
       ],
       "name": "mobile/sahool_app/lib/features/scouting/presentation/new_observation_cubit.dart",
@@ -15985,7 +15985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "929d2ffe359e55ee6a57f92ec4f554f4473f60c0a31fcc65f572e7cde84ae560"
+          "content": "75259eb54f0e2c5317de90691052a039957e9f42be317a54e4977983ec883f4e"
         }
       ],
       "name": "mobile/sahool_app/test/features/offline_sync/durable_offline_outbox_test.dart",
@@ -26045,7 +26045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc1184eb383b02fd21cffa63ae83bcfe1f99a622138d202d9c02740a89ef30d5"
+          "content": "6a48062177785614b95943ef1c75a0503a0cebae8cee477091843620008b603d"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
