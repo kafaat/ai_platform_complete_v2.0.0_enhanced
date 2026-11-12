@@ -68,6 +68,8 @@ const URGENCY_AR: Record<IrrigationUrgency, string> = {
 
 const TAW_SOURCE_AR: Record<string, string> = {
   soil_lab: 'مختبر تربة',
+  modelled_from_lab_texture: 'تقدير من قوام عينة المختبر',
+  canonical_root_zone_profile: 'ملف التربة في منطقة الجذور',
   texture_fallback: 'تقدير من القوام (احتياطيّ)',
 };
 
@@ -82,6 +84,8 @@ export default function IrrigationDecisionCard({ fieldId, cropLabel, enabled = t
   const [solarInput, setSolarInput] = useState('');
   const [rhInput, setRhInput] = useState('');
   const [windInput, setWindInput] = useState('');
+  const [recentRain, setRecentRain] = useState('');
+  const [forecastRain, setForecastRain] = useState('');
 
   const weather = useMemo<IrrigationRecommendationWeatherInput | null>(() => {
     const tMin = parseMeasure(tMinInput);
@@ -90,6 +94,8 @@ export default function IrrigationDecisionCard({ fieldId, cropLabel, enabled = t
     const solar = parseMeasure(solarInput);
     const rh = parseMeasure(rhInput);
     const wind = parseMeasure(windInput);
+    const recent = parseMeasure(recentRain);
+    const forecast = parseMeasure(forecastRain);
     return {
       t_min_c: tMin,
       t_max_c: tMax,
@@ -97,8 +103,10 @@ export default function IrrigationDecisionCard({ fieldId, cropLabel, enabled = t
       ...(solar != null ? { solar_rad_mj_m2: solar } : {}),
       ...(rh != null ? { rh_mean_pct: rh } : {}),
       ...(wind != null ? { wind_2m_ms: wind } : {}),
+      ...(recent != null ? { rain_recent_mm: recent } : {}),
+      ...(forecast != null ? { forecast_rain_mm: forecast } : {}),
     };
-  }, [tMinInput, tMaxInput, solarInput, rhInput, windInput]);
+  }, [tMinInput, tMaxInput, solarInput, rhInput, windInput, recentRain, forecastRain]);
 
   const { data, loading, error, refetch } = useFieldIrrigationRecommendation(
     fieldId,
@@ -138,6 +146,10 @@ export default function IrrigationDecisionCard({ fieldId, cropLabel, enabled = t
         <input id="idr-solar" type="number" step="0.1" min="0" value={solarInput} onChange={(e) => setSolarInput(e.target.value)} className="w-16 px-2 py-0.5 rounded-lg text-[11px]" style={inputStyle} />
         <label htmlFor="idr-rh">رطوبة (٪، اختياري):</label>
         <input id="idr-rh" type="number" step="1" min="0" max="100" value={rhInput} onChange={(e) => setRhInput(e.target.value)} className="w-14 px-2 py-0.5 rounded-lg text-[11px]" style={inputStyle} />
+        <label htmlFor="idr-rain-recent">المطر الأخير (مم)</label>
+        <input id="idr-rain-recent" type="number" step="any" min="0" value={recentRain} onChange={e => setRecentRain(e.target.value)} className="w-16 px-2 py-0.5 rounded-lg" style={inputStyle} />
+        <label htmlFor="idr-rain-forecast">المطر المتوقع (مم)</label>
+        <input id="idr-rain-forecast" type="number" step="any" min="0" value={forecastRain} onChange={e => setForecastRain(e.target.value)} className="w-16 px-2 py-0.5 rounded-lg" style={inputStyle} />
         <label htmlFor="idr-wind">ريح (م/ث، اختياري):</label>
         <input id="idr-wind" type="number" step="0.1" min="0" value={windInput} onChange={(e) => setWindInput(e.target.value)} className="w-14 px-2 py-0.5 rounded-lg text-[11px]" style={inputStyle} />
       </div>
@@ -145,7 +157,7 @@ export default function IrrigationDecisionCard({ fieldId, cropLabel, enabled = t
       {/* الحالات — نعالج الثلاث بصدق: بلا مدخلات / تحميل / خطأ / متدهورة / جاهزة */}
       {!fieldId ? (
         <div className="text-[10px]" style={{ color: T.faint }}>لا حقل محدَّد.</div>
-      ) : weather == null ? (
+      ) : weather == null && (tMinInput !== '' || tMaxInput !== '') ? (
         <div className="text-[10px]" style={{ color: T.faint }}>أدخِل الحرارة الصغرى والكبرى (من قياس) ليحسب الخادم ET₀ ثمّ مرشَّح التوصية.</div>
       ) : loading ? (
         <div className="text-[11px]" style={{ color: T.faint }}>جارٍ توليد مرشَّح التوصية…</div>
@@ -203,7 +215,9 @@ export default function IrrigationDecisionCard({ fieldId, cropLabel, enabled = t
                 <ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />
                 {data.status === 'insufficient_data'
                   ? 'بيانات الاستنزاف ناقصة — لا مرشَّح توصية'
-                  : 'حالة غير متّسقة (Dr>TAW) — لا مرشَّح توصية'}
+                  : data.status === 'dependency_unavailable'
+                    ? 'تعذّر الحصول على بيانات خدمة لازمة للتوصية'
+                    : 'حالة غير متّسقة (Dr>TAW) — لا مرشَّح توصية'}
               </div>
               <div className="text-[10px]" style={{ color: T.faint }}>لا أرقام ريّ حتى تُستكمَل/تُصحَّح المدخلات (صدق: لا تلفيق).</div>
             </div>
@@ -224,6 +238,11 @@ export default function IrrigationDecisionCard({ fieldId, cropLabel, enabled = t
               <span style={{ color: T.faint }}>المرحلة:</span> {data.inputs.stage}
             </span>
           </div>
+
+          {data.evidence_ids?.length > 0 && <details className="text-[11px]">
+            <summary>مراجع بيانات التوصية</summary>
+            <ul>{data.evidence_ids.map((ref, index) => <li key={index}><bdi>{ref}</bdi></li>)}</ul>
+          </details>}
 
           {/* دائماً: غير معايَر يمنيّاً + سرد الحدود (calibrated=false من الخادم) */}
           <div className="text-[10px]" style={{ color: '#fdba74' }}>⚠ غير معايَر يمنيّاً (calibrated=false).</div>
