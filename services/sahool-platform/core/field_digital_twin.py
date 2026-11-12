@@ -6,6 +6,7 @@ explicit assumptions. It does not publish recommendations directly.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
@@ -23,40 +24,86 @@ class FieldTwinState:
 
 
 def simulate_irrigation(state: FieldTwinState, irrigation_mm: float) -> FieldTwinState:
-    raw_moisture = state.current.get("soil_moisture_pct")
+    """Screen an instantaneous *net infiltrated* irrigation depth against canonical Dr/TAW.
+
+    An irrigation depth in millimetres is NOT a change in volumetric moisture
+    percentage. Without TAW and depletion from an eligible root-zone product, no
+    post-irrigation value is manufactured. This is a hypothetical screening
+    projection, not a daily FAO-56 balance or an actuator instruction.
+    """
+    if (
+        isinstance(irrigation_mm, bool)
+        or not isinstance(irrigation_mm, (int, float))
+        or not math.isfinite(irrigation_mm)
+        or irrigation_mm < 0
+    ):
+        raise ValueError("irrigation_mm must be a finite nonnegative net depth")
+
     risks = dict(state.risks)
-    if raw_moisture is None:
-        # Unknown moisture is not 0 % (which reads as "high stress"): no prediction.
-        risks["water_stress"] = "unknown"
-        predicted = {**state.predicted, "soil_moisture_pct_after_irrigation": None}
-        return FieldTwinState(
-            state.field_id,
-            state.current,
-            state.expected,
-            predicted,
-            risks,
-            [*state.assumptions, "soil moisture unknown: water stress not simulated"],
+    predicted = dict(state.predicted)
+    dep = state.current.get("depletion_mm")
+    taw = state.current.get("taw_mm")
+    raw = state.current.get("raw_mm")
+    valid_water = (
+        all(
+            isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+            for v in (dep, taw)
         )
-    predicted_moisture = min(100.0, float(raw_moisture) + irrigation_mm * 0.8)
-    risks["water_stress"] = (
-        "low" if predicted_moisture >= 35 else "medium" if predicted_moisture >= 20 else "high"
+        and taw > 0
+        and 0 <= dep <= taw
     )
-    predicted = {
-        **state.predicted,
-        "soil_moisture_pct_after_irrigation": round(predicted_moisture, 2),
-    }
+    if not valid_water:
+        risks["water_stress"] = "unknown"
+        predicted["soil_moisture_pct_after_irrigation"] = None
+        predicted["depletion_mm_after_irrigation"] = None
+        predicted["simulation_status"] = "unavailable_without_canonical_root_zone"
+        return FieldTwinState(
+            field_id=state.field_id,
+            current=state.current,
+            expected=state.expected,
+            predicted=predicted,
+            risks=risks,
+            assumptions=[
+                *state.assumptions,
+                "canonical Dr/TAW missing or invalid: no mm-to-percent conversion",
+            ],
+        )
+
+    dr_after = max(0.0, float(dep) - float(irrigation_mm))
+    predicted["depletion_mm_after_irrigation"] = round(dr_after, 2)
+    predicted["soil_moisture_pct_after_irrigation"] = round(
+        100.0 * (float(taw) - dr_after) / float(taw), 2
+    )
+    predicted["simulation_status"] = "screening_only_net_infiltration"
+    valid_raw = (
+        isinstance(raw, (int, float))
+        and not isinstance(raw, bool)
+        and math.isfinite(raw)
+        and 0 <= raw <= taw
+    )
+    if valid_raw:
+        risks["water_stress"] = (
+            "low" if dr_after <= raw else "medium" if dr_after < taw else "high"
+        )
+    else:
+        risks["water_stress"] = "unknown"
+    assumptions = [
+        *state.assumptions,
+        "instantaneous net infiltration screening; excludes ET, runoff and drainage",
+        "no_execution_authority",
+    ]
+    if irrigation_mm > dep:
+        assumptions.append("net_irrigation_exceeds_depletion: excess water not simulated")
+    if not valid_raw:
+        assumptions.append("RAW unavailable: water-stress classification withheld")
     return FieldTwinState(
         field_id=state.field_id,
         current=state.current,
         expected=state.expected,
         predicted=predicted,
         risks=risks,
-        assumptions=[
-            *state.assumptions,
-            "irrigation efficiency simplified at 0.8 moisture response",
-        ],
+        assumptions=assumptions,
     )
-
 
 def simulate_salinity_risk(state: FieldTwinState) -> FieldTwinState:
     soil_ec = state.current.get("soil_ec_ds_m")
@@ -80,7 +127,8 @@ def build_field_twin_from_canonical_state(state: dict[str, Any]) -> FieldTwinSta
     """
     if state.get("schema_version") != "canonical_field_state.v1":
         raise ValueError("Field Digital Twin requires canonical_field_state.v1")
-    if not state.get("operational_eligible"):
+    propose = (state.get("eligibility") or {}).get("propose") or {}
+    if not state.get("operational_eligible") or propose.get("allowed") is False:
         return FieldTwinState(
             field_id=str(state.get("field_id") or ""),
             current={
@@ -89,7 +137,11 @@ def build_field_twin_from_canonical_state(state: dict[str, Any]) -> FieldTwinSta
                 "as_of_time": state.get("as_of_time"),
             },
             risks={"canonical_inputs": "unknown"},
-            assumptions=list(state.get("limitations") or []),
+            assumptions=[
+                *list(state.get("limitations") or []),
+                *list(propose.get("reasons") or []),
+                "canonical_state_not_eligible_for_twin_simulation",
+            ],
         )
     water = state.get("water") or {}
     soil = state.get("soil") or {}
