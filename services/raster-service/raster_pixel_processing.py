@@ -555,6 +555,11 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         src_crs = src.crs
         b = req.bands
 
+        if not all(i is not None and 1 <= i <= src.count for i in (b.red, b.green, b.blue)):
+            raise ValueError(
+                "truecolor_requires_rgb: map red, green and blue to valid raster bands"
+            )
+
         # ── Fix 1: قصّ على حدود الحقل قبل قراءة البكسلات (windowed read) ──
         # بدون قصّ، src.read(idx) يقرأ حزمة Sentinel-2 الكاملة (10980×10980،
         # ~1.4 GB/نطاق) ويُعطّل العامل بنفاد الذاكرة. نُعيد إسقاط الحقل إلى
@@ -577,15 +582,12 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         read_context = _pixel_read_context(src, clip_geom_src)
 
         def _read_uint8(idx):
-            """يُرجِع (لون uint8، قناع صلاحيّة) للنطاق؛ نطاق غائب ⇒ (أصفار، None).
+            """يُرجِع (لون uint8، قناع صلاحيّة) للنطاق.
 
             الصلاحيّة (nodata المُعلَن + القناع الداخليّ + خارج المضلّع) تُحمَل منفصلةً
             عن اللون **قبل** التكميم: البكسل الصالح الأسود/الخافت (انعكاس < 1/255) يبقى
             صالحاً وإن صار RGB 0 (P2-COL-1)، والقناع الداخليّ يُحترَم بلا مضلّع (P2-COL-2).
             """
-            if not idx:
-                shape = _clip_out.get("shape") or src.shape
-                return np.zeros(shape, dtype=np.uint8), None
             _sc = req.reflectance_scale
             _of = req.reflectance_offset
             # Preserve the existing truecolor-only Sentinel-2 fallback, but only for
@@ -649,9 +651,8 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
     sampling = _product_sampling(req, src_crs, transform, r.shape)
     res_m = sampling["output_pixel_size_m"][0] if sampling["output_pixel_size_m"] else None
     # ألفا = صلاحيّة المصدر لا سطوع اللون المُكمَّم: البكسل صالح إن صلح في كلّ نطاق
-    # حاضر؛ بلا أيّ نطاق لا شيء صالح.
-    present = [v for v in (r_valid, g_valid, bl_valid) if v is not None]
-    valid_px = np.logical_and.reduce(present) if present else np.zeros(r.shape, dtype=bool)
+    # لونيّ مطلوب.
+    valid_px = r_valid & g_valid & bl_valid
     alpha = np.where(valid_px, np.uint8(255), np.uint8(0))
     rgba = np.stack([r, g, bl, alpha], axis=0)  # (4, H, W) uint8
     valid_count = int((alpha > 0).sum())
@@ -710,6 +711,9 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             ctx, req, layer_id, shared_src=shared_src, shared_cache=shared_cache
         )
 
+    ind = req.indicator.value
+    if ind not in ctx._INDICATOR_FORMULAS:
+        raise ValueError(f"unsupported_raw_optical_indicator: {ind}")
     formula = ctx._INDICATOR_FORMULAS[req.indicator.value]
     _src_cm = (
         nullcontext(shared_src)
@@ -846,7 +850,6 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
         rededge = band(b.rededge) if b.rededge is not None else None
         swir2 = band(b.swir2) if b.swir2 is not None else None
         np.seterr(divide="ignore", invalid="ignore")
-        ind = req.indicator.value
         if ind in ctx.band_math.NEW_INDEX_BANDS:
             # المؤشّرات الموسّعة (ndre/evi/msavi/moisture) — صيغ نقيّة مختبَرة
             # في ctx.band_math.py (مصدر واحد للحقيقة، يُعيد استخدام نفس قراءة النطاق).
@@ -918,11 +921,13 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
                 arr = si.compute_ndsi(swir1, swir2, np)
             else:  # satvi
                 arr = si.compute_satvi(red, swir1, swir2, np)
-        else:  # fapar تقريب من ndvi
+        elif ind == "fapar":
             # حماية القسمة: بكسل أسود/ماء عميق (nir+red=0) كان يعطي nan/inf، وclip
             # كان يحوّل inf→fapar=1 خاطئة فيفسد المتوسّط بصمت. الآن →0 (لا غطاء).
             ndvi = ctx.band_math.ndvi(red, nir, np)
             arr = np.clip(1.24 * ndvi - 0.168, 0, 1)
+        else:
+            raise ValueError(f"unsupported_raw_optical_indicator: {ind}")
 
         # ── (٢) أقنعة جودة البكسل: source-native strategy + saturation proxy ─────────
         # لا نُعامل cloud mask كـboolean هش. نختار استراتيجية حسب source_format

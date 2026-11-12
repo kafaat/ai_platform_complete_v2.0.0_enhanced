@@ -21,6 +21,7 @@ import db_persist as _db
 import layer_lookup
 import raster_date_geo
 import scene_policy
+from raster_clip_query import parse_poly
 from raster_security_context import REQ_TENANT
 
 LATEST_WINDOW_DAYS = int(os.getenv("CDSE_LATEST_WINDOW_DAYS", "365"))

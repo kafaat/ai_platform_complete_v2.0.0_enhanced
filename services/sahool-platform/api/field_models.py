@@ -177,6 +177,7 @@ class FieldUpdateRequest(BaseModel):
     water_ec: float | None = Field(default=None, ge=0)
     manager_user_id: int | None = Field(default=None, ge=1)  # FK users(id) (v47)
     geometry: dict | None = None  # update field boundary after Geometry Guard validation
+    pivot: dict | None = None  # center/radius/angles for canonical pivot boundary edits
     # تزامن تفاؤليّ (v61، اختياريّ/متوافق رجعيّاً): إصدار الحقل الأساس وقت قراءة
     # العميل. إن مُرِّر ولم يطابق row_version الحاليّ ⇒ 409 تعارض (كشف تعديل متباعد
     # offline). ليس عموداً يُكتَب — مستثنى من _build_field_update (ليس في الأعمدة).

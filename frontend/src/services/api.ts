@@ -1,3 +1,4 @@
+import { fieldBoundary } from '../lib/fieldBoundary';
 // ═══════════════════════════════════════════════════════════════
 // SAHOOL v9.0 — Unified API Client
 // Compatibility facade: keep legacy imports stable while domain modules
@@ -2619,15 +2620,11 @@ export const cdseClipParams = (
     out.bbox_w = String(bbox[0]); out.bbox_s = String(bbox[1]);
     out.bbox_e = String(bbox[2]); out.bbox_n = String(bbox[3]);
   }
-  const ring = (() => {
-    const g = geometry as { type?: string; coordinates?: number[][][] } | undefined;
-    if (!g || !g.coordinates) return null;
-    if (g.type === 'Polygon') return g.coordinates[0] ?? null;
-    if (g.type === 'MultiPolygon') return (g.coordinates as unknown as number[][][][])[0]?.[0] ?? null;
-    return null;
-  })();
-  if (ring && ring.length >= 3) {
-    out.poly = ring.map((c) => `${c[0]},${c[1]}`).join(';');
+  const parts = fieldBoundary(geometry);
+  if (parts) {
+    out.poly = parts.map(part => part.map(ring =>
+      ring.map(([lat, lon]) => `${lon},${lat}`).join(';'),
+    ).join('|')).join('!');
   }
   return out;
 };
