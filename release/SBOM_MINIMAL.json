@@ -385,7 +385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c77ce7a54586aed9740458333cef179a9ad89a1c34b658bea50d61434ee5384e"
+          "content": "51a65a1e1f91a16791b48bbc7b39e8d698a590c2a01afbafb4d3a7d887699f68"
         }
       ],
       "name": "frontend/package-lock.json",
@@ -395,7 +395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8bd19906125ba9bd4df973e2db1704e5d8af8d6638f609e9ef6d44791714da5f"
+          "content": "75d528fbe5eac2b21ec476e406c3579a28f9989132dacba2b462237a7d6e52cf"
         }
       ],
       "name": "frontend/package.json",
@@ -585,7 +585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "742a4baaa409e4c9c5ca09f8db0ae2f05859df6d0ea14bb1dc973d72f7656b74"
+          "content": "e495533f59b55ef43fae859c07903939323a4582f2affda5d611558e52a9e276"
         }
       ],
       "name": "frontend/src/components/AddSeasonWithStages.tsx",
@@ -789,6 +789,26 @@
         }
       ],
       "name": "frontend/src/components/ToastContainer.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1b7c587562961174043ae855c1d732d996d435d9b2c58fd16bac90666f3a2bed"
+        }
+      ],
+      "name": "frontend/src/components/WheatSeasonPlanner.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3021305eab45aab15c94809e322fc8bf1116a84421a5ee0966c5c642d95a9865"
+        }
+      ],
+      "name": "frontend/src/components/WheatSeasonPlanner.tsx",
       "type": "file"
     },
     {
@@ -1185,7 +1205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "90b5b3cfb8975dc7860a5a28127168f0446bbec96d59ab9dcf663973f4b5d4ba"
+          "content": "bc701f380fe21e6419a062566dad5a477a337263f654cd8ea76c1bc5047754f3"
         }
       ],
       "name": "frontend/src/components/fieldsetup/SeasonStep.tsx",
@@ -4825,7 +4845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "63b08d00a040c8b8f0b77df25d7d4b846ba339542f3caa221c1f5e9aa9cc3e9d"
+          "content": "791ce2a46651d0624333cbccbc21837dd0932995b63c637bded83bad0946ed63"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -5189,6 +5209,26 @@
         }
       ],
       "name": "frontend/src/lib/whatIfScenarios.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d49399d55754b108719ab65628e8466f8d69a9a3ec0b4ab179b719f236dfe5c0"
+        }
+      ],
+      "name": "frontend/src/lib/wheatRegister.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aa60cec3eb287270784d21e6ccf63f30bdcdf0297864c5cbc25f33b2f5a17784"
+        }
+      ],
+      "name": "frontend/src/lib/wheatRegister.ts",
       "type": "file"
     },
     {
@@ -5855,7 +5895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40ba0104050213f39cb7b4d8c88bb21a65f0d1d90472b88b013da0beb52f1af9"
+          "content": "7ca8e606239050cc37b28218b51b527e66b73ea53fcba9bb93fad5010a8dc071"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -24185,7 +24225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7de2f61150e3c4cf7e4e4feebd6c7367fae713ce9303f5e5962499bfba5eb00d"
+          "content": "5f2b15b91f47d0aeac8ffbf7cb088581cf491b9f9b60d8c8c11002349ddd1991"
         }
       ],
       "name": "services/sahool-platform/api/event_catalog.py",
@@ -24195,7 +24235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e45622c7eff1c9cadf91a6bb94c9afff5b9b5d1a9f3fe942bc56823feeb824a6"
+          "content": "a5440062061fd2842e51eb9477822047085be468d89f677dd9da4069ada0a6e3"
         }
       ],
       "name": "services/sahool-platform/api/event_replay.py",
@@ -26215,7 +26255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b7599c5e740fb06a9e5b609a36c79b49b5432533c571719461898c20b2a282cc"
+          "content": "5b81aab7411622d6da9663d9749f686b0be9949f3416d10b75dc660a4623bd4d"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -27235,7 +27275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f584cd0c5c5b7741b588e3e0fa72fd0647c745567fb7cf423d179a9febbed709"
+          "content": "1cbb7c2d06e8c55c4cfbff5b00e0e75c62bc24ef6e4ac3c5e511c2ddd76916ed"
         }
       ],
       "name": "services/sahool-platform/api/season_models.py",
@@ -33045,7 +33085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09093deb973cc0817710b7558322b91b7f62a09dc47d4d4d816a2757f1a67f05"
+          "content": "578e23185ea03fe8ac3e8fff4107b1c38918ff05cd6140f0f6874f4afceaf458"
         }
       ],
       "name": "services/sahool-platform/tests/test_event_replay.py",
@@ -35645,7 +35685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec2bdfbaf715a336cc80829d07db1fdf58fd8f6a331f6709eefa147d4daafaea"
+          "content": "7c330417144c59580d506e431a1c9f6dc772c96cb89e150b59b8cb3795f7ff04"
         }
       ],
       "name": "services/sahool-platform/tests/test_seasons_endpoint.py",
