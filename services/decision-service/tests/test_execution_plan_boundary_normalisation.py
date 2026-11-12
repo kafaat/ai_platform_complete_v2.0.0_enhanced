@@ -79,7 +79,9 @@ def test_create_execution_plan_keys_the_binding_on_the_canonical_operation():
     source = inspect.getsource(persistence.create_execution_plan)
     assert "normalize_operation_type(payload.operation_type)" in source
     assert "_plan_operation_violation(source, operation_type, payload)" in source
-    assert 'payload.operation_type == "manual_irrigation"' not in source
+    assert 'payload.operation_type == "manual_irrigation"' not in source, (
+        "a literal comparison on the raw payload lets ' manual_irrigation ' skip the decision binding"
+    )
 
 
 def test_request_hash_commits_to_the_canonical_operation():
