@@ -883,6 +883,7 @@ FM-003,test,tests_v9/test_decision_review_boundary_guard.py,3,applied
 FM-003,test,tests_v9/test_disease_field_state_feed.py,3,applied
 FM-003,test,tests_v9/test_field_aggregate_ports_integration.py,3,applied
 FM-003,test,tests_v9/test_field_ai_context_hardening_v49_5.py,3,applied
+FM-003,test,tests_v9/test_field_alerts_schema_contract.py,3,applied
 FM-003,test,tests_v9/test_field_boundary_adapters_v59_1.py,5,applied
 FM-003,test,tests_v9/test_field_boundary_ai_v59.py,5,applied
 FM-003,test,tests_v9/test_field_boundary_backends_v59_5.py,5,applied

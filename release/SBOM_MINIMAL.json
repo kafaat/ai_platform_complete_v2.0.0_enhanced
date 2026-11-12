@@ -9275,7 +9275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e0258bea629a57b43f69d7381229976aaec4e7a50d107a80a83017774b23c58"
+          "content": "ddf6cd68f0079d20ea8650404cc652f0ea73f763ce0aeca779deb02f76d3bc41"
         }
       ],
       "name": "migrations/v36_alerts.sql",
@@ -24965,7 +24965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac767f1979b1223288bd1f413ec24c30bb57dc92fae015253724b88964bccefb"
+          "content": "847706d4effaff3d1e6eb2e9ce622a67dfa4ec710cf44f1cfa0aea146feb2a29"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
