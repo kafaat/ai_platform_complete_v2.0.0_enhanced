@@ -132,6 +132,7 @@ const Map<String, String> _detailAr = {
   'season_not_found_for_tenant': 'الموسم غير موجود في حسابك.',
   'party_not_found_for_tenant': 'المورد أو العميل غير موجود في حسابك.',
   'receipt_document_not_found_for_tenant': 'مستند الإيصال غير موجود.',
+  'payment_farm_mismatch': 'السداد يُسجَّل على مزرعة الدين نفسها.',
   'field_not_in_farm': 'الحقل المختار لا يتبع هذه المزرعة.',
   'farm_access_denied': 'لا تملك صلاحية تسجيل قيود على هذه المزرعة.',
   'receipt_field_mismatch':

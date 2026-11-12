@@ -87,6 +87,7 @@ class Live:
             f"rx-doc-y-{tag}",
             f"rx-doc-s-{tag}",
         )
+        self.party = f"rx-party-{tag}"
         self.role: str | None = None
 
     async def __aenter__(self):
@@ -122,6 +123,12 @@ class Live:
                 self.tenant,
                 farm,
             )
+        await o.execute(
+            "INSERT INTO farm_ledger_parties (party_id, tenant_id, party_type, name)"
+            " VALUES ($1, $2::uuid, 'supplier', $1)",
+            self.party,
+            self.tenant,
+        )
         for doc, field in (
             (self.doc_x, self.field_x),
             (self.doc_y, self.field_y),
@@ -148,7 +155,7 @@ class Live:
                     await o.execute(
                         "DELETE FROM farm_ledger_entries WHERE tenant_id = $1::uuid", self.tenant
                     )
-                    for table in ("documents", "fields", "farms"):
+                    for table in ("farm_ledger_parties", "documents", "fields", "farms"):
                         await o.execute(
                             f"DELETE FROM {table} WHERE tenant_id = $1::uuid", self.tenant
                         )
@@ -263,5 +270,42 @@ def test_a_shared_receipt_backs_a_farm_level_entry(monkeypatch):
         assert out["persisted"] is True
         row = await live.stored(req.client_operation_id)
         assert row["receipt_document_id"] == live.doc_shared
+
+    _run(monkeypatch, case)
+
+
+def test_a_payment_cannot_settle_another_farms_credit(monkeypatch):
+    async def case(live, book):
+        owner = _user(live.tenant, "owner")
+        credit = book.SimpleEntryIn(
+            client_operation_id=f"rx-op-{uuid.uuid4().hex}",
+            entry_type="expense",
+            payment_method="credit",
+            category="fertilizer",
+            amount=Decimal("1000"),
+            occurred_on=date(2026, 11, 12),
+            farm_id=live.farm_y,
+            party_id=live.party,
+        )
+        debt = await book.create_entry(credit, user=owner)
+
+        def payment(farm_id: str):
+            return book.SimpleEntryIn(
+                client_operation_id=f"rx-op-{uuid.uuid4().hex}",
+                entry_type="payment",
+                payment_method="cash",
+                category="debt_payment",
+                amount=Decimal("400"),
+                occurred_on=date(2026, 11, 13),
+                farm_id=farm_id,
+                party_id=live.party,
+                settles_entry_id=debt["entry_id"],
+            )
+
+        cross = payment(live.farm_x)
+        assert await _refused(book, cross, owner) == (422, "payment_farm_mismatch")
+        assert await live.stored(cross.client_operation_id) is None
+        same = payment(live.farm_y)
+        assert (await book.create_entry(same, user=owner))["persisted"] is True
 
     _run(monkeypatch, case)

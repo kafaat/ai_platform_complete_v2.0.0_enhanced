@@ -250,7 +250,7 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
         raise HTTPException(status_code=422, detail="payment_requires_party_and_settled_entry")
     original = await conn.fetchrow(
         """SELECT entry_id, entry_type, payment_method, amount, currency, party_id,
-                  reverses_entry_id
+                  reverses_entry_id, farm_id
            FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND entry_id=$2 FOR UPDATE""",
         tenant_id,
@@ -271,6 +271,10 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
         raise HTTPException(status_code=409, detail="cannot_settle_reversed_entry")
     if original["party_id"] != req.party_id or original["currency"] != req.currency:
         raise HTTPException(status_code=422, detail="payment_party_or_currency_mismatch")
+    # A debt is the farm's: a payment booked on another farm would leave this farm's payable
+    # open in its own book and drive the other farm's negative.
+    if original["farm_id"] != req.farm_id:
+        raise HTTPException(status_code=422, detail="payment_farm_mismatch")
     paid = await conn.fetchval(
         """SELECT COALESCE(SUM(amount),0) FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND settles_entry_id=$2""",
