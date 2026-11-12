@@ -291,6 +291,29 @@ def _plan_id(field_id, strategy, points):
     return "ssp-" + hashlib.sha256(material.encode()).hexdigest()[:32]
 
 
+def plan_copies_for_platform(tool_calls: Any, field_id: str | None) -> list[dict[str, Any]]:
+    """The plans this turn's planner calls produced, for the platform to keep a copy.
+
+    A lab sample that names a plan point is resolved from that copy, so the planned position
+    and imagery are never taken from the client that submits the sample."""
+    copies: list[dict[str, Any]] = []
+    for call in tool_calls if isinstance(tool_calls, list) else []:
+        data = call.get("data") if isinstance(call, dict) else None
+        if call.get("tool") != "plan_soil_sampling" or not isinstance(data, dict):
+            continue
+        plan, points = data.get("soil_sampling_plan"), data.get("sample_points")
+        if (
+            field_id
+            and data.get("field_id") == field_id
+            and isinstance(plan, dict)
+            and isinstance(plan.get("plan_id"), str)
+            and isinstance(points, list)
+            and points
+        ):
+            copies.append({"field_id": field_id, "plan": plan, "sample_points": points})
+    return copies[:10]
+
+
 def plan_soil_sampling(
     params: dict[str, Any],
     *,

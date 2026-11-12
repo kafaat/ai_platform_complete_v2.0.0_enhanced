@@ -50,7 +50,7 @@ from .decision_contracts import (
 )
 from .field_boundary_ai import propose_boundaries
 from .productivity_zones import propose_productivity_zones
-from .soil_sampling_planner import plan_soil_sampling
+from .soil_sampling_planner import plan_copies_for_platform, plan_soil_sampling
 from .tenant_policies import build_store_from_env, normalize_policy
 from .vra_prescription_engine import generate_vra_prescription
 
@@ -285,6 +285,7 @@ async def _record_ai_advice_event(
     selected_imagery_date: str | None,
     endpoint_mode: str,
     model_output: str | None = None,
+    soil_sampling_plans: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Best-effort audit event for the AI advice runtime.
 
@@ -308,6 +309,7 @@ async def _record_ai_advice_event(
                     "selected_imagery_date": selected_imagery_date,
                     "endpoint_mode": endpoint_mode,
                     **({"model_output": model_output} if model_output is not None else {}),
+                    **({"soil_sampling_plans": soil_sampling_plans} if soil_sampling_plans else {}),
                 },
                 headers={"X-Agent-Token": AGENT_TOKEN},
                 timeout=35.0 if model_output is not None else 3.0,
@@ -1073,6 +1075,32 @@ async def build_evidence_response(
             provider_tool_truncated = bool(gen.tool_calls_truncated)
             provider_tool_rounds = int(gen.tool_rounds or 0)
 
+    # V57 — وصل حلقة الأدوات بالمسار الحيّ: النموذج/الواجهة قد يطلبان أدوات؛ الـHarness
+    # يحكمها بالقدرات والمخاطر. القراءة تُنفّذ من سياق الحقل المتاح؛ الأفعال المؤثّرة
+    # تُعاد كطلبات موافقة ولا تُنفَّذ داخل chat.
+    # Read tools may run CPU-bound work (k-means zoning, sampling plans), so the loop runs
+    # in a worker thread and never blocks the event loop serving other requests.
+    _policy_raw = TENANT_POLICY.get_policy(tenant_id)
+    _policy = normalize_policy(_policy_raw if isinstance(_policy_raw, dict) else {})
+    tool_result = await asyncio.to_thread(
+        tool_loop.run_tool_calls,
+        req.tool_calls,
+        allowed_capabilities=_policy.get("allowed_capabilities"),
+        fetcher=_build_agent_tool_fetcher(
+            field_state=field_state, ai_pack=ai_pack, annotations=annotations
+        ),
+        tenant_id=tenant_id,
+        actor="ai_agronomist",
+        timestamp=_utc_timestamp(),
+        audit_saver=save_agent_tool_audit,
+        approval_saver=save_pending_approval,
+        allowed_tools=_envelope_tool_gate,
+    )
+    # The planner's plans travel with the advice event, so the platform stores its own copy
+    # before the client can name one of their points on a lab sample.
+    sampling_plans = plan_copies_for_platform(
+        list(provider_tool_calls) + list(tool_result.get("tool_calls") or []), req.field_id
+    )
     audit_event = await _record_ai_advice_event(
         tenant_id=tenant_id,
         field_id=req.field_id,
@@ -1082,6 +1110,7 @@ async def build_evidence_response(
         selected_imagery_date=req.selected_imagery_date,
         endpoint_mode=endpoint_mode,
         **({"model_output": model_output} if model_output is not None else {}),
+        **({"soil_sampling_plans": sampling_plans} if sampling_plans else {}),
     )
     validation = audit_event.get("advisory_validation")
     if model_output is not None and isinstance(validation, dict):
@@ -1120,8 +1149,6 @@ async def build_evidence_response(
     else:
         _raster_state = observation_context.RASTER_UNKNOWN
     _weather = _pack.get("weather_history") or {}
-    _policy_raw = TENANT_POLICY.get_policy(tenant_id)
-    _policy = normalize_policy(_policy_raw if isinstance(_policy_raw, dict) else {})
     observation = observation_context.build_observation(
         field_id=req.field_id,
         selected_date=req.selected_imagery_date,
@@ -1131,25 +1158,6 @@ async def build_evidence_response(
         policy=_policy,
     )
 
-    # V57 — وصل حلقة الأدوات بالمسار الحيّ: النموذج/الواجهة قد يطلبان أدوات؛ الـHarness
-    # يحكمها بالقدرات والمخاطر. القراءة تُنفّذ من سياق الحقل المتاح؛ الأفعال المؤثّرة
-    # تُعاد كطلبات موافقة ولا تُنفَّذ داخل chat.
-    # Read tools may run CPU-bound work (k-means zoning, sampling plans), so the loop runs
-    # in a worker thread and never blocks the event loop serving other requests.
-    tool_result = await asyncio.to_thread(
-        tool_loop.run_tool_calls,
-        req.tool_calls,
-        allowed_capabilities=_policy.get("allowed_capabilities"),
-        fetcher=_build_agent_tool_fetcher(
-            field_state=field_state, ai_pack=ai_pack, annotations=annotations
-        ),
-        tenant_id=tenant_id,
-        actor="ai_agronomist",
-        timestamp=_utc_timestamp(),
-        audit_saver=save_agent_tool_audit,
-        approval_saver=save_pending_approval,
-        allowed_tools=_envelope_tool_gate,
-    )
     all_tool_calls = list(provider_tool_calls) + list(tool_result.get("tool_calls") or [])
     all_pending_approvals = list(provider_pending_approvals) + list(
         tool_result.get("pending_approvals") or []

@@ -10,7 +10,7 @@ from core.canonical_field_state import compose_canonical_field_state
 from core.canonical_schemas import UserRole
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api import main
+from api import lab_store, main
 from api.service_token_auth import _require_service_token
 
 router = APIRouter()
@@ -197,10 +197,18 @@ async def internal_ai_advice_event(
         "runtime": "ai_agronomist",
     }
     validation = None
+    plans_stored = 0
     try:
         async with main.tenant_connection(actor) as conn:
             if req.field_id:
                 await main._assert_field_in_tenant(conn, req.field_id)
+                plans_stored = await lab_store.save_sampling_plan_copies(
+                    conn,
+                    tenant_id=req.tenant_id,
+                    field_id=req.field_id,
+                    plans=req.soil_sampling_plans,
+                    source="ai_agronomist.plan_soil_sampling",
+                )
             if req.model_output is not None:
                 validation = await _preview_advice_facts(conn, req)
                 payload["advisory_validation"] = validation
@@ -227,6 +235,7 @@ async def internal_ai_advice_event(
         "event_type": "ai.suggestion.generated",
         "entity_id": req.field_id or req.tenant_id,
         "advisory_validation": validation,
+        "soil_sampling_plans_stored": plans_stored,
     }
 
 
