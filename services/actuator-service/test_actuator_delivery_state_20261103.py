@@ -30,7 +30,8 @@ SERVICE = Path(__file__).resolve().parent
 ROOT = SERVICE.parents[1]
 TENANT = "11111111-1111-1111-1111-111111111111"
 OTHER_TENANT = "22222222-2222-2222-2222-222222222222"
-SECRET = "s" * 32
+SECRET = "s" * 32  # legacy v1 shared secret (ACTUATOR_LEGACY_V1_DEVICES only)
+MASTER = "unit-test-master-NOT-FOR-PRODUCTION-0123456789"  # R-C2 v2 master (test only)
 
 
 def _load_cd():
@@ -44,6 +45,7 @@ def _load_cd():
 
 
 cd = _load_cd()
+cs = sys.modules["cmd_signing_v2"]  # imported by command_delivery
 NOW = datetime(2026, 11, 3, 8, 0, tzinfo=UTC)
 
 
@@ -138,10 +140,29 @@ def test_ack_topic_carries_a_uuid_tenant_and_a_device():
 
 
 # ══ ack evaluation ═══════════════════════════════════════════════════════════
+# The state-machine cases below use **legacy v1** acks, so they evaluate with the device
+# allowlisted (``legacy_v1=True``) — the only way a v1 ack is still accepted (R-C2). The runtime
+# section further down uses v2 acks signed with the derived per-device key.
 def _ack(command_id="cmd_1", device="valve-a", result="applied", *, secret=SECRET, sig=None):
     body = {"id": command_id, "device": device, "result": result, "status": "ON"}
     body["sig"] = sig if sig is not None else cd.ack_signature(secret, command_id, device, result)
     return body
+
+
+def _ack_v2(
+    command_id="cmd_1", device="valve-a", result="applied", *, tenant=TENANT, master=MASTER, ctr=1
+):
+    key = cs.derive_device_key(master, tenant, device)
+    return {
+        "v": 2,
+        "id": command_id,
+        "tenant": tenant,
+        "device": device,
+        "result": result,
+        "ctr": ctr,
+        "status": "ON",
+        "sig": cs.sign_ack(key, tenant, device, command_id, result, ctr),
+    }
 
 
 def _record(state=cd.PUBLISHED, *, tenant=TENANT, device="valve-a", deadline=None):
@@ -154,10 +175,23 @@ def _record(state=cd.PUBLISHED, *, tenant=TENANT, device="valve-a", deadline=Non
     }
 
 
-def _evaluate(record, ack, *, tenant=TENANT, device="valve-a", secret=SECRET, now=NOW):
+def _evaluate(
+    record, ack, *, tenant=TENANT, device="valve-a", secret=SECRET, now=NOW, legacy_v1=True
+):
     return cd.evaluate_ack(
-        record, ack, topic_tenant=tenant, topic_device=device, secret=secret, now=now
+        record,
+        ack,
+        topic_tenant=tenant,
+        topic_device=device,
+        secret=secret,
+        now=now,
+        legacy_v1=legacy_v1,
     )
+
+
+def test_a_v1_ack_from_a_device_not_on_the_legacy_allowlist_is_refused():
+    d = _evaluate(_record(), _ack(), legacy_v1=False)
+    assert (d.accepted, d.reason, d.target) == (False, "legacy_v1_ack_not_allowed", None)
 
 
 def test_a_signed_ack_for_a_published_command_is_accepted():
@@ -222,13 +256,16 @@ def test_an_ack_before_the_publish_write_is_retryable_not_accepted():
 
 
 def test_the_firmware_signs_and_publishes_the_ack_the_platform_verifies():
-    """Wire contract: firmware HMAC message and topic match ack_signature/parse_ack_topic."""
+    """Wire contract (v2): firmware ack message and topic match cmd_signing_v2/parse_ack_topic."""
     src = (ROOT / "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino").read_text("utf-8")
-    assert re.search(r'snprintf\(msg, sizeof\(msg\), "%s\|%s\|%s", cmdId, DEVICE_ID, result\)', src)
-    assert '"sahool/") + TENANT_ID + "/actuator/" + DEVICE_ID + "/ack"' in src
-    assert 'ack["id"] = cmdId;' in src and 'ack["sig"] = sig;' in src
-    assert re.search(r'publishDeviceAck\(cmdId, known \? "applied" : "unknown_command"\)', src)
-    assert set(re.findall(r'"(applied|unknown_command)"', src)) <= set(cd.ACK_RESULTS)
+    header = (ROOT / "firmware/esp32_mesh_gateway/cmd_auth_v2.h").read_text("utf-8")
+    assert '"v2ack|%s|%s|%s|%s|%llu", tenant, device, id, result' in header
+    assert "cmdauth::sign_ack_hex(g_cfg, cmdId, result, ctr, sig)" in src
+    assert '"sahool/") + g_cfg.tenant + "/actuator/" + g_cfg.device + "/ack"' in src
+    for field in ("v", "id", "tenant", "device", "result", "ctr", "sig"):
+        assert f'ack["{field}"] =' in src, field
+    assert set(re.findall(r'publishDeviceAck\(m\.id, "(\w+)"', src)) == {"applied", "rejected"}
+    assert {"applied", "rejected"} <= set(cd.ACK_RESULTS)
 
 
 # ══ runtime: dict-backed fake device_commands_log with RLS + v238 trigger ═══════════
@@ -257,10 +294,18 @@ def _stub_missing_dependencies() -> list[str]:
 def act(monkeypatch):
     stubbed = _stub_missing_dependencies()
     monkeypatch.setenv("ACTUATOR_MODE", "simulation")
-    monkeypatch.setenv("CMD_HMAC_SECRET", SECRET)
+    monkeypatch.setenv("CMD_HMAC_MASTER_KEY", MASTER)
+    monkeypatch.delenv("CMD_HMAC_SECRET", raising=False)
+    monkeypatch.delenv("ACTUATOR_LEGACY_V1_DEVICES", raising=False)
     monkeypatch.syspath_prepend(str(SERVICE))
     monkeypatch.syspath_prepend(str(ROOT))
-    names = ("actuator_runtime", "routers", "routers.commands", "command_delivery")
+    names = (
+        "actuator_runtime",
+        "routers",
+        "routers.commands",
+        "command_delivery",
+        "cmd_signing_v2",
+    )
     saved = {k: sys.modules.get(k) for k in names}
     for name in names:
         sys.modules.pop(name, None)
@@ -482,6 +527,13 @@ def test_manual_command_is_published_with_its_id_and_reports_published_not_acked
     ((topic, wire),) = _FakeMQTT.published
     assert topic == "sahool/actuator/valve-a/command"
     assert wire["id"] == out["command_id"], "the wire must carry the id the device acks"
+    # R-C2: v2, bound to the token's tenant and the device's registry field.
+    assert (wire["v"], wire["tenant"], wire["device"], wire["field"]) == (
+        2,
+        TENANT,
+        "valve-a",
+        "field-9",
+    )
     row = pool.table.find(TENANT, out["command_id"])
     assert row["delivery_state"] == "published" and row["triggered_by"] == "manual"
     assert row["published_at"] is not None and row["ack_deadline"] > row["published_at"]
@@ -492,7 +544,7 @@ def test_a_signed_device_ack_moves_the_command_to_device_acked_and_http_shows_it
     cid = _send(act, router_mod)["command_id"]
 
     decision = asyncio.run(
-        act.handle_device_ack(_ack_topic(), json.dumps(_ack(command_id=cid)).encode())
+        act.handle_device_ack(_ack_topic(), json.dumps(_ack_v2(command_id=cid)).encode())
     )
 
     assert decision.accepted and decision.target == "device_acked"
@@ -508,7 +560,8 @@ def test_a_cross_tenant_ack_is_refused_logged_and_changes_nothing(wired, caplog)
     cid = _send(act, router_mod)["command_id"]  # belongs to TENANT
 
     caplog.set_level("WARNING", logger="actuator-service")
-    ack = json.dumps(_ack(command_id=cid)).encode()
+    # The other tenant's device (same id) signs with its own derived key, on its own topic.
+    ack = json.dumps(_ack_v2(command_id=cid, tenant=OTHER_TENANT)).encode()
     decision = asyncio.run(act.handle_device_ack(_ack_topic(tenant=OTHER_TENANT), ack))
 
     assert (decision.accepted, decision.reason) == (False, "unknown_command")
@@ -525,7 +578,7 @@ def test_a_forged_ack_never_reaches_the_database(wired, monkeypatch):
             raise AssertionError("an unsigned ack touched the database")
 
     monkeypatch.setattr(act, "_pool", _NoDB())
-    forged = json.dumps(_ack(command_id=cid, secret="attacker" * 4)).encode()
+    forged = json.dumps(_ack_v2(command_id=cid, master="attacker" * 6)).encode()
     decision = asyncio.run(act.handle_device_ack(_ack_topic(), forged))
     assert (decision.accepted, decision.reason) == (False, "bad_ack_signature")
 
@@ -541,7 +594,7 @@ def test_an_unacked_command_expires_after_its_deadline(wired, monkeypatch):
     assert view["delivery_state"] == "expired" and view["expired_at"]
     assert row["delivery_state"] == "expired", "expiry must be persisted, not only projected"
     late = asyncio.run(
-        act.handle_device_ack(_ack_topic(), json.dumps(_ack(command_id=cid)).encode())
+        act.handle_device_ack(_ack_topic(), json.dumps(_ack_v2(command_id=cid)).encode())
     )
     assert late.accepted is False and row["delivery_state"] == "expired"
 
@@ -562,7 +615,7 @@ def test_simulation_is_reported_as_simulated_and_cannot_be_acked(wired, monkeypa
     out = _send(act, router_mod)
     assert out["delivery_state"] == "simulated" and _FakeMQTT.published == []
     decision = asyncio.run(
-        act.handle_device_ack(_ack_topic(), json.dumps(_ack(command_id=out["command_id"])))
+        act.handle_device_ack(_ack_topic(), json.dumps(_ack_v2(command_id=out["command_id"])))
     )
     assert decision.accepted is False
     assert pool.table.find(TENANT, out["command_id"])["delivery_state"] == "simulated"
@@ -586,3 +639,19 @@ def test_writes_run_under_the_tenant_rls_context(wired):
     act, _router_mod, pool = wired
     asyncio.run(act.log_command(None, "valve-a", "open", {}, "blocked", TENANT))
     assert [r["status"] for r in pool.table.rows] == ["blocked"]
+
+
+def test_a_v1_ack_moves_a_command_only_for_an_allowlisted_device(wired, monkeypatch):
+    """R-C2 transition: unflashed units keep v1 acks only while listed in the allowlist."""
+    act, router_mod, pool = wired
+    monkeypatch.setenv("CMD_HMAC_SECRET", SECRET)
+    cid = _send(act, router_mod)["command_id"]
+    v1 = json.dumps(_ack(command_id=cid)).encode()
+
+    refused = asyncio.run(act.handle_device_ack(_ack_topic(), v1))
+    assert (refused.accepted, refused.reason) == (False, "legacy_v1_ack_not_allowed")
+    assert pool.table.find(TENANT, cid)["delivery_state"] == "published"
+
+    monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", "valve-a")
+    accepted = asyncio.run(act.handle_device_ack(_ack_topic(), v1))
+    assert accepted.accepted and pool.table.find(TENANT, cid)["delivery_state"] == "device_acked"

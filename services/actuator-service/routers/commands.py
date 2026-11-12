@@ -71,7 +71,12 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
         triggered_by="manual",
     )
     success = await main.send_mqtt_command(
-        req.device_id, req.command, req.payload, command_id=command_id
+        req.device_id,
+        req.command,
+        req.payload,
+        command_id=command_id,
+        tenant_id=tenant_id,
+        field_id=device_field_id,
     )
     delivery_state = cd.state_after_publish(success, main.ACTUATOR_MODE)
     await main.log_command(

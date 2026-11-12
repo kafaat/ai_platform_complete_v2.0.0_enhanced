@@ -2000,7 +2000,12 @@ services:
     environment:
       PGSSLMODE: verify-full
       PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
+      # R-C2: v2 per-device command keys derive from this master; empty ⇒ nothing is published
+      # to a device not listed in ACTUATOR_LEGACY_V1_DEVICES (fail-closed).
+      CMD_HMAC_MASTER_KEY: ${CMD_HMAC_MASTER_KEY:-}
       CMD_HMAC_SECRET: ${CMD_HMAC_SECRET:-}
+      ACTUATOR_LEGACY_V1_DEVICES: ${ACTUATOR_LEGACY_V1_DEVICES:-}
+      ACTUATOR_CMD_EXPIRY_SECONDS: ${ACTUATOR_CMD_EXPIRY_SECONDS:-120}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://sahool-actuator-service:${REDIS_ACTUATOR_PASSWORD:?REDIS_ACTUATOR_PASSWORD required}@sahool-redis:6379/0
       # ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01 (S5): auth's revocation list, read-only, on the state server.

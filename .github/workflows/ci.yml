@@ -1064,7 +1064,7 @@ jobs:
               echo "::error::skipped tests in a service-local group: $1"; exit 1
             fi
           }
-            run_group services/actuator-service/test_actuator_router_decomposition_guard.py services/actuator-service/test_actuator_safety.py services/actuator-service/test_dedup_compensation.py
+            run_group services/actuator-service/test_actuator_router_decomposition_guard.py services/actuator-service/test_actuator_safety.py services/actuator-service/test_dedup_compensation.py services/actuator-service/test_cmd_signing_v2.py
             run_group services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py
             run_group services/ai_agronomist/test_ai_field_memory_v49.py
             run_group services/auth/tests/test_router_decomposition_guard.py

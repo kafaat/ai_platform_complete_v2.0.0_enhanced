@@ -24,9 +24,15 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import sys
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from pathlib import Path
+
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+import cmd_signing_v2 as _cs  # noqa: E402
 
 QUEUED = "queued"
 PUBLISHED = "published"
@@ -114,7 +120,7 @@ def new_command_id() -> str:
 
 
 def ack_signature(secret: str, command_id: str, device_id: str, result: str) -> str:
-    """HMAC-SHA256(secret, ``id|device|result``) — what the firmware signs its ack with."""
+    """v1 (legacy) ack: HMAC-SHA256(secret, ``id|device|result``) — unflashed firmware only."""
     msg = f"{command_id}|{device_id}|{result}".encode()
     return hmac.new(secret.encode(), msg, hashlib.sha256).hexdigest()
 
@@ -162,14 +168,21 @@ def evaluate_ack(
     *,
     topic_tenant: str,
     topic_device: str,
-    secret: str,
     now: datetime,
+    secret: str = "",
+    device_key: str = "",
+    legacy_v1: bool = False,
 ) -> AckDecision:
     """Decide what a device ack may do to the command ``record`` it names.
 
     ``record`` is the row looked up **under the topic tenant's RLS context** by command id, so
     a command of another tenant is simply ``None`` here: it is refused as unknown and nothing
     about the other tenant leaks.
+
+    R-C2: a v2 ack (``"v": 2``) is verified with the device's derived key (``device_key``) over
+    ``v2ack|tenant|device|id|result|ctr``, and its signed ``tenant`` must equal the topic tenant
+    (and so the command row's). A v1 ack (shared ``secret``) is accepted only when the device is
+    listed in ``ACTUATOR_LEGACY_V1_DEVICES`` (``legacy_v1``).
     """
     if not isinstance(ack, dict):
         return AckDecision(False, "malformed_ack")
@@ -182,12 +195,22 @@ def evaluate_ack(
         return AckDecision(False, "ack_device_does_not_match_topic")
     if not isinstance(result, str) or result not in ACK_RESULTS:
         return AckDecision(False, f"unknown_ack_result:{result}")
-    if not secret:
-        return AckDecision(False, "ack_signing_secret_unset")
-    sig = ack.get("sig")
-    expected = ack_signature(secret, command_id, topic_device, result)
-    if not isinstance(sig, str) or not hmac.compare_digest(sig, expected):
-        return AckDecision(False, "bad_ack_signature")
+    if ack.get("v") == _cs.PROTOCOL_VERSION:
+        if not device_key:
+            return AckDecision(False, "ack_signing_key_unset")
+        if ack.get("tenant") != topic_tenant:
+            return AckDecision(False, "ack_tenant_does_not_match_topic")
+        if not _cs.verify_ack(device_key, ack):
+            return AckDecision(False, "bad_ack_signature")
+    else:
+        if not legacy_v1:
+            return AckDecision(False, "legacy_v1_ack_not_allowed")
+        if not secret:
+            return AckDecision(False, "ack_signing_secret_unset")
+        sig = ack.get("sig")
+        expected = ack_signature(secret, command_id, topic_device, result)
+        if not isinstance(sig, str) or not hmac.compare_digest(sig, expected):
+            return AckDecision(False, "bad_ack_signature")
     if record is None:
         return AckDecision(False, "unknown_command")
     if str(record.get("tenant_id")) != topic_tenant:

@@ -44,6 +44,7 @@ from shared.startup_retry import retry_startup_connect
 # importable whichever way this module is loaded (uvicorn, spec_from_file_location, tests).
 if str(Path(__file__).resolve().parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
+import cmd_signing_v2 as cs  # noqa: E402
 import command_delivery as cd  # noqa: E402
 
 try:
@@ -408,7 +409,13 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
                 else:
                     command_id, issued_at = _dispatch_wire_identity(item, payload, req_id)
                     sent = await send_mqtt_command(
-                        device_id, cmd, payload, command_id=command_id, issued_at=issued_at
+                        device_id,
+                        cmd,
+                        payload,
+                        command_id=command_id,
+                        issued_at=issued_at,
+                        tenant_id=tenant_id,
+                        field_id=field_id,
                     )
                     receipt_status = "accepted" if sent else "failed"
             else:
@@ -777,7 +784,7 @@ def _build_wire_message(
     secret: str,
     command_id: str | None = None,
 ) -> str:
-    """دالّة نقيّة: رسالة MQTT كما يقرؤها البرنامج الثابت.
+    """دالّة نقيّة: رسالة MQTT **v1 (legacy)** — للأجهزة المُدرَجة في ACTUATOR_LEGACY_V1_DEVICES فقط.
 
     التوقيع HMAC(secret, cmd|ts|duration_ms) على **صيغة السلك** (يطابق verifyCmdHmac)،
     و``ts`` هو مفتاح إزالة التكرار في البرنامج الثابت — فإعادة النشر بنفس ``ts`` تُكتشَف
@@ -800,6 +807,73 @@ def _build_wire_message(
     return json.dumps(body)
 
 
+# ── R-C2: protocol v2 (per-device key, bound message, persisted counter) ──────────
+# v1 (``_build_wire_message``) signed ``cmd|ts|duration_ms`` with ONE ``CMD_HMAC_SECRET`` for
+# every device, so a captured command replayed onto another tenant's valve, and onto the same
+# valve after a reboot. v2 lives in ``cmd_signing_v2.py``; v1 is kept only for devices the
+# operator lists in ``ACTUATOR_LEGACY_V1_DEVICES`` (unflashed units, one warning per send).
+_LIVE_CTR = cs.LiveCounter()
+
+
+def _signing_plan(device_id: str) -> cs.SigningPlan:
+    return cs.plan_signing(
+        device_id,
+        master_key=os.getenv("CMD_HMAC_MASTER_KEY", ""),
+        legacy_devices=cs.parse_legacy_devices(os.getenv("ACTUATOR_LEGACY_V1_DEVICES")),
+        legacy_secret=os.getenv("CMD_HMAC_SECRET", ""),
+    )
+
+
+def _build_wire_message_v2(
+    wire_cmd: str,
+    payload: dict,
+    *,
+    tenant_id: str,
+    device_id: str,
+    field_id: str,
+    command_id: str,
+    issued_at: str | None,
+    now: datetime,
+) -> str:
+    """The v2 wire message (``cmd_signing_v2.build_command``). Raises ``cs.SigningError``."""
+    master = os.getenv("CMD_HMAC_MASTER_KEY", "")
+    tenant = cs.canonical_tenant(tenant_id)
+    device = str(device_id).strip()
+    key = cs.derive_device_key(master, tenant, device)
+    now_ms = int(now.timestamp() * 1000)
+    # A5: a republish (dispatch recovery) keeps its counter, so the device drops it as replay.
+    ctr = cs.stable_counter(issued_at, command_id) if issued_at else None
+    if ctr is None:
+        ctr = _LIVE_CTR.next(now_ms)
+    expiry_ms = cs.resolve_expiry_seconds(os.getenv("ACTUATOR_CMD_EXPIRY_SECONDS")) * 1000
+    body = cs.build_command(
+        key,
+        tenant=tenant,
+        device=device,
+        field=str(field_id).strip(),
+        command_id=command_id,
+        cmd=wire_cmd,
+        payload=payload,
+        duration_ms=_wire_duration_ms(payload),
+        iat=now_ms,
+        exp=now_ms + expiry_ms,
+        ctr=ctr,
+    )
+    return json.dumps(body)
+
+
+async def _device_field(tenant_id: str, device_id: str) -> str | None:
+    """The device's field from the registry (iot_devices) — the field the device is bound to."""
+    try:
+        record = await _registry_device(tenant_id, device_id)
+    except Exception as exc:  # noqa: BLE001 — fail closed: no field, no v2 signature
+        logger.error(f"v2 signing: device registry unavailable for {device_id}: {exc}")
+        return None
+    if not record or str(record.get("tenant_id") or "") != str(tenant_id):
+        return None
+    return str(record.get("field_id") or "").strip() or None
+
+
 async def send_mqtt_command(
     device_id: str,
     command: str,
@@ -807,6 +881,8 @@ async def send_mqtt_command(
     *,
     command_id: str | None = None,
     issued_at: str | None = None,
+    tenant_id: str | None = None,
+    field_id: str | None = None,
 ):
     # وضع المُشغِّل (الإغلاق المرن): يتفرّع السلوك حسب ACTUATOR_MODE مع حفظ التوقيع/المستدعين.
     if ACTUATOR_MODE == "disabled":
@@ -829,17 +905,47 @@ async def send_mqtt_command(
         )
         return True
     topic = f"sahool/actuator/{device_id}/command"
-    # A5: إعادة النشر (استرداد) تحمل ts الأصليّ لا ts جديداً، وإلّا لا يكشفها البرنامج الثابت.
-    ts = issued_at or datetime.now(UTC).isoformat()
-    # A1: وقّع الأمر بـHMAC-SHA256 ليتحقّق منه الـfirmware قبل تحريك الصمّام
-    # (يطابق verifyCmdHmac في esp32_mesh_gateway.ino: HMAC(secret, cmd|ts|duration_ms)).
-    message = _build_wire_message(
-        wire_cmd,
-        payload,
-        ts=ts,
-        secret=os.getenv("CMD_HMAC_SECRET", ""),
-        command_id=command_id,
-    )
+    # R-C2: choose the protocol per device, fail closed. No key ⇒ nothing is published.
+    plan = _signing_plan(device_id)
+    if plan.mode == "refuse":
+        logger.error(f"command to {device_id} not published: {plan.reason} (fail-closed)")
+        return False
+    if plan.mode == "v1":
+        logger.warning(
+            f"LEGACY v1 signature for {device_id} (ACTUATOR_LEGACY_V1_DEVICES): shared secret, "
+            "no tenant/device binding, no persisted replay counter — reflash to v2"
+        )
+        # A5: إعادة النشر (استرداد) تحمل ts الأصليّ لا ts جديداً، وإلّا لا يكشفها البرنامج الثابت.
+        ts = issued_at or datetime.now(UTC).isoformat()
+        message = _build_wire_message(
+            wire_cmd,
+            payload,
+            ts=ts,
+            secret=os.getenv("CMD_HMAC_SECRET", ""),
+            command_id=command_id,
+        )
+    else:
+        if not tenant_id:
+            logger.error(f"command to {device_id} not published: v2 needs the tenant (fail-closed)")
+            return False
+        field = (field_id or "").strip() or await _device_field(tenant_id, device_id)
+        if not field:
+            logger.error(f"command to {device_id} not published: v2 needs the device field")
+            return False
+        try:
+            message = _build_wire_message_v2(
+                wire_cmd,
+                payload,
+                tenant_id=tenant_id,
+                device_id=device_id,
+                field_id=field,
+                command_id=command_id or cd.new_command_id(),
+                issued_at=issued_at,
+                now=datetime.now(UTC),
+            )
+        except cs.SigningError as exc:
+            logger.error(f"command to {device_id} not published: {exc} (fail-closed)")
+            return False
     host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
     try:
         async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
@@ -1055,7 +1161,13 @@ async def _compensate(
             triggered_by="compensation",
         )
         comp_ok = await send_mqtt_command(
-            done["device"], inv, done.get("payload") or {}, command_id=comp_id
+            done["device"],
+            inv,
+            done.get("payload") or {},
+            command_id=comp_id,
+            tenant_id=tenant_id,
+            # v2 binds the device's own field: let the publisher read it from the registry.
+            field_id=None,
         )
         await log_command(
             rule_id=done.get("rule_id"),
@@ -1386,7 +1498,14 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                 )
                 # إرسال الأمر مع التقاط الفشل/الاستثناء لتشغيل خطّاف التعويض.
                 try:
-                    success = await send_mqtt_command(device, cmd, payload, command_id=command_id)
+                    success = await send_mqtt_command(
+                        device,
+                        cmd,
+                        payload,
+                        command_id=command_id,
+                        tenant_id=tenant_id,
+                        field_id=valve_field,
+                    )
                 except Exception as send_err:
                     logger.error(f"send_mqtt_command raised for {device}: {send_err}")
                     success = False
@@ -1645,6 +1764,23 @@ async def _apply_ack_decision(conn, tenant_id: str, command_id: str, decision) -
     await conn.execute(sql, tenant_id, command_id, decision.reason)
 
 
+def _ack_keys(tenant_id: str, device_id: str) -> dict:
+    """Verification material for one ack topic: the v2 derived key, and v1 only if allowlisted."""
+    device_key = ""
+    master = os.getenv("CMD_HMAC_MASTER_KEY", "")
+    if master:
+        try:
+            device_key = cs.derive_device_key(master, tenant_id, device_id)
+        except cs.SigningError:
+            device_key = ""
+    legacy = device_id in cs.parse_legacy_devices(os.getenv("ACTUATOR_LEGACY_V1_DEVICES"))
+    return {
+        "device_key": device_key,
+        "legacy_v1": legacy,
+        "secret": os.getenv("CMD_HMAC_SECRET", "") if legacy else "",
+    }
+
+
 async def handle_device_ack(topic: str, raw) -> cd.AckDecision | None:
     """One device ack from ``sahool/<tenant>/actuator/<device>/ack``.
 
@@ -1662,11 +1798,11 @@ async def handle_device_ack(topic: str, raw) -> cd.AckDecision | None:
         ack = json.loads(raw)
     except (TypeError, ValueError):
         ack = None
-    secret = os.getenv("CMD_HMAC_SECRET", "")
+    keys = _ack_keys(tenant_id, device_id)
     now = datetime.now(UTC)
     # Shape/signature first, without touching the database: junk never reaches a query.
     decision = cd.evaluate_ack(
-        None, ack, topic_tenant=tenant_id, topic_device=device_id, secret=secret, now=now
+        None, ack, topic_tenant=tenant_id, topic_device=device_id, now=now, **keys
     )
     if decision.reason != "unknown_command":
         logger.warning(f"device ack rejected on {topic}: {decision.reason}")
@@ -1692,8 +1828,8 @@ async def handle_device_ack(topic: str, raw) -> cd.AckDecision | None:
                     ack,
                     topic_tenant=tenant_id,
                     topic_device=device_id,
-                    secret=secret,
                     now=datetime.now(UTC),
+                    **keys,
                 )
                 if decision.target is not None:
                     await _apply_ack_decision(conn, tenant_id, command_id, decision)

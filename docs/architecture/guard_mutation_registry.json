@@ -1739,7 +1739,7 @@
         },
         {
           "expect": "test_a_clear_killswitch_still_lets_a_manual_command_through",
-          "find": "    success = await main.send_mqtt_command(\n        req.device_id, req.command, req.payload, command_id=command_id\n    )",
+          "find": "    success = await main.send_mqtt_command(\n        req.device_id,\n        req.command,\n        req.payload,\n        command_id=command_id,\n        tenant_id=tenant_id,\n        field_id=device_field_id,\n    )",
           "replace": "    success = False  # mutated: حجبٌ شامل — لا نشر أصلاً",
           "why": "منعُ تشغيلٍ مشروع عطلٌ أيضاً: بوّابةٌ تحجب الكلّ تُرضي كلّ اختبار حجبٍ وتكسر الخدمة. فالجناح يقيس الاتّجاهين لا اتّجاه المنع وحده."
         }

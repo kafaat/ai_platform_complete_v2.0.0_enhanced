@@ -4763,3 +4763,10 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 **2026-11-11 — ختم `GATE01-ADJ-2026-11-09-001` بعد دمج #1367.**
 **السبب:** تفويضٌ `ISSUED` هبطت بايتاته يُسقط `gate01_frozen_path_guard` على كلّ PR (`GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01`)؛ والبصمة الوحيدة المأذونة (`actuator_runtime.py` = `815a1327`) مطابقةٌ لشجرة `ce4b05c46`، والقرار الموقَّع محجوزٌ في `consumed_authorizations.json` على main.
 **المرجع:** #1367 · `docs/architecture/gates/adjudications/GATE01-ADJ-2026-11-09-001.json` · فرع `claude/seal-gate01-adj-2026-11-09-001`.
+
+## 2026-11-12 — R-C2: عدّاد زمنيّ بلا هجرة، وv1 بقائمةٍ صريحة لا بغياب المفتاح
+
+- **القرار:** (١) `ctr = epoch_ms × 1000 + خانة` بلا جدول تسلسل لكلّ جهاز؛ ولأوامر مستهلك الإرسال يُشتقّ من `requested_at` كي تحمل إعادة النشر العدّاد نفسه فيرفضها الجهاز. (٢) v1 يُرسَل فقط لجهازٍ في `ACTUATOR_LEGACY_V1_DEVICES` ومع `CMD_HMAC_SECRET`؛ غيرُ المُدرَج بلا `CMD_HMAC_MASTER_KEY` لا يُنشَر له شيء. (٣) البرنامج الثابت يقبل v2 وحده، ولا يفحص الانتهاء قبل تزامن SNTP، ولا يرفض CLOSE/OFF للانتهاء.
+- **السبب:** (١) الطلب منع هجرةً ما لم تكن لازمة، و`requested_at` هو الهويّة الثابتة التي يحملها الاسترداد أصلاً ([`actuator_runtime.py:230`](../services/actuator-service/actuator_runtime.py)). الثمن مُعلَن في الدليل: أمرٌ أقدم يُرفَض إن سبقه أحدث للجهاز نفسه. (٢) غيابُ المفتاح لا يصلح إشارةً إلى «جهاز قديم»: يجعل الخطأ في الإعداد ينزل إلى السرّ المشترك بصمت. (٣) الإغلاق هو الحالة الآمنة.
+- **المصدر:** فرع `fix/actuator-cmd-signing-v2` · [`cmd_signing_v2.py:247`](../services/actuator-service/cmd_signing_v2.py) · `SUP-08-DEVICE-COMMAND-SIGNATURE-UNBOUND-TO-DEVICE-01`.
+

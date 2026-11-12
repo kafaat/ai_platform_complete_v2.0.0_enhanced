@@ -3,7 +3,9 @@
 // Publishes sensor data to SAHOOL MQTT Broker (FastBee)
 //
 // Hardware: ESP32-WROOM + DHT22 + FC28 + optional LoRa
-// Libraries: painlessMesh, PubSubClient, ArduinoJson, DHT sensor library
+// Libraries: painlessMesh, PubSubClient, ArduinoJson (6.x), DHT sensor library
+// Command auth: protocol v2 (R-C2) — cmd_auth_v2.h; flashing/provisioning runbook:
+//   docs/runbooks/ACTUATOR_SIGNING_V2_FLASHING_AR.md
 
 #include <painlessMesh.h>
 #include <PubSubClient.h>
@@ -13,10 +15,15 @@
 // tlsClient.setCACert(root_ca_cert);
 // PubSubClient mqttClient(tlsClient);  // ← TLS version
 // For development, plain WiFiClient is used below — change for production
+// ctr/iat/exp are epoch-millisecond counters (< 2^53): 64-bit integers in the JSON reader.
+#define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
 #include <DHT.h>
-#include <mbedtls/md.h>   // HMAC-SHA256 للتحقّق من توقيع الأوامر (A1)
+#include <Preferences.h>  // NVS: identity, per-device command key, last_ctr (R-C2)
+#include <sys/time.h>
+#include <time.h>
 #include <esp_task_wdt.h> // مراقب الأجهزة (watchdog) — يعيد التشغيل عند التعليق
+#include "cmd_auth_v2.h"  // التحقّق من أوامر v2 (HMAC-SHA256 عبر mbedtls) — منطق نقيّ مُختبَر على المضيف
 
 // ── Mesh Config ─────────────────────────────────────────────
 #define MESH_PREFIX     "sahool-mesh"
@@ -37,12 +44,17 @@
 #define MQTT_PASS       ""
 
 // ── Device Identity ─────────────────────────────────────────
-#define DEVICE_ID       "esp32-node-001"
-#define FIELD_ID        "field_01"
-#define TENANT_ID       "default"
-// A1: سرّ توقيع الأوامر لكلّ جهاز (HMAC-SHA256). يجب ضبطه عبر NVS/serial،
-// ويطابق السرّ الذي توقّع به actuator-service. فارغ = رفض كلّ الأوامر (آمن).
-#define CMD_HMAC_SECRET ""  // SET_CMD_SECRET:<hex> عبر serial في الإنتاج
+// R-C2: الهويّة ومفتاح الأوامر وآخر عدّاد في NVS (Preferences)، تُضبط عبر serial:
+//   SET_TENANT:<uuid> · SET_DEVICE:<id> · SET_FIELD:<id> · SET_CMD_KEY:<64 hex>
+//   SHOW_CONFIG (لا يطبع المفتاح) · CLEAR_CMD_KEY · REBOOT
+// القيم أدناه افتراضيّة للقياس عن بُعد فقط؛ الأوامر تُرفَض كلّها ما لم تُضبط الأربعة في NVS.
+#define DEFAULT_DEVICE_ID "esp32-node-001"
+#define DEFAULT_FIELD_ID  "field_01"
+#define DEFAULT_TENANT_ID "default"
+#define NVS_NAMESPACE     "sahoolcmd"
+// خوادم الوقت (SNTP) — الانتهاء يُفحَص فقط حين تتزامن الساعة؛ بدونها يحكم العدّاد وحده.
+#define NTP_SERVER_1      "pool.ntp.org"
+#define NTP_SERVER_2      "time.google.com"
 
 // ── Sensor Pins ─────────────────────────────────────────────
 #define DHT_PIN         4
@@ -60,6 +72,13 @@
 // ── Globals ─────────────────────────────────────────────────
 painlessMesh  mesh;
 WiFiClient    wifiClient;
+Preferences   prefs;
+cmdauth::Config g_cfg;   // tenant/device/field/key/last_ctr — من NVS
+
+// الهويّة الفعّالة: قيمة NVS إن ضُبطت، وإلّا الافتراضيّ (للقياس عن بُعد فقط).
+static const char* devId()    { return g_cfg.device[0] ? g_cfg.device : DEFAULT_DEVICE_ID; }
+static const char* fieldId()  { return g_cfg.field[0]  ? g_cfg.field  : DEFAULT_FIELD_ID; }
+static const char* tenantId() { return g_cfg.tenant[0] ? g_cfg.tenant : DEFAULT_TENANT_ID; }
 
 // لحظة فتح الصمّام (millis). 0 = مغلق. تُستخدم للإغلاق التلقائي عند تجاوز المدّة.
 unsigned long valveOpenedAt = 0;
@@ -100,17 +119,17 @@ void changedConnectionCallback() {
 void forwardToMqtt(String &msg) {
   if (!mqttClient.connected()) return;
   // Topic: sahool/tenant/{tenant}/field/{field}/telemetry/{sensor}
-  String topic = String("sahool/") + TENANT_ID + "/" + FIELD_ID + "/telemetry/mesh";
+  String topic = String("sahool/") + tenantId() + "/" + fieldId() + "/telemetry/mesh";
   mqttClient.publish(topic.c_str(), msg.c_str());
   Serial.println("MQTT forwarded: " + topic);
 }
 
 boolean mqttReconnect() {
-  String clientId = "sahool-mesh-" + String(DEVICE_ID);
+  String clientId = "sahool-mesh-" + String(devId());
   if (mqttClient.connect(clientId.c_str(), MQTT_USER, MQTT_PASS)) {
     // Subscribe to actuator commands for this device
     // FIX: كان الـtopic مشوّهاً (تكرار DEVICE_ID + /command) فلا يصل أيّ أمر
-    String cmdTopic = String("sahool/actuator/") + String(DEVICE_ID) + String("/command");
+    String cmdTopic = String("sahool/actuator/") + String(devId()) + String("/command");
     // A7: QoS 1 — الوسيط يعيد إرسال الأمر حتّى يُقَرّ (كان QoS 0 افتراضيّاً: يضيع بصمت).
     mqttClient.subscribe(cmdTopic.c_str(), 1);
     Serial.println("MQTT connected");
@@ -118,143 +137,207 @@ boolean mqttReconnect() {
   return mqttClient.connected();
 }
 
-// A1: التحقّق من توقيع HMAC-SHA256 للأمر قبل تحريك الـrelay.
-// يمنع أيّ طرف ينشر على الموضوع (أو يحقن على الشبكة) من تشغيل الصمّامات،
-// حتّى مع وسيط MQTT بنصّ صريح. الحمولة المتوقّعة: {"cmd":..,"ts":..,"sig":"<hex>"}
-// حيث sig = HMAC_SHA256(CMD_HMAC_SECRET, cmd + "|" + ts).
-// المدّة داخل التوقيع: cmd|ts|duration_ms. البرنامج الثابت يُغلِق بالمدّة (A7)، فمدّةٌ غير
-// موقَّعة كانت تُمدَّد بتعديل الرسالة إلى سقف الأمان دون أن يبطل التوقيع.
-static bool verifyCmdHmac(const char* cmd, const char* ts, unsigned long durationMs,
-                          const char* sig) {
-  if (strlen(CMD_HMAC_SECRET) == 0) return false;   // فارغ → رفض (آمن)
-  if (cmd == nullptr || ts == nullptr || sig == nullptr) return false;
-  // اِبنِ الرسالة cmd|ts|duration_ms — رسالةٌ مقتطَعة لا تُوقَّع ولا تُقبَل.
-  char msg[160];
-  int n = snprintf(msg, sizeof(msg), "%s|%s|%lu", cmd, ts, durationMs);
-  if (n < 0 || n >= (int)sizeof(msg)) return false;
-  // احسب HMAC-SHA256
-  uint8_t hmac[32];
-  const mbedtls_md_info_t* info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
-  if (mbedtls_md_hmac(info,
-        (const uint8_t*)CMD_HMAC_SECRET, strlen(CMD_HMAC_SECRET),
-        (const uint8_t*)msg, strlen(msg), hmac) != 0) return false;
-  // حوّل لـhex وقارن (ثابت الزمن قدر الإمكان)
-  char hex[65];
-  for (int i = 0; i < 32; i++) snprintf(hex + i*2, 3, "%02x", hmac[i]);
-  if (strlen(sig) != 64) return false;
-  uint8_t diff = 0;
-  for (int i = 0; i < 64; i++) diff |= (hex[i] ^ sig[i]);
-  return diff == 0;
+// ── NVS (Preferences) — R-C2 ────────────────────────────────
+// الهويّة والمفتاح وlast_ctr تبقى عبر إعادة التشغيل؛ last_ctr يُكتب **قبل** التحريك، فأمرٌ
+// مُلتقَط لا يُعاد بعد إقلاع (كانت نافذة RAM من ١٦ طابعاً تضيع عند كلّ إعادة تشغيل).
+static void loadConfig() {
+  memset(&g_cfg, 0, sizeof(g_cfg));
+  prefs.begin(NVS_NAMESPACE, true);
+  prefs.getString("tenant", g_cfg.tenant, sizeof(g_cfg.tenant));
+  prefs.getString("device", g_cfg.device, sizeof(g_cfg.device));
+  prefs.getString("field", g_cfg.field, sizeof(g_cfg.field));
+  g_cfg.has_key = prefs.getBytes("cmdkey", g_cfg.key, sizeof(g_cfg.key)) == sizeof(g_cfg.key);
+  g_cfg.last_ctr = prefs.getULong64("last_ctr", 0);
+  prefs.end();
 }
 
-// v238 (delivery state): إقرار الجهاز للمنصّة عبر MQTT يحمل معرّف الأمر نفسه (``id``)
-// وتوقيعاً HMAC-SHA256(secret, id|device|result) — كي لا ينقل الأمرَ إلى device_acked إلّا
-// جهازٌ يملك السرّ وأقرّ هذا الأمر بعينه. الموضوع sahool/<TENANT_ID>/actuator/<DEVICE_ID>/ack،
-// وTENANT_ID يجب أن يكون UUID المستأجر (المنصّة ترفض غيره). PubSubClient ينشر QoS 0 فقط:
-// إقرارٌ ضائع يترك الأمر published حتّى تنتهي مهلته (expired) — لا يُعلَن نجاحٌ لم يُقَرّ.
-static bool hmacSha256Hex(const char* msg, char hexOut[65]) {
-  if (strlen(CMD_HMAC_SECRET) == 0 || msg == nullptr) return false;
-  uint8_t mac[32];
-  const mbedtls_md_info_t* info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
-  if (mbedtls_md_hmac(info,
-        (const uint8_t*)CMD_HMAC_SECRET, strlen(CMD_HMAC_SECRET),
-        (const uint8_t*)msg, strlen(msg), mac) != 0) return false;
-  for (int i = 0; i < 32; i++) snprintf(hexOut + i*2, 3, "%02x", mac[i]);
+static bool persistLastCtr(uint64_t ctr) {
+  prefs.begin(NVS_NAMESPACE, false);
+  size_t n = prefs.putULong64("last_ctr", ctr);
+  prefs.end();
+  if (n != sizeof(uint64_t)) return false;
+  g_cfg.last_ctr = ctr;
   return true;
 }
 
-static void publishDeviceAck(const char* cmdId, const char* result) {
+static bool clockSynced() {
+  return time(nullptr) > 1700000000;   // 2023-11 — قبلها الساعة لم تتزامن بعد (SNTP)
+}
+
+static uint64_t nowEpochMs() {
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  return (uint64_t)tv.tv_sec * 1000ULL + (uint64_t)(tv.tv_usec / 1000);
+}
+
+static void printConfig() {
+  Serial.printf("CONFIG tenant=%s device=%s field=%s cmd_key=%s last_ctr=%llu "
+                "provisioned=%s clock_synced=%s protocol=v2\n",
+                g_cfg.tenant[0] ? g_cfg.tenant : "<unset>",
+                g_cfg.device[0] ? g_cfg.device : "<unset>",
+                g_cfg.field[0] ? g_cfg.field : "<unset>", g_cfg.has_key ? "set" : "unset",
+                (unsigned long long)g_cfg.last_ctr, cmdauth::provisioned(g_cfg) ? "yes" : "no",
+                clockSynced() ? "yes" : "no");
+}
+
+// ── Serial provisioning (USB، 115200) ────────────────────────
+// محلّيٌّ فقط (وصولٌ فيزيائيّ). لا يُطبَع المفتاح أبداً، ولا يُردَّد سطرُ SET_CMD_KEY.
+static void handleSerialLine(String line) {
+  line.trim();
+  if (line.length() == 0) return;
+  bool identityChanged = false;
+  if (line.startsWith("SET_TENANT:") || line.startsWith("SET_DEVICE:") ||
+      line.startsWith("SET_FIELD:")) {
+    int colon = line.indexOf(':');
+    String name = line.substring(4, colon);   // TENANT / DEVICE / FIELD
+    String value = line.substring(colon + 1);
+    value.trim();
+    if (!cmdauth::valid_field(value.c_str(), cmdauth::kFieldMax)) {
+      Serial.println("ERR: value must be 1-63 chars without '|'");
+      return;
+    }
+    const char* nvsKey = name == "TENANT" ? "tenant" : (name == "DEVICE" ? "device" : "field");
+    prefs.begin(NVS_NAMESPACE, false);
+    size_t n = prefs.putString(nvsKey, value);
+    prefs.end();
+    Serial.println(n > 0 ? String("OK ") + nvsKey + "=" + value : String("ERR: NVS write failed"));
+    identityChanged = true;
+  } else if (line.startsWith("SET_CMD_KEY:")) {
+    uint8_t k[32];
+    if (!cmdauth::parse_key_hex(line.substring(12).c_str(), k)) {
+      Serial.println("ERR: SET_CMD_KEY needs exactly 64 hex characters");
+      return;
+    }
+    prefs.begin(NVS_NAMESPACE, false);
+    size_t n = prefs.putBytes("cmdkey", k, sizeof(k));
+    prefs.end();
+    memset(k, 0, sizeof(k));
+    Serial.println(n == 32 ? "OK cmd key stored (not echoed)" : "ERR: NVS write failed");
+  } else if (line == "CLEAR_CMD_KEY") {
+    // last_ctr يُحفَظ عمداً: مسحُ المفتاح لا يفتح باب إعادة أوامر قديمة.
+    prefs.begin(NVS_NAMESPACE, false);
+    prefs.remove("cmdkey");
+    prefs.end();
+    Serial.println("OK cmd key cleared — all commands are rejected until SET_CMD_KEY");
+  } else if (line == "SHOW_CONFIG") {
+    // يطبع الحالة أدناه — والمفتاح «set/unset» فقط.
+  } else if (line == "REBOOT") {
+    Serial.println("rebooting");
+    delay(100);
+    ESP.restart();
+  } else {
+    Serial.println("ERR: unknown command (SET_TENANT/SET_DEVICE/SET_FIELD/SET_CMD_KEY/"
+                   "SHOW_CONFIG/CLEAR_CMD_KEY/REBOOT)");
+    return;
+  }
+  loadConfig();
+  printConfig();
+  if (identityChanged) Serial.println("NOTE: MQTT topics follow the new identity after REBOOT");
+}
+
+static void pollSerial() {
+  static String buf;
+  while (Serial.available()) {
+    char c = (char)Serial.read();
+    if (c == '\n' || c == '\r') {
+      if (buf.length()) handleSerialLine(buf);
+      buf = "";
+    } else if (buf.length() < 200) {
+      buf += c;
+    }
+  }
+}
+
+// v238 + R-C2: إقرار الجهاز v2 يحمل معرّف الأمر وعدّاده، موقَّعاً بمفتاح الجهاز:
+// HMAC(device_key, "v2ack|tenant|device|id|result|ctr"). الموضوع
+// sahool/<tenant>/actuator/<device>/ack، وtenant يجب أن يكون UUID المستأجر (المنصّة ترفض غيره).
+// PubSubClient ينشر QoS 0 فقط: إقرارٌ ضائع يترك الأمر published حتّى تنتهي مهلته (expired).
+static void publishDeviceAck(const char* cmdId, const char* result, uint64_t ctr) {
   if (cmdId == nullptr || !mqttClient.connected()) return;
-  char msg[192];
-  snprintf(msg, sizeof(msg), "%s|%s|%s", cmdId, DEVICE_ID, result);
   char sig[65];
-  if (!hmacSha256Hex(msg, sig)) return;   // بلا سرّ لا إقرار (المنصّة ترفض غير الموقَّع)
-  StaticJsonDocument<384> ack;
+  if (!cmdauth::sign_ack_hex(g_cfg, cmdId, result, ctr, sig)) return;  // بلا مفتاح لا إقرار
+  StaticJsonDocument<512> ack;
+  ack["v"] = cmdauth::kVersion;
   ack["id"] = cmdId;
-  ack["device"] = DEVICE_ID;
+  ack["tenant"] = g_cfg.tenant;
+  ack["device"] = g_cfg.device;
   ack["result"] = result;
+  ack["ctr"] = ctr;
   ack["status"] = digitalRead(RELAY_PIN) ? "ON" : "OFF";
   ack["sig"] = sig;
   String out;
   serializeJson(ack, out);
-  String topic = String("sahool/") + TENANT_ID + "/actuator/" + DEVICE_ID + "/ack";
+  String topic = String("sahool/") + g_cfg.tenant + "/actuator/" + g_cfg.device + "/ack";
   mqttClient.publish(topic.c_str(), out.c_str());
 }
 
-// P1/idempotency: نافذة إعادة (replay window) — آخر N طوابع زمنيّة لأوامر
-// نُفِّذت. أقوى من معرّف واحد: يكتشف التكرار غير المتتالي (تسليم MQTT QoS1
-// خارج الترتيب، أو إعادة إرسال متأخّرة بعد فقد ACK). أمر بـts موجود في
-// النافذة = تكرار → يُتجاهَل. ring buffer (لا تخصيص ديناميكي — مناسب لـESP32).
-static const int CMD_WINDOW_SIZE = 16;
-static String seenCmdTs[CMD_WINDOW_SIZE];
-static int seenCmdHead = 0;
-
-static bool isDuplicateCmd(const char* ts) {
-  if (ts == nullptr) return false;
-  String t = String(ts);
-  for (int i = 0; i < CMD_WINDOW_SIZE; i++) {
-    if (seenCmdTs[i] == t) return true;   // رأيناه → تكرار
-  }
-  return false;
-}
-
-static void rememberCmd(const char* ts) {
-  if (ts == nullptr) return;
-  seenCmdTs[seenCmdHead] = String(ts);
-  seenCmdHead = (seenCmdHead + 1) % CMD_WINDOW_SIZE;  // دائري
+static bool jsonUint(JsonVariantConst v, uint64_t* out) {
+  if (!v.is<unsigned long long>()) return false;
+  *out = v.as<unsigned long long>();
+  return true;
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
-  String msg;
-  for (unsigned int i = 0; i < length; i++) msg += (char)payload[i];
-  Serial.println("MQTT cmd: " + String(topic) + " -> " + msg);
+  Serial.printf("MQTT cmd on %s (%u bytes)\n", topic, length);
 
-  // Parse command — A4: رسالة المنصّة (cmd+payload+ts+sig+id) تتجاوز 256 بايتاً.
+  // A4: رسالة المنصّة تتجاوز 256 بايتاً.
   StaticJsonDocument<1024> doc;
-  DeserializationError err = deserializeJson(doc, msg);
+  DeserializationError err = deserializeJson(doc, payload, length);
   if (err) return;
 
-  const char* cmd = doc["cmd"];
-  // FIX: تحقّق من null قبل strcmp (أمر بلا حقل cmd كان يسبّب crash)
-  if (cmd == nullptr) return;
-  // A1: ارفض أيّ أمر بلا توقيع HMAC صالح (منع تشغيل الصمّامات بأمر مزوّر)
-  const char* ts  = doc["ts"];
-  const char* sig = doc["sig"];
-  // A7: المدّة الموقَّعة وحدها (ملّي ثانية صحيحة من المنصّة، مقرّبة لأعلى بحدٍّ أدنى ١).
-  unsigned long reqMs = doc["payload"]["duration_ms"] | 0UL;
-  if (!verifyCmdHmac(cmd, ts, reqMs, sig)) {
-    Serial.println("MQTT cmd مرفوض: توقيع HMAC غير صالح");
-    return;
-  }
-  // idempotency: ارفض الأمر المكرّر (ضمن نافذة آخر N) — يمنع تشغيل الصمّام
-  // مرّتين عند تكرار تسليم MQTT أو إعادة الإرسال (نقطة حرجة فيزيائيّاً).
-  if (isDuplicateCmd(ts)) {
-    Serial.println("MQTT cmd مكرّر (ضمن نافذة الإعادة) — تُجوهِل (idempotency)");
-    return;
-  }
-  rememberCmd(ts);
+  cmdauth::Command m{};
+  m.has_v = doc["v"].is<long>();
+  m.v = m.has_v ? doc["v"].as<long>() : 0;
+  m.id = doc["id"];
+  m.cmd = doc["cmd"];
+  m.tenant = doc["tenant"];
+  m.device = doc["device"];
+  m.field = doc["field"];
+  m.sig = doc["sig"];
+  bool ok = jsonUint(doc["iat"], &m.iat) && jsonUint(doc["exp"], &m.exp) &&
+            jsonUint(doc["ctr"], &m.ctr);
+  JsonVariantConst dur = doc["payload"]["duration_ms"];
+  if (dur.isNull()) m.duration_ms = 0;
+  else ok = ok && jsonUint(dur, &m.duration_ms);
+  m.numbers_ok = ok;
 
-  bool known = true;
-  if (strcmp(cmd, "OPEN") == 0 || strcmp(cmd, "ON") == 0) {
-    // A7: المدّة المطلوبة تُحترَم (كانت تُتجاهَل)، ولا يُجدِّد OPEN متكرّرٌ مؤقّتَ السقف.
-    valveRequestedMs = reqMs;
-    if (valveOpenedAt == 0) setRelay(true);  // يفتح + يبدأ مؤقّت الإغلاق التلقائي (fail-safe)
-  } else if (strcmp(cmd, "CLOSE") == 0 || strcmp(cmd, "OFF") == 0) {
+  // R-C2: v2 فقط. توقيعٌ بمفتاح هذا الجهاز + ربط tenant/device/field بقيم NVS + ctr > last_ctr
+  // + انتهاء (حين تتزامن الساعة، ولا يُطبَّق على CLOSE/OFF: الإغلاق هو الحالة الآمنة).
+  cmdauth::Result r = cmdauth::verify_command(g_cfg, m, clockSynced(), nowEpochMs());
+  if (r != cmdauth::ACCEPT) {
+    Serial.printf("MQTT cmd مرفوض: %s\n", cmdauth::reason(r));
+    // أمرٌ موقَّع لهذا الجهاز لكن مُعاد/منتهٍ يُقَرّ "rejected" ليظهر في حالة التسليم.
+    // التوقيع غير الصالح أو الربط المخالف لا يُقَرّ: معرّفه غير موثوق، أو ليس لنا.
+    if (r == cmdauth::REJ_REPLAY || r == cmdauth::REJ_EXPIRED) {
+      publishDeviceAck(m.id, "rejected", m.ctr);
+    }
+    return;
+  }
+  const bool closing = cmdauth::is_close(m.cmd);
+  // last_ctr يُحفَظ قبل التحريك. فشلُ الكتابة يرفض الفتح (لا تحريك بلا حماية إعادة)، أمّا
+  // الإغلاق فيمضي: هو الحالة الآمنة، وإعادتُه لا تضرّ.
+  if (!persistLastCtr(m.ctr) && !closing) {
+    Serial.println("MQTT cmd مرفوض: تعذّر حفظ last_ctr في NVS");
+    return;
+  }
+
+  if (closing) {
     setRelay(false);   // يغلق + يلغي المؤقّت
   } else {
-    known = false;     // A4: لا يُقَرّ أمرٌ مجهول كأنّه نُفِّذ
+    // OPEN/ON (verify_command يرفض ما سواها). A7: المدّة الموقَّعة تُحترَم، ولا يُجدِّد
+    // OPEN متكرّرٌ مؤقّتَ السقف.
+    valveRequestedMs = (unsigned long)m.duration_ms;
+    if (valveOpenedAt == 0) setRelay(true);  // يفتح + يبدأ مؤقّت الإغلاق التلقائي (fail-safe)
   }
 
-  // v238: إقرار المنصّة بمعرّف الأمر (يحرّك delivery_state من published إلى device_acked/
-  // device_rejected). أمرٌ بلا id (رسالة قديمة) لا يُقَرّ للمنصّة — لا ربط ممكن.
-  const char* cmdId = doc["id"];
-  publishDeviceAck(cmdId, known ? "applied" : "unknown_command");
+  // v238: إقرار المنصّة بمعرّف الأمر (published → device_acked).
+  publishDeviceAck(m.id, "applied", m.ctr);
 
   // Acknowledge via mesh
   StaticJsonDocument<192> ack;
-  ack["device"] = DEVICE_ID;
-  ack["ack"] = cmd;
-  ack["result"] = known ? "applied" : "unknown_command";
+  ack["device"] = devId();
+  ack["ack"] = m.cmd;
+  ack["result"] = "applied";
   ack["status"] = digitalRead(RELAY_PIN) ? "ON" : "OFF";
   String ackStr;
   serializeJson(ack, ackStr);
@@ -272,9 +355,9 @@ String readSensors() {
   if (isnan(hum))  hum  = -999;
 
   StaticJsonDocument<256> doc;
-  doc["device_id"] = DEVICE_ID;
-  doc["field_id"]  = FIELD_ID;
-  doc["tenant_id"] = TENANT_ID;
+  doc["device_id"] = devId();
+  doc["field_id"]  = fieldId();
+  doc["tenant_id"] = tenantId();
   doc["ts"]        = millis();
 
   JsonObject data = doc.createNestedObject("data");
@@ -299,6 +382,9 @@ void setup() {
 
   pinMode(RELAY_PIN, OUTPUT);
   setRelay(false);   // حالة آمنة عند الإقلاع (صمّام مغلق + مؤقّت ملغى)
+  loadConfig();      // R-C2: الهويّة + المفتاح + last_ctr من NVS
+  Serial.printf("cmd auth v2: provisioned=%s (SHOW_CONFIG for details)\n",
+                cmdauth::provisioned(g_cfg) ? "yes" : "no — all commands rejected");
   dht.begin();
 
   // مراقب الأجهزة: يعيد تشغيل اللوحة إن تعلّق loop() أكثر من 30s.
@@ -316,6 +402,8 @@ void setup() {
   // If root, also connect to WiFi STA for MQTT
   if (mesh.isRoot()) {
     WiFi.begin(WIFI_SSID, WIFI_PASS);
+    // R-C2: SNTP — الانتهاء (exp) يُفحَص فقط بعد التزامن؛ قبله يحكم العدّاد (ctr) وحده.
+    configTime(0, 0, NTP_SERVER_1, NTP_SERVER_2);
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
     mqttClient.setBufferSize(1024);  // A4: الافتراضيّ 256 يُسقط أوامر المنصّة بصمت
     mqttClient.setCallback(mqttCallback);
@@ -327,13 +415,14 @@ void setup() {
 // ── Loop ────────────────────────────────────────────────────
 void loop() {
   esp_task_wdt_reset();   // أطعِم المراقب (loop حيّ) — يمنع إعادة تشغيل زائفة
+  pollSerial();           // R-C2: أوامر التهيئة عبر USB serial
 
   // Valve fail-safe: أغلق الصمّام تلقائيّاً إن تجاوز المدّة القصوى للفتح. حماية
   // محلّيّة لا تعتمد الشبكة (طرح unsigned آمن مع تجاوز millis كل ~49 يوماً).
   if (valveOpenedAt != 0 && (millis() - valveOpenedAt) >= VALVE_MAX_OPEN_MS) {
     setRelay(false);
     StaticJsonDocument<160> alert;
-    alert["device"]      = DEVICE_ID;
+    alert["device"]      = devId();
     alert["alert"]       = "valve_auto_closed";
     alert["reason"]      = "max_open_timeout";
     alert["max_open_ms"] = VALVE_MAX_OPEN_MS;
@@ -346,7 +435,7 @@ void loop() {
     // A7: انتهت الريّة المطلوبة — إغلاقٌ محلّيّ لا ينتظر CLOSE قد يضيع أثناء انقطاع الاتّصال.
     setRelay(false);
     StaticJsonDocument<160> done;
-    done["device"]       = DEVICE_ID;
+    done["device"]       = devId();
     done["alert"]        = "valve_auto_closed";
     done["reason"]       = "requested_duration_elapsed";
     done["requested_ms"] = valveRequestedMs;

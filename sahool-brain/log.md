@@ -10595,3 +10595,12 @@ The full local unit run exposed two additional test defects. The requirements co
 
 - **2026-11-11 — دمج #1367 (`ce4b05c46`) أوّلَ تغييرٍ مقيَّد يوقّعه المالك على GATE-01، وختم `GATE01-ADJ-2026-11-09-001` CONSUMED:** الشجرة المدموجة `6ef90bfb` == المختبَرة (`e0f3f7404`)؛ 81 فحصاً ناجحاً و`codecov/patch` غير الإلزاميّ معلّق. المالك وقّع على هاتفه (iSH) والوكيل لم يحمل المفتاح؛ تحقّق `ssh-keygen -Y verify` مقابل `owner_allowed_signers` على main (#1372).
   - **قفلٌ مقيس بين حارسَين حاجبَين:** الظرف يُلتزَم بعد الرأس الموقَّع فرفع `files_scanned` في خريطة القدرات 7107 → 7108، وحجزُه غيّر بصمةَ إصدارٍ لسجلّ الاستهلاك؛ و`gate01_owner_signature_guard` يرفض أيَّ إعادة توليدٍ بعد الرأس الموقَّع. أُصلح داخل #1367 (`561d5a133`، `bbb5c28c5`) باستثناء مذيّل التوقيع من الماسحَين، وتطلّب ذلك توقيعاً ثانياً؛ الأوّل لم يُدفَع ولم يُستهلَك.
+
+## 2026-11-12 — R-C2: توقيع أوامر المشغّلات v2 (فرع `fix/actuator-cmd-signing-v2`، غير مدموج)
+
+- **العيب (مقيس في المصدر):** `_build_wire_message` يوقّع `cmd|ts|duration_ms` بسرٍّ واحد لكلّ الأجهزة، والبرنامج الثابت يحفظ ١٦ طابعاً في RAM ([`actuator_runtime.py:772`](../services/actuator-service/actuator_runtime.py) على `d0ef591`). أمرٌ مُلتقَط يُعاد إلى صمّام مستأجرٍ آخر وإلى الصمّام نفسه بعد إعادة التشغيل.
+- **ما دخل الفرع:** وحدةٌ نقيّة [`cmd_signing_v2.py`](../services/actuator-service/cmd_signing_v2.py) (اشتقاق المفتاح، الرسالة، العدّاد، ومرجع Python لقرار الجهاز)؛ ترويسة [`cmd_auth_v2.h`](../firmware/esp32_mesh_gateway/cmd_auth_v2.h) بتجريد HMAC (mbedtls/OpenSSL)؛ البرنامج الثابت يحفظ الهويّة والمفتاح و`last_ctr` في NVS مع أوامر تهيئة serial؛ أداة [`provision_device_key.py`](../services/actuator-service/provision_device_key.py)؛ تحقّق إقرارات v2 بالمفتاح المشتقّ ومطابقة المستأجر ([`command_delivery.py:198`](../services/actuator-service/command_delivery.py))؛ ودليل [`ACTUATOR_SIGNING_V2_FLASHING_AR.md`](../docs/runbooks/ACTUATOR_SIGNING_V2_FLASHING_AR.md).
+- **القياس:** اختبار المضيف g++ على المتّجهات المشتركة: 17 متّجه أمر و3 إقرار و45 فحصاً بلا إخفاق. أجنحة actuator-service المحلّيّة خضراء (أرقامها في تقرير الجلسة).
+- **ما لم يُقَس:** ترجمة الرسم (المضيفان `downloads.arduino.cc` و`espressif.github.io` مرفوضان من وسيط الجلسة)، وأيّ جهاز حقيقيّ. البرمجة خطوةٌ بشريّة.
+- **محجوب:** `actuator_runtime.py` و`routers/commands.py` مجمَّدان في GATE-01 ⇒ `gate01_frozen_path_guard` يحجب حتّى تفويضٍ موقَّع من المالك. الفجوة `SUP-08-DEVICE-COMMAND-SIGNATURE-UNBOUND-TO-DEVICE-01` تبقى open ([سجل الفجوات](gaps/registry.md)).
+
