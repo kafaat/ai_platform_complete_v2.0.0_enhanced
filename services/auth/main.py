@@ -28,6 +28,7 @@ from uuid import uuid4
 import asyncpg
 import bcrypt  # noqa: F401 — routers/session.py (S16 timing equaliser) يصل إليه عبر main.bcrypt
 import jwt
+from client_address import audit_inet
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -786,33 +787,36 @@ async def check_ip_rate(ip: str) -> None:
 
 
 # ── Audit Log ─────────────────────────────────────────────────
-async def audit_log(
-    action: str,
-    user_id: int | None,
-    ip: str,
-    details: str | None = None,
-    tenant_id: object | None = None,
-) -> None:
-    if not _pool:
-        return
+AUDIT_WRITE_FAILURES = _safe_counter("sahool_auth_audit_write_failures_total", "Lost audit rows")
+
+
+async def audit_log(action, user_id, ip, details=None, tenant_id=None) -> bool:
+    """R-H3: صفّ ``audit_log`` بعنوانٍ صالح أو NULL، ومستأجِره (المُمرَّر أو مستأجِر
+    ``user_id``) مربوطٌ بـ``set_config(…, true)`` في معاملة الإدراج نفسها (WITH CHECK v237).
+    يُعيد النجاح؛ الفشل لا يكسر المصادقة لكنّه مرئيّ دائماً (error + عدّاد)."""
     try:
-        async with _acquire() as conn:
+        async with _acquire() as conn, conn.transaction():
             await conn.execute(
-                """
-                INSERT INTO audit_log (action, user_id, ip_address, details, tenant_id, created_at)
-                VALUES ($1, $2, $3, $4, $5, NOW())
-                -- HIGH-01 FIX: removed  (no UNIQUE constraint on audit_log)
-                -- governance #407: tenant_id للتحقيق الجنائيّ المُنطّق بالمستأجِر
-            """,
+                "SELECT set_config('app.current_tenant', COALESCE($1::text, (SELECT tenant_id"
+                "::text FROM users WHERE id = $2::int), ''), true)",
+                str(tenant_id) if tenant_id else None,
+                user_id,
+            )
+            await conn.execute(
+                "INSERT INTO audit_log (action, user_id, ip_address, details, tenant_id, created_at)"
+                " VALUES ($1, $2, $3::inet, $4,"
+                " NULLIF(current_setting('app.current_tenant', true), '')::uuid, NOW())",
                 action,
                 user_id,
-                ip,
+                audit_inet(ip),
                 details,
-                tenant_id,
             )
-    except Exception as e:  # noqa: BLE001
-        # غير قاتل (لا نكسر مسار المصادقة)، لكن فشل كتابة سجلّ التدقيق حسّاس ⇒ error لا warning.
-        logger.error("فشل كتابة سجلّ التدقيق (غير قاتل) action=%s: %s", action, type(e).__name__)
+        return True
+    except Exception as e:  # noqa: BLE001 — لا نكسر المصادقة، لكنّ الضياع مرئيّ دائماً
+        AUDIT_WRITE_FAILURES.inc()
+        sqlstate = getattr(e, "sqlstate", None)
+        logger.error("audit_log row LOST action=%s: %s %s", action, type(e).__name__, sqlstate)
+        return False
 
 
 # ── Password Reset Helpers ─────────────────────────────────────

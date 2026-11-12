@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "2959a789380159f7f5683bccdce02a78d7c5a2b05c8b3cef72de89d424272dba",
+  "inventory_sha256": "cb8e84af7918e3cf4261e5859594baa7e48a5e18926e7346f2a4a6540fddfe80",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "8efc61fa3dc886a125acbe72797d5845a4c71191bbdec511953a9c8573fe0b8c"
+    "policy_sha256": "3c9399fe93236ca0367abc8a4a72065459cef37f86304d165c420e84677649aa"
   },
   "routes": [
     {
@@ -290,7 +290,7 @@
     {
       "classification": "domain",
       "function": "imagery_automation_status_endpoint",
-      "line": 194,
+      "line": 207,
       "method": "GET",
       "path": "/api/v1/automation/imagery/status",
       "source": "api/routers/automation.py"
@@ -298,7 +298,7 @@
     {
       "classification": "domain",
       "function": "automation_runs_endpoint",
-      "line": 77,
+      "line": 83,
       "method": "GET",
       "path": "/api/v1/automation/runs",
       "source": "api/routers/automation.py"
@@ -306,7 +306,7 @@
     {
       "classification": "domain",
       "function": "scheduler_status_endpoint",
-      "line": 62,
+      "line": 68,
       "method": "GET",
       "path": "/api/v1/automation/scheduler-status",
       "source": "api/routers/automation.py"
@@ -314,7 +314,7 @@
     {
       "classification": "domain",
       "function": "weather_cached_endpoint",
-      "line": 136,
+      "line": 142,
       "method": "GET",
       "path": "/api/v1/automation/weather/cached",
       "source": "api/routers/automation.py"
@@ -322,7 +322,7 @@
     {
       "classification": "domain",
       "function": "weather_automation_status_endpoint",
-      "line": 155,
+      "line": 161,
       "method": "GET",
       "path": "/api/v1/automation/weather/status",
       "source": "api/routers/automation.py"
@@ -3010,7 +3010,7 @@
     {
       "classification": "domain",
       "function": "automation_run_alerts_endpoint",
-      "line": 206,
+      "line": 225,
       "method": "POST",
       "path": "/api/v1/automation/alerts/run",
       "source": "api/routers/automation.py"
@@ -3018,7 +3018,7 @@
     {
       "classification": "domain",
       "function": "imagery_register_field_endpoint",
-      "line": 163,
+      "line": 176,
       "method": "POST",
       "path": "/api/v1/automation/imagery/register-field",
       "source": "api/routers/automation.py"
@@ -3026,7 +3026,7 @@
     {
       "classification": "domain",
       "function": "weather_register_endpoint",
-      "line": 96,
+      "line": 102,
       "method": "POST",
       "path": "/api/v1/automation/weather/register",
       "source": "api/routers/automation.py"

@@ -1,5 +1,5 @@
 {
-  "edge_count": 931,
+  "edge_count": 932,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -609,6 +609,16 @@
       "relation": "READS",
       "resource": "db://mfa_recovery_codes",
       "to": "db://mfa_recovery_codes",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/auth/main.py",
+      "from": "auth",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
       "to_kind": "resource"
     },
     {
@@ -9330,7 +9340,7 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 478,
+    "READS": 479,
     "ROUTES_TO": 72,
     "WRITES": 329
   },
@@ -9347,8 +9357,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 808,
-      "resolved": 807,
+      "observed": 809,
+      "resolved": 808,
       "unresolved_component_paths": 0
     }
   }
