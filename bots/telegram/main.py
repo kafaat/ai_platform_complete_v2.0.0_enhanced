@@ -940,7 +940,7 @@ async def cmd_settings(message: Message):
 
 #: رسالةُ 403 من POST /api/v1/work-orders/from-recommendation (صلاحية ACTIVITY_PLAN).
 WORK_ORDER_FORBIDDEN_AR = (
-    "إنشاء أمر عمل يتطلّب صلاحية مدير أو مهندس زراعيّ. "
+    "إنشاء أمر عمل يتطلّب صلاحية مالك المزرعة أو مديرها أو مهندس زراعيّ. "
     "اطلب من مدير المزرعة إنشاءه من هذه التوصية. لم يُنشأ أمر عمل."
 )
 
