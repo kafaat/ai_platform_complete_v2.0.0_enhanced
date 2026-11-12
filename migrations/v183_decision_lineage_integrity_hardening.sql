@@ -100,25 +100,35 @@ LANGUAGE plpgsql AS $$ BEGIN
   RETURN NEW;
 END $$;
 
--- Recompute historical hashes from parent to child after tenant backfill.
-UPDATE recommendations r SET content_digest=sahool_recommendation_digest(r);
+-- Recompute historical hashes from parent to child after tenant backfill. Every statement
+-- touches only rows whose value differs: the chain is re-applied on every deploy, and an
+-- unconditional UPDATE fired the (later) append-only/immutability triggers on every row.
+UPDATE recommendations r SET content_digest=sahool_recommendation_digest(r)
+  WHERE r.content_digest IS DISTINCT FROM sahool_recommendation_digest(r);
 UPDATE recommendation_reviews rr
 SET source_content_digest=r.content_digest
 FROM recommendations r
-WHERE r.rec_id=rr.recommendation_id AND r.tenant_id::text=rr.tenant_id;
+WHERE r.rec_id=rr.recommendation_id AND r.tenant_id::text=rr.tenant_id
+  AND rr.source_content_digest IS DISTINCT FROM r.content_digest;
 UPDATE recommendation_reviews r SET content_digest=sahool_review_digest(r)
-  WHERE source_content_digest IS NOT NULL;
+  WHERE source_content_digest IS NOT NULL
+    AND r.content_digest IS DISTINCT FROM sahool_review_digest(r);
 UPDATE review_decisions rd
 SET tenant_id=rr.tenant_id, source_content_digest=rr.content_digest
-FROM recommendation_reviews rr WHERE rr.id=rd.review_id;
+FROM recommendation_reviews rr WHERE rr.id=rd.review_id
+  AND (rd.tenant_id IS DISTINCT FROM rr.tenant_id
+       OR rd.source_content_digest IS DISTINCT FROM rr.content_digest);
 UPDATE review_decisions r SET content_digest=sahool_review_decision_digest(r)
-  WHERE source_content_digest IS NOT NULL;
+  WHERE source_content_digest IS NOT NULL
+    AND r.content_digest IS DISTINCT FROM sahool_review_decision_digest(r);
 UPDATE recommendation_feedback rf
 SET source_content_digest=r.content_digest
 FROM recommendations r
-WHERE r.rec_id=rf.recommendation_id AND r.tenant_id::text=rf.tenant_id;
+WHERE r.rec_id=rf.recommendation_id AND r.tenant_id::text=rf.tenant_id
+  AND rf.source_content_digest IS DISTINCT FROM r.content_digest;
 UPDATE recommendation_feedback r SET content_digest=sahool_feedback_digest(r)
-  WHERE source_content_digest IS NOT NULL;
+  WHERE source_content_digest IS NOT NULL
+    AND r.content_digest IS DISTINCT FROM sahool_feedback_digest(r);
 
 DO $$
 DECLARE orphans BIGINT;

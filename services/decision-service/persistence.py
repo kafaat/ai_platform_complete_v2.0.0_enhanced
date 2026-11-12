@@ -2897,7 +2897,7 @@ async def verify_execution_outcome(
                    (outcome_id,tenant_id,decision_id,planned,actual,metrics,success,created_by,
                     idempotency_key,execution_request_id,dispatch_authorization_id,execution_plan_id,
                     receipt_id,verification_state,evidence_snapshot_id,verified_by,verified_at,request_hash)
-                   VALUES($1,$2::uuid,$3,'{}'::jsonb,$4::jsonb,$5::jsonb,$6,$7,$8,$9,$10,$11,$12,$13,$14,$7,now(),$15)
+                   VALUES($1,$2::uuid,$3,'{}'::jsonb,$4::jsonb,$5::jsonb,$6,$7::text,$8,$9,$10,$11,$12,$13,$14,$7::text,now(),$15)
                    ON CONFLICT DO NOTHING RETURNING *""",
                 outcome_id,
                 tenant_id,

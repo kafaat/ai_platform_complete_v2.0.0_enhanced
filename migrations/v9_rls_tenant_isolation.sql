@@ -16,6 +16,23 @@ BEGIN
     -- فعّل RLS + FORCE
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', p_table);
     EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', p_table);
+    -- Never downgrade. The chain is re-applied on every deploy; v56/v70 call this helper on
+    -- every table, and recreating the policy below replaced the fail-closed form set by
+    -- v122/v206 with the permissive one until v206 ran again — so a deploy interrupted in
+    -- between left ~220 tables accepting writes without a tenant. Once a tenant_isolation
+    -- policy has a WITH CHECK other than this helper's own permissive one (any later,
+    -- stricter form: v122/v123/v206 or a table-specific policy), leave it as it is. Only a
+    -- missing policy, a USING-only one, or this helper's own form is (re)created below.
+    IF EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'public' AND tablename = p_table
+          AND policyname = 'tenant_isolation'
+          AND with_check IS NOT NULL
+          AND with_check NOT LIKE
+              '%NULLIF(current_setting(''app.current_tenant''::text, true), ''''::text) IS NULL)%'
+    ) THEN
+        RETURN;
+    END IF;
     -- سياسة العزل (تُسقط القديمة أوّلاً للـidempotency)
     -- USING: القراءة فشل-مغلق (سياق فارغ ⇒ صفر صفوف). WITH CHECK: عزل الكتابة (دفاع
     -- عمق) — تحت سياق مستأجِر لا تُكتَب إلّا صفوف tenant_id المطابق (يمنع INSERT/UPDATE

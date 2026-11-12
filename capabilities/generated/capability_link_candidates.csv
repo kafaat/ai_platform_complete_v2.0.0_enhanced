@@ -542,7 +542,7 @@ FM-003,api,GET /health @ services/field-management-service/main.py:216,3,applied
 FM-003,api,GET /health @ services/field-segmentation/main.py:380,2,applied
 FM-003,api,GET /healthz @ services/field-management-service/main.py:211,3,applied
 FM-003,api,GET /healthz @ services/field-segmentation/main.py:375,2,applied
-FM-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393,2,applied
+FM-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394,2,applied
 FM-003,api,GET /internal/fields @ services/field-management-service/main.py:314,5,applied
 FM-003,api,GET /internal/fields/{field_id} @ services/field-management-service/main.py:282,5,applied
 FM-003,api,GET /internal/fields/{field_id}/state @ services/sahool-platform/api/routers/internal_service.py:52,4,applied
@@ -652,12 +652,12 @@ FM-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/
 FM-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:681,2,applied
 FM-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520,2,applied
 FM-003,api,POST /api/v1/recommendations/for-field @ services/sahool-platform/api/routers/recommendations.py:263,2,applied
-FM-003,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361,2,applied
+FM-003,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362,2,applied
 FM-003,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,2,applied
 FM-003,api,POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230,2,applied
-FM-003,api,POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465,2,applied
+FM-003,api,POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466,2,applied
 FM-003,api,POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278,2,applied
-FM-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327,2,applied
+FM-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328,2,applied
 FM-003,api,POST /v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:772,4,applied
 FM-003,api,POST /v1/fields/{field_id}/baseline-comparisons @ services/vegetation-analysis-service/routers/baselines.py:35,4,applied
 FM-003,api,POST /v1/fields/{field_id}/cache-invalidations @ services/raster-service/routers/registry_writes.py:108,4,applied
@@ -814,6 +814,7 @@ FM-003,test,services/field-management-service/tests/test_field_management_servic
 FM-003,test,services/field-segmentation/test_exg_preprocess.py,3,applied
 FM-003,test,services/field-segmentation/test_segmentation.py,3,applied
 FM-003,test,services/indicators-service/tests/test_indicators_service_honest_boundary.py,3,applied
+FM-003,test,services/raster-service/test_backfill_field_bbox.py,3,applied
 FM-003,test,services/raster-service/test_field_change_alignment.py,3,applied
 FM-003,test,services/raster-service/test_field_tenant_isolation_t10.py,3,applied
 FM-003,test,services/raster-service/test_field_terrain.py,3,applied
@@ -1559,19 +1560,19 @@ OPS-002,test,tests_v9/test_work_orders_migration.py,5,applied
 OPS-003,api,GET /api/v1/scouting/pins @ services/sahool-platform/api/routers/scouting.py:78,2,applied
 OPS-003,api,GET /api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:114,2,applied
 OPS-003,api,GET /healthz @ services/scout-ingest-service/main.py:200,2,applied
-OPS-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393,2,applied
+OPS-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394,2,applied
 OPS-003,api,GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:242,4,applied
 OPS-003,api,GET /internal/seasons @ services/scout-ingest-service/season_api.py:478,2,applied
 OPS-003,api,GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668,2,applied
 OPS-003,api,GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368,2,applied
 OPS-003,api,GET /readyz @ services/scout-ingest-service/main.py:205,2,applied
 OPS-003,api,PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264,2,applied
-OPS-003,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361,2,applied
+OPS-003,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362,2,applied
 OPS-003,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,2,applied
 OPS-003,api,POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230,2,applied
-OPS-003,api,POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465,2,applied
+OPS-003,api,POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466,2,applied
 OPS-003,api,POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278,2,applied
-OPS-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327,2,applied
+OPS-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328,2,applied
 OPS-003,api,POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:370,2,applied
 OPS-003,api,POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:361,2,applied
 OPS-003,api,POST /internal/seasons @ services/scout-ingest-service/season_api.py:205,2,applied
@@ -1609,13 +1610,13 @@ OPS-003,test,services/scout-ingest-service/tests/test_season_live.py,3,applied
 OPS-003,test,tests_v9/test_scout_ingest_service_ownership.py,3,applied
 OPS-003,test,tests_v9/test_scouting_pins_persistence.py,3,applied
 OPS-004,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278,6,applied
-OPS-004,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393,6,applied
-OPS-004,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361,6,applied
+OPS-004,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394,6,applied
+OPS-004,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362,6,applied
 OPS-004,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,6,applied
 OPS-004,api,POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230,6,applied
-OPS-004,api,POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465,6,applied
+OPS-004,api,POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466,6,applied
 OPS-004,api,POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278,6,applied
-OPS-004,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327,6,applied
+OPS-004,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328,6,applied
 OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/contract/condition_v1.dart,6,applied
 OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/contract/form_schema.dart,6,applied
 OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/data/draft_store.dart,6,applied
@@ -1919,6 +1920,7 @@ SAT-006,api,POST /api/v1/weather/history/records @ services/sahool-platform/api/
 SAT-006,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:266,5,applied
 SAT-006,service,services/raster-service/main.py,10,applied
 SAT-006,test,services/indicators-service/tests/test_observation_timeline.py,3,applied
+SAT-006,test,services/raster-service/test_backfill_field_bbox.py,3,applied
 SAT-006,test,services/raster-service/test_backfill_incremental_retry_guard.py,3,applied
 SAT-006,test,services/raster-service/test_backfill_processing_version_preflight.py,3,applied
 SAT-006,test,services/raster-service/test_backfill_scene_policy.py,3,applied
@@ -2084,6 +2086,7 @@ SAT-009,mobile,mobile/sahool_app/packages/pmtiles/lib/src/tile.dart,2,applied
 SAT-009,service,services/raster-service/main.py,10,applied
 SAT-009,test,services/raster-service/test_acquisition_date_provenance.py,3,applied
 SAT-009,test,services/raster-service/test_available_dates_provider_datetime.py,3,applied
+SAT-009,test,services/raster-service/test_backfill_field_bbox.py,3,applied
 SAT-009,test,services/raster-service/test_backfill_incremental_retry_guard.py,3,applied
 SAT-009,test,services/raster-service/test_backfill_processing_version_preflight.py,3,applied
 SAT-009,test,services/raster-service/test_backfill_scene_policy.py,3,applied
