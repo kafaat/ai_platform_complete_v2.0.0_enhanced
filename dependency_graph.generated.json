@@ -512,7 +512,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/vegetation-analysis-service/vegetation_runtime.py:626",
+      "evidence": "services/vegetation-analysis-service/vegetation_runtime.py:644",
       "from": "vegetation-analysis-service",
       "from_kind": "component",
       "protocol": "nats",
