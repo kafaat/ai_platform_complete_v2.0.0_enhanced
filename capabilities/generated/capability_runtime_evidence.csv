@@ -1,6 +1,6 @@
 id,title,metrics,traces,receipts,audit_events,runtime_surfaces,production_certified
 FM-001,Tenant and organization management,4,0,0,0,1,False
-FM-002,Farm registry,0,0,0,0,0,False
+FM-002,Farm registry,0,0,1,0,1,False
 FM-003,Field registry and boundaries,0,0,0,0,0,False
 FM-004,Season lifecycle,0,0,1,0,1,False
 FM-005,Crop and cultivar catalog,0,0,0,0,0,False
