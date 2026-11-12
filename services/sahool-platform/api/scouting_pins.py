@@ -15,10 +15,14 @@ Pin = موقع GPS + صورة + نوع مشكلة (taxonomy يمنيّة) + شد
 
 from __future__ import annotations
 
+import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
+
+from fastapi import HTTPException
 
 
 class IssueCategory(StrEnum):
@@ -285,3 +289,114 @@ def make_pin(
         created_by=kwargs.get("created_by"),
         color=kwargs.get("color"),
     )
+
+
+# ─── الإدامة (RLS، best-effort) — انتقلت من api/routers/fields.py: حدّ حجم الراوتر وحدّ عدد الوحدات ───
+
+
+# GPS الهاتف دقّته ~٥–١٥ م؛ نقطة على الحدّ أو خارجه بأمتار قليلة تبقى مشاهدةً لهذا الحقل.
+PIN_FIELD_TOLERANCE_M = 25.0
+
+
+def _pin_created_at(value: str) -> datetime:
+    """``created_at`` واعٍ بالمنطقة (UTC افتراضاً)؛ 422 لقيمة غير قابلة للتحليل.
+
+    كانت ``fromisoformat`` تُنادى داخل كتلة best-effort، فيُبتلَع ``ValueError`` ويُرجَع
+    ``persisted=false`` بلا سبب — المُدخِل يرى نجاحاً صامتاً لمشاهدة لم تُحفَظ.
+    """
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError) as err:
+        raise HTTPException(422, f"وقت المشاهدة غير صالح: {value!r}") from err
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
+async def _assert_pin_inside_field(conn: Any, field_id: str, lat: float, lng: float) -> None:
+    """422 لو وقعت النقطة خارج هندسة الحقل بأكثر من ``PIN_FIELD_TOLERANCE_M`` متراً.
+
+    المسافة جيوديسيّة (geography) على ``fields.geom``. حقلٌ بلا هندسة ⇒ لا يُحكَم (NULL)،
+    فلا يُرفَض دبّوسه — غياب الحدود ليس دليلاً على أنّ النقطة خارجها.
+    """
+    inside = await conn.fetchval(
+        "SELECT CASE WHEN geom IS NULL THEN NULL ELSE ST_DWithin("
+        "geom::geography, ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography, $4) END "
+        "FROM fields WHERE field_id = $1",
+        field_id,
+        lng,
+        lat,
+        PIN_FIELD_TOLERANCE_M,
+    )
+    if inside is False:
+        raise HTTPException(
+            422, f"نقطة المشاهدة خارج حدود الحقل (بهامش {PIN_FIELD_TOLERANCE_M:g} م)"
+        )
+
+
+async def persist_scouting_pin(
+    user: Any, pin: Any, *, pool_ready: bool, connect: Callable[[Any], Any]
+) -> bool:
+    """يُثبّت الدبّوس؛ ``True`` لو ثُبِّت (أو كان موجوداً مطابقاً)، ``False`` لو تعذّرت القاعدة.
+
+    * حقلٌ ليس ضمن مستأجِر المستدعي ⇒ 404 (فحصٌ تحت RLS قبل الإدراج).
+    * إعادة إرسال مطابقة ⇒ تُرجَع القيمة المخزَّنة (``created_at`` الأصليّ).
+    * المُعرِّف نفسه بمحتوى مختلف ⇒ 409.
+    * ``created_at`` يُمرَّر قيمة datetime إلى ``::timestamptz`` (النصّ كان يُرفَض بصمت).
+    SQL بارامتريّ بالكامل.
+    """
+    if not pool_ready:
+        return False
+    created_at = _pin_created_at(pin.created_at)
+    try:
+        async with connect(user) as conn:
+            exists = await conn.fetchval(
+                "SELECT 1 FROM fields WHERE field_id=$1 AND tenant_id=$2::uuid",
+                pin.field_id,
+                str(user.tenant_id),
+            )
+            if not exists:
+                raise HTTPException(404, "الحقل غير موجود ضمن هذا المستأجر")
+            await _assert_pin_inside_field(conn, pin.field_id, pin.lat, pin.lng)
+            result = await conn.execute(
+                "INSERT INTO scouting_pins "
+                "(pin_id, tenant_id, field_id, lat, lng, issue_category, severity, "
+                " status, persistence, crop, issue_code, note_ar, photo_uri, color, "
+                " created_by, created_at) "
+                "VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, "
+                " $13, $14, $15, $16::timestamptz) "
+                "ON CONFLICT (pin_id) DO NOTHING",
+                pin.pin_id,
+                str(user.tenant_id),
+                pin.field_id,
+                pin.lat,
+                pin.lng,
+                pin.issue_category.value,
+                pin.severity.value,
+                pin.status.value,
+                pin.persistence.value,
+                pin.crop,
+                pin.issue_code,
+                pin.note_ar,
+                pin.photo_uri,
+                pin.color,
+                pin.created_by,
+                created_at,
+            )
+            if result == "INSERT 0 0":
+                previous = await conn.fetchrow(
+                    "SELECT * FROM scouting_pins WHERE pin_id=$1 AND tenant_id=$2::uuid",
+                    pin.pin_id,
+                    str(user.tenant_id),
+                )
+                if previous is None or any(
+                    previous[key] != value
+                    for key, value in pin.to_dict().items()
+                    if key != "created_at"
+                ):
+                    raise HTTPException(409, "معرّف الدبوس مستخدم لمشاهدة مختلفة")
+                pin.created_at = previous["created_at"].isoformat()
+        return True
+    except HTTPException:
+        raise
+    except Exception:  # noqa: BLE001 — إدامة best-effort: تعذّر القاعدة ⇒ persisted=false
+        logging.warning("scouting pin persistence failed for pin %s", pin.pin_id)
+        return False

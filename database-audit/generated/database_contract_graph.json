@@ -3797,6 +3797,7 @@
         "services/sahool-platform/api/routers/yield_analysis.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/scheduler.py",
+        "services/sahool-platform/api/scouting_pins.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
@@ -6114,10 +6115,11 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/scouting.py"
+        "services/sahool-platform/api/routers/scouting.py",
+        "services/sahool-platform/api/scouting_pins.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/fields.py"
+        "services/sahool-platform/api/scouting_pins.py"
       ],
       "created_in": "v94_scouting_pins.sql",
       "has_tenant_id": true,
@@ -6911,6 +6913,7 @@
     },
     {
       "code_readers": [
+        "services/auth/main.py",
         "services/auth/mfa_runtime.py",
         "services/auth/routers/email_verify.py",
         "services/auth/routers/mfa.py",

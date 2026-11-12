@@ -1,5 +1,5 @@
 id,title,metrics,traces,receipts,audit_events,runtime_surfaces,production_certified
-FM-001,Tenant and organization management,3,0,0,0,1,False
+FM-001,Tenant and organization management,4,0,0,0,1,False
 FM-002,Farm registry,0,0,0,0,0,False
 FM-003,Field registry and boundaries,0,0,0,0,0,False
 FM-004,Season lifecycle,0,0,1,0,1,False
@@ -57,7 +57,7 @@ OPS-004,Field forms,0,0,0,0,0,False
 OPS-005,Offline mobile,0,0,0,0,0,False
 OPS-006,Equipment registry,0,0,0,0,0,False
 OPS-007,Maintenance,0,0,0,0,0,False
-OPS-008,Workforce and worker identity,3,0,0,0,1,False
+OPS-008,Workforce and worker identity,4,0,0,0,1,False
 DEC-001,Decision evidence,0,0,2,0,1,False
 DEC-002,Decision candidate,0,0,0,0,0,False
 DEC-003,Human approval,0,0,4,0,1,False
@@ -70,12 +70,12 @@ DEC-009,Model calibration,0,0,0,0,0,False
 DEC-010,Model lifecycle and activation,0,0,4,0,1,False
 SEC-001,Tenant RLS,0,0,0,0,0,False
 SEC-002,Signed tenant assertion,0,0,0,0,0,False
-SEC-003,Worker identity binding,3,0,0,0,1,False
-SEC-004,MFA,3,0,0,0,1,False
-SEC-005,Audit logging,3,0,0,0,1,False
-SEC-006,Service token guard,3,0,0,0,1,False
+SEC-003,Worker identity binding,4,0,0,0,1,False
+SEC-004,MFA,4,0,0,0,1,False
+SEC-005,Audit logging,4,0,0,0,1,False
+SEC-006,Service token guard,4,0,0,0,1,False
 SEC-007,Decision SoR DB ownership,0,0,0,0,0,False
-SEC-008,Secrets and production fail-closed,3,0,0,0,1,False
+SEC-008,Secrets and production fail-closed,4,0,0,0,1,False
 INT-001,Public API and SDK,0,0,0,0,0,False
 INT-002,Event bus integration,0,0,0,0,0,False
 INT-003,IoT and sensors,0,0,0,0,0,False

@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
 
 from core.api_adapter import ApiRequest, handle_recommendation_request
 from core.outcome_reconciler import (
@@ -54,6 +53,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.recommendations_hub import recommendation_issued_at, with_persisted_flag
 
 router = APIRouter()
 logger = logging.getLogger("sahool.recommendations")
@@ -102,28 +102,6 @@ def _record_canonical_context(enriched: dict, canonical_context: dict) -> None:
         input_snapshot["canonical_agronomic_context"] = canonical_context
 
 
-def _issued_at(value) -> datetime | None:
-    """The engine's ``timestamp`` as an aware ``datetime`` for the timestamptz column.
-
-    S-H2: the ISO string was passed straight to ``$11::timestamptz``; asyncpg rejects a ``str``
-    for a timestamptz parameter at execute time, the best-effort ``except`` swallowed it, and
-    every recommendation answered 200 with nothing stored. The engine stamps
-    ``datetime.now().isoformat()`` (naive, local clock), so a naive value is read as local time.
-    An unparseable stamp is stored as NULL (the column is nullable) rather than dropping the row.
-    """
-    if not value:
-        return None
-    if isinstance(value, datetime):
-        parsed = value
-    else:
-        try:
-            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        except ValueError:
-            logger.warning("recommendation timestamp is not ISO-8601: %r", value)
-            return None
-    return parsed if parsed.tzinfo is not None else parsed.astimezone()
-
-
 async def _persist_recommendation_on_connection(
     conn, user: UserSchema, req: RecommendationRequest, enriched: dict
 ) -> bool:
@@ -150,7 +128,7 @@ async def _persist_recommendation_on_connection(
         _jsonb(enriched.get("base_recommendation")),
         _jsonb(enriched.get("cross_reference")),
         _jsonb(enriched.get("provenance")),
-        _issued_at(enriched.get("timestamp")),
+        recommendation_issued_at(enriched.get("timestamp")),
     )
     await _emit_domain_event(
         conn,
@@ -190,11 +168,6 @@ async def _persist_recommendation(
     except Exception:  # noqa: BLE001 — تدقيق أفضل-جهد لا يكسر المسار الحرج
         logger.warning("recommendation persist/audit failed (best-effort)", exc_info=True)
         return False
-
-
-def _with_persisted(body, persisted: bool):
-    """Add the truthful ``persisted`` flag to a JSON object body (other bodies pass through)."""
-    return {**body, "persisted": persisted} if isinstance(body, dict) else body
 
 
 async def _run_guarded_runtime_pipeline(user, req, api_req) -> JSONResponse | None:
@@ -294,7 +267,9 @@ async def recommendations(
     if not enriched:
         return JSONResponse(status_code=resp.status_code, content=resp.body)
     persisted = await _persist_recommendation(user, req, enriched)
-    return JSONResponse(status_code=resp.status_code, content=_with_persisted(resp.body, persisted))
+    return JSONResponse(
+        status_code=resp.status_code, content=with_persisted_flag(resp.body, persisted)
+    )
 
 
 @router.post("/api/v1/recommendations/for-field")
@@ -435,7 +410,7 @@ async def recommendations_for_field(
             # The row was written inside the transaction that just failed: it did not commit.
             persisted = False
         return JSONResponse(
-            status_code=resp.status_code, content=_with_persisted(resp.body, persisted)
+            status_code=resp.status_code, content=with_persisted_flag(resp.body, persisted)
         )
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 

@@ -41,8 +41,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # 4187 → 4176 (audit security batch) and → 4175 (audit remediation), both 2026-11-01: the
     # drift-risk and imagery refresh/process-date request models moved to api/field_models.
     # Merged: 4164. → 4163 (wave 2, 2026-11-09): activity event payload moved to
-    # api.field_aggregate.activity_event_payload.
-    "services/sahool-platform/api/routers/fields.py": 4163,
+    # api.field_aggregate.activity_event_payload. → 4130 (2026-11-12): scouting-pin persistence
+    # moved to api.scouting_pins (the route keeps a thin wrapper).
+    "services/sahool-platform/api/routers/fields.py": 4130,
     "services/sahool-platform/api/routers/weather.py": 3022,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     # 1673 → 1668 (unified 2026-10-27): pixel sampling moved to raster_field_runtime and

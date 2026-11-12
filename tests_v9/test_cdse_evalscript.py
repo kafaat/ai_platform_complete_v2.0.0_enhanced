@@ -74,10 +74,10 @@ def test_build_evalscript_rejects_unsupported():
 
 
 def test_bbox_dims_clamped_and_positive():
-    """الأبعاد موجبة ومقيَّدة بـ[16, max_px]؛ مستطيل صغير لا ينزل تحت 16، وكبير لا يتجاوز السقف."""
-    # مستطيل صغير جدّاً (~10م) ⇒ الحدّ الأدنى 16.
+    """الأبعاد تحترم البصمة الأصلية والسقف."""
+    # مستطيل صغير جدّاً (~10م) ⇒ عيّنة واحدة.
     w, h = cdse_client.bbox_dims([44.0, 15.0, 44.0001, 15.0001])
-    assert w >= 16 and h >= 16
+    assert (w, h) == (1, 1)
     # مستطيل كبير ⇒ مقيَّد بالسقف.
     w2, h2 = cdse_client.bbox_dims([44.0, 15.0, 45.0, 16.0], max_px=2500)
     assert w2 <= 2500 and h2 <= 2500
