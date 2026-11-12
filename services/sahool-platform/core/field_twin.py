@@ -73,6 +73,7 @@ def assemble_twin(
     crop: str | None = None,
     latest_indices: dict | None = None,
     observed_at: Any = None,
+    index_observed_at: dict[str, Any] | None = None,
     now: Any = None,
     open_decisions: list[dict] | None = None,
     last_execution: dict | None = None,
@@ -93,8 +94,15 @@ def assemble_twin(
         d for d in decisions if (d.get("exec_status") or "").lower() in _ACTIVE_DECISION_STATES
     ]
 
-    # قِدَم البيانات (أيّام) — None إن تعذّر الحساب.
-    obs_day = _parse_day(observed_at)
+    # The vegetation judgement is led by NDVI. A newer EVI/NDMI must not
+    # disguise an old or undated NDVI measurement. Legacy callers without
+    # per-indicator dates continue using observed_at, but absence is never fresh.
+    observed = (
+        index_observed_at.get("ndvi")
+        if ndvi is not None and index_observed_at is not None
+        else observed_at
+    )
+    obs_day = _parse_day(observed)
     now_day = _parse_day(now) or date.today()
     data_age_days = (now_day - obs_day).days if obs_day is not None else None
 
@@ -103,10 +111,22 @@ def assemble_twin(
     if blocked:
         state = "blocked"
         reasons.append(f"{len(blocked)} قرار محجوب (خطّ أحمر) ينتظر معالجة.")
-    elif not indices or (data_age_days is not None and data_age_days > freshness_days):
+    elif (
+        not indices
+        or ndvi is None
+        or data_age_days is None
+        or data_age_days < 0
+        or data_age_days > freshness_days
+    ):
         state = "stale"
         if not indices:
             reasons.append("لا مؤشّرات حديثة — لا يُتَّخذ قرار على بيانات غائبة.")
+        elif ndvi is None:
+            reasons.append("NDVI غير متوفّر — لا يمكن إثبات سلامة الغطاء النباتي.")
+        elif data_age_days is None:
+            reasons.append("تاريخ رصد NDVI غير متوفّر — لا يُعتبر القياس حديثاً.")
+        elif data_age_days < 0:
+            reasons.append("تاريخ رصد NDVI في المستقبل — لا يُقبل كدليل حاضر.")
         else:
             reasons.append(f"البيانات أقدم من {freshness_days} أيّام ({data_age_days} يوماً).")
     elif (ndvi is not None and float(ndvi) < _NDVI_ATTENTION) or active:
