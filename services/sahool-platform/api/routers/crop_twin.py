@@ -221,7 +221,8 @@ async def _compose_state(req: CropTwinComposeRequest, *, tenant_id: str | None =
     # Composer: إن حاولنا السلطة الخادميّة وفشلت واستُخدم طيف العميل ⇒ تعليمه صراحةً
     # كغير-متحقَّق (شفافيّة، لا اختلاق سلطة). حقل مخصّص لا وسمٌ محكوم في assess_data_quality.
     spectral_unverified = bool(
-        server_spectral_attempted and spectral_provenance == "client" and spec_ndvi is not None
+        spectral_provenance == "client"
+        and any(v is not None for v in (spec_ndvi, spec_ndre, spec_ndmi, spec_msi))
     )
 
     return {
@@ -238,6 +239,7 @@ async def _compose_state(req: CropTwinComposeRequest, *, tenant_id: str | None =
         # + هل استُخدم طيف عميل بعد فشل السلطة الخادميّة (شفافيّة).
         "spectral_provenance": spectral_provenance,
         "spectral_unverified": spectral_unverified,
+        "effective_ndvi": spec_ndvi,
     }
 
 
@@ -267,8 +269,14 @@ async def compose_crop_twin(
         "dynamic_kc": round(st["dyn_kc"], 3),
         "kc_fapar": round(st["kc_fapar"], 3) if st["kc_fapar"] is not None else None,
         "kc_source_ar": "ديناميكيّ من NDVI"
-        if req.ndvi is not None
+        if st["effective_ndvi"] is not None
         else f"ثابت للمرحلة ({req.stage})",
+        "spectral_provenance": {
+            "source": st["spectral_provenance"],
+            "unverified": st["spectral_unverified"],
+        },
+        "preview_only": True,
+        "decision_authority": "none",
         "crop_twin": twin,
         "crop_intelligence": twin.get("crop_intelligence"),
         "spectral_state": twin.get("crop_intelligence", {}).get("spectral"),
