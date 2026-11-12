@@ -1,11 +1,11 @@
 id,order,stage,primary_owner,evidence_count,runtime_verified
-stage:evidence,1,evidence,sahool-platform,687,false
-stage:candidate,2,candidate,sahool-platform,557,false
-stage:decision,3,decision,sahool-platform,198,false
-stage:review,4,review,sahool-platform,304,false
-stage:plan,5,plan,decision-service,49,false
+stage:evidence,1,evidence,sahool-platform,688,false
+stage:candidate,2,candidate,sahool-platform,555,false
+stage:decision,3,decision,sahool-platform,196,false
+stage:review,4,review,sahool-platform,303,false
+stage:plan,5,plan,decision-service,47,false
 stage:authorization,6,authorization,sahool-platform,183,false
 stage:request,7,request,decision-service,40,false
 stage:receipt,8,receipt,decision-service,45,false
 stage:outcome,9,outcome,sahool-platform,57,false
-stage:learning,10,learning,sahool-platform,342,false
+stage:learning,10,learning,sahool-platform,340,false

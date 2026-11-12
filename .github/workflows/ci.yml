@@ -2055,6 +2055,7 @@ jobs:
           set -euo pipefail
           pytest tests_v9/test_live_pg_fake_connection_debt.py \
             tests_v9/test_d4d5_idempotency_irrigation_live_pg.py \
+            tests_v9/test_sql_prepare_contract_live_pg.py \
             tests_v9/test_migration_rerun_safety_live_pg.py -v --tb=short \
             -p no:cacheprovider -o addopts= --junitxml=live_pg_evidence.xml
       - name: Enforce the dedicated-job contract and emit the measured summary

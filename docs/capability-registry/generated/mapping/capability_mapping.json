@@ -25,15 +25,15 @@
       "tests": 2374,
       "web": 516
     },
-    "unmapped_artifacts": 3389,
+    "unmapped_artifacts": 3388,
     "ambiguous_artifacts": 233,
     "files_by_reading": {
       "python_functional": 3827,
       "raw": 3291
     },
-    "test_dependency_files": 1785,
-    "test_dependency_edges": 4498,
-    "test_dependency_bounded_files": 1038,
+    "test_dependency_files": 1786,
+    "test_dependency_edges": 4497,
+    "test_dependency_bounded_files": 1039,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -14340,7 +14340,7 @@
       ],
       "routes": [
         {
-          "value": "/internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:360",
+          "value": "/internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361",
           "score": 28
         },
         {
@@ -14352,11 +14352,11 @@
           "score": 28
         },
         {
-          "value": "/internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:392",
+          "value": "/internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393",
           "score": 28
         },
         {
-          "value": "/internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:464",
+          "value": "/internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465",
           "score": 28
         },
         {
@@ -14364,7 +14364,7 @@
           "score": 28
         },
         {
-          "value": "/internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:326",
+          "value": "/internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327",
           "score": 28
         },
         {
@@ -17924,6 +17924,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_backfill_field_bbox.py",
+          "score": 9,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
           "path": "services/raster-service/test_clip_polygon_stored_geometry.py",
           "score": 9,
           "signals": [
@@ -18773,7 +18781,7 @@
         "events": 43,
         "web": 6,
         "mobile": 0,
-        "tests": 54,
+        "tests": 55,
         "governance": 0,
         "other_evidence": 94
       },
@@ -20640,6 +20648,14 @@
           ]
         },
         {
+          "path": "services/vegetation-analysis-service/test_vegetation_logic.py",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
           "path": "services/vegetation-analysis-service/test_vegetation_production_contract.py",
           "score": 8,
           "signals": [
@@ -21084,7 +21100,7 @@
         "events": 97,
         "web": 34,
         "mobile": 5,
-        "tests": 63,
+        "tests": 64,
         "governance": 0,
         "other_evidence": 33
       },
@@ -23159,7 +23175,7 @@
       "database": [
         {
           "path": "migrations/v9_rls_tenant_isolation.sql",
-          "score": 37,
+          "score": 36,
           "signals": [
             "path:rls",
             "content:rls",
@@ -24492,14 +24508,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_migration_rerun_safety_live_pg.py",
-          "score": 10,
-          "signals": [
-            "content:rls",
-            "content:tenant isolation"
-          ]
-        },
-        {
           "path": "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
           "score": 10,
           "signals": [
@@ -25415,7 +25423,7 @@
         "events": 70,
         "web": 0,
         "mobile": 0,
-        "tests": 80,
+        "tests": 79,
         "governance": 0,
         "other_evidence": 89
       },
@@ -40242,10 +40250,6 @@
       "kind": "tests"
     },
     {
-      "path": "services/vegetation-analysis-service/test_vegetation_logic.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
       "kind": "tests"
     },
@@ -41699,10 +41703,6 @@
     },
     {
       "path": "tests_v9/test_event_schema.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_events_entity_type_contract.py",
       "kind": "tests"
     },
     {
@@ -43383,6 +43383,10 @@
     },
     {
       "path": "tests_v9/test_spatial_e2e_smoke.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_sql_prepare_contract_live_pg.py",
       "kind": "tests"
     },
     {
@@ -51990,6 +51994,19 @@
           "source": "services/raster-service/routers/fields.py",
           "kind": "source_read",
           "line": 47
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/raster-service/test_backfill_field_bbox.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/cdse_client.py",
+          "kind": "import",
+          "line": 3
         }
       ],
       "unresolved": []
@@ -65379,6 +65396,16 @@
           "line": 7
         },
         {
+          "source": "services/vegetation-analysis-service/routers/__init__.py",
+          "kind": "import",
+          "line": 70
+        },
+        {
+          "source": "services/vegetation-analysis-service/routers/analysis.py",
+          "kind": "import",
+          "line": 70
+        },
+        {
           "source": "services/vegetation-analysis-service/vegetation_runtime.py",
           "kind": "import",
           "line": 8
@@ -74522,43 +74549,6 @@
           "source": "services/sahool-platform/core/event_schema.py",
           "kind": "source_read",
           "line": 20
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_events_entity_type_contract.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "directory_reference",
-        "reads_repository_data_file",
-        "tree_wide_scan"
-      ],
-      "edges": [
-        {
-          "source": "services/sahool-platform/api/event_bus.py",
-          "kind": "source_read",
-          "line": 36
-        },
-        {
-          "source": "services/sahool-platform/api/irrigation_execution_request_port.py",
-          "kind": "source_read",
-          "line": 38
-        },
-        {
-          "source": "services/sahool-platform/api/main.py",
-          "kind": "source_read",
-          "line": 35
-        },
-        {
-          "source": "services/sahool-platform/core/event_schema.py",
-          "kind": "import",
-          "line": 47
-        },
-        {
-          "source": "services/sahool-platform/core/event_schema.py",
-          "kind": "source_read",
-          "line": 37
         }
       ],
       "unresolved": []
@@ -86657,6 +86647,22 @@
           "source": "services/sahool-platform/core/engines/spectral_stress_bridge.py",
           "kind": "import",
           "line": 263
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_sql_prepare_contract_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/decision-service/persistence.py",
+          "kind": "source_read",
+          "line": 141
         }
       ],
       "unresolved": []
