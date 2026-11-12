@@ -29,7 +29,7 @@ async def test_twin_flag_off_404(monkeypatch):
 @pytest.mark.asyncio
 async def test_field_twin_uses_active_season_and_ndvi_timestamp(monkeypatch):
     from contextlib import asynccontextmanager
-    from datetime import datetime, UTC
+    from datetime import UTC, datetime
 
     import api.routers.field_twin as module
 
