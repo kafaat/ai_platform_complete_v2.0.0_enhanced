@@ -48,9 +48,9 @@ PA-002,precision,Variable rate prescription,True,1,3,0,0,0,0,0,0,0
 PA-003,precision,Yield map ingestion,True,5,3,4,9,1,0,0,4,0
 PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
 PA-005,precision,Machine telemetry,True,1,1,0,0,0,0,0,0,0
-SAT-001,satellite,Satellite scene search,True,6,41,100,5,43,6,0,54,0
+SAT-001,satellite,Satellite scene search,True,6,41,100,5,43,6,0,55,0
 SAT-002,satellite,True color imagery,True,4,0,1,0,1,1,0,5,0
-SAT-003,satellite,NDVI,True,7,59,43,6,97,34,5,63,0
+SAT-003,satellite,NDVI,True,7,59,43,6,97,34,5,64,0
 SAT-004,satellite,NDMI,True,5,8,0,5,13,3,0,8,0
 SAT-005,satellite,Cloud screening,True,4,7,6,0,1,0,0,13,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0

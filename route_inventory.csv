@@ -975,10 +975,10 @@ sam2-inference,services/sam2-inference/main.py,135,GET,/readyz,readyz
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,195,POST,/internal/field-forms/definitions,create_definition
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,230,POST,/internal/field-forms/definitions/{code}/versions,create_version
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,278,POST,/internal/field-forms/versions/{version_id}/publish,publish_version
-scout-ingest-service,services/scout-ingest-service/field_forms_api.py,327,POST,/internal/field-forms/versions/{version_id}/retire,retire_version
-scout-ingest-service,services/scout-ingest-service/field_forms_api.py,361,POST,/internal/field-forms/assignments,create_assignment
-scout-ingest-service,services/scout-ingest-service/field_forms_api.py,393,GET,/internal/field-forms/download,download_forms
-scout-ingest-service,services/scout-ingest-service/field_forms_api.py,465,POST,/internal/field-forms/submissions,submit_form
+scout-ingest-service,services/scout-ingest-service/field_forms_api.py,328,POST,/internal/field-forms/versions/{version_id}/retire,retire_version
+scout-ingest-service,services/scout-ingest-service/field_forms_api.py,362,POST,/internal/field-forms/assignments,create_assignment
+scout-ingest-service,services/scout-ingest-service/field_forms_api.py,394,GET,/internal/field-forms/download,download_forms
+scout-ingest-service,services/scout-ingest-service/field_forms_api.py,466,POST,/internal/field-forms/submissions,submit_form
 scout-ingest-service,services/scout-ingest-service/main.py,200,GET,/healthz,healthz
 scout-ingest-service,services/scout-ingest-service/main.py,205,GET,/readyz,readyz
 scout-ingest-service,services/scout-ingest-service/main.py,242,GET,/internal/scouting/external-observations,read_external_observations

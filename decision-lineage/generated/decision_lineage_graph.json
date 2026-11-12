@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 687,
+      "evidence_count": 688,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -644,6 +644,7 @@
         "services/vegetation-analysis-service/test_indicator_registry.py",
         "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
         "services/vegetation-analysis-service/test_vegetation_event_admission.py",
+        "services/vegetation-analysis-service/test_vegetation_logic.py",
         "services/vegetation-analysis-service/test_vegetation_production_contract.py",
         "services/vegetation-analysis-service/vegetation_contracts.py",
         "services/vegetation-analysis-service/vegetation_runtime.py",
@@ -733,7 +734,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 556,
+      "evidence_count": 555,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -891,7 +892,6 @@
         "services/raster-service/follow_up_store.py",
         "services/raster-service/layer_lookup.py",
         "services/raster-service/raster_api_models.py",
-        "services/raster-service/raster_cdse_tile_runtime.py",
         "services/raster-service/raster_main_compat_exports.py",
         "services/raster-service/raster_settings.py",
         "services/raster-service/raster_stac_runtime.py",
@@ -2793,7 +2793,6 @@
         "services/raster-service/cdse_native_product.py",
         "services/raster-service/follow_up_store.py",
         "services/raster-service/layer_lookup.py",
-        "services/raster-service/raster_cdse_tile_runtime.py",
         "services/raster-service/stac_search.py",
         "services/remote-sensing-workspace-bff/main.py",
         "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
@@ -2836,10 +2835,11 @@
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/api/routers/crop_twin.py",
         "services/sahool-platform/api/routers/decision_confidence.py",
-        "services/sahool-platform/api/routers/decision_explain.py"
+        "services/sahool-platform/api/routers/decision_explain.py",
+        "services/sahool-platform/api/routers/decision_impact.py"
       ],
-      "source_evidence_count": 687,
-      "target_evidence_count": 556,
+      "source_evidence_count": 688,
+      "target_evidence_count": 555,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2950,7 +2950,7 @@
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_loop_referential_integrity.py"
       ],
-      "source_evidence_count": 556,
+      "source_evidence_count": 555,
       "target_evidence_count": 196,
       "static_supported": true,
       "runtime_verified": false
@@ -3276,5 +3276,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "c413c8316aa8ad1711be82a2285c1a50a418dd15aea6aec315dfa9da22e47e45"
+  "content_sha256": "148104c9999fc621313b131c7a5b725bd4104ef0470e33ad7fcf7699e692462a"
 }

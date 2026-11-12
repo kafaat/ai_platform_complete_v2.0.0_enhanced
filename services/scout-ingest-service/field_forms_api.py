@@ -299,13 +299,14 @@ async def publish_version(
                 raise HTTPException(status_code=404, detail="form version not found")
             # تقاعد المنشورة الحاليّة بنمط superseded (استُبدلت)
             await conn.execute(
+                # Every bound parameter must be referenced: an unused one has no type, and
+                # Postgres rejects the statement ("could not determine data type of $n").
                 "UPDATE field_form_versions SET status = 'retired', "
-                "retired_at = now(), retired_by = $3, "
+                "retired_at = now(), retired_by = $2, "
                 "retirement_reason = 'superseded by new publication', "
                 "retirement_mode = 'superseded' "
                 "WHERE form_definition_id = $1 AND status = 'published'",
                 row["form_definition_id"],
-                vid,
                 x_actor_id,
             )
             await conn.execute(

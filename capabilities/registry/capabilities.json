@@ -444,7 +444,7 @@
       },
       "evidence_truncated": {
         "apis": 205,
-        "tests": 137,
+        "tests": 138,
         "mobile_consumers": 44
       }
     },
@@ -1793,6 +1793,7 @@
       "mobile_consumers": [],
       "tests": [
         "services/indicators-service/tests/test_observation_timeline.py",
+        "services/raster-service/test_backfill_field_bbox.py",
         "services/raster-service/test_backfill_incremental_retry_guard.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
         "services/raster-service/test_backfill_scene_policy.py",
@@ -1815,8 +1816,7 @@
         "tests_v9/test_historical_search_cdse_v30_8.py",
         "tests_v9/test_historical_season_bridge_static.py",
         "tests_v9/test_imagery_timeline_endpoint_v31_4.py",
-        "tests_v9/test_telemetry_backfill_key_parity.py",
-        "tests_v9/test_unified_timeline.py"
+        "tests_v9/test_telemetry_backfill_key_parity.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1853,6 +1853,9 @@
         "GeoPard": null,
         "Cropwise": "4",
         "Farmonaut": "3"
+      },
+      "evidence_truncated": {
+        "tests": 1
       }
     },
     {
@@ -2062,6 +2065,7 @@
       "tests": [
         "services/raster-service/test_acquisition_date_provenance.py",
         "services/raster-service/test_available_dates_provider_datetime.py",
+        "services/raster-service/test_backfill_field_bbox.py",
         "services/raster-service/test_backfill_incremental_retry_guard.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
         "services/raster-service/test_backfill_scene_policy.py",
@@ -2083,8 +2087,7 @@
         "services/raster-service/test_change_detection_validity.py",
         "services/raster-service/test_change_direction_policy.py",
         "services/raster-service/test_clip_grid.py",
-        "services/raster-service/test_clip_polygon_stored_geometry.py",
-        "services/raster-service/test_cloud_mask_strategies.py"
+        "services/raster-service/test_clip_polygon_stored_geometry.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4050,19 +4053,19 @@
         "GET /api/v1/scouting/pins @ services/sahool-platform/api/routers/scouting.py:78",
         "GET /api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:114",
         "GET /healthz @ services/scout-ingest-service/main.py:200",
-        "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393",
+        "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394",
         "GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:242",
         "GET /internal/seasons @ services/scout-ingest-service/season_api.py:478",
         "GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668",
         "GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368",
         "GET /readyz @ services/scout-ingest-service/main.py:205",
         "PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264",
-        "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361",
+        "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362",
         "POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195",
         "POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230",
-        "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465",
+        "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466",
         "POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278",
-        "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327",
+        "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328",
         "POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:370",
         "POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:361",
         "POST /internal/seasons @ services/scout-ingest-service/season_api.py:205",
@@ -4160,13 +4163,13 @@
       ],
       "apis": [
         "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278",
-        "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393",
-        "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361",
+        "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394",
+        "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362",
         "POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195",
         "POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230",
-        "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465",
+        "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466",
         "POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278",
-        "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327"
+        "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328"
       ],
       "ui_consumers": [
         "frontend/src/components/ds/forms.test.tsx",

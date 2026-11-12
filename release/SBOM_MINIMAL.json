@@ -18145,7 +18145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2a9b297256ed932bc8e78a39cd9cb4a592bede9afe208ff911ae55d9a88dedb6"
+          "content": "e5f9cff16a4add100e5fb63fe8cb19ea5ebeffddba012a195138dd98fec009b8"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -20405,7 +20405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ee3c349002a458443d33fd937b4644f3a43cc7d9fb67a378e5d66af13213866"
+          "content": "357f1ef4a25fc8838146964332d9d40955dd40bb2eb4e5bc7b7b6ea0e096789b"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -20725,7 +20725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "949bdeb48d7ce8abe10baf2b9adfcfd5abdb97d1b62bddcc31cab51287953792"
+          "content": "9a666bef92f630ab50f6a952629b05d51c321e2b9f0af05af2dbcefb2f276fea"
         }
       ],
       "name": "services/raster-service/raster_backfill_scene_processing.py",
@@ -21349,6 +21349,16 @@
         }
       ],
       "name": "services/raster-service/test_available_dates_provider_datetime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5bba63f0f76537728aea2be1108cac84007bf86b17315a113138cc768a8e6230"
+        }
+      ],
+      "name": "services/raster-service/test_backfill_field_bbox.py",
       "type": "file"
     },
     {
@@ -26465,7 +26475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3008f794a49d2b66e7b57dc8abfb72299b7b4eb0cfa5dcdf1aefe8327e60be21"
+          "content": "094e9699f105a82c1eda1c2946cd5365b87729198a2379c4d4d612c30a402f99"
         }
       ],
       "name": "services/sahool-platform/api/routers/recommendations.py",
@@ -36375,7 +36385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "699b4a9046261acb22795004b252015f85f54e8e204ec7cbef2b22561a0a6a82"
+          "content": "33090cc6583c308e6fc2ec262cbdcf02b402e02ea638db25fd29695121d042c9"
         }
       ],
       "name": "services/scout-ingest-service/field_forms_api.py",
@@ -37595,7 +37605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7dbb0ecf2ef69852f53c664a5e471d68c7c402208beae9997751a7810b9ac659"
+          "content": "37f285122355d61c6dfc8552d7123683fa838937590d57c881f43d8988673c3e"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",
@@ -37835,7 +37845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae282e7803aec04d120c456de01ae95478006a1d4cba9ad2803064b1e72e83d2"
+          "content": "566635164ce55d289c111b0432bb7ab3e0d743b6c313fbba1be2c369eebe8400"
         }
       ],
       "name": "services/vegetation-analysis-service/test_vegetation_logic.py",
@@ -37875,7 +37885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f1922385f8ec2b1600ec9bf98f8e5aa07aebc4e6863f227dd956295ec27a77a"
+          "content": "8f34d4c3ad6691a9628bc120c8576c1e51ba8c7bb82ff6595ca54905ca6c4f51"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",
