@@ -663,8 +663,20 @@ def compose_digital_twin_snapshot(
 ) -> dict[str, Any]:
     fields = fields or []
     equipment = equipment or []
+    # Client-submitted farm snapshots are display-only. An empty/unknown field
+    # state is not an observed 100/100 healthy farm.
+    known_field_statuses = {
+        "ok", "healthy", "normal", "stress", "critical",
+        "warning", "blocked", "needs_attention",
+    }
+    fully_classified = bool(fields) and all(
+        isinstance(f, dict) and str(f.get("status", "")).lower() in known_field_statuses
+        for f in fields
+    )
     stress_fields = [
-        f for f in fields if str(f.get("status", "")).lower() in {"stress", "critical", "warning"}
+        f for f in fields
+        if str(f.get("status", "")).lower()
+        in {"stress", "critical", "warning", "blocked", "needs_attention"}
     ]
     offline_equipment = [
         e
@@ -679,8 +691,15 @@ def compose_digital_twin_snapshot(
     if weather and str(weather.get("risk", "")).lower() in {"high", "critical"}:
         health_score -= 10
     snapshot = {
+        # Fingerprint every supplied fact. Same farm and same day but different
+        # field or equipment states MUST NOT share an identifier.
         "snapshot_id": _stable_id(
-            {"farm": farm, "ts": datetime.now(UTC).date().isoformat()}, "twin"
+            {
+                "farm": farm, "fields": fields, "weather": weather,
+                "soil": soil, "irrigation": irrigation, "equipment": equipment,
+                "economics": economics, "ai": ai,
+            },
+            "twin",
         ),
         "generated_at": datetime.now(UTC).isoformat(),
         "farm": farm,
@@ -695,7 +714,13 @@ def compose_digital_twin_snapshot(
             "economics": economics or {},
             "ai": ai or {},
         },
-        "health_score": max(0, min(100, health_score)),
+        "health_score": max(0, min(100, health_score)) if fully_classified else None,
+        "health_score_status": "estimated_from_client_status"
+        if fully_classified
+        else "not_evaluated_missing_field_status",
+        "source_authority": "client_supplied_preview",
+        "preview_only": True,
+        "decision_eligible": False,
         "alerts": [
             *[
                 {"type": "field_stress", "field_id": f.get("field_id") or f.get("id")}
