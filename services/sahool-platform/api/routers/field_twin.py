@@ -10,6 +10,8 @@
 
 from __future__ import annotations
 
+import json
+import math
 import os
 from datetime import UTC, datetime
 
@@ -68,6 +70,14 @@ async def get_field_twin(
                 field_id,
                 list(_TWIN_INDICATORS),
             )
+            # The season is a separate owner from fields.crop; expose it without
+            # silently overwriting one identity with the other in a derived view.
+            season_row = await conn.fetchrow(
+                "SELECT season_id, crops, cultivar, sowing_date FROM seasons "
+                "WHERE field_id = $1 AND status = 'active' "
+                "ORDER BY created_at DESC LIMIT 1",
+                field_id,
+            )
             # القرارات المفتوحة (محجوبة أو قيد التنفيذ).
             dec_rows = await conn.fetch(
                 """
@@ -88,8 +98,18 @@ async def get_field_twin(
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("تجميع التوأم الرقميّ للحقل", e) from e
 
-    indices = {r["indicator_id"]: float(r["value"]) for r in ind_rows}
-    observed_at = max((r["recorded_at"] for r in ind_rows), default=None)
+    indices: dict[str, float] = {}
+    index_observed_at: dict[str, object] = {}
+    for r in ind_rows:
+        try:
+            value = float(r["value"])
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if not math.isfinite(value):
+            continue
+        indices[r["indicator_id"]] = value
+        index_observed_at[r["indicator_id"]] = r["recorded_at"]
+    observed_at = max((v for v in index_observed_at.values() if v is not None), default=None)
     open_decisions = [{"state": r["state"], "exec_status": r["exec_status"]} for r in dec_rows]
     last_execution = None
     if last_exec is not None:
@@ -106,10 +126,31 @@ async def get_field_twin(
         crop=field_row["crop"],
         latest_indices=indices,
         observed_at=observed_at,
+        index_observed_at=index_observed_at,
         now=datetime.now(UTC),
         open_decisions=open_decisions,
         last_execution=last_execution,
     )
     out = twin.to_dict()
     out["field_name"] = field_row["name"]
+    out["legacy_field_crop"] = field_row["crop"]
+    out["view_role"] = "derived_read_model_only"
+    out["decision_authority"] = "none"
+    raw_crops = season_row["crops"] if season_row is not None else []
+    if isinstance(raw_crops, str):
+        try:
+            raw_crops = json.loads(raw_crops)
+        except (TypeError, ValueError):
+            raw_crops = []
+    if not isinstance(raw_crops, list):
+        raw_crops = []
+    sowing = season_row["sowing_date"] if season_row is not None else None
+    out["season_context"] = {
+        "source": "seasons",
+        "status": "active" if season_row is not None else "missing_active_season",
+        "season_id": str(season_row["season_id"]) if season_row is not None else None,
+        "crops": raw_crops,
+        "cultivar": season_row["cultivar"] if season_row is not None else None,
+        "sowing_date": sowing.isoformat() if sowing is not None else None,
+    }
     return out
