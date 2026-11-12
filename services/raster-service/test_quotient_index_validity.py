@@ -200,3 +200,12 @@ def test_soil_nd_indices_keep_the_shared_kernel_all_zero_contract():
 def test_guarded_quotient_refuses_a_missing_band():
     with pytest.raises(ValueError, match="missing band"):
         band_math.sipi(None, np.array([0.1]), np.array([0.4]), np)
+
+
+def test_sipi_preserves_inclusive_upper_limit_after_c1_dn_calibration():
+    # A one-DN change in blue puts the last pixel genuinely beyond 2.
+    dns = [[2384, 2772, 2771], [3424, 4208, 4208], [4464, 5644, 5644]]
+    blue, red, nir = [np.asarray(b, dtype="float32") * 0.0001 - 0.1 for b in dns]
+    result = band_math.sipi(blue, red, nir, np)
+    np.testing.assert_allclose(result[:2], [2, 2], rtol=1e-6)
+    assert np.isnan(result[2])

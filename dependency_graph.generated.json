@@ -1,5 +1,5 @@
 {
-  "edge_count": 934,
+  "edge_count": 942,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -92,7 +92,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/services/api.ts:568",
+      "evidence": "frontend/src/services/api.ts:569",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -112,7 +112,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/components/AddFieldWithMap.tsx:449",
+      "evidence": "frontend/src/components/AddFieldWithMap.tsx:446",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -132,7 +132,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/hooks/useApi.ts:254",
+      "evidence": "frontend/src/hooks/useApi.ts:262",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -1242,6 +1242,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/raster-service/test_cdse_timeline_pg.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_assets",
+      "to": "db://raster_assets",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/raster-service/test_element84_vrt_containment_runtime.py",
       "from": "raster-service",
       "from_kind": "component",
@@ -1303,6 +1313,16 @@
     },
     {
       "evidence": "services/raster-service/db_persist.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://stac_item_registry",
+      "to": "db://stac_item_registry",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/test_cdse_timeline_pg.py",
       "from": "raster-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2442,6 +2462,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/imagery_automation.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_geometry_history",
+      "to": "db://field_geometry_history",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/fields.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -2692,7 +2722,27 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/field_models.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/field_state_projection.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/imagery_automation.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -6742,6 +6792,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/raster-service/test_cdse_timeline_pg.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://raster_assets",
+      "to": "db://raster_assets",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/raster-service/test_raster_publication_gate.py",
       "from": "raster-service",
       "from_kind": "component",
@@ -6833,6 +6893,16 @@
     },
     {
       "evidence": "services/raster-service/db_persist.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://stac_item_registry",
+      "to": "db://stac_item_registry",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/test_cdse_timeline_pg.py",
       "from": "raster-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -7743,6 +7813,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/fields.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_field_overlap_postgis.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9360,9 +9440,9 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 481,
+    "READS": 486,
     "ROUTES_TO": 72,
-    "WRITES": 329
+    "WRITES": 332
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -9377,8 +9457,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 811,
-      "resolved": 810,
+      "observed": 819,
+      "resolved": 818,
       "unresolved_component_paths": 0
     }
   }

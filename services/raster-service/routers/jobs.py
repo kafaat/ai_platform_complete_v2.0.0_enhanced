@@ -15,6 +15,14 @@ from raster_security_context import require_job_tenant, require_service_token
 router = APIRouter()
 
 
+def _cdse_outcomes(job: dict) -> dict:
+    """CDSE parents store per-index results, including partially successful batches."""
+    if job.get("provider") != "cdse":
+        return {}
+    fields = ("cdse_results", "cdse_failed", "cdse_persisted", "cdse_persisted_count")
+    return {key: job[key] for key in fields if key in job}
+
+
 @router.get("/v1/jobs/{job_id}")
 async def job_status(job_id: str, x_agent_token: str = Header(None)):
     """حالة المهمّة."""
@@ -32,6 +40,7 @@ async def job_status(job_id: str, x_agent_token: str = Header(None)):
         "started_at": j.get("started_at"),
         "finished_at": j.get("finished_at"),
         "error_message": j.get("error_message"),
+        **_cdse_outcomes(j),
     }
 
 
@@ -45,4 +54,9 @@ async def job_result(job_id: str, x_agent_token: str = Header(None)):
     require_job_tenant(j)
     if j["status"] != JobStatus.completed:
         raise HTTPException(409, f"المهمّة غير مكتملة (الحالة: {j['status']})")
-    return j["result"]
+    if "result" in j:
+        return j["result"]
+    outcomes = _cdse_outcomes(j)
+    if outcomes:
+        return outcomes
+    raise HTTPException(409, "بيانات نتيجة المهمّة غير متاحة")

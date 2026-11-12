@@ -1,3 +1,4 @@
+import { fieldBoundary, boundaryBounds } from '../lib/fieldBoundary';
 // ═══════════════════════════════════════════════════════════════
 // SAHOOL v8.0 — FieldManagementPage.tsx (محدّثة)
 // ✅ زر "إضافة حقل" → AddFieldWithMap
@@ -321,32 +322,6 @@ export default function FieldManagementPage() {
     { key: 'ndsi',     label: 'NDSI — الملوحة'      },
   ];
 
-  // يحوّل geometry GeoJSON (coordinates [lon,lat]) إلى [lat,lon][] لـLeaflet
-  function geomToLatLng(geom: any): [number, number][] | undefined {
-    try {
-      let coords: [number, number][] | undefined;
-      if (geom?.type === 'Feature') geom = geom.geometry;
-      if (geom?.type === 'Polygon') coords = geom.coordinates[0];
-      else if (geom?.type === 'MultiPolygon') coords = geom.coordinates[0][0];
-      if (!coords || coords.length < 3) return undefined;
-      return coords.map(([lng, lat]: [number, number]) => [lat, lng]);
-    } catch { return undefined; }
-  }
-
-  // يحسب bbox [west, south, east, north] من geometry GeoJSON
-  function geomToBbox(geom: any): [number, number, number, number] | undefined {
-    try {
-      let coords: [number, number][] | undefined;
-      if (geom?.type === 'Feature') geom = geom.geometry;
-      if (geom?.type === 'Polygon') coords = geom.coordinates[0];
-      else if (geom?.type === 'MultiPolygon') coords = geom.coordinates[0][0];
-      if (!coords || coords.length < 2) return undefined;
-      const lons = coords.map(([lng]: [number, number]) => lng);
-      const lats = coords.map(([, lat]: [number, number]) => lat);
-      return [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)];
-    } catch { return undefined; }
-  }
-
   // ── Field card ─────────────────────────────────────────────────
   const FieldCard = ({ f }: { f: Field; key?: React.Key }) => {
     const sc = healthConfig(f.health);
@@ -660,8 +635,8 @@ export default function FieldManagementPage() {
                 index={satelliteIdx}
                 date=""
                 tileSegment="cdse-tiles"
-                fieldPolygon={geomToLatLng(showSatellite.geometry)}
-                fieldBbox={geomToBbox(showSatellite.geometry)}
+                fieldPolygon={fieldBoundary(showSatellite.geometry)}
+                fieldBbox={boundaryBounds(fieldBoundary(showSatellite.geometry))}
                 fieldGeometry={showSatellite.geometry}
                 fallbackBounds={
                   showSatellite.lon && showSatellite.lat
