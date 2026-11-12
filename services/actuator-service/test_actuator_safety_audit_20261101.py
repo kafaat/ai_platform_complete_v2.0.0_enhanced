@@ -185,7 +185,7 @@ class _Trace:
         self.mqtt.append((device_id, command, kw))
         return True
 
-    async def ks(self, _conn, tenant_id, *, field_id=None, valve_id=None):
+    async def ks(self, _conn, tenant_id, *, field_id=None, valve_id=None, command=None):
         self.killswitch.append((tenant_id, field_id, valve_id))
         return self.halts.get((field_id, valve_id), (False, None))
 

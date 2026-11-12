@@ -363,13 +363,19 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
                 "dispatch consumer: DATABASE_URL غائب — kill-switch غير قابل للفحص ⇒ لا مطالبة"
             )
             return processed
+        # ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01: CLOSE/OFF is the safe direction and is never held
+        # by the kill-switch (nor by its fail-closed answer). Other requests stay queued; the
+        # loop continues so a CLOSE queued behind an OPEN is not starved by the halt.
+        pre = _parse_dispatch_command(item.get("command_payload"))
         async with _pool.acquire() as ks_conn:
-            halted, halt_reason = await is_actuation_halted(ks_conn, tenant_id)
+            halted, halt_reason = await is_actuation_halted(
+                ks_conn, tenant_id, command=pre[1] if pre else None
+            )
         if halted:
             logger.warning(
-                f"dispatch consumer: kill-switch مُشتبَك ({halt_reason}) — الطلبات تبقى مصفوفة"
+                f"dispatch consumer: kill-switch مُشتبَك ({halt_reason}) — الطلب {req_id} يبقى مصفوفاً"
             )
-            return processed
+            continue
         delivery_token = _delivery_token(tenant_id, req_id)
         if not delivery_token:
             logger.error(
@@ -400,7 +406,7 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
                 # Re-check the scoped kill-switch after the command has been parsed: tenant + field + device.
                 async with _pool.acquire() as ks_conn:
                     scoped_halted, scoped_reason = await is_actuation_halted(
-                        ks_conn, tenant_id, field_id=field_id, valve_id=device_id
+                        ks_conn, tenant_id, field_id=field_id, valve_id=device_id, command=cmd
                     )
                 if scoped_halted:
                     sent = False
@@ -1071,7 +1077,7 @@ def _inverse_command(command: str) -> str | None:
 
 
 async def _consult_killswitch(
-    tenant_id: str, field_id: str | None, valve_id: str
+    tenant_id: str, field_id: str | None, valve_id: str, command: str | None = None
 ) -> tuple[bool, str | None]:
     """مَفصِلُ استشارة مفتاح الطوارئ — بنفس نطاق ``evaluate_rules`` (مستأجِر+حقل+صمّام).
 
@@ -1080,7 +1086,9 @@ async def _consult_killswitch(
     fail-closed، فتعذّر القاعدة يُعيد «مُوقَف» ولا يمرّ أثرٌ فيزيائيّ.
     """
     async with _pool.acquire() as ks_conn:
-        return await is_actuation_halted(ks_conn, tenant_id, field_id=field_id, valve_id=valve_id)
+        return await is_actuation_halted(
+            ks_conn, tenant_id, field_id=field_id, valve_id=valve_id, command=command
+        )
 
 
 async def _compensate(
@@ -1132,7 +1140,10 @@ async def _compensate(
             continue
         # مفتاح إيقاف طوارئ التشغيل (fail-closed): استشِر قبل أيّ نشر MQTT — بنفس
         # نطاق `evaluate_rules` تماماً، فبوّابتان تختلفان في النطاق تختلفان في المعنى.
-        halted, halt_reason = await _consult_killswitch(tenant_id, field_id, done["device"])
+        # A compensating CLOSE/OFF is the safe direction: never held (ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01).
+        halted, halt_reason = await _consult_killswitch(
+            tenant_id, field_id, done["device"], command=inv
+        )
         if halted:
             logger.warning(
                 f"COMPENSATION: مفتاح إيقاف الطوارئ مُشتبَك — حجب العكس '{inv}' على "
@@ -1456,7 +1467,7 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                 # هذا الأمر دون غيره). تعذّر القاعدة ⇒ مُوقَف (is_actuation_halted fail-closed).
                 async with _pool.acquire() as ks_conn:
                     halted, halt_reason = await is_actuation_halted(
-                        ks_conn, tenant_id, field_id=valve_field, valve_id=device
+                        ks_conn, tenant_id, field_id=valve_field, valve_id=device, command=cmd
                     )
                 if halted:
                     logger.warning(

@@ -1681,7 +1681,7 @@
       "mutations": [
         {
           "expect": "test_engaged_killswitch_blocks_the_inverse_command",
-          "find": "        halted, halt_reason = await _consult_killswitch(tenant_id, field_id, done[\"device\"])",
+          "find": "        halted, halt_reason = await _consult_killswitch(\n            tenant_id, field_id, done[\"device\"], command=inv\n        )",
           "replace": "        halted, halt_reason = False, None  # mutated: أُسقِطت استشارة المفتاح",
           "why": "إسقاط الاستشارة يُعيد العطل الأصليّ بعينه: التعويض يُطلِق أثراً فيزيائيّاً والمفتاح مُشتبَك. والمقيس أنّ **الإرسال** لم يقع، لا أنّ سطراً موجود."
         },
@@ -1693,8 +1693,8 @@
         },
         {
           "expect": "test_the_seam_forwards_the_full_scope",
-          "find": "        return await is_actuation_halted(ks_conn, tenant_id, field_id=field_id, valve_id=valve_id)",
-          "replace": "        return await is_actuation_halted(ks_conn, tenant_id)  # mutated: نطاقُ المستأجِر وحده",
+          "find": "        return await is_actuation_halted(\n            ks_conn, tenant_id, field_id=field_id, valve_id=valve_id, command=command\n        )",
+          "replace": "        return await is_actuation_halted(ks_conn, tenant_id, command=command)  # mutated: نطاقُ المستأجِر وحده",
           "why": "استشارةٌ بنطاقٍ أضيق تمرّ على الحارس الساكن (النداء موجود) وتفشل في مطابقة مفتاح حقلٍ أو صمّام. وكلّ اختبارات التعويض تُرقّع المَفصِل ولا تدخله، فهذا يقيس جسده."
         },
         {
@@ -1706,8 +1706,8 @@
         },
         {
           "expect": "test_the_rules_path_consults_with_tenant_field_and_valve_scope",
-          "find": "                        ks_conn, tenant_id, field_id=valve_field, valve_id=device\n                    )",
-          "replace": "                        ks_conn, tenant_id  # mutated: نطاقُ المستأجِر وحده\n                    )",
+          "find": "                        ks_conn, tenant_id, field_id=valve_field, valve_id=device, command=cmd\n                    )",
+          "replace": "                        ks_conn, tenant_id, command=cmd  # mutated: نطاقُ المستأجِر وحده\n                    )",
           "test": "tests_v9/test_actuation_killswitch_behaviour.py",
           "why": "تضييقُ النطاق على مسار القواعد يُمرِّر مفتاحَ حقلٍ أو صمّام: الاستشارة تقع (فيمرّ الحارس الساكن) ولا تُطابِق — والقاعدة الآليّة تفتح الصمّام والمشغّل يظنّ الحقل موقوفاً. (والمرساة تشمل قوس الإغلاق: `valve_id=device` سلسلةٌ جزئيّة من `valve_id=device_id` في موضع الإرسال، فقصرُها كان يجعل الزرع غير محدَّد الموضع — أمسكه الحارس.)"
         },
@@ -1727,8 +1727,8 @@
       "mutations": [
         {
           "expect": "test_manual_command_consults_the_killswitch_with_the_authoritative_field",
-          "find": "            ks_conn, tenant_id, field_id=device_field_id, valve_id=req.device_id",
-          "replace": "            ks_conn, tenant_id, field_id=None, valve_id=req.device_id  # mutated: بلا حقل",
+          "find": "            field_id=device_field_id,\n            valve_id=req.device_id,",
+          "replace": "            field_id=None,  # mutated: بلا حقل\n            valve_id=req.device_id,",
           "why": "الثغرة الأصليّة حرفيّاً: `match_killswitch` يشترط `field_id is not None` لمطابقة نطاق `field`، فالاستشارة تقع ولا تُطابِق — والأمر ينجح بـ200 كأنّ لا مفتاح."
         },
         {

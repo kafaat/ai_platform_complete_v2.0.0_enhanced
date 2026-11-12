@@ -4770,3 +4770,9 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **السبب:** (١) الطلب منع هجرةً ما لم تكن لازمة، و`requested_at` هو الهويّة الثابتة التي يحملها الاسترداد أصلاً ([`actuator_runtime.py:230`](../services/actuator-service/actuator_runtime.py)). الثمن مُعلَن في الدليل: أمرٌ أقدم يُرفَض إن سبقه أحدث للجهاز نفسه. (٢) غيابُ المفتاح لا يصلح إشارةً إلى «جهاز قديم»: يجعل الخطأ في الإعداد ينزل إلى السرّ المشترك بصمت. (٣) الإغلاق هو الحالة الآمنة.
 - **المصدر:** فرع `fix/actuator-cmd-signing-v2` · [`cmd_signing_v2.py:247`](../services/actuator-service/cmd_signing_v2.py) · `SUP-08-DEVICE-COMMAND-SIGNATURE-UNBOUND-TO-DEVICE-01`.
 
+## 2026-11-12 — إعفاء CLOSE/OFF من مفتاح الطوارئ في التزامٍ منفصل لا في التزام v2
+
+- **القرار:** ربط `is_safe_direction` بمواضع الاستدعاء في actuator-service يدخل التزاماً مستقلّاً على الفرع نفسه، ويُعكَس به عقد `test_compensation_killswitch.py` جزئيّاً (العكس CLOSE يمرّ تحت المفتاح، والعكس OPEN يُحجب).
+- **السبب:** الطلب نصّ على الإعفاء، والسجلّ يحفظ الحكم للمالك ([`test_actuation_killswitch_safe_direction.py:8`](../tests_v9/test_actuation_killswitch_safe_direction.py) · `ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01`). فصلُه يسمح للمالك بقبول v2 وحده أو مع الإعفاء دون إعادة كتابة.
+- **المصدر:** فرع `fix/actuator-cmd-signing-v2` · [`actuator_runtime.py:1079`](../services/actuator-service/actuator_runtime.py).
+
