@@ -47,6 +47,34 @@ class WaterSample:
     ph: float | None = None
     sampled_at: str | None = None
 
+    def __post_init__(self) -> None:
+        # مدخل مستحيل فيزيائيّاً (EC سالبة، أيون سالب، pH خارج 0–14، NaN/inf) يُرفض
+        # عند المدخل — لا يُصنَّف «لا قيود». ValueError ⇒ 422 في طبقة API.
+        errors = invalid_water_inputs(self)
+        if errors:
+            raise ValueError("invalid water sample: " + ", ".join(errors))
+
+
+_WATER_ION_FIELDS = ("na", "ca", "mg", "hco3", "co3", "cl")
+
+
+def invalid_water_inputs(sample: WaterSample) -> list[str]:
+    """أسماء الحقول المُدخَلة بقيمة مستحيلة: غير منتهية، أو سالبة، أو pH خارج [0, 14]."""
+    errors: list[str] = []
+    for fname in (*_WATER_ION_FIELDS, "ec_dsm", "ph"):
+        value = getattr(sample, fname)
+        if value is None:
+            continue
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            errors.append(f"{fname}:not_a_number")
+        elif not math.isfinite(value):
+            errors.append(f"{fname}:not_finite")
+        elif value < 0:
+            errors.append(f"{fname}:negative")
+        elif fname == "ph" and value > 14:
+            errors.append("ph:out_of_range")
+    return errors
+
 
 def compute_sar(na: float, ca: float, mg: float) -> float | None:
     """SAR = Na / √((Ca+Mg)/2). الأيونات meq/L. None إن نقص مدخل."""
@@ -70,6 +98,8 @@ def classify_ec(ec_dsm: float | None) -> dict:
     """تصنيف ملوحة ماء الريّ بالـEC (FAO-29)."""
     if ec_dsm is None:
         return {"class": None, "note_ar": "EC غير مقيس"}
+    if not math.isfinite(ec_dsm) or ec_dsm < 0:
+        return {"class": None, "note_ar": "EC غير صالحة — لا تصنيف"}
     if ec_dsm < 0.7:
         return {"class": "low", "restriction_ar": "لا قيود"}
     if ec_dsm <= 3.0:
@@ -115,6 +145,11 @@ def analyze_water_sample(sample: WaterSample) -> dict:
         if getattr(sample, fname) is None:
             missing.append(fname)
 
+    errors = invalid_water_inputs(sample)
+    if errors:
+        # دفاع ثانٍ لمن يبني العيّنة متجاوزاً __post_init__ (مثلاً بتعديل الحقول لاحقاً).
+        raise ValueError("invalid water sample: " + ", ".join(errors))
+
     # خلاصة عامّة: أسوأ تصنيف يحكم (المبدأ المحافِظ)
     ec_c = classify_ec(sample.ec_dsm)
     rsc_c = classify_rsc(rsc)
@@ -127,13 +162,33 @@ def analyze_water_sample(sample: WaterSample) -> dict:
     if sar_c.get("class") in ("high", "very_high"):
         flags.append("صوديوم مرتفع")
 
+    # الحكم العامّ «صالح» يحتاج المحاور الثلاثة محسوبة (ملوحة EC، صوديوم SAR، قلويّة RSC).
+    # خطرٌ مرصود في أيّ محور يكفي لحكم «يحتاج معالجة» ولو نقصت البقيّة؛ أمّا غياب الخطر
+    # مع محورٍ غير محسوب فهو «بيانات غير كافية» لا «صالح» — والنتائج الجزئيّة تبقى ظاهرة.
+    not_assessed = [
+        axis
+        for axis, cls in (("salinity", ec_c), ("sodicity", sar_c), ("alkalinity", rsc_c))
+        if cls.get("class") is None
+    ]
+    if flags:
+        verdict = "needs_treatment"
+        suitable_ar = f"يحتاج معالجة: {'، '.join(flags)}"
+    elif not_assessed:
+        verdict = "insufficient_data"
+        suitable_ar = "بيانات غير كافية للحكم العامّ"
+    else:
+        verdict = "suitable"
+        suitable_ar = "صالح للريّ"
+
     return {
         "sample_id": sample.sample_id,
         "source": sample.source,
         "indices": {"sar": sar, "rsc_meq_l": rsc, "ec_dsm": sample.ec_dsm, "ph": sample.ph},
         "classification": {"salinity": ec_c, "alkalinity_rsc": rsc_c, "sodicity_sar": sar_c},
         "hazard_flags_ar": flags,
-        "suitable_ar": ("صالح للريّ" if not flags else f"يحتاج معالجة: {'، '.join(flags)}"),
+        "verdict": verdict,
+        "not_assessed": not_assessed,
+        "suitable_ar": suitable_ar,
         "missing_inputs": missing,  # صدق: نُعلن ما لم يُقَس
         "data_complete": len(missing) == 0,
     }
