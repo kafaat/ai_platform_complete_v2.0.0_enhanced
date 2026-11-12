@@ -485,7 +485,25 @@ def _derive_water_stress_from_observed(indices: dict[str, float]) -> float:
     return round(sum(components) / len(components), 3) if components else 0.5
 
 
-def _health_classification(ndvi: float, cwsi: float) -> dict:
+def _health_classification(ndvi: float, cwsi: float | None = None) -> dict:
+    """Health class from NDVI and, when it was actually measured, CWSI.
+
+    Without a measured CWSI the class rests on NDVI alone and says so (``basis``) — the
+    raster "current" path has no water-stress estimate, and assuming a constant one both
+    crashed callers that omitted it and downgraded a dense canopy (0.86) to "fair".
+    """
+    if cwsi is None:
+        if ndvi >= 0.72:
+            out = {"status": "excellent", "label_ar": "ممتاز", "color": "#16a34a", "score": 95}
+        elif ndvi >= 0.55:
+            out = {"status": "good", "label_ar": "جيد", "color": "#65a30d", "score": 75}
+        elif ndvi >= 0.38:
+            out = {"status": "fair", "label_ar": "مقبول", "color": "#ca8a04", "score": 55}
+        elif ndvi >= 0.20:
+            out = {"status": "poor", "label_ar": "منخفض", "color": "#f97316", "score": 35}
+        else:
+            out = {"status": "critical", "label_ar": "حرج", "color": "#dc2626", "score": 10}
+        return {**out, "basis": "ndvi_only"}
     if ndvi >= 0.72 and cwsi < 0.3:
         return {"status": "excellent", "label_ar": "ممتاز", "color": "#16a34a", "score": 95}
     elif ndvi >= 0.55 and cwsi < 0.5:

@@ -597,7 +597,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with: {python-version: "3.12"}
       # PyYAML مطلوب لفحص عقد ناشري الأحداث (event_publish_contracts.yaml): H2 publisher
       # coverage + waiver «منشور بلا مشترِك». بدونه يفشل الفحص بـModuleNotFoundError.
@@ -688,7 +688,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with: {python-version: "3.12"}
       # المشروع موحّد على ruff (ruff.toml): يغطّي lint + تنسيق + ترتيب الاستيراد،
       # فاستُبدل black/isort بـ`ruff format --check` لتطابق التنسيق المعتمد.
@@ -892,7 +892,7 @@ jobs:
           # `merge-base origin/main HEAD`، وهو غير قابل للحلّ في استنساخ ضحل (الافتراضي 1).
           # وبلا التاريخ الكامل كان الحارس **يُتخطّى** فيُقرأ أخضرُه شهادةً على ما لم يُقَس.
           fetch-depth: 0
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip
@@ -1068,7 +1068,7 @@ jobs:
             run_group services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py
             run_group services/ai_agronomist/test_ai_field_memory_v49.py
             run_group services/auth/tests/test_router_decomposition_guard.py
-            run_group services/decision-service/tests/test_correlation_http_projection.py services/decision-service/tests/test_decision_provenance_integrity.py services/decision-service/tests/test_eligibility_assessment_policy.py services/decision-service/tests/test_manual_irrigation_source_binding.py services/decision-service/tests/test_migration_runner_readonly.py services/decision-service/tests/test_outcome_reconcile.py services/decision-service/tests/test_tenant_boundary_migration_static.py
+            run_group services/decision-service/tests/test_correlation_http_projection.py services/decision-service/tests/test_decision_provenance_integrity.py services/decision-service/tests/test_eligibility_assessment_policy.py services/decision-service/tests/test_manual_irrigation_source_binding.py services/decision-service/tests/test_migration_runner_readonly.py services/decision-service/tests/test_outcome_reconcile.py services/decision-service/tests/test_tenant_boundary_migration_static.py services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py services/decision-service/tests/test_tenant_binding_force_rls.py
             run_group services/field-management-service/tests/test_field_management_service_contract.py
             run_group services/field-segmentation/test_exg_preprocess.py services/field-segmentation/test_segmentation.py
             run_group services/guardrails-engine/test_guardrails_router_decomposition_guard.py
@@ -1095,7 +1095,7 @@ jobs:
         # تاريخيّة مسمّاة). لم يكشفه شيء قبل هذه الوظيفة لأنّه لم يكن يعمل في أيّ مكان —
         # وهو بالضبط ما كانت `ARCH-TESTS-UNLISTED-IN-CI-01` تُخفيه.
         with: {fetch-depth: 0}
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip
@@ -1119,7 +1119,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip
@@ -1203,7 +1203,7 @@ jobs:
           # `test_no_registry_entry_that_main_has_disappears_from_this_branch` وأخواته
           # تحتاج `merge-base origin/main HEAD` — واستنساخٌ ضحل يجعلها تُتخطّى صامتاً.
           fetch-depth: 0
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip
@@ -1222,7 +1222,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip
@@ -1251,7 +1251,7 @@ jobs:
     # يدويّاً بإعادة سحب مرنة (٦ محاولات backoff) — نفس الصور والمنافذ تماماً.
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip
@@ -1509,7 +1509,7 @@ jobs:
     # Integration Tests (manual docker run + backoff instead of `services:`).
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip
@@ -1900,7 +1900,7 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip
@@ -1931,7 +1931,7 @@ jobs:
         run: >-
           pytest tests/test_migration_033_pg16.py tests/test_migration_034_pg16.py
           tests/test_migration_036_correlation_pg16.py tests/test_element84_inventory_pg16.py
-          tests/test_platform_v235_correlation_pg16.py
+          tests/test_platform_v235_correlation_pg16.py tests/test_migration_037_force_rls_pg16.py
           -v -p no:cacheprovider --junitxml=decision-033-pg16.xml
       - name: Retain proof even when a regression fails
         if: always()
@@ -1966,7 +1966,7 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip
@@ -2054,7 +2054,9 @@ jobs:
         run: |
           set -euo pipefail
           pytest tests_v9/test_live_pg_fake_connection_debt.py \
-            tests_v9/test_d4d5_idempotency_irrigation_live_pg.py -v --tb=short \
+            tests_v9/test_d4d5_idempotency_irrigation_live_pg.py \
+            tests_v9/test_sql_prepare_contract_live_pg.py \
+            tests_v9/test_migration_rerun_safety_live_pg.py -v --tb=short \
             -p no:cacheprovider -o addopts= --junitxml=live_pg_evidence.xml
       - name: Enforce the dedicated-job contract and emit the measured summary
         # يستبدل عدّ `--collect-only | grep -c '::'`، وكان يقيس **الجمع** لا التنفيذ:
@@ -2291,7 +2293,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip
@@ -2345,7 +2347,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
           cache: pip

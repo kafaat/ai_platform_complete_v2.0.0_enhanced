@@ -967,10 +967,10 @@ sam2-inference,services/sam2-inference/main.py,135,GET,/readyz,readyz,infra
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,195,POST,/internal/field-forms/definitions,create_definition,internal_s2s
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,230,POST,/internal/field-forms/definitions/{code}/versions,create_version,internal_s2s
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,278,POST,/internal/field-forms/versions/{version_id}/publish,publish_version,internal_s2s
-scout-ingest-service,services/scout-ingest-service/field_forms_api.py,327,POST,/internal/field-forms/versions/{version_id}/retire,retire_version,internal_s2s
-scout-ingest-service,services/scout-ingest-service/field_forms_api.py,361,POST,/internal/field-forms/assignments,create_assignment,internal_s2s
-scout-ingest-service,services/scout-ingest-service/field_forms_api.py,393,GET,/internal/field-forms/download,download_forms,internal_s2s
-scout-ingest-service,services/scout-ingest-service/field_forms_api.py,465,POST,/internal/field-forms/submissions,submit_form,internal_s2s
+scout-ingest-service,services/scout-ingest-service/field_forms_api.py,328,POST,/internal/field-forms/versions/{version_id}/retire,retire_version,internal_s2s
+scout-ingest-service,services/scout-ingest-service/field_forms_api.py,362,POST,/internal/field-forms/assignments,create_assignment,internal_s2s
+scout-ingest-service,services/scout-ingest-service/field_forms_api.py,394,GET,/internal/field-forms/download,download_forms,internal_s2s
+scout-ingest-service,services/scout-ingest-service/field_forms_api.py,466,POST,/internal/field-forms/submissions,submit_form,internal_s2s
 scout-ingest-service,services/scout-ingest-service/main.py,200,GET,/healthz,healthz,infra
 scout-ingest-service,services/scout-ingest-service/main.py,205,GET,/readyz,readyz,infra
 scout-ingest-service,services/scout-ingest-service/main.py,242,GET,/internal/scouting/external-observations,read_external_observations,internal_s2s

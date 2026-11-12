@@ -308,7 +308,7 @@
           "dynamic_expr": null,
           "file": "services/vegetation-analysis-service/vegetation_runtime.py",
           "kind": "producer",
-          "line": 626,
+          "line": 644,
           "queue": null,
           "resolution": "local_token_template",
           "subject": "sahool.tenant.*.satellite.*.computed"
