@@ -72,7 +72,10 @@ def test_v36_widening_is_guarded_and_never_validates_blindly():
     text = V36.read_text(encoding="utf-8")
     block = text[text.index("DO $v36_types$") : text.index("END $v36_types$")]
     assert "pg_get_constraintdef" in block and "RETURN;" in block
-    assert "NOT VALID" in block and "VALIDATE CONSTRAINT" not in block
+    assert "NOT VALID" in block, "the widened CHECK must not scan existing rows on every deploy"
+    assert "VALIDATE CONSTRAINT" not in block, (
+        "a VALIDATE in a per-deploy migration rescans the alerts table each time; the repo forbids blind VALIDATE"
+    )
 
 
 def test_v36_is_the_only_manifest_entry_defining_the_alert_type_check():
@@ -105,4 +108,6 @@ def test_no_platform_query_reads_last_ndvi_mean_from_fields():
 
 def test_background_field_skip_is_not_silent():
     text = (PLATFORM / "api" / "main.py").read_text(encoding="utf-8")
-    assert 'logging.debug("أتمتة التنبيهات: تخطّي حقل' not in text
+    assert 'logging.debug("أتمتة التنبيهات: تخطّي حقل' not in text, (
+        "a field that fails evaluation must be visible at WARNING; at DEBUG every failed run was silent"
+    )
