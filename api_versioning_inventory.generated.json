@@ -263,7 +263,7 @@
   {
     "service": "auth",
     "file": "services/auth/main.py",
-    "line": 408,
+    "line": 409,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_identity",
@@ -344,7 +344,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 47,
+    "line": 48,
     "method": "POST",
     "path": "/v1/auth/mfa/setup",
     "handler": "mfa_setup",
@@ -353,7 +353,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 100,
+    "line": 104,
     "method": "POST",
     "path": "/v1/auth/mfa/activate",
     "handler": "mfa_activate",
@@ -362,7 +362,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 173,
+    "line": 179,
     "method": "POST",
     "path": "/v1/auth/mfa/disable",
     "handler": "mfa_disable",
@@ -3782,7 +3782,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 63,
+    "line": 69,
     "method": "GET",
     "path": "/api/v1/automation/scheduler-status",
     "handler": "scheduler_status_endpoint",
@@ -3791,7 +3791,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 78,
+    "line": 84,
     "method": "GET",
     "path": "/api/v1/automation/runs",
     "handler": "automation_runs_endpoint",
@@ -3800,7 +3800,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 97,
+    "line": 103,
     "method": "POST",
     "path": "/api/v1/automation/weather/register",
     "handler": "weather_register_endpoint",
@@ -3809,7 +3809,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 137,
+    "line": 143,
     "method": "GET",
     "path": "/api/v1/automation/weather/cached",
     "handler": "weather_cached_endpoint",
@@ -3818,7 +3818,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 156,
+    "line": 162,
     "method": "GET",
     "path": "/api/v1/automation/weather/status",
     "handler": "weather_automation_status_endpoint",
@@ -3827,7 +3827,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 164,
+    "line": 177,
     "method": "POST",
     "path": "/api/v1/automation/imagery/register-field",
     "handler": "imagery_register_field_endpoint",
@@ -3836,7 +3836,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 195,
+    "line": 208,
     "method": "GET",
     "path": "/api/v1/automation/imagery/status",
     "handler": "imagery_automation_status_endpoint",
@@ -3845,7 +3845,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/automation.py",
-    "line": 207,
+    "line": 226,
     "method": "POST",
     "path": "/api/v1/automation/alerts/run",
     "handler": "automation_run_alerts_endpoint",
@@ -5897,7 +5897,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3901,
+    "line": 3868,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan",
     "handler": "field_walk_plan",
@@ -5906,7 +5906,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3911,
+    "line": 3878,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
     "handler": "field_walk_plan_pdf",
@@ -5915,7 +5915,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3930,
+    "line": 3897,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/zones",
     "handler": "field_zones",
@@ -5924,7 +5924,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3944,
+    "line": 3911,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/water-stress-spectral",
     "handler": "field_water_stress_spectral",
@@ -5933,7 +5933,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3976,
+    "line": 3943,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state",
     "handler": "field_canonical_state",
@@ -5942,7 +5942,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 4004,
+    "line": 3971,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/alerts/derived",
     "handler": "field_alerts_derived",
@@ -5951,7 +5951,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 4030,
+    "line": 3997,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state/full",
     "handler": "field_state_full",

@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 600,
+          "line": 599,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 813,
+          "line": 793,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 547,
+          "line": 546,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 813,
+          "line": 793,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -651,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 552,
+          "line": 551,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -723,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 826,
+          "line": 806,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -874,7 +874,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 408,
+          "line": 409,
           "method": "GET",
           "module": "services/auth/main.py",
           "path": "/runtime-identity",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 541,
+          "line": 540,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -961,7 +961,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 659,
+          "line": 639,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -1000,7 +1000,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 744,
+          "line": 724,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1116,7 +1116,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 691,
+          "line": 671,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1119,
-  "route_inventory_sha256": "7a4ee307ad4d461dc20df9308cc71b2ee2c24d51725ba31bfebe139b1504adc5",
+  "route_inventory_sha256": "b5f999d358dfa2978cdbbdf893e3a8e47232e16ee62c28f4e6a80bca45c011f2",
   "runtime_verified": false,
   "schema_version": 1
 }

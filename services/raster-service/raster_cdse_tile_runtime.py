@@ -77,6 +77,113 @@ def parse_poly(poly: str) -> dict | None:
         return None
 
 
+# G-H1: هامش مقارنة حدود هندسة العميل بحدود الحقل المخزّنة (~١١م) — الواجهة ترسل مضلّع
+# الحقل نفسه بعد تقريب إحداثيّاته، فالمقارنة الحرفيّة كانت سترفض الطلب الشرعيّ.
+CLIENT_GEOMETRY_TOLERANCE_DEG = 1e-4
+# سقف مساحة هندسة العميل حين لا تتوفّر حدود مخزّنة للحقل (وضعٌ بلا قاعدة/هندسة غائبة).
+# ١٠٠ كم² = ١٠٬٠٠٠ هكتار — أكبر من أيّ حقل، وأصغر بأضعافٍ من مشهدٍ يستنزف حصّة CDSE.
+_DEFAULT_MAX_CLIENT_AREA_KM2 = 100.0
+
+
+def max_client_area_km2() -> float:
+    """سقف مساحة هندسة العميل غير المقيَّدة بحدود مخزّنة (``RASTER_CDSE_MAX_CLIENT_AREA_KM2``)."""
+    raw = os.getenv("RASTER_CDSE_MAX_CLIENT_AREA_KM2", "")
+    try:
+        value = float(raw) if raw.strip() else _DEFAULT_MAX_CLIENT_AREA_KM2
+    except ValueError:
+        return _DEFAULT_MAX_CLIENT_AREA_KM2
+    return value if value > 0 else _DEFAULT_MAX_CLIENT_AREA_KM2
+
+
+def bbox_area_km2(bbox: list[float]) -> float:
+    """مساحة تقريبيّة لـ``[w, s, e, n]`` بالكم² (إسقاط متساوي المستطيلات عند خطّ العرض الأوسط)."""
+    import math
+
+    w, s, e, n = bbox
+    mid = math.radians((s + n) / 2.0)
+    return abs(e - w) * 111.32 * max(math.cos(mid), 0.0) * abs(n - s) * 110.574
+
+
+def _refuse_geometry(code: str, message_ar: str):
+    from fastapi import HTTPException
+
+    return HTTPException(422, {"code": code, "message_ar": message_ar})
+
+
+def _valid_bbox(bbox: list[float]) -> bool:
+    w, s, e, n = bbox
+    return -180.0 <= w < e <= 180.0 and -90.0 <= s < n <= 90.0
+
+
+def _bbox_within(inner: list[float], outer: list[float], tol: float) -> bool:
+    return (
+        inner[0] >= outer[0] - tol
+        and inner[1] >= outer[1] - tol
+        and inner[2] <= outer[2] + tol
+        and inner[3] <= outer[3] + tol
+    )
+
+
+def bound_client_geometry(
+    client_geom: dict | None,
+    client_bbox: list[float] | None,
+    stored_geom: dict | None,
+) -> tuple[dict | None, list[float] | None]:
+    """يُقيِّد ``poly``/``bbox`` العميل بحدود الحقل المخزّنة. يُرجِع ``(geometry, bbox)``.
+
+    G-H1: كانت هندسة العميل تحلّ محلّ حدود الحقل بلا سقف، فيصيّر أيّ مستخدم مُصادَق
+    أيّ مساحة — حتّى الكرة كلّها — على حصّة CDSE المشتركة. العقد الآن:
+
+    * **حدود مخزّنة متاحة:** ``poly`` يُقبَل إن وقع ضمن حدود الحقل (بهامش
+      ``CLIENT_GEOMETRY_TOLERANCE_DEG``)، وإلّا تحلّ محلّه هندسة الحقل المخزّنة نفسها
+      (أي لا يُصيَّر خارج الحقل أبداً). ``bbox`` يُقصّ إلى تقاطعه مع حدود الحقل؛ تقاطعٌ
+      فارغ ⇒ 422.
+    * **لا حدود مخزّنة:** هندسة العميل تُقبَل حتّى ``max_client_area_km2()`` فقط؛ أكبر
+      منه، أو حدودٌ غير صالحة ⇒ 422 — قبل أيّ نداء CDSE.
+    """
+    stored_bbox = raster_date_geo.bbox_from_geom(stored_geom)
+    if stored_bbox:
+        geom = stored_geom
+        if client_geom is not None:
+            cb = raster_date_geo.bbox_from_geom(client_geom)
+            if cb and _bbox_within(cb, stored_bbox, CLIENT_GEOMETRY_TOLERANCE_DEG):
+                geom = client_geom
+            else:
+                logger.warning(
+                    "client poly outside stored field bounds — using stored geometry "
+                    "(client_bbox=%s field_bbox=%s)",
+                    cb,
+                    stored_bbox,
+                )
+        if client_bbox is None:
+            return geom, raster_date_geo.bbox_from_geom(geom)
+        clipped = [
+            max(client_bbox[0], stored_bbox[0]),
+            max(client_bbox[1], stored_bbox[1]),
+            min(client_bbox[2], stored_bbox[2]),
+            min(client_bbox[3], stored_bbox[3]),
+        ]
+        if not (clipped[0] < clipped[2] and clipped[1] < clipped[3]):
+            raise _refuse_geometry(
+                "bbox_outside_field", "حدود الطلب لا تتقاطع مع حدود الحقل المخزّنة."
+            )
+        return geom, clipped
+
+    bbox = client_bbox or raster_date_geo.bbox_from_geom(client_geom)
+    cap = max_client_area_km2()
+    for candidate in (bbox, raster_date_geo.bbox_from_geom(client_geom)):
+        if candidate is None:
+            continue
+        if not _valid_bbox(candidate):
+            raise _refuse_geometry("invalid_client_geometry", "حدود الطلب غير صالحة.")
+        if bbox_area_km2(candidate) > cap:
+            raise _refuse_geometry(
+                "client_geometry_too_large",
+                f"مساحة الطلب تتجاوز سقف {cap:g} كم² ولا حدود مخزّنة للحقل تقيّدها.",
+            )
+    return client_geom, bbox
+
+
 async def normalize_cdse_request(
     field_id: str,
     index: str,
@@ -111,20 +218,15 @@ async def normalize_cdse_request(
         date_from = f"{today}T00:00:00Z"
     date_to = f"{today}T23:59:59Z"
 
-    field_geom: dict | None = parse_poly(poly) if poly else None
-    if field_geom is None:
-        field_geom = await _db.fetch_field_geometry(field_id)
-
+    client_geom: dict | None = parse_poly(poly) if poly else None
     bbox_w, bbox_s, bbox_e, bbox_n = bbox
+    client_bbox: list[float] | None = None
     if bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
-        field_bbox: list[float] | None = [
-            float(bbox_w),
-            float(bbox_s),
-            float(bbox_e),
-            float(bbox_n),
-        ]
-    else:
-        field_bbox = raster_date_geo.bbox_from_geom(field_geom)
+        client_bbox = [float(bbox_w), float(bbox_s), float(bbox_e), float(bbox_n)]
+    # G-H1: هندسة العميل لا تحلّ محلّ حدود الحقل بلا قيد — تُقيَّد بالهندسة المخزّنة
+    # للحقل نفسه (التي أثبت ``require_field_tenant`` ملكيّتها)، أو بسقف مساحة إن غابت.
+    stored_geom = await _db.fetch_field_geometry(field_id)
+    field_geom, field_bbox = bound_client_geometry(client_geom, client_bbox, stored_geom)
 
     return {
         "internal": internal,

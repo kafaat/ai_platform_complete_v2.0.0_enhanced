@@ -125,7 +125,7 @@
     {
       "service": "auth",
       "file": "services/auth/main.py",
-      "line": 408,
+      "line": 409,
       "method": "GET",
       "path": "/runtime-identity",
       "function": "runtime_identity"

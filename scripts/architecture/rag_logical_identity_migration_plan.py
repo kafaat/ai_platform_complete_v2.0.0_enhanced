@@ -63,7 +63,7 @@ def _load_pq():
     return module
 
 
-def canonical_writer_point_id(chunk_id: str) -> str:
+def canonical_writer_point_id(chunk_id: str, tenant_id: str) -> str:
     """The canonical writer's own projection — **imported, never restated**.
 
     A mirrored copy of the formula would drift: change the namespace or prefix in
@@ -73,8 +73,11 @@ def canonical_writer_point_id(chunk_id: str) -> str:
 
     The direction is legal because it starts from an explicit logical identity.
     There is intentionally no inverse helper from point UUID to logical chunk ID.
+
+    R-H14: the writer's identity is (tenant, chunk_id), so the destination needs the
+    row's tenant too; a row without one cannot be planned (``ValueError`` from the writer).
     """
-    return _load_pq().canonical_storage_point_id(chunk_id)
+    return _load_pq().canonical_storage_point_id(chunk_id, tenant_id=tenant_id)
 
 
 def _base_row(source: dict[str, Any]) -> dict[str, Any]:
@@ -113,7 +116,9 @@ def _base_row(source: dict[str, Any]) -> dict[str, Any]:
             action = "MIGRATION_CANDIDATE"
             reason = "legacy row has an explicit logical chunk identity; no provenance is invented"
             canonical_chunk_id = explicit
-            writer_point_id = canonical_writer_point_id(explicit)
+            writer_point_id = canonical_writer_point_id(
+                explicit, str(source.get("tenant_id") or "")
+            )
     elif classification == "LEGACY_PROVENANCE_INCOMPLETE":
         action = "HOLD_PROVENANCE_EVIDENCE"
         reason = "required provenance is incomplete; identity alone cannot authorize migration"
