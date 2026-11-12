@@ -6452,6 +6452,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/tests/test_element84_inventory_pg16.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -9332,7 +9342,7 @@
     "EMITS": 3,
     "READS": 479,
     "ROUTES_TO": 72,
-    "WRITES": 328
+    "WRITES": 329
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {

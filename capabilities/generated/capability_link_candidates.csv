@@ -317,6 +317,8 @@ FM-001,test,mobile/sahool_app/test/features/auth/onboarding_screen_test.dart,3,a
 FM-001,test,scripts_v9/test_tenant_isolation.sql,3,applied
 FM-001,test,services/auth/tests/__init__.py,3,applied
 FM-001,test,services/auth/tests/test_router_decomposition_guard.py,3,applied
+FM-001,test,services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py,3,applied
+FM-001,test,services/decision-service/tests/test_tenant_binding_force_rls.py,3,applied
 FM-001,test,services/decision-service/tests/test_tenant_boundary_migration_static.py,3,applied
 FM-001,test,services/raster-service/test_cors_preflight_tenant_order.py,3,applied
 FM-001,test,services/raster-service/test_field_tenant_isolation_t10.py,3,applied
@@ -2265,6 +2267,9 @@ SAT-009,test,tests_v9/test_v25_seed_and_raster_quality.py,3,applied
 SAT-009,test,tests_v9/test_vegetation_raster_ndvi.py,3,applied
 SEC-001,service,services/field-management-service/main.py,10,applied
 SEC-001,test,scripts_v9/test_tenant_isolation.sql,3,applied
+SEC-001,test,services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py,3,applied
+SEC-001,test,services/decision-service/tests/test_migration_037_force_rls_pg16.py,3,applied
+SEC-001,test,services/decision-service/tests/test_tenant_binding_force_rls.py,3,applied
 SEC-001,test,services/raster-service/test_field_tenant_isolation_t10.py,3,applied
 SEC-001,test,services/raster-service/test_process_date_tenant_isolation.py,3,applied
 SEC-001,test,tests/security/test_fii_chemical_chain_rls_gate.py,3,applied
