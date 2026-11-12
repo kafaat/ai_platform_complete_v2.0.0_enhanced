@@ -3,14 +3,17 @@
 // صفحة تسجيل الدخول: email + password + demo mode
 // ✅ رمز MFA (TOTP) يظهر عند طلب الخادم له (X-MFA-Required)
 // ✅ تدفّق "نسيت كلمة المرور؟": طلب بالبريد → رمز + كلمة مرور جديدة → تأكيد
+// ✅ تسجيل MFA الإلزاميّ: 403 + enrollment_token ⇒ خطوة setup/activate (MfaEnrollmentStep)
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { Leaf, Eye, EyeOff, Loader2, Shield, AlertTriangle, KeyRound, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../hooks/useAuth';
 import { requestPasswordReset, confirmPasswordReset, apiErrorMessage, isMfaRequiredError } from '../services/api';
+import { mfaEnrollmentChallenge, type MfaEnrollmentChallenge } from '../services/api/auth';
+import MfaEnrollmentStep from './MfaEnrollmentStep';
 
-// شاشات هذه الصفحة: الدخول، أو تدفّق إعادة التعيين (طلب ثمّ تأكيد).
-type View = 'login' | 'reset-request' | 'reset-confirm';
+// شاشات هذه الصفحة: الدخول، أو تدفّق إعادة التعيين (طلب ثمّ تأكيد)، أو تسجيل MFA الإلزاميّ.
+type View = 'login' | 'reset-request' | 'reset-confirm' | 'mfa-enroll';
 
 export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
   const [view, setView]       = useState<View>('login');
@@ -22,16 +25,28 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
   // MFA: يظهر الحقل فقط بعد أن يطلبه الخادم (كلمة المرور صحّت، يلزم رمز).
   const [mfaRequired, setMfaRequired] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
+  // تسجيل MFA الإلزاميّ: إثبات كلمة المرور (403 + enrollment_token) في الذاكرة فقط —
+  // لا Storage ولا سجلّ؛ يُسقَط عند العودة لنموذج الدخول.
+  const [enrollment, setEnrollment] = useState<MfaEnrollmentChallenge | null>(null);
+  const [notice, setNotice]   = useState('');
   const { login, loginDemo }  = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) { setError('أدخل البريد وكلمة المرور'); return; }
     if (mfaRequired && !mfaCode.trim()) { setError('أدخل رمز المصادقة الثنائيّة'); return; }
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setNotice('');
     try {
       await login(email, password, mfaRequired ? mfaCode.trim() : undefined);
     } catch (err: unknown) {
+      // دورٌ حسّاس بلا MFA: الخادم يردّ 403 + enrollment_token (كلمة المرور صحّت، يلزم
+      // تفعيل MFA أوّلاً). 403 بلا إثبات يبقى خطأً عاديّاً أدناه.
+      const challenge = mfaEnrollmentChallenge(err);
+      if (challenge) {
+        setEnrollment(challenge);
+        setView('mfa-enroll');
+        return;
+      }
       // الخادم يردّ 401 + X-MFA-Required حين تصحّ كلمة المرور لكن يلزم رمز TOTP.
       if (!mfaRequired && isMfaRequiredError(err)) {
         setMfaRequired(true);
@@ -124,6 +139,14 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
               </div>
             )}
 
+            {/* Notice (بعد تفعيل MFA الإلزاميّ) */}
+            {notice && (
+              <div role="status" className="flex items-center gap-2 p-3 rounded-xl text-sm text-emerald-300" style={{ background:'#052e16', border:'1px solid #16a34a33' }}>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{notice}</span>
+              </div>
+            )}
+
             {/* Error */}
             {error && (
               <div role="alert" aria-live="polite" className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
@@ -175,6 +198,29 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
               </button>
             </p>
           </form>
+          )}
+
+          {/* ── Mandatory MFA enrollment ─────────────────────────── */}
+          {view === 'mfa-enroll' && enrollment && (
+            <MfaEnrollmentStep
+              email={email}
+              challenge={enrollment}
+              onEnrolled={() => {
+                // التفعيل لا يُصدِر جلسة: نعود للدخول بكلمة المرور + رمز TOTP.
+                setEnrollment(null);
+                setMfaRequired(true);
+                setMfaCode('');
+                setError('');
+                setNotice('تم تفعيل المصادقة الثنائيّة — سجّل الدخول الآن برمزٍ جديد من تطبيق المصادقة');
+                setView('login');
+              }}
+              onBackToLogin={() => {
+                setEnrollment(null);
+                setError('');
+                setNotice('');
+                setView('login');
+              }}
+            />
           )}
 
           {/* ── Reset flow ───────────────────────────────────────── */}

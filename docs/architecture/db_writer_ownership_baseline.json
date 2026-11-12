@@ -1,7 +1,7 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "529ad6a661ff9ac55dc83d232d084cf1f81374d2",
+  "measured_on": "15fb2a899ae492eaae0f12afb8b8ef0e4ad8b6db",
   "reads": {
     "$comment": "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، f-string نصّاً واحداً). ثلاثُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا محكومٌ عليها. 'لم يُرصَد' ليس 'لا يقرأ': dynamic_table_sql_sites يعدّ ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ عبر مُساعد.",
     "declared_reader_unobserved": [
@@ -271,6 +271,7 @@
         "services/raster-service/db_persist.py"
       ],
       "users::auth": [
+        "services/auth/mfa_enrollment.py",
         "services/auth/mfa_runtime.py",
         "services/auth/routers/email_verify.py",
         "services/auth/routers/mfa.py",

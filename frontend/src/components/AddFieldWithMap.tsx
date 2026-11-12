@@ -41,41 +41,6 @@ interface DrawnLayer extends L.Layer {
   getLatLngs?: () => L.LatLng[] | L.LatLng[][];
 }
 
-
-// يحاول التقاط viewport الحالي من بلاطات Leaflet إلى PNG base64 لإرسالها إلى
-// field-segmentation. هذا يعمل مع طبقات تسمح بـCORS؛ إن منعه مزوّد البلاطات نُعيد null
-// ونُبقي المسار صادقاً: bbox + preprocessing=exg فقط دون صورة.
-function captureLeafletViewportBase64(map: L.Map): string | null {
-  const container = map.getContainer();
-  const rect = container.getBoundingClientRect();
-  const width = Math.max(1, Math.round(rect.width));
-  const height = Math.max(1, Math.round(rect.height));
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-
-  const containerPoint = map.latLngToContainerPoint(map.getCenter());
-  const layerPoint = map.latLngToLayerPoint(map.getCenter());
-  const layerToContainer = L.point(containerPoint.x - layerPoint.x, containerPoint.y - layerPoint.y);
-  const tiles = Array.from(container.querySelectorAll<HTMLImageElement>('img.leaflet-tile'));
-
-  try {
-    for (const tile of tiles) {
-      if (!tile.complete || tile.naturalWidth === 0 || tile.naturalHeight === 0) continue;
-      const pos = L.DomUtil.getPosition(tile).add(layerToContainer);
-      const opacity = Number(tile.style.opacity || '1');
-      ctx.globalAlpha = Number.isFinite(opacity) ? opacity : 1;
-      ctx.drawImage(tile, Math.round(pos.x), Math.round(pos.y), tile.width || 256, tile.height || 256);
-    }
-    ctx.globalAlpha = 1;
-    return canvas.toDataURL('image/png').split(',', 2)[1] ?? null;
-  } catch {
-    return null;
-  }
-}
-
 // تُعيد حساب أبعاد الخريطة بعد فتح المودال: عند التركيب قد لا يكون حجم الحاوية
 // نهائيّاً (انتقال/تخطيط المودال) فيحتفظ Leaflet بحجم قديم ⇒ انحراف بين موضع
 // النقر وموضع الرسم. نطلب invalidateSize مرّتين (بعد التركيب وبعد استقرار التخطيط).
@@ -892,13 +857,15 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     const hints: Array<[number, number]> | undefined =
       segReqMode === 'hybrid' ? [[c.lng, c.lat]] : undefined;
     try {
-      const image_base64 = captureLeafletViewportBase64(map);
+      // لا لقطة شاشة للخريطة: لقطة المتصفّح بلا مرجع جغرافيّ (إسقاط ويب-مركاتور بأيّ
+      // بلاطات حُمِّلت)، وخادم SAM2 يقرأ صورته المُرجَعة جغرافيّاً لهذا الـbbox ويطبّق
+      // ExG عليها هو نفسه، فتبقى البادرة والقناع والمضلّع في إطار البكسل/CRS نفسه.
+      // field-segmentation يُهمل أيّ لقطة مع خلفيّة SAM2 (لا تبلغ النموذج)، فإرسالها حمولة ضائعة.
       const res = await segmentField({
         mode: segReqMode,
         bbox,
         preprocessing: 'exg',
         fallback_to_original_on_low_exg: true,
-        ...(image_base64 ? { image_base64 } : {}),
         ...(hints ? { hints } : {}),
       });
       const ring = geomToPolygon(res?.geometry);

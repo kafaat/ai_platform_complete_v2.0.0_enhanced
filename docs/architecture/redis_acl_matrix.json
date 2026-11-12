@@ -734,7 +734,8 @@
             "sahool:ip_rate:*",
             "sahool:otp_rate:*",
             "sahool:otp:*",
-            "sahool:reset:*"
+            "sahool:reset:*",
+            "sahool:mfa:enrollment:*"
           ],
           "channels": [],
           "evidence": [
@@ -851,6 +852,12 @@
               "line": 40,
               "needle": "return await getdel(key)",
               "why": "GETDEL (the MULTI/EXEC fallback is unreachable with redis-py, which has getdel)"
+            },
+            {
+              "path": "services/auth/mfa_enrollment.py",
+              "line": 77,
+              "needle": "return f\"sahool:mfa:enrollment:{jti}\"",
+              "why": "SETEX/GET/INCR/EXPIRE/DEL on one-use short-lived MFA enrollment capabilities and their :attempts counter; no new commands"
             }
           ]
         },

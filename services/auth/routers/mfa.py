@@ -11,10 +11,24 @@ from __future__ import annotations
 
 import main
 import mfa_crypto
+import mfa_enrollment
 import pyotp
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials
 
 router = APIRouter()
+
+
+# FastAPI dependencies stay here (``main.security`` is bound at import, and this module is
+# reloaded with ``main``); the enrollment logic itself lives in the sibling mfa_enrollment.py.
+async def _setup_user(credentials: HTTPAuthorizationCredentials | None = Depends(main.security)):
+    return await mfa_enrollment.user_for(credentials, "setup")
+
+
+async def _activation_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(main.security),
+):
+    return await mfa_enrollment.user_for(credentials, "activate")
 
 
 async def _load_mfa_row(user_id: int):
@@ -44,7 +58,7 @@ async def _refuse_if_mfa_locked(row, user_id: int, *, locked_event: str) -> None
 
 
 @router.post("/v1/auth/mfa/setup")
-async def mfa_setup(user: dict = Depends(main.get_current_user)):
+async def mfa_setup(user: dict = Depends(_setup_user)):
     """يبدأ اقتران MFA: يولّد سرّاً ويُعيد provisioning_uri (لتطبيق المصادقة).
 
     V29.5: السرّ يُخزَّن **مشفّراً** (encrypted_mfa_secret) لا نصّاً؛ يتطلّب مفتاح تشفير
@@ -76,20 +90,41 @@ async def mfa_setup(user: dict = Depends(main.get_current_user)):
             status.HTTP_503_SERVICE_UNAVAILABLE,
             "MFA_SECRET_ENCRYPTION_KEY غير صالح لبيئة الإنتاج",
         ) from exc
+    await mfa_enrollment.consume(user)
     async with main._acquire() as conn:
         # نخزّن السرّ مشفّراً ونمسح أيّ نصّ قديم؛ mfa_enabled يبقى FALSE حتى التأكيد.
-        await conn.execute(
+        # $3=FALSE لجلسة وصول عاديّة؛ TRUE لإثبات تسجيل ⇒ الكتابة مربوطة بلقطة الإثبات.
+        enrolled = await conn.fetchrow(
             "UPDATE users SET encrypted_mfa_secret=$1, mfa_secret=NULL, mfa_enabled=FALSE, "
-            "updated_at=NOW() WHERE id=$2",
+            "updated_at=NOW() WHERE id=$2 AND active=TRUE AND mfa_enabled=FALSE "
+            "AND (NOT $3::boolean OR (password_hash IS NOT DISTINCT FROM $4 "
+            "AND role IS NOT DISTINCT FROM $5 AND tenant_id IS NOT DISTINCT FROM $6)) "
+            "RETURNING id, password_hash, role, tenant_id, active, mfa_enabled, "
+            "encrypted_mfa_secret",
             encrypted,
             user_id,
+            *mfa_enrollment.guard_values(user),
         )
+    if not enrolled:
+        raise HTTPException(409, "MFA enrollment state changed; sign in again")
+    # Sign the exact post-update snapshot, never a later reread that could bind a
+    # password-proven challenge to credentials changed after this mutation.
+    activation = (
+        await mfa_enrollment.issue(enrolled, stage="activate", encrypted=encrypted)
+        if "_enrollment" in user
+        else None
+    )
     uri = pyotp.TOTP(secret).provisioning_uri(name=row["email"], issuer_name="SAHOOL")
     await main.audit_log("mfa_setup_started", user_id, "authenticated")
     await main._emit_mfa_audit(
         user_id=user_id, event="mfa_setup_started", outcome="pending", tenant_id=row["tenant_id"]
     )
     return {
+        **(
+            {"enrollment_token": activation, "expires_in": mfa_enrollment.TTL_SECONDS}
+            if activation
+            else {}
+        ),
         "secret": secret,
         "provisioning_uri": uri,
         "message": "أكّد الرمز عبر /auth/mfa/activate",
@@ -97,7 +132,7 @@ async def mfa_setup(user: dict = Depends(main.get_current_user)):
 
 
 @router.post("/v1/auth/mfa/activate")
-async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_current_user)):
+async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(_activation_user)):
     """يفعّل MFA بعد تأكيد أوّل رمز صحيح، ويُصدِر رموز استرداد (تُعرَض مرّة واحدة)."""
     user_id = int(user["sub"])
     row = await _load_mfa_row(user_id)
@@ -118,6 +153,8 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_c
         ) from None
     if not secret:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "ابدأ الاقتران أولاً عبر /auth/mfa/setup")
+    # يُحجَز رقم المحاولة قبل فحص الرمز (INCR ذرّيّ) كي لا تتجاوز الطلبات المتوازية الحدّ.
+    attempt = await mfa_enrollment.reserve_attempt(user)
     if not await main._consume_totp_step(user_id, secret, req.code):  # V29.7 anti-replay
         # S3 — نفس عدّاد/قفل MFA (كان تدقيقاً فقط ⇒ تخمين بلا حدّ).
         await main._register_mfa_failure(
@@ -126,29 +163,45 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_c
             locked_event="mfa_locked",
             tenant_id=row["tenant_id"],
         )
+        # الإثبات لا يُستهلَك برمز خاطئ (يُعاد المحاولة)، لكن بحدّ لكلّ إثبات ثمّ يُبطَل.
+        await mfa_enrollment.register_failed_attempt(user, attempt)
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح — تأكّد من تطبيق المصادقة")
 
+    await mfa_enrollment.consume(user)
     # رحّل أيّ سرّ نصّيّ قديم إلى مشفّر عند التفعيل (نقطة ترحيل نظيفة).
     migrate_enc = (
         mfa_crypto.encrypt_secret(secret)
         if (row["mfa_secret"] and not row["encrypted_mfa_secret"])
         else None
     )
+    guard = mfa_enrollment.guard_values(user)
     async with main._acquire() as conn:
         if migrate_enc:
-            await conn.execute(
+            tag = await conn.execute(
                 "UPDATE users SET mfa_enabled=TRUE, mfa_enabled_at=NOW(), mfa_failed_attempts=0, "
                 "mfa_locked_until=NULL, encrypted_mfa_secret=$1, mfa_secret=NULL, updated_at=NOW() "
-                "WHERE id=$2",
+                "WHERE id=$2 AND active=TRUE AND mfa_enabled=FALSE "
+                "AND mfa_secret IS NOT DISTINCT FROM $3 "
+                "AND (NOT $4::boolean OR (password_hash IS NOT DISTINCT FROM $5 "
+                "AND role IS NOT DISTINCT FROM $6 AND tenant_id IS NOT DISTINCT FROM $7))",
                 migrate_enc,
                 user_id,
+                row["mfa_secret"],
+                *guard,
             )
         else:
-            await conn.execute(
+            tag = await conn.execute(
                 "UPDATE users SET mfa_enabled=TRUE, mfa_enabled_at=NOW(), mfa_failed_attempts=0, "
-                "mfa_locked_until=NULL, updated_at=NOW() WHERE id=$1",
+                "mfa_locked_until=NULL, updated_at=NOW() WHERE id=$1 "
+                "AND active=TRUE AND mfa_enabled=FALSE AND encrypted_mfa_secret IS NOT DISTINCT FROM $2 "
+                "AND (NOT $3::boolean OR (password_hash IS NOT DISTINCT FROM $4 "
+                "AND role IS NOT DISTINCT FROM $5 AND tenant_id IS NOT DISTINCT FROM $6))",
                 user_id,
+                row["encrypted_mfa_secret"],
+                *guard,
             )
+    if tag != "UPDATE 1":
+        raise HTTPException(409, "MFA enrollment state changed; sign in again")
     recovery_codes = mfa_crypto.generate_recovery_codes()
     await main._store_recovery_codes(user_id, row["tenant_id"], recovery_codes)
     await main.audit_log("mfa_activated", user_id, "authenticated")
@@ -203,6 +256,7 @@ async def mfa_disable(req: main.MfaCodeRequest, user: dict = Depends(main.get_cu
             user_id,
         )
         await conn.execute("DELETE FROM mfa_recovery_codes WHERE user_id=$1", user_id)
+    await main.revoke_all_user_sessions(user_id)
     await main.audit_log("mfa_disabled", user_id, "authenticated")
     await main._emit_mfa_audit(
         user_id=user_id, event="mfa_disabled", outcome="success", tenant_id=row["tenant_id"]

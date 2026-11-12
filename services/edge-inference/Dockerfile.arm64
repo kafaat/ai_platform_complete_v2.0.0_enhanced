@@ -1,6 +1,18 @@
 # Multi-stage build for ARM64 edge devices
 FROM python:3.12-slim-bookworm AS builder
 
+ARG EDGE_REQUIREMENTS=requirements.txt
+ARG TARGETARCH
+# The pinned PyPI GPU wheel supports amd64 only; ARM64 keeps the CPU profile.
+# TARGETARCH is supplied by BuildKit; dpkg also supports legacy native builds.
+RUN if [ "${EDGE_REQUIREMENTS##*/}" = "requirements-gpu.txt" ]; then \
+        edge_arch="${TARGETARCH:-$(dpkg --print-architecture)}"; \
+        if [ "${edge_arch}" != "amd64" ]; then \
+            printf '%s\n' "Unsupported edge GPU build architecture: ${edge_arch}. onnxruntime-gpu==1.26.0 requires amd64; use requirements.txt for ARM64 CPU builds." >&2; \
+            exit 1; \
+        fi; \
+    fi
+
 WORKDIR /app
 ARG DEBIAN_MIRROR=
 RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
@@ -15,7 +27,6 @@ RUN if [ -n "${DEBIAN_MIRROR}" ]; then \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-ARG EDGE_REQUIREMENTS=requirements.txt
 COPY services/edge-inference/requirements*.txt ./
 # ── مرآة pip صينيّة (PyPI محجوب/بطيء) — قابلة للتجاوز بـ--build-arg ──
 # Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/

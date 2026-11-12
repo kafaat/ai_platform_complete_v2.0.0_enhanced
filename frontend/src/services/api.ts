@@ -579,12 +579,16 @@ export interface SegmentFieldInput {
   mode:      SegmentationMode;
   field_id?: string;
   crop?:     string | null;
-  // صورة viewport اختيارية: عند زر تلقائي نحاول إرسال لقطة الخريطة كي يطبّق
-  // field-segmentation مؤشر ExG قبل SAM2. قد تفشل اللقطة مع مزوّدات بلا CORS.
-  image_base64?: string;
+  // تحسين الغطاء النباتيّ (ExG) يُطبَّق **خادميّاً** في sam2-inference على الصورة التي
+  // يقرؤها هو للـbbox (COG/STAC مُرجَع جغرافيّاً)، لا على لقطة من المتصفّح: لا يوجد حقل
+  // صورة في هذا العقد عمداً (لقطة الخريطة بلا مرجع جغرافيّ فلا تبلغ النموذج). النتيجة
+  // تُعلن ما طُبِّق فعلاً في metadata.preprocessing (exg | exg_low_confidence_fallback_original
+  // | none) وmetadata.low_confidence — والواجهة تعرض ذلك لا ما طلبته.
   preprocessing?: 'none' | 'exg' | 'auto_exg';
+  // عند غطاء نباتيّ منخفض: true ⇒ يُستدَلّ على الصورة الأصليّة بدل المُحسَّنة.
   fallback_to_original_on_low_exg?: boolean;
-  // تلميحات نقطيّة [lon, lat] للوضع الهجين (اختياريّة — النموذج يستخدمها كبذور).
+  // تلميحات نقطيّة [lon, lat] للوضع الهجين (الواجهة ترسل مركز الخريطة): الخادم يجعلها
+  // نقطة موجبة، ومع ExG يقيّد المربّع بمكوّن الغطاء النباتيّ الواقع تحت النقرة.
   hints?:    Array<[number, number]>;
 }
 // الردّ الناجح: مضلّع GeoJSON مُقترَح (إحداثيّات [lon, lat]) + ثقة اختياريّة وعلَم
