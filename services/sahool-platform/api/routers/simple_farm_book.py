@@ -9,6 +9,7 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
+from core.authorization import authorize
 from core.simple_farm_book import entries_csv, monthly_pdf, summarize_entries
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field, field_validator
@@ -114,16 +115,55 @@ async def _assert_scope(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         )
         if party != 1:
             raise HTTPException(status_code=404, detail="party_not_found_for_tenant")
-    if req.receipt_document_id:
-        document = await conn.fetchval(
-            """SELECT 1 FROM documents
-               WHERE tenant_id=$1::uuid AND doc_id=$2
-                 AND category IN ('image','report','other')""",
-            tenant_id,
-            req.receipt_document_id,
-        )
-        if document != 1:
-            raise HTTPException(status_code=404, detail="receipt_document_not_found_for_tenant")
+
+
+def _receipt_field_refusal(document_field: str | None, entry_field: str | None) -> str | None:
+    """The refusal code when a receipt's field does not fit the entry, else ``None``.
+
+    A document with no field is a shared receipt (one purchase spanning fields or the whole
+    farm) and fits any entry of the tenant. A document recorded on a field fits only an entry
+    on that same field; a farm-level entry cannot cite a field's receipt.
+    """
+    document = (str(document_field or "").strip()) or None
+    if document is None:
+        return None
+    entry = (str(entry_field or "").strip()) or None
+    return None if document == entry else "receipt_field_mismatch"
+
+
+def _may_link_receipt(user: UserSchema, farm_id: str | None) -> bool:
+    """Linking a document is reading it: ``DOCUMENT_VIEW`` on the entry's farm.
+
+    ``authorize`` checks the role and ``farm_ids_access``, so a user limited to other farms
+    cannot attach a document to this farm's book.
+    """
+    return authorize(user, Permission.DOCUMENT_VIEW, farm_id=farm_id).allowed
+
+
+async def _assert_receipt(conn, tenant_id: str, req: SimpleEntryIn, user: UserSchema) -> None:
+    """A receipt belongs to the entry it is attached to.
+
+    The permission is decided on the server before the document is read. The document must
+    be this tenant's and an image/report/other, and its field must fit the entry's
+    (``_receipt_field_refusal``). Checked after a reversal inherits its allocation, so the
+    comparison uses the field the entry is stored on.
+    """
+    if not req.receipt_document_id:
+        return
+    if not _may_link_receipt(user, req.farm_id):
+        raise HTTPException(status_code=403, detail="receipt_document_permission_required")
+    document = await conn.fetchrow(
+        """SELECT field_id FROM documents
+           WHERE tenant_id=$1::uuid AND doc_id=$2
+             AND category IN ('image','report','other')""",
+        tenant_id,
+        req.receipt_document_id,
+    )
+    if document is None:
+        raise HTTPException(status_code=404, detail="receipt_document_not_found_for_tenant")
+    refusal = _receipt_field_refusal(document["field_id"], req.field_id)
+    if refusal:
+        raise HTTPException(status_code=422, detail=refusal)
 
 
 @router.post("/api/v1/farm-book/parties", status_code=201)
@@ -317,6 +357,7 @@ async def create_entry(
                     await _assert_scope(conn, tenant_id, req)
                     if req.reverses_entry_id:
                         await _assert_reversal(conn, tenant_id, req)
+                    await _assert_receipt(conn, tenant_id, req, user)
                     direction = (
                         await _prepare_payment(conn, tenant_id, req)
                         if req.entry_type == "payment"
