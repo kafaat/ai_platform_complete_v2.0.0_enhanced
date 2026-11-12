@@ -200,6 +200,9 @@ class _FieldMethodConn(_SeasonConn):
     "season_method, field_method, expected",
     [
         (" Rainfed ", None, "rainfed"),
+        ("rain-fed", None, "rainfed"),
+        (None, "Dryland", "rainfed"),
+        ("بعلي", None, "rainfed"),
         ("RAINFED", "pivot", "rainfed"),
         (None, "rainfed", "rainfed"),
         ("", " rainfed", "rainfed"),

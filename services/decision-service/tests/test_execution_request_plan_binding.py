@@ -517,6 +517,19 @@ def test_an_opening_command_needs_a_field_when_the_decision_names_none(monkeypat
     assert conn.inserted is None and not conn.outbox
 
 
+def test_a_cmd_alias_cannot_hide_an_opening_command_behind_a_close_decoy(monkeypatch):
+    # Re-check finding: the actuator parses `command` or `cmd`; the check read `command` only.
+    request = _unbound("close")
+    request.command_payload = {
+        "device_id": "valve-7",
+        "cmd": "open_valve",
+        "payload": {"command": "close", "amount_mm": 10.0, "duration_sec": 600},
+    }
+    result, conn = _create(monkeypatch, _plan(decision_field_id=None), request)
+    assert result["reason"] == "command_field_unbound"
+    assert conn.inserted is None and not conn.outbox
+
+
 @pytest.mark.parametrize("command", ["close", "close_valve", "stop"])
 def test_a_safe_direction_command_without_a_field_is_still_accepted(monkeypatch, command):
     result, _conn = _create(monkeypatch, _plan(decision_field_id=None), _unbound(command))
