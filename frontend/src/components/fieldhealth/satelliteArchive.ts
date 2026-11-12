@@ -1,3 +1,4 @@
+import { acquisitionUtcDay } from '../../lib/dates';
 import { dateHasPersistedCog, type PersistedCogDate } from '../maphub/persistedCog';
 
 export function satelliteArchiveLayer(
@@ -7,10 +8,13 @@ export function satelliteArchiveLayer(
   dates: readonly PersistedCogDate[],
   measuredDates: readonly { datetime: string }[],
 ) {
-  const day = selected.slice(0, 10);
+  const day = acquisitionUtcDay(selected);
   const product = mode === 'truecolor' ? 'truecolor' : index;
-  const stored = dateHasPersistedCog(product, day, dates) ||
-    (mode !== 'truecolor' && measuredDates.some(p => day === 'latest' || p.datetime.slice(0, 10) === day));
+  const stored = dateHasPersistedCog(product, selected, dates) ||
+    (mode !== 'truecolor' && measuredDates.some(p => {
+      const measuredDay = acquisitionUtcDay(p.datetime);
+      return !!measuredDay && (selected === 'latest' || measuredDay === day);
+    }));
   return {
     stored,
     index: mode === 'truecolor' && !stored ? index : product,

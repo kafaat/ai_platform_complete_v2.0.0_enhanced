@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "4d024ef74ad758004b454acdd31e24beed9003f2",
+  "measured_on": "9f4501cf9e01eaa08fefcf2a3c1191246a3afad2",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "c21908193512230222305fee90e384d97c8dd01b05f34e4580a25bcbdd8d5e2f",
+  "measurement_input_digest": "45ad01288796a481059d1a1e0dfc256baa1d9322dfbeffc989000bec6d0f35fa",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "de337e23bd7705761293292e67c4f4c8ae4aa4ca3d6482538b02a1a524dc647f",
+  "measurement_basis_digest": "d8f5f70ab2c07e7db0e6961b7cd3e9823503e81979f98c80e94ff3e3b0e950da",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -96,7 +96,7 @@
     },
     {
       "path": "services/raster-service/db_persist.py",
-      "sha256": "869cee18493045a15de597ca52fe29fcfc9ddfb15636ac2045bd31d0544a3768"
+      "sha256": "0018d93b1b82cb5f2a1ef5bdfdf125db05cb8aff857f48c32884e7077cf41443"
     },
     {
       "path": "services/raster-service/follow_up_store.py",
@@ -108,7 +108,7 @@
     },
     {
       "path": "services/sahool-platform/api/imagery_automation.py",
-      "sha256": "44a4680e6fda47b41de15a71855a804771c4a6203168b81b5f4a12059a6c6252"
+      "sha256": "c07b306afb1fdc663dc05760248a0788046817f312041fa4069dda2207aa74c8"
     },
     {
       "path": "services/sahool-platform/api/irrigation_reservation_adapter.py",

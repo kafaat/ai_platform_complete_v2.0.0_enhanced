@@ -1,3 +1,5 @@
+import { acquisitionUtcDay } from '../../lib/dates';
+
 /**
  * سجلّ خطّ زمنيّ واحد لكلّ يوم — المصغّرة ووقت الالتقاط والمنتَج من السجلّ نفسه.
  *
@@ -17,8 +19,8 @@ export interface TimelineDayRecord {
 export function timelineRecordByDay<R extends TimelineDayRecord>(items: readonly R[]): Map<string, R> {
   const byDay = new Map<string, R>();
   for (const item of items) {
-    if (!item?.date) continue;
-    const day = String(item.date).slice(0, 10);
+    const day = acquisitionUtcDay(item?.date);
+    if (!day) continue;
     const prev = byDay.get(day);
     if (!prev || (!prev.thumbnail_url && item.thumbnail_url)) byDay.set(day, item);
   }

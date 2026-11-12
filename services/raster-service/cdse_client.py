@@ -1,7 +1,7 @@
 """cdse_client.py — تكامل Copernicus Data Space Ecosystem (CDSE) عبر Sentinel Hub Process API.
 
 يسترجع العميل بيانات Sentinel-2 L2A من CDSE عبر OAuth. تُحسب معظم المؤشرات عند المزوّد.
-يُحسب NDRE وNDMI وmoisture محلياً بعد تجميع الانعكاسات على شبكة تناسب نطاق العشرين متراً.
+تُحسب مؤشرات النطاقات المختلطة محلياً بعد تجميع الانعكاسات على شبكة تناسب نطاق العشرين متراً.
 
 **التدرّج (fallback):** المنسّق (``api/imagery_automation.py``) يجرّب CDSE أوّلاً ثمّ يسقط تلقائيّاً
 إلى Element84 Earth Search عند تعذّر CDSE (غير مُهيّأ / انقطاع / فشل). فلا توقّف ولا تلفيق.
@@ -23,7 +23,7 @@ import os
 import threading
 import time
 
-from cdse_native_product import NativeProduct
+from cdse_native_product import MAX_RESPONSE_BYTES, NativeProduct, index_value_function
 
 logger = logging.getLogger("sahool.cdse")
 
@@ -429,6 +429,9 @@ def is_configured() -> bool:
 # مطابقةً لمسار Element84 (main.py ~1641): 3 ظلّ غيمة · 8 غيمة متوسّطة · 9 عالية ·
 # 10 سيرس · 11 ثلج. أيّ بكسل في هذه الأصناف ⇒ NaN (مستبعَد من الإحصاء).
 SCL_CLOUD_CLASSES: tuple[int, ...] = (3, 8, 9, 10, 11)
+# Only these native classes are eligible in measured_pixels and block-mean products.
+# Emit the same predicate in the ordinary scalar and RGBA scripts.
+_USABLE_SAMPLE_JS = "s.dataMask === 1 && [2, 4, 5, 6, 7].indexOf(s.SCL) !== -1"
 
 
 def build_evalscript(index: str) -> str:
@@ -447,18 +450,16 @@ def build_evalscript(index: str) -> str:
     bands, expr = INDEX_EXPR[index]
     # نطلب نطاق "SCL" إلى جانب نطاقات المؤشّر + dataMask كي نقنّع الغيوم per-pixel.
     band_list = ", ".join(f'"{b}"' for b in (*bands, "SCL"))
-    cloud_set = ", ".join(str(c) for c in SCL_CLOUD_CLASSES)
     return (
         "//VERSION=3\n"
         "function setup() {\n"
         f'  return {{ input: [{{ bands: [{band_list}, "dataMask"] }}],\n'
         '           output: { bands: 1, sampleType: "FLOAT32" } };\n'
         "}\n"
-        f"const SCL_CLOUD = [{cloud_set}];\n"
+        f"{index_value_function(index, bands, expr)}"
         "function evaluatePixel(s) {\n"
-        f"  let v = {expr};\n"
-        "  let isCloud = SCL_CLOUD.indexOf(s.SCL) !== -1;\n"
-        "  return [(s.dataMask === 1 && !isCloud) ? v : NaN];\n"
+        "  let v = indexValue(s);\n"
+        f"  return [({_USABLE_SAMPLE_JS} && Number.isFinite(v)) ? v : NaN];\n"
         "}\n"
     )
 
@@ -472,19 +473,16 @@ def build_truecolor_evalscript() -> str:
     SCL في مسار المؤشّرات (اتّساق: لا نعرض غيوماً كأنّها حقل). نقيّ قابل للاختبار (بلا
     شبكة). يُخرِج 4 نطاقات UINT8 (RGBA) بخلاف مسار المؤشّر أحاديّ النطاق FLOAT32."""
     gain = _env_float("CDSE_TRUECOLOR_GAIN", 3.5, minimum=0.1)
-    cloud_set = ", ".join(str(c) for c in SCL_CLOUD_CLASSES)
     return (
         "//VERSION=3\n"
         "function setup() {\n"
         '  return { input: [{ bands: ["B04", "B03", "B02", "SCL", "dataMask"] }],\n'
         '           output: { bands: 4, sampleType: "UINT8" } };\n'
         "}\n"
-        f"const SCL_CLOUD = [{cloud_set}];\n"
         f"const G = {gain:.6f};\n"
         "function clamp255(v) { return Math.max(0, Math.min(255, Math.round(v * 255.0 * G))); }\n"
         "function evaluatePixel(s) {\n"
-        "  let isCloud = SCL_CLOUD.indexOf(s.SCL) !== -1;\n"
-        "  if (s.dataMask !== 1 || isCloud) { return [0, 0, 0, 0]; }\n"
+        f"  if (!({_USABLE_SAMPLE_JS})) {{ return [0, 0, 0, 0]; }}\n"
         "  return [clamp255(s.B04), clamp255(s.B03), clamp255(s.B02), 255];\n"
         "}\n"
     )
@@ -502,18 +500,25 @@ def bbox_dims(bbox: list[float], target_res_m: float = 10.0, max_px: int = 2500)
 
 
 _BAND_RESOLUTION_M = {"B02": 10, "B03": 10, "B04": 10, "B08": 10, "B05": 20, "B11": 20, "B12": 20}
-_AGGREGATED_INDICES = {"ndre", "ndmi", "moisture"}
+# Mixed native resolutions require a common support before nonlinear arithmetic.
+_AGGREGATED_INDICES = {
+    name
+    for name, (bands, _) in INDEX_EXPR.items()
+    if len({_BAND_RESOLUTION_M[b] for b in bands}) > 1
+}
 
 
 def spatial_sampling(index: str) -> dict:
     bands = ("B04", "B03", "B02") if is_truecolor(index) else INDEX_EXPR[index][0]
+    method = "nearest_provider_samples"
+    if index in _AGGREGATED_INDICES:
+        suffix = (
+            "normalized_difference" if index in {"ndre", "ndmi", "moisture", "nbr"} else "index"
+        )
+        method += "_then_block_mean_reflectance_before_" + suffix
     return {
         "native_band_resolution_m": {band: _BAND_RESOLUTION_M[band] for band in bands},
-        "resampling_method": (
-            "nearest_provider_samples_then_block_mean_reflectance_before_normalized_difference"
-            if index in _AGGREGATED_INDICES
-            else "nearest_provider_samples"
-        ),
+        "resampling_method": method,
     }
 
 
@@ -521,7 +526,11 @@ def _sampling_grid(index, bbox):
     bands = spatial_sampling(index)["native_band_resolution_m"]
     if index not in _AGGREGATED_INDICES:
         return bbox_dims(bbox, max(bands.values())), (1, 1)
-    target = bbox_dims(bbox, 20, max_px=1250)
+    # The largest four-reflectance return includes three QA planes. Leave
+    # room for the TIFF and TAR headers under the decoder's 128 MiB ceiling.
+    wire_bands = len(bands) + 3
+    max_working_px = min(2500, math.isqrt((MAX_RESPONSE_BYTES - 1024**2) // (4 * wire_bands)))
+    target = bbox_dims(bbox, 20, max_px=max_working_px // 2)
     fine = bbox_dims(bbox, 10)
     factors = tuple(
         2 if available >= 2 * cells else 1 for cells, available in zip(target, fine, strict=True)
@@ -797,7 +806,7 @@ class CdseClient:
 
                     _, factors = _sampling_grid(index, bbox)
                     return cdse_reflectance.finish(
-                        resp.content, INDEX_EXPR[index][0], payload, factors, with_native_qa
+                        resp.content, index, INDEX_EXPR[index][0], payload, factors, with_native_qa
                     )
                 if with_native_qa:
                     return cdse_native_product.decode_response(

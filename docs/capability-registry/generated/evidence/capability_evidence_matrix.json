@@ -5837,7 +5837,7 @@
         "runtime": false,
         "runtime_instrumentation": false,
         "unit_tests": true,
-        "web": false
+        "web": true
       },
       "evidence_records": [
         {
@@ -5896,12 +5896,12 @@
           "type": "unit_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -6567,10 +6567,12 @@
         "services/raster-service/test_cdse_date_normalization.py",
         "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_cdse_empty_raster_not_cached.py",
+        "services/raster-service/test_cdse_job_result.py",
         "services/raster-service/test_cdse_native_product.py",
         "services/raster-service/test_cdse_process_rate_limit.py",
         "services/raster-service/test_cdse_reflectance.py",
         "services/raster-service/test_cdse_tilejson_availability.py",
+        "services/raster-service/test_cdse_timeline_pg.py",
         "services/raster-service/test_clip_polygon_stored_geometry.py",
         "services/raster-service/test_cloud_native_catalog.py",
         "services/raster-service/test_element84_vrt_containment_runtime.py",
