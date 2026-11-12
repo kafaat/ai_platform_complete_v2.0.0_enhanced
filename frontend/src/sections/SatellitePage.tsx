@@ -20,6 +20,7 @@ import {
   useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, useRefreshFieldImagery, useFieldImageryTimeline, type GridIndex,
 } from '../hooks/useApi';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
+import GridSamplingDetails from '../components/maphub/GridSamplingDetails';
 import DataFreshnessBadge from '../components/maphub/DataFreshnessBadge';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import NdviUnavailableNotice, { ndviUnavailableFromError } from '../components/fieldview/NdviUnavailableNotice';
@@ -499,9 +500,14 @@ export default function SatellitePage() {
                 : { background:'#3a2e14', borderColor:'#7a5a1a', color:'#f0d68a' }}>
               <MapIcon className="w-3.5 h-3.5" />
               {hasGrid
-                ? `بلاطات حقيقيّة · Sentinel-2 (Element84)${gridResp?.date ? ` · ${gridResp.date}` : ''}`
-                : 'لا توجد بلاطات مؤشّر لهذا الحقل بعد — اضغط «تحليل الآن» أو تحقّق من معالجة الراستر. الخريطة تعرض الأساس والحدود فقط.'}
+                ? `شبكة المؤشّر المحفوظة · ${gridIndex.toUpperCase()}${gridResp?.date ? ` · ${gridResp.date}` : ''}`
+                : 'تعذّر عرض شبكة المؤشّر المحفوظة لهذا الحقل والتاريخ.'}
             </div>
+          )}
+
+          {mode !== 'truecolor' && hasGrid && (
+            <GridSamplingDetails grid={gridResp} fieldId={fieldId} index={gridIndex} date={mapDate}
+              sceneId={timelineByDay.get(mapDate.slice(0, 10))?.scene_id} />
           )}
 
           {/* تحذير عدم تطابق توقيت بيانات الطبقة/المشهد (FieldView) — يقارن تاريخ

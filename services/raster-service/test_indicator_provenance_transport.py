@@ -160,6 +160,7 @@ def test_asset_reader_returns_stored_authority_fields_and_keeps_tenant_scope(mon
         qa_mask_version="historic.mask/3",
         created_at=AVAILABLE,
         data_available_at=AVAILABLE,
+        spatial_sampling='{"output_pixel_size_m": [8, 12]}',
         cloud_mask_applied=True,
     )
 
@@ -181,6 +182,7 @@ def test_asset_reader_returns_stored_authority_fields_and_keeps_tenant_scope(mon
     monkeypatch.setattr(db_persist, "_connect", connect)
     result = asyncio.run(db_persist.fetch_latest_asset("fld_1", "ndvi", tenant_id=TENANT))
     assert result is not None
+    assert result["spatial_sampling"] == {"output_pixel_size_m": [8, 12]}
     for key in (
         "created_at",
         "data_available_at",

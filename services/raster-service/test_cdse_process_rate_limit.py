@@ -26,7 +26,6 @@ class FakeResp:
 
 def _patch_pure_builders(monkeypatch):
     monkeypatch.setattr(cdse_client, "build_evalscript", lambda index: "// evalscript")
-    monkeypatch.setattr(cdse_client, "bbox_dims", lambda bbox: (16, 16))
 
 
 def test_process_index_retries_429_then_succeeds(monkeypatch):

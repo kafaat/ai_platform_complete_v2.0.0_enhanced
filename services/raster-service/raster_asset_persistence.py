@@ -183,6 +183,7 @@ def persist_raster_asset(
                     # remain unattributed; source-format aliases are not proof.
                     "provider": getattr(req, "provider", None),
                     "current_cog_uri": cog_url,
+                    "spatial_sampling": meta.get("spatial_sampling"),
                     # This belongs to the current COG and is replaced atomically
                     # with it on conflict. Row created_at can belong to an older COG.
                     "data_available_at": meta.get("data_available_at"),
@@ -228,7 +229,7 @@ def persist_raster_asset(
                     cog_url=cog_url,
                     cloud_pct=stats.get("cloud_pct"),
                     quality_score=stats.get("quality_score", stats.get("confidence")),
-                    resolution_m=meta.get("resolution_m") or 10.0,
+                    resolution_m=meta.get("resolution_m"),
                     bbox=list(bounds) if bounds else None,
                     bands=req.bands.model_dump() if hasattr(req.bands, "model_dump") else None,
                     metadata={
@@ -236,6 +237,7 @@ def persist_raster_asset(
                         "confidence": stats.get("confidence"),
                         "provider": getattr(req, "provider", None),
                         "current_cog_uri": cog_url,
+                        "spatial_sampling": meta.get("spatial_sampling"),
                         "geometry_revision": getattr(req, "geometry_revision", None),
                     },
                 )
