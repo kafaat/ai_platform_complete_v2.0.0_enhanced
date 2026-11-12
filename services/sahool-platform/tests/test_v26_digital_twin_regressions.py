@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from api.crop_decision_bridge import build_crop_decision_candidate
 from api.crop_twin import TwinDay, crop_twin_state
 from core.field_digital_twin import (
@@ -11,6 +9,7 @@ from core.field_digital_twin import (
     build_field_twin_from_canonical_state,
     simulate_irrigation,
 )
+import pytest
 
 pytestmark = pytest.mark.unit
 
