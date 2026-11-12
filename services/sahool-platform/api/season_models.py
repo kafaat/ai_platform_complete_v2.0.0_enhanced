@@ -10,6 +10,8 @@ main.py (يستخدمه عدّة راوترات، ليس خاصّاً بالمو
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 # أنواع الريّ المقبولة — تطابق IRRIGATION_TYPES في الواجهة.
@@ -25,6 +27,8 @@ class StageItem(BaseModel):
 class SeasonCreateRequest(BaseModel):
     """طلب إنشاء موسم زراعيّ لحقل (محاصيل/صنف/ريّ/تواريخ/مراحل)."""
 
+    # Omit the legacy default from dumps so existing idempotency digests still replay.
+    initial_status: Literal["active", "planned"] = Field(default="active", exclude_if=lambda v: v == "active")
     crops: list[str] = Field(default_factory=list)
     cultivar: str | None = Field(default=None, max_length=100)
     irrigation_type: str | None = None

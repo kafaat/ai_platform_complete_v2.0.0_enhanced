@@ -261,6 +261,8 @@ export default function FieldManagementPage() {
         sowing_date: data.sowing_date || null,
         season_end: data.season_end || null,
         custom_stages: data.custom_stages,
+        initial_status: data.initial_status,
+        notes_ar: data.notes_ar,
       });
       seasonId = (r?.data as { season_id?: string } | undefined)?.season_id ?? null;
     } catch (e: any) {
@@ -271,7 +273,7 @@ export default function FieldManagementPage() {
     setShowSeason(null);
     toastStore.add('success', '🌾 تم إنشاء الموسم', (data.crops || []).join('، '));
     // بعد الإنشاء: اعرض إجراء «تشغيل المحاكاة» على الموسم الجديد (إن عاد المعرّف).
-    if (seasonId) setSimSeason({ seasonId, crops: data.crops || [] });
+    if (seasonId && data.initial_status !== "planned") setSimSeason({ seasonId, crops: data.crops || [] });
   };
 
   const handleDelete = async (id: string) => {

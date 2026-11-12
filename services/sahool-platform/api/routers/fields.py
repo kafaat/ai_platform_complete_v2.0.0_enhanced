@@ -2056,11 +2056,13 @@ async def create_season(
                 # المعاملة — فيكون «إنشاء موسم» انتقالاً نظيفاً للموسم النشط. الفهرس
                 # الفريد الجزئي (uq_seasons_one_active) هو الضمانة النهائيّة للثابت.
                 async with conn.transaction():
-                    closed = await conn.fetch(
-                        "UPDATE seasons SET status = 'closed' "
-                        "WHERE field_id = $1 AND status = 'active' RETURNING season_id",
-                        field_id,
-                    )
+                    closed = []
+                    if req.initial_status == "active":
+                        closed = await conn.fetch(
+                            "UPDATE seasons SET status = 'closed' "
+                            "WHERE field_id = $1 AND status = 'active' RETURNING season_id",
+                            field_id,
+                        )
                     # حدث SEASON_CLOSED لكلّ موسم نشط أُغلق آليّاً (توسيع تغطية الأحداث).
                     for cr in closed:
                         await _emit_domain_event(
@@ -2084,7 +2086,7 @@ async def create_season(
                          target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source,
                          maturity, tillage_type, actual_yield_kg_ha, notes_ar)
                        VALUES ($1, $2::uuid, $3, $4::jsonb, $5, $6, $7,
-                               $8, $9, $10, $11, $12::jsonb, 'active',
+                               $8, $9, $10, $11, $12::jsonb, $21,
                                $13, $14, $15, $16,
                                $17, $18, $19, $20)""",
                         season_id,
@@ -2107,6 +2109,7 @@ async def create_season(
                         req.tillage_type,
                         req.actual_yield_kg_ha,
                         req.notes_ar,
+                        req.initial_status,
                     )
                     # حدث domain ضمن نفس معاملة إنشاء الموسم (نمط outbox).
                     await _emit_domain_event(
@@ -2118,6 +2121,7 @@ async def create_season(
                         {
                             "field_id": field_id,
                             "crops": req.crops,
+                            "status": req.initial_status,
                             "cultivar": req.cultivar,
                             "irrigation_type": req.irrigation_type,
                             "sowing_date": req.sowing_date,
@@ -2156,7 +2160,7 @@ async def create_season(
                     sowing_date=sow.isoformat() if sow else None,
                     season_end=end.isoformat() if end else None,
                     stages=clean_stages,  # نفس ما خُزّن (dicts مُنظَّفة من season_integrity)
-                    status="active",
+                    status=req.initial_status,
                     target_yield_kg_ha=req.target_yield_kg_ha,
                     plant_density=req.plant_density,
                     row_spacing_cm=req.row_spacing_cm,
