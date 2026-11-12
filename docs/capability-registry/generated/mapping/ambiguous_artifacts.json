@@ -3306,6 +3306,29 @@
     ]
   },
   {
+    "path": "services/decision-service/tests/test_tenant_binding_force_rls.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 15,
+        "signals": [
+          "path:rls",
+          "content:rls",
+          "content:row level security"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
     "kind": "tests",
     "candidates": [
