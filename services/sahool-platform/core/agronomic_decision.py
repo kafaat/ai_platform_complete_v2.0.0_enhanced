@@ -89,7 +89,7 @@ class UnifiedDecision:
     """القرار الزراعيّ الموحّد: خطّة عمل مُصالَحة + أثر شفّاف لما حُجِب/صُولِح."""
 
     field_id: str
-    state: str  # ready | blocked
+    state: str  # ready | blocked | insufficient_data (no signals)
     action_plan: list[PlannedAction] = field(default_factory=list)
     halt_reasons: list[str] = field(default_factory=list)
     reconciliations_ar: list[str] = field(default_factory=list)
@@ -120,6 +120,13 @@ def reconcile_decision(field_id: str, signals: list[DomainSignal]) -> UnifiedDec
 
     صدق: لا تلفيق — كلّ مصالحة مُعلَنة في reconciliations_ar، وأيّ halt يحجب بشفافيّة.
     """
+    if not signals:
+        return UnifiedDecision(
+            field_id=field_id,
+            state="insufficient_data",
+            confidence=0.0,
+            rationale_ar="لم تصل إشارات لتقييم الحقل.",
+        )
     halts = [s for s in signals if s.halt]
     if halts:
         return UnifiedDecision(
@@ -153,10 +160,12 @@ def reconcile_decision(field_id: str, signals: list[DomainSignal]) -> UnifiedDec
         )
 
     # ── مصالحة ٢: قيد ميزانيّة الماء (اقتصاد) ──
-    water_budget = None
-    for s in actionable:
-        if s.domain == "economics" and "water_budget_pct" in s.params:
-            water_budget = float(s.params["water_budget_pct"])
+    caps = [
+        float(s.params["water_budget_pct"])
+        for s in actionable
+        if s.domain == "economics" and "water_budget_pct" in s.params
+    ]
+    water_budget = min(caps, default=None)
     water_scale = None
     if water_budget is not None and 0 <= water_budget < 100 and irrigate:
         water_scale = water_budget / 100.0
@@ -171,6 +180,8 @@ def reconcile_decision(field_id: str, signals: list[DomainSignal]) -> UnifiedDec
         params: dict = {}
         for s in sigs:
             params.update(s.params)
+        if action == "reduce_water" and water_budget is not None:
+            params["water_budget_pct"] = water_budget
         rationale = "؛ ".join(s.reason_ar for s in sigs if s.reason_ar) or action
         if action == "irrigate":
             if defer_hours:

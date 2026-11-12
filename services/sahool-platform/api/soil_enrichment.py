@@ -98,3 +98,18 @@ def extract_texture(soil_result) -> str | None:
         if isinstance(val, str) and val.strip():
             return val.strip()
     return None
+
+
+async def latest_lab_texture_row(conn, field_id: str):
+    """أحدث فحص تربة معتمَد بتاريخ جمع (تحت RLS المستأجِر)، أو None.
+
+    النسيج لا عمود مُصنَّف له اليوم (جرد المصادر) — من JSONB. غيابه ⇒ fallback عامّ.
+    """
+    return await conn.fetchrow(
+        "SELECT sampled_on, result, "
+        "EXTRACT(EPOCH FROM (now() - sampled_on)) / 86400.0 AS age_days "
+        "FROM soil_lab_tests "
+        "WHERE field_id = $1 AND status IN ('approved', 'published') "
+        "AND sampled_on IS NOT NULL ORDER BY sampled_on DESC LIMIT 1",
+        field_id,
+    )

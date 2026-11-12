@@ -150,6 +150,94 @@ _REQ = FieldIrrigationRequest(
 )
 
 
+class _SeasonConn(_FakeConn):
+    """The active season names its irrigation method (seasons.irrigation_type)."""
+
+    def __init__(self, method, **kw):
+        super().__init__(depletion_mm=60.0, **kw)
+        self._method = method
+
+    async def fetchrow(self, sql, *a):
+        if "FROM seasons" in sql:
+            return {"season_id": "season_2026", "irrigation_type": self._method}
+        return await super().fetchrow(sql, *a)
+
+
+@pytest.mark.asyncio
+async def test_rainfed_field_reports_water_need_without_a_refill_schedule(monkeypatch):
+    answers = {}
+    for method in ("rainfed", "pivot"):
+        _patch(monkeypatch, _SeasonConn(method), engine=_pm_et0_product())
+        answers[method] = (await field_irrigation_recommendation("fld_1", _REQ, user=object()))[
+            "recommendation"
+        ]
+    assert answers["pivot"]["should_irrigate"] is True
+    assert answers["rainfed"]["should_irrigate"] is None
+    assert answers["rainfed"]["target_refill_mm"] is None
+    assert answers["rainfed"]["trigger_reason"] == "rainfed_water_assessment"
+    assert answers["rainfed"]["net_irrigation_mm"] == answers["pivot"]["net_irrigation_mm"]
+
+
+class _FieldMethodConn(_SeasonConn):
+    """No active-season method; the field row carries the registered one."""
+
+    def __init__(self, season_method, field_method):
+        super().__init__(season_method)
+        self._field_method = field_method
+
+    async def fetchrow(self, sql, *a):
+        if "FROM fields" in sql:
+            return {"irrigation_type": self._field_method}
+        return await super().fetchrow(sql, *a)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "season_method, field_method, expected",
+    [
+        (" Rainfed ", None, "rainfed"),
+        ("RAINFED", "pivot", "rainfed"),
+        (None, "rainfed", "rainfed"),
+        ("", " rainfed", "rainfed"),
+        (None, None, None),
+        ("pivot", "rainfed", "pivot"),
+    ],
+)
+async def test_rainfed_detection_normalises_and_falls_back_to_the_field(
+    monkeypatch, season_method, field_method, expected
+):
+    _patch(monkeypatch, _FieldMethodConn(season_method, field_method), engine=_pm_et0_product())
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["irrigation_type"] == expected
+    rainfed = out["recommendation"]["trigger_reason"] == "rainfed_water_assessment"
+    assert rainfed is (expected == "rainfed")
+
+
+@pytest.mark.asyncio
+async def test_rainfed_field_never_submits_or_specifies_manual_execution(monkeypatch):
+    async def forbidden(*_a, **_kw):
+        raise AssertionError("a rainfed field must not submit an irrigation candidate")
+
+    _patch(monkeypatch, _SeasonConn("rainfed"), engine=_pm_et0_product())
+    monkeypatch.setattr(mod, "_submit_candidate_to_decision", forbidden)
+    out = await field_irrigation_recommendation(
+        "fld_1", _REQ.model_copy(update={"submit_to_decision": True}), user=object()
+    )
+    assert out["approval_state"] == "blocked_rainfed_capability_unverified"
+    assert out.get("decision_id") is None
+
+    monkeypatch.setattr(mod, "has_permission", lambda *_a: True)
+    with pytest.raises(mod.HTTPException) as e:
+        await field_irrigation_recommendation(
+            "fld_1",
+            # Any manual intent: the rainfed refusal comes before the intent is read.
+            FieldIrrigationRequest().model_copy(update={"manual_execution": object()}),
+            user=object(),
+        )
+    assert e.value.status_code == 409
+    assert e.value.detail == "rainfed_supplemental_capability_unverified"
+
+
 @pytest.mark.asyncio
 async def test_ready_produces_candidate(monkeypatch):
     # Dr=60, TAW من الافتراضيّ (~؟) — نتحقّق من البنية لا القيمة الدقيقة.
