@@ -50,6 +50,7 @@ class NativeProduct:
     expected_height: int | None = None
     expected_epsg: int | None = None
     expected_bbox: tuple[float, float, float, float] | None = None
+    source_tiff_sha256: str | None = None
 
 
 def request_digest(payload: dict) -> str:
@@ -236,7 +237,7 @@ def measured_pixels(src, product: NativeProduct, source_path: str):
         "acquisition_datetime": acquired,
         "algorithm_version": f"cdse-evalscript-sha256:{product.evalscript_sha256}",
         "qa_mask_version": MASK_VERSION,
-        "input_checksum": product.tiff_sha256,
+        "input_checksum": product.source_tiff_sha256 or product.tiff_sha256,
         "request_sha256": product.request_sha256,
         "local_processing_version": canonical_processing_version(),
         "native_invalid_scl_pixels": int((present & np.isin(scl, [0, 1])).sum()),

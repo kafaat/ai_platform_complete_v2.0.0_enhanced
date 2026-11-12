@@ -353,7 +353,7 @@ async def insert_raster_registry_entry(
     cog_url: str,
     cloud_pct: float | None,
     quality_score: int | None,
-    resolution_m: float | None = 10.0,
+    resolution_m: float | None = None,
     bbox: list | dict | None = None,
     bands: dict | list | None = None,
     metadata: dict | None = None,
@@ -405,7 +405,7 @@ async def upsert_raster_registry_entry(
     cog_url: str,
     cloud_pct: float | None,
     quality_score: int | None,
-    resolution_m: float | None = 10.0,
+    resolution_m: float | None = None,
     bbox: list | dict | None = None,
     bands: dict | list | None = None,
     metadata: dict | None = None,
@@ -469,7 +469,7 @@ async def upsert_raster_registry_entry(
             cog_url,
             cloud_pct,
             _clamp_score_0_100(quality_score),
-            float(resolution_m) if resolution_m is not None else 10.0,
+            resolution_m,
             bbox_json,
             bands_json,
             meta_json,
@@ -1051,6 +1051,7 @@ async def fetch_latest_asset(
                valid_pixel_ratio, coverage_ratio, index_quality_flags::text AS quality_flags,
                provenance #>> '{stats,confidence}' AS confidence,
                provenance ->> 'data_available_at' AS data_available_at,
+               provenance ->> 'spatial_sampling' AS spatial_sampling,
                provenance #>> '{stats,quality}' AS quality,
                provenance #>> '{stats,cloud_mask_applied}' AS cloud_mask_applied,
                scene_id, geometry_revision, asset_status, processing_job_id,
@@ -1102,6 +1103,7 @@ async def fetch_latest_asset(
         vpr = float(row["valid_pixel_ratio"]) if row["valid_pixel_ratio"] is not None else None
         cov = float(row["coverage_ratio"]) if row["coverage_ratio"] is not None else None
         flags = _parse_quality_flags(row["quality_flags"])
+        spatial_sampling = _jsonish_text(row.get("spatial_sampling"))
         return {
             "cog_url": row["cog_uri"],
             "index": index_name,
@@ -1122,6 +1124,7 @@ async def fetch_latest_asset(
             if str(row["cloud_mask_applied"]).lower() == "true"
             else None,
             "data_available_at": row.get("data_available_at"),
+            "spatial_sampling": spatial_sampling if isinstance(spatial_sampling, dict) else None,
             "created_at": row.get("created_at"),
             "quality": row["quality"],
             "cloud_mask_applied": str(row["cloud_mask_applied"]).lower() == "true"

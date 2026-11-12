@@ -1331,6 +1331,7 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "services/raster-service/test_spatial_sampling_product.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_spatial_geometry_integrity.py",
         "tests_v9/test_geospatial.py",
@@ -1370,7 +1371,7 @@
           "path": "services/raster-service/trial_zonal_outcomes.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -1422,7 +1423,9 @@
         "POST /v1/scenes/quality-score @ services/raster-service/routers/imagery.py:114",
         "POST /v1/stac/mosaicjson @ services/raster-service/routers/stac.py:33"
       ],
-      "ui_consumers": [],
+      "ui_consumers": [
+        "frontend/e2e/satellite-pixel-display.spec.ts"
+      ],
       "mobile_consumers": [
         "mobile/sahool_app/lib/features/satellite/data/satellite_api.dart",
         "mobile/sahool_app/lib/features/satellite/data/satellite_models.dart",
@@ -1446,6 +1449,7 @@
         "services/raster-service/test_cdse_native_product.py",
         "services/raster-service/test_cdse_poly_contract.py",
         "services/raster-service/test_cdse_process_rate_limit.py",
+        "services/raster-service/test_cdse_reflectance.py",
         "services/raster-service/test_cdse_tilejson_availability.py",
         "services/raster-service/test_scene_cloud_unknown_never_clear.py",
         "services/raster-service/test_single_scene_concurrent_pg.py",
@@ -1456,8 +1460,7 @@
         "tests_v9/test_backfill_scene_job_threadpool_v30_3.py",
         "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
-        "tests_v9/test_cdse_catalog_hardening_20260626.py",
-        "tests_v9/test_cdse_cloud_filter_policy.py"
+        "tests_v9/test_cdse_catalog_hardening_20260626.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1491,7 +1494,7 @@
           "path": "services/raster-service/cdse_diagnostics.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=0, mobile=7. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=1, mobile=7. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -1500,7 +1503,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 13
+        "tests": 14
       }
     },
     {
@@ -2072,6 +2075,7 @@
         "services/raster-service/test_band_math_zones.py",
         "services/raster-service/test_batch_single_open_certification.py",
         "services/raster-service/test_batch_single_open_metrics.py",
+        "services/raster-service/test_c1_native_sampling.py",
         "services/raster-service/test_c7_latest_cache_provenance.py",
         "services/raster-service/test_cast_shadow_direction.py",
         "services/raster-service/test_cdse_cause_evidence.py",
@@ -2081,12 +2085,11 @@
         "services/raster-service/test_cdse_native_product.py",
         "services/raster-service/test_cdse_poly_contract.py",
         "services/raster-service/test_cdse_process_rate_limit.py",
+        "services/raster-service/test_cdse_reflectance.py",
         "services/raster-service/test_cdse_tilejson_availability.py",
         "services/raster-service/test_change_detection_grid.py",
         "services/raster-service/test_change_detection_validity.py",
-        "services/raster-service/test_change_direction_policy.py",
-        "services/raster-service/test_clip_grid.py",
-        "services/raster-service/test_clip_polygon_stored_geometry.py"
+        "services/raster-service/test_change_direction_policy.py"
       ],
       "runtime": {
         "metrics": [],
@@ -2130,7 +2133,7 @@
       },
       "evidence_truncated": {
         "apis": 63,
-        "tests": 151
+        "tests": 155
       }
     },
     {

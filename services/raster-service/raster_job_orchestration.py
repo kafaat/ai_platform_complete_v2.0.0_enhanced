@@ -154,7 +154,7 @@ def run_processing(ctx, job_id: str, req):
                 "nodata_pixels": 0,
             }
             bounds = [0.0, 0.0, 0.0, 0.0]
-            res_m = 10.0
+            res_m = None
             job["note"] = "rasterio غير متوفّر — بنية صحيحة بلا حساب بكسلات"
 
         now = datetime.now(UTC).isoformat()
@@ -169,7 +169,8 @@ def run_processing(ctx, job_id: str, req):
             capture_datetime=req.capture_datetime,
             raster_url=req.raster_url,
             source_format=req.source_format.value,
-            crs="EPSG:4326",
+            crs=meta.get("cog_crs"),
+            spatial_sampling=meta.get("spatial_sampling"),
             resolution_m=res_m,
             apply_cloud_mask=req.apply_cloud_mask,
             band_mapping=req.bands.model_dump() if hasattr(req.bands, "model_dump") else None,
@@ -229,6 +230,7 @@ def run_processing(ctx, job_id: str, req):
             "crs": meta.get("cog_crs", "EPSG:4326"),
             "bounds_4326": bounds,
             "resolution_m": res_m,
+            "spatial_sampling": meta.get("spatial_sampling"),
             "cog_url": cog_url,  # (٤) كي يجده tilejson + شبكة المؤشّر
             "acquisition_date": req.capture_datetime,
             # نَسَبُ المشهد على الطبقة نفسِها كما تحمله الطبقةُ المُعاد ترطيبها من القاعدة

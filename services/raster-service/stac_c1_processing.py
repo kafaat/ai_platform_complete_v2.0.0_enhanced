@@ -122,6 +122,10 @@ def process_c1_scene(
         )
     from stac_vrt import build_band_vrt
 
+    # Match the spectral support of each mixed-resolution measurement. The
+    # finer bands are aggregated before the processing core applies the ratio.
+    target_band = {"ndre": "rededge", "ndmi": "swir1", "moisture": "swir1"}.get(index)
+    resolutions = {}
     with TemporaryDirectory(prefix="stac_c1_", dir=out_dir) as directory:
         try:
             path, mapping = build_band_vrt(
@@ -131,6 +135,8 @@ def process_c1_scene(
                 clip_geometry=clip,
                 max_pixels=1_000_000,
                 require_tiff_calibration=True,
+                target_band=target_band,
+                native_band_resolution_m=resolutions,
             )
         except ValueError:
             radiometry_containment.reject_element84_vrt(
@@ -151,4 +157,12 @@ def process_c1_scene(
             provider="element84",
             geometry_revision=geometry_revision,
         )
+        request._spatial_sampling = {
+            "native_band_resolution_m": resolutions,
+            "resampling_method": (
+                "area_average_valid_fine_reflectance_before_ratio; nearest_SCL"
+                if target_band
+                else "nearest"
+            ),
+        }
         run_processing(jid, request)

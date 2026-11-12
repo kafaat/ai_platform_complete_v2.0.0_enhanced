@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7124,
+    "files_scanned": 7134,
     "files_by_kind": {
-      "backend": 1267,
+      "backend": 1268,
       "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2163,
-      "tests": 2379,
-      "web": 516
+      "tests": 2385,
+      "web": 519
     },
-    "unmapped_artifacts": 3389,
+    "unmapped_artifacts": 3395,
     "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3832,
-      "raw": 3292
+      "python_functional": 3837,
+      "raw": 3297
     },
-    "test_dependency_files": 1789,
-    "test_dependency_edges": 4510,
-    "test_dependency_bounded_files": 1040,
+    "test_dependency_files": 1793,
+    "test_dependency_edges": 4526,
+    "test_dependency_bounded_files": 1043,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -16590,6 +16590,15 @@
           ]
         },
         {
+          "path": "services/raster-service/stac_vrt.py",
+          "score": 20,
+          "signals": [
+            "content:sentinel",
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "services/raster-service/raster_field_runtime.py",
           "score": 18,
           "signals": [
@@ -16613,15 +16622,6 @@
           "signals": [
             "content:cdse",
             "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "services/raster-service/stac_vrt.py",
-          "score": 18,
-          "signals": [
-            "content:sentinel",
-            "path:stac",
             "content:stac"
           ]
         },
@@ -16696,6 +16696,14 @@
         },
         {
           "path": "services/raster-service/cdse_native_product.py",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "path": "services/raster-service/cdse_reflectance.py",
           "score": 14,
           "signals": [
             "path:cdse",
@@ -17333,7 +17341,7 @@
           "score": 25
         },
         {
-          "value": "sahool.cdse @ services/raster-service/cdse_client.py:29",
+          "value": "sahool.cdse @ services/raster-service/cdse_client.py:28",
           "score": 24
         },
         {
@@ -17720,6 +17728,14 @@
         },
         {
           "path": "services/raster-service/test_cdse_process_rate_limit.py",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "path": "services/raster-service/test_cdse_reflectance.py",
           "score": 14,
           "signals": [
             "path:cdse",
@@ -18787,13 +18803,13 @@
         "routes": 33
       },
       "evidence_counts": {
-        "backend": 41,
+        "backend": 42,
         "routes": 100,
         "database": 5,
         "events": 43,
         "web": 6,
         "mobile": 0,
-        "tests": 55,
+        "tests": 56,
         "governance": 0,
         "other_evidence": 94
       },
@@ -21568,6 +21584,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_c1_native_sampling.py",
+          "score": 9,
+          "signals": [
+            "content:cloud mask",
+            "content:scl"
+          ]
+        },
+        {
           "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
           "score": 9,
           "signals": [
@@ -21682,7 +21706,7 @@
         "events": 1,
         "web": 0,
         "mobile": 0,
-        "tests": 13,
+        "tests": 14,
         "governance": 0,
         "other_evidence": 8
       },
@@ -22463,6 +22487,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_cog_small_overviews.py",
+          "score": 14,
+          "signals": [
+            "path:cog",
+            "content:cog"
+          ]
+        },
+        {
           "path": "services/raster-service/test_cog_windowed_processing.py",
           "score": 14,
           "signals": [
@@ -23008,7 +23040,7 @@
         "events": 15,
         "web": 2,
         "mobile": 1,
-        "tests": 27,
+        "tests": 28,
         "governance": 0,
         "other_evidence": 44
       },
@@ -25447,7 +25479,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 886
+        "database": 887
       },
       "evidence_counts": {
         "backend": 12,
@@ -30487,6 +30519,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/e2e/satellite-pixel-display.spec.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/e2e/ui-chrome.visual.spec.ts",
       "kind": "tests"
     },
@@ -30723,6 +30759,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/fieldhealth/satelliteArchive.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/fieldhealth/satelliteArchive.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/fieldhealth/timelineByDay.test.ts",
       "kind": "tests"
     },
@@ -30944,6 +30988,14 @@
     },
     {
       "path": "frontend/src/components/maphub/FieldSplitMergeTool.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/GridSamplingDetails.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/GridSamplingDetails.tsx",
       "kind": "web"
     },
     {
@@ -35868,6 +35920,10 @@
     },
     {
       "path": "services/raster-service/test_soil_zones.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/raster-service/test_spatial_sampling_product.py",
       "kind": "tests"
     },
     {
@@ -52256,6 +52312,41 @@
       "unresolved": []
     },
     {
+      "test": "services/raster-service/test_c1_native_sampling.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/raster-service/radiometry_containment.py",
+          "kind": "import",
+          "line": 118
+        },
+        {
+          "source": "services/raster-service/raster_pixel_processing.py",
+          "kind": "import",
+          "line": 7
+        },
+        {
+          "source": "services/raster-service/raster_processing_runtime.py",
+          "kind": "import",
+          "line": 8
+        },
+        {
+          "source": "services/raster-service/stac_c1_processing.py",
+          "kind": "import",
+          "line": 10
+        },
+        {
+          "source": "services/raster-service/test_stac_c1_processing.py",
+          "kind": "import",
+          "line": 13
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/raster-service/test_c7_latest_cache_provenance.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -52494,6 +52585,29 @@
       "unresolved": []
     },
     {
+      "test": "services/raster-service/test_cdse_reflectance.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/cdse_client.py",
+          "kind": "import",
+          "line": 7
+        },
+        {
+          "source": "services/raster-service/cdse_native_product.py",
+          "kind": "import",
+          "line": 8
+        },
+        {
+          "source": "services/raster-service/cdse_reflectance.py",
+          "kind": "import",
+          "line": 125
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/raster-service/test_cdse_tilejson_availability.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -52713,6 +52827,19 @@
           "source": "services/raster-service/cog_writer.py",
           "kind": "import",
           "line": 3
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/raster-service/test_cog_small_overviews.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/cog_writer.py",
+          "kind": "import",
+          "line": 5
         }
       ],
       "unresolved": []
@@ -53214,6 +53341,11 @@
           "source": "services/raster-service/routers/fields.py",
           "kind": "import",
           "line": 13
+        },
+        {
+          "source": "services/raster-service/routers/observability.py",
+          "kind": "import",
+          "line": 105
         }
       ],
       "unresolved": []
@@ -53249,12 +53381,12 @@
         {
           "source": "services/raster-service/raster_api_models.py",
           "kind": "import",
-          "line": 196
+          "line": 198
         },
         {
           "source": "services/raster-service/raster_asset_persistence.py",
           "kind": "import",
-          "line": 197
+          "line": 199
         },
         {
           "source": "services/raster-service/raster_indicator_product.py",
@@ -53264,17 +53396,17 @@
         {
           "source": "services/raster-service/raster_job_orchestration.py",
           "kind": "import",
-          "line": 225
+          "line": 227
         },
         {
           "source": "services/raster-service/routers/__init__.py",
           "kind": "import",
-          "line": 414
+          "line": 416
         },
         {
           "source": "services/raster-service/routers/analysis.py",
           "kind": "import",
-          "line": 414
+          "line": 416
         }
       ],
       "unresolved": []
@@ -54211,6 +54343,11 @@
           "line": 362
         },
         {
+          "source": "services/raster-service/cloud_native_catalog.py",
+          "kind": "import",
+          "line": 488
+        },
+        {
           "source": "services/raster-service/db_persist.py",
           "kind": "import",
           "line": 28
@@ -54411,6 +54548,29 @@
           "source": "services/raster-service/soil_zones.py",
           "kind": "import",
           "line": 14
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/raster-service/test_spatial_sampling_product.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/raster_api_models.py",
+          "kind": "import",
+          "line": 30
+        },
+        {
+          "source": "services/raster-service/raster_provenance.py",
+          "kind": "import",
+          "line": 46
+        },
+        {
+          "source": "services/raster-service/test_raster_pixel_geometry.py",
+          "kind": "import",
+          "line": 9
         }
       ],
       "unresolved": []
@@ -54722,6 +54882,16 @@
           "source": "services/raster-service/main.py",
           "kind": "import",
           "line": 19
+        },
+        {
+          "source": "services/raster-service/tile_cache_io.py",
+          "kind": "import",
+          "line": 483
+        },
+        {
+          "source": "services/raster-service/tile_cache_maint.py",
+          "kind": "import",
+          "line": 484
         },
         {
           "source": "services/raster-service/tile_render.py",
@@ -56719,7 +56889,7 @@
         {
           "source": "services/sahool-platform/api/routers/fields.py",
           "kind": "source_read",
-          "line": 200
+          "line": 202
         },
         {
           "source": "services/sahool-platform/api/routers/gis_cloud_native.py",
@@ -56729,12 +56899,12 @@
         {
           "source": "services/sahool-platform/api/routers/gis_cloud_native.py",
           "kind": "source_read",
-          "line": 179
+          "line": 181
         },
         {
           "source": "services/sahool-platform/api/spatial_sync.py",
           "kind": "source_read",
-          "line": 180
+          "line": 182
         }
       ],
       "unresolved": []
