@@ -38,11 +38,13 @@ fi
 # digest, but pgdg's postgis-3 is not, and a newer postgis built against a later 16.x/15.x minor
 # failed to load on the older pinned server (2026-11-12: `postgis-3.so: undefined symbol:
 # heap_datum_check` in Integration Tests and Live PG Proofs). One snapshot keeps them matched.
+# Acquire::Retries covers a pgdg mirror caught mid-sync ("File has unexpected size ... Mirror
+# sync in progress?"), which failed the a3ef00c push run before the ABI mismatch was reached.
 if ! docker build --pull=false --tag "$image_tag" - <<DOCKERFILE
 FROM $build_base
 USER root
-RUN timeout -k 10 240 apt-get update \
-    && DEBIAN_FRONTEND=noninteractive timeout -k 10 240 apt-get install --yes --no-install-recommends \
+RUN timeout -k 10 240 apt-get -o Acquire::Retries=3 update \
+    && DEBIAN_FRONTEND=noninteractive timeout -k 10 240 apt-get -o Acquire::Retries=3 install --yes --no-install-recommends \
         postgresql-$pg_major \
         postgresql-$pg_major-postgis-3 \
         postgresql-$pg_major-postgis-3-scripts \
