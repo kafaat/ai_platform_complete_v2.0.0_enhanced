@@ -109,6 +109,7 @@ from api.main import (
     _latest_soil_moisture,
     _load_recommendation_policy,
     _parse_date,
+    _parse_iso_utc,
     _reverse_geocode,
     _row_to_activity,
     _row_to_soil_test,
@@ -3828,6 +3829,11 @@ async def create_pin(
     مصدر الحقيقة؛ الإدامة best-effort — لو تعذّرت القاعدة يبقى الدبّوس صالحاً ويُعلَن
     ``persisted=false`` (لا اختراع نجاح، يبقى المسار offline-first سليماً). idempotent
     عبر ``ON CONFLICT (pin_id) DO NOTHING`` (إعادة المزامنة لا تُكرّر).
+
+    S-H2: ``persisted`` كان ``false`` دائماً — ``created_at`` نصّ ISO مُمرَّر لمعامل
+    timestamptz فيرفضه asyncpg عند التنفيذ، والاستثناء يُبتلَع. الآن يُحلَّل إلى datetime
+    (422 لقيمة غير صالحة). وقبل الكتابة: الحقل للمستأجِر (404 وإلّا) والنقطة داخل حدوده
+    (422 وإلّا) — لا دبّوس على حقل غيره أو خارج أرضه.
     """
     try:
         pin = make_pin(
@@ -3855,17 +3861,48 @@ async def create_pin(
     return out
 
 
+# GPS الهاتف دقّته ~٥–١٥ م؛ نقطة على الحدّ أو خارجه بأمتار قليلة تبقى مشاهدةً لهذا الحقل.
+PIN_FIELD_TOLERANCE_M = 25.0
+
+
+async def _assert_pin_inside_field(conn, field_id: str, lat: float, lng: float) -> None:
+    """422 لو وقعت النقطة خارج هندسة الحقل بأكثر من ``PIN_FIELD_TOLERANCE_M`` متراً.
+
+    المسافة جيوديسيّة (geography) على ``fields.geom``. حقلٌ بلا هندسة ⇒ لا يُحكَم (NULL)،
+    فلا يُرفَض دبّوسه — غياب الحدود ليس دليلاً على أنّ النقطة خارجها.
+    """
+    inside = await conn.fetchval(
+        "SELECT CASE WHEN geom IS NULL THEN NULL ELSE ST_DWithin("
+        "geom::geography, ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography, $4) END "
+        "FROM fields WHERE field_id = $1",
+        field_id,
+        lng,
+        lat,
+        PIN_FIELD_TOLERANCE_M,
+    )
+    if inside is False:
+        raise HTTPException(
+            status_code=422,
+            detail=f"نقطة المشاهدة خارج حدود الحقل (بهامش {PIN_FIELD_TOLERANCE_M:g} م)",
+        )
+
+
 async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
     """يُثبّت دبّوس مشاهدة في ``scouting_pins`` تحت سياق المستأجِر (RLS) — best-effort.
 
     يُرجِع ``True`` لو ثُبِّت (أو كان موجوداً مسبقاً idempotent)، و``False`` لو تعذّرت
     القاعدة (لا استثناء يصعد — المسار offline-first يبقى سليماً). SQL بارامتريّ
-    بالكامل (لا حقن). ``created_at`` يُمرَّر كنصّ ISO من النواة ويُحوَّل بـ``::timestamptz``.
+    بالكامل (لا حقن). ``created_at`` يُحلَّل إلى datetime واعٍ قبل الكتابة (asyncpg يرفض
+    النصّ لمعامل timestamptz؛ 422 لقيمة غير صالحة). ملكيّة الحقل (404) وموقع النقطة
+    (422) يُفحَصان على الاتّصال نفسه قبل الإدراج ويصعدان — ليسا عطل قاعدة.
     """
     if api_main._DB_POOL is None:
         return False
+    created_at = _parse_iso_utc(pin.created_at) if pin.created_at else None
     try:
         async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, pin.field_id)
+            await _assert_pin_inside_field(conn, pin.field_id, pin.lat, pin.lng)
             await conn.execute(
                 "INSERT INTO scouting_pins "
                 "(pin_id, tenant_id, field_id, lat, lng, issue_category, severity, "
@@ -3889,9 +3926,11 @@ async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
                 pin.photo_uri,
                 pin.color,
                 pin.created_by,
-                pin.created_at or None,
+                created_at,
             )
         return True
+    except HTTPException:
+        raise
     except Exception:  # noqa: BLE001 — إدامة best-effort: تعذّر القاعدة ⇒ persisted=false
         logging.warning("scouting pin persistence failed for pin %s", pin.pin_id)
         return False

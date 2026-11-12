@@ -859,6 +859,11 @@ async def persist_learning_update(
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            # No conflict target: this table's unique key is ``update_id`` in this service's own
+            # schema (001) but ``(tenant_id, update_id)`` in the shared database, where the
+            # platform's v119 creates the table first and 001's CREATE IF NOT EXISTS is a no-op.
+            # ``ON CONFLICT (update_id)`` matched no index there and failed with 42P10 on every
+            # call; a bare DO NOTHING is idempotent against either key.
             await conn.execute(
                 """
                 INSERT INTO online_learning_updates
@@ -866,7 +871,7 @@ async def persist_learning_update(
                    label_summary, drift_score, action, source_type, source_id, field_id,
                    season_id, recommendation_id, decision_id, evidence_snapshot_id)
                 VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-                ON CONFLICT (update_id) DO NOTHING
+                ON CONFLICT DO NOTHING
                 """,
                 update_id,
                 tenant_id,

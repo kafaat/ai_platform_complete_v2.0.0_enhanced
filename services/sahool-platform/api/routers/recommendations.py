@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime
 
 from core.api_adapter import ApiRequest, handle_recommendation_request
 from core.outcome_reconciler import (
@@ -101,13 +102,38 @@ def _record_canonical_context(enriched: dict, canonical_context: dict) -> None:
         input_snapshot["canonical_agronomic_context"] = canonical_context
 
 
+def _issued_at(value) -> datetime | None:
+    """The engine's ``timestamp`` as an aware ``datetime`` for the timestamptz column.
+
+    S-H2: the ISO string was passed straight to ``$11::timestamptz``; asyncpg rejects a ``str``
+    for a timestamptz parameter at execute time, the best-effort ``except`` swallowed it, and
+    every recommendation answered 200 with nothing stored. The engine stamps
+    ``datetime.now().isoformat()`` (naive, local clock), so a naive value is read as local time.
+    An unparseable stamp is stored as NULL (the column is nullable) rather than dropping the row.
+    """
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            logger.warning("recommendation timestamp is not ISO-8601: %r", value)
+            return None
+    return parsed if parsed.tzinfo is not None else parsed.astimezone()
+
+
 async def _persist_recommendation_on_connection(
     conn, user: UserSchema, req: RecommendationRequest, enriched: dict
-) -> None:
-    """Persist one recommendation and its outbox event on an existing connection."""
+) -> bool:
+    """Persist one recommendation and its outbox event on an existing connection.
+
+    Returns whether a row was written (``False`` only when there is no ``rec_id``).
+    """
     rec_id = enriched.get("rec_id")
     if not rec_id:
-        return
+        return False
     await conn.execute(
         """INSERT INTO recommendations
             (rec_id, tenant_id, farm_id, field_id, crop, delivered,
@@ -124,7 +150,7 @@ async def _persist_recommendation_on_connection(
         _jsonb(enriched.get("base_recommendation")),
         _jsonb(enriched.get("cross_reference")),
         _jsonb(enriched.get("provenance")),
-        enriched.get("timestamp") or None,
+        _issued_at(enriched.get("timestamp")),
     )
     await _emit_domain_event(
         conn,
@@ -138,27 +164,37 @@ async def _persist_recommendation_on_connection(
             "crop": getattr(req, "crop", None),
         },
     )
+    return True
 
 
 async def _persist_recommendation(
     user: UserSchema, req: RecommendationRequest, enriched: dict, *, conn=None
-) -> None:
+) -> bool:
     """Store the recommendation and outbox event, reusing ``conn`` when supplied.
 
     The optional connection lets callers bind persisted Source-of-Truth reads and
     the recommendation write to one tenant-scoped transaction/snapshot. Failures
-    remain best-effort and do not break the already-computed HTTP response.
+    remain best-effort and do not break the already-computed HTTP response, but they
+    are no longer silent: the return value says whether the row was written, and the
+    endpoints report it as ``persisted`` so a 200 never implies a stored record.
     """
     if not enriched.get("rec_id"):
-        return
+        return False
     try:
         if conn is not None:
-            await _persist_recommendation_on_connection(conn, user, req, enriched)
-            return
+            # A savepoint keeps a failed INSERT from aborting the caller's transaction.
+            async with conn.transaction():
+                return await _persist_recommendation_on_connection(conn, user, req, enriched)
         async with tenant_connection(user) as owned_conn:
-            await _persist_recommendation_on_connection(owned_conn, user, req, enriched)
+            return await _persist_recommendation_on_connection(owned_conn, user, req, enriched)
     except Exception:  # noqa: BLE001 — تدقيق أفضل-جهد لا يكسر المسار الحرج
         logger.warning("recommendation persist/audit failed (best-effort)", exc_info=True)
+        return False
+
+
+def _with_persisted(body, persisted: bool):
+    """Add the truthful ``persisted`` flag to a JSON object body (other bodies pass through)."""
+    return {**body, "persisted": persisted} if isinstance(body, dict) else body
 
 
 async def _run_guarded_runtime_pipeline(user, req, api_req) -> JSONResponse | None:
@@ -241,7 +277,8 @@ async def recommendations(
     """نقطة التوصية الجوهرية — تستخدم api_adapter كاملاً.
 
     C1/C2: بعد الحساب تُخزَّن التوصية + يُصدَر RECOMMENDATION_CREATED (أفضل-جهد، لا يكسر
-    الاستجابة) ⇒ تصبح متتبَّعة/مدقَّقة ويُجلب شرحها بـrec_id. جسم HTTP لم يتغيّر."""
+    الاستجابة) ⇒ تصبح متتبَّعة/مدقَّقة ويُجلب شرحها بـrec_id. S-H2: يحمل الجسم الآن
+    ``persisted`` — صادقاً عمّا كُتِب فعلاً؛ ``delivered: true`` وحده لا يعني صفّاً محفوظاً."""
     # تحقّق tenant isolation
     if req.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="Cross-tenant recommendation request forbidden")
@@ -254,9 +291,10 @@ async def recommendations(
     )
     resp = handle_recommendation_request(api_req)
     enriched = getattr(resp, "enriched", None)
-    if enriched:
-        await _persist_recommendation(user, req, enriched)
-    return JSONResponse(status_code=resp.status_code, content=resp.body)
+    if not enriched:
+        return JSONResponse(status_code=resp.status_code, content=resp.body)
+    persisted = await _persist_recommendation(user, req, enriched)
+    return JSONResponse(status_code=resp.status_code, content=_with_persisted(resp.body, persisted))
 
 
 @router.post("/api/v1/recommendations/for-field")
@@ -356,6 +394,7 @@ async def recommendations_for_field(
 
     resp = handle_recommendation_request(api_req)
     enriched = getattr(resp, "enriched", None)
+    persisted = False
     if enriched:
         # A failed load degrades HONESTLY: the response still carries the context key,
         # carrying an explicit limitation. Omitting the key on failure would make
@@ -389,10 +428,15 @@ async def recommendations_for_field(
                 _record_canonical_context(enriched, canonical_context)
                 # Same connection ⇒ the recommendation row and its outbox event commit
                 # with the snapshot the lineage above was read from.
-                await _persist_recommendation(user, req, enriched, conn=conn)
+                persisted = await _persist_recommendation(user, req, enriched, conn=conn)
         except Exception:  # noqa: BLE001 — best-effort persistence remains non-fatal
             logger.warning("canonical context transaction failed", exc_info=True)
             _record_canonical_context(enriched, canonical_context)
+            # The row was written inside the transaction that just failed: it did not commit.
+            persisted = False
+        return JSONResponse(
+            status_code=resp.status_code, content=_with_persisted(resp.body, persisted)
+        )
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 
 
