@@ -19,12 +19,14 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import Literal
 from uuid import UUID
 
 from core.authorization import has_permission
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import AwareDatetime, BaseModel, Field, field_validator
+from pydantic import AwareDatetime, BaseModel, Field, field_validator, model_validator
 
 from api import main as api_main
 from api.main import (
@@ -251,11 +253,20 @@ class InspectionRevision(BaseModel):
 class InspectionFinding(InspectionRevision):
     action: Literal["submit", "approve", "return"]
     reason: str = Field(min_length=1, max_length=2000)
+    # The inspector may attach the task photo and notes with a submit (v256 evidence version).
+    photo_url: str | None = Field(default=None, max_length=2048)
+    notes: str | None = Field(default=None, max_length=4000)
 
     @field_validator("reason", mode="before")
     @classmethod
     def strip_note(cls, value):
         return value.strip() if isinstance(value, str) else value
+
+    @model_validator(mode="after")
+    def evidence_on_submit_only(self):
+        if self.action != "submit" and (self.photo_url, self.notes) != (None, None):
+            raise ValueError("photo_url and notes are attached by the inspector's submit")
+        return self
 
 
 class Reassignment(InspectionRevision):
@@ -268,10 +279,70 @@ class Reassignment(InspectionRevision):
         return value.strip() if isinstance(value, str) else value
 
 
+def evidence_digest(photo_url, notes) -> str:
+    """The evidence a review is bound to: the task's photo URL and notes, as one digest."""
+    raw = json.dumps([photo_url, notes], ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+async def record_evidence(conn, tenant, field, task, actor, photo_url, notes) -> int:
+    """Append (photo_url, notes) as the task's next evidence version unless it already is the
+    latest one, and return that version. The caller holds the field_tasks row lock (v256)."""
+    digest = evidence_digest(photo_url, notes)
+    latest = await conn.fetchrow(
+        """SELECT version, digest FROM inspection_evidence_versions
+           WHERE tenant_id=$1::uuid AND task_id=$2 ORDER BY version DESC LIMIT 1""",
+        tenant,
+        task,
+    )
+    if latest is not None and latest["digest"] == digest:
+        return latest["version"]
+    version = (latest["version"] if latest else 0) + 1
+    await conn.execute(
+        """INSERT INTO inspection_evidence_versions
+           (tenant_id, field_id, task_id, version, photo_url, notes, digest, recorded_by)
+           VALUES ($1::uuid,$2,$3,$4,$5,$6,$7,$8)""",
+        tenant,
+        field,
+        task,
+        version,
+        photo_url,
+        notes,
+        digest,
+        actor,
+    )
+    return version
+
+
+async def approved_evidence_holds(conn, tenant, task, photo_url, notes) -> bool | None:
+    """None: the last hand-off event is not an approval. Otherwise whether the task's evidence
+    would still be the approved version: the latest one, with the same digest. An approval
+    recorded before v256 names no version and holds only while no version was ever recorded."""
+    last = await conn.fetchrow(
+        """SELECT h.action, h.evidence_version, v.digest,
+                  (SELECT max(version) FROM inspection_evidence_versions
+                    WHERE tenant_id=$1::uuid AND task_id=$2) AS latest
+           FROM inspection_handoffs h
+           LEFT JOIN inspection_evidence_versions v
+                  ON v.task_id=h.task_id AND v.version=h.evidence_version
+           WHERE h.tenant_id=$1::uuid AND h.task_id=$2 ORDER BY h.revision DESC LIMIT 1""",
+        tenant,
+        task,
+    )
+    if last is None or last["action"] != "approve":
+        return None
+    if last["evidence_version"] is None:
+        return last["latest"] is None
+    return last["latest"] == last["evidence_version"] and last["digest"] == evidence_digest(
+        photo_url, notes
+    )
+
+
 async def _load(conn, tenant, field, task, *, write):
     lock = "FOR UPDATE" if write else "FOR SHARE"
     row = await conn.fetchrow(
-        f"""SELECT assigned_to, status, created_at, inspection_due_at, inspection_assigned_by
+        f"""SELECT assigned_to, status, created_at, inspection_due_at, inspection_assigned_by,
+                   photo_url, notes
             FROM field_tasks WHERE tenant_id=$1::uuid AND field_id=$2 AND task_id=$3
             AND source_scouting_pin_id IS NOT NULL {lock}""",
         tenant,
@@ -281,13 +352,23 @@ async def _load(conn, tenant, field, task, *, write):
     if row is None:
         raise HTTPException(404, "لم توجد مهمة تفتيش لهذا الدبوس في الحقل")
     events = await conn.fetch(
-        """SELECT revision, action, previous_assignee, assignee, actor, reason, occurred_at
+        """SELECT revision, action, previous_assignee, assignee, actor, reason, occurred_at,
+                  evidence_version
            FROM inspection_handoffs WHERE tenant_id=$1::uuid AND field_id=$2 AND task_id=$3
            ORDER BY revision""",
         tenant,
         field,
         task,
     )
+    versions = await conn.fetch(
+        """SELECT version, photo_url, notes, digest, recorded_by, recorded_at
+           FROM inspection_evidence_versions WHERE tenant_id=$1::uuid AND field_id=$2
+           AND task_id=$3 ORDER BY version""",
+        tenant,
+        field,
+        task,
+    )
+    row = dict(row) | {"evidence": [dict(v) for v in versions]}
     return row, [dict(event) for event in events]
 
 
@@ -299,11 +380,28 @@ def _view(row, events, user):
         and last["assignee"] == row["assigned_to"]
     )
     open_task = row["status"] in ("pending", "in_progress")
+    history = row["evidence"]
+    current = history[-1] if history else None
+    if current is not None and current["digest"] != evidence_digest(row["photo_url"], row["notes"]):
+        current = None  # changed outside a recorded version: nothing reviewable matches it
+    approval = next((e for e in reversed(events) if e["action"] == "approve"), None)
+    approved = next(
+        (v for v in history if approval and v["version"] == approval["evidence_version"]), None
+    )
+    same = bool(approved and current and current["version"] == approved["version"])
+    unreviewed = approved is not None and not same
     return {
         "review_state": last["action"] if last else "assigned",
+        # Every recorded version stays readable; the approved one is never overwritten.
+        "evidence": history,
+        "approved_evidence": approved,
+        "current_evidence": current
+        or {"version": None, "photo_url": row["photo_url"], "notes": row["notes"]},
+        "evidence_approved": bool(last and last["action"] == "approve" and same),
+        "evidence_pending_review": unreviewed or bool(last and last["action"] == "submit"),
         "can_submit": open_task
         and accepted
-        and last["action"] in ("accept", "return")
+        and last["action"] in ("accept", "return", "approve")
         and row["assigned_to"] == str(user.user_id)
         and has_permission(user, Permission.OBSERVATION_RECORD),
         "can_review": open_task
@@ -452,10 +550,16 @@ async def record_inspection_finding(
         current = _view(row, events, user)
         if req.expected_revision < current["revision"]:
             prior = events[req.expected_revision]
+            seen = next(
+                (v for v in row["evidence"] if v["version"] == prior["evidence_version"]), {}
+            )
             if (prior["action"], prior["actor"], prior["reason"]) == (
                 req.action,
                 actor,
                 req.reason,
+            ) and all(
+                sent is None or seen.get(name) == sent
+                for name, sent in (("photo_url", req.photo_url), ("notes", req.notes))
             ):
                 return current
         if (actor == row["assigned_to"]) != submit:
@@ -465,10 +569,43 @@ async def record_inspection_finding(
             or not current["can_submit" if submit else "can_review"]
         ):
             raise HTTPException(409, "تغيرت حالة الزيارة أو لم تجهز لهذا الإجراء")
+        if submit:
+            photo = row["photo_url"] if req.photo_url is None else req.photo_url
+            notes = row["notes"] if req.notes is None else req.notes
+            if (photo, notes) != (row["photo_url"], row["notes"]):
+                await conn.execute(
+                    """UPDATE field_tasks SET photo_url=$4, notes=$5, updated_at=clock_timestamp()
+                       WHERE tenant_id=$1::uuid AND field_id=$2 AND task_id=$3""",
+                    user.tenant_id,
+                    field_id,
+                    task_id,
+                    photo,
+                    notes,
+                )
+            version = await record_evidence(
+                conn, user.tenant_id, field_id, task_id, actor, photo, notes
+            )
+            approved = current["approved_evidence"]
+            if events[-1]["action"] == "approve" and approved and approved["version"] == version:
+                raise HTTPException(409, "لم تتغير الصورة أو الملاحظات منذ اعتماد النتيجة")
+        else:
+            # The review binds to the version that was submitted, still unchanged.
+            version = events[-1]["evidence_version"]
+            if req.action == "approve" and (
+                version is None or current["current_evidence"]["version"] != version
+            ):
+                raise HTTPException(
+                    409, "تغيرت الصورة أو الملاحظات بعد رفع النتيجة. أعدها للاستكمال"
+                )
+            if version is None:  # a submit recorded before v256: return what is shown now
+                version = await record_evidence(
+                    conn, user.tenant_id, field_id, task_id, actor, row["photo_url"], row["notes"]
+                )
         await conn.execute(
             """INSERT INTO inspection_handoffs
-               (tenant_id,field_id,task_id,revision,action,previous_assignee,assignee,actor,reason)
-               VALUES ($1::uuid,$2,$3,$4,$5,$6,$6,$7,$8)""",
+               (tenant_id,field_id,task_id,revision,action,previous_assignee,assignee,actor,reason,
+                evidence_version)
+               VALUES ($1::uuid,$2,$3,$4,$5,$6,$6,$7,$8,$9)""",
             user.tenant_id,
             field_id,
             task_id,
@@ -477,6 +614,7 @@ async def record_inspection_finding(
             row["assigned_to"],
             actor,
             req.reason,
+            version,
         )
         row, events = await _load(conn, user.tenant_id, field_id, task_id, write=False)
         return _view(row, events, user)

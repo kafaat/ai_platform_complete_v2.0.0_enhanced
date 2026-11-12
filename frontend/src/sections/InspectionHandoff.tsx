@@ -7,10 +7,18 @@ type Event = {
   revision: number; action: 'accept' | 'reassign' | 'submit' | 'return' | 'approve' | 'reopen'; assignee: string; previous_assignee: string;
   actor: string; occurred_at: string; reason: string | null;
 };
+type Evidence = { version: number | null; photo_url: string | null; notes: string | null; recorded_by?: string; recorded_at?: string };
 type History = {
   revision: number; accepted: boolean; review_state?: Event['action'] | 'assigned'; assigned_to: string; initial_assignee: string;
-  assigned_by: string; assigned_at: string; events: Event[]; can_submit: boolean; can_review: boolean; can_accept: boolean; can_reassign: boolean;
+  assigned_by: string; assigned_at: string; events: Event[]; can_submit: boolean;
+  evidence?: Evidence[]; approved_evidence?: Evidence | null; current_evidence?: Evidence; evidence_approved?: boolean; evidence_pending_review?: boolean; can_review: boolean; can_accept: boolean; can_reassign: boolean;
 };
+function EvidenceLine({ label, item }: { label: string; item: Evidence }) {
+  return <p>{label}{item.version != null && ' ' + item.version}
+    {item.photo_url && <> · <a href={item.photo_url} target="_blank" rel="noreferrer">الصورة</a></>}
+    {item.notes && <> · {item.notes}</>}</p>;
+}
+
 type Command = { action: Event['action']; expected_revision: number; assigned_to?: number; reason?: string };
 
 export function InspectionHandoff({fieldId, taskId, tenant}: {fieldId: string; taskId: string; tenant?: string}) {
@@ -50,6 +58,10 @@ export function InspectionHandoff({fieldId, taskId, tenant}: {fieldId: string; t
     {data.review_state === 'submit' && <p>رُفعت النتيجة وبانتظار المراجعة</p>}
     {data.review_state === 'return' && <p>أعيدت الزيارة للاستكمال. راجع تعليق المراجع في السجل.</p>}
     {data.review_state === 'approve' && <p>اعتُمدت النتيجة الفنية</p>}
+    {data.approved_evidence && <EvidenceLine label="النسخة المعتمدة" item={data.approved_evidence} />}
+    {data.current_evidence && data.approved_evidence && data.current_evidence.version !== data.approved_evidence.version
+      && <EvidenceLine label="نسخة بانتظار المراجعة" item={data.current_evidence} />}
+    {data.evidence_pending_review && data.approved_evidence && <p role="status">تغيرت الصورة أو الملاحظات بعد الاعتماد. لا تُغلق الزيارة قبل اعتماد النسخة الجديدة</p>}
     <details><summary>سجل التسليم</summary>
       <p>كلّف {data.assigned_by} المفتش {data.initial_assignee} · {new Date(data.assigned_at).toLocaleString('ar')}</p>
       <ol>{data.events.map(event => <li key={event.revision}>
@@ -59,6 +71,8 @@ export function InspectionHandoff({fieldId, taskId, tenant}: {fieldId: string; t
           : 'أعاد ' + event.actor + ' الإسناد من ' + event.previous_assignee + ' إلى ' + event.assignee + ' · ' + event.reason}
         {' · '}{new Date(event.occurred_at).toLocaleString('ar')}
       </li>)}</ol>
+      {!!data.evidence?.length && <ol aria-label="نسخ الأدلة">{data.evidence.map(item =>
+        <li key={item.version}><EvidenceLine label="النسخة" item={item} /></li>)}</ol>}
     </details>
     {(data.can_submit || data.can_review) && <div>
       <label>{data.can_submit ? 'نتيجة التفتيش والملاحظات' : 'تعليق المراجع'}

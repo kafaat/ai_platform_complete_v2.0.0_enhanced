@@ -58,3 +58,16 @@ it('requires a review comment and submits the displayed revision', async () => {
   await waitFor(() => expect(post).toHaveBeenCalledWith(path+'/finding',
     {action:'approve', reason:'تم التحقق', expected_revision:4}));
 });
+
+it('keeps the approved photo visible and marks a later photo as pending review', async () => {
+  const v1 = {version:1, photo_url:'https://evidence.example/1.jpg', notes:'اصفرار'};
+  const v2 = {version:2, photo_url:'https://evidence.example/2.jpg', notes:'اصفرار'};
+  open({...original, revision:3, accepted:true, can_submit:true, evidence:[v1, v2], approved_evidence:v1, current_evidence:v2,
+    evidence_approved:false, evidence_pending_review:true} as typeof original);
+  const approved = await screen.findByText(/النسخة المعتمدة 1/);
+  expect(approved.querySelector('a')).toHaveAttribute('href', v1.photo_url);
+  const pending = screen.getByText(/نسخة بانتظار المراجعة 2/);
+  expect(pending.querySelector('a')).toHaveAttribute('href', v2.photo_url);
+  expect(screen.getByRole('status')).toHaveTextContent('لا تُغلق الزيارة قبل اعتماد النسخة الجديدة');
+  expect(screen.getByRole('button', {name:'رفع النتيجة للمراجعة'})).toBeInTheDocument();
+});
