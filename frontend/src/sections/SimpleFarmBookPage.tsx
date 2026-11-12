@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BookOpen, Download, Plus } from 'lucide-react';
 import { kongApi } from '../services/api/client';
 
@@ -14,6 +14,15 @@ type Summary = {
 };
 
 const box = 'rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100';
+
+// crypto.randomUUID exists only in secure contexts (HTTPS or localhost); keep a fallback so
+// saving still works on a plain-HTTP origin. The key only has to be unique per operation.
+function newOperationKey(): string {
+  const uuid = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(16).slice(2)}-${Math.random().toString(16).slice(2)}`;
+  return `web-${uuid}`;
+}
 
 export default function SimpleFarmBookPage() {
   const today = new Date().toISOString().slice(0, 10);
@@ -37,8 +46,8 @@ export default function SimpleFarmBookPage() {
     (form.payment_method !== 'credit' || form.party_id) &&
     (form.entry_type !== 'payment' || (form.party_id && form.settles_entry_id))
   );
-  const operationId = useMemo(() => () =>
-    `web-${Date.now()}-${typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Math.random().toString(16).slice(2)}`, []);
+  const pendingOperation = useRef<{ payload: string; key: string } | null>(null);
+
 
   async function refresh() {
     if (!farmId.trim()) return;
@@ -66,8 +75,7 @@ export default function SimpleFarmBookPage() {
     if (!canSave) return;
     setSaving(true); setError('');
     try {
-      await kongApi.post('/api/v1/farm-book/entries', {
-        client_operation_id: operationId(),
+      const payload = {
         farm_id: farmId.trim(),
         ...form,
         amount: Number(form.amount),
@@ -79,7 +87,19 @@ export default function SimpleFarmBookPage() {
         settles_entry_id: form.settles_entry_id || null,
         payment_method: form.entry_type === 'payment' ? 'cash' : form.payment_method,
         category: form.entry_type === 'payment' ? 'debt_payment' : form.category,
+      };
+      const fingerprint = JSON.stringify(payload);
+      const previous = pendingOperation.current;
+      // Same payload ⇒ same operation id, so a retry after a lost reply is replayed, not duplicated.
+      const operation = previous?.payload === fingerprint
+        ? previous
+        : { payload: fingerprint, key: newOperationKey() };
+      pendingOperation.current = operation;
+      await kongApi.post('/api/v1/farm-book/entries', {
+        ...payload, client_operation_id: operation.key,
       });
+      // Clear only the operation this call sent; an edit during the request keeps its own key.
+      if (pendingOperation.current === operation) pendingOperation.current = null;
       setForm(v => ({ ...v, amount: '', description: '', receipt_document_id: '', settles_entry_id: '' }));
       await refresh();
     } catch (e: any) {

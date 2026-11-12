@@ -228,9 +228,9 @@ export const getVerificationStatus = (): Promise<VerificationStatus> =>
 /** يطلب إصدار رمز تحقّق للقناة (بريد/هاتف). محدود المعدّل خادميّاً (429). */
 export const requestVerification = (
   channel: VerifyChannel,
-): Promise<{ message: string; channel: VerifyChannel; expires_in: number }> =>
+): Promise<{ message: string; delivered: boolean; channel: VerifyChannel; expires_in: number }> =>
   authApi
-    .post<{ message: string; channel: VerifyChannel; expires_in: number }>(
+    .post<{ message: string; delivered: boolean; channel: VerifyChannel; expires_in: number }>(
       '/auth/verify/request',
       { channel },
     )

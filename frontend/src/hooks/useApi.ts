@@ -3039,7 +3039,9 @@ export function useSetValveState(): UseMutationResult<Valve, Error, { valveId: s
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation<Valve, Error, { valveId: string; status: ValveStateIntent }>({
     mutationFn: ({ valveId, status }) => setValveState(valveId, status),
-    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.valves(tid) }); },
+    // Refresh on failure too: a timeout may hide an intent the server did record, and the
+    // operator must see the server's state before deciding to ask again (never auto-retry).
+    onSettled:  () => { qc.invalidateQueries({ queryKey: QK.valves(tid) }); },
   });
 }
 
@@ -3067,7 +3069,7 @@ export function useDeleteSchedule(): UseMutationResult<void, Error, string> {
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation<void, Error, string>({
     mutationFn: (scheduleId) => deleteSchedule(scheduleId),
-    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['irrigation', 'schedules', tid] }); },
+    onSettled:  () => { qc.invalidateQueries({ queryKey: ['irrigation', 'schedules', tid] }); },
   });
 }
 

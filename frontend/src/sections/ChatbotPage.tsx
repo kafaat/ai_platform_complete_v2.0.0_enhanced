@@ -352,11 +352,12 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
         {/* Action bar */}
         {done && msg.id !== 'welcome' && (
           <div className="flex items-center gap-0.5 mt-1 px-1">
-            <button onClick={() => setLiked(v => !v)}
+            <span className="text-[10px] text-slate-500">اختيار محلي مؤقت — لا يُرسل كتقييم</span>
+            <button aria-label="إعجاب محلي" aria-pressed={liked} onClick={() => { setLiked(v => !v); setDis(false); }}
               className={`p-1.5 rounded-lg transition-colors ${liked ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 hover:bg-slate-100'}`}>
               <ThumbsUp className="w-3.5 h-3.5" />
             </button>
-            <button onClick={() => setDis(v => !v)}
+            <button aria-label="عدم إعجاب محلي" aria-pressed={disliked} onClick={() => { setDis(v => !v); setLiked(false); }}
               className={`p-1.5 rounded-lg transition-colors ${disliked ? 'text-red-500 bg-red-50' : 'text-slate-400 hover:bg-slate-100'}`}>
               <ThumbsDown className="w-3.5 h-3.5" />
             </button>

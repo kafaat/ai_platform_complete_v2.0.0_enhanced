@@ -45,3 +45,16 @@ export function clearAccessToken(): void {
     /* تجاهل: بيئة بلا تخزين / خصوصيّة صارمة */
   }
 }
+
+
+/** Session identity, stable across token rotation; never use a token as a storage key. */
+export function getAuthScope(): string | null {
+  const tenant = safeRead(STORAGE_KEYS.tenantId);
+  const token = getAccessToken();
+  try {
+    const user = JSON.parse(safeRead(STORAGE_KEYS.user) || 'null');
+    const identity = user?.id ?? user?.email;
+    return token && tenant && identity !== undefined && identity !== null && String(identity)
+      ? JSON.stringify([tenant, String(identity)]) : null;
+  } catch { return null; }
+}

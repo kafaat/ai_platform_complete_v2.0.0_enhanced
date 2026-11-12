@@ -33,26 +33,33 @@ interface Field {
   area_ha:    number;
   crop:       string;
   soil:       string;
-  ndvi:       number;
+  ndvi:       number | null;
   health:     string;
   stage:      string;
-  gdd:        number;
-  yield_est:  number;
+  gdd:        number | null;
+  yield_est:  number | null;
   lat:        number;
   lon:        number;
   geometry?:  any;
 }
 
-function ndviHealth(n: number): string {
+function ndviHealth(n: number | null): string {
+  if (n == null) return 'unknown';
   return n >= 0.70 ? 'excellent' : n >= 0.50 ? 'good' : n >= 0.30 ? 'fair' : 'poor';
 }
 
 // تطبيع حقل من /fields لشكل العرض. دفاعيّ: الحقول الناقصة من الخادم تُحايَد
-// (تُعرَض «—»/صفر) لا تُفبرَك — لا قيم زراعيّة مخترَعة.
-function mapField(f: Record<string, unknown>): Field {
+// القياسات الغائبة تُعرض «—»، ولا تتحول إلى صفر أو حكم صحة منخفض.
+export function mapField(f: Record<string, unknown>): Field {
   const num = (v: unknown, d = 0) => (typeof v === 'number' ? v : Number(v) || d);
   const str = (v: unknown, d: string) => (v == null || v === '' ? d : String(v));
-  const ndvi = typeof f.ndvi === 'number' ? f.ndvi : num(f.ndvi, 0);
+  const measurement = (v: unknown): number | null => {
+    if (v == null || (typeof v === 'string' && !v.trim())) return null;
+    const n = typeof v === 'number' || typeof v === 'string' ? Number(v) : NaN;
+    return Number.isFinite(n) ? n : null;
+  };
+  const rawNdvi = measurement(f.ndvi);
+  const ndvi = rawNdvi != null && rawNdvi >= -1 && rawNdvi <= 1 ? rawNdvi : null;
   return {
     field_id: str(f.field_id ?? f.id, ''),
     name: str(f.name_ar ?? f.name ?? f.field_name, 'حقل'),
@@ -62,8 +69,8 @@ function mapField(f: Record<string, unknown>): Field {
     ndvi,
     health: str(f.health, ndviHealth(ndvi)),
     stage: str(f.stage ?? f.growth_stage, '—'),
-    gdd: num(f.gdd),
-    yield_est: num(f.yield_est ?? f.yield_t_ha),
+    gdd: measurement(f.gdd),
+    yield_est: measurement(f.yield_est ?? f.yield_t_ha),
     lat: num(f.lat ?? f.centroid_lat),
     lon: num(f.lon ?? f.centroid_lon),
     geometry: f.geometry,
@@ -88,6 +95,7 @@ function healthConfig(h: string) {
     good:     { label:'جيد',   color:'#65a30d', bg:'#1a2e0a' },
     fair:     { label:'مقبول', color:'#ca8a04', bg:'#2a1a00' },
     poor:     { label:'منخفض', color:'#dc2626', bg:'#1a0000' },
+    unknown:  { label:'غير مقيس', color:'#94a3b8', bg:'#1e293b' },
   };
   return table[h] || { label:h, color:'#6b7280', bg:'#1e293b' };
 }
@@ -118,15 +126,15 @@ export default function FieldManagementPage() {
   const [showSatellite, setShowSatellite] = useState<Field|null>(null);
   const [satelliteIdx,  setSatelliteIdx]  = useState('ndvi');
 
-  // بذر الحالة المحلّيّة من البيانات الحيّة مرّة واحدة (CRUD تفاؤليّ بعدها لا يُداس
-  // عند إعادة الجلب). كان يُبذَر من INITIAL مُلفّقة — أُزيلت.
+  // كل ردّ حقول ناجح يحدّث العرض، بما فيه إعادة الجلب بعد التعديل.
+  // تبقى الحالة المحلية لعرض نتائج الإنشاء مباشرةً قبل الاستعلام التالي.
   useEffect(() => {
     const apiFields = (data as { fields?: Record<string, unknown>[] } | undefined)?.fields;
-    if (!seeded && Array.isArray(apiFields)) {
+    if (Array.isArray(apiFields)) {
       setFields(apiFields.map(mapField).filter((f) => f.field_id));
       setSeeded(true);
     }
-  }, [data, seeded]);
+  }, [data]);
 
   const crops = [...new Set(fields.map(f=>f.crop))];
 
@@ -137,7 +145,9 @@ export default function FieldManagementPage() {
   ), [fields, search, filterHealth, filterCrop]);
 
   const totalArea = fields.reduce((s,f)=>s+f.area_ha,0).toFixed(1);
-  const avgNdvi   = (fields.reduce((s,f)=>s+f.ndvi,0)/fields.length).toFixed(3);
+  const measuredNdvi = fields.flatMap(f => f.ndvi == null ? [] : [f.ndvi]);
+  const avgNdvi = measuredNdvi.length
+    ? (measuredNdvi.reduce((sum, n) => sum + n, 0) / measuredNdvi.length).toFixed(3) : '—';
 
   // ── Handlers ──────────────────────────────────────────────────
   const handleSaveField = async (data: any) => {
@@ -205,7 +215,7 @@ export default function FieldManagementPage() {
   };
 
   const handleWizardImportField = async (payload: any): Promise<Record<string, unknown>> => {
-    const r = await kongApi.post('/api/v1/fields/import', payload);
+    const r = await kongApi.post('/api/v1/fields/import', withoutIdempotency(payload), idempotencyConfig(payload));
     const rec = r.data as Record<string, unknown>;
     setFields(p => [...p, mapField(rec)]);
     toastStore.add('success', '✅ تم استيراد الحقل', `${payload.name}`);
@@ -282,10 +292,12 @@ export default function FieldManagementPage() {
     // تعديل حقيقيّ: PATCH /api/v1/fields/{id} (الاسم/المحصول). area_ha مُشتقّة من
     // الهندسة (لا تُحفَظ يدويّاً)؛ refetch يُعيد القيمة الحقيقيّة من الخادم.
     try {
-      await kongApi.patch(`/api/v1/fields/${editField.field_id}`, {
+      const response = await kongApi.patch(`/api/v1/fields/${editField.field_id}`, {
         name: data.name,
         crop: data.crop,
       });
+      const saved = mapField(response.data as Record<string, unknown>);
+      setFields(current => current.map(field => field.field_id === editField.field_id ? saved : field));
     } catch (e) {
       throw new Error(asApiError(e).message ||
         'تعذّر حفظ التعديل — تحقّق من القاعدة/الصلاحيّة.');
@@ -354,18 +366,18 @@ export default function FieldManagementPage() {
         <div className="px-4 pb-2">
           <div className="flex justify-between text-xs mb-1">
             <span className="text-slate-400">NDVI</span>
-            <span style={{ color:sc.color }} className="font-bold">{f.ndvi}</span>
+            <span style={{ color:sc.color }} className="font-bold">{f.ndvi ?? '—'}</span>
           </div>
           <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
             <div className="h-full rounded-full" style={{
-              width:`${f.ndvi*100}%`,
+              width:`${Math.max(0, f.ndvi ?? 0)*100}%`,
               background:'linear-gradient(to right,#dc2626,#f59e0b,#16a34a)'
             }} />
           </div>
         </div>
         {/* Stats */}
         <div className="grid grid-cols-3 gap-1 px-4 pb-3 text-center">
-          {[{l:'GDD',v:f.gdd},{l:'t/ha',v:f.yield_est},{l:'مرحلة',v:f.stage.substring(0,4)}].map((s,i)=>(
+          {[{l:'GDD',v:f.gdd ?? '—'},{l:'t/ha',v:f.yield_est ?? '—'},{l:'مرحلة',v:f.stage.substring(0,4)}].map((s,i)=>(
             <div key={i} className="rounded-sm py-1" style={{ background:'#0f1117' }}>
               <div className="text-xs font-bold text-slate-200">{s.v}</div>
               <div className="text-[10px] text-slate-500">{s.l}</div>
@@ -393,7 +405,7 @@ export default function FieldManagementPage() {
               style={{ borderColor:'#16a34a44', background:'#1e3a1e22' }}>
               <Sprout className="w-3 h-3" /> موسم زراعي
             </button>
-            <button onClick={() => setEditField(f)}
+            <button aria-label={`تعديل ${f.name}`} onClick={() => setEditField(f)}
               className="px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-200 border"
               style={{ borderColor:'#334155' }}>
               <Pencil className="w-3 h-3" />
@@ -466,7 +478,7 @@ export default function FieldManagementPage() {
           className="px-3 py-2 rounded-lg text-sm"
           style={{ background:'#1e293b', border:'1px solid #334155', color:'#e2e8f0' }}>
           <option value="all">كل الحالات</option>
-          {['excellent','good','fair','poor'].map(h=><option key={h} value={h}>{healthConfig(h).label}</option>)}
+          {['excellent','good','fair','poor','unknown'].map(h=><option key={h} value={h}>{healthConfig(h).label}</option>)}
         </select>
         <select value={filterCrop} onChange={e=>setFilterCrop(e.target.value)}
           className="px-3 py-2 rounded-lg text-sm"
@@ -510,13 +522,13 @@ export default function FieldManagementPage() {
                       <td className="px-4 py-3 font-medium text-slate-100">{f.name}</td>
                       <td className="px-4 py-3 text-slate-300">{f.crop}</td>
                       <td className="px-4 py-3 text-slate-300">{f.area_ha} هـ</td>
-                      <td className="px-4 py-3 font-mono" style={{ color:sc.color }}>{f.ndvi}</td>
+                      <td className="px-4 py-3 font-mono" style={{ color:sc.color }}>{f.ndvi ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background:`${sc.color}22`, color:sc.color }}>{sc.label}</span>
                       </td>
                       <td className="px-4 py-3 text-slate-300 text-xs">{f.stage}</td>
-                      <td className="px-4 py-3 text-slate-300 font-mono">{f.gdd}</td>
-                      <td className="px-4 py-3 text-emerald-400 font-semibold">{f.yield_est}</td>
+                      <td className="px-4 py-3 text-slate-300 font-mono">{f.gdd ?? '—'}</td>
+                      <td className="px-4 py-3 text-emerald-400 font-semibold">{f.yield_est ?? '—'}</td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1.5 items-center">
                           <button onClick={()=>setShowDetail(f)} title="تفاصيل الحقل"
@@ -529,7 +541,7 @@ export default function FieldManagementPage() {
                               className="p-1.5 rounded-sm hover:bg-emerald-950 text-slate-400 hover:text-emerald-400 transition-colors">
                               <Sprout className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={()=>setEditField(f)}
+                            <button aria-label={`تعديل ${f.name}`} onClick={()=>setEditField(f)}
                               className="p-1.5 rounded-sm hover:bg-slate-700 text-slate-400 hover:text-slate-200">
                               <Pencil className="w-3.5 h-3.5" />
                             </button>

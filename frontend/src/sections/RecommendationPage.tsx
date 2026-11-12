@@ -93,7 +93,7 @@ function FieldStateBanner({ data }: { data: FieldRecommendationsResult }) {
 }
 
 // ── القسم ١: عمود التوصيات الموحَّد ───────────────────────────
-function UnifiedRecommendations({ fieldId }: { fieldId: string }) {
+export function UnifiedRecommendations({ fieldId }: { fieldId: string }) {
   const q = useFieldRecommendations(fieldId || undefined);
 
   if (!fieldId) {

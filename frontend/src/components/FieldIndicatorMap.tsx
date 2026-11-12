@@ -95,7 +95,7 @@ function measureLayer(layer: L.Layer): Measurement | null {
   // toGeoJSON موجودة على طبقات الأشكال (Path/FeatureGroup) لا على L.Layer الأساس.
   const toGeoJSON = (layer as { toGeoJSON?: () => GeoJSON.Feature }).toGeoJSON;
   let gj: GeoJSON.Feature | null;
-  try { gj = toGeoJSON?.() ?? null; } catch { gj = null; }
+  try { gj = toGeoJSON?.call(layer) ?? null; } catch { gj = null; }
   const type = gj?.geometry?.type;
   if (type === 'Polygon' || type === 'MultiPolygon') {
     return { id, kind: 'polygon', areaM2: areaSqMeters(gj) };

@@ -95,14 +95,14 @@ describe('weather map API — goes through kongApi, never raw fetch', () => {
     expect(mockPost).toHaveBeenCalledTimes(1);
   });
 
-  it("kongApi's request interceptor attaches Bearer + tenant (the header the components used to build)", () => {
+  it("kongApi's request interceptor attaches Bearer + tenant (the header the components used to build)", async () => {
     const future = Math.floor(Date.now() / 1000) + 3600;
     const payload = btoa(JSON.stringify({ sub: 'u', exp: future })).replace(/=+$/, '');
     const token = `h.${payload}.s`;
     sessionStorage.setItem('sahool_access_token', token);
     sessionStorage.setItem('sahool_tenant_id', 't-1');
     expect(requestInterceptors.length).toBeGreaterThan(0);
-    const config = requestInterceptors[0]({ headers: {} }) as { headers: Record<string, string> };
+    const config = await requestInterceptors[0]({ headers: {} }) as { headers: Record<string, string> };
     expect(config.headers.Authorization).toBe(`Bearer ${token}`);
     expect(config.headers['X-Tenant-ID']).toBe('t-1');
   });

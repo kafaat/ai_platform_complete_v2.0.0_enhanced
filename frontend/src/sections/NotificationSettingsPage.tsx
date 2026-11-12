@@ -14,6 +14,7 @@ import {
   Loader2, AlertTriangle, RefreshCw, Wifi, WifiOff, Shield,
 } from 'lucide-react';
 import { wsService, toastStore } from '../services/websocket';
+import { useConnectionStatus } from '../hooks/useConnectionStatus';
 import {
   useNotificationPreferences, useUpdateNotificationPreferences,
 } from '../hooks/useApi';
@@ -127,7 +128,7 @@ export default function NotificationSettingsPage() {
 
   const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT_PREFS);
   const [saved, setSaved] = useState(false);
-  const [wsOk, setWsOk] = useState(wsService.isConnected());
+  const wsOk = useConnectionStatus();
 
   // عند وصول التفضيلات من الخادم — نملأ النموذج (مع تطبيع null → '').
   useEffect(() => {
@@ -148,10 +149,6 @@ export default function NotificationSettingsPage() {
     }
   }, [prefsQuery.data]);
 
-  useEffect(() => {
-    const interval = setInterval(() => setWsOk(wsService.isConnected()), 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   const update = <K extends keyof NotificationPreferences>(key: K, val: NotificationPreferences[K]) =>
     setPrefs(p => ({ ...p, [key]: val }));

@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useState } from 'react';
 import {
-  Settings, Bell, Globe, Shield, Server, Save,
+  Settings, Bell, Globe, Shield, Server,
   Check, Loader2, Eye, EyeOff, RefreshCw,
   Wifi, WifiOff, KeyRound, Lock, Copy, AlertTriangle, CheckCircle2,
   Mail, Phone, BadgeCheck, Users, Trash2, UserPlus, Share2,
@@ -18,12 +18,11 @@ import type { LucideIcon } from 'lucide-react';
 import NotificationSettingsPage from './NotificationSettingsPage';
 import SharingPanel from '../components/sharing/SharingPanel';
 import { useAllServicesHealth, type ServiceHealth } from '../hooks/useApi';
-import { wsService } from '../services/websocket';
+import { useConnectionStatus } from '../hooks/useConnectionStatus';
 import { useAuthStore } from '../hooks/useAuth';
 import { normalizeRole, ROLE_LABEL_AR } from '../lib/permissions';
 import { Card, Button, Pill, TabBar } from '../components/ds/atoms';
 import { T } from '../components/ds/tokens';
-import { loadSettings, saveSettings } from '../lib/appSettings';
 import {
   mfaSetup, mfaActivate, mfaDisable, changePassword, apiErrorMessage,
   getVerificationStatus, requestVerification, confirmVerification,
@@ -50,65 +49,50 @@ const BASE_TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
 // تبويب «الفريق» (الدعوات) لمالك المستأجِر فقط — يدير دعوة الأعضاء بأدوار أدنى.
 const TEAM_TAB: { id: Tab; label: string; icon: LucideIcon } = { id:'team', label:'الفريق', icon:Users };
 
+  // ── غلاف قسم موحّد (DS): عنوان + سطح بطاقة. يُمرَّر للأقسام الفرعيّة كي ترث
+//    الكسوة الجديدة دون إعادة كتابة منطقها (تعديل عرضيّ فقط).
+const Section = ({ title, children }: { title?: string; children: React.ReactNode }) => (
+  <Card pad={0} style={{ overflow: 'hidden' }}>
+    {title && (
+      <div
+        style={{
+          padding: '12px 16px',
+          borderBottom: `1px solid ${T.line}`,
+          background: T.card2,
+          fontSize: 14, fontWeight: 700, color: T.brownSoft,
+        }}
+      >
+        {title}
+      </div>
+    )}
+    <div className="space-y-4" style={{ padding: 16 }}>{children}</div>
+  </Card>
+);
+
+const Row = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
+  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+    <div className="sm:w-44 shrink-0">
+      <div style={{ fontSize: 13, color: T.ink, fontWeight: 600 }}>{label}</div>
+      {hint && <div style={{ fontSize: 11, color: T.faint }}>{hint}</div>}
+    </div>
+    <div className="flex-1">{children}</div>
+  </div>
+);
+
+
 export default function SettingsPage() {
   const [tab,     setTab]    = useState<Tab>('general');
-  const [saved,   setSaved]  = useState(false);
-  const [lang,    setLang]   = useState(() => loadSettings().lang ?? 'ar');
-  const [map,     setMap]    = useState(() => loadSettings().map ?? 'satellite');
-  // المفتاح في الذاكرة فقط (لا localStorage) — تخزينه دائماً يعرّضه لسرقة عبر XSS.
-  const [claude,  setClaude] = useState('');
-  const [showKey, setShowKey] = useState(false);
-
   const { user } = useAuthStore();
   // إدارة الفريق/الدعوات لمالك المستأجِر فقط (owner). الواجهة حارس عرض؛ الإنفاذ
   // الحقيقيّ خادم-جانبيّ (auth يرفض غير owner/admin بـ403).
   const isOwner = normalizeRole(user?.role) === 'owner';
   const TABS = isOwner ? [...BASE_TABS, TEAM_TAB] : BASE_TABS;
   const { data: services, isLoading: svLoading, refetch: refetchSv } = useAllServicesHealth();
-  const wsOk = wsService.isConnected();
-
-  const handleSave = () => {
-    // persist للتفضيلات غير الحسّاسة فقط (لغة/خريطة) — يصمد عبر تحديث الصفحة.
-    // لا نحفظ المفتاح أبداً (سرّ: تخزينه في localStorage مخاطرة XSS).
-    saveSettings({ lang, map });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-  };
-
-  // ── غلاف قسم موحّد (DS): عنوان + سطح بطاقة. يُمرَّر للأقسام الفرعيّة كي ترث
-  //    الكسوة الجديدة دون إعادة كتابة منطقها (تعديل عرضيّ فقط).
-  const Section = ({ title, children }: { title?: string; children: React.ReactNode }) => (
-    <Card pad={0} style={{ overflow: 'hidden' }}>
-      {title && (
-        <div
-          style={{
-            padding: '12px 16px',
-            borderBottom: `1px solid ${T.line}`,
-            background: T.card2,
-            fontSize: 14, fontWeight: 700, color: T.brownSoft,
-          }}
-        >
-          {title}
-        </div>
-      )}
-      <div className="space-y-4" style={{ padding: 16 }}>{children}</div>
-    </Card>
-  );
-
-  const Row = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-      <div className="sm:w-44 shrink-0">
-        <div style={{ fontSize: 13, color: T.ink, fontWeight: 600 }}>{label}</div>
-        {hint && <div style={{ fontSize: 11, color: T.faint }}>{hint}</div>}
-      </div>
-      <div className="flex-1">{children}</div>
-    </div>
-  );
+  const wsOk = useConnectionStatus();
 
   const inputCls = "w-full px-3 py-2 rounded-lg text-sm";
   // قيَم DS فاتحة — تُمرَّر للأقسام الفرعيّة (تحقّق/أمان/فريق) فترث الكسوة.
   const inputSty: React.CSSProperties = { background: T.card, border: `1px solid ${T.line}`, color: T.ink, outline: 'none' };
-  const selSty   = { ...inputSty };
 
   return (
     <div className="space-y-5 max-w-2xl mx-auto" dir="rtl" data-testid="settings-page">
@@ -126,50 +110,12 @@ export default function SettingsPage() {
 
       {/* ── General ──────────────────────────────────────────── */}
       {tab === 'general' && (
-        <div className="space-y-4">
-          <Section title="اللغة والعرض">
-            <Row label="اللغة" hint="واجهة المستخدم">
-              <select value={lang} onChange={e=>setLang(e.target.value)} className={inputCls} style={selSty}>
-                <option value="ar">العربية (RTL)</option>
-                <option value="en">English (LTR)</option>
-              </select>
-            </Row>
-            <Row label="مزود الخريطة">
-              <select value={map} onChange={e=>setMap(e.target.value)} className={inputCls} style={selSty}>
-                <option value="satellite">Esri World Imagery (قمر صناعي)</option>
-                <option value="osm">OpenStreetMap</option>
-                <option value="cartodb">CartoDB Light</option>
-                <option value="eox">EOX Sentinel-2</option>
-              </select>
-            </Row>
-          </Section>
-
-          <Section title="Claude API (المستشار الذكي)">
-            <Row label="مفتاح API" hint="sk-ant-...">
-              <div className="relative">
-                <input type={showKey?'text':'password'} value={claude}
-                  onChange={e=>setClaude(e.target.value)}
-                  placeholder="sk-ant-api03-..."
-                  className={inputCls+' pl-10'} style={inputSty} />
-                <button onClick={()=>setShowKey(!showKey)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2"
-                  style={{ color: T.muted }}>
-                  {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </Row>
-            <p style={{ fontSize: 11, color: T.faint }}>
-              احصل على مفتاح من <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" style={{ color: T.green }} className="hover:underline">console.anthropic.com</a>
-              {' '}· لا يُخزَّن (يبقى في الذاكرة للجلسة فقط — حمايةً من XSS؛ المستشار يعمل عبر الخدمة الخلفيّة).
-            </p>
-          </Section>
-
-          <div className="flex justify-end">
-            <Button full={false} onClick={handleSave} style={{ padding: '10px 20px', background: saved ? T.greenDark : T.green }}>
-              {saved ? <><Check className="w-4 h-4" /> تم الحفظ ✓</> : <><Save className="w-4 h-4" /> حفظ</>}
-            </Button>
-          </div>
-        </div>
+        <Section title="اللغة والعرض">
+          <p style={{ color: T.ink }}>واجهة المستخدم الحالية بالعربية. تغيير المظهر متاح من زر السمة في شريط الصفحة.</p>
+          <p style={{ color: T.muted }}>اختر خريطة الأساس من مركز الخرائط؛ تحفظ إعدادات مساحة العمل هناك.</p>
+          <a href="/" className="inline-flex rounded-lg px-4 py-2" style={{ background: T.green, color: 'white' }}>فتح مركز الخرائط</a>
+          <p style={{ color: T.muted }}>المستشار الذكي يستخدم إعداد الخدمة الخلفية؛ لا يحتاج إدخال مفتاح API في هذه الشاشة.</p>
+        </Section>
       )}
 
       {/* ── Notifications ─────────────────────────────────────── */}
@@ -702,7 +648,12 @@ function AccountVerification({ Section, Row, inputCls, inputSty }: {
   const handleRequest = async (channel: VerifyChannel) => {
     setBusy(true); setErr(''); setSentMsg('');
     try {
-      await requestVerification(channel);
+      const result = await requestVerification(channel);
+      if (result.delivered !== true) {
+        setActiveChannel(null);
+        setErr(result.message || 'تعذّر تسليم رمز التحقق. حاول لاحقًا.');
+        return;
+      }
       setActiveChannel(channel);
       setCode('');
       setSentMsg(channel === 'email'

@@ -25,6 +25,7 @@ export function FieldBoundaryProposalPanel({
   if (!proposals.length) return null;
   return (
     <div className="rounded-2xl border border-emerald-100 bg-white/95 p-3 shadow-xs" data-testid="field-boundary-proposal-panel">
+      {(!onAccept || !onEdit || !onReject) && <p role="status" className="mb-2 text-xs text-amber-700">بعض الإجراءات غير متاحة في هذا العرض؛ لم يُحفظ المقترح أو يُعتمد.</p>}
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
           <div className="text-sm font-semibold text-slate-800">حدود حقل مقترحة</div>
@@ -43,13 +44,13 @@ export function FieldBoundaryProposalPanel({
               {p.method && <span className="text-slate-400">{p.method}</span>}
             </div>
             <div className="mt-2 flex gap-1">
-              <button type="button" data-testid="field-boundary-accept" onClick={() => onAccept?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
+              <button disabled={!onAccept} title={!onAccept ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="field-boundary-accept" onClick={() => onAccept?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
                 <CheckCircle2 className="h-3 w-3" /> قبول الحدود
               </button>
-              <button type="button" data-testid="field-boundary-edit" onClick={() => onEdit?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-white px-2 py-1 text-xs text-sky-700 hover:bg-sky-50">
+              <button disabled={!onEdit} title={!onEdit ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="field-boundary-edit" onClick={() => onEdit?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-white px-2 py-1 text-xs text-sky-700 hover:bg-sky-50">
                 <Edit3 className="h-3 w-3" /> تعديل
               </button>
-              <button type="button" data-testid="field-boundary-reject" onClick={() => onReject?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
+              <button disabled={!onReject} title={!onReject ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="field-boundary-reject" onClick={() => onReject?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
                 <XCircle className="h-3 w-3" /> رفض
               </button>
             </div>
