@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7140,
+    "files_scanned": 7141,
     "files_by_kind": {
       "backend": 1268,
       "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2163,
-      "tests": 2391,
+      "tests": 2392,
       "web": 519
     },
     "unmapped_artifacts": 3396,
     "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3843,
+      "python_functional": 3844,
       "raw": 3297
     },
-    "test_dependency_files": 1798,
-    "test_dependency_edges": 4543,
-    "test_dependency_bounded_files": 1046,
+    "test_dependency_files": 1799,
+    "test_dependency_edges": 4547,
+    "test_dependency_bounded_files": 1047,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -6375,27 +6375,27 @@
           "score": 10
         },
         {
-          "value": "/api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:166",
+          "value": "/api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:168",
           "score": 9
         },
         {
-          "value": "/api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:201",
+          "value": "/api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:203",
           "score": 9
         },
         {
-          "value": "/api/v1/agro/decision-playbook @ services/sahool-platform/api/routers/agro_intelligence.py:226",
+          "value": "/api/v1/agro/decision-playbook @ services/sahool-platform/api/routers/agro_intelligence.py:228",
           "score": 9
         },
         {
-          "value": "/api/v1/agro/plant-soil-feedback @ services/sahool-platform/api/routers/agro_intelligence.py:179",
+          "value": "/api/v1/agro/plant-soil-feedback @ services/sahool-platform/api/routers/agro_intelligence.py:181",
           "score": 9
         },
         {
-          "value": "/api/v1/agro/plant-soil-feedback/trend @ services/sahool-platform/api/routers/agro_intelligence.py:187",
+          "value": "/api/v1/agro/plant-soil-feedback/trend @ services/sahool-platform/api/routers/agro_intelligence.py:189",
           "score": 9
         },
         {
-          "value": "/api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:218",
+          "value": "/api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:220",
           "score": 9
         },
         {
@@ -6423,7 +6423,7 @@
           "score": 9
         },
         {
-          "value": "/api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:351",
+          "value": "/api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:353",
           "score": 9
         }
       ],
@@ -6976,7 +6976,7 @@
           "score": 9
         },
         {
-          "value": "sahool.agro_intelligence @ services/sahool-platform/api/routers/agro_intelligence.py:49",
+          "value": "sahool.agro_intelligence @ services/sahool-platform/api/routers/agro_intelligence.py:51",
           "score": 9
         },
         {
@@ -13722,31 +13722,31 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:166",
+          "value": "/api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:168",
           "score": 12
         },
         {
-          "value": "/api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:201",
+          "value": "/api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:203",
           "score": 12
         },
         {
-          "value": "/api/v1/agro/decision-playbook @ services/sahool-platform/api/routers/agro_intelligence.py:226",
+          "value": "/api/v1/agro/decision-playbook @ services/sahool-platform/api/routers/agro_intelligence.py:228",
           "score": 12
         },
         {
-          "value": "/api/v1/agro/plant-soil-feedback @ services/sahool-platform/api/routers/agro_intelligence.py:179",
+          "value": "/api/v1/agro/plant-soil-feedback @ services/sahool-platform/api/routers/agro_intelligence.py:181",
           "score": 12
         },
         {
-          "value": "/api/v1/agro/plant-soil-feedback/trend @ services/sahool-platform/api/routers/agro_intelligence.py:187",
+          "value": "/api/v1/agro/plant-soil-feedback/trend @ services/sahool-platform/api/routers/agro_intelligence.py:189",
           "score": 12
         },
         {
-          "value": "/api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:218",
+          "value": "/api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:220",
           "score": 12
         },
         {
-          "value": "/api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:351",
+          "value": "/api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:353",
           "score": 12
         }
       ],
@@ -13784,7 +13784,7 @@
       ],
       "events": [
         {
-          "value": "sahool.agro_intelligence @ services/sahool-platform/api/routers/agro_intelligence.py:49",
+          "value": "sahool.agro_intelligence @ services/sahool-platform/api/routers/agro_intelligence.py:51",
           "score": 12
         },
         {
@@ -13828,6 +13828,24 @@
           ]
         },
         {
+          "path": "tests_v9/test_telegram_work_order_delivery.py",
+          "score": 19,
+          "signals": [
+            "path:work order",
+            "content:work order",
+            "content:Work orders"
+          ]
+        },
+        {
+          "path": "tests_v9/test_work_order_from_recommendation_rbac.py",
+          "score": 18,
+          "signals": [
+            "path:work order",
+            "content:work order",
+            "content:Work orders"
+          ]
+        },
+        {
           "path": "tests_v9/test_work_order_persist_emit.py",
           "score": 18,
           "signals": [
@@ -13838,15 +13856,6 @@
         },
         {
           "path": "tests_v9/test_recommendation_work_order_idempotency.py",
-          "score": 17,
-          "signals": [
-            "path:work order",
-            "content:work order",
-            "content:Work orders"
-          ]
-        },
-        {
-          "path": "tests_v9/test_telegram_work_order_delivery.py",
           "score": 17,
           "signals": [
             "path:work order",
@@ -13901,7 +13910,7 @@
         "events": 3,
         "web": 1,
         "mobile": 0,
-        "tests": 6,
+        "tests": 7,
         "governance": 0,
         "other_evidence": 3
       },
@@ -90088,6 +90097,34 @@
           "import": "api.api_models"
         }
       ]
+    },
+    {
+      "test": "tests_v9/test_work_order_from_recommendation_rbac.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 33
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 69
+        },
+        {
+          "source": "services/sahool-platform/api/routers/agro_intelligence.py",
+          "kind": "import",
+          "line": 69
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 70
+        }
+      ],
+      "unresolved": []
     },
     {
       "test": "tests_v9/test_work_order_persist_emit.py",
