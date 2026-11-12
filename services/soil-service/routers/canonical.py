@@ -129,6 +129,7 @@ class EvidenceBatchIn(BaseModel):
     source_id: str = Field(min_length=1, max_length=256)
     properties: dict[str, object]
     observed_at: datetime | None = None
+    observed_at_by_property: dict[str, datetime] = Field(default_factory=dict)
     depth_from_cm: float = Field(default=0, ge=0)
     depth_to_cm: float = Field(default=30, gt=0)
     approved: bool = False
@@ -159,6 +160,7 @@ async def ingest_typed_evidence(
             source_id=payload.source_id,
             properties=payload.properties,
             observed_at=payload.observed_at,
+            observed_at_by_property=payload.observed_at_by_property,
             depth_from_cm=payload.depth_from_cm,
             depth_to_cm=payload.depth_to_cm,
             approved=payload.approved,
@@ -172,8 +174,31 @@ async def ingest_typed_evidence(
         # قيمةٌ ليست قياساً (منطقيّة/غيرُ عدديّة/غيرُ محدودة) ⇒ 422 صريح، لا 500 ولا صفّ.
         raise HTTPException(422, str(exc)) from exc
     created = 0
+    observation_ids = []
     for observation in observations:
-        created += int(await soil_store.persist_observation(main._pool, observation))
+        try:
+            inserted = await soil_store.persist_observation(main._pool, observation)
+        except ValueError as exc:
+            # An invalid or already-replaced supersession target: the row was rolled back.
+            raise HTTPException(409, str(exc)) from exc
+        if inserted:
+            created += 1
+            observation_ids.append(observation.observation_id)
+        else:
+            stored = await soil_store.load_observation_by_key(
+                main._pool, tenant_id, observation.idempotency_key
+            )
+            if stored is None or not soil_store.stored_observation_matches(
+                stored,
+                observation,
+                check_observed_at=(
+                    payload.observed_at is not None
+                    or observation.property in payload.observed_at_by_property
+                )
+                and not soil_store.is_legacy_lab_publication(stored),
+            ):
+                raise HTTPException(409, "conflicting soil evidence under existing key")
+            observation_ids.append(stored["observation_id"])
     snapshot = await soil_store.rebuild_snapshot_locked(
         main._pool, tenant_id=tenant_id, field_id=field_id
     )
@@ -181,7 +206,7 @@ async def ingest_typed_evidence(
         "status": "accepted",
         "created": created,
         "duplicates": len(observations) - created,
-        "observation_ids": [o.observation_id for o in observations],
+        "observation_ids": observation_ids,
         "profile_id": snapshot.profile_id,
         "profile_hash": snapshot.profile_hash,
     }

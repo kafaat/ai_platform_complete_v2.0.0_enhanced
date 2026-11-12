@@ -340,7 +340,10 @@ async def transition_lab_sample(
         is_soil = sample["kind"] == "soil"
         soil = (
             await lab_store.latest_soil_analysis(
-                conn, tenant_id=str(user.tenant_id), field_id=sample["field_id"]
+                conn,
+                tenant_id=str(user.tenant_id),
+                field_id=sample["field_id"],
+                sample_id=sample_id,
             )
             if is_soil
             else None
@@ -384,44 +387,25 @@ async def transition_lab_sample(
             publish_rows = await lab_store.publishable_soil_results(
                 conn, tenant_id=str(user.tenant_id), sample_id=sample_id
             )
-    if publish_payload:
-        try:
-            receipt = await publish_soil_lab_evidence(
-                tenant_id=str(user.tenant_id),
-                field_id=publish_payload[0]["field_id"],
-                sample=publish_payload[0],
-                results=publish_payload[1],
-                result_rows=publish_rows or [],
-                correction_reason=payload.condition_notes,
-            )
-        except Exception as exc:
-            raise HTTPException(502, f"soil evidence publication failed: {exc}") from exc
-        observation_ids = receipt.get("observation_ids", [])
-        result_by_canonical = receipt.get("result_by_canonical", {})
-        canonical_order = [
-            {
-                "ph": "ph",
-                "ec_dsm": "ec",
-                "organic_matter_pct": "organic_matter",
-                "nitrogen_mg_kg": "nitrogen",
-                "phosphorus_mg_kg": "phosphorus",
-                "potassium_mg_kg": "potassium",
-                "cec_cmol_kg": "cec",
-                "calcium_carbonate_pct": "calcium_carbonate",
-                "texture": "texture_class",
-            }.get(k, k)
-            for k in (publish_payload[1] or {}).keys()
-            if k not in {"sample_id", "approved"}
-        ]
-        observation_by_analyte = dict(zip(canonical_order, observation_ids, strict=False))
-        async with tenant_connection(user) as conn:
+        if publish_payload:
+            try:
+                receipt = await publish_soil_lab_evidence(
+                    tenant_id=str(user.tenant_id),
+                    field_id=publish_payload[0]["field_id"],
+                    sample=publish_payload[0],
+                    results=publish_payload[1],
+                    result_rows=publish_rows or [],
+                    correction_reason=payload.condition_notes,
+                )
+            except Exception as exc:
+                raise HTTPException(502, f"soil evidence publication failed: {exc}") from exc
             await lab_store.mark_soil_results_published(
                 conn,
                 tenant_id=str(user.tenant_id),
-                observation_by_analyte=observation_by_analyte,
-                result_by_analyte=result_by_canonical,
+                observation_by_analyte=receipt["observation_by_analyte"],
+                result_by_analyte=receipt["result_by_canonical"],
             )
-        row["soil_evidence_receipt"] = receipt
+            row["soil_evidence_receipt"] = receipt
     return row
 
 

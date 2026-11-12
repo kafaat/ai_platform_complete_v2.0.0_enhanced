@@ -59,7 +59,7 @@ async def list_samples(
 
 async def get_sample(conn, *, tenant_id: str, sample_id: str) -> dict[str, Any] | None:
     row = await conn.fetchrow(
-        "SELECT * FROM lab_samples WHERE tenant_id=$1::uuid AND sample_id=$2",
+        "SELECT * FROM lab_samples WHERE tenant_id=$1::uuid AND sample_id=$2 FOR UPDATE",
         tenant_id,
         sample_id,
     )
@@ -211,23 +211,31 @@ async def approve_soil_results(conn, *, tenant_id: str, sample_id: str, approved
         return 0
 
 
-async def latest_soil_analysis(conn, *, tenant_id: str, field_id: str) -> dict[str, Any] | None:
+async def latest_soil_analysis(
+    conn, *, tenant_id: str, field_id: str, sample_id: str | None = None
+) -> dict[str, Any] | None:
     rows = await conn.fetch(
         """
         SELECT s.sample_id, r.result_id, r.analyte, r.value_json, r.quality_status, r.published_observation_id, r.supersedes_result_id
         FROM lab_samples s JOIN soil_lab_results r ON r.sample_id=s.sample_id AND r.tenant_id=s.tenant_id
         WHERE s.tenant_id=$1::uuid AND s.field_id=$2 AND s.kind='soil'
+          AND ($3::text IS NULL OR s.sample_id=$3)
           AND s.status IN ('approved','published')
           AND r.quality_status='approved'
-        ORDER BY s.created_at DESC, r.observed_at DESC
+        ORDER BY s.created_at DESC, s.sample_id, r.observed_at DESC, r.received_at DESC, r.result_id DESC
         """,
         tenant_id,
         field_id,
+        sample_id,
     )
     if not rows:
         return None
     sid = rows[0]["sample_id"]
-    values = {r["analyte"]: r["value_json"] for r in rows if r["sample_id"] == sid}
+    values = {}
+    for r in rows:
+        if r["sample_id"] == sid and r["analyte"] not in values:
+            raw = r["value_json"]
+            values[r["analyte"]] = json.loads(raw) if isinstance(raw, str) else raw
     values.update({"sample_id": sid, "approved": True})
     return values
 
@@ -279,7 +287,7 @@ async def publishable_soil_results(conn, *, tenant_id: str, sample_id: str) -> l
                   FROM soil_lab_results r
                   LEFT JOIN soil_lab_results prior ON prior.result_id=r.supersedes_result_id
                   WHERE r.tenant_id=$1::uuid AND r.sample_id=$2 AND r.quality_status='approved'
-                  ORDER BY r.analyte, r.received_at DESC""",
+                  ORDER BY r.analyte, r.observed_at DESC, r.received_at DESC, r.result_id DESC""",
         tenant_id,
         sample_id,
     )

@@ -84,13 +84,30 @@ def stored_observation_matches(
     )
 
 
+def is_legacy_lab_publication(row) -> bool:
+    """A lab row the platform published before it sent the lab's own measurement time.
+
+    Those rows carry the publish instant as ``observed_at``; the platform's workflow marks
+    every newer lab publication with ``observed_at_source``. Only for such a legacy row may a
+    replay of the same value under the same key differ in ``observed_at``.
+    """
+    provenance = row.get("provenance") if hasattr(row, "get") else None
+    provenance = json.loads(provenance) if isinstance(provenance, str) else provenance
+    return (
+        row.get("source_type") == "laboratory"
+        and isinstance(provenance, dict)
+        and provenance.get("workflow_status") == "published"
+        and "observed_at_source" not in provenance
+    )
+
+
 async def load_observation_by_key(pool, tenant_id: str, idempotency_key: str):
     """The stored row an idempotency key already names in this tenant, or ``None``."""
     async with tenant_transaction(pool, tenant_id) as conn:
         return await conn.fetchrow(
             """
             SELECT observation_id, idempotency_key, field_id, property, value_json, unit,
-                   depth_from_cm, depth_to_cm, observed_at, source_type, source_id
+                   depth_from_cm, depth_to_cm, observed_at, source_type, source_id, provenance
             FROM soil_observations
             WHERE tenant_id=$1::uuid AND idempotency_key=$2
             """,
@@ -171,7 +188,9 @@ async def persist_observation_in_transaction(conn, observation: SoilObservation)
                 WHERE old.observation_id = $2
                   AND old.tenant_id = $1::uuid AND new.tenant_id = $1::uuid
                   AND old.field_id = new.field_id
-                  AND old.property = new.property
+                  AND (old.property = new.property
+                       OR (old.property, new.property) IN (('electrical_conductivity', 'ec'),
+                                                           ('texture_class', 'texture')))
                   AND old.depth_from_cm = new.depth_from_cm
                   AND old.depth_to_cm = new.depth_to_cm
                 ON CONFLICT (tenant_id, superseded_observation_id) DO NOTHING

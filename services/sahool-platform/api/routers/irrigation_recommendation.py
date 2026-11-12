@@ -393,7 +393,7 @@ async def field_irrigation_recommendation(
     }
     evidence_ids = [f"field-context:{field_id}", f"soil-water-params:{taw_source}"]
     if soil_prov["texture"]["source"] == "lab_measured" and texture_sampled_on is not None:
-        evidence_ids.append(f"soil-lab-texture:{field_id}:{texture_sampled_on}")
+        evidence_ids.append(f"soil-lab-texture:{soil_row['evidence_ref']}")
     if ledger_date is not None:
         evidence_ids.append(f"water-ledger:{field_id}:{ledger_date}")
 
@@ -719,7 +719,8 @@ async def field_irrigation_recommendation(
             proven = (
                 res.get("authoritative") is True
                 and res.get("persisted") is True
-                and bool(decision_id)
+                and decision_id == record_payload["decision_id"]
+                and res.get("tenant_id") == tenant_key
                 and res.get("stage") == CANDIDATE_STAGE
             )
             if proven:
