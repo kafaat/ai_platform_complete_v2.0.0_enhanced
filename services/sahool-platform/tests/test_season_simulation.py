@@ -71,10 +71,13 @@ class TestNormalizeCrop:
 
 
 class TestSimulateBasics:
-    def test_empty_weather_returns_zero_and_flags(self):
+    def test_empty_weather_has_no_fake_yield_or_water(self):
         r = simulate_season(SimContext(crop="wheat", weather=[]))
         assert r.days_simulated == 0
-        assert r.yield_kg_ha == 0.0
+        assert r.yield_kg_ha is None
+        assert r.water_need_mm is None
+        assert r.gdd_total is None
+        assert r.yield_status == "unavailable_no_weather"
         assert r.confidence == 0.0
         assert any("طقس" in w for w in r.warnings_ar)
 
@@ -154,7 +157,7 @@ class TestEstimationAssumptions:
         # الأيّام الناقصة تُستبعَد من احتياج الماء (لا تُلفَّق صفراً مُضلِّلاً) ويُوسَم القيد.
         weather = [DayWeather(t_min_c=14.0, t_max_c=30.0, et0_mm=None) for _ in range(60)]
         r = simulate_season(SimContext(crop="wheat", weather=weather))
-        assert r.water_need_mm == 0.0  # لا تقدير محلّيّ ⇒ لا احتياج مُختلَق
+        assert r.water_need_mm is None  # الغياب لا يساوي احتياج ماء صفريًا
         assert any("ET" in a for a in r.assumptions_ar)
 
     def test_injected_et0_series_yields_positive_water_need(self):
