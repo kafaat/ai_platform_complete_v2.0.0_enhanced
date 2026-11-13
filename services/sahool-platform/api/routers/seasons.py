@@ -166,8 +166,12 @@ async def simulate_season_endpoint(
     """
     import json as _json
 
-    from api.season_simulation import SimContext, simulate_season
-    from api.season_weather_contract import canonical_historical_days, validated_engine_daily_series
+    from api.season_simulation import (
+        SimContext,
+        canonical_historical_days,
+        simulate_season,
+        validated_engine_daily_series,
+    )
     from api.weather_service_client import get_weather_historical
 
     # ١) سياق الموسم من القاعدة (+ تأكيد المستأجِر عبر RLS ⇒ 404 إن غاب).

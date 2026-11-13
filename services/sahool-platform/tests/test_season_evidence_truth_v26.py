@@ -9,10 +9,10 @@ from api.season_simulation import (
     DayWeather,
     SimContext,
     SimWindowError,
+    canonical_historical_days,
     plan_simulation_window,
     simulate_season,
 )
-from api.season_weather_contract import canonical_historical_days
 
 pytestmark = pytest.mark.unit
 

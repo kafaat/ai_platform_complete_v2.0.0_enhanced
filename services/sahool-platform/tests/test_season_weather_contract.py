@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 import pytest
-from api.season_weather_contract import (
+from api.season_simulation import (
     canonical_historical_days,
     validated_engine_daily_series,
 )
