@@ -40,6 +40,7 @@ from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from outcome_reconcile import reconcile_outcomes
 from persistence import (
     SELF_APPROVAL_REASON_PREFIX,
+    LearningUpdateConflict,
     acquire_connection,
     authorize_dispatch,
     build_calibration_dataset,
@@ -1166,13 +1167,17 @@ async def record_learning_update(
     if sor_enabled():
         if status == "rejected_untraceable":
             raise HTTPException(status_code=422, detail="learning update must be traceable")
-        await persist_learning_update(
-            tenant_id=tenant, payload=payload, update_id=update_id, traceability_status=status
-        )
+        try:
+            stored = await persist_learning_update(
+                tenant_id=tenant, payload=payload, update_id=update_id, traceability_status=status
+            )
+        except LearningUpdateConflict:
+            raise HTTPException(status_code=409, detail="learning_update_id_conflict") from None
         return {
             "accepted": True,
             "authoritative": True,
             "persisted": True,
+            "replayed": stored["replayed"],
             "tenant_id": tenant,
             "update_id": update_id,
             "traceability_status": status,

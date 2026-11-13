@@ -294,6 +294,44 @@ def make_pin(
 # ─── الإدامة (RLS، best-effort) — انتقلت من api/routers/fields.py: حدّ حجم الراوتر وحدّ عدد الوحدات ───
 
 
+# GPS الهاتف دقّته ~٥–١٥ م؛ نقطة على الحدّ أو خارجه بأمتار قليلة تبقى مشاهدةً لهذا الحقل.
+PIN_FIELD_TOLERANCE_M = 25.0
+
+
+def _pin_created_at(value: str) -> datetime:
+    """``created_at`` واعٍ بالمنطقة (UTC افتراضاً)؛ 422 لقيمة غير قابلة للتحليل.
+
+    كانت ``fromisoformat`` تُنادى داخل كتلة best-effort، فيُبتلَع ``ValueError`` ويُرجَع
+    ``persisted=false`` بلا سبب — المُدخِل يرى نجاحاً صامتاً لمشاهدة لم تُحفَظ.
+    """
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError) as err:
+        raise HTTPException(422, f"وقت المشاهدة غير صالح: {value!r}") from err
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
+async def _assert_pin_inside_field(conn: Any, field_id: str, lat: float, lng: float) -> None:
+    """422 لو وقعت النقطة خارج هندسة الحقل بأكثر من ``PIN_FIELD_TOLERANCE_M`` متراً.
+
+    المسافة جيوديسيّة (geography) على ``fields.geom``. حقلٌ بلا هندسة ⇒ لا يُحكَم (NULL)،
+    فلا يُرفَض دبّوسه — غياب الحدود ليس دليلاً على أنّ النقطة خارجها.
+    """
+    inside = await conn.fetchval(
+        "SELECT CASE WHEN geom IS NULL THEN NULL ELSE ST_DWithin("
+        "geom::geography, ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography, $4) END "
+        "FROM fields WHERE field_id = $1",
+        field_id,
+        lng,
+        lat,
+        PIN_FIELD_TOLERANCE_M,
+    )
+    if inside is False:
+        raise HTTPException(
+            422, f"نقطة المشاهدة خارج حدود الحقل (بهامش {PIN_FIELD_TOLERANCE_M:g} م)"
+        )
+
+
 async def persist_scouting_pin(
     user: Any, pin: Any, *, pool_ready: bool, connect: Callable[[Any], Any]
 ) -> bool:
@@ -307,6 +345,7 @@ async def persist_scouting_pin(
     """
     if not pool_ready:
         return False
+    created_at = _pin_created_at(pin.created_at)
     try:
         async with connect(user) as conn:
             exists = await conn.fetchval(
@@ -316,6 +355,16 @@ async def persist_scouting_pin(
             )
             if not exists:
                 raise HTTPException(404, "الحقل غير موجود ضمن هذا المستأجر")
+            # The boundary judges a new observation only. A resend of a stored pin is settled
+            # by the idempotent comparison below; judging it against a boundary revised since
+            # it was recorded would turn a faithful resend into a 422.
+            stored = await conn.fetchval(
+                "SELECT 1 FROM scouting_pins WHERE pin_id=$1 AND tenant_id=$2::uuid",
+                pin.pin_id,
+                str(user.tenant_id),
+            )
+            if not stored:
+                await _assert_pin_inside_field(conn, pin.field_id, pin.lat, pin.lng)
             result = await conn.execute(
                 "INSERT INTO scouting_pins "
                 "(pin_id, tenant_id, field_id, lat, lng, issue_category, severity, "
@@ -339,7 +388,7 @@ async def persist_scouting_pin(
                 pin.photo_uri,
                 pin.color,
                 pin.created_by,
-                datetime.fromisoformat(pin.created_at),
+                created_at,
             )
             if result == "INSERT 0 0":
                 previous = await conn.fetchrow(
