@@ -1795,6 +1795,7 @@ jobs:
       - name: Backfill row coverage across two databases (real Postgres)
         working-directory: services/decision-service
         env:
+          PGHOST: localhost
           PGPASSWORD: test_password
           PLATFORM_DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/backfill_source
           DECISION_DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
