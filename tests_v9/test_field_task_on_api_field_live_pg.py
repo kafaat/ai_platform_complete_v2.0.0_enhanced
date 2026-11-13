@@ -2,10 +2,12 @@
 
 field_tasks.field_id used to reference field_boundaries, which no API path inserts into, while
 POST /api/v1/fields writes `fields`. So the first task on a field drawn in the app failed the
-foreign key, and the pin-inspection route answered with an unhandled 500. v261 points the key at
+foreign key (the chain's pin-inspection and task-imagery routes answered with an unhandled 500;
+those routes are held back, and the kept weather task route answered 503). v261 points the key at
 `fields`. This file drives the real routes in order, over HTTP into the platform app, against a
-migrated Postgres through a NOBYPASSRLS role: create a farm (201), a field (201), a pin, then
-the pin's inspection task. The task route declares no status code, so success is its 200.
+migrated Postgres through a NOBYPASSRLS role: create a farm (201), a field (201), then a task
+from the weather operation plan (POST /api/v1/weather/tasks/from-operation-plan). The task
+route declares no status code, so success is its 200 with "created": true.
 
 Only the users row is seeded by the schema owner: accounts are provisioned by the auth service.
 """
@@ -16,7 +18,6 @@ import asyncio
 import os
 import sys
 import uuid
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -41,7 +42,7 @@ async def _probe() -> str:
     except Exception as exc:  # noqa: BLE001 - any failure means "no database here"
         return f"{type(exc).__name__}: {exc}"
     try:
-        for table in ("field_tasks", "fields", "farms", "scouting_pins", "users"):
+        for table in ("field_tasks", "fields", "farms", "users"):
             if await conn.fetchval("SELECT to_regclass($1)", f"public.{table}") is None:
                 return f"schema not migrated ({table} missing)"
     finally:
@@ -58,12 +59,13 @@ def _platform():
         sys.path.insert(0, str(PLATFORM))
     import api.main as main
     from api.routers import fields as fields_router
+    from api.routers import weather as weather_router
 
-    return main, fields_router
+    return main, fields_router, weather_router
 
 
 async def _journey(monkeypatch) -> dict:
-    main, fields_router = _platform()
+    main, fields_router, weather_router = _platform()
     from core.canonical_schemas import UserRole, UserSchema
 
     tenant = str(uuid.uuid4())
@@ -94,8 +96,15 @@ async def _journey(monkeypatch) -> dict:
         return None
 
     monkeypatch.setattr(fields_router, "_kick_imagery_processing", no_imagery)
+
+    # The operation plan is read from the weather service; this file measures the task write,
+    # so the plan is a fixed spraying window instead of a network call.
+    async def fixed_plan(**_kwargs):
+        return {"top_recommendation": {"operation": "spraying"}}
+
+    monkeypatch.setattr(weather_router, "weather_operation_plan", fixed_plan)
     users = {}
-    for name in ("manager", "worker"):
+    for name in ("manager",):
         users[name] = await owner.fetchval(
             "INSERT INTO users (email, password_hash, full_name, role, tenant_id, active)"
             " VALUES ($1, 'x', $2, $2, $3::uuid, true) RETURNING id",
@@ -142,42 +151,23 @@ async def _journey(monkeypatch) -> dict:
             out["in_field_boundaries"] = await owner.fetchval(
                 "SELECT count(*) FROM field_boundaries WHERE field_id = $1", field_id
             )
-            pin_id = f"pin-{uuid.uuid4().hex[:8]}"
-            as_("worker", UserRole.WORKER)
-            pin = await client.post(
-                f"/api/v1/fields/{field_id}/pins",
-                json={
-                    "pin_id": pin_id,
-                    "field_id": field_id,
-                    "lat": 15.302,
-                    "lng": 44.202,
-                    "issue_category": "pest",
-                    "severity": "high",
-                },
-            )
-            out["pin"] = pin.status_code, pin.text[:300]
             as_("manager", UserRole.MANAGER)
             task = await client.post(
-                f"/api/v1/fields/{field_id}/pins/{pin_id}/inspection-task",
-                json={
-                    "assigned_to": users["worker"],
-                    "due_at": (datetime.now(UTC) + timedelta(days=1)).isoformat(),
-                    "priority": 2,
-                },
+                "/api/v1/weather/tasks/from-operation-plan",
+                json={"field_id": field_id, "lat": 15.302, "lon": 44.202, "operation": "spraying"},
             )
             out["task"] = task.status_code, task.text[:300]
             out["stored_task_field"] = await owner.fetchval(
                 "SELECT field_id FROM field_tasks WHERE tenant_id = $1::uuid"
-                " AND source_scouting_pin_id = $2",
+                " AND source_agent IS NOT NULL",
                 tenant,
-                pin_id,
             )
             out["field_id"] = field_id
     finally:
         main.app.dependency_overrides.pop(main.get_current_user, None)
         await pool.close()
         try:
-            for table in ("field_tasks", "scouting_pins", "fields", "farms", "users"):
+            for table in ("field_tasks", "fields", "farms", "users"):
                 await owner.execute(f"DELETE FROM {table} WHERE tenant_id = $1::uuid", tenant)
         finally:
             if role:
@@ -226,6 +216,6 @@ def test_a_task_on_a_field_created_through_the_api_is_stored(monkeypatch):
     assert out["field"][0] == 201, out["field"]
     # The field exists only where the API writes it: the legacy table is not mirrored.
     assert (out["in_fields"], out["in_field_boundaries"]) == (1, 0)
-    assert out["pin"][0] in (200, 201), out["pin"]
     assert out["task"][0] == 200, out["task"]
+    assert '"created":true' in out["task"][1].replace(" ", ""), out["task"]
     assert out["stored_task_field"] == out["field_id"]
