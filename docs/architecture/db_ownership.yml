@@ -2076,4 +2076,5 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: [sahool-platform]
-    source: "migrations/v249_task_cost_trace.sql (trigger record_field_task_cost on field_tasks)"
+    # Written by the trigger record_field_task_cost on field_tasks (v249).
+    source: "migrations/v249_task_cost_trace.sql"
