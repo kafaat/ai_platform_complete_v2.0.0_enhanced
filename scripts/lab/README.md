@@ -57,7 +57,8 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 6. Imagery automation RLS certification (migrated policy, restricted role)
 7. D1 raster invalidation queue RLS certification (migrated v96 policy, restricted role)
 8. MFA end-to-end via the real auth app (restricted role)
-9. soil-service functional H5 + guardrails L5 (restricted role)
+9. Auth admin tenant scope (C-01, real auth app, restricted role)
+10. soil-service functional H5 + guardrails L5 (restricted role)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)

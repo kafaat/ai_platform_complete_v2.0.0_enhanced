@@ -300,7 +300,15 @@ export interface TeamUser {
   tenant_id: string | null;
 }
 
-export type AssignableRole = 'owner' | 'admin' | 'expert' | 'farmer' | 'viewer';
+// C-37: الخادم لا يمنح عبر PATCH /auth/users/{id}/role إلّا الأدوار الأدنى من مالك
+// المستأجِر (main.is_inviteable_role)، ولا يُعدّل/يُعطّل مالكاً/مشرفاً نظيراً (403).
+// فالواجهة لا تعرض غير ما يقبله الخادم، وتُعطِّل أدوات الصفوف المحميّة.
+export const ASSIGNABLE_ROLE_VALUES = ['expert', 'farmer', 'viewer'] as const;
+export type AssignableRole = (typeof ASSIGNABLE_ROLE_VALUES)[number];
+
+/** هل هذا الدور قابل للتعديل/التعطيل من مسار إدارة الفريق؟ owner/admin/مجهول ⇒ false. */
+export const isAssignableRole = (role: string | null | undefined): role is AssignableRole =>
+  (ASSIGNABLE_ROLE_VALUES as readonly string[]).includes(role ?? '');
 
 export const listTeamUsers = (): Promise<TeamUser[]> =>
   authApi.get<TeamUser[]>('/auth/users').then(r => (Array.isArray(r.data) ? r.data : []));

@@ -31,6 +31,7 @@ import {
   type MfaSetupResponse, type VerifyChannel, type VerificationStatus,
   type InviteableRole, type PendingInvitation,
 } from '../services/api';
+import { isAssignableRole } from '../services/api/auth';
 
 type Tab = 'general' | 'notifications' | 'services' | 'security' | 'sharing' | 'team';
 
@@ -479,14 +480,13 @@ function SessionRefreshButton() {
 
 // أعضاء الفريق + تغيير الأدوار — كان PATCH /auth/users/{id}/role بلا أيّ واجهة
 // (الدعوات تحدّد الدور عند الدعوة فقط، وتغيير دور عضو قائم كان API-فقط).
-// الخلفيّة admin-only + step-up MFA اختياريّ: عند 403 «يتطلّب رمز MFA» يظهر
+// الخلفيّة owner/admin داخل مستأجِرهما (C-37) + step-up MFA اختياريّ: عند 403 «يتطلّب رمز MFA» يظهر
 // حقل الرمز ويُعاد الإرسال — لا تخمين ولا إخفاء لرسالة الخادم.
+// لا owner/admin هنا: الخادم يرفض منحهما (403) — C-37.
 const ASSIGNABLE_ROLES: { value: AssignableRole; label: string }[] = [
   { value: 'viewer', label: 'مُشاهِد' },
   { value: 'farmer', label: 'مزارع/عامل' },
   { value: 'expert', label: 'خبير زراعيّ' },
-  { value: 'admin',  label: 'مشرف' },
-  { value: 'owner',  label: 'مالك' },
 ];
 
 function TeamMembersRoles({ Section, inputCls, inputSty }: {
@@ -507,9 +507,9 @@ function TeamMembersRoles({ Section, inputCls, inputSty }: {
     try {
       setUsers(await listTeamUsers());
     } catch (err: unknown) {
-      // 403 = الجلسة ليست admin في الخلفيّة — نُظهرها كما هي (لا إخفاء للقسم:
-      // المشغّل يعرف أنّ القدرة موجودة ويتطلّب دور مشرف).
-      setListError(apiErrorMessage(err, 'تعذّر جلب الأعضاء — يتطلّب دور مشرف (admin)'));
+      // 403 = الجلسة ليست owner/admin في الخلفيّة — نُظهرها كما هي (لا إخفاء للقسم:
+      // المشغّل يعرف أنّ القدرة موجودة وتتطلّب دور مالك أو مشرف).
+      setListError(apiErrorMessage(err, 'تعذّر جلب الأعضاء — يتطلّب دور مالك أو مشرف'));
     } finally {
       setLoading(false);
     }
@@ -578,7 +578,10 @@ function TeamMembersRoles({ Section, inputCls, inputSty }: {
             placeholder="123456" className={inputCls} style={{ ...inputSty, maxWidth: 180, direction: 'ltr' }} />
         </div>
       )}
-      {users.map(u => (
+      {users.map(u => {
+        // مالك/مشرف نظير (أو دور مجهول): الخادم يرفض تعديله وتعطيله (403) — لا أدوات له.
+        const editable = isAssignableRole(u.role);
+        return (
         <div key={u.id} className="flex flex-wrap items-center gap-2 py-2"
           style={{ borderBottom: `1px solid ${T.line}` }}>
           <div className="min-w-0 flex-1">
@@ -588,18 +591,20 @@ function TeamMembersRoles({ Section, inputCls, inputSty }: {
             </div>
             <div className="truncate" style={{ fontSize: 11, color: T.muted, direction: 'ltr', textAlign: 'right' }}>{u.email}</div>
           </div>
-          <select value={pending[u.id] ?? (u.role as AssignableRole)}
+          <select value={editable ? (pending[u.id] ?? u.role) : u.role}
             onChange={e => setPending(p => ({ ...p, [u.id]: e.target.value as AssignableRole }))}
+            disabled={!editable} aria-label={`دور ${u.email}`}
             className={inputCls} style={{ ...inputSty, width: 150 }}>
+            {!editable && <option value={u.role}>دور محمي: {u.role}</option>}
             {ASSIGNABLE_ROLES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
           <button type="button" onClick={() => applyRole(u)}
-            disabled={!pending[u.id] || pending[u.id] === u.role}
+            disabled={!editable || !pending[u.id] || pending[u.id] === u.role}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40"
             style={{ background: T.card2, border: `1px solid ${T.line}`, color: T.brownSoft }}>
             تطبيق
           </button>
-          {u.active && (
+          {u.active && editable && (
             <button type="button" onClick={() => deactivate(u)}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold"
               style={{ background: T.dangerBg, border: `1px solid ${T.danger}`, color: T.danger }}>
@@ -608,7 +613,8 @@ function TeamMembersRoles({ Section, inputCls, inputSty }: {
           )}
           {rowMsg[u.id] && <span style={{ fontSize: 11, color: T.muted }}>{rowMsg[u.id]}</span>}
         </div>
-      ))}
+        );
+      })}
       {users.length === 0 && !loading && !listError && (
         <p className="py-2" style={{ fontSize: 12, color: T.muted }}>لا أعضاء بعد.</p>
       )}

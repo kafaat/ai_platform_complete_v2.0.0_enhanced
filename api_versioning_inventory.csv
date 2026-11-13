@@ -36,7 +36,7 @@ auth,services/auth/routers/email_verify.py,108,GET,/v1/auth/verify/status,verify
 auth,services/auth/routers/invitations.py,45,POST,/v1/auth/invitations,create_invitation,versioned
 auth,services/auth/routers/invitations.py,104,GET,/v1/auth/invitations,list_invitations,versioned
 auth,services/auth/routers/invitations.py,137,POST,/v1/auth/invitations/accept,accept_invitation,versioned
-auth,services/auth/routers/invitations.py,223,DELETE,/v1/auth/invitations/{invitation_id},revoke_invitation,versioned
+auth,services/auth/routers/invitations.py,218,DELETE,/v1/auth/invitations/{invitation_id},revoke_invitation,versioned
 auth,services/auth/routers/mfa.py,48,POST,/v1/auth/mfa/setup,mfa_setup,versioned
 auth,services/auth/routers/mfa.py,104,POST,/v1/auth/mfa/activate,mfa_activate,versioned
 auth,services/auth/routers/mfa.py,179,POST,/v1/auth/mfa/disable,mfa_disable,versioned
@@ -53,10 +53,10 @@ auth,services/auth/routers/session.py,46,POST,/v1/auth/login,login,versioned
 auth,services/auth/routers/session.py,139,POST,/v1/auth/refresh,refresh_token,versioned
 auth,services/auth/routers/session.py,195,POST,/v1/auth/logout,logout,versioned
 auth,services/auth/routers/session.py,240,GET,/v1/auth/me,me,versioned
-auth,services/auth/routers/tenants.py,41,POST,/v1/auth/tenants,provision_tenant,versioned
-auth,services/auth/routers/users.py,45,GET,/v1/auth/users,list_users,versioned
-auth,services/auth/routers/users.py,57,PATCH,/v1/auth/users/{user_id}/role,change_role,versioned
-auth,services/auth/routers/users.py,118,PATCH,/v1/auth/users/{user_id}/deactivate,deactivate_user,versioned
+auth,services/auth/routers/tenants.py,62,POST,/v1/auth/tenants,provision_tenant,versioned
+auth,services/auth/routers/users.py,67,GET,/v1/auth/users,list_users,versioned
+auth,services/auth/routers/users.py,81,PATCH,/v1/auth/users/{user_id}/role,change_role,versioned
+auth,services/auth/routers/users.py,132,PATCH,/v1/auth/users/{user_id}/deactivate,deactivate_user,versioned
 decision-service,services/decision-service/main.py,542,GET,/runtime-identity,runtime_identity,infra
 decision-service,services/decision-service/main.py,548,GET,/healthz,healthz,infra
 decision-service,services/decision-service/main.py,553,GET,/readyz,readyz,infra

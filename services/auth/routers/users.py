@@ -1,9 +1,25 @@
-"""Tenant-scoped team administration. Platform provisioning is a separate capability.
+"""routers/users.py — إدارة مستخدمي **المستأجِر** (owner/admin، محصوران في مستأجِرهما).
 
-Unlike identity lookup during login, team administration must never enumerate or
-modify users outside the actor's tenant. Role changes are intentionally limited to
-non-privileged roles; creating another owner or platform administrator requires a
-separate, reviewed ownership-provisioning workflow.
+مسارات: GET /v1/auth/users · PATCH /v1/auth/users/{user_id}/role ·
+        PATCH /v1/auth/users/{user_id}/deactivate
+
+C-01 (تدقيق المالك، قرار 2026-11-13): ``admin`` مالكُ مستأجِرٍ محصورٌ فيه، و``platform_admin``
+وحده عابرٌ للمستأجرين — وهو غير معروف في هذه الخدمة، فلا مسار هنا عابرٌ للمستأجرين.
+كانت المسارات الثلاثة تقرأ وتكتب أيّ ``user_id`` بلا ``tenant_id`` في ``WHERE``، وRLS لا
+تحرسها لأنّ ``main._acquire`` يضبط ``app.current_role='admin'`` فتفتح ``user_self`` كلّ
+الصفوف. فالحدّ هنا في طبقة التطبيق:
+  • مستأجِر المُنادي من التوكن المُتحقَّق منه وحده (لا من الجسم ولا الاستعلام)، وفي كلّ ``WHERE``.
+  • مستخدمٌ في مستأجِرٍ آخر ⇒ 404 بالجسم نفسه لـ«غير موجود» (لا تسريب وجود).
+  • قاعدة الدعوة نفسها (``main.is_inviteable_role``): لا يُمنَح إلّا دورٌ أدنى من مالك
+    المستأجِر، ولا يُعدَّل/يُعطَّل مالكٌ/مشرفٌ نظير (لا استيلاء أفقيّ داخل المستأجِر).
+
+Team administration hardening (admin authz follow-up):
+  • the signed claims are checked against active DB membership (``_validate_team_actor``),
+    so a stale or deactivated owner/admin token cannot manage the team;
+  • sessions are revoked before the account row changes, and a missing or failing
+    revocation backend leaves the row untouched (503);
+  • the UPDATE itself re-asserts the non-privileged target, so a race returns 409.
+Creating another owner or platform administrator stays a separate, reviewed workflow.
 """
 
 from __future__ import annotations
@@ -16,6 +32,15 @@ from client_address import client_ip
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 router = APIRouter()
+
+_NOT_FOUND = "المستخدم غير موجود"
+
+# C-37 (تدقيق المالك): من يُنشئ الفريق يُديره. التسجيل الذاتيّ يُنشئ ``owner`` والدعوة
+# يوجّهها owner/admin (``main.INVITER_ROLES``)، فكان قصرُ المسارات الثلاثة على ``admin``
+# يترك المالكَ عاجزاً عن إدارة من دعاهم. الحدود نفسها لكليهما: المستأجِر من التوكن وحده،
+# ولا يُمنَح إلّا expert/farmer/viewer، ولا يُعدَّل/يُعطَّل مالكٌ/مشرفٌ نظير.
+# ``platform_admin`` ليس هنا عمداً: لا وصول عابرَ للمستأجرين في خدمة auth.
+_TEAM_MANAGERS: tuple[str, ...] = ("owner", "admin")
 
 
 async def _validate_team_actor(conn, actor: dict) -> str:
@@ -42,7 +67,7 @@ async def _validate_team_actor(conn, actor: dict) -> str:
 
 
 @router.get("/v1/auth/users")
-async def list_users(admin: Annotated[dict, Depends(main.require_role("owner", "admin"))]):
+async def list_users(admin: Annotated[dict, Depends(main.require_role(*_TEAM_MANAGERS))]):
     async with main._acquire() as conn:
         tenant_id = await _validate_team_actor(conn, admin)
         rows = await conn.fetch(
@@ -58,7 +83,7 @@ async def change_role(
     user_id: int,
     role: main.ValidRole,
     request: Request,
-    admin: Annotated[dict, Depends(main.require_role("owner", "admin"))],
+    admin: Annotated[dict, Depends(main.require_role(*_TEAM_MANAGERS))],
     x_mfa_code: Annotated[str | None, Header()] = None,
 ):
     # Team management cannot mint an owner or a platform/admin credential.
@@ -84,8 +109,8 @@ async def change_role(
             tenant_id,
         )
         if not target:
-            raise HTTPException(404, "المستخدم غير موجود ضمن المؤسسة")
-        if target["role"] in ("owner", "admin"):
+            raise HTTPException(404, _NOT_FOUND)
+        if not main.is_inviteable_role(target["role"]):
             raise HTTPException(403, "لا يجوز تغيير مالك أو مشرف من إدارة الفريق")
         # Invalidate first. If Redis fails, no UPDATE is committed; callers can
         # re-authenticate if a subsequent DB operation fails after invalidation.
@@ -118,7 +143,7 @@ async def change_role(
 async def deactivate_user(
     user_id: int,
     request: Request,
-    admin: Annotated[dict, Depends(main.require_role("owner", "admin"))],
+    admin: Annotated[dict, Depends(main.require_role(*_TEAM_MANAGERS))],
     x_mfa_code: Annotated[str | None, Header()] = None,
 ):
     ip = client_ip(request)
@@ -141,8 +166,8 @@ async def deactivate_user(
             tenant_id,
         )
         if not target:
-            raise HTTPException(404, "المستخدم غير موجود ضمن المؤسسة")
-        if target["role"] in ("owner", "admin"):
+            raise HTTPException(404, _NOT_FOUND)
+        if not main.is_inviteable_role(target["role"]):
             raise HTTPException(403, "لا يمكن تعطيل مالك أو مشرف من إدارة الفريق")
         if not target["active"]:
             return {"message": "الحساب معطّل مسبقاً"}

@@ -15,26 +15,26 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7204,
+    "files_scanned": 7209,
     "files_by_kind": {
       "backend": 1272,
       "database": 297,
       "governance": 89,
       "mobile": 415,
       "other": 2166,
-      "tests": 2435,
-      "web": 530
+      "tests": 2439,
+      "web": 531
     },
-    "unmapped_artifacts": 3425,
+    "unmapped_artifacts": 3427,
     "ambiguous_artifacts": 236,
     "files_by_reading": {
-      "python_functional": 3889,
-      "raw": 3315
+      "python_functional": 3893,
+      "raw": 3316
     },
-    "test_dependency_files": 1840,
-    "test_dependency_edges": 4676,
-    "test_dependency_bounded_files": 1074,
-    "test_dependency_unresolved_relations": 468
+    "test_dependency_files": 1844,
+    "test_dependency_edges": 4682,
+    "test_dependency_bounded_files": 1075,
+    "test_dependency_unresolved_relations": 470
   },
   "capabilities": [
     {
@@ -2053,7 +2053,7 @@
           "score": 14
         },
         {
-          "value": "/v1/auth/tenants @ services/auth/routers/tenants.py:40",
+          "value": "/v1/auth/tenants @ services/auth/routers/tenants.py:61",
           "score": 14
         }
       ],
@@ -2396,6 +2396,14 @@
         },
         {
           "path": "services/sahool-platform/tests/test_tenant_config.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "tests_v9/test_auth_admin_tenant_scope_live_pg.py",
           "score": 14,
           "signals": [
             "path:tenant",
@@ -2813,7 +2821,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 41,
+        "tests": 42,
         "governance": 0,
         "other_evidence": 25
       },
@@ -26363,6 +26371,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_auth_cors_mfa_header.py",
+          "score": 14,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa"
+          ]
+        },
+        {
           "path": "tests_v9/test_auth_mfa_enforcement.py",
           "score": 14,
           "signals": [
@@ -26478,7 +26495,7 @@
         "events": 1,
         "web": 3,
         "mobile": 4,
-        "tests": 10,
+        "tests": 11,
         "governance": 0,
         "other_evidence": 8
       },
@@ -27869,6 +27886,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
+          "score": 12,
+          "signals": [
+            "path:fail closed",
+            "content:fail closed"
+          ]
+        },
+        {
           "path": "services/raster-service/test_tile_render_mask_fail_closed_bounded_reads.py",
           "score": 11,
           "signals": [
@@ -27943,7 +27968,7 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 9,
+        "tests": 10,
         "governance": 0,
         "other_evidence": 1
       },
@@ -33030,6 +33055,10 @@
     {
       "path": "frontend/src/sections/SatellitePageRuntimeFix.static.test.ts",
       "kind": "tests"
+    },
+    {
+      "path": "frontend/src/sections/SettingsPage.teamRoles.test.tsx",
+      "kind": "web"
     },
     {
       "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
@@ -41649,6 +41678,10 @@
     },
     {
       "path": "tests_v9/test_auth_signup_owner.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_auth_team_managers_c37.py",
       "kind": "tests"
     },
     {
@@ -71195,6 +71228,28 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_auth_admin_tenant_scope_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "shared_test_helper",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 63
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 72,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
       "test": "tests_v9/test_auth_audit_log_inputs.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -71269,6 +71324,28 @@
       "unresolved": [
         {
           "line": 180,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
+      "test": "tests_v9/test_auth_cors_mfa_header.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "shared_test_helper",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 28
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 41,
           "call": "spec_from_file_location"
         }
       ]
@@ -71481,6 +71558,26 @@
           "source": "tests_v9/auth_route_source.py",
           "kind": "import",
           "line": 25
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_auth_team_managers_c37.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/auth/main.py",
+          "kind": "source_read",
+          "line": 22
+        },
+        {
+          "source": "services/auth/routers/users.py",
+          "kind": "source_read",
+          "line": 21
         }
       ],
       "unresolved": []
@@ -82756,6 +82853,24 @@
           "source": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
           "kind": "source_read",
           "line": 120
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 40
+        },
+        {
+          "source": "services/sahool-platform/core/jwt_denylist.py",
+          "kind": "import",
+          "line": 97
         }
       ],
       "unresolved": []
