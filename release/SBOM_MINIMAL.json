@@ -5855,7 +5855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40ba0104050213f39cb7b4d8c88bb21a65f0d1d90472b88b013da0beb52f1af9"
+          "content": "6bb2472120ee6861fdb54337df8b7cdcdd08f770b8bca2f5f5cebbee2259a6ce"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -7415,7 +7415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5fd6ee6e182540b6af2d9de55e453ebe0704a87024beadb2e460cba147cd00cb"
+          "content": "a1cf50bd8c56d7557a602ad6e17ca2579913f21fc21260daac84e9708a967016"
         }
       ],
       "name": "frontend/src/services/api/reports.ts",
@@ -26915,7 +26915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "16e9f25f005bb5268ed388c18ac4410f5938fe8dbf82526530f5c69352250103"
+          "content": "76c40c4c404c6545b1c9f45e1eeac7d1f34dd763ed2463b85d1ebb9ab5539db9"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -27245,7 +27245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f584cd0c5c5b7741b588e3e0fa72fd0647c745567fb7cf423d179a9febbed709"
+          "content": "d449fb6af53f93d43eb32d7b63cb0a38a5cace01f80c6c75e6112a8cb779c323"
         }
       ],
       "name": "services/sahool-platform/api/season_models.py",
@@ -27255,10 +27255,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "949c84573f4bb53e17c62b747669f185bd90bd4db945be885d835e52ba97427a"
+          "content": "ada98c6ce5e2c7ec43b2c991c084b3a315d0f53dfb259270e01335d0787968f5"
         }
       ],
       "name": "services/sahool-platform/api/season_simulation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "99d437e8bade01ab6ef230ab5a5a945121674aa23f28c94626e41ef719f84d92"
+        }
+      ],
+      "name": "services/sahool-platform/api/season_weather_contract.py",
       "type": "file"
     },
     {
@@ -27665,7 +27675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc104b91474c9c5d269d0bfdde407c100112db8bb126e1efa4b9529306fbff79"
+          "content": "40570a9dc6bf28161724be127596e24b1dbc0990396909d2114f07af69ad2fe5"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -29955,7 +29965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e1ffb824d20fb78cddc77e11674901ab137565d997bd5616ecac5a9a07f4279"
+          "content": "c7d8ea73ae90046513e89be62161c70b8e6483085343c8fed6c95c5e4bb0eb65"
         }
       ],
       "name": "services/sahool-platform/core/historical_season_context.py",
@@ -33845,7 +33855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "00406598cfbb9672ae0993fd4a58d1451a9732ce0eb7666ff0c931fb0251c7b1"
+          "content": "dece854ade9e1feeb8d9b89a6bb612f470e1ab4f1f13aee91c2605b670281cd5"
         }
       ],
       "name": "services/sahool-platform/tests/test_historical_season_context.py",
@@ -35575,7 +35585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "917463abe434aa80ee4722ee6dbdade677c24a69c5a9ccb7c0c3e72be0971ff7"
+          "content": "80e02dc42ac89adb64f31c6b2167ff41e993994c1ca4af2f91aa9ce98bf32997"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_et0_injection.py",
@@ -35585,7 +35595,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d972d48af578f03d0c9b09a6da77f8b13cc33ac51b543224f3cdaa0d32d60026"
+          "content": "8f601facf072a688f6cfe228cab6f403adca200f54ea0f9d0000ea785da3a4e6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "53511086312235229eb5d5dca12885c0e45180acac7cfc97ae4b1b5c9eb56c05"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_gdd_injection.py",
@@ -35635,7 +35655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4f30517caa5bf39b0e4cced3ab1033a98991490bc561dba7b59151cb60b5e859"
+          "content": "cf01ac226ffb0d8c0c9f3035c95f5dd0941af6c5c8c27bf6f148ec7208e8e67e"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_simulation.py",
@@ -35645,7 +35665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6e74f958de5ef52298882149a6f4bf094abd20bc56b6df95f2f117f3f41f4a6"
+          "content": "7f2a0e1d690629f8a682e2c88c223b45eecbad81f70cbee417898f7c08942ac3"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_spatial_provenance.py",
@@ -35659,6 +35679,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "797819c0e505e0639e65a810e9b4ee4c1283fc6f1627ddb8c570d8d7ef986020"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_season_weather_contract.py",
       "type": "file"
     },
     {
@@ -38415,7 +38445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcc5708ca710ead671b4aaaf493ac4caf7b44b4759804953c3cb15c6c21df0da"
+          "content": "d5c5cb1b3488e5dbd584158340d3db6dae8dfe9aa7604b08668654268612ff3b"
         }
       ],
       "name": "services/weather-service/canonical_weather_state.py",
@@ -38485,7 +38515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "89ea26c3a4efe8e70009eb8dff89570a5f1aa3b9f1e5ddfa092729c1337e5977"
+          "content": "be61c4fcab087a9a49a66b70ec456dea5f0f655b2c3b0564cff44ce4c073ed20"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -38545,10 +38575,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c1b652787c2ba00cc48af6335c0612542f30061f1f0274723316512fd71f986"
+          "content": "a43257b0ef859052c0fe098a34da30ef9de80dbe8c191bc0815b9bcd916a06b7"
         }
       ],
       "name": "services/weather-service/tests/test_archive_coverage_is_exposed.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "79a5ac67e7a4dd199c25c265e7ebc9cfb8b7783201c7ed761d1bc3ebf5ccf975"
+        }
+      ],
+      "name": "services/weather-service/tests/test_archive_solar_radiation_contract.py",
       "type": "file"
     },
     {

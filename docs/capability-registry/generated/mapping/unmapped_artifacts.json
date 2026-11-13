@@ -10044,6 +10044,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/weather-service/tests/test_archive_solar_radiation_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/weather-service/tests/test_cache_age_is_server_counted.py",
     "kind": "tests"
   },

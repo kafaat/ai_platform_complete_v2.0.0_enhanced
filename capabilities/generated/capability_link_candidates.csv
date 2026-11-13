@@ -40,6 +40,7 @@ DEC-001,test,services/sahool-platform/tests/test_evidence_graph_normalize.py,3,a
 DEC-001,test,services/sahool-platform/tests/test_evidence_snapshot.py,3,applied
 DEC-001,test,services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py,7,applied
 DEC-001,test,services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py,7,applied
+DEC-001,test,services/sahool-platform/tests/test_season_evidence_truth_v26.py,3,applied
 DEC-001,test,services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py,3,applied
 DEC-001,test,services/soil-service/test_soil_evidence_adapters_and_policy.py,3,applied
 DEC-001,test,services/vegetation-analysis-service/test_evidence_producer_contract.py,3,applied
@@ -514,7 +515,7 @@ FM-003,api,GET /api/v1/fields/{field_id}/recommendations @ services/sahool-platf
 FM-003,api,GET /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3405,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:272,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2205,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:563,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:649,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3196,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/soil-moisture @ services/sahool-platform/api/routers/fields.py:2401,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/stage-actions @ services/sahool-platform/api/routers/phenology.py:181,4,applied
@@ -964,7 +965,7 @@ FM-004,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/s
 FM-004,api,GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:687,2,applied
 FM-004,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:657,2,applied
 FM-004,api,GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:272,2,applied
-FM-004,api,GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:563,2,applied
+FM-004,api,GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:649,2,applied
 FM-004,api,GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:265,2,applied
 FM-004,api,GET /internal/seasons @ services/scout-ingest-service/season_api.py:478,2,applied
 FM-004,api,GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668,2,applied
@@ -1006,6 +1007,7 @@ FM-004,test,services/sahool-platform/tests/test_historical_season_context.py,3,a
 FM-004,test,services/sahool-platform/tests/test_season_calendar_guard.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_season_comparison.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_season_et0_injection.py,3,applied
+FM-004,test,services/sahool-platform/tests/test_season_evidence_truth_v26.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_season_gdd_injection.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_season_integrity.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_season_lifecycle.py,3,applied
@@ -1014,6 +1016,7 @@ FM-004,test,services/sahool-platform/tests/test_season_sim_window_kc_link.py,3,a
 FM-004,test,services/sahool-platform/tests/test_season_simulation.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_season_spatial_provenance.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_season_stage_risk.py,3,applied
+FM-004,test,services/sahool-platform/tests/test_season_weather_contract.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_v26_water_twin_season_context.py,3,applied
 FM-004,test,services/scout-ingest-service/tests/test_season_live.py,3,applied
 FM-004,test,tests_v9/test_digital_twin_season_live_pg.py,3,applied
