@@ -21,20 +21,20 @@
       "database": 296,
       "governance": 89,
       "mobile": 414,
-      "other": 2163,
-      "tests": 2403,
+      "other": 2164,
+      "tests": 2402,
       "web": 524
     },
     "unmapped_artifacts": 3409,
     "ambiguous_artifacts": 233,
     "files_by_reading": {
-      "python_functional": 3856,
-      "raw": 3303
+      "python_functional": 3855,
+      "raw": 3304
     },
-    "test_dependency_files": 1809,
+    "test_dependency_files": 1808,
     "test_dependency_edges": 4576,
     "test_dependency_bounded_files": 1054,
-    "test_dependency_unresolved_relations": 457
+    "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
     {
@@ -3116,23 +3116,23 @@
           "score": 28
         },
         {
-          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:527",
+          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:486",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:279",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:246",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:458",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:417",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:548",
+          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:507",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:491",
+          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:450",
           "score": 17
         },
         {
@@ -4430,14 +4430,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_farm_book_corrections_and_categories.py",
-          "score": 14,
-          "signals": [
-            "path:farm",
-            "content:farm"
-          ]
-        },
-        {
           "path": "tests_v9/test_farm_memory.py",
           "score": 14,
           "signals": [
@@ -4871,7 +4863,7 @@
         "events": 25,
         "web": 18,
         "mobile": 35,
-        "tests": 48,
+        "tests": 47,
         "governance": 0,
         "other_evidence": 22
       },
@@ -75650,22 +75642,6 @@
       "unresolved": []
     },
     {
-      "test": "tests_v9/test_farm_book_corrections_and_categories.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "directory_reference",
-        "tree_wide_scan",
-        "unresolved_dynamic_relation"
-      ],
-      "edges": [],
-      "unresolved": [
-        {
-          "line": 44,
-          "call": "spec_from_file_location"
-        }
-      ]
-    },
-    {
       "test": "tests_v9/test_farm_memory.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -86014,22 +85990,22 @@
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "source_read",
-          "line": 240
+          "line": 244
         },
         {
           "source": "services/sahool-platform/api/phase_runtime_store.py",
           "kind": "source_read",
-          "line": 112
+          "line": 116
         },
         {
           "source": "services/sahool-platform/api/routers/decision_dispatch.py",
           "kind": "source_read",
-          "line": 147
+          "line": 151
         },
         {
           "source": "services/sahool-platform/api/routers/recommendations.py",
           "kind": "source_read",
-          "line": 134
+          "line": 138
         }
       ],
       "unresolved": []
