@@ -341,9 +341,8 @@ async def test_multicrop_season_rejected_before_any_simulation_write(monkeypatch
 
 
 async def test_missing_archive_day_rejected_before_any_simulation_write(monkeypatch):
-    from fastapi import HTTPException
-
     import api.connectors.openmeteo as openmeteo
+    from fastapi import HTTPException
 
     conn = _Conn(_season(_SOW, _END), [])
     route = _install(monkeypatch, conn, [])
