@@ -1490,6 +1490,20 @@ def _manual_source_violation(
     return None
 
 
+MANUAL_IRRIGATION_OPERATION = "manual_irrigation"
+
+
+def normalize_operation_type(value: Any) -> str:
+    """One canonical spelling for an execution-plan ``operation_type`` (trimmed, lower-case).
+
+    Every branch that keys on the operation (the manual-irrigation binding, the stored plan, its
+    request hash and the execution-request match) must see the same value: a padded or
+    case-variant spelling that skipped the manual-irrigation check here but still matched a
+    trimming comparison downstream was a bypass (DECISION-MANUAL-PLAN-PADDED-OPERATION-BYPASS-01).
+    """
+    return str(value or "").strip().lower()
+
+
 def _manual_irrigation_plan_violation(decision: Any, payload: Any) -> str | None:
     """Why a manual-irrigation plan does not match the approved decision — or None."""
     if decision["decision_type"] != "irrigation":
@@ -1520,6 +1534,17 @@ def _manual_irrigation_plan_violation(decision: Any, payload: Any) -> str | None
     return None
 
 
+def _plan_operation_violation(decision: Any, operation_type: Any, payload: Any) -> str | None:
+    """Operation-specific binding of a plan to its approved decision — or None.
+
+    Keyed on the canonical operation, never the raw spelling, so a padded or case-variant
+    ``manual_irrigation`` cannot skip the manual-irrigation binding.
+    """
+    if normalize_operation_type(operation_type) == MANUAL_IRRIGATION_OPERATION:
+        return _manual_irrigation_plan_violation(decision, payload)
+    return None
+
+
 def _execution_plan_request_hash(
     *,
     decision_id: str,
@@ -1534,7 +1559,7 @@ def _execution_plan_request_hash(
             "review_id": review_id,
             "candidate_lineage_id": candidate_lineage_id,
             "decision_value_digest": decision_value_digest,
-            "operation_type": payload.operation_type,
+            "operation_type": normalize_operation_type(payload.operation_type),
             "planned_start": str(payload.planned_start) if payload.planned_start else None,
             "planned_end": str(payload.planned_end) if payload.planned_end else None,
             "target_zone_ids": payload.target_zone_ids,
@@ -1586,6 +1611,9 @@ async def create_execution_plan(
     is mutated and no dispatch/task/equipment side effect is emitted. Same-key/same-payload is a
     deterministic replay; same-key/different-payload conflicts.
     """
+    operation_type = normalize_operation_type(payload.operation_type)
+    if not operation_type:
+        return {"status": "invalid", "reason": "operation_type_required"}
     conn = await _connect()
     try:
         async with conn.transaction():
@@ -1641,10 +1669,9 @@ async def create_execution_plan(
                 return {"status": "conflict", "reason": "decision_version_unbound"}
             if approved != source["decision_value_digest"]:
                 return {"status": "conflict", "reason": "decision_version_mismatch"}
-            if payload.operation_type == "manual_irrigation":
-                violation = _manual_irrigation_plan_violation(source, payload)
-                if violation:
-                    return {"status": "conflict", "reason": violation}
+            violation = _plan_operation_violation(source, operation_type, payload)
+            if violation:
+                return {"status": "conflict", "reason": violation}
 
             plan_id = (
                 "xplan_"
@@ -1670,7 +1697,7 @@ async def create_execution_plan(
                 decision_id,
                 review_id,
                 candidate_lineage_id,
-                payload.operation_type,
+                operation_type,
                 payload.planned_start,
                 payload.planned_end,
                 json.dumps(payload.target_zone_ids, ensure_ascii=False),
@@ -1965,6 +1992,15 @@ async def authorize_dispatch(
         await conn.close()
 
 
+def _request_operation_type(payload: Any) -> str:
+    """The execution request's operation as stored, hashed and published: trimmed only.
+
+    ``_execution_request_plan_violation`` accepts a request only when this value equals the plan's
+    canonical operation, so every accepted request is stored canonical. Case is not loosened.
+    """
+    return str(payload.operation_type or "").strip()
+
+
 def _execution_request_hash(*, dispatch_authorization_id: str, payload: Any) -> str:
     blob = json.dumps(
         {
@@ -1973,7 +2009,9 @@ def _execution_request_hash(*, dispatch_authorization_id: str, payload: Any) -> 
             "decision_id": payload.decision_id,
             "target_type": payload.target_type,
             "target_id": payload.target_id,
-            "operation_type": payload.operation_type,
+            # Hashed as stored: trimmed (the plan match already requires the trimmed value to equal
+            # the canonical plan operation), so a retry that differs only in padding replays.
+            "operation_type": _request_operation_type(payload),
             "command_payload": payload.command_payload,
         },
         sort_keys=True,
@@ -2275,8 +2313,10 @@ def _execution_request_plan_violation(plan: Any, payload: Any, *, now: datetime)
     """
     if _plan_expired(plan.get("planned_end"), now):
         return "plan_expired"
-    plan_operation = str(plan.get("plan_operation_type") or "").strip()
-    if str(payload.operation_type or "").strip() != plan_operation:
+    # The plan side is canonicalised (legacy rows may be padded/case-variant); the request must
+    # name that canonical operation — case is not loosened here, only surrounding whitespace.
+    plan_operation = normalize_operation_type(plan.get("plan_operation_type"))
+    if _request_operation_type(payload) != plan_operation:
         return "operation_type_mismatch"
 
     layers = _command_layers(payload.command_payload)
@@ -2404,7 +2444,7 @@ async def create_execution_request(
                 payload.decision_id,
                 payload.target_type,
                 payload.target_id,
-                payload.operation_type,
+                _request_operation_type(payload),
                 _json(payload.command_payload),
                 payload.idempotency_key,
                 request_hash,
@@ -2422,7 +2462,7 @@ async def create_execution_request(
                     "dispatch_authorization_id": dispatch_authorization_id,
                     "target_type": payload.target_type,
                     "target_id": payload.target_id,
-                    "operation_type": payload.operation_type,
+                    "operation_type": _request_operation_type(payload),
                     "status": "queued",
                 },
             )

@@ -17855,7 +17855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d477e5ef6189492685bcdc12d9f543b3251328ae50a04a7bbf33b4f50eecd6f"
+          "content": "69f14548f609ed99d3bf7acebd43461123c8eec0373cf8299e27f128ab5c7e00"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -18265,7 +18265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "550d66acd86e8c4b13b8584b44258f2f36bf2ef22b34a950ef0f6cb135ecfe3c"
+          "content": "eaaee76e6b4069db4b8b5ee84fbfe6161218d099cb74de7758e23a5a15744d85"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -18569,6 +18569,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d22ab4f72aab077d33c339efbd4287449b247748f16da898d128465740ce65e2"
+        }
+      ],
+      "name": "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
       "type": "file"
     },
     {
@@ -20045,7 +20055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79a9bd55931eb909c0aaed33aa789159e78bc57ff14947b65f0a55cb592dbef2"
+          "content": "0e3dc7e97174349302a3486d68388d0b0dc56ebb29ff3d190e0c673e4b396694"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -25515,7 +25525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9f45c32b9b0ba6a497ac5d4b44540c7612d2cfaed735138f0687c70d913061c4"
+          "content": "07062a1c22337ec6b3442c37d1946522e734f189998704438b5c5210eacf2117"
         }
       ],
       "name": "services/sahool-platform/api/routers/agro_intelligence.py",
@@ -25895,7 +25905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2d95b26b256cfd060b56869330c70eae5802a44152a6af2660069d9e596fc2b"
+          "content": "7382c1b0e5c0affe04d6851b81656435962aaeb2742989ea588c70a3ddf495e2"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_review.py",
