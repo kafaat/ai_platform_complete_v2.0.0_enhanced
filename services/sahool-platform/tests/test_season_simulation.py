@@ -312,9 +312,7 @@ class TestIncompleteWeatherTruth:
         weather = _warm_days(120)
         gdd = _gdd_series("wheat", weather)
         gdd[29] = None
-        out = simulate_season(
-            SimContext(crop="wheat", weather=weather, gdd_daily_override=gdd)
-        )
+        out = simulate_season(SimContext(crop="wheat", weather=weather, gdd_daily_override=gdd))
         assert out.yield_kg_ha is None
         assert out.yield_status == "unavailable_incomplete_weather"
 
@@ -345,7 +343,6 @@ class TestIncompleteWeatherTruth:
         assert invalid.fapar_source == "modeled"
         assert invalid.yield_kg_ha == baseline.yield_kg_ha
         assert any("fAPAR" in w for w in invalid.warnings_ar)
-
 
     def test_rainfed_zero_rain_does_not_assume_water_is_sufficient(self):
         weather = _warm_days(90)

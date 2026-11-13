@@ -54,7 +54,9 @@ def test_canonical_archive_preserves_observations_without_weather_recalculation(
     assert out[2].et0_mm == 5.0
 
 
-@pytest.mark.parametrize("reason", ["missing_day", "duplicate_date", "wrong_coverage", "no_provenance"])
+@pytest.mark.parametrize(
+    "reason", ["missing_day", "duplicate_date", "wrong_coverage", "no_provenance"]
+)
 def test_archive_with_missing_or_untraceable_days_is_rejected(reason):
     product = _product()
     if reason == "missing_day":
@@ -94,9 +96,7 @@ def test_archive_rejects_invalid_measurements(field, value):
 
 
 def test_missing_daily_et0_and_gdd_are_null_not_zero():
-    series = validated_engine_daily_series(
-        {"daily_gdd": [0.0, None, 12.0]}, "daily_gdd", 3
-    )
+    series = validated_engine_daily_series({"daily_gdd": [0.0, None, 12.0]}, "daily_gdd", 3)
     assert series == [0.0, None, 12.0]
 
 

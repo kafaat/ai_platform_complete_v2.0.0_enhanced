@@ -85,7 +85,9 @@ def compose_historical_season_context(
         day = str(raw_day)[:10]
         return window_start <= day <= window_end
 
-    def _finite(value: Any, *, minimum: float = 0.0, maximum: float | None = None) -> float | None:
+    def _finite(
+        value: Any, *, minimum: float = 0.0, maximum: float | None = None
+    ) -> float | None:
         if isinstance(value, bool):
             return None
         try:
@@ -125,8 +127,7 @@ def compose_historical_season_context(
         if any(
             raw is not None
             and (
-                (ratio := _finite(raw, minimum=0.0, maximum=1.0)) is None
-                or ratio == 0.0
+                (ratio := _finite(raw, minimum=0.0, maximum=1.0)) is None or ratio == 0.0
             )
             for raw in ratios
         ):

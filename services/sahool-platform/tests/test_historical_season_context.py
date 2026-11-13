@@ -178,9 +178,24 @@ def test_ndvi_from_outside_window_and_nonfinite_cloud_is_excluded():
     out = _context(
         simulation_window={"start": "2025-01-01", "end": "2025-02-01"},
         vegetation=[
-            {"id": "outside", "acquisition_date": "2025-03-10", "ndvi_mean": 0.7, "cloud_pct": 5},
-            {"id": "bad-cloud", "acquisition_date": "2025-01-10", "ndvi_mean": 0.7, "cloud_pct": "nan"},
-            {"id": "accepted", "acquisition_date": "2025-01-15", "ndvi_mean": 0.6, "cloud_pct": 5},
+            {
+                "id": "outside",
+                "acquisition_date": "2025-03-10",
+                "ndvi_mean": 0.7,
+                "cloud_pct": 5,
+            },
+            {
+                "id": "bad-cloud",
+                "acquisition_date": "2025-01-10",
+                "ndvi_mean": 0.7,
+                "cloud_pct": "nan",
+            },
+            {
+                "id": "accepted",
+                "acquisition_date": "2025-01-15",
+                "ndvi_mean": 0.6,
+                "cloud_pct": 5,
+            },
         ],
     )
     assert out["vegetation"]["observation_count"] == 1
@@ -219,14 +234,34 @@ def test_nonfinite_harvest_is_not_admitted_as_actual():
 
 def test_zero_or_invalid_spatial_coverage_never_drives_fapar():
     bad = [
-        {"id": "no-pixels", "acquisition_date": "2025-01-11",
-         "ndvi_mean": 0.85, "cloud_pct": 1, "valid_pixel_ratio": 0.0},
-        {"id": "no-area", "acquisition_date": "2025-01-12",
-         "ndvi_mean": 0.75, "cloud_pct": 1, "coverage_ratio": 0.0},
-        {"id": "invalid", "acquisition_date": "2025-01-13",
-         "ndvi_mean": 0.7, "cloud_pct": 1, "coverage_ratio": "nan"},
-        {"id": "outside", "acquisition_date": "2025-01-14",
-         "ndvi_mean": 0.8, "cloud_pct": 1, "valid_pixel_ratio": 1.2},
+        {
+            "id": "no-pixels",
+            "acquisition_date": "2025-01-11",
+            "ndvi_mean": 0.85,
+            "cloud_pct": 1,
+            "valid_pixel_ratio": 0.0,
+        },
+        {
+            "id": "no-area",
+            "acquisition_date": "2025-01-12",
+            "ndvi_mean": 0.75,
+            "cloud_pct": 1,
+            "coverage_ratio": 0.0,
+        },
+        {
+            "id": "invalid",
+            "acquisition_date": "2025-01-13",
+            "ndvi_mean": 0.7,
+            "cloud_pct": 1,
+            "coverage_ratio": "nan",
+        },
+        {
+            "id": "outside",
+            "acquisition_date": "2025-01-14",
+            "ndvi_mean": 0.8,
+            "cloud_pct": 1,
+            "valid_pixel_ratio": 1.2,
+        },
     ]
     out = _context(vegetation=bad)
     assert out["vegetation"]["observation_count"] == 0
@@ -235,14 +270,16 @@ def test_zero_or_invalid_spatial_coverage_never_drives_fapar():
 
 def test_measured_zero_ndvi_with_nonzero_coverage_remains_valid():
     out = _context(
-        vegetation=[{
-            "id": "valid-ndvi-zero",
-            "acquisition_date": "2025-01-11",
-            "ndvi_mean": 0.0,
-            "cloud_pct": 1,
-            "valid_pixel_ratio": 0.9,
-            "coverage_ratio": 0.8,
-        }]
+        vegetation=[
+            {
+                "id": "valid-ndvi-zero",
+                "acquisition_date": "2025-01-11",
+                "ndvi_mean": 0.0,
+                "cloud_pct": 1,
+                "valid_pixel_ratio": 0.9,
+                "coverage_ratio": 0.8,
+            }
+        ]
     )
     assert out["vegetation"]["observation_count"] == 1
     assert out["simulation_inputs"]["observed_fapar"] is not None
