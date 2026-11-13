@@ -1,4 +1,4 @@
-"""routers/users.py — إدارة مستخدمي **المستأجِر** (admin = مالك المستأجِر).
+"""routers/users.py — إدارة مستخدمي **المستأجِر** (owner/admin، محصوران في مستأجِرهما).
 
 مسارات: GET /v1/auth/users · PATCH /v1/auth/users/{user_id}/role ·
         PATCH /v1/auth/users/{user_id}/deactivate
@@ -31,6 +31,13 @@ router = APIRouter()
 
 _NOT_FOUND = "المستخدم غير موجود"
 
+# C-37 (تدقيق المالك): من يُنشئ الفريق يُديره. التسجيل الذاتيّ يُنشئ ``owner`` والدعوة
+# يوجّهها owner/admin (``main.INVITER_ROLES``)، فكان قصرُ المسارات الثلاثة على ``admin``
+# يترك المالكَ عاجزاً عن إدارة من دعاهم. الحدود نفسها لكليهما: المستأجِر من التوكن وحده،
+# ولا يُمنَح إلّا expert/farmer/viewer، ولا يُعدَّل/يُعطَّل مالكٌ/مشرفٌ نظير.
+# ``platform_admin`` ليس هنا عمداً: لا وصول عابرَ للمستأجرين في خدمة auth.
+_TEAM_MANAGERS: tuple[str, ...] = ("owner", "admin")
+
 
 def _caller_tenant(admin: dict) -> uuid.UUID | None:
     """مستأجِر المُنادي من التوكن المُتحقَّق منه؛ قيمة غير UUID (مثل ``tenant_{id}`` لحسابٍ
@@ -57,7 +64,7 @@ async def _lock_tenant_target(conn, user_id: int, tenant: uuid.UUID | None):
 
 
 @router.get("/v1/auth/users")
-async def list_users(admin: Annotated[dict, Depends(main.require_role("admin"))]):
+async def list_users(admin: Annotated[dict, Depends(main.require_role(*_TEAM_MANAGERS))]):
     tenant = _caller_tenant(admin)
     if tenant is None:
         return []
@@ -75,7 +82,7 @@ async def change_role(
     user_id: int,
     role: main.ValidRole,
     request: Request,
-    admin: Annotated[dict, Depends(main.require_role("admin"))],
+    admin: Annotated[dict, Depends(main.require_role(*_TEAM_MANAGERS))],
     x_mfa_code: Annotated[str | None, Header()] = None,
 ):
     # V29.6.1: احسب IP المتّصِل مرّة واحدة ومرّره إلى step-up وإلى التدقيق — كي تحمل
@@ -125,7 +132,7 @@ async def change_role(
 async def deactivate_user(
     user_id: int,
     request: Request,
-    admin: Annotated[dict, Depends(main.require_role("admin"))],
+    admin: Annotated[dict, Depends(main.require_role(*_TEAM_MANAGERS))],
     x_mfa_code: Annotated[str | None, Header()] = None,
 ):
     # V29.6.1: احسب IP مرّة ومرّره إلى step-up (بصمة IP في أحداث mfa_stepup_*).

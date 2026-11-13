@@ -120,8 +120,11 @@ def world():
     seed = [
         ("admin_a", "admin", tenant_a),
         ("owner_a", "owner", tenant_a),
+        ("owner_a2", "owner", tenant_a),
         ("farmer_a", "farmer", tenant_a),
         ("farmer_a2", "farmer", tenant_a),
+        ("farmer_a3", "farmer", tenant_a),
+        ("farmer_a4", "farmer", tenant_a),
         ("admin_b", "admin", tenant_b),
         ("owner_b", "owner", tenant_b),
         ("farmer_b", "farmer", tenant_b),
@@ -259,6 +262,75 @@ def test_non_admin_is_forbidden(world):
     # platform_admin غير معروف في auth: لا يمنح أيّ وصولٍ ضمنيّ عابر للمستأجرين.
     pa = world["token"]("admin_b", role_override="platform_admin")
     assert c.get("/v1/auth/users", headers=pa).status_code == 403
+
+
+# ── C-37: من يُنشئ الفريق يُديره ────────────────────────────────────────────
+# التسجيل الذاتيّ يُنشئ ``owner`` والدعوة يوجّهها owner/admin، لكنّ المسارات الثلاثة كانت
+# ``admin`` وحده ⇒ المالك لا يُدير من دعاهم (403). الحدود نفسها تسري على المالك.
+
+
+def test_owner_lists_only_its_own_tenant(world):
+    c, users = world["client"], world["users"]
+    r = c.get("/v1/auth/users", headers=world["token"]("owner_a"))
+    assert r.status_code == 200, r.text[:200]
+    got = {u["id"] for u in r.json()}
+    want = {u["id"] for u in users.values() if u["tenant"] == world["tenants"][0]}
+    assert got == want, f"owner A رأى مستخدمين خارج مستأجِره: {sorted(got - want)}"
+    assert {u["tenant_id"] for u in r.json()} == {world["tenants"][0]}
+
+
+def test_owner_manages_users_of_its_own_tenant(world):
+    c, users = world["client"], world["users"]
+    hdr = world["token"]("owner_a")
+    target = users["farmer_a3"]["id"]
+    r = c.patch(f"/v1/auth/users/{target}/role", params={"role": "viewer"}, headers=hdr)
+    assert r.status_code == 200, r.text[:200]
+    assert r.json()["role"] == "viewer"
+    assert _row(target)["role"] == "viewer"
+    other = users["farmer_a4"]["id"]
+    r = c.patch(f"/v1/auth/users/{other}/deactivate", headers=hdr)
+    assert r.status_code == 200, r.text[:200]
+    assert _row(other)["active"] is False
+
+
+def test_owner_cross_tenant_target_is_indistinguishable_from_not_found(world):
+    c, users = world["client"], world["users"]
+    hdr = world["token"]("owner_a")
+    target = users["farmer_b"]["id"]
+    cross = c.patch(f"/v1/auth/users/{target}/role", params={"role": "viewer"}, headers=hdr)
+    missing = c.patch(f"/v1/auth/users/{_MISSING_ID}/role", params={"role": "viewer"}, headers=hdr)
+    assert cross.status_code == 404, cross.text[:200]
+    assert (cross.status_code, cross.json()) == (missing.status_code, missing.json())
+    for key in ("farmer_b", "owner_b"):
+        r = c.patch(f"/v1/auth/users/{users[key]['id']}/deactivate", headers=hdr)
+        assert r.status_code == 404, (key, r.text[:200])
+    assert _row(target) == {"role": "farmer", "active": True, "tenant": world["tenants"][1]}
+    assert _row(users["owner_b"]["id"])["active"] is True
+
+
+def test_owner_cannot_demote_or_disable_peer_owner_or_admin(world):
+    c, users = world["client"], world["users"]
+    hdr = world["token"]("owner_a")
+    for key, role in (("admin_a", "admin"), ("owner_a2", "owner")):
+        peer = users[key]["id"]
+        r = c.patch(f"/v1/auth/users/{peer}/role", params={"role": "viewer"}, headers=hdr)
+        assert r.status_code == 403, (key, r.text[:200])
+        r = c.patch(f"/v1/auth/users/{peer}/deactivate", headers=hdr)
+        assert r.status_code == 403, (key, r.text[:200])
+        assert _row(peer) == {"role": role, "active": True, "tenant": world["tenants"][0]}
+
+
+def test_owner_cannot_grant_owner_admin_or_platform_admin(world):
+    c, users = world["client"], world["users"]
+    hdr = world["token"]("owner_a")
+    target = users["farmer_a"]["id"]
+    before = _row(target)["role"]
+    r = c.patch(f"/v1/auth/users/{target}/role", params={"role": "platform_admin"}, headers=hdr)
+    assert r.status_code == 422, r.text[:200]
+    for role in ("admin", "owner"):
+        r = c.patch(f"/v1/auth/users/{target}/role", params={"role": role}, headers=hdr)
+        assert r.status_code == 403, (role, r.text[:200])
+    assert _row(target)["role"] == before
 
 
 def test_bootstrap_admin_is_scoped_to_its_own_tenant(world):
