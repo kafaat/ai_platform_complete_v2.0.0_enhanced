@@ -326,6 +326,43 @@ def object_exists(ref: str) -> bool:
     return False
 
 
+def read_bytes(ref: str, max_bytes: int) -> bytes:
+    """Read the object behind an internal ref, for a service that streams it to its caller.
+
+    Same fail-closed rules as :func:`object_exists`: a ``file://`` ref is refused while S3 is
+    enabled (a dev remnant or forgery), and must resolve inside ``LOCAL_DIR``; an ``s3://`` ref
+    needs S3 enabled. More than ``max_bytes`` raises rather than returning a truncated object.
+    The caller must already have checked that the ref belongs to the requesting tenant.
+    """
+    if ref.startswith("file://"):
+        if s3_enabled():
+            raise BlobStoreError("file:// ref refused while S3 is enabled")
+        root = os.path.realpath(LOCAL_DIR)
+        path = os.path.realpath(ref[len("file://") :])
+        if not path.startswith(root + os.sep):
+            raise BlobStoreError("file:// ref outside the local blob directory")
+        try:
+            with open(path, "rb") as fh:
+                data = fh.read(max_bytes + 1)
+        except OSError as exc:
+            raise BlobStoreError(f"cannot read {ref}: {exc}") from exc
+    elif ref.startswith("s3://"):
+        if not s3_enabled():
+            raise BlobStoreError("cannot read an s3:// ref while S3 is disabled")
+        bucket, _, obj_key = ref[len("s3://") :].partition("/")
+        client = _s3_client()
+        try:
+            body = client.get_object(Bucket=bucket, Key=obj_key)["Body"]
+            data = body.read(max_bytes + 1)
+        except Exception as exc:  # noqa: BLE001 — any S3 error is a read failure
+            raise BlobStoreError(f"S3 get_object failed for {ref}: {exc}") from exc
+    else:
+        raise BlobStoreError(f"unsupported blob ref scheme: {ref!r}")
+    if len(data) > max_bytes:
+        raise BlobStoreError(f"object behind {ref} exceeds {max_bytes} bytes")
+    return data
+
+
 def presigned_get_url(ref: str, ttl_s: int) -> str:
     """Short-lived read URL for an internal ref (never expose the raw key/ref).
 

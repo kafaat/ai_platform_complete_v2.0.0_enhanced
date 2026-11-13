@@ -137,7 +137,7 @@ from api.raster_service_client import (
     # facade call distinct so DEM auto-fill hits raster-service, not the route.
     get_field_terrain as raster_get_field_terrain,
 )
-from api.scouting_pins import make_pin, persist_scouting_pin
+from api.scouting_pins import create_scouting_pin, persist_scouting_pin
 
 # نماذج/مساعدات المواسم نُقِلت إلى api.season_models (تفكيك B1) وتُستورَد من هناك.
 from api.season_models import (
@@ -3765,47 +3765,23 @@ async def create_pin(
     req: PinCreateRequest,
     user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
-    """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة.
+    """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة مع ``persisted`` و``photo``.
 
-    سابقاً: تحقّق + إرجاع فقط (الحفظ كان على الموبايل offline-first) — فلا قراءة
-    خادميّة. الآن يُثبَّت الدبّوس في ``scouting_pins`` (v94، معزول بالمستأجِر) ليُقرأ
-    عبر ``GET /api/v1/scouting/pins?field_id=…`` (نظير FieldView). صدق: التحقّق هو
-    مصدر الحقيقة؛ الإدامة best-effort — لو تعذّرت القاعدة يبقى الدبّوس صالحاً ويُعلَن
-    ``persisted=false`` (لا اختراع نجاح، يبقى المسار offline-first سليماً). idempotent
-    عبر ``ON CONFLICT (pin_id) DO NOTHING`` (إعادة المزامنة لا تُكرّر).
+    تُقرأ عبر ``GET /api/v1/scouting/pins?field_id=…``. الإدامة best-effort (تعذّر القاعدة ⇒
+    ``persisted=false``)، وidempotent على pin_id. مصدر الموقع ودقّته والصورة (v257): التنفيذ
+    في ``api.scouting_pins.create_scouting_pin`` (حدّ حجم الراوتر).
     """
-    if req.field_id != field_id:
-        raise HTTPException(422, "معرّف الحقل لا يطابق المسار")
-    try:
-        pin = make_pin(
-            req.pin_id,
-            field_id,
-            req.lat,
-            req.lng,
-            req.issue_category,
-            req.severity,
-            req.status,
-            req.persistence,
-            crop=req.crop,
-            issue_code=req.issue_code,
-            note_ar=req.note_ar,
-            photo_uri=req.photo_uri,
-            color=req.color,
-            created_by=user.user_id,
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
-
-    persisted = await _persist_scouting_pin(user, pin)
-    out = pin.to_dict()
-    out["persisted"] = persisted
-    return out
+    return await create_scouting_pin(field_id, req, user, persist=_persist_scouting_pin)
 
 
-async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
+async def _persist_scouting_pin(user: UserSchema, pin, photo=None) -> bool:
     """يُديم الدبّوس تحت RLS — التنفيذ في ``api.scouting_pins`` (حدّ حجم الراوتر)."""
     return await persist_scouting_pin(
-        user, pin, pool_ready=api_main._DB_POOL is not None, connect=tenant_connection
+        user,
+        pin,
+        pool_ready=api_main._DB_POOL is not None,
+        connect=tenant_connection,
+        photo=photo,
     )
 
 

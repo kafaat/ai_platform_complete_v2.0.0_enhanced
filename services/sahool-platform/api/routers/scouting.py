@@ -42,15 +42,22 @@ from api.scouting_pins import (
     NUTRIENT_DEFICIENCY_GUIDE,
     YEMEN_CROP_ISSUES,
     get_crop_issues,
+    pin_photo_view,
 )
 
 router = APIRouter()
 
 # أعمدة القراءة لجدول scouting_pins (v94) — مطابقة لـ ScoutingPin.to_dict تماماً
 # (pin_id هو المعرّف القانوني للدبّوس). created_at يُنسَّق ISO في المُحوِّل أدناه.
+# v257: مصدر الموقع ودقّته، وصورة الدبّوس من سجلّ documents (RLS المستأجِر نفسه).
 _PIN_SELECT_COLS = (
     "pin_id, field_id, lat, lng, issue_category, severity, status, persistence, "
-    "crop, issue_code, note_ar, photo_uri, color, created_by, created_at"
+    "crop, issue_code, note_ar, photo_uri, color, created_by, created_at, "
+    "location_source, accuracy_m, photo_document_id, "
+    "(SELECT d.content_type FROM documents d WHERE d.doc_id = scouting_pins.photo_document_id)"
+    " AS photo_content_type, "
+    "(SELECT d.size_bytes FROM documents d WHERE d.doc_id = scouting_pins.photo_document_id)"
+    " AS photo_size_bytes"
 )
 
 
@@ -78,6 +85,14 @@ def _row_to_pin(row) -> dict:
         "color": row["color"],
         "created_by": row["created_by"],
         "created_at": created_iso,
+        # v257: صفّ قبل الهجرة أو من عميل قديم ⇒ unknown (لا استنتاج من الإحداثيّات).
+        "location_source": row.get("location_source") or "unknown",
+        "accuracy_m": row.get("accuracy_m"),
+        "photo": pin_photo_view(
+            row.get("photo_document_id"),
+            content_type=row.get("photo_content_type"),
+            size_bytes=row.get("photo_size_bytes"),
+        ),
     }
 
 
