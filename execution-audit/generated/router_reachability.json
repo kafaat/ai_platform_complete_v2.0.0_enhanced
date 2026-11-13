@@ -541,7 +541,7 @@
     },
     {
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.sahool-platform.api.phase10_continuous_learning",
       "node_id": "services.sahool-platform.api.phase10_continuous_learning:router",
       "route_count": 18,
@@ -2385,7 +2385,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 47,
+  "include_edge_count": 49,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2677,6 +2677,24 @@
     },
     {
       "expression": "router",
+      "line": 37,
+      "module": "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_phase10_offline_dataset_as_of:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "router",
+      "line": 36,
+      "module": "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_phase10_point_in_time_as_of_422:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "router",
       "line": 13,
       "module": "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
       "prefix": null,
@@ -2811,7 +2829,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "a10066470ea3865e04dfe2f5b3a158a6c1cced4c756aac281fdc27108f05d3b2",
+  "inventory_sha256": "8d938576837c97ac543e324332f91c82c8af0b9213b90ed002160452664b9a37",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -3167,7 +3185,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.sahool-platform.api.phase10_continuous_learning",
       "node_id": "services.sahool-platform.api.phase10_continuous_learning:router",
       "route_count": 18,
@@ -5112,7 +5130,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 45,
+  "unresolved_include_count": 47,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5367,6 +5385,22 @@
       "file": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
       "line": 13,
       "module": "services.sahool-platform.tests.test_phase10_continuous_learning_api",
+      "source": null,
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
+      "line": 37,
+      "module": "services.sahool-platform.tests.test_phase10_offline_dataset_as_of",
+      "source": null,
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
+      "line": 36,
+      "module": "services.sahool-platform.tests.test_phase10_point_in_time_as_of_422",
       "source": null,
       "target_expression": "router"
     },

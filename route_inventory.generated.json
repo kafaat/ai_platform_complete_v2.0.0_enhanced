@@ -2650,7 +2650,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 147,
+    "line": 151,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-schema",
     "function": "feature_schema"
@@ -2658,7 +2658,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 152,
+    "line": 156,
     "method": "POST",
     "path": "/v1/phase10/learning/dataset",
     "function": "dataset"
@@ -2666,7 +2666,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 162,
+    "line": 166,
     "method": "POST",
     "path": "/v1/phase10/learning/models/promote",
     "function": "model_promotion"
@@ -2674,7 +2674,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 172,
+    "line": 176,
     "method": "POST",
     "path": "/v1/phase10/learning/online-update",
     "function": "online_update"
@@ -2682,7 +2682,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 182,
+    "line": 186,
     "method": "POST",
     "path": "/v1/phase10/learning/experiments/evaluate",
     "function": "experiment_evaluation"
@@ -2690,7 +2690,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 192,
+    "line": 196,
     "method": "POST",
     "path": "/v1/phase10/learning/scenario",
     "function": "scenario"
@@ -2698,7 +2698,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 197,
+    "line": 201,
     "method": "POST",
     "path": "/v1/phase10/learning/cycle",
     "function": "learning_cycle"
@@ -2706,7 +2706,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 209,
+    "line": 213,
     "method": "POST",
     "path": "/v1/phase10/learning/drift",
     "function": "drift"
@@ -2714,7 +2714,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 218,
+    "line": 222,
     "method": "POST",
     "path": "/v1/phase10/learning/retraining/plan",
     "function": "retraining_plan"
@@ -2722,7 +2722,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 225,
+    "line": 229,
     "method": "POST",
     "path": "/v1/phase10/learning/champion-challenger",
     "function": "champion_challenger"
@@ -2730,7 +2730,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 237,
+    "line": 241,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/register",
     "function": "feature_store_register"
@@ -2738,7 +2738,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 244,
+    "line": 248,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/offline-dataset",
     "function": "feature_store_offline_dataset"
@@ -2746,7 +2746,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 254,
+    "line": 259,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/online-materialization",
     "function": "feature_store_online_materialization"
@@ -2754,7 +2754,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 262,
+    "line": 267,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/point-in-time",
     "function": "feature_store_point_in_time"
@@ -2762,7 +2762,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 269,
+    "line": 281,
     "method": "POST",
     "path": "/v1/phase10/learning/models/register",
     "function": "model_register"
@@ -2770,7 +2770,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 284,
+    "line": 302,
     "method": "POST",
     "path": "/v1/phase10/learning/models/serving/promote",
     "function": "model_serving_promote"
@@ -2778,7 +2778,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 291,
+    "line": 309,
     "method": "POST",
     "path": "/v1/phase10/learning/models/serving/rollback",
     "function": "model_serving_rollback"
@@ -2786,7 +2786,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 301,
+    "line": 319,
     "method": "GET",
     "path": "/v1/phase10/learning/models/serving/{alias:path}",
     "function": "model_serving_resolve"

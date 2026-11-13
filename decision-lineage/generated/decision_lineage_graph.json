@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 710,
+      "evidence_count": 713,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -731,6 +731,7 @@
         "shared/enterprise_gis/phase7_enterprise.py",
         "shared/enterprise_gis/phase8_global_scale.py",
         "shared/feature_store/practice_review.py",
+        "shared/feature_store/runtime.py",
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py",
         "shared/field_bootstrap.py",
@@ -739,6 +740,8 @@
         "shared/governance/chemical_lineage.py",
         "shared/knowledge/contracts.py",
         "shared/knowledge/providers.py",
+        "shared/mlops/agronomic_candidate.py",
+        "shared/mlops/runtime.py",
         "shared/precision_agriculture/__init__.py",
         "shared/precision_agriculture/fertigation_plan.py",
         "shared/precision_agriculture/pail_om_edge.py",
@@ -756,7 +759,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 565,
+      "evidence_count": 569,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1329,6 +1332,7 @@
         "shared/enterprise_gis/test_phase7_enterprise.py",
         "shared/feature_store/ml_quality_bridge.py",
         "shared/feature_store/practice_review.py",
+        "shared/feature_store/runtime.py",
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py",
         "shared/field_runtime_cohesion.py",
@@ -1342,6 +1346,9 @@
         "shared/memory/farm_memory.py",
         "shared/memory/import_engine.py",
         "shared/memory/models.py",
+        "shared/mlops/__init__.py",
+        "shared/mlops/agronomic_candidate.py",
+        "shared/mlops/runtime.py",
         "shared/notification_consumers.py",
         "shared/precision_agriculture/fertigation_plan.py",
         "shared/precision_agriculture/trial_spatial.py",
@@ -1581,7 +1588,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 319,
+      "evidence_count": 320,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1915,6 +1922,7 @@
         "shared/governance/chemical_lineage.py",
         "shared/marketplace_ecosystem_phase12.py",
         "shared/marketplace_plugin_runtime.py",
+        "shared/mlops/agronomic_candidate.py",
         "shared/precision_agriculture/nutrient_units.py",
         "shared/precision_agriculture/phase6_intelligence.py",
         "shared/precision_agriculture/test_phase6_intelligence.py",
@@ -2001,7 +2009,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 187,
+      "evidence_count": 190,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2211,8 +2219,11 @@
         "shared/ai/tool_audit.py",
         "shared/fcm.py",
         "shared/feature_store/ml_quality_bridge.py",
+        "shared/feature_store/runtime.py",
         "shared/governance/chemical_lineage.py",
         "shared/iot_execution_runtime.py",
+        "shared/mlops/agronomic_candidate.py",
+        "shared/mlops/runtime.py",
         "shared/security/cors_policy.py",
         "shared/security/decision_service_auth.py",
         "shared/storage/s3_endpoint_security.py"
@@ -2920,8 +2931,8 @@
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/api/recommendations_hub.py"
       ],
-      "source_evidence_count": 710,
-      "target_evidence_count": 565,
+      "source_evidence_count": 713,
+      "target_evidence_count": 569,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3032,7 +3043,7 @@
         "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_irrigation_ac1_binding.py"
       ],
-      "source_evidence_count": 565,
+      "source_evidence_count": 569,
       "target_evidence_count": 203,
       "static_supported": true,
       "runtime_verified": false
@@ -3128,7 +3139,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 203,
-      "target_evidence_count": 319,
+      "target_evidence_count": 320,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3174,7 +3185,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 319,
+      "source_evidence_count": 320,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3222,7 +3233,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 51,
-      "target_evidence_count": 187,
+      "target_evidence_count": 190,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3261,7 +3272,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 187,
+      "source_evidence_count": 190,
       "target_evidence_count": 45,
       "static_supported": true,
       "runtime_verified": false
@@ -3375,5 +3386,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "d91f0b0e0dbbeb9d25037d9ed8815b659bd1e4df66ab2636460ab4bdef9170f0"
+  "content_sha256": "6da60d5157d78dc2a004b3c144d37dd6a85d8d459c360e777c4065984d8747fb"
 }

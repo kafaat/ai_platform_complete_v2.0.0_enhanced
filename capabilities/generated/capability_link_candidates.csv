@@ -254,8 +254,8 @@ DEC-010,api,POST /v1/learning/activation-requests @ services/decision-service/ma
 DEC-010,api,POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2267,3,applied
 DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2522,3,applied
 DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2558,3,applied
-DEC-010,api,POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:162,2,applied
-DEC-010,api,POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:291,2,applied
+DEC-010,api,POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:166,2,applied
+DEC-010,api,POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:309,2,applied
 DEC-010,service,services/decision-service/main.py,10,applied
 DEC-010,test,services/decision-service/tests/test_model_promotion_guardrail_direction.py,3,applied
 DEC-010,test,services/decision-service/tests/test_wx11_3_model_promotion_decision.py,3,applied
@@ -264,6 +264,7 @@ DEC-010,test,services/decision-service/tests/test_wx11_5_model_activation_approv
 DEC-010,test,services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py,3,applied
 DEC-010,test,services/sahool-platform/tests/test_practice_promotion.py,3,applied
 DEC-010,test,tests/architecture/test_runtime_verification_promotion_workflow.py,3,applied
+DEC-010,test,tests/phase6/test_model_promotion_finite_phase13.py,3,applied
 FM-001,api,DELETE /v1/auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:218,3,applied
 FM-001,api,GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:92,2,applied
 FM-001,api,GET /api/v1/tenant/config @ services/sahool-platform/api/routers/tenant.py:29,2,applied
@@ -1709,7 +1710,7 @@ OPS-004,ui,frontend/src/components/ds/forms.test.tsx,2,applied
 OPS-004,ui,frontend/src/components/ds/forms.tsx,2,applied
 OPS-005,api,GET /v1/offline/packs @ services/raster-service/routers/storage.py:124,2,applied
 OPS-005,api,GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:152,2,applied
-OPS-005,api,POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:244,2,applied
+OPS-005,api,POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:248,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/core/widgets/offline_banner.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/maps/data/offline_pack_store.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/maps/data/offline_tiles.dart,2,applied
@@ -1746,6 +1747,7 @@ OPS-005,test,mobile/sahool_app/test/features/offline_sync/sync_queue_d3_test.dar
 OPS-005,test,mobile/sahool_app/test/features/offline_sync/sync_status_screen_test.dart,3,applied
 OPS-005,test,services/local-ai-rag/test_rag_offline_guards.py,3,applied
 OPS-005,test,services/sahool-platform/tests/test_offline_first.py,3,applied
+OPS-005,test,services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py,3,applied
 OPS-005,test,tests/mobile/test_phase11_mobile_offline_sync_runtime.py,3,applied
 OPS-005,test,tests_v9/run_offline_suite.py,2,applied
 OPS-005,test,tests_v9/test_e2e_offline_flow.py,3,applied

@@ -2189,6 +2189,8 @@
           "services/sahool-platform/core/workflow_engine.py",
           "services/sahool-platform/tests/test_field_overlap_postgis.py",
           "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
+          "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
+          "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
           "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
           "services/sahool-platform/tests/test_phase11_runtime_api.py",
           "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",

@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "567ae7df490d9c3adc92202cfb5e10f6cf3766eecf6a99aef2f827199ce90b5a",
+  "inventory_sha256": "9b8de7c5847345f2b0fe57f715667c85b5273ec98ef153bc2b2090bc30b4354c",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "abf98254d985b643808d1884fe54fd38d7a75f2265eb900ff21c4a291bc85567"
+    "policy_sha256": "f648d6056080dd735832f50689b63ba0212f7fc0ea4d7863eb9587d80cbbc517"
   },
   "routes": [
     {
@@ -2642,7 +2642,7 @@
     {
       "classification": "domain",
       "function": "model_serving_resolve",
-      "line": 300,
+      "line": 318,
       "method": "GET",
       "path": "/models/serving/{alias:path}",
       "source": "api/phase10_continuous_learning.py"
@@ -4466,7 +4466,7 @@
     {
       "classification": "domain",
       "function": "champion_challenger",
-      "line": 224,
+      "line": 228,
       "method": "POST",
       "path": "/champion-challenger",
       "source": "api/phase10_continuous_learning.py"
@@ -4522,7 +4522,7 @@
     {
       "classification": "domain",
       "function": "learning_cycle",
-      "line": 196,
+      "line": 200,
       "method": "POST",
       "path": "/cycle",
       "source": "api/phase10_continuous_learning.py"
@@ -4554,7 +4554,7 @@
     {
       "classification": "domain",
       "function": "dataset",
-      "line": 151,
+      "line": 155,
       "method": "POST",
       "path": "/dataset",
       "source": "api/phase10_continuous_learning.py"
@@ -4562,7 +4562,7 @@
     {
       "classification": "domain",
       "function": "drift",
-      "line": 208,
+      "line": 212,
       "method": "POST",
       "path": "/drift",
       "source": "api/phase10_continuous_learning.py"
@@ -4610,7 +4610,7 @@
     {
       "classification": "domain",
       "function": "experiment_evaluation",
-      "line": 181,
+      "line": 185,
       "method": "POST",
       "path": "/experiments/evaluate",
       "source": "api/phase10_continuous_learning.py"
@@ -4626,7 +4626,7 @@
     {
       "classification": "domain",
       "function": "feature_schema",
-      "line": 146,
+      "line": 150,
       "method": "POST",
       "path": "/feature-schema",
       "source": "api/phase10_continuous_learning.py"
@@ -4634,7 +4634,7 @@
     {
       "classification": "domain",
       "function": "feature_store_offline_dataset",
-      "line": 243,
+      "line": 247,
       "method": "POST",
       "path": "/feature-store/offline-dataset",
       "source": "api/phase10_continuous_learning.py"
@@ -4642,7 +4642,7 @@
     {
       "classification": "domain",
       "function": "feature_store_online_materialization",
-      "line": 253,
+      "line": 258,
       "method": "POST",
       "path": "/feature-store/online-materialization",
       "source": "api/phase10_continuous_learning.py"
@@ -4650,7 +4650,7 @@
     {
       "classification": "domain",
       "function": "feature_store_point_in_time",
-      "line": 261,
+      "line": 266,
       "method": "POST",
       "path": "/feature-store/point-in-time",
       "source": "api/phase10_continuous_learning.py"
@@ -4658,7 +4658,7 @@
     {
       "classification": "domain",
       "function": "feature_store_register",
-      "line": 236,
+      "line": 240,
       "method": "POST",
       "path": "/feature-store/register",
       "source": "api/phase10_continuous_learning.py"
@@ -4786,7 +4786,7 @@
     {
       "classification": "domain",
       "function": "model_promotion",
-      "line": 161,
+      "line": 165,
       "method": "POST",
       "path": "/models/promote",
       "source": "api/phase10_continuous_learning.py"
@@ -4794,7 +4794,7 @@
     {
       "classification": "domain",
       "function": "model_register",
-      "line": 268,
+      "line": 280,
       "method": "POST",
       "path": "/models/register",
       "source": "api/phase10_continuous_learning.py"
@@ -4810,7 +4810,7 @@
     {
       "classification": "domain",
       "function": "model_serving_promote",
-      "line": 283,
+      "line": 301,
       "method": "POST",
       "path": "/models/serving/promote",
       "source": "api/phase10_continuous_learning.py"
@@ -4818,7 +4818,7 @@
     {
       "classification": "domain",
       "function": "model_serving_rollback",
-      "line": 290,
+      "line": 308,
       "method": "POST",
       "path": "/models/serving/rollback",
       "source": "api/phase10_continuous_learning.py"
@@ -4834,7 +4834,7 @@
     {
       "classification": "domain",
       "function": "online_update",
-      "line": 171,
+      "line": 175,
       "method": "POST",
       "path": "/online-update",
       "source": "api/phase10_continuous_learning.py"
@@ -4970,7 +4970,7 @@
     {
       "classification": "domain",
       "function": "retraining_plan",
-      "line": 217,
+      "line": 221,
       "method": "POST",
       "path": "/retraining/plan",
       "source": "api/phase10_continuous_learning.py"
@@ -5010,7 +5010,7 @@
     {
       "classification": "domain",
       "function": "scenario",
-      "line": 191,
+      "line": 195,
       "method": "POST",
       "path": "/scenario",
       "source": "api/phase10_continuous_learning.py"

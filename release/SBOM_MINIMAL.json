@@ -25425,7 +25425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a5345bfba56c6505e4e3eb45a6361d9180f766150054fad0a3ac7c4740f0dc4"
+          "content": "a53d963c54d8750412aeeabd3bca7de983ab23fa27847cb0d1b77d2b11f50136"
         }
       ],
       "name": "services/sahool-platform/api/phase10_continuous_learning.py",
@@ -27855,7 +27855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bf347f8d6e85fc05dc9731daf4802ba8bd60e433b9cbe187f894aa27b574b13b"
+          "content": "a6afe60ff2d3cbad429c05db81a6ca795769ae21d56f1294336b71c70986b137"
         }
       ],
       "name": "services/sahool-platform/api/yield_analysis.py",
@@ -35125,10 +35125,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9c9a70498b9874c8e5d728cd7a40609ffcc9245ac0660121901fe88ce4e1d97"
+          "content": "578de457da67d152b613d5af4fcc23cbf8d745fda525f97ce26e31cfc6bcc0de"
         }
       ],
       "name": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5a7e3920537e973224c6fec458b058d181babee2faaade547b8430ba986e320f"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d17ac19d7b86cb76c169bee56838e6880e14923bdfabecaec4e846a2dff7814b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
       "type": "file"
     },
     {
@@ -36819,6 +36839,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_yield_analysis.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f554eedb6499b6b65f87e6be9ee2b58d6670a33d7dbad4dedcef5c1de65f82a3"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_yield_finite_phase12.py",
       "type": "file"
     },
     {
@@ -39375,7 +39405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec09a8722375d9f7517bde4cae92a572fb4b46d1be28f4734ff5817a6a64f0b4"
+          "content": "985ec330ec1920c00c33a3a18a579d40e6d7f2dcaea76eb62b03b39ca1484a43"
         }
       ],
       "name": "shared/autonomous_farm_os_phase9.py",
@@ -39395,7 +39425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "355daf247500316cc73a386059e78664ed9e3b616e1166cf1a08ba329980eb48"
+          "content": "823559ca741e6d135c647d0cc5891bf2a5e393c08ec1b7c8c2f346f7e7231a8f"
         }
       ],
       "name": "shared/continuous_learning_phase10.py",
@@ -40115,7 +40145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70c285670eed690fff67073e8fa507d6552a60f4b557fe831ba637df7472cb26"
+          "content": "edd3c0625dfb2d5c13f8f9167681919629adaec942770581f7d06ed92fcf4fb9"
         }
       ],
       "name": "shared/feature_store/practice_review.py",
@@ -40125,7 +40155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e14cf5fcead5ad5f79a820e05263f99b9134675de40c3ae64f8f369d9b26fd80"
+          "content": "a7259038288f7486d8680d08895a301c2a47a18c5435b46f54541ec4d46b1bee"
         }
       ],
       "name": "shared/feature_store/runtime.py",
@@ -40525,7 +40555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "97049a19c13b48b3e8f05bf1c5e35b27ef71f6fed039df2ecf365d24711a3d2c"
+          "content": "e2dd92c8d5723c3c3c8612cb2e0b3473dae448dfae2331926594f9894e33aeec"
         }
       ],
       "name": "shared/mlops/__init__.py",
@@ -40535,7 +40565,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a9a47528532c3ab52121c970351dffdb863415a99bf80e7404321205289c120d"
+          "content": "c1365a016d611845d08753c40274509760166ee7c9527d1e83d82a82ff6fe200"
+        }
+      ],
+      "name": "shared/mlops/agronomic_candidate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c12c1806ffac464c30d65d69712c8775912ca984b1f8eae9b6a4608b72af5bcf"
         }
       ],
       "name": "shared/mlops/runtime.py",
@@ -40845,7 +40885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c89889959d88c3535e0670a75404bcb5e14b2f2267f4aed3c3bc28f3d5bf7044"
+          "content": "3020f4e98b3058e63e95966911e0382aced71ece7d2283462b457ec67c7a131f"
         }
       ],
       "name": "shared/test_continuous_learning_phase10.py",

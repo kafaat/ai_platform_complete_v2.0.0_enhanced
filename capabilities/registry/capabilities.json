@@ -4319,7 +4319,7 @@
       "apis": [
         "GET /v1/offline/packs @ services/raster-service/routers/storage.py:124",
         "GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:152",
-        "POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:244"
+        "POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:248"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -4361,13 +4361,13 @@
         "mobile/sahool_app/test/features/offline_sync/sync_status_screen_test.dart",
         "services/local-ai-rag/test_rag_offline_guards.py",
         "services/sahool-platform/tests/test_offline_first.py",
+        "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
         "tests/mobile/test_phase11_mobile_offline_sync_runtime.py",
         "tests_v9/run_offline_suite.py",
         "tests_v9/test_e2e_offline_flow.py",
         "tests_v9/test_offline_dispatch_field_update.py",
         "tests_v9/test_offline_first_behavior_v66.py",
-        "tests_v9/test_offline_pending_ops_terminal_v19_5.py",
-        "tests_v9/test_offline_pending_queue.py"
+        "tests_v9/test_offline_pending_ops_terminal_v19_5.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4406,7 +4406,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 1
+        "tests": 2
       }
     },
     {
@@ -4720,6 +4720,10 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/core/engines/candidate_generator.py"
+        },
+        {
+          "type": "repository",
+          "path": "shared/mlops/agronomic_candidate.py"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=5, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
@@ -5347,8 +5351,8 @@
         "POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2267",
         "POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2522",
         "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2558",
-        "POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:162",
-        "POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:291"
+        "POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:166",
+        "POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:309"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -5359,7 +5363,8 @@
         "services/decision-service/tests/test_wx11_5_model_activation_approval.py",
         "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
         "services/sahool-platform/tests/test_practice_promotion.py",
-        "tests/architecture/test_runtime_verification_promotion_workflow.py"
+        "tests/architecture/test_runtime_verification_promotion_workflow.py",
+        "tests/phase6/test_model_promotion_finite_phase13.py"
       ],
       "runtime": {
         "metrics": [],
@@ -5394,7 +5399,7 @@
           "path": "services/decision-service/production_promotion.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=8, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
