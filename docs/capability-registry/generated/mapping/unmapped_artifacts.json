@@ -10504,6 +10504,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_agent_store_selection_logged.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_agent_stores_v58_2.py",
     "kind": "tests"
   },

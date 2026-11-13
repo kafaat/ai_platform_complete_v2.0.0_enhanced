@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7168,
+    "files_scanned": 7170,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2165,
-      "tests": 2410,
+      "tests": 2412,
       "web": 524
     },
-    "unmapped_artifacts": 3412,
+    "unmapped_artifacts": 3413,
     "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3863,
+      "python_functional": 3865,
       "raw": 3305
     },
-    "test_dependency_files": 1816,
-    "test_dependency_edges": 4601,
-    "test_dependency_bounded_files": 1060,
+    "test_dependency_files": 1818,
+    "test_dependency_edges": 4605,
+    "test_dependency_bounded_files": 1062,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -2459,6 +2459,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_rag_point_id_tenant_namespace.py",
           "score": 14,
           "signals": [
@@ -2805,7 +2813,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 40,
+        "tests": 41,
         "governance": 0,
         "other_evidence": 25
       },
@@ -41101,6 +41109,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_agent_store_selection_logged.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_agent_stores_v58_2.py",
       "kind": "tests"
     },
@@ -68850,6 +68862,24 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_agent_store_selection_logged.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 22
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 22
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_agent_stores_v58_2.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -82680,6 +82710,24 @@
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
           "kind": "source_read",
           "line": 23
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "loader",
+          "line": 37
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "source_read",
+          "line": 33
         }
       ],
       "unresolved": []
