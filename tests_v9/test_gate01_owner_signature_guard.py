@@ -733,7 +733,7 @@ def test_the_workflow_passes_the_owner_pin_from_a_repository_variable():
     assert "GATE01_OWNER_KEY_FINGERPRINT: ${{ vars.GATE01_OWNER_KEY_FINGERPRINT }}" in wf
 
 
-def test_the_committed_trust_root_matches_owner_key_and_keeps_gate_closed():
+def test_the_committed_trust_root_matches_owner_key_and_names_the_open_ruling():
     text = (_ROOT / SIGNERS).read_text(encoding="utf-8")
     signers = sig.parse_allowed_signers(text)
     assert set(signers) == {"kafaat-gate01-owner"}
@@ -744,7 +744,15 @@ def test_the_committed_trust_root_matches_owner_key_and_keeps_gate_closed():
     assert block["required_for"] == ["state_transition"]
     assert block["required_for_bounded"] is True
     assert block["allowed_signers_path"] == SIGNERS
-    assert policy["gate"]["state"] == "CLOSED"
+    gate = policy["gate"]
+    # Opened by the owner's signed state_transition on 2026-11-12 (GATE01-OPEN-2026-11-12).
+    # CLOSED stays valid at any time: closing is a tightening that needs no signature.
+    if gate["state"] == "OPEN":
+        assert gate["ruling_source"] == (
+            "docs/architecture/gates/authorizations/GATE01-AUTH-2026-11-12-001.dsse.json"
+        )
+    else:
+        assert gate["state"] == "CLOSED"
 
 
 @pytest.mark.parametrize(
