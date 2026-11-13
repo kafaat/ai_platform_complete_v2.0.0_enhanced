@@ -93,6 +93,10 @@ async def update_notification_preferences(
 
     يتحقّق من أنواع الأحداث ودرجة الخطورة (422 على قيمة غير معروفة)، ثمّ يُدرِج/
     يُحدِّث عبر تعارض (tenant_id, user_ref). tenant-isolated. 503 عند تعذّر القاعدة.
+
+    الفهرس الفريد الوحيد على (tenant_id, user_ref) جزئيّ (``WHERE user_ref IS NOT NULL``،
+    v38)، فيجب أن يُكرّر هدفُ التعارض شرطَه وإلّا لا يستنتج المُخطِّط أيّ فهرس ويفشل
+    كلّ تنفيذ بـ42P10 (لا يظهر عند PREPARE — الاستنتاج في المُخطِّط).
     """
     import json as _json
 
@@ -110,7 +114,7 @@ async def update_notification_preferences(
                      whatsapp_enabled, whatsapp_number, event_types, min_severity)
                    VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10,
                            $11::jsonb, $12)
-                   ON CONFLICT (tenant_id, user_ref)
+                   ON CONFLICT (tenant_id, user_ref) WHERE user_ref IS NOT NULL
                    DO UPDATE SET
                      email_enabled    = EXCLUDED.email_enabled,
                      email_address    = EXCLUDED.email_address,
