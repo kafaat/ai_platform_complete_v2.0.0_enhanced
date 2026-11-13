@@ -1,0 +1,127 @@
+{
+  "schema": "sahool.phase8.parallel-local-verification/v1",
+  "independent_autonomous_ai_agents": false,
+  "source": "locally-extracted-phase7-plus-phase8",
+  "test_processes": 6,
+  "all_pass": true,
+  "passed": 163,
+  "failed": 0,
+  "skipped": 0,
+  "groups": [
+    {
+      "workstream": "01_admin_grants",
+      "kind": "isolated_pytest_process",
+      "is_ai_agent": false,
+      "exit_code": 0,
+      "duration_s": 9.6,
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        "services/sahool-platform/tests/test_scout_photo_grant_admin.py",
+        "services/sahool-platform/tests/test_router_registry_contract.py"
+      ],
+      "log": "checks/01_admin_grants.log",
+      "last_lines": "asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollected 16 items\n\nservices/sahool-platform/tests/test_scout_photo_grant_admin.py ......... [ 56%]\n...                                                                      [ 75%]\nservices/sahool-platform/tests/test_router_registry_contract.py ....     [100%]\n\n============================== 16 passed in 4.90s =============================="
+    },
+    {
+      "workstream": "02_photo_auth_detection",
+      "kind": "isolated_pytest_process",
+      "is_ai_agent": false,
+      "exit_code": 0,
+      "duration_s": 7.4,
+      "passed": 39,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        "tests_v9/test_scout_photo_field_scopes.py",
+        "tests_v9/test_scout_photo_evidence_contract.py",
+        "tests_v9/test_scout_photo_detection_link_events.py"
+      ],
+      "log": "checks/02_photo_auth_detection.log",
+      "last_lines": "asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollected 39 items\n\ntests_v9/test_scout_photo_field_scopes.py ...........                    [ 28%]\ntests_v9/test_scout_photo_evidence_contract.py ...................       [ 76%]\ntests_v9/test_scout_photo_detection_link_events.py .........             [100%]\n\n============================== 39 passed in 2.99s =============================="
+    },
+    {
+      "workstream": "03_season_event_lineage",
+      "kind": "isolated_pytest_process",
+      "is_ai_agent": false,
+      "exit_code": 0,
+      "duration_s": 5.7,
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        "tests_v9/test_scout_photo_season_link_events.py"
+      ],
+      "log": "checks/03_season_event_lineage.log",
+      "last_lines": "configfile: pytest.ini\nplugins: anyio-4.13.0, ddtrace-4.4.0, Faker-40.1.2, asyncio-1.3.0, cov-7.0.0, json-report-1.5.0, metadata-3.1.1\nasyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollected 12 items\n\ntests_v9/test_scout_photo_season_link_events.py ............             [100%]\n\n============================== 12 passed in 1.89s =============================="
+    },
+    {
+      "workstream": "04_mobile_web_contract",
+      "kind": "isolated_pytest_process",
+      "is_ai_agent": false,
+      "exit_code": 0,
+      "duration_s": 4.6,
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        "tests_v9/test_scout_photo_mobile_wiring_contract.py",
+        "tests_v9/test_scout_photo_grant_admin_web_contract.py"
+      ],
+      "log": "checks/04_mobile_web_contract.log",
+      "last_lines": "plugins: anyio-4.13.0, ddtrace-4.4.0, Faker-40.1.2, asyncio-1.3.0, cov-7.0.0, json-report-1.5.0, metadata-3.1.1\nasyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollected 14 items\n\ntests_v9/test_scout_photo_mobile_wiring_contract.py ..........           [ 71%]\ntests_v9/test_scout_photo_grant_admin_web_contract.py ....               [100%]\n\n============================== 14 passed in 0.32s =============================="
+    },
+    {
+      "workstream": "05_ownership_migration",
+      "kind": "isolated_pytest_process",
+      "is_ai_agent": false,
+      "exit_code": 0,
+      "duration_s": 6.3,
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        "tests_v9/test_scout_photo_detection_migration_contract.py",
+        "tests_v9/test_scout_ingest_service_ownership.py",
+        "tests_v9/test_db_ownership_source_integrity_guard.py",
+        "tests_v9/test_apply_migration_manifest.py",
+        "tests_v9/test_migration_id_namespace_separation_guard.py"
+      ],
+      "log": "checks/05_ownership_migration.log",
+      "last_lines": "\ntests_v9/test_scout_photo_detection_migration_contract.py ....           [ 11%]\ntests_v9/test_scout_ingest_service_ownership.py .............            [ 50%]\ntests_v9/test_db_ownership_source_integrity_guard.py ...                 [ 58%]\ntests_v9/test_apply_migration_manifest.py ...........                    [ 91%]\ntests_v9/test_migration_id_namespace_separation_guard.py ...             [100%]\n\n============================== 34 passed in 3.00s =============================="
+    },
+    {
+      "workstream": "06_gateway_storage",
+      "kind": "isolated_pytest_process",
+      "is_ai_agent": false,
+      "exit_code": 0,
+      "duration_s": 10.2,
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        "tests_v9/test_scouting_pins_persistence.py",
+        "tests_v9/test_compose_nginx_upstream_contract.py",
+        "tests_v9/test_nginx_tenant_injection_guard.py",
+        "tests_v9/test_season_gateway_nginx_static.py",
+        "tests_v9/test_blob_store_presign_public_endpoint.py"
+      ],
+      "log": "checks/06_gateway_storage.log",
+      "last_lines": "tests_v9/test_scouting_pins_persistence.py ........                      [ 16%]\ntests_v9/test_compose_nginx_upstream_contract.py ..                      [ 20%]\ntests_v9/test_nginx_tenant_injection_guard.py ......                     [ 33%]\ntests_v9/test_season_gateway_nginx_static.py ......                      [ 45%]\ntests_v9/test_blob_store_presign_public_endpoint.py .................... [ 87%]\n......                                                                   [100%]\n\n============================== 48 passed in 5.02s =============================="
+    }
+  ],
+  "live_acceptance": {
+    "postgresql": "NOT_RUN",
+    "minio": "NOT_RUN",
+    "flutter": "NOT_RUN"
+  },
+  "static_validation": {
+    "python_syntax": "PASS",
+    "bash_syntax": "PASS",
+    "yaml_parsing": "PASS",
+    "typescript_syntax": "PASS",
+    "typescript_build": "NOT_RUN"
+  },
+  "staging_gate": "production_refused_code_64; staging_psql_missing_code_69"
+}
