@@ -311,8 +311,8 @@ async def test_persisted_context_carries_scene_identity_and_digest_tracks_it(mon
 # ── النافذة والمحصول والهندسة في استجابة المسار ─────────────────────────────────────
 
 
-async def _simulate_season(monkeypatch, season, **conn_kw):
-    conn = _Conn(season, [], **conn_kw)
+async def _simulate_season(monkeypatch, season, geometry_rows=(), **conn_kw):
+    conn = _Conn(season, list(geometry_rows), **conn_kw)
     route = _install(monkeypatch, conn, [])
     out = await route.simulate_season_endpoint("season-a", user=_USER)
     return out, conn
@@ -328,6 +328,22 @@ async def test_long_season_window_is_truncated_explicitly_not_silently(monkeypat
     assert "SIM_WINDOW_TRUNCATED" in out.limitations
     (warning,) = [w for w in out.warnings_ar if "سقف المحاكاة" in w]
     assert warning in json.loads(conn.runs[0][-1])
+
+
+async def test_truncated_window_still_traces_boundary_since_actual_sowing(monkeypatch):
+    sow = _TODAY - timedelta(days=300)
+    out, conn = await _simulate_season(
+        monkeypatch,
+        _season(sow, None),
+        geometry_rows=[
+            _rev(1, sow - timedelta(days=30)),
+            _rev(2, sow + timedelta(days=60)),
+        ],
+    )
+    assert out.truncated is True
+    assert "CURRENT_BOUNDARY_DIFFERS_FROM_SEASON_START" in out.limitations
+    snap = json.loads(conn.runs[0][6])
+    assert snap["spatial"]["revisions_since_sowing"] == [2]
 
 
 async def test_response_declares_simulated_crop_and_current_geometry_basis(monkeypatch):

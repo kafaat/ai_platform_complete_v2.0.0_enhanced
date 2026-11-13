@@ -258,7 +258,7 @@ async def simulate_season_endpoint(
     try:
         async with tenant_connection(user) as conn:
             spatial_provenance = await _boundary_revisions_since(
-                conn, str(srow["field_id"]), start
+                conn, str(srow["field_id"]), sow
             )
     except Exception:  # noqa: BLE001 — لا تختلق ثبات الهندسة إذا تعذّر جدول التدقيق
         spatial_provenance = {
@@ -277,7 +277,7 @@ async def simulate_season_endpoint(
         )
     if changed_revisions:
         spatial_warnings.append(
-            f"حدّ الحقل عُدِّل منذ بداية الموسم ({start.isoformat()}) — المراجعات "
+            f"حدّ الحقل عُدِّل منذ بداية الموسم ({sow.isoformat()}) — المراجعات "
             f"{'، '.join(str(r) for r in changed_revisions)}. المحاكاة تقرأ إحداثيّات الحقل "
             "وسلسلة NDVI على الحدّ الحاليّ لا حدّ الموسم؛ الموسم لا يُثبّت مراجعة هندسة."
         )
