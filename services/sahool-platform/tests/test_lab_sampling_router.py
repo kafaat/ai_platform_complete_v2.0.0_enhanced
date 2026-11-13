@@ -367,3 +367,88 @@ def test_published_value_comes_from_the_row_whose_id_is_recorded(monkeypatch):
     # soil-service's canonical units win; the lab's labels stay in provenance only.
     assert "units" not in sent["json"]
     assert sent["json"]["provenance"]["observed_at_source"] == "laboratory_result"
+
+
+def test_texture_labels_normalise_and_unknown_labels_are_rejected():
+    import pytest
+    from pydantic import ValidationError
+
+    def result(**kw):
+        return mod.SoilLabResultIn(sample_id="s", **kw)
+
+    assert result(texture="Sandy_Loam").texture == "sandy loam"
+    assert result(texture="طمية").texture == "loam"  # no shadda
+    assert result(texture="طميّة", sand_pct=40, silt_pct=40, clay_pct=20).texture == "loam"
+    assert result(sand_pct=40, silt_pct=39.5, clay_pct=20.5).texture == "loam"  # 100 ± 1
+    for bad in (
+        {"texture": "loamy-ish"},
+        {"sand_pct": 40, "silt_pct": 40},
+        {"sand_pct": 40, "silt_pct": 38.9, "clay_pct": 20},
+        {"sand_pct": 40, "silt_pct": 40, "clay_pct": 20, "texture": "clay"},
+    ):
+        with pytest.raises(ValidationError):
+            result(**bad)
+
+
+def test_blank_plan_id_from_older_clients_means_no_plan():
+    sample = mod.LabSampleIn(
+        field_id="f",
+        kind="soil",
+        latitude=15,
+        longitude=44,
+        depth_cm_from=0,
+        depth_cm_to=30,
+        sampling_plan_id="",
+    )
+    assert sample.sampling_plan_id is None
+
+
+def test_fraction_correction_supersedes_the_whole_texture_group(monkeypatch):
+    captured = {}
+
+    @asynccontextmanager
+    async def fake_tenant_connection(user):
+        yield object()
+
+    async def get_sample(*args, **kwargs):
+        return {"sample_id": "s-1", "field_id": "f-1", "kind": "soil", "status": "published"}
+
+    async def current_soil_result_ids(conn, *, tenant_id, sample_id, analytes):
+        captured["asked"] = sorted(analytes)
+        return {a: f"old-{a}" for a in analytes}
+
+    async def insert_soil_results(*args, **kwargs):
+        captured["analytes"] = {a["analyte"]: a for a in kwargs["analytes"]}
+        return []
+
+    async def noop(*args, **kwargs):
+        return {"sample_id": "s-1", "status": kwargs.get("status")}
+
+    monkeypatch.setattr(mod, "tenant_connection", fake_tenant_connection)
+    monkeypatch.setattr(mod.lab_store, "get_sample", get_sample)
+    monkeypatch.setattr(mod.lab_store, "current_soil_result_ids", current_soil_result_ids)
+    monkeypatch.setattr(mod.lab_store, "insert_soil_results", insert_soil_results)
+    monkeypatch.setattr(mod.lab_store, "set_status", noop)
+    monkeypatch.setattr(mod.lab_store, "add_custody_event", noop)
+    app = FastAPI()
+    app.include_router(mod.router)
+    app.dependency_overrides[get_current_user] = _user
+    explicit = "00000000-0000-0000-0000-000000000123"
+    response = TestClient(app).post(
+        "/api/v1/lab/soil-results",
+        json={
+            "sample_id": "s-1",
+            "clay_pct": 30,
+            "sand_pct": 40,
+            "silt_pct": 30,
+            "supersedes_result_ids": {"clay_pct": explicit},
+            "correction_reason": "clay re-run",
+        },
+    )
+    assert response.status_code == 200, response.text
+    sent = captured["analytes"]
+    assert str(sent["clay_pct"]["supersedes_result_id"]) == explicit
+    assert captured["asked"] == ["sand_pct", "silt_pct", "texture"]
+    assert sent["texture"]["value"] == "clay loam"
+    assert sent["texture"]["supersedes_result_id"] == "old-texture"
+    assert sent["sand_pct"]["supersedes_result_id"] == "old-sand_pct"

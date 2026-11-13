@@ -208,18 +208,28 @@ def _texture_est(f: TextureFeatureVector):
 
 def build_texture_probability(r: TextureProbabilityRequest) -> TextureProbabilityProduct:
     zones = []
-    calibration_bonus = min(0.3, len(r.calibration_samples) / 50)
+    from shared.soil_texture import usda_texture_class
+
+    used = set()
+    skipped = []
     for f in r.features:
+        sources = [
+            name
+            for name, data, keys in (
+                ("bare_soil", f.bare_bands, {"swir2", "nir", "red", "swir1"}),
+                ("terrain", f.terrain, {"twi"}),
+                ("soilgrids", f.soilgrids, {"clay_pct", "sand_pct"}),
+            )
+            if keys.intersection(data)
+        ]
+        if not sources:
+            skipped.append(f.zone_id)
+            continue
+        used.update(sources)
         c, a, si = _texture_est(f)
         probs = [c / 100, a / 100, si / 100]
-        m = max(probs)
-        klass = (
-            ["clay", "sand", "silt"][probs.index(m)]
-            if m >= 0.5
-            else ("sandy_loam" if a > c and a > si else "clay_loam" if c > a else "silt_loam")
-        )
-        source_count = sum(bool(x) for x in (f.bare_bands, f.sentinel1, f.terrain, f.soilgrids))
-        unc = _clamp(0.65 - 0.1 * source_count - calibration_bonus)
+        klass = usda_texture_class(c, a, si)["key"].replace(" ", "_")
+        unc = _clamp(0.65 - 0.1 * len(sources))
         zones.append(
             TextureZoneProbability(
                 zone_id=f.zone_id,
@@ -238,7 +248,7 @@ def build_texture_probability(r: TextureProbabilityRequest) -> TextureProbabilit
         "method": "spatial_block",
         "folds": r.validation_folds,
         "sample_count": len(r.calibration_samples),
-        "status": "evaluated"
+        "status": "not_evaluated"
         if len(r.calibration_samples) >= r.validation_folds * 3
         else "insufficient_local_samples",
         "metrics": {},
@@ -251,7 +261,9 @@ def build_texture_probability(r: TextureProbabilityRequest) -> TextureProbabilit
         zones=zones,
         spatial_cv=cv,
         provenance={
-            "inputs": ["bare_soil", "sentinel1", "terrain", "soilgrids", "geology"],
+            "inputs": sorted(used),
+            "zones_without_usable_inputs": skipped,
+            "probability_fields": "estimated_composition_fractions",
             "evidence_class": "modelled",
             "local_calibration_samples": len(r.calibration_samples),
         },

@@ -1252,7 +1252,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v156_durable_soil_lab_workflow.sql"
+    source: "migrations/v156_durable_soil_lab_workflow.sql, migrations/v255_soil_sampling_origin.sql"
   lab_sample_custody_events:
     owner: sahool-platform
     writers: [sahool-platform]

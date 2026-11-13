@@ -28,6 +28,9 @@ _ANALYTE_MAP = {
     "potassium_mg_kg": ("potassium", "mg/kg"),
     "cec_cmol_kg": ("cec", "cmol(+)/kg"),
     "calcium_carbonate_pct": ("calcium_carbonate", "%"),
+    "clay_pct": ("clay", "%"),
+    "sand_pct": ("sand", "%"),
+    "silt_pct": ("silt", "%"),
     "texture": ("texture", None),
 }
 
@@ -103,6 +106,12 @@ async def publish_soil_lab_evidence(
         "supersession_reason": correction_reason,
         "provenance": {
             "sample_id": sample["sample_id"],
+            "sampling_plan_id": sample.get("sampling_plan_id"),
+            "sampling_origin": sample.get("sampling_origin"),
+            "collected_position": {
+                "latitude": sample.get("latitude"),
+                "longitude": sample.get("longitude"),
+            },
             "units": units,
             "workflow_status": "published",
             "observed_at_source": "laboratory_result",

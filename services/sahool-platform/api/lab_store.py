@@ -8,6 +8,13 @@ from typing import Any
 from uuid import uuid4
 
 
+def _sample_record(row):
+    data = dict(row)
+    if isinstance(data.get("sampling_origin"), str):
+        data["sampling_origin"] = json.loads(data["sampling_origin"])
+    return data
+
+
 async def create_sample(
     conn, *, tenant_id: str, created_by: str, payload: dict[str, Any]
 ) -> dict[str, Any]:
@@ -18,8 +25,8 @@ async def create_sample(
         INSERT INTO lab_samples (
           sample_id, tenant_id, field_id, kind, latitude, longitude, sampled_on,
           depth_cm_from, depth_cm_to, source, status, gps_accuracy_m,
-          sampling_plan_id, barcode, collected_by, created_by
-        ) VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+          sampling_plan_id, barcode, collected_by, created_by, sampling_origin
+        ) VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb)
         RETURNING *
         """,
         sample_id,
@@ -38,8 +45,9 @@ async def create_sample(
         payload.get("barcode"),
         payload.get("collected_by"),
         created_by,
+        json.dumps(payload["sampling_origin"]) if payload.get("sampling_origin") else None,
     )
-    return dict(row)
+    return _sample_record(row)
 
 
 async def list_samples(
@@ -54,7 +62,7 @@ async def list_samples(
         tenant_id,
         field_id,
     )
-    return [dict(r) for r in rows]
+    return [_sample_record(r) for r in rows]
 
 
 async def get_sample(conn, *, tenant_id: str, sample_id: str) -> dict[str, Any] | None:
@@ -63,7 +71,7 @@ async def get_sample(conn, *, tenant_id: str, sample_id: str) -> dict[str, Any] 
         tenant_id,
         sample_id,
     )
-    return dict(row) if row else None
+    return _sample_record(row) if row else None
 
 
 async def set_status(conn, *, tenant_id: str, sample_id: str, status: str) -> dict[str, Any]:
@@ -211,6 +219,15 @@ async def approve_soil_results(conn, *, tenant_id: str, sample_id: str, approved
         return 0
 
 
+def _analyte_value(value):
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except ValueError:
+            pass
+    return value
+
+
 async def latest_soil_analysis(
     conn, *, tenant_id: str, field_id: str, sample_id: str | None = None
 ) -> dict[str, Any] | None:
@@ -281,7 +298,7 @@ async def latest_water_analysis(conn, *, tenant_id: str, field_id: str) -> dict[
 
 async def publishable_soil_results(conn, *, tenant_id: str, sample_id: str) -> list[dict[str, Any]]:
     rows = await conn.fetch(
-        """SELECT r.result_id, r.analyte, r.value_json, r.unit, r.method_code, r.detection_limit,
+        """SELECT DISTINCT ON (r.analyte) r.result_id, r.analyte, r.value_json, r.unit, r.method_code, r.detection_limit,
                          r.uncertainty, r.observed_at, r.supersedes_result_id, r.published_observation_id,
                          prior.published_observation_id AS superseded_published_observation_id
                   FROM soil_lab_results r
@@ -291,7 +308,23 @@ async def publishable_soil_results(conn, *, tenant_id: str, sample_id: str) -> l
         tenant_id,
         sample_id,
     )
-    return [dict(r) for r in rows]
+    return [dict(r, value_json=_analyte_value(r["value_json"])) for r in rows]
+
+
+async def current_soil_result_ids(
+    conn, *, tenant_id: str, sample_id: str, analytes: list[str]
+) -> dict[str, Any]:
+    """The newest result per analyte of this sample that no correction has superseded."""
+    rows = await conn.fetch(
+        """SELECT DISTINCT ON (analyte) analyte, result_id FROM soil_lab_results
+           WHERE tenant_id=$1::uuid AND sample_id=$2 AND analyte = ANY($3::text[])
+             AND quality_status <> 'superseded'
+           ORDER BY analyte, observed_at DESC, received_at DESC, result_id DESC""",
+        tenant_id,
+        sample_id,
+        analytes,
+    )
+    return {r["analyte"]: r["result_id"] for r in rows}
 
 
 async def mark_soil_results_published(
