@@ -114,3 +114,23 @@ def test_water_profile_governance_and_indices():
     assert "irrigation_planning" in p.allowed_use
     draft = build_water_profile(s.model_copy(update={"approved": False}))
     assert "reclamation_execution" in draft.blocked_use
+
+
+# ── R-H7: jsonb arrives from asyncpg as text; the stores decode it at their boundary ──
+
+
+def test_jsonb_text_from_asyncpg_decodes_to_the_json_value():
+    from jsonb_values import decode_jsonb, decode_jsonb_object, decode_observation_row
+
+    assert decode_jsonb('{"a": 1}') == {"a": 1}
+    assert decode_jsonb(b"0.31") == 0.31
+    assert decode_jsonb({"a": 1}) == {"a": 1}  # already decoded (a registered codec) passes
+    assert decode_jsonb(None) is None
+    assert decode_jsonb_object('{"status": "approved"}') == {"status": "approved"}
+    assert decode_jsonb_object(None) is None
+    with pytest.raises(TypeError):
+        decode_jsonb_object("[1, 2]")
+    row = decode_observation_row(
+        {"property": "ph", "value_json": "7.2", "quality_flags": "[]", "provenance": "{}"}
+    )
+    assert row == {"property": "ph", "value_json": 7.2, "quality_flags": [], "provenance": {}}

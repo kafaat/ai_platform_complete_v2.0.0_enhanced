@@ -522,6 +522,21 @@ def _wire_phenology_and_calendar(state, truths, ctx, prov):
             from core.crop_cards.loader import load_variety_card
 
             v = load_variety_card(ctx.variety_id)
+            if v and (not ctx.crop_id or v.get("parent_crop_id") != ctx.crop_id):
+                # A valid variety card for another crop must never modify salt/phenology.
+                state.contradictions.append(
+                    {
+                        "type": "variety_crop_mismatch",
+                        "variety_id": ctx.variety_id,
+                        "parent_crop_id": v.get("parent_crop_id"),
+                        "crop_id": ctx.crop_id,
+                        "resolution": "excluded_from_decision",
+                        "requires_review": True,
+                    }
+                )
+                v = None
+            if v is None:
+                state.missing_signals.append(f"variety ({ctx.variety_id}): unknown_or_incompatible")
             if v:
                 traits = v.get("variety_traits", {})
                 truths["variety_id"] = ctx.variety_id

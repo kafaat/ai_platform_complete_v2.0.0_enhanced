@@ -505,6 +505,17 @@ def build_canonical_weather_state(
         "elevation_m": elevation_m,
         "day_of_year": day_of_year,
     }
+    # A historical view is a whole observation series, not just a coordinate.
+    # Two different archive windows at the same latitude must not share a
+    # canonical state/snapshot identity. Preserve all owner-produced dates and
+    # measurements in the content digest; do not add a wall-clock timestamp.
+    if historical_series is not None:
+        serialized = json.dumps(
+            historical_series, sort_keys=True, separators=(",", ":"), default=str
+        )
+        snapshot_inputs["historical_series_sha256"] = hashlib.sha256(
+            serialized.encode("utf-8")
+        ).hexdigest()
     # لقطة المصدر للحالة: إن صرّح المُستهلِك بمعرِّف لقطة (override) فهو الحقيقة —
     # يدخل source_snapshot_id (فيتماسك مع products.et0.weather_snapshot_id) **و**state_id
     # (فيتمايز طلبان بنفس القيم لكن بلقطتين مختلفتين — traceability/replay/dedup سليمة).
