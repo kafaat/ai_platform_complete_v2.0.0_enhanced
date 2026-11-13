@@ -483,11 +483,12 @@ def irrigation_water_analysis(
     """يحلّل عيّنة ماء ريّ: SAR/RSC + تصنيف الملوحة/الصوديوم/القلويّة.
 
     صدق: يُعلِن المؤشّر غير المحسوب (نقص أيونات) صراحةً — لا تقدير مفبرَك.
-    حسابيّ بحت (لا قاعدة)؛ التفويض مطلوب (سيادة الوصول)."""
+    حسابيّ بحت (لا قاعدة)؛ التفويض مطلوب (سيادة الوصول). لا يُخزَّن ولا يُربط بحقل:
+    ``persisted: false`` صريح، و``field_id`` يُرفض في النموذج (422)."""
     from core.irrigation_water_analysis import WaterSample, analyze_water_sample
 
     try:
-        sample = WaterSample(**req.model_dump())
-        return analyze_water_sample(sample)
+        sample = WaterSample(**req.model_dump(exclude={"field_id"}))
+        return {**analyze_water_sample(sample), "persisted": False}
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

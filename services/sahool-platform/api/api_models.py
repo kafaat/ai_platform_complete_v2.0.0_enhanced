@@ -762,7 +762,30 @@ class OnboardingSubmitRequest(BaseModel):
 
 class WaterAnalysisRequest(BaseModel):
     sample_id: str
-    source: str = "well"  # well | canal | mixed
+    # نوع مصدر الماء (مفردات WaterSample وWATER_SOURCE_OPTIONS في الواجهة) — لا نصّ حرّ:
+    # «field:<اسم>» ليس مصدر ماء، وربط العيّنة بالحقل يكون بـfield_id.
+    source: Literal["well", "canal", "mixed"] = "well"
+    # حسابٌ لا يُخزَّن: لا ربط بحقل هنا. كان field_id يُسقَط صامتاً فيُظَنّ الربط قائماً؛
+    # الآن يُرفض صراحةً (422) ويُوجَّه إلى مسار المختبر المُخزَّن المرتبط بحقل المستأجِر.
+    field_id: None = Field(
+        default=None,
+        description=(
+            "Not accepted: water-analysis is a calculation and is not stored or bound to a"
+            " field. Record a field-bound result via /api/v1/lab/samples and"
+            " /api/v1/lab/water-results."
+        ),
+    )
+
+    @field_validator("field_id", mode="before")
+    @classmethod
+    def _field_binding_not_supported(cls, value):
+        if value is not None:
+            raise ValueError(
+                "water-analysis is a calculation and is not saved to a field; record a"
+                " field-bound lab water result via /api/v1/lab/water-results"
+            )
+        return value
+
     na: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     ca: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     mg: float | None = Field(default=None, ge=0, allow_inf_nan=False)
