@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7166,
+    "files_scanned": 7167,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2165,
-      "tests": 2408,
+      "tests": 2409,
       "web": 524
     },
     "unmapped_artifacts": 3410,
     "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3861,
+      "python_functional": 3862,
       "raw": 3305
     },
-    "test_dependency_files": 1814,
-    "test_dependency_edges": 4596,
-    "test_dependency_bounded_files": 1059,
+    "test_dependency_files": 1815,
+    "test_dependency_edges": 4598,
+    "test_dependency_bounded_files": 1060,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -2459,6 +2459,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_rag_point_id_tenant_namespace.py",
           "score": 14,
           "signals": [
@@ -2805,7 +2813,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 40,
+        "tests": 41,
         "governance": 0,
         "other_evidence": 25
       },
@@ -82629,6 +82637,24 @@
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
           "kind": "source_read",
           "line": 23
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "loader",
+          "line": 37
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "source_read",
+          "line": 33
         }
       ],
       "unresolved": []
