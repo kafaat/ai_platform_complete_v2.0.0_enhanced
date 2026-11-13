@@ -200,3 +200,18 @@ def test_invalid_window_fails_closed_instead_of_using_out_of_window_events():
 
     with pytest.raises(ValueError, match="window"):
         _context(simulation_window={"start": "2025-02-01", "end": "2025-01-01"})
+
+
+def test_observed_harvest_is_preserved_when_prediction_is_unavailable():
+    out = _outcome(
+        result={"yield_kg_ha": None, "yield_low_kg_ha": None, "yield_high_kg_ha": None},
+        harvest={"yield_kg_ha": 1200},
+    )
+    assert out["expected_vs_actual"]["status"] == "prediction_unavailable"
+    assert out["expected_vs_actual"]["predicted_yield_kg_ha"] is None
+    assert out["expected_vs_actual"]["actual_yield_kg_ha"] == 1200.0
+
+
+def test_nonfinite_harvest_is_not_admitted_as_actual():
+    out = _outcome(harvest={"yield_kg_ha": "nan"})
+    assert out["expected_vs_actual"]["status"] == "no_actual_yield"
