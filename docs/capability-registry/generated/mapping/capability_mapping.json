@@ -15,26 +15,26 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7203,
+    "files_scanned": 7209,
     "files_by_kind": {
-      "backend": 1270,
+      "backend": 1271,
       "database": 298,
       "governance": 89,
-      "mobile": 414,
+      "mobile": 415,
       "other": 2166,
-      "tests": 2436,
+      "tests": 2440,
       "web": 530
     },
-    "unmapped_artifacts": 3425,
+    "unmapped_artifacts": 3427,
     "ambiguous_artifacts": 236,
     "files_by_reading": {
-      "python_functional": 3889,
-      "raw": 3314
+      "python_functional": 3893,
+      "raw": 3316
     },
-    "test_dependency_files": 1841,
-    "test_dependency_edges": 4681,
-    "test_dependency_bounded_files": 1078,
-    "test_dependency_unresolved_relations": 465
+    "test_dependency_files": 1845,
+    "test_dependency_edges": 4699,
+    "test_dependency_bounded_files": 1079,
+    "test_dependency_unresolved_relations": 467
   },
   "capabilities": [
     {
@@ -1206,207 +1206,207 @@
           "score": 12
         },
         {
-          "value": "/contract @ services/decision-service/main.py:603",
+          "value": "/contract @ services/decision-service/main.py:604",
           "score": 12
         },
         {
-          "value": "/healthz @ services/decision-service/main.py:550",
+          "value": "/healthz @ services/decision-service/main.py:551",
           "score": 12
         },
         {
-          "value": "/readyz @ services/decision-service/main.py:555",
+          "value": "/readyz @ services/decision-service/main.py:556",
           "score": 12
         },
         {
-          "value": "/runtime-identity @ services/decision-service/main.py:544",
+          "value": "/runtime-identity @ services/decision-service/main.py:545",
           "score": 12
         },
         {
-          "value": "/v1/activation/evidence-receipts @ services/decision-service/main.py:1692",
+          "value": "/v1/activation/evidence-receipts @ services/decision-service/main.py:1697",
           "score": 12
         },
         {
-          "value": "/v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1766",
+          "value": "/v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1771",
           "score": 12
         },
         {
-          "value": "/v1/activation/irr_f01_reservation @ services/decision-service/main.py:1890",
+          "value": "/v1/activation/irr_f01_reservation @ services/decision-service/main.py:1895",
           "score": 12
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/begin @ services/decision-service/main.py:1834",
+          "value": "/v1/activation/irr_f01_reservation/begin @ services/decision-service/main.py:1839",
           "score": 12
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/complete @ services/decision-service/main.py:1845",
+          "value": "/v1/activation/irr_f01_reservation/complete @ services/decision-service/main.py:1850",
           "score": 12
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/enforce @ services/decision-service/main.py:1809",
+          "value": "/v1/activation/irr_f01_reservation/enforce @ services/decision-service/main.py:1814",
           "score": 12
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/probe @ services/decision-service/main.py:1897",
+          "value": "/v1/activation/irr_f01_reservation/probe @ services/decision-service/main.py:1902",
           "score": 12
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/reset @ services/decision-service/main.py:1879",
+          "value": "/v1/activation/irr_f01_reservation/reset @ services/decision-service/main.py:1884",
           "score": 12
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/revoke @ services/decision-service/main.py:1864",
+          "value": "/v1/activation/irr_f01_reservation/revoke @ services/decision-service/main.py:1869",
           "score": 12
         },
         {
-          "value": "/v1/activation/satellite_cdse @ services/decision-service/main.py:1987",
+          "value": "/v1/activation/satellite_cdse @ services/decision-service/main.py:1992",
           "score": 12
         },
         {
-          "value": "/v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1927",
+          "value": "/v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1932",
           "score": 12
         },
         {
-          "value": "/v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1940",
+          "value": "/v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1945",
           "score": 12
         },
         {
-          "value": "/v1/activation/satellite_cdse/probe @ services/decision-service/main.py:2003",
+          "value": "/v1/activation/satellite_cdse/probe @ services/decision-service/main.py:2008",
           "score": 12
         },
         {
-          "value": "/v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1974",
+          "value": "/v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1979",
           "score": 12
         },
         {
-          "value": "/v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1959",
+          "value": "/v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1964",
           "score": 12
         },
         {
-          "value": "/v1/activation/satellite_cdse/source @ services/decision-service/main.py:1994",
+          "value": "/v1/activation/satellite_cdse/source @ services/decision-service/main.py:1999",
           "score": 12
         },
         {
-          "value": "/v1/context-snapshots @ services/decision-service/main.py:3128",
+          "value": "/v1/context-snapshots @ services/decision-service/main.py:3133",
           "score": 12
         },
         {
-          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:3160",
+          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:3165",
           "score": 12
         },
         {
-          "value": "/v1/cutover/readiness @ services/decision-service/main.py:593",
+          "value": "/v1/cutover/readiness @ services/decision-service/main.py:594",
           "score": 12
         },
         {
-          "value": "/v1/decisions @ services/decision-service/main.py:1234",
+          "value": "/v1/decisions @ services/decision-service/main.py:1239",
           "score": 12
         },
         {
-          "value": "/v1/decisions/record @ services/decision-service/main.py:723",
+          "value": "/v1/decisions/record @ services/decision-service/main.py:724",
           "score": 12
         },
         {
-          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:797",
+          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:798",
           "score": 12
         },
         {
-          "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1381",
+          "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1386",
           "score": 12
         },
         {
-          "value": "/v1/decisions/{decision_id}/execution-plan @ services/decision-service/main.py:953",
+          "value": "/v1/decisions/{decision_id}/execution-plan @ services/decision-service/main.py:954",
           "score": 12
         },
         {
-          "value": "/v1/decisions/{decision_id}/lineage @ services/decision-service/main.py:1399",
+          "value": "/v1/decisions/{decision_id}/lineage @ services/decision-service/main.py:1404",
           "score": 12
         },
         {
-          "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:855",
+          "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:856",
           "score": 12
         },
         {
-          "value": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1503",
+          "value": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1508",
           "score": 12
         },
         {
-          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1037",
+          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1038",
           "score": 12
         },
         {
-          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1096",
+          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1097",
           "score": 12
         },
         {
-          "value": "/v1/evidence/field-counts @ services/decision-service/main.py:1269",
+          "value": "/v1/evidence/field-counts @ services/decision-service/main.py:1274",
           "score": 12
         },
         {
-          "value": "/v1/evidence/vegetation-snapshots @ services/decision-service/main.py:636",
+          "value": "/v1/evidence/vegetation-snapshots @ services/decision-service/main.py:637",
           "score": 12
         },
         {
-          "value": "/v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:654",
+          "value": "/v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:655",
           "score": 12
         },
         {
-          "value": "/v1/execution-plans/{execution_plan_id} @ services/decision-service/main.py:1017",
+          "value": "/v1/execution-plans/{execution_plan_id} @ services/decision-service/main.py:1018",
           "score": 12
         },
         {
-          "value": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1433",
+          "value": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1438",
           "score": 12
         },
         {
-          "value": "/v1/execution-requests @ services/decision-service/main.py:2034",
+          "value": "/v1/execution-requests @ services/decision-service/main.py:2039",
           "score": 12
         },
         {
-          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:2063",
+          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:2068",
           "score": 12
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2085",
+          "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2090",
           "score": 12
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2163",
+          "value": "/v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2168",
           "score": 12
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2117",
+          "value": "/v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2122",
           "score": 12
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2180",
+          "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2185",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/lineage @ services/decision-service/main.py:1281",
+          "value": "/v1/fields/{field_id}/lineage @ services/decision-service/main.py:1286",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2495",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2500",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2536",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2541",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2582",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2587",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2763",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2768",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2724",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2729",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2400",
+          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2405",
           "score": 12
         },
         {
@@ -1414,7 +1414,7 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2443",
+          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2448",
           "score": 12
         },
         {
@@ -1422,91 +1422,91 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/calibration-dataset @ services/decision-service/main.py:2272",
+          "value": "/v1/learning/calibration-dataset @ services/decision-service/main.py:2277",
           "score": 12
         },
         {
-          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2314",
+          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2319",
           "score": 12
         },
         {
-          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2692",
+          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2697",
           "score": 12
         },
         {
-          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2800",
+          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2805",
           "score": 12
         },
         {
-          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2364",
+          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2369",
           "score": 12
         },
         {
-          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:3098",
+          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:3103",
           "score": 12
         },
         {
-          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2841",
+          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2846",
           "score": 12
         },
         {
-          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:3003",
+          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:3008",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2619",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2624",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2655",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2660",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2962",
+          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2967",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:3051",
+          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:3056",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2871",
+          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2876",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2908",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2913",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2932",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2937",
           "score": 12
         },
         {
-          "value": "/v1/learning/summary @ services/decision-service/main.py:1195",
+          "value": "/v1/learning/summary @ services/decision-service/main.py:1200",
           "score": 12
         },
         {
-          "value": "/v1/learning/updates @ services/decision-service/main.py:1164",
+          "value": "/v1/learning/updates @ services/decision-service/main.py:1165",
           "score": 12
         },
         {
-          "value": "/v1/outcomes/reconciled @ services/decision-service/main.py:1302",
+          "value": "/v1/outcomes/reconciled @ services/decision-service/main.py:1307",
           "score": 12
         },
         {
-          "value": "/v1/outcomes/record @ services/decision-service/main.py:1110",
+          "value": "/v1/outcomes/record @ services/decision-service/main.py:1111",
           "score": 12
         },
         {
-          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:2238",
+          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:2243",
           "score": 12
         },
         {
-          "value": "/v1/recommendation-outcomes @ services/decision-service/main.py:1137",
+          "value": "/v1/recommendation-outcomes @ services/decision-service/main.py:1138",
           "score": 12
         },
         {
-          "value": "/v1/reservation-dispatch-intents @ services/decision-service/main.py:1562",
+          "value": "/v1/reservation-dispatch-intents @ services/decision-service/main.py:1567",
           "score": 12
         }
       ],
@@ -1739,11 +1739,11 @@
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:2209",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:2253",
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:2208",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:2252",
           "score": 12
         },
         {
@@ -14431,6 +14431,15 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/lib/features/scouting/presentation/disease_symptoms_dialog.dart",
+          "score": 14,
+          "signals": [
+            "path:Scouting",
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/lib/features/scouting/data/device_sources.dart",
           "score": 13,
           "signals": [
@@ -14523,6 +14532,23 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
+          "score": 12,
+          "signals": [
+            "path:Scouting",
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
+          "path": "tests_v9/test_api_writes_persist_live_pg.py",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "tests_v9/test_cropwise_evidence_quality.py",
           "score": 8,
           "signals": [
@@ -14560,8 +14586,8 @@
         "database": 4,
         "events": 7,
         "web": 6,
-        "mobile": 16,
-        "tests": 11,
+        "mobile": 17,
+        "tests": 13,
         "governance": 0,
         "other_evidence": 1
       },
@@ -17419,83 +17445,83 @@
           "score": 11
         },
         {
-          "value": "/contract @ services/decision-service/main.py:603",
+          "value": "/contract @ services/decision-service/main.py:604",
           "score": 10
         },
         {
-          "value": "/healthz @ services/decision-service/main.py:550",
+          "value": "/healthz @ services/decision-service/main.py:551",
           "score": 10
         },
         {
-          "value": "/readyz @ services/decision-service/main.py:555",
+          "value": "/readyz @ services/decision-service/main.py:556",
           "score": 10
         },
         {
-          "value": "/runtime-identity @ services/decision-service/main.py:544",
+          "value": "/runtime-identity @ services/decision-service/main.py:545",
           "score": 10
         },
         {
-          "value": "/v1/activation/evidence-receipts @ services/decision-service/main.py:1692",
+          "value": "/v1/activation/evidence-receipts @ services/decision-service/main.py:1697",
           "score": 10
         },
         {
-          "value": "/v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1766",
+          "value": "/v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1771",
           "score": 10
         },
         {
-          "value": "/v1/activation/irr_f01_reservation @ services/decision-service/main.py:1890",
+          "value": "/v1/activation/irr_f01_reservation @ services/decision-service/main.py:1895",
           "score": 10
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/begin @ services/decision-service/main.py:1834",
+          "value": "/v1/activation/irr_f01_reservation/begin @ services/decision-service/main.py:1839",
           "score": 10
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/complete @ services/decision-service/main.py:1845",
+          "value": "/v1/activation/irr_f01_reservation/complete @ services/decision-service/main.py:1850",
           "score": 10
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/enforce @ services/decision-service/main.py:1809",
+          "value": "/v1/activation/irr_f01_reservation/enforce @ services/decision-service/main.py:1814",
           "score": 10
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/probe @ services/decision-service/main.py:1897",
+          "value": "/v1/activation/irr_f01_reservation/probe @ services/decision-service/main.py:1902",
           "score": 10
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/reset @ services/decision-service/main.py:1879",
+          "value": "/v1/activation/irr_f01_reservation/reset @ services/decision-service/main.py:1884",
           "score": 10
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/revoke @ services/decision-service/main.py:1864",
+          "value": "/v1/activation/irr_f01_reservation/revoke @ services/decision-service/main.py:1869",
           "score": 10
         },
         {
-          "value": "/v1/activation/satellite_cdse @ services/decision-service/main.py:1987",
+          "value": "/v1/activation/satellite_cdse @ services/decision-service/main.py:1992",
           "score": 10
         },
         {
-          "value": "/v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1927",
+          "value": "/v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1932",
           "score": 10
         },
         {
-          "value": "/v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1940",
+          "value": "/v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1945",
           "score": 10
         },
         {
-          "value": "/v1/activation/satellite_cdse/probe @ services/decision-service/main.py:2003",
+          "value": "/v1/activation/satellite_cdse/probe @ services/decision-service/main.py:2008",
           "score": 10
         },
         {
-          "value": "/v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1974",
+          "value": "/v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1979",
           "score": 10
         },
         {
-          "value": "/v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1959",
+          "value": "/v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1964",
           "score": 10
         },
         {
-          "value": "/v1/activation/satellite_cdse/source @ services/decision-service/main.py:1994",
+          "value": "/v1/activation/satellite_cdse/source @ services/decision-service/main.py:1999",
           "score": 10
         },
         {
@@ -17503,103 +17529,103 @@
           "score": 10
         },
         {
-          "value": "/v1/context-snapshots @ services/decision-service/main.py:3128",
+          "value": "/v1/context-snapshots @ services/decision-service/main.py:3133",
           "score": 10
         },
         {
-          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:3160",
+          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:3165",
           "score": 10
         },
         {
-          "value": "/v1/cutover/readiness @ services/decision-service/main.py:593",
+          "value": "/v1/cutover/readiness @ services/decision-service/main.py:594",
           "score": 10
         },
         {
-          "value": "/v1/decisions @ services/decision-service/main.py:1234",
+          "value": "/v1/decisions @ services/decision-service/main.py:1239",
           "score": 10
         },
         {
-          "value": "/v1/decisions/record @ services/decision-service/main.py:723",
+          "value": "/v1/decisions/record @ services/decision-service/main.py:724",
           "score": 10
         },
         {
-          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:797",
+          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:798",
           "score": 10
         },
         {
-          "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1381",
+          "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1386",
           "score": 10
         },
         {
-          "value": "/v1/decisions/{decision_id}/execution-plan @ services/decision-service/main.py:953",
+          "value": "/v1/decisions/{decision_id}/execution-plan @ services/decision-service/main.py:954",
           "score": 10
         },
         {
-          "value": "/v1/decisions/{decision_id}/lineage @ services/decision-service/main.py:1399",
+          "value": "/v1/decisions/{decision_id}/lineage @ services/decision-service/main.py:1404",
           "score": 10
         },
         {
-          "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:855",
+          "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:856",
           "score": 10
         },
         {
-          "value": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1503",
+          "value": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1508",
           "score": 10
         },
         {
-          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1037",
+          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1038",
           "score": 10
         },
         {
-          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1096",
+          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1097",
           "score": 10
         },
         {
-          "value": "/v1/evidence/field-counts @ services/decision-service/main.py:1269",
+          "value": "/v1/evidence/field-counts @ services/decision-service/main.py:1274",
           "score": 10
         },
         {
-          "value": "/v1/evidence/vegetation-snapshots @ services/decision-service/main.py:636",
+          "value": "/v1/evidence/vegetation-snapshots @ services/decision-service/main.py:637",
           "score": 10
         },
         {
-          "value": "/v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:654",
+          "value": "/v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:655",
           "score": 10
         },
         {
-          "value": "/v1/execution-plans/{execution_plan_id} @ services/decision-service/main.py:1017",
+          "value": "/v1/execution-plans/{execution_plan_id} @ services/decision-service/main.py:1018",
           "score": 10
         },
         {
-          "value": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1433",
+          "value": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1438",
           "score": 10
         },
         {
-          "value": "/v1/execution-requests @ services/decision-service/main.py:2034",
+          "value": "/v1/execution-requests @ services/decision-service/main.py:2039",
           "score": 10
         },
         {
-          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:2063",
+          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:2068",
           "score": 10
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2085",
+          "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2090",
           "score": 10
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2163",
+          "value": "/v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2168",
           "score": 10
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2117",
+          "value": "/v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2122",
           "score": 10
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2180",
+          "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2185",
           "score": 10
         },
         {
-          "value": "/v1/fields/{field_id}/lineage @ services/decision-service/main.py:1281",
+          "value": "/v1/fields/{field_id}/lineage @ services/decision-service/main.py:1286",
           "score": 10
         }
       ],
@@ -26597,299 +26623,299 @@
       ],
       "routes": [
         {
-          "value": "/contract @ services/decision-service/main.py:603",
+          "value": "/contract @ services/decision-service/main.py:604",
           "score": 11
         },
         {
-          "value": "/healthz @ services/decision-service/main.py:550",
+          "value": "/healthz @ services/decision-service/main.py:551",
           "score": 11
         },
         {
-          "value": "/readyz @ services/decision-service/main.py:555",
+          "value": "/readyz @ services/decision-service/main.py:556",
           "score": 11
         },
         {
-          "value": "/runtime-identity @ services/decision-service/main.py:544",
+          "value": "/runtime-identity @ services/decision-service/main.py:545",
           "score": 11
         },
         {
-          "value": "/v1/activation/evidence-receipts @ services/decision-service/main.py:1692",
+          "value": "/v1/activation/evidence-receipts @ services/decision-service/main.py:1697",
           "score": 11
         },
         {
-          "value": "/v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1766",
+          "value": "/v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1771",
           "score": 11
         },
         {
-          "value": "/v1/activation/irr_f01_reservation @ services/decision-service/main.py:1890",
+          "value": "/v1/activation/irr_f01_reservation @ services/decision-service/main.py:1895",
           "score": 11
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/begin @ services/decision-service/main.py:1834",
+          "value": "/v1/activation/irr_f01_reservation/begin @ services/decision-service/main.py:1839",
           "score": 11
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/complete @ services/decision-service/main.py:1845",
+          "value": "/v1/activation/irr_f01_reservation/complete @ services/decision-service/main.py:1850",
           "score": 11
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/enforce @ services/decision-service/main.py:1809",
+          "value": "/v1/activation/irr_f01_reservation/enforce @ services/decision-service/main.py:1814",
           "score": 11
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/probe @ services/decision-service/main.py:1897",
+          "value": "/v1/activation/irr_f01_reservation/probe @ services/decision-service/main.py:1902",
           "score": 11
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/reset @ services/decision-service/main.py:1879",
+          "value": "/v1/activation/irr_f01_reservation/reset @ services/decision-service/main.py:1884",
           "score": 11
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/revoke @ services/decision-service/main.py:1864",
+          "value": "/v1/activation/irr_f01_reservation/revoke @ services/decision-service/main.py:1869",
           "score": 11
         },
         {
-          "value": "/v1/activation/satellite_cdse @ services/decision-service/main.py:1987",
+          "value": "/v1/activation/satellite_cdse @ services/decision-service/main.py:1992",
           "score": 11
         },
         {
-          "value": "/v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1927",
+          "value": "/v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1932",
           "score": 11
         },
         {
-          "value": "/v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1940",
+          "value": "/v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1945",
           "score": 11
         },
         {
-          "value": "/v1/activation/satellite_cdse/probe @ services/decision-service/main.py:2003",
+          "value": "/v1/activation/satellite_cdse/probe @ services/decision-service/main.py:2008",
           "score": 11
         },
         {
-          "value": "/v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1974",
+          "value": "/v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1979",
           "score": 11
         },
         {
-          "value": "/v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1959",
+          "value": "/v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1964",
           "score": 11
         },
         {
-          "value": "/v1/activation/satellite_cdse/source @ services/decision-service/main.py:1994",
+          "value": "/v1/activation/satellite_cdse/source @ services/decision-service/main.py:1999",
           "score": 11
         },
         {
-          "value": "/v1/context-snapshots @ services/decision-service/main.py:3128",
+          "value": "/v1/context-snapshots @ services/decision-service/main.py:3133",
           "score": 11
         },
         {
-          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:3160",
+          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:3165",
           "score": 11
         },
         {
-          "value": "/v1/cutover/readiness @ services/decision-service/main.py:593",
+          "value": "/v1/cutover/readiness @ services/decision-service/main.py:594",
           "score": 11
         },
         {
-          "value": "/v1/decisions @ services/decision-service/main.py:1234",
+          "value": "/v1/decisions @ services/decision-service/main.py:1239",
           "score": 11
         },
         {
-          "value": "/v1/decisions/record @ services/decision-service/main.py:723",
+          "value": "/v1/decisions/record @ services/decision-service/main.py:724",
           "score": 11
         },
         {
-          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:797",
+          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:798",
           "score": 11
         },
         {
-          "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1381",
+          "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1386",
           "score": 11
         },
         {
-          "value": "/v1/decisions/{decision_id}/execution-plan @ services/decision-service/main.py:953",
+          "value": "/v1/decisions/{decision_id}/execution-plan @ services/decision-service/main.py:954",
           "score": 11
         },
         {
-          "value": "/v1/decisions/{decision_id}/lineage @ services/decision-service/main.py:1399",
+          "value": "/v1/decisions/{decision_id}/lineage @ services/decision-service/main.py:1404",
           "score": 11
         },
         {
-          "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:855",
+          "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:856",
           "score": 11
         },
         {
-          "value": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1503",
+          "value": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1508",
           "score": 11
         },
         {
-          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1037",
+          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1038",
           "score": 11
         },
         {
-          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1096",
+          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1097",
           "score": 11
         },
         {
-          "value": "/v1/evidence/field-counts @ services/decision-service/main.py:1269",
+          "value": "/v1/evidence/field-counts @ services/decision-service/main.py:1274",
           "score": 11
         },
         {
-          "value": "/v1/evidence/vegetation-snapshots @ services/decision-service/main.py:636",
+          "value": "/v1/evidence/vegetation-snapshots @ services/decision-service/main.py:637",
           "score": 11
         },
         {
-          "value": "/v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:654",
+          "value": "/v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:655",
           "score": 11
         },
         {
-          "value": "/v1/execution-plans/{execution_plan_id} @ services/decision-service/main.py:1017",
+          "value": "/v1/execution-plans/{execution_plan_id} @ services/decision-service/main.py:1018",
           "score": 11
         },
         {
-          "value": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1433",
+          "value": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1438",
           "score": 11
         },
         {
-          "value": "/v1/execution-requests @ services/decision-service/main.py:2034",
+          "value": "/v1/execution-requests @ services/decision-service/main.py:2039",
           "score": 11
         },
         {
-          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:2063",
+          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:2068",
           "score": 11
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2085",
+          "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2090",
           "score": 11
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2163",
+          "value": "/v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2168",
           "score": 11
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2117",
+          "value": "/v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2122",
           "score": 11
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2180",
+          "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2185",
           "score": 11
         },
         {
-          "value": "/v1/fields/{field_id}/lineage @ services/decision-service/main.py:1281",
+          "value": "/v1/fields/{field_id}/lineage @ services/decision-service/main.py:1286",
           "score": 11
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2495",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2500",
           "score": 11
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2536",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2541",
           "score": 11
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2582",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2587",
           "score": 11
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2763",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2768",
           "score": 11
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2724",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2729",
           "score": 11
         },
         {
-          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2400",
+          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2405",
           "score": 11
         },
         {
-          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2443",
+          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2448",
           "score": 11
         },
         {
-          "value": "/v1/learning/calibration-dataset @ services/decision-service/main.py:2272",
+          "value": "/v1/learning/calibration-dataset @ services/decision-service/main.py:2277",
           "score": 11
         },
         {
-          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2314",
+          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2319",
           "score": 11
         },
         {
-          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2692",
+          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2697",
           "score": 11
         },
         {
-          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2800",
+          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2805",
           "score": 11
         },
         {
-          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2364",
+          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2369",
           "score": 11
         },
         {
-          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:3098",
+          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:3103",
           "score": 11
         },
         {
-          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2841",
+          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2846",
           "score": 11
         },
         {
-          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:3003",
+          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:3008",
           "score": 11
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2619",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2624",
           "score": 11
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2655",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2660",
           "score": 11
         },
         {
-          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2962",
+          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2967",
           "score": 11
         },
         {
-          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:3051",
+          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:3056",
           "score": 11
         },
         {
-          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2871",
+          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2876",
           "score": 11
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2908",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2913",
           "score": 11
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2932",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2937",
           "score": 11
         },
         {
-          "value": "/v1/learning/summary @ services/decision-service/main.py:1195",
+          "value": "/v1/learning/summary @ services/decision-service/main.py:1200",
           "score": 11
         },
         {
-          "value": "/v1/learning/updates @ services/decision-service/main.py:1164",
+          "value": "/v1/learning/updates @ services/decision-service/main.py:1165",
           "score": 11
         },
         {
-          "value": "/v1/outcomes/reconciled @ services/decision-service/main.py:1302",
+          "value": "/v1/outcomes/reconciled @ services/decision-service/main.py:1307",
           "score": 11
         },
         {
-          "value": "/v1/outcomes/record @ services/decision-service/main.py:1110",
+          "value": "/v1/outcomes/record @ services/decision-service/main.py:1111",
           "score": 11
         },
         {
-          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:2238",
+          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:2243",
           "score": 11
         },
         {
-          "value": "/v1/recommendation-outcomes @ services/decision-service/main.py:1137",
+          "value": "/v1/recommendation-outcomes @ services/decision-service/main.py:1138",
           "score": 11
         },
         {
-          "value": "/v1/reservation-dispatch-intents @ services/decision-service/main.py:1562",
+          "value": "/v1/reservation-dispatch-intents @ services/decision-service/main.py:1567",
           "score": 11
         },
         {
@@ -27128,299 +27154,299 @@
       ],
       "routes": [
         {
-          "value": "/contract @ services/decision-service/main.py:603",
+          "value": "/contract @ services/decision-service/main.py:604",
           "score": 9
         },
         {
-          "value": "/healthz @ services/decision-service/main.py:550",
+          "value": "/healthz @ services/decision-service/main.py:551",
           "score": 9
         },
         {
-          "value": "/readyz @ services/decision-service/main.py:555",
+          "value": "/readyz @ services/decision-service/main.py:556",
           "score": 9
         },
         {
-          "value": "/runtime-identity @ services/decision-service/main.py:544",
+          "value": "/runtime-identity @ services/decision-service/main.py:545",
           "score": 9
         },
         {
-          "value": "/v1/activation/evidence-receipts @ services/decision-service/main.py:1692",
+          "value": "/v1/activation/evidence-receipts @ services/decision-service/main.py:1697",
           "score": 9
         },
         {
-          "value": "/v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1766",
+          "value": "/v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1771",
           "score": 9
         },
         {
-          "value": "/v1/activation/irr_f01_reservation @ services/decision-service/main.py:1890",
+          "value": "/v1/activation/irr_f01_reservation @ services/decision-service/main.py:1895",
           "score": 9
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/begin @ services/decision-service/main.py:1834",
+          "value": "/v1/activation/irr_f01_reservation/begin @ services/decision-service/main.py:1839",
           "score": 9
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/complete @ services/decision-service/main.py:1845",
+          "value": "/v1/activation/irr_f01_reservation/complete @ services/decision-service/main.py:1850",
           "score": 9
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/enforce @ services/decision-service/main.py:1809",
+          "value": "/v1/activation/irr_f01_reservation/enforce @ services/decision-service/main.py:1814",
           "score": 9
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/probe @ services/decision-service/main.py:1897",
+          "value": "/v1/activation/irr_f01_reservation/probe @ services/decision-service/main.py:1902",
           "score": 9
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/reset @ services/decision-service/main.py:1879",
+          "value": "/v1/activation/irr_f01_reservation/reset @ services/decision-service/main.py:1884",
           "score": 9
         },
         {
-          "value": "/v1/activation/irr_f01_reservation/revoke @ services/decision-service/main.py:1864",
+          "value": "/v1/activation/irr_f01_reservation/revoke @ services/decision-service/main.py:1869",
           "score": 9
         },
         {
-          "value": "/v1/activation/satellite_cdse @ services/decision-service/main.py:1987",
+          "value": "/v1/activation/satellite_cdse @ services/decision-service/main.py:1992",
           "score": 9
         },
         {
-          "value": "/v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1927",
+          "value": "/v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1932",
           "score": 9
         },
         {
-          "value": "/v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1940",
+          "value": "/v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1945",
           "score": 9
         },
         {
-          "value": "/v1/activation/satellite_cdse/probe @ services/decision-service/main.py:2003",
+          "value": "/v1/activation/satellite_cdse/probe @ services/decision-service/main.py:2008",
           "score": 9
         },
         {
-          "value": "/v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1974",
+          "value": "/v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1979",
           "score": 9
         },
         {
-          "value": "/v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1959",
+          "value": "/v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1964",
           "score": 9
         },
         {
-          "value": "/v1/activation/satellite_cdse/source @ services/decision-service/main.py:1994",
+          "value": "/v1/activation/satellite_cdse/source @ services/decision-service/main.py:1999",
           "score": 9
         },
         {
-          "value": "/v1/context-snapshots @ services/decision-service/main.py:3128",
+          "value": "/v1/context-snapshots @ services/decision-service/main.py:3133",
           "score": 9
         },
         {
-          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:3160",
+          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:3165",
           "score": 9
         },
         {
-          "value": "/v1/cutover/readiness @ services/decision-service/main.py:593",
+          "value": "/v1/cutover/readiness @ services/decision-service/main.py:594",
           "score": 9
         },
         {
-          "value": "/v1/decisions @ services/decision-service/main.py:1234",
+          "value": "/v1/decisions @ services/decision-service/main.py:1239",
           "score": 9
         },
         {
-          "value": "/v1/decisions/record @ services/decision-service/main.py:723",
+          "value": "/v1/decisions/record @ services/decision-service/main.py:724",
           "score": 9
         },
         {
-          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:797",
+          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:798",
           "score": 9
         },
         {
-          "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1381",
+          "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1386",
           "score": 9
         },
         {
-          "value": "/v1/decisions/{decision_id}/execution-plan @ services/decision-service/main.py:953",
+          "value": "/v1/decisions/{decision_id}/execution-plan @ services/decision-service/main.py:954",
           "score": 9
         },
         {
-          "value": "/v1/decisions/{decision_id}/lineage @ services/decision-service/main.py:1399",
+          "value": "/v1/decisions/{decision_id}/lineage @ services/decision-service/main.py:1404",
           "score": 9
         },
         {
-          "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:855",
+          "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:856",
           "score": 9
         },
         {
-          "value": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1503",
+          "value": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1508",
           "score": 9
         },
         {
-          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1037",
+          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1038",
           "score": 9
         },
         {
-          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1096",
+          "value": "/v1/dispatch/decisions @ services/decision-service/main.py:1097",
           "score": 9
         },
         {
-          "value": "/v1/evidence/field-counts @ services/decision-service/main.py:1269",
+          "value": "/v1/evidence/field-counts @ services/decision-service/main.py:1274",
           "score": 9
         },
         {
-          "value": "/v1/evidence/vegetation-snapshots @ services/decision-service/main.py:636",
+          "value": "/v1/evidence/vegetation-snapshots @ services/decision-service/main.py:637",
           "score": 9
         },
         {
-          "value": "/v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:654",
+          "value": "/v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:655",
           "score": 9
         },
         {
-          "value": "/v1/execution-plans/{execution_plan_id} @ services/decision-service/main.py:1017",
+          "value": "/v1/execution-plans/{execution_plan_id} @ services/decision-service/main.py:1018",
           "score": 9
         },
         {
-          "value": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1433",
+          "value": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1438",
           "score": 9
         },
         {
-          "value": "/v1/execution-requests @ services/decision-service/main.py:2034",
+          "value": "/v1/execution-requests @ services/decision-service/main.py:2039",
           "score": 9
         },
         {
-          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:2063",
+          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:2068",
           "score": 9
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2085",
+          "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2090",
           "score": 9
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2163",
+          "value": "/v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2168",
           "score": 9
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2117",
+          "value": "/v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2122",
           "score": 9
         },
         {
-          "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2180",
+          "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2185",
           "score": 9
         },
         {
-          "value": "/v1/fields/{field_id}/lineage @ services/decision-service/main.py:1281",
+          "value": "/v1/fields/{field_id}/lineage @ services/decision-service/main.py:1286",
           "score": 9
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2495",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2500",
           "score": 9
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2536",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2541",
           "score": 9
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2582",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2587",
           "score": 9
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2763",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2768",
           "score": 9
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2724",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2729",
           "score": 9
         },
         {
-          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2400",
+          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2405",
           "score": 9
         },
         {
-          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2443",
+          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2448",
           "score": 9
         },
         {
-          "value": "/v1/learning/calibration-dataset @ services/decision-service/main.py:2272",
+          "value": "/v1/learning/calibration-dataset @ services/decision-service/main.py:2277",
           "score": 9
         },
         {
-          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2314",
+          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2319",
           "score": 9
         },
         {
-          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2692",
+          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2697",
           "score": 9
         },
         {
-          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2800",
+          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2805",
           "score": 9
         },
         {
-          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2364",
+          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2369",
           "score": 9
         },
         {
-          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:3098",
+          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:3103",
           "score": 9
         },
         {
-          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2841",
+          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2846",
           "score": 9
         },
         {
-          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:3003",
+          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:3008",
           "score": 9
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2619",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2624",
           "score": 9
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2655",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2660",
           "score": 9
         },
         {
-          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2962",
+          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2967",
           "score": 9
         },
         {
-          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:3051",
+          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:3056",
           "score": 9
         },
         {
-          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2871",
+          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2876",
           "score": 9
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2908",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2913",
           "score": 9
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2932",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2937",
           "score": 9
         },
         {
-          "value": "/v1/learning/summary @ services/decision-service/main.py:1195",
+          "value": "/v1/learning/summary @ services/decision-service/main.py:1200",
           "score": 9
         },
         {
-          "value": "/v1/learning/updates @ services/decision-service/main.py:1164",
+          "value": "/v1/learning/updates @ services/decision-service/main.py:1165",
           "score": 9
         },
         {
-          "value": "/v1/outcomes/reconciled @ services/decision-service/main.py:1302",
+          "value": "/v1/outcomes/reconciled @ services/decision-service/main.py:1307",
           "score": 9
         },
         {
-          "value": "/v1/outcomes/record @ services/decision-service/main.py:1110",
+          "value": "/v1/outcomes/record @ services/decision-service/main.py:1111",
           "score": 9
         },
         {
-          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:2238",
+          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:2243",
           "score": 9
         },
         {
-          "value": "/v1/recommendation-outcomes @ services/decision-service/main.py:1137",
+          "value": "/v1/recommendation-outcomes @ services/decision-service/main.py:1138",
           "score": 9
         },
         {
-          "value": "/v1/reservation-dispatch-intents @ services/decision-service/main.py:1562",
+          "value": "/v1/reservation-dispatch-intents @ services/decision-service/main.py:1567",
           "score": 9
         }
       ],
@@ -28117,11 +28143,11 @@
           "score": 8
         },
         {
-          "value": "public.soil_observations @ services/soil-service/soil_store.py:503",
+          "value": "public.soil_observations @ services/soil-service/soil_store.py:507",
           "score": 8
         },
         {
-          "value": "public.soil_profile_snapshots @ services/soil-service/soil_store.py:504",
+          "value": "public.soil_profile_snapshots @ services/soil-service/soil_store.py:508",
           "score": 8
         },
         {
@@ -28149,7 +28175,7 @@
           "score": 8
         },
         {
-          "value": "soil-profile.v1 @ services/soil-service/soil_store.py:541",
+          "value": "soil-profile.v1 @ services/soil-service/soil_store.py:545",
           "score": 8
         },
         {
@@ -28437,39 +28463,39 @@
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/soil/hydraulic-profile @ services/soil-service/routers/p1_products.py:166",
+          "value": "/v1/fields/{field_id}/soil/hydraulic-profile @ services/soil-service/routers/p1_products.py:168",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/soil/hydraulic-profile/rebuild @ services/soil-service/routers/p1_products.py:113",
+          "value": "/v1/fields/{field_id}/soil/hydraulic-profile/rebuild @ services/soil-service/routers/p1_products.py:114",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:82",
+          "value": "/v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:83",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:153",
+          "value": "/v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:155",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:140",
+          "value": "/v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:142",
           "score": 12
         },
         {
-          "value": "/v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:34",
+          "value": "/v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:35",
           "score": 12
         },
         {
-          "value": "/v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:127",
+          "value": "/v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:129",
           "score": 12
         },
         {
-          "value": "/v1/soil/irrigation-water/sources/{source_id}/profile @ services/soil-service/routers/p1_products.py:179",
+          "value": "/v1/soil/irrigation-water/sources/{source_id}/profile @ services/soil-service/routers/p1_products.py:181",
           "score": 12
         },
         {
-          "value": "/v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:99",
+          "value": "/v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100",
           "score": 12
         },
         {
@@ -29033,6 +29059,10 @@
           "score": 9
         },
         {
+          "value": "public.soil_hydraulic_profiles @ tests_v9/test_soil_jsonb_stores_live_pg.py:58",
+          "score": 9
+        },
+        {
           "value": "soil.SMFCF @ services/agriai-engine/pcse_inputs.py:513",
           "score": 9
         },
@@ -29047,7 +29077,16 @@
       ],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "tests_v9/test_soil_jsonb_stores_live_pg.py",
+          "score": 9,
+          "signals": [
+            "content:field capacity",
+            "content:wilting point"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -29078,14 +29117,14 @@
         "backend": 7,
         "routes": 0,
         "database": 0,
-        "events": 7,
+        "events": 8,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 2
       },
-      "coverage_dimensions": 2,
+      "coverage_dimensions": 3,
       "mapped": true
     },
     {
@@ -40449,6 +40488,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/soil-service/jsonb_values.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/soil-service/main.py",
       "kind": "backend"
     },
@@ -42186,6 +42229,10 @@
     },
     {
       "path": "tests_v9/test_device_telemetry_time_identity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_diagnose_crop_normalisation.py",
       "kind": "tests"
     },
     {
@@ -51442,7 +51489,7 @@
         {
           "source": "services/decision-service/main.py",
           "kind": "import",
-          "line": 546
+          "line": 600
         },
         {
           "source": "services/decision-service/migration_runner.py",
@@ -51457,7 +51504,7 @@
         {
           "source": "services/decision-service/tests/test_agronomic_lineage_integrity.py",
           "kind": "import",
-          "line": 547
+          "line": 601
         }
       ],
       "unresolved": [
@@ -63472,7 +63519,7 @@
         {
           "source": "services/sahool-platform/api/routers/recommendations.py",
           "kind": "import",
-          "line": 80
+          "line": 71
         },
         {
           "source": "services/sahool-platform/api/routers/recommendations.py",
@@ -66088,7 +66135,7 @@
         {
           "source": "services/scout-ingest-service/main.py",
           "kind": "import",
-          "line": 88
+          "line": 99
         }
       ],
       "unresolved": []
@@ -66276,6 +66323,11 @@
       "bounded": true,
       "unbounded_reasons": [],
       "edges": [
+        {
+          "source": "services/soil-service/jsonb_values.py",
+          "kind": "import",
+          "line": 123
+        },
         {
           "source": "services/soil-service/p1_products.py",
           "kind": "import",
@@ -71069,6 +71121,44 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_api_writes_persist_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 72
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 73
+        },
+        {
+          "source": "services/sahool-platform/api/routers/fields.py",
+          "kind": "import",
+          "line": 73
+        },
+        {
+          "source": "services/sahool-platform/api/routers/notifications.py",
+          "kind": "import",
+          "line": 73
+        },
+        {
+          "source": "services/sahool-platform/api/routers/recommendations.py",
+          "kind": "import",
+          "line": 73
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 79
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_apply_in_compose_fail_closed.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -75456,6 +75546,24 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_diagnose_crop_normalisation.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 21,
+          "import": "api.disease_diagnosis"
+        },
+        {
+          "line": 47,
+          "import": "api.disease_diagnosis"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_digital_twin_season_live_pg.py",
@@ -81414,6 +81522,28 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_mobile_backend_contract.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/test_frontend_api_v1_literal_has_server_route.py",
+          "kind": "loader",
+          "line": 73
+        },
+        {
+          "source": "tests_v9/test_frontend_api_v1_literal_has_server_route.py",
+          "kind": "source_read",
+          "line": 75
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_modbus_decoder_20260703.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -85747,17 +85877,17 @@
         {
           "source": "services/soil-service/p1_store.py",
           "kind": "loader",
-          "line": 547
+          "line": 558
         },
         {
           "source": "services/soil-service/p1_store.py",
           "kind": "source_read",
-          "line": 547
+          "line": 558
         }
       ],
       "unresolved": [
         {
-          "line": 586,
+          "line": 597,
           "import": "api"
         }
       ]
@@ -87458,6 +87588,11 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 355
+        },
+        {
           "source": "services/sahool-platform/api/api_models.py",
           "kind": "import",
           "line": 324
@@ -88319,6 +88454,56 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_soil_jsonb_stores_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "shared_test_helper"
+      ],
+      "edges": [
+        {
+          "source": "services/soil-service/main.py",
+          "kind": "loader",
+          "line": 84
+        },
+        {
+          "source": "services/soil-service/p1_store.py",
+          "kind": "import",
+          "line": 88
+        },
+        {
+          "source": "services/soil-service/p2_store.py",
+          "kind": "import",
+          "line": 89
+        },
+        {
+          "source": "services/soil-service/p3_store.py",
+          "kind": "import",
+          "line": 90
+        },
+        {
+          "source": "services/soil-service/routers/p1_products.py",
+          "kind": "import",
+          "line": 91
+        },
+        {
+          "source": "services/soil-service/soil_store.py",
+          "kind": "import",
+          "line": 87
+        },
+        {
+          "source": "shared/contracts/soil/__init__.py",
+          "kind": "import",
+          "line": 100
+        },
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 26
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_soil_lab_field_state_emit.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -88759,7 +88944,7 @@
         {
           "source": "services/decision-service/persistence.py",
           "kind": "source_read",
-          "line": 141
+          "line": 155
         }
       ],
       "unresolved": []

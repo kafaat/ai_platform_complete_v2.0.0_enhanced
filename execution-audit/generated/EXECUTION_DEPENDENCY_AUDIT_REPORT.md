@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **2138**
+- Python files parsed: **2139**
 - FastAPI-style route handlers: **1065**
-- Static function-call edges: **104337**
-- Dead-code candidates: **667**
+- Static function-call edges: **104414**
+- Dead-code candidates: **668**
 - Duplicate function groups: **63**
 - Automatic deletions: **0**
 
@@ -17,7 +17,7 @@
 |---|---|---|---|---:|
 | `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 61 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
-| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 164 |
+| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 165 |
 | `decision-service` | `_require_live_when_certifying` | function | `services/decision-service/tests/test_eligibility_assessment_live_pg.py` | 119 |
 | `decision-service` | `_clean_policy_env` | function | `services/decision-service/tests/test_sod_single_operator_self_approval.py` | 32 |
 | `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 69 |

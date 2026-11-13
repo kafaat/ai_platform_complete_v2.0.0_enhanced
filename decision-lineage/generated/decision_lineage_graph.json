@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 709,
+      "evidence_count": 712,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -328,6 +328,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/api/raster_service_client.py",
+        "services/sahool-platform/api/recommendations_hub.py",
         "services/sahool-platform/api/routers/automation.py",
         "services/sahool-platform/api/routers/calibration.py",
         "services/sahool-platform/api/routers/cameras.py",
@@ -368,6 +369,7 @@
         "services/sahool-platform/api/routers/trials.py",
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
+        "services/sahool-platform/api/scouting_pins.py",
         "services/sahool-platform/api/season_simulation.py",
         "services/sahool-platform/api/soil_enrichment.py",
         "services/sahool-platform/api/soil_evidence_bridge.py",
@@ -606,6 +608,7 @@
         "services/scout-ingest-service/projection_worker.py",
         "services/scout-ingest-service/tests/test_projection_live.py",
         "services/soil-service/evidence_adapters.py",
+        "services/soil-service/jsonb_values.py",
         "services/soil-service/main.py",
         "services/soil-service/p1_products.py",
         "services/soil-service/p2_products.py",
@@ -2934,9 +2937,9 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/api/raster_service_client.py",
-        "services/sahool-platform/api/routers/crop_twin.py"
+        "services/sahool-platform/api/recommendations_hub.py"
       ],
-      "source_evidence_count": 709,
+      "source_evidence_count": 712,
       "target_evidence_count": 568,
       "static_supported": true,
       "runtime_verified": false
@@ -3395,5 +3398,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "cbbaca8d0d026f291d3c0ca0c7a65ba9ebd9851d1eeb19f6eab76b17ed7db173"
+  "content_sha256": "c10335185b3a44f87e0338c661387badabd36a3b8f0a4a03123d54c40c9f2ef6"
 }

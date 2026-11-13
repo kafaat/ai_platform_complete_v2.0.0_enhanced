@@ -54,7 +54,7 @@
         "POST /v1/auth/tenants @ services/auth/routers/tenants.py:41",
         "POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:56",
         "POST /v1/auth/verify/request @ services/auth/routers/email_verify.py:23",
-        "POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2909"
+        "POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2914"
       ],
       "ui_consumers": [
         "frontend/src/services/api/auth.ts"
@@ -627,7 +627,7 @@
         "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:303",
         "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:534",
         "POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3359",
-        "POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:474"
+        "POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:480"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -719,7 +719,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 25
+        "tests": 26
       }
     },
     {
@@ -1003,7 +1003,7 @@
         "GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265",
         "GET /api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1454",
         "GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:576",
-        "GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2693",
+        "GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2698",
         "PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36",
         "POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:457",
         "POST /api/v1/fields/boundary-graph/rebuild @ services/sahool-platform/api/routers/boundaries.py:244",
@@ -1020,20 +1020,20 @@
         "POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:681",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
         "POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:746",
-        "POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2496",
-        "POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2537",
-        "POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2583",
-        "POST /v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2764",
-        "POST /v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2725",
-        "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2444",
-        "POST /v1/learning/monitoring-snapshots @ services/decision-service/main.py:2801",
-        "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:3099",
-        "POST /v1/learning/retraining-requests @ services/decision-service/main.py:2842",
-        "POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:3004",
-        "POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2620",
-        "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2656",
-        "POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2963",
-        "POST /v1/learning/runtime-schedules @ services/decision-service/main.py:3052"
+        "POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2501",
+        "POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2542",
+        "POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2588",
+        "POST /v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2769",
+        "POST /v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2730",
+        "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2449",
+        "POST /v1/learning/monitoring-snapshots @ services/decision-service/main.py:2806",
+        "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:3104",
+        "POST /v1/learning/retraining-requests @ services/decision-service/main.py:2847",
+        "POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:3009",
+        "POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2625",
+        "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2661",
+        "POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2968",
+        "POST /v1/learning/runtime-schedules @ services/decision-service/main.py:3057"
       ],
       "ui_consumers": [
         "frontend/src/components/FieldIndicatorMap.boundary.test.tsx"
@@ -1345,8 +1345,8 @@
         "services/raster-service/main.py"
       ],
       "apis": [
-        "GET /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:141",
-        "POST /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:35"
+        "GET /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:143",
+        "POST /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:36"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -1424,9 +1424,9 @@
         "GET /api/v1/gis/cloud-native/stac/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:191",
         "GET /api/v1/gis/cloud-native/stac/queryables @ services/sahool-platform/api/routers/gis_cloud_native.py:198",
         "GET /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:480",
-        "GET /v1/activation/satellite_cdse @ services/decision-service/main.py:1988",
-        "GET /v1/activation/satellite_cdse/probe @ services/decision-service/main.py:2004",
-        "GET /v1/activation/satellite_cdse/source @ services/decision-service/main.py:1995",
+        "GET /v1/activation/satellite_cdse @ services/decision-service/main.py:1993",
+        "GET /v1/activation/satellite_cdse/probe @ services/decision-service/main.py:2009",
+        "GET /v1/activation/satellite_cdse/source @ services/decision-service/main.py:2000",
         "GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:202",
         "GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:267",
         "GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:125",
@@ -1434,10 +1434,10 @@
         "GET /v1/stac @ services/raster-service/routers/stac.py:17",
         "GET /v1/stac/collections @ services/raster-service/routers/stac.py:25",
         "POST /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:220",
-        "POST /v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1928",
-        "POST /v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1941",
-        "POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1975",
-        "POST /v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1960",
+        "POST /v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1933",
+        "POST /v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1946",
+        "POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1980",
+        "POST /v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1965",
         "POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:827",
         "POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:144",
         "POST /v1/scenes/quality-score @ services/raster-service/routers/imagery.py:114",
@@ -2564,8 +2564,11 @@
         "GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:429"
       ],
       "ui_consumers": [],
-      "mobile_consumers": [],
+      "mobile_consumers": [
+        "mobile/sahool_app/lib/features/scouting/presentation/disease_symptoms_dialog.dart"
+      ],
       "tests": [
+        "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
         "services/sahool-platform/tests/test_advice_host_disease_unknown_crop_and_knowledge.py",
         "services/sahool-platform/tests/test_weather_engine_disease_window_layers.py",
         "tests_v9/test_disease_field_state_feed.py"
@@ -2582,7 +2585,7 @@
           "path": "services/sahool-platform/api/disease_diagnosis.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=3, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=4, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": "4",
@@ -2743,15 +2746,15 @@
         "GET /api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:65",
         "GET /api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:53",
         "GET /v1/fields/{field_id}/soil/sampling-plan @ services/raster-service/routers/soil_tiles.py:177",
-        "GET /v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:154",
+        "GET /v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:156",
         "GET /v1/fields/{field_id}/soil/sampling-zones.geojson @ services/raster-service/routers/soil_tiles.py:150",
         "POST /api/v1/fields/{field_id}/zone-sampling-plan @ services/sahool-platform/api/routers/productivity.py:84",
         "POST /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:181",
         "POST /api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:327",
         "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:223",
         "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:295",
-        "POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:83",
-        "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100"
+        "POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:84",
+        "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:101"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -3012,7 +3015,7 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "POST /v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:128"
+        "POST /v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:130"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -3177,17 +3180,17 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:401",
-        "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:755",
+        "GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:407",
+        "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:761",
         "GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2593",
         "POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:209",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:542",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329",
         "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:122",
-        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:584",
+        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:590",
         "POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922",
         "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:354",
-        "POST /v1/recommendation-outcomes @ services/decision-service/main.py:1138"
+        "POST /v1/recommendation-outcomes @ services/decision-service/main.py:1139"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -3284,7 +3287,7 @@
         "DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:439",
         "POST /api/v1/irrigation/schedules @ services/sahool-platform/api/routers/irrigation.py:295",
         "POST /v1/fields/{field_id}/post-execution-observations @ services/vegetation-analysis-service/routers/outcomes.py:43",
-        "POST /v1/learning/runtime-schedules @ services/decision-service/main.py:3052"
+        "POST /v1/learning/runtime-schedules @ services/decision-service/main.py:3057"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -3348,11 +3351,11 @@
         "POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:897",
         "POST /api/v1/portfolio/command @ services/sahool-platform/api/routers/portfolio_command.py:70",
         "POST /v1/command @ services/actuator-service/routers/commands.py:26",
-        "POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2496",
-        "POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2537",
-        "POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2583",
-        "POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2620",
-        "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2656",
+        "POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2501",
+        "POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2542",
+        "POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2588",
+        "POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2625",
+        "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2661",
         "POST /v1/phase9/autonomy/verify-loop @ services/sahool-platform/api/phase9_autonomous_farm_os.py:207"
       ],
       "ui_consumers": [],
@@ -4114,6 +4117,7 @@
         "mobile/sahool_app/lib/features/scouting/data/device_sources.dart",
         "mobile/sahool_app/lib/features/scouting/data/scouting_api.dart",
         "mobile/sahool_app/lib/features/scouting/data/scouting_models.dart",
+        "mobile/sahool_app/lib/features/scouting/presentation/disease_symptoms_dialog.dart",
         "mobile/sahool_app/lib/features/scouting/presentation/new_observation_cubit.dart",
         "mobile/sahool_app/lib/features/scouting/presentation/new_observation_screen.dart",
         "mobile/sahool_app/lib/features/scouting/presentation/pest_detect_cubit.dart",
@@ -4127,6 +4131,7 @@
         "mobile/sahool_app/lib/features/scouting/scouting_routes.dart"
       ],
       "tests": [
+        "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_cubit_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_screen_test.dart",
         "mobile/sahool_app/test/features/scouting/pest_detect_test.dart",
@@ -4168,7 +4173,7 @@
           "path": "services/scout-ingest-service/main.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=24, tests=12, ui=0, mobile=15. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=24, tests=13, ui=0, mobile=16. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "4",
         "CropX": null,
@@ -4586,19 +4591,19 @@
         "GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:25",
         "GET /runtime-identity @ services/soil-service/main.py:221",
         "GET /runtime-identity @ services/weather-service/main.py:56",
-        "GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1382",
-        "GET /v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:655",
+        "GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1387",
+        "GET /v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:656",
         "POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:289",
         "POST /api/v1/calibration/{region}/adapt-from-evidence/apply @ services/sahool-platform/api/routers/calibration.py:335",
         "POST /api/v1/calibration/{region}/evidence @ services/sahool-platform/api/routers/calibration.py:129",
         "POST /api/v1/cameras/snapshot-evidence @ services/sahool-platform/api/routers/cameras.py:58",
         "POST /api/v1/evidence/corroborate @ services/sahool-platform/api/routers/evidence.py:26",
-        "POST /v1/activation/evidence-receipts @ services/decision-service/main.py:1693",
-        "POST /v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1767",
-        "POST /v1/evidence/field-counts @ services/decision-service/main.py:1270",
-        "POST /v1/evidence/vegetation-snapshots @ services/decision-service/main.py:637",
+        "POST /v1/activation/evidence-receipts @ services/decision-service/main.py:1698",
+        "POST /v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1772",
+        "POST /v1/evidence/field-counts @ services/decision-service/main.py:1275",
+        "POST /v1/evidence/vegetation-snapshots @ services/decision-service/main.py:638",
         "POST /v1/fields/{field_id}/soil/evidence @ services/soil-service/routers/canonical.py:146",
-        "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:3099"
+        "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:3104"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4692,7 +4697,7 @@
       "apis": [
         "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:303",
         "POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:116",
-        "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:856"
+        "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:857"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4745,7 +4750,7 @@
         "GET /api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:52",
         "GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:80",
         "GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:576",
-        "GET /v1/decisions/review-queue @ services/decision-service/main.py:798",
+        "GET /v1/decisions/review-queue @ services/decision-service/main.py:799",
         "PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36",
         "POST /api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:197",
         "POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:116",
@@ -4762,9 +4767,9 @@
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
         "POST /v1/approvals/approve @ services/ai_agronomist/main.py:283",
         "POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42",
-        "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:856",
-        "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2444",
-        "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100"
+        "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:857",
+        "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2449",
+        "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:101"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4857,15 +4862,15 @@
         "services/decision-service/main.py"
       ],
       "apis": [
-        "GET /v1/execution-requests @ services/decision-service/main.py:2035",
-        "GET /v1/execution-requests/recovery @ services/decision-service/main.py:2064",
-        "GET /v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2164",
+        "GET /v1/execution-requests @ services/decision-service/main.py:2040",
+        "GET /v1/execution-requests/recovery @ services/decision-service/main.py:2069",
+        "GET /v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2169",
         "POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:389",
         "POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:457",
-        "POST /v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2086",
-        "POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2118",
+        "POST /v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2091",
+        "POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2123",
         "POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:66",
-        "POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2181"
+        "POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2186"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4926,7 +4931,7 @@
         "GET /api/v1/decision/dispatch/decisions @ services/sahool-platform/api/routers/decision_dispatch.py:459",
         "GET /api/v1/decision/dispatch/queue @ services/sahool-platform/api/routers/decision_dispatch.py:491",
         "GET /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:644",
-        "GET /v1/dispatch/decisions @ services/decision-service/main.py:1097",
+        "GET /v1/dispatch/decisions @ services/decision-service/main.py:1098",
         "POST /api/v1/decision/dispatch/consume @ services/sahool-platform/api/routers/decision_dispatch.py:411",
         "POST /api/v1/decision/dispatch/evaluate @ services/sahool-platform/api/routers/decision_dispatch.py:211",
         "POST /api/v1/decision/dispatch/execute @ services/sahool-platform/api/routers/decision_dispatch.py:259",
@@ -4934,13 +4939,13 @@
         "POST /api/v1/decision/unified @ services/sahool-platform/api/routers/decision_dispatch.py:142",
         "POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:389",
         "POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:323",
-        "POST /v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1504",
-        "POST /v1/dispatch/decisions @ services/decision-service/main.py:1038",
-        "POST /v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1434",
-        "POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:3004",
+        "POST /v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1509",
+        "POST /v1/dispatch/decisions @ services/decision-service/main.py:1039",
+        "POST /v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1439",
+        "POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:3009",
         "POST /v1/phase9/autonomy/iot/dispatch/preview @ services/sahool-platform/api/phase9_autonomous_farm_os.py:217",
         "POST /v1/phase9/autonomy/iot/dispatch/simulate @ services/sahool-platform/api/phase9_autonomous_farm_os.py:230",
-        "POST /v1/reservation-dispatch-intents @ services/decision-service/main.py:1563"
+        "POST /v1/reservation-dispatch-intents @ services/decision-service/main.py:1568"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -5020,7 +5025,7 @@
         "services/decision-service/main.py"
       ],
       "apis": [
-        "POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2118"
+        "POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2123"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -5076,14 +5081,14 @@
         "POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:72",
         "POST /api/v1/outcome/record @ services/sahool-platform/api/routers/decision_record.py:508",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
-        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:584",
+        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:590",
         "POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:66",
-        "POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2181",
+        "POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:2186",
         "POST /v1/fields/{field_id}/soil/outcomes @ services/soil-service/routers/p4_workflow.py:95",
-        "POST /v1/outcomes/record @ services/decision-service/main.py:1111",
-        "POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:2239",
+        "POST /v1/outcomes/record @ services/decision-service/main.py:1112",
+        "POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:2244",
         "POST /v1/outcomes/{outcome_id}/remote-sensing-attribution @ services/vegetation-analysis-service/routers/outcomes.py:87",
-        "POST /v1/recommendation-outcomes @ services/decision-service/main.py:1138"
+        "POST /v1/recommendation-outcomes @ services/decision-service/main.py:1139"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -5183,7 +5188,7 @@
       "apis": [
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
         "POST /v1/fields/{field_id}/soil/learning-attributions @ services/soil-service/routers/p4_workflow.py:114",
-        "POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:2239",
+        "POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:2244",
         "POST /v1/outcomes/{outcome_id}/remote-sensing-attribution @ services/vegetation-analysis-service/routers/outcomes.py:87"
       ],
       "ui_consumers": [],
@@ -5245,7 +5250,7 @@
         "GET /api/v1/calibration/{region}/resolved @ services/sahool-platform/api/routers/calibration.py:534",
         "GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:576",
         "GET /api/v1/learning/prediction-calibration @ services/sahool-platform/api/routers/learning.py:114",
-        "GET /v1/learning/calibration-dataset @ services/decision-service/main.py:2273",
+        "GET /v1/learning/calibration-dataset @ services/decision-service/main.py:2278",
         "POST /api/v1/calibration/feedback @ services/sahool-platform/api/routers/calibration.py:227",
         "POST /api/v1/calibration/{region}/adapt @ services/sahool-platform/api/routers/calibration.py:245",
         "POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:289",
@@ -5254,7 +5259,7 @@
         "POST /api/v1/calibration/{region}/override @ services/sahool-platform/api/routers/calibration.py:468",
         "POST /api/v1/calibration/{region}/propose-values @ services/sahool-platform/api/routers/calibration.py:445",
         "POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:630",
-        "POST /v1/learning/evaluation-runs @ services/decision-service/main.py:2315",
+        "POST /v1/learning/evaluation-runs @ services/decision-service/main.py:2320",
         "POST /v1/soil/calibrations/build @ services/soil-service/routers/p5_certification.py:58",
         "POST /v1/soil/calibrations/{calibration_id}/evaluate @ services/soil-service/routers/p5_certification.py:98"
       ],
@@ -5335,11 +5340,11 @@
         "POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:726",
         "POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:774",
         "POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:681",
-        "POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2583",
-        "POST /v1/learning/activation-requests @ services/decision-service/main.py:2401",
-        "POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2365",
-        "POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2620",
-        "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2656",
+        "POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2588",
+        "POST /v1/learning/activation-requests @ services/decision-service/main.py:2406",
+        "POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2370",
+        "POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2625",
+        "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2661",
         "POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:162",
         "POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:291"
       ],
