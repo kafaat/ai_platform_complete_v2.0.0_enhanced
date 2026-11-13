@@ -59,38 +59,88 @@ def monthly_composite(
     return out
 
 
-def linear_trend(composite: list[dict], value_key: str = "median") -> dict:
-    """اتّجاه خطّي بسيط (انحدار least-squares) عبر الأشهر.
+def _month_index(month: str) -> int | None:
+    """YYYY-MM ⇒ رقم شهر مطلق (السنة×12 + الشهر)؛ None إن تعذّر."""
+    try:
+        year, mon = month.split("-")[:2]
+        y, m = int(year), int(mon)
+    except (AttributeError, ValueError):
+        return None
+    if not 1 <= m <= 12:
+        return None
+    return y * 12 + (m - 1)
 
-    يكشف: هل المؤشّر يتحسّن (slope>0) أم يتدهور (slope<0)؟ مفيد لكشف
-    الإجهاد التدريجي. لا يدّعي تنبّؤاً — وصف اتّجاه فقط.
+
+# حدّ «الملاءمة الخطّيّة ضعيفة»: R² أدنى من هذا مع ≥4 نقاط ⇒ المنحنى غير خطّي، والميل
+# وحده يُخفي التذبذب (درسُ سلاسل InSAR: سرعةٌ ملاءَمة لا تساوي حركةً منتظمة).
+_NONLINEAR_R2 = 0.5
+
+
+def linear_trend(composite: list[dict], value_key: str = "median") -> dict:
+    """اتّجاه خطّي (least-squares) على محور زمنيّ حقيقيّ بالأشهر.
+
+    المحور x هو رقم الشهر الفعليّ لا ترتيبه في القائمة: شهرٌ مفقود (غيوم كاملة) لا
+    يُطوى، فلا يتضخّم الميل. ``slope`` بوحدة المؤشّر/شهر. يُعاد معه ما يلزم لقراءته
+    بصدق: المدى الزمنيّ، الأشهر المفقودة، جذر متوسّط مربّع البواقي، R²، وجودة الملاءمة
+    (``fit_quality``: linear | nonlinear | undetermined). وصفٌ لا تنبّؤ.
     """
-    pts = [(i, m[value_key]) for i, m in enumerate(composite) if m.get(value_key) is not None]
+    pts: list[tuple[int, float, str]] = []
+    for m in composite:
+        v = m.get(value_key)
+        idx = _month_index(m.get("month", ""))
+        if v is None or idx is None:
+            continue
+        pts.append((idx, float(v), m["month"]))
     n = len(pts)
     if n < 2:
         return {"slope": None, "direction": "insufficient_data", "points": n}
 
-    sx = sum(x for x, _ in pts)
-    sy = sum(y for _, y in pts)
-    sxx = sum(x * x for x, _ in pts)
-    sxy = sum(x * y for x, y in pts)
+    x0 = pts[0][0]
+    xs = [x - x0 for x, _, _ in pts]
+    ys = [y for _, y, _ in pts]
+    span = xs[-1]
+    sx, sy = sum(xs), sum(ys)
+    sxx = sum(x * x for x in xs)
+    sxy = sum(x * y for x, y in zip(xs, ys, strict=True))
     denom = n * sxx - sx * sx
     if denom == 0:
         return {"slope": None, "direction": "flat", "points": n}
 
     slope = (n * sxy - sx * sy) / denom
+    intercept = (sy - slope * sx) / n
+    residuals = [y - (intercept + slope * x) for x, y in zip(xs, ys, strict=True)]
+    ss_res = sum(r * r for r in residuals)
+    mean_y = sy / n
+    ss_tot = sum((y - mean_y) ** 2 for y in ys)
+    r2 = None if ss_tot == 0 else round(1 - ss_res / ss_tot, 4)
+    if n < 4 or r2 is None:
+        fit_quality = "undetermined"
+    elif r2 < _NONLINEAR_R2:
+        fit_quality = "nonlinear"
+    else:
+        fit_quality = "linear"
+
     if abs(slope) < 1e-4:
         direction = "stable"
     elif slope > 0:
         direction = "improving"  # تحسّن (نموّ صحّي)
     else:
         direction = "declining"  # تدهور (إجهاد محتمل)
+    present = set(xs)
     return {
         "slope": round(slope, 6),
+        "slope_unit": "index_per_month",
         "direction": direction,
         "points": n,
-        "first": composite[0].get(value_key),
-        "last": composite[-1].get(value_key),
+        "first": ys[0],
+        "last": ys[-1],
+        "first_month": pts[0][2],
+        "last_month": pts[-1][2],
+        "span_months": span,
+        "missing_months": span + 1 - len(present),
+        "residual_rms": round((ss_res / n) ** 0.5, 6),
+        "r2": r2,
+        "fit_quality": fit_quality,
     }
 
 
