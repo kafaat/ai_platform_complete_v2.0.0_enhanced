@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7161,
+    "files_scanned": 7159,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2164,
-      "tests": 2404,
+      "tests": 2402,
       "web": 524
     },
     "unmapped_artifacts": 3409,
-    "ambiguous_artifacts": 234,
+    "ambiguous_artifacts": 233,
     "files_by_reading": {
-      "python_functional": 3857,
+      "python_functional": 3855,
       "raw": 3304
     },
-    "test_dependency_files": 1810,
-    "test_dependency_edges": 4584,
-    "test_dependency_bounded_files": 1056,
+    "test_dependency_files": 1808,
+    "test_dependency_edges": 4576,
+    "test_dependency_bounded_files": 1054,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -7453,14 +7453,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_digital_twin_season_live_pg.py",
-          "score": 14,
-          "signals": [
-            "path:season",
-            "content:season"
-          ]
-        },
-        {
           "path": "tests_v9/test_fii_prescription_season_context_guard.py",
           "score": 14,
           "signals": [
@@ -7791,7 +7783,7 @@
         "events": 41,
         "web": 15,
         "mobile": 15,
-        "tests": 48,
+        "tests": 47,
         "governance": 0,
         "other_evidence": 15
       },
@@ -19475,15 +19467,15 @@
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:409",
+          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:403",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302",
+          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:296",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:533",
+          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:527",
           "score": 8
         },
         {
@@ -20673,14 +20665,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/tests/test_field_twin.py",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "dedup:NDVI=ndvi"
-          ]
-        },
-        {
           "path": "services/sahool-platform/tests/test_freshness_sweep.py",
           "score": 8,
           "signals": [
@@ -21221,7 +21205,7 @@
         "events": 97,
         "web": 38,
         "mobile": 5,
-        "tests": 65,
+        "tests": 64,
         "governance": 0,
         "other_evidence": 33
       },
@@ -21243,14 +21227,6 @@
         },
         {
           "path": "services/sahool-platform/api/field_state_projection.py",
-          "score": 8,
-          "signals": [
-            "content:NDMI",
-            "dedup:NDMI=ndmi"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/api/routers/crop_twin.py",
           "score": 8,
           "signals": [
             "content:NDMI",
@@ -21306,24 +21282,7 @@
           ]
         }
       ],
-      "routes": [
-        {
-          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:244",
-          "score": 8
-        },
-        {
-          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:409",
-          "score": 8
-        },
-        {
-          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302",
-          "score": 8
-        },
-        {
-          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:533",
-          "score": 8
-        }
-      ],
+      "routes": [],
       "database": [
         {
           "value": "imagery_automation_fields @ migrations/v99_imagery_spectral_indices.sql:15",
@@ -21513,8 +21472,8 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 9,
-        "routes": 4,
+        "backend": 8,
+        "routes": 0,
         "database": 5,
         "events": 13,
         "web": 3,
@@ -21523,7 +21482,7 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "coverage_dimensions": 6,
+      "coverage_dimensions": 5,
       "mapped": true
     },
     {
@@ -39216,6 +39175,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_field_twin.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_field_twin_endpoint.py",
       "kind": "tests"
     },
@@ -39953,10 +39916,6 @@
     },
     {
       "path": "services/sahool-platform/tests/test_ui_product_rules_contract_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_v26_digital_twin_regressions.py",
       "kind": "tests"
     },
     {
@@ -48384,28 +48343,6 @@
           "signals": [
             "content:crop season",
             "content:season"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "services/sahool-platform/api/routers/crop_twin.py",
-      "kind": "backend",
-      "candidates": [
-        {
-          "capability_id": "SAT-004",
-          "score": 8,
-          "signals": [
-            "content:NDMI",
-            "dedup:NDMI=ndmi"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "dedup:NDVI=ndvi"
           ]
         }
       ]
@@ -59281,17 +59218,17 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 7
+          "line": 6
         },
         {
           "source": "services/sahool-platform/api/routers/field_twin.py",
           "kind": "import",
-          "line": 9
+          "line": 8
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 10
+          "line": 9
         }
       ],
       "unresolved": []
@@ -64329,29 +64266,6 @@
           "source": "services/sahool-platform/api/routers/field_readiness.py",
           "kind": "source_read",
           "line": 37
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "services/sahool-platform/tests/test_v26_digital_twin_regressions.py",
-      "bounded": true,
-      "unbounded_reasons": [],
-      "edges": [
-        {
-          "source": "services/sahool-platform/api/crop_decision_bridge.py",
-          "kind": "import",
-          "line": 6
-        },
-        {
-          "source": "services/sahool-platform/api/crop_twin.py",
-          "kind": "import",
-          "line": 7
-        },
-        {
-          "source": "services/sahool-platform/core/field_digital_twin.py",
-          "kind": "import",
-          "line": 8
         }
       ],
       "unresolved": []
@@ -74503,39 +74417,6 @@
           "source": "shared/contracts/soil/observation.py",
           "kind": "import",
           "line": 57
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_digital_twin_season_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
-      "edges": [
-        {
-          "source": "services/sahool-platform/api/main.py",
-          "kind": "import",
-          "line": 60
-        },
-        {
-          "source": "services/sahool-platform/api/routers/__init__.py",
-          "kind": "import",
-          "line": 61
-        },
-        {
-          "source": "services/sahool-platform/api/routers/field_twin.py",
-          "kind": "import",
-          "line": 61
-        },
-        {
-          "source": "services/sahool-platform/api/routers/water_twin.py",
-          "kind": "import",
-          "line": 61
-        },
-        {
-          "source": "services/sahool-platform/core/canonical_schemas.py",
-          "kind": "import",
-          "line": 67
         }
       ],
       "unresolved": []
@@ -86109,22 +85990,22 @@
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "source_read",
-          "line": 240
+          "line": 244
         },
         {
           "source": "services/sahool-platform/api/phase_runtime_store.py",
           "kind": "source_read",
-          "line": 112
+          "line": 116
         },
         {
           "source": "services/sahool-platform/api/routers/decision_dispatch.py",
           "kind": "source_read",
-          "line": 147
+          "line": 151
         },
         {
           "source": "services/sahool-platform/api/routers/recommendations.py",
           "kind": "source_read",
-          "line": 134
+          "line": 138
         }
       ],
       "unresolved": []
