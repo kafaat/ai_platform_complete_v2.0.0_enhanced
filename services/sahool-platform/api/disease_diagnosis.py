@@ -147,6 +147,20 @@ class DiagnosisResult:
         }
 
 
+def _crop_key(crop: str | None) -> str:
+    """مفتاح المحصول الذي تُطابَق عليه ``rule.crops``.
+
+    حقل المحصول يُخزَّن كما أدخله المستخدم أو أنشأه نظام آخر («Wheat»، «قمح»)، بينما
+    القواعد بمفاتيح إنجليزيّة صغيرة؛ المطابقة الحرفيّة كانت تُسقط قواعد المحصول بصمت
+    فيقول التشخيص «لا تطابق» (سلبيّ كاذب). المحلِّل المشترك أوّلاً، ثمّ strip+lower.
+    """
+    if not crop:
+        return ""
+    from core.season_phenology import resolve_crop_id
+
+    return resolve_crop_id(crop) or crop.strip().lower()
+
+
 def diagnose(crop: str, symptoms: list[str]) -> DiagnosisResult:
     """يطابق الأعراض المرصودة مع قواعد المعرفة ويرتّب المرشّحين.
 
@@ -154,10 +168,11 @@ def diagnose(crop: str, symptoms: list[str]) -> DiagnosisResult:
     """
     observed: set[str] = set(symptoms)
     candidates: list[DiagnosisCandidate] = []
+    crop_key = _crop_key(crop)
 
     for rule in SYMPTOM_RULES:
-        # تحقّق المحصول
-        if rule.crops and crop not in rule.crops:
+        # تحقّق المحصول (بالمفتاح الموحَّد: «Wheat» و«قمح» و« wheat » كلّها wheat)
+        if rule.crops and crop_key not in rule.crops:
             continue
         # يجب توفّر كلّ الأعراض المطلوبة
         if not rule.required_symptoms.issubset(observed):

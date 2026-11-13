@@ -330,3 +330,30 @@ async def test_create_pin_rejects_body_field_differing_from_path(fields_mod):
     with pytest.raises(HTTPException) as exc:
         await fields_mod.create_pin("fld-1", req, _FakeUser())
     assert exc.value.status_code == 422
+
+
+# ─── وقت المشاهدة وموقعها (S-H2) ───────────────────────────────────────────
+def test_an_unparseable_observation_time_is_a_422_not_a_silent_persisted_false():
+    from api.scouting_pins import _pin_created_at
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException) as err:
+        _pin_created_at("yesterday morning")
+    assert err.value.status_code == 422
+
+
+def test_a_naive_observation_time_is_read_as_utc():
+    from api.scouting_pins import _pin_created_at
+
+    assert _pin_created_at("2026-11-12T07:25:00").utcoffset().total_seconds() == 0
+    assert _pin_created_at("2026-11-12T07:25:00Z").utcoffset().total_seconds() == 0
+
+
+def test_the_pin_is_checked_against_the_field_boundary_before_the_insert():
+    import inspect
+
+    from api import scouting_pins
+
+    source = inspect.getsource(scouting_pins.persist_scouting_pin)
+    assert source.index("_assert_pin_inside_field(") < source.index("INSERT INTO scouting_pins")
+    assert scouting_pins.PIN_FIELD_TOLERANCE_M == 25.0

@@ -117,6 +117,15 @@ class _PestDetectBody extends StatelessWidget {
             title: 'تعذّر تحليل الصورة',
             onRetry: cubit.retry,
           ),
+          if (deps.canRecord)
+            TextButton(
+              child: const Text('تسجيل اشتباه ميداني وإرفاق الصورة'),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute<bool>(
+                builder: (_) => NewObservationScreen(
+                  field: field, deps: deps, inspectionPhoto: cubit.lastPhoto,
+                ),
+              )),
+            ),
           if (s.serverDetail != null)
             Text(
               'ردّ الخادم: ${s.serverDetail}',
@@ -141,6 +150,7 @@ class _PestDetectBody extends StatelessWidget {
                     deps: deps,
                     initialCategory: IssueCategory.pest,
                     initialNote: _noteFor(result),
+                    inspectionPhoto: cubit.lastPhoto,
                   ),
                 ),
               ),
