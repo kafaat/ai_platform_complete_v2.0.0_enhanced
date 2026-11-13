@@ -2,15 +2,15 @@
   "inputs": [
     {
       "path": "docs/architecture/generated/platform_route_governance_attestation.json",
-      "sha256": "b5d033e6ffb582706ae4a27d3ee8baaeaceb3ba5f6aaf1a65a3e6f8d9b05e875"
+      "sha256": "e0093b239333f5f659f379ea9f2632a12d98b9d1e077f02518de75551821dac7"
     },
     {
       "path": "docs/architecture/generated/platform_route_budget_inventory.json",
-      "sha256": "f5db14cdfa492581dcf56f860404f61a4598f8217e55a38af3d8ebc163b7c5ec"
+      "sha256": "3b898de4133165cf9c51a43375ce939f2e4b7ebdbca319c44c9cf8bbc4f1450f"
     },
     {
       "path": "docs/architecture/generated/platform_route_ownership_inventory.json",
-      "sha256": "0d80d0993e24ffe7b2f5f600d7458661cb1ddd4baceed19086f535a921089e99"
+      "sha256": "02deec963ff760ba0c642a9ef62b0d92541d5b2ba528f0df52561086fe42416b"
     }
   ],
   "route_counts": {
@@ -20,6 +20,6 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "route_governance_statement_sha256": "c4df28c6626283e81fc70d2f2bab3e5e293bd3ec0049bc80c974750b86117858",
+  "route_governance_statement_sha256": "7b42f7d67a5ad10875facb4e96538ea0460fe8a6214a09203173d90fbb010d8b",
   "schema_version": "sahool.platform-route-release-binding.v1"
 }
