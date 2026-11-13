@@ -123,6 +123,7 @@ def world():
         ("farmer_a", "farmer", tenant_a),
         ("farmer_a2", "farmer", tenant_a),
         ("admin_b", "admin", tenant_b),
+        ("owner_b", "owner", tenant_b),
         ("farmer_b", "farmer", tenant_b),
     ]
     users = {}
@@ -276,6 +277,41 @@ def test_bootstrap_admin_is_scoped_to_its_own_tenant(world):
     assert {u["tenant_id"] for u in r.json()} == {boot["tenant"]}
     seeded = {u["id"] for u in world["users"].values()}
     assert not seeded & {u["id"] for u in r.json()}
+
+
+def test_tenant_provisioning_fails_closed_for_every_tenant_role(world):
+    """C-35: POST /v1/auth/tenants is platform onboarding; no tenant role may call it.
+
+    The owner and admin of each of two tenants, a farmer, and a forged ``platform_admin``
+    claim all get 403 ``platform_admin_required``, and no user row is created. Without a
+    token the caller is 401. Provisioning reopens only with a verifiable platform-admin
+    identity (owner decision 2026-11-13).
+    """
+    c = world["client"]
+    marker = uuid.uuid4().hex[:10]
+    callers = [
+        world["token"]("owner_a"),
+        world["token"]("admin_a"),
+        world["token"]("owner_b"),
+        world["token"]("admin_b"),
+        world["token"]("farmer_b"),
+        world["token"]("admin_b", role_override="platform_admin"),
+    ]
+    for i, hdr in enumerate(callers):
+        email = f"c35-{i}-{marker}@example.invalid"
+        r = c.post(
+            "/v1/auth/tenants",
+            json={"owner_email": email, "owner_full_name": "C-35", "tenant_name": "c35"},
+            headers=hdr,
+        )
+        assert r.status_code == 403, (i, r.status_code, r.text[:200])
+        assert r.json()["detail"]["code"] == "platform_admin_required"
+        assert not _q("SELECT 1 FROM users WHERE email = $1", email), "a tenant was provisioned"
+    r = c.post(
+        "/v1/auth/tenants",
+        json={"owner_email": f"c35-anon-{marker}@example.invalid", "owner_full_name": "C-35"},
+    )
+    assert r.status_code == 401, r.text[:200]
 
 
 def test_user_management_routes_are_the_three_scoped_ones(world):
