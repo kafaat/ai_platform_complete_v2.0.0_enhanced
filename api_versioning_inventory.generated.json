@@ -5447,7 +5447,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_twin.py",
-    "line": 41,
+    "line": 39,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/twin",
     "handler": "get_field_twin",

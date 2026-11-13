@@ -1,5 +1,5 @@
 {
-  "edge_count": 942,
+  "edge_count": 946,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -4372,6 +4372,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/field_twin.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/fields.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4472,6 +4482,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/water_twin.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/yield_analysis.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4512,7 +4532,27 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_field_twin_endpoint.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_season_spatial_provenance.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9440,7 +9480,7 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 486,
+    "READS": 490,
     "ROUTES_TO": 72,
     "WRITES": 332
   },
@@ -9457,8 +9497,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 819,
-      "resolved": 818,
+      "observed": 823,
+      "resolved": 822,
       "unresolved_component_paths": 0
     }
   }

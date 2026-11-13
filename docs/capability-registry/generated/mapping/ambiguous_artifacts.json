@@ -4179,6 +4179,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/api/routers/crop_twin.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 8,
+        "signals": [
+          "content:NDMI",
+          "dedup:NDMI=ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "dedup:NDVI=ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/api/routers/field_ai_context.py",
     "kind": "backend",
     "candidates": [

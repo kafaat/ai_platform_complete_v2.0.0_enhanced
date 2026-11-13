@@ -604,7 +604,7 @@ sahool-platform,services/sahool-platform/api/routers/field_priority_queue.py,117
 sahool-platform,services/sahool-platform/api/routers/field_priority_queue.py,179,GET,/api/v1/farms/{farm_id}/priority-queue,farm_priority_queue,versioned
 sahool-platform,services/sahool-platform/api/routers/field_readiness.py,56,GET,/api/v1/fields/{field_id}/readiness,field_readiness,versioned
 sahool-platform,services/sahool-platform/api/routers/field_single.py,23,GET,/api/v1/field/operational-state,field_operational_state_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/field_twin.py,41,GET,/api/v1/fields/{field_id}/twin,get_field_twin,versioned
+sahool-platform,services/sahool-platform/api/routers/field_twin.py,39,GET,/api/v1/fields/{field_id}/twin,get_field_twin,versioned
 sahool-platform,services/sahool-platform/api/routers/field_workspace_imagery.py,51,GET,/api/v1/fields/{field_id}/available-dates,field_imagery_available_dates_facade,versioned
 sahool-platform,services/sahool-platform/api/routers/field_workspace_imagery.py,87,GET,/api/v1/fields/{field_id}/imagery/timeline,field_imagery_timeline_facade,versioned
 sahool-platform,services/sahool-platform/api/routers/field_workspace_timeline.py,32,GET,/api/v1/fields/{field_id}/unified-timeline,field_unified_timeline_facade,versioned

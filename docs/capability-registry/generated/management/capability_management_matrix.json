@@ -1625,7 +1625,7 @@
       "mapped": true,
       "coverage_dimensions": {
         "backend": true,
-        "routes": false,
+        "routes": true,
         "database": true,
         "events": true,
         "web": true,
@@ -1634,7 +1634,7 @@
         "governance": false,
         "other_evidence": true
       },
-      "coverage_dimension_count": 5,
+      "coverage_dimension_count": 6,
       "dependency_count": 2,
       "dependent_count": 2,
       "runtime_verified": false,
