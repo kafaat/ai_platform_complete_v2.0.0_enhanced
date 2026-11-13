@@ -478,3 +478,64 @@ def tilejson_asset_version(layer: dict | None, date: str, v: str | None) -> tupl
         uri = asset.get("cog_url")
         resolved_version = hashlib.sha256(uri.encode()).hexdigest() if uri else "default"
     return resolved_date, resolved_version
+
+
+# Field time series.
+def _timeseries_point(real: dict, date: str) -> dict:
+    """One ``/v1/fields/{id}/timeseries`` point from a real field grid (no invented values)."""
+    provenance = (real.get("indicator_product") or {}).get("provenance") or {}
+    return {
+        "datetime": str(real.get("date") or date)[:10],
+        "mean": real["stats"]["mean"],
+        # Measured quality (RS-4) and the grid's own scene lineage (vegetation's
+        # /v1/ndvi/current needs it) — None = "not reported", never a fabricated value.
+        "valid_pixel_ratio": real.get("valid_pixel_ratio"),
+        "coverage_ratio": real.get("coverage_ratio"),
+        "cloud_pct": real.get("cloud_pct"),
+        "scene_id": provenance.get("scene_id"),
+        # S4-a: هويّة الأصل لا الرقم وحده — المشهد نفسه على حدٍّ أحدث للحقل أصلٌ آخر.
+        # مراجعة الهندسة من هويّة الشبكة والأصل المقروء من نَسَب المنتج؛ None حين يغيب.
+        "geometry_revision": (real.get("grid_identity") or {}).get("geometry_revision"),
+        "source_uri": provenance.get("source_uri"),
+    }
+
+
+async def _common_mask_analysis(
+    field_id: str, points: list[dict], analysis: dict, min_common_coverage: float
+) -> dict:
+    """Recompute the field trend over the pixels valid in every scene (``common_mask=true``).
+
+    Each point's source COG is resampled onto one field grid bound to the saved field
+    geometry and its revision; see ``time_series.COMMON_MASK_RULE`` for scene exclusion.
+    """
+    import raster_field_coverage
+    import time_series
+
+    geometry = revision = None
+    try:
+        import db_persist
+
+        saved = await db_persist.fetch_field_geometry_with_revision(field_id, _REQ_TENANT.get())
+        if saved:
+            geometry, revision = saved.get("geometry"), saved.get("revision")
+    except Exception as exc:  # noqa: BLE001 — without the boundary the mask basis is declared
+        logger.warning("common mask: field geometry unavailable (%s)", type(exc).__name__)
+    scenes = [
+        {
+            "datetime": p.get("datetime"),
+            "scene_id": p.get("scene_id"),
+            "geometry_revision": p.get("geometry_revision"),
+            "path": object_store.to_gdal_path(p["source_uri"]) if p.get("source_uri") else None,
+        }
+        for p in points
+    ]
+    try:
+        aligned = await run_raster_io(
+            raster_field_coverage.align_scenes_to_field_grid, scenes, geometry, revision
+        )
+    except Exception as exc:  # noqa: BLE001 — declared as unavailable, never a silent fallback
+        logger.warning("common mask: alignment failed (%s)", type(exc).__name__)
+        aligned = None
+    return time_series.apply_common_mask(
+        analysis, points, aligned, min_common_coverage=min_common_coverage
+    )
