@@ -6284,7 +6284,7 @@
       "function": "create_entry",
       "method": "POST",
       "path": "/api/v1/farm-book/entries",
-      "line": 246,
+      "line": 279,
       "route_key": "api/routers/simple_farm_book.py::POST /api/v1/farm-book/entries::create_entry",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6294,7 +6294,7 @@
       "function": "list_entries",
       "method": "GET",
       "path": "/api/v1/farm-book/entries",
-      "line": 417,
+      "line": 458,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/entries::list_entries",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6304,7 +6304,7 @@
       "function": "monthly_report",
       "method": "GET",
       "path": "/api/v1/farm-book/monthly",
-      "line": 450,
+      "line": 491,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/monthly::monthly_report",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6314,7 +6314,7 @@
       "function": "book_balances",
       "method": "GET",
       "path": "/api/v1/farm-book/balances",
-      "line": 486,
+      "line": 527,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/balances::book_balances",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6324,7 +6324,7 @@
       "function": "export_book",
       "method": "GET",
       "path": "/api/v1/farm-book/export",
-      "line": 507,
+      "line": 548,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/export::export_book",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
