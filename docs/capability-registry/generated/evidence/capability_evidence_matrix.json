@@ -1741,6 +1741,7 @@
         "services/sahool-platform/tests/test_field_boundary_graph.py",
         "services/sahool-platform/tests/test_field_boundary_pipeline.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
+        "services/sahool-platform/tests/test_field_geometry_revert_overlap.py",
         "services/sahool-platform/tests/test_field_workspace.py",
         "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",

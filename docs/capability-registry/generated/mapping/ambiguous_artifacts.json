@@ -1689,6 +1689,28 @@
     ]
   },
   {
+    "path": "frontend/src/components/WheatSeasonPlanner.tsx",
+    "kind": "web",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 11,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "FM-005",
+        "score": 10,
+        "signals": [
+          "content:cultivar",
+          "content:variety"
+        ]
+      }
+    ]
+  },
+  {
     "path": "frontend/src/components/fieldsetup/SeasonStep.tsx",
     "kind": "web",
     "candidates": [

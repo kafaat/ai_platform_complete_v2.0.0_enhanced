@@ -50,6 +50,7 @@ from api.field_models import (
     FieldSummary,
     FieldUpdateRequest,
     _build_field_update,
+    _lock_and_reject_field_overlap,
     _lock_field_boundaries,
     _reject_field_overlap,
     _row_to_field_detail,
@@ -1075,8 +1076,6 @@ async def _compute_field_terrain_from_dem(
     """
     try:
         if isinstance(geometry, str):
-            # json is imported once at module scope (line anchor preserved)
-
             geometry = json.loads(geometry)
         guarded = guard_field_geometry(geometry)
         return await raster_get_field_terrain(
@@ -1263,8 +1262,7 @@ async def update_field(
                                 "issues": str(exc).split(","),
                             },
                         ) from exc
-                    await _lock_field_boundaries(conn, str(user.tenant_id))
-                    await _reject_field_overlap(
+                    await _lock_and_reject_field_overlap(
                         conn, str(user.tenant_id), guarded.geometry, field_id
                     )
                     req = req.model_copy(update={"geometry": guarded.geometry})
@@ -1542,7 +1540,9 @@ async def revert_field_geometry(
             if not isinstance(raw_geometry, dict):
                 raise HTTPException(status_code=409, detail="stored_geometry_invalid")
             guarded = guard_field_geometry(raw_geometry)
-
+            await _lock_and_reject_field_overlap(
+                conn, str(user.tenant_id), guarded.geometry, field_id
+            )
             await conn.execute(
                 """
                 UPDATE fields
@@ -2005,7 +2005,6 @@ async def create_season(
     (RLS) بعد تأكيد أنّ الحقل يخصّه (404)، ويردّ الموسم المُنشأ. idempotent:
     Idempotency-Key (UUID) يمنع تكرار الإنشاء عند إعادة الموبايل (offline).
     """
-    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
     if req.irrigation_type and req.irrigation_type not in _IRRIGATION_TYPES:
@@ -2056,10 +2055,12 @@ async def create_season(
                 # المعاملة — فيكون «إنشاء موسم» انتقالاً نظيفاً للموسم النشط. الفهرس
                 # الفريد الجزئي (uq_seasons_one_active) هو الضمانة النهائيّة للثابت.
                 async with conn.transaction():
+                    # موسم مخطَّط (initial_status='planned') لا يُغلق النشط: $2 يقيّد الإغلاق.
                     closed = await conn.fetch(
-                        "UPDATE seasons SET status = 'closed' "
-                        "WHERE field_id = $1 AND status = 'active' RETURNING season_id",
+                        "UPDATE seasons SET status = 'closed' WHERE field_id = $1 "
+                        "AND status = 'active' AND $2::text = 'active' RETURNING season_id",
                         field_id,
+                        req.initial_status,
                     )
                     # حدث SEASON_CLOSED لكلّ موسم نشط أُغلق آليّاً (توسيع تغطية الأحداث).
                     for cr in closed:
@@ -2084,7 +2085,7 @@ async def create_season(
                          target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source,
                          maturity, tillage_type, actual_yield_kg_ha, notes_ar)
                        VALUES ($1, $2::uuid, $3, $4::jsonb, $5, $6, $7,
-                               $8, $9, $10, $11, $12::jsonb, 'active',
+                               $8, $9, $10, $11, $12::jsonb, $21,
                                $13, $14, $15, $16,
                                $17, $18, $19, $20)""",
                         season_id,
@@ -2107,6 +2108,7 @@ async def create_season(
                         req.tillage_type,
                         req.actual_yield_kg_ha,
                         req.notes_ar,
+                        req.initial_status,
                     )
                     # حدث domain ضمن نفس معاملة إنشاء الموسم (نمط outbox).
                     await _emit_domain_event(
@@ -2118,6 +2120,7 @@ async def create_season(
                         {
                             "field_id": field_id,
                             "crops": req.crops,
+                            "status": req.initial_status,
                             "cultivar": req.cultivar,
                             "irrigation_type": req.irrigation_type,
                             "sowing_date": req.sowing_date,
@@ -2156,7 +2159,7 @@ async def create_season(
                     sowing_date=sow.isoformat() if sow else None,
                     season_end=end.isoformat() if end else None,
                     stages=clean_stages,  # نفس ما خُزّن (dicts مُنظَّفة من season_integrity)
-                    status="active",
+                    status=req.initial_status,
                     target_yield_kg_ha=req.target_yield_kg_ha,
                     plant_density=req.plant_density,
                     row_spacing_cm=req.row_spacing_cm,
@@ -2256,8 +2259,6 @@ async def update_season(
     fields_set = req.model_fields_set
     updates: list[tuple[str, object, bool]] = []  # (col, value, is_jsonb)
     if "crops" in fields_set:
-        # json is imported once at module scope (line anchor preserved)
-
         updates.append(("crops", json.dumps(req.crops or []), True))
     if "cultivar" in fields_set:
         updates.append(("cultivar", req.cultivar, False))
@@ -2677,8 +2678,6 @@ async def field_wind_drift_risk(
 
     field_geom = None
     if isinstance(field_geom_raw, str):
-        # json is imported once at module scope (line anchor preserved)
-
         try:
             field_geom = json.loads(field_geom_raw)
         except (ValueError, TypeError):
@@ -3229,7 +3228,6 @@ async def update_soil_lab_test(
     نهائيّان؛ لا اعتماد/نشر بلا نتيجة — 422). تأكيد ملكيّة الحقل (404)؛ الفحص يخصّ
     الحقل (404). 503 عند تعذّر القاعدة.
     """
-    # json is imported once at module scope (line anchor preserved)
 
     from core.engines.soil_lab_workflow import SoilWorkflowError, validate_soil_transition
 

@@ -1664,6 +1664,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/wheatRegister.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/lib/windbreak.ts",
     "kind": "web"
   },

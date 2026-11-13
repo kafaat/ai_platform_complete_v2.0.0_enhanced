@@ -591,6 +591,18 @@ async def _lock_field_boundaries(conn, tenant_id: str) -> None:
     )
 
 
+async def _lock_and_reject_field_overlap(
+    conn, tenant_id: str, geometry: dict, exclude_field_id: str | None = None
+) -> None:
+    """Serialise the tenant's geometry writers, then refuse a significant overlap (409).
+
+    Every path that rewrites an existing field's geometry (PATCH, revert) uses this, so a
+    revert into space another field took meanwhile cannot store two overlapping fields.
+    """
+    await _lock_field_boundaries(conn, tenant_id)
+    await _reject_field_overlap(conn, tenant_id, geometry, exclude_field_id)
+
+
 async def _reject_field_overlap(
     conn, tenant_id: str, geometry: dict, exclude_field_id: str | None = None
 ) -> None:
