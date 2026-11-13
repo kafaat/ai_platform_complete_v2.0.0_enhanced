@@ -55,7 +55,6 @@ def synthesize_findings(extracted: dict, query: str) -> Synthesis:
     temporal = extract_temporal_patterns(extracted)
 
     factors: list[Factor] = []
-    recommendations: list[str] = []
 
     ndvi_change = numeric.get("ndvi_change_pct", 0.0)
     ndvi_trend = numeric.get("ndvi_trend", "unknown")
@@ -69,7 +68,8 @@ def synthesize_findings(extracted: dict, query: str) -> Synthesis:
     npk = numeric.get("npk", {})
 
     # ── عامل 1: عجز مطري ──────────────────────────────────────────────────
-    if rainfall_deficit > 0:
+    weather = extracted.get("weather_api", {})
+    if "rainfall_mm" in weather and "error" not in weather and rainfall_deficit > 0:
         severity = _classify_severity(rainfall_deficit, 20.0, 50.0)
         conf_base = min(0.95, 0.5 + rainfall_deficit / 160.0)
         factors.append(
@@ -84,17 +84,6 @@ def synthesize_findings(extracted: dict, query: str) -> Synthesis:
                 confidence=conf_base,
             )
         )
-        if severity == "high":
-            recommendations.append(
-                "زيادة تكرار الري إلى يومياً لمدة أسبوع للتعويض عن العجز المطري الحادّ."
-            )
-        elif severity == "medium":
-            recommendations.append(
-                "زيادة جرعات الري بنسبة 30% خلال الأسبوعين المقبلين حتّى تعود الأمطار."
-            )
-        else:
-            recommendations.append("مراقبة مستويات الرطوبة أسبوعيّاً وضبط جدول الري عند الحاجة.")
-
     # ── عامل 2: تأخّر الري أو ضعف الالتزام ──────────────────────────────
     if adherence < _ADHERENCE_LOW or missed_count > 3:
         severity = "high" if adherence < _ADHERENCE_CRITICAL else "medium"
@@ -109,15 +98,9 @@ def synthesize_findings(extracted: dict, query: str) -> Synthesis:
                 confidence=conf_irr,
             )
         )
-        if severity == "high":
-            recommendations.append(
-                "مراجعة نظام الري فوراً وإعادة جدولة الدورات الفائتة خلال 48 ساعة."
-            )
-        else:
-            recommendations.append("تحسين جدولة الري وتفعيل التنبيهات التلقائيّة للمسؤولين.")
-
     # ── عامل 3: جفاف التربة ─────────────────────────────────────────────
-    if moisture < _MOISTURE_LOW:
+    soil = extracted.get("soil_sensors", {})
+    if "moisture_pct" in soil and "error" not in soil and moisture < _MOISTURE_LOW:
         severity = "high" if moisture < _MOISTURE_CRITICAL else "medium"
         conf_soil = min(0.88, 0.5 + (_MOISTURE_LOW - moisture) / 40.0)
         factors.append(
@@ -130,7 +113,6 @@ def synthesize_findings(extracted: dict, query: str) -> Synthesis:
                 confidence=conf_soil,
             )
         )
-        recommendations.append("إضافة طبقة من المهاد العضوي (5 سم) للحدّ من فقد الرطوبة بالتبخّر.")
 
     # ── عامل 4: شذوذ مناخي / موجة حرارة ─────────────────────────────────
     high_anomalies = [a for a in anomalies if a.get("severity") in ("high", "medium")]
@@ -145,9 +127,6 @@ def synthesize_findings(extracted: dict, query: str) -> Synthesis:
                 severity=severity,
                 confidence=0.78,
             )
-        )
-        recommendations.append(
-            "تشغيل مضخّات التبريد وضبط مواعيد الري للفجر والمساء خلال فترة موجة الحرارة."
         )
 
     # ── عامل 5: انخفاض NDVI ─────────────────────────────────────────────
@@ -164,9 +143,6 @@ def synthesize_findings(extracted: dict, query: str) -> Synthesis:
                 confidence=conf_ndvi,
             )
         )
-        recommendations.append(
-            "رصد NDVI بصور جوّيّة أسبوعيّة وتوثيق أيّ بقع صفراء قبل التدخّل الكيميائي."
-        )
 
     # ── عامل 6: نقص NPK ──────────────────────────────────────────────────
     if npk:
@@ -180,16 +156,6 @@ def synthesize_findings(extracted: dict, query: str) -> Synthesis:
                     confidence=0.70,
                 )
             )
-            recommendations.append(
-                "إضافة سماد نيتروجيني (يوريا 46%) بمعدّل 50 كغ/هكتار خلال الأسبوع القادم."
-            )
-
-    # ── تأكّد من وجود توصية واحدة على الأقل ──────────────────────────────
-    if not recommendations:
-        recommendations.append(
-            "الاستمرار في المراقبة الدوريّة للمحاصيل وتوثيق أيّ تغيّرات في الغطاء النباتي."
-        )
-
     # ── حساب الثقة الكليّة ────────────────────────────────────────────────
     if factors:
         avg_conf = sum(f.confidence for f in factors) / len(factors)
@@ -205,8 +171,7 @@ def synthesize_findings(extracted: dict, query: str) -> Synthesis:
     if causal:
         first_link = causal[0]
         causal_summary = (
-            f" الرابط السببي الرئيسي: {first_link.cause} ← {first_link.effect}"
-            f" (ثقة {first_link.confidence:.0%})."
+            f" العلاقة المفترضة في السيناريو: {first_link.cause} ← {first_link.effect}."
         )
 
     # إثراء الملخّص بالأنماط الزمنيّة (إن وُجدت أحداث تأخّر)
@@ -217,14 +182,13 @@ def synthesize_findings(extracted: dict, query: str) -> Synthesis:
         delay_note = f" أيّام التأخّر التراكميّة في الري: {total_delay_days} يوم."
 
     summary = (
-        f"تحليل الاستعلام: «{query}».\n"
-        f"رُصدت العوامل التالية: {factor_names}.{causal_summary}{delay_note}\n"
-        f"التوصيات: {len(recommendations)} إجراء مقترح بمستوى ثقة إجمالي {overall_conf:.0%}."
+        f"محاكاة ببيانات اصطناعية للاستعلام «{query}».\n"
+        f"عوامل السيناريو: {factor_names}.{causal_summary}{delay_note}"
     )
 
     return Synthesis(
         summary=summary,
         factors=factors,
-        recommendations=recommendations,
+        recommendations=[],
         confidence=overall_conf,
     )

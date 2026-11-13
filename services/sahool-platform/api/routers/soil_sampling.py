@@ -15,9 +15,10 @@ from __future__ import annotations
 import hashlib
 import json
 from datetime import UTC, date, datetime
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
+from core.authorization import has_permission
 from core.engines.soil_lab_workflow import SoilWorkflowError, validate_soil_transition
 from core.irrigation_water_analysis import WaterSample, analyze_water_sample
 from core.lab_sampling import (
@@ -26,20 +27,22 @@ from core.lab_sampling import (
     lab_decision_context,
 )
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
 
 from api import lab_store
+from api.idempotency import request_digest
 from api.main import (
     CommandStore,
     Permission,
     UserSchema,
     _idem_key,
     _idempotent,
+    get_current_user,
     get_pool,
     require_permission,
     tenant_connection,
 )
-from api.soil_evidence_bridge import publish_soil_lab_evidence
+from api.soil_evidence_bridge import publish_soil_lab_evidence, stored_lab_publication_receipt
 from api.soil_sampling_protocol import (
     sampling_depth,
     sampling_protocol,
@@ -78,27 +81,76 @@ _COMPAT_STATUS = {
 }
 
 
+def _reject_boolean_measurement(value):
+    if isinstance(value, bool):
+        raise ValueError("expected a numeric measurement")
+    return value
+
+
+Coordinate = Annotated[float, BeforeValidator(_reject_boolean_measurement)]
+GPSAccuracy = Annotated[Coordinate, Field(ge=0, allow_inf_nan=False)]
+
+
+class SamplingIndicatorSource(BaseModel):
+    scene_id: str | None = Field(default=None, min_length=1, max_length=256)
+    acquisition_date: date | None = None
+    asset_id: str | None = Field(default=None, min_length=1, max_length=256)
+
+
 class SamplingOrigin(BaseModel):
+    sampling_purpose: (
+        Literal["fertility", "nitrate", "salinity", "orchard", "texture", "no_till"] | None
+    ) = None
+    composite: bool | None = None
+    location_id: str | None = Field(default=None, min_length=1, max_length=80)
+    planned_depth_cm: tuple[float, float] | None = None
     point_id: str = Field(min_length=1, max_length=80)
     zone_id: str = Field(min_length=1, max_length=80)
-    longitude: float = Field(ge=-180, le=180)
-    latitude: float = Field(ge=-90, le=90)
+    longitude: Coordinate = Field(ge=-180, le=180)
+    latitude: Coordinate = Field(ge=-90, le=90)
     indicators: list[Literal["ndvi", "ndmi", "reci", "msavi", "slope"]] = Field(
         default_factory=list, max_length=5
     )
+
+    indicator_sources: dict[
+        Literal["ndvi", "ndmi", "reci", "msavi", "slope"], SamplingIndicatorSource
+    ] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def validate_indicator_sources(self):
+        if self.planned_depth_cm is not None:
+            start, end = self.planned_depth_cm
+            if not (0 <= start < end < float("inf")):
+                raise ValueError("invalid planned depth interval")
+        spectral_identity = None
+        for name, source in self.indicator_sources.items():
+            if name not in self.indicators:
+                raise ValueError("source requires matching indicator")
+            if name == "slope" and not (source.asset_id or "").strip():
+                raise ValueError("slope requires a terrain asset")
+            if name != "slope":
+                if not (source.scene_id or "").strip() or not source.acquisition_date:
+                    raise ValueError("spectral source requires a scene ID and acquisition date")
+                identity = (source.scene_id, source.acquisition_date)
+                if spectral_identity is not None and spectral_identity != identity:
+                    raise ValueError(
+                        "spectral sources must reference the same scene and acquisition date"
+                    )
+                spectral_identity = identity
+        return self
 
 
 class LabSampleIn(BaseModel):
     field_id: str
     kind: Literal["soil", "water"]
-    latitude: float = Field(ge=-90, le=90)
-    longitude: float = Field(ge=-180, le=180)
+    latitude: Coordinate = Field(ge=-90, le=90)
+    longitude: Coordinate = Field(ge=-180, le=180)
     sampled_on: date | None = None
     depth_cm_from: int | None = Field(default=None, ge=0)
     depth_cm_to: int | None = Field(default=None, ge=0)
     source: str | None = None
     status: Literal["planned", "collected", "submitted"] = "collected"
-    gps_accuracy_m: float | None = Field(default=None, ge=0)
+    gps_accuracy_m: GPSAccuracy | None = None
     sampling_plan_id: str | None = Field(default=None, min_length=1, max_length=64)
     sampling_origin: SamplingOrigin | None = None
 
@@ -129,7 +181,13 @@ class LabSampleIn(BaseModel):
 class SoilLabResultIn(BaseModel):
     sample_id: str
     ph: float | None = None
-    ec_dsm: float | None = None
+    ec_dsm: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    ec_extraction_method: (
+        Literal[
+            "saturated_paste", "soil_water_1_1", "soil_water_1_2_5", "soil_water_1_5", "unspecified"
+        ]
+        | None
+    ) = None
     organic_matter_pct: float | None = None
     nitrogen_mg_kg: float | None = None
     phosphorus_mg_kg: float | None = None
@@ -143,6 +201,8 @@ class SoilLabResultIn(BaseModel):
 
     @model_validator(mode="after")
     def classify_measured_texture(self):
+        if self.ec_extraction_method and self.ec_dsm is None:
+            raise ValueError("ec_extraction_method requires an EC measurement")
         # The class is decided on fractions normalised to 100; the fractions are stored as
         # measured. Within the ±1 tolerance a point on a class boundary can therefore get
         # the class of its normalised position, not of the raw numbers.
@@ -174,6 +234,7 @@ class SoilLabResultIn(BaseModel):
 
 
 class LabTransitionIn(BaseModel):
+    reviewed_result_ids: list[UUID] | None = None
     target_status: Literal[
         "requested",
         "sampled",
@@ -213,7 +274,11 @@ def _analytes(payload: SoilLabResultIn) -> list[dict]:
                     "analyte": name,
                     "value": value,
                     "unit": unit,
-                    "method_code": payload.method_code,
+                    "method_code": (
+                        payload.ec_extraction_method or payload.method_code
+                        if name == "ec_dsm"
+                        else payload.method_code
+                    ),
                     "detection_limit": payload.detection_limit,
                     "uncertainty": payload.uncertainty,
                     "supersedes_result_id": payload.supersedes_result_ids.get(name),
@@ -248,10 +313,44 @@ async def _link_texture_group(conn, tenant_id: str, sample_id: str, analytes: li
 @router.get("/api/v1/lab/samples")
 async def list_lab_samples(
     field_id: str | None = None,
+    sample_id: str | None = None,
+    include_review: bool = False,
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
+    """Samples of the tenant, optionally of one field or one sample.
+
+    ``include_review`` with ``sample_id`` adds the current review cycle of that soil sample
+    under ``review``: the results a reviewer is shown and must name when approving, and
+    whether this user may approve or publish them. It is read here, not from a route of
+    its own, because the platform domain-route budget is already above its ceiling.
+    """
+    if include_review and not sample_id:
+        raise HTTPException(422, "include_review requires sample_id")
+    tenant = str(user.tenant_id)
     async with tenant_connection(user) as conn:
-        return await lab_store.list_samples(conn, tenant_id=str(user.tenant_id), field_id=field_id)
+        rows = await lab_store.list_samples(
+            conn, tenant_id=tenant, field_id=field_id, sample_id=sample_id
+        )
+        if not include_review:
+            return rows
+        if not rows or rows[0]["kind"] != "soil":
+            raise HTTPException(404, "soil sample not found")
+        sample = rows[0]
+        results = await lab_store.review_results(conn, tenant, sample["sample_id"])
+        reviewer = has_permission(user, Permission.INSPECTION_REVIEW)
+        authors = await lab_store.result_entry_actors(conn, tenant, sample["sample_id"])
+        review = {
+            "results": results,
+            "can_approve": bool(
+                results
+                and reviewer
+                and sample["status"] == "result_received"
+                and authors
+                and str(user.user_id) not in authors
+            ),
+            "can_publish": bool(results and reviewer and sample["status"] == "approved"),
+        }
+        return [{**sample, "review": review}]
 
 
 def _sample_request_digest(payload: LabSampleIn) -> str:
@@ -259,6 +358,11 @@ def _sample_request_digest(payload: LabSampleIn) -> str:
     data = payload.model_dump(mode="json")
     if data["sampling_origin"] is None:
         del data["sampling_origin"]  # preserve pre-migration retry fingerprints
+    else:
+        origin = payload.sampling_origin.model_dump(mode="json", exclude_none=True)
+        if not origin["indicator_sources"]:
+            del origin["indicator_sources"]
+        data["sampling_origin"] = origin
     canonical = json.dumps(data, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
@@ -267,20 +371,28 @@ def _sample_request_digest(payload: LabSampleIn) -> str:
 async def create_lab_sample(
     payload: LabSampleIn,
     idem: str | None = Depends(_idem_key),
-    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
     """ينشئ عيّنة مختبر. idempotent عند وجود Idempotency-Key (UUID): صندوق الإرسال
     دون اتّصال في الموبايل يُعيد الطلب نفسه بعد انقطاع، وبلا مفتاح كانت كلّ إعادة
     عيّنةً جديدة بمعرّف جديد. الإعادة الصادقة تُعيد العيّنة الأولى؛ والمفتاح نفسه بحمولة
     مختلفة ⇒ 409."""
     data = payload.model_dump(mode="python")
+    if payload.sampling_origin is not None:
+        origin = payload.sampling_origin.model_dump(mode="json", exclude_none=True)
+        if not origin["indicator_sources"]:
+            del origin["indicator_sources"]
+        data["sampling_origin"] = origin
     data["status"] = _COMPAT_STATUS[payload.status]
     async with tenant_connection(user) as conn:
 
         async def _work():
-            row = await lab_store.create_sample(
-                conn, tenant_id=str(user.tenant_id), created_by=str(user.user_id), payload=data
-            )
+            try:
+                row = await lab_store.create_sample(
+                    conn, tenant_id=str(user.tenant_id), created_by=str(user.user_id), payload=data
+                )
+            except lab_store.SampleFieldNotFound as exc:
+                raise HTTPException(404, "sample field not found") from exc
             await lab_store.add_custody_event(
                 conn,
                 tenant_id=str(user.tenant_id),
@@ -308,38 +420,73 @@ async def create_lab_sample(
 @router.post("/api/v1/lab/soil-results")
 async def submit_soil_lab_result(
     payload: SoilLabResultIn,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
     analytes = _analytes(payload)
     if not analytes:
         raise HTTPException(422, "at least one analyte is required")
+    if payload.supersedes_result_ids.keys() - {item["analyte"] for item in analytes}:
+        raise HTTPException(422, "a replacement value is required for each superseded analyte")
     async with tenant_connection(user) as conn:
-        sample = await lab_store.get_sample(
-            conn, tenant_id=str(user.tenant_id), sample_id=payload.sample_id
-        )
-        if not sample or sample["kind"] != "soil":
-            raise HTTPException(404, "soil sample not found")
-        current = sample["status"]
-        is_correction = bool(payload.supersedes_result_ids)
-        if is_correction:
-            await _link_texture_group(conn, str(user.tenant_id), payload.sample_id, analytes)
-        # A published sample may receive an immutable correction; it returns to approved
-        # and must be explicitly published again. New samples still follow the legal path.
-        if is_correction and current == "published":
-            current = "approved"
-        else:
-            if current == "sampled":
-                await lab_store.set_status(
-                    conn,
-                    tenant_id=str(user.tenant_id),
-                    sample_id=payload.sample_id,
-                    status="in_lab",
-                )
-                current = "in_lab"
+
+        async def record_result():
+            return await _record_soil_result(conn, payload, user, analytes)
+
+        if idem:
+            # An omitted observation time is assigned on the first successful write.
+            # Replays must identify that same request even after the server clock advances.
+            excluded = set() if "observed_at" in payload.model_fields_set else {"observed_at"}
+            digest = request_digest(
+                {
+                    "actor_id": str(user.user_id),
+                    "result": payload.model_dump(mode="json", exclude=excluded),
+                }
+            )
+            return await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                record_result,
+                command_type="lab_soil_result.submit",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={},
+                request_digest=digest,
+            )
+        return await record_result()
+
+
+async def _record_soil_result(
+    conn, payload: SoilLabResultIn, user: UserSchema, analytes: list[dict]
+):
+    sample = await lab_store.get_sample(
+        conn, tenant_id=str(user.tenant_id), sample_id=payload.sample_id
+    )
+    if not sample or sample["kind"] != "soil":
+        raise HTTPException(404, "soil sample not found")
+    current = sample["status"]
+    is_correction = bool(payload.supersedes_result_ids)
+    if is_correction:
+        await _link_texture_group(conn, str(user.tenant_id), payload.sample_id, analytes)
+    # A published sample can reopen only for a correction with a matching parent.
+    # Every replacement still requires fresh approval before republication.
+    if not (is_correction and current == "published"):
+        if current == "sampled":
+            await lab_store.set_status(
+                conn,
+                tenant_id=str(user.tenant_id),
+                sample_id=payload.sample_id,
+                status="in_lab",
+            )
+            current = "in_lab"
+        try:
             validate_soil_transition(current, "result_received", has_result=True)
-        # فصل الواجبات: الإدخال العاديّ يُنشئ نتيجة غير مُعتمَدة (quality_status='unreviewed')
-        # بحالة عيّنة result_received. لا اعتماد ذاتيّ من مُدخِل البيانات — الاعتماد انتقال
-        # حالة منفصل مُصرَّح به (/transition → approved) يَختِم الصفوف بهويّة المُعتمِد.
+        except SoilWorkflowError as exc:
+            raise HTTPException(exc.http_status, exc.message_ar) from exc
+    # فصل الواجبات: الإدخال العاديّ يُنشئ نتيجة غير مُعتمَدة (quality_status='unreviewed')
+    # بحالة عيّنة result_received. لا اعتماد ذاتيّ من مُدخِل البيانات — الاعتماد انتقال
+    # حالة منفصل مُصرَّح به (/transition → approved) يَختِم الصفوف بهويّة المُعتمِد.
+    try:
         await lab_store.insert_soil_results(
             conn,
             tenant_id=str(user.tenant_id),
@@ -350,33 +497,48 @@ async def submit_soil_lab_result(
             approved_by=None,
             correction_reason=payload.correction_reason,
         )
-        await lab_store.set_status(
-            conn,
-            tenant_id=str(user.tenant_id),
-            sample_id=payload.sample_id,
-            status="result_received",
-        )
-        await lab_store.add_custody_event(
-            conn,
-            tenant_id=str(user.tenant_id),
-            sample_id=payload.sample_id,
-            actor_id=str(user.user_id),
-            event_type="lab_result_received",
-        )
-    return analyze_soil_lab_result(
-        SoilLabResult(
-            **payload.model_dump(
-                exclude={
-                    "observed_at",
-                    "method_code",
-                    "detection_limit",
-                    "uncertainty",
-                    "supersedes_result_ids",
-                    "correction_reason",
-                }
-            )
-        )
+    except lab_store.InvalidResultReplacement as exc:
+        raise HTTPException(
+            409, "superseded result must be current and match the sample and analyte"
+        ) from exc
+    await lab_store.set_status(
+        conn,
+        tenant_id=str(user.tenant_id),
+        sample_id=payload.sample_id,
+        status="result_received",
     )
+    await lab_store.add_custody_event(
+        conn,
+        tenant_id=str(user.tenant_id),
+        sample_id=payload.sample_id,
+        actor_id=str(user.user_id),
+        event_type="lab_result_received",
+    )
+    values = payload.model_dump(
+        exclude={
+            "observed_at",
+            "ec_extraction_method",
+            "method_code",
+            "detection_limit",
+            "uncertainty",
+            "supersedes_result_ids",
+            "correction_reason",
+        }
+    )
+    return _interpret_lab_values(values, payload.ec_extraction_method or payload.method_code)
+
+
+def _interpret_lab_values(values: dict, method: str | None):
+    measured_ec = values.get("ec_dsm")
+    if method != "saturated_paste":
+        values = {**values, "ec_dsm": None}
+    analysis = analyze_soil_lab_result(SoilLabResult(**values))
+    if measured_ec is not None:
+        ec = analysis["classification"]["salinity_ec"]
+        ec.update(value_dsm=measured_ec, extraction_method=method or "unspecified")
+        if method != "saturated_paste":
+            ec["note_ar"] = "تفسير عتبات ECe يحتاج مستخلص العجينة المشبعة."
+    return analysis
 
 
 @router.post("/api/v1/lab/water-results")
@@ -415,8 +577,11 @@ async def submit_water_lab_result(
 async def transition_lab_sample(
     sample_id: str,
     payload: LabTransitionIn,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+    user: UserSchema = Depends(get_current_user),
 ):
+    review_transition = payload.target_status in {"approved", "published", "rejected"}
+    permission = Permission.INSPECTION_REVIEW if review_transition else Permission.FIELD_EDIT
+    require_permission(permission)(user)
     publish_payload = None
     publish_rows = None
     async with tenant_connection(user) as conn:
@@ -426,55 +591,82 @@ async def transition_lab_sample(
         if not sample:
             raise HTTPException(404, "sample not found")
         is_soil = sample["kind"] == "soil"
-        soil = (
-            await lab_store.latest_soil_analysis(
-                conn,
-                tenant_id=str(user.tenant_id),
-                field_id=sample["field_id"],
-                sample_id=sample_id,
-            )
-            if is_soil
-            else None
-        )
-        # شرط «توجد نتيجة» للانتقال: نتيجة مُعتمَدة (للنشر) أو أيّ نتيجة مُدخَلة (للاعتماد).
-        # لولا الفرع الثاني لاستحال result_received→approved، إذ تُدخَل النتيجة غير مُعتمَدة.
-        has_result = bool(soil) or (
-            is_soil
-            and await lab_store.has_soil_result(
-                conn, tenant_id=str(user.tenant_id), sample_id=sample_id
-            )
-        )
-        try:
-            validate_soil_transition(sample["status"], payload.target_status, has_result=has_result)
-        except SoilWorkflowError as exc:
-            raise HTTPException(exc.http_status, exc.message_ar) from exc
-        row = await lab_store.set_status(
-            conn, tenant_id=str(user.tenant_id), sample_id=sample_id, status=payload.target_status
-        )
-        # الاعتماد المُصرَّح به هو نقطة ختم النتيجة الوحيدة: يَختِم صفوف النتيجة
-        # (unreviewed→approved) بهويّة المُعتمِد المُصادَقة عبر البوّابة — فصل الواجبات.
-        if payload.target_status == "approved" and is_soil:
-            await lab_store.approve_soil_results(
-                conn,
-                tenant_id=str(user.tenant_id),
-                sample_id=sample_id,
-                approved_by=str(user.user_id),
-            )
-        await lab_store.add_custody_event(
-            conn,
-            tenant_id=str(user.tenant_id),
-            sample_id=sample_id,
-            actor_id=str(user.user_id),
-            event_type=f"status:{payload.target_status}",
-            location=payload.location,
-            condition_notes=payload.condition_notes,
-            seal_id=payload.seal_id,
-        )
-        if payload.target_status == "published" and sample["kind"] == "soil":
-            # Values and result ids come from the same rows: one current row per analyte.
+        # Publication reads its rows up front: a retry after a lost response (status already
+        # published) answers from the stored links, or repairs links an older version left out.
+        # Values and result ids come from the same rows: one current row per analyte.
+        if is_soil and payload.target_status == "published":
             publish_rows = await lab_store.publishable_soil_results(
                 conn, tenant_id=str(user.tenant_id), sample_id=sample_id
             )
+            has_result = bool(publish_rows)
+        else:
+            # Approval needs a result of this review cycle that awaits a decision.
+            has_result = is_soil and await lab_store.has_soil_result(
+                conn, tenant_id=str(user.tenant_id), sample_id=sample_id
+            )
+        try:
+            changed = validate_soil_transition(
+                sample["status"], payload.target_status, has_result=has_result
+            )
+        except SoilWorkflowError as exc:
+            raise HTTPException(exc.http_status, exc.message_ar) from exc
+        if (
+            is_soil
+            and sample["status"] != payload.target_status
+            and payload.target_status == "approved"
+        ):
+            authors = await lab_store.result_entry_actors(conn, str(user.tenant_id), sample_id)
+            if not authors:
+                raise HTTPException(409, "تعذّر تحديد مُدخل التحليل من سجل العينة.")
+            if str(user.user_id) in authors:
+                raise HTTPException(403, "يلزم مراجع آخر لاعتماد التحليل.")
+        if payload.reviewed_result_ids is not None and (
+            changed or payload.target_status != "rejected"
+        ):
+            results = await lab_store.review_results(conn, str(user.tenant_id), sample_id)
+            if set(payload.reviewed_result_ids) != {r["result_id"] for r in results}:
+                raise HTTPException(409, "تغيّرت التحاليل منذ عرضها. حدّث المراجعة.")
+        row = sample
+        if not changed:
+            if not publish_rows:
+                return row
+            receipt = stored_lab_publication_receipt(publish_rows)
+            if receipt is not None:
+                return {**row, "soil_evidence_receipt": receipt}
+            # A historical published sample can lack links. Repair the links below
+            # without changing the sample timestamp or adding another custody event.
+        else:
+            row = await lab_store.set_status(
+                conn,
+                tenant_id=str(user.tenant_id),
+                sample_id=sample_id,
+                status=payload.target_status,
+            )
+            # الاعتماد المُصرَّح به هو نقطة ختم النتيجة الوحيدة: يَختِم صفوف النتيجة
+            # (unreviewed→approved) بهويّة المُعتمِد المُصادَقة عبر البوّابة — فصل الواجبات.
+            if is_soil and (payload.target_status == "rejected" or sample["status"] == "rejected"):
+                # Also seal pending rows left by older versions before starting their retest.
+                await lab_store.reject_soil_results(
+                    conn, tenant_id=str(user.tenant_id), sample_id=sample_id
+                )
+            if payload.target_status == "approved" and is_soil:
+                await lab_store.approve_soil_results(
+                    conn,
+                    tenant_id=str(user.tenant_id),
+                    sample_id=sample_id,
+                    approved_by=str(user.user_id),
+                )
+            await lab_store.add_custody_event(
+                conn,
+                tenant_id=str(user.tenant_id),
+                sample_id=sample_id,
+                actor_id=str(user.user_id),
+                event_type=f"status:{payload.target_status}",
+                location=payload.location,
+                condition_notes=payload.condition_notes,
+                seal_id=payload.seal_id,
+            )
+        if payload.target_status == "published" and is_soil:
             publish_payload = (sample, {r["analyte"]: r["value_json"] for r in publish_rows})
         if publish_payload:
             try:
@@ -511,5 +703,6 @@ async def field_lab_context(
             conn, tenant_id=str(user.tenant_id), field_id=field_id
         )
     if latest_soil:
-        latest_soil = analyze_soil_lab_result(SoilLabResult(**latest_soil))
+        ec_method = latest_soil.pop("ec_extraction_method", None)
+        latest_soil = _interpret_lab_values(latest_soil, ec_method)
     return lab_decision_context(soil=latest_soil, water=latest_water)

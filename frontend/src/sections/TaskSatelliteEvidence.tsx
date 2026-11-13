@@ -40,12 +40,14 @@ function Preview({ field, source }: { field: string; source: SatelliteSource }) 
 
 const terrainLabels: Record<string,string> = {
   slope_deg: 'الميل (درجة)', tpi: 'الموضع الطبوغرافي (م)', twi: 'مؤشر الرطوبة الطبوغرافي التقريبي',
-  plan_curvature: 'تقريب الانحناء الأفقي', profile_curvature: 'تقريب الانحناء الطولي',
-  flow_accumulation: 'تجمع الجريان المحلي التقريبي', relative_elevation: 'الارتفاع النسبي',
-  wadi_distance_m: 'مؤشر تقريبي لبعد الوادي (م)',
+  plan_curvature: 'لابلاسيان الارتفاع المحلي', profile_curvature: 'المشتقة الثانية على محور الصفوف',
+  elevation_laplacian_per_m: 'لابلاسيان الارتفاع (١/م)', row_second_derivative_per_m: 'المشتقة الثانية على محور الصفوف (١/م)',
+  higher_neighbor_count: 'عدد الخلايا المجاورة الأعلى ارتفاعاً', local_wetness_proxy: 'مؤشر بلل محلي تقريبي',
+  flow_accumulation: 'عدد الجيران الأعلى ارتفاعاً مضافاً إليه واحد', relative_elevation: 'الارتفاع النسبي',
 };
 
 function TerrainDetails({source}: {source: TerrainSource}) {
+  const metrics = Object.entries(source.summaries).filter(([key]) => key !== 'wadi_distance_m');
   return <details className="my-2 text-sm"><summary>{source.kind === 'field_record'
     ? 'تضاريس مسجلة في الحقل' : `مشتقات نموذج الارتفاع · ${source.dem_version ?? ''}`}</summary>
     {source.elevation_m != null && <p>الارتفاع: {source.elevation_m} م</p>}
@@ -55,9 +57,10 @@ function TerrainDetails({source}: {source: TerrainSource}) {
     {source.generated_at && <p>تاريخ اشتقاق المنتج: <bdi>{source.generated_at}</bdi></p>}
     {source.product_id && <p>مرجع المنتج: <bdi>{source.product_id}</bdi> · {source.algorithm_version}</p>}
     {source.geometry_hash && <p>بصمة حدود الحقل: <bdi>{source.geometry_hash}</bdi></p>}
-    {Object.keys(source.summaries).length > 0 && <table><thead><tr>
+    {source.kind === 'dem_product' && (source.algorithm_version === 'terrain-v2' || 'wadi_distance_m' in source.summaries) && <p>المسافة إلى الوادي وتراكم الجريان غير محسوبين.</p>}
+    {metrics.length > 0 && <table><thead><tr>
       <th>المشتق</th><th>أدنى</th><th>متوسط</th><th>أعلى</th></tr></thead><tbody>
-      {Object.entries(source.summaries).map(([key,v]) => <tr key={key}><td>{terrainLabels[key] ?? key}</td>
+      {metrics.map(([key,v]) => <tr key={key}><td>{terrainLabels[key] ?? key}</td>
         <td>{v.min ?? '—'}</td><td>{v.mean ?? '—'}</td><td>{v.max ?? '—'}</td></tr>)}
     </tbody></table>}
   </details>;

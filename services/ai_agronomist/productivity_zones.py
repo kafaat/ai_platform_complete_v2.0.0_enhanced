@@ -11,10 +11,9 @@ import math
 from typing import Any
 
 try:
-    from .field_boundary_ai import area_ha_for_bbox, bbox_polygon, normalize_bbox
+    from .field_boundary_ai import bbox_polygon, normalize_bbox
 except ImportError:  # direct spec import used by legacy unit guards
     from services.ai_agronomist.field_boundary_ai import (  # type: ignore
-        area_ha_for_bbox,
         bbox_polygon,
         normalize_bbox,
     )
@@ -104,15 +103,6 @@ def propose_productivity_zones(
     bbox = bbox_from_polygon(params.get("boundary") if isinstance(params, dict) else None)
     if bbox is None:
         bbox = normalize_bbox(params.get("bbox") if isinstance(params, dict) else None)
-    if bbox is None:
-        return {
-            "field_id": field_id,
-            "productivity_zones": [],
-            "requires_user_confirmation": True,
-            "error": "missing_or_invalid_boundary",
-            "method": "deterministic_productivity_zoning_fallback",
-        }
-
     # عدد المناطق: صريح من المستخدم (يُحترَم) أو تلقائيّ (FPI/NCE) عند العنقدة الحقيقيّة.
     explicit_zone_count = params.get("zone_count") if isinstance(params, dict) else None
     try:
@@ -130,7 +120,6 @@ def propose_productivity_zones(
     if basis == "multi_index" and len(drivers) > 2:
         base_conf += 0.04
     confidence = round(max(0.42, min(base_conf, 0.86)), 2)
-    total_area = area_ha_for_bbox(bbox)
 
     # V60.1 — real NDVI-driven zoning when a grid is available (opt-in); else strips.
     # V60.3 — multi-index zoning (NDVI + NDMI/RECI/MSAVI/slope) when co-registered aux
@@ -139,25 +128,53 @@ def propose_productivity_zones(
     from .productivity_zones_clustering import (
         extract_aux_grids,
         extract_ndvi_grid,
+        indicator_sources,
         ndvi_grid_exceeds_cap,
         zones_from_ndvi_grid,
     )
 
     grid = extract_ndvi_grid(params, evidence_context)
+    from .zoning_grid_geometry import GridGeometryError, ZoningGridGeometry
+
+    georef = None
+    spatial_error = None
+    if grid:
+        try:
+            georef = ZoningGridGeometry(
+                grid, params, evidence_context, bbox, params.get("boundary")
+            )
+            grid = georef.masked_grid(grid)
+        except ImportError:
+            spatial_error = "grid_geometry_runtime_unavailable"
+        except GridGeometryError as exc:
+            spatial_error = str(exc)
+    if bbox is None and (not grid or spatial_error == "missing_or_invalid_boundary"):
+        return {
+            "field_id": field_id,
+            "productivity_zones": [],
+            "requires_user_confirmation": True,
+            "error": "missing_or_invalid_boundary",
+            "method": "insufficient_data",
+            "status": "insufficient_data",
+        }
     aux_grids = (
         extract_aux_grids(params, evidence_context, ndvi_grid=grid) if basis != "ndvi" else None
     )
     # عدد صريح ⇒ يُحترَم؛ غيابه ⇒ k=None فيختار FPI/NCE الأمثل. + تنعيم تجاور مكانيّ.
     k_arg = zone_count if explicit_zone_count is not None else None
     clustered = (
-        zones_from_ndvi_grid(grid, bbox, k_arg, smooth=True, aux_grids=aux_grids) if grid else None
+        zones_from_ndvi_grid(
+            grid, [0, 0, georef.cols, georef.rows], k_arg, smooth=True, aux_grids=aux_grids
+        )
+        if georef is not None and not spatial_error
+        else None
     )
     if clustered:
-        total_px = sum(len(r) for r in grid) or 1
         cl_conf = round(
             max(0.42, min(confidence + 0.05 * clustered["cluster_separability"], 0.92)), 2
         )
         feature_names = clustered.get("feature_names") or ["ndvi"]
+        sources = indicator_sources(params, evidence_context, feature_names)
         is_multi = len(feature_names) > 1
         cl_method = "multi_index_kmeans_clustering" if is_multi else "ndvi_kmeans_clustering"
         # وسوم مُوجِّهة صادقة: تعكس الميزات الفعليّة المستعملة (ndmi/reci/msavi/slope) لا مجرّد تسمية.
@@ -171,28 +188,37 @@ def propose_productivity_zones(
                 "zoning_method": cl_method,
                 "score": z["score"],
                 "feature_names": feature_names,
+                "indicator_sources": sources,
                 "ndvi_centroid": z["ndvi_centroid"],
                 "confidence": cl_conf,
-                "area_ha": round(total_area * z["pixel_area"] / total_px, 3),
-                "geometry": z["geometry"],
+                "area_ha": spatial[1],
+                "geometry": spatial[0],
                 "drivers": cl_drivers,
                 "recommended_use": "soil_sampling_stratum"
                 if z["productivity_class"] != "medium"
                 else "baseline_management",
             }
             for z in clustered["zones"]
+            if (spatial := georef.zone(z["geometry"])) is not None
         ]
         return {
             "field_id": field_id,
             "basis": basis,
             "method": cl_method,
             "feature_names": feature_names,
+            "indicator_sources": sources,
             "status": "proposal",
+            "grid_bbox": georef.bbox,
+            "grid_bbox_source": georef.source,
+            "grid_crs": georef.crs,
+            "grid_input_source": georef.owner,
+            "grid_georeferencing_verified": not georef.declared,
+            "grid_footprint_field_coverage": georef.field_coverage,
             "confidence_method": "heuristic_input_support_not_probability",
             "confidence_is_probability": False,
             "limitations": [
                 "single_grid_not_multiseason_yield",
-                "caller_grid_georeferencing_required",
+                *(["caller_grid_georeferencing_required"] if georef.declared else []),
             ],
             "source_evidence_dates": total_dates,
             "cluster_separability": clustered["cluster_separability"],
@@ -214,7 +240,7 @@ def propose_productivity_zones(
         "basis": basis,
         "method": "insufficient_data",
         "status": "insufficient_data",
-        "reason_codes": ["usable_indicator_grid_required"]
+        "reason_codes": [spatial_error or "usable_indicator_grid_required"]
         + (
             ["indicator_grid_exceeds_size_cap"]
             if ndvi_grid_exceeds_cap(params, evidence_context)

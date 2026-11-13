@@ -69,9 +69,14 @@ def zoning_evidence_context(pack: dict[str, Any] | None) -> dict[str, Any]:
     """Evidence for ``propose_productivity_zones`` — pass the pack through, plus a real
     NDVI grid when present so the k-means path (not strips) is taken."""
     p = dict(pack) if isinstance(pack, dict) else {}
-    grid = extract_pack_ndvi_grid(pack)
-    if grid is not None and "ndvi_grid" not in p:
-        p["ndvi_grid"] = grid
+    imagery = _imagery(p)
+    # Keep observations and identities from the same source. Historical flat
+    # packs stay compatible when no nested imagery grid is available.
+    if imagery.get("ndvi_grid") is not None:
+        for key in ("ndvi_grid", "ndmi_grid", "msavi_grid", "reci_grid", "grid_metadata"):
+            p.pop(key, None)
+            if imagery.get(key) is not None:
+                p[key] = imagery[key]
     return p
 
 
@@ -123,7 +128,11 @@ def pack_ndvi_grid_evidence(pack: dict[str, Any] | None) -> dict[str, Any] | Non
 
 
 # ── provenance: distinguish real-evidence zoning from geometry-only fallback ──
-_REAL_ZONING_METHODS = {"ndvi_kmeans_clustering", "multi_index_quantile_zoning_fallback"}
+_REAL_ZONING_METHODS = {
+    "ndvi_kmeans_clustering",
+    "multi_index_kmeans_clustering",
+    "multi_index_quantile_zoning_fallback",
+}
 
 
 def zoning_is_evidence_backed(zoning_method: str | None) -> bool:

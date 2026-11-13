@@ -27,7 +27,10 @@ async def create_observation(observation: SoilObservation, x_agent_token: str = 
     await main._require_field_tenant(observation.field_id)
     if not main._pool:
         raise HTTPException(503, "database unavailable")
-    inserted = await soil_store.persist_observation(main._pool, observation)
+    try:
+        inserted = await soil_store.persist_observation(main._pool, observation)
+    except soil_store.SoilIngestConflict as exc:
+        raise HTTPException(409, str(exc)) from exc
     observation_id = observation.observation_id
     if not inserted:
         # A duplicate key must answer with the row that exists, not the generated id of
@@ -130,6 +133,7 @@ class EvidenceBatchIn(BaseModel):
     properties: dict[str, object]
     observed_at: datetime | None = None
     observed_at_by_property: dict[str, datetime] = Field(default_factory=dict)
+    method_by_property: dict[str, str] = Field(default_factory=dict)
     depth_from_cm: float = Field(default=0, ge=0)
     depth_to_cm: float = Field(default=30, gt=0)
     approved: bool = False
@@ -161,6 +165,7 @@ async def ingest_typed_evidence(
             properties=payload.properties,
             observed_at=payload.observed_at,
             observed_at_by_property=payload.observed_at_by_property,
+            method_by_property=payload.method_by_property,
             depth_from_cm=payload.depth_from_cm,
             depth_to_cm=payload.depth_to_cm,
             approved=payload.approved,

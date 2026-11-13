@@ -18,6 +18,8 @@ export interface IrrigationRecommendationWeatherInput {
   solar_rad_mj_m2?: number;
   rh_mean_pct?: number;
   wind_2m_ms?: number;
+  rain_recent_mm?: number;
+  forecast_rain_mm?: number;
   day_of_year?: number;
   root_depth_m?: number;
   /** مقبض السياسة (اسم سياسة الريّ عند الخادم) — يُمرَّر كما هو إن حُدِّد. */
@@ -156,6 +158,8 @@ export function useFieldIrrigationRecommendation(
       weather?.solar_rad_mj_m2 ?? 'none',
       weather?.rh_mean_pct ?? 'none',
       weather?.wind_2m_ms ?? 'none',
+      weather?.rain_recent_mm ?? 'none',
+      weather?.forecast_rain_mm ?? 'none',
       weather?.day_of_year ?? 'none',
       weather?.root_depth_m ?? 'none',
       weather?.policy ?? 'none',

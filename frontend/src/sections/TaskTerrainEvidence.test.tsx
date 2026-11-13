@@ -11,5 +11,6 @@ it('displays recorded zero slopes and the resolution and units of saved DEM evid
   expect(screen.getByText('الميل: 0%')).toBeInTheDocument();
   expect(screen.getByText('حجم خلية النموذج: 30 م')).toBeInTheDocument();
   expect(screen.getByText('الميل (درجة)')).toBeInTheDocument();
-  expect(screen.getByText('مؤشر تقريبي لبعد الوادي (م)')).toBeInTheDocument();
+  expect(screen.getByText('المسافة إلى الوادي وتراكم الجريان غير محسوبين.')).toBeInTheDocument();
+  expect(screen.queryByText('15')).toBeNull();
 });

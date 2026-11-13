@@ -493,12 +493,6 @@
         ],
         "table_name_value_sites": []
       },
-      "lab_sample_custody_events": {
-        "measured_writers": [
-          "sahool-platform"
-        ],
-        "table_name_value_sites": []
-      },
       "lifecycle_temporal_rejections": {
         "measured_writers": [
           "sahool-platform"

@@ -1,10 +1,15 @@
+import type { SamplingOrigin } from '../../services/api';
 import { Link } from 'react-router';
 import { Beaker, CheckCircle2, ClipboardList, MapPin, XCircle } from 'lucide-react';
 
 export interface SoilSamplePoint {
   sample_id?: string;
+  location_id?: string;
+  composite?: boolean;
+  sampling_purpose?: SamplingOrigin['sampling_purpose'];
   point?: {coordinates: [number, number]};
   indicators?: string[];
+  indicator_sources?: SamplingOrigin['indicator_sources'];
   zone_id?: string;
   productivity_class?: 'high' | 'medium' | 'low' | string;
   priority?: 'high' | 'normal' | string;
@@ -83,10 +88,16 @@ export function SoilSamplingPlannerPanel({
             {fieldId && plan.plan_id && p.sample_id && p.zone_id && p.point && (
               <Link to="/health/lab-sampling" className="text-sm text-sky-700 underline" state={{
                 fieldId, planId: plan.plan_id, origin: { point_id: p.sample_id, zone_id: p.zone_id,
+                  location_id: p.location_id, sampling_purpose: p.sampling_purpose, composite: p.composite,
+                  planned_depth_cm: p.depth_cm?.length === 2 ? p.depth_cm : undefined,
+                  ...(p.indicator_sources && Object.keys(p.indicator_sources).length ? { indicator_sources: p.indicator_sources } : {}),
                   longitude: p.point.coordinates[0], latitude: p.point.coordinates[1], indicators: p.indicators ?? [] },
                 depth: p.depth_cm,
               }}>تسجيل عينة من هذه النقطة</Link>
             )}
+            {Object.entries(p.indicator_sources ?? {}).map(([name, src]) => (
+              <div key={name} className="text-xs text-slate-600">{name.toUpperCase()} · {src.scene_id ?? src.asset_id} {src.acquisition_date}</div>
+            ))}
             {p.instructions_ar && <div className="mt-1 text-[11px] text-slate-500">{p.instructions_ar}</div>}
           </div>
         ))}
