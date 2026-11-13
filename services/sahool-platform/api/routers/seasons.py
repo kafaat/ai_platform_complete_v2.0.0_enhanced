@@ -174,7 +174,9 @@ async def simulate_season_endpoint(
         async with tenant_connection(user) as conn:
             srow = await conn.fetchrow(
                 "SELECT s.season_id, s.field_id, s.crops, s.sowing_date, s.season_end, "
-                "f.lat, f.lon FROM seasons s JOIN fields f ON f.field_id = s.field_id "
+                "s.cultivar, s.seed_rate_kg_ha, s.plant_density, s.row_spacing_cm, "
+                "s.tillage_type, s.irrigation_type, f.lat, f.lon "
+                "FROM seasons s JOIN fields f ON f.field_id = s.field_id "
                 "WHERE s.season_id = $1",
                 season_id,
             )
@@ -196,13 +198,13 @@ async def simulate_season_endpoint(
             crops = []
     crop_list = [str(c) for c in crops if str(c).strip()] if isinstance(crops, list) else []
     crop = crop_list[0] if crop_list else None
-    # صدق (season_integrity #4): المحاكاة أحاديّة المحصول. زراعة مختلطة ⇒ تحذير صريح بأنّ
-    # النتيجة تخصّ المحصول الأوّل فقط ولا تمثّل بقيّة المحاصيل — لا تجاهُل صامت.
-    multi_crop_warning: str | None = None
+    # A single-crop RUE run must not overwrite the season-wide projection for
+    # mixed cropping: split by crop/area or use a multi-crop model first.
     if len(crop_list) > 1:
-        multi_crop_warning = (
-            f"الموسم يضمّ {len(crop_list)} محاصيل ({'، '.join(crop_list)})؛ حوكِيَ المحصول "
-            f"الأوّل فقط ({crop}). النتيجة لا تمثّل الزراعة المختلطة."
+        raise HTTPException(
+            status_code=422,
+            detail="الموسم متعدد المحاصيل — لا تُنسب غلة المحصول الأول إلى كامل الموسم. "
+            "افصل المحاصيل إلى وحدات ومساحات محددة قبل تشغيل المحاكاة.",
         )
 
     # ٢) نافذة المحاكاة: من البذار إلى نهاية الموسم (أو اليوم)، بسقف دورة المحصول. بلا بذار
@@ -270,13 +272,21 @@ async def simulate_season_endpoint(
             detail="تعذّر جلب الطقس التاريخي (Open-Meteo غير متاح). حاول لاحقاً.",
         ) from e
 
+    # Never align GDD or ET0 positionally against a partial or reordered archive.
+    from api.season_simulation import validate_historical_weather_window
+
+    try:
+        validate_historical_weather_window(days, start, win_end)
+    except SimWindowError as exc:
+        raise HTTPException(status_code=503, detail=exc.detail_ar) from exc
+
     weather = [
         DayWeather(
             t_min_c=d.temp_min_c,
             t_max_c=d.temp_max_c,
-            solar_mj_m2=None,  # غير مطلوب من المصدر الحالي — يُقدَّر في النموذج
+            solar_mj_m2=getattr(d, "solar_radiation_mj_m2", None),
             et0_mm=d.et0_mm,
-            rain_mm=d.precipitation_mm or 0.0,
+            rain_mm=d.precipitation_mm,  # None remains missing, not observed 0
         )
         for d in days
     ]
@@ -364,6 +374,7 @@ async def simulate_season_endpoint(
                     else day.et0_mm
                 ),
                 "rain_mm": day.rain_mm,
+                "solar_mj_m2": day.solar_mj_m2,
                 "gdd": (
                     gdd_override[i] if gdd_override is not None and i < len(gdd_override) else None
                 ),
@@ -532,7 +543,6 @@ async def simulate_season_endpoint(
         rationale_ar=result.rationale_ar,
         assumptions_ar=result.assumptions_ar,
         warnings_ar=[
-            *([multi_crop_warning] if multi_crop_warning else []),
             *window_warnings,
             *spatial_warnings,
             *result.warnings_ar,

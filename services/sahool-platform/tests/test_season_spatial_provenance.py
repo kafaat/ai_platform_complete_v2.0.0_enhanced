@@ -93,6 +93,7 @@ def test_input_digest_distinguishes_source_identity_with_identical_numbers(chang
 
 @dataclass
 class _Day:
+    date: str = ""
     temp_min_c: float = 15.0
     temp_max_c: float = 30.0
     et0_mm: float = 5.0
@@ -149,7 +150,7 @@ def _install(monkeypatch, conn, points):
 
     async def _historical(lat, lon, start, end, timeout_s=30.0):
         n = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
-        return [_Day() for _ in range(n)]
+        return [_Day(date=(date.fromisoformat(start) + timedelta(days=i)).isoformat()) for i in range(n)]
 
     async def _et0(*, daily_t_min, **_kw):
         return {"daily_et0_mm": [5.0] * len(daily_t_min), "formula_version": "t"}
@@ -282,12 +283,11 @@ async def test_long_season_window_is_truncated_explicitly_not_silently(monkeypat
 
 
 async def test_response_declares_simulated_crop_and_current_geometry_basis(monkeypatch):
-    out, _ = await _simulate_season(monkeypatch, {**_season(_SOW, _END), "crops": ["قمح", "شعير"]})
+    out, _ = await _simulate_season(monkeypatch, {**_season(_SOW, _END), "crops": ["قمح"]})
     assert out.simulated_crop == "قمح"
     assert out.geometry_basis == "current_boundary"
     assert out.truncated is False
     assert out.window_days_requested == out.window_days_simulated == 71
-    assert any("حوكِيَ المحصول" in w for w in out.warnings_ar)  # التحذير المختلط باقٍ
 
 
 async def test_season_without_sowing_date_is_refused_with_arabic_422(monkeypatch):
@@ -324,3 +324,36 @@ async def test_historical_record_of_the_same_crop_is_auto_linked(monkeypatch):
     )
     assert any("INSERT INTO season_record_links" in sql for sql in conn.executed)
     assert out.historical_context_used is True
+
+
+async def test_multicrop_season_rejected_before_any_simulation_write(monkeypatch):
+    from fastapi import HTTPException
+
+    season = {**_season(_SOW, _END), "crops": ["wheat", "peanut"]}
+    conn = _Conn(season, [])
+    route = _install(monkeypatch, conn, [])
+    with pytest.raises(HTTPException) as exc:
+        await route.simulate_season_endpoint("season-a", user=_USER)
+    assert exc.value.status_code == 422
+    assert "متعدد المحاصيل" in str(exc.value.detail)
+    assert not conn.runs
+
+
+async def test_missing_archive_day_rejected_before_any_simulation_write(monkeypatch):
+    import api.connectors.openmeteo as openmeteo
+    from fastapi import HTTPException
+
+    conn = _Conn(_season(_SOW, _END), [])
+    route = _install(monkeypatch, conn, [])
+
+    async def incomplete(lat, lon, start, end, timeout_s=30.0):
+        n = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
+        start_day = date.fromisoformat(start)
+        return [_Day(date=(start_day + timedelta(days=i)).isoformat()) for i in range(n - 1)]
+
+    monkeypatch.setattr(openmeteo, "fetch_historical", incomplete)
+    with pytest.raises(HTTPException) as exc:
+        await route.simulate_season_endpoint("season-a", user=_USER)
+    assert exc.value.status_code == 503
+    assert "سلسلة الطقس" in str(exc.value.detail)
+    assert not conn.runs
