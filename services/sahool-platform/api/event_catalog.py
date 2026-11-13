@@ -71,8 +71,8 @@ _CATALOG: dict[str, DomainEvent] = {
     "SEASON_CREATED": DomainEvent(
         name="SEASON_CREATED",
         category="season",
-        description_ar="بُدئ موسم زراعيّ لحقل.",
-        payload_keys=("field_id", "crops", "cultivar", "irrigation_type", "sowing_date"),
+        description_ar="أُنشئ موسم زراعيّ لحقل (نشط، أو مخطَّط لا يُغلق النشط).",
+        payload_keys=("field_id", "crops", "status", "cultivar", "irrigation_type", "sowing_date"),
     ),
     "SEASON_CLOSED": DomainEvent(
         name="SEASON_CLOSED",

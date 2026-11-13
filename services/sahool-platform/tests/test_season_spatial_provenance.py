@@ -5,8 +5,8 @@ S4-a: محوِّل نقطة ``/timeseries`` كان يُسقط ``scene_id`` (ول
 و``input_digest`` واحداً — البصمة لا تُميّز ما قيس عليه.
 
 S4-b: المواسم مربوطة بـ``field_id`` والتواريخ فقط (لا مراجعة هندسة ولا مساحة تاريخيّة —
-قرار مخطّط معلّق). بلا ترحيل: المحاكاة تُعلِن صراحةً حين عُدِّل حدّ الحقل بعد بداية
-الموسم، لأنّها تقرأ إحداثيّات الحقل وسلسلته على الحدّ **الحاليّ**.
+قرار مخطّط معلّق). تربط المحاكاة مراجعة الهندسة داخل بصمة المدخلات، وتعلن عدم
+إمكان إثبات التاريخ عند غياب سجلّه؛ تظلّ تستخدم الحدّ **الحاليّ** لا التاريخيّ.
 """
 
 from __future__ import annotations
@@ -93,6 +93,7 @@ def test_input_digest_distinguishes_source_identity_with_identical_numbers(chang
 
 @dataclass
 class _Day:
+    date: str = ""
     temp_min_c: float = 15.0
     temp_max_c: float = 30.0
     et0_mm: float = 5.0
@@ -137,7 +138,6 @@ class _Conn:
 
 
 def _install(monkeypatch, conn, points):
-    import api.connectors.openmeteo as openmeteo
     import api.routers.seasons as route
     import api.weather_service_client as wsc
 
@@ -147,9 +147,35 @@ def _install(monkeypatch, conn, points):
     async def _tenant_connection(_user):
         yield conn
 
-    async def _historical(lat, lon, start, end, timeout_s=30.0):
-        n = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
-        return [_Day() for _ in range(n)]
+    async def _historical(lat, lon, *, start_date, end_date, tenant_id=None):
+        start = date.fromisoformat(start_date)
+        n = (date.fromisoformat(end_date) - start).days + 1
+        assert tenant_id == _TENANT
+        return {
+            "derived_from": "canonical_weather_state",
+            "canonical_state_id": "test-wx-state",
+            "source_snapshot_id": "test-wx-snapshot",
+            "quality_status": "validated",
+            "coverage": {
+                "period_start": start_date,
+                "period_end": end_date,
+                "expected_days": n,
+                "observed_days": n,
+                "missing_days": 0,
+                "coverage_ratio": 1.0,
+            },
+            "days": [
+                {
+                    "date": (start + timedelta(days=i)).isoformat(),
+                    "temp_min_c": 15.0,
+                    "temp_max_c": 30.0,
+                    "et0_mm": 5.0,
+                    "precipitation_mm": 0.0,
+                    "solar_radiation_mj_m2": None,
+                }
+                for i in range(n)
+            ],
+        }
 
     async def _et0(*, daily_t_min, **_kw):
         return {"daily_et0_mm": [5.0] * len(daily_t_min), "formula_version": "t"}
@@ -165,7 +191,7 @@ def _install(monkeypatch, conn, points):
     # fixed once at import. A run that crosses midnight UTC between collection and the call
     # saw one more day (window_days_requested 302 != 301, PR #1318, run 43123678786).
     monkeypatch.setattr(route, "datetime", _ClockOnFixtureDay)
-    monkeypatch.setattr(openmeteo, "fetch_historical", _historical)
+    monkeypatch.setattr(wsc, "get_weather_historical", _historical)
     monkeypatch.setattr(wsc, "get_et0_series", _et0)
     monkeypatch.setattr(wsc, "get_gdd_product", _gdd)
     monkeypatch.setattr(rsc, "get_field_timeseries", _timeseries)
@@ -177,6 +203,7 @@ def _season(sow: date, end: date) -> dict:
         "season_id": "season-a",
         "field_id": "field-a",
         "crops": ["wheat"],
+        "irrigation_type": "pivot",
         "sowing_date": sow,
         "season_end": end,
         "lat": 15.3,
@@ -239,10 +266,33 @@ async def test_no_warning_when_boundary_only_recorded_at_creation_or_before_star
     assert _geometry_warnings(out.warnings_ar) == []
 
 
-async def test_geometry_lookup_failure_does_not_break_the_simulation(monkeypatch):
+async def test_geometry_lookup_failure_is_explicit_not_a_clean_history(monkeypatch):
     out, run = await _simulate(monkeypatch, [], geometry_error=True)
     assert out.simulation_run_id
-    assert _geometry_warnings(out.warnings_ar) == []
+    assert "GEOMETRY_HISTORY_UNVERIFIED" in out.limitations
+    assert len(_geometry_warnings(out.warnings_ar)) == 1
+    context = json.loads(run[6])
+    assert context["spatial"]["status"] == "unavailable"
+    assert context["spatial"]["historical_geometry_replayed"] is False
+    assert _geometry_warnings(out.warnings_ar)[0] in json.loads(run[-1])
+
+
+async def test_empty_geometry_ledger_does_not_certify_static_boundary(monkeypatch):
+    out, run = await _simulate(monkeypatch, [])
+    assert "GEOMETRY_HISTORY_UNVERIFIED" in out.limitations
+    assert json.loads(run[6])["spatial"]["status"] == "history_missing"
+
+
+async def test_geometry_revision_changes_digest_without_numeric_change(monkeypatch):
+    first = [_rev(1, _SOW - timedelta(days=30))]
+    revised = [*first, _rev(2, _SOW + timedelta(days=4))]
+    baseline, baseline_run = await _simulate(monkeypatch, first)
+    changed, changed_run = await _simulate(monkeypatch, revised)
+    assert baseline.yield_kg_ha == changed.yield_kg_ha
+    assert baseline.input_digest != changed.input_digest
+    assert "CURRENT_BOUNDARY_DIFFERS_FROM_SEASON_START" in changed.limitations
+    assert json.loads(changed_run[6])["spatial"]["latest_revision"] == 2
+    assert json.loads(baseline_run[6])["spatial"]["latest_revision"] == 1
 
 
 async def test_persisted_context_carries_scene_identity_and_digest_tracks_it(monkeypatch):
@@ -262,8 +312,8 @@ async def test_persisted_context_carries_scene_identity_and_digest_tracks_it(mon
 # ── النافذة والمحصول والهندسة في استجابة المسار ─────────────────────────────────────
 
 
-async def _simulate_season(monkeypatch, season, **conn_kw):
-    conn = _Conn(season, [], **conn_kw)
+async def _simulate_season(monkeypatch, season, geometry_rows=(), **conn_kw):
+    conn = _Conn(season, list(geometry_rows), **conn_kw)
     route = _install(monkeypatch, conn, [])
     out = await route.simulate_season_endpoint("season-a", user=_USER)
     return out, conn
@@ -281,13 +331,28 @@ async def test_long_season_window_is_truncated_explicitly_not_silently(monkeypat
     assert warning in json.loads(conn.runs[0][-1])
 
 
+async def test_truncated_window_still_traces_boundary_since_actual_sowing(monkeypatch):
+    sow = _TODAY - timedelta(days=300)
+    out, conn = await _simulate_season(
+        monkeypatch,
+        _season(sow, None),
+        geometry_rows=[
+            _rev(1, sow - timedelta(days=30)),
+            _rev(2, sow + timedelta(days=60)),
+        ],
+    )
+    assert out.truncated is True
+    assert "CURRENT_BOUNDARY_DIFFERS_FROM_SEASON_START" in out.limitations
+    snap = json.loads(conn.runs[0][6])
+    assert snap["spatial"]["revisions_since_sowing"] == [2]
+
+
 async def test_response_declares_simulated_crop_and_current_geometry_basis(monkeypatch):
-    out, _ = await _simulate_season(monkeypatch, {**_season(_SOW, _END), "crops": ["قمح", "شعير"]})
+    out, _ = await _simulate_season(monkeypatch, {**_season(_SOW, _END), "crops": ["قمح"]})
     assert out.simulated_crop == "قمح"
     assert out.geometry_basis == "current_boundary"
     assert out.truncated is False
     assert out.window_days_requested == out.window_days_simulated == 71
-    assert any("حوكِيَ المحصول" in w for w in out.warnings_ar)  # التحذير المختلط باقٍ
 
 
 async def test_season_without_sowing_date_is_refused_with_arabic_422(monkeypatch):
@@ -318,9 +383,98 @@ async def test_historical_record_of_another_crop_is_not_auto_linked(monkeypatch)
     assert out.historical_context_used is False
 
 
+async def test_weather_rejection_does_not_write_historical_link(monkeypatch):
+    from fastapi import HTTPException
+
+    conn = _Conn(_season(_SOW, _END), [_rev(1, _SOW)], candidates=[_record("wheat")])
+    _install(monkeypatch, conn, [])
+
+    import api.weather_service_client as wsc
+
+    async def invalid_archive(lat, lon, **_kw):
+        return {
+            "derived_from": "unverified_provider_payload",
+            "canonical_state_id": "no-owner",
+            "source_snapshot_id": "no-snapshot",
+            "days": [],
+        }
+
+    monkeypatch.setattr(wsc, "get_weather_historical", invalid_archive)
+    import api.routers.seasons as route
+
+    with pytest.raises(HTTPException) as err:
+        await route.simulate_season_endpoint("season-a", user=_USER)
+    assert err.value.status_code == 503
+    assert conn.runs == []
+    assert not any("INSERT INTO season_record_links" in sql for sql in conn.executed)
+
+
 async def test_historical_record_of_the_same_crop_is_auto_linked(monkeypatch):
     out, conn = await _simulate_season(
         monkeypatch, _season(_SOW, _END), candidates=[_record("wheat")]
     )
     assert any("INSERT INTO season_record_links" in sql for sql in conn.executed)
     assert out.historical_context_used is True
+
+
+async def test_multicrop_season_rejected_before_any_simulation_write(monkeypatch):
+    from fastapi import HTTPException
+
+    season = {**_season(_SOW, _END), "crops": ["wheat", "peanut"]}
+    conn = _Conn(season, [])
+    route = _install(monkeypatch, conn, [])
+    with pytest.raises(HTTPException) as exc:
+        await route.simulate_season_endpoint("season-a", user=_USER)
+    assert exc.value.status_code == 422
+    assert "متعدد المحاصيل" in str(exc.value.detail)
+    assert not conn.runs
+
+
+async def test_missing_archive_day_rejected_before_any_simulation_write(monkeypatch):
+    """A canonical archive one day short is refused before any run row is written."""
+    import api.weather_service_client as wsc
+    from fastapi import HTTPException
+
+    conn = _Conn(_season(_SOW, _END), [])
+    route = _install(monkeypatch, conn, [])
+    full = wsc.get_weather_historical
+
+    async def one_day_short(lat, lon, **kw):
+        product = await full(lat, lon, **kw)
+        product["days"] = product["days"][:-1]
+        return product
+
+    monkeypatch.setattr(wsc, "get_weather_historical", one_day_short)
+    with pytest.raises(HTTPException) as exc:
+        await route.simulate_season_endpoint("season-a", user=_USER)
+    assert exc.value.status_code == 503
+    assert not conn.runs
+
+
+async def test_complete_historical_fao_et0_is_used_without_recomputation(monkeypatch):
+    import api.weather_service_client as wsc
+
+    conn = _Conn(_season(_SOW, _END), [])
+    route = _install(monkeypatch, conn, [])
+
+    async def recompute_should_not_run(**kwargs):
+        raise AssertionError("native historical FAO ET0 must take precedence")
+
+    monkeypatch.setattr(wsc, "get_et0_series", recompute_should_not_run)
+    out = await route.simulate_season_endpoint("season-a", user=_USER)
+    assert out.et0_provenance["source"] == "weather-service/historical-fao-et0"
+    assert out.et0_provenance["source_snapshot_id"] == "test-wx-snapshot"
+    assert out.yield_status == "estimated"
+
+
+async def test_zero_coverage_satellite_point_is_not_a_yield_observation(monkeypatch):
+    day = (_SOW + timedelta(days=10)).isoformat()
+    out, run = await _simulate(
+        monkeypatch,
+        [_rev(1, _SOW - timedelta(days=30))],
+        points=[_point(datetime=day, coverage_ratio=0.0)],
+    )
+    snapshot = json.loads(run[6])
+    assert snapshot["vegetation"]["observation_count"] == 0
+    assert out.observed_fapar_used is False
+    assert snapshot["simulation_inputs"]["observed_fapar"] is None
