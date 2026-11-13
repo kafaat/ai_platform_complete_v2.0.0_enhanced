@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 130,
+      "line": 131,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 73,
@@ -2811,7 +2811,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "b114c57dada0c0268dda104db721a1f74dd2de4333bdbb83ab3f913c6e2bc75e",
+  "inventory_sha256": "e79ad739be600418b923445150d661e22c0d6cff92a3dce70855ae3b914e2767",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
