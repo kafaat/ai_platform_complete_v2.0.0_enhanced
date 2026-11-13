@@ -8644,10 +8644,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_field_twin.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/sahool-platform/tests/test_field_twin_endpoint.py",
     "kind": "tests"
   },
@@ -9385,6 +9381,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_ui_product_rules_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_v26_digital_twin_regressions.py",
     "kind": "tests"
   },
   {

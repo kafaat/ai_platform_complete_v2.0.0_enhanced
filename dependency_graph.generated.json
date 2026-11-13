@@ -1,5 +1,5 @@
 {
-  "edge_count": 942,
+  "edge_count": 944,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -4372,6 +4372,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/field_twin.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/fields.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4463,6 +4473,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/simple_farm_book.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/routers/water_twin.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9440,7 +9460,7 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 486,
+    "READS": 488,
     "ROUTES_TO": 72,
     "WRITES": 332
   },
@@ -9457,8 +9477,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 819,
-      "resolved": 818,
+      "observed": 821,
+      "resolved": 820,
       "unresolved_component_paths": 0
     }
   }

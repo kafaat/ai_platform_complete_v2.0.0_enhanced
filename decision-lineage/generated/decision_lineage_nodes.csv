@@ -2,7 +2,7 @@ id,order,stage,primary_owner,evidence_count,runtime_verified
 stage:evidence,1,evidence,sahool-platform,694,false
 stage:candidate,2,candidate,sahool-platform,562,false
 stage:decision,3,decision,sahool-platform,202,false
-stage:review,4,review,sahool-platform,311,false
+stage:review,4,review,sahool-platform,310,false
 stage:plan,5,plan,decision-service,50,false
 stage:authorization,6,authorization,sahool-platform,185,false
 stage:request,7,request,decision-service,44,false
