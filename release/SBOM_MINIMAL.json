@@ -6935,7 +6935,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea377090374c62e60a37652ede3d8ee6f62f2a5909ea5ffde984f3d49c83fe4f"
+          "content": "81178650131b988007ef83fe0e0f329999fcdc5cca8fa637e145f760b981c47c"
+        }
+      ],
+      "name": "frontend/src/sections/SettingsPage.teamRoles.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c75020eb81de9cc77b1bfffda134b499a72bac7f6be430cd1a5f0e8c93e17714"
         }
       ],
       "name": "frontend/src/sections/SettingsPage.tsx",
@@ -7305,7 +7315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df7d32a00aefc91fb9b43233c00744bcb36229b3d4d0e2265090c1780c4d9410"
+          "content": "bdc6d7358e9d0e57f7d817658d993a1f5195b05372abf1939c59300b7a88ef9e"
         }
       ],
       "name": "frontend/src/services/api/auth.ts",
@@ -17615,7 +17625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c25eaef196c3d144d73f3761fc5dea78337d86f033ffcef3e2185eb70d08eda5"
+          "content": "04772b55c5f11fc90439035405df7c63d0261b310fec1e570dc1539ecd93a4eb"
         }
       ],
       "name": "services/auth/main.py",
@@ -17785,7 +17795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a82815d413f5396e4d9e4c1e19c8a3dfc94ab021330e85cc619de4776ef8770"
+          "content": "eaa78f3755a00861434ee6faefd8a99f0d026f2dafecaad2f8a2acb91ce5c7da"
         }
       ],
       "name": "services/auth/routers/tenants.py",
@@ -17795,7 +17805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e42ff7f024b4ddfb3c22a039111a1ee75fb84aa5db2d0542f5b8762159d3d2e3"
+          "content": "6e3cc61a2eafc624de19f810ee5d2b631e18a0a72cd9f72caaed61d3141be6cf"
         }
       ],
       "name": "services/auth/routers/users.py",
@@ -25275,7 +25285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "847706d4effaff3d1e6eb2e9ce622a67dfa4ec710cf44f1cfa0aea146feb2a29"
+          "content": "127cb6e955253ce0836ee78533f6436328b45544524d3b1c645ef143c30424fd"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -30185,7 +30195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e08a4ef1abed0ea655005b05096dbfcd8da928339ad59d92a54ffbcf5d964a13"
+          "content": "bd25d29285938c3d2a78cd8d321b87585bfa3149c7622ae446b9a06cc5a2e005"
         }
       ],
       "name": "services/sahool-platform/core/jwt_denylist.py",
@@ -40765,7 +40775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "24958958894140367074d4c5c45448d53d14b3afab1beef5956d5a7ef371ffb6"
+          "content": "e0f04545ca89c5198f9cbffbce24c6ab467e5c5d306a1c7d13e66e26d5455b1f"
         }
       ],
       "name": "shared/security/token_revocation.py",

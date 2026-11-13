@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **42**
-- Files scanned: **7204**
+- Files scanned: **7209**
 - Ambiguous artifacts queued: **236**
-- Unmapped artifacts queued: **3425**
+- Unmapped artifacts queued: **3427**
 
 ## Capability coverage
 
@@ -30,7 +30,7 @@
 | DEC-008 | decision | 0 | 1 | 2 | 1 | 0 | 0 | 1 | 4 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 92 | 49 | 7 | 0 | 0 | 6 | 5 |
-| FM-001 | farm_management | 16 | 2 | 28 | 12 | 1 | 0 | 41 | 6 |
+| FM-001 | farm_management | 16 | 2 | 28 | 12 | 1 | 0 | 42 | 6 |
 | FM-002 | farm_management | 36 | 44 | 100 | 25 | 18 | 35 | 50 | 7 |
 | FM-003 | farm_management | 14 | 56 | 5 | 65 | 3 | 2 | 16 | 7 |
 | FM-004 | farm_management | 32 | 82 | 80 | 43 | 18 | 15 | 52 | 7 |
@@ -81,11 +81,11 @@
 | SEC-001 | security | 12 | 16 | 100 | 73 | 0 | 0 | 83 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| SEC-004 | security | 5 | 9 | 19 | 1 | 3 | 4 | 10 | 7 |
+| SEC-004 | security | 5 | 9 | 19 | 1 | 3 | 4 | 11 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 3 | 2 |
 | SEC-006 | security | 3 | 85 | 0 | 3 | 0 | 0 | 11 | 4 |
 | SEC-007 | security | 3 | 73 | 7 | 47 | 0 | 0 | 9 | 5 |
-| SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 9 | 3 |
+| SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 10 | 3 |
 | SOIL-001 | soil | 6 | 2 | 14 | 22 | 0 | 0 | 5 | 5 |
 | SOIL-002 | soil | 10 | 30 | 6 | 7 | 2 | 0 | 4 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 1 | 0 | 3 |

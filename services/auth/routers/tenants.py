@@ -36,12 +36,33 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 router = APIRouter()
 
+# C-35 (owner decision 2026-11-13): ``admin`` is a tenant owner scoped to its own tenant, and
+# auth has no verifiable platform-admin identity yet (``platform_admin`` is not a role it
+# issues or recognises). Platform onboarding therefore fails closed for every caller until a
+# distinct platform-admin credential and bootstrap path exist. Operational cutover: new
+# tenants come from self-registration (POST /v1/auth/register) until then; existing tenant
+# admins are NOT promoted. Unauthenticated callers still get 401 from get_current_user.
+PLATFORM_ADMIN_REQUIRED = {
+    "code": "platform_admin_required",
+    "message": "Tenant provisioning requires a platform-admin identity, which is not yet available.",
+}
+
+
+async def require_platform_admin(user: Annotated[dict, Depends(main.get_current_user)]) -> dict:
+    """Fail closed: no caller is a platform admin until that identity exists (C-35)."""
+    main.logger.warning(
+        "tenant provisioning refused: no platform-admin identity (user=%s role=%s)",
+        user.get("sub"),
+        user.get("role"),
+    )
+    raise HTTPException(status.HTTP_403_FORBIDDEN, detail=PLATFORM_ADMIN_REQUIRED)
+
 
 @router.post("/v1/auth/tenants", status_code=201)
 async def provision_tenant(
     req: main.TenantProvisionRequest,
     request: Request,
-    admin: Annotated[dict, Depends(main.require_role("admin"))],
+    admin: Annotated[dict, Depends(require_platform_admin)],
 ):
     """يُهيّئ مستأجِراً جديداً معزولاً + أوّل مالك له (مدير المنصّة فقط).
 
