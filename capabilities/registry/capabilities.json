@@ -484,7 +484,7 @@
         "GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:44",
         "PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2232",
         "PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264",
-        "POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:219",
+        "POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:221",
         "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:503",
         "POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:1996",
         "POST /api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:156",
@@ -612,8 +612,8 @@
         "GET /api/v1/propagation/crop @ services/sahool-platform/api/routers/propagation.py:42",
         "GET /api/v1/varieties/food-grains/{variety_id} @ services/sahool-platform/api/routers/varieties.py:47",
         "GET /api/v1/wofost/crop-types @ services/sahool-platform/api/routers/wofost.py:27",
-        "POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:167",
-        "POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:202",
+        "POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:169",
+        "POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:204",
         "POST /api/v1/crop-suitability @ services/sahool-platform/api/routers/crop_suitability.py:31",
         "POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:245",
         "POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:404",
@@ -3169,7 +3169,7 @@
         "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:121",
         "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:560",
         "POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922",
-        "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:352",
+        "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:354",
         "POST /v1/recommendation-outcomes @ services/decision-service/main.py:1118"
       ],
       "ui_consumers": [],
@@ -3200,7 +3200,8 @@
         "tests_v9/test_recommendation_runtime_wiring.py",
         "tests_v9/test_recommendation_wiring_preconditions.py",
         "tests_v9/test_recommendation_work_order_idempotency.py",
-        "tests_v9/test_v152_recommendation_feedback_deprecation_static.py"
+        "tests_v9/test_v152_recommendation_feedback_deprecation_static.py",
+        "tests_v9/test_work_order_from_recommendation_rbac.py"
       ],
       "runtime": {
         "metrics": [],
@@ -3236,7 +3237,7 @@
           "path": "services/ai_agronomist/recommendation_events.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=21, ui=0, mobile=4. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=22, ui=0, mobile=4. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": "5",
@@ -4000,7 +4001,7 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:352"
+        "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:354"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4009,6 +4010,7 @@
         "services/sahool-platform/tests/test_work_order_from_recommendation.py",
         "tests_v9/test_recommendation_work_order_idempotency.py",
         "tests_v9/test_telegram_work_order_delivery.py",
+        "tests_v9/test_work_order_from_recommendation_rbac.py",
         "tests_v9/test_work_order_persist_emit.py",
         "tests_v9/test_work_orders_migration.py"
       ],
@@ -4032,7 +4034,7 @@
           "path": "services/sahool-platform/core/work_order_from_recommendation.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
