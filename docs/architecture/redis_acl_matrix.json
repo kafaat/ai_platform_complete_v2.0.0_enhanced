@@ -837,9 +837,9 @@
             },
             {
               "path": "services/sahool-platform/api/main.py",
-              "line": 1199,
-              "needle": "or is_token_below_floor(_DENYLIST, payload)",
-              "why": "get_current_user rejects a token below the floor"
+              "line": 1142,
+              "needle": "status = revocation_status(_DENYLIST, payload)",
+              "why": "get_current_user rejects a token below the floor (revocation_status reads the floor; C-02)"
             }
           ],
           "selectors": [

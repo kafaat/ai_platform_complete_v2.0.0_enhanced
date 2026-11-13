@@ -487,3 +487,56 @@ def test_live_actuator_reads_auths_revocations_and_floor_and_writes_nothing(stat
     finally:
         auth.close()
         actuator.close()
+
+
+@pytest.mark.integration
+def test_live_platform_fails_closed_when_the_state_server_stops_at_runtime(
+    platform_main, monkeypatch, tmp_path
+):
+    """C-02: redis-server حقيقيّ بسطر compose — إبطالٌ ⇒ 401، سليم ⇒ يُقبَل، ثمّ يُوقَف الخادم ⇒ 503.
+
+    الإنتاجُ أقلع وRedis حيّ (#408)، ثمّ انقطع أثناء التشغيل: التوكن السليم نفسه الذي قُبِل قبل
+    لحظة يُرَدّ بـ503 ``token_revocation_unverifiable`` لا 200؛ وخارج الإنتاج يُقبَل كما كان.
+    """
+    pytest.importorskip("redis")
+    from fastapi import HTTPException
+
+    binary = _redis_server_bin()
+    if not binary:
+        if _live_required():
+            pytest.fail("REDIS_ACL_LIVE_REQUIRED=1 ولا redis-server (REDIS_SERVER_BIN أو PATH)")
+        pytest.skip("لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة")
+    rows = _checkers()
+    (host,) = {parse_url(url)["host"] for _, _, url in rows}
+    user = platform_main.UserSchema(
+        user_id="u1", tenant_id="t1", role=platform_main._normalize_role("farmer"), name_ar="م"
+    )
+    import jwt as pyjwt
+
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    revoked = platform_main.create_token(user)
+    healthy = platform_main.create_token(user)
+    with _running_server(binary, host, tmp_path) as (port, _admin):
+        urls = {d: _local(url, port) for _, d, url in rows}
+        monkeypatch.setenv("DENYLIST_REDIS_URL", urls["services/sahool-platform"])
+        backend = platform_main._build_denylist()
+        assert type(backend).__name__ == "RedisDenylist"
+        monkeypatch.setattr(platform_main, "_DENYLIST", backend)
+        auth = _client(urls["services/auth"])
+        try:
+            jti = pyjwt.decode(revoked, options={"verify_signature": False})["jti"]
+            auth.setex(f"{REVOKED_PREFIX}{jti}", 60, "1")  # ما يكتبه auth عند الإبطال
+        finally:
+            auth.close()
+        with pytest.raises(HTTPException) as exc:
+            platform_main.get_current_user("Bearer " + revoked)
+        assert exc.value.status_code == 401
+        assert platform_main.get_current_user("Bearer " + healthy).user_id == "u1"
+    # الخادم أُوقِف (proc.terminate) والعميل نفسه باقٍ في _DENYLIST.
+    for token in (revoked, healthy):
+        with pytest.raises(HTTPException) as exc:
+            platform_main.get_current_user("Bearer " + token)
+        assert exc.value.status_code == 503
+        assert exc.value.detail["code"] == "token_revocation_unverifiable"
+    monkeypatch.setenv("SAHOOL_ENV", "development")
+    assert platform_main.get_current_user("Bearer " + healthy).user_id == "u1"
