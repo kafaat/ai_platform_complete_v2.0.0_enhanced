@@ -163,7 +163,19 @@
       "dynamic_expr": "subject",
       "file": "shared/broker_url.py",
       "kind": "producer",
-      "line": 78,
+      "line": 92,
+      "queue": null,
+      "resolution": "dynamic",
+      "subject": null
+    },
+    {
+      "client_expr": "jetstream",
+      "component": "shared",
+      "durable": null,
+      "dynamic_expr": "subject",
+      "file": "shared/broker_url.py",
+      "kind": "producer",
+      "line": 94,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -321,8 +333,8 @@
   "summary": {
     "consumer_only_subjects": 3,
     "cross_component_duplicate_durables": 0,
-    "dynamic_contracts": 15,
-    "files_scanned": 1272,
+    "dynamic_contracts": 16,
+    "files_scanned": 1271,
     "matched_subjects": 0,
     "producer_only_subjects": 3,
     "production_certified": false,
