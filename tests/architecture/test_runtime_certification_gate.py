@@ -152,16 +152,25 @@ def test_the_summary_carries_the_acceptance_and_never_judges_with_it():
     assert data["certification_acceptance"] == summary["certification_acceptance"]
 
 
-def test_the_capability_certification_gate_surfaces_the_same_reference_without_granting():
+def test_the_capability_certification_gate_surfaces_the_same_reference_without_granting(
+    tmp_path,
+):
     """المستهلك الثاني يعرض المرجع نفسه ولا يمنح به أهليّة.
 
-    البوّابة تُشغَّل فعلاً (مخرجاتها متقاربة idempotent على شجرةٍ سليمة) كي تمرّ
-    القاعدةُ نفسها لا مصنوعتُها المولَّدة سلفاً — درس الطفرة أعلاه نفسه."""
+    البوّابة تُشغَّل فعلاً كي تمرّ القاعدةُ نفسها لا مصنوعتُها المولَّدة سلفاً — درس
+    الطفرة أعلاه نفسه. **وتكتب في tmp_path لا في الشجرة (C-36):** كتابتها في
+    `capabilities/generated/` أثناء الجناح كانت تُفشل اختبار بصمات الإصدار لاحقاً في
+    الوظيفة نفسها كلّما اختلف التشغيل الطازج عن الملفّ الملتزَم."""
     import subprocess
     import sys
 
     proc = subprocess.run(
-        [sys.executable, str(ROOT / "scripts/ci/capability_certification_gate.py")],
+        [
+            sys.executable,
+            str(ROOT / "scripts/ci/capability_certification_gate.py"),
+            "--output-dir",
+            str(tmp_path),
+        ],
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -169,11 +178,83 @@ def test_the_capability_certification_gate_surfaces_the_same_reference_without_g
     )
     assert proc.returncode == 0, proc.stdout + proc.stderr
     summary = json.loads(
-        (ROOT / "capabilities/generated/capability_certification_summary.json").read_text(
-            encoding="utf-8"
-        )
+        (tmp_path / "capability_certification_summary.json").read_text(encoding="utf-8")
     )
 
     assert summary["release_assurance_reference"] == _GATE.load_certification_acceptance()
     assert summary["certified"] == 0
     assert summary["incorrect_certifications"] == []
+
+
+# ── C-36: مسار اختبار الاعتماد لا يكتب في الشجرة ────────────────────────────
+#
+# كتابة البوّابة في `capabilities/generated/` أثناء الجناح كانت تُفشل لاحقاً
+# `test_release_checksum_validator_passes` بـ`checksum mismatch` كلّما اختلف التشغيل
+# الطازج عن الملفّ الملتزَم. الحارس حتميّ لا ينتظر انحرافاً: أيّ كتابة تغيّر ctime
+# الملفّ ولو كانت البايتات نفسها، فبصمة stat قبل وبعد تمسكها على شجرةٍ سليمة أيضاً.
+
+_CAP_GENERATED = ROOT / "capabilities/generated"
+_CAP_GATE = ROOT / "scripts/ci/capability_certification_gate.py"
+_CAP_OUTPUTS = (
+    "capability_certification_matrix.csv",
+    "capability_certification_summary.json",
+    "CAPABILITY_CERTIFICATION_READINESS.md",
+)
+_CERTIFICATION_NODE = (
+    "tests/architecture/test_runtime_certification_gate.py"
+    "::test_the_capability_certification_gate_surfaces_the_same_reference_without_granting"
+)
+
+
+def _tree_fingerprint(directory: Path) -> dict[str, tuple[int, int, str]]:
+    import hashlib
+
+    out: dict[str, tuple[int, int, str]] = {}
+    for path in sorted(p for p in directory.rglob("*") if p.is_file()):
+        st = path.stat()
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        out[str(path.relative_to(ROOT))] = (st.st_mtime_ns, st.st_ctime_ns, digest)
+    return out
+
+
+def test_the_certification_test_path_leaves_capabilities_generated_untouched():
+    import subprocess
+    import sys
+
+    before = _tree_fingerprint(_CAP_GENERATED)
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", _CERTIFICATION_NODE],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert proc.returncode == 0, proc.stdout[-4000:] + proc.stderr[-4000:]
+    after = _tree_fingerprint(_CAP_GENERATED)
+
+    touched = sorted(
+        name for name in before.keys() | after.keys() if before.get(name) != after.get(name)
+    )
+    assert touched == [], f"the certification test path wrote into the tree: {touched}"
+
+
+def test_output_dir_redirects_every_output_and_the_default_stays_the_tree(tmp_path):
+    import subprocess
+    import sys
+
+    before = _tree_fingerprint(_CAP_GENERATED)
+    proc = subprocess.run(
+        [sys.executable, str(_CAP_GATE), "--output-dir", str(tmp_path)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert sorted(p.name for p in tmp_path.iterdir()) == sorted(_CAP_OUTPUTS)
+    assert _tree_fingerprint(_CAP_GENERATED) == before
+
+    # الافتراضيّ لم يتغيّر: الكاتب ومسار إعادة التوليد يكتبان المصنوعات الملتزَمة.
+    text = _CAP_GATE.read_text(encoding="utf-8")
+    assert 'OUT = ROOT / "capabilities/generated"' in text
+    assert "default=OUT" in text
