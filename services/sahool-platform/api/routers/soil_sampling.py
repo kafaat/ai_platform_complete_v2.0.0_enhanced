@@ -177,8 +177,6 @@ class LabSampleIn(BaseModel):
 
     barcode: str | None = None
     collected_by: str | None = None
-    # Why the collection point differs from the planned point; the distance is measured.
-    deviation_reason: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class SoilLabResultIn(BaseModel):
@@ -362,8 +360,6 @@ async def list_lab_samples(
 def _sample_request_digest(payload: LabSampleIn) -> str:
     """بصمة الحمولة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
     data = payload.model_dump(mode="json")
-    if data["deviation_reason"] is None:
-        del data["deviation_reason"]  # preserve earlier retry fingerprints
     if data["sampling_origin"] is None:
         del data["sampling_origin"]  # preserve pre-migration retry fingerprints
     else:
@@ -395,18 +391,6 @@ async def create_lab_sample(
     async with tenant_connection(user) as conn:
 
         async def _work():
-            if payload.sampling_origin is not None:
-                data["sampling_origin"] = await lab_store.resolve_sampling_origin(
-                    conn,
-                    tenant_id=str(user.tenant_id),
-                    field_id=payload.field_id,
-                    plan_id=payload.sampling_plan_id,
-                    claimed=data["sampling_origin"],
-                    latitude=payload.latitude,
-                    longitude=payload.longitude,
-                    gps_accuracy_m=payload.gps_accuracy_m,
-                    deviation_reason=payload.deviation_reason,
-                )
             try:
                 row = await lab_store.create_sample(
                     conn, tenant_id=str(user.tenant_id), created_by=str(user.user_id), payload=data

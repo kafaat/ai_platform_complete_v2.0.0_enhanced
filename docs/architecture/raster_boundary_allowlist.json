@@ -34,9 +34,7 @@
     "api/raster_service_client.py": "facade_client: the single platform HTTP client for raster-service boundary calls",
     "api/routers/field_workspace_imagery.py": "bff_facade: reads raster-service available-dates via api.raster_service_client.get_available_dates; returns browser thumbnail URLs (UI27, relocated from fields.py)",
     "api/field_workspace_route_contract.py": "contract_manifest: lists Field Workspace route paths (incl. imagery); no raster transport",
-    "api/field_workspace_completion_contract.py": "contract_manifest: lists Field Workspace completion endpoints; no raster transport",
-    "api/routers/tasks.py": "aggregation_consumer: task-imagery lists and snapshots ready, tenant-bound raster_assets rows (read-only) onto a platform field task as its satellite source; no raster computation or raster state written",
-    "api/lab_store.py": "aggregation_consumer: a plan-point soil sample's indicator layer is marked verified only when a raster_assets row of the same tenant and field names that scene, acquisition date and index (or the slope/DEM asset); read-only registry lookup (raster_assets is in allowed_raster_tables_read_by_platform and declares sahool-platform a reader), no raster computation or raster state written. raster_service_client exposes no asset-identity lookup: available-dates aggregates per day and terrain returns derivatives, not registry ids"
+    "api/field_workspace_completion_contract.py": "contract_manifest: lists Field Workspace completion endpoints; no raster transport"
   },
   "allowed_raster_tables_read_by_platform": [
     "raster_assets",
