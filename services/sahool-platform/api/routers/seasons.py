@@ -585,7 +585,7 @@ async def field_season_state_endpoint(
     local = get_platform_decision_sor_mode().platform_writes_required
     today = datetime.now(UTC).date()
     def7 = def14 = open_tasks = None
-    outcome_records = recommendation_outcomes = None
+    outcome_records = recommendation_outcomes = unbound_outcomes = None
     dispatch_links = {}
     try:
         async with tenant_connection(user) as conn:
@@ -640,18 +640,16 @@ async def field_season_state_endpoint(
                     except Exception:  # optional source
                         pass
             if local:
+                # outcome_record has no season: only its decision carries season_id, and the
+                # platform must not read the decision table (S5-EXEC-01 freezes that surface).
+                # Decision outcomes stay unbound here (counted, never reconciled into the
+                # season); recommendation_outcomes carry their own season_id.
                 try:
                     async with conn.transaction():
-                        outcomes = await conn.fetch(
-                            "SELECT o.outcome_id, o.tenant_id, d.field_id, o.region, o.success, o.decision_id, o.created_at FROM outcome_record o "
-                            "JOIN decision_record d ON d.tenant_id=o.tenant_id AND d.decision_id=o.decision_id "
-                            "WHERE o.tenant_id=$1::uuid AND d.field_id=$2 AND (o.field_id IS NULL OR o.field_id=$2) "
-                            "AND COALESCE(to_jsonb(d)->>'season_id',d.decision_value->>'season_id')=$3 "
-                            "AND (to_jsonb(d)->>'season_id' IS NULL OR d.decision_value->>'season_id' IS NULL "
-                            "OR to_jsonb(d)->>'season_id'=d.decision_value->>'season_id')",
+                        unbound = await conn.fetchval(
+                            "SELECT COUNT(*) FROM outcome_record WHERE tenant_id=$1::uuid AND field_id=$2",
                             tenant,
                             field_id,
-                            season_id,
                         )
                         recs = await conn.fetch(
                             "SELECT ro.outcome_id, ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
@@ -662,7 +660,7 @@ async def field_season_state_endpoint(
                             field_id,
                             season_id,
                         )
-                    outcome_records, recommendation_outcomes = list(outcomes), list(recs)
+                    unbound_outcomes, recommendation_outcomes = int(unbound), list(recs)
                 except Exception:  # Treat an incomplete pair of sources as unavailable.
                     pass
                 if recommendation_outcomes:
@@ -755,9 +753,22 @@ async def field_season_state_endpoint(
         "current_open_due_in_season" if open_tasks is not None else None
     )
     summary = state["outcome_reconciliation"]
-    summary["available"] = outcome_records is not None
+    # available: counts were computed from at least one season-bound source.
+    # complete: both sources were bound to this season. Locally, decision outcomes are
+    # unbound (no season without decision-service), so the platform is never complete.
+    summary["available"] = outcome_records is not None or recommendation_outcomes is not None
+    summary["complete"] = outcome_records is not None and recommendation_outcomes is not None
+    summary["missing_sources"] = [
+        name
+        for name, rows in (
+            ("outcome_record", outcome_records),
+            ("recommendation_outcomes", recommendation_outcomes),
+        )
+        if rows is None
+    ]
+    summary["unbound_outcome_records"] = unbound_outcomes
     summary["source"] = "platform" if local else "decision-service"
-    if outcome_records is None:
+    if not summary["available"]:
         for key in (
             "total",
             "decided",

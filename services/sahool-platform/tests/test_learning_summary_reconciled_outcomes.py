@@ -272,7 +272,12 @@ def test_recommendation_outcomes_carry_farm_id_into_independence_counts():
     assert "f.region AS region" in summary_src and '"region": r["region"]' in summary_src
     seasons_src = (routers / "seasons.py").read_text(encoding="utf-8")
     assert "ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id" in seasons_src
-    assert "o.tenant_id, d.field_id, o.region" in seasons_src
+    # Before cutover the season path cannot bind outcome_record rows to a season without
+    # the decision table (S5-EXEC-01 freeze): it only counts this tenant's field outcomes
+    # as unbound, and season-bound decision outcomes come from decision-service.
+    assert "d.decision_id=o.decision_id" not in seasons_src
+    assert "unbound_outcomes, recommendation_outcomes = int(unbound), list(recs)" in seasons_src
+    assert 'summary["unbound_outcome_records"] = unbound_outcomes' in seasons_src
 
 
 def test_reconciled_rows_keep_unit_identity_for_independence_counts():

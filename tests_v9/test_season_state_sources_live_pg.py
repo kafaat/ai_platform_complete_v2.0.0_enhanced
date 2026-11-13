@@ -6,7 +6,10 @@ cutover, outcomes come only from decision-service, and only when its reply is au
 and scoped to this tenant, field and season; otherwise the reconciliation is unavailable,
 never a platform fallback. Before cutover, an optional source that fails (here the water
 ledger, unreadable for the runtime role) rolls back its own savepoint, so the outcome reads
-that follow in the same transaction still succeed.
+that follow in the same transaction still succeed. Before cutover the platform does not read
+decision_record (S5-EXEC-01 freezes that surface), and outcome_record has no season of its
+own: decision outcomes are reported unbound (counted, never reconciled into the season), and
+only recommendation_outcomes, which carry season_id, feed the platform summary.
 
 These were asserted against connection doubles (``SimpleNamespace(fetchrow, transaction)``
 and a patched ``tenant_connection``), which cannot show what a failed statement does to the
@@ -140,7 +143,8 @@ class Live:
         return self
 
     async def platform_outcomes(self):
-        """A failed decision of this season, and an accepted, not yet matured recommendation."""
+        """A failed decision outcome of this season (bound only through its decision), and an
+        accepted, not yet matured recommendation of this season."""
         o = self.owner
         decision_id = f"d-{uuid.uuid4().hex[:10]}"
         await o.execute(
@@ -155,10 +159,11 @@ class Live:
         await o.execute(
             """INSERT INTO outcome_record (outcome_id, tenant_id, decision_id, field_id, region,
                                            planned, actual, metrics, success)
-               VALUES ($1, $2::uuid, $3, NULL, 'jawf', '{}', '{}', '{}', false)""",
+               VALUES ($1, $2::uuid, $3, $4, 'jawf', '{}', '{}', '{}', false)""",
             f"o-{uuid.uuid4().hex[:10]}",
             self.tenant,
             decision_id,
+            self.field_id,
         )
         await o.execute(
             """INSERT INTO recommendation_outcomes (tenant_id, field_id, farm_id, season_id, crop,
@@ -260,6 +265,13 @@ def test_archived_season_reads_its_own_window_and_uses_the_owner_after_cutover(
         summary = result["outcome_reconciliation"]
         assert summary["source"] == "decision-service"
         assert summary["available"] == (variant in ("confirmed", "empty"))
+        assert summary["complete"] == (variant in ("confirmed", "empty"))
+        assert summary["missing_sources"] == (
+            []
+            if variant in ("confirmed", "empty")
+            else ["outcome_record", "recommendation_outcomes"]
+        )
+        assert summary["unbound_outcome_records"] is None
         assert summary["total"] == {"confirmed": 1, "empty": 0}.get(variant)
         assert summary["success_rate"] == (0.0 if variant == "confirmed" else None)
 
@@ -281,8 +293,18 @@ def test_failed_optional_water_read_rolls_back_its_savepoint_and_keeps_platform_
         )
         assert (result["water_deficit_7d_mm"], result["water_deficit_14d_mm"]) == (None, None)
         summary = result["outcome_reconciliation"]
+        # Both outcome reads ran after the failed water read: without its savepoint they
+        # would fail too and the summary would be unavailable with null counts.
         assert summary["available"] is True
-        assert (summary["source"], summary["failed"], summary["pending"]) == ("platform", 1, 1)
+        assert summary["source"] == "platform"
+        # The failed decision outcome exists for this field but has no season without its
+        # decision: it is counted as unbound and never reconciled into this season.
+        assert summary["complete"] is False
+        assert summary["missing_sources"] == ["outcome_record"]
+        assert summary["unbound_outcome_records"] == 1
+        assert summary["by_source"] == {"recommendation_outcomes": 1}
+        assert (summary["total"], summary["failed"], summary["pending"]) == (1, 0, 1)
+        assert "outcomes" in result["evidence_used"]
 
     _run(monkeypatch, platform_writes_required=True, case=case)
 
