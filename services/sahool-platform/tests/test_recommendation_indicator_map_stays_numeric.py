@@ -66,7 +66,13 @@ def test_the_route_never_puts_the_canonical_context_into_the_indicator_map():
 
 def test_the_canonical_context_is_recorded_in_the_persisted_input_snapshot():
     """Dropping it entirely would lose the lineage the slice exists to persist."""
-    source = ROUTER.read_text(encoding="utf-8")
+    import inspect
+
+    from api.routers.recommendations import _record_canonical_context
+
+    # The helper lives in api.recommendations_hub (moved to keep the router under its
+    # 800-line ceiling); read the source of the symbol the router actually calls.
+    source = inspect.getsource(_record_canonical_context)
     assert 'input_snapshot["canonical_agronomic_context"] = canonical_context' in source
 
 

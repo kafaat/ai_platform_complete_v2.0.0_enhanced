@@ -15,6 +15,7 @@ from shared.contracts.soil import (
     SoilObservation,
     SoilObservationQuality,
     SoilObservationSource,
+    SoilProfileSnapshot,
 )
 
 router = APIRouter()
@@ -104,10 +105,10 @@ async def approve_plan(
     t = tenant()
     if not main._pool:
         raise HTTPException(503, "database unavailable")
-    row = await p1_store.approve_sampling(main._pool, t, plan_id, x_actor_id)
-    if not row:
+    payload = await p1_store.approve_sampling(main._pool, t, plan_id, x_actor_id)
+    if payload is None:
         raise HTTPException(409, "plan not found or not draft")
-    return row["payload"]
+    return payload
 
 
 @router.post("/v1/fields/{field_id}/soil/hydraulic-profile/rebuild")
@@ -120,7 +121,8 @@ async def rebuild_hydraulic(field_id: str, x_agent_token: str = Header(None)):
     snap = await soil_store.get_current_snapshot(main._pool, tenant_id=t, field_id=field_id)
     if not snap:
         raise HTTPException(404, "soil profile not found")
-    p = build_hydraulic_profile(snap)
+    # The store returns the persisted snapshot as a dict; the builder reads model attributes.
+    p = build_hydraulic_profile(SoilProfileSnapshot.model_validate(snap))
     return await p1_store.save_hydraulic(main._pool, p)
 
 
