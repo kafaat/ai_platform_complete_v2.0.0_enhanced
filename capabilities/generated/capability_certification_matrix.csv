@@ -10,7 +10,7 @@ DEC-008,Learning attribution,True,True,True,False,False,True,False,False,False,4
 DEC-009,Model calibration,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 DEC-010,Model lifecycle and activation,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
 FM-001,Tenant and organization management,True,True,True,True,False,False,False,False,False,4,9,44.4,False,False,False,False
-FM-002,Farm registry,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+FM-002,Farm registry,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
 FM-003,Field registry and boundaries,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 FM-004,Season lifecycle,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
 FM-005,Crop and cultivar catalog,False,True,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
