@@ -828,6 +828,20 @@ def chunk_identity(chunk: KnowledgeChunk) -> ChunkIdentity:
     return (chunk.tenant_id, chunk.chunk_id)
 
 
+#: The reference corpus and its quarantine form one uniqueness domain (D08-EXT, as narrowed
+#: by the owner on 2026-11-13): a chunk_id may not be both a served global seed and a
+#: quarantined one. Real tenants are each their own domain.
+_REFERENCE_UNIQUENESS_DOMAIN = "__reference_corpus__"
+
+
+def uniqueness_identity(chunk: KnowledgeChunk) -> ChunkIdentity:
+    """Key for the rebuild's duplicate check (not for lookup: lookup stays ``chunk_identity``)."""
+    tenant = chunk.tenant_id
+    if tenant in (GLOBAL_REFERENCE_TENANT, SEED_QUARANTINE_TENANT):
+        tenant = _REFERENCE_UNIQUENESS_DOMAIN
+    return (tenant, chunk.chunk_id)
+
+
 def _fusion_key(chunk: KnowledgeChunk) -> tuple[str, str]:
     """مفتاحُ الدمج والترتيب: ``(chunk_id, tenant_id)`` — المعرّفُ المنطقيّ أوّلاً.
 
@@ -1472,7 +1486,11 @@ class HybridQdrantRetriever:
             # التكرارُ هو المستأجِرُ نفسُه والـchunk_id نفسُه في نقطتين — يُرفَض كما كان.
             # أمّا مستأجِران بالـchunk_id نفسه فوثيقتان مشروعتان (R-H14)، ورفضُهما كان
             # يُسقِط إعادةَ البناء والجاهزيّةَ لكلّ مستأجِر.
-            identity = chunk_identity(chunk)
+            # Owner ruling (2026-11-13, hybrid, narrowing D08-EXT): uniqueness is per tenant,
+            # but the global reference corpus and __seed_quarantine__ stay ONE domain, so the
+            # duplicated-seed incident D08-EXT ruled on (a global seed also in quarantine)
+            # still fails the rebuild closed.
+            identity = uniqueness_identity(chunk)
             if identity in seen:
                 raise ValueError(
                     "duplicate canonical chunk_id in Qdrant: "

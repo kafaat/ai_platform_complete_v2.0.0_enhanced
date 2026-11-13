@@ -2799,10 +2799,17 @@
         },
         {
           "expect": "test_two_tenants_sharing_a_chunk_id_rebuild_and_each_retrieve_only_their_own_text",
-          "find": "            identity = chunk_identity(chunk)\n",
+          "find": "            identity = uniqueness_identity(chunk)\n",
           "replace": "            identity = (\"\", chunk.chunk_id)  # mutated: التفرّدُ بـchunk_id وحده\n",
           "test": "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
           "why": "`RAG-BM25-TENANT-CHUNK-IDENTITY-01`: فرضُ التفرّد بـ`chunk_id` وحده يرفض مستأجِرَين يملك كلٌّ منهما مقطعاً بالمعرّف نفسه — وهما نقطتان مشروعتان منذ R-H14 — فتسقط إعادةُ البناء والجاهزيّةُ والبحثُ ٥٠٣ لكلّ مستأجِر."
+        },
+        {
+          "expect": "test_global_seed_also_in_quarantine_still_fails_closed",
+          "find": "        tenant = _REFERENCE_UNIQUENESS_DOMAIN\n",
+          "replace": "        pass  # mutated: الحجرُ ميدانُ تفرّدٍ مستقلّ عن المرجع العامّ\n",
+          "test": "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
+          "why": "D08-EXT كما ضيّقه المالك في 2026-11-13 (الخيار الهجين): المرجعُ العامّ والحجرُ ميدانُ تفرّدٍ واحد. فصلُهما يُعيد قبولَ بذرةٍ مخدومة عالميّاً ومحجورة معاً — الحادثةَ التي حكم فيها القرار — بلا أن تفشل إعادةُ البناء."
         },
         {
           "expect": "test_a_neighbour_outside_the_requested_scope_is_not_admitted",

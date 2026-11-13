@@ -195,3 +195,27 @@ def test_tenant_and_global_reference_chunks_with_one_chunk_id_stay_distinct_in_f
     # والمستأجِر B يرى المرجع العامّ وحده، لا مقطع A.
     b_hits = retriever.retrieve("wheat", tenant_id="tenant-b")
     assert [h.chunk.tenant_id for h in b_hits] == [pq.GLOBAL_REFERENCE_TENANT]
+
+
+def test_global_seed_also_in_quarantine_still_fails_closed():
+    """D08-EXT as narrowed by the owner (2026-11-13, hybrid): uniqueness is per tenant, but the
+    global reference corpus and ``__seed_quarantine__`` are one domain, so the duplicated-seed
+    incident the ruling was about (the same seed served globally and held in quarantine, at
+    two storage points) still fails the rebuild."""
+    served = _chunk(pq.GLOBAL_REFERENCE_TENANT, "public reference wheat guidance", "seed:1")
+    held = _chunk(pq.SEED_QUARANTINE_TENANT, "public reference wheat guidance", "seed:1")
+    store = _store_with(served)
+    store.extra_rows = [("legacy-quarantine-point", held.payload)]
+    retriever = pq.HybridQdrantRetriever(store, pq.HashEmbeddingProvider(32))
+    with pytest.raises(ValueError, match="duplicate canonical chunk_id in Qdrant"):
+        retriever.rebuild_sparse_index()
+
+
+def test_a_tenant_reusing_a_global_seed_id_does_not_take_the_corpus_down():
+    store = _store_with(
+        _chunk(pq.GLOBAL_REFERENCE_TENANT, "public reference wheat guidance", chunk_id="seed:1"),
+        _chunk("tenant-a", "alpha private wheat note", chunk_id="seed:1"),
+    )
+    retriever = pq.HybridQdrantRetriever(store, pq.HashEmbeddingProvider(32))
+    report = retriever.rebuild_sparse_index()
+    assert report["loaded_chunks"] == 2
