@@ -12,7 +12,7 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **42**
-- Files scanned: **7199**
+- Files scanned: **7200**
 - Ambiguous artifacts queued: **236**
 - Unmapped artifacts queued: **3422**
 
@@ -43,7 +43,7 @@
 | GIS-003 | gis | 32 | 100 | 14 | 67 | 12 | 4 | 41 | 7 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| INT-002 | farm_management | 7 | 15 | 2 | 100 | 0 | 0 | 21 | 5 |
+| INT-002 | farm_management | 7 | 15 | 2 | 100 | 0 | 0 | 22 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
