@@ -193,7 +193,7 @@ async def set_valve_state(
         async def _work():
             updated = await conn.fetchrow(
                 "UPDATE irrigation_valves SET status = $1, last_changed_at = NOW() "
-                "WHERE valve_id = $2 RETURNING valve_id, field_id",
+                "WHERE valve_id = $2 RETURNING valve_id, field_id, last_changed_at",
                 req.status,
                 valve_id,
             )
@@ -203,14 +203,19 @@ async def set_valve_state(
                 raise HTTPException(status_code=404, detail="الصمّام غير موجود")
             # حدث تغيّر حالة الصمّام ضمن نفس المعاملة (نمط outbox) — يجعل دورة فتح/إغلاق
             # مرئيّة لتيّار الأحداث/الوكلاء (الحالة الجديدة في الحمولة، حقائق فقط). داخل
-            # _work كي يُحفظ ضمن حدود idempotent ويُعاد ذرّيّاً مع الكتابة.
+            # _work كي يُحفظ ضمن حدود idempotent ويُعاد ذرّيّاً مع الكتابة. changed_at يميّز
+            # فتحاً ثانياً حقيقيّاً في اليوم نفسه عن مفتاح الـdedup اليوميّ (وإلّا ابتُلع، C-14).
+            changed_at = updated.get("last_changed_at")
             await _emit_domain_event(
                 conn,
                 user,
                 "IRRIGATION_VALVE_STATE_CHANGED",
                 "irrigation_valve",
                 valve_id,
-                {"status": req.status},
+                {
+                    "status": req.status,
+                    "changed_at": changed_at.isoformat() if changed_at else None,
+                },
                 critical=True,  # تحوّل حالة actuator فيزيائيّ — fail-closed
             )
             # دفتر التشغيل الفيزيائيّ (v29.5-op-2): فتح ⇒ صفّ تشغيل جديد، إغلاق ⇒ إغلاق
