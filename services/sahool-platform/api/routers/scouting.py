@@ -128,4 +128,3 @@ def scouting_taxonomy(
         "all_issues": YEMEN_CROP_ISSUES,
         "nutrient_guide": NUTRIENT_DEFICIENCY_GUIDE,
     }
-
