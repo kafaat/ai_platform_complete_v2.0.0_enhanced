@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from decimal import Decimal
 from typing import Annotated
 from uuid import NAMESPACE_URL, UUID, uuid5
 
@@ -41,6 +42,7 @@ from api.main import (
     tenant_connection,
 )
 from api.routers.scouting import approved_evidence_holds, record_evidence
+from api.routers.simple_farm_book import _EFFECTIVE_TASK, _LINK_JOIN, _task_location
 from api.task_irrigation_observations import list_observations
 
 router = APIRouter()
@@ -396,34 +398,38 @@ class TerrainLinkRequest(BaseModel):
 
 
 async def _current_terrain(conn, user, field_id):
-    # v162 soil products use a distinct RLS setting from the platform tables.
-    await conn.execute("SELECT set_config('app.current_tenant_id',$1,true)", str(user.tenant_id))
-    field = await conn.fetchrow(
-        "SELECT elevation_m::float8, slope_pct::float8, aspect FROM fields "
-        "WHERE field_id=$1 AND tenant_id=$2::uuid",
-        field_id,
-        user.tenant_id,
-    )
-    if not field:
-        raise HTTPException(404, "الحقل غير متاح")
-    snapshots = []
-    if any(v is not None and v != "" for v in field.values()):
-        snapshots.append({"kind": "field_record", **dict(field)})
-    dem = await conn.fetchrow(
-        """
-        SELECT terrain_product_id AS product_id, geometry_hash,
-               payload->>'dem_version' AS dem_version, payload->>'generated_at' AS generated_at,
-               payload->>'algorithm_version' AS algorithm_version,
-               payload #>> '{provenance,cell_size_m}' AS cell_size_m,
-               (payload->'summaries')::text AS summaries
-        FROM soil_terrain_products WHERE tenant_id=$1 AND field_id=$2
-            AND product_type='terrain_derivatives'
-            AND jsonb_typeof(payload->'summaries')='object' AND payload->'summaries' <> '{}'::jsonb
-        ORDER BY updated_at DESC, terrain_product_id DESC LIMIT 1
-    """,
-        str(user.tenant_id),
-        field_id,
-    )
+    # v162 soil products use a distinct RLS setting from the platform tables. The savepoint keeps
+    # set_config(..., true) inside a transaction block; it stays set for the caller's transaction.
+    async with conn.transaction():
+        await conn.execute(
+            "SELECT set_config('app.current_tenant_id',$1,true)", str(user.tenant_id)
+        )
+        field = await conn.fetchrow(
+            "SELECT elevation_m::float8, slope_pct::float8, aspect FROM fields "
+            "WHERE field_id=$1 AND tenant_id=$2::uuid",
+            field_id,
+            user.tenant_id,
+        )
+        if not field:
+            raise HTTPException(404, "الحقل غير متاح")
+        snapshots = []
+        if any(v is not None and v != "" for v in field.values()):
+            snapshots.append({"kind": "field_record", **dict(field)})
+        dem = await conn.fetchrow(
+            """
+            SELECT terrain_product_id AS product_id, geometry_hash,
+                   payload->>'dem_version' AS dem_version, payload->>'generated_at' AS generated_at,
+                   payload->>'algorithm_version' AS algorithm_version,
+                   payload #>> '{provenance,cell_size_m}' AS cell_size_m,
+                   (payload->'summaries')::text AS summaries
+            FROM soil_terrain_products WHERE tenant_id=$1 AND field_id=$2
+                AND product_type='terrain_derivatives'
+                AND jsonb_typeof(payload->'summaries')='object' AND payload->'summaries' <> '{}'::jsonb
+            ORDER BY updated_at DESC, terrain_product_id DESC LIMIT 1
+        """,
+            str(user.tenant_id),
+            field_id,
+        )
     if dem:
         snapshots.append(
             {"kind": "dem_product", **dict(dem), "summaries": json.loads(dem["summaries"])}
@@ -455,3 +461,110 @@ async def link_task_terrain(
                     conn, user, field_id, req.task_id, source.model_dump(), terrain=True
                 )
         raise HTTPException(409, "تغيّر مصدر التضاريس أو لم يعد متاحاً. حدّث القائمة.")
+
+
+# Task-side views of the farm book (v245/v249): link an existing expense to a task, and the
+# task's cost trace. The book's own rules (_task_location, the effective task via
+# task_expense_links) stay in api.routers.simple_farm_book.
+class ExpenseTaskIn(BaseModel):
+    task_id: UUID
+
+
+@router.post("/api/v1/farm-book/entries/{entry_id}/task")
+async def link_existing_expense(
+    entry_id: str,
+    req: ExpenseTaskIn,
+    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_EXECUTE)),
+):
+    async with tenant_connection(user) as conn:
+        entry = await conn.fetchrow(
+            """SELECT entry_type, reverses_entry_id, field_id, farm_id, task_id
+               FROM farm_ledger_entries WHERE tenant_id=$1::uuid AND entry_id=$2 FOR UPDATE""",
+            user.tenant_id,
+            entry_id,
+        )
+        if entry is None:
+            raise HTTPException(404, "entry_not_found")
+        if entry["entry_type"] != "expense" or entry["reverses_entry_id"]:
+            raise HTTPException(422, "original_expense_required")
+        scope = await _task_location(conn, user.tenant_id, req.task_id)
+        if entry["farm_id"] != scope["farm_id"] or (
+            entry["field_id"] is not None and entry["field_id"] != scope["field_id"]
+        ):
+            raise HTTPException(422, "task_location_mismatch")
+        if await conn.fetchval(
+            """SELECT 1 FROM farm_ledger_entries
+               WHERE tenant_id=$1::uuid AND (settles_entry_id=$2 OR reverses_entry_id=$2)
+               AND (farm_id<>$3 OR (field_id IS NOT NULL AND field_id<>$4)
+                        OR (task_id IS NOT NULL AND task_id<>$5)) LIMIT 1""",
+            user.tenant_id,
+            entry_id,
+            scope["farm_id"],
+            scope["field_id"],
+            req.task_id,
+        ):
+            raise HTTPException(409, "linked_child_scope_mismatch")
+        current = entry["task_id"]
+        if current is None:
+            await conn.execute(
+                """INSERT INTO task_expense_links(tenant_id,entry_id,task_id,field_id,linked_by)
+                   VALUES($1::uuid,$2,$3,$4,$5) ON CONFLICT (tenant_id,entry_id) DO NOTHING""",
+                user.tenant_id,
+                entry_id,
+                req.task_id,
+                scope["field_id"],
+                str(user.user_id),
+            )
+            current = await conn.fetchval(
+                "SELECT task_id FROM task_expense_links WHERE tenant_id=$1::uuid AND entry_id=$2",
+                user.tenant_id,
+                entry_id,
+            )
+        if current != req.task_id:
+            raise HTTPException(409, "entry_already_linked")
+    return {"entry_id": entry_id, "task_id": req.task_id}
+
+
+@router.get("/api/v1/tasks/{task_id}/cost-trace")
+async def task_cost_trace(
+    task_id: UUID, user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW))
+):
+    async with tenant_connection(user) as conn:
+        task = await conn.fetchrow(
+            "SELECT t.task_id,t.status,t.actual_cost_usd,t.estimated_cost_usd,f.farm_id FROM field_tasks t "
+            "JOIN fields f ON f.tenant_id=t.tenant_id AND f.field_id=t.field_id "
+            "WHERE t.tenant_id=$1 AND t.task_id=$2",
+            user.tenant_id,
+            task_id,
+        )
+        if not task:
+            raise HTTPException(404, "المهمة غير متاحة")
+        changes = await conn.fetch(
+            "SELECT changed_at, changed_by, previous_usd, actual_usd, previous_status, status "
+            "FROM task_cost_history WHERE tenant_id=$1 AND task_id=$2 ORDER BY change_id DESC",
+            user.tenant_id,
+            task_id,
+        )
+        entries = await conn.fetch(
+            f"""SELECT e.entry_id, e.entry_type, e.occurred_on, e.category, e.amount::text AS amount,
+                      e.currency,e.receipt_document_id,e.reverses_entry_id,e.settles_entry_id,
+                      COALESCE(link.linked_by,e.created_by) AS linked_by, COALESCE(link.linked_at,e.created_at) AS linked_at
+               FROM farm_ledger_entries e {_LINK_JOIN}
+               WHERE e.tenant_id=$1 AND {_EFFECTIVE_TASK}=$2 ORDER BY e.occurred_on DESC,e.created_at DESC""",
+            user.tenant_id,
+            task_id,
+        )
+    totals = {}
+    for entry in entries:
+        if entry["entry_type"] == "expense":
+            value = Decimal(entry["amount"])
+            currency = entry["currency"]
+            totals[currency] = totals.get(currency, Decimal(0)) + (
+                -value if entry["reverses_entry_id"] else value
+            )
+    return {
+        "task": dict(task),
+        "changes": [dict(r) for r in changes],
+        "entries": [dict(r) for r in entries],
+        "expenses_by_currency": {cur: str(total) for cur, total in totals.items()},
+    }

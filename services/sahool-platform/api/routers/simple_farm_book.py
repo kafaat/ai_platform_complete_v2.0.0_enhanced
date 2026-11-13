@@ -45,10 +45,6 @@ class PartyIn(BaseModel):
         return value
 
 
-class ExpenseTaskIn(BaseModel):
-    task_id: uuid.UUID
-
-
 class SimpleEntryIn(BaseModel):
     client_operation_id: str = Field(min_length=8, max_length=120)
     entry_type: str
@@ -414,61 +410,6 @@ async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         raise HTTPException(status_code=409, detail="entry_already_reversed")
 
 
-@router.post("/api/v1/farm-book/entries/{entry_id}/task")
-async def link_existing_expense(
-    entry_id: str,
-    req: ExpenseTaskIn,
-    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_EXECUTE)),
-):
-    async with tenant_connection(user) as conn:
-        entry = await conn.fetchrow(
-            """SELECT entry_type, reverses_entry_id, field_id, farm_id, task_id
-               FROM farm_ledger_entries WHERE tenant_id=$1::uuid AND entry_id=$2 FOR UPDATE""",
-            user.tenant_id,
-            entry_id,
-        )
-        if entry is None:
-            raise HTTPException(404, "entry_not_found")
-        if entry["entry_type"] != "expense" or entry["reverses_entry_id"]:
-            raise HTTPException(422, "original_expense_required")
-        scope = await _task_location(conn, user.tenant_id, req.task_id)
-        if entry["farm_id"] != scope["farm_id"] or (
-            entry["field_id"] is not None and entry["field_id"] != scope["field_id"]
-        ):
-            raise HTTPException(422, "task_location_mismatch")
-        if await conn.fetchval(
-            """SELECT 1 FROM farm_ledger_entries
-               WHERE tenant_id=$1::uuid AND (settles_entry_id=$2 OR reverses_entry_id=$2)
-               AND (farm_id<>$3 OR (field_id IS NOT NULL AND field_id<>$4)
-                        OR (task_id IS NOT NULL AND task_id<>$5)) LIMIT 1""",
-            user.tenant_id,
-            entry_id,
-            scope["farm_id"],
-            scope["field_id"],
-            req.task_id,
-        ):
-            raise HTTPException(409, "linked_child_scope_mismatch")
-        current = entry["task_id"]
-        if current is None:
-            await conn.execute(
-                """INSERT INTO task_expense_links(tenant_id,entry_id,task_id,field_id,linked_by)
-                   VALUES($1::uuid,$2,$3,$4,$5) ON CONFLICT (tenant_id,entry_id) DO NOTHING""",
-                user.tenant_id,
-                entry_id,
-                req.task_id,
-                scope["field_id"],
-                str(user.user_id),
-            )
-            current = await conn.fetchval(
-                "SELECT task_id FROM task_expense_links WHERE tenant_id=$1::uuid AND entry_id=$2",
-                user.tenant_id,
-                entry_id,
-            )
-        if current != req.task_id:
-            raise HTTPException(409, "entry_already_linked")
-    return {"entry_id": entry_id, "task_id": req.task_id}
-
-
 # Entries written with v245 already carry task_id. Historical expense links are
 # append-only and apply to the original plus its existing and future children.
 _LINK_JOIN = """LEFT JOIN task_expense_links link ON link.tenant_id=e.tenant_id
@@ -827,48 +768,3 @@ async def export_book(
         media_type=media,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
-
-
-@router.get("/api/v1/tasks/{task_id}/cost-trace")
-async def task_cost_trace(
-    task_id: uuid.UUID, user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW))
-):
-    async with tenant_connection(user) as conn:
-        task = await conn.fetchrow(
-            "SELECT t.task_id,t.status,t.actual_cost_usd,t.estimated_cost_usd,f.farm_id FROM field_tasks t "
-            "JOIN fields f ON f.tenant_id=t.tenant_id AND f.field_id=t.field_id "
-            "WHERE t.tenant_id=$1 AND t.task_id=$2",
-            user.tenant_id,
-            task_id,
-        )
-        if not task:
-            raise HTTPException(404, "المهمة غير متاحة")
-        changes = await conn.fetch(
-            "SELECT changed_at, changed_by, previous_usd, actual_usd, previous_status, status "
-            "FROM task_cost_history WHERE tenant_id=$1 AND task_id=$2 ORDER BY change_id DESC",
-            user.tenant_id,
-            task_id,
-        )
-        entries = await conn.fetch(
-            f"""SELECT e.entry_id, e.entry_type, e.occurred_on, e.category, e.amount::text AS amount,
-                      e.currency,e.receipt_document_id,e.reverses_entry_id,e.settles_entry_id,
-                      COALESCE(link.linked_by,e.created_by) AS linked_by, COALESCE(link.linked_at,e.created_at) AS linked_at
-               FROM farm_ledger_entries e {_LINK_JOIN}
-               WHERE e.tenant_id=$1 AND {_EFFECTIVE_TASK}=$2 ORDER BY e.occurred_on DESC,e.created_at DESC""",
-            user.tenant_id,
-            task_id,
-        )
-    totals = {}
-    for entry in entries:
-        if entry["entry_type"] == "expense":
-            value = Decimal(entry["amount"])
-            currency = entry["currency"]
-            totals[currency] = totals.get(currency, Decimal(0)) + (
-                -value if entry["reverses_entry_id"] else value
-            )
-    return {
-        "task": dict(task),
-        "changes": [dict(r) for r in changes],
-        "entries": [dict(r) for r in entries],
-        "expenses_by_currency": {cur: str(total) for cur, total in totals.items()},
-    }

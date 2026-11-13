@@ -19,8 +19,7 @@ from uuid import UUID
 
 import pytest
 from api.main import get_current_user
-from api.routers import scouting
-from api.routers import simple_farm_book as book
+from api.routers import scouting, tasks
 from core.canonical_schemas import UserRole, UserSchema
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -59,7 +58,7 @@ def test_only_the_inspector_submit_carries_evidence():
 
 def _book_client(role):
     app = FastAPI()
-    app.include_router(book.router)
+    app.include_router(tasks.router)
     app.dependency_overrides[get_current_user] = lambda: UserSchema(
         user_id="5", tenant_id=_TENANT, role=role, name_ar="مستخدم"
     )
