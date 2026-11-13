@@ -25525,7 +25525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9f45c32b9b0ba6a497ac5d4b44540c7612d2cfaed735138f0687c70d913061c4"
+          "content": "07062a1c22337ec6b3442c37d1946522e734f189998704438b5c5210eacf2117"
         }
       ],
       "name": "services/sahool-platform/api/routers/agro_intelligence.py",
