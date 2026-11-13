@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "a70ae9f173f0f53292e947bdba32a0860bd90bf400c3d68c81821505bae1df6f",
+  "inventory_sha256": "b3c38e30738d26c2d7afbfdb658d945396647370d1f98915369436884593b489",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "07b7b7d6e890771e48033db2832fdd2fcd0522f591b325c9137919af95e0460f"
+    "policy_sha256": "d8eef240d69ea99f85a7b52d557c198fe3d033198bf2fdbafeb8aa77d277b967"
   },
   "routes": [
     {
@@ -1034,7 +1034,7 @@
     {
       "classification": "domain",
       "function": "list_fields",
-      "line": 498,
+      "line": 499,
       "method": "GET",
       "path": "/api/v1/fields",
       "source": "api/routers/fields.py"
@@ -1042,7 +1042,7 @@
     {
       "classification": "domain",
       "function": "get_field",
-      "line": 976,
+      "line": 977,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}",
       "source": "api/routers/fields.py"
@@ -1050,7 +1050,7 @@
     {
       "classification": "domain",
       "function": "list_field_activities",
-      "line": 2963,
+      "line": 2960,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/activities",
       "source": "api/routers/fields.py"
@@ -1074,7 +1074,7 @@
     {
       "classification": "domain",
       "function": "field_alerts_derived",
-      "line": 3915,
+      "line": 3912,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/alerts/derived",
       "source": "api/routers/fields.py"
@@ -1146,7 +1146,7 @@
     {
       "classification": "domain",
       "function": "field_geometry_history",
-      "line": 1455,
+      "line": 1453,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/geometry/history",
       "source": "api/routers/fields.py"
@@ -1154,7 +1154,7 @@
     {
       "classification": "domain",
       "function": "field_history",
-      "line": 3645,
+      "line": 3642,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/history",
       "source": "api/routers/fields.py"
@@ -1162,7 +1162,7 @@
     {
       "classification": "domain",
       "function": "field_imagery_backfill_status_proxy",
-      "line": 942,
+      "line": 943,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/imagery/backfill/{run_id}",
       "source": "api/routers/fields.py"
@@ -1186,7 +1186,7 @@
     {
       "classification": "domain",
       "function": "field_input_traceability",
-      "line": 2992,
+      "line": 2989,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/input-traceability",
       "source": "api/routers/fields.py"
@@ -1242,7 +1242,7 @@
     {
       "classification": "domain",
       "function": "field_recommendations",
-      "line": 2726,
+      "line": 2723,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/recommendations",
       "source": "api/routers/fields.py"
@@ -1250,7 +1250,7 @@
     {
       "classification": "domain",
       "function": "list_crop_rotations",
-      "line": 3404,
+      "line": 3400,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/rotations",
       "source": "api/routers/fields.py"
@@ -1266,7 +1266,7 @@
     {
       "classification": "domain",
       "function": "list_seasons",
-      "line": 2204,
+      "line": 2205,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons",
       "source": "api/routers/fields.py"
@@ -1282,7 +1282,7 @@
     {
       "classification": "domain",
       "function": "list_soil_lab_tests",
-      "line": 3192,
+      "line": 3189,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
       "source": "api/routers/fields.py"
@@ -1290,7 +1290,7 @@
     {
       "classification": "domain",
       "function": "field_soil_moisture",
-      "line": 2400,
+      "line": 2399,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/soil-moisture",
       "source": "api/routers/fields.py"
@@ -1306,7 +1306,7 @@
     {
       "classification": "domain",
       "function": "field_canonical_state",
-      "line": 3887,
+      "line": 3884,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state",
       "source": "api/routers/fields.py"
@@ -1314,7 +1314,7 @@
     {
       "classification": "domain",
       "function": "field_state_full",
-      "line": 3941,
+      "line": 3938,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state/full",
       "source": "api/routers/fields.py"
@@ -1330,7 +1330,7 @@
     {
       "classification": "domain",
       "function": "get_field_terrain",
-      "line": 1001,
+      "line": 1002,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/terrain",
       "source": "api/routers/fields.py"
@@ -1370,7 +1370,7 @@
     {
       "classification": "domain",
       "function": "field_water_stress_spectral",
-      "line": 3855,
+      "line": 3852,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-stress-spectral",
       "source": "api/routers/fields.py"
@@ -1418,7 +1418,7 @@
     {
       "classification": "domain",
       "function": "field_wind_prevailing",
-      "line": 2590,
+      "line": 2589,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/wind/prevailing",
       "source": "api/routers/fields.py"
@@ -1426,7 +1426,7 @@
     {
       "classification": "domain",
       "function": "get_field_workspace",
-      "line": 1092,
+      "line": 1091,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/workspace",
       "source": "api/routers/fields.py"
@@ -1434,7 +1434,7 @@
     {
       "classification": "domain",
       "function": "query_yield_map_records",
-      "line": 289,
+      "line": 291,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/yield-map-records",
       "source": "api/routers/yield_map_ingestion.py"
@@ -1442,7 +1442,7 @@
     {
       "classification": "domain",
       "function": "list_yield_map_ingestions",
-      "line": 252,
+      "line": 254,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
       "source": "api/routers/yield_map_ingestion.py"
@@ -1954,7 +1954,7 @@
     {
       "classification": "domain",
       "function": "capacity_profiles_endpoint",
-      "line": 464,
+      "line": 465,
       "method": "GET",
       "path": "/api/v1/recommendations/capacity-profiles",
       "source": "api/routers/recommendations.py"
@@ -1962,7 +1962,7 @@
     {
       "classification": "domain",
       "function": "recommendation_engines",
-      "line": 399,
+      "line": 400,
       "method": "GET",
       "path": "/api/v1/recommendations/engines",
       "source": "api/routers/recommendations.py"
@@ -1970,7 +1970,7 @@
     {
       "classification": "domain",
       "function": "get_recommendation",
-      "line": 728,
+      "line": 754,
       "method": "GET",
       "path": "/api/v1/recommendations/{rec_id}",
       "source": "api/routers/recommendations.py"
@@ -2818,7 +2818,7 @@
     {
       "classification": "domain",
       "function": "update_field",
-      "line": 1181,
+      "line": 1180,
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}",
       "source": "api/routers/fields.py"
@@ -2834,7 +2834,7 @@
     {
       "classification": "domain",
       "function": "update_season",
-      "line": 2231,
+      "line": 2232,
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}",
       "source": "api/routers/fields.py"
@@ -2842,7 +2842,7 @@
     {
       "classification": "domain",
       "function": "update_soil_lab_test",
-      "line": 3216,
+      "line": 3213,
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
       "source": "api/routers/fields.py"
@@ -3490,7 +3490,7 @@
     {
       "classification": "domain",
       "function": "create_field",
-      "line": 521,
+      "line": 522,
       "method": "POST",
       "path": "/api/v1/fields",
       "source": "api/routers/fields.py"
@@ -3506,7 +3506,7 @@
     {
       "classification": "domain",
       "function": "import_field",
-      "line": 546,
+      "line": 547,
       "method": "POST",
       "path": "/api/v1/fields/import",
       "source": "api/routers/fields.py"
@@ -3530,7 +3530,7 @@
     {
       "classification": "domain",
       "function": "validate_geometry",
-      "line": 3490,
+      "line": 3486,
       "method": "POST",
       "path": "/api/v1/fields/validate-geometry",
       "source": "api/routers/fields.py"
@@ -3538,7 +3538,7 @@
     {
       "classification": "domain",
       "function": "create_activity",
-      "line": 2824,
+      "line": 2821,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/activities",
       "source": "api/routers/fields.py"
@@ -3546,7 +3546,7 @@
     {
       "classification": "domain",
       "function": "evaluate_field_alerts_endpoint",
-      "line": 3343,
+      "line": 3339,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/alerts/evaluate",
       "source": "api/routers/fields.py"
@@ -3586,7 +3586,7 @@
     {
       "classification": "domain",
       "function": "revert_field_geometry",
-      "line": 1502,
+      "line": 1500,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/geometry/revert/{revision}",
       "source": "api/routers/fields.py"
@@ -3594,7 +3594,7 @@
     {
       "classification": "domain",
       "function": "field_growth_narrative",
-      "line": 3094,
+      "line": 3091,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/growth-narrative",
       "source": "api/routers/fields.py"
@@ -3602,7 +3602,7 @@
     {
       "classification": "domain",
       "function": "field_imagery_backfill_proxy",
-      "line": 870,
+      "line": 871,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/imagery/backfill",
       "source": "api/routers/fields.py"
@@ -3610,7 +3610,7 @@
     {
       "classification": "domain",
       "function": "field_imagery_process_date_proxy",
-      "line": 611,
+      "line": 612,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/imagery/process-date",
       "source": "api/routers/fields.py"
@@ -3618,7 +3618,7 @@
     {
       "classification": "domain",
       "function": "refresh_field_imagery",
-      "line": 667,
+      "line": 668,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/imagery/refresh",
       "source": "api/routers/fields.py"
@@ -3658,7 +3658,7 @@
     {
       "classification": "domain",
       "function": "create_pin",
-      "line": 3762,
+      "line": 3759,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/pins",
       "source": "api/routers/fields.py"
@@ -3674,7 +3674,7 @@
     {
       "classification": "domain",
       "function": "prescribe_nitrogen",
-      "line": 3523,
+      "line": 3519,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
       "source": "api/routers/fields.py"
@@ -3690,7 +3690,7 @@
     {
       "classification": "domain",
       "function": "add_crop_rotation",
-      "line": 3362,
+      "line": 3358,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/rotations",
       "source": "api/routers/fields.py"
@@ -3706,7 +3706,7 @@
     {
       "classification": "domain",
       "function": "create_soil_lab_test",
-      "line": 3134,
+      "line": 3131,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
       "source": "api/routers/fields.py"
@@ -3714,7 +3714,7 @@
     {
       "classification": "domain",
       "function": "field_timeline",
-      "line": 3625,
+      "line": 3622,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/timeline",
       "source": "api/routers/fields.py"
@@ -3722,7 +3722,7 @@
     {
       "classification": "domain",
       "function": "apply_trueup",
-      "line": 3431,
+      "line": 3427,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/trueup",
       "source": "api/routers/fields.py"
@@ -3730,7 +3730,7 @@
     {
       "classification": "domain",
       "function": "field_walk_plan",
-      "line": 3812,
+      "line": 3809,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan",
       "source": "api/routers/fields.py"
@@ -3738,7 +3738,7 @@
     {
       "classification": "domain",
       "function": "field_walk_plan_pdf",
-      "line": 3822,
+      "line": 3819,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
       "source": "api/routers/fields.py"
@@ -3762,7 +3762,7 @@
     {
       "classification": "domain",
       "function": "field_wind_drift_risk",
-      "line": 2647,
+      "line": 2646,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/wind/drift-risk",
       "source": "api/routers/fields.py"
@@ -3770,7 +3770,7 @@
     {
       "classification": "domain",
       "function": "estimate_field_yield",
-      "line": 3552,
+      "line": 3548,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-estimate",
       "source": "api/routers/fields.py"
@@ -3802,7 +3802,7 @@
     {
       "classification": "domain",
       "function": "field_zones",
-      "line": 3841,
+      "line": 3838,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/zones",
       "source": "api/routers/fields.py"
@@ -4186,7 +4186,7 @@
     {
       "classification": "domain",
       "function": "recommendations",
-      "line": 236,
+      "line": 237,
       "method": "POST",
       "path": "/api/v1/recommendations",
       "source": "api/routers/recommendations.py"
@@ -4194,7 +4194,7 @@
     {
       "classification": "domain",
       "function": "generate_crop_candidates",
-      "line": 472,
+      "line": 473,
       "method": "POST",
       "path": "/api/v1/recommendations/candidates",
       "source": "api/routers/recommendations.py"
@@ -4202,7 +4202,7 @@
     {
       "classification": "domain",
       "function": "economic_adaptation_endpoint",
-      "line": 446,
+      "line": 447,
       "method": "POST",
       "path": "/api/v1/recommendations/economic-adaptation",
       "source": "api/routers/recommendations.py"
@@ -4210,7 +4210,7 @@
     {
       "classification": "domain",
       "function": "recommendations_for_field",
-      "line": 262,
+      "line": 263,
       "method": "POST",
       "path": "/api/v1/recommendations/for-field",
       "source": "api/routers/recommendations.py"
@@ -4218,7 +4218,7 @@
     {
       "classification": "domain",
       "function": "record_recommendation_outcome",
-      "line": 559,
+      "line": 583,
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes",
       "source": "api/routers/recommendations.py"
@@ -5074,7 +5074,7 @@
     {
       "classification": "domain",
       "function": "update_field",
-      "line": 1180,
+      "line": 1179,
       "method": "PUT",
       "path": "/api/v1/fields/{field_id}",
       "source": "api/routers/fields.py"
