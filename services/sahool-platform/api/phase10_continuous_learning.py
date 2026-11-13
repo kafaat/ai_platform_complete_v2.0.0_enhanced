@@ -274,17 +274,23 @@ def feature_store_point_in_time(req: PointInTimeRequest) -> dict[str, Any]:
 
 @router.post("/models/register")
 def model_register(req: ModelRegisterRequest) -> dict[str, Any]:
-    return register_model_version(
-        model_name=req.model_name,
-        version=req.version,
-        task=req.task,
-        framework=req.framework,
-        artifacts=req.artifacts,
-        metrics=req.metrics,
-        dataset_version_id=req.dataset_version_id,
-        feature_set_id=req.feature_set_id,
-        status=req.status,
-    )
+    try:
+        return register_model_version(
+            model_name=req.model_name,
+            version=req.version,
+            task=req.task,
+            framework=req.framework,
+            artifacts=req.artifacts,
+            metrics=req.metrics,
+            dataset_version_id=req.dataset_version_id,
+            feature_set_id=req.feature_set_id,
+            status=req.status,
+        )
+    except ValueError as exc:
+        # Non-finite or boolean evaluation metrics are invalid input, not server errors.
+        raise HTTPException(
+            status_code=422, detail={"code": "invalid_model_metrics", "message": str(exc)}
+        ) from exc
 
 
 @router.post("/models/serving/promote")
