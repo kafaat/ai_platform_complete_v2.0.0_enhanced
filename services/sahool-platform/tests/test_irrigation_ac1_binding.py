@@ -212,6 +212,8 @@ def _calls(result=None, raises=None):
         seen.append((args, kwargs))
         if raises is not None:
             raise raises
+        if callable(result):
+            return result(*args, **kwargs)
         return result
 
     return _f, seen
@@ -439,12 +441,14 @@ def _route(monkeypatch, submit):
     return mod.FieldIrrigationRequest(policy="water_saving", submit_to_decision=True)
 
 
-_PERSISTED = {
-    "decision_id": "dec_1",
-    "authoritative": True,
-    "persisted": True,
-    "stage": "candidate",
-}
+def _persisted(payload, tenant):
+    return {
+        "decision_id": payload["decision_id"],
+        "tenant_id": str(tenant or ""),
+        "authoritative": True,
+        "persisted": True,
+        "stage": "candidate",
+    }
 
 
 @pytest.mark.asyncio
@@ -453,7 +457,7 @@ async def test_enforced_without_the_composer_the_route_blocks_by_name_and_submit
 ):
     monkeypatch.delenv("AGRONOMIC_CONTEXT_COMPOSE_ENABLED", raising=False)
     monkeypatch.setenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "1")
-    submit, submitted = _calls(_PERSISTED)
+    submit, submitted = _calls(_persisted)
     out = await mod.field_irrigation_recommendation(
         "fld_1", _route(monkeypatch, submit), user=object()
     )
@@ -469,7 +473,7 @@ async def test_not_enforced_and_composer_off_the_route_behaves_as_before(monkeyp
     monkeypatch.delenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", raising=False)
     monkeypatch.delenv("ENVIRONMENT", raising=False)
     monkeypatch.delenv("SAHOOL_ENV", raising=False)
-    submit, submitted = _calls(_PERSISTED)
+    submit, submitted = _calls(_persisted)
     out = await mod.field_irrigation_recommendation(
         "fld_1", _route(monkeypatch, submit), user=object()
     )
@@ -485,7 +489,7 @@ async def test_the_route_sends_the_bound_lineage_with_the_candidate(monkeypatch)
         return _bind()
 
     monkeypatch.setattr(mod, "irrigation_candidate_lineage", _lineage)
-    submit, submitted = _calls(_PERSISTED)
+    submit, submitted = _calls(_persisted)
     out = await mod.field_irrigation_recommendation(
         "fld_1", _route(monkeypatch, submit), user=object()
     )

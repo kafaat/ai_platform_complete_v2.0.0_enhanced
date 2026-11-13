@@ -58,6 +58,9 @@ class _FakeConn:
         return _Tx()
 
     async def fetch(self, sql, *a):
+        if "FROM soil_lab_tests" in sql:
+            row = await self.fetchrow(sql, *a)
+            return [row] if row else []
         if "FROM water_ledger" in sql and self._depletion is not None:
             head = {"depletion_mm": self._depletion, "decision": self._decision}
             return [head, *self._history]
@@ -84,6 +87,7 @@ class _FakeConn:
                 "sampled_on": date(2026, 5, 1),
                 "result": {"texture": self._soil_texture},
                 "age_days": 40.0,
+                "evidence_ref": "soil_lab_results:test-result",
             }
         if "FROM imagery_automation_fields" in sql:
             if self._spectral is None:
@@ -148,6 +152,97 @@ def _patch(monkeypatch, conn, *, engine=None, engine_raises=None, stage="mid"):
 _REQ = FieldIrrigationRequest(
     t_min_c=18.0, t_max_c=34.0, policy="water_saving", rain_recent_mm=0.0, forecast_rain_mm=3.0
 )
+
+
+class _SeasonConn(_FakeConn):
+    """The active season names its irrigation method (seasons.irrigation_type)."""
+
+    def __init__(self, method, **kw):
+        super().__init__(depletion_mm=60.0, **kw)
+        self._method = method
+
+    async def fetchrow(self, sql, *a):
+        if "FROM seasons" in sql:
+            return {"season_id": "season_2026", "irrigation_type": self._method}
+        return await super().fetchrow(sql, *a)
+
+
+@pytest.mark.asyncio
+async def test_rainfed_field_reports_water_need_without_a_refill_schedule(monkeypatch):
+    answers = {}
+    for method in ("rainfed", "pivot"):
+        _patch(monkeypatch, _SeasonConn(method), engine=_pm_et0_product())
+        answers[method] = (await field_irrigation_recommendation("fld_1", _REQ, user=object()))[
+            "recommendation"
+        ]
+    assert answers["pivot"]["should_irrigate"] is True
+    assert answers["rainfed"]["should_irrigate"] is None
+    assert answers["rainfed"]["target_refill_mm"] is None
+    assert answers["rainfed"]["trigger_reason"] == "rainfed_water_assessment"
+    assert answers["rainfed"]["net_irrigation_mm"] == answers["pivot"]["net_irrigation_mm"]
+
+
+class _FieldMethodConn(_SeasonConn):
+    """No active-season method; the field row carries the registered one."""
+
+    def __init__(self, season_method, field_method):
+        super().__init__(season_method)
+        self._field_method = field_method
+
+    async def fetchrow(self, sql, *a):
+        if "FROM fields" in sql:
+            return {"irrigation_type": self._field_method}
+        return await super().fetchrow(sql, *a)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "season_method, field_method, expected",
+    [
+        (" Rainfed ", None, "rainfed"),
+        ("rain-fed", None, "rainfed"),
+        (None, "Dryland", "rainfed"),
+        ("بعلي", None, "rainfed"),
+        ("RAINFED", "pivot", "rainfed"),
+        (None, "rainfed", "rainfed"),
+        ("", " rainfed", "rainfed"),
+        (None, None, None),
+        ("pivot", "rainfed", "pivot"),
+    ],
+)
+async def test_rainfed_detection_normalises_and_falls_back_to_the_field(
+    monkeypatch, season_method, field_method, expected
+):
+    _patch(monkeypatch, _FieldMethodConn(season_method, field_method), engine=_pm_et0_product())
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["irrigation_type"] == expected
+    rainfed = out["recommendation"]["trigger_reason"] == "rainfed_water_assessment"
+    assert rainfed is (expected == "rainfed")
+
+
+@pytest.mark.asyncio
+async def test_rainfed_field_never_submits_or_specifies_manual_execution(monkeypatch):
+    async def forbidden(*_a, **_kw):
+        raise AssertionError("a rainfed field must not submit an irrigation candidate")
+
+    _patch(monkeypatch, _SeasonConn("rainfed"), engine=_pm_et0_product())
+    monkeypatch.setattr(mod, "_submit_candidate_to_decision", forbidden)
+    out = await field_irrigation_recommendation(
+        "fld_1", _REQ.model_copy(update={"submit_to_decision": True}), user=object()
+    )
+    assert out["approval_state"] == "blocked_rainfed_capability_unverified"
+    assert out.get("decision_id") is None
+
+    monkeypatch.setattr(mod, "has_permission", lambda *_a: True)
+    with pytest.raises(mod.HTTPException) as e:
+        await field_irrigation_recommendation(
+            "fld_1",
+            # Any manual intent: the rainfed refusal comes before the intent is read.
+            FieldIrrigationRequest().model_copy(update={"manual_execution": object()}),
+            user=object(),
+        )
+    assert e.value.status_code == 409
+    assert e.value.detail == "rainfed_supplemental_capability_unverified"
 
 
 @pytest.mark.asyncio
@@ -271,6 +366,50 @@ async def test_lab_texture_is_measured_provenance(monkeypatch):
     assert any(e.startswith("soil-lab-texture:") for e in out["evidence_ids"])
 
 
+class _TextureRowsConn(_FakeConn):
+    """Candidate texture rows, newest first, as the source query returns them."""
+
+    def __init__(self, rows):
+        super().__init__(depletion_mm=60.0)
+        self._rows = rows
+
+    async def fetch(self, sql, *a):
+        if "FROM soil_lab_tests" in sql:
+            return [
+                {
+                    "sampled_on": date(2026, 5, 1),
+                    "result": {"texture": texture},
+                    "age_days": 40.0,
+                    "evidence_ref": ref,
+                }
+                for texture, ref in self._rows
+            ]
+        return await super().fetch(sql, *a)
+
+    async def fetchrow(self, sql, *a):
+        if "FROM soil_lab_tests" in sql:  # a single-row reader sees the newest row only
+            rows = await self.fetch(sql, *a)
+            return rows[0] if rows else None
+        return await super().fetchrow(sql, *a)
+
+
+@pytest.mark.asyncio
+async def test_unrecognised_lab_texture_is_skipped_for_the_next_eligible_row(monkeypatch):
+    rows = [("brownish, hard", "soil_lab_results:new"), ("clay", "soil_lab_tests:old")]
+    _patch(monkeypatch, _TextureRowsConn(rows))
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["inputs"]["soil_provenance"]["texture"]["value"] == "clay"
+    assert "soil-lab-texture:soil_lab_tests:old" in out["evidence_ids"]
+
+
+@pytest.mark.asyncio
+async def test_only_unrecognised_lab_texture_is_not_lab_measured(monkeypatch):
+    _patch(monkeypatch, _TextureRowsConn([("brownish, hard", "soil_lab_results:new")]))
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["inputs"]["soil_provenance"]["texture"]["source"] == "unavailable_fallback"
+    assert not any(e.startswith("soil-lab-texture:") for e in out["evidence_ids"])
+
+
 @pytest.mark.asyncio
 async def test_missing_lab_texture_fallback_lowers_confidence(monkeypatch):
     # لا فحص تربة ⇒ نسيج fallback عامّ ⇒ قيد مُعلَن + ثقة أخفض (لا اختلاق دقّة).
@@ -377,7 +516,8 @@ async def test_submit_to_decision_is_pending_approval(monkeypatch):
         assert payload["decision_value"]["approval_required"] is True
         assert "status" not in payload, "حقلٌ لا يقرؤه المُسجِّل يُحفَظ فارغاً"
         return {
-            "decision_id": "dec_123",
+            "decision_id": payload["decision_id"],
+            "tenant_id": str(_tenant or ""),
             "authoritative": True,
             "persisted": True,
             "stage": "candidate",
@@ -404,7 +544,7 @@ async def test_submit_to_decision_is_pending_approval(monkeypatch):
     monkeypatch.setattr(mod, "_field_weather_snapshot", _snap)
     out = await field_irrigation_recommendation("fld_1", req, user=object())
     assert out["approval_state"] == "pending_approval"
-    assert out["decision_id"] == "dec_123"
+    assert out["decision_id"].startswith("dec_irr_")
 
 
 @pytest.mark.asyncio
@@ -701,6 +841,7 @@ async def test_submitted_candidate_carries_content_lineage_and_a_deterministic_i
         seen.append(payload)
         return {
             "decision_id": payload["decision_id"],
+            "tenant_id": str(_tenant or ""),
             "authoritative": True,
             "persisted": True,
             "stage": "candidate",
@@ -742,6 +883,7 @@ async def test_submitted_candidate_carries_typed_decision_provenance(monkeypatch
         seen.append(payload)
         return {
             "decision_id": payload["decision_id"],
+            "tenant_id": str(_tenant or ""),
             "authoritative": True,
             "persisted": True,
             "stage": "candidate",
@@ -1046,3 +1188,32 @@ async def test_g1_workspace_irrigation_advice_wheat_day_92(monkeypatch):
     assert out["kc_used"] == pytest.approx(1.10, abs=0.005)
     assert out["recommended_mm"] == pytest.approx(6.6)
     assert out["urgency"] == "moderate"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("wrong", ["decision_id", "tenant_id"])
+async def test_rejects_authentic_receipt_for_another_candidate_or_tenant(monkeypatch, wrong):
+    from types import SimpleNamespace
+
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=_pm_et0_product())
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _snap_forecast(0.0))
+
+    async def submit(payload, tenant):
+        receipt = {
+            "decision_id": payload["decision_id"],
+            "tenant_id": tenant,
+            "authoritative": True,
+            "persisted": True,
+            "stage": "candidate",
+        }
+        receipt[wrong] = "another"
+        return receipt
+
+    monkeypatch.setattr(mod, "_submit_candidate_to_decision", submit)
+    out = await field_irrigation_recommendation(
+        "fld_1",
+        FieldIrrigationRequest(policy="water_saving", submit_to_decision=True),
+        user=SimpleNamespace(tenant_id="tenant-a", user_id="operator"),
+    )
+    assert out["approval_state"] == "submit_unproven"
+    assert out["decision_id"] is None

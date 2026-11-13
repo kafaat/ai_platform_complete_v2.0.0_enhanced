@@ -31,7 +31,7 @@ from api.canonical_water_stress import (
 # اليوم وتنحرف غداً، وشرطُ الإثبات يقارنها بما يُعيده المُسجِّل.
 from api.crop_decision_bridge import CANDIDATE_STAGE
 from api.decision_service_client import irrigation_candidate_lineage, record_decision
-from api.field_context import _field_weather_context
+from api.field_context import _field_weather_context, field_irrigation_type
 from api.irrigation_engineering_workspace import (
     build_manual_source,
     manual_canonical_location,
@@ -39,6 +39,7 @@ from api.irrigation_engineering_workspace import (
     validate_manual_weather_date,
 )
 from api.irrigation_models import (
+    RAINFED_WATER_ASSESSMENT,
     FieldIrrigationRequest,
     IrrigationRecommendationRequest,
     resolve_day_of_year,
@@ -57,7 +58,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from api.soil_enrichment import extract_texture, soil_water_provenance
+from api.soil_enrichment import extract_texture, latest_lab_texture_row, soil_water_provenance
 from api.soil_hydraulic_client import get_field_waterlogging
 from api.soil_water import soil_water_params
 from api.weather_advice import precipitation_incomplete_detail
@@ -244,6 +245,10 @@ async def field_irrigation_recommendation(
             field_id,
         )
         season_id = season["season_id"] if season else None
+        irrigation_type = await field_irrigation_type(conn, field_id, season)
+        rainfed = irrigation_type == "rainfed"
+        if rainfed and req.manual_execution:
+            raise HTTPException(409, detail="rainfed_supplemental_capability_unverified")
         if req.manual_execution:
             from api.canonical_water_state import (
                 MAX_LEDGER_AGE_HOURS,
@@ -285,16 +290,7 @@ async def field_irrigation_recommendation(
         )
 
         applied_status = await resolve_applied_water_status(conn, field_id, lrow)
-        # WS-D.2b: أحدث فحص تربة معتمَد ⇒ نسيج مقيس مخبريّاً (+ عمره) لتحسين TAW.
-        # النسيج لا عمود مُصنَّف له اليوم (جرد المصادر) — من JSONB. غيابه ⇒ fallback عامّ.
-        soil_row = await conn.fetchrow(
-            "SELECT sampled_on, result, "
-            "EXTRACT(EPOCH FROM (now() - sampled_on)) / 86400.0 AS age_days "
-            "FROM soil_lab_tests "
-            "WHERE field_id = $1 AND status IN ('approved', 'published') "
-            "AND sampled_on IS NOT NULL ORDER BY sampled_on DESC LIMIT 1",
-            field_id,
-        )
+        soil_row = await latest_lab_texture_row(conn, field_id)  # WS-D.2b: نسيج مخبريّ ⇒ TAW
 
     depletion_mm = lrow["depletion_mm"] if lrow else None
     dep_conf = lrow["confidence"] if lrow else None
@@ -397,7 +393,7 @@ async def field_irrigation_recommendation(
     }
     evidence_ids = [f"field-context:{field_id}", f"soil-water-params:{taw_source}"]
     if soil_prov["texture"]["source"] == "lab_measured" and texture_sampled_on is not None:
-        evidence_ids.append(f"soil-lab-texture:{field_id}:{texture_sampled_on}")
+        evidence_ids.append(f"soil-lab-texture:{soil_row['evidence_ref']}")
     if ledger_date is not None:
         evidence_ids.append(f"water-ledger:{field_id}:{ledger_date}")
 
@@ -593,6 +589,7 @@ async def field_irrigation_recommendation(
         waterlogging=await get_field_waterlogging(getattr(user, "tenant_id", None), field_id),
     )
 
+    rec.update(RAINFED_WATER_ASSESSMENT if rainfed else {})
     # ثقة: تبدأ من ثقة الاستنزاف المخزَّنة، وتُخفَّض بكلّ قيد مُعلَن (حالة + تربة)
     # وبعقوبة نَسَب التربة (fallback عامّ) — شفّاف، غير معايَر (WS-D.2b).
     confidence = irrigation_candidate_confidence(
@@ -605,7 +602,10 @@ async def field_irrigation_recommendation(
     decision_id = None
     submit_limitation: str | None = None
     ac1 = None  # AC-1/AC-6 lineage (EX-WATER-01 path B); set only when submission is attempted
-    if req.submit_to_decision and (
+    if req.submit_to_decision and rainfed:
+        approval_state = "blocked_rainfed_capability_unverified"
+        submit_limitation = "rainfed_supplemental_capability_unverified"
+    elif req.submit_to_decision and (
         et0_prod.get("method") != "fao56_penman_monteith"
         or et0_prod.get("quality_status") != "validated"
     ):
@@ -719,7 +719,8 @@ async def field_irrigation_recommendation(
             proven = (
                 res.get("authoritative") is True
                 and res.get("persisted") is True
-                and bool(decision_id)
+                and decision_id == record_payload["decision_id"]
+                and res.get("tenant_id") == tenant_key
                 and res.get("stage") == CANDIDATE_STAGE
             )
             if proven:
@@ -745,6 +746,7 @@ async def field_irrigation_recommendation(
         "status": "recommendation_ready",
         "field_id": field_id,
         "season_id": season_id,
+        "irrigation_type": irrigation_type,  # season's, else field's; None = unknown
         "generated_on": date.today().isoformat(),
         "inputs": inputs,
         "recommendation": {

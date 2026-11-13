@@ -98,3 +98,42 @@ def extract_texture(soil_result) -> str | None:
         if isinstance(val, str) and val.strip():
             return val.strip()
     return None
+
+
+async def latest_lab_texture_row(conn, field_id: str):
+    """أحدث نسيج مخبريّ مؤهَّل للحقل (تحت RLS المستأجِر)، أو None.
+
+    Candidates, newest collection date first: an approved ``texture`` result of a soil sample
+    (``soil_lab_results``; a detailed result wins a date tie) or the legacy ``soil_lab_tests``
+    row. No future dates or observations. A texture result stays eligible while its sample is
+    reopened for a correction of another analyte; only a rejected/cancelled sample withdraws
+    it. A label the TAW table does not recognise is skipped (it would only buy the loam
+    fallback). The row carries ``evidence_ref`` naming its source row.
+    """
+    from core.engines.fao56 import taw_mm_per_m_for_texture
+
+    rows = await conn.fetch(
+        """SELECT sampled_on, result, evidence_ref,
+                  EXTRACT(EPOCH FROM (now() - sampled_on)) / 86400.0 AS age_days
+           FROM (
+             SELECT s.sampled_on, jsonb_build_object('texture', r.value_json) AS result,
+                    'soil_lab_results:' || r.result_id::text AS evidence_ref,
+                    1 AS source_priority, r.observed_at AS observed_at
+             FROM lab_samples s JOIN soil_lab_results r
+               ON s.tenant_id=r.tenant_id AND s.sample_id=r.sample_id
+             WHERE s.field_id=$1 AND s.kind='soil' AND s.status NOT IN ('rejected','cancelled')
+               AND r.analyte='texture' AND r.quality_status='approved'
+               AND jsonb_typeof(r.value_json)='string' AND r.observed_at <= now()
+             UNION ALL
+             SELECT sampled_on, result, 'soil_lab_tests:' || test_id, 0, updated_at
+             FROM soil_lab_tests WHERE field_id=$1 AND status IN ('approved','published')
+               AND result ?| ARRAY['texture','soil_texture','textural_class','texture_class']
+           ) AS evidence
+           WHERE sampled_on <= CURRENT_DATE
+           ORDER BY sampled_on DESC, source_priority DESC, observed_at DESC, evidence_ref
+           LIMIT 20""",
+        field_id,
+    )
+    return next(
+        (r for r in rows if taw_mm_per_m_for_texture(extract_texture(r["result"]))[1]), None
+    )
