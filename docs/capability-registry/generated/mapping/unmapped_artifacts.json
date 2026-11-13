@@ -4636,6 +4636,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/decision-service/tests/test_ac1_boundary_finiteness_timezone.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/decision-service/tests/test_activation_evidence_contract.py",
     "kind": "tests"
   },

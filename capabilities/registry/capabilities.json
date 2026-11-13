@@ -451,7 +451,7 @@
       },
       "evidence_truncated": {
         "apis": 205,
-        "tests": 149,
+        "tests": 150,
         "mobile_consumers": 44
       }
     },
@@ -1050,6 +1050,7 @@
         "mobile/sahool_app/test/features/maps/draw/boundary_validation_test.dart",
         "mobile/sahool_app/test/features/maps/io/boundary_parsers_test.dart",
         "mobile/sahool_app/test/features/maps/io/geometry_test.dart",
+        "services/decision-service/tests/test_ac1_boundary_finiteness_timezone.py",
         "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
         "services/decision-service/tests/test_tenant_boundary_migration_static.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
@@ -1068,8 +1069,7 @@
         "services/sahool-platform/tests/test_drift_geometry.py",
         "services/sahool-platform/tests/test_field_boundary_contracts.py",
         "services/sahool-platform/tests/test_field_boundary_graph.py",
-        "services/sahool-platform/tests/test_field_boundary_pipeline.py",
-        "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py"
+        "services/sahool-platform/tests/test_field_boundary_pipeline.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1118,7 +1118,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 34
+        "tests": 35
       }
     },
     {
