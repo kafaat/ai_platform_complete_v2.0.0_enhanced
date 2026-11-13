@@ -52,7 +52,7 @@ def test_offline_photo_queued_after_pin_and_replayed_as_exact_bytes():
     assert "kind: 'observation_create'" in cubit
     assert "kind: kObservationPhotoKind" in cubit
     assert "body: {'field_id': field.id, 'pin_id': pinId, 'sha256': digest}" in cubit
-    assert "base64Encode" not in cubit  # bytes never go into the Hive outbox
+    assert "base64Encode" not in cubit, "photo bytes never go into the Hive outbox"
     for snippet in (
         "if (op.kind == kObservationPhotoKind)",
         "await _photos.find(pinId)",
@@ -115,7 +115,10 @@ def test_pin_receipt_must_name_this_pin():
     assert "response['persisted'] != true" in outbox
     assert "response['pin_id'] != r.op.body['pin_id']" in outbox
     assert "(r.op.fieldId != null && response['field_id'] != r.op.fieldId)" in outbox
-    assert "'observation_photo'" not in outbox
+    assert "'observation_photo'" not in outbox, (
+        "v257's pin-photo outbox kind is gone: the photo travels as observation_photo_upload to "
+        "scout_photo_evidence (owner decision 2026-11-13)"
+    )
 
 
 def test_no_second_photo_link_on_the_pin():
@@ -125,7 +128,9 @@ def test_no_second_photo_link_on_the_pin():
     for src in (models, api, read("lib/features/scouting/presentation/scouting_widgets.dart")):
         assert "photoDocumentId" not in src
         assert "document_id" not in src
-    assert "pinPhotoStored" not in api
+    assert "pinPhotoStored" not in api, (
+        "v257's pin-photo receipt check is gone: scout_photo_evidence is the photo's single source"
+    )
 
 
 def test_crypto_is_a_direct_dependency():
