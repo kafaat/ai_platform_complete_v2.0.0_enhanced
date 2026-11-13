@@ -18,6 +18,7 @@ from typing import Any
 from . import tool_governance
 from .approval import build_approval_request, emit_audit, input_hash
 from .tool_executor import (
+    OUTCOME_FAILED,
     OUTCOME_PENDING_APPROVAL,
     execute_read_tool,
     plan_tool_call,
@@ -37,6 +38,8 @@ OUTCOME_DUPLICATE_TOOL_CALL = "duplicate_tool_call"
 OUTCOME_SKIPPED_PENDING_GATE = "skipped_pending_gate"
 # V52 — tool blocked by the tenant AI policy envelope's ``allowed_tools`` allow-list.
 OUTCOME_TOOL_BLOCKED_BY_POLICY = "tool_blocked_by_policy"
+# The approval store refused or failed to persist the request: no approval exists to decide.
+APPROVAL_NOT_PERSISTED = "approval_not_persisted"
 
 
 def run_tool_calls(
@@ -171,7 +174,7 @@ def run_tool_calls(
         if plan["outcome"] == OUTCOME_PENDING_APPROVAL:
             # فعل مُعدِّل/عالٍ: لا يُنفَّذ — يُنشأ طلب موافقة بشريّة (المرحلة ٤).
             req = build_approval_request(
-                request_id=str(call.get("id") or f"req-{idx}"),
+                tool_call_id=call_id,
                 tool_name=name,
                 params=params,
                 tenant_id=tenant_id,
@@ -180,28 +183,48 @@ def run_tool_calls(
                 capability=plan["capability"],
                 requested_at=timestamp,
             )
-            pending.append(req)
+            persisted = True
             if approval_saver is not None:
                 try:
                     approval_saver(req)
-                except Exception as exc:  # best-effort: approval persistence must not break chat.
+                except Exception as exc:  # noqa: BLE001 — any store failure ⇒ explicit failed result
+                    # A pending approval that was not stored cannot be decided: advertising it
+                    # would show the user an approve button for a record that does not exist.
+                    persisted = False
                     logger.warning("فشل حفظ طلب الموافقة %s: %s", req.get("id"), exc)
             gate_hit = True  # V58.2c — halt further tool execution in this batch.
-            result = {
-                "tool_call_id": str(call.get("id") or f"req-{idx}"),
-                "tool": name,
-                "outcome": OUTCOME_PENDING_APPROVAL,
-                "reason": plan["reason"],
-                "risk": plan["risk"],
-                "capability": plan["capability"],
-                "requires_approval": plan["requires_approval"],
-                "data": None,
-                "approval_id": req["id"],
-                "params": params,
-                "input_hash": req["input_hash"],
-                "field_id": params.get("field_id"),
-                "result_summary": req["result_summary"],
-            }
+            if persisted:
+                pending.append(req)
+                result = {
+                    "tool_call_id": call_id,
+                    "tool": name,
+                    "outcome": OUTCOME_PENDING_APPROVAL,
+                    "reason": plan["reason"],
+                    "risk": plan["risk"],
+                    "capability": plan["capability"],
+                    "requires_approval": plan["requires_approval"],
+                    "data": None,
+                    "approval_id": req["id"],
+                    "params": params,
+                    "input_hash": req["input_hash"],
+                    "field_id": params.get("field_id"),
+                    "result_summary": req["result_summary"],
+                }
+            else:
+                result = {
+                    "tool_call_id": call_id,
+                    "tool": name,
+                    "outcome": OUTCOME_FAILED,
+                    "reason": APPROVAL_NOT_PERSISTED,
+                    "risk": plan["risk"],
+                    "capability": plan["capability"],
+                    "requires_approval": plan["requires_approval"],
+                    "data": None,
+                    "params": params,
+                    "input_hash": req["input_hash"],
+                    "field_id": params.get("field_id"),
+                    "result_summary": APPROVAL_NOT_PERSISTED,
+                }
         else:
             # قراءة مسموحة (أو مرفوضة) — المنفّذ يحكم ويُدوّن؛ لا كتابة هنا.
             result = execute_read_tool(
@@ -213,7 +236,7 @@ def run_tool_calls(
                 actor=actor,
                 timestamp=timestamp,
             )
-            result["tool_call_id"] = str(call.get("id") or f"req-{idx}")
+            result["tool_call_id"] = call_id
 
         audit_record = result.get("audit") or _audit_from_result(
             result, tenant_id, actor, timestamp

@@ -4179,6 +4179,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/api/routers/crop_twin.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 8,
+        "signals": [
+          "content:NDMI",
+          "dedup:NDMI=ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "dedup:NDVI=ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/api/routers/field_ai_context.py",
     "kind": "backend",
     "candidates": [
@@ -4451,6 +4473,28 @@
         "signals": [
           "content:dem",
           "content:terrain"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/core/irrigation_water_analysis.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "IRR-009",
+        "score": 10,
+        "signals": [
+          "content:salinity",
+          "content:sodicity"
+        ]
+      },
+      {
+        "capability_id": "IRR-002",
+        "score": 8,
+        "signals": [
+          "content:water quality",
+          "content:water sample"
         ]
       }
     ]

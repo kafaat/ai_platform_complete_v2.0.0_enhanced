@@ -17,7 +17,7 @@ import urllib.request
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Protocol
+from typing import Any, Protocol, TypeVar
 
 
 class RetrievalAdmissionError(ValueError):
@@ -654,18 +654,25 @@ class RetrievedAnnotation:
         }
 
 
+#: مفتاحُ مرشَّحٍ في الدمج: ``chunk_id`` منطقيّ، أو ``(chunk_id, tenant_id)`` من
+#: ``HybridQdrantRetriever.retrieve`` حيث يتشارك مقطعا السائل والمرجع العامّ المعرّف.
+_FusionKeyT = TypeVar("_FusionKeyT", str, tuple[str, str])
+
+
 def weighted_rrf_scores(
-    dense_scores: dict[str, float],
-    sparse_scores: dict[str, float],
+    dense_scores: dict[_FusionKeyT, float],
+    sparse_scores: dict[_FusionKeyT, float],
     *,
     dense_weight: float = 0.7,
     sparse_weight: float = 0.3,
     rank_constant: int = 60,
-) -> tuple[dict[str, float], dict[str, int], dict[str, int]]:
+) -> tuple[dict[_FusionKeyT, float], dict[_FusionKeyT, int], dict[_FusionKeyT, int]]:
     """Fuse incomparable dense and BM25 results by rank.
 
     Raw scores remain diagnostics only.  Ties are broken by logical chunk ID so
     process restarts and provider ordering cannot move an otherwise tied result.
+    Keys may be ``(chunk_id, tenant_id)`` tuples; the logical chunk ID still
+    breaks ties first.
     """
     if rank_constant < 1:
         raise ValueError("rank_constant must be positive")
@@ -684,7 +691,7 @@ def weighted_rrf_scores(
             sorted(sparse_scores.items(), key=lambda item: (-item[1], item[0])), start=1
         )
     }
-    fused: dict[str, float] = {}
+    fused: dict[_FusionKeyT, float] = {}
     for chunk_id in set(dense_ranks) | set(sparse_ranks):
         score = 0.0
         if chunk_id in dense_ranks:
@@ -805,6 +812,45 @@ class HttpEmbeddingProvider:
         raise ValueError("Embedding response missing embedding vector")
 
 
+ChunkIdentity = tuple[str, str]
+
+
+def chunk_identity(chunk: KnowledgeChunk) -> ChunkIdentity:
+    """هويّةُ المقطع الداخليّة ``(tenant_id, chunk_id)`` — **نفسُ هويّة التخزين** (R-H14).
+
+    ``RAG-BM25-TENANT-CHUNK-IDENTITY-01``: بعد فصل نقاط Qdrant بالمستأجِر بقي الفهرسُ
+    المتناثر وذاكرةُ المقاطع مفهرسَين بـ``chunk_id`` وحده: فابتلاعُ B للمقطع ``x``
+    يسحب مقطعَ A ``x`` من BM25، وإعادةُ البناء ترفض المجموعةَ كلَّها حين يتشارك
+    مستأجِران معرّفاً — فتسقط الجاهزيّةُ لكلّ المستأجرين.
+
+    **الهويّةُ داخليّة فقط:** ``chunk_id`` المنطقيّ يبقى كما هو في كلّ تعليقٍ واستشهاد.
+    """
+    return (chunk.tenant_id, chunk.chunk_id)
+
+
+#: The reference corpus and its quarantine form one uniqueness domain (D08-EXT, as narrowed
+#: by the owner on 2026-11-13): a chunk_id may not be both a served global seed and a
+#: quarantined one. Real tenants are each their own domain.
+_REFERENCE_UNIQUENESS_DOMAIN = "__reference_corpus__"
+
+
+def uniqueness_identity(chunk: KnowledgeChunk) -> ChunkIdentity:
+    """Key for the rebuild's duplicate check (not for lookup: lookup stays ``chunk_identity``)."""
+    tenant = chunk.tenant_id
+    if tenant in (GLOBAL_REFERENCE_TENANT, SEED_QUARANTINE_TENANT):
+        tenant = _REFERENCE_UNIQUENESS_DOMAIN
+    return (tenant, chunk.chunk_id)
+
+
+def _fusion_key(chunk: KnowledgeChunk) -> tuple[str, str]:
+    """مفتاحُ الدمج والترتيب: ``(chunk_id, tenant_id)`` — المعرّفُ المنطقيّ أوّلاً.
+
+    الهويّةُ نفسُها التي يحملها ``chunk_identity`` بترتيبٍ يُبقي كسرَ التعادل في
+    ``weighted_rrf_scores`` وفي الترتيب النهائيّ بالمعرّف المنطقيّ كما كان.
+    """
+    return (chunk.chunk_id, chunk.tenant_id)
+
+
 def matches_scope_filters(chunk: KnowledgeChunk, filters: dict[str, Any] | None) -> bool:
     """هل يجتاز المقطعُ مرشِّحاتِ النطاق؟ — **تعريفٌ واحد يُشتقّ منه كلُّ من يرشّح**.
 
@@ -860,9 +906,11 @@ class BM25Index:
     def __init__(self, k1: float = 1.5, b: float = 0.75) -> None:
         self.k1 = k1
         self.b = b
-        self.docs: dict[str, KnowledgeChunk] = {}
-        self.term_freqs: dict[str, dict[str, int]] = {}
-        self.doc_len: dict[str, int] = {}
+        # مفاتيحُ الوثائق ``chunk_identity`` لا ``chunk_id``: المعرّفُ المنطقيّ نفسُه
+        # قد يعيش لمستأجِرَين (R-H14)، ولا يسحب ابتلاعُ أحدهما وثيقةَ الآخر.
+        self.docs: dict[ChunkIdentity, KnowledgeChunk] = {}
+        self.term_freqs: dict[ChunkIdentity, dict[str, int]] = {}
+        self.doc_len: dict[ChunkIdentity, int] = {}
         # الإحصاءُ يُمسَك **مُبوَّباً بالمستأجِر**، والمجاميعُ تُشتقّ منه ولا
         # تُمسَك بجانبه: نسختانِ تُحدَّثان بيدَين تنحرفان، والانحرافُ صامت.
         self._tenant_doc_freq: dict[str, dict[str, int]] = {}
@@ -887,13 +935,13 @@ class BM25Index:
         """متوسّطٌ عالميٌّ مُشتَقّ — تشخيصيٌّ لا يُرتَّب به."""
         return sum(self._tenant_len_sum.values()) / max(len(self.doc_len), 1)
 
-    def _retract(self, tenant_id: str, chunk_id: str) -> None:
+    def _retract(self, key: ChunkIdentity) -> None:
         """نزعُ مساهمةِ صفٍّ من **دلوِ مستأجِرِه المسجَّل**، لا من دلوِ الوارد.
 
-        صفٌّ يُعاد ابتلاعُه بمستأجِرٍ مختلف كان سيترك مساهمتَه في الدلو القديم
-        أبداً لو نُزِعت من دلو الحمولة الجديدة.
+        والمستأجِرُ جزءٌ من المفتاح، فلا يُنزَع من دلوِ مستأجِرٍ إلّا صفُّه هو.
         """
-        previous_tf = self.term_freqs.get(chunk_id) or {}
+        tenant_id, chunk_id = key
+        previous_tf = self.term_freqs.get(key) or {}
         bucket = self._tenant_doc_freq.get(tenant_id)
         if bucket is not None:
             for term in previous_tf:
@@ -909,7 +957,7 @@ class BM25Index:
             ids.discard(chunk_id)
             if not ids:
                 self._tenant_doc_ids.pop(tenant_id, None)
-        remaining_len = self._tenant_len_sum.get(tenant_id, 0) - self.doc_len.get(chunk_id, 0)
+        remaining_len = self._tenant_len_sum.get(tenant_id, 0) - self.doc_len.get(key, 0)
         if remaining_len > 0:
             self._tenant_len_sum[tenant_id] = remaining_len
         else:
@@ -918,18 +966,20 @@ class BM25Index:
     def add(self, chunk: KnowledgeChunk) -> None:
         # Upserts must be idempotent for sparse document frequencies.  Re-ingesting
         # an existing canonical chunk replaces its previous sparse contribution
-        # instead of counting the same logical document twice.
-        previous = self.docs.get(chunk.chunk_id)
-        if previous is not None:
-            self._retract(previous.tenant_id, chunk.chunk_id)
+        # instead of counting the same logical document twice.  The replacement is
+        # scoped to the same tenant: another tenant's chunk with this chunk_id is a
+        # different document and is never retracted here.
+        key = chunk_identity(chunk)
+        if key in self.docs:
+            self._retract(key)
 
         terms = tokenize(chunk.text)
         tf: dict[str, int] = {}
         for term in terms:
             tf[term] = tf.get(term, 0) + 1
-        self.docs[chunk.chunk_id] = chunk
-        self.term_freqs[chunk.chunk_id] = tf
-        self.doc_len[chunk.chunk_id] = len(terms)
+        self.docs[key] = chunk
+        self.term_freqs[key] = tf
+        self.doc_len[key] = len(terms)
 
         bucket = self._tenant_doc_freq.setdefault(chunk.tenant_id, {})
         for term in tf:
@@ -989,16 +1039,20 @@ class BM25Index:
 
         ووثيقةٌ خارج المرئيّ تُعيد صفراً لا رقماً: خلطُ ``tf`` و``length`` من
         وثيقةٍ مع ``idf`` و``avg_len`` من مجموعةٍ لا تضمّها حسابٌ لا معنى له.
+
+        و``chunk_id`` منطقيّ: يُحَلّ إلى وثيقةِ السائل أوّلاً ثمّ إلى المرجع العامّ،
+        ولا يُحَلّ أبداً إلى وثيقةِ مستأجِرٍ آخر بالمعرّف نفسه.
         """
-        chunk = self.docs.get(chunk_id)
-        if chunk is None or chunk.tenant_id not in self.visible_scope(tenant_id):
-            return 0.0
-        return self._score_terms(query_terms(query), chunk_id, self.corpus_stats(tenant_id))
+        for owner in (tenant_id, GLOBAL_REFERENCE_TENANT):
+            key = (owner, chunk_id)
+            if key in self.docs:
+                return self._score_terms(query_terms(query), key, self.corpus_stats(tenant_id))
+        return 0.0
 
     def _score_terms(
         self,
         terms: list[str],
-        chunk_id: str,
+        key: ChunkIdentity,
         stats: tuple[int, dict[str, int], float],
     ) -> float:
         """BM25 لوثيقةٍ واحدة بإحصاءاتٍ **محسوبةٍ مسبقاً** لمجموعةِ السائل.
@@ -1011,10 +1065,10 @@ class BM25Index:
         n_docs, doc_freq, avg_len = stats
         if n_docs == 0:
             return 0.0
-        length = self.doc_len.get(chunk_id, 0) or 1
+        length = self.doc_len.get(key, 0) or 1
         score = 0.0
         for term in terms:
-            tf = self.term_freqs.get(chunk_id, {}).get(term, 0)
+            tf = self.term_freqs.get(key, {}).get(term, 0)
             if tf == 0:
                 continue
             df = doc_freq.get(term, 0)
@@ -1031,12 +1085,12 @@ class BM25Index:
         visible = self.visible_scope(tenant_id)
         terms = query_terms(query)
         stats = self.corpus_stats(tenant_id)
-        for cid, chunk in self.docs.items():
+        for key, chunk in self.docs.items():
             if chunk.tenant_id not in visible:
                 continue
             if not matches_scope_filters(chunk, filters):
                 continue
-            s = self._score_terms(terms, cid, stats)
+            s = self._score_terms(terms, key, stats)
             if s > 0:
                 rows.append((chunk, s))
         return sorted(rows, key=lambda x: x[1], reverse=True)[:limit]
@@ -1358,7 +1412,8 @@ class HybridQdrantRetriever:
         self.qdrant = qdrant
         self.embeddings = embeddings or HashEmbeddingProvider(qdrant.vector_size)
         self.bm25 = bm25 or BM25Index()
-        self._chunks: dict[str, KnowledgeChunk] = {}
+        # مفهرسٌ بـ``chunk_identity``: ``chunk_id`` نفسه قد يعيش لمستأجِرَين (R-H14).
+        self._chunks: dict[ChunkIdentity, KnowledgeChunk] = {}
         self.retrieval_profile = retrieval_profile
 
     def ingest(self, chunks: list[KnowledgeChunk]) -> int:
@@ -1378,7 +1433,7 @@ class HybridQdrantRetriever:
         self.qdrant.upsert(chunks, vectors)
         for chunk in chunks:
             self.bm25.add(chunk)
-            self._chunks[chunk.chunk_id] = chunk
+            self._chunks[chunk_identity(chunk)] = chunk
         return len(chunks)
 
     def rebuild_sparse_index(self) -> dict[str, Any]:
@@ -1411,7 +1466,7 @@ class HybridQdrantRetriever:
         # الشكلَ القانونيّ، وتُقرأ هذه الأعدادُ في مسار الجاهزيّة وحده.
         noncanonical_serving = 0
         noncanonical_samples: list[str] = []
-        seen: set[str] = set()
+        seen: set[ChunkIdentity] = set()
         for point_id, payload in payload_rows:
             try:
                 chunk = KnowledgeChunk.from_payload(payload, fallback_id=point_id)
@@ -1428,9 +1483,20 @@ class HybridQdrantRetriever:
                 for key in absent:
                     missing_fields[key] = missing_fields.get(key, 0) + 1
                 continue
-            if chunk.chunk_id in seen:
-                raise ValueError(f"duplicate canonical chunk_id in Qdrant: {chunk.chunk_id}")
-            seen.add(chunk.chunk_id)
+            # التكرارُ هو المستأجِرُ نفسُه والـchunk_id نفسُه في نقطتين — يُرفَض كما كان.
+            # أمّا مستأجِران بالـchunk_id نفسه فوثيقتان مشروعتان (R-H14)، ورفضُهما كان
+            # يُسقِط إعادةَ البناء والجاهزيّةَ لكلّ مستأجِر.
+            # Owner ruling (2026-11-13, hybrid, narrowing D08-EXT): uniqueness is per tenant,
+            # but the global reference corpus and __seed_quarantine__ stay ONE domain, so the
+            # duplicated-seed incident D08-EXT ruled on (a global seed also in quarantine)
+            # still fails the rebuild closed.
+            identity = uniqueness_identity(chunk)
+            if identity in seen:
+                raise ValueError(
+                    "duplicate canonical chunk_id in Qdrant: "
+                    f"{chunk.chunk_id} (tenant {chunk.tenant_id})"
+                )
+            seen.add(identity)
             chunks.append(chunk)
             # **يُعَدُّ ولا يُحذَف.** الحجرُ المُعلَن ليس انحرافاً — هو مُعلَنٌ غيرُ
             # خادمٍ بالقصد. والصفُّ النشطُ غيرُ القانونيّ يُعَدّ ويُعيَّن، ويبقى
@@ -1439,7 +1505,7 @@ class HybridQdrantRetriever:
                 noncanonical_serving += 1
                 if len(noncanonical_samples) < _SKIPPED_SAMPLE_CAP:
                     noncanonical_samples.append(str(point_id))
-        self._chunks = {chunk.chunk_id: chunk for chunk in chunks}
+        self._chunks = {chunk_identity(chunk): chunk for chunk in chunks}
         loaded = self.bm25.rebuild(chunks)
         serving_counts: dict[str, int] = {}
         for chunk in chunks:
@@ -1493,8 +1559,12 @@ class HybridQdrantRetriever:
         # ``self._chunks`` المشترك المفهرس بـ``chunk_id`` وحده: بعد فصل مُعرِّفات التخزين
         # بالمستأجِر صار ``chunk_id`` نفسه يعيش لمستأجِرَين، فكان مرشَّحٌ متناثر لـB يُحَلّ
         # إلى نصّ A الذي كتبه استرجاعُ A الكثيف في الذاكرة المشتركة.
-        visible: dict[str, KnowledgeChunk] = {}
-        dense_map: dict[str, float] = {}
+        # RAG-BM25-TENANT-CHUNK-IDENTITY-01: ومفتاحُ الدمج ``(chunk_id, tenant_id)`` لا
+        # ``chunk_id`` وحده — مقطعُ السائل ومقطعُ المرجع العامّ بالمعرّف نفسه كلاهما
+        # مرئيّ، وكان الدمجُ يطويهما في مرشَّحٍ واحد يُسقِط أحدهما ويخلط درجتَيهما.
+        # والترتيبُ ``chunk_id`` أوّلاً ليبقى كسرُ التعادل بالمعرّف المنطقيّ كما كان.
+        visible: dict[tuple[str, str], KnowledgeChunk] = {}
+        dense_map: dict[tuple[str, str], float] = {}
         for point_id, score, payload in dense_rows:
             if self.retrieval_profile is not None:
                 self.retrieval_profile.validate_payload(payload)
@@ -1508,15 +1578,18 @@ class HybridQdrantRetriever:
                 continue
             if chunk.tenant_id not in {tenant_id, GLOBAL_REFERENCE_TENANT}:
                 continue
-            self._chunks[chunk.chunk_id] = chunk
-            visible[chunk.chunk_id] = chunk
-            dense_map[chunk.chunk_id] = max(score, dense_map.get(chunk.chunk_id, float("-inf")))
+            self._chunks[chunk_identity(chunk)] = chunk
+            fkey = _fusion_key(chunk)
+            visible[fkey] = chunk
+            dense_map[fkey] = max(score, dense_map.get(fkey, float("-inf")))
         sparse_rows = self.bm25.search(
             query, tenant_id=tenant_id, filters=filters, limit=top_k_initial
         )
-        sparse_map: dict[str, float] = {chunk.chunk_id: score for chunk, score in sparse_rows}
+        sparse_map: dict[tuple[str, str], float] = {
+            _fusion_key(chunk): score for chunk, score in sparse_rows
+        }
         for chunk, _score in sparse_rows:
-            visible.setdefault(chunk.chunk_id, chunk)
+            visible.setdefault(_fusion_key(chunk), chunk)
         fused_scores, dense_ranks, sparse_ranks = weighted_rrf_scores(
             dense_map,
             sparse_map,
@@ -1542,7 +1615,7 @@ class HybridQdrantRetriever:
                 )
             )
         expanded = self._expand_neighbors(
-            sorted(fused, key=lambda r: (-r.fused_score, r.chunk.chunk_id))[:top_k_initial],
+            sorted(fused, key=lambda r: (-r.fused_score, *_fusion_key(r.chunk)))[:top_k_initial],
             filters=filters,
         )
         reranked = self._rerank(query, expanded)
@@ -1566,16 +1639,16 @@ class HybridQdrantRetriever:
         ``retrieve`` يُمرِّر نطاقَه صراحةً — فلا يُخفي التوقيعُ أنّ للنطاق معنًى هنا.
         """
         out = list(hits)
-        seen = {h.chunk.chunk_id for h in out}
+        seen = {chunk_identity(h.chunk) for h in out}
         by_doc_idx = {(c.tenant_id, c.document_id, c.chunk_index): c for c in self._chunks.values()}
         for hit in hits:
             for idx in (hit.chunk.chunk_index - 1, hit.chunk.chunk_index + 1):
                 neighbor = by_doc_idx.get((hit.chunk.tenant_id, hit.chunk.document_id, idx))
-                if neighbor is None or neighbor.chunk_id in seen:
+                if neighbor is None or chunk_identity(neighbor) in seen:
                     continue
                 if not matches_scope_filters(neighbor, filters):
                     continue
-                seen.add(neighbor.chunk_id)
+                seen.add(chunk_identity(neighbor))
                 # REPORT3-RAG-08-01: neither leg scored the neighbour, so its
                 # dense/BM25 scores are absent (None), not a measured 0.0.
                 out.append(
@@ -1609,6 +1682,6 @@ class HybridQdrantRetriever:
             reranked,
             key=lambda row: (
                 -(row.rerank_score if row.rerank_score is not None else row.fused_score),
-                row.chunk.chunk_id,
+                *_fusion_key(row.chunk),
             ),
         )

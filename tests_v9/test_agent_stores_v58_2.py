@@ -1,6 +1,6 @@
 """تحقّق V58.2a — مخازن الموافقة/التدقيق القابلة للاستبدال + استئناف الموافقة.
 
-- ``InMemory*Store`` سلوك صحيح (save/get/list_pending/append/recent).
+- ``InMemory*Store`` سلوك صحيح (create/get/list_pending/append/recent).
 - ``build_*_store`` الافتراضيّ = memory؛ ``redis`` بلا اتّصال ⇒ سقوط آمن للذاكرة.
 - ``RedisApprovalStore`` يعمل مع عميل مزيّف (يثبت مسار الاستمرار).
 - نقطة ``/v1/approvals/resume``: تقرأ الموافقة المخزَّنة، تتطلّب حالة approved، وتُعيد
@@ -36,8 +36,8 @@ _AUTH_HEADERS = {
 
 def test_in_memory_approval_store_roundtrip():
     st = S.InMemoryApprovalStore()
-    st.save({"id": "a1", "status": "pending_approval", "tool": "send_recommendation"})
-    st.save({"id": "a2", "status": "approved", "tool": "create_prescription_map"})
+    st.create({"id": "a1", "status": "pending_approval", "tool": "send_recommendation"})
+    st.create({"id": "a2", "status": "approved", "tool": "create_prescription_map"})
     assert st.get("a1")["tool"] == "send_recommendation"
     assert st.get("missing") is None
     pending = st.list_pending()
@@ -66,33 +66,17 @@ def test_redis_backend_fails_safe_to_memory(monkeypatch):
     assert S.store_backend_name() == "memory"
 
 
-class _FakeRedis:
-    def __init__(self):
-        self.kv = {}
-        self.sets = {}
-
-    def set(self, k, v, ex=None):
-        self.kv[k] = v
-
-    def get(self, k):
-        return self.kv.get(k)
-
-    def sadd(self, k, m):
-        self.sets.setdefault(k, set()).add(m)
-
-    def srem(self, k, m):
-        self.sets.get(k, set()).discard(m)
-
-    def smembers(self, k):
-        return self.sets.get(k, set())
-
-
 def test_redis_approval_store_with_fake_client():
-    st = S.RedisApprovalStore(_FakeRedis())
-    st.save({"id": "a1", "status": "pending_approval", "tool": "x"})
+    # The decision is a WATCH/MULTI/EXEC transition now; the double implements those semantics.
+    from tests_v9.redis_txn_double import RedisTxnDouble
+
+    st = S.RedisApprovalStore(RedisTxnDouble())
+    pending = {"id": "a1", "status": "pending_approval", "tool": "x", "tenant_id": "t1"}
+    st.create(pending)
     assert st.get("a1")["tool"] == "x"
     assert [p["id"] for p in st.list_pending()] == ["a1"]
-    st.save({"id": "a1", "status": "approved", "tool": "x"})  # decided ⇒ leaves pending set
+    decided = dict(pending, status="approved")
+    assert st.transition("a1", "t1", "pending_approval", decided)  # decided ⇒ leaves pending set
     assert st.list_pending() == []
 
 
@@ -117,7 +101,9 @@ def test_resume_endpoint_reads_stored_approved_and_hands_off(monkeypatch):
     }
     # D01 (2026-09-22): القرارُ صار يقرأ سجلّاً خادميّاً قائماً بـ(المستأجِر، الهويّة)؛
     # فالجسمُ وحدَه لا يُنشئ سجلّاً. التهيئةُ هي ما تغيّر — لا التأكيدات أدناه.
-    M._APPROVAL_STORE.save(dict(approval_obj))
+    # Create-once store: a fresh one per test, so the fixed id cannot collide across tests.
+    monkeypatch.setattr(M, "_APPROVAL_STORE", S.InMemoryApprovalStore())
+    M._APPROVAL_STORE.create(dict(approval_obj))
     # approve first (stores the approved record) ...
     ok = client.post(
         "/v1/approvals/approve",

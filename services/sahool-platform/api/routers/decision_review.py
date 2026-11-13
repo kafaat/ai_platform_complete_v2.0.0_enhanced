@@ -238,7 +238,7 @@ async def create_decision_execution_plan(
 
     # IRR-X1.5: only an authoritative approved irrigation execution plan may become
     # a manual execution source. The free-form browser payload never becomes execution truth.
-    if req.operation_type == "manual_irrigation":
+    if req.operation_type.strip().lower() == "manual_irrigation":
         c = req.constraints
         missing = missing_manual_plan_constraints(c)
         if missing:
