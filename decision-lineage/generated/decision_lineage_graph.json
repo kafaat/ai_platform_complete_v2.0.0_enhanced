@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 705,
+      "evidence_count": 706,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -324,6 +324,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/api/raster_service_client.py",
+        "services/sahool-platform/api/recommendations_hub.py",
         "services/sahool-platform/api/routers/automation.py",
         "services/sahool-platform/api/routers/calibration.py",
         "services/sahool-platform/api/routers/cameras.py",
@@ -2912,10 +2913,10 @@
         "services/sahool-platform/api/outcome_measurement.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py",
-        "services/sahool-platform/api/routers/crop_twin.py",
-        "services/sahool-platform/api/routers/decision_confidence.py"
+        "services/sahool-platform/api/recommendations_hub.py",
+        "services/sahool-platform/api/routers/crop_twin.py"
       ],
-      "source_evidence_count": 705,
+      "source_evidence_count": 706,
       "target_evidence_count": 565,
       "static_supported": true,
       "runtime_verified": false
@@ -3370,5 +3371,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "3f11e61aff6c6aa9c5351e8762ad95bb1427518bbf390064f95153550f7e40be"
+  "content_sha256": "552f1771d20fbfda037d054b3e085588a87a7c7d4093b2b49a1061cf33acb85a"
 }
