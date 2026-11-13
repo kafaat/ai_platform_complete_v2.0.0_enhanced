@@ -66,7 +66,7 @@
 | OPS-008 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | PA-001 | precision | 10 | 34 | 8 | 2 | 1 | 0 | 10 | 6 |
 | PA-002 | precision | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| PA-003 | precision | 3 | 4 | 13 | 1 | 0 | 0 | 5 | 5 |
+| PA-003 | precision | 4 | 4 | 13 | 1 | 0 | 0 | 5 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | SAT-001 | satellite | 42 | 100 | 5 | 43 | 6 | 0 | 58 | 6 |
