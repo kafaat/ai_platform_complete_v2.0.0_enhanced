@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "aa463d37284af3e8b0ac01ffac85329c4b1e4893af511f253d475e838936643a",
+  "inventory_sha256": "5baefb76163e6a8371d3f24b410624c804e23139d404f45cba56f269b9b57788",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "22c5653f2058ae08eeddaaa9b8a5536e0524a95b8589fdda95982ff8f02eb6f6"
+    "policy_sha256": "c79aea6b0e99fcb811bc954d38fc1b32312cdf681c9e8ce0419a7d34837e562f"
   },
   "routes": [
     {
@@ -3154,7 +3154,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_endpoint",
-      "line": 403,
+      "line": 409,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
       "source": "api/routers/crop_twin.py"
@@ -3162,7 +3162,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_candidate_endpoint",
-      "line": 296,
+      "line": 302,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
       "source": "api/routers/crop_twin.py"
@@ -3170,7 +3170,7 @@
     {
       "classification": "domain",
       "function": "profit_aware_decision_endpoint",
-      "line": 527,
+      "line": 533,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
       "source": "api/routers/crop_twin.py"
@@ -3754,7 +3754,7 @@
     {
       "classification": "domain",
       "function": "field_water_twin",
-      "line": 197,
+      "line": 198,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/water-twin",
       "source": "api/routers/water_twin.py"
