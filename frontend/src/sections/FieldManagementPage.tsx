@@ -677,8 +677,8 @@ function SeasonSimModal({ seasonId, crops, onClose }: {
 }) {
   const sim = useSimulateSeason();
   const r: SeasonSimResult | undefined = sim.data;
-  const num = (v: number | null | undefined, d = 0) =>
-    (typeof v === 'number' ? Math.round(v).toLocaleString('ar') : String(d));
+  const num = (v: number | null | undefined) =>
+    (typeof v === 'number' && Number.isFinite(v) ? Math.round(v).toLocaleString('ar') : '—');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -712,18 +712,15 @@ function SeasonSimModal({ seasonId, crops, onClose }: {
           {r && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
-                {r.yield_kg_ha == null ? (
-                  <Stat label="الإنتاج المُقدَّر (kg/ha)" value="—"
-                    hint={`غير متاح (${r.yield_status ?? 'unavailable'}) — ليس صفراً مرصوداً`} />
-                ) : (
-                  <Stat label="الإنتاج المُقدَّر (kg/ha)"
-                    value={`${num(r.yield_low_kg_ha)} – ${num(r.yield_high_kg_ha)}`} hint={`المركزي ≈ ${num(r.yield_kg_ha)}`} />
-                )}
+                <Stat label="الإنتاج المُقدَّر (kg/ha)"
+                  value={r.yield_kg_ha == null ? 'غير متاح' : `${num(r.yield_low_kg_ha)} – ${num(r.yield_high_kg_ha)}`}
+                  hint={r.yield_kg_ha == null ? `السبب: ${r.yield_status} — ليس صفراً مرصوداً` : `المركزي ≈ ${num(r.yield_kg_ha)}`} />
                 <Stat label="GDD التراكمي (°C·day)"
-                  value={`${num(r.gdd_total)} / ${num(r.gdd_to_maturity)}`} hint={r.maturity_reached ? 'بلغ النضج' : 'لم يبلغ النضج'} />
-                <Stat label="أقصى LAI (m²/m²)" value={r.lai_max.toFixed(2)} hint="مؤشّر تقريبي" />
+                  value={`${num(r.gdd_total)} / ${num(r.gdd_to_maturity)}`}
+                  hint={r.maturity_reached == null ? 'النضج غير قابل للتقييم' : r.maturity_reached ? 'بلغ النضج' : 'لم يبلغ النضج'} />
+                <Stat label="أقصى LAI (m²/m²)" value={r.lai_max?.toFixed(2) ?? '—'} hint="مؤشّر تقريبي" />
                 <Stat label="احتياج الماء (mm)" value={num(r.water_need_mm)}
-                  hint={r.water_supply_mm != null ? `العرض ≈ ${num(r.water_supply_mm)}` : 'العرض غير معروف'} />
+                  hint={r.water_need_mm == null ? 'ET₀ غير مكتمل؛ ليس صفرًا مرصودًا' : r.water_supply_mm != null ? `العرض ≈ ${num(r.water_supply_mm)}` : 'العرض غير معروف'} />
               </div>
 
               <div className="rounded-lg p-2 text-[11px]" style={{ background: '#0f172a', color: '#94a3b8' }}>

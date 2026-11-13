@@ -81,20 +81,19 @@ export interface SeasonSimResult {
   crop:                string;
   crop_recognized:     boolean;
   days_simulated:      number;
-  gdd_total:           number;
+  gdd_total:           number | null;
   gdd_to_maturity:     number;
-  maturity_reached:    boolean;
-  lai_max:             number;
-  biomass_kg_ha:       number;
-  // null = no estimate (unrecognized crop, no weather, no GDD evidence) — never an observed 0.
+  maturity_reached:    boolean | null;
+  lai_max:             number | null;
+  biomass_kg_ha:       number | null;
   yield_kg_ha:         number | null;
   yield_low_kg_ha:     number | null;
   yield_high_kg_ha:    number | null;
-  yield_status?:       string;
-  limitations?:        string[];
-  water_need_mm:       number;
+  yield_status:        string;
+  limitations:         string[];
+  water_need_mm:       number | null;
   water_supply_mm:     number | null;
-  water_stress_factor: number;
+  water_stress_factor: number | null;
   confidence:          number;
   rationale_ar:        string;
   assumptions_ar:      string[];

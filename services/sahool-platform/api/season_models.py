@@ -199,20 +199,20 @@ class SeasonSimResponse(BaseModel):
     crop: str
     crop_recognized: bool
     days_simulated: int
-    gdd_total: float
+    gdd_total: float | None
     gdd_to_maturity: float
-    maturity_reached: bool
-    lai_max: float
-    biomass_kg_ha: float
+    maturity_reached: bool | None
+    lai_max: float | None
+    biomass_kg_ha: float | None
     # None حين يكون المحصول غير مُعرّف (yield_status يقول السبب) — لا غلّة من معاملات عامّة.
     yield_kg_ha: float | None
     yield_low_kg_ha: float | None
     yield_high_kg_ha: float | None
     yield_status: str = "estimated"
     limitations: list[str] = Field(default_factory=list)
-    water_need_mm: float
+    water_need_mm: float | None
     water_supply_mm: float | None
-    water_stress_factor: float
+    water_stress_factor: float | None
     confidence: float
     rationale_ar: str
     assumptions_ar: list[str]
