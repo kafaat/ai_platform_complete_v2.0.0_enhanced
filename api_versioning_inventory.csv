@@ -867,8 +867,8 @@ sahool-platform,services/sahool-platform/api/routers/season_workspace.py,272,GET
 sahool-platform,services/sahool-platform/api/routers/seasonal_risk.py,28,GET,/api/v1/seasonal-risk/calendar,seasonal_risk_calendar_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/seasonal_risk.py,34,GET,/api/v1/seasonal-risk/stage-check,seasonal_risk_stage_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/seasonal_risk.py,40,GET,/api/v1/seasonal-risk/chill-hours,seasonal_risk_chill_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/seasons.py,156,POST,/api/v1/seasons/{season_id}/simulate,simulate_season_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/seasons.py,563,GET,/api/v1/fields/{field_id}/seasons/{season_id}/state,field_season_state_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/seasons.py,163,POST,/api/v1/seasons/{season_id}/simulate,simulate_season_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/seasons.py,644,GET,/api/v1/fields/{field_id}/seasons/{season_id}/state,field_season_state_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/security_audit.py,19,GET,/api/v1/admin/security/denials,security_denials,versioned
 sahool-platform,services/sahool-platform/api/routers/seed.py,30,GET,/api/v1/seed/criteria,seed_criteria_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/seed.py,36,POST,/api/v1/seed/evaluate-source,seed_evaluate_endpoint,versioned
