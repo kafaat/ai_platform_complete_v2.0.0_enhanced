@@ -2,9 +2,9 @@
   "schema_version": "1.0.0",
   "inputs": {
     "docs/capability-registry/generated/capability_registry.json": "058d83bd3dcc5489af6f2419e3e0e72079308f21d3c58aeb37ad5a242f570c9f",
-    "docs/capability-registry/generated/mapping/capability_mapping.json": "1c0fffe6359263e366c16697334d17f3785d051a00e38cc35a95512bd010ba69",
-    "docs/capability-registry/generated/evidence/capability_evidence_matrix.json": "5d96277b8be95baf386d989bed99c032aa04bd7514b90fc4dba4f5a76348f9f3",
-    "docs/capability-registry/generated/benchmark/capability_parity_matrix.json": "c48e716ab40a2095a7bf9bd3501f66c02221af803c6dba6cbb453dff69d807b2",
+    "docs/capability-registry/generated/mapping/capability_mapping.json": "1c803f1b69990a914f0f0e12fba2cf6dd93a2297de7e1b656748cef6dd07c0da",
+    "docs/capability-registry/generated/evidence/capability_evidence_matrix.json": "872ca7ee5109fd92c69673f2b0f005dc58f8f1a4f224bc4c6e586f91eb9f5c0e",
+    "docs/capability-registry/generated/benchmark/capability_parity_matrix.json": "e4c737145e6947aec63e0958324648a28b9c1356b5af3fa7d4a174273c8f9eb0",
     "docs/capability-registry/generated/benchmark/capability_investment_matrix.json": "bb15a8ccad4ad6ca6ccf794179c2a539599d7649e8d5b5c5b2efab3505e3e034",
     "docs/capability-registry/lifecycle.yaml": "b96d502f5cb4c433639804633a06c8254315ce0fb3a98f477308f27a77622391",
     "docs/capability-registry/maturity_levels.yaml": "58d9f790c529ec0698d708969fcb859db3347c4b9682775464fbc1bfdb965bf5",
@@ -16,7 +16,7 @@
     "capability_knowledge_graph.dot": "0448a33db2c78973f7cb97b44e2a77fe68afe90abf724bc36622b098a1e4b04a",
     "capability_knowledge_graph.json": "07d60f1826e76df85929bf3db02058dfc8f4aa7eb5ad0795afb42bff50393f1e",
     "capability_management_matrix.csv": "d7629e0baf6425ed9d1035f4f9ac8dc948766eeeee60c2b0692f71faf395d886",
-    "capability_management_matrix.json": "258b37fc5637155a73b73e7914850fac044d731ba620598ddf4e68ec3e61e464",
+    "capability_management_matrix.json": "b03e7f85708b7618bb3aaedfba2ec0ef46a9f38b77e814fd6e6d199b597f113e",
     "coverage_dashboard.json": "9dc358965e65dfa875fb9164e1770137fbbce3b9f8cc9c72773767f9bebe0a0f"
   }
 }

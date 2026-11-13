@@ -1214,7 +1214,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 745,
+      "line": 755,
       "method": "POST",
       "path": "/v1/query",
       "function": "query_endpoint",
@@ -1223,7 +1223,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 755,
+      "line": 765,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest_endpoint",
@@ -1232,7 +1232,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 810,
+      "line": 820,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1241,7 +1241,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 828,
+      "line": 838,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -1250,7 +1250,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 833,
+      "line": 843,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1394,7 +1394,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 200,
+      "line": 205,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1403,7 +1403,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 205,
+      "line": 210,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1412,7 +1412,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 242,
+      "line": 247,
       "method": "GET",
       "path": "/internal/scouting/external-observations",
       "function": "read_external_observations",
@@ -1421,7 +1421,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 361,
+      "line": 366,
       "method": "POST",
       "path": "/internal/ingest/submissions/odk",
       "function": "ingest_odk_submission",
@@ -1430,7 +1430,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 370,
+      "line": 375,
       "method": "POST",
       "path": "/internal/ingest/submissions/kobo",
       "function": "ingest_kobo_submission",

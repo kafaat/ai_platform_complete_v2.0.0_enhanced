@@ -142,7 +142,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 828,
+          "line": 838,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/health",
@@ -333,7 +333,7 @@
         },
         {
           "function": "healthz",
-          "line": 810,
+          "line": 820,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/healthz",
@@ -437,7 +437,7 @@
         },
         {
           "function": "healthz",
-          "line": 200,
+          "line": 205,
           "method": "GET",
           "module": "services/scout-ingest-service/main.py",
           "path": "/healthz",
@@ -707,7 +707,7 @@
         },
         {
           "function": "readyz",
-          "line": 833,
+          "line": 843,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/readyz",
@@ -811,7 +811,7 @@
         },
         {
           "function": "readyz",
-          "line": 205,
+          "line": 210,
           "method": "GET",
           "module": "services/scout-ingest-service/main.py",
           "path": "/readyz",
@@ -1085,7 +1085,7 @@
       "registrations": [
         {
           "function": "ingest_endpoint",
-          "line": 755,
+          "line": 765,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/ingest",
@@ -1163,7 +1163,7 @@
         },
         {
           "function": "query_endpoint",
-          "line": 745,
+          "line": 755,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/query",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1119,
-  "route_inventory_sha256": "880dcc693a0c84e36839026228bb4dda3ab8e3f79b6c3db6478101fc6e29e90c",
+  "route_count": 1121,
+  "route_inventory_sha256": "8157ae03adcd749773a3909878697d14a63a89f62d7703f4d56e9b2602320865",
   "runtime_verified": false,
   "schema_version": 1
 }

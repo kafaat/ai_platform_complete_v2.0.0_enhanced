@@ -179,7 +179,7 @@
       "ratchet_identity": "IRR-010:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "capability_id": "OPS-001",
       "declared_maturity": 3,
       "finding_id": "OPS-001:declared_above_evidence",
@@ -193,6 +193,14 @@
       "finding_id": "OPS-002:declared_above_evidence",
       "kind": "declared_above_evidence",
       "ratchet_identity": "OPS-002:declared_above_evidence:evidence-maturity"
+    },
+    {
+      "assessed_maturity": 3,
+      "capability_id": "OPS-003",
+      "declared_maturity": 2,
+      "finding_id": "OPS-003:evidence_above_declared",
+      "kind": "evidence_above_declared",
+      "ratchet_identity": "OPS-003:evidence_above_declared:evidence-maturity"
     },
     {
       "assessed_maturity": 1,
@@ -452,8 +460,10 @@
     "classes": {
       "evidence_maturity": {
         "baseline_count": 49,
-        "new": [],
-        "observed_count": 49,
+        "new": [
+          "OPS-003:evidence_above_declared:evidence-maturity"
+        ],
+        "observed_count": 50,
         "stale": []
       },
       "registry_reconciliation": {
@@ -463,7 +473,7 @@
         "stale": []
       }
     },
-    "decision": "PASS",
+    "decision": "BLOCK",
     "mode": "identity-exact-ratchet"
   },
   "schema": "sahool.capability-shadow-reconciliation/v1",

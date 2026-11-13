@@ -302,6 +302,7 @@ uvicorn[standard]==0.30.6
 asyncpg==0.30.0
 pydantic==2.13.4
 boto3>=1.34.0
+Pillow>=11.3.0,<14
 
 # --- services/soil-service/requirements.txt ---
 fastapi==0.136.3

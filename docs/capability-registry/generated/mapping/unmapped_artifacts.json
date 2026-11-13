@@ -440,6 +440,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/fieldview/IrrigationDecisionCard.evidence.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/fieldview/IrrigationDecisionCard.tsx",
     "kind": "web"
   },
@@ -477,6 +481,10 @@
   },
   {
     "path": "frontend/src/components/fieldview/SpecialtyCropsCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/SupplementalWaterCheck.test.tsx",
     "kind": "web"
   },
   {
@@ -637,6 +645,10 @@
   },
   {
     "path": "frontend/src/components/maphub/SceneProvenanceCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/SoilSamplingPlannerPanel.link.test.tsx",
     "kind": "web"
   },
   {
@@ -950,10 +962,6 @@
   {
     "path": "frontend/src/hooks/useFieldIrrigationRecommendation.static.test.ts",
     "kind": "tests"
-  },
-  {
-    "path": "frontend/src/hooks/useFieldIrrigationRecommendation.ts",
-    "kind": "web"
   },
   {
     "path": "frontend/src/hooks/useFieldOptions.ts",
@@ -2020,7 +2028,19 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/LabSampleReview.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/LabSamplingPage.auditRepair.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/LabSamplingPage.journey.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/LabSamplingPage.planOrigin.test.tsx",
     "kind": "web"
   },
   {
@@ -2164,11 +2184,19 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/sections/TaskExpenseLink.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/TaskIrrigationObservationPanel.test.tsx",
     "kind": "web"
   },
   {
     "path": "frontend/src/sections/TaskIrrigationObservationPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/TasksPage.cost.test.tsx",
     "kind": "web"
   },
   {
@@ -2276,6 +2304,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/sections/useLabSubmission.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/services/api.test.ts",
     "kind": "tests"
   },
@@ -2293,10 +2325,6 @@
   },
   {
     "path": "frontend/src/services/api/fieldIrrigation.ts",
-    "kind": "web"
-  },
-  {
-    "path": "frontend/src/services/api/fieldTasks.ts",
     "kind": "web"
   },
   {
@@ -2541,6 +2569,10 @@
   },
   {
     "path": "migrations/v235_decision_chain_correlation.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v258_lab_water_revisions.sql",
     "kind": "database"
   },
   {
@@ -5116,6 +5148,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/qdrant-seed/test_seed_claim_provenance.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/rag-retrieval/main.py",
     "kind": "backend"
   },
@@ -5524,15 +5560,15 @@
     "kind": "tests"
   },
   {
-    "path": "services/raster-service/test_soil_zones.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/raster-service/test_spatial_sampling_product.py",
     "kind": "tests"
   },
   {
     "path": "services/raster-service/test_storage_lifecycle_upload.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_task_indicator_previews.py",
     "kind": "tests"
   },
   {
@@ -6753,10 +6789,6 @@
   },
   {
     "path": "services/sahool-platform/api/soil_enrichment.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/soil_evidence_bridge.py",
     "kind": "backend"
   },
   {
@@ -9232,6 +9264,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_sample_pin_integrity.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_scenario_whatif.py",
     "kind": "tests"
   },
@@ -9528,6 +9564,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_zoning_grid_transport.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tools_check_doc_consistency.py",
     "kind": "backend"
   },
@@ -9697,6 +9737,10 @@
   },
   {
     "path": "services/soil-service/test_soil_projection_observability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_remote_sensing_evidence.py",
     "kind": "tests"
   },
   {
@@ -10461,6 +10505,10 @@
   },
   {
     "path": "tests_v9/test_actuator_crypto_dependency.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_actuator_dispatch_device_registry_live_pg.py",
     "kind": "tests"
   },
   {
@@ -11976,6 +12024,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_lab_water_review_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_layer_evict_v30_9.py",
     "kind": "tests"
   },
@@ -12405,6 +12457,10 @@
   },
   {
     "path": "tests_v9/test_production_readiness_orchestrator.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_productivity_grid_ground_coordinates.py",
     "kind": "tests"
   },
   {

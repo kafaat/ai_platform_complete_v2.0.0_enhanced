@@ -393,7 +393,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 9,
+      "capability_count": 10,
       "component_id": "scout-ingest-service",
       "domain": "ground-ingest",
       "status": {
@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "2275f54bbcd0d1425485bbc6e05cd82143c1fb5924c0df50ba02174694718ccf",
+  "fingerprint": "a427819d58143d09cc324bab3f05cf8b0a9a6356ae400b39780a2d9fd592f534",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

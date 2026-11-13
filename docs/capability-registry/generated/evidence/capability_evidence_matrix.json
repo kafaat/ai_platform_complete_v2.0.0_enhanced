@@ -1607,6 +1607,7 @@
         "tests_v9/test_farm_book_corrections_and_categories.py",
         "tests_v9/test_farm_book_receipt_field.py",
         "tests_v9/test_farm_book_receipt_scope_live_pg.py",
+        "tests_v9/test_farm_book_settlement_guards_live_pg.py",
         "tests_v9/test_farm_memory.py",
         "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
         "tests_v9/test_sim_golden.py",
@@ -2842,6 +2843,7 @@
         "services/sahool-platform/tests/test_field_workspace.py",
         "services/sahool-platform/tests/test_task_update_idempotency.py",
         "services/soil-service/test_soil_p2_products.py",
+        "services/soil-service/test_soil_terrain_finite.py",
         "tests_v9/test_actuator_idempotency.py",
         "tests_v9/test_chatgpt_gap_batch_20261015.py",
         "tests_v9/test_d4d5_idempotency_irrigation_live_pg.py",
@@ -4632,6 +4634,7 @@
         "services/sahool-platform/tests/test_fao56_dual_kc_salinity_validation.py",
         "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
         "services/soil-service/test_soil_p3_products.py",
+        "services/soil-service/test_soil_salinity_screening.py",
         "tests_v9/test_canonical_salinity.py",
         "tests_v9/test_canonical_salinity_state.py",
         "tests_v9/test_h5_api_salinity.py",
@@ -4763,9 +4766,10 @@
       "unit_test_paths": []
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -4794,15 +4798,15 @@
       "evidence": {
         "api": true,
         "backend": false,
-        "database": false,
+        "database": true,
         "documentation": true,
-        "events": false,
+        "events": true,
         "integration_tests": false,
         "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
       "evidence_records": [
@@ -4817,7 +4821,7 @@
           "type": "backend"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "database"
         },
@@ -4827,7 +4831,7 @@
           "type": "documentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "events"
         },
@@ -4857,7 +4861,7 @@
           "type": "runtime_instrumentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "unit_tests"
         },
@@ -4867,7 +4871,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 3,
+      "evidence_score": 6,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -4877,12 +4881,14 @@
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -2,
+      "maturity_delta": -1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Task management",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "tests_v9/test_field_task_on_api_field_live_pg.py"
+      ]
     },
     {
       "assessed_maturity": 2,
@@ -5016,10 +5022,11 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -5051,7 +5058,7 @@
         "database": true,
         "documentation": true,
         "events": true,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": true,
         "production": false,
         "runtime": false,
@@ -5086,7 +5093,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -5121,28 +5128,33 @@
           "type": "web"
         }
       ],
-      "evidence_score": 8,
+      "evidence_score": 9,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "tests_v9/test_scout_photo_evidence_contract.py",
+        "tests_v9/test_scout_photo_mobile_wiring_contract.py"
+      ],
       "learning_linked": false,
-      "maturity_alignment": "aligned",
-      "maturity_delta": 0,
+      "maturity_alignment": "evidence_above_declared",
+      "maturity_delta": 1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Scouting",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/scouting/device_photo_path_safety_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_cubit_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_screen_test.dart",
         "mobile/sahool_app/test/features/scouting/pest_detect_test.dart",
         "mobile/sahool_app/test/features/scouting/scouting_api_test.dart",
         "mobile/sahool_app/test/features/scouting/scouting_routes_test.dart",
         "mobile/sahool_app/test/features/scouting/scouting_screen_test.dart",
+        "services/scout-ingest-service/tests/test_media_live.py",
         "tests_v9/test_cropwise_evidence_quality.py",
         "tests_v9/test_roadmap_phase1.py",
         "tests_v9/test_scouting_pins_persistence.py"
@@ -5434,6 +5446,7 @@
         "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_screens_test.dart",
         "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart",
         "mobile/sahool_app/test/features/offline_sync/outbox_store_test.dart",
+        "mobile/sahool_app/test/features/offline_sync/scout_photo_outbox_api_test.dart",
         "mobile/sahool_app/test/features/offline_sync/sync_queue_d3_test.dart",
         "mobile/sahool_app/test/features/offline_sync/sync_status_screen_test.dart",
         "tests/mobile/test_phase11_mobile_offline_sync_runtime.py"
@@ -5931,6 +5944,7 @@
         "tests_v9/test_canonical_vri_prescription.py",
         "tests_v9/test_management_zone_count_v60_2.py",
         "tests_v9/test_phase6_precision_integrity_g10.py",
+        "tests_v9/test_productivity_zone_cell_geometry.py",
         "tests_v9/test_productivity_zones_clustering_v60_1.py",
         "tests_v9/test_productivity_zones_grid_bounds.py",
         "tests_v9/test_productivity_zones_multiindex_v60_3.py",
@@ -7862,6 +7876,7 @@
         "tests_v9/test_field_aggregate_ports_integration.py",
         "tests_v9/test_rls_write_isolation_integration.py",
         "tests_v9/test_rs_anomaly_pg_isolation_integration.py",
+        "tests_v9/test_scout_photo_evidence_contract.py",
         "tests_v9/test_soil_runtime_certification_integration.py"
       ],
       "learning_linked": false,
@@ -7886,6 +7901,7 @@
         "services/sahool-platform/tests/test_indicator_observations_route.py",
         "services/sahool-platform/tests/test_prescriptions_router.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
+        "services/scout-ingest-service/tests/test_media_live.py",
         "tests/irrigation/test_irrigation_v195_capacity_reservation_core.py",
         "tests/irrigation/test_irrigation_v196_target_binding.py",
         "tests/security/test_fii_chemical_chain_rls_gate.py",
@@ -9113,6 +9129,7 @@
       "runtime_verified": false,
       "title": "Soil sampling",
       "unit_test_paths": [
+        "services/raster-service/test_soil_zones.py",
         "tests_v9/test_soil_layer_v31_7.py",
         "tests_v9/test_soil_sampling_planner_v61.py",
         "tests_v9/test_soil_sampling_strategies_v61_1.py"
@@ -10778,11 +10795,11 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 32,
-    "average_assessed_maturity": 1.99,
+    "aligned": 31,
+    "average_assessed_maturity": 2.01,
     "capability_count": 81,
     "declared_above_evidence": 46,
-    "evidence_above_declared": 3,
+    "evidence_above_declared": 4,
     "production_certified": 0,
     "promotion_preconditions_satisfied": 0,
     "runtime_verified": 0

@@ -2523,6 +2523,28 @@
     ]
   },
   {
+    "path": "migrations/v244_field_task_terrain_sources.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "OPS-001",
+        "score": 11,
+        "signals": [
+          "path:field task",
+          "content:field task"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 11,
+        "signals": [
+          "path:terrain",
+          "content:terrain"
+        ]
+      }
+    ]
+  },
+  {
     "path": "migrations/v58_field_boundary_quality.sql",
     "kind": "database",
     "candidates": [
@@ -3069,6 +3091,14 @@
           "content:MFA",
           "dedup:MFA=mfa",
           "content:totp"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 10,
+        "signals": [
+          "content:dem",
+          "content:terrain"
         ]
       }
     ]
@@ -5053,6 +5083,28 @@
     ]
   },
   {
+    "path": "services/scout-ingest-service/tests/test_media_live.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:row level security"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 8,
+        "signals": [
+          "content:Scouting",
+          "dedup:Scouting=scouting"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/supervisor-agent/tool_contracts.py",
     "kind": "backend",
     "candidates": [
@@ -5148,6 +5200,14 @@
           "content:management zone",
           "content:Management zones",
           "content:productivity zone"
+        ]
+      },
+      {
+        "capability_id": "SOIL-003",
+        "score": 9,
+        "signals": [
+          "content:lab result",
+          "content:laboratory"
         ]
       }
     ]
@@ -5685,6 +5745,28 @@
           "content:dem",
           "content:slope",
           "content:terrain"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_scout_photo_evidence_contract.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 8,
+        "signals": [
+          "content:rls",
+          "content:row level security"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 8,
+        "signals": [
+          "content:Scouting",
+          "dedup:Scouting=scouting"
         ]
       }
     ]

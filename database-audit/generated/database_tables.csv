@@ -119,9 +119,9 @@ field_lifecycle_transitions,v10_command_store_lifecycle.sql,12,False,True,True,1
 field_state,v104_fields_create_contract.sql,109,True,True,True,2,True,False,3,2
 field_state_snapshots,v60_event_snapshots.sql,65,True,False,False,0,False,True,1,1
 field_submissions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
-field_tasks,v9_new_tables.sql,3,True,False,False,0,False,True,7,2
+field_tasks,v9_new_tables.sql,3,True,False,False,0,False,True,9,2
 field_weather_overlay,v74_weather_intelligence.sql,79,True,False,False,0,False,True,1,0
-fields,v9_foundation.sql,1,True,False,False,0,False,True,62,6
+fields,v9_foundation.sql,1,True,False,False,0,False,True,64,6
 geometry_editing_sessions,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 geometry_locks,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 gis_collaboration_events,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
@@ -197,8 +197,8 @@ irrigation_water_sources,v168_irrigation_engineering_foundation.sql,173,True,Fal
 irrigation_well_measurements,v170_water_source_well_digital_twin.sql,175,True,False,False,0,False,True,0,0
 irrigation_well_pumping_tests,v170_water_source_well_digital_twin.sql,175,True,False,False,0,False,True,0,0
 irrigation_wells,v168_irrigation_engineering_foundation.sql,173,True,False,False,0,False,True,0,0
-lab_sample_custody_events,v156_durable_soil_lab_workflow.sql,161,True,True,True,0,False,False,0,1
-lab_samples,v156_durable_soil_lab_workflow.sql,161,True,True,True,0,False,False,1,1
+lab_sample_custody_events,v156_durable_soil_lab_workflow.sql,161,True,True,True,0,False,False,1,1
+lab_samples,v156_durable_soil_lab_workflow.sql,161,True,True,True,0,False,False,2,1
 learning_drift_reports,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0
 lifecycle_temporal_rejections,v9_lifecycle_occurred_at.sql,13,True,True,True,1,False,False,0,1
 lineage_link,v82_lineage_link.sql,87,True,True,True,1,True,False,1,1
@@ -268,7 +268,8 @@ review_decisions,v_ai_recommendation_runtime.sql,111,False,True,True,1,True,Fals
 runtime_event_outbox,v106_phase9_10_runtime_strengthening.sql,112,True,True,True,2,True,False,0,1
 salinity_evidence_observations,v225_canonical_salinity_state.sql,222,True,True,True,1,True,False,0,1
 scenario_runs,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
-scouting_pins,v94_scouting_pins.sql,99,True,True,True,2,True,False,2,1
+scout_photo_evidence,v260_scout_photo_evidence.sql,245,True,True,True,1,True,False,2,2
+scouting_pins,v94_scouting_pins.sql,99,True,True,True,2,True,False,4,2
 season_cost_items,v201_season_records.sql,206,True,False,False,0,False,True,2,2
 season_crop,v201_season_records.sql,206,True,False,False,0,False,True,3,2
 season_events,v201_season_records.sql,206,True,False,False,0,False,True,4,2
@@ -286,7 +287,7 @@ soil_drainage_assessments,v163_soil_p3_assessment_products.sql,168,True,False,Fa
 soil_execution_records,v164_soil_p4_closed_loop.sql,169,True,False,False,0,False,True,0,0
 soil_field_validations,v165_soil_p5_validation_calibration_certification.sql,170,True,False,False,0,False,True,0,0
 soil_hydraulic_profiles,v161_soil_p1_products.sql,166,True,False,False,0,False,True,0,1
-soil_lab_results,v156_durable_soil_lab_workflow.sql,161,True,True,True,0,False,False,1,1
+soil_lab_results,v156_durable_soil_lab_workflow.sql,161,True,True,True,0,False,False,2,1
 soil_lab_tests,v50_soil_lab_tests.sql,54,True,True,True,1,False,False,9,1
 soil_learning_attributions,v164_soil_p4_closed_loop.sql,169,True,False,False,0,False,True,0,0
 soil_learning_datasets,v165_soil_p5_validation_calibration_certification.sql,170,True,False,False,0,False,True,0,0

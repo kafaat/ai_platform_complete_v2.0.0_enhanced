@@ -14,14 +14,14 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = '2275f54bbcd0d1425485bbc6e05cd82143c1fb5924c0df50ba02174694718ccf';
+export const PLATFORM_CATALOG_FINGERPRINT = 'a427819d58143d09cc324bab3f05cf8b0a9a6356ae400b39780a2d9fd592f534';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 33,
-  "capabilities": 841,
+  "capabilities": 842,
   "capabilities_approval_gated": 6,
-  "capabilities_field_scoped": 96,
-  "capabilities_idempotent": 74,
+  "capabilities_field_scoped": 97,
+  "capabilities_idempotent": 75,
   "capabilities_season_scoped": 10,
   "capabilities_tenant_scoped": 482,
   "components": 37,
@@ -29,9 +29,9 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1136,
-  "ui_waivers": 53,
-  "unique_method_path": 1015
+  "route_rows": 1138,
+  "ui_waivers": 52,
+  "unique_method_path": 1017
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
@@ -288,7 +288,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 9,
+    "capabilityCount": 10,
     "domain": "ground-ingest",
     "id": "scout-ingest-service",
     "tested": true,
