@@ -1870,6 +1870,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "services/sahool-platform/tests/test_season_weather_contract.py",
         "tests_v9/test_canonical_phenology_contract_truth.py",
         "tests_v9/test_v26_season_payload_and_dates_contract.py"
       ],
@@ -1899,6 +1900,7 @@
         "services/sahool-platform/tests/test_season_calendar_guard.py",
         "services/sahool-platform/tests/test_season_comparison.py",
         "services/sahool-platform/tests/test_season_et0_injection.py",
+        "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
         "services/sahool-platform/tests/test_season_gdd_injection.py",
         "services/sahool-platform/tests/test_season_integrity.py",
         "services/sahool-platform/tests/test_season_lifecycle.py",

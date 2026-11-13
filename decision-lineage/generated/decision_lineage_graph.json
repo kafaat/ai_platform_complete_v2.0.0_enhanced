@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 701,
+      "evidence_count": 703,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -569,8 +569,10 @@
         "services/sahool-platform/tests/test_review_fixes.py",
         "services/sahool-platform/tests/test_runtime_ponytail_integration.py",
         "services/sahool-platform/tests/test_schema_factory.py",
+        "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_season_stage_risk.py",
+        "services/sahool-platform/tests/test_season_weather_contract.py",
         "services/sahool-platform/tests/test_sensor_intake.py",
         "services/sahool-platform/tests/test_soil_proxy_authorization.py",
         "services/sahool-platform/tests/test_source_of_truth.py",
@@ -747,7 +749,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 564,
+      "evidence_count": 565,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1089,6 +1091,7 @@
         "services/sahool-platform/core/field_state_replay_bridge.py",
         "services/sahool-platform/core/guardrails.py",
         "services/sahool-platform/core/harvest_feedback.py",
+        "services/sahool-platform/core/historical_season_context.py",
         "services/sahool-platform/core/human_feedback_learning.py",
         "services/sahool-platform/core/hybrid_rag_retrieval.py",
         "services/sahool-platform/core/identity.py",
@@ -2423,7 +2426,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 350,
+      "evidence_count": 352,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2608,6 +2611,7 @@
         "services/sahool-platform/api/routers/sync.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/season_models.py",
+        "services/sahool-platform/api/season_simulation.py",
         "services/sahool-platform/api/sensor_confidence.py",
         "services/sahool-platform/api/soil_evidence_bridge.py",
         "services/sahool-platform/api/soil_telemetry.py",
@@ -2743,6 +2747,7 @@
         "services/sahool-platform/tests/test_recommendation_log.py",
         "services/sahool-platform/tests/test_recommendation_replay.py",
         "services/sahool-platform/tests/test_remaining_engines.py",
+        "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_season_stage_risk.py",
         "services/sahool-platform/tests/test_skills_registry.py",
         "services/sahool-platform/tests/test_soil_proxy_authorization.py",
@@ -2908,8 +2913,8 @@
         "services/sahool-platform/api/routers/crop_twin.py",
         "services/sahool-platform/api/routers/decision_confidence.py"
       ],
-      "source_evidence_count": 701,
-      "target_evidence_count": 564,
+      "source_evidence_count": 703,
+      "target_evidence_count": 565,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3020,7 +3025,7 @@
         "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_irrigation_ac1_binding.py"
       ],
-      "source_evidence_count": 564,
+      "source_evidence_count": 565,
       "target_evidence_count": 203,
       "static_supported": true,
       "runtime_verified": false
@@ -3353,7 +3358,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 58,
-      "target_evidence_count": 350,
+      "target_evidence_count": 352,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3363,5 +3368,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "a3b659033ea1d8c499989696aca778906511367c9e157220f2b21be3aa6ba5a0"
+  "content_sha256": "d72142c0f214e9ffb2fe56155a102eb9e7a3a09ee742a9ff311bd28fd9d01c9f"
 }

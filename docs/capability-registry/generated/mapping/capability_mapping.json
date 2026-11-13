@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7192,
+    "files_scanned": 7195,
     "files_by_kind": {
       "backend": 1270,
       "database": 297,
       "governance": 89,
       "mobile": 414,
       "other": 2166,
-      "tests": 2427,
+      "tests": 2430,
       "web": 529
     },
-    "unmapped_artifacts": 3420,
+    "unmapped_artifacts": 3421,
     "ambiguous_artifacts": 236,
     "files_by_reading": {
-      "python_functional": 3880,
+      "python_functional": 3883,
       "raw": 3312
     },
-    "test_dependency_files": 1832,
-    "test_dependency_edges": 4659,
-    "test_dependency_bounded_files": 1069,
+    "test_dependency_files": 1835,
+    "test_dependency_edges": 4661,
+    "test_dependency_bounded_files": 1072,
     "test_dependency_unresolved_relations": 465
   },
   "capabilities": [
@@ -6394,7 +6394,7 @@
           "score": 14
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:562",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:605",
           "score": 14
         },
         {
@@ -6410,7 +6410,7 @@
           "score": 14
         },
         {
-          "value": "/api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:155",
+          "value": "/api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:145",
           "score": 14
         },
         {
@@ -7407,6 +7407,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_season_spatial_provenance.py",
+          "score": 17,
+          "signals": [
+            "content:crop season",
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "services/scout-ingest-service/tests/test_season_live.py",
           "score": 17,
           "signals": [
@@ -7488,6 +7497,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_season_gdd_injection.py",
           "score": 14,
           "signals": [
@@ -7521,14 +7538,6 @@
         },
         {
           "path": "services/sahool-platform/tests/test_season_simulation.py",
-          "score": 14,
-          "signals": [
-            "path:season",
-            "content:season"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/tests/test_season_spatial_provenance.py",
           "score": 14,
           "signals": [
             "path:season",
@@ -7692,6 +7701,14 @@
           "score": 12,
           "signals": [
             "content:crop season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_season_weather_contract.py",
+          "score": 12,
+          "signals": [
+            "path:season",
             "content:season"
           ]
         },
@@ -7898,7 +7915,7 @@
         "events": 43,
         "web": 18,
         "mobile": 15,
-        "tests": 50,
+        "tests": 52,
         "governance": 0,
         "other_evidence": 15
       },
@@ -40860,6 +40877,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/weather-service/tests/test_archive_solar_radiation_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/weather-service/tests/test_cache_age_is_server_counted.py",
       "kind": "tests"
     },
@@ -63803,6 +63824,19 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/season_simulation.py",
+          "kind": "import",
+          "line": 8
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_season_gdd_injection.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -63901,11 +63935,6 @@
           "line": 22
         },
         {
-          "source": "services/sahool-platform/api/connectors/openmeteo.py",
-          "kind": "import",
-          "line": 140
-        },
-        {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
           "line": 20
@@ -63950,6 +63979,19 @@
         },
         {
           "source": "services/sahool-platform/core/season_stage_risk.py",
+          "kind": "import",
+          "line": 8
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_season_weather_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/season_simulation.py",
           "kind": "import",
           "line": 8
         }
@@ -66887,6 +66929,19 @@
           "source": "services/weather-service/weather_runtime.py",
           "kind": "import",
           "line": 34
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/weather-service/tests/test_archive_solar_radiation_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/weather-service/open_meteo.py",
+          "kind": "import",
+          "line": 14
         }
       ],
       "unresolved": []
@@ -78588,7 +78643,7 @@
         {
           "source": "services/sahool-platform/api/season_models.py",
           "kind": "source_read",
-          "line": 87
+          "line": 88
         },
         {
           "source": "services/sahool-platform/core/historical_season_context.py",
