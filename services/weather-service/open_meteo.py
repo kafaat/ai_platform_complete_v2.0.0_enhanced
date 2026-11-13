@@ -430,6 +430,7 @@ async def fetch_historical(
                 "temperature_2m_min",
                 "precipitation_sum",
                 "et0_fao_evapotranspiration",
+                "shortwave_radiation_sum",
                 "wind_speed_10m_max",
             ]
         ),

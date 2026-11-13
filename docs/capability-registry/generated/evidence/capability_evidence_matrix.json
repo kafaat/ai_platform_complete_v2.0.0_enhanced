@@ -1744,6 +1744,7 @@
         "services/sahool-platform/tests/test_field_boundary_graph.py",
         "services/sahool-platform/tests/test_field_boundary_pipeline.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
+        "services/sahool-platform/tests/test_field_geometry_revert_overlap.py",
         "services/sahool-platform/tests/test_field_workspace.py",
         "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
@@ -1869,7 +1870,9 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
-        "tests_v9/test_canonical_phenology_contract_truth.py"
+        "services/sahool-platform/tests/test_season_weather_contract.py",
+        "tests_v9/test_canonical_phenology_contract_truth.py",
+        "tests_v9/test_v26_season_payload_and_dates_contract.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -1897,6 +1900,7 @@
         "services/sahool-platform/tests/test_season_calendar_guard.py",
         "services/sahool-platform/tests/test_season_comparison.py",
         "services/sahool-platform/tests/test_season_et0_injection.py",
+        "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
         "services/sahool-platform/tests/test_season_gdd_injection.py",
         "services/sahool-platform/tests/test_season_integrity.py",
         "services/sahool-platform/tests/test_season_lifecycle.py",
@@ -2050,6 +2054,7 @@
       "title": "Crop and cultivar catalog",
       "unit_test_paths": [
         "services/sahool-platform/tests/test_fields_endpoint.py",
+        "services/sahool-platform/tests/test_v26_variety_crop_boundary.py",
         "services/sahool-platform/tests/test_variety_suitability.py",
         "services/sahool-platform/tests/test_yield_analysis.py",
         "tests_v9/test_canonical_water_state_mpc.py",
@@ -6181,6 +6186,7 @@
       "runtime_verified": false,
       "title": "Yield map ingestion",
       "unit_test_paths": [
+        "services/sahool-platform/tests/test_v26_zero_yield_map.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
         "tests_v9/test_platform_catalog_gate.py",
         "tests_v9/test_precision_execution_loop_c3_guard.py",
@@ -10256,6 +10262,7 @@
         "services/sahool-platform/tests/test_gdd_track_delegation.py",
         "services/sahool-platform/tests/test_gdd_tracker.py",
         "services/sahool-platform/tests/test_season_gdd_injection.py",
+        "services/sahool-platform/tests/test_v26_missing_gdd_semantics.py",
         "services/sahool-platform/tests/test_weather_gdd_client.py",
         "services/weather-service/tests/test_gdd.py",
         "services/weather-service/tests/test_gdd_agro_product.py",
