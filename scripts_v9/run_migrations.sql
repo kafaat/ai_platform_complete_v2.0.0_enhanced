@@ -645,7 +645,9 @@
 \i migrations/v258_lab_water_revisions_plan_copies.sql
 \echo '═══ 250. v260_scout_photo_evidence.sql ═══'
 \i migrations/v260_scout_photo_evidence.sql
-\echo '═══ 251. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 251. v261_field_tasks_reference_fields.sql ═══'
+\i migrations/v261_field_tasks_reference_fields.sql
+\echo '═══ 252. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 252. v206_rls_final_hardening.sql ═══'
+\echo '═══ 253. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql
