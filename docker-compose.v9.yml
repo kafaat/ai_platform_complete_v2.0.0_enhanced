@@ -406,7 +406,6 @@ services:
       --user sahool-raster-cache-invalidation-worker on ">${REDIS_RASTER_INVALIDATION_PASSWORD:?REDIS_RASTER_INVALIDATION_PASSWORD required}" resetkeys resetchannels -@all +ping +publish "&raster:layer_evict"
       --user sahool-raster-backfill-scan-worker on ">${REDIS_RASTER_BACKFILL_PASSWORD:?REDIS_RASTER_BACKFILL_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +del +scan +eval ~stac:* ~sahool:raster:job:* ~sahool:raster:indicator-batch:*
       --user sahool-actuator-service on ">${REDIS_ACTUATOR_PASSWORD:?REDIS_ACTUATOR_PASSWORD required}" resetkeys resetchannels -@all +ping
-      --user sahool-ai-agronomist on ">${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +sadd +srem +smembers +rpush +lrange ~sahool:agent:approval:* ~sahool:agent:approvals:pending ~sahool:agent:audit
       --user sahool-telegram-bot on ">${REDIS_TELEGRAM_BOT_PASSWORD:?REDIS_TELEGRAM_BOT_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +del ~fsm:*
       --user sahool-notification-agent on ">${REDIS_NOTIFICATION_PASSWORD:?REDIS_NOTIFICATION_PASSWORD required}" resetkeys resetchannels -@all +ping
     volumes:
@@ -441,6 +440,7 @@ services:
       --user sahool-platform-denylist on ">${REDIS_PLATFORM_DENYLIST_PASSWORD:?REDIS_PLATFORM_DENYLIST_PASSWORD required}" resetkeys resetchannels -@all +ping +exists +setex ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
       --user sahool-actuator-service-denylist on ">${REDIS_ACTUATOR_DENYLIST_PASSWORD:?REDIS_ACTUATOR_DENYLIST_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
       --user sahool-guardrails-engine on ">${REDIS_GUARDRAILS_PASSWORD:?REDIS_GUARDRAILS_PASSWORD required}" resetkeys resetchannels -@all +ping
+      --user sahool-ai-agronomist on ">${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +sadd +srem +smembers +rpush +lrange +ltrim +watch +multi +exec +unwatch ~sahool:agent:approval:* ~sahool:agent:approvals:pending ~sahool:agent:audit
     volumes:
     - redis-state-data:/data
     networks:
@@ -2274,7 +2274,7 @@ services:
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SAHOOL_AGENT_STORE_BACKEND: ${SAHOOL_AGENT_STORE_BACKEND:-redis}
-      SAHOOL_AGENT_REDIS_URL: ${SAHOOL_AGENT_REDIS_URL:-redis://sahool-ai-agronomist:${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}@sahool-redis:6379/0}
+      SAHOOL_AGENT_REDIS_URL: ${SAHOOL_AGENT_REDIS_URL:-redis://sahool-ai-agronomist:${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}@sahool-redis-state:6379/0}
     depends_on:
       sahool-rag-retrieval:
         condition: service_healthy
@@ -2282,7 +2282,9 @@ services:
         condition: service_healthy
       sahool-guardrails-engine:
         condition: service_healthy
-      sahool-redis:
+      # Approvals and the audit window are state, not cache: on `sahool-redis` (allkeys-lru) a
+      # pending approval could be evicted before its TTL. `sahool-redis-state` is noeviction + AOF.
+      sahool-redis-state:
         condition: service_healthy
     networks:
     - sahool-internal

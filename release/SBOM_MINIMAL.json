@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6ac5917aa4e76212bbb3c58f362c7f5abf57235d0b47d3f430514f9f616d3ff"
+          "content": "254077eb00c1091de4d83c1a10c5f460aeb1e14a4093e201774a499ecb813511"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4825,7 +4825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "88103b793fed72c1e7553e9e6500be5512450277de334dacd9306f3bf0495eb7"
+          "content": "6c8450edc77e8ce4969dfc5d213fd52995375d28207263e75d44375e8ba8c681"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17035,7 +17035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "effea2464493749683d967e0a918628bec1e055046b168baaae1c200f2bb4cb1"
+          "content": "ea9f8b65df21c9553a914786ede077be1f98ed3d200a79caf78214bff59653a1"
         }
       ],
       "name": "services/ai_agronomist/agent_stores.py",
@@ -17065,7 +17065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "151812da8f462ee303ef302f56e5f9d07b3237ec0885e0c8bdfe7d72078caf7e"
+          "content": "f12b7a0c5dd2f66427fb4fba2958670a4b6ed9a41aaf2293fda733369efddf4f"
         }
       ],
       "name": "services/ai_agronomist/approval.py",
@@ -17215,7 +17215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a03214401473ceb4e1ec6c271eede24cc5ff96cd95d43b1e1a0333837563d0e"
+          "content": "dce53090ca40ec185bc6bc801b226ba64c487d1bc0b0c1dbee5332e968f5edf7"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -17455,7 +17455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "05350f8a8aecb919644203b5e106ca34b60e447683ec749a02fa7e3c5c767d2f"
+          "content": "52a7e040f46f16c0c690f6bdeb342ef3e7ea1c900aaa2da77f9dbcc45f6724ed"
         }
       ],
       "name": "services/ai_agronomist/tool_loop.py",

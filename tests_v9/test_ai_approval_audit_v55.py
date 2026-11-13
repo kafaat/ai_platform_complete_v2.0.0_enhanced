@@ -32,7 +32,7 @@ _TS = "2026-07-01T00:00:00Z"
 
 def _req(**kw):
     base = dict(
-        request_id="req-1",
+        tool_call_id="req-1",
         tool_name="send_recommendation",
         params={"field_id": "f", "recommendation_id": "r"},
         tenant_id="t1",

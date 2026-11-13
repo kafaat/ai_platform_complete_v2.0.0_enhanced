@@ -9,8 +9,9 @@ Redis/DB without touching the harness contract:
   ``SAHOOL_AGENT_REDIS_URL``/``REDIS_URL``; **fails safe to memory** when redis is
   unavailable (no lib / unreachable). redis is imported lazily — never at module load.
 
-Approvals are append-only in spirit: a decision updates status but the audit store is
-strictly append. Records carry tenant_id/user_id/session_id/tool/params/input_hash/
+Approvals are create-once: ``create`` never overwrites an existing id, and the only way a
+record changes is ``transition`` (pending -> approved/denied), atomic in both backends. The
+audit store is strictly append. Records carry tenant_id/user_id/session_id/tool/params/input_hash/
 provider/model/outcome/timestamp for forensic replay.
 """
 
@@ -20,6 +21,7 @@ import hashlib
 import json
 import logging
 import os
+import threading
 from collections import deque
 from typing import Any, Protocol, runtime_checkable
 
@@ -74,9 +76,53 @@ def summarize_audit_record(record: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+class ApprovalExistsError(Exception):
+    """``create`` found a record under this approval id; nothing was written.
+
+    Approvals are create-once: an existing record (pending or decided) is never overwritten, so
+    a second create cannot replace another chat's request or re-open a decided one.
+    """
+
+
+def _status_is_pending(record: dict[str, Any]) -> bool:
+    return str(record.get("status") or "").startswith("pending")
+
+
+def _transition_allowed(
+    stored: dict[str, Any] | None,
+    approval_id: str,
+    tenant_id: str,
+    expected_status: str,
+    new_record: dict[str, Any],
+) -> bool:
+    """The stored record is the one being decided, in the state the decision was taken from.
+
+    Refused unless: the record exists, the decided record names the same id, the stored status
+    is ``expected_status``, and the stored ``tenant_id`` and ``input_hash`` equal both the caller's
+    tenant and the decided record's (so a record replaced or re-hashed in between is not decided).
+    """
+    if not stored or str(new_record.get("id") or "") != approval_id:
+        return False
+    if str(stored.get("status") or "") != str(expected_status):
+        return False
+    stored_tenant = str(stored.get("tenant_id") or "")
+    if not stored_tenant or stored_tenant != str(tenant_id):
+        return False
+    if str(new_record.get("tenant_id") or "") != stored_tenant:
+        return False
+    return stored.get("input_hash") == new_record.get("input_hash")
+
+
 @runtime_checkable
 class ApprovalStore(Protocol):
-    def save(self, request: dict[str, Any]) -> None: ...
+    def create(self, request: dict[str, Any]) -> None: ...
+    def transition(
+        self,
+        approval_id: str,
+        tenant_id: str,
+        expected_status: str,
+        new_record: dict[str, Any],
+    ) -> bool: ...
     def get(self, approval_id: str) -> dict[str, Any] | None: ...
     def list_pending(self) -> list[dict[str, Any]]: ...
 
@@ -89,22 +135,45 @@ class AuditStore(Protocol):
 
 # ── in-memory (default) ─────────────────────────────────────────────────────
 class InMemoryApprovalStore:
+    """Process-local store. One lock serialises create and transition (same rules as Redis)."""
+
     def __init__(self) -> None:
         self._d: dict[str, dict[str, Any]] = {}
+        self._lock = threading.Lock()
 
-    def save(self, request: dict[str, Any]) -> None:
+    def create(self, request: dict[str, Any]) -> None:
         aid = str(request.get("id") or "")
-        if aid:
+        if not aid:
+            raise ValueError("approval id required")
+        with self._lock:
+            if aid in self._d:
+                raise ApprovalExistsError(aid)
             self._d[aid] = dict(request)
 
+    def transition(
+        self,
+        approval_id: str,
+        tenant_id: str,
+        expected_status: str,
+        new_record: dict[str, Any],
+    ) -> bool:
+        aid = str(approval_id or "")
+        with self._lock:
+            if not _transition_allowed(
+                self._d.get(aid), aid, tenant_id, expected_status, new_record
+            ):
+                return False
+            self._d[aid] = dict(new_record)
+            return True
+
     def get(self, approval_id: str) -> dict[str, Any] | None:
-        v = self._d.get(str(approval_id or ""))
-        return dict(v) if v else None
+        with self._lock:
+            v = self._d.get(str(approval_id or ""))
+            return dict(v) if v else None
 
     def list_pending(self) -> list[dict[str, Any]]:
-        return [
-            dict(v) for v in self._d.values() if str(v.get("status") or "").startswith("pending")
-        ]
+        with self._lock:
+            return [dict(v) for v in self._d.values() if _status_is_pending(v)]
 
 
 class InMemoryAuditStore:
@@ -121,19 +190,60 @@ class InMemoryAuditStore:
 
 # ── redis (gated scaffold; fail-safe) ───────────────────────────────────────
 class RedisApprovalStore:
+    """Approvals in Redis: create-once (``SET NX EX``), decisions by WATCH/MULTI/EXEC.
+
+    No Lua: the compose ACL user has no ``EVAL``. A decision keeps the record's remaining TTL
+    (``SET ... KEEPTTL XX``, Redis >= 6.0) and moves the id out of the pending set in the same
+    ``MULTI``; a concurrent write to the record between ``WATCH`` and ``EXEC`` aborts it.
+    """
+
     def __init__(self, client: Any, ttl_s: int = _DEFAULT_TTL_S) -> None:
         self._c = client
         self._ttl = ttl_s
 
-    def save(self, request: dict[str, Any]) -> None:
+    def create(self, request: dict[str, Any]) -> None:
         aid = str(request.get("id") or "")
         if not aid:
-            return
-        self._c.set(_APPROVAL_KEY + aid, json.dumps(request, ensure_ascii=False), ex=self._ttl)
-        if str(request.get("status") or "").startswith("pending"):
+            raise ValueError("approval id required")
+        payload = json.dumps(request, ensure_ascii=False)
+        if not self._c.set(_APPROVAL_KEY + aid, payload, nx=True, ex=self._ttl):
+            raise ApprovalExistsError(aid)
+        if _status_is_pending(request):
             self._c.sadd(_APPROVAL_PENDING_SET, aid)
-        else:
-            self._c.srem(_APPROVAL_PENDING_SET, aid)
+
+    def transition(
+        self,
+        approval_id: str,
+        tenant_id: str,
+        expected_status: str,
+        new_record: dict[str, Any],
+    ) -> bool:
+        """``True`` only if this call moved the record; ``False`` on a lost race or a mismatch.
+
+        Redis errors (connection, NOPERM) propagate: the caller cannot tell whether it decided.
+        """
+        aid = str(approval_id or "")
+        key = _APPROVAL_KEY + aid
+        payload = json.dumps(new_record, ensure_ascii=False)
+        with self._c.pipeline(transaction=True) as pipe:
+            try:
+                pipe.watch(key)
+                raw = pipe.get(key)
+                stored = json.loads(raw) if raw else None
+                if not _transition_allowed(stored, aid, tenant_id, expected_status, new_record):
+                    pipe.unwatch()
+                    return False
+                pipe.multi()
+                # XX: an expired record is not recreated. KEEPTTL: the original expiry stays.
+                pipe.set(key, payload, xx=True, keepttl=True)
+                if _status_is_pending(new_record):
+                    pipe.sadd(_APPROVAL_PENDING_SET, aid)
+                else:
+                    pipe.srem(_APPROVAL_PENDING_SET, aid)
+                replies = pipe.execute()
+            except _watch_error_types():
+                return False
+        return bool(replies and replies[0])
 
     def get(self, approval_id: str) -> dict[str, Any] | None:
         raw = self._c.get(_APPROVAL_KEY + str(approval_id or ""))
@@ -143,9 +253,22 @@ class RedisApprovalStore:
         out: list[dict[str, Any]] = []
         for aid in self._c.smembers(_APPROVAL_PENDING_SET) or []:
             rec = self.get(aid.decode() if isinstance(aid, bytes) else str(aid))
-            if rec:
+            if rec and _status_is_pending(rec):
                 out.append(rec)
         return out
+
+
+def _watch_error_types() -> tuple[type[BaseException], ...]:
+    """``redis.WatchError`` when redis-py is installed (imported lazily, like the client)."""
+    try:
+        from redis.exceptions import WatchError
+    except ImportError:  # pragma: no cover - a Redis store is only built when redis imports
+        return (_NoWatchError,)
+    return (WatchError,)
+
+
+class _NoWatchError(Exception):
+    """Placeholder that is never raised (redis-py absent)."""
 
 
 class RedisAuditStore:

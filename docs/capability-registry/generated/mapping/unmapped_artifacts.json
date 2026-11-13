@@ -10560,6 +10560,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_approval_identity_atomic_store.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_container_contract_guard.py",
     "kind": "tests"
   },
