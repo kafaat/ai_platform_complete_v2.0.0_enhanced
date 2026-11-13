@@ -179,3 +179,24 @@ def test_the_endpoint_carries_the_coverage_through_to_the_response(monkeypatch):
     assert body["coverage"]["expected_days"] == 10, "المطلوبُ لم يبلغ الجواب"
     assert body["coverage"]["observed_days"] == 3
     assert body["quality_status"] == "degraded_incomplete_coverage"
+
+
+def test_archive_state_identity_changes_when_same_dates_have_different_measurements():
+    from copy import deepcopy
+
+    first = _archive_series(3)
+    second = deepcopy(first)
+    second["days"][1]["et0_mm"] = 7.5
+
+    a = build_canonical_weather_state(
+        lat_deg=15.0, valid_time="2026-03-01", historical_series=first
+    )
+    b = build_canonical_weather_state(
+        lat_deg=15.0, valid_time="2026-03-01", historical_series=second
+    )
+    repeat = build_canonical_weather_state(
+        lat_deg=15.0, valid_time="2026-03-01", historical_series=first
+    )
+    assert a["state_id"] != b["state_id"]
+    assert a["source_snapshot_id"] != b["source_snapshot_id"]
+    assert a["state_id"] == repeat["state_id"]
