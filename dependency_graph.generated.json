@@ -1,5 +1,5 @@
 {
-  "edge_count": 949,
+  "edge_count": 951,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -113,16 +113,6 @@
     },
     {
       "evidence": "frontend/src/components/AddFieldWithMap.tsx:446",
-      "from": "frontend",
-      "from_kind": "component",
-      "protocol": "ui",
-      "relation": "CALLS",
-      "resource": "/api/v1",
-      "to": "sahool-platform",
-      "to_kind": "component"
-    },
-    {
-      "evidence": "frontend/src/components/fieldhealth/ScoutingMap.tsx:8",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -4362,6 +4352,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/field_state_projection.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -7892,6 +7892,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_field_geometry_revert_overlap.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_field_overlap_postgis.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -8772,6 +8782,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://recommendation_outcomes",
+      "to": "db://recommendation_outcomes",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/recommendations.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -9507,12 +9527,12 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 46,
+    "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 493,
+    "READS": 494,
     "ROUTES_TO": 72,
-    "WRITES": 332
+    "WRITES": 334
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -9527,8 +9547,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 826,
-      "resolved": 825,
+      "observed": 829,
+      "resolved": 828,
       "unresolved_component_paths": 0
     }
   }

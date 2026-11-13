@@ -1,12 +1,12 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "97403e8f43bed6fc5d9c0bfe9d4be917b498a06b",
+  "measured_on": "d245f7ec2e1f52d7d1988ffea6957afc2f80782e",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
-    "source_text_assertions": 2513,
-    "positive_pinning_a_call": 367,
-    "prohibitions": 229
+    "source_text_assertions": 2519,
+    "positive_pinning_a_call": 370,
+    "prohibitions": 230
   },
   "prohibitions_without_a_stated_reason": {
     "services/agriai-engine/tests/test_production_readiness_truth.py": {
@@ -26,6 +26,9 @@
     "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py": {
       "WHERE water_source_id=$1": 1,
       "water_ec: float": 1
+    },
+    "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py": {
+      "d.decision_id=o.decision_id": 1
     },
     "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py": {
       "PlaceholderPanel": 1
