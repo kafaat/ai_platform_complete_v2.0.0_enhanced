@@ -7861,6 +7861,7 @@
         "tests_v9/test_detection_provenance_contract.py",
         "tests_v9/test_dispatch_decisions_integration.py",
         "tests_v9/test_e2e_findings_regressions.py",
+        "tests_v9/test_event_history_contract_live_pg.py",
         "tests_v9/test_field_aggregate_ports_integration.py",
         "tests_v9/test_rls_write_isolation_integration.py",
         "tests_v9/test_rs_anomaly_pg_isolation_integration.py",

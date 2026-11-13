@@ -5105,7 +5105,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/events.py",
-    "line": 32,
+    "line": 34,
     "method": "GET",
     "path": "/api/v1/events/{entity_type}/{entity_id}",
     "handler": "entity_events",

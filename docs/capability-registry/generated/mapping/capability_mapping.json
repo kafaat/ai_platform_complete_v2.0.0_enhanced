@@ -15,26 +15,26 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7187,
+    "files_scanned": 7190,
     "files_by_kind": {
       "backend": 1270,
       "database": 297,
       "governance": 89,
       "mobile": 414,
       "other": 2166,
-      "tests": 2422,
+      "tests": 2425,
       "web": 529
     },
-    "unmapped_artifacts": 3419,
+    "unmapped_artifacts": 3420,
     "ambiguous_artifacts": 236,
     "files_by_reading": {
-      "python_functional": 3875,
+      "python_functional": 3878,
       "raw": 3312
     },
-    "test_dependency_files": 1827,
-    "test_dependency_edges": 4636,
-    "test_dependency_bounded_files": 1066,
-    "test_dependency_unresolved_relations": 464
+    "test_dependency_files": 1830,
+    "test_dependency_edges": 4652,
+    "test_dependency_bounded_files": 1068,
+    "test_dependency_unresolved_relations": 465
   },
   "capabilities": [
     {
@@ -3132,23 +3132,23 @@
           "score": 28
         },
         {
-          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:486",
+          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:527",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:246",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:279",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:417",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:458",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:507",
+          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:548",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:450",
+          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:491",
           "score": 17
         },
         {
@@ -4446,6 +4446,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_farm_book_corrections_and_categories.py",
+          "score": 14,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "tests_v9/test_farm_memory.py",
           "score": 14,
           "signals": [
@@ -4879,7 +4887,7 @@
         "events": 25,
         "web": 18,
         "mobile": 35,
-        "tests": 47,
+        "tests": 48,
         "governance": 0,
         "other_evidence": 22
       },
@@ -19913,11 +19921,11 @@
           "score": 8
         },
         {
-          "value": "crop_rotation.added @ services/sahool-platform/api/event_replay.py:257",
+          "value": "crop_rotation.added @ services/sahool-platform/api/event_replay.py:312",
           "score": 8
         },
         {
-          "value": "crop_rotation.added @ services/sahool-platform/api/event_replay.py:462",
+          "value": "crop_rotation.added @ services/sahool-platform/api/event_replay.py:517",
           "score": 8
         },
         {
@@ -19929,11 +19937,11 @@
           "score": 8
         },
         {
-          "value": "field.created @ services/sahool-platform/api/event_replay.py:238",
+          "value": "field.created @ services/sahool-platform/api/event_replay.py:293",
           "score": 8
         },
         {
-          "value": "field.created @ services/sahool-platform/api/event_replay.py:335",
+          "value": "field.created @ services/sahool-platform/api/event_replay.py:390",
           "score": 8
         },
         {
@@ -19945,11 +19953,11 @@
           "score": 8
         },
         {
-          "value": "field.deleted @ services/sahool-platform/api/event_replay.py:241",
+          "value": "field.deleted @ services/sahool-platform/api/event_replay.py:296",
           "score": 8
         },
         {
-          "value": "field.deleted @ services/sahool-platform/api/event_replay.py:352",
+          "value": "field.deleted @ services/sahool-platform/api/event_replay.py:407",
           "score": 8
         },
         {
@@ -19981,23 +19989,23 @@
           "score": 8
         },
         {
-          "value": "field.geometry_changed @ services/sahool-platform/api/event_replay.py:240",
+          "value": "field.geometry_changed @ services/sahool-platform/api/event_replay.py:295",
           "score": 8
         },
         {
-          "value": "field.geometry_changed @ services/sahool-platform/api/event_replay.py:348",
+          "value": "field.geometry_changed @ services/sahool-platform/api/event_replay.py:403",
           "score": 8
         },
         {
-          "value": "field.state_changed @ services/sahool-platform/api/event_replay.py:357",
+          "value": "field.state_changed @ services/sahool-platform/api/event_replay.py:412",
           "score": 8
         },
         {
-          "value": "field.updated @ services/sahool-platform/api/event_replay.py:239",
+          "value": "field.updated @ services/sahool-platform/api/event_replay.py:294",
           "score": 8
         },
         {
-          "value": "field.updated @ services/sahool-platform/api/event_replay.py:340",
+          "value": "field.updated @ services/sahool-platform/api/event_replay.py:395",
           "score": 8
         },
         {
@@ -20033,27 +20041,27 @@
           "score": 8
         },
         {
-          "value": "irrigation.schedule.created @ services/sahool-platform/api/event_replay.py:256",
+          "value": "irrigation.schedule.created @ services/sahool-platform/api/event_replay.py:311",
           "score": 8
         },
         {
-          "value": "irrigation.schedule.created @ services/sahool-platform/api/event_replay.py:458",
+          "value": "irrigation.schedule.created @ services/sahool-platform/api/event_replay.py:513",
           "score": 8
         },
         {
-          "value": "irrigation.valve.registered @ services/sahool-platform/api/event_replay.py:254",
+          "value": "irrigation.valve.registered @ services/sahool-platform/api/event_replay.py:309",
           "score": 8
         },
         {
-          "value": "irrigation.valve.registered @ services/sahool-platform/api/event_replay.py:448",
+          "value": "irrigation.valve.registered @ services/sahool-platform/api/event_replay.py:503",
           "score": 8
         },
         {
-          "value": "irrigation.valve.state_changed @ services/sahool-platform/api/event_replay.py:255",
+          "value": "irrigation.valve.state_changed @ services/sahool-platform/api/event_replay.py:310",
           "score": 8
         },
         {
-          "value": "irrigation.valve.state_changed @ services/sahool-platform/api/event_replay.py:452",
+          "value": "irrigation.valve.state_changed @ services/sahool-platform/api/event_replay.py:507",
           "score": 8
         },
         {
@@ -20085,15 +20093,15 @@
           "score": 8
         },
         {
-          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_replay.py:246",
+          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_replay.py:301",
           "score": 8
         },
         {
-          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_replay.py:285",
+          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_replay.py:340",
           "score": 8
         },
         {
-          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_replay.py:387",
+          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_replay.py:442",
           "score": 8
         },
         {
@@ -20113,11 +20121,11 @@
           "score": 8
         },
         {
-          "value": "operation.irrigation.started @ services/sahool-platform/api/event_replay.py:245",
+          "value": "operation.irrigation.started @ services/sahool-platform/api/event_replay.py:300",
           "score": 8
         },
         {
-          "value": "operation.irrigation.started @ services/sahool-platform/api/event_replay.py:384",
+          "value": "operation.irrigation.started @ services/sahool-platform/api/event_replay.py:439",
           "score": 8
         },
         {
@@ -20161,11 +20169,11 @@
           "score": 8
         },
         {
-          "value": "soil.lab.result.published @ services/sahool-platform/api/event_replay.py:260",
+          "value": "soil.lab.result.published @ services/sahool-platform/api/event_replay.py:315",
           "score": 8
         },
         {
-          "value": "soil.lab.result.published @ services/sahool-platform/api/event_replay.py:443",
+          "value": "soil.lab.result.published @ services/sahool-platform/api/event_replay.py:498",
           "score": 8
         },
         {
@@ -20173,11 +20181,11 @@
           "score": 8
         },
         {
-          "value": "soil.sample.recorded @ services/sahool-platform/api/event_replay.py:259",
+          "value": "soil.sample.recorded @ services/sahool-platform/api/event_replay.py:314",
           "score": 8
         },
         {
-          "value": "soil.sample.recorded @ services/sahool-platform/api/event_replay.py:476",
+          "value": "soil.sample.recorded @ services/sahool-platform/api/event_replay.py:531",
           "score": 8
         },
         {
@@ -20205,7 +20213,7 @@
           "score": 8
         },
         {
-          "value": "weather.moisture.low @ services/sahool-platform/api/event_replay.py:262",
+          "value": "weather.moisture.low @ services/sahool-platform/api/event_replay.py:317",
           "score": 8
         },
         {
@@ -20213,7 +20221,7 @@
           "score": 8
         },
         {
-          "value": "weather.rain @ services/sahool-platform/api/event_replay.py:261",
+          "value": "weather.rain @ services/sahool-platform/api/event_replay.py:316",
           "score": 8
         },
         {
@@ -24250,6 +24258,10 @@
           "score": 9
         },
         {
+          "value": "operation.irrigation.completed @ tests_v9/test_event_history_contract_live_pg.py:119",
+          "score": 9
+        },
+        {
           "value": "soil-observation.v1 @ tests_v9/test_soil_runtime_certification_integration.py:81",
           "score": 9
         },
@@ -24922,6 +24934,14 @@
         },
         {
           "path": "tests_v9/test_chaos_resilience.py",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "tests_v9/test_event_history_contract_live_pg.py",
           "score": 9,
           "signals": [
             "content:rls",
@@ -25776,10 +25796,10 @@
         "backend": 12,
         "routes": 16,
         "database": 100,
-        "events": 73,
+        "events": 74,
         "web": 0,
         "mobile": 0,
-        "tests": 83,
+        "tests": 84,
         "governance": 0,
         "other_evidence": 89
       },
@@ -42191,6 +42211,10 @@
     },
     {
       "path": "tests_v9/test_etc_dual_weather.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_event_history_contract_unit.py",
       "kind": "tests"
     },
     {
@@ -76023,6 +76047,102 @@
       ]
     },
     {
+      "test": "tests_v9/test_event_history_contract_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/event_bus.py",
+          "kind": "import",
+          "line": 253
+        },
+        {
+          "source": "services/sahool-platform/api/event_replay.py",
+          "kind": "import",
+          "line": 254
+        },
+        {
+          "source": "services/sahool-platform/api/irrigation_models.py",
+          "kind": "import",
+          "line": 352
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 69
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 161
+        },
+        {
+          "source": "services/sahool-platform/api/routers/events.py",
+          "kind": "import",
+          "line": 161
+        },
+        {
+          "source": "services/sahool-platform/api/routers/irrigation.py",
+          "kind": "import",
+          "line": 353
+        },
+        {
+          "source": "services/sahool-platform/api/routers/tasks.py",
+          "kind": "import",
+          "line": 304
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 75
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_event_history_contract_unit.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/event_bus.py",
+          "kind": "import",
+          "line": 70
+        },
+        {
+          "source": "services/sahool-platform/api/event_replay.py",
+          "kind": "import",
+          "line": 132
+        },
+        {
+          "source": "services/sahool-platform/api/event_upcasting.py",
+          "kind": "import",
+          "line": 116
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 35
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 36
+        },
+        {
+          "source": "services/sahool-platform/api/routers/events.py",
+          "kind": "import",
+          "line": 36
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 37
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_event_replay.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -76396,6 +76516,22 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_farm_book_corrections_and_categories.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "tree_wide_scan",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 44,
+          "call": "spec_from_file_location"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_farm_memory.py",
