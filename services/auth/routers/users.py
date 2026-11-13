@@ -69,15 +69,19 @@ async def change_role(
         caller_id = int(admin["sub"])
         if not await main._verify_caller_mfa(caller_id, x_mfa_code, ip=ip):
             await main.audit_log(
-                "admin_op_mfa_denied", caller_id, ip,
-                details=f"change_role target={user_id}", tenant_id=admin.get("tenant_id"),
+                "admin_op_mfa_denied",
+                caller_id,
+                ip,
+                details=f"change_role target={user_id}",
+                tenant_id=admin.get("tenant_id"),
             )
             raise HTTPException(403, "يتطلّب هذا الإجراء رمز MFA حديثاً (step-up)")
     async with main._acquire() as conn, conn.transaction():
         tenant_id = await _validate_team_actor(conn, admin)
         target = await conn.fetchrow(
             "SELECT role FROM users WHERE id=$1 AND tenant_id=$2::uuid FOR UPDATE",
-            user_id, tenant_id,
+            user_id,
+            tenant_id,
         )
         if not target:
             raise HTTPException(404, "المستخدم غير موجود ضمن المؤسسة")
@@ -94,12 +98,16 @@ async def change_role(
         row = await conn.fetchrow(
             "UPDATE users SET role=$1 WHERE id=$2 AND tenant_id=$3::uuid "
             "AND role NOT IN ('owner','admin') RETURNING id, email, role",
-            role, user_id, tenant_id,
+            role,
+            user_id,
+            tenant_id,
         )
         if not row:
             raise HTTPException(409, "تغيّر دور المستهدف أثناء الطلب")
     await main.audit_log(
-        "change_role", int(admin["sub"]), ip,
+        "change_role",
+        int(admin["sub"]),
+        ip,
         details=f"target={user_id} new_role={role} stepup={main._admin_stepup_required()}",
         tenant_id=tenant_id,
     )
@@ -118,15 +126,19 @@ async def deactivate_user(
         caller_id = int(admin["sub"])
         if not await main._verify_caller_mfa(caller_id, x_mfa_code, ip=ip):
             await main.audit_log(
-                "admin_op_mfa_denied", caller_id, ip,
-                details=f"deactivate target={user_id}", tenant_id=admin.get("tenant_id"),
+                "admin_op_mfa_denied",
+                caller_id,
+                ip,
+                details=f"deactivate target={user_id}",
+                tenant_id=admin.get("tenant_id"),
             )
             raise HTTPException(403, "يتطلّب هذا الإجراء رمز MFA حديثاً (step-up)")
     async with main._acquire() as conn, conn.transaction():
         tenant_id = await _validate_team_actor(conn, admin)
         target = await conn.fetchrow(
             "SELECT role, active FROM users WHERE id=$1 AND tenant_id=$2::uuid FOR UPDATE",
-            user_id, tenant_id,
+            user_id,
+            tenant_id,
         )
         if not target:
             raise HTTPException(404, "المستخدم غير موجود ضمن المؤسسة")
@@ -145,12 +157,15 @@ async def deactivate_user(
         status = await conn.execute(
             "UPDATE users SET active=FALSE WHERE id=$1 AND tenant_id=$2::uuid "
             "AND role NOT IN ('owner','admin') AND active=TRUE",
-            user_id, tenant_id,
+            user_id,
+            tenant_id,
         )
         if status != "UPDATE 1":
             raise HTTPException(409, "تغيّرت حالة المستخدم أثناء الطلب")
     await main.audit_log(
-        "deactivate_user", int(admin["sub"]), ip,
+        "deactivate_user",
+        int(admin["sub"]),
+        ip,
         details=f"target={user_id} stepup={main._admin_stepup_required()}",
         tenant_id=tenant_id,
     )

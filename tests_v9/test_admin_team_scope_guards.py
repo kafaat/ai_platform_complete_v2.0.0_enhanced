@@ -2,6 +2,10 @@
 
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = Path(__file__).resolve().parents[1]
 USERS = (ROOT / "services/auth/routers/users.py").read_text(encoding="utf-8")
 DENIALS = (ROOT / "services/sahool-platform/api/routers/security_audit.py").read_text(encoding="utf-8")
