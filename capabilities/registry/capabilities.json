@@ -169,10 +169,10 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:487",
-        "GET /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:418",
-        "GET /api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:508",
-        "GET /api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:451",
+        "GET /api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:528",
+        "GET /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:459",
+        "GET /api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:549",
+        "GET /api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:492",
         "GET /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:162",
         "GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:584",
         "GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:951",
@@ -186,7 +186,7 @@
         "GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:142",
         "GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179",
         "GET /api/v1/reports/farm-summary @ services/sahool-platform/api/routers/reports.py:46",
-        "POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:247",
+        "POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:280",
         "POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:130",
         "POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:809",
         "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:503",
@@ -248,6 +248,7 @@
         "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
         "services/sahool-platform/tests/test_simple_farm_book.py",
         "shared/test_autonomous_farm_os_phase9.py",
+        "tests_v9/test_farm_book_corrections_and_categories.py",
         "tests_v9/test_farm_memory.py"
       ],
       "runtime": {
@@ -278,7 +279,7 @@
           "path": "migrations/v19_farms.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=36, tests=19, ui=0, mobile=20. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=36, tests=20, ui=0, mobile=20. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "3",
         "CropX": null,
