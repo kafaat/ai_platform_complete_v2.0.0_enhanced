@@ -26,6 +26,7 @@
         "IRR-010:declared_above_evidence:evidence-maturity",
         "OPS-001:declared_above_evidence:evidence-maturity",
         "OPS-002:declared_above_evidence:evidence-maturity",
+        "OPS-003:evidence_above_declared:evidence-maturity",
         "OPS-006:declared_above_evidence:evidence-maturity",
         "OPS-007:declared_above_evidence:evidence-maturity",
         "OPS-008:declared_above_evidence:evidence-maturity",
@@ -63,6 +64,14 @@
     "new_drift_blocks": true,
     "stale_baseline_blocks": true
   },
+  "owner_decisions": [
+    {
+      "admitted": {
+        "OPS-003:evidence_above_declared:evidence-maturity": "integration-marked evidence exists (test_api_writes_persist_live_pg.py); declared held at 2 pending independent review per 11-09"
+      },
+      "decision": "owner 2026-11-14, C-40 #1428"
+    }
+  ],
   "purpose": "Known legacy drift identities only. New drift and stale baseline entries block; this file is not a capability value source of truth.",
   "schema": "sahool.capability-drift-ratchet-baseline/v1",
   "schema_version": "1.0.0"
