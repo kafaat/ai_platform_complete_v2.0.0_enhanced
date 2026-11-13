@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from collections.abc import Iterable, Mapping
 from datetime import date, datetime
 from decimal import Decimal
@@ -44,6 +45,8 @@ def compose_historical_season_context(
     field_id: str,
     season_id: str,
     season: Mapping[str, Any],
+    simulation_window: Mapping[str, str] | None = None,
+    weather_provenance: Mapping[str, Any] | None = None,
     season_record: Mapping[str, Any] | None = None,
     crop: Mapping[str, Any] | None = None,
     events: Iterable[Mapping[str, Any]] = (),
@@ -61,28 +64,58 @@ def compose_historical_season_context(
         key=lambda v: (str(v.get("acquisition_date") or ""), str(v.get("id") or "")),
     )
     weather_rows = [_primitive(dict(w)) for w in weather]
+    window = _primitive(dict(simulation_window)) if simulation_window is not None else None
+    if window is not None:
+        window_start = str(window.get("start") or "")
+        window_end = str(window.get("end") or "")
+        try:
+            if date.fromisoformat(window_end) < date.fromisoformat(window_start):
+                raise ValueError("simulation end precedes start")
+        except (TypeError, ValueError) as exc:
+            raise ValueError("historical simulation window is invalid") from exc
+    else:
+        window_start = window_end = ""
+
+    def _in_window(raw_day: Any) -> bool:
+        if window is None:
+            return True  # historical callers without a window retain legacy behavior
+        if raw_day is None:
+            return False
+        day = str(raw_day)[:10]
+        return window_start <= day <= window_end
+
+    def _finite(value: Any, *, minimum: float = 0.0, maximum: float | None = None) -> float | None:
+        if isinstance(value, bool):
+            return None
+        try:
+            number = float(value)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        if not math.isfinite(number) or number < minimum:
+            return None
+        if maximum is not None and number > maximum:
+            return None
+        return number
 
     trusted_irrigation = [
-        float(e["amount_mm"])
+        amount
         for e in event_rows
         if e.get("event_type") == "irrigation"
-        and e.get("amount_mm") is not None
         and not bool(e.get("low_confidence"))
-        and float(e["amount_mm"]) >= 0
+        and _in_window(e.get("event_date"))
+        if (amount := _finite(e.get("amount_mm"))) is not None
     ]
     irrigation_mm_total = sum(trusted_irrigation) if trusted_irrigation else None
 
     valid_vegetation: list[dict[str, Any]] = []
     fapar_values: list[float] = []
     for observation in vegetation_rows:
-        ndvi = observation.get("ndvi_mean")
-        cloud = observation.get("cloud_pct")
-        if ndvi is None or not -1.0 <= float(ndvi) <= 1.0:
-            continue
-        if cloud is None or float(cloud) > 30.0:
+        ndvi = _finite(observation.get("ndvi_mean"), minimum=-1.0, maximum=1.0)
+        cloud = _finite(observation.get("cloud_pct"), maximum=30.0)
+        if ndvi is None or cloud is None or not _in_window(observation.get("acquisition_date")):
             continue
         normalized = dict(observation)
-        normalized["fapar"] = round(fapar_from_ndvi(float(ndvi)), 6)
+        normalized["fapar"] = round(fapar_from_ndvi(ndvi), 6)
         valid_vegetation.append(normalized)
         fapar_values.append(normalized["fapar"])
 
@@ -119,7 +152,9 @@ def compose_historical_season_context(
         },
         "weather": {
             "status": "available" if weather_rows else "empty",
-            "source": "open-meteo-era5+weather-engine",
+            "source": "weather-service" if weather_provenance is not None else "legacy_unknown",
+            "provenance": _row(weather_provenance),
+            "window": window,
             "days": weather_rows,
             "day_count": len(weather_rows),
         },
