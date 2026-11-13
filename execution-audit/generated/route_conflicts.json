@@ -32,7 +32,7 @@
       "registrations": [
         {
           "function": "capabilities",
-          "line": 417,
+          "line": 408,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/capabilities",
@@ -118,7 +118,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 551,
+          "line": 380,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/health",
@@ -190,7 +190,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 135,
+          "line": 130,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/health",
@@ -285,7 +285,7 @@
         },
         {
           "function": "health_check",
-          "line": 205,
+          "line": 194,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/healthz",
@@ -301,7 +301,7 @@
         },
         {
           "function": "healthz",
-          "line": 546,
+          "line": 375,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/healthz",
@@ -429,7 +429,7 @@
         },
         {
           "function": "healthz",
-          "line": 130,
+          "line": 125,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/healthz",
@@ -492,7 +492,7 @@
       "registrations": [
         {
           "function": "metrics",
-          "line": 94,
+          "line": 93,
           "method": "GET",
           "module": "services/agriai-engine/main.py",
           "path": "/metrics",
@@ -516,7 +516,7 @@
         },
         {
           "function": "metrics",
-          "line": 422,
+          "line": 413,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/metrics",
@@ -659,7 +659,7 @@
         },
         {
           "function": "readyz",
-          "line": 432,
+          "line": 423,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/readyz",
@@ -675,7 +675,7 @@
         },
         {
           "function": "readyz",
-          "line": 556,
+          "line": 385,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/readyz",
@@ -803,7 +803,7 @@
         },
         {
           "function": "readyz",
-          "line": 140,
+          "line": 135,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/readyz",
@@ -866,7 +866,7 @@
       "registrations": [
         {
           "function": "runtime_evidence_identity",
-          "line": 101,
+          "line": 100,
           "method": "GET",
           "module": "services/agriai-engine/main.py",
           "path": "/runtime-identity",
@@ -922,7 +922,7 @@
         },
         {
           "function": "runtime_evidence_identity",
-          "line": 220,
+          "line": 221,
           "method": "GET",
           "module": "services/soil-service/main.py",
           "path": "/runtime-identity",
@@ -1178,7 +1178,7 @@
       "registrations": [
         {
           "function": "recommend",
-          "line": 275,
+          "line": 274,
           "method": "POST",
           "module": "services/agriai-engine/main.py",
           "path": "/v1/recommend",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1119,
-  "route_inventory_sha256": "767416da53dba8d13ebeaebaf219be813241304f35d7e34e68a1dff235cc5792",
+  "route_inventory_sha256": "c9db0734894a2f7e8e8dcc8a5f34660980666809ef26b7a169069eaa8961ee57",
   "runtime_verified": false,
   "schema_version": 1
 }
