@@ -366,5 +366,7 @@ def build_salinity_assessment(r: SalinityAssessmentRequest) -> SalinityAssessmen
             "uncertainty_field": "legacy_heuristic_not_validated",
             "threshold_reference": "USDA NRCS SSIR 42 v6, method 4F2",
             "lab_input_provenance": "caller_reported_unverified",
+            # Enforced by p4_governance (minimum_evidence_level="lab_verified").
+            "high_risk_actions_require_lab_verified": "true",
         },
     )
