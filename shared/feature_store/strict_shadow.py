@@ -37,7 +37,8 @@ def strict_shadow_snapshot(
     if not all((tenant_id, season_id, feature_set_id)) or max_age_hours < 0:
         raise ValueError("scope and nonnegative maximum age are required")
     cutoff = _timestamp(as_of)
-    selected: dict[tuple[str, str], tuple[tuple[datetime, datetime, str], dict[str, Any]]] = {}
+    selected: dict[tuple[str, str], tuple[tuple[datetime, datetime, str], dict[str, Any]]]
+    selected = {}
     excluded: dict[str, int] = {}
 
     def reject(reason: str) -> None:
@@ -60,14 +61,24 @@ def strict_shadow_snapshot(
             reject("missing_provenance")
             continue
         features = record.get("features")
-        if not isinstance(features, dict) or not features or any(
-            not isinstance(k, str)
-            or not k
-            or isinstance(v, bool)
-            or not isinstance(v, (str, int, float))
-            or (isinstance(v, (int, float)) and not math.isfinite(v))
-            for k, v in features.items()
-        ):
+        if not isinstance(features, dict) or not features:
+            reject("invalid_features")
+            continue
+        invalid_feature = False
+        for name, value in features.items():
+            if not isinstance(name, str) or not name:
+                invalid_feature = True
+                break
+            if isinstance(value, bool):
+                invalid_feature = True
+                break
+            if not isinstance(value, (str, int, float)):
+                invalid_feature = True
+                break
+            if isinstance(value, (int, float)) and not math.isfinite(value):
+                invalid_feature = True
+                break
+        if invalid_feature:
             reject("invalid_features")
             continue
         try:
@@ -114,9 +125,8 @@ def strict_shadow_snapshot(
         "max_age_hours": max_age_hours,
         "rows": rows,
     }
-    digest = sha256(
-        json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()
-    ).hexdigest()
+    encoded = json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()
+    digest = sha256(encoded).hexdigest()
     return {
         "snapshot_id": f"pit_{digest[:20]}",
         "row_count": len(rows),
