@@ -19,6 +19,7 @@ import logging
 from core.api_adapter import ApiRequest, handle_recommendation_request
 from core.outcome_reconciler import (
     OutcomeLabelConflict,
+    authoritative_outcome_label_refusal,
     recommendation_outcome_write_action,
     reconcile_recommendation_outcome_labels,
 )
@@ -575,6 +576,29 @@ async def _server_outcome_labels(conn, req: OutcomeRecordRequest) -> dict:
         raise HTTPException(status_code=422, detail=e.detail) from e
 
 
+async def _cutover_outcome_labels(user, req: OutcomeRecordRequest) -> dict:
+    """S4 cutover: reconcile labels against the sealed recommendation before the only write.
+
+    The platform is read-only evidence until decision-service owns that projection: one
+    tenant read, no platform write. A contradicting prediction/maturity is 422 exactly as
+    pre-cutover; an unverified label never becomes authoritative learning truth; evidence
+    unavailable ⇒ 503 and no write, never a fall back to client labels.
+    """
+    try:
+        if not req.recommendation_id:  # nothing sealed to read: labels stay unverified
+            labels = await _server_outcome_labels(None, req)
+        else:
+            async with tenant_connection(user) as conn:
+                labels = await _server_outcome_labels(conn, req)
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_unavailable("مصالحة تسميات النتيجة قبل القطع", exc) from exc
+    if refusal := authoritative_outcome_label_refusal(labels):
+        raise HTTPException(status_code=422, detail=refusal)
+    return labels
+
+
 @router.post("/api/v1/recommendations/outcomes", status_code=201)
 async def record_recommendation_outcome(
     req: OutcomeRecordRequest,
@@ -612,7 +636,9 @@ async def record_recommendation_outcome(
     mode = get_platform_decision_sor_mode()
 
     if mode.strict_decision_service_required:
-        # S4 end-state: exactly one authoritative write. No platform DB session is opened here.
+        # S4: decision-service is the sole WRITER. Labels are reconciled (read only) first.
+        labels = await _cutover_outcome_labels(user, req)
+        service_payload["metadata"].update(labels)
         service_result = await _mirror_recommendation_outcome_to_service(
             service_payload,
             tenant_id=str(user.tenant_id),

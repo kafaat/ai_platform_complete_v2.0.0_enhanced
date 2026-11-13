@@ -89,3 +89,28 @@ def test_season_request_negative_seed_rate_rejected():
 def test_stage_item_serializes():
     st = StageItem(name="الحصاد", date="2026-05-01", notes="يدوي")
     assert st.model_dump() == {"name": "الحصاد", "date": "2026-05-01", "notes": "يدوي"}
+
+
+def test_season_request_initial_status_planned_or_active_only():
+    import pytest
+    from pydantic import ValidationError
+
+    assert SeasonCreateRequest().initial_status == "active"
+    assert SeasonCreateRequest(initial_status="planned").initial_status == "planned"
+    with pytest.raises(ValidationError):
+        SeasonCreateRequest(initial_status="closed")
+
+
+def test_season_request_default_status_keeps_legacy_idempotency_digest():
+    # الافتراضيّ 'active' لا يدخل التفريغ، فبصمة Idempotency لطلب قديم (بلا الحقل) لا تتغيّر؛
+    # و'planned' يدخلها فلا يُعاد ردّ موسم نشط مخزَّن لطلب موسم مخطَّط بالمفتاح نفسه.
+    from api.idempotency import model_digest
+
+    legacy = SeasonCreateRequest(crops=["قمح"])
+    assert "initial_status" not in legacy.model_dump()
+    assert model_digest(legacy, "f1") == model_digest(
+        SeasonCreateRequest(crops=["قمح"], initial_status="active"), "f1"
+    )
+    assert model_digest(legacy, "f1") != model_digest(
+        SeasonCreateRequest(crops=["قمح"], initial_status="planned"), "f1"
+    )

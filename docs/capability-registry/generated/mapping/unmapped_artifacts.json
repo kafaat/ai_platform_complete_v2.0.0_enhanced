@@ -352,6 +352,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/fieldsetup/YieldStep.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/fieldsetup/steps.ts",
     "kind": "web"
   },
@@ -1662,6 +1666,10 @@
   {
     "path": "frontend/src/lib/whatIfScenarios.ts",
     "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/wheatRegister.test.ts",
+    "kind": "tests"
   },
   {
     "path": "frontend/src/lib/windbreak.ts",
@@ -9388,7 +9396,15 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_v26_digital_twin_regressions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_v26_yield_alias_and_absence.py",
     "kind": "tests"
   },
   {
@@ -10045,6 +10061,10 @@
   },
   {
     "path": "services/weather-service/tests/test_archive_coverage_is_exposed.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/weather-service/tests/test_archive_solar_radiation_contract.py",
     "kind": "tests"
   },
   {
