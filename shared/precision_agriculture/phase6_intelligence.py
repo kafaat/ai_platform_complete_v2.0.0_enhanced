@@ -666,15 +666,22 @@ def compose_digital_twin_snapshot(
     # Client-submitted farm snapshots are display-only. An empty/unknown field
     # state is not an observed 100/100 healthy farm.
     known_field_statuses = {
-        "ok", "healthy", "normal", "stress", "critical",
-        "warning", "blocked", "needs_attention",
+        "ok",
+        "healthy",
+        "normal",
+        "stress",
+        "critical",
+        "warning",
+        "blocked",
+        "needs_attention",
     }
     fully_classified = bool(fields) and all(
         isinstance(f, dict) and str(f.get("status", "")).lower() in known_field_statuses
         for f in fields
     )
     stress_fields = [
-        f for f in fields
+        f
+        for f in fields
         if str(f.get("status", "")).lower()
         in {"stress", "critical", "warning", "blocked", "needs_attention"}
     ]
@@ -695,9 +702,14 @@ def compose_digital_twin_snapshot(
         # field or equipment states MUST NOT share an identifier.
         "snapshot_id": _stable_id(
             {
-                "farm": farm, "fields": fields, "weather": weather,
-                "soil": soil, "irrigation": irrigation, "equipment": equipment,
-                "economics": economics, "ai": ai,
+                "farm": farm,
+                "fields": fields,
+                "weather": weather,
+                "soil": soil,
+                "irrigation": irrigation,
+                "equipment": equipment,
+                "economics": economics,
+                "ai": ai,
             },
             "twin",
         ),
@@ -715,9 +727,11 @@ def compose_digital_twin_snapshot(
             "ai": ai or {},
         },
         "health_score": max(0, min(100, health_score)) if fully_classified else None,
-        "health_score_status": "estimated_from_client_status"
-        if fully_classified
-        else "not_evaluated_missing_field_status",
+        "health_score_status": (
+            "estimated_from_client_status"
+            if fully_classified
+            else "not_evaluated_missing_field_status"
+        ),
         "source_authority": "client_supplied_preview",
         "preview_only": True,
         "decision_eligible": False,

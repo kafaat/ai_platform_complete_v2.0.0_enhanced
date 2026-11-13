@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from api.crop_decision_bridge import build_crop_decision_candidate
 from api.crop_twin import TwinDay, crop_twin_state
 from core.field_digital_twin import (
@@ -68,9 +69,7 @@ def test_candidate_rejects_nonfinite_gdd_even_when_lineage_exists():
 
 
 def test_canonical_root_zone_supports_net_infiltration_screening():
-    state = FieldTwinState(
-        "f1", {"depletion_mm": 70.0, "taw_mm": 100.0, "raw_mm": 45.0}
-    )
+    state = FieldTwinState("f1", {"depletion_mm": 70.0, "taw_mm": 100.0, "raw_mm": 45.0})
     out = simulate_irrigation(state, 20.0)
     assert out.predicted["depletion_mm_after_irrigation"] == 50.0
     assert out.predicted["soil_moisture_pct_after_irrigation"] == 50.0

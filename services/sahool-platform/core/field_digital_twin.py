@@ -82,9 +82,7 @@ def simulate_irrigation(state: FieldTwinState, irrigation_mm: float) -> FieldTwi
         and 0 <= raw <= taw
     )
     if valid_raw:
-        risks["water_stress"] = (
-            "low" if dr_after <= raw else "medium" if dr_after < taw else "high"
-        )
+        risks["water_stress"] = "low" if dr_after <= raw else "medium" if dr_after < taw else "high"
     else:
         risks["water_stress"] = "unknown"
     assumptions = [
@@ -104,6 +102,7 @@ def simulate_irrigation(state: FieldTwinState, irrigation_mm: float) -> FieldTwi
         risks=risks,
         assumptions=assumptions,
     )
+
 
 def simulate_salinity_risk(state: FieldTwinState) -> FieldTwinState:
     soil_ec = state.current.get("soil_ec_ds_m")

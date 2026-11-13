@@ -53,10 +53,16 @@ async def test_field_twin_uses_active_season_and_ndvi_timestamp(monkeypatch):
         async def fetch(self, sql, *args):
             if "FROM field_indicators" in sql:
                 return [
-                    {"indicator_id": "ndvi", "value": 0.75,
-                     "recorded_at": datetime(2026, 10, 20, tzinfo=UTC)},
-                    {"indicator_id": "evi", "value": 0.60,
-                     "recorded_at": datetime(2026, 11, 13, tzinfo=UTC)},
+                    {
+                        "indicator_id": "ndvi",
+                        "value": 0.75,
+                        "recorded_at": datetime(2026, 10, 20, tzinfo=UTC),
+                    },
+                    {
+                        "indicator_id": "evi",
+                        "value": 0.60,
+                        "recorded_at": datetime(2026, 11, 13, tzinfo=UTC),
+                    },
                 ]
             if "FROM dispatch_decisions" in sql:
                 return []

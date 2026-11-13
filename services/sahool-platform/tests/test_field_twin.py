@@ -144,7 +144,10 @@ def test_undated_ndvi_never_claims_healthy():
 
 def test_future_ndvi_is_not_current_evidence():
     t = assemble_twin(
-        "f1", latest_indices={"ndvi": 0.8}, observed_at="2026-11-14", now="2026-11-13"
+        "f1",
+        latest_indices={"ndvi": 0.8},
+        observed_at="2026-11-14",
+        now="2026-11-13",
     )
     assert t.state == "stale"
     assert any("المستقبل" in reason for reason in t.attention_reasons_ar)
@@ -164,14 +167,19 @@ def test_fresh_evi_does_not_mask_stale_ndvi():
 
 def test_missing_ndvi_with_recent_evi_is_not_healthy():
     t = assemble_twin(
-        "f1", latest_indices={"evi": 0.6}, observed_at="2026-11-13", now="2026-11-13"
+        "f1",
+        latest_indices={"evi": 0.6},
+        observed_at="2026-11-13",
+        now="2026-11-13",
     )
     assert t.state == "stale"
 
 
 def test_blocked_decision_still_precedes_stale_timestamp():
     t = assemble_twin(
-        "f1", latest_indices={"ndvi": 0.7}, observed_at=None,
+        "f1",
+        latest_indices={"ndvi": 0.7},
+        observed_at=None,
         open_decisions=[{"state": "blocked", "exec_status": "not_executed"}],
         now="2026-11-13",
     )
