@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import dataclass, fields
 from datetime import UTC, date, datetime
 from typing import Annotated, Literal
 from uuid import UUID
@@ -176,6 +177,8 @@ class LabSampleIn(BaseModel):
 
     barcode: str | None = None
     collected_by: str | None = None
+    # Why the collection point differs from the planned point; the distance is measured.
+    deviation_reason: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class SoilLabResultIn(BaseModel):
@@ -333,10 +336,13 @@ async def list_lab_samples(
         )
         if not include_review:
             return rows
-        if not rows or rows[0]["kind"] != "soil":
-            raise HTTPException(404, "soil sample not found")
+        if not rows:
+            raise HTTPException(404, "lab sample not found")
         sample = rows[0]
-        results = await lab_store.review_results(conn, tenant, sample["sample_id"])
+        read = (
+            lab_store.review_results if sample["kind"] == "soil" else lab_store.water_review_results
+        )
+        results = await read(conn, tenant, sample["sample_id"])
         reviewer = has_permission(user, Permission.INSPECTION_REVIEW)
         authors = await lab_store.result_entry_actors(conn, tenant, sample["sample_id"])
         review = {
@@ -356,6 +362,8 @@ async def list_lab_samples(
 def _sample_request_digest(payload: LabSampleIn) -> str:
     """بصمة الحمولة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
     data = payload.model_dump(mode="json")
+    if data["deviation_reason"] is None:
+        del data["deviation_reason"]  # preserve earlier retry fingerprints
     if data["sampling_origin"] is None:
         del data["sampling_origin"]  # preserve pre-migration retry fingerprints
     else:
@@ -387,6 +395,18 @@ async def create_lab_sample(
     async with tenant_connection(user) as conn:
 
         async def _work():
+            if payload.sampling_origin is not None:
+                data["sampling_origin"] = await lab_store.resolve_sampling_origin(
+                    conn,
+                    tenant_id=str(user.tenant_id),
+                    field_id=payload.field_id,
+                    plan_id=payload.sampling_plan_id,
+                    claimed=data["sampling_origin"],
+                    latitude=payload.latitude,
+                    longitude=payload.longitude,
+                    gps_accuracy_m=payload.gps_accuracy_m,
+                    deviation_reason=payload.deviation_reason,
+                )
             try:
                 row = await lab_store.create_sample(
                     conn, tenant_id=str(user.tenant_id), created_by=str(user.user_id), payload=data
@@ -541,36 +561,61 @@ def _interpret_lab_values(values: dict, method: str | None):
     return analysis
 
 
+@dataclass
+class WaterLabResultIn(WaterSample):
+    supersedes_result_id: UUID | None = None
+    correction_reason: str | None = None
+
+
 @router.post("/api/v1/lab/water-results")
 async def submit_water_lab_result(
-    payload: WaterSample,
+    payload: WaterLabResultIn,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
-    analysis = analyze_water_sample(payload)
-    observed = (
-        datetime.fromisoformat(payload.sampled_at) if payload.sampled_at else datetime.now(UTC)
-    )
+    """Records one water measurement set; the same set again returns the stored row.
+
+    A different set for a sample that already has one must name it as
+    ``supersedes_result_id``: a correction is a revision that needs a fresh review, and the
+    corrected set keeps its approval and publication history. Same key, other body ⇒ 409."""
+    if len(payload.correction_reason or "") > 160:
+        raise HTTPException(422, "correction_reason is limited to 160 characters")
+    values = {f.name: getattr(payload, f.name) for f in fields(WaterSample)}
+    analysis = analyze_water_sample(WaterSample(**values))
+    supersedes = str(payload.supersedes_result_id) if payload.supersedes_result_id else None
+    digest = request_digest({"water_result": values, "supersedes_result_id": supersedes})
+    observed = datetime.fromisoformat(values["sampled_at"]) if values["sampled_at"] else None
     async with tenant_connection(user) as conn:
-        sample = await lab_store.get_sample(
-            conn, tenant_id=str(user.tenant_id), sample_id=payload.sample_id
-        )
-        if not sample or sample["kind"] != "water":
-            raise HTTPException(404, "water sample not found")
-        await lab_store.insert_water_result(
-            conn,
+
+        async def record():
+            try:
+                return await lab_store.record_water_result(
+                    conn,
+                    tenant_id=str(user.tenant_id),
+                    actor_id=str(user.user_id),
+                    sample_id=payload.sample_id,
+                    payload=values,
+                    analysis=analysis,
+                    observed_at=observed or datetime.now(UTC),
+                    request_digest=digest,
+                    supersedes=supersedes,
+                    correction_reason=payload.correction_reason,
+                )
+            except lab_store.WaterResultRefused as exc:
+                raise HTTPException(exc.status, exc.detail) from exc
+
+        if not idem:
+            return await record()
+        return await _idempotent(
+            CommandStore(get_pool(), conn=conn),
+            idem,
+            record,
+            command_type="lab_water_result.submit",
+            actor_id=str(user.user_id),
             tenant_id=str(user.tenant_id),
-            sample_id=payload.sample_id,
-            payload=payload.__dict__,
-            analysis=analysis,
-            observed_at=observed,
+            payload={},
+            request_digest=digest,
         )
-        await lab_store.set_status(
-            conn,
-            tenant_id=str(user.tenant_id),
-            sample_id=payload.sample_id,
-            status="result_received",
-        )
-    return analysis
 
 
 @router.post("/api/v1/lab/samples/{sample_id}/transition")
@@ -599,10 +644,15 @@ async def transition_lab_sample(
                 conn, tenant_id=str(user.tenant_id), sample_id=sample_id
             )
             has_result = bool(publish_rows)
-        else:
+        elif is_soil:
             # Approval needs a result of this review cycle that awaits a decision.
-            has_result = is_soil and await lab_store.has_soil_result(
+            has_result = await lab_store.has_soil_result(
                 conn, tenant_id=str(user.tenant_id), sample_id=sample_id
+            )
+        else:
+            quality = "approved" if payload.target_status == "published" else "unreviewed"
+            has_result = await lab_store.has_water_result(
+                conn, tenant_id=str(user.tenant_id), sample_id=sample_id, quality=quality
             )
         try:
             changed = validate_soil_transition(
@@ -610,11 +660,10 @@ async def transition_lab_sample(
             )
         except SoilWorkflowError as exc:
             raise HTTPException(exc.http_status, exc.message_ar) from exc
-        if (
-            is_soil
-            and sample["status"] != payload.target_status
-            and payload.target_status == "approved"
-        ):
+        if changed and payload.target_status == "approved":
+            # A water approval seals exactly the sets the reviewer was shown.
+            if not is_soil and payload.reviewed_result_ids is None:
+                raise HTTPException(409, "reviewed_result_ids is required to approve water results")
             authors = await lab_store.result_entry_actors(conn, str(user.tenant_id), sample_id)
             if not authors:
                 raise HTTPException(409, "تعذّر تحديد مُدخل التحليل من سجل العينة.")
@@ -623,7 +672,8 @@ async def transition_lab_sample(
         if payload.reviewed_result_ids is not None and (
             changed or payload.target_status != "rejected"
         ):
-            results = await lab_store.review_results(conn, str(user.tenant_id), sample_id)
+            read = lab_store.review_results if is_soil else lab_store.water_review_results
+            results = await read(conn, str(user.tenant_id), sample_id)
             if set(payload.reviewed_result_ids) != {r["result_id"] for r in results}:
                 raise HTTPException(409, "تغيّرت التحاليل منذ عرضها. حدّث المراجعة.")
         row = sample
@@ -649,7 +699,16 @@ async def transition_lab_sample(
                 await lab_store.reject_soil_results(
                     conn, tenant_id=str(user.tenant_id), sample_id=sample_id
                 )
-            if payload.target_status == "approved" and is_soil:
+            if not is_soil:
+                await lab_store.seal_water_review(
+                    conn,
+                    tenant_id=str(user.tenant_id),
+                    sample_id=sample_id,
+                    target=payload.target_status,
+                    actor_id=str(user.user_id),
+                    result_ids=payload.reviewed_result_ids,
+                )
+            elif payload.target_status == "approved":
                 await lab_store.approve_soil_results(
                     conn,
                     tenant_id=str(user.tenant_id),

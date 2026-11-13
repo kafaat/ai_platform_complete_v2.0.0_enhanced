@@ -3612,6 +3612,12 @@ export interface SamplingOrigin {
   planned_depth_cm?: [number, number];
   indicator_sources?: Record<string, {scene_id?: string; acquisition_date?: string; asset_id?: string}>;
   point_id: string; zone_id: string; longitude: number; latitude: number; indicators: string[];
+  // Set by the server from its stored copy of the plan; a client never sends these.
+  verification?: 'documented' | 'unverified';
+  plan_verification?: 'stored_plan' | 'point_not_in_plan' | 'plan_not_stored';
+  layer_verification?: Record<string, 'verified' | 'unverified'>;
+  unverified_indicators?: string[];
+  collection?: {latitude: number; longitude: number; deviation_m: number; tolerance_m: number; on_plan: boolean; deviation_reason?: string | null};
 }
 export interface LabSampleCreateInput {
   idempotency_key?: string;
@@ -3627,6 +3633,7 @@ export interface LabSampleCreateInput {
   source?: string | null;
   status?: 'planned' | 'collected' | 'submitted';
   gps_accuracy_m?: number | null;
+  deviation_reason?: string;
 }
 export type SoilECMethod = 'saturated_paste' | 'soil_water_1_1' | 'soil_water_1_2_5' | 'soil_water_1_5' | 'unspecified';
 export interface SoilLabResultInput {
@@ -3666,7 +3673,7 @@ export interface LabDecisionContext {
   recommendation_gate: 'allow' | 'needs_review' | string;
 }
 export interface LabReview {
-  results: { result_id: string; analyte: string; value_json: number | string; unit: string | null; method_code: string | null; observed_at: string }[];
+  results: { result_id: string; analyte: string; value_json: number | string | Record<string, unknown>; unit: string | null; method_code: string | null; observed_at: string }[];
   can_approve: boolean;
   can_publish: boolean;
 }

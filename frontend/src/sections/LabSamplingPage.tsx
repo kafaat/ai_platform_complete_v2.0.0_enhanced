@@ -99,7 +99,13 @@ function PlannedSamplingDetails({ origin }: { origin: SamplingOrigin }) {
     {origin.sampling_purpose && <div>غرض الجمع: {purposeLabel[origin.sampling_purpose]}</div>}
     {origin.planned_depth_cm && <div>العمق المخطط: {origin.planned_depth_cm.join('–')} سم</div>}
     {origin.composite !== undefined && <div>{origin.composite ? 'عينة مركّبة' : 'عينة موضعية'}</div>}
-    {sources.map(([index, src]) => <div key={index}><bdi>{index.toUpperCase()} · {src.scene_id ?? src.asset_id} {src.acquisition_date}</bdi></div>)}
+    {sources.map(([index, src]) => <div key={index}><bdi>{index.toUpperCase()} · {src.scene_id ?? src.asset_id} {src.acquisition_date}</bdi>
+      {origin.layer_verification && <span> · {origin.layer_verification[index] === 'verified' ? 'طبقة مسجّلة' : 'طبقة غير موثّقة'}</span>}</div>)}
+    {origin.verification && <div>{origin.verification === 'documented' ? 'أصل العينة موثّق من الخطة المحفوظة' : 'أصل العينة غير موثّق: الخطة أو الطبقة غير مسجّلة لدى الخادم'}</div>}
+    {origin.collection && <div>
+      موقع الجمع الفعلي <bdi>{origin.collection.latitude}, {origin.collection.longitude}</bdi> · الانحراف {origin.collection.deviation_m} م
+      {origin.collection.on_plan ? ' (ضمن الخطة)' : ` (خارج الخطة${origin.collection.deviation_reason ? `: ${origin.collection.deviation_reason}` : '، بلا سبب مذكور'})`}
+    </div>}
   </details>;
 }
 
@@ -180,6 +186,8 @@ function LabForms({selection, planState, scope, fieldScope, msg, setMsg, consume
       source: String(fd.get('source') || ''),
       gps_accuracy_m,
       status: 'collected',
+      ...(planState?.origin && String(fd.get('deviation_reason') || '').trim()
+        ? {deviation_reason: String(fd.get('deviation_reason')).trim()} : {}),
     };
     return payload;
   };
@@ -252,6 +260,7 @@ function LabForms({selection, planState, scope, fieldScope, msg, setMsg, consume
             <div className="grid grid-cols-2 gap-2"><label className="text-sm text-slate-300">من عمق سم<input name="depth_cm_from" defaultValue={planState?.depth?.[0]} type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label><label className="text-sm text-slate-300">إلى عمق سم<input name="depth_cm_to" defaultValue={planState?.depth?.[1]} type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label></div>
             <label className="block text-sm text-slate-300">تاريخ العينة<input name="sampled_on" type="date" defaultValue={localDate()} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label>
             <label className="block text-sm text-slate-300">مصدر/ملاحظة<input name="source" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" placeholder="بئر 3 / شبكة 1 / قطاع شمالي" /></label>
+            {planState?.origin && <label className="block text-sm text-slate-300">سبب الابتعاد عن نقطة الخطة (إن وُجد)<input name="deviation_reason" maxLength={200} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" placeholder="صخور في النقطة المخططة" /></label>}
             <label className="block text-sm text-slate-300">دقة GPS بالمتر<input name="gps_accuracy_m" type="number" step="any" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label>
             </fieldset>
             <button disabled={!fieldId || sampleWrite.busy || sampleWrite.blocked} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-white disabled:opacity-50"><Plus size={16} /> {sampleWrite.pending ? 'إعادة إرسال العينة' : 'حفظ العينة'}</button>

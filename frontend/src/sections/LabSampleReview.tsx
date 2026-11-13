@@ -21,7 +21,7 @@ function ReviewDetails({ sample }: { sample: LabSampleRecord }) {
   const { results, can_approve, can_publish } = review.data;
   return <div className="space-y-2 p-2">
     <ul>{results.map(r => <li key={r.result_id}>
-      <bdi>{r.analyte} · {String(r.value_json)} {r.unit} {r.method_code} · {r.observed_at}</bdi>
+      <bdi>{r.analyte} · {typeof r.value_json === 'object' && r.value_json !== null ? JSON.stringify(r.value_json) : String(r.value_json)} {r.unit} {r.method_code} · {r.observed_at}</bdi>
     </li>)}</ul>
     {action.isError && <p role="alert">{apiErrorMessage(action.error, 'تعذّر تسجيل الانتقال.')}</p>}
     {(can_approve || can_publish) && <button className="rounded bg-emerald-700 px-3 py-1 text-white"
@@ -34,7 +34,7 @@ function ReviewDetails({ sample }: { sample: LabSampleRecord }) {
 
 export function LabSampleReview({ sample }: { sample: LabSampleRecord }) {
   const [open, setOpen] = useState(false);
-  if (sample.kind !== 'soil' || !['result_received','approved','published'].includes(sample.status)) return null;
+  if (!['result_received','approved','published'].includes(sample.status)) return null;
   return <details onToggle={e => setOpen(e.currentTarget.open)}>
     <summary>عرض التحاليل ومراجعتها</summary>
     {open && <ReviewDetails sample={sample} />}
