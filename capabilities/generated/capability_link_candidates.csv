@@ -2415,6 +2415,7 @@ SEC-008,test,tests_v9/test_apply_in_compose_fail_closed.py,3,applied
 SEC-008,test,tests_v9/test_critical_event_fail_closed.py,3,applied
 SEC-008,test,tests_v9/test_erp_bridge_fail_closed.py,3,applied
 SEC-008,test,tests_v9/test_fii_rls_write_fail_closed_postgres.py,3,applied
+SEC-008,test,tests_v9/test_platform_revocation_unverifiable_fail_closed.py,3,applied
 SEC-008,test,tests_v9/test_secret_enforcement_guard_v21.py,3,applied
 SEC-008,test,tests_v9/test_secret_guard.py,3,applied
 SEC-008,test,tests_v9/test_services_rs256_production_guard.py,3,applied
