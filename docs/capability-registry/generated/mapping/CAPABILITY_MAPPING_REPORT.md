@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **42**
-- Files scanned: **7176**
-- Ambiguous artifacts queued: **235**
-- Unmapped artifacts queued: **3415**
+- Files scanned: **7193**
+- Ambiguous artifacts queued: **236**
+- Unmapped artifacts queued: **3420**
 
 ## Capability coverage
 
@@ -32,9 +32,9 @@
 | DEC-010 | decision | 4 | 92 | 49 | 7 | 0 | 0 | 6 | 5 |
 | FM-001 | farm_management | 16 | 2 | 28 | 12 | 1 | 0 | 41 | 6 |
 | FM-002 | farm_management | 36 | 44 | 100 | 25 | 18 | 35 | 50 | 7 |
-| FM-003 | farm_management | 13 | 56 | 5 | 65 | 3 | 2 | 15 | 7 |
-| FM-004 | farm_management | 31 | 82 | 80 | 41 | 15 | 15 | 49 | 7 |
-| FM-005 | farm_management | 9 | 0 | 0 | 6 | 3 | 1 | 7 | 5 |
+| FM-003 | farm_management | 13 | 56 | 5 | 65 | 3 | 2 | 16 | 7 |
+| FM-004 | farm_management | 32 | 82 | 80 | 43 | 18 | 15 | 52 | 7 |
+| FM-005 | farm_management | 10 | 0 | 0 | 8 | 6 | 1 | 8 | 5 |
 | FM-006 | farm_management | 1 | 0 | 0 | 0 | 2 | 0 | 1 | 3 |
 | FM-007 | farm_management | 8 | 19 | 8 | 0 | 1 | 4 | 6 | 6 |
 | FM-008 | farm_management | 10 | 31 | 5 | 2 | 0 | 0 | 11 | 5 |
@@ -66,7 +66,7 @@
 | OPS-008 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | PA-001 | precision | 10 | 34 | 8 | 2 | 1 | 0 | 10 | 6 |
 | PA-002 | precision | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| PA-003 | precision | 3 | 4 | 9 | 1 | 0 | 0 | 4 | 5 |
+| PA-003 | precision | 3 | 4 | 13 | 1 | 0 | 0 | 5 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | SAT-001 | satellite | 42 | 100 | 5 | 43 | 6 | 0 | 58 | 6 |
@@ -96,7 +96,7 @@
 | WX-003 | weather | 2 | 6 | 4 | 0 | 0 | 0 | 0 | 3 |
 | WX-004 | weather | 3 | 0 | 0 | 1 | 0 | 0 | 9 | 3 |
 | WX-005 | weather | 3 | 0 | 0 | 1 | 0 | 0 | 2 | 3 |
-| WX-006 | weather | 6 | 1 | 0 | 1 | 0 | 0 | 10 | 4 |
+| WX-006 | weather | 6 | 1 | 0 | 1 | 0 | 0 | 11 | 4 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | WX-008 | weather | 3 | 6 | 0 | 5 | 0 | 1 | 2 | 5 |
 | WX-009 | weather | 1 | 29 | 0 | 0 | 2 | 0 | 2 | 4 |

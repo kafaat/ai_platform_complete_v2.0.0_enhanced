@@ -19,7 +19,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-PARSER_VERSION = "yield-map-v1"
+PARSER_VERSION = "yield-map-v2"
 MAX_PAYLOAD_BYTES = 10 * 1024 * 1024
 MAX_RECORDS = 20_000
 MAX_YIELD_KG_HA = 100_000.0
@@ -162,8 +162,23 @@ def _canonical_record(
         raise ValueError("longitude must be between -180 and 180")
     if not -90 <= lat <= 90:
         raise ValueError("latitude must be between -90 and 90")
-    if not 0 < yield_value <= MAX_YIELD_KG_HA:
-        raise ValueError(f"yield_kg_ha must be > 0 and <= {MAX_YIELD_KG_HA:g}")
+    if not 0 <= yield_value <= MAX_YIELD_KG_HA:
+        raise ValueError(f"yield_kg_ha must be >= 0 and <= {MAX_YIELD_KG_HA:g}")
+    if yield_value == 0:
+        # A monitor zero/stop is not evidence of crop failure. Require an explicitly
+        # documented observation and keep it pending agronomic review; a caller-supplied
+        # review status is overwritten, so input can never promote the point (v259).
+        flag = attributes.get("zero_yield_observed")
+        confirmed = flag is True or (isinstance(flag, str) and flag.strip().lower() == "true")
+        evidence = attributes.get("zero_yield_evidence_id")
+        if not confirmed or not isinstance(evidence, str) or not evidence.strip():
+            raise ValueError("zero yield requires zero_yield_observed and zero_yield_evidence_id")
+        attributes = {
+            **attributes,
+            "zero_yield_observed": True,
+            "zero_yield_evidence_id": evidence.strip(),
+            "zero_yield_review_status": "pending",
+        }
     if moisture is not None and not 0 <= moisture <= 100:
         raise ValueError("moisture_pct must be between 0 and 100")
 
