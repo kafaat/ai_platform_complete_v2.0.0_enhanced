@@ -533,13 +533,14 @@ async def create_entry(
                 else:
                     if req.reverses_entry_id:
                         await _assert_reversal(conn, tenant_id, req)
-                    await _assert_receipt(conn, tenant_id, req, user)
                     direction = (
                         await _prepare_payment(conn, tenant_id, req)
                         if req.entry_type == "payment"
                         else ("outflow" if req.entry_type == "expense" else "inflow")
                     )
+                    # Scope, then receipt, on the allocation a reversal or payment inherited.
                     await _assert_scope(conn, tenant_id, req)
+                    await _assert_receipt(conn, tenant_id, req, user)
                     row = await conn.fetchrow(
                         """INSERT INTO farm_ledger_entries
                            (entry_id,tenant_id,client_operation_id,request_digest,entry_type,direction,
