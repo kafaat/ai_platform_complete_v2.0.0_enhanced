@@ -1600,6 +1600,7 @@ OPS-003,mobile,mobile/sahool_app/lib/features/maps/presentation/layers/scouting_
 OPS-003,mobile,mobile/sahool_app/lib/features/scouting/data/device_sources.dart,2,applied
 OPS-003,mobile,mobile/sahool_app/lib/features/scouting/data/scouting_api.dart,2,applied
 OPS-003,mobile,mobile/sahool_app/lib/features/scouting/data/scouting_models.dart,2,applied
+OPS-003,mobile,mobile/sahool_app/lib/features/scouting/presentation/disease_symptoms_dialog.dart,2,applied
 OPS-003,mobile,mobile/sahool_app/lib/features/scouting/presentation/new_observation_cubit.dart,2,applied
 OPS-003,mobile,mobile/sahool_app/lib/features/scouting/presentation/new_observation_screen.dart,2,applied
 OPS-003,mobile,mobile/sahool_app/lib/features/scouting/presentation/pest_detect_cubit.dart,2,applied
@@ -1612,6 +1613,7 @@ OPS-003,mobile,mobile/sahool_app/lib/features/scouting/presentation/scouting_scr
 OPS-003,mobile,mobile/sahool_app/lib/features/scouting/presentation/scouting_widgets.dart,2,applied
 OPS-003,mobile,mobile/sahool_app/lib/features/scouting/scouting_routes.dart,2,applied
 OPS-003,service,services/field-management-service/main.py,10,applied
+OPS-003,test,mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart,3,applied
 OPS-003,test,mobile/sahool_app/test/features/scouting/new_observation_cubit_test.dart,3,applied
 OPS-003,test,mobile/sahool_app/test/features/scouting/new_observation_screen_test.dart,3,applied
 OPS-003,test,mobile/sahool_app/test/features/scouting/pest_detect_test.dart,3,applied
@@ -2491,7 +2493,9 @@ WX-008,api,GET /v1/weather/operation-window @ services/weather-service/main.py:3
 WX-008,service,services/weather-service/main.py,10,applied
 WX-009,api,GET /api/v1/crop-cards/variety/{variety_id}/disease-watch @ services/sahool-platform/api/routers/crop_cards.py:113,2,applied
 WX-009,api,GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:429,2,applied
+WX-009,mobile,mobile/sahool_app/lib/features/scouting/presentation/disease_symptoms_dialog.dart,2,applied
 WX-009,service,services/weather-service/main.py,10,applied
+WX-009,test,mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart,3,applied
 WX-009,test,services/sahool-platform/tests/test_advice_host_disease_unknown_crop_and_knowledge.py,3,applied
 WX-009,test,services/sahool-platform/tests/test_weather_engine_disease_window_layers.py,3,applied
 WX-009,test,tests_v9/test_disease_field_state_feed.py,3,applied

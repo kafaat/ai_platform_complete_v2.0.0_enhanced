@@ -13875,7 +13875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "225b73220c413e782d134a2e54f1879376083c9425358b1b4c89b568a394a759"
+          "content": "988b103c42e6f536998cb851ed4485b98c7b7b65cf74367fae112a9af9000ab2"
         }
       ],
       "name": "mobile/sahool_app/lib/features/scouting/data/scouting_api.dart",
@@ -13895,7 +13895,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "23eb3772fbede2387b9d556fae305cb7b3ae88844df355139142f91c4ea03e82"
+          "content": "0c831abd7dc8f568c268451460acc1afd8bbe6e37de1f69cc761b41e8484ba2a"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/scouting/presentation/disease_symptoms_dialog.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d1711b9d08fde1449fa8ac091dcf4c0c249fa7edbea57125e0d616cc59d9db03"
         }
       ],
       "name": "mobile/sahool_app/lib/features/scouting/presentation/new_observation_cubit.dart",
@@ -13905,7 +13915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "48d83fa29ddbc4788564bb957c9dacb9fd722f50c9392ac82a735347235c51fc"
+          "content": "f7d28d35eb3de530694023c29a6d0849004c9d4fdd6ff1f20ef55a808a4d3d51"
         }
       ],
       "name": "mobile/sahool_app/lib/features/scouting/presentation/new_observation_screen.dart",
@@ -13915,7 +13925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c6be2ed3fdaa41ad13e28710740527e15ddf233123f3ff3920a8f44b295cd46"
+          "content": "a02a34a48458c3fa2bcf2993359ce40fea09be9e0fe66f21ee7847e0faea7bdf"
         }
       ],
       "name": "mobile/sahool_app/lib/features/scouting/presentation/pest_detect_cubit.dart",
@@ -13925,7 +13935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42059a541c41dd5a0386548da14edb2540409ddb9ea1f78fe55026101256532f"
+          "content": "81051e05f43d825d6b3113814e2c981e9b8babe22748f891a3c9c3c5a2236e11"
         }
       ],
       "name": "mobile/sahool_app/lib/features/scouting/presentation/pest_detect_screen.dart",
@@ -14015,7 +14025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8fc4d573be915da4fac897829eab6151aa3ce0edf4a13fef76232b1ecab8bc84"
+          "content": "955db6ded651a6fa3ce9747ac272560218f1e155eec6672c5e692ea2c3b1b639"
         }
       ],
       "name": "mobile/sahool_app/lib/features/tasks/data/irrigation_observations_api.dart",
@@ -14065,7 +14075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "600c68a0f72e812d1b0d2bb69b0aa9805394347a9383ab4feb3ea559404a1a4f"
+          "content": "43a454bec6adef2ec1ea121b8d771e4980174ea6032516593efb11743eba3fbc"
         }
       ],
       "name": "mobile/sahool_app/lib/features/tasks/presentation/irrigation_observations_screen.dart",
@@ -16235,6 +16245,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "72fb001851991feb874ed6bb3bdcd6a9ae306a54eccbd64b4359b5d9dda3d269"
+        }
+      ],
+      "name": "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c764e8ebe42f747a86bec0c2cc28e1276a7ecbb8d2cff25bb5bfa1869cba43df"
         }
       ],
@@ -16305,7 +16325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "85b3528a002c80af9be8bb3200b0adeea5d91889e842f4fae647e09e07a3bda1"
+          "content": "7ff147ffacdd196998ac3f7d0ef355da79e4a356bd8860a467bea2d9dc821bc1"
         }
       ],
       "name": "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
