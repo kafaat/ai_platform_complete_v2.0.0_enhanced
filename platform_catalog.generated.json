@@ -144,7 +144,7 @@
       "required_context": []
     },
     {
-      "approval_required": true,
+      "approval_required": false,
       "capability_id": "ai_agronomist.approvals.approve",
       "consumers": [
         "frontend"
@@ -161,7 +161,7 @@
       "required_context": []
     },
     {
-      "approval_required": true,
+      "approval_required": false,
       "capability_id": "ai_agronomist.approvals.deny",
       "consumers": [
         "frontend"
@@ -17794,7 +17794,7 @@
   "counts": {
     "backend_components": 33,
     "capabilities": 841,
-    "capabilities_approval_gated": 8,
+    "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 96,
     "capabilities_idempotent": 74,
     "capabilities_season_scoped": 10,
@@ -18068,7 +18068,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "06c3a4272f8f4f07ebf294aba27f06d2936b66602b998f569d2a8435c4813e7a",
+  "fingerprint": "2275f54bbcd0d1425485bbc6e05cd82143c1fb5924c0df50ba02174694718ccf",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

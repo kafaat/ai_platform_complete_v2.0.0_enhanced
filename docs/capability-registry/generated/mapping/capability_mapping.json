@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7170,
+    "files_scanned": 7172,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
-      "other": 2165,
-      "tests": 2412,
+      "other": 2166,
+      "tests": 2413,
       "web": 524
     },
-    "unmapped_artifacts": 3413,
+    "unmapped_artifacts": 3414,
     "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3865,
+      "python_functional": 3867,
       "raw": 3305
     },
-    "test_dependency_files": 1818,
-    "test_dependency_edges": 4605,
-    "test_dependency_bounded_files": 1062,
+    "test_dependency_files": 1819,
+    "test_dependency_edges": 4617,
+    "test_dependency_bounded_files": 1061,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -41165,6 +41165,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_ai_approval_identity_atomic_store.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_ai_container_contract_guard.py",
       "kind": "tests"
     },
@@ -68881,8 +68885,10 @@
     },
     {
       "test": "tests_v9/test_agent_stores_v58_2.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "shared_test_helper"
+      ],
       "edges": [
         {
           "source": "services/ai_agronomist/__init__.py",
@@ -68897,7 +68903,12 @@
         {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
-          "line": 104
+          "line": 88
+        },
+        {
+          "source": "tests_v9/redis_txn_double.py",
+          "kind": "import",
+          "line": 71
         }
       ],
       "unresolved": []
@@ -69117,6 +69128,11 @@
           "line": 17
         },
         {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 41
+        },
+        {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
           "line": 17
@@ -69229,9 +69245,66 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 64
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 65
+        },
+        {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
           "line": 21
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_ai_approval_identity_atomic_store.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "shared_test_helper",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 33
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 33
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "source_read",
+          "line": 41
+        },
+        {
+          "source": "services/ai_agronomist/approval.py",
+          "kind": "import",
+          "line": 34
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "import",
+          "line": 287
+        },
+        {
+          "source": "services/ai_agronomist/tool_loop.py",
+          "kind": "import",
+          "line": 35
+        },
+        {
+          "source": "tests_v9/redis_txn_double.py",
+          "kind": "import",
+          "line": 36
         }
       ],
       "unresolved": []
@@ -77142,6 +77215,11 @@
           "line": 114
         },
         {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 286
+        },
+        {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
           "line": 114
@@ -77149,22 +77227,22 @@
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "loader",
-          "line": 427
+          "line": 431
         },
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "source_read",
-          "line": 429
+          "line": 433
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 300
+          "line": 304
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 302
+          "line": 306
         },
         {
           "source": "shared/security/trusted_tenant.py",

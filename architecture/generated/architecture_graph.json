@@ -699,7 +699,7 @@
       "id": "sahool-redis",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 8,
+      "incoming": 7,
       "outgoing": 0,
       "orphan": false
     },
@@ -707,7 +707,7 @@
       "id": "sahool-redis-state",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
+      "incoming": 4,
       "outgoing": 0,
       "orphan": false
     },
@@ -1419,7 +1419,7 @@
     },
     {
       "source": "sahool-ai-agronomist",
-      "target": "sahool-redis",
+      "target": "sahool-redis-state",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -2129,5 +2129,5 @@
     "code_edges": 61,
     "compose_edges": 133
   },
-  "content_sha256": "e289f9ecda132d34a93d14d595e69f9090acba518d392bee9a70331bf1e5c014"
+  "content_sha256": "cac8b109b7a5de7540107c8b3a35dde4501f3de99239dcd275824a2fc937bc6a"
 }
