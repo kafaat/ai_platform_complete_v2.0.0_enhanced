@@ -969,7 +969,7 @@ FM-004,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41
 FM-004,api,GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:44,2,applied
 FM-004,api,PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2232,2,applied
 FM-004,api,PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264,2,applied
-FM-004,api,POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:219,2,applied
+FM-004,api,POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:221,2,applied
 FM-004,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:503,2,applied
 FM-004,api,POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:1996,2,applied
 FM-004,api,POST /api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:156,2,applied
@@ -1043,8 +1043,8 @@ FM-005,api,GET /api/v1/market/crop-gap @ services/sahool-platform/api/routers/ma
 FM-005,api,GET /api/v1/propagation/crop @ services/sahool-platform/api/routers/propagation.py:42,2,applied
 FM-005,api,GET /api/v1/varieties/food-grains/{variety_id} @ services/sahool-platform/api/routers/varieties.py:47,2,applied
 FM-005,api,GET /api/v1/wofost/crop-types @ services/sahool-platform/api/routers/wofost.py:27,2,applied
-FM-005,api,POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:167,2,applied
-FM-005,api,POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:202,2,applied
+FM-005,api,POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:169,2,applied
+FM-005,api,POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:204,2,applied
 FM-005,api,POST /api/v1/crop-suitability @ services/sahool-platform/api/routers/crop_suitability.py:31,2,applied
 FM-005,api,POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:245,2,applied
 FM-005,api,POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:410,2,applied
@@ -1427,7 +1427,7 @@ IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ servi
 IRR-005,api,POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:121,7,applied
 IRR-005,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:560,3,applied
 IRR-005,api,POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922,3,applied
-IRR-005,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:352,3,applied
+IRR-005,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:354,3,applied
 IRR-005,api,POST /v1/recommendation-outcomes @ services/decision-service/main.py:1118,2,applied
 IRR-005,mobile,mobile/sahool_app/lib/features/advisor/presentation/recommendation_detail_screen.dart,2,applied
 IRR-005,mobile,mobile/sahool_app/lib/features/advisor/presentation/widgets/recommendation_widgets.dart,2,applied
@@ -1455,6 +1455,7 @@ IRR-005,test,tests_v9/test_recommendation_runtime_wiring.py,3,applied
 IRR-005,test,tests_v9/test_recommendation_wiring_preconditions.py,3,applied
 IRR-005,test,tests_v9/test_recommendation_work_order_idempotency.py,3,applied
 IRR-005,test,tests_v9/test_v152_recommendation_feedback_deprecation_static.py,3,applied
+IRR-005,test,tests_v9/test_work_order_from_recommendation_rbac.py,3,applied
 IRR-006,api,DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:439,3,applied
 IRR-006,api,POST /api/v1/irrigation/schedules @ services/sahool-platform/api/routers/irrigation.py:295,3,applied
 IRR-006,api,POST /v1/fields/{field_id}/post-execution-observations @ services/vegetation-analysis-service/routers/outcomes.py:43,2,applied
@@ -1565,12 +1566,13 @@ OPS-001,test,mobile/sahool_app/test/features/tasks/tasks_screen_test.dart,3,appl
 OPS-001,test,services/sahool-platform/tests/test_task_irrigation_observations.py,3,applied
 OPS-001,test,services/sahool-platform/tests/test_task_update_idempotency.py,3,applied
 OPS-001,test,tests_v9/test_tasks_endpoints.py,3,applied
-OPS-002,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:352,5,applied
+OPS-002,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:354,5,applied
 OPS-002,service,services/sahool-platform/api/main.py,10,applied
 OPS-002,test,services/sahool-platform/tests/test_work_order.py,5,applied
 OPS-002,test,services/sahool-platform/tests/test_work_order_from_recommendation.py,5,applied
 OPS-002,test,tests_v9/test_recommendation_work_order_idempotency.py,5,applied
 OPS-002,test,tests_v9/test_telegram_work_order_delivery.py,5,applied
+OPS-002,test,tests_v9/test_work_order_from_recommendation_rbac.py,5,applied
 OPS-002,test,tests_v9/test_work_order_persist_emit.py,5,applied
 OPS-002,test,tests_v9/test_work_orders_migration.py,5,applied
 OPS-003,api,GET /api/v1/scouting/pins @ services/sahool-platform/api/routers/scouting.py:78,2,applied
