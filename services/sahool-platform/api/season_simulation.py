@@ -754,6 +754,8 @@ def plan_simulation_window(
         )
     cap = crop_cycle_window_cap(crop, floor_days)
     start = sowing_date
+    if season_end is not None and season_end < sowing_date:
+        raise SimWindowError("تاريخ نهاية الموسم يسبق تاريخ البذار — صحّح تاريخَي الموسم.")
     requested_end = min(season_end, today) if season_end is not None else today
     if requested_end <= start:
         requested_end = min(start + timedelta(days=cap), today)
@@ -775,6 +777,27 @@ def plan_simulation_window(
         days_simulated=(win_end - start).days + 1,
         truncated=truncated,
     )
+
+
+def validate_historical_weather_window(days: list[object], start: date, end: date) -> None:
+    """Require each provider day, in order, before using positional GDD/ET0 arrays.
+
+    A missing/duplicated/reordered date is NOT a missing number for the wrong day.
+    Fail before a simulation run is persisted or a weather-engine request is made.
+    """
+    expected_count = (end - start).days + 1
+    if expected_count <= 0 or len(days) != expected_count:
+        raise SimWindowError(
+            "سلسلة الطقس التاريخيّة غير مكتملة: عدد الأيام لا يطابق نافذة الموسم؛ "
+            "لم تُشغَّل المحاكاة ولم يُحفَظ تقدير."
+        )
+    for i, item in enumerate(days):
+        expected = (start + timedelta(days=i)).isoformat()
+        if str(getattr(item, "date", None)) != expected:
+            raise SimWindowError(
+                f"سلسلة الطقس التاريخيّة غير متصلة أو غير مرتّبة عند {expected}؛ "
+                "لا يجوز محاذاة GDD/ET0 إلى يوم غير صحيح."
+            )
 
 
 # ─── ربط السجلّ التاريخيّ تلقائيّاً (حقل + يوم بذار + المحصول نفسه) ─────────────────────
