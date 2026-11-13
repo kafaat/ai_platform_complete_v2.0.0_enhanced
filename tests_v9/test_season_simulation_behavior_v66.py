@@ -239,7 +239,9 @@ class TestSimulateConsistency:
     def test_cold_season_below_base_yields_nothing(self):
         # maize t_base=8؛ أيّام باردة ⇒ GDD=0 ⇒ لا LAI ⇒ لا كتلة ⇒ لا إنتاج
         cold = [DayWeather(t_min_c=-5.0, t_max_c=2.0, et0_mm=3.0) for _ in range(60)]
-        r = simulate_season(SimContext(crop="maize", weather=cold))
+        # The weather engine reports an observed 0 GDD for each cold day; a missing GDD
+        # series would instead make the season unavailable rather than zero growth.
+        r = simulate_season(SimContext(crop="maize", weather=cold, gdd_daily_override=[0.0] * 60))
         assert r.gdd_total == 0.0
         assert r.biomass_kg_ha == 0.0
         assert r.yield_kg_ha == 0.0

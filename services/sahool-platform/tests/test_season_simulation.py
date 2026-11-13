@@ -75,6 +75,8 @@ class TestSimulateBasics:
         r = simulate_season(SimContext(crop="wheat", weather=[]))
         assert r.days_simulated == 0
         assert r.yield_kg_ha is None
+        assert r.yield_low_kg_ha is None
+        assert r.yield_high_kg_ha is None
         assert r.water_need_mm is None
         assert r.gdd_total is None
         assert r.yield_status == "unavailable_no_weather"
@@ -286,3 +288,70 @@ class TestCropDifferences:
         assert wheat.biomass_kg_ha > 0
         # معاملاتهما تختلف ⇒ النتائج ليست متطابقة
         assert maize.yield_kg_ha != wheat.yield_kg_ha
+
+
+class TestIncompleteWeatherTruth:
+    def test_all_gdd_missing_is_unavailable_not_yield_zero(self):
+        weather = _warm_days(120)
+        out = simulate_season(
+            SimContext(
+                crop="wheat",
+                weather=weather,
+                gdd_daily_override=[None] * len(weather),
+                et0_daily_override=[5.0] * len(weather),
+            )
+        )
+        assert out.yield_kg_ha is None
+        assert out.yield_low_kg_ha is None
+        assert out.yield_high_kg_ha is None
+        assert out.yield_status == "unavailable_missing_gdd"
+        assert out.confidence == 0.0
+        assert "GDD_SERIES_INCOMPLETE" in out.limitations
+
+    def test_partial_gdd_missing_does_not_publish_complete_season_yield(self):
+        weather = _warm_days(120)
+        gdd = _gdd_series("wheat", weather)
+        gdd[29] = None
+        out = simulate_season(SimContext(crop="wheat", weather=weather, gdd_daily_override=gdd))
+        assert out.yield_kg_ha is None
+        assert out.yield_status == "unavailable_missing_gdd"
+
+    def test_missing_et0_prevents_water_adjusted_yield_estimate(self):
+        weather = _warm_days(120)
+        weather[-1].et0_mm = None
+        out = _sim(
+            "wheat",
+            weather,
+            et0_daily_override=[5.0] * 119 + [None],
+        )
+        assert out.yield_kg_ha is None
+        assert "ET0_SERIES_INCOMPLETE" in out.limitations
+
+    def test_missing_rain_never_becomes_observed_zero(self):
+        weather = _warm_days(120)
+        weather[10].rain_mm = None
+        out = _sim("wheat", weather, irrigation_mm_total=25.0)
+        assert out.water_supply_mm is None
+        assert "PRECIPITATION_SERIES_INCOMPLETE" in out.limitations
+        # Unified with #1410: an unknown day of rain makes the water balance unprovable,
+        # so no yield is published (fail closed), rather than a capped-confidence estimate.
+        assert out.yield_kg_ha is None
+        assert out.yield_status == "unavailable_missing_precipitation"
+        assert out.confidence == 0.0
+
+    def test_invalid_fapar_does_not_shift_later_day_measurements(self):
+        weather = _warm_days(12)
+        baseline = _sim("wheat", weather)
+        invalid = _sim("wheat", weather, observed_fapar=[0.5, None, 0.8])
+        assert invalid.fapar_source == "modeled"
+        assert invalid.yield_kg_ha == baseline.yield_kg_ha
+        assert any("fAPAR" in w for w in invalid.warnings_ar)
+
+    def test_rainfed_zero_rain_does_not_assume_water_is_sufficient(self):
+        weather = _warm_days(90)
+        out = _sim("wheat", weather, irrigation_type="rainfed")
+        assert out.water_supply_mm == 0.0
+        assert out.water_stress_factor < 1.0
+        assert out.yield_status == "estimated_water_unverified"
+        assert out.confidence <= 0.45
+        assert "RAINFED_INITIAL_SOIL_WATER_UNMODELED" in out.limitations

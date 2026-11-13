@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from types import SimpleNamespace
 
 import pytest
 from api.season_simulation import (
@@ -12,8 +11,8 @@ from api.season_simulation import (
     SimWindowError,
     plan_simulation_window,
     simulate_season,
-    validate_historical_weather_window,
 )
+from api.season_weather_contract import canonical_historical_days
 
 pytestmark = pytest.mark.unit
 
@@ -110,24 +109,50 @@ def test_empty_weather_has_no_fabricated_metrics():
     assert out.yield_status == "unavailable_no_weather"
 
 
-def _days(start: date, count: int):
-    return [SimpleNamespace(date=(start + timedelta(days=i)).isoformat()) for i in range(count)]
+def _archive(start: date, count: int, *, expected: int | None = None) -> dict:
+    """A canonical weather-service product whose coverage claims the full window."""
+    n = expected if expected is not None else count
+    end = start + timedelta(days=n - 1)
+    return {
+        "derived_from": "canonical_weather_state",
+        "canonical_state_id": "wx-state",
+        "source_snapshot_id": "wx-snapshot",
+        "quality_status": "validated",
+        "coverage": {
+            "period_start": start.isoformat(),
+            "period_end": end.isoformat(),
+            "expected_days": n,
+            "observed_days": n,
+            "missing_days": 0,
+            "coverage_ratio": 1.0,
+        },
+        "days": [
+            {
+                "date": (start + timedelta(days=i)).isoformat(),
+                "temp_min_c": 10.0,
+                "temp_max_c": 25.0,
+            }
+            for i in range(count)
+        ],
+    }
 
 
 def test_valid_archive_day_sequence_is_accepted():
     start = date(2026, 1, 1)
-    validate_historical_weather_window(_days(start, 5), start, start + timedelta(days=4))
+    days = canonical_historical_days(_archive(start, 5), start=start, end=start + timedelta(days=4))
+    assert len(days) == 5
 
 
 def test_archive_missing_or_duplicate_days_is_rejected():
+    """GDD/ET0 are aligned by position, so a gap or duplicate must refuse, not shift."""
     start = date(2026, 1, 1)
     end = start + timedelta(days=4)
-    with pytest.raises(SimWindowError):
-        validate_historical_weather_window(_days(start, 4), start, end)
-    duplicate = _days(start, 5)
-    duplicate[2] = SimpleNamespace(date=duplicate[1].date)
-    with pytest.raises(SimWindowError):
-        validate_historical_weather_window(duplicate, start, end)
+    with pytest.raises(ValueError):
+        canonical_historical_days(_archive(start, 4, expected=5), start=start, end=end)
+    duplicate = _archive(start, 5)
+    duplicate["days"][2]["date"] = duplicate["days"][1]["date"]
+    with pytest.raises(ValueError):
+        canonical_historical_days(duplicate, start=start, end=end)
 
 
 def test_inverted_season_dates_are_refused_instead_of_extended():

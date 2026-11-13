@@ -185,6 +185,7 @@ class SimContext:
     # أوّل يوم في سلسلة الطقس. None ⇒ النافذة تبدأ يوم البذار (عقد المسار). مع تاريخ البذار
     # يُشتقّ منه عمر المحصول لكلّ يوم ⇒ Kc يوميّ من منحنى البطاقة لا توزيع تناسبيّ.
     window_start: date | None = None
+    irrigation_type: str | None = None  # rainfed must not imply assured irrigation
 
 
 @dataclass
@@ -369,14 +370,11 @@ def _resolve_observed_fapar(
             return None, True
         return [float(observed)] * n_days, False
     if isinstance(observed, list):
-        clean = [float(v) for v in observed if _valid(v)]
-        if not clean or len(clean) != len(observed):
-            # سلسلة فارغة أو فيها قيم غير صالحة ⇒ نُهمل المرصود ونوسم البطلان.
-            if not clean:
-                return None, True
-            had_invalid = len(clean) != len(observed)
-            series = (clean + [clean[-1]] * n_days)[:n_days]
-            return series, had_invalid
+        # Invalid entries must never be filtered out: removal would shift
+        # subsequent observations to earlier dates and corrupt daily APAR.
+        if not observed or not all(_valid(value) for value in observed):
+            return None, True
+        clean = [float(value) for value in observed]
         series = (clean + [clean[-1]] * n_days)[:n_days]
         return series, False
     return None, True
@@ -540,7 +538,10 @@ def simulate_season(ctx: SimContext) -> SimResult:
     if ctx.irrigation_mm_total is not None and irrigation_total is None:
         limitations.append("IRRIGATION_TOTAL_INVALID")
     water_supply: float | None = None
-    if missing_rain_days == 0 and (irrigation_total is not None or rain_total > 0):
+    rainfed = (ctx.irrigation_type or "").strip().lower() == "rainfed"
+    if missing_rain_days == 0 and (irrigation_total is not None or rain_total > 0 or rainfed):
+        # For a rainfed season, observed zero rain is a known zero supply, not an
+        # absence of irrigation information that would justify assuming a watered crop.
         water_supply = rain_total + (irrigation_total or 0.0)
 
     # Do not invent a stress factor when weather coverage is incomplete.
@@ -574,7 +575,14 @@ def simulate_season(ctx: SimContext) -> SimResult:
         yield_status = "unavailable_missing_precipitation"
     elif recognized and "IRRIGATION_TOTAL_INVALID" in limitations:
         yield_status = "unavailable_invalid_irrigation"
-    yield_available = recognized and yield_status == "estimated" and water_stress is not None
+    elif recognized and rainfed and yield_status == "estimated":
+        # Documented rain is the only modelled supply; initial soil water is not.
+        yield_status = "estimated_water_unverified"
+    yield_available = (
+        recognized
+        and yield_status in ("estimated", "estimated_water_unverified")
+        and water_stress is not None
+    )
     yield_kg_ha = biomass_kg_ha * p.harvest_index * water_stress if yield_available else None
     yield_low = yield_kg_ha * (1.0 - _UNCERTAINTY_FRAC) if yield_kg_ha is not None else None
     yield_high = yield_kg_ha * (1.0 + _UNCERTAINTY_FRAC) if yield_kg_ha is not None else None
@@ -605,6 +613,12 @@ def simulate_season(ctx: SimContext) -> SimResult:
             f"بيانات المطر مفقودة أو غير صالحة لـ{missing_rain_days} يوم — "
             "لم تُحسب كصفر، وتعذّر إثبات العرض المائي."
         )
+    if rainfed:
+        assumptions.append(
+            "الموسم مطريّ — استُخدم المطر الموثّق فقط في العرض المائي؛ "
+            "الماء المخزون مبدئيّاً في التربة غير ممثّل في هذا النموذج."
+        )
+        limitations.append("RAINFED_INITIAL_SOIL_WATER_UNMODELED")
     if missing_gdd_days == 0 and not maturity_reached:
         warnings.append(
             f"لم يبلغ GDD التراكمي ({gdd_cum:.0f}) عتبة النضج ({p.gdd_to_maturity:.0f}) — "
@@ -630,6 +644,8 @@ def simulate_season(ctx: SimContext) -> SimResult:
     if water_supply is not None:
         confidence += 0.05
     confidence = round(min(0.85, confidence), 2) if yield_available else 0.0
+    if yield_status == "estimated_water_unverified":
+        confidence = min(confidence, 0.45)
 
     yield_text = (
         f"الإنتاج المُقدَّر≈{yield_kg_ha:.0f} kg/ha (نطاق {yield_low:.0f}–{yield_high:.0f}، "
@@ -778,27 +794,6 @@ def plan_simulation_window(
         days_simulated=(win_end - start).days + 1,
         truncated=truncated,
     )
-
-
-def validate_historical_weather_window(days: list[object], start: date, end: date) -> None:
-    """Require each provider day, in order, before using positional GDD/ET0 arrays.
-
-    A missing/duplicated/reordered date is NOT a missing number for the wrong day.
-    Fail before a simulation run is persisted or a weather-engine request is made.
-    """
-    expected_count = (end - start).days + 1
-    if expected_count <= 0 or len(days) != expected_count:
-        raise SimWindowError(
-            "سلسلة الطقس التاريخيّة غير مكتملة: عدد الأيام لا يطابق نافذة الموسم؛ "
-            "لم تُشغَّل المحاكاة ولم يُحفَظ تقدير."
-        )
-    for i, item in enumerate(days):
-        expected = (start + timedelta(days=i)).isoformat()
-        if str(getattr(item, "date", None)) != expected:
-            raise SimWindowError(
-                f"سلسلة الطقس التاريخيّة غير متصلة أو غير مرتّبة عند {expected}؛ "
-                "لا يجوز محاذاة GDD/ET0 إلى يوم غير صحيح."
-            )
 
 
 # ─── ربط السجلّ التاريخيّ تلقائيّاً (حقل + يوم بذار + المحصول نفسه) ─────────────────────

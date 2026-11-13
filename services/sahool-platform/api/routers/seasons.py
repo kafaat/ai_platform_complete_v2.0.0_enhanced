@@ -63,6 +63,7 @@ async def _load_linked_historical_inputs(
     # record with the same field, exact sowing day AND the same crop (canonical resolver
     # on both sides; either side unresolved ⇒ no link). Zero/multiple matches remain
     # unlinked; no fuzzy date or crop inference is allowed.
+    pending_auto_link_id = None
     if record is None and sowing_date is not None:
         from api.season_simulation import select_auto_link_candidate
 
@@ -80,18 +81,10 @@ async def _load_linked_historical_inputs(
         )
         record = select_auto_link_candidate(candidates, season_crop)
         if record is not None:
-            await conn.execute(
-                "INSERT INTO season_record_links "
-                "(tenant_id, season_record_id, canonical_season_id, field_id, "
-                " linkage_reason, linked_by) "
-                "VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
-                tenant_id,
-                record["id"],
-                season_id,
-                field_id,
-                "exact_field_and_sowing_day",
-                "system:historical-season-composer",
-            )
+            # Only propose the historical link here. Committing it before the
+            # canonical weather/GDD/ET0 validation leaves a side effect on a
+            # request that never produced a valid simulation run.
+            pending_auto_link_id = record["id"]
     crop = None
     events = []
     harvest = None
@@ -129,15 +122,15 @@ async def _load_linked_historical_inputs(
             and (end_iso is None or day <= end_iso)
         )
     ]
-    return record, crop, events, harvest, vegetation
+    return record, crop, events, harvest, vegetation, pending_auto_link_id
 
 
-async def _boundary_revisions_since(conn, field_id: str, since) -> list[int]:
-    """S4-b: مراجعات حدّ الحقل المسجّلة منذ بداية الموسم (قراءة فقط، بلا مخطّط).
+async def _boundary_revisions_since(conn, field_id: str, since) -> dict:
+    """Read an auditable geometry *revision*, not historical boundary coordinates.
 
-    الموسم لا يُثبّت مراجعة هندسة (قرار مخطّط معلّق)، والمحاكاة تقرأ إحداثيّات الحقل
-    وسلسلة NDVI على الحدّ **الحاليّ**. المراجعة الأولى رسمُ الحقل لا تعديلُه، فلا تُعدّ
-    ولو سُجِّلت بعد بدء موسمٍ أُدخِل لاحقاً؛ وتعديلٌ قبل البداية لا يمسّ حدّ الموسم.
+    The current boundary is used for the weather and imagery read. This ledger
+    proves only which edits are recorded; no historical geometry is reconstructed.
+    An empty ledger is unverified, not proof that the boundary never changed.
     """
     rows = await conn.fetch(
         "SELECT revision, changed_at FROM field_geometry_history "
@@ -145,11 +138,18 @@ async def _boundary_revisions_since(conn, field_id: str, since) -> list[int]:
         field_id,
     )
     cutoff = datetime.combine(since, datetime.min.time(), tzinfo=UTC)
-    return [
-        int(r["revision"])
-        for r in rows[1:]
-        if r["changed_at"] is not None and r["changed_at"] >= cutoff
-    ]
+    return {
+        "source": "field_geometry_history",
+        "geometry_basis": "current_boundary",
+        "status": "recorded" if rows else "history_missing",
+        "latest_revision": int(rows[-1]["revision"]) if rows else None,
+        "revisions_since_sowing": [
+            int(r["revision"])
+            for r in rows[1:]
+            if r["changed_at"] is not None and r["changed_at"] >= cutoff
+        ],
+        "historical_geometry_replayed": False,
+    }
 
 
 @router.post("/api/v1/seasons/{season_id}/simulate", response_model=SeasonSimResponse)
@@ -166,8 +166,9 @@ async def simulate_season_endpoint(
     """
     import json as _json
 
-    from api.connectors.openmeteo import fetch_historical
-    from api.season_simulation import DayWeather, SimContext, simulate_season
+    from api.season_simulation import SimContext, simulate_season
+    from api.season_weather_contract import canonical_historical_days, validated_engine_daily_series
+    from api.weather_service_client import get_weather_historical
 
     # ١) سياق الموسم من القاعدة (+ تأكيد المستأجِر عبر RLS ⇒ 404 إن غاب).
     try:
@@ -230,6 +231,7 @@ async def simulate_season_endpoint(
                 historical_events,
                 historical_harvest,
                 vegetation,
+                pending_auto_link_id,
             ) = await _load_linked_historical_inputs(
                 conn,
                 season_id,
@@ -248,48 +250,51 @@ async def simulate_season_endpoint(
     spatial_warnings: list[str] = []
     try:
         async with tenant_connection(user) as conn:
-            changed_revisions = await _boundary_revisions_since(conn, str(srow["field_id"]), start)
-    except Exception:  # noqa: BLE001 — أفضل-جهد: تحذير، لا بوّابة
-        changed_revisions = []
+            spatial_provenance = await _boundary_revisions_since(conn, str(srow["field_id"]), sow)
+    except Exception:  # noqa: BLE001 — لا تختلق ثبات الهندسة إذا تعذّر جدول التدقيق
+        spatial_provenance = {
+            "source": "field_geometry_history",
+            "geometry_basis": "current_boundary",
+            "status": "unavailable",
+            "latest_revision": None,
+            "revisions_since_sowing": [],
+            "historical_geometry_replayed": False,
+        }
+    changed_revisions = spatial_provenance["revisions_since_sowing"]
+    if spatial_provenance["status"] != "recorded":
+        spatial_warnings.append(
+            "تعذّر إثبات تاريخ حدّ الحقل — سجلّ الهندسة مفقود أو غير متاح. "
+            "المحاكاة تستخدم الحدّ الحاليّ فقط، ولا تثبت سلامته للموسم التاريخيّ."
+        )
     if changed_revisions:
         spatial_warnings.append(
-            f"حدّ الحقل عُدِّل منذ بداية الموسم ({start.isoformat()}) — المراجعات "
+            f"حدّ الحقل عُدِّل منذ بداية الموسم ({sow.isoformat()}) — المراجعات "
             f"{'، '.join(str(r) for r in changed_revisions)}. المحاكاة تقرأ إحداثيّات الحقل "
             "وسلسلة NDVI على الحدّ الحاليّ لا حدّ الموسم؛ الموسم لا يُثبّت مراجعة هندسة."
         )
 
-    # ٣) الطقس التاريخي (ERA5) من Open-Meteo — تعذّره ⇒ 503 صريح.
+    # ٣) الطقس التاريخي من مالك الطقس الوحيد، لا عبر Open-Meteo داخل المنصّة.
+    # التواريخ/التغطية والبصمة يجب أن تطابق نافذة الموسم تماماً؛ سلسلة مبتورة
+    # ليست موسماً أقصر. المطر المفقود يبقى None لا صفر مرصود.
     try:
-        days = await fetch_historical(
+        archive = await get_weather_historical(
             float(srow["lat"]),
             float(srow["lon"]),
-            start.isoformat(),
-            win_end.isoformat(),
+            start_date=start.isoformat(),
+            end_date=win_end.isoformat(),
+            tenant_id=str(user.tenant_id),
         )
-    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        weather = canonical_historical_days(archive, start=start, end=win_end)
+    except HTTPException as exc:
         raise HTTPException(
             status_code=503,
-            detail="تعذّر جلب الطقس التاريخي (Open-Meteo غير متاح). حاول لاحقاً.",
-        ) from e
-
-    # Never align GDD or ET0 positionally against a partial or reordered archive.
-    from api.season_simulation import validate_historical_weather_window
-
-    try:
-        validate_historical_weather_window(days, start, win_end)
-    except SimWindowError as exc:
-        raise HTTPException(status_code=503, detail=exc.detail_ar) from exc
-
-    weather = [
-        DayWeather(
-            t_min_c=d.temp_min_c,
-            t_max_c=d.temp_max_c,
-            solar_mj_m2=getattr(d, "solar_radiation_mj_m2", None),
-            et0_mm=d.et0_mm,
-            rain_mm=d.precipitation_mm,  # None remains missing, not observed 0
-        )
-        for d in days
-    ]
+            detail="خدمة الطقس التاريخي غير متاحة — لم تُحفظ محاكاة.",
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"أرشيف الطقس غير مؤهّل للمحاكاة: {exc}",
+        ) from exc
 
     # ٣-ب) نواة GDD من محرّك الطقس (WS-C.1c Zero-Legacy) — المصدر الوحيد، لا تُحسب محلّيّاً.
     # سياسة المحصول (الأساس/السقف، method="modified") من نموذج الموسم وتُمرَّر للمحرّك؛
@@ -304,29 +309,57 @@ async def simulate_season_endpoint(
     et0_override: list[float | None] | None = None
     et0_provenance: dict | None = None
     if weather:
-        # WS-C.1b: سلسلة ET0 من محرّك الطقس (المصدر الكنسيّ) — لا Hargreaves محلّيّ في
-        # المحاكاة. تعذّر المحرّك ⇒ 503 (fail-closed). خطّ عرض الحقل + يوم البدء.
-        try:
-            et0_series = await get_et0_series(
-                daily_t_min=[w.t_min_c for w in weather],
-                daily_t_max=[w.t_max_c for w in weather],
-                lat_deg=float(srow["lat"]),
-                day_of_year_start=start.timetuple().tm_yday,
-            )
-        except HTTPException as exc:
-            if exc.status_code in (502, 503, 504):
+        # Prefer FAO reference ET0 returned by the canonical historical owner.
+        # A rederived temperature-only series is not more authoritative than
+        # observed/reanalysis provider ET0. Fall back to the owner's ET0 engine
+        # only when the historical product is incomplete.
+        archived_et0 = [day.et0_mm for day in weather]
+        if all(value is not None for value in archived_et0):
+            et0_override = archived_et0
+            et0_provenance = {
+                "source": "weather-service/historical-fao-et0",
+                "formula_version": "provider:et0_fao_evapotranspiration",
+                "days_computed": len(weather),
+                "source_snapshot_id": archive["source_snapshot_id"],
+                "quality_status": archive.get("quality_status"),
+            }
+        else:
+            # Weather-service remains the only ET0 calculation owner. Never
+            # reimplement Hargreaves/Penman-Monteith inside the season engine.
+            try:
+                et0_series = await get_et0_series(
+                    daily_t_min=[w.t_min_c for w in weather],
+                    daily_t_max=[w.t_max_c for w in weather],
+                    lat_deg=float(srow["lat"]),
+                    daily_dates=[
+                        (start + timedelta(days=i)).isoformat() for i in range(len(weather))
+                    ],
+                    tenant_id=str(user.tenant_id),
+                )
+            except HTTPException as exc:
+                if exc.status_code in (502, 503, 504):
+                    raise HTTPException(
+                        status_code=503,
+                        detail=(
+                            "weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)"
+                        ),
+                    ) from exc
+                raise
+            try:
+                et0_override = validated_engine_daily_series(
+                    et0_series, "daily_et0_mm", len(weather)
+                )
+            except ValueError as exc:
                 raise HTTPException(
-                    status_code=503,
-                    detail="weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)",
+                    status_code=503, detail=f"سلسلة ET₀ غير متطابقة مع أيام الموسم: {exc}"
                 ) from exc
-            raise
-        et0_override = et0_series.get("daily_et0_mm")
-        et0_provenance = {
-            "source": "weather-engine",
-            "formula_version": et0_series.get("formula_version"),
-            "days_computed": et0_series.get("days_computed"),
-            "accumulated_et0_mm": et0_series.get("accumulated_et0_mm"),
-        }
+            et0_provenance = {
+                "source": "weather-engine/derived-et0",
+                "formula_version": et0_series.get("formula_version"),
+                "days_computed": et0_series.get("days_computed"),
+                "accumulated_et0_mm": et0_series.get("accumulated_et0_mm"),
+                "quality_status": et0_series.get("quality_status"),
+            }
         try:
             gdd_engine = await get_gdd_product(
                 daily_t_min=[w.t_min_c for w in weather],
@@ -334,6 +367,9 @@ async def simulate_season_endpoint(
                 base_c=gdd_base,
                 upper_cutoff_c=gdd_cutoff,
                 method="modified",
+                start_date=start.isoformat(),
+                end_date=win_end.isoformat(),
+                tenant_id=str(user.tenant_id),
             )
         except HTTPException as exc:
             if exc.status_code in (502, 503, 504):
@@ -342,7 +378,12 @@ async def simulate_season_endpoint(
                     detail="weather-engine GDD unavailable — fail-closed (no local GDD fallback)",
                 ) from exc
             raise
-        gdd_override = gdd_engine.get("daily_gdd")
+        try:
+            gdd_override = validated_engine_daily_series(gdd_engine, "daily_gdd", len(weather))
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=503, detail=f"سلسلة GDD غير متطابقة مع أيام الموسم: {exc}"
+            ) from exc
         # WS-C.1c Zero-Legacy: أُزيلت المقارنة الظلّيّة ونواة gdd_day المحلّيّة (المحرّك مصدر
         # GDD الوحيد). النَّسَب من المحرّك مباشرة.
         gdd_provenance = {
@@ -358,6 +399,15 @@ async def simulate_season_endpoint(
         field_id=str(srow["field_id"]),
         season_id=season_id,
         season=dict(srow),
+        simulation_window={"start": start.isoformat(), "end": win_end.isoformat()},
+        spatial_provenance=spatial_provenance,
+        weather_provenance={
+            "owner": "weather-service",
+            "canonical_state_id": archive["canonical_state_id"],
+            "source_snapshot_id": archive["source_snapshot_id"],
+            "coverage": archive.get("coverage"),
+            "quality_status": archive.get("quality_status"),
+        },
         season_record=dict(record) if record is not None else None,
         crop=dict(historical_crop) if historical_crop is not None else None,
         events=[dict(row) for row in historical_events],
@@ -392,6 +442,7 @@ async def simulate_season_endpoint(
             season_end=end,
             weather=weather,
             irrigation_mm_total=composed_inputs["irrigation_mm_total"],
+            irrigation_type=srow["irrigation_type"],
             observed_fapar=composed_inputs["observed_fapar"],
             gdd_daily_override=gdd_override,
             et0_daily_override=et0_override,
@@ -449,6 +500,22 @@ async def simulate_season_endpoint(
                         ensure_ascii=False,
                     ),
                 )
+                # Auto-link is an auxiliary persisted fact, not an observation.
+                # Insert it only after weather, numerical validation and the
+                # simulation all succeeded, atomically with the append-only run.
+                if pending_auto_link_id is not None:
+                    await conn.execute(
+                        "INSERT INTO season_record_links "
+                        "(tenant_id, season_record_id, canonical_season_id, field_id, "
+                        " linkage_reason, linked_by) "
+                        "VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
+                        user.tenant_id,
+                        pending_auto_link_id,
+                        season_id,
+                        str(srow["field_id"]),
+                        "exact_field_and_sowing_day",
+                        "system:historical-season-composer",
+                    )
                 await conn.execute(
                     "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
                     "sim_gdd_total = $4, sim_lai_max = $5, sim_water_mm = $6, "
@@ -535,7 +602,16 @@ async def simulate_season_endpoint(
         yield_low_kg_ha=result.yield_low_kg_ha,
         yield_high_kg_ha=result.yield_high_kg_ha,
         yield_status=result.yield_status,
-        limitations=[*window.limitations(), *result.limitations],
+        limitations=[
+            *window.limitations(),
+            *result.limitations,
+            *(
+                ["GEOMETRY_HISTORY_UNVERIFIED"]
+                if spatial_provenance["status"] != "recorded"
+                else []
+            ),
+            *(["CURRENT_BOUNDARY_DIFFERS_FROM_SEASON_START"] if changed_revisions else []),
+        ],
         water_need_mm=result.water_need_mm,
         water_supply_mm=result.water_supply_mm,
         water_stress_factor=result.water_stress_factor,
