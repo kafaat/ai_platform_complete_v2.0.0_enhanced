@@ -73,6 +73,7 @@ interface IrrigationRecommendationBase {
 export type ApprovalState =
   | 'not_submitted'
   | 'pending_approval'
+  | 'blocked_rainfed_capability_unverified'
   | 'submit_unavailable'
   | 'approved'
   | 'rejected';

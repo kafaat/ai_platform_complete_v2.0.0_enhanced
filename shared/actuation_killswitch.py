@@ -67,7 +67,11 @@ def match_killswitch(
         scope = sw.get("scope")
         if scope == "tenant":
             return True, sw.get("reason")
-        if scope == "field" and field_id is not None and sw.get("field_id") == field_id:
+        if (
+            scope == "field"
+            and field_id is not None
+            and str(sw.get("field_id") or "").strip() == str(field_id).strip()
+        ):
             return True, sw.get("reason")
         if scope == "valve" and valve_id is not None and sw.get("valve_id") == valve_id:
             return True, sw.get("reason")

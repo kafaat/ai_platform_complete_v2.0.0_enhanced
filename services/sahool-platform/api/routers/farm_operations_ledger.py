@@ -656,6 +656,7 @@ async def create_revenue_record(
 @router.get("/api/v1/farm-ledger/variance/{season_id}")
 async def get_budget_variance(
     season_id: str,
+    currency: str | None = None,
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ):
     _require_enabled()
@@ -666,17 +667,21 @@ async def get_budget_variance(
             "recommendations": [],
             "note_ar": "القاعدة غير مفعلة",
         }
+    cur, tenant = ledger_core.normalize_currency(currency), str(user.tenant_id)
     try:
         async with tenant_connection(user) as conn:
             budgets, actuals = await ledger_core.fetch_budget_and_actual(
-                conn, str(user.tenant_id), season_id
+                conn, tenant, season_id, cur
             )
+            incomplete = await ledger_core.fetch_unpriced_categories(conn, tenant, season_id, cur)
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحليل انحرافات الموسم", e) from e
-    variance = compute_variances(budgets, actuals)
+    variance, coverage = ledger_core.priced_variance(budgets, actuals, incomplete)
     recs = generate_cost_recommendations(variance)
     return {
         "season_id": season_id,
+        "currency": cur,
+        **coverage,
         "variance": [v.__dict__ for v in variance],
         "recommendations": [r.__dict__ for r in recs],
         "provenance": {"source": "farm_operations_ledger", "prediction": False},
@@ -698,17 +703,12 @@ async def get_season_profitability(
             _, actuals = await ledger_core.fetch_budget_and_actual(
                 conn, str(user.tenant_id), season_id
             )
-            rev = await conn.fetchrow(
-                """SELECT COALESCE(SUM(amount), 0)::float AS revenue
-                   FROM farm_revenue_records WHERE tenant_id = $1::uuid AND season_id = $2""",
-                str(user.tenant_id),
-                season_id,
-            )
+            revenue = await ledger_core.fetch_season_revenue(conn, str(user.tenant_id), season_id)
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحليل ربحية الموسم", e) from e
     profit = compute_profitability(
         season_id,
-        revenue=float(rev["revenue"] or 0.0),
+        revenue=revenue,
         cost_lines=actuals,
         yield_quantity=yield_quantity,
         unit=unit,
@@ -724,27 +724,32 @@ async def get_season_profitability(
 async def get_erp_projection(
     season_id: str,
     cost_center: str | None = None,
+    currency: str | None = None,
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ):
     """يعرض إسقاطاً مالياً قابلاً للترحيل لاحقاً؛ لا يرسل شيئاً إلى ERP من هذا endpoint."""
     _require_enabled()
     if api_main._DB_POOL is None:
         return {"season_id": season_id, "lines": [], "note_ar": "القاعدة غير مفعلة"}
+    cur, tenant = ledger_core.normalize_currency(currency), str(user.tenant_id)
     try:
         async with tenant_connection(user) as conn:
-            _, actuals = await ledger_core.fetch_budget_and_actual(
-                conn, str(user.tenant_id), season_id
-            )
+            _, actuals = await ledger_core.fetch_budget_and_actual(conn, tenant, season_id, cur)
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("إسقاط ERP", e) from e
-    lines = project_to_erp_lines(actuals, cost_center=cost_center, project=season_id)
+    try:  # one projection, one currency: mixed-currency actuals are never summed
+        lines = project_to_erp_lines(
+            actuals, cost_center=cost_center, project=season_id, currency=cur
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=f"{e}: pass ?currency=") from e
     line_payload = [line.__dict__ for line in lines]
     provider = os.getenv("ERP_PROVIDER", "none").strip().lower() or "none"
     envelope = build_projection_envelope(
         season_id=season_id,
         lines=line_payload,
         provider=provider,
-        currency="YER",
+        currency=lines[0].currency if lines else (cur or "YER"),
     )
     return {
         **envelope,
@@ -966,17 +971,12 @@ async def get_economic_state(
                 conn, str(user.tenant_id), season_id
             )
             variances = compute_variances(budgets, actuals)
-            rev = await conn.fetchrow(
-                """SELECT COALESCE(SUM(amount), 0)::float AS revenue
-                   FROM farm_revenue_records WHERE tenant_id = $1::uuid AND season_id = $2""",
-                str(user.tenant_id),
-                season_id,
-            )
+            revenue = await ledger_core.fetch_season_revenue(conn, str(user.tenant_id), season_id)
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("حساب الحالة الاقتصادية", e) from e
     profit = compute_profitability(
         season_id,
-        revenue=float(rev["revenue"] or 0.0),
+        revenue=revenue,
         cost_lines=actuals,
         yield_quantity=yield_quantity,
         unit=unit,

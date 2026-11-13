@@ -29,6 +29,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.raster_service_client import season_state_scene as _season_state_scene
 from api.season_models import _SIM_MAX_WINDOW_DAYS, SeasonSimResponse
 
 router = APIRouter()
@@ -577,152 +578,148 @@ async def field_season_state_endpoint(
     """
     import json as _json
 
+    from api.decision_sor_mode import get_platform_decision_sor_mode
     from api.field_season_projection import assemble_field_season_state
 
-    def _loads(v):
-        if v is None:
-            return None
-        return _json.loads(v) if isinstance(v, str) else v
-
-    ndvi = ndmi = vpr = cloud = def7 = def14 = open_tasks = None
-    outcome_records: list[dict] = []
-    recommendation_outcomes: list[dict] = []
-    dispatch_links: dict = {}
+    tenant = str(user.tenant_id)
+    local = get_platform_decision_sor_mode().platform_writes_required
+    today = datetime.now(UTC).date()
+    def7 = def14 = open_tasks = None
+    outcome_records = recommendation_outcomes = None
+    dispatch_links = {}
     try:
         async with tenant_connection(user) as conn:
             srow = await conn.fetchrow(
-                "SELECT crops, cultivar, sowing_date, season_end FROM seasons "
-                "WHERE season_id = $1 AND field_id = $2",
+                "SELECT crops, cultivar, sowing_date, season_end, status FROM seasons "
+                "WHERE season_id=$1 AND field_id=$2 AND tenant_id=$3::uuid",
                 season_id,
                 field_id,
+                tenant,
             )
             if srow is None:
                 raise HTTPException(
                     status_code=404, detail="الموسم غير موجود لهذا الحقل ضمن هذا المستأجِر"
                 )
-            # القراءاتُ التكميليّة كلُّها داخل نقاط حفظ (معاملات متداخلة): جدولٌ غائب في نشرٍ
-            # جزئيّ كان يُفسِد معاملةَ tenant_connection الخارجيّة فيفشل الالتزامُ ويعود 503
-            # رغم الالتقاط المحلّيّ (Copilot على #1001).
-            # أحدث مؤشّرات + جودة المشهد (best-effort).
-            try:
-                async with conn.transaction():
-                    irow = await conn.fetchrow(
-                        "SELECT ndvi_mean, ndmi_mean, valid_pixel_ratio, cloud_pct "
-                        "FROM imagery_automation_fields WHERE field_id = $1 "
-                        "ORDER BY acquisition_date DESC NULLS LAST LIMIT 1",
-                        field_id,
-                    )
-                if irow is not None:
-                    ndvi, ndmi = irow["ndvi_mean"], irow["ndmi_mean"]
-                    vpr, cloud = irow["valid_pixel_ratio"], irow["cloud_pct"]
-            except Exception:  # noqa: BLE001 — تكميليّ: الغياب ⇒ evidence_missing لا 500
-                pass
-            # عجز الماء التراكميّ 7/14 يوم من دفتر المياه (best-effort).
-            try:
-                async with conn.transaction():
-                    wrow = await conn.fetchrow(
-                        "SELECT SUM(deficit_mm) FILTER "
-                        "(WHERE ledger_date >= CURRENT_DATE - INTERVAL '7 days')  AS d7, "
-                        "SUM(deficit_mm) FILTER "
-                        "(WHERE ledger_date >= CURRENT_DATE - INTERVAL '14 days') AS d14 "
-                        "FROM water_ledger WHERE field_id = $1",
-                        field_id,
-                    )
-                if wrow is not None:
-                    def7 = float(wrow["d7"]) if wrow["d7"] is not None else None
-                    def14 = float(wrow["d14"]) if wrow["d14"] is not None else None
-            except Exception:  # noqa: BLE001
-                pass
-            # عدد المهام المفتوحة (best-effort).
-            try:
-                async with conn.transaction():
-                    cnt = await conn.fetchval(
-                        "SELECT COUNT(*) FROM field_tasks WHERE field_id = $1 "
-                        "AND status NOT IN ('done', 'completed', 'cancelled')",
-                        field_id,
-                    )
-                open_tasks = int(cnt) if cnt is not None else None
-            except Exception:  # noqa: BLE001
-                pass
-            # النتائج المتصالحة (best-effort): outcome_record + recommendation_outcomes.
-            # الغياب/الجداول الجزئية لا يعطل حقيقة الموسم؛ يظهر outcomes ضمن evidence_missing.
-            try:
-                async with conn.transaction():
-                    rows = await conn.fetch(
-                        "SELECT outcome_id, tenant_id, field_id, region, decision_id, success, "
-                        "metrics, planned, actual, stage, created_at FROM outcome_record "
-                        "WHERE field_id = $1",
-                        field_id,
-                    )
-                outcome_records = [
-                    {
-                        "outcome_id": r["outcome_id"],
-                        "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
-                        "field_id": r["field_id"],
-                        "region": r["region"],
-                        "decision_id": r["decision_id"],
-                        "success": r["success"],
-                        "metrics": _loads(r["metrics"]) or {},
-                        "planned": _loads(r["planned"]),
-                        "actual": _loads(r["actual"]),
-                        "stage": r["stage"],
-                        "created_at": r["created_at"],
-                    }
-                    for r in rows
-                ]
-            except Exception:  # noqa: BLE001
-                outcome_records = []
-            try:
-                async with conn.transaction():
-                    # v49 بلا region — تُشتقّ من الحقل كما في لوحة التعلّم (Copilot على #1001).
-                    rows = await conn.fetch(
-                        "SELECT ro.outcome_id, ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
-                        "ro.recommendation_id, ro.predicted_yield_t_ha, ro.actual_yield_t_ha, "
-                        "ro.accepted, ro.matured_within_lag, ro.issued_at, ro.outcome_recorded_at, "
-                        "f.region AS region FROM recommendation_outcomes ro "
-                        "LEFT JOIN fields f ON f.field_id = ro.field_id "
-                        "WHERE ro.field_id = $1 AND (ro.season_id = $2 OR ro.season_id IS NULL)",
-                        field_id,
-                        season_id,
-                    )
-                recommendation_outcomes = [
-                    {
-                        "outcome_id": r["outcome_id"],
-                        "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
-                        "field_id": r["field_id"],
-                        "farm_id": r["farm_id"],
-                        "region": r["region"],
-                        "season_id": r["season_id"],
-                        "crop": r["crop"],
-                        "recommendation_id": r["recommendation_id"],
-                        "predicted_yield_t_ha": r["predicted_yield_t_ha"],
-                        "actual_yield_t_ha": r["actual_yield_t_ha"],
-                        "accepted": r["accepted"],
-                        "matured_within_lag": r["matured_within_lag"],
-                        "issued_at": r["issued_at"],
-                        "outcome_recorded_at": r["outcome_recorded_at"],
-                    }
-                    for r in rows
-                ]
-            except Exception:  # noqa: BLE001
-                recommendation_outcomes = []
-            try:
-                async with conn.transaction():
-                    rows = await conn.fetch(
-                        "SELECT recommendation_id, decision_id FROM dispatch_decisions"
-                    )
-                dispatch_links = {
-                    r["recommendation_id"]: r["decision_id"]
-                    for r in rows
-                    if r["recommendation_id"] and r["decision_id"]
-                }
-            except Exception:  # noqa: BLE001
-                dispatch_links = {}
+            start, end = srow["sowing_date"], srow["season_end"]
+            as_of = min(today, end) if end else today
+            dated = (
+                start is not None
+                and start <= as_of
+                and srow["status"] != "planned"
+                and (end is not None or srow["status"] == "active")
+            )
+            if dated:
+                try:
+                    async with conn.transaction():
+                        water = await conn.fetchrow(
+                            "SELECT SUM(deficit_mm) FILTER (WHERE ledger_date >= $3::date - 6) AS d7, "
+                            "SUM(deficit_mm) AS d14 FROM water_ledger WHERE tenant_id=$1::uuid "
+                            "AND field_id=$2 AND ledger_date BETWEEN GREATEST($4::date,$3::date-13) AND $3::date",
+                            tenant,
+                            field_id,
+                            as_of,
+                            start,
+                        )
+                        def7, def14 = water["d7"], water["d14"]
+                except Exception:  # optional source
+                    pass
+                # No task history or season FK: report current open tasks due in the
+                # active window only; a historical backlog cannot be reconstructed.
+                if srow["status"] == "active" and as_of == today:
+                    try:
+                        async with conn.transaction():
+                            open_tasks = await conn.fetchval(
+                                "SELECT COUNT(*) FROM field_tasks WHERE tenant_id=$1::uuid AND field_id=$2 "
+                                "AND COALESCE(recommended_date,(created_at AT TIME ZONE 'UTC')::date) "
+                                "BETWEEN $3::date AND $4::date AND status IN ('pending','in_progress')",
+                                tenant,
+                                field_id,
+                                start,
+                                end or today,
+                            )
+                    except Exception:  # optional source
+                        pass
+            if local:
+                try:
+                    async with conn.transaction():
+                        outcomes = await conn.fetch(
+                            "SELECT o.outcome_id, o.tenant_id, d.field_id, o.region, o.success, o.decision_id, o.created_at FROM outcome_record o "
+                            "JOIN decision_record d ON d.tenant_id=o.tenant_id AND d.decision_id=o.decision_id "
+                            "WHERE o.tenant_id=$1::uuid AND d.field_id=$2 AND (o.field_id IS NULL OR o.field_id=$2) "
+                            "AND COALESCE(to_jsonb(d)->>'season_id',d.decision_value->>'season_id')=$3 "
+                            "AND (to_jsonb(d)->>'season_id' IS NULL OR d.decision_value->>'season_id' IS NULL "
+                            "OR to_jsonb(d)->>'season_id'=d.decision_value->>'season_id')",
+                            tenant,
+                            field_id,
+                            season_id,
+                        )
+                        recs = await conn.fetch(
+                            "SELECT ro.outcome_id, ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
+                            "to_jsonb(ro)->>'decision_id' AS decision_id, recommendation_id, predicted_yield_t_ha, actual_yield_t_ha, "
+                            "accepted, matured_within_lag, issued_at, outcome_recorded_at FROM recommendation_outcomes ro "
+                            "WHERE tenant_id=$1::uuid AND field_id=$2 AND season_id=$3",
+                            tenant,
+                            field_id,
+                            season_id,
+                        )
+                    outcome_records, recommendation_outcomes = list(outcomes), list(recs)
+                except Exception:  # Treat an incomplete pair of sources as unavailable.
+                    pass
+                if recommendation_outcomes:
+                    try:
+                        async with conn.transaction():
+                            links = await conn.fetch(
+                                "SELECT recommendation_id, min(decision_id) AS decision_id FROM dispatch_decisions "
+                                "WHERE tenant_id=$1::uuid AND field_id=$2 AND recommendation_id=ANY($3::text[]) "
+                                "GROUP BY recommendation_id HAVING count(DISTINCT decision_id)=1",
+                                tenant,
+                                field_id,
+                                [r["recommendation_id"] for r in recommendation_outcomes],
+                            )
+                        dispatch_links = {r["recommendation_id"]: r["decision_id"] for r in links}
+                    except Exception:  # optional lineage
+                        pass
     except HTTPException:
         raise
-    except Exception as e:  # noqa: BLE001 — تعذّر القاعدة الأساسيّ ⇒ 503 موثَّق
+    except Exception as e:
         raise _db_unavailable("قراءة حالة الحقل-الموسم", e) from e
 
+    # Both HTTP reads happen after releasing the platform DB connection.
+    if not local:
+        from api.decision_service_client import decision_get_json
+
+        try:
+            payload = await decision_get_json(
+                "/v1/outcomes/reconciled",
+                tenant_id=tenant,
+                params={"field_id": field_id, "season_id": season_id, "season_inputs": "true"},
+            )
+            if (
+                payload.get("authoritative") is True
+                and payload.get("tenant_id") == tenant
+                and payload.get("field_id") == field_id
+                and payload.get("season_id") == season_id
+                and isinstance(payload.get("outcome_records"), list)
+                and isinstance(payload.get("recommendation_outcomes"), list)
+                and all(
+                    isinstance(r, dict)
+                    and r.get("tenant_id") == tenant
+                    and r.get("field_id") in (None, field_id)
+                    for r in payload["outcome_records"]
+                )
+                and all(
+                    isinstance(r, dict)
+                    and r.get("tenant_id") == tenant
+                    and r.get("field_id") == field_id
+                    and r.get("season_id") == season_id
+                    for r in payload["recommendation_outcomes"]
+                )
+            ):
+                outcome_records = payload["outcome_records"]
+                recommendation_outcomes = payload["recommendation_outcomes"]
+        except (HTTPException, ValueError, TypeError):
+            pass
+    scene = await _season_state_scene(field_id, tenant, start, as_of) if dated else {}
     crops = srow["crops"]
     if isinstance(crops, str):
         try:
@@ -731,17 +728,19 @@ async def field_season_state_endpoint(
             crops = []
     first_crop = str(crops[0]) if isinstance(crops, list) and crops else None
 
-    return assemble_field_season_state(
+    state = assemble_field_season_state(
         field_id=field_id,
         season_id=season_id,
         crop=first_crop,
         cultivar=srow["cultivar"],
         sowing_date=srow["sowing_date"],
         season_end=srow["season_end"],
-        observed_ndvi=ndvi,
-        observed_ndmi=ndmi,
-        valid_pixel_ratio=vpr,
-        cloud_pct=cloud,
+        today=as_of,
+        imagery_date=datetime.fromisoformat(scene["datetime"]).date() if scene else None,
+        observed_ndvi=scene.get("mean"),
+        observed_ndmi=scene.get("ndmi"),
+        valid_pixel_ratio=scene.get("valid_pixel_ratio"),
+        cloud_pct=scene.get("cloud_pct"),
         water_deficit_7d_mm=def7,
         water_deficit_14d_mm=def14,
         open_tasks_count=open_tasks,
@@ -749,3 +748,24 @@ async def field_season_state_endpoint(
         recommendation_outcomes=recommendation_outcomes,
         dispatch_links=dispatch_links,
     )
+
+    state["as_of"] = as_of.isoformat()
+    state["imagery_acquisition_date"] = scene.get("datetime")
+    state["open_operations_basis"] = (
+        "current_open_due_in_season" if open_tasks is not None else None
+    )
+    summary = state["outcome_reconciliation"]
+    summary["available"] = outcome_records is not None
+    summary["source"] = "platform" if local else "decision-service"
+    if outcome_records is None:
+        for key in (
+            "total",
+            "decided",
+            "succeeded",
+            "failed",
+            "pending",
+            "sample_count",
+            "linked_group_count",
+        ):
+            summary[key] = None
+    return state

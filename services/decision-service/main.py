@@ -59,6 +59,7 @@ from persistence import (
     create_retraining_request,
     create_rollout_plan,
     create_runtime_schedule,
+    field_evidence_counts,
     get_active_model_state,
     get_context_snapshot,
     get_decision_agronomic_evidence,
@@ -77,6 +78,8 @@ from persistence import (
     persist_outcome_record,
     persist_recommendation_outcome,
     persist_vegetation_snapshot,
+    read_decision_lineage,
+    read_learning_inputs,
     read_outcomes_for_reconcile,
     record_execution_receipt,
     record_model_registry_activation_receipt,
@@ -287,6 +290,7 @@ LOOP_TABLES = [
     "decision_field_historical_context_snapshots",
     "decision_feature_manifests",
     "decision_feature_manifest_entries",
+    "decision_context_compositions",
     "decision_vegetation_snapshots",
 ]
 
@@ -821,6 +825,7 @@ async def review_queue(
     return {
         "authoritative": True,
         "persisted": True,
+        "tenant_id": tenant,
         "items": items,
         "count": len(items),
     }
@@ -1188,16 +1193,41 @@ async def record_learning_update(
 
 
 @app.get("/v1/learning/summary")
-def learning_summary(
+async def learning_summary(
     field_id: str | None = None,
     season_id: str | None = None,
     x_tenant_id: str | None = Header(default=None),
+    dashboard_inputs: bool = False,
 ) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    if dashboard_inputs:
+        if field_id is not None or season_id is not None:
+            raise HTTPException(422, "dashboard inputs cover the entire tenant")
+        if not sor_enabled():
+            raise HTTPException(503, "decision-service is not the system-of-record")
+        try:
+            inputs = await read_learning_inputs(tenant_id=tenant)
+        except Exception as exc:
+            raise HTTPException(503, "learning store unavailable") from exc
+        return {"tenant_id": tenant, "authoritative": True, **inputs}
+    if sor_enabled():
+        result = await reconciled_outcomes(
+            field_id=field_id, season_id=season_id, x_tenant_id=tenant
+        )
+        if result["outcome_reconciliation"].get("source") != "store":
+            raise HTTPException(503, "learning store unavailable")
+        return {**result, "authoritative": True}
     return {
-        "tenant_id": _tenant(x_tenant_id),
+        "tenant_id": tenant,
         "field_id": field_id,
         "season_id": season_id,
-        "outcome_reconciliation": {"enabled": True, "sample_count": 0, "success_rate": None},
+        "authoritative": False,
+        "outcome_reconciliation": {
+            "enabled": True,
+            "sample_count": 0,
+            "success_rate": None,
+            "source": "unavailable",
+        },
     }
 
 
@@ -1218,6 +1248,7 @@ async def list_decisions(
             "field_id": field_id,
             "decision_type": decision_type,
             "limit": limit,
+            "authoritative": True,
             **data,
         }
     return {
@@ -1225,21 +1256,43 @@ async def list_decisions(
         "field_id": field_id,
         "decision_type": decision_type,
         "limit": limit,
+        "authoritative": False,
         "decisions": [],
         "count": 0,
     }
 
 
+class FieldEvidenceQuery(BaseModel):
+    field_ids: list[str] = Field(max_length=500)
+
+
+@app.post("/v1/evidence/field-counts")
+async def read_field_evidence_counts(
+    payload: FieldEvidenceQuery,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict:
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not authoritative")
+    counts = await field_evidence_counts(tenant, payload.field_ids)
+    return {"tenant_id": tenant, "authoritative": True, "counts": counts}
+
+
 @app.get("/v1/fields/{field_id}/lineage")
-def field_lineage(
+async def field_lineage(
     field_id: str,
     limit: int = Query(50, ge=1, le=200),
     x_tenant_id: str | None = Header(default=None),
 ) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    if sor_enabled():
+        result = await read_decision_lineage(tenant_id=tenant, field_id=field_id, limit=limit)
+        return {"tenant_id": tenant, "authoritative": True, **result}
     return {
-        "tenant_id": _tenant(x_tenant_id),
+        "tenant_id": tenant,
         "field_id": field_id,
         "limit": limit,
+        "authoritative": False,
         "decisions": [],
         "orphan_outcomes": [],
         "count": 0,
@@ -1251,6 +1304,7 @@ async def reconciled_outcomes(
     field_id: str | None = None,
     season_id: str | None = None,
     x_tenant_id: str | None = Header(default=None),
+    season_inputs: bool = False,
 ) -> dict[str, Any]:
     """P1-13a: مصالحة نتائج حقيقيّة تضمّ مصدرَي النتائج (outcome_record + recommendation_outcomes).
 
@@ -1259,6 +1313,13 @@ async def reconciled_outcomes(
     يُلفّق نسبة). تعذّر القاعدة رغم تهيئتها ⇒ 503 (لا فراغ يُخفي الفشل)."""
     tenant = _tenant(x_tenant_id)
     base = {"tenant_id": tenant, "field_id": field_id, "season_id": season_id}
+    if season_inputs:
+        if not field_id or not season_id:
+            raise HTTPException(status_code=422, detail="field and season required")
+        if not sor_enabled():
+            raise HTTPException(
+                status_code=503, detail="decision-service is not the system-of-record"
+            )
     if not _database_configured():
         return {
             **base,
@@ -1277,6 +1338,41 @@ async def reconciled_outcomes(
         )
     except Exception as e:  # noqa: BLE001 — قاعدة مُهيّأة لكن متعذّرة ⇒ فشل صريح لا فراغ مُضلّل
         raise HTTPException(status_code=503, detail="outcome store unavailable") from e
+    if season_inputs:
+        # Only evidence used by the season projection may cross this boundary.
+        outcome_keys = (
+            "outcome_id",
+            "decision_id",
+            "field_id",
+            "tenant_id",
+            "region",
+            "success",
+            "created_at",
+        )
+        recommendation_keys = (
+            "outcome_id",
+            "recommendation_id",
+            "decision_id",
+            "field_id",
+            "tenant_id",
+            "season_id",
+            "farm_id",
+            "crop",
+            "predicted_yield_t_ha",
+            "actual_yield_t_ha",
+            "accepted",
+            "matured_within_lag",
+            "issued_at",
+            "outcome_recorded_at",
+        )
+        return {
+            **base,
+            "authoritative": True,
+            "outcome_records": [{k: row.get(k) for k in outcome_keys} for row in orows],
+            "recommendation_outcomes": [
+                {k: row.get(k) for k in recommendation_keys} for row in rrows
+            ],
+        }
     recon = reconcile_outcomes(orows, rrows)
     recon["source"] = "store"
     return {**base, "outcome_reconciliation": recon}
@@ -1301,10 +1397,17 @@ async def decision_agronomic_evidence(
 
 
 @app.get("/v1/decisions/{decision_id}/lineage")
-def decision_lineage(
-    decision_id: str, x_tenant_id: str | None = Header(default=None)
+async def decision_lineage(
+    decision_id: str,
+    x_tenant_id: str | None = Header(default=None),
+    limit: int = Query(50, ge=1, le=200),
 ) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    if sor_enabled():
+        result = await read_decision_lineage(tenant_id=tenant, decision_id=decision_id, limit=limit)
+        return {"tenant_id": tenant, "authoritative": True, **result}
     return {
+        "authoritative": False,
         "tenant_id": _tenant(x_tenant_id),
         "decision_id": decision_id,
         "decision": None,

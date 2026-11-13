@@ -9,6 +9,7 @@ import {
 } from '../../hooks/useFieldIrrigationRecommendation';
 import { fmtNum, parseMeasure } from '../../lib/irrigationDecisionAids';
 import { T } from '../ds';
+import { kongApi } from '../../services/api';
 
 interface Props {
   /** مُعرّف الحقل — النقطة على مستوى الحقل (لا استدعاء بلا مُعرّف). */
@@ -16,6 +17,36 @@ interface Props {
   /** تسمية محصول الحقل النشط — عرضيّة فقط (السياق الحقيقيّ يُحقَن من الخادم). */
   cropLabel?: string | null;
   enabled?: boolean;
+}
+
+export function SupplementalWaterCheck({ fieldId, seasonId }: { fieldId: string; seasonId: string }) {
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  async function check() {
+    setBusy(true);
+    setMessage('');
+    try {
+      const {data} = await kongApi.post(
+        '/api/v1/fields/' + encodeURIComponent(fieldId) + '/irrigation/mpc/hourly-recommendation',
+        {persist: false},
+      );
+      if (data.field_id !== fieldId || data.execution_allowed !== false) {
+        setMessage('تعذّر التحقق من نتيجة الفحص لهذا الحقل.');
+      } else if (data.status === 'verified' && data.season_id === seasonId) {
+        setMessage('توافر جدول ريّ تكميلي استشاري لهذا الموسم. يتطلب التشغيل قراراً معتمداً.');
+      } else {
+        setMessage('لم يكتمل التحقق من جدول الري التكميلي. ' + (data.reason ?? data.status ?? ''));
+      }
+    } catch {
+      setMessage('تعذّر الحصول على بيانات قدرة الري لهذا الحقل.');
+    } finally {
+      setBusy(false);
+    }
+  }
+  return <div>
+    <button type="button" disabled={busy} onClick={() => void check()}>فحص إمكانية الري التكميلي</button>
+    <p role="status">{busy ? 'جارٍ فحص بيانات الماء والمعدات والطقس…' : message}</p>
+  </div>;
 }
 
 const inputStyle = { border: `1px solid ${T.line}`, background: 'rgba(2,6,23,.5)', color: T.ink } as const;
@@ -136,7 +167,7 @@ export default function IrrigationDecisionCard({ fieldId, cropLabel, enabled = t
                     color: rec.should_irrigate == null ? T.muted : rec.should_irrigate ? '#fca5a5' : '#86efac',
                   }}
                 >
-                  {rec.should_irrigate == null ? 'قرار غير محسوم' : rec.should_irrigate ? 'اروِ' : 'أجّل'}
+                  {rec.trigger_reason === 'rainfed_water_assessment' ? 'تقييم ماء الحقل المطري' : rec.should_irrigate == null ? 'قرار غير محسوم' : rec.should_irrigate ? 'اروِ' : 'أجّل'}
                 </span>
                 {rec.target_refill_mm != null && (
                   <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ border: `1px solid ${T.line}`, color: T.ink }}>
@@ -154,9 +185,11 @@ export default function IrrigationDecisionCard({ fieldId, cropLabel, enabled = t
               </div>
 
               <div className="text-[11px]" style={{ color: T.ink }}>
-                صافي الريّ المقترَح: <b>{fmtNum(rec.net_irrigation_mm, 1)} مم</b>
+                {rec.trigger_reason === 'rainfed_water_assessment' ? 'صافي الاحتياج المائي المقدّر' : 'صافي الريّ المقترَح'}: <b>{fmtNum(rec.net_irrigation_mm, 1)} مم</b>
               </div>
-              {rec.trigger_reason && <div className="text-[11px]" style={{ color: T.muted }}>سبب التحفيز: {rec.trigger_reason}</div>}
+              {rec.trigger_reason === 'rainfed_water_assessment' && fieldId && data.season_id &&
+                <SupplementalWaterCheck key={fieldId + ':' + data.season_id} fieldId={fieldId} seasonId={data.season_id} />}
+              {rec.trigger_reason && rec.trigger_reason !== 'rainfed_water_assessment' && <div className="text-[11px]" style={{ color: T.muted }}>سبب التحفيز: {rec.trigger_reason}</div>}
 
               {/* ملكيّة صريحة: مرشَّح لا مُنفَّذ */}
               <div className="text-[10px] px-2 py-1 rounded-lg" style={{ border: `1px dashed ${T.line}`, color: '#7dd3fc' }}>

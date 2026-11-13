@@ -78,6 +78,7 @@ def test_platform_write_mode_defaults_to_platform_sor_and_refuses_premature_demo
         "DECISION_SERVICE_BACKFILL_VERIFIED",
         "DECISION_SERVICE_TENANT_ISOLATION_VERIFIED",
         "DECISION_SERVICE_OUTBOX_VERIFIED",
+        "DECISION_SERVICE_STAGING_CUTOVER_APPROVED",
         "DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED",
     ):
         monkeypatch.delenv(name, raising=False)
@@ -108,6 +109,7 @@ def test_platform_demote_requires_explicit_production_cutover(monkeypatch) -> No
         "DECISION_SERVICE_BACKFILL_VERIFIED",
         "DECISION_SERVICE_TENANT_ISOLATION_VERIFIED",
         "DECISION_SERVICE_OUTBOX_VERIFIED",
+        "DECISION_SERVICE_STAGING_CUTOVER_APPROVED",
         "DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED",
     ):
         monkeypatch.setenv(name, "true")

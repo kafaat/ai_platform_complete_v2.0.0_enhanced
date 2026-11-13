@@ -71,6 +71,38 @@ async def _field_weather_context(
     return lat, lon, crop, stage, age
 
 
+_RAINFED_ALIASES = frozenset(
+    {"rainfed", "rain-fed", "rain_fed", "rain fed", "dryland", "مطري", "بعلي"}
+)
+
+
+def normalize_irrigation_type(raw) -> str | None:
+    """seasons/fields.irrigation_type normalised (case, whitespace, rainfed aliases); blank ⇒ None.
+
+    None means unknown. The recommendation then keeps the irrigated path and reports
+    ``irrigation_type = None`` so the caller can see the method was not established.
+    """
+    value = str(raw).strip().lower() if raw is not None else ""
+    if value in _RAINFED_ALIASES:
+        return "rainfed"
+    return value or None
+
+
+async def field_irrigation_type(conn, field_id: str, season) -> str | None:
+    """The active season's irrigation method, else the field's registered one; None = unknown.
+
+    Unknown is reported as None. It is not inferred to be rainfed, so the irrigated path
+    still applies and the response says the method is unknown.
+    """
+    method = normalize_irrigation_type(season.get("irrigation_type") if season else None)
+    if method is None:
+        row = await conn.fetchrow(
+            "SELECT irrigation_type FROM fields WHERE field_id = $1", field_id
+        )
+        method = normalize_irrigation_type(row.get("irrigation_type") if row else None)
+    return method
+
+
 async def _latest_soil_moisture(conn, field_id: str):
     """أحدث قراءة رطوبة تربة (٪) لأجهزة الحقل، أو None إن لا قراءة صالحة.
 
