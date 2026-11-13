@@ -383,6 +383,32 @@ async def test_historical_record_of_another_crop_is_not_auto_linked(monkeypatch)
     assert out.historical_context_used is False
 
 
+async def test_weather_rejection_does_not_write_historical_link(monkeypatch):
+    from fastapi import HTTPException
+
+    conn = _Conn(_season(_SOW, _END), [_rev(1, _SOW)], candidates=[_record("wheat")])
+    _install(monkeypatch, conn, [])
+
+    import api.weather_service_client as wsc
+
+    async def invalid_archive(lat, lon, **_kw):
+        return {
+            "derived_from": "unverified_provider_payload",
+            "canonical_state_id": "no-owner",
+            "source_snapshot_id": "no-snapshot",
+            "days": [],
+        }
+
+    monkeypatch.setattr(wsc, "get_weather_historical", invalid_archive)
+    import api.routers.seasons as route
+
+    with pytest.raises(HTTPException) as err:
+        await route.simulate_season_endpoint("season-a", user=_USER)
+    assert err.value.status_code == 503
+    assert conn.runs == []
+    assert not any("INSERT INTO season_record_links" in sql for sql in conn.executed)
+
+
 async def test_historical_record_of_the_same_crop_is_auto_linked(monkeypatch):
     out, conn = await _simulate_season(
         monkeypatch, _season(_SOW, _END), candidates=[_record("wheat")]

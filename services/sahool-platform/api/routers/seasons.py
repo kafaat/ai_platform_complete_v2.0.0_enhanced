@@ -63,6 +63,7 @@ async def _load_linked_historical_inputs(
     # record with the same field, exact sowing day AND the same crop (canonical resolver
     # on both sides; either side unresolved ⇒ no link). Zero/multiple matches remain
     # unlinked; no fuzzy date or crop inference is allowed.
+    pending_auto_link_id = None
     if record is None and sowing_date is not None:
         from api.season_simulation import select_auto_link_candidate
 
@@ -80,18 +81,10 @@ async def _load_linked_historical_inputs(
         )
         record = select_auto_link_candidate(candidates, season_crop)
         if record is not None:
-            await conn.execute(
-                "INSERT INTO season_record_links "
-                "(tenant_id, season_record_id, canonical_season_id, field_id, "
-                " linkage_reason, linked_by) "
-                "VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
-                tenant_id,
-                record["id"],
-                season_id,
-                field_id,
-                "exact_field_and_sowing_day",
-                "system:historical-season-composer",
-            )
+            # Only propose the historical link here. Committing it before the
+            # canonical weather/GDD/ET0 validation leaves a side effect on a
+            # request that never produced a valid simulation run.
+            pending_auto_link_id = record["id"]
     crop = None
     events = []
     harvest = None
@@ -129,7 +122,7 @@ async def _load_linked_historical_inputs(
             and (end_iso is None or day <= end_iso)
         )
     ]
-    return record, crop, events, harvest, vegetation
+    return record, crop, events, harvest, vegetation, pending_auto_link_id
 
 
 async def _boundary_revisions_since(conn, field_id: str, since) -> dict:
@@ -239,6 +232,7 @@ async def simulate_season_endpoint(
                 historical_events,
                 historical_harvest,
                 vegetation,
+                pending_auto_link_id,
             ) = await _load_linked_historical_inputs(
                 conn,
                 season_id,
@@ -478,6 +472,22 @@ async def simulate_season_endpoint(
     try:
         async with tenant_connection(user) as conn:
             async with conn.transaction():
+                # Auto-link is an auxiliary persisted fact, not an observation.
+                # Insert it only after weather, numerical validation and the
+                # simulation all succeeded, atomically with the append-only run.
+                if pending_auto_link_id is not None:
+                    await conn.execute(
+                        "INSERT INTO season_record_links "
+                        "(tenant_id, season_record_id, canonical_season_id, field_id, "
+                        " linkage_reason, linked_by) "
+                        "VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
+                        user.tenant_id,
+                        pending_auto_link_id,
+                        season_id,
+                        str(srow["field_id"]),
+                        "exact_field_and_sowing_day",
+                        "system:historical-season-composer",
+                    )
                 # Insert the canonical append-only run row FIRST so its run_id can be
                 # bound onto the seasons.sim_* projection in the same transaction —
                 # lineage from the latest projection back to its run is never lost.
