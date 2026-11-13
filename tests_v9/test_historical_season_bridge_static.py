@@ -59,7 +59,8 @@ def test_existing_simulation_route_uses_composer_and_ledger_no_parallel_endpoint
 
 def test_composer_forbids_silent_irrigation_and_daily_fapar_invention():
     src = COMPOSER.read_text(encoding="utf-8")
-    assert 'e.get("amount_mm") is not None' in src
+    # Irrigation amounts must be finite measurements; a missing or non-finite amount is skipped.
+    assert '_finite(e.get("amount_mm"))) is not None' in src
     assert 'not bool(e.get("low_confidence"))' in src
     assert '"no_daily_fapar_interpolation": True' in src
     assert "from api.season_simulation import fapar_from_ndvi" in src

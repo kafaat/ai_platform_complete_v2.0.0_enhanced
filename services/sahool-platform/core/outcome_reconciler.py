@@ -201,6 +201,24 @@ def reconcile_recommendation_outcome_labels(
     return out
 
 
+def authoritative_outcome_label_refusal(labels: dict) -> str | None:
+    """ما يرفضه القطع (S4) قبل أن يكتب decision-service تسميةَ تعلّمٍ سلطويّة.
+
+    ``labels`` ناتج ``reconcile_recommendation_outcome_labels`` (التعارض مع التوصية
+    المختومة رُفض قبله بـ``OutcomeLabelConflict``). توقّعٌ لم يُطابَق بسجلّ مخزَّن، أو
+    ادّعاءُ نضجٍ لم يُشتقّ من الطوابع، لا يصير حقيقةَ تعلّم. ادّعاءُ «لم ينضج» لا يرفع
+    تسميةً فلا يُرفَض. يُعيد رمز الرفض أو ``None``.
+    """
+    if labels.get("prediction_source") == "client_unverified":
+        return "unverified_predicted_yield_not_authoritative"
+    if (
+        labels.get("matured_within_lag")
+        and labels.get("maturity_source") != "derived_from_timestamps"
+    ):
+        return "unverified_maturity_not_authoritative"
+    return None
+
+
 def recommendation_outcome_write_action(existing: dict | None, *, actual_yield_t_ha) -> str:
     """لا صفَّ ثانياً لـ(المستأجِر، recommendation_id) — يقرّر الكاتب ماذا يفعل بالموجود.
 

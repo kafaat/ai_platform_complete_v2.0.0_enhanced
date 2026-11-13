@@ -1689,6 +1689,28 @@
     ]
   },
   {
+    "path": "frontend/src/components/WheatSeasonPlanner.tsx",
+    "kind": "web",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 11,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "FM-005",
+        "score": 10,
+        "signals": [
+          "content:cultivar",
+          "content:variety"
+        ]
+      }
+    ]
+  },
+  {
     "path": "frontend/src/components/fieldsetup/SeasonStep.tsx",
     "kind": "web",
     "candidates": [
@@ -1935,6 +1957,14 @@
         "signals": [
           "content:NDVI",
           "dedup:NDVI=ndvi"
+        ]
+      },
+      {
+        "capability_id": "FM-005",
+        "score": 8,
+        "signals": [
+          "content:cultivar",
+          "content:variety"
         ]
       }
     ]
@@ -3070,6 +3100,14 @@
           "dedup:MFA=mfa",
           "content:totp"
         ]
+      },
+      {
+        "capability_id": "PA-003",
+        "score": 10,
+        "signals": [
+          "content:yield map",
+          "content:Yield map ingestion"
+        ]
       }
     ]
   },
@@ -4024,6 +4062,22 @@
     "path": "services/sahool-platform/api/field_state_projection.py",
     "kind": "backend",
     "candidates": [
+      {
+        "capability_id": "FM-005",
+        "score": 10,
+        "signals": [
+          "content:cultivar",
+          "content:variety"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 9,
+        "signals": [
+          "content:crop season",
+          "content:season"
+        ]
+      },
       {
         "capability_id": "SAT-004",
         "score": 8,

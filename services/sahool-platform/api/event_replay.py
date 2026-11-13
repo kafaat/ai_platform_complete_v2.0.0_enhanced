@@ -402,15 +402,18 @@ class FieldStateReconstructor:
 
         elif etype == "season.created":
             # payload الحقيقيّ: {field_id, crops, cultivar, irrigation_type,
-            # sowing_date} (main._create_season). crops قائمة محاصيل.
+            # sowing_date, status} (routers/fields.create_season). crops قائمة محاصيل.
             state.season_count += 1
-            crops = payload.get("crops")
-            if isinstance(crops, list) and crops:
-                state.current_crop = crops[0]
-            elif isinstance(crops, str) and crops:
-                state.current_crop = crops
-            if payload.get("sowing_date"):
-                state.last_sowing_date = payload["sowing_date"]
+            # موسم مخطَّط (status='planned') لا يحلّ محلّ النشط: لا يغيّر المحصول الحاليّ
+            # ولا آخر بذار. غياب المفتاح = حدث أقدم أنشأ موسماً نشطاً دائماً.
+            if payload.get("status", "active") == "active":
+                crops = payload.get("crops")
+                if isinstance(crops, list) and crops:
+                    state.current_crop = crops[0]
+                elif isinstance(crops, str) and crops:
+                    state.current_crop = crops
+                if payload.get("sowing_date"):
+                    state.last_sowing_date = payload["sowing_date"]
 
         elif etype == "season.closed":
             state.season_closed_count += 1
