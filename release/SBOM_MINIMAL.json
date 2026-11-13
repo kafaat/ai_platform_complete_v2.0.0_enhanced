@@ -17575,7 +17575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a360c36b5e5d3b2c2b57bef46050280c203d84c1495323e4c27f6be30c9a5c9"
+          "content": "32557303cec03bcbc731b787b5857ae51c6d034fec5dd058b9bc645e3e3fc9d6"
         }
       ],
       "name": "services/auth/requirements.txt",
@@ -23065,7 +23065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be50bed9ec069b827f708f98c8c5c72d4c77cbdbd02bd1fc82316b4f90088041"
+          "content": "de803d07198926e95017118996a62491903b54a3c049fa2e5cef99d50cb8f94e"
         }
       ],
       "name": "services/realtime-agent/requirements.txt",
@@ -25465,7 +25465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20823f55ae4b3be26391732cc225cea96fe2fadf14bda9b733c17298d6c44d1b"
+          "content": "a5933fc91192ace2db835c6cc92aa3cb9907f582cd94411ff54e189a0a1c85ec"
         }
       ],
       "name": "services/sahool-platform/api/requirements.txt",
