@@ -2,6 +2,7 @@
 
 Does not replace legacy feature-store APIs or authorize agronomic execution.
 """
+
 from __future__ import annotations
 
 import json
