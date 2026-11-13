@@ -2008,7 +2008,7 @@
     },
     {
       "kind": "router",
-      "line": 55,
+      "line": 56,
       "module": "services.sahool-platform.api.routers.water_twin",
       "node_id": "services.sahool-platform.api.routers.water_twin:router",
       "route_count": 1,
@@ -2811,7 +2811,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "58c5b7f8a812659a4881b9398d7dc7b1c25e7fe7c2d1ec00389618a55c0ff832",
+  "inventory_sha256": "e79ad739be600418b923445150d661e22c0d6cff92a3dce70855ae3b914e2767",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -4797,7 +4797,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 55,
+      "line": 56,
       "module": "services.sahool-platform.api.routers.water_twin",
       "node_id": "services.sahool-platform.api.routers.water_twin:router",
       "route_count": 1,

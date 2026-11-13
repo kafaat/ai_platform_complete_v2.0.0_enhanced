@@ -1904,6 +1904,7 @@
         "services/sahool-platform/tests/test_season_stage_risk.py",
         "services/sahool-platform/tests/test_seasons_endpoint.py",
         "services/sahool-platform/tests/test_tier2_modules.py",
+        "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
         "services/scout-ingest-service/tests/test_season_live.py",
         "tests_v9/test_export_season_runs_for_golden.py",
         "tests_v9/test_fii_prescription_season_context_guard.py",
@@ -6884,6 +6885,7 @@
         "services/sahool-platform/tests/test_data_quality.py",
         "services/sahool-platform/tests/test_eo_stage_mismatch.py",
         "services/sahool-platform/tests/test_field_intelligence_card.py",
+        "services/sahool-platform/tests/test_field_twin.py",
         "services/sahool-platform/tests/test_freshness_sweep.py",
         "services/sahool-platform/tests/test_index_registry.py",
         "services/sahool-platform/tests/test_ndvi_analysis.py",
@@ -6956,7 +6958,7 @@
       "declared_maturity": 2,
       "domain": "satellite",
       "evidence": {
-        "api": false,
+        "api": true,
         "backend": true,
         "database": true,
         "documentation": true,
@@ -6971,7 +6973,7 @@
       },
       "evidence_records": [
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "api"
         },
@@ -7031,7 +7033,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",

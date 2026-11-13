@@ -6285,6 +6285,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_workers.py",
         "services/sahool-platform/api/routers/field_completeness.py",
+        "services/sahool-platform/api/routers/field_twin.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/harvest_traceability.py",
         "services/sahool-platform/api/routers/indicators.py",
@@ -6295,11 +6296,14 @@
         "services/sahool-platform/api/routers/season_workspace.py",
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/simple_farm_book.py",
+        "services/sahool-platform/api/routers/water_twin.py",
         "services/sahool-platform/api/routers/yield_analysis.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+        "services/sahool-platform/tests/test_field_twin_endpoint.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
+        "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py"
       ],
       "code_writers": [

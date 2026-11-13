@@ -44,7 +44,7 @@ async def test_flag_off_uses_client_spectral(monkeypatch):
     monkeypatch.setattr(ct, "compose_server_authoritative_spectral_enabled", lambda: False)
     st = await _compose_state(_req(ndvi=0.30), tenant_id="t1")
     assert st["spectral_provenance"] == "client"
-    assert st["spectral_unverified"] is False
+    assert st["spectral_unverified"] is True
 
 
 @pytest.mark.parametrize("quality, status", [("validated", "available"), ("unknown", "degraded")])
@@ -120,4 +120,4 @@ async def test_flag_on_no_field_id_keeps_client(monkeypatch):
     req.field_id = None  # لا حقل حقيقيّ ⇒ لا محاولة خادميّة (معاينة ad-hoc)
     st = await _compose_state(req, tenant_id="t1")
     assert st["spectral_provenance"] == "client"
-    assert st["spectral_unverified"] is False
+    assert st["spectral_unverified"] is True
