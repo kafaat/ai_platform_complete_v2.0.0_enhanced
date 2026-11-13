@@ -486,5 +486,8 @@ def irrigation_water_analysis(
     حسابيّ بحت (لا قاعدة)؛ التفويض مطلوب (سيادة الوصول)."""
     from core.irrigation_water_analysis import WaterSample, analyze_water_sample
 
-    sample = WaterSample(**req.model_dump())
-    return analyze_water_sample(sample)
+    try:
+        sample = WaterSample(**req.model_dump())
+        return analyze_water_sample(sample)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
