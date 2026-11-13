@@ -15,26 +15,26 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7159,
+    "files_scanned": 7160,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2164,
-      "tests": 2402,
+      "tests": 2403,
       "web": 524
     },
-    "unmapped_artifacts": 3409,
+    "unmapped_artifacts": 3410,
     "ambiguous_artifacts": 233,
     "files_by_reading": {
-      "python_functional": 3855,
+      "python_functional": 3856,
       "raw": 3304
     },
-    "test_dependency_files": 1808,
+    "test_dependency_files": 1809,
     "test_dependency_edges": 4576,
     "test_dependency_bounded_files": 1054,
-    "test_dependency_unresolved_relations": 456
+    "test_dependency_unresolved_relations": 458
   },
   "capabilities": [
     {
@@ -41811,6 +41811,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_diagnose_crop_normalisation.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_disease_field_state_feed.py",
       "kind": "tests"
     },
@@ -74420,6 +74424,24 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_diagnose_crop_normalisation.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 21,
+          "import": "api.disease_diagnosis"
+        },
+        {
+          "line": 47,
+          "import": "api.disease_diagnosis"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_disease_field_state_feed.py",
