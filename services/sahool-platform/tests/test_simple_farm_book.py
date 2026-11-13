@@ -121,6 +121,7 @@ def test_csv_has_utf8_bom_and_expected_rows() -> None:
                 season_id="season-1",
                 description="سماد",
                 receipt_document_id="doc-1",
+                task_id="37065422-e38d-4480-a301-b4936b34978a",
             )
         ]
     )
@@ -128,6 +129,7 @@ def test_csv_has_utf8_bom_and_expected_rows() -> None:
     rows = list(csv.DictReader(io.StringIO(payload.decode("utf-8-sig"))))
     assert rows[0]["entry_id"] == "e1"
     assert rows[0]["party_name"] == "مورد"
+    assert rows[0]["task_id"] == "37065422-e38d-4480-a301-b4936b34978a"
 
 
 def test_migration_is_append_only_rls_and_idempotent() -> None:
@@ -169,6 +171,7 @@ def test_migration_is_append_only_rls_and_idempotent() -> None:
         "v214_field_irrigation_source_assignments.sql",
         "v215_yield_map_ingestion.sql",
         "v216_machinery_export.sql",
+        "v245_farm_book_task_link.sql",
     ]
     positions = [entries.index(name) for name in chain]
     assert positions == sorted(positions), f"farm-book chain out of order: {positions}"
@@ -213,3 +216,49 @@ def test_reversal_in_a_later_month_cancels_in_its_own_month() -> None:
     for key in ("total_expenses", "total_income", "net", "cash_balance_effect"):
         assert sum(m[key] for m in months) == all_time[key], key
     assert all_time["total_expenses"] == 40
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("action", "original_reverses", "expected_detail"),
+    [
+        ("settle", "entry-001", "cannot_settle_a_reversal"),
+        ("settle", None, "cannot_settle_reversed_entry"),
+        ("reverse", None, "cannot_reverse_entry_with_settlements"),
+    ],
+)
+async def test_settlements_and_reversals_keep_credit_balances_traceable(
+    action, original_reverses, expected_detail
+) -> None:
+    from unittest.mock import AsyncMock
+
+    from api.routers.simple_farm_book import SimpleEntryIn, _assert_reversal, _prepare_payment
+    from fastapi import HTTPException
+
+    original = _entry(
+        payment_method="credit", party_id="supplier", reverses_entry_id=original_reverses
+    )
+    conn = AsyncMock()
+    conn.fetchrow.return_value = original
+    conn.fetchval.return_value = 1  # the locked original already has the conflicting child
+    common = dict(
+        client_operation_id="operation-001",
+        party_id="supplier",
+        category="repair",
+        amount="100.00",
+        farm_id="farm-1",
+        occurred_on="2026-11-12",
+    )
+    with pytest.raises(HTTPException) as info:
+        if action == "settle":
+            req = SimpleEntryIn(**common, entry_type="payment", settles_entry_id="entry-001")
+            await _prepare_payment(conn, "tenant-1", req)
+        else:
+            req = SimpleEntryIn(
+                **common,
+                entry_type="expense",
+                payment_method="credit",
+                reverses_entry_id="entry-001",
+            )
+            await _assert_reversal(conn, "tenant-1", req)
+    assert info.value.detail == expected_detail

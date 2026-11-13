@@ -1,3 +1,6 @@
+import { canAccess } from '../lib/permissions';
+import { useAuthStore } from '../hooks/useAuth';
+import { TaskSatelliteEvidence } from './TaskSatelliteEvidence';
 import { useQuery } from '@tanstack/react-query';
 import { ClipboardList } from 'lucide-react';
 import { getFieldTasks, type FieldTaskSummary } from '../services/api/fieldTasks';
@@ -32,8 +35,11 @@ function taskTitle(task: FieldTaskSummary) {
 }
 
 export default function FieldWorkspaceTasksPanel({ fieldId }: { fieldId: string }) {
+  const { tenantId, user } = useAuthStore();
+  const role = user?.role;
+  const canViewCosts = canAccess(role, 'analytics');
   const query = useQuery({
-    queryKey: ['field-workspace', fieldId, 'tasks'],
+    queryKey: ['field-workspace', fieldId, 'tasks', tenantId, user?.email ?? null, role ?? null],
     queryFn: () => getFieldTasks(fieldId),
     enabled: Boolean(fieldId),
     staleTime: 60_000,
@@ -66,6 +72,10 @@ export default function FieldWorkspaceTasksPanel({ fieldId }: { fieldId: string 
                     {task.priority !== undefined && <span>priority: {String(task.priority)}</span>}
                     {(task.recommended_date || task.due_at) && <span>date: {String(task.recommended_date ?? task.due_at)}</span>}
                   </div>
+                  {task.estimated_cost_usd != null && <p>التكلفة التقديرية: {task.estimated_cost_usd} USD</p>}
+                  {canViewCosts && task.actual_cost_usd != null && <p>التكلفة الفعلية: {task.actual_cost_usd} USD</p>}
+                  <TaskSatelliteEvidence field={fieldId} sources={task.satellite_sources} terrain={task.terrain_sources} />
+                  {(task.satellite_sources?.length || task.terrain_sources?.length) && task.notes ? <p className="mt-1 text-sm">{task.notes}</p> : null}
                   {task.description_ar && <p className="mt-1 text-xs text-slate-400">{String(task.description_ar)}</p>}
                 </li>
               ))}

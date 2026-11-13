@@ -4,6 +4,9 @@
 // إنجاز فعليّ عبر useCompleteTask (PATCH)، حالات موحّدة (StateViews)، وأزرار
 // محكومة بالدور (RBAC: المُشاهِد لا يُعدّل). لا تلفيق.
 // ═══════════════════════════════════════════════════════════════
+import { InspectionHandoff } from './InspectionHandoff';
+import { TaskCostTrace } from './TaskCostTrace';
+import { TaskSatelliteEvidence } from './TaskSatelliteEvidence';
 import { useState } from 'react';
 import TaskIrrigationObservationPanel from './TaskIrrigationObservationPanel';
 import {
@@ -15,7 +18,7 @@ import { kongApi } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useTasks, useCompleteTask } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
-import { canMutate } from '../lib/permissions';
+import { canAccess, canMutate } from '../lib/permissions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { Card, Button, Pill } from '../components/ds/atoms';
 import { Select } from '../components/ds/forms';
@@ -24,6 +27,9 @@ import { taskStatusAr, taskStatusTone } from '../components/ds/status';
 import { TASK_TYPE_LABELS_AR as L } from '../lib/taskTypeLabels';
 
 interface Task {
+  source_scouting_pin_id?: string | null;
+  terrain_sources?: import('../services/api/fieldTasks').TerrainSource[];
+  satellite_sources?: import('../services/api/fieldTasks').SatelliteSource[];
   task_id:               string;
   field_id:              string;
   field_name?:           string;
@@ -33,6 +39,7 @@ interface Task {
   status:                'pending' | 'in_progress' | 'completed' | 'cancelled';
   estimated_duration_min:number;
   estimated_cost_usd:    number;
+  actual_cost_usd?:      number | null;
   notes?:                string;
   photo_url?:            string;
   assigned_to?:          string;
@@ -56,7 +63,8 @@ const PRIORITY_MAP: Record<number, string> = { 1: 'حرج', 2: 'عالٍ', 3: '�
 
 export default function TasksPage() {
   const { user, tenantId } = useAuthStore();
-  const mutateAllowed = canMutate(user?.role);
+  const canViewCosts = canAccess(user?.role, 'analytics');
+  const mutateAllowed = canMutate(user?.role, 'field');
   const { data, isLoading, isError, refetch, isFetching } = useTasks();
   const completeMut = useCompleteTask();
 
@@ -87,12 +95,15 @@ export default function TasksPage() {
   const setStatus = (taskId: string, patch: Partial<Task>) =>
     setOverrides(p => ({ ...p, [taskId]: { ...p[taskId], ...patch } }));
 
-  const completeTask = async (taskId: string) => {
+  const completeTask = async (taskId: string, actualCostUsd?: number) => {
     if (!mutateAllowed) return;
     setCompleting(taskId);
     try {
-      await completeMut.mutateAsync({ taskId }); // PATCH فعليّ
-      setStatus(taskId, { status: 'completed' });
+      await completeMut.mutateAsync({ taskId, actualCostUsd });
+      setOverrides(previous => {
+        const { status: _started, ...rest } = previous[taskId] ?? {};
+        return { ...previous, [taskId]: rest };
+      });
       toastStore.add('success', '✅ تم إنجاز المهمة', '');
     } catch {
       // صدق: لا نُعلن نجاحاً عند فشل الحفظ (كان يُعلَن نجاح زائف ويُخفي العطل).
@@ -127,7 +138,7 @@ export default function TasksPage() {
     });
   };
 
-  const TaskCard = ({ task }: { task: Task }) => {
+  const renderTaskCard = (task: Task) => {
     const cfg = TASK_CONFIG[task.task_type] || TASK_CONFIG.scouting;
     const Icon = cfg.icon;
     // مقارنة تقويميّة محلّيّة (F5-12): كان `new Date(recommended_date) < new Date()`
@@ -138,7 +149,7 @@ export default function TasksPage() {
     const isOld = !!task.recommended_date && task.recommended_date.slice(0, 10) < todayLocal && task.status === 'pending';
 
     return (
-      <Card style={{ border: `1px solid ${isOld ? T.danger : T.line}` }}>
+      <Card key={`${tenantId}:${task.task_id}`} style={{ border: `1px solid ${isOld ? T.danger : T.line}` }}>
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: `${cfg.color}22` }}>
@@ -152,13 +163,21 @@ export default function TasksPage() {
               {isOld && <span className="text-[10px] flex items-center gap-0.5" style={{ color: T.danger }}><AlertTriangle className="w-3 h-3" /> متأخرة</span>}
             </div>
             <div className="text-xs mb-1" style={{ color: T.muted }}>{task.field_name || task.field_id}</div>
+            <div className="text-xs mb-1" style={{ color: T.muted }}>
+              معرّف المهمة <code dir="ltr" className="select-all">{task.task_id}</code>
+            </div>
             {task.field_id && <button type="button" onClick={() => setObservationTask(task)} className="my-2 rounded border px-3 py-1 text-sm">مشاهدات الري والفحص</button>}
+            {task.source_scouting_pin_id && <InspectionHandoff fieldId={task.field_id} taskId={task.task_id} />}
+            <TaskSatelliteEvidence field={task.field_id} sources={task.satellite_sources} terrain={task.terrain_sources} />
             {task.notes && <p className="text-xs leading-relaxed mb-2" style={{ color: T.brownSoft }}>{task.notes}</p>}
             <div className="flex flex-wrap items-center gap-3 text-[11px]" style={{ color: T.faint }}>
               {task.recommended_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{task.recommended_date}</span>}
               {task.estimated_duration_min != null && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{task.estimated_duration_min} دقيقة</span>}
-              {task.estimated_cost_usd != null && <span className="flex items-center gap-1" style={{ color: T.gold }}>${task.estimated_cost_usd}</span>}
+              {task.estimated_cost_usd != null && <span className="flex items-center gap-1" style={{ color: T.gold }}>التقدير: ${task.estimated_cost_usd}</span>}
+              {canViewCosts && task.actual_cost_usd != null && <span>التكلفة الفعلية: ${task.actual_cost_usd}</span>}
             </div>
+            {canViewCosts && tenantId && <TaskCostTrace key={user?.email} taskId={task.task_id} fieldId={task.field_id}
+              tenant={tenantId} subject={user?.email ?? ''} amount={task.actual_cost_usd} canRecord={mutateAllowed} />}
             {task.photo_url && (
               <div className="mt-2">
                 <img src={task.photo_url} alt="معاينة" loading="lazy" decoding="async" className="h-20 rounded-lg object-cover" />
@@ -168,7 +187,7 @@ export default function TasksPage() {
               </div>
             )}
           </div>
-          {mutateAllowed && task.status !== 'completed' && task.status !== 'cancelled' && (
+          {mutateAllowed && task.status !== 'cancelled' && (
             <div className="flex flex-col gap-1.5 shrink-0">
               {task.status === 'pending' && (
                 <Button tone="gold" full={false} onClick={() => startTask(task.task_id)}
@@ -176,17 +195,30 @@ export default function TasksPage() {
                   بدء
                 </Button>
               )}
-              <Button onClick={() => completeTask(task.task_id)} disabled={completing === task.task_id}
-                full={false} style={{ padding: '6px 12px', fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                {completing === task.task_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                إنجاز
-              </Button>
-              <label className="flex items-center justify-center gap-1 cursor-pointer"
+              <form key={task.status} className="grid gap-1.5" onSubmit={event => {
+                event.preventDefault();
+                const input = event.currentTarget.elements.namedItem('actualCost') as HTMLInputElement;
+                if (!input.reportValidity()) return;
+                void completeTask(task.task_id, input.value === '' ? undefined : input.valueAsNumber);
+              }}>
+                <label className="grid gap-1 text-xs">
+                  التكلفة الفعلية بالدولار {task.status !== 'completed' && '(اختياري)'}
+                  <input name="actualCost" required={task.status === 'completed'} type="number" min="0" max="99999999.99" step="0.01"
+                    placeholder={task.actual_cost_usd?.toString()} className="w-28 rounded border px-2 py-1" />
+                </label>
+                <button type="submit" disabled={completing !== null}
+                  className="inline-flex items-center justify-center gap-1 rounded px-3 py-1.5 text-xs font-bold"
+                  style={{ background: T.green, color: '#fff' }}>
+                  {completing === task.task_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                  {task.status === 'completed' ? 'حفظ تصحيح التكلفة' : 'إنجاز'}
+                </button>
+              </form>
+              {task.status !== 'completed' && <label className="flex items-center justify-center gap-1 cursor-pointer"
                 style={{ padding: '6px 12px', borderRadius: RADIUS.md, border: `1px solid ${T.line}`, color: T.muted, fontSize: 11, fontWeight: 700 }}>
                 <Camera className="w-3 h-3" /> صورة
                 <input type="file" accept="image/*" className="hidden"
                   onChange={e => e.target.files?.[0] && handlePhotoUpload(task.task_id, e.target.files[0])} />
-              </label>
+              </label>}
             </div>
           )}
           {task.status === 'completed' && <CheckCircle className="w-5 h-5 shrink-0 mt-1" style={{ color: T.ok }} />}
@@ -241,7 +273,7 @@ export default function TasksPage() {
 
       {observationTask && <TaskIrrigationObservationPanel key={`${tenantId}:${user?.id ?? user?.email}:${observationTask.task_id}`} taskId={observationTask.task_id} fieldId={observationTask.field_id} onClose={() => setObservationTask(null)} />}
       <div className="space-y-3">
-        {filtered.map(t => <TaskCard key={t.task_id} task={t} />)}
+        {filtered.map(renderTaskCard)}
         {filtered.length === 0 && (
           <EmptyState
             icon={<CheckCircle className="w-10 h-10 text-emerald-700" />}

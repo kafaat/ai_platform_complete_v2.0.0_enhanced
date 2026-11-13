@@ -15,10 +15,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+from typing import Annotated
+from uuid import NAMESPACE_URL, UUID, uuid5
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
-from api.api_models import task_allowed_sources
+from api.api_models import SatelliteSource, TerrainSource, task_allowed_sources
 from api.main import (
     _TASK_COLS,
     _TASK_STATUSES,
@@ -95,7 +98,7 @@ async def list_tasks(
     if paginate and total is not None and eff_offset + len(rows) < total:
         next_cursor = str(eff_offset + (eff_limit or 0))
     return TaskListResponse(
-        tasks=[_row_to_task(r) for r in rows],
+        tasks=[_row_to_task(r, user) for r in rows],
         total=total,
         limit=eff_limit,
         next_cursor=next_cursor,
@@ -160,10 +163,50 @@ async def update_task(
         async with tenant_connection(user) as conn:
 
             async def _work():
+                reopening = None
+                if req.status in ("pending", "in_progress"):
+                    reopening = await conn.fetchrow(
+                        """SELECT task_id, assigned_to, field_id FROM field_tasks WHERE task_id::text=$1
+                           AND tenant_id=$2::uuid AND source_scouting_pin_id IS NOT NULL
+                           AND status IN ('completed','cancelled') FOR UPDATE""",
+                        task_id,
+                        user.tenant_id,
+                    )
+                if req.status == "completed":
+                    inspection = await conn.fetchval(
+                        """SELECT task_id FROM field_tasks WHERE task_id::text=$1 AND tenant_id=$2::uuid
+                           AND source_scouting_pin_id IS NOT NULL AND status IS DISTINCT FROM 'completed'
+                           FOR UPDATE""",
+                        task_id,
+                        user.tenant_id,
+                    )
+                    if inspection is not None:
+                        latest = await conn.fetchval(
+                            """SELECT action FROM inspection_handoffs WHERE task_id=$1 AND tenant_id=$2::uuid
+                               ORDER BY revision DESC LIMIT 1""",
+                            inspection,
+                            user.tenant_id,
+                        )
+                        if latest != "approve":
+                            raise HTTPException(
+                                409, "تتطلب زيارة التفتيش اعتماد نتيجتها قبل الإغلاق"
+                            )
                 row = await conn.fetchrow(query, *vals)
                 # حدث تحديث المهمّة (تفاعليّ): يبثّه وكيل الإشعارات للواجهة حيّاً. داخل
                 # المعاملة وفقط عند وجود الصفّ (مرشَّح بالمستأجِر عبر RLS).
                 if row is not None:
+                    if reopening is not None:
+                        await conn.execute(
+                            """INSERT INTO inspection_handoffs
+                               (tenant_id,field_id,task_id,revision,action,previous_assignee,assignee,actor)
+                               SELECT $1::uuid,$2,$3,COALESCE(MAX(revision),0)+1,'reopen',$4,$4,$5
+                               FROM inspection_handoffs WHERE tenant_id=$1::uuid AND task_id=$3""",
+                            user.tenant_id,
+                            reopening["field_id"],
+                            reopening["task_id"],
+                            reopening["assigned_to"],
+                            str(user.user_id),
+                        )
                     await _emit_domain_event(
                         conn,
                         user,
@@ -174,7 +217,7 @@ async def update_task(
                         # قد تكون None عند تحديث photo/notes فقط (ملاحظة Copilot).
                         {"status": row.get("status"), "field_id": row.get("field_id")},
                     )
-                    return _row_to_task(row).model_dump(mode="json")
+                    return _row_to_task(row, user).model_dump(mode="json")
                 # داخل المعاملة ⇒ لا يُسجَّل أمرٌ لمهمّةٍ غير موجودة ولا لانتقالٍ مرفوض.
                 current = None
                 if req.status is not None:
@@ -219,3 +262,171 @@ async def update_task(
         raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحديث المهمّة", e) from e
+
+
+class SatelliteLinkRequest(BaseModel):
+    asset_id: int = Field(gt=0, le=9223372036854775807)
+    task_id: UUID | None = None
+
+
+# The same predicate drives selection and writes. A superseded product cannot
+# be attached by replaying a stale picker result.
+_PRODUCT_QUERY = """
+    SELECT id::text AS asset_id, scene_id, acquisition_date::text, index_name,
+           satellite, algorithm_version, geometry_revision
+    FROM raster_assets
+    WHERE field_id=$1 AND tenant_id=$2::uuid AND asset_status='ready'
+      AND NULLIF(cog_uri, '') IS NOT NULL AND NULLIF(scene_id, '') IS NOT NULL
+      AND NULLIF(index_name, '') IS NOT NULL AND acquisition_date IS NOT NULL
+      AND (valid_pixel_ratio IS NULL OR valid_pixel_ratio > 0)
+"""
+
+
+@router.get("/api/v1/fields/{field_id}/task-imagery", response_model=list[SatelliteSource])
+async def task_imagery(
+    field_id: str,
+    index: Annotated[str | None, Query(max_length=64)] = None,
+    before_id: Annotated[int | None, Query(gt=0, le=9223372036854775807)] = None,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            _PRODUCT_QUERY
+            + " AND ($3::bigint IS NULL OR id < $3) AND ($4::text IS NULL OR lower(index_name)=$4) ORDER BY id DESC LIMIT 100",
+            field_id,
+            user.tenant_id,
+            before_id,
+            index.strip().lower() if index else None,
+        )
+        return [dict(row) for row in rows]
+
+
+@router.post("/api/v1/fields/{field_id}/task-imagery", response_model=TaskSummary)
+async def link_task_imagery(
+    field_id: str,
+    req: SatelliteLinkRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    async with tenant_connection(user) as conn:
+        asset = await conn.fetchrow(
+            _PRODUCT_QUERY + " AND id=$3 FOR SHARE", field_id, user.tenant_id, req.asset_id
+        )
+        if not asset:
+            raise HTTPException(404, "الأصل غير متاح لهذا الحقل")
+        return await _attach_source(conn, user, field_id, req.task_id, dict(asset), terrain=False)
+
+
+async def _attach_source(conn, user, field_id, task_id, snapshot, *, terrain):
+    column, key = (
+        ("terrain_sources", "source_key") if terrain else ("satellite_sources", "asset_id")
+    )
+    identity = snapshot[key]
+    source = json.dumps([snapshot])
+    created = False
+    if task_id is None:
+        task_id = uuid5(NAMESPACE_URL, f"sahool:scouting:{user.tenant_id}:{field_id}:{identity}")
+        created = await conn.fetchval(
+            f"""INSERT INTO field_tasks(task_id, tenant_id, field_id, task_type, {column})
+               VALUES ($1,$2,$3,'scouting',$4::jsonb)
+               ON CONFLICT (task_id) DO NOTHING RETURNING true""",
+            task_id,
+            user.tenant_id,
+            field_id,
+            source,
+        )
+    row = await conn.fetchrow(
+        f"SELECT {_TASK_COLS} FROM field_tasks WHERE task_id=$1 AND tenant_id=$2 "
+        "AND field_id=$3 FOR UPDATE",
+        task_id,
+        user.tenant_id,
+        field_id,
+    )
+    if not row:
+        raise HTTPException(404, "المهمة غير موجودة في هذا الحقل")
+    task = _row_to_task(row, user)
+    if not any(getattr(s, key) == snapshot[key] for s in getattr(task, column)):
+        row = await conn.fetchrow(
+            f"UPDATE field_tasks SET {column}={column} || $2::jsonb, "
+            f"updated_at=now() WHERE task_id=$1 RETURNING {_TASK_COLS}",
+            task_id,
+            source,
+        )
+        task = _row_to_task(row, user)
+    elif not created:
+        return task
+    await _emit_domain_event(
+        conn,
+        user,
+        "TASK_CREATED" if created else "TASK_UPDATED",
+        "task",
+        str(task_id),
+        {"field_id": field_id, key: snapshot[key]},
+    )
+    return task
+
+
+class TerrainLinkRequest(BaseModel):
+    source_key: str = Field(pattern=r"^terrain-[0-9a-f]{64}$")
+    task_id: UUID | None = None
+
+
+async def _current_terrain(conn, user, field_id):
+    # v162 soil products use a distinct RLS setting from the platform tables.
+    await conn.execute("SELECT set_config('app.current_tenant_id',$1,true)", str(user.tenant_id))
+    field = await conn.fetchrow(
+        "SELECT elevation_m::float8, slope_pct::float8, aspect FROM fields "
+        "WHERE field_id=$1 AND tenant_id=$2::uuid",
+        field_id,
+        user.tenant_id,
+    )
+    if not field:
+        raise HTTPException(404, "الحقل غير متاح")
+    snapshots = []
+    if any(v is not None and v != "" for v in field.values()):
+        snapshots.append({"kind": "field_record", **dict(field)})
+    dem = await conn.fetchrow(
+        """
+        SELECT terrain_product_id AS product_id, geometry_hash,
+               payload->>'dem_version' AS dem_version, payload->>'generated_at' AS generated_at,
+               payload->>'algorithm_version' AS algorithm_version,
+               payload #>> '{provenance,cell_size_m}' AS cell_size_m,
+               (payload->'summaries')::text AS summaries
+        FROM soil_terrain_products WHERE tenant_id=$1 AND field_id=$2
+            AND product_type='terrain_derivatives'
+            AND jsonb_typeof(payload->'summaries')='object' AND payload->'summaries' <> '{}'::jsonb
+        ORDER BY updated_at DESC, terrain_product_id DESC LIMIT 1
+    """,
+        str(user.tenant_id),
+        field_id,
+    )
+    if dem:
+        snapshots.append(
+            {"kind": "dem_product", **dict(dem), "summaries": json.loads(dem["summaries"])}
+        )
+    for snap in snapshots:
+        raw = json.dumps([str(user.tenant_id), field_id, snap], sort_keys=True).encode()
+        snap["source_key"] = "terrain-" + hashlib.sha256(raw).hexdigest()
+    return [TerrainSource(**snap) for snap in snapshots]
+
+
+@router.get("/api/v1/fields/{field_id}/task-terrain", response_model=list[TerrainSource])
+async def task_terrain(
+    field_id: str, user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW))
+):
+    async with tenant_connection(user) as conn:
+        return await _current_terrain(conn, user, field_id)
+
+
+@router.post("/api/v1/fields/{field_id}/task-terrain", response_model=TaskSummary)
+async def link_task_terrain(
+    field_id: str,
+    req: TerrainLinkRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    async with tenant_connection(user) as conn:
+        for source in await _current_terrain(conn, user, field_id):
+            if source.source_key == req.source_key:
+                return await _attach_source(
+                    conn, user, field_id, req.task_id, source.model_dump(), terrain=True
+                )
+        raise HTTPException(409, "تغيّر مصدر التضاريس أو لم يعد متاحاً. حدّث القائمة.")

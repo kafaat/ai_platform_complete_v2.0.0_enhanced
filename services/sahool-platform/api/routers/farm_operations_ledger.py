@@ -62,42 +62,21 @@ def _require_enabled() -> None:
         raise HTTPException(status_code=404, detail="farm_operations_ledger_disabled")
 
 
+async def _assert_owned(conn, tenant_id: str, kind: str, value: str | None) -> None:
+    if detail := await ledger_core.missing_tenant_scope(conn, tenant_id, kind, value):
+        raise HTTPException(status_code=404, detail=detail)
+
+
 async def _assert_season_in_tenant(conn, tenant_id: str, season_id: str | None) -> None:
-    if not season_id:
-        return
-    ok = await conn.fetchval(
-        "SELECT 1 FROM farm_season_projects WHERE tenant_id = $1::uuid AND season_id = $2",
-        tenant_id,
-        season_id,
-    )
-    if ok != 1:
-        raise HTTPException(status_code=404, detail="season_not_found_for_tenant")
+    await _assert_owned(conn, tenant_id, "season", season_id)
 
 
-async def _assert_production_unit_in_tenant(
-    conn, tenant_id: str, production_unit_id: str | None
-) -> None:
-    if not production_unit_id:
-        return
-    ok = await conn.fetchval(
-        "SELECT 1 FROM farm_production_units WHERE tenant_id = $1::uuid AND production_unit_id = $2",
-        tenant_id,
-        production_unit_id,
-    )
-    if ok != 1:
-        raise HTTPException(status_code=404, detail="production_unit_not_found_for_tenant")
+async def _assert_production_unit_in_tenant(conn, tenant_id: str, unit_id: str | None) -> None:
+    await _assert_owned(conn, tenant_id, "production_unit", unit_id)
 
 
 async def _assert_farm_in_tenant(conn, tenant_id: str, farm_id: str | None) -> None:
-    if not farm_id:
-        return
-    ok = await conn.fetchval(
-        "SELECT 1 FROM farms WHERE tenant_id = $1::uuid AND farm_id = $2",
-        tenant_id,
-        farm_id,
-    )
-    if ok != 1:
-        raise HTTPException(status_code=404, detail="farm_not_found_for_tenant")
+    await _assert_owned(conn, tenant_id, "farm", farm_id)
 
 
 def _non_negative_or_none(v: float | None, name: str) -> float | None:
@@ -194,6 +173,7 @@ class OperationLedgerIn(BaseModel):
     production_unit_id: str | None = None
     farm_id: str | None = None
     field_id: str | None = None
+    task_id: uuid.UUID | None = None
     execution_mode: str = "self"
     contractor_id: str | None = None
     status: str = "completed"
@@ -221,7 +201,9 @@ class OperationLedgerIn(BaseModel):
 
 def _request_digest(req: OperationLedgerIn) -> str:
     """بصمةُ الحمولة الكاملة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
-    canonical = json.dumps(req.model_dump(mode="json"), sort_keys=True, ensure_ascii=False)
+    # Without a task link the digest matches receipts created before the optional task_id.
+    payload = req.model_dump(mode="json", exclude={"task_id"} if req.task_id is None else None)
+    canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
@@ -250,6 +232,10 @@ async def create_operation_ledger_record(
                     )
                 if req.field_id:
                     await _assert_field_in_tenant(conn, req.field_id)
+                if task_error := await ledger_core.task_link_error(
+                    conn, tenant_id, req.task_id, req.field_id
+                ):
+                    raise HTTPException(status_code=task_error[0], detail=task_error[1])
                 await _assert_season_in_tenant(conn, tenant_id, req.season_id)
                 await _assert_production_unit_in_tenant(conn, tenant_id, req.production_unit_id)
                 await _assert_farm_in_tenant(conn, tenant_id, req.farm_id)
@@ -259,9 +245,9 @@ async def create_operation_ledger_record(
                            (operation_id, tenant_id, season_id, production_unit_id, farm_id, field_id,
                             operation_type, operation_date, execution_mode, contractor_id, status,
                             notes, cost_amount, cost_category, currency, sync_status, created_by,
-                            created_at, updated_at)
+                            task_id, created_at, updated_at)
                            VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11,
-                                   $12, $13, $14, $15, $16, $17, now(), now())""",
+                                   $12, $13, $14, $15, $16, $17, $18, now(), now())""",
                         operation_id,
                         str(user.tenant_id),
                         req.season_id,
@@ -279,6 +265,7 @@ async def create_operation_ledger_record(
                         req.currency,
                         req.sync_status,
                         user.user_id,
+                        req.task_id,
                     )
                     await ledger_core.persist_operation_subrecords(  # داخل المعاملة نفسها
                         conn,
@@ -295,6 +282,7 @@ async def create_operation_ledger_record(
                     )
                 return {
                     "operation_id": operation_id,
+                    **({"task_id": str(req.task_id)} if req.task_id else {}),
                     "persisted": True,
                     "sync_status": req.sync_status,
                     "message_ar": "حُفظ سجل العملية الزراعية",
@@ -324,6 +312,7 @@ async def create_operation_ledger_record(
 async def list_operation_ledger_records(
     field_id: str | None = None,
     season_id: str | None = None,
+    task_id: uuid.UUID | None = None,
     date_from: date | None = Query(None, alias="from"),
     date_to: date | None = Query(None, alias="to"),
     user: UserSchema = Depends(require_permission(Permission.ACTIVITY_VIEW)),
@@ -336,6 +325,9 @@ async def list_operation_ledger_records(
     if field_id:
         args.append(field_id)
         clauses.append(f"field_id = ${len(args)}")
+    if task_id is not None:
+        args.append(task_id)
+        clauses.append(f"task_id = ${len(args)}::uuid")
     if season_id:
         args.append(season_id)
         clauses.append(f"season_id = ${len(args)}")
@@ -350,7 +342,7 @@ async def list_operation_ledger_records(
             if field_id:
                 await _assert_field_in_tenant(conn, field_id)
             rows = await conn.fetch(
-                "SELECT operation_id, season_id, production_unit_id, farm_id, field_id, "
+                "SELECT operation_id, season_id, production_unit_id, farm_id, field_id, task_id, "
                 "operation_type, operation_date, execution_mode, contractor_id, status, "
                 "cost_amount, cost_category, currency, sync_status, notes "
                 "FROM farm_operation_ledger WHERE "

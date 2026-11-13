@@ -188,3 +188,31 @@ async def test_auto_source_keeps_the_previous_live_behaviour(monkeypatch, router
     response = await cdse_tiles.field_cdse_thumbnail("fld_x", index="ndvi", date="latest", size=160)
 
     assert "X-Imagery-State" not in response.headers, "المسار القديم بلا تغيير عقد"
+
+
+@pytest.mark.asyncio
+async def test_task_thumbnail_uses_exact_asset(monkeypatch, router_module, ready_cog):
+    route, live_calls = router_module
+
+    async def fetch(field, index, requested, *, tenant_id, asset_id):
+        assert (field, index, requested) == ("field", "ndvi", "2026-06-18")
+        if asset_id == 81:
+            return {"cog_url": ready_cog, "acquisition_date": requested}
+
+    monkeypatch.setattr(route._db, "fetch_latest_asset", fetch)
+
+    async def preview(asset_id):
+        return await route.field_cdse_thumbnail(
+            "field",
+            index="ndvi",
+            date="2026-06-18",
+            size=160,
+            source="persisted",
+            asset_id=asset_id,
+        )
+
+    hit = await preview(81)
+    assert hit.headers["X-Raster-Asset-Id"] == "81"
+    assert hit.body.startswith(b"\x89PNG")
+    assert (await preview(82)).status_code == 404
+    assert live_calls == []

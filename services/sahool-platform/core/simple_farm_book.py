@@ -30,15 +30,27 @@ def _drop_reversed(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return netted
 
 
-def summarize_entries(entries: list[dict[str, Any]], *, area_ha: float | None = None) -> dict:
+def summarize_entries(
+    entries: list[dict[str, Any]], *, area_ha: float | None = None, by_currency: bool = False
+) -> dict:
+    original_entries = entries
     entries = _drop_reversed(entries)
     currencies = {str(e["currency"]) for e in entries}
     if len(currencies) > 1:
-        return {
+        summary = {
             "status": "multiple_currencies",
             "currencies": sorted(currencies),
             "entries_count": len(entries),
         }
+        if by_currency:
+            summary["by_currency"] = {
+                currency: summarize_entries(
+                    [row for row in original_entries if row["currency"] == currency],
+                    area_ha=area_ha,
+                )
+                for currency in sorted(currencies)
+            }
+        return summary
     currency = next(iter(currencies), "YER")
     expenses = income = cash_balance = 0.0
     expense_breakdown: dict[str, float] = defaultdict(float)
@@ -138,6 +150,9 @@ def entries_csv(entries: list[dict[str, Any]]) -> bytes:
         "season_id",
         "description",
         "receipt_document_id",
+        "task_id",
+        "reverses_entry_id",
+        "settles_entry_id",
     ]
     writer = csv.DictWriter(out, fieldnames=fields, extrasaction="ignore")
     writer.writeheader()

@@ -44,6 +44,10 @@ class PartyIn(BaseModel):
         return value
 
 
+class ExpenseTaskIn(BaseModel):
+    task_id: uuid.UUID
+
+
 class SimpleEntryIn(BaseModel):
     client_operation_id: str = Field(min_length=8, max_length=120)
     entry_type: str
@@ -54,6 +58,7 @@ class SimpleEntryIn(BaseModel):
     occurred_on: date
     farm_id: str
     field_id: str | None = None
+    task_id: uuid.UUID | None = None
     season_id: str | None = None
     party_id: str | None = None
     settles_entry_id: str | None = None
@@ -87,6 +92,19 @@ class SimpleEntryIn(BaseModel):
         return value
 
 
+async def _task_location(conn, tenant_id, task_id):
+    row = await conn.fetchrow(
+        """SELECT t.field_id, f.farm_id FROM field_tasks t JOIN fields f
+             ON f.tenant_id=t.tenant_id AND f.field_id=t.field_id
+           WHERE t.tenant_id=$1::uuid AND t.task_id=$2""",
+        tenant_id,
+        task_id,
+    )
+    if not row:
+        raise HTTPException(404, "task_not_found_for_tenant")
+    return row
+
+
 async def _assert_scope(conn, tenant_id: str, req: SimpleEntryIn) -> None:
     farm = await conn.fetchval(
         "SELECT 1 FROM farms WHERE tenant_id=$1::uuid AND farm_id=$2", tenant_id, req.farm_id
@@ -95,6 +113,14 @@ async def _assert_scope(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         raise HTTPException(status_code=404, detail="farm_not_found_for_tenant")
     if req.field_id:
         await _assert_field_in_tenant(conn, req.field_id)
+    if req.task_id is not None:
+        if not req.field_id:
+            raise HTTPException(status_code=422, detail="task_link_requires_field")
+        scope = await _task_location(conn, tenant_id, req.task_id)
+        if scope["field_id"] != req.field_id:
+            raise HTTPException(status_code=422, detail="task_field_mismatch")
+        if scope["farm_id"] != req.farm_id:
+            raise HTTPException(status_code=422, detail="task_farm_mismatch")
     if req.season_id:
         season = await conn.fetchval(
             """SELECT 1 FROM seasons WHERE tenant_id=$1::uuid AND season_id=$2
@@ -182,11 +208,49 @@ async def list_parties(
     }
 
 
+def _inherit_task(req: SimpleEntryIn, original) -> None:
+    """Keep a settlement or correction under its original task and field."""
+    if req.task_id is not None and req.task_id != original["task_id"]:
+        raise HTTPException(status_code=422, detail="original_task_mismatch")
+    if original["task_id"] is not None:
+        if req.field_id is not None and req.field_id != original["field_id"]:
+            raise HTTPException(status_code=422, detail="task_field_mismatch")
+        if req.farm_id != original["farm_id"]:
+            raise HTTPException(status_code=422, detail="task_farm_mismatch")
+        req.task_id = original["task_id"]
+        req.field_id = original["field_id"]
+
+
+async def _inherit_ledger_scope(conn, tenant_id, req, original):
+    field_id = original["field_id"]
+    if original["task_id"] is None:
+        historical = await conn.fetchrow(
+            "SELECT task_id, field_id FROM task_expense_links WHERE tenant_id=$1::uuid AND entry_id=$2",
+            tenant_id,
+            req.reverses_entry_id or req.settles_entry_id,
+        )
+        if historical:
+            field_id = historical["field_id"]
+            original = dict(original) | dict(historical)
+    if (
+        req.farm_id != original["farm_id"]
+        or req.field_id is not None
+        and req.field_id != field_id
+        or req.season_id is not None
+        and req.season_id != original["season_id"]
+    ):
+        raise HTTPException(422, "entry_scope_mismatch")
+    req.field_id = field_id
+    req.season_id = original["season_id"]
+    _inherit_task(req, original)
+
+
 async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
     if not req.settles_entry_id or not req.party_id:
         raise HTTPException(status_code=422, detail="payment_requires_party_and_settled_entry")
     original = await conn.fetchrow(
-        """SELECT entry_id, entry_type, payment_method, amount, currency, party_id
+        """SELECT entry_id, entry_type, payment_method, amount, currency, party_id, task_id, field_id, farm_id, season_id,
+                  reverses_entry_id
            FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND entry_id=$2 FOR UPDATE""",
         tenant_id,
@@ -194,8 +258,17 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
     )
     if not original or original["payment_method"] != "credit":
         raise HTTPException(status_code=422, detail="settled_entry_must_be_credit")
+    if original["reverses_entry_id"] is not None:
+        raise HTTPException(status_code=422, detail="cannot_settle_a_reversal")
+    if await conn.fetchval(
+        "SELECT 1 FROM farm_ledger_entries WHERE tenant_id=$1::uuid AND reverses_entry_id=$2",
+        tenant_id,
+        req.settles_entry_id,
+    ):
+        raise HTTPException(status_code=409, detail="cannot_settle_reversed_entry")
     if original["party_id"] != req.party_id or original["currency"] != req.currency:
         raise HTTPException(status_code=422, detail="payment_party_or_currency_mismatch")
+    await _inherit_ledger_scope(conn, tenant_id, req, original)
     paid = await conn.fetchval(
         """SELECT COALESCE(SUM(amount),0) FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND settles_entry_id=$2""",
@@ -215,7 +288,7 @@ async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
     if req.settles_entry_id:
         raise HTTPException(status_code=422, detail="reversal_cannot_also_settle")
     original = await conn.fetchrow(
-        """SELECT entry_type, payment_method, amount, currency, party_id, reverses_entry_id
+        """SELECT entry_type, payment_method, amount, currency, party_id, reverses_entry_id, task_id, field_id, farm_id, season_id
            FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND entry_id=$2 FOR UPDATE""",
         tenant_id,
@@ -233,6 +306,13 @@ async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         or (original["party_id"] or None) != (req.party_id or None)
     ):
         raise HTTPException(status_code=422, detail="reversal_must_mirror_original")
+    if original["payment_method"] == "credit" and await conn.fetchval(
+        "SELECT 1 FROM farm_ledger_entries WHERE tenant_id=$1::uuid AND settles_entry_id=$2 LIMIT 1",
+        tenant_id,
+        req.reverses_entry_id,
+    ):
+        raise HTTPException(status_code=409, detail="cannot_reverse_entry_with_settlements")
+    await _inherit_ledger_scope(conn, tenant_id, req, original)
     already = await conn.fetchval(
         """SELECT 1 FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND reverses_entry_id=$2 LIMIT 1""",
@@ -241,6 +321,75 @@ async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
     )
     if already == 1:
         raise HTTPException(status_code=409, detail="entry_already_reversed")
+
+
+@router.post("/api/v1/farm-book/entries/{entry_id}/task")
+async def link_existing_expense(
+    entry_id: str,
+    req: ExpenseTaskIn,
+    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_EXECUTE)),
+):
+    async with tenant_connection(user) as conn:
+        entry = await conn.fetchrow(
+            """SELECT entry_type, reverses_entry_id, field_id, farm_id, task_id
+               FROM farm_ledger_entries WHERE tenant_id=$1::uuid AND entry_id=$2 FOR UPDATE""",
+            user.tenant_id,
+            entry_id,
+        )
+        if entry is None:
+            raise HTTPException(404, "entry_not_found")
+        if entry["entry_type"] != "expense" or entry["reverses_entry_id"]:
+            raise HTTPException(422, "original_expense_required")
+        scope = await _task_location(conn, user.tenant_id, req.task_id)
+        if entry["farm_id"] != scope["farm_id"] or (
+            entry["field_id"] is not None and entry["field_id"] != scope["field_id"]
+        ):
+            raise HTTPException(422, "task_location_mismatch")
+        if await conn.fetchval(
+            """SELECT 1 FROM farm_ledger_entries
+               WHERE tenant_id=$1::uuid AND (settles_entry_id=$2 OR reverses_entry_id=$2)
+               AND (farm_id<>$3 OR (field_id IS NOT NULL AND field_id<>$4)
+                        OR (task_id IS NOT NULL AND task_id<>$5)) LIMIT 1""",
+            user.tenant_id,
+            entry_id,
+            scope["farm_id"],
+            scope["field_id"],
+            req.task_id,
+        ):
+            raise HTTPException(409, "linked_child_scope_mismatch")
+        current = entry["task_id"]
+        if current is None:
+            await conn.execute(
+                """INSERT INTO task_expense_links(tenant_id,entry_id,task_id,field_id,linked_by)
+                   VALUES($1::uuid,$2,$3,$4,$5) ON CONFLICT (tenant_id,entry_id) DO NOTHING""",
+                user.tenant_id,
+                entry_id,
+                req.task_id,
+                scope["field_id"],
+                str(user.user_id),
+            )
+            current = await conn.fetchval(
+                "SELECT task_id FROM task_expense_links WHERE tenant_id=$1::uuid AND entry_id=$2",
+                user.tenant_id,
+                entry_id,
+            )
+        if current != req.task_id:
+            raise HTTPException(409, "entry_already_linked")
+    return {"entry_id": entry_id, "task_id": req.task_id}
+
+
+# Entries written with v245 already carry task_id. Historical expense links are
+# append-only and apply to the original plus its existing and future children.
+_LINK_JOIN = """LEFT JOIN task_expense_links link ON link.tenant_id=e.tenant_id
+    AND link.entry_id=COALESCE(e.reverses_entry_id,e.settles_entry_id,e.entry_id)"""
+_EFFECTIVE_TASK = "COALESCE(e.task_id, link.task_id)"
+_EFFECTIVE_FIELD = "COALESCE(e.field_id, link.field_id)"
+
+
+_REPLAY_ENTRY = f"""SELECT e.entry_id, e.client_operation_id, e.request_digest, e.sync_status,
+                           {_EFFECTIVE_TASK} AS task_id
+                    FROM farm_ledger_entries e {_LINK_JOIN}
+                    WHERE e.tenant_id=$1::uuid AND e.client_operation_id=$2"""
 
 
 @router.post("/api/v1/farm-book/entries", status_code=201)
@@ -261,15 +410,23 @@ async def create_entry(
     entry_id = "fbe_" + uuid.uuid4().hex[:18]
     tenant_id = str(user.tenant_id)
     request_digest = hashlib.sha256(
-        json.dumps(req.model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode()
+        json.dumps(
+            req.model_dump(mode="json", exclude={"task_id"} if req.task_id is None else set()),
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
     ).hexdigest()
     replayed = False
     try:
         async with tenant_connection(user) as conn:
             async with conn.transaction():
+                # Serialize identical operation keys before checking settlement/reversal state.
+                await conn.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+                    f"{tenant_id}:{req.client_operation_id}",
+                )
                 existing = await conn.fetchrow(
-                    """SELECT * FROM farm_ledger_entries
-                       WHERE tenant_id=$1::uuid AND client_operation_id=$2""",
+                    _REPLAY_ENTRY,
                     tenant_id,
                     req.client_operation_id,
                 )
@@ -281,7 +438,6 @@ async def create_entry(
                     replayed = True
                     row = existing
                 else:
-                    await _assert_scope(conn, tenant_id, req)
                     if req.reverses_entry_id:
                         await _assert_reversal(conn, tenant_id, req)
                     direction = (
@@ -289,14 +445,15 @@ async def create_entry(
                         if req.entry_type == "payment"
                         else ("outflow" if req.entry_type == "expense" else "inflow")
                     )
+                    await _assert_scope(conn, tenant_id, req)
                     row = await conn.fetchrow(
                         """INSERT INTO farm_ledger_entries
                            (entry_id,tenant_id,client_operation_id,request_digest,entry_type,direction,
                             payment_method,category,amount,currency,occurred_on,farm_id,field_id,
                             season_id,party_id,settles_entry_id,reverses_entry_id,quantity,unit,
-                            description,receipt_document_id,source,sync_status,created_by)
+                            description,receipt_document_id,source,sync_status,created_by,task_id)
                            VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,
-                                   $17,$18,$19,$20,$21,$22,'synced',$23)
+                                   $17,$18,$19,$20,$21,$22,'synced',$23,$24)
                            RETURNING *""",
                         entry_id,
                         tenant_id,
@@ -321,6 +478,7 @@ async def create_entry(
                         req.receipt_document_id,
                         req.source,
                         str(user.user_id),
+                        req.task_id,
                     )
     except HTTPException:
         raise
@@ -331,8 +489,7 @@ async def create_entry(
         try:
             async with tenant_connection(user) as conn:
                 row = await conn.fetchrow(
-                    """SELECT * FROM farm_ledger_entries
-                       WHERE tenant_id=$1::uuid AND client_operation_id=$2""",
+                    _REPLAY_ENTRY,
                     tenant_id,
                     req.client_operation_id,
                 )
@@ -351,6 +508,7 @@ async def create_entry(
     return {
         "entry_id": row["entry_id"],
         "client_operation_id": row["client_operation_id"],
+        "task_id": row["task_id"],
         "persisted": True,
         "replayed": replayed,
         "sync_status": row["sync_status"],
@@ -363,6 +521,7 @@ def _entry_filters(
     farm_id: str | None,
     field_id: str | None,
     season_id: str | None,
+    task_id: uuid.UUID | None,
     date_from: date | None,
     date_to: date | None,
 ) -> tuple[str, list]:
@@ -372,10 +531,14 @@ def _entry_filters(
         ("farm_id", farm_id),
         ("field_id", field_id),
         ("season_id", season_id),
+        ("task_id", task_id),
     ):
         if value:
             args.append(value)
-            clauses.append(f"e.{column}=${len(args)}")
+            expr = {"field_id": _EFFECTIVE_FIELD, "task_id": _EFFECTIVE_TASK}.get(
+                column, f"e.{column}"
+            )
+            clauses.append(f"{expr}=${len(args)}")
     if date_from:
         args.append(date_from)
         clauses.append(f"e.occurred_on>=${len(args)}")
@@ -392,8 +555,8 @@ async def _fetch_entries(conn, where: str, args: list, *, limit: int | None = No
         query_args.append(limit)
         limit_sql = f" LIMIT ${len(query_args)}"
     rows = await conn.fetch(
-        f"""SELECT e.*, p.name AS party_name, settled.entry_type AS settled_entry_type
-            FROM farm_ledger_entries e
+        f"""SELECT e.*, {_EFFECTIVE_TASK} AS task_id, {_EFFECTIVE_FIELD} AS field_id, p.name AS party_name, settled.entry_type AS settled_entry_type
+            FROM farm_ledger_entries e {_LINK_JOIN}
             LEFT JOIN farm_ledger_parties p
               ON p.tenant_id=e.tenant_id AND p.party_id=e.party_id
             LEFT JOIN farm_ledger_entries settled
@@ -419,6 +582,7 @@ async def list_entries(
     farm_id: str | None = None,
     field_id: str | None = None,
     season_id: str | None = None,
+    task_id: uuid.UUID | None = None,
     date_from: date | None = Query(None, alias="from"),
     date_to: date | None = Query(None, alias="to"),
     user: UserSchema = Depends(require_permission(Permission.ACTIVITY_VIEW)),
@@ -428,6 +592,7 @@ async def list_entries(
         farm_id=farm_id,
         field_id=field_id,
         season_id=season_id,
+        task_id=task_id,
         date_from=date_from,
         date_to=date_to,
     )
@@ -453,6 +618,7 @@ async def monthly_report(
     farm_id: str | None = None,
     field_id: str | None = None,
     season_id: str | None = None,
+    task_id: uuid.UUID | None = None,
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ):
     start, end = _month_bounds(month)
@@ -461,6 +627,7 @@ async def monthly_report(
         farm_id=farm_id,
         field_id=field_id,
         season_id=season_id,
+        task_id=task_id,
         date_from=start,
         date_to=None,
     )
@@ -479,7 +646,9 @@ async def monthly_report(
             )
     return {
         "month": month,
-        "summary": summarize_entries(entries, area_ha=float(area) if area else None),
+        "summary": summarize_entries(
+            entries, area_ha=float(area) if area else None, by_currency=True
+        ),
     }
 
 
@@ -488,6 +657,7 @@ async def book_balances(
     farm_id: str | None = None,
     field_id: str | None = None,
     season_id: str | None = None,
+    task_id: uuid.UUID | None = None,
     as_of: date | None = None,
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ):
@@ -496,12 +666,16 @@ async def book_balances(
         farm_id=farm_id,
         field_id=field_id,
         season_id=season_id,
+        task_id=task_id,
         date_from=None,
         date_to=as_of,
     )
     async with tenant_connection(user) as conn:
         entries = await _fetch_entries(conn, where, args)
-    return {"as_of": as_of.isoformat() if as_of else None, "summary": summarize_entries(entries)}
+    return {
+        "as_of": as_of.isoformat() if as_of else None,
+        "summary": summarize_entries(entries, by_currency=True),
+    }
 
 
 @router.get("/api/v1/farm-book/export")
@@ -511,6 +685,7 @@ async def export_book(
     farm_id: str | None = None,
     field_id: str | None = None,
     season_id: str | None = None,
+    task_id: uuid.UUID | None = None,
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ):
     start, end = _month_bounds(month)
@@ -519,6 +694,7 @@ async def export_book(
         farm_id=farm_id,
         field_id=field_id,
         season_id=season_id,
+        task_id=task_id,
         date_from=start,
         date_to=None,
     )
@@ -543,3 +719,48 @@ async def export_book(
         media_type=media,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/api/v1/tasks/{task_id}/cost-trace")
+async def task_cost_trace(
+    task_id: uuid.UUID, user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW))
+):
+    async with tenant_connection(user) as conn:
+        task = await conn.fetchrow(
+            "SELECT t.task_id,t.status,t.actual_cost_usd,t.estimated_cost_usd,f.farm_id FROM field_tasks t "
+            "JOIN fields f ON f.tenant_id=t.tenant_id AND f.field_id=t.field_id "
+            "WHERE t.tenant_id=$1 AND t.task_id=$2",
+            user.tenant_id,
+            task_id,
+        )
+        if not task:
+            raise HTTPException(404, "المهمة غير متاحة")
+        changes = await conn.fetch(
+            "SELECT changed_at, changed_by, previous_usd, actual_usd, previous_status, status "
+            "FROM task_cost_history WHERE tenant_id=$1 AND task_id=$2 ORDER BY change_id DESC",
+            user.tenant_id,
+            task_id,
+        )
+        entries = await conn.fetch(
+            f"""SELECT e.entry_id, e.entry_type, e.occurred_on, e.category, e.amount::text AS amount,
+                      e.currency,e.receipt_document_id,e.reverses_entry_id,e.settles_entry_id,
+                      COALESCE(link.linked_by,e.created_by) AS linked_by, COALESCE(link.linked_at,e.created_at) AS linked_at
+               FROM farm_ledger_entries e {_LINK_JOIN}
+               WHERE e.tenant_id=$1 AND {_EFFECTIVE_TASK}=$2 ORDER BY e.occurred_on DESC,e.created_at DESC""",
+            user.tenant_id,
+            task_id,
+        )
+    totals = {}
+    for entry in entries:
+        if entry["entry_type"] == "expense":
+            value = Decimal(entry["amount"])
+            currency = entry["currency"]
+            totals[currency] = totals.get(currency, Decimal(0)) + (
+                -value if entry["reverses_entry_id"] else value
+            )
+    return {
+        "task": dict(task),
+        "changes": [dict(r) for r in changes],
+        "entries": [dict(r) for r in entries],
+        "expenses_by_currency": {cur: str(total) for cur, total in totals.items()},
+    }

@@ -1411,13 +1411,15 @@ def _row_to_activity(r) -> ActivitySummary:
 _TASK_STATUSES = {"pending", "in_progress", "completed", "cancelled"}
 _TASK_COLS = (
     "task_id, field_id, task_type, priority, status, recommended_date, "
-    "estimated_duration_min, estimated_cost_usd, assigned_to, notes, photo_url, "
-    "completed_at, created_at"
+    "estimated_duration_min, estimated_cost_usd, actual_cost_usd, source_scouting_pin_id, assigned_to, notes, photo_url, "
+    "completed_at, created_at, satellite_sources::text AS satellite_sources, terrain_sources::text AS terrain_sources"
 )
 
 
-def _row_to_task(r) -> TaskSummary:
+def _row_to_task(r, user: UserSchema | None = None) -> TaskSummary:
     return TaskSummary(
+        terrain_sources=json.loads(r.get("terrain_sources") or "[]"),
+        satellite_sources=json.loads(r.get("satellite_sources") or "[]"),
         task_id=str(r["task_id"]),
         field_id=r["field_id"],
         task_type=r["task_type"],
@@ -1430,6 +1432,10 @@ def _row_to_task(r) -> TaskSummary:
         estimated_cost_usd=float(r["estimated_cost_usd"])
         if r["estimated_cost_usd"] is not None
         else None,
+        actual_cost_usd=r.get("actual_cost_usd")
+        if user and has_permission(user, Permission.ANALYTICS_VIEW)
+        else None,
+        source_scouting_pin_id=r.get("source_scouting_pin_id"),
         assigned_to=r["assigned_to"],
         notes=r["notes"],
         photo_url=r["photo_url"],
