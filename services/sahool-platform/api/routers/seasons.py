@@ -296,39 +296,55 @@ async def simulate_season_endpoint(
     et0_override: list[float | None] | None = None
     et0_provenance: dict | None = None
     if weather:
-        # WS-C.1b: سلسلة ET0 من محرّك الطقس (المصدر الكنسيّ) — لا Hargreaves محلّيّ في
-        # المحاكاة. تعذّر المحرّك ⇒ 503 (fail-closed). خطّ عرض الحقل + يوم البدء.
-        try:
-            et0_series = await get_et0_series(
-                daily_t_min=[w.t_min_c for w in weather],
-                daily_t_max=[w.t_max_c for w in weather],
-                lat_deg=float(srow["lat"]),
-                daily_dates=[
-                    (start + timedelta(days=i)).isoformat() for i in range(len(weather))
-                ],
-                tenant_id=str(user.tenant_id),
-            )
-        except HTTPException as exc:
-            if exc.status_code in (502, 503, 504):
+        # Prefer FAO reference ET0 returned by the canonical historical owner.
+        # A rederived temperature-only series is not more authoritative than
+        # observed/reanalysis provider ET0. Fall back to the owner's ET0 engine
+        # only when the historical product is incomplete.
+        archived_et0 = [day.et0_mm for day in weather]
+        if all(value is not None for value in archived_et0):
+            et0_override = archived_et0
+            et0_provenance = {
+                "source": "weather-service/historical-fao-et0",
+                "formula_version": "provider:et0_fao_evapotranspiration",
+                "days_computed": len(weather),
+                "source_snapshot_id": archive["source_snapshot_id"],
+                "quality_status": archive.get("quality_status"),
+            }
+        else:
+            # Weather-service remains the only ET0 calculation owner. Never
+            # reimplement Hargreaves/Penman-Monteith inside the season engine.
+            try:
+                et0_series = await get_et0_series(
+                    daily_t_min=[w.t_min_c for w in weather],
+                    daily_t_max=[w.t_max_c for w in weather],
+                    lat_deg=float(srow["lat"]),
+                    daily_dates=[
+                        (start + timedelta(days=i)).isoformat() for i in range(len(weather))
+                    ],
+                    tenant_id=str(user.tenant_id),
+                )
+            except HTTPException as exc:
+                if exc.status_code in (502, 503, 504):
+                    raise HTTPException(
+                        status_code=503,
+                        detail="weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)",
+                    ) from exc
+                raise
+            try:
+                et0_override = validated_engine_daily_series(
+                    et0_series, "daily_et0_mm", len(weather)
+                )
+            except ValueError as exc:
                 raise HTTPException(
-                    status_code=503,
-                    detail="weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)",
+                    status_code=503, detail=f"سلسلة ET₀ غير متطابقة مع أيام الموسم: {exc}"
                 ) from exc
-            raise
-        try:
-            et0_override = validated_engine_daily_series(
-                et0_series, "daily_et0_mm", len(weather)
-            )
-        except ValueError as exc:
-            raise HTTPException(
-                status_code=503, detail=f"سلسلة ET₀ غير متطابقة مع أيام الموسم: {exc}"
-            ) from exc
-        et0_provenance = {
-            "source": "weather-engine",
-            "formula_version": et0_series.get("formula_version"),
-            "days_computed": et0_series.get("days_computed"),
-            "accumulated_et0_mm": et0_series.get("accumulated_et0_mm"),
-        }
+            et0_provenance = {
+                "source": "weather-engine/derived-et0",
+                "formula_version": et0_series.get("formula_version"),
+                "days_computed": et0_series.get("days_computed"),
+                "accumulated_et0_mm": et0_series.get("accumulated_et0_mm"),
+                "quality_status": et0_series.get("quality_status"),
+            }
         try:
             gdd_engine = await get_gdd_product(
                 daily_t_min=[w.t_min_c for w in weather],
