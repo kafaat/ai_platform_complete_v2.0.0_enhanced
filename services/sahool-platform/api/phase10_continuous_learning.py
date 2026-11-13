@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from api.phase_runtime_store import persist_feature_dataset, persist_phase10_learning_outputs
@@ -260,9 +260,16 @@ def feature_store_online_materialization(req: FeatureRecordsRequest) -> dict[str
 
 @router.post("/feature-store/point-in-time")
 def feature_store_point_in_time(req: PointInTimeRequest) -> dict[str, Any]:
-    return build_point_in_time_snapshot(
-        req.records, as_of=req.as_of, max_age_hours=req.max_age_hours
-    )
+    try:
+        return build_point_in_time_snapshot(
+            req.records, as_of=req.as_of, max_age_hours=req.max_age_hours
+        )
+    except ValueError as exc:
+        # The builder rejects a missing, unparseable or naive as_of (and a negative
+        # max_age_hours): a client error, not a 500.
+        raise HTTPException(
+            status_code=422, detail={"code": "invalid_as_of", "message": str(exc)}
+        ) from exc
 
 
 @router.post("/models/register")
