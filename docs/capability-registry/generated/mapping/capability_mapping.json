@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7167,
+    "files_scanned": 7170,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
       "other": 2165,
-      "tests": 2409,
+      "tests": 2412,
       "web": 524
     },
-    "unmapped_artifacts": 3410,
+    "unmapped_artifacts": 3413,
     "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3862,
+      "python_functional": 3865,
       "raw": 3305
     },
-    "test_dependency_files": 1815,
-    "test_dependency_edges": 4598,
-    "test_dependency_bounded_files": 1060,
+    "test_dependency_files": 1818,
+    "test_dependency_edges": 4605,
+    "test_dependency_bounded_files": 1062,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -28331,7 +28331,7 @@
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:858",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
           "score": 9
         },
         {
@@ -30239,7 +30239,7 @@
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:858",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
           "score": 12
         },
         {
@@ -41109,6 +41109,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_agent_store_selection_logged.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_agent_stores_v58_2.py",
       "kind": "tests"
     },
@@ -41130,6 +41134,10 @@
     },
     {
       "path": "tests_v9/test_ai_advice_receipt_status_is_measured.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ai_advisor_readiness_and_field_binding.py",
       "kind": "tests"
     },
     {
@@ -42318,6 +42326,10 @@
     },
     {
       "path": "tests_v9/test_health_readiness_schema_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
       "kind": "tests"
     },
     {
@@ -68850,6 +68862,24 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_agent_store_selection_logged.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 22
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 22
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_agent_stores_v58_2.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -69044,6 +69074,34 @@
           "source": "services/ai_agronomist/ai_evidence_runtime.py",
           "kind": "import",
           "line": 14
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_ai_advisor_readiness_and_field_binding.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 79
+        },
+        {
+          "source": "services/ai_agronomist/advisory_contract.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "import",
+          "line": 79
+        },
+        {
+          "source": "services/ai_agronomist/tool_executor.py",
+          "kind": "import",
+          "line": 127
         }
       ],
       "unresolved": []
@@ -77732,6 +77790,21 @@
           "source": "scripts/ci/health_readiness_schema_guard.py",
           "kind": "source_read",
           "line": 11
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference"
+      ],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "source_read",
+          "line": 45
         }
       ],
       "unresolved": []

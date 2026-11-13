@@ -197,13 +197,34 @@ def _redis_client_or_none() -> Any | None:
         return None
 
 
+def _log_selected_backend(kind: str, client: Any | None) -> None:
+    """One startup line saying which store was chosen, readable from deploy logs.
+
+    A successful Redis connection was silent: only a failure logged, so "connected to Redis"
+    and "configured for memory" looked the same in the logs. Logged at WARNING because the
+    service configures no logging and uvicorn only configures its own loggers, so an INFO
+    line here would be dropped. The Redis URL is a secret and is never logged.
+    """
+    requested = os.getenv("SAHOOL_AGENT_STORE_BACKEND", "memory").strip().lower() or "memory"
+    selected = "redis" if client is not None else "memory"
+    logger.warning(
+        "agent %s store selected: backend=%s requested=%s production=%s",
+        kind,
+        selected,
+        requested,
+        _production_mode(),
+    )
+
+
 def build_approval_store() -> ApprovalStore:
     client = _redis_client_or_none()
+    _log_selected_backend("approval", client)
     return RedisApprovalStore(client) if client is not None else InMemoryApprovalStore()
 
 
 def build_audit_store() -> AuditStore:
     client = _redis_client_or_none()
+    _log_selected_backend("audit", client)
     return RedisAuditStore(client) if client is not None else InMemoryAuditStore()
 
 
