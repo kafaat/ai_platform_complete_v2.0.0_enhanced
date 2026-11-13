@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 703,
+      "evidence_count": 705,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -364,6 +364,7 @@
         "services/sahool-platform/api/routers/trials.py",
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
+        "services/sahool-platform/api/scouting_pins.py",
         "services/sahool-platform/api/season_simulation.py",
         "services/sahool-platform/api/soil_evidence_bridge.py",
         "services/sahool-platform/api/soil_telemetry.py",
@@ -599,6 +600,7 @@
         "services/scout-ingest-service/projection_worker.py",
         "services/scout-ingest-service/tests/test_projection_live.py",
         "services/soil-service/evidence_adapters.py",
+        "services/soil-service/jsonb_values.py",
         "services/soil-service/main.py",
         "services/soil-service/p1_products.py",
         "services/soil-service/p2_products.py",
@@ -2913,7 +2915,7 @@
         "services/sahool-platform/api/routers/crop_twin.py",
         "services/sahool-platform/api/routers/decision_confidence.py"
       ],
-      "source_evidence_count": 703,
+      "source_evidence_count": 705,
       "target_evidence_count": 565,
       "static_supported": true,
       "runtime_verified": false
@@ -3368,5 +3370,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "d72142c0f214e9ffb2fe56155a102eb9e7a3a09ee742a9ff311bd28fd9d01c9f"
+  "content_sha256": "3f11e61aff6c6aa9c5351e8762ad95bb1427518bbf390064f95153550f7e40be"
 }
