@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7161,
+    "files_scanned": 7162,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
-      "other": 2164,
+      "other": 2165,
       "tests": 2404,
       "web": 524
     },
@@ -29,7 +29,7 @@
     "ambiguous_artifacts": 234,
     "files_by_reading": {
       "python_functional": 3857,
-      "raw": 3304
+      "raw": 3305
     },
     "test_dependency_files": 1810,
     "test_dependency_edges": 4584,
@@ -86109,22 +86109,22 @@
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "source_read",
-          "line": 240
+          "line": 244
         },
         {
           "source": "services/sahool-platform/api/phase_runtime_store.py",
           "kind": "source_read",
-          "line": 112
+          "line": 116
         },
         {
           "source": "services/sahool-platform/api/routers/decision_dispatch.py",
           "kind": "source_read",
-          "line": 147
+          "line": 151
         },
         {
           "source": "services/sahool-platform/api/routers/recommendations.py",
           "kind": "source_read",
-          "line": 134
+          "line": 138
         }
       ],
       "unresolved": []
