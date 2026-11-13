@@ -320,6 +320,7 @@ class TestIncompleteWeatherTruth:
 
     def test_missing_et0_prevents_water_adjusted_yield_estimate(self):
         weather = _warm_days(120)
+        weather[-1].et0_mm = None
         out = _sim(
             "wheat",
             weather,
