@@ -67,21 +67,28 @@ class TenantAuditLog:
         self._buf.append(rec)
         return rec
 
-    def recent(self, limit: int | None = None) -> list[dict]:
-        """أحدث حالات الرفض أوّلاً (الأجدد ⇐ الأقدم)."""
-        items = list(reversed(self._buf))
+    def _in_scope(self, tenant_id: str | None) -> list[DenialRecord]:
+        """None is only for trusted in-process diagnostics, never a public HTTP default."""
+        if tenant_id is None:
+            return list(self._buf)
+        return [r for r in self._buf if r.tenant_id == tenant_id]
+
+    def recent(self, limit: int | None = None, *, tenant_id: str | None = None) -> list[dict]:
+        """أحدث حالات الرفض ضمن نطاق المستأجر المحدد."""
+        items = list(reversed(self._in_scope(tenant_id)))
         if limit is not None:
             items = items[: max(0, int(limit))]
         return [r.to_dict() for r in items]
 
-    def summary(self) -> dict:
-        """ملخّص: الإجماليّ + العدد لكلّ نوع + وقت آخر رفض."""
+    def summary(self, *, tenant_id: str | None = None) -> dict:
+        """ملخّص معزول بالمستأجر (None للتشخيص الداخلي الموثوق فقط)."""
+        rows = self._in_scope(tenant_id)
         by_kind: dict[str, int] = {}
-        for r in self._buf:
+        for r in rows:
             by_kind[r.kind] = by_kind.get(r.kind, 0) + 1
-        last_at = self._buf[-1].at if self._buf else None
+        last_at = rows[-1].at if rows else None
         return {
-            "total": len(self._buf),
+            "total": len(rows),
             "buffer_capacity": self.maxlen,
             "by_kind": by_kind,
             "last_at": last_at,

@@ -146,12 +146,14 @@ async def accept_invitation(
     await main.check_ip_rate(ip)
     now = datetime.now(UTC)
 
-    async with main._acquire() as conn:
+    # Atomic acceptance: reading, inserting and consuming share a row-locked transaction.
+    async with main._acquire() as conn, conn.transaction():
         inv = await conn.fetchrow(
             """
             SELECT id, token, email, tenant_id, role, status, expires_at
             FROM invitations
             WHERE token = $1
+            FOR UPDATE
             """,
             hash_invitation_token(req.token),
         )
@@ -185,11 +187,14 @@ async def accept_invitation(
             raise HTTPException(status.HTTP_409_CONFLICT, "البريد مسجّل مسبقاً") from e
 
         # وسم الدعوة مقبولة (idempotent: شرط status='pending' يمنع قبولاً مزدوجاً متسابِقاً).
-        await conn.execute(
-            "UPDATE invitations SET status='accepted', accepted_at=$1 WHERE id=$2",
+        consumed = await conn.fetchval(
+            "UPDATE invitations SET status='accepted', accepted_at=$1 "
+            "WHERE id=$2 AND status='pending' RETURNING id",
             now,
             inv["id"],
         )
+        if consumed is None:
+            raise HTTPException(status.HTTP_409_CONFLICT, "الدعوة استُهلِكت بالتزامن")
 
     tid = str(new_user["tenant_id"])
     token, _jti = main.create_access_token(

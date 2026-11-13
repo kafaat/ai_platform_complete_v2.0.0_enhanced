@@ -1,16 +1,15 @@
-"""routers/users.py — إدارة المستخدمين (admin فقط).
+"""Tenant-scoped team administration. Platform provisioning is a separate capability.
 
-مسارات: GET /v1/auth/users · PATCH /v1/auth/users/{user_id}/role ·
-        PATCH /v1/auth/users/{user_id}/deactivate
-
-شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ). نُقلت المُعالِجات
-حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ التبعيّات المشتركة (require_role،
-_verify_caller_mfa، مسبح DB) تبقى في ``main`` ويُشار إليها عبر ``main.X``.
+Unlike identity lookup during login, team administration must never enumerate or
+modify users outside the actor's tenant. Role changes are intentionally limited to
+non-privileged roles; creating another owner or platform administrator requires a
+separate, reviewed ownership-provisioning workflow.
 """
 
 from __future__ import annotations
 
 from typing import Annotated
+from uuid import UUID
 
 import main
 from client_address import client_ip
@@ -19,11 +18,37 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 router = APIRouter()
 
 
-@router.get("/v1/auth/users", dependencies=[Depends(main.require_role("admin"))])
-async def list_users():
+async def _validate_team_actor(conn, actor: dict) -> str:
+    """Verify signed claims against active DB membership, not JWT role alone."""
+    try:
+        tenant_id = str(UUID(str(actor.get("tenant_id") or "")))
+        actor_id = int(actor["sub"])
+    except (ValueError, TypeError, KeyError) as exc:
+        raise HTTPException(403, "هوية المؤسسة أو المستخدم غير صالحة") from exc
+
+    row = await conn.fetchrow(
+        "SELECT role, active FROM users WHERE id=$1 AND tenant_id=$2::uuid",
+        actor_id,
+        tenant_id,
+    )
+    if (
+        not row
+        or not row["active"]
+        or row["role"] not in ("owner", "admin")
+        or row["role"] != actor.get("role")
+    ):
+        raise HTTPException(403, "إدارة الفريق تتطلّب عضوية إدارية فعّالة في المؤسسة")
+    return tenant_id
+
+
+@router.get("/v1/auth/users")
+async def list_users(admin: Annotated[dict, Depends(main.require_role("owner", "admin"))]):
     async with main._acquire() as conn:
+        tenant_id = await _validate_team_actor(conn, admin)
         rows = await conn.fetch(
-            "SELECT id, email, full_name, role, active, created_at, tenant_id FROM users ORDER BY id"
+            "SELECT id, email, full_name, role, active, created_at, tenant_id "
+            "FROM users WHERE tenant_id=$1::uuid ORDER BY id",
+            tenant_id,
         )
     return [dict(r) for r in rows]
 
@@ -33,39 +58,50 @@ async def change_role(
     user_id: int,
     role: main.ValidRole,
     request: Request,
-    admin: Annotated[dict, Depends(main.require_role("admin"))],
+    admin: Annotated[dict, Depends(main.require_role("owner", "admin"))],
     x_mfa_code: Annotated[str | None, Header()] = None,
 ):
-    # V29.6.1: احسب IP المتّصِل مرّة واحدة ومرّره إلى step-up وإلى التدقيق — كي تحمل
-    # أحداث mfa_stepup_* (success/failed/locked) بصمة IP (مُجزّأة HMAC) لا NULL.
+    # Team management cannot mint an owner or a platform/admin credential.
+    if not main.is_inviteable_role(role):
+        raise HTTPException(403, "تعيين owner/admin يحتاج إجراءً مستقلاً لنقل الملكية")
     ip = client_ip(request)
-    # Step-up MFA (مُفعَّل بالبيئة): جلسة admin وحدها لا تكفي لتغيير دور — يلزم
-    # رمز TOTP حديث من المُنفِّذ نفسه. مُعطَّل افتراضيّاً (CI/dev) ⇒ سلوك غير متغيّر.
     if main._admin_stepup_required():
         caller_id = int(admin["sub"])
         if not await main._verify_caller_mfa(caller_id, x_mfa_code, ip=ip):
             await main.audit_log(
-                "admin_op_mfa_denied",
-                caller_id,
-                ip,
-                details=f"change_role target={user_id}",
-                tenant_id=admin.get("tenant_id"),
+                "admin_op_mfa_denied", caller_id, ip,
+                details=f"change_role target={user_id}", tenant_id=admin.get("tenant_id"),
             )
             raise HTTPException(403, "يتطلّب هذا الإجراء رمز MFA حديثاً (step-up)")
-    async with main._acquire() as conn:
-        row = await conn.fetchrow(
-            "UPDATE users SET role=$1 WHERE id=$2 RETURNING id, email, role", role, user_id
+    async with main._acquire() as conn, conn.transaction():
+        tenant_id = await _validate_team_actor(conn, admin)
+        target = await conn.fetchrow(
+            "SELECT role FROM users WHERE id=$1 AND tenant_id=$2::uuid FOR UPDATE",
+            user_id, tenant_id,
         )
-    if not row:
-        raise HTTPException(404, "المستخدم غير موجود")
-    # إبطال جلسات المستخدم ⇒ يُعاد تحميل الدور الجديد فوريّاً (لا يبقى التوكن القديم بدوره القديم)
-    await main.revoke_all_user_sessions(user_id)
+        if not target:
+            raise HTTPException(404, "المستخدم غير موجود ضمن المؤسسة")
+        if target["role"] in ("owner", "admin"):
+            raise HTTPException(403, "لا يجوز تغيير مالك أو مشرف من إدارة الفريق")
+        # Invalidate first. If Redis fails, no UPDATE is committed; callers can
+        # re-authenticate if a subsequent DB operation fails after invalidation.
+        if main._redis is None:
+            raise HTTPException(503, "لا يمكن تعديل الحساب دون نظام إبطال الجلسات")
+        try:
+            await main.revoke_all_user_sessions(user_id)
+        except Exception as exc:
+            raise HTTPException(503, "تعذّر إبطال الجلسات؛ لم يُعدّل الحساب") from exc
+        row = await conn.fetchrow(
+            "UPDATE users SET role=$1 WHERE id=$2 AND tenant_id=$3::uuid "
+            "AND role NOT IN ('owner','admin') RETURNING id, email, role",
+            role, user_id, tenant_id,
+        )
+        if not row:
+            raise HTTPException(409, "تغيّر دور المستهدف أثناء الطلب")
     await main.audit_log(
-        "change_role",
-        int(admin["sub"]),
-        ip,
+        "change_role", int(admin["sub"]), ip,
         details=f"target={user_id} new_role={role} stepup={main._admin_stepup_required()}",
-        tenant_id=admin.get("tenant_id"),
+        tenant_id=tenant_id,
     )
     return dict(row)
 
@@ -74,32 +110,48 @@ async def change_role(
 async def deactivate_user(
     user_id: int,
     request: Request,
-    admin: Annotated[dict, Depends(main.require_role("admin"))],
+    admin: Annotated[dict, Depends(main.require_role("owner", "admin"))],
     x_mfa_code: Annotated[str | None, Header()] = None,
 ):
-    # V29.6.1: احسب IP مرّة ومرّره إلى step-up (بصمة IP في أحداث mfa_stepup_*).
     ip = client_ip(request)
-    # Step-up MFA (مُفعَّل بالبيئة): تعطيل حساب إجراء حسّاس — يلزم رمز TOTP حديث
-    # من المُنفِّذ. مُعطَّل افتراضيّاً (CI/dev) ⇒ سلوك غير متغيّر (لا mfa_code).
     if main._admin_stepup_required():
         caller_id = int(admin["sub"])
         if not await main._verify_caller_mfa(caller_id, x_mfa_code, ip=ip):
             await main.audit_log(
-                "admin_op_mfa_denied",
-                caller_id,
-                ip,
-                details=f"deactivate target={user_id}",
-                tenant_id=admin.get("tenant_id"),
+                "admin_op_mfa_denied", caller_id, ip,
+                details=f"deactivate target={user_id}", tenant_id=admin.get("tenant_id"),
             )
             raise HTTPException(403, "يتطلّب هذا الإجراء رمز MFA حديثاً (step-up)")
-    async with main._acquire() as conn:
-        await conn.execute("UPDATE users SET active=FALSE WHERE id=$1", user_id)
-    await main.revoke_all_user_sessions(user_id)  # التعطيل فوريّ: إبطال كلّ جلسات الحساب
+    async with main._acquire() as conn, conn.transaction():
+        tenant_id = await _validate_team_actor(conn, admin)
+        target = await conn.fetchrow(
+            "SELECT role, active FROM users WHERE id=$1 AND tenant_id=$2::uuid FOR UPDATE",
+            user_id, tenant_id,
+        )
+        if not target:
+            raise HTTPException(404, "المستخدم غير موجود ضمن المؤسسة")
+        if target["role"] in ("owner", "admin"):
+            raise HTTPException(403, "لا يمكن تعطيل مالك أو مشرف من إدارة الفريق")
+        if not target["active"]:
+            return {"message": "الحساب معطّل مسبقاً"}
+        # Invalidate first. If Redis fails, no UPDATE is committed; callers can
+        # re-authenticate if a subsequent DB operation fails after invalidation.
+        if main._redis is None:
+            raise HTTPException(503, "لا يمكن تعديل الحساب دون نظام إبطال الجلسات")
+        try:
+            await main.revoke_all_user_sessions(user_id)
+        except Exception as exc:
+            raise HTTPException(503, "تعذّر إبطال الجلسات؛ لم يُعدّل الحساب") from exc
+        status = await conn.execute(
+            "UPDATE users SET active=FALSE WHERE id=$1 AND tenant_id=$2::uuid "
+            "AND role NOT IN ('owner','admin') AND active=TRUE",
+            user_id, tenant_id,
+        )
+        if status != "UPDATE 1":
+            raise HTTPException(409, "تغيّرت حالة المستخدم أثناء الطلب")
     await main.audit_log(
-        "deactivate_user",
-        int(admin["sub"]),
-        ip,
+        "deactivate_user", int(admin["sub"]), ip,
         details=f"target={user_id} stepup={main._admin_stepup_required()}",
-        tenant_id=admin.get("tenant_id"),
+        tenant_id=tenant_id,
     )
     return {"message": "تم إلغاء تفعيل الحساب"}
