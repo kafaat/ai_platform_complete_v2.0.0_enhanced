@@ -235,10 +235,10 @@ raster-service,services/raster-service/routers/analysis.py,30,POST,/v1/zones/cla
 raster-service,services/raster-service/routers/analysis.py,48,POST,/v1/change/detect,change_detect,versioned
 raster-service,services/raster-service/routers/analysis.py,98,POST,/v1/fvc/compute,fvc_compute,versioned
 raster-service,services/raster-service/routers/analysis.py,124,POST,/v1/sar/rvi,sar_rvi_endpoint,versioned
-raster-service,services/raster-service/routers/analysis.py,148,POST,/v1/terrain/slope,terrain_slope,versioned
-raster-service,services/raster-service/routers/analysis.py,166,GET,/v1/cog/validate,cog_validate,versioned
-raster-service,services/raster-service/routers/analysis.py,181,POST,/v1/salinity/classify,salinity_classify,versioned
-raster-service,services/raster-service/routers/analysis.py,188,POST,/v1/salinity/calibrate,salinity_calibrate,versioned
+raster-service,services/raster-service/routers/analysis.py,153,POST,/v1/terrain/slope,terrain_slope,versioned
+raster-service,services/raster-service/routers/analysis.py,171,GET,/v1/cog/validate,cog_validate,versioned
+raster-service,services/raster-service/routers/analysis.py,186,POST,/v1/salinity/classify,salinity_classify,versioned
+raster-service,services/raster-service/routers/analysis.py,193,POST,/v1/salinity/calibrate,salinity_calibrate,versioned
 raster-service,services/raster-service/routers/cdse_tiles.py,125,GET,/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png,field_cdse_tile,versioned
 raster-service,services/raster-service/routers/cdse_tiles.py,202,GET,/v1/fields/{field_id}/cdse-thumbnail.png,field_cdse_thumbnail,versioned
 raster-service,services/raster-service/routers/cdse_tiles.py,267,GET,/v1/fields/{field_id}/cdse-tilejson,field_cdse_tilejson,versioned
