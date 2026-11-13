@@ -185,6 +185,7 @@ class SimContext:
     # أوّل يوم في سلسلة الطقس. None ⇒ النافذة تبدأ يوم البذار (عقد المسار). مع تاريخ البذار
     # يُشتقّ منه عمر المحصول لكلّ يوم ⇒ Kc يوميّ من منحنى البطاقة لا توزيع تناسبيّ.
     window_start: date | None = None
+    irrigation_type: str | None = None  # rainfed must not imply assured irrigation
 
 
 @dataclass
@@ -546,7 +547,12 @@ def simulate_season(ctx: SimContext) -> SimResult:
     # احتياج الماء الموسمي ETc (FAO-56) + مقارنة بالعرض (مطر + ريّ).
     water_need = _seasonal_water_need(crop_key, et0_series, days_since_sowing_start)
     water_supply: float | None = None
-    if missing_rain_days == 0 and (ctx.irrigation_mm_total is not None or rain_total > 0):
+    rainfed = (ctx.irrigation_type or "").strip().lower() == "rainfed"
+    if missing_rain_days == 0 and (
+        ctx.irrigation_mm_total is not None or rain_total > 0 or rainfed
+    ):
+        # For rainfed, measured zero rain is a known zero supply, not absence
+        # of irrigation information or assumed fully watered crop.
         water_supply = rain_total + (ctx.irrigation_mm_total or 0.0)
 
     # معامل إجهاد مائي: يخفض الإنتاج عند العجز، لا يضخّمه فوق ١.
@@ -594,6 +600,12 @@ def simulate_season(ctx: SimContext) -> SimResult:
         limitations.append("INCOMPLETE_GDD_SERIES")
     if missing_et0_days > 0:
         limitations.append("INCOMPLETE_ET0_SERIES")
+    if rainfed:
+        assumptions.append(
+            "الموسم مطريّ — استُخدم المطر الموثّق فقط في العرض المائي؛ "
+            "الماء المخزون مبدئيّاً في التربة غير ممثّل في هذا النموذج."
+        )
+        limitations.append("RAINFED_INITIAL_SOIL_WATER_UNMODELED")
     if missing_rain_days > 0:
         assumptions.append(
             f"مطر {missing_rain_days} يوم غير معروف — لم يُعتبَر صفراً مرصوداً ولا يُستعمل "
@@ -635,7 +647,7 @@ def simulate_season(ctx: SimContext) -> SimResult:
             "تعذّر تقدير الغلّة: تغطية GDD أو ET₀ غير مكتملة. "
             "القيم المحسوبة الأخرى إرشادية جزئية ولا تثبت فشل المحصول."
         )
-    elif recognized and missing_rain_days > 0:
+    elif recognized and (missing_rain_days > 0 or rainfed):
         yield_status = "estimated_water_unverified"
         confidence = min(confidence, 0.45)
 
