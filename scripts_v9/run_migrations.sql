@@ -629,25 +629,17 @@
 \i migrations/v246_scouting_pin_inspection_task.sql
 \echo '═══ 242. v247_farm_operations_task_link.sql ═══'
 \i migrations/v247_farm_operations_task_link.sql
-\echo '═══ 243. v248_inspection_handoffs.sql ═══'
-\i migrations/v248_inspection_handoffs.sql
-\echo '═══ 244. v249_task_cost_trace.sql ═══'
-\i migrations/v249_task_cost_trace.sql
-\echo '═══ 245. v254_inspection_review.sql ═══'
-\i migrations/v254_inspection_review.sql
-\echo '═══ 246. v255_soil_sampling_origin.sql ═══'
+\echo '═══ 243. v255_soil_sampling_origin.sql ═══'
 \i migrations/v255_soil_sampling_origin.sql
-\echo '═══ 247. v256_inspection_evidence_versions.sql ═══'
-\i migrations/v256_inspection_evidence_versions.sql
-\echo '═══ 248. v257_scouting_pin_location_photo.sql ═══'
+\echo '═══ 244. v257_scouting_pin_location_photo.sql ═══'
 \i migrations/v257_scouting_pin_location_photo.sql
-\echo '═══ 249. v258_lab_water_revisions_plan_copies.sql ═══'
-\i migrations/v258_lab_water_revisions_plan_copies.sql
-\echo '═══ 250. v260_scout_photo_evidence.sql ═══'
+\echo '═══ 245. v258_lab_water_revisions.sql ═══'
+\i migrations/v258_lab_water_revisions.sql
+\echo '═══ 246. v260_scout_photo_evidence.sql ═══'
 \i migrations/v260_scout_photo_evidence.sql
-\echo '═══ 251. v261_field_tasks_reference_fields.sql ═══'
+\echo '═══ 247. v261_field_tasks_reference_fields.sql ═══'
 \i migrations/v261_field_tasks_reference_fields.sql
-\echo '═══ 252. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 248. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 253. v206_rls_final_hardening.sql ═══'
+\echo '═══ 249. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql
