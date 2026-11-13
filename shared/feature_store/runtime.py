@@ -182,6 +182,25 @@ def resolve_learning_as_of(records: list[dict[str, Any]], *, now: datetime | Non
     return min(latest, current).isoformat()
 
 
+def resolve_requested_as_of(
+    requested: str | None, records: list[dict[str, Any]], *, now: datetime | None = None
+) -> str | None:
+    """As-of time for a caller-facing manifest request.
+
+    No request: ``resolve_learning_as_of``. An aware request in the future is
+    capped at now, so a caller cannot move the decision time forward to certify
+    rows published later. A naive or unparseable request is returned unchanged:
+    the manifest then reports ``as_of_naive``/``as_of_invalid`` and is unsafe.
+    """
+    if requested is None:
+        return resolve_learning_as_of(records, now=now)
+    parsed = _parse_time(requested)
+    if parsed is None:
+        return requested
+    current = (now or datetime.now(UTC)).astimezone(UTC)
+    return min(parsed, current).isoformat()
+
+
 @dataclass(frozen=True)
 class FeatureDefinition:
     feature_id: str

@@ -27,6 +27,7 @@ from shared.feature_store import (
     register_feature_definitions,
     write_offline_feature_dataset,
 )
+from shared.feature_store.runtime import resolve_requested_as_of
 from shared.mlops import (
     apply_model_promotion,
     register_model_version,
@@ -46,6 +47,9 @@ class FeatureRecordsRequest(BaseModel):
     name: str = "canonical_learning_v1"
     version: str = "v1"
     object_uri: str | None = None
+    # Decision time for /feature-store/offline-dataset. Omitted: the latest aware
+    # prediction_at, capped at now. A future value is capped at now.
+    as_of: str | None = None
 
 
 class ModelPromotionRequest(BaseModel):
@@ -247,6 +251,7 @@ def feature_store_offline_dataset(req: FeatureRecordsRequest) -> dict[str, Any]:
         req.records,
         feature_set_id=str(registry.get("feature_set", {}).get("feature_set_id")),
         object_uri=req.object_uri,
+        as_of=resolve_requested_as_of(req.as_of, req.records),
     )
 
 
