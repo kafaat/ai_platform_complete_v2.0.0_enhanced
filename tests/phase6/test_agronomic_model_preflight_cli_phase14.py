@@ -25,7 +25,8 @@ def test_cli_cannot_grant_admission_to_self_declared_evidence(tmp_path):
                 "evidence": {"verified": True},
                 "target_environment": "production",
             }
-        )
+        ),
+        encoding="utf-8",
     )
     p = subprocess.run(
         [sys.executable, str(CLI), "--input", str(path)],
@@ -33,6 +34,7 @@ def test_cli_cannot_grant_admission_to_self_declared_evidence(tmp_path):
         env={**os.environ, "PYTHONPATH": str(REPO)},
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert p.returncode == 2
     reply = json.loads(p.stdout)
@@ -43,12 +45,13 @@ def test_cli_cannot_grant_admission_to_self_declared_evidence(tmp_path):
 
 def test_cli_rejects_invalid_json(tmp_path):
     path = tmp_path / "invalid.json"
-    path.write_text("bogus{")
+    path.write_text("bogus{", encoding="utf-8")
     p = subprocess.run(
         [sys.executable, str(CLI), "--input", str(path)],
         cwd=REPO,
         env={**os.environ, "PYTHONPATH": str(REPO)},
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert p.returncode == 2 and "INPUT_INVALID" in p.stdout
