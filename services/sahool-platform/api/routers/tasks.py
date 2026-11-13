@@ -42,16 +42,6 @@ from api.task_irrigation_observations import list_observations
 router = APIRouter()
 
 
-def _task_updated_payload(row, changed_fields: list[str]) -> dict:
-    updated_at = row.get("updated_at")
-    return {
-        "status": row.get("status"),
-        "field_id": row.get("field_id"),
-        "changed_fields": changed_fields,
-        "updated_at": updated_at.isoformat() if updated_at is not None else None,
-    }
-
-
 @router.get("/api/v1/tasks", response_model=TaskListResponse)
 async def list_tasks(
     field_id: str | None = None,
@@ -253,3 +243,13 @@ async def update_task(
         raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحديث المهمّة", e) from e
+
+
+def _task_updated_payload(row, changed_fields: list[str]) -> dict:
+    updated_at = row.get("updated_at")
+    return {
+        "status": row.get("status"),
+        "field_id": row.get("field_id"),
+        "changed_fields": changed_fields,
+        "updated_at": updated_at.isoformat() if updated_at is not None else None,
+    }
