@@ -38,3 +38,83 @@ def test_invite_accept_is_one_transaction_and_row_locked():
     assert "async with main._acquire() as conn, conn.transaction():" in INV
     assert "FOR UPDATE" in INV
     assert "AND status='pending' RETURNING id" in INV
+
+
+def _load_live_validator_from_source():
+    """Execute the real authorization helper with a fake DB connection."""
+    import ast
+    from uuid import UUID
+
+    from fastapi import HTTPException
+
+    source = ast.parse(USERS)
+    func = next(
+        node
+        for node in source.body
+        if isinstance(node, ast.AsyncFunctionDef)
+        and node.name == "_validate_team_actor"
+    )
+    module = ast.fix_missing_locations(
+        ast.Module(body=[func], type_ignores=[])
+    )
+    scope = {"UUID": UUID, "HTTPException": HTTPException}
+    exec(compile(module, "services/auth/routers/users.py", "exec"), scope)
+    return scope["_validate_team_actor"]
+
+
+class FakeTeamConnection:
+    def __init__(self, row):
+        self.row = row
+        self.last_sql = None
+
+    async def fetchrow(self, sql, *args):
+        self.last_sql = sql
+        assert args == (42, "11111111-1111-4111-8111-111111111111")
+        return self.row
+
+
+def test_team_validator_allows_active_owner_in_same_tenant():
+    import asyncio
+
+    validator = _load_live_validator_from_source()
+    tenant = "11111111-1111-4111-8111-111111111111"
+    conn = FakeTeamConnection({"role": "owner", "active": True})
+    actor = {"sub": "42", "role": "owner", "tenant_id": tenant}
+
+    assert asyncio.run(validator(conn, actor)) == tenant
+    assert "WHERE id=$1 AND tenant_id=$2::uuid" in conn.last_sql
+
+
+@pytest.mark.parametrize(
+    ("row", "role"),
+    [
+        (None, "owner"),
+        ({"role": "farmer", "active": True}, "admin"),
+        ({"role": "owner", "active": False}, "owner"),
+        ({"role": "manager", "active": True}, "manager"),
+    ],
+)
+def test_team_validator_denies_missing_inactive_or_stale_membership(row, role):
+    import asyncio
+
+    from fastapi import HTTPException
+
+    validator = _load_live_validator_from_source()
+    tenant = "11111111-1111-4111-8111-111111111111"
+    actor = {"sub": "42", "role": role, "tenant_id": tenant}
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(validator(FakeTeamConnection(row), actor))
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.parametrize("tenant", ["", "not-a-uuid"])
+def test_team_validator_denies_invalid_tenant_identity(tenant):
+    import asyncio
+
+    from fastapi import HTTPException
+
+    validator = _load_live_validator_from_source()
+    actor = {"sub": "42", "role": "owner", "tenant_id": tenant}
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(validator(FakeTeamConnection(None), actor))
+    assert exc.value.status_code == 403
