@@ -472,22 +472,6 @@ async def simulate_season_endpoint(
     try:
         async with tenant_connection(user) as conn:
             async with conn.transaction():
-                # Auto-link is an auxiliary persisted fact, not an observation.
-                # Insert it only after weather, numerical validation and the
-                # simulation all succeeded, atomically with the append-only run.
-                if pending_auto_link_id is not None:
-                    await conn.execute(
-                        "INSERT INTO season_record_links "
-                        "(tenant_id, season_record_id, canonical_season_id, field_id, "
-                        " linkage_reason, linked_by) "
-                        "VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
-                        user.tenant_id,
-                        pending_auto_link_id,
-                        season_id,
-                        str(srow["field_id"]),
-                        "exact_field_and_sowing_day",
-                        "system:historical-season-composer",
-                    )
                 # Insert the canonical append-only run row FIRST so its run_id can be
                 # bound onto the seasons.sim_* projection in the same transaction —
                 # lineage from the latest projection back to its run is never lost.
@@ -516,6 +500,22 @@ async def simulate_season_endpoint(
                         ensure_ascii=False,
                     ),
                 )
+                # Auto-link is an auxiliary persisted fact, not an observation.
+                # Insert it only after weather, numerical validation and the
+                # simulation all succeeded, atomically with the append-only run.
+                if pending_auto_link_id is not None:
+                    await conn.execute(
+                        "INSERT INTO season_record_links "
+                        "(tenant_id, season_record_id, canonical_season_id, field_id, "
+                        " linkage_reason, linked_by) "
+                        "VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
+                        user.tenant_id,
+                        pending_auto_link_id,
+                        season_id,
+                        str(srow["field_id"]),
+                        "exact_field_and_sowing_day",
+                        "system:historical-season-composer",
+                    )
                 await conn.execute(
                     "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
                     "sim_gdd_total = $4, sim_lai_max = $5, sim_water_mm = $6, "
