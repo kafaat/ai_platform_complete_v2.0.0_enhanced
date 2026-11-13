@@ -2894,6 +2894,56 @@
       "endpoint": "/api/v1/realtime/sessions/{session_id}",
       "audience": "farmer",
       "evidence": "/api/v1/realtime/sessions"
+    },
+    {
+      "endpoint": "/api/v1/farm-book/entries/{entry_id}/task",
+      "audience": "farmer",
+      "evidence": "/task', { task_id:"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/inspection-assignees",
+      "audience": "farmer",
+      "evidence": "/inspection-assignees"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/pins/{pin_id}/inspection-task",
+      "audience": "farmer",
+      "evidence": "/inspection-task"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/task-imagery",
+      "audience": "farmer",
+      "evidence": "/task-imagery"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/task-terrain",
+      "audience": "farmer",
+      "evidence": "/task-terrain"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/tasks/{task_id}/handoff",
+      "audience": "farmer",
+      "evidence": "/handoff"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/tasks/{task_id}/handoff/accept",
+      "audience": "farmer",
+      "evidence": "/accept' : '$path/finding'"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/tasks/{task_id}/handoff/finding",
+      "audience": "farmer",
+      "evidence": "/finding', data: {"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/tasks/{task_id}/handoff/reassign",
+      "audience": "farmer",
+      "evidence": "/' + (review ? 'finding' : action)"
+    },
+    {
+      "endpoint": "/api/v1/tasks/{task_id}/cost-trace",
+      "audience": "farmer",
+      "evidence": "/cost-trace"
     }
   ]
 }
