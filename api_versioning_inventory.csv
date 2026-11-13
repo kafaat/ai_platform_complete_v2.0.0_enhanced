@@ -56,7 +56,7 @@ auth,services/auth/routers/session.py,240,GET,/v1/auth/me,me,versioned
 auth,services/auth/routers/tenants.py,41,POST,/v1/auth/tenants,provision_tenant,versioned
 auth,services/auth/routers/users.py,45,GET,/v1/auth/users,list_users,versioned
 auth,services/auth/routers/users.py,57,PATCH,/v1/auth/users/{user_id}/role,change_role,versioned
-auth,services/auth/routers/users.py,110,PATCH,/v1/auth/users/{user_id}/deactivate,deactivate_user,versioned
+auth,services/auth/routers/users.py,118,PATCH,/v1/auth/users/{user_id}/deactivate,deactivate_user,versioned
 decision-service,services/decision-service/main.py,541,GET,/runtime-identity,runtime_identity,infra
 decision-service,services/decision-service/main.py,547,GET,/healthz,healthz,infra
 decision-service,services/decision-service/main.py,552,GET,/readyz,readyz,infra

@@ -458,7 +458,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 110,
+    "line": 118,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/deactivate",
     "function": "deactivate_user"
