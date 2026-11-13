@@ -108,6 +108,8 @@ class Permission(str, Enum):
     DOCUMENT_MANAGE = "document:manage"
     # التحليلات (تكاليف فعليّة مُجمَّعة — استبدال ملخّص ReportsPage الثابت)
     ANALYTICS_VIEW = "analytics:view"
+    FINANCE_MANAGE = "finance:manage"  # budget/revenue, not task execution
+    EVENT_REQUEUE = "event:requeue"  # DLQ mutation, not audit:view
     # التقارير والمراجعة
     AUDIT_VIEW = "audit:view"
     REPLAY_RECOMMENDATION = "replay:recommendation"  # recommendation_replay
@@ -168,6 +170,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.DOCUMENT_VIEW,
         Permission.DOCUMENT_MANAGE,
         Permission.ANALYTICS_VIEW,
+        Permission.FINANCE_MANAGE,
+        Permission.EVENT_REQUEUE,
     },
     UserRole.MANAGER: {
         # إدارة كاملة، لا حذف ملكية ولا تغيير أدوار
@@ -209,6 +213,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.DOCUMENT_VIEW,
         Permission.DOCUMENT_MANAGE,
         Permission.ANALYTICS_VIEW,
+        Permission.FINANCE_MANAGE,
+        Permission.EVENT_REQUEUE,
     },
     UserRole.AGRONOMIST: {
         # توصيات + معايرة + بحث، لا إدارة بنيوية

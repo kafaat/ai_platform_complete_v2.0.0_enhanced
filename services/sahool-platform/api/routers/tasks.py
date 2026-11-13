@@ -107,7 +107,7 @@ async def update_task(
     task_id: str,
     req: TaskUpdateRequest,
     idem: str | None = Depends(_idem_key),
-    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_EXECUTE)),
 ):
     """تحديث مهمّة (الحالة/صورة/ملاحظة) — مُرشَّح بالمستأجِر (RLS). 404 لو ليست
     للمستأجِر؛ 422 على حالة غير معروفة أو لا حقول للتحديث.

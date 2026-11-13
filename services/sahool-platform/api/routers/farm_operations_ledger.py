@@ -502,7 +502,7 @@ class RevenueRecordIn(BaseModel):
 @router.post("/api/v1/farm-ledger/budgets", status_code=201)
 async def upsert_season_budget_lines(
     req: BudgetLinesIn,
-    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_EXECUTE)),
+    user: UserSchema = Depends(require_permission(Permission.FINANCE_MANAGE)),
 ):
     """يحفظ بنود موازنة الموسم حسب المرحلة والتصنيف. كل القيم قابلة للتعديل ولا تُطبق كقرار تلقائي."""
     _require_enabled()
@@ -611,7 +611,7 @@ async def get_season_budget(
 @router.post("/api/v1/farm-ledger/revenues", status_code=201)
 async def create_revenue_record(
     req: RevenueRecordIn,
-    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_EXECUTE)),
+    user: UserSchema = Depends(require_permission(Permission.FINANCE_MANAGE)),
 ):
     _require_enabled()
     if api_main._DB_POOL is None:

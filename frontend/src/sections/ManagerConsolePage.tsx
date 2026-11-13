@@ -516,9 +516,9 @@ function OpsSection() {
         {tenantM.isError && <Muted>تعذّرت التهيئة — قد تحتاج دور admin أو البريد مسجّل مسبقاً (409).</Muted>}
         {tenantM.data && (
           <div className="mt-1.5 text-[11px] flex flex-col gap-0.5" style={{ color: T.muted }}>
-            <div>أُنشئ المالك: <b style={{ color: T.ink }}>{tenantM.data.email}</b> · الدور {tenantM.data.role}</div>
-            {tenantM.data.reset_url && (
-              <div>رابط ضبط كلمة المرور (يُعرَض مرّة): <span style={{ color: '#86efac', direction: 'ltr' }}>{tenantM.data.reset_url}</span></div>
+            <div>أُنشئ المالك: <b style={{ color: T.ink }}>{tenantM.data.owner_email}</b> · الدور {tenantM.data.owner_role}</div>
+            {tenantM.data.setup_link && (
+              <div>رابط ضبط كلمة المرور (يُعرَض مرّة): <span style={{ color: '#86efac', direction: 'ltr' }}>{tenantM.data.setup_link}</span></div>
             )}
           </div>
         )}

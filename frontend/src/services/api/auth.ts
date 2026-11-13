@@ -320,13 +320,13 @@ export interface CurrentUser {
 // لا كلمة مرور/دور من المُهيِّئ: الدور 'owner' يُفرَض خادميّاً والمالك يضبط كلمته عبر
 // رمز إعادة تعيين. 409 لبريد مسجّل، 403 لغير admin — تُعرَض كما هي بصدق.
 export interface TenantProvisionResult {
-  id: number;
-  email: string;
-  role: string;
-  full_name: string | null;
-  tenant_id: string | null;
-  reset_token?: string | null;
-  reset_url?: string | null;
+  tenant_id: string;
+  owner_user_id: number;
+  owner_email: string;
+  owner_role: string;
+  setup_token: string | null;
+  setup_link: string | null;
+  message: string;
 }
 
 export const provisionTenant = (payload: {
