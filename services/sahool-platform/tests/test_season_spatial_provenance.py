@@ -325,3 +325,39 @@ async def test_historical_record_of_the_same_crop_is_auto_linked(monkeypatch):
     )
     assert any("INSERT INTO season_record_links" in sql for sql in conn.executed)
     assert out.historical_context_used is True
+
+
+async def test_multicrop_season_rejected_before_any_simulation_write(monkeypatch):
+    from fastapi import HTTPException
+
+    season = {**_season(_SOW, _END), "crops": ["wheat", "peanut"]}
+    conn = _Conn(season, [])
+    route = _install(monkeypatch, conn, [])
+    with pytest.raises(HTTPException) as exc:
+        await route.simulate_season_endpoint("season-a", user=_USER)
+    assert exc.value.status_code == 422
+    assert "متعدد المحاصيل" in str(exc.value.detail)
+    assert not conn.runs
+
+
+async def test_missing_archive_day_rejected_before_any_simulation_write(monkeypatch):
+    from fastapi import HTTPException
+
+    import api.connectors.openmeteo as openmeteo
+
+    conn = _Conn(_season(_SOW, _END), [])
+    route = _install(monkeypatch, conn, [])
+
+    async def incomplete(lat, lon, start, end, timeout_s=30.0):
+        n = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
+        return [
+            _Day(date=(date.fromisoformat(start) + timedelta(days=i)).isoformat())
+            for i in range(n - 1)
+        ]
+
+    monkeypatch.setattr(openmeteo, "fetch_historical", incomplete)
+    with pytest.raises(HTTPException) as exc:
+        await route.simulate_season_endpoint("season-a", user=_USER)
+    assert exc.value.status_code == 503
+    assert "سلسلة الطقس" in str(exc.value.detail)
+    assert not conn.runs
