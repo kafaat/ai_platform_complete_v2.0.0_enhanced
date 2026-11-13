@@ -1977,7 +1977,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 186,
+      "evidence_count": 187,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2119,6 +2119,7 @@
         "services/sahool-platform/api/routers/notifications.py",
         "services/sahool-platform/api/routers/rbac.py",
         "services/sahool-platform/api/routers/service_proxy.py",
+        "services/sahool-platform/api/routers/simple_farm_book.py",
         "services/sahool-platform/api/routers/sync.py",
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/sharing.py",
@@ -3194,7 +3195,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 51,
-      "target_evidence_count": 186,
+      "target_evidence_count": 187,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3233,7 +3234,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 186,
+      "source_evidence_count": 187,
       "target_evidence_count": 45,
       "static_supported": true,
       "runtime_verified": false
@@ -3347,5 +3348,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "fa096e970c23217e8c2563163229abe7f431197f537eefa773cc164072cf8df9"
+  "content_sha256": "9f31fb482740a5669ecfa4a84e44a6f96260ecacf8ab6de71786c1926bfeb0e9"
 }
