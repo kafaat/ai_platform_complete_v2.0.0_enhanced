@@ -5429,6 +5429,29 @@
     ]
   },
   {
+    "path": "tests_v9/test_digital_twin_season_live_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 14,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:rls",
+          "content:row level security",
+          "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_element84_vrt_containment.py",
     "kind": "tests",
     "candidates": [

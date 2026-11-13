@@ -534,11 +534,11 @@
         "services/sahool-platform/tests/test_season_stage_risk.py",
         "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
         "services/scout-ingest-service/tests/test_season_live.py",
+        "tests_v9/test_digital_twin_season_live_pg.py",
         "tests_v9/test_export_season_runs_for_golden.py",
         "tests_v9/test_fii_prescription_season_context_guard.py",
         "tests_v9/test_historical_season_bridge_static.py",
-        "tests_v9/test_learning_worker_season_closed_envelope.py",
-        "tests_v9/test_season_api_static.py"
+        "tests_v9/test_learning_worker_season_closed_envelope.py"
       ],
       "runtime": {
         "metrics": [],
@@ -579,7 +579,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 8
+        "tests": 9
       }
     },
     {
