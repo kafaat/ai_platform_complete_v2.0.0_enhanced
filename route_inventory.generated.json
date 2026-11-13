@@ -3162,7 +3162,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 167,
+    "line": 169,
     "method": "POST",
     "path": "/api/v1/agro/crop-risk",
     "function": "crop_risk_endpoint"
@@ -3170,7 +3170,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 180,
+    "line": 182,
     "method": "POST",
     "path": "/api/v1/agro/plant-soil-feedback",
     "function": "plant_soil_feedback_endpoint"
@@ -3178,7 +3178,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 188,
+    "line": 190,
     "method": "POST",
     "path": "/api/v1/agro/plant-soil-feedback/trend",
     "function": "plant_soil_feedback_trend_endpoint"
@@ -3186,7 +3186,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 202,
+    "line": 204,
     "method": "POST",
     "path": "/api/v1/agro/crop-rotation",
     "function": "crop_rotation_endpoint"
@@ -3194,7 +3194,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 219,
+    "line": 221,
     "method": "POST",
     "path": "/api/v1/agro/season-comparison",
     "function": "season_comparison_endpoint"
@@ -3202,7 +3202,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 227,
+    "line": 229,
     "method": "POST",
     "path": "/api/v1/agro/decision-playbook",
     "function": "decision_playbook_endpoint"
@@ -3210,7 +3210,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 352,
+    "line": 354,
     "method": "POST",
     "path": "/api/v1/work-orders/from-recommendation",
     "function": "work_order_from_recommendation_endpoint"
