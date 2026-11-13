@@ -2433,7 +2433,7 @@
       "function": "evidence_map_endpoint",
       "method": "GET",
       "path": "/api/v1/evidence/map",
-      "line": 90,
+      "line": 121,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/evidence_map.py::GET /api/v1/evidence/map::evidence_map_endpoint"
@@ -4283,7 +4283,7 @@
       "function": "get_learning_summary",
       "method": "GET",
       "path": "/api/v1/learning/summary",
-      "line": 135,
+      "line": 155,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/learning_summary.py::GET /api/v1/learning/summary::get_learning_summary"
