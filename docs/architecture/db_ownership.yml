@@ -420,14 +420,14 @@ tables:
     readers: [sahool-platform]
     source: "migrations/v115_precision_agriculture_phase6.sql"
   farm_energy_records:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
     source: "migrations/v100_farm_operations_ledger.sql"
   farm_equipment_records:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
     source: "migrations/v100_farm_operations_ledger.sql"
   farm_indirect_cost_pools:
     owner: field-management-service
@@ -435,14 +435,14 @@ tables:
     readers: [sahool-platform]
     source: "migrations/v101_farm_budget_costing.sql"
   farm_input_records:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
     source: "migrations/v100_farm_operations_ledger.sql"
   farm_labor_records:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
     source: "migrations/v100_farm_operations_ledger.sql"
   farm_ledger_economic_snapshots:
     owner: raster-service
@@ -460,9 +460,9 @@ tables:
     readers: [sahool-platform]
     source: "migrations/v102_farm_closed_loop.sql"
   farm_operation_ledger:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
     source: "migrations/v100_farm_operations_ledger.sql"
   farm_production_units:
     owner: field-management-service
@@ -470,24 +470,24 @@ tables:
     readers: [sahool-platform]
     source: "migrations/v100_farm_operations_ledger.sql"
   farm_revenue_records:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
     source: "migrations/v101_farm_budget_costing.sql"
   farm_season_budget_lines:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
     source: "migrations/v101_farm_budget_costing.sql"
   farm_season_projects:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
     source: "migrations/v100_farm_operations_ledger.sql"
   farm_water_records:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
     source: "migrations/v100_farm_operations_ledger.sql"
   farmer_knowledge:
     owner: field-management-service
