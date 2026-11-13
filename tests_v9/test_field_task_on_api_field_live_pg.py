@@ -186,22 +186,38 @@ async def _journey(monkeypatch) -> dict:
     return out
 
 
-def test_the_field_tasks_key_names_the_fields_table():
+def test_the_field_tasks_key_names_the_fields_table_and_checks_new_rows():
     async def target():
         conn = await asyncpg.connect(DSN)
         try:
-            return await conn.fetchrow(
+            row = await conn.fetchrow(
                 """SELECT confrelid::regclass::text AS target, convalidated, confdeltype
                      FROM pg_constraint
                     WHERE conrelid = 'public.field_tasks'::regclass AND contype = 'f'
                       AND conname = 'field_tasks_field_id_fkey'"""
             )
+            # A new task naming a field that exists only in field_boundaries is refused.
+            legacy = f"ft-legacy-{uuid.uuid4().hex[:8]}"
+            async with conn.transaction():
+                await conn.execute(
+                    "INSERT INTO field_boundaries (field_id, field_name) VALUES ($1, $1)", legacy
+                )
+                with pytest.raises(asyncpg.ForeignKeyViolationError):
+                    async with conn.transaction():
+                        await conn.execute(
+                            "INSERT INTO field_tasks (field_id, task_type) VALUES ($1, 'scouting')",
+                            legacy,
+                        )
+                await conn.execute("DELETE FROM field_boundaries WHERE field_id = $1", legacy)
+            return row
         finally:
             await conn.close()
 
     row = asyncio.run(target())
     assert row is not None
-    assert (row["target"], row["convalidated"], row["confdeltype"]) == ("fields", True, b"c")
+    assert (row["target"], row["confdeltype"]) == ("fields", b"c")
+    # NOT VALID by design: validation is operator-run (docs/runbooks/validate_not_valid_constraints.md).
+    assert row["convalidated"] is False
 
 
 def test_a_task_on_a_field_created_through_the_api_is_stored(monkeypatch):

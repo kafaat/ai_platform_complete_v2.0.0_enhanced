@@ -10,11 +10,9 @@
 --
 -- The constraint keeps its name and its ON DELETE CASCADE. Idempotent: the old constraint is
 -- found in the catalog by its target table and dropped; the new one is added only if absent.
--- It is added NOT VALID (new and updated rows are checked at once), then validated. If legacy
--- rows name a field_id that exists only in field_boundaries, validation fails, the constraint
--- stays NOT VALID and a WARNING gives the count, so the migration still applies; list them with
---   SELECT t.task_id, t.field_id FROM field_tasks t
---    WHERE NOT EXISTS (SELECT 1 FROM fields f WHERE f.field_id = t.field_id);
+-- It is added NOT VALID: new and updated rows are checked at once, existing rows are not
+-- scanned. Validating it is operator-run, after a clean orphan report, per
+-- docs/runbooks/validate_not_valid_constraints.md (no migration runs VALIDATE).
 -- edge_results keeps its field_boundaries FK: its writers seed field_boundaries.
 
 DO $$
@@ -39,18 +37,5 @@ BEGIN
         ALTER TABLE field_tasks
             ADD CONSTRAINT field_tasks_field_id_fkey
             FOREIGN KEY (field_id) REFERENCES fields(field_id) ON DELETE CASCADE NOT VALID;
-    END IF;
-    IF EXISTS (
-        SELECT 1 FROM pg_constraint
-         WHERE conrelid = 'public.field_tasks'::regclass
-           AND conname = 'field_tasks_field_id_fkey' AND NOT convalidated
-    ) THEN
-        BEGIN
-            ALTER TABLE field_tasks VALIDATE CONSTRAINT field_tasks_field_id_fkey;
-        EXCEPTION WHEN foreign_key_violation THEN
-            RAISE WARNING 'v261: field_tasks_field_id_fkey left NOT VALID: % task(s) name a field missing from fields',
-                (SELECT count(*) FROM field_tasks t
-                  WHERE NOT EXISTS (SELECT 1 FROM fields f WHERE f.field_id = t.field_id));
-        END;
     END IF;
 END $$;
