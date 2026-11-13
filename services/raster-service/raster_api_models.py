@@ -113,6 +113,9 @@ class ProcessRequest(BaseModel):
     _verified_stac_capture: dict[str, str] | None = PrivateAttr(default=None)
     _spatial_sampling: dict | None = PrivateAttr(default=None)
     _cdse_native_product: object = PrivateAttr(default=None)
+    # Per-asset checksum records (raster_stage_receipt.asset_integrity); a
+    # mismatch makes the processing runner refuse the request.
+    _asset_integrity: list[dict] | None = PrivateAttr(default=None)
     tenant_id: str
     field_id: str | None = None
     raster_url: str | None = None
