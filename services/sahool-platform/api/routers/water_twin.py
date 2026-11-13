@@ -21,12 +21,12 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from datetime import UTC, date, datetime
 from typing import Literal
 
 from core.engines.fao56 import root_depth_for_crop, taw_from_root_depth, theta_fc_wp_for_texture
+from core.field_twin import water_twin_crop_context
 from core.season_phenology import crop_kc_profile, resolve_crop_id
 from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
@@ -239,27 +239,12 @@ async def field_water_twin(
                 # SOIL-MOISTURE-UNIT-IDENTITY-01: قراءةُ الحسّاس تُقارَن بالدفتر ولا تحكمه.
                 sensor_reading = await api_main._latest_soil_moisture(conn, field_id)
             recent = [row_to_ledger_entry(r) for r in rows]
-            if active_season is not None:
-                season_id = str(active_season["season_id"])
-                season_context_source = "seasons.active"
-                season_crops = active_season["crops"]
-                if isinstance(season_crops, str):
-                    try:
-                        season_crops = json.loads(season_crops)
-                    except (TypeError, ValueError):
-                        season_crops = []
-                if isinstance(season_crops, list) and len(season_crops) == 1:
-                    crop_name = str(season_crops[0])
-                    planting_date = active_season["sowing_date"]
-                else:
-                    # A mixed/invalid crop array cannot be mapped to one root policy.
-                    # An explicit TAW is still permitted for preview, never inferred.
-                    season_context_limitations.append("active_season_crop_ambiguous")
-            elif field_row is not None:
-                crop_name = field_row["crop"]
-                planting_date = field_row["planting_date"]
-                season_context_source = "fields_legacy_unverified"
-                season_context_limitations.append("no_active_season")
+            ctx = water_twin_crop_context(active_season, field_row)
+            crop_name = ctx["crop"]
+            planting_date = ctx["planting_date"]
+            season_id = ctx["season_id"]
+            season_context_source = ctx["source"]
+            season_context_limitations = ctx["limitations"]
         except HTTPException:
             raise  # 404 (حقل خارج المستأجِر) يصعد كما هو
         except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق

@@ -58,6 +58,7 @@ def test_digital_twin_simulates_without_emitting_recommendation():
     risked = simulate_salinity_risk(irrigated)
     assert risked.predicted["depletion_mm_after_irrigation"] == 25.0
     assert risked.predicted["root_zone_available_water_pct_after_irrigation"] == 79.17
+    assert risked.predicted["soil_moisture_pct_after_irrigation"] is None
     assert risked.risks["water_stress"] == "low"
     assert risked.risks["salinity"] == "medium"
     assert "recommendation" not in risked.predicted
@@ -114,11 +115,11 @@ def test_unknown_soil_moisture_is_not_high_water_stress():
     twin = FieldTwinState(field_id="f", current={})
     out = simulate_irrigation(twin, 30)
     assert out.risks["water_stress"] == "unknown"
-    assert out.predicted["root_zone_available_water_pct_after_irrigation"] is None
+    assert out.predicted["soil_moisture_pct_after_irrigation"] is None
     # A 0% measurement is observed but cannot be converted to mm without
     # field capacity/root depth. The projected *post-irrigation* risk is unknown.
     measured = simulate_irrigation(
         FieldTwinState(field_id="f", current={"soil_moisture_pct": 0}), 10
     )
     assert measured.risks["water_stress"] == "unknown"
-    assert measured.predicted["root_zone_available_water_pct_after_irrigation"] is None
+    assert measured.predicted["soil_moisture_pct_after_irrigation"] is None

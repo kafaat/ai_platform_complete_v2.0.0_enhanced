@@ -4825,7 +4825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bfb5b9a36fcbec648606532fb38ab0cfe7700ae5a11bdf08963bb126bc805b44"
+          "content": "88103b793fed72c1e7553e9e6500be5512450277de334dacd9306f3bf0495eb7"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6405,7 +6405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7bac944aa83c6e9aae4d1d0964ac3aa023a077e0f458f1b28ec3793690be1dbf"
+          "content": "2c085b7209f5d8702f24a19db75b51bf9416f27acd6e47903af2920fb5588602"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -23975,7 +23975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a58c09c2dadb39c06acfcc645f28bf16092afaf9c357086e60b029bde1116cb"
+          "content": "8f5492a485c4578a4e3715969c87a6c1935bb45c980a2f525aebd47b1df581fe"
         }
       ],
       "name": "services/sahool-platform/api/crop_twin.py",
@@ -26175,7 +26175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d70fb01b5b45d8c1933f67c91623deeb76e7a1b1f8e5b8988148194c719c7ea"
+          "content": "479647f331d2ff5ad98ba27d7ae2f33be238faee79bc884e29c2aa5ea00880c0"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_twin.py",
@@ -27095,7 +27095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b57a18f2640fe22f31c5db60c932e488c9e9cb7d39fa7e93ac37892788e52cba"
+          "content": "5129611355a0e172753d9d38c0db6d1f34d54bb112b9829c51856e5c65195855"
         }
       ],
       "name": "services/sahool-platform/api/routers/water_twin.py",
@@ -29805,7 +29805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8153b470b49be16aff93d338f2b0e50b22aa9d5f38370ad087dd86e44e69d0ff"
+          "content": "fd3fb1f35c5c44aa6c897bc780e027c74ee8db89545bf155b236dc5c9f94c7a9"
         }
       ],
       "name": "services/sahool-platform/core/field_digital_twin.py",
@@ -29885,7 +29885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5705bb1a9fc395ea542d2fa5c34843cad6b4629133dffc6c29178ad7936c0d1f"
+          "content": "7610acad9bc1f2a29ec766a4a0558943c4a7f9be78c04530480bf6b19abeb19f"
         }
       ],
       "name": "services/sahool-platform/core/field_twin.py",
@@ -33555,7 +33555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f95dfa464a8cbd359f80660d86bb9f374fd6683883dcaa1eccbd6f5c3dc4d329"
+          "content": "ae61466d9f51fd2a87544cacec779392d671a8c5caaef6c2a2d0dbe557f45a70"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_twin_endpoint.py",
@@ -33645,7 +33645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0782434564832678aac2049a436b30003c8265c11ef5a29ecd6545a3ab6cea0e"
+          "content": "1b8060e9039fec0869d4bcdb384ac34c5541f8f4103a0325fddcdc78d7119c16"
         }
       ],
       "name": "services/sahool-platform/tests/test_final_production_hardening.py",
@@ -36145,10 +36145,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d8a8a36a4f5cc37333f193d83499f6e1ddbb9b16a8c2dfe9f8f1f99024cf59ae"
+          "content": "0d505a59044eba3cc4f32e1262866bdcb68c8aa04583a051f4bf6ee5b3f15aaa"
         }
       ],
       "name": "services/sahool-platform/tests/test_v26_digital_twin_regressions.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aa30837ff79b87d37ce8adb087e92f6b9640219f29f73167c1050bd32f5ff0af"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
       "type": "file"
     },
     {

@@ -6301,7 +6301,9 @@
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+        "services/sahool-platform/tests/test_field_twin_endpoint.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
+        "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py"
       ],
       "code_writers": [

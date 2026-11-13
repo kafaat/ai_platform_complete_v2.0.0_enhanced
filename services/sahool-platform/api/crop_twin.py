@@ -112,16 +112,21 @@ def crop_twin_state(
             )
     else:
         # Backward-compatible bridge only; callers should migrate to ``gdd_product``.
+        # A missing, non-finite or negative day inside the window is not a 0 °C·day: the whole
+        # series is then unavailable rather than summed over the days that happened to be valid.
+        window = list(gdd_daily_override or [])[: len(days)]
         compat_values = [
             float(value)
-            for value in (gdd_daily_override or [])[: len(days)]
+            for value in window
             if isinstance(value, (int, float))
             and not isinstance(value, bool)
             and math.isfinite(value)
             and value >= 0
         ]
-        gdd_available = bool(compat_values)
-        gdd_cum = sum(compat_values)
+        gdd_available = (
+            bool(window) and len(window) == len(days) and len(compat_values) == len(window)
+        )
+        gdd_cum = sum(compat_values) if gdd_available else 0.0
         phenology_method = "weather_gdd_daily_override_compat"
         phenology_formula_version = "compat/daily-gdd-override"
         gdd_evidence_ids = []
@@ -181,8 +186,10 @@ def crop_twin_state(
             nutrient_state={
                 "status": "estimated" if gdd_available else "unavailable",
                 "target_uptake_kg_ha": nut["target_uptake_kg_ha"],
-                "stage": nut["matched_stage"],
-                "cumulative_fraction_to_date": nut["cumulative_fraction_to_date"],
+                "stage": nut["matched_stage"] if gdd_available else None,
+                "cumulative_fraction_to_date": (
+                    nut["cumulative_fraction_to_date"] if gdd_available else None
+                ),
                 "uptake_to_date_kg_ha": nut["uptake_to_date_kg_ha"] if gdd_available else None,
             },
             spectral_state=spectral_state,
@@ -225,8 +232,10 @@ def crop_twin_state(
         },
         "nutrient": {
             "target_uptake_kg_ha": nut["target_uptake_kg_ha"],
-            "stage": nut["matched_stage"],
-            "cumulative_fraction_to_date": nut["cumulative_fraction_to_date"],
+            "stage": nut["matched_stage"] if gdd_available else None,
+            "cumulative_fraction_to_date": (
+                nut["cumulative_fraction_to_date"] if gdd_available else None
+            ),
             "uptake_to_date_kg_ha": nut["uptake_to_date_kg_ha"] if gdd_available else None,
             # منحنى البطاقة المرحليّ (crop_card) أم المنحنى العامّ (generic) — والعنصر الذي يخصّه.
             "curve_source": nut["source"],

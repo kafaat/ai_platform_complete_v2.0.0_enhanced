@@ -2793,7 +2793,7 @@
       "function": "get_field_twin",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/twin",
-      "line": 40,
+      "line": 38,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/field_twin.py::GET /api/v1/fields/{field_id}/twin::get_field_twin"

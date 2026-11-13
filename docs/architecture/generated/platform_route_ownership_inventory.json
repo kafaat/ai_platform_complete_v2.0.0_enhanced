@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "84af6af26ccd74f58b944ff238beb6d1278f1fd87f56d09bdab90aab290dfb3b",
+  "inventory_sha256": "8ca11e2934357f112fd2e5bb48ac570ab3dcb2f3a664c22aacae2e8867ff2def",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "09e9e4bcc54019aadd9666ea4e1d6a620392d41ba69045fe18d39d40007408dd",
+  "map_sha256": "504c32aa4dc4997874073ed4be1530497a715dd40c93107e9c329253fe300b6d",
   "routes": [
     {
       "classification": null,
@@ -2339,7 +2339,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/field_twin.py",
       "function": "get_field_twin",
-      "line": 40,
+      "line": 38,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",

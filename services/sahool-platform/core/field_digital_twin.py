@@ -55,6 +55,7 @@ def simulate_irrigation(state: FieldTwinState, irrigation_mm: float) -> FieldTwi
     if not valid_water:
         risks["water_stress"] = "unknown"
         predicted["root_zone_available_water_pct_after_irrigation"] = None
+        predicted["soil_moisture_pct_after_irrigation"] = None
         predicted["depletion_mm_after_irrigation"] = None
         predicted["simulation_status"] = "unavailable_without_canonical_root_zone"
         return FieldTwinState(
@@ -71,12 +72,12 @@ def simulate_irrigation(state: FieldTwinState, irrigation_mm: float) -> FieldTwi
 
     dr_after = max(0.0, float(dep) - float(irrigation_mm))
     predicted["depletion_mm_after_irrigation"] = round(dr_after, 2)
-    # (TAW - Dr) / TAW: the share of the root zone's total available water left after the
-    # screened depth. It is NOT volumetric soil moisture (VWC %), which needs field capacity,
-    # wilting point and root depth; no VWC value is produced here.
+    # (TAW - Dr) / TAW is the share of total available water left in the root zone, not
+    # volumetric soil moisture (VWC); converting to VWC needs theta_fc/theta_wp and Zr.
     predicted["root_zone_available_water_pct_after_irrigation"] = round(
         100.0 * (float(taw) - dr_after) / float(taw), 2
     )
+    predicted["soil_moisture_pct_after_irrigation"] = None
     predicted["simulation_status"] = "screening_only_net_infiltration"
     valid_raw = (
         isinstance(raw, (int, float))
@@ -91,8 +92,8 @@ def simulate_irrigation(state: FieldTwinState, irrigation_mm: float) -> FieldTwi
     assumptions = [
         *state.assumptions,
         "instantaneous net infiltration screening; excludes ET, runoff and drainage",
-        "root_zone_available_water_pct is (TAW - Dr) / TAW, not volumetric soil moisture",
         "no_execution_authority",
+        "soil_moisture_pct_after_irrigation withheld: volumetric moisture is not derived from TAW",
     ]
     if irrigation_mm > dep:
         assumptions.append("net_irrigation_exceeds_depletion: excess water not simulated")
@@ -130,8 +131,12 @@ def build_field_twin_from_canonical_state(state: dict[str, Any]) -> FieldTwinSta
     """
     if state.get("schema_version") != "canonical_field_state.v1":
         raise ValueError("Field Digital Twin requires canonical_field_state.v1")
-    propose = (state.get("eligibility") or {}).get("propose") or {}
-    if not state.get("operational_eligible") or propose.get("allowed") is False:
+    # Fail closed: a missing or malformed propose gate is not permission to simulate.
+    eligibility = state.get("eligibility")
+    propose = eligibility.get("propose") if isinstance(eligibility, dict) else None
+    if not isinstance(propose, dict):
+        propose = {}
+    if not state.get("operational_eligible") or propose.get("allowed") is not True:
         return FieldTwinState(
             field_id=str(state.get("field_id") or ""),
             current={

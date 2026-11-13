@@ -10,12 +10,10 @@
 
 from __future__ import annotations
 
-import json
-import math
 import os
 from datetime import UTC, datetime
 
-from core.field_twin import assemble_twin
+from core.field_twin import active_season_context, assemble_twin, finite_indicator_readings
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.main import (
@@ -98,17 +96,7 @@ async def get_field_twin(
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("تجميع التوأم الرقميّ للحقل", e) from e
 
-    indices: dict[str, float] = {}
-    index_observed_at: dict[str, object] = {}
-    for r in ind_rows:
-        try:
-            value = float(r["value"])
-        except (TypeError, ValueError, OverflowError):
-            continue
-        if not math.isfinite(value):
-            continue
-        indices[r["indicator_id"]] = value
-        index_observed_at[r["indicator_id"]] = r["recorded_at"]
+    indices, index_observed_at = finite_indicator_readings(ind_rows)
     observed_at = max((v for v in index_observed_at.values() if v is not None), default=None)
     open_decisions = [{"state": r["state"], "exec_status": r["exec_status"]} for r in dec_rows]
     last_execution = None
@@ -136,21 +124,5 @@ async def get_field_twin(
     out["legacy_field_crop"] = field_row["crop"]
     out["view_role"] = "derived_read_model_only"
     out["decision_authority"] = "none"
-    raw_crops = season_row["crops"] if season_row is not None else []
-    if isinstance(raw_crops, str):
-        try:
-            raw_crops = json.loads(raw_crops)
-        except (TypeError, ValueError):
-            raw_crops = []
-    if not isinstance(raw_crops, list):
-        raw_crops = []
-    sowing = season_row["sowing_date"] if season_row is not None else None
-    out["season_context"] = {
-        "source": "seasons",
-        "status": "active" if season_row is not None else "missing_active_season",
-        "season_id": str(season_row["season_id"]) if season_row is not None else None,
-        "crops": raw_crops,
-        "cultivar": season_row["cultivar"] if season_row is not None else None,
-        "sowing_date": sowing.isoformat() if sowing is not None else None,
-    }
+    out["season_context"] = active_season_context(season_row)
     return out

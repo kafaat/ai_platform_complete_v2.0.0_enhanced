@@ -532,6 +532,7 @@
         "services/sahool-platform/tests/test_season_simulation.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_season_stage_risk.py",
+        "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
         "services/scout-ingest-service/tests/test_season_live.py",
         "tests_v9/test_digital_twin_season_live_pg.py",
         "tests_v9/test_export_season_runs_for_golden.py",

@@ -1388,9 +1388,16 @@ function MapHubCore() {
   const waterEfficiencyQ = useFieldWaterEfficiency(expertMode ? (fieldId ?? null) : null);
   // سجلّ التتبّع: مواسم الحقل + العمليّات المكتملة (Farmonaut) — تقرير قابل للمشاركة.
   const seasonsQ = useSeasons(expertMode ? (fieldId ?? undefined) : undefined);
-  const activeSeason = useMemo(
+  // Strictly the active season: the crop twin reads only this, never a planned/closed one.
+  const strictlyActiveSeason = useMemo(
     () => (seasonsQ.data ?? []).find((s) => s.status === 'active') ?? null,
     [seasonsQ.data],
+  );
+  // The farm book, profitability and season cards keep their fallback to the newest season, so a
+  // field with only a planned season can still log budget and ledger entries before sowing.
+  const activeSeason = useMemo(
+    () => strictlyActiveSeason ?? seasonsQ.data?.[0] ?? null,
+    [strictlyActiveSeason, seasonsQ.data],
   );
   // ربحيّة الموسم: تعكس التكاليف/الإيرادات الفعليّة المُخزَّنة (farm-ledger v100–v102) في FieldView.
   // مبوَّبة بوضع الخبير + وجود موسم؛ الخطّافات تلتقط 404 (الميزة مُطفأة) كحالة صادقة لا خطأ.
@@ -2064,8 +2071,12 @@ function MapHubCore() {
       {selected && fieldMode === 'expert' && (
         <CropPropagationCard
           fieldId={fieldId ?? null}
-          seasonId={activeSeasonId}
-          cropLabel={activeSeason?.crops?.[0] ?? selected.crop}
+          seasonId={strictlyActiveSeason?.season_id ?? null}
+          cropLabel={
+            strictlyActiveSeason
+              ? (strictlyActiveSeason.crops?.length === 1 ? strictlyActiveSeason.crops[0] : null)
+              : selected.crop || null
+          }
           enabled={expertMode}
         />
       )}

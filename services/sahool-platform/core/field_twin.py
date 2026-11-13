@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import asdict, dataclass, field
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 # عتبات مشتقّة (صريحة، قابلة للمراجعة) — تطابق منطق الواجهة (ndviStatus).
@@ -52,14 +53,17 @@ def _parse_day(value: Any) -> date | None:
     if value is None:
         return None
     if isinstance(value, datetime):
-        return value.date()
+        # Aware times are compared in UTC (as asyncpg returns timestamptz), so a +03:00 offset
+        # cannot make an observation a day younger than it is.
+        return (value.astimezone(UTC) if value.tzinfo is not None else value).date()
     if isinstance(value, date):
         return value
     s = str(value).strip()
     if not s:
         return None
     try:
-        return datetime.fromisoformat(s.replace("Z", "+00:00")).date()
+        parsed = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        return (parsed.astimezone(UTC) if parsed.tzinfo is not None else parsed).date()
     except ValueError:
         try:
             return date.fromisoformat(s[:10])
@@ -88,6 +92,11 @@ def assemble_twin(
     """
     indices = dict(latest_indices or {})
     ndvi = indices.get("ndvi")
+    if ndvi is not None:
+        try:
+            ndvi = float(ndvi) if math.isfinite(float(ndvi)) else None
+        except (TypeError, ValueError, OverflowError):
+            ndvi = None  # a non-numeric or non-finite NDVI is no evidence of cover
     decisions = list(open_decisions or [])
     blocked = [d for d in decisions if (d.get("state") or "").lower() == "blocked"]
     active = [
@@ -103,7 +112,7 @@ def assemble_twin(
         else observed_at
     )
     obs_day = _parse_day(observed)
-    now_day = _parse_day(now) or date.today()
+    now_day = _parse_day(now) or datetime.now(UTC).date()
     data_age_days = (now_day - obs_day).days if obs_day is not None else None
 
     reasons: list[str] = []
@@ -152,3 +161,102 @@ def assemble_twin(
         attention_reasons_ar=reasons,
         observed_at=(obs_day.isoformat() if obs_day else None),
     )
+
+
+# ── row adapters (pure): the routers read rows under RLS and hand them here ──
+
+
+def finite_indicator_readings(rows) -> tuple[dict[str, float], dict[str, Any]]:
+    """Latest value and its own observation time per indicator; non-numeric/non-finite skipped.
+
+    Each indicator keeps its own time, so a fresh EVI cannot lend its date to an old NDVI.
+    """
+    indices: dict[str, float] = {}
+    observed: dict[str, Any] = {}
+    for r in rows:
+        try:
+            value = float(r["value"])
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if not math.isfinite(value):
+            continue
+        indices[r["indicator_id"]] = value
+        observed[r["indicator_id"]] = r["recorded_at"]
+    return indices, observed
+
+
+def season_crop_list(raw: Any) -> list[str]:
+    """seasons.crops (JSONB: list, or its JSON text from asyncpg) → list of crop names."""
+    import json
+
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except (TypeError, ValueError):
+            return []
+    if not isinstance(raw, list):
+        return []
+    return [str(c) for c in raw if str(c).strip()]
+
+
+def active_season_context(season_row) -> dict[str, Any]:
+    """The active season as the twin reports it; the season owns crop identity, not fields.crop."""
+    if season_row is None:
+        return {
+            "source": "seasons",
+            "status": "missing_active_season",
+            "season_id": None,
+            "crops": [],
+            "cultivar": None,
+            "sowing_date": None,
+        }
+    sowing = season_row["sowing_date"]
+    return {
+        "source": "seasons",
+        "status": "active",
+        "season_id": str(season_row["season_id"]),
+        "crops": season_crop_list(season_row["crops"]),
+        "cultivar": season_row["cultivar"],
+        "sowing_date": sowing.isoformat() if sowing is not None else None,
+    }
+
+
+def water_twin_crop_context(active_season, field_row) -> dict[str, Any]:
+    """Which crop and planting date interpret a water-twin scenario, and from where.
+
+    An active season wins over legacy fields.crop. A mixed or empty crop list in the active
+    season maps to no single root policy, so no crop is inferred (an explicit TAW still works);
+    the legacy field crop is not used as a fallback in that case.
+    """
+    if active_season is not None:
+        crops = season_crop_list(active_season["crops"])
+        if len(crops) == 1:
+            return {
+                "crop": crops[0],
+                "planting_date": active_season["sowing_date"],
+                "season_id": str(active_season["season_id"]),
+                "source": "seasons.active",
+                "limitations": [],
+            }
+        return {
+            "crop": None,
+            "planting_date": None,
+            "season_id": str(active_season["season_id"]),
+            "source": "seasons.active",
+            "limitations": ["active_season_crop_ambiguous"],
+        }
+    if field_row is not None:
+        return {
+            "crop": field_row["crop"],
+            "planting_date": field_row["planting_date"],
+            "season_id": None,
+            "source": "fields_legacy_unverified",
+            "limitations": ["no_active_season"],
+        }
+    return {
+        "crop": None,
+        "planting_date": None,
+        "season_id": None,
+        "source": "not_loaded",
+        "limitations": [],
+    }

@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "2f11e51e8c9163ad25e81d81958a0d26c2fe486b34498b8e107e3697dfec82c4",
+  "inventory_sha256": "eb9fe93c6ad8d87a7c425092831ced850d41ae3b00ba1f0f66cff9b9c0ae69db",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "09e9e4bcc54019aadd9666ea4e1d6a620392d41ba69045fe18d39d40007408dd"
+    "policy_sha256": "504c32aa4dc4997874073ed4be1530497a715dd40c93107e9c329253fe300b6d"
   },
   "routes": [
     {
@@ -1338,7 +1338,7 @@
     {
       "classification": "domain",
       "function": "get_field_twin",
-      "line": 40,
+      "line": 38,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/twin",
       "source": "api/routers/field_twin.py"

@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7162,
+    "files_scanned": 7161,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
-      "other": 2165,
+      "other": 2164,
       "tests": 2404,
       "web": 524
     },
@@ -29,7 +29,7 @@
     "ambiguous_artifacts": 234,
     "files_by_reading": {
       "python_functional": 3857,
-      "raw": 3305
+      "raw": 3304
     },
     "test_dependency_files": 1810,
     "test_dependency_edges": 4584,
@@ -7453,7 +7453,7 @@
           ]
         },
         {
-          "path": "tests_v9/test_digital_twin_season_live_pg.py",
+          "path": "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
           "score": 14,
           "signals": [
             "path:season",
@@ -59281,17 +59281,22 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 7
+          "line": 6
         },
         {
           "source": "services/sahool-platform/api/routers/field_twin.py",
           "kind": "import",
-          "line": 9
+          "line": 8
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 10
+          "line": 9
+        },
+        {
+          "source": "services/sahool-platform/core/field_twin.py",
+          "kind": "import",
+          "line": 45
         }
       ],
       "unresolved": []
@@ -64352,6 +64357,34 @@
           "source": "services/sahool-platform/core/field_digital_twin.py",
           "kind": "import",
           "line": 8
+        },
+        {
+          "source": "services/sahool-platform/core/field_twin.py",
+          "kind": "import",
+          "line": 181
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 46
+        },
+        {
+          "source": "services/sahool-platform/api/routers/water_twin.py",
+          "kind": "import",
+          "line": 47
+        },
+        {
+          "source": "services/sahool-platform/core/field_twin.py",
+          "kind": "import",
+          "line": 9
         }
       ],
       "unresolved": []
@@ -74503,39 +74536,6 @@
           "source": "shared/contracts/soil/observation.py",
           "kind": "import",
           "line": 57
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_digital_twin_season_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
-      "edges": [
-        {
-          "source": "services/sahool-platform/api/main.py",
-          "kind": "import",
-          "line": 60
-        },
-        {
-          "source": "services/sahool-platform/api/routers/__init__.py",
-          "kind": "import",
-          "line": 61
-        },
-        {
-          "source": "services/sahool-platform/api/routers/field_twin.py",
-          "kind": "import",
-          "line": 61
-        },
-        {
-          "source": "services/sahool-platform/api/routers/water_twin.py",
-          "kind": "import",
-          "line": 61
-        },
-        {
-          "source": "services/sahool-platform/core/canonical_schemas.py",
-          "kind": "import",
-          "line": 67
         }
       ],
       "unresolved": []
@@ -86109,22 +86109,22 @@
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "source_read",
-          "line": 244
+          "line": 240
         },
         {
           "source": "services/sahool-platform/api/phase_runtime_store.py",
           "kind": "source_read",
-          "line": 116
+          "line": 112
         },
         {
           "source": "services/sahool-platform/api/routers/decision_dispatch.py",
           "kind": "source_read",
-          "line": 151
+          "line": 147
         },
         {
           "source": "services/sahool-platform/api/routers/recommendations.py",
           "kind": "source_read",
-          "line": 138
+          "line": 134
         }
       ],
       "unresolved": []
