@@ -8855,6 +8855,7 @@
         "tests_v9/test_apply_in_compose_fail_closed.py",
         "tests_v9/test_critical_event_fail_closed.py",
         "tests_v9/test_erp_bridge_fail_closed.py",
+        "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
         "tests_v9/test_tile_mask_fail_closed_v29_8.py"
       ]
     },
