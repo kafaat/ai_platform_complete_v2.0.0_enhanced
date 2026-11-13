@@ -42,12 +42,22 @@ def test_none_day_excluded_not_fabricated():
     # يوم None في السلسلة ⇒ يُستبعَد من الاحتياج (لا صفر مُلفَّق، لا Hargreaves محلّيّ).
     weather = _weather(10, et0_mm=None)
     all_five = simulate_season(
-        SimContext(crop="wheat", weather=weather, et0_daily_override=[5.0] * 10)
+        SimContext(
+            crop="wheat",
+            weather=weather,
+            gdd_daily_override=[12.0] * 10,
+            et0_daily_override=[5.0] * 10,
+        )
     )
     one_none = [5.0] * 10
     one_none[3] = None
     with_gap = simulate_season(
-        SimContext(crop="wheat", weather=weather, et0_daily_override=one_none)
+        SimContext(
+            crop="wheat",
+            weather=weather,
+            gdd_daily_override=[12.0] * 10,
+            et0_daily_override=one_none,
+        )
     )
     # يوم ناقص واحد يجعل ETc الموسمي غير متاح، لا مجموعًا ناقصًا متنكرًا كاحتياج.
     assert with_gap.water_need_mm is None

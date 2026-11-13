@@ -210,7 +210,7 @@ class TestObservedFapar:
         n = 50
         f = 0.6
         weather = _warm_days(n)
-        r = simulate_season(SimContext(crop="wheat", weather=weather, observed_fapar=f))
+        r = _sim("wheat", weather, observed_fapar=f)
         p = _params_for("wheat")
         # solar مُقدَّر (لا تاريخ بذر) ⇒ المتوسّط السنويّ الاحتياطيّ 21.0 لكلّ يوم.
         solar = 21.0
@@ -221,8 +221,8 @@ class TestObservedFapar:
 
     def test_higher_observed_fapar_more_biomass(self):
         weather = _warm_days(80)
-        low = simulate_season(SimContext(crop="wheat", weather=weather, observed_fapar=0.2))
-        high = simulate_season(SimContext(crop="wheat", weather=weather, observed_fapar=0.9))
+        low = _sim("wheat", weather, observed_fapar=0.2)
+        high = _sim("wheat", weather, observed_fapar=0.9)
         assert high.biomass_kg_ha > low.biomass_kg_ha
         assert high.yield_kg_ha > low.yield_kg_ha
 
@@ -248,9 +248,7 @@ class TestObservedFapar:
 
     def test_short_series_extends_with_last(self):
         # سلسلة أقصر من أيّام الموسم ⇒ تُمدَّد بآخر قيمة (لا انهيار).
-        r = simulate_season(
-            SimContext(crop="wheat", weather=_warm_days(60), observed_fapar=[0.6, 0.7])
-        )
+        r = _sim("wheat", _warm_days(60), observed_fapar=[0.6, 0.7])
         assert r.fapar_source == "observed"
         assert r.biomass_kg_ha > 0
 

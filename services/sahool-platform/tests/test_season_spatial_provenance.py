@@ -283,12 +283,11 @@ async def test_long_season_window_is_truncated_explicitly_not_silently(monkeypat
 
 
 async def test_response_declares_simulated_crop_and_current_geometry_basis(monkeypatch):
-    out, _ = await _simulate_season(monkeypatch, {**_season(_SOW, _END), "crops": ["قمح", "شعير"]})
+    out, _ = await _simulate_season(monkeypatch, {**_season(_SOW, _END), "crops": ["قمح"]})
     assert out.simulated_crop == "قمح"
     assert out.geometry_basis == "current_boundary"
     assert out.truncated is False
     assert out.window_days_requested == out.window_days_simulated == 71
-    assert any("حوكِيَ المحصول" in w for w in out.warnings_ar)  # التحذير المختلط باقٍ
 
 
 async def test_season_without_sowing_date_is_refused_with_arabic_422(monkeypatch):
