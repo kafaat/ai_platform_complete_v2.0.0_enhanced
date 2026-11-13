@@ -47,6 +47,7 @@ def compose_historical_season_context(
     season: Mapping[str, Any],
     simulation_window: Mapping[str, str] | None = None,
     weather_provenance: Mapping[str, Any] | None = None,
+    spatial_provenance: Mapping[str, Any] | None = None,
     season_record: Mapping[str, Any] | None = None,
     crop: Mapping[str, Any] | None = None,
     events: Iterable[Mapping[str, Any]] = (),
@@ -172,6 +173,10 @@ def compose_historical_season_context(
             "no_daily_fapar_interpolation": True,
         },
     }
+    # Spatial evidence changes the input identity even when the NDVI averages,
+    # rainfall and modeled yield happen to be numerically identical.
+    if spatial_provenance is not None:
+        context["spatial"] = _row(spatial_provenance)
     canonical = json.dumps(
         context, sort_keys=True, separators=(",", ":"), ensure_ascii=False
     ).encode()

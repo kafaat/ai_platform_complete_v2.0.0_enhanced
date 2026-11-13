@@ -132,12 +132,12 @@ async def _load_linked_historical_inputs(
     return record, crop, events, harvest, vegetation
 
 
-async def _boundary_revisions_since(conn, field_id: str, since) -> list[int]:
-    """S4-b: مراجعات حدّ الحقل المسجّلة منذ بداية الموسم (قراءة فقط، بلا مخطّط).
+async def _boundary_revisions_since(conn, field_id: str, since) -> dict:
+    """Read an auditable geometry *revision*, not historical boundary coordinates.
 
-    الموسم لا يُثبّت مراجعة هندسة (قرار مخطّط معلّق)، والمحاكاة تقرأ إحداثيّات الحقل
-    وسلسلة NDVI على الحدّ **الحاليّ**. المراجعة الأولى رسمُ الحقل لا تعديلُه، فلا تُعدّ
-    ولو سُجِّلت بعد بدء موسمٍ أُدخِل لاحقاً؛ وتعديلٌ قبل البداية لا يمسّ حدّ الموسم.
+    The current boundary is used for the weather and imagery read. This ledger
+    proves only which edits are recorded; no historical geometry is reconstructed.
+    An empty ledger is unverified, not proof that the boundary never changed.
     """
     rows = await conn.fetch(
         "SELECT revision, changed_at FROM field_geometry_history "
@@ -145,11 +145,18 @@ async def _boundary_revisions_since(conn, field_id: str, since) -> list[int]:
         field_id,
     )
     cutoff = datetime.combine(since, datetime.min.time(), tzinfo=UTC)
-    return [
-        int(r["revision"])
-        for r in rows[1:]
-        if r["changed_at"] is not None and r["changed_at"] >= cutoff
-    ]
+    return {
+        "source": "field_geometry_history",
+        "geometry_basis": "current_boundary",
+        "status": "recorded" if rows else "history_missing",
+        "latest_revision": int(rows[-1]["revision"]) if rows else None,
+        "revisions_since_sowing": [
+            int(r["revision"])
+            for r in rows[1:]
+            if r["changed_at"] is not None and r["changed_at"] >= cutoff
+        ],
+        "historical_geometry_replayed": False,
+    }
 
 
 @router.post("/api/v1/seasons/{season_id}/simulate", response_model=SeasonSimResponse)
@@ -250,9 +257,24 @@ async def simulate_season_endpoint(
     spatial_warnings: list[str] = []
     try:
         async with tenant_connection(user) as conn:
-            changed_revisions = await _boundary_revisions_since(conn, str(srow["field_id"]), start)
-    except Exception:  # noqa: BLE001 — أفضل-جهد: تحذير، لا بوّابة
-        changed_revisions = []
+            spatial_provenance = await _boundary_revisions_since(
+                conn, str(srow["field_id"]), start
+            )
+    except Exception:  # noqa: BLE001 — لا تختلق ثبات الهندسة إذا تعذّر جدول التدقيق
+        spatial_provenance = {
+            "source": "field_geometry_history",
+            "geometry_basis": "current_boundary",
+            "status": "unavailable",
+            "latest_revision": None,
+            "revisions_since_sowing": [],
+            "historical_geometry_replayed": False,
+        }
+    changed_revisions = spatial_provenance["revisions_since_sowing"]
+    if spatial_provenance["status"] != "recorded":
+        spatial_warnings.append(
+            "تعذّر إثبات تاريخ حدّ الحقل — سجلّ الهندسة مفقود أو غير متاح. "
+            "المحاكاة تستخدم الحدّ الحاليّ فقط، ولا تثبت سلامته للموسم التاريخيّ."
+        )
     if changed_revisions:
         spatial_warnings.append(
             f"حدّ الحقل عُدِّل منذ بداية الموسم ({start.isoformat()}) — المراجعات "
@@ -385,6 +407,7 @@ async def simulate_season_endpoint(
         season_id=season_id,
         season=dict(srow),
         simulation_window={"start": start.isoformat(), "end": win_end.isoformat()},
+        spatial_provenance=spatial_provenance,
         weather_provenance={
             "owner": "weather-service",
             "canonical_state_id": archive["canonical_state_id"],
@@ -568,7 +591,20 @@ async def simulate_season_endpoint(
         yield_low_kg_ha=result.yield_low_kg_ha,
         yield_high_kg_ha=result.yield_high_kg_ha,
         yield_status=result.yield_status,
-        limitations=[*window.limitations(), *result.limitations],
+        limitations=[
+            *window.limitations(),
+            *result.limitations,
+            *(
+                ["GEOMETRY_HISTORY_UNVERIFIED"]
+                if spatial_provenance["status"] != "recorded"
+                else []
+            ),
+            *(
+                ["CURRENT_BOUNDARY_DIFFERS_FROM_SEASON_START"]
+                if changed_revisions
+                else []
+            ),
+        ],
         water_need_mm=result.water_need_mm,
         water_supply_mm=result.water_supply_mm,
         water_stress_factor=result.water_stress_factor,

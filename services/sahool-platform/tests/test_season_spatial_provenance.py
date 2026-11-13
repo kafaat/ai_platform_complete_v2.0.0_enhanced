@@ -5,8 +5,8 @@ S4-a: محوِّل نقطة ``/timeseries`` كان يُسقط ``scene_id`` (ول
 و``input_digest`` واحداً — البصمة لا تُميّز ما قيس عليه.
 
 S4-b: المواسم مربوطة بـ``field_id`` والتواريخ فقط (لا مراجعة هندسة ولا مساحة تاريخيّة —
-قرار مخطّط معلّق). بلا ترحيل: المحاكاة تُعلِن صراحةً حين عُدِّل حدّ الحقل بعد بداية
-الموسم، لأنّها تقرأ إحداثيّات الحقل وسلسلته على الحدّ **الحاليّ**.
+قرار مخطّط معلّق). تربط المحاكاة مراجعة الهندسة داخل بصمة المدخلات، وتعلن عدم
+إمكان إثبات التاريخ عند غياب سجلّه؛ تظلّ تستخدم الحدّ **الحاليّ** لا التاريخيّ.
 """
 
 from __future__ import annotations
@@ -264,10 +264,33 @@ async def test_no_warning_when_boundary_only_recorded_at_creation_or_before_star
     assert _geometry_warnings(out.warnings_ar) == []
 
 
-async def test_geometry_lookup_failure_does_not_break_the_simulation(monkeypatch):
+async def test_geometry_lookup_failure_is_explicit_not_a_clean_history(monkeypatch):
     out, run = await _simulate(monkeypatch, [], geometry_error=True)
     assert out.simulation_run_id
-    assert _geometry_warnings(out.warnings_ar) == []
+    assert "GEOMETRY_HISTORY_UNVERIFIED" in out.limitations
+    assert len(_geometry_warnings(out.warnings_ar)) == 1
+    context = json.loads(run[6])
+    assert context["spatial"]["status"] == "unavailable"
+    assert context["spatial"]["historical_geometry_replayed"] is False
+    assert _geometry_warnings(out.warnings_ar)[0] in json.loads(run[-1])
+
+
+async def test_empty_geometry_ledger_does_not_certify_static_boundary(monkeypatch):
+    out, run = await _simulate(monkeypatch, [])
+    assert "GEOMETRY_HISTORY_UNVERIFIED" in out.limitations
+    assert json.loads(run[6])["spatial"]["status"] == "history_missing"
+
+
+async def test_geometry_revision_changes_digest_without_numeric_change(monkeypatch):
+    first = [_rev(1, _SOW - timedelta(days=30))]
+    revised = [*first, _rev(2, _SOW + timedelta(days=4))]
+    baseline, baseline_run = await _simulate(monkeypatch, first)
+    changed, changed_run = await _simulate(monkeypatch, revised)
+    assert baseline.yield_kg_ha == changed.yield_kg_ha
+    assert baseline.input_digest != changed.input_digest
+    assert "CURRENT_BOUNDARY_DIFFERS_FROM_SEASON_START" in changed.limitations
+    assert json.loads(changed_run[6])["spatial"]["latest_revision"] == 2
+    assert json.loads(baseline_run[6])["spatial"]["latest_revision"] == 1
 
 
 async def test_persisted_context_carries_scene_identity_and_digest_tracks_it(monkeypatch):
