@@ -1,9 +1,14 @@
 """Opt-in strict shadow contract tests; no production services required."""
+
 from shared.feature_store.strict_shadow import strict_shadow_snapshot
 
 BASE = {
-    "tenant_id": "A", "season_id": "S1", "feature_set_id": "FS1",
-    "entity_type": "field", "entity_id": "F1", "source_version": "v1",
+    "tenant_id": "A",
+    "season_id": "S1",
+    "feature_set_id": "FS1",
+    "entity_type": "field",
+    "entity_id": "F1",
+    "source_version": "v1",
     "event_time": "2026-11-01T00:00:00Z",
     "available_at": "2026-11-02T00:00:00Z",
     "ingested_at": "2026-11-03T00:00:00Z",
@@ -13,10 +18,12 @@ BASE = {
 
 def run(records, **kwargs):
     return strict_shadow_snapshot(
-        records, tenant_id=kwargs.get("tenant_id", "A"),
+        records,
+        tenant_id=kwargs.get("tenant_id", "A"),
         season_id=kwargs.get("season_id", "S1"),
         feature_set_id=kwargs.get("feature_set_id", "FS1"),
-        as_of="2026-11-04T00:00:00Z", max_age_hours=100,
+        as_of="2026-11-04T00:00:00Z",
+        max_age_hours=100,
     )
 
 
