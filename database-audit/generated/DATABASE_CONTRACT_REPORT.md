@@ -4,8 +4,8 @@
 
 ## Summary
 
-- **manifest_entries**: 249
-- **sql_files**: 252
+- **manifest_entries**: 250
+- **sql_files**: 253
 - **manifest_missing_count**: 0
 - **unlisted_sql_count**: 0
 - **tables**: 344

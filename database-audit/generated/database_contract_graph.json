@@ -246,6 +246,7 @@
       "v255_soil_sampling_origin.sql",
       "v257_scouting_pin_location_photo.sql",
       "v258_lab_water_revisions.sql",
+      "v259_yield_map_observed_zero.sql",
       "v260_scout_photo_evidence.sql",
       "v261_field_tasks_reference_fields.sql",
       "v240_converge_first_pass_schema.sql",
@@ -1686,14 +1687,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 249,
+    "manifest_entries": 250,
     "manifest_missing_count": 0,
     "policies": 204,
     "production_certified": false,
     "rls_enabled": 217,
     "rls_forced": 198,
     "runtime_verified": false,
-    "sql_files": 252,
+    "sql_files": 253,
     "tables": 344,
     "tenant_rls_gaps": 135,
     "tenant_tables": 324,
@@ -3841,6 +3842,7 @@
         "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/routers/fields.py",
+        "services/sahool-platform/tests/test_field_geometry_revert_overlap.py",
         "services/sahool-platform/tests/test_field_overlap_postgis.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
         "services/scout-ingest-service/tests/test_season_live.py"
@@ -5709,6 +5711,7 @@
     },
     {
       "code_readers": [
+        "services/decision-service/persistence.py",
         "services/decision-service/tests/test_migration_033_pg16.py"
       ],
       "code_writers": [
@@ -6028,7 +6031,8 @@
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
         "services/sahool-platform/tests/test_r09_learning_label_integrity.py",
-        "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py"
+        "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
+        "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py"
       ],
       "created_in": "v49_zone_key_recommendation_outcomes.sql",
       "has_tenant_id": true,
@@ -6154,7 +6158,7 @@
       ],
       "created_in": "v260_scout_photo_evidence.sql",
       "has_tenant_id": true,
-      "manifest_position": 245,
+      "manifest_position": 246,
       "policy_count": 1,
       "rls_enabled": true,
       "rls_forced": true,
@@ -6328,6 +6332,7 @@
         "services/sahool-platform/api/canonical_water_state.py",
         "services/sahool-platform/api/field_aggregate_ports.py",
         "services/sahool-platform/api/field_context.py",
+        "services/sahool-platform/api/field_state_projection.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_workers.py",
         "services/sahool-platform/api/routers/field_completeness.py",
