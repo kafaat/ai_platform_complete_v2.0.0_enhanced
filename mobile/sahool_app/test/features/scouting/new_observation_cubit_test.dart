@@ -1,14 +1,15 @@
 // تدفّق «مشاهدة جديدة»: التحقّق، مسار رفض GPS ومركز الحقل، والإرسال/الإيداع
 // دون اتّصال مع احترام إيصال صندوق الإرسال.
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
 import 'package:sahool_app/features/scouting/data/device_sources.dart';
+import 'package:sahool_app/features/scouting/data/scouting_api.dart';
 import 'package:sahool_app/features/scouting/data/scouting_models.dart';
 import 'package:sahool_app/features/scouting/presentation/new_observation_cubit.dart';
 
@@ -54,6 +55,20 @@ void main() {
     }
     return other();
   }
+
+  /// إيصال scout-ingest الصحيح لطلب صورة [o] (بصمته من ترويسته).
+  FakeReply photoReceipt(RequestOptions o, {String pinId = 'key-1'}) =>
+      FakeReply(200, {
+        'evidence_id': 'e1',
+        'field_id': 'f1',
+        'pin_id': pinId,
+        'sha256': o.headers['X-Content-SHA256'],
+        'persisted': true,
+        'verification_state': 'bytes_verified',
+        'review_state': 'unreviewed',
+      });
+
+  final photoPath = scoutingPhotoPath('f1', 'key-1');
 
   group('validation', () {
     test(
@@ -186,13 +201,10 @@ void main() {
         String? key;
         final c = await ready(
           (o) async => taxonomyOr(o, () async {
-            body ??= Map<String, dynamic>.from(o.data as Map);
-            key ??= o.headers['Idempotency-Key'] as String?;
-            return FakeReply(200, {
-              ...pinJson('key-1'),
-              'persisted': true,
-              'photo': {'document_id': 'pinph_1', 'status': 'stored'},
-            });
+            if (o.path == photoPath) return photoReceipt(o);
+            body = Map<String, dynamic>.from(o.data as Map);
+            key = o.headers['Idempotency-Key'] as String?;
+            return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
           }),
         );
         await c.capturePhoto();
@@ -213,9 +225,11 @@ void main() {
           'location_source': 'gps',
           'accuracy_m': 8.0,
         });
-        // لا مسار ملفّ محلّيّ في photo_uri؛ الصورة تُرفع ببايتاتها في طلب ثانٍ.
+        // لا مسار ملفّ محلّيّ في photo_uri ولا صورة في جسم الدبّوس: للصورة إيصالها
+        // المستقلّ من scout-ingest (v260).
         expect(body!.containsKey('photo_uri'), isFalse);
         expect(body!.containsKey('photo'), isFalse);
+        expect(c.state.photoUpload, PhotoUpload.uploaded);
         expect(outbox.ops, isEmpty);
       },
     );
@@ -462,40 +476,31 @@ void main() {
     });
   });
 
-  group('photo upload (v257)', () {
+  group('photo evidence upload (v260, scout-ingest)', () {
     test(
-      'online: the photo follows the pin with its own key and is reported uploaded',
+      'online: the photo follows the pin with its own key, raw bytes and digest',
       () async {
         final posts = <RequestOptions>[];
         final c = await ready(
           (o) async => taxonomyOr(o, () async {
             posts.add(o);
-            final hasPhoto = (o.data as Map).containsKey('photo');
-            return FakeReply(200, {
-              ...pinJson('key-1'),
-              'persisted': true,
-              'photo': hasPhoto
-                  ? {'document_id': 'pinph_1', 'status': 'stored'}
-                  : null,
-            });
+            if (o.path == photoPath) return photoReceipt(o);
+            return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
           }),
         );
         await c.capturePhoto();
         await c.submit();
         expect(posts, hasLength(2));
+        expect(posts[0].path, scoutingPinCreatePath('f1'));
         expect(posts[0].headers['Idempotency-Key'], 'key-1');
+        expect(posts[1].path, photoPath);
         expect(posts[1].headers['Idempotency-Key'], 'photo-key-1');
-        final photoBody = Map<String, dynamic>.from(posts[1].data as Map);
-        final pinBody = Map<String, dynamic>.from(posts[0].data as Map);
+        expect(posts[1].data, store.bytes);
         expect(
-          Map<String, dynamic>.from(photoBody)..remove('photo'),
-          pinBody,
-          reason: 'the photo request repeats the pin body exactly',
+          posts[1].headers['X-Content-SHA256'],
+          crypto.sha256.convert(store.bytes).toString(),
         );
-        expect(
-          base64Decode((photoBody['photo'] as Map)['content_b64'] as String),
-          store.bytes,
-        );
+        expect((posts[0].data as Map).containsKey('photo'), isFalse);
         expect(c.state.photoUpload, PhotoUpload.uploaded);
         expect(c.state.outcome, SubmitOutcome.sent);
         expect(c.state.outcomeMessage, contains('رُفعت الصورة'));
@@ -504,7 +509,7 @@ void main() {
     );
 
     test(
-      'offline: pin op then photo op for the same field, both kept on the device',
+      'offline: pin op then photo op for the same field; the photo op holds the digest, not bytes',
       () async {
         final c = await ready(
           (o) async => taxonomyOr(o, () async => const FakeReply(200, {})),
@@ -512,20 +517,22 @@ void main() {
         );
         await c.capturePhoto();
         await c.submit();
+        expect(c.state.outcome, SubmitOutcome.queued);
         expect(outbox.ops.map((o) => o.kind), [
           'observation_create',
-          'observation_photo',
+          kObservationPhotoKind,
         ]);
         final pin = outbox.ops[0];
         final photo = outbox.ops[1];
+        expect(photo.kind, 'observation_photo_upload');
         expect(photo.idempotencyKey, 'photo-key-1');
-        expect(photo.path, pin.path);
+        expect(photo.path, photoPath);
         expect(photo.fieldId, pin.fieldId);
-        expect(
-          Map<String, dynamic>.from(photo.body)..remove('photo'),
-          pin.body,
-        );
-        expect((photo.body['photo'] as Map)['content_b64'], isNotEmpty);
+        expect(photo.body, {
+          'field_id': 'f1',
+          'pin_id': 'key-1',
+          'sha256': crypto.sha256.convert(store.bytes).toString(),
+        });
         expect(c.state.photoUpload, PhotoUpload.queued);
         expect(c.state.outcomeMessage, contains('بانتظار الرفع'));
         // الدبّوس ملتزَم: إغلاق النموذج لا يحذف الصورة المنتظرة.
@@ -534,34 +541,42 @@ void main() {
       },
     );
 
-    test('a transient failure of the photo request queues it', () async {
-      var n = 0;
+    test('a transient failure of the photo request queues only the photo', () async {
       final c = await ready(
         (o) async => taxonomyOr(o, () async {
-          n++;
-          if (n == 1) {
-            return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
-          }
-          return connectionFailure;
+          if (o.path == photoPath) return connectionFailure;
+          return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
         }),
       );
       await c.capturePhoto();
       await c.submit();
       expect(c.state.outcome, SubmitOutcome.sent);
       expect(c.state.photoUpload, PhotoUpload.queued);
-      expect(outbox.ops.single.kind, 'observation_photo');
+      expect(outbox.ops.single.kind, kObservationPhotoKind);
       expect(outbox.ops.single.idempotencyKey, 'photo-key-1');
+      expect(store.discarded, isEmpty);
+    });
+
+    test('a 2xx that does not match these bytes is not an upload: it is queued', () async {
+      final c = await ready(
+        (o) async => taxonomyOr(o, () async {
+          if (o.path == photoPath) return photoReceipt(o, pinId: 'someone-else');
+          return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
+        }),
+      );
+      await c.capturePhoto();
+      await c.submit();
+      expect(c.state.photoUpload, PhotoUpload.queued);
+      expect(outbox.ops.single.kind, kObservationPhotoKind);
     });
 
     test('a server refusal of the photo is shown and never queued', () async {
-      var n = 0;
       final c = await ready(
         (o) async => taxonomyOr(o, () async {
-          n++;
-          if (n == 1) {
-            return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
+          if (o.path == photoPath) {
+            return const FakeReply(415, {'detail': 'photo_decode_failed'});
           }
-          return const FakeReply(415, {'detail': 'pin_photo_unsupported_type'});
+          return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
         }),
       );
       await c.capturePhoto();
@@ -570,6 +585,63 @@ void main() {
       expect(c.state.photoUpload, PhotoUpload.failed);
       expect(c.state.outcomeMessage, contains('لم تُرفع الصورة'));
       expect(outbox.ops, isEmpty);
+    });
+
+    test('after a refused photo, submit retries the photo only, never the pin', () async {
+      var photoCalls = 0;
+      var pinCalls = 0;
+      final c = await ready(
+        (o) async => taxonomyOr(o, () async {
+          if (o.path == photoPath) {
+            photoCalls++;
+            return photoCalls == 1
+                ? const FakeReply(404, {'detail': 'scout_media_disabled'})
+                : photoReceipt(o);
+          }
+          pinCalls++;
+          return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
+        }),
+      );
+      await c.capturePhoto();
+      await c.submit();
+      expect(c.state.photoUpload, PhotoUpload.failed);
+      await c.submit();
+      expect(pinCalls, 1);
+      expect(photoCalls, 2);
+      expect(c.state.photoUpload, PhotoUpload.uploaded);
+    });
+
+    test('if the photo upload and its queueing both fail, the pin stays acknowledged', () async {
+      outbox.receipt = const OutboxReceipt.notQueued('store_failed');
+      final c = await ready(
+        (o) async => taxonomyOr(o, () async {
+          if (o.path == photoPath) {
+            return const FakeReply(503, {'detail': 'scout_photo_store_unavailable'});
+          }
+          return FakeReply(200, {...pinJson('key-1'), 'persisted': true});
+        }),
+      );
+      await c.capturePhoto();
+      await c.submit();
+      expect(c.state.outcome, SubmitOutcome.sent);
+      expect(c.state.photoUpload, PhotoUpload.failed);
+      expect(store.discarded, isEmpty);
+      await c.close();
+      expect(store.discarded, isEmpty);
+    });
+
+    test('the photo is frozen once the pin is committed', () async {
+      final c = await ready(
+        (o) async => taxonomyOr(o, () async => const FakeReply(200, {})),
+        online: false,
+      );
+      await c.capturePhoto();
+      await c.submit();
+      final kept = c.state.photoPath;
+      await c.removePhoto();
+      await c.capturePhoto();
+      expect(c.state.photoPath, kept);
+      expect(store.discarded, isEmpty);
     });
 
     test('a photo over the server limit is not sent', () async {

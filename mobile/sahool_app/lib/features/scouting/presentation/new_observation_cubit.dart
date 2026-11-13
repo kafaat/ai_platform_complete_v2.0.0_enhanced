@@ -14,13 +14,15 @@
 // GPS فقط، فيميّز المشرف من جهاز آخر الموقع المقيس من مركز الحقل. اختيار المستخدم
 // اليدويّ (مركز الحقل) يُلغي أيّ طلب GPS معلّق: ردٌّ متأخّر لا يكتب فوقه.
 //
-// الصورة (v257): بعد حفظ الدبّوس تُرسل الصورة إلى المسار نفسه (جسم الدبّوس + photo)
-// بمفتاح ثانٍ ثابت؛ الخادم يخزّنها في مخزن المرفقات مربوطة بـpin_id وidempotent على
-// المحتوى. دون اتّصال تُودَع عمليّة observation_photo بعد عمليّة الدبّوس لنفس الحقل
-// (الصندوق يحفظ الترتيب)، وحالة الرفع تُعرض للمفتّش.
+// الصورة (v260): بعد حفظ الدبّوس تُرفع بايتات الصورة إلى scout-ingest
+// (POST /api/v1/scouting-media/fields/{f}/pins/{p}/photo + X-Content-SHA256) بمفتاح ثانٍ
+// ثابت؛ مصدرها الوحيد على الخادم scout_photo_evidence، وإيصالها مستقلّ عن إيصال الدبّوس
+// (دبّوس محفوظ ليس صورة محفوظة). دون اتّصال تُودَع عمليّة observation_photo_upload بعد
+// عمليّة الدبّوس لنفس الحقل (الصندوق يحفظ الترتيب) وتحمل البصمة لا البايتات. بعد
+// الالتزام تُجمَّد الصورة (لا التقاط ولا حذف)، وحالة الرفع تُعرض للمفتّش.
 import 'dart:async';
-import 'dart:convert';
 
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
@@ -52,7 +54,7 @@ enum SubmitOutcome { none, sent, queued, failed }
 /// حالة رفع صورة المشاهدة كما تُعرض للمفتّش.
 enum PhotoUpload { none, uploading, uploaded, queued, failed }
 
-/// حدّ الخادم بعد فكّ base64 (MAX_PIN_PHOTO_BYTES في api/scouting_pins.py).
+/// حدّ الخادم (MAX_PHOTO_BYTES في shared/security/scout_photo.py).
 const int kMaxPinPhotoBytes = 8 * 1024 * 1024;
 
 /// قيمة location_source على السلك لوضع الموقع؛ null ⇒ لا موقع.
@@ -213,11 +215,11 @@ class NewObservationCubit extends Cubit<NewObservationState> {
   /// جيل طلب الموقع: يزيد مع كلّ طلب GPS ومع كلّ اختيار يدويّ، فردٌّ لجيل سابق يُهمَل.
   int _locationGen = 0;
 
-  /// جسم الدبّوس كما أُرسل أو أُودع — الصورة تُرسل معه حرفيّاً (الخادم يقارنه).
-  Map<String, dynamic>? _sentBody;
-
   /// صحيحة بعد إرسال/إيداع ناجح: الصورة صارت مرتبطة بمشاهدة محفوظة.
   bool _committed = false;
+
+  /// صحيحة بعد أن أكّد الصندوق إيداع عمليّة الصورة (لا إيداع ثانٍ).
+  bool _photoQueued = false;
 
   OfflineOutbox get _box => _outbox ?? OfflineOutbox.instance;
 
@@ -324,6 +326,8 @@ class NewObservationCubit extends Cubit<NewObservationState> {
   void setNote(String v) => emit(state.copyWith(note: v));
 
   Future<void> capturePhoto({bool fromCamera = true}) async {
+    // الدليل يُجمَّد أثناء الحفظ وبعده: بصمة عمليّة الصورة المودَعة تخصّ هذا الملفّ.
+    if (state.submitting || _committed) return;
     try {
       final photo = await _photos.capture(fromCamera: fromCamera);
       if (photo == null || isClosed) return;
@@ -343,6 +347,7 @@ class NewObservationCubit extends Cubit<NewObservationState> {
   }
 
   Future<void> removePhoto() async {
+    if (state.submitting || _committed) return;
     final p = state.photoPath;
     if (p == null) return;
     await _store.discard(p);
@@ -367,8 +372,8 @@ class NewObservationCubit extends Cubit<NewObservationState> {
     return errors;
   }
 
-  /// جسم PinCreateRequest (api/api_models.py). photo_uri لا يُرسل: الصورة تُرفع
-  /// ببايتاتها في عمليّة مستقلّة بعد حفظ الدبّوس (انظر [_sendPhoto]).
+  /// جسم PinCreateRequest (api/api_models.py). لا photo_uri ولا صورة: الصورة تُرفع
+  /// ببايتاتها إلى scout-ingest بعد حفظ الدبّوس (انظر [_sendPhoto]).
   Map<String, dynamic> buildBody() {
     final note = state.note.trim();
     final source = locationSourceWire(state.locationMode);
@@ -396,7 +401,28 @@ class NewObservationCubit extends Cubit<NewObservationState> {
       const {502, 503, 504}.contains(e.statusCode);
 
   Future<void> submit() async {
-    if (state.submitting || _committed) return; // منع الإرسال المزدوج
+    if (state.submitting) return; // منع الإرسال المزدوج
+    if (_committed) {
+      // الدبّوس ملتزَم ولم تصل صورته: يُعاد رفع الصورة وحدها، ولا يُعاد إنشاء الدبّوس.
+      if (_photoQueued ||
+          state.photoPath == null ||
+          state.photoUpload != PhotoUpload.failed) {
+        return;
+      }
+      emit(state.copyWith(submitting: true));
+      final photo = await _sendPhoto(online: true);
+      if (isClosed) return;
+      emit(
+        state.copyWith(
+          submitting: false,
+          outcome: photo == PhotoUpload.failed
+              ? SubmitOutcome.failed
+              : state.outcome,
+          outcomeMessage: 'الدبّوس محفوظ سابقاً.${_photoSuffix(photo)}',
+        ),
+      );
+      return;
+    }
     final errors = validate();
     if (errors.isNotEmpty) {
       emit(
@@ -417,7 +443,6 @@ class NewObservationCubit extends Cubit<NewObservationState> {
       ),
     );
     final body = buildBody();
-    _sentBody = body;
 
     if (!_connectivity.isOnline) {
       await _enqueue(body, why: 'offline');
@@ -514,41 +539,51 @@ class NewObservationCubit extends Cubit<NewObservationState> {
     PhotoUpload.none || PhotoUpload.uploading => '',
   };
 
-  /// يرفع صورة دبّوسٍ ملتزَم: مباشرةً إن كان الدبّوس قد وصل والجهاز متّصل، وإلّا
-  /// (أو عند فشل عابر) تُودَع عمليّة observation_photo بمفتاح [photoKey] الثابت.
-  /// فشلٌ غير عابر (حجم/نوع/تعارض) يُعرض كما قاله الخادم ولا يُودَع ليتكرّر.
+  /// يرفع صورة دبّوسٍ ملتزَم إلى scout-ingest (v260، scout_photo_evidence): مباشرةً إن
+  /// كان الدبّوس قد وصل والجهاز متّصل، وإلّا (أو عند فشل عابر، أو إيصال لا يطابق
+  /// البايتات) تُودَع عمليّة [kObservationPhotoKind] بمفتاح [photoKey] الثابت بعد عمليّة
+  /// الدبّوس لنفس الحقل. العمليّة تحمل البصمة لا البايتات. فشلٌ غير عابر
+  /// (حجم/نوع/تعارض/الميزة معطّلة) يُعرض كما قاله الخادم ولا يُودَع ليتكرّر.
   Future<PhotoUpload> _sendPhoto({required bool online}) async {
     final path = state.photoPath;
-    final pinBody = _sentBody;
-    if (path == null || pinBody == null) return PhotoUpload.none;
-    Map<String, dynamic> body;
+    if (path == null) return PhotoUpload.none;
+    if (_photoQueued) return state.photoUpload;
+    final Uint8List bytes;
+    final String digest;
     try {
-      final bytes = await _store.read(path);
+      scoutingPhotoType(path);
+      bytes = await _store.read(path);
       if (bytes.isEmpty || bytes.length > kMaxPinPhotoBytes) {
         return _photoState(
           PhotoUpload.failed,
           'الصورة أكبر من 8 ميغابايت (أو فارغة) — لم تُرفع.',
         );
       }
-      body = {
-        ...pinBody,
-        'photo': {'content_b64': base64Encode(bytes)},
-      };
+      digest = crypto.sha256.convert(bytes).toString();
+    } on FormatException {
+      return _photoState(
+        PhotoUpload.failed,
+        'نوع الصورة غير مدعوم (JPG أو PNG أو WebP فقط) — لم تُرفع.',
+      );
     } catch (_) {
       return _photoState(PhotoUpload.failed, 'تعذّر قراءة الصورة من الجهاز.');
     }
     if (online && _connectivity.isOnline) {
       _photoState(PhotoUpload.uploading, 'جارٍ رفع الصورة…');
       try {
-        final r = await _api.createPin(
-          field.id,
-          body,
+        await _api.uploadPinPhoto(
+          fieldId: field.id,
+          pinId: pinId,
+          bytes: bytes,
+          filename: path,
           idempotencyKey: photoKey,
         );
-        if (pinPhotoStored(r)) {
-          return _photoState(PhotoUpload.uploaded, 'رُفعت الصورة.');
-        }
-        // تحقّق الخادم ولم يُدِم ⇒ إعادة لاحقة عبر الصندوق.
+        return _photoState(
+          PhotoUpload.uploaded,
+          'رُفعت الصورة إلى المخزن المشترك — دليل غير معتمد تشخيصيّاً.',
+        );
+      } on FormatException {
+        // 2xx لا يطابق هذه البايتات: ليس إيصالاً ⇒ إعادة لاحقة بالمفتاح نفسه.
       } catch (e) {
         final err = ApiException.from(e);
         if (!isTransient(err)) {
@@ -562,8 +597,8 @@ class NewObservationCubit extends Cubit<NewObservationState> {
         OutboxOp(
           kind: kObservationPhotoKind,
           method: 'POST',
-          path: scoutingPinCreatePath(field.id),
-          body: body,
+          path: scoutingPhotoPath(field.id, pinId),
+          body: {'field_id': field.id, 'pin_id': pinId, 'sha256': digest},
           idempotencyKey: photoKey.value,
           fieldId: field.id,
           labelAr:
@@ -573,6 +608,7 @@ class NewObservationCubit extends Cubit<NewObservationState> {
     } catch (_) {
       receipt = const OutboxReceipt.notQueued('enqueue_failed');
     }
+    if (receipt.queued) _photoQueued = true;
     return receipt.queued
         ? _photoState(PhotoUpload.queued, 'الصورة بانتظار الرفع.')
         : _photoState(

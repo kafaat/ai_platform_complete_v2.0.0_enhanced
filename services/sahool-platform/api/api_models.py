@@ -462,14 +462,6 @@ class WhatIfRequest(BaseModel):
     )
 
 
-class PinPhotoUpload(BaseModel):
-    """صورة المشاهدة مع الدبّوس (v257): بايتات base64؛ النوع من magic bytes لا من العميل."""
-
-    # 8 MiB بعد فكّ base64 ≈ 11.2 مليون محرف؛ الحدّ الدقيق يُقاس على البايتات بعد الفكّ.
-    content_b64: str = Field(min_length=4, max_length=11_200_000)
-    sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
-
-
 class PinCreateRequest(BaseModel):
     pin_id: str
     field_id: str
@@ -488,7 +480,6 @@ class PinCreateRequest(BaseModel):
     # v257: مصدر الموقع ودقّته. عميل قديم لا يرسلهما ⇒ unknown (لا استنتاج من الإحداثيّات).
     location_source: Literal["gps", "manual", "field_centroid", "unknown"] = "unknown"
     accuracy_m: float | None = Field(default=None, ge=0, le=100_000)
-    photo: PinPhotoUpload | None = None
 
 
 class EquipmentInput(BaseModel):

@@ -605,18 +605,18 @@ class DurableOfflineOutbox implements OfflineOutbox {
           return OutboxOwner.fromAccessToken(access) == r.owner;
         },
       );
+      // إيصال الدبّوس يجب أن يخصّ هذا الدبّوس وهذا الحقل: 2xx لدبّوس آخر لا يحذف العمليّة.
+      // (حقل العمليّة يُقارَن متى سُجِّل؛ عمليّةٌ أودعها إصدارٌ قديم بلا fieldId لا تعلق.)
+      // صورة الدبّوس (kObservationPhotoKind) يطابق إيصالَها OfflineSyncApi.sendOp ببصمة
+      // البايتات نفسها، ويرمي إن لم يطابق فلا تصل هنا.
       if (r.op.kind == 'observation_create' &&
-          (response is! Map || response['persisted'] != true)) {
+          (response is! Map ||
+              response['persisted'] != true ||
+              response['pin_id'] != r.op.body['pin_id'] ||
+              (r.op.fieldId != null && response['field_id'] != r.op.fieldId))) {
         return const OutboxOutcome(
           OutboxOutcomeKind.retryLater,
           messageAr: 'لم يؤكد الخادم حفظ دبوس التفتيش',
-        );
-      }
-      // صورة الدبّوس (v257): 200 بلا photo.status=stored ليست رفعاً — تبقى للإعادة.
-      if (r.op.kind == 'observation_photo' && !_pinPhotoStored(response)) {
-        return const OutboxOutcome(
-          OutboxOutcomeKind.retryLater,
-          messageAr: 'لم يؤكد الخادم حفظ صورة المشاهدة',
         );
       }
       return const OutboxOutcome(OutboxOutcomeKind.sent);
@@ -625,12 +625,6 @@ class DurableOfflineOutbox implements OfflineOutbox {
     } finally {
       if (identical(_inflight, token)) _inflight = null;
     }
-  }
-
-  static bool _pinPhotoStored(Object? response) {
-    if (response is! Map || response['persisted'] != true) return false;
-    final photo = response['photo'];
-    return photo is Map && photo['status'] == 'stored';
   }
 
   /// يطبّق النتيجة على السجلّ. يُعيد true إن وجب إيقاف التصريف.

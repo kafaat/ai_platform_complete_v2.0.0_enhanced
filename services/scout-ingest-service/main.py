@@ -51,6 +51,11 @@ from season_api import router as season_router  # noqa: E402
 
 app.include_router(season_router)
 
+# SCOUT-PHOTO (v260): صورة المشاهدة دليلٌ في جدولها المملوك scout_photo_evidence (خلف SCOUT_MEDIA_ENABLED).
+from media_api import router as media_router  # noqa: E402
+
+app.include_router(media_router)
+
 
 def _enabled() -> bool:
     return os.getenv("SCOUT_INGEST_ENABLED", "0").strip().lower() in _ENABLED_TRUE

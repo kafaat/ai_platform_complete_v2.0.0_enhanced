@@ -1030,10 +1030,15 @@ tables:
     writers: [agriai-engine]
     readers: [sahool-platform]
     source: "migrations/v119_phase10_continuous_learning.sql"
+  scout_photo_evidence:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v260_scout_photo_evidence.sql"
   scouting_pins:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
+    readers: [scout-ingest-service]
     source: "migrations/v94_scouting_pins.sql, migrations/v192_fii_rls_write_fail_closed.sql, migrations/v257_scouting_pin_location_photo.sql"
   seasons:
     owner: sahool-platform

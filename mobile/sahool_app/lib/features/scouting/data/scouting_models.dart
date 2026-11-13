@@ -125,7 +125,6 @@ class ScoutingPin {
     this.createdAt,
     this.locationSource = 'unknown',
     this.accuracyM,
-    this.photoDocumentId,
   });
 
   final String pinId;
@@ -150,9 +149,6 @@ class ScoutingPin {
 
   /// دقّة GPS بالأمتار كما أبلغها جهاز المفتّش (لقراءة gps فقط).
   final double? accuracyM;
-
-  /// مستند الصورة على الخادم (يفتحه المشرف)؛ null ⇒ لا صورة مرفوعة.
-  final String? photoDocumentId;
 
   /// وصف مصدر الموقع للمشرف: المقيس يختلف عن مركز الحقل.
   String get locationSourceLabelAr => switch (locationSource) {
@@ -183,7 +179,6 @@ class ScoutingPin {
 
     final created = s('created_at');
     final acc = j['accuracy_m'];
-    final photo = j['photo'];
     return ScoutingPin(
       pinId: id,
       fieldId: s('field_id') ?? '',
@@ -201,7 +196,6 @@ class ScoutingPin {
       createdAt: created == null ? null : DateTime.tryParse(created),
       locationSource: s('location_source') ?? 'unknown',
       accuracyM: acc is num ? acc.toDouble() : null,
-      photoDocumentId: photo is Map ? photo['document_id']?.toString() : null,
     );
   }
 }

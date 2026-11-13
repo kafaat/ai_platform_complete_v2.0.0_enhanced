@@ -18,7 +18,7 @@ import 'sync_status_cubit.dart';
 String outboxKindLabelAr(String kind) => switch (kind) {
   'task_update' => 'تحديث مهمّة',
   'observation_create' => 'ملاحظة استكشاف',
-  'observation_photo' => 'صورة ملاحظة استكشاف',
+  'observation_photo_upload' => 'صورة ملاحظة استكشاف',
   'activity_create' || 'activity_complete' => 'نشاط حقليّ',
   'scouting_pin_create' => 'نقطة استكشاف',
   'season_create' => 'إنشاء موسم',

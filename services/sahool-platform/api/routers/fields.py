@@ -3765,23 +3765,19 @@ async def create_pin(
     req: PinCreateRequest,
     user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
-    """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة مع ``persisted`` و``photo``.
+    """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة مع ``persisted``.
 
     تُقرأ عبر ``GET /api/v1/scouting/pins?field_id=…``. الإدامة best-effort (تعذّر القاعدة ⇒
-    ``persisted=false``)، وidempotent على pin_id. مصدر الموقع ودقّته والصورة (v257): التنفيذ
+    ``persisted=false``)، وidempotent على pin_id. مصدر الموقع ودقّته (v257): التنفيذ
     في ``api.scouting_pins.create_scouting_pin`` (حدّ حجم الراوتر).
     """
     return await create_scouting_pin(field_id, req, user, persist=_persist_scouting_pin)
 
 
-async def _persist_scouting_pin(user: UserSchema, pin, photo=None) -> bool:
+async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
     """يُديم الدبّوس تحت RLS — التنفيذ في ``api.scouting_pins`` (حدّ حجم الراوتر)."""
     return await persist_scouting_pin(
-        user,
-        pin,
-        pool_ready=api_main._DB_POOL is not None,
-        connect=tenant_connection,
-        photo=photo,
+        user, pin, pool_ready=api_main._DB_POOL is not None, connect=tenant_connection
     )
 
 

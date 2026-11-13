@@ -789,12 +789,17 @@ v249_task_cost_trace.sql
 v254_inspection_review.sql
 v255_soil_sampling_origin.sql
 v256_inspection_evidence_versions.sql
-# v257 (owner priorities 4-5): scouting pins keep location_source (gps|manual|field_centroid|unknown;
-#   older rows unknown) and accuracy_m (GPS only), and point at their photo in the documents
-#   registry (photo_document_id, unique, FK). Additive ADD COLUMN IF NOT EXISTS + catalog-checked
-#   constraints; scouting_pins keeps its FORCE RLS. Inserted before v240.
+# v257 (owner priority 4): scouting pins keep location_source (gps|manual|field_centroid|unknown;
+#   older rows unknown) and accuracy_m (GPS only). No photo link on scouting_pins: the photo's
+#   single source is v260. Additive ADD COLUMN IF NOT EXISTS + catalog-checked constraints;
+#   scouting_pins keeps its FORCE RLS. Inserted before v240.
 v257_scouting_pin_location_photo.sql
 v258_lab_water_revisions_plan_copies.sql
+# v260 (owner decision 2026-11-13): scout_photo_evidence, the observation photo's single source of
+#   truth. Immutable (BEFORE UPDATE OR DELETE trigger), FORCE RLS by tenant, one row per pin,
+#   FK (tenant_id, field_id, pin_id) -> scouting_pins (v246 unique index); owner scout-ingest.
+#   v256-v259 are taken on other stacked branches. Inserted after v257 and before v240.
+v260_scout_photo_evidence.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.
