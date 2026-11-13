@@ -2591,7 +2591,6 @@
         "services/sahool-platform/api/routers/execution_feedback.py",
         "services/sahool-platform/api/routers/learning_summary.py",
         "services/sahool-platform/api/routers/operations.py",
-        "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/tests/test_operations_summary_endpoint.py"
       ],
       "code_writers": [
