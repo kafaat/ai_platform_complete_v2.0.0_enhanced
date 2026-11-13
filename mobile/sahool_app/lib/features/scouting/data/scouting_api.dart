@@ -164,6 +164,14 @@ class ScoutingApi {
     return data;
   }
 
+  Future<List<Map<String, dynamic>>> diagnosisSymptoms() async =>
+      asJsonList(asJsonMap(await _client.get('/api/v1/diagnose/symptoms'))['symptoms']);
+
+  Future<Map<String, dynamic>> assessSymptoms(ScoutingField field, List<String> symptoms) async =>
+      asJsonMap(await _client.post('/api/v1/diagnose', data: {
+        'field_id': field.id, 'crop': field.crop, 'symptoms': symptoms,
+      }));
+
   /// كشف الآفات من صورة. [fieldId] مطلوب: الخادم يعرّفه Form(...) ويرفض 422
   /// بدونه (كان المستشار يرسله بلا حقل فيفشل دائماً). multipart لا يُعاد تلقائيّاً.
   Future<PestDetectResult> detectPest({

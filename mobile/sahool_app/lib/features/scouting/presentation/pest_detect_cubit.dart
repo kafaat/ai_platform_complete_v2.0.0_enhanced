@@ -5,7 +5,6 @@
 // ميزة متّصلة فقط: بلا شبكة تُعلن حالة «يتطلّب اتّصالاً» ولا يُرسل شيء. النتيجة
 // كما ردّها الخادم (الأسماء والثقة)، والفشل (مثل 503 «النموذج غير مُجهَّز»)
 // يُعرض كما هو — لا كشف مُلفَّق.
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/network/connectivity_status.dart';
@@ -118,6 +117,5 @@ class PestDetectCubit extends Cubit<PestDetectState> {
     }
   }
 
-  @visibleForTesting
   CapturedPhoto? get lastPhoto => _last;
 }

@@ -256,6 +256,21 @@ BEGIN
     GRANT SELECT, INSERT ON scout_photo_evidence TO sahool_ingest;
     REVOKE UPDATE, DELETE, TRUNCATE ON scout_photo_evidence FROM sahool_ingest;
   END IF;
+  -- INGEST-FIELD-SELECT-01: ``field_resolves_in_tenant`` يقرأ ``SELECT 1 FROM fields`` تحت RLS
+  -- (NOBYPASSRLS ⇒ يرى حقول مستأجره فقط). بلا هذا المنح كان كلّ إرسال ODK/Kobo يحمل field_id
+  -- يسقط 503 (permission denied). SELECT فقط — لا كتابة على fields.
+  IF to_regclass('public.fields') IS NOT NULL THEN
+    GRANT SELECT ON fields TO sahool_ingest;
+  END IF;
+  -- v204 يمنح جداول النماذج الميدانيّة لـsahool_ingest **إن وُجد الدور** وقت الهجرة؛ والدور يُنشأ
+  -- هنا بعد الهجرات، فالإقلاع الأوّل كان بلا هذه المنوح حتّى إعادة تطبيق البيان. نفس منوح v204
+  -- حرفيّاً (لا DELETE — التقاعد آليّة الإزالة الوحيدة)، idempotent.
+  IF to_regclass('public.field_form_definitions') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON field_form_definitions TO sahool_ingest;
+    GRANT SELECT, INSERT, UPDATE ON field_form_versions TO sahool_ingest;
+    GRANT SELECT, INSERT, UPDATE ON field_form_assignments TO sahool_ingest;
+    GRANT SELECT, INSERT ON field_submissions TO sahool_ingest;
+  END IF;
 END $$;
 SQL
 

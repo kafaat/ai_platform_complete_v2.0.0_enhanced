@@ -8,6 +8,8 @@ from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
+from jsonb_values import decode_observation_row
+
 from shared.contracts.soil import SoilObservation, SoilProfileSnapshot
 from shared.contracts.soil.observation import LAB_EC_PROPERTIES_BY_METHOD, PLATFORM_LAB_PROCEDURE
 
@@ -238,14 +240,6 @@ async def persist_observation_in_transaction(conn, observation: SoilObservation)
     return result.endswith("1")
 
 
-def _observation_row(row) -> dict[str, Any]:
-    """Decode the selected JSON columns once, including scalar lab values."""
-    data = dict(row)
-    for name in ("value_json", "quality_flags", "provenance"):
-        data[name] = json.loads(data[name])
-    return data
-
-
 async def list_observations(
     pool,
     *,
@@ -280,7 +274,7 @@ async def list_observations(
                 limit,
             )
             await tx.commit()
-            return [_observation_row(row) for row in rows]
+            return [decode_observation_row(row) for row in rows]
         except Exception:
             await tx.rollback()
             raise
@@ -413,7 +407,9 @@ async def rebuild_snapshot_in_transaction(
         field_id,
     )
     snapshot = profile_composer.compose_snapshot(
-        tenant_id=tenant_id, field_id=field_id, observations=[_observation_row(r) for r in rows]
+        tenant_id=tenant_id,
+        field_id=field_id,
+        observations=[decode_observation_row(r) for r in rows],
     )
     payload = snapshot.model_dump(mode="json")
     persisted = await conn.fetchval(

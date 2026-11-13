@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 
+from jsonb_values import decode_jsonb_object
+
 _PRODUCT_IDS = {
     "soil_bare_composites": "composite_id",
     "soil_terrain_products": "terrain_product_id",
@@ -31,9 +33,7 @@ async def _tenant(conn, tenant_id: str):
 
 
 def _product(row):
-    payload = row["payload"]
-    if isinstance(payload, str):
-        payload = json.loads(payload)
+    payload = decode_jsonb_object(row["payload"])
     # Older upserts could leave a newly generated ID in the JSON and keep the
     # original primary key. Return the stored identity on both reads and writes.
     return {**payload, "product_id": row["stored_id"]}

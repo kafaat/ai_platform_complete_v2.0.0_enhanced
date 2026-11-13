@@ -792,10 +792,13 @@ v255_soil_sampling_origin.sql
 #   scouting_pins keeps its FORCE RLS. Inserted before v240.
 v257_scouting_pin_location_photo.sql
 v258_lab_water_revisions.sql
+# v259: a documented observed-zero yield-map point (evidence id) is accepted, pending review;
+#   undocumented zeros and negatives stay refused. Guarded, re-run safe. Before v240/v206.
+v259_yield_map_observed_zero.sql
 # v260 (owner decision 2026-11-13): scout_photo_evidence, the observation photo's single source of
 #   truth. Immutable (BEFORE UPDATE OR DELETE trigger), FORCE RLS by tenant, one row per pin,
 #   FK (tenant_id, field_id, pin_id) -> scouting_pins (v246 unique index); owner scout-ingest.
-#   v256-v259 are taken on other stacked branches. Inserted after v257 and before v240.
+#   Inserted after v259 and before v240.
 v260_scout_photo_evidence.sql
 # v261: field_tasks.field_id references fields (the record POST /api/v1/fields writes), not the
 #   v8 field_boundaries table nothing in the API inserts into. Same name and ON DELETE CASCADE;

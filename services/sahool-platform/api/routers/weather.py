@@ -2869,8 +2869,7 @@ async def weather_create_task_from_operation_plan(
                 draft["field_id"],
                 draft["task_type"],
                 draft["priority"],
-                # asyncpg binds $5::date from a date, not from the draft's ISO string.
-                date.fromisoformat(draft["recommended_date"]),
+                date.fromisoformat(draft["recommended_date"]),  # asyncpg binds ::date from a date
                 draft["estimated_duration_min"],
                 draft["estimated_cost_usd"],
                 draft["assigned_to"],

@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "80897f11ec9fb6c447bdc3b0fb00512d7bb1eda1",
+  "measured_on": "6ad144e3a67ce800ce103319d9b43460878516cb",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "256766876978afc4fc3d94d50589141e6cb50efd0db1c41fe6eb347f71afa3a3",
+  "measurement_input_digest": "7e5464fcd41a7d5f5dec885e2651ee49c81fc22f0f6b134a0c2c626a34363de6",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "9c2111aa0114125917358a1b1793f9d9d3a7a442c818f687e048b10a56133c07",
+  "measurement_basis_digest": "8435864fca255995900d38668c200fcac0721f55691d718d3c4606f643425fbc",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -64,7 +64,7 @@
     },
     {
       "path": "services/decision-service/persistence.py",
-      "sha256": "1b5ab46f162eb64ee9795554f61aecb1bf8ee35d69d5db797e88b1968a3f49d7"
+      "sha256": "1c1eb1beccb28db2d7eefb45d838bfc8dd2ebb0af508bdb0844f39dc9e49d1ea"
     },
     {
       "path": "services/field-management-service/main.py",
@@ -160,15 +160,15 @@
     },
     {
       "path": "services/soil-service/p1_store.py",
-      "sha256": "40ed7710e556d89474f033543756f19ae207331ced906e4bc510ffacfe7a0b30"
+      "sha256": "2ea416b79944315fe8f54b78b2e8c338e81f51051bd5ba486aa1be5e5cad2336"
     },
     {
       "path": "services/soil-service/p2_store.py",
-      "sha256": "8df5160d7b0759a2ebaa30d1ca6dde891ff656af4ef7d536b7df7890f227c999"
+      "sha256": "fd41fe7cc0594e365563b171e7ae6dcd5854b290c8d0b770eb1f8b52ec6790bc"
     },
     {
       "path": "services/soil-service/p3_store.py",
-      "sha256": "713bb6a58ddb73394d148ce72b6232dc6ef88f01c246c39507caa95676cd7537"
+      "sha256": "9824465384e0a5e5e9072118c1d8e2e5cd84aac7636d3143345c22c6d557f722"
     },
     {
       "path": "services/soil-service/p4_store.py",
@@ -176,7 +176,7 @@
     },
     {
       "path": "services/soil-service/soil_store.py",
-      "sha256": "0259265ad59dbf94ad42bbe42a865cd9cb08327a37c7455e68bc241b80c69260"
+      "sha256": "d2866bac164477f4ba64e78d3b173decb4b07689b54f4acea71f0e55148e20d3"
     },
     {
       "path": "services/vegetation-analysis-service/anomaly_store_pg.py",
@@ -207,10 +207,10 @@
     "services/sahool-platform/api/phase_runtime_workers.py:56",
     "services/sahool-platform/api/phase_runtime_workers.py:57",
     "services/sahool-platform/workers/canonical_execution_learning_worker.py:147",
-    "services/soil-service/p1_store.py:9",
-    "services/soil-service/p2_store.py:30",
-    "services/soil-service/p3_store.py:17",
-    "services/soil-service/soil_store.py:123",
+    "services/soil-service/p1_store.py:11",
+    "services/soil-service/p2_store.py:32",
+    "services/soil-service/p3_store.py:19",
+    "services/soil-service/soil_store.py:125",
     "services/vegetation-analysis-service/anomaly_store_pg.py:67"
   ],
   "guc_names": [

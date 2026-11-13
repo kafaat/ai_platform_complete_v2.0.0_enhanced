@@ -325,11 +325,11 @@ class NewObservationCubit extends Cubit<NewObservationState> {
 
   void setNote(String v) => emit(state.copyWith(note: v));
 
-  Future<void> capturePhoto({bool fromCamera = true}) async {
+  Future<void> capturePhoto({bool fromCamera = true, CapturedPhoto? existing}) async {
     // الدليل يُجمَّد أثناء الحفظ وبعده: بصمة عمليّة الصورة المودَعة تخصّ هذا الملفّ.
     if (state.submitting || _committed) return;
     try {
-      final photo = await _photos.capture(fromCamera: fromCamera);
+      final photo = existing ?? await _photos.capture(fromCamera: fromCamera);
       if (photo == null || isClosed) return;
       final old = state.photoPath;
       final saved = await _store.keep(pinId, photo);

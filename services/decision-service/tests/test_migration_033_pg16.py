@@ -388,7 +388,7 @@ async def test_learning_writer_survives_033_under_restricted_login(database, obs
     before = await persistence.persist_learning_update(
         tenant_id=TENANT, payload=payload, update_id="ci-before", traceability_status="traceable"
     )
-    assert before == {"update_id": "ci-before"}
+    assert before == {"update_id": "ci-before", "replayed": False}
     assert (await runner.apply_migrations())["ok"]
     try:
         after = await persistence.persist_learning_update(
@@ -403,13 +403,67 @@ async def test_learning_writer_survives_033_under_restricted_login(database, obs
             == 0
         )
         raise
-    assert after == {"update_id": "ci-after"}
+    assert after == {"update_id": "ci-after", "replayed": False}
     assert "persist_learning_update" in observed_writers
     assert (
         await database.admin.fetchval(
             "SELECT count(*) FROM decision_outbox_events WHERE aggregate_id='ci-after'"
         )
         == 1
+    )
+
+
+@pytest.mark.asyncio
+async def test_learning_update_resend_is_a_replay_and_a_changed_payload_is_refused(database):
+    """ON CONFLICT DO NOTHING wrote nothing, yet the writer emitted a second outbox event and
+    reported stored; a different model under the same id kept the old row silently. In this
+    schema the key is update_id alone, so another tenant's id is taken too."""
+    assert (await runner.apply_migrations())["ok"]
+
+    def payload(model_id: str):
+        return SimpleNamespace(
+            model_id=model_id,
+            feature_set_id=None,
+            learning_rate=0.01,
+            sample_count=1,
+            label_summary={"ok": 1},
+            drift_score=0.0,
+            action="ci-only",
+            source_type="ci-probe",
+            source_id="ci-source",
+            field_id=None,
+            season_id=None,
+            recommendation_id=None,
+            decision_id=None,
+            evidence_snapshot_id=None,
+        )
+
+    async def write(tenant: str, model_id: str):
+        return await persistence.persist_learning_update(
+            tenant_id=tenant,
+            payload=payload(model_id),
+            update_id="ci-replay",
+            traceability_status="traceable",
+        )
+
+    async def outbox() -> int:
+        return await database.admin.fetchval(
+            "SELECT count(*) FROM decision_outbox_events WHERE aggregate_id='ci-replay'"
+        )
+
+    assert await write(TENANT, "model-a") == {"update_id": "ci-replay", "replayed": False}
+    assert await write(TENANT, "model-a") == {"update_id": "ci-replay", "replayed": True}
+    assert await outbox() == 1, "a replay emits no second event"
+    with pytest.raises(persistence.LearningUpdateConflict):
+        await write(TENANT, "model-b")
+    with pytest.raises(persistence.LearningUpdateConflict):
+        await write(OTHER, "model-a")
+    assert await outbox() == 1
+    assert (
+        await database.admin.fetchval(
+            "SELECT model_id FROM online_learning_updates WHERE update_id='ci-replay'"
+        )
+        == "model-a"
     )
 
 

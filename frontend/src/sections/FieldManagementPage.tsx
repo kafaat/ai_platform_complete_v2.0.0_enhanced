@@ -261,6 +261,15 @@ export default function FieldManagementPage() {
         sowing_date: data.sowing_date || null,
         season_end: data.season_end || null,
         custom_stages: data.custom_stages,
+        initial_status: data.initial_status,
+        notes_ar: data.notes_ar,
+        target_yield_kg_ha: data.target_yield_kg_ha ?? null,
+        actual_yield_kg_ha: data.actual_yield_kg_ha ?? null,
+        tillage_type: data.tillage_type || null,
+        seed_variety_source: data.seed_variety_source || null,
+        plant_density: data.plant_density ?? null,
+        row_spacing_cm: data.row_spacing_cm ?? null,
+        maturity: data.maturity || null,
       });
       seasonId = (r?.data as { season_id?: string } | undefined)?.season_id ?? null;
     } catch (e: any) {
@@ -271,7 +280,7 @@ export default function FieldManagementPage() {
     setShowSeason(null);
     toastStore.add('success', '🌾 تم إنشاء الموسم', (data.crops || []).join('، '));
     // بعد الإنشاء: اعرض إجراء «تشغيل المحاكاة» على الموسم الجديد (إن عاد المعرّف).
-    if (seasonId) setSimSeason({ seasonId, crops: data.crops || [] });
+    if (seasonId && data.initial_status !== "planned") setSimSeason({ seasonId, crops: data.crops || [] });
   };
 
   const handleDelete = async (id: string) => {
@@ -668,8 +677,8 @@ function SeasonSimModal({ seasonId, crops, onClose }: {
 }) {
   const sim = useSimulateSeason();
   const r: SeasonSimResult | undefined = sim.data;
-  const num = (v: number | null | undefined, d = 0) =>
-    (typeof v === 'number' ? Math.round(v).toLocaleString('ar') : String(d));
+  const num = (v: number | null | undefined) =>
+    (typeof v === 'number' && Number.isFinite(v) ? Math.round(v).toLocaleString('ar') : '—');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -704,12 +713,14 @@ function SeasonSimModal({ seasonId, crops, onClose }: {
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <Stat label="الإنتاج المُقدَّر (kg/ha)"
-                  value={`${num(r.yield_low_kg_ha)} – ${num(r.yield_high_kg_ha)}`} hint={`المركزي ≈ ${num(r.yield_kg_ha)}`} />
+                  value={r.yield_kg_ha == null ? 'غير متاح' : `${num(r.yield_low_kg_ha)} – ${num(r.yield_high_kg_ha)}`}
+                  hint={r.yield_kg_ha == null ? `السبب: ${r.yield_status} — ليس صفراً مرصوداً` : `المركزي ≈ ${num(r.yield_kg_ha)}`} />
                 <Stat label="GDD التراكمي (°C·day)"
-                  value={`${num(r.gdd_total)} / ${num(r.gdd_to_maturity)}`} hint={r.maturity_reached ? 'بلغ النضج' : 'لم يبلغ النضج'} />
-                <Stat label="أقصى LAI (m²/m²)" value={r.lai_max.toFixed(2)} hint="مؤشّر تقريبي" />
+                  value={`${num(r.gdd_total)} / ${num(r.gdd_to_maturity)}`}
+                  hint={r.maturity_reached == null ? 'النضج غير قابل للتقييم' : r.maturity_reached ? 'بلغ النضج' : 'لم يبلغ النضج'} />
+                <Stat label="أقصى LAI (m²/m²)" value={r.lai_max?.toFixed(2) ?? '—'} hint="مؤشّر تقريبي" />
                 <Stat label="احتياج الماء (mm)" value={num(r.water_need_mm)}
-                  hint={r.water_supply_mm != null ? `العرض ≈ ${num(r.water_supply_mm)}` : 'العرض غير معروف'} />
+                  hint={r.water_need_mm == null ? 'ET₀ غير مكتمل؛ ليس صفرًا مرصودًا' : r.water_supply_mm != null ? `العرض ≈ ${num(r.water_supply_mm)}` : 'العرض غير معروف'} />
               </div>
 
               <div className="rounded-lg p-2 text-[11px]" style={{ background: '#0f172a', color: '#94a3b8' }}>

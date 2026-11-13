@@ -102,6 +102,8 @@ async def ingest_yield_map(
 
     ingestion_id = str(uuid.uuid4())
     records_json = _records_json(parsed)
+    # v259: a documented zero is kept as a pending point, never in the batch statistics.
+    measured = [record.yield_kg_ha for record in parsed.records if record.yield_kg_ha > 0]
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
@@ -221,9 +223,9 @@ async def ingest_yield_map(
                 request.idempotency_key,
                 json.dumps(request.metadata, ensure_ascii=False, separators=(",", ":")),
                 len(parsed.records),
-                min(record.yield_kg_ha for record in parsed.records),
-                max(record.yield_kg_ha for record in parsed.records),
-                sum(record.yield_kg_ha for record in parsed.records) / len(parsed.records),
+                min(measured) if measured else None,
+                max(measured) if measured else None,
+                sum(measured) / len(measured) if measured else None,
                 str(user.user_id),
                 records_json,
             )

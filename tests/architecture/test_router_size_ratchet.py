@@ -48,7 +48,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # → 4051 (2026-11-13, v257 pin location source and photo): the pin route body moved to
     # api.scouting_pins.create_scouting_pin.
     # → 4047 (2026-11-13, v260): the pin photo moved out of the pin route (scout-ingest owns it).
-    "services/sahool-platform/api/routers/fields.py": 4047,
+    # → 4044 (2026-11-13, chain A merged with main 7ad892afa): main's own 3-line reduction
+    # (4075 → 4072) applies on top of 4047.
+    "services/sahool-platform/api/routers/fields.py": 4044,
     "services/sahool-platform/api/routers/weather.py": 3022,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     # 1673 → 1668 (unified 2026-10-27): pixel sampling moved to raster_field_runtime and
