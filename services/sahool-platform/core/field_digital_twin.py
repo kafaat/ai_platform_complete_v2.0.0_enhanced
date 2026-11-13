@@ -131,8 +131,12 @@ def build_field_twin_from_canonical_state(state: dict[str, Any]) -> FieldTwinSta
     """
     if state.get("schema_version") != "canonical_field_state.v1":
         raise ValueError("Field Digital Twin requires canonical_field_state.v1")
-    propose = (state.get("eligibility") or {}).get("propose") or {}
-    if not state.get("operational_eligible") or propose.get("allowed") is False:
+    # Fail closed: a missing or malformed propose gate is not permission to simulate.
+    eligibility = state.get("eligibility")
+    propose = eligibility.get("propose") if isinstance(eligibility, dict) else None
+    if not isinstance(propose, dict):
+        propose = {}
+    if not state.get("operational_eligible") or propose.get("allowed") is not True:
         return FieldTwinState(
             field_id=str(state.get("field_id") or ""),
             current={

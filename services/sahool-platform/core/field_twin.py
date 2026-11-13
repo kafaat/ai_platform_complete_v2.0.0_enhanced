@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import asdict, dataclass, field
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 # عتبات مشتقّة (صريحة، قابلة للمراجعة) — تطابق منطق الواجهة (ndviStatus).
@@ -52,14 +53,17 @@ def _parse_day(value: Any) -> date | None:
     if value is None:
         return None
     if isinstance(value, datetime):
-        return value.date()
+        # Aware times are compared in UTC (as asyncpg returns timestamptz), so a +03:00 offset
+        # cannot make an observation a day younger than it is.
+        return (value.astimezone(UTC) if value.tzinfo is not None else value).date()
     if isinstance(value, date):
         return value
     s = str(value).strip()
     if not s:
         return None
     try:
-        return datetime.fromisoformat(s.replace("Z", "+00:00")).date()
+        parsed = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        return (parsed.astimezone(UTC) if parsed.tzinfo is not None else parsed).date()
     except ValueError:
         try:
             return date.fromisoformat(s[:10])
@@ -88,6 +92,11 @@ def assemble_twin(
     """
     indices = dict(latest_indices or {})
     ndvi = indices.get("ndvi")
+    if ndvi is not None:
+        try:
+            ndvi = float(ndvi) if math.isfinite(float(ndvi)) else None
+        except (TypeError, ValueError, OverflowError):
+            ndvi = None  # a non-numeric or non-finite NDVI is no evidence of cover
     decisions = list(open_decisions or [])
     blocked = [d for d in decisions if (d.get("state") or "").lower() == "blocked"]
     active = [
@@ -103,7 +112,7 @@ def assemble_twin(
         else observed_at
     )
     obs_day = _parse_day(observed)
-    now_day = _parse_day(now) or date.today()
+    now_day = _parse_day(now) or datetime.now(UTC).date()
     data_age_days = (now_day - obs_day).days if obs_day is not None else None
 
     reasons: list[str] = []
@@ -162,8 +171,6 @@ def finite_indicator_readings(rows) -> tuple[dict[str, float], dict[str, Any]]:
 
     Each indicator keeps its own time, so a fresh EVI cannot lend its date to an old NDVI.
     """
-    import math
-
     indices: dict[str, float] = {}
     observed: dict[str, Any] = {}
     for r in rows:

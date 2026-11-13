@@ -117,3 +117,91 @@ def test_canonical_state_with_absent_required_products_never_promotes():
     )
     assert twin.risks["canonical_inputs"] == "unknown"
     assert "water_missing" in twin.assumptions
+
+
+@pytest.mark.parametrize("value", [None, float("nan"), -1.0])
+def test_missing_gdd_reports_no_nutrient_progress_anywhere(value):
+    out = _crop({"accumulated_gdd": value, "series_quality_status": "insufficient"})
+    assert out["nutrient"]["cumulative_fraction_to_date"] is None
+    assert out["nutrient"]["stage"] is None
+    nutrient_state = out["crop_intelligence"]["nutrient"]
+    assert nutrient_state["cumulative_fraction_to_date"] is None
+    assert nutrient_state["stage"] is None
+
+
+@pytest.mark.parametrize(
+    "series",
+    [[10.0, None], [10.0, float("nan")], [10.0, -2.0], [10.0], []],
+)
+def test_compat_daily_gdd_with_a_gap_is_unavailable_not_summed(series):
+    out = crop_twin_state(
+        "wheat",
+        [TwinDay(t_min_c=10, t_max_c=24, et0_mm=4, kc=1)] * 2,
+        taw_mm=100,
+        raw_fraction=0.5,
+        gdd_daily_override=series,
+    )
+    assert out["phenology"]["status"] == "unavailable"
+    assert out["phenology"]["gdd_cumulative"] is None
+
+
+def test_compat_daily_gdd_complete_window_is_summed():
+    out = crop_twin_state(
+        "wheat",
+        [TwinDay(t_min_c=10, t_max_c=24, et0_mm=4, kc=1)] * 2,
+        taw_mm=100,
+        raw_fraction=0.5,
+        gdd_daily_override=[10.0, 0.0],
+    )
+    assert out["phenology"]["status"] == "available"
+    assert out["phenology"]["gdd_cumulative"] == 10.0
+
+
+@pytest.mark.parametrize(
+    "eligibility",
+    [None, {}, {"propose": {}}, {"propose": {"allowed": None}}, "garbage", {"propose": "yes"}],
+)
+def test_missing_or_malformed_propose_gate_fails_closed(eligibility):
+    state = {
+        "schema_version": "canonical_field_state.v1",
+        "field_id": "f1",
+        "operational_eligible": True,
+        "water": {"depletion_mm": 10, "taw_mm": 100, "raw_mm": 50},
+    }
+    if eligibility is not None:
+        state["eligibility"] = eligibility
+    twin = build_field_twin_from_canonical_state(state)
+    assert twin.risks["canonical_inputs"] == "unknown"
+    assert "canonical_state_not_eligible_for_twin_simulation" in twin.assumptions
+
+
+def test_field_twin_judges_dates_in_utc_and_rejects_nan_ndvi():
+    from datetime import UTC, datetime, timedelta, timezone
+
+    from core.field_twin import assemble_twin
+
+    now = datetime(2026, 11, 13, 22, 0, tzinfo=UTC)
+    # 7 days 23 hours old in UTC is stale; written in +03:00 it must not read a day younger.
+    old = (now - timedelta(days=7, hours=23)).astimezone(timezone(timedelta(hours=3)))
+    twin = assemble_twin(
+        field_id="f1",
+        crop="wheat",
+        latest_indices={"ndvi": 0.7},
+        observed_at=old,
+        index_observed_at={"ndvi": old},
+        now=now,
+        open_decisions=[],
+        last_execution=None,
+    )
+    assert twin.data_age_days == 8 and twin.state == "stale"
+    nan_twin = assemble_twin(
+        field_id="f1",
+        crop="wheat",
+        latest_indices={"ndvi": float("nan")},
+        observed_at=now,
+        index_observed_at={"ndvi": now},
+        now=now,
+        open_decisions=[],
+        last_execution=None,
+    )
+    assert nan_twin.state != "healthy" and nan_twin.ndvi is None
