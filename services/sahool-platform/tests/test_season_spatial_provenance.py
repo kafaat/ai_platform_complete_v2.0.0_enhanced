@@ -405,3 +405,16 @@ async def test_complete_historical_fao_et0_is_used_without_recomputation(monkeyp
     assert out.et0_provenance["source"] == "weather-service/historical-fao-et0"
     assert out.et0_provenance["source_snapshot_id"] == "test-wx-snapshot"
     assert out.yield_status == "estimated"
+
+
+async def test_zero_coverage_satellite_point_is_not_a_yield_observation(monkeypatch):
+    day = (_SOW + timedelta(days=10)).isoformat()
+    out, run = await _simulate(
+        monkeypatch,
+        [_rev(1, _SOW - timedelta(days=30))],
+        points=[_point(datetime=day, coverage_ratio=0.0)],
+    )
+    snapshot = json.loads(run[6])
+    assert snapshot["vegetation"]["observation_count"] == 0
+    assert out.observed_fapar_used is False
+    assert snapshot["simulation_inputs"]["observed_fapar"] is None

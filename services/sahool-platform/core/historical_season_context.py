@@ -115,6 +115,22 @@ def compose_historical_season_context(
         cloud = _finite(observation.get("cloud_pct"), maximum=30.0)
         if ndvi is None or cloud is None or not _in_window(observation.get("acquisition_date")):
             continue
+        # Raster owns threshold-based quality. We enforce only the physical
+        # identity invariant: an observation with explicitly zero/invalid
+        # valid-pixel or field coverage cannot represent a measured field mean.
+        ratios = (
+            observation.get("valid_pixel_ratio"),
+            observation.get("coverage_ratio"),
+        )
+        if any(
+            raw is not None
+            and (
+                (ratio := _finite(raw, minimum=0.0, maximum=1.0)) is None
+                or ratio == 0.0
+            )
+            for raw in ratios
+        ):
+            continue
         normalized = dict(observation)
         normalized["fapar"] = round(fapar_from_ndvi(ndvi), 6)
         valid_vegetation.append(normalized)
@@ -146,7 +162,7 @@ def compose_historical_season_context(
         },
         "vegetation": {
             "status": "available" if valid_vegetation else "empty",
-            "quality_rule": "ndvi[-1,1]; cloud_pct_required<=30",
+            "quality_rule": "ndvi[-1,1]; cloud_pct_required<=30; reported_coverage>0",
             "observations": valid_vegetation,
             "observation_count": len(valid_vegetation),
             "observed_fapar_seasonal_mean": observed_fapar,
