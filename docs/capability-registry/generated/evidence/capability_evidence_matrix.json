@@ -6601,6 +6601,7 @@
         "services/raster-service/test_imagery_source_gate_no_bypass_static.py",
         "services/raster-service/test_indicator_provenance_transport.py",
         "services/raster-service/test_job_tenant_binding.py",
+        "services/raster-service/test_sar_tillage_change_evidence.py",
         "services/raster-service/test_scene_cloud_unknown_never_clear.py",
         "services/raster-service/test_stac_c1_processing.py",
         "services/raster-service/test_stac_singleflight_provenance.py",

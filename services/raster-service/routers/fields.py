@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import uuid
 from datetime import UTC, datetime
+from typing import Annotated
 
 import raster_security_context
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
@@ -49,6 +50,7 @@ from raster_field_runtime import (
     _cdse_request_on_stored_field,
     _clip_on_stored_field,
     _clip_resolvable,
+    _common_mask_analysis,
     _display_index,
     _field_layers,
     _grid_from_cog,
@@ -73,6 +75,7 @@ from raster_field_runtime import (
     _stac_search,
     _stac_search_landsat_unique,
     _tile_cache_key,
+    _timeseries_point,
     _upload_dir,
     _write_tile_cache,
     logger,
@@ -1217,6 +1220,8 @@ async def field_timeseries(
         description="تواريخ مفصولة بفواصل (YYYY-MM-DD). فارغ ⇒ كلّ تواريخ COG المتاحة للحقل.",
     ),
     grid: int = Query(16, ge=2, le=64),
+    common_mask: Annotated[bool, Query()] = False,
+    min_common_coverage: Annotated[float, Query(ge=0, le=1)] = 0.5,
 ):
     """السلسلة الزمنيّة الحقيقيّة لمتوسّط المؤشّر للحقل عبر التواريخ المتاحة.
 
@@ -1262,23 +1267,7 @@ async def field_timeseries(
         real = await _real_field_grid(field_id, index, date, grid)
         if real is None:
             continue
-        provenance = (real.get("indicator_product") or {}).get("provenance") or {}
-        points.append(
-            {
-                "datetime": str(real.get("date") or date)[:10],
-                "mean": real["stats"]["mean"],
-                # Measured quality (RS-4) and the grid's own scene lineage (vegetation's
-                # /v1/ndvi/current needs it) — None = "not reported", never a fabricated value.
-                "valid_pixel_ratio": real.get("valid_pixel_ratio"),
-                "coverage_ratio": real.get("coverage_ratio"),
-                "cloud_pct": real.get("cloud_pct"),
-                "scene_id": provenance.get("scene_id"),
-                # S4-a: هويّة الأصل لا الرقم وحده — المشهد نفسه على حدٍّ أحدث للحقل أصلٌ آخر.
-                # مراجعة الهندسة من هويّة الشبكة والأصل المقروء من نَسَب المنتج؛ None حين يغيب.
-                "geometry_revision": (real.get("grid_identity") or {}).get("geometry_revision"),
-                "source_uri": provenance.get("source_uri"),
-            }
-        )
+        points.append(_timeseries_point(real, date))  # S4-a asset identity + RS-4 quality
 
     if not points:
         return {
@@ -1294,6 +1283,8 @@ async def field_timeseries(
     import time_series as ts
 
     analysis = ts.build_time_series(points, value_key="mean")
+    if common_mask:  # trend over pixels valid in every scene (time_series.COMMON_MASK_RULE)
+        analysis = await _common_mask_analysis(field_id, points, analysis, min_common_coverage)
     return {
         "field_id": field_id,
         "index": out_index,
