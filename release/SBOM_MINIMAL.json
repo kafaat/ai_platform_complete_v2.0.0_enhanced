@@ -24135,7 +24135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f01123ca283e384556a6cd8794e2305fb79f8eccab8b48f37a9eb321d6ee8c6c"
+          "content": "c8d3c2f25d5dff9aae02da63996291467097380973857ffa1996e6c829427983"
         }
       ],
       "name": "services/sahool-platform/api/disease_diagnosis.py",
