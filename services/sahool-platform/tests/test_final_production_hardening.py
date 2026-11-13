@@ -57,7 +57,8 @@ def test_digital_twin_simulates_without_emitting_recommendation():
     irrigated = simulate_irrigation(twin, 30)
     risked = simulate_salinity_risk(irrigated)
     assert risked.predicted["depletion_mm_after_irrigation"] == 25.0
-    assert risked.predicted["soil_moisture_pct_after_irrigation"] == 79.17
+    assert risked.predicted["root_zone_available_water_pct_after_irrigation"] == 79.17
+    assert risked.predicted["soil_moisture_pct_after_irrigation"] is None
     assert risked.risks["water_stress"] == "low"
     assert risked.risks["salinity"] == "medium"
     assert "recommendation" not in risked.predicted

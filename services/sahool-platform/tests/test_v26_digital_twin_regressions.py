@@ -71,7 +71,8 @@ def test_canonical_root_zone_supports_net_infiltration_screening():
     state = FieldTwinState("f1", {"depletion_mm": 70.0, "taw_mm": 100.0, "raw_mm": 45.0})
     out = simulate_irrigation(state, 20.0)
     assert out.predicted["depletion_mm_after_irrigation"] == 50.0
-    assert out.predicted["soil_moisture_pct_after_irrigation"] == 50.0
+    assert out.predicted["root_zone_available_water_pct_after_irrigation"] == 50.0
+    assert out.predicted["soil_moisture_pct_after_irrigation"] is None
     assert out.risks["water_stress"] == "medium"
     assert out.predicted["simulation_status"] == "screening_only_net_infiltration"
     assert any("no_execution_authority" in a for a in out.assumptions)
