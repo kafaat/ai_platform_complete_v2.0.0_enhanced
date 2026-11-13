@@ -391,11 +391,11 @@ FM-001,test,tests_v9/test_v241_edge_idempotency_tenant_scoped.py,3,applied
 FM-001,test,tests_v9/test_v87_audit_tenant.py,3,applied
 FM-001,test,tests_v9/test_video_stream_tenant_authz.py,3,applied
 FM-001,ui,frontend/src/services/api/auth.ts,2,applied
-FM-002,api,GET /api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:487,2,applied
-FM-002,api,GET /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:418,2,applied
-FM-002,api,GET /api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:508,2,applied
-FM-002,api,GET /api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:451,2,applied
-FM-002,api,GET /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:162,2,applied
+FM-002,api,GET /api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:598,2,applied
+FM-002,api,GET /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:529,2,applied
+FM-002,api,GET /api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:619,2,applied
+FM-002,api,GET /api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:562,2,applied
+FM-002,api,GET /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:225,2,applied
 FM-002,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:584,2,applied
 FM-002,api,GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:951,2,applied
 FM-002,api,GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:724,2,applied
@@ -408,8 +408,8 @@ FM-002,api,GET /api/v1/farms @ services/sahool-platform/api/routers/farms.py:107
 FM-002,api,GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:142,4,applied
 FM-002,api,GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179,4,applied
 FM-002,api,GET /api/v1/reports/farm-summary @ services/sahool-platform/api/routers/reports.py:46,2,applied
-FM-002,api,POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:247,2,applied
-FM-002,api,POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:130,2,applied
+FM-002,api,POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:347,2,applied
+FM-002,api,POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:193,2,applied
 FM-002,api,POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:809,2,applied
 FM-002,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:503,2,applied
 FM-002,api,POST /api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:229,2,applied
@@ -468,6 +468,9 @@ FM-002,test,services/sahool-platform/tests/test_farm_operations_ledger.py,3,appl
 FM-002,test,services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py,3,applied
 FM-002,test,services/sahool-platform/tests/test_simple_farm_book.py,3,applied
 FM-002,test,shared/test_autonomous_farm_os_phase9.py,3,applied
+FM-002,test,tests_v9/test_farm_book_corrections_and_categories.py,3,applied
+FM-002,test,tests_v9/test_farm_book_receipt_field.py,3,applied
+FM-002,test,tests_v9/test_farm_book_receipt_scope_live_pg.py,3,applied
 FM-002,test,tests_v9/test_farm_memory.py,3,applied
 FM-003,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278,2,applied
 FM-003,api,DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1613,4,applied
@@ -890,6 +893,7 @@ FM-003,test,tests_v9/test_canonical_boundary.py,3,applied
 FM-003,test,tests_v9/test_canonical_field_geometry_contract.py,3,applied
 FM-003,test,tests_v9/test_decision_review_boundary_guard.py,3,applied
 FM-003,test,tests_v9/test_disease_field_state_feed.py,3,applied
+FM-003,test,tests_v9/test_farm_book_receipt_field.py,3,applied
 FM-003,test,tests_v9/test_field_aggregate_ports_integration.py,3,applied
 FM-003,test,tests_v9/test_field_ai_context_hardening_v49_5.py,3,applied
 FM-003,test,tests_v9/test_field_alerts_schema_contract.py,3,applied

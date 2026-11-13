@@ -166,6 +166,8 @@ export interface WaterAnalysisResult {
     sodicity_sar: WaterClass;
   };
   hazard_flags_ar: string[];
+  verdict?: 'suitable' | 'needs_treatment' | 'insufficient_data';
+  not_assessed?: string[];
   suitable_ar: string;
   missing_inputs: string[];
   data_complete: boolean;

@@ -766,14 +766,14 @@ class OnboardingSubmitRequest(BaseModel):
 class WaterAnalysisRequest(BaseModel):
     sample_id: str
     source: str = "well"  # well | canal | mixed
-    na: float | None = None
-    ca: float | None = None
-    mg: float | None = None
-    hco3: float | None = None
-    co3: float | None = None
-    cl: float | None = None
-    ec_dsm: float | None = None
-    ph: float | None = None
+    na: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    ca: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    mg: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    hco3: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    co3: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    cl: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    ec_dsm: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    ph: float | None = Field(default=None, ge=0, le=14, allow_inf_nan=False)
     sampled_at: str | None = None
 
 

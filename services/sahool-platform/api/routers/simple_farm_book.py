@@ -9,6 +9,7 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
+from core.authorization import authorize
 from core.simple_farm_book import entries_csv, monthly_pdf, summarize_entries
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field, field_validator
@@ -113,6 +114,14 @@ async def _assert_scope(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         raise HTTPException(status_code=404, detail="farm_not_found_for_tenant")
     if req.field_id:
         await _assert_field_in_tenant(conn, req.field_id)
+        # The field must be on the entry's farm. Checking it against the tenant alone let an
+        # entry on farm X name a field of farm Y (and cite that field's receipt). A legacy
+        # field with no farm recorded is not attributable to another farm and is accepted.
+        field_farm = await conn.fetchval(
+            "SELECT farm_id FROM fields WHERE field_id=$1", req.field_id
+        )
+        if field_farm is not None and field_farm != req.farm_id:
+            raise HTTPException(status_code=422, detail="field_not_in_farm")
     if req.task_id is not None:
         if not req.field_id:
             raise HTTPException(status_code=422, detail="task_link_requires_field")
@@ -140,16 +149,70 @@ async def _assert_scope(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         )
         if party != 1:
             raise HTTPException(status_code=404, detail="party_not_found_for_tenant")
-    if req.receipt_document_id:
-        document = await conn.fetchval(
-            """SELECT 1 FROM documents
-               WHERE tenant_id=$1::uuid AND doc_id=$2
-                 AND category IN ('image','report','other')""",
-            tenant_id,
-            req.receipt_document_id,
-        )
-        if document != 1:
-            raise HTTPException(status_code=404, detail="receipt_document_not_found_for_tenant")
+
+
+def _receipt_field_refusal(document_field: str | None, entry_field: str | None) -> str | None:
+    """The refusal code when a receipt's field does not fit the entry, else ``None``.
+
+    A document with no field is a shared receipt (one purchase spanning fields or the whole
+    farm) and fits any entry of the tenant. A document recorded on a field fits only an entry
+    on that same field; a farm-level entry cannot cite a field's receipt.
+    """
+    document = (str(document_field or "").strip()) or None
+    if document is None:
+        return None
+    entry = (str(entry_field or "").strip()) or None
+    return None if document == entry else "receipt_field_mismatch"
+
+
+def _may_link_receipt(user: UserSchema, farm_id: str | None) -> bool:
+    """Linking a document is reading it: ``DOCUMENT_VIEW`` on the entry's farm.
+
+    ``authorize`` checks the role and ``farm_ids_access``, so a user limited to other farms
+    cannot attach a document to this farm's book.
+    """
+    return authorize(user, Permission.DOCUMENT_VIEW, farm_id=farm_id).allowed
+
+
+def _may_write_on_farm(user: UserSchema, farm_id: str | None) -> bool:
+    """``ACTIVITY_EXECUTE`` on the entry's farm: the role and ``farm_ids_access``.
+
+    The route dependency checks the role only; a user limited to some farms of the tenant
+    could otherwise write entries on every farm.
+    """
+    return authorize(user, Permission.ACTIVITY_EXECUTE, farm_id=farm_id).allowed
+
+
+async def _assert_receipt(conn, tenant_id: str, req: SimpleEntryIn, user: UserSchema) -> None:
+    """A receipt belongs to the entry it is attached to.
+
+    The permission is decided on the server before the document is read. The document must
+    be this tenant's and an image/report/other, and its field must fit the entry's
+    (``_receipt_field_refusal``). Checked after a reversal inherits its allocation, so the
+    comparison uses the field the entry is stored on.
+    """
+    if not req.receipt_document_id:
+        return
+    if not _may_link_receipt(user, req.farm_id):
+        raise HTTPException(status_code=403, detail="receipt_document_permission_required")
+    document = await conn.fetchrow(
+        """SELECT d.field_id, f.farm_id AS field_farm_id
+             FROM documents d
+             LEFT JOIN fields f ON f.field_id = d.field_id
+            WHERE d.tenant_id=$1::uuid AND d.doc_id=$2
+              AND d.category IN ('image','report','other')""",
+        tenant_id,
+        req.receipt_document_id,
+    )
+    if document is None:
+        raise HTTPException(status_code=404, detail="receipt_document_not_found_for_tenant")
+    refusal = _receipt_field_refusal(document["field_id"], req.field_id)
+    if refusal:
+        raise HTTPException(status_code=422, detail=refusal)
+    # documents carry no farm; a field-bound receipt's farm is its field's. Authorise that farm
+    # too, so the permission never rests only on the farm the caller named.
+    if document["field_farm_id"] and not _may_link_receipt(user, document["field_farm_id"]):
+        raise HTTPException(status_code=403, detail="receipt_document_permission_required")
 
 
 @router.post("/api/v1/farm-book/parties", status_code=201)
@@ -221,8 +284,8 @@ def _inherit_task(req: SimpleEntryIn, original) -> None:
         req.field_id = original["field_id"]
 
 
-async def _inherit_ledger_scope(conn, tenant_id, req, original):
-    field_id = original["field_id"]
+async def _with_historical_link(conn, tenant_id, req, original):
+    """Overlay a historical expense link (task_expense_links) on an original without a task."""
     if original["task_id"] is None:
         historical = await conn.fetchrow(
             "SELECT task_id, field_id FROM task_expense_links WHERE tenant_id=$1::uuid AND entry_id=$2",
@@ -230,8 +293,13 @@ async def _inherit_ledger_scope(conn, tenant_id, req, original):
             req.reverses_entry_id or req.settles_entry_id,
         )
         if historical:
-            field_id = historical["field_id"]
-            original = dict(original) | dict(historical)
+            return dict(original) | dict(historical)
+    return original
+
+
+async def _inherit_ledger_scope(conn, tenant_id, req, original):
+    original = await _with_historical_link(conn, tenant_id, req, original)
+    field_id = original["field_id"]
     if (
         req.farm_id != original["farm_id"]
         or req.field_id is not None
@@ -249,8 +317,8 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
     if not req.settles_entry_id or not req.party_id:
         raise HTTPException(status_code=422, detail="payment_requires_party_and_settled_entry")
     original = await conn.fetchrow(
-        """SELECT entry_id, entry_type, payment_method, amount, currency, party_id, task_id, field_id, farm_id, season_id,
-                  reverses_entry_id
+        """SELECT entry_id, entry_type, payment_method, amount, currency, party_id, task_id,
+                  field_id, farm_id, season_id, reverses_entry_id
            FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND entry_id=$2 FOR UPDATE""",
         tenant_id,
@@ -258,16 +326,23 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
     )
     if not original or original["payment_method"] != "credit":
         raise HTTPException(status_code=422, detail="settled_entry_must_be_credit")
+    # A reversal (or a reversed entry) is no debt: paying it drives the party's payable
+    # negative, and the report then silently nets that against the party's other debts.
     if original["reverses_entry_id"] is not None:
         raise HTTPException(status_code=422, detail="cannot_settle_a_reversal")
     if await conn.fetchval(
-        "SELECT 1 FROM farm_ledger_entries WHERE tenant_id=$1::uuid AND reverses_entry_id=$2",
+        """SELECT 1 FROM farm_ledger_entries
+           WHERE tenant_id=$1::uuid AND reverses_entry_id=$2 LIMIT 1""",
         tenant_id,
         req.settles_entry_id,
     ):
         raise HTTPException(status_code=409, detail="cannot_settle_reversed_entry")
     if original["party_id"] != req.party_id or original["currency"] != req.currency:
         raise HTTPException(status_code=422, detail="payment_party_or_currency_mismatch")
+    # A debt is the farm's: a payment booked on another farm would leave this farm's payable
+    # open in its own book and drive the other farm's negative.
+    if original["farm_id"] != req.farm_id:
+        raise HTTPException(status_code=422, detail="payment_farm_mismatch")
     await _inherit_ledger_scope(conn, tenant_id, req, original)
     paid = await conn.fetchval(
         """SELECT COALESCE(SUM(amount),0) FROM farm_ledger_entries
@@ -281,14 +356,21 @@ async def _prepare_payment(conn, tenant_id: str, req: SimpleEntryIn) -> str:
 
 
 async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
-    """Append-only correction: a reversing entry mirrors the original exactly and both
-    net to zero in every total (see core.summarize_entries). The mirror must match the
-    original's type/method/amount/currency so the DB CHECKs still hold, must not itself
-    be a settlement, and each original may be reversed at most once."""
+    """Append-only correction: a reversing entry mirrors the original's type/method/
+    amount/currency/party (so the DB CHECKs still hold and both net to zero in every
+    total, see core.summarize_entries). Its category may be what the user typed
+    («تصحيح»): reports net it under the original's category (original_category). Its
+    farm/field/season are the original's: omitted ones are inherited, and a different
+    one is refused (entry_scope_mismatch), so every report window cancels it where the
+    original counted. It must not predate the original (entry_precedes_original) or
+    itself be a settlement; each original may be reversed at most once, and a credit
+    entry with payments cannot be reversed (its payable would go negative and cancel
+    the party's other debts). Codes match fix/field-tasks-costs-inspection."""
     if req.settles_entry_id:
         raise HTTPException(status_code=422, detail="reversal_cannot_also_settle")
     original = await conn.fetchrow(
-        """SELECT entry_type, payment_method, amount, currency, party_id, reverses_entry_id, task_id, field_id, farm_id, season_id
+        """SELECT entry_type, payment_method, amount, currency, party_id, reverses_entry_id,
+                  category, task_id, farm_id, field_id, season_id, occurred_on
            FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND entry_id=$2 FOR UPDATE""",
         tenant_id,
@@ -306,13 +388,22 @@ async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         or (original["party_id"] or None) != (req.party_id or None)
     ):
         raise HTTPException(status_code=422, detail="reversal_must_mirror_original")
-    if original["payment_method"] == "credit" and await conn.fetchval(
-        "SELECT 1 FROM farm_ledger_entries WHERE tenant_id=$1::uuid AND settles_entry_id=$2 LIMIT 1",
+    original = await _with_historical_link(conn, tenant_id, req, original)
+    for column in ("farm_id", "field_id", "season_id"):
+        given = getattr(req, column) or None
+        if given is not None and given != (original[column] or None):
+            raise HTTPException(status_code=422, detail="entry_scope_mismatch")
+        setattr(req, column, original[column])
+    if req.occurred_on < original["occurred_on"]:
+        raise HTTPException(status_code=422, detail="entry_precedes_original")
+    if await conn.fetchval(
+        """SELECT 1 FROM farm_ledger_entries
+           WHERE tenant_id=$1::uuid AND settles_entry_id=$2 LIMIT 1""",
         tenant_id,
         req.reverses_entry_id,
     ):
         raise HTTPException(status_code=409, detail="cannot_reverse_entry_with_settlements")
-    await _inherit_ledger_scope(conn, tenant_id, req, original)
+    _inherit_task(req, original)
     already = await conn.fetchval(
         """SELECT 1 FROM farm_ledger_entries
            WHERE tenant_id=$1::uuid AND reverses_entry_id=$2 LIMIT 1""",
@@ -407,6 +498,8 @@ async def create_entry(
         raise HTTPException(status_code=422, detail="only_payment_can_settle_entry")
     if req.reverses_entry_id and req.entry_type == "payment":
         raise HTTPException(status_code=422, detail="payment_cannot_be_a_reversal")
+    if not _may_write_on_farm(user, req.farm_id):
+        raise HTTPException(status_code=403, detail="farm_access_denied")
     entry_id = "fbe_" + uuid.uuid4().hex[:18]
     tenant_id = str(user.tenant_id)
     request_digest = hashlib.sha256(
@@ -440,6 +533,7 @@ async def create_entry(
                 else:
                     if req.reverses_entry_id:
                         await _assert_reversal(conn, tenant_id, req)
+                    await _assert_receipt(conn, tenant_id, req, user)
                     direction = (
                         await _prepare_payment(conn, tenant_id, req)
                         if req.entry_type == "payment"
@@ -534,11 +628,20 @@ def _entry_filters(
         ("task_id", task_id),
     ):
         if value:
+            # A reversing row is allocated where its original is (``orig``, joined in
+            # _fetch_entries), so a legacy reversal stored elsewhere still cancels it.
             args.append(value)
-            expr = {"field_id": _EFFECTIVE_FIELD, "task_id": _EFFECTIVE_TASK}.get(
-                column, f"e.{column}"
+            if column == "field_id":
+                # task_expense_links (v245) carries a historical expense's field.
+                own, from_original = _EFFECTIVE_FIELD, "COALESCE(orig.field_id, link.field_id)"
+            elif column == "task_id":
+                own, from_original = _EFFECTIVE_TASK, "COALESCE(orig.task_id, link.task_id)"
+            else:
+                own, from_original = f"e.{column}", f"orig.{column}"
+            clauses.append(
+                f"(CASE WHEN orig.entry_id IS NULL THEN {own} ELSE {from_original} END)"
+                f"=${len(args)}"
             )
-            clauses.append(f"{expr}=${len(args)}")
     if date_from:
         args.append(date_from)
         clauses.append(f"e.occurred_on>=${len(args)}")
@@ -555,12 +658,16 @@ async def _fetch_entries(conn, where: str, args: list, *, limit: int | None = No
         query_args.append(limit)
         limit_sql = f" LIMIT ${len(query_args)}"
     rows = await conn.fetch(
-        f"""SELECT e.*, {_EFFECTIVE_TASK} AS task_id, {_EFFECTIVE_FIELD} AS field_id, p.name AS party_name, settled.entry_type AS settled_entry_type
+        f"""SELECT e.*, {_EFFECTIVE_TASK} AS task_id, {_EFFECTIVE_FIELD} AS field_id,
+                   p.name AS party_name, settled.entry_type AS settled_entry_type,
+                   orig.category AS original_category
             FROM farm_ledger_entries e {_LINK_JOIN}
             LEFT JOIN farm_ledger_parties p
               ON p.tenant_id=e.tenant_id AND p.party_id=e.party_id
             LEFT JOIN farm_ledger_entries settled
               ON settled.tenant_id=e.tenant_id AND settled.entry_id=e.settles_entry_id
+            LEFT JOIN farm_ledger_entries orig
+              ON orig.tenant_id=e.tenant_id AND orig.entry_id=e.reverses_entry_id
             WHERE {where}
             ORDER BY e.occurred_on DESC, e.created_at DESC{limit_sql}""",
         *query_args,
