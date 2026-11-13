@@ -166,8 +166,12 @@ async def simulate_season_endpoint(
     """
     import json as _json
 
-    from api.connectors.openmeteo import fetch_historical
-    from api.season_simulation import DayWeather, SimContext, simulate_season
+    from api.season_simulation import SimContext, simulate_season
+    from api.season_weather_contract import (
+        canonical_historical_days,
+        validated_engine_daily_series,
+    )
+    from api.weather_service_client import get_weather_historical
 
     # ١) سياق الموسم من القاعدة (+ تأكيد المستأجِر عبر RLS ⇒ 404 إن غاب).
     try:
@@ -256,30 +260,28 @@ async def simulate_season_endpoint(
             "وسلسلة NDVI على الحدّ الحاليّ لا حدّ الموسم؛ الموسم لا يُثبّت مراجعة هندسة."
         )
 
-    # ٣) الطقس التاريخي (ERA5) من Open-Meteo — تعذّره ⇒ 503 صريح.
+    # ٣) الطقس التاريخي من مالك الطقس الوحيد، لا عبر Open-Meteo داخل المنصّة.
+    # التواريخ/التغطية والبصمة يجب أن تطابق نافذة الموسم تماماً؛ سلسلة مبتورة
+    # ليست موسماً أقصر. المطر المفقود يبقى None لا صفر مرصود.
     try:
-        days = await fetch_historical(
+        archive = await get_weather_historical(
             float(srow["lat"]),
             float(srow["lon"]),
-            start.isoformat(),
-            win_end.isoformat(),
+            start_date=start.isoformat(),
+            end_date=win_end.isoformat(),
+            tenant_id=str(user.tenant_id),
         )
-    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        weather = canonical_historical_days(archive, start=start, end=win_end)
+    except HTTPException as exc:
         raise HTTPException(
             status_code=503,
-            detail="تعذّر جلب الطقس التاريخي (Open-Meteo غير متاح). حاول لاحقاً.",
-        ) from e
-
-    weather = [
-        DayWeather(
-            t_min_c=d.temp_min_c,
-            t_max_c=d.temp_max_c,
-            solar_mj_m2=None,  # غير مطلوب من المصدر الحالي — يُقدَّر في النموذج
-            et0_mm=d.et0_mm,
-            rain_mm=d.precipitation_mm or 0.0,
-        )
-        for d in days
-    ]
+            detail="خدمة الطقس التاريخي غير متاحة — لم تُحفظ محاكاة.",
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"أرشيف الطقس غير مؤهّل للمحاكاة: {exc}",
+        ) from exc
 
     # ٣-ب) نواة GDD من محرّك الطقس (WS-C.1c Zero-Legacy) — المصدر الوحيد، لا تُحسب محلّيّاً.
     # سياسة المحصول (الأساس/السقف، method="modified") من نموذج الموسم وتُمرَّر للمحرّك؛
@@ -301,7 +303,10 @@ async def simulate_season_endpoint(
                 daily_t_min=[w.t_min_c for w in weather],
                 daily_t_max=[w.t_max_c for w in weather],
                 lat_deg=float(srow["lat"]),
-                day_of_year_start=start.timetuple().tm_yday,
+                daily_dates=[
+                    (start + timedelta(days=i)).isoformat() for i in range(len(weather))
+                ],
+                tenant_id=str(user.tenant_id),
             )
         except HTTPException as exc:
             if exc.status_code in (502, 503, 504):
@@ -310,7 +315,14 @@ async def simulate_season_endpoint(
                     detail="weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)",
                 ) from exc
             raise
-        et0_override = et0_series.get("daily_et0_mm")
+        try:
+            et0_override = validated_engine_daily_series(
+                et0_series, "daily_et0_mm", len(weather)
+            )
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=503, detail=f"سلسلة ET₀ غير متطابقة مع أيام الموسم: {exc}"
+            ) from exc
         et0_provenance = {
             "source": "weather-engine",
             "formula_version": et0_series.get("formula_version"),
@@ -324,6 +336,9 @@ async def simulate_season_endpoint(
                 base_c=gdd_base,
                 upper_cutoff_c=gdd_cutoff,
                 method="modified",
+                start_date=start.isoformat(),
+                end_date=win_end.isoformat(),
+                tenant_id=str(user.tenant_id),
             )
         except HTTPException as exc:
             if exc.status_code in (502, 503, 504):
@@ -332,7 +347,12 @@ async def simulate_season_endpoint(
                     detail="weather-engine GDD unavailable — fail-closed (no local GDD fallback)",
                 ) from exc
             raise
-        gdd_override = gdd_engine.get("daily_gdd")
+        try:
+            gdd_override = validated_engine_daily_series(gdd_engine, "daily_gdd", len(weather))
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=503, detail=f"سلسلة GDD غير متطابقة مع أيام الموسم: {exc}"
+            ) from exc
         # WS-C.1c Zero-Legacy: أُزيلت المقارنة الظلّيّة ونواة gdd_day المحلّيّة (المحرّك مصدر
         # GDD الوحيد). النَّسَب من المحرّك مباشرة.
         gdd_provenance = {
@@ -348,6 +368,14 @@ async def simulate_season_endpoint(
         field_id=str(srow["field_id"]),
         season_id=season_id,
         season=dict(srow),
+        simulation_window={"start": start.isoformat(), "end": win_end.isoformat()},
+        weather_provenance={
+            "owner": "weather-service",
+            "canonical_state_id": archive["canonical_state_id"],
+            "source_snapshot_id": archive["source_snapshot_id"],
+            "coverage": archive.get("coverage"),
+            "quality_status": archive.get("quality_status"),
+        },
         season_record=dict(record) if record is not None else None,
         crop=dict(historical_crop) if historical_crop is not None else None,
         events=[dict(row) for row in historical_events],
