@@ -4865,7 +4865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e626dbb879c488ca9ec158ea2e14a6da62147ec30d6fe79f25736d3e74a86893"
+          "content": "3d1775a3f9227ddf6cf922312f2664cabffab22bccdbb6d39dba90d432e7d989"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -24645,7 +24645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f308fb21597f92c8bbba87e3819b7455a8dedd4ba3af6c5b4ea211723c516113"
+          "content": "9ee4320c89206ca00f9442807988c721ecc7ae01c99d1fe8b458149638df2270"
         }
       ],
       "name": "services/sahool-platform/api/field_season_projection.py",
@@ -27095,7 +27095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7a0f1dc4c227978d0393c24a62aff4949564574109c8ad296cd704e9440131f"
+          "content": "2d22db28fe4542e4d3edcd6a8007a91512fa5a90ca7de3b5725ca149b2381ff4"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -34555,7 +34555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7295f23a22f05b1c1a930df7571abce14c182d23476192a4ed583200362a2d3d"
+          "content": "f6734ee217cd713db6785718442f9ba938300c7bad666f10aaad5096ec58280f"
         }
       ],
       "name": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
