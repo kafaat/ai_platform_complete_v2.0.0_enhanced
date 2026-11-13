@@ -10,6 +10,15 @@
       "subject_sha256": "7e29e58dcc88065c6ee4503c4a85ec3f1a1698322e6c88452ed3e9b10360c857",
       "envelope_sha256": "0261fadcf9a639040e876c9efef0b6a14f3b7f901c564faa790f5dfadec3c12d",
       "reserved_at": "2026-11-11T17:29:34Z"
+    },
+    {
+      "decision_id": "GATE01-AUTH-2026-11-12-001",
+      "action": "state_transition",
+      "pr_number": 1394,
+      "head_sha": "6af8b954e114ca4362140f6489bd6e2a937eab16",
+      "subject_sha256": "dd4730e9cf2f3437fd2fd8a689b996d0905bfac938563faf46ea2e34855faec5",
+      "envelope_sha256": "570e758ae701313773be0a0723fa48747ac3da09d7b3ad4191294db49e1a845a",
+      "reserved_at": "2026-11-13T00:43:11Z"
     }
   ]
 }
