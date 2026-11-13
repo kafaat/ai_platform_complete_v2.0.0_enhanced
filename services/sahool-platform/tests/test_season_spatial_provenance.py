@@ -202,6 +202,7 @@ def _season(sow: date, end: date) -> dict:
         "season_id": "season-a",
         "field_id": "field-a",
         "crops": ["wheat"],
+        "irrigation_type": "pivot",
         "sowing_date": sow,
         "season_end": end,
         "lat": 15.3,
