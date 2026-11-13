@@ -104,9 +104,10 @@ def test_the_lab_water_results_body_refuses_negative_ec_with_422():
 
     # Avoid a decorator on a test-only route: the static service inventory
     # must not count this probe as a production API endpoint.
-    app.add_api_route("/probe", probe, methods=["POST"])
+    probe_path = "/probe"
+    app.add_api_route(probe_path, probe, methods=["POST"])
 
-    r = TestClient(app).post("/probe", json={"sample_id": "w1", "ec_dsm": -1})
+    r = TestClient(app).post(probe_path, json={"sample_id": "w1", "ec_dsm": -1})
     assert r.status_code == 422
 
 
