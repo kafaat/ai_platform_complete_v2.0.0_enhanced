@@ -10,7 +10,6 @@ from shared.mlops import assess_agronomic_model_candidate as assess
 
 pytestmark = pytest.mark.unit
 
-
 EVAL = {
     "tenant_id": "tenant-A",
     "model_id": "m-A",
@@ -72,14 +71,21 @@ def test_rejects_caller_attested_bools_without_trusted_verifier():
 def test_positive_preflight_requires_explicit_independent_evidence_verifier():
     calls = []
 
-    def trusted(a, b, c):
-        calls.append((a["evaluation_run_id"], b["evaluation_run_id"], c["model_weights_sha256"]))
+    def trusted(a, b, c, target_environment):
+        calls.append(
+            (
+                a["evaluation_run_id"],
+                b["evaluation_run_id"],
+                c["model_weights_sha256"],
+                target_environment,
+            )
+        )
         return True
 
     result = run(verifier=trusted)
     assert result["eligible_for_independent_review"] is True
     assert result["authorization_granted"] is False
-    assert calls == [("eval-A", "eval-A", "f" * 64)]
+    assert calls == [("eval-A", "eval-A", "f" * 64, "production")]
 
 
 @pytest.mark.parametrize(
@@ -152,3 +158,31 @@ def test_preflight_is_deterministic_without_mutating_records():
     a = run(e, p, ev, verifier=lambda *_: True)
     b = run(e, p, ev, verifier=lambda *_: True)
     assert a == b and e == EVAL and p == PROMO and ev == EVIDENCE
+
+
+def test_trusted_verifier_must_receive_target_environment():
+    seen = []
+
+    def verifier(evaluation, promotion, evidence, target_environment):
+        seen.append(target_environment)
+        return target_environment == "staging"
+
+    assert run(verifier=verifier, env="staging")["eligible_for_independent_review"]
+    result = run(verifier=verifier, env="production")
+    assert not result["eligible_for_independent_review"]
+    assert "external_evidence_verification_failed" in result["reason_codes"]
+    assert seen == ["staging", "production"]
+
+
+def test_legacy_three_arg_verifier_fails_closed():
+    result = run(verifier=lambda a, b, c: True)
+    assert not result["eligible_for_independent_review"]
+    assert "external_evidence_verification_failed" in result["reason_codes"]
+
+
+def test_trusted_verifier_not_called_if_production_license_missing():
+    calls = []
+    ev = {**EVIDENCE, "commercial_use_allowed": False}
+    result = run(ev=ev, verifier=lambda *args: calls.append(args) or True)
+    assert not result["eligible_for_independent_review"]
+    assert calls == []

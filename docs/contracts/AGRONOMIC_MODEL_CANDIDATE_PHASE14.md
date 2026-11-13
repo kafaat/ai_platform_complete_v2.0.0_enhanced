@@ -8,3 +8,12 @@
 - **Not wired into Decision Service's production activation path.** Installing this helper does not close the production model licensing / validation / signoff gap. Future work must connect a trusted, tenant-scoped verifier, the registered evaluation/promotion records, and independent reviewer authorization before enabling a production gate.
 
 Do not infer a commercial license from a model card, a self-declared `commercial_use_allowed` boolean, a dataset URL, or a hash-like string. SHA-256 values are comparison keys until their contents have been verified by an authority.
+
+## Phase 15: environment-bound trusted verifier
+
+The trusted proof verifier now receives four arguments:
+`(evaluation, promotion, evidence, target_environment)`. Its authorization
+and license checks must be specific to the passed environment. A proof valid
+only in staging **must not** be accepted for production. Old three-argument
+verifiers fail closed (no review eligibility). This is a read-only review gate,
+not a production activation mechanism or evidence authenticity guarantee.

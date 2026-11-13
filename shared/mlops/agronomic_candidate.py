@@ -39,7 +39,9 @@ REQUIRED_EVIDENCE = (
 # Verifier is supplied from the trusted operator/Decision Service boundary.
 # It must authenticate actual source bytes, license grants and independent
 # evaluation receipts, not only check the shape of the supplied identifiers.
-ProofVerifier = Callable[[Mapping[str, Any], Mapping[str, Any], Mapping[str, Any]], bool]
+# The verifier MUST receive the target environment: a staging-only grant must
+# never be unintentionally reused to authorize a production preflight.
+ProofVerifier = Callable[[Mapping[str, Any], Mapping[str, Any], Mapping[str, Any], str], bool]
 
 
 def _sha(value: Any) -> bool:
@@ -163,7 +165,10 @@ def assess_agronomic_model_candidate(
             reasons.append("trusted_verifier_not_connected")
         else:
             try:
-                if trusted_verifier(evaluation, promotion, evidence) is not True:
+                if (
+                    trusted_verifier(evaluation, promotion, evidence, target_environment)
+                    is not True
+                ):
                     reasons.append("external_evidence_verification_failed")
             except Exception:
                 reasons.append("external_evidence_verification_failed")
