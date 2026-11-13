@@ -54,15 +54,19 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from api.recommendations_hub import recommendation_issued_at, with_persisted_flag
+from api.recommendations_hub import (
+    jsonb_text as _jsonb,
+)
+from api.recommendations_hub import (
+    recommendation_issued_at,
+    with_persisted_flag,
+)
+from api.recommendations_hub import (
+    record_canonical_context as _record_canonical_context,
+)
 
 router = APIRouter()
 logger = logging.getLogger("sahool.recommendations")
-
-
-def _jsonb(value) -> str:
-    """تسلسل آمن لحقل JSONB (يقبل None ⇒ {})."""
-    return json.dumps(value or {}, ensure_ascii=False, default=str)
 
 
 def _numeric_indicator_map(raw: dict | None) -> dict:
@@ -84,23 +88,6 @@ def _numeric_indicator_map(raw: dict | None) -> dict:
             detail=(f"current_indicators يجب أن تكون خريطة أرقام فقط — قيم غير رقميّة: {offenders}"),
         )
     return values
-
-
-def _record_canonical_context(enriched: dict, canonical_context: dict) -> None:
-    """File the canonical context as decision EVIDENCE, never as a feature.
-
-    Its home is ``provenance.input_snapshot`` — the persisted record of what was read
-    when the decision was made. It must not enter ``current_indicators``: every
-    consumer of that map coerces values with ``float()`` and compares them key by key,
-    so a nested object there does not raise — it silently changes what similarity,
-    ranking and clustering measure.
-    """
-    provenance = enriched.setdefault("provenance", {})
-    if not isinstance(provenance, dict):
-        return
-    input_snapshot = provenance.setdefault("input_snapshot", {})
-    if isinstance(input_snapshot, dict):
-        input_snapshot["canonical_agronomic_context"] = canonical_context
 
 
 async def _persist_recommendation_on_connection(

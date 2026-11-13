@@ -24,6 +24,7 @@ api/recommendations_hub.py — مُجمِّع التوصيات الموحَّد 
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -504,3 +505,28 @@ def recommendation_issued_at(value) -> datetime | None:
 def with_persisted_flag(body, persisted: bool):
     """Add the truthful ``persisted`` flag to a JSON object body (other bodies pass through)."""
     return {**body, "persisted": persisted} if isinstance(body, dict) else body
+
+
+# ─── Pure helpers of the recommendations router (moved here to keep it under 800 lines) ───
+
+
+def jsonb_text(value) -> str:
+    """تسلسل آمن لحقل JSONB (يقبل None ⇒ {})."""
+    return json.dumps(value or {}, ensure_ascii=False, default=str)
+
+
+def record_canonical_context(enriched: dict, canonical_context: dict) -> None:
+    """File the canonical context as decision EVIDENCE, never as a feature.
+
+    Its home is ``provenance.input_snapshot`` — the persisted record of what was read
+    when the decision was made. It must not enter ``current_indicators``: every
+    consumer of that map coerces values with ``float()`` and compares them key by key,
+    so a nested object there does not raise — it silently changes what similarity,
+    ranking and clustering measure.
+    """
+    provenance = enriched.setdefault("provenance", {})
+    if not isinstance(provenance, dict):
+        return
+    input_snapshot = provenance.setdefault("input_snapshot", {})
+    if isinstance(input_snapshot, dict):
+        input_snapshot["canonical_agronomic_context"] = canonical_context
