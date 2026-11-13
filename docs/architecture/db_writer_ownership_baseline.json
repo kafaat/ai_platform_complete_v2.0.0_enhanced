@@ -1,7 +1,7 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "fea06378afab4414e15003f26c33d90e4a9476d7",
+  "measured_on": "d6c87be943acb459b823e6890bbcc46c5d0ca0c4",
   "reads": {
     "$comment": "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، f-string نصّاً واحداً). ثلاثُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا محكومٌ عليها. 'لم يُرصَد' ليس 'لا يقرأ': dynamic_table_sql_sites يعدّ ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ عبر مُساعد.",
     "declared_reader_unobserved": [
@@ -57,7 +57,6 @@
       "model_serving_aliases_runtime::sahool-platform",
       "odoo_sync_log::sahool-platform",
       "odoo_sync_state::sahool-platform",
-      "online_learning_updates::decision-service",
       "point_in_time_snapshots_runtime::sahool-platform",
       "raster_cache_invalidations::sahool-platform",
       "raster_snapshots::sahool-platform",
@@ -580,22 +579,6 @@
           "sahool-platform"
         ],
         "table_name_value_sites": []
-      },
-      "online_learning_updates": {
-        "measured_writers": [
-          "decision-service",
-          "sahool-platform"
-        ],
-        "table_name_value_sites": [
-          "services/decision-service/backfill.py",
-          "services/decision-service/cutover.py",
-          "services/decision-service/decision_sor_role_certify.py",
-          "services/decision-service/main.py",
-          "services/decision-service/persistence.py",
-          "services/decision-service/platform_sor_revoke.py",
-          "services/sahool-platform/api/decision_sor_mode.py",
-          "services/sahool-platform/api/phase_runtime_store.py"
-        ]
       },
       "outbox_delivery_attempts": {
         "measured_writers": [

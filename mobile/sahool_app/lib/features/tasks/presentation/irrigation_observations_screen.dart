@@ -140,7 +140,7 @@ class _IrrigationObservationsScreenState
       for (final key in keys) {
         final text = _values[key]!.text.trim();
         if (text.isEmpty) continue;
-        final value = double.tryParse(text);
+        final value = parseObservationNumber(text);
         if (value == null || !value.isFinite) {
           setState(() => _writeError = 'أدخل أرقاماً صالحة؛ لا تقبل NaN أو Infinity.');
           return;
@@ -200,6 +200,7 @@ class _IrrigationObservationsScreenState
         title: Text({'irrigated': 'أفاد بحدوث ريّ', 'not_irrigated': 'لم يحدث ريّ',
           'unknown': 'النتيجة غير معروفة'}[item['outcome']] ?? 'إفادة ريّ'),
         subtitle: Text('${item['occurred_at'] ?? 'وقت غير معروف'}\n'
+          '${item['quantity_method'] == 'meter' ? "العداد: ${item['meter_start_m3'] ?? '—'} ← ${item['meter_end_m3'] ?? '—'} م³\n" : ""}'
           'الحجم: ${(item['computed'] is Map ? item['computed']['volume_m3'] : item['volume_m3']) ?? 'غير معروف'} م³\n'
           '${item['notes'] ?? ''}'),
       ),

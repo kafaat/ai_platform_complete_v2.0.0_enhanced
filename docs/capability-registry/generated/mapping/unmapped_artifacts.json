@@ -9580,6 +9580,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/soil-service/jsonb_values.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/soil-service/main.py",
     "kind": "backend"
   },
@@ -11317,6 +11321,10 @@
   },
   {
     "path": "tests_v9/test_device_telemetry_time_identity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_diagnose_crop_normalisation.py",
     "kind": "tests"
   },
   {
