@@ -639,7 +639,9 @@
 \i migrations/v255_soil_sampling_origin.sql
 \echo '═══ 247. v257_scouting_pin_location_photo.sql ═══'
 \i migrations/v257_scouting_pin_location_photo.sql
-\echo '═══ 248. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 248. v260_scout_photo_evidence.sql ═══'
+\i migrations/v260_scout_photo_evidence.sql
+\echo '═══ 249. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 249. v206_rls_final_hardening.sql ═══'
+\echo '═══ 250. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql
