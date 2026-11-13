@@ -14,7 +14,6 @@ plus a bound execution outcome and subject/SHA binding — level 5 alone is neve
 | DEC-008 | 4/9 | 44.4% | false | false |
 | DEC-010 | 4/9 | 44.4% | false | false |
 | FM-001 | 4/9 | 44.4% | false | false |
-| FM-002 | 4/9 | 44.4% | false | false |
 | FM-004 | 4/9 | 44.4% | false | false |
 | GIS-001 | 4/9 | 44.4% | false | false |
 | IRR-005 | 4/9 | 44.4% | false | false |
@@ -23,6 +22,7 @@ plus a bound execution outcome and subject/SHA binding — level 5 alone is neve
 | SEC-005 | 4/9 | 44.4% | false | false |
 | DEC-002 | 3/9 | 33.3% | false | false |
 | DEC-009 | 3/9 | 33.3% | false | false |
+| FM-002 | 3/9 | 33.3% | false | false |
 | FM-003 | 3/9 | 33.3% | false | false |
 | FM-008 | 3/9 | 33.3% | false | false |
 | GIS-002 | 3/9 | 33.3% | false | false |

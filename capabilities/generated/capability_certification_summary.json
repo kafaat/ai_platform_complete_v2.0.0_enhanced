@@ -63,10 +63,6 @@
       "readiness_percent": 44.4
     },
     {
-      "id": "FM-002",
-      "readiness_percent": 44.4
-    },
-    {
       "id": "FM-004",
       "readiness_percent": 44.4
     },
@@ -84,6 +80,10 @@
     },
     {
       "id": "SEC-004",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "SEC-005",
       "readiness_percent": 44.4
     }
   ]
