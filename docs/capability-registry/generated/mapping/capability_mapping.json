@@ -15,26 +15,26 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7166,
+    "files_scanned": 7173,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
-      "other": 2165,
-      "tests": 2408,
+      "other": 2166,
+      "tests": 2414,
       "web": 524
     },
-    "unmapped_artifacts": 3410,
-    "ambiguous_artifacts": 234,
+    "unmapped_artifacts": 3415,
+    "ambiguous_artifacts": 235,
     "files_by_reading": {
-      "python_functional": 3861,
+      "python_functional": 3868,
       "raw": 3305
     },
-    "test_dependency_files": 1814,
-    "test_dependency_edges": 4591,
-    "test_dependency_bounded_files": 1058,
-    "test_dependency_unresolved_relations": 457
+    "test_dependency_files": 1820,
+    "test_dependency_edges": 4620,
+    "test_dependency_bounded_files": 1062,
+    "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
     {
@@ -2459,6 +2459,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_rag_point_id_tenant_namespace.py",
           "score": 14,
           "signals": [
@@ -2805,7 +2813,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 40,
+        "tests": 41,
         "governance": 0,
         "other_evidence": 25
       },
@@ -3124,23 +3132,23 @@
           "score": 28
         },
         {
-          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:527",
+          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:486",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:279",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:246",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:458",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:417",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:548",
+          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:507",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:491",
+          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:450",
           "score": 17
         },
         {
@@ -4438,14 +4446,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_farm_book_corrections_and_categories.py",
-          "score": 14,
-          "signals": [
-            "path:farm",
-            "content:farm"
-          ]
-        },
-        {
           "path": "tests_v9/test_farm_memory.py",
           "score": 14,
           "signals": [
@@ -4879,7 +4879,7 @@
         "events": 25,
         "web": 18,
         "mobile": 35,
-        "tests": 48,
+        "tests": 47,
         "governance": 0,
         "other_evidence": 22
       },
@@ -7477,6 +7477,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_digital_twin_season_live_pg.py",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "tests_v9/test_fii_prescription_season_context_guard.py",
           "score": 14,
           "signals": [
@@ -7807,7 +7815,7 @@
         "events": 41,
         "web": 15,
         "mobile": 15,
-        "tests": 48,
+        "tests": 49,
         "governance": 0,
         "other_evidence": 15
       },
@@ -12660,6 +12668,14 @@
             "content:water quality",
             "content:Water quality samples"
           ]
+        },
+        {
+          "path": "services/sahool-platform/core/irrigation_water_analysis.py",
+          "score": 8,
+          "signals": [
+            "content:water quality",
+            "content:water sample"
+          ]
         }
       ],
       "routes": [
@@ -12760,7 +12776,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 1,
+        "backend": 2,
         "routes": 6,
         "database": 8,
         "events": 1,
@@ -13323,7 +13339,7 @@
           ]
         },
         {
-          "path": "services/soil-service/p3_products.py",
+          "path": "services/sahool-platform/core/irrigation_water_analysis.py",
           "score": 10,
           "signals": [
             "content:salinity",
@@ -13331,8 +13347,8 @@
           ]
         },
         {
-          "path": "services/sahool-platform/core/irrigation_water_analysis.py",
-          "score": 8,
+          "path": "services/soil-service/p3_products.py",
+          "score": 10,
           "signals": [
             "content:salinity",
             "content:sodicity"
@@ -28323,7 +28339,7 @@
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:858",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
           "score": 9
         },
         {
@@ -30231,7 +30247,7 @@
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:858",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
           "score": 12
         },
         {
@@ -39409,6 +39425,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_irrigation_water_verdict.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_irrigation_waterlogging_hold_and_moisture_unit.py",
       "kind": "tests"
     },
@@ -41101,6 +41121,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_agent_store_selection_logged.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_agent_stores_v58_2.py",
       "kind": "tests"
     },
@@ -41125,6 +41149,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_ai_advisor_readiness_and_field_binding.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_ai_agronomist_approval_identity_t11.py",
       "kind": "tests"
     },
@@ -41146,6 +41174,10 @@
     },
     {
       "path": "tests_v9/test_ai_approval_endpoints_v58.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ai_approval_identity_atomic_store.py",
       "kind": "tests"
     },
     {
@@ -42310,6 +42342,10 @@
     },
     {
       "path": "tests_v9/test_health_readiness_schema_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
       "kind": "tests"
     },
     {
@@ -48712,6 +48748,28 @@
           "signals": [
             "content:dem",
             "content:terrain"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/core/irrigation_water_analysis.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "IRR-009",
+          "score": 10,
+          "signals": [
+            "content:salinity",
+            "content:sodicity"
+          ]
+        },
+        {
+          "capability_id": "IRR-002",
+          "score": 8,
+          "signals": [
+            "content:water quality",
+            "content:water sample"
           ]
         }
       ]
@@ -60613,6 +60671,29 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_irrigation_water_verdict.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/api_models.py",
+          "kind": "import",
+          "line": 81
+        },
+        {
+          "source": "services/sahool-platform/api/routers/irrigation.py",
+          "kind": "import",
+          "line": 82
+        },
+        {
+          "source": "services/sahool-platform/core/irrigation_water_analysis.py",
+          "kind": "import",
+          "line": 10
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_irrigation_waterlogging_hold_and_moisture_unit.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -68842,9 +68923,29 @@
       "unresolved": []
     },
     {
-      "test": "tests_v9/test_agent_stores_v58_2.py",
+      "test": "tests_v9/test_agent_store_selection_logged.py",
       "bounded": true,
       "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 22
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 22
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_agent_stores_v58_2.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "shared_test_helper"
+      ],
       "edges": [
         {
           "source": "services/ai_agronomist/__init__.py",
@@ -68859,7 +68960,12 @@
         {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
-          "line": 104
+          "line": 88
+        },
+        {
+          "source": "tests_v9/redis_txn_double.py",
+          "kind": "import",
+          "line": 71
         }
       ],
       "unresolved": []
@@ -69041,6 +69147,34 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_ai_advisor_readiness_and_field_binding.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 79
+        },
+        {
+          "source": "services/ai_agronomist/advisory_contract.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "import",
+          "line": 79
+        },
+        {
+          "source": "services/ai_agronomist/tool_executor.py",
+          "kind": "import",
+          "line": 127
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_ai_agronomist_approval_identity_t11.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -69049,6 +69183,11 @@
           "source": "services/ai_agronomist/__init__.py",
           "kind": "import",
           "line": 17
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 41
         },
         {
           "source": "services/ai_agronomist/main.py",
@@ -69163,9 +69302,66 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 64
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 65
+        },
+        {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
           "line": 21
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_ai_approval_identity_atomic_store.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "shared_test_helper",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 33
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 33
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "source_read",
+          "line": 41
+        },
+        {
+          "source": "services/ai_agronomist/approval.py",
+          "kind": "import",
+          "line": 34
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "import",
+          "line": 287
+        },
+        {
+          "source": "services/ai_agronomist/tool_loop.py",
+          "kind": "import",
+          "line": 35
+        },
+        {
+          "source": "tests_v9/redis_txn_double.py",
+          "kind": "import",
+          "line": 36
         }
       ],
       "unresolved": []
@@ -74603,6 +74799,39 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_digital_twin_season_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 60
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 61
+        },
+        {
+          "source": "services/sahool-platform/api/routers/field_twin.py",
+          "kind": "import",
+          "line": 61
+        },
+        {
+          "source": "services/sahool-platform/api/routers/water_twin.py",
+          "kind": "import",
+          "line": 61
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 67
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_disease_field_state_feed.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -75821,22 +76050,6 @@
         }
       ],
       "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_farm_book_corrections_and_categories.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "directory_reference",
-        "tree_wide_scan",
-        "unresolved_dynamic_relation"
-      ],
-      "edges": [],
-      "unresolved": [
-        {
-          "line": 44,
-          "call": "spec_from_file_location"
-        }
-      ]
     },
     {
       "test": "tests_v9/test_farm_memory.py",
@@ -77059,6 +77272,11 @@
           "line": 114
         },
         {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 286
+        },
+        {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
           "line": 114
@@ -77066,22 +77284,22 @@
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "loader",
-          "line": 427
+          "line": 431
         },
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "source_read",
-          "line": 429
+          "line": 433
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 300
+          "line": 304
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 302
+          "line": 306
         },
         {
           "source": "shared/security/trusted_tenant.py",
@@ -77707,6 +77925,21 @@
           "source": "scripts/ci/health_readiness_schema_guard.py",
           "kind": "source_read",
           "line": 11
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference"
+      ],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "source_read",
+          "line": 45
         }
       ],
       "unresolved": []
@@ -82612,6 +82845,24 @@
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
           "kind": "source_read",
           "line": 23
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "loader",
+          "line": 37
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "source_read",
+          "line": 33
         }
       ],
       "unresolved": []

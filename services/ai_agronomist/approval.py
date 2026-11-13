@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import re
+import uuid
 from collections.abc import Callable
 from typing import Any
 
@@ -116,9 +117,20 @@ def summarize_result(result: Any, *, max_len: int = 240) -> str:
     return text[:max_len]
 
 
+def new_approval_id() -> str:
+    """هويّةُ موافقةٍ **خادميّة** — لا تأتي من النموذج.
+
+    **العطلُ الذي وُجِد هذا لأجله:** كانت الهويّةُ معرّفَ استدعاء الأداة من النموذج
+    (``call.id`` أو ``req-{idx}``)، والمخزنُ يُفهرِس بها وحدَها. فمحادثتان تُنتجان ``req-0``
+    — ولو لمستأجِرَين — تكتب إحداهما فوق موافقة الأخرى، ونموذجٌ يُعيد معرّفاً يُعيد فتح
+    سجلٍّ مُقرَّر. معرّفُ النموذج يبقى في ``tool_call_id`` للتتبّع وحدَه.
+    """
+    return "apr_" + uuid.uuid4().hex
+
+
 def build_approval_request(
     *,
-    request_id: str,
+    tool_call_id: str,
     tool_name: str,
     params: dict[str, Any] | None,
     tenant_id: str,
@@ -126,10 +138,16 @@ def build_approval_request(
     risk: str,
     capability: str | None,
     requested_at: str,
+    approval_id: str | None = None,
 ) -> dict[str, Any]:
-    """يُنشئ طلب موافقة معلَّقاً لأداة مؤجَّلة (وسائطه مُنقَّحة)."""
+    """يُنشئ طلب موافقة معلَّقاً لأداة مؤجَّلة (وسائطه مُنقَّحة).
+
+    ``id`` خادميٌّ (``new_approval_id``) ما لم يُمرَّر ``approval_id`` صراحةً من الخادم؛
+    ``tool_call_id`` معرّفُ النموذج، للتتبّع فقط ولا يُفهرَس به.
+    """
     return {
-        "id": str(request_id),
+        "id": str(approval_id) if approval_id else new_approval_id(),
+        "tool_call_id": str(tool_call_id),
         "tool": tool_name,
         "params": _redact(params),
         "input_hash": input_hash(params),

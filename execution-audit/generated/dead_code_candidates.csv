@@ -51,8 +51,8 @@ medium,agriai-engine,function,is_supported,services/agriai-engine/sim_crop_regis
 medium,agriai-engine,function,simulation_capability_report,services/agriai-engine/simulation_capability.py,109,0,review_before_delete,False
 medium,agriai-engine,function,teardown_module,services/agriai-engine/tests/test_production_readiness_truth.py,60,0,review_before_delete,False
 medium,ai-agronomist,class,ABTestingRuntime,services/ai_agronomist/ab_testing.py,1,0,review_before_delete,False
-medium,ai-agronomist,function,store_backend_name,services/ai_agronomist/agent_stores.py,210,0,review_before_delete,False
-medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,787,0,review_before_delete,False
+medium,ai-agronomist,function,store_backend_name,services/ai_agronomist/agent_stores.py,354,0,review_before_delete,False
+medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,802,0,review_before_delete,False
 medium,ai-agronomist,class,ChaosRuntime,services/ai_agronomist/chaos_runtime.py,1,0,review_before_delete,False
 medium,ai-agronomist,class,ComplianceValidator,services/ai_agronomist/compliance_validator.py,1,0,review_before_delete,False
 medium,ai-agronomist,class,DecisionMetrics,services/ai_agronomist/decision_metrics.py,1,0,review_before_delete,False
@@ -221,7 +221,7 @@ medium,sahool-platform,function,multi_season_summary,services/sahool-platform/co
 medium,sahool-platform,class,ConnectivityState,services/sahool-platform/core/offline_first.py,355,0,review_before_delete,False
 medium,sahool-platform,function,propagate_add,services/sahool-platform/core/provenance.py,124,0,review_before_delete,False
 medium,sahool-platform,class,ReferenceProvenance,services/sahool-platform/core/rag/production_qdrant.py,265,0,review_before_delete,False
-medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,781,0,review_before_delete,False
+medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,788,0,review_before_delete,False
 medium,sahool-platform,function,arbitrate_summary,services/sahool-platform/core/source_of_truth.py,273,0,review_before_delete,False
 medium,sahool-platform,function,detect_zones_of_interest,services/sahool-platform/core/spatial/indicators.py,90,0,review_before_delete,False
 medium,sahool-platform,function,link_farmer_knowledge,services/sahool-platform/core/spatial/indicators.py,202,0,review_before_delete,False

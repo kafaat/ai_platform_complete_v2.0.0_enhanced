@@ -8812,6 +8812,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_irrigation_water_verdict.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_irrigation_waterlogging_hold_and_moisture_unit.py",
     "kind": "tests"
   },
@@ -10504,6 +10508,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_agent_store_selection_logged.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_agent_stores_v58_2.py",
     "kind": "tests"
   },
@@ -10528,6 +10536,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_advisor_readiness_and_field_binding.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_agronomist_approval_identity_t11.py",
     "kind": "tests"
   },
@@ -10549,6 +10561,10 @@
   },
   {
     "path": "tests_v9/test_ai_approval_endpoints_v58.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_approval_identity_atomic_store.py",
     "kind": "tests"
   },
   {
@@ -11713,6 +11729,10 @@
   },
   {
     "path": "tests_v9/test_health_readiness_schema_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
     "kind": "tests"
   },
   {

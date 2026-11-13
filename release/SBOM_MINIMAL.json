@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6ac5917aa4e76212bbb3c58f362c7f5abf57235d0b47d3f430514f9f616d3ff"
+          "content": "254077eb00c1091de4d83c1a10c5f460aeb1e14a4093e201774a499ecb813511"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4825,7 +4825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "88103b793fed72c1e7553e9e6500be5512450277de334dacd9306f3bf0495eb7"
+          "content": "6c8450edc77e8ce4969dfc5d213fd52995375d28207263e75d44375e8ba8c681"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6325,7 +6325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "288fe3b2b3078b9538a4dcddc810e81171577b17bb0df6ba7cde0c04fc1f3af0"
+          "content": "27db49a11e81cb6c1f401a3b75bc798d1af3b436238626a4290a5fe7bd3bccff"
         }
       ],
       "name": "frontend/src/sections/IrrigationWaterPage.tsx",
@@ -7485,7 +7485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e186c0031e833c6051de6906bc62cc9026da8e41e1cdb9016e6e595730b6880f"
+          "content": "c2d979fadd17952f95be001b84d4ed4197d78b086c7d4e91f918f3dfd28d43e2"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -17025,7 +17025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a34812fb153f8b7155f7516cef4fe30e7eafb88ddce9b6ac468daa62aea37e09"
+          "content": "d8e2f208f911f4c904a24f52c449dcf4758f4587752a53cdc42a16a26cd63543"
         }
       ],
       "name": "services/ai_agronomist/advisory_contract.py",
@@ -17035,7 +17035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d64f1bbdcdec23095963d708812fe98db641682f7dc3c5fbbf436803ecf2042"
+          "content": "ea9f8b65df21c9553a914786ede077be1f98ed3d200a79caf78214bff59653a1"
         }
       ],
       "name": "services/ai_agronomist/agent_stores.py",
@@ -17045,7 +17045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3db6da13a53b8348e84dad02cc7b7a6dba67e5f98cee31f21ddda8ada56cc49"
+          "content": "2dec2d8ac387508e6d4e089ad73e84f0f0a512cc324d1aec028eb3f347e809ba"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -17065,7 +17065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "151812da8f462ee303ef302f56e5f9d07b3237ec0885e0c8bdfe7d72078caf7e"
+          "content": "f12b7a0c5dd2f66427fb4fba2958670a4b6ed9a41aaf2293fda733369efddf4f"
         }
       ],
       "name": "services/ai_agronomist/approval.py",
@@ -17215,7 +17215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a03214401473ceb4e1ec6c271eede24cc5ff96cd95d43b1e1a0333837563d0e"
+          "content": "dce53090ca40ec185bc6bc801b226ba64c487d1bc0b0c1dbee5332e968f5edf7"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -17455,7 +17455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "05350f8a8aecb919644203b5e106ca34b60e447683ec749a02fa7e3c5c767d2f"
+          "content": "52a7e040f46f16c0c690f6bdeb342ef3e7ea1c900aaa2da77f9dbcc45f6724ed"
         }
       ],
       "name": "services/ai_agronomist/tool_loop.py",
@@ -23505,7 +23505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d27c9cb08964d446d963872ee496b3e783909385d9d50855ccdce49df6041bab"
+          "content": "c2de3b1051f26e0bb181ac2540db167291a910eecbeb7bf3e6d135353d11288a"
         }
       ],
       "name": "services/sahool-platform/api/api_models.py",
@@ -26375,7 +26375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d6f5a450aaaed600ccfac59e579072223e526fac2a82641f4dec897af1d99f2"
+          "content": "f6dbef6925bdf66745eaeb1eb55b487dbc843d04d01cf7cfc12261f0b8c8d2ac"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation.py",
@@ -30025,7 +30025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ce962ab8e9724d915f6030878fddc888be0d7684cd7f3c876a197e3e45eecec"
+          "content": "187dc008c59343f66b3bc1a035f7fb872966ff7c30d67562d1d9bc5650767264"
         }
       ],
       "name": "services/sahool-platform/core/irrigation_water_analysis.py",
@@ -30465,7 +30465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4f2482d476b1b554390803f09fa2eba60d2d494995f66934c6e4e2ae678f90a1"
+          "content": "8c88608ad2ac8dbf80b327f205ff44a45e6173a7e8c1b3276902267b9f068f3c"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",
@@ -34179,6 +34179,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_water_analysis.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9c0105ec1145e5909b9214976013c16b400fc71148839e2941f3724f0ebd7b87"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_water_verdict.py",
       "type": "file"
     },
     {
