@@ -15,9 +15,9 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7177,
+    "files_scanned": 7176,
     "files_by_kind": {
-      "backend": 1271,
+      "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
@@ -28,11 +28,11 @@
     "unmapped_artifacts": 3416,
     "ambiguous_artifacts": 235,
     "files_by_reading": {
-      "python_functional": 3872,
+      "python_functional": 3871,
       "raw": 3305
     },
     "test_dependency_files": 1823,
-    "test_dependency_edges": 4623,
+    "test_dependency_edges": 4622,
     "test_dependency_bounded_files": 1065,
     "test_dependency_unresolved_relations": 456
   },
@@ -5961,14 +5961,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/api/season_weather_contract.py",
-          "score": 14,
-          "signals": [
-            "path:season",
-            "content:season"
-          ]
-        },
-        {
           "path": "services/sahool-platform/api/seasonal_risk.py",
           "score": 14,
           "signals": [
@@ -6359,7 +6351,7 @@
           "score": 14
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:648",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:652",
           "score": 14
         },
         {
@@ -7834,7 +7826,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 32,
+        "backend": 31,
         "routes": 82,
         "database": 80,
         "events": 41,
@@ -63544,11 +63536,6 @@
           "source": "services/sahool-platform/api/season_simulation.py",
           "kind": "import",
           "line": 8
-        },
-        {
-          "source": "services/sahool-platform/api/season_weather_contract.py",
-          "kind": "import",
-          "line": 15
         }
       ],
       "unresolved": []
@@ -63708,7 +63695,7 @@
       "unbounded_reasons": [],
       "edges": [
         {
-          "source": "services/sahool-platform/api/season_weather_contract.py",
+          "source": "services/sahool-platform/api/season_simulation.py",
           "kind": "import",
           "line": 8
         }

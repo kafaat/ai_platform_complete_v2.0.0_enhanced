@@ -26915,7 +26915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76c40c4c404c6545b1c9f45e1eeac7d1f34dd763ed2463b85d1ebb9ab5539db9"
+          "content": "5738d2068f59ad9226b6f2d4ef0544d782b38f97bca9ec3f9f8ae0defeff9de4"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -27255,20 +27255,10 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ada98c6ce5e2c7ec43b2c991c084b3a315d0f53dfb259270e01335d0787968f5"
+          "content": "84dce39c072c53b17b289fbe98a3993bc9c83eb9f4a01b06e7c4b9d9ec28d4e8"
         }
       ],
       "name": "services/sahool-platform/api/season_simulation.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "99d437e8bade01ab6ef230ab5a5a945121674aa23f28c94626e41ef719f84d92"
-        }
-      ],
-      "name": "services/sahool-platform/api/season_weather_contract.py",
       "type": "file"
     },
     {
@@ -29965,7 +29955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7d8ea73ae90046513e89be62161c70b8e6483085343c8fed6c95c5e4bb0eb65"
+          "content": "220fae9e289c0fcf2c6e46e85b1f1c38a4c30f339deb5f645f75b64ca254060b"
         }
       ],
       "name": "services/sahool-platform/core/historical_season_context.py",
@@ -35595,7 +35585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f601facf072a688f6cfe228cab6f403adca200f54ea0f9d0000ea785da3a4e6"
+          "content": "152b98f84e9f4f14c8c06c0a8d3668bd0b655a6f6428d42e4c59e13f960815ea"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
@@ -35685,7 +35675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "797819c0e505e0639e65a810e9b4ee4c1283fc6f1627ddb8c570d8d7ef986020"
+          "content": "7fca35a5cf01fe23f20ce365ada4ff96ada8e206b0aa715e7521685e4963fc34"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_weather_contract.py",

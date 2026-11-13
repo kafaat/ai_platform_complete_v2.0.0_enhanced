@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "fde455d0a95b44de9419c19d1219eb94e3e64646f66caab353b0a235737b5446",
+  "inventory_sha256": "a97646b0d786e570b05c815abcf6bf9222c8b7aa6f0650439fef2f4e70d82813",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "af2a93966b8f34c1bf83f583e663e80ea57b5b5868d2c5ae42e3a87304c66bdb"
+    "policy_sha256": "1d85db29a273e8adda8bf0b05fd9911d9a2f10f595d861bcf2a990f000a3b2d6"
   },
   "routes": [
     {
@@ -1274,7 +1274,7 @@
     {
       "classification": "domain",
       "function": "field_season_state_endpoint",
-      "line": 648,
+      "line": 652,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
       "source": "api/routers/seasons.py"

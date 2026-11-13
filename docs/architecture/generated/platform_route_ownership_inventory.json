@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "f5770d2ecabac9dadd750bde1173520b606e6268a0865ad96fd96f72606a4cea",
+  "inventory_sha256": "99aaec984d7f81bff32a1fb0547632d966db607b19ff11a5cf0976c335a54df7",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "af2a93966b8f34c1bf83f583e663e80ea57b5b5868d2c5ae42e3a87304c66bdb",
+  "map_sha256": "1d85db29a273e8adda8bf0b05fd9911d9a2f10f595d861bcf2a990f000a3b2d6",
   "routes": [
     {
       "classification": null,
@@ -2227,7 +2227,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/seasons.py",
       "function": "field_season_state_endpoint",
-      "line": 648,
+      "line": 652,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",

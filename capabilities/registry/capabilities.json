@@ -475,7 +475,7 @@
         "GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:687",
         "GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:657",
         "GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:272",
-        "GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:649",
+        "GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:653",
         "GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:265",
         "GET /internal/seasons @ services/scout-ingest-service/season_api.py:478",
         "GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668",

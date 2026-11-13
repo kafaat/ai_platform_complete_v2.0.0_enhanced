@@ -4,7 +4,7 @@
 
 ## Summary
 
-- Python files parsed: **2127**
+- Python files parsed: **2126**
 - FastAPI-style route handlers: **1064**
 - Static function-call edges: **103169**
 - Dead-code candidates: **667**

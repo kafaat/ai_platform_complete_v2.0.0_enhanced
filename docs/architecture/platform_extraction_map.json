@@ -5243,7 +5243,7 @@
       "function": "field_season_state_endpoint",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
-      "line": 648,
+      "line": 652,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/seasons.py::GET /api/v1/fields/{field_id}/seasons/{season_id}/state::field_season_state_endpoint"
