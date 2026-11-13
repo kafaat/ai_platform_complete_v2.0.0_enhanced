@@ -2014,12 +2014,10 @@ async def create_season(
     plow = _parse_date(req.plowing_date, "الحراثة")
     sow = _parse_date(req.sowing_date, "البذار")
     end = _parse_date(req.season_end, "نهاية الموسم")
-    if plow and land and plow < land:
-        raise HTTPException(status_code=422, detail="تاريخ الحراثة قبل تسوية الأرض")
-    if sow and plow and sow < plow:
-        raise HTTPException(status_code=422, detail="تاريخ البذار قبل الحراثة")
-    if end and sow and end < sow:
-        raise HTTPException(status_code=422, detail="نهاية الموسم قبل البذار")
+    from api.season_integrity import chronology_error
+
+    if date_error := chronology_error(land, plow, sow, end):  # كلّ أزواج قيد v47
+        raise HTTPException(status_code=422, detail=date_error)
     # حارس تقويم الموسم (Season Calendar Guard): إرشاديّ **غير حاجب** — يقيّم موقع الموسم
     # من نافذة الزراعة/الحصاد المعتادة للمحصول الأوّل. لا يمنع الإنشاء (توجّه لا فرض).
     from api.season_calendar_guard import evaluate_season_calendar
@@ -2250,10 +2248,11 @@ async def update_season(
 
     if req.irrigation_type is not None and req.irrigation_type not in _IRRIGATION_TYPES:
         raise HTTPException(status_code=422, detail="نوع ريّ غير معروف")
-    sow = _parse_date(req.sowing_date, "البذار") if req.sowing_date is not None else None
-    end = _parse_date(req.season_end, "نهاية الموسم") if req.season_end is not None else None
-    if end and sow and end < sow:
-        raise HTTPException(status_code=422, detail="نهاية الموسم قبل البذار")
+    from api.season_integrity import season_update_dates
+
+    sow, end, land, plow, date_error = season_update_dates(req, _parse_date)
+    if date_error:
+        raise HTTPException(status_code=422, detail=date_error)
 
     # أعمدة قابلة للتحديث (column, value) — الحقول الممرَّرة فقط، JSONB مُعلَّم.
     fields_set = req.model_fields_set
@@ -2266,6 +2265,10 @@ async def update_season(
         updates.append(("irrigation_type", req.irrigation_type, False))
     if "seed_rate_kg_ha" in fields_set:
         updates.append(("seed_rate_kg_ha", req.seed_rate_kg_ha, False))
+    if "land_leveling_date" in fields_set:
+        updates.append(("land_leveling_date", land, False))
+    if "plowing_date" in fields_set:
+        updates.append(("plowing_date", plow, False))
     if req.sowing_date is not None:
         updates.append(("sowing_date", sow, False))
     if req.season_end is not None:
@@ -2292,7 +2295,8 @@ async def update_season(
             await _assert_field_in_tenant(conn, field_id)
             async with conn.transaction():
                 current = await conn.fetchrow(
-                    "SELECT status, row_version, sowing_date, season_end FROM seasons "
+                    "SELECT status, row_version, sowing_date, season_end, "
+                    "land_leveling_date, plowing_date FROM seasons "
                     "WHERE season_id = $1 AND field_id = $2 FOR UPDATE",
                     season_id,
                     field_id,
@@ -2303,15 +2307,9 @@ async def update_season(
                 # سلامة التواريخ (season_integrity #1): عند تعديل تاريخ واحد فقط، ادمِجه مع
                 # المخزّن وافحص الترتيب النهائيّ — يمنع أن تقع النهاية قبل البذار المخزّن
                 # (الفحص pre-DB أعلاه لا يُغطّيه إلّا عند إرسال التاريخين معاً).
-                from api.season_integrity import UNSET as _DATE_UNSET
-                from api.season_integrity import resolve_and_check_date_order
+                from api.season_integrity import validate_final_season_date_order
 
-                _date_err = resolve_and_check_date_order(
-                    current_sowing=current["sowing_date"],
-                    current_end=current["season_end"],
-                    new_sowing=sow if req.sowing_date is not None else _DATE_UNSET,
-                    new_end=end if req.season_end is not None else _DATE_UNSET,
-                )
+                _date_err = validate_final_season_date_order(current, req, sow, end, land, plow)
                 if _date_err:
                     raise HTTPException(status_code=422, detail=_date_err)
 
@@ -3572,6 +3570,7 @@ async def estimate_field_yield(
         "field_id": est.field_id,
         "crop": est.crop,
         "estimated_yield_kg_ha": est.estimated_yield_kg_ha,
+        "yield_status": est.yield_status,
         "yield_score": est.yield_score,
         "confidence": est.confidence,
         "stress_level": est.stress_level.value,

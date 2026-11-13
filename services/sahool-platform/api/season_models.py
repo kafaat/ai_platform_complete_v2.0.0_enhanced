@@ -159,6 +159,8 @@ class SeasonUpdateRequest(BaseModel):
     cultivar: str | None = Field(default=None, max_length=100)
     irrigation_type: str | None = None
     seed_rate_kg_ha: float | None = Field(default=None, ge=0)
+    land_leveling_date: str | None = None
+    plowing_date: str | None = None
     sowing_date: str | None = None
     season_end: str | None = None
     target_yield_kg_ha: float | None = Field(default=None, ge=0)

@@ -416,7 +416,9 @@ def simulate_season(ctx: SimContext) -> SimResult:
 
     weather = ctx.weather
     if not weather:
-        warnings.append("لا توجد سلسلة طقس — تعذّرت المحاكاة الزمنيّة. النتيجة صفريّة/غير ذات دلالة.")
+        warnings.append(
+            "لا توجد سلسلة طقس — تعذّرت المحاكاة الزمنيّة؛ الغلّة غير متاحة وليست صفراً مرصوداً."
+        )
         return SimResult(
             crop=crop_key or (ctx.crop or ""),
             crop_recognized=recognized,
@@ -426,9 +428,9 @@ def simulate_season(ctx: SimContext) -> SimResult:
             maturity_reached=False,
             lai_max=0.0,
             biomass_kg_ha=0.0,
-            yield_kg_ha=0.0 if recognized else None,
-            yield_low_kg_ha=0.0 if recognized else None,
-            yield_high_kg_ha=0.0 if recognized else None,
+            yield_kg_ha=None,
+            yield_low_kg_ha=None,
+            yield_high_kg_ha=None,
             water_need_mm=0.0,
             water_supply_mm=None,
             water_stress_factor=1.0,
@@ -436,8 +438,8 @@ def simulate_season(ctx: SimContext) -> SimResult:
             rationale_ar="لا بيانات طقس كافية للمحاكاة — لا تقدير.",
             assumptions_ar=assumptions,
             warnings_ar=warnings,
-            yield_status=yield_status,
-            limitations=limitations,
+            yield_status="unavailable_no_weather" if recognized else yield_status,
+            limitations=[*limitations, "NO_WEATHER_NO_YIELD_ESTIMATE"],
         )
 
     # fAPAR مرصود (إن مُرِّر) → سلسلة يوميّة. None ⇒ نُبقي الحدّ المُنمذَج (1−e^…).
@@ -589,12 +591,27 @@ def simulate_season(ctx: SimContext) -> SimResult:
     if water_supply is not None:
         confidence += 0.05
     confidence = round(min(0.85, confidence), 2)  # سقف ٨٥٪ — لا يقين كامل بلا قياس ميداني
+    # GDD من محرّك الطقس هو ساعة النموّ: بلا أيّ يوم GDD يبقى LAI المُنمذَج صفراً فتخرج
+    # الكتلة والغلّة صفراً مصطنعاً لا مرصوداً ⇒ غير متاحة. fAPAR المرصود لا يمرّ بـLAI، فتبقى
+    # غلّته مع إعلان أنّ النضج غير معروف. التغطية الجزئيّة تُخفّض الثقة بنسبتها.
+    has_gdd_evidence = missing_gdd_days < days
+    if not has_gdd_evidence and not use_observed:
+        limitations.append("NO_GDD_EVIDENCE_NO_YIELD_ESTIMATE")
+        if recognized:
+            yield_status = "unavailable_missing_gdd"
+        confidence = 0.0
+    elif not has_gdd_evidence:
+        limitations.append("NO_GDD_EVIDENCE_MATURITY_UNKNOWN")
+    elif missing_gdd_days:
+        limitations.append("PARTIAL_GDD_EVIDENCE")
+        confidence = round(confidence * (days - missing_gdd_days) / days, 2)
+    has_yield = recognized and (has_gdd_evidence or use_observed)
 
     yield_text = (
         f"الإنتاج المُقدَّر≈{yield_kg_ha:.0f} kg/ha (نطاق {yield_low:.0f}–{yield_high:.0f}، "
         f"HI={p.harvest_index:.2f})"
-        if recognized
-        else "الإنتاج غير مُقدَّر (محصول غير مُعرّف — لا مؤشّر حصاد)"
+        if has_yield
+        else "الإنتاج غير مُقدَّر (المحصول غير معروف أو دليل GDD مفقود)"
     )
     rationale = (
         f"محاكاة {days} يوم: GDD={gdd_cum:.0f}/{p.gdd_to_maturity:.0f} °C·day، "
@@ -612,9 +629,9 @@ def simulate_season(ctx: SimContext) -> SimResult:
         maturity_reached=maturity_reached,
         lai_max=round(lai_peak, 2),
         biomass_kg_ha=round(biomass_kg_ha, 1),
-        yield_kg_ha=round(yield_kg_ha, 1) if recognized else None,
-        yield_low_kg_ha=round(yield_low, 1) if recognized else None,
-        yield_high_kg_ha=round(yield_high, 1) if recognized else None,
+        yield_kg_ha=round(yield_kg_ha, 1) if has_yield else None,
+        yield_low_kg_ha=round(yield_low, 1) if has_yield else None,
+        yield_high_kg_ha=round(yield_high, 1) if has_yield else None,
         water_need_mm=round(water_need, 1),
         water_supply_mm=round(water_supply, 1) if water_supply is not None else None,
         water_stress_factor=round(water_stress, 3),

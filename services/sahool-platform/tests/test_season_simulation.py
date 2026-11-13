@@ -71,10 +71,11 @@ class TestNormalizeCrop:
 
 
 class TestSimulateBasics:
-    def test_empty_weather_returns_zero_and_flags(self):
+    def test_empty_weather_returns_missing_yield_and_flags(self):
         r = simulate_season(SimContext(crop="wheat", weather=[]))
         assert r.days_simulated == 0
-        assert r.yield_kg_ha == 0.0
+        assert r.yield_kg_ha is None
+        assert r.yield_status == "unavailable_no_weather"
         assert r.confidence == 0.0
         assert any("طقس" in w for w in r.warnings_ar)
 
