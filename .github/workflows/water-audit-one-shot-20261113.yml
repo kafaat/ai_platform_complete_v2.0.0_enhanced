@@ -1,0 +1,51 @@
+# One-time generator run on a separate temporary branch. The workflow deletes
+# itself in the checkout before scanning, and never runs on main or PR branches.
+name: One-shot water analysis generated-artifact recovery
+on:
+  push:
+    branches:
+      - ops/water-audit-regeneration-20261113
+permissions:
+  contents: write
+jobs:
+  regenerate-water-audits:
+    if: ${{ github.event.head_commit.message == 'ci: request water audit generated evidence 20261113' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Install CI generator dependencies
+        run: python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Generate deterministically from original PR source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "ops/water-audit-regeneration-20261113"
+          test "$(git rev-parse HEAD^)" = "dc27f2b6c8f102287418b90c2d38d7f183335a3a"
+          # Remove the temporary workflow BEFORE scanning git ls-files or
+          # building release checksums: generated truth must equal the PR source.
+          git rm -f -- ".github/workflows/water-audit-one-shot-20261113.yml"
+          python scripts/ci/duplicate_definition_guard.py --generate
+          python scripts/ci/capability_mapping_engine.py --generate
+          python scripts/ci/execution_dependency_audit.py --generate
+          git add -A
+          python scripts/ci/verify_all_generated.py --fix
+          python scripts/ci/verify_all_generated.py --check
+          python scripts/release/validate_release_package.py --root .
+          git add -A
+          git status --short
+      - name: Commit generated outputs only on disposable branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git diff --cached --quiet && { echo "No generated changes"; exit 1; }
+          git commit -m "chore: regenerate water evidence from full tracked source"
+          git push origin HEAD:refs/heads/ops/water-audit-regeneration-20261113
