@@ -24285,7 +24285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5f2b15b91f47d0aeac8ffbf7cb088581cf491b9f9b60d8c8c11002349ddd1991"
+          "content": "a04863f18039d2625a741bc23b48b11eaf0d80fd8842232e5f377efc6f363b54"
         }
       ],
       "name": "services/sahool-platform/api/event_catalog.py",
@@ -33139,6 +33139,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_event_catalog.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3017fe2964bfb5e904fba232cbaf12756a5d8930e2b94efad527e003245f8c8c"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_event_catalog_completeness.py",
       "type": "file"
     },
     {

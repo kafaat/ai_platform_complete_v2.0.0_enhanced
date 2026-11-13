@@ -15,24 +15,24 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7199,
+    "files_scanned": 7200,
     "files_by_kind": {
       "backend": 1271,
       "database": 297,
       "governance": 89,
       "mobile": 415,
       "other": 2166,
-      "tests": 2432,
+      "tests": 2433,
       "web": 529
     },
     "unmapped_artifacts": 3422,
     "ambiguous_artifacts": 236,
     "files_by_reading": {
-      "python_functional": 3885,
+      "python_functional": 3886,
       "raw": 3314
     },
-    "test_dependency_files": 1837,
-    "test_dependency_edges": 4663,
+    "test_dependency_files": 1838,
+    "test_dependency_edges": 4666,
     "test_dependency_bounded_files": 1071,
     "test_dependency_unresolved_relations": 467
   },
@@ -16440,6 +16440,14 @@
             "content:yield map",
             "explicit_id"
           ]
+        },
+        {
+          "path": "services/sahool-platform/api/event_catalog.py",
+          "score": 8,
+          "signals": [
+            "content:yield map",
+            "content:Yield map ingestion"
+          ]
         }
       ],
       "routes": [
@@ -16620,7 +16628,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 3,
+        "backend": 4,
         "routes": 4,
         "database": 13,
         "events": 1,
@@ -36788,10 +36796,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/event_catalog.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/sahool-platform/api/event_upcasting.py",
       "kind": "backend"
     },
@@ -39369,6 +39373,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_event_catalog.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_event_catalog_completeness.py",
       "kind": "tests"
     },
     {
@@ -58787,6 +58795,31 @@
           "source": "services/sahool-platform/api/event_catalog.py",
           "kind": "import",
           "line": 7
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_event_catalog_completeness.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/event_bus.py",
+          "kind": "import",
+          "line": 23
+        },
+        {
+          "source": "services/sahool-platform/api/event_bus.py",
+          "kind": "source_read",
+          "line": 29
+        },
+        {
+          "source": "services/sahool-platform/api/event_catalog.py",
+          "kind": "import",
+          "line": 24
         }
       ],
       "unresolved": []

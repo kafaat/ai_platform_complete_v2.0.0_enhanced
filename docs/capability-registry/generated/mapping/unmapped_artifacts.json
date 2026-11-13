@@ -5944,10 +5944,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/event_catalog.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/event_upcasting.py",
     "kind": "backend"
   },
@@ -8525,6 +8521,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_event_catalog.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_event_catalog_completeness.py",
     "kind": "tests"
   },
   {
