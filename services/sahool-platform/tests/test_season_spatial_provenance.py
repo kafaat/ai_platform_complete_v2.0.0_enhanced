@@ -137,7 +137,6 @@ class _Conn:
 
 
 def _install(monkeypatch, conn, points):
-    import api.connectors.openmeteo as openmeteo
     import api.routers.seasons as route
     import api.weather_service_client as wsc
 
@@ -147,9 +146,35 @@ def _install(monkeypatch, conn, points):
     async def _tenant_connection(_user):
         yield conn
 
-    async def _historical(lat, lon, start, end, timeout_s=30.0):
-        n = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
-        return [_Day() for _ in range(n)]
+    async def _historical(lat, lon, *, start_date, end_date, tenant_id=None):
+        start = date.fromisoformat(start_date)
+        n = (date.fromisoformat(end_date) - start).days + 1
+        assert tenant_id == _TENANT
+        return {
+            "derived_from": "canonical_weather_state",
+            "canonical_state_id": "test-wx-state",
+            "source_snapshot_id": "test-wx-snapshot",
+            "quality_status": "validated",
+            "coverage": {
+                "period_start": start_date,
+                "period_end": end_date,
+                "expected_days": n,
+                "observed_days": n,
+                "missing_days": 0,
+                "coverage_ratio": 1.0,
+            },
+            "days": [
+                {
+                    "date": (start + timedelta(days=i)).isoformat(),
+                    "temp_min_c": 15.0,
+                    "temp_max_c": 30.0,
+                    "et0_mm": 5.0,
+                    "precipitation_mm": 0.0,
+                    "solar_radiation_mj_m2": None,
+                }
+                for i in range(n)
+            ],
+        }
 
     async def _et0(*, daily_t_min, **_kw):
         return {"daily_et0_mm": [5.0] * len(daily_t_min), "formula_version": "t"}
@@ -165,7 +190,7 @@ def _install(monkeypatch, conn, points):
     # fixed once at import. A run that crosses midnight UTC between collection and the call
     # saw one more day (window_days_requested 302 != 301, PR #1318, run 43123678786).
     monkeypatch.setattr(route, "datetime", _ClockOnFixtureDay)
-    monkeypatch.setattr(openmeteo, "fetch_historical", _historical)
+    monkeypatch.setattr(wsc, "get_weather_historical", _historical)
     monkeypatch.setattr(wsc, "get_et0_series", _et0)
     monkeypatch.setattr(wsc, "get_gdd_product", _gdd)
     monkeypatch.setattr(rsc, "get_field_timeseries", _timeseries)
