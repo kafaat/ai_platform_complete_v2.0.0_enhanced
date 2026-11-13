@@ -31,8 +31,8 @@
       "python_functional": 3869,
       "raw": 3305
     },
-    "test_dependency_files": 1821,
-    "test_dependency_edges": 4620,
+    "test_dependency_files": 1822,
+    "test_dependency_edges": 4622,
     "test_dependency_bounded_files": 1062,
     "test_dependency_unresolved_relations": 457
   },
@@ -80672,6 +80672,28 @@
           "source": "scripts/ci/minio_s3_contract_gate.py",
           "kind": "source_read",
           "line": 36
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_mobile_backend_contract.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/test_frontend_api_v1_literal_has_server_route.py",
+          "kind": "loader",
+          "line": 73
+        },
+        {
+          "source": "tests_v9/test_frontend_api_v1_literal_has_server_route.py",
+          "kind": "source_read",
+          "line": 75
         }
       ],
       "unresolved": []
