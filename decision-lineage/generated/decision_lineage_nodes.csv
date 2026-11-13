@@ -4,7 +4,7 @@ stage:candidate,2,candidate,sahool-platform,563,false
 stage:decision,3,decision,sahool-platform,203,false
 stage:review,4,review,sahool-platform,312,false
 stage:plan,5,plan,decision-service,51,false
-stage:authorization,6,authorization,sahool-platform,186,false
+stage:authorization,6,authorization,sahool-platform,187,false
 stage:request,7,request,decision-service,45,false
 stage:receipt,8,receipt,decision-service,46,false
 stage:outcome,9,outcome,sahool-platform,58,false
