@@ -196,3 +196,12 @@ def test_mobile_season_link_proof_matches_the_server():
 
     api = read("lib/features/scouting/data/scouting_api.dart")
     assert f"kScoutPhotoSeasonLinkProof = '{media_api.SEASON_LINK_PROOF}'" in api
+
+
+def test_a_refused_field_grant_is_not_queued_as_offline():
+    """Owner phase 6 (v263): a 403 is a missing field grant, not a network failure."""
+    cubit = read("lib/features/scouting/presentation/new_observation_cubit.dart")
+    at = cubit.index("if (!isTransient(err)) {")
+    branch = cubit[at : cubit.index("OutboxReceipt receipt;", at)]
+    assert "err.statusCode == 403" in branch and "return _photoState(" in branch
+    assert "لغياب تفويض هذا الحقل" in branch

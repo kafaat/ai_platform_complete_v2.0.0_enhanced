@@ -198,15 +198,29 @@ _SQL_FUNCTIONS = {"resolve_ingest_source", "claim_submissions_for_projection"}
 _GRANT_RE = re.compile(
     # A column-level grant (``GRANT SELECT (a, b) ON t``) counts: the photo context reads only
     # the v246 pointer columns of field_tasks.
-    r"GRANT\s+[A-Z, ]+?(?:\s*\([a-z_, ]+\))?\s+ON\s+(?!SEQUENCE|FUNCTION)(.+?)\s+TO\s+sahool_ingest\s*;",
+    r"GRANT\s+[A-Z, ]+?(?:\s*\([a-z0-9_, ]+\))?\s+ON\s+(?!SEQUENCE|FUNCTION)(.+?)\s+TO\s+sahool_ingest\s*;",
     re.S,
 )
+
+
+# grants_admin_api.py runs as its own principal (sahool_scout_grant_admin), never sahool_ingest;
+# its tables are checked against the provisioning helper below.
+_ADMIN_MODULE = "grants_admin_api.py"
+_ADMIN_HELPER = ROOT / "migrations" / "helpers" / "provision_scout_photo_grant_admin.psql"
+
+
+def _module_tables(path: Path) -> set[str]:
+    tables: set[str] = set()
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            tables.update(_SQL_TABLE_RE.findall(node.value))
+    return tables
 
 
 def _service_tables() -> set[str]:
     tables: set[str] = set()
     for path in SVC_DIR.glob("*.py"):
-        if path.name.startswith("test_"):
+        if path.name.startswith("test_") or path.name == _ADMIN_MODULE:
             continue
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
@@ -237,3 +251,13 @@ def test_every_table_the_ingest_service_queries_is_granted_by_the_role_runner(ru
     assert not missing, (
         f"{runner.name}: sahool_ingest queries tables its role runner never grants: {missing}"
     )
+
+
+def test_every_table_the_admin_api_queries_is_granted_to_its_own_principal():
+    """The admin API (scout-ingest, owner decision 2026-11-13) reads/writes only what the helper
+    grants sahool_scout_grant_admin; pg_roles is the catalog it checks its own role in."""
+    helper = _ADMIN_HELPER.read_text(encoding="utf-8")
+    granted = set(re.findall(r"\bON\s+([a-z_][a-z0-9_]*)\s+TO\s+sahool_scout_grant_admin", helper))
+    queried = _module_tables(SVC_DIR / _ADMIN_MODULE) - {"pg_roles"}
+    assert queried, "admin table derivation is vacuous"
+    assert not sorted(queried - granted), sorted(queried - granted)

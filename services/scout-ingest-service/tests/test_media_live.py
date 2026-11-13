@@ -61,17 +61,78 @@ _PIN_CTX = "pin-a-context"
 _PIN_LINK_RACE = "pin-a-link-race"
 
 
-# Privileged cleanup of this file's link events, seasons and tasks (the trigger refuses DELETE, so
-# the owner disables it for the purge only, as the v262 comment describes).
-_PURGE_LINKS = """
-    ALTER TABLE scout_photo_season_link_events
-      DISABLE TRIGGER scout_photo_season_link_event_immutable_guard;
-    DELETE FROM scout_photo_season_link_events WHERE pin_id LIKE 'pin-%';
-    ALTER TABLE scout_photo_season_link_events
-      ENABLE TRIGGER scout_photo_season_link_event_immutable_guard;
-    DELETE FROM season_records WHERE notes = 'scout-photo-live';
-    DELETE FROM field_tasks WHERE source_scouting_pin_id LIKE 'pin-%';
-"""
+# Privileged cleanup of this suite's ledgers, grants, seasons and tasks. Their guards refuse DELETE,
+# so the migration owner disables the user triggers for the purge only (as the v262-v272 comments
+# describe a privileged purge), then re-enables them. Children before parents.
+_LEDGERS = (
+    "scout_treatment_review_events",
+    "scout_photo_human_review_events",
+    "scout_tissue_custody_events",
+    "scout_plant_tissue_samples",
+    "scout_photo_detection_link_events",
+    "scout_photo_lab_link_events",
+    "scout_photo_retention_events",
+    "scout_photo_season_link_events",
+)
+_TENANT_LEDGERS = (
+    "scout_specialist_credential_events",
+    "scout_photo_retention_policy_events",
+    "scout_photo_grant_audit_events",
+    "scout_photo_field_access_grants",
+)
+_PURGE_LINKS = (
+    "".join(
+        f"ALTER TABLE {t} DISABLE TRIGGER USER;\nDELETE FROM {t} WHERE pin_id LIKE 'pin-%';\n"
+        f"ALTER TABLE {t} ENABLE TRIGGER USER;\n"
+        for t in _LEDGERS
+    )
+    + "".join(
+        f"ALTER TABLE {t} DISABLE TRIGGER USER;\nDELETE FROM {t} WHERE tenant_id IN "
+        f"('00000000-0000-0000-0000-0000000000aa', '00000000-0000-0000-0000-0000000000bb');\n"
+        f"ALTER TABLE {t} ENABLE TRIGGER USER;\n"
+        for t in _TENANT_LEDGERS
+    )
+    + "DELETE FROM season_records WHERE notes = 'scout-photo-live';\n"
+    + "DELETE FROM field_tasks WHERE source_scouting_pin_id LIKE 'pin-%';\n"
+)
+
+
+async def _purge(admin) -> None:
+    """One statement per transaction: a deferred FK event must not block the next ALTER."""
+    for statement in filter(None, (line.strip() for line in _PURGE_LINKS.splitlines())):
+        await admin.execute(statement)
+
+
+# The people of this suite: (key, tenant, users.role). Their ids are SERIAL, read back into USERS.
+_PEOPLE = (
+    ("owner", _A, "owner"),
+    ("admin", _A, "admin"),
+    ("inspector", _A, "farmer"),
+    ("viewer", _A, "viewer"),
+    ("worker", _A, "worker"),
+    ("manager", _A, "manager"),
+    ("expert", _A, "expert"),
+    ("expert2", _A, "agronomist"),
+    ("nogrant", _A, "farmer"),
+    ("expired", _A, "farmer"),
+    ("demoted", _A, "farmer"),
+    ("inspector_b", _B, "farmer"),
+    ("expert_b", _B, "expert"),
+)
+USERS: dict[str, dict] = {}
+# Standing grants on field-a (tenant A) and field-b (tenant B), all issued by the tenant owner.
+_STANDING = {
+    "inspector": ("photo.upload", "photo.read", "photo.context"),
+    "viewer": ("photo.read",),
+    "worker": ("photo.upload", "photo.read"),
+    "manager": ("photo.read", "photo.context"),
+    "expert": ("photo.upload", "photo.read", "photo.context", "photo.season_link"),
+    "expert2": ("photo.read", "photo.season_link"),
+    "admin": ("photo.read", "photo.context", "photo.season_link"),
+    "demoted": ("photo.read",),
+    "inspector_b": ("photo.upload", "photo.read", "photo.context"),
+    "expert_b": ("photo.read", "photo.season_link"),
+}
 
 
 def _skip_or_fail(msg: str) -> None:
@@ -143,7 +204,7 @@ async def live(monkeypatch):
     await admin.execute(_grant_block())
     # Clean slate between runs: the trigger refuses DELETE, so the owner disables it for the
     # cleanup only (a privileged purge, as the migration comment describes), then re-enables.
-    await admin.execute(_PURGE_LINKS)
+    await _purge(admin)
     await admin.execute("""
         ALTER TABLE scout_photo_evidence DISABLE TRIGGER scout_photo_evidence_immutable_guard;
         DELETE FROM scout_photo_evidence WHERE pin_id LIKE 'pin-%';
@@ -166,6 +227,7 @@ async def live(monkeypatch):
             tenant,
             field,
         )
+    await _people_fields_and_grants(admin)
     await admin.close()
 
     ingest_url = "postgresql://sahool_ingest:ingpw@" + ADMIN_URL.split("@", 1)[1]
@@ -197,17 +259,84 @@ async def live(monkeypatch):
     # same database (test_season_live) delete tenant A's seasons, so this file removes its links.
     admin = await asyncpg.connect(ADMIN_URL, statement_cache_size=0)
     try:
-        await admin.execute(_PURGE_LINKS)
+        await _purge(admin)
     finally:
         await admin.close()
 
 
-def _hdr(tenant=_A, role="farmer", uid="inspector-1", data=b"", ctype="image/jpeg"):
+async def grant(admin, user, scope, *, field=_FIELD, granted_days_ago=0, lease_days=30):
+    """Issue a grant the way the admin API does: audit event + grant in one transaction (v265)."""
+    person, owner = USERS[user], USERS["owner" if USERS[user]["tenant"] == _A else "owner_b"]
+    grant_id, event_id = uuid.uuid4(), uuid.uuid4()
+    async with admin.transaction():
+        await admin.execute(
+            "INSERT INTO scout_photo_grant_audit_events (event_id, tenant_id, field_id, grant_id, "
+            "actor_user_id, target_user_id, scope, action, request_sha256, reason) "
+            "VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, 'issue', $8, 'live test standing grant')",
+            event_id,
+            person["tenant"],
+            field,
+            grant_id,
+            owner["id"],
+            person["id"],
+            scope,
+            hashlib.sha256(str(event_id).encode()).hexdigest(),
+        )
+        await admin.execute(
+            "INSERT INTO scout_photo_field_access_grants (grant_id, tenant_id, field_id, user_id, "
+            "scope, granted_by, granted_at, expires_at) VALUES ($1, $2::uuid, $3, $4, $5, $6, "
+            "now() - make_interval(days => $7), now() - make_interval(days => $7) "
+            "+ make_interval(days => $8))",
+            grant_id,
+            person["tenant"],
+            field,
+            person["id"],
+            scope,
+            owner["id"],
+            granted_days_ago,
+            lease_days,
+        )
+    return grant_id
+
+
+async def _people_fields_and_grants(admin) -> None:
+    for field, tenant in ((_FIELD, _A), ("field-b", _B), ("field-other", _A)):
+        await admin.execute(
+            "INSERT INTO fields (field_id, name, tenant_id) VALUES ($1, $1, $2::uuid) "
+            "ON CONFLICT (field_id) DO NOTHING",
+            field,
+            tenant,
+        )
+    for key, tenant, role in (*_PEOPLE, ("owner_b", _B, "owner")):
+        row = await admin.fetchrow(
+            "INSERT INTO users (email, password_hash, full_name, role, tenant_id, active) "
+            "VALUES ($1, 'x', $2, $3, $4::uuid, true) ON CONFLICT (email) DO UPDATE "
+            "SET role=EXCLUDED.role, tenant_id=EXCLUDED.tenant_id, active=true "
+            "RETURNING id, role, tenant_id::text AS tenant",
+            f"scout-live-{key}@example.org",
+            key,
+            role,
+            tenant,
+        )
+        USERS[key] = {"id": row["id"], "role": row["role"], "tenant": row["tenant"]}
+    for user, scopes in _STANDING.items():
+        field = _FIELD if USERS[user]["tenant"] == _A else "field-b"
+        for scope in scopes:
+            await grant(admin, user, scope, field=field)
+    # Negative controls: an expired grant (started 31 days ago, 30-day lease) and a user whose
+    # role changed after the grant (the trusted 'farmer' claim no longer matches users.role).
+    await grant(admin, "expired", "photo.read", granted_days_ago=31, lease_days=30)
+    await admin.execute("UPDATE users SET role='viewer' WHERE id=$1", USERS["demoted"]["id"])
+
+
+def _hdr(tenant=None, role=None, uid=None, data=b"", ctype="image/jpeg", user="inspector"):
+    """Identity headers of a suite user (overridable to forge a claim)."""
+    person = USERS[user]
     return {
         "X-Scout-Media-Token": _TOKEN,
-        "X-Tenant-Id": tenant,
-        "X-User-Id": uid,
-        "X-User-Role": role,
+        "X-Tenant-Id": tenant or person["tenant"],
+        "X-User-Id": uid or str(person["id"]),
+        "X-User-Role": role or person["role"],
         "X-Content-SHA256": hashlib.sha256(data).hexdigest(),
         "Content-Type": ctype,
     }
@@ -248,7 +377,9 @@ async def test_upload_resubmit_conflict_isolation_and_presigned_read(live):
         assert "object_ref" not in body and "url" not in body
         rows = await _admin_rows(_PIN)
         assert len(rows) == 1
-        assert rows[0]["tenant_id"] == _A and rows[0]["uploaded_by"] == "inspector-1"
+        assert rows[0]["tenant_id"] == _A and rows[0]["uploaded_by"] == str(
+            USERS["inspector"]["id"]
+        )
         assert rows[0]["object_ref"] == f"s3://{_BUCKET}/scouting-photos/v1/{_A}/{_PIN}/{digest}"
         assert s3.objects == {(_BUCKET, f"scouting-photos/v1/{_A}/{_PIN}/{digest}"): data}
 
@@ -262,14 +393,15 @@ async def test_upload_resubmit_conflict_isolation_and_presigned_read(live):
         assert len(await _admin_rows(_PIN)) == 1 and len(s3.objects) == 1
 
         # Tenant B cannot reach tenant A's pin (RLS on scouting_pins and on the photo table).
-        cross = await c.post(_path(), content=data, headers=_hdr(tenant=_B, data=data))
-        assert cross.status_code == 404
-        assert (await c.get(_path(), headers=_hdr(tenant=_B))).status_code == 404
+        # Tenant B (its own user, or A's user with a forged tenant claim) holds no grant on field-a.
+        cross = await c.post(_path(), content=data, headers=_hdr(user="inspector_b", data=data))
+        assert cross.status_code == 403
+        assert (await c.get(_path(), headers=_hdr(tenant=_B))).status_code == 403
         wrong_field = await c.get(_path(field="field-b"), headers=_hdr())
-        assert wrong_field.status_code == 404
+        assert wrong_field.status_code == 403  # no grant on another tenant's field
         assert len(s3.objects) == 1
 
-        got = await c.get(_path(), headers=_hdr(role="viewer"))
+        got = await c.get(_path(), headers=_hdr(user="viewer"))
         assert got.status_code == 200, got.text
         assert got.json()["url"].startswith("https://objects.example.org/")
         assert got.json()["expires_in_seconds"] == 120
@@ -484,7 +616,7 @@ async def test_sql_rls_immutability_and_fk_under_nobypassrls_roles(live):
         )
         assert fk["idx"] == "scouting_pins_tenant_field_pin_uq"
         rows = await _admin_rows(_PIN)
-        assert len(rows) == 1 and rows[0]["uploaded_by"] == "inspector-1"
+        assert len(rows) == 1 and rows[0]["uploaded_by"] == str(USERS["inspector"]["id"])
         assert re.fullmatch(r"[0-9a-f]{64}", rows[0]["content_sha256"].strip())
     finally:
         await admin.close()
@@ -521,11 +653,11 @@ async def _season(tenant=_A, field=_FIELD, *, status="accepted") -> str:
         await admin.close()
 
 
-def _jhdr(tenant=_A, role="expert", uid="agronomist-7"):
+def _jhdr(user="expert", tenant=None):
     """Identity headers for a JSON request (no photo Content-Type or digest)."""
     return {
         k: v
-        for k, v in _hdr(tenant=tenant, role=role, uid=uid).items()
+        for k, v in _hdr(tenant=tenant, user=user).items()
         if k not in ("Content-Type", "X-Content-SHA256")
     }
 
@@ -564,12 +696,6 @@ async def test_context_names_only_the_v246_task_and_fails_closed(live):
         admin = await asyncpg.connect(ADMIN_URL, statement_cache_size=0)
         try:
             await admin.execute(
-                "INSERT INTO field_boundaries (field_id, field_name, tenant_id) "
-                "VALUES ($1, 'live field', $2::uuid) ON CONFLICT (field_id) DO NOTHING",
-                _FIELD,
-                _A,
-            )
-            await admin.execute(
                 "INSERT INTO field_tasks (field_id, tenant_id, task_type, status) "
                 "VALUES ($1, $2::uuid, 'inspection', 'pending')",
                 _FIELD,
@@ -588,22 +714,22 @@ async def test_context_names_only_the_v246_task_and_fails_closed(live):
             )
         finally:
             await admin.close()
-        linked = (await c.get(_path(_PIN_CTX) + "/context", headers=_hdr(role="expert"))).json()
+        linked = (await c.get(_path(_PIN_CTX) + "/context", headers=_hdr(user="expert"))).json()
         assert linked["inspection"] == {
             "state": "linked",
             "task_id": str(task),
             "status": "in_progress",
             "link_proof": "field_tasks.source_scouting_pin_id:v246",
         }
-        # Another tenant, the wrong field, a worker: no context.
+        # Another tenant, the wrong field, a worker: no context (no grant there, or the role gate).
         assert (
-            await c.get(_path(_PIN_CTX) + "/context", headers=_hdr(tenant=_B))
-        ).status_code == 404
+            await c.get(_path(_PIN_CTX) + "/context", headers=_hdr(user="inspector_b"))
+        ).status_code == 403
         assert (
             await c.get(_path(_PIN_CTX, "field-b") + "/context", headers=_hdr())
-        ).status_code == 404
+        ).status_code == 403
         assert (
-            await c.get(_path(_PIN_CTX) + "/context", headers=_hdr(role="worker"))
+            await c.get(_path(_PIN_CTX) + "/context", headers=_hdr(user="worker"))
         ).status_code == 403
         # The object lost behind the row: the context is not served from the row alone.
         s3.objects.clear()
@@ -628,9 +754,7 @@ async def test_season_link_chain_accepted_only_append_only_and_idempotent(live, 
             assert res.status_code == 422, res.text
             assert res.json()["detail"] == "scout_photo_accepted_season_not_found"
         assert (
-            await c.post(
-                _link_path(), json=_body(season=first_season), headers=_jhdr(role="farmer")
-            )
+            await c.post(_link_path(), json=_body(season=first_season), headers=_jhdr("inspector"))
         ).status_code == 403
 
         link = _body(season=first_season)
@@ -649,9 +773,7 @@ async def test_season_link_chain_accepted_only_append_only_and_idempotent(live, 
         assert (
             await c.post(_link_path(), json={**link, "season_id": second_season}, headers=expert)
         ).status_code == 409
-        assert (
-            await c.post(_link_path(), json=link, headers=_jhdr(uid="someone-else"))
-        ).status_code == 409
+        assert (await c.post(_link_path(), json=link, headers=_jhdr("expert2"))).status_code == 409
         # A second root, or a revision naming a stale head, is a predecessor conflict.
         assert (
             await c.post(_link_path(), json=_body(season=second_season), headers=expert)
@@ -665,9 +787,7 @@ async def test_season_link_chain_accepted_only_append_only_and_idempotent(live, 
         assert (await c.post(_link_path(), json=stale, headers=expert)).status_code == 409
 
         revoke = _body("revoke", previous=fix["event_id"], reason="photo is from last season")
-        revoked = await c.post(
-            _link_path(), json=revoke, headers=_jhdr(role="admin", uid="owner-1")
-        )
+        revoked = await c.post(_link_path(), json=revoke, headers=_jhdr("admin"))
         assert revoked.status_code == 200, revoked.text
         assert revoked.json()["season"] == {
             "state": "revoked",
@@ -685,12 +805,13 @@ async def test_season_link_chain_accepted_only_append_only_and_idempotent(live, 
             fix["event_id"],
             revoke["event_id"],
         ]
-        assert [e["actor_id"] for e in events] == ["agronomist-7", "agronomist-7", "owner-1"]
+        expert_id, admin_id = str(USERS["expert"]["id"]), str(USERS["admin"]["id"])
+        assert [e["actor_id"] for e in events] == [expert_id, expert_id, admin_id]
         assert history.json()["current"]["state"] == "revoked"
         ctx = (await c.get(_path(_PIN_CTX) + "/context", headers=_hdr())).json()
         assert ctx["season"]["state"] == "revoked"
-        # Another tenant sees no chain (RLS on the photo and on the events).
-        assert (await c.get(_link_path(), headers=_jhdr(tenant=_B))).status_code == 404
+        # Another tenant sees no chain: its expert holds no grant on field-a.
+        assert (await c.get(_link_path(), headers=_jhdr("expert_b"))).status_code == 403
 
     monkeypatch.setenv("SCOUT_MEDIA_SEASON_LINK_ENABLED", "0")
     async with await _client(app) as c:
@@ -867,5 +988,127 @@ async def test_season_link_sql_rls_immutability_and_fences_under_nobypassrls(liv
     none = await _as(ingest_url, None)
     try:
         assert await none.fetchval("SELECT count(*) FROM scout_photo_season_link_events") == 0
+    finally:
+        await none.close()
+
+
+# ─── field grants (owner phases 6-8; v263-v265) ─────────────────────────────────────────────
+
+
+async def test_every_photo_route_needs_a_live_field_grant(live, monkeypatch):
+    """No grant, an expired grant, a revoked grant, a changed role, another tenant: all 403."""
+    app, _, _ = live
+    data = _picture(color=(120, 60, 200))
+    async with await _client(app) as c:
+        assert (await c.post(_path(), content=data, headers=_hdr(data=data))).status_code == 200
+        for user in ("nogrant", "expired", "demoted", "inspector_b"):
+            res = await c.get(_path(), headers=_hdr(user=user))
+            assert res.status_code == 403, (user, res.text)
+            assert res.json()["detail"] == "scout_media_field_scope_denied"
+        # A grant for one scope is not another: the viewer may read, not see the context.
+        assert (await c.get(_path(), headers=_hdr(user="viewer"))).status_code == 200
+        ctx = await c.get(_path() + "/context", headers=_hdr(user="viewer"))
+        assert ctx.status_code == 403  # viewer is outside the context roles
+        manager_upload = await c.post(
+            _path(_PIN_RACE), content=data, headers=_hdr(user="manager", data=data)
+        )
+        assert manager_upload.status_code == 403  # manager holds read+context, not upload
+        # Revoking (audit + revocation in one transaction) takes effect on the next request.
+        admin = await asyncpg.connect(ADMIN_URL, statement_cache_size=0)
+        try:
+            gid = await admin.fetchval(
+                "SELECT grant_id FROM scout_photo_field_access_grants WHERE user_id=$1 "
+                "AND scope='photo.read' AND revoked_at IS NULL",
+                USERS["viewer"]["id"],
+            )
+            event = uuid.uuid4()
+            async with admin.transaction():
+                await admin.execute(
+                    "INSERT INTO scout_photo_grant_audit_events (event_id, tenant_id, field_id, "
+                    "grant_id, actor_user_id, target_user_id, scope, action, request_sha256, "
+                    "reason) VALUES ($1, $2::uuid, $3, $4, $5, $6, 'photo.read', 'revoke', $7, "
+                    "'live test revocation')",
+                    event,
+                    _A,
+                    _FIELD,
+                    gid,
+                    USERS["owner"]["id"],
+                    USERS["viewer"]["id"],
+                    hashlib.sha256(str(event).encode()).hexdigest(),
+                )
+                await admin.execute(
+                    "UPDATE scout_photo_field_access_grants SET revoked_at=now(), revoked_by=$2, "
+                    "revocation_reason='live test revocation' WHERE grant_id=$1",
+                    gid,
+                    USERS["owner"]["id"],
+                )
+        finally:
+            await admin.close()
+        assert (await c.get(_path(), headers=_hdr(user="viewer"))).status_code == 403
+
+
+async def test_grant_table_rules_hold_in_sql_under_nobypassrls(live):
+    _, _, ingest_url = live
+    admin = await asyncpg.connect(ADMIN_URL, statement_cache_size=0)
+    try:
+        for table in ("scout_photo_field_access_grants", "scout_photo_grant_audit_events"):
+            forced = await admin.fetchrow(
+                "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE oid=$1::regclass",
+                table,
+            )
+            assert (forced["relrowsecurity"], forced["relforcerowsecurity"]) == (True, True)
+        # v265: a grant without its audit event is refused at COMMIT; so is a lease > 90 days.
+        with pytest.raises(asyncpg.PostgresError, match="missing_issuance_audit"):
+            await admin.execute(
+                "INSERT INTO scout_photo_field_access_grants (tenant_id, field_id, user_id, "
+                "scope, granted_by, expires_at) VALUES ($1::uuid, $2, $3, 'photo.read', $4, "
+                "now() + interval '1 day')",
+                _A,
+                _FIELD,
+                USERS["nogrant"]["id"],
+                USERS["owner"]["id"],
+            )
+        with pytest.raises(asyncpg.PostgresError, match="expiry_policy_violation"):
+            await grant(admin, "nogrant", "photo.read", lease_days=91)
+        # v263: a grant row is history; only a documented revocation may change it.
+        gid = await admin.fetchval(
+            "SELECT grant_id FROM scout_photo_field_access_grants WHERE user_id=$1 LIMIT 1",
+            USERS["inspector"]["id"],
+        )
+        with pytest.raises(asyncpg.PostgresError, match="scout_photo_grant_immutable"):
+            await admin.execute(
+                "UPDATE scout_photo_field_access_grants SET scope='photo.upload' WHERE grant_id=$1",
+                gid,
+            )
+        with pytest.raises(asyncpg.PostgresError, match="scout_photo_grant_deletion_forbidden"):
+            await admin.execute(
+                "DELETE FROM scout_photo_field_access_grants WHERE grant_id=$1", gid
+            )
+    finally:
+        await admin.close()
+    a = await _as(ingest_url, _A)
+    try:
+        assert await a.fetchval("SELECT count(*) FROM scout_photo_field_access_grants") > 0
+        for stmt in (
+            "UPDATE scout_photo_field_access_grants SET revoked_at=now()",
+            "DELETE FROM scout_photo_field_access_grants",
+            "SELECT count(*) FROM scout_photo_grant_audit_events",
+            "SELECT password_hash FROM users",
+        ):
+            with pytest.raises(asyncpg.InsufficientPrivilegeError):
+                await a.execute(stmt)
+    finally:
+        await a.close()
+    b = await _as(ingest_url, _B)
+    try:
+        rows = await b.fetch(
+            "SELECT DISTINCT tenant_id::text AS t FROM scout_photo_field_access_grants"
+        )
+        assert [r["t"] for r in rows] == [_B]
+    finally:
+        await b.close()
+    none = await _as(ingest_url, None)
+    try:
+        assert await none.fetchval("SELECT count(*) FROM scout_photo_field_access_grants") == 0
     finally:
         await none.close()

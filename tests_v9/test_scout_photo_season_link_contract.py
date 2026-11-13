@@ -226,6 +226,10 @@ def test_an_upload_ref_from_another_bucket_or_key_is_never_committed(media, monk
         reached_db.append(args)
         raise AssertionError("the immutable row must not be written")
 
+    async def granted(*args, **kwargs):  # the field grant is proven live (test_media_live)
+        return None
+
+    monkeypatch.setattr(mod, "require_media_field_scope", granted)
     monkeypatch.setattr(mod, "_read_row", read_row)
     monkeypatch.setattr(mod, "_insert_row", insert_row)
     monkeypatch.setattr(
@@ -275,11 +279,10 @@ def test_v262_is_registered_after_v260_and_before_v240_v206():
         < manifest.index("v240_converge_first_pass_schema.sql")
         < manifest.index("v206_rls_final_hardening.sql")
     )
+    # The runner follows the MANIFEST order exactly for the scout photo chain.
     runner = re.findall(r"^\\i migrations/(\S+)$", read("scripts_v9/run_migrations.sql"), re.M)
-    assert (
-        runner.index("v262_scout_photo_season_link_events.sql")
-        == runner.index("v260_scout_photo_evidence.sql") + 1
-    )
+    chain = [name for name in manifest if name.startswith(("v260_", "v26", "v27"))]
+    assert [name for name in runner if name in chain] == chain
 
 
 @pytest.mark.parametrize(

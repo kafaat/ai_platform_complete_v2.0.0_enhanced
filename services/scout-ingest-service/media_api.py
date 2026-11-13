@@ -116,9 +116,14 @@ async def _tenant_connection(tenant: str):
         raise _db_error() from None
 
 
-async def _read_row(tenant: str, field_id: str, pin_id: str):
-    """The pin must be visible under the tenant's RLS; then its photo row, or None."""
-    conn = await _tenant_connection(tenant)
+async def _read_row(tenant: str, field_id: str, pin_id: str, *, conn=None):
+    """The pin must be visible under the tenant's RLS; then its photo row, or None.
+
+    The context passes its snapshot connection so every part reads the same PostgreSQL instant.
+    """
+    owns = conn is None
+    if owns:
+        conn = await _tenant_connection(tenant)
     try:
         exists = await conn.fetchval(
             "SELECT true FROM scouting_pins WHERE tenant_id=$1::uuid AND field_id=$2 AND pin_id=$3",
@@ -130,7 +135,8 @@ async def _read_row(tenant: str, field_id: str, pin_id: str):
             raise HTTPException(404, "scouting_pin_not_found")
         return await conn.fetchrow(_SELECT_ROW, tenant, field_id, pin_id)
     finally:
-        await conn.close()
+        if owns:
+            await conn.close()
 
 
 async def _insert_row(tenant: str, field_id: str, pin_id: str, ref: str, image, uid: str):
@@ -156,6 +162,45 @@ async def _insert_row(tenant: str, field_id: str, pin_id: str, ref: str, image, 
 def _db_error() -> HTTPException:
     # Never leak connection strings, SQL/schema, object store credentials to clients.
     return HTTPException(503, "scout_media_database_unavailable")
+
+
+# Owner phases 6 and 8 (v263): the field grant is the only source of field access. A tenant
+# role, creating the pin or holding the service token grants nothing by itself. The trusted role
+# claim must equal the caller's CURRENT users.role (a role change invalidates older tokens), the
+# user must be active, and the grant must be unrevoked, started, unexpired and at most 90 days long
+# (an indefinite pre-v265 grant never authorises). No grant => 403; DB or schema missing => 503.
+_FIELD_SCOPE_SQL = (
+    "SELECT true FROM scout_photo_field_access_grants AS g "
+    "JOIN users AS u ON u.id=g.user_id AND u.tenant_id=g.tenant_id AND u.active IS TRUE "
+    "JOIN fields AS f ON f.tenant_id=g.tenant_id AND f.field_id=g.field_id "
+    "WHERE g.tenant_id=$1::uuid AND g.field_id=$2 AND u.id::text=$3 "
+    "AND g.scope=$4 AND lower(u.role::text)=$5 "
+    "AND g.revoked_at IS NULL AND g.expires_at IS NOT NULL "
+    "AND g.granted_at <= now() AND g.expires_at > now() "
+    "AND g.expires_at <= g.granted_at + interval '90 days' LIMIT 1"
+)
+
+
+async def require_media_field_scope(
+    tenant: str, field_id: str, actor: str, scope: str, role_claim: str | None, *, conn=None
+) -> None:
+    """403 unless the caller holds a live grant for this field and scope (owner phase 6)."""
+    owns = conn is None
+    try:
+        if owns:
+            conn = await _tenant_connection(tenant)
+        permitted = await conn.fetchval(
+            _FIELD_SCOPE_SQL, tenant, field_id, actor, scope, (role_claim or "").strip().lower()
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001 — a missing table or DB is a 503, never a pass
+        raise _db_error() from exc
+    finally:
+        if owns and conn is not None:
+            await conn.close()
+    if not permitted:
+        raise HTTPException(403, "scout_media_field_scope_denied")
 
 
 def _owned_ref(row, tenant: str, pin_id: str) -> str:
@@ -209,6 +254,7 @@ async def post_pin_photo(
     except PhotoValidationError as exc:
         raise HTTPException(http_status_for(exc.code), exc.code) from exc
 
+    await require_media_field_scope(tenant, field_id, uid, "photo.upload", x_user_role)
     try:
         existing = await _read_row(tenant, field_id, pin_id)
     except HTTPException:
@@ -231,6 +277,8 @@ async def post_pin_photo(
     if ref != expected_object_ref(blob_store.S3_BUCKET, tenant, pin_id, image.sha256):
         raise HTTPException(503, "scout_media_store_unavailable")
 
+    # A grant revoked while the bytes were uploading must not reach the immutable row.
+    await require_media_field_scope(tenant, field_id, uid, "photo.upload", x_user_role)
     try:
         inserted_id = await _insert_row(tenant, field_id, pin_id, ref, image, uid)
         # The FK and the unique key fence a concurrent upload; re-read whichever row won.
@@ -258,8 +306,9 @@ async def get_pin_photo(
     x_user_id: str | None = Header(None, alias="X-User-Id"),
     x_user_role: str | None = Header(None, alias="X-User-Role"),
 ):
-    tenant, _ = authorize(x_scout_media_token, x_tenant_id, x_user_id, x_user_role, write=False)
+    tenant, actor = authorize(x_scout_media_token, x_tenant_id, x_user_id, x_user_role, write=False)
     _require_valid_pin(pin_id)
+    await require_media_field_scope(tenant, field_id, actor, "photo.read", x_user_role)
     try:
         row = await _read_row(tenant, field_id, pin_id)
     except HTTPException:
@@ -499,6 +548,7 @@ async def post_pin_photo_season_link_event(
     code, reason = season_link_refusal(data)
     if code:
         raise HTTPException(422, code)
+    await require_media_field_scope(tenant, field_id, actor, "photo.season_link", x_user_role)
     try:
         await _verified_photo(tenant, field_id, pin_id)
         conn = await _tenant_connection(tenant)
@@ -569,11 +619,12 @@ async def list_pin_photo_season_link_events(
     x_user_role: str | None = Header(None, alias="X-User-Role"),
 ):
     """The whole actor-attributed chain, or a 503: never a partial audit trail."""
-    tenant, _ = authorize(x_scout_media_token, x_tenant_id, x_user_id, x_user_role, write=False)
+    tenant, actor = authorize(x_scout_media_token, x_tenant_id, x_user_id, x_user_role, write=False)
     if not season_bridge_enabled():
         raise HTTPException(404, "scout_photo_season_link_disabled")
     require_role(x_user_role, SEASON_LINK_ROLES, "scout_photo_season_link_role_denied")
     _require_valid_pin(pin_id)
+    await require_media_field_scope(tenant, field_id, actor, "photo.season_link", x_user_role)
     try:
         await _verified_photo(tenant, field_id, pin_id)
         conn = await _tenant_connection(tenant)
@@ -629,26 +680,58 @@ async def get_pin_photo_context(
     x_user_id: str | None = Header(None, alias="X-User-Id"),
     x_user_role: str | None = Header(None, alias="X-User-Role"),
 ):
-    """photo → pin → proven inspection (and an explicit accepted season); not an AI decision."""
-    tenant, _ = authorize(x_scout_media_token, x_tenant_id, x_user_id, x_user_role, write=False)
+    """photo → pin → proven links, each by its own key and flag; not an AI decision.
+
+    Every relational part is read in one REPEATABLE READ READ ONLY transaction (owner phase 10), so
+    the context never mixes PostgreSQL instants. The object HEAD runs after that snapshot and is
+    named as such: it cannot be transactionally consistent with PostgreSQL.
+    """
+    tenant, actor = authorize(x_scout_media_token, x_tenant_id, x_user_id, x_user_role, write=False)
     require_role(x_user_role, CONTEXT_ROLES, "scout_media_context_role_denied")
     _require_valid_pin(pin_id)
+    await require_media_field_scope(tenant, field_id, actor, "photo.context", x_user_role)
+    from detection_link_api import current_detection_context
+    from evidence_retention_api import current_retention_context
+    from human_review_api import current_human_review_context
+    from lab_link_api import current_lab_context
+    from tissue_samples_api import current_tissue_context
+    from treatment_review_api import current_treatment_context
+
     try:
-        row = await _verified_photo(tenant, field_id, pin_id)
         conn = await _tenant_connection(tenant)
         try:
-            inspection = await _linked_inspection(conn, tenant, field_id, pin_id)
-            season = (
-                season_context(await _season_head(conn, tenant, field_id, pin_id))
-                if season_bridge_enabled()
-                else {"state": "explicit_link_required", "season_id": None}
-            )
+            async with conn.transaction(isolation="repeatable_read", readonly=True):
+                row = await _read_row(tenant, field_id, pin_id, conn=conn)
+                if row is None:
+                    raise HTTPException(404, "scout_photo_not_found")
+                parts = {
+                    "inspection": await _linked_inspection(conn, tenant, field_id, pin_id),
+                    "season": (
+                        season_context(await _season_head(conn, tenant, field_id, pin_id))
+                        if season_bridge_enabled()
+                        else {"state": "explicit_link_required", "season_id": None}
+                    ),
+                    "detection": await current_detection_context(conn, tenant, field_id, pin_id),
+                    "lab_sample": await current_lab_context(conn, tenant, field_id, pin_id),
+                    "human_review": await current_human_review_context(
+                        conn, tenant, field_id, pin_id
+                    ),
+                    "plant_tissue_samples": await current_tissue_context(
+                        conn, tenant, field_id, pin_id
+                    ),
+                    "treatment_review": await current_treatment_context(
+                        conn, tenant, field_id, pin_id
+                    ),
+                    "retention": await current_retention_context(conn, tenant, field_id, pin_id),
+                }
         finally:
             await conn.close()
+        await _require_object_present(row, tenant, pin_id)
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001 — a DB failure is a 503, never "not linked"
         raise _db_error() from exc
+    inspection = parts.pop("inspection")
     response.headers["Cache-Control"] = "private, no-store"
     response.headers["Pragma"] = "no-cache"
     return {
@@ -656,12 +739,12 @@ async def get_pin_photo_context(
         "source": {"kind": "scouting_pin", "field_id": field_id, "pin_id": pin_id},
         "evidence": public_receipt(row),
         "object_state": "present_at_check",  # HEAD existence only, not a remote re-hash
+        "consistency": {
+            "relational_snapshot": "repeatable_read",
+            "object_presence": "checked_after_relational_snapshot",
+        },
         "inspection": {"state": "linked", **inspection} if inspection else {"state": "not_linked"},
-        "season": season,
-        # No key links a lab sample, a detection or a decision to the photo yet (owner phases
-        # 8-11 add them behind their own flags); absence is never filled in.
-        "lab_sample": {"state": "explicit_link_required", "sample_id": None},
-        "detection": {"state": "explicit_link_required", "result_id": None},
+        **parts,
         "decision": {"state": "not_authorized", "decision_id": None},
         "automatic_pesticide_action_authorized": False,
     }
