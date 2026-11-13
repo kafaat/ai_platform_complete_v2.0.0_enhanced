@@ -2071,7 +2071,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: [sahool-platform]
-    source: "migrations/v249_task_cost_trace.sql, services/sahool-platform/api/routers/simple_farm_book.py"
+    source: "migrations/v249_task_cost_trace.sql, services/sahool-platform/api/routers/tasks.py, services/sahool-platform/api/routers/simple_farm_book.py"
   task_cost_history:
     owner: sahool-platform
     writers: [sahool-platform]
