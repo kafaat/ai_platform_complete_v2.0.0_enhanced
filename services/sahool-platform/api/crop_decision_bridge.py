@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from typing import Any
 
 from fastapi import HTTPException
@@ -103,8 +104,13 @@ def build_crop_decision_candidate(
     accumulated_gdd = gdd_product.get("accumulated_gdd")
     gdd_lineage_id = gdd_product.get("gdd_lineage_id")
     contributing_state_ids = gdd_product.get("contributing_state_ids")
-    if accumulated_gdd is None:
-        raise ValueError("gdd_product.accumulated_gdd is required (fail-closed)")
+    if (
+        isinstance(accumulated_gdd, bool)
+        or not isinstance(accumulated_gdd, (int, float))
+        or not math.isfinite(accumulated_gdd)
+        or accumulated_gdd < 0
+    ):
+        raise ValueError("gdd_product.accumulated_gdd must be finite and nonnegative")
     if not gdd_lineage_id:
         raise ValueError("gdd_product.gdd_lineage_id is required (fail-closed)")
     if not contributing_state_ids:

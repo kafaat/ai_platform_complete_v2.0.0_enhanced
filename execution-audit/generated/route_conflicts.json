@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 599,
+          "line": 600,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 793,
+          "line": 817,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 231,
+          "line": 250,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 546,
+          "line": 547,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 793,
+          "line": 817,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -500,7 +500,7 @@
         },
         {
           "function": "metrics",
-          "line": 426,
+          "line": 445,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -635,7 +635,7 @@
         },
         {
           "function": "readyz",
-          "line": 445,
+          "line": 464,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -651,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 551,
+          "line": 552,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -723,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 806,
+          "line": 830,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 540,
+          "line": 541,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -961,7 +961,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 639,
+          "line": 663,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -1000,7 +1000,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 724,
+          "line": 748,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1116,7 +1116,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 671,
+          "line": 695,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1155,7 +1155,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 489,
+          "line": 508,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1186,7 +1186,7 @@
         },
         {
           "function": "recommend",
-          "line": 522,
+          "line": 541,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1119,
-  "route_inventory_sha256": "78fce2a3eba1bd061d145e675cded59a33c606910610e7afc83a3af1dd8fd612",
+  "route_inventory_sha256": "ad9d5add77e98c320eb81e9c67b1095d1ae142933d69d37411e148810e83ed50",
   "runtime_verified": false,
   "schema_version": 1
 }

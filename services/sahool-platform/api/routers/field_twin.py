@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime
 
-from core.field_twin import assemble_twin
+from core.field_twin import active_season_context, assemble_twin, finite_indicator_readings
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.main import (
@@ -68,6 +68,14 @@ async def get_field_twin(
                 field_id,
                 list(_TWIN_INDICATORS),
             )
+            # The season is a separate owner from fields.crop; expose it without
+            # silently overwriting one identity with the other in a derived view.
+            season_row = await conn.fetchrow(
+                "SELECT season_id, crops, cultivar, sowing_date FROM seasons "
+                "WHERE field_id = $1 AND status = 'active' "
+                "ORDER BY created_at DESC LIMIT 1",
+                field_id,
+            )
             # القرارات المفتوحة (محجوبة أو قيد التنفيذ).
             dec_rows = await conn.fetch(
                 """
@@ -88,8 +96,8 @@ async def get_field_twin(
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("تجميع التوأم الرقميّ للحقل", e) from e
 
-    indices = {r["indicator_id"]: float(r["value"]) for r in ind_rows}
-    observed_at = max((r["recorded_at"] for r in ind_rows), default=None)
+    indices, index_observed_at = finite_indicator_readings(ind_rows)
+    observed_at = max((v for v in index_observed_at.values() if v is not None), default=None)
     open_decisions = [{"state": r["state"], "exec_status": r["exec_status"]} for r in dec_rows]
     last_execution = None
     if last_exec is not None:
@@ -106,10 +114,15 @@ async def get_field_twin(
         crop=field_row["crop"],
         latest_indices=indices,
         observed_at=observed_at,
+        index_observed_at=index_observed_at,
         now=datetime.now(UTC),
         open_decisions=open_decisions,
         last_execution=last_execution,
     )
     out = twin.to_dict()
     out["field_name"] = field_row["name"]
+    out["legacy_field_crop"] = field_row["crop"]
+    out["view_role"] = "derived_read_model_only"
+    out["decision_authority"] = "none"
+    out["season_context"] = active_season_context(season_row)
     return out

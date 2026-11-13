@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "e7399245a970b2c6c9a690fab2ac58732447293d9056551857cddfd17f9508c5",
+  "inventory_sha256": "a70ae9f173f0f53292e947bdba32a0860bd90bf400c3d68c81821505bae1df6f",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "bf8cd04aa58a729922e47f5e30cbeea345c09e3f9bbeabdbe00a8e249a3b2a22"
+    "policy_sha256": "07b7b7d6e890771e48033db2832fdd2fcd0522f591b325c9137919af95e0460f"
   },
   "routes": [
     {
@@ -2914,7 +2914,7 @@
     {
       "classification": "domain",
       "function": "crop_risk_endpoint",
-      "line": 166,
+      "line": 168,
       "method": "POST",
       "path": "/api/v1/agro/crop-risk",
       "source": "api/routers/agro_intelligence.py"
@@ -2922,7 +2922,7 @@
     {
       "classification": "domain",
       "function": "crop_rotation_endpoint",
-      "line": 201,
+      "line": 203,
       "method": "POST",
       "path": "/api/v1/agro/crop-rotation",
       "source": "api/routers/agro_intelligence.py"
@@ -2930,7 +2930,7 @@
     {
       "classification": "domain",
       "function": "decision_playbook_endpoint",
-      "line": 226,
+      "line": 228,
       "method": "POST",
       "path": "/api/v1/agro/decision-playbook",
       "source": "api/routers/agro_intelligence.py"
@@ -2946,7 +2946,7 @@
     {
       "classification": "domain",
       "function": "plant_soil_feedback_endpoint",
-      "line": 179,
+      "line": 181,
       "method": "POST",
       "path": "/api/v1/agro/plant-soil-feedback",
       "source": "api/routers/agro_intelligence.py"
@@ -2954,7 +2954,7 @@
     {
       "classification": "domain",
       "function": "plant_soil_feedback_trend_endpoint",
-      "line": 187,
+      "line": 189,
       "method": "POST",
       "path": "/api/v1/agro/plant-soil-feedback/trend",
       "source": "api/routers/agro_intelligence.py"
@@ -2962,7 +2962,7 @@
     {
       "classification": "domain",
       "function": "season_comparison_endpoint",
-      "line": 218,
+      "line": 220,
       "method": "POST",
       "path": "/api/v1/agro/season-comparison",
       "source": "api/routers/agro_intelligence.py"
@@ -3154,7 +3154,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_endpoint",
-      "line": 403,
+      "line": 409,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
       "source": "api/routers/crop_twin.py"
@@ -3162,7 +3162,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_candidate_endpoint",
-      "line": 296,
+      "line": 302,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
       "source": "api/routers/crop_twin.py"
@@ -3170,7 +3170,7 @@
     {
       "classification": "domain",
       "function": "profit_aware_decision_endpoint",
-      "line": 527,
+      "line": 533,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
       "source": "api/routers/crop_twin.py"
@@ -3754,7 +3754,7 @@
     {
       "classification": "domain",
       "function": "field_water_twin",
-      "line": 197,
+      "line": 198,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/water-twin",
       "source": "api/routers/water_twin.py"
@@ -4450,7 +4450,7 @@
     {
       "classification": "domain",
       "function": "work_order_from_recommendation_endpoint",
-      "line": 351,
+      "line": 353,
       "method": "POST",
       "path": "/api/v1/work-orders/from-recommendation",
       "source": "api/routers/agro_intelligence.py"
