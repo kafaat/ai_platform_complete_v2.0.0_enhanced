@@ -8,7 +8,8 @@ pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 USERS = (ROOT / "services/auth/routers/users.py").read_text(encoding="utf-8")
-DENIALS = (ROOT / "services/sahool-platform/api/routers/security_audit.py").read_text(encoding="utf-8")
+DENIALS_PATH = ROOT / "services/sahool-platform/api/routers/security_audit.py"
+DENIALS = DENIALS_PATH.read_text(encoding="utf-8")
 INV = (ROOT / "services/auth/routers/invitations.py").read_text(encoding="utf-8")
 
 
@@ -25,7 +26,9 @@ def test_team_changes_scope_target_and_never_promote_admin():
 
 def test_invalidation_before_update():
     assert USERS.count("await main.revoke_all_user_sessions(user_id)") == 2
-    assert USERS.index("await main.revoke_all_user_sessions(user_id)") < USERS.index("UPDATE users SET role=")
+    assert USERS.index("await main.revoke_all_user_sessions(user_id)") < USERS.index(
+        "UPDATE users SET role="
+    )
     assert "if main._redis is None:" in USERS
 
 
@@ -54,9 +57,7 @@ def _load_live_validator_from_source():
         if isinstance(node, ast.AsyncFunctionDef)
         and node.name == "_validate_team_actor"
     )
-    module = ast.fix_missing_locations(
-        ast.Module(body=[func], type_ignores=[])
-    )
+    module = ast.fix_missing_locations(ast.Module(body=[func], type_ignores=[]))
     scope = {"UUID": UUID, "HTTPException": HTTPException}
     exec(compile(module, "services/auth/routers/users.py", "exec"), scope)
     return scope["_validate_team_actor"]
