@@ -41,6 +41,7 @@ jobs:
           python scripts/ci/capability_parity_investment_engine.py --generate
           python scripts/ci/capability_management_engine.py --generate
           python scripts/ci/pr_capability_impact_gate.py --generate-index
+          python scripts/ci/static_governance_closure.py --generate
           python scripts/ci/capability_shadow_reconciliation.py --check
           python - <<'PY'
           import json
@@ -73,7 +74,7 @@ jobs:
               ".github/workflows/r11-contracts-regenerate-once.yml",
               "capabilities/registry/capabilities.json",
           }
-          prefixes = ("docs/capability-registry/generated/", "capabilities/generated/", "release/")
+          prefixes = ("docs/capability-registry/generated/", "capabilities/generated/", "governance/generated/", "release/")
           rejected = [p for p in paths if p not in expected and not p.startswith(prefixes)]
           if rejected:
               raise SystemExit(f"Unapproved generated file paths; refuse commit: {rejected}")
