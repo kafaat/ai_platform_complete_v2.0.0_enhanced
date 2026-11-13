@@ -71,16 +71,29 @@ def test_canonical_root_zone_supports_net_infiltration_screening():
     state = FieldTwinState("f1", {"depletion_mm": 70.0, "taw_mm": 100.0, "raw_mm": 45.0})
     out = simulate_irrigation(state, 20.0)
     assert out.predicted["depletion_mm_after_irrigation"] == 50.0
-    assert out.predicted["soil_moisture_pct_after_irrigation"] == 50.0
+    assert out.predicted["root_zone_available_water_pct_after_irrigation"] == 50.0
     assert out.risks["water_stress"] == "medium"
     assert out.predicted["simulation_status"] == "screening_only_net_infiltration"
     assert any("no_execution_authority" in a for a in out.assumptions)
 
 
+def test_root_zone_share_is_never_reported_as_soil_moisture():
+    """(TAW - Dr) / TAW is a share of available water, not volumetric moisture (VWC %)."""
+    state = FieldTwinState("f1", {"depletion_mm": 70.0, "taw_mm": 100.0, "raw_mm": 45.0})
+    for out in (
+        simulate_irrigation(state, 20.0),
+        simulate_irrigation(FieldTwinState("f1", {"soil_moisture_pct": 14.0}), 20.0),
+    ):
+        assert "root_zone_available_water_pct_after_irrigation" in out.predicted
+        assert not any("soil_moisture" in key for key in out.predicted)
+    measured = simulate_irrigation(state, 20.0)
+    assert any("not volumetric soil moisture" in a for a in measured.assumptions)
+
+
 def test_percent_only_cannot_imply_depth_to_moisture_conversion():
     state = FieldTwinState("f1", {"soil_moisture_pct": 14.0})
     out = simulate_irrigation(state, 25.0)
-    assert out.predicted["soil_moisture_pct_after_irrigation"] is None
+    assert out.predicted["root_zone_available_water_pct_after_irrigation"] is None
     assert out.risks["water_stress"] == "unknown"
     assert out.predicted["simulation_status"] == "unavailable_without_canonical_root_zone"
 

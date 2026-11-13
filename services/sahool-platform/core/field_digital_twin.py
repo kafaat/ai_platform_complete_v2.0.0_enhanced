@@ -54,7 +54,7 @@ def simulate_irrigation(state: FieldTwinState, irrigation_mm: float) -> FieldTwi
     )
     if not valid_water:
         risks["water_stress"] = "unknown"
-        predicted["soil_moisture_pct_after_irrigation"] = None
+        predicted["root_zone_available_water_pct_after_irrigation"] = None
         predicted["depletion_mm_after_irrigation"] = None
         predicted["simulation_status"] = "unavailable_without_canonical_root_zone"
         return FieldTwinState(
@@ -71,7 +71,10 @@ def simulate_irrigation(state: FieldTwinState, irrigation_mm: float) -> FieldTwi
 
     dr_after = max(0.0, float(dep) - float(irrigation_mm))
     predicted["depletion_mm_after_irrigation"] = round(dr_after, 2)
-    predicted["soil_moisture_pct_after_irrigation"] = round(
+    # (TAW - Dr) / TAW: the share of the root zone's total available water left after the
+    # screened depth. It is NOT volumetric soil moisture (VWC %), which needs field capacity,
+    # wilting point and root depth; no VWC value is produced here.
+    predicted["root_zone_available_water_pct_after_irrigation"] = round(
         100.0 * (float(taw) - dr_after) / float(taw), 2
     )
     predicted["simulation_status"] = "screening_only_net_infiltration"
@@ -88,6 +91,7 @@ def simulate_irrigation(state: FieldTwinState, irrigation_mm: float) -> FieldTwi
     assumptions = [
         *state.assumptions,
         "instantaneous net infiltration screening; excludes ET, runoff and drainage",
+        "root_zone_available_water_pct is (TAW - Dr) / TAW, not volumetric soil moisture",
         "no_execution_authority",
     ]
     if irrigation_mm > dep:
