@@ -73,6 +73,8 @@ export interface ComposeForecastDayInput {
   rain_mm?: number;
 }
 export interface CropTwinComposeInput {
+  field_id?: string | null;
+  season_id?: string | null;
   crop?: string | null;
   stage: string;
   ndvi?: number | null;
@@ -86,11 +88,14 @@ export function useCropTwinCompose(
   return useQuery<CropTwinComposeResponse>({
     queryKey: [
       'crop-twin-compose',
+      input?.field_id ?? 'none', input?.season_id ?? 'none',
       input?.crop ?? 'none', input?.stage ?? 'mid', input?.ndvi ?? 'none',
       JSON.stringify(input?.forecast ?? []),
     ],
     queryFn: () => kongApi
       .post('/api/v1/crop-twin/compose', {
+        field_id: input?.field_id ?? null,
+        season_id: input?.season_id ?? null,
         crop: input?.crop || null,
         stage: input?.stage,
         ndvi: input?.ndvi ?? null,

@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "91ec6864747ebb80f617941132a58fe398cadd49500c7b59b98b623f014be8bb",
+  "inventory_sha256": "a70ae9f173f0f53292e947bdba32a0860bd90bf400c3d68c81821505bae1df6f",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "5f3ccb4e290de7e706cfee95dac70975f508654956ba0131ae8bdd6c1c6e34ad"
+    "policy_sha256": "07b7b7d6e890771e48033db2832fdd2fcd0522f591b325c9137919af95e0460f"
   },
   "routes": [
     {
@@ -3154,7 +3154,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_endpoint",
-      "line": 403,
+      "line": 409,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
       "source": "api/routers/crop_twin.py"
@@ -3162,7 +3162,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_candidate_endpoint",
-      "line": 296,
+      "line": 302,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
       "source": "api/routers/crop_twin.py"
@@ -3170,7 +3170,7 @@
     {
       "classification": "domain",
       "function": "profit_aware_decision_endpoint",
-      "line": 527,
+      "line": 533,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
       "source": "api/routers/crop_twin.py"
@@ -3754,7 +3754,7 @@
     {
       "classification": "domain",
       "function": "field_water_twin",
-      "line": 197,
+      "line": 198,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/water-twin",
       "source": "api/routers/water_twin.py"

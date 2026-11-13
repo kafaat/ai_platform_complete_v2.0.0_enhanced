@@ -175,3 +175,31 @@ async def test_compose_propagates_canonical_gdd_lineage():
     assert ci["phenology"]["formula_version"] == "gdd/daily/1.0.0"
     assert "gddseq/fake-compose" in ci["evidence_ids"]
     assert "gdd_pending_weather_engine_delegation" not in ci["limitations"]
+
+
+async def test_client_ndvi_is_explicitly_unverified_preview():
+    out = await compose_crop_twin(req=_req(ndvi=0.55), user=_USER)
+    assert out["preview_only"] is True
+    assert out["decision_authority"] == "none"
+    assert out["spectral_provenance"] == {"source": "client", "unverified": True}
+
+
+async def test_server_spectral_drives_kc_source_even_without_client_ndvi(monkeypatch):
+    import api.routers.crop_twin as module
+
+    async def verified_raster(*, field_id, tenant_id):
+        assert field_id == "field-1"
+        assert tenant_id
+        return {
+            "schema_version": "canonical_spectral_state.v1",
+            "indices": {"ndvi": 0.72},
+            "evidence_ids": ["s2-observed-1"],
+            "quality_status": "verified",
+        }
+
+    monkeypatch.setattr(module, "compose_server_authoritative_spectral_enabled", lambda: True)
+    monkeypatch.setattr(module, "resolve_canonical_spectral_state", verified_raster)
+    out = await compose_crop_twin(req=_req(field_id="field-1", ndvi=None), user=_USER)
+    assert out["kc_source_ar"] == "ديناميكيّ من NDVI"
+    assert out["kc_fapar"] is not None
+    assert out["spectral_provenance"] == {"source": "raster-service", "unverified": False}
