@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 817,
+          "line": 793,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 250,
+          "line": 231,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 817,
+          "line": 793,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -500,7 +500,7 @@
         },
         {
           "function": "metrics",
-          "line": 445,
+          "line": 426,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -635,7 +635,7 @@
         },
         {
           "function": "readyz",
-          "line": 464,
+          "line": 445,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -723,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 830,
+          "line": 806,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -961,7 +961,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 663,
+          "line": 639,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -1000,7 +1000,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 748,
+          "line": 724,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1116,7 +1116,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 695,
+          "line": 671,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1155,7 +1155,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 508,
+          "line": 489,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1186,7 +1186,7 @@
         },
         {
           "function": "recommend",
-          "line": 541,
+          "line": 522,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1119,
-  "route_inventory_sha256": "880dcc693a0c84e36839026228bb4dda3ab8e3f79b6c3db6478101fc6e29e90c",
+  "route_inventory_sha256": "dd51451063cab4e3b8659558e441b07de8c13f8e8847562f74ffa8b2f6baa5a0",
   "runtime_verified": false,
   "schema_version": 1
 }

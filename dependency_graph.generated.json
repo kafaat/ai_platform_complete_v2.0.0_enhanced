@@ -1,5 +1,5 @@
 {
-  "edge_count": 946,
+  "edge_count": 943,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -92,7 +92,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/services/api.ts:571",
+      "evidence": "frontend/src/services/api.ts:569",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -869,6 +869,16 @@
       "relation": "READS",
       "resource": "db://execution_ledger",
       "to": "db://execution_ledger",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/persistence.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://online_learning_updates",
+      "to": "db://online_learning_updates",
       "to_kind": "resource"
     },
     {
@@ -4372,16 +4382,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/field_twin.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://seasons",
-      "to": "db://seasons",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/routers/fields.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4482,16 +4482,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/water_twin.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://seasons",
-      "to": "db://seasons",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/routers/yield_analysis.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4532,27 +4522,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/tests/test_field_twin_endpoint.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://seasons",
-      "to": "db://seasons",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/tests/test_season_spatial_provenance.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://seasons",
-      "to": "db://seasons",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9480,7 +9450,7 @@
     "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 490,
+    "READS": 487,
     "ROUTES_TO": 72,
     "WRITES": 332
   },
@@ -9497,8 +9467,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 823,
-      "resolved": 822,
+      "observed": 820,
+      "resolved": 819,
       "unresolved_component_paths": 0
     }
   }

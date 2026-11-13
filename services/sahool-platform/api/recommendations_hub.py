@@ -24,9 +24,10 @@ api/recommendations_hub.py — مُجمِّع التوصيات الموحَّد 
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 
 from core.season_phenology import resolve_crop_id, stage_kc
 
@@ -473,3 +474,33 @@ def build_recommendations(
         )
     )
     return recs
+
+
+# ─── persistence helpers for the recommendations router (S-H2; router size ceiling) ───
+def recommendation_issued_at(value) -> datetime | None:
+    """The engine's ``timestamp`` as an aware ``datetime`` for the timestamptz column.
+
+    S-H2: the ISO string was passed straight to ``$11::timestamptz``; asyncpg rejects a ``str``
+    for a timestamptz parameter at execute time, the best-effort ``except`` swallowed it, and
+    every recommendation answered 200 with nothing stored. The engine stamps
+    ``datetime.now().isoformat()`` (naive, local clock), so a naive value is read as local time.
+    An unparseable stamp is stored as NULL (the column is nullable) rather than dropping the row.
+    """
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            logging.getLogger(__name__).warning(
+                "recommendation timestamp is not ISO-8601: %r", value
+            )
+            return None
+    return parsed if parsed.tzinfo is not None else parsed.astimezone()
+
+
+def with_persisted_flag(body, persisted: bool):
+    """Add the truthful ``persisted`` flag to a JSON object body (other bodies pass through)."""
+    return {**body, "persisted": persisted} if isinstance(body, dict) else body

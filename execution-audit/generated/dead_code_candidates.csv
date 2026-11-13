@@ -179,7 +179,7 @@ medium,sahool-platform,function,field_imagery_available_dates,services/sahool-pl
 medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,777,0,review_before_delete,False
 medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2428,0,review_before_delete,False
 medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3699,0,review_before_delete,False
-medium,sahool-platform,function,send_to_subscriber,services/sahool-platform/api/routers/notifications.py,316,0,review_before_delete,False
+medium,sahool-platform,function,send_to_subscriber,services/sahool-platform/api/routers/notifications.py,320,0,review_before_delete,False
 medium,sahool-platform,function,irrigation_due_by_soil,services/sahool-platform/api/soil_water.py,91,0,review_before_delete,False
 medium,sahool-platform,function,generate_block_assignments,services/sahool-platform/api/trial_randomization.py,108,0,review_before_delete,False
 medium,sahool-platform,function,verify_assignment,services/sahool-platform/api/trial_randomization.py,150,0,review_before_delete,False
@@ -594,7 +594,7 @@ medium,sahool-platform,class,TestHybridGroupingByCropAndCultivar,services/sahool
 medium,sahool-platform,class,TestCalibrated,services/sahool-platform/tests/test_yield_interval_service.py,17,0,review_before_delete,False
 medium,sahool-platform,class,TestPending,services/sahool-platform/tests/test_yield_interval_service.py,35,0,review_before_delete,False
 medium,sahool-platform,class,TestCoverageMonotonicity,services/sahool-platform/tests/test_yield_interval_service.py,61,0,review_before_delete,False
-medium,soil-service,function,persist_snapshot,services/soil-service/soil_store.py,240,0,review_before_delete,False
+medium,soil-service,function,persist_snapshot,services/soil-service/soil_store.py,242,0,review_before_delete,False
 medium,soil-service,function,fetch_soil_properties,services/soil-service/soilgrids_client.py,148,0,review_before_delete,False
 medium,tts-service,function,policy_mode_from_me,services/tts-service/tts_tenant_policy.py,124,0,review_before_delete,False
 medium,tts-service,function,resolve_policy_mode,services/tts-service/tts_tenant_policy.py,193,0,review_before_delete,False

@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import os
+import re
 
 import pytest
 
@@ -29,6 +30,17 @@ _B = "00000000-0000-0000-0000-0000000000bb"
 
 def _h(tok: str) -> str:
     return hashlib.sha256(tok.encode()).hexdigest()
+
+
+def production_ingest_grants() -> str:
+    """The ``DO $$`` block ``migrations/apply_in_compose.sh`` runs for ``sahool_ingest``, verbatim."""
+    path = os.path.join(_REPO, "migrations", "apply_in_compose.sh")
+    with open(path, encoding="utf-8") as fh:
+        text = fh.read()
+    section = text.split('echo "─ دور خدمة الإدخال sahool_ingest', 1)[1]
+    match = re.search(r"\nDO \$\$\nBEGIN\n.*?\nEND \$\$;\n", section, re.S)
+    assert match, "apply_in_compose.sh: sahool_ingest grant block not found"
+    return match.group(0)
 
 
 @pytest.fixture
@@ -54,15 +66,14 @@ async def live_app():
         GRANT USAGE ON SCHEMA public TO sahool_ingest_resolver, sahool_ingest;
         GRANT SELECT ON external_ingest_sources TO sahool_ingest_resolver;
         ALTER FUNCTION resolve_ingest_source(TEXT) OWNER TO sahool_ingest_resolver;
-        GRANT SELECT, INSERT ON external_submissions TO sahool_ingest;
-        GRANT USAGE, SELECT ON SEQUENCE external_submissions_id_seq TO sahool_ingest;
-        GRANT EXECUTE ON FUNCTION resolve_ingest_source(TEXT) TO sahool_ingest;
         CREATE TABLE IF NOT EXISTS fields (field_id TEXT PRIMARY KEY, tenant_id UUID NOT NULL);
         ALTER TABLE fields ENABLE ROW LEVEL SECURITY; ALTER TABLE fields FORCE ROW LEVEL SECURITY;
         DROP POLICY IF EXISTS t ON fields;
         CREATE POLICY t ON fields USING (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''));
-        GRANT SELECT ON fields TO sahool_ingest;
     """)
+    # sahool_ingest's privileges come from the production role script, never from this test:
+    # a hand-written GRANT SELECT ON fields here hid that production never granted it.
+    await admin.execute(production_ingest_grants())
     # TRUNCATE لا يُطلق trigger الحذف الصفّيّ (الجدول append-only) — تنظيف سليم بين الاختبارات.
     await admin.execute("DELETE FROM external_ingest_sources; TRUNCATE external_submissions;")
     await admin.execute(
