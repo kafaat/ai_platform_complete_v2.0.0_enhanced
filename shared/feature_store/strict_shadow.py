@@ -4,10 +4,10 @@ Does not replace legacy feature-store APIs or authorize agronomic execution.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from hashlib import sha256
 import json
 import math
+from datetime import UTC, datetime
+from hashlib import sha256
 from typing import Any
 
 
@@ -17,7 +17,7 @@ def _timestamp(value: Any) -> datetime:
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     if parsed.tzinfo is None:
         raise ValueError("timezone required")
-    return parsed.astimezone(timezone.utc)
+    return parsed.astimezone(UTC)
 
 
 def strict_shadow_snapshot(
