@@ -6,7 +6,6 @@ from datetime import date, timedelta
 from types import SimpleNamespace
 
 import pytest
-
 from api.season_simulation import (
     DayWeather,
     SimContext,
