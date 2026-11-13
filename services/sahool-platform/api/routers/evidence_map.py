@@ -87,6 +87,37 @@ async def _fields_only_rows(conn, tenant_id) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def _apply_owner_counts(fields: list[dict], response: dict, tenant_id: str) -> None:
+    """Pure: copy decision-service field counts onto ``fields``, or raise 502.
+
+    The owner must answer authoritatively, for this tenant, for exactly these fields, with
+    non-negative integer counts where successes never exceed outcomes. Anything else is an
+    owner failure, never an empty or verified field.
+    """
+    ids = [row["field_id"] for row in fields]
+    counts = response.get("counts")
+    if (
+        response.get("authoritative") is not True
+        or response.get("tenant_id") != tenant_id
+        or not isinstance(counts, dict)
+        or set(counts) != set(ids)
+    ):
+        raise HTTPException(502, "incomplete or mismatched field evidence")
+    for row in fields:
+        values = counts[row["field_id"]]
+        if (
+            not isinstance(values, dict)
+            or any(
+                type(values.get(k)) is not int or values[k] < 0
+                for k in ("decisions", "outcomes", "successes")
+            )
+            or values["successes"] > values["outcomes"]
+        ):
+            raise HTTPException(502, "invalid field evidence counts")
+        for key in ("decisions", "outcomes", "successes", "last_outcome_at"):
+            row[key] = values.get(key)
+
+
 @router.get("/api/v1/evidence/map")
 async def evidence_map_endpoint(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
@@ -123,27 +154,7 @@ async def evidence_map_endpoint(
         response = await decision_post_json(
             "/v1/evidence/field-counts", {"field_ids": ids}, tenant_id=tenant_id
         )
-        counts = response.get("counts")
-        if (
-            response.get("authoritative") is not True
-            or response.get("tenant_id") != tenant_id
-            or not isinstance(counts, dict)
-            or set(counts) != set(ids)
-        ):
-            raise HTTPException(502, "incomplete or mismatched field evidence")
-        for row in fields:
-            values = counts[row["field_id"]]
-            if (
-                not isinstance(values, dict)
-                or any(
-                    type(values.get(k)) is not int or values[k] < 0
-                    for k in ("decisions", "outcomes", "successes")
-                )
-                or values["successes"] > values["outcomes"]
-            ):
-                raise HTTPException(502, "invalid field evidence counts")
-            for key in ("decisions", "outcomes", "successes", "last_outcome_at"):
-                row[key] = values.get(key)
+        _apply_owner_counts(fields, response, tenant_id)
 
     out = shape_evidence_map(fields, generated_at=datetime.now(UTC).isoformat())
     out["provenance"]["decision_source"] = "decision-service" if remote else "sahool-platform"

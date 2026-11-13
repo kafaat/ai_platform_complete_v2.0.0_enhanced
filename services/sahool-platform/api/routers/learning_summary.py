@@ -89,11 +89,8 @@ class _LearningInputs(BaseModel):
     dispatch_links: dict[str, str]
 
 
-async def _owner_summary(user: UserSchema) -> dict:
-    tenant = str(user.tenant_id)
-    inputs = await decision_get_json(
-        "/v1/learning/summary", tenant_id=tenant, params={"dashboard_inputs": "true"}
-    )
+def _validated_owner_inputs(inputs: dict, tenant: str) -> _LearningInputs:
+    """Pure: the decision-service snapshot, or 503 (not authoritative for this tenant) / 502."""
     if inputs.get("authoritative") is not True or inputs.get("tenant_id") != tenant:
         raise HTTPException(503, "authoritative learning data unavailable for tenant")
     try:
@@ -106,8 +103,40 @@ async def _owner_summary(user: UserSchema) -> dict:
         for row in rows
     ):
         raise HTTPException(502, "learning snapshot contains a different tenant")
+    return snapshot
+
+
+def _owner_learning_result(
+    snapshot: _LearningInputs, regions: dict[str, str | None] | None
+) -> dict:
+    """Pure: summarize the owner snapshot; the platform contributes only field → region.
+
+    ``regions`` is None when no recommendation names a field (no platform read happened).
+    """
     recommendations = [row.model_dump() for row in snapshot.recommendations]
-    fields = sorted({row["field_id"] for row in recommendations if row["field_id"]})
+    if regions is not None:
+        for row in recommendations:
+            row["region"] = regions.get(row["field_id"])
+    result = summarize_learning_with_reconciled_outcomes(
+        [row.model_dump() for row in snapshot.decisions],
+        [row.model_dump() for row in snapshot.outcomes],
+        recommendations,
+        dispatch_links=snapshot.dispatch_links,
+    )
+    _isoformat_stamps(result)
+    return result
+
+
+async def _owner_summary(user: UserSchema) -> dict:
+    tenant = str(user.tenant_id)
+    snapshot = _validated_owner_inputs(
+        await decision_get_json(
+            "/v1/learning/summary", tenant_id=tenant, params={"dashboard_inputs": "true"}
+        ),
+        tenant,
+    )
+    fields = sorted({row.field_id for row in snapshot.recommendations if row.field_id})
+    regions: dict[str, str | None] | None = None
     if fields:
         try:
             async with tenant_connection(user) as conn:
@@ -120,16 +149,7 @@ async def _owner_summary(user: UserSchema) -> dict:
         except Exception as exc:
             raise _db_unavailable("قراءة مناطق الحقول", exc) from exc
         regions = {r["field_id"]: r["region"] for r in records}
-        for row in recommendations:
-            row["region"] = regions.get(row["field_id"])
-    result = summarize_learning_with_reconciled_outcomes(
-        [row.model_dump() for row in snapshot.decisions],
-        [row.model_dump() for row in snapshot.outcomes],
-        recommendations,
-        dispatch_links=snapshot.dispatch_links,
-    )
-    _isoformat_stamps(result)
-    return result
+    return _owner_learning_result(snapshot, regions)
 
 
 @router.get("/api/v1/learning/summary")

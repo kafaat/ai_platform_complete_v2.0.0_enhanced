@@ -327,11 +327,9 @@ async def test_execute_refuses_client_claimed_approval_before_any_write(monkeypa
     from api.routers import decision_dispatch as route
 
     monkeypatch.setenv("SAHOOL_DECISION_DISPATCH", "true")
-
-    def no_db(_user):
-        raise AssertionError("refused before opening a tenant connection")
-
-    monkeypatch.setattr(route, "tenant_connection", no_db)
+    # No pool: the real tenant_connection would raise 503 on any DB access, so a 409 here is
+    # a refusal before a connection is opened (and so before any write).
+    monkeypatch.setattr(api.main, "_DB_POOL", None)
     base = dict(
         recommendation_id="r",
         action_type="irrigation",

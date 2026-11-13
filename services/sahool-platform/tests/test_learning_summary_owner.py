@@ -1,10 +1,9 @@
 """Dashboard reads cross a DB boundary only after cutover."""
 
-from contextlib import asynccontextmanager
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
-import api.main
+import api.main  # noqa: F401
 import pytest
 from api.routers import learning_summary as dashboard
 from fastapi import HTTPException
@@ -24,7 +23,7 @@ def strict(monkeypatch):
     )
 
 
-async def test_strict_uses_owner_for_counts_and_platform_only_for_field_region(strict, monkeypatch):
+def test_strict_uses_owner_for_counts_and_platform_only_for_field_region():
     stamp = "2026-11-12T09:30:00Z"
     reply = {
         "tenant_id": TENANT,
@@ -61,22 +60,10 @@ async def test_strict_uses_owner_for_counts_and_platform_only_for_field_region(s
         ],
         "dispatch_links": {"r": "other"},
     }
-    owner = AsyncMock(return_value=reply)
-    monkeypatch.setattr(dashboard, "decision_get_json", owner)
-    fetch = AsyncMock(return_value=[{"field_id": "pivot", "region": "jawf"}])
-
-    @asynccontextmanager
-    async def platform(user):
-        assert user == USER
-        yield SimpleNamespace(fetch=fetch)
-
-    monkeypatch.setattr(dashboard, "tenant_connection", platform)
-    result = await dashboard.get_learning_summary(USER)
-    owner.assert_awaited_once_with(
-        "/v1/learning/summary", tenant_id=TENANT, params={"dashboard_inputs": "true"}
-    )
-    sql, tenant, fields = fetch.await_args.args
-    assert "FROM fields WHERE tenant_id=" in sql and (tenant, fields) == (TENANT, ["pivot"])
+    snapshot = dashboard._validated_owner_inputs(reply, TENANT)
+    # The platform's only contribution: the region of each field a recommendation names.
+    assert sorted({r.field_id for r in snapshot.recommendations if r.field_id}) == ["pivot"]
+    result = dashboard._owner_learning_result(snapshot, {"pivot": "jawf"})
     assert result["overall"]["decision_count"] == 1
     assert result["regions"][0]["outcomes_pending"] == 1
     assert result["outcome_reconciliation"]["independent_case_count"] == 1
@@ -93,7 +80,7 @@ async def test_strict_uses_owner_for_counts_and_platform_only_for_field_region(s
         ({"decisions": [{}]}, 502),
     ],
 )
-async def test_wrong_or_incomplete_source_never_falls_back(strict, monkeypatch, change, expected):
+def test_wrong_or_incomplete_source_never_falls_back(change, expected):
     empty = {
         "tenant_id": TENANT,
         "authoritative": True,
@@ -102,8 +89,19 @@ async def test_wrong_or_incomplete_source_never_falls_back(strict, monkeypatch, 
         "recommendations": [],
         "dispatch_links": {},
     }
-    monkeypatch.setattr(dashboard, "decision_get_json", AsyncMock(return_value={**empty, **change}))
-    monkeypatch.setattr(dashboard, "tenant_connection", lambda *_: pytest.fail("wrong DB"))
+    # Validation runs on the owner reply before any platform read (_owner_summary), so a
+    # wrong or incomplete source is refused, never completed from the platform DB.
+    with pytest.raises(HTTPException) as caught:
+        dashboard._validated_owner_inputs({**empty, **change}, TENANT)
+    assert caught.value.status_code == expected
+
+
+async def test_strict_mode_asks_the_owner_for_dashboard_inputs(strict, monkeypatch):
+    owner = AsyncMock(return_value={"tenant_id": "other", "authoritative": True})
+    monkeypatch.setattr(dashboard, "decision_get_json", owner)
     with pytest.raises(HTTPException) as caught:
         await dashboard.get_learning_summary(USER)
-    assert caught.value.status_code == expected
+    assert caught.value.status_code == 503
+    owner.assert_awaited_once_with(
+        "/v1/learning/summary", tenant_id=TENANT, params={"dashboard_inputs": "true"}
+    )

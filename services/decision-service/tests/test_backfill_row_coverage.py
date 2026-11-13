@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from uuid import uuid4
 
+import asyncpg
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -34,7 +35,8 @@ def test_verify_rows_id_content_tenant_destination_and_duplicate(monkeypatch):
                     )
 
             async def scoped(url):
-                conn = await connect(url)
+                # Same driver call as backfill._connect, bound to the private fixture schema.
+                conn = await asyncpg.connect(url, statement_cache_size=0)
                 await conn.execute(f"SET search_path TO {schema}")
                 return conn
 
