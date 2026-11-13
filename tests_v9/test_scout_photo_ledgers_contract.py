@@ -671,9 +671,14 @@ def test_staging_gates_refuse_anything_but_an_explicit_staging_run(stage, monkey
         env = {"PATH": "/usr/bin:/bin"}
         if value:
             env["SCOUT_ACCEPTANCE_ENV"] = value
-        result = subprocess.run(
-            ["bash", str(script)], env=env, capture_output=True, text=True, check=False
-        )  # noqa: S603, S607
+        result = subprocess.run(  # noqa: S603, S607
+            ["bash", str(script)],
+            env=env,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
         assert result.returncode == 64, result.stderr
         assert "REFUSED" in result.stderr
 
