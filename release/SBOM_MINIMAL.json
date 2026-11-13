@@ -6925,7 +6925,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea377090374c62e60a37652ede3d8ee6f62f2a5909ea5ffde984f3d49c83fe4f"
+          "content": "81178650131b988007ef83fe0e0f329999fcdc5cca8fa637e145f760b981c47c"
+        }
+      ],
+      "name": "frontend/src/sections/SettingsPage.teamRoles.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c75020eb81de9cc77b1bfffda134b499a72bac7f6be430cd1a5f0e8c93e17714"
         }
       ],
       "name": "frontend/src/sections/SettingsPage.tsx",
@@ -7295,7 +7305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df7d32a00aefc91fb9b43233c00744bcb36229b3d4d0e2265090c1780c4d9410"
+          "content": "bdc6d7358e9d0e57f7d817658d993a1f5195b05372abf1939c59300b7a88ef9e"
         }
       ],
       "name": "frontend/src/services/api/auth.ts",
@@ -17605,7 +17615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b0400973121e6abcdab3075d3d9c4947c208813a2fcc111711bd270d324e34c7"
+          "content": "04772b55c5f11fc90439035405df7c63d0261b310fec1e570dc1539ecd93a4eb"
         }
       ],
       "name": "services/auth/main.py",
@@ -17785,7 +17795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "923c32ae81a6f85141578a3ec7157d442553c021162428be9b5078500f19780c"
+          "content": "6e3cc61a2eafc624de19f810ee5d2b631e18a0a72cd9f72caaed61d3141be6cf"
         }
       ],
       "name": "services/auth/routers/users.py",

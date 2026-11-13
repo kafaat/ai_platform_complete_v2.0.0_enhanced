@@ -2168,6 +2168,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/sections/SettingsPage.teamRoles.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
     "kind": "tests"
   },
@@ -10777,6 +10781,10 @@
   },
   {
     "path": "tests_v9/test_auth_signup_owner.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_team_managers_c37.py",
     "kind": "tests"
   },
   {

@@ -442,7 +442,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 60,
+    "line": 67,
     "method": "GET",
     "path": "/v1/auth/users",
     "function": "list_users"
@@ -450,7 +450,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 74,
+    "line": 81,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/role",
     "function": "change_role"
@@ -458,7 +458,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 125,
+    "line": 132,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/deactivate",
     "function": "deactivate_user"
