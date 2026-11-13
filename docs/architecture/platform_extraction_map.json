@@ -1636,7 +1636,7 @@
       "function": "crop_decision_candidate_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
-      "line": 296,
+      "line": 302,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision-candidate::crop_decision_candidate_endpoint",
@@ -1647,7 +1647,7 @@
       "function": "profit_aware_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
-      "line": 527,
+      "line": 533,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision/profit-aware::profit_aware_decision_endpoint"
@@ -1657,7 +1657,7 @@
       "function": "crop_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
-      "line": 403,
+      "line": 409,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision::crop_decision_endpoint"
@@ -2793,7 +2793,7 @@
       "function": "get_field_twin",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/twin",
-      "line": 38,
+      "line": 40,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/field_twin.py::GET /api/v1/fields/{field_id}/twin::get_field_twin"
@@ -5734,7 +5734,7 @@
       "function": "field_water_twin",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/water-twin",
-      "line": 197,
+      "line": 198,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/water_twin.py::POST /api/v1/fields/{field_id}/water-twin::field_water_twin"
