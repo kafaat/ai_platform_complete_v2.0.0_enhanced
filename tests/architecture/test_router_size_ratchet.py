@@ -61,8 +61,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     "services/raster-service/routers/fields.py": 1654,
     # 1029 → 1027 (audit security batch 2026-11-01): T6 request_digest consolidation.
     # 1027 → 996 (wave 2, 2026-11-08): budget/actual fetch moved to core.farm_operations_ledger
-    # while the planned-vs-executed status filter landed here.
-    "services/sahool-platform/api/routers/farm_operations_ledger.py": 996,
+    # while the planned-vs-executed status filter landed here. 996 → 988 (2026-11-12): tenant-scope
+    # lookups moved to core.farm_operations_ledger while the optional task link (v247) landed here.
+    "services/sahool-platform/api/routers/farm_operations_ledger.py": 988,
     "services/sahool-platform/api/routers/decision_review.py": 920,
 }
 
