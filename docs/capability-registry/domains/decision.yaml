@@ -285,8 +285,10 @@ capabilities:
   domain: decision
   owner: decision-service
   lifecycle: active
-  maturity: 3
-  evidence_level: 3
+  # maturity + evidence_level: lowered 2026-11-14 by owner decision (C-40 #1428); integration
+  # evidence was unit-marked contract tests; raise only with a real integration test
+  maturity: 2
+  evidence_level: 2
   status: repository_runtime_instrumentation_linked_production_unverified
   confidence: high
   production_certified: false
@@ -356,8 +358,10 @@ capabilities:
   domain: decision
   owner: decision-service
   lifecycle: active
-  maturity: 3
-  evidence_level: 3
+  # maturity + evidence_level: lowered 2026-11-14 by owner decision (C-40 #1428); integration
+  # evidence was unit-marked contract tests; raise only with a real integration test
+  maturity: 2
+  evidence_level: 2
   status: repository_runtime_instrumentation_linked_production_unverified
   confidence: high
   production_certified: false
@@ -770,8 +774,10 @@ capabilities:
   domain: decision
   owner: decision-service
   lifecycle: active
-  maturity: 3
-  evidence_level: 3
+  # maturity + evidence_level: lowered 2026-11-14 by owner decision (C-40 #1428); integration
+  # evidence was unit-marked contract tests; raise only with a real integration test
+  maturity: 2
+  evidence_level: 2
   status: repository_runtime_instrumentation_linked_production_unverified
   confidence: high
   production_certified: false

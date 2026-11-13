@@ -2,9 +2,9 @@
   "domains": [
     {
       "average_assessed_maturity": 2.1,
-      "average_declared_maturity": 2.8,
+      "average_declared_maturity": 2.5,
       "capability_count": 10,
-      "declared_above_evidence": 6,
+      "declared_above_evidence": 3,
       "domain": "decision",
       "maturity_distribution": {
         "0": 0,
@@ -19,9 +19,9 @@
     },
     {
       "average_assessed_maturity": 2.4,
-      "average_declared_maturity": 3.0,
+      "average_declared_maturity": 2.9,
       "capability_count": 10,
-      "declared_above_evidence": 4,
+      "declared_above_evidence": 3,
       "domain": "farm_management",
       "maturity_distribution": {
         "0": 0,
@@ -104,9 +104,9 @@
     },
     {
       "average_assessed_maturity": 2.33,
-      "average_declared_maturity": 2.89,
+      "average_declared_maturity": 2.67,
       "capability_count": 9,
-      "declared_above_evidence": 5,
+      "declared_above_evidence": 3,
       "domain": "satellite",
       "maturity_distribution": {
         "0": 0,
@@ -121,9 +121,9 @@
     },
     {
       "average_assessed_maturity": 2.0,
-      "average_declared_maturity": 3.0,
+      "average_declared_maturity": 2.88,
       "capability_count": 8,
-      "declared_above_evidence": 5,
+      "declared_above_evidence": 4,
       "domain": "security",
       "maturity_distribution": {
         "0": 0,
