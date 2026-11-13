@@ -92,7 +92,6 @@
       "soil_salinity_products::sahool-platform",
       "soil_sampling_plans::sahool-platform",
       "soil_spatial_products::sahool-platform",
-      "soil_terrain_products::sahool-platform",
       "soil_texture_products::sahool-platform",
       "soil_verification_records::sahool-platform",
       "soil_visual_observations::sahool-platform",
