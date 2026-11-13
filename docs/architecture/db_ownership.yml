@@ -2055,7 +2055,13 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: [sahool-platform]
-    source: "migrations/v248_inspection_handoffs.sql, migrations/v254_inspection_review.sql, services/sahool-platform/api/routers/scouting.py, services/sahool-platform/api/routers/tasks.py"
+    source: "migrations/v248_inspection_handoffs.sql, migrations/v254_inspection_review.sql, migrations/v256_inspection_evidence_versions.sql, services/sahool-platform/api/routers/scouting.py, services/sahool-platform/api/routers/tasks.py"
+  # v256: append-only evidence versions (photo_url + notes) that inspection reviews bind to.
+  inspection_evidence_versions:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v256_inspection_evidence_versions.sql, services/sahool-platform/api/routers/scouting.py, services/sahool-platform/api/routers/tasks.py"
   task_expense_links:
     owner: sahool-platform
     writers: [sahool-platform]

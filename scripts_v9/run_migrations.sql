@@ -637,9 +637,11 @@
 \i migrations/v254_inspection_review.sql
 \echo '═══ 246. v255_soil_sampling_origin.sql ═══'
 \i migrations/v255_soil_sampling_origin.sql
-\echo '═══ 247. v258_lab_water_revisions_plan_copies.sql ═══'
+\echo '═══ 247. v256_inspection_evidence_versions.sql ═══'
+\i migrations/v256_inspection_evidence_versions.sql
+\echo '═══ 248. v258_lab_water_revisions_plan_copies.sql ═══'
 \i migrations/v258_lab_water_revisions_plan_copies.sql
-\echo '═══ 248. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 249. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 249. v206_rls_final_hardening.sql ═══'
+\echo '═══ 250. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

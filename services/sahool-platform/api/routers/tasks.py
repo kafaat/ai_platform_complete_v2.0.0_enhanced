@@ -40,6 +40,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.routers.scouting import approved_evidence_holds, record_evidence
 from api.task_irrigation_observations import list_observations
 
 router = APIRouter()
@@ -172,24 +173,48 @@ async def update_task(
                         task_id,
                         user.tenant_id,
                     )
-                if req.status == "completed":
-                    inspection = await conn.fetchval(
-                        """SELECT task_id FROM field_tasks WHERE task_id::text=$1 AND tenant_id=$2::uuid
-                           AND source_scouting_pin_id IS NOT NULL AND status IS DISTINCT FROM 'completed'
-                           FOR UPDATE""",
+                evidence_change = req.photo_url is not None or req.notes is not None
+                pin = None
+                if req.status == "completed" or evidence_change:
+                    pin = await conn.fetchrow(
+                        """SELECT task_id, field_id, status, photo_url, notes FROM field_tasks
+                           WHERE task_id::text=$1 AND tenant_id=$2::uuid
+                           AND source_scouting_pin_id IS NOT NULL FOR UPDATE""",
                         task_id,
                         user.tenant_id,
                     )
-                    if inspection is not None:
-                        latest = await conn.fetchval(
-                            """SELECT action FROM inspection_handoffs WHERE task_id=$1 AND tenant_id=$2::uuid
-                               ORDER BY revision DESC LIMIT 1""",
-                            inspection,
-                            user.tenant_id,
+                if pin is not None:
+                    photo = pin["photo_url"] if req.photo_url is None else req.photo_url
+                    notes = pin["notes"] if req.notes is None else req.notes
+                    if req.status == "completed" and pin["status"] != "completed":
+                        # v256: the approval covers one evidence version. Closing on a photo or
+                        # notes the reviewer has not seen is refused until that version is approved.
+                        holds = await approved_evidence_holds(
+                            conn, user.tenant_id, pin["task_id"], photo, notes
                         )
-                        if latest != "approve":
+                        if holds is None:
                             raise HTTPException(
                                 409, "تتطلب زيارة التفتيش اعتماد نتيجتها قبل الإغلاق"
+                            )
+                        if not holds:
+                            raise HTTPException(
+                                409,
+                                "تغيرت صورة الزيارة أو ملاحظاتها بعد الاعتماد. يلزم اعتماد النسخة الجديدة",
+                            )
+                    if evidence_change and (photo, notes) != (pin["photo_url"], pin["notes"]):
+                        # Keep what was shown before the change (if anything), then the change.
+                        before = (pin["photo_url"], pin["notes"])
+                        shown_list = [(photo, notes)]
+                        if before != (None, None):
+                            shown_list.insert(0, before)
+                        for shown in shown_list:
+                            await record_evidence(
+                                conn,
+                                user.tenant_id,
+                                pin["field_id"],
+                                pin["task_id"],
+                                str(user.user_id),
+                                *shown,
                             )
                 row = await conn.fetchrow(query, *vals)
                 # حدث تحديث المهمّة (تفاعليّ): يبثّه وكيل الإشعارات للواجهة حيّاً. داخل

@@ -5,7 +5,7 @@
 // محكومة بالدور (RBAC: المُشاهِد لا يُعدّل). لا تلفيق.
 // ═══════════════════════════════════════════════════════════════
 import { InspectionHandoff } from './InspectionHandoff';
-import { TaskCostTrace } from './TaskCostTrace';
+import { TaskCostTrace, TaskExpenseLink } from './TaskCostTrace';
 import { TaskSatelliteEvidence } from './TaskSatelliteEvidence';
 import { useState } from 'react';
 import TaskIrrigationObservationPanel from './TaskIrrigationObservationPanel';
@@ -18,7 +18,7 @@ import { kongApi } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useTasks, useCompleteTask } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
-import { canAccess, canMutate } from '../lib/permissions';
+import { canAccess, canMutate, canRecordExpense } from '../lib/permissions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { Card, Button, Pill } from '../components/ds/atoms';
 import { Select } from '../components/ds/forms';
@@ -64,6 +64,7 @@ const PRIORITY_MAP: Record<number, string> = { 1: 'حرج', 2: 'عالٍ', 3: '�
 export default function TasksPage() {
   const { user, tenantId } = useAuthStore();
   const canViewCosts = canAccess(user?.role, 'analytics');
+  const canRecordCost = canRecordExpense(user?.role);
   const mutateAllowed = canMutate(user?.role, 'field');
   const { data, isLoading, isError, refetch, isFetching } = useTasks();
   const completeMut = useCompleteTask();
@@ -177,7 +178,8 @@ export default function TasksPage() {
               {canViewCosts && task.actual_cost_usd != null && <span>التكلفة الفعلية: ${task.actual_cost_usd}</span>}
             </div>
             {canViewCosts && tenantId && <TaskCostTrace key={user?.email} taskId={task.task_id} fieldId={task.field_id}
-              tenant={tenantId} subject={user?.email ?? ''} amount={task.actual_cost_usd} canRecord={mutateAllowed} />}
+              tenant={tenantId} subject={user?.email ?? ''} amount={task.actual_cost_usd} canRecord={canRecordCost} />}
+            {!canViewCosts && canRecordCost && <p className="my-2 text-sm"><TaskExpenseLink taskId={task.task_id} fieldId={task.field_id} /></p>}
             {task.photo_url && (
               <div className="mt-2">
                 <img src={task.photo_url} alt="معاينة" loading="lazy" decoding="async" className="h-20 rounded-lg object-cover" />

@@ -47,9 +47,17 @@ class _InspectionReviewPanelState extends State<InspectionReviewPanel> {
     }
   }
 
+  static String evidenceLine(String label, Map item) => [
+        '$label ${item['version'] ?? ''}'.trim(),
+        if (item['photo_url'] != null) '${item['photo_url']}',
+        if (item['notes'] != null) '${item['notes']}',
+      ].join(' · ');
+
   @override
   Widget build(BuildContext context) {
     final state = history;
+    final approved = state?['approved_evidence'];
+    final current = state?['current_evidence'];
     final actions = [
       if (state?['can_accept'] == true) 'accept',
       if (state?['can_submit'] == true) 'submit',
@@ -57,6 +65,12 @@ class _InspectionReviewPanelState extends State<InspectionReviewPanel> {
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('نتيجة التفتيش وسجل المراجعة'),
+      // v256: the approved version stays readable; a later photo or note waits for review.
+      if (approved is Map) Text(evidenceLine('النسخة المعتمدة', approved)),
+      if (approved is Map && current is Map && current['version'] != approved['version'])
+        Text(evidenceLine('نسخة بانتظار المراجعة', current)),
+      if (approved is Map && state?['evidence_pending_review'] == true)
+        const Text('تغيرت الصورة أو الملاحظات بعد الاعتماد. لا تُغلق الزيارة قبل اعتماد النسخة الجديدة'),
       for (final event in (state?['events'] as List? ?? []).whereType<Map>())
         Text('${labels[event['action']] ?? ''} · ${event['actor']} · ${event['reason'] ?? ''}'),
       if (error != null) Text(error!),

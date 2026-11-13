@@ -27,22 +27,30 @@ type Props = {
   taskId: string; fieldId: string; tenant: string; subject: string; amount?: number | null; canRecord: boolean;
 };
 
+/** Opens the farm book on this task. Needs only the expense-write permission (activity:execute),
+ *  so a worker records the receipt without the analytics permission or any cost total. */
+export function TaskExpenseLink({ taskId, fieldId, farmId, amount }: {
+  taskId: string; fieldId: string; farmId?: string; amount?: number | null;
+}) {
+  const params = new URLSearchParams({ task_id: taskId, field_id: fieldId });
+  if (farmId) params.set('farm_id', farmId);
+  if (amount != null && amount > 0) params.set('cost_usd', String(amount));
+  return <a href={'/ops/farm-book?' + params.toString()} className="underline">تسجيل مصروف أو ربط قيد سابق</a>;
+}
+
 export function TaskCostTrace({ taskId, fieldId, tenant, subject, amount, canRecord }: Props) {
   const [open, setOpen] = useState(false);
   const trace = useQuery({
     queryKey: ['task-cost-trace', tenant, taskId, subject], enabled: open, retry: false,
     queryFn: async () => (await kongApi.get<Trace>('/api/v1/tasks/' + encodeURIComponent(taskId) + '/cost-trace')).data,
   });
-  const params = new URLSearchParams({ task_id: taskId, field_id: fieldId });
-  if (trace.data?.task.farm_id) params.set('farm_id', trace.data.task.farm_id);
-  if (amount != null && amount > 0) params.set('cost_usd', String(amount));
   return <section className="my-2 space-y-2 text-sm">
     <button type="button" className="underline" aria-expanded={open} onClick={() => setOpen(!open)}>تتبع التكلفة والقيود</button>
+    {canRecord && <TaskExpenseLink taskId={taskId} fieldId={fieldId} farmId={trace.data?.task.farm_id} amount={amount} />}
     {open && <>
       {trace.isLoading && <p>جارٍ تحميل السجل…</p>}
       {trace.isError && <p role="alert">تعذرت قراءة السجل. تحقق من صلاحية عرض التحليلات.</p>}
       {trace.isSuccess && <>
-        {canRecord && <a href={'/ops/farm-book?' + params.toString()} className="underline">تسجيل مصروف أو ربط قيد سابق</a>}
         {trace.data.changes.length === 0 && <p>لا تغييرات مسجلة منذ تفعيل التتبع.</p>}
         {trace.data.changes.map((change, i) => <p key={i}>{change.changed_at} · {change.changed_by ?? 'غير مسجل'} ·
           {' من '}{change.previous_usd ?? '—'} إلى {change.actual_usd ?? '—'} USD · {change.status}</p>)}
