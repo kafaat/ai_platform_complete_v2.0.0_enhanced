@@ -61,7 +61,8 @@ def strict_shadow_snapshot(
             continue
         features = record.get("features")
         if not isinstance(features, dict) or not features or any(
-            not isinstance(k, str) or not k
+            not isinstance(k, str)
+            or not k
             or isinstance(v, bool)
             or not isinstance(v, (str, int, float))
             or (isinstance(v, (int, float)) and not math.isfinite(v))
@@ -113,7 +114,9 @@ def strict_shadow_snapshot(
         "max_age_hours": max_age_hours,
         "rows": rows,
     }
-    digest = sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()).hexdigest()
+    digest = sha256(
+        json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()
+    ).hexdigest()
     return {
         "snapshot_id": f"pit_{digest[:20]}",
         "row_count": len(rows),
