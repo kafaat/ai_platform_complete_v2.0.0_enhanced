@@ -315,7 +315,7 @@
     "service": "soil-service",
     "domain": "Soil Intelligence",
     "python_files": 58,
-    "python_loc": 7269,
+    "python_loc": 7270,
     "tests": 22,
     "routes": 60,
     "main": "services/soil-service/main.py",
