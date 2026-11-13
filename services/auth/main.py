@@ -415,8 +415,6 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    # X-MFA-Code: step-up MFA header the web client sends on admin user management
-    # (frontend/src/services/api/auth.ts changeUserRole/deactivateUser). C-39.
     allow_headers=["Authorization", "Content-Type", "X-Tenant-ID", "X-MFA-Code"],
     expose_headers=["X-Tenant-ID"],
     allow_credentials=True,
