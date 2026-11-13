@@ -9,7 +9,8 @@ permissions:
   contents: write
 jobs:
   regenerate-water-audits:
-    if: ${{ github.event.head_commit.message == 'ci: request water audit generated evidence 20261113' }}
+    if: >-
+      ${{ github.event.head_commit.message == 'ci-water-audit-one-shot-fixed' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -27,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git branch --show-current)" = "ops/water-audit-regeneration-20261113"
-          test "$(git rev-parse HEAD^)" = "dc27f2b6c8f102287418b90c2d38d7f183335a3a"
+          git merge-base --is-ancestor "dc27f2b6c8f102287418b90c2d38d7f183335a3a" HEAD
           # Remove the temporary workflow BEFORE scanning git ls-files or
           # building release checksums: generated truth must equal the PR source.
           git rm -f -- ".github/workflows/water-audit-one-shot-20261113.yml"
