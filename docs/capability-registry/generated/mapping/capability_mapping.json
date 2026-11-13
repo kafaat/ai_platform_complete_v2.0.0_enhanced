@@ -15,12 +15,12 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7175,
+    "files_scanned": 7174,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
-      "mobile": 415,
+      "mobile": 414,
       "other": 2166,
       "tests": 2415,
       "web": 524
@@ -28,13 +28,13 @@
     "unmapped_artifacts": 3415,
     "ambiguous_artifacts": 235,
     "files_by_reading": {
-      "python_functional": 3868,
-      "raw": 3307
+      "python_functional": 3869,
+      "raw": 3305
     },
-    "test_dependency_files": 1820,
-    "test_dependency_edges": 4620,
+    "test_dependency_files": 1822,
+    "test_dependency_edges": 4622,
     "test_dependency_bounded_files": 1062,
-    "test_dependency_unresolved_relations": 456
+    "test_dependency_unresolved_relations": 457
   },
   "capabilities": [
     {
@@ -3132,23 +3132,23 @@
           "score": 28
         },
         {
-          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:486",
+          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:527",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:246",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:279",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:417",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:458",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:507",
+          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:548",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:450",
+          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:491",
           "score": 17
         },
         {
@@ -4446,6 +4446,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_farm_book_corrections_and_categories.py",
+          "score": 14,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "tests_v9/test_farm_memory.py",
           "score": 14,
           "signals": [
@@ -4879,7 +4887,7 @@
         "events": 25,
         "web": 18,
         "mobile": 35,
-        "tests": 47,
+        "tests": 48,
         "governance": 0,
         "other_evidence": 22
       },
@@ -14246,15 +14254,6 @@
           ]
         },
         {
-          "path": "mobile/sahool_app/lib/features/scouting/presentation/disease_symptoms_dialog.dart",
-          "score": 14,
-          "signals": [
-            "path:Scouting",
-            "content:Scouting",
-            "dedup:Scouting=scouting"
-          ]
-        },
-        {
           "path": "mobile/sahool_app/lib/features/scouting/data/device_sources.dart",
           "score": 13,
           "signals": [
@@ -14347,15 +14346,6 @@
           ]
         },
         {
-          "path": "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
-          "score": 12,
-          "signals": [
-            "path:Scouting",
-            "content:Scouting",
-            "dedup:Scouting=scouting"
-          ]
-        },
-        {
           "path": "tests_v9/test_cropwise_evidence_quality.py",
           "score": 8,
           "signals": [
@@ -14393,8 +14383,8 @@
         "database": 4,
         "events": 7,
         "web": 6,
-        "mobile": 17,
-        "tests": 12,
+        "mobile": 16,
+        "tests": 11,
         "governance": 0,
         "other_evidence": 1
       },
@@ -76070,6 +76060,22 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_farm_book_corrections_and_categories.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "tree_wide_scan",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 44,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
       "test": "tests_v9/test_farm_memory.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -80666,6 +80672,28 @@
           "source": "scripts/ci/minio_s3_contract_gate.py",
           "kind": "source_read",
           "line": 36
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_mobile_backend_contract.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/test_frontend_api_v1_literal_has_server_route.py",
+          "kind": "loader",
+          "line": 73
+        },
+        {
+          "source": "tests_v9/test_frontend_api_v1_literal_has_server_route.py",
+          "kind": "source_read",
+          "line": 75
         }
       ],
       "unresolved": []

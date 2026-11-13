@@ -58,7 +58,6 @@ FROZEN_DEBT: dict[str, int] = {
     "tests_v9/test_confidence_failures.py": 3,
     "tests_v9/test_qualification_suite.py": 3,
     "tests_v9/test_v13_refinements.py": 3,
-    "tests_v9/test_mobile_backend_contract.py": 2,
 }
 
 
