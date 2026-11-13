@@ -39,7 +39,7 @@
     "service": "auth",
     "domain": "Identity & Access",
     "python_files": 22,
-    "python_loc": 2692,
+    "python_loc": 2739,
     "tests": 2,
     "routes": 29,
     "main": "services/auth/main.py",

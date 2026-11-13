@@ -181,7 +181,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 30,
       "module": "services.auth.routers.users",
       "node_id": "services.auth.routers.users:router",
       "route_count": 3,
@@ -2811,7 +2811,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "e79ad739be600418b923445150d661e22c0d6cff92a3dce70855ae3b914e2767",
+  "inventory_sha256": "20d0fd374690bbccd5d068d23514f1423abfe216fb7d024cead10db78cc9771f",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -2937,7 +2937,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 30,
       "module": "services.auth.routers.users",
       "node_id": "services.auth.routers.users:router",
       "route_count": 3,

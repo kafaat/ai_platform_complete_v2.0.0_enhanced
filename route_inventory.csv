@@ -54,9 +54,9 @@ auth,services/auth/routers/session.py,139,POST,/v1/auth/refresh,refresh_token
 auth,services/auth/routers/session.py,195,POST,/v1/auth/logout,logout
 auth,services/auth/routers/session.py,240,GET,/v1/auth/me,me
 auth,services/auth/routers/tenants.py,41,POST,/v1/auth/tenants,provision_tenant
-auth,services/auth/routers/users.py,23,GET,/v1/auth/users,list_users
-auth,services/auth/routers/users.py,32,PATCH,/v1/auth/users/{user_id}/role,change_role
-auth,services/auth/routers/users.py,74,PATCH,/v1/auth/users/{user_id}/deactivate,deactivate_user
+auth,services/auth/routers/users.py,60,GET,/v1/auth/users,list_users
+auth,services/auth/routers/users.py,74,PATCH,/v1/auth/users/{user_id}/role,change_role
+auth,services/auth/routers/users.py,125,PATCH,/v1/auth/users/{user_id}/deactivate,deactivate_user
 decision-service,services/decision-service/main.py,541,GET,/runtime-identity,runtime_identity
 decision-service,services/decision-service/main.py,547,GET,/healthz,healthz
 decision-service,services/decision-service/main.py,552,GET,/readyz,readyz
