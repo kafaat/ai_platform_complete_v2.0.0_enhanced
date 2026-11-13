@@ -59,13 +59,13 @@ jobs:
           assert new_test not in row["integration_test_paths"], row["integration_test_paths"]
           print("R11 maturity guard PASS: FM-001 source-test is UNIT, no false integration promotion")
           PY
-          python -m pytest -q tests_v9/test_tenant_provision_response_shape.py
+          python -m pytest -q --noconftest tests_v9/test_tenant_provision_response_shape.py
           python scripts/ci/verify_all_generated.py --check
           # The source checksum bundle is generated only after all other artifacts.
           python scripts/release/build_release_bundle.py
           git add -A
           python scripts/release/validate_release_package.py
-          python -m pytest -q tests/architecture/test_capability_mapping_engine.py tests/architecture/test_capability_compatibility_roundtrip_guard.py
+          python -m pytest -q --noconftest tests/architecture/test_capability_mapping_engine.py tests/architecture/test_capability_compatibility_roundtrip_guard.py
           python - <<'PY'
           import subprocess
           paths = subprocess.check_output(["git", "diff", "--cached", "--name-only"], text=True).splitlines()
