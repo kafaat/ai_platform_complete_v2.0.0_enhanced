@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 
+from jsonb_values import decode_jsonb_object
+
 
 async def _tenant(conn, tenant_id: str):
     await conn.execute("SELECT set_config('app.current_tenant_id',$1,true)", tenant_id)
@@ -47,7 +49,7 @@ async def save_product(
                 geometry_hash,
                 json.dumps(payload),
             )
-            return dict(row["payload"])
+            return decode_jsonb_object(row["payload"])
 
 
 async def get_latest(pool, *, table: str, tenant_id: str, field_id: str):
@@ -67,4 +69,4 @@ async def get_latest(pool, *, table: str, tenant_id: str, field_id: str):
                 tenant_id,
                 field_id,
             )
-            return dict(row["payload"]) if row else None
+            return decode_jsonb_object(row["payload"]) if row else None

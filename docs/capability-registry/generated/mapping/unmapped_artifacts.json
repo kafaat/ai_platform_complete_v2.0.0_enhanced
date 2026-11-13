@@ -1752,6 +1752,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/AnalyzeCabin.commonMask.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/ApprovalsConsolePage.tsx",
     "kind": "web"
   },
@@ -5232,10 +5236,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/raster-service/raster_field_coverage.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/raster-service/raster_http_policy.py",
     "kind": "backend"
   },
@@ -5313,6 +5313,10 @@
   },
   {
     "path": "services/raster-service/sar_rvi.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/sar_tillage_evidence.py",
     "kind": "backend"
   },
   {
@@ -5545,6 +5549,14 @@
   },
   {
     "path": "services/raster-service/test_tile_http_policy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_time_series_common_mask.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_time_series_trend_axis.py",
     "kind": "tests"
   },
   {
@@ -9580,6 +9592,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/soil-service/jsonb_values.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/soil-service/main.py",
     "kind": "backend"
   },
@@ -11317,6 +11333,10 @@
   },
   {
     "path": "tests_v9/test_device_telemetry_time_identity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_diagnose_crop_normalisation.py",
     "kind": "tests"
   },
   {

@@ -1,5 +1,5 @@
 {
-  "edge_count": 948,
+  "edge_count": 949,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -859,6 +859,16 @@
       "relation": "READS",
       "resource": "db://execution_ledger",
       "to": "db://execution_ledger",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/persistence.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://online_learning_updates",
+      "to": "db://online_learning_updates",
       "to_kind": "resource"
     },
     {
@@ -9500,7 +9510,7 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 491,
+    "READS": 492,
     "ROUTES_TO": 72,
     "WRITES": 334
   },
@@ -9517,8 +9527,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 826,
-      "resolved": 825,
+      "observed": 827,
+      "resolved": 826,
       "unresolved_component_paths": 0
     }
   }
