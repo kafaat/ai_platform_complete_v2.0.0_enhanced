@@ -1,7 +1,7 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "fea06378afab4414e15003f26c33d90e4a9476d7",
+  "measured_on": "47019ef3380fc3575db78e2d4cd6d9f7a5c45cd4",
   "reads": {
     "$comment": "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، f-string نصّاً واحداً). ثلاثُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا محكومٌ عليها. 'لم يُرصَد' ليس 'لا يقرأ': dynamic_table_sql_sites يعدّ ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ عبر مُساعد.",
     "declared_reader_unobserved": [
@@ -13,7 +13,6 @@
       "connector_registry::sahool-platform",
       "device_commands_log::sahool-platform",
       "digital_twin_scenarios::sahool-platform",
-      "dispatch_decisions::decision-service",
       "distributed_raster_jobs::sahool-platform",
       "equipment_telemetry_frames::sahool-platform",
       "erp_reconciliation_ledger::erp-bridge",
@@ -112,7 +111,7 @@
       "scripts/migrations/report_not_valid_constraint_violations.py": 2,
       "scripts/release/production_readiness_orchestrator.py": 1,
       "services/decision-service/activation_gate_core.py": 12,
-      "services/decision-service/backfill.py": 1,
+      "services/decision-service/backfill.py": 2,
       "services/decision-service/migration_runner.py": 2,
       "services/decision-service/persistence.py": 1,
       "services/sahool-platform/api/phase_runtime_workers.py": 4,
