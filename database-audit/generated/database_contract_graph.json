@@ -5689,6 +5689,7 @@
     },
     {
       "code_readers": [
+        "services/decision-service/persistence.py",
         "services/decision-service/tests/test_migration_033_pg16.py"
       ],
       "code_writers": [

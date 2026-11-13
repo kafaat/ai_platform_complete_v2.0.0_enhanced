@@ -862,6 +862,10 @@ async def read_outcomes_for_reconcile(
         await conn.close()
 
 
+class LearningUpdateConflict(Exception):
+    """The update id is already stored with a different payload (or by another tenant)."""
+
+
 async def persist_learning_update(
     *, tenant_id: str, payload: Any, update_id: str, traceability_status: str
 ) -> dict[str, Any]:
@@ -871,17 +875,12 @@ async def persist_learning_update(
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
-            await conn.execute(
-                """
-                INSERT INTO online_learning_updates
-                  (update_id, tenant_id, model_id, feature_set_id, learning_rate, sample_count,
-                   label_summary, drift_score, action, source_type, source_id, field_id,
-                   season_id, recommendation_id, decision_id, evidence_snapshot_id)
-                VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-                ON CONFLICT (update_id) DO NOTHING
-                """,
-                update_id,
-                tenant_id,
+            # No conflict target: this table's unique key is ``update_id`` in this service's own
+            # schema (001) but ``(tenant_id, update_id)`` in the shared database, where the
+            # platform's v119 creates the table first and 001's CREATE IF NOT EXISTS is a no-op.
+            # ``ON CONFLICT (update_id)`` matched no index there and failed with 42P10 on every
+            # call; a bare DO NOTHING is idempotent against either key.
+            values = (
                 payload.model_id,
                 payload.feature_set_id,
                 payload.learning_rate,
@@ -897,6 +896,51 @@ async def persist_learning_update(
                 payload.decision_id,
                 payload.evidence_snapshot_id,
             )
+            status = await conn.execute(
+                """
+                INSERT INTO online_learning_updates
+                  (update_id, tenant_id, model_id, feature_set_id, learning_rate, sample_count,
+                   label_summary, drift_score, action, source_type, source_id, field_id,
+                   season_id, recommendation_id, decision_id, evidence_snapshot_id)
+                VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+                ON CONFLICT DO NOTHING
+                """,
+                update_id,
+                tenant_id,
+                *values,
+            )
+            if status == "INSERT 0 0":
+                # Nothing was written: the id is taken. A resend of the same update is a replay
+                # (no second outbox event); anything else must not be reported as stored. The
+                # lookup is bound to this tenant explicitly (RLS is not on this table in every
+                # schema), so an id held by another tenant (this service's own schema keys on
+                # update_id alone) reads as a conflict, never as this tenant's replay.
+                same = await conn.fetchval(
+                    """
+                    SELECT model_id IS NOT DISTINCT FROM $2
+                       AND feature_set_id IS NOT DISTINCT FROM $3
+                       AND learning_rate IS NOT DISTINCT FROM $4
+                       AND sample_count IS NOT DISTINCT FROM $5
+                       AND label_summary IS NOT DISTINCT FROM $6::jsonb
+                       AND drift_score IS NOT DISTINCT FROM $7
+                       AND action IS NOT DISTINCT FROM $8
+                       AND source_type IS NOT DISTINCT FROM $9
+                       AND source_id IS NOT DISTINCT FROM $10
+                       AND field_id IS NOT DISTINCT FROM $11
+                       AND season_id IS NOT DISTINCT FROM $12
+                       AND recommendation_id IS NOT DISTINCT FROM $13
+                       AND decision_id IS NOT DISTINCT FROM $14
+                       AND evidence_snapshot_id IS NOT DISTINCT FROM $15
+                      FROM online_learning_updates
+                     WHERE update_id = $1 AND tenant_id = $16::uuid
+                    """,
+                    update_id,
+                    *values,
+                    tenant_id,
+                )
+                if not same:
+                    raise LearningUpdateConflict(update_id)
+                return {"update_id": update_id, "replayed": True}
             await emit_outbox_event(
                 conn,
                 tenant_id=tenant_id,
@@ -905,7 +949,7 @@ async def persist_learning_update(
                 aggregate_id=update_id,
                 payload={"model_id": payload.model_id, "traceability_status": traceability_status},
             )
-        return {"update_id": update_id}
+        return {"update_id": update_id, "replayed": False}
     finally:
         await conn.close()
 

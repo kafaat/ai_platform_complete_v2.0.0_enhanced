@@ -62,6 +62,19 @@ class IrrigationObservationsApi {
       ));
 }
 
+/// Accept the digits and decimal separator used by Arabic phone keyboards.
+double? parseObservationNumber(String input) {
+  final normalized = input.trim().replaceAllMapped(RegExp('[٠-٩۰-۹]'), (match) {
+    final code = match[0]!.codeUnitAt(0);
+    return (code - (code >= 0x06F0 ? 0x06F0 : 0x0660)).toString();
+  }).replaceAll('٫', '.');
+  if (normalized.contains('٬') &&
+      !RegExp(r'^[0-9]{1,3}(٬[0-9]{3})+(\.[0-9]+)?$').hasMatch(normalized)) {
+    return null;
+  }
+  return double.tryParse(normalized.replaceAll('٬', ''));
+}
+
 /// Validation before any persistence/network operation. Blank values are null,
 /// never a fabricated zero volume. The server remains authoritative.
 String? validateIrrigationObservation(Map<String, dynamic> body, {DateTime? now}) {

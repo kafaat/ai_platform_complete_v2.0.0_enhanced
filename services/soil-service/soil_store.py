@@ -8,6 +8,8 @@ from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
+from jsonb_values import decode_observation_row
+
 from shared.contracts.soil import SoilObservation, SoilProfileSnapshot
 
 
@@ -250,7 +252,7 @@ async def list_observations(
                 limit,
             )
             await tx.commit()
-            return [dict(row) for row in rows]
+            return [decode_observation_row(row) for row in rows]
         except Exception:
             await tx.rollback()
             raise
@@ -383,7 +385,9 @@ async def rebuild_snapshot_in_transaction(
         field_id,
     )
     snapshot = profile_composer.compose_snapshot(
-        tenant_id=tenant_id, field_id=field_id, observations=[dict(r) for r in rows]
+        tenant_id=tenant_id,
+        field_id=field_id,
+        observations=[decode_observation_row(r) for r in rows],
     )
     payload = snapshot.model_dump(mode="json")
     persisted = await conn.fetchval(
