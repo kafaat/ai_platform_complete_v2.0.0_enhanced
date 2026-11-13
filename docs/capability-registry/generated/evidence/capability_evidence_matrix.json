@@ -507,6 +507,7 @@
       "runtime_verified": false,
       "title": "Execution request",
       "unit_test_paths": [
+        "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
         "services/decision-service/tests/test_execution_request_feed.py",
         "services/decision-service/tests/test_execution_request_plan_binding.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",

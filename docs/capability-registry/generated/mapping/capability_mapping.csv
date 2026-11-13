@@ -2,7 +2,7 @@ capability_id,domain,title,mapped,coverage_dimensions,backend,routes,database,ev
 DEC-001,decision,Decision evidence,True,3,2,0,0,3,0,0,3,0
 DEC-002,decision,Decision candidate,True,1,0,0,0,0,0,0,1,0
 DEC-003,decision,Human approval,True,2,2,0,0,0,0,0,3,0
-DEC-004,decision,Execution request,True,5,6,4,16,4,0,0,7,0
+DEC-004,decision,Execution request,True,5,6,4,16,4,0,0,8,0
 DEC-005,decision,Dispatch authorization,True,3,0,0,10,1,0,0,2,0
 DEC-006,decision,Execution receipt,True,1,0,0,0,0,0,0,1,0
 DEC-007,decision,Outcome recording,True,6,4,8,4,3,1,0,4,0
