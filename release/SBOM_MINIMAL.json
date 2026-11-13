@@ -2975,7 +2975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1af6934982ea10186217a876324b7a8144caa23fb8eec5c7652f90d25cb0637d"
+          "content": "2ee019ecdf0aeba51d223ed9c297e89590545bed015cd41204a31a859db94623"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -5495,7 +5495,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2e4a862041081e024690d8741c5c60e589537c5c5b05fa940b6c599f925b48bb"
+          "content": "e74fa60b66cf15a327a3188ab21abdf223ca631994ed36ab9e91ca420eb802f6"
+        }
+      ],
+      "name": "frontend/src/sections/AnalyzeCabin.commonMask.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bfb1fb2a493c2dba970bdd0165a30f0c8269d041807eb3f1f4314ca49c4702a3"
         }
       ],
       "name": "frontend/src/sections/AnalyzeCabin.tsx",
@@ -20945,7 +20955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "14cc23c15b40df4e65ae3e2dc488d45fd0a98e15dff0a9478328357933c9bfaa"
+          "content": "00b83751fd9d7c94870152ff7b1a870ee5374022d413a4fa41939b26f90a5b6c"
         }
       ],
       "name": "services/raster-service/raster_api_models.py",
@@ -21085,7 +21095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c86495f3da5580b23917d276368dc0e07c1292548de221a23c5f3bcad9439947"
+          "content": "5981e911a1ef532aeb744536fcc253143bc88bc0a401b5166628de5caad1d003"
         }
       ],
       "name": "services/raster-service/raster_field_coverage.py",
@@ -21095,7 +21105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "51e72aa955d1b44d4d7b68f1c5e3278a90d66ba28a6974bedfd5452a2a9e3250"
+          "content": "101d59f98b15ce26db7bcaa7bc5fe4201eb6e8f47e45d3704330c21ee13ffb8c"
         }
       ],
       "name": "services/raster-service/raster_field_runtime.py",
@@ -21185,7 +21195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4c4ab63c7219eefc216a349c57e42adeb917eb60b72f82fb50b37b450a13592"
+          "content": "ae4ae3eb3f6e3657bf761565f23264461e9288fdbddf92d7cb825ce948cc3217"
         }
       ],
       "name": "services/raster-service/raster_processing_runtime.py",
@@ -21265,7 +21275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5ae29ed1eb15444f25445db69f1c485101b1169d2345ff38bc58600b1dbb422b"
+          "content": "5bcd1dc5fe08331da701f26062253b856d8c40dab8d76d66c294fd22d5d5cebc"
         }
       ],
       "name": "services/raster-service/raster_stage_receipt.py",
@@ -21335,7 +21345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b77359686ca2cd335226619f300537d59261c19929b14319f3a2b4d0e7c247e2"
+          "content": "f6b75b551472ecc93e48d32d92d909a8e19e3bd8d8e7f1a28f7bad6cc53cee48"
         }
       ],
       "name": "services/raster-service/routers/analysis.py",
@@ -21355,7 +21365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc9ed3108873aad3718587dfa6a0bdecd7887866ca4aed5fdd142ebf3e919b91"
+          "content": "6a8f4ac2b1be4798148a73ca4733090b9c1f144a1ac22f4db69d2390be9df452"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -21515,6 +21525,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "71351c344abd267db3609c318f3db9aaed55ae0c83866f0a04379fc73e908087"
+        }
+      ],
+      "name": "services/raster-service/sar_tillage_evidence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9e84e88af7b9dbff0fa3d1425c50907922d368e86854753319b747cbc2f84b80"
         }
       ],
@@ -21555,7 +21575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28e9d5d9cb4c55226ba45625b1ce6ca8c261ff9e97fc2edfaee98f1769b7fdaa"
+          "content": "03a1efe22e6e1844389db1ff21cf8d6f7bfc3dbfa83b06119e145277e0a97026"
         }
       ],
       "name": "services/raster-service/stac_c1_processing.py",
@@ -21575,7 +21595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac6798b23d2e748951069220946ebb1aaddc92798699bed7f488787ae91fc092"
+          "content": "bc374bb2da07df97ca89ef51a25389a4941acbffd8807c0f6b5e89fec431c3a6"
         }
       ],
       "name": "services/raster-service/stac_search.py",
@@ -22695,6 +22715,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2f4f575999d6fead1298983abf21c8702c03be02bbb89a8d9050c5a08a7002c2"
+        }
+      ],
+      "name": "services/raster-service/test_sar_tillage_change_evidence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f413e85227f571190349c1f329d40eb70b85a93e0208f6674fff0dcee25cd874"
         }
       ],
@@ -22745,7 +22775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "586508825b0528731f38db9c6e1bcd7fd608d3ef2f4aca3f34b54e7e90e88444"
+          "content": "0970cf7ba83dd159481c8374dc9410577412ddef77ba3a7020fc7b13b6f290d2"
         }
       ],
       "name": "services/raster-service/test_stac_c1_processing.py",
@@ -22885,6 +22915,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "514021f1f5471ac2aeb663cce1551ec22d0f38524c615c37c72d478b96e9afe7"
+        }
+      ],
+      "name": "services/raster-service/test_time_series_common_mask.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "034a185919b958f1487ed57aa45382eee28b6785dcea62e6e508976c21474985"
+        }
+      ],
+      "name": "services/raster-service/test_time_series_trend_axis.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "82834bb4d36ff4293c95bb445332eb2f81b5853a6ae07138271bcb9ec1566783"
         }
       ],
@@ -22965,7 +23015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae4b8079919318dece0565c6c7bc17cbd9f89c47322d6a7f084d97a6030ca741"
+          "content": "f1a68491700ee30b1bf97d8e023751d1ea3a0958070bd42d6da78dda17cfc35e"
         }
       ],
       "name": "services/raster-service/time_series.py",
