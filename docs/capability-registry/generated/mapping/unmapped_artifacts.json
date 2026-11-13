@@ -10528,6 +10528,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_advisor_readiness_and_field_binding.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_agronomist_approval_identity_t11.py",
     "kind": "tests"
   },
@@ -11713,6 +11717,10 @@
   },
   {
     "path": "tests_v9/test_health_readiness_schema_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
     "kind": "tests"
   },
   {

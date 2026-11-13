@@ -17025,7 +17025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a34812fb153f8b7155f7516cef4fe30e7eafb88ddce9b6ac468daa62aea37e09"
+          "content": "ab88e9bf03635005c4889a42b6d92e5344db7629c6266b32faa2720a3b2403a8"
         }
       ],
       "name": "services/ai_agronomist/advisory_contract.py",
@@ -17045,7 +17045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3db6da13a53b8348e84dad02cc7b7a6dba67e5f98cee31f21ddda8ada56cc49"
+          "content": "a9ffce63f6835f1eb4731dfad6cb72c469bb7f3fb4502c1129872ec6004561df"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
