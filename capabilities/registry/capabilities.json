@@ -538,8 +538,7 @@
         "tests_v9/test_export_season_runs_for_golden.py",
         "tests_v9/test_fii_prescription_season_context_guard.py",
         "tests_v9/test_historical_season_bridge_static.py",
-        "tests_v9/test_learning_worker_season_closed_envelope.py",
-        "tests_v9/test_season_api_static.py"
+        "tests_v9/test_learning_worker_season_closed_envelope.py"
       ],
       "runtime": {
         "metrics": [],
@@ -580,7 +579,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 8
+        "tests": 9
       }
     },
     {

@@ -15,25 +15,25 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7161,
+    "files_scanned": 7163,
     "files_by_kind": {
       "backend": 1270,
       "database": 296,
       "governance": 89,
       "mobile": 414,
-      "other": 2164,
-      "tests": 2404,
+      "other": 2165,
+      "tests": 2405,
       "web": 524
     },
     "unmapped_artifacts": 3409,
     "ambiguous_artifacts": 234,
     "files_by_reading": {
-      "python_functional": 3857,
-      "raw": 3304
+      "python_functional": 3858,
+      "raw": 3305
     },
-    "test_dependency_files": 1810,
-    "test_dependency_edges": 4584,
-    "test_dependency_bounded_files": 1056,
+    "test_dependency_files": 1811,
+    "test_dependency_edges": 4589,
+    "test_dependency_bounded_files": 1057,
     "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
@@ -7461,6 +7461,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_digital_twin_season_live_pg.py",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "tests_v9/test_fii_prescription_season_context_guard.py",
           "score": 14,
           "signals": [
@@ -7791,7 +7799,7 @@
         "events": 41,
         "web": 15,
         "mobile": 15,
-        "tests": 48,
+        "tests": 49,
         "governance": 0,
         "other_evidence": 15
       },
@@ -74541,6 +74549,39 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_digital_twin_season_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 60
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 61
+        },
+        {
+          "source": "services/sahool-platform/api/routers/field_twin.py",
+          "kind": "import",
+          "line": 61
+        },
+        {
+          "source": "services/sahool-platform/api/routers/water_twin.py",
+          "kind": "import",
+          "line": 61
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 67
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_disease_field_state_feed.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -86109,22 +86150,22 @@
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "source_read",
-          "line": 240
+          "line": 244
         },
         {
           "source": "services/sahool-platform/api/phase_runtime_store.py",
           "kind": "source_read",
-          "line": 112
+          "line": 116
         },
         {
           "source": "services/sahool-platform/api/routers/decision_dispatch.py",
           "kind": "source_read",
-          "line": 147
+          "line": 151
         },
         {
           "source": "services/sahool-platform/api/routers/recommendations.py",
           "kind": "source_read",
-          "line": 134
+          "line": 138
         }
       ],
       "unresolved": []
