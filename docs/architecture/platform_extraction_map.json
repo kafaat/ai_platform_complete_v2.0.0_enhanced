@@ -656,7 +656,7 @@
       "function": "crop_risk_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/crop-risk",
-      "line": 166,
+      "line": 168,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/crop-risk::crop_risk_endpoint"
@@ -666,7 +666,7 @@
       "function": "crop_rotation_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/crop-rotation",
-      "line": 201,
+      "line": 203,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/crop-rotation::crop_rotation_endpoint"
@@ -676,7 +676,7 @@
       "function": "decision_playbook_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/decision-playbook",
-      "line": 226,
+      "line": 228,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/decision-playbook::decision_playbook_endpoint"
@@ -686,7 +686,7 @@
       "function": "plant_soil_feedback_trend_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/plant-soil-feedback/trend",
-      "line": 187,
+      "line": 189,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/plant-soil-feedback/trend::plant_soil_feedback_trend_endpoint"
@@ -696,7 +696,7 @@
       "function": "plant_soil_feedback_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/plant-soil-feedback",
-      "line": 179,
+      "line": 181,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/plant-soil-feedback::plant_soil_feedback_endpoint"
@@ -706,7 +706,7 @@
       "function": "season_comparison_endpoint",
       "method": "POST",
       "path": "/api/v1/agro/season-comparison",
-      "line": 218,
+      "line": 220,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/agro/season-comparison::season_comparison_endpoint"
@@ -716,7 +716,7 @@
       "function": "work_order_from_recommendation_endpoint",
       "method": "POST",
       "path": "/api/v1/work-orders/from-recommendation",
-      "line": 351,
+      "line": 353,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/agro_intelligence.py::POST /api/v1/work-orders/from-recommendation::work_order_from_recommendation_endpoint"
@@ -1636,7 +1636,7 @@
       "function": "crop_decision_candidate_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
-      "line": 296,
+      "line": 302,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision-candidate::crop_decision_candidate_endpoint",
@@ -1647,7 +1647,7 @@
       "function": "profit_aware_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
-      "line": 527,
+      "line": 533,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision/profit-aware::profit_aware_decision_endpoint"
@@ -1657,7 +1657,7 @@
       "function": "crop_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
-      "line": 403,
+      "line": 409,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision::crop_decision_endpoint"
@@ -5734,7 +5734,7 @@
       "function": "field_water_twin",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/water-twin",
-      "line": 197,
+      "line": 198,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/water_twin.py::POST /api/v1/fields/{field_id}/water-twin::field_water_twin"
@@ -6264,7 +6264,7 @@
       "function": "create_party",
       "method": "POST",
       "path": "/api/v1/farm-book/parties",
-      "line": 129,
+      "line": 192,
       "route_key": "api/routers/simple_farm_book.py::POST /api/v1/farm-book/parties::create_party",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6274,7 +6274,7 @@
       "function": "list_parties",
       "method": "GET",
       "path": "/api/v1/farm-book/parties",
-      "line": 161,
+      "line": 224,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/parties::list_parties",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6284,7 +6284,7 @@
       "function": "create_entry",
       "method": "POST",
       "path": "/api/v1/farm-book/entries",
-      "line": 246,
+      "line": 346,
       "route_key": "api/routers/simple_farm_book.py::POST /api/v1/farm-book/entries::create_entry",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6294,7 +6294,7 @@
       "function": "list_entries",
       "method": "GET",
       "path": "/api/v1/farm-book/entries",
-      "line": 417,
+      "line": 528,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/entries::list_entries",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6304,7 +6304,7 @@
       "function": "monthly_report",
       "method": "GET",
       "path": "/api/v1/farm-book/monthly",
-      "line": 450,
+      "line": 561,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/monthly::monthly_report",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6314,7 +6314,7 @@
       "function": "book_balances",
       "method": "GET",
       "path": "/api/v1/farm-book/balances",
-      "line": 486,
+      "line": 597,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/balances::book_balances",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6324,7 +6324,7 @@
       "function": "export_book",
       "method": "GET",
       "path": "/api/v1/farm-book/export",
-      "line": 507,
+      "line": 618,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/export::export_book",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"

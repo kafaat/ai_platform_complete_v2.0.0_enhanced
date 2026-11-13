@@ -28,7 +28,16 @@ export default function IrrigationWaterPage() {
   const routeFieldId = ((location.state as { fieldId?: string } | null)?.fieldId) ?? null;
   const { fieldId, field } = useSelectedField({ routeFieldId });
   const [vals, setVals] = useState<Record<string, string>>({});
+  const [submittedFormKey, setSubmittedFormKey] = useState<string | null>(null);
   const mut = useWaterAnalysis();
+  // Never present the prior analysis as if it belonged to newly edited readings/field.
+  const currentFormKey = JSON.stringify({ fieldId, vals });
+  const invalidInputs = IONS.filter(({ key }) => {
+    const raw = vals[key];
+    if (raw == null || raw.trim() === '') return false;
+    const value = Number(raw);
+    return !Number.isFinite(value) || value < 0 || (key === 'ph' && value > 14);
+  });
 
   const num = (k: string): number | null => {
     const v = vals[k];
@@ -45,10 +54,18 @@ export default function IrrigationWaterPage() {
       co3: num('co3'), cl: num('cl'), ec_dsm: num('ec_dsm'), ph: num('ph'),
       ...(fieldId ? { field_id: fieldId } : {}),
     } as WaterSampleInput & { field_id?: string };
+    if (invalidInputs.length > 0) return;
+    setSubmittedFormKey(currentFormKey);
     mut.mutate(payload);
   };
 
-  const res = mut.data;
+  const res = submittedFormKey === currentFormKey && !mut.isError ? mut.data : undefined;
+  const positiveVerdict = res?.verdict === 'suitable' && res.data_complete === true;
+  // Legacy servers lack verdict. Fail closed on their positive-looking text as well.
+  const verdictLabel = !res ? '' : positiveVerdict || res.verdict === 'needs_treatment'
+    || res.hazard_flags_ar.length > 0
+    ? res?.suitable_ar ?? ''
+    : 'بيانات غير كافية للحكم العامّ';
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto" dir="rtl">
@@ -69,7 +86,7 @@ export default function IrrigationWaterPage() {
           {IONS.map(f => (
             <label key={f.key} className="flex flex-col gap-1">
               <span className="text-xs text-slate-400">{f.label}{f.hint && <span className="text-slate-600"> ({f.hint})</span>}</span>
-              <input type="number" inputMode="decimal" step="any"
+              <input type="number" inputMode="decimal" step="any" min={0} max={f.key === 'ph' ? 14 : undefined}
                 value={vals[f.key] ?? ''}
                 onChange={e => setVals(v => ({ ...v, [f.key]: e.target.value }))}
                 className="px-3 py-2 rounded-lg text-sm"
@@ -77,8 +94,13 @@ export default function IrrigationWaterPage() {
             </label>
           ))}
         </div>
+        {invalidInputs.length > 0 && (
+          <p role="alert" className="text-xs text-orange-300 mt-3">
+            قياسات غير صالحة: {invalidInputs.map(({ label }) => label).join('، ')}. أدخل قيماً غير سالبة وpH بين 0 و14.
+          </p>
+        )}
         <div className="flex justify-end mt-4">
-          <button onClick={onAnalyze} disabled={mut.isPending}
+          <button onClick={onAnalyze} disabled={mut.isPending || invalidInputs.length > 0}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
             style={{ background: '#0ea5e9' }}>
             <FlaskConical className="w-4 h-4" />
@@ -127,12 +149,12 @@ export default function IrrigationWaterPage() {
 
           {/* Verdict */}
           <div className="rounded-xl border p-4 flex items-start gap-3"
-            style={{ background: res.hazard_flags_ar.length ? '#1a0800' : '#04140a', borderColor: res.hazard_flags_ar.length ? '#f9731633' : '#16a34a33' }}>
-            {res.hazard_flags_ar.length
-              ? <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
-              : <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />}
+            style={{ background: positiveVerdict ? '#04140a' : '#1a0800', borderColor: positiveVerdict ? '#16a34a33' : '#f9731633' }}>
+            {positiveVerdict
+              ? <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+              : <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />}
             <div>
-              <div className="text-sm font-semibold text-slate-100">{res.suitable_ar}</div>
+              <div className="text-sm font-semibold text-slate-100">{verdictLabel}</div>
               {res.hazard_flags_ar.length > 0 && (
                 <div className="text-xs text-orange-300 mt-1">{res.hazard_flags_ar.join(' · ')}</div>
               )}

@@ -170,19 +170,25 @@ def test_scoring_requires_naming_the_asking_tenant():
 
 
 # ── مسكُ الإحصاء: الدلاءُ لا تنحرف ─────────────────────────────────────────
-def test_re_ingesting_a_chunk_under_a_new_tenant_moves_its_whole_contribution():
-    """النزعُ من **دلوِ المستأجِر المسجَّل** لا من دلوِ الوارد.
+def test_the_same_chunk_id_under_another_tenant_is_a_separate_document():
+    """الهويّةُ ``(مستأجِر، chunk_id)`` (``RAG-BM25-TENANT-CHUNK-IDENTITY-01``).
 
-    ولو نُزِعت المساهمةُ من الدلو الجديد لبقيت في القديم أبداً، فيرى مستأجِرٌ
-    وثيقةً غادرته في إحصائه — وهو العطلُ نفسُه بثوبٍ آخر.
+    كان هذا الاختبارُ يُثبِت أنّ ``x1`` لـB **يُنقِل** مساهمةَ ``x1`` من دلوِ A —
+    وذلك هو العطل: بعد R-H14 صار لكلّ مستأجِرٍ نقطتُه، فابتلاعُ B كان يمحو وثيقةَ
+    A من فهرسه المتناثر بصمت. فالدلوانِ يحملان وثيقتين منفصلتين، وإعادةُ ابتلاعِ
+    المقطع للمستأجِر نفسه تبقى استبدالاً **داخل دلوِه** لا يمسّ دلوَ الآخر.
     """
     index = m.BM25Index()
     index.add(_chunk("x1", "tenant-a", "wheat barley"))
     index.add(_chunk("x1", "tenant-b", "wheat barley"))
 
-    assert index.corpus_stats("tenant-a")[:2] == (0, {}), "بقيت مساهمةُ صفٍّ غادر المستأجِر"
-    n_docs, doc_freq, _ = index.corpus_stats("tenant-b")
-    assert (n_docs, doc_freq["wheat"]) == (1, 1)
+    for tenant in ("tenant-a", "tenant-b"):
+        n_docs, doc_freq, _ = index.corpus_stats(tenant)
+        assert (n_docs, doc_freq) == (1, {"wheat": 1, "barley": 1}), tenant
+
+    index.add(_chunk("x1", "tenant-b", "millet"))
+    assert index.corpus_stats("tenant-a")[:2] == (1, {"wheat": 1, "barley": 1})
+    assert index.corpus_stats("tenant-b")[:2] == (1, {"millet": 1}), "بقيت مساهمةُ نصٍّ مُستبدَل"
 
 
 def test_the_derived_aggregate_equals_the_sum_of_the_buckets():

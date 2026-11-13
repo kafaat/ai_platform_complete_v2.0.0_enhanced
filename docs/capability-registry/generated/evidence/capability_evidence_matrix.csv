@@ -10,7 +10,7 @@ DEC-008,Learning attribution,decision,3,2,declared_above_evidence,6,True,False,T
 DEC-009,Model calibration,decision,3,1,declared_above_evidence,3,True,False,True,True,False,False,False,False,False,False,False,False
 DEC-010,Model lifecycle and activation,decision,3,3,aligned,8,True,True,True,True,True,False,False,True,True,True,False,False
 FM-001,Tenant and organization management,farm_management,3,2,declared_above_evidence,9,True,True,True,True,True,True,True,True,False,True,False,False
-FM-002,Farm registry,farm_management,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
+FM-002,Farm registry,farm_management,3,3,aligned,10,True,True,True,True,True,True,True,True,True,True,False,False
 FM-003,Field registry and boundaries,farm_management,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
 FM-004,Season lifecycle,farm_management,3,3,aligned,10,True,True,True,True,True,True,True,True,True,True,False,False
 FM-005,Crop and cultivar catalog,farm_management,3,2,declared_above_evidence,7,True,True,True,False,True,True,True,True,False,False,False,False
@@ -51,7 +51,7 @@ PA-005,Machine telemetry,precision,1,1,aligned,3,True,True,True,False,False,Fals
 SAT-001,Satellite scene search,satellite,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
 SAT-002,True color imagery,satellite,3,2,declared_above_evidence,5,True,False,True,False,True,True,False,True,False,False,False,False
 SAT-003,NDVI,satellite,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
-SAT-004,NDMI,satellite,2,2,aligned,6,True,True,False,True,True,True,False,True,False,False,False,False
+SAT-004,NDMI,satellite,2,2,aligned,7,True,True,True,True,True,True,False,True,False,False,False,False
 SAT-005,Cloud screening,satellite,3,3,aligned,6,True,True,True,False,True,False,False,True,True,False,False,False
 SAT-006,Historical imagery timeline,satellite,3,3,aligned,7,True,True,True,False,True,True,False,True,True,False,False,False
 SAT-007,Change detection,satellite,3,2,declared_above_evidence,4,True,True,True,False,False,False,False,True,False,False,False,False

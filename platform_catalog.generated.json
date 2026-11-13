@@ -144,7 +144,7 @@
       "required_context": []
     },
     {
-      "approval_required": true,
+      "approval_required": false,
       "capability_id": "ai_agronomist.approvals.approve",
       "consumers": [
         "frontend"
@@ -161,7 +161,7 @@
       "required_context": []
     },
     {
-      "approval_required": true,
+      "approval_required": false,
       "capability_id": "ai_agronomist.approvals.deny",
       "consumers": [
         "frontend"
@@ -17794,7 +17794,7 @@
   "counts": {
     "backend_components": 33,
     "capabilities": 841,
-    "capabilities_approval_gated": 8,
+    "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 96,
     "capabilities_idempotent": 74,
     "capabilities_season_scoped": 10,
@@ -18068,7 +18068,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "4c5f644658fd154a6cec409b5fd26e9340b8f7a61b1d2329e750df292ac665de",
+  "fingerprint": "2275f54bbcd0d1425485bbc6e05cd82143c1fb5924c0df50ba02174694718ccf",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18118,14 +18118,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 942,
+      "edge_count": 946,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 46,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 486,
+        "READS": 490,
         "ROUTES_TO": 72,
         "WRITES": 332
       }
