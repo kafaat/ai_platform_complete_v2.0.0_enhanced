@@ -26915,7 +26915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5738d2068f59ad9226b6f2d4ef0544d782b38f97bca9ec3f9f8ae0defeff9de4"
+          "content": "c9269fa026fa93ba126e6d7a8243920567cc684fae3ed16e703138790510929e"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -27255,7 +27255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "84dce39c072c53b17b289fbe98a3993bc9c83eb9f4a01b06e7c4b9d9ec28d4e8"
+          "content": "57a35189fd855c9b3af39e2494ab1b087f7403e49f5b802e0d1ff29065601dd6"
         }
       ],
       "name": "services/sahool-platform/api/season_simulation.py",

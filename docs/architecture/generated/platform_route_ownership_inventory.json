@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "99aaec984d7f81bff32a1fb0547632d966db607b19ff11a5cf0976c335a54df7",
+  "inventory_sha256": "de9ac4b62569d357a23d222c0fdd96c3d0287d63637098a06e1a6f9b84cbadd2",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "1d85db29a273e8adda8bf0b05fd9911d9a2f10f595d861bcf2a990f000a3b2d6",
+  "map_sha256": "c86f948a9592e71252e000e3b65401cc86645951f4ffe59fec407afecdd8d5e2",
   "routes": [
     {
       "classification": null,
@@ -2227,7 +2227,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/seasons.py",
       "function": "field_season_state_endpoint",
-      "line": 652,
+      "line": 605,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",
@@ -7533,7 +7533,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/seasons.py",
       "function": "simulate_season_endpoint",
-      "line": 155,
+      "line": 145,
       "method": "POST",
       "owner": "agriai-engine",
       "owner_type": "decision-compute",

@@ -2412,7 +2412,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 350,
+      "evidence_count": 351,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2597,6 +2597,7 @@
         "services/sahool-platform/api/routers/sync.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/season_models.py",
+        "services/sahool-platform/api/season_simulation.py",
         "services/sahool-platform/api/sensor_confidence.py",
         "services/sahool-platform/api/soil_evidence_bridge.py",
         "services/sahool-platform/api/soil_telemetry.py",
@@ -3342,7 +3343,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 58,
-      "target_evidence_count": 350,
+      "target_evidence_count": 351,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3352,5 +3353,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "c66880ac15bc373942ac829cd74c73af57478e7b2441497c6b9a91e22a9428cd"
+  "content_sha256": "9d996fe7fed8ddc4a59259dbdca262e5985be240fb8bb58e4777939f5ef43655"
 }
