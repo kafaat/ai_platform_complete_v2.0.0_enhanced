@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **42**
-- Files scanned: **7172**
-- Ambiguous artifacts queued: **234**
-- Unmapped artifacts queued: **3414**
+- Files scanned: **7173**
+- Ambiguous artifacts queued: **235**
+- Unmapped artifacts queued: **3415**
 
 ## Capability coverage
 
@@ -47,7 +47,7 @@
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
-| IRR-002 | irrigation | 1 | 6 | 8 | 1 | 0 | 0 | 1 | 5 |
+| IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 1 | 5 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 2 | 3 |
 | IRR-004 | irrigation | 3 | 1 | 0 | 0 | 0 | 0 | 2 | 3 |
 | IRR-005 | irrigation | 2 | 2 | 0 | 7 | 0 | 0 | 5 | 4 |

@@ -8816,6 +8816,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_irrigation_water_verdict.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_irrigation_waterlogging_hold_and_moisture_unit.py",
     "kind": "tests"
   },
