@@ -149,8 +149,8 @@ export const QK = {
                        grid == null ? ['indicator-grid', fid, index, date] : ['indicator-grid', fid, index, date, grid],
   fieldChange:      (fid: string, index: string, dateA: string, dateB: string) =>
                        ['field-change', fid, index, dateA, dateB],
-  fieldTimeseries:  (fid: string, index: string, dates: string) =>
-                       ['field-timeseries', fid, index, dates],
+  fieldTimeseries:  (fid: string, index: string, dates: string, commonMask = false) =>
+                       commonMask ? ['field-timeseries', fid, index, dates, 'common-mask'] : ['field-timeseries', fid, index, dates],
   prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
                        ['prescription', fid, index, date, n, baseRate ?? 'auto', strategy],
   savedPrescriptions: (tid: string, fid: string) => ['saved-prescriptions', tid, fid],
@@ -493,7 +493,26 @@ export interface FieldTimeseriesResponse {
   points: TimeseriesPoint[];
   requested_dates?: string[];
   monthly_composite?: { month: string; median: number; mean: number; min: number; max: number; scene_count: number }[];
-  trend?: { slope: number | null; direction: string; points: number; first?: number; last?: number };
+  trend?: {
+    slope: number | null; direction: string; points: number; first?: number; last?: number;
+    fit_quality?: 'linear' | 'nonlinear' | 'undetermined'; r2?: number | null;
+    reason?: string; common_coverage_ratio?: number | null; min_common_coverage?: number;
+  };
+  // Only with commonMask: the trend above is over pixels valid in every scene used;
+  // unmasked_trend is the per-scene-mean trend it replaces.
+  unmasked_trend?: FieldTimeseriesResponse['trend'];
+  common_mask?: {
+    status: 'ok' | 'insufficient_common_coverage' | 'unavailable';
+    reason?: string | null;
+    field_mask_basis?: 'saved_field_geometry' | 'scene_valid_union';
+    field_pixels?: number;
+    common_valid_pixels?: number;
+    common_coverage_ratio?: number;
+    scenes_used?: number;
+    scenes_excluded?: number;
+    exclusions?: { datetime: string; scene_id?: string | null; reason: string; valid_coverage_ratio?: number | null }[];
+    min_common_coverage?: number;
+  };
   anomalies?: { month: string; value: number; z_score: number; type: 'drop' | 'spike' }[];
   scenes_used?: number;
   note?: string;
@@ -504,13 +523,15 @@ export function useFieldTimeseries(
   fieldId: string,
   index: GridIndex,
   dates: string = '',
-  opts: { grid?: number; enabled?: boolean } = {},
+  opts: { grid?: number; enabled?: boolean; commonMask?: boolean } = {},
 ) {
-  const { grid = 16, enabled = true } = opts;
+  const { grid = 16, enabled = true, commonMask = false } = opts;
   return useQuery<FieldTimeseriesResponse>({
-    queryKey: QK.fieldTimeseries(fieldId, index, dates),
+    queryKey: QK.fieldTimeseries(fieldId, index, dates, commonMask),
     queryFn:  () => rasterApi
-      .get(`/v1/fields/${fieldId}/timeseries`, { params: { index, dates, grid } })
+      .get(`/v1/fields/${fieldId}/timeseries`, {
+        params: commonMask ? { index, dates, grid, common_mask: true } : { index, dates, grid },
+      })
       .then(r => r.data),
     staleTime: 10 * 60_000,
     enabled:   !!fieldId && enabled,
