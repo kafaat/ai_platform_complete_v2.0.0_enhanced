@@ -55,7 +55,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # 1662 → 1656 (R9 2026-11-02): blocking COG/DEM reads offloaded via raster_field_runtime.
     # → 1654 (2026-11-12, satellite-field port): tile asset revision/TileJSON version helpers
     # moved to raster_field_runtime.
-    "services/raster-service/routers/fields.py": 1654,
+    # 1654 → 1645 (2026-11-13, common valid mask): the time-series point builder moved to
+    # raster_field_runtime._timeseries_point while the common_mask query flag landed here.
+    "services/raster-service/routers/fields.py": 1645,
     # 1029 → 1027 (audit security batch 2026-11-01): T6 request_digest consolidation.
     # 1027 → 996 (wave 2, 2026-11-08): budget/actual fetch moved to core.farm_operations_ledger
     # while the planned-vs-executed status filter landed here.

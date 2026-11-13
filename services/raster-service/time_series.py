@@ -251,3 +251,246 @@ async def build_time_series_parallel(
         "anomalies": detect_anomalies(composite),
         "note": "معالجة متوازية محدودة (semaphore)؛ median شهري يخفّف الغيوم",
     }
+
+
+# ── القناع المشترك (common valid mask) ───────────────────────────────────────
+# متوسّط كلّ مشهد على بكسلاته الصالحة وحدها يخلط تغيّر التغطية المكانيّة بالتغيّر الزمنيّ:
+# مشهدٌ غطّت الغيومُ 70% منه يُقاس على جزءٍ آخر من الحقل. ممارسة سلاسل InSAR (DefoEye):
+# تُحسب السلسلة على البكسلات الصالحة في **كلّ** مشهد مستعمَل فقط، ويُعلَن ما بقي منها.
+COMMON_MASK_MIN_COVERAGE = 0.5  # أدنى حصّة من بكسلات الحقل في القناع المشترك لإعلان اتّجاه
+COMMON_MASK_MIN_SCENE_COVERAGE = 0.5  # مشهدٌ صالحُه أقلّ من هذا من الحقل يُستبعد أوّلاً
+COMMON_MASK_MIN_SCENES = 2  # لا يُستبعد مشهد إن نزل العدد تحت هذا
+COMMON_MASK_RULE = (
+    "1) a scene that cannot be read or aligned to the field grid, or has no valid pixel inside "
+    "the field, is excluded (its reason is kept); "
+    "2) a scene whose own valid pixels cover less than min_scene_coverage of the field is "
+    "excluded (scene_valid_coverage_below_min); "
+    "3) while common coverage < min_common_coverage and more than min_scenes remain, the scene "
+    "whose removal adds the most common pixels is excluded (shrinks_common_mask); ties go to "
+    "the scene with fewer own valid pixels, then the later one; stop when no removal helps; "
+    "4) common coverage still below min_common_coverage, or fewer than min_scenes scenes, "
+    "returns trend direction insufficient_common_coverage with no slope"
+)
+
+
+def select_common_mask(
+    valid_masks: list,
+    field_mask,
+    *,
+    preset_reasons: list[str | None] | None = None,
+    min_common_coverage: float = COMMON_MASK_MIN_COVERAGE,
+    min_scene_coverage: float = COMMON_MASK_MIN_SCENE_COVERAGE,
+    min_scenes: int = COMMON_MASK_MIN_SCENES,
+) -> dict:
+    """يختار المشاهد ويبني القناع المشترك وفق ``COMMON_MASK_RULE`` (حتميّ).
+
+    ``valid_masks``: مصفوفات منطقيّة على شبكة الحقل الثابتة نفسها، بترتيب زمنيّ. ``field_mask``:
+    بكسلات داخل حدّ الحقل. يُرجِع القناع المشترك والمستعمَل والمستبعَد مع السبب.
+    """
+    import numpy as np
+
+    field = np.asarray(field_mask, dtype=bool)
+    field_pixels = int(field.sum())
+    n = len(valid_masks)
+    reasons: list[str | None] = list(preset_reasons or [None] * n)
+    valid = [
+        None if reasons[i] else (np.asarray(m, dtype=bool) & field)
+        for i, m in enumerate(valid_masks)
+    ]
+    own = [0 if v is None else int(v.sum()) for v in valid]
+    for i in range(n):
+        if reasons[i] is None and field_pixels and own[i] == 0:
+            reasons[i] = "no_valid_pixels_in_field"
+        elif reasons[i] is None and field_pixels and own[i] / field_pixels < min_scene_coverage:
+            reasons[i] = "scene_valid_coverage_below_min"
+    kept = [i for i in range(n) if reasons[i] is None]
+
+    def _common(idx: list[int]):
+        if not idx:
+            return np.zeros_like(field)
+        return np.logical_and.reduce([valid[i] for i in idx])
+
+    common = _common(kept)
+    while (
+        field_pixels
+        and common.sum() / field_pixels < min_common_coverage
+        and len(kept) > max(min_scenes, 1)
+    ):
+        count = np.sum([valid[i] for i in kept], axis=0)
+        k = len(kept)
+        # بدون المشهد s يصير البكسل مشتركاً إن صلح في الباقين كلّهم: count==k-1 و s غير صالح فيه.
+        gains = [(int(((count == k - 1) & ~valid[s]).sum()), -own[s], s) for s in kept]
+        best_gain, _, best = max(gains)
+        if best_gain == 0:
+            break
+        reasons[best] = "shrinks_common_mask"
+        kept.remove(best)
+        common = _common(kept)
+
+    common_pixels = int(common.sum()) if kept else 0
+    ratio = (common_pixels / field_pixels) if field_pixels else 0.0
+    if not field_pixels:
+        status, reason = "insufficient_common_coverage", "field_mask_empty"
+    elif len(kept) < min_scenes:
+        status, reason = "insufficient_common_coverage", "too_few_scenes"
+    elif ratio < min_common_coverage:
+        status, reason = "insufficient_common_coverage", "common_coverage_below_min"
+    else:
+        status, reason = "ok", None
+    return {
+        "status": status,
+        "reason": reason,
+        "mask": common,
+        "kept": kept,
+        "reasons": reasons,
+        "own_valid_pixels": own,
+        "field_pixels": field_pixels,
+        "common_valid_pixels": common_pixels,
+        "common_coverage_ratio": round(ratio, 6),
+    }
+
+
+def _insufficient_trend(reason: str, points: int, ratio: float | None, threshold: float) -> dict:
+    return {
+        "slope": None,
+        "direction": "insufficient_common_coverage",
+        "points": points,
+        "reason": reason,
+        "common_coverage_ratio": ratio,
+        "min_common_coverage": threshold,
+    }
+
+
+def build_common_mask_series(
+    scenes: list[dict],
+    field_mask,
+    *,
+    field_mask_basis: str,
+    grid: dict | None = None,
+    min_common_coverage: float = COMMON_MASK_MIN_COVERAGE,
+    min_scene_coverage: float = COMMON_MASK_MIN_SCENE_COVERAGE,
+    min_scenes: int = COMMON_MASK_MIN_SCENES,
+) -> dict:
+    """سلسلة زمنيّة على القناع المشترك: متوسّط كلّ مشهد على تقاطع البكسلات الصالحة وحده.
+
+    ``scenes``: ``[{datetime, values (2D على شبكة الحقل، NaN = غير صالح), scene_id?,
+    excluded_reason?}]``. البكسل صالح إن كان منتهياً وداخل الحقل. يُرجِع ``monthly_composite``
+    و``trend`` و``anomalies`` المحسوبة على القناع، و``common_mask`` بالعدّ والتغطية والأسباب.
+    """
+    import numpy as np
+
+    ordered = sorted(range(len(scenes)), key=lambda i: str(scenes[i].get("datetime") or ""))
+    field = np.asarray(field_mask, dtype=bool)
+    masks, preset = [], []
+    for i in ordered:
+        sc = scenes[i]
+        vals = sc.get("values")
+        if sc.get("excluded_reason") or vals is None:
+            masks.append(np.zeros_like(field))
+            preset.append(sc.get("excluded_reason") or "scene_unreadable")
+        else:
+            masks.append(np.isfinite(np.asarray(vals, dtype="float64")))
+            preset.append(None)
+    sel = select_common_mask(
+        masks,
+        field,
+        preset_reasons=preset,
+        min_common_coverage=min_common_coverage,
+        min_scene_coverage=min_scene_coverage,
+        min_scenes=min_scenes,
+    )
+    field_pixels = sel["field_pixels"]
+    per_scene: list[dict] = [{} for _ in scenes]
+    scene_stats: list[dict] = []
+    for pos, i in enumerate(ordered):
+        sc = scenes[i]
+        own = sel["own_valid_pixels"][pos]
+        entry = {
+            "datetime": sc.get("datetime"),
+            "scene_id": sc.get("scene_id"),
+            "valid_pixels": own,
+            "valid_coverage_ratio": round(own / field_pixels, 6) if field_pixels else None,
+            "status": "used" if pos in sel["kept"] else "excluded",
+            "reason": sel["reasons"][pos],
+            "common_mean": None,
+        }
+        if pos in sel["kept"] and sel["common_valid_pixels"]:
+            mean = float(np.asarray(sc["values"], dtype="float64")[sel["mask"]].mean())
+            entry["common_mean"] = round(mean, 6)
+            if sc.get("datetime"):
+                scene_stats.append({"datetime": sc["datetime"], "mean": mean})
+        per_scene[i] = entry
+
+    composite = monthly_composite(scene_stats, value_key="mean")
+    if sel["status"] == "ok":
+        trend = linear_trend(composite)
+        anomalies = detect_anomalies(composite)
+    else:
+        trend = _insufficient_trend(
+            sel["reason"], len(composite), sel["common_coverage_ratio"], min_common_coverage
+        )
+        anomalies = []
+    used = len(sel["kept"])
+    return {
+        "scenes_used": len(scene_stats),
+        "monthly_composite": composite,
+        "trend": trend,
+        "anomalies": anomalies,
+        "common_mask": {
+            "status": sel["status"],
+            "reason": sel["reason"],
+            "field_mask_basis": field_mask_basis,
+            "grid": grid,
+            "field_pixels": field_pixels,
+            "common_valid_pixels": sel["common_valid_pixels"],
+            "common_coverage_ratio": sel["common_coverage_ratio"],
+            "scenes_used": used,
+            "scenes_excluded": len(scenes) - used,
+            "exclusions": [e for e in per_scene if e.get("status") == "excluded"],
+            "scenes": per_scene,
+            "min_common_coverage": min_common_coverage,
+            "min_scene_coverage": min_scene_coverage,
+            "min_scenes": min_scenes,
+            "rule": COMMON_MASK_RULE,
+        },
+    }
+
+
+def apply_common_mask(
+    analysis: dict,
+    points: list[dict],
+    aligned: dict | None,
+    *,
+    min_common_coverage: float = COMMON_MASK_MIN_COVERAGE,
+) -> dict:
+    """يستبدل اتّجاه متوسّطات المشاهد الخاصّة باتّجاه القناع المشترك (إضافيّ، عند الطلب).
+
+    الاتّجاه السابق يبقى في ``unmasked_trend``؛ وكلّ نقطة تحمل ``common_mask_mean``. تعذّر بناء
+    الشبكة المشتركة ⇒ ``insufficient_common_coverage`` صراحةً، لا العودة الصامتة للمتوسّطات الخاصّة.
+    """
+    out = dict(analysis)
+    out["unmasked_trend"] = analysis.get("trend")
+    if not aligned or aligned.get("error"):
+        reason = (aligned or {}).get("error") or "common_mask_unavailable"
+        out["trend"] = _insufficient_trend(reason, 0, None, min_common_coverage)
+        out["anomalies"] = []
+        out["common_mask"] = {
+            "status": "unavailable",
+            "reason": reason,
+            "rule": COMMON_MASK_RULE,
+            "min_common_coverage": min_common_coverage,
+        }
+        for p in points:
+            p["common_mask_mean"] = None
+        return out
+    res = build_common_mask_series(
+        aligned["scenes"],
+        aligned["field_mask"],
+        field_mask_basis=aligned["field_mask_basis"],
+        grid=aligned.get("grid"),
+        min_common_coverage=min_common_coverage,
+    )
+    for p, entry in zip(points, res["common_mask"]["scenes"], strict=False):
+        p["common_mask_mean"] = entry.get("common_mean")
+    out.update(res)
+    return out
