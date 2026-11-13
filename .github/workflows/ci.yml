@@ -1773,7 +1773,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
-        run: pytest tests/test_ac1_agronomic_context.py -q -p no:cacheprovider
+        run: pytest tests/test_ac1_agronomic_context.py tests/test_ac1_boundary_finiteness_timezone.py -q -p no:cacheprovider
       # AC-6.1: tenant-safe lineage integrity — full-lineage binding, semantic rejections,
       # content-addressed vegetation evidence, DB trigger backstop (real Postgres).
       - name: AC-6.1 agronomic lineage integrity tests (real Postgres, SoR on)
