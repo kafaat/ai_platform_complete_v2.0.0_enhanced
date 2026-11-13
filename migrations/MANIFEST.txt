@@ -804,6 +804,25 @@ v260_scout_photo_evidence.sql
 #   v8 field_boundaries table nothing in the API inserts into. Same name and ON DELETE CASCADE;
 #   catalog-checked, idempotent. Inserted after v260 and before v240.
 v261_field_tasks_reference_fields.sql
+# v262-v272 (owner deliveries «scout photo» phases 5-11, their v257-v267 renumbered; owner
+#   scout-ingest-service for every table, owner decision 2026-11-13): v262 explicit photo -> accepted
+#   season links; v263 field access grants (read by the media routes, written by scout-ingest's admin
+#   API as sahool_scout_grant_admin); v264 grant audit; v265 audit-at-commit + 90-day leases; v266
+#   photo -> attested model provenance links; v267 photo -> soil/water sample links; v268 expert
+#   review; v269 plant tissue samples and custody; v270 owner-attested specialist credentials;
+#   v271 two-person treatment plan review (no spray authority); v272 retention policy and legal
+#   holds (no purge). Append-only, FORCE RLS by tenant. Inserted after v261 and before v240.
+v262_scout_photo_season_link_events.sql
+v263_scout_photo_field_access_grants.sql
+v264_scout_photo_grant_admin_audit.sql
+v265_scout_photo_grant_audit_enforcement.sql
+v266_scout_photo_detection_link_events.sql
+v267_scout_photo_lab_sample_links.sql
+v268_scout_photo_human_review.sql
+v269_scout_plant_tissue_chain.sql
+v270_scout_specialist_credential_attestations.sql
+v271_scout_treatment_review_events.sql
+v272_scout_photo_retention_governance.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

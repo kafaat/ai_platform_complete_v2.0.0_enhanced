@@ -235,8 +235,8 @@ tables:
     # platform edge-sync ingest; append-only.
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: [sahool-platform]
-    source: "migrations/v239_detection_provenance.sql"
+    readers: [sahool-platform, scout-ingest-service]  # v266: column SELECT of attested provenance
+    source: "migrations/v239_detection_provenance.sql, migrations/v266_scout_photo_detection_link_events.sql"
   device_commands_log:
     owner: actuator-service
     writers: [actuator-service]
@@ -282,8 +282,8 @@ tables:
   edge_results:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
-    source: "migrations/v9_new_tables.sql"
+    readers: [scout-ingest-service]  # v266: column SELECT (id, tenant_id, field_id)
+    source: "migrations/v9_new_tables.sql, migrations/v266_scout_photo_detection_link_events.sql"
   equipment:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -349,7 +349,7 @@ tables:
     owner: scout-ingest-service
     writers: [scout-ingest-service]
     readers: [agriai-engine]
-    source: "migrations/v201_season_records.sql"
+    source: "migrations/v201_season_records.sql, migrations/v262_scout_photo_season_link_events.sql"
   season_crop:
     owner: scout-ingest-service
     writers: [scout-ingest-service]
@@ -582,7 +582,7 @@ tables:
   field_tasks:
     owner: field-management-service
     writers: [field-management-service]
-    readers: [sahool-platform]
+    readers: [sahool-platform, scout-ingest-service]  # photo context: v246 pin pointer, column SELECT
     source: "migrations/v9_new_tables.sql"
   field_weather_overlay:
     owner: weather-service
@@ -592,7 +592,7 @@ tables:
   fields:
     owner: field-management-service
     writers: [field-management-service]
-    readers: [sahool-platform]
+    readers: [sahool-platform, scout-ingest-service]  # field resolution, photo grants
     source: "migrations/v9_foundation.sql"
   geometry_editing_sessions:
     owner: field-management-service
@@ -1030,6 +1030,66 @@ tables:
     writers: [agriai-engine]
     readers: [sahool-platform]
     source: "migrations/v119_phase10_continuous_learning.sql"
+  scout_photo_season_link_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v262_scout_photo_season_link_events.sql"
+  scout_photo_field_access_grants:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v263_scout_photo_field_access_grants.sql, migrations/v265_scout_photo_grant_audit_enforcement.sql"
+  scout_photo_grant_audit_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v264_scout_photo_grant_admin_audit.sql"
+  scout_photo_detection_link_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v266_scout_photo_detection_link_events.sql"
+  scout_photo_lab_link_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v267_scout_photo_lab_sample_links.sql"
+  scout_photo_human_review_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v268_scout_photo_human_review.sql"
+  scout_plant_tissue_samples:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v269_scout_plant_tissue_chain.sql"
+  scout_tissue_custody_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v269_scout_plant_tissue_chain.sql"
+  scout_specialist_credential_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v270_scout_specialist_credential_attestations.sql"
+  scout_treatment_review_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v271_scout_treatment_review_events.sql"
+  scout_photo_retention_policy_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v272_scout_photo_retention_governance.sql"
+  scout_photo_retention_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v272_scout_photo_retention_governance.sql"
   scout_photo_evidence:
     owner: scout-ingest-service
     writers: [scout-ingest-service]
@@ -1098,8 +1158,8 @@ tables:
   users:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
-    source: "migrations/v9_foundation.sql, services/sahool-platform/storage/lite_store.py"
+    readers: [scout-ingest-service]  # v263: column SELECT (id, tenant_id, active, role) for photo grant checks
+    source: "migrations/v9_foundation.sql, services/sahool-platform/storage/lite_store.py, migrations/v263_scout_photo_field_access_grants.sql"
   variety_trials:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -1256,8 +1316,8 @@ tables:
   lab_samples:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
-    source: "migrations/v156_durable_soil_lab_workflow.sql, migrations/v255_soil_sampling_origin.sql"
+    readers: [scout-ingest-service]  # v267: column SELECT (identity, kind, status)
+    source: "migrations/v156_durable_soil_lab_workflow.sql, migrations/v255_soil_sampling_origin.sql, migrations/v267_scout_photo_lab_sample_links.sql"
   lab_sample_custody_events:
     owner: sahool-platform
     writers: [sahool-platform]
