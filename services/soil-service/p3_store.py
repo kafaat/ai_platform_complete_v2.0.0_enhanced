@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 
+from jsonb_values import decode_jsonb_object
+
 _ALLOWED = {
     ("soil_visual_observations", "visual_observation_id"),
     ("soil_analog_products", "analog_product_id"),
@@ -48,7 +50,7 @@ async def save(
                 identity_hash,
                 json.dumps(payload),
             )
-            return dict(row["payload"])
+            return decode_jsonb_object(row["payload"])
 
 
 async def latest(pool, *, table, tenant_id, field_id):
@@ -62,4 +64,4 @@ async def latest(pool, *, table, tenant_id, field_id):
                 tenant_id,
                 field_id,
             )
-            return dict(row["payload"]) if row else None
+            return decode_jsonb_object(row["payload"]) if row else None

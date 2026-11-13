@@ -41,6 +41,13 @@ const ownerA = OutboxOwner(userId: 'a', tenantId: 'tenant-a');
 const ownerB = OutboxOwner(userId: 'b', tenantId: 'tenant-b');
 
 void main() {
+  test('عداد المياه يقبل الأرقام العربية ويتحقق من تجميع الآلاف', () {
+    expect(parseObservationNumber('١٢٬٣٤٥٫٥'), 12345.5);
+    expect(parseObservationNumber('۱۲۳۴۶٫۵'), 12346.5);
+    expect(parseObservationNumber('١٢٬٣'), isNull);
+    expect(parseObservationNumber('0'), 0);
+  });
+
   test('unknown volume remains null and evidence never patches task status', () {
     final value = IrrigationObservation(observation());
     final op = value.toOutbox('task/1', 'f1');
