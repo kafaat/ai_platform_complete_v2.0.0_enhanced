@@ -549,10 +549,17 @@ async def get_weather_forecast(
 
 
 async def get_weather_historical(
-    lat: float, lon: float, *, start_date: str, end_date: str
+    lat: float,
+    lon: float,
+    *,
+    start_date: str,
+    end_date: str,
+    tenant_id: str | None = None,
 ) -> dict[str, Any]:
+    """Canonical weather-service historical view, with tenant-scoped service identity."""
     return await weather_get_json(
         "/v1/weather/historical",
+        tenant_id=tenant_id,
         params={"lat": lat, "lon": lon, "start_date": start_date, "end_date": end_date},
     )
 

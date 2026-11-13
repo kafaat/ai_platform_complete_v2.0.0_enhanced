@@ -451,9 +451,19 @@ _KEYED = {
     "smembers": ["{k}"],
     "rpush": ["{k}", "v"],
     "lrange": ["{k}", "0", "-1"],
+    "ltrim": ["{k}", "0", "-1"],
+    "watch": ["{k}"],
     "eval": ["return 1", "1", "{k}"],
 }
-_UNKEYED = {"ping": [], "select": ["0"], "scan": ["0"]}
+_UNKEYED = {
+    "ping": [],
+    "select": ["0"],
+    "scan": ["0"],
+    # transaction control (sahool-ai-agronomist decisions): no key argument
+    "multi": [],
+    "exec": [],
+    "unwatch": [],
+}
 _CHANNEL = {"subscribe": ["{c}"], "unsubscribe": ["{c}"], "publish": ["{c}", "acl-probe"]}
 
 

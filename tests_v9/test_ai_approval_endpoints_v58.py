@@ -53,7 +53,7 @@ def _pending_request():
 
 
 @pytest.fixture
-def seeded():
+def seeded(monkeypatch):
     """يزرع الطلبَ في المخزن الخادميّ — **العقدُ تغيّر مع D01**.
 
     كان الشاهدان أدناه يُرسلان `_pending_request()` في الجسم **بلا زرعٍ خادميّ**
@@ -61,10 +61,13 @@ def seeded():
     يصير سجلَّ موافقةٍ من العدم. فالتهيئةُ هي ما تغيّر، **لا التأكيدات** — نيّةُ
     الشاهدين («يُطبِّع القرارَ ولا يُنفّذ الأداة») محفوظةٌ كما هي.
     """
-    from services.ai_agronomist.main import _APPROVAL_STORE
+    from services.ai_agronomist import main as M
+    from services.ai_agronomist.agent_stores import InMemoryApprovalStore
 
+    # Approvals are create-once: each test gets a fresh store, so the fixed id cannot collide.
+    monkeypatch.setattr(M, "_APPROVAL_STORE", InMemoryApprovalStore())
     record = _pending_request()
-    _APPROVAL_STORE.save(record)
+    M._APPROVAL_STORE.create(record)
     return record
 
 
@@ -145,7 +148,7 @@ def test_the_body_cannot_reopen_a_denied_record(seeded):
 
     denied = dict(seeded)
     denied["status"] = "denied"
-    _APPROVAL_STORE.save(denied)
+    assert _APPROVAL_STORE.transition(seeded["id"], "tenant-1", "pending", denied)
 
     client = TestClient(app)
     resp = client.post(
@@ -183,7 +186,7 @@ def test_another_tenant_cannot_resume_an_approved_envelope(seeded):
 
     approved = dict(seeded)
     approved["status"] = "approved"
-    _APPROVAL_STORE.save(approved)
+    assert _APPROVAL_STORE.transition(seeded["id"], "tenant-1", "pending", approved)
 
     client = TestClient(app)
     resp = client.post(

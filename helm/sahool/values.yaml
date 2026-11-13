@@ -16,6 +16,8 @@ global:
     jwtPublicKey: sahool-jwt-public-key
     jwtPrivateKey: sahool-jwt-private-key
     agentToken: sahool-agent-token
+    # Shared store for ai-agronomist approvals and agent audit (services/ai_agronomist/agent_stores.py).
+    agentRedisUrl: sahool-agent-redis-url
     cdseClientId: sahool-cdse-client-id
     cdseClientSecret: sahool-cdse-client-secret
 
@@ -98,8 +100,13 @@ workloads:
     env:
       SERVICE_NAME: sahool-ai-agronomist
       FIELD_STATE_REQUIRED: "true"
+      # With more than one replica an in-process store splits pending approvals between pods
+      # and loses them on restart. Redis is shared; in production a missing or unreachable
+      # Redis fails the pod instead of falling back to memory (agent_stores._redis_client_or_none).
+      SAHOOL_AGENT_STORE_BACKEND: redis
     secretEnv:
       SAHOOL_AGENT_TOKEN: agentToken
+      SAHOOL_AGENT_REDIS_URL: agentRedisUrl
   sahool-rag-retrieval:
     enabled: true
     image: sahool/rag-retrieval:2026.06.26-rc.15

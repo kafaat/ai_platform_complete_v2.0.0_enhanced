@@ -515,96 +515,6 @@
             }
           ]
         },
-        "sahool-ai-agronomist": {
-          "password_env": "REDIS_AI_AGRONOMIST_PASSWORD",
-          "client_env": "SAHOOL_AGENT_REDIS_URL",
-          "db": 0,
-          "basis": "derived",
-          "commands": [
-            "ping",
-            "get",
-            "set",
-            "sadd",
-            "srem",
-            "smembers",
-            "rpush",
-            "lrange"
-          ],
-          "keys": [
-            "sahool:agent:approval:*",
-            "sahool:agent:approvals:pending",
-            "sahool:agent:audit"
-          ],
-          "channels": [],
-          "evidence": [
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 26,
-              "needle": "_APPROVAL_KEY = \"sahool:agent:approval:\"",
-              "why": "key"
-            },
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 27,
-              "needle": "_APPROVAL_PENDING_SET = \"sahool:agent:approvals:pending\"",
-              "why": "key"
-            },
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 28,
-              "needle": "_AUDIT_LIST = \"sahool:agent:audit\"",
-              "why": "key"
-            },
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 86,
-              "needle": "self._c.set(_APPROVAL_KEY + aid",
-              "why": "SET"
-            },
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 88,
-              "needle": "self._c.sadd(_APPROVAL_PENDING_SET, aid)",
-              "why": "SADD"
-            },
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 90,
-              "needle": "self._c.srem(_APPROVAL_PENDING_SET, aid)",
-              "why": "SREM"
-            },
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 98,
-              "needle": "self._c.smembers(_APPROVAL_PENDING_SET)",
-              "why": "SMEMBERS"
-            },
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 93,
-              "needle": "raw = self._c.get(_APPROVAL_KEY",
-              "why": "GET"
-            },
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 110,
-              "needle": "self._c.rpush(_AUDIT_LIST",
-              "why": "RPUSH"
-            },
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 113,
-              "needle": "self._c.lrange(_AUDIT_LIST",
-              "why": "LRANGE"
-            },
-            {
-              "path": "services/ai_agronomist/agent_stores.py",
-              "line": 141,
-              "needle": "client.ping()",
-              "why": "PING"
-            }
-          ]
-        },
         "sahool-telegram-bot": {
           "password_env": "REDIS_TELEGRAM_BOT_PASSWORD",
           "client_env": "REDIS_URL",
@@ -1045,6 +955,143 @@
               "line": 7,
               "needle": "redis>=5.0.0",
               "why": "dependency declared; no Python file imports redis"
+            }
+          ]
+        },
+        "sahool-ai-agronomist": {
+          "password_env": "REDIS_AI_AGRONOMIST_PASSWORD",
+          "client_env": "SAHOOL_AGENT_REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "get",
+            "set",
+            "sadd",
+            "srem",
+            "smembers",
+            "rpush",
+            "lrange",
+            "ltrim",
+            "watch",
+            "multi",
+            "exec",
+            "unwatch"
+          ],
+          "keys": [
+            "sahool:agent:approval:*",
+            "sahool:agent:approvals:pending",
+            "sahool:agent:audit"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 30,
+              "needle": "_APPROVAL_KEY = \"sahool:agent:approval:\"",
+              "why": "key"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 31,
+              "needle": "_APPROVAL_PENDING_SET = \"sahool:agent:approvals:pending\"",
+              "why": "key"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 32,
+              "needle": "_AUDIT_LIST = \"sahool:agent:audit\"",
+              "why": "key"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 209,
+              "needle": "if not self._c.set(_APPROVAL_KEY + aid, payload, nx=True, ex=self._ttl):",
+              "why": "SET NX EX (create-once approval)"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 238,
+              "needle": "pipe.set(key, payload, xx=True, keepttl=True)",
+              "why": "SET XX KEEPTTL inside MULTI (decision)"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 212,
+              "needle": "self._c.sadd(_APPROVAL_PENDING_SET, aid)",
+              "why": "SADD"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 242,
+              "needle": "pipe.srem(_APPROVAL_PENDING_SET, aid)",
+              "why": "SREM inside MULTI"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 254,
+              "needle": "self._c.smembers(_APPROVAL_PENDING_SET)",
+              "why": "SMEMBERS"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 249,
+              "needle": "raw = self._c.get(_APPROVAL_KEY",
+              "why": "GET"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 231,
+              "needle": "raw = pipe.get(key)",
+              "why": "GET on the watched connection"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 230,
+              "needle": "pipe.watch(key)",
+              "why": "WATCH"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 236,
+              "needle": "pipe.multi()",
+              "why": "MULTI"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 243,
+              "needle": "replies = pipe.execute()",
+              "why": "EXEC"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 234,
+              "needle": "pipe.unwatch()",
+              "why": "UNWATCH (redis-py Pipeline.reset also sends UNWATCH on exit while watching)"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 281,
+              "needle": "self._c.rpush(_AUDIT_LIST",
+              "why": "RPUSH"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 282,
+              "needle": "self._c.ltrim(_AUDIT_LIST, -self._max, -1)",
+              "why": "LTRIM (rolling audit window)"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 285,
+              "needle": "self._c.lrange(_AUDIT_LIST",
+              "why": "LRANGE"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 313,
+              "needle": "client.ping()",
+              "why": "PING"
             }
           ]
         }

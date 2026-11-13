@@ -41,16 +41,20 @@ def test_zeros_injected_yield_zero_gdd():
     assert out.gdd_total == 0.0
 
 
-def test_none_day_excluded_not_fabricated():
+def test_none_day_marks_gdd_and_yield_unavailable():
     weather = _weather(5)
     # يوم None في السلسلة ⇒ يُستبعَد من التراكم (لا عودة لنواة محلّيّة، لا صفر مُلفَّق فوق البقيّة).
     injected = [10.0, None, 10.0, 10.0, 10.0]
     out = simulate_season(SimContext(crop="wheat", weather=weather, gdd_daily_override=injected))
-    assert abs(out.gdd_total - 40.0) < 1e-6  # 4 أيّام × 10، اليوم None مُستبعَد
+    assert out.gdd_total is None  # لا ننسب التراكم الجزئي إلى كامل الموسم
+    assert out.yield_kg_ha is None
+    assert out.yield_status == "unavailable_missing_gdd"
 
 
-def test_no_override_yields_zero_gdd_no_local_kernel():
-    # لا سلسلة محقونة ⇒ تراكم GDD = 0 (لا نواة gdd_day محلّيّة تملأ الفراغ). fail-closed.
+def test_no_override_does_not_claim_observed_zero_gdd():
+    # لا نواة محلية ولا سلسلة محقونة؛ لا يُعامل الغياب كصفر مرصود.
     weather = _weather(15)
     out = simulate_season(SimContext(crop="wheat", weather=weather))
-    assert out.gdd_total == 0.0
+    assert out.gdd_total is None
+    assert out.yield_kg_ha is None
+    assert out.yield_status == "unavailable_missing_gdd"

@@ -507,6 +507,7 @@
       "runtime_verified": false,
       "title": "Execution request",
       "unit_test_paths": [
+        "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
         "services/decision-service/tests/test_execution_request_feed.py",
         "services/decision-service/tests/test_execution_request_plan_binding.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
@@ -1419,6 +1420,7 @@
         "tests_v9/test_notification_tenant_isolation.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
         "tests_v9/test_operation_report_tenant_authz.py",
+        "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
         "tests_v9/test_rag_point_id_tenant_namespace.py",
         "tests_v9/test_raster_field_tenant_authz.py",
         "tests_v9/test_service_tenant_assertion.py",
@@ -1478,7 +1480,7 @@
         "mobile": true,
         "production": false,
         "runtime": false,
-        "runtime_instrumentation": false,
+        "runtime_instrumentation": true,
         "unit_tests": true,
         "web": true
       },
@@ -1529,7 +1531,7 @@
           "type": "runtime"
         },
         {
-          "present": false,
+          "present": true,
           "source": "capabilities/generated/capability_runtime_evidence.csv",
           "type": "runtime_instrumentation"
         },
@@ -1544,7 +1546,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 9,
+      "evidence_score": 10,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -1602,6 +1604,9 @@
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "tests_v9/test_export_season_runs_for_golden.py",
+        "tests_v9/test_farm_book_corrections_and_categories.py",
+        "tests_v9/test_farm_book_receipt_field.py",
+        "tests_v9/test_farm_book_receipt_scope_live_pg.py",
         "tests_v9/test_farm_memory.py",
         "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
         "tests_v9/test_sim_golden.py",
@@ -1739,6 +1744,7 @@
         "services/sahool-platform/tests/test_field_boundary_graph.py",
         "services/sahool-platform/tests/test_field_boundary_pipeline.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
+        "services/sahool-platform/tests/test_field_geometry_revert_overlap.py",
         "services/sahool-platform/tests/test_field_workspace.py",
         "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
@@ -1864,7 +1870,9 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
-        "tests_v9/test_canonical_phenology_contract_truth.py"
+        "services/sahool-platform/tests/test_season_weather_contract.py",
+        "tests_v9/test_canonical_phenology_contract_truth.py",
+        "tests_v9/test_v26_season_payload_and_dates_contract.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -1892,6 +1900,7 @@
         "services/sahool-platform/tests/test_season_calendar_guard.py",
         "services/sahool-platform/tests/test_season_comparison.py",
         "services/sahool-platform/tests/test_season_et0_injection.py",
+        "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
         "services/sahool-platform/tests/test_season_gdd_injection.py",
         "services/sahool-platform/tests/test_season_integrity.py",
         "services/sahool-platform/tests/test_season_lifecycle.py",
@@ -1902,7 +1911,9 @@
         "services/sahool-platform/tests/test_season_stage_risk.py",
         "services/sahool-platform/tests/test_seasons_endpoint.py",
         "services/sahool-platform/tests/test_tier2_modules.py",
+        "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
         "services/scout-ingest-service/tests/test_season_live.py",
+        "tests_v9/test_digital_twin_season_live_pg.py",
         "tests_v9/test_export_season_runs_for_golden.py",
         "tests_v9/test_fii_prescription_season_context_guard.py",
         "tests_v9/test_historical_season_bridge_static.py",
@@ -2043,6 +2054,7 @@
       "title": "Crop and cultivar catalog",
       "unit_test_paths": [
         "services/sahool-platform/tests/test_fields_endpoint.py",
+        "services/sahool-platform/tests/test_v26_variety_crop_boundary.py",
         "services/sahool-platform/tests/test_variety_suitability.py",
         "services/sahool-platform/tests/test_yield_analysis.py",
         "tests_v9/test_canonical_water_state_mpc.py",
@@ -5130,12 +5142,14 @@
       "runtime_verified": false,
       "title": "Scouting",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_cubit_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_screen_test.dart",
         "mobile/sahool_app/test/features/scouting/pest_detect_test.dart",
         "mobile/sahool_app/test/features/scouting/scouting_api_test.dart",
         "mobile/sahool_app/test/features/scouting/scouting_routes_test.dart",
         "mobile/sahool_app/test/features/scouting/scouting_screen_test.dart",
+        "tests_v9/test_api_writes_persist_live_pg.py",
         "tests_v9/test_cropwise_evidence_quality.py",
         "tests_v9/test_roadmap_phase1.py",
         "tests_v9/test_scouting_pins_persistence.py"
@@ -6174,6 +6188,7 @@
       "runtime_verified": false,
       "title": "Yield map ingestion",
       "unit_test_paths": [
+        "services/sahool-platform/tests/test_v26_zero_yield_map.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
         "tests_v9/test_platform_catalog_gate.py",
         "tests_v9/test_precision_execution_loop_c3_guard.py",
@@ -6882,6 +6897,7 @@
         "services/sahool-platform/tests/test_data_quality.py",
         "services/sahool-platform/tests/test_eo_stage_mismatch.py",
         "services/sahool-platform/tests/test_field_intelligence_card.py",
+        "services/sahool-platform/tests/test_field_twin.py",
         "services/sahool-platform/tests/test_freshness_sweep.py",
         "services/sahool-platform/tests/test_index_registry.py",
         "services/sahool-platform/tests/test_ndvi_analysis.py",
@@ -6954,7 +6970,7 @@
       "declared_maturity": 2,
       "domain": "satellite",
       "evidence": {
-        "api": false,
+        "api": true,
         "backend": true,
         "database": true,
         "documentation": true,
@@ -6969,7 +6985,7 @@
       },
       "evidence_records": [
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "api"
         },
@@ -7029,7 +7045,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -9395,7 +9411,7 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
       "evidence_records": [
@@ -9450,7 +9466,7 @@
           "type": "runtime_instrumentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "unit_tests"
         },
@@ -9460,7 +9476,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 3,
+      "evidence_score": 4,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -9475,7 +9491,9 @@
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Soil water properties",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "tests_v9/test_soil_jsonb_stores_live_pg.py"
+      ]
     },
     {
       "assessed_maturity": 2,
@@ -10249,6 +10267,7 @@
         "services/sahool-platform/tests/test_gdd_track_delegation.py",
         "services/sahool-platform/tests/test_gdd_tracker.py",
         "services/sahool-platform/tests/test_season_gdd_injection.py",
+        "services/sahool-platform/tests/test_v26_missing_gdd_semantics.py",
         "services/sahool-platform/tests/test_weather_gdd_client.py",
         "services/weather-service/tests/test_gdd.py",
         "services/weather-service/tests/test_gdd_agro_product.py",

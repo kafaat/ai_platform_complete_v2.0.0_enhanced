@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "8180b5d123b956e2d9ec53db8d2b5455a4fc7e1a",
+  "measured_on": "ab26db77ea0f62904b1d4ddb22ae9e02236faa17",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "bceea62d24a5bd4148aebdbc5c22f58563537e79e058ffa756f8b4902f11fa44",
+  "measurement_input_digest": "04c8c430dfc3161a9c9fcb38d66922780b23bb4ee24a53cfe4414d94c6ab6360",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "e552378a93069a942d39fec754d65234741c0664855c35e57771cf61785d6fe0",
+  "measurement_basis_digest": "57d38717957ba7cbcac6bbb747a75421c3d5734aeaa26acbcbc3c3377e59c55a",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -64,7 +64,7 @@
     },
     {
       "path": "services/decision-service/persistence.py",
-      "sha256": "550d66acd86e8c4b13b8584b44258f2f36bf2ef22b34a950ef0f6cb135ecfe3c"
+      "sha256": "408546551a26520e09655131d03dd1858fd0df8c87a0f9b8939a32b92f6f399f"
     },
     {
       "path": "services/field-management-service/main.py",
@@ -80,7 +80,7 @@
     },
     {
       "path": "services/mcp_servers/market_server.py",
-      "sha256": "79a9bd55931eb909c0aaed33aa789159e78bc57ff14947b65f0a55cb592dbef2"
+      "sha256": "0e3dc7e97174349302a3486d68388d0b0dc56ebb29ff3d190e0c673e4b396694"
     },
     {
       "path": "services/mcp_servers/shared/oauth_middleware.py",
@@ -120,7 +120,7 @@
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "536b56bc96c53849532b774ac1885bd6f769819905dde3d26c03f4f18494ec40"
+      "sha256": "847706d4effaff3d1e6eb2e9ce622a67dfa4ec710cf44f1cfa0aea146feb2a29"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
@@ -160,15 +160,15 @@
     },
     {
       "path": "services/soil-service/p1_store.py",
-      "sha256": "40ed7710e556d89474f033543756f19ae207331ced906e4bc510ffacfe7a0b30"
+      "sha256": "2ea416b79944315fe8f54b78b2e8c338e81f51051bd5ba486aa1be5e5cad2336"
     },
     {
       "path": "services/soil-service/p2_store.py",
-      "sha256": "34456f9958b473170688e4d75b8127b3e9981c843a621e8cc65968745e109775"
+      "sha256": "e761493a75cd25db67bff7a59e867e52f14d14564678fdb551f479f0e6e5a736"
     },
     {
       "path": "services/soil-service/p3_store.py",
-      "sha256": "713bb6a58ddb73394d148ce72b6232dc6ef88f01c246c39507caa95676cd7537"
+      "sha256": "9824465384e0a5e5e9072118c1d8e2e5cd84aac7636d3143345c22c6d557f722"
     },
     {
       "path": "services/soil-service/p4_store.py",
@@ -176,7 +176,7 @@
     },
     {
       "path": "services/soil-service/soil_store.py",
-      "sha256": "1d18ef61435ba82b1606b91d78a27f28a16d8645372d3e51193def8d3b890eb2"
+      "sha256": "45d920bb98d66147b7e3f83790a70f3ef36a2691b85d75ece60fa471c2be18b8"
     },
     {
       "path": "services/vegetation-analysis-service/anomaly_store_pg.py",
@@ -207,10 +207,10 @@
     "services/sahool-platform/api/phase_runtime_workers.py:56",
     "services/sahool-platform/api/phase_runtime_workers.py:57",
     "services/sahool-platform/workers/canonical_execution_learning_worker.py:147",
-    "services/soil-service/p1_store.py:9",
-    "services/soil-service/p2_store.py:9",
-    "services/soil-service/p3_store.py:17",
-    "services/soil-service/soil_store.py:105",
+    "services/soil-service/p1_store.py:11",
+    "services/soil-service/p2_store.py:11",
+    "services/soil-service/p3_store.py:19",
+    "services/soil-service/soil_store.py:107",
     "services/vegetation-analysis-service/anomaly_store_pg.py:67"
   ],
   "guc_names": [

@@ -356,6 +356,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/fieldsetup/YieldStep.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/fieldsetup/steps.ts",
     "kind": "web"
   },
@@ -1666,6 +1670,10 @@
   {
     "path": "frontend/src/lib/whatIfScenarios.ts",
     "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/wheatRegister.test.ts",
+    "kind": "tests"
   },
   {
     "path": "frontend/src/lib/windbreak.ts",
@@ -8652,10 +8660,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_field_twin.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/sahool-platform/tests/test_field_twin_endpoint.py",
     "kind": "tests"
   },
@@ -8821,6 +8825,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_irrigation_water_analysis.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_irrigation_water_verdict.py",
     "kind": "tests"
   },
   {
@@ -9400,6 +9408,18 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_v26_digital_twin_regressions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_v26_yield_alias_and_absence.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_validate_observations.py",
     "kind": "tests"
   },
@@ -9569,6 +9589,10 @@
   },
   {
     "path": "services/soil-service/evidence_adapters.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/jsonb_values.py",
     "kind": "backend"
   },
   {
@@ -10052,6 +10076,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/weather-service/tests/test_archive_solar_radiation_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/weather-service/tests/test_cache_age_is_server_counted.py",
     "kind": "tests"
   },
@@ -10516,6 +10544,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_agent_store_selection_logged.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_agent_stores_v58_2.py",
     "kind": "tests"
   },
@@ -10540,6 +10572,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_advisor_readiness_and_field_binding.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_agronomist_approval_identity_t11.py",
     "kind": "tests"
   },
@@ -10561,6 +10597,10 @@
   },
   {
     "path": "tests_v9/test_ai_approval_endpoints_v58.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_approval_identity_atomic_store.py",
     "kind": "tests"
   },
   {
@@ -10793,6 +10833,10 @@
   },
   {
     "path": "tests_v9/test_backup_recovery_execution.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_bff_execution_plan_operation_canonical.py",
     "kind": "tests"
   },
   {
@@ -11296,6 +11340,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_diagnose_crop_normalisation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_disease_field_state_feed.py",
     "kind": "tests"
   },
@@ -11729,6 +11777,10 @@
   },
   {
     "path": "tests_v9/test_health_readiness_schema_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
     "kind": "tests"
   },
   {

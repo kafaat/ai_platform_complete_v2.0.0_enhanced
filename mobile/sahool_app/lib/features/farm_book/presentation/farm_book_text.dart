@@ -114,7 +114,15 @@ const Map<String, String> _detailAr = {
   'reversed_entry_not_found': 'القيد الأصليّ غير موجود.',
   'cannot_reverse_a_reversal': 'لا يمكن عكس قيد عكسي.',
   'reversal_must_mirror_original':
-      'القيد العكسي يجب أن يطابق القيد الأصليّ تماماً (النوع والدفع والمبلغ والطرف).',
+      'القيد العكسي يجب أن يطابق القيد الأصليّ (النوع والدفع والمبلغ والعملة والطرف).',
+  'entry_scope_mismatch':
+      'القيد مرتبط بمزرعة أو حقل أو موسم غير التي سُجِّل عليها القيد الأصليّ.',
+  'entry_precedes_original':
+      'تاريخ القيد العكسي لا يسبق تاريخ القيد الأصليّ.',
+  'cannot_reverse_entry_with_settlements':
+      'هذا القيد الآجل سُدِّد منه جزء؛ لا يُعكس بعد السداد.',
+  'cannot_settle_a_reversal': 'لا يُسدَّد قيد عكسي.',
+  'cannot_settle_reversed_entry': 'هذا القيد الآجل معكوس؛ لا دين عليه يُسدَّد.',
   'entry_already_reversed': 'هذا القيد عُكس من قبل؛ لا يُعكس مرّتين.',
   'client_operation_id_payload_conflict':
       'أُرسلت هذه العمليّة سابقاً بقيم مختلفة. حدّث الدفتر وتحقّق قبل الإعادة.',
@@ -124,6 +132,13 @@ const Map<String, String> _detailAr = {
   'season_not_found_for_tenant': 'الموسم غير موجود في حسابك.',
   'party_not_found_for_tenant': 'المورد أو العميل غير موجود في حسابك.',
   'receipt_document_not_found_for_tenant': 'مستند الإيصال غير موجود.',
+  'payment_farm_mismatch': 'السداد يُسجَّل على مزرعة الدين نفسها.',
+  'field_not_in_farm': 'الحقل المختار لا يتبع هذه المزرعة.',
+  'farm_access_denied': 'لا تملك صلاحية تسجيل قيود على هذه المزرعة.',
+  'receipt_field_mismatch':
+      'الإيصال مسجَّل على حقل آخر؛ اربطه بقيد على الحقل نفسه أو استخدم إيصالاً مشتركاً بلا حقل.',
+  'receipt_document_permission_required':
+      'لا تملك صلاحية الاطّلاع على مستندات هذه المزرعة لربط الإيصال.',
   'month_must_be_yyyy_mm': 'صيغة الشهر غير صالحة.',
   'invalid_party_type': 'نوع الطرف غير صالح.',
   'reportlab_not_installed':

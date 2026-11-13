@@ -29,7 +29,7 @@ def test_decision_sor_returns_plan_digest_and_bff_registers_only_proven_irrigati
     assert '"plan_digest": row["request_hash"]' in sor
     assert 'result.get("authoritative") is True' in bff
     assert 'result.get("persisted") is True' in bff
-    assert 'req.operation_type == "manual_irrigation"' in bff
+    assert 'req.operation_type.strip().lower() == "manual_irrigation"' in bff
     assert "irrigation_manual_execution_sources" in bff
 
 

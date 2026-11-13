@@ -118,7 +118,7 @@
     },
     {
       "kind": "router",
-      "line": 20,
+      "line": 18,
       "module": "services.auth.routers.mfa",
       "node_id": "services.auth.routers.mfa:router",
       "route_count": 3,
@@ -163,7 +163,7 @@
     },
     {
       "kind": "router",
-      "line": 29,
+      "line": 26,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 130,
+      "line": 132,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 73,
@@ -199,7 +199,7 @@
     },
     {
       "kind": "app",
-      "line": 44,
+      "line": 38,
       "module": "services.edge-inference.main",
       "node_id": "services.edge-inference.main:app",
       "route_count": 7,
@@ -217,7 +217,7 @@
     },
     {
       "kind": "app",
-      "line": 65,
+      "line": 57,
       "module": "services.field-segmentation.main",
       "node_id": "services.field-segmentation.main:app",
       "route_count": 4,
@@ -1216,7 +1216,7 @@
     },
     {
       "kind": "router",
-      "line": 157,
+      "line": 158,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -1720,7 +1720,7 @@
     },
     {
       "kind": "router",
-      "line": 57,
+      "line": 68,
       "module": "services.sahool-platform.api.routers.recommendations",
       "node_id": "services.sahool-platform.api.routers.recommendations:router",
       "route_count": 8,
@@ -1864,7 +1864,7 @@
     },
     {
       "kind": "router",
-      "line": 28,
+      "line": 27,
       "module": "services.sahool-platform.api.routers.service_proxy",
       "node_id": "services.sahool-platform.api.routers.service_proxy:router",
       "route_count": 4,
@@ -1891,7 +1891,7 @@
     },
     {
       "kind": "router",
-      "line": 25,
+      "line": 26,
       "module": "services.sahool-platform.api.routers.simple_farm_book",
       "node_id": "services.sahool-platform.api.routers.simple_farm_book:router",
       "route_count": 7,
@@ -2008,7 +2008,7 @@
     },
     {
       "kind": "router",
-      "line": 55,
+      "line": 56,
       "module": "services.sahool-platform.api.routers.water_twin",
       "node_id": "services.sahool-platform.api.routers.water_twin:router",
       "route_count": 1,
@@ -2116,7 +2116,7 @@
     },
     {
       "kind": "app",
-      "line": 101,
+      "line": 100,
       "module": "services.soil-service.main",
       "node_id": "services.soil-service.main:app",
       "route_count": 1,
@@ -2152,7 +2152,7 @@
     },
     {
       "kind": "router",
-      "line": 20,
+      "line": 21,
       "module": "services.soil-service.routers.p1_products",
       "node_id": "services.soil-service.routers.p1_products:router",
       "route_count": 9,
@@ -2350,7 +2350,7 @@
     },
     {
       "kind": "app",
-      "line": 540,
+      "line": 487,
       "module": "services.video-processor.main",
       "node_id": "services.video-processor.main:app",
       "route_count": 0,
@@ -2811,7 +2811,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "616c82fd20443ebae47c8cafb8f5c92ba37892b43725a4d1032ec32e5409db8b",
+  "inventory_sha256": "74e1b561f687fd37ab82b4739d494691a03b97b0867254b806475b5b06b4b91e",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -2867,7 +2867,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 20,
+      "line": 18,
       "module": "services.auth.routers.mfa",
       "node_id": "services.auth.routers.mfa:router",
       "route_count": 3,
@@ -2917,7 +2917,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 29,
+      "line": 26,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -3917,7 +3917,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 157,
+      "line": 158,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -4477,7 +4477,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 57,
+      "line": 68,
       "module": "services.sahool-platform.api.routers.recommendations",
       "node_id": "services.sahool-platform.api.routers.recommendations:router",
       "route_count": 8,
@@ -4637,7 +4637,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 28,
+      "line": 27,
       "module": "services.sahool-platform.api.routers.service_proxy",
       "node_id": "services.sahool-platform.api.routers.service_proxy:router",
       "route_count": 4,
@@ -4667,7 +4667,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 25,
+      "line": 26,
       "module": "services.sahool-platform.api.routers.simple_farm_book",
       "node_id": "services.sahool-platform.api.routers.simple_farm_book:router",
       "route_count": 7,
@@ -4797,7 +4797,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 55,
+      "line": 56,
       "module": "services.sahool-platform.api.routers.water_twin",
       "node_id": "services.sahool-platform.api.routers.water_twin:router",
       "route_count": 1,
@@ -4897,7 +4897,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 20,
+      "line": 21,
       "module": "services.soil-service.routers.p1_products",
       "node_id": "services.soil-service.routers.p1_products:router",
       "route_count": 9,
