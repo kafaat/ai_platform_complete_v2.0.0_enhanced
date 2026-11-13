@@ -21,20 +21,20 @@
       "database": 296,
       "governance": 89,
       "mobile": 414,
-      "other": 2163,
-      "tests": 2403,
+      "other": 2164,
+      "tests": 2402,
       "web": 524
     },
-    "unmapped_artifacts": 3410,
+    "unmapped_artifacts": 3409,
     "ambiguous_artifacts": 233,
     "files_by_reading": {
-      "python_functional": 3856,
-      "raw": 3303
+      "python_functional": 3855,
+      "raw": 3304
     },
-    "test_dependency_files": 1809,
+    "test_dependency_files": 1808,
     "test_dependency_edges": 4576,
     "test_dependency_bounded_files": 1054,
-    "test_dependency_unresolved_relations": 458
+    "test_dependency_unresolved_relations": 456
   },
   "capabilities": [
     {
@@ -41811,10 +41811,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_diagnose_crop_normalisation.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_disease_field_state_feed.py",
       "kind": "tests"
     },
@@ -74426,24 +74422,6 @@
       "unresolved": []
     },
     {
-      "test": "tests_v9/test_diagnose_crop_normalisation.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "unresolved_dynamic_relation"
-      ],
-      "edges": [],
-      "unresolved": [
-        {
-          "line": 21,
-          "import": "api.disease_diagnosis"
-        },
-        {
-          "line": 47,
-          "import": "api.disease_diagnosis"
-        }
-      ]
-    },
-    {
       "test": "tests_v9/test_disease_field_state_feed.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -86012,22 +85990,22 @@
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "source_read",
-          "line": 240
+          "line": 244
         },
         {
           "source": "services/sahool-platform/api/phase_runtime_store.py",
           "kind": "source_read",
-          "line": 112
+          "line": 116
         },
         {
           "source": "services/sahool-platform/api/routers/decision_dispatch.py",
           "kind": "source_read",
-          "line": 147
+          "line": 151
         },
         {
           "source": "services/sahool-platform/api/routers/recommendations.py",
           "kind": "source_read",
-          "line": 134
+          "line": 138
         }
       ],
       "unresolved": []
