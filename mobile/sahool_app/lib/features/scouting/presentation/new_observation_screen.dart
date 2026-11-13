@@ -1,7 +1,8 @@
 // SAHOOL — features/scouting/presentation/new_observation_screen.dart
 // «مشاهدة جديدة» مصمّمة ليد واحدة في الحقل: الموقع يُلتقط تلقائيّاً عند الفتح،
 // الفئة والشدّة أزرار كبيرة بأيقونات، الملاحظة اختياريّة، وزرّ الحفظ ثابت أسفل
-// الشاشة في متناول الإبهام. الصورة تُحفظ على الجهاز فوراً ثمّ تُرفع مع المشاهدة.
+// الشاشة في متناول الإبهام. الصورة تُحفظ على الجهاز فوراً ثمّ تُرفع دليلاً مستقلّاً بعد
+// تأكيد الدبّوس (scout-ingest، v260).
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ import 'new_observation_cubit.dart';
 import 'scouting_deps.dart';
 
 const String kPhotoUploadNotice =
-    'تُرفع الصورة مع المشاهدة ويراها المشرف؛ دون اتّصال تبقى على الجهاز وتُرسل عند عودة الاتّصال.';
+    'تُحفظ الصورة على الجهاز ثمّ تُرفع دليلاً غير معتمد تشخيصيّاً بعد حفظ المشاهدة ويراها المشرف؛ دون اتّصال تنتظر المزامنة (JPG/PNG/WebP).';
 
 class NewObservationScreen extends StatelessWidget {
   const NewObservationScreen({

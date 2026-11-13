@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException
 
 from api.document_models import DocumentRequest
 from api.idempotency import model_digest
@@ -29,7 +29,6 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from api.scouting_pins import load_pin_photo
 
 router = APIRouter()
 
@@ -129,21 +128,9 @@ async def list_documents(
 @router.get("/api/v1/documents/{doc_id}")
 async def get_document(
     doc_id: str,
-    content: bool = Query(False, description="بايتات صورة دبّوس مشاهدة (v257) بدل بياناتها"),
     user: UserSchema = Depends(require_permission(Permission.DOCUMENT_VIEW)),
 ):
-    """بيانات مستند مفرد (404 إن غير موجود) — معزول بالمستأجر.
-
-    ``content=true``: بايتات صورة دبّوس مشاهدة فقط (مستند يربطه دبّوس ومرجعه كتبه مسار
-    الدبابيس)؛ أيّ مستند آخر ⇒ 404 — ``storage_ref`` المسجَّل يدويّاً لا يُقرأ أبداً.
-    """
-    if content:
-        data, content_type = await load_pin_photo(user, doc_id, connect=tenant_connection)
-        return Response(
-            content=data,
-            media_type=content_type,
-            headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"},
-        )
+    """بيانات مستند مفرد (404 إن غير موجود) — معزول بالمستأجر."""
     async with tenant_connection(user) as conn:
         r = await conn.fetchrow(
             "SELECT doc_id, category, field_id, title, storage_ref, content_type, "

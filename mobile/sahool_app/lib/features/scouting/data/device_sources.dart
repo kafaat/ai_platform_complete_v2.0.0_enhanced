@@ -5,7 +5,8 @@
 // صدق: لا إحداثيّات وهميّة عند رفض الإذن أو تعطّل الخدمة — يُعاد سبب الفشل كما
 // هو، والبديل الوحيد «مركز الحقل» المسجَّل على الخادم ويُعلَن أنّه مركز لا قياس.
 // الصور: تُنسخ إلى مجلّد التطبيق فوراً (تبقى إن أُغلق التطبيق قبل الإرسال)، ثمّ تُرفع
-// مع الدبّوس إلى مخزن المرفقات في المنصّة (new_observation_cubit.dart).
+// بعد التزام الدبّوس دليلاً إلى scout-ingest (v260؛ new_observation_cubit.dart). القراءة
+// والاستبدال والحذف محصورة في مجلّد المستأجِر الحاليّ (لا روابط رمزيّة ولا '..').
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -180,7 +181,8 @@ abstract class LocalPhotoStore {
   /// مسار صورة الدبّوس على هذا الجهاز إن وُجدت.
   Future<String?> find(String pinId);
 
-  /// بايتات صورة محفوظة (للرفع). يرمي إن لم يوجد الملفّ.
+  /// بايتات نسخة الجهاز المحفوظة (لا ملفّ الالتقاط المؤقّت) للرفع. يرمي إن لم يوجد
+  /// الملفّ أو كان خارج مجلّد المستأجِر الحاليّ.
   Future<Uint8List> read(String path);
 }
 
@@ -188,6 +190,14 @@ abstract class LocalPhotoStore {
 /// يرى حساب آخر على الجهاز نفسه صور حساب سابق في قائمته.
 class DeviceLocalPhotoStore implements LocalPhotoStore {
   const DeviceLocalPhotoStore();
+
+  /// معرّف الدبّوس يصير جزءاً من مسار ملفّ: الأبجديّة والطول نفسهما في مفتاح الخادم
+  /// (shared/security/scout_photo.py:_SAFE_PIN)؛ لا '/' ولا '..'.
+  static final RegExp _validPinId = RegExp(r'^[A-Za-z0-9_-]{1,100}$');
+  static bool isValidPinId(String pinId) => _validPinId.hasMatch(pinId);
+
+  /// الحدّ نفسه في الخادم (MAX_PHOTO_BYTES).
+  static const int maxPhotoBytes = 8 * 1024 * 1024;
 
   Future<Directory> _dir() async {
     final docs = await getApplicationDocumentsDirectory();
@@ -208,25 +218,71 @@ class DeviceLocalPhotoStore implements LocalPhotoStore {
 
   @override
   Future<String> keep(String pinId, CapturedPhoto photo) async {
+    if (!isValidPinId(pinId)) {
+      throw const FormatException('معرّف الصورة غير صالح للتخزين المحلي.');
+    }
+    final lowerName = photo.filename.toLowerCase();
+    if (!lowerName.endsWith('.jpg') &&
+        !lowerName.endsWith('.jpeg') &&
+        !lowerName.endsWith('.png') &&
+        !lowerName.endsWith('.webp')) {
+      throw const PhotoCaptureException(
+        'صيغة الصورة غير مدعومة؛ اختر JPG أو PNG أو WebP.',
+      );
+    }
+    final bytes = await photo.readBytes();
+    if (bytes.isEmpty || bytes.length > maxPhotoBytes) {
+      throw const PhotoCaptureException(
+        'حجم الصورة غير مناسب؛ الحد الأقصى 8 ميغابايت.',
+      );
+    }
     final dir = await _dir();
     final target = File('${dir.path}/$pinId.${_ext(photo.filename)}');
-    await target.writeAsBytes(await photo.readBytes(), flush: true);
+    // لا كتابة فوق رابط رمزيّ يشير خارج مجلّد المستأجِر.
+    if (await FileSystemEntity.type(target.path, followLinks: false) ==
+        FileSystemEntityType.link) {
+      throw const FileSystemException('Symlink is not a valid scouting photo');
+    }
+    if (await target.exists()) {
+      await _ownedPhotoFile(target.path);
+    }
+    await target.writeAsBytes(bytes, flush: true);
     return target.path;
+  }
+
+  /// [path] بعد حلّ '..' والروابط، بشرط أن يقع داخل مجلّد المستأجِر الحاليّ.
+  Future<File> _ownedPhotoFile(String path) async {
+    if (await FileSystemEntity.type(path, followLinks: false) ==
+        FileSystemEntityType.link) {
+      throw const FileSystemException('Symlink is not an owned scouting photo');
+    }
+    final dir = await _dir();
+    final canonicalDir = await dir.resolveSymbolicLinks();
+    final canonical = await File(path).resolveSymbolicLinks();
+    if (!canonical.startsWith('$canonicalDir/')) {
+      throw const FileSystemException('Photo is outside current tenant scope');
+    }
+    return File(canonical);
   }
 
   @override
   Future<void> discard(String path) async {
     try {
-      final f = File(path);
-      if (f.existsSync()) await f.delete();
-    } catch (_) {}
+      // الحذف يخضع لحدّ القراءة نفسه: تنظيفٌ متأخّر لحساب سابق لا يحذف دليل حساب آخر.
+      final f = await _ownedPhotoFile(path);
+      if (await f.exists()) await f.delete();
+    } catch (_) {
+      // مسار غريب أو مفقود ⇒ لا حذف «بأفضل جهد» عابر للمستأجِرين.
+    }
   }
 
   @override
-  Future<Uint8List> read(String path) => File(path).readAsBytes();
+  Future<Uint8List> read(String path) async =>
+      (await _ownedPhotoFile(path)).readAsBytes();
 
   @override
   Future<String?> find(String pinId) async {
+    if (!isValidPinId(pinId)) return null;
     try {
       final dir = await _dir();
       for (final e in dir.listSync()) {

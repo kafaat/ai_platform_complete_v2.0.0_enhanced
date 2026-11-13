@@ -332,7 +332,7 @@ async def test_create_pin_rejects_body_field_differing_from_path(fields_mod):
     assert exc.value.status_code == 422
 
 
-# ─── v257: مصدر الموقع ودقّته، وصورة الدبّوس في مخزن المرفقات ─────────────────
+# ─── v257: مصدر الموقع ودقّته (الصورة ليست في scouting_pins: v260 scout_photo_evidence) ───
 
 
 def test_location_source_defaults_to_unknown_and_round_trips():
@@ -399,252 +399,39 @@ async def test_persist_pin_resend_with_other_source_is_409(fields_mod, monkeypat
     assert exc.value.status_code == 409
 
 
-def test_row_to_pin_reads_source_accuracy_and_photo(scouting_mod):
-    row = _sample_row() | {
-        "location_source": "gps",
-        "accuracy_m": 6.0,
-        "photo_document_id": "pinph_x",
-        "photo_content_type": "image/jpeg",
-        "photo_size_bytes": 1234,
-    }
+def test_row_to_pin_reads_source_and_accuracy(scouting_mod):
+    row = _sample_row() | {"location_source": "gps", "accuracy_m": 6.0}
     out = scouting_mod._row_to_pin(row)
     assert (out["location_source"], out["accuracy_m"]) == ("gps", 6.0)
-    assert out["photo"] == {
-        "document_id": "pinph_x",
-        "status": "stored",
-        "content_url": "/api/v1/documents/pinph_x?content=true",
-        "content_type": "image/jpeg",
-        "size_bytes": 1234,
-    }
 
 
-def test_row_to_pin_legacy_row_is_unknown_without_photo(scouting_mod):
+def test_row_to_pin_legacy_row_is_unknown(scouting_mod):
     out = scouting_mod._row_to_pin(_sample_row())
     assert out["location_source"] == "unknown"
     assert out["accuracy_m"] is None
-    assert out["photo"] is None
 
 
-def test_list_sql_selects_source_accuracy_and_photo(scouting_mod):
+def test_list_sql_selects_source_and_accuracy(scouting_mod):
     cols = scouting_mod._PIN_SELECT_COLS
-    for name in ("location_source", "accuracy_m", "photo_document_id", "photo_content_type"):
+    for name in ("location_source", "accuracy_m"):
         assert name in cols
 
 
-def _b64(data: bytes) -> str:
-    import base64
+def test_the_pin_carries_no_second_photo_link(scouting_mod):
+    """Owner decision 2026-11-13: one photo source, scout_photo_evidence (v260).
 
-    return base64.b64encode(data).decode()
-
-
-JPEG = b"\xff\xd8\xff\xe0" + b"x" * 32
-
-
-def test_decode_pin_photo_types_by_magic_bytes_and_hashes():
-    import hashlib
-
-    from api.scouting_pins import decode_pin_photo
-
-    p = decode_pin_photo(_b64(JPEG))
-    assert (p.content_type, p.ext, p.sha256) == (
-        "image/jpeg",
-        "jpg",
-        hashlib.sha256(JPEG).hexdigest(),
-    )
-    png = decode_pin_photo(_b64(b"\x89PNG\r\n\x1a\n" + b"y" * 8))
-    assert png.content_type == "image/png"
-
-
-@pytest.mark.parametrize(
-    "payload,sha,status",
-    [
-        ("not base64!!", None, 422),
-        (_b64(b"%PDF-1.4"), None, 415),
-        (_b64(b"GIF89a"), None, 415),
-        (_b64(JPEG), "0" * 64, 422),
-    ],
-)
-def test_decode_pin_photo_refusals(payload, sha, status):
-    from api.scouting_pins import decode_pin_photo
-    from fastapi import HTTPException
-
-    with pytest.raises(HTTPException) as exc:
-        decode_pin_photo(payload, sha)
-    assert exc.value.status_code == status
-
-
-def test_decode_pin_photo_size_is_measured_after_decoding(monkeypatch):
-    import api.scouting_pins as sp
-    from fastapi import HTTPException
-
-    monkeypatch.setattr(sp, "MAX_PIN_PHOTO_BYTES", len(JPEG) - 1)
-    with pytest.raises(HTTPException) as exc:
-        sp.decode_pin_photo(_b64(JPEG))
-    assert exc.value.status_code == 413
-
-
-def test_photo_ids_and_keys_are_server_derived_and_tenant_bound():
-    from api.scouting_pins import (
-        decode_pin_photo,
-        pin_photo_document_id,
-        pin_photo_key,
-        pin_photo_ref_belongs_to,
-    )
-
-    t1, t2 = "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"
-    photo = decode_pin_photo(_b64(JPEG))
-    assert pin_photo_document_id(t1, "p") == pin_photo_document_id(t1, "p")
-    assert pin_photo_document_id(t1, "p") != pin_photo_document_id(t2, "p")
-    assert len(pin_photo_document_id(t1, "p")) <= 50  # documents.doc_id VARCHAR(50)
-    key = pin_photo_key(t1, "../../etc/passwd", photo)
-    assert key.startswith(f"scouting-pin-photos/{t1}/") and ".." not in key
-    assert key.endswith(f"/{photo.sha256}.jpg")
-    assert pin_photo_ref_belongs_to(f"s3://bucket/{key}", t1)
-    assert pin_photo_ref_belongs_to(f"file:///data/blobs/{key}", t1)
-    assert not pin_photo_ref_belongs_to(f"s3://bucket/{key}", t2)
-    assert not pin_photo_ref_belongs_to("file:///etc/passwd", t1)
-    assert not pin_photo_ref_belongs_to(f"file:///x/scouting-pin-photos/{t1}/../../etc/passwd", t1)
-    assert not pin_photo_ref_belongs_to(f"s3://bucket/other/{key}", t1)
-    assert not pin_photo_ref_belongs_to(None, t1)
-
-
-class _PhotoConn(_FakeConn):
-    """conn يحاكي دبّوساً بلا صورة ثمّ يسجّل ما يُكتب في documents والربط."""
-
-    def __init__(self, current=None, stored_ref=None):
-        super().__init__()
-        self.current = current
-        self.stored_ref = stored_ref
-        self.executes: list[tuple[str, tuple]] = []
-
-    async def execute(self, sql, *args):  # noqa: ANN001
-        self.executes.append((sql, args))
-        return "INSERT 0 1"
-
-    async def fetchval(self, sql, *args):  # noqa: ANN001
-        if "photo_document_id" in sql:
-            return self.current
-        return 1
-
-    async def fetchrow(self, sql, *args):  # noqa: ANN001
-        if "FROM documents" in sql and self.stored_ref is not None:
-            return {"storage_ref": self.stored_ref}
-        return None
-
-
-async def test_photo_is_stored_in_blob_store_and_bound_once(fields_mod, monkeypatch, tmp_path):
-    from api.scouting_pins import decode_pin_photo, make_pin, pin_photo_document_id
-
-    from shared.storage import blob_store
-
-    monkeypatch.setattr(blob_store, "LOCAL_DIR", str(tmp_path))
-    monkeypatch.setattr(blob_store, "S3_BUCKET", "")
-    conn = _PhotoConn()
-    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
-    monkeypatch.setattr(fields_mod, "tenant_connection", lambda user: _FakeTenantConn(conn))
-    user = _FakeUser()
-    pin = make_pin("p-ph", "fld-1", 16.0, 45.0, "pest")
-    assert await fields_mod._persist_scouting_pin(user, pin, decode_pin_photo(_b64(JPEG))) is True
-    doc_id = pin_photo_document_id(user.tenant_id, "p-ph")
-    assert pin.photo_document_id == doc_id
-    inserts = [a for s, a in conn.executes if s.startswith("INSERT INTO documents")]
-    binds = [
-        a for s, a in conn.executes if s.startswith("UPDATE scouting_pins SET photo_document_id")
-    ]
-    assert len(inserts) == 1 and inserts[0][0] == doc_id and inserts[0][5] == "image/jpeg"
-    assert "ON CONFLICT (doc_id) DO NOTHING" in next(
-        s for s, _ in conn.executes if s.startswith("INSERT INTO documents")
-    )
-    assert binds == [("p-ph", str(user.tenant_id), doc_id)]
-    files = [p for p in tmp_path.rglob("*") if p.is_file()]
-    assert len(files) == 1 and files[0].read_bytes() == JPEG
-
-
-async def test_photo_retry_with_same_content_writes_nothing(fields_mod, monkeypatch, tmp_path):
-    from api.scouting_pins import decode_pin_photo, make_pin, pin_photo_key
-
-    from shared.storage import blob_store
-
-    monkeypatch.setattr(blob_store, "LOCAL_DIR", str(tmp_path))
-    user = _FakeUser()
-    photo = decode_pin_photo(_b64(JPEG))
-    key = pin_photo_key(str(user.tenant_id), "p-r", photo)
-    conn = _PhotoConn(current="pinph_existing", stored_ref=f"file://{tmp_path}/{key}")
-    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
-    monkeypatch.setattr(fields_mod, "tenant_connection", lambda user: _FakeTenantConn(conn))
-    pin = make_pin("p-r", "fld-1", 16.0, 45.0, "pest")
-    assert await fields_mod._persist_scouting_pin(user, pin, photo) is True
-    assert pin.photo_document_id == "pinph_existing"
-    assert [s for s, _ in conn.executes if "documents" in s or "SET photo_document_id" in s] == []
-    assert not any(p.is_file() for p in tmp_path.rglob("*"))
-
-
-async def test_a_different_photo_for_a_photographed_pin_is_409(fields_mod, monkeypatch):
-    from api.scouting_pins import decode_pin_photo, make_pin
-    from fastapi import HTTPException
-
-    conn = _PhotoConn(
-        current="pinph_existing", stored_ref="s3://b/scouting-pin-photos/t/x/other.jpg"
-    )
-    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
-    monkeypatch.setattr(fields_mod, "tenant_connection", lambda user: _FakeTenantConn(conn))
-    with pytest.raises(HTTPException) as exc:
-        await fields_mod._persist_scouting_pin(
-            _FakeUser(), make_pin("p-c", "fld-1", 16.0, 45.0, "pest"), decode_pin_photo(_b64(JPEG))
-        )
-    assert exc.value.status_code == 409
-
-
-async def test_photo_store_failure_is_503_not_a_silent_success(fields_mod, monkeypatch):
-    from api.scouting_pins import decode_pin_photo, make_pin
-    from fastapi import HTTPException
-
-    from shared.storage import blob_store
-
-    def boom(*a, **k):  # noqa: ANN001
-        raise blob_store.BlobStoreError("down")
-
-    monkeypatch.setattr(blob_store, "upload_bytes", boom)
-    conn = _PhotoConn()
-    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
-    monkeypatch.setattr(fields_mod, "tenant_connection", lambda user: _FakeTenantConn(conn))
-    with pytest.raises(HTTPException) as exc:
-        await fields_mod._persist_scouting_pin(
-            _FakeUser(), make_pin("p-d", "fld-1", 16.0, 45.0, "pest"), decode_pin_photo(_b64(JPEG))
-        )
-    assert exc.value.status_code == 503
-
-
-async def test_create_pin_reports_photo_not_stored_when_db_is_off(fields_mod, monkeypatch):
+    v257 must not add scouting_pins.photo_document_id, the pin request takes no photo body,
+    and the pin list does not read the documents registry for a photo.
+    """
     from api.api_models import PinCreateRequest
 
-    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", None, raising=True)
-    req = PinCreateRequest(
-        pin_id="p-off",
-        field_id="fld-1",
-        lat=16.0,
-        lng=45.0,
-        issue_category="pest",
-        photo={"content_b64": _b64(JPEG)},
-    )
-    out = await fields_mod.create_pin("fld-1", req, _FakeUser())
-    assert out["persisted"] is False
-    assert out["photo"] == {"status": "not_stored"}
-
-
-def test_blob_read_bytes_stays_inside_the_local_store(monkeypatch, tmp_path):
-    from shared.storage import blob_store
-
-    monkeypatch.setattr(blob_store, "LOCAL_DIR", str(tmp_path / "store"))
-    monkeypatch.setattr(blob_store, "S3_BUCKET", "")
-    (tmp_path / "store").mkdir()
-    inside = tmp_path / "store" / "a.jpg"
-    inside.write_bytes(JPEG)
-    outside = tmp_path / "secret.txt"
-    outside.write_bytes(b"secret")
-    assert blob_store.read_bytes(f"file://{inside}", 1024) == JPEG
-    for ref in (f"file://{outside}", f"file://{tmp_path}/store/../secret.txt", "ftp://x/y"):
-        with pytest.raises(blob_store.BlobStoreError):
-            blob_store.read_bytes(ref, 1024)
-    with pytest.raises(blob_store.BlobStoreError):
-        blob_store.read_bytes(f"file://{inside}", 4)  # larger than the cap ⇒ refused, not truncated
+    with open(
+        os.path.join(ROOT, "migrations", "v257_scouting_pin_location_photo.sql"), encoding="utf-8"
+    ) as fh:
+        sql = fh.read()
+    code = "\n".join(line for line in sql.splitlines() if not line.lstrip().startswith("--"))
+    assert "photo_document_id" not in code
+    assert "documents" not in code
+    assert "photo" not in PinCreateRequest.model_fields
+    assert "photo_document_id" not in scouting_mod._PIN_SELECT_COLS
+    assert "photo" not in scouting_mod._row_to_pin(_sample_row())

@@ -15,10 +15,6 @@ Pin = موقع GPS + صورة + نوع مشكلة (taxonomy يمنيّة) + شد
 
 from __future__ import annotations
 
-import asyncio
-import base64
-import binascii
-import hashlib
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -179,8 +175,6 @@ class ScoutingPin:
     # v257: مصدر الموقع (gps|manual|field_centroid|unknown) ودقّة GPS بالأمتار (لـgps فقط).
     location_source: str = "unknown"
     accuracy_m: float | None = None
-    # v257: مستند الصورة في سجلّ المستندات — ليس من هويّة الدبّوس (لا يدخل مقارنة الإعادة).
-    photo_document_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -319,127 +313,6 @@ def make_pin(
 
 # ─── الإدامة (RLS، best-effort) — انتقلت من api/routers/fields.py: حدّ حجم الراوتر وحدّ عدد الوحدات ───
 
-# v257: صورة الدبّوس في مخزن المرفقات القائم — البايتات في ``shared.storage.blob_store`` (المسار
-# العامّ الوحيد لتخزين الكائنات) والبيانات الوصفيّة في سجلّ ``documents`` (v29، RLS بالمستأجِر).
-# المفتاح خادميّ (مستأجِر + بصمة الدبّوس + بصمة المحتوى)، والنوع من magic bytes (JPEG/PNG فقط)،
-# والحجم يُقاس على البايتات بعد فكّ base64. مُعرِّف المستند حتميّ من (المستأجِر، الدبّوس)، فإعادة
-# الرفع لا تُنشئ مستنداً ثانياً.
-MAX_PIN_PHOTO_BYTES = 8 * 1024 * 1024
-PIN_PHOTO_PREFIX = "scouting-pin-photos"
-_PHOTO_MAGIC = (
-    (b"\xff\xd8\xff", "image/jpeg", "jpg"),
-    (b"\x89PNG\r\n\x1a\n", "image/png", "png"),
-)
-
-
-@dataclass(frozen=True)
-class PinPhoto:
-    """صورة مفكوكة ومفحوصة، جاهزة للتخزين."""
-
-    data: bytes
-    content_type: str
-    ext: str
-    sha256: str
-
-
-def decode_pin_photo(content_b64: str, declared_sha256: str | None = None) -> PinPhoto:
-    """يفكّ base64 ويفحص الحجم والنوع (magic bytes) والبصمة المعلنة إن وُجدت."""
-    try:
-        data = base64.b64decode(content_b64, validate=True)
-    except (binascii.Error, ValueError) as exc:
-        raise HTTPException(422, "pin_photo_not_base64") from exc
-    if not data:
-        raise HTTPException(422, "pin_photo_empty")
-    if len(data) > MAX_PIN_PHOTO_BYTES:
-        raise HTTPException(413, "pin_photo_too_large")
-    detected = next(((ct, ext) for sig, ct, ext in _PHOTO_MAGIC if data.startswith(sig)), None)
-    if detected is None:
-        raise HTTPException(415, "pin_photo_unsupported_type")
-    sha = hashlib.sha256(data).hexdigest()
-    if declared_sha256 is not None and declared_sha256 != sha:
-        raise HTTPException(422, "pin_photo_sha256_mismatch")
-    return PinPhoto(data=data, content_type=detected[0], ext=detected[1], sha256=sha)
-
-
-def pin_photo_document_id(tenant_id: Any, pin_id: str) -> str:
-    """مُعرِّف مستند صورة الدبّوس: حتميّ من (المستأجِر، الدبّوس) — صورة واحدة لكلّ دبّوس."""
-    return "pinph_" + hashlib.sha256(f"{tenant_id}\x00{pin_id}".encode()).hexdigest()[:32]
-
-
-def pin_photo_key(tenant_id: Any, pin_id: str, photo: PinPhoto) -> str:
-    """مفتاح الكائن: ``scouting-pin-photos/<tenant>/<sha(pin_id)>/<sha(content)>.<ext>``.
-
-    ``pin_id`` نصّ من العميل، فلا يدخل المسار إلّا مُجزّأً (لا ``..`` ولا ``/``).
-    """
-    pin_hash = hashlib.sha256(str(pin_id).encode()).hexdigest()[:32]
-    return f"{PIN_PHOTO_PREFIX}/{tenant_id}/{pin_hash}/{photo.sha256}.{photo.ext}"
-
-
-def pin_photo_ref_belongs_to(ref: Any, tenant_id: Any) -> bool:
-    """دفاع عمق للتنزيل: المرجع مفتاحٌ كتبه هذا المسار تحت مستأجِر المستدعي.
-
-    ``documents.storage_ref`` قابل للكتابة عبر ``POST /api/v1/documents``، فلا يُقرأ منه إلّا
-    مرجع ``s3://<bucket>/scouting-pin-photos/<tenant>/…`` أو ``file://…/scouting-pin-photos/<tenant>/…``.
-    """
-    if not isinstance(ref, str) or ".." in ref:
-        return False
-    prefix = f"{PIN_PHOTO_PREFIX}/{tenant_id}/"
-    if ref.startswith("s3://"):
-        parts = ref[len("s3://") :].split("/", 1)
-        return len(parts) == 2 and parts[1].startswith(prefix)
-    return ref.startswith("file://") and f"/{prefix}" in ref
-
-
-def _blob_store():
-    from shared.storage import blob_store  # كسول: لا إعداد S3 عند استيراد الوحدة
-
-    return blob_store
-
-
-async def _attach_pin_photo(conn: Any, user: Any, pin: Any, photo: PinPhoto) -> None:
-    """يربط الصورة بالدبّوس داخل معاملة الإدامة نفسها؛ إعادة المحتوى نفسه لا تُكرّر شيئاً."""
-    tenant = str(user.tenant_id)
-    current = await conn.fetchval(
-        "SELECT photo_document_id FROM scouting_pins "
-        "WHERE pin_id=$1 AND tenant_id=$2::uuid FOR UPDATE",
-        pin.pin_id,
-        tenant,
-    )
-    key = pin_photo_key(tenant, pin.pin_id, photo)
-    doc_id = current or pin_photo_document_id(tenant, pin.pin_id)
-    stored = await conn.fetchrow("SELECT storage_ref FROM documents WHERE doc_id=$1", doc_id)
-    if stored is not None:
-        if not str(stored["storage_ref"] or "").endswith("/" + key):
-            raise HTTPException(409, "pin_photo_conflict: للدبّوس صورة أخرى محفوظة")
-    else:
-        store = _blob_store()
-        try:
-            ref = await asyncio.to_thread(store.upload_bytes, key, photo.data, photo.content_type)
-        except store.BlobStoreError as exc:
-            raise HTTPException(503, "pin_photo_store_unavailable") from exc
-        await conn.execute(
-            "INSERT INTO documents (doc_id, tenant_id, category, field_id, title, storage_ref, "
-            " content_type, size_bytes, uploaded_by) "
-            "VALUES ($1, $2::uuid, 'image', $3, $4, $5, $6, $7, $8) "
-            "ON CONFLICT (doc_id) DO NOTHING",
-            doc_id,
-            tenant,
-            pin.field_id,
-            f"صورة مشاهدة ميدانيّة {pin.pin_id}"[:200],
-            ref,
-            photo.content_type,
-            len(photo.data),
-            str(user.user_id),
-        )
-    if current is None:
-        await conn.execute(
-            "UPDATE scouting_pins SET photo_document_id=$3 WHERE pin_id=$1 AND tenant_id=$2::uuid",
-            pin.pin_id,
-            tenant,
-            doc_id,
-        )
-    pin.photo_document_id = doc_id
-
 
 async def persist_scouting_pin(
     user: Any,
@@ -447,15 +320,12 @@ async def persist_scouting_pin(
     *,
     pool_ready: bool,
     connect: Callable[[Any], Any],
-    photo: PinPhoto | None = None,
 ) -> bool:
     """يُثبّت الدبّوس؛ ``True`` لو ثُبِّت (أو كان موجوداً مطابقاً)، ``False`` لو تعذّرت القاعدة.
 
     * حقلٌ ليس ضمن مستأجِر المستدعي ⇒ 404 (فحصٌ تحت RLS قبل الإدراج).
     * إعادة إرسال مطابقة ⇒ تُرجَع القيمة المخزَّنة (``created_at`` الأصليّ).
     * المُعرِّف نفسه بمحتوى مختلف (ومنه مصدر الموقع ودقّته) ⇒ 409.
-    * ``photo`` (v257) تُربط في المعاملة نفسها؛ صورة مختلفة لدبّوس له صورة ⇒ 409، وتعذّر
-      المخزن ⇒ 503 (تُلغى المعاملة كلّها فيعيد العميل المحاولة).
     * ``created_at`` يُمرَّر قيمة datetime إلى ``::timestamptz`` (النصّ كان يُرفَض بصمت).
     SQL بارامتريّ بالكامل.
     """
@@ -510,9 +380,6 @@ async def persist_scouting_pin(
                 ):
                     raise HTTPException(409, "معرّف الدبوس مستخدم لمشاهدة مختلفة")
                 pin.created_at = previous["created_at"].isoformat()
-                pin.photo_document_id = dict(previous).get("photo_document_id")
-            if photo is not None:
-                await _attach_pin_photo(conn, user, pin, photo)
         return True
     except HTTPException:
         raise
@@ -521,48 +388,14 @@ async def persist_scouting_pin(
         return False
 
 
-async def load_pin_photo(
-    user: Any, doc_id: str, *, connect: Callable[[Any], Any]
-) -> tuple[bytes, str]:
-    """بايتات صورة دبّوس ونوعها لـ ``GET /api/v1/documents/{doc_id}?content=true``.
-
-    تُقرأ تحت RLS المستأجِر: مستند لا يربطه دبّوسٌ مرئيّ للمستدعي، أو مرجعه ليس مفتاحاً كتبه
-    هذا المسار تحت مستأجِره ⇒ 404 (مستأجِر آخر لا يعرف حتّى أنّ المستند موجود).
-    """
-    async with connect(user) as conn:
-        row = await conn.fetchrow(
-            "SELECT d.storage_ref, d.content_type FROM documents d WHERE d.doc_id = $1 "
-            "AND EXISTS (SELECT 1 FROM scouting_pins p WHERE p.photo_document_id = d.doc_id)",
-            doc_id,
-        )
-    if row is None or not pin_photo_ref_belongs_to(row["storage_ref"], user.tenant_id):
-        raise HTTPException(404, "صورة الدبّوس غير موجودة")
-    store = _blob_store()
-    try:
-        data = await asyncio.to_thread(store.read_bytes, row["storage_ref"], MAX_PIN_PHOTO_BYTES)
-    except store.BlobStoreError as exc:
-        raise HTTPException(503, "pin_photo_store_unavailable") from exc
-    return data, row["content_type"] or "application/octet-stream"
-
-
-def pin_photo_view(document_id: str | None, **meta: Any) -> dict[str, Any] | None:
-    """ما يراه العميل من صورة الدبّوس: المستند ومسار فتحه (لا المرجع الداخليّ للمخزن)."""
-    if not document_id:
-        return None
-    return {
-        "document_id": document_id,
-        "status": "stored",
-        "content_url": f"/api/v1/documents/{document_id}?content=true",
-        **{k: v for k, v in meta.items() if v is not None},
-    }
-
-
 async def create_scouting_pin(
     field_id: str, req: Any, user: Any, *, persist: Callable[..., Any]
 ) -> dict[str, Any]:
     """جسم ``POST /api/v1/fields/{field_id}/pins`` (المسار في الراوتر غلاف رفيع — حدّ حجمه).
 
-    تحقّق ⇒ إدامة تحت RLS (best-effort) ⇒ الدبّوس مُطبَّعاً مع ``persisted`` و``photo``.
+    تحقّق ⇒ إدامة تحت RLS (best-effort) ⇒ الدبّوس مُطبَّعاً مع ``persisted``. صورة المشاهدة ليست
+    هنا: مصدرها الوحيد ``scout_photo_evidence`` (v260) عبر scout-ingest
+    (``/api/v1/scouting-media/fields/{field_id}/pins/{pin_id}/photo``).
     """
     if req.field_id != field_id:
         raise HTTPException(422, "معرّف الحقل لا يطابق المسار")
@@ -587,19 +420,7 @@ async def create_scouting_pin(
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
-    photo = decode_pin_photo(req.photo.content_b64, req.photo.sha256) if req.photo else None
-    persisted = await persist(user, pin, photo)
+    persisted = await persist(user, pin)
     out = pin.to_dict()
     out["persisted"] = persisted
-    if photo is not None and not persisted:
-        out["photo"] = {"status": "not_stored"}  # القاعدة غير متاحة: يعيد العميل الإرسال
-    elif photo is not None:
-        out["photo"] = pin_photo_view(
-            pin.photo_document_id,
-            content_type=photo.content_type,
-            size_bytes=len(photo.data),
-            sha256=photo.sha256,
-        )
-    else:
-        out["photo"] = pin_photo_view(pin.photo_document_id)
     return out
