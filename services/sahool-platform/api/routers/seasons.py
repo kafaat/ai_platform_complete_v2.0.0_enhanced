@@ -184,7 +184,7 @@ async def simulate_season_endpoint(
     try:
         async with tenant_connection(user) as conn:
             srow = await conn.fetchrow(
-                "SELECT s.season_id, s.field_id, s.crops, s.sowing_date, s.season_end, "
+                "SELECT s.season_id, s.field_id, s.crops, s.irrigation_type, s.sowing_date, s.season_end, "
                 "f.lat, f.lon FROM seasons s JOIN fields f ON f.field_id = s.field_id "
                 "WHERE s.season_id = $1",
                 season_id,
@@ -448,6 +448,7 @@ async def simulate_season_endpoint(
             season_end=end,
             weather=weather,
             irrigation_mm_total=composed_inputs["irrigation_mm_total"],
+            irrigation_type=srow["irrigation_type"],
             observed_fapar=composed_inputs["observed_fapar"],
             gdd_daily_override=gdd_override,
             et0_daily_override=et0_override,
