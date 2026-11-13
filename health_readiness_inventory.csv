@@ -3,8 +3,8 @@ services/agriai-engine/main.py,healthz,/healthz,58,True,True,True,ok
 services/agriai-engine/main.py,readyz,/readyz,68,True,True,True,ok
 services/ai_agronomist/main.py,healthz,/healthz,250,True,True,True,ok
 services/ai_agronomist/main.py,readyz,/readyz,464,True,True,True,ok
-services/decision-service/main.py,healthz,/healthz,547,True,True,True,ok
-services/decision-service/main.py,readyz,/readyz,552,True,True,True,ok
+services/decision-service/main.py,healthz,/healthz,551,True,True,True,ok
+services/decision-service/main.py,readyz,/readyz,556,True,True,True,ok
 services/edge-inference/main.py,health_check,/healthz,194,True,True,True,ok
 services/edge-inference/main.py,readyz,/readyz,423,True,True,True,ok
 services/field-management-service/main.py,healthz,/healthz,211,True,True,True,ok

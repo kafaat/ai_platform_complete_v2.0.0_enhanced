@@ -1607,6 +1607,7 @@
         "tests_v9/test_farm_book_corrections_and_categories.py",
         "tests_v9/test_farm_book_receipt_field.py",
         "tests_v9/test_farm_book_receipt_scope_live_pg.py",
+        "tests_v9/test_farm_ledger_cost_coverage_live_pg.py",
         "tests_v9/test_farm_memory.py",
         "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
         "tests_v9/test_sim_golden.py",
@@ -1905,6 +1906,7 @@
         "services/sahool-platform/tests/test_season_simulation.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_season_stage_risk.py",
+        "services/sahool-platform/tests/test_season_state_sources.py",
         "services/sahool-platform/tests/test_seasons_endpoint.py",
         "services/sahool-platform/tests/test_tier2_modules.py",
         "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
@@ -1921,6 +1923,7 @@
         "tests_v9/test_season_lifecycle_behavior_v66.py",
         "tests_v9/test_season_logbook_content_safety.py",
         "tests_v9/test_season_simulation_behavior_v66.py",
+        "tests_v9/test_season_state_sources_live_pg.py",
         "tests_v9/test_season_workspace.py",
         "tests_v9/test_v10_modules.py",
         "tests_v9/test_v150_seasons_yield_check_static.py",
@@ -3872,6 +3875,7 @@
       "runtime_verified": false,
       "title": "Field water-source binding",
       "unit_test_paths": [
+        "services/decision-service/tests/test_context_source_binding.py",
         "services/decision-service/tests/test_manual_irrigation_source_binding.py",
         "tests_v9/test_h51_field_source_binding_pg.py"
       ]

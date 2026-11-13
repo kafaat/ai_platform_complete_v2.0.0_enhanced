@@ -3,7 +3,7 @@ actuator-service,service,sahool-actuator-service,execution,system_of_record,serv
 agriai-engine,service,sahool-agriai-engine,simulation-experimental,system_of_record,services/agriai-engine,sahool-agriai-engine,sahool-agriai-engine,21,False,True
 ai_agronomist,service,sahool-ai-agronomist,agents,stateless_compute,services/ai_agronomist,sahool-ai-agronomist,sahool-ai-agronomist,0,True,True
 auth,service,sahool-auth,identity,stateless_compute,services/auth,sahool-auth,sahool-auth,0,True,True
-decision-service,service,sahool-decision-service,decision-governance,system_of_record,services/decision-service,sahool-decision-service,sahool-decision-service,42,True,True
+decision-service,service,sahool-decision-service,decision-governance,system_of_record,services/decision-service,sahool-decision-service,sahool-decision-service,43,True,True
 edge-inference,service,sahool-edge,edge,stateless_compute,services/edge-inference,sahool-edge,sahool-edge,0,True,True
 erp-bridge,service,sahool-erp-bridge,erp-projection,system_of_record,services/odoo-bridge,odoo-bridge|sahool-erp-bridge,sahool-erp-bridge,15,True,True
 field-management-service,service,sahool-field-management,fields-internal,system_of_record,services/field-management-service,sahool-field-management,sahool-field-management,32,True,True

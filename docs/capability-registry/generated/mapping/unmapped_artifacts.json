@@ -480,6 +480,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/fieldview/SupplementalWaterCheck.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/fieldview/TraceabilityCard.tsx",
     "kind": "web"
   },
@@ -4656,6 +4660,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/decision-service/tests/test_backfill_row_coverage.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/decision-service/tests/test_correlation_http_projection.py",
     "kind": "tests"
   },
@@ -8548,6 +8556,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_evidence_map_owner.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_evidence_snapshot.py",
     "kind": "tests"
   },
@@ -8873,6 +8885,14 @@
   },
   {
     "path": "services/sahool-platform/tests/test_learning_summary_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_learning_summary_owner.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ledger_variance_coverage.py",
     "kind": "tests"
   },
   {

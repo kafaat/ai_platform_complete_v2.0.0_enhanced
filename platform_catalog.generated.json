@@ -1129,6 +1129,21 @@
     },
     {
       "approval_required": false,
+      "capability_id": "decision-service.evidence.field-counts",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/evidence/field-counts"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "decision-service",
+      "producer": "decision-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "decision-service.evidence.vegetation-snapshots",
       "consumers": [],
       "curated": false,
@@ -5058,25 +5073,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.chat",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /api/chat"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": [
-        "tenant"
-      ]
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.chemical-safety.banned",
       "consumers": [
         "frontend"
@@ -5754,7 +5750,7 @@
       "entrypoints": [
         "POST /api/v1/decision/dispatch/execute"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -11507,23 +11503,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.probe",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /probe"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.propagation.crop",
       "consumers": [
         "frontend"
@@ -15656,6 +15635,7 @@
           "activation_evidence_revocations",
           "decision_agronomic_context_snapshots",
           "decision_consumer_heartbeats",
+          "decision_context_compositions",
           "decision_dispatch_authorizations",
           "decision_execution_delivery_attempts",
           "decision_execution_plans",
@@ -17793,20 +17773,20 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 841,
+    "capabilities": 840,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 96,
-    "capabilities_idempotent": 74,
+    "capabilities_idempotent": 73,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 482,
+    "capabilities_tenant_scoped": 481,
     "components": 37,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1136,
+    "route_rows": 1135,
     "ui_waivers": 53,
-    "unique_method_path": 1015
+    "unique_method_path": 1014
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18068,7 +18048,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "2275f54bbcd0d1425485bbc6e05cd82143c1fb5924c0df50ba02174694718ccf",
+  "fingerprint": "338fe72164d669d783bda6146beab37beffa97a6af11aee0771e6763f8fe2e97",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18118,14 +18098,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 946,
+      "edge_count": 950,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 46,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 490,
+        "READS": 494,
         "ROUTES_TO": 72,
         "WRITES": 332
       }

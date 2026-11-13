@@ -14,24 +14,24 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = '2275f54bbcd0d1425485bbc6e05cd82143c1fb5924c0df50ba02174694718ccf';
+export const PLATFORM_CATALOG_FINGERPRINT = '338fe72164d669d783bda6146beab37beffa97a6af11aee0771e6763f8fe2e97';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 33,
-  "capabilities": 841,
+  "capabilities": 840,
   "capabilities_approval_gated": 6,
   "capabilities_field_scoped": 96,
-  "capabilities_idempotent": 74,
+  "capabilities_idempotent": 73,
   "capabilities_season_scoped": 10,
-  "capabilities_tenant_scoped": 482,
+  "capabilities_tenant_scoped": 481,
   "components": 37,
   "cross_service_duplicate_method_paths": 12,
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1136,
+  "route_rows": 1135,
   "ui_waivers": 53,
-  "unique_method_path": 1015
+  "unique_method_path": 1014
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
@@ -72,7 +72,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 64,
+    "capabilityCount": 65,
     "domain": "decision-governance",
     "id": "decision-service",
     "tested": true,
@@ -270,7 +270,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 523,
+    "capabilityCount": 521,
     "domain": "platform-core",
     "id": "sahool-platform",
     "tested": true,
