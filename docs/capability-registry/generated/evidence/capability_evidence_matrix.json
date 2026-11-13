@@ -2988,9 +2988,10 @@
       ]
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -3027,7 +3028,7 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
       "evidence_records": [
@@ -3082,7 +3083,7 @@
           "type": "runtime_instrumentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "unit_tests"
         },
@@ -3092,7 +3093,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 2,
+      "evidence_score": 3,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -3102,12 +3103,14 @@
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -2,
+      "maturity_delta": -1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Public API and SDK",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "tests_v9/test_export_openapi_strict.py"
+      ]
     },
     {
       "assessed_maturity": 2,
@@ -10790,7 +10793,7 @@
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
     "aligned": 32,
-    "average_assessed_maturity": 1.99,
+    "average_assessed_maturity": 2.0,
     "capability_count": 81,
     "declared_above_evidence": 46,
     "evidence_above_declared": 3,

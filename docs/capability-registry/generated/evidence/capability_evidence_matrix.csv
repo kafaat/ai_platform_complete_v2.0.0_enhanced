@@ -21,7 +21,7 @@ GIS-001,Field geometry validation,gis,3,1,declared_above_evidence,6,True,False,T
 GIS-002,Map layers,gis,3,2,declared_above_evidence,6,True,True,True,False,False,True,True,True,False,False,False,False
 GIS-003,Terrain and DEM,gis,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
 GIS-004,Spatial analytics,gis,3,2,declared_above_evidence,5,True,True,True,True,False,False,False,True,False,False,False,False
-INT-001,Public API and SDK,farm_management,3,1,declared_above_evidence,2,True,False,True,False,False,False,False,False,False,False,False,False
+INT-001,Public API and SDK,farm_management,3,2,declared_above_evidence,3,True,False,True,False,False,False,False,True,False,False,False,False
 INT-002,Event bus integration,farm_management,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False
 INT-003,IoT and sensors,irrigation,3,2,declared_above_evidence,3,True,False,True,False,False,False,False,True,False,False,False,False
 INT-004,External machinery integrations,precision,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False

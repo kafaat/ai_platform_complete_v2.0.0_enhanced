@@ -12,28 +12,28 @@
   },
   "summary": {
     "capabilities_total": 81,
-    "capabilities_mapped": 76,
-    "capabilities_unmapped": 5,
+    "capabilities_mapped": 77,
+    "capabilities_unmapped": 4,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7199,
+    "files_scanned": 7200,
     "files_by_kind": {
       "backend": 1271,
       "database": 297,
       "governance": 89,
       "mobile": 415,
       "other": 2166,
-      "tests": 2432,
+      "tests": 2433,
       "web": 529
     },
     "unmapped_artifacts": 3422,
     "ambiguous_artifacts": 236,
     "files_by_reading": {
-      "python_functional": 3885,
+      "python_functional": 3886,
       "raw": 3314
     },
-    "test_dependency_files": 1837,
-    "test_dependency_edges": 4663,
-    "test_dependency_bounded_files": 1071,
+    "test_dependency_files": 1838,
+    "test_dependency_edges": 4665,
+    "test_dependency_bounded_files": 1072,
     "test_dependency_unresolved_relations": 467
   },
   "capabilities": [
@@ -11274,12 +11274,30 @@
       "domain": "farm_management",
       "title": "Public API and SDK",
       "backend": [],
-      "routes": [],
+      "routes": [
+        {
+          "value": "/items @ tests_v9/test_export_openapi_strict.py:224",
+          "score": 14
+        },
+        {
+          "value": "{route} @ tests_v9/test_export_openapi_strict.py:262",
+          "score": 14
+        }
+      ],
       "database": [],
       "events": [],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "tests_v9/test_export_openapi_strict.py",
+          "score": 14,
+          "signals": [
+            "path:openapi",
+            "content:openapi"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -11328,17 +11346,17 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 0,
-        "routes": 0,
+        "routes": 2,
         "database": 0,
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 5
       },
-      "coverage_dimensions": 0,
-      "mapped": false
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "INT-002",
@@ -76452,6 +76470,24 @@
           "source": "services/soil-service/projection_jobs.py",
           "kind": "source_read",
           "line": 33
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_export_openapi_strict.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "export_openapi.py",
+          "kind": "loader",
+          "line": 23
+        },
+        {
+          "source": "export_openapi.py",
+          "kind": "source_read",
+          "line": 24
         }
       ],
       "unresolved": []
