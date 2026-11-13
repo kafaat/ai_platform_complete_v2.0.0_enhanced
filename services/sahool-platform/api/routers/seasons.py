@@ -132,24 +132,14 @@ async def _boundary_revisions_since(conn, field_id: str, since) -> dict:
     proves only which edits are recorded; no historical geometry is reconstructed.
     An empty ledger is unverified, not proof that the boundary never changed.
     """
+    from api.season_simulation import boundary_provenance_from_rows
+
     rows = await conn.fetch(
         "SELECT revision, changed_at FROM field_geometry_history "
         "WHERE field_id = $1 ORDER BY revision",
         field_id,
     )
-    cutoff = datetime.combine(since, datetime.min.time(), tzinfo=UTC)
-    return {
-        "source": "field_geometry_history",
-        "geometry_basis": "current_boundary",
-        "status": "recorded" if rows else "history_missing",
-        "latest_revision": int(rows[-1]["revision"]) if rows else None,
-        "revisions_since_sowing": [
-            int(r["revision"])
-            for r in rows[1:]
-            if r["changed_at"] is not None and r["changed_at"] >= cutoff
-        ],
-        "historical_geometry_replayed": False,
-    }
+    return boundary_provenance_from_rows(rows, since)
 
 
 @router.post("/api/v1/seasons/{season_id}/simulate", response_model=SeasonSimResponse)
@@ -171,6 +161,7 @@ async def simulate_season_endpoint(
         canonical_historical_days,
         simulate_season,
         validated_engine_daily_series,
+        weather_product_provenance,
     )
     from api.weather_service_client import get_weather_historical
 
@@ -251,31 +242,15 @@ async def simulate_season_endpoint(
 
     # ٢-ج) S4-b: حدّ الحقل عُدِّل منذ بداية الموسم ⇒ تحذير صريح (يُحفَظ مع التشغيل). معاملة
     # مستقلّة: تعذّر السجلّ (v96 غير مطبَّق) لا يُسقط المحاكاة، ولا يُدّعى معه ثبات الحدّ.
-    spatial_warnings: list[str] = []
+    from api.season_simulation import boundary_provenance_from_rows, boundary_provenance_warnings
+
     try:
         async with tenant_connection(user) as conn:
             spatial_provenance = await _boundary_revisions_since(conn, str(srow["field_id"]), sow)
     except Exception:  # noqa: BLE001 — لا تختلق ثبات الهندسة إذا تعذّر جدول التدقيق
-        spatial_provenance = {
-            "source": "field_geometry_history",
-            "geometry_basis": "current_boundary",
-            "status": "unavailable",
-            "latest_revision": None,
-            "revisions_since_sowing": [],
-            "historical_geometry_replayed": False,
-        }
+        spatial_provenance = boundary_provenance_from_rows(None, sow)
     changed_revisions = spatial_provenance["revisions_since_sowing"]
-    if spatial_provenance["status"] != "recorded":
-        spatial_warnings.append(
-            "تعذّر إثبات تاريخ حدّ الحقل — سجلّ الهندسة مفقود أو غير متاح. "
-            "المحاكاة تستخدم الحدّ الحاليّ فقط، ولا تثبت سلامته للموسم التاريخيّ."
-        )
-    if changed_revisions:
-        spatial_warnings.append(
-            f"حدّ الحقل عُدِّل منذ بداية الموسم ({sow.isoformat()}) — المراجعات "
-            f"{'، '.join(str(r) for r in changed_revisions)}. المحاكاة تقرأ إحداثيّات الحقل "
-            "وسلسلة NDVI على الحدّ الحاليّ لا حدّ الموسم؛ الموسم لا يُثبّت مراجعة هندسة."
-        )
+    spatial_warnings = boundary_provenance_warnings(spatial_provenance, sow)
 
     # ٣) الطقس التاريخي من مالك الطقس الوحيد، لا عبر Open-Meteo داخل المنصّة.
     # التواريخ/التغطية والبصمة يجب أن تطابق نافذة الموسم تماماً؛ سلسلة مبتورة
@@ -320,13 +295,7 @@ async def simulate_season_endpoint(
         archived_et0 = [day.et0_mm for day in weather]
         if all(value is not None for value in archived_et0):
             et0_override = archived_et0
-            et0_provenance = {
-                "source": "weather-service/historical-fao-et0",
-                "formula_version": "provider:et0_fao_evapotranspiration",
-                "days_computed": len(weather),
-                "source_snapshot_id": archive["source_snapshot_id"],
-                "quality_status": archive.get("quality_status"),
-            }
+            et0_provenance = weather_product_provenance("archive_et0", archive, len(weather))
         else:
             # Weather-service remains the only ET0 calculation owner. Never
             # reimplement Hargreaves/Penman-Monteith inside the season engine.
@@ -357,13 +326,7 @@ async def simulate_season_endpoint(
                 raise HTTPException(
                     status_code=503, detail=f"سلسلة ET₀ غير متطابقة مع أيام الموسم: {exc}"
                 ) from exc
-            et0_provenance = {
-                "source": "weather-engine/derived-et0",
-                "formula_version": et0_series.get("formula_version"),
-                "days_computed": et0_series.get("days_computed"),
-                "accumulated_et0_mm": et0_series.get("accumulated_et0_mm"),
-                "quality_status": et0_series.get("quality_status"),
-            }
+            et0_provenance = weather_product_provenance("engine_et0", et0_series)
         try:
             gdd_engine = await get_gdd_product(
                 daily_t_min=[w.t_min_c for w in weather],
@@ -390,11 +353,7 @@ async def simulate_season_endpoint(
             ) from exc
         # WS-C.1c Zero-Legacy: أُزيلت المقارنة الظلّيّة ونواة gdd_day المحلّيّة (المحرّك مصدر
         # GDD الوحيد). النَّسَب من المحرّك مباشرة.
-        gdd_provenance = {
-            "source": "weather-engine",
-            "calculation_version": gdd_engine.get("calculation_version"),
-            "thresholds_used": gdd_engine.get("thresholds_used"),
-        }
+        gdd_provenance = weather_product_provenance("engine_gdd", gdd_engine)
 
     from core.historical_season_context import compose_historical_season_context
 
@@ -405,13 +364,7 @@ async def simulate_season_endpoint(
         season=dict(srow),
         simulation_window={"start": start.isoformat(), "end": win_end.isoformat()},
         spatial_provenance=spatial_provenance,
-        weather_provenance={
-            "owner": "weather-service",
-            "canonical_state_id": archive["canonical_state_id"],
-            "source_snapshot_id": archive["source_snapshot_id"],
-            "coverage": archive.get("coverage"),
-            "quality_status": archive.get("quality_status"),
-        },
+        weather_provenance=weather_product_provenance("archive", archive),
         season_record=dict(record) if record is not None else None,
         crop=dict(historical_crop) if historical_crop is not None else None,
         events=[dict(row) for row in historical_events],

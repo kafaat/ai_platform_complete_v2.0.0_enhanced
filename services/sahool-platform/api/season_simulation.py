@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from api.water_balance import kc_map_for_crop
@@ -795,6 +795,95 @@ def plan_simulation_window(
         days_simulated=(win_end - start).days + 1,
         truncated=truncated,
     )
+
+
+def weather_product_provenance(
+    kind: str, product: dict[str, Any], days: int | None = None
+) -> dict[str, Any]:
+    """Provenance stored with a simulation run for each weather-service product it used.
+
+    ``archive`` is the canonical historical view; ``archive_et0`` is the FAO reference ET0
+    taken unchanged from it; ``engine_et0`` / ``engine_gdd`` are the weather engine's
+    derived series. Values are copied, never recomputed.
+    """
+    if kind == "archive":
+        return {
+            "owner": "weather-service",
+            "canonical_state_id": product["canonical_state_id"],
+            "source_snapshot_id": product["source_snapshot_id"],
+            "coverage": product.get("coverage"),
+            "quality_status": product.get("quality_status"),
+        }
+    if kind == "archive_et0":
+        return {
+            "source": "weather-service/historical-fao-et0",
+            "formula_version": "provider:et0_fao_evapotranspiration",
+            "days_computed": days,
+            "source_snapshot_id": product["source_snapshot_id"],
+            "quality_status": product.get("quality_status"),
+        }
+    if kind == "engine_et0":
+        return {
+            "source": "weather-engine/derived-et0",
+            "formula_version": product.get("formula_version"),
+            "days_computed": product.get("days_computed"),
+            "accumulated_et0_mm": product.get("accumulated_et0_mm"),
+            "quality_status": product.get("quality_status"),
+        }
+    if kind == "engine_gdd":
+        return {
+            "source": "weather-engine",
+            "calculation_version": product.get("calculation_version"),
+            "thresholds_used": product.get("thresholds_used"),
+        }
+    raise ValueError(f"unknown weather product kind: {kind}")
+
+
+# ─── مصدر حدّ الحقل (S4-b): سجلّ مراجعات، لا هندسة تاريخيّة مُعادة البناء ─────────────────
+def boundary_provenance_from_rows(rows: list[Any] | None, since: date) -> dict[str, Any]:
+    """Describe the auditable geometry *revision* ledger, not historical coordinates.
+
+    ``rows`` are ``field_geometry_history`` rows (``revision``, ``changed_at``) ordered by
+    revision, or ``None`` when the ledger could not be read. The first revision is the
+    field's drawing, not an edit. An empty ledger is unverified, not proof that the
+    boundary never changed; an unreadable one is ``unavailable``.
+    """
+    cutoff = datetime.combine(since, datetime.min.time(), tzinfo=UTC)
+    if rows is None:
+        status = "unavailable"
+    else:
+        status = "recorded" if rows else "history_missing"
+    rows = rows or []
+    return {
+        "source": "field_geometry_history",
+        "geometry_basis": "current_boundary",
+        "status": status,
+        "latest_revision": int(rows[-1]["revision"]) if rows else None,
+        "revisions_since_sowing": [
+            int(r["revision"])
+            for r in rows[1:]
+            if r["changed_at"] is not None and r["changed_at"] >= cutoff
+        ],
+        "historical_geometry_replayed": False,
+    }
+
+
+def boundary_provenance_warnings(provenance: dict[str, Any], since: date) -> list[str]:
+    """Arabic warnings for an unproven or edited field boundary (stored with the run)."""
+    warnings: list[str] = []
+    if provenance["status"] != "recorded":
+        warnings.append(
+            "تعذّر إثبات تاريخ حدّ الحقل — سجلّ الهندسة مفقود أو غير متاح. "
+            "المحاكاة تستخدم الحدّ الحاليّ فقط، ولا تثبت سلامته للموسم التاريخيّ."
+        )
+    changed = provenance["revisions_since_sowing"]
+    if changed:
+        warnings.append(
+            f"حدّ الحقل عُدِّل منذ بداية الموسم ({since.isoformat()}) — المراجعات "
+            f"{'، '.join(str(r) for r in changed)}. المحاكاة تقرأ إحداثيّات الحقل "
+            "وسلسلة NDVI على الحدّ الحاليّ لا حدّ الموسم؛ الموسم لا يُثبّت مراجعة هندسة."
+        )
+    return warnings
 
 
 # ─── عقد أرشيف الطقس التاريخيّ (مالك الطقس → محرّك الموسم) ─────────────────────────
