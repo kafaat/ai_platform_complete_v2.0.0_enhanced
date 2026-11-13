@@ -1014,6 +1014,7 @@ FM-004,test,services/sahool-platform/tests/test_season_spatial_provenance.py,3,a
 FM-004,test,services/sahool-platform/tests/test_season_stage_risk.py,3,applied
 FM-004,test,services/sahool-platform/tests/test_v26_water_twin_season_context.py,3,applied
 FM-004,test,services/scout-ingest-service/tests/test_season_live.py,3,applied
+FM-004,test,tests_v9/test_digital_twin_season_live_pg.py,3,applied
 FM-004,test,tests_v9/test_export_season_runs_for_golden.py,3,applied
 FM-004,test,tests_v9/test_fii_prescription_season_context_guard.py,3,applied
 FM-004,test,tests_v9/test_historical_season_bridge_static.py,3,applied
