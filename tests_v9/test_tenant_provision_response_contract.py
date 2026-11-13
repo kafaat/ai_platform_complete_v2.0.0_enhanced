@@ -35,9 +35,9 @@ def _server_response_keys() -> set[str]:
     ]
     assert len(returns) == 1, "Expected exactly one literal response dictionary"
     keys = returns[0].keys
-    assert all(
-        isinstance(key, ast.Constant) and isinstance(key.value, str) for key in keys
-    )
+    for key in keys:
+        assert isinstance(key, ast.Constant)
+        assert isinstance(key.value, str)
     return {key.value for key in keys}
 
 
@@ -49,7 +49,12 @@ def _client_response_fields() -> dict[str, str]:
         flags=re.S,
     )
     assert match, "TenantProvisionResult interface not found"
-    fields = dict(re.findall(r"^\s*(\w+)\s*:\s*([^;\n]+);", match.group(1), flags=re.M))
+    raw_fields = re.findall(
+        r"^\s*(\w+)\s*:\s*([^;\n]+);",
+        match.group(1),
+        flags=re.M,
+    )
+    fields = dict(raw_fields)
     assert fields, "Client response interface must have declared fields"
     return fields
 
