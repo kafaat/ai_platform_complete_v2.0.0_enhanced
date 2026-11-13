@@ -4478,6 +4478,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/core/irrigation_water_analysis.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "IRR-009",
+        "score": 10,
+        "signals": [
+          "content:salinity",
+          "content:sodicity"
+        ]
+      },
+      {
+        "capability_id": "IRR-002",
+        "score": 8,
+        "signals": [
+          "content:water quality",
+          "content:water sample"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/core/schema_factory.py",
     "kind": "backend",
     "candidates": [
