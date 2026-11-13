@@ -268,6 +268,17 @@ BEGIN
     GRANT SELECT, INSERT ON scout_photo_evidence TO sahool_ingest;
     REVOKE UPDATE, DELETE, TRUNCATE ON scout_photo_evidence FROM sahool_ingest;
   END IF;
+  -- SCOUT-PHOTO context (owner phase 4): the v246 inspection pointer only, read from the table
+  -- field-management-service owns. Column SELECT; no write or assignment authority.
+  IF to_regclass('public.field_tasks') IS NOT NULL THEN
+    GRANT SELECT (tenant_id, field_id, source_scouting_pin_id, task_id, status)
+      ON field_tasks TO sahool_ingest;
+  END IF;
+  -- v262 (owner phase 5): scout-ingest alone appends explicit photo -> season link events.
+  IF to_regclass('public.scout_photo_season_link_events') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON scout_photo_season_link_events TO sahool_ingest;
+    REVOKE UPDATE, DELETE, TRUNCATE ON scout_photo_season_link_events FROM sahool_ingest;
+  END IF;
   -- INGEST-FIELD-SELECT-01: ``field_resolves_in_tenant`` يقرأ ``SELECT 1 FROM fields`` تحت RLS
   -- (NOBYPASSRLS ⇒ يرى حقول مستأجره فقط). بلا هذا المنح كان كلّ إرسال ODK/Kobo يحمل field_id
   -- يسقط 503 (permission denied). SELECT فقط — لا كتابة على fields.

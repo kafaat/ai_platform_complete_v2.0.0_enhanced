@@ -149,3 +149,50 @@ def test_dart_tests_for_this_behaviour_exist():
         assert (M / rel).is_file(), rel
     cubit_test = read("test/features/scouting/new_observation_cubit_test.dart")
     assert "group('photo evidence upload (v260, scout-ingest)'" in cubit_test
+
+
+def test_mobile_photo_context_never_treats_inference_as_authorization():
+    """Owner phase 4: the pin sheet shows the server's evidence context, never a decision."""
+    api = read("lib/features/scouting/data/scouting_api.dart")
+    widgets = read("lib/features/scouting/presentation/scouting_widgets.dart")
+    tests = read("test/features/scouting/scouting_api_test.dart")
+    assert "Future<Map<String, dynamic>> photoEvidenceContext" in api
+    assert "data['schema'] != 'sahool.scout-photo-evidence-context/v1'" in api
+    assert "data['automatic_pesticide_action_authorized'] != false" in api
+    assert "decision['state'] != 'not_authorized'" in api
+    assert "source['field_id'] != fieldId" in api
+    assert "evidence['pin_id'] != pinId" in api
+    assert ".photoEvidenceContext(pin.fieldId, pin.pinId)" in widgets
+    assert "لا يجيز هذا الدليل الرش تلقائياً" in widgets
+    assert "group('authoritative photo context'" in tests
+
+
+def test_mobile_season_event_api_validates_receipt_and_shows_distinct_statuses():
+    """Owner phase 5 (v262): an explicit link event, its receipt checked against the request."""
+    api = read("lib/features/scouting/data/scouting_api.dart")
+    widgets = read("lib/features/scouting/presentation/scouting_widgets.dart")
+    tests = read("test/features/scouting/scouting_api_test.dart")
+    assert "Future<Map<String, dynamic>> appendPhotoSeasonLinkEvent" in api
+    assert "r['event_id'] != eventId" in api
+    assert "season['link_event_id'] != eventId" in api
+    assert "r['automatic_pesticide_action_authorized'] != false" in api
+    assert "verifyScoutingPhotoSeasonContext(asJsonMap(r['season']))" in api
+    assert "kScoutPhotoSeasonLinkProof = 'scout_photo_season_link_events:v262'" in api
+    for state in ("linked_accepted", "linked_not_accepted", "revoked", "explicit_link_required"):
+        assert state in api
+    assert "الموسم مرتبط صراحةً" in widgets
+    assert "رابط الموسم موجود لكن سجله غير معتمد" in widgets
+    assert "أُلغي رابط الموسم" in widgets
+    assert "group('human photo-season link event POST'" in tests
+
+
+def test_mobile_season_link_proof_matches_the_server():
+    import sys
+
+    service = str(ROOT / "services" / "scout-ingest-service")
+    if service not in sys.path:
+        sys.path.insert(0, service)
+    import media_api
+
+    api = read("lib/features/scouting/data/scouting_api.dart")
+    assert f"kScoutPhotoSeasonLinkProof = '{media_api.SEASON_LINK_PROOF}'" in api

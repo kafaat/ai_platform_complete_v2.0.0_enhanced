@@ -196,7 +196,10 @@ def test_projection_worker_projects_only_owned_model_not_platform_tables():
 _SQL_TABLE_RE = re.compile(r"\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_][a-z0-9_]*)\b")
 _SQL_FUNCTIONS = {"resolve_ingest_source", "claim_submissions_for_projection"}
 _GRANT_RE = re.compile(
-    r"GRANT\s+[A-Z, ]+?\s+ON\s+(?!SEQUENCE|FUNCTION)(.+?)\s+TO\s+sahool_ingest\s*;", re.S
+    # A column-level grant (``GRANT SELECT (a, b) ON t``) counts: the photo context reads only
+    # the v246 pointer columns of field_tasks.
+    r"GRANT\s+[A-Z, ]+?(?:\s*\([a-z_, ]+\))?\s+ON\s+(?!SEQUENCE|FUNCTION)(.+?)\s+TO\s+sahool_ingest\s*;",
+    re.S,
 )
 
 

@@ -1390,6 +1390,8 @@ services:
       # SCOUT-PHOTO (v260): صور المشاهدات في scout_photo_evidence (off ⇒ 404) خلف nginx
       # (/api/v1/scouting-media/، JWT في البوّابة) وتوكن قناة مخصّص تحقنه البوّابة.
       SCOUT_MEDIA_ENABLED: ${SCOUT_MEDIA_ENABLED:-0}
+      # v262: explicit human photo -> accepted-season links; never enabled implicitly.
+      SCOUT_MEDIA_SEASON_LINK_ENABLED: ${SCOUT_MEDIA_SEASON_LINK_ENABLED:-0}
       SCOUT_MEDIA_SERVICE_TOKEN: ${SCOUT_MEDIA_SERVICE_TOKEN:-}
       # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/).
       # S3-BUCKET-EMPTY-SILENT-FILE-STORAGE-01: كان `${S3_BUCKET:-}` ⇒ `blob_store.s3_enabled()` كاذب ⇒

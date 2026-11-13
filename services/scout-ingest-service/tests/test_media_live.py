@@ -14,6 +14,11 @@ Drives the real media API (``media_api.router``) and real SQL under the restrict
   ⑤  success only when the object exists (HEAD after commit), poisoned ``object_ref`` refused
   ⑥  concurrent resubmits of the same bytes: one row, every reply 200; concurrent different
       bytes: one 200 and one 409
+  ⑦  the evidence context names only the v246 task pointer (field_tasks.source_scouting_pin_id,
+      column SELECT), fails closed for another tenant/field, a worker and a lost object
+  ⑧  v262 season links: accepted seasons of the same tenant and field only, idempotent retries,
+      predecessor fence, correction and revocation, actor-attributed history; RLS, immutability,
+      composite FKs, one root and one successor under the NOBYPASSRLS role
 
 The object store is a boto3-client double behind ``shared.storage.blob_store`` (the real
 blob_store code runs; only the network client is replaced). ``-m integration`` only.
@@ -52,6 +57,8 @@ _PIN_RACE = "pin-a-race"
 _PIN_RACE2 = "pin-a-race2"
 _PIN_POISON = "pin-a-poison"
 _PIN_B = "pin-b-1"
+_PIN_CTX = "pin-a-context"
+_PIN_LINK_RACE = "pin-a-link-race"
 
 
 def _skip_or_fail(msg: str) -> None:
@@ -124,6 +131,13 @@ async def live(monkeypatch):
     # Clean slate between runs: the trigger refuses DELETE, so the owner disables it for the
     # cleanup only (a privileged purge, as the migration comment describes), then re-enables.
     await admin.execute("""
+        ALTER TABLE scout_photo_season_link_events
+          DISABLE TRIGGER scout_photo_season_link_event_immutable_guard;
+        DELETE FROM scout_photo_season_link_events WHERE pin_id LIKE 'pin-%';
+        ALTER TABLE scout_photo_season_link_events
+          ENABLE TRIGGER scout_photo_season_link_event_immutable_guard;
+        DELETE FROM season_records WHERE notes = 'scout-photo-live';
+        DELETE FROM field_tasks WHERE source_scouting_pin_id LIKE 'pin-%';
         ALTER TABLE scout_photo_evidence DISABLE TRIGGER scout_photo_evidence_immutable_guard;
         DELETE FROM scout_photo_evidence WHERE pin_id LIKE 'pin-%';
         ALTER TABLE scout_photo_evidence ENABLE TRIGGER scout_photo_evidence_immutable_guard;
@@ -134,6 +148,8 @@ async def live(monkeypatch):
         (_A, _FIELD, _PIN_RACE),
         (_A, _FIELD, _PIN_RACE2),
         (_A, _FIELD, _PIN_POISON),
+        (_A, _FIELD, _PIN_CTX),
+        (_A, _FIELD, _PIN_LINK_RACE),
         (_B, "field-b", _PIN_B),
     ):
         await admin.execute(
@@ -458,3 +474,384 @@ async def test_sql_rls_immutability_and_fk_under_nobypassrls_roles(live):
         assert re.fullmatch(r"[0-9a-f]{64}", rows[0]["content_sha256"].strip())
     finally:
         await admin.close()
+
+
+# ─── evidence context and explicit season links (owner phases 4-5; v262) ────────────────────
+
+
+async def _upload(c, pin, color):
+    data = _picture(color=color)
+    res = await c.post(_path(pin), content=data, headers=_hdr(data=data))
+    assert res.status_code == 200, res.text
+
+
+async def _season(tenant=_A, field=_FIELD, *, status="accepted") -> str:
+    """A season_records row as scout-ingest stores it (accepted rows carry the reviewer)."""
+    admin = await asyncpg.connect(ADMIN_URL, statement_cache_size=0)
+    try:
+        accepted = status == "accepted"
+        return str(
+            await admin.fetchval(
+                "INSERT INTO season_records (tenant_id, field_id, observed_at_from, "
+                "observed_at_to, trust_status, accepted_by, accepted_at, notes) "
+                "VALUES ($1::uuid, $2, DATE '2026-01-01', DATE '2026-05-01', $3, $4, "
+                "CASE WHEN $5 THEN now() END, 'scout-photo-live') RETURNING id",
+                tenant,
+                field,
+                status,
+                "reviewer-1" if accepted else None,
+                accepted,
+            )
+        )
+    finally:
+        await admin.close()
+
+
+def _jhdr(tenant=_A, role="expert", uid="agronomist-7"):
+    """Identity headers for a JSON request (no photo Content-Type or digest)."""
+    return {
+        k: v
+        for k, v in _hdr(tenant=tenant, role=role, uid=uid).items()
+        if k not in ("Content-Type", "X-Content-SHA256")
+    }
+
+
+def _link_path(pin=_PIN_CTX, field=_FIELD):
+    return _path(pin, field) + "/season-link-events"
+
+
+def _body(action="link", season=None, *, eid=None, previous=None, reason=None):
+    return {
+        "event_id": str(eid or uuid.uuid4()),
+        "action": action,
+        "season_id": season,
+        "previous_event_id": previous,
+        "reason": reason,
+    }
+
+
+async def test_context_names_only_the_v246_task_and_fails_closed(live):
+    app, s3, _ = live
+    async with await _client(app) as c:
+        await _upload(c, _PIN_CTX, (12, 34, 56))
+        ctx = await c.get(_path(_PIN_CTX) + "/context", headers=_hdr())
+        assert ctx.status_code == 200, ctx.text
+        body = ctx.json()
+        assert body["schema"] == "sahool.scout-photo-evidence-context/v1"
+        assert body["source"] == {"kind": "scouting_pin", "field_id": _FIELD, "pin_id": _PIN_CTX}
+        assert body["evidence"]["persisted"] is True and "object_ref" not in body["evidence"]
+        assert body["inspection"] == {"state": "not_linked"}
+        assert body["season"] == {"state": "explicit_link_required", "season_id": None}
+        assert body["decision"]["state"] == "not_authorized"
+        assert body["automatic_pesticide_action_authorized"] is False
+        assert ctx.headers["cache-control"] == "private, no-store"
+
+        # A task on the same field that does not name the pin is never "nearby" evidence.
+        admin = await asyncpg.connect(ADMIN_URL, statement_cache_size=0)
+        try:
+            await admin.execute(
+                "INSERT INTO field_boundaries (field_id, field_name, tenant_id) "
+                "VALUES ($1, 'live field', $2::uuid) ON CONFLICT (field_id) DO NOTHING",
+                _FIELD,
+                _A,
+            )
+            await admin.execute(
+                "INSERT INTO field_tasks (field_id, tenant_id, task_type, status) "
+                "VALUES ($1, $2::uuid, 'inspection', 'pending')",
+                _FIELD,
+                _A,
+            )
+            assert (await c.get(_path(_PIN_CTX) + "/context", headers=_hdr())).json()[
+                "inspection"
+            ] == {"state": "not_linked"}
+            task = await admin.fetchval(
+                "INSERT INTO field_tasks (field_id, tenant_id, task_type, status, "
+                "source_scouting_pin_id) VALUES ($1, $2::uuid, 'inspection', 'in_progress', $3) "
+                "RETURNING task_id",
+                _FIELD,
+                _A,
+                _PIN_CTX,
+            )
+        finally:
+            await admin.close()
+        linked = (await c.get(_path(_PIN_CTX) + "/context", headers=_hdr(role="expert"))).json()
+        assert linked["inspection"] == {
+            "state": "linked",
+            "task_id": str(task),
+            "status": "in_progress",
+            "link_proof": "field_tasks.source_scouting_pin_id:v246",
+        }
+        # Another tenant, the wrong field, a worker: no context.
+        assert (
+            await c.get(_path(_PIN_CTX) + "/context", headers=_hdr(tenant=_B))
+        ).status_code == 404
+        assert (
+            await c.get(_path(_PIN_CTX, "field-b") + "/context", headers=_hdr())
+        ).status_code == 404
+        assert (
+            await c.get(_path(_PIN_CTX) + "/context", headers=_hdr(role="worker"))
+        ).status_code == 403
+        # The object lost behind the row: the context is not served from the row alone.
+        s3.objects.clear()
+        lost = await c.get(_path(_PIN_CTX) + "/context", headers=_hdr())
+        assert (
+            lost.status_code == 503 and lost.json()["detail"] == "scout_photo_object_not_verified"
+        )
+
+
+async def test_season_link_chain_accepted_only_append_only_and_idempotent(live, monkeypatch):
+    app, _, _ = live
+    monkeypatch.setenv("SCOUT_MEDIA_SEASON_LINK_ENABLED", "1")
+    expert = _jhdr()
+    untrusted = await _season(status="untrusted")
+    foreign_field = await _season(field="field-other")
+    foreign_tenant = await _season(tenant=_B, field=_FIELD)
+    first_season, second_season = await _season(), await _season()
+    async with await _client(app) as c:
+        await _upload(c, _PIN_CTX, (90, 10, 10))
+        for season in (untrusted, foreign_field, foreign_tenant, str(uuid.uuid4())):
+            res = await c.post(_link_path(), json=_body(season=season), headers=expert)
+            assert res.status_code == 422, res.text
+            assert res.json()["detail"] == "scout_photo_accepted_season_not_found"
+        assert (
+            await c.post(
+                _link_path(), json=_body(season=first_season), headers=_jhdr(role="farmer")
+            )
+        ).status_code == 403
+
+        link = _body(season=first_season)
+        first = await c.post(_link_path(), json=link, headers=expert)
+        assert first.status_code == 200, first.text
+        assert first.json()["idempotent"] is False and first.json()["is_current"] is True
+        assert first.json()["season"] == {
+            "state": "linked_accepted",
+            "season_id": first_season,
+            "link_event_id": link["event_id"],
+            "link_proof": "scout_photo_season_link_events:v262",
+        }
+        replay = await c.post(_link_path(), json=link, headers=expert)
+        assert replay.status_code == 200 and replay.json()["idempotent"] is True
+        # The same event id with another body, or by another person, is not a retry.
+        assert (
+            await c.post(_link_path(), json={**link, "season_id": second_season}, headers=expert)
+        ).status_code == 409
+        assert (
+            await c.post(_link_path(), json=link, headers=_jhdr(uid="someone-else"))
+        ).status_code == 409
+        # A second root, or a revision naming a stale head, is a predecessor conflict.
+        assert (
+            await c.post(_link_path(), json=_body(season=second_season), headers=expert)
+        ).json()["detail"] == "scout_photo_link_predecessor_conflict"
+
+        fix = _body(season=second_season, previous=link["event_id"], reason="wrong season picked")
+        corrected = await c.post(_link_path(), json=fix, headers=expert)
+        assert corrected.status_code == 200, corrected.text
+        assert corrected.json()["season"]["season_id"] == second_season
+        stale = _body(season=first_season, previous=link["event_id"], reason="stale head")
+        assert (await c.post(_link_path(), json=stale, headers=expert)).status_code == 409
+
+        revoke = _body("revoke", previous=fix["event_id"], reason="photo is from last season")
+        revoked = await c.post(
+            _link_path(), json=revoke, headers=_jhdr(role="admin", uid="owner-1")
+        )
+        assert revoked.status_code == 200, revoked.text
+        assert revoked.json()["season"] == {
+            "state": "revoked",
+            "season_id": None,
+            "link_event_id": revoke["event_id"],
+        }
+
+        history = await c.get(_link_path(), headers=expert)
+        assert (
+            history.status_code == 200 and history.headers["cache-control"] == "private, no-store"
+        )
+        events = history.json()["events"]
+        assert [e["event_id"] for e in events] == [
+            link["event_id"],
+            fix["event_id"],
+            revoke["event_id"],
+        ]
+        assert [e["actor_id"] for e in events] == ["agronomist-7", "agronomist-7", "owner-1"]
+        assert history.json()["current"]["state"] == "revoked"
+        ctx = (await c.get(_path(_PIN_CTX) + "/context", headers=_hdr())).json()
+        assert ctx["season"]["state"] == "revoked"
+        # Another tenant sees no chain (RLS on the photo and on the events).
+        assert (await c.get(_link_path(), headers=_jhdr(tenant=_B))).status_code == 404
+
+    monkeypatch.setenv("SCOUT_MEDIA_SEASON_LINK_ENABLED", "0")
+    async with await _client(app) as c:
+        assert (await c.get(_link_path(), headers=expert)).status_code == 404
+        ctx = (await c.get(_path(_PIN_CTX) + "/context", headers=_hdr())).json()
+        assert ctx["season"] == {"state": "explicit_link_required", "season_id": None}
+
+
+async def test_concurrent_season_links(live, monkeypatch):
+    app, _, _ = live
+    monkeypatch.setenv("SCOUT_MEDIA_SEASON_LINK_ENABLED", "1")
+    expert = _jhdr()
+    one, two = await _season(), await _season()
+    async with await _client(app) as c:
+        await _upload(c, _PIN_LINK_RACE, (3, 200, 3))
+        same = _body(season=one)
+        replies = await asyncio.gather(
+            *[c.post(_link_path(_PIN_LINK_RACE), json=same, headers=expert) for _ in range(6)]
+        )
+        assert [r.status_code for r in replies] == [200] * 6, [r.text for r in replies]
+        assert sum(1 for r in replies if r.json()["idempotent"] is False) == 1
+        # Two different successors of the same head: the unique successor admits one.
+        a, b = await asyncio.gather(
+            c.post(
+                _link_path(_PIN_LINK_RACE),
+                json=_body(season=two, previous=same["event_id"], reason="correction a"),
+                headers=expert,
+            ),
+            c.post(
+                _link_path(_PIN_LINK_RACE),
+                json=_body("revoke", previous=same["event_id"], reason="correction b"),
+                headers=expert,
+            ),
+        )
+        assert sorted([a.status_code, b.status_code]) == [200, 409], (a.text, b.text)
+    admin = await asyncpg.connect(ADMIN_URL, statement_cache_size=0)
+    try:
+        assert (
+            await admin.fetchval(
+                "SELECT count(*) FROM scout_photo_season_link_events WHERE pin_id=$1",
+                _PIN_LINK_RACE,
+            )
+            == 2
+        )
+    finally:
+        await admin.close()
+
+
+async def test_season_link_sql_rls_immutability_and_fences_under_nobypassrls(live, monkeypatch):
+    app, _, ingest_url = live
+    monkeypatch.setenv("SCOUT_MEDIA_SEASON_LINK_ENABLED", "1")
+    season = await _season()
+    other_field_season = await _season(field="field-other")
+    root = _body(season=season)
+    async with await _client(app) as c:
+        await _upload(c, _PIN_CTX, (44, 44, 200))
+        assert (await c.post(_link_path(), json=root, headers=_jhdr())).status_code == 200
+
+    admin = await asyncpg.connect(ADMIN_URL, statement_cache_size=0)
+    try:
+        forced = await admin.fetchrow(
+            "SELECT relrowsecurity, relforcerowsecurity FROM pg_class "
+            "WHERE oid='scout_photo_season_link_events'::regclass"
+        )
+        assert (forced["relrowsecurity"], forced["relforcerowsecurity"]) == (True, True)
+        for stmt in (
+            "UPDATE scout_photo_season_link_events SET reason='rewritten'",
+            "DELETE FROM scout_photo_season_link_events",
+        ):
+            with pytest.raises(
+                asyncpg.PostgresError, match="scout_photo_season_link_event_immutable"
+            ) as exc:
+                await admin.execute(stmt)
+            assert exc.value.sqlstate == "55000"
+    finally:
+        await admin.close()
+
+    insert = (
+        "INSERT INTO scout_photo_season_link_events "
+        "(event_id, tenant_id, field_id, pin_id, season_id, action, previous_event_id, actor_id, reason) "
+        "VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7::uuid, 'probe', $8)"
+    )
+    a = await _as(ingest_url, _A)
+    try:
+        assert await a.fetchval("SELECT count(*) FROM scout_photo_season_link_events") == 1
+        # A season of another field of the same tenant: the composite FK refuses it.
+        with pytest.raises(asyncpg.ForeignKeyViolationError):
+            await a.execute(
+                insert,
+                str(uuid.uuid4()),
+                _A,
+                _FIELD,
+                _PIN_CTX,
+                other_field_season,
+                "link",
+                root["event_id"],
+                "other field",
+            )
+        # A second root for the same photo.
+        with pytest.raises(asyncpg.UniqueViolationError):
+            await a.execute(
+                insert, str(uuid.uuid4()), _A, _FIELD, _PIN_CTX, season, "link", None, None
+            )
+        # Two successors of the same event: the unique successor fences the race in SQL, also
+        # when two API calls read the same head at the same instant.
+        await a.execute(
+            insert,
+            str(uuid.uuid4()),
+            _A,
+            _FIELD,
+            _PIN_CTX,
+            season,
+            "link",
+            root["event_id"],
+            "first correction",
+        )
+        with pytest.raises(asyncpg.UniqueViolationError):
+            await a.execute(
+                insert,
+                str(uuid.uuid4()),
+                _A,
+                _FIELD,
+                _PIN_CTX,
+                season,
+                "link",
+                root["event_id"],
+                "second correction",
+            )
+        # A revocation without a reason.
+        with pytest.raises(asyncpg.CheckViolationError):
+            await a.execute(
+                insert,
+                str(uuid.uuid4()),
+                _A,
+                _FIELD,
+                _PIN_CTX,
+                None,
+                "revoke",
+                root["event_id"],
+                None,
+            )
+        with pytest.raises(asyncpg.InsufficientPrivilegeError):
+            await a.execute("UPDATE scout_photo_season_link_events SET reason='x'")
+        with pytest.raises(asyncpg.InsufficientPrivilegeError):
+            await a.execute("DELETE FROM scout_photo_season_link_events")
+        # field_tasks: the granted columns only, and no write.
+        await a.fetch(
+            "SELECT tenant_id, field_id, source_scouting_pin_id, task_id, status FROM field_tasks"
+        )
+        with pytest.raises(asyncpg.InsufficientPrivilegeError):
+            await a.fetch("SELECT notes FROM field_tasks")
+        with pytest.raises(asyncpg.InsufficientPrivilegeError):
+            await a.execute("UPDATE field_tasks SET status='done'")
+    finally:
+        await a.close()
+
+    b = await _as(ingest_url, _B)
+    try:
+        assert await b.fetchval("SELECT count(*) FROM scout_photo_season_link_events") == 0
+        with pytest.raises(asyncpg.InsufficientPrivilegeError, match="row-level security"):
+            await b.execute(
+                insert,
+                str(uuid.uuid4()),
+                _A,
+                _FIELD,
+                _PIN_CTX,
+                season,
+                "link",
+                root["event_id"],
+                "x",
+            )
+    finally:
+        await b.close()
+    none = await _as(ingest_url, None)
+    try:
+        assert await none.fetchval("SELECT count(*) FROM scout_photo_season_link_events") == 0
+    finally:
+        await none.close()
