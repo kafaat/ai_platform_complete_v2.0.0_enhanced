@@ -349,3 +349,19 @@ async def test_historical_record_of_the_same_crop_is_auto_linked(monkeypatch):
     )
     assert any("INSERT INTO season_record_links" in sql for sql in conn.executed)
     assert out.historical_context_used is True
+
+
+async def test_complete_historical_fao_et0_is_used_without_recomputation(monkeypatch):
+    import api.weather_service_client as wsc
+
+    conn = _Conn(_season(_SOW, _END), [])
+    route = _install(monkeypatch, conn, [])
+
+    async def recompute_should_not_run(**kwargs):
+        raise AssertionError("native historical FAO ET0 must take precedence")
+
+    monkeypatch.setattr(wsc, "get_et0_series", recompute_should_not_run)
+    out = await route.simulate_season_endpoint("season-a", user=_USER)
+    assert out.et0_provenance["source"] == "weather-service/historical-fao-et0"
+    assert out.et0_provenance["source_snapshot_id"] == "test-wx-snapshot"
+    assert out.yield_status == "estimated"
