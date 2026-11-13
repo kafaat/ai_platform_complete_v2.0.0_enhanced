@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+import ast
 import re
 from pathlib import Path
 
@@ -183,4 +184,53 @@ def test_projection_worker_projects_only_owned_model_not_platform_tables():
     assert (
         "claim_submissions_for_projection" in src
         and "ON CONFLICT (observation_id) DO NOTHING" in src
+    )
+
+
+# ── INGEST-FIELD-SELECT-01: every table the service touches is granted where grants take effect ──
+# ``sahool_ingest`` is created by the role runners AFTER the manifest, so a grant that lives only
+# in a migration (``IF EXISTS role``) is absent on first boot, and a grant that lives nowhere is
+# absent forever: ``SELECT 1 FROM fields`` had no grant, and every ODK/Kobo submission carrying a
+# field_id returned 503. The live test granted itself that privilege, which hid it. The table set
+# is derived from the service's own SQL, not copied.
+_SQL_TABLE_RE = re.compile(r"\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_][a-z0-9_]*)\b")
+_SQL_FUNCTIONS = {"resolve_ingest_source", "claim_submissions_for_projection"}
+_GRANT_RE = re.compile(
+    r"GRANT\s+[A-Z, ]+?\s+ON\s+(?!SEQUENCE|FUNCTION)(.+?)\s+TO\s+sahool_ingest\s*;", re.S
+)
+
+
+def _service_tables() -> set[str]:
+    tables: set[str] = set()
+    for path in SVC_DIR.glob("*.py"):
+        if path.name.startswith("test_"):
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                tables.update(_SQL_TABLE_RE.findall(node.value))
+    return tables - _SQL_FUNCTIONS
+
+
+def _ingest_granted_tables(runner: Path) -> set[str]:
+    text = runner.read_text(encoding="utf-8")
+    section = text.split("sahool_ingest (NOBYPASSRLS", 1)[1]
+    block = re.search(r"\nDO \$\$\nBEGIN\n.*?\nEND \$\$;\n", section, re.S)
+    assert block, f"{runner.name}: sahool_ingest grant block not found"
+    granted: set[str] = set()
+    for targets in _GRANT_RE.findall(block.group(0)):
+        granted.update(t.strip() for t in targets.replace("\n", " ").split(","))
+    return granted
+
+
+def test_service_table_derivation_is_not_vacuous():
+    tables = _service_tables()
+    assert {"external_submissions", "fields", "field_form_versions"} <= tables, tables
+
+
+@pytest.mark.parametrize("runner", [BOOTSTRAP, APPLY])
+def test_every_table_the_ingest_service_queries_is_granted_by_the_role_runner(runner: Path):
+    missing = sorted(_service_tables() - _ingest_granted_tables(runner))
+    assert not missing, (
+        f"{runner.name}: sahool_ingest queries tables its role runner never grants: {missing}"
     )

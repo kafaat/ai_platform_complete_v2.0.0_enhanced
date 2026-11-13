@@ -2423,7 +2423,8 @@
           "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
           "services/sahool-platform/tests/test_ui28_ui30_workspace_route_cleanup_guard.py",
           "services/sahool-platform/tests/test_ui31_ui35_workspace_completion_guard.py",
-          "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py"
+          "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
+          "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py"
         ],
         "tracing": []
       },

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from collections.abc import Iterable, Mapping
 from datetime import date, datetime
 from decimal import Decimal
@@ -44,6 +45,9 @@ def compose_historical_season_context(
     field_id: str,
     season_id: str,
     season: Mapping[str, Any],
+    simulation_window: Mapping[str, str] | None = None,
+    weather_provenance: Mapping[str, Any] | None = None,
+    spatial_provenance: Mapping[str, Any] | None = None,
     season_record: Mapping[str, Any] | None = None,
     crop: Mapping[str, Any] | None = None,
     events: Iterable[Mapping[str, Any]] = (),
@@ -61,28 +65,71 @@ def compose_historical_season_context(
         key=lambda v: (str(v.get("acquisition_date") or ""), str(v.get("id") or "")),
     )
     weather_rows = [_primitive(dict(w)) for w in weather]
+    window = _primitive(dict(simulation_window)) if simulation_window is not None else None
+    if window is not None:
+        window_start = str(window.get("start") or "")
+        window_end = str(window.get("end") or "")
+        try:
+            if date.fromisoformat(window_end) < date.fromisoformat(window_start):
+                raise ValueError("simulation end precedes start")
+        except (TypeError, ValueError) as exc:
+            raise ValueError("historical simulation window is invalid") from exc
+    else:
+        window_start = window_end = ""
+
+    def _in_window(raw_day: Any) -> bool:
+        if window is None:
+            return True  # historical callers without a window retain legacy behavior
+        if raw_day is None:
+            return False
+        day = str(raw_day)[:10]
+        return window_start <= day <= window_end
+
+    def _finite(value: Any, *, minimum: float = 0.0, maximum: float | None = None) -> float | None:
+        if isinstance(value, bool):
+            return None
+        try:
+            number = float(value)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        if not math.isfinite(number) or number < minimum:
+            return None
+        if maximum is not None and number > maximum:
+            return None
+        return number
 
     trusted_irrigation = [
-        float(e["amount_mm"])
+        amount
         for e in event_rows
         if e.get("event_type") == "irrigation"
-        and e.get("amount_mm") is not None
         and not bool(e.get("low_confidence"))
-        and float(e["amount_mm"]) >= 0
+        and _in_window(e.get("event_date"))
+        if (amount := _finite(e.get("amount_mm"))) is not None
     ]
     irrigation_mm_total = sum(trusted_irrigation) if trusted_irrigation else None
 
     valid_vegetation: list[dict[str, Any]] = []
     fapar_values: list[float] = []
     for observation in vegetation_rows:
-        ndvi = observation.get("ndvi_mean")
-        cloud = observation.get("cloud_pct")
-        if ndvi is None or not -1.0 <= float(ndvi) <= 1.0:
+        ndvi = _finite(observation.get("ndvi_mean"), minimum=-1.0, maximum=1.0)
+        cloud = _finite(observation.get("cloud_pct"), maximum=30.0)
+        if ndvi is None or cloud is None or not _in_window(observation.get("acquisition_date")):
             continue
-        if cloud is None or float(cloud) > 30.0:
+        # Raster owns threshold-based quality. We enforce only the physical
+        # identity invariant: an observation with explicitly zero/invalid
+        # valid-pixel or field coverage cannot represent a measured field mean.
+        ratios = (
+            observation.get("valid_pixel_ratio"),
+            observation.get("coverage_ratio"),
+        )
+        if any(
+            raw is not None
+            and ((ratio := _finite(raw, minimum=0.0, maximum=1.0)) is None or ratio == 0.0)
+            for raw in ratios
+        ):
             continue
         normalized = dict(observation)
-        normalized["fapar"] = round(fapar_from_ndvi(float(ndvi)), 6)
+        normalized["fapar"] = round(fapar_from_ndvi(ndvi), 6)
         valid_vegetation.append(normalized)
         fapar_values.append(normalized["fapar"])
 
@@ -112,14 +159,16 @@ def compose_historical_season_context(
         },
         "vegetation": {
             "status": "available" if valid_vegetation else "empty",
-            "quality_rule": "ndvi[-1,1]; cloud_pct_required<=30",
+            "quality_rule": "ndvi[-1,1]; cloud_pct_required<=30; reported_coverage>0",
             "observations": valid_vegetation,
             "observation_count": len(valid_vegetation),
             "observed_fapar_seasonal_mean": observed_fapar,
         },
         "weather": {
             "status": "available" if weather_rows else "empty",
-            "source": "open-meteo-era5+weather-engine",
+            "source": "weather-service" if weather_provenance is not None else "legacy_unknown",
+            "provenance": _row(weather_provenance),
+            "window": window,
             "days": weather_rows,
             "day_count": len(weather_rows),
         },
@@ -137,6 +186,10 @@ def compose_historical_season_context(
             "no_daily_fapar_interpolation": True,
         },
     }
+    # Spatial evidence changes the input identity even when the NDVI averages,
+    # rainfall and modeled yield happen to be numerically identical.
+    if spatial_provenance is not None:
+        context["spatial"] = _row(spatial_provenance)
     canonical = json.dumps(
         context, sort_keys=True, separators=(",", ":"), ensure_ascii=False
     ).encode()
@@ -181,16 +234,19 @@ def build_simulation_outcome(
     }
 
     actual: float | None = None
-    if harvest is not None and harvest.get("yield_kg_ha") is not None:
+    if harvest is not None:
+        value = harvest.get("yield_kg_ha")
         try:
-            actual = float(harvest["yield_kg_ha"])
-        except (TypeError, ValueError):
-            actual = None
+            candidate = float(value) if value is not None else None
+        except (TypeError, ValueError, OverflowError):
+            candidate = None
+        if candidate is not None and math.isfinite(candidate) and candidate >= 0:
+            actual = candidate
 
     if actual is not None and predicted is not None:
         predicted_f = float(predicted)
         delta = actual - predicted_f
-        relative_error = (delta / actual) if actual not in (0, 0.0) else None
+        relative_error = (delta / actual) if actual != 0 else None
         within_band = low is not None and high is not None and float(low) <= actual <= float(high)
         outcome["expected_vs_actual"] = {
             "status": "compared",
@@ -199,6 +255,14 @@ def build_simulation_outcome(
             "delta_kg_ha": round(delta, 6),
             "relative_error": round(relative_error, 6) if relative_error is not None else None,
             "actual_within_uncertainty_band": within_band,
+        }
+    elif actual is not None:
+        # A verified harvest may exist even when simulation is unavailable:
+        # missing forecast is not missing observed harvest.
+        outcome["expected_vs_actual"] = {
+            "status": "prediction_unavailable",
+            "predicted_yield_kg_ha": None,
+            "actual_yield_kg_ha": actual,
         }
     else:
         outcome["expected_vs_actual"] = {

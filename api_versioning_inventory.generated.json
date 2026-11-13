@@ -524,7 +524,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 541,
+    "line": 542,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_identity",
@@ -533,7 +533,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 547,
+    "line": 548,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -542,7 +542,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 552,
+    "line": 553,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -551,7 +551,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 590,
+    "line": 591,
     "method": "GET",
     "path": "/v1/cutover/readiness",
     "handler": "cutover_readiness",
@@ -560,7 +560,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 600,
+    "line": 601,
     "method": "GET",
     "path": "/contract",
     "handler": "contract",
@@ -569,7 +569,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 633,
+    "line": 634,
     "method": "POST",
     "path": "/v1/evidence/vegetation-snapshots",
     "handler": "create_vegetation_snapshot",
@@ -578,7 +578,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 651,
+    "line": 652,
     "method": "GET",
     "path": "/v1/evidence/vegetation-snapshots/latest",
     "handler": "read_latest_vegetation_snapshot",
@@ -587,7 +587,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 720,
+    "line": 721,
     "method": "POST",
     "path": "/v1/decisions/record",
     "handler": "record_decision",
@@ -596,7 +596,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 794,
+    "line": 795,
     "method": "GET",
     "path": "/v1/decisions/review-queue",
     "handler": "review_queue",
@@ -605,7 +605,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 851,
+    "line": 852,
     "method": "POST",
     "path": "/v1/decisions/{decision_id}/review",
     "handler": "review_candidate",
@@ -614,7 +614,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 949,
+    "line": 950,
     "method": "POST",
     "path": "/v1/decisions/{decision_id}/execution-plan",
     "handler": "build_execution_plan",
@@ -623,7 +623,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1013,
+    "line": 1014,
     "method": "GET",
     "path": "/v1/execution-plans/{execution_plan_id}",
     "handler": "read_execution_plan_state",
@@ -632,7 +632,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1033,
+    "line": 1034,
     "method": "POST",
     "path": "/v1/dispatch/decisions",
     "handler": "record_dispatch",
@@ -641,7 +641,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1092,
+    "line": 1093,
     "method": "GET",
     "path": "/v1/dispatch/decisions",
     "handler": "list_dispatch",
@@ -650,7 +650,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1106,
+    "line": 1107,
     "method": "POST",
     "path": "/v1/outcomes/record",
     "handler": "record_outcome",
@@ -659,7 +659,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1133,
+    "line": 1134,
     "method": "POST",
     "path": "/v1/recommendation-outcomes",
     "handler": "record_recommendation_outcome",
@@ -668,7 +668,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1160,
+    "line": 1161,
     "method": "POST",
     "path": "/v1/learning/updates",
     "handler": "record_learning_update",
@@ -677,7 +677,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1191,
+    "line": 1196,
     "method": "GET",
     "path": "/v1/learning/summary",
     "handler": "learning_summary",
@@ -686,7 +686,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1205,
+    "line": 1210,
     "method": "GET",
     "path": "/v1/decisions",
     "handler": "list_decisions",
@@ -695,7 +695,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1234,
+    "line": 1239,
     "method": "GET",
     "path": "/v1/fields/{field_id}/lineage",
     "handler": "field_lineage",
@@ -704,7 +704,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1250,
+    "line": 1255,
     "method": "GET",
     "path": "/v1/outcomes/reconciled",
     "handler": "reconciled_outcomes",
@@ -713,7 +713,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1286,
+    "line": 1291,
     "method": "GET",
     "path": "/v1/decisions/{decision_id}/agronomic-evidence",
     "handler": "decision_agronomic_evidence",
@@ -722,7 +722,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1304,
+    "line": 1309,
     "method": "GET",
     "path": "/v1/decisions/{decision_id}/lineage",
     "handler": "decision_lineage",
@@ -731,7 +731,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1331,
+    "line": 1336,
     "method": "POST",
     "path": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
     "handler": "authorize_execution_plan_dispatch",
@@ -740,7 +740,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1401,
+    "line": 1406,
     "method": "POST",
     "path": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
     "handler": "execute_authorized_dispatch",
@@ -749,7 +749,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1460,
+    "line": 1465,
     "method": "POST",
     "path": "/v1/reservation-dispatch-intents",
     "handler": "ingest_reservation_dispatch_intent",
@@ -758,7 +758,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1590,
+    "line": 1595,
     "method": "POST",
     "path": "/v1/activation/evidence-receipts",
     "handler": "store_activation_evidence",
@@ -767,7 +767,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1664,
+    "line": 1669,
     "method": "POST",
     "path": "/v1/activation/evidence-receipts/{evidence_id}/revoke",
     "handler": "revoke_activation_evidence",
@@ -776,7 +776,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1707,
+    "line": 1712,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/enforce",
     "handler": "activation_enforce",
@@ -785,7 +785,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1732,
+    "line": 1737,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/begin",
     "handler": "activation_begin",
@@ -794,7 +794,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1743,
+    "line": 1748,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/complete",
     "handler": "activation_complete",
@@ -803,7 +803,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1762,
+    "line": 1767,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/revoke",
     "handler": "activation_revoke",
@@ -812,7 +812,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1777,
+    "line": 1782,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/reset",
     "handler": "activation_reset",
@@ -821,7 +821,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1788,
+    "line": 1793,
     "method": "GET",
     "path": "/v1/activation/irr_f01_reservation",
     "handler": "activation_current",
@@ -830,7 +830,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1795,
+    "line": 1800,
     "method": "GET",
     "path": "/v1/activation/irr_f01_reservation/probe",
     "handler": "activation_probe",
@@ -839,7 +839,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1825,
+    "line": 1830,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/begin",
     "handler": "cdse_activation_begin",
@@ -848,7 +848,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1838,
+    "line": 1843,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/complete",
     "handler": "cdse_activation_complete",
@@ -857,7 +857,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1857,
+    "line": 1862,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/revoke",
     "handler": "cdse_activation_revoke",
@@ -866,7 +866,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1872,
+    "line": 1877,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/reset",
     "handler": "cdse_activation_reset",
@@ -875,7 +875,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1885,
+    "line": 1890,
     "method": "GET",
     "path": "/v1/activation/satellite_cdse",
     "handler": "cdse_activation_current",
@@ -884,7 +884,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1892,
+    "line": 1897,
     "method": "GET",
     "path": "/v1/activation/satellite_cdse/source",
     "handler": "cdse_active_source",
@@ -893,7 +893,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1901,
+    "line": 1906,
     "method": "GET",
     "path": "/v1/activation/satellite_cdse/probe",
     "handler": "cdse_activation_probe",
@@ -902,7 +902,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1932,
+    "line": 1937,
     "method": "GET",
     "path": "/v1/execution-requests",
     "handler": "list_execution_requests",
@@ -911,7 +911,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1961,
+    "line": 1966,
     "method": "GET",
     "path": "/v1/execution-requests/recovery",
     "handler": "list_execution_request_recovery",
@@ -920,7 +920,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1983,
+    "line": 1988,
     "method": "POST",
     "path": "/v1/execution-requests/{execution_request_id}/claim",
     "handler": "claim_execution_delivery",
@@ -929,7 +929,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2015,
+    "line": 2020,
     "method": "POST",
     "path": "/v1/execution-requests/{execution_request_id}/receipt",
     "handler": "ingest_execution_receipt",
@@ -938,7 +938,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2061,
+    "line": 2066,
     "method": "GET",
     "path": "/v1/execution-requests/{execution_request_id}/observation-context",
     "handler": "execution_observation_context",
@@ -947,7 +947,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2078,
+    "line": 2083,
     "method": "POST",
     "path": "/v1/execution-requests/{execution_request_id}/verify-outcome",
     "handler": "verify_terminal_execution_outcome",
@@ -956,7 +956,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2136,
+    "line": 2141,
     "method": "POST",
     "path": "/v1/outcomes/{outcome_id}/learning-attribution",
     "handler": "attribute_verified_outcome_to_learning",
@@ -965,7 +965,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2170,
+    "line": 2175,
     "method": "GET",
     "path": "/v1/learning/calibration-dataset",
     "handler": "get_calibration_dataset",
@@ -974,7 +974,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2212,
+    "line": 2217,
     "method": "POST",
     "path": "/v1/learning/evaluation-runs",
     "handler": "register_model_evaluation_run",
@@ -983,7 +983,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2262,
+    "line": 2267,
     "method": "POST",
     "path": "/v1/learning/promotion-decisions",
     "handler": "register_model_promotion_decision",
@@ -992,7 +992,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2298,
+    "line": 2303,
     "method": "POST",
     "path": "/v1/learning/activation-requests",
     "handler": "register_model_activation_request",
@@ -1001,7 +1001,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2341,
+    "line": 2346,
     "method": "POST",
     "path": "/v1/learning/activation-requests/{activation_request_id}/review",
     "handler": "review_activation_request_boundary",
@@ -1010,7 +1010,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2393,
+    "line": 2398,
     "method": "POST",
     "path": "/v1/learning/activation-commands/{activation_command_id}/claim",
     "handler": "claim_registry_activation_command_boundary",
@@ -1019,7 +1019,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2434,
+    "line": 2439,
     "method": "POST",
     "path": "/v1/learning/activation-commands/{activation_command_id}/receipt",
     "handler": "record_registry_activation_receipt_boundary",
@@ -1028,7 +1028,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2480,
+    "line": 2485,
     "method": "POST",
     "path": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
     "handler": "create_registry_rollback_command_boundary",
@@ -1037,7 +1037,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2517,
+    "line": 2522,
     "method": "POST",
     "path": "/v1/learning/rollback-commands/{rollback_command_id}/claim",
     "handler": "claim_registry_rollback_command_boundary",
@@ -1046,7 +1046,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2553,
+    "line": 2558,
     "method": "POST",
     "path": "/v1/learning/rollback-commands/{rollback_command_id}/receipt",
     "handler": "record_registry_rollback_receipt_boundary",
@@ -1055,7 +1055,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2590,
+    "line": 2595,
     "method": "GET",
     "path": "/v1/learning/models/{model_id}/active-state",
     "handler": "active_model_state_boundary",
@@ -1064,7 +1064,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2622,
+    "line": 2627,
     "method": "POST",
     "path": "/v1/learning/activation-receipts/{activation_receipt_id}/verification",
     "handler": "post_activation_verification_boundary",
@@ -1073,7 +1073,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2661,
+    "line": 2666,
     "method": "POST",
     "path": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan",
     "handler": "rollout_plan_boundary",
@@ -1082,7 +1082,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2698,
+    "line": 2703,
     "method": "POST",
     "path": "/v1/learning/monitoring-snapshots",
     "handler": "monitoring_snapshot_boundary",
@@ -1091,7 +1091,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2739,
+    "line": 2744,
     "method": "POST",
     "path": "/v1/learning/retraining-requests",
     "handler": "retraining_request_boundary",
@@ -1100,7 +1100,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2769,
+    "line": 2774,
     "method": "GET",
     "path": "/v1/learning/runtime-work",
     "handler": "runtime_work_feed",
@@ -1109,7 +1109,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2806,
+    "line": 2811,
     "method": "POST",
     "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
     "handler": "register_worker_tenant",
@@ -1118,7 +1118,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2830,
+    "line": 2835,
     "method": "GET",
     "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
     "handler": "worker_tenants",
@@ -1127,7 +1127,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2860,
+    "line": 2865,
     "method": "POST",
     "path": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt",
     "handler": "rollout_receipt_boundary",
@@ -1136,7 +1136,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2901,
+    "line": 2906,
     "method": "POST",
     "path": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt",
     "handler": "retraining_dispatch_receipt_boundary",
@@ -1145,7 +1145,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2949,
+    "line": 2954,
     "method": "POST",
     "path": "/v1/learning/runtime-schedules",
     "handler": "runtime_schedule_boundary",
@@ -1154,7 +1154,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2996,
+    "line": 3001,
     "method": "POST",
     "path": "/v1/learning/reconcile-evidence",
     "handler": "reconcile_evidence_boundary",
@@ -1163,7 +1163,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3026,
+    "line": 3031,
     "method": "POST",
     "path": "/v1/context-snapshots",
     "handler": "compose_context_snapshot",
@@ -1172,7 +1172,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3058,
+    "line": 3063,
     "method": "GET",
     "path": "/v1/context-snapshots/{snapshot_id}",
     "handler": "read_context_snapshot",
@@ -2126,7 +2126,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 148,
+    "line": 153,
     "method": "POST",
     "path": "/v1/terrain/slope",
     "handler": "terrain_slope",
@@ -2135,7 +2135,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 166,
+    "line": 171,
     "method": "GET",
     "path": "/v1/cog/validate",
     "handler": "cog_validate",
@@ -2144,7 +2144,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 181,
+    "line": 186,
     "method": "POST",
     "path": "/v1/salinity/classify",
     "handler": "salinity_classify",
@@ -2153,7 +2153,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 188,
+    "line": 193,
     "method": "POST",
     "path": "/v1/salinity/calibrate",
     "handler": "salinity_calibrate",
@@ -2189,7 +2189,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 95,
+    "line": 98,
     "method": "GET",
     "path": "/v1/gis/admin-boundaries",
     "handler": "gis_admin_boundaries",
@@ -2198,7 +2198,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 144,
+    "line": 147,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-from-stac",
     "handler": "process_from_stac",
@@ -2207,7 +2207,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 269,
+    "line": 272,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/backfill",
     "handler": "field_historical_backfill",
@@ -2216,7 +2216,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 656,
+    "line": 659,
     "method": "GET",
     "path": "/v1/fields/{field_id}/imagery/backfill/{run_id}",
     "handler": "field_backfill_run_status",
@@ -2225,7 +2225,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 674,
+    "line": 677,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/process-date",
     "handler": "field_process_date",
@@ -2234,7 +2234,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 746,
+    "line": 749,
     "method": "POST",
     "path": "/v1/fields/{field_id}/geometry/versions",
     "handler": "create_field_geometry_version",
@@ -2243,7 +2243,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 775,
+    "line": 778,
     "method": "POST",
     "path": "/v1/fields/analytics/geoparquet/export",
     "handler": "export_field_analytics_geoparquet",
@@ -2252,7 +2252,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 827,
+    "line": 830,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-cdse",
     "handler": "process_cdse",
@@ -2261,7 +2261,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 888,
+    "line": 891,
     "method": "GET",
     "path": "/v1/fields/{field_id}/indicator-grid",
     "handler": "field_indicator_grid",
@@ -2270,7 +2270,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 926,
+    "line": 929,
     "method": "GET",
     "path": "/v1/fields/{field_id}/indicator-observation-bundle",
     "handler": "field_indicator_observation_bundle",
@@ -2279,7 +2279,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1014,
+    "line": 1017,
     "method": "GET",
     "path": "/v1/fields/{field_id}/pixel",
     "handler": "field_pixel_value",
@@ -2288,7 +2288,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1074,
+    "line": 1077,
     "method": "POST",
     "path": "/v1/fields/{field_id}/prescription",
     "handler": "field_prescription",
@@ -2297,7 +2297,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1154,
+    "line": 1157,
     "method": "POST",
     "path": "/v1/fields/{field_id}/change",
     "handler": "field_change",
@@ -2306,7 +2306,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1212,
+    "line": 1215,
     "method": "GET",
     "path": "/v1/fields/{field_id}/timeseries",
     "handler": "field_timeseries",
@@ -2315,7 +2315,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1308,
+    "line": 1299,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png",
     "handler": "field_tile",
@@ -2324,7 +2324,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1381,
+    "line": 1372,
     "method": "GET",
     "path": "/v1/fields/{field_id}/available-dates",
     "handler": "field_available_dates",
@@ -2333,7 +2333,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1494,
+    "line": 1485,
     "method": "GET",
     "path": "/v1/fields/{field_id}/terrain",
     "handler": "field_terrain",
@@ -2342,7 +2342,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1562,
+    "line": 1553,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tilejson",
     "handler": "field_tilejson",
@@ -7031,7 +7031,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/notifications.py",
-    "line": 179,
+    "line": 183,
     "method": "POST",
     "path": "/api/v1/notifications/delivery",
     "handler": "upsert_notification_delivery",
@@ -7454,7 +7454,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 238,
+    "line": 234,
     "method": "POST",
     "path": "/api/v1/recommendations",
     "handler": "recommendations",
@@ -7472,7 +7472,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 401,
+    "line": 407,
     "method": "GET",
     "path": "/api/v1/recommendations/engines",
     "handler": "recommendation_engines",
@@ -7481,7 +7481,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 448,
+    "line": 454,
     "method": "POST",
     "path": "/api/v1/recommendations/economic-adaptation",
     "handler": "economic_adaptation_endpoint",
@@ -7490,7 +7490,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 466,
+    "line": 472,
     "method": "GET",
     "path": "/api/v1/recommendations/capacity-profiles",
     "handler": "capacity_profiles_endpoint",
@@ -7499,7 +7499,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 474,
+    "line": 480,
     "method": "POST",
     "path": "/api/v1/recommendations/candidates",
     "handler": "generate_crop_candidates",
@@ -7508,7 +7508,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 584,
+    "line": 590,
     "method": "POST",
     "path": "/api/v1/recommendations/outcomes",
     "handler": "record_recommendation_outcome",
@@ -7517,7 +7517,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 755,
+    "line": 761,
     "method": "GET",
     "path": "/api/v1/recommendations/{rec_id}",
     "handler": "get_recommendation",
@@ -9011,7 +9011,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 35,
+    "line": 36,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/soilgrids-spatial",
     "handler": "ingest_soilgrids",
@@ -9020,7 +9020,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 83,
+    "line": 84,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/sampling-plans",
     "handler": "create_plan",
@@ -9029,7 +9029,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 100,
+    "line": 101,
     "method": "POST",
     "path": "/v1/soil/sampling-plans/{plan_id}/approve",
     "handler": "approve_plan",
@@ -9038,7 +9038,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 114,
+    "line": 115,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/hydraulic-profile/rebuild",
     "handler": "rebuild_hydraulic",
@@ -9047,7 +9047,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 128,
+    "line": 130,
     "method": "POST",
     "path": "/v1/soil/irrigation-water/samples",
     "handler": "water_sample",
@@ -9056,7 +9056,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 141,
+    "line": 143,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/soilgrids-spatial",
     "handler": "current_soilgrids",
@@ -9065,7 +9065,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 154,
+    "line": 156,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/sampling-plans/current",
     "handler": "current_sampling",
@@ -9074,7 +9074,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 167,
+    "line": 169,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/hydraulic-profile",
     "handler": "current_hydraulic",
@@ -9083,7 +9083,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 180,
+    "line": 182,
     "method": "GET",
     "path": "/v1/soil/irrigation-water/sources/{source_id}/profile",
     "handler": "current_water",
