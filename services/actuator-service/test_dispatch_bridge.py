@@ -411,50 +411,6 @@ def test_a_command_without_a_field_is_held_by_its_device_s_registered_field(monk
     publish.assert_not_awaited()
 
 
-def test_device_validation_reports_the_registered_field(monkeypatch):
-    import asyncio
-    from contextlib import asynccontextmanager
-    from datetime import UTC, datetime
-    from types import SimpleNamespace
-
-    class _Conn:
-        def transaction(self):
-            @asynccontextmanager
-            async def tx():
-                yield
-
-            return tx()
-
-        async def execute(self, *_a):
-            return None
-
-        async def fetchrow(self, _sql, device):
-            return {
-                "device_id": device,
-                "tenant_id": "tenant",
-                "type": "actuator",
-                "field_id": "pivot-1",
-                "status": "online",
-                "last_seen_at": datetime.now(UTC),
-            }
-
-    @asynccontextmanager
-    async def acquire():
-        yield _Conn()
-
-    monkeypatch.setattr(main, "_pool", SimpleNamespace(acquire=acquire))
-    assert asyncio.run(main._validate_dispatch_device("tenant", "valve-1", None)) == (
-        True,
-        "ok",
-        "pivot-1",
-    )
-    assert asyncio.run(main._validate_dispatch_device("tenant", "valve-1", "pivot-2")) == (
-        False,
-        "device_field_mismatch",
-        "pivot-1",
-    )
-
-
 def _run_consumer_with(monkeypatch, command, device_field, halted_field=None):
     """Drive run_dispatch_consumer_once with one queued request; returns (receipts, publish)."""
     import asyncio

@@ -323,15 +323,14 @@ async def test_ledger_record_bad_outcome_400(monkeypatch):
 )
 async def test_execute_refuses_client_claimed_approval_before_any_write(monkeypatch, overrides):
     # A request that claims approvals (or evaluates READY) must not queue a valve command:
-    # live commands need the server-held decision → plan → authorization chain.
+    # live commands need the server-held decision → plan → authorization chain. No database
+    # pool exists in this unit run, so a handler that reached tenant_connection would answer
+    # get_pool's 503: the 409 below is the refusal coming before any connection or write.
+    from api import main
     from api.routers import decision_dispatch as route
 
     monkeypatch.setenv("SAHOOL_DECISION_DISPATCH", "true")
-
-    def no_db(_user):
-        raise AssertionError("refused before opening a tenant connection")
-
-    monkeypatch.setattr(route, "tenant_connection", no_db)
+    assert main._DB_POOL is None
     base = dict(
         recommendation_id="r",
         action_type="irrigation",
