@@ -83,7 +83,7 @@
       "ratchet_identity": "GIS-004:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "capability_id": "INT-001",
       "declared_maturity": 3,
       "finding_id": "INT-001:declared_above_evidence",

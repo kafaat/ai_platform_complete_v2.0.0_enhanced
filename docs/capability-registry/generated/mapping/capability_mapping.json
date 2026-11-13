@@ -12,8 +12,8 @@
   },
   "summary": {
     "capabilities_total": 81,
-    "capabilities_mapped": 76,
-    "capabilities_unmapped": 5,
+    "capabilities_mapped": 77,
+    "capabilities_unmapped": 4,
     "capabilities_multidimensional": 42,
     "files_scanned": 7200,
     "files_by_kind": {
@@ -32,8 +32,8 @@
       "raw": 3314
     },
     "test_dependency_files": 1838,
-    "test_dependency_edges": 4666,
-    "test_dependency_bounded_files": 1071,
+    "test_dependency_edges": 4665,
+    "test_dependency_bounded_files": 1072,
     "test_dependency_unresolved_relations": 467
   },
   "capabilities": [
@@ -11274,12 +11274,30 @@
       "domain": "farm_management",
       "title": "Public API and SDK",
       "backend": [],
-      "routes": [],
+      "routes": [
+        {
+          "value": "/items @ tests_v9/test_export_openapi_strict.py:224",
+          "score": 14
+        },
+        {
+          "value": "{route} @ tests_v9/test_export_openapi_strict.py:262",
+          "score": 14
+        }
+      ],
       "database": [],
       "events": [],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "tests_v9/test_export_openapi_strict.py",
+          "score": 14,
+          "signals": [
+            "path:openapi",
+            "content:openapi"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -11328,17 +11346,17 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 0,
-        "routes": 0,
+        "routes": 2,
         "database": 0,
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 5
       },
-      "coverage_dimensions": 0,
-      "mapped": false
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "INT-002",
@@ -16440,14 +16458,6 @@
             "content:yield map",
             "explicit_id"
           ]
-        },
-        {
-          "path": "services/sahool-platform/api/event_catalog.py",
-          "score": 8,
-          "signals": [
-            "content:yield map",
-            "content:Yield map ingestion"
-          ]
         }
       ],
       "routes": [
@@ -16628,7 +16638,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 4,
+        "backend": 3,
         "routes": 4,
         "database": 13,
         "events": 1,
@@ -36796,6 +36806,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/api/event_catalog.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/api/event_upcasting.py",
       "kind": "backend"
     },
@@ -39373,10 +39387,6 @@
     },
     {
       "path": "services/sahool-platform/tests/test_event_catalog.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_event_catalog_completeness.py",
       "kind": "tests"
     },
     {
@@ -58800,31 +58810,6 @@
       "unresolved": []
     },
     {
-      "test": "services/sahool-platform/tests/test_event_catalog_completeness.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "tree_wide_scan"
-      ],
-      "edges": [
-        {
-          "source": "services/sahool-platform/api/event_bus.py",
-          "kind": "import",
-          "line": 23
-        },
-        {
-          "source": "services/sahool-platform/api/event_bus.py",
-          "kind": "source_read",
-          "line": 29
-        },
-        {
-          "source": "services/sahool-platform/api/event_catalog.py",
-          "kind": "import",
-          "line": 24
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "test": "services/sahool-platform/tests/test_event_replay.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -76485,6 +76470,24 @@
           "source": "services/soil-service/projection_jobs.py",
           "kind": "source_read",
           "line": 33
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_export_openapi_strict.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "export_openapi.py",
+          "kind": "loader",
+          "line": 23
+        },
+        {
+          "source": "export_openapi.py",
+          "kind": "source_read",
+          "line": 24
         }
       ],
       "unresolved": []

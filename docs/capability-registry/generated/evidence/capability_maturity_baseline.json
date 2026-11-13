@@ -514,9 +514,10 @@
       "title": "Spatial analytics"
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -529,7 +530,7 @@
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -2,
+      "maturity_delta": -1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
@@ -1863,7 +1864,7 @@
   "schema_version": "1.0",
   "summary": {
     "aligned": 32,
-    "average_assessed_maturity": 1.99,
+    "average_assessed_maturity": 2.0,
     "capability_count": 81,
     "declared_above_evidence": 46,
     "evidence_above_declared": 3,

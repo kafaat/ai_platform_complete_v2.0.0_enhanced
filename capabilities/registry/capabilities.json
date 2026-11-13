@@ -5976,7 +5976,7 @@
       "maturity": 3,
       "evidence_level": 3,
       "status": "runtime_or_workflow_unverified",
-      "confidence": "medium",
+      "confidence": "high",
       "production_certified": false,
       "dependencies": [],
       "services": [
@@ -5987,7 +5987,9 @@
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
-      "tests": [],
+      "tests": [
+        "tests_v9/test_export_openapi_strict.py"
+      ],
       "runtime": {
         "metrics": [],
         "traces": [],
@@ -5995,7 +5997,7 @@
         "audit_events": []
       },
       "evidence": [],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=0, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=1, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
