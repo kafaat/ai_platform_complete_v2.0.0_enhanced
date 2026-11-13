@@ -8332,6 +8332,7 @@
         "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
         "services/sahool-platform/tests/test_break_glass.py",
         "tests_v9/test_auth_admin_stepup_mfa.py",
+        "tests_v9/test_auth_cors_mfa_header.py",
         "tests_v9/test_auth_mfa_activate_disable_lockout.py",
         "tests_v9/test_auth_mfa_enforcement.py",
         "tests_v9/test_mfa_crypto_v29_5.py",

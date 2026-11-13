@@ -98,7 +98,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:792",
           "metric:sahool_auth_logins_total@services/auth/main.py:273",
           "metric:sahool_auth_register_total@services/auth/main.py:274",
           "metric:sahool_auth_resets_total@services/auth/main.py:275"
@@ -150,7 +150,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 59
+        "tests": 60
       }
     },
     {
@@ -4536,7 +4536,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:792",
           "metric:sahool_auth_logins_total@services/auth/main.py:273",
           "metric:sahool_auth_register_total@services/auth/main.py:274",
           "metric:sahool_auth_resets_total@services/auth/main.py:275"
@@ -5558,7 +5558,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:792",
           "metric:sahool_auth_logins_total@services/auth/main.py:273",
           "metric:sahool_auth_register_total@services/auth/main.py:274",
           "metric:sahool_auth_resets_total@services/auth/main.py:275"
@@ -5620,6 +5620,7 @@
       "tests": [
         "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
         "tests_v9/test_auth_admin_stepup_mfa.py",
+        "tests_v9/test_auth_cors_mfa_header.py",
         "tests_v9/test_auth_mfa_activate_disable_lockout.py",
         "tests_v9/test_auth_mfa_enforcement.py",
         "tests_v9/test_fields_put_and_mfa_api_contract_20260626.py",
@@ -5630,7 +5631,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:792",
           "metric:sahool_auth_logins_total@services/auth/main.py:273",
           "metric:sahool_auth_register_total@services/auth/main.py:274",
           "metric:sahool_auth_resets_total@services/auth/main.py:275"
@@ -5661,7 +5662,7 @@
           "path": "services/auth/mfa_crypto.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=9, ui=0, mobile=2. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=10, ui=0, mobile=2. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5718,7 +5719,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:792",
           "metric:sahool_auth_logins_total@services/auth/main.py:273",
           "metric:sahool_auth_register_total@services/auth/main.py:274",
           "metric:sahool_auth_resets_total@services/auth/main.py:275"
@@ -5786,7 +5787,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:792",
           "metric:sahool_auth_logins_total@services/auth/main.py:273",
           "metric:sahool_auth_register_total@services/auth/main.py:274",
           "metric:sahool_auth_resets_total@services/auth/main.py:275"
@@ -5921,7 +5922,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:792",
           "metric:sahool_auth_logins_total@services/auth/main.py:273",
           "metric:sahool_auth_register_total@services/auth/main.py:274",
           "metric:sahool_auth_resets_total@services/auth/main.py:275"

@@ -345,6 +345,7 @@ FM-001,test,tests_v9/test_auth_audit_log_inputs.py,3,applied
 FM-001,test,tests_v9/test_auth_audit_log_live_pg.py,3,applied
 FM-001,test,tests_v9/test_auth_bcrypt_72_byte_boundary.py,3,applied
 FM-001,test,tests_v9/test_auth_client_ip_rate_key.py,3,applied
+FM-001,test,tests_v9/test_auth_cors_mfa_header.py,3,applied
 FM-001,test,tests_v9/test_auth_e2e.py,3,applied
 FM-001,test,tests_v9/test_auth_main_decomposition_guard.py,3,applied
 FM-001,test,tests_v9/test_auth_mfa_activate_disable_lockout.py,3,applied
@@ -2367,6 +2368,7 @@ SEC-004,mobile,mobile/sahool_app/lib/screens/mfa_setup_screen.dart,2,applied
 SEC-004,service,services/auth/main.py,10,applied
 SEC-004,test,mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart,3,applied
 SEC-004,test,tests_v9/test_auth_admin_stepup_mfa.py,3,applied
+SEC-004,test,tests_v9/test_auth_cors_mfa_header.py,3,applied
 SEC-004,test,tests_v9/test_auth_mfa_activate_disable_lockout.py,3,applied
 SEC-004,test,tests_v9/test_auth_mfa_enforcement.py,3,applied
 SEC-004,test,tests_v9/test_fields_put_and_mfa_api_contract_20260626.py,3,applied
