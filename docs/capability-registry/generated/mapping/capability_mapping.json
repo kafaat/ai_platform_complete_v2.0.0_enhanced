@@ -15,24 +15,24 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7204,
+    "files_scanned": 7205,
     "files_by_kind": {
       "backend": 1272,
       "database": 297,
       "governance": 89,
       "mobile": 415,
       "other": 2166,
-      "tests": 2435,
+      "tests": 2436,
       "web": 530
     },
     "unmapped_artifacts": 3425,
     "ambiguous_artifacts": 236,
     "files_by_reading": {
-      "python_functional": 3889,
+      "python_functional": 3890,
       "raw": 3315
     },
-    "test_dependency_files": 1840,
-    "test_dependency_edges": 4676,
+    "test_dependency_files": 1841,
+    "test_dependency_edges": 4677,
     "test_dependency_bounded_files": 1074,
     "test_dependency_unresolved_relations": 468
   },
@@ -2539,6 +2539,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_tenant_provision_response_shape.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_tenant_provisioning.py",
           "score": 14,
           "signals": [
@@ -2813,7 +2821,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 41,
+        "tests": 42,
         "governance": 0,
         "other_evidence": 25
       },
@@ -89273,6 +89281,22 @@
           "source": "scripts/ci/tenant_guc_scope_guard.py",
           "kind": "source_read",
           "line": 25
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_tenant_provision_response_shape.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/auth/routers/tenants.py",
+          "kind": "source_read",
+          "line": 16
         }
       ],
       "unresolved": []
