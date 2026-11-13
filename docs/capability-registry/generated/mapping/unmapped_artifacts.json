@@ -4672,10 +4672,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
     "kind": "tests"
   },

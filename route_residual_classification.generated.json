@@ -791,7 +791,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 2734,
+      "line": 2739,
       "method": "POST",
       "path": "/v1/learning/retraining-requests",
       "function": "retraining_request_boundary",
@@ -800,7 +800,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 2764,
+      "line": 2769,
       "method": "GET",
       "path": "/v1/learning/runtime-work",
       "function": "runtime_work_feed",
@@ -809,7 +809,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 2801,
+      "line": 2806,
       "method": "POST",
       "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
       "function": "register_worker_tenant",
@@ -818,7 +818,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 2825,
+      "line": 2830,
       "method": "GET",
       "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
       "function": "worker_tenants",
@@ -827,7 +827,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 2855,
+      "line": 2860,
       "method": "POST",
       "path": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt",
       "function": "rollout_receipt_boundary",
@@ -836,7 +836,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 2896,
+      "line": 2901,
       "method": "POST",
       "path": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt",
       "function": "retraining_dispatch_receipt_boundary",
@@ -845,7 +845,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 2944,
+      "line": 2949,
       "method": "POST",
       "path": "/v1/learning/runtime-schedules",
       "function": "runtime_schedule_boundary",
@@ -854,7 +854,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 2991,
+      "line": 2996,
       "method": "POST",
       "path": "/v1/learning/reconcile-evidence",
       "function": "reconcile_evidence_boundary",
@@ -863,7 +863,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 3021,
+      "line": 3026,
       "method": "POST",
       "path": "/v1/context-snapshots",
       "function": "compose_context_snapshot",
@@ -872,7 +872,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 3053,
+      "line": 3058,
       "method": "GET",
       "path": "/v1/context-snapshots/{snapshot_id}",
       "function": "read_context_snapshot",

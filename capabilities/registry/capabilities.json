@@ -27,7 +27,7 @@
         "GET /metrics @ services/auth/routers/ops.py:21",
         "GET /readyz @ services/auth/routers/ops.py:32",
         "GET /runtime-identity @ services/auth/main.py:409",
-        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:806",
+        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:810",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:104",
         "GET /v1/auth/me @ services/auth/routers/session.py:240",
@@ -54,7 +54,7 @@
         "POST /v1/auth/tenants @ services/auth/routers/tenants.py:41",
         "POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:56",
         "POST /v1/auth/verify/request @ services/auth/routers/email_verify.py:23",
-        "POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2801"
+        "POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2806"
       ],
       "ui_consumers": [
         "frontend/src/services/api/auth.ts"
@@ -815,10 +815,10 @@
         "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:857",
         "GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:187",
         "GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:92",
-        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:769",
+        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:773",
         "POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:41",
         "POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:123",
-        "POST /v1/procurement @ services/mcp_servers/market_server.py:761"
+        "POST /v1/procurement @ services/mcp_servers/market_server.py:765"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -1019,13 +1019,13 @@
         "POST /v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2622",
         "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2341",
         "POST /v1/learning/monitoring-snapshots @ services/decision-service/main.py:2698",
-        "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2991",
-        "POST /v1/learning/retraining-requests @ services/decision-service/main.py:2734",
-        "POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2896",
+        "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2996",
+        "POST /v1/learning/retraining-requests @ services/decision-service/main.py:2739",
+        "POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2901",
         "POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2517",
         "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2553",
-        "POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2855",
-        "POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2944"
+        "POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2860",
+        "POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2949"
       ],
       "ui_consumers": [
         "frontend/src/components/FieldIndicatorMap.boundary.test.tsx"
@@ -3266,7 +3266,7 @@
         "DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:439",
         "POST /api/v1/irrigation/schedules @ services/sahool-platform/api/routers/irrigation.py:295",
         "POST /v1/fields/{field_id}/post-execution-observations @ services/vegetation-analysis-service/routers/outcomes.py:43",
-        "POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2944"
+        "POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2949"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -4573,7 +4573,7 @@
         "POST /v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1664",
         "POST /v1/evidence/vegetation-snapshots @ services/decision-service/main.py:633",
         "POST /v1/fields/{field_id}/soil/evidence @ services/soil-service/routers/canonical.py:145",
-        "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2991"
+        "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2996"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4911,7 +4911,7 @@
         "POST /v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1401",
         "POST /v1/dispatch/decisions @ services/decision-service/main.py:1033",
         "POST /v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1331",
-        "POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2896",
+        "POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2901",
         "POST /v1/phase9/autonomy/iot/dispatch/preview @ services/sahool-platform/api/phase9_autonomous_farm_os.py:217",
         "POST /v1/phase9/autonomy/iot/dispatch/simulate @ services/sahool-platform/api/phase9_autonomous_farm_os.py:230",
         "POST /v1/reservation-dispatch-intents @ services/decision-service/main.py:1460"

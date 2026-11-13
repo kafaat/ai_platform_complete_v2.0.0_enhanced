@@ -970,7 +970,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2734,
+    "line": 2739,
     "method": "POST",
     "path": "/v1/learning/retraining-requests",
     "function": "retraining_request_boundary"
@@ -978,7 +978,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2764,
+    "line": 2769,
     "method": "GET",
     "path": "/v1/learning/runtime-work",
     "function": "runtime_work_feed"
@@ -986,7 +986,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2801,
+    "line": 2806,
     "method": "POST",
     "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
     "function": "register_worker_tenant"
@@ -994,7 +994,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2825,
+    "line": 2830,
     "method": "GET",
     "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
     "function": "worker_tenants"
@@ -1002,7 +1002,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2855,
+    "line": 2860,
     "method": "POST",
     "path": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt",
     "function": "rollout_receipt_boundary"
@@ -1010,7 +1010,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2896,
+    "line": 2901,
     "method": "POST",
     "path": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt",
     "function": "retraining_dispatch_receipt_boundary"
@@ -1018,7 +1018,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2944,
+    "line": 2949,
     "method": "POST",
     "path": "/v1/learning/runtime-schedules",
     "function": "runtime_schedule_boundary"
@@ -1026,7 +1026,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2991,
+    "line": 2996,
     "method": "POST",
     "path": "/v1/learning/reconcile-evidence",
     "function": "reconcile_evidence_boundary"
@@ -1034,7 +1034,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3021,
+    "line": 3026,
     "method": "POST",
     "path": "/v1/context-snapshots",
     "function": "compose_context_snapshot"
@@ -1042,7 +1042,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3053,
+    "line": 3058,
     "method": "GET",
     "path": "/v1/context-snapshots/{snapshot_id}",
     "function": "read_context_snapshot"
@@ -1490,7 +1490,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 659,
+    "line": 663,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "function": "mcp_tools_list"
@@ -1498,7 +1498,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 659,
+    "line": 663,
     "method": "GET",
     "path": "/v1/mcp/tools/list",
     "function": "mcp_tools_list"
@@ -1506,7 +1506,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 691,
+    "line": 695,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "function": "mcp_tools_call"
@@ -1514,7 +1514,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 744,
+    "line": 748,
     "method": "GET",
     "path": "/v1/products",
     "function": "api_search_products"
@@ -1522,7 +1522,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 756,
+    "line": 760,
     "method": "GET",
     "path": "/v1/suppliers/{supplier_id}",
     "function": "api_get_supplier"
@@ -1530,7 +1530,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 761,
+    "line": 765,
     "method": "POST",
     "path": "/v1/procurement",
     "function": "api_create_procurement"
@@ -1538,7 +1538,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 769,
+    "line": 773,
     "method": "GET",
     "path": "/v1/procurement/{order_id}",
     "function": "api_get_procurement"
@@ -1546,7 +1546,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 776,
+    "line": 780,
     "method": "POST",
     "path": "/v1/sales",
     "function": "api_create_sales"
@@ -1554,7 +1554,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 782,
+    "line": 786,
     "method": "GET",
     "path": "/v1/sales",
     "function": "api_search_sales"
@@ -1562,7 +1562,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 799,
+    "line": 803,
     "method": "GET",
     "path": "/v1/price-history/{category}",
     "function": "api_price_history"
@@ -1570,7 +1570,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 806,
+    "line": 810,
     "method": "GET",
     "path": "/v1/analytics/{tenant_id}",
     "function": "api_analytics"
@@ -1578,7 +1578,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 813,
+    "line": 817,
     "method": "GET",
     "path": "/healthz",
     "function": "health"
@@ -1586,7 +1586,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 813,
+    "line": 817,
     "method": "GET",
     "path": "/health",
     "function": "health"
@@ -1594,7 +1594,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 826,
+    "line": 830,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"

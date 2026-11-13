@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 813,
+          "line": 817,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 813,
+          "line": 817,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -723,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 826,
+          "line": 830,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -961,7 +961,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 659,
+          "line": 663,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -1000,7 +1000,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 744,
+          "line": 748,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1116,7 +1116,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 691,
+          "line": 695,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1119,
-  "route_inventory_sha256": "2e56838e4a9502845f868869964eba39512b4931d4dd6d2e253153355f3a9648",
+  "route_inventory_sha256": "56358044e0f1204979dc191de01608f6a94f76f9bd459d4f2deacfbebb1b0562",
   "runtime_verified": false,
   "schema_version": 1
 }
