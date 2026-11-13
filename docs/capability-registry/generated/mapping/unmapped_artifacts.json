@@ -10780,6 +10780,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_bff_execution_plan_operation_canonical.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_bidi_control_char_guard.py",
     "kind": "tests"
   },
