@@ -3938,7 +3938,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 244,
+    "line": 245,
     "method": "POST",
     "path": "/api/v1/crop-twin/compose",
     "function": "compose_crop_twin"
@@ -3946,7 +3946,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 302,
+    "line": 303,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision-candidate",
     "function": "crop_decision_candidate_endpoint"
@@ -3954,7 +3954,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 409,
+    "line": 410,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision",
     "function": "crop_decision_endpoint"
@@ -3962,7 +3962,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 533,
+    "line": 534,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision/profit-aware",
     "function": "profit_aware_decision_endpoint"
@@ -4858,7 +4858,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_twin.py",
-    "line": 40,
+    "line": 41,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/twin",
     "function": "get_field_twin"
@@ -7434,7 +7434,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/water_twin.py",
-    "line": 198,
+    "line": 199,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/water-twin",
     "function": "field_water_twin"

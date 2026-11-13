@@ -491,10 +491,10 @@ sahool-platform,services/sahool-platform/api/routers/crop_cards.py,96,GET,/api/v
 sahool-platform,services/sahool-platform/api/routers/crop_cards.py,113,GET,/api/v1/crop-cards/variety/{variety_id}/disease-watch,variety_disease_watch_endpoint
 sahool-platform,services/sahool-platform/api/routers/crop_operations.py,24,GET,/api/v1/crops/{crop_id}/operations-calendar,crop_operations_calendar_endpoint
 sahool-platform,services/sahool-platform/api/routers/crop_suitability.py,31,POST,/api/v1/crop-suitability,crop_suitability
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,244,POST,/api/v1/crop-twin/compose,compose_crop_twin
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,302,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,409,POST,/api/v1/crop-twin/decision,crop_decision_endpoint
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,533,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,245,POST,/api/v1/crop-twin/compose,compose_crop_twin
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,303,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,410,POST,/api/v1/crop-twin/decision,crop_decision_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,534,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint
 sahool-platform,services/sahool-platform/api/routers/crops.py,26,GET,/api/v1/crops/drought-resilience,crop_drought_resilience
 sahool-platform,services/sahool-platform/api/routers/crops.py,47,GET,/api/v1/crops/compare-drought-resilience,compare_drought_resilience
 sahool-platform,services/sahool-platform/api/routers/cultural_calendar.py,24,GET,/api/v1/cultural-calendar,cultural_calendar
@@ -606,7 +606,7 @@ sahool-platform,services/sahool-platform/api/routers/field_priority_queue.py,117
 sahool-platform,services/sahool-platform/api/routers/field_priority_queue.py,179,GET,/api/v1/farms/{farm_id}/priority-queue,farm_priority_queue
 sahool-platform,services/sahool-platform/api/routers/field_readiness.py,56,GET,/api/v1/fields/{field_id}/readiness,field_readiness
 sahool-platform,services/sahool-platform/api/routers/field_single.py,23,GET,/api/v1/field/operational-state,field_operational_state_endpoint
-sahool-platform,services/sahool-platform/api/routers/field_twin.py,40,GET,/api/v1/fields/{field_id}/twin,get_field_twin
+sahool-platform,services/sahool-platform/api/routers/field_twin.py,41,GET,/api/v1/fields/{field_id}/twin,get_field_twin
 sahool-platform,services/sahool-platform/api/routers/field_workspace_imagery.py,51,GET,/api/v1/fields/{field_id}/available-dates,field_imagery_available_dates_facade
 sahool-platform,services/sahool-platform/api/routers/field_workspace_imagery.py,87,GET,/api/v1/fields/{field_id}/imagery/timeline,field_imagery_timeline_facade
 sahool-platform,services/sahool-platform/api/routers/field_workspace_timeline.py,32,GET,/api/v1/fields/{field_id}/unified-timeline,field_unified_timeline_facade
@@ -928,7 +928,7 @@ sahool-platform,services/sahool-platform/api/routers/water_sensitivity.py,44,GET
 sahool-platform,services/sahool-platform/api/routers/water_sensitivity.py,53,GET,/api/v1/water-sensitivity/wheat-calendar,water_sensitivity_wheat_calendar
 sahool-platform,services/sahool-platform/api/routers/water_sensitivity.py,59,POST,/api/v1/water-sensitivity/stress-risk,water_sensitivity_stress
 sahool-platform,services/sahool-platform/api/routers/water_sensitivity.py,68,POST,/api/v1/water-sensitivity/integrated-advice,water_sensitivity_integrated
-sahool-platform,services/sahool-platform/api/routers/water_twin.py,198,POST,/api/v1/fields/{field_id}/water-twin,field_water_twin
+sahool-platform,services/sahool-platform/api/routers/water_twin.py,199,POST,/api/v1/fields/{field_id}/water-twin,field_water_twin
 sahool-platform,services/sahool-platform/api/routers/weather.py,1955,GET,/api/v1/weather/health,weather_health
 sahool-platform,services/sahool-platform/api/routers/weather.py,1973,GET,/api/v1/weather/readyz,weather_readyz
 sahool-platform,services/sahool-platform/api/routers/weather.py,1987,GET,/api/v1/weather/self-test,weather_self_test
