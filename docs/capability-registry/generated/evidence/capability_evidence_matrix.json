@@ -5142,12 +5142,14 @@
       "runtime_verified": false,
       "title": "Scouting",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_cubit_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_screen_test.dart",
         "mobile/sahool_app/test/features/scouting/pest_detect_test.dart",
         "mobile/sahool_app/test/features/scouting/scouting_api_test.dart",
         "mobile/sahool_app/test/features/scouting/scouting_routes_test.dart",
         "mobile/sahool_app/test/features/scouting/scouting_screen_test.dart",
+        "tests_v9/test_api_writes_persist_live_pg.py",
         "tests_v9/test_cropwise_evidence_quality.py",
         "tests_v9/test_roadmap_phase1.py",
         "tests_v9/test_scouting_pins_persistence.py"
@@ -9408,7 +9410,7 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
       "evidence_records": [
@@ -9463,7 +9465,7 @@
           "type": "runtime_instrumentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "unit_tests"
         },
@@ -9473,7 +9475,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 3,
+      "evidence_score": 4,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -9488,7 +9490,9 @@
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Soil water properties",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "tests_v9/test_soil_jsonb_stores_live_pg.py"
+      ]
     },
     {
       "assessed_maturity": 2,
