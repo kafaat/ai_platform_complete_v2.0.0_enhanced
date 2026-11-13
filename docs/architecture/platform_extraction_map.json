@@ -5183,7 +5183,7 @@
       "function": "list_scouting_pins",
       "method": "GET",
       "path": "/api/v1/scouting/pins",
-      "line": 89,
+      "line": 82,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/scouting.py::GET /api/v1/scouting/pins::list_scouting_pins"
@@ -5193,80 +5193,10 @@
       "function": "scouting_taxonomy",
       "method": "GET",
       "path": "/api/v1/scouting/taxonomy",
-      "line": 125,
+      "line": 118,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/scouting.py::GET /api/v1/scouting/taxonomy::scouting_taxonomy"
-    },
-    {
-      "file": "api/routers/scouting.py",
-      "function": "list_inspection_assignees",
-      "method": "GET",
-      "path": "/api/v1/fields/{field_id}/inspection-assignees",
-      "line": 160,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/scouting.py::GET /api/v1/fields/{field_id}/inspection-assignees::list_inspection_assignees"
-    },
-    {
-      "file": "api/routers/scouting.py",
-      "function": "get_pin_inspection_task",
-      "method": "GET",
-      "path": "/api/v1/fields/{field_id}/pins/{pin_id}/inspection-task",
-      "line": 185,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/scouting.py::GET /api/v1/fields/{field_id}/pins/{pin_id}/inspection-task::get_pin_inspection_task"
-    },
-    {
-      "file": "api/routers/scouting.py",
-      "function": "inspect_handoff",
-      "method": "GET",
-      "path": "/api/v1/fields/{field_id}/tasks/{task_id}/handoff",
-      "line": 432,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/scouting.py::GET /api/v1/fields/{field_id}/tasks/{task_id}/handoff::inspect_handoff"
-    },
-    {
-      "file": "api/routers/scouting.py",
-      "function": "record_inspection_finding",
-      "method": "POST",
-      "path": "/api/v1/fields/{field_id}/tasks/{task_id}/handoff/finding",
-      "line": 533,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/scouting.py::POST /api/v1/fields/{field_id}/tasks/{task_id}/handoff/finding::record_inspection_finding"
-    },
-    {
-      "file": "api/routers/scouting.py",
-      "function": "assign_pin_inspection",
-      "method": "POST",
-      "path": "/api/v1/fields/{field_id}/pins/{pin_id}/inspection-task",
-      "line": 197,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/scouting.py::POST /api/v1/fields/{field_id}/pins/{pin_id}/inspection-task::assign_pin_inspection"
-    },
-    {
-      "file": "api/routers/scouting.py",
-      "function": "accept_inspection",
-      "method": "POST",
-      "path": "/api/v1/fields/{field_id}/tasks/{task_id}/handoff/accept",
-      "line": 509,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/scouting.py::POST /api/v1/fields/{field_id}/tasks/{task_id}/handoff/accept::accept_inspection"
-    },
-    {
-      "file": "api/routers/scouting.py",
-      "function": "reassign_inspection",
-      "method": "POST",
-      "path": "/api/v1/fields/{field_id}/tasks/{task_id}/handoff/reassign",
-      "line": 519,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/scouting.py::POST /api/v1/fields/{field_id}/tasks/{task_id}/handoff/reassign::reassign_inspection"
     },
     {
       "file": "api/routers/season_workspace.py",
@@ -5493,7 +5423,7 @@
       "function": "field_lab_context",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/lab-context",
-      "line": 752,
+      "line": 736,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/fields/{field_id}/lab-context::field_lab_context"
@@ -5503,7 +5433,7 @@
       "function": "list_lab_samples",
       "method": "GET",
       "path": "/api/v1/lab/samples",
-      "line": 316,
+      "line": 314,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/lab/samples::list_lab_samples"
@@ -5543,7 +5473,7 @@
       "function": "transition_lab_sample",
       "method": "POST",
       "path": "/api/v1/lab/samples/{sample_id}/transition",
-      "line": 621,
+      "line": 605,
       "target_owner": "sahool-platform",
       "owner_type": "platform-lab-intake",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/samples/{sample_id}/transition::transition_lab_sample",
@@ -5554,7 +5484,7 @@
       "function": "create_lab_sample",
       "method": "POST",
       "path": "/api/v1/lab/samples",
-      "line": 378,
+      "line": 374,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/samples::create_lab_sample"
@@ -5564,7 +5494,7 @@
       "function": "submit_soil_lab_result",
       "method": "POST",
       "path": "/api/v1/lab/soil-results",
-      "line": 440,
+      "line": 424,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/soil-results::submit_soil_lab_result"
@@ -5574,7 +5504,7 @@
       "function": "submit_water_lab_result",
       "method": "POST",
       "path": "/api/v1/lab/water-results",
-      "line": 570,
+      "line": 554,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/water-results::submit_water_lab_result"
@@ -5614,7 +5544,7 @@
       "function": "list_tasks",
       "method": "GET",
       "path": "/api/v1/tasks",
-      "line": 51,
+      "line": 45,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/tasks.py::GET /api/v1/tasks::list_tasks"
@@ -5624,50 +5554,10 @@
       "function": "update_task",
       "method": "PATCH",
       "path": "/api/v1/tasks/{task_id}",
-      "line": 111,
+      "line": 105,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/tasks.py::PATCH /api/v1/tasks/{task_id}::update_task"
-    },
-    {
-      "file": "api/routers/tasks.py",
-      "function": "task_imagery",
-      "method": "GET",
-      "path": "/api/v1/fields/{field_id}/task-imagery",
-      "line": 312,
-      "target_owner": "raster-service",
-      "owner_type": "bff-facade-to-raster",
-      "route_key": "api/routers/tasks.py::GET /api/v1/fields/{field_id}/task-imagery::task_imagery"
-    },
-    {
-      "file": "api/routers/tasks.py",
-      "function": "task_terrain",
-      "method": "GET",
-      "path": "/api/v1/fields/{field_id}/task-terrain",
-      "line": 443,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/tasks.py::GET /api/v1/fields/{field_id}/task-terrain::task_terrain"
-    },
-    {
-      "file": "api/routers/tasks.py",
-      "function": "link_task_imagery",
-      "method": "POST",
-      "path": "/api/v1/fields/{field_id}/task-imagery",
-      "line": 331,
-      "target_owner": "raster-service",
-      "owner_type": "bff-facade-to-raster",
-      "route_key": "api/routers/tasks.py::POST /api/v1/fields/{field_id}/task-imagery::link_task_imagery"
-    },
-    {
-      "file": "api/routers/tasks.py",
-      "function": "link_task_terrain",
-      "method": "POST",
-      "path": "/api/v1/fields/{field_id}/task-terrain",
-      "line": 451,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/tasks.py::POST /api/v1/fields/{field_id}/task-terrain::link_task_terrain"
     },
     {
       "file": "api/routers/temporal.py",
@@ -6394,7 +6284,7 @@
       "function": "create_entry",
       "method": "POST",
       "path": "/api/v1/farm-book/entries",
-      "line": 427,
+      "line": 405,
       "route_key": "api/routers/simple_farm_book.py::POST /api/v1/farm-book/entries::create_entry",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6404,7 +6294,7 @@
       "function": "list_entries",
       "method": "GET",
       "path": "/api/v1/farm-book/entries",
-      "line": 629,
+      "line": 599,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/entries::list_entries",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6414,7 +6304,7 @@
       "function": "monthly_report",
       "method": "GET",
       "path": "/api/v1/farm-book/monthly",
-      "line": 664,
+      "line": 634,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/monthly::monthly_report",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6424,7 +6314,7 @@
       "function": "book_balances",
       "method": "GET",
       "path": "/api/v1/farm-book/balances",
-      "line": 704,
+      "line": 674,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/balances::book_balances",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
@@ -6434,30 +6324,10 @@
       "function": "export_book",
       "method": "GET",
       "path": "/api/v1/farm-book/export",
-      "line": 730,
+      "line": 700,
       "route_key": "api/routers/simple_farm_book.py::GET /api/v1/farm-book/export::export_book",
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator"
-    },
-    {
-      "file": "api/routers/tasks.py",
-      "function": "task_cost_trace",
-      "method": "GET",
-      "path": "/api/v1/tasks/{task_id}/cost-trace",
-      "line": 528,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/tasks.py::GET /api/v1/tasks/{task_id}/cost-trace::task_cost_trace"
-    },
-    {
-      "file": "api/routers/tasks.py",
-      "function": "link_existing_expense",
-      "method": "POST",
-      "path": "/api/v1/farm-book/entries/{entry_id}/task",
-      "line": 473,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/tasks.py::POST /api/v1/farm-book/entries/{entry_id}/task::link_existing_expense"
     },
     {
       "file": "api/routers/varieties.py",

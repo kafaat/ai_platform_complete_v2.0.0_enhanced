@@ -280,21 +280,7 @@ def _inherit_task(req: SimpleEntryIn, original) -> None:
         req.field_id = original["field_id"]
 
 
-async def _with_historical_link(conn, tenant_id, req, original):
-    """Overlay a historical expense link (task_expense_links) on an original without a task."""
-    if original["task_id"] is None:
-        historical = await conn.fetchrow(
-            "SELECT task_id, field_id FROM task_expense_links WHERE tenant_id=$1::uuid AND entry_id=$2",
-            tenant_id,
-            req.reverses_entry_id or req.settles_entry_id,
-        )
-        if historical:
-            return dict(original) | dict(historical)
-    return original
-
-
 async def _inherit_ledger_scope(conn, tenant_id, req, original):
-    original = await _with_historical_link(conn, tenant_id, req, original)
     field_id = original["field_id"]
     if (
         req.farm_id != original["farm_id"]
@@ -384,7 +370,6 @@ async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         or (original["party_id"] or None) != (req.party_id or None)
     ):
         raise HTTPException(status_code=422, detail="reversal_must_mirror_original")
-    original = await _with_historical_link(conn, tenant_id, req, original)
     for column in ("farm_id", "field_id", "season_id"):
         given = getattr(req, column) or None
         if given is not None and given != (original[column] or None):
@@ -410,18 +395,11 @@ async def _assert_reversal(conn, tenant_id: str, req: SimpleEntryIn) -> None:
         raise HTTPException(status_code=409, detail="entry_already_reversed")
 
 
-# Entries written with v245 already carry task_id. Historical expense links are
-# append-only and apply to the original plus its existing and future children.
-_LINK_JOIN = """LEFT JOIN task_expense_links link ON link.tenant_id=e.tenant_id
-    AND link.entry_id=COALESCE(e.reverses_entry_id,e.settles_entry_id,e.entry_id)"""
-_EFFECTIVE_TASK = "COALESCE(e.task_id, link.task_id)"
-_EFFECTIVE_FIELD = "COALESCE(e.field_id, link.field_id)"
-
-
-_REPLAY_ENTRY = f"""SELECT e.entry_id, e.client_operation_id, e.request_digest, e.sync_status,
-                           {_EFFECTIVE_TASK} AS task_id
-                    FROM farm_ledger_entries e {_LINK_JOIN}
-                    WHERE e.tenant_id=$1::uuid AND e.client_operation_id=$2"""
+# Entries written with v245 carry task_id; a settlement or correction inherits its original's.
+_REPLAY_ENTRY = """SELECT e.entry_id, e.client_operation_id, e.request_digest, e.sync_status,
+                          e.task_id
+                   FROM farm_ledger_entries e
+                   WHERE e.tenant_id=$1::uuid AND e.client_operation_id=$2"""
 
 
 @router.post("/api/v1/farm-book/entries", status_code=201)
@@ -573,15 +551,8 @@ def _entry_filters(
             # A reversing row is allocated where its original is (``orig``, joined in
             # _fetch_entries), so a legacy reversal stored elsewhere still cancels it.
             args.append(value)
-            if column == "field_id":
-                # task_expense_links (v245) carries a historical expense's field.
-                own, from_original = _EFFECTIVE_FIELD, "COALESCE(orig.field_id, link.field_id)"
-            elif column == "task_id":
-                own, from_original = _EFFECTIVE_TASK, "COALESCE(orig.task_id, link.task_id)"
-            else:
-                own, from_original = f"e.{column}", f"orig.{column}"
             clauses.append(
-                f"(CASE WHEN orig.entry_id IS NULL THEN {own} ELSE {from_original} END)"
+                f"(CASE WHEN orig.entry_id IS NULL THEN e.{column} ELSE orig.{column} END)"
                 f"=${len(args)}"
             )
     if date_from:
@@ -600,10 +571,9 @@ async def _fetch_entries(conn, where: str, args: list, *, limit: int | None = No
         query_args.append(limit)
         limit_sql = f" LIMIT ${len(query_args)}"
     rows = await conn.fetch(
-        f"""SELECT e.*, {_EFFECTIVE_TASK} AS task_id, {_EFFECTIVE_FIELD} AS field_id,
-                   p.name AS party_name, settled.entry_type AS settled_entry_type,
+        f"""SELECT e.*, p.name AS party_name, settled.entry_type AS settled_entry_type,
                    orig.category AS original_category
-            FROM farm_ledger_entries e {_LINK_JOIN}
+            FROM farm_ledger_entries e
             LEFT JOIN farm_ledger_parties p
               ON p.tenant_id=e.tenant_id AND p.party_id=e.party_id
             LEFT JOIN farm_ledger_entries settled
