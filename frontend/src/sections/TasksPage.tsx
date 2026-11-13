@@ -4,9 +4,7 @@
 // إنجاز فعليّ عبر useCompleteTask (PATCH)، حالات موحّدة (StateViews)، وأزرار
 // محكومة بالدور (RBAC: المُشاهِد لا يُعدّل). لا تلفيق.
 // ═══════════════════════════════════════════════════════════════
-import { InspectionHandoff } from './InspectionHandoff';
-import { TaskCostTrace, TaskExpenseLink } from './TaskCostTrace';
-import { TaskSatelliteEvidence } from './TaskSatelliteEvidence';
+import { TaskExpenseLink } from './TaskExpenseLink';
 import { useState } from 'react';
 import TaskIrrigationObservationPanel from './TaskIrrigationObservationPanel';
 import {
@@ -28,8 +26,6 @@ import { TASK_TYPE_LABELS_AR as L } from '../lib/taskTypeLabels';
 
 interface Task {
   source_scouting_pin_id?: string | null;
-  terrain_sources?: import('../services/api/fieldTasks').TerrainSource[];
-  satellite_sources?: import('../services/api/fieldTasks').SatelliteSource[];
   task_id:               string;
   field_id:              string;
   field_name?:           string;
@@ -168,8 +164,6 @@ export default function TasksPage() {
               معرّف المهمة <code dir="ltr" className="select-all">{task.task_id}</code>
             </div>
             {task.field_id && <button type="button" onClick={() => setObservationTask(task)} className="my-2 rounded border px-3 py-1 text-sm">مشاهدات الري والفحص</button>}
-            {task.source_scouting_pin_id && <InspectionHandoff fieldId={task.field_id} taskId={task.task_id} />}
-            <TaskSatelliteEvidence field={task.field_id} sources={task.satellite_sources} terrain={task.terrain_sources} />
             {task.notes && <p className="text-xs leading-relaxed mb-2" style={{ color: T.brownSoft }}>{task.notes}</p>}
             <div className="flex flex-wrap items-center gap-3 text-[11px]" style={{ color: T.faint }}>
               {task.recommended_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{task.recommended_date}</span>}
@@ -177,9 +171,8 @@ export default function TasksPage() {
               {task.estimated_cost_usd != null && <span className="flex items-center gap-1" style={{ color: T.gold }}>التقدير: ${task.estimated_cost_usd}</span>}
               {canViewCosts && task.actual_cost_usd != null && <span>التكلفة الفعلية: ${task.actual_cost_usd}</span>}
             </div>
-            {canViewCosts && tenantId && <TaskCostTrace key={user?.email} taskId={task.task_id} fieldId={task.field_id}
-              tenant={tenantId} subject={user?.email ?? ''} amount={task.actual_cost_usd} canRecord={canRecordCost} />}
-            {!canViewCosts && canRecordCost && <p className="my-2 text-sm"><TaskExpenseLink taskId={task.task_id} fieldId={task.field_id} /></p>}
+            {canRecordCost && <p className="my-2 text-sm"><TaskExpenseLink taskId={task.task_id} fieldId={task.field_id}
+              amount={canViewCosts ? task.actual_cost_usd : undefined} /></p>}
             {task.photo_url && (
               <div className="mt-2">
                 <img src={task.photo_url} alt="معاينة" loading="lazy" decoding="async" className="h-20 rounded-lg object-cover" />

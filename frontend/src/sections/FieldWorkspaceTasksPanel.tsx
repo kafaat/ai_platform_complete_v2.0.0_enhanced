@@ -1,6 +1,5 @@
 import { canAccess } from '../lib/permissions';
 import { useAuthStore } from '../hooks/useAuth';
-import { TaskSatelliteEvidence } from './TaskSatelliteEvidence';
 import { useQuery } from '@tanstack/react-query';
 import { ClipboardList } from 'lucide-react';
 import { getFieldTasks, type FieldTaskSummary } from '../services/api/fieldTasks';
@@ -74,8 +73,6 @@ export default function FieldWorkspaceTasksPanel({ fieldId }: { fieldId: string 
                   </div>
                   {task.estimated_cost_usd != null && <p>التكلفة التقديرية: {task.estimated_cost_usd} USD</p>}
                   {canViewCosts && task.actual_cost_usd != null && <p>التكلفة الفعلية: {task.actual_cost_usd} USD</p>}
-                  <TaskSatelliteEvidence field={fieldId} sources={task.satellite_sources} terrain={task.terrain_sources} />
-                  {(task.satellite_sources?.length || task.terrain_sources?.length) && task.notes ? <p className="mt-1 text-sm">{task.notes}</p> : null}
                   {task.description_ar && <p className="mt-1 text-xs text-slate-400">{String(task.description_ar)}</p>}
                 </li>
               ))}

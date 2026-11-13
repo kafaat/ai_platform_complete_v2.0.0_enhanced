@@ -1,4 +1,3 @@
-import { SatelliteTaskPicker } from './TaskSatelliteEvidence';
 import { useQuery } from '@tanstack/react-query';
 import { CalendarDays, Image as ImageIcon, Satellite } from 'lucide-react';
 import { getFieldImageryAvailableDates, getFieldImageryTimeline, type FieldImageryDateOption, type FieldImageryTimelineItem } from '../services/api/fieldImagery';
@@ -152,7 +151,6 @@ export default function FieldWorkspaceImageryPanel({
         )}
       </div>
 
-      <SatelliteTaskPicker field={fieldId} />
       <div className="grid gap-4 xl:grid-cols-2">
         <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
           <div className="mb-4 flex items-center gap-2">

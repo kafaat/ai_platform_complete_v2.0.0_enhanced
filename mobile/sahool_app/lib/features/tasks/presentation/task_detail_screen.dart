@@ -20,7 +20,6 @@ import 'package:sahool_app/features/tasks/data/task_photo_store.dart';
 
 import 'complete_task_sheet.dart';
 import 'irrigation_observations_screen.dart';
-import 'inspection_review_panel.dart';
 import 'task_grouping.dart';
 import 'task_labels.dart';
 import 'tasks_cubit.dart';
@@ -308,8 +307,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             ],
           ),
         ),
-        if (task.sourcePinId != null)
-          InspectionReviewPanel(key: ValueKey(task.id), task: task),
         if (task.fieldId.isNotEmpty) ...[
           const SizedBox(height: SahoolSpacing.md),
           SecondaryButton(

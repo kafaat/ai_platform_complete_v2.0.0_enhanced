@@ -2274,11 +2274,10 @@ export function useCompleteTask() {
         photo_url: photoUrl,
         ...(actualCostUsd !== undefined && { actual_cost_usd: actualCostUsd }),
       }).then(r => r.data),
-    // أبطِل استعلام المهامّ المُشترَك (F5-03) كي تعكس كلّ الشاشات (MapHub/OperationCommand/
-    // FieldTasksCabin/اللوحة) الإكمال فوراً بدل بقائها معلّقةً حتى فترة الاستطلاع.
-    onSuccess: (_data, { taskId }) => Promise.all([
+    onSuccess: () => Promise.all([
       qc.invalidateQueries({ queryKey: ['tasks', tid] }),
-      qc.invalidateQueries({ queryKey: ['task-cost-trace', tid, taskId] }),
+      // أبطِل استعلام المهامّ المُشترَك (F5-03) كي تعكس كلّ الشاشات (MapHub/OperationCommand/
+      // FieldTasksCabin/اللوحة) الإكمال فوراً بدل بقائها معلّقةً حتى فترة الاستطلاع.
       qc.invalidateQueries({ queryKey: QK.costAnalytics(tid) }),
       qc.invalidateQueries({ queryKey: ['mc-costs-by-field'] }),
       qc.invalidateQueries({ queryKey: ['field-workspace'], predicate: query => query.queryKey[2] === 'tasks' }),

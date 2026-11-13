@@ -64,7 +64,7 @@ it('hides cached actual costs and trace from workers who cannot view analytics',
 it('lets a worker with expense-write record the task receipt without seeing cost totals', async () => {
   visit('worker');
   expect(await screen.findByText('t1')).toBeVisible();
-  const link = screen.getByRole('link', { name: 'تسجيل مصروف أو ربط قيد سابق' });
+  const link = screen.getByRole('link', { name: 'تسجيل مصروف لهذه المهمة' });
   expect(link).toHaveAttribute('href', '/ops/farm-book?task_id=t1&field_id=wheat');
   expect(screen.queryByText(/18\.25/)).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'تتبع التكلفة والقيود' })).not.toBeInTheDocument();
@@ -73,12 +73,11 @@ it('lets a worker with expense-write record the task receipt without seeing cost
 it.each(['viewer', 'agronomist'])('offers no expense entry to a %s, who lacks activity:execute', async role => {
   visit(role);
   expect(await screen.findByText('t1')).toBeVisible();
-  expect(screen.queryByRole('link', { name: 'تسجيل مصروف أو ربط قيد سابق' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'تسجيل مصروف لهذه المهمة' })).not.toBeInTheDocument();
 });
 
-it('keeps the suggested amount on the manager link beside the cost trace', async () => {
+it('keeps the suggested amount on the manager link', async () => {
   visit('manager');
-  const link = await screen.findByRole('link', { name: 'تسجيل مصروف أو ربط قيد سابق' });
+  const link = await screen.findByRole('link', { name: 'تسجيل مصروف لهذه المهمة' });
   expect(link).toHaveAttribute('href', '/ops/farm-book?task_id=t1&field_id=wheat&cost_usd=18.25');
-  expect(screen.getByRole('button', { name: 'تتبع التكلفة والقيود' })).toBeVisible();
 });
