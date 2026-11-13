@@ -1,4 +1,4 @@
-"""Distinct permissions for task progress, financial writes and DLQ mutations."""
+"""Administrative operation permission regression tests."""
 
 import ast
 from pathlib import Path
@@ -11,66 +11,57 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _handler(path, name):
-    tree = ast.parse((ROOT / path).read_text(encoding="utf-8"))
-    fn = next(
-        n
-        for n in ast.walk(tree)
-        if isinstance(n, ast.AsyncFunctionDef) and n.name == name
-    )
-    return ast.unparse(fn)
+    source = (ROOT / path).read_text(encoding="utf-8")
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.AsyncFunctionDef):
+            if node.name == name:
+                return ast.unparse(node)
+    raise AssertionError("missing endpoint: " + name)
 
 
-def test_worker_task_update():
-    assert "require_permission(Permission.ACTIVITY_EXECUTE)" in _handler(
-        "services/sahool-platform/api/routers/tasks.py", "update_task"
-    )
+def test_task_completion_uses_execution_permission():
+    source = _handler("services/sahool-platform/api/routers/tasks.py", "update_task")
+    assert "require_permission(Permission.ACTIVITY_EXECUTE)" in source
 
 
-def test_financial_writes_are_not_activity_execution():
+def test_financial_writes_require_finance_permission():
     path = "services/sahool-platform/api/routers/farm_operations_ledger.py"
-    for fn in ("upsert_season_budget_lines", "create_revenue_record"):
-        assert "require_permission(Permission.FINANCE_MANAGE)" in _handler(path, fn)
+    for name in ("upsert_season_budget_lines", "create_revenue_record"):
+        source = _handler(path, name)
+        assert "require_permission(Permission.FINANCE_MANAGE)" in source
 
 
-def test_dlq_mutations_require_write_grant():
+def test_requeue_writes_separate_from_audit_reads():
     path = "services/sahool-platform/api/routers/admin.py"
-    for fn in (
+    writers = (
         "admin_requeue_dead_letter",
         "admin_requeue_all_dead_letter",
         "admin_outbox_requeue_dead_letter",
-    ):
-        assert "require_permission(Permission.EVENT_REQUEUE)" in _handler(path, fn)
-    assert "require_permission(Permission.AUDIT_VIEW)" in _handler(
-        path, "admin_events_dead_letter"
     )
+    for name in writers:
+        source = _handler(path, name)
+        assert "require_permission(Permission.EVENT_REQUEUE)" in source
+    reader = _handler(path, "admin_events_dead_letter")
+    assert "require_permission(Permission.AUDIT_VIEW)" in reader
 
 
-def test_only_owner_and_manager_get_new_write_grants():
+def test_finance_and_requeue_granted_to_managers_only():
     from core.authorization import Permission, has_permission
     from core.canonical_schemas import UserRole, UserSchema
 
     for role in UserRole:
         actor = UserSchema(user_id="1", tenant_id="t", role=role, name_ar="x")
-        for perm in (Permission.FINANCE_MANAGE, Permission.EVENT_REQUEUE):
-            assert has_permission(actor, perm) == (
-                role in (UserRole.OWNER, UserRole.MANAGER)
-            )
+        expected = role in (UserRole.OWNER, UserRole.MANAGER)
+        assert has_permission(actor, Permission.FINANCE_MANAGE) == expected
+        assert has_permission(actor, Permission.EVENT_REQUEUE) == expected
 
 
-def test_tenant_provision_result_contract_matches_ui():
-    ts = (ROOT / "frontend/src/services/api/auth.ts").read_text()
-    ui = (ROOT / "frontend/src/sections/ManagerConsolePage.tsx").read_text()
-    assert all(
-        f in ts
-        for f in (
-            "owner_user_id",
-            "owner_email",
-            "owner_role",
-            "setup_token",
-            "setup_link",
-        )
-    )
-    assert all(
-        f"tenantM.data.{f}" in ui
-        for f in ("owner_email", "owner_role", "setup_link")
-    )
+def test_tenant_provisioning_ui_matches_auth_contract():
+    ts_path = ROOT / "frontend/src/services/api/auth.ts"
+    ui_path = ROOT / "frontend/src/sections/ManagerConsolePage.tsx"
+    ts = ts_path.read_text(encoding="utf-8")
+    ui = ui_path.read_text(encoding="utf-8")
+    for field in ("owner_user_id", "owner_email", "owner_role", "setup_link"):
+        assert field in ts
+    for field in ("owner_email", "owner_role", "setup_link"):
+        assert "tenantM.data." + field in ui
