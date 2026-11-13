@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 695,
+      "evidence_count": 699,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -220,6 +220,7 @@
         "services/raster-service/imagery_source_gate.py",
         "services/raster-service/layer_lookup.py",
         "services/raster-service/main.py",
+        "services/raster-service/raster_api_models.py",
         "services/raster-service/raster_asset_persistence.py",
         "services/raster-service/raster_cdse_processing.py",
         "services/raster-service/raster_cdse_tile_runtime.py",
@@ -227,8 +228,10 @@
         "services/raster-service/raster_field_runtime.py",
         "services/raster-service/raster_indicator_product.py",
         "services/raster-service/raster_processing_runtime.py",
+        "services/raster-service/routers/analysis.py",
         "services/raster-service/routers/fields.py",
         "services/raster-service/routers/timeseries_routes.py",
+        "services/raster-service/sar_tillage_evidence.py",
         "services/raster-service/stac_search.py",
         "services/raster-service/test_cdse_cause_evidence.py",
         "services/raster-service/test_cdse_durable_diagnostics.py",
@@ -239,6 +242,7 @@
         "services/raster-service/test_polygon_mask_metadata.py",
         "services/raster-service/test_raster_publication_gate.py",
         "services/raster-service/test_raster_validated_product.py",
+        "services/raster-service/test_sar_tillage_change_evidence.py",
         "services/raster-service/test_stac_c1_processing.py",
         "services/raster-service/tile_render.py",
         "services/raster-service/trial_zonal_outcomes.py",
@@ -2848,6 +2852,7 @@
         "services/raster-service/cdse_native_product.py",
         "services/raster-service/follow_up_store.py",
         "services/raster-service/layer_lookup.py",
+        "services/raster-service/raster_api_models.py",
         "services/raster-service/raster_cdse_tile_runtime.py",
         "services/raster-service/stac_search.py",
         "services/remote-sensing-workspace-bff/main.py",
@@ -2889,10 +2894,9 @@
         "services/sahool-platform/api/outcome_measurement.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py",
-        "services/sahool-platform/api/routers/crop_twin.py",
-        "services/sahool-platform/api/routers/decision_confidence.py"
+        "services/sahool-platform/api/routers/crop_twin.py"
       ],
-      "source_evidence_count": 695,
+      "source_evidence_count": 699,
       "target_evidence_count": 563,
       "static_supported": true,
       "runtime_verified": false
@@ -3347,5 +3351,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "fa096e970c23217e8c2563163229abe7f431197f537eefa773cc164072cf8df9"
+  "content_sha256": "4340a97491b6b8c09b0c9a65ee57b5246391d158b9f5c5d5a5c7b5e731679847"
 }

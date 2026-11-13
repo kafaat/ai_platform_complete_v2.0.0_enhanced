@@ -1770,21 +1770,21 @@
         ]
       },
       {
+        "capability_id": "FM-003",
+        "score": 13,
+        "signals": [
+          "content:field boundary",
+          "content:field geometry",
+          "content:field workspace"
+        ]
+      },
+      {
         "capability_id": "WX-002",
         "score": 12,
         "signals": [
           "content:forecast",
           "content:Weather forecast",
           "dedup:Weather forecast=weather forecast"
-        ]
-      },
-      {
-        "capability_id": "FM-003",
-        "score": 12,
-        "signals": [
-          "content:field boundary",
-          "content:field geometry",
-          "content:field workspace"
         ]
       },
       {
