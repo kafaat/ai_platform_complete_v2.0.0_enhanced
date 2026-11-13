@@ -111,10 +111,7 @@ def test_empty_weather_has_no_fabricated_metrics():
 
 
 def _days(start: date, count: int):
-    return [
-        SimpleNamespace(date=(start + timedelta(days=i)).isoformat())
-        for i in range(count)
-    ]
+    return [SimpleNamespace(date=(start + timedelta(days=i)).isoformat()) for i in range(count)]
 
 
 def test_valid_archive_day_sequence_is_accepted():
@@ -136,6 +133,9 @@ def test_archive_missing_or_duplicate_days_is_rejected():
 def test_inverted_season_dates_are_refused_instead_of_extended():
     with pytest.raises(SimWindowError, match="يسبق تاريخ البذار"):
         plan_simulation_window(
-            "wheat", date(2026, 4, 1), date(2026, 3, 25),
-            date(2026, 11, 13), floor_days=160,
+            "wheat",
+            date(2026, 4, 1),
+            date(2026, 3, 25),
+            date(2026, 11, 13),
+            floor_days=160,
         )

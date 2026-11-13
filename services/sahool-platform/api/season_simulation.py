@@ -508,9 +508,10 @@ def simulate_season(ctx: SimContext) -> SimResult:
         # كليهما ⇒ None (يوم بلا ET0 — يُتجاهَل في احتياج الماء، لا يُلفَّق).
         # An explicit canonical None is authoritative absence. Do NOT silently
         # substitute an older ERA5 ET0 value behind the owner-produced series.
-        raw_et0 = (
-            et0_override[day_idx] if day_idx < len(et0_override) else None
-        ) if et0_override is not None else day.et0_mm
+        if et0_override is not None:
+            raw_et0 = et0_override[day_idx] if day_idx < len(et0_override) else None
+        else:
+            raw_et0 = day.et0_mm
         et0 = _finite_nonnegative(raw_et0)
         if et0 is None:
             missing_et0_days += 1
@@ -539,9 +540,7 @@ def simulate_season(ctx: SimContext) -> SimResult:
     if ctx.irrigation_mm_total is not None and irrigation_total is None:
         limitations.append("IRRIGATION_TOTAL_INVALID")
     water_supply: float | None = None
-    if missing_rain_days == 0 and (
-        irrigation_total is not None or rain_total > 0
-    ):
+    if missing_rain_days == 0 and (irrigation_total is not None or rain_total > 0):
         water_supply = rain_total + (irrigation_total or 0.0)
 
     # Do not invent a stress factor when weather coverage is incomplete.
@@ -567,13 +566,14 @@ def simulate_season(ctx: SimContext) -> SimResult:
         limitations.append("ET0_SERIES_INCOMPLETE")
     if missing_rain_days:
         limitations.append("PRECIPITATION_SERIES_INCOMPLETE")
-    if recognized and limitations:
-        yield_status = (
-            "unavailable_missing_gdd" if missing_gdd_days else
-            "unavailable_missing_et0" if missing_et0_days else
-            "unavailable_missing_precipitation" if missing_rain_days else
-            "unavailable_invalid_irrigation"
-        )
+    if recognized and missing_gdd_days:
+        yield_status = "unavailable_missing_gdd"
+    elif recognized and missing_et0_days:
+        yield_status = "unavailable_missing_et0"
+    elif recognized and missing_rain_days:
+        yield_status = "unavailable_missing_precipitation"
+    elif recognized and "IRRIGATION_TOTAL_INVALID" in limitations:
+        yield_status = "unavailable_invalid_irrigation"
     yield_available = recognized and yield_status == "estimated" and water_stress is not None
     yield_kg_ha = biomass_kg_ha * p.harvest_index * water_stress if yield_available else None
     yield_low = yield_kg_ha * (1.0 - _UNCERTAINTY_FRAC) if yield_kg_ha is not None else None
@@ -640,9 +640,10 @@ def simulate_season(ctx: SimContext) -> SimResult:
     gdd_text = f"{gdd_cum:.0f}" if missing_gdd_days == 0 else "غير مكتمل"
     water_text = f"{water_need:.0f}" if water_need is not None else "غير متاح"
     biomass_text = f"{biomass_kg_ha:.0f}" if missing_gdd_days == 0 else "غير متاح"
+    lai_text = f"{lai_peak:.2f}" if missing_gdd_days == 0 else "غير متاح"
     rationale = (
         f"محاكاة {days} يوم: GDD={gdd_text}/{p.gdd_to_maturity:.0f} °C·day، "
-        f"أقصى LAI={'غير متاح' if missing_gdd_days else f'{lai_peak:.2f}'}، "
+        f"أقصى LAI={lai_text}، "
         f"كتلة حيويّة≈{biomass_text} kg/ha، "
         f"{yield_text}، احتياج الماء≈{water_text} mm. "
         f"الثقة {confidence:.0%} — تقدير نموذجي (RUE/FAO-56)، عايِر ميدانيّاً."

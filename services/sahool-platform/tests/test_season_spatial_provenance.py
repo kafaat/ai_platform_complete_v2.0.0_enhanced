@@ -349,8 +349,9 @@ async def test_missing_archive_day_rejected_before_any_simulation_write(monkeypa
 
     async def incomplete(lat, lon, start, end, timeout_s=30.0):
         n = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
+        start_day = date.fromisoformat(start)
         return [
-            _Day(date=(date.fromisoformat(start) + timedelta(days=i)).isoformat())
+            _Day(date=(start_day + timedelta(days=i)).isoformat())
             for i in range(n - 1)
         ]
 
