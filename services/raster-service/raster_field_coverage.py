@@ -93,3 +93,110 @@ async def for_published_asset(req, stats, meta):
         # Missing coverage metadata must not invalidate an otherwise usable asset.
         logger.warning("field coverage unavailable for %s: %s", req.field_id, type(exc).__name__)
         return None
+
+
+def align_scenes_to_field_grid(scenes, geometry=None, revision=None):
+    """Resample each scene COG onto one fixed field grid for the common valid mask.
+
+    The grid is the earliest readable scene's CRS and pixel size. With the saved field
+    geometry it spans the field window (``geometry_window``, boundless) and the field mask
+    is the pixel centres inside the boundary, as in ``measure_field_coverage``. Without it
+    the grid is that scene's extent and the field mask is the union of the scenes' valid
+    pixels (declared as ``scene_valid_union``). Each scene is read masked (nodata, internal
+    mask and non-finite values are invalid) and resampled with nearest neighbour, so an
+    already aligned scene is copied unchanged. Blocking: call via ``run_raster_io``.
+    """
+    import numpy as np
+    import rasterio
+    from raster_settings import RASTER_MAX_READ_BAND_PIXELS
+    from rasterio.features import geometry_mask, geometry_window
+    from rasterio.warp import Resampling, reproject, transform_geom
+    from rasterio.windows import Window
+
+    if isinstance(geometry, dict) and geometry.get("type") == "Feature":
+        geometry = geometry.get("geometry")
+    if not isinstance(geometry, dict) or geometry.get("type") not in {"Polygon", "MultiPolygon"}:
+        geometry = None
+    order = sorted(range(len(scenes)), key=lambda i: str(scenes[i].get("datetime") or ""))
+    out = [
+        {"datetime": sc.get("datetime"), "scene_id": sc.get("scene_id"), "values": None}
+        for sc in scenes
+    ]
+    grid = None
+    for i in order:
+        sc = scenes[i]
+        scene_revision = sc.get("geometry_revision")
+        if not sc.get("path"):
+            out[i]["excluded_reason"] = "source_asset_unknown"
+            continue
+        if (
+            geometry is not None
+            and type(revision) is int
+            and type(scene_revision) is int
+            and scene_revision != revision
+        ):
+            out[i]["excluded_reason"] = "geometry_revision_mismatch"
+            continue
+        try:
+            with rasterio.open(sc["path"]) as src:
+                if src.crs is None:
+                    out[i]["excluded_reason"] = "scene_crs_unknown"
+                    continue
+                if src.width * src.height > RASTER_MAX_READ_BAND_PIXELS:
+                    out[i]["excluded_reason"] = "scene_too_large"
+                    continue
+                if grid is None:
+                    if geometry is not None:
+                        geom = transform_geom("EPSG:4326", src.crs, geometry)
+                        window = geometry_window(src, [geom], boundless=True)
+                    else:
+                        geom, window = None, Window(0, 0, src.width, src.height)
+                    shape = (int(window.height), int(window.width))
+                    if shape[0] * shape[1] * len(scenes) > RASTER_MAX_READ_BAND_PIXELS // 4:
+                        return {"error": "field_grid_too_large"}
+                    transform = src.window_transform(window)
+                    field_mask = (
+                        geometry_mask([geom], shape, transform, invert=True, all_touched=False)
+                        if geom is not None
+                        else None
+                    )
+                    grid = {
+                        "crs": src.crs.to_string(),
+                        "transform": list(transform)[:6],
+                        "rows": shape[0],
+                        "cols": shape[1],
+                        "crs_obj": src.crs,
+                        "transform_obj": transform,
+                    }
+                band = src.read(1, masked=True)
+                data = band.astype("float32").filled(np.nan)
+                if src.nodata is not None:
+                    data[data == src.nodata] = np.nan
+                data[~np.isfinite(data)] = np.nan
+                dst = np.full((grid["rows"], grid["cols"]), np.nan, dtype="float32")
+                reproject(
+                    source=data,
+                    destination=dst,
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=grid["transform_obj"],
+                    dst_crs=grid["crs_obj"],
+                    src_nodata=np.nan,
+                    dst_nodata=np.nan,
+                    resampling=Resampling.nearest,
+                )
+                out[i]["values"] = dst
+        except Exception as exc:  # noqa: BLE001 — one unreadable scene is excluded, not fatal
+            logger.warning("common mask: scene unreadable (%s)", type(exc).__name__)
+            out[i]["excluded_reason"] = "scene_unreadable"
+    if grid is None:
+        return {"error": "no_readable_scene"}
+    basis = "saved_field_geometry"
+    if field_mask is None:
+        basis = "scene_valid_union"
+        field_mask = np.zeros((grid["rows"], grid["cols"]), dtype=bool)
+        for sc in out:
+            if sc["values"] is not None:
+                field_mask |= np.isfinite(sc["values"])
+    grid = {k: v for k, v in grid.items() if not k.endswith("_obj")}
+    return {"scenes": out, "field_mask": field_mask, "field_mask_basis": basis, "grid": grid}
