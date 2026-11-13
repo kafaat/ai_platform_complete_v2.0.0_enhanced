@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 131,
+      "line": 132,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 73,
@@ -586,7 +586,7 @@
     },
     {
       "kind": "router",
-      "line": 48,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.agro_intelligence",
       "node_id": "services.sahool-platform.api.routers.agro_intelligence:router",
       "route_count": 7,
@@ -1891,7 +1891,7 @@
     },
     {
       "kind": "router",
-      "line": 25,
+      "line": 26,
       "module": "services.sahool-platform.api.routers.simple_farm_book",
       "node_id": "services.sahool-platform.api.routers.simple_farm_book:router",
       "route_count": 7,
@@ -2008,7 +2008,7 @@
     },
     {
       "kind": "router",
-      "line": 55,
+      "line": 56,
       "module": "services.sahool-platform.api.routers.water_twin",
       "node_id": "services.sahool-platform.api.routers.water_twin:router",
       "route_count": 1,
@@ -2811,7 +2811,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "887f4c58155088ea00031f57665f40476f4b1d587ff1c6363884d33888157729",
+  "inventory_sha256": "480a7f42d0ec1175602723ec59d83fb8d3a35a2ae524c5d6d659be83274b658e",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -3217,7 +3217,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 48,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.agro_intelligence",
       "node_id": "services.sahool-platform.api.routers.agro_intelligence:router",
       "route_count": 7,
@@ -4667,7 +4667,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 25,
+      "line": 26,
       "module": "services.sahool-platform.api.routers.simple_farm_book",
       "node_id": "services.sahool-platform.api.routers.simple_farm_book:router",
       "route_count": 7,
@@ -4797,7 +4797,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 55,
+      "line": 56,
       "module": "services.sahool-platform.api.routers.water_twin",
       "node_id": "services.sahool-platform.api.routers.water_twin:router",
       "route_count": 1,
