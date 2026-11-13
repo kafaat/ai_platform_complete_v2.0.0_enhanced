@@ -32,7 +32,7 @@
       "raw": 3305
     },
     "test_dependency_files": 1816,
-    "test_dependency_edges": 4600,
+    "test_dependency_edges": 4601,
     "test_dependency_bounded_files": 1060,
     "test_dependency_unresolved_relations": 456
   },
@@ -28323,7 +28323,7 @@
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:875",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
           "score": 9
         },
         {
@@ -30231,7 +30231,7 @@
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:875",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
           "score": 12
         },
         {
@@ -69056,17 +69056,22 @@
         {
           "source": "services/ai_agronomist/__init__.py",
           "kind": "import",
-          "line": 66
+          "line": 79
         },
         {
           "source": "services/ai_agronomist/advisory_contract.py",
           "kind": "import",
-          "line": 25
+          "line": 29
         },
         {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
-          "line": 66
+          "line": 79
+        },
+        {
+          "source": "services/ai_agronomist/tool_executor.py",
+          "kind": "import",
+          "line": 127
         }
       ],
       "unresolved": []
