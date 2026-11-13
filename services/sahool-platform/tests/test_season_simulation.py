@@ -345,3 +345,13 @@ class TestIncompleteWeatherTruth:
         assert invalid.fapar_source == "modeled"
         assert invalid.yield_kg_ha == baseline.yield_kg_ha
         assert any("fAPAR" in w for w in invalid.warnings_ar)
+
+
+    def test_rainfed_zero_rain_does_not_assume_water_is_sufficient(self):
+        weather = _warm_days(90)
+        out = _sim("wheat", weather, irrigation_type="rainfed")
+        assert out.water_supply_mm == 0.0
+        assert out.water_stress_factor < 1.0
+        assert out.yield_status == "estimated_water_unverified"
+        assert out.confidence <= 0.45
+        assert "RAINFED_INITIAL_SOIL_WATER_UNMODELED" in out.limitations
