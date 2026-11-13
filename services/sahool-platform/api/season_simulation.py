@@ -159,7 +159,7 @@ class DayWeather:
     t_max_c: float | None
     solar_mj_m2: float | None = None  # إشعاع كلّي MJ/m²/يوم
     et0_mm: float | None = None  # ET₀ مرجعي FAO-56 (mm/يوم)
-    rain_mm: float = 0.0  # مطر اليوم (mm)
+    rain_mm: float | None = 0.0  # المطر المرصود (mm)، None = بيانات مفقودة لا صفر
 
 
 @dataclass
@@ -192,18 +192,18 @@ class SimResult:
     crop: str
     crop_recognized: bool
     days_simulated: int
-    gdd_total: float
+    gdd_total: float | None
     gdd_to_maturity: float
-    maturity_reached: bool
-    lai_max: float
-    biomass_kg_ha: float
+    maturity_reached: bool | None
+    lai_max: float | None
+    biomass_kg_ha: float | None
     # None حين يكون المحصول غير مُعرّف: لا HI/RUE خاصّ به ⇒ لا غلّة تُختلَق من معاملات عامّة.
     yield_kg_ha: float | None
     yield_low_kg_ha: float | None  # حدّ أدنى للنطاق (≈ −20٪)
     yield_high_kg_ha: float | None  # حدّ أعلى للنطاق (≈ +20٪)
-    water_need_mm: float  # ETc الموسمي
+    water_need_mm: float | None  # None حين ينقص ET0؛ ليس 0 mm
     water_supply_mm: float | None  # مطر + ريّ إن عُرف
-    water_stress_factor: float  # 0..1 (1 = بلا إجهاد)
+    water_stress_factor: float | None  # None إذا تعذّر تقييم الإجهاد
     confidence: float  # 0..1
     rationale_ar: str
     # مصدر fAPAR المُستعمَل في حساب الإشعاع المُمتصّ:
@@ -416,28 +416,28 @@ def simulate_season(ctx: SimContext) -> SimResult:
 
     weather = ctx.weather
     if not weather:
-        warnings.append("لا توجد سلسلة طقس — تعذّرت المحاكاة الزمنيّة. النتيجة صفريّة/غير ذات دلالة.")
+        warnings.append("لا توجد سلسلة طقس — لا يمكن حساب غلة أو احتياج ماء أو نضج.")
         return SimResult(
             crop=crop_key or (ctx.crop or ""),
             crop_recognized=recognized,
             days_simulated=0,
-            gdd_total=0.0,
+            gdd_total=None,
             gdd_to_maturity=p.gdd_to_maturity,
-            maturity_reached=False,
-            lai_max=0.0,
-            biomass_kg_ha=0.0,
-            yield_kg_ha=0.0 if recognized else None,
-            yield_low_kg_ha=0.0 if recognized else None,
-            yield_high_kg_ha=0.0 if recognized else None,
-            water_need_mm=0.0,
+            maturity_reached=None,
+            lai_max=None,
+            biomass_kg_ha=None,
+            yield_kg_ha=None,
+            yield_low_kg_ha=None,
+            yield_high_kg_ha=None,
+            water_need_mm=None,
             water_supply_mm=None,
-            water_stress_factor=1.0,
+            water_stress_factor=None,
             confidence=0.0,
             rationale_ar="لا بيانات طقس كافية للمحاكاة — لا تقدير.",
             assumptions_ar=assumptions,
             warnings_ar=warnings,
-            yield_status=yield_status,
-            limitations=limitations,
+            yield_status="unavailable_no_weather" if recognized else yield_status,
+            limitations=[*limitations, "WEATHER_SERIES_MISSING"],
         )
 
     # fAPAR مرصود (إن مُرِّر) → سلسلة يوميّة. None ⇒ نُبقي الحدّ المُنمذَج (1−e^…).
