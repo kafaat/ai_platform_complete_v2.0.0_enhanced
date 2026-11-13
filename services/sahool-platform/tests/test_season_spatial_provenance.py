@@ -93,6 +93,7 @@ def test_input_digest_distinguishes_source_identity_with_identical_numbers(chang
 
 @dataclass
 class _Day:
+    date: str = ""
     temp_min_c: float = 15.0
     temp_max_c: float = 30.0
     et0_mm: float = 5.0
@@ -149,7 +150,7 @@ def _install(monkeypatch, conn, points):
 
     async def _historical(lat, lon, start, end, timeout_s=30.0):
         n = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
-        return [_Day() for _ in range(n)]
+        return [_Day(date=(date.fromisoformat(start) + timedelta(days=i)).isoformat()) for i in range(n)]
 
     async def _et0(*, daily_t_min, **_kw):
         return {"daily_et0_mm": [5.0] * len(daily_t_min), "formula_version": "t"}
