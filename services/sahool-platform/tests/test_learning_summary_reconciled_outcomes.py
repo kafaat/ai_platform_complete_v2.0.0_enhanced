@@ -275,7 +275,10 @@ def test_recommendation_outcomes_carry_farm_id_into_independence_counts():
     # Before cutover the season path cannot bind outcome_record rows to a season without
     # the decision table (S5-EXEC-01 freeze): it only counts this tenant's field outcomes
     # as unbound, and season-bound decision outcomes come from decision-service.
-    assert "d.decision_id=o.decision_id" not in seasons_src
+    assert "d.decision_id=o.decision_id" not in seasons_src, (
+        "the platform must not join outcome_record to decision_record to bind outcomes to a "
+        "season: S5-EXEC-01 freezes platform reads of the decision table before cutover"
+    )
     assert "unbound_outcomes, recommendation_outcomes = int(unbound), list(recs)" in seasons_src
     assert 'summary["unbound_outcome_records"] = unbound_outcomes' in seasons_src
 
