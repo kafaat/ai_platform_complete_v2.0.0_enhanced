@@ -216,16 +216,19 @@ def build_simulation_outcome(
     }
 
     actual: float | None = None
-    if harvest is not None and harvest.get("yield_kg_ha") is not None:
+    if harvest is not None:
+        value = harvest.get("yield_kg_ha")
         try:
-            actual = float(harvest["yield_kg_ha"])
-        except (TypeError, ValueError):
-            actual = None
+            candidate = float(value) if value is not None else None
+        except (TypeError, ValueError, OverflowError):
+            candidate = None
+        if candidate is not None and math.isfinite(candidate) and candidate >= 0:
+            actual = candidate
 
     if actual is not None and predicted is not None:
         predicted_f = float(predicted)
         delta = actual - predicted_f
-        relative_error = (delta / actual) if actual not in (0, 0.0) else None
+        relative_error = (delta / actual) if actual != 0 else None
         within_band = low is not None and high is not None and float(low) <= actual <= float(high)
         outcome["expected_vs_actual"] = {
             "status": "compared",
@@ -234,6 +237,14 @@ def build_simulation_outcome(
             "delta_kg_ha": round(delta, 6),
             "relative_error": round(relative_error, 6) if relative_error is not None else None,
             "actual_within_uncertainty_band": within_band,
+        }
+    elif actual is not None:
+        # A verified harvest may exist even when simulation is unavailable:
+        # missing forecast is not missing observed harvest.
+        outcome["expected_vs_actual"] = {
+            "status": "prediction_unavailable",
+            "predicted_yield_kg_ha": None,
+            "actual_yield_kg_ha": actual,
         }
     else:
         outcome["expected_vs_actual"] = {
