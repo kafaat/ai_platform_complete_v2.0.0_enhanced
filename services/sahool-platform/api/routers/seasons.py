@@ -619,10 +619,14 @@ async def field_season_state_endpoint(
     في ``evidence_missing`` — لا رقم مُختلَق. 404 إن غاب الموسم لهذا الحقل/المستأجِر؛ القراءات
     التكميليّة best-effort (فشلها ⇒ None لا 500). 503 عند تعذّر القاعدة الأساسيّ.
     """
-    import json as _json
-
     from api.decision_sor_mode import get_platform_decision_sor_mode
-    from api.field_season_projection import assemble_field_season_state
+    from api.field_season_projection import (
+        assemble_field_season_state,
+        blank_counts_when_unavailable,
+        declare_outcome_sources,
+        first_season_crop,
+        reconciled_payload_is_bound,
+    )
 
     tenant = str(user.tenant_id)
     local = get_platform_decision_sor_mode().platform_writes_required
@@ -735,39 +739,13 @@ async def field_season_state_endpoint(
                 tenant_id=tenant,
                 params={"field_id": field_id, "season_id": season_id, "season_inputs": "true"},
             )
-            if (
-                payload.get("authoritative") is True
-                and payload.get("tenant_id") == tenant
-                and payload.get("field_id") == field_id
-                and payload.get("season_id") == season_id
-                and isinstance(payload.get("outcome_records"), list)
-                and isinstance(payload.get("recommendation_outcomes"), list)
-                and all(
-                    isinstance(r, dict)
-                    and r.get("tenant_id") == tenant
-                    and r.get("field_id") in (None, field_id)
-                    for r in payload["outcome_records"]
-                )
-                and all(
-                    isinstance(r, dict)
-                    and r.get("tenant_id") == tenant
-                    and r.get("field_id") == field_id
-                    and r.get("season_id") == season_id
-                    for r in payload["recommendation_outcomes"]
-                )
-            ):
+            if reconciled_payload_is_bound(payload, tenant, field_id, season_id):
                 outcome_records = payload["outcome_records"]
                 recommendation_outcomes = payload["recommendation_outcomes"]
         except (HTTPException, ValueError, TypeError):
             pass
     scene = await _season_state_scene(field_id, tenant, start, as_of) if dated else {}
-    crops = srow["crops"]
-    if isinstance(crops, str):
-        try:
-            crops = _json.loads(crops)
-        except (ValueError, TypeError):
-            crops = []
-    first_crop = str(crops[0]) if isinstance(crops, list) and crops else None
+    first_crop = first_season_crop(srow["crops"])
 
     state = assemble_field_season_state(
         field_id=field_id,
@@ -796,30 +774,8 @@ async def field_season_state_endpoint(
         "current_open_due_in_season" if open_tasks is not None else None
     )
     summary = state["outcome_reconciliation"]
-    # available: counts were computed from at least one season-bound source.
-    # complete: both sources were bound to this season. Locally, decision outcomes are
-    # unbound (no season without decision-service), so the platform is never complete.
-    summary["available"] = outcome_records is not None or recommendation_outcomes is not None
-    summary["complete"] = outcome_records is not None and recommendation_outcomes is not None
-    summary["missing_sources"] = [
-        name
-        for name, rows in (
-            ("outcome_record", outcome_records),
-            ("recommendation_outcomes", recommendation_outcomes),
-        )
-        if rows is None
-    ]
+    declare_outcome_sources(summary, outcome_records, recommendation_outcomes)
     summary["unbound_outcome_records"] = unbound_outcomes
     summary["source"] = "platform" if local else "decision-service"
-    if not summary["available"]:
-        for key in (
-            "total",
-            "decided",
-            "succeeded",
-            "failed",
-            "pending",
-            "sample_count",
-            "linked_group_count",
-        ):
-            summary[key] = None
+    blank_counts_when_unavailable(summary)
     return state
