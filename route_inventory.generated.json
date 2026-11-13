@@ -434,7 +434,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/tenants.py",
-    "line": 41,
+    "line": 62,
     "method": "POST",
     "path": "/v1/auth/tenants",
     "function": "provision_tenant"

@@ -51,7 +51,7 @@
         "POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:43",
         "POST /v1/auth/refresh @ services/auth/routers/session.py:139",
         "POST /v1/auth/register @ services/auth/routers/registration.py:20",
-        "POST /v1/auth/tenants @ services/auth/routers/tenants.py:41",
+        "POST /v1/auth/tenants @ services/auth/routers/tenants.py:62",
         "POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:56",
         "POST /v1/auth/verify/request @ services/auth/routers/email_verify.py:23",
         "POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2806"

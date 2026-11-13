@@ -293,7 +293,7 @@ FM-001,api,POST /v1/auth/password-reset/confirm @ services/auth/routers/password
 FM-001,api,POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:43,3,applied
 FM-001,api,POST /v1/auth/refresh @ services/auth/routers/session.py:139,3,applied
 FM-001,api,POST /v1/auth/register @ services/auth/routers/registration.py:20,3,applied
-FM-001,api,POST /v1/auth/tenants @ services/auth/routers/tenants.py:41,5,applied
+FM-001,api,POST /v1/auth/tenants @ services/auth/routers/tenants.py:62,5,applied
 FM-001,api,POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:56,3,applied
 FM-001,api,POST /v1/auth/verify/request @ services/auth/routers/email_verify.py:23,3,applied
 FM-001,api,POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2806,2,applied

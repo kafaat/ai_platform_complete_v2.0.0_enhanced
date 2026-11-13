@@ -2053,7 +2053,7 @@
           "score": 14
         },
         {
-          "value": "/v1/auth/tenants @ services/auth/routers/tenants.py:40",
+          "value": "/v1/auth/tenants @ services/auth/routers/tenants.py:61",
           "score": 14
         }
       ],
