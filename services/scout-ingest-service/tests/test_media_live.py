@@ -61,6 +61,19 @@ _PIN_CTX = "pin-a-context"
 _PIN_LINK_RACE = "pin-a-link-race"
 
 
+# Privileged cleanup of this file's link events, seasons and tasks (the trigger refuses DELETE, so
+# the owner disables it for the purge only, as the v262 comment describes).
+_PURGE_LINKS = """
+    ALTER TABLE scout_photo_season_link_events
+      DISABLE TRIGGER scout_photo_season_link_event_immutable_guard;
+    DELETE FROM scout_photo_season_link_events WHERE pin_id LIKE 'pin-%';
+    ALTER TABLE scout_photo_season_link_events
+      ENABLE TRIGGER scout_photo_season_link_event_immutable_guard;
+    DELETE FROM season_records WHERE notes = 'scout-photo-live';
+    DELETE FROM field_tasks WHERE source_scouting_pin_id LIKE 'pin-%';
+"""
+
+
 def _skip_or_fail(msg: str) -> None:
     if _REQUIRE_DB:
         pytest.fail(f"{msg} but CI_INTEGRATION_REQUIRED=1")
@@ -130,14 +143,8 @@ async def live(monkeypatch):
     await admin.execute(_grant_block())
     # Clean slate between runs: the trigger refuses DELETE, so the owner disables it for the
     # cleanup only (a privileged purge, as the migration comment describes), then re-enables.
+    await admin.execute(_PURGE_LINKS)
     await admin.execute("""
-        ALTER TABLE scout_photo_season_link_events
-          DISABLE TRIGGER scout_photo_season_link_event_immutable_guard;
-        DELETE FROM scout_photo_season_link_events WHERE pin_id LIKE 'pin-%';
-        ALTER TABLE scout_photo_season_link_events
-          ENABLE TRIGGER scout_photo_season_link_event_immutable_guard;
-        DELETE FROM season_records WHERE notes = 'scout-photo-live';
-        DELETE FROM field_tasks WHERE source_scouting_pin_id LIKE 'pin-%';
         ALTER TABLE scout_photo_evidence DISABLE TRIGGER scout_photo_evidence_immutable_guard;
         DELETE FROM scout_photo_evidence WHERE pin_id LIKE 'pin-%';
         ALTER TABLE scout_photo_evidence ENABLE TRIGGER scout_photo_evidence_immutable_guard;
@@ -185,7 +192,14 @@ async def live(monkeypatch):
 
     app = FastAPI()
     app.include_router(media_api.router)
-    return app, s3, ingest_url
+    yield app, s3, ingest_url
+    # The v262 FKs keep a linked season (and photo) from being deleted; other live suites on the
+    # same database (test_season_live) delete tenant A's seasons, so this file removes its links.
+    admin = await asyncpg.connect(ADMIN_URL, statement_cache_size=0)
+    try:
+        await admin.execute(_PURGE_LINKS)
+    finally:
+        await admin.close()
 
 
 def _hdr(tenant=_A, role="farmer", uid="inspector-1", data=b"", ctype="image/jpeg"):
