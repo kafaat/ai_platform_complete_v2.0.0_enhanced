@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "34e33392f6bda3f8d8d109513e81716eeb872223e6616cb4a33853b0a2d0cdb7",
+  "inventory_sha256": "5baefb76163e6a8371d3f24b410624c804e23139d404f45cba56f269b9b57788",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "c86f948a9592e71252e000e3b65401cc86645951f4ffe59fec407afecdd8d5e2"
+    "policy_sha256": "c79aea6b0e99fcb811bc954d38fc1b32312cdf681c9e8ce0419a7d34837e562f"
   },
   "routes": [
     {
@@ -874,7 +874,7 @@
     {
       "classification": "domain",
       "function": "book_balances",
-      "line": 486,
+      "line": 597,
       "method": "GET",
       "path": "/api/v1/farm-book/balances",
       "source": "api/routers/simple_farm_book.py"
@@ -882,7 +882,7 @@
     {
       "classification": "domain",
       "function": "list_entries",
-      "line": 417,
+      "line": 528,
       "method": "GET",
       "path": "/api/v1/farm-book/entries",
       "source": "api/routers/simple_farm_book.py"
@@ -890,7 +890,7 @@
     {
       "classification": "domain",
       "function": "export_book",
-      "line": 507,
+      "line": 618,
       "method": "GET",
       "path": "/api/v1/farm-book/export",
       "source": "api/routers/simple_farm_book.py"
@@ -898,7 +898,7 @@
     {
       "classification": "domain",
       "function": "monthly_report",
-      "line": 450,
+      "line": 561,
       "method": "GET",
       "path": "/api/v1/farm-book/monthly",
       "source": "api/routers/simple_farm_book.py"
@@ -906,7 +906,7 @@
     {
       "classification": "domain",
       "function": "list_parties",
-      "line": 161,
+      "line": 224,
       "method": "GET",
       "path": "/api/v1/farm-book/parties",
       "source": "api/routers/simple_farm_book.py"
@@ -1274,7 +1274,7 @@
     {
       "classification": "domain",
       "function": "field_season_state_endpoint",
-      "line": 605,
+      "line": 562,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
       "source": "api/routers/seasons.py"
@@ -3402,7 +3402,7 @@
     {
       "classification": "domain",
       "function": "create_entry",
-      "line": 246,
+      "line": 346,
       "method": "POST",
       "path": "/api/v1/farm-book/entries",
       "source": "api/routers/simple_farm_book.py"
@@ -3410,7 +3410,7 @@
     {
       "classification": "domain",
       "function": "create_party",
-      "line": 129,
+      "line": 192,
       "method": "POST",
       "path": "/api/v1/farm-book/parties",
       "source": "api/routers/simple_farm_book.py"
@@ -4298,7 +4298,7 @@
     {
       "classification": "domain",
       "function": "simulate_season_endpoint",
-      "line": 145,
+      "line": 155,
       "method": "POST",
       "path": "/api/v1/seasons/{season_id}/simulate",
       "source": "api/routers/seasons.py"
