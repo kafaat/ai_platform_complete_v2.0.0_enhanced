@@ -55,15 +55,21 @@ def _evidence_missing(response: dict[str, Any], evidence_used: list[str]) -> lis
     readiness = response.get("ai_context_pack_readiness")
     if isinstance(readiness, str) and readiness and readiness != "ok":
         out.append(f"context_pack:{readiness}")
-    elif isinstance(readiness, dict) and readiness.get("complete") is not True:
+    elif isinstance(readiness, dict):
         # The platform's field AI context reports readiness as
-        # ``{"complete": bool, "warnings": [...]}`` (routers/field_ai_context.py). An
-        # incomplete pack is missing evidence; a string-only check never saw it.
-        warnings = _str_list(readiness.get("warnings"))
-        if warnings:
-            out.extend(f"context_pack:{w}" for w in warnings)
-        else:
-            out.append("context_pack:incomplete")
+        # ``{"complete": bool, "warnings": [...]}`` (routers/field_ai_context.py); a
+        # string-only check never saw an incomplete pack. Missing or malformed readiness is
+        # not accepted silently either.
+        complete = readiness.get("complete")
+        if complete is not True:
+            out.append(
+                "context_pack:incomplete" if complete is False else "context_pack:unverified"
+            )
+        warnings = readiness.get("warnings")
+        if isinstance(warnings, list):
+            out.extend(f"context_pack:{w}" for w in _str_list(warnings))
+        elif warnings is not None:
+            out.append("context_pack:warnings_invalid")
     # إزالة التكرار مع الحفاظ على الترتيب.
     seen: set[str] = set()
     return [x for x in out if not (x in seen or seen.add(x))]

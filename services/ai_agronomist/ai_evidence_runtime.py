@@ -359,25 +359,23 @@ def _build_agent_tool_fetcher(
     pack = ai_pack if isinstance(ai_pack, dict) else {}
     fs = field_state if isinstance(field_state, dict) else {}
 
-    bound_field_id = fs.get("field_id") or pack.get("field_id")
+    canonical_field_id = fs.get("field_id")
+    pack_field_id = pack.get("field_id")
+    bound_field_id = canonical_field_id or pack_field_id
 
     def fetcher(tool_name: str, params: dict[str, Any]) -> Any:
+        # The fetcher serves one already-authorized field snapshot. The model chooses the
+        # tool, but cannot redirect field A's evidence to field B by passing another
+        # field_id. A refusal raises, so tool_executor records the call as failed
+        # (``fetcher_error``) with no data, instead of an executed call.
+        if canonical_field_id and pack_field_id and str(canonical_field_id) != str(pack_field_id):
+            raise ValueError("field_context_identity_mismatch")
         requested = params.get("field_id")
-        if (
-            requested not in (None, "")
-            and bound_field_id not in (None, "")
-            and str(requested) != str(bound_field_id)
+        if requested is not None and (
+            not isinstance(requested, str) or not bound_field_id or requested != str(bound_field_id)
         ):
-            # Every answer below is read from the evidence loaded for ``bound_field_id``.
-            # Relabelling it with another requested field would present field A's data
-            # as field B's, so the call is refused and no evidence is returned.
-            return {
-                "error": "field_scope_mismatch",
-                "requested_field_id": str(requested),
-                "bound_field_id": str(bound_field_id),
-                "data": None,
-            }
-        field_id = requested or bound_field_id
+            raise ValueError("field_context_identity_mismatch")
+        field_id = bound_field_id
         if tool_name == "get_field_state":
             return {
                 "field_id": field_id,

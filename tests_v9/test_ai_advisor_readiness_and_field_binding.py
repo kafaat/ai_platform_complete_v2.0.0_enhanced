@@ -6,7 +6,11 @@
    ``requires_human_review``.
 2. The read-tool fetcher answers from the evidence loaded for one field, but labelled the
    answer with whatever ``field_id`` the model asked for, so field A's data could come back
-   tagged as field B. A different field is now refused with no data.
+   tagged as field B. A different field is now refused (the call fails, no data).
+
+Merged with the owner's patch SAHOOL_AI_Advisor_P1_Cumulative_Fix_2026-11-13: missing or
+malformed readiness is not accepted, a fetcher whose field state and context pack disagree
+refuses everything, and an unbound fetcher cannot claim a requested field.
 """
 
 from __future__ import annotations
@@ -43,14 +47,23 @@ def test_structured_incomplete_readiness_requires_human_review():
             },
         }
     )
-    assert "context_pack:weather_unavailable" in env["evidence_missing"]
-    assert "context_pack:imagery_stale" in env["evidence_missing"]
+    assert env["evidence_missing"] == [
+        "context_pack:incomplete",
+        "context_pack:weather_unavailable",
+        "context_pack:imagery_stale",
+    ]
     assert env["requires_human_review"] is True
 
 
 def test_incomplete_readiness_without_warnings_is_still_named():
     env = build_advisory_envelope({**_GOOD, "ai_context_pack_readiness": {"complete": False}})
     assert env["evidence_missing"] == ["context_pack:incomplete"]
+    assert env["requires_human_review"] is True
+
+
+def test_malformed_readiness_is_unverified_not_accepted():
+    env = build_advisory_envelope({**_GOOD, "ai_context_pack_readiness": {"warnings": "x"}})
+    assert env["evidence_missing"] == ["context_pack:unverified", "context_pack:warnings_invalid"]
     assert env["requires_human_review"] is True
 
 
@@ -61,11 +74,15 @@ def test_complete_readiness_adds_nothing(readiness):
     assert env["requires_human_review"] is False
 
 
-def _fetcher():
+def _main():
     pytest.importorskip("fastapi")  # main imports fastapi
     from services.ai_agronomist import main as MAIN
 
-    return MAIN._build_agent_tool_fetcher(
+    return MAIN
+
+
+def _fetcher():
+    return _main()._build_agent_tool_fetcher(
         field_state={"field_id": "field-A", "water_deficit": 18.0},
         ai_pack={"field_id": "field-A", "weather_history": {"t": 1}, "readiness": "ok"},
         annotations={},
@@ -73,14 +90,44 @@ def _fetcher():
 
 
 @pytest.mark.parametrize(
-    "tool", ["get_field_state", "get_weather_history", "get_index_timeline", "get_alerts"]
+    "tool",
+    [
+        "get_field_state",
+        "get_weather_history",
+        "get_index_timeline",
+        "get_alerts",
+        "generate_report",
+    ],
 )
-def test_tool_for_another_field_is_refused_without_data(tool):
-    out = _fetcher()(tool, {"field_id": "field-B", "days": 7, "index": "ndvi"})
-    assert out["error"] == "field_scope_mismatch"
-    assert out["requested_field_id"] == "field-B" and out["bound_field_id"] == "field-A"
-    assert out["data"] is None
-    assert "canonical_field_state" not in out and "weather_history" not in out
+def test_tool_for_another_field_is_refused(tool):
+    with pytest.raises(ValueError, match="field_context_identity_mismatch"):
+        _fetcher()(tool, {"field_id": "field-B", "days": 7, "index": "ndvi"})
+
+
+def test_a_non_string_field_id_is_refused():
+    with pytest.raises(ValueError, match="field_context_identity_mismatch"):
+        _fetcher()("get_field_state", {"field_id": 123})
+
+
+def test_disagreeing_field_state_and_context_pack_refuse_every_call():
+    fetch = _main()._build_agent_tool_fetcher(
+        field_state={"field_id": "field-A"}, ai_pack={"field_id": "field-B"}, annotations={}
+    )
+    with pytest.raises(ValueError, match="field_context_identity_mismatch"):
+        fetch("get_field_state", {"field_id": "field-A"})
+
+
+def test_an_unbound_fetcher_cannot_claim_a_requested_field():
+    fetch = _main()._build_agent_tool_fetcher(field_state={}, ai_pack={}, annotations={})
+    with pytest.raises(ValueError, match="field_context_identity_mismatch"):
+        fetch("get_field_state", {"field_id": "field-B"})
+
+
+def test_the_executor_records_a_refusal_as_failed_with_no_data():
+    from services.ai_agronomist import tool_executor
+
+    src = Path(tool_executor.__file__).read_text(encoding="utf-8")
+    assert 'outcome, reason = OUTCOME_FAILED, "fetcher_error"' in src
 
 
 def test_tool_for_the_loaded_field_or_unspecified_still_answers():
