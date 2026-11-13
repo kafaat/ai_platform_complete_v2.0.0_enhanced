@@ -1,5 +1,5 @@
 {
-  "edge_count": 949,
+  "edge_count": 950,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -112,7 +112,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/components/AddFieldWithMap.tsx:446",
+      "evidence": "frontend/src/components/AddFieldWithMap.tsx:411",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -603,6 +603,16 @@
     },
     {
       "evidence": "services/auth/main.py",
+      "from": "auth",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/auth/mfa_enrollment.py",
       "from": "auth",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9510,7 +9520,7 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 492,
+    "READS": 493,
     "ROUTES_TO": 72,
     "WRITES": 334
   },
@@ -9527,8 +9537,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 827,
-      "resolved": 826,
+      "observed": 828,
+      "resolved": 827,
       "unresolved_component_paths": 0
     }
   }
