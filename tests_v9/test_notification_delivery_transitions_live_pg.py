@@ -3,8 +3,9 @@
 ``POST /api/v1/notifications/delivery`` upserts one row per (tenant, alert_key, channel) in
 ``notification_delivery`` (v83, RLS + FORCE). The transition rule lives in the
 ``ON CONFLICT … DO UPDATE … WHERE`` clause, so PostgreSQL decides it under the row lock, not a
-read-then-write in Python. The unit test next to the router emulates that SQL; this module runs
-the real statement:
+read-then-write in Python. The unit test next to the router
+(``services/sahool-platform/tests/test_notification_delivery_transitions.py``) emulates that SQL
+on a stand-in connection; this module runs the real statement and is that file's live proof:
 
 - every (current, requested) pair: written, idempotent replay (no write, ``updated_at``
   unchanged, no event) or 409 (nothing changed);

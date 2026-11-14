@@ -306,6 +306,13 @@
       ],
       "proof": "tests_v9/test_live_pg_fake_connection_debt.py",
       "evidence": "TRIGGER: updated_at مُسنَدة صراحةً إلى 2001-01-01 يدهسها المشغّل — فالبقاء والتغيّر يفترقان، والقياس عن المشغّل لا عن DEFAULT now(). والتسجيل BEFORE UPDATE FOR EACH ROW مقروء من pg_trigger. زرعُ الإسقاط وزرعُ تحويله إلى AFTER أسقطا الاثنين."
+    },
+    "services/sahool-platform/tests/test_notification_delivery_transitions.py": {
+      "claims": [
+        "UNIQUE"
+      ],
+      "proof": "tests_v9/test_notification_delivery_transitions_live_pg.py",
+      "evidence": "UNIQUE: the upsert targets UNIQUE(tenant_id, alert_key, channel) on the migrated v83 table under a NOBYPASSRLS role. The full 4x4 transition matrix is decided by ON CONFLICT ... DO UPDATE ... WHERE (written: updated_at advances; replay: row and updated_at unchanged, no event; refused: 409, nothing changed); the same alert_key in another tenant is its own row; a late sent racing delivered (x10) never leaves the row behind delivered. Against main's handler 4 of the 5 cases fail."
     }
   },
   "admissions": [
