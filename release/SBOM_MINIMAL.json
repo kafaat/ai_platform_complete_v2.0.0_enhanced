@@ -26095,7 +26095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0561a3d61997efcd2c5c6a90d916b11841539465696e6b795f534c6ae24aece2"
+          "content": "3f4b017c4cf12a4404fcce0c2f1501abdecd260c8f2e89ee7801ef0989ab9db6"
         }
       ],
       "name": "services/sahool-platform/api/recommendations_hub.py",
@@ -26885,7 +26885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3c5db72f4ec9762e603f97b09a1ab08478daa235afddd4fedcea76115bb97299"
+          "content": "c81d42ae048e16bd84bb8392a9f26b3e79baf6aa69bab0e17f9d94db5e2be4bf"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
