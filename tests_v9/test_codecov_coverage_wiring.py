@@ -1,4 +1,4 @@
-"""Test three independent coverage uploads and Git-root path preservation."""
+"""Test four independent coverage uploads and Git-root path preservation."""
 
 from __future__ import annotations
 
@@ -36,9 +36,10 @@ def _upload(job):
             "decision-service-tests",
             "coverage-decision-service.xml",
         ),
+        ("integration-tests", "integration-auth", "coverage-integration-auth.xml"),
     ],
 )
-def test_three_separate_uploads_without_report_autodiscovery(job, flag, report):
+def test_four_separate_uploads_without_report_autodiscovery(job, flag, report):
     options = _upload(job)
     assert options["files"] == report
     assert options["flags"] == flag
@@ -81,10 +82,57 @@ def test_unit_reexport_is_validated_from_repo_root():
     assert any("--report coverage-unit.xml" in command for command in commands)
 
 
-def test_codecov_waits_for_three_reports_before_notifying():
+# The live certification steps that drive the real auth app and the real platform app,
+# and the coverage source each must collect into the shared live data file.
+LIVE_AUTH_COVERAGE = {
+    "tests_v9/test_mfa_hardening_integration_v29_5.py": ("--cov=services/auth",),
+    "tests_v9/test_auth_admin_tenant_scope_live_pg.py": ("--cov=services/auth",),
+    "tests_v9/test_auth_admin_authz_live_pg_redis.py": ("--cov=services/auth",),
+    "tests_v9/test_platform_denial_log_scope_live.py": (
+        "--cov=services/sahool-platform/api",
+        "--cov=services/sahool-platform/core",
+    ),
+}
+
+
+@pytest.mark.parametrize("test_file,sources", sorted(LIVE_AUTH_COVERAGE.items()))
+def test_live_auth_steps_append_to_one_coverage_file(test_file, sources):
+    steps = JOBS["integration-tests"]["steps"]
+    selected = [s for s in steps if test_file in (s.get("run") or "")]
+    assert len(selected) == 1, test_file
+    step = selected[0]
+    assert step["env"]["COVERAGE_FILE"] == ".coverage.integration-auth"
+    words = step["run"].split()
+    assert words[:5] == ["pytest", "-v", "-m", "integration", "-rs"], step["run"]
+    assert "--cov-append" in words and "--cov-report=" in words
+    assert not any(w.startswith("--cov-fail-under") for w in words), "no floor on live lanes"
+    assert set(sources) <= set(words), step["run"]
+
+
+def test_live_auth_export_is_guarded_after_every_live_step():
+    steps = JOBS["integration-tests"]["steps"]
+    runs = [s.get("run") or "" for s in steps]
+    export = next(i for i, r in enumerate(runs) if "-o coverage-integration-auth.xml" in r)
+    guard = next(i for i, r in enumerate(runs) if "--report coverage-integration-auth.xml" in r)
+    upload = next(i for i, s in enumerate(steps) if s.get("uses") == ACTION)
+    live = [i for i, r in enumerate(runs) if any(f in r for f in LIVE_AUTH_COVERAGE)]
+    assert max(live) < export < guard < upload == len(steps) - 1
+    assert "--data-file=.coverage.integration-auth" in runs[export]
+    assert "--omit=services/auth/tests/*" in runs[export]
+    assert "--forbid-prefix services/auth/tests" in runs[guard]
+    for required in (
+        "services/auth/routers/users.py",
+        "services/auth/routers/invitations.py",
+        "services/auth/session_tokens.py",
+        "services/sahool-platform/api/routers/security_audit.py",
+    ):
+        assert f"--require-file {required}" in runs[guard]
+
+
+def test_codecov_waits_for_four_reports_before_notifying():
     options = yaml.safe_load((ROOT / "codecov.yml").read_text(encoding="utf-8"))
-    assert options["codecov"]["notify"]["after_n_builds"] == 3
-    assert options["comment"]["after_n_builds"] == 3
+    assert options["codecov"]["notify"]["after_n_builds"] == 4
+    assert options["comment"]["after_n_builds"] == 4
     assert "coverage" not in options
     assert "ignore" not in options
     assert "fixes" not in options

@@ -1490,7 +1490,8 @@ jobs:
           TEST_REDIS_URL: redis://localhost:6380/0
           JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
           MFA_E2E_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_mfa_hardening_integration_v29_5.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_mfa_hardening_integration_v29_5.py --cov=services/auth --cov-append --cov-report=
 
       # C-01 (تدقيق المالك 2026-11-13): admin = مالكُ مستأجِر. إدارةُ المستخدمين في auth محصورةٌ
       # في مستأجِر التوكن، والعابرُ يلقى 404 كغير الموجود. RLS لا تحرس هذا المسار (_acquire يضبط
@@ -1503,7 +1504,8 @@ jobs:
           TEST_REDIS_URL: redis://localhost:6380/0
           JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
           AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_auth_admin_tenant_scope_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_auth_admin_tenant_scope_live_pg.py --cov=services/auth --cov-append --cov-report=
 
       # #1427 pre-merge gates: two accepts of one invitation released together off the row
       # lock (exactly one member); Redis outage on role change/deactivate (503, row unchanged)
@@ -1516,7 +1518,8 @@ jobs:
           TEST_REDIS_URL: redis://localhost:6380/0
           JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
           AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_auth_admin_authz_live_pg_redis.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_auth_admin_authz_live_pg_redis.py --cov=services/auth --cov-append --cov-report=
 
       # #1427: the denial-log endpoint returns only the caller tenant's denials and never
       # unattributed events, over the real platform app and the live Redis denylist. Its own
@@ -1526,7 +1529,8 @@ jobs:
           TEST_REDIS_URL: redis://localhost:6380/0
           JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
           AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_platform_denial_log_scope_live.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_platform_denial_log_scope_live.py --cov=services/sahool-platform/api --cov=services/sahool-platform/core --cov-append --cov-report=
 
       # تدقيق 2026-11-02 (تابعُ Q5): `test_services_functional` (soil H5 + guardrails L5) حمل
       # `xfail(strict=False)` بالفجوة المُغلَقة نفسِها، والجولةُ العامّة لا تضبط `DATABASE_URL`
@@ -1538,6 +1542,40 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           SOIL_FUNCTIONAL_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_services_functional.py
+
+      # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
+      # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real
+      # platform app (denial log) append to .coverage.integration-auth with --cov-append, so
+      # lines measured only against live PostgreSQL + Redis count toward Codecov patch
+      # coverage. Same export → path guard → pinned upload pattern as the other three lanes;
+      # services/auth/tests is omitted and refused so test code never counts as product.
+      # scripts/lab/run_certification.py stops at the export step: these are reporting steps,
+      # not certification steps, and the lab refuses any pytest call after that boundary.
+      - name: Export live auth coverage with Git-relative paths
+        run: >-
+          python -m coverage xml
+          --data-file=.coverage.integration-auth
+          --include=services/auth/*,services/sahool-platform/api/*,services/sahool-platform/core/*
+          --omit=services/auth/tests/*
+          -o coverage-integration-auth.xml
+      - name: Verify live auth Codecov report paths
+        run: >-
+          python scripts/ci/codecov_coverage_guard.py
+          --report coverage-integration-auth.xml
+          --prefix services/auth
+          --prefix services/sahool-platform/api
+          --prefix services/sahool-platform/core
+          --forbid-prefix services/auth/tests
+          --require-file services/auth/routers/users.py
+          --require-file services/auth/routers/invitations.py
+          --require-file services/auth/session_tokens.py
+          --require-file services/sahool-platform/api/routers/security_audit.py
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
+        with:
+          files: coverage-integration-auth.xml
+          flags: integration-auth
+          disable_search: true
+          fail_ci_if_error: false
 
   decision-service-tests:
     permissions:
