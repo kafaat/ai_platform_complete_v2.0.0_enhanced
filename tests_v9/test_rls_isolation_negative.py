@@ -92,6 +92,31 @@ async def test_every_tenant_table_has_rls(conn):
     assert offenders == [], f"جداول تحوي tenant_id دون RLS (تسرّب محتمل عبر المستأجِرين): {offenders}"
 
 
+_TENANT_POLICY_SQL = """
+    SELECT c.relname, p.polname,
+           CASE WHEN p.polcmd = 'a' THEN pg_get_expr(p.polwithcheck, p.polrelid)
+                ELSE pg_get_expr(p.polqual, p.polrelid) END AS qual
+    FROM pg_policy p
+    JOIN pg_class c ON c.oid = p.polrelid
+    WHERE c.relnamespace = 'public'::regnamespace
+      AND c.relrowsecurity
+      AND p.polname LIKE '%tenant%'
+"""
+
+
+async def _policies_without_tenant_context(conn) -> list[tuple[str, str]]:
+    # An INSERT policy (polcmd 'a') has no USING clause: its tenant condition is the WITH CHECK
+    # expression (polwithcheck). Read that one for INSERT so a correctly scoped append policy is
+    # not reported, while an INSERT policy WITH CHECK (true) is still caught (#1460).
+    rows = await conn.fetch(_TENANT_POLICY_SQL)
+    return [
+        (r["relname"], r["polname"])
+        for r in rows
+        if "current_setting" not in (r["qual"] or "")
+        and "sahool_effective_tenant_id" not in (r["qual"] or "")
+    ]
+
+
 async def test_tenant_policy_uses_current_setting(conn):
     """تأكيد إضافيّ: سياسات العزل تستند إلى سياق المستأجر في الجلسة،
     لا سياسة دائمة الصدق (USING true) تُبطِل العزل.
@@ -99,20 +124,38 @@ async def test_tenant_policy_uses_current_setting(conn):
     سياق المستأجر مقبول بنمطين: `current_setting('app.current_tenant')` مباشرةً،
     أو الدالّة الموحِّدة `public.sahool_effective_tenant_id()` (v122) التي تغلّف
     current_setting لكِلا المفتاحين app.current_tenant/app.tenant_id. كلاهما عزل حقيقيّ."""
-    rows = await conn.fetch(
-        """
-        SELECT c.relname, p.polname, pg_get_expr(p.polqual, p.polrelid) AS qual
-        FROM pg_policy p
-        JOIN pg_class c ON c.oid = p.polrelid
-        WHERE c.relnamespace = 'public'::regnamespace
-          AND c.relrowsecurity
-          AND p.polname LIKE '%tenant%'
-        """
-    )
-    bad = [
-        (r["relname"], r["polname"])
-        for r in rows
-        if "current_setting" not in (r["qual"] or "")
-        and "sahool_effective_tenant_id" not in (r["qual"] or "")
-    ]
+    bad = await _policies_without_tenant_context(conn)
     assert bad == [], f"سياسات «tenant» لا تستند إلى سياق المستأجر (عزل وهميّ): {bad}"
+
+
+async def test_an_insert_policy_with_check_true_is_still_reported(conn):
+    """Negative control for the INSERT branch above: WITH CHECK (true) must still be caught."""
+    admin_url = os.getenv("TEST_DATABASE_ADMIN_URL")
+    asyncpg = pytest.importorskip("asyncpg")
+    c = conn
+    if admin_url:
+        c = await asyncpg.connect(admin_url, timeout=5)
+    try:
+        tx = c.transaction()
+        await tx.start()
+        try:
+            try:
+                await c.execute(
+                    "CREATE TABLE public.rls_probe_insert_true (tenant_id uuid);"
+                    "ALTER TABLE public.rls_probe_insert_true ENABLE ROW LEVEL SECURITY;"
+                    "ALTER TABLE public.rls_probe_insert_true FORCE ROW LEVEL SECURITY;"
+                    "CREATE POLICY tenant_probe_insert ON public.rls_probe_insert_true"
+                    " FOR INSERT WITH CHECK (true);"
+                    "CREATE POLICY tenant_probe_scoped ON public.rls_probe_insert_true FOR INSERT"
+                    " WITH CHECK (tenant_id::text = current_setting('app.current_tenant', true));"
+                )
+            except asyncpg.InsufficientPrivilegeError:
+                pytest.skip("no DDL privilege for the negative control (set TEST_DATABASE_ADMIN_URL)")
+            bad = await _policies_without_tenant_context(c)
+        finally:
+            await tx.rollback()
+    finally:
+        if c is not conn:
+            await c.close()
+    assert ("rls_probe_insert_true", "tenant_probe_insert") in bad
+    assert ("rls_probe_insert_true", "tenant_probe_scoped") not in bad
