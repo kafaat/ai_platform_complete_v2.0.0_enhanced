@@ -830,6 +830,7 @@ FM-003,test,mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart,
 FM-003,test,mobile/sahool_app/test/field_forms/schema_renderer_widget_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/field_forms/submission_queue_test.dart,3,applied
 FM-003,test,services/ai_agronomist/test_ai_field_memory_v49.py,3,applied
+FM-003,test,services/decision-service/tests/test_ac1_boundary_finiteness_timezone.py,3,applied
 FM-003,test,services/decision-service/tests/test_execution_plan_boundary_normalisation.py,3,applied
 FM-003,test,services/decision-service/tests/test_tenant_boundary_migration_static.py,3,applied
 FM-003,test,services/decision-service/tests/test_wx11_6_registry_activation_boundary.py,3,applied
@@ -1274,6 +1275,7 @@ GIS-001,test,mobile/sahool_app/test/features/maps/draw/boundary_import_test.dart
 GIS-001,test,mobile/sahool_app/test/features/maps/draw/boundary_validation_test.dart,3,applied
 GIS-001,test,mobile/sahool_app/test/features/maps/io/boundary_parsers_test.dart,3,applied
 GIS-001,test,mobile/sahool_app/test/features/maps/io/geometry_test.dart,3,applied
+GIS-001,test,services/decision-service/tests/test_ac1_boundary_finiteness_timezone.py,3,applied
 GIS-001,test,services/decision-service/tests/test_execution_plan_boundary_normalisation.py,3,applied
 GIS-001,test,services/decision-service/tests/test_tenant_boundary_migration_static.py,3,applied
 GIS-001,test,services/decision-service/tests/test_wx11_6_registry_activation_boundary.py,3,applied
