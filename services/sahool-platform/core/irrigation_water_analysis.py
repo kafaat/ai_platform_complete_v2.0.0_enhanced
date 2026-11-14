@@ -14,7 +14,12 @@
 - RSC: <1.25 آمن، 1.25–2.50 هامشي، >2.50 غير مناسب (USDA Bull. 197)
 - SAR: <10 منخفض، 10–18 متوسّط، 18–26 مرتفع، >26 مرتفع جدّاً (USSL)
   (مشاكل النفاذيّة تبدأ SAR 6–9 في التربة الطينيّة المنتفخة)
-- EC: <0.7 لا قيود، 0.7–3.0 قيود متوسّطة، >3.0 قيود شديدة (FAO-29)
+- EC: <0.7 لا قيود، 0.7–3.0 قيود طفيفة إلى متوسّطة، >3.0 قيود شديدة (FAO-29)
+- النفاذيّة (FAO-29): SAR يُقرأ مع ECw معاً — جدول ``FAO29_INFILTRATION_ROWS``
+
+الحكم العامّ بثلاث درجات قيود كما في FAO-29 (None / Slight-to-moderate / Severe):
+``suitable`` (لا قيود) · ``suitable_with_restrictions`` (قيود طفيفة إلى متوسّطة، تُسمّى
+المؤشّرات المسبِّبة ودرجتها) · ``needs_treatment`` (قيود شديدة) · ``insufficient_data``.
 
 صدق: لا يخترع بيانات. المدخل الناقص يُعلَن (None/تحذير)؛ لا تصنيف بلا قيم.
 """
@@ -137,17 +142,105 @@ def _not_computable_class(index_ar: str, reason: str | None) -> dict | None:
     return {"class": None, "note_ar": f"{index_ar} {_NOT_COMPUTABLE_NOTE_AR[reason]}"}
 
 
+# ─── درجات القيود على الاستعمال (FAO-29) ────────────────────────────────────
+#
+# المصدر: Ayers, R.S. & Westcot, D.W. (1985). Water Quality for Agriculture. FAO Irrigation
+# and Drainage Paper 29 Rev. 1, Table 1 "Guidelines for interpretation of water quality for
+# irrigation". القيم أدناه من الجدول المنشور؛ لم يُتَح جلبُ النصّ الأصليّ من بيئة البناء
+# (fao.org غير مسموح في الشبكة) فنُقلت من الجدول كما يُستشهَد به، وكلّها في هذا الموضع وحده.
+DEGREE_NONE = "none"
+DEGREE_SLIGHT_TO_MODERATE = "slight_to_moderate"
+DEGREE_SEVERE = "severe"
+
+# الملوحة: ECw (dS/m) < 0.7 لا قيود · 0.7–3.0 طفيفة إلى متوسّطة · > 3.0 شديدة.
+FAO29_SALINITY_ECW_DSM = (0.7, 3.0)
+
+# النفاذيّة (يُقيَّم SAR وECw معاً): لكلّ صفّ SAR (من، إلى) عتبتا ECw (dS/m):
+# ECw > none_above ⇒ لا قيود · none_above ≥ ECw ≥ severe_below ⇒ طفيفة إلى متوسّطة ·
+# ECw < severe_below ⇒ شديدة. الماء الأقلّ ملوحةً عند SAR نفسه أسوأ نفاذيّةً.
+# حدود الصفوف نصف مفتوحة [من، إلى) كاصطلاح ``classify_sar``؛ SAR ≥ 40 خارج مدى الجدول
+# فيُقرأ بصفّه الأخير (الأشدّ) ويُعلَن ذلك.
+FAO29_INFILTRATION_ROWS: tuple[tuple[float, float, float, float], ...] = (
+    # (sar_from, sar_to, ecw_none_above, ecw_severe_below)
+    (0.0, 3.0, 0.7, 0.2),
+    (3.0, 6.0, 1.2, 0.3),
+    (6.0, 12.0, 1.9, 0.5),
+    (12.0, 20.0, 2.9, 1.3),
+    (20.0, 40.0, 5.0, 2.9),
+)
+
+_DEGREE_RANK = {DEGREE_NONE: 0, DEGREE_SLIGHT_TO_MODERATE: 1, DEGREE_SEVERE: 2}
+_DEGREE_AR = {
+    DEGREE_NONE: "لا قيود",
+    DEGREE_SLIGHT_TO_MODERATE: "قيود طفيفة إلى متوسّطة",
+    DEGREE_SEVERE: "قيود شديدة",
+}
+
+
+def _infiltration_degree(
+    sar: float, ec_dsm: float
+) -> tuple[str, tuple[float, float, float, float]]:
+    row = next((r for r in FAO29_INFILTRATION_ROWS if r[0] <= sar < r[1]), None)
+    if row is None:
+        row = FAO29_INFILTRATION_ROWS[-1]
+    _, _, none_above, severe_below = row
+    if ec_dsm > none_above:
+        return DEGREE_NONE, row
+    if ec_dsm < severe_below:
+        return DEGREE_SEVERE, row
+    return DEGREE_SLIGHT_TO_MODERATE, row
+
+
+def classify_infiltration(sar: float | None, ec_dsm: float | None) -> dict:
+    """خطر النفاذيّة (FAO-29 Table 1): درجة القيد من SAR مقروءاً مع ECw، لا من SAR وحده.
+
+    ``sodium_attributable``: هل الصوديوم سببُ الدرجة؟ يُقارَن بصفّ SAR 0–3 عند ECw نفسها؛
+    إن تساوت الدرجتان فالقيد ناتجٌ عن قلّة ملوحة الماء وحدها لا عن الصوديوم.
+    """
+    if sar is None or ec_dsm is None:
+        return {"class": None, "note_ar": "النفاذيّة غير مقيّمة (تحتاج SAR وEC معاً)"}
+    degree, row = _infiltration_degree(sar, ec_dsm)
+    baseline, _ = _infiltration_degree(0.0, ec_dsm)
+    sar_from, sar_to, none_above, severe_below = row
+    out = {
+        "class": degree,
+        "degree": degree,
+        "standard": "FAO-29 Table 1",
+        "sar_row": f"{sar_from:g}-{sar_to:g}",
+        "ecw_none_above_dsm": none_above,
+        "ecw_severe_below_dsm": severe_below,
+        "sodium_attributable": _DEGREE_RANK[degree] > _DEGREE_RANK[baseline],
+        "restriction_ar": f"{_DEGREE_AR[degree]} (SAR {sar:g} مع ECw {ec_dsm:g} dS/m)",
+    }
+    if sar >= FAO29_INFILTRATION_ROWS[-1][1]:
+        out["note_ar"] = "SAR خارج مدى جدول FAO-29 (≤40) — قُرئ بالصفّ الأشدّ"
+    return out
+
+
 def classify_ec(ec_dsm: float | None) -> dict:
     """تصنيف ملوحة ماء الريّ بالـEC (FAO-29)."""
     if ec_dsm is None:
         return {"class": None, "note_ar": "EC غير مقيس"}
     if not math.isfinite(ec_dsm) or ec_dsm < 0:
         return {"class": None, "note_ar": "EC غير صالحة — لا تصنيف"}
-    if ec_dsm < 0.7:
-        return {"class": "low", "restriction_ar": "خطر الملوحة منخفض وفق EC فقط"}
-    if ec_dsm <= 3.0:
-        return {"class": "moderate", "restriction_ar": "قيود متوسّطة — راقب الملوحة"}
-    return {"class": "severe", "restriction_ar": "قيود شديدة — غسيل ملحي ضروري"}
+    none_below, severe_above = FAO29_SALINITY_ECW_DSM
+    if ec_dsm < none_below:
+        return {
+            "class": "low",
+            "degree": DEGREE_NONE,
+            "restriction_ar": "خطر الملوحة منخفض وفق EC فقط",
+        }
+    if ec_dsm <= severe_above:
+        return {
+            "class": "moderate",
+            "degree": DEGREE_SLIGHT_TO_MODERATE,
+            "restriction_ar": "قيود طفيفة إلى متوسّطة — راقب الملوحة وجزء الغسيل",
+        }
+    return {
+        "class": "severe",
+        "degree": DEGREE_SEVERE,
+        "restriction_ar": "قيود شديدة — غسيل ملحي ضروري",
+    }
 
 
 def classify_rsc(rsc: float | None) -> dict:
@@ -207,6 +300,7 @@ def analyze_water_sample(sample: WaterSample) -> dict:
         for index, reason in (("sar", sar_reason), ("rsc_meq_l", rsc_reason))
         if reason is not None
     ]
+    infil_c = classify_infiltration(sar, sample.ec_dsm if ec_c.get("class") else None)
     flags: list[str] = []
     if ec_c.get("class") == "severe":
         flags.append("ملوحة شديدة")
@@ -214,6 +308,60 @@ def analyze_water_sample(sample: WaterSample) -> dict:
         flags.append("قلويّة عالية")
     if sar_c.get("class") in ("high", "very_high"):
         flags.append("صوديوم مرتفع")
+    if infil_c.get("class") == DEGREE_SEVERE:
+        flags.append("خطر نفاذيّة شديد (SAR مع ECw)")
+
+    # الدرجة الوسطى (FAO-29 «طفيفة إلى متوسّطة»): ليست «صالح» بلا قيد. كلّ مؤشّر يسمّي
+    # درجته ومعياره. قيد النفاذيّة الطفيف الناتج عن قلّة الملوحة وحدها (SAR لا يغيّر
+    # الدرجة عن صفّ 0–3) يُعلَن تنبيهاً لا قيداً: لو عُدّ قيداً لما بلغ أيُّ ماءٍ «لا قيود»،
+    # فعتبة «لا قيود» للنفاذيّة (ECw > 0.7) لا تلتقي مع عتبة الملوحة (ECw < 0.7).
+    restrictions: list[dict] = []
+    advisories: list[str] = []
+    if ec_c.get("class") is not None and ec_c["degree"] != DEGREE_NONE:
+        restrictions.append(
+            {
+                "index": "ec_dsm",
+                "axis": "salinity",
+                "value": sample.ec_dsm,
+                "degree": ec_c["degree"],
+                "standard": "FAO-29 Table 1",
+                "reason_ar": f"الملوحة: EC {sample.ec_dsm:g} dS/m — {_DEGREE_AR[ec_c['degree']]}",
+            }
+        )
+    if infil_c.get("class") is not None and infil_c["degree"] != DEGREE_NONE:
+        if infil_c["degree"] == DEGREE_SEVERE or infil_c["sodium_attributable"]:
+            restrictions.append(
+                {
+                    "index": "sar",
+                    "axis": "infiltration",
+                    "value": sar,
+                    "ec_dsm": sample.ec_dsm,
+                    "degree": infil_c["degree"],
+                    "standard": "FAO-29 Table 1",
+                    "reason_ar": f"النفاذيّة: {infil_c['restriction_ar']}",
+                }
+            )
+        else:
+            advisories.append(
+                "ماء منخفض الملوحة: قد يضعف ترشيح التربة السطحيّة"
+                f" (FAO-29: {_DEGREE_AR[infil_c['degree']]} عند ECw {sample.ec_dsm:g})"
+            )
+    if rsc_c.get("class") in ("marginal", "unsuitable"):
+        restrictions.append(
+            {
+                "index": "rsc_meq_l",
+                "axis": "alkalinity",
+                "value": rsc,
+                "degree": (
+                    DEGREE_SLIGHT_TO_MODERATE if rsc_c["class"] == "marginal" else DEGREE_SEVERE
+                ),
+                "standard": "Eaton 1950 / USDA (RSC)",
+                "reason_ar": f"القلويّة: RSC {rsc:g} meq/L — {rsc_c['hazard_ar']}",
+            }
+        )
+    restriction_flags_ar = [
+        r["reason_ar"] for r in restrictions if r["degree"] == DEGREE_SLIGHT_TO_MODERATE
+    ]
 
     # الحكم العامّ «صالح» يحتاج المحاور الثلاثة محسوبة (ملوحة EC، صوديوم SAR، قلويّة RSC).
     # خطرٌ مرصود في أيّ محور يكفي لحكم «يحتاج معالجة» ولو نقصت البقيّة؛ أمّا غياب الخطر
@@ -227,8 +375,13 @@ def analyze_water_sample(sample: WaterSample) -> dict:
         verdict = "needs_treatment"
         suitable_ar = f"يحتاج معالجة: {'، '.join(flags)}"
     elif not_assessed:
+        # قيدٌ متوسّط مرصود مع محورٍ غير محسوب لا يكفي لحكم «صالح مع قيود»: قد يكون المحور
+        # الغائب شديداً. القيود المرصودة تبقى ظاهرة في ``restrictions``.
         verdict = "insufficient_data"
         suitable_ar = "بيانات غير كافية للحكم العامّ"
+    elif restrictions:
+        verdict = "suitable_with_restrictions"
+        suitable_ar = f"صالح مع قيود وإدارة: {'، '.join(restriction_flags_ar)}"
     else:
         verdict = "suitable"
         suitable_ar = "صالح للريّ"
@@ -237,8 +390,16 @@ def analyze_water_sample(sample: WaterSample) -> dict:
         "sample_id": sample.sample_id,
         "source": sample.source,
         "indices": {"sar": sar, "rsc_meq_l": rsc, "ec_dsm": sample.ec_dsm, "ph": sample.ph},
-        "classification": {"salinity": ec_c, "alkalinity_rsc": rsc_c, "sodicity_sar": sar_c},
+        "classification": {
+            "salinity": ec_c,
+            "alkalinity_rsc": rsc_c,
+            "sodicity_sar": sar_c,
+            "infiltration_fao29": infil_c,
+        },
         "hazard_flags_ar": flags,
+        "restrictions": restrictions,
+        "restriction_flags_ar": restriction_flags_ar,
+        "advisories_ar": advisories,
         "verdict": verdict,
         "not_assessed": not_assessed,
         "indices_not_computable": indices_not_computable,

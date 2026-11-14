@@ -85,4 +85,50 @@ describe('IrrigationWaterPage', () => {
       .toContain('SAR: القيم تتجاوز نطاق الحساب العدديّ');
     expect(screen.getByText('نتيجة حساب غير محفوظة وغير مرتبطة بحقل.')).toBeTruthy();
   });
+  const showResult = (data: unknown) => {
+    mut.mutate.mockImplementation(() => { mut.data = data; });
+    const { rerender, container } = renderPage();
+    analyze();
+    rerender(<MemoryRouter><IrrigationWaterPage /></MemoryRouter>);
+    return container;
+  };
+  const base = {
+    sample_id: 's', source: 'well', persisted: false,
+    indices: { sar: 14.14, rsc_meq_l: 2, ec_dsm: 2, ph: 7.4 },
+    classification: {
+      salinity: { class: 'moderate' }, alkalinity_rsc: { class: 'marginal' },
+      sodicity_sar: { class: 'medium' }, infiltration_fao29: { class: 'slight_to_moderate' },
+    },
+    hazard_flags_ar: [], missing_inputs: [], data_complete: true,
+  };
+
+  it('shows the FAO-29 slight-to-moderate tier in amber with its reasons, not a green check', () => {
+    const container = showResult({
+      ...base,
+      verdict: 'suitable_with_restrictions',
+      suitable_ar: 'صالح مع قيود وإدارة: الملوحة: EC 2 dS/m — قيود طفيفة إلى متوسّطة',
+      restriction_flags_ar: [
+        'الملوحة: EC 2 dS/m — قيود طفيفة إلى متوسّطة',
+        'القلويّة: RSC 2 meq/L — هامشي — إدارة ريّ جيّدة + مراقبة',
+      ],
+    });
+    const box = screen.getByTestId('water-verdict');
+    expect(box.getAttribute('data-verdict')).toBe('suitable_with_restrictions');
+    expect(box.textContent).toContain('صالح مع قيود وإدارة');
+    expect(box.textContent).not.toContain('صالح للريّ');
+    const reasons = screen.getByRole('list', { name: 'قيود الاستعمال (FAO-29)' });
+    expect(reasons.querySelectorAll('li')).toHaveLength(2);
+    expect(reasons.textContent).toContain('RSC 2 meq/L');
+    expect(container.querySelector('.text-emerald-400')).toBeNull();
+    expect(container.querySelector('.text-amber-400')).not.toBeNull();
+  });
+
+  it('keeps the green check for water with no restriction', () => {
+    const container = showResult({
+      ...base, verdict: 'suitable', suitable_ar: 'صالح للريّ', restriction_flags_ar: [],
+    });
+    expect(screen.getByTestId('water-verdict').textContent).toContain('صالح للريّ');
+    expect(container.querySelector('.text-emerald-400')).not.toBeNull();
+    expect(screen.queryByRole('list', { name: 'قيود الاستعمال (FAO-29)' })).toBeNull();
+  });
 });
