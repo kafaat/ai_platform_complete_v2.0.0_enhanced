@@ -30,27 +30,39 @@ async def save_field_geometry_revision(
     reason: str,
     source: str,
     metadata: dict[str, Any] | None = None,
-) -> int | None:
-    """Append a field geometry revision. Safe no-op if migration was not applied yet."""
-    try:
-        rev = await conn.fetchval(
-            """
-            INSERT INTO field_geometry_history
-                (tenant_id, field_id, geometry, changed_by, reason, source, metadata)
-            VALUES ($1::uuid, $2, $3::jsonb, $4, $5, $6, $7::jsonb)
-            RETURNING revision
-            """,
-            tenant_id,
-            field_id,
-            json.dumps(geometry),
-            changed_by,
-            reason,
-            source,
-            json.dumps(metadata or {}),
-        )
-        return int(rev) if rev is not None else None
-    except Exception:  # noqa: BLE001 — أفضل-جهد: سجلّ المراجعة لا يجب أن يكسر حفظ الحقل (جدول v96 قد لا يكون مُطبَّقاً بعد)
-        return None
+) -> int:
+    """Append a field geometry revision on the caller's transaction; a failure fails the save.
+
+    Every caller runs this right after it changed ``fields.geometry`` on the same
+    ``tenant_connection`` transaction, where the v134 trigger has already bumped
+    ``geometry_version``. The boundary, its version and its history row must move together.
+
+    This used to be "best effort": the INSERT sat in ``try/except Exception: return None``
+    with no savepoint. A failed INSERT aborts the whole transaction in PostgreSQL, so the
+    swallowed error made every later statement fail too; the raster intent and the domain
+    event swallow theirs, and COMMIT on an aborted transaction rolls back without raising.
+    The handler then answered success with the new boundary while nothing was stored
+    (``tests_v9/test_field_geometry_save_atomic_live_pg.py``). The stated reason, that the
+    v96 table might not exist yet, no longer holds: v96 precedes every migration the live
+    schema probes have reported as applied. The error now propagates and the caller's
+    ``except`` maps it to 503 with nothing half-applied.
+    """
+    rev = await conn.fetchval(
+        """
+        INSERT INTO field_geometry_history
+            (tenant_id, field_id, geometry, changed_by, reason, source, metadata)
+        VALUES ($1::uuid, $2, $3::jsonb, $4, $5, $6, $7::jsonb)
+        RETURNING revision
+        """,
+        tenant_id,
+        field_id,
+        json.dumps(geometry),
+        changed_by,
+        reason,
+        source,
+        json.dumps(metadata or {}),
+    )
+    return int(rev)
 
 
 def invalidation_request_id(

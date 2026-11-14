@@ -24,7 +24,7 @@ container: copy the evidence directory out before the container ends.
 | Ports, database, user | 5433 / 6380, `sahool_test` | same |
 | `psql`, `pg_isready` on the host | the host's own client (PostgreSQL 16 here) | `scripts/ci/provision_pg_client.sh` shims that run the container's client |
 | Python deps | fresh venv from `tests_v9/requirements-test.txt` (+ `constraints-ci-tools.txt`) | same files |
-| Certification switches | `HIL_`, `CLAIM_LEASE_`, `RECONCILIATION_RESUMPTION_`, `MIGRATOR_CERTIFICATION_REQUIRED=1` | same |
+| Certification switches | `HIL_`, `CLAIM_LEASE_`, `RECONCILIATION_RESUMPTION_`, `MIGRATOR_`, `FIELD_GEOMETRY_CERTIFICATION_REQUIRED=1` | same |
 | Restricted-role certification steps | read from `ci.yml` at run time and run as written | the steps listed below |
 
 The PostgreSQL difference exists because the CI image installs PostGIS from
