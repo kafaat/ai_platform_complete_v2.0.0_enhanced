@@ -823,6 +823,10 @@ v269_scout_plant_tissue_chain.sql
 v270_scout_specialist_credential_attestations.sql
 v271_scout_treatment_review_events.sql
 v272_scout_photo_retention_governance.sql
+# v273 (gap P6, owner decision 2026-11-13): soil_sampling_plan_copies, soil-service's stored copy
+#   of each AI soil-sampling plan; lab-sample plan origins are resolved from it by soil-service.
+#   Insert-only (BEFORE UPDATE trigger), FORCE RLS by tenant. Inserted after v272, before v240.
+v273_soil_sampling_plan_copies.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

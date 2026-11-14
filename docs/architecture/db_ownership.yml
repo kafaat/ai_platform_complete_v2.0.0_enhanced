@@ -1343,6 +1343,15 @@ tables:
     writers: [soil-service]
     readers: [sahool-platform]
     source: "migrations/v161_soil_p1_products.sql"
+  # Owner decision 2026-11-13 (gap P6, sampling plan provenance): soil-service owns and alone
+  # writes the stored soil-sampling plan copies and resolves plan-point origins from them. The
+  # platform never touches the table: it forwards plans and asks for an origin over HTTP
+  # (api/soil_hydraulic_client.py).
+  soil_sampling_plan_copies:
+    owner: soil-service
+    writers: [soil-service]
+    readers: []
+    source: "migrations/v273_soil_sampling_plan_copies.sql"
   soil_hydraulic_profiles:
     owner: soil-service
     writers: [soil-service]
