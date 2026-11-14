@@ -100,7 +100,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.auth.routers.email_verify",
       "node_id": "services.auth.routers.email_verify:router",
       "route_count": 4,
@@ -154,7 +154,7 @@
     },
     {
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.auth.routers.season_edge_sign",
       "node_id": "services.auth.routers.season_edge_sign:router",
       "route_count": 1,
@@ -2955,7 +2955,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "3984cbb78aa3524f4cb07e801957e17e08717c16a8db0957f06a3657a95b307a",
+  "inventory_sha256": "f5f18aa846ec740f47a7f61f47bf219c9c2c69ec1e578736a75c7cae8be1ee15",
   "orphan_candidate_count": 236,
   "orphan_candidates": [
     {
@@ -2991,7 +2991,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.auth.routers.email_verify",
       "node_id": "services.auth.routers.email_verify:router",
       "route_count": 4,
@@ -3051,7 +3051,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.auth.routers.season_edge_sign",
       "node_id": "services.auth.routers.season_edge_sign:router",
       "route_count": 1,

@@ -28,10 +28,10 @@ ai-agronomist,POST,/v1/chat,chat,services/ai_agronomist/main.py,519
 ai-agronomist,POST,/v1/explain,explain,services/ai_agronomist/main.py,530
 ai-agronomist,POST,/v1/recommend,recommend,services/ai_agronomist/main.py,541
 auth,GET,/runtime-identity,runtime_identity,services/auth/main.py,410
-auth,POST,/v1/auth/verify/request,verify_request,services/auth/routers/email_verify.py,23
-auth,POST,/v1/auth/verify/confirm,verify_confirm,services/auth/routers/email_verify.py,56
-auth,GET,/v1/auth/verify,verify,services/auth/routers/email_verify.py,98
-auth,GET,/v1/auth/verify/status,verify_status,services/auth/routers/email_verify.py,108
+auth,POST,/v1/auth/verify/request,verify_request,services/auth/routers/email_verify.py,24
+auth,POST,/v1/auth/verify/confirm,verify_confirm,services/auth/routers/email_verify.py,57
+auth,GET,/v1/auth/verify,verify,services/auth/routers/email_verify.py,99
+auth,GET,/v1/auth/verify/status,verify_status,services/auth/routers/email_verify.py,115
 auth,POST,/v1/auth/invitations,create_invitation,services/auth/routers/invitations.py,46
 auth,GET,/v1/auth/invitations,list_invitations,services/auth/routers/invitations.py,108
 auth,POST,/v1/auth/invitations/accept,accept_invitation,services/auth/routers/invitations.py,142
@@ -46,7 +46,7 @@ auth,POST,/v1/auth/password-reset/request,request_password_reset,services/auth/r
 auth,POST,/v1/auth/password-reset/confirm,confirm_password_reset,services/auth/routers/password_reset.py,62
 auth,POST,/v1/auth/register,register,services/auth/routers/registration.py,20
 auth,POST,/v1/auth/change-password,change_password,services/auth/routers/registration.py,73
-auth,GET,/v1/auth/edge-sign,edge_sign,services/auth/routers/season_edge_sign.py,41
+auth,GET,/v1/auth/edge-sign,edge_sign,services/auth/routers/season_edge_sign.py,42
 auth,POST,/v1/auth/login,login,services/auth/routers/session.py,70
 auth,POST,/v1/auth/refresh,refresh_token,services/auth/routers/session.py,193
 auth,POST,/v1/auth/logout,logout,services/auth/routers/session.py,257
