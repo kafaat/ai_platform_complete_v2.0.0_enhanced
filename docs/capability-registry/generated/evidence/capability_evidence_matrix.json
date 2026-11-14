@@ -2352,7 +2352,8 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
-        "tests_v9/test_field_geometry_history_append_only_v39_5.py"
+        "tests_v9/test_field_geometry_history_append_only_v39_5.py",
+        "tests_v9/test_field_geometry_save_atomic_live_pg.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -2429,6 +2430,11 @@
         {
           "evidence_type": "integration",
           "path": "tests_v9/test_field_geometry_history_append_only_v39_5.py",
+          "signal": "pytest.mark.integration"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_field_geometry_save_atomic_live_pg.py",
           "signal": "pytest.mark.integration"
         },
         {

@@ -4895,7 +4895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ccad85db743496e9dedd2b138ce81d4cfe26159aa7395da8aa46c00fd270df68"
+          "content": "e4cd82e46de5ef373920630b66bc9d92957070faa44734fb5f0705e23fa58d12"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -24855,7 +24855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f8c9c71d9b3b65deb31cedd2db95ac790e00c92b0f6436df1d5254883455519"
+          "content": "a04863f18039d2625a741bc23b48b11eaf0d80fd8842232e5f377efc6f363b54"
         }
       ],
       "name": "services/sahool-platform/api/event_catalog.py",
@@ -27225,7 +27225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9106fcebe4ee4227ab0d17974dfb1c8e008007af6039060bbaa106fee06cd815"
+          "content": "6fbfca5ca590d0102b2f77bd43d0ccb88801765baafdbe21675419a63c22010d"
         }
       ],
       "name": "services/sahool-platform/api/routers/notifications.py",
@@ -28055,7 +28055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09a0d9d83c8aa0cb44f4789fb8f6fe9730b5bb399e2eab0a4dffba7411fcbba6"
+          "content": "3f2dbe97b22ece2b5346459e25477649d99877aae9ca2ede44d0e99ee6ef85d5"
         }
       ],
       "name": "services/sahool-platform/api/spatial_sync.py",
@@ -35255,16 +35255,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "272bf31d24d30bee87743ee14a591add948c03f45ec606e481ab075ce04703f6"
-        }
-      ],
-      "name": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "0bc1e7b3e07b828d32ab4ec497c16fc7d1e049a8227cbea53c66c32e0997725c"
         }
       ],
@@ -36639,6 +36629,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_spatial_geometry_integrity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "181ef87fffcc1db23d7f84c4a0b0055db1c0781df08642a5f749d688376e7e98"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
       "type": "file"
     },
     {

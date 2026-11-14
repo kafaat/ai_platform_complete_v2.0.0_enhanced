@@ -1,5 +1,5 @@
 {
-  "edge_count": 1033,
+  "edge_count": 1032,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -3969,16 +3969,6 @@
       "relation": "READS",
       "resource": "db://ndvi_timeseries",
       "to": "db://ndvi_timeseries",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/notifications.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://notification_delivery",
-      "to": "db://notification_delivery",
       "to_kind": "resource"
     },
     {
@@ -8342,6 +8332,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://field_geometry_history",
+      "to": "db://field_geometry_history",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/field_lifecycle.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -8973,16 +8973,6 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/notifications.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "WRITES",
-      "resource": "db://notification_delivery",
-      "to": "db://notification_delivery",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -10350,7 +10340,7 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 547,
+    "READS": 546,
     "ROUTES_TO": 73,
     "WRITES": 362
   },
@@ -10367,8 +10357,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 910,
-      "resolved": 909,
+      "observed": 909,
+      "resolved": 908,
       "unresolved_component_paths": 0
     }
   }

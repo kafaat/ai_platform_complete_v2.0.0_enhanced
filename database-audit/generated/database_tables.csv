@@ -110,7 +110,7 @@ field_feature_store_candidate,v118_phase9_autonomous_farm_os.sql,124,True,True,T
 field_form_assignments,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_form_definitions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_form_versions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
-field_geometry_history,v96_spatial_geometry_integrity.sql,101,True,True,True,1,True,False,5,1
+field_geometry_history,v96_spatial_geometry_integrity.sql,101,True,True,True,1,True,False,5,2
 field_geometry_versions,v105_enterprise_imagery_best_practices.sql,110,True,True,True,1,True,False,0,1
 field_indicators,init_v8.sql,0,True,True,False,0,False,True,1,0
 field_irrigation_source_assignments,v214_field_irrigation_source_assignments.sql,218,True,True,True,1,True,False,1,0
