@@ -29,7 +29,6 @@ CODES = ChainCodes(
     unverified="scout_photo_detection_receipt_unverified",
     ambiguous="scout_photo_detection_link_ambiguous",
 )
-_PATH = "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events"
 
 
 def detection_bridge_enabled() -> bool:
@@ -127,7 +126,7 @@ def _gate(token, tenant, uid, role) -> tuple[str, str]:
     return tenant_id, actor
 
 
-@router.post(_PATH)
+@router.post("/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events")
 async def post_detection_link(
     field_id: str,
     pin_id: str,
@@ -238,7 +237,7 @@ async def post_detection_link(
     }
 
 
-@router.get(_PATH)
+@router.get("/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events")
 async def get_detection_links(
     field_id: str,
     pin_id: str,

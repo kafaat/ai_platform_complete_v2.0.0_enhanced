@@ -29,7 +29,6 @@ CODES = ChainCodes(
     unverified="scout_photo_lab_receipt_unverified",
     ambiguous="scout_photo_lab_chain_ambiguous",
 )
-_PATH = "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events"
 _ELIGIBLE_SQL = "s.kind IN ('soil','water') AND s.status IN ({})".format(
     ",".join(f"'{status}'" for status in ELIGIBLE_STATUSES)
 )
@@ -126,7 +125,7 @@ def _gate(token, tenant, uid, role) -> tuple[str, str]:
     return tenant_id, actor
 
 
-@router.post(_PATH)
+@router.post("/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events")
 async def post_lab_link(
     field_id: str,
     pin_id: str,
@@ -228,7 +227,7 @@ async def post_lab_link(
     }
 
 
-@router.get(_PATH)
+@router.get("/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events")
 async def get_lab_links(
     field_id: str,
     pin_id: str,

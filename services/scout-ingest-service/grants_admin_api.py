@@ -45,7 +45,6 @@ from shared.security.trusted_tenant import service_token_ok
 router = APIRouter()
 ADMIN_DB_ROLE = "sahool_scout_grant_admin"
 _ENABLED = frozenset(("1", "true", "on", "yes"))
-_ADMIN = "/internal/scouting-media/admin"
 SCOPES = (
     "photo.read",
     "photo.upload",
@@ -346,7 +345,7 @@ _IDENTITY = {
 # ─── field grants (phase 7) ─────────────────────────────────────────────────
 
 
-@router.post(_ADMIN + "/fields/{field_id}/grants", status_code=201)
+@router.post("/internal/scouting-media/admin/fields/{field_id}/grants", status_code=201)
 async def issue_scout_photo_grant(
     field_id: str,
     req: IssueGrant,
@@ -437,7 +436,7 @@ async def issue_scout_photo_grant(
     }
 
 
-@router.post(_ADMIN + "/fields/{field_id}/grants/{grant_id}/revoke")
+@router.post("/internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke")
 async def revoke_scout_photo_grant(
     field_id: str,
     grant_id: UUID,
@@ -514,7 +513,7 @@ async def revoke_scout_photo_grant(
     }
 
 
-@router.get(_ADMIN + "/fields/{field_id}/grants")
+@router.get("/internal/scouting-media/admin/fields/{field_id}/grants")
 async def list_scout_photo_grants(
     field_id: str,
     limit: int = Query(default=50, ge=1, le=100),
@@ -583,7 +582,7 @@ def _iso(value) -> str | None:
     return value.astimezone(UTC).isoformat() if value is not None else None
 
 
-@router.post(_ADMIN + "/credential-events")
+@router.post("/internal/scouting-media/admin/credential-events")
 async def post_credential_event(
     data: CredentialIn,
     x_scout_media_token: str | None = _IDENTITY["token"],
@@ -681,7 +680,7 @@ async def post_credential_event(
     }
 
 
-@router.post(_ADMIN + "/retention-policy-events")
+@router.post("/internal/scouting-media/admin/retention-policy-events")
 async def post_retention_policy(
     data: RetentionPolicyIn,
     x_scout_media_token: str | None = _IDENTITY["token"],
@@ -752,7 +751,7 @@ async def post_retention_policy(
     }
 
 
-@router.post(_ADMIN + "/fields/{field_id}/pins/{pin_id}/retention-events")
+@router.post("/internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events")
 async def post_retention_event(
     field_id: str,
     pin_id: str,

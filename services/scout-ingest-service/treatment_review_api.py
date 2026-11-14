@@ -44,7 +44,6 @@ _STATES = {
     "reject": "rejected",
     "withdraw": "withdrawn",
 }
-_PATH = "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events"
 
 
 def enabled() -> bool:
@@ -170,7 +169,9 @@ def _gate(token, tenant, uid, role) -> tuple[str, str, int]:
     return tenant_id, actor, positive_user_id(actor, "scout_treatment_actor_invalid")
 
 
-@router.post(_PATH)
+@router.post(
+    "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events"
+)
 async def post_treatment_event(
     field_id: str,
     pin_id: str,
@@ -273,7 +274,9 @@ async def post_treatment_event(
     }
 
 
-@router.get(_PATH)
+@router.get(
+    "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events"
+)
 async def get_treatment_events(
     field_id: str,
     pin_id: str,

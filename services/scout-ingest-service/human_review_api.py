@@ -38,7 +38,6 @@ CODES = ChainCodes(
     unverified="scout_photo_human_receipt_unverified",
     ambiguous="scout_photo_human_review_chain_ambiguous",
 )
-_PATH = "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events"
 
 
 def human_review_enabled() -> bool:
@@ -166,7 +165,7 @@ def _gate(token, tenant, uid, role) -> tuple[str, str, int]:
     return tenant_id, actor, positive_user_id(actor, "scout_photo_human_reviewer_id_invalid")
 
 
-@router.post(_PATH)
+@router.post("/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events")
 async def post_human_review(
     field_id: str,
     pin_id: str,
@@ -267,7 +266,7 @@ async def post_human_review(
     }
 
 
-@router.get(_PATH)
+@router.get("/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events")
 async def get_human_reviews(
     field_id: str,
     pin_id: str,

@@ -39,7 +39,6 @@ CODES = ChainCodes(
     unverified="scout_tissue_custody_receipt_unverified",
     ambiguous="scout_tissue_custody_chain_ambiguous",
 )
-_BASE = "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples"
 
 
 def enabled() -> bool:
@@ -177,7 +176,9 @@ def _collection_matches(row, actor_id: int, note: str) -> bool:
     )
 
 
-@router.post(_BASE, status_code=201)
+@router.post(
+    "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples", status_code=201
+)
 async def create_tissue_sample(
     field_id: str,
     pin_id: str,
@@ -281,7 +282,9 @@ def _sample_receipt(data: TissueSampleIn, *, idempotent: bool) -> dict:
     }
 
 
-@router.post(_BASE + "/{sample_id}/custody-events")
+@router.post(
+    "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples/{sample_id}/custody-events"
+)
 async def record_custody_event(
     field_id: str,
     pin_id: str,
@@ -388,7 +391,7 @@ async def record_custody_event(
     }
 
 
-@router.get(_BASE)
+@router.get("/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples")
 async def list_tissue_samples(
     field_id: str,
     pin_id: str,
