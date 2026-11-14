@@ -7299,6 +7299,7 @@
     {
       "code_readers": [
         "services/auth/main.py",
+        "services/auth/mfa_enrollment.py",
         "services/auth/mfa_runtime.py",
         "services/auth/routers/email_verify.py",
         "services/auth/routers/mfa.py",

@@ -124,6 +124,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/AddFieldWithMap.segmentation.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/AddFieldWithMap.shapefileImport.test.tsx",
     "kind": "web"
   },
@@ -4928,6 +4932,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/edge-inference/tests/test_entrypoint_validation_lifecycle.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
     "kind": "tests"
   },
@@ -9412,6 +9420,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_service_proxy_transport.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_signal_age_naive_datetime.py",
     "kind": "tests"
   },
@@ -10976,6 +10988,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_auth_enrollment_redis_acl.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_auth_main_decomposition_guard.py",
     "kind": "tests"
   },
@@ -11589,6 +11605,10 @@
   },
   {
     "path": "tests_v9/test_economic_state.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_edge_agriai_entrypoint_contracts.py",
     "kind": "tests"
   },
   {
@@ -13372,6 +13392,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_soil_script_entrypoint.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_soil_water.py",
     "kind": "tests"
   },
@@ -13701,6 +13725,10 @@
   },
   {
     "path": "tests_v9/test_verify_sweep_writer_diagnostics.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_video_capture_source_contract.py",
     "kind": "tests"
   },
   {

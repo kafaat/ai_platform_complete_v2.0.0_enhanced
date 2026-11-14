@@ -261,3 +261,126 @@ def test_mfa_end_to_end_via_app():
             json={"email": email, "password": pw, "mfa_code": totp.at(int(time.time()) + 30)},
         )
         assert r.status_code == 200, r.text[:160]
+
+
+# ── AUTH-02: password-proven bootstrap enrollment on the REAL schema (trigger included) ──
+# The HTTP suite (tests_v9/test_auth_enrollment_http.py) doubles the DB. This replays the
+# real migrations: ``trg_users_updated_at`` (v9_foundation.sql:53) bumps updated_at on the
+# anti-replay TOTP-step write and on the failure-counter write that run *inside* activation.
+# A proof bound to updated_at returned 409 here on every activation (review 2026-11-11), and
+# a single wrong code invalidated it. Runs in the same restricted-role CI step as the e2e
+# test above (Integration Tests → "MFA end-to-end via the real auth app (restricted role)").
+@pytest.mark.integration
+def test_mfa_bootstrap_enrollment_on_real_postgres(monkeypatch):
+    try:
+        import fastapi  # noqa: F401
+    except ImportError:
+        _skip_or_fail("fastapi غير مثبّتة — تطبيق auth لا يُبنى هنا")
+    if not _db_available():
+        _skip_or_fail("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+    if _role_bypasses_rls():
+        _skip_or_fail(
+            "دور TEST_DATABASE_URL يتجاوز RLS (superuser/BYPASSRLS) ⇒ حارس auth يرفض الإقلاع "
+            "بحقّ. شغّله بدورٍ مقيَّد (خطوة CI: MFA end-to-end, restricted role)."
+        )
+    import asyncpg
+    import pyotp
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("DATABASE_URL", _TEST_DB)
+    monkeypatch.setenv("REDIS_URL", os.getenv("TEST_REDIS_URL", "redis://localhost:6380/0"))
+    monkeypatch.setenv("JWT_SECRET", os.getenv("JWT_SECRET") or "z" * 48)
+    monkeypatch.setenv("SAHOOL_ENV", os.getenv("SAHOOL_ENV") or "development")
+    monkeypatch.setenv(
+        "MFA_SECRET_ENCRYPTION_KEY",
+        os.getenv("MFA_SECRET_ENCRYPTION_KEY") or "integration-mfa-key-" + "x" * 24,
+    )
+    monkeypatch.setenv("ENFORCE_SENSITIVE_MFA", "true")
+    monkeypatch.setenv("REQUIRE_MFA_ROLES", "admin")
+    monkeypatch.setenv("MFA_SELF_ENROLLMENT_SCOPE", "bootstrap")
+
+    async def _sql(method, sql, *args):
+        conn = await asyncpg.connect(_TEST_DB, statement_cache_size=0)
+        try:
+            await conn.execute("SELECT set_config('app.current_role', 'admin', false)")
+            return await getattr(conn, method)(sql, *args)
+        finally:
+            await conn.close()
+
+    trigger = asyncio.run(
+        _sql(
+            "fetchval",
+            "SELECT count(*) FROM pg_trigger WHERE tgrelid='users'::regclass "
+            "AND tgname='trg_users_updated_at' AND tgenabled <> 'D'",
+        )
+    )
+    assert trigger == 1, "the updated_at trigger this test exists for is not installed"
+
+    m = _load_auth_main()
+    pw = "S3cure-Pass!2026"
+    tenant = uuid.uuid4()
+    first = f"mfa_boot_{uuid.uuid4().hex[:8]}@sahool.ye"
+    second = f"mfa_boot_{uuid.uuid4().hex[:8]}@sahool.ye"
+    for email in (first, second):
+        asyncio.run(
+            _sql(
+                "execute",
+                "INSERT INTO users (email, password_hash, full_name, role, tenant_id) "
+                "VALUES ($1, $2, 'bootstrap admin', 'admin', $3)",
+                email,
+                m.hash_password(pw, 4),
+                tenant,
+            )
+        )
+
+    def _state(email):
+        return asyncio.run(
+            _sql(
+                "fetchrow",
+                "SELECT mfa_enabled, mfa_enabled_at, updated_at FROM users WHERE email=$1",
+                email,
+            )
+        )
+
+    with TestClient(m.app, raise_server_exceptions=False) as c:
+        r = c.post("/v1/auth/login", json={"email": first, "password": pw})
+        assert r.status_code == 403, r.text[:200]
+        assert "access_token" not in r.json()
+        proof = r.json()["enrollment_token"]
+        assert r.json()["expires_in"] == 300
+
+        r = c.post("/v1/auth/mfa/setup", headers={"Authorization": f"Bearer {proof}"})
+        assert r.status_code == 200, r.text[:200]
+        secret = r.json()["secret"]
+        activation = {"Authorization": f"Bearer {r.json()['enrollment_token']}"}
+        after_setup = _state(first)["updated_at"]
+
+        totp = pyotp.TOTP(secret)
+        valid = {totp.at(time.time() + 30 * k) for k in (-1, 0, 1)}
+        wrong = next(f"{n:06d}" for n in range(1000000) if f"{n:06d}" not in valid)
+        r = c.post("/v1/auth/mfa/activate", headers=activation, json={"code": wrong})
+        assert r.status_code == 400, r.text[:200]
+        # the failure counter UPDATE fired the trigger: updated_at moved under the proof
+        assert _state(first)["updated_at"] != after_setup
+
+        code = totp.now()
+        r = c.post("/v1/auth/mfa/activate", headers=activation, json={"code": code})
+        assert r.status_code == 200, r.text[:200]  # was 409 with updated_at in the binding
+        assert len(r.json()["recovery_codes"]) == 10
+        row = _state(first)
+        assert row["mfa_enabled"] is True and row["mfa_enabled_at"] is not None
+
+        r = c.post(
+            "/v1/auth/login",
+            json={"email": first, "password": pw, "mfa_code": totp.at(int(time.time()) + 30)},
+        )
+        assert r.status_code == 200, r.text[:200]
+        assert r.json()["role"] == "admin"
+
+        # Bootstrap is now closed for this tenant: the second unenrolled admin gets the
+        # pre-patch 403 with no enrollment capability (bootstrap SQL measured on real PG).
+        r = c.post("/v1/auth/login", json={"email": second, "password": pw})
+        assert r.status_code == 403, r.text[:200]
+        assert r.headers.get("x-mfa-enrollment-required") == "true"
+        assert "enrollment_token" not in r.json()
+        assert _state(second)["mfa_enabled"] is False

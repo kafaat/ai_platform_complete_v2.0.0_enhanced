@@ -8,15 +8,17 @@ app.current_tenant) ينهار **صامتاً** إذا اتّصل التطبيق
 
 بخلاف الحارس السابق (الخاصّ بـsahool-platform، opt-in)، هذا الحارس:
   • مشترَك (في shared/ المنسوخ إلى كلّ صورة خدمة) ⇒ يُستعمَل من أيّ خدمة.
-  • **fail-closed افتراضيّاً**: يرفض الإقلاع على دور يتجاوز RLS ما لم يُعطَّل صراحةً
+  • **fail-closed افتراضيّاً**: يرفض الإقلاع على دور يتجاوز RLS — أو دورٍ تعذّر إثبات
+    سلامته (خطأ/مهلة/لا صفّ في الفحص) — ما لم يُعطَّل صراحةً
     (SAHOOL_ALLOW_RLS_BYPASS_ROLE=1 للتطوير المحلّيّ فقط) — تحويل «انحدار أمنيّ صامت»
     إلى «فشل صريح عند الإقلاع».
 
-نقيّ بالكامل عدا الدالّة async الفاحصة (تقرأ pg_roles لدور الاتّصال الحاليّ).
+نقيّ بالكامل عدا الدوالّ async الفاحصة (تقرأ pg_roles لدور الاتّصال الحاليّ).
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 _TRUTHY = {"1", "true", "yes", "on"}
@@ -24,6 +26,10 @@ _FALSY = {"0", "false", "no", "off"}
 
 # probe: دور الاتّصال الحاليّ وقدرته على تجاوز RLS (يقرأ صفّه هو — متاح لأيّ دور).
 ROLE_PROBE_SQL = "SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user"
+
+# الفحص على مسار الإقلاع الحرج ⇒ محدود زمنيّاً (يُضبَط بالبيئة؛ غير الموجب/غير الرقميّ ⇒ الافتراض).
+PROBE_TIMEOUT_ENV = "SAHOOL_RLS_ROLE_PROBE_TIMEOUT_SECONDS"
+DEFAULT_PROBE_TIMEOUT_SECONDS = 10.0
 
 
 def role_can_bypass_rls(rolsuper, rolbypassrls) -> bool:
@@ -63,44 +69,74 @@ def role_guard_message(rolsuper, rolbypassrls, refused: bool, service: str = "")
     )
 
 
+def probe_timeout_seconds() -> float:
+    """مهلة فحص الدور (اكتساب الاتّصال + الاستعلام). الفحص على مسار الإقلاع الحرج:
+    قاعدةٌ تقبل الاتّصال وتتوقّف عند الاستعلام لا يجوز أن تُعلِّق الإقلاع بلا نهاية."""
+    import os
+
+    raw = os.getenv(PROBE_TIMEOUT_ENV, "").strip()
+    try:
+        value = float(raw) if raw else DEFAULT_PROBE_TIMEOUT_SECONDS
+    except ValueError:
+        return DEFAULT_PROBE_TIMEOUT_SECONDS
+    return value if value > 0 else DEFAULT_PROBE_TIMEOUT_SECONDS
+
+
+async def _fetch_role_row(pool_or_conn):
+    if hasattr(pool_or_conn, "acquire"):
+        async with pool_or_conn.acquire() as conn:
+            return await conn.fetchrow(ROLE_PROBE_SQL)
+    return await pool_or_conn.fetchrow(ROLE_PROBE_SQL)
+
+
 async def assert_db_role_rls_safe(pool_or_conn, *, service: str = "") -> None:
-    """يفحص دور الاتّصال عند الإقلاع ويرفض (fail-closed) إن تجاوز RLS والفرض مُفعَّل.
+    """يفحص دور الاتّصال عند الإقلاع ويرفض (fail-closed) إن لم تُثبَت سلامته والفرض مُفعَّل.
 
     `pool_or_conn`: asyncpg Pool (يُكتسَب منه اتّصال) أو Connection مباشر.
-    يرفع RuntimeError عند الرفض (لا يُبتلَع — يجب أن يوقف إقلاع الخدمة).
-    تعذّر الفحص نفسه (لا pg_roles/خطأ عابر) لا يحجب الإقلاع (لا يكسر بيئات الاختبار)؛
-    لكنّ دوراً يتجاوز RLS فعليّاً = رفض. الاستيراد متأخّر لـos تفادياً لتلوّث النقاء.
+    يرفع RuntimeError عند الرفض (لا يُبتلَع — يجب أن يوقف إقلاع الخدمة):
+      • دورٌ يتجاوز RLS (superuser/BYPASSRLS)؛
+      • أو تعذّر الفحص نفسه (خطأ/مهلة ``probe_timeout_seconds``/لا صفّ) — دورٌ مجهول
+        غير آمن ما دام الفرض مُفعَّلاً (LIFE-01: كان يُسجَّل DEBUG ويُكمِل الإقلاع).
+    تجاوز التطوير الصريح وحده (SAHOOL_ALLOW_RLS_BYPASS_ROLE=1 أو SAHOOL_ENFORCE_RLS_ROLE=0)
+    يسمح بفحص متعذّر — بتحذير يحمل اسم صنف الاستثناء فقط (رسائل السائق قد تحمل الـDSN).
     """
     import os
 
+    log = logging.getLogger(service or "db_role_guard")
+    svc = f"[{service}] " if service else ""
+    enforce = enforcement_active(
+        os.getenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE"), os.getenv("SAHOOL_ENFORCE_RLS_ROLE")
+    )
     try:
-        if hasattr(pool_or_conn, "acquire"):
-            async with pool_or_conn.acquire() as conn:
-                row = await conn.fetchrow(ROLE_PROBE_SQL)
-        else:
-            row = await pool_or_conn.fetchrow(ROLE_PROBE_SQL)
-    except Exception as e:  # noqa: BLE001 — تعذّر الفحص ⇒ لا يحجب الإقلاع
-        logging.getLogger(service or "db_role_guard").debug("تعذّر فحص دور RLS: %s", e)
+        row = await asyncio.wait_for(_fetch_role_row(pool_or_conn), probe_timeout_seconds())
+    except Exception as e:  # noqa: BLE001 — دورٌ مجهول غير آمن ما دام الفرض مُفعَّلاً
+        if enforce:
+            raise RuntimeError(
+                f"{svc}RLS database role verification failed ({type(e).__name__})"
+            ) from e
+        log.warning("تعذّر فحص دور RLS مع تجاوز صريح: %s", type(e).__name__)
         return
     if row is None:
+        if enforce:
+            raise RuntimeError(f"{svc}RLS database role verification returned no role")
+        log.warning("فحص دور RLS لم يُرجِع دوراً (تجاوز صريح)")
         return
     unsafe = role_can_bypass_rls(row["rolsuper"], row["rolbypassrls"])
     if not unsafe:
         return
-    enforce = enforcement_active(
-        os.getenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE"), os.getenv("SAHOOL_ENFORCE_RLS_ROLE")
-    )
     refuse = should_refuse_startup(unsafe, enforce)
     msg = role_guard_message(row["rolsuper"], row["rolbypassrls"], refuse, service)
-    logging.getLogger(service or "db_role_guard").critical("🔓 %s", msg)
+    log.critical("🔓 %s", msg)
     if refuse:
         raise RuntimeError(msg)
 
 
 async def assert_dsn_role_rls_safe(dsn: str, *, service: str = "") -> None:
     """نسخة DSN لخدمات بلا pool دائم عند الإقلاع (اتّصال per-call): تفتح اتّصالاً
-    واحداً للفحص ثمّ تُغلقه. ترفع RuntimeError عند رفض الدور؛ تعذّر الاتّصال نفسه
-    (قاعدة غير متاحة) لا يحجب الإقلاع (best-effort). بلا DSN ⇒ لا عمل."""
+    واحداً للفحص ثمّ تُغلقه. ترفع RuntimeError عند رفض الدور أو تعذّر فحصه بعد الاتّصال
+    (كـassert_db_role_rls_safe). تعذّر الاتّصال نفسه (قاعدة غير متاحة بعد) يبقى
+    best-effort — هذه الخدمات تُقلِع بلا قاعدة وتتّصل لكلّ طلب — لكنّه يُسجَّل WARNING
+    لا DEBUG، ومحدودٌ بمهلة الفحص. بلا DSN ⇒ لا عمل."""
     if not dsn:
         return
     try:
@@ -108,9 +144,11 @@ async def assert_dsn_role_rls_safe(dsn: str, *, service: str = "") -> None:
     except Exception:  # noqa: BLE001 — لا asyncpg ⇒ لا فحص
         return
     try:
-        conn = await asyncpg.connect(dsn, statement_cache_size=0)
+        conn = await asyncpg.connect(dsn, statement_cache_size=0, timeout=probe_timeout_seconds())
     except Exception as e:  # noqa: BLE001 — تعذّر الاتّصال ⇒ لا يحجب الإقلاع
-        logging.getLogger(service or "db_role_guard").debug("تعذّر اتّصال فحص RLS: %s", e)
+        logging.getLogger(service or "db_role_guard").warning(
+            "تعذّر اتّصال فحص دور RLS عند الإقلاع: %s", type(e).__name__
+        )
         return
     try:
         await assert_db_role_rls_safe(conn, service=service)

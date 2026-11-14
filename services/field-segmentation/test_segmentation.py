@@ -434,8 +434,8 @@ def _png_b64_rgb_square() -> str:
     return base64.b64encode(out.getvalue()).decode("ascii")
 
 
-def test_auto_exg_preprocesses_image_before_sam2(monkeypatch):
-    mod, client = _configured(monkeypatch, backend="sam2")
+def test_custom_backend_exg_preprocesses_image(monkeypatch):
+    mod, client = _configured(monkeypatch, backend="geosam")
     seen: dict = {}
     open_ring = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.1]]
 
@@ -468,8 +468,8 @@ def test_auto_exg_preprocesses_image_before_sam2(monkeypatch):
     assert seen["positive_points"]
 
 
-def test_auto_exg_without_image_is_explicitly_skipped(monkeypatch):
-    mod, client = _configured(monkeypatch, backend="sam2")
+def test_custom_backend_exg_without_image_is_explicitly_skipped(monkeypatch):
+    mod, client = _configured(monkeypatch, backend="geosam")
     seen: dict = {}
     open_ring = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.1]]
     monkeypatch.setattr(
@@ -488,3 +488,358 @@ def test_auto_exg_without_image_is_explicitly_skipped(monkeypatch):
     assert r.status_code == 200, r.text
     assert r.json()["metadata"]["preprocessing"] == "exg_skipped_no_image"
     assert seen["preprocessing"] == "exg_skipped_no_image"
+
+
+@pytest.mark.parametrize(
+    "ring",
+    [
+        [[44, 15]] * 4,
+        [[44, 15], [45, 15], [46, 15], [44, 15]],
+        [[44, 15], [45, 16], [44, 16], [45, 15], [44, 15]],
+        [[0, 0], [3, 0], [0, 2], [2, 2], [0, 0]],
+    ],
+)
+@pytest.mark.parametrize("upstream", [False, True])
+def test_invalid_topology_is_rejected(monkeypatch, ring, upstream):
+    mod, client = _configured(monkeypatch, backend="sam2")
+    if upstream:
+        monkeypatch.setattr(
+            mod,
+            "_post_inference",
+            lambda payload: _fake_response(
+                mod,
+                status_code=200,
+                json_body={"geometry": {"type": "Polygon", "coordinates": [ring]}},
+            ),
+        )
+    response = client.post(
+        "/v1/segment",
+        headers=_hdr(),
+        json={"mode": "auto" if upstream else "manual", "user_polygon": ring},
+    )
+    assert response.status_code == (502 if upstream else 422)
+
+
+def test_holes_are_not_silently_removed(client):
+    outer = [[0, 0], [3, 0], [3, 3], [0, 3], [0, 0]]
+    inner = [[1, 1], [2, 1], [2, 2], [1, 1]]
+    response = client.post(
+        "/v1/segment",
+        headers=_hdr(),
+        json={"mode": "manual", "user_polygon": {"type": "Polygon", "coordinates": [outer, inner]}},
+    )
+    assert response.status_code == 422
+
+
+def test_topology_work_is_bounded(client):
+    import math
+
+    ring = [
+        [44 + math.cos(i * 2 * math.pi / 2049), 15 + math.sin(i * 2 * math.pi / 2049)]
+        for i in range(2049)
+    ]
+    response = client.post(
+        "/v1/segment", headers=_hdr(), json={"mode": "manual", "user_polygon": ring}
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_valid_concave_ring_accepts_both_windings(client, reverse):
+    ring = [[44, 15], [46, 15], [45, 16], [46, 17], [44, 17]]
+    response = client.post(
+        "/v1/segment",
+        headers=_hdr(),
+        json={"mode": "manual", "user_polygon": ring[::-1] if reverse else ring},
+    )
+    assert response.status_code == 200
+
+
+_SAM2_OK = {
+    "geometry": {"type": "Polygon", "coordinates": [[[44, 15], [45, 15], [45, 16], [44, 15]]]},
+    "metadata": {"preprocessing": "exg", "vegetation_ratio": 0.3, "candidate_count": 1},
+}
+
+
+@pytest.mark.parametrize("mode", ["auto", "hybrid"])
+@pytest.mark.parametrize("with_image", [True, False])
+def test_sam2_accepts_web_ui_payload_and_never_forwards_client_image(monkeypatch, mode, with_image):
+    """GEO-01 BLOCKER: the exact AddFieldWithMap payload must not 422 under SAM2.
+
+    Older web clients attach an un-georeferenced viewport screenshot; SAM2 builds its
+    own georeferenced ExG image, so the screenshot is dropped, never forwarded, and
+    the drop is reported (not silent).
+    """
+    mod, client = _configured(monkeypatch, backend="sam2")
+    seen: list[dict] = []
+
+    def post(payload):
+        seen.append(payload)
+        return _fake_response(mod, status_code=200, json_body=_SAM2_OK)
+
+    monkeypatch.setattr(mod, "_post_inference", post)
+    bbox = [44.1, 15.3, 44.3, 15.4]
+    body = {
+        "mode": mode,
+        "bbox": bbox,
+        "preprocessing": "exg",
+        "fallback_to_original_on_low_exg": True,
+    }
+    if with_image:
+        body["image_base64"] = _png_b64_rgb_square()
+    if mode == "hybrid":
+        body["hints"] = [[44.2, 15.35]]
+    response = client.post("/v1/segment", headers=_hdr(), json=body)
+    assert response.status_code == 200, response.text
+    (payload,) = seen
+    assert not {"image_base64", "boxes", "positive_points", "multimask_output"} & set(payload)
+    assert payload["field_bbox"] == bbox
+    assert payload["preprocessing"] == "exg"
+    assert payload["user_polygon"] == ([[44.2, 15.35]] if mode == "hybrid" else None)
+    metadata = response.json()["metadata"]
+    assert metadata["preprocessing"] == "exg"
+    if with_image:
+        assert metadata["client_image"] == "ignored_not_georeferenced"
+    else:
+        assert "client_image" not in metadata
+
+
+def test_sam2_requires_backend_preprocessing_confirmation(monkeypatch):
+    mod, client = _configured(monkeypatch, backend="sam2")
+    monkeypatch.setattr(
+        mod,
+        "_post_inference",
+        lambda payload: _fake_response(
+            mod,
+            status_code=200,
+            json_body={
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[[44, 15], [45, 15], [45, 16], [44, 15]]],
+                }
+            },
+        ),
+    )
+    response = client.post(
+        "/v1/segment",
+        headers=_hdr(),
+        json={"mode": "auto", "bbox": [44, 15, 45, 16], "preprocessing": "exg"},
+    )
+    assert response.status_code == 502
+    assert response.json()["detail"]["error"] == "inference_preprocessing_unconfirmed"
+
+
+def test_inference_keeps_event_loop_available(monkeypatch):
+    import asyncio
+    import threading
+
+    mod, _ = _configured(monkeypatch, backend="sam2")
+    gate = threading.Event()
+
+    def blocked(**kwargs):
+        assert gate.wait(1), "event-loop coroutine could not release inference"
+        return {"type": "Polygon", "coordinates": []}, None, {}
+
+    monkeypatch.setattr(mod, "run_segmentation_model", blocked)
+
+    async def run():
+        async def release():
+            await asyncio.sleep(0.01)
+            gate.set()
+
+        await asyncio.gather(mod.segment(mod.SegmentRequest(mode="auto"), _TOKEN), release())
+
+    asyncio.run(run())
+
+
+def test_manual_validation_keeps_event_loop_available(monkeypatch):
+    """Manual validation runs off the event loop (deterministic gate, no timing race)."""
+    import asyncio
+    import threading
+
+    mod = _load_app(monkeypatch)
+    gate = threading.Event()
+    real = mod.normalize_polygon
+
+    def gated(polygon):
+        assert gate.wait(1), "manual topology validation blocked the event loop"
+        return real(polygon)
+
+    monkeypatch.setattr(mod, "normalize_polygon", gated)
+    ring = [[44.0, 15.0], [44.01, 15.0], [44.01, 15.01], [44.0, 15.01]]
+
+    async def run():
+        async def release():
+            await asyncio.sleep(0.01)
+            gate.set()
+
+        response, _ = await asyncio.gather(
+            mod.segment(mod.SegmentRequest(mode="manual", user_polygon=ring), _TOKEN), release()
+        )
+        assert response["source"] == "manual"
+
+    asyncio.run(run())
+
+
+def _scalar_edges_intersect(ring):
+    """Reference oracle: the former pure-Python O(n²) predicate, verbatim."""
+    vertices = ring[:-1]
+
+    def cross(a, b, c):
+        return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+
+    def on_segment(a, b, p):
+        return min(a[0], b[0]) <= p[0] <= max(a[0], b[0]) and min(a[1], b[1]) <= p[1] <= max(
+            a[1], b[1]
+        )
+
+    for i in range(len(vertices)):
+        a, b = ring[i], ring[i + 1]
+        for j in range(i + 2, len(vertices)):
+            if i == 0 and j == len(vertices) - 1:
+                continue
+            c, d = ring[j], ring[j + 1]
+            ac, ad, ca, cb = cross(a, b, c), cross(a, b, d), cross(c, d, a), cross(c, d, b)
+            if (
+                (ac * ad < 0 and ca * cb < 0)
+                or (ac == 0 and on_segment(a, b, c))
+                or (ad == 0 and on_segment(a, b, d))
+                or (ca == 0 and on_segment(c, d, a))
+                or (cb == 0 and on_segment(c, d, b))
+            ):
+                return True
+    return False
+
+
+def test_vectorised_intersection_matches_scalar_oracle(monkeypatch):
+    """The fast predicate is bit-equivalent to the O(n²) loop on random grid/float rings."""
+    import random
+
+    mod = _load_app(monkeypatch)
+    rnd = random.Random(20261111)
+    for _ in range(4000):
+        n = rnd.randint(3, 12)
+        if rnd.random() < 0.7:
+            g = rnd.choice([3, 4, 6])
+            v = [[float(rnd.randint(0, g)), float(rnd.randint(0, g))] for _ in range(n)]
+        else:
+            v = [[44 + rnd.uniform(0, 1e-3), 15 + rnd.uniform(0, 1e-3)] for _ in range(n)]
+        ring = v + [list(v[0])]
+        assert mod._ring_edges_intersect(ring) == _scalar_edges_intersect(ring), ring
+
+
+def test_maximum_manual_polygon_validation_is_cheap(client):
+    """GEO-03 MINOR: 2048-vertex validation held the GIL ~1.25 s; now it is vectorised."""
+    import math
+    import time
+
+    ring = [
+        [44 + math.cos(i * 2 * math.pi / 2048), 15 + math.sin(i * 2 * math.pi / 2048)]
+        for i in range(2048)
+    ]
+    started = time.perf_counter()
+    response = client.post(
+        "/v1/segment", headers=_hdr(), json={"mode": "manual", "user_polygon": ring}
+    )
+    elapsed = time.perf_counter() - started
+    assert response.status_code == 200, response.text
+    assert len(response.json()["geometry"]["coordinates"][0]) == 2049
+    assert elapsed < 0.4, f"2048-vertex validation took {elapsed:.3f}s"
+
+
+@pytest.mark.parametrize(
+    "ring, expected",
+    [
+        # Double click in the middle and a re-clicked closing vertex: normalised.
+        ([[44, 15], [45, 15], [45, 15], [45, 16], [44, 16]], 5),
+        ([[44, 15], [45, 15], [45, 16], [44, 15], [44, 15]], 4),
+    ],
+)
+@pytest.mark.parametrize("upstream", [False, True])
+def test_consecutive_duplicate_vertices_are_normalised(monkeypatch, ring, expected, upstream):
+    mod, client = _configured(monkeypatch, backend="geosam")
+    monkeypatch.setattr(
+        mod,
+        "_post_inference",
+        lambda payload: _fake_response(
+            mod, status_code=200, json_body={"type": "Polygon", "coordinates": [ring]}
+        ),
+    )
+    body = {"mode": "auto"} if upstream else {"mode": "manual", "user_polygon": ring}
+    response = client.post("/v1/segment", headers=_hdr(), json=body)
+    assert response.status_code == 200, response.text
+    out = response.json()["geometry"]["coordinates"][0]
+    assert len(out) == expected and out[0] == out[-1]
+    assert all(a != b for a, b in zip(out, out[1:], strict=False))
+
+
+def test_non_consecutive_repeated_vertex_is_still_rejected(client):
+    pinch = [[0, 0], [2, 0], [1, 1], [2, 2], [0, 2], [1, 1]]
+    response = client.post(
+        "/v1/segment", headers=_hdr(), json={"mode": "manual", "user_polygon": pinch}
+    )
+    assert response.status_code == 422
+    assert "repeated" in response.text
+
+
+def _square(lon: float, lat: float, side_deg: float) -> list[list[float]]:
+    return [
+        [lon, lat],
+        [lon + side_deg, lat],
+        [lon + side_deg, lat + side_deg],
+        [lon, lat + side_deg],
+    ]
+
+
+@pytest.mark.parametrize(
+    "ring",
+    [
+        _square(44.0, 15.0, 1e-5),  # ~1.2 m²
+        [[0.1, 0.1], [0.2, 0.2], [0.3, 0.3000000000000001]],  # float-noise collinear sliver
+    ],
+)
+def test_sliver_and_sub_minimum_area_rings_are_rejected(client, ring):
+    response = client.post(
+        "/v1/segment", headers=_hdr(), json={"mode": "manual", "user_polygon": ring}
+    )
+    assert response.status_code == 422, response.text
+    assert "minimum" in response.text
+
+
+def test_minimum_area_is_measured_in_square_metres_not_degrees(client):
+    """Same degree footprint: ~20 m² at the equator passes, ~6.8 m² at 70°N fails."""
+    side = (20.0**0.5) / 111_195.0
+    ok = client.post(
+        "/v1/segment",
+        headers=_hdr(),
+        json={"mode": "manual", "user_polygon": _square(44.0, 0.0, side)},
+    )
+    assert ok.status_code == 200, ok.text
+    north = client.post(
+        "/v1/segment",
+        headers=_hdr(),
+        json={"mode": "manual", "user_polygon": _square(44.0, 70.0, side)},
+    )
+    assert north.status_code == 422, north.text
+
+
+def test_minimum_area_is_configurable_by_env(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("SEGMENTATION_MIN_AREA_M2", "100")
+    client = TestClient(_load_app(monkeypatch).app)
+    side = (25.0**0.5) / 111_195.0  # ~25 m²: above the default 10, below 100
+    response = client.post(
+        "/v1/segment",
+        headers=_hdr(),
+        json={"mode": "manual", "user_polygon": _square(44.0, 0.0, side)},
+    )
+    assert response.status_code == 422
+    monkeypatch.setenv("SEGMENTATION_MIN_AREA_M2", "10")
+    client = TestClient(_load_app(monkeypatch).app)
+    response = client.post(
+        "/v1/segment",
+        headers=_hdr(),
+        json={"mode": "manual", "user_polygon": _square(44.0, 0.0, side)},
+    )
+    assert response.status_code == 200, response.text

@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import functools
 import os
 import re
 from collections.abc import Iterable
@@ -159,6 +160,9 @@ def _filtered_headers(
         # الداخليّة عبر توكن القناة المحقون + X-Tenant-Id حصرًا (منع تمرير هويّة العميل).
         if lk in {"authorization", "cookie"}:
             continue
+        # httpx advertises its own Accept-Encoding: only codings it can decode (ROUTE-01).
+        if lk == "accept-encoding":
+            continue
         headers[key] = value
     if service_header is not None:
         headers[service_header[0]] = service_header[1]
@@ -170,11 +174,28 @@ def _filtered_headers(
     return headers
 
 
+@functools.cache
+def _httpx_decodable_codings() -> frozenset[str]:
+    """Content codings httpx decodes in this image (gzip/deflate, plus br/zstd only when
+    their optional packages are installed) — read from the Accept-Encoding it advertises."""
+    with httpx.Client() as probe:
+        advertised = probe.headers.get("accept-encoding", "")
+    return frozenset(c.strip().lower() for c in advertised.split(",") if c.strip()) | {"identity"}
+
+
 def _response_headers(headers: Iterable[tuple[str, str]]) -> dict[str, str]:
     out: dict[str, str] = {}
     for key, value in headers:
         if key.lower() in _HOP_BY_HOP:
             continue
+        # response.content is decoded only for codings httpx supports; then the upstream
+        # Content-Encoding no longer describes the bytes. Any other coding (br/zstd without
+        # their packages, compress) passes through raw and must keep its label. Starlette
+        # recalculates Content-Length.
+        if key.lower() == "content-encoding":
+            codings = {c.strip().lower() for c in value.split(",") if c.strip()}
+            if codings <= _httpx_decodable_codings():
+                continue
         out[key] = value
     return out
 
@@ -198,7 +219,7 @@ async def _proxy(
             upstream = await client.request(
                 request.method,
                 target,
-                params=request.query_params,
+                params=request.query_params.multi_items(),
                 headers=_filtered_headers(
                     request, user, service_header=service_header, inject_actor=inject_actor
                 ),

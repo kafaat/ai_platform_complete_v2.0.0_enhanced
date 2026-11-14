@@ -82,7 +82,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 93,
+    "line": 94,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -90,7 +90,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 100,
+    "line": 101,
     "method": "GET",
     "path": "/runtime-identity",
     "function": "runtime_evidence_identity"
@@ -98,7 +98,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 274,
+    "line": 275,
     "method": "POST",
     "path": "/v1/recommend",
     "function": "recommend"
@@ -106,7 +106,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 339,
+    "line": 340,
     "method": "POST",
     "path": "/v1/simulate",
     "function": "simulate"
@@ -114,7 +114,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 352,
+    "line": 353,
     "method": "POST",
     "path": "/v1/plan",
     "function": "plan"
@@ -122,7 +122,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 368,
+    "line": 369,
     "method": "POST",
     "path": "/v1/replay/verify",
     "function": "replay_verify"
@@ -306,7 +306,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 48,
+    "line": 62,
     "method": "POST",
     "path": "/v1/auth/mfa/setup",
     "function": "mfa_setup"
@@ -314,7 +314,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 104,
+    "line": 139,
     "method": "POST",
     "path": "/v1/auth/mfa/activate",
     "function": "mfa_activate"
@@ -322,7 +322,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 179,
+    "line": 232,
     "method": "POST",
     "path": "/v1/auth/mfa/disable",
     "function": "mfa_disable"
@@ -402,7 +402,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 46,
+    "line": 70,
     "method": "POST",
     "path": "/v1/auth/login",
     "function": "login"
@@ -410,7 +410,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 139,
+    "line": 193,
     "method": "POST",
     "path": "/v1/auth/refresh",
     "function": "refresh_token"
@@ -418,7 +418,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 195,
+    "line": 257,
     "method": "POST",
     "path": "/v1/auth/logout",
     "function": "logout"
@@ -426,7 +426,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 240,
+    "line": 302,
     "method": "GET",
     "path": "/v1/auth/me",
     "function": "me"
@@ -1058,7 +1058,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 194,
+    "line": 205,
     "method": "GET",
     "path": "/healthz",
     "function": "health_check"
@@ -1066,7 +1066,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 226,
+    "line": 239,
     "method": "POST",
     "path": "/v1/inference/pest-detect",
     "function": "detect_pest"
@@ -1074,7 +1074,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 305,
+    "line": 316,
     "method": "POST",
     "path": "/v1/inference/yield-estimate",
     "function": "estimate_yield"
@@ -1082,7 +1082,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 376,
+    "line": 385,
     "method": "POST",
     "path": "/v1/sync/trigger",
     "function": "trigger_sync"
@@ -1090,7 +1090,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 408,
+    "line": 417,
     "method": "GET",
     "path": "/capabilities",
     "function": "capabilities"
@@ -1098,7 +1098,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 413,
+    "line": 422,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -1106,7 +1106,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 423,
+    "line": 432,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1170,7 +1170,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 375,
+    "line": 546,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1178,7 +1178,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 380,
+    "line": 551,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1186,7 +1186,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 385,
+    "line": 556,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1194,7 +1194,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 431,
+    "line": 602,
     "method": "POST",
     "path": "/v1/segment",
     "function": "segment"
@@ -7034,7 +7034,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 224,
+    "line": 245,
     "method": "ANY",
     "path": "/api/edge/{path:path}",
     "function": "proxy_edge"
@@ -7042,7 +7042,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 242,
+    "line": 263,
     "method": "ANY",
     "path": "/api/soil/{path:path}",
     "function": "proxy_soil"
@@ -7050,7 +7050,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 260,
+    "line": 281,
     "method": "ANY",
     "path": "/api/segmentation/{path:path}",
     "function": "proxy_segmentation"
@@ -7058,7 +7058,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 278,
+    "line": 299,
     "method": "ANY",
     "path": "/api/field-forms/{path:path}",
     "function": "proxy_field_forms"
@@ -7754,7 +7754,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 125,
+    "line": 130,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -7762,7 +7762,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 130,
+    "line": 135,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -7770,7 +7770,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 135,
+    "line": 140,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -8138,7 +8138,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/main.py",
-    "line": 221,
+    "line": 220,
     "method": "GET",
     "path": "/runtime-identity",
     "function": "runtime_evidence_identity"
@@ -8986,7 +8986,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 116,
+    "line": 121,
     "method": "GET",
     "path": "/v1/streams/{stream_id}",
     "function": "get_stream"
@@ -8994,7 +8994,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 139,
+    "line": 144,
     "method": "GET",
     "path": "/v1/streams",
     "function": "list_streams"
@@ -9002,7 +9002,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 165,
+    "line": 170,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/snapshot",
     "function": "snapshot"
@@ -9010,7 +9010,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 183,
+    "line": 188,
     "method": "GET",
     "path": "/v1/streams/{stream_id}/snapshot",
     "function": "snapshot_zlm"
@@ -9018,7 +9018,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 206,
+    "line": 211,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/start",
     "function": "record_start"
@@ -9026,7 +9026,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 226,
+    "line": 231,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/stop",
     "function": "record_stop"
