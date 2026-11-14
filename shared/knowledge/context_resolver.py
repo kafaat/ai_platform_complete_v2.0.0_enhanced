@@ -21,6 +21,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Mapping
 
 from .contracts import (
@@ -120,8 +121,13 @@ class ContextResolver:
 
             if req.max_age_seconds is not None:
                 age = _age_seconds(value, now_epoch)
-                if age is None:
+                # A future observation or a non-finite clock makes a value unfit
+                # for freshness-gated decisions; negative age is not "fresh".
+                if age is None or not math.isfinite(age):
                     self._record_absence(req, "FRESHNESS_UNMEASURABLE", blocking, limits)
+                    continue
+                if age < 0:
+                    self._record_absence(req, "FUTURE_OBSERVATION", blocking, limits)
                     continue
                 if age > req.max_age_seconds:
                     self._record_absence(req, "KNOWLEDGE_STALE", blocking, limits)
