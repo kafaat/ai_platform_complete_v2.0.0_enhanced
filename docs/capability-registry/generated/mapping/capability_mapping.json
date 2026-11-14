@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7345,
+    "files_scanned": 7346,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2182,
-      "tests": 2505,
+      "tests": 2506,
       "web": 547
     },
-    "unmapped_artifacts": 3495,
+    "unmapped_artifacts": 3496,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3976,
+      "python_functional": 3977,
       "raw": 3369
     },
-    "test_dependency_files": 1905,
-    "test_dependency_edges": 4904,
-    "test_dependency_bounded_files": 1116,
+    "test_dependency_files": 1906,
+    "test_dependency_edges": 4906,
+    "test_dependency_bounded_files": 1117,
     "test_dependency_unresolved_relations": 485
   },
   "capabilities": [
@@ -29202,15 +29202,15 @@
           "score": 9
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:157",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:181",
           "score": 9
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:254",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:278",
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:897",
           "score": 9
         },
         {
@@ -31206,15 +31206,15 @@
       "database": [],
       "events": [
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:157",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:181",
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:254",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:278",
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:897",
           "score": 12
         },
         {
@@ -42337,6 +42337,10 @@
     },
     {
       "path": "tests_v9/test_advisory_contract_m2.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_advisory_dependency_http_error_sanitization.py",
       "kind": "tests"
     },
     {
@@ -71346,6 +71350,24 @@
           "source": "services/ai_agronomist/main.py",
           "kind": "source_read",
           "line": 133
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_advisory_dependency_http_error_sanitization.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 32
+        },
+        {
+          "source": "services/ai_agronomist/ai_evidence_runtime.py",
+          "kind": "import",
+          "line": 32
         }
       ],
       "unresolved": []
