@@ -11824,6 +11824,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_field_recommendations_projection_rollback_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_field_state_full_aggregate_v31_3.py",
     "kind": "tests"
   },
