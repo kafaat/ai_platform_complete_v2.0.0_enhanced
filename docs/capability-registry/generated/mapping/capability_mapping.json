@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7346,
+    "files_scanned": 7349,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
-      "other": 2182,
-      "tests": 2506,
+      "other": 2184,
+      "tests": 2507,
       "web": 547
     },
-    "unmapped_artifacts": 3496,
+    "unmapped_artifacts": 3497,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3977,
-      "raw": 3369
+      "python_functional": 3979,
+      "raw": 3370
     },
-    "test_dependency_files": 1906,
-    "test_dependency_edges": 4905,
-    "test_dependency_bounded_files": 1116,
+    "test_dependency_files": 1907,
+    "test_dependency_edges": 4909,
+    "test_dependency_bounded_files": 1117,
     "test_dependency_unresolved_relations": 485
   },
   "capabilities": [
@@ -44424,6 +44424,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_rag_readiness_unified.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_rag_reindex_transport.py",
       "kind": "tests"
     },
@@ -72314,26 +72318,26 @@
         {
           "source": "services/ai_agronomist/__init__.py",
           "kind": "import",
-          "line": 35
+          "line": 37
         },
         {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
-          "line": 35
+          "line": 37
         },
         {
           "source": "shared/dependency_readiness.py",
           "kind": "import",
-          "line": 79
+          "line": 92
         }
       ],
       "unresolved": [
         {
-          "line": 188,
+          "line": 201,
           "call": "spec_from_file_location"
         },
         {
-          "line": 223,
+          "line": 236,
           "call": "spec_from_file_location"
         }
       ]
@@ -86307,6 +86311,11 @@
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
           "kind": "source_read",
           "line": 24
+        },
+        {
+          "source": "shared/ai/rag_readiness.py",
+          "kind": "source_read",
+          "line": 318
         }
       ],
       "unresolved": []
@@ -86639,6 +86648,29 @@
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
           "kind": "source_read",
           "line": 23
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_rag_readiness_unified.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "scripts/ci/ai_rag_live_certification.py",
+          "kind": "source_read",
+          "line": 78
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "source_read",
+          "line": 77
+        },
+        {
+          "source": "shared/ai/rag_readiness.py",
+          "kind": "import",
+          "line": 10
         }
       ],
       "unresolved": []
