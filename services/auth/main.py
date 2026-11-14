@@ -36,6 +36,7 @@ from mfa_crypto import enforce_password_policy, resolve_sahool_env  # S16(a,d): 
 from password_hashing import NewPassword, hash_password, verify_password  # noqa: F401
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
+from session_tokens import session_revoked
 
 from shared.pool_shutdown import close_client_bounded, close_pools_bounded
 from shared.runtime_identity import load_build_identity
@@ -723,20 +724,9 @@ async def get_current_user(
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
 
+    # إبطال jti أو أرضيّة المستخدم (تغيير كلمة المرور/الدور/التعطيل) ⇒ 401؛ مخزنٌ يفشل ⇒ 503.
     jti = payload.get("jti")
-    try:
-        revoked = bool(jti) and await is_jti_revoked(jti)
-        # إبطال جماعيّ: توكن أُصدِر قبل أرضيّة المستخدم (تغيير كلمة المرور/الدور/التعطيل) ⇒ مرفوض.
-        revoked = revoked or await is_token_below_floor(payload)
-    except Exception as exc:  # noqa: BLE001 — revocation state unknown: refuse, never pass
-        # Redis was up at boot and fails now (connection refused, timeout, ACL). The request
-        # is refused either way; 503 says the store is unavailable instead of an opaque 500
-        # (live witness: tests_v9/test_auth_admin_authz_live_pg_redis.py).
-        logger.warning("token revocation check failed: %s", type(exc).__name__)
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE, "تعذّر التحقّق من إبطال التوكن — أعد المحاولة"
-        ) from exc
-    if revoked:
+    if await session_revoked(jti and is_jti_revoked(jti), is_token_below_floor(payload)):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
     return payload
 
