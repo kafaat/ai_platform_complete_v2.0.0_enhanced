@@ -1274,7 +1274,8 @@
         "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
         "services/decision-service/tests/test_wx11_3_model_promotion_decision.py",
         "services/decision-service/tests/test_wx11_4_model_activation_request.py",
-        "services/decision-service/tests/test_wx11_5_model_activation_approval.py"
+        "services/decision-service/tests/test_wx11_5_model_activation_approval.py",
+        "tests/phase6/test_model_promotion_finite_phase13.py"
       ]
     },
     {

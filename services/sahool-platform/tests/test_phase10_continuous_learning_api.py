@@ -20,6 +20,13 @@ def _records():
             "feature_id": f"feat_{i}",
             "entity_type": "field",
             "entity_id": f"field-{i % 2}",
+            # Explicit temporal lineage: without it a dataset is not trainable.
+            "tenant_id": "tenant-one",
+            "source_version": "fixture-source-v1",
+            "event_time": f"2026-06-26T{i:02d}:00:00+00:00",
+            "available_at": f"2026-06-26T{i:02d}:01:00+00:00",
+            "ingested_at": f"2026-06-26T{i:02d}:02:00+00:00",
+            "prediction_at": f"2026-06-26T{i:02d}:03:00+00:00",
             "features": {"ndvi": 0.5, "etc_mm": 5 + i},
             "labels": {"net_benefit": 10 + i},
         }
@@ -31,6 +38,18 @@ def test_phase10_dataset_api_trainable():
     res = _client().post("/v1/phase10/learning/dataset", json={"records": _records()})
     assert res.status_code == 200
     assert res.json()["status"] == "trainable"
+
+
+def test_phase10_dataset_api_blocks_rows_without_temporal_lineage():
+    # Negative control: the same rows without availability/ingestion/prediction times.
+    legacy = [
+        {k: v for k, v in r.items() if k not in {"available_at", "ingested_at", "prediction_at"}}
+        for r in _records()
+    ]
+    res = _client().post("/v1/phase10/learning/dataset", json={"records": legacy})
+    assert res.status_code == 200
+    assert res.json()["status"] == "blocked"
+    assert "temporal_integrity_unverified" in res.json()["quality"]["blocked_reasons"]
 
 
 def test_phase10_scenario_api_returns_projection():

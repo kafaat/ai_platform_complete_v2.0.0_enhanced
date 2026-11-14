@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from api.phase_runtime_store import persist_feature_dataset, persist_phase10_learning_outputs
@@ -27,6 +27,7 @@ from shared.feature_store import (
     register_feature_definitions,
     write_offline_feature_dataset,
 )
+from shared.feature_store.runtime import resolve_requested_as_of
 from shared.mlops import (
     apply_model_promotion,
     register_model_version,
@@ -46,6 +47,9 @@ class FeatureRecordsRequest(BaseModel):
     name: str = "canonical_learning_v1"
     version: str = "v1"
     object_uri: str | None = None
+    # Decision time for /feature-store/offline-dataset. Omitted: the latest aware
+    # prediction_at, capped at now. A future value is capped at now.
+    as_of: str | None = None
 
 
 class ModelPromotionRequest(BaseModel):
@@ -247,6 +251,7 @@ def feature_store_offline_dataset(req: FeatureRecordsRequest) -> dict[str, Any]:
         req.records,
         feature_set_id=str(registry.get("feature_set", {}).get("feature_set_id")),
         object_uri=req.object_uri,
+        as_of=resolve_requested_as_of(req.as_of, req.records),
     )
 
 
@@ -260,24 +265,37 @@ def feature_store_online_materialization(req: FeatureRecordsRequest) -> dict[str
 
 @router.post("/feature-store/point-in-time")
 def feature_store_point_in_time(req: PointInTimeRequest) -> dict[str, Any]:
-    return build_point_in_time_snapshot(
-        req.records, as_of=req.as_of, max_age_hours=req.max_age_hours
-    )
+    try:
+        return build_point_in_time_snapshot(
+            req.records, as_of=req.as_of, max_age_hours=req.max_age_hours
+        )
+    except ValueError as exc:
+        # The builder rejects a missing, unparseable or naive as_of (and a negative
+        # max_age_hours): a client error, not a 500.
+        raise HTTPException(
+            status_code=422, detail={"code": "invalid_as_of", "message": str(exc)}
+        ) from exc
 
 
 @router.post("/models/register")
 def model_register(req: ModelRegisterRequest) -> dict[str, Any]:
-    return register_model_version(
-        model_name=req.model_name,
-        version=req.version,
-        task=req.task,
-        framework=req.framework,
-        artifacts=req.artifacts,
-        metrics=req.metrics,
-        dataset_version_id=req.dataset_version_id,
-        feature_set_id=req.feature_set_id,
-        status=req.status,
-    )
+    try:
+        return register_model_version(
+            model_name=req.model_name,
+            version=req.version,
+            task=req.task,
+            framework=req.framework,
+            artifacts=req.artifacts,
+            metrics=req.metrics,
+            dataset_version_id=req.dataset_version_id,
+            feature_set_id=req.feature_set_id,
+            status=req.status,
+        )
+    except ValueError as exc:
+        # Non-finite or boolean evaluation metrics are invalid input, not server errors.
+        raise HTTPException(
+            status_code=422, detail={"code": "invalid_model_metrics", "message": str(exc)}
+        ) from exc
 
 
 @router.post("/models/serving/promote")

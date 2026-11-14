@@ -9152,6 +9152,14 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
     "kind": "tests"
   },
@@ -9609,6 +9617,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_yemeni_calendars.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_yield_finite_phase12.py",
     "kind": "tests"
   },
   {
@@ -10376,7 +10388,27 @@
     "kind": "tests"
   },
   {
+    "path": "tests/phase6/test_agronomic_model_admission_phase14.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_agronomic_model_preflight_cli_phase14.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_feature_lineage_producers.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/phase6/test_feature_store_model_registry_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_feature_store_point_in_time_availability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_feature_store_temporal_integrity_phase12.py",
     "kind": "tests"
   },
   {

@@ -620,7 +620,7 @@ medium,shared,class,RasterAssetPersistedEventV1,shared/contracts/remote_sensing/
 medium,shared,class,RasterAssetFailedEventV1,shared/contracts/remote_sensing/events/raster_events_v1.py,32,0,review_before_delete,False
 medium,shared,function,is_canonical_field_geometry,shared/domain/field_geometry.py,92,0,review_before_delete,False
 medium,shared,function,export_ml_quality_candidate,shared/feature_store/ml_quality_bridge.py,113,0,review_before_delete,False
-medium,shared,function,build_feature_lineage_manifest,shared/feature_store/runtime.py,255,0,review_before_delete,False
+medium,shared,function,build_feature_lineage_manifest,shared/feature_store/runtime.py,556,0,review_before_delete,False
 medium,shared,function,new_journal,shared/field_bootstrap.py,80,0,review_before_delete,False
 medium,shared,function,transform_to_map_projection,shared/gis/crs_service.py,164,0,review_before_delete,False
 medium,shared,class,HttpDiagnosisResolver,shared/governance/chemical_lineage.py,128,0,review_before_delete,False
@@ -650,8 +650,9 @@ medium,shared,function,import_from_encrypted_tarball,shared/memory/import_engine
 medium,shared,function,import_from_qdrant_snapshot,shared/memory/import_engine.py,525,0,review_before_delete,False
 medium,shared,function,load_skill,shared/memory/skills.py,109,0,review_before_delete,False
 medium,shared,function,list_skills,shared/memory/skills.py,147,0,review_before_delete,False
-medium,shared,function,register_dataset_version,shared/mlops/runtime.py,213,0,review_before_delete,False
-medium,shared,function,agricultural_evaluation_profile,shared/mlops/runtime.py,281,0,review_before_delete,False
+medium,shared,function,assess_agronomic_model_candidate,shared/mlops/agronomic_candidate.py,77,0,review_before_delete,False
+medium,shared,function,register_dataset_version,shared/mlops/runtime.py,265,0,review_before_delete,False
+medium,shared,function,agricultural_evaluation_profile,shared/mlops/runtime.py,333,0,review_before_delete,False
 medium,shared,function,decide,shared/precision_agriculture/fertigation_plan.py,124,0,review_before_delete,False
 medium,shared,function,delivered_kg,shared/precision_agriculture/fertigation_plan.py,206,0,review_before_delete,False
 medium,shared,function,p2o5_from_p,shared/precision_agriculture/nutrient_units.py,20,0,review_before_delete,False

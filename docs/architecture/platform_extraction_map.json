@@ -16,7 +16,7 @@
       "function": "model_serving_resolve",
       "method": "GET",
       "path": "/models/serving/{alias:path}",
-      "line": 300,
+      "line": 318,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::GET /models/serving/{alias:path}::model_serving_resolve"
@@ -26,7 +26,7 @@
       "function": "champion_challenger",
       "method": "POST",
       "path": "/champion-challenger",
-      "line": 224,
+      "line": 228,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /champion-challenger::champion_challenger"
@@ -36,7 +36,7 @@
       "function": "learning_cycle",
       "method": "POST",
       "path": "/cycle",
-      "line": 196,
+      "line": 200,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /cycle::learning_cycle"
@@ -46,7 +46,7 @@
       "function": "dataset",
       "method": "POST",
       "path": "/dataset",
-      "line": 151,
+      "line": 155,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /dataset::dataset"
@@ -56,7 +56,7 @@
       "function": "drift",
       "method": "POST",
       "path": "/drift",
-      "line": 208,
+      "line": 212,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /drift::drift"
@@ -66,7 +66,7 @@
       "function": "experiment_evaluation",
       "method": "POST",
       "path": "/experiments/evaluate",
-      "line": 181,
+      "line": 185,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /experiments/evaluate::experiment_evaluation"
@@ -76,7 +76,7 @@
       "function": "feature_schema",
       "method": "POST",
       "path": "/feature-schema",
-      "line": 146,
+      "line": 150,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-schema::feature_schema"
@@ -86,7 +86,7 @@
       "function": "feature_store_offline_dataset",
       "method": "POST",
       "path": "/feature-store/offline-dataset",
-      "line": 243,
+      "line": 247,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/offline-dataset::feature_store_offline_dataset"
@@ -96,7 +96,7 @@
       "function": "feature_store_online_materialization",
       "method": "POST",
       "path": "/feature-store/online-materialization",
-      "line": 253,
+      "line": 258,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/online-materialization::feature_store_online_materialization"
@@ -106,7 +106,7 @@
       "function": "feature_store_point_in_time",
       "method": "POST",
       "path": "/feature-store/point-in-time",
-      "line": 261,
+      "line": 266,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/point-in-time::feature_store_point_in_time"
@@ -116,7 +116,7 @@
       "function": "feature_store_register",
       "method": "POST",
       "path": "/feature-store/register",
-      "line": 236,
+      "line": 240,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/register::feature_store_register"
@@ -126,7 +126,7 @@
       "function": "model_promotion",
       "method": "POST",
       "path": "/models/promote",
-      "line": 161,
+      "line": 165,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/promote::model_promotion"
@@ -136,7 +136,7 @@
       "function": "model_register",
       "method": "POST",
       "path": "/models/register",
-      "line": 268,
+      "line": 280,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/register::model_register"
@@ -146,7 +146,7 @@
       "function": "model_serving_promote",
       "method": "POST",
       "path": "/models/serving/promote",
-      "line": 283,
+      "line": 301,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/serving/promote::model_serving_promote"
@@ -156,7 +156,7 @@
       "function": "model_serving_rollback",
       "method": "POST",
       "path": "/models/serving/rollback",
-      "line": 290,
+      "line": 308,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/serving/rollback::model_serving_rollback"
@@ -166,7 +166,7 @@
       "function": "online_update",
       "method": "POST",
       "path": "/online-update",
-      "line": 171,
+      "line": 175,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /online-update::online_update"
@@ -176,7 +176,7 @@
       "function": "retraining_plan",
       "method": "POST",
       "path": "/retraining/plan",
-      "line": 217,
+      "line": 221,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/phase10_continuous_learning.py::POST /retraining/plan::retraining_plan"
@@ -186,7 +186,7 @@
       "function": "scenario",
       "method": "POST",
       "path": "/scenario",
-      "line": 191,
+      "line": 195,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/phase10_continuous_learning.py::POST /scenario::scenario"
