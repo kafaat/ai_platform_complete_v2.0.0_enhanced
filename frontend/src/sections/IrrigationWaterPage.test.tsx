@@ -200,6 +200,8 @@ describe('IrrigationWaterPage', () => {
     expect(mut.mutate).not.toHaveBeenCalled();
     expect((await screen.findByRole('status')).textContent).toContain('بانتظار المراجعة');
     expect(screen.getByRole('status').textContent).toContain('صالح مع قيود');
+    // The stored source type is the user's declaration, not a verified water source (R5).
+    expect(screen.getByRole('status').textContent).toContain('«نهر» معلَن من المُدخِل وغير مُتحقَّق منه');
   });
 
   it('records on an open water sample of the field without creating another', async () => {

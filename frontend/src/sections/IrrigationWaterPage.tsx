@@ -397,10 +397,16 @@ function SaveAsLabResult({ measurement }: { measurement: Measurement }) {
           {saved.result_id ? ` · النتيجة ${saved.result_id}` : ''}) — الحكم:{' '}
           {saved.verdict ? VERDICT_AR[saved.verdict] ?? saved.verdict : '—'}
           {saved.quality_status === 'unreviewed' ? ' · بانتظار المراجعة' : ''}
+          {/* R5 source_evidence: the type is the user's declaration, never a verified source. */}
+          {' · '}نوع المصدر «{sourceLabel(saved.source ?? measurement.source)}» معلَن من المُدخِل وغير مُتحقَّق منه
         </p>
       )}
     </section>
   );
+}
+
+function sourceLabel(kind: string): string {
+  return WATER_SOURCE_OPTIONS.find(o => o.key === kind)?.label_ar ?? kind;
 }
 
 function requestKey(): string {
