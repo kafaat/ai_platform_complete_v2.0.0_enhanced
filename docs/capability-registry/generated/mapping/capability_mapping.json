@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7339,
+    "files_scanned": 7341,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
-      "mobile": 415,
+      "mobile": 416,
       "other": 2181,
-      "tests": 2500,
+      "tests": 2501,
       "web": 547
     },
     "unmapped_artifacts": 3492,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
       "python_functional": 3970,
-      "raw": 3369
+      "raw": 3371
     },
     "test_dependency_files": 1900,
     "test_dependency_edges": 4886,
@@ -26793,6 +26793,16 @@
       ],
       "mobile": [
         {
+          "path": "mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart",
+          "score": 18,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart",
           "score": 17,
           "signals": [
@@ -26845,6 +26855,17 @@
         {
           "path": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "score": 26,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:recovery code",
+            "content:totp"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
+          "score": 22,
           "signals": [
             "path:MFA",
             "content:MFA",
@@ -27075,8 +27096,8 @@
         "database": 19,
         "events": 1,
         "web": 5,
-        "mobile": 4,
-        "tests": 13,
+        "mobile": 5,
+        "tests": 14,
         "governance": 0,
         "other_evidence": 11
       },
