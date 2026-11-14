@@ -319,7 +319,10 @@ def test_the_live_certification_reads_the_measured_name() -> None:
     assert "from shared.ai.rag_readiness import rag_operational_ready" in script
     assert "ready.status == 200 and rag_operational_ready(r)" in script
     assert 'payload.get("collection_vector_schema_parity") is True' in predicate
-    assert 'payload.get("collection_schema_parity")' not in predicate
+    assert 'payload.get("collection_schema_parity")' not in predicate, (
+        "the shared readiness predicate must read the measured collection_vector_schema_parity, "
+        "not the broad collection_schema_parity the readyz used to set without a measurement"
+    )
 
 
 # ── ⑤ الخاصّيّةُ على كلّ المُنتِجين، لا على ملفٍّ بعينه ──────────────────────
