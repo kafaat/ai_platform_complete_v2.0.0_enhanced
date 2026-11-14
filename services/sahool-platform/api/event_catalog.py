@@ -113,6 +113,10 @@ _CATALOG: dict[str, DomainEvent] = {
         description_ar="حُدِّثت بيانات موسم قائم.",
     ),
     # ── النشاط/العمليّات (activity): حدث عامّ + أحداث operation.* المحدّدة ────────
+    # أحداث operation.*.started (PLANTING/IRRIGATION/HARVEST_STARTED) محجوزة بلا مُصدِر
+    # (قرار المالك 2026-11-14): لا يُنفَّذ «بدء» نشاط في أيّ مسار؛ المُخطَّط يُصدِر
+    # ACTIVITY_RECORDED (field_aggregate.activity_event_for). مسجَّلة في
+    # tests/test_event_catalog_completeness.py _RESERVED_NO_PRODUCER حتّى يوجد منتِج حقيقيّ.
     "ACTIVITY_RECORDED": DomainEvent(
         name="ACTIVITY_RECORDED",
         category="activity",
@@ -126,20 +130,10 @@ _CATALOG: dict[str, DomainEvent] = {
             "performed_on",
         ),
     ),
-    "PLANTING_STARTED": DomainEvent(
-        name="PLANTING_STARTED",
-        category="activity",
-        description_ar="بدأت عمليّة زراعة/بذر.",
-    ),
     "PLANTING_COMPLETED": DomainEvent(
         name="PLANTING_COMPLETED",
         category="activity",
         description_ar="اكتملت عمليّة زراعة/بذر.",
-    ),
-    "IRRIGATION_STARTED": DomainEvent(
-        name="IRRIGATION_STARTED",
-        category="activity",
-        description_ar="بدأت عمليّة ريّ.",
     ),
     "IRRIGATION_COMPLETED": DomainEvent(
         name="IRRIGATION_COMPLETED",
@@ -155,11 +149,6 @@ _CATALOG: dict[str, DomainEvent] = {
         name="PESTICIDE_APPLIED",
         category="activity",
         description_ar="طُبِّق رشّ مبيد.",
-    ),
-    "HARVEST_STARTED": DomainEvent(
-        name="HARVEST_STARTED",
-        category="activity",
-        description_ar="بدأت عمليّة حصاد.",
     ),
     "HARVEST_COMPLETED": DomainEvent(
         name="HARVEST_COMPLETED",
