@@ -712,6 +712,7 @@ def _decode_issued_token(token: str) -> dict:
 
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+    request: Request = None,  # FastAPI injects it; direct callers pass none (=> not safe)
 ) -> dict:
     if not credentials:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "No token")
@@ -724,9 +725,9 @@ async def get_current_user(
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
 
-    # إبطال jti أو أرضيّة المستخدم (تغيير كلمة المرور/الدور/التعطيل) ⇒ 401؛ مخزنٌ يفشل ⇒ 503.
-    jti = payload.get("jti")
-    if await session_revoked(jti and is_jti_revoked(jti), is_token_below_floor(payload)):
+    # jti أو أرضيّة المستخدم ⇒ 401؛ مخزنٌ يفشل ⇒ القراءة الآمنة تمرّ والكتابة 503 (session_tokens).
+    checks = (jti := payload.get("jti")) and is_jti_revoked(jti), is_token_below_floor(payload)
+    if await session_revoked(*checks, request=request):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
     return payload
 

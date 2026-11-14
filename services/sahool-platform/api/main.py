@@ -66,6 +66,7 @@ from fastapi import (  # noqa: F401 — إعادة تصدير (نمط main.X ل�
     Header,
     HTTPException,
     Query,
+    Request,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
@@ -1065,6 +1066,7 @@ from core.jwt_denylist import (  # noqa: E402
     RedisDenylist,
     denylist_redis_url,
     revocation_status,
+    unverifiable_allows,
 )
 
 
@@ -1100,7 +1102,10 @@ def _build_denylist():
 _DENYLIST = _build_denylist()
 
 
-def get_current_user(authorization: str = Header(None)) -> UserSchema:
+def get_current_user(
+    authorization: str = Header(None),
+    request: Request = None,  # FastAPI يحقنه؛ المستدعي المباشر بلا طلب ⇒ فعلٌ غير آمن
+) -> UserSchema:
     """يستخرج المستخدم من JWT. fail-closed."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
@@ -1121,20 +1126,18 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
     status = revocation_status(_DENYLIST, payload)
     if status == REVOCATION_REVOKED:
         raise HTTPException(status_code=401, detail="التوكن مُبطَل — سجّل الدخول من جديد")
-    if status == REVOCATION_UNVERIFIABLE:
-        # C-02 — قرار قابل للتغيير من المالك: الإنتاج fail-closed لكلّ الطلبات (كلّ الأفعال وكلّ
-        # المسارات، القراءة ضمناً). لا قرار مُوثَّق في الشجرة يختار التوفّر للقراءة: #408 جعل
-        # Redis إلزاميّاً في الإنتاج لأنّ fail-open «يُمرّر التوكنات المُبطَلة»، والقراءات تكشف
-        # بيانات المستأجر لمستخدمٍ عُطِّل. خارج الإنتاج: السلوك السابق (يُسمَح) مع تحذير.
-        if _is_production():
-            raise HTTPException(
-                status_code=503,
-                detail={
-                    "code": "token_revocation_unverifiable",
-                    "message": "تعذّر التحقّق من إبطال التوكن — أعد المحاولة لاحقاً",
-                },
-            )
-        logger.warning("token revocation unverifiable (non-production): request allowed")
+    # C-02 + قرار المالك (2026-11-14): تعذّرُ التحقّق أثناء التشغيل ⇒ القراءة الآمنة
+    # (GET/HEAD/OPTIONS) تمرّ بتحذير، والكتابة 503 في الإنتاج (السياسة في core.jwt_denylist).
+    if status == REVOCATION_UNVERIFIABLE and not unverifiable_allows(
+        getattr(request, "method", None), production=_is_production()
+    ):
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "token_revocation_unverifiable",
+                "message": "تعذّر التحقّق من إبطال التوكن — أعد المحاولة لاحقاً",
+            },
+        )
 
     role = _normalize_role(payload.get("role"))
 

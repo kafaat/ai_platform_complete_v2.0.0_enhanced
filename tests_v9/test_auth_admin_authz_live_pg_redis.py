@@ -14,6 +14,10 @@ asyncpg pool as a NOBYPASSRLS role, redis.asyncio client):
   mid-flight, or Redis refusing the revocation writes), each returns 503 and the row is
   unchanged. With Redis up, the same calls succeed and the target's refresh tokens and older
   access tokens stop working.
+* **Reads during the outage (owner decision, 14 November 2026).** With Redis unreachable
+  mid-flight, ``GET /v1/auth/users`` and ``GET /v1/auth/me`` answer 200 and the list stays
+  scoped to the caller's tenant; a stale owner is still refused (403) because membership is
+  read from Postgres. The writes above stay 503.
 * **Stale membership.** A signed owner/admin token whose DB membership is inactive, demoted,
   of another role or of another tenant gets 403, on the team routes and on invitations.
 
@@ -427,6 +431,47 @@ def test_revocation_unavailable_returns_503_and_leaves_the_account(world, operat
     assert _row(target["id"]) == before, "the account changed although revocation was unavailable"
     # Nothing was revoked either: the change did not happen, and the target keeps its sessions.
     _assert_sessions_alive(world, target, refresh, access)
+
+
+# ── safe reads while revocation is unreachable (owner decision, 14 November 2026) ──
+
+
+def test_unreachable_redis_lets_get_users_through_scoped_to_the_callers_tenant(world):
+    """Revocation state unknown + GET => 200 (was 503 since #1427), tenant scope unchanged.
+
+    The same outage still refuses the role change and the deactivate with 503
+    (``test_revocation_unavailable_returns_503_and_leaves_the_account[*-unreachable]``).
+    """
+    tenant_a, tenant_b = world["tenants"]
+    owner = world["new_user"]("owner", tenant_a)
+    mate = world["new_user"]("farmer", tenant_a)
+    stranger = world["new_user"]("farmer", tenant_b)
+    stale = world["new_user"]("owner", tenant_a, active=False)
+
+    mp = pytest.MonkeyPatch()
+    try:
+        _redis_unreachable(world, mp)
+        listed = world["client"].get("/v1/auth/users", headers=world["bearer"](owner))
+        me = world["client"].get("/v1/auth/me", headers=world["bearer"](mate))
+        stale_list = world["client"].get("/v1/auth/users", headers=world["bearer"](stale))
+        write = _change_role(world, owner, mate)
+    finally:
+        mp.undo()
+
+    assert listed.status_code == 200, (listed.status_code, listed.text[:300])
+    rows = listed.json()
+    assert {r["tenant_id"] for r in rows} == {tenant_a}, "a row from another tenant was listed"
+    ids = {r["id"] for r in rows}
+    assert {owner["id"], mate["id"]} <= ids
+    assert stranger["id"] not in ids
+    assert me.status_code == 200, (me.status_code, me.text[:300])
+    assert me.json()["sub"] == str(mate["id"])
+    # Membership is read from Postgres, not Redis: a deactivated owner still cannot list.
+    assert stale_list.status_code == 403, (stale_list.status_code, stale_list.text[:300])
+    # The write in the same outage keeps failing closed, and the row is unchanged.
+    assert write.status_code == 503, (write.status_code, write.text[:300])
+    assert write.json()["detail"] == _REFUSAL["unreachable"]
+    assert _row(mate["id"])["role"] == "farmer"
 
 
 # ── stale membership ─────────────────────────────────────────────────────────

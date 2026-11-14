@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "d67b4526c63a7aacab457d87ab2639d43bf257af",
+  "measured_on": "0fac9065d54dffca19b7d29a72af8b187508fc11",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "74025985b3cc586eb0dbf7dbc7e376abc0a811df990b4f5253dd536282d3c6cf",
+  "measurement_input_digest": "25a93f62cd7c2b0f7813b8c8d91d8b76ce3e536e142a2cacdb9eb0ba385dc5aa",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "e349d5879aed4096b521c763b76a7112cf697e78adc2d4c6018ebacee784cefe",
+  "measurement_basis_digest": "60bab7a857cfee9a03d3fd1f45e599e2c4b3860aed70d08a69e8f5a995c7410b",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -56,7 +56,7 @@
     },
     {
       "path": "services/auth/main.py",
-      "sha256": "47181e00e6ef2432af227b712d9fe866785c7b9f94494581cb8293f835d31ac4"
+      "sha256": "b7679d95641bdba30dbafa23932464538a2a570f353e755cf73dd4d56aa706f3"
     },
     {
       "path": "services/decision-service/observation_context.py",
@@ -120,7 +120,7 @@
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "898a3a2d76e880d9d8c34c34ecd9bbceaaa02fc6d95d5d328354eee768903793"
+      "sha256": "69a6685903bbe2550cb52b62b8fb15af66760fe31e10074c4a4494aba621d806"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
@@ -202,7 +202,7 @@
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
     "services/actuator-service/actuator_runtime.py:1509",
-    "services/auth/main.py:992",
+    "services/auth/main.py:993",
     "services/raster-service/backfill_scan_worker.py:170",
     "services/raster-service/cache_invalidation_worker.py:126",
     "services/sahool-platform/api/imagery_automation.py:201",
