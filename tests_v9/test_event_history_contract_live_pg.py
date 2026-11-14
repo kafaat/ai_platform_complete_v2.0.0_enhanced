@@ -135,6 +135,7 @@ class Live:
             await o.execute("DELETE FROM field_tasks WHERE tenant_id = $1::uuid", self.tenant)
             await o.execute("DELETE FROM irrigation_valves WHERE tenant_id = $1::uuid", self.tenant)
             await o.execute("DELETE FROM field_boundaries WHERE tenant_id = $1::uuid", self.tenant)
+            await o.execute("DELETE FROM fields WHERE tenant_id = $1::uuid", self.tenant)
         finally:
             await self.pool.close()
             if self.role:
@@ -305,9 +306,10 @@ def test_two_same_day_task_note_edits_are_two_events_and_a_retry_is_one(monkeypa
 
         field_id = f"ev-fb-{uuid.uuid4().hex[:10]}"
         task_id = str(uuid.uuid4())
+        # v261: field_tasks.field_id references fields (the record the API writes), so the
+        # task's field is seeded there.
         await live.owner.execute(
-            "INSERT INTO field_boundaries (field_id, field_name, tenant_id)"
-            " VALUES ($1, 'Event field', $2::uuid)",
+            "INSERT INTO fields (field_id, name, tenant_id) VALUES ($1, 'Event field', $2::uuid)",
             field_id,
             live.tenant,
         )
