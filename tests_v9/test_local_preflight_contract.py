@@ -1447,3 +1447,104 @@ def test_every_failure_site_records_its_name():
     names = text.count("failed_steps+=(")
     assert raises == names and raises >= 5, (raises, names)
     assert text.rstrip().splitlines()[-2] == 'print_tail_summary ""'
+
+
+# ── The opt-in pre-push hook ────────────────────────────────────────────────
+# The 2026-11-13 calibration census found 36 of 51 failed PR runs on one branch pushed
+# repeatedly, each caught by `--fast` had it been run. The hook only makes running it the
+# default for whoever opts in; these tests pin that it calls the real tier, blocks on a
+# failure, and stays out of the way where it has nothing to measure.
+
+HOOK = ROOT / ".githooks/pre-push"
+ZERO_SHA = "0" * 40
+
+
+def _hook_sandbox(tmp_path: Path, preflight_exit: int) -> tuple[Path, Path]:
+    repo = tmp_path / "repo"
+    (repo / "scripts/ci").mkdir(parents=True)
+    calls = tmp_path / "calls.txt"
+    stub = repo / "scripts/ci/preflight.sh"
+    stub.write_text(
+        f'#!/usr/bin/env bash\necho "$@" >> "{calls}"\nexit {preflight_exit}\n', encoding="utf-8"
+    )
+    env = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "t",
+        "GIT_AUTHOR_EMAIL": "t@t",
+        "GIT_COMMITTER_NAME": "t",
+        "GIT_COMMITTER_EMAIL": "t@t",
+    }
+    for cmd in (["git", "init", "-q"], ["git", "add", "-A"], ["git", "commit", "-qm", "init"]):
+        subprocess.run(cmd, cwd=repo, check=True, env=env)
+    return repo, calls
+
+
+def _run_hook(repo: Path, stdin: str, **env: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["bash", str(HOOK), "origin", "url"],
+        cwd=repo,
+        input=stdin,
+        text=True,
+        encoding="utf-8",
+        capture_output=True,
+        env={**os.environ, **env},
+        timeout=60,
+    )
+
+
+def _head(repo: Path) -> str:
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout.strip()
+
+
+def test_the_pre_push_hook_is_executable_and_runs_the_fast_tier(tmp_path):
+    assert os.access(HOOK, os.X_OK), (
+        "chmod +x .githooks/pre-push — git ignores a hook it cannot execute"
+    )
+    repo, calls = _hook_sandbox(tmp_path, 0)
+    head = _head(repo)
+    result = _run_hook(repo, f"refs/heads/x {head} refs/heads/x {ZERO_SHA}\n")
+    assert result.returncode == 0, result.stderr
+    assert calls.read_text(encoding="utf-8").split() == ["--fast"]
+
+
+def test_a_failing_preflight_blocks_the_push(tmp_path):
+    repo, calls = _hook_sandbox(tmp_path, 1)
+    head = _head(repo)
+    result = _run_hook(repo, f"refs/heads/x {head} refs/heads/x {ZERO_SHA}\n")
+    assert result.returncode != 0
+    assert calls.exists()
+
+
+@pytest.mark.parametrize("case", ["delete_only", "skip_env"])
+def test_the_hook_steps_aside_when_there_is_nothing_to_measure_or_it_is_waived(tmp_path, case):
+    repo, calls = _hook_sandbox(tmp_path, 1)
+    head = _head(repo)
+    if case == "delete_only":
+        result = _run_hook(repo, f"(delete) {ZERO_SHA} refs/heads/x {head}\n")
+    else:
+        result = _run_hook(
+            repo, f"refs/heads/x {head} refs/heads/x {ZERO_SHA}\n", SKIP_PREFLIGHT="1"
+        )
+        assert "SKIP_PREFLIGHT" in result.stderr, "a waived run must say so, never pass silently"
+    assert result.returncode == 0, result.stderr
+    assert not calls.exists()
+
+
+def test_pushing_a_ref_other_than_head_is_announced(tmp_path):
+    repo, _ = _hook_sandbox(tmp_path, 0)
+    result = _run_hook(repo, f"refs/heads/x {'1' * 40} refs/heads/x {ZERO_SHA}\n")
+    assert result.returncode == 0
+    assert "غير HEAD" in result.stderr
+
+
+def test_the_runbook_documents_how_to_opt_in():
+    runbook = (ROOT / "docs/runbooks/CI_GATES_AND_PRE_PUSH_PROTOCOL.md").read_text(encoding="utf-8")
+    assert "git config core.hooksPath .githooks" in runbook
+    assert "core.hooksPath .githooks" in HOOK.read_text(encoding="utf-8")

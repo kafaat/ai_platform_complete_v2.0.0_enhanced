@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# pre-push اختياريّ: يُشغّل `scripts/ci/preflight.sh --fast` قبل كلّ دفع.
+#
+#   التفعيل (مرّةً لكلّ استنساخ):  git config core.hooksPath .githooks
+#   التعطيل:                        git config --unset core.hooksPath
+#   تخطٍّ لدفعةٍ واحدة:             SKIP_PREFLIGHT=1 git push   (أو git push --no-verify)
+#
+# لماذا: في إحصاء معايرة 2026-11-13 جاء 36 من 51 تشغيلاً فاشلاً من فرعٍ واحد دُفع مراراً،
+# وكان `--fast` نفسه سيلتقط سبب سقوطه — الفحص موجود لكنّه لم يُشغَّل قبل الدفع.
+#
+# حدوده (لا تقرأ أخضره بأكثر منها):
+# - يفحص شجرة العمل الحاليّة (HEAD)، لا كلّ ref مدفوع؛ يُنبّه إن دفعتَ غير HEAD.
+# - `--fast` بلا جناح ولا مكنسة: أخضره «ما قِيس مرّ» لا «CI ستخضرّ».
+# - دفعُ الحذف وحده لا يُفحَص.
+set -uo pipefail
+
+if [ "${SKIP_PREFLIGHT:-0}" = 1 ]; then
+  echo "pre-push: SKIP_PREFLIGHT=1 — preflight لم يُشغَّل" >&2
+  exit 0
+fi
+
+ROOT="$(git rev-parse --show-toplevel)" || exit 1
+HEAD_SHA="$(git rev-parse HEAD)" || exit 1
+ZERO=0000000000000000000000000000000000000000
+
+has_content=0
+other_ref=0
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+  [ "$local_sha" = "$ZERO" ] && continue
+  has_content=1
+  [ "$local_sha" = "$HEAD_SHA" ] || other_ref=1
+done
+[ "$has_content" = 1 ] || exit 0
+
+if [ "$other_ref" = 1 ]; then
+  echo "pre-push: ⚠ تدفع ref غير HEAD؛ preflight يفحص HEAD ($HEAD_SHA) لا ما تدفعه" >&2
+fi
+if ! git -C "$ROOT" diff --quiet HEAD --; then
+  echo "pre-push: ⚠ في شجرة العمل تعديلات غير ملتزَمة؛ الفحص يرى الشجرة لا الالتزام المدفوع" >&2
+fi
+
+bash "$ROOT/scripts/ci/preflight.sh" --fast </dev/null
+status=$?
+if [ "$status" -ne 0 ]; then
+  echo "pre-push: ✗ preflight --fast فشل (رمز $status) — الدفع أُوقِف. أصلح ثمّ أعِد، أو SKIP_PREFLIGHT=1 بوعي." >&2
+fi
+exit "$status"
