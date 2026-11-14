@@ -307,3 +307,114 @@ def test_a_database_outage_on_write_still_answers_403_and_reads_fall_back(platfo
 
     stored = asyncio.run(_admin_rows([tenant], uuid.uuid4().hex))
     assert stored["per_tenant"] == {tenant: 0}, stored
+
+
+_USER_ID_BRANCH_READER = textwrap.dedent(
+    """
+    import asyncio, json, sys
+    import asyncpg, httpx
+    import api.main as main
+    from core.canonical_schemas import UserRole, UserSchema
+
+    dsn, tenant, uid = sys.argv[1], sys.argv[2], sys.argv[3]
+
+    async def run():
+        main._DB_POOL = await asyncpg.create_pool(
+            dsn, min_size=1, max_size=2, statement_cache_size=0
+        )
+        main._start_denial_store()
+        out = {}
+        try:
+            transport = httpx.ASGITransport(app=main.app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://t") as c:
+                for role in ("owner", "manager", "platform_admin"):
+                    u = UserSchema(user_id=uid, tenant_id=tenant, role=UserRole(role), name_ar="x")
+                    token = main.create_token(u)
+                    r = await c.get(
+                        "/api/v1/admin/security/denials",
+                        headers={"Authorization": "Bearer " + token},
+                    )
+                    out[role] = {"status": r.status_code, "body": r.json()}
+        finally:
+            await main._stop_denial_store()
+            await main._DB_POOL.close()
+        print("RESULT " + json.dumps(out))
+
+    asyncio.run(run())
+    """
+)
+
+
+def test_another_tenants_row_with_the_callers_user_id_stays_hidden():
+    """The explicit ``tenant_id = $1`` filter in the read path is what isolates tenants here.
+
+    ``audit_log``'s RLS ``USING`` also admits a row when ``user_id = app.current_user_id``,
+    and ``tenant_connection`` sets that GUC from the caller. So a tenant-B denial row that
+    carries the caller's numeric ``user_id`` passes RLS alone. The lab measured that removing
+    the explicit filter left every other test green while this case leaked (lab post-merge
+    receipt for #1451, main 13138bf74); this test pins the guarantee.
+    """
+    import asyncpg
+
+    tenant_a, tenant_b = str(uuid.uuid4()), str(uuid.uuid4())
+    uid = str(900000000 + uuid.uuid4().int % 99999999)
+    mine, theirs = f"uidb-mine-{uuid.uuid4().hex[:8]}", f"uidb-theirs-{uuid.uuid4().hex[:8]}"
+
+    async def seed() -> int:
+        admin = await asyncpg.connect(ADMIN_DSN)
+        try:
+            await admin.execute(
+                "INSERT INTO users (id, email, password_hash, full_name) "
+                "VALUES ($1, $2, 'x', 'user-id branch probe') ON CONFLICT (id) DO NOTHING",
+                int(uid),
+                f"uidb-{uid}@probe.test",
+            )
+            for tenant, marker in ((tenant_a, mine), (tenant_b, theirs)):
+                await admin.execute(
+                    "INSERT INTO audit_log (action, user_id, details, tenant_id) "
+                    "VALUES ('denial:permission', $1::int, $2, $3::uuid)",
+                    int(uid),
+                    json.dumps({"user_id": marker, "kind": "permission"}),
+                    tenant,
+                )
+        finally:
+            await admin.close()
+        restricted = await asyncpg.connect(DSN)
+        try:
+            async with restricted.transaction():
+                await restricted.execute(
+                    "SELECT set_config('app.current_tenant', $1, true), "
+                    "set_config('app.current_user_id', $2, true), "
+                    "set_config('app.current_role', 'owner', true)",
+                    tenant_a,
+                    uid,
+                )
+                return await restricted.fetchval(
+                    "SELECT count(*) FROM audit_log WHERE details LIKE $1", f"%{theirs}%"
+                )
+        finally:
+            await restricted.close()
+
+    rls_admits_theirs = asyncio.run(seed())
+    assert rls_admits_theirs == 1, "precondition: RLS alone admits the other tenant's row"
+
+    env = _env()
+    env["PYTHONPATH"] = os.pathsep.join([str(PLATFORM), str(ROOT)])
+    proc = subprocess.run(
+        [sys.executable, "-c", _USER_ID_BRANCH_READER, DSN, tenant_a, uid],
+        cwd=PLATFORM,
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=120,
+    )
+    line = [ln for ln in proc.stdout.splitlines() if ln.startswith("RESULT ")]
+    assert line, proc.stdout[-2000:] + proc.stderr[-3000:]
+    out = json.loads(line[0][len("RESULT ") :])
+    for role, res in out.items():
+        assert res["status"] == 200, (role, res)
+        assert res["body"].get("source") == "db", (role, res["body"])
+        seen = json.dumps(res["body"])
+        assert mine in seen, (role, "caller's own row missing", seen)
+        assert theirs not in seen, (role, "another tenant's row leaked via user_id", seen)
