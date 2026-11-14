@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7340,
+    "files_scanned": 7342,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2181,
-      "tests": 2501,
+      "tests": 2503,
       "web": 547
     },
-    "unmapped_artifacts": 3493,
+    "unmapped_artifacts": 3494,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3971,
+      "python_functional": 3973,
       "raw": 3369
     },
-    "test_dependency_files": 1901,
-    "test_dependency_edges": 4889,
-    "test_dependency_bounded_files": 1113,
+    "test_dependency_files": 1903,
+    "test_dependency_edges": 4895,
+    "test_dependency_bounded_files": 1115,
     "test_dependency_unresolved_relations": 482
   },
   "capabilities": [
@@ -5520,6 +5520,10 @@
           "score": 14
         },
         {
+          "value": "public.field_geometry_history @ tests_v9/test_field_geometry_save_atomic_live_pg.py:74",
+          "score": 14
+        },
+        {
           "value": "v139_field_geometry_history_append_only.sql @ tests_v9/test_field_geometry_history_append_only_v39_5.py:26",
           "score": 14
         },
@@ -5704,6 +5708,14 @@
         },
         {
           "path": "tests_v9/test_field_geometry_history_append_only_v39_5.py",
+          "score": 14,
+          "signals": [
+            "path:field geometry",
+            "content:field geometry"
+          ]
+        },
+        {
+          "path": "tests_v9/test_field_geometry_save_atomic_live_pg.py",
           "score": 14,
           "signals": [
             "path:field geometry",
@@ -5943,10 +5955,10 @@
         "backend": 14,
         "routes": 56,
         "database": 5,
-        "events": 65,
+        "events": 66,
         "web": 3,
         "mobile": 2,
-        "tests": 16,
+        "tests": 17,
         "governance": 1,
         "other_evidence": 17
       },
@@ -41019,6 +41031,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_spray_readiness.py",
       "kind": "tests"
     },
@@ -65874,6 +65890,19 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/spatial_sync.py",
+          "kind": "import",
+          "line": 16
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_spectral_stress_bridge.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -79411,6 +79440,39 @@
           "source": "shared/contracts/forms/sync_token.py",
           "kind": "import",
           "line": 7
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_field_geometry_save_atomic_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/field_models.py",
+          "kind": "import",
+          "line": 204
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 97
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 98
+        },
+        {
+          "source": "services/sahool-platform/api/routers/fields.py",
+          "kind": "import",
+          "line": 98
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 104
         }
       ],
       "unresolved": []
