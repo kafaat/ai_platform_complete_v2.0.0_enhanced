@@ -26,7 +26,7 @@
         "GET /healthz @ services/auth/routers/ops.py:27",
         "GET /metrics @ services/auth/routers/ops.py:21",
         "GET /readyz @ services/auth/routers/ops.py:32",
-        "GET /runtime-identity @ services/auth/main.py:409",
+        "GET /runtime-identity @ services/auth/main.py:410",
         "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:810",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:108",
@@ -98,10 +98,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:799",
-          "metric:sahool_auth_logins_total@services/auth/main.py:273",
-          "metric:sahool_auth_register_total@services/auth/main.py:274",
-          "metric:sahool_auth_resets_total@services/auth/main.py:275"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_logins_total@services/auth/main.py:274",
+          "metric:sahool_auth_register_total@services/auth/main.py:275",
+          "metric:sahool_auth_resets_total@services/auth/main.py:276"
         ],
         "traces": [],
         "receipts": [],
@@ -4641,10 +4641,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:799",
-          "metric:sahool_auth_logins_total@services/auth/main.py:273",
-          "metric:sahool_auth_register_total@services/auth/main.py:274",
-          "metric:sahool_auth_resets_total@services/auth/main.py:275"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_logins_total@services/auth/main.py:274",
+          "metric:sahool_auth_register_total@services/auth/main.py:275",
+          "metric:sahool_auth_resets_total@services/auth/main.py:276"
         ],
         "traces": [],
         "receipts": [],
@@ -5690,10 +5690,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:799",
-          "metric:sahool_auth_logins_total@services/auth/main.py:273",
-          "metric:sahool_auth_register_total@services/auth/main.py:274",
-          "metric:sahool_auth_resets_total@services/auth/main.py:275"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_logins_total@services/auth/main.py:274",
+          "metric:sahool_auth_register_total@services/auth/main.py:275",
+          "metric:sahool_auth_resets_total@services/auth/main.py:276"
         ],
         "traces": [],
         "receipts": [],
@@ -5763,10 +5763,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:799",
-          "metric:sahool_auth_logins_total@services/auth/main.py:273",
-          "metric:sahool_auth_register_total@services/auth/main.py:274",
-          "metric:sahool_auth_resets_total@services/auth/main.py:275"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_logins_total@services/auth/main.py:274",
+          "metric:sahool_auth_register_total@services/auth/main.py:275",
+          "metric:sahool_auth_resets_total@services/auth/main.py:276"
         ],
         "traces": [],
         "receipts": [],
@@ -5851,10 +5851,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:799",
-          "metric:sahool_auth_logins_total@services/auth/main.py:273",
-          "metric:sahool_auth_register_total@services/auth/main.py:274",
-          "metric:sahool_auth_resets_total@services/auth/main.py:275"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_logins_total@services/auth/main.py:274",
+          "metric:sahool_auth_register_total@services/auth/main.py:275",
+          "metric:sahool_auth_resets_total@services/auth/main.py:276"
         ],
         "traces": [],
         "receipts": [],
@@ -5927,10 +5927,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:799",
-          "metric:sahool_auth_logins_total@services/auth/main.py:273",
-          "metric:sahool_auth_register_total@services/auth/main.py:274",
-          "metric:sahool_auth_resets_total@services/auth/main.py:275"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_logins_total@services/auth/main.py:274",
+          "metric:sahool_auth_register_total@services/auth/main.py:275",
+          "metric:sahool_auth_resets_total@services/auth/main.py:276"
         ],
         "traces": [],
         "receipts": [],
@@ -6062,10 +6062,10 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:799",
-          "metric:sahool_auth_logins_total@services/auth/main.py:273",
-          "metric:sahool_auth_register_total@services/auth/main.py:274",
-          "metric:sahool_auth_resets_total@services/auth/main.py:275"
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_logins_total@services/auth/main.py:274",
+          "metric:sahool_auth_register_total@services/auth/main.py:275",
+          "metric:sahool_auth_resets_total@services/auth/main.py:276"
         ],
         "traces": [],
         "receipts": [],

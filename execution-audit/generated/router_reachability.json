@@ -91,7 +91,7 @@
     },
     {
       "kind": "app",
-      "line": 405,
+      "line": 406,
       "module": "services.auth.main",
       "node_id": "services.auth.main:app",
       "route_count": 1,
@@ -2955,7 +2955,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "07305989612c6a3f1543bb9340dde091863ea03ed0f4493131271aa93e25cc99",
+  "inventory_sha256": "ac44189ea094b61d3ed78febdb9e0958f4b3ccb7fd2a657a0db35ff72c4cd2e8",
   "orphan_candidate_count": 236,
   "orphan_candidates": [
     {
