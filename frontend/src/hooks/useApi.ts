@@ -195,10 +195,11 @@ export interface TimeseriesPoint {
 }
 
 export interface Task {
+  source_scouting_pin_id?: string | null;
   task_id: string; field_id: string; field_name?: string;
   task_type: string; priority: number; recommended_date: string;
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  estimated_duration_min: number; estimated_cost_usd: number;
+  estimated_duration_min: number; estimated_cost_usd: number; actual_cost_usd?: number | null;
   notes?: string; photo_url?: string; tenant_id: string;
 }
 
@@ -2288,11 +2289,20 @@ export function useCompleteTask() {
   const qc  = useQueryClient();
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation({
-    mutationFn: ({ taskId, photoUrl }: { taskId: string; photoUrl?: string }) =>
-      kongApi.patch(`/api/v1/tasks/${taskId}`, { status: 'completed', photo_url: photoUrl }).then(r => r.data),
-    // أبطِل استعلام المهامّ المُشترَك (F5-03) كي تعكس كلّ الشاشات (MapHub/OperationCommand/
-    // FieldTasksCabin/اللوحة) الإكمال فوراً بدل بقائها معلّقةً حتى فترة الاستطلاع.
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks', tid] }); },
+    mutationFn: ({ taskId, photoUrl, actualCostUsd }: { taskId: string; photoUrl?: string; actualCostUsd?: number }) =>
+      kongApi.patch(`/api/v1/tasks/${taskId}`, {
+        status: 'completed',
+        photo_url: photoUrl,
+        ...(actualCostUsd !== undefined && { actual_cost_usd: actualCostUsd }),
+      }).then(r => r.data),
+    onSuccess: () => Promise.all([
+      qc.invalidateQueries({ queryKey: ['tasks', tid] }),
+      // أبطِل استعلام المهامّ المُشترَك (F5-03) كي تعكس كلّ الشاشات (MapHub/OperationCommand/
+      // FieldTasksCabin/اللوحة) الإكمال فوراً بدل بقائها معلّقةً حتى فترة الاستطلاع.
+      qc.invalidateQueries({ queryKey: QK.costAnalytics(tid) }),
+      qc.invalidateQueries({ queryKey: ['mc-costs-by-field'] }),
+      qc.invalidateQueries({ queryKey: ['field-workspace'], predicate: query => query.queryKey[2] === 'tasks' }),
+    ]),
   });
 }
 

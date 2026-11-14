@@ -226,6 +226,7 @@ class _PinDetails extends StatelessWidget {
           'الموقع',
           '${pin.lat.toStringAsFixed(6)}, ${pin.lng.toStringAsFixed(6)}',
         ),
+        row('مصدر الموقع', pin.locationSourceLabelAr),
         if (pin.issueCode != null) row('المشكلة', pin.issueCode!),
         if (pin.crop != null) row('المحصول', pin.crop!),
         row('ملاحظة', pin.noteAr ?? '—'),
@@ -251,7 +252,41 @@ class _PinDetails extends StatelessWidget {
                   ),
                   const SizedBox(height: SahoolSpacing.xs),
                   Text(
-                    'الصورة محفوظة على هذا الجهاز فقط.',
+                    'نسخة هذا الجهاز من الصورة؛ النسخة المشتركة تظهر أدناه إن اكتمل رفعها.',
+                    style: TextStyle(color: t.muted),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        // v260: الصورة المشتركة من scout_photo_evidence برابط HTTPS مؤقّت (120 ثانية) —
+        // يراها المشرف من جهاز آخر. لا صورة أو تعذّر ⇒ لا شيء (لا صورة مخترَعة).
+        FutureBuilder<Map<String, dynamic>?>(
+          future: deps.api
+              .photoForPin(pin.fieldId, pin.pinId)
+              .then<Map<String, dynamic>?>((r) => r)
+              .catchError((Object _) => null),
+          builder: (context, snap) {
+            final url = snap.data?['url'];
+            if (url is! String) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: SahoolSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ClipRRect(
+                    borderRadius: SahoolRadius.mdAll,
+                    child: Image.network(
+                      url,
+                      height: 200,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                    ),
+                  ),
+                  const SizedBox(height: SahoolSpacing.xs),
+                  Text(
+                    'صورة مشتركة موثّقة البصمة، غير معتمدة تشخيصياً.',
                     style: TextStyle(color: t.muted),
                   ),
                 ],

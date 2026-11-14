@@ -1,3 +1,5 @@
+from datetime import UTC, datetime, timedelta
+
 from shared.continuous_learning_phase10 import run_phase10_learning_cycle
 from shared.feature_store import (
     build_point_in_time_snapshot,
@@ -11,6 +13,17 @@ from shared.mlops import apply_model_promotion, register_model_version, rollback
 def _records():
     return [
         {
+            "tenant_id": "tenant-one",
+            "source_version": "sentinel-2:L2A:granule-20260626",
+            "available_at": (
+                datetime(2026, 6, 26, i, tzinfo=UTC) + timedelta(minutes=1)
+            ).isoformat(),
+            "ingested_at": (
+                datetime(2026, 6, 26, i, tzinfo=UTC) + timedelta(minutes=2)
+            ).isoformat(),
+            "prediction_at": (
+                datetime(2026, 6, 26, i, tzinfo=UTC) + timedelta(minutes=3)
+            ).isoformat(),
             "feature_id": f"feat_{i}",
             "entity_type": "field",
             "entity_id": "field-a" if i < 3 else "field-b",
@@ -29,9 +42,18 @@ def test_feature_store_registers_versions_and_point_in_time_snapshot():
     assert all(d["feature_id"].startswith("featdef_") for d in registry["definitions"])
 
     offline = write_offline_feature_dataset(
-        records, feature_set_id=registry["feature_set"]["feature_set_id"]
+        records,
+        feature_set_id=registry["feature_set"]["feature_set_id"],
+        as_of="2026-06-26T05:03:00+00:00",
     )
     assert offline["point_in_time_safe"] is True
+    # Without an as-of time the same rows make no point-in-time claim.
+    assert (
+        write_offline_feature_dataset(
+            records, feature_set_id=registry["feature_set"]["feature_set_id"]
+        )["point_in_time_safe"]
+        is False
+    )
     assert offline["row_count"] == 6
     assert len(offline["content_hash"]) == 64
 

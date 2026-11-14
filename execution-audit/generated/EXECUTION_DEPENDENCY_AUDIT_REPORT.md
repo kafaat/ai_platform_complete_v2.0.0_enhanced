@@ -4,20 +4,20 @@
 
 ## Summary
 
-- Python files parsed: **2138**
-- FastAPI-style route handlers: **1064**
-- Static function-call edges: **104222**
-- Dead-code candidates: **668**
-- Duplicate function groups: **62**
+- Python files parsed: **2165**
+- FastAPI-style route handlers: **1067**
+- Static function-call edges: **106985**
+- Dead-code candidates: **669**
+- Duplicate function groups: **63**
 - Automatic deletions: **0**
 
 ## Highest-confidence dead-code candidates
 
 | Owner | Symbol | Kind | File | Line |
 |---|---|---|---|---:|
-| `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 61 |
+| `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 60 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
-| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 162 |
+| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 165 |
 | `decision-service` | `_require_live_when_certifying` | function | `services/decision-service/tests/test_eligibility_assessment_live_pg.py` | 119 |
 | `decision-service` | `_clean_policy_env` | function | `services/decision-service/tests/test_sod_single_operator_self_approval.py` | 32 |
 | `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 69 |
@@ -29,7 +29,7 @@
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_c7_latest_cache_provenance.py` | 40 |
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_cdse_empty_raster_not_cached.py` | 70 |
 | `raster-service` | `_clean_runtime_state` | function | `services/raster-service/test_job_truth_receipts_and_fencing.py` | 77 |
-| `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 60 |
+| `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 67 |
 | `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1146 |
 | `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 190 |
 | `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 208 |

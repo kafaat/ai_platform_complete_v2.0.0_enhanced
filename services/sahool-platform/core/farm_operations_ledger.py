@@ -12,7 +12,7 @@ from datetime import UTC, date, datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from core.farm_costing import ActualCostLine, SeasonBudgetLine
+from core.farm_costing import ActualCostLine, SeasonBudgetLine, compute_variances
 
 
 class BusinessUnitType(str, Enum):
@@ -496,28 +496,27 @@ async def persist_operation_subrecords(
     return counts
 
 
-async def fetch_budget_and_actual(conn, tenant_id: str, season_id: str):
+async def fetch_budget_and_actual(conn, tenant_id: str, season_id: str, currency=None):
     """بنود ميزانيّة الموسم وتكاليفه **الفعليّة** فقط (منجَزة وبتاريخٍ لا يتجاوز اليوم).
 
     نُقِلت من الراوتر (راتشِت الحجم). المخطَّط/الجاري/الملغى والمؤرَّخ مستقبلاً ليس تكلفةً فعليّة
-    فلا يدخل الانحرافَ ولا الربحيّة.
+    فلا يدخل الانحرافَ ولا الربحيّة. ``currency`` (مُطبَّعة) تقصر الطرفين على عملةٍ واحدة.
     """
+    scope, args = _currency_scope(tenant_id, season_id, currency)
     budget_rows = await conn.fetch(
-        """SELECT budget_line_id, season_id, stage, category, planned_quantity, unit,
+        f"""SELECT budget_line_id, season_id, stage, category, planned_quantity, unit,
                   planned_unit_cost, planned_cost, currency, source, editable
            FROM farm_season_budget_lines
-           WHERE tenant_id = $1::uuid AND season_id = $2""",
-        tenant_id,
-        season_id,
+           WHERE tenant_id = $1::uuid AND season_id = $2{scope}""",
+        *args,
     )
     actual_rows = await conn.fetch(
         f"""SELECT operation_id, season_id, COALESCE(cost_category, operation_type) AS category,
                   'whole_season' AS stage, cost_amount, currency
            FROM farm_operation_ledger
            WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NOT NULL
-             AND {ACTUAL_OPERATION_SQL}""",
-        tenant_id,
-        season_id,
+             AND {ACTUAL_OPERATION_SQL}{scope}""",
+        *args,
     )
     budgets = [
         SeasonBudgetLine(
@@ -547,3 +546,99 @@ async def fetch_budget_and_actual(conn, tenant_id: str, season_id: str):
         for r in actual_rows
     ]
     return budgets, actuals
+
+
+#: v247: an operation may name one task, and only inside the field it is recorded for.
+TASK_IN_FIELD_SQL = (
+    "SELECT 1 FROM field_tasks WHERE task_id=$1 AND tenant_id=$2::uuid AND field_id=$3"
+)
+
+
+async def task_link_error(conn, tenant_id: str, task_id, field_id: str | None):
+    """Return ``(status, detail)`` when an optional task link is invalid, else ``None``."""
+    if task_id is None:
+        return None
+    if not field_id:
+        return 422, "task_link_requires_field"
+    if not await conn.fetchval(TASK_IN_FIELD_SQL, task_id, tenant_id, field_id):
+        return 404, "task_not_found_in_field"
+    return None
+
+
+#: Tenant-scope lookups of the operations ledger (moved from the router for its size ratchet).
+_TENANT_SCOPE_SQL: dict[str, tuple[str, str]] = {
+    "season": (
+        "SELECT 1 FROM farm_season_projects WHERE tenant_id = $1::uuid AND season_id = $2",
+        "season_not_found_for_tenant",
+    ),
+    "production_unit": (
+        "SELECT 1 FROM farm_production_units WHERE tenant_id = $1::uuid AND production_unit_id = $2",
+        "production_unit_not_found_for_tenant",
+    ),
+    "farm": (
+        "SELECT 1 FROM farms WHERE tenant_id = $1::uuid AND farm_id = $2",
+        "farm_not_found_for_tenant",
+    ),
+}
+
+
+async def missing_tenant_scope(conn, tenant_id: str, kind: str, value: str | None) -> str | None:
+    """The 404 detail when ``value`` is set and not owned by the tenant; ``None`` otherwise."""
+    if not value:
+        return None
+    sql, detail = _TENANT_SCOPE_SQL[kind]
+    return None if await conn.fetchval(sql, tenant_id, value) == 1 else detail
+
+
+def normalize_currency(currency: str | None) -> str | None:
+    """ISO-like currency code as stored for comparison (``" usd "`` → ``"USD"``); blank → None."""
+    text = (currency or "").strip().upper()
+    return text or None
+
+
+def _currency_scope(tenant_id: str, season_id: str, currency: str | None):
+    if currency is None:
+        return "", (tenant_id, season_id)
+    return " AND upper(trim(currency)) = $3", (tenant_id, season_id, currency)
+
+
+async def fetch_unpriced_categories(conn, tenant_id: str, season_id: str, currency=None):
+    """Completed operations with no recorded cost, per category.
+
+    Ledger operations carry no budget stage (actuals are keyed ``whole_season``), so an
+    unpriced operation makes its whole category incomplete, whatever the budget stage.
+    """
+    scope, args = _currency_scope(tenant_id, season_id, currency)
+    rows = await conn.fetch(
+        f"""SELECT 'whole_season' AS stage, COALESCE(cost_category, operation_type) AS category,
+                   COUNT(*)::int AS unpriced_operations
+            FROM farm_operation_ledger
+            WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NULL
+              AND {ACTUAL_OPERATION_SQL}{scope}
+            GROUP BY COALESCE(cost_category, operation_type) ORDER BY category""",
+        *args,
+    )
+    return [dict(row) for row in rows]
+
+
+def priced_variance(budgets, actuals, incomplete: list[dict]) -> tuple[list, dict]:
+    """Drop variance lines whose category has unpriced work: a missing cost is not a saving."""
+    variance = compute_variances(budgets, actuals)
+    categories = {row["category"] for row in incomplete}
+    coverage = {
+        "cost_coverage": "partial" if incomplete else "recorded_operations",
+        "unpriced_operations": sum(row["unpriced_operations"] for row in incomplete),
+        "incomplete_categories": incomplete,
+    }
+    return [line for line in variance if line.category not in categories], coverage
+
+
+async def fetch_season_revenue(conn, tenant_id: str, season_id: str) -> float:
+    """Recorded season revenue (moved from the router: size ratchet)."""
+    row = await conn.fetchrow(
+        """SELECT COALESCE(SUM(amount), 0)::float AS revenue
+           FROM farm_revenue_records WHERE tenant_id = $1::uuid AND season_id = $2""",
+        tenant_id,
+        season_id,
+    )
+    return float(row["revenue"] or 0.0)

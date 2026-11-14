@@ -12,8 +12,8 @@
   "maturity_distribution": {
     "0": 2,
     "1": 2,
-    "2": 10,
-    "3": 67
+    "2": 17,
+    "3": 60
   },
   "parity_distribution": {
     "Behind": 9,
@@ -30,8 +30,8 @@
       "domain": "decision",
       "capabilities": 10,
       "mapped": 10,
-      "average_maturity": 2.8,
-      "average_evidence": 2.8,
+      "average_maturity": 2.5,
+      "average_evidence": 2.5,
       "runtime_verified": 0,
       "production_certified": 0,
       "unassessed_parity": 0
@@ -40,8 +40,8 @@
       "domain": "farm_management",
       "capabilities": 10,
       "mapped": 10,
-      "average_maturity": 3.0,
-      "average_evidence": 3.0,
+      "average_maturity": 2.9,
+      "average_evidence": 2.9,
       "runtime_verified": 0,
       "production_certified": 0,
       "unassessed_parity": 0
@@ -90,8 +90,8 @@
       "domain": "satellite",
       "capabilities": 9,
       "mapped": 9,
-      "average_maturity": 2.89,
-      "average_evidence": 2.89,
+      "average_maturity": 2.67,
+      "average_evidence": 2.67,
       "runtime_verified": 0,
       "production_certified": 0,
       "unassessed_parity": 0
@@ -100,8 +100,8 @@
       "domain": "security",
       "capabilities": 8,
       "mapped": 8,
-      "average_maturity": 3.0,
-      "average_evidence": 3.0,
+      "average_maturity": 2.88,
+      "average_evidence": 2.88,
       "runtime_verified": 0,
       "production_certified": 0,
       "unassessed_parity": 0

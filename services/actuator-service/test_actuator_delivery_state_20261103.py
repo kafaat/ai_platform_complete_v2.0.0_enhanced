@@ -175,6 +175,7 @@ def test_a_signed_ack_for_a_published_command_is_accepted():
         (_ack(device="valve-b"), "ack_device_does_not_match_topic"),
         (_ack(result="done"), "unknown_ack_result:done"),
         (_ack(sig="0" * 64), "bad_ack_signature"),
+        (_ack(sig="أ" * 64), "bad_ack_signature"),
         (_ack(secret="x" * 32), "bad_ack_signature"),
         ({**_ack(), "sig": None}, "bad_ack_signature"),
     ],
@@ -201,6 +202,15 @@ def test_an_ack_from_another_device_cannot_ack_this_command():
     ack = _ack(device="valve-b")
     d = _evaluate(_record(device="valve-a"), ack, device="valve-b")
     assert (d.accepted, d.reason) == (False, "ack_device_does_not_match_command")
+
+
+def test_a_valid_signature_for_another_command_cannot_advance_the_row():
+    decision = _evaluate(_record(), _ack(command_id="cmd_2"))
+    assert (decision.accepted, decision.reason, decision.target) == (
+        False,
+        "ack_command_id_mismatch",
+        None,
+    )
 
 
 def test_a_late_ack_does_not_ack_and_materialises_expiry():
@@ -485,6 +495,23 @@ def test_manual_command_is_published_with_its_id_and_reports_published_not_acked
     row = pool.table.find(TENANT, out["command_id"])
     assert row["delivery_state"] == "published" and row["triggered_by"] == "manual"
     assert row["published_at"] is not None and row["ack_deadline"] > row["published_at"]
+
+
+@pytest.mark.parametrize("result", ["applied", "rejected", "unknown_command"])
+def test_exact_redelivery_preserves_the_first_accepted_evidence(wired, result):
+    act, router_mod, pool = wired
+    cid = _send(act, router_mod)["command_id"]
+    raw = json.dumps(_ack(command_id=cid, result=result)).encode()
+    first = asyncio.run(act.handle_device_ack(_ack_topic(), raw))
+    original = dict(pool.table.find(TENANT, cid))
+    repeat = asyncio.run(act.handle_device_ack(_ack_topic(), raw))
+    assert first.accepted
+    assert (repeat.accepted, repeat.reason, repeat.target) == (True, "already_recorded", None)
+    assert original == pool.table.find(TENANT, cid)
+    other = "rejected" if result != "rejected" else "unknown_command"
+    conflict = asyncio.run(act.handle_device_ack(_ack_topic(), json.dumps(_ack(cid, result=other))))
+    assert not conflict.accepted
+    assert original == pool.table.find(TENANT, cid)
 
 
 def test_a_signed_device_ack_moves_the_command_to_device_acked_and_http_shows_it(wired):

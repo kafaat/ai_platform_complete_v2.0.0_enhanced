@@ -100,15 +100,33 @@ def test_terrain_outputs_all_required_derivatives():
     required = {
         "slope_deg",
         "tpi",
-        "twi",
-        "plan_curvature",
-        "profile_curvature",
-        "flow_accumulation",
+        "local_wetness_proxy",
+        "elevation_laplacian_per_m",
+        "row_second_derivative_per_m",
+        "higher_neighbor_count",
         "relative_elevation",
-        "wadi_distance_m",
     }
-    assert required <= set(p.summaries)
+    assert required == set(p.summaries)
+    assert p.drainage_paths == []
+    assert p.provenance["unavailable"]["wadi_distance_m"] == "no_wadi_geometry"
+    assert p.provenance["unavailable"]["flow_accumulation"] == "no_flow_routing"
     assert sum(p.landform_counts.values()) == 4
+
+
+def test_flat_terrain_does_not_identify_wadis_or_depressions():
+    request = TerrainRequest(
+        tenant_id="t",
+        field_id="f",
+        geometry_hash="g",
+        dem_version="flat",
+        cell_size_m=10,
+        elevation_m=[[7] * 5 for _ in range(5)],
+    )
+    product = build_terrain_derivatives(request)
+    assert product.summaries["higher_neighbor_count"]["max"] == 0
+    assert product.summaries["slope_deg"]["max"] == 0
+    assert product.depressions == product.drainage_paths == []
+    assert "wadi_distance_m" not in product.summaries
 
 
 def test_texture_is_modelled_and_spatial_cv_fail_closed_without_samples():
@@ -132,7 +150,7 @@ def test_texture_is_modelled_and_spatial_cv_fail_closed_without_samples():
     assert p.provenance["evidence_class"] == "modelled"
 
 
-def test_salinity_screening_blocks_high_risk_and_lab_verified_allows():
+def test_salinity_screening_blocks_high_risk_with_reported_lab_inputs():
     req = SalinityAssessmentRequest(
         tenant_id="t",
         field_id="f",
@@ -164,6 +182,33 @@ def test_salinity_screening_blocks_high_risk_and_lab_verified_allows():
     )
     p = build_salinity_assessment(req)
     assert "gypsum_rate" in p.zones[0].blocked_use
-    assert p.zones[1].evidence_level == "lab_verified"
-    assert p.zones[1].blocked_use == []
-    assert p.zones[1].classification == "saline_sodic"
+    assert p.zones[1].evidence_level == "screening"
+    assert "reclamation_execution" in p.zones[1].blocked_use
+    assert "soil_ec_not_comparable_to_saturation_extract_25c" in p.zones[1].evidence_notes
+
+
+def test_texture_uses_triangle_and_only_supported_evidence():
+    from shared.contracts.soil.p2 import TextureCalibrationSample
+
+    feature = TextureFeatureVector(
+        zone_id="sample", bare_bands={}, soilgrids={"sand_pct": 40, "clay_pct": 20}
+    )
+    request = TextureProbabilityRequest(
+        tenant_id="test",
+        field_id="field",
+        geometry_hash="hash",
+        features=[
+            feature,
+            TextureFeatureVector(zone_id="unused", bare_bands={}, sentinel1={"vv": -11}),
+        ],
+    )
+    base = build_texture_probability(request)
+    calibration = TextureCalibrationSample(feature=feature, sand_pct=40, silt_pct=40, clay_pct=20)
+    many = build_texture_probability(
+        request.model_copy(update={"calibration_samples": [calibration] * 15})
+    )
+    assert [(z.zone_id, z.texture_class) for z in base.zones] == [("sample", "loam")]
+    assert base.provenance["zones_without_usable_inputs"] == ["unused"]
+    assert base.provenance["inputs"] == ["soilgrids"]
+    assert many.spatial_cv["status"] == "not_evaluated"
+    assert base.zones[0].uncertainty == many.zones[0].uncertainty

@@ -35,6 +35,8 @@ def _case(kind):
         **payload,
         "authoritative": True,
         "persisted": True,
+        # The owning service echoes the JWT tenant; the review route proves it matches.
+        "tenant_id": str(USER.tenant_id),
         "execution_plan_id": "plan_1",
         "dispatch_authorization_id": "auth_1",
         "execution_request_id": "exec_1",

@@ -775,9 +775,35 @@ v241_edge_idempotency_tenant_scoped.sql
 # v239: per-detection provenance (model artifact sha256, input sha256, threshold, calibration);
 #       tenant RLS+FORCE, append-only. Inserted before v206 so v206 stays last.
 v239_detection_provenance.sql
+# v243–v247 (owner delivery «v26 Unified Task Cost and Inspection»): task sources, the farm-book,
+#   operations and pin links to a task. Each file is idempotent on a re-applied MANIFEST
+#   (IF NOT EXISTS / catalog-checked constraints). Inserted before v240 so v240 stays directly
+#   before v206. The delivery's inspection hand-offs (v248, v254), task cost trace (v249) and
+#   evidence versions (v256) are held back with their routes (owner decision 2026-11-13).
+v243_field_task_satellite_sources.sql
+v244_field_task_terrain_sources.sql
+v245_farm_book_task_link.sql
+v246_scouting_pin_inspection_task.sql
+v247_farm_operations_task_link.sql
+v255_soil_sampling_origin.sql
+# v257 (owner priority 4): scouting pins keep location_source (gps|manual|field_centroid|unknown;
+#   older rows unknown) and accuracy_m (GPS only). No photo link on scouting_pins: the photo's
+#   single source is v260. Additive ADD COLUMN IF NOT EXISTS + catalog-checked constraints;
+#   scouting_pins keeps its FORCE RLS. Inserted before v240.
+v257_scouting_pin_location_photo.sql
+v258_lab_water_revisions.sql
 # v259: a documented observed-zero yield-map point (evidence id) is accepted, pending review;
 #   undocumented zeros and negatives stay refused. Guarded, re-run safe. Before v240/v206.
 v259_yield_map_observed_zero.sql
+# v260 (owner decision 2026-11-13): scout_photo_evidence, the observation photo's single source of
+#   truth. Immutable (BEFORE UPDATE OR DELETE trigger), FORCE RLS by tenant, one row per pin,
+#   FK (tenant_id, field_id, pin_id) -> scouting_pins (v246 unique index); owner scout-ingest.
+#   Inserted after v259 and before v240.
+v260_scout_photo_evidence.sql
+# v261: field_tasks.field_id references fields (the record POST /api/v1/fields writes), not the
+#   v8 field_boundaries table nothing in the API inserts into. Same name and ON DELETE CASCADE;
+#   catalog-checked, idempotent. Inserted after v260 and before v240.
+v261_field_tasks_reference_fields.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

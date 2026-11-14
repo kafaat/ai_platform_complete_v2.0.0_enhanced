@@ -28,14 +28,6 @@
     },
     {
       "assessed_maturity": 2,
-      "capability_id": "FM-001",
-      "declared_maturity": 3,
-      "finding_id": "FM-001:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "FM-001:declared_above_evidence:evidence-maturity"
-    },
-    {
-      "assessed_maturity": 2,
       "capability_id": "FM-005",
       "declared_maturity": 3,
       "finding_id": "FM-005:declared_above_evidence",
@@ -49,14 +41,6 @@
       "finding_id": "FM-006:declared_above_evidence",
       "kind": "declared_above_evidence",
       "ratchet_identity": "FM-006:declared_above_evidence:evidence-maturity"
-    },
-    {
-      "assessed_maturity": 2,
-      "capability_id": "FM-007",
-      "declared_maturity": 3,
-      "finding_id": "FM-007:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "FM-007:declared_above_evidence:evidence-maturity"
     },
     {
       "assessed_maturity": 1,
@@ -89,14 +73,6 @@
       "finding_id": "INT-001:declared_above_evidence",
       "kind": "declared_above_evidence",
       "ratchet_identity": "INT-001:declared_above_evidence:evidence-maturity"
-    },
-    {
-      "assessed_maturity": 2,
-      "capability_id": "INT-002",
-      "declared_maturity": 3,
-      "finding_id": "INT-002:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "INT-002:declared_above_evidence:evidence-maturity"
     },
     {
       "assessed_maturity": 2,
@@ -163,14 +139,6 @@
       "ratchet_identity": "IRR-008:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 3,
-      "capability_id": "IRR-009",
-      "declared_maturity": 2,
-      "finding_id": "IRR-009:evidence_above_declared",
-      "kind": "evidence_above_declared",
-      "ratchet_identity": "IRR-009:evidence_above_declared:evidence-maturity"
-    },
-    {
       "assessed_maturity": 1,
       "capability_id": "IRR-010",
       "declared_maturity": 2,
@@ -179,7 +147,7 @@
       "ratchet_identity": "IRR-010:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "capability_id": "OPS-001",
       "declared_maturity": 3,
       "finding_id": "OPS-001:declared_above_evidence",
@@ -193,6 +161,14 @@
       "finding_id": "OPS-002:declared_above_evidence",
       "kind": "declared_above_evidence",
       "ratchet_identity": "OPS-002:declared_above_evidence:evidence-maturity"
+    },
+    {
+      "assessed_maturity": 3,
+      "capability_id": "OPS-003",
+      "declared_maturity": 2,
+      "finding_id": "OPS-003:evidence_above_declared",
+      "kind": "evidence_above_declared",
+      "ratchet_identity": "OPS-003:evidence_above_declared:evidence-maturity"
     },
     {
       "assessed_maturity": 1,
@@ -289,14 +265,6 @@
       "finding_id": "SEC-003:declared_above_evidence",
       "kind": "declared_above_evidence",
       "ratchet_identity": "SEC-003:declared_above_evidence:evidence-maturity"
-    },
-    {
-      "assessed_maturity": 2,
-      "capability_id": "SEC-005",
-      "declared_maturity": 3,
-      "finding_id": "SEC-005:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "SEC-005:declared_above_evidence:evidence-maturity"
     },
     {
       "assessed_maturity": 2,
@@ -451,9 +419,9 @@
     "baseline_source": "docs/capability-registry/reconciliation_drift_baseline.json",
     "classes": {
       "evidence_maturity": {
-        "baseline_count": 49,
+        "baseline_count": 45,
         "new": [],
-        "observed_count": 49,
+        "observed_count": 45,
         "stale": []
       },
       "registry_reconciliation": {

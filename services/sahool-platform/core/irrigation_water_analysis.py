@@ -76,22 +76,65 @@ def invalid_water_inputs(sample: WaterSample) -> list[str]:
     return errors
 
 
-def compute_sar(na: float, ca: float, mg: float) -> float | None:
-    """SAR = Na / √((Ca+Mg)/2). الأيونات meq/L. None إن نقص مدخل."""
+# أسباب «غير قابل للحساب» مع وجود كلّ المدخلات (تختلف عن نقص المدخل في missing_inputs):
+# مدخلاتٌ منتهية كلٌّ على حدة قد يفيض جمعها أو نسبتها إلى inf، فينتج SAR = 0 «منخفض» مزيّف
+# أو RSC = inf − inf = NaN لا يُسلسَل JSON. الحساب يفشل مغلقاً (None) ويُعلَن السبب.
+WATER_NUMERIC_OVERFLOW = "WATER-NUMERIC-OVERFLOW"
+REASON_NUMERIC_OVERFLOW = "numeric_overflow"
+REASON_CA_MG_ZERO = "calcium_plus_magnesium_zero"
+
+
+def sar_with_reason(na, ca, mg) -> tuple[float | None, str | None]:
+    """(SAR، None) أو (None، سبب). سببُ None مع قيمة None = مدخلٌ ناقص."""
     if na is None or ca is None or mg is None:
-        return None
-    denom = (ca + mg) / 2.0
+        return None, None
+    total_calcium_magnesium = ca + mg
+    if not math.isfinite(total_calcium_magnesium):
+        return None, REASON_NUMERIC_OVERFLOW  # never a false SAR = 0 from Na/inf
+    denom = total_calcium_magnesium / 2.0
     if denom <= 0:
-        return None  # صدق: لا قسمة على صفر، لا قيمة مفبركة
-    return round(na / math.sqrt(denom), 2)
+        return None, REASON_CA_MG_ZERO  # صدق: لا قسمة على صفر، لا قيمة مفبركة
+    sar = na / math.sqrt(denom)
+    if not math.isfinite(sar):
+        return None, REASON_NUMERIC_OVERFLOW  # tiny positive denominator overflows the ratio
+    return round(sar, 2), None
+
+
+def rsc_with_reason(co3, hco3, ca, mg) -> tuple[float | None, str | None]:
+    """(RSC، None) أو (None، سبب). سببُ None مع قيمة None = مدخلٌ ناقص."""
+    if any(v is None for v in (co3, hco3, ca, mg)):
+        return None, None
+    carbonates = co3 + hco3
+    calcium_magnesium = ca + mg
+    if not math.isfinite(carbonates) or not math.isfinite(calcium_magnesium):
+        return None, REASON_NUMERIC_OVERFLOW  # inf − inf ⇒ NaN (JSONResponse cannot serialise)
+    rsc = carbonates - calcium_magnesium
+    if not math.isfinite(rsc):
+        return None, REASON_NUMERIC_OVERFLOW
+    return round(rsc, 2), None
+
+
+def compute_sar(na: float, ca: float, mg: float) -> float | None:
+    """SAR = Na / √((Ca+Mg)/2). الأيونات meq/L. None إن نقص مدخل أو تعذّر حسابه."""
+    return sar_with_reason(na, ca, mg)[0]
 
 
 def compute_rsc(co3: float, hco3: float, ca: float, mg: float) -> float | None:
-    """RSC = (CO₃ + HCO₃) − (Ca + Mg) بالـmeq/L (Eaton 1950). None إن نقص."""
-    vals = [co3, hco3, ca, mg]
-    if any(v is None for v in vals):
+    """RSC = (CO₃ + HCO₃) − (Ca + Mg) بالـmeq/L (Eaton 1950). None إن نقص أو تعذّر."""
+    return rsc_with_reason(co3, hco3, ca, mg)[0]
+
+
+_NOT_COMPUTABLE_NOTE_AR = {
+    REASON_NUMERIC_OVERFLOW: "غير قابل للحساب: القيم المُدخلة تتجاوز نطاق الحساب العدديّ"
+    " (WATER-NUMERIC-OVERFLOW) — ليست بيانات ناقصة؛ راجع وحدات القياس",
+    REASON_CA_MG_ZERO: "غير قابل للحساب: Ca + Mg = صفر",
+}
+
+
+def _not_computable_class(index_ar: str, reason: str | None) -> dict | None:
+    if reason is None:
         return None
-    return round((co3 + hco3) - (ca + mg), 2)
+    return {"class": None, "note_ar": f"{index_ar} {_NOT_COMPUTABLE_NOTE_AR[reason]}"}
 
 
 def classify_ec(ec_dsm: float | None) -> dict:
@@ -142,8 +185,8 @@ def analyze_water_sample(sample: WaterSample) -> dict:
     if errors:
         raise ValueError("invalid water sample: " + ", ".join(errors))
 
-    sar = compute_sar(sample.na, sample.ca, sample.mg)
-    rsc = compute_rsc(sample.co3, sample.hco3, sample.ca, sample.mg)
+    sar, sar_reason = sar_with_reason(sample.na, sample.ca, sample.mg)
+    rsc, rsc_reason = rsc_with_reason(sample.co3, sample.hco3, sample.ca, sample.mg)
 
     missing: list[str] = []
     for fname in ("na", "ca", "mg", "hco3", "co3", "ec_dsm"):
@@ -152,8 +195,18 @@ def analyze_water_sample(sample: WaterSample) -> dict:
 
     # خلاصة عامّة: أسوأ تصنيف يحكم (المبدأ المحافِظ)
     ec_c = classify_ec(sample.ec_dsm)
-    rsc_c = classify_rsc(rsc)
-    sar_c = classify_sar(sar)
+    rsc_c = _not_computable_class("RSC", rsc_reason) or classify_rsc(rsc)
+    sar_c = _not_computable_class("SAR", sar_reason) or classify_sar(sar)
+    # المؤشّر الذي لم يُحسَب رغم اكتمال مدخلاته يُعلَن بسببه (لا يُقرأ «بيانات ناقصة»).
+    indices_not_computable = [
+        {
+            "index": index,
+            "reason": reason,
+            **({"code": WATER_NUMERIC_OVERFLOW} if reason == REASON_NUMERIC_OVERFLOW else {}),
+        }
+        for index, reason in (("sar", sar_reason), ("rsc_meq_l", rsc_reason))
+        if reason is not None
+    ]
     flags: list[str] = []
     if ec_c.get("class") == "severe":
         flags.append("ملوحة شديدة")
@@ -188,6 +241,7 @@ def analyze_water_sample(sample: WaterSample) -> dict:
         "hazard_flags_ar": flags,
         "verdict": verdict,
         "not_assessed": not_assessed,
+        "indices_not_computable": indices_not_computable,
         "suitable_ar": suitable_ar,
         "missing_inputs": missing,  # صدق: نُعلن ما لم يُقَس
         "data_complete": not missing and not not_assessed,
@@ -281,11 +335,16 @@ def compute_blend_water_quality(components: list[dict]) -> dict:
     elif ec_missing:
         ec = _not_computable("source_ec_missing", source_ids=ec_missing)
     else:
-        ec = {
-            "status": BLEND_COMPUTED,
-            "value": round(sum(f * float(c["ec_ds_m"]) for c, f in parts), 3),
-            "method": "volume_weighted_linear_mixing_approximation",
-        }
+        ec_value = round(sum(f * float(c["ec_ds_m"]) for c, f in parts), 3)
+        ec = (
+            {
+                "status": BLEND_COMPUTED,
+                "value": ec_value,
+                "method": "volume_weighted_linear_mixing_approximation",
+            }
+            if math.isfinite(ec_value)
+            else _not_computable(REASON_NUMERIC_OVERFLOW, code=WATER_NUMERIC_OVERFLOW)
+        )
 
     # SAR: من الأيونات المخلوطة لا من SAR المصادر
     ion_missing = [
@@ -304,14 +363,23 @@ def compute_blend_water_quality(components: list[dict]) -> dict:
     elif ion_missing:
         sar = _not_computable("source_ions_missing", source_ids=ion_missing)
     else:
-        ions = {k: sum(f * float(c[k]) for c, f in parts) for k in BLEND_ION_FIELDS}
-        value = compute_sar(ions["sodium_meq_l"], ions["calcium_meq_l"], ions["magnesium_meq_l"])
-        sar = (
-            _not_computable("calcium_plus_magnesium_zero")
-            if value is None
-            else {"status": BLEND_COMPUTED, "value": value, "method": "sar_from_blended_ions"}
-        )
-        ions = {k: round(v, 4) for k, v in ions.items()}
+        blended = {k: sum(f * float(c[k]) for c, f in parts) for k in BLEND_ION_FIELDS}
+        if not all(math.isfinite(v) for v in blended.values()):
+            value, reason = None, REASON_NUMERIC_OVERFLOW
+        else:
+            value, reason = sar_with_reason(
+                blended["sodium_meq_l"], blended["calcium_meq_l"], blended["magnesium_meq_l"]
+            )
+        if value is None:
+            # صدق: لا SAR = 0 ولا inf، وسببُ الفيض غيرُ سبب Ca+Mg = 0.
+            sar = (
+                _not_computable(reason, code=WATER_NUMERIC_OVERFLOW)
+                if reason == REASON_NUMERIC_OVERFLOW
+                else _not_computable(REASON_CA_MG_ZERO)
+            )
+        else:
+            sar = {"status": BLEND_COMPUTED, "value": value, "method": "sar_from_blended_ions"}
+            ions = {k: round(v, 4) for k, v in blended.items()}
 
     computed = [m["status"] == BLEND_COMPUTED for m in (ec, sar)]
     status = (

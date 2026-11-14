@@ -25,7 +25,7 @@ from aiomqtt import Client as MQTTClient
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
-from shared.actuation_killswitch import is_actuation_halted
+from shared.actuation_killswitch import is_actuation_halted, is_safe_direction
 from shared.actuator_idempotency import (
     decide_fire,
     idempotency_counters,
@@ -213,13 +213,17 @@ def _plan_dispatch_execution(item: dict, *, allowlist: set[str]):
     if target_id and target_id != device_id:
         return ("target_mismatch", target_id, device_id)
     raw = item.get("command_payload")
-    declared_risk = None
-    if isinstance(raw, dict):
-        declared_risk = raw.get("risk_level")
-    if declared_risk is None:
-        declared_risk = payload.get("risk_level")
-    if declared_risk is not None and not _is_risk_allowed(declared_risk, allowlist):
-        return ("refused_risk", str(declared_risk))
+    if isinstance(raw, str):
+        raw = json.loads(raw)  # Already validated by _parse_dispatch_command.
+    outer_field = str(raw.get("field_id") or "").strip()
+    inner_field = str(payload.get("field_id") or "").strip()
+    if outer_field and inner_field and outer_field != inner_field:
+        return ("command_field_mismatch",)
+    if outer_field:
+        payload = {**payload, "field_id": outer_field}
+    for declared_risk in (raw.get("risk_level"), payload.get("risk_level")):
+        if declared_risk is not None and not _is_risk_allowed(declared_risk, allowlist):
+            return ("refused_risk", str(declared_risk))
     # A4: أمرٌ لا يفهمه البرنامج الثابت يُرفَض بسببه في الإيصال، لا «accepted» بلا حركة.
     wire_cmd, wire_reason = _to_firmware_wire(cmd, payload)
     if wire_cmd is None:
@@ -265,7 +269,7 @@ def _device_dispatch_gate(
         return False, "device_tenant_mismatch"
     if str(record.get("type") or "").lower() != "actuator":
         return False, "device_not_actuator"
-    if field_id and str(record.get("field_id") or "") != str(field_id):
+    if field_id and str(record.get("field_id") or "").strip() != str(field_id).strip():
         return False, "device_field_mismatch"
     if str(record.get("status") or "").lower() != "online":
         return False, "device_not_online"
@@ -280,12 +284,32 @@ def _device_dispatch_gate(
     return True, "ok"
 
 
+def _device_dispatch_verdict(
+    record: dict | None,
+    *,
+    tenant_id: str,
+    field_id: str | None,
+    now: datetime,
+    stale_seconds: float,
+) -> tuple[bool, str, str | None]:
+    """Pure: the device gate plus the device's registered field (stripped; blank → None)."""
+    ok, reason = _device_dispatch_gate(
+        record, tenant_id=tenant_id, field_id=field_id, now=now, stale_seconds=stale_seconds
+    )
+    device_field = (str(record.get("field_id") or "").strip() or None) if record else None
+    return ok, reason, device_field
+
+
 async def _validate_dispatch_device(
     tenant_id: str, device_id: str, field_id: str | None
-) -> tuple[bool, str]:
-    """Read the canonical device registry under tenant RLS and apply the pure safety gate."""
+) -> tuple[bool, str, str | None]:
+    """Read the canonical device registry under tenant RLS and apply the pure safety gate.
+
+    Also returns the device's registered field: the field kill switch must hold a command
+    that names no field by the field its valve is installed in.
+    """
     if _pool is None:
-        return False, "device_registry_unavailable"
+        return False, "device_registry_unavailable", None
     try:
         async with _pool.acquire() as conn:
             async with conn.transaction():
@@ -297,7 +321,7 @@ async def _validate_dispatch_device(
                        FROM iot_devices WHERE device_id=$1""",
                     device_id,
                 )
-        return _device_dispatch_gate(
+        return _device_dispatch_verdict(
             dict(row) if row else None,
             tenant_id=tenant_id,
             field_id=field_id,
@@ -306,7 +330,7 @@ async def _validate_dispatch_device(
         )
     except Exception as exc:  # noqa: BLE001
         logger.error("dispatch device validation failed for %s: %s", device_id, exc)
-        return False, "device_registry_error"
+        return False, "device_registry_error", None
 
 
 def _dispatch_tenants(env_value: str | None) -> list[str]:
@@ -392,14 +416,20 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
         if plan[0] == "send":
             _, device_id, cmd, payload = plan
             field_id = str(payload.get("field_id") or "").strip() or None
-            device_ok, device_reason = await _validate_dispatch_device(
+            device_ok, device_reason, device_field = await _validate_dispatch_device(
                 tenant_id, device_id, field_id
             )
+            if device_ok and not (field_id or device_field) and not is_safe_direction(cmd):
+                # No field anywhere (command or registry): no field kill switch could hold an
+                # opening command, so it is refused. decision-service refuses new ones too
+                # (command_field_unbound); this catches requests queued before that check.
+                device_ok, device_reason = False, "dispatch_field_unbound"
             if device_ok:
                 # Re-check the scoped kill-switch after the command has been parsed: tenant + field + device.
+                # A command that names no field is held by the field its device is registered in.
                 async with _pool.acquire() as ks_conn:
                     scoped_halted, scoped_reason = await is_actuation_halted(
-                        ks_conn, tenant_id, field_id=field_id, valve_id=device_id
+                        ks_conn, tenant_id, field_id=field_id or device_field, valve_id=device_id
                     )
                 if scoped_halted:
                     sent = False

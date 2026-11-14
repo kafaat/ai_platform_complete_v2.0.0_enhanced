@@ -258,6 +258,16 @@ BEGIN
   IF to_regclass('public.season_calibration_eligibility') IS NOT NULL THEN
     GRANT SELECT ON season_calibration_eligibility TO sahool_ingest;
   END IF;
+  -- SCOUT-PHOTO (v260): scout-ingest owns the immutable photo rows (SELECT+INSERT; **no**
+  -- UPDATE/DELETE, and the v260 trigger refuses both anyway) and reads scouting_pins only to
+  -- check that the pin exists under the caller's tenant RLS before storing a photo for it.
+  IF to_regclass('public.scouting_pins') IS NOT NULL THEN
+    GRANT SELECT ON scouting_pins TO sahool_ingest;
+  END IF;
+  IF to_regclass('public.scout_photo_evidence') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON scout_photo_evidence TO sahool_ingest;
+    REVOKE UPDATE, DELETE, TRUNCATE ON scout_photo_evidence FROM sahool_ingest;
+  END IF;
   -- INGEST-FIELD-SELECT-01: ``field_resolves_in_tenant`` يقرأ ``SELECT 1 FROM fields`` تحت RLS
   -- (NOBYPASSRLS ⇒ يرى حقول مستأجره فقط). بلا هذا المنح كان كلّ إرسال ODK/Kobo يحمل field_id
   -- يسقط 503 (permission denied). SELECT فقط — لا كتابة على fields.
@@ -275,7 +285,7 @@ BEGIN
   END IF;
 END $$;
 SQL
-echo "  ✓ sahool_ingest جاهز (SELECT+INSERT على submissions+observations؛ SELECT+INSERT+UPDATE على مواسم v201؛ لا DELETE)"
+echo "  ✓ sahool_ingest جاهز (SELECT+INSERT على submissions+observations+scout_photo_evidence؛ SELECT على scouting_pins؛ SELECT+INSERT+UPDATE على مواسم v201؛ لا DELETE)"
 
 echo ""
 echo "═══ تمّ ✓ ═══"
