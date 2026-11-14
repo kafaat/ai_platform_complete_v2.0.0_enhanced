@@ -1,5 +1,5 @@
 {
-  "edge_count": 964,
+  "edge_count": 965,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -92,7 +92,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/services/api.ts:571",
+      "evidence": "frontend/src/services/api.ts:577",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -829,6 +829,16 @@
       "relation": "READS",
       "resource": "db://decision_record",
       "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/persistence.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://dispatch_decisions",
+      "to": "db://dispatch_decisions",
       "to_kind": "resource"
     },
     {
@@ -2272,7 +2282,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/farm_operations_ledger.py",
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -3382,16 +3392,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/seasons.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://imagery_automation_fields",
-      "to": "db://imagery_automation_fields",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4083,6 +4083,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/seasons.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9660,7 +9670,7 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 503,
+    "READS": 504,
     "ROUTES_TO": 73,
     "WRITES": 337
   },
@@ -9677,8 +9687,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 841,
-      "resolved": 840,
+      "observed": 842,
+      "resolved": 841,
       "unresolved_component_paths": 0
     }
   }

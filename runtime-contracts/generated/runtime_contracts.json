@@ -2397,6 +2397,7 @@
           "services/sahool-platform/tests/test_indicator_observations_route.py",
           "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
           "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
+          "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
           "services/sahool-platform/tests/test_lab_sampling_router.py",
           "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
           "services/sahool-platform/tests/test_nats_relay_bounded_startup.py",

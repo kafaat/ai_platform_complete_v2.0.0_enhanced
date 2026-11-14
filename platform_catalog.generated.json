@@ -1129,6 +1129,21 @@
     },
     {
       "approval_required": false,
+      "capability_id": "decision-service.evidence.field-counts",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/evidence/field-counts"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "decision-service",
+      "producer": "decision-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "decision-service.evidence.vegetation-snapshots",
       "consumers": [],
       "curated": false,
@@ -5050,25 +5065,6 @@
       ],
       "idempotency_required": false,
       "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": [
-        "tenant"
-      ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.chat",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /api/chat"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
       "required_context": [
@@ -11507,23 +11503,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.probe",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /probe"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.propagation.crop",
       "consumers": [
         "frontend"
@@ -15674,6 +15653,7 @@
           "activation_evidence_revocations",
           "decision_agronomic_context_snapshots",
           "decision_consumer_heartbeats",
+          "decision_context_compositions",
           "decision_dispatch_authorizations",
           "decision_execution_delivery_attempts",
           "decision_execution_plans",
@@ -17812,20 +17792,20 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 842,
+    "capabilities": 841,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 97,
     "capabilities_idempotent": 75,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 482,
+    "capabilities_tenant_scoped": 481,
     "components": 37,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1138,
+    "route_rows": 1137,
     "ui_waivers": 52,
-    "unique_method_path": 1017
+    "unique_method_path": 1016
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18087,7 +18067,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "bc8b8be86c7065906c867203d4063c90760f160fd74c95a431891f13cc41cd82",
+  "fingerprint": "61c9fd8607f62f73177e1211026e1dc0150e2f5c3a769f069379e9f5b51f078b",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18137,14 +18117,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 964,
+      "edge_count": 965,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 503,
+        "READS": 504,
         "ROUTES_TO": 73,
         "WRITES": 337
       }

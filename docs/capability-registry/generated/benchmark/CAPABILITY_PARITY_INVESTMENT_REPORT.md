@@ -17,13 +17,13 @@
 
 | Domain | Capabilities | Benchmarked | Coverage | Repository maturity | Leader | Parity | Behind | Missing |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| decision | 10 | 0 | 0.0% | 2.4 | 0 | 0 | 0 | 0 |
-| farm_management | 10 | 1 | 10.0% | 2.3 | 0 | 0 | 1 | 0 |
+| decision | 10 | 0 | 0.0% | 2.1 | 0 | 0 | 0 | 0 |
+| farm_management | 10 | 1 | 10.0% | 2.5 | 0 | 0 | 1 | 0 |
 | gis | 4 | 0 | 0.0% | 2.0 | 0 | 0 | 0 | 0 |
-| irrigation | 11 | 1 | 9.1% | 1.73 | 1 | 0 | 0 | 0 |
+| irrigation | 11 | 1 | 9.1% | 1.64 | 1 | 0 | 0 | 0 |
 | operations | 8 | 2 | 25.0% | 2.0 | 0 | 0 | 2 | 0 |
 | precision | 6 | 6 | 100.0% | 1.5 | 0 | 2 | 3 | 1 |
-| satellite | 9 | 1 | 11.1% | 2.56 | 1 | 0 | 0 | 0 |
+| satellite | 9 | 1 | 11.1% | 2.33 | 1 | 0 | 0 | 0 |
 | security | 8 | 0 | 0.0% | 2.0 | 0 | 0 | 0 | 0 |
 | soil | 5 | 2 | 40.0% | 1.6 | 1 | 0 | 1 | 0 |
 | weather | 10 | 2 | 20.0% | 1.8 | 0 | 0 | 2 | 0 |

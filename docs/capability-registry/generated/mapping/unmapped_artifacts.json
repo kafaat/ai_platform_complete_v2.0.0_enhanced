@@ -2036,6 +2036,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/IrrigationWaterPage.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/IrrigationWaterPage.tsx",
     "kind": "web"
   },
@@ -8877,6 +8881,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_irrigation_water_analysis.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py",
     "kind": "tests"
   },
   {
