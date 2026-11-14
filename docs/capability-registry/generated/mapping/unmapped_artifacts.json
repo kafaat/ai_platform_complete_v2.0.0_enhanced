@@ -10528,6 +10528,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/phase6/test_strict_shadow_feature_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/release/test_phase14_release_packaging_contracts.py",
     "kind": "tests"
   },

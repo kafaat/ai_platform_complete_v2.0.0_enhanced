@@ -40945,6 +40945,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c38adf9a7cc256a65a80d956f263560dd99b61dde67a85f82324b5800e9b3f1f"
+        }
+      ],
+      "name": "shared/feature_store/strict_shadow.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "949483e48a9b44d0dac611a0ad9352471d2b428b681401ede0f7ad86549705aa"
         }
       ],
