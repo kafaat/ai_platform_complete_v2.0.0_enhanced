@@ -92,6 +92,30 @@ def _upstream_unavailable(reason: str, **log_fields: Any) -> dict[str, Any]:
     return {"status": "unavailable", "reason": reason, "correlation_id": correlation_id}
 
 
+def _dependency_http_failure(dependency: str, upstream_status: int) -> HTTPException:
+    """Return a caller-safe 502 without reflecting internal KG/RAG HTTP response bodies.
+
+    A correlation ID ties the client error to the server's status-only log entry.
+    Neither upstream payloads, credentials nor farmer questions are logged.
+    """
+    correlation_id = uuid.uuid4().hex
+    logger.warning(
+        "advisory upstream HTTP error dependency=%s upstream_status=%s correlation_id=%s",
+        dependency,
+        upstream_status,
+        correlation_id,
+    )
+    return HTTPException(
+        502,
+        {
+            "dependency": dependency,
+            "reason_code": "advisory_dependency_unavailable",
+            "message_ar": "تعذّر جلب أدلة المستشار؛ أعد المحاولة لاحقاً.",
+            "correlation_id": correlation_id,
+        },
+    )
+
+
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 
@@ -892,7 +916,7 @@ async def build_evidence_response(
                 timeout=5.0,
             )
         if kg_resp.status_code >= 500:
-            raise HTTPException(502, {"dependency": "knowledge-graph", "detail": kg_resp.text})
+            raise _dependency_http_failure("knowledge-graph", kg_resp.status_code)
         # ٤xx من KG (رفض حارس المستأجر مثلاً) يُهبَط به فاشلاً-مغلقاً إلى «لا حواف»،
         # لكنّ الهبوط **يُعلَن**: بدونه يصير «KG لم يُجِب» مطابقاً حرفيّاً لـ«KG لم يجد
         # شيئاً» في الاستجابة، وكلاهما `edges: []`. وهو تدهورُ توافريّةٍ يجب أن يكون
@@ -920,7 +944,7 @@ async def build_evidence_response(
                 timeout=10.0,
             )
         if rag_resp.status_code >= 400:
-            raise HTTPException(502, {"dependency": "rag-retrieval", "detail": rag_resp.text})
+            raise _dependency_http_failure("rag-retrieval", rag_resp.status_code)
 
     from shared.ai.seed_claims import partition_generation_references
 
