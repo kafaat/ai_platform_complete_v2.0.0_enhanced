@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7342,
+    "files_scanned": 7343,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2181,
-      "tests": 2503,
+      "tests": 2504,
       "web": 547
     },
-    "unmapped_artifacts": 3494,
+    "unmapped_artifacts": 3495,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3973,
+      "python_functional": 3974,
       "raw": 3369
     },
-    "test_dependency_files": 1903,
-    "test_dependency_edges": 4897,
+    "test_dependency_files": 1904,
+    "test_dependency_edges": 4900,
     "test_dependency_bounded_files": 1115,
     "test_dependency_unresolved_relations": 485
   },
@@ -44179,6 +44179,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_platform_denial_log_persistent_live_pg.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_platform_denial_log_scope_live.py",
       "kind": "tests"
     },
@@ -66189,7 +66193,7 @@
         {
           "source": "services/sahool-platform/core/tenant_audit.py",
           "kind": "import",
-          "line": 4
+          "line": 8
         }
       ],
       "unresolved": []
@@ -85124,6 +85128,31 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_platform_denial_log_persistent_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "subprocess"
+      ],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 102
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 111
+        },
+        {
+          "source": "services/sahool-platform/core/tenant_audit.py",
+          "kind": "import",
+          "line": 103
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_platform_denial_log_scope_live.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -85131,22 +85160,22 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 65
+          "line": 67
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 87
+          "line": 89
         },
         {
           "source": "services/sahool-platform/core/jwt_denylist.py",
           "kind": "import",
-          "line": 66
+          "line": 68
         },
         {
           "source": "services/sahool-platform/core/tenant_audit.py",
           "kind": "import",
-          "line": 67
+          "line": 69
         }
       ],
       "unresolved": []
