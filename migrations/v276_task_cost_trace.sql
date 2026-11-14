@@ -8,8 +8,11 @@
 --     task. The farm book applies the link to the entry and to its settlements and corrections.
 --   task_cost_history — one row each time field_tasks.actual_cost_usd changes, or the status of a
 --     task that has an actual cost changes, written by the record_field_task_cost trigger whoever
---     updates the task (changed_by = app.current_user_id). Append-only; the task_cost_history_guard
---     trigger refuses any INSERT that is not made from inside that trigger (SH005).
+--     updates the task (changed_by = app.current_user_id). Append-only. The application roles hold
+--     no INSERT/UPDATE/DELETE on it (revoked here and again after the bootstrap's blanket GRANT in
+--     migrations/bootstrap_postgres.sh and apply_in_compose.sh); record_field_task_cost is the one
+--     SECURITY DEFINER function (owner decision, 14 November 2026, #1460) and writes it as the table
+--     owner. The task_cost_history_guard trigger stays as a second layer (SH005).
 -- Both FORCE RLS by tenant; a link's linked_by must be app.current_user_id. Idempotent on a re-applied MANIFEST.
 BEGIN;
 CREATE TABLE IF NOT EXISTS task_expense_links (
@@ -63,10 +66,10 @@ DROP POLICY IF EXISTS tenant_append ON task_cost_history;
 CREATE POLICY tenant_append ON task_cost_history FOR INSERT
     WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''));
 
--- task_cost_history is written only from inside a trigger (record_field_task_cost on field_tasks):
--- a direct INSERT runs this guard at trigger depth 1, the cost trigger's INSERT at depth 2. The
--- row must also name the current user and the task's stored cost and status, so it describes the
--- field_tasks change that fired it. No SECURITY DEFINER: it runs under the caller's role.
+-- Second layer behind the REVOKE below: a row must come from inside a trigger, name the current
+-- user and the task's stored cost and status, so it describes the field_tasks change that fired
+-- it. pg_trigger_depth() alone is spoofable by a role that can create a temporary trigger (review
+-- round 2 of #1460), which is why the privilege, not this check, is the boundary.
 CREATE OR REPLACE FUNCTION task_cost_history_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
     IF pg_trigger_depth() < 2
@@ -112,7 +115,12 @@ DROP TRIGGER IF EXISTS task_expense_link_guard ON task_expense_links;
 CREATE TRIGGER task_expense_link_guard BEFORE INSERT ON task_expense_links
     FOR EACH ROW EXECUTE FUNCTION task_expense_link_guard();
 
-CREATE OR REPLACE FUNCTION record_field_task_cost() RETURNS trigger LANGUAGE plpgsql AS $$
+-- SECURITY DEFINER (the only one in v274-v277, owner decision for #1460): the application roles
+-- cannot write task_cost_history, so the history row is written with the function owner's rights.
+-- search_path is pinned; the body writes only values taken from NEW/OLD and the session's user GUC,
+-- and FORCE RLS's tenant_append policy still binds tenant_id to app.current_tenant.
+CREATE OR REPLACE FUNCTION record_field_task_cost() RETURNS trigger LANGUAGE plpgsql
+    SECURITY DEFINER SET search_path = pg_catalog, public AS $$
 BEGIN
     IF NEW.tenant_id IS NULL THEN
         RETURN NEW;
@@ -135,6 +143,16 @@ END $$;
 DROP TRIGGER IF EXISTS record_field_task_cost ON field_tasks;
 CREATE TRIGGER record_field_task_cost AFTER INSERT OR UPDATE ON field_tasks
     FOR EACH ROW EXECUTE FUNCTION record_field_task_cost();
+
+-- Only record_field_task_cost writes the history. The bootstrap scripts grant DML on every table
+-- to the runtime role after the migrations, so they repeat this REVOKE after their GRANT.
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON task_cost_history FROM PUBLIC;
+DO $$
+BEGIN
+    IF to_regrole('sahool_app') IS NOT NULL THEN
+        REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON task_cost_history FROM sahool_app;
+    END IF;
+END $$;
 
 COMMENT ON TABLE task_expense_links IS
     'Append-only links from an original farm-book expense to a task (v276, owner field-management-service).';

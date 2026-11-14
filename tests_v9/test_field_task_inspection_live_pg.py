@@ -105,6 +105,13 @@ class Live:
         self.app_dsn = DSN
         self.due_at = (datetime.now(UTC) + timedelta(days=2)).replace(microsecond=0)
 
+    async def _app_role(self) -> str:
+        conn = await asyncpg.connect(self.app_dsn)
+        try:
+            return await conn.fetchval("SELECT current_user")
+        finally:
+            await conn.close()
+
     async def __aenter__(self):
         self.admin = await asyncpg.connect(ADMIN_DSN)
         probe = await asyncpg.connect(DSN)
@@ -134,6 +141,11 @@ class Live:
         finally:
             await check.close()
         assert (flags["rolsuper"], flags["rolbypassrls"]) == (False, False)
+        # The same post-GRANT REVOKE the bootstrap scripts apply to the runtime role (#1460, v276).
+        app_role = await self._app_role()
+        await self.admin.execute(
+            f'REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON task_cost_history FROM "{app_role}"'
+        )
         await self._seed()
         await self._wire()
         return self
@@ -541,9 +553,13 @@ async def _append_only(live, table: str, task: str):
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", live.tenant)
-            app = await conn.execute(
-                f"UPDATE {table} SET task_id=task_id WHERE task_id=$1::uuid", task
-            )
+            try:
+                async with conn.transaction():
+                    app = await conn.execute(
+                        f"UPDATE {table} SET task_id=task_id WHERE task_id=$1::uuid", task
+                    )
+            except asyncpg.PostgresError as exc:
+                app = exc.sqlstate
     finally:
         await conn.close()
     conn = await asyncpg.connect(ADMIN_DSN)
@@ -1277,11 +1293,99 @@ def test_cost_history_and_expense_links_cannot_be_forged_by_the_app_role():
         return out
 
     out = run(target())
-    assert out["forged_history"] == "SH005"
+    assert out["forged_history"] == "42501"  # no INSERT privilege on task_cost_history (#1460)
     assert out["forged_link"] == "42501"  # the INSERT policy binds linked_by to the user
     assert out["own_link"] == "allowed"
     assert out["update"] == "allowed"
     assert out["history"] == [(out["manager"], "3.00")]
+
+
+def test_cost_history_cannot_be_forged_through_a_temporary_trigger():
+    """Review round 2 of #1460: pg_trigger_depth() was spoofed with a temp table and trigger."""
+
+    async def target():
+        out = {}
+        async with Live() as live:
+            task = str(
+                await live.admin.fetchval(
+                    "INSERT INTO field_tasks (tenant_id, field_id, task_type, status)"
+                    " VALUES ($1::uuid, $2, 'weeding', 'pending') RETURNING task_id",
+                    live.tenant,
+                    live.field,
+                )
+            )
+            manager = live.users[(live.tenant, "manager")]
+            conn = await asyncpg.connect(live.app_dsn)
+            try:
+                async with conn.transaction():
+                    await conn.execute(
+                        "SELECT set_config('app.current_tenant', $1, true),"
+                        " set_config('app.current_user_id', $2, true)",
+                        live.tenant,
+                        manager,
+                    )
+                    try:
+                        async with conn.transaction():
+                            await conn.execute(
+                                "CREATE FUNCTION pg_temp.forge() RETURNS trigger LANGUAGE plpgsql AS $f$"
+                                " BEGIN INSERT INTO task_cost_history (tenant_id, task_id, changed_by,"
+                                " previous_usd, actual_usd, previous_status, status) VALUES"
+                                f" ('{live.tenant}'::uuid, '{task}'::uuid, '{manager}', 77777, NULL,"
+                                " 'forged', 'pending'); RETURN NEW; END $f$;"
+                                " CREATE TEMP TABLE forge_x (i int);"
+                                " CREATE TRIGGER forge_t AFTER INSERT ON forge_x"
+                                " FOR EACH ROW EXECUTE FUNCTION pg_temp.forge();"
+                                " INSERT INTO forge_x VALUES (1);"
+                            )
+                        out["temp_trigger"] = "allowed"
+                    except asyncpg.PostgresError as exc:
+                        out["temp_trigger"] = exc.sqlstate
+            finally:
+                await conn.close()
+            out["forged_rows"] = await live.admin.fetchval(
+                "SELECT count(*) FROM task_cost_history WHERE task_id=$1::uuid"
+                " AND previous_status='forged'",
+                task,
+            )
+            # Control: the legitimate path still records, through the SECURITY DEFINER trigger.
+            out["update"] = await _as_app(
+                live,
+                "manager",
+                "UPDATE field_tasks SET actual_cost_usd=5 WHERE task_id=$1::uuid",
+                task,
+            )
+            out["history"] = await live.admin.fetchval(
+                "SELECT count(*) FROM task_cost_history WHERE task_id=$1::uuid AND actual_usd=5",
+                task,
+            )
+            out["definer"] = await live.admin.fetch(
+                "SELECT p.proname, p.prosecdef, p.proconfig FROM pg_proc p"
+                " WHERE p.proname IN ('record_field_task_cost', 'task_cost_history_guard',"
+                " 'task_expense_link_guard') ORDER BY p.proname"
+            )
+        return out
+
+    out = run(target())
+    assert out["temp_trigger"] == "42501"
+    assert out["forged_rows"] == 0
+    assert out["update"] == "allowed"
+    assert out["history"] == 1
+    flags = {r["proname"]: (r["prosecdef"], r["proconfig"]) for r in out["definer"]}
+    assert flags["record_field_task_cost"][0] is True
+    assert "search_path=pg_catalog, public" in (flags["record_field_task_cost"][1] or [])
+    assert flags["task_cost_history_guard"][0] is False
+    assert flags["task_expense_link_guard"][0] is False
+
+
+def test_the_bootstrap_scripts_revoke_cost_history_dml_after_their_blanket_grant():
+    root = Path(__file__).resolve().parents[1] / "migrations"
+    for name in ("bootstrap_postgres.sh", "apply_in_compose.sh"):
+        text = (root / name).read_text(encoding="utf-8")
+        grant = text.index("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public")
+        revoke = text.index(
+            "REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE public.task_cost_history"
+        )
+        assert revoke > grant, name
 
 
 # ── tenant isolation per table ──────────────────────────────────────────────
@@ -1425,7 +1529,8 @@ def test_the_cost_trigger_records_history_and_the_trace_hides_it_from_workers():
     ]  # the unchanged replay (r3) wrote no row and no history
     assert out["trace"] == (200, 2)
     assert out["worker_trace"] == 403
-    assert out["append_only"] == ("UPDATE 0", "55000")
+    # The app role holds no UPDATE on the history (#1460); the owner's UPDATE hits the trigger.
+    assert out["append_only"] == ("42501", "55000")
 
 
 # ── expense link: field and farm ────────────────────────────────────────────

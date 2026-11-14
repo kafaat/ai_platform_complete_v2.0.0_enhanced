@@ -182,6 +182,11 @@ FROM (VALUES ('scout_photo_field_access_grants'), ('scout_photo_grant_audit_even
  ('scout_photo_retention_events')) AS t(tbl)
 WHERE to_regclass('public.'||t.tbl) IS NOT NULL
 \gexec
+-- #1460 (v276): task_cost_history is written only by the SECURITY DEFINER cost trigger
+-- (record_field_task_cost). Must follow the broad GRANT above, which would otherwise re-grant DML.
+SELECT format('REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE public.task_cost_history FROM %I', :'app_role')
+WHERE to_regclass('public.task_cost_history') IS NOT NULL
+\gexec
 SQL
 
 
