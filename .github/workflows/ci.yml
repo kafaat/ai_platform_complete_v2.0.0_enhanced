@@ -1482,6 +1482,19 @@ jobs:
           MFA_E2E_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_mfa_hardening_integration_v29_5.py
 
+      # C-01 (تدقيق المالك 2026-11-13): admin = مالكُ مستأجِر. إدارةُ المستخدمين في auth محصورةٌ
+      # في مستأجِر التوكن، والعابرُ يلقى 404 كغير الموجود. RLS لا تحرس هذا المسار (_acquire يضبط
+      # app.current_role='admin')، فالشاهدُ هنا هو التطبيقُ الحقيقيّ بالدور المقيَّد؛ والجولةُ العامّة
+      # لا تضبط TEST_DATABASE_ADMIN_URL فيتخطّى هناك. العَلَمُ يجعل أيّ تخطٍّ فشلاً.
+      - name: Auth admin tenant scope (C-01, real auth app, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          TEST_REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_auth_admin_tenant_scope_live_pg.py
+
       # تدقيق 2026-11-02 (تابعُ Q5): `test_services_functional` (soil H5 + guardrails L5) حمل
       # `xfail(strict=False)` بالفجوة المُغلَقة نفسِها، والجولةُ العامّة لا تضبط `DATABASE_URL`
       # فيتخطّى. هنا يُشغَّل بالدور المقيَّد (حارسُ soil يرفض superuser بحقّ)، والعَلَمُ يجعل

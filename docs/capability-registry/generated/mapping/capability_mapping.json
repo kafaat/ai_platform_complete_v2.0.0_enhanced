@@ -15,26 +15,26 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7218,
+    "files_scanned": 7209,
     "files_by_kind": {
-      "backend": 1273,
+      "backend": 1272,
       "database": 297,
       "governance": 89,
       "mobile": 415,
-      "other": 2168,
-      "tests": 2443,
-      "web": 533
+      "other": 2166,
+      "tests": 2439,
+      "web": 531
     },
-    "unmapped_artifacts": 3432,
+    "unmapped_artifacts": 3427,
     "ambiguous_artifacts": 236,
     "files_by_reading": {
-      "python_functional": 3898,
-      "raw": 3320
+      "python_functional": 3893,
+      "raw": 3316
     },
-    "test_dependency_files": 1846,
-    "test_dependency_edges": 4697,
-    "test_dependency_bounded_files": 1077,
-    "test_dependency_unresolved_relations": 468
+    "test_dependency_files": 1844,
+    "test_dependency_edges": 4682,
+    "test_dependency_bounded_files": 1075,
+    "test_dependency_unresolved_relations": 470
   },
   "capabilities": [
     {
@@ -2053,7 +2053,7 @@
           "score": 14
         },
         {
-          "value": "/v1/auth/tenants @ services/auth/routers/tenants.py:40",
+          "value": "/v1/auth/tenants @ services/auth/routers/tenants.py:61",
           "score": 14
         }
       ],
@@ -2396,6 +2396,14 @@
         },
         {
           "path": "services/sahool-platform/tests/test_tenant_config.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "tests_v9/test_auth_admin_tenant_scope_live_pg.py",
           "score": 14,
           "signals": [
             "path:tenant",
@@ -2813,7 +2821,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 41,
+        "tests": 42,
         "governance": 0,
         "other_evidence": 25
       },
@@ -19825,7 +19833,7 @@
           "score": 8
         },
         {
-          "value": "/metrics @ services/agriai-engine/main.py:93",
+          "value": "/metrics @ services/agriai-engine/main.py:92",
           "score": 8
         },
         {
@@ -19837,7 +19845,7 @@
           "score": 8
         },
         {
-          "value": "/runtime-identity @ services/agriai-engine/main.py:100",
+          "value": "/runtime-identity @ services/agriai-engine/main.py:99",
           "score": 8
         },
         {
@@ -19877,19 +19885,19 @@
           "score": 8
         },
         {
-          "value": "/v1/plan @ services/agriai-engine/main.py:352",
+          "value": "/v1/plan @ services/agriai-engine/main.py:351",
           "score": 8
         },
         {
-          "value": "/v1/recommend @ services/agriai-engine/main.py:274",
+          "value": "/v1/recommend @ services/agriai-engine/main.py:273",
           "score": 8
         },
         {
-          "value": "/v1/replay/verify @ services/agriai-engine/main.py:368",
+          "value": "/v1/replay/verify @ services/agriai-engine/main.py:367",
           "score": 8
         },
         {
-          "value": "/v1/simulate @ services/agriai-engine/main.py:339",
+          "value": "/v1/simulate @ services/agriai-engine/main.py:338",
           "score": 8
         },
         {
@@ -25369,6 +25377,14 @@
           ]
         },
         {
+          "path": "PLATFORM_MAIN_SUBINVENTORY_20260709.md",
+          "score": 11,
+          "signals": [
+            "content:rls",
+            "content:Tenant RLS"
+          ]
+        },
+        {
           "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/selected-jobs.json",
           "score": 11,
           "signals": [
@@ -25449,14 +25465,6 @@
           "signals": [
             "content:rls",
             "content:row level security"
-          ]
-        },
-        {
-          "path": "PLATFORM_MAIN_SUBINVENTORY_20260709.md",
-          "score": 10,
-          "signals": [
-            "content:rls",
-            "content:Tenant RLS"
           ]
         },
         {
@@ -26049,16 +26057,6 @@
           ]
         },
         {
-          "path": "services/auth/mfa_enrollment.py",
-          "score": 20,
-          "signals": [
-            "path:MFA",
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:totp"
-          ]
-        },
-        {
           "path": "services/auth/main.py",
           "score": 13,
           "signals": [
@@ -26080,15 +26078,15 @@
       ],
       "routes": [
         {
-          "value": "/v1/auth/mfa/activate @ services/auth/routers/mfa.py:138",
+          "value": "/v1/auth/mfa/activate @ services/auth/routers/mfa.py:103",
           "score": 26
         },
         {
-          "value": "/v1/auth/mfa/disable @ services/auth/routers/mfa.py:231",
+          "value": "/v1/auth/mfa/disable @ services/auth/routers/mfa.py:178",
           "score": 26
         },
         {
-          "value": "/v1/auth/mfa/setup @ services/auth/routers/mfa.py:61",
+          "value": "/v1/auth/mfa/setup @ services/auth/routers/mfa.py:47",
           "score": 26
         },
         {
@@ -26233,40 +26231,8 @@
       ],
       "web": [
         {
-          "path": "frontend/src/pages/LoginPage.mfaEnrollment.test.tsx",
-          "score": 25,
-          "signals": [
-            "path:MFA",
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:recovery code",
-            "content:totp"
-          ]
-        },
-        {
-          "path": "frontend/src/pages/MfaEnrollmentStep.tsx",
-          "score": 21,
-          "signals": [
-            "path:MFA",
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:recovery code",
-            "content:totp"
-          ]
-        },
-        {
-          "path": "frontend/src/services/api/auth.ts",
-          "score": 15,
-          "signals": [
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:recovery code",
-            "content:totp"
-          ]
-        },
-        {
           "path": "frontend/src/pages/LoginPage.tsx",
-          "score": 12,
+          "score": 11,
           "signals": [
             "content:MFA",
             "dedup:MFA=mfa",
@@ -26275,6 +26241,15 @@
         },
         {
           "path": "frontend/src/sections/SettingsPage.tsx",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:totp"
+          ]
+        },
+        {
+          "path": "frontend/src/services/api/auth.ts",
           "score": 10,
           "signals": [
             "content:MFA",
@@ -26396,13 +26371,12 @@
           ]
         },
         {
-          "path": "tests_v9/test_auth_enrollment_http.py",
-          "score": 15,
+          "path": "tests_v9/test_auth_cors_mfa_header.py",
+          "score": 14,
           "signals": [
+            "path:MFA",
             "content:MFA",
-            "dedup:MFA=mfa",
-            "content:recovery code",
-            "content:totp"
+            "dedup:MFA=mfa"
           ]
         },
         {
@@ -26412,16 +26386,6 @@
             "path:MFA",
             "content:MFA",
             "dedup:MFA=mfa"
-          ]
-        },
-        {
-          "path": "frontend/src/services/api/authEnrollment.test.ts",
-          "score": 13,
-          "signals": [
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:recovery code",
-            "content:totp"
           ]
         },
         {
@@ -26446,15 +26410,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "shared/security/mfa_enrollment_tokens.py",
-          "score": 14,
-          "signals": [
-            "path:MFA",
-            "content:MFA",
-            "dedup:MFA=mfa"
-          ]
-        },
-        {
           "path": "AUTH_MAIN_DECOMPOSITION_P0_REPORT_20260709.md",
           "score": 13,
           "signals": [
@@ -26467,16 +26422,6 @@
         {
           "path": "scripts/ci/auth_main_decomposition_guard.py",
           "score": 13,
-          "signals": [
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:recovery code",
-            "content:totp"
-          ]
-        },
-        {
-          "path": "docs/runbooks/RAILWAY_AUTH_DEPLOYMENT.md",
-          "score": 12,
           "signals": [
             "content:MFA",
             "dedup:MFA=mfa",
@@ -26530,15 +26475,6 @@
           ]
         },
         {
-          "path": "docs/reviews/main_entrypoint_fixes_20261111.md",
-          "score": 9,
-          "signals": [
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:totp"
-          ]
-        },
-        {
           "path": "docs/runbooks/DOCKER_BUILD_CHECKLIST_CRITICAL_AND_EXTENDED_SERVICES_20260710.md",
           "score": 9,
           "signals": [
@@ -26553,15 +26489,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 6,
+        "backend": 5,
         "routes": 9,
         "database": 19,
         "events": 1,
-        "web": 5,
+        "web": 3,
         "mobile": 4,
-        "tests": 12,
+        "tests": 11,
         "governance": 0,
-        "other_evidence": 11
+        "other_evidence": 8
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -27950,6 +27886,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
+          "score": 12,
+          "signals": [
+            "path:fail closed",
+            "content:fail closed"
+          ]
+        },
+        {
           "path": "services/raster-service/test_tile_render_mask_fail_closed_bounded_reads.py",
           "score": 11,
           "signals": [
@@ -28024,7 +27968,7 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 9,
+        "tests": 10,
         "governance": 0,
         "other_evidence": 1
       },
@@ -31065,10 +31009,6 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/AddFieldWithMap.segmentation.test.tsx",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/components/AddFieldWithMap.shapefileImport.test.tsx",
       "kind": "web"
     },
@@ -33115,6 +33055,10 @@
     {
       "path": "frontend/src/sections/SatellitePageRuntimeFix.static.test.ts",
       "kind": "tests"
+    },
+    {
+      "path": "frontend/src/sections/SettingsPage.teamRoles.test.tsx",
+      "kind": "web"
     },
     {
       "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
@@ -35759,10 +35703,6 @@
     {
       "path": "services/edge-inference/sync_service.py",
       "kind": "backend"
-    },
-    {
-      "path": "services/edge-inference/tests/test_entrypoint_validation_lifecycle.py",
-      "kind": "tests"
     },
     {
       "path": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
@@ -40221,10 +40161,6 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_service_proxy_transport.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/sahool-platform/tests/test_signal_age_naive_datetime.py",
       "kind": "tests"
     },
@@ -41721,10 +41657,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_auth_enrollment_redis_acl.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_auth_main_decomposition_guard.py",
       "kind": "tests"
     },
@@ -41746,6 +41678,10 @@
     },
     {
       "path": "tests_v9/test_auth_signup_owner.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_auth_team_managers_c37.py",
       "kind": "tests"
     },
     {
@@ -42334,10 +42270,6 @@
     },
     {
       "path": "tests_v9/test_economic_state.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_edge_agriai_entrypoint_contracts.py",
       "kind": "tests"
     },
     {
@@ -44105,10 +44037,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_soil_script_entrypoint.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_soil_water.py",
       "kind": "tests"
     },
@@ -44438,10 +44366,6 @@
     },
     {
       "path": "tests_v9/test_verify_sweep_writer_diagnostics.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_video_capture_source_contract.py",
       "kind": "tests"
     },
     {
@@ -52362,26 +52286,6 @@
           "call": "import_module"
         }
       ]
-    },
-    {
-      "test": "services/edge-inference/tests/test_entrypoint_validation_lifecycle.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "directory_reference"
-      ],
-      "edges": [
-        {
-          "source": "services/edge-inference/main.py",
-          "kind": "loader",
-          "line": 15
-        },
-        {
-          "source": "services/edge-inference/main.py",
-          "kind": "source_read",
-          "line": 16
-        }
-      ],
-      "unresolved": []
     },
     {
       "test": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
@@ -64325,39 +64229,6 @@
       "unresolved": []
     },
     {
-      "test": "services/sahool-platform/tests/test_service_proxy_transport.py",
-      "bounded": true,
-      "unbounded_reasons": [],
-      "edges": [
-        {
-          "source": "services/sahool-platform/api/__init__.py",
-          "kind": "import",
-          "line": 11
-        },
-        {
-          "source": "services/sahool-platform/api/main.py",
-          "kind": "import",
-          "line": 11
-        },
-        {
-          "source": "services/sahool-platform/api/routers/__init__.py",
-          "kind": "import",
-          "line": 12
-        },
-        {
-          "source": "services/sahool-platform/api/routers/service_proxy.py",
-          "kind": "import",
-          "line": 12
-        },
-        {
-          "source": "services/sahool-platform/core/canonical_schemas.py",
-          "kind": "import",
-          "line": 13
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "test": "services/sahool-platform/tests/test_signal_age_naive_datetime.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -66151,29 +66022,28 @@
       "test": "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
       "bounded": false,
       "unbounded_reasons": [
-        "directory_reference",
         "reads_repository_data_file"
       ],
       "edges": [
         {
           "source": "services/sam2-inference/main.py",
           "kind": "loader",
-          "line": 68
+          "line": 76
         },
         {
           "source": "services/sam2-inference/main.py",
           "kind": "source_read",
-          "line": 68
+          "line": 76
         },
         {
           "source": "services/sam2-inference/sam2_runtime.py",
           "kind": "loader",
-          "line": 335
+          "line": 75
         },
         {
           "source": "services/sam2-inference/sam2_runtime.py",
           "kind": "source_read",
-          "line": 335
+          "line": 75
         }
       ],
       "unresolved": []
@@ -71358,6 +71228,28 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_auth_admin_tenant_scope_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "shared_test_helper",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 63
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 72,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
       "test": "tests_v9/test_auth_audit_log_inputs.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -71437,6 +71329,28 @@
       ]
     },
     {
+      "test": "tests_v9/test_auth_cors_mfa_header.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "shared_test_helper",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 28
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 41,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
       "test": "tests_v9/test_auth_e2e.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -71452,59 +71366,6 @@
           "source": "services/auth/main.py",
           "kind": "source_read",
           "line": 49
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_auth_enrollment_http.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "shared_test_helper"
-      ],
-      "edges": [
-        {
-          "source": "services/auth/main.py",
-          "kind": "import",
-          "line": 815
-        },
-        {
-          "source": "services/auth/main.py",
-          "kind": "loader",
-          "line": 23
-        },
-        {
-          "source": "services/auth/mfa_crypto.py",
-          "kind": "import",
-          "line": 24
-        },
-        {
-          "source": "services/auth/mfa_enrollment.py",
-          "kind": "import",
-          "line": 775
-        },
-        {
-          "source": "shared/security/access_tokens.py",
-          "kind": "import",
-          "line": 463
-        },
-        {
-          "source": "tests_v9/service_module.py",
-          "kind": "import",
-          "line": 18
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_auth_enrollment_redis_acl.py",
-      "bounded": true,
-      "unbounded_reasons": [],
-      "edges": [
-        {
-          "source": "tests_v9/test_redis_acl_per_service.py",
-          "kind": "import",
-          "line": 5
         }
       ],
       "unresolved": []
@@ -71697,6 +71558,26 @@
           "source": "tests_v9/auth_route_source.py",
           "kind": "import",
           "line": 25
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_auth_team_managers_c37.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/auth/main.py",
+          "kind": "source_read",
+          "line": 22
+        },
+        {
+          "source": "services/auth/routers/users.py",
+          "kind": "source_read",
+          "line": 21
         }
       ],
       "unresolved": []
@@ -75073,7 +74954,7 @@
         {
           "source": "shared/db_role_guard.py",
           "kind": "import",
-          "line": 22
+          "line": 19
         }
       ],
       "unresolved": []
@@ -75949,24 +75830,6 @@
           "source": "services/sahool-platform/api/economic_state.py",
           "kind": "import",
           "line": 22
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_edge_agriai_entrypoint_contracts.py",
-      "bounded": true,
-      "unbounded_reasons": [],
-      "edges": [
-        {
-          "source": "services/agriai-engine/main.py",
-          "kind": "source_read",
-          "line": 128
-        },
-        {
-          "source": "services/edge-inference/main.py",
-          "kind": "source_read",
-          "line": 63
         }
       ],
       "unresolved": []
@@ -79607,24 +79470,18 @@
       "bounded": false,
       "unbounded_reasons": [
         "directory_reference",
-        "reads_repository_data_file",
-        "tree_wide_scan"
+        "reads_repository_data_file"
       ],
       "edges": [
         {
           "source": "scripts/diagnostics/build_main_inventory.py",
           "kind": "loader",
-          "line": 27
+          "line": 26
         },
         {
           "source": "scripts/diagnostics/build_main_inventory.py",
           "kind": "source_read",
-          "line": 28
-        },
-        {
-          "source": "services/field-segmentation/main.py",
-          "kind": "source_read",
-          "line": 344
+          "line": 27
         }
       ],
       "unresolved": []
@@ -82996,6 +82853,24 @@
           "source": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
           "kind": "source_read",
           "line": 120
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 40
+        },
+        {
+          "source": "services/sahool-platform/core/jwt_denylist.py",
+          "kind": "import",
+          "line": 97
         }
       ],
       "unresolved": []
@@ -89058,7 +88933,7 @@
         {
           "source": "services/soil-service/main.py",
           "kind": "source_read",
-          "line": 594
+          "line": 488
         },
         {
           "source": "shared/__init__.py",
@@ -89073,7 +88948,7 @@
         {
           "source": "shared/startup_retry.py",
           "kind": "source_read",
-          "line": 507
+          "line": 401
         }
       ],
       "unresolved": []
@@ -90926,7 +90801,7 @@
         {
           "source": "scripts/ci/v9_gpu_contract_gate.py",
           "kind": "source_read",
-          "line": 144
+          "line": 101
         }
       ],
       "unresolved": []
@@ -91120,36 +90995,6 @@
           "source": "scripts/ci/verify_all_generated.py",
           "kind": "source_read",
           "line": 28
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_video_capture_source_contract.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "shared_test_helper"
-      ],
-      "edges": [
-        {
-          "source": "services/video-processor/main.py",
-          "kind": "loader",
-          "line": 23
-        },
-        {
-          "source": "services/video-processor/routers/streams.py",
-          "kind": "import",
-          "line": 143
-        },
-        {
-          "source": "services/video-processor/zlmedia_client.py",
-          "kind": "import",
-          "line": 100
-        },
-        {
-          "source": "tests_v9/service_module.py",
-          "kind": "import",
-          "line": 15
         }
       ],
       "unresolved": []

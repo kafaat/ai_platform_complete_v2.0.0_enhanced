@@ -6,10 +6,10 @@ DEC-001,api,GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evid
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539,2,applied
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638,2,applied
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571,2,applied
-DEC-001,api,GET /runtime-identity @ services/agriai-engine/main.py:101,2,applied
+DEC-001,api,GET /runtime-identity @ services/agriai-engine/main.py:100,2,applied
 DEC-001,api,GET /runtime-identity @ services/raster-service/main.py:64,2,applied
 DEC-001,api,GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:25,2,applied
-DEC-001,api,GET /runtime-identity @ services/soil-service/main.py:220,2,applied
+DEC-001,api,GET /runtime-identity @ services/soil-service/main.py:221,2,applied
 DEC-001,api,GET /runtime-identity @ services/weather-service/main.py:56,2,applied
 DEC-001,api,GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1291,3,applied
 DEC-001,api,GET /v1/evidence/vegetation-snapshots/latest @ services/decision-service/main.py:652,3,applied
@@ -275,28 +275,28 @@ FM-001,api,GET /runtime-identity @ services/auth/main.py:409,3,applied
 FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:810,2,applied
 FM-001,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41,3,applied
 FM-001,api,GET /v1/auth/invitations @ services/auth/routers/invitations.py:104,3,applied
-FM-001,api,GET /v1/auth/me @ services/auth/routers/session.py:302,3,applied
-FM-001,api,GET /v1/auth/users @ services/auth/routers/users.py:23,3,applied
+FM-001,api,GET /v1/auth/me @ services/auth/routers/session.py:240,3,applied
+FM-001,api,GET /v1/auth/users @ services/auth/routers/users.py:67,3,applied
 FM-001,api,GET /v1/auth/verify @ services/auth/routers/email_verify.py:98,3,applied
 FM-001,api,GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:108,3,applied
-FM-001,api,PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:74,3,applied
-FM-001,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:32,3,applied
+FM-001,api,PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:132,3,applied
+FM-001,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:81,3,applied
 FM-001,api,POST /api/v1/auth/login @ services/sahool-platform/api/routers/auth.py:48,2,applied
 FM-001,api,POST /api/v1/auth/logout @ services/sahool-platform/api/routers/auth.py:106,2,applied
 FM-001,api,POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.py:138,2,applied
 FM-001,api,POST /v1/auth/change-password @ services/auth/routers/registration.py:73,3,applied
 FM-001,api,POST /v1/auth/invitations @ services/auth/routers/invitations.py:45,3,applied
 FM-001,api,POST /v1/auth/invitations/accept @ services/auth/routers/invitations.py:137,3,applied
-FM-001,api,POST /v1/auth/login @ services/auth/routers/session.py:70,3,applied
-FM-001,api,POST /v1/auth/logout @ services/auth/routers/session.py:257,3,applied
-FM-001,api,POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:139,3,applied
-FM-001,api,POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:232,3,applied
-FM-001,api,POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:62,3,applied
+FM-001,api,POST /v1/auth/login @ services/auth/routers/session.py:46,3,applied
+FM-001,api,POST /v1/auth/logout @ services/auth/routers/session.py:195,3,applied
+FM-001,api,POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:104,3,applied
+FM-001,api,POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:179,3,applied
+FM-001,api,POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:48,3,applied
 FM-001,api,POST /v1/auth/password-reset/confirm @ services/auth/routers/password_reset.py:62,3,applied
 FM-001,api,POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:43,3,applied
-FM-001,api,POST /v1/auth/refresh @ services/auth/routers/session.py:193,3,applied
+FM-001,api,POST /v1/auth/refresh @ services/auth/routers/session.py:139,3,applied
 FM-001,api,POST /v1/auth/register @ services/auth/routers/registration.py:20,3,applied
-FM-001,api,POST /v1/auth/tenants @ services/auth/routers/tenants.py:41,5,applied
+FM-001,api,POST /v1/auth/tenants @ services/auth/routers/tenants.py:62,5,applied
 FM-001,api,POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:56,3,applied
 FM-001,api,POST /v1/auth/verify/request @ services/auth/routers/email_verify.py:23,3,applied
 FM-001,api,POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2811,2,applied
@@ -341,13 +341,13 @@ FM-001,test,services/sahool-platform/tests/test_tenant_config.py,3,applied
 FM-001,test,tests_v9/auth_route_source.py,2,applied
 FM-001,test,tests_v9/test_auth_acquire_admin_context_guard.py,3,applied
 FM-001,test,tests_v9/test_auth_admin_stepup_mfa.py,3,applied
+FM-001,test,tests_v9/test_auth_admin_tenant_scope_live_pg.py,5,applied
 FM-001,test,tests_v9/test_auth_audit_log_inputs.py,3,applied
 FM-001,test,tests_v9/test_auth_audit_log_live_pg.py,3,applied
 FM-001,test,tests_v9/test_auth_bcrypt_72_byte_boundary.py,3,applied
 FM-001,test,tests_v9/test_auth_client_ip_rate_key.py,3,applied
+FM-001,test,tests_v9/test_auth_cors_mfa_header.py,3,applied
 FM-001,test,tests_v9/test_auth_e2e.py,3,applied
-FM-001,test,tests_v9/test_auth_enrollment_http.py,3,applied
-FM-001,test,tests_v9/test_auth_enrollment_redis_acl.py,3,applied
 FM-001,test,tests_v9/test_auth_main_decomposition_guard.py,3,applied
 FM-001,test,tests_v9/test_auth_mfa_activate_disable_lockout.py,3,applied
 FM-001,test,tests_v9/test_auth_mfa_enforcement.py,3,applied
@@ -357,6 +357,7 @@ FM-001,test,tests_v9/test_auth_s16_hardening.py,3,applied
 FM-001,test,tests_v9/test_auth_service.py,3,applied
 FM-001,test,tests_v9/test_auth_session_revocation.py,3,applied
 FM-001,test,tests_v9/test_auth_signup_owner.py,3,applied
+FM-001,test,tests_v9/test_auth_team_managers_c37.py,3,applied
 FM-001,test,tests_v9/test_auth_tile_cookie_secure_s6.py,3,applied
 FM-001,test,tests_v9/test_automation_register_tenant_isolation.py,3,applied
 FM-001,test,tests_v9/test_automation_status_tenant_isolation.py,3,applied
@@ -477,7 +478,7 @@ FM-002,test,tests_v9/test_farm_book_corrections_and_categories.py,3,applied
 FM-002,test,tests_v9/test_farm_book_receipt_field.py,3,applied
 FM-002,test,tests_v9/test_farm_book_receipt_scope_live_pg.py,3,applied
 FM-002,test,tests_v9/test_farm_memory.py,3,applied
-FM-003,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:299,2,applied
+FM-003,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278,2,applied
 FM-003,api,DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1613,4,applied
 FM-003,api,DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:667,2,applied
 FM-003,api,GET / @ services/field-management-service/main.py:273,3,applied
@@ -553,15 +554,15 @@ FM-003,api,GET /api/v1/weather/field-weather-summary @ services/sahool-platform/
 FM-003,api,GET /api/vegetation/v1/all_fields @ services/sahool-platform/api/routers/compat_gateway.py:55,2,applied
 FM-003,api,GET /contract @ services/field-management-service/main.py:254,3,applied
 FM-003,api,GET /health @ services/field-management-service/main.py:216,3,applied
-FM-003,api,GET /health @ services/field-segmentation/main.py:551,2,applied
+FM-003,api,GET /health @ services/field-segmentation/main.py:380,2,applied
 FM-003,api,GET /healthz @ services/field-management-service/main.py:211,3,applied
-FM-003,api,GET /healthz @ services/field-segmentation/main.py:546,2,applied
+FM-003,api,GET /healthz @ services/field-segmentation/main.py:375,2,applied
 FM-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394,2,applied
 FM-003,api,GET /internal/fields @ services/field-management-service/main.py:314,5,applied
 FM-003,api,GET /internal/fields/{field_id} @ services/field-management-service/main.py:282,5,applied
 FM-003,api,GET /internal/fields/{field_id}/state @ services/sahool-platform/api/routers/internal_service.py:52,4,applied
 FM-003,api,GET /readyz @ services/field-management-service/main.py:221,3,applied
-FM-003,api,GET /readyz @ services/field-segmentation/main.py:556,2,applied
+FM-003,api,GET /readyz @ services/field-segmentation/main.py:385,2,applied
 FM-003,api,GET /v1/all_fields @ services/vegetation-analysis-service/routers/analysis.py:145,2,applied
 FM-003,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1372,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:202,4,applied
@@ -720,7 +721,7 @@ FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ s
 FM-003,api,POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2865,2,applied
 FM-003,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2954,2,applied
 FM-003,api,POST /v1/reports/weekly-field-insights @ services/vegetation-analysis-service/routers/insights.py:45,2,applied
-FM-003,api,POST /v1/segment @ services/field-segmentation/main.py:602,2,applied
+FM-003,api,POST /v1/segment @ services/field-segmentation/main.py:431,2,applied
 FM-003,api,PUT /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1181,4,applied
 FM-003,mobile,mobile/sahool_app/lib/core/widgets/form_fields.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/core/widgets/ops_date_field.dart,2,applied
@@ -1655,7 +1656,7 @@ OPS-003,test,services/scout-ingest-service/tests/test_projection_live.py,3,appli
 OPS-003,test,services/scout-ingest-service/tests/test_season_live.py,3,applied
 OPS-003,test,tests_v9/test_scout_ingest_service_ownership.py,3,applied
 OPS-003,test,tests_v9/test_scouting_pins_persistence.py,3,applied
-OPS-004,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:299,6,applied
+OPS-004,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278,6,applied
 OPS-004,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394,6,applied
 OPS-004,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362,6,applied
 OPS-004,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,6,applied
@@ -2000,7 +2001,7 @@ SAT-006,test,tests_v9/test_telemetry_backfill_key_parity.py,3,applied
 SAT-006,test,tests_v9/test_unified_timeline.py,3,applied
 SAT-006,ui,frontend/e2e/gis-tools-timeline-comparison.spec.ts,2,applied
 SAT-007,api,GET /api/v1/rbac/preview-role-change @ services/sahool-platform/api/routers/rbac.py:54,2,applied
-SAT-007,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:32,2,applied
+SAT-007,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:81,2,applied
 SAT-007,api,POST /v1/auth/change-password @ services/auth/routers/registration.py:73,2,applied
 SAT-007,api,POST /v1/change/detect @ services/raster-service/routers/analysis.py:48,3,applied
 SAT-007,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1157,3,applied
@@ -2369,14 +2370,15 @@ SEC-002,service,services/field-management-service/main.py,10,applied
 SEC-002,test,tests_v9/test_service_tenant_assertion.py,5,applied
 SEC-003,service,services/auth/main.py,10,applied
 SEC-003,test,services/decision-service/tests/test_worker_identity_binding.py,5,applied
-SEC-004,api,POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:139,3,applied
-SEC-004,api,POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:232,3,applied
-SEC-004,api,POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:62,3,applied
+SEC-004,api,POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:104,3,applied
+SEC-004,api,POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:179,3,applied
+SEC-004,api,POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:48,3,applied
 SEC-004,mobile,mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart,2,applied
 SEC-004,mobile,mobile/sahool_app/lib/screens/mfa_setup_screen.dart,2,applied
 SEC-004,service,services/auth/main.py,10,applied
 SEC-004,test,mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart,3,applied
 SEC-004,test,tests_v9/test_auth_admin_stepup_mfa.py,3,applied
+SEC-004,test,tests_v9/test_auth_cors_mfa_header.py,3,applied
 SEC-004,test,tests_v9/test_auth_mfa_activate_disable_lockout.py,3,applied
 SEC-004,test,tests_v9/test_auth_mfa_enforcement.py,3,applied
 SEC-004,test,tests_v9/test_fields_put_and_mfa_api_contract_20260626.py,3,applied
@@ -2437,6 +2439,7 @@ SEC-008,test,tests_v9/test_apply_in_compose_fail_closed.py,3,applied
 SEC-008,test,tests_v9/test_critical_event_fail_closed.py,3,applied
 SEC-008,test,tests_v9/test_erp_bridge_fail_closed.py,3,applied
 SEC-008,test,tests_v9/test_fii_rls_write_fail_closed_postgres.py,3,applied
+SEC-008,test,tests_v9/test_platform_revocation_unverifiable_fail_closed.py,3,applied
 SEC-008,test,tests_v9/test_secret_enforcement_guard_v21.py,3,applied
 SEC-008,test,tests_v9/test_secret_guard.py,3,applied
 SEC-008,test,tests_v9/test_services_rs256_production_guard.py,3,applied
