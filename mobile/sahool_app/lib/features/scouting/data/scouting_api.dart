@@ -23,6 +23,10 @@
 //             verification_state: bytes_verified, review_state: unreviewed, idempotent}
 //        GET  …/photo ⇒ نفسه + url (HTTPS موقَّع لـ120 ثانية، Cache-Control: private, no-store)
 //        الخادم يردّ 200 فقط بعد التحقّق من وجود الكائن في المخزن المشترك (HEAD).
+//        GET  …/photo/context ⇒ سياق الدليل: مهمّة التفتيش المرتبطة بمفتاح v246 فقط، والموسم
+//             برابطٍ صريح (v262) فقط؛ لا مختبر ولا كشف ولا قرار، ولا تفويض رشّ تلقائيّ.
+//        POST …/photo/season-link-events  حدث ربط/تصحيح/إلغاء صريح لموسم مقبول بشريّاً (v262،
+//             خلف SCOUT_MEDIA_SEASON_LINK_ENABLED)؛ event_id ثابت لنيّة المستخدم.
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as crypto;
@@ -80,6 +84,40 @@ Map<String, dynamic> verifyScoutingPhotoReceipt(
     );
   }
   return body;
+}
+
+final RegExp _uuidPattern = RegExp(
+  r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+);
+
+/// برهان الرابط الذي يعلنه الخادم لموسم مقبول (media_api.SEASON_LINK_PROOF).
+const String kScoutPhotoSeasonLinkProof = 'scout_photo_season_link_events:v262';
+
+/// يتحقّق مستقلّاً من جزء الموسم في سياق الصورة؛ الرابط ليس تشخيصاً.
+Map<String, dynamic> verifyScoutingPhotoSeasonContext(Map<String, dynamic> season) {
+  final state = season['state'];
+  final seasonId = season['season_id'];
+  final eventId = season['link_event_id'];
+  bool isUuid(Object? v) => v is String && _uuidPattern.hasMatch(v);
+  if (state == 'explicit_link_required') {
+    if (seasonId != null || eventId != null) {
+      throw const FormatException('لا يمكن إرجاع موسم دون رابط صريح.');
+    }
+  } else if (state == 'revoked') {
+    if (seasonId != null || !isUuid(eventId)) {
+      throw const FormatException('إلغاء رابط الموسم غير صالح.');
+    }
+  } else if (state == 'linked_accepted' || state == 'linked_not_accepted') {
+    if (!isUuid(seasonId) ||
+        !isUuid(eventId) ||
+        (state == 'linked_accepted' &&
+            season['link_proof'] != kScoutPhotoSeasonLinkProof)) {
+      throw const FormatException('رابط الموسم غير موثوق أو لا يتبع سجل أحداث معتمد.');
+    }
+  } else {
+    throw const FormatException('حالة ربط الموسم غير معروفة.');
+  }
+  return season;
 }
 
 class ScoutingApi {
@@ -162,6 +200,81 @@ class ScoutingApi {
       );
     }
     return data;
+  }
+
+  /// سياق الدليل من مصدر الحقيقة في الخادم. مهمّة التفتيش المرتبطة بمفتاح v246 فقط؛ غياب
+  /// الموسم أو المختبر أو الكشف أو القرار لا يُستنتَج.
+  Future<Map<String, dynamic>> photoEvidenceContext(String fieldId, String pinId) async {
+    final data = asJsonMap(
+      await _client.get('${scoutingPhotoPath(fieldId, pinId)}/context'),
+    );
+    final source = asJsonMap(data['source']);
+    final evidence = asJsonMap(data['evidence']);
+    final decision = asJsonMap(data['decision']);
+    final inspection = asJsonMap(data['inspection']);
+    verifyScoutingPhotoSeasonContext(asJsonMap(data['season']));
+    if (data['schema'] != 'sahool.scout-photo-evidence-context/v1' ||
+        source['kind'] != 'scouting_pin' ||
+        source['field_id'] != fieldId ||
+        source['pin_id'] != pinId ||
+        evidence['field_id'] != fieldId ||
+        evidence['pin_id'] != pinId ||
+        evidence['persisted'] != true ||
+        evidence['review_state'] != 'unreviewed' ||
+        evidence['verification_state'] != 'bytes_verified' ||
+        data['object_state'] != 'present_at_check' ||
+        (inspection['state'] != 'linked' && inspection['state'] != 'not_linked') ||
+        decision['state'] != 'not_authorized' ||
+        data['automatic_pesticide_action_authorized'] != false) {
+      throw const FormatException(
+        'سجل مصدر صورة المشاهدة غير مطابق أو يزعم صلاحية قرار غير معتمد.',
+      );
+    }
+    return data;
+  }
+
+  /// يُلحِق حدث ربط/تصحيح/إلغاء صريحاً لموسم. الخادم يرفض موسماً غير مقبول أو من حقل آخر
+  /// والأدوار غير المخوّلة؛ ولا يمنح هذا الرابط أيّ سلطة رشّ ولو كان الموسم مقبولاً.
+  Future<Map<String, dynamic>> appendPhotoSeasonLinkEvent({
+    required String fieldId,
+    required String pinId,
+    required String eventId,
+    required String action,
+    String? seasonId,
+    String? previousEventId,
+    String? reason,
+    required IdempotencyKey idempotencyKey,
+  }) async {
+    final r = asJsonMap(
+      await _client.post(
+        '${scoutingPhotoPath(fieldId, pinId)}/season-link-events',
+        data: {
+          'event_id': eventId,
+          'action': action,
+          'season_id': seasonId,
+          'previous_event_id': previousEventId,
+          'reason': reason,
+        },
+        idempotencyKey: idempotencyKey,
+      ),
+    );
+    if (r['persisted'] != true ||
+        r['event_id'] != eventId ||
+        r['idempotent'] is! bool ||
+        r['is_current'] is! bool ||
+        r['automatic_pesticide_action_authorized'] != false) {
+      throw const FormatException(
+        'إيصال حدث ربط الموسم لا يطابق الطلب، أو يزعم سلطة غير معتمدة.',
+      );
+    }
+    final season = verifyScoutingPhotoSeasonContext(asJsonMap(r['season']));
+    if (r['is_current'] == true && season['link_event_id'] != eventId) {
+      throw const FormatException('الحدث المحفوظ ليس الحدث الحالي لرابط الموسم.');
+    }
+    if (r['is_current'] == true && action == 'revoke' && season['state'] != 'revoked') {
+      throw const FormatException('إلغاء رابط الموسم لم يثبت رغم إيصال الخادم.');
+    }
+    return r;
   }
 
   Future<List<Map<String, dynamic>>> diagnosisSymptoms() async =>

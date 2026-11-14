@@ -3,10 +3,10 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `91c6e2e61bc9182bf86c57030e9f94c26d8ef78ae94c4e2a6eb6791a6c9dfad7`
+- fingerprint: `a0dae50ea5aa2f2abc754343f507629024caf51a5b5cf06e23f55ad63782f338`
 - components: **37** (backend: 33)
-- route rows: **1137** → unique method/path: **1016**
-- capabilities (derived, uncurated): **841**
+- route rows: **1158** → unique method/path: **1037**
+- capabilities (derived, uncurated): **842**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **52**
@@ -43,7 +43,7 @@
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
 | sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 197 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |
-| scout-ingest-service | service | ground-ingest | sahool-scout-ingest, sahool-scout-ingest-projection | 12 | True |
+| scout-ingest-service | service | ground-ingest | sahool-scout-ingest, sahool-scout-ingest-projection | 24 | True |
 | soil-service | service | soil | sahool-soil-service | 33 | True |
 | supervisor-agent | service | agents | sahool-supervisor-agent | 0 | True |
 | telegram-bot | service | messaging-channel | sahool-telegram-bot | 0 | None |
@@ -56,8 +56,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **966**
-- S2 relations: CALLS=45, CONSUMES=3, EMITS=3, READS=505, ROUTES_TO=73, WRITES=337
+- ARCH-S2 dependency truth: `PASS` — edges **1031**
+- S2 relations: CALLS=45, CONSUMES=3, EMITS=3, READS=546, ROUTES_TO=73, WRITES=361
 
 ## Governance gates (U3/U4)
 

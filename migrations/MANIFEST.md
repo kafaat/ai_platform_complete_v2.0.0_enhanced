@@ -132,4 +132,4 @@ Source of truth: `migrations/MANIFEST.txt`.
 - `v113_phase_runtime_workers_jobs.sql`
 - `v122_rls_with_check_session_unification.sql`
 
-> Post-v122 migration sequence, including `v260_scout_photo_evidence.sql` (scout photo evidence, owner scout-ingest), is maintained exclusively in `MANIFEST.txt`.
+> Post-v122 migration sequence, including `v260_scout_photo_evidence.sql` and `v262`-`v272` (scout photo evidence, links, grants and governance, all owned by scout-ingest), is maintained exclusively in `MANIFEST.txt`.

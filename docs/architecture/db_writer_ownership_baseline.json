@@ -205,9 +205,6 @@
         "services/raster-service/follow_up_runtime.py",
         "services/raster-service/routers/follow_up.py"
       ],
-      "fields::scout-ingest-service": [
-        "services/scout-ingest-service/main.py"
-      ],
       "fields::scripts": [
         "scripts/ci/backfill_ui_sync_gate.py"
       ],

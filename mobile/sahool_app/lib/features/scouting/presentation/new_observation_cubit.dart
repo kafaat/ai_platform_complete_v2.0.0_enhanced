@@ -587,7 +587,14 @@ class NewObservationCubit extends Cubit<NewObservationState> {
       } catch (e) {
         final err = ApiException.from(e);
         if (!isTransient(err)) {
-          return _photoState(PhotoUpload.failed, err.messageAr);
+          // 403 = no live grant for this field (owner phase 6, v263): never queued as if offline;
+          // the photo stays on the device until the owner grants the field.
+          return _photoState(
+            PhotoUpload.failed,
+            err.statusCode == 403
+                ? 'حُفظ الدبوس، لكن رفع الصورة رُفض لغياب تفويض هذا الحقل. الصورة على الجهاز؛ اطلب منح الصلاحية ثم أعد المحاولة.'
+                : err.messageAr,
+          );
         }
       }
     }

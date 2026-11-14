@@ -91,6 +91,151 @@ void main() {
     });
   });
 
+  group('authoritative photo context', () {
+    test('requires exact source and keeps pesticide decision unauthorized', () async {
+      final (api, adapter) = fakeApi(
+        (o) async => const FakeReply(200, {
+          'schema': 'sahool.scout-photo-evidence-context/v1',
+          'source': {'kind': 'scouting_pin', 'field_id': 'f1', 'pin_id': 'p1'},
+          'evidence': {
+            'field_id': 'f1',
+            'pin_id': 'p1',
+            'persisted': true,
+            'verification_state': 'bytes_verified',
+            'review_state': 'unreviewed',
+          },
+          'object_state': 'present_at_check',
+          'inspection': {'state': 'not_linked'},
+          'season': {'state': 'explicit_link_required', 'season_id': null},
+          'decision': {'state': 'not_authorized', 'decision_id': null},
+          'automatic_pesticide_action_authorized': false,
+        }),
+      );
+      final context = await api.photoEvidenceContext('f1', 'p1');
+      expect(context['inspection'], {'state': 'not_linked'});
+      expect(adapter.requests.single.path, '${scoutingPhotoPath('f1', 'p1')}/context');
+    });
+
+    test('rejects cross-field context and false action authority', () async {
+      final (api, _) = fakeApi(
+        (o) async => const FakeReply(200, {
+          'schema': 'sahool.scout-photo-evidence-context/v1',
+          'source': {'kind': 'scouting_pin', 'field_id': 'other', 'pin_id': 'p1'},
+          'evidence': {
+            'field_id': 'f1',
+            'pin_id': 'p1',
+            'persisted': true,
+            'verification_state': 'bytes_verified',
+            'review_state': 'unreviewed',
+          },
+          'object_state': 'present_at_check',
+          'inspection': {'state': 'linked', 'task_id': 't1'},
+          'season': {'state': 'explicit_link_required', 'season_id': null},
+          'decision': {'state': 'authorized'},
+          'automatic_pesticide_action_authorized': true,
+        }),
+      );
+      expect(api.photoEvidenceContext('f1', 'p1'), throwsA(isA<FormatException>()));
+    });
+  });
+
+  group('explicit photo-season linkage (v262)', () {
+    test('recognizes an accepted link but keeps it separate from a diagnosis', () {
+      final result = verifyScoutingPhotoSeasonContext({
+        'state': 'linked_accepted',
+        'season_id': '72e29c4b-5ce2-46af-a5dc-502e3d41b8ed',
+        'link_event_id': 'e587bca2-c39a-453a-b722-d3454292ec77',
+        'link_proof': kScoutPhotoSeasonLinkProof,
+      });
+      expect(result['state'], 'linked_accepted');
+      expect(
+        () => verifyScoutingPhotoSeasonContext({...result, 'link_proof': 'time-proximity'}),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects forged season ids and a revoked link naming a season', () {
+      expect(
+        () => verifyScoutingPhotoSeasonContext({
+          'state': 'linked_accepted',
+          'season_id': 'other-field',
+          'link_event_id': 'e587bca2-c39a-453a-b722-d3454292ec77',
+          'link_proof': kScoutPhotoSeasonLinkProof,
+        }),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => verifyScoutingPhotoSeasonContext({
+          'state': 'revoked',
+          'season_id': '72e29c4b-5ce2-46af-a5dc-502e3d41b8ed',
+          'link_event_id': 'e587bca2-c39a-453a-b722-d3454292ec77',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+  });
+
+  group('human photo-season link event POST', () {
+    test('requires the same event id and refuses action authority', () async {
+      const id = 'e587bca2-c39a-453a-b722-d3454292ec77';
+      const seasonId = '72e29c4b-5ce2-46af-a5dc-502e3d41b8ed';
+      final (api, adapter) = fakeApi(
+        (o) async => const FakeReply(200, {
+          'event_id': id,
+          'persisted': true,
+          'idempotent': false,
+          'is_current': true,
+          'season': {
+            'state': 'linked_accepted',
+            'season_id': seasonId,
+            'link_event_id': id,
+            'link_proof': kScoutPhotoSeasonLinkProof,
+          },
+          'automatic_pesticide_action_authorized': false,
+        }),
+      );
+      final saved = await api.appendPhotoSeasonLinkEvent(
+        fieldId: 'f1',
+        pinId: 'p1',
+        eventId: id,
+        action: 'link',
+        seasonId: seasonId,
+        idempotencyKey: const IdempotencyKey('same-intent'),
+      );
+      expect(saved['event_id'], id);
+      expect(
+        adapter.requests.single.path,
+        '${scoutingPhotoPath('f1', 'p1')}/season-link-events',
+      );
+      expect((adapter.requests.single.data as Map)['event_id'], id);
+    });
+
+    test('rejects an unrelated event receipt', () async {
+      const id = 'e587bca2-c39a-453a-b722-d3454292ec77';
+      final (api, _) = fakeApi(
+        (o) async => const FakeReply(200, {
+          'event_id': 'wrong-id',
+          'persisted': true,
+          'idempotent': false,
+          'is_current': true,
+          'season': {'state': 'explicit_link_required', 'season_id': null},
+          'automatic_pesticide_action_authorized': false,
+        }),
+      );
+      expect(
+        api.appendPhotoSeasonLinkEvent(
+          fieldId: 'f1',
+          pinId: 'p1',
+          eventId: id,
+          action: 'link',
+          seasonId: '72e29c4b-5ce2-46af-a5dc-502e3d41b8ed',
+          idempotencyKey: const IdempotencyKey('same-intent'),
+        ),
+        throwsA(isA<FormatException>()),
+      );
+    });
+  });
+
   group('listPins', () {
     test(
       'reads {pins, note_ar} from GET /api/v1/scouting/pins?field_id',

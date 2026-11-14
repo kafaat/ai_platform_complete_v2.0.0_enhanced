@@ -2200,6 +2200,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/sections/ScoutPhotoGrantAdminPanel.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/SettingsPage.teamRoles.test.tsx",
     "kind": "web"
   },
@@ -2416,6 +2420,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/services/scoutPhotoGrants.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/scoutPhotoGrants.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/services/websocket.test.ts",
     "kind": "tests"
   },
@@ -2597,6 +2609,46 @@
   },
   {
     "path": "migrations/v258_lab_water_revisions.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v263_scout_photo_field_access_grants.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v264_scout_photo_grant_admin_audit.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v265_scout_photo_grant_audit_enforcement.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v266_scout_photo_detection_link_events.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v267_scout_photo_lab_sample_links.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v268_scout_photo_human_review.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v269_scout_plant_tissue_chain.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v270_scout_specialist_credential_attestations.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v271_scout_treatment_review_events.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v272_scout_photo_retention_governance.sql",
     "kind": "database"
   },
   {
@@ -4218,6 +4270,18 @@
   {
     "path": "scripts/remote_sensing/test_rs10_technical_certification.py",
     "kind": "tests"
+  },
+  {
+    "path": "scripts/staging/scout_photo_stage11_catalog_gate.sql",
+    "kind": "database"
+  },
+  {
+    "path": "scripts/staging/scout_photo_stage8_catalog_gate.sql",
+    "kind": "database"
+  },
+  {
+    "path": "scripts/staging/scout_photo_stage9_catalog_gate.sql",
+    "kind": "database"
   },
   {
     "path": "services/actuator-service/command_delivery.py",
@@ -9668,12 +9732,44 @@
     "kind": "backend"
   },
   {
+    "path": "services/scout-ingest-service/credential_status.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/detection_link_api.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/evidence_chain.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/evidence_retention_api.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/human_review_api.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/lab_link_api.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/scout-ingest-service/projection_worker.py",
     "kind": "backend"
   },
   {
+    "path": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/scout-ingest-service/tests/test_projection_live.py",
     "kind": "tests"
+  },
+  {
+    "path": "services/scout-ingest-service/treatment_review_api.py",
+    "kind": "backend"
   },
   {
     "path": "services/soil-service/__init__.py",
@@ -13141,6 +13237,10 @@
   },
   {
     "path": "tests_v9/test_scout_ingest_service_ownership.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_scout_photo_ledgers_contract.py",
     "kind": "tests"
   },
   {

@@ -13953,13 +13953,50 @@
     },
     {
       "approval_required": false,
+      "capability_id": "scout-ingest-service.internal.scouting-media.admin",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /internal/scouting-media/admin/fields/{field_id}/grants",
+        "POST /internal/scouting-media/admin/credential-events",
+        "POST /internal/scouting-media/admin/fields/{field_id}/grants",
+        "POST /internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke",
+        "POST /internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events",
+        "POST /internal/scouting-media/admin/retention-policy-events"
+      ],
+      "idempotency_required": false,
+      "kind": "mixed",
+      "owner": "scout-ingest-service",
+      "producer": "scout-ingest-service",
+      "required_context": [
+        "field"
+      ]
+    },
+    {
+      "approval_required": false,
       "capability_id": "scout-ingest-service.internal.scouting-media.fields",
       "consumers": [],
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
         "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo",
-        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo"
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/context",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/retention",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples/{sample_id}/custody-events",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events"
       ],
       "idempotency_required": false,
       "kind": "mixed",
@@ -17281,7 +17318,19 @@
           "field_form_definitions",
           "field_form_versions",
           "field_submissions",
+          "scout_photo_detection_link_events",
           "scout_photo_evidence",
+          "scout_photo_field_access_grants",
+          "scout_photo_grant_audit_events",
+          "scout_photo_human_review_events",
+          "scout_photo_lab_link_events",
+          "scout_photo_retention_events",
+          "scout_photo_retention_policy_events",
+          "scout_photo_season_link_events",
+          "scout_plant_tissue_samples",
+          "scout_specialist_credential_events",
+          "scout_tissue_custody_events",
+          "scout_treatment_review_events",
           "season_cost_items",
           "season_crop",
           "season_events",
@@ -17792,9 +17841,9 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 841,
+    "capabilities": 842,
     "capabilities_approval_gated": 6,
-    "capabilities_field_scoped": 97,
+    "capabilities_field_scoped": 98,
     "capabilities_idempotent": 75,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 481,
@@ -17803,9 +17852,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1137,
+    "route_rows": 1158,
     "ui_waivers": 52,
-    "unique_method_path": 1016
+    "unique_method_path": 1037
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18067,7 +18116,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "91c6e2e61bc9182bf86c57030e9f94c26d8ef78ae94c4e2a6eb6791a6c9dfad7",
+  "fingerprint": "a0dae50ea5aa2f2abc754343f507629024caf51a5b5cf06e23f55ad63782f338",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18117,16 +18166,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 966,
+      "edge_count": 1031,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 505,
+        "READS": 546,
         "ROUTES_TO": 73,
-        "WRITES": 337
+        "WRITES": 361
       }
     },
     "u3_wiring_ownership": {

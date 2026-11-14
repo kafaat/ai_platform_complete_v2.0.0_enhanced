@@ -758,6 +758,10 @@ services:
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
       JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}
       INGEST_DB_PASSWORD: ${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}
+      # Scout photo grant administration principal (sahool_scout_grant_admin): NOLOGIN unless
+      # enabled here with its own password (read from the environment, never argv).
+      SCOUT_MEDIA_GRANTS_ADMIN_ENABLED: ${SCOUT_MEDIA_GRANTS_ADMIN_ENABLED:-0}
+      SCOUT_GRANT_ADMIN_DB_PASSWORD: ${SCOUT_GRANT_ADMIN_DB_PASSWORD:-}
       # المتغيّرُ نفسُه الذي يقرؤه odoo-init (فارغاً ⇒ دور odoo_app بلا كلمة مرور، لا افتراضيٌّ منشور).
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-}
       # إذنُ التطبيق الصريح — في compose المحلّيّ الهجرةُ جزءٌ من الإقلاع (apply_in_compose.sh).
@@ -1397,6 +1401,21 @@ services:
       # SCOUT-PHOTO (v260): صور المشاهدات في scout_photo_evidence (off ⇒ 404) خلف nginx
       # (/api/v1/scouting-media/، JWT في البوّابة) وتوكن قناة مخصّص تحقنه البوّابة.
       SCOUT_MEDIA_ENABLED: ${SCOUT_MEDIA_ENABLED:-0}
+      # v262: explicit human photo -> accepted-season links; never enabled implicitly.
+      SCOUT_MEDIA_SEASON_LINK_ENABLED: ${SCOUT_MEDIA_SEASON_LINK_ENABLED:-0}
+      # Owner phases 6-11 (v263-v272): each explicit link/review/ledger behind its own flag.
+      SCOUT_MEDIA_DETECTION_LINK_ENABLED: ${SCOUT_MEDIA_DETECTION_LINK_ENABLED:-0}
+      SCOUT_MEDIA_LAB_LINK_ENABLED: ${SCOUT_MEDIA_LAB_LINK_ENABLED:-0}
+      SCOUT_MEDIA_HUMAN_REVIEW_ENABLED: ${SCOUT_MEDIA_HUMAN_REVIEW_ENABLED:-0}
+      SCOUT_MEDIA_TISSUE_SAMPLE_ENABLED: ${SCOUT_MEDIA_TISSUE_SAMPLE_ENABLED:-0}
+      SCOUT_MEDIA_CREDENTIAL_ENFORCEMENT_ENABLED: ${SCOUT_MEDIA_CREDENTIAL_ENFORCEMENT_ENABLED:-0}
+      SCOUT_MEDIA_TREATMENT_REVIEW_ENABLED: ${SCOUT_MEDIA_TREATMENT_REVIEW_ENABLED:-0}
+      SCOUT_MEDIA_RETENTION_ENABLED: ${SCOUT_MEDIA_RETENTION_ENABLED:-0}
+      # Tenant-owner admin API (grants, credentials, retention) on its own NOBYPASSRLS principal;
+      # never DATABASE_URL (sahool_ingest), the app or the jobs role.
+      SCOUT_MEDIA_GRANTS_ADMIN_ENABLED: ${SCOUT_MEDIA_GRANTS_ADMIN_ENABLED:-0}
+      SCOUT_MEDIA_GOVERNANCE_ADMIN_ENABLED: ${SCOUT_MEDIA_GOVERNANCE_ADMIN_ENABLED:-0}
+      SCOUT_GRANT_ADMIN_DATABASE_URL: ${SCOUT_GRANT_ADMIN_DATABASE_URL:-}
       SCOUT_MEDIA_SERVICE_TOKEN: ${SCOUT_MEDIA_SERVICE_TOKEN:-}
       # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/).
       # S3-BUCKET-EMPTY-SILENT-FILE-STORAGE-01: كان `${S3_BUCKET:-}` ⇒ `blob_store.s3_enabled()` كاذب ⇒

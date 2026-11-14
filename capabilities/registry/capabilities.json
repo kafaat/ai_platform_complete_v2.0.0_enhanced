@@ -452,7 +452,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "apis": 208,
+        "apis": 227,
         "tests": 151,
         "mobile_consumers": 44
       }
@@ -485,6 +485,7 @@
         "GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:272",
         "GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:607",
         "GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:265",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:612",
         "GET /internal/seasons @ services/scout-ingest-service/season_api.py:478",
         "GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668",
         "GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368",
@@ -496,6 +497,7 @@
         "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:495",
         "POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:1996",
         "POST /api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:147",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:530",
         "POST /internal/seasons @ services/scout-ingest-service/season_api.py:205",
         "POST /internal/seasons/{season_id}/accept @ services/scout-ingest-service/season_api.py:406",
         "POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624",
@@ -578,7 +580,7 @@
           "path": "migrations/v207_historical_season_simulation_bridge.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=2, mobile=12. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=28, tests=25, ui=2, mobile=12. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -587,7 +589,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 14
+        "tests": 15
       }
     },
     {
@@ -4136,14 +4138,23 @@
       "apis": [
         "GET /api/v1/scouting/pins @ services/sahool-platform/api/routers/scouting.py:83",
         "GET /api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:119",
-        "GET /healthz @ services/scout-ingest-service/main.py:205",
+        "GET /healthz @ services/scout-ingest-service/main.py:227",
         "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394",
-        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:236",
-        "GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:247",
+        "GET /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:517",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:300",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/context @ services/scout-ingest-service/media_api.py:674",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events @ services/scout-ingest-service/detection_link_api.py:241",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:270",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events @ services/scout-ingest-service/lab_link_api.py:231",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/retention @ services/scout-ingest-service/evidence_retention_api.py:90",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:612",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:395",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:280",
+        "GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:269",
         "GET /internal/seasons @ services/scout-ingest-service/season_api.py:478",
         "GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668",
         "GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368",
-        "GET /readyz @ services/scout-ingest-service/main.py:210",
+        "GET /readyz @ services/scout-ingest-service/main.py:232",
         "PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264",
         "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362",
         "POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195",
@@ -4151,15 +4162,20 @@
         "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466",
         "POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278",
         "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328",
-        "POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:375",
-        "POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:366",
-        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:179",
-        "POST /internal/seasons @ services/scout-ingest-service/season_api.py:205",
-        "POST /internal/seasons/{season_id}/accept @ services/scout-ingest-service/season_api.py:406",
-        "POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624",
-        "POST /internal/seasons/{season_id}/events @ services/scout-ingest-service/season_api.py:522",
-        "POST /internal/seasons/{season_id}/harvest @ services/scout-ingest-service/season_api.py:583",
-        "POST /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:306"
+        "POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:397",
+        "POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:388",
+        "POST /internal/scouting-media/admin/credential-events @ services/scout-ingest-service/grants_admin_api.py:586",
+        "POST /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:349",
+        "POST /internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke @ services/scout-ingest-service/grants_admin_api.py:440",
+        "POST /internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events @ services/scout-ingest-service/grants_admin_api.py:755",
+        "POST /internal/scouting-media/admin/retention-policy-events @ services/scout-ingest-service/grants_admin_api.py:684",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:238",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events @ services/scout-ingest-service/detection_link_api.py:130",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:169",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events @ services/scout-ingest-service/lab_link_api.py:129",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:530",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:182",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples/{sample_id}/custody-events @ services/scout-ingest-service/tissue_samples_api.py:288"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -4191,13 +4207,16 @@
         "mobile/sahool_app/test/features/scouting/scouting_fakes.dart",
         "mobile/sahool_app/test/features/scouting/scouting_routes_test.dart",
         "mobile/sahool_app/test/features/scouting/scouting_screen_test.dart",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
         "services/scout-ingest-service/tests/test_media_live.py",
         "services/scout-ingest-service/tests/test_projection_live.py",
         "services/scout-ingest-service/tests/test_season_live.py",
         "tests_v9/test_scout_ingest_service_ownership.py",
         "tests_v9/test_scout_photo_evidence_contract.py",
+        "tests_v9/test_scout_photo_ledgers_contract.py",
         "tests_v9/test_scout_photo_mobile_wiring_contract.py",
+        "tests_v9/test_scout_photo_season_link_contract.py",
         "tests_v9/test_scouting_pins_persistence.py"
       ],
       "runtime": {
@@ -4238,15 +4257,26 @@
         {
           "type": "repository",
           "path": "migrations/v260_scout_photo_evidence.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v262_scout_photo_season_link_events.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v263_scout_photo_field_access_grants.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=18, ui=0, mobile=16. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=21, ui=0, mobile=16. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "4",
         "CropX": null,
         "GeoPard": null,
         "Cropwise": "4",
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "apis": 7
       }
     },
     {
@@ -4653,6 +4683,7 @@
         "GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539",
         "GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638",
         "GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/retention @ services/scout-ingest-service/evidence_retention_api.py:90",
         "GET /runtime-identity @ services/agriai-engine/main.py:101",
         "GET /runtime-identity @ services/raster-service/main.py:64",
         "GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:25",
@@ -4697,11 +4728,11 @@
         "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
         "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
         "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
         "services/soil-service/test_soil_evidence_adapters_and_policy.py",
         "services/soil-service/test_soil_remote_sensing_evidence.py",
         "services/vegetation-analysis-service/test_evidence_producer_contract.py",
-        "tests/architecture/test_capability_evidence_maturity_engine.py",
-        "tests/architecture/test_runtime_evidence_ingestion.py"
+        "tests/architecture/test_capability_evidence_maturity_engine.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4738,7 +4769,7 @@
           "path": "migrations/v260_scout_photo_evidence.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=25, tests=25, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "1",
         "CropX": "2",
@@ -4747,7 +4778,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 21
+        "tests": 22
       }
     },
     {
@@ -4827,6 +4858,8 @@
         "GET /api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:52",
         "GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:80",
         "GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:576",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:270",
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:280",
         "GET /v1/decisions/review-queue @ services/decision-service/main.py:799",
         "PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36",
         "POST /api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:197",
@@ -4842,6 +4875,8 @@
         "POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:630",
         "POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:681",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:169",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:175",
         "POST /v1/approvals/approve @ services/ai_agronomist/main.py:283",
         "POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42",
         "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:857",
@@ -4911,9 +4946,17 @@
         {
           "type": "repository",
           "path": "migrations/v234_learning_agronomic_review.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v268_scout_photo_human_review.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v271_scout_treatment_review_events.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=23, tests=24, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=27, tests=24, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5837,6 +5880,14 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/api/routers/security_audit.py"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v264_scout_photo_grant_admin_audit.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v265_scout_photo_grant_audit_enforcement.sql"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=22, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
