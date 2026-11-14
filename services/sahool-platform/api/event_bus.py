@@ -611,7 +611,7 @@ class OutboxWorker:
     def __init__(
         self,
         pool: asyncpg.Pool,
-        nats_publish_fn,  # async callable(subject, payload_bytes)
+        nats_publish_fn,  # async callable(subject, payload_bytes, msg_id=None)
         batch_size: int = 50,
         poll_interval_sec: float = 1.0,
         max_retries: int = 5,
@@ -822,7 +822,14 @@ class OutboxWorker:
             # `OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01`: لا قفلَ صفٍّ
             # ولا معاملةٌ مفتوحةٌ ولا اتّصالُ مسبحٍ محتجَزٌ أثناء I/O الشبكة. ما يحمي
             # الصفَّ هنا `claim_token` المُثبَّت في TX-1 والمُجدَّد أعلاه.
-            await self.publish(row["nats_subject"], json.dumps(envelope).encode())
+            #
+            # **ومعرّفُ الرسالة هو `event_id`** (C-19): هويّةُ الحدث الثابتة (`events.event_id`
+            # المفتاح الأساسيّ، v11) لا `outbox_id` ولا رمزُ الإجارة — فإعادةُ نشرِ الصفِّ
+            # نفسِه بعد تعطّلٍ بين PubAck وTX-2، أو صفٌّ ثانٍ للحدث نفسِه، تحمل المعرّفَ
+            # ذاتَه فتُسقطها نافذةُ تكرار JetStream. نافذةٌ محدودة زمنيّاً: تُضيّق التكرار
+            # ولا تمنحه exactly-once؛ الضمانةُ تبقى `processed_events` عند المستهلك.
+            body = json.dumps(envelope).encode()
+            await self.publish(row["nats_subject"], body, msg_id=str(row["event_id"]))
 
             # ── TX-2: الإنهاءُ بـCAS على الرمز ──────────────────────────────────
             # **ولمَ رمزٌ ولا تكفي الحالة:** لو انقضت الإجارةُ أثناء نشري فالتقط صفّاً

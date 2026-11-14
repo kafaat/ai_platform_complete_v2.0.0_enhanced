@@ -295,3 +295,42 @@ def test_export_one_isolates_services_with_same_local_module_names(tmp_path):
         for p in (str(a.parent), str(b.parent), str(ROOT)):
             while p in sys.path:
                 sys.path.remove(p)
+
+
+def test_import_time_state_path_is_redirected_to_a_temp_dir(tmp_path, monkeypatch):
+    """Regression (CI, non-root runner): knowledge-graph opens its SQLite store at import
+    under KG_SQLITE_PATH, defaulting to /data, which a runner cannot create. The export
+    points each declared variable into a per-run temp dir and removes it afterwards."""
+    mod = _load_module()
+    svc_dir = tmp_path / "svc_state"
+    svc_dir.mkdir()
+    main = svc_dir / "main.py"
+    main.write_text(
+        "import os\n"
+        "from pathlib import Path\n"
+        "from fastapi import FastAPI\n"
+        "target = Path(os.environ.get('SVC_STATE_PATH', '/dev/null/state.db'))\n"
+        "target.parent.mkdir(parents=True, exist_ok=True)\n"
+        "target.write_text('x')\n"
+        "app = FastAPI()\n"
+        "@app.get('/state')\n"
+        "def state():\n"
+        "    return {'path': str(target)}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(mod, "IMPORT_ENV_PATHS", {"svc-state": {"SVC_STATE_PATH": "state.db"}})
+    monkeypatch.delenv("SVC_STATE_PATH", raising=False)
+    spec, err = mod.export_one("svc-state", str(main), timeout=120)
+    assert err is None, err
+    assert list(spec["paths"]) == ["/state"]
+
+    # Negative control: without the declared redirect the import fails on the default path
+    # (under /dev/null, which no user, root included, can create a directory in).
+    monkeypatch.setattr(mod, "IMPORT_ENV_PATHS", {})
+    spec, err = mod.export_one("svc-state", str(main), timeout=120)
+    assert spec is None and "EXPORT-ERROR import" in err
+
+
+def test_knowledge_graph_state_path_is_declared():
+    mod = _load_module()
+    assert mod.IMPORT_ENV_PATHS["knowledge-graph"] == {"KG_SQLITE_PATH": "kg.sqlite"}

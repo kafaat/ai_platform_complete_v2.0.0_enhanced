@@ -37,10 +37,18 @@ import argparse
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 from collections import Counter
+
+# صار يُشغَّل في CI (C-04)، ومخرَجُه عربيٌّ ويحمل ✓/✗/⚠: تحت `LC_ALL=C` بلا `PYTHONUTF8`
+# يُرمّز `print` بـASCII فيموت بـUnicodeEncodeError — نتيجةٌ صحيحة تُقرَأ فشلاً. والعمليّةُ
+# الفرعيّة لكلّ خدمة تُحمّل هذا الملفّ نفسه، فتَرِث التهيئةَ ذاتها.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_INVENTORY = os.path.join(ROOT, "service_inventory.generated.json")
@@ -90,6 +98,14 @@ OPTIONAL = {
     "realtime-agent": "worker entrypoint; main.py defines no ASGI `app`",
     "tts-service": "needs edge_tts (not in platform requirements)",
     "weather-signal-engine": "worker; imports `core` from its image and defines no `app`",
+}
+
+
+# خدماتٌ تكتب حالتها المحلّيّة عند الاستيراد إلى مسارٍ داخل صورتها (مثل ``/data``). في عمليّة
+# التصدير لا تملك ذلك المسار (مُشغِّل CI ليس root)، فتُوجَّه متغيّراتُها المُعلَنة إلى مجلّد
+# مؤقّت خاصّ بكلّ تشغيل. لا يُغيِّر هذا ما تُصدِّره: المخطّط يُشتقّ من المسارات لا من الحالة.
+IMPORT_ENV_PATHS = {
+    "knowledge-graph": {"KG_SQLITE_PATH": "kg.sqlite"},
 }
 
 
@@ -197,11 +213,16 @@ def export_one(service: str, main_path: str, timeout: int = DEFAULT_TIMEOUT):
     """يصدّر خدمة واحدة في عمليّة فرعيّة. يعيد (spec, None) أو (None, error)."""
     fd, tmp = tempfile.mkstemp(suffix=".openapi.json")
     os.close(fd)
+    state_dir = tempfile.mkdtemp(prefix=f"openapi-{service}-")
+    env = dict(os.environ)
+    for var, name in IMPORT_ENV_PATHS.get(service, {}).items():
+        env[var] = os.path.join(state_dir, name)
     try:
         try:
             proc = subprocess.run(
                 [sys.executable, os.path.abspath(__file__), "--child", service, main_path, tmp],
                 cwd=ROOT,
+                env=env,
                 capture_output=True,
                 text=True,
                 timeout=timeout,
@@ -216,6 +237,7 @@ def export_one(service: str, main_path: str, timeout: int = DEFAULT_TIMEOUT):
             return json.load(f), None
     finally:
         os.unlink(tmp)
+        shutil.rmtree(state_dir, ignore_errors=True)
 
 
 def run_export(inventory, classes, out_dir, timeout, static_counts):

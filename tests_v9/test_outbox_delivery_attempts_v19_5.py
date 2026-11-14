@@ -146,7 +146,7 @@ def test_attempts_logged_per_delivery_with_distinct_errors_and_success():
             outbox_id = row["outbox_id"]
 
             # ── محاولة #1: فشل بخطأ متمايز ──
-            async def _fail_a(subject, payload):
+            async def _fail_a(subject, payload, msg_id=None):
                 raise RuntimeError("NATS_DOWN_ALPHA")
 
             worker = _make_worker(_fail_a)
@@ -156,7 +156,7 @@ def test_attempts_logged_per_delivery_with_distinct_errors_and_success():
             row2 = await _fetch_worker_row(conn, event_id)
             assert row2["retry_count"] == 1
 
-            async def _fail_b(subject, payload):
+            async def _fail_b(subject, payload, msg_id=None):
                 raise ValueError("BROKER_TIMEOUT_BETA")
 
             worker.publish = _fail_b
@@ -185,7 +185,7 @@ def test_attempts_logged_per_delivery_with_distinct_errors_and_success():
             row3 = await _fetch_worker_row(conn, event_id)
             assert row3["retry_count"] == 2
 
-            async def _ok(subject, payload):
+            async def _ok(subject, payload, msg_id=None):
                 return None
 
             worker.publish = _ok

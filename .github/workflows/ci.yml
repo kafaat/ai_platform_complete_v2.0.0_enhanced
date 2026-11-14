@@ -1136,6 +1136,16 @@ jobs:
       # Pillow: ملفّان (test_bivariate_raster/test_raster_export) يستوردان PIL
       # عبر core.spatial.raster_export — تبعيّة خفيفة (بلا GDAL) للإبقاء عليهما.
       - run: pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt pillow
+      # C-04: `export_openapi.py` صار صارماً (#1433) ولم يُشغّله أيّ workflow، فخدمةٌ
+      # REQUIRED لا تُستورَد أو يفشل `app.openapi()` فيها كانت تمرّ بلا أثر. موضعُه هنا
+      # لأنّ هذه الوظيفة تُثبّت تبعيّات المنصّة نفسها التي قِيس عليها تصنيفُ REQUIRED.
+      # يُصدَّر إلى مجلّدٍ مؤقّت لا إلى `docs/openapi/` (المُلتزَم يُجدَّد يدويّاً لا هنا)،
+      # وأيُّ رمزٍ غير صفريّ يحجب: 1 = خدمةٌ إلزاميّة فشلت · 2 = سجلّ/تصنيف لا يطابق.
+      # والفحصُ الأخير يُثبت أنّ التصدير لم يكتب في الشجرة.
+      - name: OpenAPI export of every REQUIRED service (strict, into a temp dir)
+        run: |
+          python export_openapi.py --out-dir "$RUNNER_TEMP/openapi"
+          test -z "$(git status --porcelain)"
       # بوّابة تغطية "ratchet" غير-كاسرة: تُقاس حزمتا api/core، والأرضيّة في
       # .coveragerc مضبوطة عند المقيس الحاليّ (٦١٫٩٢٪) ناقص هامش ⇒ fail_under=60.
       # لا تُفشل CI اليوم؛ يمكنها الصعود فقط (تُرفع الأرضيّة مع نموّ التغطية).
