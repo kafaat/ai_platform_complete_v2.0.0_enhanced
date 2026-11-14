@@ -25,14 +25,14 @@
       "tests": 2506,
       "web": 547
     },
-    "unmapped_artifacts": 3495,
+    "unmapped_artifacts": 3496,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
       "python_functional": 3977,
       "raw": 3369
     },
-    "test_dependency_files": 1905,
-    "test_dependency_edges": 4904,
+    "test_dependency_files": 1906,
+    "test_dependency_edges": 4905,
     "test_dependency_bounded_files": 1116,
     "test_dependency_unresolved_relations": 485
   },
@@ -43284,6 +43284,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_etc_dual_browser_source_truth.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_etc_dual_canonical.py",
       "kind": "tests"
     },
@@ -78341,6 +78345,21 @@
           "import": "api"
         }
       ]
+    },
+    {
+      "test": "tests_v9/test_etc_dual_browser_source_truth.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/routers/etc_dual.py",
+          "kind": "source_read",
+          "line": 14
+        }
+      ],
+      "unresolved": []
     },
     {
       "test": "tests_v9/test_etc_dual_canonical.py",
