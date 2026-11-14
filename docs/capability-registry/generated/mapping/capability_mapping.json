@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7341,
+    "files_scanned": 7343,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2181,
-      "tests": 2502,
+      "tests": 2504,
       "web": 547
     },
-    "unmapped_artifacts": 3493,
+    "unmapped_artifacts": 3494,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3972,
+      "python_functional": 3974,
       "raw": 3369
     },
-    "test_dependency_files": 1902,
-    "test_dependency_edges": 4892,
-    "test_dependency_bounded_files": 1115,
+    "test_dependency_files": 1904,
+    "test_dependency_edges": 4898,
+    "test_dependency_bounded_files": 1117,
     "test_dependency_unresolved_relations": 482
   },
   "capabilities": [
