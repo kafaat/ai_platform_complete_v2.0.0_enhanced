@@ -1373,7 +1373,7 @@ def test_cost_history_cannot_be_forged_through_a_temporary_trigger():
     assert out["history"] == 1
     flags = {r["proname"]: (r["prosecdef"], r["proconfig"]) for r in out["definer"]}
     assert flags["record_field_task_cost"][0] is True
-    assert "search_path=pg_catalog, public, pg_temp" in (flags["record_field_task_cost"][1] or [])
+    assert "search_path=pg_catalog, pg_temp" in (flags["record_field_task_cost"][1] or [])
     assert flags["task_cost_history_guard"][0] is False
     assert flags["task_expense_link_guard"][0] is False
 
@@ -1454,6 +1454,79 @@ def test_the_cost_definer_cannot_be_attached_to_another_relation():
     assert out["owner_fire"] == "42501"  # TG_RELID bound to public.field_tasks
 
 
+def test_an_operator_planted_in_public_does_not_run_inside_the_definer():
+    """Review round 4 of #1460: with CREATE on public, an exact-match varchar operator ran as owner."""
+
+    async def target():
+        out = {}
+        async with Live() as live:
+            app_role = await live._app_role()
+            task = str(
+                await live.admin.fetchval(
+                    "INSERT INTO field_tasks (tenant_id, field_id, task_type, status,"
+                    " actual_cost_usd) VALUES ($1::uuid, $2, 'weeding', 'pending', 5)"
+                    " RETURNING task_id",
+                    live.tenant,
+                    live.field,
+                )
+            )
+            await live.admin.execute(f'GRANT CREATE ON SCHEMA public TO "{app_role}"')
+            conn = await _app_conn(live, "manager")
+            try:
+                await conn.execute(
+                    "CREATE FUNCTION public.fti_hijack_eq(a varchar, b varchar) RETURNS boolean"
+                    " LANGUAGE plpgsql AS $f$ BEGIN"
+                    " RAISE EXCEPTION 'hijacked as %', current_user; END $f$;"
+                    " CREATE OPERATOR public.= (LEFTARG = varchar, RIGHTARG = varchar,"
+                    " FUNCTION = public.fti_hijack_eq);"
+                )
+                try:
+                    async with conn.transaction():
+                        await conn.execute(
+                            # Cost unchanged, status changed: the definer compares the two
+                            # varchar statuses, the comparison the planted operator targets.
+                            "UPDATE public.field_tasks SET status='in_progress'"
+                            " WHERE task_id=$1::uuid",
+                            task,
+                        )
+                    out["update"] = "allowed"
+                except asyncpg.PostgresError as exc:
+                    out["update"] = f"{exc.sqlstate}:{exc}"
+            finally:
+                await conn.close()
+                await live.admin.execute(
+                    "DROP OPERATOR IF EXISTS public.= (varchar, varchar);"
+                    " DROP FUNCTION IF EXISTS public.fti_hijack_eq(varchar, varchar);"
+                    f' REVOKE CREATE ON SCHEMA public FROM "{app_role}"'
+                )
+            out["history"] = await live.admin.fetchval(
+                "SELECT count(*) FROM task_cost_history WHERE task_id=$1::uuid"
+                " AND status='in_progress'",
+                task,
+            )
+        return out
+
+    out = run(target())
+    assert out["update"] == "allowed", out["update"]  # the planted operator never ran as owner
+    assert out["history"] == 1
+
+
+def test_a_padded_completed_status_is_still_gated():
+    """Review round 4 of #1460: ' completed ' (padded) must take the close gate like 'completed'."""
+
+    async def target():
+        async with Live() as live:
+            task, _ = await _accepted_and_submitted(live)
+            return await _as_app(
+                live,
+                "manager",
+                "UPDATE field_tasks SET status=' completed ' WHERE task_id=$1::uuid",
+                task,
+            )
+
+    assert run(target()) == "SH001"
+
+
 def test_temp_tables_cannot_shadow_the_inspection_and_cost_tables():
     """Review round 3 of #1460: unpinned search_path let pg_temp tables stand in for the real ones."""
 
@@ -1517,8 +1590,14 @@ def test_temp_tables_cannot_shadow_the_inspection_and_cost_tables():
     assert out["close"] == "SH001"  # the fake temp approval is not read
     assert out["history"] == 1  # the temp task_cost_history did not swallow the row
     assert len(out["pinned"]) == 9
+    owner_rights = {"record_field_task_cost", "task_cost_history_guard"}
     for row in out["pinned"]:
-        assert "search_path=pg_catalog, public, pg_temp" in (row["proconfig"] or []), row["proname"]
+        want = (
+            "search_path=pg_catalog, pg_temp"
+            if row["proname"] in owner_rights
+            else "search_path=pg_catalog, public, pg_temp"
+        )
+        assert want in (row["proconfig"] or []), row["proname"]
 
 
 def test_a_direct_handoff_racing_a_close_waits_and_is_refused():
@@ -1596,6 +1675,15 @@ def test_the_bootstrap_scripts_revoke_cost_history_dml_after_their_blanket_grant
             "REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE public.task_cost_history"
         )
         assert revoke > grant, name
+        execute = text.index("REVOKE EXECUTE ON FUNCTION public.record_field_task_cost()")
+        assert execute > grant, name
+    compose = (root / "apply_in_compose.sh").read_text(encoding="utf-8")
+    jobs_grant = compose.index(
+        'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO :"jobs_role"'
+    )
+    tail = compose[jobs_grant:]
+    assert "public.task_cost_history FROM %I', :'jobs_role'" in tail
+    assert "public.record_field_task_cost() FROM %I', :'jobs_role'" in tail
 
 
 # ── tenant isolation per table ──────────────────────────────────────────────

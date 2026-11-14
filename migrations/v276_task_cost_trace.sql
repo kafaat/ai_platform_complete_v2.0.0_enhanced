@@ -70,13 +70,15 @@ CREATE POLICY tenant_append ON task_cost_history FOR INSERT
 -- user and the task's stored cost and status, so it describes the field_tasks change that fired
 -- it. pg_trigger_depth() alone is spoofable by a role that can create a temporary trigger (review
 -- round 2 of #1460), which is why the privilege, not this check, is the boundary.
+-- It fires inside the SECURITY DEFINER's INSERT, i.e. with the owner's rights: no public in its
+-- search_path either (review round 4 of #1460), and its one table is schema-qualified.
 CREATE OR REPLACE FUNCTION task_cost_history_guard() RETURNS trigger LANGUAGE plpgsql
-    SET search_path = pg_catalog, public, pg_temp AS $$
+    SET search_path = pg_catalog, pg_temp AS $$
 BEGIN
     IF pg_trigger_depth() < 2
        OR NEW.changed_by IS DISTINCT FROM NULLIF(current_setting('app.current_user_id', true), '')
        OR NOT EXISTS (
-            SELECT 1 FROM field_tasks t
+            SELECT 1 FROM public.field_tasks t
              WHERE t.tenant_id = NEW.tenant_id AND t.task_id = NEW.task_id
                AND t.actual_cost_usd IS NOT DISTINCT FROM NEW.actual_usd
                AND t.status IS NOT DISTINCT FROM NEW.status) THEN
@@ -119,10 +121,12 @@ CREATE TRIGGER task_expense_link_guard BEFORE INSERT ON task_expense_links
 
 -- SECURITY DEFINER (the only one in v274-v277, owner decision for #1460): the application roles
 -- cannot write task_cost_history, so the history row is written with the function owner's rights.
--- search_path is pinned; the body writes only values taken from NEW/OLD and the session's user GUC,
+-- search_path is pg_catalog, pg_temp only (no public: a role allowed to CREATE in public could
+-- otherwise plant an exact-match operator the definer resolves as the owner, review round 4 of
+-- #1460) and the one table is schema-qualified; the body writes only NEW/OLD values and the user GUC,
 -- and FORCE RLS's tenant_append policy still binds tenant_id to app.current_tenant.
 CREATE OR REPLACE FUNCTION record_field_task_cost() RETURNS trigger LANGUAGE plpgsql
-    SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+    SECURITY DEFINER SET search_path = pg_catalog, pg_temp AS $$
 BEGIN
     -- Bound to field_tasks: attached as a trigger on any other relation (a temp table, review
     -- round 3 of #1460) it refuses instead of writing history with the owner's rights.
@@ -140,7 +144,7 @@ BEGIN
           AND (NEW.actual_cost_usd IS NULL OR NEW.status IS NOT DISTINCT FROM OLD.status) THEN
         RETURN NEW;
     END IF;
-    INSERT INTO task_cost_history
+    INSERT INTO public.task_cost_history
         (tenant_id, task_id, changed_by, previous_usd, actual_usd, previous_status, status)
     VALUES (NEW.tenant_id, NEW.task_id, NULLIF(current_setting('app.current_user_id', true), ''),
             CASE WHEN TG_OP = 'UPDATE' THEN OLD.actual_cost_usd END, NEW.actual_cost_usd,
