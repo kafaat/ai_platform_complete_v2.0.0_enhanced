@@ -9,8 +9,9 @@
 (تحتاج عميل Redis حيّ — انظر docs/AUTH_DENYLIST_DESIGN.md).
 
 ⚠ المبدأ:
-  • **fail-open**: تعذّر فحص القائمة (Redis ساقط) لا يقفل كلّ المستخدمين — يُسجَّل
-    ويُسمَح (التوفّر فوق التشدّد؛ الإبطال طبقة دفاع لا الوحيدة). صريح وموثَّق.
+  • ``is_token_revoked``/``is_token_below_floor`` **fail-open**: تعذّر الفحص ⇒ False + تحذير.
+    ``revocation_status`` يميّز «تعذّر التحقّق» صراحةً، والمنصّة تبني عليه سياستها: الإنتاج
+    fail-closed بـ503 ``token_revocation_unverifiable``، وغيره يُسمَح مع تحذير (C-02).
   • نفس مخطّط مفتاح خدمة auth (لا مخطّط موازٍ): `sahool:jti:revoked:{jti}`.
   • نقيّة قابلة للاختبار offline (backend ذاكرة).
 """
@@ -133,3 +134,46 @@ def is_token_below_floor(backend: DenylistBackend | None, payload: Mapping[str, 
     except Exception as e:  # noqa: BLE001 — fail-open: تعذّر الفحص لا يقفل المستخدم
         logger.warning("تعذّر فحص أرضيّة توكن sub=%s (يُسمَح، fail-open): %s", sub, e)
         return False
+
+
+# ─── حالة الإبطال الثلاثيّة: مُبطَل / سليم / تعذّر التحقّق ──────────────────────
+# C-02 (تدقيق المالك): الدالّتان أعلاه تُرجِعان False عند عطل Redis، فلا يميّز المستدعي
+# «لم يُبطَل» من «لم نستطع أن نعرف»، وكانت المنصّة تقبل التوكن في الحالتين — فعطلُ Redis
+# أثناء التشغيل يُعيد صلاحية توكنات مستخدمٍ عُطِّل أو حُذِف وأُبطِلت جلساته. هذه الدالّة
+# تُرجِع الحالة الثالثة صراحةً، والمستدعي (get_current_user) يقرّر السياسة بحسب البيئة.
+REVOCATION_OK = "ok"
+REVOCATION_REVOKED = "revoked"
+REVOCATION_UNVERIFIABLE = "unverifiable"
+
+
+def revocation_status(backend: DenylistBackend | None, payload: Mapping[str, Any]) -> str:
+    """``revoked`` إن أثبت أيّ فحص الإبطال، وإلّا ``unverifiable`` إن تعذّر فحصٌ، وإلّا ``ok``.
+
+    القواعد نفسها حرفيّاً كـ``is_token_revoked`` و``is_token_below_floor``: لا jti ⇒ لا فحص
+    jti، ولا sub/iat/أرضيّات ⇒ لا فحص أرضيّة، وbackend None ⇒ ``ok`` (الميزة غير مُفعَّلة).
+    الفحصان يُجرَيان كلاهما: إثباتُ إبطالٍ من أحدهما يغلب تعذّرَ الآخر (401 لا 503)، فيبقى
+    سلوك غير الإنتاج مطابقاً لما قبل هذا التغيير.
+    """
+    if backend is None:
+        return REVOCATION_OK
+    unverifiable = False
+    jti = payload.get("jti")
+    if jti:
+        try:
+            if backend.is_revoked(jti):
+                return REVOCATION_REVOKED
+        except Exception as e:  # noqa: BLE001 — الحالة مجهولة؛ المستدعي يقرّر السياسة
+            logger.warning("تعذّر فحص إبطال jti=%s: %s", jti, e)
+            unverifiable = True
+    sub = payload.get("sub")
+    iat = payload.get("iat")
+    floor_of = getattr(backend, "token_floor", None)
+    if sub is not None and iat is not None and floor_of is not None:
+        try:
+            floor = floor_of(str(sub))
+            if floor is not None and int(iat) < int(floor):
+                return REVOCATION_REVOKED
+        except Exception as e:  # noqa: BLE001 — الحالة مجهولة؛ المستدعي يقرّر السياسة
+            logger.warning("تعذّر فحص أرضيّة توكن sub=%s: %s", sub, e)
+            unverifiable = True
+    return REVOCATION_UNVERIFIABLE if unverifiable else REVOCATION_OK

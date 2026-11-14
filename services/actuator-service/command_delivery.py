@@ -186,7 +186,7 @@ def evaluate_ack(
         return AckDecision(False, "ack_signing_secret_unset")
     sig = ack.get("sig")
     expected = ack_signature(secret, command_id, topic_device, result)
-    if not isinstance(sig, str) or not hmac.compare_digest(sig, expected):
+    if not isinstance(sig, str) or not sig.isascii() or not hmac.compare_digest(sig, expected):
         return AckDecision(False, "bad_ack_signature")
     if record is None:
         return AckDecision(False, "unknown_command")
@@ -194,8 +194,13 @@ def evaluate_ack(
         return AckDecision(False, "tenant_mismatch")
     if record.get("device_id") != topic_device:
         return AckDecision(False, "ack_device_does_not_match_command")
+    if record.get("command_id") != command_id:
+        return AckDecision(False, "ack_command_id_mismatch")
     target = ACK_RESULTS[result]
     current = record.get("delivery_state")
+    if current == target and record.get("delivery_reason") == result:
+        # Same authenticated receipt delivered again: preserve the original timestamps.
+        return AckDecision(True, "already_recorded")
     if effective_state(record, now) == EXPIRED and current in (QUEUED, PUBLISHED):
         return AckDecision(False, "ack_after_expiry", target=EXPIRED)
     if current == QUEUED:

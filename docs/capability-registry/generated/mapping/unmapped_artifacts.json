@@ -2036,6 +2036,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/IrrigationWaterPage.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/IrrigationWaterPage.tsx",
     "kind": "web"
   },
@@ -2190,6 +2194,10 @@
   {
     "path": "frontend/src/sections/SatellitePageRuntimeFix.static.test.ts",
     "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/SettingsPage.teamRoles.test.tsx",
+    "kind": "web"
   },
   {
     "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
@@ -4668,6 +4676,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/decision-service/tests/test_ac1_boundary_finiteness_timezone.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/decision-service/tests/test_activation_evidence_contract.py",
     "kind": "tests"
   },
@@ -4697,6 +4709,10 @@
   },
   {
     "path": "services/decision-service/tests/test_agronomic_runtime_terminal_lineage.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_backfill_row_coverage.py",
     "kind": "tests"
   },
   {
@@ -5989,10 +6005,6 @@
   },
   {
     "path": "services/sahool-platform/api/equipment_models.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/event_catalog.py",
     "kind": "backend"
   },
   {
@@ -8572,6 +8584,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_event_catalog_completeness.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_event_replay.py",
     "kind": "tests"
   },
@@ -8597,6 +8613,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_evidence_graph_normalize.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_evidence_map_owner.py",
     "kind": "tests"
   },
   {
@@ -8864,6 +8884,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_irrigation_water_verdict.py",
     "kind": "tests"
   },
@@ -8925,6 +8949,14 @@
   },
   {
     "path": "services/sahool-platform/tests/test_learning_summary_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_learning_summary_owner.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ledger_variance_coverage.py",
     "kind": "tests"
   },
   {
@@ -9125,6 +9157,14 @@
   },
   {
     "path": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
     "kind": "tests"
   },
   {
@@ -9585,6 +9625,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_yemeni_calendars.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_yield_finite_phase12.py",
     "kind": "tests"
   },
   {
@@ -10352,7 +10396,27 @@
     "kind": "tests"
   },
   {
+    "path": "tests/phase6/test_agronomic_model_admission_phase14.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_agronomic_model_preflight_cli_phase14.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_feature_lineage_producers.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/phase6/test_feature_store_model_registry_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_feature_store_point_in_time_availability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_feature_store_temporal_integrity_phase12.py",
     "kind": "tests"
   },
   {
@@ -10837,6 +10901,10 @@
   },
   {
     "path": "tests_v9/test_auth_signup_owner.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_team_managers_c37.py",
     "kind": "tests"
   },
   {
@@ -11501,6 +11569,10 @@
   },
   {
     "path": "tests_v9/test_etc_dual_weather.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_event_history_contract_unit.py",
     "kind": "tests"
   },
   {

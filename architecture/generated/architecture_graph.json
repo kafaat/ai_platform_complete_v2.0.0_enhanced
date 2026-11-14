@@ -48,7 +48,7 @@
       ],
       "kind": "service",
       "incoming": 11,
-      "outgoing": 2,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -889,7 +889,7 @@
         "services/soil-service"
       ],
       "kind": "service",
-      "incoming": 16,
+      "incoming": 17,
       "outgoing": 0,
       "orphan": false
     },
@@ -996,6 +996,12 @@
       "target": "soil-service",
       "kind": "code-reference",
       "evidence": "services/decision-service/main.py"
+    },
+    {
+      "source": "decision-service",
+      "target": "soil-service",
+      "kind": "code-reference",
+      "evidence": "services/decision-service/persistence.py"
     },
     {
       "source": "erpnext-backend",
@@ -2123,11 +2129,11 @@
   "cycles": [],
   "summary": {
     "nodes": 111,
-    "edges": 194,
+    "edges": 195,
     "orphans": 9,
     "cycles": 0,
-    "code_edges": 61,
+    "code_edges": 62,
     "compose_edges": 133
   },
-  "content_sha256": "cac8b109b7a5de7540107c8b3a35dde4501f3de99239dcd275824a2fc937bc6a"
+  "content_sha256": "7a80a54e3af5007be349380b793dc58d20fb1b518e6c4575c82425fe8f08b0bf"
 }

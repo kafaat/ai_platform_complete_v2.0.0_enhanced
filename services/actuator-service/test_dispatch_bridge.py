@@ -411,6 +411,39 @@ def test_a_command_without_a_field_is_held_by_its_device_s_registered_field(monk
     publish.assert_not_awaited()
 
 
+def test_device_validation_reports_the_registered_field():
+    # _validate_dispatch_device reads the iot_devices row under tenant RLS and returns this
+    # pure verdict for it; the verdict is what decides the field a field-less command is held by.
+    from datetime import UTC, datetime
+
+    now = datetime.now(UTC)
+    record = {
+        "device_id": "valve-1",
+        "tenant_id": "tenant",
+        "type": "actuator",
+        "field_id": " pivot-1 ",
+        "status": "online",
+        "last_seen_at": now,
+    }
+    gate = dict(tenant_id="tenant", now=now, stale_seconds=900)
+    assert main._device_dispatch_verdict(record, field_id=None, **gate) == (True, "ok", "pivot-1")
+    assert main._device_dispatch_verdict(record, field_id="pivot-2", **gate) == (
+        False,
+        "device_field_mismatch",
+        "pivot-1",
+    )
+    assert main._device_dispatch_verdict({**record, "field_id": "  "}, field_id=None, **gate) == (
+        True,
+        "ok",
+        None,
+    )
+    assert main._device_dispatch_verdict(None, field_id=None, **gate) == (
+        False,
+        "device_not_found",
+        None,
+    )
+
+
 def _run_consumer_with(monkeypatch, command, device_field, halted_field=None):
     """Drive run_dispatch_consumer_once with one queued request; returns (receipts, publish)."""
     import asyncio

@@ -22,7 +22,10 @@ import json as _json
 import os
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import AwareDatetime, BaseModel, StrictBool, ValidationError
 
+from api.decision_service_client import decision_get_json
+from api.decision_sor_mode import get_platform_decision_sor_mode
 from api.learning_summary import summarize_learning_with_reconciled_outcomes
 from api.main import (
     Permission,
@@ -49,6 +52,106 @@ def _loads(v):
     return _json.loads(v) if isinstance(v, str) else v
 
 
+class _DecisionRow(BaseModel):
+    tenant_id: str
+    region: str | None
+    created_at: AwareDatetime
+
+
+class _OutcomeRow(_DecisionRow):
+    outcome_id: str
+    decision_id: str
+    field_id: str | None
+    success: StrictBool | None
+
+
+class _YieldRow(BaseModel):
+    tenant_id: str
+    outcome_id: int
+    recommendation_id: str
+    decision_id: str | None
+    field_id: str | None
+    farm_id: str | None
+    season_id: str | None
+    crop: str | None
+    accepted: StrictBool
+    matured_within_lag: StrictBool
+    predicted_yield_t_ha: float | None
+    actual_yield_t_ha: float | None
+    issued_at: AwareDatetime
+    outcome_recorded_at: AwareDatetime | None
+
+
+class _LearningInputs(BaseModel):
+    decisions: list[_DecisionRow]
+    outcomes: list[_OutcomeRow]
+    recommendations: list[_YieldRow]
+    dispatch_links: dict[str, str]
+
+
+def _validated_owner_inputs(inputs: dict, tenant: str) -> _LearningInputs:
+    """Pure: the decision-service snapshot, or 503 (not authoritative for this tenant) / 502."""
+    if inputs.get("authoritative") is not True or inputs.get("tenant_id") != tenant:
+        raise HTTPException(503, "authoritative learning data unavailable for tenant")
+    try:
+        snapshot = _LearningInputs.model_validate(inputs)
+    except ValidationError as exc:
+        raise HTTPException(502, "invalid learning snapshot from decision-service") from exc
+    if any(
+        row.tenant_id != tenant
+        for rows in (snapshot.decisions, snapshot.outcomes, snapshot.recommendations)
+        for row in rows
+    ):
+        raise HTTPException(502, "learning snapshot contains a different tenant")
+    return snapshot
+
+
+def _owner_learning_result(
+    snapshot: _LearningInputs, regions: dict[str, str | None] | None
+) -> dict:
+    """Pure: summarize the owner snapshot; the platform contributes only field → region.
+
+    ``regions`` is None when no recommendation names a field (no platform read happened).
+    """
+    recommendations = [row.model_dump() for row in snapshot.recommendations]
+    if regions is not None:
+        for row in recommendations:
+            row["region"] = regions.get(row["field_id"])
+    result = summarize_learning_with_reconciled_outcomes(
+        [row.model_dump() for row in snapshot.decisions],
+        [row.model_dump() for row in snapshot.outcomes],
+        recommendations,
+        dispatch_links=snapshot.dispatch_links,
+    )
+    _isoformat_stamps(result)
+    return result
+
+
+async def _owner_summary(user: UserSchema) -> dict:
+    tenant = str(user.tenant_id)
+    snapshot = _validated_owner_inputs(
+        await decision_get_json(
+            "/v1/learning/summary", tenant_id=tenant, params={"dashboard_inputs": "true"}
+        ),
+        tenant,
+    )
+    fields = sorted({row.field_id for row in snapshot.recommendations if row.field_id})
+    regions: dict[str, str | None] | None = None
+    if fields:
+        try:
+            async with tenant_connection(user) as conn:
+                records = await conn.fetch(
+                    "SELECT field_id, region FROM fields WHERE tenant_id=$1::uuid "
+                    "AND field_id=ANY($2::text[])",
+                    tenant,
+                    fields,
+                )
+        except Exception as exc:
+            raise _db_unavailable("قراءة مناطق الحقول", exc) from exc
+        regions = {r["field_id"]: r["region"] for r in records}
+    return _owner_learning_result(snapshot, regions)
+
+
 @router.get("/api/v1/learning/summary")
 async def get_learning_summary(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
@@ -64,6 +167,8 @@ async def get_learning_summary(
             status_code=404,
             detail="ميزة لوحة حلقة التعلّم غير مُفعَّلة (اضبط FEATURE_LEARNING_DASHBOARD).",
         )
+    if get_platform_decision_sor_mode().strict_decision_service_required:
+        return await _owner_summary(user)
     try:
         async with tenant_connection(user) as conn:
             drows = await conn.fetch("SELECT region, created_at FROM decision_record")

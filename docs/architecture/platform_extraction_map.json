@@ -16,7 +16,7 @@
       "function": "model_serving_resolve",
       "method": "GET",
       "path": "/models/serving/{alias:path}",
-      "line": 300,
+      "line": 318,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::GET /models/serving/{alias:path}::model_serving_resolve"
@@ -26,7 +26,7 @@
       "function": "champion_challenger",
       "method": "POST",
       "path": "/champion-challenger",
-      "line": 224,
+      "line": 228,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /champion-challenger::champion_challenger"
@@ -36,7 +36,7 @@
       "function": "learning_cycle",
       "method": "POST",
       "path": "/cycle",
-      "line": 196,
+      "line": 200,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /cycle::learning_cycle"
@@ -46,7 +46,7 @@
       "function": "dataset",
       "method": "POST",
       "path": "/dataset",
-      "line": 151,
+      "line": 155,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /dataset::dataset"
@@ -56,7 +56,7 @@
       "function": "drift",
       "method": "POST",
       "path": "/drift",
-      "line": 208,
+      "line": 212,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /drift::drift"
@@ -66,7 +66,7 @@
       "function": "experiment_evaluation",
       "method": "POST",
       "path": "/experiments/evaluate",
-      "line": 181,
+      "line": 185,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /experiments/evaluate::experiment_evaluation"
@@ -76,7 +76,7 @@
       "function": "feature_schema",
       "method": "POST",
       "path": "/feature-schema",
-      "line": 146,
+      "line": 150,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-schema::feature_schema"
@@ -86,7 +86,7 @@
       "function": "feature_store_offline_dataset",
       "method": "POST",
       "path": "/feature-store/offline-dataset",
-      "line": 243,
+      "line": 247,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/offline-dataset::feature_store_offline_dataset"
@@ -96,7 +96,7 @@
       "function": "feature_store_online_materialization",
       "method": "POST",
       "path": "/feature-store/online-materialization",
-      "line": 253,
+      "line": 258,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/online-materialization::feature_store_online_materialization"
@@ -106,7 +106,7 @@
       "function": "feature_store_point_in_time",
       "method": "POST",
       "path": "/feature-store/point-in-time",
-      "line": 261,
+      "line": 266,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/point-in-time::feature_store_point_in_time"
@@ -116,7 +116,7 @@
       "function": "feature_store_register",
       "method": "POST",
       "path": "/feature-store/register",
-      "line": 236,
+      "line": 240,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/register::feature_store_register"
@@ -126,7 +126,7 @@
       "function": "model_promotion",
       "method": "POST",
       "path": "/models/promote",
-      "line": 161,
+      "line": 165,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/promote::model_promotion"
@@ -136,7 +136,7 @@
       "function": "model_register",
       "method": "POST",
       "path": "/models/register",
-      "line": 268,
+      "line": 280,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/register::model_register"
@@ -146,7 +146,7 @@
       "function": "model_serving_promote",
       "method": "POST",
       "path": "/models/serving/promote",
-      "line": 283,
+      "line": 301,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/serving/promote::model_serving_promote"
@@ -156,7 +156,7 @@
       "function": "model_serving_rollback",
       "method": "POST",
       "path": "/models/serving/rollback",
-      "line": 290,
+      "line": 308,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/serving/rollback::model_serving_rollback"
@@ -166,7 +166,7 @@
       "function": "online_update",
       "method": "POST",
       "path": "/online-update",
-      "line": 171,
+      "line": 175,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /online-update::online_update"
@@ -176,7 +176,7 @@
       "function": "retraining_plan",
       "method": "POST",
       "path": "/retraining/plan",
-      "line": 217,
+      "line": 221,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/phase10_continuous_learning.py::POST /retraining/plan::retraining_plan"
@@ -186,7 +186,7 @@
       "function": "scenario",
       "method": "POST",
       "path": "/scenario",
-      "line": 191,
+      "line": 195,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/phase10_continuous_learning.py::POST /scenario::scenario"
@@ -1817,7 +1817,7 @@
       "function": "explain_decision_endpoint",
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/explain",
-      "line": 74,
+      "line": 79,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_explain.py::GET /api/v1/decision/{decision_id}/explain::explain_decision_endpoint"
@@ -1887,7 +1887,7 @@
       "function": "list_decision_records",
       "method": "GET",
       "path": "/api/v1/decision/records",
-      "line": 699,
+      "line": 704,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::GET /api/v1/decision/records::list_decision_records"
@@ -1897,7 +1897,7 @@
       "function": "get_decision_lineage",
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/lineage",
-      "line": 659,
+      "line": 661,
       "target_owner": "decision-service",
       "owner_type": "knowledge-store",
       "route_key": "api/routers/decision_record.py::GET /api/v1/decision/{decision_id}/lineage::get_decision_lineage"
@@ -1907,7 +1907,7 @@
       "function": "get_field_lineage",
       "method": "GET",
       "path": "/api/v1/field/{field_id}/lineage",
-      "line": 750,
+      "line": 758,
       "target_owner": "decision-service",
       "owner_type": "knowledge-store",
       "route_key": "api/routers/decision_record.py::GET /api/v1/field/{field_id}/lineage::get_field_lineage"
@@ -1917,7 +1917,7 @@
       "function": "record_decision",
       "method": "POST",
       "path": "/api/v1/decision/record",
-      "line": 372,
+      "line": 374,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::POST /api/v1/decision/record::record_decision"
@@ -1927,7 +1927,7 @@
       "function": "record_outcome",
       "method": "POST",
       "path": "/api/v1/outcome/record",
-      "line": 505,
+      "line": 507,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::POST /api/v1/outcome/record::record_outcome"
@@ -1937,7 +1937,7 @@
       "function": "get_decision_review_queue",
       "method": "GET",
       "path": "/api/v1/decisions/review-queue",
-      "line": 50,
+      "line": 51,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_review.py::GET /api/v1/decisions/review-queue::get_decision_review_queue",
@@ -1948,7 +1948,7 @@
       "function": "get_decision_agronomic_evidence_boundary",
       "method": "GET",
       "path": "/api/v1/decisions/{decision_id}/agronomic-evidence",
-      "line": 82,
+      "line": 79,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_review.py::GET /api/v1/decisions/{decision_id}/agronomic-evidence::get_decision_agronomic_evidence_boundary",
@@ -1981,7 +1981,7 @@
       "function": "review_decision_candidate",
       "method": "POST",
       "path": "/api/v1/decisions/{decision_id}/review",
-      "line": 118,
+      "line": 115,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_review.py::POST /api/v1/decisions/{decision_id}/review::review_decision_candidate",
@@ -2413,7 +2413,7 @@
       "function": "entity_events",
       "method": "GET",
       "path": "/api/v1/events/{entity_type}/{entity_id}",
-      "line": 31,
+      "line": 33,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/events.py::GET /api/v1/events/{entity_type}/{entity_id}::entity_events"
@@ -2433,7 +2433,7 @@
       "function": "evidence_map_endpoint",
       "method": "GET",
       "path": "/api/v1/evidence/map",
-      "line": 87,
+      "line": 121,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/evidence_map.py::GET /api/v1/evidence/map::evidence_map_endpoint"
@@ -2493,7 +2493,7 @@
       "function": "get_economic_state",
       "method": "GET",
       "path": "/api/v1/farm-ledger/economic-state/{season_id}",
-      "line": 942,
+      "line": 947,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/economic-state/{season_id}::get_economic_state"
@@ -2513,7 +2513,7 @@
       "function": "get_inventory_projection",
       "method": "GET",
       "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
-      "line": 848,
+      "line": 853,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/inventory-projection/{season_id}::get_inventory_projection"
@@ -2533,7 +2533,7 @@
       "function": "get_season_profitability",
       "method": "GET",
       "path": "/api/v1/farm-ledger/profitability/{season_id}",
-      "line": 678,
+      "line": 683,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/profitability/{season_id}::get_season_profitability"
@@ -2563,7 +2563,7 @@
       "function": "operation_autowrite_preview",
       "method": "POST",
       "path": "/api/v1/farm-ledger/autowrite-preview",
-      "line": 800,
+      "line": 805,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/autowrite-preview::operation_autowrite_preview"
@@ -4283,7 +4283,7 @@
       "function": "get_learning_summary",
       "method": "GET",
       "path": "/api/v1/learning/summary",
-      "line": 52,
+      "line": 155,
       "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/learning_summary.py::GET /api/v1/learning/summary::get_learning_summary"
@@ -5243,7 +5243,7 @@
       "function": "field_season_state_endpoint",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
-      "line": 605,
+      "line": 606,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/seasons.py::GET /api/v1/fields/{field_id}/seasons/{season_id}/state::field_season_state_endpoint"
@@ -5253,7 +5253,7 @@
       "function": "simulate_season_endpoint",
       "method": "POST",
       "path": "/api/v1/seasons/{season_id}/simulate",
-      "line": 145,
+      "line": 146,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/seasons.py::POST /api/v1/seasons/{season_id}/simulate::simulate_season_endpoint"

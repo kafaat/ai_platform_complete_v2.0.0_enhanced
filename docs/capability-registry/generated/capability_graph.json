@@ -22,13 +22,13 @@
       "id": "DEC-004",
       "domain": "decision",
       "title": "Execution request",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "DEC-005",
       "domain": "decision",
       "title": "Dispatch authorization",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "DEC-006",
@@ -58,7 +58,7 @@
       "id": "DEC-010",
       "domain": "decision",
       "title": "Model lifecycle and activation",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "FM-001",
@@ -106,7 +106,7 @@
       "id": "FM-008",
       "domain": "farm_management",
       "title": "ERP integration",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "GIS-001",
@@ -328,7 +328,7 @@
       "id": "SAT-006",
       "domain": "satellite",
       "title": "Historical imagery timeline",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "SAT-007",
@@ -346,7 +346,7 @@
       "id": "SAT-009",
       "domain": "satellite",
       "title": "COG persistence and tiling",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "SEC-001",
@@ -382,7 +382,7 @@
       "id": "SEC-006",
       "domain": "security",
       "title": "Service token guard",
-      "maturity": 3
+      "maturity": 2
     },
     {
       "id": "SEC-007",

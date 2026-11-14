@@ -488,6 +488,9 @@ async def persist_decision_record(
     vegetation_snapshot_id = getattr(payload, "vegetation_snapshot_id", None)
     feature_manifest_hash = getattr(payload, "feature_manifest_hash", None)
     season_id = getattr(payload, "season_id", None)
+    embedded_season = (payload.decision_value or {}).get("season_id")
+    if season_id is not None and embedded_season is not None and season_id != embedded_season:
+        return {"status": "rejected", "reason": "decision_season_mismatch"}
     conn = await _connect()
     import asyncpg  # lazy like _connect(): only reachable when SoR/asyncpg is available
 
@@ -508,6 +511,8 @@ async def persist_decision_record(
                     field_id=payload.field_id,
                     season_id=season_id,
                     snapshot_id=vegetation_snapshot_id,
+                    manifest_id=ctx_ids[2],
+                    require_executable=payload.decision_type == "irrigation",
                 )
                 if reason:
                     return {"status": "rejected", "reason": reason}
@@ -824,18 +829,25 @@ async def read_outcomes_for_reconcile(
     """يقرأ صفوف مصدرَي النتائج (tenant-scoped) لتغذية المُصالِح النقيّ (P1-13a).
 
     ``SELECT *`` عمداً — المُصالِح متسامح مع الأعمدة، فلا نُثبّت أسماءً قد تختلف بين نسخ المخطّط.
-    ``season_id`` يضيّق ``recommendation_outcomes`` فقط (``outcome_record`` بلا عمود موسم — يُصفّى
-    بالحقل فقط). لا كتابة.
+    تُنسب نتيجة التنفيذ إلى موسم رأس قرارها عند تصفية موسم محدد.
     """
     conn = await _connect()
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             orows = await conn.fetch(
-                "SELECT * FROM outcome_record "
-                "WHERE tenant_id=$1::uuid AND ($2::text IS NULL OR field_id=$2)",
+                """SELECT o.* FROM outcome_record o
+                   LEFT JOIN decision_record d ON d.tenant_id=o.tenant_id AND d.decision_id=o.decision_id
+                   WHERE o.tenant_id=$1::uuid
+                     AND ($2::text IS NULL OR (
+                       COALESCE(o.field_id,d.field_id)=$2 AND (d.field_id IS NULL OR d.field_id=$2)))
+                     AND ($3::text IS NULL OR (
+                       COALESCE(d.season_id, d.decision_value->>'season_id')=$3
+                       AND (d.decision_value->>'season_id' IS NULL OR d.season_id IS NULL
+                            OR d.season_id=d.decision_value->>'season_id')))""",
                 tenant_id,
                 field_id,
+                season_id,
             )
             rrows = await conn.fetch(
                 "SELECT * FROM recommendation_outcomes "
@@ -1267,7 +1279,7 @@ async def list_review_queue(
                 # as operational state. A review/plan from another version never appears bound.
                 rows = await conn.fetch(
                     """
-                    SELECT d.decision_id, d.field_id, d.decision_type, d.region, d.stage,
+                    SELECT d.decision_id, d.field_id, d.season_id, d.decision_type, d.region, d.stage,
                            d.decision_value, d.confidence, d.review_state, d.candidate_lineage_id,
                            d.decision_value_digest, d.created_at, d.updated_at,
                            to_jsonb(d)->>'correlation_id' AS correlation_id,
@@ -1288,7 +1300,9 @@ async def list_review_queue(
                          ORDER BY ep.created_at DESC, ep.execution_plan_id DESC LIMIT 1
                       ) p ON true
                      WHERE d.tenant_id=$1::uuid AND d.field_id=$3
-                       AND d.decision_value->>'season_id'=$4
+                       AND COALESCE(d.season_id, d.decision_value->>'season_id')=$4
+                       AND (d.season_id IS NULL OR d.decision_value->>'season_id' IS NULL
+                            OR d.season_id=d.decision_value->>'season_id')
                        AND d.stage='candidate' AND d.decision_type='irrigation'
                        AND d.review_state IN ('pending_approval','approved')
                      ORDER BY d.created_at DESC, d.decision_id DESC LIMIT $2
@@ -1352,6 +1366,80 @@ async def list_review_queue(
         await conn.close()
 
 
+async def read_learning_inputs(*, tenant_id: str) -> dict[str, Any]:
+    """Read only the inputs consumed by the dashboard, from one tenant snapshot."""
+    conn = await _connect()
+    try:
+        async with conn.transaction(isolation="repeatable_read", readonly=True):
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            decisions = await conn.fetch(
+                "SELECT tenant_id, region, created_at FROM decision_record WHERE tenant_id=$1::uuid",
+                tenant_id,
+            )
+            outcomes = await conn.fetch(
+                """SELECT outcome_id, tenant_id, field_id, decision_id, region, success, created_at
+                   FROM outcome_record WHERE tenant_id=$1::uuid""",
+                tenant_id,
+            )
+            recommendations = await conn.fetch(
+                """SELECT outcome_id, tenant_id, field_id, farm_id, season_id, crop,
+                          recommendation_id, decision_id, predicted_yield_t_ha, actual_yield_t_ha,
+                          accepted, matured_within_lag, issued_at, outcome_recorded_at
+                   FROM recommendation_outcomes WHERE tenant_id=$1::uuid""",
+                tenant_id,
+            )
+            links = await conn.fetch(
+                """SELECT recommendation_id, min(decision_id) AS decision_id
+                   FROM dispatch_decisions WHERE tenant_id=$1::uuid
+                   GROUP BY recommendation_id HAVING count(DISTINCT decision_id)=1""",
+                tenant_id,
+            )
+    finally:
+        await conn.close()
+    return {
+        "decisions": [dict(row) for row in decisions],
+        "outcomes": [dict(row) for row in outcomes],
+        "recommendations": [dict(row) for row in recommendations],
+        "dispatch_links": {row["recommendation_id"]: row["decision_id"] for row in links},
+    }
+
+
+async def field_evidence_counts(tenant_id: str, field_ids: list[str]) -> dict:
+    """Return one count set for each requested field, including fields without evidence."""
+    conn = await _connect()
+    try:
+        async with conn.transaction(readonly=True):
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            rows = await conn.fetch(
+                """WITH targets AS (SELECT DISTINCT unnest($2::text[]) AS field_id),
+                   decisions AS (
+                     SELECT field_id, count(*) AS decisions FROM decision_record
+                     WHERE tenant_id = $1::uuid AND field_id = ANY($2) GROUP BY field_id
+                   ), outcomes AS (
+                     SELECT field_id, count(*) AS outcomes,
+                            count(*) FILTER (WHERE success IS TRUE) AS successes,
+                            max(created_at) AS last_outcome_at
+                     FROM outcome_record
+                     WHERE tenant_id = $1::uuid AND field_id = ANY($2)
+                       AND CASE WHEN metrics->>'n_evaluated' ~ '^[0-9]+([.][0-9]+)?$'
+                                THEN (metrics->>'n_evaluated')::numeric ELSE 0 END > 0
+                     GROUP BY field_id
+                   )
+                   SELECT t.field_id, coalesce(d.decisions, 0) AS decisions,
+                          coalesce(o.outcomes, 0) AS outcomes, coalesce(o.successes, 0) AS successes,
+                          o.last_outcome_at
+                   FROM targets t LEFT JOIN decisions d USING(field_id)
+                                  LEFT JOIN outcomes o USING(field_id)""",
+                tenant_id,
+                field_ids,
+            )
+            return {
+                row["field_id"]: {k: v for k, v in row.items() if k != "field_id"} for row in rows
+            }
+    finally:
+        await conn.close()
+
+
 async def list_decision_records(
     *, tenant_id: str, field_id: str | None, decision_type: str | None, limit: int
 ) -> dict[str, Any]:
@@ -1378,6 +1466,71 @@ async def list_decision_records(
             )
             decisions = [dict(row) for row in rows]
             return {"decisions": decisions, "count": len(decisions)}
+    finally:
+        await conn.close()
+
+
+async def read_decision_lineage(
+    *, tenant_id: str, limit: int, decision_id: str | None = None, field_id: str | None = None
+) -> dict[str, Any]:
+    """Read decision heads and their outcomes from one tenant-scoped database snapshot."""
+    conn = await _connect()
+    try:
+        async with conn.transaction(isolation="repeatable_read", readonly=True):
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            heads = await conn.fetch(
+                """SELECT decision_id, field_id, decision_type, region, stage, decision_value,
+                          confidence, created_by, created_at, correlation_id
+                   FROM decision_record WHERE tenant_id=$1::uuid
+                     AND ($2::text IS NULL OR decision_id=$2)
+                     AND ($3::text IS NULL OR field_id=$3)
+                   ORDER BY created_at DESC, decision_id LIMIT $4""",
+                tenant_id,
+                decision_id,
+                field_id,
+                limit,
+            )
+            rows = await conn.fetch(
+                """SELECT o.outcome_id, o.decision_id, o.field_id, o.region, 'outcome' AS stage,
+                          o.planned, o.actual, o.metrics, o.success, o.created_by, o.created_at
+                   FROM outcome_record o WHERE o.tenant_id=$1::uuid AND (
+                     ($2::text IS NOT NULL AND o.decision_id=$2) OR
+                     ($3::text IS NOT NULL AND (o.decision_id=ANY($4::text[]) OR
+                       (o.field_id=$3 AND NOT EXISTS (SELECT 1 FROM decision_record d
+                        WHERE d.tenant_id=o.tenant_id AND d.decision_id=o.decision_id)))))
+                   ORDER BY o.created_at, o.outcome_id LIMIT $5""",
+                tenant_id,
+                decision_id,
+                field_id,
+                [h["decision_id"] for h in heads],
+                limit if decision_id is not None else None,
+            )
+            decisions = [
+                {**dict(r), "decision_value": _jsonish(r["decision_value"])} for r in heads
+            ]
+            outcomes = [
+                {**dict(r), **{k: _jsonish(r[k]) for k in ("actual", "planned", "metrics")}}
+                for r in rows
+            ]
+            if decision_id is not None:
+                return {
+                    "decision_id": decision_id,
+                    "decision": decisions[0] if decisions else None,
+                    "outcomes": outcomes,
+                    "outcome_count": len(outcomes),
+                    "stages_present": (["decision"] if decisions else [])
+                    + (["outcome"] if outcomes else []),
+                }
+            grouped = {r["decision_id"]: [] for r in decisions}
+            orphans = []
+            for outcome in outcomes:
+                grouped.get(outcome["decision_id"], orphans).append(outcome)
+            return {
+                "field_id": field_id,
+                "decisions": [{**r, "outcomes": grouped[r["decision_id"]]} for r in decisions],
+                "count": len(decisions),
+                "orphan_outcomes": orphans,
+            }
     finally:
         await conn.close()
 
@@ -2938,13 +3091,8 @@ def _authoritative_execution_outcome(row: Any, *, replay: bool) -> dict[str, Any
     }
 
 
-def _equipment_receipt_evidence_gap(receipt_payload: Any) -> str | None:
-    """Pure check: may an equipment receipt back ``verified_success``? ``None`` or a reason.
-
-    The actuator records its mode and publish result in the receipt payload; a broker publish is
-    not a device acknowledgement, and a simulated publish is not even a publish. Missing evidence
-    fails closed.
-    """
+def _equipment_receipt_evidence_gap(receipt_payload: Any) -> str:
+    """Explain why the adapter's delivery receipt cannot attest physical execution."""
     receipt = _jsonish(receipt_payload)
     if not isinstance(receipt, dict):
         return "receipt_lacks_actuator_evidence"
@@ -2960,7 +3108,9 @@ def _equipment_receipt_evidence_gap(receipt_payload: Any) -> str | None:
     )
     if receipt.get("publish_only") not in (None, False) or not device_acked:
         return "receipt_lacks_device_ack"
-    return None
+    # The signed device ACK belongs to actuator-service. No independent acknowledgment
+    # or field measurement bound to this execution request is available to this verifier.
+    return "independent_equipment_evidence_unavailable"
 
 
 async def verify_execution_outcome(
@@ -2978,10 +3128,8 @@ async def verify_execution_outcome(
                 tenant_id,
                 payload.idempotency_key,
             )
-            if prior:
-                if prior["request_hash"] != request_hash:
-                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
-                return _authoritative_execution_outcome(prior, replay=True)
+            if prior and prior["request_hash"] != request_hash:
+                return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
             source = await conn.fetchrow(
                 """SELECT r.execution_request_id,r.execution_plan_id,r.dispatch_authorization_id,
                           r.decision_id,r.status,r.receipt_id,r.receipt_status,
@@ -3028,9 +3176,12 @@ async def verify_execution_outcome(
                 payload.verification_state == "verified_success"
                 and source.get("target_type") != "task"
             ):
-                evidence_gap = _equipment_receipt_evidence_gap(source.get("receipt_payload"))
-                if evidence_gap:
-                    return {"status": "conflict", "reason": evidence_gap}
+                return {
+                    "status": "conflict",
+                    "reason": _equipment_receipt_evidence_gap(source.get("receipt_payload")),
+                }
+            if prior:
+                return _authoritative_execution_outcome(prior, replay=True)
             outcome_id = (
                 "out_"
                 + hashlib.sha256(
@@ -5549,6 +5700,27 @@ async def record_reconcile_evidence(
 # --- AC-1 agronomic context: composer persistence + decision binding validation ---------------
 
 
+def _soil_identity_violations(
+    soil: Any, *, tenant_id: str, field_id: str, cutoff: datetime
+) -> list[dict]:
+    """Check the supplied canonical field profile, including one stored before migration 038."""
+    if not isinstance(soil, dict) or not ("profile_id" in soil or "profile_hash" in soil):
+        return []
+    from shared.contracts.soil import validate_soil_profile_snapshot
+
+    profile, issues = validate_soil_profile_snapshot(soil)
+    if profile is None:
+        return [{"code": "invalid_canonical_soil_profile", "issues": issues}]
+    violations = []
+    if profile.field_id != field_id:
+        violations.append({"code": "soil_field_mismatch"})
+    if profile.tenant_id and str(profile.tenant_id) != str(tenant_id):
+        violations.append({"code": "soil_tenant_mismatch"})
+    if profile.data_available_at > cutoff:
+        violations.append({"code": "soil_profile_after_cutoff"})
+    return violations
+
+
 async def compose_agronomic_context(
     *, tenant_id: str, created_by: str, payload: Any
 ) -> dict[str, Any]:
@@ -5560,6 +5732,14 @@ async def compose_agronomic_context(
     from agronomic_context.point_in_time import validate_composition
 
     violations = validate_composition(payload)
+    violations.extend(
+        _soil_identity_violations(
+            payload.context.get("soil"),
+            tenant_id=tenant_id,
+            field_id=payload.field_id,
+            cutoff=payload.decision_cutoff_time,
+        )
+    )
     if violations:
         return {"status": "rejected", "reason": "point_in_time_policy", "violations": violations}
 
@@ -5586,33 +5766,77 @@ async def compose_agronomic_context(
     manifest_hash = _stable_hash({"field_id": payload.field_id, "features": feats})
     req_hash = _stable_hash({"ctx": ctx_hash, "hist": hist_hash, "manifest": manifest_hash})
 
-    sid = "agctx_" + ctx_hash[:20]
-    hid = "fhist_" + hist_hash[:20]
-    mid = "fmanif_" + manifest_hash[:20]
+    # New row ids include tenant scope because the primary keys are globally unique.
+    sid = "agctx_" + _stable_hash([tenant_id, ctx_hash])[:20]
+    hid = "fhist_" + _stable_hash([tenant_id, hist_hash])[:20]
+    mid = (
+        "fmanif_"
+        + _stable_hash(
+            [
+                tenant_id,
+                manifest_hash,
+                payload.as_of_time.isoformat(),
+                payload.decision_cutoff_time.isoformat(),
+            ]
+        )[:20]
+    )
     conn = await _connect()
     try:
         async with conn.transaction():
-            # Bind the tenant before touching RLS-protected evidence tables (AC-6.1).
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            # Component rows may be shared by requests with different idempotency keys.
+            await conn.execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended($1,0))",
+                f"agronomic-compose:{tenant_id}:{payload.field_id}",
+            )
+            await conn.execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended($1,0))",
+                f"agronomic-key:{tenant_id}:{payload.idempotency_key}",
+            )
             existing = await conn.fetchrow(
-                "SELECT snapshot_id, request_hash FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                """SELECT c.snapshot_id,c.historical_snapshot_id,c.feature_manifest_id,c.request_hash,
+                          m.decision_cutoff_time
+                   FROM decision_context_compositions c JOIN decision_feature_manifests m
+                     ON m.tenant_id=c.tenant_id AND m.feature_manifest_id=c.feature_manifest_id
+                   WHERE c.tenant_id=$1::uuid AND c.idempotency_key=$2""",
                 tenant_id,
                 payload.idempotency_key,
             )
+            if existing is None:
+                # Before migration 038, original keys were saved on the context row,
+                # with deterministic historic ids. Only replay a provable old write.
+                existing = await conn.fetchrow(
+                    """SELECT c.snapshot_id,c.request_hash,h.historical_snapshot_id,
+                              m.feature_manifest_id,m.decision_cutoff_time
+                       FROM decision_agronomic_context_snapshots c
+                       LEFT JOIN decision_field_historical_context_snapshots h
+                         ON h.tenant_id=c.tenant_id AND h.historical_snapshot_id=$3
+                       LEFT JOIN decision_feature_manifests m
+                         ON m.tenant_id=c.tenant_id AND m.feature_manifest_id=$4
+                       WHERE c.tenant_id=$1::uuid AND c.idempotency_key=$2""",
+                    tenant_id,
+                    payload.idempotency_key,
+                    "fhist_" + hist_hash[:20],
+                    "fmanif_" + manifest_hash[:20],
+                )
             if existing:
-                if existing["request_hash"] == req_hash:
-                    return {
-                        "status": "ok",
-                        "replay": True,
-                        "authoritative": True,
-                        "persisted": True,
-                        "snapshot_id": existing["snapshot_id"],
-                        "historical_snapshot_id": hid,
-                        "feature_manifest_id": mid,
-                        "feature_manifest_hash": manifest_hash,
-                        "content_hash": ctx_hash,
-                    }
-                return {"status": "conflict", "reason": "context_idempotency_conflict"}
+                if (
+                    existing["request_hash"] != req_hash
+                    or existing["decision_cutoff_time"] != payload.decision_cutoff_time
+                    or not existing["historical_snapshot_id"]
+                ):
+                    return {"status": "conflict", "reason": "context_idempotency_conflict"}
+                return {
+                    "status": "ok",
+                    "replay": True,
+                    "authoritative": True,
+                    "persisted": True,
+                    "snapshot_id": existing["snapshot_id"],
+                    "historical_snapshot_id": existing["historical_snapshot_id"],
+                    "feature_manifest_id": existing["feature_manifest_id"],
+                    "feature_manifest_hash": manifest_hash,
+                    "content_hash": ctx_hash,
+                }
             reused = await conn.fetchval(
                 "SELECT snapshot_id FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND content_hash=$2",
                 tenant_id,
@@ -5689,6 +5913,17 @@ async def compose_agronomic_context(
                         f.spatial_scope,
                         f.temporal_scope,
                     )
+            await conn.execute(
+                """INSERT INTO decision_context_compositions
+                   (tenant_id,idempotency_key,snapshot_id,historical_snapshot_id,feature_manifest_id,request_hash)
+                   VALUES($1::uuid,$2,$3,$4,$5,$6)""",
+                tenant_id,
+                payload.idempotency_key,
+                sid,
+                hid,
+                mid,
+                req_hash,
+            )
             await emit_outbox_event(
                 conn,
                 tenant_id=tenant_id,
@@ -5896,7 +6131,7 @@ async def _validate_decision_context(
     """Return a typed rejection reason, or None when the referenced context is valid."""
     season_id = getattr(payload, "season_id", None)
     snap = await conn.fetchrow(
-        "SELECT field_id, season_id FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND snapshot_id=$2",
+        "SELECT field_id, season_id, content_hash, request_hash, context FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND snapshot_id=$2",
         tenant_id,
         payload.agronomic_context_snapshot_id,
     )
@@ -5907,7 +6142,7 @@ async def _validate_decision_context(
     if season_id and snap["season_id"] and season_id != snap["season_id"]:
         return "context_season_mismatch"
     hist = await conn.fetchrow(
-        "SELECT field_id, season_id FROM decision_field_historical_context_snapshots WHERE tenant_id=$1::uuid AND historical_snapshot_id=$2",
+        "SELECT field_id, season_id, content_hash, request_hash FROM decision_field_historical_context_snapshots WHERE tenant_id=$1::uuid AND historical_snapshot_id=$2",
         tenant_id,
         payload.field_historical_context_snapshot_id,
     )
@@ -5918,26 +6153,77 @@ async def _validate_decision_context(
     if season_id and hist["season_id"] and season_id != hist["season_id"]:
         return "history_season_mismatch"
     manif = await conn.fetchrow(
-        "SELECT content_hash FROM decision_feature_manifests WHERE tenant_id=$1::uuid AND feature_manifest_id=$2",
+        "SELECT field_id, content_hash, request_hash, decision_cutoff_time FROM decision_feature_manifests WHERE tenant_id=$1::uuid AND feature_manifest_id=$2",
         tenant_id,
         payload.feature_manifest_id,
     )
     if not manif:
         return "unknown_feature_manifest"
+    if manif["field_id"] != snap["field_id"]:
+        return "manifest_field_mismatch"
+    context = _jsonish(snap["context"])
+    soil_issues = _soil_identity_violations(
+        context.get("soil"),
+        tenant_id=tenant_id,
+        field_id=snap["field_id"],
+        cutoff=manif["decision_cutoff_time"],
+    )
+    if soil_issues:
+        return soil_issues[0]["code"]
     claimed_hash = getattr(payload, "feature_manifest_hash", None)
     if claimed_hash and claimed_hash.lower() != str(manif["content_hash"]).lower():
         return "feature_manifest_hash_mismatch"
+    trio_hash = _stable_hash(
+        {
+            "ctx": snap["content_hash"],
+            "hist": hist["content_hash"],
+            "manifest": manif["content_hash"],
+        }
+    )
+    # Pre-038 immutable component rows remember the whole request that first created
+    # them. That digest is sufficient evidence of this exact trio. Where new submissions
+    # only reused old components, the explicit composition receipt carries the proof.
+    legacy_proof = (
+        payload.agronomic_context_snapshot_id == "agctx_" + snap["content_hash"][:20]
+        and payload.field_historical_context_snapshot_id == "fhist_" + hist["content_hash"][:20]
+        and payload.feature_manifest_id == "fmanif_" + manif["content_hash"][:20]
+        and trio_hash in (snap["request_hash"], hist["request_hash"], manif["request_hash"])
+    )
+    if not legacy_proof:
+        if not await conn.fetchval(
+            """SELECT EXISTS (SELECT 1 FROM decision_context_compositions WHERE tenant_id=$1::uuid
+               AND snapshot_id=$2 AND historical_snapshot_id=$3 AND feature_manifest_id=$4
+               AND request_hash=$5)""",
+            tenant_id,
+            payload.agronomic_context_snapshot_id,
+            payload.field_historical_context_snapshot_id,
+            payload.feature_manifest_id,
+            trio_hash,
+        ):
+            return "context_composition_mismatch"
     return None
 
 
 async def _validate_vegetation_reference(
-    conn: Any, *, tenant_id: str, field_id: str | None, season_id: str | None, snapshot_id: str
+    conn: Any,
+    *,
+    tenant_id: str,
+    field_id: str | None,
+    season_id: str | None,
+    snapshot_id: str,
+    manifest_id: str | None,
+    require_executable: bool,
 ) -> str | None:
     """Typed check for the optional immutable vegetation-evidence reference (AC-6)."""
     row = await conn.fetchrow(
-        "SELECT field_id, season_id FROM decision_vegetation_snapshots WHERE tenant_id=$1::uuid AND snapshot_id=$2",
+        """SELECT v.field_id, v.season_id, v.quality_gate, v.acquisition_at, v.data_available_at,
+                  LEAST(now(), m.decision_cutoff_time) AS cutoff
+           FROM decision_vegetation_snapshots v
+           LEFT JOIN decision_feature_manifests m ON m.tenant_id=v.tenant_id AND m.feature_manifest_id=$3
+           WHERE v.tenant_id=$1::uuid AND v.snapshot_id=$2""",
         tenant_id,
         snapshot_id,
+        manifest_id,
     )
     if not row:
         return "unknown_vegetation_snapshot"
@@ -5945,6 +6231,15 @@ async def _validate_vegetation_reference(
         return "vegetation_field_mismatch"
     if season_id and row["season_id"] and season_id != row["season_id"]:
         return "vegetation_season_mismatch"
+    if row["acquisition_at"] > row["data_available_at"] or row["data_available_at"] > row["cutoff"]:
+        return "vegetation_unavailable_at_cutoff"
+    gate = _jsonish(row["quality_gate"])
+    if require_executable and (
+        not isinstance(gate, dict)
+        or gate.get("executable") is not True
+        or gate.get("passed") is False
+    ):
+        return "vegetation_not_executable"
     return None
 
 

@@ -317,6 +317,7 @@ async def field_irrigation_recommendation(
         texture_sampled_on=texture_sampled_on,
         texture_age_days=texture_age_days,
         root_depth_supplied=req.root_depth_m is not None and req.root_depth_m > 0,
+        evidence_ref=soil_row["evidence_ref"] if soil_row else None,
     )
     taw_source = soil_prov["taw"]["source"]
     if canonical is not None:

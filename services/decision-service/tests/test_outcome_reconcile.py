@@ -71,3 +71,22 @@ def test_by_kind_totals_match():
     k = out["by_kind"]
     assert k["success"] + k["failure"] + k["unknown"] == out["sample_count"]
     assert k["success"] == 2 and k["failure"] == 1 and k["unknown"] == 1
+
+
+def test_yield_projection_needs_settled_finite_measurements():
+    measured = {
+        "outcome": "success",
+        "actual_yield_t_ha": 5,
+        "predicted_yield_t_ha": 4,
+        "accepted": True,
+        "matured_within_lag": True,
+    }
+    cases = [
+        measured,
+        {**measured, "accepted": False},
+        {**measured, "matured_within_lag": False},
+        {**measured, "actual_yield_t_ha": float("nan")},
+        {**measured, "predicted_yield_t_ha": None},
+    ]
+    result = reconcile_outcomes([], cases)
+    assert result["by_kind"] == {"success": 1, "failure": 0, "unknown": 4}

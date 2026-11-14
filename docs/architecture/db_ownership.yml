@@ -1832,6 +1832,11 @@ tables:
     writers: [decision-service]
     readers: []
     source: "services/decision-service/migrations/018_ac1_agronomic_context.sql"
+  decision_context_compositions:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/038_context_compositions.sql"
   decision_consumer_heartbeats:
     owner: decision-service
     writers: [decision-service]

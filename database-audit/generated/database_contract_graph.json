@@ -2715,6 +2715,7 @@
     },
     {
       "code_readers": [
+        "services/decision-service/persistence.py",
         "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
         "services/sahool-platform/api/routers/decision_impact.py",
@@ -3291,7 +3292,7 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
@@ -4085,7 +4086,6 @@
         "services/sahool-platform/api/imagery_automation.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/routers/field_completeness.py",
-        "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py"
       ],
       "code_writers": [
@@ -5760,6 +5760,7 @@
         "services/sahool-platform/api/routers/execution_feedback.py",
         "services/sahool-platform/api/routers/learning_summary.py",
         "services/sahool-platform/api/routers/seasons.py",
+        "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py"
       ],
       "code_writers": [

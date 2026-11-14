@@ -284,6 +284,22 @@ def _device_dispatch_gate(
     return True, "ok"
 
 
+def _device_dispatch_verdict(
+    record: dict | None,
+    *,
+    tenant_id: str,
+    field_id: str | None,
+    now: datetime,
+    stale_seconds: float,
+) -> tuple[bool, str, str | None]:
+    """Pure: the device gate plus the device's registered field (stripped; blank → None)."""
+    ok, reason = _device_dispatch_gate(
+        record, tenant_id=tenant_id, field_id=field_id, now=now, stale_seconds=stale_seconds
+    )
+    device_field = (str(record.get("field_id") or "").strip() or None) if record else None
+    return ok, reason, device_field
+
+
 async def _validate_dispatch_device(
     tenant_id: str, device_id: str, field_id: str | None
 ) -> tuple[bool, str, str | None]:
@@ -305,15 +321,13 @@ async def _validate_dispatch_device(
                        FROM iot_devices WHERE device_id=$1""",
                     device_id,
                 )
-        ok, reason = _device_dispatch_gate(
+        return _device_dispatch_verdict(
             dict(row) if row else None,
             tenant_id=tenant_id,
             field_id=field_id,
             now=datetime.now(UTC),
             stale_seconds=ACTUATOR_DEVICE_STALE_SECONDS,
         )
-        device_field = (str(row["field_id"] or "").strip() or None) if row else None
-        return ok, reason, device_field
     except Exception as exc:  # noqa: BLE001
         logger.error("dispatch device validation failed for %s: %s", device_id, exc)
         return False, "device_registry_error", None
