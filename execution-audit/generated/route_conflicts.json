@@ -437,7 +437,7 @@
         },
         {
           "function": "healthz",
-          "line": 205,
+          "line": 227,
           "method": "GET",
           "module": "services/scout-ingest-service/main.py",
           "path": "/healthz",
@@ -811,7 +811,7 @@
         },
         {
           "function": "readyz",
-          "line": 210,
+          "line": 232,
           "method": "GET",
           "module": "services/scout-ingest-service/main.py",
           "path": "/readyz",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1122,
-  "route_inventory_sha256": "a60d578b989d2f05fea921b26f2087d74c9eda8f47ebe944a5c81029dd8db7c2",
+  "route_count": 1143,
+  "route_inventory_sha256": "b1938600dca1f1f22ed376685cda65066c05e91b77c2f91d35d23210eccc6873",
   "runtime_verified": false,
   "schema_version": 1
 }

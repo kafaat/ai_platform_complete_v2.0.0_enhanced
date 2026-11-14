@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7297,
+    "files_scanned": 7327,
     "files_by_kind": {
-      "backend": 1275,
-      "database": 308,
+      "backend": 1284,
+      "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2175,
-      "tests": 2490,
-      "web": 545
+      "tests": 2494,
+      "web": 547
     },
-    "unmapped_artifacts": 3464,
+    "unmapped_artifacts": 3489,
     "ambiguous_artifacts": 239,
     "files_by_reading": {
-      "python_functional": 3951,
-      "raw": 3346
+      "python_functional": 3963,
+      "raw": 3364
     },
-    "test_dependency_files": 1890,
-    "test_dependency_edges": 4839,
+    "test_dependency_files": 1894,
+    "test_dependency_edges": 4860,
     "test_dependency_bounded_files": 1111,
-    "test_dependency_unresolved_relations": 472
+    "test_dependency_unresolved_relations": 479
   },
   "capabilities": [
     {
@@ -6630,6 +6630,14 @@
           ]
         },
         {
+          "path": "migrations/v262_scout_photo_season_link_events.sql",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "migrations/v32_seasons.sql",
           "score": 14,
           "signals": [
@@ -6715,6 +6723,18 @@
         },
         {
           "value": "prescriptions @ migrations/v193_prescriptions_season_context_expand.sql:9",
+          "score": 14
+        },
+        {
+          "value": "scout_photo_season_link_events @ migrations/v262_scout_photo_season_link_events.sql:20",
+          "score": 14
+        },
+        {
+          "value": "scout_photo_season_link_events @ migrations/v262_scout_photo_season_link_events.sql:58",
+          "score": 14
+        },
+        {
+          "value": "scout_photo_season_link_events @ migrations/v262_scout_photo_season_link_events.sql:59",
           "score": 14
         },
         {
@@ -7658,6 +7678,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_scout_photo_season_link_contract.py",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "tests_v9/test_season_api_static.py",
           "score": 14,
           "signals": [
@@ -7984,11 +8012,11 @@
       "evidence_counts": {
         "backend": 32,
         "routes": 82,
-        "database": 80,
+        "database": 84,
         "events": 43,
         "web": 18,
         "mobile": 15,
-        "tests": 54,
+        "tests": 55,
         "governance": 0,
         "other_evidence": 15
       },
@@ -14378,6 +14406,14 @@
           ]
         },
         {
+          "path": "services/scout-ingest-service/grants_admin_api.py",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "services/scout-ingest-service/media_api.py",
           "score": 8,
           "signals": [
@@ -14396,11 +14432,47 @@
           "score": 16
         },
         {
-          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:178",
+          "value": "/internal/scouting-media/admin/credential-events @ services/scout-ingest-service/grants_admin_api.py:585",
           "score": 8
         },
         {
-          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:235",
+          "value": "/internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:348",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:516",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke @ services/scout-ingest-service/grants_admin_api.py:439",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events @ services/scout-ingest-service/grants_admin_api.py:754",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/admin/retention-policy-events @ services/scout-ingest-service/grants_admin_api.py:683",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:237",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:299",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/context @ services/scout-ingest-service/media_api.py:673",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:529",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:611",
           "score": 8
         }
       ],
@@ -14493,11 +14565,11 @@
           "score": 8
         },
         {
-          "value": "scout_photo_evidence @ services/scout-ingest-service/tests/test_media_live.py:127",
+          "value": "scout_photo_evidence @ services/scout-ingest-service/tests/test_media_live.py:209",
           "score": 8
         },
         {
-          "value": "scout_photo_evidence @ services/scout-ingest-service/tests/test_media_live.py:129",
+          "value": "scout_photo_evidence @ services/scout-ingest-service/tests/test_media_live.py:211",
           "score": 8
         }
       ],
@@ -14911,8 +14983,8 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 4,
-        "routes": 4,
+        "backend": 5,
+        "routes": 13,
         "database": 19,
         "events": 8,
         "web": 6,
@@ -14986,23 +15058,23 @@
           "score": 28
         },
         {
-          "value": "/healthz @ services/scout-ingest-service/main.py:204",
+          "value": "/healthz @ services/scout-ingest-service/main.py:226",
           "score": 10
         },
         {
-          "value": "/internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:374",
+          "value": "/internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:396",
           "score": 10
         },
         {
-          "value": "/internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:365",
+          "value": "/internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:387",
           "score": 10
         },
         {
-          "value": "/internal/scouting/external-observations @ services/scout-ingest-service/main.py:246",
+          "value": "/internal/scouting/external-observations @ services/scout-ingest-service/main.py:268",
           "score": 10
         },
         {
-          "value": "/readyz @ services/scout-ingest-service/main.py:209",
+          "value": "/readyz @ services/scout-ingest-service/main.py:231",
           "score": 10
         }
       ],
@@ -25300,6 +25372,14 @@
           ]
         },
         {
+          "path": "services/scout-ingest-service/tests/test_media_live.py",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
           "path": "tests_v9/test_detection_provenance_contract.py",
           "score": 10,
           "signals": [
@@ -25386,14 +25466,6 @@
           "signals": [
             "content:rls",
             "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "services/scout-ingest-service/tests/test_media_live.py",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:row level security"
           ]
         },
         {
@@ -26271,7 +26343,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 893
+        "database": 894
       },
       "evidence_counts": {
         "backend": 12,
@@ -28337,19 +28409,19 @@
       "routes": [],
       "database": [
         {
-          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:177",
+          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:183",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:172",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:178",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:173",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:179",
           "score": 8
         },
         {
-          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:291",
+          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:297",
           "score": 8
         }
       ],
@@ -28359,7 +28431,7 @@
           "score": 11
         },
         {
-          "value": "sahool-postgres.railway.internal @ tests_v9/test_apply_in_compose_fail_closed.py:65",
+          "value": "sahool-postgres.railway.internal @ tests_v9/test_apply_in_compose_fail_closed.py:71",
           "score": 8
         }
       ],
@@ -29316,6 +29388,14 @@
           ]
         },
         {
+          "path": "services/scout-ingest-service/tissue_samples_api.py",
+          "score": 9,
+          "signals": [
+            "content:lab result",
+            "content:laboratory"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/soil_evidence_bridge.py",
           "score": 8,
           "signals": [
@@ -29324,7 +29404,20 @@
           ]
         }
       ],
-      "routes": [],
+      "routes": [
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:179",
+          "score": 9
+        },
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:394",
+          "score": 9
+        },
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples/{sample_id}/custody-events @ services/scout-ingest-service/tissue_samples_api.py:285",
+          "score": 9
+        }
+      ],
       "database": [
         {
           "value": "lab_sample_custody_events @ migrations/v156_durable_soil_lab_workflow.sql:29",
@@ -29424,8 +29517,8 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 2,
-        "routes": 0,
+        "backend": 3,
+        "routes": 3,
         "database": 15,
         "events": 0,
         "web": 0,
@@ -29434,7 +29527,7 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "coverage_dimensions": 3,
+      "coverage_dimensions": 4,
       "mapped": true
     },
     {
@@ -33642,6 +33735,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/sections/ScoutPhotoGrantAdminPanel.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/SettingsPage.teamRoles.test.tsx",
       "kind": "web"
     },
@@ -33858,6 +33955,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/services/scoutPhotoGrants.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/services/scoutPhotoGrants.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/services/websocket.test.ts",
       "kind": "tests"
     },
@@ -34039,6 +34144,46 @@
     },
     {
       "path": "migrations/v258_lab_water_revisions.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v263_scout_photo_field_access_grants.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v264_scout_photo_grant_admin_audit.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v265_scout_photo_grant_audit_enforcement.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v266_scout_photo_detection_link_events.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v267_scout_photo_lab_sample_links.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v268_scout_photo_human_review.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v269_scout_plant_tissue_chain.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v270_scout_specialist_credential_attestations.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v271_scout_treatment_review_events.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v272_scout_photo_retention_governance.sql",
       "kind": "database"
     },
     {
@@ -35660,6 +35805,18 @@
     {
       "path": "scripts/remote_sensing/test_rs10_technical_certification.py",
       "kind": "tests"
+    },
+    {
+      "path": "scripts/staging/scout_photo_stage11_catalog_gate.sql",
+      "kind": "database"
+    },
+    {
+      "path": "scripts/staging/scout_photo_stage8_catalog_gate.sql",
+      "kind": "database"
+    },
+    {
+      "path": "scripts/staging/scout_photo_stage9_catalog_gate.sql",
+      "kind": "database"
     },
     {
       "path": "services/actuator-service/command_delivery.py",
@@ -41110,12 +41267,44 @@
       "kind": "backend"
     },
     {
+      "path": "services/scout-ingest-service/credential_status.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/scout-ingest-service/detection_link_api.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/scout-ingest-service/evidence_chain.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/scout-ingest-service/evidence_retention_api.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/scout-ingest-service/human_review_api.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/scout-ingest-service/lab_link_api.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/scout-ingest-service/projection_worker.py",
       "kind": "backend"
     },
     {
+      "path": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/scout-ingest-service/tests/test_projection_live.py",
       "kind": "tests"
+    },
+    {
+      "path": "services/scout-ingest-service/treatment_review_api.py",
+      "kind": "backend"
     },
     {
       "path": "services/soil-service/__init__.py",
@@ -44575,6 +44764,10 @@
     },
     {
       "path": "tests_v9/test_scout_ingest_service_ownership.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_scout_photo_ledgers_contract.py",
       "kind": "tests"
     },
     {
@@ -50434,7 +50627,7 @@
       "candidates": [
         {
           "capability_id": "SEC-001",
-          "score": 9,
+          "score": 10,
           "signals": [
             "content:rls",
             "content:row level security"
@@ -67295,6 +67488,56 @@
       "unresolved": []
     },
     {
+      "test": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "subprocess"
+      ],
+      "edges": [
+        {
+          "source": "services/scout-ingest-service/detection_link_api.py",
+          "kind": "import",
+          "line": 156
+        },
+        {
+          "source": "services/scout-ingest-service/evidence_retention_api.py",
+          "kind": "import",
+          "line": 157
+        },
+        {
+          "source": "services/scout-ingest-service/grants_admin_api.py",
+          "kind": "import",
+          "line": 158
+        },
+        {
+          "source": "services/scout-ingest-service/human_review_api.py",
+          "kind": "import",
+          "line": 159
+        },
+        {
+          "source": "services/scout-ingest-service/lab_link_api.py",
+          "kind": "import",
+          "line": 160
+        },
+        {
+          "source": "services/scout-ingest-service/tests/test_media_live.py",
+          "kind": "import",
+          "line": 32
+        },
+        {
+          "source": "services/scout-ingest-service/tissue_samples_api.py",
+          "kind": "import",
+          "line": 161
+        },
+        {
+          "source": "services/scout-ingest-service/treatment_review_api.py",
+          "kind": "import",
+          "line": 162
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/scout-ingest-service/tests/test_ingest_live.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -67319,12 +67562,12 @@
         {
           "source": "services/scout-ingest-service/media_api.py",
           "kind": "import",
-          "line": 152
+          "line": 237
         },
         {
           "source": "services/scout-ingest-service/season_api.py",
           "kind": "import",
-          "line": 153
+          "line": 238
         }
       ],
       "unresolved": []
@@ -72543,7 +72786,7 @@
         {
           "source": "tests_v9/test_apply_in_compose_live_pg.py",
           "kind": "source_read",
-          "line": 392
+          "line": 398
         }
       ],
       "unresolved": []
@@ -82683,11 +82926,6 @@
           "line": 217
         },
         {
-          "source": "scripts/ci/railway_deploy_impact.py",
-          "kind": "source_read",
-          "line": 592
-        },
-        {
           "source": "scripts/ci/verify_all_generated.py",
           "kind": "source_read",
           "line": 59
@@ -84590,7 +84828,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 309
+          "line": 314
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
@@ -89434,6 +89672,138 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_scout_photo_ledgers_contract.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "subprocess"
+      ],
+      "edges": [
+        {
+          "source": "services/scout-ingest-service/credential_status.py",
+          "kind": "import",
+          "line": 348
+        },
+        {
+          "source": "services/scout-ingest-service/detection_link_api.py",
+          "kind": "import",
+          "line": 151
+        },
+        {
+          "source": "services/scout-ingest-service/evidence_chain.py",
+          "kind": "import",
+          "line": 57
+        },
+        {
+          "source": "services/scout-ingest-service/evidence_retention_api.py",
+          "kind": "import",
+          "line": 375
+        },
+        {
+          "source": "services/scout-ingest-service/grants_admin_api.py",
+          "kind": "import",
+          "line": 396
+        },
+        {
+          "source": "services/scout-ingest-service/human_review_api.py",
+          "kind": "import",
+          "line": 234
+        },
+        {
+          "source": "services/scout-ingest-service/lab_link_api.py",
+          "kind": "import",
+          "line": 207
+        },
+        {
+          "source": "services/scout-ingest-service/media_api.py",
+          "kind": "import",
+          "line": 530
+        },
+        {
+          "source": "services/scout-ingest-service/media_api.py",
+          "kind": "source_read",
+          "line": 606
+        },
+        {
+          "source": "services/scout-ingest-service/season_api.py",
+          "kind": "import",
+          "line": 531
+        },
+        {
+          "source": "services/scout-ingest-service/tissue_samples_api.py",
+          "kind": "import",
+          "line": 281
+        },
+        {
+          "source": "services/scout-ingest-service/treatment_review_api.py",
+          "kind": "import",
+          "line": 317
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_scout_photo_mobile_wiring_contract.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference"
+      ],
+      "edges": [
+        {
+          "source": "services/scout-ingest-service/media_api.py",
+          "kind": "import",
+          "line": 195
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_scout_photo_season_link_contract.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/test_scout_photo_evidence_contract.py",
+          "kind": "import",
+          "line": 24
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 39,
+          "import": "media_api"
+        },
+        {
+          "line": 72,
+          "import": "media_api"
+        },
+        {
+          "line": 78,
+          "import": "media_api"
+        },
+        {
+          "line": 88,
+          "import": "media_api"
+        },
+        {
+          "line": 112,
+          "import": "media_api"
+        },
+        {
+          "line": 138,
+          "import": "media_api"
+        },
+        {
+          "line": 147,
+          "import": "media_api"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_scouting_pins_persistence.py",

@@ -89,6 +89,14 @@ _HTTP_CALL = re.compile(r"\.\s*(get|post|put|patch|delete)\s*(?:<[^()]*>)?\s*\(\
 _TEMPLATE_EXPR = re.compile(r"\$\{(?:[^{}]|\{[^{}]*\})*\}")
 _NAMED_PARAM = re.compile(r"\{[^{}/]*\}")
 _GATEWAY_REWRITE = re.compile(r'"~\^(/api/v1/[\w/-]+)\(\?<(\w+)>[^"]*"\s+(/[\w/-]+)\$(\w+);')
+# A prefix location whose proxy_pass carries a URI: nginx replaces the matched
+# location prefix with that URI, so /api/v1/scouting-media/x reaches
+# /internal/scouting-media/x. The block is bounded at the next ``location``.
+_GATEWAY_PREFIX_PROXY = re.compile(
+    r"location \^~ (/api/v1/[\w/-]+?)/ \{(?:(?!\blocation\b).)*?"
+    r"proxy_pass https?://[\w.-]+(?::\d+)?(/[\w/-]+?)/;",
+    re.S,
+)
 
 
 @dataclass(frozen=True)
@@ -108,8 +116,11 @@ class WebPath:
 
 
 def gateway_rewrites(conf_text: str) -> list[tuple[str, str]]:
-    """``(public_prefix, internal_prefix)`` pairs from nginx ``map`` regex entries."""
-    return [(m.group(1), m.group(3)) for m in _GATEWAY_REWRITE.finditer(conf_text)]
+    """``(public_prefix, internal_prefix)`` pairs from nginx ``map`` regex entries and
+    from ``location ^~`` prefix blocks whose ``proxy_pass`` replaces the prefix."""
+    pairs = [(m.group(1), m.group(3)) for m in _GATEWAY_REWRITE.finditer(conf_text)]
+    pairs += [(m.group(1), m.group(2)) for m in _GATEWAY_PREFIX_PROXY.finditer(conf_text)]
+    return pairs
 
 
 @lru_cache(maxsize=1)
@@ -364,6 +375,9 @@ def test_comments_are_not_constants_and_gateway_rewrites_apply():
     assert error is None
     assert [p.raw for p in found] == ["/api/v1/seasons/${id}/accept"]
     assert ("/api/v1/seasons", "/internal/seasons") in gateway_rewrites(
+        GATEWAY_CONF.read_text(encoding="utf-8")
+    )
+    assert ("/api/v1/scouting-media", "/internal/scouting-media") in gateway_rewrites(
         GATEWAY_CONF.read_text(encoding="utf-8")
     )
     assert has_server_route(found[0], server_routes())

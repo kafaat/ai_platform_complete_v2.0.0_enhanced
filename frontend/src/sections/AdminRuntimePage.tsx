@@ -13,6 +13,7 @@ import {
   PLATFORM_CATALOG_FINGERPRINT,
 } from '../lib/platformCatalog.generated';
 import { T } from '../components/ds';
+import ScoutPhotoGrantAdminPanel from './ScoutPhotoGrantAdminPanel';
 
 /** كونسول التشغيل الإداريّ: جاهزيّة الإنتاج + قوائم الموتى (أحداث/outbox) + رفض
  *  الأمان + قائمة offline + الأتمتة — كانت مسارات إدارة خلفيّة بلا أيّ واجهة.
@@ -209,6 +210,8 @@ export default function AdminRuntimePage() {
           </div>
         </Panel>
       </div>
+
+      {user?.role === 'owner' && <ScoutPhotoGrantAdminPanel />}
 
       <div className="inline-flex items-center gap-1.5 text-[11px]" style={{ color: T.faint }}>
         <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />

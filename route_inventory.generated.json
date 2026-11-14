@@ -7777,6 +7777,30 @@
   },
   {
     "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/detection_link_api.py",
+    "line": 130,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events",
+    "function": "post_detection_link"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/detection_link_api.py",
+    "line": 241,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events",
+    "function": "get_detection_links"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/evidence_retention_api.py",
+    "line": 90,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/retention",
+    "function": "get_evidence_retention"
+  },
+  {
+    "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
     "line": 195,
     "method": "POST",
@@ -7833,8 +7857,88 @@
   },
   {
     "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 349,
+    "method": "POST",
+    "path": "/internal/scouting-media/admin/fields/{field_id}/grants",
+    "function": "issue_scout_photo_grant"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 440,
+    "method": "POST",
+    "path": "/internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke",
+    "function": "revoke_scout_photo_grant"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 517,
+    "method": "GET",
+    "path": "/internal/scouting-media/admin/fields/{field_id}/grants",
+    "function": "list_scout_photo_grants"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 586,
+    "method": "POST",
+    "path": "/internal/scouting-media/admin/credential-events",
+    "function": "post_credential_event"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 684,
+    "method": "POST",
+    "path": "/internal/scouting-media/admin/retention-policy-events",
+    "function": "post_retention_policy"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 755,
+    "method": "POST",
+    "path": "/internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events",
+    "function": "post_retention_event"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/human_review_api.py",
+    "line": 169,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events",
+    "function": "post_human_review"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/human_review_api.py",
+    "line": 270,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events",
+    "function": "get_human_reviews"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/lab_link_api.py",
+    "line": 129,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events",
+    "function": "post_lab_link"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/lab_link_api.py",
+    "line": 231,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events",
+    "function": "get_lab_links"
+  },
+  {
+    "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 205,
+    "line": 227,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -7842,7 +7946,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 210,
+    "line": 232,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -7850,7 +7954,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 247,
+    "line": 269,
     "method": "GET",
     "path": "/internal/scouting/external-observations",
     "function": "read_external_observations"
@@ -7858,7 +7962,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 366,
+    "line": 388,
     "method": "POST",
     "path": "/internal/ingest/submissions/odk",
     "function": "ingest_odk_submission"
@@ -7866,7 +7970,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 375,
+    "line": 397,
     "method": "POST",
     "path": "/internal/ingest/submissions/kobo",
     "function": "ingest_kobo_submission"
@@ -7874,7 +7978,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/media_api.py",
-    "line": 179,
+    "line": 238,
     "method": "POST",
     "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo",
     "function": "post_pin_photo"
@@ -7882,10 +7986,34 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/media_api.py",
-    "line": 236,
+    "line": 300,
     "method": "GET",
     "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo",
     "function": "get_pin_photo"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/media_api.py",
+    "line": 530,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events",
+    "function": "post_pin_photo_season_link_event"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/media_api.py",
+    "line": 612,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events",
+    "function": "list_pin_photo_season_link_events"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/media_api.py",
+    "line": 674,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/context",
+    "function": "get_pin_photo_context"
   },
   {
     "service": "scout-ingest-service",
@@ -7966,6 +8094,46 @@
     "method": "GET",
     "path": "/internal/seasons/{season_id}/detail",
     "function": "season_detail"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/tissue_samples_api.py",
+    "line": 182,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples",
+    "function": "create_tissue_sample"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/tissue_samples_api.py",
+    "line": 288,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples/{sample_id}/custody-events",
+    "function": "record_custody_event"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/tissue_samples_api.py",
+    "line": 395,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples",
+    "function": "list_tissue_samples"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/treatment_review_api.py",
+    "line": 175,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events",
+    "function": "post_treatment_event"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/treatment_review_api.py",
+    "line": 280,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events",
+    "function": "get_treatment_events"
   },
   {
     "service": "soil-service",

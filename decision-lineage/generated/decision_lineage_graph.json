@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 733,
+      "evidence_count": 751,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -88,6 +88,14 @@
         "migrations/v257_scouting_pin_location_photo.sql",
         "migrations/v259_yield_map_observed_zero.sql",
         "migrations/v260_scout_photo_evidence.sql",
+        "migrations/v262_scout_photo_season_link_events.sql",
+        "migrations/v266_scout_photo_detection_link_events.sql",
+        "migrations/v267_scout_photo_lab_sample_links.sql",
+        "migrations/v268_scout_photo_human_review.sql",
+        "migrations/v269_scout_plant_tissue_chain.sql",
+        "migrations/v270_scout_specialist_credential_attestations.sql",
+        "migrations/v271_scout_treatment_review_events.sql",
+        "migrations/v272_scout_photo_retention_governance.sql",
         "migrations/v78_decision_record.sql",
         "migrations/v79_outcome_record.sql",
         "migrations/v86_calibration_evidence_trigger.sql",
@@ -616,11 +624,21 @@
         "services/sahool-platform/tests/test_zoning_grid_transport.py",
         "services/sahool-platform/validate_observations.py",
         "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+        "services/scout-ingest-service/credential_status.py",
+        "services/scout-ingest-service/detection_link_api.py",
+        "services/scout-ingest-service/evidence_chain.py",
+        "services/scout-ingest-service/evidence_retention_api.py",
+        "services/scout-ingest-service/grants_admin_api.py",
+        "services/scout-ingest-service/human_review_api.py",
+        "services/scout-ingest-service/lab_link_api.py",
         "services/scout-ingest-service/main.py",
         "services/scout-ingest-service/media_api.py",
         "services/scout-ingest-service/projection_worker.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
         "services/scout-ingest-service/tests/test_media_live.py",
         "services/scout-ingest-service/tests/test_projection_live.py",
+        "services/scout-ingest-service/tissue_samples_api.py",
+        "services/scout-ingest-service/treatment_review_api.py",
         "services/soil-service/evidence_adapters.py",
         "services/soil-service/jsonb_values.py",
         "services/soil-service/main.py",
@@ -1394,12 +1412,13 @@
       "kind": "lineage_stage",
       "stage": "decision",
       "order": 3,
-      "evidence_count": 205,
+      "evidence_count": 206,
       "owners": [
         "ai_agronomist",
         "database",
         "decision-service",
         "sahool-platform",
+        "scout-ingest-service",
         "shared",
         "soil-service",
         "vegetation-analysis-service"
@@ -1600,6 +1619,7 @@
         "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
         "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",
         "services/sahool-platform/tests/test_weather_field_timeline_link.py",
+        "services/scout-ingest-service/media_api.py",
         "services/soil-service/routers/p4_workflow.py",
         "services/soil-service/test_soil_p4_governance.py",
         "services/vegetation-analysis-service/decision_bridge.py",
@@ -1619,7 +1639,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 333,
+      "evidence_count": 349,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1666,6 +1686,12 @@
         "migrations/v259_yield_map_observed_zero.sql",
         "migrations/v260_scout_photo_evidence.sql",
         "migrations/v261_field_tasks_reference_fields.sql",
+        "migrations/v266_scout_photo_detection_link_events.sql",
+        "migrations/v268_scout_photo_human_review.sql",
+        "migrations/v269_scout_plant_tissue_chain.sql",
+        "migrations/v270_scout_specialist_credential_attestations.sql",
+        "migrations/v271_scout_treatment_review_events.sql",
+        "migrations/v272_scout_photo_retention_governance.sql",
         "migrations/v50_soil_lab_tests.sql",
         "migrations/v51_review_round2_fixes.sql",
         "migrations/v53_field_state_projection.sql",
@@ -1926,8 +1952,18 @@
         "services/sahool-platform/tests/test_v26_zero_yield_map.py",
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "services/sahool-platform/tests/test_water_ledger_auto.py",
+        "services/scout-ingest-service/credential_status.py",
+        "services/scout-ingest-service/detection_link_api.py",
+        "services/scout-ingest-service/evidence_retention_api.py",
+        "services/scout-ingest-service/grants_admin_api.py",
+        "services/scout-ingest-service/human_review_api.py",
+        "services/scout-ingest-service/main.py",
+        "services/scout-ingest-service/media_api.py",
         "services/scout-ingest-service/season_api.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+        "services/scout-ingest-service/tests/test_media_live.py",
         "services/scout-ingest-service/tests/test_season_live.py",
+        "services/scout-ingest-service/treatment_review_api.py",
         "services/soil-service/p1_store.py",
         "services/soil-service/p3_products.py",
         "services/soil-service/routers/p4_workflow.py",
@@ -2054,7 +2090,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 196,
+      "evidence_count": 199,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2087,6 +2123,9 @@
         "migrations/v181_irrigation_closed_loop_learning_production_certification.sql",
         "migrations/v186_irrx1_digital_commissioning_runtime.sql",
         "migrations/v235_decision_chain_correlation.sql",
+        "migrations/v262_scout_photo_season_link_events.sql",
+        "migrations/v263_scout_photo_field_access_grants.sql",
+        "migrations/v268_scout_photo_human_review.sql",
         "services/actuator-service/actuator_runtime.py",
         "services/ai_agronomist/ai_generation.py",
         "services/ai_agronomist/approval.py",
@@ -2500,7 +2539,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 363,
+      "evidence_count": 367,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2839,8 +2878,12 @@
         "services/sahool-platform/tests/test_workflow_engine.py",
         "services/sahool-platform/tests/test_yield_intelligence_wiring.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
+        "services/scout-ingest-service/evidence_chain.py",
         "services/scout-ingest-service/field_forms_api.py",
+        "services/scout-ingest-service/grants_admin_api.py",
+        "services/scout-ingest-service/media_api.py",
         "services/scout-ingest-service/season_api.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
         "services/scout-ingest-service/tests/test_media_live.py",
         "services/scout-ingest-service/tests/test_season_live.py",
@@ -2998,7 +3041,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
-      "source_evidence_count": 733,
+      "source_evidence_count": 751,
       "target_evidence_count": 576,
       "static_supported": true,
       "runtime_verified": false
@@ -3111,7 +3154,7 @@
         "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py"
       ],
       "source_evidence_count": 576,
-      "target_evidence_count": 205,
+      "target_evidence_count": 206,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3198,6 +3241,7 @@
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
         "services/sahool-platform/tests/test_r09_learning_label_integrity.py",
         "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",
+        "services/scout-ingest-service/media_api.py",
         "services/soil-service/routers/p4_workflow.py",
         "services/soil-service/test_soil_p4_governance.py",
         "services/vegetation-analysis-service/decision_bridge.py",
@@ -3206,8 +3250,8 @@
         "shared/contracts/soil/p4.py",
         "shared/federated_agent_runtime.py"
       ],
-      "source_evidence_count": 205,
-      "target_evidence_count": 333,
+      "source_evidence_count": 206,
+      "target_evidence_count": 349,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3253,7 +3297,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 333,
+      "source_evidence_count": 349,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3301,7 +3345,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 51,
-      "target_evidence_count": 196,
+      "target_evidence_count": 199,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3340,7 +3384,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 196,
+      "source_evidence_count": 199,
       "target_evidence_count": 47,
       "static_supported": true,
       "runtime_verified": false
@@ -3447,7 +3491,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 60,
-      "target_evidence_count": 363,
+      "target_evidence_count": 367,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3457,5 +3501,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "ae84cc51dee52f808378750cd3484281568c3fd137329fbe68df2bdfab143669"
+  "content_sha256": "c18bc57ec465c67472660e1b124153c12a42dd53a62d6a256ef08f1b5bdc9f45"
 }

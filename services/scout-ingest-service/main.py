@@ -56,6 +56,28 @@ from media_api import router as media_router  # noqa: E402
 
 app.include_router(media_router)
 
+# Owner phases 6-11: explicit evidence links, specialist review, tissue custody, treatment plan
+# review, retention, and the tenant-owner admin API for grants and governance. Each is behind its
+# own flag (default 0); none authorises a diagnosis, a pesticide or a deletion.
+from detection_link_api import router as detection_link_router  # noqa: E402
+from evidence_retention_api import router as evidence_retention_router  # noqa: E402
+from grants_admin_api import router as grants_admin_router  # noqa: E402
+from human_review_api import router as human_review_router  # noqa: E402
+from lab_link_api import router as lab_link_router  # noqa: E402
+from tissue_samples_api import router as tissue_samples_router  # noqa: E402
+from treatment_review_api import router as treatment_review_router  # noqa: E402
+
+for _router in (
+    detection_link_router,
+    lab_link_router,
+    human_review_router,
+    tissue_samples_router,
+    treatment_review_router,
+    evidence_retention_router,
+    grants_admin_router,
+):
+    app.include_router(_router)
+
 
 def _enabled() -> bool:
     return os.getenv("SCOUT_INGEST_ENABLED", "0").strip().lower() in _ENABLED_TRUE

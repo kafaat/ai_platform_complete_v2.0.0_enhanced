@@ -33,7 +33,7 @@
     "services.video-processor.main:app",
     "services.weather-service.main:app"
   ],
-  "definition_count": 262,
+  "definition_count": 269,
   "definitions": [
     {
       "kind": "app",
@@ -2089,11 +2089,56 @@
     },
     {
       "kind": "router",
+      "line": 21,
+      "module": "services.scout-ingest-service.detection_link_api",
+      "node_id": "services.scout-ingest-service.detection_link_api:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.scout-ingest-service.evidence_retention_api",
+      "node_id": "services.scout-ingest-service.evidence_retention_api:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
       "line": 72,
       "module": "services.scout-ingest-service.field_forms_api",
       "node_id": "services.scout-ingest-service.field_forms_api:router",
       "route_count": 7,
       "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 45,
+      "module": "services.scout-ingest-service.grants_admin_api",
+      "node_id": "services.scout-ingest-service.grants_admin_api:router",
+      "route_count": 6,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 30,
+      "module": "services.scout-ingest-service.human_review_api",
+      "node_id": "services.scout-ingest-service.human_review_api:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.scout-ingest-service.lab_link_api",
+      "node_id": "services.scout-ingest-service.lab_link_api:router",
+      "route_count": 2,
+      "statically_reachable": false,
       "symbol": "router"
     },
     {
@@ -2107,10 +2152,10 @@
     },
     {
       "kind": "router",
-      "line": 41,
+      "line": 48,
       "module": "services.scout-ingest-service.media_api",
       "node_id": "services.scout-ingest-service.media_api:router",
-      "route_count": 2,
+      "route_count": 5,
       "statically_reachable": true,
       "symbol": "router"
     },
@@ -2121,6 +2166,24 @@
       "node_id": "services.scout-ingest-service.season_api:router",
       "route_count": 10,
       "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.scout-ingest-service.tissue_samples_api",
+      "node_id": "services.scout-ingest-service.tissue_samples_api:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.scout-ingest-service.treatment_review_api",
+      "node_id": "services.scout-ingest-service.treatment_review_api:router",
+      "route_count": 2,
+      "statically_reachable": false,
       "symbol": "router"
     },
     {
@@ -2394,7 +2457,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 53,
+  "include_edge_count": 55,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2811,8 +2874,17 @@
       "target": "services.scout-ingest-service.media_api:router"
     },
     {
+      "expression": "_router",
+      "line": 79,
+      "module": "services/scout-ingest-service/main.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.scout-ingest-service.main:app",
+      "target": null
+    },
+    {
       "expression": "field_forms_router",
-      "line": 386,
+      "line": 408,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2820,8 +2892,17 @@
       "target": "services.scout-ingest-service.field_forms_api:router"
     },
     {
+      "expression": "module.router",
+      "line": 173,
+      "module": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.scout-ingest-service.tests.test_evidence_ledgers_live:<dynamic-source>",
+      "target": null
+    },
+    {
       "expression": "media_api.router",
-      "line": 171,
+      "line": 256,
       "module": "services/scout-ingest-service/tests/test_media_live.py",
       "prefix": null,
       "resolved": false,
@@ -2874,8 +2955,8 @@
       "target": null
     }
   ],
-  "inventory_sha256": "428c712310bffeb8cb630a38a136869c3fd4aa5734bf832ba585c689f24584bd",
-  "orphan_candidate_count": 229,
+  "inventory_sha256": "03b70bff76a6a0167a58b0443d8092d1b856d7b328ae5035fe886601335725a7",
+  "orphan_candidate_count": 236,
   "orphan_candidates": [
     {
       "classification": "review_only_not_statically_reachable",
@@ -4930,6 +5011,76 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
+      "line": 21,
+      "module": "services.scout-ingest-service.detection_link_api",
+      "node_id": "services.scout-ingest-service.detection_link_api:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.scout-ingest-service.evidence_retention_api",
+      "node_id": "services.scout-ingest-service.evidence_retention_api:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 45,
+      "module": "services.scout-ingest-service.grants_admin_api",
+      "node_id": "services.scout-ingest-service.grants_admin_api:router",
+      "route_count": 6,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 30,
+      "module": "services.scout-ingest-service.human_review_api",
+      "node_id": "services.scout-ingest-service.human_review_api:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.scout-ingest-service.lab_link_api",
+      "node_id": "services.scout-ingest-service.lab_link_api:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.scout-ingest-service.tissue_samples_api",
+      "node_id": "services.scout-ingest-service.tissue_samples_api:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.scout-ingest-service.treatment_review_api",
+      "node_id": "services.scout-ingest-service.treatment_review_api:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
       "line": 11,
       "module": "services.soil-service.routers.canonical",
       "node_id": "services.soil-service.routers.canonical:router",
@@ -5171,11 +5322,11 @@
   "production_certified": false,
   "reachable_node_count": 33,
   "resolved_include_edge_count": 3,
-  "router_with_routes_count": 232,
+  "router_with_routes_count": 239,
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 50,
+  "unresolved_include_count": 52,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5531,8 +5682,24 @@
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/scout-ingest-service/main.py",
+      "line": 79,
+      "module": "services.scout-ingest-service.main",
+      "source": "services.scout-ingest-service.main:app",
+      "target_expression": "_router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "line": 173,
+      "module": "services.scout-ingest-service.tests.test_evidence_ledgers_live",
+      "source": null,
+      "target_expression": "module.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/scout-ingest-service/tests/test_media_live.py",
-      "line": 171,
+      "line": 256,
       "module": "services.scout-ingest-service.tests.test_media_live",
       "source": null,
       "target_expression": "media_api.router"
