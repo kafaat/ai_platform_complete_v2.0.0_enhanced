@@ -28545,7 +28545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "432285b2a07c5f263d11bd61968c312303159afabe4974c56f0c2be2338412f3"
+          "content": "701cd706d0ad641c76f4e6d35654ab36ab66f4b03db61d97a98db2da5f94af1a"
         }
       ],
       "name": "services/sahool-platform/core/agronomic_state_engine.py",
@@ -30515,7 +30515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c90bf202eecfd8cf2cdffcfa31471a25be1b3f55cc55d64ac286cae3a2334a4"
+          "content": "e4d7bb35706efc1a5d7ec39ebeca1cd0aa9665f0ea5446d78f6e421fe58f9e32"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_coordinator.py",
@@ -32679,6 +32679,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ac47d6f29b2b8cb86f7af0c7de400a4ea430b3365e95722f2fd5327bf98b32cb"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_canonical_state_observed_at.py",
       "type": "file"
     },
     {
@@ -40185,7 +40195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "985ec330ec1920c00c33a3a18a579d40e6d7f2dcaea76eb62b03b39ca1484a43"
+          "content": "e1aeba24236f30677e27c7e2ba043f78c26f6e7efb2e9cf4945addcf4ce12f6b"
         }
       ],
       "name": "shared/autonomous_farm_os_phase9.py",
@@ -40995,7 +41005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7950ab4e3c5d59869df3cab745fd9add297d7949c1739b8b956e9fe4343012dd"
+          "content": "d7470c303999464dd5e5b50035058222ba080070252fc7226059276463de74eb"
         }
       ],
       "name": "shared/field_runtime_cohesion.py",

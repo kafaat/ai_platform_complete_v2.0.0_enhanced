@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 751,
+      "evidence_count": 752,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -496,6 +496,7 @@
         "services/sahool-platform/tests/test_calibration_endpoint.py",
         "services/sahool-platform/tests/test_canonical_schemas.py",
         "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
+        "services/sahool-platform/tests/test_canonical_state_observed_at.py",
         "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
         "services/sahool-platform/tests/test_canonical_well_capability.py",
         "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
@@ -2540,7 +2541,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 367,
+      "evidence_count": 368,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2825,6 +2826,7 @@
         "services/sahool-platform/tests/test_calibration_audit_endpoint.py",
         "services/sahool-platform/tests/test_calibration_endpoint.py",
         "services/sahool-platform/tests/test_calibration_override_endpoints.py",
+        "services/sahool-platform/tests/test_canonical_state_observed_at.py",
         "services/sahool-platform/tests/test_capability_plan_closures.py",
         "services/sahool-platform/tests/test_crop_cards.py",
         "services/sahool-platform/tests/test_crop_confidence_contract.py",
@@ -3042,7 +3044,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
-      "source_evidence_count": 751,
+      "source_evidence_count": 752,
       "target_evidence_count": 576,
       "static_supported": true,
       "runtime_verified": false
@@ -3492,7 +3494,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 60,
-      "target_evidence_count": 367,
+      "target_evidence_count": 368,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3502,5 +3504,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "769b08c7fcc79651e66aab66cd429b3765a842b27232022b87d30e0b2bcf0e20"
+  "content_sha256": "b20825e52ca7c41feb696e599550a1ce266cb1e1cb88b8adaa8f3365f667c992"
 }

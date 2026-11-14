@@ -8316,6 +8316,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_canonical_state_observed_at.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
     "kind": "tests"
   },
