@@ -9,10 +9,10 @@
 > runtime verification or production certification.
 
 - Capabilities: **81**
-- Mapped: **76**
-- Unmapped: **5**
+- Mapped: **77**
+- Unmapped: **4**
 - Multi-dimensional mappings: **42**
-- Files scanned: **7209**
+- Files scanned: **7212**
 - Ambiguous artifacts queued: **236**
 - Unmapped artifacts queued: **3427**
 
@@ -42,8 +42,8 @@
 | GIS-002 | gis | 2 | 4 | 0 | 0 | 4 | 0 | 2 | 4 |
 | GIS-003 | gis | 32 | 100 | 14 | 67 | 12 | 4 | 41 | 7 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
-| INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| INT-002 | farm_management | 7 | 15 | 2 | 100 | 0 | 0 | 21 | 5 |
+| INT-001 | farm_management | 0 | 2 | 0 | 0 | 0 | 0 | 1 | 2 |
+| INT-002 | farm_management | 7 | 15 | 2 | 100 | 0 | 0 | 22 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
@@ -66,7 +66,7 @@
 | OPS-008 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | PA-001 | precision | 10 | 34 | 8 | 2 | 1 | 0 | 10 | 6 |
 | PA-002 | precision | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| PA-003 | precision | 3 | 4 | 13 | 1 | 0 | 0 | 5 | 5 |
+| PA-003 | precision | 4 | 4 | 13 | 1 | 0 | 0 | 5 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | SAT-001 | satellite | 42 | 100 | 5 | 43 | 6 | 0 | 59 | 6 |
