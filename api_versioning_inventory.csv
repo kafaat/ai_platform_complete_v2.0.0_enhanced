@@ -33,10 +33,10 @@ auth,services/auth/routers/email_verify.py,23,POST,/v1/auth/verify/request,verif
 auth,services/auth/routers/email_verify.py,56,POST,/v1/auth/verify/confirm,verify_confirm,versioned
 auth,services/auth/routers/email_verify.py,98,GET,/v1/auth/verify,verify,versioned
 auth,services/auth/routers/email_verify.py,108,GET,/v1/auth/verify/status,verify_status,versioned
-auth,services/auth/routers/invitations.py,45,POST,/v1/auth/invitations,create_invitation,versioned
-auth,services/auth/routers/invitations.py,104,GET,/v1/auth/invitations,list_invitations,versioned
-auth,services/auth/routers/invitations.py,137,POST,/v1/auth/invitations/accept,accept_invitation,versioned
-auth,services/auth/routers/invitations.py,223,DELETE,/v1/auth/invitations/{invitation_id},revoke_invitation,versioned
+auth,services/auth/routers/invitations.py,46,POST,/v1/auth/invitations,create_invitation,versioned
+auth,services/auth/routers/invitations.py,108,GET,/v1/auth/invitations,list_invitations,versioned
+auth,services/auth/routers/invitations.py,142,POST,/v1/auth/invitations/accept,accept_invitation,versioned
+auth,services/auth/routers/invitations.py,228,DELETE,/v1/auth/invitations/{invitation_id},revoke_invitation,versioned
 auth,services/auth/routers/mfa.py,62,POST,/v1/auth/mfa/setup,mfa_setup,versioned
 auth,services/auth/routers/mfa.py,139,POST,/v1/auth/mfa/activate,mfa_activate,versioned
 auth,services/auth/routers/mfa.py,232,POST,/v1/auth/mfa/disable,mfa_disable,versioned
