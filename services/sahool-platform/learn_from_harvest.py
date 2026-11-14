@@ -18,11 +18,12 @@ Usage: python learn_from_harvest.py <district_id> [crop]
 from __future__ import annotations
 
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 import yaml
 from core.learning.model_selector import select_model
-from storage.lite_store import independent_units, init_db, yields_for_district
+from storage.lite_store import init_db, yield_sample_units, yields_for_district
 
 PLATFORM = Path(__file__).parent
 
@@ -43,7 +44,7 @@ def learn(district_id: str, crop: str | None = None) -> dict:
         return {"error": f"region {district_id} not found"}
 
     rows = yields_for_district(district_id, crop)
-    units = independent_units(district_id, crop)
+    units = yield_sample_units(rows)
 
     # load districts threshold (team-adjustable)
     climate = yaml.safe_load(open(climate_path, encoding="utf-8"))
@@ -66,17 +67,26 @@ def learn(district_id: str, crop: str | None = None) -> dict:
                 f"معامل استرشادي للمزرعة فقط. النموذج: {model.allowed_model.value}"
             ),
         }
-        # compute indicative zone_factor if we have any verified harvests
-        if rows:
-            actual = [r["yield_t_ha"] for r in rows]
-            pred = [base_model_predict(r) for r in rows]
-            ratios = [a / p for a, p in zip(actual, pred, strict=True) if p > 0]
+        by_tenant = defaultdict(list)
+        for row in rows:
+            tenant_id = row["tenant_id"]
+            if not tenant_id or Path(tenant_id).name != tenant_id or tenant_id in {".", ".."}:
+                raise ValueError("invalid tenant id in verified harvest")
+            by_tenant[tenant_id].append(row)
+        for tenant_id, tenant_rows in by_tenant.items():
+            ratios = []
+            for row in tenant_rows:
+                predicted = base_model_predict(row)
+                if predicted > 0:
+                    ratios.append(row["yield_t_ha"] / predicted)
             if ratios:
-                zf = round(sum(ratios) / len(ratios), 3)
-                result["indicative_zone_factor"] = zf
-                result["confidence"] = "low (single/few farms)"
-                # write to tenant calibration (indicative), NOT districts
-                _write_tenant_indicative(rows[0]["tenant_id"], district_id, zf, units)
+                factor = round(sum(ratios) / len(ratios), 3)
+                _write_tenant_indicative(
+                    tenant_id, district_id, factor, yield_sample_units(tenant_rows)
+                )
+                if len(by_tenant) == 1:
+                    result["indicative_zone_factor"] = factor
+                    result["confidence"] = "low (single/few farms)"
         return result
 
     # threshold met -> districts calibration (the real thing)

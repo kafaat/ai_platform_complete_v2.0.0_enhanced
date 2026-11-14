@@ -464,6 +464,7 @@
           "services/decision-service/tests/test_ac1_agronomic_context.py",
           "services/decision-service/tests/test_activation_evidence_contract.py",
           "services/decision-service/tests/test_agronomic_lineage_integrity.py",
+          "services/decision-service/tests/test_backfill_row_coverage.py",
           "services/decision-service/tests/test_decision_evidence_read.py",
           "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
           "services/decision-service/tests/test_decision_sor_role_certify_pg.py",

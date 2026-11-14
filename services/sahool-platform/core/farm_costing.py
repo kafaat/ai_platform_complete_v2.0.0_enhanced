@@ -338,10 +338,16 @@ def project_to_erp_lines(
     *,
     cost_center: str | None = None,
     project: str | None = None,
-    currency: str = "YER",
+    currency: str | None = None,
 ) -> list[ErpProjectionLine]:
     grouped: dict[str, float] = {}
+    projection_currency = currency.strip().upper() if currency is not None else None
     for line in actual_lines:
+        line_currency = line.currency.strip().upper()
+        if projection_currency is None:
+            projection_currency = line_currency
+        if line_currency != projection_currency:
+            raise ValueError("erp_projection_currency_mismatch")
         grouped[line.category] = grouped.get(line.category, 0.0) + (
             _non_negative(line.actual_cost, field_name="actual_cost") or 0.0
         )
@@ -349,7 +355,7 @@ def project_to_erp_lines(
         ErpProjectionLine(
             category=category,
             amount=amount,
-            currency=currency,
+            currency=projection_currency,
             cost_center=cost_center,
             project=project,
             memo="SAHOOL operational ledger financial projection; source records remain in SAHOOL.",

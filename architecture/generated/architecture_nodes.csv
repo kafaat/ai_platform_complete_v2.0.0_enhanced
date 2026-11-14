@@ -3,7 +3,7 @@ actuator-service,service,0,1,False,services/actuator-service
 agriai-engine,service,1,1,False,services/agriai-engine
 ai-agronomist,service,0,3,False,services/ai_agronomist
 auth,service,0,0,True,services/auth
-decision-service,service,11,2,False,services/decision-service
+decision-service,service,11,3,False,services/decision-service
 edge-inference,service,2,0,False,services/edge-inference
 erp-bridge,service,1,0,False,services/odoo-bridge
 erpnext-backend,compose-service,5,1,False,
@@ -103,7 +103,7 @@ sahool-zlmediakit,compose-service,2,1,False,
 sahool-zlmediakit-config,compose-service,1,0,False,
 sam2-inference,service,0,0,True,services/sam2-inference
 scout-ingest-service,service,1,0,False,services/scout-ingest-service
-soil-service,service,16,0,False,services/soil-service
+soil-service,service,17,0,False,services/soil-service
 supervisor-agent,service,0,4,False,services/supervisor-agent
 tts-service,service,0,0,True,services/tts-service
 vegetation-analysis-service,service,0,10,False,services/vegetation-analysis-service

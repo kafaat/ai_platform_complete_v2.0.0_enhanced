@@ -3326,7 +3326,7 @@
       "mutations": [
         {
           "expect": "test_malformed_or_unsigned_acks_are_refused",
-          "find": "    if not isinstance(sig, str) or not hmac.compare_digest(sig, expected):",
+          "find": "    if not isinstance(sig, str) or not sig.isascii() or not hmac.compare_digest(sig, expected):",
           "replace": "    if False:  # mutated: an unsigned/forged ack is trusted",
           "why": "Without the signature check any broker client can publish an ack and move a command to device_acked."
         },
