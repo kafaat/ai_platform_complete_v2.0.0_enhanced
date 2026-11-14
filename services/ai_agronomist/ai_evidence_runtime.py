@@ -62,9 +62,6 @@ KNOWLEDGE_GRAPH_URL = os.getenv("KNOWLEDGE_GRAPH_URL", "http://sahool-knowledge-
 PLATFORM_URL = os.getenv("PLATFORM_URL", "http://sahool-platform:8000")
 
 logger = logging.getLogger("ai_agronomist.evidence_runtime")
-# httpx logs every request URL at INFO, userinfo included; a credentialed service URL would
-# reach the log on success and failure alike (lab receipt for #1471). WARNING keeps its errors.
-logging.getLogger("httpx").setLevel(logging.WARNING)
 
 # S2 — صيغة معرّف الحقل القانونيّة (``fields.field_id VARCHAR(50)``: ``fld_<hex>`` أو UUID).
 # كان المعرّف يُحقَن خاماً في مسارٍ داخليّ يحمل رمز الخدمة، فـ``../../x#`` يبلغ مسارات

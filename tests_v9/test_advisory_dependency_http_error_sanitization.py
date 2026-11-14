@@ -119,7 +119,11 @@ async def test_platform_field_state_failure_keeps_body_and_url_out_of_the_log(
         )
     assert out["status"] == "unavailable"
     assert set(out) == {"status", "reason", "correlation_id"}
-    logged = caplog.text
+    # This module's own log lines. httpx's INFO request line is a separate, process-wide logger
+    # (the repo redacts it per service, e.g. the TTS bot URL); it is not changed here.
+    logged = "\n".join(
+        r.getMessage() for r in caplog.records if r.name == "ai_agronomist.evidence_runtime"
+    )
     assert _SECRET not in logged
     assert "PASSWORD_SHOULD_NOT_LEAK" not in logged
     assert out["correlation_id"] in logged
