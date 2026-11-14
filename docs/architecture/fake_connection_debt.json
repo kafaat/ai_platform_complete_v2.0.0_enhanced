@@ -667,6 +667,16 @@
         "tests_v9/test_admin_team_scope_guards.py"
       ],
       "justification": "Admin authorization follow-up (#1427). The stand-in (FakeConnection with fetchrow only) drives _validate_team_actor through its decision table: an active owner/admin whose DB role matches the signed claim is admitted, while a missing, inactive or stale membership and a malformed tenant/subject are refused with 403. It asserts that the lookup carries the tenant predicate, but claims nothing about what PostgreSQL enforces. Tenant scoping of list/role/deactivate, the cross-tenant 404 indistinguishable from a missing user, peer owner/admin protection and the grant limits run against a real database under a NOBYPASSRLS role in tests_v9/test_auth_admin_tenant_scope_live_pg.py (15 passed on the merge of #1427 with main 153526f90)."
+    },
+    {
+      "kind": "field_timeline_error_mapping_unit_contract_20261114",
+      "date": "2026-11-14",
+      "before": 134,
+      "after": 135,
+      "sites": [
+        "services/sahool-platform/tests/test_field_timeline_error_mapping.py"
+      ],
+      "justification": "Unified-timeline tenant scope (#1448). The stand-in (_Conn with fetch only, patched tenant_connection and _assert_field_in_tenant) pins the facade's two error branches so platform-unit-tests coverage measures them: the HTTPException raised by the tenant check propagates as a 404 instead of being folded into 200 degraded, and any other read failure answers degraded with a fixed message that does not echo the database error. Both cases fail on main. It claims nothing about what PostgreSQL enforces. The tenant refusal itself runs against a migrated database under a NOBYPASSRLS role in tests_v9/test_field_timeline_tenant_scope_live_pg.py (another tenant's field is 404; the caller's own field reads the events table with degraded false). No proven_live exemption or database-enforcement claim is added."
     }
   ]
 }
