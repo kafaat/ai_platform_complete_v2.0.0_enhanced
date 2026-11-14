@@ -11,9 +11,10 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api import main as api_main
 from api.field_timeline import assemble_timeline
@@ -26,6 +27,7 @@ from api.main import (
 )
 
 router = APIRouter()
+_log = logging.getLogger(__name__)
 
 
 @router.get("/api/v1/fields/{field_id}/unified-timeline")
@@ -93,14 +95,20 @@ async def field_unified_timeline_facade(
                     "actor_id": row["actor_id"],
                 }
             )
-    except Exception as exc:  # noqa: BLE001 — صدق: نُعلن الفشل ولا نختلق أحداثاً.
+    except HTTPException:
+        # A field outside the caller's tenant is a 404 from ``_assert_field_in_tenant``; it is
+        # an answer, not a degraded read, and must not be folded into the 200 below.
+        raise
+    except Exception:  # noqa: BLE001 — صدق: نُعلن الفشل ولا نختلق أحداثاً.
+        _log.exception("unified timeline read failed field=%s", field_id)
         return {
             "field_id": field_id,
             "season_id": season_id,
             "events": [],
             "total_events": 0,
             "degraded": True,
-            "error": f"تعذّر جلب الخطّ الزمنيّ: {exc}",
+            # The database error stays in the log; it is not echoed to the client.
+            "error": "تعذّر جلب الخطّ الزمنيّ",
         }
 
     timeline = assemble_timeline(

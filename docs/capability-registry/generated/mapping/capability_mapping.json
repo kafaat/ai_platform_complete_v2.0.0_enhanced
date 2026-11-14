@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7341,
+    "files_scanned": 7343,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2181,
-      "tests": 2502,
+      "tests": 2504,
       "web": 547
     },
-    "unmapped_artifacts": 3493,
+    "unmapped_artifacts": 3494,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3972,
+      "python_functional": 3974,
       "raw": 3369
     },
-    "test_dependency_files": 1902,
-    "test_dependency_edges": 4892,
-    "test_dependency_bounded_files": 1115,
+    "test_dependency_files": 1904,
+    "test_dependency_edges": 4898,
+    "test_dependency_bounded_files": 1117,
     "test_dependency_unresolved_relations": 482
   },
   "capabilities": [
@@ -2439,6 +2439,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_field_timeline_tenant_scope_live_pg.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_nginx_tenant_injection_guard.py",
           "score": 14,
           "signals": [
@@ -2841,7 +2849,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 43,
+        "tests": 44,
         "governance": 0,
         "other_evidence": 25
       },
@@ -5292,7 +5300,7 @@
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:31",
+          "value": "/api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:33",
           "score": 13
         },
         {
@@ -40347,6 +40355,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_field_trial_design.py",
       "kind": "tests"
     },
@@ -61057,6 +61069,24 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 15
+        },
+        {
+          "source": "services/sahool-platform/api/routers/field_workspace_timeline.py",
+          "kind": "import",
+          "line": 15
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_field_trial_design.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -79758,6 +79788,34 @@
           "source": "services/sahool-platform/api/routers/fields.py",
           "kind": "source_read",
           "line": 24
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_field_timeline_tenant_scope_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 75
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 76
+        },
+        {
+          "source": "services/sahool-platform/api/routers/field_workspace_timeline.py",
+          "kind": "import",
+          "line": 76
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 82
         }
       ],
       "unresolved": []

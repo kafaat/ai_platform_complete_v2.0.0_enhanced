@@ -7,7 +7,7 @@
   "rls_forced": 208,
   "runtime_verified": false,
   "sql_files": 264,
-  "tables": 356,
+  "tables": 355,
   "tenant_rls_gaps": 137,
   "tenant_tables": 336,
   "unlisted_sql_count": 0
