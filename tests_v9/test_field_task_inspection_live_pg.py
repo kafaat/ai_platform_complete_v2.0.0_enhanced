@@ -956,6 +956,268 @@ def test_approving_a_superseded_version_does_not_close_and_revisions_are_consecu
     assert out["status"] == "pending"
 
 
+async def _as_app_tx(live, name: str, *statements):
+    """Run ``(sql, *args)`` statements in one app-role transaction: 'allowed' or the SQLSTATE."""
+    conn = await asyncpg.connect(live.app_dsn)
+    try:
+        async with conn.transaction():
+            await conn.execute(
+                "SELECT set_config('app.current_tenant', $1, true),"
+                " set_config('app.current_user_id', $2, true)",
+                live.tenant,
+                live.users[(live.tenant, name)],
+            )
+            try:
+                async with conn.transaction():
+                    for sql, *args in statements:
+                        await conn.execute(sql, *args)
+                return "allowed"
+            except asyncpg.PostgresError as exc:
+                return exc.sqlstate
+    finally:
+        await conn.close()
+
+
+_HANDOFF_AS = """INSERT INTO inspection_handoffs
+    (tenant_id, field_id, task_id, revision, action, previous_assignee, assignee, actor, reason,
+     evidence_version)
+   VALUES ($1::uuid,$2,$3::uuid,$4,$5,$6,$7,current_setting('app.current_user_id'),$8,$9)"""
+
+
+def test_a_pin_cannot_be_attached_to_a_task_inserted_completed_without_one():
+    """Review finding 1: INSERT a completed task with no pin, then UPDATE it to name the pin."""
+
+    async def target():
+        out = {}
+        async with Live() as live:
+            plain = str(uuid.uuid4())
+            out["insert"] = await _as_app(
+                live,
+                "manager",
+                "INSERT INTO field_tasks (task_id, tenant_id, field_id, task_type, status)"
+                " VALUES ($1::uuid, $2::uuid, $3, 'scouting', 'completed')",
+                plain,
+                live.tenant,
+                live.field,
+            )
+            out["attach_pin"] = await _as_app(
+                live,
+                "manager",
+                "UPDATE field_tasks SET source_scouting_pin_id=$2 WHERE task_id=$1::uuid",
+                plain,
+                live.pin,
+            )
+            out["stored"] = dict(
+                await live.admin.fetchrow(
+                    "SELECT source_scouting_pin_id AS pin, status FROM field_tasks"
+                    " WHERE task_id=$1::uuid",
+                    plain,
+                )
+            )
+            # The real inspection task for the pin can still be created.
+            res = await live.fm.post(
+                f"/internal/field-tasks/fields/{live.field}/pins/{live.pin}/inspection-task",
+                json={
+                    "assigned_to": int(live.users[(live.tenant, "inspector")]),
+                    "due_at": live.due_at.isoformat(),
+                    "priority": 2,
+                },
+                headers=live.headers("manager"),
+            )
+            out["real_task"] = (res.status_code, res.json().get("task", {}).get("task_id") != plain)
+        return out
+
+    out = run(target())
+    assert out["insert"] == "allowed"
+    assert out["attach_pin"] == "SH003"
+    assert out["stored"] == {"pin": None, "status": "completed"}
+    assert out["real_task"] == (200, True)
+
+
+def test_an_inspector_cannot_approve_their_own_finding_by_naming_another_assignee():
+    """Review finding 3: the inspector writes 'approve' with assignee = the reviewer."""
+
+    async def target():
+        out = {}
+        async with Live() as live:
+            task, submitted = await _accepted_and_submitted(live)
+            v1 = submitted["current_evidence"]["version"]
+            inspector = live.users[(live.tenant, "inspector")]
+            reviewer = live.users[(live.tenant, "reviewer")]
+            other = live.users[(live.tenant, "inspector2")]
+            out["forged_approve"] = await _as_app(
+                live,
+                "inspector",
+                _HANDOFF_AS,
+                live.tenant,
+                live.field,
+                task,
+                3,
+                "approve",
+                reviewer,
+                reviewer,
+                "ok",
+                v1,
+            )
+            res = await live.patch(task, {"status": "completed"})
+            out["close"] = (res.status_code, res.json().get("detail", {}).get("error"))
+            # Moving the task to someone else first keeps the chain, but the submitter still
+            # cannot approve the version they submitted.
+            out["reassign_then_self_approve"] = await _as_app_tx(
+                live,
+                "inspector",
+                (
+                    "UPDATE field_tasks SET assigned_to=$2 WHERE task_id=$1::uuid",
+                    task,
+                    other,
+                ),
+                (
+                    _HANDOFF_AS,
+                    live.tenant,
+                    live.field,
+                    task,
+                    3,
+                    "reassign",
+                    inspector,
+                    other,
+                    "handover",
+                    None,
+                ),
+                (
+                    _HANDOFF_AS,
+                    live.tenant,
+                    live.field,
+                    task,
+                    4,
+                    "approve",
+                    other,
+                    other,
+                    "ok",
+                    v1,
+                ),
+            )
+            # Control: the reviewer approving with the real assignee is accepted.
+            out["real_approve"] = await _as_app(
+                live,
+                "reviewer",
+                _HANDOFF_AS,
+                live.tenant,
+                live.field,
+                task,
+                3,
+                "approve",
+                inspector,
+                inspector,
+                "ok",
+                v1,
+            )
+            out["status"] = await live.admin.fetchval(
+                "SELECT status FROM field_tasks WHERE task_id=$1::uuid", task
+            )
+        return out
+
+    out = run(target())
+    assert out["forged_approve"] == "SH006"
+    assert out["close"] == (409, "inspection_review_required")
+    assert out["reassign_then_self_approve"] == "SH007"
+    assert out["real_approve"] == "allowed"
+    assert out["status"] == "pending"
+
+
+def test_leaving_completed_by_any_status_reopens_and_status_case_does_not_skip_the_gate():
+    """Review finding 4: completed -> 'archived' -> completed reusing the approval; 'Completed'."""
+
+    async def target():
+        out = {}
+        async with Live() as live:
+            task, submitted = await _accepted_and_submitted(live)
+            close_as = "UPDATE field_tasks SET status=$2 WHERE task_id=$1::uuid"
+            out["case_variant_unreviewed"] = await _as_app(
+                live, "manager", close_as, task, "Completed"
+            )
+            await live.handoff(
+                task,
+                "finding",
+                "reviewer",
+                {
+                    "expected_revision": 2,
+                    "action": "approve",
+                    "reason": "ok",
+                    "evidence_version": submitted["current_evidence"]["version"],
+                },
+            )
+            ok = await live.patch(task, {"status": "completed"})
+            out["close"] = (ok.status_code, ok.json().get("status"))
+            out["archive"] = await _as_app(live, "manager", close_as, task, "archived")
+            out["last_event"] = await live.admin.fetchval(
+                "SELECT action FROM inspection_handoffs WHERE task_id=$1::uuid"
+                " ORDER BY revision DESC LIMIT 1",
+                task,
+            )
+            out["reclose"] = await _as_app(live, "manager", close_as, task, "completed")
+            out["reclose_case"] = await _as_app(live, "manager", close_as, task, "Completed")
+            out["status"] = await live.admin.fetchval(
+                "SELECT status FROM field_tasks WHERE task_id=$1::uuid", task
+            )
+        return out
+
+    out = run(target())
+    assert out["case_variant_unreviewed"] == "SH001"
+    assert out["close"] == (200, "completed")
+    assert out["archive"] == "allowed"
+    assert out["last_event"] == "reopen"
+    assert out["reclose"] == "SH001"
+    assert out["reclose_case"] == "SH001"
+    assert out["status"] == "archived"
+
+
+def test_the_platform_answers_the_gate_and_revision_race_sqlstates_with_409():
+    """Review finding 5: SH003-SH007 and 23505 raised under PATCH are 409, not 503.
+
+    The schema owner installs, for one plain task only, a trigger raising the SQLSTATE the real
+    v275-v277 objects raise, so the real platform route meets it from the real database."""
+
+    async def target():
+        out = {}
+        async with Live() as live:
+            task = str(
+                await live.admin.fetchval(
+                    "INSERT INTO field_tasks (tenant_id, field_id, task_type, status)"
+                    " VALUES ($1::uuid, $2, 'weeding', 'pending') RETURNING task_id",
+                    live.tenant,
+                    live.field,
+                )
+            )
+            fn = f"fti_raise_{uuid.uuid4().hex[:10]}"
+            await live.admin.execute(
+                f"CREATE FUNCTION {fn}() RETURNS trigger LANGUAGE plpgsql AS $$"
+                " BEGIN RAISE EXCEPTION 'injected' USING ERRCODE = TG_ARGV[0]; END $$"
+            )
+            try:
+                for code in ("SH003", "SH006", "SH007", "23505"):
+                    await live.admin.execute(
+                        f"CREATE TRIGGER {fn} BEFORE UPDATE ON field_tasks FOR EACH ROW"
+                        f" WHEN (OLD.task_id = '{task}'::uuid) EXECUTE FUNCTION {fn}('{code}')"
+                    )
+                    try:
+                        res = await live.patch(task, {"notes": f"n-{code}"})
+                        out[code] = (res.status_code, res.json().get("detail", {}).get("error"))
+                    finally:
+                        await live.admin.execute(f"DROP TRIGGER {fn} ON field_tasks")
+            finally:
+                await live.admin.execute(f"DROP FUNCTION {fn}()")
+            ok = await live.patch(task, {"notes": "after"})
+            out["control"] = ok.status_code
+        return out
+
+    out = run(target())
+    assert out["SH003"] == (409, "inspection_pin_immutable")
+    assert out["SH006"] == (409, "inspection_handoff_chain_broken")
+    assert out["SH007"] == (409, "inspection_self_review")
+    assert out["23505"] == (409, "inspection_handoff_conflict")
+    assert out["control"] == 200
+
+
 def test_cost_history_and_expense_links_cannot_be_forged_by_the_app_role():
     async def target():
         out = {}

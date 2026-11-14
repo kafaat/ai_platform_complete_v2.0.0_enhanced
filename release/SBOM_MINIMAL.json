@@ -9745,7 +9745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d251af241044cf27bebc040714c50f54de4d04a86465e1a670db10d7ee53867d"
+          "content": "d82c251c11d127a87082886862098205a87510c2ecfaec899045c149dd954a91"
         }
       ],
       "name": "migrations/v275_inspection_handoffs.sql",
@@ -9765,7 +9765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "77e451e37746b92b8b31761c652c5475af137969950e9e867af575d02c2dc4d0"
+          "content": "1e1d8840dab84b97309b11cd7df39d819b85b844ee7b13c406c414a55fa5201e"
         }
       ],
       "name": "migrations/v277_inspection_close_gate.sql",
@@ -27755,7 +27755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ee918ce6a5460a03d5f2dd27038937135488e495caa36b28f2d4bfe76e801ba9"
+          "content": "fc37f43c92b4e3215fcedc0a703c0a180f5ae6c4e846ddc6c8f08b4c73e193d8"
         }
       ],
       "name": "services/sahool-platform/api/routers/tasks.py",

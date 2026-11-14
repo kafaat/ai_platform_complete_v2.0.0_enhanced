@@ -11,6 +11,16 @@
 -- holds that for every writer: a row whose revision is not the task's previous revision + 1 is
 -- refused (SH004 inspection_revision_gap). Append-only (no UPDATE or DELETE).
 --
+-- The CHECK below only compares a row with itself, so a writer could name any assignee it likes
+-- (an inspector approving their own work by declaring the reviewer the assignee). The
+-- inspection_handoff_chain_guard trigger ties every row to the task: previous_assignee must be the
+-- assignee of the prior event (for the first event, the task's initial assignee, else its current
+-- one) and assignee must be field_tasks.assigned_to now (a reassign updates the task first), or
+-- SH006 inspection_handoff_chain_broken; an approve or return by the user who submitted or
+-- recorded that evidence version is SH007 inspection_self_review.
+-- Known limit (systemic, not solved here): the actor is app.current_user_id, a GUC the shared app
+-- role can set, so a writer holding that role can still act under another user's id.
+--
 -- The INSERT policy binds actor to app.current_user_id: a row can only be written by the user the
 -- connection was opened for. Idempotent on a re-applied MANIFEST.
 BEGIN;
@@ -75,6 +85,38 @@ END $$;
 DROP TRIGGER IF EXISTS inspection_handoff_revision_guard ON inspection_handoffs;
 CREATE TRIGGER inspection_handoff_revision_guard BEFORE INSERT ON inspection_handoffs
     FOR EACH ROW EXECUTE FUNCTION inspection_handoff_revision_guard();
+
+CREATE OR REPLACE FUNCTION inspection_handoff_chain_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE
+    task record;
+    prior text;
+BEGIN
+    SELECT assigned_to, inspection_initial_assignee INTO task FROM field_tasks
+     WHERE tenant_id = NEW.tenant_id AND field_id = NEW.field_id AND task_id = NEW.task_id;
+    SELECT assignee INTO prior FROM inspection_handoffs
+     WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id
+     ORDER BY revision DESC LIMIT 1;
+    IF NOT FOUND THEN
+        prior := COALESCE(task.inspection_initial_assignee, task.assigned_to, '');
+    END IF;
+    IF NEW.previous_assignee IS DISTINCT FROM prior
+       OR NEW.assignee IS DISTINCT FROM COALESCE(task.assigned_to, '') THEN
+        RAISE EXCEPTION 'inspection_handoff_chain_broken' USING ERRCODE = 'SH006';
+    END IF;
+    IF NEW.action IN ('approve', 'return') AND (
+        EXISTS (SELECT 1 FROM inspection_handoffs
+                 WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id AND action = 'submit'
+                   AND evidence_version = NEW.evidence_version AND actor = NEW.actor)
+        OR EXISTS (SELECT 1 FROM inspection_evidence_versions
+                    WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id
+                      AND version = NEW.evidence_version AND recorded_by = NEW.actor)) THEN
+        RAISE EXCEPTION 'inspection_self_review' USING ERRCODE = 'SH007';
+    END IF;
+    RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS inspection_handoff_chain_guard ON inspection_handoffs;
+CREATE TRIGGER inspection_handoff_chain_guard BEFORE INSERT ON inspection_handoffs
+    FOR EACH ROW EXECUTE FUNCTION inspection_handoff_chain_guard();
 
 COMMENT ON TABLE inspection_handoffs IS
     'Append-only hand-off and review log of a pin inspection task (v275, owner field-management-service).';

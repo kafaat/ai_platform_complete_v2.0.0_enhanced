@@ -3,26 +3,34 @@
 -- The held update_task close gate (carrier D #1439) lived in the platform's PATCH /api/v1/tasks.
 -- It returns as a trigger on field_tasks, installed by field-management-service (the table's
 -- owner), so it holds for every writer of the row and the platform gains no read of the hand-off
--- tables. The platform maps SH001 and SH002 below to 409 (api/routers/tasks.py); its PATCH never
--- writes source_scouting_pin_id, so SH003 is reached only by a direct writer.
+-- tables. The platform maps SH001-SH007 and 23505 (a hand-off/reopen revision race) to 409
+-- (api/routers/tasks.py); its PATCH never writes source_scouting_pin_id, so SH003 is reached only
+-- by a direct writer.
 --
--- field_task_inspection_close_gate (BEFORE INSERT OR UPDATE): a task is a pin inspection task when
--- the stored row or the new one names a source_scouting_pin_id. For such a task
---   * SH003 inspection_pin_immutable — once set, source_scouting_pin_id cannot be changed or
---     cleared, so a writer cannot drop the pin to escape the gate;
+-- Status is compared case-insensitively ('Completed' is 'completed'): field_tasks.status has no
+-- CHECK, so a case variant must not slip past the gate.
+--
+-- field_task_inspection_close_gate (BEFORE INSERT OR UPDATE):
+--   * SH003 inspection_pin_immutable — no UPDATE may change source_scouting_pin_id at all: not
+--     clear it, move it, nor set it on a task inserted without one (field-management-service sets
+--     the pin only on INSERT). Setting it later would let a task inserted 'completed' become a pin
+--     task with no review, and the unique index would then block the real inspection task;
 --   * SH001 inspection_review_required — a pin task cannot be inserted already 'completed';
--- and moving it to 'completed' needs
---   * SH001 inspection_review_required — the last hand-off event (v275) to be an approval of the
---     latest submitted evidence version (the version of the last 'submit' event, which is also the
---     newest version row of v274): approving a superseded version does not close the task; and
+-- and moving a pin task to 'completed' needs
+--   * SH001 inspection_review_required — the last hand-off event (v275) to be an approval, newer
+--     than the latest 'reopen', of the latest submitted evidence version (the version of the last
+--     'submit' event, which is also the newest version row of v274): approving a superseded
+--     version does not close the task; and
 --   * SH002 inspection_evidence_changed — the pin's scout photo evidence now (v260) to be exactly
 --     the one in the approved evidence version (v274): same evidence id and content digest, or
 --     none in both. A photo added or replaced after the approval needs a new submit and approval.
 -- A replay that changes nothing does not run the gate (the platform writes no unchanged row,
 -- #1423), and a task that is already completed is not re-checked.
 --
--- field_task_inspection_reopen (AFTER UPDATE OF status): reopening a closed pin inspection task
--- appends a 'reopen' hand-off event by the current user, so the next close needs a fresh review.
+-- field_task_inspection_reopen (AFTER UPDATE OF status): ANY move of a pin inspection task out of
+-- 'completed' (to 'pending', 'archived' or anything else), and a cancelled task reopened, appends a
+-- 'reopen' hand-off event by the current user, so the next close needs a fresh review: a writer
+-- cannot park a closed task elsewhere and come back reusing the old approval.
 --
 -- Both read and write under the caller's role and tenant (no SECURITY DEFINER). Idempotent.
 BEGIN;
@@ -30,26 +38,27 @@ CREATE OR REPLACE FUNCTION field_task_inspection_close_gate() RETURNS trigger LA
 DECLARE
     task_pin text;
     last_event record;
+    last_reopen integer;
     submitted integer;
     newest integer;
     photo record;
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        IF NEW.source_scouting_pin_id IS NOT NULL AND NEW.status = 'completed' THEN
+        IF NEW.source_scouting_pin_id IS NOT NULL
+           AND lower(COALESCE(NEW.status, '')) = 'completed' THEN
             RAISE EXCEPTION 'inspection_review_required' USING ERRCODE = 'SH001';
         END IF;
         RETURN NEW;
     END IF;
-    IF OLD.source_scouting_pin_id IS NOT NULL
-       AND NEW.source_scouting_pin_id IS DISTINCT FROM OLD.source_scouting_pin_id THEN
+    IF NEW.source_scouting_pin_id IS DISTINCT FROM OLD.source_scouting_pin_id THEN
         RAISE EXCEPTION 'inspection_pin_immutable' USING ERRCODE = 'SH003';
     END IF;
-    task_pin := COALESCE(OLD.source_scouting_pin_id, NEW.source_scouting_pin_id);
-    IF task_pin IS NULL OR NEW.status IS DISTINCT FROM 'completed'
-       OR OLD.status IS NOT DISTINCT FROM 'completed' THEN
+    task_pin := OLD.source_scouting_pin_id;
+    IF task_pin IS NULL OR lower(COALESCE(NEW.status, '')) <> 'completed'
+       OR lower(COALESCE(OLD.status, '')) = 'completed' THEN
         RETURN NEW;
     END IF;
-    SELECT h.action, h.evidence_version, v.photo_evidence_id, v.photo_content_sha256
+    SELECT h.revision, h.action, h.evidence_version, v.photo_evidence_id, v.photo_content_sha256
       INTO last_event
       FROM inspection_handoffs h
       LEFT JOIN inspection_evidence_versions v
@@ -57,6 +66,11 @@ BEGIN
      WHERE h.tenant_id = NEW.tenant_id AND h.task_id = NEW.task_id
      ORDER BY h.revision DESC LIMIT 1;
     IF NOT FOUND OR last_event.action <> 'approve' THEN
+        RAISE EXCEPTION 'inspection_review_required' USING ERRCODE = 'SH001';
+    END IF;
+    SELECT max(revision) INTO last_reopen FROM inspection_handoffs
+     WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id AND action = 'reopen';
+    IF last_reopen IS NOT NULL AND last_event.revision < last_reopen THEN
         RAISE EXCEPTION 'inspection_review_required' USING ERRCODE = 'SH001';
     END IF;
     SELECT evidence_version INTO submitted FROM inspection_handoffs
@@ -82,8 +96,11 @@ CREATE TRIGGER field_task_inspection_close_gate BEFORE INSERT OR UPDATE ON field
 
 CREATE OR REPLACE FUNCTION field_task_inspection_reopen() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
-    IF NEW.source_scouting_pin_id IS NULL OR OLD.status NOT IN ('completed', 'cancelled')
-       OR NEW.status NOT IN ('pending', 'in_progress') THEN
+    IF NEW.source_scouting_pin_id IS NULL OR NOT (
+        (lower(COALESCE(OLD.status, '')) = 'completed'
+         AND lower(COALESCE(NEW.status, '')) <> 'completed')
+     OR (lower(COALESCE(OLD.status, '')) = 'cancelled'
+         AND lower(COALESCE(NEW.status, '')) IN ('pending', 'in_progress'))) THEN
         RETURN NEW;
     END IF;
     INSERT INTO inspection_handoffs
