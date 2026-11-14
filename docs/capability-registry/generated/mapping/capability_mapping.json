@@ -83514,7 +83514,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 294
+          "line": 302
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
