@@ -2056,6 +2056,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/LabSamplingPage.originVerification.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/LabSamplingPage.planOrigin.test.tsx",
     "kind": "web"
   },
@@ -6892,10 +6896,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/soil_hydraulic_client.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/soil_moisture_advisor.py",
     "kind": "backend"
   },
@@ -8989,10 +8989,6 @@
   },
   {
     "path": "services/sahool-platform/tests/test_lab_sampling.py",
-    "kind": "tests"
-  },
-  {
-    "path": "services/sahool-platform/tests/test_lab_sampling_router.py",
     "kind": "tests"
   },
   {

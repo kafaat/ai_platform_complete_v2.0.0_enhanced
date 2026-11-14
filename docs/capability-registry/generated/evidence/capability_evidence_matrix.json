@@ -4047,6 +4047,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_lab_sampling_router.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_task_update_idempotency.py",
           "signal": "filename:test_"
         },
@@ -4154,6 +4159,7 @@
         "services/sahool-platform/tests/test_field_intelligence_card.py",
         "services/sahool-platform/tests/test_field_workspace.py",
         "services/sahool-platform/tests/test_idempotency_server_contract.py",
+        "services/sahool-platform/tests/test_lab_sampling_router.py",
         "services/sahool-platform/tests/test_task_update_idempotency.py",
         "services/soil-service/test_soil_p2_products.py",
         "services/soil-service/test_soil_terrain_finite.py",
@@ -12701,10 +12707,11 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -12736,7 +12743,7 @@
         "database": true,
         "documentation": true,
         "events": true,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": false,
         "production": false,
         "runtime": false,
@@ -12771,7 +12778,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -12806,17 +12813,19 @@
           "type": "web"
         }
       ],
-      "evidence_score": 7,
+      "evidence_score": 8,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "tests_v9/test_soil_sampling_plan_copies_live_pg.py"
+      ],
       "learning_linked": false,
-      "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
@@ -12828,8 +12837,28 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_lab_sampling_router.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_soil_plan_origin_client.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/soil-service/test_soil_sampling_plan_origin.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_soil_layer_v31_7.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_soil_sampling_plan_copies_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",
@@ -12845,6 +12874,9 @@
       "title": "Soil sampling",
       "unit_test_paths": [
         "services/raster-service/test_soil_zones.py",
+        "services/sahool-platform/tests/test_lab_sampling_router.py",
+        "services/sahool-platform/tests/test_soil_plan_origin_client.py",
+        "services/soil-service/test_soil_sampling_plan_origin.py",
         "tests_v9/test_soil_layer_v31_7.py",
         "tests_v9/test_soil_sampling_planner_v61.py",
         "tests_v9/test_soil_sampling_strategies_v61_1.py"
@@ -14745,10 +14777,10 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 36,
-    "average_assessed_maturity": 1.98,
+    "aligned": 37,
+    "average_assessed_maturity": 1.99,
     "capability_count": 81,
-    "declared_above_evidence": 42,
+    "declared_above_evidence": 41,
     "evidence_above_declared": 3,
     "production_certified": 0,
     "promotion_preconditions_satisfied": 0,

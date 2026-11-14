@@ -861,12 +861,12 @@ sahool-platform,POST,/api/v1/simulate/what-if,simulate_what_if,services/sahool-p
 sahool-platform,GET,/api/v1/soil-sampling/subsamples,soil_subsamples_endpoint,services/sahool-platform/api/routers/soil_sampling.py,58
 sahool-platform,GET,/api/v1/soil-sampling/depth,soil_depth_endpoint,services/sahool-platform/api/routers/soil_sampling.py,64
 sahool-platform,GET,/api/v1/soil-sampling/protocol,soil_protocol_endpoint,services/sahool-platform/api/routers/soil_sampling.py,70
-sahool-platform,GET,/api/v1/lab/samples,list_lab_samples,services/sahool-platform/api/routers/soil_sampling.py,315
-sahool-platform,POST,/api/v1/lab/samples,create_lab_sample,services/sahool-platform/api/routers/soil_sampling.py,375
-sahool-platform,POST,/api/v1/lab/soil-results,submit_soil_lab_result,services/sahool-platform/api/routers/soil_sampling.py,425
-sahool-platform,POST,/api/v1/lab/water-results,submit_water_lab_result,services/sahool-platform/api/routers/soil_sampling.py,555
-sahool-platform,POST,/api/v1/lab/samples/{sample_id}/transition,transition_lab_sample,services/sahool-platform/api/routers/soil_sampling.py,606
-sahool-platform,GET,/api/v1/fields/{field_id}/lab-context,field_lab_context,services/sahool-platform/api/routers/soil_sampling.py,737
+sahool-platform,GET,/api/v1/lab/samples,list_lab_samples,services/sahool-platform/api/routers/soil_sampling.py,332
+sahool-platform,POST,/api/v1/lab/samples,create_lab_sample,services/sahool-platform/api/routers/soil_sampling.py,425
+sahool-platform,POST,/api/v1/lab/soil-results,submit_soil_lab_result,services/sahool-platform/api/routers/soil_sampling.py,481
+sahool-platform,POST,/api/v1/lab/water-results,submit_water_lab_result,services/sahool-platform/api/routers/soil_sampling.py,611
+sahool-platform,POST,/api/v1/lab/samples/{sample_id}/transition,transition_lab_sample,services/sahool-platform/api/routers/soil_sampling.py,662
+sahool-platform,GET,/api/v1/fields/{field_id}/lab-context,field_lab_context,services/sahool-platform/api/routers/soil_sampling.py,793
 sahool-platform,GET,/api/v1/sync/manifest,sync_manifest,services/sahool-platform/api/routers/sync.py,93
 sahool-platform,GET,/api/v1/sync/status,sync_status,services/sahool-platform/api/routers/sync.py,103
 sahool-platform,POST,/api/v1/sync,sync,services/sahool-platform/api/routers/sync.py,125
@@ -1034,6 +1034,8 @@ soil-service,POST,/v1/soil/learning-datasets,create_learning_dataset,services/so
 soil-service,POST,/v1/soil/runtime-certifications/evaluate,evaluate_certification,services/soil-service/routers/p6_certification.py,21
 soil-service,POST,/v1/soil/runtime-certifications/{run_id}/verify,verify_certification,services/soil-service/routers/p6_certification.py,49
 soil-service,GET,/v1/soil/runtime-certifications/{run_id},get_certification,services/soil-service/routers/p6_certification.py,60
+soil-service,POST,/v1/fields/{field_id}/soil/sampling-plan-copies,store_plan_copies,services/soil-service/routers/plan_copies.py,49
+soil-service,POST,/v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin,resolve_plan_origin,services/soil-service/routers/plan_copies.py,69
 soil-service,GET,/v1/soil/readings/{field_id},get_readings,services/soil-service/routers/readings.py,28
 soil-service,POST,/v1/soil/ingest,ingest_reading,services/soil-service/routers/readings.py,43
 soil-service,POST,/v1/soil/suitability,soil_suitability,services/soil-service/routers/soil_profile.py,65

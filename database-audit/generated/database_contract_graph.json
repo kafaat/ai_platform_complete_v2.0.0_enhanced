@@ -260,6 +260,7 @@
       "v270_scout_specialist_credential_attestations.sql",
       "v271_scout_treatment_review_events.sql",
       "v272_scout_photo_retention_governance.sql",
+      "v273_soil_sampling_plan_copies.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -1635,6 +1636,13 @@
     {
       "has_using": true,
       "has_with_check": true,
+      "name": "soil_sampling_plan_copies_tenant",
+      "source": "v273_soil_sampling_plan_copies.sql",
+      "table": "soil_sampling_plan_copies"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
       "name": "tenant_isolation",
       "source": "v114_cloud_native_gis_best_practices.sql",
       "table": "stac_item_registry"
@@ -1768,17 +1776,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 261,
+    "manifest_entries": 262,
     "manifest_missing_count": 0,
-    "policies": 214,
+    "policies": 215,
     "production_certified": false,
-    "rls_enabled": 227,
-    "rls_forced": 208,
+    "rls_enabled": 228,
+    "rls_forced": 209,
     "runtime_verified": false,
-    "sql_files": 264,
-    "tables": 356,
+    "sql_files": 265,
+    "tables": 357,
     "tenant_rls_gaps": 137,
-    "tenant_tables": 336,
+    "tenant_tables": 337,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -7128,6 +7136,23 @@
       "table": "soil_salinity_products",
       "tenant_rls_gap": true,
       "write_policy_with_check": false
+    },
+    {
+      "code_readers": [
+        "services/soil-service/plan_copy_store.py"
+      ],
+      "code_writers": [
+        "services/soil-service/plan_copy_store.py"
+      ],
+      "created_in": "v273_soil_sampling_plan_copies.sql",
+      "has_tenant_id": true,
+      "manifest_position": 259,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "soil_sampling_plan_copies",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
     },
     {
       "code_readers": [

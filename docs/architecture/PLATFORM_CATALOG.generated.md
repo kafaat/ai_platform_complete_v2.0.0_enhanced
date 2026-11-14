@@ -3,9 +3,9 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `a0dae50ea5aa2f2abc754343f507629024caf51a5b5cf06e23f55ad63782f338`
+- fingerprint: `4f10dc6671339e490e1288cf0e7a04bfecd5d48c58d7cef048fe1593f7451796`
 - components: **37** (backend: 33)
-- route rows: **1158** → unique method/path: **1037**
+- route rows: **1160** → unique method/path: **1039**
 - capabilities (derived, uncurated): **842**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
@@ -44,7 +44,7 @@
 | sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 197 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |
 | scout-ingest-service | service | ground-ingest | sahool-scout-ingest, sahool-scout-ingest-projection | 24 | True |
-| soil-service | service | soil | sahool-soil-service | 33 | True |
+| soil-service | service | soil | sahool-soil-service | 34 | True |
 | supervisor-agent | service | agents | sahool-supervisor-agent | 0 | True |
 | telegram-bot | service | messaging-channel | sahool-telegram-bot | 0 | None |
 | tts-service | service | media | sahool-tts-service | 0 | True |
@@ -56,8 +56,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **1031**
-- S2 relations: CALLS=45, CONSUMES=3, EMITS=3, READS=546, ROUTES_TO=73, WRITES=361
+- ARCH-S2 dependency truth: `PASS` — edges **1033**
+- S2 relations: CALLS=45, CONSUMES=3, EMITS=3, READS=547, ROUTES_TO=73, WRITES=362
 
 ## Governance gates (U3/U4)
 

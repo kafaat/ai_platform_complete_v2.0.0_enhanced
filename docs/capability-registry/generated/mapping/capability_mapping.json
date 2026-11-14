@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7339,
+    "files_scanned": 7347,
     "files_by_kind": {
-      "backend": 1284,
-      "database": 323,
+      "backend": 1287,
+      "database": 324,
       "governance": 89,
       "mobile": 415,
       "other": 2181,
-      "tests": 2500,
-      "web": 547
+      "tests": 2503,
+      "web": 548
     },
-    "unmapped_artifacts": 3492,
-    "ambiguous_artifacts": 238,
+    "unmapped_artifacts": 3491,
+    "ambiguous_artifacts": 239,
     "files_by_reading": {
-      "python_functional": 3970,
-      "raw": 3369
+      "python_functional": 3976,
+      "raw": 3371
     },
-    "test_dependency_files": 1900,
-    "test_dependency_edges": 4886,
-    "test_dependency_bounded_files": 1113,
-    "test_dependency_unresolved_relations": 482
+    "test_dependency_files": 1903,
+    "test_dependency_edges": 4897,
+    "test_dependency_bounded_files": 1115,
+    "test_dependency_unresolved_relations": 483
   },
   "capabilities": [
     {
@@ -10949,6 +10949,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_lab_sampling_router.py",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
           "path": "tests_v9/test_glo30_provision_v31_8.py",
           "score": 9,
           "signals": [
@@ -11344,7 +11352,7 @@
         "events": 67,
         "web": 13,
         "mobile": 4,
-        "tests": 42,
+        "tests": 43,
         "governance": 0,
         "other_evidence": 37
       },
@@ -12743,6 +12751,10 @@
           "score": 20
         },
         {
+          "value": "ai_agronomist.plan_soil_sampling @ services/sahool-platform/api/routers/internal_service.py:246",
+          "score": 20
+        },
+        {
           "value": "api.canonical_soil_state @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:144",
           "score": 20
         },
@@ -12890,7 +12902,7 @@
         "backend": 5,
         "routes": 9,
         "database": 8,
-        "events": 11,
+        "events": 12,
         "web": 0,
         "mobile": 0,
         "tests": 3,
@@ -17004,14 +17016,6 @@
         {
           "value": "yield_map_records @ migrations/v259_yield_map_observed_zero.sql:45",
           "score": 17
-        },
-        {
-          "path": "scripts_v9/run_migrations.sql",
-          "score": 10,
-          "signals": [
-            "content:yield map",
-            "content:Yield map ingestion"
-          ]
         }
       ],
       "events": [
@@ -17106,7 +17110,7 @@
       "evidence_counts": {
         "backend": 4,
         "routes": 4,
-        "database": 13,
+        "database": 12,
         "events": 1,
         "web": 0,
         "mobile": 0,
@@ -27654,16 +27658,7 @@
           ]
         }
       ],
-      "governance": [
-        {
-          "path": ".github/workflows/ci.yml",
-          "score": 11,
-          "signals": [
-            "content:service token",
-            "content:Service token guard"
-          ]
-        }
-      ],
+      "governance": [],
       "other_evidence": [
         {
           "path": "scripts/ci/internal_graphql_security_guard.py",
@@ -27694,7 +27689,7 @@
         "web": 0,
         "mobile": 0,
         "tests": 11,
-        "governance": 1,
+        "governance": 0,
         "other_evidence": 2
       },
       "coverage_dimensions": 4,
@@ -28930,10 +28925,19 @@
         },
         {
           "path": "services/sahool-platform/api/routers/soil_sampling.py",
-          "score": 19,
+          "score": 20,
           "signals": [
             "content:sampling plan",
             "path:Soil sampling",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
+          "path": "services/ai_agronomist/ai_evidence_runtime.py",
+          "score": 12,
+          "signals": [
+            "content:sampling plan",
             "content:Soil sampling",
             "dedup:Soil sampling=soil sampling"
           ]
@@ -28966,7 +28970,25 @@
           ]
         },
         {
+          "path": "services/soil-service/plan_copy_store.py",
+          "score": 12,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
           "path": "services/soil-service/routers/p1_products.py",
+          "score": 12,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
+          "path": "services/soil-service/routers/plan_copies.py",
           "score": 12,
           "signals": [
             "content:sampling plan",
@@ -28984,6 +29006,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/soil_hydraulic_client.py",
+          "score": 10,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
           "path": "services/soil-service/p1_store.py",
           "score": 10,
           "signals": [
@@ -28993,7 +29024,7 @@
           ]
         },
         {
-          "path": "services/ai_agronomist/ai_evidence_runtime.py",
+          "path": "services/soil-service/plan_origin.py",
           "score": 9,
           "signals": [
             "content:sampling plan",
@@ -29013,40 +29044,40 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:736",
-          "score": 19
+          "value": "/api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:792",
+          "score": 20
         },
         {
-          "value": "/api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:314",
-          "score": 19
+          "value": "/api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:331",
+          "score": 20
         },
         {
-          "value": "/api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:374",
-          "score": 19
+          "value": "/api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:424",
+          "score": 20
         },
         {
-          "value": "/api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:605",
-          "score": 19
+          "value": "/api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:661",
+          "score": 20
         },
         {
-          "value": "/api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:424",
-          "score": 19
+          "value": "/api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:480",
+          "score": 20
         },
         {
-          "value": "/api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:554",
-          "score": 19
+          "value": "/api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:610",
+          "score": 20
         },
         {
           "value": "/api/v1/soil-sampling/depth @ services/sahool-platform/api/routers/soil_sampling.py:63",
-          "score": 19
+          "score": 20
         },
         {
           "value": "/api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:69",
-          "score": 19
+          "score": 20
         },
         {
           "value": "/api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:57",
-          "score": 19
+          "score": 20
         },
         {
           "value": "/v1/fields/{field_id}/soil/hydraulic-profile @ services/soil-service/routers/p1_products.py:168",
@@ -29054,6 +29085,14 @@
         },
         {
           "value": "/v1/fields/{field_id}/soil/hydraulic-profile/rebuild @ services/soil-service/routers/p1_products.py:114",
+          "score": 12
+        },
+        {
+          "value": "/v1/fields/{field_id}/soil/sampling-plan-copies @ services/soil-service/routers/plan_copies.py:48",
+          "score": 12
+        },
+        {
+          "value": "/v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin @ services/soil-service/routers/plan_copies.py:68",
           "score": 12
         },
         {
@@ -29135,6 +29174,29 @@
       ],
       "database": [
         {
+          "path": "migrations/v273_soil_sampling_plan_copies.sql",
+          "score": 28,
+          "signals": [
+            "path:sampling plan",
+            "content:sampling plan",
+            "path:Soil sampling",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
+          "value": "soil_sampling_plan_copies @ migrations/v273_soil_sampling_plan_copies.sql:10",
+          "score": 28
+        },
+        {
+          "value": "soil_sampling_plan_copies @ migrations/v273_soil_sampling_plan_copies.sql:24",
+          "score": 28
+        },
+        {
+          "value": "soil_sampling_plan_copies @ migrations/v273_soil_sampling_plan_copies.sql:25",
+          "score": 28
+        },
+        {
           "value": "irrigation_water_profiles @ migrations/v161_soil_p1_products.sql:24",
           "score": 12
         },
@@ -29164,6 +29226,15 @@
           "score": 12
         },
         {
+          "path": "scripts_v9/run_migrations.sql",
+          "score": 10,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
           "value": "lab_samples @ migrations/v255_soil_sampling_origin.sql:1",
           "score": 8
         },
@@ -29178,23 +29249,27 @@
       ],
       "events": [
         {
-          "value": "lab_soil_result.submit @ services/sahool-platform/api/routers/soil_sampling.py:454",
-          "score": 19
+          "value": "v273_soil_sampling_plan_copies.sql @ tests_v9/test_soil_sampling_plan_copies_live_pg.py:55",
+          "score": 26
         },
         {
-          "value": "SoilSamplingPlannerPanel.tsx @ frontend/src/components/maphub/SoilSamplingPlannerPanel.static.test.ts:8",
-          "score": 9
+          "value": "lab_soil_result.submit @ services/sahool-platform/api/routers/soil_sampling.py:510",
+          "score": 20
         },
         {
           "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:157",
-          "score": 9
+          "score": 12
         },
         {
           "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:254",
-          "score": 9
+          "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:877",
+          "score": 12
+        },
+        {
+          "value": "SoilSamplingPlannerPanel.tsx @ frontend/src/components/maphub/SoilSamplingPlannerPanel.static.test.ts:8",
           "score": 9
         },
         {
@@ -29244,11 +29319,42 @@
           ]
         },
         {
+          "path": "services/soil-service/test_soil_sampling_plan_origin.py",
+          "score": 27,
+          "signals": [
+            "path:sampling plan",
+            "content:sampling plan",
+            "path:Soil sampling",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
+          "path": "tests_v9/test_soil_sampling_plan_copies_live_pg.py",
+          "score": 26,
+          "signals": [
+            "path:sampling plan",
+            "content:sampling plan",
+            "path:Soil sampling",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
           "path": "tests_v9/test_soil_sampling_strategies_v61_1.py",
           "score": 20,
           "signals": [
             "content:sampling plan",
             "path:Soil sampling",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_soil_plan_origin_client.py",
+          "score": 12,
+          "signals": [
+            "content:sampling plan",
             "content:Soil sampling",
             "dedup:Soil sampling=soil sampling"
           ]
@@ -29272,6 +29378,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_lab_sampling_router.py",
+          "score": 9,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
           "path": "tests_v9/test_soil_layer_v31_7.py",
           "score": 9,
           "signals": [
@@ -29281,7 +29396,17 @@
           ]
         }
       ],
-      "governance": [],
+      "governance": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "score": 12,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        }
+      ],
       "other_evidence": [
         {
           "path": "V61_SOIL_SAMPLING_PLANNER_IMPLEMENTATION_REPORT_20260701.md",
@@ -29299,6 +29424,15 @@
           "score": 14,
           "signals": [
             "path:Soil sampling",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
+          "path": "docs/architecture/db_ownership.yml",
+          "score": 12,
+          "signals": [
+            "content:sampling plan",
             "content:Soil sampling",
             "dedup:Soil sampling=soil sampling"
           ]
@@ -29381,15 +29515,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 10,
-        "routes": 30,
-        "database": 8,
-        "events": 8,
+        "backend": 14,
+        "routes": 32,
+        "database": 13,
+        "events": 9,
         "web": 2,
         "mobile": 0,
-        "tests": 5,
-        "governance": 0,
-        "other_evidence": 10
+        "tests": 9,
+        "governance": 1,
+        "other_evidence": 11
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -31189,7 +31323,7 @@
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:877",
           "score": 12
         },
         {
@@ -33608,6 +33742,10 @@
     },
     {
       "path": "frontend/src/sections/LabSamplingPage.journey.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/LabSamplingPage.originVerification.test.tsx",
       "kind": "web"
     },
     {
@@ -38447,10 +38585,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/soil_hydraulic_client.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/sahool-platform/api/soil_moisture_advisor.py",
       "kind": "backend"
     },
@@ -40544,10 +40678,6 @@
     },
     {
       "path": "services/sahool-platform/tests/test_lab_sampling.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "kind": "tests"
     },
     {
@@ -45529,6 +45659,15 @@
       "kind": "governance",
       "candidates": [
         {
+          "capability_id": "SOIL-002",
+          "score": 12,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
           "capability_id": "OPS-004",
           "score": 12,
           "signals": [
@@ -45551,14 +45690,6 @@
           "signals": [
             "content:model activation",
             "content:model promotion"
-          ]
-        },
-        {
-          "capability_id": "SEC-006",
-          "score": 11,
-          "signals": [
-            "content:service token",
-            "content:Service token guard"
           ]
         }
       ]
@@ -46343,6 +46474,15 @@
             "content:model activation",
             "content:model promotion",
             "content:model rollback"
+          ]
+        },
+        {
+          "capability_id": "SOIL-002",
+          "score": 12,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
           ]
         },
         {
@@ -48640,20 +48780,21 @@
           ]
         },
         {
+          "capability_id": "SOIL-002",
+          "score": 10,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
           "capability_id": "SEC-004",
           "score": 10,
           "signals": [
             "content:MFA",
             "dedup:MFA=mfa",
             "content:totp"
-          ]
-        },
-        {
-          "capability_id": "PA-003",
-          "score": 10,
-          "signals": [
-            "content:yield map",
-            "content:Yield map ingestion"
           ]
         }
       ]
@@ -48717,7 +48858,7 @@
         },
         {
           "capability_id": "SOIL-002",
-          "score": 9,
+          "score": 12,
           "signals": [
             "content:sampling plan",
             "content:Soil sampling",
@@ -50559,6 +50700,29 @@
           "signals": [
             "content:Irrigation recommendation",
             "dedup:Irrigation recommendation=irrigation recommendation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/tests/test_lab_sampling_router.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SOIL-002",
+          "score": 9,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
           ]
         }
       ]
@@ -62620,9 +62784,24 @@
           "line": 445
         },
         {
+          "source": "services/sahool-platform/api/soil_hydraulic_client.py",
+          "kind": "import",
+          "line": 519
+        },
+        {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
           "line": 6
+        },
+        {
+          "source": "services/soil-service/plan_origin.py",
+          "kind": "loader",
+          "line": 522
+        },
+        {
+          "source": "services/soil-service/plan_origin.py",
+          "kind": "source_read",
+          "line": 521
         }
       ],
       "unresolved": []
@@ -65757,6 +65936,34 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_soil_plan_origin_client.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 14
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 15
+        },
+        {
+          "source": "services/sahool-platform/api/routers/internal_service.py",
+          "kind": "import",
+          "line": 15
+        },
+        {
+          "source": "services/sahool-platform/api/soil_hydraulic_client.py",
+          "kind": "import",
+          "line": 14
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_soil_proxy_authorization.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -67996,6 +68203,34 @@
           "source": "shared/contracts/soil/p2.py",
           "kind": "import",
           "line": 5
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/soil-service/test_soil_sampling_plan_origin.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/soil-service/main.py",
+          "kind": "loader",
+          "line": 146
+        },
+        {
+          "source": "services/soil-service/main.py",
+          "kind": "source_read",
+          "line": 146
+        },
+        {
+          "source": "services/soil-service/plan_copy_store.py",
+          "kind": "import",
+          "line": 156
+        },
+        {
+          "source": "services/soil-service/plan_origin.py",
+          "kind": "import",
+          "line": 24
         }
       ],
       "unresolved": []
@@ -91144,6 +91379,23 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_soil_sampling_plan_copies_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "tree_wide_scan",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 65,
+          "call": "spec_from_file_location"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_soil_sampling_planner_v61.py",

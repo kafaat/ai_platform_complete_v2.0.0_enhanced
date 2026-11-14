@@ -5,9 +5,9 @@
 ## Summary
 
 - Capabilities: **81**
-- Average assessed maturity: **1.98 / 5**
-- Aligned: **36**
-- Declared above current evidence: **42**
+- Average assessed maturity: **1.99 / 5**
+- Aligned: **37**
+- Declared above current evidence: **41**
 - Evidence above declared: **3**
 - Runtime verified: **0**
 - Production certified: **0**
@@ -24,7 +24,7 @@
 | precision | 6 | 2.0 | 1.5 | 4 |
 | satellite | 9 | 2.67 | 2.33 | 3 |
 | security | 8 | 2.88 | 2.0 | 4 |
-| soil | 5 | 3.0 | 1.6 | 4 |
+| soil | 5 | 3.0 | 1.8 | 3 |
 | weather | 10 | 2.6 | 1.8 | 6 |
 
 ## Policy

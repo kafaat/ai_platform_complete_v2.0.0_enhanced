@@ -40,6 +40,7 @@ high,sahool-platform,function,_patch_engine_gdd,services/sahool-platform/tests/t
 high,sahool-platform,function,_patch_engine_gdd,services/sahool-platform/tests/test_decision_lineage_endpoints.py,31,0,review_before_delete,False
 high,sahool-platform,function,_reset_breaker,services/sahool-platform/tests/test_openmeteo_circuit.py,21,0,review_before_delete,False
 high,sahool-platform,function,_patch_engine_gdd,services/sahool-platform/tests/test_profit_aware_decision_endpoint.py,25,0,review_before_delete,False
+high,sahool-platform,function,_soil_env,services/sahool-platform/tests/test_soil_plan_origin_client.py,33,0,review_before_delete,False
 high,sam2-inference,function,_startup,services/sam2-inference/main.py,43,0,review_before_delete,False
 high,soil-service,function,_tenant_context_mw,services/soil-service/main.py,121,0,review_before_delete,False
 high,weather-service,function,_reset_breaker,services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py,41,0,review_before_delete,False
@@ -52,7 +53,7 @@ medium,agriai-engine,function,simulation_capability_report,services/agriai-engin
 medium,agriai-engine,function,teardown_module,services/agriai-engine/tests/test_production_readiness_truth.py,60,0,review_before_delete,False
 medium,ai-agronomist,class,ABTestingRuntime,services/ai_agronomist/ab_testing.py,1,0,review_before_delete,False
 medium,ai-agronomist,function,store_backend_name,services/ai_agronomist/agent_stores.py,354,0,review_before_delete,False
-medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,802,0,review_before_delete,False
+medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,806,0,review_before_delete,False
 medium,ai-agronomist,class,ChaosRuntime,services/ai_agronomist/chaos_runtime.py,1,0,review_before_delete,False
 medium,ai-agronomist,class,ComplianceValidator,services/ai_agronomist/compliance_validator.py,1,0,review_before_delete,False
 medium,ai-agronomist,class,DecisionMetrics,services/ai_agronomist/decision_metrics.py,1,0,review_before_delete,False

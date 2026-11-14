@@ -14100,6 +14100,8 @@
         "POST /v1/fields/{field_id}/soil/reclamation-assessment",
         "POST /v1/fields/{field_id}/soil/reclamation-economics",
         "POST /v1/fields/{field_id}/soil/salinity-assessment",
+        "POST /v1/fields/{field_id}/soil/sampling-plan-copies",
+        "POST /v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin",
         "POST /v1/fields/{field_id}/soil/sampling-plans",
         "POST /v1/fields/{field_id}/soil/soilgrids-spatial",
         "POST /v1/fields/{field_id}/soil/terrain-derivatives",
@@ -17417,6 +17419,7 @@
           "soil_runtime_certification_evidence",
           "soil_runtime_certification_runs",
           "soil_salinity_products",
+          "soil_sampling_plan_copies",
           "soil_sampling_plans",
           "soil_spatial_products",
           "soil_terrain_products",
@@ -17852,9 +17855,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1158,
+    "route_rows": 1160,
     "ui_waivers": 52,
-    "unique_method_path": 1037
+    "unique_method_path": 1039
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18116,7 +18119,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "a0dae50ea5aa2f2abc754343f507629024caf51a5b5cf06e23f55ad63782f338",
+  "fingerprint": "4f10dc6671339e490e1288cf0e7a04bfecd5d48c58d7cef048fe1593f7451796",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18166,16 +18169,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1031,
+      "edge_count": 1033,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 546,
+        "READS": 547,
         "ROUTES_TO": 73,
-        "WRITES": 361
+        "WRITES": 362
       }
     },
     "u3_wiring_ownership": {

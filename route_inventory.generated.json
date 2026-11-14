@@ -7194,7 +7194,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 315,
+    "line": 332,
     "method": "GET",
     "path": "/api/v1/lab/samples",
     "function": "list_lab_samples"
@@ -7202,7 +7202,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 375,
+    "line": 425,
     "method": "POST",
     "path": "/api/v1/lab/samples",
     "function": "create_lab_sample"
@@ -7210,7 +7210,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 425,
+    "line": 481,
     "method": "POST",
     "path": "/api/v1/lab/soil-results",
     "function": "submit_soil_lab_result"
@@ -7218,7 +7218,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 555,
+    "line": 611,
     "method": "POST",
     "path": "/api/v1/lab/water-results",
     "function": "submit_water_lab_result"
@@ -7226,7 +7226,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 606,
+    "line": 662,
     "method": "POST",
     "path": "/api/v1/lab/samples/{sample_id}/transition",
     "function": "transition_lab_sample"
@@ -7234,7 +7234,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 737,
+    "line": 793,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/lab-context",
     "function": "field_lab_context"
@@ -8582,6 +8582,22 @@
     "method": "GET",
     "path": "/v1/soil/runtime-certifications/{run_id}",
     "function": "get_certification"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/plan_copies.py",
+    "line": 49,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/sampling-plan-copies",
+    "function": "store_plan_copies"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/plan_copies.py",
+    "line": 69,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin",
+    "function": "resolve_plan_origin"
   },
   {
     "service": "soil-service",

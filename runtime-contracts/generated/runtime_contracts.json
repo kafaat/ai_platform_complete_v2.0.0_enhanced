@@ -2721,7 +2721,8 @@
           "services/soil-service/routers/soil_profile.py",
           "services/soil-service/soilgrids_client.py",
           "services/soil-service/test_soil_canonical_duplicate_identity.py",
-          "services/soil-service/test_soil_ingest_entrypoint_parity.py"
+          "services/soil-service/test_soil_ingest_entrypoint_parity.py",
+          "services/soil-service/test_soil_sampling_plan_origin.py"
         ],
         "metrics": [
           "services/soil-service/projection_observability.py",
@@ -2738,10 +2739,12 @@
           "services/soil-service/routers/p4_workflow.py",
           "services/soil-service/routers/p5_certification.py",
           "services/soil-service/routers/p6_certification.py",
+          "services/soil-service/routers/plan_copies.py",
           "services/soil-service/routers/readings.py",
           "services/soil-service/routers/soil_profile.py",
           "services/soil-service/test_soil_canonical_duplicate_identity.py",
-          "services/soil-service/test_soil_ingest_entrypoint_parity.py"
+          "services/soil-service/test_soil_ingest_entrypoint_parity.py",
+          "services/soil-service/test_soil_sampling_plan_origin.py"
         ],
         "tracing": []
       },

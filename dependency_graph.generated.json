@@ -1,5 +1,5 @@
 {
-  "edge_count": 1031,
+  "edge_count": 1033,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -5932,6 +5932,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/soil-service/plan_copy_store.py",
+      "from": "soil-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://soil_sampling_plan_copies",
+      "to": "db://soil_sampling_plan_copies",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/vegetation-analysis-service/anomaly_store.py",
       "from": "vegetation-analysis-service",
       "from_kind": "component",
@@ -10262,6 +10272,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/soil-service/plan_copy_store.py",
+      "from": "soil-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://soil_sampling_plan_copies",
+      "to": "db://soil_sampling_plan_copies",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/soil-service/p1_store.py",
       "from": "soil-service",
       "from_kind": "component",
@@ -10330,9 +10350,9 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 546,
+    "READS": 547,
     "ROUTES_TO": 73,
-    "WRITES": 361
+    "WRITES": 362
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -10347,8 +10367,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 908,
-      "resolved": 907,
+      "observed": 910,
+      "resolved": 909,
       "unresolved_component_paths": 0
     }
   }

@@ -33,7 +33,7 @@
     "services.video-processor.main:app",
     "services.weather-service.main:app"
   ],
-  "definition_count": 269,
+  "definition_count": 270,
   "definitions": [
     {
       "kind": "app",
@@ -2278,6 +2278,15 @@
     },
     {
       "kind": "router",
+      "line": 21,
+      "module": "services.soil-service.routers.plan_copies",
+      "node_id": "services.soil-service.routers.plan_copies:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
       "line": 19,
       "module": "services.soil-service.routers.readings",
       "node_id": "services.soil-service.routers.readings:router",
@@ -2955,8 +2964,8 @@
       "target": null
     }
   ],
-  "inventory_sha256": "ac44189ea094b61d3ed78febdb9e0958f4b3ccb7fd2a657a0db35ff72c4cd2e8",
-  "orphan_candidate_count": 236,
+  "inventory_sha256": "ccbc46340f6d318a95377179a358498c6ba57ee37356837f719887dcac607d01",
+  "orphan_candidate_count": 237,
   "orphan_candidates": [
     {
       "classification": "review_only_not_statically_reachable",
@@ -5171,6 +5180,16 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
+      "line": 21,
+      "module": "services.soil-service.routers.plan_copies",
+      "node_id": "services.soil-service.routers.plan_copies:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
       "line": 19,
       "module": "services.soil-service.routers.readings",
       "node_id": "services.soil-service.routers.readings:router",
@@ -5322,7 +5341,7 @@
   "production_certified": false,
   "reachable_node_count": 33,
   "resolved_include_edge_count": 3,
-  "router_with_routes_count": 239,
+  "router_with_routes_count": 240,
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,

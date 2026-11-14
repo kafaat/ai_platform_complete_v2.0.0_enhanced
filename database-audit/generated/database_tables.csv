@@ -319,6 +319,7 @@ soil_regional_calibrations,v165_soil_p5_validation_calibration_certification.sql
 soil_runtime_certification_evidence,v166_soil_p6_runtime_certification.sql,171,True,True,True,0,False,False,0,0
 soil_runtime_certification_runs,v166_soil_p6_runtime_certification.sql,171,True,True,True,0,False,False,0,0
 soil_salinity_products,v162_soil_p2_spatial_products.sql,167,True,False,False,0,False,True,0,0
+soil_sampling_plan_copies,v273_soil_sampling_plan_copies.sql,259,True,True,True,1,True,False,1,1
 soil_sampling_plans,v161_soil_p1_products.sql,166,True,False,False,0,False,True,1,2
 soil_spatial_products,v161_soil_p1_products.sql,166,True,False,False,0,False,True,0,1
 soil_terrain_products,v162_soil_p2_spatial_products.sql,167,True,False,False,0,False,True,0,0
