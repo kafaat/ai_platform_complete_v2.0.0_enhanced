@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7313,
+    "files_scanned": 7327,
     "files_by_kind": {
-      "backend": 1283,
+      "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
-      "other": 2173,
-      "tests": 2486,
-      "web": 544
+      "other": 2175,
+      "tests": 2494,
+      "web": 547
     },
-    "unmapped_artifacts": 3482,
+    "unmapped_artifacts": 3489,
     "ambiguous_artifacts": 239,
     "files_by_reading": {
-      "python_functional": 3954,
-      "raw": 3359
+      "python_functional": 3963,
+      "raw": 3364
     },
-    "test_dependency_files": 1888,
-    "test_dependency_edges": 4836,
-    "test_dependency_bounded_files": 1108,
+    "test_dependency_files": 1894,
+    "test_dependency_edges": 4857,
+    "test_dependency_bounded_files": 1111,
     "test_dependency_unresolved_relations": 479
   },
   "capabilities": [
@@ -20281,7 +20281,7 @@
           "score": 8
         },
         {
-          "value": "/metrics @ services/agriai-engine/main.py:92",
+          "value": "/metrics @ services/agriai-engine/main.py:93",
           "score": 8
         },
         {
@@ -20293,7 +20293,7 @@
           "score": 8
         },
         {
-          "value": "/runtime-identity @ services/agriai-engine/main.py:99",
+          "value": "/runtime-identity @ services/agriai-engine/main.py:100",
           "score": 8
         },
         {
@@ -20333,19 +20333,19 @@
           "score": 8
         },
         {
-          "value": "/v1/plan @ services/agriai-engine/main.py:351",
+          "value": "/v1/plan @ services/agriai-engine/main.py:352",
           "score": 8
         },
         {
-          "value": "/v1/recommend @ services/agriai-engine/main.py:273",
+          "value": "/v1/recommend @ services/agriai-engine/main.py:274",
           "score": 8
         },
         {
-          "value": "/v1/replay/verify @ services/agriai-engine/main.py:367",
+          "value": "/v1/replay/verify @ services/agriai-engine/main.py:368",
           "score": 8
         },
         {
-          "value": "/v1/simulate @ services/agriai-engine/main.py:338",
+          "value": "/v1/simulate @ services/agriai-engine/main.py:339",
           "score": 8
         },
         {
@@ -25857,14 +25857,6 @@
           ]
         },
         {
-          "path": "PLATFORM_MAIN_SUBINVENTORY_20260709.md",
-          "score": 11,
-          "signals": [
-            "content:rls",
-            "content:Tenant RLS"
-          ]
-        },
-        {
           "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/selected-jobs.json",
           "score": 11,
           "signals": [
@@ -25945,6 +25937,14 @@
           "signals": [
             "content:rls",
             "content:row level security"
+          ]
+        },
+        {
+          "path": "PLATFORM_MAIN_SUBINVENTORY_20260709.md",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:Tenant RLS"
           ]
         },
         {
@@ -26537,6 +26537,16 @@
           ]
         },
         {
+          "path": "services/auth/mfa_enrollment.py",
+          "score": 20,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:totp"
+          ]
+        },
+        {
           "path": "services/auth/main.py",
           "score": 13,
           "signals": [
@@ -26558,15 +26568,15 @@
       ],
       "routes": [
         {
-          "value": "/v1/auth/mfa/activate @ services/auth/routers/mfa.py:103",
+          "value": "/v1/auth/mfa/activate @ services/auth/routers/mfa.py:138",
           "score": 26
         },
         {
-          "value": "/v1/auth/mfa/disable @ services/auth/routers/mfa.py:178",
+          "value": "/v1/auth/mfa/disable @ services/auth/routers/mfa.py:231",
           "score": 26
         },
         {
-          "value": "/v1/auth/mfa/setup @ services/auth/routers/mfa.py:47",
+          "value": "/v1/auth/mfa/setup @ services/auth/routers/mfa.py:61",
           "score": 26
         },
         {
@@ -26711,8 +26721,40 @@
       ],
       "web": [
         {
+          "path": "frontend/src/pages/LoginPage.mfaEnrollment.test.tsx",
+          "score": 25,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:recovery code",
+            "content:totp"
+          ]
+        },
+        {
+          "path": "frontend/src/pages/MfaEnrollmentStep.tsx",
+          "score": 21,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:recovery code",
+            "content:totp"
+          ]
+        },
+        {
+          "path": "frontend/src/services/api/auth.ts",
+          "score": 15,
+          "signals": [
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:recovery code",
+            "content:totp"
+          ]
+        },
+        {
           "path": "frontend/src/pages/LoginPage.tsx",
-          "score": 11,
+          "score": 12,
           "signals": [
             "content:MFA",
             "dedup:MFA=mfa",
@@ -26721,15 +26763,6 @@
         },
         {
           "path": "frontend/src/sections/SettingsPage.tsx",
-          "score": 10,
-          "signals": [
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:totp"
-          ]
-        },
-        {
-          "path": "frontend/src/services/api/auth.ts",
           "score": 10,
           "signals": [
             "content:MFA",
@@ -26851,6 +26884,16 @@
           ]
         },
         {
+          "path": "tests_v9/test_auth_enrollment_http.py",
+          "score": 15,
+          "signals": [
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:recovery code",
+            "content:totp"
+          ]
+        },
+        {
           "path": "tests_v9/test_auth_cors_mfa_header.py",
           "score": 14,
           "signals": [
@@ -26866,6 +26909,16 @@
             "path:MFA",
             "content:MFA",
             "dedup:MFA=mfa"
+          ]
+        },
+        {
+          "path": "frontend/src/services/api/authEnrollment.test.ts",
+          "score": 13,
+          "signals": [
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:recovery code",
+            "content:totp"
           ]
         },
         {
@@ -26890,6 +26943,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "shared/security/mfa_enrollment_tokens.py",
+          "score": 14,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa"
+          ]
+        },
+        {
           "path": "AUTH_MAIN_DECOMPOSITION_P0_REPORT_20260709.md",
           "score": 13,
           "signals": [
@@ -26902,6 +26964,16 @@
         {
           "path": "scripts/ci/auth_main_decomposition_guard.py",
           "score": 13,
+          "signals": [
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:recovery code",
+            "content:totp"
+          ]
+        },
+        {
+          "path": "docs/runbooks/RAILWAY_AUTH_DEPLOYMENT.md",
+          "score": 12,
           "signals": [
             "content:MFA",
             "dedup:MFA=mfa",
@@ -26955,6 +27027,15 @@
           ]
         },
         {
+          "path": "docs/reviews/main_entrypoint_fixes_20261111.md",
+          "score": 9,
+          "signals": [
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:totp"
+          ]
+        },
+        {
           "path": "docs/runbooks/DOCKER_BUILD_CHECKLIST_CRITICAL_AND_EXTENDED_SERVICES_20260710.md",
           "score": 9,
           "signals": [
@@ -26969,15 +27050,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 5,
+        "backend": 6,
         "routes": 9,
         "database": 19,
         "events": 1,
-        "web": 3,
+        "web": 5,
         "mobile": 4,
-        "tests": 11,
+        "tests": 13,
         "governance": 0,
-        "other_evidence": 8
+        "other_evidence": 11
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -31575,6 +31656,10 @@
     },
     {
       "path": "frontend/src/components/AddFieldWithMap.pivot.behavior.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/AddFieldWithMap.segmentation.test.tsx",
       "kind": "web"
     },
     {
@@ -36382,6 +36467,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/edge-inference/tests/test_entrypoint_validation_lifecycle.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
       "kind": "tests"
     },
@@ -40866,6 +40955,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_service_proxy_transport.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_signal_age_naive_datetime.py",
       "kind": "tests"
     },
@@ -42430,6 +42523,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_auth_enrollment_redis_acl.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_auth_main_decomposition_guard.py",
       "kind": "tests"
     },
@@ -43043,6 +43140,10 @@
     },
     {
       "path": "tests_v9/test_economic_state.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_edge_agriai_entrypoint_contracts.py",
       "kind": "tests"
     },
     {
@@ -44826,6 +44927,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_soil_script_entrypoint.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_soil_water.py",
       "kind": "tests"
     },
@@ -45155,6 +45260,10 @@
     },
     {
       "path": "tests_v9/test_verify_sweep_writer_diagnostics.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_video_capture_source_contract.py",
       "kind": "tests"
     },
     {
@@ -53223,6 +53332,26 @@
           "call": "import_module"
         }
       ]
+    },
+    {
+      "test": "services/edge-inference/tests/test_entrypoint_validation_lifecycle.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference"
+      ],
+      "edges": [
+        {
+          "source": "services/edge-inference/main.py",
+          "kind": "loader",
+          "line": 15
+        },
+        {
+          "source": "services/edge-inference/main.py",
+          "kind": "source_read",
+          "line": 16
+        }
+      ],
+      "unresolved": []
     },
     {
       "test": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
@@ -65464,6 +65593,39 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_service_proxy_transport.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 11
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 11
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 12
+        },
+        {
+          "source": "services/sahool-platform/api/routers/service_proxy.py",
+          "kind": "import",
+          "line": 12
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 13
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_signal_age_naive_datetime.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -67298,28 +67460,29 @@
       "test": "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
       "bounded": false,
       "unbounded_reasons": [
+        "directory_reference",
         "reads_repository_data_file"
       ],
       "edges": [
         {
           "source": "services/sam2-inference/main.py",
           "kind": "loader",
-          "line": 76
+          "line": 68
         },
         {
           "source": "services/sam2-inference/main.py",
           "kind": "source_read",
-          "line": 76
+          "line": 68
         },
         {
           "source": "services/sam2-inference/sam2_runtime.py",
           "kind": "loader",
-          "line": 75
+          "line": 335
         },
         {
           "source": "services/sam2-inference/sam2_runtime.py",
           "kind": "source_read",
-          "line": 75
+          "line": 335
         }
       ],
       "unresolved": []
@@ -72880,7 +73043,7 @@
       ],
       "unresolved": [
         {
-          "line": 41,
+          "line": 45,
           "call": "spec_from_file_location"
         }
       ]
@@ -72901,6 +73064,59 @@
           "source": "services/auth/main.py",
           "kind": "source_read",
           "line": 49
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_auth_enrollment_http.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "shared_test_helper"
+      ],
+      "edges": [
+        {
+          "source": "services/auth/main.py",
+          "kind": "import",
+          "line": 815
+        },
+        {
+          "source": "services/auth/main.py",
+          "kind": "loader",
+          "line": 23
+        },
+        {
+          "source": "services/auth/mfa_crypto.py",
+          "kind": "import",
+          "line": 24
+        },
+        {
+          "source": "services/auth/mfa_enrollment.py",
+          "kind": "import",
+          "line": 775
+        },
+        {
+          "source": "shared/security/access_tokens.py",
+          "kind": "import",
+          "line": 463
+        },
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 18
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_auth_enrollment_redis_acl.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "tests_v9/test_redis_acl_per_service.py",
+          "kind": "import",
+          "line": 5
         }
       ],
       "unresolved": []
@@ -76489,7 +76705,7 @@
         {
           "source": "shared/db_role_guard.py",
           "kind": "import",
-          "line": 19
+          "line": 22
         }
       ],
       "unresolved": []
@@ -77365,6 +77581,24 @@
           "source": "services/sahool-platform/api/economic_state.py",
           "kind": "import",
           "line": 22
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_edge_agriai_entrypoint_contracts.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/agriai-engine/main.py",
+          "kind": "source_read",
+          "line": 128
+        },
+        {
+          "source": "services/edge-inference/main.py",
+          "kind": "source_read",
+          "line": 63
         }
       ],
       "unresolved": []
@@ -81218,18 +81452,24 @@
       "bounded": false,
       "unbounded_reasons": [
         "directory_reference",
-        "reads_repository_data_file"
+        "reads_repository_data_file",
+        "tree_wide_scan"
       ],
       "edges": [
         {
           "source": "scripts/diagnostics/build_main_inventory.py",
           "kind": "loader",
-          "line": 26
+          "line": 27
         },
         {
           "source": "scripts/diagnostics/build_main_inventory.py",
           "kind": "source_read",
-          "line": 27
+          "line": 28
+        },
+        {
+          "source": "services/field-segmentation/main.py",
+          "kind": "source_read",
+          "line": 344
         }
       ],
       "unresolved": []
@@ -84573,7 +84813,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 309
+          "line": 314
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
@@ -90982,7 +91222,7 @@
         {
           "source": "services/soil-service/main.py",
           "kind": "source_read",
-          "line": 488
+          "line": 594
         },
         {
           "source": "shared/__init__.py",
@@ -90997,7 +91237,7 @@
         {
           "source": "shared/startup_retry.py",
           "kind": "source_read",
-          "line": 401
+          "line": 507
         }
       ],
       "unresolved": []
@@ -92850,7 +93090,7 @@
         {
           "source": "scripts/ci/v9_gpu_contract_gate.py",
           "kind": "source_read",
-          "line": 101
+          "line": 144
         }
       ],
       "unresolved": []
@@ -93044,6 +93284,36 @@
           "source": "scripts/ci/verify_all_generated.py",
           "kind": "source_read",
           "line": 28
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_video_capture_source_contract.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "shared_test_helper"
+      ],
+      "edges": [
+        {
+          "source": "services/video-processor/main.py",
+          "kind": "loader",
+          "line": 23
+        },
+        {
+          "source": "services/video-processor/routers/streams.py",
+          "kind": "import",
+          "line": 143
+        },
+        {
+          "source": "services/video-processor/zlmedia_client.py",
+          "kind": "import",
+          "line": 100
+        },
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 15
         }
       ],
       "unresolved": []
