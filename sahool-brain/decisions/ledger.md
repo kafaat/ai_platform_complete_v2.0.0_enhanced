@@ -4764,6 +4764,12 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 **السبب:** تفويضٌ `ISSUED` هبطت بايتاته يُسقط `gate01_frozen_path_guard` على كلّ PR (`GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01`)؛ والبصمة الوحيدة المأذونة (`actuator_runtime.py` = `815a1327`) مطابقةٌ لشجرة `ce4b05c46`، والقرار الموقَّع محجوزٌ في `consumed_authorizations.json` على main.
 **المرجع:** #1367 · `docs/architecture/gates/adjudications/GATE01-ADJ-2026-11-09-001.json` · فرع `claude/seal-gate01-adj-2026-11-09-001`.
 
+## 2026-11-11 — نطاق إصلاحات مراجعة main وحدود القبول
+
+- **القرار التنفيذي:** حمل الحزمة الخارجيّة على `claude/main-runtime-fixes-20261111` من `d022c3e65` بعد مراجعة وإصلاح ما وُجد فيها، لا دمجها كما سُلِّمت.
+- **السبب:** الحزمة كما سُلِّمت تُسقط بوّابةً حاجبة (Unit Tests) وتُخفي عطلاً إنتاجيّاً (تفعيل MFA ⇒ 409 على Postgres حقيقيّ) خلف اختبارات بديلة خضراء؛ والتسجيل بكلمة السرّ وحدها وُسِّع لكلّ حساب حسّاس، فقُيِّد افتراضاً بحالة إقلاع المستأجر (`MFA_SELF_ENROLLMENT_SCOPE=bootstrap`) قراراً أمنيّاً قابلاً للمراجعة من المالك.
+- **الحدود:** إبقاء actuator المجمّد بلا تعديل؛ عدم تحويل نجاح resolver إلى ادعاء قفل عابر أو بناء GPU؛ عدم ادعاء دعم XTTS في Python 3.12. لا تعديل صلاحيات المالك أو سياسات البوابات.
+- **المرجع:** [تقرير الإصلاح](../../docs/reviews/main_entrypoint_fixes_20261111.md). الاختبارات النهائية وpreflight قيد التجميع، وتشغيل Docker/GPU/mobile الفعلي `NOT_RUN`.
 **2026-11-12 — فتح GATE-01 (CLOSED → OPEN) بقرار المالك.**
 **السبب:** عُرض على المالك البديلُ المقيَّد، وهو تفويضٌ موقَّع لكلّ PR وكانت ثلاثة تواقيع تكفي للأعمال المحجوزة، فاختار «افضل الفتح الكامل» لغرض التطوير والإصلاح. يسري الفتح فقط بظرف `state_transition` موقَّع بمفتاح المالك (`GATE01-AUTH-2026-11-12-001`). يبقى `owner_signature` كما هو: إضعافه أو تدوير المفتاح يحتاج توقيعاً. والإغلاق تشديدٌ لا يحتاج توقيعاً.
 **المرجع:** فرع `gate01/open-phase1` · سجلّ القرار في `docs/architecture/gates/rulings/` · `docs/architecture/gate01_policy.json`.

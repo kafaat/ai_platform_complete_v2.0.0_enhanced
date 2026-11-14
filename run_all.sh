@@ -102,7 +102,7 @@ start_frontend_dev() {
     fi
     if [[ -d "$FRONTEND_DIR" ]] && command -v npm &>/dev/null; then
         cd "$FRONTEND_DIR"
-        [[ ! -d node_modules ]] && npm install --legacy-peer-deps
+        [[ ! -d node_modules ]] && npm install
         cat > .env.local << 'FE'
 VITE_API_URL=http://localhost:8000
 VITE_INDICATORS_URL=http://localhost:8091

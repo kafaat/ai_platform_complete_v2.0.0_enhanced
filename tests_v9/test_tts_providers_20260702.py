@@ -315,3 +315,16 @@ def test_voices_endpoint_includes_providers():
     assert body["default"] == main.DEFAULT_VOICE
     assert "voices" in body and body["voices"]
     assert any(p["name"] == "edge_tts" for p in body["providers"])
+
+
+def test_unavailable_xtts_explains_default_image_limit(monkeypatch):
+    import asyncio
+
+    import providers
+
+    monkeypatch.setattr(providers, "_XTTS_LIB_AVAILABLE", False)
+    monkeypatch.setenv("XTTS_ENABLE", "1")
+    provider = XTTSProvider()
+    assert not provider.available()
+    with pytest.raises(RuntimeError, match="Python 3.12.*TTS 0.22.0"):
+        asyncio.run(provider.synthesize("hello", "voice", "+0%", "+0Hz", "+0%"))

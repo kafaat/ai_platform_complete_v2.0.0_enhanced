@@ -44,7 +44,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 93,
+      "line": 94,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -53,7 +53,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 100,
+      "line": 101,
       "method": "GET",
       "path": "/runtime-identity",
       "function": "runtime_evidence_identity",
@@ -62,7 +62,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 274,
+      "line": 275,
       "method": "POST",
       "path": "/v1/recommend",
       "function": "recommend",
@@ -71,7 +71,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 339,
+      "line": 340,
       "method": "POST",
       "path": "/v1/simulate",
       "function": "simulate",
@@ -80,7 +80,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 352,
+      "line": 353,
       "method": "POST",
       "path": "/v1/plan",
       "function": "plan",
@@ -89,7 +89,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 368,
+      "line": 369,
       "method": "POST",
       "path": "/v1/replay/verify",
       "function": "replay_verify",
@@ -890,7 +890,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 194,
+      "line": 205,
       "method": "GET",
       "path": "/healthz",
       "function": "health_check",
@@ -899,7 +899,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 226,
+      "line": 239,
       "method": "POST",
       "path": "/v1/inference/pest-detect",
       "function": "detect_pest",
@@ -908,7 +908,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 305,
+      "line": 316,
       "method": "POST",
       "path": "/v1/inference/yield-estimate",
       "function": "estimate_yield",
@@ -917,7 +917,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 376,
+      "line": 385,
       "method": "POST",
       "path": "/v1/sync/trigger",
       "function": "trigger_sync",
@@ -926,7 +926,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 408,
+      "line": 417,
       "method": "GET",
       "path": "/capabilities",
       "function": "capabilities",
@@ -935,7 +935,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 413,
+      "line": 422,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -944,7 +944,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 423,
+      "line": 432,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1016,7 +1016,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 375,
+      "line": 546,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1025,7 +1025,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 380,
+      "line": 551,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -1034,7 +1034,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 385,
+      "line": 556,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1043,7 +1043,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 431,
+      "line": 602,
       "method": "POST",
       "path": "/v1/segment",
       "function": "segment",
@@ -1376,7 +1376,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 125,
+      "line": 130,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1385,7 +1385,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 130,
+      "line": 135,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -1394,7 +1394,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 135,
+      "line": 140,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1448,7 +1448,7 @@
     {
       "service": "soil-service",
       "file": "services/soil-service/main.py",
-      "line": 221,
+      "line": 220,
       "method": "GET",
       "path": "/runtime-identity",
       "function": "runtime_evidence_identity",

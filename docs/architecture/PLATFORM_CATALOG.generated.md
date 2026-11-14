@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `61c9fd8607f62f73177e1211026e1dc0150e2f5c3a769f069379e9f5b51f078b`
+- fingerprint: `91c6e2e61bc9182bf86c57030e9f94c26d8ef78ae94c4e2a6eb6791a6c9dfad7`
 - components: **37** (backend: 33)
 - route rows: **1137** → unique method/path: **1016**
 - capabilities (derived, uncurated): **841**
@@ -56,8 +56,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **965**
-- S2 relations: CALLS=45, CONSUMES=3, EMITS=3, READS=504, ROUTES_TO=73, WRITES=337
+- ARCH-S2 dependency truth: `PASS` — edges **966**
+- S2 relations: CALLS=45, CONSUMES=3, EMITS=3, READS=505, ROUTES_TO=73, WRITES=337
 
 ## Governance gates (U3/U4)
 

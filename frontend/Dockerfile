@@ -10,14 +10,14 @@ WORKDIR /app
 
 # تثبيت الاعتماديات أوّلاً (للاستفادة من Docker layer caching)
 # نستخدم سجلّ npm الرسميّ (registry.npmjs.org) — مرآة صينيّة محجوبة/بطيئة عالميّاً.
-# .npmrc يُنسخ أوّلاً حتى تكون legacy-peer-deps=true متاحة لـnpm ci.
+# Copy peer-resolution policy before installation so Docker matches local/CI installs.
 # npm ci يحتاج package-lock.json؛ لو غاب نقع على npm install
 COPY package.json package-lock.json* .npmrc* ./
 RUN if [ -f package-lock.json ]; then \
-      npm ci --legacy-peer-deps; \
+      npm ci; \
     else \
       echo "⚠ لا package-lock.json — نستخدم npm install" && \
-      npm install --legacy-peer-deps; \
+      npm install; \
     fi
 
 # نسخ الكود وبناء المشروع
