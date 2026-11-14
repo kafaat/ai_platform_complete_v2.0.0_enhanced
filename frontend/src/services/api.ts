@@ -3639,6 +3639,11 @@ export interface SamplingOrigin {
   planned_depth_cm?: [number, number];
   indicator_sources?: Record<string, {scene_id?: string; acquisition_date?: string; asset_id?: string}>;
   point_id: string; zone_id: string; longitude: number; latitude: number; indicators: string[];
+  // Set by soil-service from its stored copy of the plan (gap P6); a client never sends these.
+  plan_id?: string;
+  verification?: 'stored_plan';
+  client_claim_mismatch?: string[];
+  collection?: {latitude: number; longitude: number; deviation_m: number; tolerance_m: number; on_plan: boolean; deviation_reason?: string | null};
 }
 export interface LabSampleCreateInput {
   idempotency_key?: string;
@@ -3654,6 +3659,7 @@ export interface LabSampleCreateInput {
   source?: string | null;
   status?: 'planned' | 'collected' | 'submitted';
   gps_accuracy_m?: number | null;
+  deviation_reason?: string;
 }
 export type SoilECMethod = 'saturated_paste' | 'soil_water_1_1' | 'soil_water_1_2_5' | 'soil_water_1_5' | 'unspecified';
 export interface SoilLabResultInput {

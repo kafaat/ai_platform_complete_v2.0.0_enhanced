@@ -1081,7 +1081,7 @@ jobs:
             run_group services/odoo-bridge/test_erp_readiness_granular.py services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py
             run_group services/qdrant-seed/test_aljawf_knowledge.py
             run_group services/rag-retrieval/tests/test_rag_retrieval_static_route_smoke.py
-            run_group services/soil-service/test_canonical_soil_profile.py services/soil-service/test_soil_cutover_readiness.py services/soil-service/test_soil_evidence_adapters_and_policy.py services/soil-service/test_soil_ingest_entrypoint_parity.py services/soil-service/test_soil_lab_supersession_adapter.py services/soil-service/test_soil_p1_products.py services/soil-service/test_soil_p2_products.py services/soil-service/test_soil_p3_products.py services/soil-service/test_soil_p4_governance.py services/soil-service/test_soil_p5_certification.py services/soil-service/test_soil_p6_certification.py services/soil-service/test_soil_projection_jobs.py services/soil-service/test_soil_projection_observability.py services/soil-service/test_soil_router_decomposition_guard.py services/soil-service/test_soil_snapshot_identity.py services/soil-service/test_soil_supersession_current_pointer.py services/soil-service/test_soil_validation.py
+            run_group services/soil-service/test_canonical_soil_profile.py services/soil-service/test_soil_cutover_readiness.py services/soil-service/test_soil_evidence_adapters_and_policy.py services/soil-service/test_soil_ingest_entrypoint_parity.py services/soil-service/test_soil_lab_supersession_adapter.py services/soil-service/test_soil_p1_products.py services/soil-service/test_soil_p2_products.py services/soil-service/test_soil_p3_products.py services/soil-service/test_soil_p4_governance.py services/soil-service/test_soil_p5_certification.py services/soil-service/test_soil_p6_certification.py services/soil-service/test_soil_projection_jobs.py services/soil-service/test_soil_projection_observability.py services/soil-service/test_soil_router_decomposition_guard.py services/soil-service/test_soil_sampling_plan_origin.py services/soil-service/test_soil_snapshot_identity.py services/soil-service/test_soil_supersession_current_pointer.py services/soil-service/test_soil_validation.py
             run_group services/supervisor-agent/test_ai_orchestration_forensic.py services/supervisor-agent/test_chaos_resilience.py services/supervisor-agent/test_circuit_breaker.py services/supervisor-agent/test_circuit_observability.py services/supervisor-agent/test_graceful_degradation.py services/supervisor-agent/test_router.py services/supervisor-agent/test_supervisor_router_decomposition_guard.py
             run_group services/tts-service/test_tts_router_decomposition_guard.py
             run_group services/vegetation-analysis-service/test_anomaly_engine.py services/vegetation-analysis-service/test_anomaly_store.py services/vegetation-analysis-service/test_baseline_engine.py services/vegetation-analysis-service/test_decision_bridge_candidate.py services/vegetation-analysis-service/test_diagnosis_engine.py services/vegetation-analysis-service/test_ground_verification_bridge.py services/vegetation-analysis-service/test_platform_field_catalog_boundary.py services/vegetation-analysis-service/test_raster_bundle_boundary.py services/vegetation-analysis-service/test_rs_final_hardening.py services/vegetation-analysis-service/test_rs_review_hardening.py services/vegetation-analysis-service/test_vegetation_event_admission.py services/vegetation-analysis-service/test_vegetation_logic.py services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py
@@ -1542,6 +1542,17 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           SOIL_FUNCTIONAL_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_services_functional.py
+
+      # Gap P6: soil-service's soil_sampling_plan_copies (v273) under the restricted role. The
+      # role must be NOBYPASSRLS for FORCE RLS to mean anything; v273 is re-applied twice on the
+      # migrated schema; the 66 km origin is refused against the live copy. The flag turns any
+      # skip into a failure.
+      - name: Soil-sampling plan copies (gap P6, real-PG, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          SOIL_PLAN_COPIES_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_soil_sampling_plan_copies_live_pg.py
 
       # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
       # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real

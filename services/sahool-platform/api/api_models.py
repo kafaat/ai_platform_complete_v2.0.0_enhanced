@@ -748,6 +748,9 @@ class InternalAIAdviceEventRequest(BaseModel):
     selected_imagery_date: str | None = None
     endpoint_mode: str = "chat"
     model_output: str | None = Field(default=None, max_length=32768)
+    # Soil-sampling plans the planner tool produced in this turn. The platform hands them to
+    # soil-service, which owns the stored copies a lab sample's plan point is resolved from.
+    soil_sampling_plans: list[dict] = Field(default_factory=list, max_length=10)
 
 
 class ImageryFieldRegister(BaseModel):

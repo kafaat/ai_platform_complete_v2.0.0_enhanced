@@ -30,7 +30,7 @@ from core.lab_sampling import (
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
 
-from api import lab_store
+from api import lab_store, soil_hydraulic_client
 from api.idempotency import request_digest
 from api.main import (
     CommandStore,
@@ -173,10 +173,27 @@ class LabSampleIn(BaseModel):
             raise ValueError("ending depth must exceed starting depth")
         if self.sampling_origin and (self.kind != "soil" or not self.sampling_plan_id):
             raise ValueError("sampling_origin requires a soil sample and a plan ID")
+        if self.sampling_plan_id and not self.sampling_origin:
+            # A plan claim is verified against the stored plan point (gap P6); a plan ID with
+            # no point to verify would be stored as an unverifiable claim.
+            raise ValueError("a plan ID requires sampling_origin naming the plan point")
+        if self.deviation_reason is not None and not self.sampling_plan_id:
+            raise ValueError("deviation_reason applies to a plan-point sample")
         return self
 
     barcode: str | None = None
     collected_by: str | None = None
+    # Why the collection position is farther from the planned point than the plan tolerance.
+    # soil-service measures the distance; without a reason such a sample is refused.
+    deviation_reason: str | None = Field(default=None, min_length=3, max_length=200)
+
+    @field_validator("deviation_reason", mode="before")
+    @classmethod
+    def blank_reason_is_none(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            return value or None
+        return value
 
 
 class SoilLabResultIn(BaseModel):
@@ -360,6 +377,8 @@ async def list_lab_samples(
 def _sample_request_digest(payload: LabSampleIn) -> str:
     """بصمة الحمولة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
     data = payload.model_dump(mode="json")
+    if data["deviation_reason"] is None:
+        del data["deviation_reason"]  # preserve earlier retry fingerprints
     if data["sampling_origin"] is None:
         del data["sampling_origin"]  # preserve pre-migration retry fingerprints
     else:
@@ -369,6 +388,37 @@ def _sample_request_digest(payload: LabSampleIn) -> str:
         data["sampling_origin"] = origin
     canonical = json.dumps(data, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+async def _resolve_plan_origin(payload: LabSampleIn, user: UserSchema, claimed: dict) -> dict:
+    """The plan-point origin soil-service resolves and verifies, or an HTTP refusal.
+
+    Unknown or other-tenant plan, point not in the plan, collection beyond the tolerance without
+    a reason ⇒ 422 with soil-service's typed code. soil-service unreachable or answering
+    anything but a verified origin ⇒ 503: a sample that claims a plan is never stored on the
+    strength of the claim alone (fail closed)."""
+    try:
+        return await soil_hydraulic_client.resolve_sampling_origin(
+            tenant_id=str(user.tenant_id),
+            field_id=payload.field_id,
+            plan_id=payload.sampling_plan_id,
+            point_id=payload.sampling_origin.point_id,
+            latitude=payload.latitude,
+            longitude=payload.longitude,
+            gps_accuracy_m=payload.gps_accuracy_m,
+            deviation_reason=payload.deviation_reason,
+            claimed=claimed,
+        )
+    except soil_hydraulic_client.SamplingOriginRefused as exc:
+        raise HTTPException(422, exc.detail) from exc
+    except soil_hydraulic_client.SamplingPlanVerificationUnavailable as exc:
+        raise HTTPException(
+            503,
+            {
+                "code": "sampling_plan_verification_unavailable",
+                "message": "the sampling plan could not be verified; retry later",
+            },
+        ) from exc
 
 
 @router.post("/api/v1/lab/samples")
@@ -382,15 +432,21 @@ async def create_lab_sample(
     عيّنةً جديدة بمعرّف جديد. الإعادة الصادقة تُعيد العيّنة الأولى؛ والمفتاح نفسه بحمولة
     مختلفة ⇒ 409."""
     data = payload.model_dump(mode="python")
+    claimed = None
     if payload.sampling_origin is not None:
-        origin = payload.sampling_origin.model_dump(mode="json", exclude_none=True)
-        if not origin["indicator_sources"]:
-            del origin["indicator_sources"]
-        data["sampling_origin"] = origin
+        claimed = payload.sampling_origin.model_dump(mode="json", exclude_none=True)
+        if not claimed["indicator_sources"]:
+            del claimed["indicator_sources"]
+    # The origin is stored only as soil-service resolves it from the stored plan copy; the
+    # client's claim is never stored (gap P6). Samples without a plan carry no origin.
+    data["sampling_origin"] = None
+    data.pop("deviation_reason", None)
     data["status"] = _COMPAT_STATUS[payload.status]
     async with tenant_connection(user) as conn:
 
         async def _work():
+            if payload.sampling_plan_id is not None:
+                data["sampling_origin"] = await _resolve_plan_origin(payload, user, claimed)
             try:
                 row = await lab_store.create_sample(
                     conn, tenant_id=str(user.tenant_id), created_by=str(user.user_id), payload=data
