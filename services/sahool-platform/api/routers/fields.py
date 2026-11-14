@@ -2736,13 +2736,11 @@ async def field_recommendations(
     from api.field_state_projection import recompute_field_state
     from api.recommendations_hub import RecommendationContext, build_recommendations
 
+    # قراءةٌ فقط هنا. إسقاطُ field_state يُكتَب لاحقاً في معاملةٍ واحدة مع قرار الاستجابة:
+    # كانت الكتابة تُثبَّت (commit) هنا ثمّ يُجاب 503 حين لا توصية، فيبقى أثرُ طلبٍ فشل.
     try:
         async with tenant_connection(user) as conn:
             lat, lon, crop, stage, sowing_date = await _field_season_context(conn, field_id)
-            # Canonical Field State: التوصيات تمرّ عبر الحالة القانونيّة الموحّدة —
-            # نُحدِّث الإسقاط ونرفق صلاحيّة القرار + نمط التنفيذ بالاستجابة (مصدر حقيقة
-            # واحد يحكم: تلقائيّ أم مراجعة بشريّة)، بدل قرار متفرّق لكلّ توصية.
-            field_state = (await recompute_field_state(conn, field_id))["state"]
             # سياسة محرّكات التوصيات لكلّ مستأجِر — قراءة صغيرة عبر نفس الاتّصال
             # المنطاقيّ (RLS). None ⇒ لا سياسة ⇒ السلوك مطابق لليوم تماماً.
             enabled_ids = await _load_recommendation_policy(conn)
@@ -2758,12 +2756,6 @@ async def field_recommendations(
         today=date.today(),
         sowing_date=sowing_date,
     )
-    # Stage F (تغذية آمنة): مرّر مرجعيّة النواة الزراعيّة الموحّدة للمُجمِّع — تصعيد/
-    # تنبيه فقط (تنبيه ملوحة حرجة) لا استبدال أرقام. صدق: غياب الحقائق ⇒ لا تصعيد.
-    _agro_truths = (field_state.get("agronomic") or {}).get("operational_truths") or {}
-    ctx.salinity_class = _agro_truths.get("salinity_class")
-    ctx.crop_vigor = _agro_truths.get("crop_vigor")
-
     # الطقس اختياريّ: نملأ سياقه إن توفّرت الإحداثيّات والمصدر. تعذّره لا يُسقط
     # الطلب — نكتفي بالتوصيات التي لا تحتاجه (تدهور رشيق، لا تلفيق).
     from api.weather_advice import complete_rain_total, irrigation_rain_window
@@ -2791,14 +2783,38 @@ async def field_recommendations(
         except Exception:  # noqa: BLE001 — تعذّر الطقس ⇒ تدهور رشيق لا فشل
             logging.exception("recommendations: weather unavailable for %s", field_id)
 
-    # enabled_ids=None ⇒ تُفعَّل كلّ المحرّكات بحسب default_enabled (سلوك مطابق لليوم).
-    recs = build_recommendations(ctx, enabled_ids=enabled_ids)
-    if not recs:
-        # لا توصية أمكن توليدها (لا طقس، لا محصول، لا بذار) — فشل صادق.
-        raise HTTPException(
-            status_code=503,
-            detail="تعذّر توليد توصيات (لا طقس ولا سياق موسم كافٍ). حدّد موقع الحقل وموسمه.",
-        )
+    # Canonical Field State: التوصيات تمرّ عبر الحالة القانونيّة الموحّدة — نُحدِّث الإسقاط
+    # ونرفق صلاحيّة القرار + نمط التنفيذ بالاستجابة (مصدر حقيقة واحد يحكم: تلقائيّ أم
+    # مراجعة بشريّة). الحسابُ والتجميعُ وقرارُ 503 في **معاملة واحدة**: إن لم تتولّد توصية
+    # يُرفَع 503 داخلها فتتراجع كتابةُ الإسقاط (لا commit لطلبٍ فشل). والطقسُ جُلب قبلها
+    # فلا تُمسَك معاملةٌ مفتوحةٌ أثناء نداءٍ شبكيّ؛ والمُجمِّعُ نقيّ بلا I/O.
+    build_error: Exception | None = None
+    try:
+        async with tenant_connection(user) as conn:
+            field_state = (await recompute_field_state(conn, field_id))["state"]
+            # Stage F (تغذية آمنة): مرّر مرجعيّة النواة الزراعيّة الموحّدة للمُجمِّع — تصعيد/
+            # تنبيه فقط (تنبيه ملوحة حرجة) لا استبدال أرقام. صدق: غياب الحقائق ⇒ لا تصعيد.
+            _agro_truths = (field_state.get("agronomic") or {}).get("operational_truths") or {}
+            ctx.salinity_class = _agro_truths.get("salinity_class")
+            ctx.crop_vigor = _agro_truths.get("crop_vigor")
+            # enabled_ids=None ⇒ تُفعَّل كلّ المحرّكات بحسب default_enabled (سلوك مطابق لليوم).
+            try:
+                recs = build_recommendations(ctx, enabled_ids=enabled_ids)
+            except Exception as e:  # noqa: BLE001 — ليس خطأ DB: يُعاد رفعه كما هو بعد التراجع
+                build_error = e
+                raise
+            if not recs:
+                # لا توصية أمكن توليدها (لا طقس، لا محصول، لا بذار) — فشل صادق، والإسقاطُ يتراجع.
+                raise HTTPException(
+                    status_code=503,
+                    detail="تعذّر توليد توصيات (لا طقس ولا سياق موسم كافٍ). حدّد موقع الحقل وموسمه.",
+                )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        if e is build_error:
+            raise
+        raise _db_unavailable("تحديث حالة الحقل للتوصيات", e) from e
 
     return {
         "field_id": field_id,
