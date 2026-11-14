@@ -64,6 +64,7 @@
         "mobile/sahool_app/lib/features/auth/auth_routes.dart",
         "mobile/sahool_app/lib/features/auth/data/auth_api.dart",
         "mobile/sahool_app/lib/features/auth/presentation/login_screen.dart",
+        "mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart",
         "mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart",
         "mobile/sahool_app/lib/features/auth/presentation/onboarding_screen.dart",
         "mobile/sahool_app/lib/features/auth/presentation/widgets/otp_code_field.dart",
@@ -76,6 +77,7 @@
         "mobile/sahool_app/test/core/auth_gate_startup_test.dart",
         "mobile/sahool_app/test/features/auth/auth_test_app.dart",
         "mobile/sahool_app/test/features/auth/login_screen_test.dart",
+        "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
         "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
         "mobile/sahool_app/test/features/auth/onboarding_screen_test.dart",
         "scripts_v9/test_tenant_isolation.sql",
@@ -93,8 +95,7 @@
         "services/raster-service/test_tile_tenant_query.py",
         "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
         "services/sahool-platform/tests/test_fields_tenant_arg_completeness_guard.py",
-        "services/sahool-platform/tests/test_route_auth_matrix_guard.py",
-        "services/sahool-platform/tests/test_sweep_tenant_enumeration.py"
+        "services/sahool-platform/tests/test_route_auth_matrix_guard.py"
       ],
       "runtime": {
         "metrics": [
@@ -141,7 +142,7 @@
           "path": "migrations/v241_edge_idempotency_tenant_scoped.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=36, tests=25, ui=1, mobile=8. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=36, tests=25, ui=1, mobile=9. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -150,7 +151,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 65
+        "tests": 66
       }
     },
     {
@@ -5746,10 +5747,12 @@
       ],
       "ui_consumers": [],
       "mobile_consumers": [
+        "mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart",
         "mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart",
         "mobile/sahool_app/lib/screens/mfa_setup_screen.dart"
       ],
       "tests": [
+        "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
         "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
         "tests_v9/test_auth_admin_stepup_mfa.py",
         "tests_v9/test_auth_cors_mfa_header.py",
@@ -5794,7 +5797,7 @@
           "path": "services/auth/mfa_crypto.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=10, ui=0, mobile=2. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=11, ui=0, mobile=3. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

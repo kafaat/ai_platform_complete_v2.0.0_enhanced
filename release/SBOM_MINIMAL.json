@@ -12245,7 +12245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d75ffe065fbd1a812d6af9fa09c541d7c8cbba5fe78cb8b2b92b2a1e407de355"
+          "content": "ad055262eaca960ebe42ac50ee62670269e744f98c7d86289b8cedc8a8836e38"
         }
       ],
       "name": "mobile/sahool_app/lib/features/auth/data/auth_api.dart",
@@ -12255,10 +12255,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "54b414afb6f7335d50b4ca182ffe6d79de1b832f3af2224389a8bf5f264373c0"
+          "content": "7feedd7d1877d99e7543954d58ac265cc5bf9b1f3eca3e8ad217e05e91f98e1f"
         }
       ],
       "name": "mobile/sahool_app/lib/features/auth/presentation/login_screen.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "08db1a8e88e96e23b40348151368f93d77202dabe8dfa03a7d9aceb6d6ec400f"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart",
       "type": "file"
     },
     {
@@ -15779,6 +15789,16 @@
         }
       ],
       "name": "mobile/sahool_app/test/features/auth/login_screen_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8f5a3d7954e6f1a80eeade3c3e2b064cfead6a68973e2cbd3606cbbee85f6ab3"
+        }
+      ],
+      "name": "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
       "type": "file"
     },
     {

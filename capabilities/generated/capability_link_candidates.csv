@@ -318,6 +318,7 @@ FM-001,mobile,mobile/sahool_app/lib/core/session/auth_state.dart,2,applied
 FM-001,mobile,mobile/sahool_app/lib/features/auth/auth_routes.dart,2,applied
 FM-001,mobile,mobile/sahool_app/lib/features/auth/data/auth_api.dart,2,applied
 FM-001,mobile,mobile/sahool_app/lib/features/auth/presentation/login_screen.dart,2,applied
+FM-001,mobile,mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart,2,applied
 FM-001,mobile,mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart,2,applied
 FM-001,mobile,mobile/sahool_app/lib/features/auth/presentation/onboarding_screen.dart,2,applied
 FM-001,mobile,mobile/sahool_app/lib/features/auth/presentation/widgets/otp_code_field.dart,2,applied
@@ -330,6 +331,7 @@ FM-001,test,mobile/sahool_app/test/core/auth_gate_refresh_unknown_test.dart,3,ap
 FM-001,test,mobile/sahool_app/test/core/auth_gate_startup_test.dart,3,applied
 FM-001,test,mobile/sahool_app/test/features/auth/auth_test_app.dart,3,applied
 FM-001,test,mobile/sahool_app/test/features/auth/login_screen_test.dart,3,applied
+FM-001,test,mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart,3,applied
 FM-001,test,mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart,3,applied
 FM-001,test,mobile/sahool_app/test/features/auth/onboarding_screen_test.dart,3,applied
 FM-001,test,scripts_v9/test_tenant_isolation.sql,3,applied
@@ -2471,9 +2473,11 @@ SEC-003,test,services/decision-service/tests/test_worker_identity_binding.py,5,a
 SEC-004,api,POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:139,3,applied
 SEC-004,api,POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:232,3,applied
 SEC-004,api,POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:62,3,applied
+SEC-004,mobile,mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart,2,applied
 SEC-004,mobile,mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart,2,applied
 SEC-004,mobile,mobile/sahool_app/lib/screens/mfa_setup_screen.dart,2,applied
 SEC-004,service,services/auth/main.py,10,applied
+SEC-004,test,mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart,3,applied
 SEC-004,test,mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart,3,applied
 SEC-004,test,tests_v9/test_auth_admin_stepup_mfa.py,3,applied
 SEC-004,test,tests_v9/test_auth_cors_mfa_header.py,3,applied
