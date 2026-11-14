@@ -9072,6 +9072,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_notifications_ws_handshake.py",
     "kind": "tests"
   },
@@ -12493,6 +12497,10 @@
   },
   {
     "path": "tests_v9/test_notification_channel_selection.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_notification_delivery_transitions_live_pg.py",
     "kind": "tests"
   },
   {

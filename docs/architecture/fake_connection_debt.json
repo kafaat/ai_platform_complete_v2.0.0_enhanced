@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "e8cce153c942d45d493eff534b4866edb7aa90f9",
+  "measured_on": "806936b7dc72910548af8796f6990b6f41d8b844",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -48,6 +48,7 @@
     "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
     "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
     "services/sahool-platform/tests/test_nl_sql_policy.py",
+    "services/sahool-platform/tests/test_notification_delivery_transitions.py",
     "services/sahool-platform/tests/test_operations_summary_endpoint.py",
     "services/sahool-platform/tests/test_persisted_canonical_writers.py",
     "services/sahool-platform/tests/test_prescriptions_router.py",
@@ -172,6 +173,9 @@
       "CHECK"
     ],
     "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py": [
+      "UNIQUE"
+    ],
+    "services/sahool-platform/tests/test_notification_delivery_transitions.py": [
       "UNIQUE"
     ],
     "services/sahool-platform/tests/test_persisted_canonical_writers.py": [

@@ -1,5 +1,5 @@
 {
-  "edge_count": 1031,
+  "edge_count": 1033,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -3969,6 +3969,16 @@
       "relation": "READS",
       "resource": "db://ndvi_timeseries",
       "to": "db://ndvi_timeseries",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/routers/notifications.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://notification_delivery",
+      "to": "db://notification_delivery",
       "to_kind": "resource"
     },
     {
@@ -8972,6 +8982,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://notification_delivery",
+      "to": "db://notification_delivery",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/notifications.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -10330,9 +10350,9 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 546,
+    "READS": 547,
     "ROUTES_TO": 73,
-    "WRITES": 361
+    "WRITES": 362
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -10347,8 +10367,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 908,
-      "resolved": 907,
+      "observed": 910,
+      "resolved": 909,
       "unresolved_component_paths": 0
     }
   }

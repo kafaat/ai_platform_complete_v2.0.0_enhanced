@@ -2540,7 +2540,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 367,
+      "evidence_count": 369,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2720,6 +2720,7 @@
         "services/sahool-platform/api/routers/irrigation_engineering.py",
         "services/sahool-platform/api/routers/irrigation_recommendation.py",
         "services/sahool-platform/api/routers/learning.py",
+        "services/sahool-platform/api/routers/notifications.py",
         "services/sahool-platform/api/routers/operational_truth.py",
         "services/sahool-platform/api/routers/prescriptions.py",
         "services/sahool-platform/api/routers/recommendations.py",
@@ -2853,6 +2854,7 @@
         "services/sahool-platform/tests/test_learn_from_harvest.py",
         "services/sahool-platform/tests/test_learning.py",
         "services/sahool-platform/tests/test_learning_source_lineage.py",
+        "services/sahool-platform/tests/test_notification_delivery_transitions.py",
         "services/sahool-platform/tests/test_nutrient_calibration.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
@@ -3492,7 +3494,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 60,
-      "target_evidence_count": 367,
+      "target_evidence_count": 369,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3502,5 +3504,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "769b08c7fcc79651e66aab66cd429b3765a842b27232022b87d30e0b2bcf0e20"
+  "content_sha256": "cb013dc77c8d9b318a46d7fc822935595c051de8875bbb99603f13baf0b70232"
 }

@@ -6274,7 +6274,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/notifications.py",
-    "line": 335,
+    "line": 370,
     "method": "WEBSOCKET",
     "path": "/api/v1/notifications/ws",
     "function": "notifications_ws"
