@@ -28545,7 +28545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "432285b2a07c5f263d11bd61968c312303159afabe4974c56f0c2be2338412f3"
+          "content": "d3c2988b3b5d30f9464257ebef759f1f62ebbd2b8c3ecba64cf7053802aae856"
         }
       ],
       "name": "services/sahool-platform/core/agronomic_state_engine.py",
@@ -30515,7 +30515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c90bf202eecfd8cf2cdffcfa31471a25be1b3f55cc55d64ac286cae3a2334a4"
+          "content": "e02ad5a6c585b37bcd8233083c952ef15444d2de696208b729d74f07297a471c"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_coordinator.py",
@@ -32679,6 +32679,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e217d82cb96ab656a55b4d37dc7395d2a948d4b4cd7ace05903c1b75b07bd3d"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_canonical_state_observed_at.py",
       "type": "file"
     },
     {
@@ -40195,7 +40205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "985ec330ec1920c00c33a3a18a579d40e6d7f2dcaea76eb62b03b39ca1484a43"
+          "content": "e1aeba24236f30677e27c7e2ba043f78c26f6e7efb2e9cf4945addcf4ce12f6b"
         }
       ],
       "name": "shared/autonomous_farm_os_phase9.py",
@@ -41005,7 +41015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7950ab4e3c5d59869df3cab745fd9add297d7949c1739b8b956e9fe4343012dd"
+          "content": "000125d968cafafc83802c35e450bc83452908e97013101e4fbf848213713e8c"
         }
       ],
       "name": "shared/field_runtime_cohesion.py",
@@ -41389,6 +41399,16 @@
         }
       ],
       "name": "shared/notification_consumers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e987f6b0d15e088c343d500ad4f8616de38bac9a4c66d55a0386e1d544b1b74c"
+        }
+      ],
+      "name": "shared/observation_time.py",
       "type": "file"
     },
     {
