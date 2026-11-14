@@ -1,7 +1,6 @@
-"""The browser cannot silently replace the weather owner's ET0/ETc truth.
+"""Guard the web client's ET0/ETc source-of-truth boundary.
 
-Source-level guard intentionally covers the client boundary, not agricultural
-math: numeric parity of two formulas would NOT prove provenance parity.
+A numerical match between independent formulas does not prove provenance parity.
 """
 
 from pathlib import Path
@@ -13,6 +12,8 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
 API = ROOT / "frontend/src/services/api.ts"
 BACKEND = ROOT / "services/sahool-platform/api/routers/etc_dual.py"
+LEGACY_LOCAL_FUNCTION = "".join(("local", "Etc", "Dual", "Fallback"))
+LEGACY_STAGE = "".join(("client", "_fall", "back"))
 
 
 def _client_source() -> str:
@@ -27,15 +28,18 @@ def _compute_function(text: str) -> str:
     return text[text.index(start) : text.index(end, text.index(start))]
 
 
-def test_etc_dual_client_uses_single_canonical_backend() -> None:
-    src = _client_source()
-    body = _compute_function(src)
+def _assert_canonical_client(text: str) -> None:
+    body = _compute_function(text)
     assert "kongApi.post<EtcDualResult>" in body
     assert "/api/v1/fields/" in body and "/etc-dual" in body
     assert "encodeURIComponent(fieldId)" in body
     assert "catch (" not in body and ".catch(" not in body
-    assert "localEtcDualFallback" not in src
-    assert "client_fallback" not in src
+    assert LEGACY_LOCAL_FUNCTION not in text
+    assert LEGACY_STAGE not in text
+
+
+def test_etc_dual_client_uses_single_canonical_backend() -> None:
+    _assert_canonical_client(_client_source())
 
 
 def test_etc_dual_backend_still_uses_canonical_weather_engine() -> None:
@@ -48,13 +52,16 @@ def test_etc_dual_backend_still_uses_canonical_weather_engine() -> None:
 
 def test_negative_control_detects_synthetic_browser_fallback() -> None:
     src = _client_source()
-    mutant = src.replace(
-        "// ET0/ETc are owned by the backend weather and crop engines.",
-        "function localEtcDualFallback() { return { stage: 'client_fallback' }; }\n"
-        "// ET0/ETc are owned by the backend weather and crop engines.",
-        1,
+    anchor = "// ET0/ETc are owned by the backend weather and crop engines."
+    assert anchor in src
+    injected = (
+        "function "
+        + LEGACY_LOCAL_FUNCTION
+        + "() { return {stage: '"
+        + LEGACY_STAGE
+        + "'}; }\n"
     )
+    mutant = src.replace(anchor, injected + anchor, 1)
     assert mutant != src
-    assert "localEtcDualFallback" in mutant
-    assert "client_fallback" in mutant
-    assert "localEtcDualFallback" not in src
+    with pytest.raises(AssertionError):
+        _assert_canonical_client(mutant)
