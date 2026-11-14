@@ -32,7 +32,7 @@
       "raw": 3364
     },
     "test_dependency_files": 1894,
-    "test_dependency_edges": 4857,
+    "test_dependency_edges": 4860,
     "test_dependency_bounded_files": 1111,
     "test_dependency_unresolved_relations": 479
   },
@@ -82901,9 +82901,19 @@
           "line": 391
         },
         {
+          "source": "scripts/ci/generate_service_inventory.py",
+          "kind": "source_read",
+          "line": 529
+        },
+        {
           "source": "scripts/ci/guard_mutation_guard.py",
           "kind": "source_read",
           "line": 269
+        },
+        {
+          "source": "scripts/ci/platform_route_ownership_guard.py",
+          "kind": "source_read",
+          "line": 537
         },
         {
           "source": "scripts/ci/pr_capability_impact_gate.py",
@@ -82919,6 +82929,11 @@
           "source": "scripts/ci/verify_all_generated.py",
           "kind": "source_read",
           "line": 59
+        },
+        {
+          "source": "scripts/release/validate_release_package.py",
+          "kind": "source_read",
+          "line": 533
         },
         {
           "source": "services/sahool-platform/tests/test_p0_platform_module_growth_guard.py",
