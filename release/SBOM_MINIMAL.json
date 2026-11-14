@@ -27385,7 +27385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c0f65aead5b674cf19ec24603f8ea0856b10d38c228064773c6c9cd76d9ef8ce"
+          "content": "a2a5e1c4ec795a135fd31285f19994f3ee0deff02f2eb1abafe53f787972272f"
         }
       ],
       "name": "services/sahool-platform/api/routers/prescriptions.py",
