@@ -1,7 +1,7 @@
 {
   "consumer_only_subjects": 3,
   "cross_component_duplicate_durables": 0,
-  "dynamic_contracts": 15,
+  "dynamic_contracts": 16,
   "files_scanned": 1272,
   "matched_subjects": 0,
   "producer_only_subjects": 3,

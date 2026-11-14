@@ -700,11 +700,11 @@
         "events": false,
         "web": false,
         "mobile": false,
-        "tests": false,
+        "tests": true,
         "governance": false,
         "other_evidence": true
       },
-      "coverage_dimension_count": 2,
+      "coverage_dimension_count": 3,
       "dependency_count": 0,
       "dependent_count": 0,
       "runtime_verified": false,

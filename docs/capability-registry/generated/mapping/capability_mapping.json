@@ -12,28 +12,28 @@
   },
   "summary": {
     "capabilities_total": 81,
-    "capabilities_mapped": 76,
-    "capabilities_unmapped": 5,
+    "capabilities_mapped": 77,
+    "capabilities_unmapped": 4,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7209,
+    "files_scanned": 7212,
     "files_by_kind": {
       "backend": 1272,
       "database": 297,
       "governance": 89,
       "mobile": 415,
       "other": 2166,
-      "tests": 2439,
+      "tests": 2442,
       "web": 531
     },
     "unmapped_artifacts": 3427,
     "ambiguous_artifacts": 236,
     "files_by_reading": {
-      "python_functional": 3893,
+      "python_functional": 3896,
       "raw": 3316
     },
-    "test_dependency_files": 1844,
-    "test_dependency_edges": 4682,
-    "test_dependency_bounded_files": 1075,
+    "test_dependency_files": 1847,
+    "test_dependency_edges": 4688,
+    "test_dependency_bounded_files": 1077,
     "test_dependency_unresolved_relations": 470
   },
   "capabilities": [
@@ -11290,12 +11290,30 @@
       "domain": "farm_management",
       "title": "Public API and SDK",
       "backend": [],
-      "routes": [],
+      "routes": [
+        {
+          "value": "/items @ tests_v9/test_export_openapi_strict.py:224",
+          "score": 14
+        },
+        {
+          "value": "{route} @ tests_v9/test_export_openapi_strict.py:262",
+          "score": 14
+        }
+      ],
       "database": [],
       "events": [],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "tests_v9/test_export_openapi_strict.py",
+          "score": 14,
+          "signals": [
+            "path:openapi",
+            "content:openapi"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -11344,17 +11362,17 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 0,
-        "routes": 0,
+        "routes": 2,
         "database": 0,
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 5
       },
-      "coverage_dimensions": 0,
-      "mapped": false
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "INT-002",
@@ -11599,6 +11617,22 @@
         },
         {
           "value": "sahool.events.task.assigned @ tests_v9/test_nats_least_privilege.py:1100",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.x @ tests_v9/test_jetstream_stable_msg_id.py:104",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.x @ tests_v9/test_jetstream_stable_msg_id.py:106",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.x @ tests_v9/test_jetstream_stable_msg_id.py:68",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.x @ tests_v9/test_jetstream_stable_msg_id.py:72",
           "score": 20
         },
         {
@@ -11876,22 +11910,6 @@
         {
           "value": "sahool.digital.twin.snapshot.created @ event_publish_contracts.yaml:154",
           "score": 13
-        },
-        {
-          "value": "sahool.dlq.canonical_execution_learning @ event_publish_contracts.yaml:181",
-          "score": 13
-        },
-        {
-          "value": "sahool.dlq.irrigation_dispatch_relay @ event_publish_contracts.yaml:186",
-          "score": 13
-        },
-        {
-          "value": "sahool.economic.analysis @ event_publish_contracts.yaml:56",
-          "score": 13
-        },
-        {
-          "value": "sahool.events.> @ event_publish_contracts.yaml:21",
-          "score": 13
         }
       ],
       "web": [],
@@ -11914,6 +11932,15 @@
             "content:event bus",
             "content:jetstream",
             "path:nats",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "tests_v9/test_jetstream_stable_msg_id.py",
+          "score": 20,
+          "signals": [
+            "path:jetstream",
+            "content:jetstream",
             "content:nats"
           ]
         },
@@ -12373,7 +12400,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 85
+        "events": 89
       },
       "evidence_counts": {
         "backend": 7,
@@ -12382,7 +12409,7 @@
         "events": 100,
         "web": 0,
         "mobile": 0,
-        "tests": 21,
+        "tests": 22,
         "governance": 2,
         "other_evidence": 33
       },
@@ -16456,6 +16483,14 @@
             "content:yield map",
             "explicit_id"
           ]
+        },
+        {
+          "path": "services/sahool-platform/api/event_catalog.py",
+          "score": 8,
+          "signals": [
+            "content:yield map",
+            "content:Yield map ingestion"
+          ]
         }
       ],
       "routes": [
@@ -16636,7 +16671,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 3,
+        "backend": 4,
         "routes": 4,
         "database": 13,
         "events": 1,
@@ -36845,10 +36880,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/event_catalog.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/sahool-platform/api/event_upcasting.py",
       "kind": "backend"
     },
@@ -39426,6 +39457,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_event_catalog.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_event_catalog_completeness.py",
       "kind": "tests"
     },
     {
@@ -58942,6 +58977,31 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_event_catalog_completeness.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/event_bus.py",
+          "kind": "import",
+          "line": 23
+        },
+        {
+          "source": "services/sahool-platform/api/event_bus.py",
+          "kind": "source_read",
+          "line": 29
+        },
+        {
+          "source": "services/sahool-platform/api/event_catalog.py",
+          "kind": "import",
+          "line": 24
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_event_replay.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -76675,6 +76735,24 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_export_openapi_strict.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "export_openapi.py",
+          "kind": "loader",
+          "line": 23
+        },
+        {
+          "source": "export_openapi.py",
+          "kind": "source_read",
+          "line": 24
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_export_season_runs_for_golden.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -80015,6 +80093,19 @@
           "source": "tests_v9/test_realtime_webhooks.py",
           "kind": "source_read",
           "line": 120
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_jetstream_stable_msg_id.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "shared/broker_url.py",
+          "kind": "import",
+          "line": 26
         }
       ],
       "unresolved": []
