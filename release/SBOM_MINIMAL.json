@@ -36725,7 +36725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4026aae873aeb4c7a06980a08b25e375113d2c3bd0323865ecf92aef71ab6ea"
+          "content": "323fcc684b59710cf00d1f3498ba0bca21f9b28d01967e9db2baef1a2e96c7cb"
         }
       ],
       "name": "services/sahool-platform/tests/test_task_irrigation_observations.py",
