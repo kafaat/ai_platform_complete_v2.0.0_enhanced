@@ -6565,7 +6565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5e3e849509e226c3ecdfa0e08b780c84677d2177c9b068c7432700cd155a389a"
+          "content": "b503308bc4565bb90cc70dce68c1b9b31006759c1092aa440837c6d4aa3ebbac"
         }
       ],
       "name": "frontend/src/sections/ManagerConsolePage.tsx",
@@ -7455,7 +7455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc089f55717ac5f68a4aa184855f56a0dc32766e47eb5b9a1cfa25e6f7d027ab"
+          "content": "b87705ae4f48f05d242ba008737adbfe160f3428a3402dd05b1df5ec2c6803a0"
         }
       ],
       "name": "frontend/src/services/api/auth.ts",
@@ -18015,7 +18015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95a4d335e60551a4375226e70d36e613f2119cd66802f80edeed2135c744434b"
+          "content": "e01b0e423454cb41e75748fa7c57d50d6a6b7cc55535641d98e64f025c09ebbe"
         }
       ],
       "name": "services/auth/routers/invitations.py",
@@ -18095,7 +18095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e3cc61a2eafc624de19f810ee5d2b631e18a0a72cd9f72caaed61d3141be6cf"
+          "content": "77a24387542ee62beb48229d2b8d7d01e6ada253904e33d04bb42c44bfe36c26"
         }
       ],
       "name": "services/auth/routers/users.py",
@@ -26015,7 +26015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fac4c0a3995b5e6b2cb7bd54598494779d499e3403f580b3504376ed490f09c0"
+          "content": "0097c2cc08a1d4cd4a997123272f4bee33188d7e6073db217ea150574a3b269f"
         }
       ],
       "name": "services/sahool-platform/api/routers/admin.py",
@@ -26595,7 +26595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c9885c90573c6e037ceb6552b0af30a324692b2e063a4234a39e3545dcfa53c7"
+          "content": "8e8e6db27c1cc40b8ec3307583703ba4ffb69c951c8c2bf2073758c5c90d4c49"
         }
       ],
       "name": "services/sahool-platform/api/routers/farm_operations_ledger.py",
@@ -27435,7 +27435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c130e43f0b6a932dd1355423d4111379ad02b41db5dc684e81bfff1cdf37ab34"
+          "content": "983c7f0622ad6ce211acd1a639b82555f3c3af6a75cd72ab9f0eb2f5d5b700f7"
         }
       ],
       "name": "services/sahool-platform/api/routers/security_audit.py",
@@ -27525,7 +27525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c3b892f9f796b2fb9ba890aab56ea4ffc6bb8c683d565f024525620353141069"
+          "content": "ec8a405232d257596c3089d11ab52282908e90a7e36b2eabb14a9a9e0221c134"
         }
       ],
       "name": "services/sahool-platform/api/routers/tasks.py",
@@ -28465,7 +28465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3f46f805515b2def9d963da25d27aca1e95e852127c02801152b074a769aff7"
+          "content": "d18534e4068c9de6656585049d9720f3d05dd4b05907a2d74fa40932f1730117"
         }
       ],
       "name": "services/sahool-platform/core/authorization.py",
@@ -31315,7 +31315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fcae01e57a82c2d69937f42c50745029dc1c4a3dc28ebe65e191e224c8cf71fc"
+          "content": "9bfc3e4125547b6fd09bf98a2466b94343c2fb1b3dc72eb6f7d8625de874e338"
         }
       ],
       "name": "services/sahool-platform/core/tenant_audit.py",
@@ -36575,7 +36575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25c6ee311059839c1ad3fe0b13855a7d5e41098bf17a024d460d62389027931e"
+          "content": "cfa8d9eb77fa6ab51a4dd5a38b8fc88eae89b48eba432487f59cf2baa2cc01ef"
         }
       ],
       "name": "services/sahool-platform/tests/test_tenant_audit.py",

@@ -19,7 +19,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "DELETE /v1/auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:218",
+        "DELETE /v1/auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:223",
         "GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:92",
         "GET /api/v1/tenant/config @ services/sahool-platform/api/routers/tenant.py:29",
         "GET /health @ services/auth/routers/ops.py:27",
@@ -31,11 +31,11 @@
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:104",
         "GET /v1/auth/me @ services/auth/routers/session.py:302",
-        "GET /v1/auth/users @ services/auth/routers/users.py:67",
+        "GET /v1/auth/users @ services/auth/routers/users.py:70",
         "GET /v1/auth/verify @ services/auth/routers/email_verify.py:98",
         "GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:108",
-        "PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:132",
-        "PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:81",
+        "PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:143",
+        "PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:82",
         "POST /api/v1/auth/login @ services/sahool-platform/api/routers/auth.py:48",
         "POST /api/v1/auth/logout @ services/sahool-platform/api/routers/auth.py:106",
         "POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.py:138",
@@ -1914,7 +1914,7 @@
       ],
       "apis": [
         "GET /api/v1/rbac/preview-role-change @ services/sahool-platform/api/routers/rbac.py:54",
-        "PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:81",
+        "PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:82",
         "POST /v1/auth/change-password @ services/auth/routers/registration.py:73",
         "POST /v1/change/detect @ services/raster-service/routers/analysis.py:48",
         "POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1157"
