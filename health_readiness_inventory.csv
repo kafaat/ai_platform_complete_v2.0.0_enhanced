@@ -5,12 +5,12 @@ services/ai_agronomist/main.py,healthz,/healthz,250,True,True,True,ok
 services/ai_agronomist/main.py,readyz,/readyz,464,True,True,True,ok
 services/decision-service/main.py,healthz,/healthz,552,True,True,True,ok
 services/decision-service/main.py,readyz,/readyz,557,True,True,True,ok
-services/edge-inference/main.py,health_check,/healthz,194,True,True,True,ok
-services/edge-inference/main.py,readyz,/readyz,423,True,True,True,ok
+services/edge-inference/main.py,health_check,/healthz,205,True,True,True,ok
+services/edge-inference/main.py,readyz,/readyz,432,True,True,True,ok
 services/field-management-service/main.py,healthz,/healthz,211,True,True,True,ok
 services/field-management-service/main.py,readyz,/readyz,221,True,True,True,ok
-services/field-segmentation/main.py,healthz,/healthz,375,True,True,True,ok
-services/field-segmentation/main.py,readyz,/readyz,385,True,True,True,ok
+services/field-segmentation/main.py,healthz,/healthz,546,True,True,True,ok
+services/field-segmentation/main.py,readyz,/readyz,556,True,True,True,ok
 services/indicators-service/main.py,healthz,/healthz,68,True,True,True,ok
 services/indicators-service/main.py,ready,/readyz,89,True,True,True,ok
 services/knowledge-graph/main.py,healthz,/healthz,117,True,True,True,ok
@@ -21,7 +21,7 @@ services/rag-retrieval/main.py,healthz,/healthz,217,True,True,True,ok
 services/rag-retrieval/main.py,readyz,/readyz,272,True,True,True,ok
 services/remote-sensing-workspace-bff/main.py,healthz,/healthz,39,True,True,True,ok
 services/remote-sensing-workspace-bff/main.py,readyz,/readyz,44,True,True,True,ok
-services/sam2-inference/main.py,healthz,/healthz,125,True,True,True,ok
-services/sam2-inference/main.py,readyz,/readyz,135,True,True,True,ok
+services/sam2-inference/main.py,healthz,/healthz,130,True,True,True,ok
+services/sam2-inference/main.py,readyz,/readyz,140,True,True,True,ok
 services/scout-ingest-service/main.py,healthz,/healthz,205,True,True,True,ok
 services/scout-ingest-service/main.py,readyz,/readyz,210,True,True,True,ok

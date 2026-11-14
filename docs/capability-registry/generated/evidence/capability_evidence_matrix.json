@@ -11767,6 +11767,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_auth_enrollment_http.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_auth_mfa_activate_disable_lockout.py",
           "signal": "pytest.mark.unit"
         },
