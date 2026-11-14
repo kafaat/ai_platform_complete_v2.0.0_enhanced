@@ -206,3 +206,129 @@ def test_a_keyed_retry_of_a_server_timed_reading_is_a_duplicate_not_a_conflict(s
     assert response.json()["observation_id"] == "sob_stored"
     # Control: the same time difference on a device-declared instant is a conflict.
     assert client.post("/v1/soil/observations", json=_body(observed_at=later)).status_code == 409
+
+
+# ─── the evidence batch (platform lab publication) ────────────────────────
+
+
+def _lab_row(**over):
+    row = {
+        "observation_id": "sob_lab_ph",
+        "idempotency_key": "laboratory:sample-a:ph:0.0:30.0",
+        "property": "ph",
+        "value_json": "7.1",
+        "unit": "pH",
+        "depth_to_cm": Decimal("30.00"),
+        "source_type": "laboratory",
+        "source_id": "sample-a",
+    }
+    return _stored_row(**{**row, **over})
+
+
+def _lab_batch(**over):
+    batch = {
+        "source_type": "laboratory",
+        "source_id": "sample-a",
+        "properties": {"ph": 7.1},
+        "observed_at_by_property": {"ph": _OBSERVED.isoformat()},
+        "depth_from_cm": 0,
+        "depth_to_cm": 30,
+        "approved": True,
+    }
+    batch.update(over)
+    return batch
+
+
+def test_a_retried_lab_batch_returns_the_stored_observation_ids(service):
+    # A publish retry (e.g. after the platform transaction rolled back) must hand back the
+    # id the soil owner already stored, so published_observation_id names a real row.
+    client, state = service
+    state["stored"] = _lab_row()
+    response = client.post("/v1/fields/review-field/soil/evidence", json=_lab_batch())
+    assert response.status_code == 201, response.text
+    assert response.json()["observation_ids"] == ["sob_lab_ph"]
+    assert response.json()["duplicates"] == 1
+    assert state["lookups"] == [(_TENANT, "laboratory:sample-a:ph:0.0:30.0")]
+
+
+def test_a_different_lab_value_under_the_same_batch_key_is_409(service):
+    client, state = service
+    state["stored"] = _lab_row(value_json="6.0")
+    response = client.post("/v1/fields/review-field/soil/evidence", json=_lab_batch())
+    assert response.status_code == 409, response.text
+
+
+def test_a_lab_correction_gets_its_own_key_and_a_stable_retry_identity():
+    import evidence_adapters
+
+    from shared.contracts.soil import SoilObservationSource
+
+    def build(prior=None):
+        return evidence_adapters.observations_from_properties(
+            tenant_id=_TENANT,
+            field_id="review-field",
+            source_type=SoilObservationSource.LABORATORY,
+            source_id="sample-a",
+            properties={"ec_dsm": 1.7},
+            approved=True,
+            supersedes_observation_ids={"ec": prior} if prior else None,
+        )[0].idempotency_key
+
+    original = build()
+    correction = build("sob_old")
+    assert correction != original
+    assert build("sob_old") == correction
+    assert build("sob_other") != correction
+
+
+def test_a_legacy_lab_row_replays_although_its_observed_at_was_the_publish_instant(service):
+    # Before the platform sent the lab's own measurement time it published observed_at=now()
+    # and no observed_at_source. Republishing the same value under the same key is a replay.
+    client, state = service
+    state["stored"] = _lab_row(
+        observed_at=_OBSERVED + timedelta(days=3),
+        provenance={"sample_id": "sample-a", "units": {"ph": "1"}, "workflow_status": "published"},
+    )
+    response = client.post("/v1/fields/review-field/soil/evidence", json=_lab_batch())
+    assert response.status_code == 201, response.text
+    assert response.json()["observation_ids"] == ["sob_lab_ph"]
+
+
+@pytest.mark.parametrize(
+    "provenance",
+    [
+        {"sample_id": "sample-a", "workflow_status": "published", "observed_at_source": "x"},
+        {"sample_id": "sample-a"},
+        None,
+    ],
+)
+def test_a_lab_row_with_its_measured_time_still_conflicts_on_another_time(service, provenance):
+    client, state = service
+    state["stored"] = _lab_row(observed_at=_OBSERVED + timedelta(days=3), provenance=provenance)
+    response = client.post("/v1/fields/review-field/soil/evidence", json=_lab_batch())
+    assert response.status_code == 409, response.text
+
+
+def test_a_legacy_row_with_a_different_value_is_still_a_conflict(service):
+    client, state = service
+    state["stored"] = _lab_row(
+        value_json="6.0",
+        observed_at=_OBSERVED + timedelta(days=3),
+        provenance={"sample_id": "sample-a", "workflow_status": "published"},
+    )
+    response = client.post("/v1/fields/review-field/soil/evidence", json=_lab_batch())
+    assert response.status_code == 409, response.text
+
+
+def test_an_invalid_supersession_target_is_409_not_500(service, monkeypatch):
+    import soil_store
+
+    client, _state = service
+
+    async def _refuse(pool, observation):
+        raise ValueError("soil_observation_supersession_target_invalid_or_already_replaced")
+
+    monkeypatch.setattr(soil_store, "persist_observation", _refuse)
+    body = _lab_batch(supersedes_observation_ids={"ph": "sob_gone"}, supersession_reason="fix")
+    response = client.post("/v1/fields/review-field/soil/evidence", json=body)
+    assert response.status_code == 409, response.text

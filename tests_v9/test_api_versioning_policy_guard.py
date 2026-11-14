@@ -1413,3 +1413,17 @@ def test_stale_permanent_contract_entry_is_rejected(tmp_path: Path):
     finally:
         contract_path.write_text(original, encoding="utf-8")
     assert _run_check(root).returncode == 0, "restoring must return --check to green"
+
+
+def test_check_keeps_missing_or_stale_inventory_unchanged(tmp_path: Path):
+    root = _isolated_policy_root(tmp_path)
+    inventory = root / "api_versioning_inventory.generated.json"
+    csv = root / "api_versioning_inventory.csv"
+    inventory.unlink()
+    csv.write_text("stale\n", encoding="utf-8")
+    for _ in range(2):
+        result = _run_check(root)
+        assert result.returncode != 0
+        assert inventory.name in result.stderr and csv.name in result.stderr
+        assert not inventory.exists()
+        assert csv.read_text(encoding="utf-8") == "stale\n"

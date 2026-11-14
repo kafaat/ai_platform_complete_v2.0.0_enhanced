@@ -28,6 +28,7 @@ from shared.feature_store import (
     register_feature_definitions,
     write_offline_feature_dataset,
 )
+from shared.feature_store.runtime import resolve_learning_as_of
 from shared.mlops import (
     apply_model_promotion,
     build_model_card,
@@ -216,6 +217,16 @@ def materialize_training_dataset(
         reasons.append("too_many_missing_features")
     if label_names and label_coverage < float(gates.get("min_label_coverage", 0.0)):
         reasons.append("insufficient_label_coverage")
+    # Every /dataset caller meets the same feature-time gate as the offline
+    # manifest: an unverified source cannot be declared trainable. The as-of
+    # time is capped at now, so a future-dated row cannot certify itself.
+    temporal = write_offline_feature_dataset(
+        records,
+        feature_set_id=str(spec.get("feature_set_id")),
+        as_of=resolve_learning_as_of(records),
+    )
+    if not temporal["point_in_time_safe"]:
+        reasons.append("temporal_integrity_unverified")
 
     status = DatasetStatus.TRAINABLE.value if not reasons else DatasetStatus.BLOCKED.value
     dataset = TrainingDataset(
@@ -702,22 +713,31 @@ def run_phase10_learning_cycle(
         entity_type=str(spec.get("entity_type", "field")),
     )
     production_feature_set = feature_registry.get("feature_set", {})
+    # One as-of time for the offline manifest and the snapshot: the latest aware
+    # prediction_at, capped at now so a future-dated row cannot certify itself.
+    as_of = resolve_learning_as_of(records)
     offline_dataset_version = write_offline_feature_dataset(
         records,
         feature_set_id=str(
             production_feature_set.get("feature_set_id") or spec.get("feature_set_id")
         ),
         object_uri=dataset.get("object_uri"),
+        as_of=as_of,
     )
+    temporally_safe = bool(offline_dataset_version["point_in_time_safe"])
+    if not temporally_safe:
+        dataset["status"] = DatasetStatus.BLOCKED.value
+        blocked = dataset.setdefault("quality", {}).setdefault("blocked_reasons", [])
+        if "temporal_integrity_unverified" not in blocked:
+            blocked.append("temporal_integrity_unverified")
     online_materialization = materialize_online_feature_values(
         records,
         feature_set_id=str(
             production_feature_set.get("feature_set_id") or spec.get("feature_set_id")
         ),
     )
-    as_of = max((r.get("event_time") for r in records if r.get("event_time")), default=_now())
     try:
-        point_in_time_snapshot = build_point_in_time_snapshot(records, as_of=str(as_of))
+        point_in_time_snapshot = build_point_in_time_snapshot(records, as_of=as_of)
     except ValueError:
         point_in_time_snapshot = {
             "snapshot_id": None,
@@ -731,6 +751,9 @@ def run_phase10_learning_cycle(
         champion=champion_model,
         challenger=challenger_model,
     )
+    if not temporally_safe:
+        promotion["decision"] = PromotionDecision.BLOCKED.value
+        promotion["reasons"] = ["temporal_integrity_unverified"]
     drift = detect_feature_drift(
         baseline_stats=(champion_model or {}).get("training_stats", {}), current_records=records
     )
@@ -817,6 +840,13 @@ def run_phase10_learning_cycle(
                 target_model_id=str(serving_promotion.get("rollback_target_model_id")),
                 reason="phase10_safe_rollback_plan",
             )
+    if not temporally_safe and serving_promotion:
+        serving_promotion["decision"] = "blocked"
+        serving_promotion["target_model_id"] = (registered_champion or {}).get("model_id")
+        serving_promotion["reasons"] = ["temporal_integrity_unverified"]
+        rollback_plan = None
+    if not temporally_safe:
+        champion_challenger["promotion"] = promotion
     online_update = None
     if champion_model:
         online_update = create_online_learning_update(

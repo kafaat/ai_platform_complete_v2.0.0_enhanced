@@ -619,9 +619,29 @@
 \i migrations/v241_edge_idempotency_tenant_scoped.sql
 \echo '═══ 237. v239_detection_provenance.sql ═══'
 \i migrations/v239_detection_provenance.sql
-\echo '═══ 238. v259_yield_map_observed_zero.sql ═══'
+\echo '═══ 238. v243_field_task_satellite_sources.sql ═══'
+\i migrations/v243_field_task_satellite_sources.sql
+\echo '═══ 239. v244_field_task_terrain_sources.sql ═══'
+\i migrations/v244_field_task_terrain_sources.sql
+\echo '═══ 240. v245_farm_book_task_link.sql ═══'
+\i migrations/v245_farm_book_task_link.sql
+\echo '═══ 241. v246_scouting_pin_inspection_task.sql ═══'
+\i migrations/v246_scouting_pin_inspection_task.sql
+\echo '═══ 242. v247_farm_operations_task_link.sql ═══'
+\i migrations/v247_farm_operations_task_link.sql
+\echo '═══ 243. v255_soil_sampling_origin.sql ═══'
+\i migrations/v255_soil_sampling_origin.sql
+\echo '═══ 244. v257_scouting_pin_location_photo.sql ═══'
+\i migrations/v257_scouting_pin_location_photo.sql
+\echo '═══ 245. v258_lab_water_revisions.sql ═══'
+\i migrations/v258_lab_water_revisions.sql
+\echo '═══ 246. v259_yield_map_observed_zero.sql ═══'
 \i migrations/v259_yield_map_observed_zero.sql
-\echo '═══ 239. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 247. v260_scout_photo_evidence.sql ═══'
+\i migrations/v260_scout_photo_evidence.sql
+\echo '═══ 248. v261_field_tasks_reference_fields.sql ═══'
+\i migrations/v261_field_tasks_reference_fields.sql
+\echo '═══ 249. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 240. v206_rls_final_hardening.sql ═══'
+\echo '═══ 250. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

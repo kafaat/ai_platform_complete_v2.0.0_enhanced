@@ -7,7 +7,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 1733,
+      "line": 1763,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -19,7 +19,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 1802,
+      "line": 1832,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -43,7 +43,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "producer",
-      "line": 847,
+      "line": 877,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -55,7 +55,7 @@
       "dynamic_expr": "row['nats_subject']",
       "file": "services/sahool-platform/api/event_bus.py",
       "kind": "producer",
-      "line": 735,
+      "line": 825,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -91,7 +91,7 @@
       "dynamic_expr": "topic",
       "file": "services/video-processor/main.py",
       "kind": "producer",
-      "line": 457,
+      "line": 404,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -334,7 +334,7 @@
     "consumer_only_subjects": 3,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 16,
-    "files_scanned": 1274,
+    "files_scanned": 1279,
     "matched_subjects": 0,
     "producer_only_subjects": 3,
     "production_certified": false,

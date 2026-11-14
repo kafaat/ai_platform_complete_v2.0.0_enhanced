@@ -169,14 +169,23 @@ void main() {
       'every producer kind replays generically over its own method, '
       'path and body; unknown kinds too; nothing goes to /api/v1/sync',
       () async {
-        final h = Harness(handler: (_) async => const FakeReply(200, {'persisted': true}));
+        final h = Harness(
+          handler: (r) async => r.path == scoutingPinCreatePath('f1')
+              ? const FakeReply(200, {
+                  'persisted': true,
+                  'field_id': 'f1',
+                  'pin_id': 'p1',
+                })
+              : const FakeReply(200, {'persisted': true}),
+        );
         // كلّ نوع يُودِعه منتِج حقيقيّ في التطبيق، بمساره من مساعد ميزته.
         final ops = [
           op(
             scoutingPinCreatePath('f1'),
             method: 'POST',
             kind: 'observation_create',
-            body: {'pin_id': 'p1', 'lat': 15.3, 'lon': 44.2},
+            body: {'pin_id': 'p1', 'field_id': 'f1', 'lat': 15.3, 'lon': 44.2},
+            fieldId: 'f1',
           ),
           op(TasksApi.taskPath('t1'), kind: 'task_update'),
           op(
@@ -267,6 +276,82 @@ void main() {
       var persisted = false;
       final h = Harness(handler: (_) async => FakeReply(200, {'persisted': persisted}));
       final pin = op(scoutingPinCreatePath('f1'), method: 'POST', kind: 'observation_create');
+      await h.outbox.enqueue(pin);
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records.single.op.idempotencyKey, pin.idempotencyKey);
+      persisted = true;
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records, isEmpty);
+    });
+
+    test('a pin stays queued until the server confirms persistence', () async {
+      var persisted = false;
+      final h = Harness(handler: (_) async => FakeReply(200, {'persisted': persisted}));
+      final pin = op(scoutingPinCreatePath('f1'), method: 'POST', kind: 'observation_create');
+      await h.outbox.enqueue(pin);
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records.single.op.idempotencyKey, pin.idempotencyKey);
+      persisted = true;
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records, isEmpty);
+    });
+
+    test('an unrelated 2xx pin receipt cannot delete this outbox entry', () async {
+      final h = Harness(
+        handler: (_) async => const FakeReply(200, {
+          'persisted': true,
+          'field_id': 'f1',
+          'pin_id': 'someone-else',
+        }),
+      );
+      final p = op(
+        scoutingPinCreatePath('f1'),
+        method: 'POST',
+        kind: 'observation_create',
+        fieldId: 'f1',
+        body: {'pin_id': 'p1', 'field_id': 'f1'},
+      );
+      await h.outbox.enqueue(p);
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records, hasLength(1));
+    });
+
+    test('a pin receipt for another field cannot delete this outbox entry', () async {
+      final h = Harness(
+        handler: (_) async => const FakeReply(200, {
+          'persisted': true,
+          'field_id': 'f2',
+          'pin_id': 'p1',
+        }),
+      );
+      final p = op(
+        scoutingPinCreatePath('f1'),
+        method: 'POST',
+        kind: 'observation_create',
+        fieldId: 'f1',
+        body: {'pin_id': 'p1', 'field_id': 'f1'},
+      );
+      await h.outbox.enqueue(p);
+      await h.outbox.drain(ignoreBackoff: true);
+      expect(h.store.records, hasLength(1));
+    });
+
+    test('a pin queued with the same identities is confirmed and removed', () async {
+      var persisted = false;
+      final h = Harness(
+        handler: (_) async => FakeReply(200, {
+          'persisted': persisted,
+          'field_id': 'f1',
+          'pin_id': 'p1',
+        }),
+      );
+      final pin = op(
+        scoutingPinCreatePath('f1'),
+        method: 'POST',
+        kind: 'observation_create',
+        fieldId: 'f1',
+        body: {'pin_id': 'p1', 'field_id': 'f1'},
+      );
       await h.outbox.enqueue(pin);
       await h.outbox.drain(ignoreBackoff: true);
       expect(h.store.records.single.op.idempotencyKey, pin.idempotencyKey);

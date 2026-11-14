@@ -418,7 +418,11 @@ def yields_for_district(district_id, crop=None, db_path: Path = DEFAULT_DB) -> l
 
 def independent_units(district_id, crop=None, db_path: Path = DEFAULT_DB) -> dict:
     """Count farms x seasons — the honest effective sample size."""
-    rows = yields_for_district(district_id, crop, db_path)
+    return yield_sample_units(yields_for_district(district_id, crop, db_path))
+
+
+def yield_sample_units(rows: list[dict]) -> dict:
+    """Count independent units in exactly the rows used for calibration."""
     farms = len({r["tenant_id"] for r in rows})
     seasons = len({r["season_year"] for r in rows})
     return {"records": len(rows), "farms": farms, "seasons": seasons}

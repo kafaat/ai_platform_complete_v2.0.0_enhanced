@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -38,6 +39,17 @@ def _artifact_hash(artifacts: dict[str, Any]) -> str:
     ).hexdigest()
 
 
+def _finite_metric(value: Any) -> float | None:
+    """A missing, Boolean or non-finite metric is never promotion evidence."""
+    if isinstance(value, bool):
+        return None
+    try:
+        metric = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return metric if math.isfinite(metric) else None
+
+
 def register_model_version(
     *,
     model_name: str,
@@ -61,6 +73,12 @@ def register_model_version(
         or artifacts.get("artifact_uri")
         or f"minio://sahool-models/{model_name}/{version}/{ahash[:12]}"
     )
+    validated_metrics = {}
+    for key, value in (metrics or {}).items():
+        metric = _finite_metric(value)
+        if not isinstance(key, str) or not key or metric is None:
+            raise ValueError("model_metrics_must_be_finite_numeric_values")
+        validated_metrics[key] = metric
     version_payload = ModelVersion(
         model_id=_stable_id(
             {"name": model_name, "version": version, "task": task, "artifact_hash": ahash}, "model"
@@ -73,7 +91,7 @@ def register_model_version(
         artifact_hash=ahash,
         dataset_version_id=dataset_version_id,
         feature_set_id=feature_set_id,
-        metrics={k: float(v) for k, v in (metrics or {}).items()},
+        metrics=validated_metrics,
         status=status,
     )
     return asdict(version_payload)
@@ -86,27 +104,61 @@ def apply_model_promotion(
     challenger: dict[str, Any],
     policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Fail-closed promotion workflow with rollback metadata."""
+    """Deterministic *candidate-only* promotion calculation, not activation.
+
+    This helper is not the authoritative Decision Service approval. A numeric
+    score or a hash of artifact *metadata* is not proof of model licensing,
+    agricultural generalisation, verified model bytes or human authorization.
+    """
     policy = policy or {
         "primary_metric": "score",
         "min_improvement": 0.02,
         "require_artifact_hash": True,
     }
     reasons: list[str] = []
-    allowed = True
-    primary = str(policy.get("primary_metric", "score"))
+    primary = policy.get("primary_metric", "score")
+    if not isinstance(primary, str) or not primary.strip():
+        reasons.append("primary_metric_invalid")
+        primary = "score"
+    minimum = _finite_metric(policy.get("min_improvement", 0.0))
+    if minimum is None or minimum < 0:
+        reasons.append("min_improvement_invalid")
+        minimum = None
+    lower_is_better = policy.get("lower_is_better", False)
+    if not isinstance(lower_is_better, bool):
+        reasons.append("metric_direction_invalid")
+        lower_is_better = False
     if policy.get("require_artifact_hash", True) and not challenger.get("artifact_hash"):
-        allowed = False
         reasons.append("missing_artifact_hash")
-    champion_score = float((champion or {}).get("metrics", {}).get(primary, 0.0))
-    challenger_score = float((challenger or {}).get("metrics", {}).get(primary, 0.0))
-    delta = challenger_score - champion_score
-    if champion and delta < float(policy.get("min_improvement", 0.0)):
-        allowed = False
-        reasons.append("insufficient_metric_improvement")
+    challenger_metrics = challenger.get("metrics") or {}
+    champion_metrics = (champion or {}).get("metrics") or {}
+    challenger_score = _finite_metric(challenger_metrics.get(primary))
+    champion_score = _finite_metric(champion_metrics.get(primary)) if champion else None
+    if challenger_score is None:
+        reasons.append("challenger_primary_metric_missing_or_nonfinite")
+    if champion and champion_score is None:
+        reasons.append("champion_primary_metric_missing_or_nonfinite")
+    delta = None
+    if challenger_score is not None and (not champion or champion_score is not None):
+        if champion_score is not None:
+            delta = challenger_score - champion_score
+            if not math.isfinite(delta):
+                reasons.append("metric_delta_nonfinite")
+                delta = None
+            elif minimum is not None:
+                improvement = -delta if lower_is_better else delta
+                if improvement < minimum:
+                    reasons.append("insufficient_metric_improvement")
+    if (
+        champion
+        and champion.get("task")
+        and challenger.get("task")
+        and champion["task"] != challenger["task"]
+    ):
+        reasons.append("model_task_mismatch")
     if challenger.get("status") in {"failed", "blocked", "rejected"}:
-        allowed = False
         reasons.append("challenger_status_not_promotable")
+    allowed = not reasons
     target = challenger if allowed else champion
     return {
         "promotion_id": _stable_id(
@@ -123,7 +175,7 @@ def apply_model_promotion(
         "target_model_id": (target or {}).get("model_id"),
         "previous_model_id": (champion or {}).get("model_id"),
         "challenger_model_id": challenger.get("model_id"),
-        "metric_delta": {primary: round(delta, 6)},
+        "metric_delta": {primary: round(delta, 6) if delta is not None else None},
         "reasons": reasons or ["policy_passed"],
         "rollback_target_model_id": (champion or {}).get("model_id"),
         "created_at": _now(),

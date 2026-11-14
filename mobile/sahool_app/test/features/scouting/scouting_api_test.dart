@@ -2,15 +2,95 @@
 // مفتاح Idempotency-Key، وحقل field_id في multipart كشف الآفات.
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
+import 'package:sahool_app/features/scouting/data/scouting_api.dart';
 
 import '../../core/fake_http.dart';
 import 'scouting_fakes.dart';
 
 void main() {
+  group('shared photo evidence (v260, scout-ingest)', () {
+    test('bytes sent raw with their digest, and the exact receipt required', () async {
+      const id = 'p1';
+      final bytes = Uint8List.fromList([255, 216, 255, 217]);
+      final digest = crypto.sha256.convert(bytes).toString();
+      final (api, adapter) = fakeApi(
+        (o) async => FakeReply(200, {
+          'evidence_id': 'e1',
+          'field_id': 'f1',
+          'pin_id': id,
+          'sha256': digest,
+          'persisted': true,
+          'verification_state': 'bytes_verified',
+          'review_state': 'unreviewed',
+        }),
+      );
+      final receipt = await api.uploadPinPhoto(
+        fieldId: 'f1',
+        pinId: id,
+        bytes: bytes,
+        filename: 'leaf.jpg',
+        idempotencyKey: const IdempotencyKey('photo-key'),
+      );
+      expect(receipt['sha256'], digest);
+      final r = adapter.requests.single;
+      expect(r.method, 'POST');
+      expect(r.path, scoutingPhotoPath('f1', id));
+      expect(r.path, '/api/v1/scouting-media/fields/f1/pins/p1/photo');
+      expect(r.headers['X-Content-SHA256'], digest);
+      expect(r.headers[kIdempotencyHeader], 'photo-key');
+      expect(r.data, bytes);
+    });
+
+    test('an unrelated photo 2xx is not a saved photo', () async {
+      final (api, _) = fakeApi(
+        (o) async => const FakeReply(200, {
+          'evidence_id': 'e1',
+          'field_id': 'f1',
+          'pin_id': 'wrong',
+          'persisted': true,
+          'sha256': 'nope',
+          'verification_state': 'bytes_verified',
+          'review_state': 'unreviewed',
+        }),
+      );
+      expect(
+        api.uploadPinPhoto(
+          fieldId: 'f1',
+          pinId: 'p1',
+          bytes: Uint8List.fromList([1, 2]),
+          filename: 'a.jpg',
+        ),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('only JPG, PNG and WebP are sent', () {
+      expect(scoutingPhotoType('a.JPG'), 'image/jpeg');
+      expect(scoutingPhotoType('a.jpeg'), 'image/jpeg');
+      expect(scoutingPhotoType('a.png'), 'image/png');
+      expect(scoutingPhotoType('a.webp'), 'image/webp');
+      expect(() => scoutingPhotoType('a.heic'), throwsFormatException);
+    });
+
+    test('remote viewing requires a trusted HTTPS expiring link', () async {
+      final (api, _) = fakeApi(
+        (o) async => const FakeReply(200, {
+          'field_id': 'f1',
+          'pin_id': 'p1',
+          'persisted': true,
+          'verification_state': 'bytes_verified',
+          'url': 'http://bad/image',
+        }),
+      );
+      expect(api.photoForPin('f1', 'p1'), throwsA(isA<FormatException>()));
+    });
+  });
+
   group('listPins', () {
     test(
       'reads {pins, note_ar} from GET /api/v1/scouting/pins?field_id',
@@ -30,6 +110,33 @@ void main() {
         expect(page.pins.single.noteAr, 'منّ على الأوراق');
         expect(page.pins.single.severity?.wire, 'high');
         expect(page.noteAr, isNull);
+      },
+    );
+
+    test(
+      'a supervisor tells a measured pin from a field-centre pin (v257)',
+      () async {
+        final (api, _) = fakeApi(
+          (o) async => FakeReply(200, {
+            'pins': [
+              {
+                ...pinJson('gps'),
+                'location_source': 'gps',
+                'accuracy_m': 7.6,
+              },
+              {...pinJson('centre'), 'location_source': 'field_centroid'},
+              pinJson('legacy'),
+            ],
+          }),
+        );
+        final pins = (await api.listPins('f1')).pins;
+        expect(pins[0].locationSource, 'gps');
+        expect(pins[0].accuracyM, 7.6);
+        expect(pins[0].locationSourceLabelAr, 'GPS (مقيس، ±8 م)');
+        expect(pins[1].locationSource, 'field_centroid');
+        expect(pins[1].locationSourceLabelAr, contains('مركز الحقل'));
+        expect(pins[2].locationSource, 'unknown');
+        expect(pins[2].locationSourceLabelAr, 'غير معروف');
       },
     );
 

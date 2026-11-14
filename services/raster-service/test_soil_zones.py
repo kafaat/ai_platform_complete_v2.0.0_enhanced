@@ -83,3 +83,31 @@ def test_soil_summary_zones_fail_closed(monkeypatch):
     assert fc["computed"] is False and fc["features"] == []
     pts = sz.compute_soil_sampling_points([1, 2, 3, 4])
     assert pts["computed"] is False and pts["features"] == []
+
+
+def test_soilgrids_zones_reach_sampling_planner(tmp_path):
+    from services.ai_agronomist.soil_sampling_planner import plan_soil_sampling
+
+    bbox = _synthetic_source(tmp_path)
+    fc = sz.compute_soil_sampling_zones(bbox, n_zones=3)
+    plan = plan_soil_sampling(fc, field_id="pivot")
+    ids = {f["properties"]["zone_id"] for f in fc["features"]}
+    assert plan["method"] == "soil_zone_stratified_sampling"
+    assert {p["zone_id"] for p in plan["sample_points"]} == ids
+    assert all(p["productivity_class"] == "unknown" for p in plan["sample_points"])
+
+
+def test_shifted_soil_layer_is_omitted(tmp_path):
+    bbox = _synthetic_source(tmp_path)
+    with rasterio.open(tmp_path / "sand_0-5cm.tif", "r+") as layer:
+        layer.transform = layer.transform * rasterio.Affine.translation(0.2, 0)
+    fc = sz.compute_soil_sampling_zones(bbox)
+    assert fc["computed"] and "clay" in fc["properties_used"]
+    assert "sand" not in fc["properties_used"]
+
+
+def test_texture_tolerates_one_point_over_100_like_lab_entry():
+    import soil_render
+
+    assert soil_render.usda_texture_class(20.5, 80.3) is not None
+    assert soil_render.usda_texture_class(21.5, 80.0) is None

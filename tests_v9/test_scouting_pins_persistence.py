@@ -332,6 +332,111 @@ async def test_create_pin_rejects_body_field_differing_from_path(fields_mod):
     assert exc.value.status_code == 422
 
 
+# ─── v257: مصدر الموقع ودقّته (الصورة ليست في scouting_pins: v260 scout_photo_evidence) ───
+
+
+def test_location_source_defaults_to_unknown_and_round_trips():
+    from api.scouting_pins import make_pin
+
+    legacy = make_pin("p-old", "fld-1", 16.0, 45.0, "pest")
+    assert legacy.location_source == "unknown" and legacy.accuracy_m is None
+    gps = make_pin("p-gps", "fld-1", 16.0, 45.0, "pest", location_source="gps", accuracy_m=7.5)
+    assert gps.to_dict()["location_source"] == "gps"
+    assert gps.to_dict()["accuracy_m"] == 7.5
+
+
+@pytest.mark.parametrize(
+    "source,accuracy",
+    [
+        ("field_centroid", 5.0),
+        ("manual", 1.0),
+        ("unknown", 3.0),
+        ("gps", -1.0),
+        ("satellite", None),
+    ],
+)
+def test_accuracy_belongs_to_a_gps_fix_only(source, accuracy):
+    from api.scouting_pins import make_pin
+
+    with pytest.raises(ValueError):
+        make_pin("p", "fld-1", 16.0, 45.0, "pest", location_source=source, accuracy_m=accuracy)
+
+
+def test_request_model_rejects_unknown_source_and_defaults_unknown():
+    from api.api_models import PinCreateRequest
+    from pydantic import ValidationError
+
+    base = {"pin_id": "p", "field_id": "f", "lat": 16.0, "lng": 45.0, "issue_category": "pest"}
+    assert PinCreateRequest(**base).location_source == "unknown"
+    with pytest.raises(ValidationError):
+        PinCreateRequest(**base, location_source="satellite")
+
+
+async def test_persist_pin_writes_source_and_accuracy(fields_mod, monkeypatch):
+    from api.scouting_pins import make_pin
+
+    conn = _FakeConn()
+    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(fields_mod, "tenant_connection", lambda user: _FakeTenantConn(conn))
+    pin = make_pin("p-src", "fld-1", 16.0, 45.0, "pest", location_source="gps", accuracy_m=4.0)
+    assert await fields_mod._persist_scouting_pin(_FakeUser(), pin) is True
+    assert "location_source, accuracy_m" in conn.execute_sql
+    assert conn.execute_args[15:17] == ("gps", 4.0)
+
+
+async def test_persist_pin_resend_with_other_source_is_409(fields_mod, monkeypatch):
+    from api.scouting_pins import make_pin
+    from fastapi import HTTPException
+
+    pin = make_pin("p5", "fld-1", 16.0, 45.0, "pest", location_source="gps", accuracy_m=3.0)
+    stored = pin.to_dict() | {"location_source": "field_centroid", "accuracy_m": None}
+    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(
+        fields_mod, "tenant_connection", lambda user: _FakeTenantConn(_ExistingPinConn(stored))
+    )
+    with pytest.raises(HTTPException) as exc:
+        await fields_mod._persist_scouting_pin(_FakeUser(), pin)
+    assert exc.value.status_code == 409
+
+
+def test_row_to_pin_reads_source_and_accuracy(scouting_mod):
+    row = _sample_row() | {"location_source": "gps", "accuracy_m": 6.0}
+    out = scouting_mod._row_to_pin(row)
+    assert (out["location_source"], out["accuracy_m"]) == ("gps", 6.0)
+
+
+def test_row_to_pin_legacy_row_is_unknown(scouting_mod):
+    out = scouting_mod._row_to_pin(_sample_row())
+    assert out["location_source"] == "unknown"
+    assert out["accuracy_m"] is None
+
+
+def test_list_sql_selects_source_and_accuracy(scouting_mod):
+    cols = scouting_mod._PIN_SELECT_COLS
+    for name in ("location_source", "accuracy_m"):
+        assert name in cols
+
+
+def test_the_pin_carries_no_second_photo_link(scouting_mod):
+    """Owner decision 2026-11-13: one photo source, scout_photo_evidence (v260).
+
+    v257 must not add scouting_pins.photo_document_id, the pin request takes no photo body,
+    and the pin list does not read the documents registry for a photo.
+    """
+    from api.api_models import PinCreateRequest
+
+    with open(
+        os.path.join(ROOT, "migrations", "v257_scouting_pin_location_photo.sql"), encoding="utf-8"
+    ) as fh:
+        sql = fh.read()
+    code = "\n".join(line for line in sql.splitlines() if not line.lstrip().startswith("--"))
+    assert "photo_document_id" not in code
+    assert "documents" not in code
+    assert "photo" not in PinCreateRequest.model_fields
+    assert "photo_document_id" not in scouting_mod._PIN_SELECT_COLS
+    assert "photo" not in scouting_mod._row_to_pin(_sample_row())
+
+
 # ─── وقت المشاهدة وموقعها (S-H2) ───────────────────────────────────────────
 def test_an_unparseable_observation_time_is_a_422_not_a_silent_persisted_false():
     from api.scouting_pins import _pin_created_at

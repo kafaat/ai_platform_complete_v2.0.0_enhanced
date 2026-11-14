@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class ValidationMeasurement(BaseModel):
@@ -49,7 +49,15 @@ class CalibrationMetric(BaseModel):
     rmse: float | None = None
     bias: float | None = None
     r2: float | None = None
-    spatial_cv: bool = True
+    spatial_cv: bool = False
+    field_diversity_passed: bool | None = None
+
+    @field_validator("spatial_cv", mode="after")
+    @classmethod
+    def require_fold_evidence(cls, value: bool) -> bool:
+        # Historical artifacts used this bit for field diversity. The current
+        # metric contains paired predictions, with no out-of-fold fit evidence.
+        return False
 
 
 class RegionalCalibrationArtifact(BaseModel):

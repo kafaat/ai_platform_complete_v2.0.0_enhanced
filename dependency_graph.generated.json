@@ -1,5 +1,5 @@
 {
-  "edge_count": 950,
+  "edge_count": 965,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -92,7 +92,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/services/api.ts:571",
+      "evidence": "frontend/src/services/api.ts:577",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -112,7 +112,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/components/AddFieldWithMap.tsx:411",
+      "evidence": "frontend/src/components/AddFieldWithMap.tsx:446",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -122,7 +122,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/hooks/useApi.ts:262",
+      "evidence": "frontend/src/hooks/useApi.ts:263",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -612,16 +612,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/auth/mfa_enrollment.py",
-      "from": "auth",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://users",
-      "to": "db://users",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/auth/mfa_runtime.py",
       "from": "auth",
       "from_kind": "component",
@@ -839,6 +829,16 @@
       "relation": "READS",
       "resource": "db://decision_record",
       "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/persistence.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://dispatch_decisions",
+      "to": "db://dispatch_decisions",
       "to_kind": "resource"
     },
     {
@@ -2272,7 +2272,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/farm_operations_ledger.py",
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2282,7 +2282,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/farm_operations_ledger.py",
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2312,16 +2312,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://farm_season_projects",
-      "to": "db://farm_season_projects",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/routers/operational_truth.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -2342,13 +2332,13 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/farm_operations_ledger.py",
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
       "relation": "READS",
-      "resource": "db://farm_water_records",
-      "to": "db://farm_water_records",
+      "resource": "db://farm_season_projects",
+      "to": "db://farm_season_projects",
       "to_kind": "resource"
     },
     {
@@ -2357,8 +2347,8 @@
       "from_kind": "component",
       "protocol": "postgres",
       "relation": "READS",
-      "resource": "db://farms",
-      "to": "db://farms",
+      "resource": "db://farm_water_records",
+      "to": "db://farm_water_records",
       "to_kind": "resource"
     },
     {
@@ -2403,6 +2393,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/simple_farm_book.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farms",
+      "to": "db://farms",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2672,6 +2672,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/simple_farm_book.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/tasks.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -2683,6 +2693,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/task_irrigation_observations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2763,6 +2783,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/lab_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -3172,6 +3202,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_idempotency_server_contract.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -3343,16 +3383,6 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/field_completeness.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://imagery_automation_fields",
-      "to": "db://imagery_automation_fields",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/seasons.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -3827,6 +3857,26 @@
       "from_kind": "component",
       "protocol": "postgres",
       "relation": "READS",
+      "resource": "db://lab_sample_custody_events",
+      "to": "db://lab_sample_custody_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/lab_store.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://lab_samples",
+      "to": "db://lab_samples",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/soil_enrichment.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
       "resource": "db://lab_samples",
       "to": "db://lab_samples",
       "to_kind": "resource"
@@ -4033,6 +4083,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/seasons.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -4662,6 +4722,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/soil_enrichment.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://soil_lab_results",
+      "to": "db://soil_lab_results",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4712,16 +4782,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://soil_lab_tests",
-      "to": "db://soil_lab_tests",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/routers/reports.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4733,6 +4793,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/season_workspace.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://soil_lab_tests",
+      "to": "db://soil_lab_tests",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/soil_enrichment.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5252,6 +5322,46 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/media_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_evidence",
+      "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_evidence",
+      "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/media_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_pins",
+      "to": "db://scouting_pins",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_pins",
+      "to": "db://scouting_pins",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/season_api.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
@@ -5462,7 +5572,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:331",
+      "evidence": "nginx/nginx.v9.conf:348",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5502,7 +5612,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:269",
+      "evidence": "nginx/nginx.v9.conf:284",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5582,7 +5692,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:347",
+      "evidence": "nginx/nginx.v9.conf:364",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5612,7 +5722,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:350",
+      "evidence": "nginx/nginx.v9.conf:368",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5652,7 +5762,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:321",
+      "evidence": "nginx/nginx.v9.conf:337",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5702,7 +5812,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:307",
+      "evidence": "nginx/nginx.v9.conf:320",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5832,7 +5942,17 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:295",
+      "evidence": "nginx/nginx.v9.conf:269",
+      "from": "gateway:nginx",
+      "from_kind": "gateway",
+      "protocol": "http",
+      "relation": "ROUTES_TO",
+      "resource": "^~ /api/v1/scouting-media/",
+      "to": "runtime-upstream://sahool-scout-ingest",
+      "to_kind": "runtime_upstream"
+    },
+    {
+      "evidence": "nginx/nginx.v9.conf:308",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5842,7 +5962,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:277",
+      "evidence": "nginx/nginx.v9.conf:293",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6032,7 +6152,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:312",
+      "evidence": "nginx/nginx.v9.conf:329",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6042,7 +6162,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:316",
+      "evidence": "nginx/nginx.v9.conf:332",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6142,7 +6262,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:324",
+      "evidence": "nginx/nginx.v9.conf:340",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -9262,6 +9382,36 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/media_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_evidence",
+      "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_evidence",
+      "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scouting_pins",
+      "to": "db://scouting_pins",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/season_api.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
@@ -9520,16 +9670,16 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 493,
-    "ROUTES_TO": 72,
-    "WRITES": 334
+    "READS": 504,
+    "ROUTES_TO": 73,
+    "WRITES": 337
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
     "gateway": {
       "component_targets": 53,
-      "observed": 72,
-      "runtime_upstream_targets": 19
+      "observed": 73,
+      "runtime_upstream_targets": 20
     },
     "nats": {
       "observed": 6,
@@ -9537,8 +9687,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 828,
-      "resolved": 827,
+      "observed": 842,
+      "resolved": 841,
       "unresolved_component_paths": 0
     }
   }

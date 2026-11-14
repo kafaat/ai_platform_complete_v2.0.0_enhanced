@@ -36,6 +36,8 @@ def request():
                 "reported_result": "unchanged",
                 "event_time": f"2026-{month}-01T00:00:00Z",
                 "feature_available_at": f"2026-{month}-01T01:00:00Z",
+                # Recorded ingestion into the platform: without it no manifest is safe.
+                "feature_ingested_at": f"2026-{month}-01T02:00:00Z",
                 "decision_at": f"2026-{month}-02T00:00:00Z",
                 "matures_at": f"2026-{month}-10T00:00:00Z",
                 "outcome_at": f"2026-{month}-11T00:00:00Z",

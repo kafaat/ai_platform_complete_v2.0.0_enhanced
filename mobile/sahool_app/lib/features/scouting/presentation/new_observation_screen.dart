@@ -1,7 +1,8 @@
 // SAHOOL — features/scouting/presentation/new_observation_screen.dart
 // «مشاهدة جديدة» مصمّمة ليد واحدة في الحقل: الموقع يُلتقط تلقائيّاً عند الفتح،
 // الفئة والشدّة أزرار كبيرة بأيقونات، الملاحظة اختياريّة، وزرّ الحفظ ثابت أسفل
-// الشاشة في متناول الإبهام. الصورة تبقى على الجهاز (لا تخزين صور في الخادم).
+// الشاشة في متناول الإبهام. الصورة تُحفظ على الجهاز فوراً ثمّ تُرفع دليلاً مستقلّاً بعد
+// تأكيد الدبّوس (scout-ingest، v260).
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -18,8 +19,8 @@ import 'disease_symptoms_dialog.dart';
 import 'new_observation_cubit.dart';
 import 'scouting_deps.dart';
 
-const String kPhotoUploadUnavailable =
-    'رفع الصور غير متاح بعد في الخادم — تبقى الصورة على هذا الجهاز فقط ولا تُرسل مع المشاهدة.';
+const String kPhotoUploadNotice =
+    'تُحفظ الصورة على الجهاز ثمّ تُرفع دليلاً غير معتمد تشخيصيّاً بعد حفظ المشاهدة ويراها المشرف؛ دون اتّصال تنتظر المزامنة (JPG/PNG/WebP).';
 
 class NewObservationScreen extends StatelessWidget {
   const NewObservationScreen({
@@ -523,11 +524,26 @@ class _PhotoCard extends StatelessWidget {
             onPressed: () => cubit.capturePhoto(),
           ),
           const SizedBox(height: SahoolSpacing.sm),
-          StatusChip(
-            label: kPhotoUploadUnavailable,
-            tone: StatusTone.info,
-            icon: Icons.cloud_off_rounded,
-          ),
+          if (path != null && state.photoUpload != PhotoUpload.none)
+            StatusChip(
+              key: const ValueKey('photo-upload-state'),
+              label: state.photoUploadMessage ?? '',
+              tone: switch (state.photoUpload) {
+                PhotoUpload.uploaded => StatusTone.success,
+                PhotoUpload.failed => StatusTone.danger,
+                PhotoUpload.queued => StatusTone.warning,
+                _ => StatusTone.info,
+              },
+              icon: state.photoUpload == PhotoUpload.uploaded
+                  ? Icons.cloud_done_outlined
+                  : Icons.cloud_upload_outlined,
+            )
+          else
+            const StatusChip(
+              label: kPhotoUploadNotice,
+              tone: StatusTone.info,
+              icon: Icons.cloud_upload_outlined,
+            ),
           _ErrorLine(state.photoError),
         ],
       ),

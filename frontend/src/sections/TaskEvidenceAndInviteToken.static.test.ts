@@ -11,7 +11,7 @@ const invite = readFileSync(join(root, 'src/pages/AcceptInvitationPage.tsx'), 'u
 describe('F-tasks — photo preview is decoupled from completion', () => {
   it('handlePhotoUpload لا يستدعي completeTask', () => {
     const start = tasks.indexOf('const handlePhotoUpload');
-    const block = tasks.slice(start, tasks.indexOf('const TaskCard', start));
+    const block = tasks.slice(start, tasks.indexOf('const renderTaskCard', start));
     expect(block).not.toContain('completeTask(');
     // يُبطِل رابط المعاينة السابق (لا تسريب object URL).
     expect(block).toContain('URL.revokeObjectURL(');

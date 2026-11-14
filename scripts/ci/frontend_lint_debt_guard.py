@@ -58,7 +58,8 @@ BASELINE: dict[str, int] = {
     # وإلّا ابتلع السقفُ عودةَ الدَّين صامتاً — وهو ما أطلقه على هذه الشريحة بالضبط).
     # ثمّ 38 ⇒ 27 مع إصلاحات الواجهة التشغيليّة (2026-11-11) التي أزالت أحد عشر موضعاً.
     # ثمّ 27 ⇒ 25 مع متابعة حدود الحقل والقمر الصناعيّ (موضعان في FieldManagementPage).
-    "@typescript-eslint/no-explicit-any": 25,
+    # ثمّ 25 ⇒ 24 مع تكاليف المهمّة (``catch (e: any)`` في SimpleFarmBookPage صار ``unknown``).
+    "@typescript-eslint/no-explicit-any": 24,
     # صفرٌ مقيسٌ لا مأمول: الواحدُ والثلاثون سُدِّدت كلُّها.
     "@typescript-eslint/no-unused-vars": 0,
 }
