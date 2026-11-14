@@ -15,8 +15,11 @@ row-level-security policy scoped to that role rejects every new row. Both raise 
 (insufficient_privilege) and cannot be told apart by the driver; either one is a server-side
 fault for a request whose tenant comes from the caller's own token, so the answer is 503.
 
-Runs in the Integration job (``TEST_DATABASE_URL``, migrated by the manifest). Without a
-reachable database the module is skipped, and the skip says so.
+Runs in the shared Integration step (``TEST_DATABASE_URL``, migrated by the manifest; the
+superuser there creates the throwaway restricted role). That step sets
+``FIELD_GEOMETRY_CERTIFICATION_REQUIRED=1``, so an unreachable or unmigrated database fails the
+module instead of turning it into a green skip. Without the switch (a developer machine with no
+database) every case is skipped, and the skip says why.
 """
 
 from __future__ import annotations
@@ -76,7 +79,16 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
-pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
+_REQUIRED = os.getenv("FIELD_GEOMETRY_CERTIFICATION_REQUIRED") == "1"
+
+
+@pytest.fixture(autouse=True)
+def _database_or_declared_skip():
+    if _WHY:
+        message = f"field-geometry live certification has no database: {_WHY}"
+        if _REQUIRED:
+            pytest.fail(message, pytrace=False)
+        pytest.skip(f"declared skip (not a pass): {message}")
 
 
 def _platform():
