@@ -146,6 +146,19 @@ def gdd_view(
     (canonical) تراها النواة من السلسلة بعد التطبيع/إزالة التكرار.
     """
     ordered = series.get("ordered_days", [])
+    # A dated canonical request must only consume observations within its season/window.
+    # The legacy raw-array path has no reliable date alignment: preserve its wire contract.
+    # Both bounds must be valid; an invalid window remains under the kernel's old policy.
+    legacy_arrays = kernel_daily_t_min is not None and kernel_daily_t_max is not None
+    excluded_out_of_window_days = 0
+    if not legacy_arrays and _expected_days_inclusive(period_start, period_end) is not None:
+        # Series dates are canonical ISO (YYYY-MM-DD, from _parse_iso_date); fromisoformat also
+        # accepts basic/week forms (20260401, 2026-W14-3), so compare on the canonical form.
+        window_start = _date.fromisoformat(period_start).isoformat()
+        window_end = _date.fromisoformat(period_end).isoformat()
+        original_count = len(ordered)
+        ordered = [d for d in ordered if window_start <= str(d.get("date", "")) <= window_end]
+        excluded_out_of_window_days = original_count - len(ordered)
     dates = [d.get("date") for d in ordered]
     contributing_state_ids = [d.get("source_snapshot_id") for d in ordered]
 
@@ -199,6 +212,8 @@ def gdd_view(
         "invalid_records": series.get("invalid_records", 0),
         **(diagnostics or {}),
     }
+    if excluded_out_of_window_days:
+        diag["excluded_out_of_window_days"] = excluded_out_of_window_days
 
     # جودة السلسلة = جودة البيانات (النواة) **مُخفَّضة** حين التغطية ناقصة — سلسلة ذات فجوات
     # لا تُعطى validated وإن كانت أيّامها الموجودة صحيحة (تغطية ≠ جودة). حقل جديد لا يمسّ

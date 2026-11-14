@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **43**
-- Files scanned: **7341**
+- Files scanned: **7345**
 - Ambiguous artifacts queued: **238**
-- Unmapped artifacts queued: **3492**
+- Unmapped artifacts queued: **3495**
 
 ## Capability coverage
 
@@ -32,7 +32,7 @@
 | DEC-010 | decision | 4 | 93 | 49 | 7 | 0 | 0 | 7 | 5 |
 | FM-001 | farm_management | 16 | 2 | 28 | 12 | 1 | 0 | 43 | 6 |
 | FM-002 | farm_management | 36 | 44 | 100 | 26 | 19 | 35 | 52 | 7 |
-| FM-003 | farm_management | 14 | 56 | 5 | 65 | 3 | 2 | 16 | 7 |
+| FM-003 | farm_management | 14 | 56 | 5 | 66 | 3 | 2 | 17 | 7 |
 | FM-004 | farm_management | 32 | 82 | 84 | 43 | 18 | 15 | 55 | 7 |
 | FM-005 | farm_management | 10 | 0 | 0 | 8 | 6 | 1 | 8 | 5 |
 | FM-006 | farm_management | 1 | 0 | 0 | 0 | 2 | 0 | 1 | 3 |
@@ -81,18 +81,18 @@
 | SEC-001 | security | 12 | 16 | 100 | 75 | 0 | 0 | 86 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| SEC-004 | security | 6 | 9 | 19 | 1 | 5 | 5 | 14 | 7 |
+| SEC-004 | security | 6 | 9 | 19 | 1 | 5 | 4 | 13 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 3 | 2 |
 | SEC-006 | security | 3 | 86 | 0 | 3 | 0 | 0 | 11 | 4 |
 | SEC-007 | security | 3 | 74 | 7 | 47 | 0 | 0 | 9 | 5 |
-| SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 10 | 3 |
+| SEC-008 | security | 0 | 0 | 4 | 3 | 0 | 0 | 10 | 3 |
 | SOIL-001 | soil | 6 | 2 | 14 | 22 | 0 | 0 | 5 | 5 |
 | SOIL-002 | soil | 10 | 30 | 8 | 8 | 2 | 0 | 5 | 6 |
 | SOIL-003 | soil | 3 | 3 | 15 | 0 | 0 | 1 | 0 | 4 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 0 | 3 |
 | SOIL-005 | soil | 7 | 0 | 0 | 8 | 0 | 0 | 1 | 3 |
 | WX-001 | weather | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| WX-002 | weather | 13 | 21 | 6 | 31 | 8 | 1 | 13 | 7 |
+| WX-002 | weather | 13 | 21 | 6 | 31 | 8 | 1 | 14 | 7 |
 | WX-003 | weather | 2 | 6 | 4 | 0 | 0 | 0 | 0 | 3 |
 | WX-004 | weather | 3 | 0 | 0 | 1 | 0 | 0 | 9 | 3 |
 | WX-005 | weather | 3 | 0 | 0 | 1 | 0 | 0 | 2 | 3 |

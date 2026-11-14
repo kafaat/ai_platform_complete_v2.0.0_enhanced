@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7341,
+    "files_scanned": 7345,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
-      "mobile": 416,
-      "other": 2181,
-      "tests": 2501,
+      "mobile": 415,
+      "other": 2182,
+      "tests": 2505,
       "web": 547
     },
-    "unmapped_artifacts": 3492,
+    "unmapped_artifacts": 3495,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3970,
-      "raw": 3371
+      "python_functional": 3976,
+      "raw": 3369
     },
-    "test_dependency_files": 1900,
-    "test_dependency_edges": 4886,
-    "test_dependency_bounded_files": 1113,
-    "test_dependency_unresolved_relations": 482
+    "test_dependency_files": 1905,
+    "test_dependency_edges": 4904,
+    "test_dependency_bounded_files": 1116,
+    "test_dependency_unresolved_relations": 485
   },
   "capabilities": [
     {
@@ -5520,6 +5520,10 @@
           "score": 14
         },
         {
+          "value": "public.field_geometry_history @ tests_v9/test_field_geometry_save_atomic_live_pg.py:74",
+          "score": 14
+        },
+        {
           "value": "v139_field_geometry_history_append_only.sql @ tests_v9/test_field_geometry_history_append_only_v39_5.py:26",
           "score": 14
         },
@@ -5704,6 +5708,14 @@
         },
         {
           "path": "tests_v9/test_field_geometry_history_append_only_v39_5.py",
+          "score": 14,
+          "signals": [
+            "path:field geometry",
+            "content:field geometry"
+          ]
+        },
+        {
+          "path": "tests_v9/test_field_geometry_save_atomic_live_pg.py",
           "score": 14,
           "signals": [
             "path:field geometry",
@@ -5943,10 +5955,10 @@
         "backend": 14,
         "routes": 56,
         "database": 5,
-        "events": 65,
+        "events": 66,
         "web": 3,
         "mobile": 2,
-        "tests": 16,
+        "tests": 17,
         "governance": 1,
         "other_evidence": 17
       },
@@ -6487,7 +6499,7 @@
           "score": 14
         },
         {
-          "value": "/v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:40",
+          "value": "/v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
           "score": 14
         },
         {
@@ -8145,7 +8157,7 @@
           "score": 10
         },
         {
-          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:649",
+          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:729",
           "score": 9
         },
         {
@@ -10415,7 +10427,7 @@
           "score": 13
         },
         {
-          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:649",
+          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:729",
           "score": 10
         },
         {
@@ -11921,7 +11933,7 @@
           "score": 17
         },
         {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:83",
+          "value": "sahool.api @ services/sahool-platform/api/main.py:84",
           "score": 15
         },
         {
@@ -12731,15 +12743,15 @@
           "score": 20
         },
         {
-          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:595",
+          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:597",
           "score": 20
         },
         {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:441",
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:443",
           "score": 20
         },
         {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:549",
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:551",
           "score": 20
         },
         {
@@ -20482,7 +20494,7 @@
           "score": 8
         },
         {
-          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:649",
+          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:729",
           "score": 8
         },
         {
@@ -26793,16 +26805,6 @@
       ],
       "mobile": [
         {
-          "path": "mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart",
-          "score": 18,
-          "signals": [
-            "path:MFA",
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:recovery code"
-          ]
-        },
-        {
           "path": "mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart",
           "score": 17,
           "signals": [
@@ -26855,17 +26857,6 @@
         {
           "path": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "score": 26,
-          "signals": [
-            "path:MFA",
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:recovery code",
-            "content:totp"
-          ]
-        },
-        {
-          "path": "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
-          "score": 22,
           "signals": [
             "path:MFA",
             "content:MFA",
@@ -27096,8 +27087,8 @@
         "database": 19,
         "events": 1,
         "web": 5,
-        "mobile": 5,
-        "tests": 14,
+        "mobile": 4,
+        "tests": 13,
         "governance": 0,
         "other_evidence": 11
       },
@@ -28468,6 +28459,10 @@
       ],
       "events": [
         {
+          "value": "sahool.jwt_denylist @ tests_v9/test_platform_revocation_unverifiable_fail_closed.py:130",
+          "score": 13
+        },
+        {
           "value": "background_tasks.add_task @ tests_v9/test_erp_bridge_fail_closed.py:160",
           "score": 11
         },
@@ -28488,15 +28483,15 @@
           ]
         },
         {
-          "path": "tests_v9/test_critical_event_fail_closed.py",
-          "score": 12,
+          "path": "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
+          "score": 13,
           "signals": [
             "path:fail closed",
             "content:fail closed"
           ]
         },
         {
-          "path": "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
+          "path": "tests_v9/test_critical_event_fail_closed.py",
           "score": 12,
           "signals": [
             "path:fail closed",
@@ -28575,7 +28570,7 @@
         "backend": 0,
         "routes": 0,
         "database": 4,
-        "events": 2,
+        "events": 3,
         "web": 0,
         "mobile": 0,
         "tests": 10,
@@ -30351,6 +30346,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_canonical_state_observed_at.py",
+          "score": 9,
+          "signals": [
+            "content:forecast",
+            "content:Weather forecast",
+            "dedup:Weather forecast=weather forecast"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_irrigation_recent_rain_and_soil_input_g8_g9.py",
           "score": 9,
           "signals": [
@@ -30509,7 +30513,7 @@
         "events": 31,
         "web": 8,
         "mobile": 1,
-        "tests": 13,
+        "tests": 14,
         "governance": 0,
         "other_evidence": 9
       },
@@ -41040,6 +41044,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_spray_readiness.py",
       "kind": "tests"
     },
@@ -42577,6 +42585,10 @@
     },
     {
       "path": "tests_v9/test_auth_main_decomposition_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_auth_revocation_outage_read_policy.py",
       "kind": "tests"
     },
     {
@@ -44173,6 +44185,10 @@
     },
     {
       "path": "tests_v9/test_platform_crypto_dependency.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_platform_denial_log_persistent_live_pg.py",
       "kind": "tests"
     },
     {
@@ -58153,6 +58169,29 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_canonical_state_observed_at.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/agronomic_state_engine.py",
+          "kind": "import",
+          "line": 19
+        },
+        {
+          "source": "services/sahool-platform/core/field_intelligence_coordinator.py",
+          "kind": "import",
+          "line": 25
+        },
+        {
+          "source": "shared/field_runtime_cohesion.py",
+          "kind": "import",
+          "line": 27
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -60119,17 +60158,17 @@
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "import",
-          "line": 23
+          "line": 24
         },
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "source_read",
-          "line": 29
+          "line": 30
         },
         {
           "source": "services/sahool-platform/api/event_catalog.py",
           "kind": "import",
-          "line": 24
+          "line": 25
         }
       ],
       "unresolved": []
@@ -65891,6 +65930,19 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/spatial_sync.py",
+          "kind": "import",
+          "line": 16
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_spectral_stress_bridge.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -66077,7 +66129,7 @@
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 416
+          "line": 423
         },
         {
           "source": "services/sahool-platform/api/api_models.py",
@@ -66087,27 +66139,27 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 379
+          "line": 386
         },
         {
           "source": "services/sahool-platform/api/offline_pending_db.py",
           "kind": "import",
-          "line": 416
+          "line": 423
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 380
+          "line": 387
         },
         {
           "source": "services/sahool-platform/api/routers/observations.py",
           "kind": "import",
-          "line": 380
+          "line": 387
         },
         {
           "source": "services/sahool-platform/api/routers/tasks.py",
           "kind": "import",
-          "line": 380
+          "line": 387
         },
         {
           "source": "services/sahool-platform/core/authorization.py",
@@ -66120,14 +66172,19 @@
           "line": 21
         },
         {
-          "source": "services/sahool-platform/core/offline_first.py",
+          "source": "services/sahool-platform/core/jwt_denylist.py",
           "kind": "import",
           "line": 22
+        },
+        {
+          "source": "services/sahool-platform/core/offline_first.py",
+          "kind": "import",
+          "line": 23
         }
       ],
       "unresolved": [
         {
-          "line": 193,
+          "line": 200,
           "call": "spec_from_file_location"
         }
       ]
@@ -66173,7 +66230,7 @@
         {
           "source": "services/sahool-platform/core/tenant_audit.py",
           "kind": "import",
-          "line": 4
+          "line": 8
         }
       ],
       "unresolved": []
@@ -73032,12 +73089,12 @@
         {
           "source": "tests_v9/service_module.py",
           "kind": "import",
-          "line": 79
+          "line": 84
         }
       ],
       "unresolved": [
         {
-          "line": 88,
+          "line": 93,
           "call": "spec_from_file_location"
         }
       ]
@@ -73315,6 +73372,50 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_auth_revocation_outage_read_policy.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "services/auth/routers/email_verify.py",
+          "kind": "import",
+          "line": 224
+        },
+        {
+          "source": "services/auth/routers/season_edge_sign.py",
+          "kind": "import",
+          "line": 225
+        },
+        {
+          "source": "services/auth/session_tokens.py",
+          "kind": "source_read",
+          "line": 314
+        },
+        {
+          "source": "services/sahool-platform/core/jwt_denylist.py",
+          "kind": "source_read",
+          "line": 315
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 50,
+          "call": "spec_from_file_location"
+        },
+        {
+          "line": 184,
+          "call": "spec_from_file_location"
+        },
+        {
+          "line": 317,
+          "call": "spec_from_file_location"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_auth_rls_and_routing.py",
@@ -79433,6 +79534,39 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_field_geometry_save_atomic_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/field_models.py",
+          "kind": "import",
+          "line": 204
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 97
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 98
+        },
+        {
+          "source": "services/sahool-platform/api/routers/fields.py",
+          "kind": "import",
+          "line": 98
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 104
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_field_geometry_save_guard_20260703.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -85031,6 +85165,31 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_platform_denial_log_persistent_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "subprocess"
+      ],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 102
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 111
+        },
+        {
+          "source": "services/sahool-platform/core/tenant_audit.py",
+          "kind": "import",
+          "line": 103
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_platform_denial_log_scope_live.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -85038,22 +85197,22 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 65
+          "line": 67
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 87
+          "line": 89
         },
         {
           "source": "services/sahool-platform/core/jwt_denylist.py",
           "kind": "import",
-          "line": 66
+          "line": 68
         },
         {
           "source": "services/sahool-platform/core/tenant_audit.py",
           "kind": "import",
-          "line": 67
+          "line": 69
         }
       ],
       "unresolved": []
@@ -85119,12 +85278,17 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 40
+          "line": 44
+        },
+        {
+          "source": "services/sahool-platform/core/authorization.py",
+          "kind": "import",
+          "line": 295
         },
         {
           "source": "services/sahool-platform/core/jwt_denylist.py",
           "kind": "import",
-          "line": 97
+          "line": 104
         }
       ],
       "unresolved": []

@@ -51,7 +51,7 @@ def test_cloud_reaches_fuse_health_via_compose_state():
     """end-to-end: إشارة cloud_cover عالية ⇒ ملاحظة تحويل الوزن للرادار في الحالة."""
     fic = _coordinator()
     ase = _load("ase", "services/sahool-platform/core/agronomic_state_engine.py")
-    # بلا observed_at ⇒ normalize_signals يستخدم now (tz-aware) فلا تختلط naive/aware
+    # بلا observed_at ⇒ يبقى None (لا تملؤه ساعة التطبيع) فلا تختلط naive/aware
     collected = fic.CollectorResult(
         raw={"sensing": {"ndvi": 0.6, "ndre": 0.4, "cloud_cover": 60.0}}
     )

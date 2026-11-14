@@ -493,7 +493,8 @@ def test_live_actuator_reads_auths_revocations_and_floor_and_writes_nothing(stat
 def test_live_platform_fails_closed_when_the_state_server_stops_at_runtime(
     platform_main, monkeypatch, tmp_path
 ):
-    """C-02: redis-server حقيقيّ بسطر compose — إبطالٌ ⇒ 401، سليم ⇒ يُقبَل، ثمّ يُوقَف الخادم ⇒ 503.
+    """C-02: redis-server حقيقيّ بسطر compose — إبطالٌ ⇒ 401، سليم ⇒ يُقبَل، ثمّ يُوقَف الخادم ⇒ 503
+    للكتابة وللمستدعي المباشر، وGET يمضي (قرار المالك 2026-11-14).
 
     الإنتاجُ أقلع وRedis حيّ (#408)، ثمّ انقطع أثناء التشغيل: التوكن السليم نفسه الذي قُبِل قبل
     لحظة يُرَدّ بـ503 ``token_revocation_unverifiable`` لا 200؛ وخارج الإنتاج يُقبَل كما كان.
@@ -532,11 +533,26 @@ def test_live_platform_fails_closed_when_the_state_server_stops_at_runtime(
             platform_main.get_current_user("Bearer " + revoked)
         assert exc.value.status_code == 401
         assert platform_main.get_current_user("Bearer " + healthy).user_id == "u1"
-    # الخادم أُوقِف (proc.terminate) والعميل نفسه باقٍ في _DENYLIST.
+    # الخادم أُوقِف (proc.terminate) والعميل نفسه باقٍ في _DENYLIST. مستدعٍ مباشر بلا طلب ⇒ 503.
     for token in (revoked, healthy):
         with pytest.raises(HTTPException) as exc:
             platform_main.get_current_user("Bearer " + token)
         assert exc.value.status_code == 503
         assert exc.value.detail["code"] == "token_revocation_unverifiable"
+    # قرار المالك (2026-11-14) عبر HTTP على الخادم المُوقَف نفسه: GET يمضي، والكتابة 503.
+    from fastapi import Depends, FastAPI
+    from fastapi.testclient import TestClient
+
+    app = FastAPI()
+    app.api_route("/thing", methods=["GET", "POST", "DELETE"])(
+        lambda user=Depends(platform_main.get_current_user): {"user_id": user.user_id}
+    )
+    http = TestClient(app)
+    auth_header = {"Authorization": "Bearer " + healthy}
+    assert http.get("/thing", headers=auth_header).json() == {"user_id": "u1"}
+    for method in ("POST", "DELETE"):
+        r = http.request(method, "/thing", headers=auth_header)
+        assert r.status_code == 503, (method, r.text)
+        assert r.json()["detail"]["code"] == "token_revocation_unverifiable"
     monkeypatch.setenv("SAHOOL_ENV", "development")
     assert platform_main.get_current_user("Bearer " + healthy).user_id == "u1"
