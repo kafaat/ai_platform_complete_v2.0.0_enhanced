@@ -67,11 +67,19 @@ export default function IrrigationWaterPage() {
 
   const res = submittedFormKey === currentFormKey && !mut.isError ? mut.data : undefined;
   const positiveVerdict = res?.verdict === 'suitable' && res.data_complete === true;
+  // FAO-29 slight-to-moderate tier: usable with management, never a green check.
+  const restrictedVerdict = res?.verdict === 'suitable_with_restrictions' && res.data_complete === true;
+  const restrictionReasons = restrictedVerdict ? res?.restriction_flags_ar ?? [] : [];
   // Legacy servers lack verdict. Fail closed on their positive-looking text as well.
-  const verdictLabel = !res ? '' : positiveVerdict || res.verdict === 'needs_treatment'
-    || res.hazard_flags_ar.length > 0
+  const verdictLabel = !res ? '' : positiveVerdict || restrictedVerdict
+    || res.verdict === 'needs_treatment' || res.hazard_flags_ar.length > 0
     ? res?.suitable_ar ?? ''
     : 'بيانات غير كافية للحكم العامّ';
+  const tone = positiveVerdict
+    ? { bg: '#04140a', border: '#16a34a33' }
+    : restrictedVerdict
+      ? { bg: '#1a1400', border: '#f59e0b55' }
+      : { bg: '#1a0800', border: '#f9731633' };
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto" dir="rtl">
@@ -167,13 +175,19 @@ export default function IrrigationWaterPage() {
           </div>
 
           {/* Verdict */}
-          <div className="rounded-xl border p-4 flex items-start gap-3"
-            style={{ background: positiveVerdict ? '#04140a' : '#1a0800', borderColor: positiveVerdict ? '#16a34a33' : '#f9731633' }}>
+          <div data-testid="water-verdict" data-verdict={res.verdict ?? 'legacy'}
+            className="rounded-xl border p-4 flex items-start gap-3"
+            style={{ background: tone.bg, borderColor: tone.border }}>
             {positiveVerdict
               ? <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-              : <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />}
+              : <AlertTriangle className={`w-5 h-5 shrink-0 mt-0.5 ${restrictedVerdict ? 'text-amber-400' : 'text-orange-400'}`} />}
             <div>
               <div className="text-sm font-semibold text-slate-100">{verdictLabel}</div>
+              {restrictionReasons.length > 0 && (
+                <ul aria-label="قيود الاستعمال (FAO-29)" className="text-xs text-amber-300 mt-1 list-disc ps-4">
+                  {restrictionReasons.map(r => <li key={r}>{r}</li>)}
+                </ul>
+              )}
               {res.hazard_flags_ar.length > 0 && (
                 <div className="text-xs text-orange-300 mt-1">{res.hazard_flags_ar.join(' · ')}</div>
               )}
@@ -185,6 +199,9 @@ export default function IrrigationWaterPage() {
                     .join('، ')}
                 </div>
               )}
+              {(res.advisories_ar ?? []).map(a => (
+                <div key={a} className="text-[11px] text-slate-400 mt-1">{a}</div>
+              ))}
               {!res.data_complete && res.missing_inputs.length > 0 && (
                 <div className="text-[11px] text-slate-500 mt-1">قيم ناقصة (مؤشّرات غير محسوبة): {res.missing_inputs.join('، ')}</div>
               )}

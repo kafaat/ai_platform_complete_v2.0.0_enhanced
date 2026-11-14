@@ -166,6 +166,8 @@ def lab_decision_context(*, soil: dict | None, water: dict | None) -> dict:
             warnings.append("نتيجة التربة ناقصة: " + ",".join(soil["missing_inputs"]))
     if water:
         warnings.extend(water.get("hazard_flags_ar") or [])
+        # FAO-29 slight-to-moderate restrictions; analyses stored before the tier lack the key.
+        warnings.extend(water.get("restriction_flags_ar") or [])
         if water.get("missing_inputs"):
             warnings.append("تحليل الماء ناقص: " + ",".join(water["missing_inputs"]))
     else:
