@@ -584,6 +584,31 @@ tables:
     writers: [field-management-service]
     readers: [sahool-platform, scout-ingest-service]  # photo context: v246 pin pointer, column SELECT
     source: "migrations/v9_new_tables.sql"
+  # v274-v277 (owner decision 2026-11-14): the pin inspection and task cost work held back by
+  # carrier D #1439, rebuilt under field-management-service (owner of field_tasks). The platform
+  # reads inspection_handoffs for the inspector-only meter gate and task_expense_links for the farm
+  # book's link overlay; it writes neither. task_cost_history is written by the
+  # record_field_task_cost trigger on field_tasks (v276), whichever service updates the task.
+  inspection_evidence_versions:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: []
+    source: "migrations/v274_inspection_evidence_versions.sql"
+  inspection_handoffs:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v275_inspection_handoffs.sql, migrations/v277_inspection_close_gate.sql"
+  task_expense_links:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v276_task_cost_trace.sql"
+  task_cost_history:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: []
+    source: "migrations/v276_task_cost_trace.sql"
   field_weather_overlay:
     owner: weather-service
     writers: [weather-service]

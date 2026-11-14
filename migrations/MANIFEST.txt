@@ -823,6 +823,16 @@ v269_scout_plant_tissue_chain.sql
 v270_scout_specialist_credential_attestations.sql
 v271_scout_treatment_review_events.sql
 v272_scout_photo_retention_governance.sql
+# v274-v277 (owner decision 2026-11-14: the pin inspection and task cost work that carrier D #1439
+#   held back, rebuilt under field-management-service, owner of field_tasks; v273 is reserved on
+#   another branch): v274 inspection evidence versions naming the scout photo evidence record by id
+#   and content digest (gap P3); v275 the inspection hand-off log; v276 task expense links and the
+#   task cost history with its record_field_task_cost trigger; v277 the close gate and reopen
+#   triggers on field_tasks. Append-only, FORCE RLS by tenant. Inserted after v272, before v240.
+v274_inspection_evidence_versions.sql
+v275_inspection_handoffs.sql
+v276_task_cost_trace.sql
+v277_inspection_close_gate.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.
