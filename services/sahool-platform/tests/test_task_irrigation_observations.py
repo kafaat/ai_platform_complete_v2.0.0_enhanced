@@ -19,8 +19,9 @@ import pytest
 from api.api_models import ObservationRequest, TaskListResponse, TaskSummary, TaskUpdateRequest
 from core.authorization import Permission, has_permission
 from core.canonical_schemas import UserRole, UserSchema
+from core.jwt_denylist import strict_revocation_for
 from core.offline_first import OfflineQueue
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.testclient import TestClient
 
 pytestmark = pytest.mark.unit
@@ -147,11 +148,13 @@ def _harness(monkeypatch, *, role=UserRole.MANAGER):
     # unrelated platform routers (which requires scipy and external engines).
     api_dir = Path(__file__).resolve().parents[1] / "api"
     main_tree = ast.parse((api_dir / "main.py").read_text())
-    dependency = next(
+    # require_permission and the revocation helpers it calls (#1449), lifted from main.py.
+    lifted = [
         node
         for node in main_tree.body
-        if isinstance(node, ast.FunctionDef) and node.name == "require_permission"
-    )
+        if isinstance(node, ast.FunctionDef)
+        and node.name in {"require_permission", "_revocation_unverifiable"}
+    ]
     scope = {
         "Depends": Depends,
         "UserSchema": UserSchema,
@@ -159,9 +162,13 @@ def _harness(monkeypatch, *, role=UserRole.MANAGER):
         "has_permission": has_permission,
         "HTTPException": HTTPException,
         "get_current_user": get_current_user,
+        "Request": Request,
+        "strict_revocation_for": strict_revocation_for,
+        # Not production: an unverifiable revocation mark never turns into 503 here.
+        "_is_production": lambda: False,
     }
     exec(
-        compile(ast.Module(body=[dependency], type_ignores=[]), "permission_dependency", "exec"),
+        compile(ast.Module(body=lifted, type_ignores=[]), "permission_dependency", "exec"),
         scope,
     )
     stub = types.ModuleType("api.main")
