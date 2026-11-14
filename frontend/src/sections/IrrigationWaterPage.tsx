@@ -12,7 +12,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Droplets, FlaskConical, AlertTriangle, CheckCircle, Save } from 'lucide-react';
 import { useCreateLabSample, useLabSamples, useWaterAnalysis } from '../hooks/useApi';
 import { useSubmitWaterLabResult } from '../hooks/useWaterFieldOps';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { apiErrorMessage, type LabSampleRecord, type WaterSampleInput, type WaterSourceKind } from '../services/api';
 import { WATER_SOURCE_OPTIONS, type WaterLabAnalysis, type WaterSamplePayload } from '../lib/waterFieldOps';
 import { fieldRepresentativePoint } from '../lib/geo';
@@ -255,7 +255,10 @@ const VERDICT_AR: Record<string, string> = {
 };
 
 function SaveAsLabResult({ measurement }: { measurement: Measurement }) {
-  const fieldsQ = useFieldOptions();
+  // Read field options from FieldView's canonical hook. A laboratory save target is
+  // a separate explicit choice: opening the save panel must never preselect it
+  // or mutate the active field merely by reading the available options.
+  const fieldsQ = useSelectedField({ autoSelect: false });
   const [fieldId, setFieldId] = useState('');
   const field = fieldsQ.options.find(f => f.id === fieldId);
   const samplesQ = useLabSamples(fieldId || undefined);

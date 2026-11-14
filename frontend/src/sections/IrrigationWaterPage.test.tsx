@@ -10,7 +10,14 @@ import { MemoryRouter } from 'react-router';
 
 // If the page still read the selected field, it would get one here.
 vi.mock('../hooks/useSelectedField', () => ({
-  useSelectedField: () => ({ fieldId: 'fld_1', field: { id: 'fld_1', name: 'North block' } }),
+  useSelectedField: () => ({
+    fieldId: 'fld_1',
+    field: { id: 'fld_1', name: 'North block' },
+    options: [
+      { id: 'fld_7', name: 'Wadi plot', lat: 15.25, lon: 44.5, geometry: null, area: 1, crop: '' },
+      { id: 'fld_9', name: 'No point', lat: null, lon: null, geometry: null, area: 1, crop: '' },
+    ],
+  }),
 }));
 vi.mock('../components/FieldSelector', () => ({ default: () => <div>field-selector</div> }));
 
@@ -32,14 +39,6 @@ vi.mock('../hooks/useApi', () => ({
 }));
 vi.mock('../hooks/useWaterFieldOps', () => ({
   useSubmitWaterLabResult: () => ({ mutateAsync: lab.submitWater, isPending: false }),
-}));
-vi.mock('../hooks/useFieldOptions', () => ({
-  useFieldOptions: () => ({
-    options: [
-      { id: 'fld_7', name: 'Wadi plot', lat: 15.25, lon: 44.5, geometry: null, area: 1, crop: '' },
-      { id: 'fld_9', name: 'No point', lat: null, lon: null, geometry: null, area: 1, crop: '' },
-    ],
-  }),
 }));
 
 import IrrigationWaterPage from './IrrigationWaterPage';
@@ -164,6 +163,13 @@ describe('IrrigationWaterPage', () => {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
   const openSave = () => fireEvent.click(screen.getByRole('button', { name: 'حفظ كنتيجة مخبر لحقل' }));
   const saveButton = () => screen.getByRole('button', { name: /حفظ النتيجة للحقل/ });
+
+  it('requires explicit lab destination even when FieldView has an active field', () => {
+    renderPage();
+    openSave();
+    expect((screen.getByLabelText('الحقل') as HTMLSelectElement).value).toBe('');
+    expect(saveButton()).toHaveProperty('disabled', true);
+  });
 
   it('sends a newly offered v168 source to the calculator', () => {
     renderPage();
