@@ -33,6 +33,10 @@ def client():
     mp.setenv("JWT_SECRET", os.getenv("JWT_SECRET") or "z" * 48)
     auth_dir = os.path.join(ROOT, "services/auth")
     saved_path = list(sys.path)
+    # This fixture rebinds ``main`` and purges the generic service modules. Restore both:
+    # a later file that loaded auth at collection time and resolves ``import main`` at call
+    # time (``mfa_runtime._main()``) would otherwise read this module, whose pool never started.
+    saved_modules = dict(sys.modules)
     for p in (ROOT, auth_dir):
         while p in sys.path:
             sys.path.remove(p)
@@ -52,6 +56,9 @@ def client():
     finally:
         mp.undo()
         sys.path[:] = saved_path
+        for name in [n for n in sys.modules if n not in saved_modules]:
+            del sys.modules[name]
+        sys.modules.update(saved_modules)
 
 
 def _preflight(client, origin, headers="authorization,x-mfa-code"):

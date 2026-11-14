@@ -29,9 +29,25 @@ def _clamp(x):
 
 
 def build_bare_soil_composite(r: BareSoilCompositeRequest) -> BareSoilComposite:
+    thresholds = (
+        r.min_bare_fraction,
+        r.max_cloud_fraction,
+        r.max_shadow_fraction,
+        r.max_vegetation_fraction,
+    )
+    if not all(0 <= threshold <= 1 for threshold in thresholds):
+        raise ValueError("scene_quality_thresholds_must_be_fractions")
     chosen = []
     rejected = {}
+    seen = {}
     for s in r.scenes:
+        if not s.scene_id.strip():
+            raise ValueError("scene_id_required")
+        if s.scene_id in seen:
+            if seen[s.scene_id] != s:
+                raise ValueError("conflicting_duplicate_scene_id")
+            continue
+        seen[s.scene_id] = s
         why = []
         if s.cloud_fraction > r.max_cloud_fraction:
             why.append("cloud")
@@ -39,25 +55,25 @@ def build_bare_soil_composite(r: BareSoilCompositeRequest) -> BareSoilComposite:
             why.append("shadow")
         if s.vegetation_fraction > r.max_vegetation_fraction:
             why.append("vegetation")
-        if s.bare_fraction < r.min_bare_fraction:
+        if s.bare_fraction < r.min_bare_fraction or s.bare_fraction == 0:
             why.append("insufficient_bare_soil")
+        if not s.band_means or not all(
+            band.strip() and math.isfinite(value) for band, value in s.band_means.items()
+        ):
+            why.append("missing_or_nonfinite_bands")
         if why:
             rejected[s.scene_id] = why
         else:
             chosen.append(s)
     if not chosen:
         raise ValueError("no_eligible_bare_soil_scenes")
-    moisture_ref = _median([s.moisture_proxy for s in chosen])
     bands = sorted({b for s in chosen for b in s.band_means})
-    # conservative moisture normalisation around cohort median, bounded to ±15%
     med = {}
-    for b in bands:
-        vals = []
-        for s in chosen:
-            if b in s.band_means:
-                correction = max(0.85, min(1.15, 1 + (s.moisture_proxy - moisture_ref) * 0.2))
-                vals.append(s.band_means[b] / correction)
-        med[b] = round(_median(vals), 8)
+    band_scenes = {}
+    for band in bands:
+        supporting = [s for s in chosen if band in s.band_means]
+        med[band] = round(_median([s.band_means[band] for s in supporting]), 8)
+        band_scenes[band] = [s.scene_id for s in supporting]
     quality = [
         s.bare_fraction
         * (1 - s.cloud_fraction)
@@ -83,7 +99,11 @@ def build_bare_soil_composite(r: BareSoilCompositeRequest) -> BareSoilComposite:
         provenance={
             "scene_acquisitions": {s.scene_id: s.acquired_at.isoformat() for s in chosen},
             "source_uris": {s.scene_id: s.source_uri for s in chosen if s.source_uri},
-            "moisture_normalization": "cohort_median_bounded_v1",
+            "band_scene_ids": band_scenes,
+            "aggregation": "median_of_scene_band_means",
+            "moisture_normalization": "not_applied",
+            "moisture_proxy_by_scene": {s.scene_id: s.moisture_proxy for s in chosen},
+            "confidence_basis": "heuristic_scene_quality_and_count",
         },
     )
 
@@ -107,17 +127,15 @@ def build_terrain_derivatives(r: TerrainRequest) -> TerrainDerivativesProduct:
         for k in (
             "slope_deg",
             "tpi",
-            "twi",
-            "plan_curvature",
-            "profile_curvature",
-            "flow_accumulation",
+            "local_wetness_proxy",
+            "elevation_laplacian_per_m",
+            "row_second_derivative_per_m",
+            "higher_neighbor_count",
             "relative_elevation",
-            "wadi_distance_m",
         )
     }
     land = {}
     depressions = []
-    drains = []
     zmin = min(map(min, z))
     zmax = max(map(max, z))
     for i in range(1, h - 1):
@@ -134,13 +152,13 @@ def build_terrain_derivatives(r: TerrainRequest) -> TerrainDerivativesProduct:
             tpi = z[i][j] - statistics.fmean(neigh)
             lap = (z[i][j - 1] + z[i][j + 1] + z[i - 1][j] + z[i + 1][j] - 4 * z[i][j]) / (cs * cs)
             prof = (z[i + 1][j] - 2 * z[i][j] + z[i - 1][j]) / (cs * cs)
-            lower = sum(1 for x in neigh if x > z[i][j])
-            accum = 1 + lower
-            twi = math.log((accum * cs) / max(math.tan(math.radians(max(slope, 0.01))), 0.001))
+            higher_neighbors = sum(x > z[i][j] for x in neigh)
+            twi = math.log(
+                ((1 + higher_neighbors) * cs) / max(math.tan(math.radians(max(slope, 0.01))), 0.001)
+            )
             rel = (z[i][j] - zmin) / max(zmax - zmin, 1e-9)
-            wadi = rel * math.hypot(h, w) * cs
-            vals = (slope, tpi, twi, lap, prof, float(accum), rel, wadi)
-            for k, v in zip(metrics, vals, strict=False):
+            vals = (slope, tpi, twi, lap, prof, float(higher_neighbors), rel)
+            for k, v in zip(metrics, vals, strict=True):
                 metrics[k].append(v)
             klass = (
                 "ridge"
@@ -152,7 +170,7 @@ def build_terrain_derivatives(r: TerrainRequest) -> TerrainDerivativesProduct:
                 else "plain"
             )
             land[klass] = land.get(klass, 0) + 1
-            if z[i][j] <= min(neigh):
+            if z[i][j] < min(neigh):
                 depressions.append(
                     {
                         "row": i,
@@ -161,23 +179,26 @@ def build_terrain_derivatives(r: TerrainRequest) -> TerrainDerivativesProduct:
                         "depth_proxy_m": round(min(neigh) - z[i][j], 4),
                     }
                 )
-            if accum >= 6:
-                drains.append(
-                    {"row": i, "col": j, "flow_accumulation": accum, "elevation_m": z[i][j]}
-                )
     return TerrainDerivativesProduct(
         tenant_id=r.tenant_id,
         field_id=r.field_id,
         geometry_hash=r.geometry_hash,
         dem_version=r.dem_version,
+        algorithm_version="terrain-v2",
         shape=[h, w],
         summaries={k: _stats(v) for k, v in metrics.items()},
-        drainage_paths=drains,
+        drainage_paths=[],
         depressions=depressions,
         landform_counts=land,
         provenance={
             "cell_size_m": cs,
-            "algorithm": "finite_difference_d8_proxy_v1",
+            "algorithm": "finite_difference_3x3_v2",
+            "unavailable": {
+                "wadi_distance_m": "no_wadi_geometry",
+                "flow_accumulation": "no_flow_routing",
+                "drainage_paths": "no_flow_routing",
+                "twi": "no_upslope_contributing_area",
+            },
             "limitations": [
                 "engineering drainage design requires surveyed elevations and field verification"
             ],
@@ -186,51 +207,48 @@ def build_terrain_derivatives(r: TerrainRequest) -> TerrainDerivativesProduct:
 
 
 def _texture_est(f: TextureFeatureVector):
-    b = f.bare_bands
-    sg = f.soilgrids
-    tr = f.terrain
-    clay = (
-        sg.get("clay_pct", 30)
-        + 18 * (b.get("swir2", 0) - b.get("nir", 0))
-        + 4 * tr.get("twi", 0) / 10
-    )
-    sand = (
-        sg.get("sand_pct", 40)
-        + 20 * (b.get("red", 0) - b.get("swir1", 0))
-        - 3 * tr.get("twi", 0) / 10
-    )
-    clay = max(2, min(85, clay))
-    sand = max(2, min(90, sand))
-    silt = max(2, 100 - clay - sand)
-    total = clay + sand + silt
-    return clay / total * 100, sand / total * 100, silt / total * 100
+    # SoilGrids reports fine-earth particle mass fractions. Only a missing third
+    # component may be derived by closure. Terrain and spectral indices alone
+    # have no locally validated conversion to percent clay, sand or silt.
+    fractions = [f.soilgrids.get(name) for name in ("clay_pct", "sand_pct", "silt_pct")]
+    available = [v for v in fractions if v is not None]
+    if len(available) < 2:
+        return None
+    if not all(math.isfinite(v) and 0 <= v <= 100 for v in available):
+        return None
+    total = sum(available)
+    if len(available) == 2:
+        if total > 100:
+            return None
+        return tuple(100 - total if v is None else v for v in fractions)
+    if abs(total - 100) > 1:
+        return None
+    return tuple(v * 100 / total for v in available)
 
 
 def build_texture_probability(r: TextureProbabilityRequest) -> TextureProbabilityProduct:
+    from shared.soil_texture import usda_texture_class
+
     zones = []
-    calibration_bonus = min(0.3, len(r.calibration_samples) / 50)
+    skipped = []
     for f in r.features:
-        c, a, si = _texture_est(f)
-        probs = [c / 100, a / 100, si / 100]
-        m = max(probs)
-        klass = (
-            ["clay", "sand", "silt"][probs.index(m)]
-            if m >= 0.5
-            else ("sandy_loam" if a > c and a > si else "clay_loam" if c > a else "silt_loam")
-        )
-        source_count = sum(bool(x) for x in (f.bare_bands, f.sentinel1, f.terrain, f.soilgrids))
-        unc = _clamp(0.65 - 0.1 * source_count - calibration_bonus)
+        estimate = _texture_est(f)
+        if estimate is None:
+            skipped.append(f.zone_id)
+            continue
+        clay, sand, silt = estimate
+        texture = usda_texture_class(clay, sand, silt)["key"].replace(" ", "_")
         zones.append(
             TextureZoneProbability(
                 zone_id=f.zone_id,
-                clay_probability=round(probs[0], 6),
-                sand_probability=round(probs[1], 6),
-                silt_probability=round(probs[2], 6),
-                texture_class=klass,
-                uncertainty=round(unc, 6),
-                estimated_clay_pct=round(c, 3),
-                estimated_sand_pct=round(a, 3),
-                estimated_silt_pct=round(si, 3),
+                clay_probability=round(clay / 100, 6),
+                sand_probability=round(sand / 100, 6),
+                silt_probability=round(silt / 100, 6),
+                texture_class=texture,
+                uncertainty=None,
+                estimated_clay_pct=round(clay, 3),
+                estimated_sand_pct=round(sand, 3),
+                estimated_silt_pct=round(silt, 3),
             )
         )
     # deterministic spatial-CV readiness statement; no false accuracy claim without samples
@@ -238,7 +256,7 @@ def build_texture_probability(r: TextureProbabilityRequest) -> TextureProbabilit
         "method": "spatial_block",
         "folds": r.validation_folds,
         "sample_count": len(r.calibration_samples),
-        "status": "evaluated"
+        "status": "not_evaluated"
         if len(r.calibration_samples) >= r.validation_folds * 3
         else "insufficient_local_samples",
         "metrics": {},
@@ -251,7 +269,12 @@ def build_texture_probability(r: TextureProbabilityRequest) -> TextureProbabilit
         zones=zones,
         spatial_cv=cv,
         provenance={
-            "inputs": ["bare_soil", "sentinel1", "terrain", "soilgrids", "geology"],
+            "inputs": ["soilgrids"] if zones else [],
+            "method": "soilgrids_particle_fractions_usda_triangle",
+            "uncertainty_status": "not_estimated",
+            "texture_status": "estimated" if zones else "insufficient_evidence",
+            "zones_without_usable_inputs": skipped,
+            "probability_fields": "estimated_composition_fractions",
             "evidence_class": "modelled",
             "local_calibration_samples": len(r.calibration_samples),
         },
@@ -261,12 +284,23 @@ def build_texture_probability(r: TextureProbabilityRequest) -> TextureProbabilit
 def build_salinity_assessment(r: SalinityAssessmentRequest) -> SalinityAssessmentProduct:
     out = []
     for z in r.zones:
-        lab = z.ec_lab_ds_m is not None
+        has_ece = z.ec_lab_ds_m is not None and z.ec_lab_method == "saturation_extract_25c"
+        notes = []
+        if z.ec_lab_ds_m is not None and not has_ece:
+            notes.append("soil_ec_not_comparable_to_saturation_extract_25c")
+        # USDA-NRCS SSIR 42, method 4F2. These flags concern the supplied
+        # sample, and do not establish a verified or calibrated zone.
+        elevated_ece = has_ece and z.ec_lab_ds_m >= 4
+        elevated_esp = z.esp_pct is not None and z.esp_pct >= 15
+        if has_ece:
+            notes.append("reported_ece_at_or_above_4" if elevated_ece else "reported_ece_below_4")
+        if z.esp_pct is not None:
+            notes.append("reported_esp_at_or_above_15" if elevated_esp else "reported_esp_below_15")
         sal = _clamp(
             0.35 * z.salinity_index
             + 0.2 * z.persistence
             + 0.2 * z.drainage_risk
-            + 0.15 * (min(z.ec_lab_ds_m / 8, 1) if lab else 0)
+            + 0.15 * (min(z.ec_lab_ds_m / 8, 1) if has_ece else 0)
             + 0.1 * (min((z.ecw_ds_m or 0) / 4, 1))
         )
         sod = _clamp(
@@ -287,21 +321,15 @@ def build_salinity_assessment(r: SalinityAssessmentRequest) -> SalinityAssessmen
             + 0.2 * (1 - z.drainage_risk)
             - 0.25 * max(gypsum, carb)
         )
-        level = (
-            "lab_verified"
-            if lab and z.esp_pct is not None
-            else "locally_calibrated"
-            if lab
-            else "screening"
-        )
-        unc = 0.15 if level == "lab_verified" else 0.3 if level == "locally_calibrated" else 0.55
+        salinity_signal = elevated_ece or sal >= 0.6
+        sodicity_signal = elevated_esp or sod >= 0.6
         cls = (
-            "saline_sodic"
-            if sal >= 0.6 and sod >= 0.6
-            else "saline"
-            if sal >= 0.6
-            else "sodic"
-            if sod >= 0.6
+            "saline_sodic_candidate"
+            if salinity_signal and sodicity_signal
+            else "saline_candidate"
+            if salinity_signal
+            else "sodic_candidate"
+            if sodicity_signal
             else "gypsic_candidate"
             if gypsum >= 0.65
             else "calcareous_candidate"
@@ -309,14 +337,6 @@ def build_salinity_assessment(r: SalinityAssessmentRequest) -> SalinityAssessmen
             else "bright_sand_candidate"
             if sand >= 0.65
             else "low_signal"
-        )
-        allowed = ["screening", "sampling_priority"] + (
-            ["crop_selection", "salinity_management_guidance"] if level != "screening" else []
-        )
-        blocked = (
-            []
-            if level == "lab_verified"
-            else ["gypsum_rate", "leaching_requirement", "reclamation_execution"]
         )
         out.append(
             SalinityZoneAssessment(
@@ -326,11 +346,12 @@ def build_salinity_assessment(r: SalinityAssessmentRequest) -> SalinityAssessmen
                 gypsum_probability=round(gypsum, 6),
                 carbonate_probability=round(carb, 6),
                 bright_sand_probability=round(sand, 6),
-                uncertainty=unc,
+                uncertainty=0.55,
                 classification=cls,
-                evidence_level=level,
-                allowed_use=allowed,
-                blocked_use=blocked,
+                evidence_notes=notes,
+                evidence_level="screening",
+                allowed_use=["screening", "sampling_priority"],
+                blocked_use=["gypsum_rate", "leaching_requirement", "reclamation_execution"],
             )
         )
     return SalinityAssessmentProduct(
@@ -340,8 +361,12 @@ def build_salinity_assessment(r: SalinityAssessmentRequest) -> SalinityAssessmen
         model_version=r.model_version,
         zones=out,
         provenance={
-            "model": "evidence_fusion_v1",
+            "model": "salinity_screening_v2",
+            "probability_fields": "uncalibrated_screening_scores",
+            "uncertainty_field": "legacy_heuristic_not_validated",
+            "threshold_reference": "USDA NRCS SSIR 42 v6, method 4F2",
+            "lab_input_provenance": "caller_reported_unverified",
+            # Enforced by p4_governance (minimum_evidence_level="lab_verified").
             "high_risk_actions_require_lab_verified": "true",
-            "water_and_drainage_inputs_used": "true",
         },
     )

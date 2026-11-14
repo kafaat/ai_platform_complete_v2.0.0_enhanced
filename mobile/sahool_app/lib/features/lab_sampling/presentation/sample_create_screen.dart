@@ -91,6 +91,10 @@ class _SampleFormState extends State<_SampleForm> {
   double? _accuracy;
   bool _gpsBusy = false;
   String? _gpsError;
+
+  /// جيل طلب GPS: يزيد مع كلّ التقاط ومع كلّ تعديل يدويّ للإحداثيّات، فردٌّ متأخّر
+  /// لطلبٍ سابق لا يكتب فوق ما أدخله المستخدم.
+  int _gpsGen = 0;
   late DateTime _sampledOn;
 
   /// عمق مقترح من بروتوكول الخادم (null ⇒ لا اقتراح).
@@ -128,29 +132,30 @@ class _SampleFormState extends State<_SampleForm> {
   }
 
   Future<void> _captureGps() async {
+    final gen = ++_gpsGen;
     setState(() {
       _gpsBusy = true;
       _gpsError = null;
     });
     try {
       final fix = await widget.gpsReader();
-      if (!mounted) return;
+      if (!mounted || gen != _gpsGen) return;
       setState(() {
         _lat.text = fix.latitude.toStringAsFixed(6);
         _lon.text = fix.longitude.toStringAsFixed(6);
         _accuracy = fix.accuracyM;
       });
     } on GpsFailure catch (e) {
-      if (mounted) setState(() => _gpsError = e.messageAr);
+      if (mounted && gen == _gpsGen) setState(() => _gpsError = e.messageAr);
     } catch (_) {
-      if (mounted) {
+      if (mounted && gen == _gpsGen) {
         setState(
           () => _gpsError =
               'تعذّر التقاط الموقع — أعد المحاولة أو أدخل الإحداثيّات.',
         );
       }
     } finally {
-      if (mounted) setState(() => _gpsBusy = false);
+      if (mounted && gen == _gpsGen) setState(() => _gpsBusy = false);
     }
   }
 
@@ -196,9 +201,16 @@ class _SampleFormState extends State<_SampleForm> {
             : const <String, String>{};
         final submitError = state is SampleEditing ? state.submitError : null;
         final busy = state is SampleSubmitting;
-        // تعديل الإحداثيّات يدويّاً يُسقط دقّة GPS (لم تعد قراءة جهاز).
+        // تعديل الإحداثيّات يدويّاً يُسقط دقّة GPS (لم تعد قراءة جهاز) ويُلغي أيّ
+        // التقاط معلّق: الإدخال اليدويّ هو الأخير ولا يكتب ردٌّ متأخّر فوقه.
         void manualEdit(String _) {
-          if (_accuracy != null) setState(() => _accuracy = null);
+          _gpsGen++;
+          if (_accuracy != null || _gpsBusy) {
+            setState(() {
+              _accuracy = null;
+              _gpsBusy = false;
+            });
+          }
         }
 
         return AppScaffold(

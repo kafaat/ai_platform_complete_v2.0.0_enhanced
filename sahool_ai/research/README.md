@@ -1,7 +1,7 @@
 # SAHOOL — Agronomic Research Pipeline | خطّ أبحاث SAHOOL الزراعيّة
 
-خطّ بحثي حتميّ لدعم القرار الزراعي في اليمن.  
-A deterministic research pipeline for agricultural decision-making in Yemen.
+محاكاة تعليمية تستخدم بيانات اصطناعية. تعيد الواجهة أسماء الموصّلات في `simulated_sources` وتترك المصادر الخارجية والتوصيات الميدانية فارغة.
+The pipeline exports simulation scores and an empty GeoJSON collection because its inputs contain no field coordinates.
 
 ---
 

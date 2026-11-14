@@ -143,9 +143,30 @@ def test_negative_actual_cost_is_rejected():
         TaskUpdateRequest(status="completed", actual_cost_usd=-1)
 
 
-def test_cost_analytics_counts_only_completed_tasks():
-    src = (API / "routers/analytics.py").read_text(encoding="utf-8")
-    assert src.count("actual_cost_usd IS NOT NULL AND status = 'completed'") == 3
+@pytest.mark.parametrize("value", [True, "NaN", "12.345", 100_000_000])
+def test_actual_cost_must_fit_the_database_without_rounding(value):
+    with pytest.raises(ValidationError):
+        TaskUpdateRequest(status="completed", actual_cost_usd=value)
+
+
+@pytest.mark.parametrize("value", [0, "12.500", 99_999_999.99])
+def test_actual_cost_preserves_valid_cents(value):
+    assert TaskUpdateRequest(status="completed", actual_cost_usd=value).actual_cost_usd == float(
+        value
+    )
+
+
+def test_cost_analytics_defaults_to_completed_and_allows_recorded_costs():
+    from inspect import signature
+
+    from api.routers import analytics
+
+    for route in (analytics.analytics_costs, analytics.analytics_costs_by_field):
+        assert signature(route).parameters["task_scope"].default == "completed"
+    assert analytics._TASK_COST_FILTER == {
+        "completed": "actual_cost_usd IS NOT NULL AND status = 'completed'",
+        "recorded": "actual_cost_usd IS NOT NULL",
+    }
 
 
 # ── reports: executed activities are counted apart from planned ones ─────────

@@ -195,7 +195,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 3,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Execution request"
@@ -245,7 +245,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 3,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Dispatch authorization"
@@ -495,7 +495,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 3,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Model lifecycle and activation"
@@ -545,7 +545,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 3,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Tenant and organization management"
@@ -845,7 +845,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 3,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Inventory and procurement"
@@ -1146,10 +1146,10 @@
         "OneSoil": []
       },
       "domain": "farm_management",
-      "gap_to_best": 2,
+      "gap_to_best": 1,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 1,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Public API and SDK"
@@ -1199,7 +1199,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 3,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Event bus integration"
@@ -1857,7 +1857,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 1,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Task management"
@@ -2988,7 +2988,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 3,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "COG persistence and tiling"
@@ -3238,7 +3238,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 3,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Audit logging"
@@ -3288,7 +3288,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 3,
+      "sahool_score": 2,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Service token guard"

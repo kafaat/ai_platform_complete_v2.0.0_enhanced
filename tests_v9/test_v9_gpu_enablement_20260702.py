@@ -1,3 +1,5 @@
+import os
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -71,6 +73,48 @@ def test_edge_profile_selects_gpu_only_dependencies_and_inherits_device():
     assert "onnxruntime" not in (edge / "requirements-common.txt").read_text(encoding="utf-8")
 
 
+@pytest.mark.parametrize(
+    ("requirements", "target_arch", "native_arch", "allowed"),
+    [
+        ("requirements.txt", "arm64", "amd64", True),
+        ("requirements.txt", "amd64", "arm64", True),
+        ("requirements-gpu.txt", "amd64", "arm64", True),
+        ("requirements-gpu.txt", "arm64", "amd64", False),
+        ("requirements-gpu.txt", "arm", "amd64", False),
+        ("./requirements-gpu.txt", "arm64", "amd64", False),
+        ("requirements-gpu.txt", "", "amd64", True),
+        ("requirements-gpu.txt", "", "arm64", False),
+    ],
+)
+def test_edge_gpu_build_architecture_guard_executes_before_downloads(
+    tmp_path, requirements, target_arch, native_arch, allowed
+):
+    """Run the Dockerfile's actual shell guard, not an equivalent Python predicate."""
+    text = (ROOT / "services/edge-inference/Dockerfile.arm64").read_text(encoding="utf-8")
+    guard = text.split("RUN ", 1)[1].split("\n\n", 1)[0].replace("\\\n", "")
+    assert "EDGE_REQUIREMENTS" in guard and "TARGETARCH" in guard
+    assert text.index(guard.splitlines()[0].split(";")[0]) < text.index("apt-get")
+    dpkg = tmp_path / "dpkg"
+    dpkg.write_text(f"#!/bin/sh\nprintf '%s\\n' '{native_arch}'\n", encoding="utf-8")
+    dpkg.chmod(0o755)
+    result = subprocess.run(
+        ["/bin/sh", "-ec", guard],
+        env={
+            **os.environ,
+            "PATH": str(tmp_path),
+            "EDGE_REQUIREMENTS": requirements,
+            "TARGETARCH": target_arch,
+        },
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=5,
+    )
+    assert (result.returncode == 0) is allowed, result.stderr
+    if not allowed:
+        assert "requires amd64" in result.stderr and "ARM64 CPU" in result.stderr
+
+
 def test_sam2_readyz_exposes_actionable_reason():
     # صدق تشغيليّ: /readyz يُصنّف سبب عدم التحميل (weights_missing/…) + مسار الأوزان
     # المتوقّع، كي يعرف المُشغّل ما ينقص دون قراءة السجلّات (حالة «GPU جاهز بلا أوزان»).
@@ -94,7 +138,6 @@ def test_sam2_gpu_arch_list_targets_blackwell():
 
 
 def test_static_gpu_contract_gate_runs():
-    import subprocess
     import sys
 
     p = subprocess.run(

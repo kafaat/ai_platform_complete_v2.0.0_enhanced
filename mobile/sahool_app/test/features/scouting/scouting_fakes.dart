@@ -103,6 +103,9 @@ class MemoryPhotoStore implements LocalPhotoStore {
   final Map<String, String> byPin = {};
   final List<String> discarded = [];
 
+  /// بايتات أيّ صورة محفوظة (JPEG صغير افتراضاً).
+  Uint8List bytes = Uint8List.fromList([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
+
   @override
   Future<String> keep(String pinId, CapturedPhoto photo) async {
     final p = '/local/$pinId.jpg';
@@ -118,6 +121,12 @@ class MemoryPhotoStore implements LocalPhotoStore {
 
   @override
   Future<String?> find(String pinId) async => byPin[pinId];
+
+  @override
+  Future<Uint8List> read(String path) async {
+    if (!byPin.containsValue(path)) throw StateError('no photo at $path');
+    return bytes;
+  }
 }
 
 class FakeOutbox implements OfflineOutbox {

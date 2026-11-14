@@ -7,6 +7,10 @@
 فشل ليّن (fail-soft): كلّ دالّة تُرجِع ``dict`` منظّماً ``{ok: bool, ...}`` ولا ترفع
 أبداً على 4xx/5xx أو خطأ اتصال — كي لا يُسقِط عطلُ ZLMediaKit مسارَ الطلب.
 
+ZLMediaKit يُبلِّغ الرفض داخل جسم JSON بـHTTP 200 (``code`` ≠ 0: ``-1`` فشل، ``-100``
+سرّ خاطئ، ``-300`` وسائط غير صالحة). فـ``ok`` يتطلّب ``code == 0`` لا رمز HTTP وحده
+(VIDEO-02)، ويُكشَف ``code``/``msg`` كي لا يبثّ المستدعي حدثَ نجاحٍ كاذباً.
+
 النداء (httpx) قابل للحقن: مرّر ``request_fn`` كي تختبر الوحدة بلا خادم حيّ.
 يبقى خالياً من fastapi (قد يستورد httpx فقط).
 """
@@ -24,6 +28,17 @@ except ImportError:  # pragma: no cover - httpx حاضر في requirements
 # توقيع الاستجابة المتوقَّع من ``request_fn``: كائن به ``status_code`` و``json()`` و``content``.
 ResponseLike = Any
 RequestFn = Callable[[str, dict[str, Any]], ResponseLike]
+
+
+def api_verdict(data: Any) -> tuple[bool, Any, Any]:
+    """حكم واجهة ZLMediaKit من جسم JSON: ``(accepted, code, msg)``.
+
+    مقبول فقط حين ``code`` عدد صحيح يساوي 0 (``True``/``0.0`` لا تُعدّ نجاحاً)؛ جسم
+    غير قاموس (HTML/نصّ) ⇒ غير مقبول."""
+    if not isinstance(data, dict):
+        return False, None, None
+    code = data.get("code")
+    return type(code) is int and code == 0, code, data.get("msg")
 
 
 class ZLMediaKitClient:
@@ -69,21 +84,39 @@ class ZLMediaKitClient:
         except Exception as e:  # noqa: BLE001 — فشل ليّن: لا نرفع على خطأ اتصال
             return {"ok": False, "method": method, "url": url, "error": type(e).__name__}
         status = getattr(resp, "status_code", 0)
-        ok = 200 <= int(status) < 400
-        out: dict[str, Any] = {"ok": ok, "method": method, "url": url, "status_code": status}
+        http_ok = 200 <= int(status) < 400
+        out: dict[str, Any] = {"ok": http_ok, "method": method, "url": url, "status_code": status}
         if binary:
             out["content"] = getattr(resp, "content", b"")
             headers = getattr(resp, "headers", None) or {}
-            out["content_type"] = headers.get("content-type") if hasattr(headers, "get") else None
+            content_type = headers.get("content-type") if hasattr(headers, "get") else None
+            out["content_type"] = content_type
+            # نداء ثنائيّ (getSnap) يردّ رفضَه JSON بـHTTP 200 (سرّ خاطئ مثلاً): ليس صورة.
+            if content_type and "json" in str(content_type).lower():
+                _accepted, out["code"], out["msg"] = api_verdict(self._json(resp, out))
+                out["content"] = b""
+                out["ok"] = False
+                if http_ok:
+                    out["error"] = "zlmediakit_rejected"
         else:
-            try:
-                out["data"] = resp.json()
-            except Exception:  # noqa: BLE001 — ردّ غير JSON (خطأ/HTML): لا نرفع
-                out["data"] = None
-                text = getattr(resp, "text", None)
-                if text is not None:
-                    out["text"] = text[:500]
+            data = self._json(resp, out)
+            out["data"] = data
+            accepted, out["code"], out["msg"] = api_verdict(data)
+            if http_ok and not accepted:
+                # HTTP 200 مع code ≠ 0 (أو جسم غير JSON) رفضٌ لا نجاح (VIDEO-02).
+                out["ok"] = False
+                out["error"] = "zlmediakit_rejected"
         return out
+
+    @staticmethod
+    def _json(resp: ResponseLike, out: dict[str, Any]) -> Any:
+        try:
+            return resp.json()
+        except Exception:  # noqa: BLE001 — ردّ غير JSON (خطأ/HTML): لا نرفع
+            text = getattr(resp, "text", None)
+            if text is not None:
+                out["text"] = text[:500]
+            return None
 
     # ── العقود ────────────────────────────────────────────────────
     def add_stream_proxy(

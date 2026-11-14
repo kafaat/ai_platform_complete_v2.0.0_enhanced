@@ -645,7 +645,7 @@ def test_a5_dispatch_consumer_passes_the_stable_identity_to_the_publisher(act, m
         return False, None
 
     async def _device_ok(*_a, **_k):
-        return True, "ok"
+        return True, "ok", "field-a"
 
     item = {
         "execution_request_id": "req-9",

@@ -219,7 +219,11 @@ export function percentLabel(rate: number | null | undefined): string {
 }
 
 // حالات القرار الموحّد المعروفة فقط تُترجَم/تُلوَّن — المجهولة تمرّ كما هي بلون محايد.
-const UNIFIED_STATE_AR: Record<string, string> = { ready: 'جاهز', blocked: 'محجوب' };
+const UNIFIED_STATE_AR: Record<string, string> = {
+  ready: 'جاهز',
+  blocked: 'محجوب',
+  insufficient_data: 'بيانات غير كافية',
+};
 
 export function unifiedStateLabel(state: string | null | undefined): string {
   return state ? (UNIFIED_STATE_AR[state] ?? state) : '—';

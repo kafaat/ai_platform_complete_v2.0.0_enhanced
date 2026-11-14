@@ -183,11 +183,12 @@ def test_p2_and_p3_products_round_trip_as_objects(soil):
 
     async def case(pool, tenant, field_id):
         payload = {"product": "texture", "sand_pct": 55.0, "layers": [{"depth_cm": 30}]}
+        product_id = f"tx-{uuid.uuid4().hex[:10]}"
         saved = await p2_store.save_product(
             pool,
             table="soil_texture_products",
             id_column="texture_product_id",
-            product_id=f"tx-{uuid.uuid4().hex[:10]}",
+            product_id=product_id,
             tenant_id=tenant,
             field_id=field_id,
             product_type="texture",
@@ -195,12 +196,18 @@ def test_p2_and_p3_products_round_trip_as_objects(soil):
             geometry_hash="g" * 16,
             payload=payload,
         )
-        assert saved == payload
+        # The v26 soil delivery stamps the server-owned processing revision and returns the
+        # stored product id; the stored jsonb still comes back as an object.
+        expected = payload | {
+            "provenance": {"processing_revision": "texture-fractions-v2"},
+            "product_id": product_id,
+        }
+        assert saved == expected
         assert (
             await p2_store.get_latest(
                 pool, table="soil_texture_products", tenant_id=tenant, field_id=field_id
             )
-            == payload
+            == expected
         )
 
         p3_payload = {"drainage_need": "moderate", "score": 0.4}

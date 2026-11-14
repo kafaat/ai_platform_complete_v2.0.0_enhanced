@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import os
 from collections import Counter
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from math import atan, degrees, pi, sinh
 from time import monotonic
 from typing import Literal
@@ -2869,7 +2869,7 @@ async def weather_create_task_from_operation_plan(
                 draft["field_id"],
                 draft["task_type"],
                 draft["priority"],
-                draft["recommended_date"],
+                date.fromisoformat(draft["recommended_date"]),  # asyncpg binds ::date from a date
                 draft["estimated_duration_min"],
                 draft["estimated_cost_usd"],
                 draft["assigned_to"],

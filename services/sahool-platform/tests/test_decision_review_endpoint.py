@@ -33,6 +33,7 @@ _DIGEST = "a" * 64
 def _authoritative(**over):
     base = {
         "authoritative": True,
+        "tenant_id": str(_USER.tenant_id),
         "persisted": True,
         "decision_id": "dec_1",
         "previous_state": "pending_approval",
@@ -182,3 +183,17 @@ def test_a_malformed_version_digest_is_rejected_by_the_model():
             decision_value_digest="not-a-digest",
             idempotency_key="k-2",
         )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "changed", [{"tenant_id": "other"}, {"reviewed_by": "other"}, {"state": "rejected"}]
+)
+async def test_review_receipt_must_bind_tenant_actor_and_action(monkeypatch, changed):
+    async def fake(*args, **kwargs):
+        return _authoritative(**changed)
+
+    _patch(monkeypatch, fake)
+    with pytest.raises(HTTPException) as exc:
+        await review_decision_candidate("dec_1", _req(), _USER)
+    assert exc.value.status_code == 503

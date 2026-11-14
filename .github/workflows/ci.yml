@@ -1069,6 +1069,9 @@ jobs:
             run_group services/ai_agronomist/test_ai_field_memory_v49.py
             run_group services/auth/tests/test_router_decomposition_guard.py
             run_group services/decision-service/tests/test_correlation_http_projection.py services/decision-service/tests/test_decision_provenance_integrity.py services/decision-service/tests/test_eligibility_assessment_policy.py services/decision-service/tests/test_execution_plan_boundary_normalisation.py services/decision-service/tests/test_manual_irrigation_source_binding.py services/decision-service/tests/test_migration_runner_readonly.py services/decision-service/tests/test_outcome_reconcile.py services/decision-service/tests/test_tenant_boundary_migration_static.py services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py services/decision-service/tests/test_tenant_binding_force_rls.py
+            # edge-inference: عقود AI-02/AI-03 (المصادقة قبل التحقّق · إيقاف مهمّة المزامنة)؛ كانت
+            # تُشغَّل في `runtime-real-smoke.yml` وحدها وهي ليست فحصاً مطلوباً ⇒ تحمرّ ولا تحجب.
+            run_group services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py services/edge-inference/tests/test_entrypoint_validation_lifecycle.py services/edge-inference/tests/test_model_artifact_gate_endpoints.py
             run_group services/field-management-service/tests/test_field_management_service_contract.py
             run_group services/field-segmentation/test_exg_preprocess.py services/field-segmentation/test_segmentation.py
             run_group services/guardrails-engine/test_guardrails_router_decomposition_guard.py
@@ -1786,7 +1789,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
-        run: pytest tests/test_ac1_agronomic_context.py -q -p no:cacheprovider
+        run: pytest tests/test_ac1_agronomic_context.py tests/test_ac1_boundary_finiteness_timezone.py -q -p no:cacheprovider
       # AC-6.1: tenant-safe lineage integrity — full-lineage binding, semantic rejections,
       # content-addressed vegetation evidence, DB trigger backstop (real Postgres).
       - name: AC-6.1 agronomic lineage integrity tests (real Postgres, SoR on)
@@ -1795,6 +1798,29 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_agronomic_lineage_integrity.py -q -p no:cacheprovider
+      # Decision source continuation: a composed context binds the exact owner-read sources
+      # (receipt per composition, migration 038) — real Postgres, SoR on.
+      - name: Context source binding tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_context_source_binding.py -q -rs -p no:cacheprovider
+      # Backfill row coverage compares id, content, tenant and destination across two distinct
+      # databases; the test skips without both URLs, so the step creates the source database.
+      - name: Backfill row coverage across two databases (real Postgres)
+        working-directory: services/decision-service
+        env:
+          PGHOST: localhost
+          PGPASSWORD: test_password
+          PLATFORM_DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/backfill_source
+          DECISION_DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: |
+          set -euo pipefail
+          export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
+          psql -p 5434 -U decision_test -d decision_test -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE backfill_source"
+          pytest tests/test_backfill_row_coverage.py -q -rs -p no:cacheprovider
       # Phase C no-leakage certification: randomized property sweep (leaky compositions
       # rejected typed with ZERO writes; clean accepted) + DB row invariants (real Postgres).
       - name: Phase C no-leakage certification tests (real Postgres, SoR on)

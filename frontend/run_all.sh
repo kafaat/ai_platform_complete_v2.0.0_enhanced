@@ -149,7 +149,7 @@ start_frontend_dev() {
 
     if [[ ! -d "node_modules" ]]; then
         log "تثبيت الاعتماديات..."
-        npm install --legacy-peer-deps
+        npm install
     fi
 
     # نسخ .env للواجهة
@@ -183,7 +183,7 @@ start_frontend_prod() {
 
     if [[ ! -d "node_modules" ]]; then
         log "تثبيت الاعتماديات..."
-        npm install --legacy-peer-deps
+        npm install
     fi
 
     log "بناء المشروع (Vite build)..."

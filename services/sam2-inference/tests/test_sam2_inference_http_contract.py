@@ -43,6 +43,266 @@ from fastapi.testclient import TestClient
 pytestmark = pytest.mark.unit
 
 SVC_DIR = Path(__file__).resolve().parents[1]
+
+
+def test_exg_thin_vegetation_uses_point_without_degenerate_box(svc):
+    rgb = np.full((24, 32, 3), [135, 112, 80], dtype=np.uint8)
+    rgb[:, 3] = [25, 178, 45]
+    image, prompt, meta = svc.rt._preprocess_georeferenced_rgb(rgb, "exg", True)
+    assert image.shape == rgb.shape and not np.array_equal(image, rgb)
+    assert prompt[2] is None
+    assert prompt[0][0][0] == 3
+    assert meta["candidate_count"] == 1
+
+
+@pytest.mark.parametrize("preprocessing", ["none", "exg", "auto_exg"])
+def test_adapter_to_sam2_applies_exg_on_georeferenced_image(
+    svc, client, monkeypatch, preprocessing
+):
+    """Both real ASGI boundaries; only imagery fetch and CUDA model are stand-ins."""
+    rgb = np.full((24, 32, 3), [135, 112, 80], dtype=np.uint8)
+    rgb[2:10, 3:12] = [25, 178, 45]
+    calls = _arm(svc, monkeypatch, rgb=rgb)
+    directory = SVC_DIR.parent / "field-segmentation"
+    monkeypatch.syspath_prepend(str(directory))
+    adapter = _load("_segmentation_contract_adapter", directory / "main.py", monkeypatch)
+    monkeypatch.setattr(adapter, "AGENT_TOKEN", TOKEN)
+    monkeypatch.setattr(adapter, "SEGMENTATION_BACKEND", "sam2")
+    monkeypatch.setattr(adapter, "SEGMENTATION_INFERENCE_URL", "http://offline/v1/predict")
+    monkeypatch.setattr(
+        adapter,
+        "_post_inference",
+        lambda payload: client.post("/v1/predict", headers={"X-Agent-Token": TOKEN}, json=payload),
+    )
+    response = TestClient(adapter.app).post(
+        "/v1/segment",
+        headers={"X-Agent-Token": TOKEN},
+        json={
+            "mode": "auto",
+            "field_bbox": BBOX,
+            "image_ref": IMAGE_REF,
+            "preprocessing": preprocessing,
+        },
+    )
+    assert response.status_code == 200, response.text
+    actual = calls.predictor.images[0]
+    assert actual.shape == rgb.shape
+    _, transform, crs = calls.polygon[0]
+    assert transform is calls.transform and crs is calls.crs
+    prompt = calls.predictor.prompts[0]["point_coords"][0]
+    if preprocessing == "none":
+        assert np.array_equal(actual, rgb)
+        assert list(prompt) == [16, 12]
+        assert response.json()["metadata"]["preprocessing"] == "none"
+    else:
+        assert not np.array_equal(actual, rgb)
+        assert 3 <= prompt[0] < 12 and 2 <= prompt[1] < 10
+        assert list(calls.predictor.prompts[0]["box"]) == [3, 2, 11, 9]
+        assert response.json()["metadata"]["preprocessing"] == "exg"
+        assert response.json()["metadata"]["candidate_count"] == 1
+
+
+@pytest.mark.parametrize("fallback", [True, False])
+def test_exg_low_confidence_policy_is_explicit(svc, client, monkeypatch, fallback):
+    rgb = np.full((6, 8, 3), [135, 112, 80], dtype=np.uint8)
+    calls = _arm(svc, monkeypatch, rgb=rgb)
+    response = _predict(
+        client,
+        {
+            "mode": "auto",
+            "image_ref": IMAGE_REF,
+            "preprocessing": "exg",
+            "fallback_to_original_on_low_exg": fallback,
+        },
+    )
+    assert response.status_code == 200
+    meta = response.json()["metadata"]
+    assert meta["preprocessing"] == ("exg_low_confidence_fallback_original" if fallback else "exg")
+    assert meta["low_confidence"] is True and meta["candidate_count"] == 0
+    assert np.array_equal(calls.predictor.images[0], rgb) == fallback
+
+
+def test_exg_preserves_hybrid_user_prompt(svc, client, monkeypatch):
+    rgb = np.full((24, 32, 3), [135, 112, 80], dtype=np.uint8)
+    rgb[2:10, 3:12] = [25, 178, 45]
+    calls = _arm(svc, monkeypatch, rgb=rgb)
+    point = np.array([[25, 20]], dtype=np.float32)
+    monkeypatch.setattr(svc.rt, "_build_prompt", lambda *args: (point, np.array([1]), None))
+    response = _predict(client, {"mode": "hybrid", "image_ref": IMAGE_REF, "preprocessing": "exg"})
+    assert response.status_code == 200
+    assert calls.predictor.prompts[0]["point_coords"] is point
+    assert not np.array_equal(calls.predictor.images[0], rgb)
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"preprocessing": "unknown"},
+        {"preprocessing": "exg", "image_url_override": "file:///etc/passwd"},
+        {"prompt_boxes": [[0, 0, 1, 1]]},
+    ],
+)
+def test_sam2_does_not_silently_ignore_unsupported_imagery(svc, client, monkeypatch, extra):
+    calls = _arm(svc, monkeypatch)
+    response = _predict(client, {"mode": "auto", **extra})
+    assert response.status_code == 422
+    assert not calls.predictor.images
+
+
+def _two_fields_with_strays() -> np.ndarray:
+    """100×100 bare soil, a large field top-left, a small one bottom-right, 2 stray trees."""
+    rgb = np.full((100, 100, 3), [135, 112, 80], dtype=np.uint8)
+    rgb[5:35, 5:40] = [25, 178, 45]  # field A: 30×35 = 1050 px
+    rgb[70:90, 75:95] = [25, 178, 45]  # field B: 20×20 = 400 px
+    rgb[0, 99] = rgb[99, 0] = [25, 178, 45]  # isolated vegetation pixels
+    return rgb
+
+
+def test_exg_prompt_box_covers_one_component_not_every_green_pixel(svc):
+    """GEO-01 MAJOR: two fields + strays used to give box [0,0,99,99] (the whole window)."""
+    image, prompt, meta = svc.rt._preprocess_georeferenced_rgb(
+        _two_fields_with_strays(), "exg", True
+    )
+    points, labels, box = prompt
+    assert list(box) == [5, 5, 39, 34], "box must bound field A only"
+    col, row = points[0]
+    assert 5 <= col <= 39 and 5 <= row <= 34, "the positive point lies inside field A"
+    assert labels.tolist() == [1]
+    assert meta["candidate_count"] == 2, "stray pixels are not prompt candidates"
+    assert meta["preprocessing"] == "exg"
+
+
+def test_exg_hybrid_click_selects_the_component_under_the_click(svc):
+    rgb = _two_fields_with_strays()
+    _, prompt, _ = svc.rt._preprocess_georeferenced_rgb(rgb, "exg", True, (80, 75))
+    points, _, box = prompt
+    assert points.tolist() == [[80.0, 75.0]], "the user's click stays the positive point"
+    assert list(box) == [75, 70, 94, 89], "box bounds field B, the one under the click"
+    _, miss, _ = svc.rt._preprocess_georeferenced_rgb(rgb, "exg", True, (60, 50))
+    assert miss is None, "a click on bare soil keeps the plain user prompt"
+
+
+def test_exg_components_below_threshold_give_no_prompt(svc, monkeypatch):
+    rgb = np.full((40, 40, 3), [135, 112, 80], dtype=np.uint8)
+    rgb[::4, ::4] = [25, 178, 45]  # 100 isolated pixels: 6 % vegetation, no field
+    _, prompt, meta = svc.rt._preprocess_georeferenced_rgb(rgb, "exg", True)
+    assert prompt is None and meta["candidate_count"] == 0
+    monkeypatch.setattr(svc.rt, "EXG_MIN_COMPONENT_PX", 1)
+    _, prompt, meta = svc.rt._preprocess_georeferenced_rgb(rgb, "exg", True)
+    assert prompt is not None and meta["candidate_count"] == 100
+
+
+def test_hybrid_single_point_hint_is_used_not_discarded(svc, client, monkeypatch):
+    """The web UI sends hints=[[lon, lat]]; it used to fall back to the image centre."""
+    calls = _arm(svc, monkeypatch, rgb=_two_fields_with_strays())
+    monkeypatch.setattr(svc.rt, "_lonlat_to_pixel", lambda lon, lat, t, c: (int(lon), int(lat)))
+    response = _predict(
+        client, {"mode": "hybrid", "image_ref": IMAGE_REF, "user_polygon": [[80.0, 75.0]]}
+    )
+    assert response.status_code == 200, response.text
+    (prompt,) = calls.predictor.prompts
+    assert prompt["point_coords"].tolist() == [[80.0, 75.0]]
+    assert prompt["box"] is None, "no preprocessing: a plain point prompt"
+
+    calls = _arm(svc, monkeypatch, rgb=_two_fields_with_strays())
+    response = _predict(
+        client,
+        {
+            "mode": "hybrid",
+            "image_ref": IMAGE_REF,
+            "user_polygon": [[80.0, 75.0]],
+            "preprocessing": "exg",
+        },
+    )
+    assert response.status_code == 200, response.text
+    (prompt,) = calls.predictor.prompts
+    assert prompt["point_coords"].tolist() == [[80.0, 75.0]]
+    assert list(prompt["box"]) == [75, 70, 94, 89]
+
+
+def test_previous_client_shape_is_tolerated_but_never_reaches_the_predictor(
+    svc, client, monkeypatch
+):
+    """Rolling deploy: the old field-segmentation payload must not 422 auto segmentation."""
+    rgb = np.full((24, 32, 3), [135, 112, 80], dtype=np.uint8)
+    rgb[2:10, 3:12] = [25, 178, 45]
+    calls = _arm(svc, monkeypatch, rgb=rgb)
+    response = _predict(
+        client,
+        {
+            "mode": "auto",
+            "image_ref": IMAGE_REF,
+            "image_base64": "c2NyZWVuc2hvdA==",
+            "boxes": [[20, 20, 31, 23]],
+            "positive_points": [[30, 22]],
+            "multimask_output": True,
+            "preprocessing": "exg",
+            "request_hash": "0123456789abcdef",
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert np.array_equal(calls.predictor.images[0].shape, rgb.shape)
+    prompt = calls.predictor.prompts[0]
+    assert list(prompt["box"]) == [3, 2, 11, 9], "server ExG box, not the client's pixel box"
+    meta = response.json()["metadata"]
+    assert meta["ignored_client_fields"] == [
+        "boxes",
+        "image_base64",
+        "multimask_output",
+        "positive_points",
+    ]
+    assert meta["preprocessing"] == "exg"
+
+
+@pytest.mark.parametrize("label", ["exg_skipped_no_image", "exg_low_confidence_fallback_original"])
+def test_previous_client_preprocessing_labels_map_to_none(svc, client, monkeypatch, label):
+    calls = _arm(svc, monkeypatch)
+    response = _predict(client, {"mode": "auto", "image_ref": IMAGE_REF, "preprocessing": label})
+    assert response.status_code == 200, response.text
+    assert response.json()["metadata"]["preprocessing"] == "none"
+    assert response.json()["metadata"]["ignored_client_fields"] == []
+    assert calls.predictor.prompts[0]["point_coords"].tolist() == [[4.0, 3.0]]
+
+
+@pytest.mark.parametrize("with_image", [True, False])
+@pytest.mark.parametrize("mode", ["auto", "hybrid"])
+def test_web_ui_payload_through_adapter_and_sam2_is_200(svc, client, monkeypatch, mode, with_image):
+    """GEO-01 BLOCKER: exactly what AddFieldWithMap posts, through both real ASGI apps."""
+    calls = _arm(svc, monkeypatch, rgb=_two_fields_with_strays())
+    monkeypatch.setattr(svc.rt, "_lonlat_to_pixel", lambda lon, lat, t, c: (80, 75))
+    directory = SVC_DIR.parent / "field-segmentation"
+    monkeypatch.syspath_prepend(str(directory))
+    adapter = _load("_segmentation_contract_adapter", directory / "main.py", monkeypatch)
+    monkeypatch.setattr(adapter, "AGENT_TOKEN", TOKEN)
+    monkeypatch.setattr(adapter, "SEGMENTATION_BACKEND", "sam2")
+    monkeypatch.setattr(adapter, "SEGMENTATION_INFERENCE_URL", "http://offline/v1/predict")
+    monkeypatch.setattr(
+        adapter,
+        "_post_inference",
+        lambda payload: client.post("/v1/predict", headers={"X-Agent-Token": TOKEN}, json=payload),
+    )
+    body = {
+        "mode": mode,
+        "bbox": [44.1, 15.3, 44.3, 15.4],
+        "preprocessing": "exg",
+        "fallback_to_original_on_low_exg": True,
+    }
+    if with_image:
+        body["image_base64"] = "iVBORw0KGgo="
+    if mode == "hybrid":
+        body["hints"] = [[44.2, 15.35]]
+    response = TestClient(adapter.app).post(
+        "/v1/segment", headers={"X-Agent-Token": TOKEN}, json=body
+    )
+    assert response.status_code == 200, response.text
+    meta = response.json()["metadata"]
+    assert meta["preprocessing"] == "exg"
+    assert ("client_image" in meta) is with_image
+    prompt = calls.predictor.prompts[0]
+    expected_box = [5, 5, 39, 34] if mode == "auto" else [75, 70, 94, 89]
+    assert list(prompt["box"]) == expected_box
+
+
 TOKEN = "sam2-contract-test-token"
 DIGEST = "ab" * 32
 IMAGE_REF = "https://example.invalid/scene/visual.tif"

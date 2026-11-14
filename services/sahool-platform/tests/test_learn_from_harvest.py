@@ -53,3 +53,64 @@ class TestLearnGate:
         # honest error or pending — NEVER a fabricated CALIBRATED zone_factor
         assert r.get("status") != "CALIBRATED"
         assert "error" in r or r.get("status") == "pending_districts"
+
+
+def _isolated_harvest(tmp_path, monkeypatch):
+    from functools import partial
+
+    import yaml
+    from storage import lite_store
+
+    db = tmp_path / "fixture.db"
+    lite_store.init_db(db)
+    district = tmp_path / "districts" / "al_jawf"
+    district.mkdir(parents=True)
+    (district / "climate.yaml").write_text(yaml.safe_dump({"calibration": {"farms_required": 5}}))
+    monkeypatch.setattr(lfh, "PLATFORM", tmp_path)
+    monkeypatch.setattr(
+        lfh, "yields_for_district", partial(lite_store.yields_for_district, db_path=db)
+    )
+    return partial(lite_store.add_yield, district_id="al_jawf", crop="wheat", db_path=db)
+
+
+def _tenant_calibration(tmp_path, tenant):
+    import yaml
+
+    return yaml.safe_load(
+        (tmp_path / "tenants" / tenant / "calibration" / "zone_factors.yaml").read_text()
+    )
+
+
+def test_two_tenants_keep_separate_factors_and_basis(tmp_path, monkeypatch):
+    add = _isolated_harvest(tmp_path, monkeypatch)
+    add(tenant_id="b", season_year=2026, yield_t_ha=8)
+    add(tenant_id="a", season_year=2025, yield_t_ha=3)
+    add(tenant_id="a", season_year=2026, yield_t_ha=5)
+    add(tenant_id="b", season_year=2024, yield_t_ha=50, verified=False)
+    district = tmp_path / "districts" / "al_jawf" / "climate.yaml"
+    before = district.read_bytes()
+    result = lfh.learn("al_jawf", "wheat")
+    assert "indicative_zone_factor" not in result
+    assert district.read_bytes() == before
+    a = _tenant_calibration(tmp_path, "a")
+    b = _tenant_calibration(tmp_path, "b")
+    assert (a["indicative_zone_factor"], a["basis"]) == (
+        0.8,
+        {"records": 2, "farms": 1, "seasons": 2},
+    )
+    assert (b["indicative_zone_factor"], b["basis"]) == (
+        1.6,
+        {"records": 1, "farms": 1, "seasons": 1},
+    )
+
+
+def test_adding_another_tenant_does_not_change_existing_factor(tmp_path, monkeypatch):
+    add = _isolated_harvest(tmp_path, monkeypatch)
+    add(tenant_id="a", season_year=2026, yield_t_ha=5)
+    assert lfh.learn("al_jawf", "wheat")["indicative_zone_factor"] == 1.0
+    before = _tenant_calibration(tmp_path, "a")
+    add(tenant_id="b", season_year=2025, yield_t_ha=10)
+    result = lfh.learn("al_jawf", "wheat")
+    assert _tenant_calibration(tmp_path, "a") == before
+    assert _tenant_calibration(tmp_path, "b")["indicative_zone_factor"] == 2.0
+    assert result["status"] == "pending_districts" and result["farms"] == 2

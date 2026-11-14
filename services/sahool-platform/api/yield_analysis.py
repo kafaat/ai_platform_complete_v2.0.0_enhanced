@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 # kg/ha ← t/ha: نعرض الغلّة بالطنّ/هكتار (وحدة FieldView المألوفة) من تخزين kg/ha.
@@ -24,9 +25,9 @@ def _to_float(v: Any) -> float | None:
         return None
     try:
         f = float(v)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return None
-    return f if f == f else None  # يُسقِط NaN
+    return f if math.isfinite(f) else None  # NaN and ±Infinity are never valid harvest facts
 
 
 def _kg_ha_to_t_ha(v: Any) -> float | None:
@@ -156,7 +157,7 @@ def build_hybrid_performance(rows: list[dict[str, Any]]) -> list[dict[str, Any]]
                 "seed_sources": sorted(b["seeds"]),
                 "season_count": n,
                 "field_count": len(b["fields"]),
-                "avg_yield_t_ha": round(sum(ys) / n, 3),
+                "avg_yield_t_ha": round(math.fsum(y / n for y in ys), 3),
                 "min_yield_t_ha": round(min(ys), 3),
                 "max_yield_t_ha": round(max(ys), 3),
             }

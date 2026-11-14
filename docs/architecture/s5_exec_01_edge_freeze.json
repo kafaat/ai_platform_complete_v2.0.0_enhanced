@@ -24,20 +24,20 @@
     "hash": "sha256(bytes)"
   },
   "counts": {
-    "graph_total": 57,
-    "graph_reads": 29,
+    "graph_total": 58,
+    "graph_reads": 30,
     "graph_writes": 28,
     "runtime_total": 31,
     "runtime_reads": 25,
     "runtime_writes": 6,
-    "test_witness_total": 26,
-    "test_witness_reads": 4,
+    "test_witness_total": 27,
+    "test_witness_reads": 5,
     "test_witness_writes": 22,
-    "decision_service_total": 44
+    "decision_service_total": 45
   },
   "edge_fingerprint_sha256": "34f240e7e3ca33dcdcc3b54dd88e3ce6c9052b4bb540ee3901ad2f3801088c1a",
   "edge_fingerprint_scope": "historical full selected graph at the original S5-EXEC-01 freeze; compatibility receipt only",
-  "observed_edge_fingerprint_sha256": "8eba6c1d334023d7eed0f1c6457a62a11aefb5d72d7ea2414b5ce7db64b89d78",
+  "observed_edge_fingerprint_sha256": "19657d21fbb249cfb88bf10ed831c77c1b1c937da29b663ae60f5a8b69434a7f",
   "runtime_migration_surface_frozen_sha256": "bb8565c7a42368ee57cb01a3b4ec42dec1d2b5c676425b6b62b45df38d7ef7a7",
   "runtime_migration_surface_fingerprint_sha256": "bb8565c7a42368ee57cb01a3b4ec42dec1d2b5c676425b6b62b45df38d7ef7a7",
   "runtime_writer_surface_frozen_sha256": "c6820171e88b4f785d49f88023828bc59fd32a5b260a42d52a1f0d952376786a",
@@ -255,6 +255,13 @@
       },
       "test_witness": {
         "reads": [
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "test_witness"
+          },
           {
             "resource": "db://outcome_record",
             "evidence": "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",

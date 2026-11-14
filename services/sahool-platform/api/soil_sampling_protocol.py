@@ -21,6 +21,8 @@ BUL 915، UC Davis) — مبادئ عامّة معتمدة دوليّاً.
 
 from __future__ import annotations
 
+from shared.soil_sampling_guidance import COMPOSITE_PURPOSES, PURPOSE_GUIDANCE
+
 
 def subsamples_for_area(area_ha: float) -> dict:
     """يحسب عدد العيّنات الفرعيّة الموصى بها حسب مساحة الحقل."""
@@ -36,63 +38,77 @@ def subsamples_for_area(area_ha: float) -> dict:
     return {
         "supported": True,
         "area_ha": area_ha,
+        "basis": "planning_heuristic_per_homogeneous_management_unit",
         "subsamples": n,
         "advice_ar": (
-            f"اجمع ~{n} عيّنة فرعيّة موزّعة عبر الحقل بنمط W أو متعرّج، ثمّ اخلطها "
-            "في عيّنة مركّبة واحدة تمثّل الحقل."
+            f"اجمع ~{n} جسة من العمق نفسه موزّعة داخل الوحدة المتجانسة، ثمّ اخلطها "
+            "في عيّنة مركّبة تمثّل تلك الوحدة."
         ),
         "principle_ar": "كلّما زادت العيّنات الفرعيّة، زادت دقّة تمثيل الحقل.",
         "note_ar": "افصل المناطق المختلفة (منخفضات، تلال متعرّية، أطراف) بعيّنات مستقلّة.",
     }
 
 
-# أعماق أخذ العيّنة حسب الغرض (سم)
-_DEPTH_GUIDE = {
-    "general": {"depth_ar": "15-30 سم", "purpose_ar": "احتياجات الأسمدة العامّة (عمق نشاط الجذور)"},
-    "nitrate": {"depth_ar": "30 سم", "purpose_ar": "نترات التربة"},
-    "no_till": {
-        "depth_ar": "متدرّج: 0-5 سم ثمّ 5-15 سم",
-        "purpose_ar": "حقل غير محروث (التجريف/العناصر)",
-    },
-    "orchard": {"depth_ar": "15-30 سم داخل منطقة الترطيب", "purpose_ar": "البساتين/الأشجار"},
+_LABELS = {
+    "fertility": "خصوبة التربة",
+    "no_till": "الحقل غير المحروث",
+    "nitrate": "نترات التربة",
+    "orchard": "البساتين",
+    "salinity": "ملوحة التربة",
+    "texture": "قوام التربة",
 }
 
 
 def sampling_depth(purpose: str = "general") -> dict:
-    """العمق المناسب لأخذ العيّنة حسب الغرض."""
-    g = _DEPTH_GUIDE.get(purpose.strip().lower(), _DEPTH_GUIDE["general"])
+    """Expose the same purpose-specific guidance as the planner; the lab sets numeric layers."""
+    key = purpose.strip().lower()
+    if key == "general":
+        key = "fertility"
+    guidance = PURPOSE_GUIDANCE.get(key)
     return {
         "purpose": purpose,
-        "depth_ar": g["depth_ar"],
-        "applies_to_ar": g["purpose_ar"],
-        "principle_ar": (
-            "تراكيز العناصر تختلف بالعمق — حافظ على عمق ثابت داخل الحقل وبين "
-            "السنوات للمقارنة، وسجّل العمق دائماً."
-        ),
+        "sampling_purpose": key,
+        "supported": guidance is not None,
+        "depth_status": "requires_lab_protocol" if guidance else "unknown_sampling_purpose",
+        "depth_ar": guidance or "غرض غير معروف. اختر غرضاً من القائمة.",
+        "applies_to_ar": _LABELS.get(key, ""),
+        "principle_ar": "سجّل عمق البداية والنهاية لكل كيس ووحّد الأعماق بين جولات المقارنة.",
         "all_purposes_ar": [
-            {"purpose": k, "depth_ar": v["depth_ar"], "for_ar": v["purpose_ar"]}
-            for k, v in _DEPTH_GUIDE.items()
+            {"purpose": k, "depth_ar": guidance, "for_ar": _LABELS[k]}
+            for k, guidance in PURPOSE_GUIDANCE.items()
         ],
     }
 
 
 def sampling_protocol(area_ha: float | None = None, purpose: str = "general") -> dict:
     """البروتوكول الكامل لأخذ عيّنة تربة صحيحة (الخطوات + التحذيرات)."""
-    out: dict = {"supported": True}
-
+    depth = sampling_depth(purpose)
+    out = {"supported": depth["supported"], "depth": depth}
+    if not out["supported"]:
+        return out
+    composite = depth["sampling_purpose"] in COMPOSITE_PURPOSES
+    out["composite"] = composite
     if area_ha is not None:
-        out["subsamples"] = subsamples_for_area(area_ha)
-    out["depth"] = sampling_depth(purpose)
+        if composite:
+            out["subsamples"] = subsamples_for_area(area_ha)
+        else:
+            out["subsamples"] = {
+                "supported": False,
+                "subsamples": None,
+                "message_ar": "حدّد مواضع وطبقات مستقلة حسب غرض التشخيص.",
+            }
 
     out["steps_ar"] = [
-        "١. خطّط: اعرف تاريخ الحقل (تسميد/جير سابق) وافصل المناطق المختلفة.",
-        "٢. جهّز أدوات نظيفة (مسبار تربة + دلو نظيف + أكياس + قلم تعليم).",
-        "٣. أزل الغطاء النباتي/البقايا من السطح قبل كلّ عيّنة فرعيّة.",
-        "٤. خذ العيّنات الفرعيّة بعمق ثابت بنمط W أو متعرّج عبر الحقل.",
-        "٥. اخلط العيّنات الفرعيّة في دلو نظيف → عيّنة مركّبة واحدة.",
-        "٦. أزل الشوائب (جذور، حصى)، فتّت الكتل، خذ ~٢ كوب.",
-        "٧. علّم الكيس بوضوح (التاريخ، معرّف الحقل، العمق) وسجّل في دفتر.",
-        "٨. اشحن فوراً (أو احفظ مبرّداً ≤أسبوع؛ عيّنات النيتروجين تُبرّد وتُرسل سريعاً).",
+        "١. افصل وحدات الإدارة وتاريخ الري والتسميد قبل توزيع المواقع.",
+        "٢. جهّز مسباراً وأوعية وأكياساً نظيفة وملصقاً لكل عينة.",
+        "٣. أزل البقايا السطحية قبل إدخال المسبار.",
+        depth["depth_ar"],
+        "٥. اخلط الجسات المتساوية العمق من الوحدة نفسها في عيّنة مركّبة."
+        if composite
+        else "٥. ضع كل موضع وطبقة في كيس مستقل.",
+        "٦. جهّز عيّنة بالحجم وحالة الحفظ المطلوبين من المختبر للتحليل المختار.",
+        "٧. سجّل معرف الكيس والموقع الفعلي والعمق والوقت وظروف الري.",
+        "٨. اتبع تعليمات المختبر للحفظ والنقل، ونسّق شحن عينات النترات قبل بدء الجولة.",
     ]
 
     out["avoid_ar"] = [
@@ -103,17 +119,8 @@ def sampling_protocol(area_ha: float | None = None, purpose: str = "general") ->
     ]
 
     out["timing_ar"] = (
-        "خذ العيّنة قبل التسميد وقبل احتياج النبات للعناصر. التزم نفس التوقيت "
-        "والمختبر كلّ سنة للمقارنة. التكرار: كل 2-3 سنوات لمعظم المحاصيل، "
-        "وحتّى كل 5 سنوات للبساتين."
+        "حدّد توقيت الجولة حسب الغرض ومرحلة المحصول، وسجّل تاريخ آخر ري وتسميد للمقارنة."
     )
-
-    out["yemen_note_ar"] = (
-        "عيّنة صحيحة = توصية تسميد وملاءمة صحيحة = توفير مال وحماية تربة. "
-        "خطأ العيّنة يفسد كلّ التحليل مهما دقّ المختبر."
-    )
-    out["disclaimer_ar"] = (
-        "بروتوكول عامّ معتمد دوليّاً (Oregon State / Idaho / UC Davis). اتبع "
-        "تعليمات مختبرك المحدّد فقد تختلف بعض التفاصيل."
-    )
+    out["yemen_note_ar"] = "في الحقول المروية سجّل مصدر مياه الري وموضع العينة من نظام الري."
+    out["disclaimer_ar"] = "اتبع معايرة المختبر المحلي لكل اختبار عند اختيار أعماق الجمع."
     return out

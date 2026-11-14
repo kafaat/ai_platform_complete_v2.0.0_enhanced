@@ -21,7 +21,7 @@ GIS-001,Field geometry validation,True,True,True,False,False,True,False,False,Fa
 GIS-002,Map layers,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 GIS-003,Terrain and DEM,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 GIS-004,Spatial analytics,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-INT-001,Public API and SDK,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+INT-001,Public API and SDK,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 INT-002,Event bus integration,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
 INT-003,IoT and sensors,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 INT-004,External machinery integrations,False,False,False,False,False,False,False,False,False,0,9,0.0,False,False,False,False

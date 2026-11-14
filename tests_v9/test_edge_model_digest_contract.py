@@ -73,8 +73,8 @@ def _ships_env(compose_text: str, env_name: str) -> bool:
 def _model_env_map() -> dict[str, tuple[str, str]]:
     """`_MODEL_ENV` مقروءةً من شجرة النحو — لا بالاحتواء النصّيّ ولا باستيراد الخدمة.
 
-    الاستيرادُ يتطلّب تبعيّاتِ الخدمة، ولا وظيفةَ CI تُشغّل `services/edge-inference/tests`؛
-    فالقراءةُ الساكنة هي ما يجعل هذا الشاهدَ يعمل حيث بوّابةُ الدمج فعلاً.
+    الاستيرادُ يتطلّب تبعيّاتِ الخدمة؛ والقراءةُ الساكنة تُبقي هذا الشاهدَ يعمل في كلّ وظيفة
+    حتى حيث لا تُثبَّت تبعيّات edge-inference (وظيفة Unit Tests تُشغّل اختباراتها الآن أيضاً).
     """
     tree = ast.parse(EDGE_MAIN.read_text(encoding="utf-8"))
     for node in ast.walk(tree):

@@ -32,6 +32,22 @@ from services.ai_agronomist import productivity_zones_clustering as C  # noqa: E
 _BBOX = [44.0, 16.0, 44.4, 16.4]
 
 
+def _metadata(rows=2, cols=2):
+    identity = dict(
+        crs="EPSG:4326",
+        geometry_revision=1,
+        rows=rows,
+        cols=cols,
+        transform=[0.4 / cols, 0, 44.0, 0, -0.4 / rows, 16.4],
+    )
+    optical = dict(grid_identity=identity, scene_id="scene-a", acquisition_date="2026-01-01")
+    return {
+        "ndvi": optical,
+        "ndmi": dict(optical),
+        "slope": {"grid_identity": identity, "asset_id": "dem-a"},
+    }
+
+
 # ── العنقدة متعدّدة الأبعاد الأساسيّة ───────────────────────────────────────────
 def test_kmeans_nd_is_deterministic_and_order_independent():
     vecs = [[0.1, 0.9], [0.12, 0.88], [0.8, 0.1], [0.82, 0.12]]
@@ -91,9 +107,11 @@ def test_backward_compat_no_aux_matches_ndvi_only():
     assert {z["productivity_class"] for z in baseline["zones"]} == {"low", "high"}
 
 
-def test_extract_aux_grids_dimension_match_only():
+def test_extract_aux_grids_with_spatial_identity():
     ndvi = [[0.1, 0.2], [0.3, 0.4]]
     params = {
+        "ndvi_grid": ndvi,
+        "grid_metadata": _metadata(),
         "ndmi_grid": [[0.1, 0.2], [0.3, 0.4]],  # يطابق
         "slope_grid": [[1, 2, 3]],  # لا يطابق ⇒ يُسقَط
         "reci_grid": "not-a-grid",  # مشوّه ⇒ يُسقَط
@@ -112,7 +130,13 @@ def test_propose_uses_multiindex_when_aux_present():
     ndvi = [[0.50, 0.52], [0.58, 0.60]]
     ndmi = [[0.10, 0.10], [0.70, 0.70]]
     out = PZ.propose_productivity_zones(
-        {"bbox": _BBOX, "zone_count": 2, "ndvi_grid": ndvi, "ndmi_grid": ndmi},
+        {
+            "bbox": _BBOX,
+            "grid_metadata": _metadata(),
+            "zone_count": 2,
+            "ndvi_grid": ndvi,
+            "ndmi_grid": ndmi,
+        },
         field_id="f",
     )
     assert out["method"] == "multi_index_kmeans_clustering"
@@ -142,9 +166,36 @@ def test_propose_default_basis_is_multi_index_capable():
     ndvi = [[0.50, 0.52], [0.58, 0.60]]
     slope = [[2.0, 2.0], [40.0, 40.0]]
     out = PZ.propose_productivity_zones(
-        {"bbox": _BBOX, "zone_count": 2, "ndvi_grid": ndvi, "slope_grid": slope},
+        {
+            "bbox": _BBOX,
+            "grid_metadata": _metadata(),
+            "zone_count": 2,
+            "ndvi_grid": ndvi,
+            "slope_grid": slope,
+        },
         field_id="f",
     )
     assert out["basis"] == "multi_index"
     assert out["method"] == "multi_index_kmeans_clustering"
     assert "slope" in out["feature_names"]
+
+
+def test_zoning_never_imputes_an_unobserved_pixel_or_attaches_an_unaligned_layer():
+    ndvi = [[0.1, 0.2], [0.8, 0.9]]
+    data = {"bbox": _BBOX, "zone_count": 2, "ndvi_grid": ndvi, "ndmi_grid": [[0, None], [1, 1]]}
+    assert PZ.propose_productivity_zones(data)["feature_names"] == ["ndvi"]
+    data["grid_metadata"] = _metadata()
+    result = PZ.propose_productivity_zones(data)
+    assert set(result["indicator_sources"]) == {"ndvi", "ndmi"}
+    assert C._feature_vectors([ndvi, data["ndmi_grid"]], 2, 2)[0] == [(0, 0), (1, 0), (1, 1)]
+    for key, value in (
+        ("scene_id", "other"),
+        ("acquisition_date", "2025-01-01"),
+        ("grid_identity", dict(_metadata()["ndmi"]["grid_identity"], geometry_revision=9)),
+    ):
+        data["grid_metadata"] = _metadata()
+        data["grid_metadata"]["ndmi"][key] = value
+        assert PZ.propose_productivity_zones(data)["feature_names"] == ["ndvi"]
+    assert PZ.propose_productivity_zones(data, evidence_context={"ndvi_grid": ndvi})[
+        "feature_names"
+    ] == ["ndvi"]

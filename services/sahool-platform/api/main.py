@@ -251,10 +251,14 @@ async def _init_db_pool():
         logging.info("✓ pool القاعدة جاهز (min=%d max=%d)", _pool_min, _pool_max)
         await _assert_db_role_rls_safe(_DB_POOL)
     except RuntimeError:
+        await _close_db_pool()  # A rejected role must not leave its newly created pool open.
         raise  # رفض إقلاع متعمَّد (دور يتجاوز RLS، أو مهلة إقلاع Postgres) — لا تبتلعه
+    except asyncio.CancelledError:
+        await _close_db_pool()
+        raise
     except Exception as e:  # noqa: BLE001
         logging.error("فشل إنشاء pool القاعدة: %s", e)
-        _DB_POOL = None
+        await _close_db_pool()
         return
     # مسبح الوظائف: لا يُطبَّق عليه حارس RLS (BYPASSRLS مقصود لمساره فقط).
     jobs_dsn = os.getenv("JOBS_DATABASE_URL", "") or dsn
@@ -271,36 +275,11 @@ async def _init_db_pool():
 async def _assert_db_role_rls_safe(pool) -> None:
     """يتحقّق أنّ دور الاتّصال لا يتجاوز RLS (لينشين عزل المستأجرين) — fail-closed.
 
-    إن كان الدور superuser/BYPASSRLS: يُسجَّل تحذير حرج دائماً، ويُرفَض الإقلاع إذا
-    SAHOOL_ENFORCE_RLS_ROLE مُفعَّل (الإنتاج). لا يحجب إقلاعاً عند تعذّر الفحص (لا يكسر
-    بيئات بلا pg_roles)."""
-    from core.db_role_guard import (
-        ROLE_PROBE_SQL,
-        enforcement_active,
-        role_can_bypass_rls,
-        role_guard_message,
-        should_refuse_startup,
-    )
+    تنفيذٌ واحد مع الخدمات السبع (shared.db_role_guard): دورٌ superuser/BYPASSRLS، أو
+    فحصٌ متعذّر (خطأ/مهلة/لا صفّ)، يرفض الإقلاع عند الفرض؛ تجاوز التطوير الصريح يُحذِّر فقط."""
+    from shared.db_role_guard import assert_db_role_rls_safe
 
-    try:
-        async with pool.acquire() as conn:
-            row = await conn.fetchrow(ROLE_PROBE_SQL)
-    except Exception as e:  # noqa: BLE001 — تعذّر الفحص ⇒ لا يحجب الإقلاع
-        logging.debug("تعذّر فحص دور RLS: %s", e)
-        return
-    if row is None:
-        return
-    unsafe = role_can_bypass_rls(row["rolsuper"], row["rolbypassrls"])
-    if not unsafe:
-        return
-    enforce = enforcement_active(
-        os.getenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE"), os.getenv("SAHOOL_ENFORCE_RLS_ROLE")
-    )
-    refuse = should_refuse_startup(unsafe, enforce)
-    msg = role_guard_message(row["rolsuper"], row["rolbypassrls"], refuse)
-    logging.critical("🔓 %s", msg)
-    if refuse:
-        raise RuntimeError(msg)
+    await assert_db_role_rls_safe(pool, service="sahool-platform")
 
 
 async def _start_scheduler():
@@ -1426,13 +1405,15 @@ def _row_to_activity(r) -> ActivitySummary:
 _TASK_STATUSES = {"pending", "in_progress", "completed", "cancelled"}
 _TASK_COLS = (
     "task_id, field_id, task_type, priority, status, recommended_date, "
-    "estimated_duration_min, estimated_cost_usd, assigned_to, notes, photo_url, "
-    "completed_at, created_at"
+    "estimated_duration_min, estimated_cost_usd, actual_cost_usd, source_scouting_pin_id, assigned_to, notes, photo_url, "
+    "completed_at, created_at, satellite_sources::text AS satellite_sources, terrain_sources::text AS terrain_sources"
 )
 
 
-def _row_to_task(r) -> TaskSummary:
+def _row_to_task(r, user: UserSchema | None = None) -> TaskSummary:
     return TaskSummary(
+        terrain_sources=json.loads(r.get("terrain_sources") or "[]"),
+        satellite_sources=json.loads(r.get("satellite_sources") or "[]"),
         task_id=str(r["task_id"]),
         field_id=r["field_id"],
         task_type=r["task_type"],
@@ -1445,6 +1426,10 @@ def _row_to_task(r) -> TaskSummary:
         estimated_cost_usd=float(r["estimated_cost_usd"])
         if r["estimated_cost_usd"] is not None
         else None,
+        actual_cost_usd=r.get("actual_cost_usd")
+        if user and has_permission(user, Permission.ANALYTICS_VIEW)
+        else None,
+        source_scouting_pin_id=r.get("source_scouting_pin_id"),
         assigned_to=r["assigned_to"],
         notes=r["notes"],
         photo_url=r["photo_url"],

@@ -1129,6 +1129,21 @@
     },
     {
       "approval_required": false,
+      "capability_id": "decision-service.evidence.field-counts",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/evidence/field-counts"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "decision-service",
+      "producer": "decision-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "decision-service.evidence.vegetation-snapshots",
       "consumers": [],
       "curated": false,
@@ -5058,25 +5073,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.chat",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /api/chat"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": [
-        "tenant"
-      ]
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.chemical-safety.banned",
       "consumers": [
         "frontend"
@@ -5754,7 +5750,7 @@
       "entrypoints": [
         "POST /api/v1/decision/dispatch/execute"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10109,7 +10105,7 @@
       "entrypoints": [
         "POST /api/v1/lab/soil-results"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10128,7 +10124,7 @@
       "entrypoints": [
         "POST /api/v1/lab/water-results"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -11504,23 +11500,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.probe",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /probe"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -13974,6 +13953,24 @@
     },
     {
       "approval_required": false,
+      "capability_id": "scout-ingest-service.internal.scouting-media.fields",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo",
+        "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo"
+      ],
+      "idempotency_required": false,
+      "kind": "mixed",
+      "owner": "scout-ingest-service",
+      "producer": "scout-ingest-service",
+      "required_context": [
+        "field"
+      ]
+    },
+    {
+      "approval_required": false,
       "capability_id": "scout-ingest-service.internal.scouting.external-observations",
       "consumers": [],
       "curated": false,
@@ -15656,6 +15653,7 @@
           "activation_evidence_revocations",
           "decision_agronomic_context_snapshots",
           "decision_consumer_heartbeats",
+          "decision_context_compositions",
           "decision_dispatch_authorizations",
           "decision_execution_delivery_attempts",
           "decision_execution_plans",
@@ -17283,6 +17281,7 @@
           "field_form_definitions",
           "field_form_versions",
           "field_submissions",
+          "scout_photo_evidence",
           "season_cost_items",
           "season_crop",
           "season_events",
@@ -17795,18 +17794,18 @@
     "backend_components": 33,
     "capabilities": 841,
     "capabilities_approval_gated": 6,
-    "capabilities_field_scoped": 96,
-    "capabilities_idempotent": 74,
+    "capabilities_field_scoped": 97,
+    "capabilities_idempotent": 75,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 482,
+    "capabilities_tenant_scoped": 481,
     "components": 37,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1136,
-    "ui_waivers": 53,
-    "unique_method_path": 1015
+    "route_rows": 1137,
+    "ui_waivers": 52,
+    "unique_method_path": 1016
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18068,7 +18067,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "33d83130cc830eabdbb9edd72ba2d8d68bed7cab56b45fe58e0f701057740ec7",
+  "fingerprint": "91c6e2e61bc9182bf86c57030e9f94c26d8ef78ae94c4e2a6eb6791a6c9dfad7",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18118,16 +18117,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 949,
+      "edge_count": 966,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 492,
-        "ROUTES_TO": 72,
-        "WRITES": 334
+        "READS": 505,
+        "ROUTES_TO": 73,
+        "WRITES": 337
       }
     },
     "u3_wiring_ownership": {
@@ -18331,186 +18330,179 @@
       "waiver_id": "ui-waiver-027"
     },
     {
-      "endpoint": "/api/v1/lab/samples/{sample_id}/transition",
-      "expires_on": "2026-12-31",
-      "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-028"
-    },
-    {
       "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
       "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
-      "waiver_id": "ui-waiver-029"
+      "waiver_id": "ui-waiver-028"
     },
     {
       "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
       "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
-      "waiver_id": "ui-waiver-030"
+      "waiver_id": "ui-waiver-029"
     },
     {
       "endpoint": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
       "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
-      "waiver_id": "ui-waiver-031"
+      "waiver_id": "ui-waiver-030"
     },
     {
       "endpoint": "/api/v1/learning/activation-requests",
       "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.5",
-      "waiver_id": "ui-waiver-032"
+      "waiver_id": "ui-waiver-031"
     },
     {
       "endpoint": "/api/v1/learning/activation-requests/{activation_request_id}/review",
       "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
-      "waiver_id": "ui-waiver-033"
+      "waiver_id": "ui-waiver-032"
     },
     {
       "endpoint": "/api/v1/learning/calibration-dataset",
       "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.2",
-      "waiver_id": "ui-waiver-034"
+      "waiver_id": "ui-waiver-033"
     },
     {
       "endpoint": "/api/v1/learning/evaluation-runs",
       "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.3",
-      "waiver_id": "ui-waiver-035"
+      "waiver_id": "ui-waiver-034"
     },
     {
       "endpoint": "/api/v1/learning/promotion-decisions",
       "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.4",
-      "waiver_id": "ui-waiver-036"
+      "waiver_id": "ui-waiver-035"
     },
     {
       "endpoint": "/api/v1/notifications/delivery",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-037"
+      "waiver_id": "ui-waiver-036"
     },
     {
       "endpoint": "/api/v1/notifications/ws",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-038"
+      "waiver_id": "ui-waiver-037"
     },
     {
       "endpoint": "/api/v1/outcomes/{outcome_id}/learning-attribution",
       "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11",
-      "waiver_id": "ui-waiver-039"
+      "waiver_id": "ui-waiver-038"
     },
     {
       "endpoint": "/api/v1/weather/alerts/notify",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-040"
+      "waiver_id": "ui-waiver-039"
     },
     {
       "endpoint": "/api/v1/weather/env-doctor",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-041"
+      "waiver_id": "ui-waiver-040"
     },
     {
       "endpoint": "/api/v1/weather/observability",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-042"
+      "waiver_id": "ui-waiver-041"
     },
     {
       "endpoint": "/api/v1/weather/rate-limit/backend",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-043"
+      "waiver_id": "ui-waiver-042"
     },
     {
       "endpoint": "/api/v1/weather/runtime-contract",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-044"
+      "waiver_id": "ui-waiver-043"
     },
     {
       "endpoint": "/api/v1/weather/runtime-smoke-plan",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-045"
+      "waiver_id": "ui-waiver-044"
     },
     {
       "endpoint": "/api/v1/weather/self-test",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-046"
+      "waiver_id": "ui-waiver-045"
     },
     {
       "endpoint": "/api/v1/weather/tile-cache/backend",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-047"
+      "waiver_id": "ui-waiver-046"
     },
     {
       "endpoint": "/api/v1/weather/tile-cache/prune",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-048"
+      "waiver_id": "ui-waiver-047"
     },
     {
       "endpoint": "/api/v1/weather/tile-cache/stats",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-049"
+      "waiver_id": "ui-waiver-048"
     },
     {
       "endpoint": "/api/v1/weather/wind-source-selftest",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-050"
+      "waiver_id": "ui-waiver-049"
     },
     {
       "endpoint": "/v1/auth/edge-sign",
       "expires_on": "2026-12-31",
       "owner": "auth",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-051"
+      "waiver_id": "ui-waiver-050"
     },
     {
       "endpoint": "/v1/auth/me",
       "expires_on": "2026-12-31",
       "owner": "auth",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-052"
+      "waiver_id": "ui-waiver-051"
     },
     {
       "endpoint": "/api/v1/scenario/economics",
       "expires_on": "2026-11-27",
       "owner": "sahool-platform",
       "tracking": "ECON-SCENARIO-UI-01",
-      "waiver_id": "ui-waiver-053"
+      "waiver_id": "ui-waiver-052"
     }
   ]
 }
