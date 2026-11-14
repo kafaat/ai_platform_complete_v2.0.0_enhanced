@@ -724,10 +724,19 @@ async def get_current_user(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
 
     jti = payload.get("jti")
-    if jti and await is_jti_revoked(jti):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
-    # إبطال جماعيّ: توكن أُصدِر قبل أرضيّة المستخدم (تغيير كلمة المرور/الدور/التعطيل) ⇒ مرفوض.
-    if await is_token_below_floor(payload):
+    try:
+        revoked = bool(jti) and await is_jti_revoked(jti)
+        # إبطال جماعيّ: توكن أُصدِر قبل أرضيّة المستخدم (تغيير كلمة المرور/الدور/التعطيل) ⇒ مرفوض.
+        revoked = revoked or await is_token_below_floor(payload)
+    except Exception as exc:  # noqa: BLE001 — revocation state unknown: refuse, never pass
+        # Redis was up at boot and fails now (connection refused, timeout, ACL). The request
+        # is refused either way; 503 says the store is unavailable instead of an opaque 500
+        # (live witness: tests_v9/test_auth_admin_authz_live_pg_redis.py).
+        logger.warning("token revocation check failed: %s", type(exc).__name__)
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, "تعذّر التحقّق من إبطال التوكن — أعد المحاولة"
+        ) from exc
+    if revoked:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
     return payload
 
