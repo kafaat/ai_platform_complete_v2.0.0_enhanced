@@ -86,12 +86,14 @@ services:
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
       # SEASON-RECORD-ENTRY-01 3b: أضِف SEASON_ENTRY_SERVICE_TOKEN كي يُستبدَل في القالب.
       # الفلتر يقصر الاستبدال على هذه الأسماء فقط — متغيّرات nginx وقت التشغيل تبقى كما هي.
-      NGINX_ENVSUBST_FILTER: DOMAIN|SAHOOL_AGENT_TOKEN|SEASON_ENTRY_SERVICE_TOKEN
+      NGINX_ENVSUBST_FILTER: DOMAIN|SAHOOL_AGENT_TOKEN|SEASON_ENTRY_SERVICE_TOKEN|SCOUT_MEDIA_SERVICE_TOKEN
       DOMAIN: ${DOMAIN:-localhost}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       # توكن خدمة قناة المواسم (تُحقنه البوّابة upstream نحو scout-ingest). فارغ محلّيّاً ⇒ الخدمة
       # ترفض (SEASON_ENTRY_ENABLED=0 افتراضاً) — نمط READ_TOKEN، لا سرّ بقيمة في compose.
       SEASON_ENTRY_SERVICE_TOKEN: ${SEASON_ENTRY_SERVICE_TOKEN:-}
+      # SCOUT-PHOTO (v260): توكن قناة صور المشاهدات نحو scout-ingest (فارغ ⇒ الخدمة 503).
+      SCOUT_MEDIA_SERVICE_TOKEN: ${SCOUT_MEDIA_SERVICE_TOKEN:-}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
@@ -406,7 +408,6 @@ services:
       --user sahool-raster-cache-invalidation-worker on ">${REDIS_RASTER_INVALIDATION_PASSWORD:?REDIS_RASTER_INVALIDATION_PASSWORD required}" resetkeys resetchannels -@all +ping +publish "&raster:layer_evict"
       --user sahool-raster-backfill-scan-worker on ">${REDIS_RASTER_BACKFILL_PASSWORD:?REDIS_RASTER_BACKFILL_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +del +scan +eval ~stac:* ~sahool:raster:job:* ~sahool:raster:indicator-batch:*
       --user sahool-actuator-service on ">${REDIS_ACTUATOR_PASSWORD:?REDIS_ACTUATOR_PASSWORD required}" resetkeys resetchannels -@all +ping
-      --user sahool-ai-agronomist on ">${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +sadd +srem +smembers +rpush +lrange ~sahool:agent:approval:* ~sahool:agent:approvals:pending ~sahool:agent:audit
       --user sahool-telegram-bot on ">${REDIS_TELEGRAM_BOT_PASSWORD:?REDIS_TELEGRAM_BOT_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +del ~fsm:*
       --user sahool-notification-agent on ">${REDIS_NOTIFICATION_PASSWORD:?REDIS_NOTIFICATION_PASSWORD required}" resetkeys resetchannels -@all +ping
     volumes:
@@ -437,10 +438,11 @@ services:
       redis-server --maxmemory 256mb --maxmemory-policy noeviction --appendonly yes
       --user default off resetpass resetkeys resetchannels -@all
       --user sahool-redis-admin on ">${REDIS_PASSWORD:?REDIS_PASSWORD required}" ~* "&*" +@all
-      --user sahool-auth on ">${REDIS_AUTH_PASSWORD:?REDIS_AUTH_PASSWORD required}" resetkeys resetchannels -@all +ping +get +getdel +setex +del +exists +expire +ttl +incr +sadd +smembers ~sahool:refresh:* ~sahool:user:refreshset:* ~sahool:user:token_floor:* ~sahool:jti:revoked:* ~sahool:lockout:* ~sahool:attempts:* ~sahool:ip_rate:* ~sahool:otp_rate:* ~sahool:otp:* ~sahool:reset:*
+      --user sahool-auth on ">${REDIS_AUTH_PASSWORD:?REDIS_AUTH_PASSWORD required}" resetkeys resetchannels -@all +ping +get +getdel +setex +del +exists +expire +ttl +incr +sadd +smembers ~sahool:refresh:* ~sahool:user:refreshset:* ~sahool:user:token_floor:* ~sahool:jti:revoked:* ~sahool:lockout:* ~sahool:attempts:* ~sahool:ip_rate:* ~sahool:otp_rate:* ~sahool:otp:* ~sahool:reset:* ~sahool:mfa:enrollment:*
       --user sahool-platform-denylist on ">${REDIS_PLATFORM_DENYLIST_PASSWORD:?REDIS_PLATFORM_DENYLIST_PASSWORD required}" resetkeys resetchannels -@all +ping +exists +setex ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
       --user sahool-actuator-service-denylist on ">${REDIS_ACTUATOR_DENYLIST_PASSWORD:?REDIS_ACTUATOR_DENYLIST_PASSWORD required}" resetkeys resetchannels -@all +ping +exists ~sahool:jti:revoked:* "(+get %R~sahool:user:token_floor:*)"
       --user sahool-guardrails-engine on ">${REDIS_GUARDRAILS_PASSWORD:?REDIS_GUARDRAILS_PASSWORD required}" resetkeys resetchannels -@all +ping
+      --user sahool-ai-agronomist on ">${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +sadd +srem +smembers +rpush +lrange +ltrim +watch +multi +exec +unwatch ~sahool:agent:approval:* ~sahool:agent:approvals:pending ~sahool:agent:audit
     volumes:
     - redis-state-data:/data
     networks:
@@ -756,6 +758,10 @@ services:
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
       JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}
       INGEST_DB_PASSWORD: ${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}
+      # Scout photo grant administration principal (sahool_scout_grant_admin): NOLOGIN unless
+      # enabled here with its own password (read from the environment, never argv).
+      SCOUT_MEDIA_GRANTS_ADMIN_ENABLED: ${SCOUT_MEDIA_GRANTS_ADMIN_ENABLED:-0}
+      SCOUT_GRANT_ADMIN_DB_PASSWORD: ${SCOUT_GRANT_ADMIN_DB_PASSWORD:-}
       # المتغيّرُ نفسُه الذي يقرؤه odoo-init (فارغاً ⇒ دور odoo_app بلا كلمة مرور، لا افتراضيٌّ منشور).
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-}
       # إذنُ التطبيق الصريح — في compose المحلّيّ الهجرةُ جزءٌ من الإقلاع (apply_in_compose.sh).
@@ -896,8 +902,15 @@ services:
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
       # M4 (مراجعة v25): المشاهداتُ القانونيّة لكلّ حقل عبر `/api/v1/fields/{id}/indicator-observations/{view}`.
       INDICATORS_SERVICE_URL: ${INDICATORS_SERVICE_URL:-http://sahool-indicators-service:8000}
-      # Best-effort mirror target (dual-path): platform writes are authoritative; the facade
-      # mirrors to this URL and swallows failures. Unreachable mirror ⇒ logged warning, never data loss.
+      # Route reads and writes through the selected owner after the verified cutover.
+      SAHOOL_DECISION_WRITE_MODE: ${SAHOOL_DECISION_WRITE_MODE:-platform_sor}
+      DECISION_SERVICE_SOR_ENABLED: ${DECISION_SERVICE_SOR_ENABLED:-false}
+      DECISION_SERVICE_MIGRATIONS_VERIFIED: ${DECISION_SERVICE_MIGRATIONS_VERIFIED:-false}
+      DECISION_SERVICE_BACKFILL_VERIFIED: ${DECISION_SERVICE_BACKFILL_VERIFIED:-false}
+      DECISION_SERVICE_TENANT_ISOLATION_VERIFIED: ${DECISION_SERVICE_TENANT_ISOLATION_VERIFIED:-false}
+      DECISION_SERVICE_OUTBOX_VERIFIED: ${DECISION_SERVICE_OUTBOX_VERIFIED:-false}
+      DECISION_SERVICE_STAGING_CUTOVER_APPROVED: ${DECISION_SERVICE_STAGING_CUTOVER_APPROVED:-false}
+      DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED: ${DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED:-false}
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       # الرمزُ الخدميّ نفسُه الذي يفرضه `_service_token_guard` هناك. بدونه كان تفعيلُ
       # `DECISION_SERVICE_AUTH_TOKEN` يردّ كلَّ نداءات المنصّة 401 — تشديدٌ يُعطِّل بدل
@@ -1385,6 +1398,25 @@ services:
       # خلف راية مستقلّة (off ⇒ 404) وتوكن قناة مخصّص يحقنه proxy المنصّة (§8.6).
       FIELD_FORMS_ENABLED: ${FIELD_FORMS_ENABLED:-0}
       FIELD_FORMS_SERVICE_TOKEN: ${FIELD_FORMS_SERVICE_TOKEN:-}
+      # SCOUT-PHOTO (v260): صور المشاهدات في scout_photo_evidence (off ⇒ 404) خلف nginx
+      # (/api/v1/scouting-media/، JWT في البوّابة) وتوكن قناة مخصّص تحقنه البوّابة.
+      SCOUT_MEDIA_ENABLED: ${SCOUT_MEDIA_ENABLED:-0}
+      # v262: explicit human photo -> accepted-season links; never enabled implicitly.
+      SCOUT_MEDIA_SEASON_LINK_ENABLED: ${SCOUT_MEDIA_SEASON_LINK_ENABLED:-0}
+      # Owner phases 6-11 (v263-v272): each explicit link/review/ledger behind its own flag.
+      SCOUT_MEDIA_DETECTION_LINK_ENABLED: ${SCOUT_MEDIA_DETECTION_LINK_ENABLED:-0}
+      SCOUT_MEDIA_LAB_LINK_ENABLED: ${SCOUT_MEDIA_LAB_LINK_ENABLED:-0}
+      SCOUT_MEDIA_HUMAN_REVIEW_ENABLED: ${SCOUT_MEDIA_HUMAN_REVIEW_ENABLED:-0}
+      SCOUT_MEDIA_TISSUE_SAMPLE_ENABLED: ${SCOUT_MEDIA_TISSUE_SAMPLE_ENABLED:-0}
+      SCOUT_MEDIA_CREDENTIAL_ENFORCEMENT_ENABLED: ${SCOUT_MEDIA_CREDENTIAL_ENFORCEMENT_ENABLED:-0}
+      SCOUT_MEDIA_TREATMENT_REVIEW_ENABLED: ${SCOUT_MEDIA_TREATMENT_REVIEW_ENABLED:-0}
+      SCOUT_MEDIA_RETENTION_ENABLED: ${SCOUT_MEDIA_RETENTION_ENABLED:-0}
+      # Tenant-owner admin API (grants, credentials, retention) on its own NOBYPASSRLS principal;
+      # never DATABASE_URL (sahool_ingest), the app or the jobs role.
+      SCOUT_MEDIA_GRANTS_ADMIN_ENABLED: ${SCOUT_MEDIA_GRANTS_ADMIN_ENABLED:-0}
+      SCOUT_MEDIA_GOVERNANCE_ADMIN_ENABLED: ${SCOUT_MEDIA_GOVERNANCE_ADMIN_ENABLED:-0}
+      SCOUT_GRANT_ADMIN_DATABASE_URL: ${SCOUT_GRANT_ADMIN_DATABASE_URL:-}
+      SCOUT_MEDIA_SERVICE_TOKEN: ${SCOUT_MEDIA_SERVICE_TOKEN:-}
       # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/).
       # S3-BUCKET-EMPTY-SILENT-FILE-STORAGE-01: كان `${S3_BUCKET:-}` ⇒ `blob_store.s3_enabled()` كاذب ⇒
       # المرفقات تُكتَب `file://` تحت LOGBOOK_LOCAL_DIR (/tmp في الحاوية، بلا وحدة تخزين) فتضيع
@@ -1396,6 +1428,9 @@ services:
       S3_ACCESS_KEY: ${SCOUT_INGEST_S3_ACCESS_KEY:?SCOUT_INGEST_S3_ACCESS_KEY required}
       S3_SECRET_KEY: ${SCOUT_INGEST_S3_SECRET_KEY:?SCOUT_INGEST_S3_SECRET_KEY required}
       S3_USE_SSL: ${S3_USE_SSL:-}
+      # Browser/phone-visible signing host for presigned photo and logbook reads (HTTPS;
+      # an internal-only host is refused by blob_store.presigned_get_url).
+      S3_PUBLIC_ENDPOINT: ${SCOUT_INGEST_S3_PUBLIC_ENDPOINT:-}
       # Explicit local-Compose opt-in; only exact sahool-minio hosts may use HTTP.
       S3_ALLOW_PLAINTEXT_INTERNAL: ${S3_ALLOW_PLAINTEXT_INTERNAL:-false}
       # تدهور file:// مُعلَن (تطوير فقط)؛ غيابه ⇒ fail-closed (لا رفع صامت في الإنتاج).
@@ -1885,6 +1920,12 @@ services:
       # Default empty ⇒ mirror mode (no accidental authoritative write). Set both at cutover.
       DATABASE_URL: ${DECISION_SERVICE_DATABASE_URL:-}
       DECISION_SERVICE_SOR_ENABLED: ${DECISION_SERVICE_SOR_ENABLED:-false}
+      DECISION_SERVICE_MIGRATIONS_VERIFIED: ${DECISION_SERVICE_MIGRATIONS_VERIFIED:-false}
+      DECISION_SERVICE_BACKFILL_VERIFIED: ${DECISION_SERVICE_BACKFILL_VERIFIED:-false}
+      DECISION_SERVICE_TENANT_ISOLATION_VERIFIED: ${DECISION_SERVICE_TENANT_ISOLATION_VERIFIED:-false}
+      DECISION_SERVICE_OUTBOX_VERIFIED: ${DECISION_SERVICE_OUTBOX_VERIFIED:-false}
+      DECISION_SERVICE_STAGING_CUTOVER_APPROVED: ${DECISION_SERVICE_STAGING_CUTOVER_APPROVED:-false}
+      DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED: ${DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED:-false}
       # Forensic hardening (73666ee audit) — staged production-checklist flags, default off:
       # AUTH_TOKEN gates every non-probe request on the internal port; REQUIRE_AUTH_TOKEN
       # (F-09) makes /readyz degraded when SoR runs without a token; STRICT_WORKER_TENANTS
@@ -2274,7 +2315,7 @@ services:
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SAHOOL_AGENT_STORE_BACKEND: ${SAHOOL_AGENT_STORE_BACKEND:-redis}
-      SAHOOL_AGENT_REDIS_URL: ${SAHOOL_AGENT_REDIS_URL:-redis://sahool-ai-agronomist:${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}@sahool-redis:6379/0}
+      SAHOOL_AGENT_REDIS_URL: ${SAHOOL_AGENT_REDIS_URL:-redis://sahool-ai-agronomist:${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}@sahool-redis-state:6379/0}
     depends_on:
       sahool-rag-retrieval:
         condition: service_healthy
@@ -2282,7 +2323,9 @@ services:
         condition: service_healthy
       sahool-guardrails-engine:
         condition: service_healthy
-      sahool-redis:
+      # Approvals and the audit window are state, not cache: on `sahool-redis` (allkeys-lru) a
+      # pending approval could be evicted before its TTL. `sahool-redis-state` is noeviction + AOF.
+      sahool-redis-state:
         condition: service_healthy
     networks:
     - sahool-internal

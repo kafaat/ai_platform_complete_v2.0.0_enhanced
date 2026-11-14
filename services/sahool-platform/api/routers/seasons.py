@@ -29,6 +29,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.raster_service_client import season_state_scene as _season_state_scene
 from api.season_models import _SIM_MAX_WINDOW_DAYS, SeasonSimResponse
 
 router = APIRouter()
@@ -63,6 +64,7 @@ async def _load_linked_historical_inputs(
     # record with the same field, exact sowing day AND the same crop (canonical resolver
     # on both sides; either side unresolved ⇒ no link). Zero/multiple matches remain
     # unlinked; no fuzzy date or crop inference is allowed.
+    pending_auto_link_id = None
     if record is None and sowing_date is not None:
         from api.season_simulation import select_auto_link_candidate
 
@@ -80,18 +82,10 @@ async def _load_linked_historical_inputs(
         )
         record = select_auto_link_candidate(candidates, season_crop)
         if record is not None:
-            await conn.execute(
-                "INSERT INTO season_record_links "
-                "(tenant_id, season_record_id, canonical_season_id, field_id, "
-                " linkage_reason, linked_by) "
-                "VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
-                tenant_id,
-                record["id"],
-                season_id,
-                field_id,
-                "exact_field_and_sowing_day",
-                "system:historical-season-composer",
-            )
+            # Only propose the historical link here. Committing it before the
+            # canonical weather/GDD/ET0 validation leaves a side effect on a
+            # request that never produced a valid simulation run.
+            pending_auto_link_id = record["id"]
     crop = None
     events = []
     harvest = None
@@ -129,27 +123,24 @@ async def _load_linked_historical_inputs(
             and (end_iso is None or day <= end_iso)
         )
     ]
-    return record, crop, events, harvest, vegetation
+    return record, crop, events, harvest, vegetation, pending_auto_link_id
 
 
-async def _boundary_revisions_since(conn, field_id: str, since) -> list[int]:
-    """S4-b: مراجعات حدّ الحقل المسجّلة منذ بداية الموسم (قراءة فقط، بلا مخطّط).
+async def _boundary_revisions_since(conn, field_id: str, since) -> dict:
+    """Read an auditable geometry *revision*, not historical boundary coordinates.
 
-    الموسم لا يُثبّت مراجعة هندسة (قرار مخطّط معلّق)، والمحاكاة تقرأ إحداثيّات الحقل
-    وسلسلة NDVI على الحدّ **الحاليّ**. المراجعة الأولى رسمُ الحقل لا تعديلُه، فلا تُعدّ
-    ولو سُجِّلت بعد بدء موسمٍ أُدخِل لاحقاً؛ وتعديلٌ قبل البداية لا يمسّ حدّ الموسم.
+    The current boundary is used for the weather and imagery read. This ledger
+    proves only which edits are recorded; no historical geometry is reconstructed.
+    An empty ledger is unverified, not proof that the boundary never changed.
     """
+    from api.season_simulation import boundary_provenance_from_rows
+
     rows = await conn.fetch(
         "SELECT revision, changed_at FROM field_geometry_history "
         "WHERE field_id = $1 ORDER BY revision",
         field_id,
     )
-    cutoff = datetime.combine(since, datetime.min.time(), tzinfo=UTC)
-    return [
-        int(r["revision"])
-        for r in rows[1:]
-        if r["changed_at"] is not None and r["changed_at"] >= cutoff
-    ]
+    return boundary_provenance_from_rows(rows, since)
 
 
 @router.post("/api/v1/seasons/{season_id}/simulate", response_model=SeasonSimResponse)
@@ -166,15 +157,23 @@ async def simulate_season_endpoint(
     """
     import json as _json
 
-    from api.connectors.openmeteo import fetch_historical
-    from api.season_simulation import DayWeather, SimContext, simulate_season
+    from api.season_simulation import (
+        SimContext,
+        canonical_historical_days,
+        simulate_season,
+        validated_engine_daily_series,
+        weather_product_provenance,
+    )
+    from api.weather_service_client import get_weather_historical
 
     # ١) سياق الموسم من القاعدة (+ تأكيد المستأجِر عبر RLS ⇒ 404 إن غاب).
     try:
         async with tenant_connection(user) as conn:
             srow = await conn.fetchrow(
                 "SELECT s.season_id, s.field_id, s.crops, s.sowing_date, s.season_end, "
-                "f.lat, f.lon FROM seasons s JOIN fields f ON f.field_id = s.field_id "
+                "s.cultivar, s.seed_rate_kg_ha, s.plant_density, s.row_spacing_cm, "
+                "s.tillage_type, s.irrigation_type, f.lat, f.lon "
+                "FROM seasons s JOIN fields f ON f.field_id = s.field_id "
                 "WHERE s.season_id = $1",
                 season_id,
             )
@@ -196,13 +195,13 @@ async def simulate_season_endpoint(
             crops = []
     crop_list = [str(c) for c in crops if str(c).strip()] if isinstance(crops, list) else []
     crop = crop_list[0] if crop_list else None
-    # صدق (season_integrity #4): المحاكاة أحاديّة المحصول. زراعة مختلطة ⇒ تحذير صريح بأنّ
-    # النتيجة تخصّ المحصول الأوّل فقط ولا تمثّل بقيّة المحاصيل — لا تجاهُل صامت.
-    multi_crop_warning: str | None = None
+    # A single-crop RUE run must not overwrite the season-wide projection for
+    # mixed cropping: split by crop/area or use a multi-crop model first.
     if len(crop_list) > 1:
-        multi_crop_warning = (
-            f"الموسم يضمّ {len(crop_list)} محاصيل ({'، '.join(crop_list)})؛ حوكِيَ المحصول "
-            f"الأوّل فقط ({crop}). النتيجة لا تمثّل الزراعة المختلطة."
+        raise HTTPException(
+            status_code=422,
+            detail="الموسم متعدد المحاصيل — لا تُنسب غلة المحصول الأول إلى كامل الموسم. "
+            "افصل المحاصيل إلى وحدات ومساحات محددة قبل تشغيل المحاكاة.",
         )
 
     # ٢) نافذة المحاكاة: من البذار إلى نهاية الموسم (أو اليوم)، بسقف دورة المحصول. بلا بذار
@@ -228,6 +227,7 @@ async def simulate_season_endpoint(
                 historical_events,
                 historical_harvest,
                 vegetation,
+                pending_auto_link_id,
             ) = await _load_linked_historical_inputs(
                 conn,
                 season_id,
@@ -243,43 +243,38 @@ async def simulate_season_endpoint(
 
     # ٢-ج) S4-b: حدّ الحقل عُدِّل منذ بداية الموسم ⇒ تحذير صريح (يُحفَظ مع التشغيل). معاملة
     # مستقلّة: تعذّر السجلّ (v96 غير مطبَّق) لا يُسقط المحاكاة، ولا يُدّعى معه ثبات الحدّ.
-    spatial_warnings: list[str] = []
+    from api.season_simulation import boundary_provenance_from_rows, boundary_provenance_warnings
+
     try:
         async with tenant_connection(user) as conn:
-            changed_revisions = await _boundary_revisions_since(conn, str(srow["field_id"]), start)
-    except Exception:  # noqa: BLE001 — أفضل-جهد: تحذير، لا بوّابة
-        changed_revisions = []
-    if changed_revisions:
-        spatial_warnings.append(
-            f"حدّ الحقل عُدِّل منذ بداية الموسم ({start.isoformat()}) — المراجعات "
-            f"{'، '.join(str(r) for r in changed_revisions)}. المحاكاة تقرأ إحداثيّات الحقل "
-            "وسلسلة NDVI على الحدّ الحاليّ لا حدّ الموسم؛ الموسم لا يُثبّت مراجعة هندسة."
-        )
+            spatial_provenance = await _boundary_revisions_since(conn, str(srow["field_id"]), sow)
+    except Exception:  # noqa: BLE001 — لا تختلق ثبات الهندسة إذا تعذّر جدول التدقيق
+        spatial_provenance = boundary_provenance_from_rows(None, sow)
+    changed_revisions = spatial_provenance["revisions_since_sowing"]
+    spatial_warnings = boundary_provenance_warnings(spatial_provenance, sow)
 
-    # ٣) الطقس التاريخي (ERA5) من Open-Meteo — تعذّره ⇒ 503 صريح.
+    # ٣) الطقس التاريخي من مالك الطقس الوحيد، لا عبر Open-Meteo داخل المنصّة.
+    # التواريخ/التغطية والبصمة يجب أن تطابق نافذة الموسم تماماً؛ سلسلة مبتورة
+    # ليست موسماً أقصر. المطر المفقود يبقى None لا صفر مرصود.
     try:
-        days = await fetch_historical(
+        archive = await get_weather_historical(
             float(srow["lat"]),
             float(srow["lon"]),
-            start.isoformat(),
-            win_end.isoformat(),
+            start_date=start.isoformat(),
+            end_date=win_end.isoformat(),
+            tenant_id=str(user.tenant_id),
         )
-    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        weather = canonical_historical_days(archive, start=start, end=win_end)
+    except HTTPException as exc:
         raise HTTPException(
             status_code=503,
-            detail="تعذّر جلب الطقس التاريخي (Open-Meteo غير متاح). حاول لاحقاً.",
-        ) from e
-
-    weather = [
-        DayWeather(
-            t_min_c=d.temp_min_c,
-            t_max_c=d.temp_max_c,
-            solar_mj_m2=None,  # غير مطلوب من المصدر الحالي — يُقدَّر في النموذج
-            et0_mm=d.et0_mm,
-            rain_mm=d.precipitation_mm or 0.0,
-        )
-        for d in days
-    ]
+            detail="خدمة الطقس التاريخي غير متاحة — لم تُحفظ محاكاة.",
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"أرشيف الطقس غير مؤهّل للمحاكاة: {exc}",
+        ) from exc
 
     # ٣-ب) نواة GDD من محرّك الطقس (WS-C.1c Zero-Legacy) — المصدر الوحيد، لا تُحسب محلّيّاً.
     # سياسة المحصول (الأساس/السقف، method="modified") من نموذج الموسم وتُمرَّر للمحرّك؛
@@ -294,29 +289,45 @@ async def simulate_season_endpoint(
     et0_override: list[float | None] | None = None
     et0_provenance: dict | None = None
     if weather:
-        # WS-C.1b: سلسلة ET0 من محرّك الطقس (المصدر الكنسيّ) — لا Hargreaves محلّيّ في
-        # المحاكاة. تعذّر المحرّك ⇒ 503 (fail-closed). خطّ عرض الحقل + يوم البدء.
-        try:
-            et0_series = await get_et0_series(
-                daily_t_min=[w.t_min_c for w in weather],
-                daily_t_max=[w.t_max_c for w in weather],
-                lat_deg=float(srow["lat"]),
-                day_of_year_start=start.timetuple().tm_yday,
-            )
-        except HTTPException as exc:
-            if exc.status_code in (502, 503, 504):
+        # Prefer FAO reference ET0 returned by the canonical historical owner.
+        # A rederived temperature-only series is not more authoritative than
+        # observed/reanalysis provider ET0. Fall back to the owner's ET0 engine
+        # only when the historical product is incomplete.
+        archived_et0 = [day.et0_mm for day in weather]
+        if all(value is not None for value in archived_et0):
+            et0_override = archived_et0
+            et0_provenance = weather_product_provenance("archive_et0", archive, len(weather))
+        else:
+            # Weather-service remains the only ET0 calculation owner. Never
+            # reimplement Hargreaves/Penman-Monteith inside the season engine.
+            try:
+                et0_series = await get_et0_series(
+                    daily_t_min=[w.t_min_c for w in weather],
+                    daily_t_max=[w.t_max_c for w in weather],
+                    lat_deg=float(srow["lat"]),
+                    daily_dates=[
+                        (start + timedelta(days=i)).isoformat() for i in range(len(weather))
+                    ],
+                    tenant_id=str(user.tenant_id),
+                )
+            except HTTPException as exc:
+                if exc.status_code in (502, 503, 504):
+                    raise HTTPException(
+                        status_code=503,
+                        detail=(
+                            "weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)"
+                        ),
+                    ) from exc
+                raise
+            try:
+                et0_override = validated_engine_daily_series(
+                    et0_series, "daily_et0_mm", len(weather)
+                )
+            except ValueError as exc:
                 raise HTTPException(
-                    status_code=503,
-                    detail="weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)",
+                    status_code=503, detail=f"سلسلة ET₀ غير متطابقة مع أيام الموسم: {exc}"
                 ) from exc
-            raise
-        et0_override = et0_series.get("daily_et0_mm")
-        et0_provenance = {
-            "source": "weather-engine",
-            "formula_version": et0_series.get("formula_version"),
-            "days_computed": et0_series.get("days_computed"),
-            "accumulated_et0_mm": et0_series.get("accumulated_et0_mm"),
-        }
+            et0_provenance = weather_product_provenance("engine_et0", et0_series)
         try:
             gdd_engine = await get_gdd_product(
                 daily_t_min=[w.t_min_c for w in weather],
@@ -324,6 +335,9 @@ async def simulate_season_endpoint(
                 base_c=gdd_base,
                 upper_cutoff_c=gdd_cutoff,
                 method="modified",
+                start_date=start.isoformat(),
+                end_date=win_end.isoformat(),
+                tenant_id=str(user.tenant_id),
             )
         except HTTPException as exc:
             if exc.status_code in (502, 503, 504):
@@ -332,14 +346,15 @@ async def simulate_season_endpoint(
                     detail="weather-engine GDD unavailable — fail-closed (no local GDD fallback)",
                 ) from exc
             raise
-        gdd_override = gdd_engine.get("daily_gdd")
+        try:
+            gdd_override = validated_engine_daily_series(gdd_engine, "daily_gdd", len(weather))
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=503, detail=f"سلسلة GDD غير متطابقة مع أيام الموسم: {exc}"
+            ) from exc
         # WS-C.1c Zero-Legacy: أُزيلت المقارنة الظلّيّة ونواة gdd_day المحلّيّة (المحرّك مصدر
         # GDD الوحيد). النَّسَب من المحرّك مباشرة.
-        gdd_provenance = {
-            "source": "weather-engine",
-            "calculation_version": gdd_engine.get("calculation_version"),
-            "thresholds_used": gdd_engine.get("thresholds_used"),
-        }
+        gdd_provenance = weather_product_provenance("engine_gdd", gdd_engine)
 
     from core.historical_season_context import compose_historical_season_context
 
@@ -348,6 +363,9 @@ async def simulate_season_endpoint(
         field_id=str(srow["field_id"]),
         season_id=season_id,
         season=dict(srow),
+        simulation_window={"start": start.isoformat(), "end": win_end.isoformat()},
+        spatial_provenance=spatial_provenance,
+        weather_provenance=weather_product_provenance("archive", archive),
         season_record=dict(record) if record is not None else None,
         crop=dict(historical_crop) if historical_crop is not None else None,
         events=[dict(row) for row in historical_events],
@@ -364,6 +382,7 @@ async def simulate_season_endpoint(
                     else day.et0_mm
                 ),
                 "rain_mm": day.rain_mm,
+                "solar_mj_m2": day.solar_mj_m2,
                 "gdd": (
                     gdd_override[i] if gdd_override is not None and i < len(gdd_override) else None
                 ),
@@ -381,6 +400,7 @@ async def simulate_season_endpoint(
             season_end=end,
             weather=weather,
             irrigation_mm_total=composed_inputs["irrigation_mm_total"],
+            irrigation_type=srow["irrigation_type"],
             observed_fapar=composed_inputs["observed_fapar"],
             gdd_daily_override=gdd_override,
             et0_daily_override=et0_override,
@@ -438,6 +458,22 @@ async def simulate_season_endpoint(
                         ensure_ascii=False,
                     ),
                 )
+                # Auto-link is an auxiliary persisted fact, not an observation.
+                # Insert it only after weather, numerical validation and the
+                # simulation all succeeded, atomically with the append-only run.
+                if pending_auto_link_id is not None:
+                    await conn.execute(
+                        "INSERT INTO season_record_links "
+                        "(tenant_id, season_record_id, canonical_season_id, field_id, "
+                        " linkage_reason, linked_by) "
+                        "VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
+                        user.tenant_id,
+                        pending_auto_link_id,
+                        season_id,
+                        str(srow["field_id"]),
+                        "exact_field_and_sowing_day",
+                        "system:historical-season-composer",
+                    )
                 await conn.execute(
                     "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
                     "sim_gdd_total = $4, sim_lai_max = $5, sim_water_mm = $6, "
@@ -524,7 +560,16 @@ async def simulate_season_endpoint(
         yield_low_kg_ha=result.yield_low_kg_ha,
         yield_high_kg_ha=result.yield_high_kg_ha,
         yield_status=result.yield_status,
-        limitations=[*window.limitations(), *result.limitations],
+        limitations=[
+            *window.limitations(),
+            *result.limitations,
+            *(
+                ["GEOMETRY_HISTORY_UNVERIFIED"]
+                if spatial_provenance["status"] != "recorded"
+                else []
+            ),
+            *(["CURRENT_BOUNDARY_DIFFERS_FROM_SEASON_START"] if changed_revisions else []),
+        ],
         water_need_mm=result.water_need_mm,
         water_supply_mm=result.water_supply_mm,
         water_stress_factor=result.water_stress_factor,
@@ -532,7 +577,6 @@ async def simulate_season_endpoint(
         rationale_ar=result.rationale_ar,
         assumptions_ar=result.assumptions_ar,
         warnings_ar=[
-            *([multi_crop_warning] if multi_crop_warning else []),
             *window_warnings,
             *spatial_warnings,
             *result.warnings_ar,
@@ -575,173 +619,147 @@ async def field_season_state_endpoint(
     في ``evidence_missing`` — لا رقم مُختلَق. 404 إن غاب الموسم لهذا الحقل/المستأجِر؛ القراءات
     التكميليّة best-effort (فشلها ⇒ None لا 500). 503 عند تعذّر القاعدة الأساسيّ.
     """
-    import json as _json
+    from api.decision_sor_mode import get_platform_decision_sor_mode
+    from api.field_season_projection import (
+        assemble_field_season_state,
+        blank_counts_when_unavailable,
+        declare_outcome_sources,
+        first_season_crop,
+        reconciled_payload_is_bound,
+    )
 
-    from api.field_season_projection import assemble_field_season_state
-
-    def _loads(v):
-        if v is None:
-            return None
-        return _json.loads(v) if isinstance(v, str) else v
-
-    ndvi = ndmi = vpr = cloud = def7 = def14 = open_tasks = None
-    outcome_records: list[dict] = []
-    recommendation_outcomes: list[dict] = []
-    dispatch_links: dict = {}
+    tenant = str(user.tenant_id)
+    local = get_platform_decision_sor_mode().platform_writes_required
+    today = datetime.now(UTC).date()
+    def7 = def14 = open_tasks = None
+    outcome_records = recommendation_outcomes = unbound_outcomes = None
+    dispatch_links = {}
     try:
         async with tenant_connection(user) as conn:
             srow = await conn.fetchrow(
-                "SELECT crops, cultivar, sowing_date, season_end FROM seasons "
-                "WHERE season_id = $1 AND field_id = $2",
+                "SELECT crops, cultivar, sowing_date, season_end, status FROM seasons "
+                "WHERE season_id=$1 AND field_id=$2 AND tenant_id=$3::uuid",
                 season_id,
                 field_id,
+                tenant,
             )
             if srow is None:
                 raise HTTPException(
                     status_code=404, detail="الموسم غير موجود لهذا الحقل ضمن هذا المستأجِر"
                 )
-            # القراءاتُ التكميليّة كلُّها داخل نقاط حفظ (معاملات متداخلة): جدولٌ غائب في نشرٍ
-            # جزئيّ كان يُفسِد معاملةَ tenant_connection الخارجيّة فيفشل الالتزامُ ويعود 503
-            # رغم الالتقاط المحلّيّ (Copilot على #1001).
-            # أحدث مؤشّرات + جودة المشهد (best-effort).
-            try:
-                async with conn.transaction():
-                    irow = await conn.fetchrow(
-                        "SELECT ndvi_mean, ndmi_mean, valid_pixel_ratio, cloud_pct "
-                        "FROM imagery_automation_fields WHERE field_id = $1 "
-                        "ORDER BY acquisition_date DESC NULLS LAST LIMIT 1",
-                        field_id,
-                    )
-                if irow is not None:
-                    ndvi, ndmi = irow["ndvi_mean"], irow["ndmi_mean"]
-                    vpr, cloud = irow["valid_pixel_ratio"], irow["cloud_pct"]
-            except Exception:  # noqa: BLE001 — تكميليّ: الغياب ⇒ evidence_missing لا 500
-                pass
-            # عجز الماء التراكميّ 7/14 يوم من دفتر المياه (best-effort).
-            try:
-                async with conn.transaction():
-                    wrow = await conn.fetchrow(
-                        "SELECT SUM(deficit_mm) FILTER "
-                        "(WHERE ledger_date >= CURRENT_DATE - INTERVAL '7 days')  AS d7, "
-                        "SUM(deficit_mm) FILTER "
-                        "(WHERE ledger_date >= CURRENT_DATE - INTERVAL '14 days') AS d14 "
-                        "FROM water_ledger WHERE field_id = $1",
-                        field_id,
-                    )
-                if wrow is not None:
-                    def7 = float(wrow["d7"]) if wrow["d7"] is not None else None
-                    def14 = float(wrow["d14"]) if wrow["d14"] is not None else None
-            except Exception:  # noqa: BLE001
-                pass
-            # عدد المهام المفتوحة (best-effort).
-            try:
-                async with conn.transaction():
-                    cnt = await conn.fetchval(
-                        "SELECT COUNT(*) FROM field_tasks WHERE field_id = $1 "
-                        "AND status NOT IN ('done', 'completed', 'cancelled')",
-                        field_id,
-                    )
-                open_tasks = int(cnt) if cnt is not None else None
-            except Exception:  # noqa: BLE001
-                pass
-            # النتائج المتصالحة (best-effort): outcome_record + recommendation_outcomes.
-            # الغياب/الجداول الجزئية لا يعطل حقيقة الموسم؛ يظهر outcomes ضمن evidence_missing.
-            try:
-                async with conn.transaction():
-                    rows = await conn.fetch(
-                        "SELECT outcome_id, tenant_id, field_id, region, decision_id, success, "
-                        "metrics, planned, actual, stage, created_at FROM outcome_record "
-                        "WHERE field_id = $1",
-                        field_id,
-                    )
-                outcome_records = [
-                    {
-                        "outcome_id": r["outcome_id"],
-                        "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
-                        "field_id": r["field_id"],
-                        "region": r["region"],
-                        "decision_id": r["decision_id"],
-                        "success": r["success"],
-                        "metrics": _loads(r["metrics"]) or {},
-                        "planned": _loads(r["planned"]),
-                        "actual": _loads(r["actual"]),
-                        "stage": r["stage"],
-                        "created_at": r["created_at"],
-                    }
-                    for r in rows
-                ]
-            except Exception:  # noqa: BLE001
-                outcome_records = []
-            try:
-                async with conn.transaction():
-                    # v49 بلا region — تُشتقّ من الحقل كما في لوحة التعلّم (Copilot على #1001).
-                    rows = await conn.fetch(
-                        "SELECT ro.outcome_id, ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
-                        "ro.recommendation_id, ro.predicted_yield_t_ha, ro.actual_yield_t_ha, "
-                        "ro.accepted, ro.matured_within_lag, ro.issued_at, ro.outcome_recorded_at, "
-                        "f.region AS region FROM recommendation_outcomes ro "
-                        "LEFT JOIN fields f ON f.field_id = ro.field_id "
-                        "WHERE ro.field_id = $1 AND (ro.season_id = $2 OR ro.season_id IS NULL)",
-                        field_id,
-                        season_id,
-                    )
-                recommendation_outcomes = [
-                    {
-                        "outcome_id": r["outcome_id"],
-                        "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
-                        "field_id": r["field_id"],
-                        "farm_id": r["farm_id"],
-                        "region": r["region"],
-                        "season_id": r["season_id"],
-                        "crop": r["crop"],
-                        "recommendation_id": r["recommendation_id"],
-                        "predicted_yield_t_ha": r["predicted_yield_t_ha"],
-                        "actual_yield_t_ha": r["actual_yield_t_ha"],
-                        "accepted": r["accepted"],
-                        "matured_within_lag": r["matured_within_lag"],
-                        "issued_at": r["issued_at"],
-                        "outcome_recorded_at": r["outcome_recorded_at"],
-                    }
-                    for r in rows
-                ]
-            except Exception:  # noqa: BLE001
-                recommendation_outcomes = []
-            try:
-                async with conn.transaction():
-                    rows = await conn.fetch(
-                        "SELECT recommendation_id, decision_id FROM dispatch_decisions"
-                    )
-                dispatch_links = {
-                    r["recommendation_id"]: r["decision_id"]
-                    for r in rows
-                    if r["recommendation_id"] and r["decision_id"]
-                }
-            except Exception:  # noqa: BLE001
-                dispatch_links = {}
+            start, end = srow["sowing_date"], srow["season_end"]
+            as_of = min(today, end) if end else today
+            dated = (
+                start is not None
+                and start <= as_of
+                and srow["status"] != "planned"
+                and (end is not None or srow["status"] == "active")
+            )
+            if dated:
+                try:
+                    async with conn.transaction():
+                        water = await conn.fetchrow(
+                            "SELECT SUM(deficit_mm) FILTER (WHERE ledger_date >= $3::date - 6) AS d7, "
+                            "SUM(deficit_mm) AS d14 FROM water_ledger WHERE tenant_id=$1::uuid "
+                            "AND field_id=$2 AND ledger_date BETWEEN GREATEST($4::date,$3::date-13) AND $3::date",
+                            tenant,
+                            field_id,
+                            as_of,
+                            start,
+                        )
+                        def7, def14 = water["d7"], water["d14"]
+                except Exception:  # optional source
+                    pass
+                # No task history or season FK: report current open tasks due in the
+                # active window only; a historical backlog cannot be reconstructed.
+                if srow["status"] == "active" and as_of == today:
+                    try:
+                        async with conn.transaction():
+                            open_tasks = await conn.fetchval(
+                                "SELECT COUNT(*) FROM field_tasks WHERE tenant_id=$1::uuid AND field_id=$2 "
+                                "AND COALESCE(recommended_date,(created_at AT TIME ZONE 'UTC')::date) "
+                                "BETWEEN $3::date AND $4::date AND status IN ('pending','in_progress')",
+                                tenant,
+                                field_id,
+                                start,
+                                end or today,
+                            )
+                    except Exception:  # optional source
+                        pass
+            if local:
+                # outcome_record has no season: only its decision carries season_id, and the
+                # platform must not read the decision table (S5-EXEC-01 freezes that surface).
+                # Decision outcomes stay unbound here (counted, never reconciled into the
+                # season); recommendation_outcomes carry their own season_id.
+                try:
+                    async with conn.transaction():
+                        unbound = await conn.fetchval(
+                            "SELECT COUNT(*) FROM outcome_record WHERE tenant_id=$1::uuid AND field_id=$2",
+                            tenant,
+                            field_id,
+                        )
+                        recs = await conn.fetch(
+                            "SELECT ro.outcome_id, ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
+                            "to_jsonb(ro)->>'decision_id' AS decision_id, recommendation_id, predicted_yield_t_ha, actual_yield_t_ha, "
+                            "accepted, matured_within_lag, issued_at, outcome_recorded_at FROM recommendation_outcomes ro "
+                            "WHERE tenant_id=$1::uuid AND field_id=$2 AND season_id=$3",
+                            tenant,
+                            field_id,
+                            season_id,
+                        )
+                    unbound_outcomes, recommendation_outcomes = int(unbound), list(recs)
+                except Exception:  # Treat an incomplete pair of sources as unavailable.
+                    pass
+                if recommendation_outcomes:
+                    try:
+                        async with conn.transaction():
+                            links = await conn.fetch(
+                                "SELECT recommendation_id, min(decision_id) AS decision_id FROM dispatch_decisions "
+                                "WHERE tenant_id=$1::uuid AND field_id=$2 AND recommendation_id=ANY($3::text[]) "
+                                "GROUP BY recommendation_id HAVING count(DISTINCT decision_id)=1",
+                                tenant,
+                                field_id,
+                                [r["recommendation_id"] for r in recommendation_outcomes],
+                            )
+                        dispatch_links = {r["recommendation_id"]: r["decision_id"] for r in links}
+                    except Exception:  # optional lineage
+                        pass
     except HTTPException:
         raise
-    except Exception as e:  # noqa: BLE001 — تعذّر القاعدة الأساسيّ ⇒ 503 موثَّق
+    except Exception as e:
         raise _db_unavailable("قراءة حالة الحقل-الموسم", e) from e
 
-    crops = srow["crops"]
-    if isinstance(crops, str):
-        try:
-            crops = _json.loads(crops)
-        except (ValueError, TypeError):
-            crops = []
-    first_crop = str(crops[0]) if isinstance(crops, list) and crops else None
+    # Both HTTP reads happen after releasing the platform DB connection.
+    if not local:
+        from api.decision_service_client import decision_get_json
 
-    return assemble_field_season_state(
+        try:
+            payload = await decision_get_json(
+                "/v1/outcomes/reconciled",
+                tenant_id=tenant,
+                params={"field_id": field_id, "season_id": season_id, "season_inputs": "true"},
+            )
+            if reconciled_payload_is_bound(payload, tenant, field_id, season_id):
+                outcome_records = payload["outcome_records"]
+                recommendation_outcomes = payload["recommendation_outcomes"]
+        except (HTTPException, ValueError, TypeError):
+            pass
+    scene = await _season_state_scene(field_id, tenant, start, as_of) if dated else {}
+    first_crop = first_season_crop(srow["crops"])
+
+    state = assemble_field_season_state(
         field_id=field_id,
         season_id=season_id,
         crop=first_crop,
         cultivar=srow["cultivar"],
         sowing_date=srow["sowing_date"],
         season_end=srow["season_end"],
-        observed_ndvi=ndvi,
-        observed_ndmi=ndmi,
-        valid_pixel_ratio=vpr,
-        cloud_pct=cloud,
+        today=as_of,
+        imagery_date=datetime.fromisoformat(scene["datetime"]).date() if scene else None,
+        observed_ndvi=scene.get("mean"),
+        observed_ndmi=scene.get("ndmi"),
+        valid_pixel_ratio=scene.get("valid_pixel_ratio"),
+        cloud_pct=scene.get("cloud_pct"),
         water_deficit_7d_mm=def7,
         water_deficit_14d_mm=def14,
         open_tasks_count=open_tasks,
@@ -749,3 +767,15 @@ async def field_season_state_endpoint(
         recommendation_outcomes=recommendation_outcomes,
         dispatch_links=dispatch_links,
     )
+
+    state["as_of"] = as_of.isoformat()
+    state["imagery_acquisition_date"] = scene.get("datetime")
+    state["open_operations_basis"] = (
+        "current_open_due_in_season" if open_tasks is not None else None
+    )
+    summary = state["outcome_reconciliation"]
+    declare_outcome_sources(summary, outcome_records, recommendation_outcomes)
+    summary["unbound_outcome_records"] = unbound_outcomes
+    summary["source"] = "platform" if local else "decision-service"
+    blank_counts_when_unavailable(summary)
+    return state

@@ -25,7 +25,8 @@ services/sahool-platform/api/event_replay.py — Event Replay & Causal Tracing
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -232,6 +233,60 @@ class CausalChain:
     triggered_events: list[TimelineEntry]
 
 
+#: سقف ما تقرؤه إعادة التشغيل من المخزن (صفحاتٍ متتالية). تجاوزه **لا يُخفى**: تُعلن
+#: النتيجة ``complete=False`` بسبب صريح بدل ادّعاء إعادة بناء كاملة (C-13).
+REPLAY_MAX_EVENTS: int = int(os.getenv("SAHOOL_REPLAY_MAX_EVENTS", "10000"))
+REPLAY_PAGE_SIZE: int = 1000
+
+
+@dataclass
+class HistoryRead:
+    """تاريخ كيان كما قُرئ صفحاتٍ: الأحداث المقبولة + هل اكتمل ولماذا لا."""
+
+    events: list[dict[str, Any]]
+    complete: bool
+    incomplete_reason: str | None = None
+    quarantined: list[dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass
+class ReplayResult:
+    """ناتج إعادة تشغيل من المخزن. ``complete=False`` ⇒ الحالة لا تمثّل المجرى كلّه."""
+
+    state: ReconstructedState
+    complete: bool
+    incomplete_reason: str | None
+    events_read: int
+    quarantined_event_ids: list[str]
+
+
+@dataclass
+class TimelinePage:
+    entries: list[TimelineEntry]
+    next_cursor: str | None
+    quarantined_event_ids: list[str]
+
+
+def prepare_replay_events(events: list[dict[str, Any]]) -> tuple[list[dict], list[dict]]:
+    """يربط schema_version (INT) بنسخة المرقّيات صراحةً ويرقّي الحمولة (C-17).
+
+    يُرجع (مقبولة، معزولة). حدثٌ بنسخةٍ غير معروفة (أو بلا نسخة) يُعزَل ولا يُعامَل 1.0.
+    """
+    from api.event_upcasting import UnknownSchemaVersion, schema_version_label, upcast
+
+    accepted: list[dict[str, Any]] = []
+    quarantined: list[dict[str, Any]] = []
+    for e in events:
+        try:
+            label = schema_version_label(e.get("schema_version"))
+        except UnknownSchemaVersion as exc:
+            quarantined.append({**e, "quarantine_reason": str(exc)})
+            continue
+        payload, ver = upcast(e["event_type"], e.get("payload") or {}, label)
+        accepted.append({**e, "payload": payload, "schema_version": ver})
+    return accepted, quarantined
+
+
 # ─── Summary helpers (Arabic) ───────────────────────────────────
 
 _EVENT_SUMMARY_AR: dict[str, str] = {
@@ -402,15 +457,18 @@ class FieldStateReconstructor:
 
         elif etype == "season.created":
             # payload الحقيقيّ: {field_id, crops, cultivar, irrigation_type,
-            # sowing_date} (main._create_season). crops قائمة محاصيل.
+            # sowing_date, status} (routers/fields.create_season). crops قائمة محاصيل.
             state.season_count += 1
-            crops = payload.get("crops")
-            if isinstance(crops, list) and crops:
-                state.current_crop = crops[0]
-            elif isinstance(crops, str) and crops:
-                state.current_crop = crops
-            if payload.get("sowing_date"):
-                state.last_sowing_date = payload["sowing_date"]
+            # موسم مخطَّط (status='planned') لا يحلّ محلّ النشط: لا يغيّر المحصول الحاليّ
+            # ولا آخر بذار. غياب المفتاح = حدث أقدم أنشأ موسماً نشطاً دائماً.
+            if payload.get("status", "active") == "active":
+                crops = payload.get("crops")
+                if isinstance(crops, list) and crops:
+                    state.current_crop = crops[0]
+                elif isinstance(crops, str) and crops:
+                    state.current_crop = crops
+                if payload.get("sowing_date"):
+                    state.last_sowing_date = payload["sowing_date"]
 
         elif etype == "season.closed":
             state.season_closed_count += 1
@@ -562,39 +620,84 @@ class EventReplay:
         entity_type: str,
         entity_id: str,
         limit: int = 100,
-    ) -> list[TimelineEntry]:
-        """timeline قابل للعرض في الـUI."""
-        events = await self.bus.query_entity_history(entity_type, entity_id, limit)
-        from api.event_upcasting import upcast
-
-        out = []
-        for e in events:
-            raw_payload = e["payload"] or {}
-            # ترقية المخطّط: أحداث قديمة تُرقّى لأحدث نسخة قبل العرض/البناء
-            # (سدّ فجوة حماية إعادة التشغيل) — المخزن يبقى append-only.
-            payload, _ver = upcast(e["event_type"], raw_payload, e.get("schema_version", "1.0"))
-            out.append(
-                TimelineEntry(
-                    event_id=e["event_id"],
-                    event_type=e["event_type"],
-                    occurred_at=e["occurred_at"] or "",
-                    source=e["source"],
-                    actor_id=e["actor_id"],
-                    command_id=e["command_id"],
-                    summary_ar=_summarize_ar(e["event_type"], payload),
-                    payload=payload,
-                )
+        cursor: str | None = None,
+        order: str = "asc",
+    ) -> TimelinePage:
+        """صفحة timeline للـUI (``order="desc"`` لأحدث N) مع مؤشّر الصفحة التالية."""
+        page = await self.bus.query_entity_history_page(
+            entity_type, entity_id, limit=limit, cursor=cursor, order=order
+        )
+        events, quarantined = prepare_replay_events(page["events"])
+        entries = [
+            TimelineEntry(
+                event_id=e["event_id"],
+                event_type=e["event_type"],
+                occurred_at=e["occurred_at"] or "",
+                source=e["source"],
+                actor_id=e["actor_id"],
+                command_id=e["command_id"],
+                summary_ar=_summarize_ar(e["event_type"], e["payload"]),
+                payload=e["payload"],
             )
-        return out
+            for e in events
+        ]
+        return TimelinePage(entries, page["next_cursor"], [q["event_id"] for q in quarantined])
+
+    async def read_full_history(
+        self,
+        entity_type: str,
+        entity_id: str,
+        *,
+        max_events: int | None = None,
+        page_size: int | None = None,
+        start_cursor: str | None = None,
+    ) -> HistoryRead:
+        """يقرأ **كلّ** صفحات التاريخ تصاعديّاً حتّى نهايته أو حتّى ``max_events``.
+
+        بلوغ السقف وبقاء صفوف ⇒ ``complete=False`` بسببٍ صريح (لا ادّعاء اكتمال). حدثٌ
+        بنسخة مخطّط غير معروفة يُعزَل ⇒ ``complete=False`` كذلك.
+        """
+        cap = REPLAY_MAX_EVENTS if max_events is None else max_events
+        size = REPLAY_PAGE_SIZE if page_size is None else page_size
+        raw: list[dict[str, Any]] = []
+        cursor = start_cursor
+        while len(raw) < cap:
+            page = await self.bus.query_entity_history_page(
+                entity_type, entity_id, limit=min(size, cap - len(raw)), cursor=cursor
+            )
+            raw.extend(page["events"])
+            cursor = page["next_cursor"]
+            if cursor is None:
+                break
+        events, quarantined = prepare_replay_events(raw)
+        reasons = []
+        if cursor is not None:
+            reasons.append(f"max_events_exceeded: قُرئ أقدم {len(raw)} حدثاً والمجرى أطول")
+        if quarantined:
+            reasons.append(f"unknown_schema_version: عُزِل {len(quarantined)} حدثاً")
+        return HistoryRead(events, not reasons, "; ".join(reasons) or None, quarantined)
+
+    @staticmethod
+    def _result(state: ReconstructedState, read: HistoryRead) -> ReplayResult:
+        return ReplayResult(
+            state=state,
+            complete=read.complete,
+            incomplete_reason=read.incomplete_reason,
+            events_read=len(read.events) + len(read.quarantined),
+            quarantined_event_ids=[q["event_id"] for q in read.quarantined],
+        )
 
     async def reconstruct_state(
         self,
         entity_type: str,
         entity_id: str,
-    ) -> ReconstructedState:
-        """يُعيد بناء الـstate الحاليّة من الـhistory (إعادة تشغيل كاملة دائماً)."""
-        events = await self.bus.query_entity_history(entity_type, entity_id, limit=10000)
-        return FieldStateReconstructor.reconstruct(entity_type, entity_id, events)
+        *,
+        max_events: int | None = None,
+    ) -> ReplayResult:
+        """إعادة تشغيل كاملة من كلّ الصفحات — أو نتيجة مُعلَنة غير مكتملة."""
+        read = await self.read_full_history(entity_type, entity_id, max_events=max_events)
+        state = FieldStateReconstructor.reconstruct(entity_type, entity_id, read.events)
+        return self._result(state, read)
 
     # ── مسار اللقطة (snapshot-aware) ────────────────────────────────
     # اللقطة مخبّأ مُشتقّ (derived cache): تُسرّع إعادة البناء بإعادة تشغيل
@@ -632,7 +735,9 @@ class EventReplay:
         self,
         entity_type: str,
         entity_id: str,
-    ) -> ReconstructedState:
+        *,
+        max_events: int | None = None,
+    ) -> ReplayResult:
         """إعادة بناء مدعومة باللقطة: لقطة (إن وُجدت) + إعادة تشغيل ما بعدها فقط.
 
         إن لا لقطة → إعادة تشغيل كاملة (سلوك reconstruct_state الحالي حرفيّاً).
@@ -642,8 +747,7 @@ class EventReplay:
 
         if snap_row is None:
             # لا لقطة — إعادة تشغيل كاملة (السلوك الحاليّ).
-            events = await self.bus.query_entity_history(entity_type, entity_id, limit=10000)
-            return FieldStateReconstructor.reconstruct(entity_type, entity_id, events)
+            return await self.reconstruct_state(entity_type, entity_id, max_events=max_events)
 
         base = ReconstructedState.from_snapshot(snap_row)
         cursor = SnapshotCursor(
@@ -656,8 +760,17 @@ class EventReplay:
             last_seq=snap_row.get("last_seq"),
             total_events=snap_row.get("total_events") or 0,
         )
-        events = await self.bus.query_entity_history(entity_type, entity_id, limit=10000)
-        return FieldStateReconstructor.apply_incremental(base, events, cursor)
+        # القراءة تبدأ بعد مؤشّر اللقطة حين يحمل seq (keyset)، وإلّا من البداية مع التصفية.
+        start = None
+        if snap_row["last_occurred_at"] is not None and cursor.last_seq is not None:
+            from api.event_bus import encode_history_cursor
+
+            start = encode_history_cursor(snap_row["last_occurred_at"], cursor.last_seq, "asc")
+        read = await self.read_full_history(
+            entity_type, entity_id, max_events=max_events, start_cursor=start
+        )
+        state = FieldStateReconstructor.apply_incremental(base, read.events, cursor)
+        return self._result(state, read)
 
     async def save_snapshot(
         self,

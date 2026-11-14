@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import math
 import re
+from datetime import UTC, datetime
 from tempfile import TemporaryDirectory
 from urllib.parse import urlsplit
 
 import radiometry_containment
 import raster_api_models as models
+import raster_stage_receipt
 import stac_search
 
 C1_COLLECTION = "sentinel-2-c1-l2a"
@@ -53,6 +55,8 @@ def validate_c1_scene(scene: dict, *, entry_point: str) -> dict:
             raise ValueError("unsupported_baseline")
         if not scene.get("datetime") or props.get("datetime") != scene["datetime"]:
             raise ValueError("capture_identity")
+        if datetime.fromisoformat(scene["datetime"]).tzinfo is None:
+            raise ValueError("capture_requires_timezone")
         selected = stac_search.band_urls_from_assets(context.get("assets", {}))
         if set(hrefs) != set(BANDS) or hrefs != selected:
             raise ValueError("asset_identity")
@@ -120,11 +124,52 @@ def process_c1_scene(
         radiometry_containment.reject_element84_vrt(
             scene.get("bands_urls"), entry_point=entry_point
         )
-    from stac_vrt import build_band_vrt
+    from stac_vrt import _as_gdal_source, build_band_vrt
 
+    # Integrity of the exact bytes GDAL will read, before any of them is opened.
+    # A local source is hashed in full; a remote COG is read in ranges, so its
+    # declared checksum is recorded as not verified rather than claimed.
+    assets = context["assets"]
+    integrity = [
+        raster_stage_receipt.asset_integrity(
+            name,
+            href,
+            next(a for a in assets.values() if a.get("href") == href).get("file:checksum"),
+            _as_gdal_source(href),
+        )
+        for name, href in sorted(scene["bands_urls"].items())
+    ]
+    if raster_stage_receipt.integrity_mismatches(integrity):
+        # Fail closed at the processing boundary: no VRT is built, and the runner
+        # records the refusal (job status and stage receipt) instead of a product.
+        refused = models.ProcessRequest(
+            tenant_id=tenant,
+            field_id=field,
+            indicator=models.IndicatorKind(index),
+            source_format=models.SourceFormat.sentinel2_l2a,
+            bands=models.BandMapping(),
+            scene_id=scene["item_id"],
+            provider="element84",
+        )
+        refused._asset_integrity = integrity
+        run_processing(jid, refused)
+        return
     # Match the spectral support of each mixed-resolution measurement. The
     # finer bands are aggregated before the processing core applies the ratio.
-    target_band = {"ndre": "rededge", "ndmi": "swir1", "moisture": "swir1"}.get(index)
+    target_band = {
+        "ndre": "rededge",
+        "reci": "rededge",
+        "ccci": "rededge",
+        "ndmi": "swir1",
+        "moisture": "swir1",
+        "msi": "swir1",
+        "ndsi": "swir1",
+        "ndti": "swir1",
+        "dbsi": "swir1",
+        "satvi": "swir1",
+        "nbr": "swir2",
+        "bsi": "swir2",
+    }.get(index)
     resolutions = {}
     with TemporaryDirectory(prefix="stac_c1_", dir=out_dir) as directory:
         try:
@@ -157,11 +202,17 @@ def process_c1_scene(
             provider="element84",
             geometry_revision=geometry_revision,
         )
+        request._asset_integrity = integrity
+        captured = datetime.fromisoformat(scene["datetime"]).astimezone(UTC)
+        request._verified_stac_capture = {
+            "scene_id": scene["item_id"],
+            "datetime": captured.isoformat().replace("+00:00", "Z"),
+        }
         request._spatial_sampling = {
             "native_band_resolution_m": resolutions,
             "resampling_method": (
                 "area_average_valid_fine_reflectance_before_ratio; nearest_SCL"
-                if target_band
+                if target_band and index not in {"ndsi", "ndti"}
                 else "nearest"
             ),
         }

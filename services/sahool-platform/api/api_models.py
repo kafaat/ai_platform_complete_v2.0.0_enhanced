@@ -8,9 +8,10 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import Literal
+from decimal import Decimal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, TypeAdapter, field_validator, model_validator
 
 
 class LoginRequest(BaseModel):
@@ -85,7 +86,34 @@ class ActivitySummary(BaseModel):
     created_at: str | None = None
 
 
+class SatelliteSource(BaseModel):
+    asset_id: str
+    scene_id: str
+    acquisition_date: str
+    index_name: str
+    satellite: str | None = None
+    algorithm_version: str | None = None
+    geometry_revision: int | None = None
+
+
+class TerrainSource(BaseModel):
+    source_key: str
+    kind: Literal["dem_product", "field_record"]
+    product_id: str | None = None
+    dem_version: str | None = None
+    geometry_hash: str | None = None
+    generated_at: str | None = None
+    cell_size_m: float | None = None
+    algorithm_version: str | None = None
+    summaries: dict[str, dict[str, float]] = Field(default_factory=dict)
+    elevation_m: float | None = None
+    slope_pct: float | None = None
+    aspect: str | None = None
+
+
 class TaskSummary(BaseModel):
+    terrain_sources: list[TerrainSource] = Field(default_factory=list)
+    satellite_sources: list[SatelliteSource] = Field(default_factory=list)
     task_id: str
     field_id: str
     task_type: str
@@ -94,6 +122,8 @@ class TaskSummary(BaseModel):
     recommended_date: str | None = None
     estimated_duration_min: int | None = None
     estimated_cost_usd: float | None = None
+    source_scouting_pin_id: str | None = None
+    actual_cost_usd: float | None = None
     assigned_to: str | None = None
     notes: str | None = None
     photo_url: str | None = None
@@ -140,6 +170,9 @@ def task_allowed_sources(target: str) -> list[str]:
     return sorted(s for s in TASK_TRANSITIONS if task_transition_allowed(s, target))
 
 
+_TASK_COST = TypeAdapter(Annotated[Decimal, Field(ge=0, max_digits=10, decimal_places=2)])
+
+
 class TaskUpdateRequest(BaseModel):
     """تحديث مهمّة (جزئيّ): الحالة و/أو صورة و/أو ملاحظة.
 
@@ -152,7 +185,13 @@ class TaskUpdateRequest(BaseModel):
     photo_url: str | None = None
     notes: str | None = None
     completed_at: datetime | None = None
-    actual_cost_usd: float | None = Field(default=None, ge=0, le=99_999_999)
+    actual_cost_usd: float | None = Field(default=None, ge=0, le=99_999_999.99, allow_inf_nan=False)
+
+    @field_validator("actual_cost_usd", mode="before")
+    @classmethod
+    def _validate_cost_precision(cls, value):
+        # Validate NUMERIC(10,2) before converting to the legacy JSON number.
+        return None if value is None else _TASK_COST.validate_python(value)
 
     @field_validator("completed_at")
     @classmethod
@@ -438,6 +477,9 @@ class PinCreateRequest(BaseModel):
     photo_uri: str | None = None
     color: str | None = None
     created_by: str | None = None
+    # v257: مصدر الموقع ودقّته. عميل قديم لا يرسلهما ⇒ unknown (لا استنتاج من الإحداثيّات).
+    location_source: Literal["gps", "manual", "field_centroid", "unknown"] = "unknown"
+    accuracy_m: float | None = Field(default=None, ge=0, le=100_000)
 
 
 class EquipmentInput(BaseModel):
@@ -720,15 +762,38 @@ class OnboardingSubmitRequest(BaseModel):
 
 class WaterAnalysisRequest(BaseModel):
     sample_id: str
-    source: str = "well"  # well | canal | mixed
-    na: float | None = None
-    ca: float | None = None
-    mg: float | None = None
-    hco3: float | None = None
-    co3: float | None = None
-    cl: float | None = None
-    ec_dsm: float | None = None
-    ph: float | None = None
+    # نوع مصدر الماء (مفردات WaterSample وWATER_SOURCE_OPTIONS في الواجهة) — لا نصّ حرّ:
+    # «field:<اسم>» ليس مصدر ماء، وربط العيّنة بالحقل يكون بـfield_id.
+    source: Literal["well", "canal", "mixed"] = "well"
+    # حسابٌ لا يُخزَّن: لا ربط بحقل هنا. كان field_id يُسقَط صامتاً فيُظَنّ الربط قائماً؛
+    # الآن يُرفض صراحةً (422) ويُوجَّه إلى مسار المختبر المُخزَّن المرتبط بحقل المستأجِر.
+    field_id: None = Field(
+        default=None,
+        description=(
+            "Not accepted: water-analysis is a calculation and is not stored or bound to a"
+            " field. Record a field-bound result via /api/v1/lab/samples and"
+            " /api/v1/lab/water-results."
+        ),
+    )
+
+    @field_validator("field_id", mode="before")
+    @classmethod
+    def _field_binding_not_supported(cls, value):
+        if value is not None:
+            raise ValueError(
+                "water-analysis is a calculation and is not saved to a field; record a"
+                " field-bound lab water result via /api/v1/lab/water-results"
+            )
+        return value
+
+    na: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    ca: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    mg: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    hco3: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    co3: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    cl: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    ec_dsm: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    ph: float | None = Field(default=None, ge=0, le=14, allow_inf_nan=False)
     sampled_at: str | None = None
 
 

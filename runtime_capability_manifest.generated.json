@@ -57,7 +57,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 64,
+      "capability_count": 65,
       "component_id": "decision-service",
       "domain": "decision-governance",
       "status": {
@@ -365,7 +365,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 523,
+      "capability_count": 521,
       "component_id": "sahool-platform",
       "domain": "platform-core",
       "status": {
@@ -393,7 +393,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 9,
+      "capability_count": 11,
       "component_id": "scout-ingest-service",
       "domain": "ground-ingest",
       "status": {
@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "c41865b4b5053f125158b939b563eed0b19bc0df73e97dda53b7ec6d6a219ba6",
+  "fingerprint": "a0dae50ea5aa2f2abc754343f507629024caf51a5b5cf06e23f55ad63782f338",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

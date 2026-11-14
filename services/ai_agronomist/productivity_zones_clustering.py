@@ -15,6 +15,7 @@ Everything remains a *proposal* — saving zones is a separate high-risk approva
 from __future__ import annotations
 
 import math
+from datetime import date
 from typing import Any
 
 NdviGrid = list[list[float]]  # row-major NDVI means; row 0 = north.
@@ -33,7 +34,7 @@ def _flatten_valid(grid: NdviGrid) -> list[float]:
     vals: list[float] = []
     for row in grid:
         for v in row:
-            if isinstance(v, (int, float)) and -1.0 <= float(v) <= 1.0:
+            if _finite_number(v) and -1 <= v <= 1:
                 vals.append(float(v))
     return vals
 
@@ -109,50 +110,30 @@ def kmeans_nd(vectors: list[list[float]], k: int, *, iters: int = 25) -> list[li
 def _feature_vectors(
     grids: list[NdviGrid], rows: int, cols: int
 ) -> tuple[list[tuple[int, int]], list[list[float]]]:
-    """شبكات ميزات مُتراصفة → متّجهات معياريّة عند خلايا NDVI (السيّد) الصالحة.
-
-    ``grids[0]`` شبكة NDVI (السيّد: يحدّد الصلاحية والتصنيف). كلّ ميزة تُعاير min-max
-    إلى [0,1] كي لا يهيمن مقياس واحد (الانحدار 0..90 مقابل NDVI −1..1). القيم المفقودة
-    في ميزة مساعدة تُعوَّض بمتوسّط تلك الميزة (محايد) فتبقى تغطية NDVI كاملة. ميزة متدهورة
-    (بلا قيم صالحة) ⇒ يُعاد فراغ (سقوط آمن إلى مسار NDVI أحاديّ البُعد لدى المُنادي).
-    """
-    stats: list[tuple[float, float, float]] = []
-    for d, g in enumerate(grids):
-        vals: list[float] = []
-        for r in range(rows):
-            for c in range(cols):
-                v = g[r][c]
-                if not isinstance(v, (int, float)):
-                    continue
-                fv = float(v)
-                if d == 0:
-                    if -1.0 <= fv <= 1.0:
-                        vals.append(fv)
-                elif math.isfinite(fv):
-                    vals.append(fv)
-        if not vals:
-            return [], []
-        stats.append((min(vals), max(vals), sum(vals) / len(vals)))
-
-    positions: list[tuple[int, int]] = []
-    vectors: list[list[float]] = []
+    """Normalize only jointly observed pixels. Missing values retain their spatial mask."""
+    positions = []
+    values = []
     for r in range(rows):
         for c in range(cols):
-            nd = grids[0][r][c]
-            if not (isinstance(nd, (int, float)) and -1.0 <= float(nd) <= 1.0):
-                continue
-            vec: list[float] = []
-            for d, (lo, hi, mean) in enumerate(stats):
-                x = grids[d][r][c]
-                if d == 0:
-                    valid = isinstance(x, (int, float)) and -1.0 <= float(x) <= 1.0
-                else:
-                    valid = isinstance(x, (int, float)) and math.isfinite(float(x))
-                xv = float(x) if valid else mean
-                vec.append((xv - lo) / (hi - lo) if hi > lo else 0.5)
-            positions.append((r, c))
-            vectors.append(vec)
+            pixel = [g[r][c] for g in grids]
+            if all(_finite_number(v) for v in pixel) and -1 <= pixel[0] <= 1:
+                positions.append((r, c))
+                values.append(pixel)
+    if not positions:
+        return [], []
+    limits = [(min(column), max(column)) for column in zip(*values, strict=True)]
+    vectors = [
+        [
+            (value - lo) / (hi - lo) if hi > lo else 0.5
+            for value, (lo, hi) in zip(pixel, limits, strict=True)
+        ]
+        for pixel in values
+    ]
     return positions, vectors
+
+
+def _finite_number(value):
+    return type(value) in (int, float) and math.isfinite(value)
 
 
 def _aligned_aux(
@@ -306,6 +287,8 @@ def zones_from_ndvi_grid(
 
     rows = len(grid)
     cols = len(grid[0]) if rows else 0
+    if not cols or any(len(row) != cols for row in grid):
+        return None
     flat = _flatten_valid(grid)
     if rows == 0 or cols == 0 or len(set(flat)) < 2:
         return None
@@ -338,7 +321,7 @@ def zones_from_ndvi_grid(
         labels = [
             [
                 _nearest(float(grid[r][c]), centroids)
-                if isinstance(grid[r][c], (int, float))
+                if _finite_number(grid[r][c]) and -1 <= grid[r][c] <= 1
                 else None
                 for c in range(cols)
             ]
@@ -349,17 +332,19 @@ def zones_from_ndvi_grid(
         labels = smooth_label_grid(labels)
 
     zones: list[dict[str, Any]] = []
+    class_counts: dict[str, int] = {}
     for rank in range(k_eff):
         mask = [[1 if labels[r][c] == rank else 0 for c in range(cols)] for r in range(rows)]
-        polys = mask_to_polygons(mask, bbox, min_area_px=1)
+        polys = mask_to_polygons(mask, bbox, min_area_px=1, exact=True)
         if not polys:
             continue
         cls = _class_for_rank(rank, k_eff)
         score = round((centroids_ndvi[rank] + 1.0) / 2.0, 3)  # NDVI [-1,1] → [0,1]
-        for i, p in enumerate(polys):
+        for p in polys:
+            class_counts[cls] = class_counts.get(cls, 0) + 1
             zones.append(
                 {
-                    "zone_id": f"pz-{cls}-{i + 1}",
+                    "zone_id": f"pz-{cls}-{class_counts[cls]}",
                     "productivity_class": cls,
                     "score": score,
                     "ndvi_centroid": round(centroids_ndvi[rank], 3),
@@ -427,34 +412,88 @@ def extract_ndvi_grid(params: dict[str, Any], evidence: dict[str, Any] | None) -
     return None
 
 
-def extract_aux_grids(
-    params: dict[str, Any],
-    evidence: dict[str, Any] | None,
-    *,
-    ndvi_grid: NdviGrid | None,
-) -> dict[str, NdviGrid] | None:
-    """Pull co-registered auxiliary feature grids (ndmi/reci/msavi/slope) for V60.3.
+def _grid_source(params, evidence):
+    return evidence if _grid_candidate(evidence) is not None else params
 
-    Evidence grids win over params (same rule as the NDVI master). Only grids whose
-    dimensions match the NDVI master are returned; anything malformed
-    or mis-sized is silently skipped (fail-safe → NDVI-only clustering). None when no
-    aligned aux grid is available, so the caller stays on the pure-NDVI path unchanged.
-    """
-    if not ndvi_grid:
+
+def _grid_identity(meta, rows, cols):
+    identity = meta.get("grid_identity")
+    if not isinstance(identity, dict):
         return None
-    rows = len(ndvi_grid)
-    cols = len(ndvi_grid[0]) if rows else 0
-    if rows == 0 or cols == 0:
+    crs, affine = identity.get("crs"), identity.get("transform")
+    revision = identity.get("geometry_revision")
+    if not isinstance(crs, str) or not crs.strip() or type(revision) is not int or revision < 0:
         return None
-    out: dict[str, NdviGrid] = {}
+    if (
+        type(identity.get("rows")) is not int
+        or type(identity.get("cols")) is not int
+        or (identity["rows"], identity["cols"]) != (rows, cols)
+    ):
+        return None
+    if (
+        not isinstance(affine, (list, tuple))
+        or len(affine) != 6
+        or not all(map(_finite_number, affine))
+    ):
+        return None
+    if affine[0] * affine[4] == affine[1] * affine[3]:
+        return None
+    return crs.strip().upper(), tuple(affine), revision
+
+
+def _source_ref(meta, name):
+    if not isinstance(meta, dict):
+        return {}
+    if name == "slope":
+        asset = meta.get("asset_id")
+        return (
+            {"asset_id": asset} if isinstance(asset, str) and 0 < len(asset.strip()) <= 256 else {}
+        )
+    scene, day = meta.get("scene_id"), meta.get("acquisition_date")
+    if not isinstance(scene, str) or not 0 < len(scene.strip()) <= 256 or not isinstance(day, str):
+        return {}
+    try:
+        day = date.fromisoformat(day[:10]).isoformat()
+    except ValueError:
+        return {}
+    return {"scene_id": scene, "acquisition_date": day}
+
+
+def indicator_sources(params, evidence, feature_names):
+    source = _grid_source(params, evidence)
+    metadata = source.get("grid_metadata") or {}
+    if not isinstance(metadata, dict):
+        return {}
+    return {name: ref for name in feature_names if (ref := _source_ref(metadata.get(name), name))}
+
+
+def extract_aux_grids(params, evidence, *, ndvi_grid):
+    """Accept auxiliary layers from the same owner and acquisition on the same native grid."""
+    if not ndvi_grid or not ndvi_grid[0]:
+        return None
+    rows, cols = len(ndvi_grid), len(ndvi_grid[0])
+    source = _grid_source(params, evidence)
+    metadata = source.get("grid_metadata")
+    if not isinstance(metadata, dict) or not isinstance(metadata.get("ndvi"), dict):
+        return None
+    master = metadata["ndvi"]
+    identity = _grid_identity(master, rows, cols)
+    ndvi_source = _source_ref(master, "ndvi")
+    if not identity or not ndvi_source:
+        return None
+    result = {}
     for name, key in _AUX_FEATURE_KEYS:
-        for src in (evidence or {}, params or {}):
-            grid = src.get(key) if isinstance(src, dict) else None
-            if (
-                isinstance(grid, list)
-                and len(grid) == rows
-                and all(isinstance(r, list) and len(r) == cols for r in grid)
-            ):
-                out[name] = grid  # type: ignore[assignment]
-                break
-    return out or None
+        meta = metadata.get(name)
+        if not isinstance(meta, dict) or identity != _grid_identity(meta, rows, cols):
+            continue
+        ref = _source_ref(meta, name)
+        if not ref or (name != "slope" and ref != ndvi_source):
+            continue
+        candidate = source.get(key)
+        if (
+            isinstance(candidate, list)
+            and len(candidate) == rows
+            and all(isinstance(row, list) and len(row) == cols for row in candidate)
+        ):
+            result[name] = candidate
+    return result or None

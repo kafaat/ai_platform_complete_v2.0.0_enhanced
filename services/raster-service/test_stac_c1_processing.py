@@ -8,11 +8,19 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import hashlib
+import json
+import logging
 from pathlib import Path
 
 import numpy as np
 import pytest
 import radiometry_containment as rc
+import raster_api_models as models
+import raster_job_orchestration
+import raster_processing_runtime
+import raster_runtime_state
+import raster_stage_receipt as rsr
 import rasterio
 import stac_c1_processing as c1
 import stac_vrt
@@ -193,6 +201,10 @@ def test_c1_calibration_reaches_processing_once_and_bundle_is_removed(scene, tmp
             assert src.width <= 8 and src.height <= 8
             assert set(np.unique(src.read(req.bands.scl))) == {4}
         assert req.tenant_id == "tenant" and req.field_id == "field"
+        assert req._verified_stac_capture == {
+            "scene_id": data["item_id"],
+            "datetime": data["datetime"],
+        }
         assert req.raw_qa_required and req.apply_cloud_mask
         assert req.reflectance_scale is None and req.reflectance_offset is None
         calls.append(req.raster_url)
@@ -471,6 +483,17 @@ def test_captured_provider_windows_replay_through_real_qa_and_cog(tmp_path, monk
     expected = 2.5 * (nir - red) / (nir + 6 * red - 7.5 * blue + 1)
     ctx = raster_processing_runtime.make_processing_context(upload_dir=str(tmp_path))
     ctx.object_store = SimpleNamespace(upload_cog=lambda path, key: "file://" + path)
+    # The provider declares sha2-256 multihashes of its full COGs. Read remotely
+    # they stay unverified; the local windows here are not those files, so the
+    # integrity gate refuses them. This replay tests pixels, not the provider's
+    # bytes, so the declarations are withdrawn after that witness.
+    for name, href in data["bands_urls"].items():
+        asset = next(a for a in context["assets"].values() if a["href"] == href)
+        checksum = asset.pop("file:checksum")
+        streamed = rsr.asset_integrity(name, href, checksum, stac_vrt._as_gdal_source(href))
+        local = rsr.asset_integrity(name, href, checksum, paths[href])
+        assert (streamed["algorithm"], streamed["verdict"]) == ("sha2-256", "not_verified_streamed")
+        assert local["verdict"] == rsr.MISMATCH
     monkeypatch.setattr(stac_vrt, "_as_gdal_source", lambda href: paths[href])
     results = []
 
@@ -542,3 +565,203 @@ def test_sync_backfill_dispatches_supported_c1_into_existing_processing_core(
         job.func(*job.args, **job.kwargs)
     assert len(calls) == 1 and calls[0].scene_id == data["item_id"]
     assert calls[0].tenant_id == "tenant" and calls[0].raw_qa_required
+
+
+@pytest.mark.parametrize("stamp", ["2026-10-15", "not-a-time", "2026-10-15T07:34:28"])
+def test_c1_requires_a_catalogue_capture_instant(scene, stamp):
+    data, _, _ = scene
+    data["datetime"] = stamp
+    data["radiometry_context"]["properties"]["datetime"] = stamp
+    with pytest.raises(rc.RadiometryUnresolved):
+        c1.validate_c1_scene(data, entry_point="process_from_stac")
+
+
+# ── Asset integrity (STAC file:checksum multihash) ─────────────────────────────────
+
+
+def _sha256_multihash(path: str) -> str:
+    return "1220" + hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _declare_checksums(data, paths, multihash=_sha256_multihash) -> None:
+    for asset in data["radiometry_context"]["assets"].values():
+        asset["file:checksum"] = multihash(paths[asset["href"]])
+
+
+def _stage_receipts(caplog) -> list[dict]:
+    prefix = "raster_stage_receipt="
+    return [
+        json.loads(r.getMessage()[len(prefix) :])
+        for r in caplog.records
+        if r.getMessage().startswith(prefix)
+    ]
+
+
+def _run_c1(data, clip, tmp_path, run_processing, jid="job"):
+    c1.process_c1_scene(
+        data,
+        "evi",
+        "field",
+        "tenant",
+        3,
+        clip,
+        True,
+        jid,
+        run_processing=run_processing,
+        out_dir=str(tmp_path),
+        entry_point="test",
+    )
+
+
+def test_sha256_multihash_of_the_local_bytes_is_verified(tmp_path):
+    path = tmp_path / "asset.tif"
+    path.write_bytes(b"provider bytes")
+    record = rsr.asset_integrity("red", "ref", _sha256_multihash(str(path)), str(path))
+    assert record["verdict"] == rsr.VERIFIED
+    assert record["algorithm"] == "sha2-256"
+    assert record["computed"] == hashlib.sha256(b"provider bytes").hexdigest()
+    assert record["expected"] == "1220" + record["computed"]
+    sha512 = "1340" + hashlib.sha512(b"provider bytes").hexdigest()
+    record = rsr.asset_integrity("red", "ref", sha512, f"file://{path}")
+    assert (record["algorithm"], record["verdict"]) == ("sha2-512", rsr.VERIFIED)
+
+
+def test_one_tampered_byte_is_a_mismatch(tmp_path):
+    path = tmp_path / "asset.tif"
+    path.write_bytes(b"provider bytes")
+    checksum = _sha256_multihash(str(path))
+    path.write_bytes(b"provider bytez")
+    record = rsr.asset_integrity("red", "ref", checksum, str(path))
+    assert record["verdict"] == rsr.MISMATCH
+    assert record["computed"] == hashlib.sha256(b"provider bytez").hexdigest()
+    assert rsr.integrity_mismatches([record]) == [record]
+    assert not rsr.integrity_verified([record])
+
+
+@pytest.mark.parametrize(
+    ("checksum", "reason"),
+    [
+        ("d50110" + "00" * 16, "unknown_multihash_code"),  # md5 is not accepted as proof
+        ("1114" + "00" * 20, "unknown_multihash_code"),  # sha1 is not accepted as proof
+        ("b2402000" + "00" * 31, "unknown_multihash_code"),  # unlisted varint code
+        ("1210" + "00" * 16, "digest_length"),  # sha2-256 with a 16-byte digest
+        ("1220abc", "malformed_multihash"),
+        ("1220" + "00" * 31, "malformed_multihash"),  # truncated digest
+    ],
+)
+def test_unknown_or_malformed_multihash_is_unverifiable_never_a_pass(tmp_path, checksum, reason):
+    path = tmp_path / "asset.tif"
+    path.write_bytes(b"provider bytes")
+    record = rsr.asset_integrity("red", "ref", checksum, str(path))
+    assert record["verdict"] == rsr.UNVERIFIABLE_ALGORITHM
+    assert record["reason"] == reason
+    assert record["computed"] is None
+    assert not rsr.integrity_verified([record])
+    assert rsr.integrity_mismatches([record]) == []
+
+
+def test_ranged_remote_read_is_recorded_as_not_verified_streamed():
+    href = f"https://{c1.C1_HOST}/{c1.C1_COLLECTION}/x/B04.tif"
+    checksum = "1220" + "ab" * 32
+    record = rsr.asset_integrity("red", href, checksum, stac_vrt._as_gdal_source(href))
+    assert record == {
+        "asset": "red",
+        "ref": href,
+        "algorithm": "sha2-256",
+        "expected": checksum,
+        "computed": None,
+        "verdict": rsr.NOT_VERIFIED_STREAMED,
+    }
+    assert not rsr.integrity_verified([record])
+
+
+def test_c1_assets_with_matching_checksums_are_verified_and_receipted(
+    scene, tmp_path, monkeypatch, caplog
+):
+    data, clip, paths = scene
+    _declare_checksums(data, paths)
+
+    def orchestrate(ctx, job_id, req):
+        assert rasterio.open(req.raster_url).count == len(c1.BANDS)
+        ctx._jobs.set(job_id, {"job_id": job_id, "status": models.JobStatus.completed})
+
+    monkeypatch.setattr(raster_job_orchestration, "run_processing", orchestrate)
+    caplog.set_level(logging.INFO, logger="raster-service")
+    _run_c1(
+        data,
+        clip,
+        tmp_path,
+        lambda jid, req: raster_processing_runtime.run_processing(
+            jid, req, upload_dir=str(tmp_path)
+        ),
+        jid="job_integrity_verified",
+    )
+    (receipt,) = _stage_receipts(caplog)
+    assert receipt["status"] == "completed"
+    assert rsr.verify_receipt(receipt)
+    verdicts = {r["asset"]: r["verdict"] for r in receipt["asset_integrity"]}
+    assert verdicts == dict.fromkeys(c1.BANDS, rsr.VERIFIED)
+    assert rsr.integrity_verified(receipt["asset_integrity"])
+
+
+def test_c1_tampered_asset_is_refused_with_reason_in_job_and_receipt(
+    scene, tmp_path, monkeypatch, caplog
+):
+    data, clip, paths = scene
+    _declare_checksums(data, paths)
+    red = Path(paths[data["bands_urls"]["red"]])
+    raw = bytearray(red.read_bytes())
+    raw[-1] ^= 0x01
+    red.write_bytes(bytes(raw))
+    monkeypatch.setattr(
+        stac_vrt, "build_band_vrt", lambda *a, **k: pytest.fail("tampered asset was opened")
+    )
+    monkeypatch.setattr(
+        raster_job_orchestration,
+        "run_processing",
+        lambda *a, **k: pytest.fail("tampered asset was processed"),
+    )
+    jid = "job_integrity_mismatch"
+    raster_runtime_state.JOBS.set(jid, {"job_id": jid, "status": models.JobStatus.pending})
+    caplog.set_level(logging.INFO, logger="raster-service")
+    _run_c1(
+        data,
+        clip,
+        tmp_path,
+        lambda j, req: raster_processing_runtime.run_processing(j, req, upload_dir=str(tmp_path)),
+        jid=jid,
+    )
+    job = raster_runtime_state.JOBS.get(jid)
+    assert str(job["status"]) == "failed"
+    assert job["error_code"] == rsr.INTEGRITY_MISMATCH_CODE
+    assert [r["asset"] for r in job["error_detail"]["assets"]] == ["red"]
+    assert "result" not in job
+    (receipt,) = _stage_receipts(caplog)
+    assert receipt["status"] == "failed"
+    assert receipt["error_class"] == rsr.INTEGRITY_MISMATCH_CODE
+    assert receipt["output_refs"] == []
+    assert rsr.verify_receipt(receipt)
+    verdicts = {r["asset"]: r["verdict"] for r in receipt["asset_integrity"]}
+    assert verdicts.pop("red") == rsr.MISMATCH
+    assert set(verdicts.values()) == {rsr.VERIFIED}
+    red_record = next(r for r in receipt["asset_integrity"] if r["asset"] == "red")
+    assert red_record["computed"] == hashlib.sha256(bytes(raw)).hexdigest()
+    assert red_record["expected"] != "1220" + red_record["computed"]
+    assert not list(tmp_path.glob("stac_c1_*"))
+
+
+@pytest.mark.parametrize("declared", ["unknown", "none"])
+def test_c1_unverifiable_or_absent_checksum_still_processes_without_claiming_a_pass(
+    scene, tmp_path, declared
+):
+    data, clip, paths = scene
+    if declared == "unknown":
+        _declare_checksums(data, paths, lambda path: "d50110" + "00" * 16)
+    calls = []
+    _run_c1(data, clip, tmp_path, lambda jid, req: calls.append(req))
+    (req,) = calls
+    assert req.raster_url
+    expected = rsr.UNVERIFIABLE_ALGORITHM if declared == "unknown" else rsr.NO_CHECKSUM
+    assert {r["verdict"] for r in req._asset_integrity} == {expected}
+    assert len(req._asset_integrity) == len(c1.BANDS)
+    assert not rsr.integrity_verified(req._asset_integrity)

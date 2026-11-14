@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import uuid
 from datetime import UTC, datetime
+from typing import Annotated
 
 import raster_security_context
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
@@ -35,6 +36,7 @@ from raster_field_runtime import (
     GeoParquetExportRequest,
     HistoricalBackfillRequest,
     IndicatorKind,
+    InvalidPixelSource,
     JobStatus,
     PrescriptionRequest,
     ProcessCdseRequest,
@@ -48,6 +50,7 @@ from raster_field_runtime import (
     _cdse_request_on_stored_field,
     _clip_on_stored_field,
     _clip_resolvable,
+    _common_mask_analysis,
     _display_index,
     _field_layers,
     _grid_from_cog,
@@ -72,11 +75,14 @@ from raster_field_runtime import (
     _stac_search,
     _stac_search_landsat_unique,
     _tile_cache_key,
+    _timeseries_point,
     _upload_dir,
     _write_tile_cache,
     logger,
     object_store,
     run_raster_io,
+    tile_asset_revision,
+    tilejson_asset_version,
 )
 from raster_http_policy import TENANT_PRIVATE_IMAGE_HEADERS, requested_dates, validate_xyz
 from raster_indicator_product import eligible_observation_product
@@ -1024,6 +1030,8 @@ async def field_pixel_value(
     await _require_field_tenant(field_id, hide_existence=True)
     out_index = _display_index(index)
     index = _normalize_index(index)
+    if index == "truecolor":
+        raise HTTPException(422, "طبقة الألوان الطبيعية لا تعطي قيمة مؤشر عددية")
     layer = await _resolve_field_layer(field_id, index, date)
     if layer is None:
         raise HTTPException(404, "لا توجد طبقة مؤشر حقيقية لهذا الحقل/التاريخ")
@@ -1041,6 +1049,8 @@ async def field_pixel_value(
         raise HTTPException(404, "مصدر COG غير موجود")
     try:
         value = await run_raster_io(_read_index_pixel, path, lon, lat)  # R9؛ None = nodata/مقنَّع
+    except InvalidPixelSource as exc:
+        raise HTTPException(422, str(exc)) from exc
     except IndexError as exc:
         raise HTTPException(400, "النقطة خارج حدود الحقل/الطبقة") from exc
     except Exception as e:  # noqa: BLE001
@@ -1210,6 +1220,8 @@ async def field_timeseries(
         description="تواريخ مفصولة بفواصل (YYYY-MM-DD). فارغ ⇒ كلّ تواريخ COG المتاحة للحقل.",
     ),
     grid: int = Query(16, ge=2, le=64),
+    common_mask: Annotated[bool, Query()] = False,
+    min_common_coverage: Annotated[float, Query(ge=0, le=1)] = 0.5,
 ):
     """السلسلة الزمنيّة الحقيقيّة لمتوسّط المؤشّر للحقل عبر التواريخ المتاحة.
 
@@ -1255,23 +1267,7 @@ async def field_timeseries(
         real = await _real_field_grid(field_id, index, date, grid)
         if real is None:
             continue
-        provenance = (real.get("indicator_product") or {}).get("provenance") or {}
-        points.append(
-            {
-                "datetime": str(real.get("date") or date)[:10],
-                "mean": real["stats"]["mean"],
-                # Measured quality (RS-4) and the grid's own scene lineage (vegetation's
-                # /v1/ndvi/current needs it) — None = "not reported", never a fabricated value.
-                "valid_pixel_ratio": real.get("valid_pixel_ratio"),
-                "coverage_ratio": real.get("coverage_ratio"),
-                "cloud_pct": real.get("cloud_pct"),
-                "scene_id": provenance.get("scene_id"),
-                # S4-a: هويّة الأصل لا الرقم وحده — المشهد نفسه على حدٍّ أحدث للحقل أصلٌ آخر.
-                # مراجعة الهندسة من هويّة الشبكة والأصل المقروء من نَسَب المنتج؛ None حين يغيب.
-                "geometry_revision": (real.get("grid_identity") or {}).get("geometry_revision"),
-                "source_uri": provenance.get("source_uri"),
-            }
-        )
+        points.append(_timeseries_point(real, date))  # S4-a asset identity + RS-4 quality
 
     if not points:
         return {
@@ -1287,6 +1283,8 @@ async def field_timeseries(
     import time_series as ts
 
     analysis = ts.build_time_series(points, value_key="mean")
+    if common_mask:  # trend over pixels valid in every scene (time_series.COMMON_MASK_RULE)
+        analysis = await _common_mask_analysis(field_id, points, analysis, min_common_coverage)
     return {
         "field_id": field_id,
         "index": out_index,
@@ -1321,41 +1319,38 @@ async def field_tile(
     index = _normalize_index(index)
     _obs_inc("tile_requests_total", index)
     tenant = _REQ_TENANT.get()
-    cache_path = _tile_cache_key(field_id, index, date, z, x, y, tenant, v=v)
-    cached_png = _read_tile_cache(cache_path)
-    if cached_png:
-        _obs_inc("tile_cache_hits_total", index)
-        return Response(
-            content=cached_png,
-            media_type="image/png",
-            headers={
-                **TENANT_PRIVATE_IMAGE_HEADERS,
-                "X-Sahool-Tile-Cache": "hit",
-                "X-Sahool-Tile-Date": date,
-                "X-Sahool-Tile-Version": v or "default",
-            },
-        )
     layer = await _resolve_field_layer(field_id, index, date)
     if layer is not None and layer.get("cog_url"):
         try:
             import tile_render
 
             cog_path = object_store.to_gdal_path(layer["cog_url"])
+            resolved_date, version, cacheable = tile_asset_revision(layer, cog_path, date, v)
+            key = _tile_cache_key(field_id, index, resolved_date, z, x, y, tenant, v=version)
+            cache_path = key if cacheable else None  # remote, unrevisioned ⇒ no cache
+            headers = {**TENANT_PRIVATE_IMAGE_HEADERS, "X-Sahool-Tile-Date": resolved_date}
+            headers["X-Sahool-Tile-Version"] = v or version
+            if date == "latest" or not v or cache_path is None:
+                headers["Cache-Control"] = "private, no-cache"
+            cached_png = _read_tile_cache(cache_path) if cache_path else None
+            if cached_png:
+                _obs_inc("tile_cache_hits_total", index)
+                return Response(
+                    content=cached_png,
+                    media_type="image/png",
+                    headers={**headers, "X-Sahool-Tile-Cache": "hit"},
+                )
             internal = _normalize_index(index)
             # R9: تصيير COG (ربما بعيد) خارج حلقة الأحداث — بلاطة بطيئة لا تُجمّد الخدمة.
             png = await run_raster_io(tile_render.render_tile_png, cog_path, z, x, y, internal)
             if png:
                 _obs_inc("tile_cache_misses_total", index)
-                _write_tile_cache(cache_path, png)
+                if cache_path:
+                    _write_tile_cache(cache_path, png)
                 return Response(
                     content=png,
                     media_type="image/png",
-                    headers={
-                        **TENANT_PRIVATE_IMAGE_HEADERS,
-                        "X-Sahool-Tile-Cache": "miss",
-                        "X-Sahool-Tile-Date": date,
-                        "X-Sahool-Tile-Version": v or "default",
-                    },
+                    headers={**headers, "X-Sahool-Tile-Cache": "miss"},
                 )
         except Exception as e:  # noqa: BLE001 — لا نُفشل الخريطة، نخدم شفّافاً
             _obs_inc("tile_render_errors_total", index)
@@ -1592,21 +1587,16 @@ async def field_tilejson(
         round((bounds[1] + bounds[3]) / 2.0, 6),
         14,
     ]
-    resolved_date = (layer.get("acquisition_date") or date)[:10] if layer else date
-    resolved_version = v or str(
-        (layer or {}).get("created_at") or (layer or {}).get("cog_url") or "default"
-    )
+    resolved_date, resolved_version = tilejson_asset_version(layer, date, v)
     # TileJSON is fetched by JS, but the returned tiles are loaded later as <img>
     # requests and cannot rely on axios headers. Propagate the tenant hint from the
     # already-validated request into the tile URL so restart/DB rehydration keeps
     # working for MapLibre/Leaflet consumers.
-    # urlencode بدل التسلسل اليدويّ: ``v`` قد يُشتقّ من cog_url (قد يحوي & / مسافات)
-    # فالتسلسل الخام يكسر سلسلة الاستعلام أو يحقن معاملات. urlencode يُرمِّز بأمان. v4-audit
     from urllib.parse import urlencode
 
     qs_params: dict[str, str] = {
         "index": out_index,
-        "date": date,
+        "date": resolved_date,
         "resolved_date": resolved_date,
     }
     req_tenant = _REQ_TENANT.get()

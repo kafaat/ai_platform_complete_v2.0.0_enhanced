@@ -633,7 +633,7 @@ async def insert_stac_item(
             str(tenant_id),
             scene_id,
             collection,
-            captured_at,
+            captured_at if captured_at and len(captured_at.strip()) > 10 else None,
             bbox_json,
             cloud_pct,
             _clamp_score_0_100(quality_score),
@@ -1025,6 +1025,7 @@ async def fetch_latest_asset(
     index_name: str,
     date: str | None = None,
     tenant_id: str | None = None,
+    asset_id: int | None = None,
 ) -> dict | None:
     """يقرأ أحدث COG مُخزَّن لحقل+مؤشّر من raster_assets (لإعادة ترطيب الذاكرة).
 
@@ -1052,6 +1053,7 @@ async def fetch_latest_asset(
                provenance #>> '{stats,confidence}' AS confidence,
                provenance ->> 'data_available_at' AS data_available_at,
                provenance ->> 'spatial_sampling' AS spatial_sampling,
+               provenance ->> 'field_coverage' AS field_coverage,
                provenance #>> '{stats,quality}' AS quality,
                provenance #>> '{stats,cloud_mask_applied}' AS cloud_mask_applied,
                scene_id, geometry_revision, asset_status, processing_job_id,
@@ -1067,6 +1069,7 @@ async def fetch_latest_asset(
             FROM raster_assets
             WHERE field_id = $1 AND index_name = $2
               AND ($3::date IS NULL OR acquisition_date = $3::date)
+              AND ($5::bigint IS NULL OR id = $5)
               AND tenant_id = $4::uuid   -- فلتر مستأجِر صريح (دفاع عميق فوق RLS)؛ None ⇒ لا صفوف
               -- v9-F10/v11-F1: 'ready' حصراً — 'stale' (هندسة قديمة بعد تغيّر الحدود)
               -- لا يُقدَّم كصورة صالحة للخريطة. الاستعادة بإعادة معالجة تُنتج 'ready'.
@@ -1087,7 +1090,7 @@ async def fetch_latest_asset(
             str(tenant_id) if tenant_id else "",
         )
         row = await conn.fetchrow(
-            sql, field_id, index_name, d, str(tenant_id) if tenant_id else None
+            sql, field_id, index_name, d, str(tenant_id) if tenant_id else None, asset_id
         )
         if not row or not row["cog_uri"]:
             return None
@@ -1125,6 +1128,7 @@ async def fetch_latest_asset(
             else None,
             "data_available_at": row.get("data_available_at"),
             "spatial_sampling": spatial_sampling if isinstance(spatial_sampling, dict) else None,
+            "field_coverage": _jsonish_text(row.get("field_coverage")),
             "created_at": row.get("created_at"),
             "quality": row["quality"],
             "cloud_mask_applied": str(row["cloud_mask_applied"]).lower() == "true"
@@ -1237,10 +1241,34 @@ async def list_available_asset_dates(
                -- وقت الالتقاط الحقيقيّ من كتالوج STAC (timestamptz) حين يتوفّر — لا نلفّق
                -- ساعة من DATE (acquisition_date تاريخ فقط بلا وقت). NULL ⇒ الواجهة تعرض
                -- التاريخ وحده بصدق (لا وقت مُختلَق).
-               to_char(si.captured_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
-                   AS acquisition_datetime,
+               COALESCE(
+                   CASE WHEN a.provenance #>> '{verified_stac_capture,scene_id}' = a.scene_id
+                         AND a.provenance ->> 'current_cog_uri' = a.cog_uri
+                         AND a.provenance #>> '{verified_stac_capture,datetime}'
+                             LIKE a.acquisition_date::text || 'T__:__:__%Z'
+                        THEN a.provenance #>> '{verified_stac_capture,datetime}' END,
+                   -- The native receipt comes from the one actual contributor to
+                   -- valid pixels. A catalogue selection or date window cannot prove it.
+                   CASE WHEN a.provenance ->> 'provider' = 'cdse'
+                         AND a.provenance ->> 'current_cog_uri' = a.cog_uri
+                         AND a.scene_id ~ '^cdse:sh:[0-9]+$'
+                         AND native.qa ->> 'scene_id' = a.scene_id
+                         AND native.qa ->> 'qa_mask_version' = a.qa_mask_version
+                         AND native.qa ->> 'algorithm_version' = a.algorithm_version
+                         AND native.qa ->> 'input_checksum' ~ '^[0-9a-f]{64}$'
+                         AND native.qa ->> 'native_valid_pixels' ~ '^[1-9][0-9]*$'
+                         AND native.qa ->> 'acquisition_datetime'
+                             LIKE a.acquisition_date::text || 'T__:__:__%+00:00'
+                        THEN replace(native.qa ->> 'acquisition_datetime', '+00:00', 'Z') END,
+                   CASE WHEN a.provenance ->> 'provider' IS DISTINCT FROM 'cdse'
+                         AND a.scene_id NOT LIKE 'cdse:%'
+                         AND (si.captured_at AT TIME ZONE 'UTC')::date = a.acquisition_date
+                         AND COALESCE(si.raw_item->>'datetime', '') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+                        THEN (to_json(si.captured_at AT TIME ZONE 'UTC') #>> '{}') || 'Z' END
+               ) AS acquisition_datetime,
                (a.cog_uri IS NOT NULL AND a.cog_uri <> '') AS has_cog
         FROM raster_assets a
+        CROSS JOIN LATERAL (SELECT a.provenance #> '{stats,cdse_native_qa}' AS qa) native
         JOIN recent_dates rd ON rd.acquisition_date = a.acquisition_date
         LEFT JOIN stac_item_registry si
                ON si.tenant_id = a.tenant_id AND si.scene_id = a.scene_id
@@ -1495,9 +1523,10 @@ async def fetch_field_geometry_with_revision(
                        AND h.geometry = f.geometry::jsonb
                      ORDER BY h.revision DESC LIMIT 1) AS revision
               FROM fields f
-             WHERE f.field_id = $1
+             WHERE f.field_id = $1 AND f.tenant_id = $2::uuid
             """,
             field_id,
+            tenant_id,
         )
         if not row or row["geometry"] is None:
             return None

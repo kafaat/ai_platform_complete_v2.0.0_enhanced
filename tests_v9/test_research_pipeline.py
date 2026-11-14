@@ -483,13 +483,10 @@ def test_synthesizer_confidence_in_range() -> None:
 
 
 @pytest.mark.unit
-def test_synthesizer_recommendations_non_empty_arabic() -> None:
-    """التوصيات غير فارغة وتحتوي على نصّ عربي."""
+def test_synthesizer_withholds_field_recommendations() -> None:
     synthesis = synthesize_findings(NORTH_MOCK_RESULTS, CANONICAL_QUERY)
-    assert len(synthesis.recommendations) > 0
-    # At least one recommendation should contain Arabic characters
-    arabic_recs = [r for r in synthesis.recommendations if any("؀" <= c <= "ۿ" for c in r)]
-    assert len(arabic_recs) > 0, "لا توصيات عربيّة وُجدت"
+    assert synthesis.recommendations == []
+    assert synthesis.evidence_mode == "simulation"
 
 
 @pytest.mark.unit
@@ -519,7 +516,8 @@ def test_synthesizer_empty_data_no_crash() -> None:
     """البيانات الفارغة لا تُسبّب انهياراً وتُرجع synthesis مع توصية."""
     synthesis = synthesize_findings(EMPTY_RESULTS, "استعلام فارغ")
     assert isinstance(synthesis, Synthesis)
-    assert len(synthesis.recommendations) >= 1
+    assert synthesis.recommendations == []
+    assert synthesis.factors == []
     assert 0.0 <= synthesis.confidence <= 1.0
 
 
@@ -564,7 +562,8 @@ def test_reporter_json_confidence_rounded() -> None:
     """قيمة الثقة في تقرير JSON مُقرَّبة وفي النطاق الصحيح."""
     synthesis = synthesize_findings(NORTH_MOCK_RESULTS, CANONICAL_QUERY)
     report = generate_json_report(synthesis)
-    assert 0.0 <= report["confidence"] <= 1.0
+    assert report["confidence"] is None
+    assert 0.0 <= report["simulation_score"] <= 1.0
 
 
 @pytest.mark.unit
@@ -572,7 +571,7 @@ def test_reporter_json_alert_level_valid() -> None:
     """مستوى التنبيه في تقرير JSON له قيمة صحيحة."""
     synthesis = synthesize_findings(NORTH_MOCK_RESULTS, CANONICAL_QUERY)
     report = generate_json_report(synthesis)
-    assert report["alert_level"] in ("critical", "warning", "info")
+    assert report["alert_level"] is None
 
 
 @pytest.mark.unit
@@ -603,22 +602,16 @@ def test_reporter_map_data_valid_geojson() -> None:
     assert gj["type"] == "FeatureCollection"
     assert "features" in gj
     assert isinstance(gj["features"], list)
-    assert len(gj["features"]) >= 1
+    assert gj["features"] == []
 
 
 @pytest.mark.unit
-def test_reporter_map_data_feature_structure() -> None:
-    """كلّ Feature في GeoJSON لها geometry + properties صحيحتان."""
+def test_reporter_known_sector_has_no_invented_field_coordinates() -> None:
     synthesis = synthesize_findings(NORTH_MOCK_RESULTS, CANONICAL_QUERY)
     gj = generate_map_data(synthesis, region="north_sector")
-    for feature in gj["features"]:
-        assert feature["type"] == "Feature"
-        assert "geometry" in feature
-        assert "properties" in feature
-        assert "type" in feature["geometry"]
-        assert "coordinates" in feature["geometry"]
-        assert "region" in feature["properties"]
-        assert "alert_level" in feature["properties"]
+    assert gj["features"] == []
+    assert gj["query_region"] == "north_sector"
+    assert gj["geometry_status"] == "no_field_coordinates"
 
 
 @pytest.mark.unit
@@ -627,7 +620,7 @@ def test_reporter_map_data_no_region() -> None:
     synthesis = synthesize_findings(NORTH_MOCK_RESULTS, CANONICAL_QUERY)
     gj = generate_map_data(synthesis)
     assert gj["type"] == "FeatureCollection"
-    assert len(gj["features"]) >= 1
+    assert gj["features"] == []
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -668,7 +661,7 @@ def test_pipeline_canonical_query_map_data_geojson() -> None:
     result = run_pipeline(CANONICAL_QUERY)
     gj = result["map_data"]
     assert gj["type"] == "FeatureCollection"
-    assert len(gj["features"]) >= 1
+    assert gj["features"] == []
 
 
 @pytest.mark.unit
@@ -701,7 +694,8 @@ def test_pipeline_sources_retrieved_list() -> None:
     """sources_retrieved قائمة غير فارغة."""
     result = run_pipeline(CANONICAL_QUERY)
     assert isinstance(result["sources_retrieved"], list)
-    assert len(result["sources_retrieved"]) > 0
+    assert result["sources_retrieved"] == []
+    assert result["simulated_sources"]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -723,3 +717,16 @@ def test_models_confidence_clamping() -> None:
     # Synthesis with confidence > 1 should be clamped to 1
     synth = Synthesis(summary="test", factors=[], recommendations=[], confidence=2.0)
     assert synth.confidence == 1.0
+
+
+@pytest.mark.unit
+def test_hazm_simulation_has_no_field_authority_or_fabricated_study():
+    result = run_pipeline("تحقق من قوام التربة في الحزم الجوف في مزرعة مجهولة")
+    for output in (result, result["json"], result["map_data"]):
+        assert output["evidence_mode"] == "simulation"
+        assert output["decision_usable"] is False
+    assert "محاكاة" in result["markdown"]
+    assert result["json"]["recommendations"] == []
+    assert result["map_data"]["features"] == []
+    assert result["sources_retrieved"] == []
+    assert CONNECTORS["qdrant_rag"]({})["sources"] == []

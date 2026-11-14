@@ -474,6 +474,62 @@ def _apply_ndvi_threshold_gating(state: dict, crop_id, days_after_planting) -> N
     rs["calibration_status"] = "calibrated" if applied else "insufficient_field_calibration"
 
 
+def season_crop_context(field_crop_id, active, resolve):
+    """(crop_id, variety_id, sowing_date, conflicts) من الموسم النشط فوق محصول بطاقة الحقل.
+
+    محصول الموسم النشط الواحد يحكم؛ مخالفته لمحصول الحقل تُعلَن تعارضاً لا تُبتلَع، وموسمٌ
+    مختلط المحاصيل لا يُنمذَج (crop_id=None). دالّة نقيّة: ``active`` صفّ seasons أو None.
+    """
+    if active is None:
+        return field_crop_id, None, None, []
+    crop_id, conflicts = field_crop_id, []
+    raw = active.get("crops")
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except (TypeError, ValueError):
+            raw = []
+    if isinstance(raw, list) and len(raw) == 1 and (season_crop := resolve(raw[0])):
+        if field_crop_id and season_crop != field_crop_id:
+            conflicts.append(
+                {
+                    "type": "field_season_crop_mismatch",
+                    "field_crop": field_crop_id,
+                    "season_crop": season_crop,
+                    "requires_review": True,
+                }
+            )
+        crop_id = season_crop
+    elif isinstance(raw, list) and len(raw) > 1:
+        conflicts.append({"type": "mixed_crop_not_modeled", "requires_review": True})
+        crop_id = None
+    variety_id = str(active.get("cultivar") or "").strip() or None
+    return crop_id, variety_id, active.get("sowing_date"), conflicts
+
+
+def escalate_context_conflicts(state: dict) -> None:
+    """تعارض محصول/صنف (من الإسقاط أو النواة) يُصعّد نمط auto إلى مراجعة بشريّة.
+
+    تصعيد سلامة لا تخفيض (نظير الملوحة الحرجة وثقة الحدّ): لا يلمس إلّا auto/valid، فيصل
+    إلى كلّ مستهلك يقرأ ``execution_mode`` (requires_review في التوصيات وتقدير الغلّة).
+    """
+    contradictions = (state.get("agronomic") or {}).get("contradictions") or []
+    conflicts = list(state.get("context_conflicts") or []) + [
+        c
+        for c in contradictions
+        if isinstance(c, dict) and c.get("type") == "variety_crop_mismatch"
+    ]
+    if not conflicts or state.get("execution_mode") != "auto":
+        return
+    state["execution_mode"] = "human_review"
+    if state.get("validity") == "valid":
+        state["validity"] = "degraded"
+    kinds = "، ".join(sorted({str(c.get("type")) for c in conflicts}))
+    state.setdefault("reasons_ar", []).append(
+        f"تعارض في سياق المحصول/الصنف ({kinds}) — استُبعِدت الخصائص المتعارضة وتلزم مراجعة بشريّة."
+    )
+
+
 def _compose_agronomic(
     field_id: str,
     tenant_id,
@@ -482,6 +538,7 @@ def _compose_agronomic(
     crop_id: str | None = None,
     days_after_planting: int | None = None,
     et0_mm: float | None = None,
+    variety_id: str | None = None,
 ) -> dict | None:
     """يستدعي النواة الزراعيّة الغنيّة compose_field_state (دالّة نقيّة بلا شبكة)
     لدمج الحقائق الزراعيّة + التحكيم (Salinity>Vigor) في الحالة القانونيّة.
@@ -512,6 +569,7 @@ def _compose_agronomic(
                 crop_id=crop_id,
                 days_after_planting=days_after_planting,
                 et0_mm=float(et0_mm) if et0_mm is not None else None,
+                variety_id=variety_id,
             )
         cs = compose_field_state(
             field_id,
@@ -570,6 +628,7 @@ async def recompute_field_state(conn, field_id: str) -> dict:
     # **إضافيّ best-effort:** أيّ نقص (محصول/تاريخ زراعة/طقس) ⇒ القيمة None (الحقل يغيب، لا اختلاق)
     # ولا يكسر التحكيم القائم (الملوحة/الصلاحيّة تبقى تُحسَب كما كانت).
     crop_id = None
+    variety_id = None
     days_after_planting = None
     et0_mm = None
     weather_payload = None  # حمولة الطقس الخام (تُعاد للنهج المزدوج لبناء WeatherDay)
@@ -584,6 +643,20 @@ async def recompute_field_state(conn, field_id: str) -> dict:
             crop_id = resolve_crop_id(fmeta["crop"])
             field_lat = fmeta["lat"]
             planting = fmeta["planting_date"]
+            # The active season overrides the field display crop, but a disagreement is
+            # visible in the projection. Never combine two crop cards silently.
+            active = await conn.fetchrow(
+                "SELECT crops, cultivar, sowing_date FROM seasons "
+                "WHERE field_id = $1 AND status = 'active' "
+                "ORDER BY created_at DESC LIMIT 1",
+                field_id,
+            )
+            crop_id, variety_id, season_sowing, conflicts = season_crop_context(
+                crop_id, dict(active) if active is not None else None, resolve_crop_id
+            )
+            if conflicts:
+                state.setdefault("context_conflicts", []).extend(conflicts)
+            planting = season_sowing or planting
             if planting is not None:
                 dap = (date.today() - planting).days
                 days_after_planting = dap if dap >= 0 else None
@@ -623,6 +696,7 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         crop_id=crop_id,
         days_after_planting=days_after_planting,
         et0_mm=et0_mm,
+        variety_id=variety_id,
     )
     if agronomic is not None:
         state["agronomic"] = agronomic
@@ -671,6 +745,9 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                 "ملوحة تربة حرجة (تحكيم النواة الزراعيّة: الملوحة تَحكُم رغم خُضرة "
                 "NDVI) — تتطلّب مراجعة بشريّة."
             )
+
+    # تعارض محصول الحقل/الموسم أو صنفٌ من محصولٍ آخر ⇒ مراجعة بشريّة (تصعيد لا تخفيض).
+    escalate_context_conflicts(state)
 
     # Bundle B: ثقة الحدود الكنسيّة — اقرأ جودة الحدّ المخزَّنة (يهدّفها مسار
     # boundaries عبر score_boundary) من **مصدر واحد** وأسقِطها ككتلة boundary.

@@ -2750,8 +2750,8 @@
         },
         {
           "expect": "test_the_executed_retrieve_body_carries_no_eligibility_filter",
-          "find": "        dense_map: dict[str, float] = {}\n        for point_id, score, payload in dense_rows:\n",
-          "replace": "        dense_map: dict[str, float] = {}\n        for point_id, score, payload in dense_rows:\n            if not canonical_storage_shape(payload):\n                continue\n",
+          "find": "        dense_map: dict[tuple[str, str], float] = {}\n        for point_id, score, payload in dense_rows:\n",
+          "replace": "        dense_map: dict[tuple[str, str], float] = {}\n        for point_id, score, payload in dense_rows:\n            if not canonical_storage_shape(payload):\n                continue\n",
           "test": "tests_v9/test_rag_corpus_identity_readiness.py",
           "why": "D09: عودةُ مِصفاةِ الصفوف إلى الكثيف تُحوِّل انحرافَ المجموعة من `503` صريح إلى `200` بنتائجَ ناقصة لا يعرف المستهلكُ نقصَها — إجابةٌ مبتورة تُقرَأ كاملة، وهي أخفى وأسوأ في مسار RAG."
         },
@@ -2785,17 +2785,31 @@
         },
         {
           "expect": "test_a_document_outside_the_visible_corpus_scores_zero",
-          "find": "        if chunk is None or chunk.tenant_id not in self.visible_scope(tenant_id):\n",
-          "replace": "        if chunk is None:  # mutated: تُرتَّب وثيقةٌ خارج مجموعة السائل\n",
+          "find": "        for owner in (tenant_id, GLOBAL_REFERENCE_TENANT):\n",
+          "replace": "        for owner in set(self._tenant_doc_ids):  # mutated: تُرتَّب وثيقةٌ خارج مجموعة السائل\n",
           "test": "tests_v9/test_rag_bm25_corpus_scope.py",
           "why": "نزعُ شرط العضويّة يجعل `tf` و`length` تُقرآن من وثيقةٍ بينما `idf` و`avg_len` من مجموعةٍ لا تضمّها — رقمٌ يبدو سليماً ولا معنى له، ووثيقةُ مستأجِرٍ آخر تعود قابلةً للترتيب من خارج `search`."
         },
         {
-          "expect": "test_re_ingesting_a_chunk_under_a_new_tenant_moves_its_whole_contribution",
-          "find": "            self._retract(previous.tenant_id, chunk.chunk_id)\n",
-          "replace": "            self._retract(chunk.tenant_id, chunk.chunk_id)  # mutated: النزعُ من دلوِ الوارد\n",
+          "expect": "test_the_same_chunk_id_under_another_tenant_is_a_separate_document",
+          "find": "            self._retract(key)\n",
+          "replace": "            self._retract((chunk.tenant_id + \"#mutated\", chunk.chunk_id))  # mutated: النزعُ من غير الدلو المسجَّل\n",
           "test": "tests_v9/test_rag_bm25_corpus_scope.py",
-          "why": "النزعُ من دلو الحمولة الجديدة بدل الدلو المسجَّل يُبقي مساهمةَ الصفّ في دلو مستأجِرِه القديم أبداً، فيرى مستأجِرٌ في إحصائه وثيقةً غادرته — العطلُ نفسُه بثوبٍ آخر، ولا يُحمِّره أيُّ تأكيدٍ على الدرجة وحدها."
+          "why": "النزعُ من غير الدلو المسجَّل يُبقي مساهمةَ النصّ المُستبدَل في دلو مستأجِرِه أبداً، فيرى المستأجِرُ في إحصائه مصطلحاتٍ غادرت وثيقتَه — ولا يُحمِّره أيُّ تأكيدٍ على الدرجة وحدها. (كان مفتاحُ الطفرة `previous.tenant_id` قبل `RAG-BM25-TENANT-CHUNK-IDENTITY-01`؛ صار المستأجِرُ جزءاً من المفتاح فبقي المقصدُ نفسُه.)"
+        },
+        {
+          "expect": "test_two_tenants_sharing_a_chunk_id_rebuild_and_each_retrieve_only_their_own_text",
+          "find": "            identity = uniqueness_identity(chunk)\n",
+          "replace": "            identity = (\"\", chunk.chunk_id)  # mutated: التفرّدُ بـchunk_id وحده\n",
+          "test": "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
+          "why": "`RAG-BM25-TENANT-CHUNK-IDENTITY-01`: فرضُ التفرّد بـ`chunk_id` وحده يرفض مستأجِرَين يملك كلٌّ منهما مقطعاً بالمعرّف نفسه — وهما نقطتان مشروعتان منذ R-H14 — فتسقط إعادةُ البناء والجاهزيّةُ والبحثُ ٥٠٣ لكلّ مستأجِر."
+        },
+        {
+          "expect": "test_global_seed_also_in_quarantine_still_fails_closed",
+          "find": "        tenant = _REFERENCE_UNIQUENESS_DOMAIN\n",
+          "replace": "        pass  # mutated: الحجرُ ميدانُ تفرّدٍ مستقلّ عن المرجع العامّ\n",
+          "test": "tests_v9/test_rag_bm25_tenant_chunk_identity.py",
+          "why": "D08-EXT كما ضيّقه المالك في 2026-11-13 (الخيار الهجين): المرجعُ العامّ والحجرُ ميدانُ تفرّدٍ واحد. فصلُهما يُعيد قبولَ بذرةٍ مخدومة عالميّاً ومحجورة معاً — الحادثةَ التي حكم فيها القرار — بلا أن تفشل إعادةُ البناء."
         },
         {
           "expect": "test_a_neighbour_outside_the_requested_scope_is_not_admitted",
@@ -3312,7 +3326,7 @@
       "mutations": [
         {
           "expect": "test_malformed_or_unsigned_acks_are_refused",
-          "find": "    if not isinstance(sig, str) or not hmac.compare_digest(sig, expected):",
+          "find": "    if not isinstance(sig, str) or not sig.isascii() or not hmac.compare_digest(sig, expected):",
           "replace": "    if False:  # mutated: an unsigned/forged ack is trusted",
           "why": "Without the signature check any broker client can publish an ack and move a command to device_acked."
         },

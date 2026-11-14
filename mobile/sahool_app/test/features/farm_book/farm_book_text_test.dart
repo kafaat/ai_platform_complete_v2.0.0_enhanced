@@ -46,6 +46,17 @@ void main() {
       ),
       'هذا القيد عُكس من قبل؛ لا يُعكس مرّتين.',
     );
+    expect(
+      farmBookErrorMessage(
+        const ApiException(
+          kind: ApiErrorKind.validation,
+          statusCode: 422,
+          messageAr: 'فشل التحقّق من الحقول.',
+          detail: 'receipt_field_mismatch',
+        ),
+      ),
+      'الإيصال مسجَّل على حقل آخر؛ اربطه بقيد على الحقل نفسه أو استخدم إيصالاً مشتركاً بلا حقل.',
+    );
     const db = ApiException(
       kind: ApiErrorKind.unavailable,
       statusCode: 503,

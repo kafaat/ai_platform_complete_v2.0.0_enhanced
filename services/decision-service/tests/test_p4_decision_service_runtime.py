@@ -1,10 +1,18 @@
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 from main import app
 
 client = TestClient(app)
 HEADERS = {"X-Tenant-Id": "tenant-1"}
+
+
+@pytest.fixture(autouse=True)
+def mirror_runtime(monkeypatch):
+    """This module certifies the storeless mirror contract, even during a database test run."""
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("DECISION_SERVICE_SOR_ENABLED", raising=False)
 
 
 def test_contract_declares_interim_non_authoritative_mirror():

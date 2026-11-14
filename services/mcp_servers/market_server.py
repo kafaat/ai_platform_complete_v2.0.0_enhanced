@@ -192,6 +192,18 @@ def _positive_finite(value) -> float | None:
     return number if math.isfinite(number) and number > 0 else None
 
 
+def _require_positive_finite(value, name: str) -> float:
+    """A quantity/price the server persists: finite and > 0, else 422 before any write.
+
+    ``float()`` alone accepted negative, zero, NaN and ±inf (MCP-MARKET-SALES-NEGATIVE-VALUES-01);
+    a bool is not a number here either.
+    """
+    number = None if isinstance(value, bool) else _positive_finite(value)
+    if number is None:
+        raise HTTPException(422, f"{name} must be a positive finite number")
+    return number
+
+
 # ── Tool Implementations ───────────────────────────────────────
 
 
@@ -273,6 +285,11 @@ async def tool_create_procurement(args: dict) -> dict:
     # The threshold is server policy. A caller-supplied auto_approve_below_usd is
     # ignored: it let the requester approve its own order of any size.
     auto_approve = _auto_approve_threshold_usd()
+    # Every item must order a positive, finite quantity (a negative/zero/NaN/inf quantity was
+    # persisted as-is). The price keeps its own contract below: a missing or unusable price
+    # makes the order unpriced, so it waits for approval rather than being refused.
+    for it in items:
+        _require_positive_finite(it.get("quantity"), "quantity")
     # FIX(أمان IDOR): إن مُرِّر field_id، أثبت أنّه يخصّ مستأجِر الأمر قبل ربطه.
     # المصدر الموثوق: دالّة SECURITY DEFINER sahool_field_owner_tenant (تتجاوز RLS
     # على fields). fail-closed: قاعدة مُهيّأة وتعذّر الإثبات ⇒ 503؛ مالك ≠ مستأجِر
@@ -323,7 +340,11 @@ async def tool_create_procurement(args: dict) -> dict:
                 it["product_name"],
                 float(it["quantity"]),
                 it.get("unit", "kg"),
-                float(it.get("max_unit_price_usd", 0)),
+                # Unusable price (missing, ≤0, NaN, ±inf, non-numeric) is stored as 0 — the
+                # column's own "unpriced" value (v229: NOT NULL DEFAULT 0, CHECK >= 0) — and the
+                # order already waits for approval above. float() persisted NaN/inf, a negative
+                # hit the CHECK as a 500, and "abc" raised before the insert.
+                _positive_finite(it.get("max_unit_price_usd")) or 0.0,
                 it.get("notes", ""),
             )
         if auto_approved:
@@ -372,8 +393,11 @@ async def tool_create_sales_listing(args: dict) -> dict:
     tenant_id = args["tenant_id"]
     batch_id = args.get("batch_id")
     crop = args["crop_type"]
-    qty = float(args["quantity_kg"])
-    price = float(args["price_per_kg_usd"])
+    # A listing sells a positive quantity at a positive price: negative/zero/NaN/inf were stored
+    # and fed total_value_usd and the market stats (MCP-MARKET-SALES-NEGATIVE-VALUES-01). No free
+    # or donation listing exists in this contract, so a 0 price is a missing price, not a sale.
+    qty = _require_positive_finite(args.get("quantity_kg"), "quantity_kg")
+    price = _require_positive_finite(args.get("price_per_kg_usd"), "price_per_kg_usd")
     # بلا درجة مُعلَنة ⇒ "ungraded" لا "A": لا تُنسَب جودة لم يُثبتها فحص. (افتراض العمود
     # في القاعدة يبقى 'A' بلا migration، لكنّ الكود يمرّر القيمة دائماً فلا يُبلَغ.)
     grade = args.get("quality_grade") or "ungraded"

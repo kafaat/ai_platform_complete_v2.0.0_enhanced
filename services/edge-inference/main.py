@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
 import model_artifact_gate as artifact_gate
-from fastapi import FastAPI, File, Form, Header, HTTPException, Response, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Response, UploadFile
 from models.errors import ImageTooLarge, ModelNotProvisioned
 from models.pest_detector import EdgePestDetector
 from models.yield_estimator import EdgeYieldEstimator
@@ -29,10 +29,16 @@ logger = logging.getLogger(__name__)
 # عند الاستيراد (الخدمة لا تُقلع أصلاً). نقلناه أعلى تعريف app.
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    task = None
     if not OFFLINE_MODE:
         # احتفظ بالمرجع لمنع GC المبكّر للمهمّة الخلفيّة
-        app.state.sync_task = asyncio.create_task(_periodic_sync())
-    yield
+        task = app.state.sync_task = asyncio.create_task(_periodic_sync())
+    try:
+        yield
+    finally:
+        if task is not None:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
 
 
 app = FastAPI(lifespan=lifespan, title="SAHOOL Edge Inference", version="2026.1")
@@ -156,24 +162,29 @@ def capabilities_payload() -> dict[str, object]:
     }
 
 
+# مصدرٌ واحد لقيود المدخل: تُطبَّق على نماذج الطلب وعلى معامِلات Form() معاً، فلا يُشدَّد
+# أحدهما وحده فيعود مسار 500 (قيدٌ في النموذج لا يراه Form يرفع ValidationError خاماً).
+FIELD_ID_LIMITS = {"min_length": 1, "max_length": 50}
+CROP_PATTERN = "^(wheat|barley|maize|sorghum|millet|rice|potato|tomato|coffee)$"
+CONFIDENCE_LIMITS = {"ge": 0.1, "le": 1.0}
+IMAGE_COUNT_LIMITS = {"ge": 1, "le": 20}
+GROWTH_STAGE_PATTERN = "^(seedling|vegetative|flowering|grain_filling|maturity)$"
+
+
 class PestDetectionRequest(BaseModel):
     # field_id/crop اختياريّان: إطارُ بثٍّ غير مربوط بحقل يُكشَف ولا يُزامَن (المنصّة
     # تردّ 404 على حقلٍ غير موجود)، ومحصولٌ مجهول يبقى None لا «wheat» مُفترَضاً.
-    field_id: str | None = Field(default=None, min_length=1, max_length=50)
-    crop: str | None = Field(
-        default=None, pattern="^(wheat|barley|maize|sorghum|millet|rice|potato|tomato|coffee)$"
-    )
-    confidence_threshold: float = Field(default=0.6, ge=0.1, le=1.0)
+    field_id: str | None = Field(default=None, **FIELD_ID_LIMITS)
+    crop: str | None = Field(default=None, pattern=CROP_PATTERN)
+    confidence_threshold: float = Field(default=0.6, **CONFIDENCE_LIMITS)
     return_image: bool = False
 
 
 class YieldEstimationRequest(BaseModel):
-    field_id: str = Field(min_length=1, max_length=50)
+    field_id: str = Field(**FIELD_ID_LIMITS)
     crop: str
-    image_count: int = Field(default=5, ge=1, le=20)
-    growth_stage: str = Field(
-        default="vegetative", pattern="^(seedling|vegetative|flowering|grain_filling|maturity)$"
-    )
+    image_count: int = Field(default=5, **IMAGE_COUNT_LIMITS)
+    growth_stage: str = Field(default="vegetative", pattern=GROWTH_STAGE_PATTERN)
 
 
 class EdgeHealthCheck(BaseModel):
@@ -222,16 +233,16 @@ def _require_service_token(x_agent_token: str = Header(None)) -> None:
         raise HTTPException(401, "توكن خدمة غير صالح")
 
 
-@app.post("/v1/inference/pest-detect")
+# المصادقة تبعيّةٌ لا نداءٌ داخل المعالِج: FastAPI يحلّ التبعيّات قبل رفع أخطاء تحقّق
+# Form، فالطالب بلا توكن يتلقّى 401 لا 422 يكشف مخطّط القيود (نمط المصادقة قبل التحقّق).
+@app.post("/v1/inference/pest-detect", dependencies=[Depends(_require_service_token)])
 async def detect_pest(
     file: UploadFile = File(...),
-    field_id: str | None = Form(None),
-    crop: str | None = Form(None),
-    confidence_threshold: float = Form(0.6),
+    field_id: str | None = Form(None, **FIELD_ID_LIMITS),
+    crop: str | None = Form(None, pattern=CROP_PATTERN),
+    confidence_threshold: float = Form(0.6, **CONFIDENCE_LIMITS),
     return_image: bool = Form(False),
-    x_agent_token: str = Header(None),
 ):
-    _require_service_token(x_agent_token)
     request = PestDetectionRequest(
         field_id=field_id,
         crop=crop,
@@ -301,16 +312,14 @@ async def detect_pest(
     return {**result, "alert_ar": alert, "sync_status": "synced" if synced else "queued"}
 
 
-@app.post("/v1/inference/yield-estimate")
+@app.post("/v1/inference/yield-estimate", dependencies=[Depends(_require_service_token)])
 async def estimate_yield(
     files: list[UploadFile] = File(...),
-    field_id: str = Form(...),
+    field_id: str = Form(..., **FIELD_ID_LIMITS),
     crop: str = Form("wheat"),
-    image_count: int = Form(5),
-    growth_stage: str = Form("vegetative"),
-    x_agent_token: str = Header(None),
+    image_count: int = Form(5, **IMAGE_COUNT_LIMITS),
+    growth_stage: str = Form("vegetative", pattern=GROWTH_STAGE_PATTERN),
 ):
-    _require_service_token(x_agent_token)
     request = YieldEstimationRequest(
         field_id=field_id, crop=crop, image_count=image_count, growth_stage=growth_stage
     )

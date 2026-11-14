@@ -40,6 +40,7 @@ from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from outcome_reconcile import reconcile_outcomes
 from persistence import (
     SELF_APPROVAL_REASON_PREFIX,
+    LearningUpdateConflict,
     acquire_connection,
     authorize_dispatch,
     build_calibration_dataset,
@@ -59,6 +60,7 @@ from persistence import (
     create_retraining_request,
     create_rollout_plan,
     create_runtime_schedule,
+    field_evidence_counts,
     get_active_model_state,
     get_context_snapshot,
     get_decision_agronomic_evidence,
@@ -70,12 +72,15 @@ from persistence import (
     list_review_queue,
     list_runtime_work,
     list_worker_tenants,
+    normalize_operation_type,
     persist_decision_record,
     persist_dispatch_decision,
     persist_learning_update,
     persist_outcome_record,
     persist_recommendation_outcome,
     persist_vegetation_snapshot,
+    read_decision_lineage,
+    read_learning_inputs,
     read_outcomes_for_reconcile,
     record_execution_receipt,
     record_model_registry_activation_receipt,
@@ -286,6 +291,7 @@ LOOP_TABLES = [
     "decision_field_historical_context_snapshots",
     "decision_feature_manifests",
     "decision_feature_manifest_entries",
+    "decision_context_compositions",
     "decision_vegetation_snapshots",
 ]
 
@@ -820,6 +826,7 @@ async def review_queue(
     return {
         "authoritative": True,
         "persisted": True,
+        "tenant_id": tenant,
         "items": items,
         "count": len(items),
     }
@@ -964,8 +971,20 @@ async def build_execution_plan(
             status_code=422,
             detail="review_id, candidate_lineage_id and idempotency_key are required",
         )
-    if not payload.operation_type.strip():
+    # Normalise once at the boundary and persist exactly what was validated: a padded or
+    # case-variant spelling must not skip the manual-irrigation binding in persistence
+    # (DECISION-MANUAL-PLAN-PADDED-OPERATION-BYPASS-01).
+    operation_type = normalize_operation_type(payload.operation_type)
+    if not operation_type:
         raise HTTPException(status_code=422, detail="operation_type is required")
+    payload = payload.model_copy(update={"operation_type": operation_type})
+    # Plan windows are compared with each other and with aware UTC "now" downstream; a naive
+    # bound made the comparison raise TypeError (HTTP 500). Reject it like available_before
+    # (DECISION-PLAN-MIXED-TIMEZONE-500-01).
+    for name in ("planned_start", "planned_end"):
+        bound = getattr(payload, name)
+        if bound is not None and bound.tzinfo is None:
+            raise HTTPException(status_code=422, detail=f"{name} must carry a timezone")
     if (
         payload.planned_start
         and payload.planned_end
@@ -991,6 +1010,8 @@ async def build_execution_plan(
         return {"accepted": True, "tenant_id": tenant, **result}
     if result.get("status") == "not_found":
         raise HTTPException(status_code=404, detail="approved decision not found")
+    if result.get("status") == "invalid":
+        raise HTTPException(status_code=422, detail=result.get("reason", "invalid execution plan"))
     raise HTTPException(status_code=409, detail=result.get("reason", "execution plan conflict"))
 
 
@@ -1151,13 +1172,17 @@ async def record_learning_update(
     if sor_enabled():
         if status == "rejected_untraceable":
             raise HTTPException(status_code=422, detail="learning update must be traceable")
-        await persist_learning_update(
-            tenant_id=tenant, payload=payload, update_id=update_id, traceability_status=status
-        )
+        try:
+            stored = await persist_learning_update(
+                tenant_id=tenant, payload=payload, update_id=update_id, traceability_status=status
+            )
+        except LearningUpdateConflict:
+            raise HTTPException(status_code=409, detail="learning_update_id_conflict") from None
         return {
             "accepted": True,
             "authoritative": True,
             "persisted": True,
+            "replayed": stored["replayed"],
             "tenant_id": tenant,
             "update_id": update_id,
             "traceability_status": status,
@@ -1173,16 +1198,41 @@ async def record_learning_update(
 
 
 @app.get("/v1/learning/summary")
-def learning_summary(
+async def learning_summary(
     field_id: str | None = None,
     season_id: str | None = None,
     x_tenant_id: str | None = Header(default=None),
+    dashboard_inputs: bool = False,
 ) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    if dashboard_inputs:
+        if field_id is not None or season_id is not None:
+            raise HTTPException(422, "dashboard inputs cover the entire tenant")
+        if not sor_enabled():
+            raise HTTPException(503, "decision-service is not the system-of-record")
+        try:
+            inputs = await read_learning_inputs(tenant_id=tenant)
+        except Exception as exc:
+            raise HTTPException(503, "learning store unavailable") from exc
+        return {"tenant_id": tenant, "authoritative": True, **inputs}
+    if sor_enabled():
+        result = await reconciled_outcomes(
+            field_id=field_id, season_id=season_id, x_tenant_id=tenant
+        )
+        if result["outcome_reconciliation"].get("source") != "store":
+            raise HTTPException(503, "learning store unavailable")
+        return {**result, "authoritative": True}
     return {
-        "tenant_id": _tenant(x_tenant_id),
+        "tenant_id": tenant,
         "field_id": field_id,
         "season_id": season_id,
-        "outcome_reconciliation": {"enabled": True, "sample_count": 0, "success_rate": None},
+        "authoritative": False,
+        "outcome_reconciliation": {
+            "enabled": True,
+            "sample_count": 0,
+            "success_rate": None,
+            "source": "unavailable",
+        },
     }
 
 
@@ -1203,6 +1253,7 @@ async def list_decisions(
             "field_id": field_id,
             "decision_type": decision_type,
             "limit": limit,
+            "authoritative": True,
             **data,
         }
     return {
@@ -1210,21 +1261,43 @@ async def list_decisions(
         "field_id": field_id,
         "decision_type": decision_type,
         "limit": limit,
+        "authoritative": False,
         "decisions": [],
         "count": 0,
     }
 
 
+class FieldEvidenceQuery(BaseModel):
+    field_ids: list[str] = Field(max_length=500)
+
+
+@app.post("/v1/evidence/field-counts")
+async def read_field_evidence_counts(
+    payload: FieldEvidenceQuery,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict:
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not authoritative")
+    counts = await field_evidence_counts(tenant, payload.field_ids)
+    return {"tenant_id": tenant, "authoritative": True, "counts": counts}
+
+
 @app.get("/v1/fields/{field_id}/lineage")
-def field_lineage(
+async def field_lineage(
     field_id: str,
     limit: int = Query(50, ge=1, le=200),
     x_tenant_id: str | None = Header(default=None),
 ) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    if sor_enabled():
+        result = await read_decision_lineage(tenant_id=tenant, field_id=field_id, limit=limit)
+        return {"tenant_id": tenant, "authoritative": True, **result}
     return {
-        "tenant_id": _tenant(x_tenant_id),
+        "tenant_id": tenant,
         "field_id": field_id,
         "limit": limit,
+        "authoritative": False,
         "decisions": [],
         "orphan_outcomes": [],
         "count": 0,
@@ -1236,6 +1309,7 @@ async def reconciled_outcomes(
     field_id: str | None = None,
     season_id: str | None = None,
     x_tenant_id: str | None = Header(default=None),
+    season_inputs: bool = False,
 ) -> dict[str, Any]:
     """P1-13a: مصالحة نتائج حقيقيّة تضمّ مصدرَي النتائج (outcome_record + recommendation_outcomes).
 
@@ -1244,6 +1318,13 @@ async def reconciled_outcomes(
     يُلفّق نسبة). تعذّر القاعدة رغم تهيئتها ⇒ 503 (لا فراغ يُخفي الفشل)."""
     tenant = _tenant(x_tenant_id)
     base = {"tenant_id": tenant, "field_id": field_id, "season_id": season_id}
+    if season_inputs:
+        if not field_id or not season_id:
+            raise HTTPException(status_code=422, detail="field and season required")
+        if not sor_enabled():
+            raise HTTPException(
+                status_code=503, detail="decision-service is not the system-of-record"
+            )
     if not _database_configured():
         return {
             **base,
@@ -1262,6 +1343,41 @@ async def reconciled_outcomes(
         )
     except Exception as e:  # noqa: BLE001 — قاعدة مُهيّأة لكن متعذّرة ⇒ فشل صريح لا فراغ مُضلّل
         raise HTTPException(status_code=503, detail="outcome store unavailable") from e
+    if season_inputs:
+        # Only evidence used by the season projection may cross this boundary.
+        outcome_keys = (
+            "outcome_id",
+            "decision_id",
+            "field_id",
+            "tenant_id",
+            "region",
+            "success",
+            "created_at",
+        )
+        recommendation_keys = (
+            "outcome_id",
+            "recommendation_id",
+            "decision_id",
+            "field_id",
+            "tenant_id",
+            "season_id",
+            "farm_id",
+            "crop",
+            "predicted_yield_t_ha",
+            "actual_yield_t_ha",
+            "accepted",
+            "matured_within_lag",
+            "issued_at",
+            "outcome_recorded_at",
+        )
+        return {
+            **base,
+            "authoritative": True,
+            "outcome_records": [{k: row.get(k) for k in outcome_keys} for row in orows],
+            "recommendation_outcomes": [
+                {k: row.get(k) for k in recommendation_keys} for row in rrows
+            ],
+        }
     recon = reconcile_outcomes(orows, rrows)
     recon["source"] = "store"
     return {**base, "outcome_reconciliation": recon}
@@ -1286,10 +1402,17 @@ async def decision_agronomic_evidence(
 
 
 @app.get("/v1/decisions/{decision_id}/lineage")
-def decision_lineage(
-    decision_id: str, x_tenant_id: str | None = Header(default=None)
+async def decision_lineage(
+    decision_id: str,
+    x_tenant_id: str | None = Header(default=None),
+    limit: int = Query(50, ge=1, le=200),
 ) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    if sor_enabled():
+        result = await read_decision_lineage(tenant_id=tenant, decision_id=decision_id, limit=limit)
+        return {"tenant_id": tenant, "authoritative": True, **result}
     return {
+        "authoritative": False,
         "tenant_id": _tenant(x_tenant_id),
         "decision_id": decision_id,
         "decision": None,
@@ -2689,6 +2812,11 @@ async def monitoring_snapshot_boundary(
     actor = (x_captured_by or "").strip()
     if not actor:
         raise HTTPException(status_code=400, detail="X-Captured-By is required")
+    # Same defect class as DECISION-PLAN-MIXED-TIMEZONE-500-01: a naive bound against an aware one
+    # made ``window_end <= window_start`` raise TypeError (HTTP 500).
+    for name in ("window_start", "window_end"):
+        if getattr(payload, name).tzinfo is None:
+            raise HTTPException(status_code=422, detail=f"{name} must carry a timezone")
     if (
         payload.drift_state not in {"stable", "warning", "critical"}
         or payload.sample_count < 0

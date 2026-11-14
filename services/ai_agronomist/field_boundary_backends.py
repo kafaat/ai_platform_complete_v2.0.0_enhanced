@@ -74,20 +74,31 @@ def connected_components(mask: Mask) -> list[list[tuple[int, int]]]:
 
 
 def mask_to_polygons(
-    mask: Mask, bbox: Sequence[float], *, min_area_px: int = 4
+    mask: Mask, bbox: Sequence[float], *, min_area_px: int = 4, exact: bool = False
 ) -> list[dict[str, Any]]:
     """Segmentation mask → one closed EPSG:4326 Polygon per connected field.
 
-    Deterministic post-processing shared by any raster model. This scaffold emits
-    each component's pixel-extent rectangle (separating *multiple* fields in a
-    scene — a real gain over the single-bbox placeholder). Production swaps the
-    per-component rectangle for true contour tracing (``rasterio.features.shapes``
-    / marching squares) without touching callers.
+    With exact=True, trace the pixel edges of each component, including holes.
+    Otherwise preserve the boundary-proposal backend's optional rasterio contours
+    and its default rectangle approximation.
     """
     rows = len(mask)
     cols = len(mask[0]) if rows else 0
     if not rows or not cols:
         return []
+    if exact:
+        polygons = []
+        for cells in connected_components(mask):
+            if len(cells) < max(1, min_area_px):
+                continue
+            rings = _component_rings(cells)
+            coordinates = [
+                [pixel_to_lonlat(x, y, bbox, cols, rows) for x, y in ring] for ring in rings
+            ]
+            polygons.append(
+                {"type": "Polygon", "coordinates": coordinates, "pixel_area": len(cells)}
+            )
+        return polygons
     # V62.2 — real contour tracing is an explicit opt-in (SAHOOL_BOUNDARY_CONTOUR_TRACING)
     # so default output stays deterministic across envs; the pure per-component rectangle
     # below is the default + offline/CI fallback.
@@ -119,6 +130,54 @@ def mask_to_polygons(
     return polys
 
 
+def _component_rings(cells: list[tuple[int, int]]) -> list[list[tuple[int, int]]]:
+    """Trace grid edges of one 4-connected component, preserving its internal holes."""
+    # Row increases southward. Orient each cell so that in lon/lat the outer ring
+    # is counterclockwise and holes are clockwise. Interior edges cancel in pairs.
+    edges = {}
+    for row, col in cells:
+        corners = [(col, row), (col, row + 1), (col + 1, row + 1), (col + 1, row)]
+        for start, end in zip(corners, corners[1:] + corners[:1], strict=True):
+            if (end, start) in edges:
+                del edges[end, start]
+            else:
+                edges[start, end] = None
+    outgoing = {}
+    for start, end in edges:
+        outgoing.setdefault(start, []).append(end)
+
+    rings = []
+    while edges:
+        start, end = next(reversed(edges))
+        ring = [start]
+        while True:
+            del edges[start, end]
+            if end == ring[0]:
+                break
+            ring.append(end)
+            choices = outgoing[end]
+            if len(choices) == 1:
+                following = choices[0]
+            else:
+                # The shell and a hole, or two holes, can touch at a grid
+                # corner. Follow the surrounding empty quadrant at that point.
+                dx, dy = end[0] - start[0], end[1] - start[1]
+                following = (end[0] - dy, end[1] + dx)
+            start, end = end, following
+        corners = [
+            point
+            for i, point in enumerate(ring)
+            if ring[i - 1][0] != ring[(i + 1) % len(ring)][0]
+            and ring[i - 1][1] != ring[(i + 1) % len(ring)][1]
+        ]
+        rings.append(corners + [corners[0]])
+    # In row-down coordinates signed area is negative for the single exterior.
+    rings.sort(
+        key=lambda ring: sum(x * v - u * y for (x, y), (u, v) in zip(ring, ring[1:], strict=False))
+    )
+    return rings
+
+
 def _mask_to_polygons_rasterio(
     mask: Mask, bbox: Sequence[float], *, min_area_px: int
 ) -> list[dict[str, Any]] | None:
@@ -130,7 +189,6 @@ def _mask_to_polygons_rasterio(
     try:
         import numpy as np
         from rasterio.features import shapes
-        from rasterio.transform import from_bounds
     except Exception:  # noqa: BLE001 — rasterio/numpy غير متاحين ⇒ سقوط للنقيّ
         return None
     try:
@@ -138,19 +196,22 @@ def _mask_to_polygons_rasterio(
         rows, cols = arr.shape
         if rows == 0 or cols == 0:
             return []
-        lon_min, lat_min, lon_max, lat_max = bbox
-        transform = from_bounds(lon_min, lat_min, lon_max, lat_max, cols, rows)
         out: list[dict[str, Any]] = []
-        for geom, val in shapes(arr, mask=arr == 1, transform=transform):
+        for geom, val in shapes(arr, mask=arr == 1):
             if int(val) != 1:
                 continue
-            ring = geom.get("coordinates", [[]])[0]
-            if len(ring) < 4:
-                continue
-            out.append(
-                {"type": "Polygon", "coordinates": geom["coordinates"], "pixel_area": len(ring)}
-            )
-        return out or None
+            rings = geom["coordinates"]
+            areas = [
+                abs(sum(x * v - u * y for (x, y), (u, v) in zip(ring, ring[1:], strict=False))) / 2
+                for ring in rings
+            ]
+            count = round(areas[0] - sum(areas[1:]))
+            if count >= max(1, min_area_px):
+                coordinates = [
+                    [pixel_to_lonlat(x, y, bbox, cols, rows) for x, y in ring] for ring in rings
+                ]
+                out.append({"type": "Polygon", "coordinates": coordinates, "pixel_area": count})
+        return out
     except Exception:  # noqa: BLE001 — أيّ فشل تتبّع ⇒ سقوط للنقيّ
         return None
 

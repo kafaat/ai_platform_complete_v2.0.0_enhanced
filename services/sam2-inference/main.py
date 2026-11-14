@@ -75,6 +75,10 @@ async def predict(req: rt.PredictRequest):
     point_coords, point_labels, box = rt._build_prompt(
         req.mode, req.user_polygon, transform, crs, img_h, img_w
     )
+    # ExG runs on this very georeferenced window; the prompt may become one component.
+    rgb, (point_coords, point_labels, box), preprocessing_metadata = await asyncio.to_thread(
+        rt._apply_preprocessing, rgb, req, (point_coords, point_labels, box)
+    )
 
     try:
         masks, scores, _ = await asyncio.to_thread(
@@ -102,6 +106,7 @@ async def predict(req: rt.PredictRequest):
         len(geometry.get("coordinates", [[]])[0]) if isinstance(geometry, dict) else None
     )
     metadata = {
+        **preprocessing_metadata,
         "source": "sam2",
         "mode": req.mode,
         "model": "sam2",

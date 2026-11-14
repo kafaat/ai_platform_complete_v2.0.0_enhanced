@@ -38,7 +38,6 @@ from api.field_geometry_save_guard import sanitize_boundary_metadata, validate_b
 from api.field_models import (
     _FIELD_DETAIL_SELECT,
     _FIELD_QUALITY_SELECT,
-    _MIN_FIELD_OVERLAP_M2,
     ChildField,
     DriftRiskRequest,
     FieldCreateRequest,
@@ -51,9 +50,11 @@ from api.field_models import (
     FieldSummary,
     FieldUpdateRequest,
     _build_field_update,
+    _lock_and_reject_field_overlap,
+    _lock_field_boundaries,
+    _reject_field_overlap,
     _row_to_field_detail,
     _row_to_field_summary,
-    _significant_overlaps,
     field_quality_grade,
     reject_future_performed_on,
 )
@@ -137,7 +138,7 @@ from api.raster_service_client import (
     # facade call distinct so DEM auto-fill hits raster-service, not the route.
     get_field_terrain as raster_get_field_terrain,
 )
-from api.scouting_pins import make_pin, persist_scouting_pin
+from api.scouting_pins import create_scouting_pin, persist_scouting_pin
 
 # نماذج/مساعدات المواسم نُقِلت إلى api.season_models (تفكيك B1) وتُستورَد من هناك.
 from api.season_models import (
@@ -344,7 +345,7 @@ async def _insert_field_within_tx(
         lat=lat,
         lon=lon,
         geometry=geometry,
-    ).model_dump(mode="json")
+    ).model_dump(mode="json") | {"geometry_revision": rev}
 
 
 # ─── معالِج حفظ الحقل المشترك (مرسوم/مستورَد) — نُقل من main.py (تفكيك B1) ──────
@@ -363,19 +364,17 @@ async def _persist_field(
     # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
-    import asyncpg  # لتضييق التقاط أخطاء PostGIS الغائب في فحص التداخل
-
     # Geometry Guard: كل حدود الحقول تدخل النظام كـPolygon canonical في EPSG:4326.
     # Pivot fields are canonicalized from center/radius/angles when the client sends
     # pivot metadata, so irrigation geometry and map polygon cannot drift apart.
     raw_payload = req.model_dump(mode="json")
-    canonical_pivot = maybe_canonicalize_pivot_geometry(
-        raw_payload, req.irrigation_type or req.water_source or None
-    )
-    raw_geometry = canonical_pivot or req.geometry
     try:
+        canonical_pivot = maybe_canonicalize_pivot_geometry(
+            raw_payload, req.irrigation_type or req.water_source or None
+        )
+        raw_geometry = canonical_pivot or req.geometry
         guarded = guard_field_geometry(raw_geometry)
-    except ValueError as exc:
+    except (TypeError, ValueError, OverflowError) as exc:
         raise HTTPException(
             status_code=422,
             detail=field_geometry_error_detail(exc),
@@ -405,7 +404,6 @@ async def _persist_field(
         country = country or auto_country
         region = region or auto_region
     field_id = "fld_" + _uuid.uuid4().hex[:12]
-    geom_json = json.dumps(geometry)
     try:
         async with tenant_connection(user) as conn:
 
@@ -427,6 +425,7 @@ async def _persist_field(
                                 "code": "farm_not_found",
                             },
                         )
+                await _lock_field_boundaries(conn, str(user.tenant_id))
                 # منع تكرار اسم الحقل داخل نفس المزرعة/المستأجر (تطبيع حالة الأحرف).
                 dup = await conn.fetchrow(
                     "SELECT field_id FROM fields WHERE tenant_id = $1::uuid "
@@ -444,54 +443,7 @@ async def _persist_field(
                             "existing_field_id": dup["field_id"],
                         },
                     )
-                # منع تداخل الهندسة مع حقول المستأجِر (ST_Intersects على عمود geom المفهرس
-                # GiST — v43) — يكشف أيضاً «النسخ» الهندسيّة ولو اختلف الاسم. يتطلّب PostGIS؛
-                # تدهور رشيق فقط عند غيابه (دالّة/نوع غير معرّف)؛ أيّ خطأ DB آخر ⇒ 503.
-                try:
-                    overlaps = await conn.fetch(
-                        """
-                        SELECT field_id, name,
-                               ST_Area(ST_Intersection(
-                                   ST_GeomFromGeoJSON($1), geom
-                               )::geography) AS overlap_m2
-                        FROM fields
-                        WHERE tenant_id = $2::uuid AND geom IS NOT NULL
-                          AND ST_Intersects(ST_GeomFromGeoJSON($1), geom)
-                        ORDER BY overlap_m2 DESC NULLS LAST
-                        LIMIT 5
-                        """,
-                        geom_json,
-                        str(user.tenant_id),
-                    )
-                except (
-                    asyncpg.UndefinedFunctionError,
-                    asyncpg.UndefinedObjectError,
-                    asyncpg.UndefinedColumnError,
-                ) as ovl_err:
-                    # PostGIS غير مُثبَّت (دوال/نوع geometry غير معرّفة) — تخطٍّ رشيق فقط هنا.
-                    logging.warning("تخطّي فحص تداخل الحقول — PostGIS غير متاح: %s", ovl_err)
-                    overlaps = []
-                significant = _significant_overlaps(overlaps, _MIN_FIELD_OVERLAP_M2)
-                if significant:
-                    top = significant[0]
-                    raise HTTPException(
-                        status_code=409,
-                        detail={
-                            "message_ar": (
-                                f"حدود الحقل تتداخل مع «{top['name']}» "
-                                f"(~{top['overlap_m2']:.0f} م²). صحّح الحدود."
-                            ),
-                            "code": "field_geometry_overlap",
-                            "overlaps": [
-                                {
-                                    "field_id": o["field_id"],
-                                    "name": o["name"],
-                                    "overlap_m2": round(o["overlap_m2"] or 0.0, 1),
-                                }
-                                for o in significant
-                            ],
-                        },
-                    )
+                await _reject_field_overlap(conn, str(user.tenant_id), geometry)
                 # جوهر الإدراج المشترك (INSERT + FIELD_CREATED + سجلّ الهندسة + إبطال
                 # الراستر + FIELD_GEOMETRY_CHANGED + حالة الحقل) — مصدر واحد للحقيقة
                 # يُعاد استخدامه في merge/split (سلوك محفوظ حرفيّاً).
@@ -586,6 +538,7 @@ async def create_field(
         field_id=result["field_id"],
         tenant_id=str(user.tenant_id),
         geometry=result["geometry"],
+        geometry_revision=result.get("geometry_revision"),
         reason="field.created",
     )
     return result
@@ -650,6 +603,7 @@ async def import_field(
         field_id=result["field_id"],
         tenant_id=str(user.tenant_id),
         geometry=result["geometry"],
+        geometry_revision=result.get("geometry_revision"),
         reason="field.created",
     )
     return result
@@ -1122,8 +1076,6 @@ async def _compute_field_terrain_from_dem(
     """
     try:
         if isinstance(geometry, str):
-            # json is imported once at module scope (line anchor preserved)
-
             geometry = json.loads(geometry)
         guarded = guard_field_geometry(geometry)
         return await raster_get_field_terrain(
@@ -1286,6 +1238,10 @@ async def update_field(
                                 "code": "pivot_polygon_drift_forbidden",
                             },
                         ) from exc
+                    except (TypeError, ValueError, OverflowError) as exc:
+                        raise HTTPException(
+                            status_code=422, detail=field_geometry_error_detail(exc)
+                        ) from exc
                     raw_geometry = canonical if canonical is not None else req.geometry
                     # حارس الهندسة (CRS/تقاطع ذاتي/مساحة) على الناتج (الخام أو المُشتقّ).
                     try:
@@ -1306,6 +1262,9 @@ async def update_field(
                                 "issues": str(exc).split(","),
                             },
                         ) from exc
+                    await _lock_and_reject_field_overlap(
+                        conn, str(user.tenant_id), guarded.geometry, field_id
+                    )
                     req = req.model_copy(update={"geometry": guarded.geometry})
                     # حدود الحقل هي مصدر مساحة/مركز الحقل. تحديث geometry دون تحديث
                     # area_ha/lat/lon يترك القائمة والتوصيات والـbbox الاحتياطي على
@@ -1326,6 +1285,7 @@ async def update_field(
                 sql, exec_values = _build_versioned_update(
                     set_clause, values, field_id, req.base_version
                 )
+                merged_from_version = None
                 upd = await conn.execute(sql, *exec_values)
                 # تعارض تزامن تفاؤليّ: الحقل موجود (تأكّدنا) لكن UPDATE أصاب 0 صفّ ⇒
                 # row_version لا يطابق base_version ⇒ عُدِّل من جلسة أخرى بين قراءة العميل
@@ -1333,7 +1293,7 @@ async def update_field(
                 if req.base_version is not None and upd.rsplit(" ", 1)[-1] == "0":
                     # تعارض إصدار: نقرأ سجلّ الخادم الحاليّ لتصنيف تغييرات العميل.
                     srow = await conn.fetchrow(
-                        f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+                        f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid FOR UPDATE",
                         field_id,
                         str(user.tenant_id),
                     )
@@ -1349,72 +1309,36 @@ async def update_field(
                     can_merge, conflicts = _field_merge_plan(
                         client_changes, server_py, req.base_values
                     )
-                    if can_merge:
-                        # Auto-merge (Level 3): لا تقاطع فعليّ ⇒ نُعيد تطبيق تغييرات
-                        # العميل على النسخة الحاليّة بلا حارس الإصدار (دمج آمن، لا فقد).
-                        merge_sql, merge_vals = _build_versioned_update(
-                            set_clause, values, field_id, None
-                        )
-                        await conn.execute(merge_sql, *merge_vals)
-                        mrow = await conn.fetchrow(
-                            f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
-                            field_id,
-                            str(user.tenant_id),
-                        )
-                        _auto_payload = {**client_changes, "_auto_merged": True}
-                        if geometry_changed and req.geometry is not None:
-                            _auto_payload.update(
-                                {
-                                    "area_ha": new_geometry_area_ha,
-                                    "lat": new_geometry_lat,
-                                    "lon": new_geometry_lon,
-                                }
-                            )
-                        await _emit_domain_event(
-                            conn,
-                            user,
-                            "FIELD_UPDATED",
-                            "field",
-                            field_id,
-                            _auto_payload,
-                        )
-                        # تدقيق صريح للدمج الآليّ (إضافةً لحدث تغيّر الحقل).
-                        await _emit_domain_event(
-                            conn,
-                            user,
-                            "OFFLINE_MERGE_AUTO",
-                            "field",
-                            field_id,
-                            {
-                                "merged_fields": sorted(client_changes),
-                                "server_version_before": server_py.get("row_version"),
+                    if not can_merge:
+                        # تعارض حقيقيّ (تقاطع أو بلا base_values) ⇒ 409 مُثرى (Workflow).
+                        raise HTTPException(
+                            status_code=409,
+                            detail={
+                                "error": "version_conflict",
+                                "conflict": True,
+                                "safe_to_retry": False,  # إعادة عمياء تدهس عمل الطرف الآخر
+                                "message_ar": (
+                                    "عُدِّل الحقل من جلسة أخرى منذ قراءتك — راجع الفروق ثمّ احسم "
+                                    "(نسخة الخادم/نسختي/دمج)."
+                                ),
+                                "server_version": server_py.get("row_version"),
+                                "client_version": req.base_version,
+                                "base_version": req.base_version,
+                                "server_record": server_detail.model_dump(mode="json"),
+                                "client_record": client_changes,  # ما حاول العميل كتابته
+                                "base_record": req.base_values,  # لقطة الأساس إن توفّرت
+                                "conflicting_fields": conflicts,  # المتقاطعة فعليّاً (تحتاج حسماً)
+                                "changed_fields": conflicts,  # اسم سابق (توافق خلفيّ)
+                                # أسماء قديمة للتوافق الخلفيّ مع عملاء يقرؤونها:
+                                "current_version": server_py.get("row_version"),
+                                "your_base_version": req.base_version,
                             },
                         )
-                        return _row_to_field_detail(mrow).model_dump()
-                    # تعارض حقيقيّ (تقاطع أو بلا base_values) ⇒ 409 مُثرى (Workflow).
-                    raise HTTPException(
-                        status_code=409,
-                        detail={
-                            "error": "version_conflict",
-                            "conflict": True,
-                            "safe_to_retry": False,  # إعادة عمياء تدهس عمل الطرف الآخر
-                            "message_ar": (
-                                "عُدِّل الحقل من جلسة أخرى منذ قراءتك — راجع الفروق ثمّ احسم "
-                                "(نسخة الخادم/نسختي/دمج)."
-                            ),
-                            "server_version": server_py.get("row_version"),
-                            "client_version": req.base_version,
-                            "base_version": req.base_version,
-                            "server_record": server_detail.model_dump(mode="json"),
-                            "client_record": client_changes,  # ما حاول العميل كتابته
-                            "base_record": req.base_values,  # لقطة الأساس إن توفّرت
-                            "conflicting_fields": conflicts,  # المتقاطعة فعليّاً (تحتاج حسماً)
-                            "changed_fields": conflicts,  # اسم سابق (توافق خلفيّ)
-                            # أسماء قديمة للتوافق الخلفيّ مع عملاء يقرؤونها:
-                            "current_version": server_py.get("row_version"),
-                            "your_base_version": req.base_version,
-                        },
+                    merge_sql, merge_vals = _build_versioned_update(
+                        set_clause, values, field_id, None
                     )
+                    await conn.execute(merge_sql, *merge_vals)
+                    merged_from_version = server_py["row_version"]
                 row = await conn.fetchrow(
                     f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
                     field_id,
@@ -1424,10 +1348,12 @@ async def update_field(
                     # سُحب الحقل بين التأكيد والقراءة (نادر) ⇒ نرفع 404 **داخل** المعاملة
                     # قبل إصدار الحدث، فتتراجع المعاملة ولا يُكتب حدث لتحديث لم يقع فعلاً.
                     raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
-                # حدث domain ضمن نفس المعاملة — الحقول المُرسَلة فقط في الـpayload.
+                # حدث domain: الحقول المُرسَلة + row_version بعد التحديث هويّةً للطفرة (C-14).
                 _updated_payload = req.model_dump(
                     exclude_unset=True, exclude={"base_version", "base_values"}
-                )
+                ) | {"row_version": row["row_version"]}
+                if merged_from_version is not None:
+                    _updated_payload["_auto_merged"] = True
                 if geometry_changed and req.geometry is not None:
                     _updated_payload.update(
                         {
@@ -1445,6 +1371,19 @@ async def update_field(
                     # base_version عمّاد تزامن لا تغييرَ حقل ⇒ يُستثنى من حدث الـdomain.
                     _updated_payload,
                 )
+                if merged_from_version is not None:
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "OFFLINE_MERGE_AUTO",
+                        "field",
+                        field_id,
+                        {
+                            "merged_fields": sorted(client_changes),
+                            "server_version_before": merged_from_version,
+                        },
+                    )
+                rev = None
                 if geometry_changed and req.geometry is not None:
                     updated_detail = _row_to_field_detail(row)
                     rev = await save_field_geometry_revision(
@@ -1477,7 +1416,7 @@ async def update_field(
                     )
                 # نُعيد JSON (model_dump) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
                 # عند الإعادة — response_model=FieldDetail يتحقّق منه.
-                return _row_to_field_detail(row).model_dump()
+                return _row_to_field_detail(row).model_dump() | {"geometry_revision": rev}
 
             # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
             if idem:
@@ -1505,6 +1444,7 @@ async def update_field(
             field_id=field_id,
             tenant_id=str(user.tenant_id),
             geometry=result["geometry"],
+            geometry_revision=result.get("geometry_revision"),
             reason="field.geometry.updated",
         )
     return result
@@ -1600,7 +1540,9 @@ async def revert_field_geometry(
             if not isinstance(raw_geometry, dict):
                 raise HTTPException(status_code=409, detail="stored_geometry_invalid")
             guarded = guard_field_geometry(raw_geometry)
-
+            await _lock_and_reject_field_overlap(
+                conn, str(user.tenant_id), guarded.geometry, field_id
+            )
             await conn.execute(
                 """
                 UPDATE fields
@@ -1661,6 +1603,7 @@ async def revert_field_geometry(
         field_id=field_id,
         tenant_id=str(user.tenant_id),
         geometry=guarded.geometry,
+        geometry_revision=new_rev,
         reason="field.geometry.reverted",
     )
     return detail
@@ -1897,6 +1840,7 @@ async def merge_fields(
         field_id=result["field_id"],
         tenant_id=str(user.tenant_id),
         geometry=result["geometry"],
+        geometry_revision=result.get("geometry_revision"),
         reason="field.merged",
     )
     return result
@@ -2038,6 +1982,7 @@ async def split_field(
             field_id=child_result["field_id"],
             tenant_id=str(user.tenant_id),
             geometry=child_result["geometry"],
+            geometry_revision=child_result.get("geometry_revision"),
             reason="field.split",
         )
     return result
@@ -2060,7 +2005,6 @@ async def create_season(
     (RLS) بعد تأكيد أنّ الحقل يخصّه (404)، ويردّ الموسم المُنشأ. idempotent:
     Idempotency-Key (UUID) يمنع تكرار الإنشاء عند إعادة الموبايل (offline).
     """
-    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
     if req.irrigation_type and req.irrigation_type not in _IRRIGATION_TYPES:
@@ -2070,12 +2014,10 @@ async def create_season(
     plow = _parse_date(req.plowing_date, "الحراثة")
     sow = _parse_date(req.sowing_date, "البذار")
     end = _parse_date(req.season_end, "نهاية الموسم")
-    if plow and land and plow < land:
-        raise HTTPException(status_code=422, detail="تاريخ الحراثة قبل تسوية الأرض")
-    if sow and plow and sow < plow:
-        raise HTTPException(status_code=422, detail="تاريخ البذار قبل الحراثة")
-    if end and sow and end < sow:
-        raise HTTPException(status_code=422, detail="نهاية الموسم قبل البذار")
+    from api.season_integrity import chronology_error
+
+    if date_error := chronology_error(land, plow, sow, end):  # كلّ أزواج قيد v47
+        raise HTTPException(status_code=422, detail=date_error)
     # حارس تقويم الموسم (Season Calendar Guard): إرشاديّ **غير حاجب** — يقيّم موقع الموسم
     # من نافذة الزراعة/الحصاد المعتادة للمحصول الأوّل. لا يمنع الإنشاء (توجّه لا فرض).
     from api.season_calendar_guard import evaluate_season_calendar
@@ -2111,10 +2053,12 @@ async def create_season(
                 # المعاملة — فيكون «إنشاء موسم» انتقالاً نظيفاً للموسم النشط. الفهرس
                 # الفريد الجزئي (uq_seasons_one_active) هو الضمانة النهائيّة للثابت.
                 async with conn.transaction():
+                    # موسم مخطَّط (initial_status='planned') لا يُغلق النشط: $2 يقيّد الإغلاق.
                     closed = await conn.fetch(
-                        "UPDATE seasons SET status = 'closed' "
-                        "WHERE field_id = $1 AND status = 'active' RETURNING season_id",
+                        "UPDATE seasons SET status = 'closed' WHERE field_id = $1 "
+                        "AND status = 'active' AND $2::text = 'active' RETURNING season_id",
                         field_id,
+                        req.initial_status,
                     )
                     # حدث SEASON_CLOSED لكلّ موسم نشط أُغلق آليّاً (توسيع تغطية الأحداث).
                     for cr in closed:
@@ -2139,7 +2083,7 @@ async def create_season(
                          target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source,
                          maturity, tillage_type, actual_yield_kg_ha, notes_ar)
                        VALUES ($1, $2::uuid, $3, $4::jsonb, $5, $6, $7,
-                               $8, $9, $10, $11, $12::jsonb, 'active',
+                               $8, $9, $10, $11, $12::jsonb, $21,
                                $13, $14, $15, $16,
                                $17, $18, $19, $20)""",
                         season_id,
@@ -2162,6 +2106,7 @@ async def create_season(
                         req.tillage_type,
                         req.actual_yield_kg_ha,
                         req.notes_ar,
+                        req.initial_status,
                     )
                     # حدث domain ضمن نفس معاملة إنشاء الموسم (نمط outbox).
                     await _emit_domain_event(
@@ -2173,6 +2118,7 @@ async def create_season(
                         {
                             "field_id": field_id,
                             "crops": req.crops,
+                            "status": req.initial_status,
                             "cultivar": req.cultivar,
                             "irrigation_type": req.irrigation_type,
                             "sowing_date": req.sowing_date,
@@ -2211,7 +2157,7 @@ async def create_season(
                     sowing_date=sow.isoformat() if sow else None,
                     season_end=end.isoformat() if end else None,
                     stages=clean_stages,  # نفس ما خُزّن (dicts مُنظَّفة من season_integrity)
-                    status="active",
+                    status=req.initial_status,
                     target_yield_kg_ha=req.target_yield_kg_ha,
                     plant_density=req.plant_density,
                     row_spacing_cm=req.row_spacing_cm,
@@ -2302,17 +2248,16 @@ async def update_season(
 
     if req.irrigation_type is not None and req.irrigation_type not in _IRRIGATION_TYPES:
         raise HTTPException(status_code=422, detail="نوع ريّ غير معروف")
-    sow = _parse_date(req.sowing_date, "البذار") if req.sowing_date is not None else None
-    end = _parse_date(req.season_end, "نهاية الموسم") if req.season_end is not None else None
-    if end and sow and end < sow:
-        raise HTTPException(status_code=422, detail="نهاية الموسم قبل البذار")
+    from api.season_integrity import season_update_dates
+
+    sow, end, land, plow, date_error = season_update_dates(req, _parse_date)
+    if date_error:
+        raise HTTPException(status_code=422, detail=date_error)
 
     # أعمدة قابلة للتحديث (column, value) — الحقول الممرَّرة فقط، JSONB مُعلَّم.
     fields_set = req.model_fields_set
     updates: list[tuple[str, object, bool]] = []  # (col, value, is_jsonb)
     if "crops" in fields_set:
-        # json is imported once at module scope (line anchor preserved)
-
         updates.append(("crops", json.dumps(req.crops or []), True))
     if "cultivar" in fields_set:
         updates.append(("cultivar", req.cultivar, False))
@@ -2320,6 +2265,10 @@ async def update_season(
         updates.append(("irrigation_type", req.irrigation_type, False))
     if "seed_rate_kg_ha" in fields_set:
         updates.append(("seed_rate_kg_ha", req.seed_rate_kg_ha, False))
+    if "land_leveling_date" in fields_set:
+        updates.append(("land_leveling_date", land, False))
+    if "plowing_date" in fields_set:
+        updates.append(("plowing_date", plow, False))
     if req.sowing_date is not None:
         updates.append(("sowing_date", sow, False))
     if req.season_end is not None:
@@ -2346,7 +2295,8 @@ async def update_season(
             await _assert_field_in_tenant(conn, field_id)
             async with conn.transaction():
                 current = await conn.fetchrow(
-                    "SELECT status, row_version, sowing_date, season_end FROM seasons "
+                    "SELECT status, row_version, sowing_date, season_end, "
+                    "land_leveling_date, plowing_date FROM seasons "
                     "WHERE season_id = $1 AND field_id = $2 FOR UPDATE",
                     season_id,
                     field_id,
@@ -2357,23 +2307,16 @@ async def update_season(
                 # سلامة التواريخ (season_integrity #1): عند تعديل تاريخ واحد فقط، ادمِجه مع
                 # المخزّن وافحص الترتيب النهائيّ — يمنع أن تقع النهاية قبل البذار المخزّن
                 # (الفحص pre-DB أعلاه لا يُغطّيه إلّا عند إرسال التاريخين معاً).
-                from api.season_integrity import UNSET as _DATE_UNSET
-                from api.season_integrity import resolve_and_check_date_order
+                from api.season_integrity import validate_final_season_date_order
 
-                _date_err = resolve_and_check_date_order(
-                    current_sowing=current["sowing_date"],
-                    current_end=current["season_end"],
-                    new_sowing=sow if req.sowing_date is not None else _DATE_UNSET,
-                    new_end=end if req.season_end is not None else _DATE_UNSET,
-                )
+                _date_err = validate_final_season_date_order(current, req, sow, end, land, plow)
                 if _date_err:
                     raise HTTPException(status_code=422, detail=_date_err)
 
                 # تزامن تفاؤليّ (v64): إن مرّر العميل base_version ولم يطابق الإصدار
                 # الحاليّ ⇒ عُدِّل الموسم من جلسة أخرى منذ قراءته ⇒ 409 (لا فقد صامت).
                 # الصفّ مقفول (FOR UPDATE) فالفحص خالٍ من السباق. الرفض قبل أيّ كتابة
-                # أو إصدار حدث ⇒ المعاملة تتراجع نظيفةً. trg_seasons_row_version يرفع
-                # row_version آليّاً على كلّ UPDATE فلا رفعَ يدويّ هنا.
+                # أو إصدار حدث ⇒ تتراجع المعاملة نظيفةً؛ trg_seasons_row_version يرفع row_version.
                 if req.base_version is not None and current["row_version"] != req.base_version:
                     raise HTTPException(
                         status_code=409,
@@ -2411,15 +2354,16 @@ async def update_season(
                         *params,
                     )
 
-                # حدث التحديث + حدث الإغلاق المخصَّص عند الانتقال إلى closed.
+                # حدث التحديث (row_version بعد الكتابة هويّةُ الطفرة، C-14) + حدث الإغلاق عند closed.
                 changed_fields = [c for c, _, _ in updates]
+                rv = current["row_version"] + (1 if updates else 0)  # trigger: +1/UPDATE
                 await _emit_domain_event(
                     conn,
                     user,
                     "SEASON_UPDATED",
                     "season",
                     season_id,
-                    {"field_id": field_id, "changed_fields": changed_fields},
+                    {"field_id": field_id, "changed_fields": changed_fields, "row_version": rv},
                 )
                 if status_changed and req.status == "closed":
                     await _emit_domain_event(
@@ -2732,8 +2676,6 @@ async def field_wind_drift_risk(
 
     field_geom = None
     if isinstance(field_geom_raw, str):
-        # json is imported once at module scope (line anchor preserved)
-
         try:
             field_geom = json.loads(field_geom_raw)
         except (ValueError, TypeError):
@@ -3284,7 +3226,6 @@ async def update_soil_lab_test(
     نهائيّان؛ لا اعتماد/نشر بلا نتيجة — 422). تأكيد ملكيّة الحقل (404)؛ الفحص يخصّ
     الحقل (404). 503 عند تعذّر القاعدة.
     """
-    # json is imported once at module scope (line anchor preserved)
 
     from core.engines.soil_lab_workflow import SoilWorkflowError, validate_soil_transition
 
@@ -3629,6 +3570,7 @@ async def estimate_field_yield(
         "field_id": est.field_id,
         "crop": est.crop,
         "estimated_yield_kg_ha": est.estimated_yield_kg_ha,
+        "yield_status": est.yield_status,
         "yield_score": est.yield_score,
         "confidence": est.confidence,
         "stress_level": est.stress_level.value,
@@ -3820,41 +3762,13 @@ async def create_pin(
     req: PinCreateRequest,
     user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
-    """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة.
+    """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة مع ``persisted``.
 
-    سابقاً: تحقّق + إرجاع فقط (الحفظ كان على الموبايل offline-first) — فلا قراءة
-    خادميّة. الآن يُثبَّت الدبّوس في ``scouting_pins`` (v94، معزول بالمستأجِر) ليُقرأ
-    عبر ``GET /api/v1/scouting/pins?field_id=…`` (نظير FieldView). صدق: التحقّق هو
-    مصدر الحقيقة؛ الإدامة best-effort — لو تعذّرت القاعدة يبقى الدبّوس صالحاً ويُعلَن
-    ``persisted=false`` (لا اختراع نجاح، يبقى المسار offline-first سليماً). idempotent
-    عبر ``ON CONFLICT (pin_id) DO NOTHING`` (إعادة المزامنة لا تُكرّر).
+    تُقرأ عبر ``GET /api/v1/scouting/pins?field_id=…``. الإدامة best-effort (تعذّر القاعدة ⇒
+    ``persisted=false``)، وidempotent على pin_id. مصدر الموقع ودقّته (v257): التنفيذ
+    في ``api.scouting_pins.create_scouting_pin`` (حدّ حجم الراوتر).
     """
-    if req.field_id != field_id:
-        raise HTTPException(422, "معرّف الحقل لا يطابق المسار")
-    try:
-        pin = make_pin(
-            req.pin_id,
-            field_id,
-            req.lat,
-            req.lng,
-            req.issue_category,
-            req.severity,
-            req.status,
-            req.persistence,
-            crop=req.crop,
-            issue_code=req.issue_code,
-            note_ar=req.note_ar,
-            photo_uri=req.photo_uri,
-            color=req.color,
-            created_by=user.user_id,
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
-
-    persisted = await _persist_scouting_pin(user, pin)
-    out = pin.to_dict()
-    out["persisted"] = persisted
-    return out
+    return await create_scouting_pin(field_id, req, user, persist=_persist_scouting_pin)
 
 
 async def _persist_scouting_pin(user: UserSchema, pin) -> bool:

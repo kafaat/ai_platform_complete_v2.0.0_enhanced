@@ -129,7 +129,16 @@ async def _current(field_id, token, table, msg):
     await main._require_field_tenant(field_id)
     if not main._pool:
         raise HTTPException(503, "database unavailable")
-    out = await p2_store.get_latest(main._pool, table=table, tenant_id=t, field_id=field_id)
+    try:
+        out = await p2_store.get_latest(main._pool, table=table, tenant_id=t, field_id=field_id)
+    except p2_store.ProductRequiresRecomputation as exc:
+        raise HTTPException(
+            409,
+            {
+                "code": "soil_product_recomputation_required",
+                "required_processing_revision": str(exc),
+            },
+        ) from exc
     if not out:
         raise HTTPException(404, msg)
     return out

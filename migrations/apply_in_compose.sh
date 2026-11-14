@@ -77,6 +77,18 @@ fi
 
 psql_exec() { psql -v ON_ERROR_STOP=1 -h "$PGHOST" -p "${PGPORT:-5432}" -U "$PGUSER" -d "$PGDATABASE" "$@"; }
 
+# Scout photo grant administration (scout-ingest admin API, sahool_scout_grant_admin): a separate
+# least-privileged principal, NOLOGIN unless explicitly enabled with its own password.
+SCOUT_MEDIA_GRANTS_ADMIN_ENABLED="${SCOUT_MEDIA_GRANTS_ADMIN_ENABLED:-0}"
+SCOUT_GRANT_ADMIN_DB_PASSWORD="${SCOUT_GRANT_ADMIN_DB_PASSWORD:-}"
+export SCOUT_GRANT_ADMIN_DB_PASSWORD
+if [[ "${SCOUT_MEDIA_GRANTS_ADMIN_ENABLED,,}" =~ ^(1|true|yes|on)$ ]]; then
+  : "${SCOUT_GRANT_ADMIN_DB_PASSWORD:?SCOUT_GRANT_ADMIN_DB_PASSWORD required for grant administration}"
+  SCOUT_GRANT_ADMIN_DB_ENABLED=true
+else
+  SCOUT_GRANT_ADMIN_DB_ENABLED=false
+fi
+
 # حارس وقت التشغيل (حزمة 72 ساعة): v206_rls_final_hardening.sql يجب أن يبقى
 # آخر مدخل .sql في MANIFEST دائمًا (يُحصّن كلّ ما قبله؛ أيّ هجرة لاحقة تتجاوزه
 # تعيد فتح ثغرات RLS التي يغلقها). الحارس الساكن في CI وحده لا يكفي — هذا
@@ -157,6 +169,18 @@ FROM (VALUES
         ('season_harvest'), ('season_cost_items')
      ) AS t(table_name)
 WHERE to_regclass(format('public.%I', t.table_name)) IS NOT NULL
+\gexec
+-- SCOUT-PHOTO v263-v272: the platform runtime role neither issues photo grants nor writes the
+-- scout-ingest evidence/governance ledgers (they belong to scout-ingest: media routes as
+-- sahool_ingest, admin API as sahool_scout_grant_admin). Must follow the broad GRANT above.
+SELECT format('REVOKE ALL PRIVILEGES ON TABLE public.%I FROM %I', t.tbl, :'app_role')
+FROM (VALUES ('scout_photo_field_access_grants'), ('scout_photo_grant_audit_events'),
+ ('scout_photo_detection_link_events'), ('scout_photo_lab_link_events'),
+ ('scout_photo_human_review_events'), ('scout_plant_tissue_samples'),
+ ('scout_tissue_custody_events'), ('scout_specialist_credential_events'),
+ ('scout_treatment_review_events'), ('scout_photo_retention_policy_events'),
+ ('scout_photo_retention_events')) AS t(tbl)
+WHERE to_regclass('public.'||t.tbl) IS NOT NULL
 \gexec
 SQL
 
@@ -246,6 +270,104 @@ BEGIN
   IF to_regclass('public.season_calibration_eligibility') IS NOT NULL THEN
     GRANT SELECT ON season_calibration_eligibility TO sahool_ingest;
   END IF;
+  -- SCOUT-PHOTO (v260): scout-ingest owns the immutable photo rows (SELECT+INSERT; **no**
+  -- UPDATE/DELETE, and the v260 trigger refuses both anyway) and reads scouting_pins only to
+  -- check that the pin exists under the caller's tenant RLS before storing a photo for it.
+  IF to_regclass('public.scouting_pins') IS NOT NULL THEN
+    GRANT SELECT ON scouting_pins TO sahool_ingest;
+  END IF;
+  IF to_regclass('public.scout_photo_evidence') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON scout_photo_evidence TO sahool_ingest;
+    REVOKE UPDATE, DELETE, TRUNCATE ON scout_photo_evidence FROM sahool_ingest;
+  END IF;
+  -- SCOUT-PHOTO context (owner phase 4): the v246 inspection pointer only, read from the table
+  -- field-management-service owns. Column SELECT; no write or assignment authority.
+  IF to_regclass('public.field_tasks') IS NOT NULL THEN
+    GRANT SELECT (tenant_id, field_id, source_scouting_pin_id, task_id, status)
+      ON field_tasks TO sahool_ingest;
+  END IF;
+  -- v262 (owner phase 5): scout-ingest alone appends explicit photo -> season link events.
+  IF to_regclass('public.scout_photo_season_link_events') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON scout_photo_season_link_events TO sahool_ingest;
+    REVOKE UPDATE, DELETE, TRUNCATE ON scout_photo_season_link_events FROM sahool_ingest;
+  END IF;
+  -- v263 (owner phase 6): the media routes READ the field grants (SELECT only; the admin API
+  -- writes them as sahool_scout_grant_admin) and recheck the caller's live user row.
+  IF to_regclass('public.scout_photo_field_access_grants') IS NOT NULL THEN
+    GRANT SELECT ON scout_photo_field_access_grants TO sahool_ingest;
+    REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON scout_photo_field_access_grants FROM sahool_ingest;
+  END IF;
+  IF to_regclass('public.scout_photo_grant_audit_events') IS NOT NULL THEN
+    REVOKE ALL ON scout_photo_grant_audit_events FROM sahool_ingest;
+  END IF;
+  IF to_regclass('public.users') IS NOT NULL THEN
+    GRANT SELECT (id, tenant_id, active, role) ON users TO sahool_ingest;
+  END IF;
+  -- v266 (phase 8): attested model provenance and its field, read only.
+  IF to_regclass('public.detection_provenance') IS NOT NULL THEN
+    GRANT SELECT (id, tenant_id, edge_result_id, input_sha256, attestation, model_id, model_version)
+      ON detection_provenance TO sahool_ingest;
+  END IF;
+  IF to_regclass('public.edge_results') IS NOT NULL THEN
+    GRANT SELECT (id, tenant_id, field_id) ON edge_results TO sahool_ingest;
+  END IF;
+  -- v267 (phase 9): soil/water sample identity and state, read only.
+  IF to_regclass('public.lab_samples') IS NOT NULL THEN
+    GRANT SELECT (tenant_id, field_id, sample_id, kind, status) ON lab_samples TO sahool_ingest;
+  END IF;
+  -- v266-v271: scout-ingest's append-only link, review, tissue and treatment ledgers.
+  IF to_regclass('public.scout_photo_detection_link_events') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON scout_photo_detection_link_events TO sahool_ingest;
+    REVOKE UPDATE, DELETE, TRUNCATE ON scout_photo_detection_link_events FROM sahool_ingest;
+  END IF;
+  IF to_regclass('public.scout_photo_lab_link_events') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON scout_photo_lab_link_events TO sahool_ingest;
+    REVOKE UPDATE, DELETE, TRUNCATE ON scout_photo_lab_link_events FROM sahool_ingest;
+  END IF;
+  IF to_regclass('public.scout_photo_human_review_events') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON scout_photo_human_review_events TO sahool_ingest;
+    REVOKE UPDATE, DELETE, TRUNCATE ON scout_photo_human_review_events FROM sahool_ingest;
+  END IF;
+  IF to_regclass('public.scout_plant_tissue_samples') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON scout_plant_tissue_samples TO sahool_ingest;
+    REVOKE UPDATE, DELETE, TRUNCATE ON scout_plant_tissue_samples FROM sahool_ingest;
+  END IF;
+  IF to_regclass('public.scout_tissue_custody_events') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON scout_tissue_custody_events TO sahool_ingest;
+    REVOKE UPDATE, DELETE, TRUNCATE ON scout_tissue_custody_events FROM sahool_ingest;
+  END IF;
+  IF to_regclass('public.scout_treatment_review_events') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON scout_treatment_review_events TO sahool_ingest;
+    REVOKE UPDATE, DELETE, TRUNCATE ON scout_treatment_review_events FROM sahool_ingest;
+  END IF;
+  -- v270/v272: owner governance ledgers, written by the admin API only; the media routes read them.
+  IF to_regclass('public.scout_specialist_credential_events') IS NOT NULL THEN
+    GRANT SELECT ON scout_specialist_credential_events TO sahool_ingest;
+    REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON scout_specialist_credential_events FROM sahool_ingest;
+  END IF;
+  IF to_regclass('public.scout_photo_retention_policy_events') IS NOT NULL THEN
+    GRANT SELECT ON scout_photo_retention_policy_events TO sahool_ingest;
+    REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON scout_photo_retention_policy_events FROM sahool_ingest;
+  END IF;
+  IF to_regclass('public.scout_photo_retention_events') IS NOT NULL THEN
+    GRANT SELECT ON scout_photo_retention_events TO sahool_ingest;
+    REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON scout_photo_retention_events FROM sahool_ingest;
+  END IF;
+  -- INGEST-FIELD-SELECT-01: ``field_resolves_in_tenant`` يقرأ ``SELECT 1 FROM fields`` تحت RLS
+  -- (NOBYPASSRLS ⇒ يرى حقول مستأجره فقط). بلا هذا المنح كان كلّ إرسال ODK/Kobo يحمل field_id
+  -- يسقط 503 (permission denied). SELECT فقط — لا كتابة على fields.
+  IF to_regclass('public.fields') IS NOT NULL THEN
+    GRANT SELECT ON fields TO sahool_ingest;
+  END IF;
+  -- v204 يمنح جداول النماذج الميدانيّة لـsahool_ingest **إن وُجد الدور** وقت الهجرة؛ والدور يُنشأ
+  -- هنا بعد الهجرات، فالإقلاع الأوّل كان بلا هذه المنوح حتّى إعادة تطبيق البيان. نفس منوح v204
+  -- حرفيّاً (لا DELETE — التقاعد آليّة الإزالة الوحيدة)، idempotent.
+  IF to_regclass('public.field_form_definitions') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON field_form_definitions TO sahool_ingest;
+    GRANT SELECT, INSERT, UPDATE ON field_form_versions TO sahool_ingest;
+    GRANT SELECT, INSERT, UPDATE ON field_form_assignments TO sahool_ingest;
+    GRANT SELECT, INSERT ON field_submissions TO sahool_ingest;
+  END IF;
 END $$;
 SQL
 
@@ -274,6 +396,13 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"jobs_role";
 SQL
 
+
+# SCOUT-PHOTO grant administration: dedicated principal AFTER the broad APP/JOBS grants (it also
+# revokes the scout-ingest ledgers from them). A .psql helper, not a MANIFEST migration.
+echo "─ Configure scout grant administrator (default NOLOGIN) ─"
+psql_exec -v admin_enabled="$SCOUT_GRANT_ADMIN_DB_ENABLED" \
+  -v app_role="$APP_ROLE" -v jobs_role="$JOBS_ROLE" -v dbname="$PGDATABASE" \
+  < "$MIG_DIR/helpers/provision_scout_photo_grant_admin.psql"
 
 # ── سحب CONNECT الضمنيّ من PUBLIC + منح صريح للأدوار المُدارة ──
 # PostgreSQL يمنح CONNECT على أيّ قاعدة جديدة لـPUBLIC افتراضيًّا — أيّ دور
@@ -322,7 +451,7 @@ SQL
 # الأوّل. BYPASSRLS معتمد فقط لدور المهامّ (عابر مستأجرين بالتصميم) وresolver
 # (مالك دوالّ DEFINER). متغيّرات psql لا تُستبدَل داخل DO $$…$$ — نمرّر عبر GUC.
 echo "─ تأكيد سمات الأدوار المُدارة (SUPERUSER/BYPASSRLS) ─"
-MANAGED_CSV="${APP_ROLE},${JOBS_ROLE},sahool_ingest,sahool_ingest_resolver,${ODOO_ROLE}"
+MANAGED_CSV="${APP_ROLE},${JOBS_ROLE},sahool_ingest,sahool_ingest_resolver,sahool_scout_grant_admin,${ODOO_ROLE}"
 BYPASS_OK_CSV="${JOBS_ROLE},sahool_ingest_resolver"
 psql_exec -v managed="$MANAGED_CSV" -v bypass_ok="$BYPASS_OK_CSV" <<'SQL'
 SET app.managed_roles = :'managed';

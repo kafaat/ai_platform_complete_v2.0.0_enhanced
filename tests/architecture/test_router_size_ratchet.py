@@ -43,7 +43,14 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # Merged: 4164. → 4163 (wave 2, 2026-11-09): activity event payload moved to
     # api.field_aggregate.activity_event_payload. → 4130 (2026-11-12): scouting-pin persistence
     # moved to api.scouting_pins (the route keeps a thin wrapper).
-    "services/sahool-platform/api/routers/fields.py": 4130,
+    # → 4075 (2026-11-12, satellite-field port): field-overlap lock/reject helpers moved to
+    # api.field_models beside _significant_overlaps.
+    # → 4051 (2026-11-13, v257 pin location source and photo): the pin route body moved to
+    # api.scouting_pins.create_scouting_pin.
+    # → 4047 (2026-11-13, v260): the pin photo moved out of the pin route (scout-ingest owns it).
+    # → 4044 (2026-11-13, chain A merged with main 7ad892afa): main's own 3-line reduction
+    # (4075 → 4072) applies on top of 4047.
+    "services/sahool-platform/api/routers/fields.py": 4044,
     "services/sahool-platform/api/routers/weather.py": 3022,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     # 1673 → 1668 (unified 2026-10-27): pixel sampling moved to raster_field_runtime and
@@ -51,11 +58,16 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # 1668 → 1662 (audit security batch 2026-11-01): T10 stored-geometry binding and the CDSE
     # job record moved to raster_field_runtime while the T10 ownership checks landed here.
     # 1662 → 1656 (R9 2026-11-02): blocking COG/DEM reads offloaded via raster_field_runtime.
-    "services/raster-service/routers/fields.py": 1655,
+    # → 1654 (2026-11-12, satellite-field port): tile asset revision/TileJSON version helpers
+    # moved to raster_field_runtime.
+    # 1654 → 1645 (2026-11-13, common valid mask): the time-series point builder moved to
+    # raster_field_runtime._timeseries_point while the common_mask query flag landed here.
+    "services/raster-service/routers/fields.py": 1645,
     # 1029 → 1027 (audit security batch 2026-11-01): T6 request_digest consolidation.
     # 1027 → 996 (wave 2, 2026-11-08): budget/actual fetch moved to core.farm_operations_ledger
-    # while the planned-vs-executed status filter landed here.
-    "services/sahool-platform/api/routers/farm_operations_ledger.py": 996,
+    # while the planned-vs-executed status filter landed here. 996 → 988 (2026-11-12): tenant-scope
+    # lookups moved to core.farm_operations_ledger while the optional task link (v247) landed here.
+    "services/sahool-platform/api/routers/farm_operations_ledger.py": 988,
     "services/sahool-platform/api/routers/decision_review.py": 920,
 }
 

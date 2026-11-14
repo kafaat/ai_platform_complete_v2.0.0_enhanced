@@ -92,7 +92,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 93,
+    "line": 94,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -101,7 +101,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 100,
+    "line": 101,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",
@@ -110,7 +110,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 274,
+    "line": 275,
     "method": "POST",
     "path": "/v1/recommend",
     "handler": "recommend",
@@ -119,7 +119,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 339,
+    "line": 340,
     "method": "POST",
     "path": "/v1/simulate",
     "handler": "simulate",
@@ -128,7 +128,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 352,
+    "line": 353,
     "method": "POST",
     "path": "/v1/plan",
     "handler": "plan",
@@ -137,7 +137,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 368,
+    "line": 369,
     "method": "POST",
     "path": "/v1/replay/verify",
     "handler": "replay_verify",
@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 231,
+    "line": 250,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -155,7 +155,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 236,
+    "line": 255,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "handler": "ai_provider_snapshot",
@@ -164,7 +164,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 244,
+    "line": 263,
     "method": "GET",
     "path": "/v1/approvals/pending",
     "handler": "list_pending_approvals",
@@ -173,7 +173,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 264,
+    "line": 283,
     "method": "POST",
     "path": "/v1/approvals/approve",
     "handler": "approve_tool_request",
@@ -182,7 +182,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 317,
+    "line": 336,
     "method": "POST",
     "path": "/v1/approvals/deny",
     "handler": "deny_tool_request",
@@ -191,7 +191,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 364,
+    "line": 383,
     "method": "POST",
     "path": "/v1/approvals/resume",
     "handler": "resume_approved_tool",
@@ -200,7 +200,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 410,
+    "line": 429,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "handler": "prescription_export_preview",
@@ -209,7 +209,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 426,
+    "line": 445,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 445,
+    "line": 464,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -227,7 +227,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 489,
+    "line": 508,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query",
@@ -236,7 +236,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 500,
+    "line": 519,
     "method": "POST",
     "path": "/v1/chat",
     "handler": "chat",
@@ -245,7 +245,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 511,
+    "line": 530,
     "method": "POST",
     "path": "/v1/explain",
     "handler": "explain",
@@ -254,7 +254,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 522,
+    "line": 541,
     "method": "POST",
     "path": "/v1/recommend",
     "handler": "recommend",
@@ -344,7 +344,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 48,
+    "line": 62,
     "method": "POST",
     "path": "/v1/auth/mfa/setup",
     "handler": "mfa_setup",
@@ -353,7 +353,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 104,
+    "line": 139,
     "method": "POST",
     "path": "/v1/auth/mfa/activate",
     "handler": "mfa_activate",
@@ -362,7 +362,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
-    "line": 179,
+    "line": 232,
     "method": "POST",
     "path": "/v1/auth/mfa/disable",
     "handler": "mfa_disable",
@@ -452,7 +452,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 46,
+    "line": 70,
     "method": "POST",
     "path": "/v1/auth/login",
     "handler": "login",
@@ -461,7 +461,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 139,
+    "line": 193,
     "method": "POST",
     "path": "/v1/auth/refresh",
     "handler": "refresh_token",
@@ -470,7 +470,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 195,
+    "line": 257,
     "method": "POST",
     "path": "/v1/auth/logout",
     "handler": "logout",
@@ -479,7 +479,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 240,
+    "line": 302,
     "method": "GET",
     "path": "/v1/auth/me",
     "handler": "me",
@@ -488,7 +488,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/tenants.py",
-    "line": 41,
+    "line": 62,
     "method": "POST",
     "path": "/v1/auth/tenants",
     "handler": "provision_tenant",
@@ -497,7 +497,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 23,
+    "line": 67,
     "method": "GET",
     "path": "/v1/auth/users",
     "handler": "list_users",
@@ -506,7 +506,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 32,
+    "line": 81,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/role",
     "handler": "change_role",
@@ -515,7 +515,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 74,
+    "line": 132,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/deactivate",
     "handler": "deactivate_user",
@@ -524,7 +524,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 540,
+    "line": 546,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_identity",
@@ -533,7 +533,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 546,
+    "line": 552,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -542,7 +542,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 551,
+    "line": 557,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -551,7 +551,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 589,
+    "line": 595,
     "method": "GET",
     "path": "/v1/cutover/readiness",
     "handler": "cutover_readiness",
@@ -560,7 +560,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 599,
+    "line": 605,
     "method": "GET",
     "path": "/contract",
     "handler": "contract",
@@ -569,7 +569,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 632,
+    "line": 638,
     "method": "POST",
     "path": "/v1/evidence/vegetation-snapshots",
     "handler": "create_vegetation_snapshot",
@@ -578,7 +578,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 650,
+    "line": 656,
     "method": "GET",
     "path": "/v1/evidence/vegetation-snapshots/latest",
     "handler": "read_latest_vegetation_snapshot",
@@ -587,7 +587,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 719,
+    "line": 725,
     "method": "POST",
     "path": "/v1/decisions/record",
     "handler": "record_decision",
@@ -596,7 +596,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 793,
+    "line": 799,
     "method": "GET",
     "path": "/v1/decisions/review-queue",
     "handler": "review_queue",
@@ -605,7 +605,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 850,
+    "line": 857,
     "method": "POST",
     "path": "/v1/decisions/{decision_id}/review",
     "handler": "review_candidate",
@@ -614,7 +614,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 948,
+    "line": 955,
     "method": "POST",
     "path": "/v1/decisions/{decision_id}/execution-plan",
     "handler": "build_execution_plan",
@@ -623,7 +623,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 998,
+    "line": 1019,
     "method": "GET",
     "path": "/v1/execution-plans/{execution_plan_id}",
     "handler": "read_execution_plan_state",
@@ -632,7 +632,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1018,
+    "line": 1039,
     "method": "POST",
     "path": "/v1/dispatch/decisions",
     "handler": "record_dispatch",
@@ -641,7 +641,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1077,
+    "line": 1098,
     "method": "GET",
     "path": "/v1/dispatch/decisions",
     "handler": "list_dispatch",
@@ -650,7 +650,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1091,
+    "line": 1112,
     "method": "POST",
     "path": "/v1/outcomes/record",
     "handler": "record_outcome",
@@ -659,7 +659,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1118,
+    "line": 1139,
     "method": "POST",
     "path": "/v1/recommendation-outcomes",
     "handler": "record_recommendation_outcome",
@@ -668,7 +668,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1145,
+    "line": 1166,
     "method": "POST",
     "path": "/v1/learning/updates",
     "handler": "record_learning_update",
@@ -677,7 +677,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1176,
+    "line": 1201,
     "method": "GET",
     "path": "/v1/learning/summary",
     "handler": "learning_summary",
@@ -686,7 +686,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1190,
+    "line": 1240,
     "method": "GET",
     "path": "/v1/decisions",
     "handler": "list_decisions",
@@ -695,7 +695,16 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1219,
+    "line": 1275,
+    "method": "POST",
+    "path": "/v1/evidence/field-counts",
+    "handler": "read_field_evidence_counts",
+    "classification": "versioned"
+  },
+  {
+    "service": "decision-service",
+    "file": "services/decision-service/main.py",
+    "line": 1287,
     "method": "GET",
     "path": "/v1/fields/{field_id}/lineage",
     "handler": "field_lineage",
@@ -704,7 +713,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1235,
+    "line": 1308,
     "method": "GET",
     "path": "/v1/outcomes/reconciled",
     "handler": "reconciled_outcomes",
@@ -713,7 +722,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1271,
+    "line": 1387,
     "method": "GET",
     "path": "/v1/decisions/{decision_id}/agronomic-evidence",
     "handler": "decision_agronomic_evidence",
@@ -722,7 +731,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1289,
+    "line": 1405,
     "method": "GET",
     "path": "/v1/decisions/{decision_id}/lineage",
     "handler": "decision_lineage",
@@ -731,7 +740,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1316,
+    "line": 1439,
     "method": "POST",
     "path": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
     "handler": "authorize_execution_plan_dispatch",
@@ -740,7 +749,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1386,
+    "line": 1509,
     "method": "POST",
     "path": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
     "handler": "execute_authorized_dispatch",
@@ -749,7 +758,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1445,
+    "line": 1568,
     "method": "POST",
     "path": "/v1/reservation-dispatch-intents",
     "handler": "ingest_reservation_dispatch_intent",
@@ -758,7 +767,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1575,
+    "line": 1698,
     "method": "POST",
     "path": "/v1/activation/evidence-receipts",
     "handler": "store_activation_evidence",
@@ -767,7 +776,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1649,
+    "line": 1772,
     "method": "POST",
     "path": "/v1/activation/evidence-receipts/{evidence_id}/revoke",
     "handler": "revoke_activation_evidence",
@@ -776,7 +785,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1692,
+    "line": 1815,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/enforce",
     "handler": "activation_enforce",
@@ -785,7 +794,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1717,
+    "line": 1840,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/begin",
     "handler": "activation_begin",
@@ -794,7 +803,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1728,
+    "line": 1851,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/complete",
     "handler": "activation_complete",
@@ -803,7 +812,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1747,
+    "line": 1870,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/revoke",
     "handler": "activation_revoke",
@@ -812,7 +821,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1762,
+    "line": 1885,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/reset",
     "handler": "activation_reset",
@@ -821,7 +830,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1773,
+    "line": 1896,
     "method": "GET",
     "path": "/v1/activation/irr_f01_reservation",
     "handler": "activation_current",
@@ -830,7 +839,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1780,
+    "line": 1903,
     "method": "GET",
     "path": "/v1/activation/irr_f01_reservation/probe",
     "handler": "activation_probe",
@@ -839,7 +848,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1810,
+    "line": 1933,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/begin",
     "handler": "cdse_activation_begin",
@@ -848,7 +857,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1823,
+    "line": 1946,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/complete",
     "handler": "cdse_activation_complete",
@@ -857,7 +866,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1842,
+    "line": 1965,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/revoke",
     "handler": "cdse_activation_revoke",
@@ -866,7 +875,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1857,
+    "line": 1980,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/reset",
     "handler": "cdse_activation_reset",
@@ -875,7 +884,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1870,
+    "line": 1993,
     "method": "GET",
     "path": "/v1/activation/satellite_cdse",
     "handler": "cdse_activation_current",
@@ -884,7 +893,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1877,
+    "line": 2000,
     "method": "GET",
     "path": "/v1/activation/satellite_cdse/source",
     "handler": "cdse_active_source",
@@ -893,7 +902,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1886,
+    "line": 2009,
     "method": "GET",
     "path": "/v1/activation/satellite_cdse/probe",
     "handler": "cdse_activation_probe",
@@ -902,7 +911,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1917,
+    "line": 2040,
     "method": "GET",
     "path": "/v1/execution-requests",
     "handler": "list_execution_requests",
@@ -911,7 +920,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1946,
+    "line": 2069,
     "method": "GET",
     "path": "/v1/execution-requests/recovery",
     "handler": "list_execution_request_recovery",
@@ -920,7 +929,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1968,
+    "line": 2091,
     "method": "POST",
     "path": "/v1/execution-requests/{execution_request_id}/claim",
     "handler": "claim_execution_delivery",
@@ -929,7 +938,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2000,
+    "line": 2123,
     "method": "POST",
     "path": "/v1/execution-requests/{execution_request_id}/receipt",
     "handler": "ingest_execution_receipt",
@@ -938,7 +947,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2046,
+    "line": 2169,
     "method": "GET",
     "path": "/v1/execution-requests/{execution_request_id}/observation-context",
     "handler": "execution_observation_context",
@@ -947,7 +956,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2063,
+    "line": 2186,
     "method": "POST",
     "path": "/v1/execution-requests/{execution_request_id}/verify-outcome",
     "handler": "verify_terminal_execution_outcome",
@@ -956,7 +965,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2121,
+    "line": 2244,
     "method": "POST",
     "path": "/v1/outcomes/{outcome_id}/learning-attribution",
     "handler": "attribute_verified_outcome_to_learning",
@@ -965,7 +974,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2155,
+    "line": 2278,
     "method": "GET",
     "path": "/v1/learning/calibration-dataset",
     "handler": "get_calibration_dataset",
@@ -974,7 +983,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2197,
+    "line": 2320,
     "method": "POST",
     "path": "/v1/learning/evaluation-runs",
     "handler": "register_model_evaluation_run",
@@ -983,7 +992,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2247,
+    "line": 2370,
     "method": "POST",
     "path": "/v1/learning/promotion-decisions",
     "handler": "register_model_promotion_decision",
@@ -992,7 +1001,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2283,
+    "line": 2406,
     "method": "POST",
     "path": "/v1/learning/activation-requests",
     "handler": "register_model_activation_request",
@@ -1001,7 +1010,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2326,
+    "line": 2449,
     "method": "POST",
     "path": "/v1/learning/activation-requests/{activation_request_id}/review",
     "handler": "review_activation_request_boundary",
@@ -1010,7 +1019,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2378,
+    "line": 2501,
     "method": "POST",
     "path": "/v1/learning/activation-commands/{activation_command_id}/claim",
     "handler": "claim_registry_activation_command_boundary",
@@ -1019,7 +1028,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2419,
+    "line": 2542,
     "method": "POST",
     "path": "/v1/learning/activation-commands/{activation_command_id}/receipt",
     "handler": "record_registry_activation_receipt_boundary",
@@ -1028,7 +1037,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2465,
+    "line": 2588,
     "method": "POST",
     "path": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
     "handler": "create_registry_rollback_command_boundary",
@@ -1037,7 +1046,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2502,
+    "line": 2625,
     "method": "POST",
     "path": "/v1/learning/rollback-commands/{rollback_command_id}/claim",
     "handler": "claim_registry_rollback_command_boundary",
@@ -1046,7 +1055,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2538,
+    "line": 2661,
     "method": "POST",
     "path": "/v1/learning/rollback-commands/{rollback_command_id}/receipt",
     "handler": "record_registry_rollback_receipt_boundary",
@@ -1055,7 +1064,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2575,
+    "line": 2698,
     "method": "GET",
     "path": "/v1/learning/models/{model_id}/active-state",
     "handler": "active_model_state_boundary",
@@ -1064,7 +1073,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2607,
+    "line": 2730,
     "method": "POST",
     "path": "/v1/learning/activation-receipts/{activation_receipt_id}/verification",
     "handler": "post_activation_verification_boundary",
@@ -1073,7 +1082,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2646,
+    "line": 2769,
     "method": "POST",
     "path": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan",
     "handler": "rollout_plan_boundary",
@@ -1082,7 +1091,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2683,
+    "line": 2806,
     "method": "POST",
     "path": "/v1/learning/monitoring-snapshots",
     "handler": "monitoring_snapshot_boundary",
@@ -1091,7 +1100,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2719,
+    "line": 2847,
     "method": "POST",
     "path": "/v1/learning/retraining-requests",
     "handler": "retraining_request_boundary",
@@ -1100,7 +1109,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2749,
+    "line": 2877,
     "method": "GET",
     "path": "/v1/learning/runtime-work",
     "handler": "runtime_work_feed",
@@ -1109,7 +1118,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2786,
+    "line": 2914,
     "method": "POST",
     "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
     "handler": "register_worker_tenant",
@@ -1118,7 +1127,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2810,
+    "line": 2938,
     "method": "GET",
     "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
     "handler": "worker_tenants",
@@ -1127,7 +1136,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2840,
+    "line": 2968,
     "method": "POST",
     "path": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt",
     "handler": "rollout_receipt_boundary",
@@ -1136,7 +1145,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2881,
+    "line": 3009,
     "method": "POST",
     "path": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt",
     "handler": "retraining_dispatch_receipt_boundary",
@@ -1145,7 +1154,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2929,
+    "line": 3057,
     "method": "POST",
     "path": "/v1/learning/runtime-schedules",
     "handler": "runtime_schedule_boundary",
@@ -1154,7 +1163,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2976,
+    "line": 3104,
     "method": "POST",
     "path": "/v1/learning/reconcile-evidence",
     "handler": "reconcile_evidence_boundary",
@@ -1163,7 +1172,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3006,
+    "line": 3134,
     "method": "POST",
     "path": "/v1/context-snapshots",
     "handler": "compose_context_snapshot",
@@ -1172,7 +1181,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3038,
+    "line": 3166,
     "method": "GET",
     "path": "/v1/context-snapshots/{snapshot_id}",
     "handler": "read_context_snapshot",
@@ -1181,7 +1190,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 194,
+    "line": 205,
     "method": "GET",
     "path": "/healthz",
     "handler": "health_check",
@@ -1190,7 +1199,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 226,
+    "line": 239,
     "method": "POST",
     "path": "/v1/inference/pest-detect",
     "handler": "detect_pest",
@@ -1199,7 +1208,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 305,
+    "line": 316,
     "method": "POST",
     "path": "/v1/inference/yield-estimate",
     "handler": "estimate_yield",
@@ -1208,7 +1217,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 376,
+    "line": 385,
     "method": "POST",
     "path": "/v1/sync/trigger",
     "handler": "trigger_sync",
@@ -1217,7 +1226,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 408,
+    "line": 417,
     "method": "GET",
     "path": "/capabilities",
     "handler": "capabilities",
@@ -1226,7 +1235,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 413,
+    "line": 422,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -1235,7 +1244,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 423,
+    "line": 432,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1307,7 +1316,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 375,
+    "line": 546,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1316,7 +1325,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 380,
+    "line": 551,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1325,7 +1334,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 385,
+    "line": 556,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1334,7 +1343,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 431,
+    "line": 602,
     "method": "POST",
     "path": "/v1/segment",
     "handler": "segment",
@@ -1595,7 +1604,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 745,
+    "line": 755,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query_endpoint",
@@ -1604,7 +1613,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 755,
+    "line": 765,
     "method": "POST",
     "path": "/v1/ingest",
     "handler": "ingest_endpoint",
@@ -1613,7 +1622,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 810,
+    "line": 820,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1622,7 +1631,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 828,
+    "line": 838,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1631,7 +1640,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 833,
+    "line": 843,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1676,7 +1685,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 639,
+    "line": 663,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "mcp_tools_list",
@@ -1685,7 +1694,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 639,
+    "line": 663,
     "method": "GET",
     "path": "/v1/mcp/tools/list",
     "handler": "mcp_tools_list",
@@ -1694,7 +1703,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 671,
+    "line": 695,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "mcp_tools_call",
@@ -1703,7 +1712,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 724,
+    "line": 748,
     "method": "GET",
     "path": "/v1/products",
     "handler": "api_search_products",
@@ -1712,7 +1721,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 736,
+    "line": 760,
     "method": "GET",
     "path": "/v1/suppliers/{supplier_id}",
     "handler": "api_get_supplier",
@@ -1721,7 +1730,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 741,
+    "line": 765,
     "method": "POST",
     "path": "/v1/procurement",
     "handler": "api_create_procurement",
@@ -1730,7 +1739,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 749,
+    "line": 773,
     "method": "GET",
     "path": "/v1/procurement/{order_id}",
     "handler": "api_get_procurement",
@@ -1739,7 +1748,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 756,
+    "line": 780,
     "method": "POST",
     "path": "/v1/sales",
     "handler": "api_create_sales",
@@ -1748,7 +1757,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 762,
+    "line": 786,
     "method": "GET",
     "path": "/v1/sales",
     "handler": "api_search_sales",
@@ -1757,7 +1766,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 779,
+    "line": 803,
     "method": "GET",
     "path": "/v1/price-history/{category}",
     "handler": "api_price_history",
@@ -1766,7 +1775,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 786,
+    "line": 810,
     "method": "GET",
     "path": "/v1/analytics/{tenant_id}",
     "handler": "api_analytics",
@@ -1775,7 +1784,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 793,
+    "line": 817,
     "method": "GET",
     "path": "/healthz",
     "handler": "health",
@@ -1784,7 +1793,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 793,
+    "line": 817,
     "method": "GET",
     "path": "/health",
     "handler": "health",
@@ -1793,7 +1802,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 806,
+    "line": 830,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -2126,7 +2135,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 148,
+    "line": 153,
     "method": "POST",
     "path": "/v1/terrain/slope",
     "handler": "terrain_slope",
@@ -2135,7 +2144,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 166,
+    "line": 171,
     "method": "GET",
     "path": "/v1/cog/validate",
     "handler": "cog_validate",
@@ -2144,7 +2153,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 181,
+    "line": 186,
     "method": "POST",
     "path": "/v1/salinity/classify",
     "handler": "salinity_classify",
@@ -2153,7 +2162,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 188,
+    "line": 193,
     "method": "POST",
     "path": "/v1/salinity/calibrate",
     "handler": "salinity_calibrate",
@@ -2162,7 +2171,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/cdse_tiles.py",
-    "line": 125,
+    "line": 146,
     "method": "GET",
     "path": "/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png",
     "handler": "field_cdse_tile",
@@ -2171,7 +2180,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/cdse_tiles.py",
-    "line": 202,
+    "line": 223,
     "method": "GET",
     "path": "/v1/fields/{field_id}/cdse-thumbnail.png",
     "handler": "field_cdse_thumbnail",
@@ -2180,7 +2189,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/cdse_tiles.py",
-    "line": 267,
+    "line": 291,
     "method": "GET",
     "path": "/v1/fields/{field_id}/cdse-tilejson",
     "handler": "field_cdse_tilejson",
@@ -2189,7 +2198,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 92,
+    "line": 98,
     "method": "GET",
     "path": "/v1/gis/admin-boundaries",
     "handler": "gis_admin_boundaries",
@@ -2198,7 +2207,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 141,
+    "line": 147,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-from-stac",
     "handler": "process_from_stac",
@@ -2207,7 +2216,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 266,
+    "line": 272,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/backfill",
     "handler": "field_historical_backfill",
@@ -2216,7 +2225,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 653,
+    "line": 659,
     "method": "GET",
     "path": "/v1/fields/{field_id}/imagery/backfill/{run_id}",
     "handler": "field_backfill_run_status",
@@ -2225,7 +2234,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 671,
+    "line": 677,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/process-date",
     "handler": "field_process_date",
@@ -2234,7 +2243,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 743,
+    "line": 749,
     "method": "POST",
     "path": "/v1/fields/{field_id}/geometry/versions",
     "handler": "create_field_geometry_version",
@@ -2243,7 +2252,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 772,
+    "line": 778,
     "method": "POST",
     "path": "/v1/fields/analytics/geoparquet/export",
     "handler": "export_field_analytics_geoparquet",
@@ -2252,7 +2261,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 824,
+    "line": 830,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-cdse",
     "handler": "process_cdse",
@@ -2261,7 +2270,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 885,
+    "line": 891,
     "method": "GET",
     "path": "/v1/fields/{field_id}/indicator-grid",
     "handler": "field_indicator_grid",
@@ -2270,7 +2279,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 923,
+    "line": 929,
     "method": "GET",
     "path": "/v1/fields/{field_id}/indicator-observation-bundle",
     "handler": "field_indicator_observation_bundle",
@@ -2279,7 +2288,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1011,
+    "line": 1017,
     "method": "GET",
     "path": "/v1/fields/{field_id}/pixel",
     "handler": "field_pixel_value",
@@ -2288,7 +2297,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1067,
+    "line": 1077,
     "method": "POST",
     "path": "/v1/fields/{field_id}/prescription",
     "handler": "field_prescription",
@@ -2297,7 +2306,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1147,
+    "line": 1157,
     "method": "POST",
     "path": "/v1/fields/{field_id}/change",
     "handler": "field_change",
@@ -2306,7 +2315,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1205,
+    "line": 1215,
     "method": "GET",
     "path": "/v1/fields/{field_id}/timeseries",
     "handler": "field_timeseries",
@@ -2315,7 +2324,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1301,
+    "line": 1299,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png",
     "handler": "field_tile",
@@ -2324,7 +2333,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1377,
+    "line": 1372,
     "method": "GET",
     "path": "/v1/fields/{field_id}/available-dates",
     "handler": "field_available_dates",
@@ -2333,7 +2342,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1490,
+    "line": 1485,
     "method": "GET",
     "path": "/v1/fields/{field_id}/terrain",
     "handler": "field_terrain",
@@ -2342,7 +2351,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1558,
+    "line": 1553,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tilejson",
     "handler": "field_tilejson",
@@ -2495,7 +2504,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/jobs.py",
-    "line": 19,
+    "line": 27,
     "method": "GET",
     "path": "/v1/jobs/{job_id}",
     "handler": "job_status",
@@ -2504,7 +2513,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/jobs.py",
-    "line": 39,
+    "line": 48,
     "method": "GET",
     "path": "/v1/jobs/{job_id}/result",
     "handler": "job_result",
@@ -2630,7 +2639,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/soil_tiles.py",
-    "line": 37,
+    "line": 38,
     "method": "GET",
     "path": "/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png",
     "handler": "soil_tile",
@@ -2639,7 +2648,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/soil_tiles.py",
-    "line": 52,
+    "line": 53,
     "method": "GET",
     "path": "/v1/soil/tilejson",
     "handler": "soil_tilejson",
@@ -2648,7 +2657,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/soil_tiles.py",
-    "line": 100,
+    "line": 101,
     "method": "GET",
     "path": "/v1/soil/properties",
     "handler": "soil_properties",
@@ -2657,7 +2666,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/soil_tiles.py",
-    "line": 144,
+    "line": 128,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/summary",
     "handler": "field_soil_summary",
@@ -2666,7 +2675,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/soil_tiles.py",
-    "line": 166,
+    "line": 150,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/sampling-zones.geojson",
     "handler": "field_soil_sampling_zones",
@@ -2675,7 +2684,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/soil_tiles.py",
-    "line": 193,
+    "line": 177,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/sampling-plan",
     "handler": "field_soil_sampling_plan",
@@ -2765,7 +2774,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 45,
+    "line": 46,
     "method": "GET",
     "path": "/v1/terrain/status",
     "handler": "terrain_status",
@@ -2774,7 +2783,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 82,
+    "line": 83,
     "method": "GET",
     "path": "/v1/elevation/hillshade/{z}/{x}/{y}.png",
     "handler": "hillshade_tile",
@@ -2783,7 +2792,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 96,
+    "line": 97,
     "method": "GET",
     "path": "/v1/slope/{z}/{x}/{y}.png",
     "handler": "slope_tile",
@@ -2792,7 +2801,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 110,
+    "line": 111,
     "method": "GET",
     "path": "/v1/terrain/tilejson",
     "handler": "terrain_tilejson",
@@ -2801,7 +2810,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 165,
+    "line": 149,
     "method": "GET",
     "path": "/v1/fields/{field_id}/contours.geojson",
     "handler": "field_contours",
@@ -2963,7 +2972,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 147,
+    "line": 151,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-schema",
     "handler": "feature_schema",
@@ -2972,7 +2981,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 152,
+    "line": 156,
     "method": "POST",
     "path": "/v1/phase10/learning/dataset",
     "handler": "dataset",
@@ -2981,7 +2990,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 162,
+    "line": 166,
     "method": "POST",
     "path": "/v1/phase10/learning/models/promote",
     "handler": "model_promotion",
@@ -2990,7 +2999,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 172,
+    "line": 176,
     "method": "POST",
     "path": "/v1/phase10/learning/online-update",
     "handler": "online_update",
@@ -2999,7 +3008,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 182,
+    "line": 186,
     "method": "POST",
     "path": "/v1/phase10/learning/experiments/evaluate",
     "handler": "experiment_evaluation",
@@ -3008,7 +3017,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 192,
+    "line": 196,
     "method": "POST",
     "path": "/v1/phase10/learning/scenario",
     "handler": "scenario",
@@ -3017,7 +3026,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 197,
+    "line": 201,
     "method": "POST",
     "path": "/v1/phase10/learning/cycle",
     "handler": "learning_cycle",
@@ -3026,7 +3035,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 209,
+    "line": 213,
     "method": "POST",
     "path": "/v1/phase10/learning/drift",
     "handler": "drift",
@@ -3035,7 +3044,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 218,
+    "line": 222,
     "method": "POST",
     "path": "/v1/phase10/learning/retraining/plan",
     "handler": "retraining_plan",
@@ -3044,7 +3053,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 225,
+    "line": 229,
     "method": "POST",
     "path": "/v1/phase10/learning/champion-challenger",
     "handler": "champion_challenger",
@@ -3053,7 +3062,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 237,
+    "line": 241,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/register",
     "handler": "feature_store_register",
@@ -3062,7 +3071,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 244,
+    "line": 248,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/offline-dataset",
     "handler": "feature_store_offline_dataset",
@@ -3071,7 +3080,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 254,
+    "line": 259,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/online-materialization",
     "handler": "feature_store_online_materialization",
@@ -3080,7 +3089,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 262,
+    "line": 267,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/point-in-time",
     "handler": "feature_store_point_in_time",
@@ -3089,7 +3098,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 269,
+    "line": 281,
     "method": "POST",
     "path": "/v1/phase10/learning/models/register",
     "handler": "model_register",
@@ -3098,7 +3107,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 284,
+    "line": 302,
     "method": "POST",
     "path": "/v1/phase10/learning/models/serving/promote",
     "handler": "model_serving_promote",
@@ -3107,7 +3116,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 291,
+    "line": 309,
     "method": "POST",
     "path": "/v1/phase10/learning/models/serving/rollback",
     "handler": "model_serving_rollback",
@@ -3116,7 +3125,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 301,
+    "line": 319,
     "method": "GET",
     "path": "/v1/phase10/learning/models/serving/{alias:path}",
     "handler": "model_serving_resolve",
@@ -3539,7 +3548,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 167,
+    "line": 169,
     "method": "POST",
     "path": "/api/v1/agro/crop-risk",
     "handler": "crop_risk_endpoint",
@@ -3548,7 +3557,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 180,
+    "line": 182,
     "method": "POST",
     "path": "/api/v1/agro/plant-soil-feedback",
     "handler": "plant_soil_feedback_endpoint",
@@ -3557,7 +3566,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 188,
+    "line": 190,
     "method": "POST",
     "path": "/api/v1/agro/plant-soil-feedback/trend",
     "handler": "plant_soil_feedback_trend_endpoint",
@@ -3566,7 +3575,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 202,
+    "line": 204,
     "method": "POST",
     "path": "/api/v1/agro/crop-rotation",
     "handler": "crop_rotation_endpoint",
@@ -3575,7 +3584,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 219,
+    "line": 221,
     "method": "POST",
     "path": "/api/v1/agro/season-comparison",
     "handler": "season_comparison_endpoint",
@@ -3584,7 +3593,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 227,
+    "line": 229,
     "method": "POST",
     "path": "/api/v1/agro/decision-playbook",
     "handler": "decision_playbook_endpoint",
@@ -3593,7 +3602,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/agro_intelligence.py",
-    "line": 352,
+    "line": 354,
     "method": "POST",
     "path": "/api/v1/work-orders/from-recommendation",
     "handler": "work_order_from_recommendation_endpoint",
@@ -3701,7 +3710,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/analytics.py",
-    "line": 29,
+    "line": 36,
     "method": "GET",
     "path": "/api/v1/analytics/costs",
     "handler": "analytics_costs",
@@ -3710,7 +3719,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/analytics.py",
-    "line": 61,
+    "line": 67,
     "method": "GET",
     "path": "/api/v1/analytics/costs/by-field",
     "handler": "analytics_costs_by_field",
@@ -4421,7 +4430,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 297,
+    "line": 303,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision-candidate",
     "handler": "crop_decision_candidate_endpoint",
@@ -4430,7 +4439,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 404,
+    "line": 410,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision",
     "handler": "crop_decision_endpoint",
@@ -4439,7 +4448,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 528,
+    "line": 534,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision/profit-aware",
     "handler": "profit_aware_decision_endpoint",
@@ -4511,7 +4520,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_dispatch.py",
-    "line": 130,
+    "line": 142,
     "method": "POST",
     "path": "/api/v1/decision/unified",
     "handler": "unified_decision_endpoint",
@@ -4520,7 +4529,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_dispatch.py",
-    "line": 199,
+    "line": 211,
     "method": "POST",
     "path": "/api/v1/decision/dispatch/evaluate",
     "handler": "evaluate_dispatch_endpoint",
@@ -4529,7 +4538,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_dispatch.py",
-    "line": 248,
+    "line": 259,
     "method": "POST",
     "path": "/api/v1/decision/dispatch/execute",
     "handler": "execute_dispatch_endpoint",
@@ -4538,7 +4547,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_dispatch.py",
-    "line": 445,
+    "line": 411,
     "method": "POST",
     "path": "/api/v1/decision/dispatch/consume",
     "handler": "consume_dispatch_queue",
@@ -4547,7 +4556,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_dispatch.py",
-    "line": 493,
+    "line": 459,
     "method": "GET",
     "path": "/api/v1/decision/dispatch/decisions",
     "handler": "list_dispatch_decisions",
@@ -4556,7 +4565,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_dispatch.py",
-    "line": 525,
+    "line": 491,
     "method": "GET",
     "path": "/api/v1/decision/dispatch/queue",
     "handler": "list_dispatch_queue",
@@ -4565,7 +4574,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_dispatch.py",
-    "line": 582,
+    "line": 548,
     "method": "POST",
     "path": "/api/v1/decision/ledger",
     "handler": "record_execution_outcome",
@@ -4574,7 +4583,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_dispatch.py",
-    "line": 678,
+    "line": 644,
     "method": "GET",
     "path": "/api/v1/decision/ledger",
     "handler": "list_execution_ledger",
@@ -4583,7 +4592,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_explain.py",
-    "line": 75,
+    "line": 80,
     "method": "GET",
     "path": "/api/v1/decision/{decision_id}/explain",
     "handler": "explain_decision_endpoint",
@@ -4646,7 +4655,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_record.py",
-    "line": 373,
+    "line": 375,
     "method": "POST",
     "path": "/api/v1/decision/record",
     "handler": "record_decision",
@@ -4655,7 +4664,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_record.py",
-    "line": 506,
+    "line": 508,
     "method": "POST",
     "path": "/api/v1/outcome/record",
     "handler": "record_outcome",
@@ -4664,7 +4673,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_record.py",
-    "line": 660,
+    "line": 662,
     "method": "GET",
     "path": "/api/v1/decision/{decision_id}/lineage",
     "handler": "get_decision_lineage",
@@ -4673,7 +4682,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_record.py",
-    "line": 700,
+    "line": 705,
     "method": "GET",
     "path": "/api/v1/decision/records",
     "handler": "list_decision_records",
@@ -4682,7 +4691,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_record.py",
-    "line": 751,
+    "line": 759,
     "method": "GET",
     "path": "/api/v1/field/{field_id}/lineage",
     "handler": "get_field_lineage",
@@ -4691,7 +4700,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 51,
+    "line": 52,
     "method": "GET",
     "path": "/api/v1/decisions/review-queue",
     "handler": "get_decision_review_queue",
@@ -4700,7 +4709,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 83,
+    "line": 80,
     "method": "GET",
     "path": "/api/v1/decisions/{decision_id}/agronomic-evidence",
     "handler": "get_decision_agronomic_evidence_boundary",
@@ -4709,7 +4718,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 119,
+    "line": 116,
     "method": "POST",
     "path": "/api/v1/decisions/{decision_id}/review",
     "handler": "review_decision_candidate",
@@ -5105,7 +5114,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/events.py",
-    "line": 32,
+    "line": 34,
     "method": "GET",
     "path": "/api/v1/events/{entity_type}/{entity_id}",
     "handler": "entity_events",
@@ -5123,7 +5132,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/evidence_map.py",
-    "line": 88,
+    "line": 122,
     "method": "GET",
     "path": "/api/v1/evidence/map",
     "handler": "evidence_map_endpoint",
@@ -5168,7 +5177,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 229,
+    "line": 211,
     "method": "POST",
     "path": "/api/v1/farm-ledger/operations",
     "handler": "create_operation_ledger_record",
@@ -5177,7 +5186,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 324,
+    "line": 312,
     "method": "GET",
     "path": "/api/v1/farm-ledger/operations",
     "handler": "list_operation_ledger_records",
@@ -5186,7 +5195,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 372,
+    "line": 364,
     "method": "GET",
     "path": "/api/v1/farm-ledger/summary",
     "handler": "farm_ledger_summary",
@@ -5195,7 +5204,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 503,
+    "line": 495,
     "method": "POST",
     "path": "/api/v1/farm-ledger/budgets",
     "handler": "upsert_season_budget_lines",
@@ -5204,7 +5213,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 584,
+    "line": 576,
     "method": "GET",
     "path": "/api/v1/farm-ledger/budgets/{season_id}",
     "handler": "get_season_budget",
@@ -5213,7 +5222,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 612,
+    "line": 604,
     "method": "POST",
     "path": "/api/v1/farm-ledger/revenues",
     "handler": "create_revenue_record",
@@ -5222,7 +5231,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 657,
+    "line": 649,
     "method": "GET",
     "path": "/api/v1/farm-ledger/variance/{season_id}",
     "handler": "get_budget_variance",
@@ -5231,7 +5240,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 687,
+    "line": 684,
     "method": "GET",
     "path": "/api/v1/farm-ledger/profitability/{season_id}",
     "handler": "get_season_profitability",
@@ -5240,7 +5249,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 724,
+    "line": 716,
     "method": "GET",
     "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
     "handler": "get_erp_projection",
@@ -5249,7 +5258,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 809,
+    "line": 806,
     "method": "POST",
     "path": "/api/v1/farm-ledger/autowrite-preview",
     "handler": "operation_autowrite_preview",
@@ -5258,7 +5267,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 857,
+    "line": 854,
     "method": "GET",
     "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
     "handler": "get_inventory_projection",
@@ -5267,7 +5276,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 951,
+    "line": 948,
     "method": "GET",
     "path": "/api/v1/farm-ledger/economic-state/{season_id}",
     "handler": "get_economic_state",
@@ -5312,7 +5321,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_ai_context.py",
-    "line": 652,
+    "line": 660,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/ai-context-pack",
     "handler": "field_ai_context_pack",
@@ -5528,7 +5537,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 548,
+    "line": 500,
     "method": "GET",
     "path": "/api/v1/fields",
     "handler": "list_fields",
@@ -5537,7 +5546,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 571,
+    "line": 523,
     "method": "POST",
     "path": "/api/v1/fields",
     "handler": "create_field",
@@ -5546,7 +5555,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 595,
+    "line": 548,
     "method": "POST",
     "path": "/api/v1/fields/import",
     "handler": "import_field",
@@ -5555,7 +5564,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 659,
+    "line": 613,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/imagery/process-date",
     "handler": "field_imagery_process_date_proxy",
@@ -5564,7 +5573,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 715,
+    "line": 669,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/imagery/refresh",
     "handler": "refresh_field_imagery",
@@ -5573,7 +5582,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 918,
+    "line": 872,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/imagery/backfill",
     "handler": "field_imagery_backfill_proxy",
@@ -5582,7 +5591,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 990,
+    "line": 944,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/imagery/backfill/{run_id}",
     "handler": "field_imagery_backfill_status_proxy",
@@ -5591,7 +5600,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 1024,
+    "line": 978,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}",
     "handler": "get_field",
@@ -5600,7 +5609,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 1049,
+    "line": 1003,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/terrain",
     "handler": "get_field_terrain",
@@ -5609,7 +5618,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 1140,
+    "line": 1092,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/workspace",
     "handler": "get_field_workspace",
@@ -5618,7 +5627,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 1229,
+    "line": 1181,
     "method": "PUT",
     "path": "/api/v1/fields/{field_id}",
     "handler": "update_field",
@@ -5627,7 +5636,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 1229,
+    "line": 1181,
     "method": "PATCH",
     "path": "/api/v1/fields/{field_id}",
     "handler": "update_field",
@@ -5636,7 +5645,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 1514,
+    "line": 1454,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/geometry/history",
     "handler": "field_geometry_history",
@@ -5645,7 +5654,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 1561,
+    "line": 1501,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/geometry/revert/{revision}",
     "handler": "revert_field_geometry",
@@ -5654,7 +5663,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 1670,
+    "line": 1613,
     "method": "DELETE",
     "path": "/api/v1/fields/{field_id}",
     "handler": "delete_field",
@@ -5663,7 +5672,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 1776,
+    "line": 1719,
     "method": "POST",
     "path": "/api/v1/fields/merge",
     "handler": "merge_fields",
@@ -5672,7 +5681,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 1906,
+    "line": 1850,
     "method": "POST",
     "path": "/api/v1/fields/split",
     "handler": "split_field",
@@ -5681,7 +5690,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2051,
+    "line": 1996,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/seasons",
     "handler": "create_season",
@@ -5690,7 +5699,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2260,
+    "line": 2206,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/seasons",
     "handler": "list_seasons",
@@ -5699,7 +5708,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2287,
+    "line": 2233,
     "method": "PATCH",
     "path": "/api/v1/fields/{field_id}/seasons/{season_id}",
     "handler": "update_season",
@@ -5708,7 +5717,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2456,
+    "line": 2400,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/soil-moisture",
     "handler": "field_soil_moisture",
@@ -5717,7 +5726,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2646,
+    "line": 2590,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/wind/prevailing",
     "handler": "field_wind_prevailing",
@@ -5726,7 +5735,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2703,
+    "line": 2647,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/wind/drift-risk",
     "handler": "field_wind_drift_risk",
@@ -5735,7 +5744,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2782,
+    "line": 2724,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/recommendations",
     "handler": "field_recommendations",
@@ -5744,7 +5753,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 2884,
+    "line": 2826,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/activities",
     "handler": "create_activity",
@@ -5753,7 +5762,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3019,
+    "line": 2961,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/activities",
     "handler": "list_field_activities",
@@ -5762,7 +5771,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3048,
+    "line": 2990,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/input-traceability",
     "handler": "field_input_traceability",
@@ -5771,7 +5780,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3150,
+    "line": 3092,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/growth-narrative",
     "handler": "field_growth_narrative",
@@ -5780,7 +5789,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3194,
+    "line": 3136,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/soil-lab-tests",
     "handler": "create_soil_lab_test",
@@ -5789,7 +5798,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3251,
+    "line": 3193,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/soil-lab-tests",
     "handler": "list_soil_lab_tests",
@@ -5798,7 +5807,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3275,
+    "line": 3217,
     "method": "PATCH",
     "path": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
     "handler": "update_soil_lab_test",
@@ -5807,7 +5816,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3402,
+    "line": 3343,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/alerts/evaluate",
     "handler": "evaluate_field_alerts_endpoint",
@@ -5816,7 +5825,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3418,
+    "line": 3359,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/rotations",
     "handler": "add_crop_rotation",
@@ -5825,7 +5834,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3460,
+    "line": 3401,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/rotations",
     "handler": "list_crop_rotations",
@@ -5834,7 +5843,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3487,
+    "line": 3428,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/trueup",
     "handler": "apply_trueup",
@@ -5843,7 +5852,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3546,
+    "line": 3487,
     "method": "POST",
     "path": "/api/v1/fields/validate-geometry",
     "handler": "validate_geometry",
@@ -5852,7 +5861,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3579,
+    "line": 3520,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
     "handler": "prescribe_nitrogen",
@@ -5861,7 +5870,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3608,
+    "line": 3549,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/yield-estimate",
     "handler": "estimate_field_yield",
@@ -5870,7 +5879,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3681,
+    "line": 3623,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/timeline",
     "handler": "field_timeline",
@@ -5879,7 +5888,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3701,
+    "line": 3643,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/history",
     "handler": "field_history",
@@ -5888,7 +5897,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3818,
+    "line": 3760,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/pins",
     "handler": "create_pin",
@@ -5897,7 +5906,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3868,
+    "line": 3782,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan",
     "handler": "field_walk_plan",
@@ -5906,7 +5915,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3878,
+    "line": 3792,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
     "handler": "field_walk_plan_pdf",
@@ -5915,7 +5924,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3897,
+    "line": 3811,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/zones",
     "handler": "field_zones",
@@ -5924,7 +5933,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3911,
+    "line": 3825,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/water-stress-spectral",
     "handler": "field_water_stress_spectral",
@@ -5933,7 +5942,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3943,
+    "line": 3857,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state",
     "handler": "field_canonical_state",
@@ -5942,7 +5951,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3971,
+    "line": 3885,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/alerts/derived",
     "handler": "field_alerts_derived",
@@ -5951,7 +5960,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3997,
+    "line": 3911,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state/full",
     "handler": "field_state_full",
@@ -6824,7 +6833,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 121,
+    "line": 122,
     "method": "POST",
     "path": "/api/v1/irrigation-recommendation",
     "handler": "irrigation_recommendation",
@@ -6833,7 +6842,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 208,
+    "line": 209,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
     "handler": "field_irrigation_recommendation",
@@ -6896,7 +6905,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/learning_summary.py",
-    "line": 53,
+    "line": 156,
     "method": "GET",
     "path": "/api/v1/learning/summary",
     "handler": "get_learning_summary",
@@ -7031,7 +7040,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/notifications.py",
-    "line": 179,
+    "line": 183,
     "method": "POST",
     "path": "/api/v1/notifications/delivery",
     "handler": "upsert_notification_delivery",
@@ -7454,7 +7463,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 237,
+    "line": 234,
     "method": "POST",
     "path": "/api/v1/recommendations",
     "handler": "recommendations",
@@ -7463,7 +7472,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 263,
+    "line": 264,
     "method": "POST",
     "path": "/api/v1/recommendations/for-field",
     "handler": "recommendations_for_field",
@@ -7472,7 +7481,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 400,
+    "line": 407,
     "method": "GET",
     "path": "/api/v1/recommendations/engines",
     "handler": "recommendation_engines",
@@ -7481,7 +7490,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 447,
+    "line": 454,
     "method": "POST",
     "path": "/api/v1/recommendations/economic-adaptation",
     "handler": "economic_adaptation_endpoint",
@@ -7490,7 +7499,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 465,
+    "line": 472,
     "method": "GET",
     "path": "/api/v1/recommendations/capacity-profiles",
     "handler": "capacity_profiles_endpoint",
@@ -7499,7 +7508,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 473,
+    "line": 480,
     "method": "POST",
     "path": "/api/v1/recommendations/candidates",
     "handler": "generate_crop_candidates",
@@ -7508,7 +7517,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 560,
+    "line": 590,
     "method": "POST",
     "path": "/api/v1/recommendations/outcomes",
     "handler": "record_recommendation_outcome",
@@ -7517,7 +7526,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 729,
+    "line": 761,
     "method": "GET",
     "path": "/api/v1/recommendations/{rec_id}",
     "handler": "get_recommendation",
@@ -7760,7 +7769,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scouting.py",
-    "line": 78,
+    "line": 83,
     "method": "GET",
     "path": "/api/v1/scouting/pins",
     "handler": "list_scouting_pins",
@@ -7769,7 +7778,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scouting.py",
-    "line": 114,
+    "line": 119,
     "method": "GET",
     "path": "/api/v1/scouting/taxonomy",
     "handler": "scouting_taxonomy",
@@ -7814,7 +7823,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/seasons.py",
-    "line": 156,
+    "line": 147,
     "method": "POST",
     "path": "/api/v1/seasons/{season_id}/simulate",
     "handler": "simulate_season_endpoint",
@@ -7823,7 +7832,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/seasons.py",
-    "line": 563,
+    "line": 607,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
     "handler": "field_season_state_endpoint",
@@ -7931,7 +7940,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 130,
+    "line": 215,
     "method": "POST",
     "path": "/api/v1/farm-book/parties",
     "handler": "create_party",
@@ -7940,7 +7949,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 162,
+    "line": 247,
     "method": "GET",
     "path": "/api/v1/farm-book/parties",
     "handler": "list_parties",
@@ -7949,7 +7958,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 247,
+    "line": 406,
     "method": "POST",
     "path": "/api/v1/farm-book/entries",
     "handler": "create_entry",
@@ -7958,7 +7967,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 418,
+    "line": 600,
     "method": "GET",
     "path": "/api/v1/farm-book/entries",
     "handler": "list_entries",
@@ -7967,7 +7976,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 451,
+    "line": 635,
     "method": "GET",
     "path": "/api/v1/farm-book/monthly",
     "handler": "monthly_report",
@@ -7976,7 +7985,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 487,
+    "line": 675,
     "method": "GET",
     "path": "/api/v1/farm-book/balances",
     "handler": "book_balances",
@@ -7985,7 +7994,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 508,
+    "line": 701,
     "method": "GET",
     "path": "/api/v1/farm-book/export",
     "handler": "export_book",
@@ -8003,7 +8012,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 53,
+    "line": 58,
     "method": "GET",
     "path": "/api/v1/soil-sampling/subsamples",
     "handler": "soil_subsamples_endpoint",
@@ -8012,7 +8021,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 59,
+    "line": 64,
     "method": "GET",
     "path": "/api/v1/soil-sampling/depth",
     "handler": "soil_depth_endpoint",
@@ -8021,7 +8030,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 65,
+    "line": 70,
     "method": "GET",
     "path": "/api/v1/soil-sampling/protocol",
     "handler": "soil_protocol_endpoint",
@@ -8030,7 +8039,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 166,
+    "line": 315,
     "method": "GET",
     "path": "/api/v1/lab/samples",
     "handler": "list_lab_samples",
@@ -8039,7 +8048,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 181,
+    "line": 375,
     "method": "POST",
     "path": "/api/v1/lab/samples",
     "handler": "create_lab_sample",
@@ -8048,7 +8057,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 223,
+    "line": 425,
     "method": "POST",
     "path": "/api/v1/lab/soil-results",
     "handler": "submit_soil_lab_result",
@@ -8057,7 +8066,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 295,
+    "line": 555,
     "method": "POST",
     "path": "/api/v1/lab/water-results",
     "handler": "submit_water_lab_result",
@@ -8066,7 +8075,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 327,
+    "line": 606,
     "method": "POST",
     "path": "/api/v1/lab/samples/{sample_id}/transition",
     "handler": "transition_lab_sample",
@@ -8075,7 +8084,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 429,
+    "line": 737,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/lab-context",
     "handler": "field_lab_context",
@@ -8300,7 +8309,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/water_twin.py",
-    "line": 198,
+    "line": 199,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/water-twin",
     "handler": "field_water_twin",
@@ -8633,7 +8642,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/yield_map_ingestion.py",
-    "line": 256,
+    "line": 258,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
     "handler": "list_yield_map_ingestions",
@@ -8642,7 +8651,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/yield_map_ingestion.py",
-    "line": 290,
+    "line": 292,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/yield-map-records",
     "handler": "query_yield_map_records",
@@ -8660,7 +8669,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 125,
+    "line": 130,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -8669,7 +8678,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 130,
+    "line": 135,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -8678,11 +8687,38 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 135,
+    "line": 140,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
     "classification": "infra"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/detection_link_api.py",
+    "line": 130,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events",
+    "handler": "post_detection_link",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/detection_link_api.py",
+    "line": 241,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events",
+    "handler": "get_detection_links",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/evidence_retention_api.py",
+    "line": 90,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/retention",
+    "handler": "get_evidence_retention",
+    "classification": "internal_s2s"
   },
   {
     "service": "scout-ingest-service",
@@ -8749,8 +8785,98 @@
   },
   {
     "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 349,
+    "method": "POST",
+    "path": "/internal/scouting-media/admin/fields/{field_id}/grants",
+    "handler": "issue_scout_photo_grant",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 440,
+    "method": "POST",
+    "path": "/internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke",
+    "handler": "revoke_scout_photo_grant",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 517,
+    "method": "GET",
+    "path": "/internal/scouting-media/admin/fields/{field_id}/grants",
+    "handler": "list_scout_photo_grants",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 586,
+    "method": "POST",
+    "path": "/internal/scouting-media/admin/credential-events",
+    "handler": "post_credential_event",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 684,
+    "method": "POST",
+    "path": "/internal/scouting-media/admin/retention-policy-events",
+    "handler": "post_retention_policy",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/grants_admin_api.py",
+    "line": 755,
+    "method": "POST",
+    "path": "/internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events",
+    "handler": "post_retention_event",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/human_review_api.py",
+    "line": 169,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events",
+    "handler": "post_human_review",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/human_review_api.py",
+    "line": 270,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events",
+    "handler": "get_human_reviews",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/lab_link_api.py",
+    "line": 129,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events",
+    "handler": "post_lab_link",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/lab_link_api.py",
+    "line": 231,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events",
+    "handler": "get_lab_links",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 200,
+    "line": 227,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -8759,7 +8885,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 205,
+    "line": 232,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -8768,7 +8894,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 242,
+    "line": 269,
     "method": "GET",
     "path": "/internal/scouting/external-observations",
     "handler": "read_external_observations",
@@ -8777,7 +8903,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 361,
+    "line": 388,
     "method": "POST",
     "path": "/internal/ingest/submissions/odk",
     "handler": "ingest_odk_submission",
@@ -8786,10 +8912,55 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 370,
+    "line": 397,
     "method": "POST",
     "path": "/internal/ingest/submissions/kobo",
     "handler": "ingest_kobo_submission",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/media_api.py",
+    "line": 238,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo",
+    "handler": "post_pin_photo",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/media_api.py",
+    "line": 300,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo",
+    "handler": "get_pin_photo",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/media_api.py",
+    "line": 530,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events",
+    "handler": "post_pin_photo_season_link_event",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/media_api.py",
+    "line": 612,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events",
+    "handler": "list_pin_photo_season_link_events",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/media_api.py",
+    "line": 674,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/context",
+    "handler": "get_pin_photo_context",
     "classification": "internal_s2s"
   },
   {
@@ -8883,9 +9054,54 @@
     "classification": "internal_s2s"
   },
   {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/tissue_samples_api.py",
+    "line": 182,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples",
+    "handler": "create_tissue_sample",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/tissue_samples_api.py",
+    "line": 288,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples/{sample_id}/custody-events",
+    "handler": "record_custody_event",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/tissue_samples_api.py",
+    "line": 395,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples",
+    "handler": "list_tissue_samples",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/treatment_review_api.py",
+    "line": 175,
+    "method": "POST",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events",
+    "handler": "post_treatment_event",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/treatment_review_api.py",
+    "line": 280,
+    "method": "GET",
+    "path": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events",
+    "handler": "get_treatment_events",
+    "classification": "internal_s2s"
+  },
+  {
     "service": "soil-service",
     "file": "services/soil-service/main.py",
-    "line": 221,
+    "line": 220,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",
@@ -8903,7 +9119,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/canonical.py",
-    "line": 59,
+    "line": 62,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/observations",
     "handler": "observations",
@@ -8912,7 +9128,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/canonical.py",
-    "line": 76,
+    "line": 79,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/profile/rebuild",
     "handler": "rebuild_profile",
@@ -8921,7 +9137,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/canonical.py",
-    "line": 89,
+    "line": 92,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/profile",
     "handler": "current_profile",
@@ -8930,7 +9146,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/canonical.py",
-    "line": 104,
+    "line": 107,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/profile/history",
     "handler": "profile_history",
@@ -8939,7 +9155,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/canonical.py",
-    "line": 145,
+    "line": 150,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/evidence",
     "handler": "ingest_typed_evidence",
@@ -8948,7 +9164,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/canonical.py",
-    "line": 191,
+    "line": 221,
     "method": "GET",
     "path": "/v1/soil/cutover/readiness",
     "handler": "soil_cutover_readiness",
@@ -9011,7 +9227,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 35,
+    "line": 36,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/soilgrids-spatial",
     "handler": "ingest_soilgrids",
@@ -9020,7 +9236,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 83,
+    "line": 84,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/sampling-plans",
     "handler": "create_plan",
@@ -9029,7 +9245,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 100,
+    "line": 101,
     "method": "POST",
     "path": "/v1/soil/sampling-plans/{plan_id}/approve",
     "handler": "approve_plan",
@@ -9038,7 +9254,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 114,
+    "line": 115,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/hydraulic-profile/rebuild",
     "handler": "rebuild_hydraulic",
@@ -9047,7 +9263,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 128,
+    "line": 130,
     "method": "POST",
     "path": "/v1/soil/irrigation-water/samples",
     "handler": "water_sample",
@@ -9056,7 +9272,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 141,
+    "line": 143,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/soilgrids-spatial",
     "handler": "current_soilgrids",
@@ -9065,7 +9281,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 154,
+    "line": 156,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/sampling-plans/current",
     "handler": "current_sampling",
@@ -9074,7 +9290,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 167,
+    "line": 169,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/hydraulic-profile",
     "handler": "current_hydraulic",
@@ -9083,7 +9299,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p1_products.py",
-    "line": 180,
+    "line": 182,
     "method": "GET",
     "path": "/v1/soil/irrigation-water/sources/{source_id}/profile",
     "handler": "current_water",
@@ -9128,7 +9344,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p2_products.py",
-    "line": 139,
+    "line": 148,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/bare-soil-composite",
     "handler": "get_bare",
@@ -9137,7 +9353,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p2_products.py",
-    "line": 146,
+    "line": 155,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/terrain-derivatives",
     "handler": "get_terrain",
@@ -9146,7 +9362,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p2_products.py",
-    "line": 153,
+    "line": 162,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/texture-probability",
     "handler": "get_texture",
@@ -9155,7 +9371,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/p2_products.py",
-    "line": 160,
+    "line": 169,
     "method": "GET",
     "path": "/v1/fields/{field_id}/soil/salinity-assessment",
     "handler": "get_salinity",
@@ -9839,7 +10055,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 116,
+    "line": 121,
     "method": "GET",
     "path": "/v1/streams/{stream_id}",
     "handler": "get_stream",
@@ -9848,7 +10064,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 139,
+    "line": 144,
     "method": "GET",
     "path": "/v1/streams",
     "handler": "list_streams",
@@ -9857,7 +10073,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 165,
+    "line": 170,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/snapshot",
     "handler": "snapshot",
@@ -9866,7 +10082,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 183,
+    "line": 188,
     "method": "GET",
     "path": "/v1/streams/{stream_id}/snapshot",
     "handler": "snapshot_zlm",
@@ -9875,7 +10091,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 206,
+    "line": 211,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/start",
     "handler": "record_start",
@@ -9884,7 +10100,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 226,
+    "line": 231,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/stop",
     "handler": "record_stop",

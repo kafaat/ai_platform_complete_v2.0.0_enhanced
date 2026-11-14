@@ -551,6 +551,24 @@ run "٥ب) marker_coverage"         python3 scripts/ci/test_marker_coverage_guar
 # حتميٌّ في كلّ بيئة، فموضعُه الطبقةُ الأرخص. الجناحُ كلُّه في ٨ج بشرطه.
 run "٥ج) platform_module_budget"  python3 -m pytest -q -p no:cacheprovider services/sahool-platform/tests/test_p0_platform_module_growth_guard.py
 
+# ── ٥د–٥و) انحرافُ المولَّد الأشيع — في الطبقة السريعة عمداً ─────────────────
+# PREFLIGHT-FAST-BLIND-TO-GENERATED-DRIFT-01: إحصاءُ 2026-11-13 لآخر ١٠٠٠ تشغيل PR مكتمل
+# (٥١ فاشلاً، ٧٠ وظيفة): ٥٢ وظيفة سقطت بثلاثة أصنافٍ فقط — جردُ الخدمات غيرُ المُعاد
+# توليدُه (drift · Repository Structural Lint)، وبصماتُ الإصدار البائتة (release-package ·
+# pytest-contracts)، ومراسي أسطر `platform_extraction_map.json` (platform-route-budget).
+# مكنسةُ ٧ تكشفها لكنّها ~٢٥٧ ث خارج `--fast`؛ هذه الثلاثة ~٩ ث، للقراءة فقط، وأعادت
+# إنتاجَ الصنف على خمسة رؤوسٍ أحمرت في CI ومرّ عليها `--fast` بلا ذكره. سقوطُها هنا
+# معناه: `git add` ثمّ `verify_all_generated.py --fix` (والمراسي تُصحَّح يدويّاً — §٣).
+if require_file scripts/ci/generate_service_inventory.py "٥د) service_inventory --check"; then
+  run "٥د) service_inventory --check"   python3 scripts/ci/generate_service_inventory.py --check
+fi
+if require_file scripts/release/validate_release_package.py "٥هـ) release checksums"; then
+  run "٥هـ) release checksums"          python3 scripts/release/validate_release_package.py --root .
+fi
+if require_file scripts/ci/platform_route_ownership_guard.py "٥و) platform_route_ownership"; then
+  run "٥و) platform_route_ownership"    python3 scripts/ci/platform_route_ownership_guard.py
+fi
+
 # ── ٦) حرّاس الدماغ — على مدى الـPR لا على الشجرة ─────────────────────────
 run "٦أ) brain_deferral"          python3 scripts/ci/brain_deferral_registry_guard.py
 
@@ -595,7 +613,53 @@ else
   skipped=$((skipped + 3))
 fi
 
+# ── ١١ب/١١د) سطرا متن الـPR المشتقّان — في الطبقتين ───────────────────────────
+# PREFLIGHT-FAST-DOES-NOT-DERIVE-CAPABILITY-IMPACT-01: إحصاءُ 2026-11-13 (٧٠ وظيفة PR فاشلة):
+# ٨ منها `capability-registry` بمتنٍ بلا سطر `Capability-Impact` أو بسطرٍ ناقص — والسطرُ
+# المشتقّ كان يُطبَع بعد الخروج المبكر وحده، أي في الطبقة التي لا تُشغَّل قبل الدفع غالباً.
+# معلوماتيّ لا يُفشِل؛ دالّةٌ واحدة تستدعيها الطبقتان فلا يتباعد نصّاهما.
+suggest_pr_body_lines() {
+  echo "── ١١ب) Capability-Impact المقترح لمتن الـPR"
+  changed=$(git diff --name-only "$BASE...HEAD" 2>/dev/null || true)
+  if [ -n "$changed" ]; then
+    # shellcheck disable=SC2086
+    direct=$(python3 scripts/ci/capability_impact.py --json $changed 2>/dev/null \
+      | python3 -c 'import json,sys; d=json.load(sys.stdin); print("ALL" if d["governance_wide"] else ",".join(d["direct"]))' 2>/dev/null)
+    if [ -n "$direct" ]; then
+      echo "   Capability-Impact: $direct"
+      echo "   تذكير: الـworkflow يستمع لـ edited (capability-governance.yml، منذ #964)،"
+      echo "   فتعديلُ المتن يُطلِق تشغيلاً جديداً تلقائيّاً — لا تُعِد التشغيل يدويّاً فوقه."
+      echo "   والبوّابة منذ #907 تقرأ المتن حيّاً (وSHAs تبقى من الحدث عمداً)."
+    else
+      echo "   Capability-Impact: NONE  (لا مسار من مساراتك يمسّ قدرة مُسجَّلة)"
+    fi
+  else
+    # «لا فرق» هنا لا يعني «لا قدرة متأثّرة» — يعني **لم يُشتقّ شيء**، وأشيع سببه أنّ
+    # التشغيل سبق الالتزام. وهذا الفرع كان صامتاً فمرّ ضمن «متخطّاة: 0»، ودُفِع متنٌ
+    # بلا سطر `Capability-Impact` فحجبت `capability-registry` جولةً كاملة (#814).
+    # والفرع الآخر أعلاه يحمل التحذير كلّه؛ الصمت هنا كان الثقب.
+    echo "   ⊘ متخطّاة: لا فرق مقابل $BASE — **لم يُشتقّ سطر Capability-Impact**"
+    echo "     إن لم تكن قد التزمتَ بعد فهذا متوقَّع: التزِم ثمّ أعِد هذه الخطوة وحدها،"
+    echo "     ولا تدفع متناً بلا السطر. تعديلُ المتن يُطلِق البوّابة من جديد (الـworkflow"
+    echo "     يستمع لـ edited منذ #964)، فأضِف السطر وانتظر تشغيلها — لا حاجة لإعادة يدويّة."
+    echo "     اشتقّه بـ: python3 scripts/ci/pr_capability_impact_gate.py --base $BASE --head HEAD"
+    skipped=$((skipped + 1))
+  fi
+
+  # PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01: #1285 wrote «gateway only»
+  # by hand and Railway rebuilt three more services. Derived from the captured watch
+  # patterns instead; informational, never a failure.
+  echo "── ١١د) Deploy-Effect المقترح لمتن الـPR (من أنماط المراقبة الملتقَطة من Railway)"
+  if [ -n "$changed" ]; then
+    # shellcheck disable=SC2086
+    python3 scripts/ci/railway_deploy_impact.py $changed 2>&1 | sed 's/^/   /'
+  else
+    echo "   لا فرق مقابل $BASE — لم يُشتقّ شيء (التزِم أوّلاً)."
+  fi
+}
+
 if [ "$TIER" = fast ]; then
+  suggest_pr_body_lines
   echo
   echo "الجناحان والمكنسة **لم يُشغَّلا**. لا تدفع على هذا وحده."
   print_tail_summary fast
@@ -732,43 +796,7 @@ if [ -n "$PR_BODY_FILE" ]; then
   fi
 fi
 
-echo "── ١١ب) Capability-Impact المقترح لمتن الـPR"
-changed=$(git diff --name-only "$BASE...HEAD" 2>/dev/null || true)
-if [ -n "$changed" ]; then
-  # shellcheck disable=SC2086
-  direct=$(python3 scripts/ci/capability_impact.py --json $changed 2>/dev/null \
-    | python3 -c 'import json,sys; d=json.load(sys.stdin); print("ALL" if d["governance_wide"] else ",".join(d["direct"]))' 2>/dev/null)
-  if [ -n "$direct" ]; then
-    echo "   Capability-Impact: $direct"
-    echo "   تذكير: البوّابة لا تستمع لـ edited ⇒ تعديل المتن لا يُطلِقها. لكنّها"
-    echo "   منذ #907 تقرأ المتن حيّاً من الـAPI زمنَ التنفيذ: rerun يلتقط متناً"
-    echo "   محدَّثاً (وSHAs تبقى من الحدث عمداً — البوّابة تحكم على شيفرة الحدث)."
-  else
-    echo "   Capability-Impact: NONE  (لا مسار من مساراتك يمسّ قدرة مُسجَّلة)"
-  fi
-else
-  # «لا فرق» هنا لا يعني «لا قدرة متأثّرة» — يعني **لم يُشتقّ شيء**، وأشيع سببه أنّ
-  # التشغيل سبق الالتزام. وهذا الفرع كان صامتاً فمرّ ضمن «متخطّاة: 0»، ودُفِع متنٌ
-  # بلا سطر `Capability-Impact` فحجبت `capability-registry` جولةً كاملة (#814).
-  # والفرع الآخر أعلاه يحمل التحذير كلّه؛ الصمت هنا كان الثقب.
-  echo "   ⊘ متخطّاة: لا فرق مقابل $BASE — **لم يُشتقّ سطر Capability-Impact**"
-  echo "     إن لم تكن قد التزمتَ بعد فهذا متوقَّع: التزِم ثمّ أعِد هذه الخطوة وحدها،"
-  echo "     ولا تدفع متناً بلا السطر. البوّابة لا تستمع لـ edited فالتحرير وحده لا"
-  echo "     يُطلِقها — لكنّها منذ #907 تقرأ المتن حيّاً: أضِف السطر ثمّ أعد تشغيلها."
-  echo "     اشتقّه بـ: python3 scripts/ci/pr_capability_impact_gate.py --base $BASE --head HEAD"
-  skipped=$((skipped + 1))
-fi
-
-# PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01: #1285 wrote «gateway only»
-# by hand and Railway rebuilt three more services. Derived from the captured watch
-# patterns instead; informational, never a failure.
-echo "── ١١د) Deploy-Effect المقترح لمتن الـPR (من أنماط المراقبة الملتقَطة من Railway)"
-if [ -n "$changed" ]; then
-  # shellcheck disable=SC2086
-  python3 scripts/ci/railway_deploy_impact.py $changed 2>&1 | sed 's/^/   /'
-else
-  echo "   لا فرق مقابل $BASE — لم يُشتقّ شيء (التزِم أوّلاً)."
-fi
+suggest_pr_body_lines
 
 echo
 if [ "$skipped" -gt 0 ]; then

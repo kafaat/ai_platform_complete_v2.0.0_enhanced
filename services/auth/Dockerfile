@@ -39,6 +39,9 @@ COPY services/auth/mfa_runtime.py /app/mfa_runtime.py
 # session_tokens.py is imported by routers/session.py. Keep it in the image or the
 # session router (login/refresh/logout/me) is silently skipped by router_registry.
 COPY services/auth/session_tokens.py /app/session_tokens.py
+# mfa_enrollment.py is imported by routers/session.py and routers/mfa.py (password-proven
+# bootstrap MFA enrollment). Missing it => login and MFA routers silently skipped.
+COPY services/auth/mfa_enrollment.py /app/mfa_enrollment.py
 # client_address.py is imported by every router that keys a limit/audit row on the client
 # address (AUTH-IP-RATE-LIMIT-KEYS-ON-THE-GATEWAY-ADDRESS-01). Missing it => those routers
 # (login, register, password reset, ...) are silently skipped by router_registry.

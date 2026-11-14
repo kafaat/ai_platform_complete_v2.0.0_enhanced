@@ -521,6 +521,89 @@ def test_the_platform_module_budget_ratchet_runs_in_the_fast_tier():
     ), "حذفُ الراتشِت يجب أن يُسمّى فقدَ تغطية، لا أن يُقرَأ بوّابةً مارّة"
 
 
+@pytest.mark.parametrize(
+    "invocation, script",
+    [
+        (
+            "python3 scripts/ci/generate_service_inventory.py --check",
+            "scripts/ci/generate_service_inventory.py",
+        ),
+        (
+            "python3 scripts/release/validate_release_package.py --root .",
+            "scripts/release/validate_release_package.py",
+        ),
+        (
+            "python3 scripts/ci/platform_route_ownership_guard.py",
+            "scripts/ci/platform_route_ownership_guard.py",
+        ),
+    ],
+)
+def test_the_commonest_generated_drift_is_caught_in_the_fast_tier(invocation, script):
+    """PREFLIGHT-FAST-BLIND-TO-GENERATED-DRIFT-01 — الموضعُ لا الوجود.
+
+    إحصاءُ 2026-11-13 (آخر ١٠٠٠ تشغيل PR مكتمل، ٧٠ وظيفة فاشلة): ٥٢ منها سقطت بثلاثة
+    أصناف — جردُ خدماتٍ لم يُعَد توليدُه، وبصماتُ إصدارٍ بائتة، ومراسي أسطر
+    `platform_extraction_map.json`. مكنسةُ ٧ تكشفها لكنّها ~٢٥٧ ث بعد الخروج المبكر، فمرّ
+    `--fast` على خمسة رؤوسٍ أحمرت في CI دون ذكرها. هذه الثلاثة ~٩ ث للقراءة فقط.
+    """
+    text = _text()
+    assert invocation in text, "صنفٌ أسقط أكثرَ وظائف الـPR ولا يُسأل في الطبقة التي تسبق الدفع"
+    assert text.count(invocation) == 1, "استدعاءان يجعلان فحصَ الموضع يقرأ أوّلَهما — اختر واحداً"
+    fast_exit_at = text.index('if [ "$TIER" = fast ]')
+    assert text.index(invocation) < fast_exit_at, (
+        "يجب أن يعمل في `--fast`: الطبقةُ التي يُشغّلها المطوّر قبل الدفع"
+    )
+    assert text.index(f"require_file {script}") < fast_exit_at, (
+        "سكربتٌ مفقود يجب أن يُعَدّ فقدَ تغطية في الطبقة نفسها لا أن يُتخطّى صامتاً"
+    )
+    contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    assert script in contract["required_scripts"], (
+        "حذفُه يجب أن يُسمّى فقدَ تغطية، لا أن يُقرَأ بوّابةً مارّة"
+    )
+
+
+def test_the_capability_reminder_matches_the_workflow_trigger():
+    """الأداةُ تقول ما يفعله الـworkflow: `capability-governance.yml` يستمع لـ`edited` منذ
+    #964، فتعديلُ المتن يُطلِق البوّابة من جديد. قالت `preflight.sh` العكسَ في موضعين، ومَن
+    عمل به أعاد التشغيل يدويّاً فوق تشغيلٍ أطلقه التعديل (ازدواجٌ مقيس على #1401 و#1409)."""
+    workflow = (ROOT / ".github/workflows/capability-governance.yml").read_text(encoding="utf-8")
+    listens = bool(re.search(r"pull_request:\s*\n\s*types:\s*\[[^\]]*\bedited\b", workflow))
+    text = _text()
+    claims_not = "لا تستمع لـ edited" in text
+    assert not (listens and claims_not), "الأداة تنفي ما يفعله الـworkflow: صحّح التذكير"
+    assert not (not listens and not claims_not and "يستمع لـ edited" in text), (
+        "الـworkflow لم يعد يستمع لـ edited: صحّح التذكير ليقول ذلك"
+    )
+
+
+def test_the_derived_pr_body_lines_are_printed_in_the_fast_tier_too():
+    """PREFLIGHT-FAST-DOES-NOT-DERIVE-CAPABILITY-IMPACT-01 — الموضعُ لا الوجود.
+
+    إحصاءُ 2026-11-13: ٨ من ٧٠ وظيفة PR فاشلة كانت `capability-registry` بمتنٍ بلا سطر
+    `Capability-Impact` صحيح، والسطرُ المشتقّ لم يكن يُطبَع إلّا بعد الخروج المبكر.
+    دالّةٌ واحدة تستدعيها الطبقتان، فلا يتباعد نصّاهما.
+    """
+    text = _text()
+    fast_exit_at = text.index('if [ "$TIER" = fast ]')
+    definition = text.index("suggest_pr_body_lines() {")
+    assert definition < fast_exit_at, "الدالّة يجب أن تُعرَّف قبل أن تستدعيها الطبقة السريعة"
+    body = text[definition : text.index("\n}\n", definition)]
+    assert "scripts/ci/capability_impact.py --json" in body, "السطرُ يُشتقّ من المحرّك نفسه لا من جدول"
+    assert "scripts/ci/railway_deploy_impact.py" in body
+    calls = [
+        i
+        for i in range(len(text))
+        if text.startswith("suggest_pr_body_lines\n", i)
+        and not text.startswith("suggest_pr_body_lines() {", i)
+    ]
+    assert len(calls) == 2, "استدعاءٌ في الطبقة السريعة وآخر في الافتراضيّة"
+    fast_block = text[fast_exit_at : text.index("exit 0", fast_exit_at)]
+    assert "suggest_pr_body_lines" in fast_block, "يجب أن يُطبَع في `--fast`: الطبقةُ التي تسبق الدفع"
+    assert text.count("scripts/ci/capability_impact.py --json") == 1, (
+        "نسخةٌ ثانية من الاشتقاق تتباعد"
+    )
+
+
 def test_the_platform_suite_runs_in_ci_form_in_the_default_tier():
     """الجناحُ كاملاً يُشغَّل كما تُشغّله CI (`services/sahool-platform` + `PYTHONPATH=.`)
     في الطبقة الافتراضيّة — بعد الخروج المبكر لأنّ كلفتَه في CI ~٩٠ ث لا تُناسب `--fast`."""

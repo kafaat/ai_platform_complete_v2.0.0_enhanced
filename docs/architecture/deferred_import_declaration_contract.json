@@ -12,15 +12,6 @@
       "why": "تتبّع محيط حقيقيّ عبر rasterio.features.shapes حين توفّره؛ `except Exception ⇒ return None` والمُستدعي يسقط إلى مستطيل نقيّ (موثَّق في docstring:125-129). إعلان numpy/rasterio هنا يُثقِل خدمة خفيفة بتبعيّة جغرافيّة لا تحتاجها في مسارها الافتراضيّ."
     },
     {
-      "service": "ai_agronomist",
-      "module": "rasterio",
-      "sites": [
-        "services/ai_agronomist/field_boundary_backends.py:132",
-        "services/ai_agronomist/field_boundary_backends.py:133"
-      ],
-      "why": "نفس الموضع والبديل النقيّ أعلاه."
-    },
-    {
       "service": "sahool-platform",
       "module": "PIL",
       "sites": [
@@ -35,6 +26,7 @@
     "decision-service:redis": "أُعلِنت redis>=5.0.0 في services/decision-service/requirements.txt، وفُصِل ModuleNotFoundError عن تعذّر الاتّصال في رسالة الفشل — فلم تعد الحالة تُصنَّف ديناً. كانت الفجوة المُسجَّلة DECISION-SERVICE-REDIS-DEPENDENCY-GAP-01.",
     "raster-service:yaml": "أُعلِنت PyYAML==6.0.2 مباشرةً في services/raster-service/requirements.txt لمسار terrain_source_registry بلا fallback.",
     "sahool-platform:sklearn": "أُعلِنت scikit-learn>=1.4.0 مباشرةً في services/sahool-platform/api/requirements.txt لمسار zones_kmeans.",
-    "ai_agronomist:redis": "أُعلِنت redis>=5.0.0 مباشرةً في services/ai_agronomist/requirements.txt لمسار agent_stores الإنتاجي fail-closed."
+    "ai_agronomist:redis": "أُعلِنت redis>=5.0.0 مباشرةً في services/ai_agronomist/requirements.txt لمسار agent_stores الإنتاجي fail-closed.",
+    "ai_agronomist:rasterio": "أُعلِنت rasterio==1.4.4 مباشرةً في services/ai_agronomist/requirements.txt (خطّة أخذ عيّنات التربة من الشبكات النقطيّة)."
   }
 }

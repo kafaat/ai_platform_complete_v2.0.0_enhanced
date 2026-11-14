@@ -11,6 +11,17 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 SOIL_OBSERVATION_CONTRACT_VERSION = "soil-observation.v1"
 
+# Extraction changes the interpretation of a laboratory conductivity reading.
+# All methods retain the measurement unit, but each has its own profile property.
+LAB_EC_PROPERTIES_BY_METHOD = {
+    "saturated_paste": "ec",
+    "soil_water_1_1": "ec_1_1",
+    "soil_water_1_2_5": "ec_1_2_5",
+    "soil_water_1_5": "ec_1_5",
+    "unspecified": "ec_unspecified",
+}
+PLATFORM_LAB_PROCEDURE = "platform-lab-workflow.v1"
+
 #: How far ``observed_at`` may lead ``received_at`` before the observation is refused.
 #: A device clock running ~1 s fast used to turn a valid reading into a 422 here while the
 #: platform had already stored the raw row. Small drifts are clock error, not time travel;

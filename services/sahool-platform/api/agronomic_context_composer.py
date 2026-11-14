@@ -318,6 +318,11 @@ def irrigation_candidate_features(
     sampled = (
         _day_start(texture.get("sampled_on")) if texture.get("source") == "lab_measured" else None
     )
+    taw_ref = texture.get("evidence_ref") if sampled else None
+    if inputs.get("taw_source") == "canonical_root_zone_profile":
+        soil = (inputs["soil_provenance"].get("canonical_evidence") or {}).get("soil") or {}
+        taw_ref = soil.get("root_zone_profile_digest")
+        sampled = None
     if inputs.get("taw_mm") is not None:
         feats.append(
             {
@@ -326,12 +331,10 @@ def irrigation_candidate_features(
                 "value": inputs["taw_mm"],
                 "unit": "mm",
                 "source_service": "sahool-platform",
-                "source_snapshot_id": f"soil_lab_test:{texture.get('sampled_on')}"
-                if sampled
-                else None,
+                "source_snapshot_id": taw_ref,
                 "observed_at": sampled or cutoff,
                 "available_at": cutoff,
-                "quality_status": "verified" if sampled else "accepted_with_warning",
+                "quality_status": "accepted_with_warning",
                 "formula_version": f"soil_water_params:{inputs.get('taw_source')}",
             }
         )

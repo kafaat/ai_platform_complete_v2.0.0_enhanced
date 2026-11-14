@@ -124,6 +124,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/AddFieldWithMap.segmentation.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/AddFieldWithMap.shapefileImport.test.tsx",
     "kind": "web"
   },
@@ -149,6 +153,10 @@
   },
   {
     "path": "frontend/src/components/FieldDetailPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/FieldIndicatorMap.boundary.test.tsx",
     "kind": "web"
   },
   {
@@ -348,6 +356,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/fieldsetup/YieldStep.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/fieldsetup/steps.ts",
     "kind": "web"
   },
@@ -436,6 +448,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/fieldview/IrrigationDecisionCard.evidence.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/fieldview/IrrigationDecisionCard.tsx",
     "kind": "web"
   },
@@ -473,6 +489,10 @@
   },
   {
     "path": "frontend/src/components/fieldview/SpecialtyCropsCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/SupplementalWaterCheck.test.tsx",
     "kind": "web"
   },
   {
@@ -633,6 +653,10 @@
   },
   {
     "path": "frontend/src/components/maphub/SceneProvenanceCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/SoilSamplingPlannerPanel.link.test.tsx",
     "kind": "web"
   },
   {
@@ -948,10 +972,6 @@
     "kind": "tests"
   },
   {
-    "path": "frontend/src/hooks/useFieldIrrigationRecommendation.ts",
-    "kind": "web"
-  },
-  {
     "path": "frontend/src/hooks/useFieldOptions.ts",
     "kind": "web"
   },
@@ -1006,6 +1026,10 @@
   {
     "path": "frontend/src/hooks/useYemeniCalendars.ts",
     "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/acquisitionUtcWire.test.ts",
+    "kind": "tests"
   },
   {
     "path": "frontend/src/lib/adminRuntime.test.ts",
@@ -1201,6 +1225,10 @@
   },
   {
     "path": "frontend/src/lib/fieldAgroKnowledge.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldBoundary.ts",
     "kind": "web"
   },
   {
@@ -1652,6 +1680,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/wheatRegister.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/lib/windbreak.ts",
     "kind": "web"
   },
@@ -1729,6 +1761,10 @@
   },
   {
     "path": "frontend/src/sections/AlertSystemPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/AnalyzeCabin.commonMask.test.tsx",
     "kind": "web"
   },
   {
@@ -2008,7 +2044,19 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/LabSampleReview.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/LabSamplingPage.auditRepair.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/LabSamplingPage.journey.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/LabSamplingPage.planOrigin.test.tsx",
     "kind": "web"
   },
   {
@@ -2148,8 +2196,20 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/sections/ScoutPhotoGrantAdminPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/SettingsPage.teamRoles.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
     "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/TaskExpenseLink.tsx",
+    "kind": "web"
   },
   {
     "path": "frontend/src/sections/TaskIrrigationObservationPanel.test.tsx",
@@ -2157,6 +2217,10 @@
   },
   {
     "path": "frontend/src/sections/TaskIrrigationObservationPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/TasksPage.cost.test.tsx",
     "kind": "web"
   },
   {
@@ -2264,6 +2328,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/sections/useLabSubmission.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/services/api.test.ts",
     "kind": "tests"
   },
@@ -2281,10 +2349,6 @@
   },
   {
     "path": "frontend/src/services/api/fieldIrrigation.ts",
-    "kind": "web"
-  },
-  {
-    "path": "frontend/src/services/api/fieldTasks.ts",
     "kind": "web"
   },
   {
@@ -2349,6 +2413,14 @@
   },
   {
     "path": "frontend/src/services/duckdb.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/scoutPhotoGrants.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/scoutPhotoGrants.ts",
     "kind": "web"
   },
   {
@@ -2529,6 +2601,50 @@
   },
   {
     "path": "migrations/v235_decision_chain_correlation.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v258_lab_water_revisions.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v263_scout_photo_field_access_grants.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v264_scout_photo_grant_admin_audit.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v265_scout_photo_grant_audit_enforcement.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v266_scout_photo_detection_link_events.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v267_scout_photo_lab_sample_links.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v268_scout_photo_human_review.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v269_scout_plant_tissue_chain.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v270_scout_specialist_credential_attestations.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v271_scout_treatment_review_events.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v272_scout_photo_retention_governance.sql",
     "kind": "database"
   },
   {
@@ -4152,6 +4268,18 @@
     "kind": "tests"
   },
   {
+    "path": "scripts/staging/scout_photo_stage11_catalog_gate.sql",
+    "kind": "database"
+  },
+  {
+    "path": "scripts/staging/scout_photo_stage8_catalog_gate.sql",
+    "kind": "database"
+  },
+  {
+    "path": "scripts/staging/scout_photo_stage9_catalog_gate.sql",
+    "kind": "database"
+  },
+  {
     "path": "services/actuator-service/command_delivery.py",
     "kind": "backend"
   },
@@ -4612,6 +4740,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/decision-service/tests/test_ac1_boundary_finiteness_timezone.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/decision-service/tests/test_activation_evidence_contract.py",
     "kind": "tests"
   },
@@ -4641,6 +4773,10 @@
   },
   {
     "path": "services/decision-service/tests/test_agronomic_runtime_terminal_lineage.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_backfill_row_coverage.py",
     "kind": "tests"
   },
   {
@@ -4790,6 +4926,10 @@
   {
     "path": "services/edge-inference/sync_service.py",
     "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/tests/test_entrypoint_validation_lifecycle.py",
+    "kind": "tests"
   },
   {
     "path": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
@@ -5104,6 +5244,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/qdrant-seed/test_seed_claim_provenance.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/rag-retrieval/main.py",
     "kind": "backend"
   },
@@ -5204,6 +5348,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/raster_clip_query.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/raster_date_geo.py",
     "kind": "backend"
   },
@@ -5288,6 +5436,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/sar_tillage_evidence.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/soil_render.py",
     "kind": "backend"
   },
@@ -5320,6 +5472,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_boundary_clip_query.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_c7_latest_cache_provenance.py",
     "kind": "tests"
   },
@@ -5337,6 +5493,10 @@
   },
   {
     "path": "services/raster-service/test_field_change_alignment.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_field_tile_asset_cache.py",
     "kind": "tests"
   },
   {
@@ -5372,6 +5532,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_layer_lookup_chronology.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_masked_read_cast_before_fill.py",
     "kind": "tests"
   },
@@ -5381,6 +5545,10 @@
   },
   {
     "path": "services/raster-service/test_object_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_pixel_georeferencing.py",
     "kind": "tests"
   },
   {
@@ -5417,6 +5585,10 @@
   },
   {
     "path": "services/raster-service/test_raster_error_sanitization_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_field_coverage.py",
     "kind": "tests"
   },
   {
@@ -5460,6 +5632,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_raw_indicator_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_registry_writes_owner_api.py",
     "kind": "tests"
   },
@@ -5480,10 +5656,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/raster-service/test_soil_zones.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/raster-service/test_spatial_sampling_product.py",
     "kind": "tests"
   },
@@ -5492,7 +5664,19 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_task_indicator_previews.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_tile_http_policy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_time_series_common_mask.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_time_series_trend_axis.py",
     "kind": "tests"
   },
   {
@@ -5889,10 +6073,6 @@
   },
   {
     "path": "services/sahool-platform/api/equipment_models.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/event_catalog.py",
     "kind": "backend"
   },
   {
@@ -6709,10 +6889,6 @@
   },
   {
     "path": "services/sahool-platform/api/soil_enrichment.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/soil_evidence_bridge.py",
     "kind": "backend"
   },
   {
@@ -8476,6 +8652,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_event_catalog_completeness.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_event_replay.py",
     "kind": "tests"
   },
@@ -8501,6 +8681,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_evidence_graph_normalize.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_evidence_map_owner.py",
     "kind": "tests"
   },
   {
@@ -8548,6 +8732,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_field_auto_imagery_revision.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_field_bundle.py",
     "kind": "tests"
   },
@@ -8576,6 +8764,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_field_overlap_postgis.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_field_portfolio_endpoint.py",
     "kind": "tests"
   },
@@ -8589,10 +8781,6 @@
   },
   {
     "path": "services/sahool-platform/tests/test_field_trial_design.py",
-    "kind": "tests"
-  },
-  {
-    "path": "services/sahool-platform/tests/test_field_twin.py",
     "kind": "tests"
   },
   {
@@ -8760,7 +8948,11 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_irrigation_water_analysis.py",
+    "path": "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_irrigation_water_verdict.py",
     "kind": "tests"
   },
   {
@@ -8821,6 +9013,14 @@
   },
   {
     "path": "services/sahool-platform/tests/test_learning_summary_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_learning_summary_owner.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ledger_variance_coverage.py",
     "kind": "tests"
   },
   {
@@ -9024,6 +9224,14 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
     "kind": "tests"
   },
@@ -9180,6 +9388,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_sample_pin_integrity.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_scenario_whatif.py",
     "kind": "tests"
   },
@@ -9197,6 +9409,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_sensor_intake.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_service_proxy_transport.py",
     "kind": "tests"
   },
   {
@@ -9336,6 +9552,18 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_v26_digital_twin_regressions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_v26_yield_alias_and_absence.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_validate_observations.py",
     "kind": "tests"
   },
@@ -9468,7 +9696,15 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_yield_finite_phase12.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_yield_interval_service.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_zoning_grid_transport.py",
     "kind": "tests"
   },
   {
@@ -9488,12 +9724,44 @@
     "kind": "backend"
   },
   {
+    "path": "services/scout-ingest-service/credential_status.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/detection_link_api.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/evidence_chain.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/evidence_retention_api.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/human_review_api.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/lab_link_api.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/scout-ingest-service/projection_worker.py",
     "kind": "backend"
   },
   {
+    "path": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/scout-ingest-service/tests/test_projection_live.py",
     "kind": "tests"
+  },
+  {
+    "path": "services/scout-ingest-service/treatment_review_api.py",
+    "kind": "backend"
   },
   {
     "path": "services/soil-service/__init__.py",
@@ -9505,6 +9773,10 @@
   },
   {
     "path": "services/soil-service/evidence_adapters.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/jsonb_values.py",
     "kind": "backend"
   },
   {
@@ -9641,6 +9913,10 @@
   },
   {
     "path": "services/soil-service/test_soil_projection_observability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_remote_sensing_evidence.py",
     "kind": "tests"
   },
   {
@@ -9988,6 +10264,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/weather-service/tests/test_archive_solar_radiation_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/weather-service/tests/test_cache_age_is_server_counted.py",
     "kind": "tests"
   },
@@ -10216,7 +10496,27 @@
     "kind": "tests"
   },
   {
+    "path": "tests/phase6/test_agronomic_model_admission_phase14.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_agronomic_model_preflight_cli_phase14.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_feature_lineage_producers.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/phase6/test_feature_store_model_registry_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_feature_store_point_in_time_availability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/phase6/test_feature_store_temporal_integrity_phase12.py",
     "kind": "tests"
   },
   {
@@ -10408,6 +10708,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_actuator_dispatch_device_registry_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_actuator_mode.py",
     "kind": "tests"
   },
@@ -10452,6 +10756,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_agent_store_selection_logged.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_agent_stores_v58_2.py",
     "kind": "tests"
   },
@@ -10476,6 +10784,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_advisor_readiness_and_field_binding.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_agronomist_approval_identity_t11.py",
     "kind": "tests"
   },
@@ -10497,6 +10809,10 @@
   },
   {
     "path": "tests_v9/test_ai_approval_endpoints_v58.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_approval_identity_atomic_store.py",
     "kind": "tests"
   },
   {
@@ -10664,6 +10980,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_auth_enrollment_redis_acl.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_auth_main_decomposition_guard.py",
     "kind": "tests"
   },
@@ -10685,6 +11005,10 @@
   },
   {
     "path": "tests_v9/test_auth_signup_owner.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_team_managers_c37.py",
     "kind": "tests"
   },
   {
@@ -10725,6 +11049,10 @@
   },
   {
     "path": "tests_v9/test_backup_recovery_execution.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_bff_execution_plan_operation_canonical.py",
     "kind": "tests"
   },
   {
@@ -11228,6 +11556,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_diagnose_crop_normalisation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_disease_field_state_feed.py",
     "kind": "tests"
   },
@@ -11265,6 +11597,10 @@
   },
   {
     "path": "tests_v9/test_economic_state.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_edge_agriai_entrypoint_contracts.py",
     "kind": "tests"
   },
   {
@@ -11341,6 +11677,10 @@
   },
   {
     "path": "tests_v9/test_etc_dual_weather.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_event_history_contract_unit.py",
     "kind": "tests"
   },
   {
@@ -11660,6 +12000,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_helm_migration_command_valid_20260705.py",
     "kind": "tests"
   },
@@ -11897,6 +12241,10 @@
   },
   {
     "path": "tests_v9/test_lab_ci_certification_steps.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_lab_water_review_live_pg.py",
     "kind": "tests"
   },
   {
@@ -12329,6 +12677,10 @@
   },
   {
     "path": "tests_v9/test_production_readiness_orchestrator.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_productivity_grid_ground_coordinates.py",
     "kind": "tests"
   },
   {
@@ -12872,6 +13224,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_scout_photo_ledgers_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_secret_enforcement_guard_v21.py",
     "kind": "tests"
   },
@@ -13025,6 +13381,10 @@
   },
   {
     "path": "tests_v9/test_soil_science_20260703.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_soil_script_entrypoint.py",
     "kind": "tests"
   },
   {
@@ -13357,6 +13717,10 @@
   },
   {
     "path": "tests_v9/test_verify_sweep_writer_diagnostics.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_video_capture_source_contract.py",
     "kind": "tests"
   },
   {

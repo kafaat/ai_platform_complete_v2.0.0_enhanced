@@ -291,7 +291,7 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                     const plan = (samplingData?.soil_sampling_plan ?? samplingData?.plan ?? null) as never;
                     const samplePoints = (samplingData?.sample_points ?? []) as never[];
                     return samplePoints.length ? (
-                      <SoilSamplingPlannerPanel plan={plan} samplePoints={samplePoints} />
+                      <SoilSamplingPlannerPanel plan={plan} samplePoints={samplePoints} fieldId={typeof samplingData?.field_id === "string" ? samplingData.field_id : undefined} />
                     ) : null;
                   })()}
                   {(() => {

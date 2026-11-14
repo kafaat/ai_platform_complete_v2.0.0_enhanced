@@ -10,7 +10,10 @@ keeps public ``main._*`` compatibility wrappers small while avoiding importing
 from __future__ import annotations
 
 from collections.abc import Callable
+from math import isfinite
 from typing import Any
+
+from raster_available_dates import utc_day, utc_instant
 
 GRID_INDEX_ALIASES = {
     "salinity": "ndsi",
@@ -36,6 +39,16 @@ def display_index(index: str | None) -> str:
     return key
 
 
+def _finite_rank(value: Any, *, lower_is_better: bool = False) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return float("-inf")
+    if not isfinite(number):
+        return float("-inf")
+    return -number if lower_is_better else number
+
+
 def find_field_layer(
     layers: dict[str, dict[str, Any]],
     field_layers: dict[str, list[str]],
@@ -55,6 +68,10 @@ def find_field_layer(
     """
     layer_ids = field_layers.get(field_id, [])
     internal = normalize_index(index)
+    exact = bool(date and date != "latest")
+    newest_day = utc_day(date) if exact else None
+    if exact and newest_day is None:
+        return None
     candidates: list[dict[str, Any]] = []
     for layer_id in layer_ids:
         layer = layers.get(layer_id)
@@ -67,29 +84,42 @@ def find_field_layer(
             continue
         if layer.get("index") != internal:
             continue
+        # Older memory records lack lifecycle/coverage metadata. When present,
+        # apply the same publication and nonempty-coverage gates as raster_assets.
+        if layer.get("asset_status") not in (None, "ready"):
+            continue
+        valid_ratio = layer.get("valid_pixel_ratio")
+        if valid_ratio is not None and _finite_rank(valid_ratio) <= 0:
+            continue
+        day = utc_day(layer.get("acquisition_date"))
+        if day is None or (exact and day != newest_day) or (newest_day and day < newest_day):
+            continue
+        if day != newest_day:
+            newest_day = day
+            candidates.clear()
         candidates.append(layer)
     if not candidates:
         return None
-    if date and date != "latest":
-        # T4 (acq-provenance): الطبقة في الذاكرة تحمل طابع الالتقاط الخام (قد يحمل إزاحة
-        # منطقة)، و available-dates يعرض يومه بـUTC — نقارن يوم UTC للطرفين لا بادئة النصّ،
-        # وإلّا لم يجد اليومُ المعروض طبقتَه. تاريخ غير صالح ⇒ لا تطابق (صارم).
-        from raster_available_dates import utc_day
 
-        wanted = utc_day(date)
-        dated = [
-            c
-            for c in candidates
-            if wanted is not None and utc_day(c.get("acquisition_date")) == wanted
+    # A PostgreSQL DATE supplies no within-day instant. If the candidates cannot
+    # all be ordered by capture time, use fetch_latest_asset's same-day ordering.
+    instants = [utc_instant(layer["acquisition_date"]) for layer in candidates]
+    if all(instant is not None for instant in instants):
+        newest = max(instants)
+        candidates = [
+            layer for layer, instant in zip(candidates, instants, strict=True) if instant == newest
         ]
-        if not dated:
-            return None
-        candidates = dated
-    candidates.sort(
-        key=lambda c: (str(c.get("acquisition_date") or ""), str(c.get("created_at") or "")),
-        reverse=True,
-    )
-    return candidates[0]
+
+    def metadata_rank(layer):
+        created = utc_instant(layer.get("created_at"))
+        return (
+            _finite_rank(layer.get("quality_score")),
+            _finite_rank(layer.get("cloud_pct"), lower_is_better=True),
+            created is not None,
+            created,
+        )
+
+    return max(candidates, key=metadata_rank)
 
 
 def grid_from_cog(
@@ -175,6 +205,7 @@ def grid_from_cog(
         "cloud_pct": layer.get("cloud_pct"),
         "cloud_cover": layer.get("cloud_cover"),
         "valid_pixel_ratio": layer.get("valid_pixel_ratio"),
+        "field_coverage": layer.get("field_coverage"),
         "coverage_ratio": layer.get("coverage_ratio"),
         "index_quality_flags": layer.get("index_quality_flags"),
         "confidence": layer.get("confidence"),
@@ -250,6 +281,7 @@ async def rehydrate_field_layer_from_db(
             "cloud_pct": asset.get("cloud_pct"),
             "cloud_cover": asset.get("cloud_cover"),
             "valid_pixel_ratio": asset.get("valid_pixel_ratio"),
+            "field_coverage": asset.get("field_coverage"),
             "coverage_ratio": asset.get("coverage_ratio"),
             "index_quality_flags": asset.get("index_quality_flags"),
             "confidence": asset.get("confidence"),
@@ -289,39 +321,29 @@ async def resolve_field_layer(
 ) -> dict[str, Any] | None:
     """Resolve a field layer from memory or DB with strict-date semantics."""
     internal = normalize_index(index)
-    mem = find_field_layer(layers, field_layers, field_id, index, date, tenant_id=tenant_getter())
-
+    tenant_id = tenant_getter()
     if date and date != "latest":
+        wanted = utc_day(date)
+        if wanted is None:
+            return None
+        mem = find_field_layer(layers, field_layers, field_id, index, wanted, tenant_id=tenant_id)
         if mem is not None:
             return mem
-        return await rehydrate_field_layer_from_db(
-            field_id,
-            internal,
-            date,
-            layers=layers,
-            field_layers=field_layers,
-            tenant_getter=tenant_getter,
-            logger=logger,
-            object_store_module=object_store_module,
-        )
+        date = wanted
 
-    db_layer = await rehydrate_field_layer_from_db(
+    # Rehydration registers the database row. Rank the entire day's candidates
+    # together, including when a DATE-only row supplies no acquisition time.
+    await rehydrate_field_layer_from_db(
         field_id,
         internal,
-        "latest",
+        date or "latest",
         layers=layers,
         field_layers=field_layers,
         tenant_getter=tenant_getter,
         logger=logger,
         object_store_module=object_store_module,
     )
-    if db_layer is None:
-        return mem
-    if mem is None:
-        return db_layer
-    mem_date = str(mem.get("acquisition_date") or "")
-    db_date = str(db_layer.get("acquisition_date") or "")
-    return mem if mem_date >= db_date else db_layer
+    return find_field_layer(layers, field_layers, field_id, index, date, tenant_id=tenant_id)
 
 
 async def rvi_from_sar_cog(

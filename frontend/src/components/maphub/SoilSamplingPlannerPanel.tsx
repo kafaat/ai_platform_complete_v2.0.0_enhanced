@@ -1,7 +1,15 @@
+import type { SamplingOrigin } from '../../services/api';
+import { Link } from 'react-router';
 import { Beaker, CheckCircle2, ClipboardList, MapPin, XCircle } from 'lucide-react';
 
 export interface SoilSamplePoint {
   sample_id?: string;
+  location_id?: string;
+  composite?: boolean;
+  sampling_purpose?: SamplingOrigin['sampling_purpose'];
+  point?: {coordinates: [number, number]};
+  indicators?: string[];
+  indicator_sources?: SamplingOrigin['indicator_sources'];
   zone_id?: string;
   productivity_class?: 'high' | 'medium' | 'low' | string;
   priority?: 'high' | 'normal' | string;
@@ -21,6 +29,7 @@ export interface SoilSamplingPlan {
 }
 
 export interface SoilSamplingPlannerPanelProps {
+  fieldId?: string;
   plan?: SoilSamplingPlan | null;
   samplePoints: SoilSamplePoint[];
   onAccept?: (plan: SoilSamplingPlan | null, samplePoints: SoilSamplePoint[]) => void;
@@ -29,13 +38,14 @@ export interface SoilSamplingPlannerPanelProps {
 }
 
 const classLabel: Record<string, string> = {
+  unknown: 'الإنتاجية غير محددة',
   high: 'إنتاجية مرتفعة',
   medium: 'إنتاجية متوسطة',
   low: 'إنتاجية منخفضة',
 };
 
 export function SoilSamplingPlannerPanel({
-  plan,
+  plan, fieldId,
   samplePoints,
   onAccept,
   onReject,
@@ -50,7 +60,7 @@ export function SoilSamplingPlannerPanel({
           <div className="flex items-center gap-1 text-sm font-semibold text-slate-800">
             <Beaker className="h-4 w-4" /> خطة عينات تربة مقترحة
           </div>
-          <div className="text-xs text-slate-500">مبنية على مناطق الإنتاجية · لا تُحفَظ ولا تتحول إلى مهام إلا بعد التأكيد</div>
+          <div className="text-xs text-slate-500">النقاط المقترحة لا تُحفَظ ولا تتحول إلى مهام إلا بعد التأكيد.</div>
         </div>
         <span className="rounded-full border border-sky-100 bg-sky-50 px-2 py-1 text-xs text-sky-700">
           V61 sampling
@@ -65,7 +75,7 @@ export function SoilSamplingPlannerPanel({
       </div>
 
       <div className="space-y-2">
-        {samplePoints.slice(0, 8).map((p, i) => (
+        {samplePoints.map((p, i) => (
           <div key={p.sample_id ?? i} className="rounded-xl border border-slate-100 bg-slate-50 p-2" data-testid="soil-sample-point-card">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
               <span><MapPin className="inline h-3 w-3" /> {p.sample_id ?? `sample-${i + 1}`}</span>
@@ -75,21 +85,34 @@ export function SoilSamplingPlannerPanel({
               {!!p.depth_cm?.length && <span>العمق: {p.depth_cm.join('–')} سم</span>}
             </div>
             {!!p.analytes?.length && <div className="mt-1 text-[11px] text-slate-400">التحاليل: {p.analytes.slice(0, 8).join(' · ')}</div>}
+            {fieldId && plan.plan_id && p.sample_id && p.zone_id && p.point && (
+              <Link to="/health/lab-sampling" className="text-sm text-sky-700 underline" state={{
+                fieldId, planId: plan.plan_id, origin: { point_id: p.sample_id, zone_id: p.zone_id,
+                  location_id: p.location_id, sampling_purpose: p.sampling_purpose, composite: p.composite,
+                  planned_depth_cm: p.depth_cm?.length === 2 ? p.depth_cm : undefined,
+                  ...(p.indicator_sources && Object.keys(p.indicator_sources).length ? { indicator_sources: p.indicator_sources } : {}),
+                  longitude: p.point.coordinates[0], latitude: p.point.coordinates[1], indicators: p.indicators ?? [] },
+                depth: p.depth_cm,
+              }}>تسجيل عينة من هذه النقطة</Link>
+            )}
+            {Object.entries(p.indicator_sources ?? {}).map(([name, src]) => (
+              <div key={name} className="text-xs text-slate-600">{name.toUpperCase()} · {src.scene_id ?? src.asset_id} {src.acquisition_date}</div>
+            ))}
             {p.instructions_ar && <div className="mt-1 text-[11px] text-slate-500">{p.instructions_ar}</div>}
           </div>
         ))}
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1">
-        <button disabled={!onAccept} title={!onAccept ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="soil-sampling-accept" onClick={() => onAccept?.(plan, samplePoints)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
+        {onAccept && <button type="button" data-testid="soil-sampling-accept" onClick={() => onAccept?.(plan, samplePoints)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
           <CheckCircle2 className="h-3 w-3" /> اعتماد خطة العينات
-        </button>
-        <button disabled={!onContinueToVra} title={!onContinueToVra ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="soil-sampling-vra-next" onClick={() => onContinueToVra?.(plan)} className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-white px-2 py-1 text-xs text-amber-700 hover:bg-amber-50">
+        </button>}
+        {onContinueToVra && <button type="button" data-testid="soil-sampling-vra-next" onClick={() => onContinueToVra?.(plan)} className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-white px-2 py-1 text-xs text-amber-700 hover:bg-amber-50">
           إلى وصفات VRA
-        </button>
-        <button disabled={!onReject} title={!onReject ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="soil-sampling-reject" onClick={onReject} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
+        </button>}
+        {onReject && <button type="button" data-testid="soil-sampling-reject" onClick={onReject} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
           <XCircle className="h-3 w-3" /> رفض
-        </button>
+        </button>}
       </div>
     </div>
   );

@@ -359,8 +359,23 @@ def _build_agent_tool_fetcher(
     pack = ai_pack if isinstance(ai_pack, dict) else {}
     fs = field_state if isinstance(field_state, dict) else {}
 
+    canonical_field_id = fs.get("field_id")
+    pack_field_id = pack.get("field_id")
+    bound_field_id = canonical_field_id or pack_field_id
+
     def fetcher(tool_name: str, params: dict[str, Any]) -> Any:
-        field_id = params.get("field_id") or fs.get("field_id") or pack.get("field_id")
+        # The fetcher serves one already-authorized field snapshot. The model chooses the
+        # tool, but cannot redirect field A's evidence to field B by passing another
+        # field_id. A refusal raises, so tool_executor records the call as failed
+        # (``fetcher_error``) with no data, instead of an executed call.
+        if canonical_field_id and pack_field_id and str(canonical_field_id) != str(pack_field_id):
+            raise ValueError("field_context_identity_mismatch")
+        requested = params.get("field_id")
+        if requested is not None and (
+            not isinstance(requested, str) or not bound_field_id or requested != str(bound_field_id)
+        ):
+            raise ValueError("field_context_identity_mismatch")
+        field_id = bound_field_id
         if tool_name == "get_field_state":
             return {
                 "field_id": field_id,
@@ -907,9 +922,15 @@ async def build_evidence_response(
         if rag_resp.status_code >= 400:
             raise HTTPException(502, {"dependency": "rag-retrieval", "detail": rag_resp.text})
 
+    from shared.ai.seed_claims import partition_generation_references
+
     rag_payload = rag_resp.json()
+    # Keep unreviewed seed pointers auditable while excluding their claim text from generation.
+    usable, unreviewed = partition_generation_references(rag_payload.get("annotations") or [])
+    rag_payload = {**rag_payload, "annotations": usable}
     annotations = {
         "rag": rag_payload.get("annotations", []),
+        "unverified_seed_references": unreviewed,
         "knowledge_graph": kg_payload.get("edges", []),
         # KG can change retrieval selection and reference IDs, but contributes
         # no measurement confidence and holds no decision authority.

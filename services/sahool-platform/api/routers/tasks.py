@@ -95,7 +95,7 @@ async def list_tasks(
     if paginate and total is not None and eff_offset + len(rows) < total:
         next_cursor = str(eff_offset + (eff_limit or 0))
     return TaskListResponse(
-        tasks=[_row_to_task(r) for r in rows],
+        tasks=[_row_to_task(r, user) for r in rows],
         total=total,
         limit=eff_limit,
         next_cursor=next_cursor,
@@ -124,38 +124,57 @@ async def update_task(
         raise HTTPException(status_code=422, detail="حالة مهمّة غير معروفة")
     sets: list[str] = []
     vals: list[object] = []
+    # الأعمدة المُرسَلة وقيمها المربوطة: تُسمّى في الحدث، ويُقارَن بها الصفّ كي لا تُكتب
+    # إعادةٌ لا تغيّر شيئاً (trigger يرفع updated_at على كلّ UPDATE، وهو هويّة الطفرة، C-14).
+    changed: dict[str, int] = {}
+    stamp_differs: list[str] = []
     if req.status is not None:
         vals.append(req.status)
         sets.append(f"status = ${len(vals)}")
+        changed["status"] = len(vals)
         if req.status == "completed" and req.completed_at is not None:
             vals.append(req.completed_at)
             sets.append(f"completed_at = ${len(vals)}")
+            changed["completed_at"] = len(vals)
         elif req.status == "completed":
             # SET يقرأ القيمَ القديمة: إنجازٌ مكرَّر يُبقي الختمَ الأوّل.
             sets.append(
                 "completed_at = CASE WHEN status = 'completed' AND completed_at IS NOT NULL "
                 "THEN completed_at ELSE NOW() END"
             )
+            stamp_differs.append("completed_at IS NULL")
         elif req.status in ("pending", "in_progress"):
             sets.append("completed_at = NULL")
+            stamp_differs.append("completed_at IS NOT NULL")
         if req.actual_cost_usd is not None:
             vals.append(req.actual_cost_usd)
             sets.append(f"actual_cost_usd = ${len(vals)}")
+            changed["actual_cost_usd"] = len(vals)
     if req.photo_url is not None:
         vals.append(req.photo_url)
         sets.append(f"photo_url = ${len(vals)}")
+        changed["photo_url"] = len(vals)
     if req.notes is not None:
         vals.append(req.notes)
         sets.append(f"notes = ${len(vals)}")
+        changed["notes"] = len(vals)
     if not sets:
         raise HTTPException(status_code=422, detail="لا حقول للتحديث")
     sets.append("updated_at = NOW()")
+    differs = " OR ".join(
+        [f"{col} IS DISTINCT FROM ${i}" for col, i in changed.items()] + stamp_differs
+    )
     vals.append(task_id)
     where = f"task_id::TEXT = ${len(vals)}"
     if req.status is not None:
         vals.append(task_allowed_sources(req.status))
         where += f" AND COALESCE(status, 'pending') = ANY(${len(vals)}::text[])"
-    query = f"UPDATE field_tasks SET {', '.join(sets)} WHERE {where} RETURNING {_TASK_COLS}"
+    query = (
+        f"UPDATE field_tasks SET {', '.join(sets)} WHERE {where} AND ({differs}) "
+        f"RETURNING {_TASK_COLS}, updated_at"
+    )
+    # إعادةٌ لا تغيّر الصفّ: لا كتابة ولا حدث، والنتيجة هي الصفّ كما هو.
+    unchanged_query = f"SELECT {_TASK_COLS} FROM field_tasks WHERE {where} AND NOT ({differs})"
     try:
         async with tenant_connection(user) as conn:
 
@@ -171,10 +190,15 @@ async def update_task(
                         "task",
                         task_id,
                         # القيم الفعليّة من الصفّ المُحدَّث (RETURNING) لا من req — req.status
-                        # قد تكون None عند تحديث photo/notes فقط (ملاحظة Copilot).
-                        {"status": row.get("status"), "field_id": row.get("field_id")},
+                        # قد تكون None عند تحديث photo/notes فقط (ملاحظة Copilot). updated_at
+                        # بعد التحديث يميّز طفرتين حقيقيّتين في اليوم نفسه عن مفتاح الـdedup
+                        # اليوميّ (C-14).
+                        _task_updated_payload(row, sorted(changed)),
                     )
-                    return _row_to_task(row).model_dump(mode="json")
+                    return _row_to_task(row, user).model_dump(mode="json")
+                unchanged = await conn.fetchrow(unchanged_query, *vals)
+                if unchanged is not None:
+                    return _row_to_task(unchanged, user).model_dump(mode="json")
                 # داخل المعاملة ⇒ لا يُسجَّل أمرٌ لمهمّةٍ غير موجودة ولا لانتقالٍ مرفوض.
                 current = None
                 if req.status is not None:
@@ -219,3 +243,13 @@ async def update_task(
         raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحديث المهمّة", e) from e
+
+
+def _task_updated_payload(row, changed_fields: list[str]) -> dict:
+    updated_at = row.get("updated_at")
+    return {
+        "status": row.get("status"),
+        "field_id": row.get("field_id"),
+        "changed_fields": changed_fields,
+        "updated_at": updated_at.isoformat() if updated_at is not None else None,
+    }

@@ -7,6 +7,7 @@ symbols for backward compatibility with routers, workers, and existing tests.
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import (
     BaseModel,
@@ -110,8 +111,12 @@ class BandMapping(BaseModel):
 
 class ProcessRequest(BaseModel):
     # Internal request-bound provider receipt; never accepted from API JSON.
+    _verified_stac_capture: dict[str, str] | None = PrivateAttr(default=None)
     _spatial_sampling: dict | None = PrivateAttr(default=None)
     _cdse_native_product: object = PrivateAttr(default=None)
+    # Per-asset checksum records (raster_stage_receipt.asset_integrity); a
+    # mismatch makes the processing runner refuse the request.
+    _asset_integrity: list[dict] | None = PrivateAttr(default=None)
     tenant_id: str
     field_id: str | None = None
     raster_url: str | None = None
@@ -396,12 +401,60 @@ class FvcComputeRequest(BaseModel):
     ndvi_veg: float | None = None
 
 
+class SarAcquisition(BaseModel):
+    """مشهد Sentinel-1 GRD واحد: مصدرا VV/VH بقدرة خطّيّة مُعايَرة + هندسة المدار."""
+
+    item_id: str = Field(min_length=1, max_length=200)
+    datetime: str = Field(min_length=10, max_length=40)
+    relative_orbit: int | None = Field(default=None, ge=1, le=175)
+    orbit_state: Literal["ascending", "descending"] | None = None
+    vv_url: str = Field(min_length=1, max_length=2048)
+    vh_url: str = Field(min_length=1, max_length=2048)
+
+
+class MoistureEvent(BaseModel):
+    date: str = Field(min_length=10, max_length=40)
+    kind: Literal["rain", "irrigation"]
+    amount_mm: FiniteFloat | None = Field(default=None, ge=0)
+
+
+class SarTillageChangeInput(BaseModel):
+    """مُدخلات دليل التغيّر الراداريّ حول تاريخ حراثة (``SarRviRequest.date``)."""
+
+    field_geometry: dict  # GeoJSON Polygon/MultiPolygon بـEPSG:4326
+    acquisitions: list[SarAcquisition] = Field(default_factory=list, max_length=40)
+    backscatter_kind: Literal["sigma0_linear", "gamma0_linear"]
+    moisture_events: list[MoistureEvent] = Field(default_factory=list, max_length=200)
+    moisture_checked: bool = False
+    surface_state_before: Literal["bare", "vegetated", "unknown"] = "unknown"
+    window_days: int = Field(default=24, ge=1, le=36)
+
+    @field_validator("field_geometry")
+    @classmethod
+    def _polygon_only(cls, v: dict) -> dict:
+        if not isinstance(v, dict) or v.get("type") not in ("Polygon", "MultiPolygon"):
+            raise ValueError("field_geometry يجب أن يكون GeoJSON Polygon أو MultiPolygon")
+        return v
+
+
 class SarRviRequest(BaseModel):
     field_id: str
     date: str
-    vv_grid: list[list[float | None]]
-    vh_grid: list[list[float | None]]
+    # mode="rvi" (الافتراضيّ، السلوك القائم): vv_grid/vh_grid إلزاميّتان.
+    # mode="tillage_change_evidence": date = تاريخ الحراثة المُسجَّل، والمُدخلات في tillage.
+    mode: Literal["rvi", "tillage_change_evidence"] = "rvi"
+    vv_grid: list[list[float | None]] | None = None
+    vh_grid: list[list[float | None]] | None = None
     in_db: bool = False
+    tillage: SarTillageChangeInput | None = None
+
+    @model_validator(mode="after")
+    def _mode_inputs(self) -> SarRviRequest:
+        if self.mode == "rvi" and (self.vv_grid is None or self.vh_grid is None):
+            raise ValueError("mode=rvi يتطلّب vv_grid وvh_grid")
+        if self.mode == "tillage_change_evidence" and self.tillage is None:
+            raise ValueError("mode=tillage_change_evidence يتطلّب tillage")
+        return self
 
 
 class TerrainRequest(BaseModel):

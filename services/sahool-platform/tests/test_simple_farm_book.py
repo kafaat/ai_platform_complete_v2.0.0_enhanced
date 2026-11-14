@@ -121,6 +121,7 @@ def test_csv_has_utf8_bom_and_expected_rows() -> None:
                 season_id="season-1",
                 description="سماد",
                 receipt_document_id="doc-1",
+                task_id="37065422-e38d-4480-a301-b4936b34978a",
             )
         ]
     )
@@ -128,6 +129,7 @@ def test_csv_has_utf8_bom_and_expected_rows() -> None:
     rows = list(csv.DictReader(io.StringIO(payload.decode("utf-8-sig"))))
     assert rows[0]["entry_id"] == "e1"
     assert rows[0]["party_name"] == "مورد"
+    assert rows[0]["task_id"] == "37065422-e38d-4480-a301-b4936b34978a"
 
 
 def test_migration_is_append_only_rls_and_idempotent() -> None:
@@ -169,6 +171,7 @@ def test_migration_is_append_only_rls_and_idempotent() -> None:
         "v214_field_irrigation_source_assignments.sql",
         "v215_yield_map_ingestion.sql",
         "v216_machinery_export.sql",
+        "v245_farm_book_task_link.sql",
     ]
     positions = [entries.index(name) for name in chain]
     assert positions == sorted(positions), f"farm-book chain out of order: {positions}"

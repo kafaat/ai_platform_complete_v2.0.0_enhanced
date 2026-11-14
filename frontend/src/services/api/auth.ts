@@ -3,7 +3,7 @@
 // Low-risk extraction from services/api.ts. Keep api.ts as compatibility facade.
 // ═══════════════════════════════════════════════════════════════
 
-import { MOCK_MODE, tryReal, authApi, kongApi } from './client';
+import { MOCK_MODE, tryReal, authApi, authEnrollmentApi, kongApi } from './client';
 
 // ══════════════════════════════════════════════════════════════════
 // AUTH
@@ -179,6 +179,18 @@ export interface MfaSetupResponse {
   secret: string;            // سرّ base32 — يُعرَض مرّة واحدة فقط
   provisioning_uri: string;  // otpauth://… (لتطبيق المصادقة / QR)
   message: string;
+  // تدفّق إثبات التسجيل فقط: إثبات مرحلة التفعيل (لمرّة واحدة) وعمره بالثواني.
+  // غائبان حين يبدأ الاقتران مستخدمٌ بجلسة عاديّة (SettingsPage).
+  enrollment_token?: string;
+  expires_in?: number;
+}
+
+/** ردّ /auth/mfa/activate: رموز الاسترداد تُعرَض مرّة واحدة فقط (لا توكنات جلسة). */
+export interface MfaActivateResponse {
+  message: string;
+  mfa_enabled: boolean;
+  recovery_codes?: string[];
+  recovery_codes_notice?: string;
 }
 
 /** يبدأ اقتران MFA: يولّد سرّاً ويُعيد provisioning_uri. لا يُفعّل بعد —
@@ -187,15 +199,79 @@ export const mfaSetup = (): Promise<MfaSetupResponse> =>
   authApi.post<MfaSetupResponse>('/auth/mfa/setup').then(r => r.data);
 
 /** يفعّل MFA بعد تأكيد أوّل رمز صحيح من تطبيق المصادقة. */
-export const mfaActivate = (code: string): Promise<{ message: string; mfa_enabled: boolean }> =>
+export const mfaActivate = (code: string): Promise<MfaActivateResponse> =>
   authApi
-    .post<{ message: string; mfa_enabled: boolean }>('/auth/mfa/activate', { code })
+    .post<MfaActivateResponse>('/auth/mfa/activate', { code })
     .then(r => r.data);
 
 /** يعطّل MFA — يتطلّب رمزاً صحيحاً حاليّاً (لا يُعطّله توكن مسروق بلا الجهاز). */
 export const mfaDisable = (code: string): Promise<{ message: string; mfa_enabled: boolean }> =>
   authApi
     .post<{ message: string; mfa_enabled: boolean }>('/auth/mfa/disable', { code })
+    .then(r => r.data);
+
+// ── تسجيل MFA الإلزاميّ عند الدخول (bootstrap enrollment) ─────────────
+// دورٌ حسّاس بلا MFA مُفعّل: كلمة المرور الصحيحة لا تُصدِر جلسة بل 403 بجسم
+// {detail, enrollment_token, expires_in, token_type:"Bearer"} (services/auth/routers/session.py).
+// الإثبات صالح لـ/auth/mfa/setup وحده؛ setup يُعيد إثباتاً ثانياً لـ/auth/mfa/activate وحده.
+// كلاهما لمرّة واحدة وقصير الأجل، ويبقى في ذاكرة المكوّن فقط (لا Storage، لا سجلّ).
+// لا نعتمد الترويسة X-MFA-Enrollment-Required: CORS خدمة المصادقة لا يكشفها للمتصفّح.
+
+export interface MfaEnrollmentChallenge {
+  enrollment_token: string;
+  expires_in?: number;  // ثوانٍ (TTL الخادم)
+}
+
+/** يستخرج تحدّي التسجيل من خطأ الدخول: 403 + enrollment_token نصّيّ غير فارغ، وإلّا null
+ *  (403 عاديّ بلا إثبات يبقى خطأً عاديّاً). */
+export function mfaEnrollmentChallenge(e: unknown): MfaEnrollmentChallenge | null {
+  const res = asApiError(e).response;
+  if (res?.status !== 403) return null;
+  const data = res.data as { enrollment_token?: unknown; expires_in?: unknown } | undefined;
+  const token = data?.enrollment_token;
+  if (typeof token !== 'string' || !token) return null;
+  const ttl = data?.expires_in;
+  return {
+    enrollment_token: token,
+    ...(typeof ttl === 'number' && Number.isFinite(ttl) && ttl > 0 ? { expires_in: ttl } : {}),
+  };
+}
+
+// تصنيف أخطاء setup/activate بالإثبات — قرار الواجهة: إعادة المحاولة أم البدء من الدخول.
+//   network     لا ردّ (شبكة/مهلة) — المحاولة ممكنة؛ إن كان الإثبات استُهلك سيردّ 401 لاحقاً.
+//   bad_code    400/422 في activate: رمز خاطئ (المحاولة ممكنة بنفس الإثبات).
+//   restart     401/404/409: الإثبات منتهٍ/مُستهلَك أو تغيّرت حالة الحساب ⇒ سجّل الدخول مجدّداً.
+//   locked      429: قفل MFA بعد محاولات فاشلة.
+//   unavailable 502/503/504: Redis/التشفير/البوّابة غير متاحة.
+export type MfaEnrollmentErrorKind =
+  'network' | 'bad_code' | 'restart' | 'locked' | 'unavailable' | 'other';
+
+export function classifyMfaEnrollmentError(e: unknown): MfaEnrollmentErrorKind {
+  const res = asApiError(e).response;
+  const status = res?.status;
+  if (!res || !status) return 'network';
+  if (status === 400 || status === 422) return 'bad_code';
+  if (status === 401 || status === 404 || status === 409) return 'restart';
+  if (status === 429) return 'locked';
+  if (status === 502 || status === 503 || status === 504) return 'unavailable';
+  return 'other';
+}
+
+const enrollmentProofHeaders = (proof: string) => ({ headers: { Authorization: `Bearer ${proof}` } });
+
+/** setup بإثبات كلمة المرور (لا بتوكن جلسة). يُعيد السرّ + otpauth + إثبات التفعيل. */
+export const mfaEnrollmentSetup = (setupProof: string): Promise<MfaSetupResponse> =>
+  authEnrollmentApi
+    .post<MfaSetupResponse>('/auth/mfa/setup', {}, enrollmentProofHeaders(setupProof))
+    .then(r => r.data);
+
+/** activate بإثبات مرحلة التفعيل + أوّل رمز TOTP. يُعيد رموز الاسترداد (مرّة واحدة). */
+export const mfaEnrollmentActivate = (
+  activationProof: string,
+  code: string,
+): Promise<MfaActivateResponse> =>
+  authEnrollmentApi
+    .post<MfaActivateResponse>('/auth/mfa/activate', { code }, enrollmentProofHeaders(activationProof))
     .then(r => r.data);
 
 /** تغيير كلمة المرور لمستخدم مُصادَق (يتطلّب الحاليّة + الجديدة). */
@@ -300,7 +376,15 @@ export interface TeamUser {
   tenant_id: string | null;
 }
 
-export type AssignableRole = 'owner' | 'admin' | 'expert' | 'farmer' | 'viewer';
+// C-37: الخادم لا يمنح عبر PATCH /auth/users/{id}/role إلّا الأدوار الأدنى من مالك
+// المستأجِر (main.is_inviteable_role)، ولا يُعدّل/يُعطّل مالكاً/مشرفاً نظيراً (403).
+// فالواجهة لا تعرض غير ما يقبله الخادم، وتُعطِّل أدوات الصفوف المحميّة.
+export const ASSIGNABLE_ROLE_VALUES = ['expert', 'farmer', 'viewer'] as const;
+export type AssignableRole = (typeof ASSIGNABLE_ROLE_VALUES)[number];
+
+/** هل هذا الدور قابل للتعديل/التعطيل من مسار إدارة الفريق؟ owner/admin/مجهول ⇒ false. */
+export const isAssignableRole = (role: string | null | undefined): role is AssignableRole =>
+  (ASSIGNABLE_ROLE_VALUES as readonly string[]).includes(role ?? '');
 
 export const listTeamUsers = (): Promise<TeamUser[]> =>
   authApi.get<TeamUser[]>('/auth/users').then(r => (Array.isArray(r.data) ? r.data : []));

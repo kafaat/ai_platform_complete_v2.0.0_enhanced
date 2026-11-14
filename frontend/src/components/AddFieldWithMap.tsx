@@ -41,41 +41,6 @@ interface DrawnLayer extends L.Layer {
   getLatLngs?: () => L.LatLng[] | L.LatLng[][];
 }
 
-
-// يحاول التقاط viewport الحالي من بلاطات Leaflet إلى PNG base64 لإرسالها إلى
-// field-segmentation. هذا يعمل مع طبقات تسمح بـCORS؛ إن منعه مزوّد البلاطات نُعيد null
-// ونُبقي المسار صادقاً: bbox + preprocessing=exg فقط دون صورة.
-function captureLeafletViewportBase64(map: L.Map): string | null {
-  const container = map.getContainer();
-  const rect = container.getBoundingClientRect();
-  const width = Math.max(1, Math.round(rect.width));
-  const height = Math.max(1, Math.round(rect.height));
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-
-  const containerPoint = map.latLngToContainerPoint(map.getCenter());
-  const layerPoint = map.latLngToLayerPoint(map.getCenter());
-  const layerToContainer = L.point(containerPoint.x - layerPoint.x, containerPoint.y - layerPoint.y);
-  const tiles = Array.from(container.querySelectorAll<HTMLImageElement>('img.leaflet-tile'));
-
-  try {
-    for (const tile of tiles) {
-      if (!tile.complete || tile.naturalWidth === 0 || tile.naturalHeight === 0) continue;
-      const pos = L.DomUtil.getPosition(tile).add(layerToContainer);
-      const opacity = Number(tile.style.opacity || '1');
-      ctx.globalAlpha = Number.isFinite(opacity) ? opacity : 1;
-      ctx.drawImage(tile, Math.round(pos.x), Math.round(pos.y), tile.width || 256, tile.height || 256);
-    }
-    ctx.globalAlpha = 1;
-    return canvas.toDataURL('image/png').split(',', 2)[1] ?? null;
-  } catch {
-    return null;
-  }
-}
-
 // تُعيد حساب أبعاد الخريطة بعد فتح المودال: عند التركيب قد لا يكون حجم الحاوية
 // نهائيّاً (انتقال/تخطيط المودال) فيحتفظ Leaflet بحجم قديم ⇒ انحراف بين موضع
 // النقر وموضع الرسم. نطلب invalidateSize مرّتين (بعد التركيب وبعد استقرار التخطيط).
@@ -181,29 +146,26 @@ const ADD_FIELD_BASEMAP_IDS = new Set(['satellite', 'mapbox-satellite', 'light']
 const ADD_FIELD_BASEMAPS = availableBasemapLayers(PUBLIC_ENV).filter((l) => ADD_FIELD_BASEMAP_IDS.has(l.id));
 const DEFAULT_BASEMAP_ID = ADD_FIELD_BASEMAPS.some((l) => l.id === 'satellite') ? 'satellite' : (ADD_FIELD_BASEMAPS[0]?.id ?? 'satellite');
 
-// ── Geodesic area (الصيغة الكرويّة الصحيحة — تطابق Leaflet/Mapbox) ──
-// إصلاح: الصيغة السابقة كانت تُرجع نصف المساحة الصحيحة (خطأ في خلط الحدود)،
-// ما يعني نصف توصيات البذور/الأسمدة/الريّ. الصيغة أدناه مُتحقّق منها عدديّاً.
+// Match the spherical model used by the platform's field geometry save guard.
+const FIELD_MEASUREMENT_RADIUS_M = 6_371_008.8;
 function geodesicAreaHa(latlngs: L.LatLng[]): number {
-  const R = 6378137; // نصف قطر WGS84 (متر)
   if (latlngs.length < 3) return 0;
   let area = 0;
   const n = latlngs.length;
   for (let i = 0; i < n; i++) {
     const p1 = latlngs[i];
     const p2 = latlngs[(i + 1) % n];
-    area += ((p2.lng - p1.lng) * Math.PI / 180) *
+    const deltaLon = ((p2.lng - p1.lng + 540) % 360) - 180;
+    area += (deltaLon * Math.PI / 180) *
             (2 + Math.sin(p1.lat * Math.PI / 180) + Math.sin(p2.lat * Math.PI / 180));
   }
-  const sqm = Math.abs(area * R * R / 2);
+  const sqm = Math.abs(area * FIELD_MEASUREMENT_RADIUS_M ** 2 / 2);
   return sqm / 10000;
 }
 
 // ── محيط جيوديسي (متر) — مجموع المسافات بين الرؤوس المتتالية ─────
-// يُستخدم نفس نصف قطر WGS84 (R = 6378137) ومعادلة هافرسين على القوس الأكبر.
 // الحلقة مُغلقة: نضيف الضلع من آخر رأس إلى الأوّل تلقائيّاً عبر (i+1)%n.
 function geodesicPerimeterM(latlngs: L.LatLng[]): number {
-  const R = 6378137; // نصف قطر WGS84 (متر) — نفس ثابت المساحة
   if (!Array.isArray(latlngs) || latlngs.length < 2) return 0;
   const rad = Math.PI / 180;
   let perim = 0;
@@ -217,7 +179,7 @@ function geodesicPerimeterM(latlngs: L.LatLng[]): number {
     const a =
       Math.sin(dLat / 2) ** 2 +
       Math.cos(p1.lat * rad) * Math.cos(p2.lat * rad) * Math.sin(dLng / 2) ** 2;
-    perim += 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    perim += 2 * FIELD_MEASUREMENT_RADIUS_M * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
   return perim;
 }
@@ -365,9 +327,9 @@ function formatLengthM(m: number): string {
 
 // ── دائرة (ريّ محوريّ) → مضلّع مُقرَّب ──────────────────────────
 // الخلفيّة تتوقّع GeoJSON Polygon؛ نحوّل (مركز + نصف قطر م) إلى حلقة رؤوس.
-// n=24 (خطوة 15°): دائرة ناعمة بصريّاً لكن برؤوس متباعدة كفايةً ليُمسِك المستخدم رأساً
-// بعينه ويحرّكه (72 رأساً كانت متلاصقة يتعذّر انتقاء واحد منها).
-function circleToPolygon(center: L.LatLng, radiusM: number, n = 24): L.LatLng[] {
+// عدد الرؤوس نفسه في المعاينة وفي نموذج المحور الذي تعيد الخدمة بناءه عند الحفظ.
+const PIVOT_VERTEX_COUNT = 96;
+function circleToPolygon(center: L.LatLng, radiusM: number): L.LatLng[] {
   // توليد دائرة جيوديسية حقيقية حول المركز بدل تقريب degree-per-meter.
   // هذا يقلل الإزاحة/التشوّه في الحقول المحورية الكبيرة ويحافظ على نصف القطر بالمتر.
   const R = 6378137; // WGS84 radius, meters
@@ -375,8 +337,8 @@ function circleToPolygon(center: L.LatLng, radiusM: number, n = 24): L.LatLng[] 
   const lon1 = center.lng * Math.PI / 180;
   const d = radiusM / R;
   const pts: L.LatLng[] = [];
-  for (let i = 0; i < n; i++) {
-    const brng = (i / n) * 2 * Math.PI;
+  for (let i = 0; i < PIVOT_VERTEX_COUNT; i++) {
+    const brng = (i / PIVOT_VERTEX_COUNT) * 2 * Math.PI;
     const lat2 = Math.asin(
       Math.sin(lat1) * Math.cos(d) +
       Math.cos(lat1) * Math.sin(d) * Math.cos(brng),
@@ -511,7 +473,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     radius_m: Math.round(radiusM * 100) / 100,
     start_angle_deg: 0,
     end_angle_deg: 360,
-    vertices: 96,
+    vertices: PIVOT_VERTEX_COUNT,
   }), []);
 
   // يدفع لقطة حلقة (أزواج [lat,lng]) إلى التاريخ: يقتطع أيّ «مستقبل» بعد المؤشّر
@@ -559,7 +521,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     });
     fg.addLayer(poly);
     // الدائرة المحوريّة (pivot): مقبضا «مركز» (نقل) و«نصف قطر» (تحجيم منتظم) فقط —
-    // لا نُفعّل تحرير الرؤوس الـ24 من leaflet-draw كي لا تُزدحم الحافّة وتُعطّل المقبضَين
+    // لا نُفعّل تحرير الرؤوس من leaflet-draw كي لا تُزدحم الحافّة وتُعطّل المقبضَين
     // (كانت تعترض النقر فلا يتحرّك المركز ولا يتغيّر نصف القطر). المضلّع/المستطيل
     // يبقيان بتحرير الرؤوس (المطلوب لهما). isPivot يحكم كلّ ما يلي.
     const isPivot = pivotEditRef.current !== null;
@@ -608,17 +570,15 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         const dLat = now.lat - center.lat;
         const dLng = now.lng - center.lng;
         center = now;
-        const moved = ((poly.getLatLngs()[0] as L.LatLng[]) ?? []).map(
-          (p) => L.latLng(p.lat + dLat, p.lng + dLng),
-        );
+        const moved = isPivot ? circleToPolygon(center, radiusM)
+          : ((poly.getLatLngs()[0] as L.LatLng[]) ?? []).map(p => L.latLng(p.lat + dLat, p.lng + dLng));
         poly.setLatLngs(moved);
         setLatlngs(moved);
         setAreaHa(geodesicAreaHa(moved));
         setPerimeterM(geodesicPerimeterM(moved));
         // مقبض نصف القطر يتبع المركز (ينتقل مع الشكل) + تحديث مركز pivot المحفوظ.
         if (radiusHandleRef.current) {
-          const rh = radiusHandleRef.current.getLatLng();
-          radiusHandleRef.current.setLatLng(L.latLng(rh.lat + dLat, rh.lng + dLng));
+          radiusHandleRef.current.setLatLng(moved[0]);
         }
         if (pivotEditRef.current) pivotEditRef.current.center = center;
       });
@@ -685,7 +645,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   }, []);
 
   const handlePolygonDone = useCallback((rawPts: L.LatLng[]) => {
-    const pts = maybeSnap(rawPts);
+    const pts = pivotEditRef.current ? rawPts : maybeSnap(rawPts);
     if (!fgRef.current) return;
     buildEditablePolygon(pts, true);
     setStage('form');
@@ -892,13 +852,15 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     const hints: Array<[number, number]> | undefined =
       segReqMode === 'hybrid' ? [[c.lng, c.lat]] : undefined;
     try {
-      const image_base64 = captureLeafletViewportBase64(map);
+      // لا لقطة شاشة للخريطة: لقطة المتصفّح بلا مرجع جغرافيّ (إسقاط ويب-مركاتور بأيّ
+      // بلاطات حُمِّلت)، وخادم SAM2 يقرأ صورته المُرجَعة جغرافيّاً لهذا الـbbox ويطبّق
+      // ExG عليها هو نفسه، فتبقى البادرة والقناع والمضلّع في إطار البكسل/CRS نفسه.
+      // field-segmentation يُهمل أيّ لقطة مع خلفيّة SAM2 (لا تبلغ النموذج)، فإرسالها حمولة ضائعة.
       const res = await segmentField({
         mode: segReqMode,
         bbox,
         preprocessing: 'exg',
         fallback_to_original_on_low_exg: true,
-        ...(image_base64 ? { image_base64 } : {}),
         ...(hints ? { hints } : {}),
       });
       const ring = geomToPolygon(res?.geometry);

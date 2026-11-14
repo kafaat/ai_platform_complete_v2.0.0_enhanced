@@ -149,8 +149,8 @@ export const QK = {
                        grid == null ? ['indicator-grid', fid, index, date] : ['indicator-grid', fid, index, date, grid],
   fieldChange:      (fid: string, index: string, dateA: string, dateB: string) =>
                        ['field-change', fid, index, dateA, dateB],
-  fieldTimeseries:  (fid: string, index: string, dates: string) =>
-                       ['field-timeseries', fid, index, dates],
+  fieldTimeseries:  (fid: string, index: string, dates: string, commonMask = false) =>
+                       commonMask ? ['field-timeseries', fid, index, dates, 'common-mask'] : ['field-timeseries', fid, index, dates],
   prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
                        ['prescription', fid, index, date, n, baseRate ?? 'auto', strategy],
   savedPrescriptions: (tid: string, fid: string) => ['saved-prescriptions', tid, fid],
@@ -195,10 +195,11 @@ export interface TimeseriesPoint {
 }
 
 export interface Task {
+  source_scouting_pin_id?: string | null;
   task_id: string; field_id: string; field_name?: string;
   task_type: string; priority: number; recommended_date: string;
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  estimated_duration_min: number; estimated_cost_usd: number;
+  estimated_duration_min: number; estimated_cost_usd: number; actual_cost_usd?: number | null;
   notes?: string; photo_url?: string; tenant_id: string;
 }
 
@@ -232,6 +233,14 @@ export interface IndicatorGridResponse {
   // هويّة الشبكة بنظام CRS المصدر: transform [a,b,c,d,e,f] يربط (col,row) بالإحداثيّات
   // الأصليّة (bbox غلاف مُحوَّل فقط). null حين يجهل الخادم CRS/مراجعة الهندسة.
   grid_identity?: GridIdentity | null;
+  valid_pixel_ratio?: number | null; // Valid cells over the rectangular source raster.
+  field_coverage?: {
+    denominator: 'field_pixel_centres';
+    geometry_revision: number;
+    valid_pixels: number;
+    field_pixels: number;
+    valid_pixel_ratio: number;
+  } | null;
   spatial_sampling?: {
     native_band_resolution_m: Record<string, number> | null;
     output_pixel_size_m: [number, number] | null;
@@ -484,7 +493,26 @@ export interface FieldTimeseriesResponse {
   points: TimeseriesPoint[];
   requested_dates?: string[];
   monthly_composite?: { month: string; median: number; mean: number; min: number; max: number; scene_count: number }[];
-  trend?: { slope: number | null; direction: string; points: number; first?: number; last?: number };
+  trend?: {
+    slope: number | null; direction: string; points: number; first?: number; last?: number;
+    fit_quality?: 'linear' | 'nonlinear' | 'undetermined'; r2?: number | null;
+    reason?: string; common_coverage_ratio?: number | null; min_common_coverage?: number;
+  };
+  // Only with commonMask: the trend above is over pixels valid in every scene used;
+  // unmasked_trend is the per-scene-mean trend it replaces.
+  unmasked_trend?: FieldTimeseriesResponse['trend'];
+  common_mask?: {
+    status: 'ok' | 'insufficient_common_coverage' | 'unavailable';
+    reason?: string | null;
+    field_mask_basis?: 'saved_field_geometry' | 'scene_valid_union';
+    field_pixels?: number;
+    common_valid_pixels?: number;
+    common_coverage_ratio?: number;
+    scenes_used?: number;
+    scenes_excluded?: number;
+    exclusions?: { datetime: string; scene_id?: string | null; reason: string; valid_coverage_ratio?: number | null }[];
+    min_common_coverage?: number;
+  };
   anomalies?: { month: string; value: number; z_score: number; type: 'drop' | 'spike' }[];
   scenes_used?: number;
   note?: string;
@@ -495,13 +523,15 @@ export function useFieldTimeseries(
   fieldId: string,
   index: GridIndex,
   dates: string = '',
-  opts: { grid?: number; enabled?: boolean } = {},
+  opts: { grid?: number; enabled?: boolean; commonMask?: boolean } = {},
 ) {
-  const { grid = 16, enabled = true } = opts;
+  const { grid = 16, enabled = true, commonMask = false } = opts;
   return useQuery<FieldTimeseriesResponse>({
-    queryKey: QK.fieldTimeseries(fieldId, index, dates),
+    queryKey: QK.fieldTimeseries(fieldId, index, dates, commonMask),
     queryFn:  () => rasterApi
-      .get(`/v1/fields/${fieldId}/timeseries`, { params: { index, dates, grid } })
+      .get(`/v1/fields/${fieldId}/timeseries`, {
+        params: commonMask ? { index, dates, grid, common_mask: true } : { index, dates, grid },
+      })
       .then(r => r.data),
     staleTime: 10 * 60_000,
     enabled:   !!fieldId && enabled,
@@ -2259,11 +2289,20 @@ export function useCompleteTask() {
   const qc  = useQueryClient();
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation({
-    mutationFn: ({ taskId, photoUrl }: { taskId: string; photoUrl?: string }) =>
-      kongApi.patch(`/api/v1/tasks/${taskId}`, { status: 'completed', photo_url: photoUrl }).then(r => r.data),
-    // أبطِل استعلام المهامّ المُشترَك (F5-03) كي تعكس كلّ الشاشات (MapHub/OperationCommand/
-    // FieldTasksCabin/اللوحة) الإكمال فوراً بدل بقائها معلّقةً حتى فترة الاستطلاع.
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks', tid] }); },
+    mutationFn: ({ taskId, photoUrl, actualCostUsd }: { taskId: string; photoUrl?: string; actualCostUsd?: number }) =>
+      kongApi.patch(`/api/v1/tasks/${taskId}`, {
+        status: 'completed',
+        photo_url: photoUrl,
+        ...(actualCostUsd !== undefined && { actual_cost_usd: actualCostUsd }),
+      }).then(r => r.data),
+    onSuccess: () => Promise.all([
+      qc.invalidateQueries({ queryKey: ['tasks', tid] }),
+      // أبطِل استعلام المهامّ المُشترَك (F5-03) كي تعكس كلّ الشاشات (MapHub/OperationCommand/
+      // FieldTasksCabin/اللوحة) الإكمال فوراً بدل بقائها معلّقةً حتى فترة الاستطلاع.
+      qc.invalidateQueries({ queryKey: QK.costAnalytics(tid) }),
+      qc.invalidateQueries({ queryKey: ['mc-costs-by-field'] }),
+      qc.invalidateQueries({ queryKey: ['field-workspace'], predicate: query => query.queryKey[2] === 'tasks' }),
+    ]),
   });
 }
 

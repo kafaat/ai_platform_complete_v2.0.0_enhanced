@@ -7,6 +7,7 @@
 
 import math
 
+import pytest
 from core.irrigation_water_analysis import (
     WaterSample,
     analyze_water_sample,
@@ -16,6 +17,8 @@ from core.irrigation_water_analysis import (
     compute_rsc,
     compute_sar,
 )
+
+pytestmark = pytest.mark.unit
 
 # ─── compute_sar = Na/√((Ca+Mg)/2) ───────────────────────────────────────
 
@@ -116,7 +119,7 @@ def test_classify_ec_exact_band_edges():
     assert classify_ec(3.01)["class"] == "severe"  # فوق 3.0 ⇒ شديد
 
 
-# ─── المسار النظيف + حوكمة الرايات (متوسّط/هامشيّ لا يرفع راية) ────────────
+# ─── المسار النظيف + درجات القيود الثلاث (FAO-29) ─────────────────────────
 
 
 def test_analyze_clean_water_is_suitable_with_no_flags():
@@ -124,17 +127,111 @@ def test_analyze_clean_water_is_suitable_with_no_flags():
     s = WaterSample(sample_id="w3", na=4, ca=3, mg=3, co3=0, hco3=1, ec_dsm=0.5)
     out = analyze_water_sample(s)
     assert out["hazard_flags_ar"] == []
+    assert out["restrictions"] == []
+    assert out["verdict"] == "suitable"
     assert out["suitable_ar"] == "صالح للريّ"
     assert out["data_complete"] is True
 
 
-def test_analyze_mid_band_classes_do_not_raise_flags():
-    # متوسّط EC + هامشيّ RSC + متوسّط SAR: كلّها دون عتبة الراية ⇒ لا رايات رغم
-    # وجود تصنيفات غير «آمنة» (الراية للأسوأ فقط: severe/unsuitable/high+).
+# Replaces test_analyze_mid_band_classes_do_not_raise_flags, which asserted the defect:
+# moderate EC + marginal RSC + medium SAR read «صالح للريّ» with no qualification, against
+# FAO-29 Table 1 (three degrees of restriction) and USSL (SAR read with EC).
+_CLEAN = dict(na=1.0, ca=2.0, mg=2.0, co3=0.0, hco3=1.0, ec_dsm=1.0)  # SAR 0.71, RSC −3
+
+
+def _restricted(out):
+    return {(r["index"], r["degree"]) for r in out["restrictions"]}
+
+
+def test_mid_band_water_is_suitable_with_restrictions_naming_each_index():
     s = WaterSample(sample_id="w4", na=20, ca=2, mg=2, co3=1, hco3=5, ec_dsm=2.0)
     out = analyze_water_sample(s)
-    assert out["classification"]["salinity"]["class"] == "moderate"
+    assert out["verdict"] == "suitable_with_restrictions"
+    assert out["suitable_ar"].startswith("صالح مع قيود")
+    assert out["suitable_ar"] != "صالح للريّ"
+    assert out["hazard_flags_ar"] == []  # لا قيد شديد ⇒ لا «يحتاج معالجة»
+    assert _restricted(out) == {
+        ("ec_dsm", "slight_to_moderate"),
+        ("sar", "slight_to_moderate"),
+        ("rsc_meq_l", "slight_to_moderate"),
+    }
+    assert len(out["restriction_flags_ar"]) == 3
+
+
+@pytest.mark.parametrize("ec", [0.7, 2.0, 3.0])
+def test_moderate_salinity_alone_is_a_restriction(ec):
+    out = analyze_water_sample(WaterSample(sample_id="w", **{**_CLEAN, "ec_dsm": ec}))
+    assert out["verdict"] == "suitable_with_restrictions"
+    assert _restricted(out) == {("ec_dsm", "slight_to_moderate")}
+    salinity = out["classification"]["salinity"]
+    assert salinity["degree"] == "slight_to_moderate"
+
+
+@pytest.mark.parametrize("hco3", [5.25, 6.0, 6.5])  # RSC = HCO3 − 4: 1.25 · 2.0 · 2.5
+def test_marginal_rsc_alone_is_a_restriction(hco3):
+    out = analyze_water_sample(WaterSample(sample_id="w", **{**_CLEAN, "hco3": hco3}))
     assert out["classification"]["alkalinity_rsc"]["class"] == "marginal"
-    assert out["classification"]["sodicity_sar"]["class"] == "medium"
-    assert out["hazard_flags_ar"] == []  # لا راية: المتوسّط/الهامشيّ لا يُصعّد
-    assert out["suitable_ar"] == "صالح للريّ"
+    assert out["verdict"] == "suitable_with_restrictions"
+    assert ("rsc_meq_l", "slight_to_moderate") in _restricted(out)
+
+
+def _sar_sample(sar, ec):
+    return WaterSample(
+        sample_id="w", na=sar * math.sqrt(2), ca=2.0, mg=2.0, co3=0.0, hco3=1.0, ec_dsm=ec
+    )
+
+
+@pytest.mark.parametrize(
+    "sar,ec,degree",
+    [
+        # FAO-29 Table 1 infiltration: the same SAR is graded by ECw.
+        (12.0, 3.0, "none"),  # row 12–20: ECw > 2.9
+        (12.0, 2.0, "slight_to_moderate"),  # 2.9 ≥ ECw ≥ 1.3
+        (12.0, 1.0, "severe"),  # ECw < 1.3
+        (8.0, 2.0, "none"),  # row 6–12: ECw > 1.9
+        (8.0, 1.0, "slight_to_moderate"),
+        (8.0, 0.4, "severe"),  # ECw < 0.5
+        (25.0, 5.5, "none"),  # row 20–40: ECw > 5.0
+        (25.0, 4.0, "slight_to_moderate"),
+    ],
+)
+def test_infiltration_grades_sar_by_ecw_band(sar, ec, degree):
+    out = analyze_water_sample(_sar_sample(sar, ec))
+    infil = out["classification"]["infiltration_fao29"]
+    assert infil["degree"] == degree
+    assert infil["standard"] == "FAO-29 Table 1"
+
+
+def test_medium_sar_restriction_depends_on_ecw_not_sar_alone():
+    # USSL «medium» SAR 14 in both; only the low-salinity water carries an infiltration
+    # restriction from sodium (FAO-29 row 12–20: none above ECw 2.9).
+    saline = analyze_water_sample(_sar_sample(14.0, 2.95))
+    fresh = analyze_water_sample(_sar_sample(14.0, 2.0))
+    assert saline["classification"]["sodicity_sar"]["class"] == "medium"
+    assert fresh["classification"]["sodicity_sar"]["class"] == "medium"
+    assert ("sar", "slight_to_moderate") not in _restricted(saline)
+    assert ("sar", "slight_to_moderate") in _restricted(fresh)
+
+
+def test_severe_infiltration_from_sodium_needs_treatment():
+    out = analyze_water_sample(_sar_sample(8.0, 0.4))
+    assert out["verdict"] == "needs_treatment"
+    assert ("sar", "severe") in _restricted(out)
+
+
+def test_low_salinity_infiltration_without_sodium_is_an_advisory_not_a_restriction():
+    # SAR < 3, ECw 0.5: FAO-29 reads slight-to-moderate from the low salt content alone.
+    # Treating it as a restriction would leave no water at «no restriction» (salinity
+    # needs ECw < 0.7, infiltration needs ECw > 0.7), so it is reported, not counted.
+    out = analyze_water_sample(_sar_sample(0.7, 0.5))
+    infil = out["classification"]["infiltration_fao29"]
+    assert infil["degree"] == "slight_to_moderate"
+    assert infil["sodium_attributable"] is False
+    assert out["verdict"] == "suitable"
+    assert out["advisories_ar"]
+
+
+def test_moderate_restriction_with_an_unassessed_axis_is_insufficient_data():
+    out = analyze_water_sample(WaterSample(sample_id="w", ec_dsm=2.0))
+    assert out["verdict"] == "insufficient_data"
+    assert ("ec_dsm", "slight_to_moderate") in _restricted(out)  # still visible

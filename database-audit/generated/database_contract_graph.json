@@ -238,6 +238,28 @@
       "v238_actuator_delivery_state.sql",
       "v241_edge_idempotency_tenant_scoped.sql",
       "v239_detection_provenance.sql",
+      "v243_field_task_satellite_sources.sql",
+      "v244_field_task_terrain_sources.sql",
+      "v245_farm_book_task_link.sql",
+      "v246_scouting_pin_inspection_task.sql",
+      "v247_farm_operations_task_link.sql",
+      "v255_soil_sampling_origin.sql",
+      "v257_scouting_pin_location_photo.sql",
+      "v258_lab_water_revisions.sql",
+      "v259_yield_map_observed_zero.sql",
+      "v260_scout_photo_evidence.sql",
+      "v261_field_tasks_reference_fields.sql",
+      "v262_scout_photo_season_link_events.sql",
+      "v263_scout_photo_field_access_grants.sql",
+      "v264_scout_photo_grant_admin_audit.sql",
+      "v265_scout_photo_grant_audit_enforcement.sql",
+      "v266_scout_photo_detection_link_events.sql",
+      "v267_scout_photo_lab_sample_links.sql",
+      "v268_scout_photo_human_review.sql",
+      "v269_scout_plant_tissue_chain.sql",
+      "v270_scout_specialist_credential_attestations.sql",
+      "v271_scout_treatment_review_events.sql",
+      "v272_scout_photo_retention_governance.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -1494,6 +1516,83 @@
     {
       "has_using": true,
       "has_with_check": true,
+      "name": "scout_photo_detection_link_tenant",
+      "source": "v266_scout_photo_detection_link_events.sql",
+      "table": "scout_photo_detection_link_events"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "scout_photo_evidence_tenant",
+      "source": "v260_scout_photo_evidence.sql",
+      "table": "scout_photo_evidence"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "scout_photo_field_access_tenant",
+      "source": "v263_scout_photo_field_access_grants.sql",
+      "table": "scout_photo_field_access_grants"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "scout_photo_admin_audit_tenant",
+      "source": "v264_scout_photo_grant_admin_audit.sql",
+      "table": "scout_photo_grant_audit_events"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "scout_photo_human_review_tenant",
+      "source": "v268_scout_photo_human_review.sql",
+      "table": "scout_photo_human_review_events"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "scout_photo_lab_link_tenant",
+      "source": "v267_scout_photo_lab_sample_links.sql",
+      "table": "scout_photo_lab_link_events"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "scout_photo_season_events_tenant",
+      "source": "v262_scout_photo_season_link_events.sql",
+      "table": "scout_photo_season_link_events"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "scout_tissue_sample_tenant",
+      "source": "v269_scout_plant_tissue_chain.sql",
+      "table": "scout_plant_tissue_samples"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "scout_credentials_tenant",
+      "source": "v270_scout_specialist_credential_attestations.sql",
+      "table": "scout_specialist_credential_events"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "scout_tissue_custody_tenant",
+      "source": "v269_scout_plant_tissue_chain.sql",
+      "table": "scout_tissue_custody_events"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "scout_treatment_tenant",
+      "source": "v271_scout_treatment_review_events.sql",
+      "table": "scout_treatment_review_events"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
       "name": "tenant_isolation",
       "source": "v192_fii_rls_write_fail_closed.sql",
       "table": "scouting_pins"
@@ -1669,17 +1768,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 239,
+    "manifest_entries": 261,
     "manifest_missing_count": 0,
-    "policies": 203,
+    "policies": 214,
     "production_certified": false,
-    "rls_enabled": 216,
-    "rls_forced": 197,
+    "rls_enabled": 227,
+    "rls_forced": 208,
     "runtime_verified": false,
-    "sql_files": 242,
-    "tables": 343,
-    "tenant_rls_gaps": 135,
-    "tenant_tables": 323,
+    "sql_files": 264,
+    "tables": 356,
+    "tenant_rls_gaps": 137,
+    "tenant_tables": 336,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -2629,11 +2728,13 @@
     {
       "code_readers": [
         "services/sahool-platform/api/edge_models.py",
-        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py"
+        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
+        "services/scout-ingest-service/detection_link_api.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/edge_models.py",
-        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py"
+        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py"
       ],
       "created_in": "v239_detection_provenance.sql",
       "has_tenant_id": true,
@@ -2697,6 +2798,7 @@
     },
     {
       "code_readers": [
+        "services/decision-service/persistence.py",
         "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
         "services/sahool-platform/api/routers/decision_impact.py",
@@ -2787,12 +2889,14 @@
     {
       "code_readers": [
         "services/decision-service/tests/test_migration_034_pg16.py",
-        "services/sahool-platform/api/routers/edge.py"
+        "services/sahool-platform/api/routers/edge.py",
+        "services/scout-ingest-service/detection_link_api.py"
       ],
       "code_writers": [
         "services/decision-service/tests/test_migration_034_pg16.py",
         "services/sahool-platform/api/routers/edge.py",
-        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py"
+        "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py"
       ],
       "created_in": "v9_new_tables.sql",
       "has_tenant_id": true,
@@ -3258,7 +3362,7 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [],
       "created_in": "v100_farm_operations_ledger.sql",
@@ -3273,7 +3377,7 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
@@ -3308,9 +3412,9 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py",
         "services/sahool-platform/api/routers/operational_truth.py",
-        "services/sahool-platform/api/routers/simple_farm_book.py"
+        "services/sahool-platform/api/routers/simple_farm_book.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [],
       "created_in": "v100_farm_operations_ledger.sql",
@@ -3342,12 +3446,12 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py",
         "services/sahool-platform/api/routers/farms.py",
         "services/sahool-platform/api/routers/field_priority_queue.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/reports.py",
-        "services/sahool-platform/api/routers/simple_farm_book.py"
+        "services/sahool-platform/api/routers/simple_farm_book.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/farms.py"
@@ -3441,7 +3545,8 @@
         "services/sahool-platform/api/routers/market.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/boundaries.py"
+        "services/sahool-platform/api/routers/boundaries.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py"
       ],
       "created_in": "init_v8.sql",
       "has_tenant_id": true,
@@ -3557,6 +3662,7 @@
       "code_readers": [
         "services/raster-service/db_persist.py",
         "services/raster-service/follow_up_runtime.py",
+        "services/sahool-platform/api/imagery_automation.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/seasons.py"
       ],
@@ -3717,13 +3823,18 @@
         "services/sahool-platform/api/routers/field_priority_queue.py",
         "services/sahool-platform/api/routers/season_workspace.py",
         "services/sahool-platform/api/routers/seasons.py",
+        "services/sahool-platform/api/routers/simple_farm_book.py",
         "services/sahool-platform/api/routers/tasks.py",
         "services/sahool-platform/api/task_irrigation_observations.py",
-        "services/sahool-platform/tests/test_task_irrigation_observations.py"
+        "services/sahool-platform/core/farm_operations_ledger.py",
+        "services/sahool-platform/tests/test_task_irrigation_observations.py",
+        "services/scout-ingest-service/media_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/tasks.py",
-        "services/sahool-platform/api/routers/weather.py"
+        "services/sahool-platform/api/routers/weather.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
       ],
       "created_in": "v9_new_tables.sql",
       "has_tenant_id": true,
@@ -3759,8 +3870,11 @@
         "services/sahool-platform/api/canonical_water_state.py",
         "services/sahool-platform/api/field_aggregate_ports.py",
         "services/sahool-platform/api/field_context.py",
+        "services/sahool-platform/api/field_models.py",
         "services/sahool-platform/api/field_state_projection.py",
+        "services/sahool-platform/api/imagery_automation.py",
         "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+        "services/sahool-platform/api/lab_store.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/onboarding.py",
         "services/sahool-platform/api/phase_runtime_workers.py",
@@ -3801,6 +3915,7 @@
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
+        "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_idempotency_server_contract.py",
         "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
@@ -3810,14 +3925,19 @@
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
+        "services/scout-ingest-service/grants_admin_api.py",
         "services/scout-ingest-service/main.py",
+        "services/scout-ingest-service/media_api.py",
         "services/scout-ingest-service/tests/test_season_live.py"
       ],
       "code_writers": [
         "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/routers/fields.py",
+        "services/sahool-platform/tests/test_field_geometry_revert_overlap.py",
+        "services/sahool-platform/tests/test_field_overlap_postgis.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
+        "services/scout-ingest-service/tests/test_media_live.py",
         "services/scout-ingest-service/tests/test_season_live.py"
       ],
       "created_in": "v9_foundation.sql",
@@ -4058,7 +4178,6 @@
         "services/sahool-platform/api/imagery_automation.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/routers/field_completeness.py",
-        "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py"
       ],
       "code_writers": [
@@ -4962,7 +5081,9 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/lab_store.py"
+      ],
       "code_writers": [
         "services/sahool-platform/api/lab_store.py"
       ],
@@ -4978,10 +5099,13 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/lab_store.py"
+        "services/sahool-platform/api/lab_store.py",
+        "services/sahool-platform/api/soil_enrichment.py",
+        "services/scout-ingest-service/lab_link_api.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/lab_store.py"
+        "services/sahool-platform/api/lab_store.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py"
       ],
       "created_in": "v156_durable_soil_lab_workflow.sql",
       "has_tenant_id": true,
@@ -5681,6 +5805,7 @@
     },
     {
       "code_readers": [
+        "services/decision-service/persistence.py",
         "services/decision-service/tests/test_migration_033_pg16.py"
       ],
       "code_writers": [
@@ -5729,6 +5854,7 @@
         "services/sahool-platform/api/routers/execution_feedback.py",
         "services/sahool-platform/api/routers/learning_summary.py",
         "services/sahool-platform/api/routers/seasons.py",
+        "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py"
       ],
       "code_writers": [
@@ -5872,6 +5998,7 @@
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
+        "services/raster-service/test_cdse_timeline_pg.py",
         "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/sahool-platform/api/routers/field_intelligence.py"
       ],
@@ -5880,6 +6007,7 @@
         "services/raster-service/cache_invalidation_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
+        "services/raster-service/test_cdse_timeline_pg.py",
         "services/raster-service/test_raster_publication_gate.py"
       ],
       "created_in": "v14_imagery_storage.sql",
@@ -5998,7 +6126,8 @@
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
         "services/sahool-platform/tests/test_r09_learning_label_integrity.py",
-        "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py"
+        "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
+        "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py"
       ],
       "created_in": "v49_zone_key_recommendation_outcomes.sql",
       "has_tenant_id": true,
@@ -6115,11 +6244,256 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/scouting.py",
-        "services/sahool-platform/api/scouting_pins.py"
+        "services/scout-ingest-service/detection_link_api.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/scouting_pins.py"
+        "services/scout-ingest-service/detection_link_api.py"
+      ],
+      "created_in": "v266_scout_photo_detection_link_events.sql",
+      "has_tenant_id": true,
+      "manifest_position": 252,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_photo_detection_link_events",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/detection_link_api.py",
+        "services/scout-ingest-service/evidence_retention_api.py",
+        "services/scout-ingest-service/grants_admin_api.py",
+        "services/scout-ingest-service/human_review_api.py",
+        "services/scout-ingest-service/media_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py",
+        "services/scout-ingest-service/tissue_samples_api.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/media_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
+      ],
+      "created_in": "v260_scout_photo_evidence.sql",
+      "has_tenant_id": true,
+      "manifest_position": 246,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_photo_evidence",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/grants_admin_api.py",
+        "services/scout-ingest-service/human_review_api.py",
+        "services/scout-ingest-service/media_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/grants_admin_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
+      ],
+      "created_in": "v263_scout_photo_field_access_grants.sql",
+      "has_tenant_id": true,
+      "manifest_position": 249,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_photo_field_access_grants",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/grants_admin_api.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/grants_admin_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
+      ],
+      "created_in": "v264_scout_photo_grant_admin_audit.sql",
+      "has_tenant_id": true,
+      "manifest_position": 250,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_photo_grant_audit_events",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/human_review_api.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/human_review_api.py"
+      ],
+      "created_in": "v268_scout_photo_human_review.sql",
+      "has_tenant_id": true,
+      "manifest_position": 254,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_photo_human_review_events",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/lab_link_api.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/lab_link_api.py"
+      ],
+      "created_in": "v267_scout_photo_lab_sample_links.sql",
+      "has_tenant_id": true,
+      "manifest_position": 253,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_photo_lab_link_events",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/evidence_retention_api.py",
+        "services/scout-ingest-service/grants_admin_api.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/grants_admin_api.py"
+      ],
+      "created_in": "v272_scout_photo_retention_governance.sql",
+      "has_tenant_id": true,
+      "manifest_position": 258,
+      "policy_count": 0,
+      "rls_enabled": false,
+      "rls_forced": false,
+      "table": "scout_photo_retention_events",
+      "tenant_rls_gap": true,
+      "write_policy_with_check": false
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/evidence_retention_api.py",
+        "services/scout-ingest-service/grants_admin_api.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/grants_admin_api.py"
+      ],
+      "created_in": "v272_scout_photo_retention_governance.sql",
+      "has_tenant_id": true,
+      "manifest_position": 258,
+      "policy_count": 0,
+      "rls_enabled": false,
+      "rls_forced": false,
+      "table": "scout_photo_retention_policy_events",
+      "tenant_rls_gap": true,
+      "write_policy_with_check": false
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/media_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/media_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
+      ],
+      "created_in": "v262_scout_photo_season_link_events.sql",
+      "has_tenant_id": true,
+      "manifest_position": 248,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_photo_season_link_events",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/tissue_samples_api.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/tissue_samples_api.py"
+      ],
+      "created_in": "v269_scout_plant_tissue_chain.sql",
+      "has_tenant_id": true,
+      "manifest_position": 255,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_plant_tissue_samples",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/credential_status.py",
+        "services/scout-ingest-service/grants_admin_api.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/grants_admin_api.py"
+      ],
+      "created_in": "v270_scout_specialist_credential_attestations.sql",
+      "has_tenant_id": true,
+      "manifest_position": 256,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_specialist_credential_events",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/tissue_samples_api.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/tissue_samples_api.py"
+      ],
+      "created_in": "v269_scout_plant_tissue_chain.sql",
+      "has_tenant_id": true,
+      "manifest_position": 255,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_tissue_custody_events",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/scout-ingest-service/treatment_review_api.py"
+      ],
+      "code_writers": [
+        "services/scout-ingest-service/treatment_review_api.py"
+      ],
+      "created_in": "v271_scout_treatment_review_events.sql",
+      "has_tenant_id": true,
+      "manifest_position": 257,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "scout_treatment_review_events",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/sahool-platform/api/routers/scouting.py",
+        "services/sahool-platform/api/scouting_pins.py",
+        "services/scout-ingest-service/media_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/scouting_pins.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
       ],
       "created_in": "v94_scouting_pins.sql",
       "has_tenant_id": true,
@@ -6236,11 +6610,14 @@
         "services/sahool-platform/api/routers/agronomic_replay.py",
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
+        "services/scout-ingest-service/media_api.py",
         "services/scout-ingest-service/season_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py",
         "services/scout-ingest-service/tests/test_season_live.py"
       ],
       "code_writers": [
         "services/scout-ingest-service/season_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py",
         "services/scout-ingest-service/tests/test_season_live.py"
       ],
       "created_in": "v201_season_records.sql",
@@ -6276,9 +6653,11 @@
         "services/sahool-platform/api/canonical_water_state.py",
         "services/sahool-platform/api/field_aggregate_ports.py",
         "services/sahool-platform/api/field_context.py",
+        "services/sahool-platform/api/field_state_projection.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_workers.py",
         "services/sahool-platform/api/routers/field_completeness.py",
+        "services/sahool-platform/api/routers/field_twin.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/harvest_traceability.py",
         "services/sahool-platform/api/routers/indicators.py",
@@ -6289,11 +6668,14 @@
         "services/sahool-platform/api/routers/season_workspace.py",
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/simple_farm_book.py",
+        "services/sahool-platform/api/routers/water_twin.py",
         "services/sahool-platform/api/routers/yield_analysis.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+        "services/sahool-platform/tests/test_field_twin_endpoint.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
+        "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py"
       ],
       "code_writers": [
@@ -6450,7 +6832,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/lab_store.py"
+        "services/sahool-platform/api/lab_store.py",
+        "services/sahool-platform/api/soil_enrichment.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/lab_store.py"
@@ -6472,9 +6855,9 @@
         "services/sahool-platform/api/phase_runtime_workers.py",
         "services/sahool-platform/api/routers/field_completeness.py",
         "services/sahool-platform/api/routers/fields.py",
-        "services/sahool-platform/api/routers/irrigation_recommendation.py",
         "services/sahool-platform/api/routers/reports.py",
         "services/sahool-platform/api/routers/season_workspace.py",
+        "services/sahool-platform/api/soil_enrichment.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py"
       ],
       "code_writers": [
@@ -6833,10 +7216,12 @@
     },
     {
       "code_readers": [
-        "services/raster-service/db_persist.py"
+        "services/raster-service/db_persist.py",
+        "services/raster-service/test_cdse_timeline_pg.py"
       ],
       "code_writers": [
-        "services/raster-service/db_persist.py"
+        "services/raster-service/db_persist.py",
+        "services/raster-service/test_cdse_timeline_pg.py"
       ],
       "created_in": "v114_cloud_native_gis_best_practices.sql",
       "has_tenant_id": true,
@@ -6914,6 +7299,7 @@
     {
       "code_readers": [
         "services/auth/main.py",
+        "services/auth/mfa_enrollment.py",
         "services/auth/mfa_runtime.py",
         "services/auth/routers/email_verify.py",
         "services/auth/routers/mfa.py",
@@ -6923,7 +7309,12 @@
         "services/auth/routers/users.py",
         "services/sahool-platform/api/routers/break_glass.py",
         "services/sahool-platform/tests/test_break_glass.py",
-        "services/sahool-platform/tests/test_gaps_v91.py"
+        "services/sahool-platform/tests/test_gaps_v91.py",
+        "services/scout-ingest-service/credential_status.py",
+        "services/scout-ingest-service/grants_admin_api.py",
+        "services/scout-ingest-service/human_review_api.py",
+        "services/scout-ingest-service/media_api.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
       ],
       "code_writers": [
         "services/auth/main.py",
@@ -6935,7 +7326,8 @@
         "services/auth/routers/registration.py",
         "services/auth/routers/tenants.py",
         "services/auth/routers/users.py",
-        "services/sahool-platform/storage/lite_store.py"
+        "services/sahool-platform/storage/lite_store.py",
+        "services/scout-ingest-service/tests/test_media_live.py"
       ],
       "created_in": "v9_foundation.sql",
       "has_tenant_id": true,

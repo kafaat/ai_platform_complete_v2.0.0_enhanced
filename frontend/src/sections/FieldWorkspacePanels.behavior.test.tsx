@@ -38,7 +38,7 @@ import FieldWorkspaceRecommendationsPanel from './FieldWorkspaceRecommendationsP
 // اللوحة، فيسقط اختبار 503 ويمرّ اختبار 403 فراغاً.
 const ADVICE_KEY = ['field-workspace', 'f-1', 'irrigation-advice'];
 const SCHEDULES_KEY = ['field-workspace', 'f-1', 'irrigation-schedules'];
-const TASKS_KEY = ['field-workspace', 'f-1', 'tasks'];
+const TASKS_KEY = ['field-workspace', 'f-1', 'tasks', null, null, null];
 const TIMELINE_KEY = ['field-workspace', 'f-1', 's-1', 'unified-timeline'];
 
 function httpError(status: number) {

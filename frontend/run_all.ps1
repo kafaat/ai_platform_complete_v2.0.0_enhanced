@@ -154,7 +154,7 @@ function Start-FrontendDev {
 
     if (-not (Test-Path 'node_modules')) {
         Log 'تثبيت الاعتماديات...'
-        npm install --legacy-peer-deps
+        npm install
     }
 
     $fe = @'
