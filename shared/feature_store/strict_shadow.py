@@ -1,24 +1,39 @@
 """Strict, side-effect-free feature admission for research/shadow evaluation.
 
 Does not replace legacy feature-store APIs or authorize agronomic execution.
+
+This module adds *scope* admission only: one tenant, one season, one feature set,
+field entities, and plain finite scalar feature values. Every point-in-time
+decision (timezone-aware stamps, ``event_time <= available_at <= ingested_at <=
+prediction_at``, nothing after ``as_of``, provenance, staleness, latest-wins
+selection) is delegated to the feature store's single authority,
+``shared.feature_store.runtime.build_point_in_time_snapshot``. Do not add cutoff
+or availability checks here: a second point-in-time authority would drift from
+the first.
 """
 
 from __future__ import annotations
 
 import json
 import math
-from datetime import UTC, datetime
 from hashlib import sha256
 from typing import Any
 
+from shared.feature_store.runtime import build_point_in_time_snapshot
 
-def _timestamp(value: Any) -> datetime:
-    if not isinstance(value, str):
-        raise ValueError("ISO-8601 timestamp required")
-    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    if parsed.tzinfo is None:
-        raise ValueError("timezone required")
-    return parsed.astimezone(UTC)
+
+def _scalar_features_valid(features: Any) -> bool:
+    if not isinstance(features, dict) or not features:
+        return False
+    for name, value in features.items():
+        if not isinstance(name, str) or not name:
+            return False
+        # bool is an int subclass; a flag is not a numeric feature value here.
+        if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+            return False
+        if isinstance(value, float) and not math.isfinite(value):
+            return False
+    return True
 
 
 def strict_shadow_snapshot(
@@ -33,96 +48,48 @@ def strict_shadow_snapshot(
     """Select available features without mixing tenants, seasons or feature sets.
 
     This is a pure opt-in contract. No database, model registry or execution path
-    is touched. Both publication and ingestion must precede the decision.
+    is touched. Records outside the requested scope are excluded here; the rest
+    are judged by ``build_point_in_time_snapshot`` and its exclusion reasons are
+    reported alongside the scope reasons.
     """
-    if not all((tenant_id, season_id, feature_set_id)) or max_age_hours < 0:
-        raise ValueError("scope and nonnegative maximum age are required")
-    cutoff = _timestamp(as_of)
-    selected: dict[tuple[str, str], tuple[tuple[datetime, datetime, str], dict[str, Any]]]
-    selected = {}
+    if not all(isinstance(v, str) and v for v in (tenant_id, season_id, feature_set_id)):
+        raise ValueError("tenant_id, season_id and feature_set_id are required")
     excluded: dict[str, int] = {}
+    in_scope: list[dict[str, Any]] = []
 
     def reject(reason: str) -> None:
         excluded[reason] = excluded.get(reason, 0) + 1
 
     for record in records:
-        if record.get("tenant_id") != tenant_id:
+        if not isinstance(record, dict):
+            reject("record_invalid")
+        elif record.get("tenant_id") != tenant_id:
             reject("other_tenant")
-            continue
-        if record.get("season_id") != season_id:
+        elif record.get("season_id") != season_id:
             reject("other_season")
-            continue
-        if record.get("feature_set_id") != feature_set_id:
+        elif record.get("feature_set_id") != feature_set_id:
             reject("other_feature_set")
-            continue
-        if record.get("entity_type", "field") != "field":
+        elif record.get("entity_type", "field") != "field":
             reject("wrong_entity_type")
-            continue
-        if not record.get("entity_id") or not record.get("source_version"):
-            reject("missing_provenance")
-            continue
-        features = record.get("features")
-        if not isinstance(features, dict) or not features:
+        elif not _scalar_features_valid(record.get("features")):
             reject("invalid_features")
-            continue
-        invalid_feature = False
-        for name, value in features.items():
-            if not isinstance(name, str) or not name:
-                invalid_feature = True
-                break
-            if isinstance(value, bool):
-                invalid_feature = True
-                break
-            if not isinstance(value, (str, int, float)):
-                invalid_feature = True
-                break
-            if isinstance(value, (int, float)) and not math.isfinite(value):
-                invalid_feature = True
-                break
-        if invalid_feature:
-            reject("invalid_features")
-            continue
-        try:
-            event = _timestamp(record.get("event_time"))
-            available = _timestamp(record.get("available_at"))
-            ingested = _timestamp(record.get("ingested_at"))
-        except (ValueError, TypeError):
-            reject("invalid_time")
-            continue
-        if event > available:
-            reject("event_after_publication")
-            continue
-        if max(event, available, ingested) > cutoff:
-            reject("future_information")
-            continue
-        if (cutoff - event).total_seconds() > max_age_hours * 3600:
-            reject("stale")
-            continue
-        key = ("field", str(record["entity_id"]))
-        rank = (max(available, ingested), event, str(record["source_version"]))
-        if key not in selected or rank > selected[key][0]:
-            selected[key] = (rank, record)
+        else:
+            in_scope.append(record)
+
+    # Raises ValueError for a naive or invalid as_of and a negative max_age_hours.
+    snapshot = build_point_in_time_snapshot(in_scope, as_of=as_of, max_age_hours=max_age_hours)
+    for reason, count in snapshot["exclusion_reasons"].items():
+        excluded[reason] = excluded.get(reason, 0) + count
 
     rows = [
-        {
-            "tenant_id": tenant_id,
-            "season_id": season_id,
-            "feature_set_id": feature_set_id,
-            "entity_type": entity_type,
-            "entity_id": entity_id,
-            "event_time": record["event_time"],
-            "available_at": record["available_at"],
-            "ingested_at": record["ingested_at"],
-            "source_version": record["source_version"],
-            "features": record["features"],
-        }
-        for (entity_type, entity_id), (_, record) in sorted(selected.items())
+        {**row, "season_id": season_id, "feature_set_id": feature_set_id}
+        for row in snapshot["rows"]
     ]
     payload = {
         "tenant_id": tenant_id,
         "season_id": season_id,
         "feature_set_id": feature_set_id,
-        "as_of": cutoff.isoformat(),
+        "as_of": snapshot["as_of"],
         "max_age_hours": max_age_hours,
         "rows": rows,
     }
@@ -130,8 +97,10 @@ def strict_shadow_snapshot(
     digest = sha256(encoded).hexdigest()
     return {
         "snapshot_id": f"pit_{digest[:20]}",
+        "authority_snapshot_id": snapshot["snapshot_id"],
+        "as_of": snapshot["as_of"],
         "row_count": len(rows),
         "rows": rows,
-        "excluded_by_reason": excluded,
+        "excluded_by_reason": dict(sorted(excluded.items())),
         "mode": "shadow",
     }
