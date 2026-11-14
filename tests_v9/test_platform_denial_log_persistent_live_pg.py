@@ -238,6 +238,7 @@ def test_denials_survive_a_restart_and_each_tenant_reads_only_its_own(platform):
         env={**_env(), "PYTHONPATH": os.pathsep.join([str(PLATFORM), str(ROOT)])},
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=180,
     )
     lines = [ln for ln in proc.stdout.splitlines() if ln.startswith("RESULT ")]

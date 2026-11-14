@@ -12600,6 +12600,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_platform_denial_log_persistent_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_platform_denial_log_scope_live.py",
     "kind": "tests"
   },
