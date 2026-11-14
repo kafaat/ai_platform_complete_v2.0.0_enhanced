@@ -42,6 +42,13 @@ import sys
 import tempfile
 from collections import Counter
 
+# صار يُشغَّل في CI (C-04)، ومخرَجُه عربيٌّ ويحمل ✓/✗/⚠: تحت `LC_ALL=C` بلا `PYTHONUTF8`
+# يُرمّز `print` بـASCII فيموت بـUnicodeEncodeError — نتيجةٌ صحيحة تُقرَأ فشلاً. والعمليّةُ
+# الفرعيّة لكلّ خدمة تُحمّل هذا الملفّ نفسه، فتَرِث التهيئةَ ذاتها.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_INVENTORY = os.path.join(ROOT, "service_inventory.generated.json")
 DEFAULT_ROUTE_INVENTORY = os.path.join(ROOT, "route_inventory.generated.json")
