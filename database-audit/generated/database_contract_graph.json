@@ -1776,7 +1776,7 @@
     "rls_forced": 208,
     "runtime_verified": false,
     "sql_files": 264,
-    "tables": 356,
+    "tables": 355,
     "tenant_rls_gaps": 137,
     "tenant_tables": 336,
     "unlisted_sql_count": 0
@@ -4157,19 +4157,6 @@
       "rls_forced": false,
       "table": "hydraulic_capacity_evaluations",
       "tenant_rls_gap": true,
-      "write_policy_with_check": false
-    },
-    {
-      "code_readers": [],
-      "code_writers": [],
-      "created_in": "v36_alerts.sql",
-      "has_tenant_id": false,
-      "manifest_position": 40,
-      "policy_count": 0,
-      "rls_enabled": false,
-      "rls_forced": false,
-      "table": "if",
-      "tenant_rls_gap": false,
       "write_policy_with_check": false
     },
     {

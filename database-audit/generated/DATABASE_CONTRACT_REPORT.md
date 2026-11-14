@@ -8,7 +8,7 @@
 - **sql_files**: 264
 - **manifest_missing_count**: 0
 - **unlisted_sql_count**: 0
-- **tables**: 356
+- **tables**: 355
 - **tenant_tables**: 336
 - **rls_enabled**: 227
 - **rls_forced**: 208

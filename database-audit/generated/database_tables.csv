@@ -136,7 +136,6 @@ hourly_energy_envelopes,v174_energy_agricultural_microgrid_capability.sql,179,Tr
 hourly_irrigation_mpc_actions,v179_hourly_energy_aware_irrigation_mpc.sql,184,True,True,True,1,True,False,0,1
 hourly_irrigation_mpc_schedules,v179_hourly_energy_aware_irrigation_mpc.sql,184,True,True,True,1,True,False,0,2
 hydraulic_capacity_evaluations,v195_irrigation_capacity_reservation_core.sql,200,True,False,False,0,False,True,0,1
-if,v36_alerts.sql,40,False,False,False,0,False,False,0,0
 imagery_automation_fields,v9_automation_persistence.sql,7,True,False,False,0,False,True,5,1
 inventory_batches,v22_inventory.sql,26,True,False,False,0,False,True,2,1
 inventory_items,v22_inventory.sql,26,True,False,False,0,False,True,1,1
