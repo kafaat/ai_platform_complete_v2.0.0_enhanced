@@ -19,6 +19,7 @@ from typing import Annotated
 import main
 from client_address import client_ip
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from routers.users import _validate_team_actor
 
 router = APIRouter()
 
@@ -70,6 +71,9 @@ async def create_invitation(
     expires_at = datetime.now(UTC) + timedelta(days=main.INVITATION_EXPIRY_DAYS)
 
     async with main._acquire() as conn:
+        # A signed owner/admin claim is not enough: the inviter must still be an active
+        # owner/admin of that tenant in the DB (same check as the team routes).
+        tenant_id = await _validate_team_actor(conn, user)
         row = await conn.fetchrow(
             """
             INSERT INTO invitations
@@ -109,6 +113,7 @@ async def list_invitations(user: Annotated[dict, Depends(main.get_current_user)]
     if not tenant_id:
         return []
     async with main._acquire() as conn:
+        tenant_id = await _validate_team_actor(conn, user)
         rows = await conn.fetch(
             """
             SELECT id, email, role, expires_at, created_at,
@@ -233,6 +238,7 @@ async def revoke_invitation(
     if not tenant_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "الدعوة غير موجودة")
     async with main._acquire() as conn:
+        tenant_id = await _validate_team_actor(conn, user)
         row = await conn.fetchrow(
             """
             UPDATE invitations SET status='revoked'
