@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7339,
+    "files_scanned": 7340,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2181,
-      "tests": 2500,
+      "tests": 2501,
       "web": 547
     },
-    "unmapped_artifacts": 3492,
+    "unmapped_artifacts": 3493,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3970,
+      "python_functional": 3971,
       "raw": 3369
     },
-    "test_dependency_files": 1900,
+    "test_dependency_files": 1901,
     "test_dependency_edges": 4886,
     "test_dependency_bounded_files": 1113,
-    "test_dependency_unresolved_relations": 482
+    "test_dependency_unresolved_relations": 484
   },
   "capabilities": [
     {
@@ -11921,7 +11921,7 @@
           "score": 17
         },
         {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:83",
+          "value": "sahool.api @ services/sahool-platform/api/main.py:84",
           "score": 15
         },
         {
@@ -28451,6 +28451,10 @@
           "score": 11
         },
         {
+          "value": "sahool.jwt_denylist @ tests_v9/test_platform_revocation_unverifiable_fail_closed.py:130",
+          "score": 11
+        },
+        {
           "value": "sahool-postgres.railway.internal @ tests_v9/test_apply_in_compose_fail_closed.py:71",
           "score": 8
         }
@@ -28475,14 +28479,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
-          "score": 12,
-          "signals": [
-            "path:fail closed",
-            "content:fail closed"
-          ]
-        },
-        {
           "path": "services/raster-service/test_tile_render_mask_fail_closed_bounded_reads.py",
           "score": 11,
           "signals": [
@@ -28500,6 +28496,14 @@
         },
         {
           "path": "tests_v9/test_erp_bridge_fail_closed.py",
+          "score": 11,
+          "signals": [
+            "path:fail closed",
+            "content:fail closed"
+          ]
+        },
+        {
+          "path": "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
           "score": 11,
           "signals": [
             "path:fail closed",
@@ -28554,7 +28558,7 @@
         "backend": 0,
         "routes": 0,
         "database": 4,
-        "events": 2,
+        "events": 3,
         "web": 0,
         "mobile": 0,
         "tests": 10,
@@ -42556,6 +42560,10 @@
     },
     {
       "path": "tests_v9/test_auth_main_decomposition_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_auth_revocation_outage_read_policy.py",
       "kind": "tests"
     },
     {
@@ -73011,12 +73019,12 @@
         {
           "source": "tests_v9/service_module.py",
           "kind": "import",
-          "line": 79
+          "line": 83
         }
       ],
       "unresolved": [
         {
-          "line": 88,
+          "line": 92,
           "call": "spec_from_file_location"
         }
       ]
@@ -73294,6 +73302,25 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_auth_revocation_outage_read_policy.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 50,
+          "call": "spec_from_file_location"
+        },
+        {
+          "line": 184,
+          "call": "spec_from_file_location"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_auth_rls_and_routing.py",
@@ -85098,12 +85125,12 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 40
+          "line": 44
         },
         {
           "source": "services/sahool-platform/core/jwt_denylist.py",
           "kind": "import",
-          "line": 97
+          "line": 104
         }
       ],
       "unresolved": []

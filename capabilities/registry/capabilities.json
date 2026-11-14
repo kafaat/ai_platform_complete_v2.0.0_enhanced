@@ -98,7 +98,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
           "metric:sahool_auth_logins_total@services/auth/main.py:274",
           "metric:sahool_auth_register_total@services/auth/main.py:275",
           "metric:sahool_auth_resets_total@services/auth/main.py:276"
@@ -150,7 +150,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 65
+        "tests": 66
       }
     },
     {
@@ -4641,7 +4641,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
           "metric:sahool_auth_logins_total@services/auth/main.py:274",
           "metric:sahool_auth_register_total@services/auth/main.py:275",
           "metric:sahool_auth_resets_total@services/auth/main.py:276"
@@ -5690,7 +5690,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
           "metric:sahool_auth_logins_total@services/auth/main.py:274",
           "metric:sahool_auth_register_total@services/auth/main.py:275",
           "metric:sahool_auth_resets_total@services/auth/main.py:276"
@@ -5763,7 +5763,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
           "metric:sahool_auth_logins_total@services/auth/main.py:274",
           "metric:sahool_auth_register_total@services/auth/main.py:275",
           "metric:sahool_auth_resets_total@services/auth/main.py:276"
@@ -5851,7 +5851,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
           "metric:sahool_auth_logins_total@services/auth/main.py:274",
           "metric:sahool_auth_register_total@services/auth/main.py:275",
           "metric:sahool_auth_resets_total@services/auth/main.py:276"
@@ -5927,7 +5927,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
           "metric:sahool_auth_logins_total@services/auth/main.py:274",
           "metric:sahool_auth_register_total@services/auth/main.py:275",
           "metric:sahool_auth_resets_total@services/auth/main.py:276"
@@ -6062,7 +6062,7 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:789",
+          "metric:sahool_auth_audit_write_failures_total@services/auth/main.py:790",
           "metric:sahool_auth_logins_total@services/auth/main.py:274",
           "metric:sahool_auth_register_total@services/auth/main.py:275",
           "metric:sahool_auth_resets_total@services/auth/main.py:276"
