@@ -20,6 +20,7 @@ def rag_operational_ready(payload: Any) -> bool:
     count = payload.get("sparse_index_count")
     return (
         payload.get("status") == "ready"
+        and payload.get("ready", True) is True
         and payload.get("embedding_contract_parity") is True
         and payload.get("collection_vector_schema_parity") is True
         and payload.get("sparse_index_hydrated") is True
