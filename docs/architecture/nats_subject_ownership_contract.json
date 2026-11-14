@@ -68,13 +68,28 @@
       ],
       "witnesses": [
         "test_conn04_phase_worker_events_reach_the_canonical_domain_consumer (unit; red on the old transform)",
-        "test_live_conn04_phase_worker_publish_reaches_a_consumer_bound_to_sahool_events (integration; real nats-server in notification-rollout.yml, NOT_RUN locally)"
+        "test_live_conn04_phase_worker_publish_reaches_a_consumer_bound_to_sahool_events (integration; real nats-server in notification-rollout.yml, NOT_RUN locally)",
+        "test_conn04_worker_envelope_is_accepted_by_the_notification_consumer (unit; outbox and plugin through the real worker publish expression and _publish_nats, then the real handle_msg: acked, not dead-lettered; red on the old envelope)",
+        "test_conn04_null_tenant_outbox_event_is_published_without_tenant_and_dead_lettered (unit)"
       ],
       "residual": [
-        "Envelope, not subject: the workers publish {event_id[, event_type], payload} with no top-level tenant_id, and agents/notification/agent.py dispatch() raises notification_tenant_required, so these events now reach notif_domain_events and are dead-lettered there instead of being notified. Changing the envelope is a further change to the frozen worker and is out of this scope.",
-        "The plugin hook subjects sahool.events.recommendation.created and sahool.events.alert.created are the same subjects the platform OutboxWorker publishes for those domain events; consumers see both producers on one subject.",
+        "The plugin hook subjects sahool.events.recommendation.created and sahool.events.alert.created are the same subjects the platform OutboxWorker publishes. The only NATS consumer of both is notif_domain_events (shared/notification_consumers.py:33). With the shared envelope a plugin-hook event differs from a platform domain event only by entity_type/entity_id being null; there is no producer field and no NATS header (_publish_nats sends none). Separating them is an owner decision.",
         "Core NATS without acknowledgement in the phase workers is unchanged (FEATURE_NATS_PUBLISHERS default unchanged)."
-      ]
+      ],
+      "envelope": {
+        "decision": "owner 2026-11-14: both phase-runtime worker paths publish the event_bus envelope (services/sahool-platform/api/event_bus.py:780-792)",
+        "function": "shared/runtime_worker_contracts.py: runtime_event_envelope",
+        "fields_from_row": {
+          "event_id": "event_id",
+          "event_type": "event_type (the value the subject is built from)",
+          "payload": "payload (jsonb decoded)",
+          "tenant_id": "tenant_id; key omitted when NULL (runtime_event_outbox, development only) so notif_domain_events dead-letters the event by design",
+          "entity_type": "runtime_event_outbox.aggregate_type; null for marketplace_plugin_runtime_events (no entity column)",
+          "entity_id": "runtime_event_outbox.aggregate_id; null for marketplace_plugin_runtime_events (no entity column)",
+          "occurred_at": "created_at"
+        },
+        "not_carried": "correlation_id and causation_id of the event_bus envelope are outside the owner's field list and have no column in either table"
+      }
     }
   },
   "connected_services_note": "كانت ثلاثَ عشرة؛ ثلاثٌ منها (sahool-soil-service · sahool-weather-service · sahool-telegram-bot) تحمل كلمةَ مرور الوسيط ولا عميلَ NATS فيها فنُزِع عنها الاعتماد. وsahool-weather-polygon-worker يبقى هنا ما بقي في compose لأنّ هذا الجردَ مُشتقٌّ منه، لكنّه **بلا هويّة** في nats/nats.conf: يُزال من المكدّس في الموجة نفسِها على فرعٍ آخر (compose)، وبعد الدمج يسقط من هذه القائمة."

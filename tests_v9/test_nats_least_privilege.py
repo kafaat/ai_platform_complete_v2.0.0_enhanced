@@ -480,6 +480,195 @@ def test_conn04_phase_worker_events_reach_the_canonical_domain_consumer():
         assert not refused, f"{identity[fn]}: الوسيطُ يرفض صامتاً: {refused}"
 
 
+TENANT_UUID = "11111111-1111-4111-8111-111111111111"
+
+
+def _worker_publish_call(fn_name: str) -> tuple:
+    """نداءُ ``_publish_nats`` الديناميكيّ في دالّة العامل: (تعبيرُ الموضوع، تعبيرُ الغلاف) مُترجَمَين."""
+    source = (PLATFORM / "api" / "phase_runtime_workers.py").read_text(encoding="utf-8")
+    fn = next(
+        n
+        for n in ast.walk(ast.parse(source))
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == fn_name
+    )
+    calls = [
+        c
+        for c in ast.walk(fn)
+        if isinstance(c, ast.Call)
+        and getattr(c.func, "id", None) == "_publish_nats"
+        and len(c.args) == 2
+        and not isinstance(c.args[0], ast.Constant)
+    ]
+    assert len(calls) == 1, f"{fn_name}: {len(calls)} نشرٌ ديناميكيّ (المتوقَّع واحد)"
+    return tuple(
+        compile(ast.Expression(arg), f"<{fn_name} arg{i}>", "eval")
+        for i, arg in enumerate(calls[0].args)
+    )
+
+
+def _worker_row(table: str, *, event_type: str, tenant: str | None) -> dict:
+    """صفٌّ بأعمدة ما تُطالِب به شيفرةُ العامل نفسُها (``RUNTIME_EVENT_ENVELOPE_COLUMNS``)."""
+    import datetime
+    import uuid
+
+    from shared.runtime_worker_contracts import RUNTIME_EVENT_ENVELOPE_COLUMNS
+
+    values = {
+        "id": uuid.uuid4(),
+        "tenant_id": None if tenant is None else uuid.UUID(tenant),
+        "event_id": f"evt-{event_type}",
+        "event_type": event_type,
+        "payload": json.dumps({"field_id": "f1"}),  # jsonb نصّاً كما يُعيده asyncpg بلا codec
+        "attempts": 0,
+        "aggregate_type": "plan",
+        "aggregate_id": "plan-1",
+        "created_at": datetime.datetime(2026, 11, 14, 9, 0, tzinfo=datetime.UTC),
+    }
+    path = {"runtime_event_outbox": "outbox", "marketplace_plugin_runtime_events": "plugin"}[table]
+    cols = [c.strip().removeprefix("t.") for c in RUNTIME_EVENT_ENVELOPE_COLUMNS[path].split(",")]
+    return {c: values[c] for c in cols} | {"claim_token": uuid.uuid4()}
+
+
+async def _publish_through_worker(monkeypatch, fn_name: str, row: dict) -> tuple[str, bytes]:
+    """يُقيِّم موضوعَ النشر وغلافَه من شيفرة ``fn_name`` على ``row`` ثمّ يمرّ بـ``_publish_nats``
+    الحقيقيّ — والوسيطُ وحده مُستبدَل (يلتقط ما يُرسَل على السلك)."""
+    import nats
+    from shared.runtime_worker_contracts import build_outbox_action
+
+    workers = _platform_import("api.phase_runtime_workers")
+    sent: list[tuple[str, bytes]] = []
+
+    class _Wire:
+        async def publish(self, subject, data):
+            sent.append((subject, data))
+
+        async def flush(self, timeout=None):
+            return None
+
+        async def close(self):
+            return None
+
+    async def _connect_stub(*_a, **_k):
+        return _Wire()
+
+    monkeypatch.setenv("NATS_URL", "nats://witness:4222")
+    monkeypatch.setattr(nats, "connect", _connect_stub)
+    subject_expr, envelope_expr = _worker_publish_call(fn_name)
+    scope = {"row": row}
+    if fn_name == "run_outbox_once":
+        scope["subject"] = build_outbox_action(
+            nats_url="nats://witness:4222",
+            event_type=row["event_type"],
+            attempts=0,
+            max_attempts=1,
+        )["receipt"]["subject"]
+    namespace = dict(vars(workers))
+    subject = eval(subject_expr, namespace, scope)  # noqa: S307
+    envelope = eval(envelope_expr, namespace, scope)  # noqa: S307
+    await workers._publish_nats(subject, envelope)
+    assert len(sent) == 1
+    return sent[0]
+
+
+def _notification_agent():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "notification_agent_conn04", ROOT / "agents" / "notification" / "agent.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+async def _consume(monkeypatch, subject: str, data: bytes):
+    """``handle_msg`` الحقيقيّ لوكيل الإشعارات (``notif_domain_events``) على رسالةٍ مُسلَّمة."""
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    agent = _notification_agent()
+    js = SimpleNamespace(publish=AsyncMock())
+    monkeypatch.setattr(agent, "_js", js)
+    monkeypatch.setattr(agent, "get_tenant_subscribers", AsyncMock(return_value=[]))
+    msg = SimpleNamespace(
+        data=data,
+        subject=subject,
+        metadata=SimpleNamespace(
+            stream=STREAM, sequence=SimpleNamespace(stream=7), num_delivered=1
+        ),
+        ack=AsyncMock(),
+        nak=AsyncMock(),
+        term=AsyncMock(),
+    )
+    await agent.handle_msg(msg)
+    dead = [c for c in js.publish.call_args_list if c.args[0] == "sahool.notification.dead_letter"]
+    return msg, dead
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "fn_name, table, event_type",
+    [
+        ("run_outbox_once", "runtime_event_outbox", "phase9.execution_plan.created"),
+        ("run_plugin_once", "marketplace_plugin_runtime_events", "digital_twin.snapshot.created"),
+    ],
+)
+async def test_conn04_worker_envelope_is_accepted_by_the_notification_consumer(
+    monkeypatch, fn_name, table, event_type
+):
+    """قرارُ المالك 2026-11-14: غلافُ event_bus (event_bus.py:780-792) من الصفّ نفسِه.
+
+    الحدثُ المنشور عبر دالّة العامل الحقيقيّة يطابق ``sahool.events.>`` ويقبله فحصُ غلاف
+    ``notif_domain_events`` (يُقَرّ، لا يذهب إلى الرسائل الميتة). على الغلاف القديم
+    (بلا ``tenant_id``) يحمرّ: ``notification_tenant_required`` ⇒ رسالةٌ ميتة."""
+    row = _worker_row(table, event_type=event_type, tenant=TENANT_UUID)
+    subject, data = await _publish_through_worker(monkeypatch, fn_name, row)
+    assert _matches("sahool.events.>", subject) and subject == f"sahool.events.{event_type}"
+    msg, dead = await _consume(monkeypatch, subject, data)
+    assert not dead, f"{fn_name}: ذهب إلى الرسائل الميتة: {dead}"
+    msg.ack.assert_awaited_once()
+    msg.term.assert_not_awaited()
+    envelope = json.loads(data)
+    assert set(envelope) == {
+        "event_id",
+        "event_type",
+        "tenant_id",
+        "entity_type",
+        "entity_id",
+        "occurred_at",
+        "payload",
+    }, sorted(envelope)
+    assert envelope["event_type"] == event_type == subject.removeprefix("sahool.events.")
+    assert envelope["tenant_id"] == TENANT_UUID
+    assert envelope["event_id"] == row["event_id"]
+    assert envelope["payload"] == {"field_id": "f1"}
+    assert envelope["occurred_at"] == "2026-11-14T09:00:00+00:00"
+    if table == "runtime_event_outbox":
+        assert (envelope["entity_type"], envelope["entity_id"]) == ("plan", "plan-1")
+    else:  # لا عمودَ كيانٍ في marketplace_plugin_runtime_events — null لا مُخترَع
+        assert (envelope["entity_type"], envelope["entity_id"]) == (None, None)
+
+
+@pytest.mark.unit
+async def test_conn04_null_tenant_outbox_event_is_published_without_tenant_and_dead_lettered(
+    monkeypatch,
+):
+    """runtime_event_outbox.tenant_id يقبل NULL (v106:8) في التطوير: يُنشَر الحدثُ **بلا**
+    ``tenant_id`` (لا GUC ولا افتراض)، ويُرسِله الوكيلُ إلى الرسائل الميتة — مقصودٌ بقرار المالك."""
+    row = _worker_row(
+        "runtime_event_outbox", event_type="phase9.autonomy_cycle.completed", tenant=None
+    )
+    subject, data = await _publish_through_worker(monkeypatch, "run_outbox_once", row)
+    envelope = json.loads(data)
+    assert "tenant_id" not in envelope
+    assert envelope["event_type"] == "phase9.autonomy_cycle.completed"
+    assert (envelope["entity_type"], envelope["entity_id"]) == ("plan", "plan-1")
+    msg, dead = await _consume(monkeypatch, subject, data)
+    assert len(dead) == 1, "حدثٌ بلا مستأجِر لم يذهب إلى الرسائل الميتة"
+    msg.term.assert_awaited_once()
+    msg.ack.assert_not_awaited()
+
+
 @pytest.mark.unit
 def test_the_actuator_subject_is_a_notice_not_a_command_and_nobody_may_consume_it():
     """الأثرُ الفيزيائيّ لا يمرّ بالوسيط — ولا تفتحه هذه الصلاحيّات."""

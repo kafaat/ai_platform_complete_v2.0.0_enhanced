@@ -56,6 +56,48 @@ def runtime_event_subject(event_type: str) -> str:
     return f"{RUNTIME_EVENT_SUBJECT_PREFIX}{event_type}"
 
 
+# قرارُ المالك (2026-11-14): العاملان ينشران **غلافَ** event_bus نفسَه
+# (services/sahool-platform/api/event_bus.py:780-792) — كلُّ قيمةٍ من الصفّ نفسِه، ولا قيمةَ
+# تُخترَع. ما لا مصدرَ له في الصفّ يبقى null:
+#   event_id · event_type (نوعُ الصفّ، وهو ما يُبنى منه الموضوع) · payload  ⇐ أعمدتُها؛
+#   tenant_id   ⇐ tenant_id، ويُحذَف المفتاحُ حين يكون NULL (صفُّ مسار outbox في التطوير)
+#                 فيُرسِله وكيلُ الإشعارات إلى الرسائل الميتة عمداً — لا GUC ولا افتراض؛
+#   entity_type/entity_id ⇐ aggregate_type/aggregate_id (مسار outbox)، وnull في
+#                 مسار plugin (لا عمودَ كيانٍ في جدوله)؛
+#   occurred_at ⇐ created_at.
+# المفتاحان اسما المسارين لا اسما الجدولين: الجدولان يسمّيهما العاملُ وحدَه.
+RUNTIME_EVENT_ENVELOPE_COLUMNS = {
+    "outbox": (
+        "t.id, t.tenant_id, t.event_id, t.event_type, t.payload, t.attempts, "
+        "t.aggregate_type, t.aggregate_id, t.created_at"
+    ),
+    "plugin": ("t.id, t.tenant_id, t.event_id, t.event_type, t.payload, t.created_at"),
+}
+
+
+def _row_value(row: Any, key: str) -> Any:
+    return row[key] if key in row.keys() else None
+
+
+def runtime_event_envelope(row: Any) -> dict[str, Any]:
+    payload = row["payload"]
+    if isinstance(payload, (str, bytes, bytearray)):
+        payload = json.loads(payload)  # jsonb يصل نصّاً عبر asyncpg بلا codec
+    entity_id = _row_value(row, "aggregate_id")
+    occurred_at = _row_value(row, "created_at")
+    envelope: dict[str, Any] = {
+        "event_id": str(row["event_id"]),
+        "event_type": row["event_type"],
+        "entity_type": _row_value(row, "aggregate_type"),
+        "entity_id": None if entity_id is None else str(entity_id),
+        "occurred_at": occurred_at.isoformat() if occurred_at is not None else None,
+        "payload": payload,
+    }
+    if row["tenant_id"] is not None:
+        envelope["tenant_id"] = str(row["tenant_id"])
+    return envelope
+
+
 def build_outbox_action(
     *, nats_url: str | None, event_type: str | None, attempts: int, max_attempts: int
 ) -> dict[str, Any]:

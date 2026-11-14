@@ -19,6 +19,7 @@ from typing import Any
 import asyncpg
 
 from shared.runtime_worker_contracts import (
+    RUNTIME_EVENT_ENVELOPE_COLUMNS,
     build_actuator_worker_action,
     build_model_promotion_action,
     build_model_rollback_action,
@@ -26,6 +27,7 @@ from shared.runtime_worker_contracts import (
     build_plugin_worker_action,
     env_bool,
     parse_json_env,
+    runtime_event_envelope,
     runtime_event_subject,
 )
 from shared.startup_retry import retry_startup_connect
@@ -199,7 +201,7 @@ async def run_outbox_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
             rows = await claim_batch(
                 conn,
                 table="runtime_event_outbox",
-                columns="t.id, t.tenant_id, t.event_id, t.event_type, t.payload, t.attempts",
+                columns=RUNTIME_EVENT_ENVELOPE_COLUMNS["outbox"],
                 where="status IN ('pending','failed') AND attempts < $1",
                 batch_size=batch_size,
                 params=(max_attempts,),
@@ -218,14 +220,7 @@ async def run_outbox_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
                 if action["action"] != "publish_nats":
                     raise RuntimeError(action.get("reason") or "outbox_not_publishable")
                 subject = action["receipt"]["subject"]
-                await _publish_nats(
-                    subject,
-                    {
-                        "event_id": row["event_id"],
-                        "event_type": row["event_type"],
-                        "payload": row["payload"],
-                    },
-                )
+                await _publish_nats(subject, runtime_event_envelope(row))
                 assignments = "status='published', attempts=attempts+1, published_at=now()"
                 params: tuple[Any, ...] = ()
             except Exception:
@@ -298,7 +293,7 @@ async def run_plugin_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
             event_rows = await claim_batch(
                 conn,
                 table="marketplace_plugin_runtime_events",
-                columns="t.id, t.tenant_id, t.event_id, t.event_type, t.payload",
+                columns=RUNTIME_EVENT_ENVELOPE_COLUMNS["plugin"],
                 where="status IN ('pending','failed')",
                 batch_size=batch_size,
             )
@@ -307,7 +302,7 @@ async def run_plugin_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
             try:
                 await _publish_nats(
                     runtime_event_subject(str(row["event_type"])),
-                    {"event_id": row["event_id"], "payload": row["payload"]},
+                    runtime_event_envelope(row),
                 )
                 assignments = "status='published'"
             except Exception:

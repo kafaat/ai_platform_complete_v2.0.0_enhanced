@@ -24,6 +24,15 @@ subjects:
     source: "services/sahool-platform/api/event_bus.py — emit_event() ⇒ event_outbox ⇒ ترحيل JetStream"
     source_table: "event_outbox"
     schema_version: 1
+    # 2026-11-14 (CONN-04، قرار المالك): عاملا phase-runtime ينشران هنا أيضاً بالغلاف نفسِه
+    # (event_bus.py:780-792) — `runtime_event_subject` و`runtime_event_envelope` في
+    # shared/runtime_worker_contracts.py. حدثُ runtime_event_outbox بلا مستأجِر (التطوير) يُنشَر
+    # بلا tenant_id ويذهب إلى الرسائل الميتة عند الوكيل عمداً.
+    additional_producers:
+      - producer: "sahool-phase-runtime-outbox-worker (run_outbox_once)"
+        source_table: "runtime_event_outbox"
+      - producer: "sahool-plugin-runtime-worker (run_plugin_once)"
+        source_table: "marketplace_plugin_runtime_events"
 
   # ── موضوعات توجيه دقيق محجوزة للمستقبل (waiver، قرار معماريّ) ──
   # الأحداث الفعليّة تتدفّق الآن عبر التيّار العامّ ``sahool.events.<type>`` أعلاه
