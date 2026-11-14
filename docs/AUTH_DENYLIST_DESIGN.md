@@ -126,10 +126,10 @@ auth يُقلِع بـ`_redis = None` فتُتخطّى الفحوص (لا 503 و
 
 | المسار (`services/sahool-platform/api/routers/fields.py`) | سطر الاستدعاء | ما يكتبه |
 |---|---|---|
-| `GET /api/v1/fields/{field_id}/state` (`:3872`) | `:3891` | صفّ `field_state` للحقل |
-| `GET /api/v1/fields/{field_id}/alerts/derived` (`:3900`) | `:3917` | صفّ `field_state` للحقل (التنبيهات تُشتقّ ولا تُخزَّن) |
-| `GET /api/v1/fields/{field_id}/state/full` (`:3926`) | `:3981` | صفّ `field_state` للحقل |
-| `GET /api/v1/fields/{field_id}/recommendations` (`:2723`) | `:2794` | صفّ `field_state` للحقل، **في 200 فقط** (انظر أدناه) |
+| `GET /api/v1/fields/{field_id}/state` (`:3856`) | `:3875` | صفّ `field_state` للحقل |
+| `GET /api/v1/fields/{field_id}/alerts/derived` (`:3884`) | `:3901` | صفّ `field_state` للحقل (التنبيهات تُشتقّ ولا تُخزَّن) |
+| `GET /api/v1/fields/{field_id}/state/full` (`:3910`) | `:3965` | صفّ `field_state` للحقل |
+| `GET /api/v1/fields/{field_id}/recommendations` (`:2723`) | `:2787` | صفّ `field_state` للحقل، **في 200 فقط** (انظر أدناه) |
 
 **لماذا تُحتمَل أثناء الانقطاع:** الكتابة إسقاطٌ مشتقّ لا مصدر حقيقة. قيمها تُحسَب على الخادم من
 بيانات الحقل نفسه (حداثة الصور والتربة والطقس، والمحصول، والحقائق الزراعيّة)، ولا يدخلها شيءٌ من جسم
