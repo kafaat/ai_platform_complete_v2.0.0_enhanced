@@ -391,9 +391,10 @@ def runtime_feature_lineage(
     """Temporal lineage of a canonical-runtime feature row, from recorded times only.
 
     - ``event_time``: the canonical state's own valid time, ``state.as_of_time``
-      when the state carries one, else the envelope's ``generated_at``. The
-      envelope does not carry each signal's ``observed_at``, so no feature can
-      claim an earlier observation time than the state it was read from.
+      when the state carries one, else the envelope's ``generated_at``. The state
+      records each signal's ``observed_at`` in ``signal_observations`` (UTC, covered
+      by ``state_id``), but a row mixes several signals, so no single observation
+      time stands for the row and none is claimed earlier than the state.
     - ``available_at``: the envelope's ``generated_at``: the state existed then.
     - ``ingested_at``: the runtime payload's ``created_at``: when the platform
       assembled these features into the runtime.

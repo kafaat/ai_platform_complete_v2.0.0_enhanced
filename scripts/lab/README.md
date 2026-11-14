@@ -24,7 +24,7 @@ container: copy the evidence directory out before the container ends.
 | Ports, database, user | 5433 / 6380, `sahool_test` | same |
 | `psql`, `pg_isready` on the host | the host's own client (PostgreSQL 16 here) | `scripts/ci/provision_pg_client.sh` shims that run the container's client |
 | Python deps | fresh venv from `tests_v9/requirements-test.txt` (+ `constraints-ci-tools.txt`) | same files |
-| Certification switches | `HIL_`, `CLAIM_LEASE_`, `RECONCILIATION_RESUMPTION_`, `MIGRATOR_CERTIFICATION_REQUIRED=1` | same |
+| Certification switches | `HIL_`, `CLAIM_LEASE_`, `RECONCILIATION_RESUMPTION_`, `MIGRATOR_`, `FIELD_GEOMETRY_CERTIFICATION_REQUIRED=1` | same |
 | Restricted-role certification steps | read from `ci.yml` at run time and run as written | the steps listed below |
 
 The PostgreSQL difference exists because the CI image installs PostGIS from
@@ -65,7 +65,8 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 9. Auth admin tenant scope (C-01, real auth app, restricted role)
 10. Auth admin authz gates (#1427, concurrent invitation, Redis outage, stale membership)
 11. Platform denial log tenant scope (#1427, real platform app, live Redis)
-12. soil-service functional H5 + guardrails L5 (restricted role)
+12. Platform denial log persistence (audit_log, restart, outage, restricted role)
+13. soil-service functional H5 + guardrails L5 (restricted role)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)
