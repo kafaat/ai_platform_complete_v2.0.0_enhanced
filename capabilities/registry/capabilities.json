@@ -150,7 +150,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 66
+        "tests": 65
       }
     },
     {
@@ -453,7 +453,7 @@
       },
       "evidence_truncated": {
         "apis": 227,
-        "tests": 153,
+        "tests": 152,
         "mobile_consumers": 44
       }
     },
@@ -1125,7 +1125,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 36
+        "tests": 38
       }
     },
     {
@@ -1364,6 +1364,7 @@
         "services/raster-service/test_spatial_sampling_product.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_spatial_geometry_integrity.py",
+        "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
         "tests_v9/test_geospatial.py",
         "tests_v9/test_spatial_e2e_smoke.py",
         "tests_v9/test_trial_spatial_identity.py",
@@ -1401,7 +1402,7 @@
           "path": "services/raster-service/trial_zonal_outcomes.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=8, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -1811,7 +1812,7 @@
         "GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571",
         "GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:944",
         "GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87",
-        "GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:34",
+        "GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:32",
         "GET /api/v1/weather/historical @ services/sahool-platform/api/routers/weather.py:2098",
         "GET /api/v1/weather/history/coverage @ services/sahool-platform/api/routers/operational_truth.py:203",
         "GET /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:172",
@@ -1841,7 +1842,6 @@
         "services/raster-service/test_historical_backfill.py",
         "services/raster-service/test_persisted_thumbnail_path.py",
         "services/sahool-platform/tests/test_agronomic_replay_historical_sources.py",
-        "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
         "services/sahool-platform/tests/test_historical_loader.py",
         "services/sahool-platform/tests/test_historical_onboarding.py",
         "services/sahool-platform/tests/test_historical_season_context.py",
@@ -1853,8 +1853,9 @@
         "tests_v9/test_backfill_scene_job_threadpool_v30_3.py",
         "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
         "tests_v9/test_decision_review_backfill_verify.py",
-        "tests_v9/test_field_timeline_tenant_scope_live_pg.py",
-        "tests_v9/test_historical_imagery_timeline_contract.py"
+        "tests_v9/test_historical_imagery_timeline_contract.py",
+        "tests_v9/test_historical_search_cdse_v30_8.py",
+        "tests_v9/test_historical_season_bridge_static.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1893,7 +1894,7 @@
         "Farmonaut": "3"
       },
       "evidence_truncated": {
-        "tests": 5
+        "tests": 3
       }
     },
     {

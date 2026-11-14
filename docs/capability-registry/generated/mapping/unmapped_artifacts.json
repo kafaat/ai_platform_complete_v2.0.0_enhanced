@@ -9468,6 +9468,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_spray_readiness.py",
     "kind": "tests"
   },

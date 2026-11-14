@@ -3667,7 +3667,8 @@
         "services/sahool-platform/api/routers/seasons.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/spatial_sync.py"
+        "services/sahool-platform/api/spatial_sync.py",
+        "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py"
       ],
       "created_in": "v96_spatial_geometry_integrity.sql",
       "has_tenant_id": true,
