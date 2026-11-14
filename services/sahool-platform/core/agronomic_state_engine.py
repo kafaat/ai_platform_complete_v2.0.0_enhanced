@@ -23,6 +23,12 @@ from datetime import UTC, datetime
 
 from core.thresholds import SALINITY_CRITICAL_ECE, SALINITY_MODERATE_ECE
 
+# أزمنة الرصد القانونيّة في مصدر واحد مشترك مع مغلّف المرحلة 9 (shared/field_runtime_cohesion).
+from shared.observation_time import (  # noqa: F401 — canonical_observed_at مُعاد تصديره
+    canonical_observations,
+    canonical_observed_at,
+)
+
 # إصدارات (المراجعة الثانية: القرارات historical-sensitive — replay/audit)
 SCHEMA_VERSION = "1.0"
 FUSION_STRATEGY_VERSION = "1.0"
@@ -65,7 +71,9 @@ class SignalInput:
     source: str  # ndvi | ndre | ndsi | soil_ec | weather...
     value: float | None = None
     confidence: str = "medium"  # high | medium | low | none
-    observed_at: str | None = None  # ISO — لحساب الحداثة
+    observed_at: str | None = None  # ISO — لحظة الرصد (تُحفَظ في الحالة + الحداثة)
+    # زمن توقّع (طقس): ليس رصداً وقد يكون في المستقبل؛ للحداثة فقط، لا يُسجَّل كرصد.
+    forecast_at: str | None = None
     spatial_resolution_m: float | None = None
     field_coverage: float | None = None  # 0..1 (نسبة تغطية الحقل)
 
@@ -124,6 +132,18 @@ class CanonicalFieldState:
     contradictions: list = field(default_factory=list)
     # المؤشّرات الغائبة (صدق: نُعلنها صراحةً)
     missing_signals: list = field(default_factory=list)
+    # أزمنة رصد الإشارات الداخلة في الحالة (قرار المالك 2026-11-14: النسب الزمنيّ يُحفَظ في
+    # الحالة القانونيّة). أزواج (source, observed_at UTC) مرتّبة زمنيّاً؛ لا تُعدَّل بعد
+    # تسجيلها، ويغطّيها state_id في shared/field_runtime_cohesion.py.
+    signal_observations: tuple = ()
+
+    def __setattr__(self, name: str, value: object) -> None:
+        if name == "signal_observations":
+            value = canonical_observations(value)
+            # ثابتة من أوّل تسجيل (ولو فارغة): البناء هو التسجيل الوحيد.
+            if "signal_observations" in self.__dict__ and value != self.signal_observations:
+                raise AttributeError("signal_observations ثابتة بعد تسجيلها")
+        super().__setattr__(name, value)
 
     def to_dict(self) -> dict:
         """تسلسل قابل للحفظ (persistence) والمقارنة الموسميّة (replay/audit).
@@ -143,6 +163,10 @@ class CanonicalFieldState:
             "provenance": list(self.provenance),
             "contradictions": list(self.contradictions),
             "missing_signals": list(self.missing_signals),
+            "signal_observations": [
+                {"source": source, "observed_at": observed}
+                for source, observed in self.signal_observations
+            ],
         }
 
     def explain_decision(self) -> dict:
@@ -188,6 +212,7 @@ class CanonicalFieldState:
             provenance=d.get("provenance", []),
             contradictions=d.get("contradictions", []),
             missing_signals=d.get("missing_signals", []),
+            signal_observations=d.get("signal_observations", ()),
         )
 
 
@@ -207,6 +232,32 @@ def _signal_age_days(observed_at: str | None) -> float | None:
         return None
 
 
+def _recorded_observations(
+    signals: list[SignalInput], generated_at: datetime
+) -> tuple[list[tuple[str, str]], list[str], list[str]]:
+    """(المُسجَّل، المرفوض لأنّه naive/غير صالح، المرفوض لأنّه بعد لحظة توليد الحالة).
+
+    رصدٌ «في المستقبل» ليس رصداً: لا يُسجَّل ولا يُعدّ حديثاً. زمن التوقّع (forecast_at)
+    خارج هذا كلّه.
+    """
+    observed: list[tuple[str, str]] = []
+    refused: list[str] = []
+    future: list[str] = []
+    for s in signals:
+        if s.value is None or s.observed_at is None:
+            continue
+        try:
+            stamp = canonical_observed_at(s.observed_at)
+        except ValueError:
+            refused.append(s.source)
+            continue
+        if datetime.fromisoformat(stamp) > generated_at:
+            future.append(s.source)
+        else:
+            observed.append((s.source, stamp))
+    return observed, refused, future
+
+
 def compose_field_state(
     field_id: str,
     signals: list[SignalInput],
@@ -220,9 +271,17 @@ def compose_field_state(
     لا يخترع منطق دمج جديد: يستدعي fuse_health/detect_trend/fuse_confidence.
     tenant_id/farm_id لسيادة البيانات (كلّ حالة مملوكة لمستأجر).
     """
-    now = datetime.now(UTC).isoformat()
+    generated = datetime.now(UTC)
+    now = generated.isoformat()
+    # أزمنة الرصد تُسجَّل عند البناء (تسجيلها الوحيد): الغائب يبقى غائباً (لا ساعة تملؤه)،
+    # والـnaive أو اللاحق للحالة يُرفَض فلا يُسجَّل ويُعلَن أدناه.
+    observed, refused, future = _recorded_observations(signals, generated)
     state = CanonicalFieldState(
-        field_id=field_id, generated_at=now, tenant_id=tenant_id, farm_id=farm_id
+        field_id=field_id,
+        generated_at=now,
+        tenant_id=tenant_id,
+        farm_id=farm_id,
+        signal_observations=observed,
     )
 
     by_source = {s.source: s for s in signals}
@@ -406,13 +465,34 @@ def compose_field_state(
         state.confidence_reason += f" | مؤشّرات ناقصة: {len(state.missing_signals)}"
 
     # خفض الثقة لو البيانات قديمة (freshness SLA)
-    stale = [s.source for s in signals if (_signal_age_days(s.observed_at) or 0) > 14]
+    # الرصد بعمره منذ observed_at، والتوقّع بعمره منذ forecast_at (توقّع لاحق ليس قديماً).
+    # رصدٌ لاحق للحالة (عمر سالب) ليس حديثاً: يُعلَن future_observation أدناه.
+    stale = [
+        s.source for s in signals if (_signal_age_days(s.observed_at or s.forecast_at) or 0) > 14
+    ]
     if stale:
         state.contradictions.append(
             {
                 "type": "stale_observation",
                 "sources": stale,
                 "reason_ar": "بيانات أقدم من 14 يوماً — الثقة مخفّضة",
+            }
+        )
+
+    if future:
+        state.contradictions.append(
+            {
+                "type": "future_observation",
+                "sources": future,
+                "reason_ar": "زمن رصد بعد لحظة توليد الحالة — ليس حديثاً ولم يُسجَّل",
+            }
+        )
+    if refused:
+        state.contradictions.append(
+            {
+                "type": "observed_at_refused",
+                "sources": refused,
+                "reason_ar": "زمن رصد بلا منطقة زمنيّة أو غير صالح — لم يُسجَّل في الحالة",
             }
         )
 
