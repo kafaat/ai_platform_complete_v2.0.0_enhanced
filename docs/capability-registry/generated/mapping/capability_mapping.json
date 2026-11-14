@@ -24588,6 +24588,18 @@
           "score": 22
         },
         {
+          "value": "rls_probe_insert_true @ tests_v9/test_rls_isolation_negative.py:144",
+          "score": 22
+        },
+        {
+          "value": "rls_probe_insert_true @ tests_v9/test_rls_isolation_negative.py:145",
+          "score": 22
+        },
+        {
+          "value": "rls_probe_insert_true @ tests_v9/test_rls_isolation_negative.py:146",
+          "score": 22
+        },
+        {
           "value": "event_outbox @ migrations/v72_event_outbox_rls.sql:16",
           "score": 21
         },
@@ -24614,23 +24626,6 @@
             "content:tenant isolation",
             "content:Tenant RLS"
           ]
-        },
-        {
-          "path": "migrations/v192_fii_rls_write_fail_closed.sql",
-          "score": 20,
-          "signals": [
-            "path:rls",
-            "content:row level security",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "value": "prescriptions @ migrations/v192_fii_rls_write_fail_closed.sql:38",
-          "score": 20
-        },
-        {
-          "value": "prescriptions @ migrations/v192_fii_rls_write_fail_closed.sql:39",
-          "score": 20
         }
       ],
       "events": [
@@ -24981,6 +24976,16 @@
           ]
         },
         {
+          "path": "tests_v9/test_rls_isolation_negative.py",
+          "score": 22,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:row level security",
+            "content:Tenant RLS"
+          ]
+        },
+        {
           "path": "services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py",
           "score": 21,
           "signals": [
@@ -25057,15 +25062,6 @@
             "content:rls",
             "content:row level security",
             "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "tests_v9/test_rls_isolation_negative.py",
-          "score": 18,
-          "signals": [
-            "path:rls",
-            "content:rls",
-            "content:Tenant RLS"
           ]
         },
         {
@@ -26443,7 +26439,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 897
+        "database": 900
       },
       "evidence_counts": {
         "backend": 12,
