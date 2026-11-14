@@ -5615,6 +5615,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9cd1b2777b8ee9e45714af47310a2c6a119cc06c30e9adb4020369e3275b35b7"
+        }
+      ],
+      "name": "frontend/src/sections/ChatbotAdvisorReach.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "16822ecfb1e05b8ea30ac9feed333deed09f71b3904a7bd95c8458949fb3bd06"
         }
       ],
@@ -5675,7 +5685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13b8b5c4482e6886da0354fc44574ed2290548dd98938abf16b6f4cba8b8beb0"
+          "content": "a9c524822d7fcbbd65aa56e7f0663b31b9af60f89e674d1b223db4c967d63bb8"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -38565,7 +38575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3af8146fb53b3f5356030e672c434a1a4078280e9b8a9b48172965157aee6df"
+          "content": "0fffe14d430063e3a1a9e8fb49d6ed54de5619c1cab8b98e98dac844f1bb352a"
         }
       ],
       "name": "services/supervisor-agent/skills/advisory_skill.py",
