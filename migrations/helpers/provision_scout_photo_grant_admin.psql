@@ -1,0 +1,71 @@
+-- Called AFTER migrations and generic APP/JOBS grants from each bootstrap path.
+-- sahool_scout_grant_admin is the database principal of scout-ingest-service's admin API
+-- (grants_admin_api.py, SCOUT_GRANT_ADMIN_DATABASE_URL): the media routes run as sahool_ingest,
+-- which can read the grants but never write them or the audit.
+-- Psql variables: admin_enabled (true|false); secret comes only via environment.
+-- Never pass the password as a -v CLI argument (process list exposure).
+\getenv admin_pw SCOUT_GRANT_ADMIN_DB_PASSWORD
+-- Runtime app/jobs roles MUST NOT be able to write the grants or the audit.
+SELECT format('CREATE ROLE %I NOLOGIN', 'sahool_scout_grant_admin')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='sahool_scout_grant_admin')
+\gexec
+
+ALTER ROLE sahool_scout_grant_admin NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT NOCREATEDB NOCREATEROLE;
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM sahool_scout_grant_admin;
+REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM sahool_scout_grant_admin;
+REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM sahool_scout_grant_admin;
+GRANT USAGE ON SCHEMA public TO sahool_scout_grant_admin;
+GRANT CONNECT ON DATABASE :"dbname" TO sahool_scout_grant_admin;
+GRANT SELECT (id,tenant_id,active,role) ON users TO sahool_scout_grant_admin;
+GRANT SELECT (tenant_id,field_id) ON fields TO sahool_scout_grant_admin;
+GRANT SELECT,INSERT,UPDATE ON scout_photo_field_access_grants TO sahool_scout_grant_admin;
+GRANT SELECT,INSERT ON scout_photo_grant_audit_events TO sahool_scout_grant_admin;
+-- v270/v272: owner-only governance event writers; no UPDATE, DELETE, TRUNCATE.
+GRANT SELECT,INSERT ON scout_specialist_credential_events TO sahool_scout_grant_admin;
+GRANT SELECT,INSERT ON scout_photo_retention_policy_events TO sahool_scout_grant_admin;
+GRANT SELECT,INSERT ON scout_photo_retention_events TO sahool_scout_grant_admin;
+GRANT SELECT (tenant_id,field_id,pin_id,uploaded_at) ON scout_photo_evidence TO sahool_scout_grant_admin;
+REVOKE UPDATE,DELETE ON scout_specialist_credential_events,scout_photo_retention_policy_events,scout_photo_retention_events FROM sahool_scout_grant_admin;
+REVOKE DELETE ON scout_photo_field_access_grants FROM sahool_scout_grant_admin;
+REVOKE UPDATE,DELETE ON scout_photo_grant_audit_events FROM sahool_scout_grant_admin;
+
+-- Older deployments may have broad grants from earlier bootstrap runs. Remove
+-- them AFTER all broad GRANT statements, on every reapplication.
+SELECT format('REVOKE ALL PRIVILEGES ON TABLE public.%I FROM %I', t.table_name, r.rolname)
+FROM (VALUES ('scout_photo_field_access_grants'),('scout_photo_grant_audit_events')) AS t(table_name)
+CROSS JOIN pg_roles r
+WHERE r.rolname IN ('sahool_app','sahool_jobs')
+\gexec
+-- Support custom APP/JOBS role names too, supplied by the calling script.
+SELECT format('REVOKE ALL PRIVILEGES ON TABLE public.%I FROM %I', t.table_name, r.rolname)
+FROM (VALUES ('scout_photo_field_access_grants'),('scout_photo_grant_audit_events')) AS t(table_name)
+CROSS JOIN pg_roles r
+WHERE r.rolname IN (:'app_role', :'jobs_role')
+\gexec
+-- v267/v268 private append-only evidence: not exposed through the generic
+-- platform/JOBS database credentials, including customized role names.
+SELECT format('REVOKE ALL PRIVILEGES ON TABLE public.%I FROM %I', t.table_name, r.rolname)
+FROM (VALUES ('scout_photo_lab_link_events'),('scout_photo_human_review_events'),
+ ('scout_plant_tissue_samples'),('scout_tissue_custody_events'),
+ ('scout_treatment_review_events')) AS t(table_name)
+CROSS JOIN pg_roles r
+WHERE r.rolname IN ('sahool_app','sahool_jobs', :'app_role', :'jobs_role', 'sahool_scout_grant_admin')
+  AND to_regclass('public.'||t.table_name) IS NOT NULL
+\gexec
+-- Owner governance ledgers are not available to general runtime or jobs.
+SELECT format('REVOKE ALL PRIVILEGES ON TABLE public.%I FROM %I', t.table_name, r.rolname)
+FROM (VALUES ('scout_specialist_credential_events'),('scout_photo_retention_policy_events'),
+ ('scout_photo_retention_events')) AS t(table_name)
+CROSS JOIN pg_roles r
+WHERE r.rolname IN ('sahool_app','sahool_jobs', :'app_role', :'jobs_role')
+  AND to_regclass('public.'||t.table_name) IS NOT NULL
+\gexec
+-- Ingest is a SELECT-only consumer of the grants table; cannot mutate audit.
+REVOKE INSERT,UPDATE,DELETE ON scout_photo_field_access_grants FROM sahool_ingest;
+REVOKE ALL PRIVILEGES ON scout_photo_grant_audit_events FROM sahool_ingest;
+
+\if :admin_enabled
+ALTER ROLE sahool_scout_grant_admin LOGIN PASSWORD :'admin_pw';
+\else
+ALTER ROLE sahool_scout_grant_admin NOLOGIN;
+\endif

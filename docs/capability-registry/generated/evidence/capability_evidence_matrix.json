@@ -2778,6 +2778,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_scout_photo_season_link_contract.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_season_api_static.py",
           "signal": "pytest.mark.unit"
         },
@@ -2881,6 +2886,7 @@
         "tests_v9/test_fii_prescription_season_context_guard.py",
         "tests_v9/test_historical_season_bridge_static.py",
         "tests_v9/test_learning_worker_season_closed_envelope.py",
+        "tests_v9/test_scout_photo_season_link_contract.py",
         "tests_v9/test_season_api_static.py",
         "tests_v9/test_season_edge_attestation.py",
         "tests_v9/test_season_edge_sign_endpoint_static.py",

@@ -1,5 +1,5 @@
 {
-  "edge_count": 966,
+  "edge_count": 1031,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -5212,6 +5212,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/detection_link_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://detection_provenance",
+      "to": "db://detection_provenance",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/detection_link_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://edge_results",
+      "to": "db://edge_results",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/main.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
@@ -5312,6 +5332,36 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/media_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/main.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
@@ -5322,6 +5372,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/media_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/tests/test_season_live.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
@@ -5332,6 +5392,66 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/lab_link_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://lab_samples",
+      "to": "db://lab_samples",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/detection_link_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_detection_link_events",
+      "to": "db://scout_photo_detection_link_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/detection_link_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_evidence",
+      "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/evidence_retention_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_evidence",
+      "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_evidence",
+      "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/human_review_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_evidence",
+      "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/media_api.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
@@ -5349,6 +5469,226 @@
       "relation": "READS",
       "resource": "db://scout_photo_evidence",
       "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tissue_samples_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_evidence",
+      "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_field_access_grants",
+      "to": "db://scout_photo_field_access_grants",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/human_review_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_field_access_grants",
+      "to": "db://scout_photo_field_access_grants",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/media_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_field_access_grants",
+      "to": "db://scout_photo_field_access_grants",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_field_access_grants",
+      "to": "db://scout_photo_field_access_grants",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_grant_audit_events",
+      "to": "db://scout_photo_grant_audit_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_grant_audit_events",
+      "to": "db://scout_photo_grant_audit_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_grant_audit_events",
+      "to": "db://scout_photo_grant_audit_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/human_review_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_human_review_events",
+      "to": "db://scout_photo_human_review_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_human_review_events",
+      "to": "db://scout_photo_human_review_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/lab_link_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_lab_link_events",
+      "to": "db://scout_photo_lab_link_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/evidence_retention_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_retention_events",
+      "to": "db://scout_photo_retention_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_retention_events",
+      "to": "db://scout_photo_retention_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/evidence_retention_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_retention_policy_events",
+      "to": "db://scout_photo_retention_policy_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_retention_policy_events",
+      "to": "db://scout_photo_retention_policy_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/media_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_season_link_events",
+      "to": "db://scout_photo_season_link_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_season_link_events",
+      "to": "db://scout_photo_season_link_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tissue_samples_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_plant_tissue_samples",
+      "to": "db://scout_plant_tissue_samples",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/credential_status.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_specialist_credential_events",
+      "to": "db://scout_specialist_credential_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_specialist_credential_events",
+      "to": "db://scout_specialist_credential_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tissue_samples_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_tissue_custody_events",
+      "to": "db://scout_tissue_custody_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/treatment_review_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_treatment_review_events",
+      "to": "db://scout_treatment_review_events",
       "to_kind": "resource"
     },
     {
@@ -5452,7 +5792,27 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/media_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://season_records",
+      "to": "db://season_records",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/season_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://season_records",
+      "to": "db://season_records",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5469,6 +5829,56 @@
       "relation": "READS",
       "resource": "db://season_records",
       "to": "db://season_records",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/credential_status.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/human_review_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/media_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
       "to_kind": "resource"
     },
     {
@@ -9272,6 +9682,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://detection_provenance",
+      "to": "db://detection_provenance",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://edge_results",
+      "to": "db://edge_results",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/projection_worker.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
@@ -9332,6 +9762,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://field_boundaries",
+      "to": "db://field_boundaries",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/field_forms_api.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
@@ -9372,7 +9812,27 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/tests/test_ingest_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9389,6 +9849,26 @@
       "relation": "WRITES",
       "resource": "db://fields",
       "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://lab_samples",
+      "to": "db://lab_samples",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/detection_link_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_detection_link_events",
+      "to": "db://scout_photo_detection_link_events",
       "to_kind": "resource"
     },
     {
@@ -9409,6 +9889,156 @@
       "relation": "WRITES",
       "resource": "db://scout_photo_evidence",
       "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_field_access_grants",
+      "to": "db://scout_photo_field_access_grants",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_field_access_grants",
+      "to": "db://scout_photo_field_access_grants",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_grant_audit_events",
+      "to": "db://scout_photo_grant_audit_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_grant_audit_events",
+      "to": "db://scout_photo_grant_audit_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/human_review_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_human_review_events",
+      "to": "db://scout_photo_human_review_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/lab_link_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_lab_link_events",
+      "to": "db://scout_photo_lab_link_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_retention_events",
+      "to": "db://scout_photo_retention_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_retention_policy_events",
+      "to": "db://scout_photo_retention_policy_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/media_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_season_link_events",
+      "to": "db://scout_photo_season_link_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_photo_season_link_events",
+      "to": "db://scout_photo_season_link_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tissue_samples_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_plant_tissue_samples",
+      "to": "db://scout_plant_tissue_samples",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/grants_admin_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_specialist_credential_events",
+      "to": "db://scout_specialist_credential_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tissue_samples_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_tissue_custody_events",
+      "to": "db://scout_tissue_custody_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/treatment_review_api.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scout_treatment_review_events",
+      "to": "db://scout_treatment_review_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scouting_pins",
+      "to": "db://scouting_pins",
       "to_kind": "resource"
     },
     {
@@ -9512,6 +10142,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://season_records",
+      "to": "db://season_records",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/scout-ingest-service/tests/test_season_live.py",
       "from": "scout-ingest-service",
       "from_kind": "component",
@@ -9519,6 +10159,16 @@
       "relation": "WRITES",
       "resource": "db://season_records",
       "to": "db://season_records",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/scout-ingest-service/tests/test_media_live.py",
+      "from": "scout-ingest-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://users",
+      "to": "db://users",
       "to_kind": "resource"
     },
     {
@@ -9680,9 +10330,9 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 505,
+    "READS": 546,
     "ROUTES_TO": 73,
-    "WRITES": 337
+    "WRITES": 361
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -9697,8 +10347,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 843,
-      "resolved": 842,
+      "observed": 908,
+      "resolved": 907,
       "unresolved_component_paths": 0
     }
   }

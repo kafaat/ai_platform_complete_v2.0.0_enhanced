@@ -294,6 +294,46 @@ class _PinDetails extends StatelessWidget {
             );
           },
         ),
+        // سياق الدليل: مهمّة التفتيش (مفتاح v246) والموسم (رابط صريح v262) فقط، كلٌّ بحالته.
+        FutureBuilder<Map<String, dynamic>?>(
+          future: deps.api
+              .photoEvidenceContext(pin.fieldId, pin.pinId)
+              .then<Map<String, dynamic>?>((value) => value)
+              .catchError((Object _) => null),
+          builder: (context, snap) {
+            final provenance = snap.data;
+            if (provenance == null) return const SizedBox.shrink();
+            final inspection = provenance['inspection'];
+            final linked = inspection is Map && inspection['state'] == 'linked';
+            final season = provenance['season'];
+            final seasonState = season is Map ? season['state'] : null;
+            final seasonLabel = switch (seasonState) {
+              'linked_accepted' => 'الموسم مرتبط صراحةً وقُبل سجلّه بمراجعة بشرية.',
+              'linked_not_accepted' => 'رابط الموسم موجود لكن سجله غير معتمد حاليًا.',
+              'revoked' => 'أُلغي رابط الموسم في سجل الأحداث؛ لا توجد نسبة حالية.',
+              _ => 'لا يوجد ربط صريح بموسم معتمد لهذه الصورة.',
+            };
+            return Padding(
+              padding: const EdgeInsets.only(top: SahoolSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    linked
+                        ? 'الدليل مرتبط بمهمة تفتيش محفوظة.'
+                        : 'لا توجد مهمة تفتيش مرتبطة بالدليل حتى الآن.',
+                    style: TextStyle(color: t.muted),
+                  ),
+                  Text(seasonLabel, style: TextStyle(color: t.muted)),
+                  Text(
+                    'ربط المختبر والكشف والقرار غير مثبت؛ لا يجيز هذا الدليل الرش تلقائياً.',
+                    style: TextStyle(color: t.muted),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ],
     );
   }
