@@ -142,9 +142,11 @@ export const fetchTenantConfig = (): Promise<TenantConfig | null> =>
     .then((r) => (r.data && typeof r.data === 'object' ? r.data : null))
     .catch(() => null);
 
+/** أنواع مصدر الماء في WaterAnalysisRequest (Literal في الخادم) — لا نصّ حرّ. */
+export type WaterSourceKind = 'well' | 'canal' | 'mixed';
 export interface WaterSampleInput {
   sample_id: string;
-  source?: string;
+  source?: WaterSourceKind;
   na?: number | null; ca?: number | null; mg?: number | null;
   hco3?: number | null; co3?: number | null; cl?: number | null;
   ec_dsm?: number | null; ph?: number | null;
@@ -159,6 +161,10 @@ export interface WaterClass {
 export interface WaterAnalysisResult {
   sample_id: string;
   source: string;
+  /** حسابٌ لا يُخزَّن ولا يُربط بحقل (false صريح؛ الخادم القديم لا يعيده). */
+  persisted?: false;
+  /** مؤشّرات مدخلاتها كاملة لكن تعذّر حسابها (فيض عددي / Ca+Mg = 0) — ليست «بيانات ناقصة». */
+  indices_not_computable?: { index: 'sar' | 'rsc_meq_l'; reason: string; code?: string }[];
   indices: { sar: number | null; rsc_meq_l: number | null; ec_dsm: number | null; ph: number | null };
   classification: {
     salinity: WaterClass;
