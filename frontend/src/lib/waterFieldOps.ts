@@ -144,7 +144,7 @@ export interface UpstreamFloodResponse {
  *  الأيونات بـmeq/L، EC بـdS/m — كلّها اختياريّة عدا sample_id (الخادم يُعلن الناقص). */
 export interface WaterSamplePayload {
   sample_id: string;
-  source?: string; // well | canal | mixed
+  source?: string; // WATER_SOURCE_OPTIONS (v168: well … other)
   na?: number | null;
   ca?: number | null;
   mg?: number | null;
@@ -166,6 +166,9 @@ export interface WaterClassification {
 export interface WaterLabAnalysis {
   sample_id?: string;
   source?: string;
+  /** The stored set (water_lab_result_sets) and its review state; a new set is unreviewed. */
+  result_id?: string;
+  quality_status?: 'unreviewed' | 'approved' | 'rejected' | 'superseded';
   indices?: { sar?: number | null; rsc_meq_l?: number | null; ec_dsm?: number | null; ph?: number | null };
   classification?: {
     salinity?: WaterClassification;
@@ -418,11 +421,18 @@ export const WB_STAGE_OPTIONS: { key: string; label_ar: string }[] = [
   { key: 'late', label_ar: 'متأخّرة' },
 ];
 
-/** مصادر WaterSample في core/irrigation_water_analysis.py (افتراضيّ الخادم well). */
+/** مصادر WaterSample (WaterSourceType في core/irrigation_water_analysis.py، افتراضيّ الخادم
+ *  well) = أنواع v168 ``irrigation_water_sources.source_type`` بترتيبها. لا «مختلط»: الخليط
+ *  عدّة مصادر بنسب مزج (v214)، وعيّنة خطّ الخليط تُسجَّل «أخرى». يحرس التطابقَ اختبارٌ
+ *  خلفيّ يقرأ الهجرة (test_irrigation_water_contract_overflow.py). */
 export const WATER_SOURCE_OPTIONS: { key: string; label_ar: string }[] = [
   { key: 'well', label_ar: 'بئر' },
+  { key: 'reservoir', label_ar: 'خزّان/سدّ' },
   { key: 'canal', label_ar: 'قناة/ساقية' },
-  { key: 'mixed', label_ar: 'مختلط' },
+  { key: 'river', label_ar: 'نهر' },
+  { key: 'municipal', label_ar: 'شبكة بلديّة' },
+  { key: 'rainwater', label_ar: 'حصاد مياه الأمطار' },
+  { key: 'other', label_ar: 'أخرى' },
 ];
 
 // ── خرائط قيم معروفة (تلوين/تسمية عرضيّة فقط — المجهول محايد) ──────────────

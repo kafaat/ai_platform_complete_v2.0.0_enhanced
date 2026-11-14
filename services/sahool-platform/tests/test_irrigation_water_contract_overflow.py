@@ -6,7 +6,9 @@ Owner pilot report (2026-11-13, rounds 1 and 2):
    endpoint is a calculation and stores nothing, so it now refuses ``field_id`` (422) and says
    ``persisted: false``. A field-bound, stored result is the lab-water workflow's job.
 2. ``source`` was free text and the form sent ``field:<field name>``, which is not a water
-   source type.
+   source type. Owner decision 2026-11-14: the vocabulary is the seven types of the database
+   contract (v168 ``irrigation_water_sources.source_type``), read here from the migration, so
+   the API, the lab model and the web form cannot drift from it.
 4. WATER-NUMERIC-OVERFLOW: finite but extreme inputs overflowed inside SAR/RSC/blend arithmetic.
    The owner's patch fails closed (``None``); this file adds the distinct reason, so the gap
    never reads as generic missing data. The owner's own tests are in
@@ -18,10 +20,13 @@ from __future__ import annotations
 import json
 import math
 import random
+import re
+from pathlib import Path
 
 import pytest
 from core.irrigation_water_analysis import (
     WATER_NUMERIC_OVERFLOW,
+    WATER_SOURCE_TYPES,
     WaterSample,
     analyze_water_sample,
     compute_blend_water_quality,
@@ -88,9 +93,68 @@ def test_the_result_says_it_is_not_persisted():
 # ─── Gap 2: source vocabulary ─────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("source", ["well", "canal", "mixed"])
+_REPO = Path(__file__).resolve().parents[3]
+
+
+def _v168_source_types() -> tuple[str, ...]:
+    sql = (_REPO / "migrations" / "v168_irrigation_engineering_foundation.sql").read_text()
+    match = re.search(r"source_type TEXT NOT NULL CHECK \(source_type IN \(([^)]*)\)\)", sql)
+    assert match, "v168 no longer declares the source_type CHECK"
+    return tuple(re.findall(r"'([a-z_]+)'", match.group(1)))
+
+
+def test_the_source_vocabulary_is_the_v168_database_contract():
+    assert WATER_SOURCE_TYPES == _v168_source_types()
+    assert WATER_SOURCE_TYPES == (
+        "well",
+        "reservoir",
+        "canal",
+        "river",
+        "municipal",
+        "rainwater",
+        "other",
+    )
+
+
+def test_the_web_form_offers_exactly_the_v168_source_types():
+    ts = (_REPO / "frontend" / "src" / "lib" / "waterFieldOps.ts").read_text()
+    block = ts.split("export const WATER_SOURCE_OPTIONS", 1)[1].split("];", 1)[0]
+    assert tuple(re.findall(r"key: '([a-z_]+)'", block)) == _v168_source_types()
+    api_ts = (_REPO / "frontend" / "src" / "services" / "api.ts").read_text()
+    kind = re.search(r"export type WaterSourceKind =([^;]*);", api_ts).group(1)
+    assert tuple(re.findall(r"'([a-z_]+)'", kind)) == _v168_source_types()
+
+
+@pytest.mark.parametrize("source", WATER_SOURCE_TYPES)
 def test_water_source_types_are_accepted(source):
     assert _request(sample_id="w1", source=source).source == source
+
+
+def test_mixed_is_not_a_source_type_a_blend_is_several_sources():
+    # v168 has no 'mixed'; a blend is several sources with v214 mixing ratios.
+    with pytest.raises(ValidationError):
+        _request(sample_id="w1", source="mixed")
+
+
+def test_the_lab_water_route_takes_the_same_vocabulary():
+    """The stored lab flow binds WaterSample's source type at its HTTP edge too."""
+    from api.routers.soil_sampling import WaterLabResultIn
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    def probe(payload):
+        return {"source": payload.source}
+
+    # This module postpones annotations; bind the real body type, not its name.
+    probe.__annotations__["payload"] = WaterLabResultIn
+    app = FastAPI()
+    app.post("/probe")(probe)
+    client = TestClient(app)
+    assert client.post("/probe", json={"sample_id": "s", "source": "rainwater"}).json() == {
+        "source": "rainwater"
+    }
+    for bad in ("mixed", "field:North", "WELL"):
+        assert client.post("/probe", json={"sample_id": "s", "source": bad}).status_code == 422
 
 
 def test_source_defaults_to_well():

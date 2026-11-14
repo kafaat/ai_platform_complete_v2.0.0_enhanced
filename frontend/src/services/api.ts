@@ -142,8 +142,9 @@ export const fetchTenantConfig = (): Promise<TenantConfig | null> =>
     .then((r) => (r.data && typeof r.data === 'object' ? r.data : null))
     .catch(() => null);
 
-/** أنواع مصدر الماء في WaterAnalysisRequest (Literal في الخادم) — لا نصّ حرّ. */
-export type WaterSourceKind = 'well' | 'canal' | 'mixed';
+/** أنواع مصدر الماء في WaterAnalysisRequest (WaterSourceType في الخادم = v168) — لا نصّ حرّ. */
+export type WaterSourceKind =
+  'well' | 'reservoir' | 'canal' | 'river' | 'municipal' | 'rainwater' | 'other';
 export interface WaterSampleInput {
   sample_id: string;
   source?: WaterSourceKind;

@@ -28,6 +28,15 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import Literal, get_args
+
+# نوع مصدر ماء الريّ: مفردات عقد قاعدة البيانات نفسها — CHECK على
+# ``irrigation_water_sources.source_type`` في migrations/v168_irrigation_engineering_foundation.sql.
+# لا «mixed»: الخليط في العقد ليس نوع مصدر، بل عدّة مصادر بنسب مزج
+# (``field_irrigation_source_assignments.mixing_ratio``، v214) تُحسَب جودته بـ``compute_blend_water_quality``.
+# عيّنةٌ أُخذت من خطّ خليط تُسجَّل ``other``.
+WaterSourceType = Literal["well", "reservoir", "canal", "river", "municipal", "rainwater", "other"]
+WATER_SOURCE_TYPES: tuple[str, ...] = get_args(WaterSourceType)
 
 
 @dataclass
@@ -39,7 +48,8 @@ class WaterSample:
     """
 
     sample_id: str
-    source: str = "well"  # well | canal | mixed
+    # يُتحقَّق منه عند حدّ API (Pydantic)؛ إعادة حساب صفٍّ مخزَّن تقرأ قيمته كما هي.
+    source: WaterSourceType = "well"
     # الأيونات (meq/L)
     na: float | None = None  # صوديوم
     ca: float | None = None  # كالسيوم
