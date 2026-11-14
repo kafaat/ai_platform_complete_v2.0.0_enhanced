@@ -146,7 +146,8 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
                 source="weather",
                 value=weather["heat_risk"],
                 confidence="medium",
-                observed_at=weather.get("forecast_at"),
+                # زمن التوقّع ليس رصداً (وقد يكون في المستقبل): لا يُسجَّل في الحالة كرصد.
+                forecast_at=weather.get("forecast_at"),
             )
         )
 

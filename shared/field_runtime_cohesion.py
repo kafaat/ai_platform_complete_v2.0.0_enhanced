@@ -17,6 +17,8 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
+from shared.observation_time import canonical_observations
+
 try:  # runtime when services/sahool-platform is on PYTHONPATH
     from core.agronomic_state_engine import CanonicalFieldState  # type: ignore
 except Exception:  # fallback for pure import in tooling
@@ -62,6 +64,12 @@ def create_canonical_state_envelope(state: Any) -> dict[str, Any]:
     than recomputing its own interpretation from raw signals.
     """
     d = _state_to_dict(state)
+    # مسار القاموس الخام يمرّ بالتطبيع نفسه: اللحظة نفسها بأيّ إزاحة ⇒ state_id واحد،
+    # والطابع naive يُرفَض (ValueError) فلا يدخل المغلّف ولا بصمته.
+    d["signal_observations"] = [
+        {"source": source, "observed_at": observed}
+        for source, observed in canonical_observations(d.get("signal_observations", ()))
+    ]
     material = {
         "tenant_id": d.get("tenant_id"),
         "farm_id": d.get("farm_id"),
@@ -72,7 +80,7 @@ def create_canonical_state_envelope(state: Any) -> dict[str, Any]:
         "operational_truths": d.get("operational_truths", {}),
         "confidence": d.get("confidence"),
         # أزمنة رصد الإشارات جزء من هويّة الحالة: زمن رصد مختلف ⇒ state_id مختلف.
-        "signal_observations": d.get("signal_observations", []),
+        "signal_observations": d["signal_observations"],
     }
     envelope = CanonicalStateEnvelope(
         state_id=_stable_id(material, "cfs"),

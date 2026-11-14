@@ -12,7 +12,8 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+import copy
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 from core.agronomic_state_engine import (
@@ -27,6 +28,7 @@ from shared.field_runtime_cohesion import create_canonical_state_envelope
 
 pytestmark = pytest.mark.unit
 
+_ADEN = timezone(timedelta(hours=3))
 _NDVI_AT = "2026-08-03T09:30:00+03:00"  # = 06:30Z
 _EC_AT = "2026-07-20T08:00:00Z"
 _RVI_AT = "2026-08-02T21:00:00+00:00"
@@ -84,10 +86,7 @@ def test_naive_or_invalid_observed_at_is_refused(value):
 
 
 def test_aware_datetime_is_normalised_to_utc():
-    from datetime import timedelta, timezone
-
-    aden = timezone(timedelta(hours=3))
-    assert canonical_observed_at(datetime(2026, 8, 3, 9, 30, tzinfo=aden)) == (
+    assert canonical_observed_at(datetime(2026, 8, 3, 9, 30, tzinfo=_ADEN)) == (
         "2026-08-03T06:30:00+00:00"
     )
 
@@ -154,3 +153,78 @@ def test_envelope_carries_observations_to_the_phase9_runtime():
     for entry in envelope["state"]["signal_observations"]:
         parsed = datetime.fromisoformat(entry["observed_at"])
         assert parsed.utcoffset() == UTC.utcoffset(None)
+
+
+def test_empty_observations_are_immutable_from_construction():
+    state = _state([SignalInput(source="ndvi", value=0.62)])
+    assert state.signal_observations == ()
+    with pytest.raises(AttributeError):
+        state.signal_observations = [("ndvi", "2026-08-03T06:30:00+00:00")]
+
+
+def test_raw_dict_path_normalises_observations_before_hashing():
+    d = _state().to_dict() | {"generated_at": "g"}
+    shifted = copy.deepcopy(d)
+    for entry in shifted["signal_observations"]:
+        entry["observed_at"] = (
+            datetime.fromisoformat(entry["observed_at"]).astimezone(_ADEN).isoformat()
+        )
+    shifted["signal_observations"].reverse()
+    assert shifted["signal_observations"] != d["signal_observations"]
+    a, b = create_canonical_state_envelope(d), create_canonical_state_envelope(shifted)
+    assert a["state_id"] == b["state_id"]
+    assert b["state"]["signal_observations"] == d["signal_observations"]
+
+
+def test_raw_dict_path_refuses_a_naive_observation():
+    d = _state().to_dict()
+    d["signal_observations"][0]["observed_at"] = "2026-07-20T08:00:00"
+    with pytest.raises(ValueError):
+        create_canonical_state_envelope(d)
+
+
+def test_future_observation_is_not_recorded_and_is_not_fresh():
+    future = (datetime.now(UTC) + timedelta(days=2)).isoformat()
+    signals = [*_signals(), SignalInput(source="ndre", value=0.4, observed_at=future)]
+    state = _state(signals)
+    assert "ndre" not in {s for s, _ in state.signal_observations}
+    declared = [
+        c
+        for c in state.contradictions
+        if isinstance(c, dict) and c.get("type") == "future_observation"
+    ]
+    assert declared and declared[0]["sources"] == ["ndre"]
+
+
+def _weather_signals(forecast_at: str) -> list[SignalInput]:
+    collected = CollectorResult(raw={"weather": {"heat_risk": 0.3, "forecast_at": forecast_at}})
+    return normalize_signals(collected)
+
+
+def test_weather_forecast_time_is_not_recorded_as_an_observation():
+    forecast = (datetime.now(UTC) + timedelta(days=3)).isoformat()
+    signals = _weather_signals(forecast)
+    assert [(s.source, s.observed_at, s.forecast_at) for s in signals] == [
+        ("weather", None, forecast)
+    ]
+    state = _state([*_signals(), *signals])
+    assert "weather" not in {s for s, _ in state.signal_observations}
+    flagged = {
+        src
+        for c in state.contradictions
+        if isinstance(c, dict) and c.get("type") in ("future_observation", "stale_observation")
+        for src in c["sources"]
+    }
+    assert "weather" not in flagged  # توقّع لاحق ليس رصداً مستقبليّاً ولا قديماً
+
+
+def test_an_old_forecast_is_still_stale():
+    old = (datetime.now(UTC) - timedelta(days=30)).isoformat()
+    state = _state(_weather_signals(old))
+    stale = [
+        c
+        for c in state.contradictions
+        if isinstance(c, dict) and c.get("type") == "stale_observation"
+    ]
+    assert stale and "weather" in stale[0]["sources"]
+    assert state.signal_observations == ()

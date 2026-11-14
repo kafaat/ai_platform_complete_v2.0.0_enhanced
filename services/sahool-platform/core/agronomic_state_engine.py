@@ -23,6 +23,12 @@ from datetime import UTC, datetime
 
 from core.thresholds import SALINITY_CRITICAL_ECE, SALINITY_MODERATE_ECE
 
+# أزمنة الرصد القانونيّة في مصدر واحد مشترك مع مغلّف المرحلة 9 (shared/field_runtime_cohesion).
+from shared.observation_time import (  # noqa: F401 — canonical_observed_at مُعاد تصديره
+    canonical_observations,
+    canonical_observed_at,
+)
+
 # إصدارات (المراجعة الثانية: القرارات historical-sensitive — replay/audit)
 SCHEMA_VERSION = "1.0"
 FUSION_STRATEGY_VERSION = "1.0"
@@ -65,7 +71,9 @@ class SignalInput:
     source: str  # ndvi | ndre | ndsi | soil_ec | weather...
     value: float | None = None
     confidence: str = "medium"  # high | medium | low | none
-    observed_at: str | None = None  # ISO — لحساب الحداثة
+    observed_at: str | None = None  # ISO — لحظة الرصد (تُحفَظ في الحالة + الحداثة)
+    # زمن توقّع (طقس): ليس رصداً وقد يكون في المستقبل؛ للحداثة فقط، لا يُسجَّل كرصد.
+    forecast_at: str | None = None
     spatial_resolution_m: float | None = None
     field_coverage: float | None = None  # 0..1 (نسبة تغطية الحقل)
 
@@ -97,46 +105,6 @@ class EconomicContext:
     # تكاليف المدخلات المفصّلة (من المستخدم — لا نخترع أسعاراً)
     input_costs: dict | None = None  # {"seeds":..,"fertilizer":..,"labor":..,"irrigation":..}
     area_ha: float | None = None  # لحساب التكلفة لكلّ هكتار
-
-
-def canonical_observed_at(value: object) -> str:
-    """زمن رصد إشارة بصيغته القانونيّة: لحظة مُدرَكة المنطقة، مُطبَّعة إلى UTC (ISO 8601).
-
-    كـ``AwareDatetime`` في AC-1 (decision-service agronomic_context/contracts.py): طابع
-    بلا منطقة زمنيّة (ومنه التاريخ المجرّد ``2026-06-16``) أو غير قابل للتحليل ⇒
-    ``ValueError``. لا افتراض UTC هنا: مقارنة naive بمُدرَك تُعيد ترتيب الأحداث بصمت.
-    """
-    if isinstance(value, datetime):
-        dt = value
-    elif isinstance(value, str) and value.strip():
-        try:
-            dt = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
-        except ValueError as e:
-            raise ValueError(f"observed_at غير قابل للتحليل: {value!r}") from e
-    else:
-        raise ValueError(f"observed_at يجب أن يكون نصّ ISO 8601 أو datetime: {value!r}")
-    if dt.tzinfo is None or dt.utcoffset() is None:
-        raise ValueError(f"observed_at بلا منطقة زمنيّة مرفوض: {value!r}")
-    return dt.astimezone(UTC).isoformat()
-
-
-def _canonical_observations(value: object) -> tuple[tuple[str, str], ...]:
-    """أزمنة رصد الإشارات بشكلها المحفوظ: أزواج (source, observed_at UTC) مرتّبة زمنيّاً.
-
-    تقبل أزواجاً أو قواميس ``{"source", "observed_at"}`` (شكل to_dict). كلّ زمن يمرّ
-    بـ``canonical_observed_at``، فلا يدخل الحالة طابع naive. الترتيب باللحظة ثمّ المصدر،
-    فلا يتغيّر بترتيب وصول الإشارات.
-    """
-    pairs: list[tuple[str, str]] = []
-    for item in value or ():
-        if isinstance(item, dict):
-            source, observed = item.get("source"), item.get("observed_at")
-        else:
-            source, observed = item
-        if not isinstance(source, str) or not source:
-            raise ValueError(f"signal_observations: مصدر غير صالح {source!r}")
-        pairs.append((source, canonical_observed_at(observed)))
-    return tuple(sorted(pairs, key=lambda p: (datetime.fromisoformat(p[1]), p[0])))
 
 
 @dataclass
@@ -171,9 +139,9 @@ class CanonicalFieldState:
 
     def __setattr__(self, name: str, value: object) -> None:
         if name == "signal_observations":
-            value = _canonical_observations(value)
-            current = self.__dict__.get("signal_observations")
-            if current and value != current:
+            value = canonical_observations(value)
+            # ثابتة من أوّل تسجيل (ولو فارغة): البناء هو التسجيل الوحيد.
+            if "signal_observations" in self.__dict__ and value != self.signal_observations:
                 raise AttributeError("signal_observations ثابتة بعد تسجيلها")
         super().__setattr__(name, value)
 
@@ -264,6 +232,32 @@ def _signal_age_days(observed_at: str | None) -> float | None:
         return None
 
 
+def _recorded_observations(
+    signals: list[SignalInput], generated_at: datetime
+) -> tuple[list[tuple[str, str]], list[str], list[str]]:
+    """(المُسجَّل، المرفوض لأنّه naive/غير صالح، المرفوض لأنّه بعد لحظة توليد الحالة).
+
+    رصدٌ «في المستقبل» ليس رصداً: لا يُسجَّل ولا يُعدّ حديثاً. زمن التوقّع (forecast_at)
+    خارج هذا كلّه.
+    """
+    observed: list[tuple[str, str]] = []
+    refused: list[str] = []
+    future: list[str] = []
+    for s in signals:
+        if s.value is None or s.observed_at is None:
+            continue
+        try:
+            stamp = canonical_observed_at(s.observed_at)
+        except ValueError:
+            refused.append(s.source)
+            continue
+        if datetime.fromisoformat(stamp) > generated_at:
+            future.append(s.source)
+        else:
+            observed.append((s.source, stamp))
+    return observed, refused, future
+
+
 def compose_field_state(
     field_id: str,
     signals: list[SignalInput],
@@ -277,9 +271,17 @@ def compose_field_state(
     لا يخترع منطق دمج جديد: يستدعي fuse_health/detect_trend/fuse_confidence.
     tenant_id/farm_id لسيادة البيانات (كلّ حالة مملوكة لمستأجر).
     """
-    now = datetime.now(UTC).isoformat()
+    generated = datetime.now(UTC)
+    now = generated.isoformat()
+    # أزمنة الرصد تُسجَّل عند البناء (تسجيلها الوحيد): الغائب يبقى غائباً (لا ساعة تملؤه)،
+    # والـnaive أو اللاحق للحالة يُرفَض فلا يُسجَّل ويُعلَن أدناه.
+    observed, refused, future = _recorded_observations(signals, generated)
     state = CanonicalFieldState(
-        field_id=field_id, generated_at=now, tenant_id=tenant_id, farm_id=farm_id
+        field_id=field_id,
+        generated_at=now,
+        tenant_id=tenant_id,
+        farm_id=farm_id,
+        signal_observations=observed,
     )
 
     by_source = {s.source: s for s in signals}
@@ -463,7 +465,11 @@ def compose_field_state(
         state.confidence_reason += f" | مؤشّرات ناقصة: {len(state.missing_signals)}"
 
     # خفض الثقة لو البيانات قديمة (freshness SLA)
-    stale = [s.source for s in signals if (_signal_age_days(s.observed_at) or 0) > 14]
+    # الرصد بعمره منذ observed_at، والتوقّع بعمره منذ forecast_at (توقّع لاحق ليس قديماً).
+    # رصدٌ لاحق للحالة (عمر سالب) ليس حديثاً: يُعلَن future_observation أدناه.
+    stale = [
+        s.source for s in signals if (_signal_age_days(s.observed_at or s.forecast_at) or 0) > 14
+    ]
     if stale:
         state.contradictions.append(
             {
@@ -473,17 +479,14 @@ def compose_field_state(
             }
         )
 
-    # أزمنة الرصد: كلّ إشارة ذات قيمة وزمن رصد مُدرَك يُسجَّل زمنها في الحالة. الغائب
-    # يبقى غائباً (لا ساعة تملؤه)، والـnaive يُرفَض فلا يُسجَّل ويُعلَن صراحةً.
-    observed: list[tuple[str, str]] = []
-    refused: list[str] = []
-    for s in signals:
-        if s.value is None or s.observed_at is None:
-            continue
-        try:
-            observed.append((s.source, canonical_observed_at(s.observed_at)))
-        except ValueError:
-            refused.append(s.source)
+    if future:
+        state.contradictions.append(
+            {
+                "type": "future_observation",
+                "sources": future,
+                "reason_ar": "زمن رصد بعد لحظة توليد الحالة — ليس حديثاً ولم يُسجَّل",
+            }
+        )
     if refused:
         state.contradictions.append(
             {
@@ -492,7 +495,6 @@ def compose_field_state(
                 "reason_ar": "زمن رصد بلا منطقة زمنيّة أو غير صالح — لم يُسجَّل في الحالة",
             }
         )
-    state.signal_observations = observed
 
     # ── ٦. التقويم الفينولوجي + النجمي (مرحلة النمو + Kc + التوقيت) ──
     if crop_context is not None:
