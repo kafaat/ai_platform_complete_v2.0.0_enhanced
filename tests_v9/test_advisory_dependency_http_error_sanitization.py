@@ -37,9 +37,7 @@ async def test_upstream_response_body_is_never_reflected(
     visited = []
 
     async def transport(request):
-        upstream = (
-            "knowledge-graph" if request.url.path == "/v1/edges" else "rag-retrieval"
-        )
+        upstream = "knowledge-graph" if request.url.path == "/v1/edges" else "rag-retrieval"
         visited.append(upstream)
         assert request.headers["X-Tenant-Id"] == tenant_id
         if upstream == dependency:
