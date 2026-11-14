@@ -21,8 +21,8 @@ GIS-001,gis,Field geometry validation,True,2,0,0,1,0,1,0,0,0
 GIS-002,gis,Map layers,True,4,2,4,0,0,4,0,2,0
 GIS-003,gis,Terrain and DEM,True,7,33,100,16,67,13,4,42,0
 GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
-INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
-INT-002,farm_management,Event bus integration,True,5,7,15,2,100,0,0,21,2
+INT-001,farm_management,Public API and SDK,True,2,0,2,0,0,0,0,1,0
+INT-002,farm_management,Event bus integration,True,5,7,15,2,100,0,0,22,2
 INT-003,irrigation,IoT and sensors,True,1,0,0,0,0,0,0,2,0
 INT-004,precision,External machinery integrations,True,5,5,9,8,11,0,0,3,0
 IRR-001,irrigation,Water source registry,True,2,0,0,8,0,0,0,1,0
@@ -45,7 +45,7 @@ OPS-007,operations,Maintenance,True,2,0,0,3,0,0,1,0,0
 OPS-008,operations,Workforce and worker identity,False,0,0,0,0,0,0,0,0,0
 PA-001,precision,Management zones,True,6,10,34,8,2,1,0,11,0
 PA-002,precision,Variable rate prescription,True,1,3,0,0,0,0,0,0,0
-PA-003,precision,Yield map ingestion,True,5,3,4,13,1,0,0,5,0
+PA-003,precision,Yield map ingestion,True,5,4,4,13,1,0,0,5,0
 PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
 PA-005,precision,Machine telemetry,True,1,1,0,0,0,0,0,0,0
 SAT-001,satellite,Satellite scene search,True,6,42,100,5,43,6,0,59,0
