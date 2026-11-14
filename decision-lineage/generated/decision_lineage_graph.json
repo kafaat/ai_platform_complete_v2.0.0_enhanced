@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 753,
+      "evidence_count": 755,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -496,6 +496,7 @@
         "services/sahool-platform/tests/test_calibration_endpoint.py",
         "services/sahool-platform/tests/test_canonical_schemas.py",
         "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
+        "services/sahool-platform/tests/test_canonical_state_observed_at.py",
         "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
         "services/sahool-platform/tests/test_canonical_well_capability.py",
         "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
@@ -782,6 +783,7 @@
         "shared/knowledge/providers.py",
         "shared/mlops/agronomic_candidate.py",
         "shared/mlops/runtime.py",
+        "shared/observation_time.py",
         "shared/precision_agriculture/__init__.py",
         "shared/precision_agriculture/fertigation_plan.py",
         "shared/precision_agriculture/pail_om_edge.py",
@@ -2544,7 +2546,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 367,
+      "evidence_count": 368,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2829,6 +2831,7 @@
         "services/sahool-platform/tests/test_calibration_audit_endpoint.py",
         "services/sahool-platform/tests/test_calibration_endpoint.py",
         "services/sahool-platform/tests/test_calibration_override_endpoints.py",
+        "services/sahool-platform/tests/test_canonical_state_observed_at.py",
         "services/sahool-platform/tests/test_capability_plan_closures.py",
         "services/sahool-platform/tests/test_crop_cards.py",
         "services/sahool-platform/tests/test_crop_confidence_contract.py",
@@ -3046,7 +3049,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
-      "source_evidence_count": 753,
+      "source_evidence_count": 755,
       "target_evidence_count": 576,
       "static_supported": true,
       "runtime_verified": false
@@ -3496,7 +3499,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 60,
-      "target_evidence_count": 367,
+      "target_evidence_count": 368,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3506,5 +3509,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "ee0e2516706d205850992fa2f89fd6ca57b6bd4fe4ecba2c45e106637d40806f"
+  "content_sha256": "b146bf4aa09fd9f2c346bc598e3f89082b78164ae0bb13c1e41fdce88dde0ab6"
 }

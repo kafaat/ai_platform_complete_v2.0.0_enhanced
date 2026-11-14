@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7342,
+    "files_scanned": 7344,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
-      "other": 2181,
-      "tests": 2503,
+      "other": 2182,
+      "tests": 2504,
       "web": 547
     },
     "unmapped_artifacts": 3494,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3973,
+      "python_functional": 3975,
       "raw": 3369
     },
-    "test_dependency_files": 1903,
-    "test_dependency_edges": 4895,
-    "test_dependency_bounded_files": 1115,
+    "test_dependency_files": 1904,
+    "test_dependency_edges": 4898,
+    "test_dependency_bounded_files": 1116,
     "test_dependency_unresolved_relations": 482
   },
   "capabilities": [
@@ -8157,7 +8157,7 @@
           "score": 10
         },
         {
-          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:649",
+          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:729",
           "score": 9
         },
         {
@@ -10427,7 +10427,7 @@
           "score": 13
         },
         {
-          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:649",
+          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:729",
           "score": 10
         },
         {
@@ -20494,7 +20494,7 @@
           "score": 8
         },
         {
-          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:649",
+          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:729",
           "score": 8
         },
         {
@@ -30342,6 +30342,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_canonical_state_observed_at.py",
+          "score": 9,
+          "signals": [
+            "content:forecast",
+            "content:Weather forecast",
+            "dedup:Weather forecast=weather forecast"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_irrigation_recent_rain_and_soil_input_g8_g9.py",
           "score": 9,
           "signals": [
@@ -30500,7 +30509,7 @@
         "events": 31,
         "web": 8,
         "mobile": 1,
-        "tests": 13,
+        "tests": 14,
         "governance": 0,
         "other_evidence": 9
       },
@@ -58147,6 +58156,29 @@
           "source": "services/sahool-platform/core/canonical_field_state.py",
           "kind": "import",
           "line": 14
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_canonical_state_observed_at.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/agronomic_state_engine.py",
+          "kind": "import",
+          "line": 19
+        },
+        {
+          "source": "services/sahool-platform/core/field_intelligence_coordinator.py",
+          "kind": "import",
+          "line": 25
+        },
+        {
+          "source": "shared/field_runtime_cohesion.py",
+          "kind": "import",
+          "line": 27
         }
       ],
       "unresolved": []
