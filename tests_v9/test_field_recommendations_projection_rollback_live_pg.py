@@ -53,6 +53,12 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
+# FIELD_STATE_ROLLBACK_CERTIFICATION_REQUIRED=1 (set by its own CI step and the lab runner)
+# turns a missing database into a failure: the shared integration step gives only the superuser
+# TEST_DATABASE_URL, so without this switch the test skipped green and guarded nothing (lab
+# receipt for #1469).
+if _WHY and os.getenv("FIELD_STATE_ROLLBACK_CERTIFICATION_REQUIRED") == "1":
+    raise RuntimeError(f"FIELD_STATE_ROLLBACK_CERTIFICATION_REQUIRED=1 but: {_WHY}")
 pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
 
 
