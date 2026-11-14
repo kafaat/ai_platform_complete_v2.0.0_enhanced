@@ -1125,7 +1125,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 37
+        "tests": 38
       }
     },
     {
@@ -1364,6 +1364,7 @@
         "services/raster-service/test_spatial_sampling_product.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_spatial_geometry_integrity.py",
+        "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
         "tests_v9/test_geospatial.py",
         "tests_v9/test_spatial_e2e_smoke.py",
         "tests_v9/test_trial_spatial_identity.py",
@@ -1401,7 +1402,7 @@
           "path": "services/raster-service/trial_zonal_outcomes.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=8, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

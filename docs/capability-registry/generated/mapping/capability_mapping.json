@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7340,
+    "files_scanned": 7341,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2181,
-      "tests": 2501,
+      "tests": 2502,
       "web": 547
     },
-    "unmapped_artifacts": 3492,
+    "unmapped_artifacts": 3493,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3971,
+      "python_functional": 3972,
       "raw": 3369
     },
-    "test_dependency_files": 1901,
-    "test_dependency_edges": 4891,
-    "test_dependency_bounded_files": 1114,
+    "test_dependency_files": 1902,
+    "test_dependency_edges": 4892,
+    "test_dependency_bounded_files": 1115,
     "test_dependency_unresolved_relations": 482
   },
   "capabilities": [
@@ -41031,6 +41031,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_spray_readiness.py",
       "kind": "tests"
     },
@@ -65877,6 +65881,19 @@
           "source": "services/sahool-platform/api/pivot_geometry.py",
           "kind": "import",
           "line": 3
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/spatial_sync.py",
+          "kind": "import",
+          "line": 16
         }
       ],
       "unresolved": []

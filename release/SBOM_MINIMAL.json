@@ -4895,7 +4895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c186db7fb5b79db00744c1be7fcb80f35b21a37aadf15d6f1277a4556def5d9"
+          "content": "e4cd82e46de5ef373920630b66bc9d92957070faa44734fb5f0705e23fa58d12"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -36629,6 +36629,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_spatial_geometry_integrity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "181ef87fffcc1db23d7f84c4a0b0055db1c0781df08642a5f749d688376e7e98"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
       "type": "file"
     },
     {

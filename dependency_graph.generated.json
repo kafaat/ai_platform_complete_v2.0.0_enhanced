@@ -1,5 +1,5 @@
 {
-  "edge_count": 1031,
+  "edge_count": 1032,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -8332,6 +8332,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://field_geometry_history",
+      "to": "db://field_geometry_history",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/field_lifecycle.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -10332,7 +10342,7 @@
     "EMITS": 3,
     "READS": 546,
     "ROUTES_TO": 73,
-    "WRITES": 361
+    "WRITES": 362
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -10347,8 +10357,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 908,
-      "resolved": 907,
+      "observed": 909,
+      "resolved": 908,
       "unresolved_component_paths": 0
     }
   }

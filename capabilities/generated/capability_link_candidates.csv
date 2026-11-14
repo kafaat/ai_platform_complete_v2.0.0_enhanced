@@ -1344,6 +1344,7 @@ GIS-001,test,services/sahool-platform/tests/test_p1_raster_boundary_guard.py,3,a
 GIS-001,test,services/sahool-platform/tests/test_p1_weather_boundary_guard.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_spatial_geometry_integrity.py,3,applied
+GIS-001,test,services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_v26_variety_crop_boundary.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_wind_geometry.py,3,applied
 GIS-001,test,services/vegetation-analysis-service/test_platform_field_catalog_boundary.py,3,applied
@@ -1456,6 +1457,7 @@ GIS-004,service,services/raster-service/main.py,10,applied
 GIS-004,test,services/raster-service/test_spatial_sampling_product.py,3,applied
 GIS-004,test,services/sahool-platform/tests/test_season_spatial_provenance.py,3,applied
 GIS-004,test,services/sahool-platform/tests/test_spatial_geometry_integrity.py,3,applied
+GIS-004,test,services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py,3,applied
 GIS-004,test,tests_v9/test_geospatial.py,3,applied
 GIS-004,test,tests_v9/test_spatial_e2e_smoke.py,3,applied
 GIS-004,test,tests_v9/test_trial_spatial_identity.py,3,applied
