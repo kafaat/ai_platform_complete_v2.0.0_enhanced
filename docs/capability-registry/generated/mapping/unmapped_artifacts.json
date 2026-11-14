@@ -11700,6 +11700,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_etc_dual_browser_source_truth.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_etc_dual_canonical.py",
     "kind": "tests"
   },
