@@ -82,3 +82,79 @@ async def test_upstream_response_body_is_never_reflected(
         if dependency == "knowledge-graph"
         else ["knowledge-graph", "rag-retrieval"]
     )
+
+
+_SECRET = "TOP_SECRET_PLATFORM_BODY_and_TOKEN"
+_CRED_URL = "http://svc:PASSWORD_SHOULD_NOT_LEAK@platform:8000"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mode", ["http_500", "connect_error"])
+async def test_platform_field_state_failure_keeps_body_and_url_out_of_the_log(
+    monkeypatch, caplog, mode
+):
+    """Lab receipt for #1471: the platform field-state path logged resp.text and repr(exc)."""
+    import logging
+
+    from services.ai_agronomist import ai_evidence_runtime as runtime
+
+    real_client = httpx.AsyncClient
+
+    async def transport(request):
+        if mode == "connect_error":
+            raise httpx.ConnectError(f"connect to {_CRED_URL} failed: {_SECRET}", request=request)
+        return httpx.Response(500, text=_SECRET)
+
+    monkeypatch.setattr(runtime, "PLATFORM_URL", _CRED_URL)
+    monkeypatch.setattr(runtime, "AGENT_TOKEN", "agent-token")
+    monkeypatch.setattr(
+        httpx,
+        "AsyncClient",
+        lambda **kwargs: real_client(transport=httpx.MockTransport(transport), **kwargs),
+    )
+    caplog.set_level(logging.DEBUG)
+    async with httpx.AsyncClient() as client:
+        out = await runtime._fetch_canonical_field_state(
+            client, tenant_id="ad063907-fc11-4314-b639-e1c91d820960", field_id="field-1"
+        )
+    assert out["status"] == "unavailable"
+    assert set(out) == {"status", "reason", "correlation_id"}
+    logged = caplog.text
+    assert _SECRET not in logged
+    assert "PASSWORD_SHOULD_NOT_LEAK" not in logged
+    assert out["correlation_id"] in logged
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mode", ["http_500", "connect_error"])
+async def test_ai_advice_audit_event_returned_to_the_client_has_no_upstream_text(monkeypatch, mode):
+    """Review of #1471: audit_event (returned to the client) carried resp.text / str(exc)."""
+    from services.ai_agronomist import ai_evidence_runtime as runtime
+
+    real_client = httpx.AsyncClient
+
+    async def transport(request):
+        if mode == "connect_error":
+            raise httpx.ConnectError(f"connect to {_CRED_URL}: {_SECRET}", request=request)
+        return httpx.Response(500, text=_SECRET)
+
+    monkeypatch.setattr(runtime, "PLATFORM_URL", _CRED_URL)
+    monkeypatch.setattr(runtime, "AGENT_TOKEN", "agent-token")
+    monkeypatch.setattr(
+        httpx,
+        "AsyncClient",
+        lambda **kwargs: real_client(transport=httpx.MockTransport(transport), **kwargs),
+    )
+    event = await runtime._record_ai_advice_event(
+        tenant_id="ad063907-fc11-4314-b639-e1c91d820960",
+        field_id=None,
+        question="q",
+        evidence_ids=[],
+        confidence=0.5,
+        selected_imagery_date=None,
+        endpoint_mode="test",
+    )
+    assert event["status"] == "failed"
+    text = repr(event)
+    assert _SECRET not in text
+    assert "PASSWORD_SHOULD_NOT_LEAK" not in text

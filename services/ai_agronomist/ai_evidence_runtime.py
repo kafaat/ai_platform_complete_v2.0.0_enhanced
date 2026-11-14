@@ -62,6 +62,9 @@ KNOWLEDGE_GRAPH_URL = os.getenv("KNOWLEDGE_GRAPH_URL", "http://sahool-knowledge-
 PLATFORM_URL = os.getenv("PLATFORM_URL", "http://sahool-platform:8000")
 
 logger = logging.getLogger("ai_agronomist.evidence_runtime")
+# httpx logs every request URL at INFO, userinfo included; a credentialed service URL would
+# reach the log on success and failure alike (lab receipt for #1471). WARNING keeps its errors.
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 # S2 — صيغة معرّف الحقل القانونيّة (``fields.field_id VARCHAR(50)``: ``fld_<hex>`` أو UUID).
 # كان المعرّف يُحقَن خاماً في مسارٍ داخليّ يحمل رمز الخدمة، فـ``../../x#`` يبلغ مسارات
@@ -77,7 +80,11 @@ def is_canonical_field_id(value: Any) -> bool:
 
 
 def _upstream_unavailable(reason: str, **log_fields: Any) -> dict[str, Any]:
-    """Generic, caller-safe failure: the upstream body/exception stays in the server log only.
+    """Generic, caller-safe failure: neither the caller nor the log sees an upstream body.
+
+    Lab receipt for #1471: the log carried ``resp.text`` and ``repr(exc)`` (a credentialed URL in
+    a ConnectError). Only the reason, the HTTP status, the exception type and the correlation
+    id are logged now, as ``_dependency_http_failure`` does for KG/RAG.
 
     S2 — كان جسم خطأ المنصّة (``resp.text``) ونصّ الاستثناء يُعادان للمتّصل عبر 502؛
     الآن يُسجَّلان خادميّاً مع معرّف ارتباط، والمتّصل يرى المعرّف وحده.
@@ -170,9 +177,7 @@ async def _fetch_canonical_field_state(
         if resp.status_code == 404:
             return {"status": "not_found", "field_id": field_id}
         if resp.status_code >= 400:
-            return _upstream_unavailable(
-                "platform_http_error", http_status=resp.status_code, body=resp.text[:500]
-            )
+            return _upstream_unavailable("platform_http_error", http_status=resp.status_code)
         payload = resp.json()
         canonical = payload.get("canonical_field_state")
         pack = payload.get("ai_context_pack")
@@ -187,7 +192,7 @@ async def _fetch_canonical_field_state(
             return {"status": "unavailable", "reason": "canonical_context_identity_mismatch"}
         return {**canonical, "ai_context_pack": pack}
     except Exception as exc:  # noqa: BLE001
-        return _upstream_unavailable("platform_request_failed", error=repr(exc)[:500])
+        return _upstream_unavailable("platform_request_failed", error_type=type(exc).__name__)
 
 
 # العلاقات المحكومة التي **دورها البيانيّ مرجعيّ ودلالتها الدليليّة سياقُ استرجاع
@@ -337,7 +342,8 @@ async def _record_ai_advice_event(
                 timeout=35.0 if model_output is not None else 3.0,
             )
         if resp.status_code >= 400:
-            return {"status": "failed", "http_status": resp.status_code, "detail": resp.text[:300]}
+            # ``audit_event`` is returned to the client: no platform body in it (review of #1471).
+            return {"status": "failed", "http_status": resp.status_code}
         payload = resp.json()
         # AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01 (الصنفُ نفسُه: صمتٌ يُقرأ نجاحاً):
         # ردٌّ بلا ``persisted`` كان يُقرأ «recorded» — منصّةٌ أقدم، أو ردٌّ مُشوَّه، يصير
@@ -353,7 +359,8 @@ async def _record_ai_advice_event(
             status = "unconfirmed"
         return {**payload, "status": status}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "failed", "reason": str(exc)}
+        # The exception text can hold a credentialed URL; the client sees only its type.
+        return {"status": "failed", "reason": type(exc).__name__}
 
 
 def _generation_allowed(tenant_id: str) -> bool:
