@@ -365,7 +365,7 @@
 
 **يفرض:** Check that uploaded Codecov XML paths refer to measured, tracked Git files.
 
-**يحجب في:** `ci.yml` → `decision-service-tests` · `ci.yml` → `platform-unit-tests` · `ci.yml` → `unit-tests`
+**يحجب في:** `ci.yml` → `decision-service-tests` · `ci.yml` → `integration-tests` · `ci.yml` → `platform-unit-tests` · `ci.yml` → `unit-tests`
 
 **الاختبار الشاهد:** `tests_v9/test_codecov_coverage_wiring.py`
 

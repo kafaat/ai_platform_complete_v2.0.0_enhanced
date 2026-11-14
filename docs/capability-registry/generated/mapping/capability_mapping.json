@@ -32,7 +32,7 @@
       "raw": 3369
     },
     "test_dependency_files": 1900,
-    "test_dependency_edges": 4878,
+    "test_dependency_edges": 4886,
     "test_dependency_bounded_files": 1113,
     "test_dependency_unresolved_relations": 482
   },
@@ -75723,14 +75723,54 @@
           "line": 15
         },
         {
+          "source": "services/auth/routers/invitations.py",
+          "kind": "source_read",
+          "line": 125
+        },
+        {
+          "source": "services/auth/routers/users.py",
+          "kind": "source_read",
+          "line": 124
+        },
+        {
+          "source": "services/auth/session_tokens.py",
+          "kind": "source_read",
+          "line": 126
+        },
+        {
           "source": "services/decision-service/main.py",
           "kind": "source_read",
-          "line": 198
+          "line": 246
+        },
+        {
+          "source": "services/sahool-platform/api/routers/security_audit.py",
+          "kind": "source_read",
+          "line": 127
+        },
+        {
+          "source": "tests_v9/test_auth_admin_authz_live_pg_redis.py",
+          "kind": "source_read",
+          "line": 90
+        },
+        {
+          "source": "tests_v9/test_auth_admin_tenant_scope_live_pg.py",
+          "kind": "source_read",
+          "line": 89
+        },
+        {
+          "source": "tests_v9/test_mfa_hardening_integration_v29_5.py",
+          "kind": "source_read",
+          "line": 88
+        },
+        {
+          "source": "tests_v9/test_platform_denial_log_scope_live.py",
+          "kind": "source_read",
+          "line": 91
         }
       ],
       "unresolved": [
         {
-          "line": 156,
+          "line": 204,
           "call": "run_path"
         }
       ]
