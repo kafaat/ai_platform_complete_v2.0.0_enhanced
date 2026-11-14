@@ -71,6 +71,8 @@ def create_canonical_state_envelope(state: Any) -> dict[str, Any]:
         "fusion_strategy_version": d.get("fusion_strategy_version"),
         "operational_truths": d.get("operational_truths", {}),
         "confidence": d.get("confidence"),
+        # أزمنة رصد الإشارات جزء من هويّة الحالة: زمن رصد مختلف ⇒ state_id مختلف.
+        "signal_observations": d.get("signal_observations", []),
     }
     envelope = CanonicalStateEnvelope(
         state_id=_stable_id(material, "cfs"),

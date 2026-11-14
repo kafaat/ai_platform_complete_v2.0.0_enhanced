@@ -93,7 +93,8 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
     """
     signals: list[SignalInput] = []
     raw = collected.raw
-    now = datetime.now(UTC).isoformat()
+    # زمن الرصد يُنقَل كما سجّله المصدر؛ غيابه يبقى None ولا تملؤه ساعة التطبيع،
+    # فالحالة القانونيّة تحفظه (signal_observations) ولا تحفظ لحظة التطبيع كأنّها رصد.
 
     # الاستشعار → ndvi/ndre/ndsi/ndwi (دقّة 10م، تغطية من نسبة البكسلات السليمة)
     sensing = raw.get("sensing", {})
@@ -105,7 +106,7 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
                     source=idx,
                     value=sensing[idx],
                     confidence="medium",
-                    observed_at=sensing.get("observed_at", now),
+                    observed_at=sensing.get("observed_at"),
                     spatial_resolution_m=sensing.get("resolution_m", 10.0),
                     field_coverage=sensing.get("field_coverage"),
                 )
@@ -119,7 +120,7 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
                 source="cloud_cover",
                 value=sensing["cloud_cover"],
                 confidence="high",
-                observed_at=sensing.get("observed_at", now),
+                observed_at=sensing.get("observed_at"),
                 spatial_resolution_m=sensing.get("resolution_m", 10.0),
                 field_coverage=sensing.get("field_coverage"),
             )
@@ -145,7 +146,7 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
                 source="weather",
                 value=weather["heat_risk"],
                 confidence="medium",
-                observed_at=weather.get("forecast_at", now),
+                observed_at=weather.get("forecast_at"),
             )
         )
 
@@ -157,7 +158,7 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
                 source="farmer",
                 value=fobs["stress_observed"],
                 confidence="low",
-                observed_at=fobs.get("observed_at", now),
+                observed_at=fobs.get("observed_at"),
             )
         )
 

@@ -99,6 +99,46 @@ class EconomicContext:
     area_ha: float | None = None  # لحساب التكلفة لكلّ هكتار
 
 
+def canonical_observed_at(value: object) -> str:
+    """زمن رصد إشارة بصيغته القانونيّة: لحظة مُدرَكة المنطقة، مُطبَّعة إلى UTC (ISO 8601).
+
+    كـ``AwareDatetime`` في AC-1 (decision-service agronomic_context/contracts.py): طابع
+    بلا منطقة زمنيّة (ومنه التاريخ المجرّد ``2026-06-16``) أو غير قابل للتحليل ⇒
+    ``ValueError``. لا افتراض UTC هنا: مقارنة naive بمُدرَك تُعيد ترتيب الأحداث بصمت.
+    """
+    if isinstance(value, datetime):
+        dt = value
+    elif isinstance(value, str) and value.strip():
+        try:
+            dt = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+        except ValueError as e:
+            raise ValueError(f"observed_at غير قابل للتحليل: {value!r}") from e
+    else:
+        raise ValueError(f"observed_at يجب أن يكون نصّ ISO 8601 أو datetime: {value!r}")
+    if dt.tzinfo is None or dt.utcoffset() is None:
+        raise ValueError(f"observed_at بلا منطقة زمنيّة مرفوض: {value!r}")
+    return dt.astimezone(UTC).isoformat()
+
+
+def _canonical_observations(value: object) -> tuple[tuple[str, str], ...]:
+    """أزمنة رصد الإشارات بشكلها المحفوظ: أزواج (source, observed_at UTC) مرتّبة زمنيّاً.
+
+    تقبل أزواجاً أو قواميس ``{"source", "observed_at"}`` (شكل to_dict). كلّ زمن يمرّ
+    بـ``canonical_observed_at``، فلا يدخل الحالة طابع naive. الترتيب باللحظة ثمّ المصدر،
+    فلا يتغيّر بترتيب وصول الإشارات.
+    """
+    pairs: list[tuple[str, str]] = []
+    for item in value or ():
+        if isinstance(item, dict):
+            source, observed = item.get("source"), item.get("observed_at")
+        else:
+            source, observed = item
+        if not isinstance(source, str) or not source:
+            raise ValueError(f"signal_observations: مصدر غير صالح {source!r}")
+        pairs.append((source, canonical_observed_at(observed)))
+    return tuple(sorted(pairs, key=lambda p: (datetime.fromisoformat(p[1]), p[0])))
+
+
 @dataclass
 class CanonicalFieldState:
     """الحالة الزراعيّة الرسميّة الموحّدة للحقل (الغراء الحقيقي).
@@ -124,6 +164,18 @@ class CanonicalFieldState:
     contradictions: list = field(default_factory=list)
     # المؤشّرات الغائبة (صدق: نُعلنها صراحةً)
     missing_signals: list = field(default_factory=list)
+    # أزمنة رصد الإشارات الداخلة في الحالة (قرار المالك 2026-11-14: النسب الزمنيّ يُحفَظ في
+    # الحالة القانونيّة). أزواج (source, observed_at UTC) مرتّبة زمنيّاً؛ لا تُعدَّل بعد
+    # تسجيلها، ويغطّيها state_id في shared/field_runtime_cohesion.py.
+    signal_observations: tuple = ()
+
+    def __setattr__(self, name: str, value: object) -> None:
+        if name == "signal_observations":
+            value = _canonical_observations(value)
+            current = self.__dict__.get("signal_observations")
+            if current and value != current:
+                raise AttributeError("signal_observations ثابتة بعد تسجيلها")
+        super().__setattr__(name, value)
 
     def to_dict(self) -> dict:
         """تسلسل قابل للحفظ (persistence) والمقارنة الموسميّة (replay/audit).
@@ -143,6 +195,10 @@ class CanonicalFieldState:
             "provenance": list(self.provenance),
             "contradictions": list(self.contradictions),
             "missing_signals": list(self.missing_signals),
+            "signal_observations": [
+                {"source": source, "observed_at": observed}
+                for source, observed in self.signal_observations
+            ],
         }
 
     def explain_decision(self) -> dict:
@@ -188,6 +244,7 @@ class CanonicalFieldState:
             provenance=d.get("provenance", []),
             contradictions=d.get("contradictions", []),
             missing_signals=d.get("missing_signals", []),
+            signal_observations=d.get("signal_observations", ()),
         )
 
 
@@ -415,6 +472,27 @@ def compose_field_state(
                 "reason_ar": "بيانات أقدم من 14 يوماً — الثقة مخفّضة",
             }
         )
+
+    # أزمنة الرصد: كلّ إشارة ذات قيمة وزمن رصد مُدرَك يُسجَّل زمنها في الحالة. الغائب
+    # يبقى غائباً (لا ساعة تملؤه)، والـnaive يُرفَض فلا يُسجَّل ويُعلَن صراحةً.
+    observed: list[tuple[str, str]] = []
+    refused: list[str] = []
+    for s in signals:
+        if s.value is None or s.observed_at is None:
+            continue
+        try:
+            observed.append((s.source, canonical_observed_at(s.observed_at)))
+        except ValueError:
+            refused.append(s.source)
+    if refused:
+        state.contradictions.append(
+            {
+                "type": "observed_at_refused",
+                "sources": refused,
+                "reason_ar": "زمن رصد بلا منطقة زمنيّة أو غير صالح — لم يُسجَّل في الحالة",
+            }
+        )
+    state.signal_observations = observed
 
     # ── ٦. التقويم الفينولوجي + النجمي (مرحلة النمو + Kc + التوقيت) ──
     if crop_context is not None:
