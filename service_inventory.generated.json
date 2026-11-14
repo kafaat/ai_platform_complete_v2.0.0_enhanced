@@ -375,7 +375,7 @@
     "service": "weather-service",
     "domain": "Weather Intelligence",
     "python_files": 51,
-    "python_loc": 8671,
+    "python_loc": 8735,
     "tests": 32,
     "routes": 29,
     "main": "services/weather-service/main.py",

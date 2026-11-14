@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 751,
+      "evidence_count": 753,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -710,6 +710,7 @@
         "services/vegetation-analysis-service/vegetation_runtime.py",
         "services/vegetation-analysis-service/weekly_insights.py",
         "services/weather-service/__init__.py",
+        "services/weather-service/canonical_daily_weather_series.py",
         "services/weather-service/canonical_weather_state.py",
         "services/weather-service/chill_accumulation.py",
         "services/weather-service/lodging_risk.py",
@@ -718,6 +719,7 @@
         "services/weather-service/raw_weather_processing.py",
         "services/weather-service/tests/test_canonical_weather_state.py",
         "services/weather-service/tests/test_crop_stress_products.py",
+        "services/weather-service/tests/test_gdd_view.py",
         "services/weather-service/tests/test_missing_temperature_is_not_zero.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
         "services/weather-service/tests/test_thermal_stress.py",
@@ -3042,7 +3044,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
-      "source_evidence_count": 751,
+      "source_evidence_count": 753,
       "target_evidence_count": 576,
       "static_supported": true,
       "runtime_verified": false
@@ -3502,5 +3504,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "769b08c7fcc79651e66aab66cd429b3765a842b27232022b87d30e0b2bcf0e20"
+  "content_sha256": "0431da19428d34c59049b1726c44d09842633b22097eb5efa59c2c974ed77bb0"
 }
