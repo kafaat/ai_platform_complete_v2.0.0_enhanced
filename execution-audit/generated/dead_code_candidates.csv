@@ -64,7 +64,7 @@ medium,ai-agronomist,function,tool_allowed,services/ai_agronomist/policy_envelop
 medium,ai-agronomist,function,build_provider_tools,services/ai_agronomist/provider_tooling.py,153,0,review_before_delete,False
 medium,ai-agronomist,function,extract_tool_calls,services/ai_agronomist/provider_tooling.py,182,0,review_before_delete,False
 medium,ai-agronomist,function,trace_decision,services/ai_agronomist/runtime_tracing.py,1,0,review_before_delete,False
-medium,auth,function,tenant_header_middleware,services/auth/main.py,426,0,review_before_delete,False
+medium,auth,function,tenant_header_middleware,services/auth/main.py,427,0,review_before_delete,False
 medium,auth,function,verify_recovery_code,services/auth/mfa_crypto.py,209,0,review_before_delete,False
 medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_before_delete,False
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,46,0,review_before_delete,False
@@ -189,7 +189,7 @@ medium,sahool-platform,function,heat_stress_index,services/sahool-platform/api/w
 medium,sahool-platform,function,get_wind_grid,services/sahool-platform/api/weather_service_client.py,741,0,review_before_delete,False
 medium,sahool-platform,function,economic_context_from_ledger,services/sahool-platform/core/agronomic_state_engine.py,607,0,review_before_delete,False
 medium,sahool-platform,function,explain_anwa_principle_ar,services/sahool-platform/core/anwa_calendar.py,120,0,review_before_delete,False
-medium,sahool-platform,function,fields_in_farm_for_user,services/sahool-platform/core/authorization.py,396,0,review_before_delete,False
+medium,sahool-platform,function,fields_in_farm_for_user,services/sahool-platform/core/authorization.py,402,0,review_before_delete,False
 medium,sahool-platform,class,BaseConnector,services/sahool-platform/core/connectors/base.py,58,0,review_before_delete,False
 medium,sahool-platform,function,build_trace_tree,services/sahool-platform/core/correlation.py,116,0,review_before_delete,False
 medium,sahool-platform,function,find_similar_activities,services/sahool-platform/core/cross_reference_finder.py,212,0,review_before_delete,False

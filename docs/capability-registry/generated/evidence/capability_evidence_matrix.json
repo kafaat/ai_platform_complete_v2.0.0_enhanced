@@ -1729,6 +1729,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_tenant_provision_response_shape.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_tenant_provisioning.py",
           "signal": "pytest.mark.unit"
         },
@@ -1796,6 +1801,7 @@
         "tests_v9/test_tenant_context_is_pinned_by_a_transaction.py",
         "tests_v9/test_tenant_guc_name_convergence_guard.py",
         "tests_v9/test_tenant_guc_scope_guard.py",
+        "tests_v9/test_tenant_provision_response_shape.py",
         "tests_v9/test_tenant_provisioning.py",
         "tests_v9/test_tenant_query_audit.py",
         "tests_v9/test_tts_tenant_policy_gate.py",

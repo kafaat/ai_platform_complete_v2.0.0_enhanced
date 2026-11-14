@@ -36,6 +36,7 @@ from mfa_crypto import enforce_password_policy, resolve_sahool_env  # S16(a,d): 
 from password_hashing import NewPassword, hash_password, verify_password  # noqa: F401
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
+from session_tokens import session_revoked
 
 from shared.pool_shutdown import close_client_bounded, close_pools_bounded
 from shared.runtime_identity import load_build_identity
@@ -723,11 +724,9 @@ async def get_current_user(
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
 
+    # إبطال jti أو أرضيّة المستخدم (تغيير كلمة المرور/الدور/التعطيل) ⇒ 401؛ مخزنٌ يفشل ⇒ 503.
     jti = payload.get("jti")
-    if jti and await is_jti_revoked(jti):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
-    # إبطال جماعيّ: توكن أُصدِر قبل أرضيّة المستخدم (تغيير كلمة المرور/الدور/التعطيل) ⇒ مرفوض.
-    if await is_token_below_floor(payload):
+    if await session_revoked(jti and is_jti_revoked(jti), is_token_below_floor(payload)):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
     return payload
 

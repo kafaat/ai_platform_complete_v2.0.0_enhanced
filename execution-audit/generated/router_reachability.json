@@ -91,7 +91,7 @@
     },
     {
       "kind": "app",
-      "line": 405,
+      "line": 406,
       "module": "services.auth.main",
       "node_id": "services.auth.main:app",
       "route_count": 1,
@@ -109,7 +109,7 @@
     },
     {
       "kind": "router",
-      "line": 23,
+      "line": 24,
       "module": "services.auth.routers.invitations",
       "node_id": "services.auth.routers.invitations:router",
       "route_count": 4,
@@ -181,7 +181,7 @@
     },
     {
       "kind": "router",
-      "line": 30,
+      "line": 34,
       "module": "services.auth.routers.users",
       "node_id": "services.auth.routers.users:router",
       "route_count": 3,
@@ -2955,7 +2955,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "03b70bff76a6a0167a58b0443d8092d1b856d7b328ae5035fe886601335725a7",
+  "inventory_sha256": "ac44189ea094b61d3ed78febdb9e0958f4b3ccb7fd2a657a0db35ff72c4cd2e8",
   "orphan_candidate_count": 236,
   "orphan_candidates": [
     {
@@ -3001,7 +3001,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 23,
+      "line": 24,
       "module": "services.auth.routers.invitations",
       "node_id": "services.auth.routers.invitations:router",
       "route_count": 4,
@@ -3081,7 +3081,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 30,
+      "line": 34,
       "module": "services.auth.routers.users",
       "node_id": "services.auth.routers.users:router",
       "route_count": 3,
