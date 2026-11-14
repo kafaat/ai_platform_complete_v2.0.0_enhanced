@@ -4004,6 +4004,7 @@
         "mobile/sahool_app/lib/features/tasks/data/task_photo_store.dart",
         "mobile/sahool_app/lib/features/tasks/data/tasks_api.dart",
         "mobile/sahool_app/lib/features/tasks/presentation/complete_task_sheet.dart",
+        "mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart",
         "mobile/sahool_app/lib/features/tasks/presentation/irrigation_observations_screen.dart",
         "mobile/sahool_app/lib/features/tasks/presentation/task_card.dart",
         "mobile/sahool_app/lib/features/tasks/presentation/task_detail_screen.dart",
@@ -4066,7 +4067,7 @@
           "path": "migrations/v247_farm_operations_task_link.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=12, tests=13, ui=0, mobile=16. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=12, tests=13, ui=0, mobile=17. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4901,7 +4902,9 @@
         "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:101"
       ],
       "ui_consumers": [],
-      "mobile_consumers": [],
+      "mobile_consumers": [
+        "mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart"
+      ],
       "tests": [
         "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
@@ -4973,7 +4976,7 @@
           "path": "migrations/v271_scout_treatment_review_events.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=27, tests=24, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=27, tests=24, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
