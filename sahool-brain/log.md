@@ -10619,3 +10619,15 @@ The full local unit run exposed two additional test defects. The requirements co
 ## 2026-11-14 — C-40 (#1428): المصنِّف يقرأ علامات pytest، وقرار المالك على النضج
 
 - `capability_evidence_maturity_engine.classify_tests` صار يقرأ علامات pytest الصريحة بـAST (لا استيراد)، و«contract» وحده لا يرقّي إلى تكامل، وبوّابة `taxonomy_conflicts` تحجب دليلاً تكامليّاً مُعلَّماً `unit`. سبع قدرات خُفِضت إلى 2، وأربع رُقِّيت، وOPS-003 أُبقي عند 2 مع قبول هويّته؛ والقرار في `decisions/ledger.md`. `capability_shadow_reconciliation --check` = PASS (findings=0).
+
+## 2026-11-14 — طابور الدمج 13–14 نوفمبر: دامجٌ واحد وحاملاتٌ بلا rebase
+
+- **المدموج (الأولى أبويّاً على main):** #1394 `d989fb321`، #1396 `faac3712e`، #1397 `759b371be`، #1402 `934c98698`، #1404 `8422877f8`، #1406 `8167dbb4b`، #1407 `2a7fcb3a4`، #1408 `0c6d4cbea`، #1409 `967f12efc`، #1398 `bee67095f`، #1401 `f110d9a17`، #1417 `36b625170`، #1421 `a8629499c`، #1418 `7ad892afa`، #1415 `1dae6dc63`، #1430 `375a52b3e`، #1419 `153526f90`، #1438 `53f8c01fe`، #1439 `9b50df12b`، #1379 `385892ab6`، #1420 `f3ce98032`، #1440 `fabd82ef2`، #1441 `aac9f270e`، #1443 `3569c982d`، #1442 `98915fdec`.
+- **البروتوكول:** المستشفى (جلسة الدمج) الدامجُ الوحيد ويدمج رأس الطابور فقط بـ`expectedHeadSha`؛ والحاملات تُدخل كلَّ PR محمولٍ بالتزام دمجٍ مستقلّ فيبقى تاريخه، وتُغلق الأصول بإشارةٍ بعد الدمج.
+- **روتين التحديث بعد كلّ دمج:** دمج main ⇒ `resolve_merge_conflicts.py` (المولَّد يأخذ main؛ `release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json` وجرد main الفرعيّ md/csv يدويّاً بـ`checkout --theirs`) ⇒ مراسي الاستخراج ⇒ `verify_all_generated --fix` بـruff 0.15.8 ⇒ نقطة ثبات بوّابة الشهادة ⇒ حرّاس الدفاتر ⇒ `capability_projection_sync --check` ⇒ preflight.
+- **فخّ الدفتر الإلحاقيّ (تكرّر ثلاث مرّات: #1379 مرّة و#1427 مرّتين):** أخذُ جانب main في `docs/architecture/fake_connection_debt.json` يُسقط `admissions` الفرع، والتوليد لا يعيدها؛ و`preflight --fast` لا يرى ذلك بينما يراه `verify_all_generated`. العلاج: إعادة الإدخال بعد آخر مدخلٍ لـmain ثمّ `fake_connection_debt_guard --check`. ودُوِّن في مهارة `ci-impact-preflight` (#1377).
+- **#1379:** مثبّت `client` في `tests_v9/test_auth_cors_mfa_header.py` كان يعيد ربط `main` ويطهّر وحدات الخدمة دون استعادتها، فقرأ ملفٌّ لاحق وحدةً لم يبدأ مجمّعها (55 فشلاً في تسجيل MFA). الإصلاح يحفظ `sys.modules` ويستعيده في `finally` (`e92697a7e`) بلا تليين أيّ اختبار.
+- **#1427:** دُمج فيه main مع توفيق `services/auth/routers/users.py` بين نسخته ونسخة #1419 (`42fad8898`، على `claude/pr1427-main-merge-20261114` لأنّ الدفع لغير `claude/*` محجوب، ثمّ قدّمه المستشفى بأمر المالك). المستشفى كاتبه الوحيد الآن، ويحمل #1425 (`e36ab043b`).
+- **Flutter في #1425:** فشلٌ عابر بملفّ NDK تالف، أُعيد تشغيل الوظائف الفاشلة فقط.
+- **مفتوح:** #1427 (مسوّدة)، #1424 (ينتظر تحديد صاحبه)، #1386 (توقيع المالك على GATE-01)، #1377 (تحديث المهارة).
+
