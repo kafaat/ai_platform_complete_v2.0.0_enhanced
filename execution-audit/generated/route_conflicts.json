@@ -874,7 +874,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 409,
+          "line": 410,
           "method": "GET",
           "module": "services/auth/main.py",
           "path": "/runtime-identity",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1143,
-  "route_inventory_sha256": "b1938600dca1f1f22ed376685cda65066c05e91b77c2f91d35d23210eccc6873",
+  "route_inventory_sha256": "3a3e9a02df22ac9d3831e2bcbd90d38d451ea3b71af88f249611a23b4349c7cf",
   "runtime_verified": false,
   "schema_version": 1
 }

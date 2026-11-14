@@ -263,7 +263,7 @@
   {
     "service": "auth",
     "file": "services/auth/main.py",
-    "line": 409,
+    "line": 410,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_identity",
@@ -308,7 +308,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 45,
+    "line": 46,
     "method": "POST",
     "path": "/v1/auth/invitations",
     "handler": "create_invitation",
@@ -317,7 +317,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 104,
+    "line": 108,
     "method": "GET",
     "path": "/v1/auth/invitations",
     "handler": "list_invitations",
@@ -326,7 +326,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 137,
+    "line": 142,
     "method": "POST",
     "path": "/v1/auth/invitations/accept",
     "handler": "accept_invitation",
@@ -335,7 +335,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 218,
+    "line": 228,
     "method": "DELETE",
     "path": "/v1/auth/invitations/{invitation_id}",
     "handler": "revoke_invitation",
@@ -497,7 +497,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 67,
+    "line": 70,
     "method": "GET",
     "path": "/v1/auth/users",
     "handler": "list_users",
@@ -506,7 +506,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 81,
+    "line": 82,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/role",
     "handler": "change_role",
@@ -515,7 +515,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 132,
+    "line": 143,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/deactivate",
     "handler": "deactivate_user",

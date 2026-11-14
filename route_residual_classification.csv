@@ -21,7 +21,7 @@ ai_agronomist,services/ai_agronomist/main.py,508,POST,/v1/query,query,business_e
 ai_agronomist,services/ai_agronomist/main.py,519,POST,/v1/chat,chat,business_endpoint
 ai_agronomist,services/ai_agronomist/main.py,530,POST,/v1/explain,explain,business_endpoint
 ai_agronomist,services/ai_agronomist/main.py,541,POST,/v1/recommend,recommend,business_endpoint
-auth,services/auth/main.py,409,GET,/runtime-identity,runtime_identity,business_endpoint
+auth,services/auth/main.py,410,GET,/runtime-identity,runtime_identity,business_endpoint
 decision-service,services/decision-service/main.py,546,GET,/runtime-identity,runtime_identity,business_endpoint
 decision-service,services/decision-service/main.py,552,GET,/healthz,healthz,health
 decision-service,services/decision-service/main.py,557,GET,/readyz,readyz,readiness

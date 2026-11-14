@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "8db9a4b045d35ce9541aedd8e51077c6c199ea65",
+  "measured_on": "e8cce153c942d45d493eff534b4866edb7aa90f9",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -68,6 +68,7 @@
     "tests_v9/test_actuation_killswitch_safe_direction.py",
     "tests_v9/test_actuation_killswitch_v29_5_op.py",
     "tests_v9/test_actuator_token_revocation.py",
+    "tests_v9/test_admin_team_scope_guards.py",
     "tests_v9/test_ai_advice_persistence_and_grounding_honesty.py",
     "tests_v9/test_ai_runtime_readiness.py",
     "tests_v9/test_auth_admin_stepup_mfa.py",
@@ -656,6 +657,16 @@
         "tests_v9/test_auth_enrollment_http.py"
       ],
       "justification": "Explicit one-file admission for the MFA enrollment and refresh HTTP regression suite. FakeConnection and FakePool supply selected user-row fields and record or simulate conditional SQL outcomes so the actual imported FastAPI application, bearer dependencies, HS256/RS256 verification, bcrypt, Fernet and TOTP can be exercised without PostgreSQL. The account-change race cases mutate synthetic rows before the modeled UPDATE and assert handler refusal; they do not prove PostgreSQL transaction isolation, row locking, RLS, trigger/constraint enforcement or concurrent database behavior. Redis is also a boundary double in this file, so GETDEL and TTL/distributed guarantees are not certified by its green result. These tests pin application control flow and authorization scope; live database and Redis enforcement remain unmeasured here. No proven_live exemption, budget increase or database-enforcement claim is added."
+    },
+    {
+      "kind": "admin_authz_followup_20261113_team_actor_membership_table",
+      "date": "2026-11-13",
+      "before": 133,
+      "after": 134,
+      "sites": [
+        "tests_v9/test_admin_team_scope_guards.py"
+      ],
+      "justification": "Admin authorization follow-up (#1427). The stand-in (FakeConnection with fetchrow only) drives _validate_team_actor through its decision table: an active owner/admin whose DB role matches the signed claim is admitted, while a missing, inactive or stale membership and a malformed tenant/subject are refused with 403. It asserts that the lookup carries the tenant predicate, but claims nothing about what PostgreSQL enforces. Tenant scoping of list/role/deactivate, the cross-tenant 404 indistinguishable from a missing user, peer owner/admin protection and the grant limits run against a real database under a NOBYPASSRLS role in tests_v9/test_auth_admin_tenant_scope_live_pg.py (15 passed on the merge of #1427 with main 153526f90)."
     }
   ]
 }

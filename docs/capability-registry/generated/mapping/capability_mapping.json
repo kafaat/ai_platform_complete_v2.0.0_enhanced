@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7331,
+    "files_scanned": 7333,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
-      "other": 2179,
-      "tests": 2494,
+      "other": 2176,
+      "tests": 2499,
       "web": 547
     },
-    "unmapped_artifacts": 3487,
+    "unmapped_artifacts": 3491,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3963,
-      "raw": 3368
+      "python_functional": 3968,
+      "raw": 3365
     },
-    "test_dependency_files": 1894,
-    "test_dependency_edges": 4863,
-    "test_dependency_bounded_files": 1111,
-    "test_dependency_unresolved_relations": 479
+    "test_dependency_files": 1899,
+    "test_dependency_edges": 4875,
+    "test_dependency_bounded_files": 1113,
+    "test_dependency_unresolved_relations": 482
   },
   "capabilities": [
     {
@@ -2559,6 +2559,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_tenant_provision_response_shape.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_tenant_provisioning.py",
           "score": 14,
           "signals": [
@@ -2833,7 +2841,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 42,
+        "tests": 43,
         "governance": 0,
         "other_evidence": 25
       },
@@ -26592,7 +26600,7 @@
           "score": 26
         },
         {
-          "value": "/runtime-identity @ services/auth/main.py:408",
+          "value": "/runtime-identity @ services/auth/main.py:409",
           "score": 13
         },
         {
@@ -42271,6 +42279,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_admin_operational_permissions.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_admin_team_scope_guards.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_advice_facade_contract.py",
       "kind": "tests"
     },
@@ -42512,6 +42528,10 @@
     },
     {
       "path": "tests_v9/test_auth_acquire_admin_context_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_auth_admin_authz_live_pg_redis.py",
       "kind": "tests"
     },
     {
@@ -44128,6 +44148,10 @@
     },
     {
       "path": "tests_v9/test_platform_crypto_dependency.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_platform_denial_log_scope_live.py",
       "kind": "tests"
     },
     {
@@ -71055,6 +71079,65 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_admin_operational_permissions.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "tree_wide_scan",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/routers/admin.py",
+          "kind": "source_read",
+          "line": 35
+        },
+        {
+          "source": "services/sahool-platform/api/routers/farm_operations_ledger.py",
+          "kind": "source_read",
+          "line": 28
+        },
+        {
+          "source": "services/sahool-platform/api/routers/tasks.py",
+          "kind": "source_read",
+          "line": 23
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 49,
+          "import": "core.authorization"
+        },
+        {
+          "line": 50,
+          "import": "core.canonical_schemas"
+        }
+      ]
+    },
+    {
+      "test": "tests_v9/test_admin_team_scope_guards.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/auth/routers/invitations.py",
+          "kind": "source_read",
+          "line": 17
+        },
+        {
+          "source": "services/auth/routers/users.py",
+          "kind": "source_read",
+          "line": 15
+        },
+        {
+          "source": "services/sahool-platform/api/routers/security_audit.py",
+          "kind": "source_read",
+          "line": 16
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_advice_facade_contract.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -72886,6 +72969,28 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_auth_admin_authz_live_pg_redis.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "shared_test_helper",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 79
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 88,
+          "call": "spec_from_file_location"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_auth_admin_stepup_mfa.py",
@@ -84836,6 +84941,34 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_platform_denial_log_scope_live.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 65
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 87
+        },
+        {
+          "source": "services/sahool-platform/core/jwt_denylist.py",
+          "kind": "import",
+          "line": 66
+        },
+        {
+          "source": "services/sahool-platform/core/tenant_audit.py",
+          "kind": "import",
+          "line": 67
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_platform_health_identity_readyz_separation.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -91689,6 +91822,22 @@
           "source": "scripts/ci/tenant_guc_scope_guard.py",
           "kind": "source_read",
           "line": 25
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_tenant_provision_response_shape.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/auth/routers/tenants.py",
+          "kind": "source_read",
+          "line": 16
         }
       ],
       "unresolved": []

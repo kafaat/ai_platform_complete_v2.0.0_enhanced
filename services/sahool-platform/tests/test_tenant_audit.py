@@ -92,3 +92,23 @@ def test_module_singleton_usable():
     )
     assert AUDIT.summary()["total"] == 1
     AUDIT.clear()
+
+
+def test_tenant_scope_hides_other_tenants_and_global_events():
+    log = TenantAuditLog()
+    log.record("permission", user_id="uA", tenant_id="tenant-A", action="read")
+    log.record("permission", user_id="uB", tenant_id="tenant-B", action="write")
+    log.record("auth", user_id="system")
+    assert [r["user_id"] for r in log.recent(tenant_id="tenant-A")] == ["uA"]
+    assert log.summary(tenant_id="tenant-A")["total"] == 1
+    assert log.summary(tenant_id="tenant-B")["total"] == 1
+    assert log.summary(tenant_id="unknown")["total"] == 0
+    assert log.summary()["total"] == 3
+
+
+def test_tenant_limit_applies_after_scope_filter():
+    log = TenantAuditLog()
+    log.record("permission", user_id="a1", tenant_id="A")
+    log.record("permission", user_id="b1", tenant_id="B")
+    log.record("permission", user_id="a2", tenant_id="A")
+    assert [r["user_id"] for r in log.recent(limit=1, tenant_id="A")] == ["a2"]
