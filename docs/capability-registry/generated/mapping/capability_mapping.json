@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7345,
+    "files_scanned": 7347,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2182,
-      "tests": 2505,
+      "tests": 2507,
       "web": 547
     },
-    "unmapped_artifacts": 3495,
+    "unmapped_artifacts": 3497,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3976,
+      "python_functional": 3978,
       "raw": 3369
     },
-    "test_dependency_files": 1905,
-    "test_dependency_edges": 4904,
-    "test_dependency_bounded_files": 1116,
+    "test_dependency_files": 1907,
+    "test_dependency_edges": 4911,
+    "test_dependency_bounded_files": 1118,
     "test_dependency_unresolved_relations": 485
   },
   "capabilities": [
@@ -40652,6 +40652,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_notifications_ws_handshake.py",
       "kind": "tests"
     },
@@ -44081,6 +44085,10 @@
     },
     {
       "path": "tests_v9/test_notification_channel_selection.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_notification_delivery_transitions_live_pg.py",
       "kind": "tests"
     },
     {
@@ -63264,6 +63272,29 @@
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
           "line": 7
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 12
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 14
+        },
+        {
+          "source": "services/sahool-platform/api/routers/notifications.py",
+          "kind": "import",
+          "line": 14
         }
       ],
       "unresolved": []
@@ -84321,6 +84352,34 @@
           "source": "agents/notification/agent.py",
           "kind": "source_read",
           "line": 25
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_notification_delivery_transitions_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 79
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 80
+        },
+        {
+          "source": "services/sahool-platform/api/routers/notifications.py",
+          "kind": "import",
+          "line": 80
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 86
         }
       ],
       "unresolved": []
