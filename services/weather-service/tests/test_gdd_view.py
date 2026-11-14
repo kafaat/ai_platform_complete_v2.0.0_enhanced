@@ -328,3 +328,68 @@ def test_diagnostics_surface_input_counts_and_drops():
     assert d["invalid_records"] == 0
     assert d["input_t_min_count"] == 3 and d["input_t_max_count"] == 3
     assert d["unmapped_temperature_pairs"] == 0
+
+
+# ── explicit daily date window (cross-season/future leakage) ────────────────
+def test_dated_window_excludes_outside_days_from_gdd_lineage_and_coverage():
+    recs = _records(_DATES, _TMIN, _TMAX, ["before", "inside", "after"])
+    view = gdd_view(
+        build_canonical_daily_series(recs),
+        period_start="2026-04-02",
+        period_end="2026-04-02",
+        **_CFG,
+    )
+    direct = gdd_agro_product(
+        daily_t_min=[14.0],
+        daily_t_max=[28.0],
+        start_date="2026-04-02",
+        end_date="2026-04-02",
+        **_CFG,
+    )
+    assert view["daily_gdd"] == direct["daily_gdd"]
+    assert view["accumulated_gdd"] == direct["accumulated_gdd"]
+    assert view["contributing_state_ids"] == ["inside"]
+    assert view["coverage"]["observed_days"] == 1
+    assert view["coverage"]["expected_days"] == 1
+    assert view["coverage"]["coverage_ratio"] == 1.0
+    assert view["diagnostics"]["excluded_out_of_window_days"] == 2
+
+
+def test_dated_window_outside_change_does_not_change_lineage():
+    a = _records(_DATES, _TMIN, _TMAX, ["s1", "s2", "s3"])
+    b = _records(_DATES, _TMIN, [26.0, 28.0, 99.0], ["s1", "s2", "changed"])
+    first = gdd_view(
+        build_canonical_daily_series(a), period_start="2026-04-01", period_end="2026-04-02", **_CFG
+    )
+    second = gdd_view(
+        build_canonical_daily_series(b), period_start="2026-04-01", period_end="2026-04-02", **_CFG
+    )
+    assert first["gdd_lineage_id"] == second["gdd_lineage_id"]
+    assert first["accumulated_gdd"] == second["accumulated_gdd"]
+
+
+def test_dated_window_with_no_observations_is_insufficient():
+    view = gdd_view(
+        build_canonical_daily_series(_records(_DATES, _TMIN, _TMAX)),
+        period_start="2026-04-06",
+        period_end="2026-04-07",
+        **_CFG,
+    )
+    assert view["accumulated_gdd"] is None
+    assert view["quality_status"] == "insufficient"
+    assert view["coverage"]["observed_days"] == 0
+    assert view["coverage"]["expected_days"] == 2
+    assert view["coverage"]["missing_days"] == 2
+    assert view["contributing_state_ids"] == []
+
+
+def test_unbounded_dated_series_retains_previous_parity():
+    series = build_canonical_daily_series(_records(_DATES, _TMIN, _TMAX))
+    view = gdd_view(series, **_CFG)
+    direct = gdd_agro_product(
+        daily_t_min=_TMIN,
+        daily_t_max=_TMAX,
+        **_CFG,
+    )
+    assert view["daily_gdd"] == direct["daily_gdd"]
+    assert view["accumulated_gdd"] == direct["accumulated_gdd"]
