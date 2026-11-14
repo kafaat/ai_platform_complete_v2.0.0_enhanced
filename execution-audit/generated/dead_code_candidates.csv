@@ -130,7 +130,7 @@ medium,sahool-platform,function,get_decision_lineage,services/sahool-platform/ap
 medium,sahool-platform,function,list_decisions,services/sahool-platform/api/decision_service_client.py,499,0,review_before_delete,False
 medium,sahool-platform,function,get_field_lineage,services/sahool-platform/api/decision_service_client.py,513,0,review_before_delete,False
 medium,sahool-platform,function,get_reconciled_outcomes,services/sahool-platform/api/decision_service_client.py,521,0,review_before_delete,False
-medium,sahool-platform,class,EventReplay,services/sahool-platform/api/event_replay.py,557,0,review_before_delete,False
+medium,sahool-platform,class,EventReplay,services/sahool-platform/api/event_replay.py,612,0,review_before_delete,False
 medium,sahool-platform,function,ndvi_evidence_entry,services/sahool-platform/api/evidence_policy.py,101,0,review_before_delete,False
 medium,sahool-platform,function,highest_severity,services/sahool-platform/api/failure_modes.py,355,0,review_before_delete,False
 medium,sahool-platform,function,monitoring_summary,services/sahool-platform/api/field_cameras.py,144,0,review_before_delete,False

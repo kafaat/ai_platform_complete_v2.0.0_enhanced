@@ -1348,10 +1348,10 @@ async def update_field(
                     # سُحب الحقل بين التأكيد والقراءة (نادر) ⇒ نرفع 404 **داخل** المعاملة
                     # قبل إصدار الحدث، فتتراجع المعاملة ولا يُكتب حدث لتحديث لم يقع فعلاً.
                     raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
-                # حدث domain ضمن نفس المعاملة — الحقول المُرسَلة فقط في الـpayload.
+                # حدث domain: الحقول المُرسَلة + row_version بعد التحديث هويّةً للطفرة (C-14).
                 _updated_payload = req.model_dump(
                     exclude_unset=True, exclude={"base_version", "base_values"}
-                )
+                ) | {"row_version": row["row_version"]}
                 if merged_from_version is not None:
                     _updated_payload["_auto_merged"] = True
                 if geometry_changed and req.geometry is not None:
@@ -2316,8 +2316,7 @@ async def update_season(
                 # تزامن تفاؤليّ (v64): إن مرّر العميل base_version ولم يطابق الإصدار
                 # الحاليّ ⇒ عُدِّل الموسم من جلسة أخرى منذ قراءته ⇒ 409 (لا فقد صامت).
                 # الصفّ مقفول (FOR UPDATE) فالفحص خالٍ من السباق. الرفض قبل أيّ كتابة
-                # أو إصدار حدث ⇒ المعاملة تتراجع نظيفةً. trg_seasons_row_version يرفع
-                # row_version آليّاً على كلّ UPDATE فلا رفعَ يدويّ هنا.
+                # أو إصدار حدث ⇒ تتراجع المعاملة نظيفةً؛ trg_seasons_row_version يرفع row_version.
                 if req.base_version is not None and current["row_version"] != req.base_version:
                     raise HTTPException(
                         status_code=409,
@@ -2355,15 +2354,16 @@ async def update_season(
                         *params,
                     )
 
-                # حدث التحديث + حدث الإغلاق المخصَّص عند الانتقال إلى closed.
+                # حدث التحديث (row_version بعد الكتابة هويّةُ الطفرة، C-14) + حدث الإغلاق عند closed.
                 changed_fields = [c for c, _, _ in updates]
+                rv = current["row_version"] + (1 if updates else 0)  # trigger: +1/UPDATE
                 await _emit_domain_event(
                     conn,
                     user,
                     "SEASON_UPDATED",
                     "season",
                     season_id,
-                    {"field_id": field_id, "changed_fields": changed_fields},
+                    {"field_id": field_id, "changed_fields": changed_fields, "row_version": rv},
                 )
                 if status_changed and req.status == "closed":
                     await _emit_domain_event(
