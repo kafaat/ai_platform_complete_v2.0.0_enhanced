@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42cf69e0835c13eb96100548359e7e9683a4b4cc5cfd0e94b1c57b67229351ae"
+          "content": "d79d7aa6a6d4eb79757b1f66de355044c2050ef175b5a1982bdfc779ff4aa04b"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -7915,7 +7915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3979fb34efc27b855dc05aacbb0c329265de85f4ca5dd642f2670d8fc881df3f"
+          "content": "b809faa11c685c163dc1fcfacc3253d493b7a3024df0ece9b80f75cd5418682d"
         }
       ],
       "name": "migrations/MANIFEST.md",
@@ -7925,7 +7925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d8a8bbc61f82647416496cb7c2f54975d5f2b2f1ed26fc9d81870700c81a8c6"
+          "content": "13413a80ad9ccced7b2aa9aa3f893ae16454bd974246a8dd1360f0611598caf7"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7995,7 +7995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2287cc55f77a7b55fd28e018d9e66b403fe42fa938b0baf799f7f468e4dd135f"
+          "content": "f0f836c7f3adbfffd6b58deba44fd86e259800558d6db9714c3033c008abbdb2"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -9729,6 +9729,46 @@
         }
       ],
       "name": "migrations/v272_scout_photo_retention_governance.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c9b7b7dbc5cd19dbf30f96d4d65f4464f66943a6cd60f04c965a5d8fe8e20529"
+        }
+      ],
+      "name": "migrations/v274_inspection_evidence_versions.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c1a9afbf29bb7c26710447a0848ab81f5828a3087259bce283181729ea066ba2"
+        }
+      ],
+      "name": "migrations/v275_inspection_handoffs.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f5328ddacf22ee582563494a49f60b6ca4ea760ce32ad3f001d064557660ab8e"
+        }
+      ],
+      "name": "migrations/v276_task_cost_trace.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "55f17f0d88f8bd7115326391daeb7e4283f9c89c29e2047066c181d95294d12f"
+        }
+      ],
+      "name": "migrations/v277_inspection_close_gate.sql",
       "type": "file"
     },
     {
@@ -19865,7 +19905,37 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9251028fe3092d5a6451b66e6e4762b2e894a82cbcfa11c0130226b588d88e23"
+          "content": "e2a026858353337fea23ff0ce98ad0f1596d1fe25a63a0f8ab7308a4647836a8"
+        }
+      ],
+      "name": "services/field-management-service/fm_gateway.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "81c7b40101775beb317d1ec953a2e0a042b448fbd4a06342b31331e4316d2942"
+        }
+      ],
+      "name": "services/field-management-service/fm_task_costs.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2dca12d7a16d7e233dd46f4119f14330964ef4ef89e072437b1822cf97e8ccac"
+        }
+      ],
+      "name": "services/field-management-service/fm_task_inspection.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b51e62caa7b4e02589c7dba8a5c9e20044f8550e38e397a9c03f4993b1f1f87f"
         }
       ],
       "name": "services/field-management-service/main.py",
@@ -19899,6 +19969,16 @@
         }
       ],
       "name": "services/field-management-service/tests/test_field_management_service_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c7b542ed3be77a65ca1ebcba281c208a22ca99a9a1bdafd835aa46e32033ddec"
+        }
+      ],
+      "name": "services/field-management-service/tests/test_field_task_routes_unit.py",
       "type": "file"
     },
     {
@@ -27635,7 +27715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcc40529448fe66e782f1800e73553176a0164d6a9e9bf0d783d672eaec538e9"
+          "content": "ba7cd993765bb56dbf8101bb083b77de140f139e919ef9d48c818de2d557e0c2"
         }
       ],
       "name": "services/sahool-platform/api/routers/simple_farm_book.py",
@@ -27675,7 +27755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec8a405232d257596c3089d11ab52282908e90a7e36b2eabb14a9a9e0221c134"
+          "content": "ee918ce6a5460a03d5f2dd27038937135488e495caa36b28f2d4bfe76e801ba9"
         }
       ],
       "name": "services/sahool-platform/api/routers/tasks.py",
@@ -28075,7 +28155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5502652bd6e4542b5ba0e335745de0bc1c287d080c5d4bcfce5dbf34b55e5877"
+          "content": "63b54060ca77c3d358dcbf41ee6be5a3d7a1d3abe0b4f73b4f9ff049c52b1779"
         }
       ],
       "name": "services/sahool-platform/api/task_irrigation_observations.py",
