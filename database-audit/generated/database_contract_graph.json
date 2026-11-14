@@ -2081,10 +2081,13 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/core/tenant_audit.py"
+      ],
       "code_writers": [
         "services/auth/main.py",
         "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/core/tenant_audit.py",
         "services/sahool-platform/tests/test_break_glass.py"
       ],
       "created_in": "v9_auth_improvements.sql",
@@ -7309,6 +7312,7 @@
         "services/auth/routers/session.py",
         "services/auth/routers/users.py",
         "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/core/tenant_audit.py",
         "services/sahool-platform/tests/test_break_glass.py",
         "services/sahool-platform/tests/test_gaps_v91.py",
         "services/scout-ingest-service/credential_status.py",

@@ -1,5 +1,5 @@
 {
-  "edge_count": 1032,
+  "edge_count": 1035,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -1539,6 +1539,16 @@
       "relation": "READS",
       "resource": "db://as_applied_irrigation_runs",
       "to": "db://as_applied_irrigation_runs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/tenant_audit.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://audit_log",
+      "to": "db://audit_log",
       "to_kind": "resource"
     },
     {
@@ -4882,6 +4892,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/core/tenant_audit.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_break_glass.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -7622,6 +7642,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/core/tenant_audit.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://audit_log",
+      "to": "db://audit_log",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_break_glass.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -10340,9 +10370,9 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 546,
+    "READS": 548,
     "ROUTES_TO": 73,
-    "WRITES": 362
+    "WRITES": 363
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -10357,8 +10387,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 909,
-      "resolved": 908,
+      "observed": 912,
+      "resolved": 911,
       "unresolved_component_paths": 0
     }
   }
