@@ -7725,7 +7725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f1735e403d96b9ea3174fdb97c6b99faaf6386bced48b42e5133d962ecd8986e"
+          "content": "89434fb300a53148dc7f559a54b3cea10925d8850c020382d6cc18e353739d51"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -17615,7 +17615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb3b41e3e0ed3c258071cb99a47659335ebff725cd47cdc5e1a63d40d2542a66"
+          "content": "6cd25341a6c3ce07b191f9f34297c38dc9f4f3d8a1d4cf9c54411733adad2d60"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -41265,7 +41265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "397dc2ad46ab13ae2ecedb0b70b2354b117960980c262c7fd6af6e777c21573c"
+          "content": "9d2bf807849e9c6d1dbcdbba9a2d5cb5cf12b4b95e56bf4274de255062ae32d7"
         }
       ],
       "name": "shared/knowledge/context_resolver.py",
