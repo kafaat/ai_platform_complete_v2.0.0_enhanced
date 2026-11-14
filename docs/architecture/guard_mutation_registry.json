@@ -3359,7 +3359,7 @@
     "shared/ai/rag_readiness.py": {
       "mutations": [
         {
-          "expect": "test_missing_operational_parity_blocks_readiness",
+          "expect": "test_ready_is_an_operational_claim_not_an_authority_cutover",
           "find": "        and payload.get(\"collection_vector_schema_parity\") is True\n",
           "replace": "        and payload.get(\"collection_schema_parity\") is True\n",
           "test": "tests_v9/test_rag_readiness_unified.py",
