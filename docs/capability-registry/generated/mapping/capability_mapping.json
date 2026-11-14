@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7340,
+    "files_scanned": 7341,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2181,
-      "tests": 2501,
+      "tests": 2502,
       "web": 547
     },
-    "unmapped_artifacts": 3492,
+    "unmapped_artifacts": 3493,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3971,
+      "python_functional": 3972,
       "raw": 3369
     },
-    "test_dependency_files": 1901,
-    "test_dependency_edges": 4890,
-    "test_dependency_bounded_files": 1114,
+    "test_dependency_files": 1902,
+    "test_dependency_edges": 4892,
+    "test_dependency_bounded_files": 1115,
     "test_dependency_unresolved_relations": 482
   },
   "capabilities": [
@@ -40343,6 +40343,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_field_trial_design.py",
       "kind": "tests"
     },
@@ -61044,6 +61048,24 @@
           "source": "services/sahool-platform/core/field_state_replay_bridge.py",
           "kind": "import",
           "line": 2
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 15
+        },
+        {
+          "source": "services/sahool-platform/api/routers/field_workspace_timeline.py",
+          "kind": "import",
+          "line": 15
         }
       ],
       "unresolved": []

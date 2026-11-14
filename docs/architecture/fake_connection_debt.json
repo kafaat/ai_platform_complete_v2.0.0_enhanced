@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "e8cce153c942d45d493eff534b4866edb7aa90f9",
+  "measured_on": "f2cc26158378ac405a277fffa38764c49ae16094",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -35,6 +35,7 @@
     "services/sahool-platform/tests/test_field_auto_imagery_revision.py",
     "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
     "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+    "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
     "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
     "services/sahool-platform/tests/test_governance_modules.py",
     "services/sahool-platform/tests/test_idempotency_server_contract.py",

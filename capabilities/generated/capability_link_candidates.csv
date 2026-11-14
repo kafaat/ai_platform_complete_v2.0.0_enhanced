@@ -912,6 +912,7 @@ FM-003,test,services/sahool-platform/tests/test_field_season_projection.py,3,app
 FM-003,test,services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_state.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_state_replay_bridge.py,3,applied
+FM-003,test,services/sahool-platform/tests/test_field_timeline_error_mapping.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_trial_design.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_twin.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_twin_endpoint.py,3,applied
@@ -2081,6 +2082,7 @@ SAT-006,test,services/raster-service/test_cdse_timeline_pg.py,3,applied
 SAT-006,test,services/raster-service/test_historical_backfill.py,5,applied
 SAT-006,test,services/raster-service/test_persisted_thumbnail_path.py,3,applied
 SAT-006,test,services/sahool-platform/tests/test_agronomic_replay_historical_sources.py,3,applied
+SAT-006,test,services/sahool-platform/tests/test_field_timeline_error_mapping.py,3,applied
 SAT-006,test,services/sahool-platform/tests/test_historical_loader.py,3,applied
 SAT-006,test,services/sahool-platform/tests/test_historical_onboarding.py,3,applied
 SAT-006,test,services/sahool-platform/tests/test_historical_season_context.py,3,applied

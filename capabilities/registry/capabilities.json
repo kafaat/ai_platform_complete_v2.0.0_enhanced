@@ -453,7 +453,7 @@
       },
       "evidence_truncated": {
         "apis": 227,
-        "tests": 152,
+        "tests": 153,
         "mobile_consumers": 44
       }
     },
@@ -1841,6 +1841,7 @@
         "services/raster-service/test_historical_backfill.py",
         "services/raster-service/test_persisted_thumbnail_path.py",
         "services/sahool-platform/tests/test_agronomic_replay_historical_sources.py",
+        "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
         "services/sahool-platform/tests/test_historical_loader.py",
         "services/sahool-platform/tests/test_historical_onboarding.py",
         "services/sahool-platform/tests/test_historical_season_context.py",
@@ -1853,8 +1854,7 @@
         "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
         "tests_v9/test_decision_review_backfill_verify.py",
         "tests_v9/test_field_timeline_tenant_scope_live_pg.py",
-        "tests_v9/test_historical_imagery_timeline_contract.py",
-        "tests_v9/test_historical_search_cdse_v30_8.py"
+        "tests_v9/test_historical_imagery_timeline_contract.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1893,7 +1893,7 @@
         "Farmonaut": "3"
       },
       "evidence_truncated": {
-        "tests": 4
+        "tests": 5
       }
     },
     {
