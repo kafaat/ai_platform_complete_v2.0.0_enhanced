@@ -20,6 +20,16 @@ class MfaRequiredException implements Exception {
       'MfaRequiredException: يتطلّب الحساب رمز المصادقة الثنائيّة';
 }
 
+/// Short-lived password-proven capability, never an access token.
+/// Do not include the proof in logs or in [toString].
+class MfaEnrollmentRequiredException implements Exception {
+  const MfaEnrollmentRequiredException(this.enrollmentToken, {this.expiresIn});
+  final String enrollmentToken;
+  final int? expiresIn;
+  @override
+  String toString() => 'MfaEnrollmentRequiredException';
+}
+
 class AuthApi {
   AuthApi([ApiClient? client]) : _client = client ?? ApiClient.instance;
   static final AuthApi instance = AuthApi();
@@ -55,6 +65,24 @@ class AuthApi {
         final mfa = cause.response?.headers.value('x-mfa-required');
         if (mfa?.toLowerCase() == 'true') throw const MfaRequiredException();
       }
+      if (e.statusCode == 403 && cause is DioException) {
+        // Require BOTH the server's explicit MFA-enrollment header and a nonempty proof.
+        // Other 403 errors must stay forbidden and never enter MFA setup.
+        final offered = cause.response?.headers.value(
+          'x-mfa-enrollment-required',
+        );
+        final payload = cause.response?.data;
+        if (offered?.toLowerCase() == 'true' && payload is Map) {
+          final proof = payload['enrollment_token'];
+          final ttl = payload['expires_in'];
+          if (proof is String && proof.isNotEmpty) {
+            throw MfaEnrollmentRequiredException(
+              proof,
+              expiresIn: ttl is int && ttl > 0 ? ttl : null,
+            );
+          }
+        }
+      }
       rethrow;
     }
     final data = asJsonMap(body);
@@ -82,6 +110,44 @@ class AuthApi {
   Future<Map<String, dynamic>> mfaSetup() async {
     final r = await _client.post('/auth/mfa/setup');
     return asJsonMap(r);
+  }
+
+  /// Password-proven setup: explicitly supplies the single-use *setup* capability.
+  /// No session token is read, saved, refreshed or sent through this request.
+  Future<Map<String, dynamic>> mfaEnrollmentSetup(String proof) async {
+    final data = asJsonMap(
+      await _client.send(
+        'POST',
+        '/auth/mfa/setup',
+        data: <String, dynamic>{},
+        headers: {'Authorization': 'Bearer $proof'},
+        authenticated: false,
+      ),
+    );
+    for (final field in ['secret', 'provisioning_uri', 'enrollment_token']) {
+      final value = data[field];
+      if (value is! String || value.isEmpty) {
+        throw FormatException('Missing required MFA setup field: $field');
+      }
+    }
+    return data;
+  }
+
+  /// Activation requires the SECOND proof produced by setup; it never creates
+  /// an application session. User signs in again with password and TOTP.
+  Future<Map<String, dynamic>> mfaEnrollmentActivate(
+    String proof,
+    String code,
+  ) async {
+    return asJsonMap(
+      await _client.send(
+        'POST',
+        '/auth/mfa/activate',
+        data: {'code': code},
+        headers: {'Authorization': 'Bearer $proof'},
+        authenticated: false,
+      ),
+    );
   }
 
   /// يفعّل MFA بعد تأكيد أوّل رمز صحيح (POST /auth/mfa/activate).
