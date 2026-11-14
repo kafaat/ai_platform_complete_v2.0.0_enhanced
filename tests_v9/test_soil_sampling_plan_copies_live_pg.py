@@ -132,7 +132,9 @@ async def test_table_is_owned_by_soil_service_with_forced_rls_and_reapplies_clea
     finally:
         await app.close()
         await admin.close()
-    ownership = yaml.safe_load((_ROOT / "docs/architecture/db_ownership.yml").read_text("utf-8"))
+    ownership = yaml.safe_load(
+        (_ROOT / "docs/architecture/db_ownership.yml").read_text(encoding="utf-8")
+    )
     entry = ownership["tables"][_TABLE]
     assert entry["owner"] == "soil-service" and entry["writers"] == ["soil-service"]
     platform = _ROOT / "services" / "sahool-platform"
