@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "2abac3973923dfe3202d6962f2d31ee54940b76a92f27ae8212d6fdbfd7f01c2",
+  "inventory_sha256": "7e6c91a2dc048e14c675798072725cb2cdf845216bb27718bcec0770411a1e80",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "4da86e35232cb14f821daea838ad9be5f95d0c38024b285d90ab0f3d1ef554f5"
+    "policy_sha256": "dafb234b025f5c5315cd27c11dc5e352435aba0841423b64240260af09ca898f"
   },
   "routes": [
     {
@@ -682,7 +682,7 @@
     {
       "classification": "domain",
       "function": "list_decision_records",
-      "line": 699,
+      "line": 704,
       "method": "GET",
       "path": "/api/v1/decision/records",
       "source": "api/routers/decision_record.py"
@@ -690,7 +690,7 @@
     {
       "classification": "domain",
       "function": "explain_decision_endpoint",
-      "line": 74,
+      "line": 79,
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/explain",
       "source": "api/routers/decision_explain.py"
@@ -698,7 +698,7 @@
     {
       "classification": "domain",
       "function": "get_decision_lineage",
-      "line": 659,
+      "line": 661,
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/lineage",
       "source": "api/routers/decision_record.py"
@@ -706,7 +706,7 @@
     {
       "classification": "domain",
       "function": "get_decision_review_queue",
-      "line": 50,
+      "line": 51,
       "method": "GET",
       "path": "/api/v1/decisions/review-queue",
       "source": "api/routers/decision_review.py"
@@ -714,7 +714,7 @@
     {
       "classification": "domain",
       "function": "get_decision_agronomic_evidence_boundary",
-      "line": 82,
+      "line": 79,
       "method": "GET",
       "path": "/api/v1/decisions/{decision_id}/agronomic-evidence",
       "source": "api/routers/decision_review.py"
@@ -842,7 +842,7 @@
     {
       "classification": "domain",
       "function": "entity_events",
-      "line": 31,
+      "line": 33,
       "method": "GET",
       "path": "/api/v1/events/{entity_type}/{entity_id}",
       "source": "api/routers/events.py"
@@ -858,7 +858,7 @@
     {
       "classification": "domain",
       "function": "evidence_map_endpoint",
-      "line": 87,
+      "line": 121,
       "method": "GET",
       "path": "/api/v1/evidence/map",
       "source": "api/routers/evidence_map.py"
@@ -922,7 +922,7 @@
     {
       "classification": "domain",
       "function": "get_economic_state",
-      "line": 942,
+      "line": 947,
       "method": "GET",
       "path": "/api/v1/farm-ledger/economic-state/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -938,7 +938,7 @@
     {
       "classification": "domain",
       "function": "get_inventory_projection",
-      "line": 848,
+      "line": 853,
       "method": "GET",
       "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -954,7 +954,7 @@
     {
       "classification": "domain",
       "function": "get_season_profitability",
-      "line": 678,
+      "line": 683,
       "method": "GET",
       "path": "/api/v1/farm-ledger/profitability/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -1026,7 +1026,7 @@
     {
       "classification": "domain",
       "function": "get_field_lineage",
-      "line": 750,
+      "line": 758,
       "method": "GET",
       "path": "/api/v1/field/{field_id}/lineage",
       "source": "api/routers/decision_record.py"
@@ -1274,7 +1274,7 @@
     {
       "classification": "domain",
       "function": "field_season_state_endpoint",
-      "line": 605,
+      "line": 606,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
       "source": "api/routers/seasons.py"
@@ -1698,7 +1698,7 @@
     {
       "classification": "domain",
       "function": "get_learning_summary",
-      "line": 52,
+      "line": 155,
       "method": "GET",
       "path": "/api/v1/learning/summary",
       "source": "api/routers/learning_summary.py"
@@ -2642,7 +2642,7 @@
     {
       "classification": "domain",
       "function": "model_serving_resolve",
-      "line": 300,
+      "line": 318,
       "method": "GET",
       "path": "/models/serving/{alias:path}",
       "source": "api/phase10_continuous_learning.py"
@@ -3234,7 +3234,7 @@
     {
       "classification": "domain",
       "function": "record_decision",
-      "line": 372,
+      "line": 374,
       "method": "POST",
       "path": "/api/v1/decision/record",
       "source": "api/routers/decision_record.py"
@@ -3258,7 +3258,7 @@
     {
       "classification": "domain",
       "function": "review_decision_candidate",
-      "line": 118,
+      "line": 115,
       "method": "POST",
       "path": "/api/v1/decisions/{decision_id}/review",
       "source": "api/routers/decision_review.py"
@@ -3418,7 +3418,7 @@
     {
       "classification": "domain",
       "function": "operation_autowrite_preview",
-      "line": 800,
+      "line": 805,
       "method": "POST",
       "path": "/api/v1/farm-ledger/autowrite-preview",
       "source": "api/routers/farm_operations_ledger.py"
@@ -4154,7 +4154,7 @@
     {
       "classification": "domain",
       "function": "record_outcome",
-      "line": 505,
+      "line": 507,
       "method": "POST",
       "path": "/api/v1/outcome/record",
       "source": "api/routers/decision_record.py"
@@ -4298,7 +4298,7 @@
     {
       "classification": "domain",
       "function": "simulate_season_endpoint",
-      "line": 145,
+      "line": 146,
       "method": "POST",
       "path": "/api/v1/seasons/{season_id}/simulate",
       "source": "api/routers/seasons.py"
@@ -4466,7 +4466,7 @@
     {
       "classification": "domain",
       "function": "champion_challenger",
-      "line": 224,
+      "line": 228,
       "method": "POST",
       "path": "/champion-challenger",
       "source": "api/phase10_continuous_learning.py"
@@ -4522,7 +4522,7 @@
     {
       "classification": "domain",
       "function": "learning_cycle",
-      "line": 196,
+      "line": 200,
       "method": "POST",
       "path": "/cycle",
       "source": "api/phase10_continuous_learning.py"
@@ -4554,7 +4554,7 @@
     {
       "classification": "domain",
       "function": "dataset",
-      "line": 151,
+      "line": 155,
       "method": "POST",
       "path": "/dataset",
       "source": "api/phase10_continuous_learning.py"
@@ -4562,7 +4562,7 @@
     {
       "classification": "domain",
       "function": "drift",
-      "line": 208,
+      "line": 212,
       "method": "POST",
       "path": "/drift",
       "source": "api/phase10_continuous_learning.py"
@@ -4610,7 +4610,7 @@
     {
       "classification": "domain",
       "function": "experiment_evaluation",
-      "line": 181,
+      "line": 185,
       "method": "POST",
       "path": "/experiments/evaluate",
       "source": "api/phase10_continuous_learning.py"
@@ -4626,7 +4626,7 @@
     {
       "classification": "domain",
       "function": "feature_schema",
-      "line": 146,
+      "line": 150,
       "method": "POST",
       "path": "/feature-schema",
       "source": "api/phase10_continuous_learning.py"
@@ -4634,7 +4634,7 @@
     {
       "classification": "domain",
       "function": "feature_store_offline_dataset",
-      "line": 243,
+      "line": 247,
       "method": "POST",
       "path": "/feature-store/offline-dataset",
       "source": "api/phase10_continuous_learning.py"
@@ -4642,7 +4642,7 @@
     {
       "classification": "domain",
       "function": "feature_store_online_materialization",
-      "line": 253,
+      "line": 258,
       "method": "POST",
       "path": "/feature-store/online-materialization",
       "source": "api/phase10_continuous_learning.py"
@@ -4650,7 +4650,7 @@
     {
       "classification": "domain",
       "function": "feature_store_point_in_time",
-      "line": 261,
+      "line": 266,
       "method": "POST",
       "path": "/feature-store/point-in-time",
       "source": "api/phase10_continuous_learning.py"
@@ -4658,7 +4658,7 @@
     {
       "classification": "domain",
       "function": "feature_store_register",
-      "line": 236,
+      "line": 240,
       "method": "POST",
       "path": "/feature-store/register",
       "source": "api/phase10_continuous_learning.py"
@@ -4786,7 +4786,7 @@
     {
       "classification": "domain",
       "function": "model_promotion",
-      "line": 161,
+      "line": 165,
       "method": "POST",
       "path": "/models/promote",
       "source": "api/phase10_continuous_learning.py"
@@ -4794,7 +4794,7 @@
     {
       "classification": "domain",
       "function": "model_register",
-      "line": 268,
+      "line": 280,
       "method": "POST",
       "path": "/models/register",
       "source": "api/phase10_continuous_learning.py"
@@ -4810,7 +4810,7 @@
     {
       "classification": "domain",
       "function": "model_serving_promote",
-      "line": 283,
+      "line": 301,
       "method": "POST",
       "path": "/models/serving/promote",
       "source": "api/phase10_continuous_learning.py"
@@ -4818,7 +4818,7 @@
     {
       "classification": "domain",
       "function": "model_serving_rollback",
-      "line": 290,
+      "line": 308,
       "method": "POST",
       "path": "/models/serving/rollback",
       "source": "api/phase10_continuous_learning.py"
@@ -4834,7 +4834,7 @@
     {
       "classification": "domain",
       "function": "online_update",
-      "line": 171,
+      "line": 175,
       "method": "POST",
       "path": "/online-update",
       "source": "api/phase10_continuous_learning.py"
@@ -4970,7 +4970,7 @@
     {
       "classification": "domain",
       "function": "retraining_plan",
-      "line": 217,
+      "line": 221,
       "method": "POST",
       "path": "/retraining/plan",
       "source": "api/phase10_continuous_learning.py"
@@ -5010,7 +5010,7 @@
     {
       "classification": "domain",
       "function": "scenario",
-      "line": 191,
+      "line": 195,
       "method": "POST",
       "path": "/scenario",
       "source": "api/phase10_continuous_learning.py"

@@ -33,11 +33,11 @@
     "services.video-processor.main:app",
     "services.weather-service.main:app"
   ],
-  "definition_count": 262,
+  "definition_count": 269,
   "definitions": [
     {
       "kind": "app",
-      "line": 1866,
+      "line": 1880,
       "module": "services.actuator-service.actuator_runtime",
       "node_id": "services.actuator-service.actuator_runtime:app",
       "route_count": 0,
@@ -181,7 +181,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 30,
       "module": "services.auth.routers.users",
       "node_id": "services.auth.routers.users:router",
       "route_count": 3,
@@ -190,10 +190,10 @@
     },
     {
       "kind": "app",
-      "line": 132,
+      "line": 135,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
-      "route_count": 73,
+      "route_count": 74,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -541,7 +541,7 @@
     },
     {
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.sahool-platform.api.phase10_continuous_learning",
       "node_id": "services.sahool-platform.api.phase10_continuous_learning:router",
       "route_count": 18,
@@ -892,7 +892,7 @@
     },
     {
       "kind": "router",
-      "line": 40,
+      "line": 45,
       "module": "services.sahool-platform.api.routers.decision_explain",
       "node_id": "services.sahool-platform.api.routers.decision_explain:router",
       "route_count": 1,
@@ -919,7 +919,7 @@
     },
     {
       "kind": "router",
-      "line": 50,
+      "line": 52,
       "module": "services.sahool-platform.api.routers.decision_record",
       "node_id": "services.sahool-platform.api.routers.decision_record:router",
       "route_count": 5,
@@ -928,7 +928,7 @@
     },
     {
       "kind": "router",
-      "line": 31,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.decision_review",
       "node_id": "services.sahool-platform.api.routers.decision_review:router",
       "route_count": 16,
@@ -1036,7 +1036,7 @@
     },
     {
       "kind": "router",
-      "line": 28,
+      "line": 30,
       "module": "services.sahool-platform.api.routers.events",
       "node_id": "services.sahool-platform.api.routers.events:router",
       "route_count": 1,
@@ -1054,7 +1054,7 @@
     },
     {
       "kind": "router",
-      "line": 31,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.evidence_map",
       "node_id": "services.sahool-platform.api.routers.evidence_map:router",
       "route_count": 1,
@@ -1432,7 +1432,7 @@
     },
     {
       "kind": "router",
-      "line": 35,
+      "line": 38,
       "module": "services.sahool-platform.api.routers.learning_summary",
       "node_id": "services.sahool-platform.api.routers.learning_summary:router",
       "route_count": 1,
@@ -1837,7 +1837,7 @@
     },
     {
       "kind": "router",
-      "line": 34,
+      "line": 35,
       "module": "services.sahool-platform.api.routers.seasons",
       "node_id": "services.sahool-platform.api.routers.seasons:router",
       "route_count": 2,
@@ -2089,11 +2089,56 @@
     },
     {
       "kind": "router",
+      "line": 21,
+      "module": "services.scout-ingest-service.detection_link_api",
+      "node_id": "services.scout-ingest-service.detection_link_api:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.scout-ingest-service.evidence_retention_api",
+      "node_id": "services.scout-ingest-service.evidence_retention_api:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
       "line": 72,
       "module": "services.scout-ingest-service.field_forms_api",
       "node_id": "services.scout-ingest-service.field_forms_api:router",
       "route_count": 7,
       "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 45,
+      "module": "services.scout-ingest-service.grants_admin_api",
+      "node_id": "services.scout-ingest-service.grants_admin_api:router",
+      "route_count": 6,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 30,
+      "module": "services.scout-ingest-service.human_review_api",
+      "node_id": "services.scout-ingest-service.human_review_api:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.scout-ingest-service.lab_link_api",
+      "node_id": "services.scout-ingest-service.lab_link_api:router",
+      "route_count": 2,
+      "statically_reachable": false,
       "symbol": "router"
     },
     {
@@ -2107,10 +2152,10 @@
     },
     {
       "kind": "router",
-      "line": 41,
+      "line": 48,
       "module": "services.scout-ingest-service.media_api",
       "node_id": "services.scout-ingest-service.media_api:router",
-      "route_count": 2,
+      "route_count": 5,
       "statically_reachable": true,
       "symbol": "router"
     },
@@ -2121,6 +2166,24 @@
       "node_id": "services.scout-ingest-service.season_api:router",
       "route_count": 10,
       "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.scout-ingest-service.tissue_samples_api",
+      "node_id": "services.scout-ingest-service.tissue_samples_api:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.scout-ingest-service.treatment_review_api",
+      "node_id": "services.scout-ingest-service.treatment_review_api:router",
+      "route_count": 2,
+      "statically_reachable": false,
       "symbol": "router"
     },
     {
@@ -2394,7 +2457,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 50,
+  "include_edge_count": 55,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2524,7 +2587,7 @@
     },
     {
       "expression": "routes.router",
-      "line": 139,
+      "line": 141,
       "module": "services/sahool-platform/tests/test_decision_correlation_http_projection.py",
       "prefix": null,
       "resolved": false,
@@ -2640,6 +2703,15 @@
       "target": null
     },
     {
+      "expression": "router",
+      "line": 58,
+      "module": "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_irrigation_water_contract_overflow:<dynamic-source>",
+      "target": null
+    },
+    {
       "expression": "mod.router",
       "line": 120,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
@@ -2691,6 +2763,24 @@
       "prefix": null,
       "resolved": false,
       "source": "services.sahool-platform.tests.test_phase10_continuous_learning_api:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "router",
+      "line": 37,
+      "module": "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_phase10_offline_dataset_as_of:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "router",
+      "line": 36,
+      "module": "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_phase10_point_in_time_as_of_422:<dynamic-source>",
       "target": null
     },
     {
@@ -2784,8 +2874,17 @@
       "target": "services.scout-ingest-service.media_api:router"
     },
     {
+      "expression": "_router",
+      "line": 79,
+      "module": "services/scout-ingest-service/main.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.scout-ingest-service.main:app",
+      "target": null
+    },
+    {
       "expression": "field_forms_router",
-      "line": 386,
+      "line": 408,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2793,8 +2892,17 @@
       "target": "services.scout-ingest-service.field_forms_api:router"
     },
     {
+      "expression": "module.router",
+      "line": 173,
+      "module": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.scout-ingest-service.tests.test_evidence_ledgers_live:<dynamic-source>",
+      "target": null
+    },
+    {
       "expression": "media_api.router",
-      "line": 171,
+      "line": 256,
       "module": "services/scout-ingest-service/tests/test_media_live.py",
       "prefix": null,
       "resolved": false,
@@ -2847,8 +2955,8 @@
       "target": null
     }
   ],
-  "inventory_sha256": "7e06ad405da3321576251e23d5f8a5ad84c4a0a6557a33a3223d705d7b7fbec2",
-  "orphan_candidate_count": 229,
+  "inventory_sha256": "f52589a5eae7538c7395c640784c0d8d2a4d3fdfbd698bdafefc67580a77c732",
+  "orphan_candidate_count": 236,
   "orphan_candidates": [
     {
       "classification": "review_only_not_statically_reachable",
@@ -2973,7 +3081,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 30,
       "module": "services.auth.routers.users",
       "node_id": "services.auth.routers.users:router",
       "route_count": 3,
@@ -3203,7 +3311,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.sahool-platform.api.phase10_continuous_learning",
       "node_id": "services.sahool-platform.api.phase10_continuous_learning:router",
       "route_count": 18,
@@ -3593,7 +3701,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 40,
+      "line": 45,
       "module": "services.sahool-platform.api.routers.decision_explain",
       "node_id": "services.sahool-platform.api.routers.decision_explain:router",
       "route_count": 1,
@@ -3623,7 +3731,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 50,
+      "line": 52,
       "module": "services.sahool-platform.api.routers.decision_record",
       "node_id": "services.sahool-platform.api.routers.decision_record:router",
       "route_count": 5,
@@ -3633,7 +3741,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 31,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.decision_review",
       "node_id": "services.sahool-platform.api.routers.decision_review:router",
       "route_count": 16,
@@ -3753,7 +3861,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 28,
+      "line": 30,
       "module": "services.sahool-platform.api.routers.events",
       "node_id": "services.sahool-platform.api.routers.events:router",
       "route_count": 1,
@@ -3773,7 +3881,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 31,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.evidence_map",
       "node_id": "services.sahool-platform.api.routers.evidence_map:router",
       "route_count": 1,
@@ -4193,7 +4301,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 35,
+      "line": 38,
       "module": "services.sahool-platform.api.routers.learning_summary",
       "node_id": "services.sahool-platform.api.routers.learning_summary:router",
       "route_count": 1,
@@ -4643,7 +4751,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 34,
+      "line": 35,
       "module": "services.sahool-platform.api.routers.seasons",
       "node_id": "services.sahool-platform.api.routers.seasons:router",
       "route_count": 2,
@@ -4903,6 +5011,76 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
+      "line": 21,
+      "module": "services.scout-ingest-service.detection_link_api",
+      "node_id": "services.scout-ingest-service.detection_link_api:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.scout-ingest-service.evidence_retention_api",
+      "node_id": "services.scout-ingest-service.evidence_retention_api:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 45,
+      "module": "services.scout-ingest-service.grants_admin_api",
+      "node_id": "services.scout-ingest-service.grants_admin_api:router",
+      "route_count": 6,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 30,
+      "module": "services.scout-ingest-service.human_review_api",
+      "node_id": "services.scout-ingest-service.human_review_api:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.scout-ingest-service.lab_link_api",
+      "node_id": "services.scout-ingest-service.lab_link_api:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.scout-ingest-service.tissue_samples_api",
+      "node_id": "services.scout-ingest-service.tissue_samples_api:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.scout-ingest-service.treatment_review_api",
+      "node_id": "services.scout-ingest-service.treatment_review_api:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
       "line": 11,
       "module": "services.soil-service.routers.canonical",
       "node_id": "services.soil-service.routers.canonical:router",
@@ -5144,11 +5322,11 @@
   "production_certified": false,
   "reachable_node_count": 33,
   "resolved_include_edge_count": 3,
-  "router_with_routes_count": 232,
+  "router_with_routes_count": 239,
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 47,
+  "unresolved_include_count": 52,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5265,7 +5443,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_decision_correlation_http_projection.py",
-      "line": 139,
+      "line": 141,
       "module": "services.sahool-platform.tests.test_decision_correlation_http_projection",
       "source": null,
       "target_expression": "routes.router"
@@ -5368,6 +5546,14 @@
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
+      "line": 58,
+      "module": "services.sahool-platform.tests.test_irrigation_water_contract_overflow",
+      "source": null,
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "line": 120,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
@@ -5411,6 +5597,22 @@
       "file": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
       "line": 13,
       "module": "services.sahool-platform.tests.test_phase10_continuous_learning_api",
+      "source": null,
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
+      "line": 37,
+      "module": "services.sahool-platform.tests.test_phase10_offline_dataset_as_of",
+      "source": null,
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
+      "line": 36,
+      "module": "services.sahool-platform.tests.test_phase10_point_in_time_as_of_422",
       "source": null,
       "target_expression": "router"
     },
@@ -5480,8 +5682,24 @@
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/scout-ingest-service/main.py",
+      "line": 79,
+      "module": "services.scout-ingest-service.main",
+      "source": "services.scout-ingest-service.main:app",
+      "target_expression": "_router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+      "line": 173,
+      "module": "services.scout-ingest-service.tests.test_evidence_ledgers_live",
+      "source": null,
+      "target_expression": "module.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/scout-ingest-service/tests/test_media_live.py",
-      "line": 171,
+      "line": 256,
       "module": "services.scout-ingest-service.tests.test_media_live",
       "source": null,
       "target_expression": "media_api.router"

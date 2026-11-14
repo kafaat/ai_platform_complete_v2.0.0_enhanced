@@ -2565,6 +2565,7 @@
         "FIELD_FORMS_SYNC_HMAC_PREVIOUS_KEY_ID",
         "FIELD_FORMS_SYNC_PREVIOUS_UNTIL_EPOCH",
         "LOGBOOK_LOCAL_DIR",
+        "SCOUT_GRANT_ADMIN_DATABASE_URL",
         "SCOUT_INGEST_ENABLED",
         "SCOUT_INGEST_PROJECTION_BATCH",
         "SCOUT_INGEST_PROJECTION_DISABLED_IDLE_SECONDS",
@@ -2572,7 +2573,16 @@
         "SCOUT_INGEST_PROJECTION_LEASE_SECONDS",
         "SCOUT_INGEST_PROJECTION_MAX_ATTEMPTS",
         "SCOUT_INGEST_PROJECTION_POLL_SECONDS",
+        "SCOUT_MEDIA_DETECTION_LINK_ENABLED",
         "SCOUT_MEDIA_ENABLED",
+        "SCOUT_MEDIA_GOVERNANCE_ADMIN_ENABLED",
+        "SCOUT_MEDIA_GRANTS_ADMIN_ENABLED",
+        "SCOUT_MEDIA_HUMAN_REVIEW_ENABLED",
+        "SCOUT_MEDIA_LAB_LINK_ENABLED",
+        "SCOUT_MEDIA_RETENTION_ENABLED",
+        "SCOUT_MEDIA_SEASON_LINK_ENABLED",
+        "SCOUT_MEDIA_TISSUE_SAMPLE_ENABLED",
+        "SCOUT_MEDIA_TREATMENT_REVIEW_ENABLED",
         "SEASON_ENTRY_ENABLED",
         "SERVICE_VERSION",
         "TEST_ADMIN_URL"
@@ -2595,7 +2605,13 @@
       "entrypoint": "services/scout-ingest-service/main.py",
       "evidence_paths": {
         "configuration": [
+          "services/scout-ingest-service/credential_status.py",
+          "services/scout-ingest-service/detection_link_api.py",
+          "services/scout-ingest-service/evidence_retention_api.py",
           "services/scout-ingest-service/field_forms_api.py",
+          "services/scout-ingest-service/grants_admin_api.py",
+          "services/scout-ingest-service/human_review_api.py",
+          "services/scout-ingest-service/lab_link_api.py",
           "services/scout-ingest-service/main.py",
           "services/scout-ingest-service/media_api.py",
           "services/scout-ingest-service/projection_worker.py",
@@ -2603,10 +2619,13 @@
           "services/scout-ingest-service/tests/test_ingest_live.py",
           "services/scout-ingest-service/tests/test_media_live.py",
           "services/scout-ingest-service/tests/test_projection_live.py",
-          "services/scout-ingest-service/tests/test_season_live.py"
+          "services/scout-ingest-service/tests/test_season_live.py",
+          "services/scout-ingest-service/tissue_samples_api.py",
+          "services/scout-ingest-service/treatment_review_api.py"
         ],
         "metrics": [],
         "routes": [
+          "services/scout-ingest-service/evidence_retention_api.py",
           "services/scout-ingest-service/field_forms_api.py",
           "services/scout-ingest-service/main.py",
           "services/scout-ingest-service/media_api.py",
@@ -2626,6 +2645,7 @@
         "FIELD_FORMS_SERVICE_TOKEN",
         "FIELD_FORMS_SYNC_HMAC_KEY",
         "SCOUT_INGEST_READ_TOKEN",
+        "SCOUT_MEDIA_CREDENTIAL_ENFORCEMENT_ENABLED",
         "SCOUT_MEDIA_SERVICE_TOKEN",
         "SEASON_EDGE_HMAC_KEY",
         "SEASON_ENTRY_SERVICE_TOKEN"

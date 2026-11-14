@@ -955,7 +955,7 @@
       "entrypoints": [
         "POST /v1/context-snapshots"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1030,7 +1030,7 @@
       "entrypoints": [
         "POST /v1/decisions/{decision_id}/execution-plan"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1052,7 +1052,7 @@
       "required_context": []
     },
     {
-      "approval_required": true,
+      "approval_required": false,
       "capability_id": "decision-service.decisions.decision_id.review",
       "consumers": [],
       "curated": false,
@@ -1060,7 +1060,7 @@
       "entrypoints": [
         "POST /v1/decisions/{decision_id}/review"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1105,7 +1105,7 @@
       "entrypoints": [
         "POST /v1/dispatch-authorizations/{dispatch_authorization_id}/execute"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1181,7 +1181,7 @@
       "entrypoints": [
         "POST /v1/execution-plans/{execution_plan_id}/authorize-dispatch"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1256,7 +1256,7 @@
       "entrypoints": [
         "POST /v1/execution-requests/{execution_request_id}/verify-outcome"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1304,7 +1304,7 @@
         "POST /v1/learning/activation-commands/{activation_command_id}/claim",
         "POST /v1/learning/activation-commands/{activation_command_id}/receipt"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1321,7 +1321,7 @@
         "POST /v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan",
         "POST /v1/learning/activation-receipts/{activation_receipt_id}/verification"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1336,7 +1336,7 @@
       "entrypoints": [
         "POST /v1/learning/activation-requests"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1351,7 +1351,7 @@
       "entrypoints": [
         "POST /v1/learning/activation-requests/{activation_request_id}/review"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1381,7 +1381,7 @@
       "entrypoints": [
         "POST /v1/learning/evaluation-runs"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1426,7 +1426,7 @@
       "entrypoints": [
         "POST /v1/learning/promotion-decisions"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1441,7 +1441,7 @@
       "entrypoints": [
         "POST /v1/learning/reconcile-evidence"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1471,7 +1471,7 @@
       "entrypoints": [
         "POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1487,7 +1487,7 @@
         "POST /v1/learning/rollback-commands/{rollback_command_id}/claim",
         "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1502,7 +1502,7 @@
       "entrypoints": [
         "POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1517,7 +1517,7 @@
       "entrypoints": [
         "POST /v1/learning/runtime-schedules"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -1593,7 +1593,7 @@
       "entrypoints": [
         "POST /v1/outcomes/{outcome_id}/learning-attribution"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "decision-service",
       "producer": "decision-service",
@@ -15674,6 +15674,7 @@
           "activation_evidence_revocations",
           "decision_agronomic_context_snapshots",
           "decision_consumer_heartbeats",
+          "decision_context_compositions",
           "decision_dispatch_authorizations",
           "decision_execution_delivery_attempts",
           "decision_execution_plans",
@@ -17301,7 +17302,19 @@
           "field_form_definitions",
           "field_form_versions",
           "field_submissions",
+          "scout_photo_detection_link_events",
           "scout_photo_evidence",
+          "scout_photo_field_access_grants",
+          "scout_photo_grant_audit_events",
+          "scout_photo_human_review_events",
+          "scout_photo_lab_link_events",
+          "scout_photo_retention_events",
+          "scout_photo_retention_policy_events",
+          "scout_photo_season_link_events",
+          "scout_plant_tissue_samples",
+          "scout_specialist_credential_events",
+          "scout_tissue_custody_events",
+          "scout_treatment_review_events",
           "season_cost_items",
           "season_crop",
           "season_events",
@@ -17813,9 +17826,9 @@
   "counts": {
     "backend_components": 33,
     "capabilities": 842,
-    "capabilities_approval_gated": 6,
+    "capabilities_approval_gated": 5,
     "capabilities_field_scoped": 97,
-    "capabilities_idempotent": 75,
+    "capabilities_idempotent": 57,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 482,
     "components": 37,
@@ -18087,7 +18100,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "bc8b8be86c7065906c867203d4063c90760f160fd74c95a431891f13cc41cd82",
+  "fingerprint": "2fb1d20a862c6cac66fc034914001f8020e8782ec881372c8e11d880edd034d0",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18137,14 +18150,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 964,
+      "edge_count": 965,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 503,
+        "READS": 504,
         "ROUTES_TO": 73,
         "WRITES": 337
       }

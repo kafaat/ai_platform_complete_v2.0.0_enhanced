@@ -69,7 +69,6 @@ decision-service.decisions.record,command,decision-service,POST /v1/decisions/re
 decision-service.decisions.review-queue,query,decision-service,GET /v1/decisions/review-queue,,route,False
 decision-service.dispatch-authorizations.dispatch_authorization_id.execute,command,decision-service,POST /v1/dispatch-authorizations/{dispatch_authorization_id}/execute,,route,False
 decision-service.dispatch.decisions,mixed,decision-service,GET /v1/dispatch/decisions|POST /v1/dispatch/decisions,,route,False
-decision-service.evidence.field-counts,command,decision-service,POST /v1/evidence/field-counts,,route,False
 decision-service.evidence.vegetation-snapshots,command,decision-service,POST /v1/evidence/vegetation-snapshots,,route,False
 decision-service.evidence.vegetation-snapshots.latest,query,decision-service,GET /v1/evidence/vegetation-snapshots/latest,,route,False
 decision-service.execution-plans.execution_plan_id,query,decision-service,GET /v1/execution-plans/{execution_plan_id},,route,False
@@ -297,6 +296,7 @@ sahool-platform.calibration.region.resolved,query,sahool-platform,GET /api/v1/ca
 sahool-platform.cameras.register,command,sahool-platform,POST /api/v1/cameras/register,frontend,route,False
 sahool-platform.cameras.snapshot-evidence,command,sahool-platform,POST /api/v1/cameras/snapshot-evidence,frontend,route,False
 sahool-platform.capabilities,query,sahool-platform,GET /api/v1/capabilities,frontend,route,False
+sahool-platform.chat,command,sahool-platform,POST /api/chat,frontend,route,False
 sahool-platform.chemical-safety.banned,query,sahool-platform,GET /api/v1/chemical-safety/banned,frontend,route,False
 sahool-platform.chemical-safety.check,command,sahool-platform,POST /api/v1/chemical-safety/check,frontend,route,False
 sahool-platform.climate-analogs.desert-crops,query,sahool-platform,GET /api/v1/climate-analogs/desert-crops,frontend,route,False
@@ -631,6 +631,7 @@ sahool-platform.postharvest.moisture-check,query,sahool-platform,GET /api/v1/pos
 sahool-platform.postharvest.pests,query,sahool-platform,GET /api/v1/postharvest/pests,frontend,route,False
 sahool-platform.practices.guide,query,sahool-platform,GET /api/v1/practices/guide,frontend,route,False
 sahool-platform.practices.list,query,sahool-platform,GET /api/v1/practices/list,frontend,route,False
+sahool-platform.probe,query,sahool-platform,GET /probe,frontend,route,False
 sahool-platform.propagation.crop,query,sahool-platform,GET /api/v1/propagation/crop,frontend,route,False
 sahool-platform.propagation.method-guide,query,sahool-platform,GET /api/v1/propagation/method-guide,frontend,route,False
 sahool-platform.propagation.methods,query,sahool-platform,GET /api/v1/propagation/methods,frontend,route,False

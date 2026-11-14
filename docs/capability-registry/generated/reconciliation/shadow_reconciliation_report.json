@@ -28,14 +28,6 @@
     },
     {
       "assessed_maturity": 2,
-      "capability_id": "FM-001",
-      "declared_maturity": 3,
-      "finding_id": "FM-001:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "FM-001:declared_above_evidence:evidence-maturity"
-    },
-    {
-      "assessed_maturity": 2,
       "capability_id": "FM-005",
       "declared_maturity": 3,
       "finding_id": "FM-005:declared_above_evidence",
@@ -49,14 +41,6 @@
       "finding_id": "FM-006:declared_above_evidence",
       "kind": "declared_above_evidence",
       "ratchet_identity": "FM-006:declared_above_evidence:evidence-maturity"
-    },
-    {
-      "assessed_maturity": 2,
-      "capability_id": "FM-007",
-      "declared_maturity": 3,
-      "finding_id": "FM-007:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "FM-007:declared_above_evidence:evidence-maturity"
     },
     {
       "assessed_maturity": 1,
@@ -83,20 +67,12 @@
       "ratchet_identity": "GIS-004:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "capability_id": "INT-001",
       "declared_maturity": 3,
       "finding_id": "INT-001:declared_above_evidence",
       "kind": "declared_above_evidence",
       "ratchet_identity": "INT-001:declared_above_evidence:evidence-maturity"
-    },
-    {
-      "assessed_maturity": 2,
-      "capability_id": "INT-002",
-      "declared_maturity": 3,
-      "finding_id": "INT-002:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "INT-002:declared_above_evidence:evidence-maturity"
     },
     {
       "assessed_maturity": 2,
@@ -161,14 +137,6 @@
       "finding_id": "IRR-008:declared_above_evidence",
       "kind": "declared_above_evidence",
       "ratchet_identity": "IRR-008:declared_above_evidence:evidence-maturity"
-    },
-    {
-      "assessed_maturity": 3,
-      "capability_id": "IRR-009",
-      "declared_maturity": 2,
-      "finding_id": "IRR-009:evidence_above_declared",
-      "kind": "evidence_above_declared",
-      "ratchet_identity": "IRR-009:evidence_above_declared:evidence-maturity"
     },
     {
       "assessed_maturity": 1,
@@ -297,14 +265,6 @@
       "finding_id": "SEC-003:declared_above_evidence",
       "kind": "declared_above_evidence",
       "ratchet_identity": "SEC-003:declared_above_evidence:evidence-maturity"
-    },
-    {
-      "assessed_maturity": 2,
-      "capability_id": "SEC-005",
-      "declared_maturity": 3,
-      "finding_id": "SEC-005:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "SEC-005:declared_above_evidence:evidence-maturity"
     },
     {
       "assessed_maturity": 2,
@@ -450,7 +410,162 @@
       "reason": "excluded_compatibility_assessment_outside_canonical_definition"
     }
   ],
-  "findings": [],
+  "findings": [
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "DEC-004",
+      "field": "evidence_level",
+      "finding_id": "DEC-004:evidence_level",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "DEC-004:evidence_level:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "DEC-004",
+      "field": "maturity",
+      "finding_id": "DEC-004:maturity",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "DEC-004:maturity:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "DEC-005",
+      "field": "evidence_level",
+      "finding_id": "DEC-005:evidence_level",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "DEC-005:evidence_level:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "DEC-005",
+      "field": "maturity",
+      "finding_id": "DEC-005:maturity",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "DEC-005:maturity:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "DEC-010",
+      "field": "evidence_level",
+      "finding_id": "DEC-010:evidence_level",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "DEC-010:evidence_level:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "DEC-010",
+      "field": "maturity",
+      "finding_id": "DEC-010:maturity",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "DEC-010:maturity:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "FM-008",
+      "field": "evidence_level",
+      "finding_id": "FM-008:evidence_level",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "FM-008:evidence_level:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "FM-008",
+      "field": "maturity",
+      "finding_id": "FM-008:maturity",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "FM-008:maturity:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "SAT-006",
+      "field": "evidence_level",
+      "finding_id": "SAT-006:evidence_level",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "SAT-006:evidence_level:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "SAT-006",
+      "field": "maturity",
+      "finding_id": "SAT-006:maturity",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "SAT-006:maturity:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "SAT-009",
+      "field": "evidence_level",
+      "finding_id": "SAT-009:evidence_level",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "SAT-009:evidence_level:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "SAT-009",
+      "field": "maturity",
+      "finding_id": "SAT-009:maturity",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "SAT-009:maturity:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "SEC-006",
+      "field": "evidence_level",
+      "finding_id": "SEC-006:evidence_level",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "SEC-006:evidence_level:registry-reconciliation"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 2,
+      "capability_id": "SEC-006",
+      "field": "maturity",
+      "finding_id": "SEC-006:maturity",
+      "kind": "field_drift",
+      "legacy": 3,
+      "legacy_role": "compatibility_projection",
+      "ratchet_identity": "SEC-006:maturity:registry-reconciliation"
+    }
+  ],
   "legacy_source": "capabilities/registry/capabilities.json",
   "mode": "shadow-report-only",
   "no_third_value_registry": true,
@@ -459,17 +574,30 @@
     "baseline_source": "docs/capability-registry/reconciliation_drift_baseline.json",
     "classes": {
       "evidence_maturity": {
-        "baseline_count": 49,
-        "new": [
-          "OPS-003:evidence_above_declared:evidence-maturity"
-        ],
-        "observed_count": 50,
+        "baseline_count": 45,
+        "new": [],
+        "observed_count": 45,
         "stale": []
       },
       "registry_reconciliation": {
         "baseline_count": 0,
-        "new": [],
-        "observed_count": 0,
+        "new": [
+          "DEC-004:evidence_level:registry-reconciliation",
+          "DEC-004:maturity:registry-reconciliation",
+          "DEC-005:evidence_level:registry-reconciliation",
+          "DEC-005:maturity:registry-reconciliation",
+          "DEC-010:evidence_level:registry-reconciliation",
+          "DEC-010:maturity:registry-reconciliation",
+          "FM-008:evidence_level:registry-reconciliation",
+          "FM-008:maturity:registry-reconciliation",
+          "SAT-006:evidence_level:registry-reconciliation",
+          "SAT-006:maturity:registry-reconciliation",
+          "SAT-009:evidence_level:registry-reconciliation",
+          "SAT-009:maturity:registry-reconciliation",
+          "SEC-006:evidence_level:registry-reconciliation",
+          "SEC-006:maturity:registry-reconciliation"
+        ],
+        "observed_count": 14,
         "stale": []
       }
     },
@@ -481,8 +609,8 @@
     "capabilities_canonical": 81,
     "capabilities_legacy": 81,
     "capabilities_shared": 81,
-    "field_drift_findings": 0,
-    "findings_total": 0,
+    "field_drift_findings": 14,
+    "findings_total": 14,
     "identity_findings": 0
   }
 }

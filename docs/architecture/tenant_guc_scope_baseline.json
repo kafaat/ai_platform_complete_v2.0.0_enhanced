@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "6ad144e3a67ce800ce103319d9b43460878516cb",
+  "measured_on": "39bcbe6fe8f4c9d8432c5ba5ecc9f9799879f50d",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "7e5464fcd41a7d5f5dec885e2651ee49c81fc22f0f6b134a0c2c626a34363de6",
+  "measurement_input_digest": "b5bf27c84240089f7fc36f37892747d0901a28c2fb645123f5074894ab2e04a0",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "8435864fca255995900d38668c200fcac0721f55691d718d3c4606f643425fbc",
+  "measurement_basis_digest": "8a4a5a36820a92aa3cde74e55f3249819bcf501b8e5eac2688744b5dc44cff56",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -52,11 +52,11 @@
     },
     {
       "path": "services/actuator-service/actuator_runtime.py",
-      "sha256": "162614474e7986dccd67a991c7db1f9c6af488b2716446afecd235056ef42f22"
+      "sha256": "d2661d88d937720f09189ea204aac1f713ff0fb80128f6ea2d25e3af55b7b6b6"
     },
     {
       "path": "services/auth/main.py",
-      "sha256": "c25eaef196c3d144d73f3761fc5dea78337d86f033ffcef3e2185eb70d08eda5"
+      "sha256": "04772b55c5f11fc90439035405df7c63d0261b310fec1e570dc1539ecd93a4eb"
     },
     {
       "path": "services/decision-service/observation_context.py",
@@ -64,7 +64,7 @@
     },
     {
       "path": "services/decision-service/persistence.py",
-      "sha256": "1c1eb1beccb28db2d7eefb45d838bfc8dd2ebb0af508bdb0844f39dc9e49d1ea"
+      "sha256": "8a69c9708f767da8316e1521d7735ae009321e23855000105db397fe3ad28f4a"
     },
     {
       "path": "services/field-management-service/main.py",
@@ -120,7 +120,7 @@
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "60adacb5cf1709826296bb1d7a170e256dad752369f1f99f1dca4c22c6d1989c"
+      "sha256": "ae0b609768613fbb045e28e982726bc076c3824e2c3f9ddb83a6a5dcc8c9e625"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
@@ -147,8 +147,12 @@
       "sha256": "33090cc6583c308e6fc2ec262cbdcf02b402e02ea638db25fd29695121d042c9"
     },
     {
+      "path": "services/scout-ingest-service/grants_admin_api.py",
+      "sha256": "7d7da48275f7f5aaf407c4f3bd08c54a532e9be9fe8decf83d366b1f11ba58de"
+    },
+    {
       "path": "services/scout-ingest-service/main.py",
-      "sha256": "48d219d18c1ad022f3de0f456b07aaa2f9c3d8d606d60427ad0e4d790363697c"
+      "sha256": "28cc8c24c97d2421feed330d60bc973c872beb0078fa42778124c54d27252b83"
     },
     {
       "path": "services/scout-ingest-service/projection_worker.py",
@@ -197,7 +201,7 @@
   ],
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
-    "services/actuator-service/actuator_runtime.py:1495",
+    "services/actuator-service/actuator_runtime.py:1509",
     "services/auth/main.py:993",
     "services/raster-service/backfill_scan_worker.py:170",
     "services/raster-service/cache_invalidation_worker.py:126",

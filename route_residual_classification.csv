@@ -153,10 +153,10 @@ sam2-inference,services/sam2-inference/main.py,48,POST,/v1/predict,predict,busin
 sam2-inference,services/sam2-inference/main.py,125,GET,/healthz,healthz,health
 sam2-inference,services/sam2-inference/main.py,130,GET,/health,legacy_health,health
 sam2-inference,services/sam2-inference/main.py,135,GET,/readyz,readyz,readiness
-scout-ingest-service,services/scout-ingest-service/main.py,205,GET,/healthz,healthz,health
-scout-ingest-service,services/scout-ingest-service/main.py,210,GET,/readyz,readyz,readiness
-scout-ingest-service,services/scout-ingest-service/main.py,247,GET,/internal/scouting/external-observations,read_external_observations,internal_endpoint
-scout-ingest-service,services/scout-ingest-service/main.py,366,POST,/internal/ingest/submissions/odk,ingest_odk_submission,internal_endpoint
-scout-ingest-service,services/scout-ingest-service/main.py,375,POST,/internal/ingest/submissions/kobo,ingest_kobo_submission,internal_endpoint
+scout-ingest-service,services/scout-ingest-service/main.py,227,GET,/healthz,healthz,health
+scout-ingest-service,services/scout-ingest-service/main.py,232,GET,/readyz,readyz,readiness
+scout-ingest-service,services/scout-ingest-service/main.py,269,GET,/internal/scouting/external-observations,read_external_observations,internal_endpoint
+scout-ingest-service,services/scout-ingest-service/main.py,388,POST,/internal/ingest/submissions/odk,ingest_odk_submission,internal_endpoint
+scout-ingest-service,services/scout-ingest-service/main.py,397,POST,/internal/ingest/submissions/kobo,ingest_kobo_submission,internal_endpoint
 soil-service,services/soil-service/main.py,221,GET,/runtime-identity,runtime_evidence_identity,business_endpoint
 weather-service,services/weather-service/main.py,56,GET,/runtime-identity,runtime_evidence_identity,business_endpoint

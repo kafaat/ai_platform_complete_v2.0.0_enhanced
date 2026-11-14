@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 601,
+          "line": 605,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 548,
+          "line": 552,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -437,7 +437,7 @@
         },
         {
           "function": "healthz",
-          "line": 205,
+          "line": 227,
           "method": "GET",
           "module": "services/scout-ingest-service/main.py",
           "path": "/healthz",
@@ -651,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 553,
+          "line": 557,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -811,7 +811,7 @@
         },
         {
           "function": "readyz",
-          "line": 210,
+          "line": 232,
           "method": "GET",
           "module": "services/scout-ingest-service/main.py",
           "path": "/readyz",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 542,
+          "line": 546,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -1023,7 +1023,7 @@
       "registrations": [
         {
           "function": "learning_cycle",
-          "line": 197,
+          "line": 201,
           "method": "POST",
           "module": "services/sahool-platform/api/phase10_continuous_learning.py",
           "path": "/cycle",
@@ -1062,7 +1062,7 @@
       "registrations": [
         {
           "function": "model_register",
-          "line": 269,
+          "line": 281,
           "method": "POST",
           "module": "services/sahool-platform/api/phase10_continuous_learning.py",
           "path": "/models/register",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1121,
-  "route_inventory_sha256": "f3b116cd813572eb2ed34e7aeebf24023448efb9e6fce5bc5f26c785ac71dddc",
+  "route_count": 1126,
+  "route_inventory_sha256": "19281ce246b8492770207f342c99b5e8b0c555414466729eacdb554494cf86e2",
   "runtime_verified": false,
   "schema_version": 1
 }

@@ -23,5 +23,5 @@ services/remote-sensing-workspace-bff/main.py,healthz,/healthz,39,True,True,True
 services/remote-sensing-workspace-bff/main.py,readyz,/readyz,44,True,True,True,ok
 services/sam2-inference/main.py,healthz,/healthz,125,True,True,True,ok
 services/sam2-inference/main.py,readyz,/readyz,135,True,True,True,ok
-services/scout-ingest-service/main.py,healthz,/healthz,205,True,True,True,ok
-services/scout-ingest-service/main.py,readyz,/readyz,210,True,True,True,ok
+services/scout-ingest-service/main.py,healthz,/healthz,227,True,True,True,ok
+services/scout-ingest-service/main.py,readyz,/readyz,232,True,True,True,ok

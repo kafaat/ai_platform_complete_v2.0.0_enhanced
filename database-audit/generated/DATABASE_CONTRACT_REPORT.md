@@ -4,16 +4,16 @@
 
 ## Summary
 
-- **manifest_entries**: 250
-- **sql_files**: 253
+- **manifest_entries**: 261
+- **sql_files**: 264
 - **manifest_missing_count**: 0
 - **unlisted_sql_count**: 0
-- **tables**: 344
-- **tenant_tables**: 324
-- **rls_enabled**: 217
-- **rls_forced**: 198
-- **tenant_rls_gaps**: 135
-- **policies**: 204
+- **tables**: 356
+- **tenant_tables**: 336
+- **rls_enabled**: 227
+- **rls_forced**: 208
+- **tenant_rls_gaps**: 137
+- **policies**: 214
 - **runtime_verified**: False
 - **production_certified**: False
 
@@ -116,6 +116,8 @@
 - `offline_synced_operations` — enabled=False, forced=False, policies=0
 - `processing_jobs` — enabled=True, forced=False, policies=0
 - `raster_assets` — enabled=True, forced=False, policies=1
+- `scout_photo_retention_events` — enabled=False, forced=False, policies=0
+- `scout_photo_retention_policy_events` — enabled=False, forced=False, policies=0
 - `season_cost_items` — enabled=False, forced=False, policies=0
 - `season_crop` — enabled=False, forced=False, policies=0
 - `season_events` — enabled=False, forced=False, policies=0

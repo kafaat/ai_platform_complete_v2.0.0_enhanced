@@ -5134,7 +5134,7 @@
     "candidates": [
       {
         "capability_id": "SEC-001",
-        "score": 9,
+        "score": 10,
         "signals": [
           "content:rls",
           "content:row level security"
