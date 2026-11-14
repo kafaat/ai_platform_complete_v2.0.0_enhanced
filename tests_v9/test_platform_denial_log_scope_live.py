@@ -66,7 +66,12 @@ def platform():
         from core.jwt_denylist import RedisDenylist
         from core.tenant_audit import AUDIT
 
-        # The denylist is built at import; a fallback to memory would test nothing live.
+        # The denylist is built at import, and in a shared pytest process api.main may
+        # already have been imported by an earlier test with no REDIS_URL (memory). Build it
+        # again from this test's live URL; get_current_user and routers/auth.py read
+        # api.main._DENYLIST at call time, so this is the store the requests use. A fallback
+        # to memory (Redis unreachable) would test nothing live, so it still fails here.
+        mp.setattr(main, "_DENYLIST", main._build_denylist())
         assert isinstance(main._DENYLIST, RedisDenylist), type(main._DENYLIST).__name__
         # No lifespan: the endpoint reads memory, and the scheduler/outbox are off this path.
         yield {
