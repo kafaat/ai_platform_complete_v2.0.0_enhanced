@@ -10634,3 +10634,4 @@ The full local unit run exposed two additional test defects. The requirements co
 - **#1444 مدموج** (`93ee155f6`) حاملاً #1424 بالتزام دمجٍ مستقلّ (`c6d7776f8`)، وأُغلق #1424 بإشارة.
 - **مفتوح:** #1386 (توقيع المالك على GATE-01)، #1377 (هذا الحامل).
 
+- **2026-11-14 — field-management-service يستعيد التفتيش وتكلفة المهمّة (فرع `feat/field-mgmt-task-inspection-20261114`، غير مدفوع):** v274–v277 وتسعة مسارات خلف `/api/v1/field-tasks/` وبوّابة إغلاق في trigger على `field_tasks`؛ سُجِّلت `FIELD-TASK-INSPECTION-ROUTES-HELD-BY-CARRIER-D-01` و`INSPECTION-EVIDENCE-VERSION-HASHES-A-URL-01` (open). الشاهد `tests_v9/test_field_task_inspection_live_pg.py` (9 حيّة على PG16).
