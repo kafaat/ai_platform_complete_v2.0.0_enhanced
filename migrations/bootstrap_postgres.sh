@@ -201,6 +201,9 @@ WHERE to_regclass('public.'||t.tbl) IS NOT NULL
 SELECT format('REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE public.task_cost_history FROM %I', :'app_role')
 WHERE to_regclass('public.task_cost_history') IS NOT NULL
 \gexec
+SELECT format('REVOKE EXECUTE ON FUNCTION public.record_field_task_cost() FROM %I', :'app_role')
+WHERE to_regprocedure('public.record_field_task_cost()') IS NOT NULL
+\gexec
 SQL
 echo "  ✓ الدور $APP_ROLE جاهز (NOSUPERUSER NOBYPASSRLS) + admin_boundaries SELECT-only (A7) + season_records لا-DELETE (v201)"
 

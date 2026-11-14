@@ -268,7 +268,15 @@ def view(task: dict, events: list[dict], caller: Caller) -> dict:
 # ── routes ──────────────────────────────────────────────────────────────────
 
 
+# Refusals raised by the v274-v277 triggers, and 23505 (two writers taking one revision), are
+# conflicts with the stored state: a race the route's own checks could not see (e.g. SH008, a
+# hand-off landing after a concurrent close). They answer 409, never a 503 outage.
+_TRIGGER_CONFLICTS = {"SH001", "SH002", "SH003", "SH004", "SH006", "SH007", "SH008", "23505"}
+
+
 def _db_error(exc: Exception) -> HTTPException:
+    if getattr(exc, "sqlstate", None) in _TRIGGER_CONFLICTS:
+        return HTTPException(409, "تغيّر سجل المهمة بالتزامن. حدّث البيانات")
     return HTTPException(503, "field task store unavailable")
 
 

@@ -282,6 +282,10 @@ _INSPECTION_CLOSE_REFUSALS = {
         "error": "inspection_self_review",
         "message": "لا يعتمد مقدّم النتيجة نتيجته",
     },
+    "SH008": {
+        "error": "inspection_task_closed",
+        "message": "المهمة مغلقة. أعد فتحها قبل أي تكليف أو مراجعة",
+    },
     "23505": {
         "error": "inspection_handoff_conflict",
         "message": "تغيّر سجل التكليف بالتزامن. حدّث البيانات",

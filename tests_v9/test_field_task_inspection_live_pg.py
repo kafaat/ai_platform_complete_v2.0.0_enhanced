@@ -144,7 +144,8 @@ class Live:
         # The same post-GRANT REVOKE the bootstrap scripts apply to the runtime role (#1460, v276).
         app_role = await self._app_role()
         await self.admin.execute(
-            f'REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON task_cost_history FROM "{app_role}"'
+            f'REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON task_cost_history FROM "{app_role}";'
+            f'REVOKE EXECUTE ON FUNCTION public.record_field_task_cost() FROM "{app_role}"'
         )
         await self._seed()
         await self._wire()
@@ -1372,9 +1373,218 @@ def test_cost_history_cannot_be_forged_through_a_temporary_trigger():
     assert out["history"] == 1
     flags = {r["proname"]: (r["prosecdef"], r["proconfig"]) for r in out["definer"]}
     assert flags["record_field_task_cost"][0] is True
-    assert "search_path=pg_catalog, public" in (flags["record_field_task_cost"][1] or [])
+    assert "search_path=pg_catalog, public, pg_temp" in (flags["record_field_task_cost"][1] or [])
     assert flags["task_cost_history_guard"][0] is False
     assert flags["task_expense_link_guard"][0] is False
+
+
+async def _app_conn(live, name: str):
+    conn = await asyncpg.connect(live.app_dsn)
+    await conn.execute(
+        "SELECT set_config('app.current_tenant', $1, false), set_config('app.current_user_id', $2, false)",
+        live.tenant,
+        live.users[(live.tenant, name)],
+    )
+    return conn
+
+
+async def _approved(live):
+    task, submitted = await _accepted_and_submitted(live)
+    v1 = submitted["current_evidence"]["version"]
+    res = await live.handoff(
+        task,
+        "finding",
+        "reviewer",
+        {"expected_revision": 2, "action": "approve", "reason": "ok", "evidence_version": v1},
+    )
+    assert res.status_code == 200, res.text
+    return task
+
+
+def test_the_cost_definer_cannot_be_attached_to_another_relation():
+    """Review round 3 of #1460: a temp table's trigger ran the definer and forged other tenants' rows."""
+
+    async def target():
+        out = {}
+        async with Live() as live:
+            conn = await _app_conn(live, "manager")
+            try:
+                try:
+                    await conn.execute(
+                        "CREATE TEMP TABLE fx (tenant_id uuid, task_id uuid, actual_cost_usd numeric,"
+                        " status text);"
+                        " CREATE TRIGGER fx_t AFTER INSERT ON fx FOR EACH ROW"
+                        " EXECUTE FUNCTION public.record_field_task_cost();"
+                    )
+                    out["attach"] = "allowed"
+                except asyncpg.PostgresError as exc:
+                    out["attach"] = exc.sqlstate
+            finally:
+                await conn.close()
+            acl = await live.admin.fetchrow(
+                "SELECT has_function_privilege('public', 'public.record_field_task_cost()', 'EXECUTE')"
+                " AS pub_exec,"
+                " has_table_privilege('public', 'public.task_cost_history', 'INSERT') AS pub_ins"
+            )
+            out["public"] = (acl["pub_exec"], acl["pub_ins"])
+            # The owner can still attach it, but the body refuses any relation but field_tasks.
+            try:
+                tx = live.admin.transaction()
+                await tx.start()
+                await live.admin.execute(
+                    "CREATE TEMP TABLE fy (tenant_id uuid, task_id uuid, actual_cost_usd numeric,"
+                    " status text);"
+                    " CREATE TRIGGER fy_t AFTER INSERT ON fy FOR EACH ROW"
+                    " EXECUTE FUNCTION public.record_field_task_cost();"
+                )
+                try:
+                    await live.admin.execute(
+                        "INSERT INTO fy VALUES ($1::uuid, gen_random_uuid(), 1, 'x')", live.tenant
+                    )
+                    out["owner_fire"] = "allowed"
+                except asyncpg.PostgresError as exc:
+                    out["owner_fire"] = exc.sqlstate
+            finally:
+                await tx.rollback()
+        return out
+
+    out = run(target())
+    assert out["attach"] == "42501"  # no EXECUTE: a new trigger on the definer cannot be created
+    assert out["public"] == (False, False)
+    assert out["owner_fire"] == "42501"  # TG_RELID bound to public.field_tasks
+
+
+def test_temp_tables_cannot_shadow_the_inspection_and_cost_tables():
+    """Review round 3 of #1460: unpinned search_path let pg_temp tables stand in for the real ones."""
+
+    async def target():
+        out = {}
+        async with Live() as live:
+            task, submitted = await _accepted_and_submitted(live)
+            conn = await _app_conn(live, "manager")
+            try:
+                await conn.execute(
+                    "CREATE TEMP TABLE inspection_handoffs AS SELECT * FROM public.inspection_handoffs"
+                    " WITH NO DATA;"
+                    " CREATE TEMP TABLE inspection_evidence_versions AS"
+                    " SELECT * FROM public.inspection_evidence_versions WITH NO DATA;"
+                    " CREATE TEMP TABLE task_cost_history AS SELECT * FROM public.task_cost_history"
+                    " WITH NO DATA;"
+                )
+                await conn.execute(
+                    "INSERT INTO pg_temp.inspection_handoffs (tenant_id, field_id, task_id, revision,"
+                    " action, previous_assignee, assignee, actor)"
+                    " VALUES ($1::uuid, $2, $3::uuid, 99, 'approve', '', '', 'x')",
+                    live.tenant,
+                    live.field,
+                    task,
+                )
+                try:
+                    async with conn.transaction():
+                        await conn.execute(
+                            "UPDATE public.field_tasks SET status='completed' WHERE task_id=$1::uuid",
+                            task,
+                        )
+                    out["close"] = "allowed"
+                except asyncpg.PostgresError as exc:
+                    out["close"] = exc.sqlstate
+                await conn.execute(
+                    "UPDATE public.field_tasks SET actual_cost_usd=42 WHERE task_id=$1::uuid", task
+                )
+            finally:
+                await conn.close()
+            out["history"] = await live.admin.fetchval(
+                "SELECT count(*) FROM public.task_cost_history WHERE task_id=$1::uuid AND actual_usd=42",
+                task,
+            )
+            out["pinned"] = await live.admin.fetch(
+                "SELECT proname, proconfig FROM pg_proc WHERE proname = ANY($1::text[]) ORDER BY proname",
+                [
+                    "field_mgmt_append_only",
+                    "inspection_evidence_version_guard",
+                    "inspection_handoff_revision_guard",
+                    "inspection_handoff_chain_guard",
+                    "task_cost_history_guard",
+                    "task_expense_link_guard",
+                    "record_field_task_cost",
+                    "field_task_inspection_close_gate",
+                    "field_task_inspection_reopen",
+                ],
+            )
+        return out
+
+    out = run(target())
+    assert out["close"] == "SH001"  # the fake temp approval is not read
+    assert out["history"] == 1  # the temp task_cost_history did not swallow the row
+    assert len(out["pinned"]) == 9
+    for row in out["pinned"]:
+        assert "search_path=pg_catalog, public, pg_temp" in (row["proconfig"] or []), row["proname"]
+
+
+def test_a_direct_handoff_racing_a_close_waits_and_is_refused():
+    """Review round 3 of #1460: a direct writer's hand-off raced a close; the task closed under it.
+
+    The service's own route already locks the task; this races a direct INSERT on the shared app role,
+    which only the v275 chain guard's FOR UPDATE serialises.
+    """
+
+    async def target():
+        out = {}
+        async with Live() as live:
+            task = await _approved(live)
+            prior = await live.admin.fetchrow(
+                "SELECT h.assignee, h.revision, t.assigned_to FROM inspection_handoffs h"
+                " JOIN field_tasks t ON t.task_id = h.task_id WHERE h.task_id=$1::uuid"
+                " ORDER BY h.revision DESC LIMIT 1",
+                task,
+            )
+            closer = await _app_conn(live, "manager")
+            racer_conn = await _app_conn(live, "manager")
+            try:
+                tx = closer.transaction()
+                await tx.start()
+                await closer.execute(
+                    "UPDATE public.field_tasks SET status='completed' WHERE task_id=$1::uuid", task
+                )
+
+                async def insert_handoff():
+                    try:
+                        await racer_conn.execute(
+                            "INSERT INTO public.inspection_handoffs (tenant_id, field_id, task_id,"
+                            " revision, action, previous_assignee, assignee, actor, reason)"
+                            " VALUES ($1::uuid, $2, $3::uuid, $4, 'reassign', $5, $6,"
+                            " current_setting('app.current_user_id'), 'race')",
+                            live.tenant,
+                            live.field,
+                            task,
+                            prior["revision"] + 1,
+                            prior["assignee"],
+                            str(prior["assigned_to"] or ""),
+                        )
+                        return "allowed"
+                    except asyncpg.PostgresError as exc:
+                        return exc.sqlstate
+
+                racer = asyncio.create_task(insert_handoff())
+                await asyncio.sleep(1.0)
+                out["blocked"] = not racer.done()
+                await tx.commit()
+                out["racer"] = await asyncio.wait_for(racer, timeout=30)
+            finally:
+                await closer.close()
+                await racer_conn.close()
+            row = await live.admin.fetchrow(
+                "SELECT t.status, (SELECT action FROM inspection_handoffs h WHERE h.task_id=t.task_id"
+                " ORDER BY revision DESC LIMIT 1) AS last FROM field_tasks t WHERE t.task_id=$1::uuid",
+                task,
+            )
+            out["final"] = (row["status"], row["last"])
+        return out
+
+    out = run(target())
+    assert out["blocked"] is True  # the direct hand-off waited on the task row lock
+    assert out["racer"] == "SH008"  # refused once the close committed
+    assert out["final"] == ("completed", "approve")
 
 
 def test_the_bootstrap_scripts_revoke_cost_history_dml_after_their_blanket_grant():

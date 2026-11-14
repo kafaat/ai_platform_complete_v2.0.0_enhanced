@@ -70,7 +70,8 @@ CREATE POLICY tenant_append ON task_cost_history FOR INSERT
 -- user and the task's stored cost and status, so it describes the field_tasks change that fired
 -- it. pg_trigger_depth() alone is spoofable by a role that can create a temporary trigger (review
 -- round 2 of #1460), which is why the privilege, not this check, is the boundary.
-CREATE OR REPLACE FUNCTION task_cost_history_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE OR REPLACE FUNCTION task_cost_history_guard() RETURNS trigger LANGUAGE plpgsql
+    SET search_path = pg_catalog, public, pg_temp AS $$
 BEGIN
     IF pg_trigger_depth() < 2
        OR NEW.changed_by IS DISTINCT FROM NULLIF(current_setting('app.current_user_id', true), '')
@@ -87,7 +88,8 @@ DROP TRIGGER IF EXISTS task_cost_history_guard ON task_cost_history;
 CREATE TRIGGER task_cost_history_guard BEFORE INSERT ON task_cost_history
     FOR EACH ROW EXECUTE FUNCTION task_cost_history_guard();
 
-CREATE OR REPLACE FUNCTION task_expense_link_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE OR REPLACE FUNCTION task_expense_link_guard() RETURNS trigger LANGUAGE plpgsql
+    SET search_path = pg_catalog, public, pg_temp AS $$
 DECLARE
     entry record;
     task_farm text;
@@ -120,8 +122,13 @@ CREATE TRIGGER task_expense_link_guard BEFORE INSERT ON task_expense_links
 -- search_path is pinned; the body writes only values taken from NEW/OLD and the session's user GUC,
 -- and FORCE RLS's tenant_append policy still binds tenant_id to app.current_tenant.
 CREATE OR REPLACE FUNCTION record_field_task_cost() RETURNS trigger LANGUAGE plpgsql
-    SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+    SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
 BEGIN
+    -- Bound to field_tasks: attached as a trigger on any other relation (a temp table, review
+    -- round 3 of #1460) it refuses instead of writing history with the owner's rights.
+    IF TG_RELID IS DISTINCT FROM 'public.field_tasks'::regclass THEN
+        RAISE EXCEPTION 'record_field_task_cost_wrong_relation' USING ERRCODE = '42501';
+    END IF;
     IF NEW.tenant_id IS NULL THEN
         RETURN NEW;
     END IF;
@@ -146,12 +153,19 @@ CREATE TRIGGER record_field_task_cost AFTER INSERT OR UPDATE ON field_tasks
 
 -- Only record_field_task_cost writes the history. The bootstrap scripts grant DML on every table
 -- to the runtime role after the migrations, so they repeat this REVOKE after their GRANT.
+-- Nobody but the trigger on field_tasks runs the definer: PUBLIC loses EXECUTE (a fired trigger does
+-- not check it; creating a new trigger on it does), and the runtime and jobs roles lose both.
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON task_cost_history FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION record_field_task_cost() FROM PUBLIC;
 DO $$
+DECLARE r text;
 BEGIN
-    IF to_regrole('sahool_app') IS NOT NULL THEN
-        REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON task_cost_history FROM sahool_app;
-    END IF;
+    FOREACH r IN ARRAY ARRAY['sahool_app', 'sahool_jobs'] LOOP
+        IF to_regrole(r) IS NOT NULL THEN
+            EXECUTE format('REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON task_cost_history FROM %I', r);
+            EXECUTE format('REVOKE EXECUTE ON FUNCTION record_field_task_cost() FROM %I', r);
+        END IF;
+    END LOOP;
 END $$;
 
 COMMENT ON TABLE task_expense_links IS

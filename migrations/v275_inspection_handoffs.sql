@@ -73,7 +73,8 @@ CREATE TRIGGER inspection_handoffs_append_only
     BEFORE UPDATE OR DELETE ON inspection_handoffs
     FOR EACH ROW EXECUTE FUNCTION field_mgmt_append_only();
 
-CREATE OR REPLACE FUNCTION inspection_handoff_revision_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE OR REPLACE FUNCTION inspection_handoff_revision_guard() RETURNS trigger LANGUAGE plpgsql
+    SET search_path = pg_catalog, public, pg_temp AS $$
 BEGIN
     IF NEW.revision IS DISTINCT FROM (
         SELECT COALESCE(max(revision), 0) + 1 FROM inspection_handoffs
@@ -86,13 +87,20 @@ DROP TRIGGER IF EXISTS inspection_handoff_revision_guard ON inspection_handoffs;
 CREATE TRIGGER inspection_handoff_revision_guard BEFORE INSERT ON inspection_handoffs
     FOR EACH ROW EXECUTE FUNCTION inspection_handoff_revision_guard();
 
-CREATE OR REPLACE FUNCTION inspection_handoff_chain_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE OR REPLACE FUNCTION inspection_handoff_chain_guard() RETURNS trigger LANGUAGE plpgsql
+    SET search_path = pg_catalog, public, pg_temp AS $$
 DECLARE
     task record;
     prior text;
 BEGIN
-    SELECT assigned_to, inspection_initial_assignee INTO task FROM field_tasks
-     WHERE tenant_id = NEW.tenant_id AND field_id = NEW.field_id AND task_id = NEW.task_id;
+    -- FOR UPDATE serialises a hand-off with a concurrent close of the same task (review round 3
+    -- of #1460): whichever commits first, the other sees it. A closed task takes only 'reopen'.
+    SELECT assigned_to, inspection_initial_assignee, status INTO task FROM public.field_tasks
+     WHERE tenant_id = NEW.tenant_id AND field_id = NEW.field_id AND task_id = NEW.task_id
+       FOR UPDATE;
+    IF lower(btrim(COALESCE(task.status, ''))) = 'completed' AND NEW.action <> 'reopen' THEN
+        RAISE EXCEPTION 'inspection_task_closed' USING ERRCODE = 'SH008';
+    END IF;
     SELECT assignee INTO prior FROM inspection_handoffs
      WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id
      ORDER BY revision DESC LIMIT 1;

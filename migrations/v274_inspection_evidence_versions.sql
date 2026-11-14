@@ -50,7 +50,8 @@ CREATE POLICY evidence_append ON inspection_evidence_versions FOR INSERT
     WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), '')
             AND recorded_by = current_setting('app.current_user_id', true));
 
-CREATE OR REPLACE FUNCTION field_mgmt_append_only() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE OR REPLACE FUNCTION field_mgmt_append_only() RETURNS trigger LANGUAGE plpgsql
+    SET search_path = pg_catalog, public, pg_temp AS $$
 BEGIN
     RAISE EXCEPTION '% is append-only', TG_TABLE_NAME USING ERRCODE = '55000';
 END $$;
@@ -59,7 +60,8 @@ CREATE TRIGGER inspection_evidence_versions_append_only
     BEFORE UPDATE OR DELETE ON inspection_evidence_versions
     FOR EACH ROW EXECUTE FUNCTION field_mgmt_append_only();
 
-CREATE OR REPLACE FUNCTION inspection_evidence_version_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE OR REPLACE FUNCTION inspection_evidence_version_guard() RETURNS trigger LANGUAGE plpgsql
+    SET search_path = pg_catalog, public, pg_temp AS $$
 DECLARE
     task_pin text;
     photo_sha text;

@@ -34,7 +34,8 @@
 --
 -- Both read and write under the caller's role and tenant (no SECURITY DEFINER). Idempotent.
 BEGIN;
-CREATE OR REPLACE FUNCTION field_task_inspection_close_gate() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE OR REPLACE FUNCTION field_task_inspection_close_gate() RETURNS trigger LANGUAGE plpgsql
+    SET search_path = pg_catalog, public, pg_temp AS $$
 DECLARE
     task_pin text;
     last_event record;
@@ -45,7 +46,7 @@ DECLARE
 BEGIN
     IF TG_OP = 'INSERT' THEN
         IF NEW.source_scouting_pin_id IS NOT NULL
-           AND lower(COALESCE(NEW.status, '')) = 'completed' THEN
+           AND lower(btrim(COALESCE(NEW.status, ''))) = 'completed' THEN
             RAISE EXCEPTION 'inspection_review_required' USING ERRCODE = 'SH001';
         END IF;
         RETURN NEW;
@@ -54,8 +55,8 @@ BEGIN
         RAISE EXCEPTION 'inspection_pin_immutable' USING ERRCODE = 'SH003';
     END IF;
     task_pin := OLD.source_scouting_pin_id;
-    IF task_pin IS NULL OR lower(COALESCE(NEW.status, '')) <> 'completed'
-       OR lower(COALESCE(OLD.status, '')) = 'completed' THEN
+    IF task_pin IS NULL OR lower(btrim(COALESCE(NEW.status, ''))) <> 'completed'
+       OR lower(btrim(COALESCE(OLD.status, ''))) = 'completed' THEN
         RETURN NEW;
     END IF;
     SELECT h.revision, h.action, h.evidence_version, v.photo_evidence_id, v.photo_content_sha256
@@ -94,13 +95,14 @@ DROP TRIGGER IF EXISTS field_task_inspection_close_gate ON field_tasks;
 CREATE TRIGGER field_task_inspection_close_gate BEFORE INSERT OR UPDATE ON field_tasks
     FOR EACH ROW EXECUTE FUNCTION field_task_inspection_close_gate();
 
-CREATE OR REPLACE FUNCTION field_task_inspection_reopen() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE OR REPLACE FUNCTION field_task_inspection_reopen() RETURNS trigger LANGUAGE plpgsql
+    SET search_path = pg_catalog, public, pg_temp AS $$
 BEGIN
     IF NEW.source_scouting_pin_id IS NULL OR NOT (
-        (lower(COALESCE(OLD.status, '')) = 'completed'
-         AND lower(COALESCE(NEW.status, '')) <> 'completed')
-     OR (lower(COALESCE(OLD.status, '')) = 'cancelled'
-         AND lower(COALESCE(NEW.status, '')) IN ('pending', 'in_progress'))) THEN
+        (lower(btrim(COALESCE(OLD.status, ''))) = 'completed'
+         AND lower(btrim(COALESCE(NEW.status, ''))) <> 'completed')
+     OR (lower(btrim(COALESCE(OLD.status, ''))) = 'cancelled'
+         AND lower(btrim(COALESCE(NEW.status, ''))) IN ('pending', 'in_progress'))) THEN
         RETURN NEW;
     END IF;
     INSERT INTO inspection_handoffs
