@@ -10631,5 +10631,6 @@ The full local unit run exposed two additional test defects. The requirements co
 - **Flutter في #1425:** فشلٌ عابر بملفّ NDK تالف، أُعيد تشغيل الوظائف الفاشلة فقط.
 - **#1427 مدموج** (`c3d06341c`) حاملاً #1425 (أُغلق بإشارة) وبوّابتين حيّتين: `tests_v9/test_auth_admin_authz_live_pg_redis.py` (12) و`tests_v9/test_platform_denial_log_scope_live.py` (3).
 - **#1424 سلطةٌ زمنيّةٌ ثانية:** `shared/feature_store/strict_shadow.py` كان يحمل قواعد قطعٍ وإتاحةٍ وتقادمٍ خاصّةً به بجوار `shared/feature_store/runtime.py::build_point_in_time_snapshot` (المُوفَّق في #1437)، فقبِل صفّاً ابتُلع قبل نشره وصفّاً بلا `prediction_at` يرفضهما المرجع. أُعيد بناؤه على `claude/pr1424-strict-shadow-20261114`: النطاق وحده هنا، وكلّ قرارٍ زمنيّ للمرجع، واختبار تطابقٍ معه واختبار AST يمنع عودة التكرار.
-- **مفتوح:** #1424 (المُعاد بناؤه)، #1386 (توقيع المالك على GATE-01)، #1377 (هذا الحامل).
+- **#1444 مدموج** (`93ee155f6`) حاملاً #1424 بالتزام دمجٍ مستقلّ (`c6d7776f8`)، وأُغلق #1424 بإشارة.
+- **مفتوح:** #1386 (توقيع المالك على GATE-01)، #1377 (هذا الحامل).
 
