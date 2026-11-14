@@ -6207,6 +6207,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_irrigation_water_analysis.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_salinity_capability_contract.py",
           "signal": "pytest.mark.unit"
         },
@@ -6260,6 +6265,7 @@
       "unit_test_paths": [
         "services/sahool-platform/tests/test_fao56_dual_kc_salinity_validation.py",
         "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+        "services/sahool-platform/tests/test_irrigation_water_analysis.py",
         "services/sahool-platform/tests/test_salinity_capability_contract.py",
         "services/soil-service/test_soil_p3_products.py",
         "services/soil-service/test_soil_salinity_screening.py",

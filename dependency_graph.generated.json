@@ -92,7 +92,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/services/api.ts:577",
+      "evidence": "frontend/src/services/api.ts:592",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",

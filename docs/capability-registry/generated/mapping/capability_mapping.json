@@ -25,14 +25,14 @@
       "tests": 2494,
       "web": 547
     },
-    "unmapped_artifacts": 3489,
-    "ambiguous_artifacts": 239,
+    "unmapped_artifacts": 3487,
+    "ambiguous_artifacts": 238,
     "files_by_reading": {
       "python_functional": 3963,
       "raw": 3364
     },
     "test_dependency_files": 1894,
-    "test_dependency_edges": 4861,
+    "test_dependency_edges": 4862,
     "test_dependency_bounded_files": 1111,
     "test_dependency_unresolved_relations": 479
   },
@@ -12985,14 +12985,6 @@
             "content:water quality",
             "content:Water quality samples"
           ]
-        },
-        {
-          "path": "services/sahool-platform/core/irrigation_water_analysis.py",
-          "score": 8,
-          "signals": [
-            "content:water quality",
-            "content:water sample"
-          ]
         }
       ],
       "routes": [
@@ -13101,7 +13093,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 2,
+        "backend": 1,
         "routes": 6,
         "database": 8,
         "events": 1,
@@ -13673,7 +13665,7 @@
         },
         {
           "path": "services/sahool-platform/core/irrigation_water_analysis.py",
-          "score": 10,
+          "score": 12,
           "signals": [
             "content:salinity",
             "content:sodicity"
@@ -13774,6 +13766,14 @@
             "content:salinity",
             "content:sodicity"
           ]
+        },
+        {
+          "path": "frontend/src/sections/IrrigationWaterPage.test.tsx",
+          "score": 8,
+          "signals": [
+            "content:salinity",
+            "content:sodicity"
+          ]
         }
       ],
       "mobile": [],
@@ -13864,6 +13864,14 @@
           "signals": [
             "path:salinity",
             "content:salinity"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_irrigation_water_analysis.py",
+          "score": 10,
+          "signals": [
+            "content:salinity",
+            "content:sodicity"
           ]
         },
         {
@@ -13982,9 +13990,9 @@
         "routes": 1,
         "database": 7,
         "events": 9,
-        "web": 1,
+        "web": 2,
         "mobile": 0,
-        "tests": 12,
+        "tests": 13,
         "governance": 0,
         "other_evidence": 12
       },
@@ -33575,10 +33583,6 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/sections/IrrigationWaterPage.test.tsx",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/sections/IrrigationWaterPage.tsx",
       "kind": "web"
     },
@@ -40484,10 +40488,6 @@
     },
     {
       "path": "services/sahool-platform/tests/test_irrigation_state_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_irrigation_water_analysis.py",
       "kind": "tests"
     },
     {
@@ -50042,28 +50042,6 @@
           "signals": [
             "content:dem",
             "content:terrain"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "services/sahool-platform/core/irrigation_water_analysis.py",
-      "kind": "backend",
-      "candidates": [
-        {
-          "capability_id": "IRR-009",
-          "score": 10,
-          "signals": [
-            "content:salinity",
-            "content:sodicity"
-          ]
-        },
-        {
-          "capability_id": "IRR-002",
-          "score": 8,
-          "signals": [
-            "content:water quality",
-            "content:water sample"
           ]
         }
       ]
@@ -62343,7 +62321,7 @@
         {
           "source": "services/sahool-platform/core/irrigation_water_analysis.py",
           "kind": "import",
-          "line": 10
+          "line": 11
         }
       ],
       "unresolved": []
@@ -62561,6 +62539,11 @@
       "bounded": true,
       "unbounded_reasons": [],
       "edges": [
+        {
+          "source": "services/sahool-platform/core/irrigation_water_analysis.py",
+          "kind": "import",
+          "line": 92
+        },
         {
           "source": "services/sahool-platform/core/lab_sampling.py",
           "kind": "import",
