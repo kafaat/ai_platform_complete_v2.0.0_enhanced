@@ -86,9 +86,9 @@ DEC-002,test,tests_v9/test_uwrp_learning_scripts_candidate.py,3,applied
 DEC-003,api,GET /api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:52,2,applied
 DEC-003,api,GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:80,2,applied
 DEC-003,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:576,2,applied
+DEC-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:270,2,applied
+DEC-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:280,2,applied
 DEC-003,api,GET /v1/decisions/review-queue @ services/decision-service/main.py:799,3,applied
-DEC-003,api,GET <dynamic> @ services/scout-ingest-service/human_review_api.py:271,2,applied
-DEC-003,api,GET <dynamic> @ services/scout-ingest-service/treatment_review_api.py:277,2,applied
 DEC-003,api,PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36,2,applied
 DEC-003,api,POST /api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:197,2,applied
 DEC-003,api,POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:116,2,applied
@@ -103,13 +103,13 @@ DEC-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/re
 DEC-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:630,2,applied
 DEC-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:681,2,applied
 DEC-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520,2,applied
+DEC-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:169,2,applied
+DEC-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:175,2,applied
 DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:283,2,applied
 DEC-003,api,POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42,2,applied
 DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:857,3,applied
 DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2449,3,applied
 DEC-003,api,POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:101,2,applied
-DEC-003,api,POST <dynamic> @ services/scout-ingest-service/human_review_api.py:170,2,applied
-DEC-003,api,POST <dynamic> @ services/scout-ingest-service/treatment_review_api.py:174,2,applied
 DEC-003,service,services/decision-service/main.py,10,applied
 DEC-003,test,services/decision-service/tests/test_sod_single_operator_self_approval.py,3,applied
 DEC-003,test,services/decision-service/tests/test_wx10_7_decision_review.py,3,applied
@@ -577,10 +577,16 @@ FM-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/fi
 FM-003,api,GET /internal/fields @ services/field-management-service/main.py:314,5,applied
 FM-003,api,GET /internal/fields/{field_id} @ services/field-management-service/main.py:282,5,applied
 FM-003,api,GET /internal/fields/{field_id}/state @ services/sahool-platform/api/routers/internal_service.py:52,4,applied
+FM-003,api,GET /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:517,4,applied
 FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:300,4,applied
 FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/context @ services/scout-ingest-service/media_api.py:674,4,applied
+FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events @ services/scout-ingest-service/detection_link_api.py:241,4,applied
+FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:270,4,applied
+FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events @ services/scout-ingest-service/lab_link_api.py:231,4,applied
 FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/retention @ services/scout-ingest-service/evidence_retention_api.py:90,4,applied
 FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:612,4,applied
+FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:395,4,applied
+FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:280,4,applied
 FM-003,api,GET /readyz @ services/field-management-service/main.py:221,3,applied
 FM-003,api,GET /readyz @ services/field-segmentation/main.py:385,2,applied
 FM-003,api,GET /v1/all_fields @ services/vegetation-analysis-service/routers/analysis.py:145,2,applied
@@ -693,8 +699,17 @@ FM-003,api,POST /internal/field-forms/definitions/{code}/versions @ services/sco
 FM-003,api,POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466,2,applied
 FM-003,api,POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278,2,applied
 FM-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328,2,applied
+FM-003,api,POST /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:349,4,applied
+FM-003,api,POST /internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke @ services/scout-ingest-service/grants_admin_api.py:440,4,applied
+FM-003,api,POST /internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events @ services/scout-ingest-service/grants_admin_api.py:755,4,applied
 FM-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:238,4,applied
+FM-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events @ services/scout-ingest-service/detection_link_api.py:130,4,applied
+FM-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:169,4,applied
+FM-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events @ services/scout-ingest-service/lab_link_api.py:129,4,applied
 FM-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:530,4,applied
+FM-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:182,4,applied
+FM-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples/{sample_id}/custody-events @ services/scout-ingest-service/tissue_samples_api.py:288,4,applied
+FM-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:175,4,applied
 FM-003,api,POST /v1/evidence/field-counts @ services/decision-service/main.py:1275,2,applied
 FM-003,api,POST /v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:778,4,applied
 FM-003,api,POST /v1/fields/{field_id}/baseline-comparisons @ services/vegetation-analysis-service/routers/baselines.py:35,4,applied
@@ -1649,21 +1664,21 @@ OPS-003,api,GET /api/v1/scouting/pins @ services/sahool-platform/api/routers/sco
 OPS-003,api,GET /api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:119,2,applied
 OPS-003,api,GET /healthz @ services/scout-ingest-service/main.py:227,2,applied
 OPS-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394,2,applied
+OPS-003,api,GET /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:517,4,applied
 OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:300,4,applied
 OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/context @ services/scout-ingest-service/media_api.py:674,4,applied
+OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events @ services/scout-ingest-service/detection_link_api.py:241,4,applied
+OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:270,4,applied
+OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events @ services/scout-ingest-service/lab_link_api.py:231,4,applied
 OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/retention @ services/scout-ingest-service/evidence_retention_api.py:90,4,applied
 OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:612,4,applied
+OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:395,4,applied
+OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:280,4,applied
 OPS-003,api,GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:269,4,applied
 OPS-003,api,GET /internal/seasons @ services/scout-ingest-service/season_api.py:478,2,applied
 OPS-003,api,GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668,2,applied
 OPS-003,api,GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368,2,applied
 OPS-003,api,GET /readyz @ services/scout-ingest-service/main.py:232,2,applied
-OPS-003,api,GET <dynamic> @ services/scout-ingest-service/detection_link_api.py:242,2,applied
-OPS-003,api,GET <dynamic> @ services/scout-ingest-service/grants_admin_api.py:518,2,applied
-OPS-003,api,GET <dynamic> @ services/scout-ingest-service/human_review_api.py:271,2,applied
-OPS-003,api,GET <dynamic> @ services/scout-ingest-service/lab_link_api.py:232,2,applied
-OPS-003,api,GET <dynamic> @ services/scout-ingest-service/tissue_samples_api.py:392,2,applied
-OPS-003,api,GET <dynamic> @ services/scout-ingest-service/treatment_review_api.py:277,2,applied
 OPS-003,api,PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264,2,applied
 OPS-003,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362,2,applied
 OPS-003,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,2,applied
@@ -1673,25 +1688,25 @@ OPS-003,api,POST /internal/field-forms/versions/{version_id}/publish @ services/
 OPS-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328,2,applied
 OPS-003,api,POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:397,2,applied
 OPS-003,api,POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:388,2,applied
+OPS-003,api,POST /internal/scouting-media/admin/credential-events @ services/scout-ingest-service/grants_admin_api.py:586,4,applied
+OPS-003,api,POST /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:349,4,applied
+OPS-003,api,POST /internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke @ services/scout-ingest-service/grants_admin_api.py:440,4,applied
+OPS-003,api,POST /internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events @ services/scout-ingest-service/grants_admin_api.py:755,4,applied
+OPS-003,api,POST /internal/scouting-media/admin/retention-policy-events @ services/scout-ingest-service/grants_admin_api.py:684,4,applied
 OPS-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:238,4,applied
+OPS-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events @ services/scout-ingest-service/detection_link_api.py:130,4,applied
+OPS-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:169,4,applied
+OPS-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events @ services/scout-ingest-service/lab_link_api.py:129,4,applied
 OPS-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:530,4,applied
+OPS-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:182,4,applied
+OPS-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples/{sample_id}/custody-events @ services/scout-ingest-service/tissue_samples_api.py:288,4,applied
+OPS-003,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:175,4,applied
 OPS-003,api,POST /internal/seasons @ services/scout-ingest-service/season_api.py:205,2,applied
 OPS-003,api,POST /internal/seasons/{season_id}/accept @ services/scout-ingest-service/season_api.py:406,2,applied
 OPS-003,api,POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624,2,applied
 OPS-003,api,POST /internal/seasons/{season_id}/events @ services/scout-ingest-service/season_api.py:522,2,applied
 OPS-003,api,POST /internal/seasons/{season_id}/harvest @ services/scout-ingest-service/season_api.py:583,2,applied
 OPS-003,api,POST /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:306,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/detection_link_api.py:131,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/grants_admin_api.py:350,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/grants_admin_api.py:441,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/grants_admin_api.py:587,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/grants_admin_api.py:685,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/grants_admin_api.py:756,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/human_review_api.py:170,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/lab_link_api.py:130,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/tissue_samples_api.py:181,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/tissue_samples_api.py:285,2,applied
-OPS-003,api,POST <dynamic> @ services/scout-ingest-service/treatment_review_api.py:174,2,applied
 OPS-003,mobile,mobile/sahool_app/lib/features/maps/presentation/layers/scouting_pins_layer.dart,2,applied
 OPS-003,mobile,mobile/sahool_app/lib/features/scouting/data/device_sources.dart,2,applied
 OPS-003,mobile,mobile/sahool_app/lib/features/scouting/data/scouting_api.dart,2,applied

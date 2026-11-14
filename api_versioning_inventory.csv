@@ -965,6 +965,8 @@ sam2-inference,services/sam2-inference/main.py,48,POST,/v1/predict,predict,versi
 sam2-inference,services/sam2-inference/main.py,125,GET,/healthz,healthz,infra
 sam2-inference,services/sam2-inference/main.py,130,GET,/health,legacy_health,infra
 sam2-inference,services/sam2-inference/main.py,135,GET,/readyz,readyz,infra
+scout-ingest-service,services/scout-ingest-service/detection_link_api.py,130,POST,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events,post_detection_link,internal_s2s
+scout-ingest-service,services/scout-ingest-service/detection_link_api.py,241,GET,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/detection-link-events,get_detection_links,internal_s2s
 scout-ingest-service,services/scout-ingest-service/evidence_retention_api.py,90,GET,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/retention,get_evidence_retention,internal_s2s
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,195,POST,/internal/field-forms/definitions,create_definition,internal_s2s
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,230,POST,/internal/field-forms/definitions/{code}/versions,create_version,internal_s2s
@@ -973,6 +975,16 @@ scout-ingest-service,services/scout-ingest-service/field_forms_api.py,328,POST,/
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,362,POST,/internal/field-forms/assignments,create_assignment,internal_s2s
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,394,GET,/internal/field-forms/download,download_forms,internal_s2s
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,466,POST,/internal/field-forms/submissions,submit_form,internal_s2s
+scout-ingest-service,services/scout-ingest-service/grants_admin_api.py,349,POST,/internal/scouting-media/admin/fields/{field_id}/grants,issue_scout_photo_grant,internal_s2s
+scout-ingest-service,services/scout-ingest-service/grants_admin_api.py,440,POST,/internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke,revoke_scout_photo_grant,internal_s2s
+scout-ingest-service,services/scout-ingest-service/grants_admin_api.py,517,GET,/internal/scouting-media/admin/fields/{field_id}/grants,list_scout_photo_grants,internal_s2s
+scout-ingest-service,services/scout-ingest-service/grants_admin_api.py,586,POST,/internal/scouting-media/admin/credential-events,post_credential_event,internal_s2s
+scout-ingest-service,services/scout-ingest-service/grants_admin_api.py,684,POST,/internal/scouting-media/admin/retention-policy-events,post_retention_policy,internal_s2s
+scout-ingest-service,services/scout-ingest-service/grants_admin_api.py,755,POST,/internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events,post_retention_event,internal_s2s
+scout-ingest-service,services/scout-ingest-service/human_review_api.py,169,POST,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events,post_human_review,internal_s2s
+scout-ingest-service,services/scout-ingest-service/human_review_api.py,270,GET,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events,get_human_reviews,internal_s2s
+scout-ingest-service,services/scout-ingest-service/lab_link_api.py,129,POST,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events,post_lab_link,internal_s2s
+scout-ingest-service,services/scout-ingest-service/lab_link_api.py,231,GET,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/lab-link-events,get_lab_links,internal_s2s
 scout-ingest-service,services/scout-ingest-service/main.py,227,GET,/healthz,healthz,infra
 scout-ingest-service,services/scout-ingest-service/main.py,232,GET,/readyz,readyz,infra
 scout-ingest-service,services/scout-ingest-service/main.py,269,GET,/internal/scouting/external-observations,read_external_observations,internal_s2s
@@ -993,6 +1005,11 @@ scout-ingest-service,services/scout-ingest-service/season_api.py,522,POST,/inter
 scout-ingest-service,services/scout-ingest-service/season_api.py,583,POST,/internal/seasons/{season_id}/harvest,set_season_harvest,internal_s2s
 scout-ingest-service,services/scout-ingest-service/season_api.py,624,POST,/internal/seasons/{season_id}/costs,add_season_cost,internal_s2s
 scout-ingest-service,services/scout-ingest-service/season_api.py,668,GET,/internal/seasons/{season_id}/detail,season_detail,internal_s2s
+scout-ingest-service,services/scout-ingest-service/tissue_samples_api.py,182,POST,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples,create_tissue_sample,internal_s2s
+scout-ingest-service,services/scout-ingest-service/tissue_samples_api.py,288,POST,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples/{sample_id}/custody-events,record_custody_event,internal_s2s
+scout-ingest-service,services/scout-ingest-service/tissue_samples_api.py,395,GET,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples,list_tissue_samples,internal_s2s
+scout-ingest-service,services/scout-ingest-service/treatment_review_api.py,175,POST,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events,post_treatment_event,internal_s2s
+scout-ingest-service,services/scout-ingest-service/treatment_review_api.py,280,GET,/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events,get_treatment_events,internal_s2s
 soil-service,services/soil-service/main.py,221,GET,/runtime-identity,runtime_evidence_identity,infra
 soil-service,services/soil-service/routers/canonical.py,22,POST,/v1/soil/observations,create_observation,versioned
 soil-service,services/soil-service/routers/canonical.py,62,GET,/v1/fields/{field_id}/soil/observations,observations,versioned

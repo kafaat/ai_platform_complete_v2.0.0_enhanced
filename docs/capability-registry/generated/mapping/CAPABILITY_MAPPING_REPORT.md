@@ -14,7 +14,7 @@
 - Multi-dimensional mappings: **43**
 - Files scanned: **7313**
 - Ambiguous artifacts queued: **239**
-- Unmapped artifacts queued: **3483**
+- Unmapped artifacts queued: **3482**
 
 ## Capability coverage
 
@@ -58,7 +58,7 @@
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-001 | operations | 0 | 0 | 7 | 6 | 0 | 1 | 1 | 4 |
 | OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 7 | 6 |
-| OPS-003 | operations | 4 | 7 | 19 | 8 | 6 | 17 | 17 | 7 |
+| OPS-003 | operations | 5 | 13 | 19 | 8 | 6 | 17 | 17 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 28 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 14 | 1 | 13 | 12 | 7 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
@@ -88,7 +88,7 @@
 | SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 10 | 3 |
 | SOIL-001 | soil | 6 | 2 | 14 | 22 | 0 | 0 | 5 | 5 |
 | SOIL-002 | soil | 10 | 30 | 8 | 8 | 2 | 0 | 5 | 6 |
-| SOIL-003 | soil | 3 | 0 | 15 | 0 | 0 | 1 | 0 | 3 |
+| SOIL-003 | soil | 3 | 3 | 15 | 0 | 0 | 1 | 0 | 4 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 0 | 3 |
 | SOIL-005 | soil | 7 | 0 | 0 | 8 | 0 | 0 | 1 | 3 |
 | WX-001 | weather | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |

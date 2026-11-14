@@ -2625,13 +2625,19 @@
         ],
         "metrics": [],
         "routes": [
+          "services/scout-ingest-service/detection_link_api.py",
           "services/scout-ingest-service/evidence_retention_api.py",
           "services/scout-ingest-service/field_forms_api.py",
+          "services/scout-ingest-service/grants_admin_api.py",
+          "services/scout-ingest-service/human_review_api.py",
+          "services/scout-ingest-service/lab_link_api.py",
           "services/scout-ingest-service/main.py",
           "services/scout-ingest-service/media_api.py",
           "services/scout-ingest-service/season_api.py",
           "services/scout-ingest-service/tests/test_ingest_live.py",
-          "services/scout-ingest-service/tests/test_season_live.py"
+          "services/scout-ingest-service/tests/test_season_live.py",
+          "services/scout-ingest-service/tissue_samples_api.py",
+          "services/scout-ingest-service/treatment_review_api.py"
         ],
         "tracing": []
       },

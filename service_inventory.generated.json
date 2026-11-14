@@ -303,7 +303,7 @@
     "service": "scout-ingest-service",
     "domain": "Unclassified / Support",
     "python_files": 19,
-    "python_loc": 7197,
+    "python_loc": 7199,
     "tests": 5,
     "routes": 45,
     "main": "services/scout-ingest-service/main.py",

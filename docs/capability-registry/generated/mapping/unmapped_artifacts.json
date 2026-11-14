@@ -9736,10 +9736,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/scout-ingest-service/grants_admin_api.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/scout-ingest-service/human_review_api.py",
     "kind": "backend"
   },

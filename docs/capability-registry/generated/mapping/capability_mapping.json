@@ -25,7 +25,7 @@
       "tests": 2486,
       "web": 544
     },
-    "unmapped_artifacts": 3483,
+    "unmapped_artifacts": 3482,
     "ambiguous_artifacts": 239,
     "files_by_reading": {
       "python_functional": 3954,
@@ -14406,6 +14406,14 @@
           ]
         },
         {
+          "path": "services/scout-ingest-service/grants_admin_api.py",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "services/scout-ingest-service/media_api.py",
           "score": 8,
           "signals": [
@@ -14422,6 +14430,30 @@
         {
           "value": "/api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:118",
           "score": 16
+        },
+        {
+          "value": "/internal/scouting-media/admin/credential-events @ services/scout-ingest-service/grants_admin_api.py:585",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:348",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:516",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke @ services/scout-ingest-service/grants_admin_api.py:439",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events @ services/scout-ingest-service/grants_admin_api.py:754",
+          "score": 8
+        },
+        {
+          "value": "/internal/scouting-media/admin/retention-policy-events @ services/scout-ingest-service/grants_admin_api.py:683",
+          "score": 8
         },
         {
           "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:237",
@@ -14951,8 +14983,8 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 4,
-        "routes": 7,
+        "backend": 5,
+        "routes": 13,
         "database": 19,
         "events": 8,
         "web": 6,
@@ -29291,7 +29323,20 @@
           ]
         }
       ],
-      "routes": [],
+      "routes": [
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:179",
+          "score": 9
+        },
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:394",
+          "score": 9
+        },
+        {
+          "value": "/internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples/{sample_id}/custody-events @ services/scout-ingest-service/tissue_samples_api.py:285",
+          "score": 9
+        }
+      ],
       "database": [
         {
           "value": "lab_sample_custody_events @ migrations/v156_durable_soil_lab_workflow.sql:29",
@@ -29392,7 +29437,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 3,
-        "routes": 0,
+        "routes": 3,
         "database": 15,
         "events": 0,
         "web": 0,
@@ -29401,7 +29446,7 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "coverage_dimensions": 3,
+      "coverage_dimensions": 4,
       "mapped": true
     },
     {
@@ -41142,10 +41187,6 @@
     },
     {
       "path": "services/scout-ingest-service/evidence_retention_api.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/scout-ingest-service/grants_admin_api.py",
       "kind": "backend"
     },
     {
