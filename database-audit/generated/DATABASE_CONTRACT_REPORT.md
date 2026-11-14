@@ -13,7 +13,7 @@
 - **rls_enabled**: 229
 - **rls_forced**: 210
 - **tenant_rls_gaps**: 139
-- **policies**: 218
+- **policies**: 220
 - **runtime_verified**: False
 - **production_certified**: False
 
@@ -149,8 +149,8 @@
 - `soil_texture_products` — enabled=False, forced=False, policies=0
 - `soil_verification_records` — enabled=False, forced=False, policies=0
 - `soil_visual_observations` — enabled=False, forced=False, policies=0
-- `task_cost_history` — enabled=False, forced=False, policies=0
-- `task_expense_links` — enabled=False, forced=False, policies=0
+- `task_cost_history` — enabled=False, forced=False, policies=1
+- `task_expense_links` — enabled=False, forced=False, policies=1
 - `trueup_calibrations` — enabled=True, forced=False, policies=1
 - `users` — enabled=True, forced=False, policies=2
 - `weather_alerts` — enabled=False, forced=False, policies=0

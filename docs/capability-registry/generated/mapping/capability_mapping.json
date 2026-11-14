@@ -25,7 +25,7 @@
       "tests": 2502,
       "web": 547
     },
-    "unmapped_artifacts": 3498,
+    "unmapped_artifacts": 3497,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
       "python_functional": 3975,
@@ -14066,7 +14066,7 @@
           "score": 14
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_inspection_live_pg.py:620",
+          "value": "field_tasks @ tests_v9/test_field_task_inspection_live_pg.py:623",
           "score": 14
         },
         {
@@ -14078,7 +14078,7 @@
           ]
         },
         {
-          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:985",
+          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:1239",
           "score": 14
         },
         {
@@ -14633,6 +14633,14 @@
           ]
         },
         {
+          "path": "migrations/v277_inspection_close_gate.sql",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "value": "scout_photo_evidence @ migrations/v260_scout_photo_evidence.sql:17",
           "score": 8
         },
@@ -15065,7 +15073,7 @@
       "evidence_counts": {
         "backend": 6,
         "routes": 20,
-        "database": 19,
+        "database": 20,
         "events": 8,
         "web": 6,
         "mobile": 17,
@@ -34272,10 +34280,6 @@
     },
     {
       "path": "migrations/v276_task_cost_trace.sql",
-      "kind": "database"
-    },
-    {
-      "path": "migrations/v277_inspection_close_gate.sql",
       "kind": "database"
     },
     {
@@ -53545,17 +53549,17 @@
         {
           "source": "services/field-management-service/main.py",
           "kind": "loader",
-          "line": 249
+          "line": 281
         },
         {
           "source": "services/field-management-service/main.py",
           "kind": "source_read",
-          "line": 249
+          "line": 281
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "source_read",
-          "line": 89
+          "line": 121
         },
         {
           "source": "services/sahool-platform/core/authorization.py",
@@ -79781,32 +79785,32 @@
         {
           "source": "services/field-management-service/main.py",
           "kind": "loader",
-          "line": 200
+          "line": 203
         },
         {
           "source": "services/field-management-service/main.py",
           "kind": "source_read",
-          "line": 48
+          "line": 49
         },
         {
           "source": "services/sahool-platform/api/irrigation_observations.py",
           "kind": "import",
-          "line": 1025
+          "line": 1279
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 210
+          "line": 213
         },
         {
           "source": "services/sahool-platform/api/task_irrigation_observations.py",
           "kind": "import",
-          "line": 1026
+          "line": 1280
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 243
+          "line": 246
         }
       ],
       "unresolved": []

@@ -2660,10 +2660,6 @@
     "kind": "database"
   },
   {
-    "path": "migrations/v277_inspection_close_gate.sql",
-    "kind": "database"
-  },
-  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },

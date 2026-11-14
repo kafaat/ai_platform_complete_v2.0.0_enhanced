@@ -1672,6 +1672,20 @@
       "table": "stac_item_registry"
     },
     {
+      "has_using": false,
+      "has_with_check": true,
+      "name": "tenant_append",
+      "source": "v276_task_cost_trace.sql",
+      "table": "task_cost_history"
+    },
+    {
+      "has_using": false,
+      "has_with_check": true,
+      "name": "tenant_append",
+      "source": "v276_task_cost_trace.sql",
+      "table": "task_expense_links"
+    },
+    {
       "has_using": true,
       "has_with_check": true,
       "name": "tenant_isolation",
@@ -1802,7 +1816,7 @@
   "summary": {
     "manifest_entries": 265,
     "manifest_missing_count": 0,
-    "policies": 218,
+    "policies": 220,
     "production_certified": false,
     "rls_enabled": 229,
     "rls_forced": 210,
@@ -7316,12 +7330,12 @@
       "created_in": "v276_task_cost_trace.sql",
       "has_tenant_id": true,
       "manifest_position": 261,
-      "policy_count": 0,
+      "policy_count": 1,
       "rls_enabled": false,
       "rls_forced": false,
       "table": "task_cost_history",
       "tenant_rls_gap": true,
-      "write_policy_with_check": false
+      "write_policy_with_check": true
     },
     {
       "code_readers": [
@@ -7334,12 +7348,12 @@
       "created_in": "v276_task_cost_trace.sql",
       "has_tenant_id": true,
       "manifest_position": 261,
-      "policy_count": 0,
+      "policy_count": 1,
       "rls_enabled": false,
       "rls_forced": false,
       "table": "task_expense_links",
       "tenant_rls_gap": true,
-      "write_policy_with_check": false
+      "write_policy_with_check": true
     },
     {
       "code_readers": [

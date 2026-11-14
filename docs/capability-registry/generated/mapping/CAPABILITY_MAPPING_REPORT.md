@@ -14,7 +14,7 @@
 - Multi-dimensional mappings: **43**
 - Files scanned: **7348**
 - Ambiguous artifacts queued: **238**
-- Unmapped artifacts queued: **3498**
+- Unmapped artifacts queued: **3497**
 
 ## Capability coverage
 
@@ -58,7 +58,7 @@
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-001 | operations | 0 | 0 | 9 | 6 | 0 | 1 | 3 | 4 |
 | OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 7 | 6 |
-| OPS-003 | operations | 6 | 20 | 19 | 8 | 6 | 17 | 17 | 7 |
+| OPS-003 | operations | 6 | 20 | 20 | 8 | 6 | 17 | 17 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 28 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 14 | 1 | 13 | 12 | 7 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |

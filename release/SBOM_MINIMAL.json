@@ -9745,7 +9745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c1a9afbf29bb7c26710447a0848ab81f5828a3087259bce283181729ea066ba2"
+          "content": "d251af241044cf27bebc040714c50f54de4d04a86465e1a670db10d7ee53867d"
         }
       ],
       "name": "migrations/v275_inspection_handoffs.sql",
@@ -9755,7 +9755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f5328ddacf22ee582563494a49f60b6ca4ea760ce32ad3f001d064557660ab8e"
+          "content": "0f299dff2348b020041abf841e4312e5f50429cd61ce4def2c896eaf93cbd9f3"
         }
       ],
       "name": "migrations/v276_task_cost_trace.sql",
@@ -9765,7 +9765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "55f17f0d88f8bd7115326391daeb7e4283f9c89c29e2047066c181d95294d12f"
+          "content": "77e451e37746b92b8b31761c652c5475af137969950e9e867af575d02c2dc4d0"
         }
       ],
       "name": "migrations/v277_inspection_close_gate.sql",
@@ -19975,7 +19975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7b542ed3be77a65ca1ebcba281c208a22ca99a9a1bdafd835aa46e32033ddec"
+          "content": "95e9fb7f1dfaefba0bde071800f15a8e033772fe10dff23f94628e3b97627344"
         }
       ],
       "name": "services/field-management-service/tests/test_field_task_routes_unit.py",
