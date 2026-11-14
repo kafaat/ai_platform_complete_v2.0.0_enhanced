@@ -31,11 +31,11 @@
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:104",
         "GET /v1/auth/me @ services/auth/routers/session.py:240",
-        "GET /v1/auth/users @ services/auth/routers/users.py:23",
+        "GET /v1/auth/users @ services/auth/routers/users.py:67",
         "GET /v1/auth/verify @ services/auth/routers/email_verify.py:98",
         "GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:108",
-        "PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:74",
-        "PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:32",
+        "PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:132",
+        "PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:81",
         "POST /api/v1/auth/login @ services/sahool-platform/api/routers/auth.py:48",
         "POST /api/v1/auth/logout @ services/sahool-platform/api/routers/auth.py:106",
         "POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.py:138",
@@ -51,7 +51,7 @@
         "POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:43",
         "POST /v1/auth/refresh @ services/auth/routers/session.py:139",
         "POST /v1/auth/register @ services/auth/routers/registration.py:20",
-        "POST /v1/auth/tenants @ services/auth/routers/tenants.py:41",
+        "POST /v1/auth/tenants @ services/auth/routers/tenants.py:62",
         "POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:56",
         "POST /v1/auth/verify/request @ services/auth/routers/email_verify.py:23",
         "POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2811"
@@ -150,7 +150,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 58
+        "tests": 61
       }
     },
     {
@@ -1912,7 +1912,7 @@
       ],
       "apis": [
         "GET /api/v1/rbac/preview-role-change @ services/sahool-platform/api/routers/rbac.py:54",
-        "PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:32",
+        "PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:81",
         "POST /v1/auth/change-password @ services/auth/routers/registration.py:73",
         "POST /v1/change/detect @ services/raster-service/routers/analysis.py:48",
         "POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1157"
@@ -5700,6 +5700,7 @@
       "tests": [
         "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
         "tests_v9/test_auth_admin_stepup_mfa.py",
+        "tests_v9/test_auth_cors_mfa_header.py",
         "tests_v9/test_auth_mfa_activate_disable_lockout.py",
         "tests_v9/test_auth_mfa_enforcement.py",
         "tests_v9/test_fields_put_and_mfa_api_contract_20260626.py",
@@ -5741,7 +5742,7 @@
           "path": "services/auth/mfa_crypto.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=9, ui=0, mobile=2. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=10, ui=0, mobile=2. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5992,6 +5993,7 @@
         "tests_v9/test_critical_event_fail_closed.py",
         "tests_v9/test_erp_bridge_fail_closed.py",
         "tests_v9/test_fii_rls_write_fail_closed_postgres.py",
+        "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
         "tests_v9/test_secret_enforcement_guard_v21.py",
         "tests_v9/test_secret_guard.py",
         "tests_v9/test_services_rs256_production_guard.py",
@@ -6027,7 +6029,7 @@
           "path": "shared/security/secret_guard.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=14, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=15, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
