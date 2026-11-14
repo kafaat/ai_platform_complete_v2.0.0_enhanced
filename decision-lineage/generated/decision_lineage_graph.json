@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 761,
+      "evidence_count": 762,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -786,6 +786,7 @@
         "shared/field_change_summary.py",
         "shared/field_runtime_cohesion.py",
         "shared/governance/chemical_lineage.py",
+        "shared/knowledge/context_resolver.py",
         "shared/knowledge/contracts.py",
         "shared/knowledge/providers.py",
         "shared/mlops/agronomic_candidate.py",
@@ -3072,7 +3073,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
-      "source_evidence_count": 761,
+      "source_evidence_count": 762,
       "target_evidence_count": 576,
       "static_supported": true,
       "runtime_verified": false
@@ -3532,5 +3533,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "379bfadd061324b1e6789931f0316fa36e35d7a9e69db94b3ec1e1e1084fe3ac"
+  "content_sha256": "458b1238b69c6583b9ba4e4aa470eaafa2b8c5493ed581e607ddb21641271309"
 }

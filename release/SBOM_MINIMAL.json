@@ -9755,7 +9755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "333d722bed94d5def3be16cf9749b199a492bbb788ff5b15953490b3e407795d"
+          "content": "11c43e886642c034f9149ce86abf678825487df3efccffe6e020064ac437ab7f"
         }
       ],
       "name": "migrations/v276_task_cost_trace.sql",
