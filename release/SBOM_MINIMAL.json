@@ -7945,7 +7945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "54c701c0787408133ba02cf850534c4bf29d35de71ea0e64af1eb7cfb1a04b92"
+          "content": "707f193a841a8be13b171477e8683c2cb91b006c55267c868c75a701b4d7c314"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -7955,7 +7955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "517d9d5428ca2c2c8352b1a247eb2da38d3a08b4046febed0324e3959176d807"
+          "content": "73ae231d23c322720ba27337857624113e08f0362c6cd515dc7cfd9475f8a488"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
@@ -9735,7 +9735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c9b7b7dbc5cd19dbf30f96d4d65f4464f66943a6cd60f04c965a5d8fe8e20529"
+          "content": "33412a12eb5c3bf92bda8577c40ee7ecaffd69911541b8f61daaa244f4277941"
         }
       ],
       "name": "migrations/v274_inspection_evidence_versions.sql",
@@ -9745,7 +9745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d82c251c11d127a87082886862098205a87510c2ecfaec899045c149dd954a91"
+          "content": "cc14c7588ad617709fb8e269d937be537e56db8d9a6e385a2687c409f904cf63"
         }
       ],
       "name": "migrations/v275_inspection_handoffs.sql",
@@ -9755,7 +9755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5cc522c559db81f509de459e3a855a9a390e4a916ac2f88084d444fc0557dcc3"
+          "content": "333d722bed94d5def3be16cf9749b199a492bbb788ff5b15953490b3e407795d"
         }
       ],
       "name": "migrations/v276_task_cost_trace.sql",
@@ -9765,7 +9765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e1d8840dab84b97309b11cd7df39d819b85b844ee7b13c406c414a55fa5201e"
+          "content": "5cf83bda72db435ab64f4e6c08a012a68f39853e54a466baeb6a9aec872dbbf1"
         }
       ],
       "name": "migrations/v277_inspection_close_gate.sql",
@@ -19925,7 +19925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2dca12d7a16d7e233dd46f4119f14330964ef4ef89e072437b1822cf97e8ccac"
+          "content": "4d42d831304643c860d1068fd4126fcf59de9dcc5e148714393c52adab5c3d64"
         }
       ],
       "name": "services/field-management-service/fm_task_inspection.py",
@@ -27755,7 +27755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc37f43c92b4e3215fcedc0a703c0a180f5ae6c4e846ddc6c8f08b4c73e193d8"
+          "content": "e2a3ba1de89e35503a354b3deba60970d91bda7c7f316a73d2da25b5eb1ccbbe"
         }
       ],
       "name": "services/sahool-platform/api/routers/tasks.py",

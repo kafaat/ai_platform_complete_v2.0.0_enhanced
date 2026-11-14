@@ -56,7 +56,7 @@
 | IRR-008 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | IRR-009 | irrigation | 8 | 1 | 7 | 9 | 2 | 0 | 13 | 6 |
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| OPS-001 | operations | 0 | 0 | 9 | 6 | 0 | 1 | 3 | 4 |
+| OPS-001 | operations | 0 | 0 | 9 | 7 | 0 | 1 | 3 | 4 |
 | OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 7 | 6 |
 | OPS-003 | operations | 6 | 20 | 20 | 8 | 6 | 17 | 17 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 28 | 6 |
@@ -78,7 +78,7 @@
 | SAT-007 | satellite | 1 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
 | SAT-009 | satellite | 12 | 52 | 0 | 15 | 2 | 1 | 28 | 6 |
-| SEC-001 | security | 12 | 16 | 100 | 75 | 0 | 0 | 86 | 5 |
+| SEC-001 | security | 12 | 16 | 100 | 76 | 0 | 0 | 86 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-004 | security | 6 | 9 | 19 | 1 | 5 | 4 | 13 | 7 |

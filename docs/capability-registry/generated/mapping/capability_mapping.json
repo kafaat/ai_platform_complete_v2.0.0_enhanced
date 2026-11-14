@@ -14078,7 +14078,7 @@
           "score": 14
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_inspection_live_pg.py:639",
+          "value": "field_tasks @ tests_v9/test_field_task_inspection_live_pg.py:640",
           "score": 14
         },
         {
@@ -14090,7 +14090,7 @@
           ]
         },
         {
-          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:1606",
+          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:1816",
           "score": 14
         },
         {
@@ -14142,6 +14142,10 @@
         {
           "value": "public.fields @ migrations/v261_field_tasks_reference_fields.sql:22",
           "score": 14
+        },
+        {
+          "value": "public.task_cost_history @ tests_v9/test_field_task_inspection_live_pg.py:1427",
+          "score": 14
         }
       ],
       "web": [],
@@ -14191,7 +14195,7 @@
         "backend": 0,
         "routes": 0,
         "database": 9,
-        "events": 6,
+        "events": 7,
         "web": 0,
         "mobile": 1,
         "tests": 3,
@@ -14496,31 +14500,31 @@
           "score": 16
         },
         {
-          "value": "/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:275",
+          "value": "/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:283",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:294",
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:302",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:309",
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:317",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:359",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:367",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:450",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:458",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:589",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:597",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:465",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:473",
           "score": 8
         },
         {
@@ -24922,6 +24926,10 @@
           "score": 8
         },
         {
+          "value": "public.field_tasks @ migrations/v276_task_cost_trace.sql:129",
+          "score": 8
+        },
+        {
           "value": "sahool.ai_policy_envelope @ services/realtime-session/realtime_session/platform.py:122",
           "score": 8
         },
@@ -26445,7 +26453,7 @@
         "backend": 12,
         "routes": 16,
         "database": 100,
-        "events": 75,
+        "events": 76,
         "web": 0,
         "mobile": 0,
         "tests": 86,
@@ -79934,7 +79942,7 @@
         {
           "source": "services/field-management-service/main.py",
           "kind": "loader",
-          "line": 215
+          "line": 216
         },
         {
           "source": "services/field-management-service/main.py",
@@ -79944,22 +79952,22 @@
         {
           "source": "services/sahool-platform/api/irrigation_observations.py",
           "kind": "import",
-          "line": 1646
+          "line": 1856
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 225
+          "line": 226
         },
         {
           "source": "services/sahool-platform/api/task_irrigation_observations.py",
           "kind": "import",
-          "line": 1647
+          "line": 1857
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 258
+          "line": 259
         }
       ],
       "unresolved": []

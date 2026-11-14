@@ -3985,17 +3985,17 @@
       ],
       "apis": [
         "GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:46",
-        "GET /internal/field-tasks/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:276",
-        "GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:295",
-        "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:360",
+        "GET /internal/field-tasks/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:284",
+        "GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:303",
+        "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:368",
         "GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147",
         "PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:106",
         "POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2821",
         "POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88",
-        "POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:310",
-        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:451",
-        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:590",
-        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:466"
+        "POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:318",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:459",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:598",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:474"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
