@@ -3,6 +3,7 @@
 The live evidence builder is driven only until the first failed dependency using
 an in-memory transport. No tenant data, Qdrant collection, or network are touched.
 """
+
 from __future__ import annotations
 
 from types import SimpleNamespace
